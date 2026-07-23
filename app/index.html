@@ -314,7 +314,8 @@ function roomDitto(){const c=CAST[3];
      <input id="dtseed" placeholder="pelipper,whimsicott,archaludon,basculegion,kingambit,sinistcha (optional)" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:10px">
      <button class="battlebtn" onclick="runDitto()">Build me a team</button>
      <pre id="dtout" style="margin-top:12px;background:#fff0fa;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:360px;overflow:auto">Press Build me a team.</pre>
-   </div>`;
+   </div>
+   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">I hill-climb: start from a team, try swapping one Pokémon at a time, and keep the swaps that score better against a gauntlet of <b>real</b> ladder teams. Jolteon scores each candidate in microseconds so I can try thousands. I weight by real usage — so I care about beating Basculegion, not Camerupt — and Medicham re-checks my finalists with grounded rollouts so I don't fool myself into stacking Pokémon Jolteon over-rates.</p></div>`;
 }
 function roomKadabra(){const c=CAST[4];
   return `<div class="panel">${mascotHero(c,"Paste one of your games and I'll pop in on the turns that actually mattered — not the whole battle — and show you what to do.")}</div>
@@ -330,13 +331,15 @@ function roomKadabra(){const c=CAST[4];
 function roomSlowking(){const c=CAST[5];
   return `<div class="panel">${mascotHero(c,"Slowly... wisely... I search over <b>belief states</b> — what your opponent might be hiding — to find the equilibrium-best move. I'm the deep one. I'm also still being built. ")}</div>
    <div class="panel"><h2>The research tier</h2><p style="font-weight:600;color:#3a5372">Champions is a simultaneous-move, imperfect-information game — solving it means mixed strategies and belief search (think ReBeL / Student-of-Games). That's a genuine research effort, honestly flagged as roadmap, not a weekend build. The white papers lay out the full math. When I'm ready, Kadabra's advice gets deeper with no change to the interface.</p>
-   <span class="chip">POSG / Markov game</span><span class="chip">mixed Nash</span><span class="chip">belief-state search</span><span class="chip">offline RL</span><span class="chip">world models</span></div>`;
+   <span class="chip">POSG / Markov game</span><span class="chip">mixed Nash</span><span class="chip">belief-state search</span><span class="chip">offline RL</span><span class="chip">world models</span></div>
+   <div class="panel"><h2>How Slowking will think</h2><p style="font-weight:600;color:#3a5372">I won't just look at the board — I'll track a <b>belief</b> about what you can't see (their hidden sets and what they'll click), and search a few turns deep over those possibilities to find the move that's best against their <i>likely</i> best response, not a guessed one. That's the equilibrium-aware, win-probability-maximising play. When I'm built, Kadabra evolves into <b>ALAKAZAM</b> — the deep coach that uses me to show you the win-%-optimal line, not just what went wrong.</p></div>`;
 }
 function roomChomp(){const c=CAST[6];
   return `<div class="panel">${mascotHero(c,"CHOMP! I'm the engine you actually play with — I pick the best 4 of your 6 and the 2 to lead, covering the opponent's whole team with exact damage math. ABRA feeds me smarter reads over time. ")}</div>
    <div class="panel"><h2>The bring-4 / lead-2 engine</h2><p style="font-weight:600;color:#3a5372">A Showdown userscript. It reads the battle, runs the full Gen-9 damage pipeline across all 16 rolls, and tells you the four to bring and two to lead. It covers the opponent's <b>whole six</b> (you never know their four), with ABRA's usage as advisory intel. Because it auto-updates, a smarter ABRA reaches your plugin with no reinstall.</p>
-     <a class="link" href="https://github.com/willhoop/chomp" target="_blank"> Get CHOMP</a>
-     <a class="link" href="go:jolteon" onclick="go('jolteon');return false;"> Try the odds booth</a></div>`;
+     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a>
+     <a class="link" href="go:jolteon" onclick="go('jolteon');return false;">Try the odds booth</a></div>
+   <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
 const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
 
