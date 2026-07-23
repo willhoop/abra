@@ -29,9 +29,9 @@ Guiding principle: **garbage in, garbage out.** Several models are only as good 
 
 ## KADABRA — Key Analysis of Decisions, Advice & Better Replay Annotation
 **Job:** coach a real replay — take you to the turns that mattered.
-**Method (as of 2026-07-23):** parses the replay log to find decisive turns (KOs, losses), then runs a **guided tour**: embeds the **real Showdown replay** seeked to each key turn, explains the situation + feedback, you hit play to watch it, then step to the next key moment (prev/next). Falls back to a simplified reconstructed scene if the embed is blocked.
-**Honest status:** working; the embed renders the real battle (targeting/status/field/animation native). Coaching is heuristic ("you lost X here — consider Protect/pivot"), not yet equilibrium-grade — that's ALAKAZAM, later.
-**Code:** `runKadabra`, `renderKadEmbed`, `kadBuild`, `renderKad` (fallback) in `web/index.html`.
+**Method (as of 2026-07-23):** parses the replay log to find decisive turns (KOs, losses), then runs a **clean move-by-move walkthrough** — big prev/next arrows, sprites + HP each key turn, and a bold **"what you should've done"** panel with the prescriptive fix. No Showdown iframe (dropped as clutter). **Works offline (`file://`)**: coaches from a locally-bundled set of recent games (`data/kad-replays.js`), with a recent-games picker and a raw-log paste fallback.
+**Honest status:** working offline; coaching is heuristic ("you traded X for nothing — Protect/pivot keeps it alive"), not yet equilibrium-grade — that's ALAKAZAM, later.
+**Code:** `runKadabra`, `kadCoach`, `kadPickerUI`, `kadBuild`, `renderKad` in `web/index.html`; bundle from `engine/refresh-site-data.py`.
 **Open:** deeper per-turn analysis (win-prob delta per decision) once the engine + value net are wired.
 
 ## SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver
