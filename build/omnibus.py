@@ -89,14 +89,16 @@ def build(manifest, base='.'):
     sections=manifest['sections']
     P=lambda f: f if os.path.isabs(f) else os.path.join(base,f)
 
+    BREAK='<p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p>'
     parts=[f"""<div class="cover"><div class="big">{title}</div>
       <div class="sub">{sub}</div>
       <div class="meta">{author}{' · ' if author else ''}{date}</div>
-      <div class="note">{note}</div></div>"""]
+      <div class="note">{note}</div></div>""", BREAK]
     # TOC
     toc="".join(f"<li>{s['label']}</li>" for s in sections)
     parts.append(f'<div class="toc"><h1>Contents</h1><ol>{toc}</ol></div>')
-    # sections
+    parts.append(BREAK)
+    # sections, each on a fresh page (explicit break elements LibreOffice honors)
     for i,s in enumerate(sections,1):
         label=s['label']; kind=s.get('kind','md'); f=P(s['file'])
         if kind=='image':
@@ -104,6 +106,7 @@ def build(manifest, base='.'):
         else:
             body=render_md(f)
             parts.append(f'<div class="section"><div class="divider">Part {i}</div>{body}</div>')
+        if i<len(sections): parts.append(BREAK)
     doc=f"<!DOCTYPE html><html><head><meta charset='utf-8'><style>{CSS}</style></head><body>{''.join(parts)}</body></html>"
     return doc
 

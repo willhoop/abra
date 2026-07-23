@@ -3,7 +3,9 @@
 const fs=require('fs');
 const STORE=process.argv[2]||'data/games.ladder.jsonl';
 const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,''));
-const games=fs.readFileSync(STORE,'utf8').split('\n').filter(Boolean).map(l=>JSON.parse(l));
+const _seen=new Set();
+const games=fs.readFileSync(STORE,'utf8').split('\n').filter(Boolean).map(l=>JSON.parse(l))
+  .filter(g=>!_seen.has(g.id)&&_seen.add(g.id));   // dedup by replay id — never double-count a game
 const idn=n=>(n||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 
 function usage(rows, {minRating=0, humansOnly=true}={}){

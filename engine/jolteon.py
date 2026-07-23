@@ -43,11 +43,14 @@ def team_speed(team):   return sum(SPD.get(s, 0.5)  for s in team) / max(1, len(
 def team_fire(team):    return sum(FIRE.get(s, 0.5) for s in team) / max(1, len(team))
 
 def load(path, humans_only=True):
-    rows=[]
+    rows=[]; seen=set()
     for line in open(path, encoding='utf-8'):
         if not line.strip(): continue
         g=json.loads(line)
-        if not g.get('winner'): continue
+        gid=g.get('id')
+        if gid in seen: continue          # dedup by replay id — a game we already
+        seen.add(gid)                      # scraped is never counted twice, even if
+        if not g.get('winner'): continue   # it was also reviewed / self-uploaded
         if humans_only and (g['p1'].get('bot') or g['p2'].get('bot')): continue
         a=[idn(x) for x in g['six']['p1']]; b=[idn(x) for x in g['six']['p2']]
         if len(a)<4 or len(b)<4: continue

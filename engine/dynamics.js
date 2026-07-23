@@ -28,11 +28,12 @@ const key=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 
 const spd={};   // sp -> {first,total}
 const dmg={};   // 'sp|move' -> {n,sum,max,rolls:[]}
-let games=0, nonTR=0;
+let games=0, nonTR=0; const seen=new Set();
 
 function side(slot){ return slot.slice(0,2); }
 for(const line of fs.readFileSync(STORE,'utf8').split('\n')){
   if(!line.trim())continue; let r; try{r=JSON.parse(line);}catch(e){continue;}
+  if(seen.has(r.id))continue; seen.add(r.id);   // dedup by replay id — never double-count
   const turns=r.turns||[]; if(!turns.length)continue; games++;
   // Trick Room active? (crude but safe: any use of Trick Room in the game -> drop from speed signal)
   const hasTR=turns.some(t=>t.ev.some(e=>e.t==='m'&&key(e.mv)==='trickroom'));
