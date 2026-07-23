@@ -343,8 +343,14 @@ function tierRow(sprite,name,acro,cost,color,text){
 }
 function roomMedicham(){const c=CAST[2];
   return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — CHOMP's exact damage, a few hundred quick rollouts, sampling every roll. Middle of the pack in speed and cost.")}</div>
-   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Pick both teams below — your carried team is already loaded. I run the rollout and give a grounded win rate.</p>
-     <div class="booth two" style="margin-top:8px">
+   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Pick both teams below — your carried team is already loaded. The grounded result shows up right here at the top.</p>
+     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
+       <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff" onclick="runMedichamRoom()">Play it out</button>
+     </div>
+     <div class="meterwrap" style="margin-top:12px"><div class="mYou" id="mcYou" style="width:50%"></div><div class="mRiv" id="mcRiv"></div>
+       <b id="mcYouL" style="left:12px">50%</b><b id="mcRivL" style="right:12px">50%</b></div>
+     <div class="readout" id="mcRoomOut">Pick two teams and press Play it out.</div>
+     <div class="booth two" style="margin-top:16px">
        <div class="side you"><h3>Your team</h3><div class="slots" data-slots="A"></div>
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMA','A',this.value)">
          <div class="picker" id="pickMA"></div></div>
@@ -352,8 +358,6 @@ function roomMedicham(){const c=CAST[2];
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMB','B',this.value)">
          <div class="picker" id="pickMB"></div></div>
      </div>
-     <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;margin-top:10px" onclick="runMedichamRoom()">Play it out</button>
-     <div class="readout" id="mcRoomOut" style="text-align:left;color:#b4432f"></div>
    </div>
    <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
 }
@@ -498,12 +502,13 @@ function doBattle(quiet){
 function doMedicham(){ go('medicham'); setTimeout(runMedichamRoom,90); }
 function runMedichamRoom(){
   const out=document.getElementById('mcRoomOut'); if(!out)return;
-  if(!teamA.length||!teamB.length){out.textContent='Pick both teams above first.';return;}
+  if(!teamA.length||!teamB.length){out.textContent='Pick both teams first.';return;}
   out.textContent='MEDICHAM is playing it out…';
   setTimeout(()=>{ const p=mcWinProb(teamA,teamB,400);
     if(p==null){out.textContent='Could not build those teams — try more common species.';return;}
-    const jp=Math.round(pwin(teamA,teamB)*100), mp=Math.round(p*100), gap=Math.abs(jp-mp);
-    out.innerHTML=`Grounded win rate for <b>your</b> team: <b style="color:#2a7">${mp}%</b> over 400 rollouts. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<10?'They agree — this read is solid.':`Gap of <b>${gap} pts</b> — MEDICHAM actually played it out, so trust it over JOLTEON here.`);
+    const mp=Math.round(p*100), jp=Math.round(pwin(teamA,teamB)*100), gap=Math.abs(jp-mp);
+    const y=document.getElementById('mcYou'); if(y){ y.style.width=mp+'%'; document.getElementById('mcYouL').textContent=mp+'%'; document.getElementById('mcRivL').textContent=(100-mp)+'%'; }
+    out.innerHTML=`Grounded win rate for <b>your</b> team: <b>${mp}%</b> over 400 rollouts. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<10?'They agree — this read is solid.':`Gap of <b>${gap} pts</b> — MEDICHAM actually played it out, so trust it over JOLTEON here.`);
   },20);
 }
 /* ===== DITTO — in-browser team optimiser (no server) ===== */
