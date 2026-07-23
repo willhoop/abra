@@ -132,6 +132,28 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .link{display:inline-block;margin:4px 6px 0 0;border:3px solid var(--line);background:#fff;border-radius:14px;padding:7px 12px;font-weight:700;color:var(--ink);text-decoration:none;box-shadow:0 4px 0 var(--shadow)}
 .link:hover{background:#fff7d6;transform:translateY(-2px)}
 .tag2{font-size:12px;background:#ffe08a;border:2px solid var(--line);border-radius:8px;padding:1px 7px;font-weight:700}
+/* ---- KADABRA battle scenes ---- */
+.stage{position:relative;border:3px solid var(--line);border-radius:16px;overflow:hidden;height:220px;
+  background:linear-gradient(#bfe3ff 0%,#dff1ff 54%,#c7ebac 54%,#9ed17f 100%);margin:8px 0}
+.stage .side{position:absolute;display:flex;gap:16px}
+.stage .foe{top:14px;right:22px}
+.stage .you{bottom:8px;left:22px}
+.bmon{width:96px;text-align:center;animation:bob 2.8s ease-in-out infinite}
+.bmon img{width:82px;height:82px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 4px 2px rgba(0,0,0,.25))}
+.bmon.faint{opacity:.35;filter:grayscale(1)}
+.bmon .nm{font-family:'Baloo 2';font-size:12px;font-weight:700;background:#ffffffd8;border:2px solid var(--line);border-radius:7px;padding:0 6px;display:inline-block}
+.hpbar{height:8px;border:2px solid var(--line);border-radius:6px;background:#fff;overflow:hidden;margin:3px auto;width:74px}
+.hpbar>i{display:block;height:100%;transition:width .6s cubic-bezier(.3,1.2,.4,1)}
+.statuschip{font-size:9px;border:1px solid var(--line);border-radius:4px;padding:0 3px;background:#ffd23f;font-weight:700;text-transform:uppercase}
+.kadlogline{font-weight:600;color:#4a6a8a;font-size:13px;margin:3px 0}
+.kadpop{display:flex;gap:12px;align-items:flex-start;margin-top:10px;animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
+.kadpop img{width:74px;height:74px;object-fit:contain;image-rendering:pixelated;animation:bob 2s ease-in-out infinite;flex:none}
+.kadpop .bubble{flex:1;border-width:3px}
+.kadstep{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:12px}
+.kadstep button{border:3px solid var(--line);background:var(--electric);border-radius:12px;padding:6px 16px;font-weight:800;box-shadow:0 3px 0 var(--electric2)}
+.kadstep button:active{transform:translateY(2px);box-shadow:none}
+.kdot{width:10px;height:10px;border-radius:50%;border:2px solid var(--line);background:#fff;cursor:pointer;display:inline-block}
+.kdot.on{background:var(--electric)}
 footer{position:relative;z-index:5;text-align:center;color:#3a5372;font-weight:600;padding:0 0 30px}
 canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 .walker{position:fixed;bottom:10px;z-index:4;width:60px;height:60px;image-rendering:pixelated;pointer-events:none}
@@ -375,13 +397,44 @@ async function doMedicham(){
       (gap<10?'They agree — trust it.':gap<25?'A little disagreement.':'<b>Big gap</b> — JOLTEON may be off here; trust MEDICHAM.');
   }catch(e){ el.innerHTML='Live MEDICHAM needs the local server: run <code>start.bat</code> (or <code>node server.js</code>), then open <b>localhost:8790</b>.'; }
 }
+let KAD=null, kadKeys=[], kadI=0;
 async function runKadabra(){
   const id=document.getElementById('kdid').value.trim(), me=document.getElementById('kdme').value.trim();
-  const out=document.getElementById('kdout'); if(!id){out.textContent='Paste a replay link or id first.';return;}
-  out.textContent='KADABRA is reviewing the game...';
-  try{ const r=await fetch(`/api/kadabra?id=${encodeURIComponent(id)}&me=${encodeURIComponent(me)}`); const j=await r.json(); out.textContent=j.text||'(no output)'; }
-  catch(e){ out.innerHTML='Live KADABRA needs the local server: run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
+  const out=document.getElementById('kdout'); if(!id){out.textContent='Paste a replay link first.';return;}
+  out.innerHTML='<div style="font-weight:700">KADABRA is reviewing the game…</div>';
+  try{
+    const r=await fetch(`/api/kadabra?id=${encodeURIComponent(id)}&me=${encodeURIComponent(me)}`); const j=await r.json();
+    const txt=j.json||''; const a=txt.indexOf('{'), b=txt.lastIndexOf('}'); if(a<0) throw 0;
+    KAD=JSON.parse(txt.slice(a,b+1));
+    kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length) kadKeys=KAD.scenes.slice(0,1);
+    kadI=0; renderKad();
+  }catch(e){ out.innerHTML='Live KADABRA needs the local server: run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
 }
+function hpc(h){ return h>50?'#5fd07a':h>20?'#ffc53f':'#ff6b6b'; }
+function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
+  const url=back?`https://play.pokemonshowdown.com/sprites/ani-back/${m.sp}.gif`:ani(m.sp);
+  return `<div class="bmon ${m.hp<=0?'faint':''}"><span class="nm">${cap(m.sp)}${m.st?` <span class="statuschip">${m.st}</span>`:''}</span>
+    <div class="hpbar"><i style="width:${Math.max(0,m.hp)}%;background:${hpc(m.hp)}"></i></div>
+    <img src="${url}" onerror="this.onerror=null;this.src='${ani('substitute')}'"></div>`; }
+function renderKad(){
+  const wrap=document.getElementById('kdout'); if(!KAD)return;
+  const s=kadKeys[kadI], last=KAD.scenes[KAD.scenes.length-1].n;
+  const kindColor={loss:'#ff6b6b',threat:'#ffb03a',good:'#5fd07a'}[s.kind]||'#7a6bff';
+  const dots=kadKeys.map((k,i)=>`<span class="kdot ${i===kadI?'on':''}" onclick="kadGo(${i})"></span>`).join('');
+  wrap.innerHTML=`
+    <div style="font-weight:700;margin-bottom:6px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b>
+      · <span style="color:#889">key moment ${kadI+1} of ${kadKeys.length} · turn ${s.n}/${last}</span></div>
+    <div class="stage">
+      <div class="side foe">${s.foe.map(m=>bmon(m,false)).join('')}</div>
+      <div class="side you">${s.you.map(m=>bmon(m,true)).join('')}</div>
+    </div>
+    <div style="margin-top:6px">${s.log.map(l=>`<div class="kadlogline">${l}</div>`).join('')}</div>
+    <div class="kadpop"><img src="${ani('kadabra')}">
+      <div class="bubble" style="border-color:${kindColor}"><b>${s.kind==='good'?'Well played':'What to do'}:</b> ${s.coach||s.note}</div></div>
+    <div class="kadstep"><button onclick="kadNav(-1)">◀ prev</button>${dots}<button onclick="kadNav(1)">next ▶</button></div>`;
+}
+function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); renderKad(); }
+function kadGo(i){ kadI=i; renderKad(); }
 async function runDitto(){
   const seed=document.getElementById('dtseed').value.trim();
   const out=document.getElementById('dtout'); out.textContent='DITTO is optimising against the live meta... (this one is slow, ~30s)';
