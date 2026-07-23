@@ -414,6 +414,12 @@ const MOVESETS = {"charizard":[["heatwave",0.61],["protect",0.16],["weatherball"
 const API=location.protocol==='file:'?'http://localhost:8790':'';
 JOLT.roster.sort((a,b)=>(b.use||0)-(a.use||0));   // default order = usage ranking (most-brought first)
 const ani=n=>`https://play.pokemonshowdown.com/sprites/ani/${n}.gif`;
+// sprite fallback chain: animated gif -> static gen5 png (near-complete form coverage)
+// -> base-species static -> substitute. Fixes forms that lack an animated sprite.
+function sprFallback(img){ const s=+(img.dataset.g||0);
+  if(s===0){ img.dataset.g=1; img.src=img.src.replace('/sprites/ani/','/sprites/gen5/').replace('.gif','.png'); return; }
+  if(s===1 && img.dataset.base){ img.dataset.g=2; img.src='https://play.pokemonshowdown.com/sprites/gen5/'+img.dataset.base+'.png'; return; }
+  img.onerror=null; img.src='https://play.pokemonshowdown.com/sprites/ani/substitute.gif'; }
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 function niceName(k){return k?String(k).replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\b\w/g,c=>c.toUpperCase()):'—';}
 function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0.5;}
@@ -631,7 +637,7 @@ function renderThreats(_,q){
     `</tr></thead><tbody>`+
     rows.map((r,i)=>{const base=(r.sprite||r.n).split('-')[0].replace(/[^a-z0-9]/g,'');const aw=adjWin(r);const sp=realSpd(r);
       return `<tr><td class="rk">${i+1}</td>
-      <td class="tn"><img src="${ani(r.sprite)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${ani(base)}';}else{this.onerror=null;this.src='${ani('substitute')}';}">${cap(r.n)}</td>
+      <td class="tn"><img src="${ani(r.sprite)}" data-base="${base}" onerror="sprFallback(this)">${cap(r.n)}</td>
       <td>${pct(r.use)}</td><td>${pct(r.bring)}</td><td>${pct(r.lead)}</td>
       <td style="color:${winc(aw)};font-weight:700" title="raw ${pct(r.win)} over ${r.n_games} games, adjusted for sample size">${pct(aw)}</td>
       <td>${sp==null?'—':sp}</td><td style="color:#889">${(r.n_games||0).toLocaleString()}</td></tr>`;}).join('')+
@@ -672,7 +678,7 @@ function saveCurrent(side){ const t=(side==='B')?teamB:teamA; if(!t.length){aler
 function loadSaved(i,side){ const s=getSaved(),t=s[i]; if(!t)return; if(side==='B')teamB=t.six.slice(); else teamA=t.six.slice(); renderSlots(); syncSel(); saveTeams(); }
 function delSaved(i){ const s=getSaved(); s.splice(i,1); localStorage.setItem('abraSaved',JSON.stringify(s)); renderSaved(); }
 function renderSaved(){ const els=document.querySelectorAll('.savedbar'); if(!els.length)return; const s=getSaved();
-  const html = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
+  const html = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
   els.forEach(el=>el.innerHTML=html);
 }
 function ensureTeams(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp']; }
@@ -688,7 +694,7 @@ function toggle(n,side){const T=side==='A'?teamA:teamB;const i=T.indexOf(n);
   if(i>=0)T.splice(i,1); else {if(T.length>=6){return;} T.push(n);} renderSlots(); syncSel();}
 function syncSel(){document.querySelectorAll('.pk').forEach(b=>{const T=b.dataset.s==='A'?teamA:teamB;b.classList.toggle('sel',T.includes(b.dataset.n));});}
 function renderSlots(){
-  const cell=(n,side)=>`<div class="slot" title="${cap(n)} — click × to remove"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'"><button class="slotx" onclick="toggle('${n}','${side}')">×</button></div>`;
+  const cell=(n,side)=>`<div class="slot" title="${cap(n)} — click × to remove"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)"><button class="slotx" onclick="toggle('${n}','${side}')">×</button></div>`;
   const render=(team,side)=> team.length
     ? team.map(n=>cell(n,side)).join('')+`<button class="clearx" onclick="clearTeam('${side}')" title="clear whole team">clear ×</button>`
     : '<small style="color:#889">pick some →</small>';
@@ -770,7 +776,7 @@ function runDitto(){
     const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]);
       const moves=ms.map(x=>`<div style="font-size:11.5px;color:#556">${niceName(x)}</div>`).join('');
       return `<div style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left">
-        <div style="display:flex;align-items:center;gap:8px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:46px;height:46px">
+        <div style="display:flex;align-items:center;gap:8px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)" style="width:46px;height:46px">
           <div style="line-height:1.25"><b style="font-size:14px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12px;font-weight:600">${niceName(m.ab)}</span></div></div>
         <div style="margin-top:6px">${moves||'—'}</div></div>`;};
     const bp=Math.round(best*100), sp=Math.round(start*100), chk=check!=null?Math.round(check*100):null;
@@ -866,7 +872,7 @@ function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
   const url=back?`https://play.pokemonshowdown.com/sprites/ani-back/${m.sp}.gif`:ani(m.sp);
   return `<div class="bmon ${m.hp<=0?'faint':''}"><span class="nm">${cap(m.sp)}${m.st?` <span class="statuschip">${m.st}</span>`:''}</span>
     <div class="hpbar"><i style="width:${Math.max(0,m.hp)}%;background:${hpc(m.hp)}"></i></div>
-    <img src="${url}" onerror="this.onerror=null;this.src='${ani('substitute')}'"></div>`; }
+    <img src="${url}" onerror="sprFallback(this)"></div>`; }
 function renderKad(){
   const wrap=document.getElementById('kdout'); if(!KAD)return;
   const s=kadKeys[kadI], last=KAD.scenes[KAD.scenes.length-1].n;
