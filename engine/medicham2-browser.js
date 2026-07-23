@@ -17,8 +17,15 @@ const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','ba
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 
+// Mega abilities: real Megas use their canonical ability; Champions-invented Megas are noted.
+const MEGA_ABIL={staraptor:'contrary',swampert:'swiftswim',venusaur:'thickfat',blastoise:'megalauncher',mawile:'hugepower',gengar:'shadowtag',gardevoir:'pixilate',gallade:'innerfocus',metagross:'toughclaws',aerodactyl:'toughclaws',tyranitar:'sandstream',garchomp:'sandforce',kangaskhan:'parentalbond',blaziken:'speedboost',scizor:'technician',sceptile:'lightningrod',alakazam:'trace',lucario:'adaptability',medicham:'purepower',manectric:'intimidate',absol:'magicbounce',salamence:'aerilate',sableye:'magicbounce',lopunny:'scrappy',heracross:'skilllink',pinsir:'aerilate',abomasnow:'snowwarning',altaria:'pixilate',beedrill:'adaptability',sharpedo:'strongjaw',camerupt:'sheerforce',banette:'prankster',houndoom:'solarpower'};
+function megaAbility(name,item,baseAb){ if(!item)return baseAb;
+  if(name==='charizard'){ if(/itey$/.test(item))return 'drought'; if(/itex$/.test(item))return 'toughclaws'; }
+  if(MEGA_ABIL[name] && /ite[xy]?$/.test(item)) return MEGA_ABIL[name];
+  return baseAb; }
 function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
-  return {name,types:m.t.slice(),st:{...m.st},item:(ov&&ov[name])||m.item||'',ability:m.ab||'',moves:m.mv.slice(),
+  const item=(ov&&ov[name])||m.item||'';
+  return {name,types:m.t.slice(),st:{...m.st},item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
     curHP:m.st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
 
 function dmgRange(att,def,mv,field,spread){
@@ -118,7 +125,9 @@ function chooseAction(me,foes,ally,field,side,rng){
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
   return{kind:'struggle'};
 }
-function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;if(m.status==='par')s*=0.5;return s;}
+function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;
+  if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
+  if(m.status==='par')s*=0.5;return s;}
 function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slp=1+(Math.random()*2|0);}
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
