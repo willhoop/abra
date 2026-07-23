@@ -390,8 +390,7 @@ function roomSlowking(){const c=CAST[5];
 function roomChomp(){const c=CAST[6];
   return `<div class="panel">${mascotHero(c,"CHOMP! I'm the engine you actually play with — I pick the best 4 of your 6 and the 2 to lead, covering the opponent's whole team with exact damage math. ABRA feeds me smarter reads over time. ")}</div>
    <div class="panel"><h2>The bring-4 / lead-2 engine</h2><p style="font-weight:600;color:#3a5372">A Showdown userscript. It reads the battle, runs the full Gen-9 damage pipeline across all 16 rolls, and tells you the four to bring and two to lead. It covers the opponent's <b>whole six</b> (you never know their four), with ABRA's usage as advisory intel. Because it auto-updates, a smarter ABRA reaches your plugin with no reinstall.</p>
-     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a>
-     <a class="link" href="go:jolteon" onclick="go('jolteon');return false;">Try the odds booth</a></div>
+     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
 const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
@@ -426,7 +425,7 @@ function renderThreats(_,q){
       <td class="tn"><img src="${ani(r.sprite)}" onerror="this.onerror=null;this.src='${ani('substitute')}'">${cap(r.n)}</td>
       <td>${pct(r.use)}</td><td>${pct(r.bring)}</td><td>${pct(r.lead)}</td>
       <td style="color:${winc(r.win)};font-weight:700">${pct(r.win)}</td>
-      <td>${pct(r.spd)}</td><td>${r.dmg?pct(r.dmg):'—'}</td></tr>`).join('')+
+      <td>${(MC.mons[r.n]&&MC.mons[r.n].st)?MC.mons[r.n].st.sp:'—'}</td><td>${r.dmg?pct(r.dmg):'—'}</td></tr>`).join('')+
     `</tbody></table>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
@@ -484,25 +483,48 @@ function doBattle(quiet){
   document.getElementById('mcout').textContent='';
 }
 /* live engines via the local server (start.bat). Graceful if not running. */
-function doMedicham(){
-  if(!teamA.length||!teamB.length){document.getElementById('readout').textContent='Pick teams first!';return;}
-  const el=document.getElementById('mcout'); el.textContent='MEDICHAM is playing it out…';
-  setTimeout(()=>{ const p=mcWinProb(teamA,teamB,200);
-    if(p==null){el.textContent='MEDICHAM could not build those teams — try common species.';return;}
+// booth button: jump to MEDICHAM's room and run the grounded rollout there
+function doMedicham(){ go('medicham'); setTimeout(runMedichamRoom,90); }
+function runMedichamRoom(){
+  const out=document.getElementById('mcRoomOut'); if(!out)return;
+  if(!teamA.length||!teamB.length){out.textContent='Pick both teams above first.';return;}
+  out.textContent='MEDICHAM is playing it out…';
+  setTimeout(()=>{ const p=mcWinProb(teamA,teamB,400);
+    if(p==null){out.textContent='Could not build those teams — try more common species.';return;}
     const jp=Math.round(pwin(teamA,teamB)*100), mp=Math.round(p*100), gap=Math.abs(jp-mp);
-    el.innerHTML=`MEDICHAM (grounded rollout, in your browser): <b>${mp}%</b> vs JOLTEON's <b>${jp}%</b>. `+(gap<10?'They agree.':gap<25?'A little disagreement.':'<b>Big gap</b> — trust MEDICHAM here.');
+    out.innerHTML=`Grounded win rate for <b>your</b> team: <b style="color:#2a7">${mp}%</b> over 400 rollouts. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<10?'They agree — this read is solid.':`Gap of <b>${gap} pts</b> — MEDICHAM actually played it out, so trust it over JOLTEON here.`);
   },20);
 }
-function teamFromInput(v){ v=(v||'').trim(); if(!v) return [];
-  if(/\n|@|Ability:/i.test(v)) return parsePaste(v).map(x=>spriteName(x).n);
-  return v.split(',').map(s=>s.trim().toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean); }
-function runMedichamRoom(){
-  const A=teamFromInput(document.getElementById('mcA').value), B=teamFromInput(document.getElementById('mcB').value);
-  const out=document.getElementById('mcRoomOut'); if(!A.length||!B.length){out.textContent='Enter both teams (comma-separated species or a PokéPaste).';return;}
-  out.textContent='MEDICHAM is playing it out…';
-  setTimeout(()=>{ const p=mcWinProb(A,B,300);
-    if(p==null){out.textContent='Could not build those teams — try common species.';return;}
-    out.innerHTML=`Grounded win rate for your team: <b style="color:#2a7">${Math.round(p*100)}%</b> over 300 rollouts — computed right here, no server needed.`;
+/* ===== DITTO — in-browser team optimiser (no server) ===== */
+// usage-weighted gauntlet of meta "teams" (4 top-usage mons each), the opponents we optimise against
+function metaGauntlet(k){ const top=JOLT.roster.slice(0,30);
+  const tot=top.reduce((s,m)=>s+(m.use||0.01),0);
+  const pickW=()=>{let r=Math.random()*tot;for(const m of top){r-=(m.use||0.01);if(r<=0)return m.n;}return top[0].n;};
+  const teams=[]; for(let i=0;i<k;i++){const s=new Set();while(s.size<4)s.add(pickW());teams.push([...s]);} return teams; }
+function dittoScore(team,G){ let s=0; for(const g of G)s+=pwin(team,g); return s/G.length; }
+let dittoResult=null;
+function loadDittoTeam(){ if(dittoResult){teamA=dittoResult.slice();renderSlots();syncSel();saveTeams();alert('Loaded into your team — it carries to every tab.');} }
+function runDitto(){
+  const out=document.getElementById('dtout'); if(!out)return;
+  const seed=teamA.slice(0,6); if(seed.length<2){out.innerHTML='<span style="color:#b4432f">Pick at least 2 Pokémon in your seed team above.</span>';return;}
+  out.innerHTML='DITTO is trying thousands of swaps against the live meta…';
+  setTimeout(()=>{
+    const G=metaGauntlet(24), roster=JOLT.roster.map(m=>m.n);
+    let team=seed.slice(), best=dittoScore(team,G); const start=best, swaps=[];
+    for(let it=0;it<30;it++){ let improved=false;
+      for(let i=0;i<team.length;i++){ let bi=team[i],bs=best;
+        for(const cand of roster){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=dittoScore(nt,G); if(sc>bs+1e-6){bs=sc;bi=cand;} }
+        if(bi!==team[i]){ swaps.push([team[i],bi,bs-best]); team[i]=bi; best=bs; improved=true; } }
+      if(!improved)break; }
+    dittoResult=team.slice();
+    const check=mcWinProb(team, JOLT.roster.slice(0,4).map(m=>m.n), 200);
+    const item=n=>MC.mons[n]&&MC.mons[n].item?MC.mons[n].item.replace(/([a-z])([A-Z])/g,'$1 $2'):'—';
+    out.innerHTML=`<div style="font-weight:800;margin-bottom:8px">Best version of your team</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">`+team.map(n=>`<div style="display:flex;align-items:center;gap:6px;background:#fff0fa;border:2px solid var(--line);border-radius:12px;padding:6px 10px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:42px;height:42px"><div style="line-height:1.15"><b>${cap(n)}</b><br><small style="color:#777">${item(n)}</small></div></div>`).join('')+`</div>
+      <div style="margin-top:10px;font-weight:600">Team rating vs the live meta: <b>${Math.round(start*100)}% → ${Math.round(best*100)}%</b> <span style="color:#889;font-weight:500">(usage-weighted gauntlet of 24 ladder teams)</span></div>`+
+      (swaps.length?`<div style="margin-top:6px;font-size:12px;color:#666">Swaps DITTO made: `+swaps.map(s=>`${cap(s[0])}→<b>${cap(s[1])}</b> (+${(s[2]*100).toFixed(1)})`).join(' · ')+`</div>`:`<div style="margin-top:6px;color:#2a7;font-weight:600">Your seed was already optimal against this meta — no swap improved it.</div>`)+
+      (check!=null?`<div style="margin-top:8px;color:#b4432f;font-weight:600">MEDICHAM re-check vs the top-4 meta core: <b>${Math.round(check*100)}%</b> <span style="font-weight:500;color:#a06">(grounded rollout — the Goodhart guard, so DITTO can't just game JOLTEON)</span></div>`:``)+
+      `<div style="margin-top:10px"><button class="minibtn" onclick="loadDittoTeam()">★ Load this as my team</button></div>`;
   },20);
 }
 let KAD=null, kadKeys=[], kadI=0;
