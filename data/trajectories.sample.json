@@ -1,0 +1,967 @@
+{
+ "id": "gen9championsvgc2026regmb-2653451938",
+ "winner": "p2",
+ "turns": 8,
+ "reward_p1": -1,
+ "transitions": [
+  {
+   "turn": 1,
+   "state": {
+    "p1": [],
+    "p2": [],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1a",
+      "type": "move",
+      "mon": "kingambit",
+      "mv": "ironhead",
+      "tgt": "sylveon",
+      "dmg": 83
+     },
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "incineroar",
+      "mv": "flareblitz",
+      "tgt": "charizard",
+      "dmg": 53
+     },
+     {
+      "slot": "p1a",
+      "type": "switch",
+      "to": "sylveon"
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "charizard",
+      "mv": "heatwave",
+      "tgt": "incineroar",
+      "dmg": 99
+     },
+     {
+      "slot": "p2b",
+      "type": "move",
+      "mon": "sylveon",
+      "mv": "hypervoice",
+      "tgt": "kingambit",
+      "dmg": 53
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [],
+    "foe": []
+   },
+   "obs_p2": {
+    "own": [],
+    "foe": []
+   }
+  },
+  {
+   "turn": 2,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "incineroar",
+      "hp": 1,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "charizard",
+      "hp": 47,
+      "st": null
+     },
+     {
+      "sp": "sylveon",
+      "hp": 100,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1a",
+      "type": "move",
+      "mon": "sylveon",
+      "mv": "detect",
+      "tgt": "sylveon",
+      "dmg": 0
+     },
+     {
+      "slot": "p1b",
+      "type": "switch",
+      "to": "garchomp"
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2b",
+      "type": "move",
+      "mon": "sylveon",
+      "mv": "quickattack",
+      "tgt": "incineroar",
+      "dmg": 7
+     },
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "charizard",
+      "mv": "heatwave",
+      "tgt": "incineroar",
+      "dmg": 17
+     },
+     {
+      "slot": "p2b",
+      "type": "switch",
+      "to": "basculegion"
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "incineroar",
+      "hp": 1,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "charizard",
+      "hp": 47,
+      "seen": [
+       "heatwave"
+      ]
+     },
+     {
+      "sp": "sylveon",
+      "hp": 100,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "charizard",
+      "hp": 47,
+      "st": null
+     },
+     {
+      "sp": "sylveon",
+      "hp": 100,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "incineroar",
+      "hp": 1,
+      "seen": [
+       "flareblitz"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "turn": 3,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "charizard",
+      "hp": 47,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "garchomp",
+      "mv": "dragonclaw",
+      "tgt": "charizard",
+      "dmg": 47
+     },
+     {
+      "slot": "p1a",
+      "type": "move",
+      "mon": "sylveon",
+      "mv": "hypervoice",
+      "tgt": "basculegion",
+      "dmg": 74
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2b",
+      "type": "move",
+      "mon": "basculegion",
+      "mv": "lastrespects",
+      "tgt": "sylveon",
+      "dmg": 80
+     },
+     {
+      "slot": "p2a",
+      "type": "switch",
+      "to": "whimsicott"
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "charizard",
+      "hp": 47,
+      "seen": [
+       "heatwave"
+      ]
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "seen": [
+       "lastrespects"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "charizard",
+      "hp": 47,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "seen": [
+       "dragonclaw"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "turn": 4,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "garchomp",
+      "mv": "dragonclaw",
+      "tgt": "basculegion",
+      "dmg": 26
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2b",
+      "type": "move",
+      "mon": "basculegion",
+      "mv": "lastrespects",
+      "tgt": "sylveon",
+      "dmg": 20
+     },
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "whimsicott",
+      "mv": "moonblast",
+      "tgt": "garchomp",
+      "dmg": 77
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "seen": [
+       "moonblast"
+      ]
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "seen": [
+       "lastrespects"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "seen": [
+       "dragonclaw"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "turn": 5,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "garchomp",
+      "mv": "protect",
+      "tgt": "garchomp",
+      "dmg": 0
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "whimsicott",
+      "mv": "moonblast",
+      "tgt": "garchomp",
+      "dmg": 0
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "seen": [
+       "moonblast"
+      ]
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "seen": [
+       "lastrespects"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "seen": [
+       "dragonclaw",
+       "protect"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "turn": 6,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "garchomp",
+      "mv": "protect",
+      "tgt": "garchomp",
+      "dmg": 0
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "whimsicott",
+      "mv": "moonblast",
+      "tgt": "garchomp",
+      "dmg": 0
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "seen": [
+       "moonblast"
+      ]
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "seen": [
+       "lastrespects"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "seen": [
+       "dragonclaw",
+       "protect"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "turn": 7,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "garchomp",
+      "mv": "protect",
+      "tgt": "garchomp",
+      "dmg": 0
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "whimsicott",
+      "mv": "moonblast",
+      "tgt": "garchomp",
+      "dmg": 0
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "seen": [
+       "moonblast"
+      ]
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "seen": [
+       "lastrespects"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "seen": [
+       "dragonclaw",
+       "protect"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "turn": 8,
+   "state": {
+    "p1": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "field": {
+     "weather": null,
+     "tr": false,
+     "tw": {
+      "p1": false,
+      "p2": false
+     }
+    }
+   },
+   "action": {
+    "p1": [
+     {
+      "slot": "p1b",
+      "type": "move",
+      "mon": "garchomp",
+      "mv": "protect",
+      "tgt": null,
+      "dmg": 0
+     }
+    ],
+    "p2": [
+     {
+      "slot": "p2a",
+      "type": "move",
+      "mon": "whimsicott",
+      "mv": "moonblast",
+      "tgt": "garchomp",
+      "dmg": 3
+     }
+    ]
+   },
+   "obs_p1": {
+    "own": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "st": "brn"
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "seen": [
+       "moonblast"
+      ]
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "seen": [
+       "lastrespects"
+      ]
+     }
+    ]
+   },
+   "obs_p2": {
+    "own": [
+     {
+      "sp": "whimsicott",
+      "hp": 0,
+      "st": null
+     },
+     {
+      "sp": "basculegion",
+      "hp": 0,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "sylveon",
+      "hp": 0,
+      "seen": [
+       "hypervoice",
+       "detect",
+       "quickattack"
+      ]
+     },
+     {
+      "sp": "garchomp",
+      "hp": 0,
+      "seen": [
+       "dragonclaw",
+       "protect"
+      ]
+     }
+    ]
+   },
+   "reward_p1": -1
+  }
+ ]
+}
