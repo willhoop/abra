@@ -580,7 +580,7 @@ function roomKadabra(){const c=CAST[4];
      <button class="battlebtn" onclick="runKadabra()">Coach it</button>
      <div id="kdout" style="margin-top:14px">Paste a replay above and press Coach it.</div>
    </div>
-   <div class="panel"><h2>How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I rebuild the board at every turn straight from the battle log — who was out, their HP, who moved first (that's the real speed), and exactly how much each hit did — then compare every number to the ladder average. I don't march you through the whole game: I stop only on the turns that decided it — a big hit you traded into, a KO you scored, the moment you lost a Pokémon — and show the better line. Every game you review is quietly added to the town's memory and folds into the models.</p></div>`;
+   <div class="panel"><h2>How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I read your replay's log to find the turns that <b>actually decided the game</b> — a KO you scored, a big trade, the moment you lost a Pokémon — not every turn, just the ones that mattered. Then I walk you through them <b>one at a time on the real Showdown replay</b>: I set it to that turn, tell you what's happening and what to do, you hit play and watch it unfold, and we step to the next key moment. No scrubbing through the boring turns. Every game you review is added to the town's memory.</p></div>`;
 }
 function roomSlowking(){const c=CAST[5];
   return `<div class="panel">${mascotHero(c,"Slowly... wisely... I search over <b>belief states</b> — what your opponent might be hiding — to find the equilibrium-best move. I'm the deep one. I'm also still being built. ")}</div>
@@ -901,7 +901,7 @@ function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
     <div class="hpbar"><i style="width:${Math.max(0,m.hp)}%;background:${hpc(m.hp)}"></i></div>
     <img src="${url}" onerror="sprFallback(this)"></div>`; }
 function renderKad(){
-  const wrap=document.getElementById('kdout'); if(!KAD)return;
+  const wrap=document.getElementById('kdout'); if(!KAD)return; kadMode='scene';
   const s=kadKeys[kadI], last=KAD.scenes[KAD.scenes.length-1].n;
   const kindColor={loss:'#ff6b6b',threat:'#ffb03a',good:'#5fd07a'}[s.kind]||'#7a6bff';
   const dots=kadKeys.map((k,i)=>`<span class="kdot ${i===kadI?'on':''}" onclick="kadGo(${i})"></span>`).join('');
