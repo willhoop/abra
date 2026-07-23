@@ -45,19 +45,43 @@ Revealed sets are partial (a Pokémon that never attacks reveals no moves). The 
 not a win-probability oracle. Bot and low-ladder games differ from strong play — which is exactly why
 they are tagged, so the consumer chooses the population.
 
+## The model family (the named cast)
+The simulator is decomposed into tiers, each a Pokémon whose *speed* signals the model's cost:
+
+- **JOLTEON** — *Joint Odds, Ladder-Trained Expected-Outcome Network* (Tier 1, fastest): instant
+  team-vs-team win probability. ~55% held-out vs ~49% coin flip; rarity-aware so rare picks aren't
+  overrated. *Built.*
+- **MEDICHAM** — *Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves* (Tier 2):
+  short rollouts over CHOMP's exact damage. Rain beats sun 0.60, mirror 0.51. *Built.*
+- **SLOWKING** — *Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver*
+  (Tier 3, slowest/wisest): deep belief-search. *Scaffolded; honest research roadmap.*
+- **DITTO** — *Double-oracle Iterative Team-Tuning Optimiser*: builds teams vs the live meta,
+  usage-weighted so you get an answer to Basculegion, not Camerupt. *Built.*
+- **KADABRA** — *Key Analysis of Decisions, Advice & Better Replay Annotation*: turn-by-turn coach
+  that reconstructs each scene and flags high/low rolls. *v1 built.*
+- **CHOMP** — the bring-4 / lead-2 engine you play with. *Built, separate-but-connected.*
+
+## Data now captured per game
+Beyond teams/brings/leads, the extractor now records a **per-turn stream** — move order (→ real
+speed, Choice-Scarf detection) and exact damage % per move. 30,611 turns, 55,336 damaging hits. Raw
+logs are archived, so any *new* field is a re-parse, never a re-pull (proven: format tags backfilled
+onto 4,999 games with zero downloads).
+
 ## The flywheel (the reason ABRA exists)
 1. **Collect** live ladder games — *built and running*.
-2. **Simulate** — a near-perfect game model from the data — *next*.
-3. **Optimise teams** against real meta threats, iterating on itself — *next*.
+2. **Simulate** — game models from the data (JOLTEON, MEDICHAM) — *v1 built*.
+3. **Optimise teams** against real meta threats (DITTO), iterating on itself — *v1 built*.
 4. **Play** the best teams; CHOMP handles bring-4 / lead-2 — *built*.
-5. **Feed back** — every enemy team you face is auto-added, so playing grows the data.
+5. **Feed back** — every enemy team you face (incl. every game KADABRA reviews) is auto-added.
 
-The loop closes: more games → better simulator → better teams → more wins → more games. ABRA is
-stage 1, done. Stages 2–3 are the point of the project and the next work.
+The loop closes: more games → better simulator → better teams → more wins → more games. The most
+important early result is an *honest* one: DITTO can Goodhart JOLTEON (a "90%" team is really ~12%),
+which MEDICHAM catches — the tiered design earning its keep.
 
 ## Status
-v1.0 — the data platform is built, validated on 1,501 real games, and wired to grow itself hourly.
-The simulator and self-iterating team optimiser are the roadmap; CHOMP proves the pipe delivers.
+v1.1 — the data platform is built and validated; Tiers 1–2 and the DITTO optimiser are built and
+measured; Tier 3 (SLOWKING) is scaffolded research. An interactive site (ABRA WORLD) runs JOLTEON
+live in the browser. CHOMP proves the pipe delivers.
 
-**Read next:** [white paper](ABRA-whitepaper.md) · [deck](ABRA-deck-plain-english.md) ·
-[technical docs](ABRA-technical-docs.md)
+**Read next:** [deck](ABRA-deck-plain-english.md) · [white paper](ABRA-whitepaper.md) ·
+[simulator/ML white paper](ABRA-simulator-whitepaper.md) · [KADABRA spec](KADABRA-coach-spec.md)

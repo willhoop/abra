@@ -2,7 +2,7 @@
 
 ### The Pokémon that reads the whole ladder
 
-**Version 1.0 · Last updated 2026-07-22**
+**Version 1.1 · Last updated 2026-07-22**
 **Will Hooper**
 
 > Plain words only. The math and sources live in the [white paper](ABRA-whitepaper.md).
@@ -93,7 +93,46 @@ too, your live plugin quietly gets smarter while you play.
 
 ---
 
-## Slide 10 — Honest limits
+## Slide 10 — Now it reads *inside* the games too
+
+ABRA no longer just notes who was on each team. For every game it now records, turn by turn, **who
+moved first** (that reveals real speed — even a hidden Choice Scarf) and **exactly how much damage
+each move did**. Thousands of games of this add up to a real picture of the physics: we know
+Basculegion's Wave Crash takes about 62% on average, and we can tell when someone got a lucky roll.
+
+---
+
+## Slide 11 — The cast of models
+
+Each part of the plan is a Pokémon, and the Pokémon's **speed tells you how expensive the model is**:
+
+- ⚡ **JOLTEON** (fastest) — instant "who's favoured?" between two teams. Built.
+- 🥋 **MEDICHAM** (medium) — actually plays the matchup out a few turns with real damage math. Built.
+- 📚 **SLOWKING** (slow, wise) — the deep thinker that plans around what the opponent is hiding. Still being built.
+- 🧬 **DITTO** — builds teams that beat the live ladder, making sure you answer the *common* threats. Built.
+- 🔮 **KADABRA** — the coach that replays your game with you and points out the better move. Built.
+- 🦈 **CHOMP** — the engine you actually play with, picking your 4 and your lead.
+
+---
+
+## Slide 12 — The most honest result we have
+
+When DITTO built a team to beat JOLTEON's scoring, JOLTEON said it would win **90%** of the time.
+Then MEDICHAM played it out for real and said **12%**. JOLTEON had been fooled — it over-trusted a
+few rare Pokémon. That's not a bug we hid; it's *why* we have a fast guesser and a slower checker.
+The disagreement between them is a feature: it flags both hype and hidden gems.
+
+---
+
+## Slide 13 — ABRA WORLD (the fun part)
+
+There's a little snowy town website where every model is its own building. You can pick two teams
+from sprites and watch JOLTEON — the *real* model — call the odds right in your browser, with
+confetti when the battle resolves. It's `web/index.html`.
+
+---
+
+## Slide 14 — Honest limits
 
 - A Pokémon that never attacked in a replay tells us nothing about its moves — so what we know about
   each set is partial.
@@ -103,13 +142,14 @@ too, your live plugin quietly gets smarter while you play.
 
 ---
 
-## Slide 11 — Read more
+## Slide 15 — Read more
 
 **The white paper** — the data model, the ingest, the math, the sources:
 **[ABRA-whitepaper.md](ABRA-whitepaper.md)**
 
-**The technical documentation** — how to run and extend it:
-**[ABRA-technical-docs.md](ABRA-technical-docs.md)**
+**The simulator / ML white paper** — the machine learning behind the model family:
+**[ABRA-simulator-whitepaper.md](ABRA-simulator-whitepaper.md)**
 
-**The changelog** — what changed and why:
-**[CHANGELOG.md](../CHANGELOG.md)**
+**The coach spec** — how KADABRA teaches: **[KADABRA-coach-spec.md](KADABRA-coach-spec.md)**
+
+**The changelog** — what changed and why: **[CHANGELOG.md](../CHANGELOG.md)**
