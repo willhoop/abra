@@ -419,13 +419,13 @@ function renderThreats(_,q){
   const arrow=k=> threatSort===k?' ▾':'';
   const H=(k,t)=>`<th onclick="sortThreats('${k}')" class="${threatSort===k?'on':''}">${t}${arrow(k)}</th>`;
   el.innerHTML=`<table class="ttab"><thead><tr><th>#</th><th class="tnh">Pokémon</th>`+
-    H('use','Usage')+H('bring','Bring')+H('lead','Lead')+H('win','Win%')+H('spd','Speed')+H('dmg','Dmg')+
+    H('use','Usage')+H('bring','Bring')+H('lead','Lead')+H('win','Win%')+H('spd','Speed')+
     `</tr></thead><tbody>`+
     rows.map((r,i)=>`<tr><td class="rk">${i+1}</td>
       <td class="tn"><img src="${ani(r.sprite)}" onerror="this.onerror=null;this.src='${ani('substitute')}'">${cap(r.n)}</td>
       <td>${pct(r.use)}</td><td>${pct(r.bring)}</td><td>${pct(r.lead)}</td>
       <td style="color:${winc(r.win)};font-weight:700">${pct(r.win)}</td>
-      <td>${(MC.mons[r.n]&&MC.mons[r.n].st)?MC.mons[r.n].st.sp:'—'}</td><td>${r.dmg?pct(r.dmg):'—'}</td></tr>`).join('')+
+      <td>${(MC.mons[r.n]&&MC.mons[r.n].st)?MC.mons[r.n].st.sp:'—'}</td></tr>`).join('')+
     `</tbody></table>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
