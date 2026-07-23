@@ -595,17 +595,19 @@ function roomSlowking(){const c=CAST[5];
    <div class="panel"><h2>How Slowking will think</h2><p style="font-weight:600;color:#3a5372">I won't just look at the board — I'll track a <b>belief</b> about what you can't see (their hidden sets and what they'll click), and search a few turns deep over those possibilities to find the move that's best against their <i>likely</i> best response, not a guessed one. That's the equilibrium-aware, win-probability-maximising play. When I'm built, Kadabra evolves into <b>ALAKAZAM</b> — the deep coach that uses me to show you the win-%-optimal line, not just what went wrong.</p></div>`;
 }
 function roomChomp(){const c=CAST[6];
-  return `<div class="panel">${mascotHero(c,"CHOMP! I pick your best 4 and 2 leads with exact damage — covering their whole six.")}</div>
-   <div class="panel"><h2>The bring-4 / lead-2 engine</h2><p style="font-weight:600;color:#3a5372">A Showdown userscript. It reads the battle, runs the full Gen-9 damage pipeline across all 16 rolls, and tells you the four to bring and two to lead. It covers the opponent's <b>whole six</b> (you never know their four), with ABRA's usage as advisory intel. Because it auto-updates, a smarter ABRA reaches your plugin with no reinstall.</p>
-     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a></div>
-   <div class="panel"><h2>ORB — the damage calculator</h2>
-     <p style="font-weight:600;color:#3a5372"><b>On-battle Read Board.</b> Use the <b>official Smogon Champions calculator</b> — the exact tool the pros use, every roll, item, ability, weather. In the CHOMP userscript (on the live battle) ORB auto-fills the board for you; here on the site, open the real calc and paste your teams in one click.</p>
-     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-       <a class="battlebtn" href="https://calc.pokemonshowdown.com/champions.html?mode=champions" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Open the Champions calc</a>
-       <button class="minibtn" onclick="copyOrbTeams(this)">Copy my team for the calc</button></div>
-     <div style="margin-top:14px;padding:12px 14px;background:#eef6ff;border:2px solid var(--line);border-radius:12px">
-       <div style="font-weight:800;font-size:15px;margin-bottom:4px">Built into CHOMP — one install</div>
-       <div style="font-weight:600;color:#3a5372;font-size:13px">The ORB dock ships <b>inside CHOMP</b>. Install CHOMP once (the <b>Get CHOMP</b> button above) and a minimizable calc appears in every Champions battle, auto-filled from the open-sheet preview — nothing else to download or paste. Click its header to minimize.</div>
+  return `<div class="panel">${mascotHero(c,"CHOMP! Install once and you get me AND ORB in every Champions battle.")}</div>
+   <div class="panel"><h2>Two tools, one install</h2>
+     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:6px 0 4px">
+       <div style="background:#fff;border:2px solid var(--line);border-radius:16px;padding:16px 18px">
+         <div style="font-weight:800;font-size:17px;color:var(--fight)">CHOMP — who to bring &amp; lead</div>
+         <p style="font-weight:600;color:#3a5372;margin:8px 0 0">Reads the live battle, runs the full Gen-9 damage pipeline over all 16 rolls, and tells you the <b>4 to bring and 2 to lead</b> against the opponent's whole six (you never know their four). ABRA's usage data rides along as advisory intel.</p></div>
+       <div style="background:#fff;border:2px solid var(--line);border-radius:16px;padding:16px 18px">
+         <div style="font-weight:800;font-size:17px;color:#3a86c0">ORB — the damage calculator</div>
+         <p style="font-weight:600;color:#3a5372;margin:8px 0 0">A minimizable damage calc that docks right beside the battle and <b>auto-fills both teams</b> from the open-sheet preview — the exact rolls/items/abilities/weather the pros calc by hand, done for you every turn. Click its header to tuck it away.</p></div>
+     </div>
+     <div style="text-align:center;margin:18px 0 6px">
+       <a class="battlebtn" href="https://github.com/willhoop/chomp" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block;font-size:17px;padding:12px 26px">Get CHOMP + ORB →</a>
+       <div style="font-weight:700;color:#7a8aa0;margin-top:8px">One install from GitHub. ORB ships inside CHOMP — nothing else to download or paste. It auto-updates, so a smarter ABRA reaches you with no reinstall.</div>
      </div></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
