@@ -8,7 +8,10 @@
  * data/raw-logs.jsonl so any NEW field is a re-parse (mode=reparse), never a
  * re-fetch. Re-pull the network at most once. */
 const https=require('https'), fs=require('fs');
-const FORMAT='gen9championsvgc2026regmb';
+// one or more Showdown format ids (comma-separated). Champions Reg M-B by default;
+// add the Reg-G best-of-3 (open team sheet) ladder to also collect that regime.
+//   FORMATS=gen9championsvgc2026regmb,gen9vgc2025reggbo3 node engine/durable-ingest.js ...
+const FORMATS=(process.env.FORMATS||'gen9championsvgc2026regmb').split(',').map(s=>s.trim()).filter(Boolean);
 const PAGES=+(process.env.PAGES||2), CONC=+(process.env.CONC||16);
 const STORE=process.argv[2]||'games.jsonl';
 const RAW=process.env.RAW||(STORE.replace(/\.jsonl$/,'')+'.raw-logs.jsonl');
@@ -66,7 +69,14 @@ function extract(id, uploadtime, text){
   }
   flush();
   const setsOut={}; for(const k in sets) setsOut[k]={moves:[...sets[k].moves],item:sets[k].item,ability:sets[k].ability};
+  // information regime + format tags (bo3 is open team sheet; players may also agree to it)
+  const tier=(text.match(/^\|tier\|(.+)$/m)||[])[1]||null;
+  const openSheet=/\|showteam\|/.test(text) || /best of three|bo3/i.test(tier||'');
+  const fmt=(tier||'').toLowerCase().includes('champions')?'champions-regmb'
+           : /vgc/i.test(tier||'')?'vgc-'+((tier||'').match(/reg\w*\s*\w*/i)||['reg?'])[0].toLowerCase().replace(/[^a-z0-9]/g,'')
+           : 'other';
   return { id, date:new Date(uploadtime*1000).toISOString().slice(0,16).replace('T',' '),
+    format:fmt, openSheet,
     p1:P.p1, p2:P.p2, winner:winner||null,
     six:{p1:[...new Set(poke.p1)],p2:[...new Set(poke.p2)]},
     brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, turns };

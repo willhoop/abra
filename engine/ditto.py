@@ -39,6 +39,16 @@ def vec(six):
 def pwin(a,b):  # JOLTEON P(a beats b)
     x=vec(a)-vec(b); return float(1/(1+np.exp(-(x@W))))
 
+# ---- vectorised fast path: precompute meta once, score any team in O(K) --------
+_MW=None; _META=None
+def prep(meta):
+    global _MW,_META
+    _META=meta; _MW=np.array([vec(m)@W for m in meta])   # meta 'strength' scalars
+def fast_scores(six):
+    """vector of P(six beats each meta team), using precomputed meta scalars."""
+    s=vec(six)@W
+    return 1/(1+np.exp(-(s-_MW)))
+
 def load_meta(min_rating=1300, cap=400):
     seen=set(); teams=[]
     for line in open(STORE,encoding='utf-8'):
@@ -53,6 +63,7 @@ def load_meta(min_rating=1300, cap=400):
     random.shuffle(teams); return teams[:cap]
 
 def score(six, meta):
+    if _META is meta and _MW is not None: return float(np.mean(fast_scores(six)))
     return float(np.mean([pwin(six,m) for m in meta]))
 
 # ---- usage-weighted threat coverage --------------------------------------------
@@ -61,19 +72,23 @@ def score(six, meta):
 # measure win rate against the teams that ACTUALLY run each top threat, weight the
 # shortfall by how often that threat appears, and penalise it. Rare species
 # (Camerupt) carry ~zero usage weight and are ignored automatically.
+_MASKS=None; _TOPT=None
+def prep_masks(meta, usage, top=10):
+    global _MASKS,_TOPT
+    _TOPT=sorted(usage, key=lambda s:-usage[s])[:top]
+    _MASKS={t:np.array([t in m for m in meta]) for t in _TOPT}
 def threat_coverage(six, meta, usage, top=10):
-    order=sorted(usage, key=lambda s:-usage[s])[:top]
-    cov=[]
-    for t in order:
-        withT=[m for m in meta if t in m]
-        if len(withT)<4: continue
-        wr=float(np.mean([pwin(six,m) for m in withT]))
-        cov.append((t, usage[t], wr, len(withT)))
+    if _META is not meta or _MASKS is None: prep(meta); prep_masks(meta,usage,top)
+    sc=fast_scores(six); cov=[]
+    for t in _TOPT:
+        mk=_MASKS[t]
+        if mk.sum()<4: continue
+        cov.append((t, usage[t], float(sc[mk].mean()), int(mk.sum())))
     return cov
 def coverage_penalty(six, meta, usage, thresh=0.5, lam=1.5):
     pen=0.0
     for t,u,wr,_ in threat_coverage(six,meta,usage):
-        pen += u*max(0.0, thresh-wr)   # only losing matchups to USED threats hurt
+        pen += u*max(0.0, thresh-wr)
     return lam*pen
 def objective(six, meta, usage):
     return score(six,meta) - coverage_penalty(six,meta,usage)
@@ -131,12 +146,13 @@ if __name__=='__main__':
 
     team=seed
     for rnd in range(1,4):   # double-oracle rounds
+        prep(meta); prep_masks(meta,usage)
         team,best=optimise(team,pool,meta,usage)
         counters=hardest(team,meta,5)
         print(f"round {rnd}: objective {best*100:.1f}% (win rate minus usage-weighted coverage penalty)")
         print(f"  team: {', '.join(team)}")
         meta = meta + counters*3   # opponent-oracle: up-weight hardest counters, re-optimise
-    meta0=load_meta()
+    meta0=load_meta(); prep(meta0); prep_masks(meta0,usage)
     print("\nFINAL TEAM (JOLTEON-optimised)")
     print(' ', ', '.join(team))
     print(f"  JOLTEON mean win rate vs live meta: {score(team,meta0)*100:.1f}%")
