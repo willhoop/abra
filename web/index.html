@@ -314,7 +314,8 @@ function roomDitto(){const c=CAST[3];
      <input id="dtseed" placeholder="pelipper,whimsicott,archaludon,basculegion,kingambit,sinistcha (optional)" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:10px">
      <button class="battlebtn" onclick="runDitto()">Build me a team</button>
      <pre id="dtout" style="margin-top:12px;background:#fff0fa;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:360px;overflow:auto">Press Build me a team.</pre>
-   </div>`;
+   </div>
+   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">I hill-climb: start from a team, try swapping one Pokémon at a time, and keep the swaps that score better against a gauntlet of <b>real</b> ladder teams. Jolteon scores each candidate in microseconds so I can try thousands. I weight by real usage — so I care about beating Basculegion, not Camerupt — and Medicham re-checks my finalists with grounded rollouts so I don't fool myself into stacking Pokémon Jolteon over-rates.</p></div>`;
 }
 function roomKadabra(){const c=CAST[4];
   return `<div class="panel">${mascotHero(c,"Paste one of your games and I'll pop in on the turns that actually mattered — not the whole battle — and show you what to do.")}</div>
