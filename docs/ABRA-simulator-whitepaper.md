@@ -423,9 +423,13 @@ never random, to respect meta drift and avoid leakage.
 
 Yes, tier by tier, with honesty about each.
 
-- **Tier 1 is buildable now.** It is logistic/Bradley–Terry regression (then a small DeepSets net)
-  on data ABRA already has, evaluated with standard calibration tooling. Weeks, not months, and
-  immediately useful for team search. This is the correct first build.
+- **Tier 1 (JOLTEON) is built.** A Bradley–Terry logistic model with a min-sample species floor,
+  trained on 5,000 real ladder games (temporal split, humans only). Measured result: **56.6% held-out
+  accuracy vs 49.6% for a coin flip**, Brier 0.251 (calibrated). Modest, exactly as this domain's
+  variance predicts, but genuinely above chance from team composition alone — and it improves as the
+  flywheel adds games and once CHOMP's coverage features (§4.3.1) replace bare species identity.
+  Antisymmetry and calibration are pinned by `tests/test-jolteon.py`. This validates the tier-1 path
+  empirically, not just on paper.
 - **Tier 2 reuses CHOMP.** The damage engine and matchup evaluation exist and are tested; tier 2 is
   a rollout harness plus behaviour-cloned move priors from ABRA's `sets`. Low new risk.
 - **Tier 3 is a research effort.** A learned dynamics model, belief tracking, and equilibrium search

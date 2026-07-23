@@ -50,3 +50,19 @@ silently rewritten; what changed and why is stated.
   **MEDICHAM** (Rapidash, rollouts), **SLOWKING** (slow deep learned dynamics), **DITTO** (team
   optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
   as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).
+
+## [1.3.0] — 2026-07-22
+
+### Added
+- **JOLTEON v1 built** (`engine/jolteon.py`) — the Tier-1 win-probability model, a Bradley–Terry
+  logistic over per-species strengths with a min-sample floor (anti-overfit). Trained on 5,000 real
+  ladder games (temporal split, humans only). **Measured: 56.6% held-out accuracy vs 49.6% baseline**,
+  Brier 0.251 (calibrated) — a real, honest, modest edge from team composition alone, as the domain's
+  variance predicts. Ships a `predict` CLI and `tests/test-jolteon.py` (antisymmetry, mirror=50%,
+  coverage, range). Model saved to `data/jolteon-weights.json`.
+- **Full ladder pulled** — the durable store grew from 1,501 to **5,000 games** (incremental, dedup).
+
+### Notes
+- The first training on 1,501 games did **not** beat the baseline; more data (5,000) and a min-sample
+  floor were what cleared it. Recorded honestly: this is why the flywheel (more games over time) and
+  damage-grounded features (§4.3.1) matter, not species identity alone.

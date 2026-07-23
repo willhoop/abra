@@ -28,18 +28,22 @@ def load(path, humans_only=True):
     rows.sort(key=lambda r:r[3])          # temporal order
     return rows
 
-def build(rows):
-    sp=sorted({s for a,b,_,_ in rows for s in a+b})
+def build(rows, min_count=25):
+    from collections import Counter
+    cnt=Counter(s for a,b,_,_ in rows for s in a+b)
+    sp=sorted(s for s,c in cnt.items() if c>=min_count)   # pool rare species (anti-overfit)
     idx={s:i for i,s in enumerate(sp)}
     n=len(sp)
     X=np.zeros((len(rows),n)); Y=np.zeros(len(rows))
     for k,(a,b,y,_) in enumerate(rows):
-        for s in a: X[k,idx[s]]+=1
-        for s in b: X[k,idx[s]]-=1
+        for s in a:
+            if s in idx: X[k,idx[s]]+=1
+        for s in b:
+            if s in idx: X[k,idx[s]]-=1
         Y[k]=y
     return X,Y,sp,idx
 
-def fit(X,Y,l2=1.0,iters=4000,lr=0.2):
+def fit(X,Y,l2=2.0,iters=6000,lr=0.3):
     n=X.shape[1]; w=np.zeros(n)
     for _ in range(iters):
         p=1/(1+np.exp(-(X@w)))
@@ -80,3 +84,14 @@ if __name__=='__main__':
         print("Weakest species by learned strength:   ", weak)
         json.dump({'species':sp,'w':[float(x) for x in w]}, open(WEIGHTS,'w'))
         print(f"\nsaved model -> {WEIGHTS}")
+    elif cmd=='predict':
+        M=json.load(open(WEIGHTS)); idx={s:i for i,s in enumerate(M['species'])}; w=np.array(M['w'])
+        def vec(team):
+            v=np.zeros(len(w))
+            for s in team.split(','):
+                s=idn(s)
+                if s in idx: v[idx[s]]+=1
+            return v
+        A,B=sys.argv[2],sys.argv[3]
+        p=float(1/(1+np.exp(-((vec(A)-vec(B))@w))))
+        print(f"P({A.split(',')[0]}... beats {B.split(',')[0]}...) = {p:.3f}")
