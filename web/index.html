@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABRA WORLD — the Champions modeling town</title>
+<style>
+/* ============ ABRA WORLD — Club-Penguin-meets-Pokemon ============ */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Fredoka:wght@500;600;700&display=swap');
+:root{
+  --sky1:#8fd3ff; --sky2:#c9efff; --snow:#f4fbff; --ink:#20344a;
+  --line:#20344a;
+  --electric:#ffd23f; --electric2:#ffb300;
+  --fight:#ff6b57; --psy:#ff6bd6; --water:#4fb0ff; --grass:#5fd07a; --dragon:#7a6bff;
+  --card:#ffffff; --shadow:rgba(32,52,74,.28);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);overflow-x:hidden}
+body{background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 42%,var(--snow) 42%,var(--snow) 100%);min-height:100vh}
+h1,h2,h3,.baloo{font-family:'Baloo 2',cursive}
+button{font-family:'Baloo 2',cursive;cursor:pointer}
+
+/* ---- sky layer ---- */
+.sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.cloud{position:absolute;background:#fff;border-radius:50%;filter:blur(.3px);opacity:.9;
+  box-shadow:40px 8px 0 6px #fff,90px 0 0 0px #fff,-38px 10px 0 0 #fff;animation:drift linear infinite}
+@keyframes drift{from{transform:translateX(-20vw)}to{transform:translateX(120vw)}}
+.snowf{position:absolute;top:-10px;color:#fff;opacity:.9;animation:fall linear infinite;text-shadow:0 1px 2px rgba(0,0,0,.05)}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg)}}
+.mountain{position:fixed;bottom:calc(58vh - 2px);left:0;right:0;height:120px;z-index:0;pointer-events:none}
+
+/* ---- header / tabs ---- */
+header{position:relative;z-index:5;text-align:center;padding:18px 12px 6px}
+.logo{display:inline-flex;align-items:center;gap:14px}
+.logo h1{margin:0;font-size:clamp(34px,7vw,68px);color:#fff;letter-spacing:1px;
+  text-shadow:0 4px 0 var(--electric2),0 6px 0 var(--line),0 10px 18px var(--shadow);animation:bob 3s ease-in-out infinite}
+.logo img{width:74px;height:74px;image-rendering:pixelated;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.tagline{color:#25405a;font-weight:600;margin:4px 0 0;font-size:15px;text-shadow:0 1px 0 #fff}
+
+nav{position:relative;z-index:6;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 10px 6px;max-width:1000px;margin:0 auto}
+.tab{border:3px solid var(--line);background:#fff;border-radius:16px;padding:8px 14px;font-size:15px;font-weight:700;
+  color:var(--ink);box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s,background .15s;display:flex;align-items:center;gap:7px}
+.tab img{width:26px;height:26px;image-rendering:pixelated}
+.tab:hover{transform:translateY(-2px);background:#fff7d6}
+.tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.tab.on{background:var(--electric);box-shadow:0 4px 0 var(--electric2);transform:translateY(-1px)}
+
+/* ---- stage / rooms ---- */
+main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:0 14px}
+.room{display:none;animation:pop .3s cubic-bezier(.2,1.3,.4,1)}
+.room.on{display:block}
+@keyframes pop{from{transform:scale(.96) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.panel{background:var(--card);border:4px solid var(--line);border-radius:26px;box-shadow:0 10px 0 var(--shadow);padding:22px;margin-bottom:18px}
+.panel h2{margin:0 0 4px;font-size:30px;display:flex;align-items:center;gap:12px}
+.panel .sub{color:#5a708a;font-weight:600;margin:0 0 14px}
+.mascot{width:96px;height:96px;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:10px 14px;font-weight:600;box-shadow:0 4px 0 var(--shadow);max-width:520px}
+.bubble:before{content:'';position:absolute;left:-14px;top:22px;border:8px solid transparent;border-right-color:var(--line)}
+.bubble:after{content:'';position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:#fff}
+.hero{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.chip{display:inline-block;background:#eaf6ff;border:2px solid var(--line);border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;margin:2px}
+.speedbar{height:12px;border-radius:8px;background:#e7eefc;border:2px solid var(--line);overflow:hidden;margin-top:6px}
+.speedbar > i{display:block;height:100%;background:linear-gradient(90deg,var(--electric),var(--electric2))}
+
+/* ---- town map ---- */
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.house{position:relative;border:4px solid var(--line);border-radius:20px;padding:16px 12px 14px;text-align:center;background:#fff;
+  box-shadow:0 7px 0 var(--shadow);cursor:pointer;transition:transform .1s}
+.house:hover{transform:translateY(-4px) rotate(-1deg)}
+.house:active{transform:translateY(2px)}
+.house .roof{position:absolute;inset:-4px -4px auto -4px;height:26px;border-radius:20px 20px 0 0}
+.house img{width:70px;height:70px;image-rendering:pixelated;margin-top:14px;animation:bob 2.6s ease-in-out infinite}
+.house b{display:block;margin-top:6px;font-size:16px}
+.house small{color:#6a7f97;font-weight:600}
+
+/* ---- JOLTEON battle booth ---- */
+.booth{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
+@media(max-width:760px){.booth{grid-template-columns:1fr}}
+.side{border:3px dashed var(--line);border-radius:18px;padding:12px;background:#f7fbff}
+.side.you{background:#f2fff5}.side.rival{background:#fff2f6}
+.side h3{margin:0 0 8px;font-size:20px;text-align:center}
+.slots{display:flex;gap:6px;justify-content:center;min-height:60px;flex-wrap:wrap}
+.slot{width:52px;height:52px;border:2px solid var(--line);border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center}
+.slot img{width:48px;height:48px;image-rendering:pixelated}
+.picker{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:10px;max-height:210px;overflow:auto;padding:4px}
+.pk{width:46px;height:46px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:0;position:relative;transition:transform .08s}
+.pk img{width:42px;height:42px;image-rendering:pixelated}
+.pk:hover{transform:scale(1.12);background:#fff7d6;z-index:2}
+.pk.sel{background:var(--electric);box-shadow:0 0 0 2px var(--electric2)}
+.vs{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:120px}
+.vsbadge{font-family:'Baloo 2';font-size:34px;color:#fff;background:var(--fight);border:3px solid var(--line);border-radius:50%;
+  width:66px;height:66px;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 var(--shadow);animation:bob 2s ease-in-out infinite}
+.battlebtn{border:3px solid var(--line);background:var(--electric);color:var(--ink);font-size:20px;padding:10px 22px;border-radius:16px;box-shadow:0 5px 0 var(--electric2)}
+.battlebtn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--electric2)}
+.meterwrap{margin-top:16px;border:3px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;height:44px;position:relative;display:flex}
+.mYou{background:linear-gradient(90deg,#5fd07a,#39b85f);width:50%;transition:width 1s cubic-bezier(.3,1.2,.4,1)}
+.mRiv{background:linear-gradient(90deg,#ff9bbb,#ff6b8f);flex:1;transition:width 1s}
+.meterwrap b{position:absolute;top:50%;transform:translateY(-50%);font-family:'Baloo 2';color:#fff;font-size:18px;text-shadow:0 2px 0 var(--shadow)}
+.readout{margin-top:12px;text-align:center;font-weight:600;color:#3a5372;min-height:24px}
+
+/* ---- info blocks ---- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:680px){.grid2{grid-template-columns:1fr}}
+.stat{background:#eaf6ff;border:3px solid var(--line);border-radius:16px;padding:12px;text-align:center}
+.stat b{display:block;font-family:'Baloo 2';font-size:30px;color:var(--electric2);line-height:1}
+.stat span{font-weight:600;font-size:13px;color:#4a6a8a}
+.tier{display:flex;align-items:center;gap:12px;border:3px solid var(--line);border-radius:16px;padding:10px 12px;margin:8px 0;background:#fff}
+.tier img{width:56px;height:56px;image-rendering:pixelated;flex:none}
+.tier .g{flex:1}
+.tier .cost{font-family:'Baloo 2';font-size:13px;padding:3px 8px;border-radius:999px;border:2px solid var(--line);white-space:nowrap}
+.link{display:inline-block;margin:4px 6px 0 0;border:3px solid var(--line);background:#fff;border-radius:14px;padding:7px 12px;font-weight:700;color:var(--ink);text-decoration:none;box-shadow:0 4px 0 var(--shadow)}
+.link:hover{background:#fff7d6;transform:translateY(-2px)}
+.tag2{font-size:12px;background:#ffe08a;border:2px solid var(--line);border-radius:8px;padding:1px 7px;font-weight:700}
+footer{position:relative;z-index:5;text-align:center;color:#3a5372;font-weight:600;padding:0 0 30px}
+canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
+.walker{position:fixed;bottom:10px;z-index:4;width:60px;height:60px;image-rendering:pixelated;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="sky" id="sky"></div>
+<svg class="mountain" viewBox="0 0 1440 120" preserveAspectRatio="none"><polygon points="0,120 240,20 420,120" fill="#fff"/><polygon points="300,120 600,10 900,120" fill="#eef8ff"/><polygon points="780,120 1080,30 1380,120" fill="#fff"/></svg>
+<canvas id="confetti"></canvas>
+
+<header>
+  <div class="logo">
+    <img src="https://play.pokemonshowdown.com/sprites/ani/abra.gif" alt="Abra">
+    <h1>ABRA&nbsp;WORLD</h1>
+    <img src="https://play.pokemonshowdown.com/sprites/ani/kadabra.gif" alt="Kadabra">
+  </div>
+  <p class="tagline">A little snowy town where every building is a machine-learning model for Pokémon Champions ✨</p>
+</header>
+
+<nav id="nav"></nav>
+
+<main id="stage"></main>
+
+<footer>Built by Will Hooper · ABRA = <b>A</b>utomated <b>B</b>attle <b>R</b>eplay <b>A</b>nalyzer · the models learn from real ladder games and get smarter over time.</footer>
+
+<script>
+/* ===== live JOLTEON model (embedded, real weights) ===== */
+const JOLT = {"wSpeed": -0.1626, "wFire": 0.3019, "roster": [{"n":"garchomp","sprite":"garchomp","w":-0.093,"spd":0.506,"fire":0.813,"bring":0.402},{"n":"incineroar","sprite":"incineroar","w":-0.0145,"spd":0.134,"fire":1.0,"bring":0.644},{"n":"kingambit","sprite":"kingambit","w":0.3176,"spd":0.073,"fire":0.56,"bring":0.242},{"n":"whimsicott","sprite":"whimsicott","w":0.0763,"spd":0.822,"fire":0.876,"bring":0.773},{"n":"basculegion","sprite":"basculegion","w":0.01,"spd":0.663,"fire":0.625,"bring":0.761},{"n":"charizard","sprite":"charizard","w":0.0412,"spd":0.455,"fire":0.881,"bring":0.901},{"n":"tyranitar","sprite":"tyranitar","w":0.4408,"spd":0.456,"fire":0.834,"bring":0.786},{"n":"pelipper","sprite":"pelipper","w":0.1388,"spd":0.211,"fire":0.561,"bring":0.643},{"n":"sinistcha","sprite":"sinistcha","w":0.0981,"spd":0.147,"fire":0.463,"bring":0.421},{"n":"toxapex","sprite":"toxapex","w":0.2248,"spd":0.416,"fire":0.41,"bring":0.774},{"n":"sylveon","sprite":"sylveon","w":-0.0352,"spd":0.162,"fire":0.815,"bring":0.766},{"n":"glimmora","sprite":"glimmora","w":0.4215,"spd":0.71,"fire":0.72,"bring":0.742},{"n":"sneasler","sprite":"sneasler","w":0.1453,"spd":0.637,"fire":0.637,"bring":0.721},{"n":"meowstic","sprite":"meowstic","w":0.2996,"spd":0.851,"fire":0.592,"bring":0.744},{"n":"kangaskhan","sprite":"kangaskhan","w":0.0977,"spd":0.33,"fire":0.575,"bring":0.77},{"n":"dragonite","sprite":"dragonite","w":0.0197,"spd":0.456,"fire":0.636,"bring":0.537},{"n":"gholdengo","sprite":"gholdengo","w":-0.2375,"spd":0.31,"fire":0.59,"bring":0.536},{"n":"excadrill","sprite":"excadrill","w":0.255,"spd":0.573,"fire":0.583,"bring":0.586},{"n":"aerodactyl","sprite":"aerodactyl","w":0.3857,"spd":0.713,"fire":0.608,"bring":0.65},{"n":"raichu","sprite":"raichu","w":0.2147,"spd":0.694,"fire":0.676,"bring":0.632},{"n":"archaludon","sprite":"archaludon","w":-0.1737,"spd":0.254,"fire":0.707,"bring":0.572},{"n":"venusaur","sprite":"venusaur","w":0.1584,"spd":0.467,"fire":0.793,"bring":0.661},{"n":"mamoswine","sprite":"mamoswine","w":-0.0842,"spd":0.6,"fire":0.682,"bring":0.611},{"n":"scizor","sprite":"scizor","w":0.2772,"spd":0.211,"fire":0.696,"bring":0.481},{"n":"gallade","sprite":"gallade","w":0.3383,"spd":0.604,"fire":0.732,"bring":0.6},{"n":"chandelure","sprite":"chandelure","w":0.396,"spd":0.658,"fire":0.593,"bring":0.558},{"n":"talonflame","sprite":"talonflame","w":0.1276,"spd":0.87,"fire":0.615,"bring":0.715},{"n":"tsareena","sprite":"tsareena","w":-0.1634,"spd":0.468,"fire":0.945,"bring":0.506},{"n":"grimmsnarl","sprite":"grimmsnarl","w":0.1393,"spd":0.769,"fire":0.72,"bring":0.595},{"n":"farigiraf","sprite":"farigiraf","w":0.0129,"spd":0.105,"fire":0.596,"bring":0.65},{"n":"staraptor","sprite":"staraptor","w":0.0228,"spd":0.568,"fire":0.952,"bring":0.623}]};
+const BY={}; JOLT.roster.forEach(m=>BY[m.n]=m);
+const ani=n=>`https://play.pokemonshowdown.com/sprites/ani/${n}.gif`;
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0.5;}
+function pwin(A,B){ // A,B arrays of species names -> P(A beats B), the real JOLTEON logistic
+  let s=0; A.forEach(n=>s+=(BY[n]?.w||0)); B.forEach(n=>s-=(BY[n]?.w||0));
+  s+=JOLT.wSpeed*(mean(A.map(n=>BY[n]?.spd??0.5))-mean(B.map(n=>BY[n]?.spd??0.5)));
+  s+=JOLT.wFire *(mean(A.map(n=>BY[n]?.fire??0.5))-mean(B.map(n=>BY[n]?.fire??0.5)));
+  return 1/(1+Math.exp(-s));
+}
+
+/* ===== the cast (rooms) ===== */
+const CAST=[
+ {id:'town', tab:'Town', sprite:'abra', title:'ABRA World', acro:'Automated Battle Replay Analyzer', roof:'#ffd23f'},
+ {id:'jolteon', tab:'Jolteon', sprite:'jolteon', title:"Jolteon's Odds Booth", acro:'Joint Odds, Ladder-Trained Expected-Outcome Network', roof:'#ffd23f'},
+ {id:'medicham', tab:'Medicham', sprite:'medicham', title:"Medicham's Dojo", acro:'Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves', roof:'#ff6b57'},
+ {id:'ditto', tab:'Ditto', sprite:'ditto', title:"Ditto's Team Lab", acro:'Double-oracle Iterative Team-Tuning Optimiser', roof:'#ff6bd6'},
+ {id:'kadabra', tab:'Kadabra', sprite:'kadabra', title:"Kadabra's Theater", acro:'Key Analysis of Decisions, Advice & Better Replay Annotation', roof:'#7a6bff'},
+ {id:'slowking', tab:'Slowking', sprite:'slowking', title:"Slowking's Library", acro:'Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver', roof:'#4fb0ff'},
+ {id:'chomp', tab:'Chomp', sprite:'garchomp', title:"Chomp's Arena", acro:'the bring-4 / lead-2 damage engine', roof:'#5fd07a'},
+];
+
+/* ===== build nav ===== */
+const nav=document.getElementById('nav');
+CAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
+  b.innerHTML=`<img src="${ani(c.sprite)}">${c.tab}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
+
+/* ===== rooms html ===== */
+function mascotHero(c,bubble){return `<div class="hero"><img class="mascot" src="${ani(c.sprite)}">
+  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
+
+function roomTown(){const c=CAST[0];
+  let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')"><div class="roof" style="background:${h.roof}"></div>
+     <img src="${ani(h.sprite)}"><b>${h.tab}</b><small>${h.title.replace(/'s.*/,'')}</small></div>`).join('');
+  return `<div class="panel">${mascotHero(c,"Welcome to town! I collect real Champions ladder games and store them forever. Every building here is a model that learns from them. Waddle in and click around!")}</div>
+   <div class="panel"><h2>🏘️ The town</h2><p class="sub">Each house is a model — click to visit</p><div class="map">${houses}</div></div>
+   <div class="panel"><h2>📈 What the town has collected</h2>
+     <div class="grid2" style="grid-template-columns:repeat(4,1fr)">
+       <div class="stat"><b>4,999</b><span>real ladder games stored</span></div>
+       <div class="stat"><b>30,611</b><span>turns with damage + speed</span></div>
+       <div class="stat"><b>1,170</b><span>observed move-damage profiles</span></div>
+       <div class="stat"><b>hourly</b><span>auto-collects new games</span></div>
+     </div>
+     <p style="margin-top:14px;font-weight:600;color:#3a5372">Store raw, analyse on top — any new question is a re-filter of the town's memory, never a re-download. The more games played, the smarter every building gets. 🔁</p>
+   </div>
+   <div class="panel"><h2>🚪 Doors to the rest of Will's world</h2>
+     <a class="link" href="https://willhoop.github.io" target="_blank">🏠 Portfolio</a>
+     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">🦈 CHOMP (Showdown userscript)</a>
+     <a class="link" href="https://github.com/willhoop/hoopadex" target="_blank">📕 HoopaDex</a>
+     <a class="link" href="https://github.com/willhoop/kaizodex" target="_blank">🎮 KaizoDex</a>
+     <a class="link" href="https://elitefourcapital.com" target="_blank">📊 Event Desks</a>
+     <p class="sub" style="margin-top:10px">ABRA is a separate-but-connected project: it feeds CHOMP smarter data over time.</p>
+   </div>`;
+}
+
+function roomJolteon(){const c=CAST[1];
+  return `<div class="panel">${mascotHero(c,"Zap! Pick a team for each side and I'll tell you who's favoured — before a single move. This is my <b>real</b> model running right here in your browser. ⚡")}</div>
+   <div class="panel"><h2>⚡ Battle Odds Booth</h2><p class="sub">Click sprites to build each team (up to 6). Then hit BATTLE.</p>
+     <div class="booth">
+       <div class="side you"><h3>🟢 Your team</h3><div class="slots" id="slotsA"></div><div class="picker" id="pickA"></div></div>
+       <div class="vs"><div class="vsbadge">VS</div><button class="battlebtn" onclick="doBattle()">BATTLE!</button>
+         <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">🎲 Surprise me</button></div>
+       <div class="side rival"><h3>🔴 Rival team</h3><div class="slots" id="slotsB"></div><div class="picker" id="pickB"></div></div>
+     </div>
+     <div class="meterwrap"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
+       <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
+     <div class="readout" id="readout">Build two teams and press BATTLE ⚡</div>
+   </div>
+   <div class="panel"><h2>🧠 How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by which team hits harder (firepower) and moves first (speed). I'm right about <b>~56%</b> of the time from team sheets alone — a real edge over a coin flip, but not magic: the same two teams don't always give the same winner. That gap is skill and luck, and it's why the other buildings exist.</p></div>`;
+}
+
+function tierRow(sprite,name,acro,cost,color,text){
+  return `<div class="tier"><img src="${ani(sprite)}"><div class="g"><b>${name}</b> — <span style="color:#5a708a;font-weight:600">${acro}</span><div style="font-weight:600;margin-top:2px">${text}</div></div><div class="cost" style="background:${color}">${cost}</div></div>`;
+}
+function roomMedicham(){const c=CAST[2];
+  return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — using CHOMP's exact damage math, a few hundred quick rollouts, sampling every damage roll. Middle of the pack in speed and in cost. 🥋")}</div>
+   <div class="panel"><h2>🥋 The three fighting tiers</h2><p class="sub">Fast &amp; cheap → slow &amp; wise. The Pokémon's speed tells you the model's cost.</p>
+     ${tierRow('jolteon','JOLTEON','one forward pass','⚡ microseconds','#ffd23f','Instant win-probability. Scores thousands of teams. (Tier 1)')}
+     ${tierRow('medicham','MEDICHAM','short rollouts','🥋 milliseconds','#ff6b57','Plays a matchup out a few turns with exact damage. Vets finalists. (Tier 2)')}
+     ${tierRow('slowking','SLOWKING','belief search','📚 seconds','#4fb0ff','Deep, equilibrium-aware lines. The research tier. (Tier 3)')}
+     <p style="font-weight:600;color:#3a5372;margin-top:12px">Real example: rain core vs sun core, I return <b>0.60</b> for rain; a mirror match returns <b>~0.50</b>, exactly as it must. My rollouts caught Jolteon over-rating a team by <b>60 points</b> — that's my whole job.</p>
+   </div>`;
+}
+function roomDitto(){const c=CAST[3];
+  return `<div class="panel">${mascotHero(c,"Copy copy! I build teams that beat the <b>live</b> meta. I try thousands of swaps, scoring each with Jolteon, and I make sure you have an answer to <b>Basculegion</b> — not to Camerupt. 🧬")}</div>
+   <div class="panel"><h2>🎯 Answer the threats that matter</h2><p class="sub">Win-rate vs teams that actually run each top-used threat (from a real run)</p>
+     ${['Incineroar 25%→80% ✓','Garchomp 23%→80% ✓','Whimsicott 22%→80% ✓','Kingambit 21%→76% ✓','Basculegion 20%→79% ✓'].map(t=>`<span class="chip">${t}</span>`).join('')}
+     <p style="font-weight:600;color:#3a5372;margin-top:12px">110 rare species carry ~0 usage weight and are ignored on purpose. You get coverage where the ladder lives.</p>
+   </div>
+   <div class="panel"><h2>⚖️ The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">When I optimise <i>against</i> Jolteon, I can cheat it — stacking rare Pokémon it over-rates. So Medicham re-checks my teams with real rollouts. Once, Jolteon said my team was <b>90%</b>; Medicham said <b>12%</b>. Medicham was right. That disagreement is a feature: it catches hype <i>and</i> hidden gems.</p></div>`;
+}
+function roomKadabra(){const c=CAST[4];
+  return `<div class="panel">${mascotHero(c,"Let me replay your game with you, one turn at a time. I rebuild each scene, tell you the better move, and answer your questions before we move on. 🔮")}</div>
+   <div class="panel"><h2>🎬 A reconstructed turn (real replay)</h2>
+     <div style="border:3px solid var(--line);border-radius:16px;padding:14px;background:#f7f4ff;font-weight:600;line-height:1.7">
+       <div><b>Turn 1</b></div>
+       <div>⚡ speed: Raichu moved before Venusaur — <b>you were faster</b></div>
+       <div>🟢 your Raichu Fake Out → 9% <span class="tag2">avg 10%</span></div>
+       <div>🔴 their Venusaur Leaf Storm → <b>99%</b> <span class="tag2">avg 62% — HIGH ROLL 😱</span></div>
+       <div style="margin-top:8px">🧠 lesson: their Venusaur got a huge roll — prep a switch-in or a faster answer next time.</div>
+     </div>
+     <p style="font-weight:600;color:#3a5372;margin-top:12px">Every game you review gets quietly added to the town's memory and folds into the models — the flywheel, from the coaching seat.</p>
+   </div>`;
+}
+function roomSlowking(){const c=CAST[5];
+  return `<div class="panel">${mascotHero(c,"Slowly... wisely... I search over <b>belief states</b> — what your opponent might be hiding — to find the equilibrium-best move. I'm the deep one. I'm also still being built. 📚")}</div>
+   <div class="panel"><h2>📚 The research tier</h2><p style="font-weight:600;color:#3a5372">Champions is a simultaneous-move, imperfect-information game — solving it means mixed strategies and belief search (think ReBeL / Student-of-Games). That's a genuine research effort, honestly flagged as roadmap, not a weekend build. The white papers lay out the full math. When I'm ready, Kadabra's advice gets deeper with no change to the interface.</p>
+   <span class="chip">POSG / Markov game</span><span class="chip">mixed Nash</span><span class="chip">belief-state search</span><span class="chip">offline RL</span><span class="chip">world models</span></div>`;
+}
+function roomChomp(){const c=CAST[6];
+  return `<div class="panel">${mascotHero(c,"CHOMP! I'm the engine you actually play with — I pick the best 4 of your 6 and the 2 to lead, covering the opponent's whole team with exact damage math. ABRA feeds me smarter reads over time. 🦈")}</div>
+   <div class="panel"><h2>🦈 The bring-4 / lead-2 engine</h2><p style="font-weight:600;color:#3a5372">A Showdown userscript. It reads the battle, runs the full Gen-9 damage pipeline across all 16 rolls, and tells you the four to bring and two to lead. It covers the opponent's <b>whole six</b> (you never know their four), with ABRA's usage as advisory intel. Because it auto-updates, a smarter ABRA reaches your plugin with no reinstall.</p>
+     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">🦈 Get CHOMP</a>
+     <a class="link" href="go:jolteon" onclick="go('jolteon');return false;">⚡ Try the odds booth</a></div>`;
+}
+const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
+
+/* ===== navigation ===== */
+function go(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===id));
+  const stage=document.getElementById('stage');
+  stage.innerHTML=`<div class="room on">${ROOMS[id]()}</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='jolteon') initBooth();
+}
+
+/* ===== Jolteon booth logic ===== */
+let teamA=[],teamB=[];
+function initBooth(){ teamA=['pelipper','basculegion','archaludon','kingambit']; teamB=['charizard','venusaur','tyranitar','garchomp'];
+  renderPick('pickA','A'); renderPick('pickB','B'); renderSlots(); }
+function renderPick(elId,side){const el=document.getElementById(elId);if(!el)return;
+  el.innerHTML=JOLT.roster.map(m=>`<button class="pk" data-n="${m.n}" data-s="${side}" onclick="toggle('${m.n}','${side}')" title="${cap(m.n)}"><img src="${ani(m.sprite)}"></button>`).join('');
+  syncSel();}
+function toggle(n,side){const T=side==='A'?teamA:teamB;const i=T.indexOf(n);
+  if(i>=0)T.splice(i,1); else {if(T.length>=6){return;} T.push(n);} renderSlots(); syncSel();}
+function syncSel(){document.querySelectorAll('.pk').forEach(b=>{const T=b.dataset.s==='A'?teamA:teamB;b.classList.toggle('sel',T.includes(b.dataset.n));});}
+function renderSlots(){const sa=document.getElementById('slotsA'),sb=document.getElementById('slotsB');if(!sa)return;
+  const cell=n=>`<div class="slot"><img src="${ani(BY[n].sprite)}" title="${cap(n)}"></div>`;
+  sa.innerHTML=teamA.map(cell).join('')||'<small style="color:#889">pick some →</small>';
+  sb.innerHTML=teamB.map(cell).join('')||'<small style="color:#889">pick some →</small>';}
+function randomTeams(){const pool=JOLT.roster.map(m=>m.n);const pick=()=>{const s=new Set();while(s.size<4)s.add(pool[Math.floor(Math.random()*pool.length)]);return[...s];};
+  teamA=pick();teamB=pick();renderSlots();syncSel();doBattle();}
+function doBattle(){
+  if(!teamA.length||!teamB.length){document.getElementById('readout').textContent='Pick at least one Pokémon per side!';return;}
+  const p=pwin(teamA,teamB), pa=Math.round(p*100), pb=100-pa;
+  document.getElementById('mYou').style.width=pa+'%';
+  document.getElementById('mYouL').textContent=pa+'%';
+  document.getElementById('mRivL').textContent=pb+'%';
+  const fav = pa>pb?'Your team':'Rival team', edge=Math.abs(pa-pb);
+  let msg = edge<8?`📛 dead even — this one's a coin flip!`:edge<20?`🟢 ${fav} is favoured (${Math.max(pa,pb)}%).`:`🔥 ${fav} is a big favourite (${Math.max(pa,pb)}%)!`;
+  document.getElementById('readout').innerHTML=msg+`  <span style="color:#889">— JOLTEON, live</span>`;
+  burst(pa>=pb);
+}
+
+/* ===== effects: snow, clouds, confetti ===== */
+const sky=document.getElementById('sky');
+for(let i=0;i<5;i++){const c=document.createElement('div');c.className='cloud';const s=40+Math.random()*40;
+  c.style.width=s+'px';c.style.height=s*.6+'px';c.style.top=(5+Math.random()*30)+'%';
+  c.style.animationDuration=(30+Math.random()*40)+'s';c.style.animationDelay=(-Math.random()*40)+'s';sky.appendChild(c);}
+for(let i=0;i<40;i++){const f=document.createElement('div');f.className='snowf';f.textContent='❄';
+  f.style.left=Math.random()*100+'vw';f.style.fontSize=(8+Math.random()*14)+'px';
+  f.style.animationDuration=(6+Math.random()*10)+'s';f.style.animationDelay=(-Math.random()*10)+'s';sky.appendChild(f);}
+// a waddling Abra along the snow line
+const walker=document.createElement('img');walker.className='walker';walker.src=ani('abra');document.body.appendChild(walker);
+let wx=-60,wdir=1;setInterval(()=>{wx+=wdir*2;if(wx>innerWidth){wdir=-1;walker.style.transform='scaleX(-1)';}if(wx<-60){wdir=1;walker.style.transform='scaleX(1)';}
+  walker.style.left=wx+'px';walker.style.bottom=(10+Math.sin(wx/40)*6)+'px';},40);
+
+const cvs=document.getElementById('confetti'),ctx=cvs.getContext('2d');
+function fit(){cvs.width=innerWidth;cvs.height=innerHeight;}fit();addEventListener('resize',fit);
+let parts=[];
+function burst(good){const cols=good?['#ffd23f','#5fd07a','#4fb0ff','#ff6bd6']:['#ff6b57','#ff9bbb','#ffd23f'];
+  for(let i=0;i<120;i++)parts.push({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*12,vy:-Math.random()*12-3,
+    c:cols[i%cols.length],r:4+Math.random()*5,a:1,rot:Math.random()*6});}
+function tick(){ctx.clearRect(0,0,cvs.width,cvs.height);parts.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a-=.012;p.rot+=.2;
+  ctx.globalAlpha=Math.max(0,p.a);ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2);ctx.restore();});
+  parts=parts.filter(p=>p.a>0&&p.y<innerHeight+20);requestAnimationFrame(tick);}
+tick();
+
+/* ===== boot ===== */
+go('town');
+</script>
+</body>
+</html>
