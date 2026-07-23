@@ -745,11 +745,16 @@ function runDitto(){
   const seed=teamA.slice(0,6); if(seed.length<2){out.innerHTML='<span style="color:#b4432f">Pick at least 2 Pokémon in your seed team above.</span>';return;}
   out.innerHTML='DITTO is best-responding to the equilibrium meta…';
   setTimeout(()=>{
-    const roster=JOLT.roster.map(m=>m.n);
-    let team=seed.slice(), best=dittoScore(team); const start=best, swaps=[];
-    for(let it=0;it<30;it++){ let improved=false;
+    const archT0=(typeof META_NASH!=='undefined'&&META_NASH.arch.length)?META_NASH.arch:[{n:'core',w:1,t:JOLT.roster.slice(0,4).map(m=>m.n)}];
+    // The REAL objective is the GROUNDED value: MEDICHAM plays your team vs the Nash-weighted meta.
+    // JOLTEON only shortlists candidates (fast coarse filter) — it never decides, because it barely
+    // beats a coin and DITTO would just game it (that's the "84% JOLTEON / 18% MEDICHAM" garbage).
+    const mcTeam=tm=>{let s=0,w=0;for(const a of archT0){s+=a.w*(mcWinProb(tm,a.t,40)||0);w+=a.w;}return w?s/w:0;};
+    const pool=JOLT.roster.slice(0,18).map(m=>m.n);
+    let team=seed.slice(), best=mcTeam(team); const start=best, swaps=[];
+    for(let it=0;it<2;it++){ let improved=false;
       for(let i=0;i<team.length;i++){ let bi=team[i],bs=best;
-        for(const cand of roster){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=dittoScore(nt); if(sc>bs+1e-6){bs=sc;bi=cand;} }
+        for(const cand of pool){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=mcTeam(nt); if(sc>bs+0.01){bs=sc;bi=cand;} }
         if(bi!==team[i]){ swaps.push([team[i],bi,bs-best]); team[i]=bi; best=bs; improved=true; } }
       if(!improved)break; }
     dittoResult=team.slice();
