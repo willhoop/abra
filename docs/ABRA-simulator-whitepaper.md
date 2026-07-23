@@ -97,7 +97,7 @@ models for depth.
 | Tier | Object learned | Query | Cost | Primary use |
 |---|---|---|---|---|
 | **1. RAPID** (outcome) | `Pψ(win | team_A, team_B)` | one forward pass | ~µs (fastest) | search over thousands of teams |
-| **2. DODRIO** (hybrid rollout) | CHOMP damage + learned policies | a few short rollouts | ~ms | ranking finalist teams |
+| **2. JOLTEON** (hybrid rollout) | CHOMP damage + learned policies | a few short rollouts | ~ms | ranking finalist teams |
 | **3. SLOWKING** (learned dynamics) | `Tθ(s' | s, a)` + value/policy | belief search / playout | ~s (slowest) | deep vetting, a matchup |
 
 The rest of the paper derives each.
@@ -111,9 +111,9 @@ model's cost, fast to slow:
   Rapidash-quick win-probability call between two teams, from Bradley–Terry strengths plus
   CHOMP-derived damage/coverage features (§4.3.1). One forward pass, microseconds — fast enough to
   score a whole team search.
-- **DODRIO** — *Damage-Oriented Dynamics Rollouts, Imitating Opponents* (Tier 2). Medium cost: a fast
-  runner with three heads that plays a matchup out a few turns using **CHOMP's exact damage engine**
-  and behaviour-cloned move priors. Grounded, approximate, quick.
+- **JOLTEON** — *Joint Outcome via Lightweight Turn Evaluation Of Nodes* (Tier 2). Medium cost: fast,
+  electric jolts of simulation that play a matchup out a few turns using **CHOMP's exact damage
+  engine** and behaviour-cloned move priors. Grounded, approximate, quick.
 - **SLOWKING** — *Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver*
   (Tier 3). The **slowest** and deepest: a slow but wise brain that searches over belief states on a
   learned dynamics model toward equilibrium play. Slow on purpose — you run it only on finalists.
@@ -121,7 +121,7 @@ model's cost, fast to slow:
   after team against the meta and transforms toward the strongest six, the way Ditto tries every form.
 
 CHOMP (the bring-4 engine) and the coach are *consumers* of these models, not models themselves. The
-naming makes the pipeline legible and the speeds honest: ABRA feeds RAPID and DODRIO; those and
+naming makes the pipeline legible and the speeds honest: ABRA feeds RAPID and JOLTEON; those and
 SLOWKING feed DITTO; DITTO's teams and SLOWKING's lines reach the player through CHOMP and the coach;
 the games played feed ABRA. Fast Pokémon do the cheap, broad work; the slow one does the deep work.
 
@@ -318,9 +318,9 @@ ladder so the model does not narrow to only the games the current policy likes. 
 flywheel (§8) is a continual-learning loop whose data distribution is steered, deliberately, toward
 the positions the player actually reaches.
 
-## 7. Tier 2 — DODRIO, the pragmatic middle
+## 7. Tier 2 — JOLTEON, the pragmatic middle
 
-**DODRIO** sidesteps learning dynamics by *specifying* them: it uses CHOMP's exact damage engine — the same pKO-over-16-rolls threat scoring as tier 1 — as a hand-built `T` for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
+**JOLTEON** sidesteps learning dynamics by *specifying* them: it uses CHOMP's exact damage engine — the same pKO-over-16-rolls threat scoring as tier 1 — as a hand-built `T` for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
 or behaviour-cloned move priors from ABRA's `sets`), and roll a matchup out a few turns with a
 handful of stochastic samples to average over damage rolls. It is grounded in real math, requires no
 model training, and reuses code that already exists and is already tested. It is the right first
@@ -466,7 +466,7 @@ The disciplined path is to ship tier 1, keep the flywheel turning so the dataset
 18. French, R. (1999). *Catastrophic Forgetting in Connectionist Networks.* Trends in Cognitive Sci.
 19. Hooper, W. (2026). *CHOMP white paper, validation report, and referee report* — the Gen-9 damage
     pipeline, the pKO-over-16-rolls threat score, and the coverage-based bring-4, used here as RAPID's
-    feature generator and DODRIO's dynamics. `Pokemon/CHOMP/docs/`.
+    feature generator and JOLTEON's dynamics. `Pokemon/CHOMP/docs/`.
 
 ---
 

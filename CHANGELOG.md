@@ -47,6 +47,6 @@ silently rewritten; what changed and why is stated.
   team optimisation and the self-improving flywheel, and grounds every claim in the 2025 literature
   (PokéChamp, Metamon, VGC-Bench, ReBeL/Player-of-Games, Sampled/Gumbel MuZero, offline RL). Names the
   model family in the CHOMP/ABRA tradition — **RAPID** (fast win-prob,
-  Rapidash), **DODRIO** (medium rollouts), **SLOWKING** (slow deep learned dynamics), **DITTO** (team
+  Rapidash), **JOLTEON** (medium rollouts), **SLOWKING** (slow deep learned dynamics), **DITTO** (team
   optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
-  as RAPID's features and DODRIO's dynamics (grey-box modelling).
+  as RAPID's features and JOLTEON's dynamics (grey-box modelling).
