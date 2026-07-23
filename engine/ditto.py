@@ -58,6 +58,23 @@ def score(six, meta):
 def hardest(six, meta, k=5):
     return sorted(meta, key=lambda m: pwin(six,m))[:k]
 
+def medicham_check(six, foes, N=150):
+    """Vet a JOLTEON-optimised team with grounded MEDICHAM rollouts (Tier-2).
+    Exposes evaluator overfit: if MEDICHAM disagrees with JOLTEON, JOLTEON was
+    gaming its own blind spots. Runs the JS engine via subprocess."""
+    import subprocess
+    out=[]
+    for foe in foes:
+        try:
+            r=subprocess.run(['node',os.path.join(HERE,'medicham.js'),
+                              ','.join(six[:4]), ','.join(foe[:4]), str(N)],
+                             capture_output=True,text=True,timeout=60)
+            line=[l for l in r.stdout.splitlines() if 'P(A wins)' in l]
+            out.append(float(line[0].split('=')[1]) if line else None)
+        except Exception:
+            out.append(None)
+    return out
+
 def optimise(seed, pool, meta, passes=3):
     team=seed[:]; best=score(team,meta)
     for _ in range(passes):
@@ -81,8 +98,11 @@ if __name__=='__main__':
     # usage pool: species that actually appear, most common first
     from collections import Counter
     cnt=Counter(s for m in meta for s in m)
-    pool=[s for s,_ in cnt.most_common(60)]
-    print(f"meta gauntlet: {len(meta)} real high-ladder teams | candidate pool: {len(pool)} species\n")
+    # PROVEN-META pool only: top-30 most-used species. Constraining to species the
+    # ladder actually trusts blunts JOLTEON's rare-species overfit (Goodhart guard).
+    pool=[s for s,_ in cnt.most_common(30)]
+    usage={s:c/len(meta) for s,c in cnt.items()}
+    print(f"meta gauntlet: {len(meta)} real high-ladder teams | proven-meta pool: {len(pool)} species\n")
     print(f"seed team:  {', '.join(seed)}")
     print(f"seed win rate vs meta: {score(seed,meta)*100:.1f}%\n")
 
@@ -94,9 +114,20 @@ if __name__=='__main__':
         print(f"  team: {', '.join(team)}")
         # opponent-oracle: emphasise hardest counters in the gauntlet
         meta = meta + counters*3   # up-weight counters, re-optimise against them
-    print("\nFINAL TEAM")
+    meta0=load_meta()
+    print("\nFINAL TEAM (JOLTEON-optimised)")
     print(' ', ', '.join(team))
-    print(f"  mean win rate vs live meta: {score(team,load_meta())*100:.1f}%")
-    print("  hardest counters remaining:")
-    for m in hardest(team,load_meta(),4):
-        print(f"    {pwin(team,m)*100:4.1f}%  vs  {', '.join(m)}")
+    print(f"  JOLTEON mean win rate vs live meta: {score(team,meta0)*100:.1f}%")
+
+    # Tier-2 reality check: MEDICHAM rollouts vs a spread of real meta teams.
+    sample=random.sample(meta0, min(4,len(meta0)))
+    print("\nMEDICHAM vetting (grounded rollouts — catches JOLTEON overfit):")
+    mc=medicham_check(team, sample)
+    for foe,p in zip(sample,mc):
+        tag='' if p is None else ('  <- JOLTEON overconfident' if score([*team],[foe])>p+0.15 else '')
+        print(f"    JOLTEON {pwin(team,foe)*100:4.1f}%  |  MEDICHAM {'n/a' if p is None else f'{p*100:4.1f}%'}  vs  {', '.join(foe)}{tag}")
+    vals=[p for p in mc if p is not None]
+    if vals:
+        print(f"\n  MEDICHAM mean: {sum(vals)/len(vals)*100:.1f}%  (vs JOLTEON's optimistic {score(team,meta0)*100:.1f}%)")
+        print("  If these disagree a lot, JOLTEON gamed its blind spots — trust MEDICHAM. This gap is")
+        print("  the documented reason the pipeline vets Tier-1 picks with Tier-2 before believing them.")
