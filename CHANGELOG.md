@@ -10,6 +10,53 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.0.0] — 2026-07-23
+
+The "honest instrument" release: a real doubles engine, an evaluation layer that grades every
+probability, the SLOWKING belief-search stack, and the first learned value function (the flywheel's
+core). Also a strict self-review that reshaped the roadmap.
+
+### Added
+- **MEDICHAM v3 — real Gen-9 doubles engine** (`engine/medicham2-browser.js`, embedded in the site):
+  replaces the 1v1 OHKO-chain that collapsed to 0%/100%. Damage formula with boosts/spread/crit/rolls,
+  weather, Trick Room, Tailwind, priority, Protect, items, abilities, Fake Out; behaviour-cloned policy
+  (samples real move rates), need-based Protect. Verified: mirror 0.50, healthy distribution, 400
+  rollouts/29ms. Win rates now carry a 95% CI on the site.
+- **Evaluation harness** (`engine/eval_harness.py`): temporal held-out log-loss / Brier / calibration
+  vs coin, player-Elo, and usage baselines with bootstrap CIs. **Verdict: JOLTEON ties a coin in
+  log-loss** — demoted from headline predictor to fast prior + baseline; site copy made honest.
+- **Calibration** (`engine/calibrate.py`): temperature scaling; the Python JOLTEON was 6× overconfident.
+- **Learned in-battle value function** (`engine/train_value.py` → `data/value-net.json`): reconstructs
+  per-turn HP state and regresses the outcome. Beats a coin (log-loss 0.682) and is calibrated — the
+  first genuinely learned, calibrated component, and the leaf evaluator + flywheel core.
+- **SLOWKING infrastructure** (`engine/slowking/`): `nash.py` (equilibrium, verified on RPS/2×2),
+  `belief.py` (public-belief-state + Bayesian filter), `ismcts.py` (simultaneous-move regret matching,
+  recovers exact Nash), `game.py` (engine interface), `solver.py` (team-preview Nash + continual
+  re-solve; returns bring *mixes* + win%), `value.py` (loads the learned leaf). All unit-tested.
+- **Self-play data pipeline** (`sim/generate-dataset.js`) writing engine games into the store schema —
+  the unlimited, unbiased "more games" path. Scraper default raised 2→25 pages (~10× per run).
+- **Non-transitivity finding** (`data/nontransitivity.json`, DITTO tab): the meta is rock-paper-scissors
+  (3 robust cycles after noise control) — empirical proof an additive rating can't capture it. Shown
+  with an explicit "preliminary, thin data" caveat.
+- **Docs:** `docs/POKER-TO-POKEMON.md` (the founding white paper), `docs/THESIS-REVIEW.md` +
+  `docs/THESIS-REVIEW-v2.md` (strict self-critique with fixes), `docs/COMPETITORS.md` (VGC-Bench et al.
+  and how we refine them), `docs/OVERNIGHT-HANDOFF.md`.
+- **Site:** in-browser DITTO (item tuning + PokéPaste export) and KADABRA (client-side replay coach);
+  MEDICHAM/DITTO use the sprite picker; saved-teams in the matchup; ORB opens from Chomp's room;
+  per-room personality mascots; threats table with sample-adjusted Win%, real speed, Games column.
+
+### Changed / Honest corrections
+- JOLTEON reframed as a fast prior, not an oracle (backtest: ~coin in log-loss).
+- White paper corrected: the current SLOWKING search is IS-MCTS/PIMC (strategy fusion), a rung below
+  the ReBeL target — no longer overclaimed.
+- Non-transitivity presented as preliminary (approximate engine, small sample), not a settled claim.
+
+### Fixed
+- MEDICHAM special-move bug (special attackers dealt 0 damage); booth slot regression that broke
+  "Surprise me"; DITTO/KADABRA no longer require a server.
+
+---
+
 ## [1.0.0] — 2026-07-22
 
 ### Added
