@@ -712,11 +712,11 @@ function runMedichamRoom(){
   const out=document.getElementById('mcRoomOut'); if(!out)return;
   if(!teamA.length||!teamB.length){out.textContent='Pick both teams first.';return;}
   out.textContent='MEDICHAM is playing it out…';
-  setTimeout(()=>{ const p=mcWinProb(teamA,teamB,400);
+  setTimeout(()=>{ const N=400, p=mcWinProb(teamA,teamB,N);
     if(p==null){out.textContent='Could not build those teams — try more common species.';return;}
-    const mp=Math.round(p*100), jp=Math.round(pwin(teamA,teamB)*100), gap=Math.abs(jp-mp);
+    const mp=Math.round(p*100), ci=Math.round(196*Math.sqrt(p*(1-p)/N)), jp=Math.round(pwin(teamA,teamB)*100), gap=Math.abs(jp-mp);
     const y=document.getElementById('mcYou'); if(y){ y.style.width=mp+'%'; document.getElementById('mcYouL').textContent=mp+'%'; document.getElementById('mcRivL').textContent=(100-mp)+'%'; }
-    out.innerHTML=`Grounded win rate for <b>your</b> team: <b>${mp}%</b> over 400 rollouts. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<10?'They agree — this read is solid.':`Gap of <b>${gap} pts</b> — MEDICHAM actually played it out, so trust it over JOLTEON here.`);
+    out.innerHTML=`Grounded win rate for <b>your</b> team: <b>${mp}% ± ${ci}</b> <span style="color:#889;font-weight:500">(95% CI over ${N} rollouts)</span>. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<=ci?'They agree within the noise.':`Gap of <b>${gap} pts</b> — beyond the noise, MEDICHAM actually played it out, so trust it over JOLTEON here.`);
   },20);
 }
 /* ===== DITTO — in-browser team optimiser (no server) ===== */
