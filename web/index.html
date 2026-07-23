@@ -813,7 +813,7 @@ function copyOrbTeams(btn){ const t=(typeof teamA!=='undefined'&&teamA.length)?t
   const txt=t.map(n=>{const m=MC.mons[n]||{}; const top=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]); const moves=top.map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
   try{navigator.clipboard.writeText(txt);}catch(e){}
   if(btn){const o=btn.textContent;btn.textContent='Copied — paste into the calc’s Import';setTimeout(()=>btn.textContent=o,1800);} }
-let KAD=null, kadKeys=[], kadI=0;
+let KAD=null, kadKeys=[], kadI=0, kadMode='embed';
 async function runKadabra(){
   const raw=document.getElementById('kdid').value.trim(); const out=document.getElementById('kdout');
   if(!raw){out.textContent='Paste a replay link first.';return;}
@@ -830,17 +830,21 @@ async function runKadabra(){
 }
 // KADABRA v2 — embed the REAL Showdown replay (battle left, log right, native targeting/status/field/animation)
 // and overlay KADABRA's turn-stamped coaching beside it. Falls back to the simplified scene view.
+// guided tour: one key moment at a time — the real replay seeked to that turn, KADABRA explains,
+// you hit play to watch it, then step to the next key turn. (Not the whole replay in one lump.)
 function renderKadEmbed(){
-  const wrap=document.getElementById('kdout'); if(!KAD)return;
-  const keys=kadKeys.length?kadKeys:KAD.scenes; const kc={loss:'#ff6b6b',good:'#5fd07a'};
+  const wrap=document.getElementById('kdout'); if(!KAD)return; kadMode='embed';
+  const keys=kadKeys.length?kadKeys:KAD.scenes; if(!keys.length){wrap.textContent='No decisive turns to coach.';return;}
+  kadI=Math.max(0,Math.min(keys.length-1,kadI)); const s=keys[kadI];
+  const kc={loss:'#ff6b6b',good:'#5fd07a'}, col=kc[s.kind]||'#7a6bff';
+  const label=s.kind==='loss'?'swing turn':(s.kind==='good'?'good play':'key turn');
   wrap.innerHTML=`
-    <div style="font-weight:700;margin-bottom:8px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b></div>
-    <iframe src="https://replay.pokemonshowdown.com/${KAD.id}" title="Showdown replay" style="width:100%;height:548px;border:3px solid var(--line);border-radius:14px;background:#eef3fb" allowfullscreen loading="lazy"></iframe>
-    <div style="font-size:12px;color:#889;margin-top:5px">The real Showdown replay — battle on the left, log on the right. If it doesn't load here, <a href="https://replay.pokemonshowdown.com/${KAD.id}" target="_blank" rel="noopener">open it in a new tab</a> · <a href="#" onclick="renderKad();return false">or use the simplified view</a>.</div>
-    <div class="panel" style="margin-top:12px;box-shadow:none">
-      <div style="display:flex;align-items:center;gap:8px"><img src="${ani('kadabra')}" style="width:44px;height:44px" onerror="sprFallback(this)"><b>KADABRA's key moments</b> <span style="color:#889;font-size:12px">scrub the replay to each turn</span></div>
-      <div style="margin-top:8px">`+keys.map(s=>`<div style="padding:9px 11px;margin-top:7px;border-left:4px solid ${kc[s.kind]||'#7a6bff'};background:#f7f8fb;border-radius:0 10px 10px 0"><b>Turn ${s.n}</b> · <b style="color:${kc[s.kind]||'#7a6bff'}">${s.kind==='good'?'good play':'swing turn'}</b> — ${s.coach||s.note}</div>`).join('')+`</div>
-    </div>`;
+    <div style="font-weight:700;margin-bottom:8px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b> · <span style="color:#889">key moment ${kadI+1} of ${keys.length}</span></div>
+    <div class="kadpop" style="margin:0 0 10px"><img src="${ani('kadabra')}" onerror="sprFallback(this)">
+      <div class="bubble" style="border-color:${col};max-width:none"><b style="color:${col}">Turn ${s.n} · ${label}</b> — ${s.coach||s.note}</div></div>
+    <iframe src="https://replay.pokemonshowdown.com/${KAD.id}?turn=${s.n}" title="Showdown replay turn ${s.n}" style="width:100%;height:520px;border:3px solid var(--line);border-radius:14px;background:#eef3fb" allowfullscreen></iframe>
+    <div style="font-size:12px;color:#889;margin-top:5px">Set to <b>turn ${s.n}</b> — hit ▶ to watch it play out. <a href="https://replay.pokemonshowdown.com/${KAD.id}?turn=${s.n}" target="_blank" rel="noopener">open in a new tab</a> · <a href="#" onclick="renderKad();return false">simplified view</a></div>
+    <div class="kadstep" style="margin-top:12px"><button onclick="kadNav(-1)">◀ prev moment</button><span style="color:#99a;letter-spacing:3px">${keys.map((k,i)=>i===kadI?'●':'○').join('')}</span><button onclick="kadNav(1)">next moment ▶</button></div>`;
 }
 function kadMe(){ const e=document.getElementById('kdme'); return e?e.value:''; }
 function kadFromLog(log, me){ const out=document.getElementById('kdout');
@@ -913,7 +917,7 @@ function renderKad(){
       <div class="bubble" style="border-color:${kindColor}"><b>${s.kind==='good'?'Well played':'What to do'}:</b> ${s.coach||s.note}</div></div>
     <div class="kadstep"><button onclick="kadNav(-1)">◀ prev</button>${dots}<button onclick="kadNav(1)">next ▶</button></div>`;
 }
-function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); renderKad(); }
+function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); (kadMode==='embed'?renderKadEmbed:renderKad)(); }
 function kadGo(i){ kadI=i; renderKad(); }
 /* ===== PokePaste support — accepts ANY species ===== */
 function spriteName(raw){
