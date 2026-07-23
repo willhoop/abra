@@ -1,10 +1,33 @@
 name: tests
 on: [push, pull_request]
+
 jobs:
-  test:
+  javascript:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: node tests/test-parse.js
+      - name: Install @smogon/calc (ground-truth for damage validation)
+        run: npm init -y >/dev/null 2>&1 && npm install @smogon/calc
+      - name: Parse/ingest tests
+        run: node tests/test-parse.js
+      - name: Dynamics tests
+        run: node tests/test-dynamics.js
+      - name: MEDICHAM engine tests
+        run: node tests/test-medicham.js
+      - name: Damage validation vs @smogon/calc (fails on >5% regression)
+        run: node engine/validate_damage.js
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install deps
+        run: pip install numpy
+      - name: JOLTEON eval
+        run: python tests/test-jolteon.py
+      - name: MEDICHAM policy validation (behaviour-clone vs held-out human moves)
+        run: python engine/eval_policy.py
