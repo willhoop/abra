@@ -7,8 +7,8 @@
   "log_loss": {
     "pory": 0.5665,
     "pory_ci95": [
-      0.5595,
-      0.5732
+      0.5484,
+      0.5834
     ],
     "coin": 0.6931,
     "material_heuristic": 0.6024

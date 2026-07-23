@@ -115,11 +115,17 @@ def main():
     # material-sign heuristic: 0.75 if more mons, 0.25 if fewer, 0.5 tie
     diff=Xte[:,3]-Xte[:,4]; heur=np.where(diff>0,0.75,np.where(diff<0,0.25,0.5))
     heur_ll=ll(heur,Yte)
-    # bootstrap CI on model log-loss
+    # CLUSTERED bootstrap over GAMES (states within a game are correlated — resampling states
+    # would give a falsely-tight CI; resample whole games to be honest).
+    te_games=np.array(order)[te]
+    uniq=np.unique(te_games)
+    by_game={g:np.where(te_games==g)[0] for g in uniq}
     def boot_ci(p,y,B=400):
-        n=len(y); vals=[]
+        vals=[]
         for _ in range(B):
-            idx=np.random.randint(0,n,n); vals.append(ll(p[idx],y[idx]))
+            gs=np.random.choice(uniq,len(uniq),replace=True)
+            idx=np.concatenate([by_game[g] for g in gs])
+            vals.append(ll(p[idx],y[idx]))
         vals.sort(); return [round(vals[int(.025*B)],4),round(vals[int(.975*B)],4)]
     # calibration (10-bin reliability + ECE)
     bins=np.linspace(0,1,11); ece=0.0; rel=[]
