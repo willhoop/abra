@@ -126,7 +126,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .slot img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}
 .slotx{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;border:2px solid var(--line);background:#ff6b6b;color:#fff;font-weight:800;font-size:12px;line-height:1;display:none;cursor:pointer;padding:0;align-items:center;justify-content:center}
 .slot:hover .slotx{display:flex}
-.clearx{align-self:center;border:2px solid var(--line);background:#fff;border-radius:10px;font-weight:700;font-size:11px;padding:3px 9px;cursor:pointer;margin-left:2px}
+.clearx{align-self:center;border:2px solid var(--line);background:#fff;border-radius:10px;font-weight:700;font-size:12px;padding:3px 9px;cursor:pointer;margin-left:2px}
 .clearx:hover{background:#ffe0e0}
 .pksearch{width:100%;border:3px solid var(--line);border-radius:12px;padding:8px 12px;font-size:14px;margin:10px 0 6px;font-family:'Fredoka',sans-serif}
 .picker{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px;max-height:420px;overflow-y:auto;overflow-x:hidden;padding:6px;
@@ -160,7 +160,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .savedteam .m{display:flex;gap:1px}
 .savedteam img{width:30px;height:30px;object-fit:contain;image-rendering:pixelated}
 .savedteam .b{display:flex;gap:4px;margin-top:4px;justify-content:center}
-.savedteam .b button{border:2px solid var(--line);background:#fff;border-radius:7px;font-size:11px;font-weight:700;padding:1px 7px;cursor:pointer}
+.savedteam .b button{border:2px solid var(--line);background:#fff;border-radius:7px;font-size:12px;font-weight:700;padding:2px 8px;cursor:pointer}
 .savedteam .b button:hover{background:#fff7d6}
 .mcbox{width:100%;height:68px;border:3px solid var(--line);border-radius:12px;padding:8px;font-family:'Fredoka',system-ui,sans-serif;font-size:12px;resize:vertical;margin-top:4px}
 .minibtn{border:2px solid var(--line);background:var(--electric);border-radius:9px;padding:2px 8px;font-size:12px;font-weight:700;box-shadow:0 2px 0 var(--electric2)}
@@ -194,7 +194,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .bmon .nm{font-family:'Baloo 2';font-size:12px;font-weight:700;background:#ffffffd8;border:2px solid var(--line);border-radius:7px;padding:0 6px;display:inline-block}
 .hpbar{height:8px;border:2px solid var(--line);border-radius:6px;background:#fff;overflow:hidden;margin:3px auto;width:74px}
 .hpbar>i{display:block;height:100%;transition:width .6s cubic-bezier(.3,1.2,.4,1)}
-.statuschip{font-size:9px;border:1px solid var(--line);border-radius:4px;padding:0 3px;background:#ffd23f;font-weight:700;text-transform:uppercase}
+.statuschip{font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 3px;background:#ffd23f;font-weight:700;text-transform:uppercase}
 .kadlogline{font-weight:600;color:#4a6a8a;font-size:13px;margin:3px 0}
 .kadpop{display:flex;gap:12px;align-items:flex-start;margin-top:10px;animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
 .kadpop img{width:74px;height:74px;object-fit:contain;image-rendering:pixelated;animation:bob 2s ease-in-out infinite;flex:none}
@@ -707,7 +707,7 @@ function renderThreats(_,q){
       <td>${pct(r.use)}</td><td>${pct(r.bring)}</td><td>${pct(r.lead)}</td>
       <td style="color:${winc(aw)};font-weight:700" title="raw ${pct(r.win)} over ${r.n_games} games, adjusted for sample size">${pct(aw)}</td>
       <td>${sp==null?'—':sp}</td><td style="color:#889">${(r.n_games||0).toLocaleString()}</td></tr>`;}).join('')+
-    `</tbody></table><div style="font-size:11px;color:#889;margin-top:6px">Win% is <b>sample-adjusted</b> — shrunk toward 50% by games played, so a rare Pokémon can't top the chart on a few lucky games. <b>Games</b> is how many battles back the number. More data tightens all of these.</div>`;
+    `</tbody></table><div style="font-size:13px;color:#889;margin-top:6px">Win% is <b>sample-adjusted</b> — shrunk toward 50% by games played, so a rare Pokémon can't top the chart on a few lucky games. <b>Games</b> is how many battles back the number. More data tightens all of these.</div>`;
 }
 /* non-transitivity: lead with the rock-paper-scissors CYCLES (big, whimsical, no tiny text) */
 function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el||typeof NONTRANS==='undefined')return;
