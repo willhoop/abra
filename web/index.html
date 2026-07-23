@@ -230,6 +230,9 @@ function mcDmg(a,d,ctx){let b={pct:0,minPct:0,pKO:0};for(const id of a.mv){const
 function mcSpd(m,tw,par){let s=m.st.sp;if(m.item==='choicescarf')s=Math.floor(s*1.5);if(tw)s*=2;if(par)s/=4;return s;}
 function mcRoll(A,B){const hpA=A.map(()=>100),hpB=B.map(()=>100);const wof=t=>{for(const m of t){if(m.ab==='drizzle')return'rain';if(m.ab==='drought')return'sun';}return null;};const wa=wof(A),wb=wof(B),weather=(wa&&wb)?null:(wa||wb);const sA=A.map(()=>({st:null,slp:0,boost:0,prot:false})),sB=B.map(()=>({st:null,slp:0,boost:0,prot:false}));const f={twA:0,twB:0};let ai=0,bi=0;const act=(T,S,i,foe,side,hp)=>{const me=T[i];if(S[i].st==='slp'&&S[i].slp>0)return{k:'sleep'};const mn=mcDmg(me,foe,{weather});if(mn.pct<25){let bv=-1,bx=-1;for(let j=0;j<T.length;j++){if(j===i||hp[j]<=0)continue;const x=mcDmg(T[j],foe,{weather});if(x.pKO>bv){bv=x.pKO;bx=j;}}if(bx>=0&&bv>0.5&&Math.random()<0.5)return{k:'switch',idx:bx};}const pr=MC.priors[me.k];if(pr){let r=Math.random(),p=null;for(const q of pr){r-=q[1];if(r<=0){p={mv:q[0],kind:q[2]};break;}}if(p){const safe=mcDmg(foe,me,{weather}).pKO<0.5;if(p.kind==='setup'&&safe&&S[i].boost<4)return{k:'setup'};if(p.kind==='speed'&&safe&&(side==='A'?f.twA:f.twB)<=0)return{k:'tw',side};if(p.kind==='status'&&!S[i].st)return{k:'status'};if(p.kind==='protect'&&!S[i].prot&&Math.random()<0.7)return{k:'protect'};}}return{k:'attack'};};for(let t=0;t<24;t++){if(hpA.every(h=>h<=0)||hpB.every(h=>h<=0))break;const aA=act(A,sA,ai,B[bi],'A',hpA),aB=act(B,sB,bi,A[ai],'B',hpB);if(aA.k==='switch'){ai=aA.idx;sA[ai].boost=0;}if(aB.k==='switch'){bi=aB.idx;sB[bi].boost=0;}sA[ai].prot=false;sB[bi].prot=false;const ap=(a,self,fs,fi,side)=>{if(a.k==='setup')self.boost=Math.min(6,self.boost+2);else if(a.k==='tw'){if(side==='A')f.twA=4;else f.twB=4;}else if(a.k==='status'&&!fs[fi].st){fs[fi].st=['brn','par','slp'][Math.floor(Math.random()*3)];if(fs[fi].st==='slp')fs[fi].slp=1+Math.floor(Math.random()*2);}self.prot=(a.k==='protect');};ap(aA,sA[ai],sB,bi,'A');ap(aB,sB[bi],sA,ai,'B');const mv=[];if(aA.k==='attack')mv.push('A');if(aB.k==='attack')mv.push('B');const sp=s=>s==='A'?mcSpd(A[ai],f.twA>0,sA[ai].st==='par'):mcSpd(B[bi],f.twB>0,sB[bi].st==='par');mv.sort((x,y)=>sp(y)-sp(x)||(Math.random()<0.5?-1:1));const ft={A:false,B:false};for(const s of mv){if(ft[s])continue;const aS=s==='A'?sA[ai]:sB[bi];if(aS.st==='par'&&Math.random()<0.25)continue;if(s==='A'?sB[bi].prot:sA[ai].prot)continue;const at=s==='A'?A[ai]:B[bi],de=s==='A'?B[bi]:A[ai];const d=mcDmg(at,de,{weather});let g=d.minPct+Math.random()*(d.pct-d.minPct);if(aS.boost)g*=(2+aS.boost)/2;if(aS.st==='brn'&&at.st.at>=at.st.sa)g*=0.5;if(s==='A'){hpB[bi]-=g;if(hpB[bi]<=0){ft.B=true;let nx=-1,bv=-1;for(let j=0;j<B.length;j++)if(hpB[j]>0){const x=mcDmg(B[j],A[ai],{weather});if(x.pKO>bv){bv=x.pKO;nx=j;}}if(nx<0)break;bi=nx;sB[bi].boost=0;}}else{hpA[ai]-=g;if(hpA[ai]<=0){ft.A=true;let nx=-1,bv=-1;for(let j=0;j<A.length;j++)if(hpA[j]>0){const x=mcDmg(A[j],B[bi],{weather});if(x.pKO>bv){bv=x.pKO;nx=j;}}if(nx<0)break;ai=nx;sA[ai].boost=0;}}}for(const[arr,S,i]of[[hpA,sA,ai],[hpB,sB,bi]]){const s=S[i];if(s.st==='brn'&&arr[i]>0)arr[i]-=6.25;if(s.st==='slp'){if(s.slp>0)s.slp--;if(s.slp<=0||Math.random()<0.34)s.st=null;}}if(f.twA>0)f.twA--;if(f.twB>0)f.twB--;}const a2=hpA.filter(h=>h>0).length,b2=hpB.filter(h=>h>0).length;if(a2!==b2)return a2>b2?1:0;const hA=hpA.reduce((s,h)=>s+Math.max(0,h),0),hB=hpB.reduce((s,h)=>s+Math.max(0,h),0);return hA>hB?1:(hA<hB?0:0.5);}
 function mcWinProb(na,nb,N){const A=mcBuild(na.slice(0,4)),B=mcBuild(nb.slice(0,4));if(!A.length||!B.length)return null;let s=0;for(let i=0;i<N;i++)s+=mcRoll(A.map(m=>({...m})),B.map(m=>({...m})));return s/N;}
+// item-override build/score, for DITTO's item tuning (only Life Orb / Choice Scarf change the compact engine)
+function mcBuildI(names,items){return mcBuild(names.slice(0,4)).map(m=>({...m,item:(items&&items[m.k])||m.item}));}
+function mcWinProbI(na,items,nb,N){const A=mcBuildI(na,items),B=mcBuild(nb.slice(0,4));if(!A.length||!B.length)return null;let s=0;for(let i=0;i<N;i++)s+=mcRoll(A.map(m=>({...m})),B.map(m=>({...m})));return s/N;}
 const BY={}; JOLT.roster.forEach(m=>BY[m.n]=m);
 const API=location.protocol==='file:'?'http://localhost:8790':'';
 JOLT.roster.sort((a,b)=>(b.use||0)-(a.use||0));   // default order = usage ranking (most-brought first)
@@ -502,7 +505,7 @@ function metaGauntlet(k){ const top=JOLT.roster.slice(0,30);
   const pickW=()=>{let r=Math.random()*tot;for(const m of top){r-=(m.use||0.01);if(r<=0)return m.n;}return top[0].n;};
   const teams=[]; for(let i=0;i<k;i++){const s=new Set();while(s.size<4)s.add(pickW());teams.push([...s]);} return teams; }
 function dittoScore(team,G){ let s=0; for(const g of G)s+=pwin(team,g); return s/G.length; }
-let dittoResult=null;
+let dittoResult=null, dittoItems=null;
 function loadDittoTeam(){ if(dittoResult){teamA=dittoResult.slice();renderSlots();syncSel();saveTeams();alert('Loaded into your team — it carries to every tab.');} }
 function runDitto(){
   const out=document.getElementById('dtout'); if(!out)return;
@@ -517,12 +520,23 @@ function runDitto(){
         if(bi!==team[i]){ swaps.push([team[i],bi,bs-best]); team[i]=bi; best=bs; improved=true; } }
       if(!improved)break; }
     dittoResult=team.slice();
-    const check=mcWinProb(team, JOLT.roster.slice(0,4).map(m=>m.n), 200);
-    const item=n=>MC.mons[n]&&MC.mons[n].item?MC.mons[n].item.replace(/([a-z])([A-Z])/g,'$1 $2'):'—';
+    // ---- item tuning pass: MEDICHAM-scored (JOLTEON ignores items). Only Life Orb /
+    // Choice Scarf are modelled in the compact browser engine; full item sets are the server engine.
+    const cores=[JOLT.roster.slice(0,4).map(m=>m.n), JOLT.roster.slice(4,8).map(m=>m.n)];
+    const teamScoreI=items=>{let s=0;for(const c of cores)s+=(mcWinProbI(team,items,c,90)||0);return s/cores.length;};
+    let items={}; team.forEach(n=>items[n]=MC.mons[n]?MC.mons[n].item:null);
+    let curBest=teamScoreI(items); const itemUp=[];
+    for(const n of team){ const cand=[...new Set([items[n],'lifeorb','choicescarf'].filter(Boolean))]; let bi=items[n],bs=curBest;
+      for(const it of cand){ const trial={...items,[n]:it}; const sc=teamScoreI(trial); if(sc>bs+0.005){bs=sc;bi=it;} }
+      if(bi!==items[n]){ itemUp.push([n,items[n],bi]); items[n]=bi; curBest=bs; } }
+    dittoItems=items;
+    const check=mcWinProb(team, cores[0], 200);
+    const nice=k=>k?String(k).replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\b\w/g,c=>c.toUpperCase()):'—';
     out.innerHTML=`<div style="font-weight:800;margin-bottom:8px">Best version of your team</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">`+team.map(n=>`<div style="display:flex;align-items:center;gap:6px;background:#fff0fa;border:2px solid var(--line);border-radius:12px;padding:6px 10px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:42px;height:42px"><div style="line-height:1.15"><b>${cap(n)}</b><br><small style="color:#777">${item(n)}</small></div></div>`).join('')+`</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">`+team.map(n=>`<div style="display:flex;align-items:center;gap:6px;background:#fff0fa;border:2px solid var(--line);border-radius:12px;padding:6px 10px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:42px;height:42px"><div style="line-height:1.15"><b>${cap(n)}</b><br><small style="color:#777">@ ${nice(items[n])}</small></div></div>`).join('')+`</div>
       <div style="margin-top:10px;font-weight:600">Team rating vs the live meta: <b>${Math.round(start*100)}% → ${Math.round(best*100)}%</b> <span style="color:#889;font-weight:500">(usage-weighted gauntlet of 24 ladder teams)</span></div>`+
       (swaps.length?`<div style="margin-top:6px;font-size:12px;color:#666">Swaps DITTO made: `+swaps.map(s=>`${cap(s[0])}→<b>${cap(s[1])}</b> (+${(s[2]*100).toFixed(1)})`).join(' · ')+`</div>`:`<div style="margin-top:6px;color:#2a7;font-weight:600">Your seed was already optimal against this meta — no swap improved it.</div>`)+
+      (itemUp.length?`<div style="margin-top:6px;font-size:12px;color:#666">Item upgrades (MEDICHAM-checked): `+itemUp.map(u=>`${cap(u[0])} → <b>${nice(u[2])}</b>`).join(' · ')+`</div>`:`<div style="margin-top:6px;font-size:12px;color:#889">No item change beat the standard set.</div>`)+
       (check!=null?`<div style="margin-top:8px;color:#b4432f;font-weight:600">MEDICHAM re-check vs the top-4 meta core: <b>${Math.round(check*100)}%</b> <span style="font-weight:500;color:#a06">(grounded rollout — the Goodhart guard, so DITTO can't just game JOLTEON)</span></div>`:``)+
       `<div style="margin-top:10px"><button class="minibtn" onclick="loadDittoTeam()">★ Load this as my team</button></div>`;
   },20);
