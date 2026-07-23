@@ -30,6 +30,15 @@ http.createServer((req,res)=>{
   const send=(code,type,body)=>{res.writeHead(code,{'Content-Type':type,'Access-Control-Allow-Origin':'*'});res.end(body);};
   const q=k=>u.searchParams.get(k)||'';
 
+  if(u.pathname==='/api/stats'){
+    let games=0,turns=0,dmg=0; const seen=new Set();
+    try{ for(const l of fs.readFileSync(path.join(ROOT,'data','games.ladder.jsonl'),'utf8').split('\n')){
+        if(!l.trim())continue; let g; try{g=JSON.parse(l);}catch(e){continue;}
+        if(seen.has(g.id))continue; seen.add(g.id); games++; turns+=(g.turns||[]).length; }
+    }catch(e){}
+    try{ dmg=Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT,'data','dynamics.json'),'utf8')).damage||{}).length; }catch(e){}
+    return send(200,'application/json',JSON.stringify({games,turns,dmg}));
+  }
   if(u.pathname==='/api/medicham'){
     return run('node',[path.join('engine','medicham.js'),q('a'),q('b'),q('n')||'250'],out=>{
       const m=out.match(/P\(A wins\) = ([\d.]+)/); send(200,'application/json',JSON.stringify({p:m?+m[1]:null,raw:out}));});

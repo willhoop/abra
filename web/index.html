@@ -117,9 +117,12 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 /* ---- info blocks ---- */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:680px){.grid2{grid-template-columns:1fr}}
-.stat{background:#eaf6ff;border:3px solid var(--line);border-radius:16px;padding:12px;text-align:center}
-.stat b{display:block;font-family:'Baloo 2';font-size:30px;color:var(--electric2);line-height:1}
-.stat span{font-weight:600;font-size:13px;color:#4a6a8a}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.stat{background:#eaf6ff;border:3px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:92px;min-width:0}
+.stat b{display:block;font-family:'Baloo 2';font-size:clamp(22px,4.4vw,32px);color:var(--electric2);line-height:1;
+  white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.stat span{font-weight:600;font-size:13px;color:#4a6a8a;line-height:1.25}
 .tier{display:flex;align-items:center;gap:12px;border:3px solid var(--line);border-radius:16px;padding:10px 12px;margin:8px 0;background:#fff}
 .tier img{width:56px;height:56px;image-rendering:pixelated;flex:none}
 .tier .g{flex:1}
@@ -202,10 +205,10 @@ function roomTown(){const c=CAST[0];
   return `<div class="panel">${mascotHero(c,"Welcome to town! I collect real Champions ladder games and store them forever. Every building here is a model that learns from them. Waddle in and click around!")}</div>
    <div class="panel"><h2>🏘️ The town</h2><p class="sub">Each house is a model — click to visit</p><div class="map">${houses}</div></div>
    <div class="panel"><h2>📈 What the town has collected</h2>
-     <div class="grid2" style="grid-template-columns:repeat(4,1fr)">
-       <div class="stat"><b>4,999</b><span>real ladder games stored</span></div>
-       <div class="stat"><b>30,611</b><span>turns with damage + speed</span></div>
-       <div class="stat"><b>1,170</b><span>observed move-damage profiles</span></div>
+     <div class="statgrid">
+       <div class="stat"><b id="statGames">4,999</b><span>real ladder games stored</span></div>
+       <div class="stat"><b id="statTurns">30,611</b><span>turns with damage + speed</span></div>
+       <div class="stat"><b id="statDmg">1,170</b><span>observed move-damage profiles</span></div>
        <div class="stat"><b>hourly</b><span>auto-collects new games</span></div>
      </div>
      <p style="margin-top:14px;font-weight:600;color:#3a5372">Store raw, analyse on top — any new question is a re-filter of the town's memory, never a re-download. The more games played, the smarter every building gets. 🔁</p>
@@ -310,6 +313,15 @@ function go(id){
   stage.innerHTML=`<div class="room on">${ROOMS[id]()}</div>`;
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='jolteon') initBooth();
+  if(id==='town') updateStats();
+}
+/* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
+function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }
+async function updateStats(){
+  try{ const r=await fetch('/api/stats'); const j=await r.json();
+    const set=(id,v)=>{const e=document.getElementById(id); if(e&&v) e.textContent=fmtNum(v);};
+    set('statGames',j.games); set('statTurns',j.turns); set('statDmg',j.dmg);
+  }catch(e){ /* opened as a file, no server — keep the embedded snapshot numbers */ }
 }
 
 /* ===== Jolteon booth logic ===== */
