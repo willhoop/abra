@@ -34,11 +34,12 @@ const MV={
  moonblast:[95,'Fairy','S',0], makeitrain:[120,'Steel','S',1], shadowball:[80,'Ghost','S',0],
  iciclecrash:[85,'Ice','P',0], thunderbolt:[90,'Electric','S',0], dragonclaw:[80,'Dragon','P',0],
  suckerpunch:[70,'Dark','P',0], playrough:[90,'Fairy','P',0], airslash:[75,'Flying','S',0],
+ bulletpunch:[40,'Steel','P',0],
 };
 const CALCMOVE={earthquake:'Earthquake',rockslide:'Rock Slide',closecombat:'Close Combat',bravebird:'Brave Bird',
  flareblitz:'Flare Blitz',heatwave:'Heat Wave',hydropump:'Hydro Pump',wavecrash:'Wave Crash',dracometeor:'Draco Meteor',
  moonblast:'Moonblast',makeitrain:'Make It Rain',shadowball:'Shadow Ball',iciclecrash:'Icicle Crash',
- thunderbolt:'Thunderbolt',dragonclaw:'Dragon Claw',suckerpunch:'Sucker Punch',playrough:'Play Rough',airslash:'Air Slash'};
+ thunderbolt:'Thunderbolt',dragonclaw:'Dragon Claw',suckerpunch:'Sucker Punch',playrough:'Play Rough',airslash:'Air Slash',bulletpunch:'Bullet Punch'};
 
 // scenarios: [attacker, ability, item, nature, evAtkOrSpa, move, defender, defNature, defEVs, weather]
 const W_NONE=undefined;
@@ -69,6 +70,16 @@ const S=[
  ['Charizard','Solar Power',null,'Timid','spa','heatwave','Amoonguss','Calm',{hp:252,spd:4},'Sun'],
  ['Torkoal','Drought',null,'Modest','spa','heatwave','Kingambit','Adamant',{hp:252},'Sun'],
  ['Pelipper','Drizzle',null,'Modest','spa','hydropump','Torkoal','Bold',{hp:252,def:4},'Sun'], // fire-cut water
+ // --- ability/item layer (attacker ab/item; defAb is 11th, defItem 12th) ---
+ ['Basculegion','Adaptability',null,'Adamant','atk','wavecrash','Garchomp','Jolly',{hp:252},W_NONE],            // STAB x2
+ ['Scizor','Technician',null,'Adamant','atk','bulletpunch','Flutter Mane','Timid',{hp:252},W_NONE],             // <=60bp x1.5
+ ['Charizard','Tinted Lens',null,'Timid','spa','heatwave','Pelipper','Bold',{hp:252,def:4},W_NONE],             // resisted x2
+ ['Garchomp','Rough Skin',null,'Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE,'Solid Rock'],   // SE x0.75
+ ['Mamoswine','Thick Fat',null,'Adamant','atk','iciclecrash','Dragonite','Adamant',{hp:252},W_NONE,'Multiscale'],         // full HP x0.5
+ ['Incineroar','Intimidate',null,'Adamant','atk','flareblitz','Amoonguss','Calm',{hp:252,def:4},W_NONE,'Thick Fat'],      // fire x0.5
+ ['Garchomp','Rough Skin','Expert Belt','Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE],       // SE x1.2
+ ['Garchomp','Rough Skin','Muscle Band','Adamant','atk','earthquake','Gholdengo','Bold',{hp:252,def:4},W_NONE],           // phys x1.1
+ ['Gholdengo','Good as Gold','Wise Glasses','Modest','spa','shadowball','Flutter Mane','Timid',{hp:252},W_NONE],          // spec x1.1
 ];
 
 function medStat(res, side, cat){ const st=res[side].stats; return cat==='P'?st.atk:st.spa; }
