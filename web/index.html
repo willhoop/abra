@@ -308,13 +308,11 @@ function roomJolteon(){const c=CAST[1];
    <div class="panel"><h2>Battle Odds Booth</h2><p class="sub">Build each team below — the result shows up right here at the top.</p>
      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
        <button class="battlebtn" onclick="doBattle()">BATTLE!</button>
-       <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;font-size:15px;padding:8px 14px" onclick="doMedicham()">MEDICHAM check</button>
        <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">Surprise me</button>
      </div>
      <div class="meterwrap" style="margin-top:12px"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
        <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
      <div class="readout" id="readout">Build two teams and press BATTLE.</div>
-     <div class="readout" id="mcout" style="min-height:0;color:#b4432f"></div>
      <div class="booth two" style="margin-top:16px">
        <div class="side you"><h3>Your team</h3><div class="slots" id="slotsA"></div>
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickA','A',this.value)">
@@ -412,26 +410,34 @@ function go(id){
   if(id==='town') updateStats();
 }
 /* ===== Ditto threat rankings table (sortable, searchable) ===== */
-let threatSort='use', threatQ='';
-function sortThreats(k){ threatSort=k; renderThreats(); }
+let threatSort='use', threatQ='', threatAsc=false;
+function sortThreats(k){ if(threatSort===k) threatAsc=!threatAsc; else { threatSort=k; threatAsc=(k==='spd'||k==='games')?false:false; } renderThreats(); }
+// sample-adjusted win: shrink toward 50% by games played, so a rare mon with a few lucky games can't top the chart
+const WIN_K=250;
+function adjWin(r){ return (((r.win!=null?r.win:0.5)*(r.n_games||0))+0.5*WIN_K)/((r.n_games||0)+WIN_K); }
+// real Champions speed stat, with a fallback to the base forme when the exact forme isn't modelled
+function realSpd(r){ if(MC.mons[r.n]&&MC.mons[r.n].st) return MC.mons[r.n].st.sp;
+  const base=(r.sprite||r.n).split('-')[0].replace(/[^a-z0-9]/g,''); if(MC.mons[base]&&MC.mons[base].st) return MC.mons[base].st.sp; return null; }
 function renderThreats(_,q){
   if(q!=null) threatQ=q;
   const el=document.getElementById('threattable'); if(!el)return;
   const f=(threatQ||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const rows=THREATS.filter(r=>!f||r.n.includes(f)).slice().sort((a,b)=>(b[threatSort]||0)-(a[threatSort]||0));
+  const keyVal=(r,k)=> k==='win'?adjWin(r) : k==='spd'?(realSpd(r)==null?-1:realSpd(r)) : k==='games'?(r.n_games||0) : (r[k]||0);
+  const rows=THREATS.filter(r=>!f||r.n.includes(f)).slice().sort((a,b)=>{const d=keyVal(a,threatSort)-keyVal(b,threatSort);return threatAsc?d:-d;});
   const pct=v=>Math.round((v||0)*100)+'%';
   const winc=w=> w>=0.52?'#1a9a4a':(w>0&&w<=0.48?'#d23b3b':'#556');
-  const arrow=k=> threatSort===k?' ▾':'';
-  const H=(k,t)=>`<th onclick="sortThreats('${k}')" class="${threatSort===k?'on':''}">${t}${arrow(k)}</th>`;
+  const arrow=k=> threatSort===k?(threatAsc?' ▲':' ▼'):'';
+  const H=(k,t)=>`<th onclick="sortThreats('${k}')" class="${threatSort===k?'on':''}" title="click to sort — click again for ascending (minimum first)">${t}${arrow(k)}</th>`;
   el.innerHTML=`<table class="ttab"><thead><tr><th>#</th><th class="tnh">Pokémon</th>`+
-    H('use','Usage')+H('bring','Bring')+H('lead','Lead')+H('win','Win%')+H('spd','Speed')+
+    H('use','Usage')+H('bring','Bring')+H('lead','Lead')+H('win','Win%')+H('spd','Speed')+H('games','Games')+
     `</tr></thead><tbody>`+
-    rows.map((r,i)=>`<tr><td class="rk">${i+1}</td>
-      <td class="tn"><img src="${ani(r.sprite)}" onerror="this.onerror=null;this.src='${ani('substitute')}'">${cap(r.n)}</td>
+    rows.map((r,i)=>{const base=(r.sprite||r.n).split('-')[0].replace(/[^a-z0-9]/g,'');const aw=adjWin(r);const sp=realSpd(r);
+      return `<tr><td class="rk">${i+1}</td>
+      <td class="tn"><img src="${ani(r.sprite)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${ani(base)}';}else{this.onerror=null;this.src='${ani('substitute')}';}">${cap(r.n)}</td>
       <td>${pct(r.use)}</td><td>${pct(r.bring)}</td><td>${pct(r.lead)}</td>
-      <td style="color:${winc(r.win)};font-weight:700">${pct(r.win)}</td>
-      <td>${(MC.mons[r.n]&&MC.mons[r.n].st)?MC.mons[r.n].st.sp:'—'}</td></tr>`).join('')+
-    `</tbody></table>`;
+      <td style="color:${winc(aw)};font-weight:700" title="raw ${pct(r.win)} over ${r.n_games} games, adjusted for sample size">${pct(aw)}</td>
+      <td>${sp==null?'—':sp}</td><td style="color:#889">${(r.n_games||0).toLocaleString()}</td></tr>`;}).join('')+
+    `</tbody></table><div style="font-size:11px;color:#889;margin-top:6px">Win% is <b>sample-adjusted</b> — shrunk toward 50% by games played, so a rare Pokémon can't top the chart on a few lucky games. <b>Games</b> is how many battles back the number. More data tightens all of these.</div>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }
