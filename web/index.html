@@ -753,21 +753,26 @@ function runDitto(){
     const archT=(typeof META_NASH!=='undefined'&&META_NASH.arch.length)?META_NASH.arch:[{n:'core',w:1,t:JOLT.roster.slice(0,4).map(m=>m.n)}];
     const teamScoreI=items=>{let s=0,w=0;for(const a of archT){s+=a.w*(mcWinProbI(team,items,a.t,80)||0);w+=a.w;}return w?s/w:0;};
     let items={}; team.forEach(n=>items[n]=MC.mons[n]?MC.mons[n].item:null);
+    // ITEM CLAUSE: one of each item per team. Resolve duplicates from the raw data first.
+    { const usd={}; for(const n of team){ const it=items[n]; if(it&&usd[it])items[n]=null; else if(it)usd[it]=1; } }
     let curBest=teamScoreI(items); const itemUp=[];
-    for(const n of team){ const cand=[...new Set([items[n],'lifeorb','choicescarf'].filter(Boolean))]; let bi=items[n],bs=curBest;
+    for(const n of team){
+      const used=new Set(team.filter(x=>x!==n).map(x=>items[x]).filter(Boolean));   // items taken by teammates
+      const cand=[...new Set([items[n],'lifeorb','choicescarf'].filter(Boolean))].filter(it=>it===items[n]||!used.has(it));
+      let bi=items[n],bs=curBest;
       for(const it of cand){ const trial={...items,[n]:it}; const sc=teamScoreI(trial); if(sc>bs+0.005){bs=sc;bi=it;} }
       if(bi!==items[n]){ itemUp.push([n,items[n],bi]); items[n]=bi; curBest=bs; } }
     dittoItems=items;
-    // MEDICHAM grounded value vs the equilibrium meta + the archetypes that still exploit you
-    let chkW=0,chkS=0; const exploiters=[];
-    for(const a of archT){ const v=mcWinProbI(team,items,a.t,200); if(v!=null){ chkS+=a.w*v; chkW+=a.w; if(v<0.45)exploiters.push([a.n,Math.round(v*100)]); } }
-    const check = chkW? chkS/chkW : null;
-    const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,6):(m.mv||[]).map(x=>[x,null]);
-      const chips=ms.map(x=>`<span style="background:#f2f4f8;border-radius:6px;padding:2px 6px;font-size:11px;color:#445">${niceName(x[0])}${x[1]!=null?` <b style="color:#b07">${Math.round(x[1]*100)}</b>`:''}</span>`).join(' ');
+    // MEDICHAM grounded value vs EACH equilibrium-meta archetype (this is the matchup table)
+    let chkW=0,chkS=0; const perArch=[];
+    for(const a of archT){ const v=mcWinProbI(team,items,a.t,200); if(v!=null){ chkS+=a.w*v; chkW+=a.w; perArch.push({n:a.n,w:a.w,v:Math.round(v*100),t:a.t}); } }
+    const check = chkW? chkS/chkW : null; const exploiters=perArch.filter(p=>p.v<45);
+    const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]);
+      const moves=ms.map(x=>`<div style="font-size:11.5px;color:#556">${niceName(x)}</div>`).join('');
       return `<div style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left">
         <div style="display:flex;align-items:center;gap:8px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:46px;height:46px">
           <div style="line-height:1.25"><b style="font-size:14px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12px;font-weight:600">${niceName(m.ab)}</span></div></div>
-        <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px" title="top-6 moves by ladder usage">${chips||'—'}</div></div>`;};
+        <div style="margin-top:6px">${moves||'—'}</div></div>`;};
     const bp=Math.round(best*100), sp=Math.round(start*100), chk=check!=null?Math.round(check*100):null;
     out.style.color='#223'; out.style.textAlign='left';
     out.innerHTML=`
