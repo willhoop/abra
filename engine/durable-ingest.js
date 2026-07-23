@@ -97,7 +97,9 @@ async function main(){
   const have=new Set();
   if(fs.existsSync(STORE)) for(const l of fs.readFileSync(STORE,'utf8').split('\n')) if(l.trim()){try{have.add(JSON.parse(l).id);}catch(e){}}
   let items=[];
-  for(let p=1;p<=PAGES;p++){const j=await get(`https://replay.pokemonshowdown.com/search.json?format=${FORMAT}&page=${p}`);try{items.push(...JSON.parse(j));}catch(e){}}
+  for(const FORMAT of FORMATS){
+    for(let p=1;p<=PAGES;p++){const j=await get(`https://replay.pokemonshowdown.com/search.json?format=${FORMAT}&page=${p}`);try{const arr=JSON.parse(j); if(!arr.length)break; items.push(...arr);}catch(e){break;}}
+  }
   const seen=new Set(); items=items.filter(x=>!seen.has(x.id)&&seen.add(x.id)&&!have.has(x.id));
   process.stderr.write(`already stored: ${have.size}; new to fetch: ${items.length}\n`);
   const logs=await pool(items,x=>get(`https://replay.pokemonshowdown.com/${x.id}.log`).then(t=>[x,t]),CONC);
