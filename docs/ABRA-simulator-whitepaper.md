@@ -96,33 +96,36 @@ models for depth.
 
 | Tier | Object learned | Query | Cost | Primary use |
 |---|---|---|---|---|
-| **1. XATU** (outcome) | `Pψ(win | team_A, team_B)` | one forward pass | ~µs | search over thousands of teams |
-| **2. RAPID** (hybrid rollout) | CHOMP damage + learned policies | a few short rollouts | ~ms | ranking finalist teams |
-| **3. ALAKAZAM** (learned dynamics) | `Tθ(s' | s, a)` + value/policy | belief search / playout | ~s | deep vetting, a matchup |
+| **1. RAPID** (outcome) | `Pψ(win | team_A, team_B)` | one forward pass | ~µs (fastest) | search over thousands of teams |
+| **2. DODRIO** (hybrid rollout) | CHOMP damage + learned policies | a few short rollouts | ~ms | ranking finalist teams |
+| **3. SLOWKING** (learned dynamics) | `Tθ(s' | s, a)` + value/policy | belief search / playout | ~s (slowest) | deep vetting, a matchup |
 
 The rest of the paper derives each.
 
 ### 3.1 The model family, named
 
-Each model gets its own name, in the CHOMP / ABRA tradition — and together they trace Abra's own
-evolution, from raw data collection to a fully learned brain:
+Each model gets its own name, in the CHOMP / ABRA tradition — and the Pokémon's *speed* signals the
+model's cost, fast to slow:
 
-- **XATU** — *eXpected Advantage & Threat Usage* (Tier 1). The foresight model: given two teams it
-  predicts the win probability, from Bradley–Terry strengths plus CHOMP-derived damage/coverage
-  features (§4.3.1). Xatu stares down the matchup and sees how it ends.
-- **RAPID** — *Rollout Approximation, Physics-Informed Damage* (Tier 2). Fast game rollouts driven by
-  **CHOMP's exact damage engine** and behaviour-cloned move priors. Named for Rapidash — speed.
-- **ALAKAZAM** — the learned world/value/policy core (Tier 3): belief-state search over a learned
-  dynamics model. It is ABRA's *evolved brain* — Abra → Kadabra → **Alakazam** (IQ 5,000) — the grand
-  solver the whole platform builds toward.
+- **RAPID** — *Rating And Prediction, Instant & Damage-aware* (Tier 1). The **fastest** model: a
+  Rapidash-quick win-probability call between two teams, from Bradley–Terry strengths plus
+  CHOMP-derived damage/coverage features (§4.3.1). One forward pass, microseconds — fast enough to
+  score a whole team search.
+- **DODRIO** — *Damage-Oriented Dynamics Rollouts, Imitating Opponents* (Tier 2). Medium cost: a fast
+  runner with three heads that plays a matchup out a few turns using **CHOMP's exact damage engine**
+  and behaviour-cloned move priors. Grounded, approximate, quick.
+- **SLOWKING** — *Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver*
+  (Tier 3). The **slowest** and deepest: a slow but wise brain that searches over belief states on a
+  learned dynamics model toward equilibrium play. Slow on purpose — you run it only on finalists.
 - **DITTO** — *Double-oracle Iterative Team-Tuning Optimiser* (§8, the outer loop). It tries team
   after team against the meta and transforms toward the strongest six, the way Ditto tries every form.
 
 CHOMP (the bring-4 engine) and the coach are *consumers* of these models, not models themselves. The
-naming makes the pipeline legible: ABRA feeds XATU and RAPID; those and ALAKAZAM feed DITTO; DITTO's
-teams and ALAKAZAM's lines feed the player through CHOMP and the coach; the games played feed ABRA.
+naming makes the pipeline legible and the speeds honest: ABRA feeds RAPID and DODRIO; those and
+SLOWKING feed DITTO; DITTO's teams and SLOWKING's lines reach the player through CHOMP and the coach;
+the games played feed ABRA. Fast Pokémon do the cheap, broad work; the slow one does the deep work.
 
-## 4. Tier 1 — XATU, the outcome model — the outcome model
+## 4. Tier 1 — RAPID, the outcome model — the outcome model
 
 ### 4.1 Objective
 
@@ -168,19 +171,19 @@ saturates.
 
 Species identity alone is a weak feature — two teams with the same six can play very differently, and
 what actually decides a matchup is *who KOs whom*. CHOMP already computes exactly this, and its output
-is the strongest feature XATU can eat. CHOMP scores threats with the real Gen-9 damage pipeline on the
+is the strongest feature RAPID can eat. CHOMP scores threats with the real Gen-9 damage pipeline on the
 Champions SP stat system and reports, for an attacker–defender pair, **pKO** — the fraction of the 16
 damage rolls (85–100%) that knock out — combined with a speed check (does the attacker move first).
 Its bring-4 chooses the four that maximise KO-pressure/coverage across the opponent's six.
 
-For XATU, build the **coverage matrix** `K` where `K_{pq} = pKO(p → q)` over every attacker `p` in
+For RAPID, build the **coverage matrix** `K` where `K_{pq} = pKO(p → q)` over every attacker `p` in
 team A and defender `q` in team B (and its transpose for B→A), plus the speed-order mask. Summaries of
 `K` — how many of B's six A can OHKO, the best-case and worst-case coverage, symmetric speed control —
-become the features that carry most of XATU's signal, because they are the real mechanics of the
+become the features that carry most of RAPID's signal, because they are the real mechanics of the
 matchup rather than a usage proxy. This is grey-box modelling: CHOMP supplies the physics of a single
-exchange; XATU learns how those exchanges aggregate into a game outcome across thousands of real
+exchange; RAPID learns how those exchanges aggregate into a game outcome across thousands of real
 results. CHOMP's own validation (its white paper, validation report, and referee report) is therefore
-part of XATU's foundation — the feature generator is already tested.
+part of RAPID's foundation — the feature generator is already tested.
 
 ### 4.4 Estimation and calibration
 
@@ -203,7 +206,7 @@ compositional features, and runs fast enough to score a whole search. It does **
 has no notion of turns, and it cannot tell you the line of play. It is a value function without a
 model. That is exactly enough for the outer optimisation loop and nothing more.
 
-## 5. Tier 3 — ALAKAZAM, learning the dynamics (the true "reconstruction")
+## 5. Tier 3 — SLOWKING, learning the dynamics (the true "reconstruction")
 
 Tier 3 is what "reconstruct the simulator" literally means: learn the transition kernel
 `Tθ(s' | s, a)` and a policy/value on top, from logged transitions.
@@ -315,9 +318,9 @@ ladder so the model does not narrow to only the games the current policy likes. 
 flywheel (§8) is a continual-learning loop whose data distribution is steered, deliberately, toward
 the positions the player actually reaches.
 
-## 7. Tier 2 — RAPID, the pragmatic middle
+## 7. Tier 2 — DODRIO, the pragmatic middle
 
-**RAPID** sidesteps learning dynamics by *specifying* them: it uses CHOMP's exact damage engine — the same pKO-over-16-rolls threat scoring as tier 1 — as a hand-built `T` for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
+**DODRIO** sidesteps learning dynamics by *specifying* them: it uses CHOMP's exact damage engine — the same pKO-over-16-rolls threat scoring as tier 1 — as a hand-built `T` for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
 or behaviour-cloned move priors from ABRA's `sets`), and roll a matchup out a few turns with a
 handful of stochastic samples to average over damage rolls. It is grounded in real math, requires no
 model training, and reuses code that already exists and is already tested. It is the right first
@@ -462,8 +465,8 @@ The disciplined path is to ship tier 1, keep the flywheel turning so the dataset
     *AlphaStar Unplugged* (2023), large-scale offline RL.
 18. French, R. (1999). *Catastrophic Forgetting in Connectionist Networks.* Trends in Cognitive Sci.
 19. Hooper, W. (2026). *CHOMP white paper, validation report, and referee report* — the Gen-9 damage
-    pipeline, the pKO-over-16-rolls threat score, and the coverage-based bring-4, used here as XATU's
-    feature generator and RAPID's dynamics. `Pokemon/CHOMP/docs/`.
+    pipeline, the pKO-over-16-rolls threat score, and the coverage-based bring-4, used here as RAPID's
+    feature generator and DODRIO's dynamics. `Pokemon/CHOMP/docs/`.
 
 ---
 
