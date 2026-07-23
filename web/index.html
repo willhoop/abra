@@ -370,12 +370,14 @@ function roomMedicham(){const c=CAST[2];
 }
 function roomDitto(){const c=CAST[3];
   return `<div class="panel">${mascotHero(c,"Copy copy! I build teams that beat the <b>live</b> meta. I try thousands of swaps, scoring each with Jolteon, and I make sure you have an answer to <b>Basculegion</b> \u2014 not to Camerupt.")}</div>
-   <div class="panel"><h2>Build a team to optimise</h2><p class="sub">Pick your seed team — DITTO iterates from here, swapping Pokémon to beat the live meta. Runs right in your browser, no server.</p>
-     <div class="side you" style="max-width:none"><h3>Your seed team (carried across tabs)</h3><div class="slots" data-slots="A"></div>
+   <div class="panel"><h2>Best version of your team</h2><p class="sub">DITTO iterates from your seed team (below), swapping Pokémon and items to beat the live meta — right in your browser, no server.</p>
+     <div style="display:flex;justify-content:center"><button class="battlebtn" onclick="runDitto()">Iterate → best version</button></div>
+     <div id="dtout" style="margin-top:14px;color:#889;text-align:center">Pick your seed team below, then press Iterate.</div>
+   </div>
+   <div class="panel"><h2>Your seed team</h2><p class="sub">Pick up to six — carried across every tab.</p>
+     <div class="side you" style="max-width:none"><div class="slots" data-slots="A"></div>
        <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickD','A',this.value)">
        <div class="picker" id="pickD"></div></div>
-     <button class="battlebtn" style="margin-top:10px" onclick="runDitto()">Iterate → best version of my team</button>
-     <div id="dtout" style="margin-top:12px"></div>
    </div>
    <div class="panel"><h2>Threat rankings</h2><p class="sub">Every common threat on the ladder \u2014 click a column to sort, or search. Straight from the battle logs.</p>
      <input class="pksearch" placeholder="search a threat\u2026" oninput="renderThreats(null,this.value)">
@@ -553,18 +555,27 @@ function runDitto(){
     dittoItems=items;
     const check=mcWinProb(team, cores[0], 200);
     const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,6):(m.mv||[]).map(x=>[x,null]);
-      const mvHtml=ms.map(x=>`${niceName(x[0])}${x[1]!=null?` <span style="color:#b9a">${Math.round(x[1]*100)}%</span>`:''}`).join(' · ');
-      return `<div style="background:#fff0fa;border:2px solid var(--line);border-radius:12px;padding:8px 10px;min-width:180px;flex:1 1 180px">
-        <div style="display:flex;align-items:center;gap:7px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:40px;height:40px">
-          <div style="line-height:1.2"><b>${cap(n)}</b> <small style="color:#777">@ ${niceName(items[n]||m.item)}</small><br><small style="color:#3a86c0">${niceName(m.ab)}</small></div></div>
-        <div style="font-size:11px;color:#556;margin-top:5px" title="top-6 moves by ladder usage">${mvHtml||'—'}</div></div>`;};
-    out.innerHTML=`<div style="font-weight:800;margin-bottom:8px">Best version of your team <span style="font-weight:500;color:#889;font-size:12px">— full sets (most common from ladder data)</span></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">`+team.map(setCard).join('')+`</div>
-      <div style="margin-top:10px;font-weight:600">Team rating vs the live meta: <b>${Math.round(start*100)}% → ${Math.round(best*100)}%</b> <span style="color:#889;font-weight:500">(usage-weighted gauntlet of 24 ladder teams)</span></div>`+
-      (swaps.length?`<div style="margin-top:6px;font-size:12px;color:#666">Swaps DITTO made: `+swaps.map(s=>`${cap(s[0])}→<b>${cap(s[1])}</b> (+${(s[2]*100).toFixed(1)})`).join(' · ')+`</div>`:`<div style="margin-top:6px;color:#2a7;font-weight:600">Your seed was already optimal against this meta — no swap improved it.</div>`)+
-      (itemUp.length?`<div style="margin-top:6px;font-size:12px;color:#666">Item upgrades (MEDICHAM-checked): `+itemUp.map(u=>`${cap(u[0])} → <b>${niceName(u[2])}</b>`).join(' · ')+`</div>`:`<div style="margin-top:6px;font-size:12px;color:#889">No item change beat the standard set.</div>`)+
-      (check!=null?`<div style="margin-top:8px;color:#b4432f;font-weight:600">MEDICHAM re-check vs the top-4 meta core: <b>${Math.round(check*100)}%</b> <span style="font-weight:500;color:#a06">(grounded rollout — the Goodhart guard, so DITTO can't just game JOLTEON)</span></div>`:``)+
-      `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="minibtn" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
+      const chips=ms.map(x=>`<span style="background:#f2f4f8;border-radius:6px;padding:2px 6px;font-size:11px;color:#445">${niceName(x[0])}${x[1]!=null?` <b style="color:#b07">${Math.round(x[1]*100)}</b>`:''}</span>`).join(' ');
+      return `<div style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left">
+        <div style="display:flex;align-items:center;gap:8px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:46px;height:46px">
+          <div style="line-height:1.25"><b style="font-size:14px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12px;font-weight:600">${niceName(m.ab)}</span></div></div>
+        <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px" title="top-6 moves by ladder usage">${chips||'—'}</div></div>`;};
+    const bp=Math.round(best*100), sp=Math.round(start*100), chk=check!=null?Math.round(check*100):null;
+    out.style.color='#223'; out.style.textAlign='left';
+    out.innerHTML=`
+      <div style="max-width:540px;margin:0 auto 14px;text-align:center">
+        <div style="font-size:13px;color:#667;font-weight:700;letter-spacing:.02em">TEAM RATING vs THE LIVE META</div>
+        <div style="font-size:30px;font-weight:800;color:#1a9a4a;line-height:1.1">${bp}%<span style="font-size:15px;color:#99a;font-weight:600"> &nbsp;up from ${sp}%</span></div>
+        <div style="height:16px;background:#ffe0f1;border:2px solid var(--line);border-radius:99px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${bp}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
+        <div style="font-size:11px;color:#99a;margin-top:4px">usage-weighted gauntlet of 24 ladder teams · full sets are the most common on the ladder</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>
+      <div style="margin-top:12px;background:#faf7fb;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;color:#556">
+        ${swaps.length?`<div><b>Swaps:</b> `+swaps.map(s=>`${cap(s[0])} → <b>${cap(s[1])}</b> <span style="color:#2a8">+${(s[2]*100).toFixed(1)}</span>`).join(' &nbsp;·&nbsp; ')+`</div>`:`<div style="color:#2a7;font-weight:600">Your seed was already optimal — no species swap improved it.</div>`}
+        ${itemUp.length?`<div style="margin-top:5px"><b>Item upgrades:</b> `+itemUp.map(u=>`${cap(u[0])} → <b>${niceName(u[2])}</b>`).join(' &nbsp;·&nbsp; ')+`</div>`:``}
+      </div>`+
+      (chk!=null?`<div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid ${chk<40?'#e8b4b4':'#b4d8c0'};background:${chk<40?'#fdf2f2':'#f2faf5'}"><b style="color:${chk<40?'#b4432f':'#1a7a4a'}">MEDICHAM grounded re-check: ${chk}%</b> <span style="color:#778;font-size:12px">vs the top meta core — the Goodhart guard. ${chk<40?'Big gap from JOLTEON means the sheet over-rates this team; trust the rollout.':'The rollout agrees the team is real.'}</span></div>`:``)+
+      `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
   },20);
 }
 // export the optimised team as a Showdown-importable PokéPaste (species @ item / ability / 4 moves from the common set)
