@@ -390,7 +390,7 @@ function doBattle(quiet){
   let msg = edge<8?` dead even — this one's a coin flip!`:edge<20?` ${fav} is favoured (${Math.max(pa,pb)}%).`:` ${fav} is a big favourite (${Math.max(pa,pb)}%)!`;
   document.getElementById('readout').innerHTML=msg+`  <span style="color:#889">— JOLTEON, live</span>`;
   document.getElementById('mcout').textContent='';
-  burst(pa>=pb);
+  if(!quiet) burst(pa>=pb);
 }
 /* live engines via the local server (start.bat). Graceful if not running. */
 async function doMedicham(){
