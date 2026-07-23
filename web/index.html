@@ -801,11 +801,12 @@ function runDitto(mode){
     perArch.sort((x,y)=>x.v-y.v);
     const check=chkW?chkS/chkW:null;
     const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]);
-      const moves=ms.map(x=>`<div style="font-size:12px;color:#556;padding:4px 0;border-top:1px solid #f0f0f4">${niceName(x)}</div>`).join('');
-      return `<div style="background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;text-align:left">
-        <div style="display:flex;align-items:center;gap:10px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)" style="width:54px;height:54px">
-          <div style="line-height:1.35"><b style="font-size:15px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12.5px;font-weight:700">${niceName(m.ab)}</span></div></div>
-        <div style="margin-top:10px">${moves||'—'}</div></div>`;};
+      const ab=abFix(n)||niceName(m.ab); const it=niceName(items[n]||m.item);
+      const moves=ms.map(x=>`<div style="font-size:15px;color:#33475a;font-weight:600;padding:8px 2px;border-top:1px solid #eef0f4">${moveNM(x)}</div>`).join('');
+      return `<div style="background:#fff;border:2px solid var(--line);border-radius:16px;padding:16px 18px;text-align:left">
+        <div style="display:flex;align-items:center;gap:12px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)" style="width:60px;height:60px">
+          <div style="line-height:1.4"><b style="font-size:18px">${cap(n)}</b><br><span style="color:#8a8f99;font-size:14px;font-weight:600">@ ${it}</span><br><span style="color:#3a86c0;font-size:15px;font-weight:800">${ab}</span></div></div>
+        <div style="margin-top:12px">${moves||'—'}</div></div>`;};
     const bp=Math.round(best*100), sp=Math.round(start*100), chk=check!=null?Math.round(check*100):null;
     out.style.color='#223'; out.style.textAlign='left';
     out.innerHTML=`
