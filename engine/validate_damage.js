@@ -75,11 +75,11 @@ function medStat(res, side, cat){ const st=res[side].stats; return cat==='P'?st.
 function run(){
  let rows=[], errsMin=[], errsMax=[];
  for(const sc of S){
-  const [att,ab,item,nat,off,mvKey,def,dnat,devs,weather]=sc;
+  const [att,ab,item,nat,off,mvKey,def,dnat,devs,weather,defAb,defItem]=sc;
   const [bp,type,cat,spread]=MV[mvKey];
   const evA = off==='atk'?{atk:252}:{spa:252};
   const A=new Pokemon(gen,att,{level:50,ability:ab,item:item||undefined,nature:nat,evs:evA});
-  const D=new Pokemon(gen,def,{level:50,nature:dnat,evs:devs});
+  const D=new Pokemon(gen,def,{level:50,nature:dnat,evs:devs,ability:defAb||undefined,item:defItem||undefined});
   const field=new Field({gameType:'Doubles', weather:weather});
   let calcLo,calcHi;
   try{ const res=calculate(gen,A,D,new Move(gen,CALCMOVE[mvKey]),field); const r=res.range(); calcLo=r[0];calcHi=r[1]; }
@@ -89,7 +89,8 @@ function run(){
   const Draw = cat==='P'?D.stats.def:D.stats.spd;
   const mAtt={ st:{at:Araw,sa:Araw}, boosts:{at:0,sa:0}, item:(item||'').toLowerCase().replace(/[^a-z]/g,''),
     ability:(ab||'').toLowerCase().replace(/[^a-z]/g,''), types:A.types.slice(), status:null };
-  const mDef={ st:{df:Draw,sd:Draw}, boosts:{df:0,sd:0}, item:'', types:D.types.slice() };
+  const mDef={ st:{df:Draw,sd:Draw,hp:D.stats.hp}, boosts:{df:0,sd:0}, item:(defItem||'').toLowerCase().replace(/[^a-z]/g,''),
+    ability:(defAb||'').toLowerCase().replace(/[^a-z]/g,''), types:D.types.slice(), curHP:D.stats.hp };
   const mMove={bp,c:cat,t:type};
   const mField={weather:(weather||'').toLowerCase()};
   const dr=MEDI.dmgRange(mAtt,mDef,mMove,mField,!!spread);
