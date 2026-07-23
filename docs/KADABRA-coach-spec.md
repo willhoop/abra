@@ -57,10 +57,10 @@ reconstructable, the player can also scrub — "show me turn 5" — and KADABRA 
   and gave them a free turn."
 - **Later (roadmap).** **SLOWKING** (the learned belief-search solver, simulator white paper §5)
   supplies the deep line — the equilibrium-aware best move accounting for what the opponent might do —
-  and **RAPID** rollouts answer "what if" branches. KADABRA's advice quality rises as those models
+  and **MEDICHAM** rollouts answer "what if" branches. KADABRA's advice quality rises as those models
   come online, with no change to the interface.
 
-KADABRA is a **consumer** of the models (RAPID, JOLTEON, SLOWKING) and of CHOMP, not a model itself.
+KADABRA is a **consumer** of the models (MEDICHAM, JOLTEON, SLOWKING) and of CHOMP, not a model itself.
 
 ## 5. The background job — the flywheel from the coaching seat
 
@@ -91,7 +91,7 @@ you can jump around. Web-based, so it can live alongside the ABRA dashboard.
 |---|---|---|
 | **ABRA** | Abra | collects live ladder games, stores + models them |
 | **JOLTEON** | Jolteon (fastest) | instant team-vs-team win probability |
-| **RAPID** | Rapidash (fast) | quick physics rollouts |
+| **MEDICHAM** | Medicham (medium) | quick physics rollouts |
 | **SLOWKING** | Slowking (slow, wise) | deep learned belief-search game solver |
 | **DITTO** | Ditto | team optimiser vs the meta |
 | **CHOMP** | Garchomp | the bring-4 / lead-2 engine (exact damage) |
