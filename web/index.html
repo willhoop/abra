@@ -98,6 +98,12 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .mRiv{background:linear-gradient(90deg,#ff9bbb,#ff6b8f);flex:1;transition:width 1s}
 .meterwrap b{position:absolute;top:50%;transform:translateY(-50%);font-family:'Baloo 2';color:#fff;font-size:18px;text-shadow:0 2px 0 var(--shadow)}
 .readout{margin-top:12px;text-align:center;font-weight:600;color:#3a5372;min-height:24px}
+.pastebox{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:680px){.pastebox{grid-template-columns:1fr}}
+.pastecol label{font-weight:700;font-size:13px;display:block;margin-bottom:4px}
+.pastecol textarea{width:100%;height:88px;border:3px solid var(--line);border-radius:12px;padding:8px;font-family:ui-monospace,monospace;font-size:12px;resize:vertical;background:#fff}
+.minibtn{border:2px solid var(--line);background:var(--electric);border-radius:9px;padding:2px 8px;font-size:12px;font-weight:700;box-shadow:0 2px 0 var(--electric2)}
+.minibtn:active{transform:translateY(2px);box-shadow:none}
 
 /* ---- info blocks ---- */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -204,6 +210,12 @@ function roomJolteon(){const c=CAST[1];
          <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">🎲 Surprise me</button></div>
        <div class="side rival"><h3>🔴 Rival team</h3><div class="slots" id="slotsB"></div><div class="picker" id="pickB"></div></div>
      </div>
+     <div class="pastebox">
+       <div class="pastecol"><label>📋 Paste a team (PokéPaste) → <button class="minibtn" onclick="loadPaste('A')">load into 🟢 yours</button></label>
+         <textarea id="pasteA" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;- Earthquake&#10;&#10;Incineroar @ ..."></textarea></div>
+       <div class="pastecol"><label>📋 Paste a team → <button class="minibtn" onclick="loadPaste('B')">load into 🔴 rival</button></label>
+         <textarea id="pasteB" placeholder="paste the opponent's team here..."></textarea></div>
+     </div>
      <div class="meterwrap"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
        <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
      <div class="readout" id="readout">Build two teams and press BATTLE ⚡</div>
@@ -293,6 +305,44 @@ function doBattle(){
   document.getElementById('readout').innerHTML=msg+`  <span style="color:#889">— JOLTEON, live</span>`;
   burst(pa>=pb);
 }
+
+/* ===== PokePaste support — accepts ANY species ===== */
+function spriteName(raw){
+  let s=(raw||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const forms=['alola','galar','hisui','paldea','therian','incarnate','eternal','origin','wash','heat',
+    'frost','mow','fan','dusk','midnight','bloodmoon','rapidstrike','singlestrike','crowned','hero','ice'];
+  for(const f of forms){ if(s.endsWith(f)&&s.length>f.length+2) return {n:s,sprite:s.slice(0,-f.length)+'-'+f}; }
+  return {n:s,sprite:s};
+}
+function parsePaste(text){
+  const names=[];
+  (text||'').split(/\n\s*\n/).forEach(block=>{
+    const first=(block.trim().split('\n')[0]||'').trim(); if(!first) return;
+    let name=first.split('@')[0].trim();
+    const paren=first.match(/\(([^)]+)\)/);
+    if(paren && !/^[MF]$/i.test(paren[1])) name=paren[1].trim();   // Nick (Species) @ item
+    name=name.replace(/\((M|F)\)/gi,'').trim();
+    if(name && !/^Ability:|^Level:|^EVs:|^IVs:|^Tera|^-/i.test(name)) names.push(name);
+  });
+  return names.slice(0,6);
+}
+function loadPaste(side){
+  const raw=parsePaste(document.getElementById('paste'+side).value);
+  const team=[]; let off=0;
+  raw.forEach(r=>{ const {n,sprite}=spriteName(r); if(!n) return;
+    if(!BY[n]){ BY[n]={n,sprite,w:0,spd:0.5,fire:0.5,bring:0,off:true}; off++; }
+    else if(BY[n].off) off++;
+    team.push(n); });
+  if(side==='A') teamA=team; else teamB=team;
+  renderSlots(); syncSel();
+  const r=document.getElementById('readout');
+  r.innerHTML = team.length ? `Loaded ${team.length} into ${side==='A'?'🟢 your':'🔴 rival'} team`+
+    (off?` — <b>${off}</b> not yet in JOLTEON's vocabulary, so they're treated as neutral until the ladder feeds it more games.`:' ✓')+' Press BATTLE! ⚡'
+    : 'No Pokémon found in that paste — check the format.';
+}
+/* any sprite that 404s (rare form name) falls back to a Substitute doll */
+addEventListener('error', e=>{const t=e.target; if(t&&t.tagName==='IMG'&&!t.dataset.fb){t.dataset.fb='1';
+  t.src='https://play.pokemonshowdown.com/sprites/ani/substitute.gif';}}, true);
 
 /* ===== effects: snow, clouds, confetti ===== */
 const sky=document.getElementById('sky');
