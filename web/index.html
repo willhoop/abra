@@ -464,7 +464,7 @@ function roomTown(){const c=CAST[0];
      <div class="tint" style="background:${h.roof}"></div>
      <div class="plat"><img src="${ani(h.sprite)}"></div>
      <b>${h.tab}</b><small>${h.role}</small></div>`).join('');
-  return `<div class="panel">${mascotHero(c,"Welcome to town! I collect real Champions ladder games and store them forever. Every one of these is a model that learns from them. Waddle in and click around!")}</div>
+  return `<div class="panel">${mascotHero(c,"Welcome! I keep every Champions ladder game — and each room is a model that learns from them.")}</div>
    <div class="panel"><h2>The town</h2><p class="sub">Each house is a model — click to visit</p><div class="map">${houses}</div></div>
    <div class="panel"><h2>What the town has collected</h2>
      <div class="statgrid">
@@ -486,7 +486,7 @@ function roomTown(){const c=CAST[0];
 }
 
 function roomJolteon(){const c=CAST[1];
-  return `<div class="panel">${mascotHero(c,"Zap! Pick a team for each side and I'll tell you who's favoured — before a single move. This is my <b>real</b> model running right here in your browser. ")}</div>
+  return `<div class="panel">${mascotHero(c,"Zap! Pick two teams — I call who's favoured before a single move.")}</div>
    <div class="panel"><h2>Battle Odds Booth</h2><p class="sub">Build each team below — the result shows up right here at the top.</p>
      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
        <button class="battlebtn" onclick="doBattle()">BATTLE!</button>
@@ -524,7 +524,7 @@ function tierRow(sprite,name,acro,cost,color,text){
   return `<div class="tier"><img src="${ani(sprite)}"><div class="g"><b>${name}</b> — <span style="color:#5a708a;font-weight:600">${acro}</span><div style="font-weight:600;margin-top:2px">${text}</div></div><div class="cost" style="background:${color}">${cost}</div></div>`;
 }
 function roomMedicham(){const c=CAST[2];
-  return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — CHOMP's exact damage, a few hundred quick rollouts, sampling every roll. Middle of the pack in speed and cost.")}</div>
+  return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses — I <b>play the whole match out</b>, roll by roll.")}</div>
    <div class="panel"><h2>Play a matchup out</h2><p class="sub">Pick both teams below — your carried team is already loaded. The grounded result shows up right here at the top.</p>
      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
        <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff" onclick="runMedichamRoom()">Play it out</button>
@@ -551,7 +551,7 @@ function roomMedicham(){const c=CAST[2];
    <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
-  return `<div class="panel">${mascotHero(c,"Copy copy! First I <b>solve the meta</b> \u2014 the Nash equilibrium of the archetype match-ups \u2014 then I best-respond to it, tuning your team to beat the game as it really is. And I'll always tell you who still counters you, because no one team beats everything.")}</div>
+  return `<div class="panel">${mascotHero(c,"Copy copy! I <b>solve the meta</b>, then tune your team to beat it \u2014 and name who still counters you.")}</div>
    <div class="panel"><h2>Best version of your team</h2><p class="sub">DITTO iterates from your seed team (below), swapping Pokémon and items to beat the live meta — right in your browser, no server.</p>
      <div style="display:flex;justify-content:center"><button class="battlebtn" onclick="runDitto()">Iterate → best version</button></div>
      <div id="dtout" style="margin-top:14px;color:#889;text-align:center">Pick your seed team below, then press Iterate.</div>
@@ -596,7 +596,16 @@ function roomChomp(){const c=CAST[6];
      <p style="font-weight:600;color:#3a5372"><b>On-battle Read Board.</b> Use the <b>official Smogon Champions calculator</b> — the exact tool the pros use, every roll, item, ability, weather. In the CHOMP userscript (on the live battle) ORB auto-fills the board for you; here on the site, open the real calc and paste your teams in one click.</p>
      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
        <a class="battlebtn" href="https://calc.pokemonshowdown.com/champions.html?mode=champions" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Open the Champions calc</a>
-       <button class="minibtn" onclick="copyOrbTeams(this)">Copy my team for the calc</button></div></div>
+       <button class="minibtn" onclick="copyOrbTeams(this)">Copy my team for the calc</button></div>
+     <div style="margin-top:14px;padding:12px 14px;background:#eef6ff;border:2px solid var(--line);border-radius:12px">
+       <div style="font-weight:800;font-size:15px;margin-bottom:4px">▶ Install the ORB dock (auto-fills in battle)</div>
+       <div style="font-weight:600;color:#3a5372;font-size:13px">A minimizable calc that fills <b>both teams</b> from the open-sheet preview, live in your battle. Three steps:</div>
+       <ol style="margin:8px 0 0 20px;padding:0;font-weight:600;color:#3a5372;font-size:13px;line-height:1.7">
+         <li>Install <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener">Tampermonkey</a> (a free browser extension).</li>
+         <li>Add the script — click <a href="https://github.com/willhoop/chomp/raw/main/app/plugin/chomp-orb.user.js" target="_blank" rel="noopener"><b>chomp-orb.user.js</b></a> and Tampermonkey will offer to install it.</li>
+         <li>Open a Champions battle on Showdown — the ORB dock appears bottom-right, already filled. Click its header to minimize.</li>
+       </ol>
+     </div></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
 const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
