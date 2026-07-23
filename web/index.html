@@ -862,17 +862,32 @@ function copyOrbTeams(btn){ const t=(typeof teamA!=='undefined'&&teamA.length)?t
 let KAD=null, kadKeys=[], kadI=0, kadMode='embed';
 async function runKadabra(){
   const raw=document.getElementById('kdid').value.trim(); const out=document.getElementById('kdout');
-  if(!raw){out.textContent='Paste a replay link first.';return;}
+  if(!raw){ kadPickerUI(); return; }
   const id=(raw.match(/([a-z0-9]+-\d+)/i)||[])[1] || raw.split('/').pop().replace(/\.(json|log)$/,'');
-  out.innerHTML='<div style="font-weight:700">KADABRA is pulling the replay…</div>';
-  let log=null;
-  try{ const r=await fetch('https://replay.pokemonshowdown.com/'+id+'.json'); const j=await r.json(); log=j.log; }catch(e){}
+  out.innerHTML='<div style="font-weight:700">KADABRA is reading the replay…</div>';
+  // offline-first: coach from our locally-bundled games (no cross-site fetch needed on file://)
+  let log=(window.KAD_REPLAYS && KAD_REPLAYS[id]) || null;
+  if(!log){ try{ const r=await fetch('https://replay.pokemonshowdown.com/'+id+'.json'); const j=await r.json(); log=j.log; }catch(e){} }
   if(!log){ try{ const r2=await fetch('https://replay.pokemonshowdown.com/'+id+'.log'); log=await r2.text(); }catch(e){} }
-  if(!log){ out.innerHTML='Could not fetch that replay from the browser (some setups block cross-site requests on <code>file://</code> — opening the site over http fixes it). Or paste the raw replay log here:<br><textarea id="kdlog" style="width:100%;height:110px;margin-top:6px;border:3px solid var(--line);border-radius:10px;padding:8px"></textarea><br><button class="minibtn" style="margin-top:6px" onclick="kadFromLog(document.getElementById(&quot;kdlog&quot;).value, kadMe())">Coach this log</button>'; return; }
-  try{ KAD=kadBuild(log, kadMe()); KAD.id=id;
+  if(!log){ kadPickerUI(id); return; }
+  kadCoach(log, id);
+}
+function kadCoach(log, id){
+  const out=document.getElementById('kdout');
+  try{ KAD=kadBuild(log, kadMe()); KAD.id=id||'pasted';
     kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length)kadKeys=KAD.scenes.slice(0,Math.min(6,KAD.scenes.length)); kadI=0;
-    renderKadEmbed();
+    if(!kadKeys.length){ out.innerHTML='<div style="font-weight:700">No decisive turns to coach in that game — it was a clean one.</div>'; return; }
+    renderKad();
   }catch(e){ out.textContent='Could not parse that replay.'; }
+}
+function kadPickerUI(badId){
+  const out=document.getElementById('kdout'); const idx=(window.KAD_INDEX||[]);
+  const opts=idx.slice().reverse().map(g=>`<option value="${g.id}">${g.label}</option>`).join('');
+  out.innerHTML=`${badId?`<div style="color:#b4432f;font-weight:700;margin-bottom:10px">Couldn't reach that link from a file page — but I keep your recent games on hand. Coach one below, or paste a raw log.</div>`:`<div style="font-weight:700;margin-bottom:10px">Pick one of your recent games and I'll walk you through it:</div>`}
+    ${idx.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px"><select id="kadpick" style="flex:1;min-width:240px;border:3px solid var(--line);border-radius:12px;padding:10px;font-size:15px;font-weight:600">${opts}</select><button class="battlebtn" onclick="kadCoach(KAD_REPLAYS[document.getElementById('kadpick').value], document.getElementById('kadpick').value)">Coach this game</button></div>`:''}
+    <div style="font-weight:600;color:#667;margin:4px 0 6px">…or paste a raw replay log:</div>
+    <textarea id="kdlog" style="width:100%;height:100px;border:3px solid var(--line);border-radius:10px;padding:8px"></textarea>
+    <button class="minibtn" style="margin-top:8px" onclick="kadCoach(document.getElementById('kdlog').value,'pasted')">Coach this log</button>`;
 }
 // KADABRA v2 — embed the REAL Showdown replay (battle left, log right, native targeting/status/field/animation)
 // and overlay KADABRA's turn-stamped coaching beside it. Falls back to the simplified scene view.
@@ -918,8 +933,8 @@ function kadBuild(log, meName){
     const mine=faints.filter(f=>f.slot.startsWith(side)).map(f=>cap(f.name));
     const theirs=faints.filter(f=>f.slot.startsWith(foeS)).map(f=>cap(f.name));
     let kind='good', coach='';
-    if(mine.length){ kind='loss'; coach=`You lost ${mine.join(' & ')} on turn ${turn}. This is where momentum swung — check whether Protect, a pivot, or a different lead keeps it alive.`; }
-    else if(theirs.length){ kind='good'; coach=`You KO'd ${theirs.join(' & ')} — clean tempo. Press the advantage while you're up a body.`; }
+    if(mine.length){ kind='loss'; coach=`Protect or pivot ${mine.join(' & ')} out here instead of leaving ${mine.length>1?'them':'it'} in. You traded ${mine.length>1?'two Pokémon':'a Pokémon'} for nothing on turn ${turn} — that's the swing. Keeping ${mine.length>1?'them':'it'} alive (Protect, a switch, or a different lead) flips the game from here.`; }
+    else if(theirs.length){ kind='good'; coach=`Good — you KO'd ${theirs.join(' & ')} and you're up a body. Keep the pressure: bring your win condition in safely and don't hand the tempo back.`; }
     scenes.push({n:turn, you, foe, log:tlog.slice(-4), kind, coach, key:true, _loss:mine.length});
   };
   for(const ln of L){ if(ln[0]!=='|')continue; const p=ln.split('|'); const t=p[1];
@@ -949,19 +964,34 @@ function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
 function renderKad(){
   const wrap=document.getElementById('kdout'); if(!KAD)return; kadMode='scene';
   const s=kadKeys[kadI], last=KAD.scenes[KAD.scenes.length-1].n;
-  const kindColor={loss:'#ff6b6b',threat:'#ffb03a',good:'#5fd07a'}[s.kind]||'#7a6bff';
-  const dots=kadKeys.map((k,i)=>`<span class="kdot ${i===kadI?'on':''}" onclick="kadGo(${i})"></span>`).join('');
+  const isLoss=s.kind==='loss'; const col=isLoss?'#e05a72':'#2fb45f';
+  const dots=kadKeys.map((k,i)=>`<span class="kdot ${i===kadI?'on':''}" onclick="kadGo(${i})" style="cursor:pointer"></span>`).join('');
+  const heading=isLoss?'What you should&#39;ve done':'Why this worked';
   wrap.innerHTML=`
-    <div style="font-weight:700;margin-bottom:6px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b>
-      · <span style="color:#889">key moment ${kadI+1} of ${kadKeys.length} · turn ${s.n}/${last}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div style="font-weight:800;font-size:16px">${cap(KAD.me)} vs ${cap(KAD.foe)} · <span style="color:${KAD.result==='Win'?'#1a9a4a':'#d23b3b'}">${KAD.result}</span></div>
+      <div style="font-weight:700;color:#8a8f99">Key moment ${kadI+1} of ${kadKeys.length} · turn ${s.n} of ${last}</div>
+    </div>
+    <div style="display:inline-block;background:${col};color:#fff;font-weight:800;font-size:14px;padding:4px 14px;border-radius:99px;margin-bottom:10px">Turn ${s.n} — ${isLoss?'the swing':'good play'}</div>
     <div class="stage">
       <div class="side foe">${s.foe.map(m=>bmon(m,false)).join('')}</div>
       <div class="side you">${s.you.map(m=>bmon(m,true)).join('')}</div>
     </div>
-    <div style="margin-top:6px">${s.log.map(l=>`<div class="kadlogline">${l}</div>`).join('')}</div>
-    <div class="kadpop"><img src="${ani('kadabra')}">
-      <div class="bubble" style="border-color:${kindColor}"><b>${s.kind==='good'?'Well played':'What to do'}:</b> ${s.coach||s.note}</div></div>
-    <div class="kadstep"><button onclick="kadNav(-1)">◀ prev</button>${dots}<button onclick="kadNav(1)">next ▶</button></div>`;
+    <div style="margin-top:10px;background:#f6f7fb;border:2px solid var(--line);border-radius:12px;padding:10px 14px">
+      <div style="font-weight:800;font-size:13px;color:#8a8f99;letter-spacing:.03em;margin-bottom:4px">WHAT HAPPENED</div>
+      ${s.log.map(l=>`<div style="font-size:14.5px;font-weight:600;color:#33475a;padding:1px 0">${l}</div>`).join('')||'<div style="color:#99a">—</div>'}
+    </div>
+    <div style="margin-top:12px;background:${isLoss?'#fff1f3':'#eefaf1'};border:3px solid ${col};border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+      <img src="${ani('kadabra')}" onerror="sprFallback(this)" style="width:52px;height:52px;flex:none;object-fit:contain">
+      <div><div style="font-weight:800;font-size:16px;color:${col};margin-bottom:3px">${heading}</div>
+        <div style="font-size:15.5px;font-weight:600;color:#2a3340;line-height:1.5">${s.coach||s.note}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px">
+      <button class="battlebtn" style="padding:10px 20px;font-size:16px" onclick="kadNav(-1)" ${kadI===0?'disabled style="opacity:.4;padding:10px 20px;font-size:16px"':''}>← prev</button>
+      <div style="display:flex;gap:8px;align-items:center">${dots}</div>
+      <button class="battlebtn" style="padding:10px 20px;font-size:16px" onclick="kadNav(1)" ${kadI===kadKeys.length-1?'disabled style="opacity:.4;padding:10px 20px;font-size:16px"':''}>next →</button>
+    </div>
+    <div style="text-align:center;margin-top:8px"><a href="https://replay.pokemonshowdown.com/${KAD.id}?turn=${s.n}" target="_blank" rel="noopener" style="font-size:12px;color:#99a">watch this turn on Showdown ↗</a></div>`;
 }
 function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); (kadMode==='embed'?renderKadEmbed:renderKad)(); }
 function kadGo(i){ kadI=i; renderKad(); }
