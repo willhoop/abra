@@ -51,6 +51,44 @@ silently rewritten; what changed and why is stated.
   optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
   as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).
 
+## [1.6.0] — 2026-07-23
+
+### Major finding
+- **The Champions engine is OPEN, not closed** (`docs/OPEN-ENGINE-FINDING.md`). Verified by cloning
+  `smogon/pokemon-showdown`: the exact format `[Gen 9 Champions] VGC 2026 Reg M-B` (and its Bo3
+  variant) is in `config/formats.ts`, backed by a full `champions` mod (SP system in
+  `data/mods/champions/scripts.ts`). This overturns the project's founding assumption. SLOWKING no
+  longer needs to *learn* the dynamics — it can query the real engine (ReBeL over a known simulator),
+  and MEDICHAM/DITTO/JOLTEON can use exact rollouts + self-play. SLOWKING white paper §3 corrected;
+  roadmap task added to wire the engine as ABRA's simulator.
+
+### Added
+- **MEDICHAM runs in the browser** — the damage engine, type chart, sets, and behaviour-clone priors
+  (96KB) are embedded in `web/index.html`; the rollout runs client-side (~40ms / 200 rollouts). The
+  "MEDICHAM check" button and Medicham's run panel now work with **no server**. Validated: mirror
+  0.53, rain-vs-sun 0.19 (matches the Node engine).
+- **Combined team+rating predictor** (`engine/predictability.py` §2.5): the real pre-game ceiling is
+  ~57% — combining team sheets AND player ratings does no better than team alone, confirming the game
+  is variance-dominated (and that the two ~55%s are different axes that corroborate, not the same
+  claim). Predictability study updated with the honest framing.
+- **ABRA MCP server** (`mcp/`): exposes the models as tools Claude can call — `abra_win_probability`
+  (JOLTEON), `abra_rollout` (MEDICHAM), `abra_threats`, `abra_species_stats`, `abra_optimize_team`
+  (DITTO), `abra_coach_replay` (KADABRA). Local stdio server; `claude mcp add abra -- node mcp/server.js`.
+- **Regulation registry + archive** (`data/regulations.json`, `build/archive-regulation.js`): the
+  active regulation is a one-line config edit; ingest/analysis read it. When a reg ends,
+  `archive-regulation.js` snapshots the store + all models into `data/archive/<id>/` (date-stamped,
+  with a manifest) so previous-regulation data is preserved forever. `--rotate` starts a fresh store.
+- **Mega Evolution** added to the game's action model (SLOWKING white paper §2) as a per-turn step.
+- **Ditto page rebuilt**: team-builder on top + a live, sortable/searchable **threat rankings table**
+  (usage / bring / lead / win% / speed) from the real stats; static chips removed.
+- **Team carries between models** (localStorage), hover-× to remove a Pokémon / clear team, usage-
+  ranked picker, in-browser MEDICHAM, lightning flash on JOLTEON, confetti idle-loop stopped.
+- **Omnibus is now robust** (`build/omnibus.py`): always emits a self-contained HTML (SVG embedded
+  directly, no LibreOffice), attempts the PDF only if `OMNIBUS_PDF=1` — reproduces the Special Cut
+  reliably as the docs grow.
+- New docs sewn into the Special Cut: predictability study, SLOWKING white paper + roadmap,
+  architecture notes.
+
 ## [1.5.0] — 2026-07-23
 
 ### Added
