@@ -7,23 +7,35 @@
 
 ## What each one does
 
-| Model | Pokémon (speed) | Acronym | In one line | Cost | Status |
-|---|---|---|---|---|---|
-| **ABRA** | Abra | **A**utomated **B**attle **R**eplay **A**nalyzer | Collects live ladder games, stores them raw forever, models them. The platform everything sits on. | — | Built |
-| **JOLTEON** | Jolteon (fastest) | **J**oint **O**dds, **L**adder-**T**rained **E**xpected-**O**utcome **N**etwork | Instant win probability between two teams, before any move. ~55% vs 49% coin flip. | ⚡ microseconds | Built |
-| **MEDICHAM** | Medicham (medium) | **M**atchup **E**valuation, **D**amage-**I**nformed **C**HOMP-**H**euristic **A**pproximate **M**oves | Plays a matchup out a few turns with CHOMP's exact damage; averages many rollouts. | 🥋 milliseconds | Built |
-| **SLOWKING** | Slowking (slow, wise) | **S**earch over **L**earned **O**pponent-belief **W**orld, **K**nowledge-**I**ntensive **N**ash **G**ame-solver | Deep, equilibrium-aware search over what the opponent might be hiding. | 📚 seconds | Scaffold (research) |
-| **DITTO** | Ditto | **D**ouble-oracle **I**terative **T**eam-**T**uning **O**ptimiser | Builds teams that beat the live meta; guarantees an answer to common threats, ignores rare ones. | uses JOLTEON | Built |
-| **KADABRA** | Kadabra | **K**ey **A**nalysis of **D**ecisions, **A**dvice & **B**etter **R**eplay **A**nnotation | Turn-by-turn coach: rebuilds each scene, flags high/low rolls, names the better play. | uses CHOMP+ABRA | v1 built |
-| **CHOMP** | Garchomp | (the bring-4 / lead-2 engine) | The Showdown userscript you actually play with: picks your 4 and your lead by exact damage. | — | Built (separate) |
+Speed = cost: the faster the Pokémon, the cheaper/faster the model.
+
+| Model | Pokémon · speed | What it does | Status |
+|---|---|---|---|
+| **ABRA** | Abra | collects, stores, and models the live ladder | Built |
+| **JOLTEON** | Jolteon · fastest | instant team-vs-team win probability | Built |
+| **MEDICHAM** | Medicham · mid | short exact-damage rollouts; vets teams | Built |
+| **SLOWKING** | Slowking · slowest | deep belief-search (equilibrium play) | Research |
+| **DITTO** | Ditto | builds teams vs the live meta | Built |
+| **KADABRA** | Kadabra | turn-by-turn coach on your replays | Built |
+| **CHOMP** | Garchomp | the bring-4 / lead-2 engine you play with | Built |
+
+**The acronyms.** ABRA — Automated Battle Replay Analyzer. JOLTEON — Joint Odds, Ladder-Trained
+Expected-Outcome Network. MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate
+Moves. SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver.
+DITTO — Double-oracle Iterative Team-Tuning Optimiser. KADABRA — Key Analysis of Decisions, Advice &
+Better Replay Annotation.
+
+**The cost tiers.** JOLTEON: microseconds (one forward pass). MEDICHAM: milliseconds (a few
+rollouts). SLOWKING: seconds (belief search). DITTO uses JOLTEON as its evaluator; KADABRA uses CHOMP
++ ABRA.
 
 ## The supporting data models
 
 | Piece | What it produces |
 |---|---|
-| **durable-ingest** | The store: every game's teams, brings, leads, revealed sets, result, ratings, bot flag, **and a per-turn stream** (move order → speed, damage % per move). Raw logs archived → any new field is a re-parse, never a re-pull. |
-| **dynamics** | Observed **speed** (who-moves-first, Choice-Scarf hints) for 186 species, and observed **damage** distributions for 1,170 (attacker, move) pairs. |
-| **analyze** (meta-usage) | Team % / bring % / lead % / win % per species at any rating cutoff. What CHOMP reads. |
+| **durable-ingest** | every game's teams, brings, leads, revealed sets, result, ratings, bot flag, plus a per-turn stream (move order → speed, damage % per move) |
+| **dynamics** | observed speed (who-moves-first, Scarf hints) and observed damage distributions per move |
+| **analyze** (meta-usage) | team% / bring% / lead% / win% per species at any rating cutoff — what CHOMP reads |
 
 ## The one honest lesson
 
