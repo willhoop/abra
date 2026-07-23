@@ -533,11 +533,12 @@ function runDitto(){
       if(bi!==items[n]){ itemUp.push([n,items[n],bi]); items[n]=bi; curBest=bs; } }
     dittoItems=items;
     const check=mcWinProb(team, cores[0], 200);
-    const setCard=n=>{const m=MC.mons[n]||{}; const mv=(m.mv||[]).map(niceName).join(' · ');
-      return `<div style="background:#fff0fa;border:2px solid var(--line);border-radius:12px;padding:8px 10px;min-width:168px;flex:1 1 168px">
+    const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,6):(m.mv||[]).map(x=>[x,null]);
+      const mvHtml=ms.map(x=>`${niceName(x[0])}${x[1]!=null?` <span style="color:#b9a">${Math.round(x[1]*100)}%</span>`:''}`).join(' · ');
+      return `<div style="background:#fff0fa;border:2px solid var(--line);border-radius:12px;padding:8px 10px;min-width:180px;flex:1 1 180px">
         <div style="display:flex;align-items:center;gap:7px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:40px;height:40px">
           <div style="line-height:1.2"><b>${cap(n)}</b> <small style="color:#777">@ ${niceName(items[n]||m.item)}</small><br><small style="color:#3a86c0">${niceName(m.ab)}</small></div></div>
-        <div style="font-size:11px;color:#556;margin-top:5px">${mv||'—'}</div></div>`;};
+        <div style="font-size:11px;color:#556;margin-top:5px" title="top-6 moves by ladder usage">${mvHtml||'—'}</div></div>`;};
     out.innerHTML=`<div style="font-weight:800;margin-bottom:8px">Best version of your team <span style="font-weight:500;color:#889;font-size:12px">— full sets (most common from ladder data)</span></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">`+team.map(setCard).join('')+`</div>
       <div style="margin-top:10px;font-weight:600">Team rating vs the live meta: <b>${Math.round(start*100)}% → ${Math.round(best*100)}%</b> <span style="color:#889;font-weight:500">(usage-weighted gauntlet of 24 ladder teams)</span></div>`+
@@ -549,7 +550,7 @@ function runDitto(){
 }
 // export the optimised team as a Showdown-importable PokéPaste (species @ item / ability / 4 moves from the common set)
 function dittoPaste(btn){ if(!dittoResult)return; const items=dittoItems||{};
-  const txt=dittoResult.map(n=>{const m=MC.mons[n]||{}; const moves=(m.mv||[]).map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(items[n]||m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
+  const txt=dittoResult.map(n=>{const m=MC.mons[n]||{}; const top=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]); const moves=top.map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(items[n]||m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
   try{navigator.clipboard.writeText(txt);}catch(e){}
   if(btn){const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1200);} }
 let KAD=null, kadKeys=[], kadI=0;
