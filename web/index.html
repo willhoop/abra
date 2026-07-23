@@ -41,7 +41,7 @@ header{position:relative;z-index:5;text-align:center;padding:18px 12px 6px}
 nav{position:relative;z-index:6;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 10px 6px;max-width:1000px;margin:0 auto}
 .tab{border:3px solid var(--line);background:#fff;border-radius:16px;padding:8px 14px;font-size:15px;font-weight:700;
   color:var(--ink);box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s,background .15s;display:flex;align-items:center;gap:7px}
-.tab img{width:26px;height:26px;image-rendering:pixelated}
+.tab img{width:28px;height:28px;object-fit:contain;image-rendering:pixelated}
 .tab:hover{transform:translateY(-2px);background:#fff7d6}
 .tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
 .tab.on{background:var(--electric);box-shadow:0 4px 0 var(--electric2);transform:translateY(-1px)}
@@ -54,25 +54,34 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .panel{background:var(--card);border:4px solid var(--line);border-radius:26px;box-shadow:0 10px 0 var(--shadow);padding:22px;margin-bottom:18px}
 .panel h2{margin:0 0 4px;font-size:30px;display:flex;align-items:center;gap:12px}
 .panel .sub{color:#5a708a;font-weight:600;margin:0 0 14px}
-.mascot{width:96px;height:96px;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none}
-.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:10px 14px;font-weight:600;box-shadow:0 4px 0 var(--shadow);max-width:520px}
+.mascot{width:104px;height:104px;object-fit:contain;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none;
+  filter:drop-shadow(0 4px 3px rgba(0,0,0,.14))}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:11px 16px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px}
 .bubble:before{content:'';position:absolute;left:-14px;top:22px;border:8px solid transparent;border-right-color:var(--line)}
 .bubble:after{content:'';position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:#fff}
-.hero{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.hero > div{flex:1;min-width:260px}
 .chip{display:inline-block;background:#eaf6ff;border:2px solid var(--line);border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;margin:2px}
 .speedbar{height:12px;border-radius:8px;background:#e7eefc;border:2px solid var(--line);overflow:hidden;margin-top:6px}
 .speedbar > i{display:block;height:100%;background:linear-gradient(90deg,var(--electric),var(--electric2))}
 
 /* ---- town map ---- */
-.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
-.house{position:relative;border:4px solid var(--line);border-radius:20px;padding:16px 12px 14px;text-align:center;background:#fff;
-  box-shadow:0 7px 0 var(--shadow);cursor:pointer;transition:transform .1s}
-.house:hover{transform:translateY(-4px) rotate(-1deg)}
-.house:active{transform:translateY(2px)}
-.house .roof{position:absolute;inset:-4px -4px auto -4px;height:26px;border-radius:20px 20px 0 0}
-.house img{width:70px;height:70px;image-rendering:pixelated;margin-top:14px;animation:bob 2.6s ease-in-out infinite}
-.house b{display:block;margin-top:6px;font-size:16px}
-.house small{color:#6a7f97;font-weight:600}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
+.house{position:relative;border:4px solid var(--line);border-radius:22px;padding:36px 12px 16px;text-align:center;background:#fff;
+  box-shadow:0 7px 0 var(--shadow);cursor:pointer;overflow:hidden;transition:transform .14s cubic-bezier(.3,1.5,.4,1),box-shadow .14s}
+.house:hover{transform:translateY(-6px) rotate(-1.5deg);box-shadow:0 13px 0 var(--shadow)}
+.house:hover img{animation:hop .5s ease-in-out infinite}
+.house:active{transform:translateY(2px);box-shadow:0 3px 0 var(--shadow)}
+.house .roof{position:absolute;inset:-4px -4px auto -4px;height:30px;border-radius:18px 18px 50% 50%/18px 18px 26px 26px;border-bottom:3px solid var(--line)}
+.house .tint{position:absolute;left:0;right:0;top:26px;bottom:0;opacity:.13;z-index:0}
+.house .plat{position:relative;z-index:1;margin-top:2px}
+.house .plat:after{content:'';position:absolute;left:50%;bottom:2px;transform:translateX(-50%);width:82px;height:15px;
+  background:#e3f1ff;border:2px solid var(--line);border-radius:50%;z-index:-1}
+.house img{width:82px;height:82px;object-fit:contain;image-rendering:pixelated;animation:bob 2.6s ease-in-out infinite;
+  filter:drop-shadow(0 3px 2px rgba(0,0,0,.14))}
+.house b{position:relative;z-index:1;display:block;margin-top:10px;font-size:17px}
+.house small{position:relative;z-index:1;color:#6a7f97;font-weight:600;font-size:12px}
+@keyframes hop{50%{transform:translateY(-11px) scale(1.06)}}
 
 /* ---- JOLTEON battle booth ---- */
 .booth{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
@@ -82,10 +91,10 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .side h3{margin:0 0 8px;font-size:20px;text-align:center}
 .slots{display:flex;gap:6px;justify-content:center;min-height:60px;flex-wrap:wrap}
 .slot{width:52px;height:52px;border:2px solid var(--line);border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center}
-.slot img{width:48px;height:48px;image-rendering:pixelated}
+.slot img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}
 .picker{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:10px;max-height:210px;overflow:auto;padding:4px}
 .pk{width:46px;height:46px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:0;position:relative;transition:transform .08s}
-.pk img{width:42px;height:42px;image-rendering:pixelated}
+.pk img{width:42px;height:42px;object-fit:contain;image-rendering:pixelated}
 .pk:hover{transform:scale(1.12);background:#fff7d6;z-index:2}
 .pk.sel{background:var(--electric);box-shadow:0 0 0 2px var(--electric2)}
 .vs{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:120px}
@@ -185,8 +194,11 @@ function mascotHero(c,bubble){return `<div class="hero"><img class="mascot" src=
   <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
 
 function roomTown(){const c=CAST[0];
-  let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')"><div class="roof" style="background:${h.roof}"></div>
-     <img src="${ani(h.sprite)}"><b>${h.tab}</b><small>${h.title.replace(/'s.*/,'')}</small></div>`).join('');
+  let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">
+     <div class="roof" style="background:${h.roof}"></div>
+     <div class="tint" style="background:${h.roof}"></div>
+     <div class="plat"><img src="${ani(h.sprite)}"></div>
+     <b>${h.tab}</b><small>${h.title.replace(/'s.*/,'').replace('ABRA World','ABRA HQ')}</small></div>`).join('');
   return `<div class="panel">${mascotHero(c,"Welcome to town! I collect real Champions ladder games and store them forever. Every building here is a model that learns from them. Waddle in and click around!")}</div>
    <div class="panel"><h2>🏘️ The town</h2><p class="sub">Each house is a model — click to visit</p><div class="map">${houses}</div></div>
    <div class="panel"><h2>📈 What the town has collected</h2>
