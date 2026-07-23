@@ -74,30 +74,38 @@ class ISMCTS:
             self.nodes[k]._na = (na0, na1)
         return self.nodes[k]
 
+    def _value(self, state, depth, max_depth):
+        """Single-path rollout value to player 0 (used for counterfactuals and the
+        main descent). Terminal -> exact; depth cap -> value_estimate or 0.5."""
+        g = self.game
+        if g.is_terminal(state):
+            return g.returns(state)
+        if depth >= max_depth:
+            ev = getattr(g, 'value_estimate', None)
+            return ev(state) if ev else 0.5
+        node = self._node(state); na0, na1 = node._na
+        a0 = node.sample(0, self.rng) % na0; a1 = node.sample(1, self.rng) % na1
+        return self._value(g.apply(state, (a0, a1)), depth + 1, max_depth)
+
     def _simulate(self, state, depth=0, max_depth=40):
         g = self.game
         if g.is_terminal(state):
             return g.returns(state)
         if depth >= max_depth:
-            # depth-limited: fall back to a fast value estimate if provided
             ev = getattr(g, 'value_estimate', None)
             return ev(state) if ev else 0.5
-        node = self._node(state)
-        na0, na1 = node._na
+        node = self._node(state); na0, na1 = node._na
+        s0 = node.strategy(0); s1 = node.strategy(1)
         a0 = node.sample(0, self.rng) % na0
         a1 = node.sample(1, self.rng) % na1
-        nxt = g.apply(state, (a0, a1))
-        v = self._simulate(nxt, depth + 1, max_depth)     # value to player 0
+        # proper counterfactual regret: value of each of MY actions against the
+        # opponent's sampled action (regret matching -> Nash of the stage game).
+        cf0 = np.array([self._value(g.apply(state, (i, a1)), depth + 1, max_depth) for i in range(na0)])
+        cf1 = np.array([1.0 - self._value(g.apply(state, (a0, j)), depth + 1, max_depth) for j in range(na1)])
+        node.regret[0][:na0] += cf0 - (s0[:na0] @ cf0)
+        node.regret[1][:na1] += cf1 - (s1[:na1] @ cf1)
         node.visits += 1
-        # regret update: player 0 maximises v, player 1 maximises (1 - v)
-        # counterfactual value of each action approximated by the realised sample
-        s0 = node.strategy(0); s1 = node.strategy(1)
-        node.regret[0] += (v - v * 1) * 0                  # (kept explicit below)
-        # realised-payoff regret matching (single-sample): reward chosen action by
-        # advantage vs current mixed value. Cheap, unbiased in expectation.
-        node.regret[0][a0 % na0] += v - (s0[:na0] @ np.full(na0, v))
-        node.regret[1][a1 % na1] += (1 - v) - (s1[:na1] @ np.full(na1, 1 - v))
-        return v
+        return float(cf0[a0])   # value to player 0 of the realised joint action
 
     def search(self, state, iters=20000, belief=None):
         """Run `iters` determinized simulations. If a Belief is supplied and the
