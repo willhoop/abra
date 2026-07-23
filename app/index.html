@@ -822,7 +822,24 @@ async function runKadabra(){
   try{ const r=await fetch('https://replay.pokemonshowdown.com/'+id+'.json'); const j=await r.json(); log=j.log; }catch(e){}
   if(!log){ try{ const r2=await fetch('https://replay.pokemonshowdown.com/'+id+'.log'); log=await r2.text(); }catch(e){} }
   if(!log){ out.innerHTML='Could not fetch that replay from the browser (some setups block cross-site requests on <code>file://</code> — opening the site over http fixes it). Or paste the raw replay log here:<br><textarea id="kdlog" style="width:100%;height:110px;margin-top:6px;border:3px solid var(--line);border-radius:10px;padding:8px"></textarea><br><button class="minibtn" style="margin-top:6px" onclick="kadFromLog(document.getElementById(&quot;kdlog&quot;).value, kadMe())">Coach this log</button>'; return; }
-  kadFromLog(log, kadMe());
+  try{ KAD=kadBuild(log, kadMe()); KAD.id=id;
+    kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length)kadKeys=KAD.scenes.slice(0,Math.min(6,KAD.scenes.length)); kadI=0;
+    renderKadEmbed();
+  }catch(e){ out.textContent='Could not parse that replay.'; }
+}
+// KADABRA v2 — embed the REAL Showdown replay (battle left, log right, native targeting/status/field/animation)
+// and overlay KADABRA's turn-stamped coaching beside it. Falls back to the simplified scene view.
+function renderKadEmbed(){
+  const wrap=document.getElementById('kdout'); if(!KAD)return;
+  const keys=kadKeys.length?kadKeys:KAD.scenes; const kc={loss:'#ff6b6b',good:'#5fd07a'};
+  wrap.innerHTML=`
+    <div style="font-weight:700;margin-bottom:8px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b></div>
+    <iframe src="https://replay.pokemonshowdown.com/${KAD.id}" title="Showdown replay" style="width:100%;height:548px;border:3px solid var(--line);border-radius:14px;background:#eef3fb" allowfullscreen loading="lazy"></iframe>
+    <div style="font-size:12px;color:#889;margin-top:5px">The real Showdown replay — battle on the left, log on the right. If it doesn't load here, <a href="https://replay.pokemonshowdown.com/${KAD.id}" target="_blank" rel="noopener">open it in a new tab</a> · <a href="#" onclick="renderKad();return false">or use the simplified view</a>.</div>
+    <div class="panel" style="margin-top:12px;box-shadow:none">
+      <div style="display:flex;align-items:center;gap:8px"><img src="${ani('kadabra')}" style="width:44px;height:44px" onerror="sprFallback(this)"><b>KADABRA's key moments</b> <span style="color:#889;font-size:12px">scrub the replay to each turn</span></div>
+      <div style="margin-top:8px">`+keys.map(s=>`<div style="padding:9px 11px;margin-top:7px;border-left:4px solid ${kc[s.kind]||'#7a6bff'};background:#f7f8fb;border-radius:0 10px 10px 0"><b>Turn ${s.n}</b> · <b style="color:${kc[s.kind]||'#7a6bff'}">${s.kind==='good'?'good play':'swing turn'}</b> — ${s.coach||s.note}</div>`).join('')+`</div>
+    </div>`;
 }
 function kadMe(){ const e=document.getElementById('kdme'); return e?e.value:''; }
 function kadFromLog(log, me){ const out=document.getElementById('kdout');
@@ -931,9 +948,8 @@ function loadPaste(side){
     (off?` — <b>${off}</b> not yet in JOLTEON's vocabulary, so they're treated as neutral until the ladder feeds it more games.`:' ')+' Press BATTLE! '
     : 'No Pokémon found in that paste — check the format.';
 }
-/* any sprite that 404s (rare form name) falls back to a Substitute doll */
-addEventListener('error', e=>{const t=e.target; if(t&&t.tagName==='IMG'&&!t.dataset.fb){t.dataset.fb='1';
-  t.src='https://play.pokemonshowdown.com/sprites/ani/substitute.gif';}}, true);
+/* sprite 404 handling is done per-image by sprFallback (ani -> gen5 static -> substitute).
+   A global handler here would preempt that chain, so we don't add one. */
 
 /* ===== effects: snow, clouds, confetti ===== */
 const sky=document.getElementById('sky');
