@@ -118,8 +118,17 @@ calibration, VGC-Bench PSRO) implies these. Added to the plan; each ships with m
   one active gimmick (Champions Reg M-B = Mega; other regs = Tera or Z-Moves, inactive here). No need to
   ever carry more than one. For **Mega** specifically: the full forme transform (**stats + types +
   ability**, not just the ability we did), the **once-per-battle Mega-timing decision**, and a **belief
-  over whether/when the opponent Megas**. When the format rotates, we drop in a new gimmick module, not a
-  rewrite. *Bar:* correct forme stats/types vs Serebii; timing decision measured inside ALAKAZAM's self-play.
+  over whether/when the opponent Megas**. **Mega-timing is genuinely strategic, not automatic** — most
+  Pokémon Mega turn 1, but the model must recognize the +EV **hold** cases:
+    - **speed:** keep a faster **base speed tier** to move first this turn (some Megas are slower, or you
+      want the base speed now and the Mega bulk/power later);
+    - **base-ability sequencing:** trigger a valuable **base ability first**, then Mega — e.g. Intimidate
+      on entry, **re-set the weather** at the right moment with a base weather-setter, or **farm Moody
+      boosts** (Scovillain runs Moody in base forme, stacking +2s before Mega-ing into Spicy Spray);
+    - **information:** **don't reveal the Mega** (its typing/ability) until forced — an info play that
+      ties into the scouting/information-value reward.
+  When the format rotates, drop in a new gimmick module, not a rewrite. *Bar:* correct forme stats/types
+  vs Serebii; does modeling the hold cases beat naive auto-Mega-turn-1 in ALAKAZAM self-play?
 
 ### Supporting components (required, not standalone models)
 - **Calibration layer** — temperature / isotonic on **every** probability we emit (the review's mandate;
