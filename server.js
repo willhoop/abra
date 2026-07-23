@@ -58,7 +58,7 @@ http.createServer((req,res)=>{
       const m=out.match(/P\(A wins\) = ([\d.]+)/); send(200,'application/json',JSON.stringify({p:m?+m[1]:null,raw:out}));});
   }
   if(u.pathname==='/api/kadabra'){
-    return run('node',[path.join('engine','kadabra.js'),q('id'),q('me')],out=>send(200,'application/json',JSON.stringify({text:out})));
+    return run('node',[path.join('engine','kadabra.js'),q('id'),q('me'),'--json'],out=>send(200,'application/json',JSON.stringify({json:out})));
   }
   if(u.pathname==='/api/jolteon'){
     const py=getPy(); if(!py.cmd||!py.numpy) return send(200,'application/json',JSON.stringify({raw:PY_HELP}));

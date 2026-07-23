@@ -67,6 +67,42 @@ function coachTurn(t, hp, meSide){
   const foeSide=meSide==='p1'?'p2':'p1';
   const won=r.winner&&idn(r.winner)===idn(r[meSide].name);
 
+  // ---- JSON scenes for the Showdown-style renderer ----
+  if(process.argv.includes('--json')){
+    const SS=sl=>sl.slice(0,2), II=sl=>sl.endsWith('b')?1:0;
+    const hp={}, status={}, active={p1:[],p2:[]};
+    for(const s of ['p1','p2']) (r.lead[s]||[]).slice(0,2).forEach((sp,i)=>{active[s][i]=sp; hp[s+(i?'b':'a')]=100;});
+    const scenes=[];
+    for(const t of r.turns){
+      const snap=side=>active[side].map((sp,i)=>({sp,hp:Math.max(0,Math.round(hp[side+(i?'b':'a')]??100)),st:status[side+(i?'b':'a')]||null}));
+      const you=snap(meSide), foe=snap(foeSide), acts=[], log=[];
+      const speedPair=[];
+      for(const e of t.ev){
+        if(e.t==='s'){ active[SS(e.s)][II(e.s)]=e.mon; hp[e.s]=hp[e.s]??100;
+          acts.push({type:'switch',side:SS(e.s)===meSide?'you':'foe',mon:e.mon}); log.push(`${SS(e.s)===meSide?'You':'They'} sent out ${cap(e.mon)}.`); }
+        else if(e.t==='m'){ if(e.mon) active[SS(e.s)][II(e.s)]=e.mon;
+          const obs=DYN.damage[e.mon+'|'+idn(e.mv)];
+          const roll = (e.dmg>0&&obs)?(e.dmg>=obs.p90?'high':(e.dmg<=obs.mean-obs.mean*0.2?'low':'')):'';
+          acts.push({type:'move',side:SS(e.s)===meSide?'you':'foe',mon:e.mon,mv:e.mv,dmg:e.dmg||0,ko:!!e.ko,avg:obs?obs.mean:null,roll});
+          log.push(`${cap(e.mon)} used ${e.mv}!${e.dmg?` (−${e.dmg}%)`:''}${e.ko?' It fainted the target!':''}`);
+          if(e.mon) speedPair.push({side:SS(e.s)===meSide?'you':'foe',mon:e.mon,mv:e.mv}); }
+        else if(e.t==='x'){ status[e.s]=e.st; log.push(`${cap(active[SS(e.s)][II(e.s)]||'?')} was ${e.st}.`); }
+        else if(e.t==='f'){ hp[e.s]=0; log.push(`${cap(active[SS(e.s)][II(e.s)]||'?')} fainted!`); }
+      }
+      for(const e of t.ev){ if(e.t==='m'&&e.tgt&&e.dmg>0){ for(const sl of ['p1a','p1b','p2a','p2b']) if(active[SS(sl)][II(sl)]===e.tgt){ hp[sl]=Math.max(0,(hp[sl]??100)-e.dmg); break; } } }
+      // note: speed read + biggest hit
+      const cross=speedPair.length>=2?speedPair[0]:null;
+      const big=acts.filter(a=>a.type==='move'&&a.dmg>=60).sort((a,b)=>b.dmg-a.dmg)[0];
+      let note='';
+      if(cross) note=`${cap(cross.mon)} moved first — ${cross.side==='you'?'you were faster':'they were faster'}.`;
+      if(big) note+=` ${big.side==='you'?'Your':'Their'} ${cap(big.mon)} ${big.mv} hit for ${big.dmg}%${big.roll==='high'?' (high roll)':''}.`;
+      scenes.push({n:t.n, you, foe, acts, log, note});
+    }
+    console.log(JSON.stringify({result:won?'WIN':'LOSS', me:r[meSide].name, foe:r[foeSide].name,
+      six:r.six[foeSide], meLed:r.lead[meSide], foeLed:r.lead[foeSide], scenes}));
+    return;
+  }
+
   console.log(`\n╔══ KADABRA — coaching ${r[meSide].name} vs ${r[foeSide].name} ══`);
   console.log(`║ result: ${won?'WIN':'LOSS'}  ·  ${r.turns.length} turns logged`);
   console.log(`║ you led ${r.lead[meSide].map(cap).join(' + ')}  vs  ${r.lead[foeSide].map(cap).join(' + ')}`);
