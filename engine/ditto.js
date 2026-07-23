@@ -96,7 +96,7 @@ if(require.main===module){
   for(let r=1;r<=3;r++){ prep(meta); prepThreats(meta);
     const o=optimise(team,pool); team=o.team; finalists.add(team.join(','));
     console.log(`round ${r}: objective ${(o.best*100).toFixed(1)}%  ->  ${team.join(', ')}`);
-    meta=meta.concat(hardest(team,5).flatMap(x=>[x,x,x))); }
+    meta=meta.concat(hardest(team,5).flatMap(x=>[x,x,x])); }
 
   const meta0=loadMeta(); prep(meta0); prepThreats(meta0);
   console.log(`\nFINAL TEAM (JOLTEON-optimised)\n  ${team.join(', ')}`);

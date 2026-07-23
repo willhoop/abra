@@ -65,9 +65,9 @@ http.createServer((req,res)=>{
     return run(py.cmd,[path.join('engine','jolteon.py'),'predict',q('a'),q('b')],out=>send(200,'application/json',JSON.stringify({raw:out})));
   }
   if(u.pathname==='/api/ditto'){
-    const py=getPy(); if(!py.cmd||!py.numpy) return send(200,'application/json',JSON.stringify({text:PY_HELP}));
-    const args=[path.join('engine','ditto.py')]; if(q('seed'))args.push(q('seed'));
-    return run(py.cmd,args,out=>send(200,'application/json',JSON.stringify({text:out})));
+    // Node port — no Python needed. JOLTEON (JS scoring) proposes, MEDICHAM (native) decides.
+    const args=[path.join('engine','ditto.js')]; if(q('seed'))args.push(q('seed'));
+    return run('node',args,out=>send(200,'application/json',JSON.stringify({text:out})));
   }
   // static files from web/
   let f=u.pathname==='/'?'/index.html':decodeURIComponent(u.pathname);
