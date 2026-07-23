@@ -59,6 +59,8 @@ def load():
     return games
 
 def main():
+    if not os.path.exists(RAW):
+        print("eval_policy: raw-logs archive not present (gitignored / not in CI) — skipping cleanly."); return
     games = load()
     n = len(games); split = int(n * 0.8)
     train_g, test_g = games[:split], games[split:]
