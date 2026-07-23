@@ -278,8 +278,16 @@ const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','ba
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 
+// Mega abilities (Champions flips the ability when the Mega stone is held). Confirmed Champions customs:
+// Staraptor→Contrary, Swampert→Water Bubble. Others are standard Mega abilities; Charizard X/Y split by stone.
+const MEGA_ABIL={staraptor:'contrary',swampert:'swiftswim',venusaur:'thickfat',blastoise:'megalauncher',mawile:'hugepower',gengar:'shadowtag',gardevoir:'pixilate',gallade:'innerfocus',metagross:'toughclaws',aerodactyl:'toughclaws',tyranitar:'sandstream',garchomp:'sandforce',kangaskhan:'parentalbond',blaziken:'speedboost',scizor:'technician',sceptile:'lightningrod',alakazam:'trace',lucario:'adaptability',medicham:'purepower',manectric:'intimidate',absol:'magicbounce',salamence:'aerilate',sableye:'magicbounce',lopunny:'scrappy',heracross:'skilllink',pinsir:'aerilate',abomasnow:'snowwarning',altaria:'pixilate',beedrill:'adaptability',sharpedo:'strongjaw',camerupt:'sheerforce',banette:'prankster',houndoom:'solarpower'};
+function megaAbility(name,item,baseAb){ if(!item)return baseAb;
+  if(name==='charizard'){ if(/itey$/.test(item))return 'drought'; if(/itex$/.test(item))return 'toughclaws'; }
+  if(MEGA_ABIL[name] && /ite[xy]?$/.test(item)) return MEGA_ABIL[name];
+  return baseAb; }
 function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
-  return {name,types:m.t.slice(),st:{...m.st},item:(ov&&ov[name])||m.item||'',ability:m.ab||'',moves:m.mv.slice(),
+  const item=(ov&&ov[name])||m.item||'';
+  return {name,types:m.t.slice(),st:{...m.st},item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
     curHP:m.st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
 
 function dmgRange(att,def,mv,field,spread){
@@ -328,8 +336,10 @@ function dmgRange(att,def,mv,field,spread){
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
   return {min:roll(85),max:roll(100),eff};
 }
+const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttackle:1/3,woodhammer:1/3,headsmash:1/2,lightofruin:1/2,wildcharge:1/4,takedown:1/4,submission:1/4,headcharge:1/4};
+const SELFDROP={closecombat:{df:-1,sd:-1},superpower:{at:-1,df:-1},overheat:{sa:-2},leafstorm:{sa:-2},dracometeor:{sa:-2},fleurcannon:{sa:-2},psychoboost:{sa:-2},makeitrain:{sa:-1},armorcannon:{df:-1,sd:-1},dragonascent:{df:-1,sd:-1},vcreate:{df:-1,sd:-1,sp:-1}};
 function bestMoveVs(att,def,field){ let best=null,bs=-1;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=(d.min+d.max)/2;if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d};}}
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
   return best;
 }
 // pick the best target (max damage) for a SPECIFIC move
@@ -344,8 +354,8 @@ function chooseAction(me,foes,ally,field,side,rng){
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
-  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const ko=b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0);const sc=ko*1e4+b.d.max;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
-  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP;
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=(ACC[b.id]||100)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&(ACC[bestAtk.id]||100)>=100;
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
@@ -368,7 +378,9 @@ function chooseAction(me,foes,ally,field,side,rng){
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
   return{kind:'struggle'};
 }
-function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;if(m.status==='par')s*=0.5;return s;}
+function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;
+  if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
+  if(m.status==='par')s*=0.5;return s;}
 function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slp=1+(Math.random()*2|0);}
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
@@ -405,11 +417,16 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
       if(!targets.length)targets=live(foes).slice(0,1);
+      let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted||tg.protect)continue;
         const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
+        dealt+=Math.min(dmg,tg.curHP);
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else if(a.move.id==='fakeout')tg._flinch=true;}   // Fake Out flinches survivors
+      if(RECOIL[a.move.id]&&dealt>0){m.curHP-=Math.floor(dealt*RECOIL[a.move.id]);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      const sdrop=SELFDROP[a.move.id];
+      if(sdrop){const sgn=m.ability==='contrary'?-1:1;for(const k in sdrop)m.boosts[k]=clamp(m.boosts[k]+sdrop[k]*sgn,-6,6);}
       if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     }
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
@@ -692,21 +709,36 @@ function renderThreats(_,q){
       <td>${sp==null?'—':sp}</td><td style="color:#889">${(r.n_games||0).toLocaleString()}</td></tr>`;}).join('')+
     `</tbody></table><div style="font-size:11px;color:#889;margin-top:6px">Win% is <b>sample-adjusted</b> — shrunk toward 50% by games played, so a rare Pokémon can't top the chart on a few lucky games. <b>Games</b> is how many battles back the number. More data tightens all of these.</div>`;
 }
-/* non-transitivity heatmap: the empirical proof the meta is rock-paper-scissors */
+/* non-transitivity: lead with the rock-paper-scissors CYCLES (big, whimsical, no tiny text) */
 function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el||typeof NONTRANS==='undefined')return;
   const N=NONTRANS, n=N.names.length;
-  const cell=v=>{ if(v==null)return '<td style="background:#eee;text-align:center;color:#aaa">—</td>';
+  const PAL=['#f2a65a','#6ec6a8','#7a9cf2','#e07a9c','#b58cf2','#f2cf5a','#5ac6d6','#f27a6b'];
+  const colOf={}; N.names.forEach((s,i)=>colOf[s]=PAL[i%PAL.length]);
+  const pill=(s)=>`<div style="background:${colOf[s]||'#8a8f99'};color:#fff;font-weight:800;font-size:16px;padding:10px 16px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.15);white-space:nowrap">${s}</div>`;
+  const beats=`<div style="display:flex;flex-direction:column;align-items:center;color:#c0563f;font-weight:800;font-size:12px;padding:0 4px"><span style="font-size:20px;line-height:1">→</span>beats</div>`;
+  // hero: each cycle as a loop of pills
+  let cycles=N.cycles.map(c=>`
+    <div style="background:#fff;border:3px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
+        ${pill(c[0])}${beats}${pill(c[1])}${beats}${pill(c[2])}${beats}${pill(c[0])}
+      </div>
+      <div style="text-align:center;color:#8a8f99;font-weight:700;font-size:13px;margin-top:8px">↺ round and round — none of the three is "best"</div>
+    </div>`).join('');
+  // supporting matrix, but readable (bigger cells/text) and collapsed by default
+  const cell=v=>{ if(v==null)return '<td style="background:#f0f0f4;text-align:center;color:#bbb;font-weight:700">·</td>';
     const p=Math.round(v*100), g=v>=0.5;
-    const col=g?`rgba(42,160,90,${(0.18+0.7*(v-0.5)*2).toFixed(2)})`:`rgba(210,60,60,${(0.18+0.7*(0.5-v)*2).toFixed(2)})`;
-    return `<td style="background:${col};text-align:center;font-weight:600;font-size:11px;padding:3px 5px;color:#122">${p}</td>`; };
-  let html=`<table style="border-collapse:collapse;margin:0 auto"><thead><tr><th></th>`+N.names.map(s=>`<th style="padding:2px 3px;font-size:10px;color:#556;white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
-  for(let i=0;i<n;i++){ html+=`<tr><td style="font-weight:700;font-size:11px;padding:3px 8px;text-align:right;white-space:nowrap">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
-  html+=`</tbody></table>
-   <div style="margin-top:12px;font-weight:800;color:#b4432f">${N.cycles.length} robust rock-paper-scissors cycle${N.cycles.length===1?'':'s'} — every edge clears the noise threshold (${Math.round(N.threshold*100)}%).</div>
-   <div style="font-size:12px;color:#556;margin-top:5px;line-height:1.7">`+N.cycles.map(c=>`<b>${c[0]}</b> beats ${c[1]} beats ${c[2]} beats <b>${c[0]}</b>`).join('<br>')+`</div>
-   <div style="margin-top:12px;padding:9px 11px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:10px;font-size:11.5px;color:#7a5">
-     <b>Preliminary — do not over-read.</b> Computed by the <i>approximate</i> MEDICHAM engine (not validated against the real simulator) over just ${n} archetype teams, ${N.rollouts} rollouts each (95% CI ±${Math.round(196*N.se)}pts). Near-50% cells are coin flips within noise. This <i>illustrates what non-transitivity means and why it matters</i>; it is not yet a settled claim about the live meta — that needs more games and an engine validated to ground truth.</div>`;
-  el.innerHTML=html;
+    const col=g?`rgba(47,180,95,${(0.15+0.75*(v-0.5)*2).toFixed(2)})`:`rgba(224,90,114,${(0.15+0.75*(0.5-v)*2).toFixed(2)})`;
+    return `<td style="background:${col};text-align:center;font-weight:800;font-size:14px;padding:8px 10px;color:#122">${p}</td>`; };
+  let table=`<table style="border-collapse:collapse;margin:8px auto 0"><thead><tr><th></th>`+N.names.map(s=>`<th style="padding:6px 8px;font-size:13px;font-weight:800;color:${colOf[s]};white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
+  for(let i=0;i<n;i++){ table+=`<tr><td style="font-weight:800;font-size:13px;padding:6px 10px;text-align:right;white-space:nowrap;color:${colOf[N.names[i]]}">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
+  table+=`</tbody></table>`;
+  el.innerHTML=`
+    <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">${N.cycles.length} rock-paper-scissors loop${N.cycles.length===1?'':'s'} in the meta</div>
+    ${cycles}
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:800;font-size:15px;color:#556;padding:6px 0">See the full win-rate grid (green = row beats column)</summary>
+      <div style="overflow-x:auto">${table}</div></details>
+    <div style="margin-top:14px;padding:12px 14px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:12px;font-size:14px;color:#8a6d2a;font-weight:600;line-height:1.5">
+      <b>Read this as an illustration, not gospel.</b> MEDICHAM's damage is now validated, but this grid is over just ${n} sample archetypes with ${N.rollouts} rollouts each (±${Math.round(196*N.se)} pts of noise), so near-50% cells are coin flips. It shows <i>why</i> there's no single best team — the settled claim needs more games.</div>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }

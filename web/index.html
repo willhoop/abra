@@ -709,21 +709,36 @@ function renderThreats(_,q){
       <td>${sp==null?'—':sp}</td><td style="color:#889">${(r.n_games||0).toLocaleString()}</td></tr>`;}).join('')+
     `</tbody></table><div style="font-size:11px;color:#889;margin-top:6px">Win% is <b>sample-adjusted</b> — shrunk toward 50% by games played, so a rare Pokémon can't top the chart on a few lucky games. <b>Games</b> is how many battles back the number. More data tightens all of these.</div>`;
 }
-/* non-transitivity heatmap: the empirical proof the meta is rock-paper-scissors */
+/* non-transitivity: lead with the rock-paper-scissors CYCLES (big, whimsical, no tiny text) */
 function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el||typeof NONTRANS==='undefined')return;
   const N=NONTRANS, n=N.names.length;
-  const cell=v=>{ if(v==null)return '<td style="background:#eee;text-align:center;color:#aaa">—</td>';
+  const PAL=['#f2a65a','#6ec6a8','#7a9cf2','#e07a9c','#b58cf2','#f2cf5a','#5ac6d6','#f27a6b'];
+  const colOf={}; N.names.forEach((s,i)=>colOf[s]=PAL[i%PAL.length]);
+  const pill=(s)=>`<div style="background:${colOf[s]||'#8a8f99'};color:#fff;font-weight:800;font-size:16px;padding:10px 16px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.15);white-space:nowrap">${s}</div>`;
+  const beats=`<div style="display:flex;flex-direction:column;align-items:center;color:#c0563f;font-weight:800;font-size:12px;padding:0 4px"><span style="font-size:20px;line-height:1">→</span>beats</div>`;
+  // hero: each cycle as a loop of pills
+  let cycles=N.cycles.map(c=>`
+    <div style="background:#fff;border:3px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
+        ${pill(c[0])}${beats}${pill(c[1])}${beats}${pill(c[2])}${beats}${pill(c[0])}
+      </div>
+      <div style="text-align:center;color:#8a8f99;font-weight:700;font-size:13px;margin-top:8px">↺ round and round — none of the three is "best"</div>
+    </div>`).join('');
+  // supporting matrix, but readable (bigger cells/text) and collapsed by default
+  const cell=v=>{ if(v==null)return '<td style="background:#f0f0f4;text-align:center;color:#bbb;font-weight:700">·</td>';
     const p=Math.round(v*100), g=v>=0.5;
-    const col=g?`rgba(42,160,90,${(0.18+0.7*(v-0.5)*2).toFixed(2)})`:`rgba(210,60,60,${(0.18+0.7*(0.5-v)*2).toFixed(2)})`;
-    return `<td style="background:${col};text-align:center;font-weight:600;font-size:11px;padding:3px 5px;color:#122">${p}</td>`; };
-  let html=`<table style="border-collapse:collapse;margin:0 auto"><thead><tr><th></th>`+N.names.map(s=>`<th style="padding:2px 3px;font-size:10px;color:#556;white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
-  for(let i=0;i<n;i++){ html+=`<tr><td style="font-weight:700;font-size:11px;padding:3px 8px;text-align:right;white-space:nowrap">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
-  html+=`</tbody></table>
-   <div style="margin-top:12px;font-weight:800;color:#b4432f">${N.cycles.length} robust rock-paper-scissors cycle${N.cycles.length===1?'':'s'} — every edge clears the noise threshold (${Math.round(N.threshold*100)}%).</div>
-   <div style="font-size:12px;color:#556;margin-top:5px;line-height:1.7">`+N.cycles.map(c=>`<b>${c[0]}</b> beats ${c[1]} beats ${c[2]} beats <b>${c[0]}</b>`).join('<br>')+`</div>
-   <div style="margin-top:12px;padding:9px 11px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:10px;font-size:11.5px;color:#7a5">
-     <b>Preliminary — do not over-read.</b> Computed by the <i>approximate</i> MEDICHAM engine (not validated against the real simulator) over just ${n} archetype teams, ${N.rollouts} rollouts each (95% CI ±${Math.round(196*N.se)}pts). Near-50% cells are coin flips within noise. This <i>illustrates what non-transitivity means and why it matters</i>; it is not yet a settled claim about the live meta — that needs more games and an engine validated to ground truth.</div>`;
-  el.innerHTML=html;
+    const col=g?`rgba(47,180,95,${(0.15+0.75*(v-0.5)*2).toFixed(2)})`:`rgba(224,90,114,${(0.15+0.75*(0.5-v)*2).toFixed(2)})`;
+    return `<td style="background:${col};text-align:center;font-weight:800;font-size:14px;padding:8px 10px;color:#122">${p}</td>`; };
+  let table=`<table style="border-collapse:collapse;margin:8px auto 0"><thead><tr><th></th>`+N.names.map(s=>`<th style="padding:6px 8px;font-size:13px;font-weight:800;color:${colOf[s]};white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
+  for(let i=0;i<n;i++){ table+=`<tr><td style="font-weight:800;font-size:13px;padding:6px 10px;text-align:right;white-space:nowrap;color:${colOf[N.names[i]]}">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
+  table+=`</tbody></table>`;
+  el.innerHTML=`
+    <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">${N.cycles.length} rock-paper-scissors loop${N.cycles.length===1?'':'s'} in the meta</div>
+    ${cycles}
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:800;font-size:15px;color:#556;padding:6px 0">See the full win-rate grid (green = row beats column)</summary>
+      <div style="overflow-x:auto">${table}</div></details>
+    <div style="margin-top:14px;padding:12px 14px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:12px;font-size:14px;color:#8a6d2a;font-weight:600;line-height:1.5">
+      <b>Read this as an illustration, not gospel.</b> MEDICHAM's damage is now validated, but this grid is over just ${n} sample archetypes with ${N.rollouts} rollouts each (±${Math.round(196*N.se)} pts of noise), so near-50% cells are coin flips. It shows <i>why</i> there's no single best team — the settled claim needs more games.</div>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }
