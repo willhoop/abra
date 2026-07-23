@@ -61,7 +61,7 @@ function chooseAction(team, hp, active, foeActive, ctx, sideState, turnNo, field
     if(bi>=0 && best>0.4 && Math.random()<0.55) return {kind:'switch',idx:bi};
   }
   // behaviour-clone: what does this species actually do here?
-  const pr=PRIORS.species[me.key];
+  const pr=(process.env.MEDICHAM_BC==='0')?null:PRIORS.species[me.key];
   if(pr){
     const dist=(turnNo===0 && pr.lead && pr.lead.length)?pr.lead:pr.moves;
     let r=Math.random(), pick=null;
