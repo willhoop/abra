@@ -123,6 +123,15 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 @media(max-width:680px){.pastebox{grid-template-columns:1fr}}
 .pastecol label{font-weight:700;font-size:13px;display:block;margin-bottom:4px}
 .pastecol textarea{width:100%;height:88px;border:3px solid var(--line);border-radius:12px;padding:8px;font-family:'Fredoka',system-ui,sans-serif;font-size:12px;resize:vertical;background:#fff}
+.savedwrap{margin-top:14px;border-top:2px dashed var(--line);padding-top:10px}
+.savedhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.savedbar{display:flex;gap:10px;flex-wrap:wrap}
+.savedteam{border:2px solid var(--line);border-radius:12px;padding:6px 6px 4px;background:#f7fbff}
+.savedteam .m{display:flex;gap:1px}
+.savedteam img{width:30px;height:30px;object-fit:contain;image-rendering:pixelated}
+.savedteam .b{display:flex;gap:4px;margin-top:4px;justify-content:center}
+.savedteam .b button{border:2px solid var(--line);background:#fff;border-radius:7px;font-size:11px;font-weight:700;padding:1px 7px;cursor:pointer}
+.savedteam .b button:hover{background:#fff7d6}
 .mcbox{width:100%;height:68px;border:3px solid var(--line);border-radius:12px;padding:8px;font-family:'Fredoka',system-ui,sans-serif;font-size:12px;resize:vertical;margin-top:4px}
 .minibtn{border:2px solid var(--line);background:var(--electric);border-radius:9px;padding:2px 8px;font-size:12px;font-weight:700;box-shadow:0 2px 0 var(--electric2)}
 .minibtn:active{transform:translateY(2px);box-shadow:none}
@@ -307,6 +316,13 @@ function roomJolteon(){const c=CAST[1];
        <div class="pastecol"><label>Paste a team → <button class="minibtn" onclick="loadPaste('B')">load into rival</button></label>
          <textarea id="pasteB" placeholder="paste the opponent's team here..."></textarea></div>
      </div>
+     <div class="savedwrap">
+       <div class="savedhead"><b>Saved teams</b> <span style="color:#889;font-size:12px">build once, reuse anywhere</span>
+         <span style="flex:1"></span>
+         <button class="minibtn" onclick="saveCurrent('A')">★ Save your team</button>
+         <button class="minibtn" onclick="saveCurrent('B')">★ Save rival</button></div>
+       <div id="savedbar" class="savedbar"></div>
+     </div>
    </div>
    <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by which team hits harder (firepower) and moves first (speed). I'm right about <b>~56%</b> of the time from team sheets alone — a real edge over a coin flip, but not magic: the same two teams don't always give the same winner. That gap is skill and luck, and it's why the other models exist.</p></div>`;
 }
@@ -413,8 +429,15 @@ let teamA=[],teamB=[];
 function saveTeams(){try{localStorage.setItem('abraYou',JSON.stringify(teamA));localStorage.setItem('abraFoe',JSON.stringify(teamB));}catch(e){}}
 function loadTeams(){try{const a=JSON.parse(localStorage.getItem('abraYou')),b=JSON.parse(localStorage.getItem('abraFoe'));if(a&&a.length)teamA=a;if(b&&b.length)teamB=b;}catch(e){}}
 loadTeams();
+function getSaved(){ try{return JSON.parse(localStorage.getItem('abraSaved')||'[]');}catch(e){return[];} }
+function saveCurrent(side){ const t=(side==='B')?teamB:teamA; if(!t.length){alert('That side is empty.');return;} const s=getSaved(); s.unshift({six:t.slice(),ts:Date.now()}); localStorage.setItem('abraSaved',JSON.stringify(s.slice(0,20))); renderSaved(); }
+function loadSaved(i,side){ const s=getSaved(),t=s[i]; if(!t)return; if(side==='B')teamB=t.six.slice(); else teamA=t.six.slice(); renderSlots(); syncSel(); saveTeams(); }
+function delSaved(i){ const s=getSaved(); s.splice(i,1); localStorage.setItem('abraSaved',JSON.stringify(s)); renderSaved(); }
+function renderSaved(){ const el=document.getElementById('savedbar'); if(!el)return; const s=getSaved();
+  el.innerHTML = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
+}
 function initBooth(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp'];
-  renderPick('pickA','A'); renderPick('pickB','B'); renderSlots(); }
+  renderPick('pickA','A'); renderPick('pickB','B'); renderSlots(); renderSaved(); }
 function renderPick(elId,side,q){const el=document.getElementById(elId);if(!el)return;
   const f=(q||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const list=JOLT.roster.filter(m=>!f||m.n.includes(f));   // roster is pre-sorted by usage (ranking)
