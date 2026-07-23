@@ -115,6 +115,10 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .mRiv{background:linear-gradient(90deg,#ff9bbb,#ff6b8f);flex:1;transition:width 1s}
 .meterwrap b{position:absolute;top:50%;transform:translateY(-50%);font-family:'Baloo 2';color:#fff;font-size:18px;text-shadow:0 2px 0 var(--shadow)}
 .readout{margin-top:12px;text-align:center;font-weight:600;color:#3a5372;min-height:24px}
+.zap{display:inline-block;width:12px;height:16px;vertical-align:-3px;background:#ffd23f;
+  clip-path:polygon(48% 0,100% 0,58% 42%,92% 42%,18% 100%,44% 55%,4% 55%);
+  filter:drop-shadow(0 0 3px #ffd23f);animation:zapflash .7s steps(2,jump-none) infinite}
+@keyframes zapflash{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.85)}}
 .pastebox{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
 @media(max-width:680px){.pastebox{grid-template-columns:1fr}}
 .pastecol label{font-weight:700;font-size:13px;display:block;margin-bottom:4px}
