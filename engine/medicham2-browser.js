@@ -12,6 +12,7 @@
 const SPREAD = new Set(['earthquake','rockslide','heatwave','blizzard','muddywater','dazzlinggleam','hypervoice','makeitrain','glaciate','icywind','snarl','bulldoze','discharge','lavaplume','eruption','waterspout','surf','electroweb','strugglebug','sludgewave','mistyexplosion','explosion','selfdestruct','breakingswipe','petalblizzard','glaciallance','astralbarrage','originpulse','precipiceblades','landswrath','diamondstorm','sparklingaria','swift','pollenpuff']);
 const PRIO = {fakeout:3,upperhand:3,feint:2,extremespeed:2,firstimpression:2,aquajet:1,bulletpunch:1,machpunch:1,iceshard:1,shadowsneak:1,vacuumwave:1,watershuriken:1,jetpunch:1,quickattack:1,suckerpunch:1,grassyglide:1,accelerock:1,thunderclap:1};
 const ACC = {hydropump:80,hurricane:70,fireblast:85,focusblast:70,thunder:70,blizzard:70,stoneedge:80,megahorn:85,gunkshot:80,iciclecrash:90,playrough:90,dynamicpunch:50,zapcannon:50,highjumpkick:90,drillrun:95,crosschop:80,sleeppowder:75,willowisp:85,thunderwave:90,hypnosis:60,irontail:75,dragonrush:75,inferno:50,fissure:30,sheercold:30,rockslide:90,airslash:95,gigaimpact:90,overheat:90,leafstorm:90,powerwhip:85,meteorbeam:90,muddywater:85,darkvoid:50,sing:55};
+const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','banefulbunker','burningbulwark','silktrap','maxguard']);
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
@@ -52,6 +53,11 @@ function chooseAction(me,foes,ally,field,side,rng){
   for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const ko=b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0);const sc=ko*1e4+b.d.max;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
+  // need-based Protect: if I'm likely KO'd this turn and can't KO back, scout/stall behind Protect.
+  // This is the core defensive play; without it the rollout degenerates into an OHKO race.
+  const bestKOsNow = bestAtk && tgt && bestAtk.d.min>=tgt.curHP;
+  const canProtect = me.moves.some(id=>PROTECTMOVES.has(id));
+  if(inDanger && !bestKOsNow && canProtect && !me.protect && me.tookProtectTurns<2 && rng()<0.55) return {kind:'protect'};
   const pr=MC.priors[me.name];
   if(pr){let r=rng(),pick=null;for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
     if(pick){
