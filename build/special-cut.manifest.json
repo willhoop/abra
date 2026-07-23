@@ -1,0 +1,16 @@
+{
+  "title": "ABRA — The Special Cut",
+  "subtitle": "The whole story, front to back: cheat card, the map of the models, then executive summary → deck → white papers → coach spec.",
+  "author": "Will Hooper",
+  "note": "A single consecutive read of everything ABRA. Start at the cheat card, glance at the interaction chart, then read straight through. Updated in the same pass as the code it describes.",
+  "out": "docs/ABRA-Special-Cut.pdf",
+  "sections": [
+    {"label": "The cast, on one card", "file": "docs/MODELS-CHEATSHEET.md"},
+    {"label": "How the models interact", "file": "docs/architecture-diagram.svg", "kind": "image"},
+    {"label": "Executive Summary", "file": "docs/EXECUTIVE-SUMMARY.md"},
+    {"label": "The Deck (plain English)", "file": "docs/ABRA-deck-plain-english.md"},
+    {"label": "White Paper — the data platform", "file": "docs/ABRA-whitepaper.md"},
+    {"label": "White Paper — learning the simulator (the ML)", "file": "docs/ABRA-simulator-whitepaper.md"},
+    {"label": "KADABRA — the coach spec", "file": "docs/KADABRA-coach-spec.md"}
+  ]
+}
