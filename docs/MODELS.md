@@ -23,9 +23,10 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 ## DITTO — Double-oracle Iterative Team-Tuning Optimiser
 **Job:** turn your seed team into the best version against the live meta.
 **Method (as of 2026-07-23):** (1) solves the **Nash equilibrium** over the archetype match-up matrix (`data/meta-nash.json`: Rain/Sand/FakeOut), (2) **best-responds to that equilibrium**, and — the key fix — the hill-climb now optimises the **grounded MEDICHAM value**, using JOLTEON only to shortlist candidates. Enforces the **item clause** (one item per team). (3) reports a per-archetype **matchup bar chart** ("how your team does vs the meta") and names your exploiters.
-**Honest status:** the earlier version optimised JOLTEON (≈coin) and produced junk teams JOLTEON loved but MEDICHAM rated ~18% — fixed by optimising MEDICHAM directly. Still inherits MEDICHAM's unvalidated-engine caveat (GIGO). Confidence numbers (e.g. 84%) are against only the 3-archetype equilibrium and run high.
-**Code:** `runDitto()` in `web/index.html`; `engine/slowking/nash.py` provides the equilibrium math.
-**Open:** true *iterated* double-oracle (grow the population, best-respond, repeat); more archetypes.
+**Two modes (as of 2026-07-23):** *Refine my team* (keep your core, only the highest-impact swaps that clear +5%) and *Build a perfect team* (full hill-climb). Both score against **all data-derived archetypes** (see below) with a weight floor so every threat counts, show an all-archetype matchup bar chart, and use accuracy-weighted, recoil-aware MEDICHAM as the objective.
+**Honest status:** optimises the **now-validated** MEDICHAM damage engine (was JOLTEON≈coin, which produced junk). The remaining caveat is the rollout *policy*, not the damage. Win-rate bars are Laplace-smoothed (never 0%/100%).
+**Code:** `runDitto(mode)` in `web/index.html`; archetypes from `engine/archetypes.py`; equilibrium math `engine/slowking/nash.py`.
+**Open:** true *iterated* double-oracle (grow the population, best-respond, repeat); harden the move-picking policy further.
 
 ## KADABRA — Key Analysis of Decisions, Advice & Better Replay Annotation
 **Job:** coach a real replay — take you to the turns that mattered.
@@ -45,10 +46,11 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 **value net:** `engine/train_value.py` reconstructs per-turn HP state and regresses the outcome → `data/value-net.json`. Beats a coin (log-loss 0.682), calibrated, compressed at the tails (thin data). It's SLOWKING's leaf evaluator.
 **self-play:** `sim/generate-dataset.js` writes engine games into the store schema (unlimited, unbiased data).
 **flywheel:** `engine/flywheel.py` — self-play → retrain → re-evaluate → report the delta. The thing that makes ABRA *learn over time*.
+**live data + auto-refresh (2026-07-23):** `engine/durable-ingest.js` pulls new ladder replays; a **daily scheduled task** runs it, then `engine/refresh-site-data.py` regenerates `data/archetypes.json` (via `engine/archetypes.py` — archetypes *discovered* from the games by k-means, not hand-listed), `data/live.js` (counts + archetypes the site loads live) and `data/kad-replays.js` (offline KADABRA bundle). So the site's numbers and meta **grow on their own**.
 
 ## CHOMP / ORB (companion tools, separate repo)
 **CHOMP** — the bring-4/lead-2 decision engine (Showdown userscript). Picks your best 4 and 2 leads by exact damage over the opponent's whole six. *Open:* bring/lead should be a minimax matrix game (`nash.py`), not greedy coverage.
-**ORB** — On-battle Read Board, the damage calculator. **Direction (2026-07-23):** the Smogon calc is MIT open source, so ORB = a **self-hosted fork of the Smogon Champions calc** with our auto-fill layer (same-origin, so it *can* auto-populate — unlike the hosted official one). Recipe in `docs/ORB-smogon-fork.md`. A minimizable in-battle dock (`chomp-orb.user.js`) that auto-fills both teams from preview is in progress.
+**ORB** — On-battle Read Board, the damage calculator. **Decision (2026-07-23):** rather than fork the Smogon calc (the hosted one can't be auto-filled cross-origin, and a fork needs a build), ORB is a **validated Smogon-grade substitute built into the CHOMP dock** — same damage engine validated against `@smogon/calc`, reading the **live battle**: real stats/items, boosts on both actives (Intimidate/setup), weather, terrain, Helping Hand, spread, screens; it prints the conditions it applied. One-click install, auto-updates. (`docs/ORB-smogon-fork.md` kept as the record of the fork option we chose against.)
 
 ---
 
@@ -59,5 +61,6 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 - `docs/COMPETITORS.md` — VGC-Bench, PokéLLMon, offline-RL transformers, and how we refine them.
 - Non-transitivity: `data/nontransitivity.json` — the meta is rock-paper-scissors (labeled preliminary, approximate engine).
 
-## The one thing that unblocks everything
-**Wire + validate the open Showdown engine** (`sim/`). Until then, MEDICHAM/DITTO/SLOWKING/value-net all rest on an unvalidated engine. Validating it converts ABRA from "a beautiful, honest approximation" into "validated."
+## Status of the "one thing that unblocks everything"
+**DONE (2026-07-23): the engine's damage math is validated** against `@smogon/calc` — within 5% on 100% of 31 tested scenarios (`engine/validate_damage.js`, `data/damage-validation.json`). MEDICHAM/DITTO no longer rest on unverified numbers.
+**Next priorities, in order:** (1) get the **Champions rule changes** (sleep, paralysis, moves) from the format and model them — the current biggest data gap; (2) harden the rollout **policy** (the last GIGO lever); (3) grow the dataset via the daily pull + self-play so the discovered archetypes and win rates sharpen.
