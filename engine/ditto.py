@@ -55,6 +55,29 @@ def load_meta(min_rating=1300, cap=400):
 def score(six, meta):
     return float(np.mean([pwin(six,m) for m in meta]))
 
+# ---- usage-weighted threat coverage --------------------------------------------
+# "I need an answer to Basculegion on every team, not Camerupt." A team that beats
+# the average meta team can still fold to a specific high-usage threat. So we
+# measure win rate against the teams that ACTUALLY run each top threat, weight the
+# shortfall by how often that threat appears, and penalise it. Rare species
+# (Camerupt) carry ~zero usage weight and are ignored automatically.
+def threat_coverage(six, meta, usage, top=10):
+    order=sorted(usage, key=lambda s:-usage[s])[:top]
+    cov=[]
+    for t in order:
+        withT=[m for m in meta if t in m]
+        if len(withT)<4: continue
+        wr=float(np.mean([pwin(six,m) for m in withT]))
+        cov.append((t, usage[t], wr, len(withT)))
+    return cov
+def coverage_penalty(six, meta, usage, thresh=0.5, lam=1.5):
+    pen=0.0
+    for t,u,wr,_ in threat_coverage(six,meta,usage):
+        pen += u*max(0.0, thresh-wr)   # only losing matchups to USED threats hurt
+    return lam*pen
+def objective(six, meta, usage):
+    return score(six,meta) - coverage_penalty(six,meta,usage)
+
 def hardest(six, meta, k=5):
     return sorted(meta, key=lambda m: pwin(six,m))[:k]
 
@@ -75,8 +98,8 @@ def medicham_check(six, foes, N=150):
             out.append(None)
     return out
 
-def optimise(seed, pool, meta, passes=3):
-    team=seed[:]; best=score(team,meta)
+def optimise(seed, pool, meta, usage, passes=3):
+    team=seed[:]; best=objective(team,meta,usage)
     for _ in range(passes):
         improved=False
         for i in range(len(team)):
@@ -84,7 +107,7 @@ def optimise(seed, pool, meta, passes=3):
                 if cand in team: continue
                 trial=team[:]; trial[i]=cand
                 if len(set(trial))!=len(trial): continue
-                sc=score(trial,meta)
+                sc=objective(trial,meta,usage)
                 if sc>best+0.002:
                     team=trial; best=sc; improved=True
         if not improved: break
@@ -108,16 +131,36 @@ if __name__=='__main__':
 
     team=seed
     for rnd in range(1,4):   # double-oracle rounds
-        team,best=optimise(team,pool,meta)
+        team,best=optimise(team,pool,meta,usage)
         counters=hardest(team,meta,5)
-        print(f"round {rnd}: optimised win rate {best*100:.1f}%")
+        print(f"round {rnd}: objective {best*100:.1f}% (win rate minus usage-weighted coverage penalty)")
         print(f"  team: {', '.join(team)}")
-        # opponent-oracle: emphasise hardest counters in the gauntlet
-        meta = meta + counters*3   # up-weight counters, re-optimise against them
+        meta = meta + counters*3   # opponent-oracle: up-weight hardest counters, re-optimise
     meta0=load_meta()
     print("\nFINAL TEAM (JOLTEON-optimised)")
     print(' ', ', '.join(team))
     print(f"  JOLTEON mean win rate vs live meta: {score(team,meta0)*100:.1f}%")
+
+    # USAGE-WEIGHTED THREAT COVERAGE — answer to Basculegion, not Camerupt
+    print("\nThreat coverage (win rate vs teams that actually run each top-used threat):")
+    for t,u,wr,k in threat_coverage(team,meta0,usage):
+        print(f"    {t:<14} on {u*100:4.1f}% of teams  ->  {wr*100:4.1f}%  {'OK' if wr>=0.5 else '<< GAP'}")
+    ignored=[s for s in usage if usage[s]<0.02]
+    print(f"  ({len(ignored)} rare species incl. {', '.join(ignored[:3])} carry ~0 usage weight and are ignored by design.)")
+
+    # ACCOUNTING FOR THE MODEL'S OWN BIAS — where rarity shrinkage suppresses a pick
+    counts=M.get('counts')
+    if counts:
+        cmap={s:counts[i] for i,s in enumerate(SP)}
+        low=sorted([(s,cmap.get(s,0)) for s in set(team)|set(pool[:20]) if cmap.get(s,999)<60], key=lambda x:x[1])
+        print("\nBias note — JOLTEON is deliberately skeptical of low-sample species (rarity shrinkage):")
+        if low:
+            for s,c in low[:8]:
+                print(f"    {s:<14} {c} games -> rating pulled toward neutral{' (IN TEAM)' if s in team else ''}")
+            print("  Under-rated by design, not judged bad. Believe one's the GOAT? MEDICHAM-vet it:")
+            print("  JOLTEON-low + MEDICHAM-high = a real sleeper the data just hasn't confirmed yet.")
+        else:
+            print("    (every pick has a healthy sample — no shrinkage caveats on this team.)")
 
     # Tier-2 reality check: MEDICHAM rollouts vs a spread of real meta teams.
     sample=random.sample(meta0, min(4,len(meta0)))
