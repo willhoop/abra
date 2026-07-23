@@ -1,13 +1,21 @@
 # ABRA
 ### Automated Battle Replay Analyzer
 
-**Platform: Pokémon Showdown.** ABRA reads thousands of public **[Gen 9] Champions VGC (Reg M-B)**
-replays from the Showdown replay API, models the ladder's real metagame, and feeds that model to
-**[CHOMP](../CHOMP)** so the bring-4 / lead-2 engine reasons from what the ladder actually brings
-instead of static guesses.
+**Platform: Pokémon Showdown.** ABRA is the **live-data platform** for competitive Pokémon Champions
+(Reg M-B). It continuously collects real battle replays from the Showdown API and turns them into a
+durable, growing dataset — the foundation for **modelling games and teams**: a simulator that learns
+from how the ladder actually plays.
 
-> **CHOMP and ABRA are separate but connected.** CHOMP is *only* the bring-6 → pick-4 → lead-2
-> engine. ABRA is the meta-analysis brain that makes it smarter. Two projects, one loop.
+> **ABRA is the platform; CHOMP is one small consumer of it.** ABRA's job is to gather live battle
+> data and feed the models built on top — team modelling, matchup/game simulation, meta analysis.
+> The **[CHOMP](../CHOMP)** bring-4 engine is the first, smallest thing that reads ABRA's output; it
+> is a minor downstream use, not the point.
+
+## The mission
+Collect the ladder's real games as they are played, keep every fact, and feed a simulator that models
+**what wins** — both at the team-building level (which six beats the meta) and the game level (how a
+given matchup tends to play out). The data platform is built and running; the models on top are the
+roadmap. CHOMP is proof the pipe delivers.
 
 ## What it does
 - **Pulls replays automatically** — the whole ladder (any players), paginated, ~200 logs/sec. The

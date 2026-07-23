@@ -12,18 +12,23 @@
 
 ## Abstract
 
-ABRA builds a live model of the Pokémon Champions (Reg M-B) metagame on Pokémon Showdown by ingesting
-public battle replays, extracting the durable facts of each game, and aggregating them into
-usage statistics that a team-preview engine (CHOMP) can consume. This paper states the data model,
-the ingest architecture, the analysis, and the limits. The governing design rule — *store raw,
-analyse on top* — is defended as the property that lets the model change without ever re-fetching.
+ABRA is a live-data platform for competitive Pokémon Champions (Reg M-B). It continuously ingests
+public battle replays from Pokémon Showdown, extracts the durable facts of every game, and stores
+them as a growing dataset — the foundation for **modelling games and teams**. The near-term model is
+a metagame usage model; the larger goal is a simulator that learns which teams and which in-game
+choices win. This paper states the data model, the ingest architecture, the first analysis, and the
+limits. The governing design rule — *store raw, analyse on top* — is defended as the property that
+lets every model built on the data change without ever re-fetching. A team-preview engine (CHOMP) is
+one small, early consumer of the output; it is a proof of delivery, not the purpose.
 
 ## 1. The problem
 
-At team preview a player must choose four of six Pokémon and a lead pair. A good choice depends on
-what the opponent is likely to bring and lead — which depends on the metagame. Existing tools give
-static usage snapshots (Pikalytics) or per-game damage math (calculators), but nothing turns the
-*live ladder* into a model that a decision engine can read and that improves as the ladder plays.
+Competitive VGC has many hard questions — which six to build against the meta, which four to bring,
+how a matchup tends to play out. Answering any of them well needs data on how the ladder *actually*
+plays, kept current as it changes. Existing tools give static usage snapshots (Pikalytics) or
+per-game damage math (calculators); none continuously collects live games into a durable dataset that
+downstream models — team optimisers, game simulators, decision engines — can all build on. ABRA is
+that collection-and-storage layer. The bring-4 engine (CHOMP) is the first small model on top.
 
 ## 2. The data source
 
@@ -109,7 +114,34 @@ the read, not the bet. Because CHOMP auto-updates from its repository, an improv
 the live plugin with no plugin change. This is the "gets smarter over time" loop, made concrete, and it
 is pinned by `CHOMP/tests/test-meta-flow.js`.
 
-## 8. Limitations
+## 8. The flywheel — where this is going
+
+ABRA's data platform is stage one of a self-improving loop. Each stage feeds the next, and the last
+stage feeds the first:
+
+1. **Collect** — continuously ingest live ladder games into the durable store. *(built and running)*
+2. **Simulate** — build a near-perfect game simulator from that data: given two teams, model how the
+   matchup tends to play out. *(roadmap)*
+3. **Optimise teams** — run hypothetical teams against the real metagame threats in the simulator and
+   let the search iterate on itself, converging on sixes that beat what the ladder actually brings.
+   *(roadmap; the meta threat model that feeds it is built)*
+4. **Play** — take an optimised team onto the ladder; CHOMP handles the bring-4 / lead-2 in each
+   game. *(CHOMP built)*
+5. **Feed back** — every opponent team you face is auto-added to the store, so playing the game
+   grows the dataset. *(the ingest + store support this directly; the auto-add-on-play hook is
+   roadmap)*
+
+The loop closes: more games → a better simulator → better teams → more wins → more games. The value
+is not any single model but the flywheel — the system gets stronger the more it is used. This is why
+the design rule (*store raw, analyse on top*, §5) matters so much: every model in the loop is built
+on the same growing dataset, and none of them ever forces a re-pull.
+
+**Honest status.** Stage 1 is built and validated (§4, §6.1). Stages 2 and 3 — the simulator and the
+self-iterating team optimiser — are not yet built; they are the reason ABRA exists and the next work.
+CHOMP (stage 4) is live. The paper does not claim the flywheel is spinning yet; it claims the
+foundation that makes it possible is in place.
+
+## 9. Limitations
 
 1. **Revealed sets are partial.** A Pokémon that never attacked reveals no moves; items/abilities
    appear only when they trigger. Set inference is a lower bound, not the full set.
@@ -119,7 +151,7 @@ is pinned by `CHOMP/tests/test-meta-flow.js`.
    rating and bots so the consumer chooses the population; it does not decide for them.
 4. **Store growth.** The append-only store grows without bound; pruning by date is future work.
 
-## 9. References
+## 10. References
 
 1. Pokémon Showdown replay API — `replay.pokemonshowdown.com`.
 2. `docs/reg-mb-threat-list.md` (CHOMP) — the independently curated threat list used for validation.

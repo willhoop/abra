@@ -3,9 +3,9 @@
 **Version 1.0 · Last updated 2026-07-22 · Will Hooper**
 
 ## In one line
-ABRA reads thousands of public Pokémon Showdown replays, models the live Champions (Reg M-B)
-metagame, and feeds that model to CHOMP so the team-preview pick reasons from what the ladder
-actually plays.
+ABRA is the live-data platform for competitive Pokémon Champions: it continuously collects real
+ladder games and turns them into a durable dataset that feeds models of games and teams. The CHOMP
+bring-4 engine is one small, early consumer — proof the pipe delivers, not the purpose.
 
 ## The problem
 Choosing four of your six at team preview depends on what the opponent will bring. Public usage
@@ -45,9 +45,19 @@ Revealed sets are partial (a Pokémon that never attacks reveals no moves). The 
 not a win-probability oracle. Bot and low-ladder games differ from strong play — which is exactly why
 they are tagged, so the consumer chooses the population.
 
+## The flywheel (the reason ABRA exists)
+1. **Collect** live ladder games — *built and running*.
+2. **Simulate** — a near-perfect game model from the data — *next*.
+3. **Optimise teams** against real meta threats, iterating on itself — *next*.
+4. **Play** the best teams; CHOMP handles bring-4 / lead-2 — *built*.
+5. **Feed back** — every enemy team you face is auto-added, so playing grows the data.
+
+The loop closes: more games → better simulator → better teams → more wins → more games. ABRA is
+stage 1, done. Stages 2–3 are the point of the project and the next work.
+
 ## Status
-v1.0. Foundation and the CHOMP flow-back are built and tested. Next: a public dashboard over the
-store, and a team-builder that scores a six against the meta.
+v1.0 — the data platform is built, validated on 1,501 real games, and wired to grow itself hourly.
+The simulator and self-iterating team optimiser are the roadmap; CHOMP proves the pipe delivers.
 
 **Read next:** [white paper](ABRA-whitepaper.md) · [deck](ABRA-deck-plain-english.md) ·
 [technical docs](ABRA-technical-docs.md)

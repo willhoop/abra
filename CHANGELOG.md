@@ -29,3 +29,11 @@ silently rewritten; what changed and why is stated.
 ### Validated
 - High-ladder filter (humans, 1300+) reveals real signal distinct from the raw ladder — e.g.
   Kingambit 62% win, Incineroar 65% — confirming the tag-and-filter design earns its keep.
+
+## [1.1.0] — 2026-07-22
+
+### Changed
+- **Reframed to its true scope.** ABRA is documented as the live-data platform whose purpose is to
+  feed a simulator that models games and teams — a self-improving flywheel (collect → simulate →
+  optimise teams → play with CHOMP → auto-ingest enemy teams → improve). CHOMP is one small early
+  consumer, not the point. White paper §8 states the flywheel and the honest built-vs-roadmap status.
