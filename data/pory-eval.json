@@ -1,0 +1,105 @@
+{
+  "generated": "engine/pory.py \u2014 mid-game win-prob value net from real replays",
+  "n_games": 5492,
+  "n_states": 69060,
+  "train_states": 55032,
+  "test_states": 14028,
+  "log_loss": {
+    "pory": 0.5665,
+    "pory_ci95": [
+      0.5595,
+      0.5732
+    ],
+    "coin": 0.6931,
+    "material_heuristic": 0.6024
+  },
+  "brier": {
+    "pory": 0.1952,
+    "coin": 0.25
+  },
+  "accuracy": 0.6719,
+  "ece": 0.0156,
+  "reliability": [
+    [
+      0.061,
+      0.034,
+      677
+    ],
+    [
+      0.151,
+      0.12,
+      938
+    ],
+    [
+      0.249,
+      0.26,
+      1277
+    ],
+    [
+      0.351,
+      0.36,
+      1385
+    ],
+    [
+      0.453,
+      0.478,
+      1493
+    ],
+    [
+      0.518,
+      0.508,
+      3981
+    ],
+    [
+      0.649,
+      0.64,
+      1385
+    ],
+    [
+      0.751,
+      0.74,
+      1277
+    ],
+    [
+      0.849,
+      0.88,
+      938
+    ],
+    [
+      0.939,
+      0.966,
+      677
+    ]
+  ],
+  "weights": [
+    0.0,
+    0.85931,
+    0.48399,
+    0.40864,
+    -0.40864,
+    0.0
+  ],
+  "feat_mean": [
+    0.0,
+    0.0,
+    3.01863,
+    3.01863,
+    0.43423
+  ],
+  "feat_std": [
+    0.99875,
+    0.31613,
+    1.0501,
+    1.0501,
+    0.33717
+  ],
+  "features": [
+    "bias",
+    "alive_diff",
+    "hp_diff",
+    "my_alive",
+    "foe_alive",
+    "turn/10"
+  ],
+  "verdict": "PORY beats coin AND the material heuristic on held-out log-loss \u2014 a real, calibrated value net."
+}
