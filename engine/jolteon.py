@@ -81,13 +81,34 @@ def featurize(rows, sp, idx):
         Y[k]=y
     return X,Y
 
-def fit(X,Y,l2=2.0,iters=6000,lr=0.3):
-    """l2 may be a scalar or a per-feature vector (rarity-aware shrinkage)."""
+import datetime as _dt
+def _ord(d):
+    try: return _dt.datetime.strptime((d or '')[:10],'%Y-%m-%d').toordinal()
+    except Exception: return None
+
+def recency_weights(rows, half_life_days=30.0):
+    """Exponential recency weighting: w_i = 0.5 ** (age_days / half_life).
+    The most recent game in the set defines 'now'. A game one half-life old counts
+    half as much, two half-lives a quarter, etc. — so the model TRACKS the live
+    metagame (concept drift) instead of averaging equally over stale history.
+    Never deletes old games; just fades their influence. half_life -> inf recovers
+    the old equal-weight behaviour."""
+    days=[_ord(r[3]) for r in rows]; valid=[d for d in days if d is not None]
+    if not valid or half_life_days<=0: return np.ones(len(rows))
+    now=max(valid)
+    w=np.array([0.5**(((now-d)/half_life_days)) if d is not None else 0.5**(((now-min(valid))/half_life_days)) for d in days])
+    return w/ w.mean()   # normalise to mean 1 so l2 scale is unchanged
+
+def fit(X,Y,l2=2.0,iters=6000,lr=0.3,sw=None):
+    """Weighted logistic regression. l2 may be scalar or per-feature (rarity-aware
+    shrinkage). sw = per-sample weights (recency decay); defaults to uniform."""
     n=X.shape[1]; w=np.zeros(n)
     l2v=np.full(n,l2,dtype=float) if np.isscalar(l2) else np.asarray(l2,dtype=float)
+    sw=np.ones(len(Y)) if sw is None else np.asarray(sw,dtype=float)
+    swsum=sw.sum()
     for _ in range(iters):
         p=1/(1+np.exp(-(X@w)))
-        grad=X.T@(p-Y)/len(Y) + l2v*w/len(Y)
+        grad=X.T@(sw*(p-Y))/swsum + l2v*w/swsum
         w-=lr*grad
     return w
 
@@ -113,16 +134,19 @@ if __name__=='__main__':
         sp,idx,counts=build(tr); n=len(sp)
         Xtr,Ytr=featurize(tr,sp,idx); Xte,Yte=featurize(te,sp,idx)
         l2v=l2_vector(counts, n_extra=2)
-        # ablation: flat-L2 vs rarity-aware-L2 (both with the dynamics features)
-        w_flat=fit(Xtr,Ytr,l2=2.0);        p_flat=1/(1+np.exp(-(Xte@w_flat)))
-        w=fit(Xtr,Ytr,l2=l2v);             pte  =1/(1+np.exp(-(Xte@w)))
+        HL=float(os.environ.get('HALF_LIFE','30'))   # recency half-life in days
+        sw=recency_weights(tr, HL)
+        # ablation: equal-weight vs recency-decayed (both rarity-aware L2 + dynamics)
+        w_eq =fit(Xtr,Ytr,l2=l2v);         p_eq =1/(1+np.exp(-(Xte@w_eq)))
+        w    =fit(Xtr,Ytr,l2=l2v,sw=sw);   pte  =1/(1+np.exp(-(Xte@w)))
         p50=np.full(len(Yte),.5)
         print(f"trained on {len(tr)} games, tested on {len(te)} (humans only, temporal split)")
-        print(f"features: {n} species + speed-edge + firepower-edge  ·  rarity-aware L2\n")
+        print(f"features: {n} species + speed-edge + firepower-edge  ·  rarity-aware L2  ·  recency half-life {HL:.0f}d")
+        print(f"recency weights: newest game w=1.0, oldest in train w={sw.min()/sw.max():.3f} (relative)\n")
         print(f"{'model':<36}{'acc':>8}{'Brier':>9}{'logloss':>9}")
         print(f"{'baseline: always 0.5':<36}{acc(p50,Yte):>8.3f}{brier(p50,Yte):>9.3f}{logloss(p50,Yte):>9.3f}")
-        print(f"{'JOLTEON (flat L2)':<36}{acc(p_flat,Yte):>8.3f}{brier(p_flat,Yte):>9.3f}{logloss(p_flat,Yte):>9.3f}")
-        print(f"{'JOLTEON (rarity-aware L2)':<36}{acc(pte,Yte):>8.3f}{brier(pte,Yte):>9.3f}{logloss(pte,Yte):>9.3f}")
+        print(f"{'JOLTEON (equal weight)':<36}{acc(p_eq,Yte):>8.3f}{brier(p_eq,Yte):>9.3f}{logloss(p_eq,Yte):>9.3f}")
+        print(f"{'JOLTEON (recency-decayed)':<36}{acc(pte,Yte):>8.3f}{brier(pte,Yte):>9.3f}{logloss(pte,Yte):>9.3f}")
         print(f"\nlearned dynamics weights:  speed-edge={w[n]:+.2f}   firepower-edge={w[n+1]:+.2f}")
         order=np.argsort(w[:n])
         print("Strongest species:", [(sp[i],round(float(w[i]),2)) for i in order[::-1][:8]])
