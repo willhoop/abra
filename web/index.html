@@ -587,8 +587,10 @@ function roomChomp(){const c=CAST[6];
    <div class="panel"><h2>The bring-4 / lead-2 engine</h2><p style="font-weight:600;color:#3a5372">A Showdown userscript. It reads the battle, runs the full Gen-9 damage pipeline across all 16 rolls, and tells you the four to bring and two to lead. It covers the opponent's <b>whole six</b> (you never know their four), with ABRA's usage as advisory intel. Because it auto-updates, a smarter ABRA reaches your plugin with no reinstall.</p>
      <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a></div>
    <div class="panel"><h2>ORB — the damage calculator</h2>
-     <p style="font-weight:600;color:#3a5372"><b>On-battle Read Board.</b> A Smogon-style damage calculator tuned for Champions — every one of the 16 rolls, items, abilities, weather, spread reduction. It auto-fills from your live battle so you're never retyping stats mid-game; CHOMP feeds it the board.</p>
-     <a class="battlebtn" href="orb.html" target="_blank" style="text-decoration:none;display:inline-block">Open ORB</a></div>
+     <p style="font-weight:600;color:#3a5372"><b>On-battle Read Board.</b> Use the <b>official Smogon Champions calculator</b> — the exact tool the pros use, every roll, item, ability, weather. In the CHOMP userscript (on the live battle) ORB auto-fills the board for you; here on the site, open the real calc and paste your teams in one click.</p>
+     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+       <a class="battlebtn" href="https://calc.pokemonshowdown.com/champions.html?mode=champions" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Open the Champions calc</a>
+       <button class="minibtn" onclick="copyOrbTeams(this)">Copy my team for the calc</button></div></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
 const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
