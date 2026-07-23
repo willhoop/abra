@@ -196,14 +196,21 @@ update. A particle filter over sampled opponent sets, each rolled forward throug
 standard tractable representation. Note the clean division of labour: ABRA (data) supplies the prior;
 the dynamics model supplies the update.
 
-### 5.3 Solving the game on the learned model
+### 5.3 Solving the game on the learned model — search over beliefs, not states
 
-With `Tθ` and beliefs, the per-turn subgame is a matrix game solved for a **mixed-strategy Nash
-equilibrium** (a small linear program), and the game as a whole is searched by **minimax / expectimax
-tree search** over joint actions — precisely PokéChamp's architecture, which uses an LLM to sample
-actions, model the opponent, and estimate leaf values inside a minimax tree, reaching Elo 1300–1500.
-The alternative is to skip explicit search and learn a **policy/value network offline**, as Metamon
-does, via behavioural cloning plus offline RL.
+With `Tθ` and beliefs, the game must be searched. Because the information is imperfect, the correct
+object is **not** a tree over states but a search over **public belief states (PBS)** — distributions
+over what each side could hold given everything commonly observed. This is the central idea of
+**ReBeL** (Recursive Belief-based Learning), which combines deep RL with search over PBSs and
+*provably converges to a Nash equilibrium* in two-player zero-sum imperfect-information games; in the
+perfect-information limit it reduces to AlphaZero. **Player of Games** and **Student of Games** later
+unified perfect- and imperfect-information search into one algorithm. This family — RL + search over
+beliefs — is the principled target for a Pokémon solver, and it subsumes the two simpler options: a
+per-turn **matrix-game Nash** (a small linear program at each node) with **minimax/expectimax** over
+joint actions, which is exactly PokéChamp's architecture (LLM samples actions, models the opponent,
+estimates leaf values; Elo 1300–1500); and the search-free route of a **policy/value network learned
+offline**, as Metamon does via behavioural cloning plus offline RL and AlphaStar Unplugged does at
+scale.
 
 ### 5.4 Why offline RL is hard here (and how the literature copes)
 
@@ -217,7 +224,60 @@ sampling, doubly-robust estimators) lets us score a policy from logs without dep
 variance that grows with policy divergence. The blunt honest point: without environment access, every
 tier-3 estimate is an extrapolation, and its trustworthiness must be *measured*, not assumed.
 
-## 6. Tier 2 — the pragmatic middle
+### 5.5 You do not simulate every path — the policy prunes the tree
+
+The intuition that *"you would not simulate all the paths, machine learning just chooses the few
+viable ones"* is exactly how modern game AI is made tractable, and it has a precise form. The
+branching factor of a turn is large (each of two actives can move-with-target or switch), and the
+tree explodes geometrically with depth. AlphaZero tames this with a **policy prior** that biases the
+search toward promising actions; for genuinely large action spaces the fix is to **sample** rather
+than enumerate: **Sampled MuZero** expands only a subset of actions drawn from the prior, **AlphaStar**
+restricts StarCraft's enormous action space to a handful of policy-sampled actions per node, and
+**Gumbel MuZero** makes this sampling near-optimal with few simulations. PokéChamp is the Pokémon
+instance: the LLM proposes only the plausible moves, so the minimax tree never touches the
+overwhelming majority of legal-but-pointless lines.
+
+For ABRA this means the learned policy is not a luxury on top of the simulator — it *is* what makes
+the simulator usable. A well-trained policy assigns almost all probability to the two or three viable
+options in a position, so search explores a tree with an effective branching factor of a few, not a
+few dozen. The cost of a "near-perfect" playout is therefore governed by the *policy's* quality, not
+by the raw size of the game tree. This also answers a practical worry: we never need to model every
+interaction explicitly by hand — a policy trained on enough real games learns which interactions
+matter and silently prunes the rest.
+
+## 6. One model, many queries — playing and testing teams from a shared core
+
+**Is the team-tester the same model as the game-simulator?** They should share a core. The AlphaZero /
+MuZero pattern is a single network with a shared representation and two heads — a **value** head
+`Vφ(belief)` and a **policy** head `πφ(action | belief)`. That one core answers both of ABRA's
+questions:
+
+- **Testing teams against the meta** is the value head, marginalised over play and over the meta
+  distribution: `E_{o∼D}[ Vφ(team, o) ]` (§7). No game needs to be rolled out turn-by-turn to *rank*
+  teams if the value head is calibrated — this is precisely tier 1, and it can be **distilled** from
+  the full model into a fast outcome head so that team search stays cheap.
+- **Giving the player the line** is the policy head plus search: from the current belief, the model
+  returns the best move(s) — the very thing the coach surfaces. Because the model has learned how the
+  mechanics and interactions resolve, it can hand the player a *recommended path*, not just a verdict.
+  Every uploaded game both trains this core and is a state it can now advise on.
+
+So the honest architecture is **one learned world/value/policy core, queried three ways** — as a fast
+team-evaluator (distilled value head), as a play-advisor (policy + belief search), and as the coach's
+explanation layer. Whether tier 1 remains a separate lightweight model or becomes a distilled head of
+the tier-3 core is an engineering choice, not a conceptual one; both are the same object viewed at
+different cost.
+
+### 6.1 Continual learning — the model updates with every upload
+
+"With every game upload the model improves" is **continual (online) learning**, and it has a known
+failure mode — **catastrophic forgetting**, where new data overwrites old competence. The standard
+guards are a **replay buffer** (keep training on a mix of old and new games, never new alone),
+periodic re-fitting rather than pure online updates, and continuing to ingest the *whole* public
+ladder so the model does not narrow to only the games the current policy likes. Under these guards the
+flywheel (§8) is a continual-learning loop whose data distribution is steered, deliberately, toward
+the positions the player actually reaches.
+
+## 7. Tier 2 — the pragmatic middle
 
 Tier 2 sidesteps learning dynamics by *specifying* them: use CHOMP's exact damage engine as a
 hand-built `T` for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
@@ -227,7 +287,7 @@ model training, and reuses code that already exists and is already tested. It is
 *playout* model precisely because its errors are known and bounded (it ignores multi-turn tactics),
 and it is a strong baseline against which any learned tier-3 model must justify its cost.
 
-## 7. Team optimisation — the outer loop
+## 8. Team optimisation — the outer loop
 
 Given any tier as an evaluator `Ê[win | team]`, optimise the team. Formally, choosing a team `t` to
 maximise expected win rate against the **meta distribution** `D` (which ABRA measures):
@@ -255,7 +315,7 @@ Coarse-to-fine ties the tiers together: tier 1 ranks thousands of candidate team
 the top few hundred, tier 3 vets the handful of finalists. No expensive evaluation is ever spent on
 an obviously bad team.
 
-## 8. The self-improving flywheel, formalised
+## 9. The self-improving flywheel, formalised
 
 The five ABRA stages form a fixed-point iteration. Let `D_k` be the meta distribution at round `k`,
 `M_k` the model fit on data up to `k`, and `Π_k` the optimised team(s). Then:
@@ -277,7 +337,7 @@ ladder, not only your games), and **non-stationarity** (the meta drifts under yo
 re-fit, not frozen). The flywheel is powerful *because* it is a control loop, and it must be treated
 with a control loop's caution.
 
-## 9. Related work (grounding, 2024–2025)
+## 10. Related work (grounding, 2024–2025)
 
 - **PokéChamp** (Karten, Nguyen, Jin; ICML 2025 spotlight). LLM-augmented **minimax** tree search:
   the LLM supplies action sampling, opponent modelling, and value estimation inside a two-player game
@@ -301,7 +361,7 @@ The takeaway: none of the three tiers is speculative. Each corresponds to a demo
 current literature. What ABRA contributes is not a new algorithm but the **data pipeline and the
 flywheel** that make these methods self-sustaining on a live, closed-engine format.
 
-## 10. Evaluation protocol
+## 11. Evaluation protocol
 
 Every tier is scored on **held-out games** — a temporal split (train on older games, test on newer),
 never random, to respect meta drift and avoid leakage.
@@ -319,7 +379,7 @@ never random, to respect meta drift and avoid leakage.
   stands as the caution. We therefore state success as **calibrated aggregate win-rate improvement of
   optimised teams over a baseline**, measured over many games, not per-game oracular accuracy.
 
-## 11. Feasibility — can we actually build this?
+## 12. Feasibility — can we actually build this?
 
 Yes, tier by tier, with honesty about each.
 
@@ -337,7 +397,7 @@ Yes, tier by tier, with honesty about each.
 The disciplined path is to ship tier 1, keep the flywheel turning so the dataset compounds, add tier
 2 for finalist vetting, and treat tier 3 as a funded research track whose bar is set by tier 2.
 
-## 12. References
+## 13. References
 
 1. Karten, S., Nguyen, A. L., Jin, C. (2025). *PokéChamp: an Expert-level Minimax Language Agent.*
    ICML 2025 (spotlight). arXiv:2503.04094.
@@ -355,6 +415,15 @@ The disciplined path is to ship tier 1, keep the flywheel turning so the dataset
     Model (MuZero).* Nature.
 11. Lanctot, M. et al. (2017). *A Unified Game-Theoretic Approach to Multiagent RL (PSRO).* NeurIPS.
 12. Chen, S., Joachims, T. (2016). *Modeling Intransitivity in Matchup Outcomes (Blade–Chest).* ICML.
+13. Brown, N. et al. (2020). *Combining Deep RL and Search for Imperfect-Information Games (ReBeL).*
+    NeurIPS.
+14. Schmid, M. et al. (2021/2023). *Player of Games* / *Student of Games:* unified search + learning
+    across perfect- and imperfect-information games. Science (2023).
+15. Hubert, T. et al. (2021). *Learning and Planning in Complex Action Spaces (Sampled MuZero).* ICML.
+16. Danihelka, I. et al. (2022). *Policy Improvement by Planning with Gumbel (Gumbel MuZero).* ICLR.
+17. Vinyals, O. et al. (2019). *Grandmaster level in StarCraft II (AlphaStar).* Nature; and
+    *AlphaStar Unplugged* (2023), large-scale offline RL.
+18. French, R. (1999). *Catastrophic Forgetting in Connectionist Networks.* Trends in Cognitive Sci.
 
 ---
 
