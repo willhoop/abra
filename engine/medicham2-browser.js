@@ -70,8 +70,12 @@ function dmgRange(att,def,mv,field,spread){
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
   return {min:roll(85),max:roll(100),eff};
 }
+const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttackle:1/3,woodhammer:1/3,headsmash:1/2,lightofruin:1/2,wildcharge:1/4,takedown:1/4,submission:1/4,headcharge:1/4};
 function bestMoveVs(att,def,field){ let best=null,bs=-1;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=(d.min+d.max)/2;if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d};}}
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
+    // value = expected damage discounted by accuracy AND by recoil self-damage (frail spammers shouldn't look free)
+    const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);
+    if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
   return best;
 }
 // pick the best target (max damage) for a SPECIFIC move
