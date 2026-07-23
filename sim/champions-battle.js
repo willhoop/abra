@@ -35,16 +35,26 @@ async function playBattle(team1, team2, agent1, agent2, opts = {}) {
     }
   })();
 
-  // each player: read requests, ask its agent for a choice, write it back
+  // each player: read requests, ask its agent for a choice, write it back.
+  // Loop protection: if the SAME request comes back (our last choice was rejected
+  // as illegal), fall back to `default` so a buggy agent can never hang the battle.
   async function drive(who, agent) {
     const s = streams[who];
+    let lastReq = null, retried = false;
     for await (const chunk of s) {
       for (const line of chunk.split('\n')) {
         if (!line.startsWith('|request|')) continue;
-        const req = JSON.parse(line.slice(9) || '{}');
+        const raw = line.slice(9) || '{}';
+        const req = JSON.parse(raw);
         if (req.wait) continue;                 // waiting on the opponent
+        const repeat = raw === lastReq;         // same request => previous choice was invalid
+        lastReq = raw;
         let choice;
-        try { choice = agent(req, who); } catch (e) { choice = `>${who} default`; }
+        if (repeat && retried) { choice = `>${who} default`; }        // give up, take a legal default
+        else {
+          try { choice = agent(req, who); } catch (e) { choice = `>${who} default`; }
+          retried = repeat;
+        }
         if (!choice) choice = `>${who} default`;
         s.write(choice.startsWith('>') ? choice.slice(1) : choice);
       }
