@@ -726,33 +726,40 @@ function metaGauntlet(k){ const top=JOLT.roster.slice(0,30);
   const tot=top.reduce((s,m)=>s+(m.use||0.01),0);
   const pickW=()=>{let r=Math.random()*tot;for(const m of top){r-=(m.use||0.01);if(r<=0)return m.n;}return top[0].n;};
   const teams=[]; for(let i=0;i<k;i++){const s=new Set();while(s.size<4)s.add(pickW());teams.push([...s]);} return teams; }
-function dittoScore(team,G){ let s=0; for(const g of G)s+=pwin(team,g); return s/G.length; }
+// DITTO scores a team as a BEST RESPONSE to the solved equilibrium meta (data/meta-nash.json),
+// weighted by each archetype's Nash frequency. This is the real double-oracle inner step — best-respond
+// to the meta-Nash — not coordinate ascent against a flat usage gauntlet.
+function dittoScore(team){ if(typeof META_NASH==='undefined')return 0.5; let s=0,w=0; for(const a of META_NASH.arch){ s+=a.w*pwin(team,a.t); w+=a.w; } return w?s/w:0.5; }
 let dittoResult=null, dittoItems=null;
 function loadDittoTeam(){ if(dittoResult){teamA=dittoResult.slice();renderSlots();syncSel();saveTeams();alert('Loaded into your team — it carries to every tab.');} }
 function runDitto(){
   const out=document.getElementById('dtout'); if(!out)return;
   const seed=teamA.slice(0,6); if(seed.length<2){out.innerHTML='<span style="color:#b4432f">Pick at least 2 Pokémon in your seed team above.</span>';return;}
-  out.innerHTML='DITTO is trying thousands of swaps against the live meta…';
+  out.innerHTML='DITTO is best-responding to the equilibrium meta…';
   setTimeout(()=>{
-    const G=metaGauntlet(24), roster=JOLT.roster.map(m=>m.n);
-    let team=seed.slice(), best=dittoScore(team,G); const start=best, swaps=[];
+    const roster=JOLT.roster.map(m=>m.n);
+    let team=seed.slice(), best=dittoScore(team); const start=best, swaps=[];
     for(let it=0;it<30;it++){ let improved=false;
       for(let i=0;i<team.length;i++){ let bi=team[i],bs=best;
-        for(const cand of roster){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=dittoScore(nt,G); if(sc>bs+1e-6){bs=sc;bi=cand;} }
+        for(const cand of roster){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=dittoScore(nt); if(sc>bs+1e-6){bs=sc;bi=cand;} }
         if(bi!==team[i]){ swaps.push([team[i],bi,bs-best]); team[i]=bi; best=bs; improved=true; } }
       if(!improved)break; }
     dittoResult=team.slice();
     // ---- item tuning pass: MEDICHAM-scored (JOLTEON ignores items). Only Life Orb /
     // Choice Scarf are modelled in the compact browser engine; full item sets are the server engine.
-    const cores=[JOLT.roster.slice(0,4).map(m=>m.n), JOLT.roster.slice(4,8).map(m=>m.n)];
-    const teamScoreI=items=>{let s=0;for(const c of cores)s+=(mcWinProbI(team,items,c,90)||0);return s/cores.length;};
+    // score items + grounded re-check against the EQUILIBRIUM META (Nash-weighted archetypes)
+    const archT=(typeof META_NASH!=='undefined'&&META_NASH.arch.length)?META_NASH.arch:[{n:'core',w:1,t:JOLT.roster.slice(0,4).map(m=>m.n)}];
+    const teamScoreI=items=>{let s=0,w=0;for(const a of archT){s+=a.w*(mcWinProbI(team,items,a.t,80)||0);w+=a.w;}return w?s/w:0;};
     let items={}; team.forEach(n=>items[n]=MC.mons[n]?MC.mons[n].item:null);
     let curBest=teamScoreI(items); const itemUp=[];
     for(const n of team){ const cand=[...new Set([items[n],'lifeorb','choicescarf'].filter(Boolean))]; let bi=items[n],bs=curBest;
       for(const it of cand){ const trial={...items,[n]:it}; const sc=teamScoreI(trial); if(sc>bs+0.005){bs=sc;bi=it;} }
       if(bi!==items[n]){ itemUp.push([n,items[n],bi]); items[n]=bi; curBest=bs; } }
     dittoItems=items;
-    const check=mcWinProb(team, cores[0], 200);
+    // MEDICHAM grounded value vs the equilibrium meta + the archetypes that still exploit you
+    let chkW=0,chkS=0; const exploiters=[];
+    for(const a of archT){ const v=mcWinProbI(team,items,a.t,200); if(v!=null){ chkS+=a.w*v; chkW+=a.w; if(v<0.45)exploiters.push([a.n,Math.round(v*100)]); } }
+    const check = chkW? chkS/chkW : null;
     const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,6):(m.mv||[]).map(x=>[x,null]);
       const chips=ms.map(x=>`<span style="background:#f2f4f8;border-radius:6px;padding:2px 6px;font-size:11px;color:#445">${niceName(x[0])}${x[1]!=null?` <b style="color:#b07">${Math.round(x[1]*100)}</b>`:''}</span>`).join(' ');
       return `<div style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left">
