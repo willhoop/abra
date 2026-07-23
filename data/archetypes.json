@@ -1,0 +1,131 @@
+{
+  "generated": "auto from data/games.ladder.jsonl",
+  "n_games": 9998,
+  "k_selected": 10,
+  "silhouette": 0.319,
+  "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
+  "archetypes": [
+    {
+      "n": "Sneasler-Talonflame",
+      "share": 0.207,
+      "core": [
+        "sneasler",
+        "talonflame",
+        "aerodactyl",
+        "tyranitar"
+      ],
+      "signature": [],
+      "w_usage": 0.207
+    },
+    {
+      "n": "Garchomp-Charizard",
+      "share": 0.193,
+      "core": [
+        "garchomp",
+        "charizard",
+        "kingambit",
+        "basculegion"
+      ],
+      "signature": [],
+      "w_usage": 0.193
+    },
+    {
+      "n": "Rain",
+      "share": 0.099,
+      "core": [
+        "pelipper",
+        "archaludon",
+        "grimmsnarl",
+        "basculegion"
+      ],
+      "signature": [],
+      "w_usage": 0.099
+    },
+    {
+      "n": "Trick Room",
+      "share": 0.097,
+      "core": [
+        "farigiraf",
+        "torkoal",
+        "incineroar",
+        "hatterene"
+      ],
+      "signature": [],
+      "w_usage": 0.097
+    },
+    {
+      "n": "Incineroar-Garchomp",
+      "share": 0.079,
+      "core": [
+        "incineroar",
+        "garchomp",
+        "charizard",
+        "venusaur"
+      ],
+      "signature": [],
+      "w_usage": 0.079
+    },
+    {
+      "n": "Sinistcha-Incineroar",
+      "share": 0.079,
+      "core": [
+        "sinistcha",
+        "incineroar",
+        "raichu",
+        "sneasler"
+      ],
+      "signature": [],
+      "w_usage": 0.079
+    },
+    {
+      "n": "Garchomp-Whimsicott",
+      "share": 0.075,
+      "core": [
+        "garchomp",
+        "whimsicott",
+        "gholdengo",
+        "basculegion"
+      ],
+      "signature": [],
+      "w_usage": 0.075
+    },
+    {
+      "n": "Pelipper-Archaludon",
+      "share": 0.06,
+      "core": [
+        "pelipper",
+        "archaludon",
+        "swampert",
+        "incineroar"
+      ],
+      "signature": [],
+      "w_usage": 0.06
+    },
+    {
+      "n": "Sand",
+      "share": 0.057,
+      "core": [
+        "tyranitar",
+        "excadrill",
+        "staraptor",
+        "sinistcha"
+      ],
+      "signature": [],
+      "w_usage": 0.057
+    },
+    {
+      "n": "Kingambit-Incineroar",
+      "share": 0.055,
+      "core": [
+        "kingambit",
+        "incineroar",
+        "sneasler",
+        "whimsicott"
+      ],
+      "signature": [
+        "rotomwash"
+      ],
+      "w_usage": 0.055
+    }
+  ]
+}

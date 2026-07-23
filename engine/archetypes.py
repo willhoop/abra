@@ -59,20 +59,16 @@ def kmeans(X, k, iters=60, seed=RNG):
             if len(pts): C[j] = pts.mean(0)
     return labels, C
 
-def silhouette(X, labels, sample=600, seed=RNG):
-    rng = np.random.default_rng(seed)
-    n = len(X)
-    idx = rng.choice(n, min(sample, n), replace=False)
-    uq = np.unique(labels)
-    if len(uq) < 2: return -1.0
-    scores = []
-    for i in idx:
-        same = X[labels == labels[i]]
-        a = np.mean(np.linalg.norm(same - X[i], axis=1)) if len(same) > 1 else 0.0
-        b = min(np.mean(np.linalg.norm(X[labels == c] - X[i], axis=1))
-                for c in uq if c != labels[i])
-        scores.append((b - a) / (max(a, b) + 1e-12))
-    return float(np.mean(scores))
+def silhouette(X, labels, C):
+    # cheap centroid-based silhouette proxy: a = dist to own centroid,
+    # b = dist to nearest OTHER centroid. O(n*k), good enough to pick K.
+    if len(np.unique(labels)) < 2: return -1.0
+    x2 = (X ** 2).sum(1)[:, None]
+    D = np.sqrt(np.maximum(x2 - 2 * X @ C.T + (C ** 2).sum(1)[None, :], 0))
+    a = D[np.arange(len(X)), labels]
+    Dm = D.copy(); Dm[np.arange(len(X)), labels] = np.inf
+    b = Dm.min(1)
+    return float(np.mean((b - a) / (np.maximum(a, b) + 1e-12)))
 
 # heuristic display names for common cores (fallback = the two signature mons)
 NAME_HINTS = [
@@ -104,7 +100,7 @@ def main():
     best = None
     for k in K_RANGE:
         labels, C = kmeans(X, k)
-        sil = silhouette(X, labels)
+        sil = silhouette(X, labels, C)
         if best is None or sil > best[0]:
             best = (sil, k, labels, C)
     sil, k, labels, C = best
