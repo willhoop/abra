@@ -32,9 +32,9 @@ from its repository, a better ABRA model reaches the live plugin with no plugin 
 "gets smarter over time" loop, closed and tested.
 
 ## Evidence
-- Validated on **1,501 real ladder games** (2,292 human teams). The high-ladder cut (humans, 1300+)
-  reveals distinct signal — top threats near 50% usage, win rates that separate (Kingambit 62%,
-  Incineroar 65%).
+- Validated on **~5,000 real ladder games**. A high-ladder cut (humans, 1300+) surfaces the true
+  meta — which threats are most used and how often each is brought and led — all as a filter over the
+  same stored games, never a re-pull.
 - The top of the model independently reproduces a hand-curated threat list built from a **separate
   ~141,000-battle dataset** — external corroboration that the pipeline is correct.
 - The ABRA→CHOMP flow-back is pinned by an automated test on a real battle: CHOMP loads the model
