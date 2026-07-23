@@ -744,7 +744,16 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
   for(let i=0;i<n;i++){ table+=`<tr><td style="font-weight:800;font-size:13px;padding:6px 10px;text-align:right;white-space:nowrap;color:${colOf[N.names[i]]}">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
   table+=`</tbody></table>`;
   el.innerHTML=`
-    <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">${N.cycles.length} rock-paper-scissors loop${N.cycles.length===1?'':'s'} in the meta</div>
+    ${(window.GURU&&GURU.decisive&&GURU.decisive.length)?`
+    <div style="background:#eefaf1;border:3px solid #2fb45f;border-radius:16px;padding:14px 18px;margin-bottom:18px">
+      <div style="font-weight:800;font-size:18px;color:#1a7a42">GURU — real matchups, from actual games</div>
+      <div style="font-weight:600;color:#5a6b60;font-size:14px;margin:4px 0 12px">Win rates measured from ${(GURU.n_games||0).toLocaleString()} real games (not the simulator), with 95% confidence intervals. These are the matchups we can actually trust.</div>
+      ${GURU.decisive.slice(0,8).map(d=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="flex:1;font-weight:700;font-size:14px;text-align:right">${d.a}</div>
+        <div style="width:110px;height:22px;background:#e6efe9;border-radius:11px;overflow:hidden"><div style="height:100%;width:${Math.round(d.p*100)}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
+        <div style="flex:1.3;font-weight:700;font-size:13.5px;color:#1a7a42">${Math.round(d.p*100)}% <span style="color:#8a9a90;font-weight:500">[${Math.round(d.ci[0]*100)}–${Math.round(d.ci[1]*100)}] vs ${d.b}</span></div></div>`).join('')}
+    </div>`:''}
+    <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">${N.cycles.length} rock-paper-scissors loop${N.cycles.length===1?'':'s'} in the meta <span style="font-size:13px;color:#99a;font-weight:600">(simulated — illustrative)</span></div>
     ${cycles}
     <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:800;font-size:15px;color:#556;padding:6px 0">See the full win-rate grid (green = row beats column)</summary>
       <div style="overflow-x:auto">${table}</div></details>
