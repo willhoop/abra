@@ -128,6 +128,7 @@ function chooseAction(me,foes,ally,field,side,rng){
   // 2) Protect when threatened and can't KO back
   if(inDanger&&!bestKOsNow&&canProtect&&!me.protect&&me.tookProtectTurns<2&&rng()<0.5) return {kind:'protect'};
   // 3) behaviour clone: sample the move this species actually clicks, at its real frequency
+  if(me.moves.includes('wideguard')&&live.length>1&&me.tookProtectTurns<2&&!me.protect&&rng()<0.35){const foeSpread=live.some(fo=>(fo.moves||[]).some(id=>SPREAD.has(id)));if(foeSpread)return{kind:'wideguard'};}
   const pr=MC.priors[me.name];
   if(pr){ let r=rng(),pick=null; for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
     if(pick){
@@ -148,7 +149,7 @@ function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item===
 function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;}
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
-  const field={weather:null,weatherT:0,twA:0,twB:0,tr:0};
+  const field={weather:null,weatherT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false};
   const setW=ms=>{for(const m of ms){if(m.ability==='drizzle'){field.weather='rain';field.weatherT=5;}else if(m.ability==='drought'){field.weather='sun';field.weatherT=5;}else if(m.ability==='sandstream'){field.weather='sand';field.weatherT=5;}else if(m.ability==='snowwarning'){field.weather='snow';field.weatherT=5;}}};
   const actA=[teamA[0],teamA[1]].filter(Boolean),actB=[teamB[0],teamB[1]].filter(Boolean);
   const benchA=teamA.slice(2),benchB=teamB.slice(2);
@@ -159,12 +160,12 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   const alive=(a,b)=>live(a).length+live(b).length>0;
   for(let turn=0;turn<20;turn++){
     if(!alive(actA,benchA)||!alive(actB,benchB))break;
-    [...actA,...actB].forEach(m=>{if(m)m.protect=false;});
+    [...actA,...actB].forEach(m=>{if(m)m.protect=false;});field.wgA=false;field.wgB=false;
     const acts=[];
     const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;acts.push({mon,side,a:chooseAction(mon,foes,ally,field,side,rng)});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
-    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=true;it.mon.tookProtectTurns++;}else it.mon.tookProtectTurns=0;}
-    const prio=it=>it.a.kind==='attack'?(PRIO[it.a.move.id]||0):(it.a.kind==='protect'?4:0);
+    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
+    const prio=it=>it.a.kind==='attack'?(PRIO[it.a.move.id]||0):((it.a.kind==='protect'||it.a.kind==='wideguard')?4:0);
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
     for(const it of acts){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
@@ -182,6 +183,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
       if(!targets.length)targets=live(foes).slice(0,1);
+      if(a.move.spread&&((it.side==='A'&&field.wgB)||(it.side==='B'&&field.wgA)))targets=[];   // Wide Guard blocks spread
       let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)
