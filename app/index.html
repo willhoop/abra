@@ -181,13 +181,13 @@ function pwin(A,B){ // A,B arrays of species names -> P(A beats B), the real JOL
 
 /* ===== the cast (rooms) ===== */
 const CAST=[
- {id:'town', tab:'Town', sprite:'abra', title:'ABRA World', acro:'Automated Battle Replay Analyzer', roof:'#ffd23f'},
- {id:'jolteon', tab:'Jolteon', sprite:'jolteon', title:"Jolteon's Odds Booth", acro:'Joint Odds, Ladder-Trained Expected-Outcome Network', roof:'#ffd23f'},
- {id:'medicham', tab:'Medicham', sprite:'medicham', title:"Medicham's Dojo", acro:'Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves', roof:'#ff6b57'},
- {id:'ditto', tab:'Ditto', sprite:'ditto', title:"Ditto's Team Lab", acro:'Double-oracle Iterative Team-Tuning Optimiser', roof:'#ff6bd6'},
- {id:'kadabra', tab:'Kadabra', sprite:'kadabra', title:"Kadabra's Theater", acro:'Key Analysis of Decisions, Advice & Better Replay Annotation', roof:'#7a6bff'},
- {id:'slowking', tab:'Slowking', sprite:'slowking', title:"Slowking's Library", acro:'Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver', roof:'#4fb0ff'},
- {id:'chomp', tab:'Chomp', sprite:'garchomp', title:"Chomp's Arena", acro:'the bring-4 / lead-2 damage engine', roof:'#5fd07a'},
+ {id:'town', tab:'Town', sprite:'abra', title:'ABRA World', acro:'Automated Battle Replay Analyzer', role:'the data platform', roof:'#ffd23f'},
+ {id:'jolteon', tab:'Jolteon', sprite:'jolteon', title:"Jolteon's Odds Booth", acro:'Joint Odds, Ladder-Trained Expected-Outcome Network', role:'win probability', roof:'#ffd23f'},
+ {id:'medicham', tab:'Medicham', sprite:'medicham', title:"Medicham's Dojo", acro:'Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves', role:'battle rollouts', roof:'#ff6b57'},
+ {id:'ditto', tab:'Ditto', sprite:'ditto', title:"Ditto's Team Lab", acro:'Double-oracle Iterative Team-Tuning Optimiser', role:'team optimiser', roof:'#ff6bd6'},
+ {id:'kadabra', tab:'Kadabra', sprite:'kadabra', title:"Kadabra's Theater", acro:'Key Analysis of Decisions, Advice & Better Replay Annotation', role:'replay coach', roof:'#7a6bff'},
+ {id:'slowking', tab:'Slowking', sprite:'slowking', title:"Slowking's Library", acro:'Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver', role:'belief search', roof:'#4fb0ff'},
+ {id:'chomp', tab:'Chomp', sprite:'garchomp', title:"Chomp's Arena", acro:'the bring-4 / lead-2 damage engine', role:'bring-4 engine', roof:'#5fd07a'},
 ];
 
 /* ===== build nav ===== */
@@ -470,17 +470,7 @@ tick();
 /* ===== boot ===== */
 go('town');
 
-/* if opened as a file, the live engines can't be reached — tell the user how */
-if(location.protocol==='file:'){
-  const b=document.createElement('div');
-  b.style.cssText='position:sticky;top:0;z-index:30;background:#ffdf7e;border-bottom:3px solid var(--line);'+
-    'padding:8px 14px;font-weight:700;text-align:center;font-size:14px;color:#5a4300';
-  b.innerHTML='You are opening the file directly, so JOLTEON works but the live engines are off. '+
-    'For MEDICHAM / KADABRA / DITTO: run <code>start.bat</code>, then open '+
-    '<a href="http://localhost:8790" style="color:#1E2761">localhost:8790</a>. '+
-    '<span style="cursor:pointer;text-decoration:underline" onclick="this.parentElement.remove()">dismiss</span>';
-  document.body.prepend(b);
-}
+/* (no on-load banner: the live buttons explain themselves if the server isn't running) */
 </script>
 </body>
 </html>
