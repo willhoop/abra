@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 720" font-family="'Baloo 2','Segoe UI',Arial,sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#20344a"/></marker>
+    <marker id="arrowY" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#e8a400"/></marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eaf7ff"/><stop offset="1" stop-color="#f7fbff"/></linearGradient>
+    <style>
+      .box{stroke:#20344a;stroke-width:3;rx:16;}
+      .t{fill:#20344a;font-weight:700;}
+      .s{fill:#41597a;font-weight:600;font-size:12px;}
+      .lab{fill:#20344a;font-weight:700;font-size:13px;}
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1040" height="720" fill="url(#bg)"/>
+  <text x="520" y="42" text-anchor="middle" font-size="30" class="t">ABRA — how the models interact</text>
+  <text x="520" y="66" text-anchor="middle" class="s" font-size="14">Fast → slow, cheap → deep. Everything is fed by the data platform; playing and coaching feed it back.</text>
+
+  <!-- ladder -->
+  <ellipse cx="180" cy="120" rx="120" ry="24" fill="#cdeafd" stroke="#20344a" stroke-width="3"/>
+  <text x="180" y="118" text-anchor="middle" class="t" font-size="15">🎮 Showdown ladder</text>
+  <text x="180" y="136" text-anchor="middle" class="s">live Champions games</text>
+
+  <!-- ABRA store -->
+  <rect x="60" y="200" width="240" height="86" rx="16" class="box" fill="#ffd23f"/>
+  <text x="180" y="232" text-anchor="middle" class="t" font-size="18">🔮 ABRA store</text>
+  <text x="180" y="252" text-anchor="middle" class="s">every game, raw + per-turn stream</text>
+  <text x="180" y="270" text-anchor="middle" class="s">store raw · never re-pull</text>
+
+  <!-- dynamics + usage -->
+  <rect x="40" y="330" width="180" height="72" rx="14" class="box" fill="#bdf0c8"/>
+  <text x="130" y="360" text-anchor="middle" class="t" font-size="15">📊 dynamics</text>
+  <text x="130" y="380" text-anchor="middle" class="s">speed + damage</text>
+  <rect x="240" y="330" width="180" height="72" rx="14" class="box" fill="#bdf0c8"/>
+  <text x="330" y="360" text-anchor="middle" class="t" font-size="15">📈 meta-usage</text>
+  <text x="330" y="380" text-anchor="middle" class="s">team/bring/lead %</text>
+
+  <!-- JOLTEON -->
+  <rect x="470" y="150" width="220" height="86" rx="16" class="box" fill="#ffe680"/>
+  <text x="580" y="182" text-anchor="middle" class="t" font-size="18">⚡ JOLTEON</text>
+  <text x="580" y="202" text-anchor="middle" class="s">Tier 1 · win probability</text>
+  <text x="580" y="220" text-anchor="middle" class="s">microseconds · rarity-aware</text>
+
+  <!-- MEDICHAM -->
+  <rect x="470" y="290" width="220" height="86" rx="16" class="box" fill="#ffb3a7"/>
+  <text x="580" y="322" text-anchor="middle" class="t" font-size="18">🥋 MEDICHAM</text>
+  <text x="580" y="342" text-anchor="middle" class="s">Tier 2 · exact-damage rollouts</text>
+  <text x="580" y="360" text-anchor="middle" class="s">milliseconds · the checker</text>
+
+  <!-- SLOWKING -->
+  <rect x="470" y="430" width="220" height="82" rx="16" stroke="#4fb0ff" stroke-width="3" stroke-dasharray="8 6" fill="#dcefff"/>
+  <text x="580" y="462" text-anchor="middle" class="t" font-size="18">📚 SLOWKING</text>
+  <text x="580" y="482" text-anchor="middle" class="s">Tier 3 · belief search</text>
+  <text x="580" y="500" text-anchor="middle" class="s">seconds · roadmap</text>
+
+  <!-- DITTO -->
+  <rect x="770" y="150" width="220" height="86" rx="16" class="box" fill="#ffbfe8"/>
+  <text x="880" y="182" text-anchor="middle" class="t" font-size="18">🧬 DITTO</text>
+  <text x="880" y="202" text-anchor="middle" class="s">team optimiser vs the meta</text>
+  <text x="880" y="220" text-anchor="middle" class="s">answer Basculegion, not Camerupt</text>
+
+  <!-- KADABRA -->
+  <rect x="770" y="430" width="220" height="82" rx="16" class="box" fill="#cfc4ff"/>
+  <text x="880" y="462" text-anchor="middle" class="t" font-size="18">🔮 KADABRA</text>
+  <text x="880" y="482" text-anchor="middle" class="s">turn-by-turn coach</text>
+  <text x="880" y="500" text-anchor="middle" class="s">reviews your games</text>
+
+  <!-- CHOMP -->
+  <rect x="150" y="560" width="240" height="86" rx="16" class="box" fill="#a9e5b7"/>
+  <text x="270" y="592" text-anchor="middle" class="t" font-size="18">🦈 CHOMP</text>
+  <text x="270" y="612" text-anchor="middle" class="s">bring-4 / lead-2 you play with</text>
+  <text x="270" y="630" text-anchor="middle" class="s">auto-updates from repo</text>
+
+  <!-- arrows: ladder->store -->
+  <line x1="180" y1="144" x2="180" y2="196" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- store->dynamics/usage -->
+  <line x1="150" y1="286" x2="130" y2="326" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="210" y1="286" x2="330" y2="326" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- dynamics/usage -> JOLTEON -->
+  <path d="M220 350 C 360 330, 400 210, 466 200" fill="none" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- store -> JOLTEON (training) -->
+  <path d="M300 220 C 380 195, 410 190, 466 190" fill="none" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <!-- JOLTEON -> DITTO -->
+  <line x1="690" y1="193" x2="766" y2="193" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="728" y="184" text-anchor="middle" class="lab" font-size="11">evaluator</text>
+  <!-- DITTO <-> MEDICHAM (vetting) -->
+  <path d="M800 236 C 740 262, 700 278, 660 288" fill="none" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="742" y="270" text-anchor="middle" class="lab" font-size="11">vets finalists</text>
+  <!-- JOLTEON <-> MEDICHAM disagreement -->
+  <line x1="580" y1="236" x2="580" y2="286" stroke="#e8a400" stroke-width="3" marker-end="url(#arrowY)"/>
+  <text x="640" y="266" text-anchor="middle" class="lab" font-size="11" fill="#b47700">agree? catch overfit</text>
+  <!-- MEDICHAM -> KADABRA, SLOWKING -> KADABRA -->
+  <path d="M690 340 C 740 370, 760 420, 780 452" fill="none" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="690" y1="471" x2="766" y2="471" stroke="#4fb0ff" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+  <!-- meta-usage -> CHOMP -->
+  <path d="M320 402 C 300 470, 285 510, 275 556" fill="none" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="330" y="486" text-anchor="middle" class="lab" font-size="11">advisory intel</text>
+  <!-- CHOMP play -> back to ladder (feedback) -->
+  <path d="M150 600 C 60 560, 60 200, 120 128" fill="none" stroke="#e8a400" stroke-width="3" stroke-dasharray="2 0" marker-end="url(#arrowY)"/>
+  <text x="70" y="380" text-anchor="middle" class="lab" font-size="12" fill="#b47700" transform="rotate(-90 70,380)">play → new games (flywheel)</text>
+  <!-- KADABRA -> store (feedback) -->
+  <path d="M880 512 C 880 660, 360 690, 300 288" fill="none" stroke="#e8a400" stroke-width="3" marker-end="url(#arrowY)"/>
+  <text x="600" y="686" text-anchor="middle" class="lab" font-size="12" fill="#b47700">every reviewed game feeds back into the store</text>
+
+  <!-- legend -->
+  <rect x="740" y="560" width="250" height="120" rx="12" fill="#ffffff" stroke="#20344a" stroke-width="2"/>
+  <text x="756" y="584" class="t" font-size="14">Legend</text>
+  <line x1="756" y1="600" x2="792" y2="600" stroke="#20344a" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="800" y="604" class="s">data / calls</text>
+  <line x1="756" y1="624" x2="792" y2="624" stroke="#e8a400" stroke-width="3" marker-end="url(#arrowY)"/>
+  <text x="800" y="628" class="s">flywheel feedback</text>
+  <line x1="756" y1="648" x2="792" y2="648" stroke="#4fb0ff" stroke-width="3" stroke-dasharray="7 5"/>
+  <text x="800" y="652" class="s">roadmap (SLOWKING)</text>
+</svg>
