@@ -303,11 +303,27 @@ function dmgRange(att,def,mv,field,spread){
   if(spread)base=Math.floor(base*0.75);
   if(field.weather==='rain'){if(mv.t==='Water')base=Math.floor(base*1.5);if(mv.t==='Fire')base=Math.floor(base*0.5);}
   if(field.weather==='sun'){if(mv.t==='Fire')base=Math.floor(base*1.5);if(mv.t==='Water')base=Math.floor(base*0.5);}
+  if(att.ability==='technician'&&mv.bp<=60)base=Math.floor(base*1.5);
   const eff=mcEff(mv.t,def.types); if(eff===0)return{min:0,max:0,eff:0};
-  const stab=att.types.includes(mv.t)?1.5:1;
+  const IMM={waterabsorb:'Water',stormdrain:'Water',dryskin:'Water',voltabsorb:'Electric',lightningrod:'Electric',motordrive:'Electric',flashfire:'Fire',wellbakedbody:'Fire',sapsipper:'Grass',levitate:'Ground',eartheater:'Ground'};
+  if(IMM[def.ability]===mv.t)return{min:0,max:0,eff:0};
+  const stab=att.types.includes(mv.t)?(att.ability==='adaptability'?2:1.5):1;
   const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
   const lo=att.item==='lifeorb'?1.3:1;
-  const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(lo>1)d=Math.floor(d*lo);return d;};
+  let mod=1;
+  if((def.ability==='filter'||def.ability==='solidrock'||def.ability==='prismarmor')&&eff>1)mod*=0.75;
+  if(att.ability==='neuroforce'&&eff>1)mod*=1.25;
+  if(att.ability==='tintedlens'&&eff<1)mod*=2;
+  if((def.ability==='multiscale'||def.ability==='shadowshield')&&(def.curHP==null||def.st==null||def.curHP>=def.st.hp))mod*=0.5;
+  if(def.ability==='thickfat'&&(mv.t==='Fire'||mv.t==='Ice'))mod*=0.5;
+  if(def.ability==='heatproof'&&mv.t==='Fire')mod*=0.5;
+  if(def.ability==='purifyingsalt'&&mv.t==='Ghost')mod*=0.5;
+  if(att.ability==='waterbubble'&&mv.t==='Water')mod*=2;
+  if(def.ability==='waterbubble'&&mv.t==='Fire')mod*=0.5;
+  if(att.item==='expertbelt'&&eff>1)mod*=1.2;
+  if(att.item==='muscleband'&&phys)mod*=1.1;
+  if(att.item==='wiseglasses'&&!phys)mod*=1.1;
+  const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
   return {min:roll(85),max:roll(100),eff};
 }
 function bestMoveVs(att,def,field){ let best=null,bs=-1;

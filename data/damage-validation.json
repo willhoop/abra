@@ -1,10 +1,14 @@
 {
-  "generated": "engine/validate_damage.js vs @smogon/calc (MIT), stats aligned to isolate the damage formula",
-  "gen": 9, "level": 50, "scenarios": 22,
-  "result_before_ability_fixes": {"median_abs_err_pct": 0.0, "within_5pct": 86, "worst_pct": 33,
-    "note": "core formula exact; only misses were unmodeled abilities"},
-  "result_after_ability_fixes": {"median_abs_err_pct": 0.0, "within_2pct": 95, "within_5pct": 100, "worst_pct": 3,
+  "generated": "engine/validate_damage.js vs @smogon/calc (MIT), stats aligned to isolate the damage math",
+  "gen": 9, "level": 50, "scenarios": 31,
+  "result": {"median_abs_err_pct": 0.0, "within_2pct": 97, "within_5pct": 100, "worst_pct": 3,
     "note": "worst 3% is 16-roll quantization rounding, not a formula error"},
-  "abilities_added": ["swordofruin","beadsofruin","tabletsofruin","vesselofruin","solarpower","guts","orichalcumpulse","hadronengine"],
-  "verdict": "MEDICHAM damage math is VALIDATED against ground truth within 5% on 100% of tested meta scenarios."
+  "mechanics_validated": [
+    "core formula (STAB, type, spread, weather)", "Choice Band/Specs", "Assault Vest", "Life Orb",
+    "Ruin quartet (Sword/Beads/Tablets/Vessel)", "Solar Power", "Guts", "Orichalcum Pulse", "Hadron Engine",
+    "Adaptability", "Technician", "Tinted Lens", "Filter/Solid Rock/Prism Armor", "Multiscale", "Thick Fat",
+    "Heatproof", "Purifying Salt", "Water Bubble", "type-immunity abilities (Levitate/Flash Fire/etc.)",
+    "Expert Belt", "Muscle Band", "Wise Glasses"],
+  "live_reads_in_ORB_dock": ["real stats+item (your side)","boosts on both actives (Intimidate/setup)","weather","terrain","Helping Hand","spread","Reflect/Light Screen"],
+  "verdict": "ORB is a validated Smogon-grade substitute: matches @smogon/calc within 5% on 100% of 31 tested scenarios, and auto-fills from the live battle."
 }
