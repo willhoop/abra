@@ -54,10 +54,21 @@ question and answers it with search.
 Three properties make this genuinely hard, and their *conjunction* is what places SLOWKING outside the
 existing literature:
 
-1. **The engine is closed.** Champions is not the Smogon format served by the open-source
-   `pokemon-showdown` simulator that poke-env exposes to RL agents. Its ruleset and stat system are
-   not a queryable environment. We cannot roll the true dynamics forward for a hypothetical state, so
-   we must *learn* a model of them from observation — the offline model-learning / system-ID setting.
+1. **The engine — assumed closed, likely open (v1.1 correction).** This paper was written on the
+   assumption that Champions is a *closed* engine we could not query, forcing us to *learn* its
+   dynamics from logged replays. **On investigation that assumption appears to be wrong.** The
+   Champions format (`[Gen 9 Champions] VGC 2026 Reg M-A/M-B`) is defined in the **open-source
+   `smogon/pokemon-showdown` repository** (`config/formats.ts`), and the SP stat system is a
+   documented mod — i.e. it can very likely be run as a local, queryable simulator, exactly like the
+   standard formats poke-env exposes to RL agents. **If confirmed runnable end-to-end, this removes
+   the single hardest component of SLOWKING** (learning a world model, §4.1/§5): we would instead
+   *query the real engine* for any hypothetical state, turning the problem from "offline model
+   learning of a closed engine" into "equilibrium search over a **known** simulator" — the exact
+   setting ReBeL and AlphaZero operate in, and far more feasible. It also unlocks **self-play** and a
+   ground-truth engine for MEDICHAM, CHOMP, DITTO, and JOLTEON. The one open item is verifying the SP
+   mod runs on `master` (not a private branch); the format config is confirmed public. The rest of
+   this paper's learned-dynamics track (§4.1, §5) is retained as the fallback for the case where the
+   local build proves incomplete, but the **known-simulator path is now the primary plan.**
 2. **Moves are simultaneous.** Both players commit each turn without seeing the other's choice. The
    per-turn subgame is therefore a matrix game whose optimal solution is generally a *mixed* Nash
    equilibrium. A searcher that assumes a deterministic opponent is exploitable exactly at the
@@ -82,8 +93,12 @@ terminal reward, and per-player observations.
   spread), current HP, status, stat stages, field conditions (weather, terrain, screens, Trick Room,
   Tailwind timers), and which Pokémon are active. Level 50; no Tera.
 - **Actions.** At each turn player `i` chooses *simultaneously* from `A_i(s)`: for each of two active
-  Pokémon, a move (with target) or a switch. The joint action is `a = (a_1, a_2)`. Team preview is a
-  special first move: an ordered bring of four from six, `|A_i| = 6·5·4·3 = 360`.
+  Pokémon, a move (with target) or a switch. A move may be accompanied by a **Mega Evolution** — a
+  once-per-battle, per-side step that must be modelled as part of the action: it changes the
+  Pokémon's forme, base stats, typing, and ability for the remainder of the game (and shifts speed
+  order the turn it happens), so `A_i(s)` includes a mega flag on eligible attackers, and the
+  transition applies the forme change before damage. The joint action is `a = (a_1, a_2)`. Team
+  preview is a special first move: an ordered bring of four from six, `|A_i| = 6·5·4·3 = 360`.
 - **Transition** `T(s' | s, a)` is stochastic — damage rolls (16 outcomes, 85–100%), accuracy,
   secondary-effect procs, critical hits, speed ties. **This kernel is the closed engine; reproducing
   it is the crux.**
