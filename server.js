@@ -11,10 +11,24 @@
  *   /api/jolteon?a=team&b=team          -> win prob from the trained model (needs Python)
  *   /api/ditto?seed=team                -> team optimiser (slow ~30s)  (needs Python)
  */
-const http=require('http'), fs=require('fs'), path=require('path'), {spawn}=require('child_process');
+const http=require('http'), fs=require('fs'), path=require('path'), {spawn,spawnSync}=require('child_process');
 const ROOT=__dirname, WEB=path.join(ROOT, require('fs').existsSync(path.join(ROOT,'app','index.html'))?'app':'web');
-const PY = process.platform==='win32' ? 'python' : 'python3';
 const PORT=process.env.PORT||8790;
+
+// find a REAL Python with numpy (skip the Windows Microsoft-Store alias stub).
+function resolvePy(){
+  const cands = process.platform==='win32' ? ['py','python','python3'] : ['python3','python'];
+  for(const c of cands){ try{ const r=spawnSync(c,['-c','import numpy'],{timeout:8000,encoding:'utf8'});
+    if(r.status===0) return c; }catch(e){} }
+  for(const c of cands){ try{ const r=spawnSync(c,['--version'],{timeout:5000,encoding:'utf8'});
+    const txt=(r.stdout||'')+(r.stderr||''); if(r.status===0 && !/Microsoft Store|was not found/i.test(txt)) return c+'|nonumpy'; }catch(e){} }
+  return null;
+}
+const _py=resolvePy();
+const PY = _py ? _py.split('|')[0] : null;
+const PY_HAS_NUMPY = _py && !_py.includes('nonumpy');
+const PY_HELP = "Python with numpy not found. JOLTEON (in-page) and MEDICHAM/KADABRA still work. "+
+  "For DITTO: install Python from python.org (check 'Add to PATH'), then run: pip install numpy — and restart start.bat.";
 
 function run(cmd,args,cb){
   let out=''; let done=false;
@@ -47,9 +61,11 @@ http.createServer((req,res)=>{
     return run('node',[path.join('engine','kadabra.js'),q('id'),q('me')],out=>send(200,'application/json',JSON.stringify({text:out})));
   }
   if(u.pathname==='/api/jolteon'){
+    if(!PY||!PY_HAS_NUMPY) return send(200,'application/json',JSON.stringify({raw:PY_HELP}));
     return run(PY,[path.join('engine','jolteon.py'),'predict',q('a'),q('b')],out=>send(200,'application/json',JSON.stringify({raw:out})));
   }
   if(u.pathname==='/api/ditto'){
+    if(!PY||!PY_HAS_NUMPY) return send(200,'application/json',JSON.stringify({text:PY_HELP}));
     const args=[path.join('engine','ditto.py')]; if(q('seed'))args.push(q('seed'));
     return run(PY,args,out=>send(200,'application/json',JSON.stringify({text:out})));
   }
