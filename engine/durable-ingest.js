@@ -21,7 +21,7 @@ function activeFormats(){
 }
 const FORMATS=(process.env.FORMATS ? process.env.FORMATS.split(',') : (activeFormats()||['gen9championsvgc2026regmb']))
   .map(s=>s.trim()).filter(Boolean);
-const PAGES=+(process.env.PAGES||2), CONC=+(process.env.CONC||16);
+const PAGES=+(process.env.PAGES||25), CONC=+(process.env.CONC||16);  // was 2 (~100 games/run); 25 exhausts the public pool (~1250/format), auto-stops when empty
 const STORE=process.argv[2]||'games.jsonl';
 const RAW=process.env.RAW||(STORE.replace(/\.jsonl$/,'')+'.raw-logs.jsonl');
 const MODE=process.env.MODE||'fetch'; // fetch | reparse
