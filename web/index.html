@@ -591,13 +591,6 @@ function renderKad(){
 }
 function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); renderKad(); }
 function kadGo(i){ kadI=i; renderKad(); }
-async function runDitto(){
-  const seed=document.getElementById('dtseed').value.trim();
-  const out=document.getElementById('dtout'); out.textContent='DITTO is optimising against the live meta... (this one is slow, ~30s)';
-  try{ const r=await fetch(`${API}/api/ditto?seed=${encodeURIComponent(seed)}`); const j=await r.json(); out.textContent=j.text||'(no output)'; }
-  catch(e){ out.innerHTML='Live DITTO needs the local server (and Python): run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
-}
-
 /* ===== PokePaste support — accepts ANY species ===== */
 function spriteName(raw){
   let s=(raw||'').toLowerCase().replace(/[^a-z0-9]/g,'');
