@@ -1,0 +1,14 @@
+{
+  "_note": "Single source of truth for which Champions regulation ABRA is tracking. When a new regulation goes live: (1) run build/archive-regulation.js to snapshot the current store + models into data/archive/<id>/, (2) add the new regulation here and set 'active', (3) the ingest/analysis pick it up automatically. Every game is also tagged with its format, so old-reg data is never mixed in even before archiving.",
+  "active": "regmb",
+  "regulations": {
+    "regmb": {
+      "label": "Pokémon Champions VGC 2026 — Reg M-B",
+      "showdownFormat": "gen9championsvgc2026regmb",
+      "bo3Format": "gen9championsvgc2026regmbbo3",
+      "openTeamSheets": true,
+      "started": "2026-07",
+      "status": "active"
+    }
+  }
+}
