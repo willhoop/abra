@@ -115,6 +115,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 @media(max-width:680px){.pastebox{grid-template-columns:1fr}}
 .pastecol label{font-weight:700;font-size:13px;display:block;margin-bottom:4px}
 .pastecol textarea{width:100%;height:88px;border:3px solid var(--line);border-radius:12px;padding:8px;font-family:ui-monospace,monospace;font-size:12px;resize:vertical;background:#fff}
+.mcbox{width:100%;height:68px;border:3px solid var(--line);border-radius:12px;padding:8px;font-family:ui-monospace,monospace;font-size:12px;resize:vertical;margin-top:4px}
 .minibtn{border:2px solid var(--line);background:var(--electric);border-radius:9px;padding:2px 8px;font-size:12px;font-weight:700;box-shadow:0 2px 0 var(--electric2)}
 .minibtn:active{transform:translateY(2px);box-shadow:none}
 
@@ -285,13 +286,21 @@ function tierRow(sprite,name,acro,cost,color,text){
   return `<div class="tier"><img src="${ani(sprite)}"><div class="g"><b>${name}</b> — <span style="color:#5a708a;font-weight:600">${acro}</span><div style="font-weight:600;margin-top:2px">${text}</div></div><div class="cost" style="background:${color}">${cost}</div></div>`;
 }
 function roomMedicham(){const c=CAST[2];
-  return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — using CHOMP's exact damage math, a few hundred quick rollouts, sampling every damage roll. Middle of the pack in speed and in cost. ")}</div>
+  return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — CHOMP's exact damage, a few hundred quick rollouts, sampling every roll. Middle of the pack in speed and cost.")}</div>
+   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Enter both teams (comma-separated species, or a PokéPaste). I run the rollout and give a grounded win rate.</p>
+     <div class="grid2">
+       <div><label style="font-weight:700;font-size:13px">Your team</label><textarea id="mcA" class="mcbox" placeholder="pelipper, basculegion, archaludon, kingambit"></textarea></div>
+       <div><label style="font-weight:700;font-size:13px">Opponent</label><textarea id="mcB" class="mcbox" placeholder="charizard, venusaur, torkoal, garchomp"></textarea></div>
+     </div>
+     <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;margin-top:10px" onclick="runMedichamRoom()">Play it out</button>
+     <div class="readout" id="mcRoomOut" style="text-align:left;color:#b4432f"></div>
+   </div>
    <div class="panel"><h2>The three fighting tiers</h2><p class="sub">Fast &amp; cheap → slow &amp; wise. The Pokémon's speed tells you the model's cost.</p>
      ${tierRow('jolteon','JOLTEON','one forward pass',' microseconds','#ffd23f','Instant win-probability. Scores thousands of teams. (Tier 1)')}
      ${tierRow('medicham','MEDICHAM','short rollouts',' milliseconds','#ff6b57','Plays a matchup out a few turns with exact damage. Vets finalists. (Tier 2)')}
      ${tierRow('slowking','SLOWKING','belief search',' seconds','#4fb0ff','Deep, equilibrium-aware lines. The research tier. (Tier 3)')}
-     <p style="font-weight:600;color:#3a5372;margin-top:12px">Real example: rain core vs sun core, I return <b>0.60</b> for rain; a mirror match returns <b>~0.50</b>, exactly as it must. My rollouts caught Jolteon over-rating a team by <b>60 points</b> — that's my whole job.</p>
-   </div>`;
+   </div>
+   <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
   return `<div class="panel">${mascotHero(c,"Copy copy! I build teams that beat the <b>live</b> meta. I try thousands of swaps, scoring each with Jolteon, and I make sure you have an answer to <b>Basculegion</b> — not to Camerupt. ")}</div>
@@ -392,6 +401,18 @@ async function doMedicham(){
     el.innerHTML=`MEDICHAM (grounded rollout): <b>${mp}%</b>  vs  JOLTEON's guess <b>${jp}%</b>. `+
       (gap<10?'They agree — trust it.':gap<25?'A little disagreement.':'<b>Big gap</b> — JOLTEON may be off here; trust MEDICHAM.');
   }catch(e){ el.innerHTML='Live MEDICHAM needs the local server: run <code>start.bat</code> (or <code>node server.js</code>), then open <b>localhost:8790</b>.'; }
+}
+function teamFromInput(v){ v=(v||'').trim(); if(!v) return [];
+  if(/\n|@|Ability:/i.test(v)) return parsePaste(v).map(x=>spriteName(x).n);
+  return v.split(',').map(s=>s.trim().toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean); }
+async function runMedichamRoom(){
+  const A=teamFromInput(document.getElementById('mcA').value), B=teamFromInput(document.getElementById('mcB').value);
+  const out=document.getElementById('mcRoomOut'); if(!A.length||!B.length){out.textContent='Enter both teams (comma-separated species or a PokéPaste).';return;}
+  out.textContent='MEDICHAM is playing it out…';
+  try{ const r=await fetch(`${API}/api/medicham?a=${encodeURIComponent(A)}&b=${encodeURIComponent(B)}&n=300`); const j=await r.json();
+    if(j.p==null){out.textContent='Could not build those teams — try common meta species.';return;}
+    out.innerHTML=`Grounded win rate for your team: <b style="color:#2a7">${Math.round(j.p*100)}%</b> over 300 rollouts.`;
+  }catch(e){ out.innerHTML='Live MEDICHAM needs the local server: run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
 }
 let KAD=null, kadKeys=[], kadI=0;
 async function runKadabra(){
