@@ -56,7 +56,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .panel .sub{color:#5a708a;font-weight:600;margin:0 0 14px}
 .mascot{width:104px;height:104px;object-fit:contain;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none;
   filter:drop-shadow(0 4px 3px rgba(0,0,0,.14))}
-.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:11px 16px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:11px 16px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px;max-width:620px;font-size:14.5px;line-height:1.4}
 .bubble:before{content:'';position:absolute;left:-14px;top:22px;border:8px solid transparent;border-right-color:var(--line)}
 .bubble:after{content:'';position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:#fff}
 .hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -789,17 +789,13 @@ function runDitto(){
         <div style="font-size:11px;color:#99a;margin-top:4px">best-responding to the Nash-solved meta (${(typeof META_NASH!=='undefined'?META_NASH.arch.map(a=>a.n):['meta']).join(' / ')}) · full sets are the most common on the ladder</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>
-      <div style="margin-top:12px;background:#faf7fb;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;color:#556">
-        ${swaps.length?`<div><b>Swaps:</b> `+swaps.map(s=>`${cap(s[0])} → <b>${cap(s[1])}</b> <span style="color:#2a8">+${(s[2]*100).toFixed(1)}</span>`).join(' &nbsp;·&nbsp; ')+`</div>`:`<div style="color:#2a7;font-weight:600">Your seed was already optimal — no species swap improved it.</div>`}
-        ${itemUp.length?`<div style="margin-top:5px"><b>Item upgrades:</b> `+itemUp.map(u=>`${cap(u[0])} → <b>${niceName(u[2])}</b>`).join(' &nbsp;·&nbsp; ')+`</div>`:``}
-      </div>`+
-      (chk!=null?`<div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid ${chk<40?'#e8b4b4':'#b4d8c0'};background:${chk<40?'#fdf2f2':'#f2faf5'}"><b style="color:${chk<40?'#b4432f':'#1a7a4a'}">MEDICHAM grounded value vs the equilibrium meta: ${chk}%</b> <span style="color:#778;font-size:12px">— the Goodhart guard (JOLTEON picks the team, MEDICHAM plays it out). ${chk<40?'Big gap means the sheet over-rates this team; trust the rollout.':'The rollout agrees the team is real.'}</span>`+(exploiters.length?`<div style="margin-top:6px;font-size:12px;color:#b4432f">Still exploited by: `+exploiters.map(e=>`<b>${e[0]}</b> (${e[1]}%)`).join(' · ')+` — no single team beats the whole meta (that's the non-transitivity).</div>`:`<div style="margin-top:6px;font-size:12px;color:#1a7a4a">Holds up against every archetype in the equilibrium meta.</div>`)+`</div>`:``)+
-      `<div style="margin-top:14px"><div style="font-weight:800;margin-bottom:6px">How your team stacks up vs each meta threat</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
-         <thead><tr style="color:#667;text-align:left"><th style="padding:4px 6px">Archetype</th><th style="padding:4px 6px">Meta share</th><th style="padding:4px 6px">Your win %</th><th></th></tr></thead>
-         <tbody>`+perArch.map(p=>`<tr style="border-top:1px solid #eee"><td style="padding:5px 6px;font-weight:700">${p.n}</td><td style="padding:5px 6px;color:#889">${Math.round(p.w*100)}%</td><td style="padding:5px 6px;font-weight:800;color:${p.v>=52?'#1a9a4a':(p.v<=48?'#d23b3b':'#7a7')}">${p.v}%</td><td style="padding:5px 6px;width:130px"><div style="height:9px;background:#eee;border-radius:6px;overflow:hidden"><div style="height:100%;width:${p.v}%;background:${p.v>=50?'#5fd07a':'#e8899a'}"></div></div></td></tr>`).join('')+`</tbody></table>
-        <div style="font-size:11px;color:#99a;margin-top:4px">green = you're favoured, red = they beat you · each row is a MEDICHAM rollout of your team vs that archetype</div></div>`+
-      `<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
+      `<div style="margin-top:16px"><div style="font-weight:800;margin-bottom:8px;font-size:15px">How your team does vs the meta</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+         <tbody>`+perArch.map(p=>`<tr><td style="padding:7px 8px;font-weight:700;white-space:nowrap">${p.n} <span style="color:#bbb;font-weight:500;font-size:11px">${Math.round(p.w*100)}% of meta</span></td><td style="padding:7px 8px;width:62%"><div style="height:20px;background:#f0e6ea;border-radius:10px;overflow:hidden"><div style="height:100%;width:${p.v}%;background:${p.v>=50?'linear-gradient(90deg,#7fe0a0,#2fb45f)':'linear-gradient(90deg,#f2a6b4,#e05a72)'};transition:width .5s"></div></div></td><td style="padding:7px 8px;text-align:right;font-weight:800;font-size:15px;color:${p.v>=50?'#1a9a4a':'#d23b3b'}">${p.v}%</td></tr>`).join('')+`</tbody></table>
+        <div style="font-size:11px;color:#aab;margin-top:6px">green = you win it · red = they beat you · played out by MEDICHAM</div></div>`+
+      (chk!=null?`<div style="margin-top:14px;text-align:center"><span style="font-size:26px;font-weight:800;color:${chk<45?'#d23b3b':'#1a9a4a'}">${chk}%</span> <span style="color:#889;font-size:13px">average vs the whole meta — no one team beats everything</span></div>`:``)+
+      (swaps.length?`<div style="margin-top:8px;font-size:11px;color:#bbc;text-align:center">DITTO swapped ${swaps.length}: `+swaps.slice(0,6).map(s=>`${cap(s[0])}→${cap(s[1])}`).join(' · ')+`</div>`:``)+
+      `<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
   },20);
 }
 // export the optimised team as a Showdown-importable PokéPaste (species @ item / ability / 4 moves from the common set)
