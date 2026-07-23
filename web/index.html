@@ -340,10 +340,14 @@ function tierRow(sprite,name,acro,cost,color,text){
 }
 function roomMedicham(){const c=CAST[2];
   return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — CHOMP's exact damage, a few hundred quick rollouts, sampling every roll. Middle of the pack in speed and cost.")}</div>
-   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Enter both teams (comma-separated species, or a PokéPaste). I run the rollout and give a grounded win rate.</p>
-     <div class="grid2">
-       <div><label style="font-weight:700;font-size:13px">Your team</label><textarea id="mcA" class="mcbox" placeholder="pelipper, basculegion, archaludon, kingambit">${teamA.join(', ')}</textarea></div>
-       <div><label style="font-weight:700;font-size:13px">Opponent</label><textarea id="mcB" class="mcbox" placeholder="charizard, venusaur, torkoal, garchomp">${teamB.join(', ')}</textarea></div>
+   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Pick both teams below — your carried team is already loaded. I run the rollout and give a grounded win rate.</p>
+     <div class="booth two" style="margin-top:8px">
+       <div class="side you"><h3>Your team</h3><div class="slots" data-slots="A"></div>
+         <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMA','A',this.value)">
+         <div class="picker" id="pickMA"></div></div>
+       <div class="side rival"><h3>Opponent</h3><div class="slots" data-slots="B"></div>
+         <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMB','B',this.value)">
+         <div class="picker" id="pickMB"></div></div>
      </div>
      <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;margin-top:10px" onclick="runMedichamRoom()">Play it out</button>
      <div class="readout" id="mcRoomOut" style="text-align:left;color:#b4432f"></div>
@@ -352,11 +356,12 @@ function roomMedicham(){const c=CAST[2];
 }
 function roomDitto(){const c=CAST[3];
   return `<div class="panel">${mascotHero(c,"Copy copy! I build teams that beat the <b>live</b> meta. I try thousands of swaps, scoring each with Jolteon, and I make sure you have an answer to <b>Basculegion</b> \u2014 not to Camerupt.")}</div>
-   <div class="panel"><h2>Build a team to optimise</h2><p class="sub">Your carried team seeds the search. Edit it, or load a saved team.</p>
-     <input id="dtseed" placeholder="garchomp,whimsicott,basculegion,kingambit,charizard,sylveon" value="${teamA.join(',')}" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:8px">
-     <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="document.getElementById('dtseed').value=teamA.join(',')">use my current team</button>
-     <button class="battlebtn" onclick="runDitto()">Build me a team</button>
-     <pre id="dtout" style="margin-top:12px;background:#fff0fa;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:320px;overflow:auto">Press Build me a team. (Needs the local server.)</pre>
+   <div class="panel"><h2>Build a team to optimise</h2><p class="sub">Pick your seed team — DITTO iterates from here, swapping Pokémon to beat the live meta. Runs right in your browser, no server.</p>
+     <div class="side you" style="max-width:none"><h3>Your seed team (carried across tabs)</h3><div class="slots" data-slots="A"></div>
+       <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickD','A',this.value)">
+       <div class="picker" id="pickD"></div></div>
+     <button class="battlebtn" style="margin-top:10px" onclick="runDitto()">Iterate → best version of my team</button>
+     <div id="dtout" style="margin-top:12px"></div>
    </div>
    <div class="panel"><h2>Threat rankings</h2><p class="sub">Every common threat on the ladder \u2014 click a column to sort, or search. Straight from the battle logs.</p>
      <input class="pksearch" placeholder="search a threat\u2026" oninput="renderThreats(null,this.value)">
@@ -398,8 +403,9 @@ function go(id){
   stage.innerHTML=`<div class="room on">${ROOMS[id]()}</div>`;
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='jolteon') initBooth();
+  if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); }
+  if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); }
   if(id==='town') updateStats();
-  if(id==='ditto') renderThreats();
 }
 /* ===== Ditto threat rankings table (sortable, searchable) ===== */
 let threatSort='use', threatQ='';
@@ -444,7 +450,8 @@ function delSaved(i){ const s=getSaved(); s.splice(i,1); localStorage.setItem('a
 function renderSaved(){ const el=document.getElementById('savedbar'); if(!el)return; const s=getSaved();
   el.innerHTML = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
 }
-function initBooth(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp'];
+function ensureTeams(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp']; }
+function initBooth(){ ensureTeams();
   renderPick('pickA','A'); renderPick('pickB','B'); renderSlots(); renderSaved(); }
 function renderPick(elId,side,q){const el=document.getElementById(elId);if(!el)return;
   const f=(q||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -455,12 +462,13 @@ function renderPick(elId,side,q){const el=document.getElementById(elId);if(!el)r
 function toggle(n,side){const T=side==='A'?teamA:teamB;const i=T.indexOf(n);
   if(i>=0)T.splice(i,1); else {if(T.length>=6){return;} T.push(n);} renderSlots(); syncSel();}
 function syncSel(){document.querySelectorAll('.pk').forEach(b=>{const T=b.dataset.s==='A'?teamA:teamB;b.classList.toggle('sel',T.includes(b.dataset.n));});}
-function renderSlots(){const sa=document.getElementById('slotsA'),sb=document.getElementById('slotsB');if(!sa)return;
-  const cell=(n,side)=>`<div class="slot" title="${cap(n)} — click × to remove"><img src="${ani(BY[n].sprite)}"><button class="slotx" onclick="toggle('${n}','${side}')">×</button></div>`;
+function renderSlots(){
+  const cell=(n,side)=>`<div class="slot" title="${cap(n)} — click × to remove"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'"><button class="slotx" onclick="toggle('${n}','${side}')">×</button></div>`;
   const render=(team,side)=> team.length
     ? team.map(n=>cell(n,side)).join('')+`<button class="clearx" onclick="clearTeam('${side}')" title="clear whole team">clear ×</button>`
     : '<small style="color:#889">pick some →</small>';
-  sa.innerHTML=render(teamA,'A'); sb.innerHTML=render(teamB,'B'); saveTeams();}
+  document.querySelectorAll('[data-slots]').forEach(box=>{const side=box.dataset.slots;box.innerHTML=render(side==='A'?teamA:teamB,side);});
+  saveTeams();}
 function clearTeam(side){ if(side==='A')teamA=[]; else teamB=[]; renderSlots(); syncSel(); }
 function randomTeams(){const pool=JOLT.roster.map(m=>m.n);const pick=()=>{const s=new Set();while(s.size<4)s.add(pool[Math.floor(Math.random()*pool.length)]);return[...s];};
   teamA=pick();teamB=pick();renderSlots();syncSel();doBattle(true);}
