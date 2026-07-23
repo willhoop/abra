@@ -548,7 +548,8 @@ function roomMedicham(){const c=CAST[2];
        <div class="savedbar"></div>
      </div>
    </div>
-   <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
+   <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>
+   <div class="panel"><h2>The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">This is my most important job. When Ditto builds a team by optimising a fast model, it can <b>game</b> that model — stacking what the model over-rates. So I <b>re-check every team by actually playing it out</b>. Once the sheet said a team was 90%; I played it and it was 12% — and I was right. That disagreement is the whole point: I catch the hype <i>and</i> the hidden gems, so nobody fools the optimiser.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
   return `<div class="panel">${mascotHero(c,"Copy copy! I <b>solve the meta</b>, then tune your team to beat it \u2014 and name who still counters you.")}</div>
@@ -713,8 +714,8 @@ function doBattle(quiet){
   document.getElementById('mYouL').textContent=pa+'%';
   document.getElementById('mRivL').textContent=pb+'%';
   const fav = pa>pb?'Your team':'Rival team', edge=Math.abs(pa-pb);
-  let msg = edge<8?` dead even — this one's a coin flip!`:edge<20?` ${fav} is favoured (${Math.max(pa,pb)}%).`:` ${fav} is a big favourite (${Math.max(pa,pb)}%)!`;
-  document.getElementById('readout').innerHTML=msg+`  — JOLTEON <span class="zap"></span> <span style="color:#889">live</span>`;
+  let msg = edge<8?`Too close to call from the sheet — basically a coin flip`:`${fav} leans favoured (${Math.max(pa,pb)}%)`;
+  document.getElementById('readout').innerHTML=`${msg} <span class="zap"></span><br><span style="font-size:12px;color:#889">JOLTEON only reads the team sheet, which barely beats a coin — treat this as a hint. For the real read, <a href="#" onclick="doMedicham();return false" style="font-weight:700;color:#c0432f">play it out with MEDICHAM ▶</a></span>`;
   document.getElementById('mcout').textContent='';
 }
 /* live engines via the local server (start.bat). Graceful if not running. */
@@ -782,11 +783,11 @@ function runDitto(){
     for(const a of archT){ const v=mcWinProbI(team,items,a.t,200); if(v!=null){ chkS+=a.w*v; chkW+=a.w; perArch.push({n:a.n,w:a.w,v:Math.round(v*100),t:a.t}); } }
     const check = chkW? chkS/chkW : null; const exploiters=perArch.filter(p=>p.v<45);
     const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]);
-      const moves=ms.map(x=>`<div style="font-size:11.5px;color:#556">${niceName(x)}</div>`).join('');
-      return `<div style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left">
-        <div style="display:flex;align-items:center;gap:8px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)" style="width:46px;height:46px">
-          <div style="line-height:1.25"><b style="font-size:14px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12px;font-weight:600">${niceName(m.ab)}</span></div></div>
-        <div style="margin-top:6px">${moves||'—'}</div></div>`;};
+      const moves=ms.map(x=>`<div style="font-size:12px;color:#556;padding:4px 0;border-top:1px solid #f0f0f4">${niceName(x)}</div>`).join('');
+      return `<div style="background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;text-align:left">
+        <div style="display:flex;align-items:center;gap:10px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="sprFallback(this)" style="width:54px;height:54px">
+          <div style="line-height:1.35"><b style="font-size:15px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12.5px;font-weight:700">${niceName(m.ab)}</span></div></div>
+        <div style="margin-top:10px">${moves||'—'}</div></div>`;};
     const bp=Math.round(best*100), sp=Math.round(start*100), chk=check!=null?Math.round(check*100):null;
     out.style.color='#223'; out.style.textAlign='left';
     out.innerHTML=`
