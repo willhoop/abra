@@ -61,7 +61,8 @@ def build(rows, min_count=25):
     cnt=Counter(s for a,b,_,_ in rows for s in a+b)
     sp=sorted(s for s,c in cnt.items() if c>=min_count)   # pool rare species (anti-overfit)
     idx={s:i for i,s in enumerate(sp)}
-    return sp, idx
+    counts=np.array([cnt[s] for s in sp], dtype=float)    # sample size per species
+    return sp, idx, counts
 
 def featurize(rows, sp, idx):
     """multihot species diff  ++  [speed edge, firepower edge]  ->  X, Y."""
@@ -78,12 +79,23 @@ def featurize(rows, sp, idx):
     return X,Y
 
 def fit(X,Y,l2=2.0,iters=6000,lr=0.3):
+    """l2 may be a scalar or a per-feature vector (rarity-aware shrinkage)."""
     n=X.shape[1]; w=np.zeros(n)
+    l2v=np.full(n,l2,dtype=float) if np.isscalar(l2) else np.asarray(l2,dtype=float)
     for _ in range(iters):
         p=1/(1+np.exp(-(X@w)))
-        grad=X.T@(p-Y)/len(Y) + l2*w/len(Y)
+        grad=X.T@(p-Y)/len(Y) + l2v*w/len(Y)
         w-=lr*grad
     return w
+
+def l2_vector(counts, n_extra=2, base=2.0, K=300.0):
+    """Rarity-aware regularisation: a species seen n times is shrunk toward
+    neutral by L2 = base*(1 + K/n). Common species (large n) keep base L2 and a
+    trusted rating; rare species get heavy L2 and a rating pulled to ~0, so the
+    model — and anything optimising against it (DITTO) — can't exploit a strength
+    it only saw a handful of times. Extra (dynamics) features keep base L2."""
+    per=base*(1.0+K/np.maximum(counts,1.0))
+    return np.concatenate([per, np.full(n_extra, base)])
 
 def brier(p,y): return float(np.mean((p-y)**2))
 def acc(p,y):   return float(np.mean((p>=0.5).astype(int)==y))
@@ -95,23 +107,27 @@ if __name__=='__main__':
     if cmd=='train':
         rows=load(sys.argv[2] if len(sys.argv)>2 else STORE)
         cut=int(len(rows)*0.8); tr,te=rows[:cut],rows[cut:]
-        sp,idx=build(tr); n=len(sp)
+        sp,idx,counts=build(tr); n=len(sp)
         Xtr,Ytr=featurize(tr,sp,idx); Xte,Yte=featurize(te,sp,idx)
-        # ablation: species-only vs species+dynamics
-        w_sp=fit(Xtr[:,:n],Ytr);           p_sp=1/(1+np.exp(-(Xte[:,:n]@w_sp)))
-        w=fit(Xtr,Ytr);                    pte =1/(1+np.exp(-(Xte@w)))
+        l2v=l2_vector(counts, n_extra=2)
+        # ablation: flat-L2 vs rarity-aware-L2 (both with the dynamics features)
+        w_flat=fit(Xtr,Ytr,l2=2.0);        p_flat=1/(1+np.exp(-(Xte@w_flat)))
+        w=fit(Xtr,Ytr,l2=l2v);             pte  =1/(1+np.exp(-(Xte@w)))
         p50=np.full(len(Yte),.5)
         print(f"trained on {len(tr)} games, tested on {len(te)} (humans only, temporal split)")
-        print(f"features: {n} species + speed-edge + firepower-edge\n")
-        print(f"{'model':<34}{'acc':>8}{'Brier':>9}{'logloss':>9}")
-        print(f"{'baseline: always 0.5':<34}{acc(p50,Yte):>8.3f}{brier(p50,Yte):>9.3f}{logloss(p50,Yte):>9.3f}")
-        print(f"{'JOLTEON v1 (species only)':<34}{acc(p_sp,Yte):>8.3f}{brier(p_sp,Yte):>9.3f}{logloss(p_sp,Yte):>9.3f}")
-        print(f"{'JOLTEON v2 (+speed +firepower)':<34}{acc(pte,Yte):>8.3f}{brier(pte,Yte):>9.3f}{logloss(pte,Yte):>9.3f}")
+        print(f"features: {n} species + speed-edge + firepower-edge  ·  rarity-aware L2\n")
+        print(f"{'model':<36}{'acc':>8}{'Brier':>9}{'logloss':>9}")
+        print(f"{'baseline: always 0.5':<36}{acc(p50,Yte):>8.3f}{brier(p50,Yte):>9.3f}{logloss(p50,Yte):>9.3f}")
+        print(f"{'JOLTEON (flat L2)':<36}{acc(p_flat,Yte):>8.3f}{brier(p_flat,Yte):>9.3f}{logloss(p_flat,Yte):>9.3f}")
+        print(f"{'JOLTEON (rarity-aware L2)':<36}{acc(pte,Yte):>8.3f}{brier(pte,Yte):>9.3f}{logloss(pte,Yte):>9.3f}")
         print(f"\nlearned dynamics weights:  speed-edge={w[n]:+.2f}   firepower-edge={w[n+1]:+.2f}")
         order=np.argsort(w[:n])
         print("Strongest species:", [(sp[i],round(float(w[i]),2)) for i in order[::-1][:8]])
         print("Weakest species:  ", [(sp[i],round(float(w[i]),2)) for i in order[:6]])
-        json.dump({'species':sp,'w':[float(x) for x in w],'has_dynamics':bool(SPD)}, open(WEIGHTS,'w'))
+        # rarity check: are rare species now shrunk toward 0?
+        rare=[(sp[i],int(counts[i]),round(float(w[i]),2)) for i in np.argsort(counts)[:5]]
+        print("Rarest species (count, weight -> shrunk):", rare)
+        json.dump({'species':sp,'w':[float(x) for x in w],'counts':[int(c) for c in counts],'has_dynamics':bool(SPD)}, open(WEIGHTS,'w'))
         print(f"\nsaved model -> {WEIGHTS}")
     elif cmd=='predict':
         M=json.load(open(WEIGHTS)); sp=M['species']; idx={s:i for i,s in enumerate(sp)}; w=np.array(M['w']); n=len(sp)
