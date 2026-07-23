@@ -280,9 +280,12 @@ const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 
 // Mega abilities (Champions flips the ability when the Mega stone is held). Confirmed Champions customs:
 // Staraptor→Contrary, Swampert→Water Bubble. Others are standard Mega abilities; Charizard X/Y split by stone.
-const MEGA_ABIL={staraptor:'contrary',swampert:'swiftswim',venusaur:'thickfat',blastoise:'megalauncher',mawile:'hugepower',gengar:'shadowtag',gardevoir:'pixilate',gallade:'innerfocus',metagross:'toughclaws',aerodactyl:'toughclaws',tyranitar:'sandstream',garchomp:'sandforce',kangaskhan:'parentalbond',blaziken:'speedboost',scizor:'technician',sceptile:'lightningrod',alakazam:'trace',lucario:'adaptability',medicham:'purepower',manectric:'intimidate',absol:'magicbounce',sableye:'magicbounce',lopunny:'scrappy',heracross:'skilllink',pinsir:'aerilate',abomasnow:'snowwarning',altaria:'pixilate',beedrill:'adaptability',sharpedo:'strongjaw',camerupt:'sheerforce',banette:'prankster',houndoom:'solarpower'};
+// Mega abilities — sourced from Serebii's Champions data. Champions runs BOTH classic Megas
+// (mainline abilities) AND new Champions-only Megas. Confirmed: Mega Swampert = Swift Swim (Reg M-B).
+const MEGA_ABIL={swampert:'swiftswim',venusaur:'thickfat',blastoise:'megalauncher',mawile:'hugepower',gengar:'shadowtag',gardevoir:'pixilate',gallade:'innerfocus',metagross:'toughclaws',aerodactyl:'toughclaws',tyranitar:'sandstream',garchomp:'sandforce',kangaskhan:'parentalbond',blaziken:'speedboost',scizor:'technician',sceptile:'lightningrod',alakazam:'trace',lucario:'adaptability',medicham:'purepower',manectric:'intimidate',absol:'magicbounce',sableye:'magicbounce',lopunny:'scrappy',heracross:'skilllink',pinsir:'aerilate',abomasnow:'snowwarning',altaria:'pixilate',beedrill:'adaptability',sharpedo:'strongjaw',camerupt:'sheerforce',banette:'prankster',houndoom:'solarpower',staraptor:'contrary',malamar:'contrary',dragonite:'multiscale',glimmora:'adaptability',froslass:'snowwarning',chandelure:'infiltrator',delphox:'levitate',chimecho:'levitate',meowstic:'trace',clefable:'magicbounce',starmie:'hugepower',scrafty:'intimidate',greninja:'protean',dragalge:'regenerator',barbaracle:'toughclaws',chesnaught:'bulletproof',scolipede:'shellarmor',emboar:'moldbreaker',falinks:'defiant',drampa:'berserk',victreebel:'innardsout',golurk:'unseenfist',floette:'fairyaura',skarmory:'stalwart',crabominable:'ironfist',excadrill:'piercingdrill',eelektross:'eelevate',pyroar:'firemane',meganium:'megasol',feraligatr:'dragonize',scovillain:'spicyspray',hawlucha:'noguard'};
 function megaAbility(name,item,baseAb){ if(!item)return baseAb;
   if(name==='charizard'){ if(/itey$/.test(item))return 'drought'; if(/itex$/.test(item))return 'toughclaws'; }
+  if(name==='raichu'){ if(/y$/.test(item))return 'noguard'; if(/x$/.test(item))return 'electricsurge'; }
   if(MEGA_ABIL[name] && /ite[xy]?$/.test(item)) return MEGA_ABIL[name];
   return baseAb; }
 function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
@@ -339,7 +342,7 @@ function dmgRange(att,def,mv,field,spread){
 const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttackle:1/3,woodhammer:1/3,headsmash:1/2,lightofruin:1/2,wildcharge:1/4,takedown:1/4,submission:1/4,headcharge:1/4};
 const SELFDROP={closecombat:{df:-1,sd:-1},superpower:{at:-1,df:-1},overheat:{sa:-2},leafstorm:{sa:-2},dracometeor:{sa:-2},fleurcannon:{sa:-2},psychoboost:{sa:-2},makeitrain:{sa:-1},armorcannon:{df:-1,sd:-1},dragonascent:{df:-1,sd:-1},vcreate:{df:-1,sd:-1,sp:-1}};
 function bestMoveVs(att,def,field){ let best=null,bs=-1;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=att.ability==='noguard'?1:(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
   return best;
 }
 // pick the best target (max damage) for a SPECIFIC move
@@ -350,12 +353,12 @@ function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)
 // take an obvious KO, and Protect defensively when threatened. This is the whole point of the model —
 // the win rate is the expected outcome under *realistic* play by both sides, not optimal play.
 function chooseAction(me,foes,ally,field,side,rng){
-  if(me.status==='slp'&&me.slp>0)return{kind:'sleep'};
+  // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
-  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=(ACC[b.id]||100)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
-  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&(ACC[bestAtk.id]||100)>=100;
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=me.ability==='noguard'?1:(ACC[b.id]||100)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&((ACC[bestAtk.id]||100)>=100||me.ability==='noguard');
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
@@ -381,7 +384,7 @@ function chooseAction(me,foes,ally,field,side,rng){
 function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;
   if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
   if(m.status==='par')s*=0.5;return s;}
-function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slp=1+(Math.random()*2|0);}
+function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;}
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   const field={weather:null,weatherT:0,twA:0,twB:0,tr:0};
@@ -404,8 +407,9 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
     for(const it of acts){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
-      if(m.status==='par'&&rng()<0.25)continue;
-      if(m.status==='slp'){if(m.slp>0){m.slp--;continue;}else m.status='';}
+      if(m.status==='par'&&rng()<0.125)continue;   // Champions: 12.5% full-para (was 25%)
+      if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25)m.status='';else continue;}   // Champions: 25%/attempt, guaranteed thaw turn 3
+      if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;if(m.slpTurns>=3||(m.slpTurns===2&&rng()<1/3))m.status='';else continue;}   // Champions: 33% wake turn 2, 100% turn 3
       const a=it.a;
       if(a.kind==='setup'){m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);continue;}
       if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
