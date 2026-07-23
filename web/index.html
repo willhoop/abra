@@ -1104,7 +1104,7 @@ for(let i=0;i<40;i++){const f=document.createElement('div');f.className='snowf';
 
 
 /* gently teleporting Abras in the background  */
-function makeAbra(){
+function makeAbra(){ return; /* right-side teleporting sprite removed */
   const a=document.createElement('img'); a.className='tp'; a.src=ani('abra'); document.body.appendChild(a);
   const place=()=>{ const right=Math.random()<0.5; a.style.left=right?(89+Math.random()*9)+'vw':(1.5+Math.random()*9)+'vw'; a.style.top=(14+Math.random()*72)+'vh'; };  // stay in the empty side margins, never over the content column
   const ring=()=>{ const r=document.createElement('div'); r.className='tpring'; r.style.left=a.style.left; r.style.top=a.style.top;
