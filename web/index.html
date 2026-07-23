@@ -600,7 +600,7 @@ function go(id){
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='jolteon') initBooth();
   if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); renderSaved(); }
-  if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); }
+  if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); renderNonTrans(); }
   if(id==='town') updateStats();
   spawnAdvisors(id);
 }
