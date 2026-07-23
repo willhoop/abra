@@ -35,17 +35,19 @@ a { color:#1E2761; }
       <div class="note">A single consecutive read of everything ABRA. Start at the cheat card, glance at the interaction chart, read the predictability study for the CHOMP/JOLTEON/win% dynamic, then the white papers. Updated in the same pass as the code.</div></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="toc"><h1>Contents</h1><ol><li>The cast, on one card</li><li>How the models interact</li><li>Executive Summary</li><li>The Deck (plain English)</li><li>Predictability Study — CHOMP, JOLTEON & the win% ceiling</li><li>White Paper — the data platform</li><li>White Paper — learning the simulator (the ML)</li><li>White Paper — SLOWKING (offline belief-state search)</li><li>SLOWKING — research roadmap</li><li>KADABRA — the coach spec</li><li>Architecture notes (languages, server, recency)</li></ol></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 1</div><h1>ABRA — the cast, on one card</h1>
 <p><strong>Version 1.0 · 2026-07-22 · Will Hooper</strong></p>
 <blockquote>
-<p>Every model is a Pokémon. The Pokémon's <strong>speed</strong> tells you the model's <strong>cost</strong>: fast Pokémon =
-cheap/fast model, slow Pokémon = expensive/deep model. Every name is an acronym.</p>
+<p>Every model is a Pokémon, and every name is an acronym. For the <strong>three battle-playing tiers only</strong>
+— JOLTEON → MEDICHAM → SLOWKING — the Pokémon's <strong>speed</strong> signals the model's <strong>cost</strong> (fast =
+cheap/shallow, slow = expensive/deep). The other models (ABRA, DITTO, KADABRA, CHOMP) do different
+jobs and don't sit on that speed scale.</p>
 </blockquote>
 <h2>What each one does</h2>
-<p>Speed = cost: the faster the Pokémon, the cheaper/faster the model.</p>
 <table>
 <thead>
 <tr>
 <th>Model</th>
-<th>Pokémon · speed</th>
+<th>Pokémon</th>
 <th>What it does</th>
+<th>Cost tier</th>
 <th>Status</th>
 </tr>
 </thead>
@@ -54,46 +56,54 @@ cheap/fast model, slow Pokémon = expensive/deep model. Every name is an acronym
 <td><strong>ABRA</strong></td>
 <td>Abra</td>
 <td>collects, stores, and models the live ladder</td>
+<td>— (the platform)</td>
 <td>Built</td>
 </tr>
 <tr>
 <td><strong>JOLTEON</strong></td>
-<td>Jolteon · fastest</td>
+<td>Jolteon</td>
 <td>instant team-vs-team win probability</td>
+<td>⚡ fastest / cheapest</td>
 <td>Built</td>
 </tr>
 <tr>
 <td><strong>MEDICHAM</strong></td>
-<td>Medicham · mid</td>
+<td>Medicham</td>
 <td>short exact-damage rollouts; vets teams</td>
+<td>mid</td>
 <td>Built</td>
 </tr>
 <tr>
 <td><strong>SLOWKING</strong></td>
-<td>Slowking · slowest</td>
+<td>Slowking</td>
 <td>deep belief-search (equilibrium play)</td>
+<td>slowest / deepest</td>
 <td>Research</td>
 </tr>
 <tr>
 <td><strong>DITTO</strong></td>
 <td>Ditto</td>
 <td>builds teams vs the live meta</td>
+<td>— (uses JOLTEON)</td>
 <td>Built</td>
 </tr>
 <tr>
 <td><strong>KADABRA</strong></td>
 <td>Kadabra</td>
 <td>turn-by-turn coach on your replays</td>
+<td>— (uses CHOMP+ABRA)</td>
 <td>Built</td>
 </tr>
 <tr>
 <td><strong>CHOMP</strong></td>
 <td>Garchomp</td>
 <td>the bring-4 / lead-2 engine you play with</td>
+<td>— (exact damage)</td>
 <td>Built</td>
 </tr>
 </tbody>
 </table>
+<p>Only JOLTEON → MEDICHAM → SLOWKING form the fast-to-slow "cost tier" scale; the rest do their own jobs.</p>
 <p><strong>The acronyms.</strong> ABRA — Automated Battle Replay Analyzer. JOLTEON — Joint Odds, Ladder-Trained
 Expected-Outcome Network. MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate
 Moves. SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver.

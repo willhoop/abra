@@ -2,22 +2,24 @@
 
 **Version 1.0 · 2026-07-22 · Will Hooper**
 
-> Every model is a Pokémon. The Pokémon's **speed** tells you the model's **cost**: fast Pokémon =
-> cheap/fast model, slow Pokémon = expensive/deep model. Every name is an acronym.
+> Every model is a Pokémon, and every name is an acronym. For the **three battle-playing tiers only**
+> — JOLTEON → MEDICHAM → SLOWKING — the Pokémon's **speed** signals the model's **cost** (fast =
+> cheap/shallow, slow = expensive/deep). The other models (ABRA, DITTO, KADABRA, CHOMP) do different
+> jobs and don't sit on that speed scale.
 
 ## What each one does
 
-Speed = cost: the faster the Pokémon, the cheaper/faster the model.
+| Model | Pokémon | What it does | Cost tier | Status |
+|---|---|---|---|---|
+| **ABRA** | Abra | collects, stores, and models the live ladder | — (the platform) | Built |
+| **JOLTEON** | Jolteon | instant team-vs-team win probability | ⚡ fastest / cheapest | Built |
+| **MEDICHAM** | Medicham | short exact-damage rollouts; vets teams | mid | Built |
+| **SLOWKING** | Slowking | deep belief-search (equilibrium play) | slowest / deepest | Research |
+| **DITTO** | Ditto | builds teams vs the live meta | — (uses JOLTEON) | Built |
+| **KADABRA** | Kadabra | turn-by-turn coach on your replays | — (uses CHOMP+ABRA) | Built |
+| **CHOMP** | Garchomp | the bring-4 / lead-2 engine you play with | — (exact damage) | Built |
 
-| Model | Pokémon · speed | What it does | Status |
-|---|---|---|---|
-| **ABRA** | Abra | collects, stores, and models the live ladder | Built |
-| **JOLTEON** | Jolteon · fastest | instant team-vs-team win probability | Built |
-| **MEDICHAM** | Medicham · mid | short exact-damage rollouts; vets teams | Built |
-| **SLOWKING** | Slowking · slowest | deep belief-search (equilibrium play) | Research |
-| **DITTO** | Ditto | builds teams vs the live meta | Built |
-| **KADABRA** | Kadabra | turn-by-turn coach on your replays | Built |
-| **CHOMP** | Garchomp | the bring-4 / lead-2 engine you play with | Built |
+Only JOLTEON → MEDICHAM → SLOWKING form the fast-to-slow "cost tier" scale; the rest do their own jobs.
 
 **The acronyms.** ABRA — Automated Battle Replay Analyzer. JOLTEON — Joint Odds, Ladder-Trained
 Expected-Outcome Network. MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate
