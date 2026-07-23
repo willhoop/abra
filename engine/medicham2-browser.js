@@ -71,6 +71,9 @@ function dmgRange(att,def,mv,field,spread){
   return {min:roll(85),max:roll(100),eff};
 }
 const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttackle:1/3,woodhammer:1/3,headsmash:1/2,lightofruin:1/2,wildcharge:1/4,takedown:1/4,submission:1/4,headcharge:1/4};
+// move-specific self stat changes (negative = drop). Contrary REVERSES the sign, so e.g.
+// Malamar's Superpower/Overheat RAISE the stat instead of dropping it — the classic Contrary combo.
+const SELFDROP={closecombat:{df:-1,sd:-1},superpower:{at:-1,df:-1},overheat:{sa:-2},leafstorm:{sa:-2},dracometeor:{sa:-2},fleurcannon:{sa:-2},psychoboost:{sa:-2},makeitrain:{sa:-1},armorcannon:{df:-1,sd:-1},dragonascent:{df:-1,sd:-1},vcreate:{df:-1,sd:-1,sp:-1}};
 function bestMoveVs(att,def,field){ let best=null,bs=-1;
   for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
     // value = expected damage discounted by accuracy AND by recoil self-damage (frail spammers shouldn't look free)
@@ -90,8 +93,9 @@ function chooseAction(me,foes,ally,field,side,rng){
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
-  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const ko=b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0);const sc=ko*1e4+b.d.max;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
-  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP;
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=(ACC[b.id]||100)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  // a KO is only "guaranteed" if the move is accurate too — no relying on a 70% nuke
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&(ACC[bestAtk.id]||100)>=100;
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
@@ -151,11 +155,18 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
       if(!targets.length)targets=live(foes).slice(0,1);
+      let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted||tg.protect)continue;
         const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
+        dealt+=Math.min(dmg,tg.curHP);
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else if(a.move.id==='fakeout')tg._flinch=true;}   // Fake Out flinches survivors
+      // recoil: frail spammers pay for Brave Bird / Flare Blitz / Wave Crash
+      if(RECOIL[a.move.id]&&dealt>0){m.curHP-=Math.floor(dealt*RECOIL[a.move.id]);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      // self stat changes; Contrary flips drops into boosts (Malamar Superpower/Overheat ramp)
+      const sdrop=SELFDROP[a.move.id];
+      if(sdrop){const sgn=m.ability==='contrary'?-1:1;for(const k in sdrop)m.boosts[k]=clamp(m.boosts[k]+sdrop[k]*sgn,-6,6);}
       if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     }
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
