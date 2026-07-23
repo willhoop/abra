@@ -65,6 +65,11 @@ the design rule in §5.
 - **Incremental and idempotent.** The store is append-only JSON Lines keyed by replay id. Each run
   reads existing ids, requests recent pages, and appends only games not already present. Re-running
   never duplicates and never re-fetches stored games.
+- **Never double-counted.** A battle has one fixed Showdown replay id, so a game uploaded by *both*
+  players — or one you later review in KADABRA, or pull via your own username — is the same id and is
+  ignored if already stored. Every ingest path (ladder scrape, personal pull, coaching review) dedups
+  against the full store, and every analysis loader (`jolteon`, `dynamics`, `analyze`) also dedups by
+  id at read time, so a stray duplicate line can never inflate a count.
 - **Continuous collection.** A scheduled GitHub Action runs the ingest hourly and commits the
   refreshed store and model, so the metagame model tracks the live ladder with no operator.
 
