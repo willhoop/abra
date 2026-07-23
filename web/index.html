@@ -791,6 +791,11 @@ function dittoPaste(btn){ if(!dittoResult)return; const items=dittoItems||{};
   const txt=dittoResult.map(n=>{const m=MC.mons[n]||{}; const top=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]); const moves=top.map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(items[n]||m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
   try{navigator.clipboard.writeText(txt);}catch(e){}
   if(btn){const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1200);} }
+// copy your carried team as a PokéPaste to import into the official Champions calc
+function copyOrbTeams(btn){ const t=(typeof teamA!=='undefined'&&teamA.length)?teamA:[]; if(!t.length){alert('Build your team first on the Jolteon or Ditto tab, then come back.');return;}
+  const txt=t.map(n=>{const m=MC.mons[n]||{}; const top=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]); const moves=top.map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
+  try{navigator.clipboard.writeText(txt);}catch(e){}
+  if(btn){const o=btn.textContent;btn.textContent='Copied — paste into the calc’s Import';setTimeout(()=>btn.textContent=o,1800);} }
 let KAD=null, kadKeys=[], kadI=0;
 async function runKadabra(){
   const raw=document.getElementById('kdid').value.trim(); const out=document.getElementById('kdout');
