@@ -123,9 +123,10 @@ function rollout(A,B,opts={}){
     if(actA.kind==='attack') movers.push('A'); if(actB.kind==='attack') movers.push('B');
     const spd=s=> s==='A'?effSpeed(A[ai],ctx,'A',{...sA[ai],field}):effSpeed(B[bi],ctx,'B',{...sB[bi],field});
     const prio=s=> s==='A'?(actA.mvPrio||bestMove(A[ai],B[bi],ctx).priority?1:0):(bestMove(B[bi],A[ai],ctx).priority?1:0);
-    movers.sort((x,y)=>{ const dp=prio(y)-prio(x); if(dp)return dp; const d=spd(y)-spd(x); return field.tr>0? -d : d; });
+    movers.sort((x,y)=>{ const dp=prio(y)-prio(x); if(dp)return dp; const d=spd(y)-spd(x); const base=field.tr>0?-d:d; return base||(Math.random()<0.5?-1:1); });
+    const fainted={A:false,B:false};
     for(const s of movers){
-      if(hpA[ai]<=0||hpB[bi]<=0)break;
+      if(fainted[s]) continue;                        // active was KO'd this turn; its replacement does NOT act until next turn
       const attSt=s==='A'?sA[ai]:sB[bi];
       if(attSt.status==='par' && Math.random()<0.25) continue;          // fully paralysed
       const att=s==='A'?A[ai]:B[bi], def=s==='A'?B[bi]:A[ai], defProt=s==='A'?sB[bi].protThis:sA[ai].protThis;
@@ -135,8 +136,8 @@ function rollout(A,B,opts={}){
       let dmg=rnd(b.minPct,b.pct);
       const off=Math.max(attSt.boost.atk,attSt.boost.spa); if(off) dmg*=stageMul(off);   // setup pays off
       if(attSt.status==='brn' && isPhysical(att)) dmg*=0.5;                                // burn halves physical
-      if(s==='A'){ hpB[bi]-=dmg; if(hpB[bi]<=0){ const nx=pickBestVs(B,hpB,A[ai],ctx); if(nx<0)break; bi=nx; sB[bi].boost={atk:0,spa:0,spe:0}; } }
-      else       { hpA[ai]-=dmg; if(hpA[ai]<=0){ const nx=pickBestVs(A,hpA,B[bi],ctx); if(nx<0)break; ai=nx; sA[ai].boost={atk:0,spa:0,spe:0}; } }
+      if(s==='A'){ hpB[bi]-=dmg; if(hpB[bi]<=0){ fainted.B=true; const nx=pickBestVs(B,hpB,A[ai],ctx); if(nx<0)break; bi=nx; sB[bi].boost={atk:0,spa:0,spe:0}; } }
+      else       { hpA[ai]-=dmg; if(hpA[ai]<=0){ fainted.A=true; const nx=pickBestVs(A,hpA,B[bi],ctx); if(nx<0)break; ai=nx; sA[ai].boost={atk:0,spa:0,spe:0}; } }
     }
     // end of turn: burn chip, sleep countdown, decrement field, protect memory
     for(const [arr,st,idx] of [[hpA,sA,ai],[hpB,sB,bi]]){
