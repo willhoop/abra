@@ -1090,9 +1090,7 @@ for(let i=0;i<40;i++){const f=document.createElement('div');f.className='snowf';
   f.style.left=Math.random()*100+'vw';f.style.fontSize=(8+Math.random()*14)+'px';
   f.style.animationDuration=(6+Math.random()*10)+'s';f.style.animationDelay=(-Math.random()*10)+'s';sky.appendChild(f);}
 // a waddling Abra along the snow line
-const walker=document.createElement('img');walker.className='walker';walker.src=ani('abra');document.body.appendChild(walker);
-let wx=-60,wdir=1;setInterval(()=>{wx+=wdir*2;if(wx>innerWidth){wdir=-1;walker.style.transform='scaleX(-1)';}if(wx<-60){wdir=1;walker.style.transform='scaleX(1)';}
-  walker.style.left=wx+'px';walker.style.bottom=(10+Math.sin(wx/40)*6)+'px';},40);
+
 
 /* gently teleporting Abras in the background  */
 function makeAbra(){

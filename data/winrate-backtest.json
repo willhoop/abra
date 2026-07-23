@@ -1,31 +1,39 @@
 {
   "generated": "engine/backtest_winrate.js — MEDICHAM P(win) vs realized outcomes, held-out games",
-  "n_games_scored": 600,
-  "rollouts_per_game": 25,
-  "elo_available_on": 581,
+  "n_games_scored": 650,
+  "rollouts_per_game": 30,
+  "elo_available_on": 630,
   "log_loss": {
-    "medicham": 1.2389,
+    "medicham": 1.2178,
     "medicham_ci95": [
-      1.1448,
-      1.333
+      1.1289,
+      1.3067
     ],
     "coin": 0.6931,
-    "elo": 0.6917
+    "elo": 0.6867
   },
   "brier": {
-    "medicham": 0.401,
+    "medicham": 0.3961,
     "coin": 0.25,
-    "elo": 0.2493
+    "elo": 0.2468
   },
   "discrimination": {
-    "accuracy_on_decisive_calls": 0.4333,
-    "decisive_calls": 600,
+    "accuracy_on_decisive_calls": 0.4401,
+    "decisive_calls": 634,
     "note": "does MEDICHAM pick the actual winner more than half the time? (calibration-free signal test)"
   },
   "temperature_calibrated": {
     "best_T": 8,
-    "log_loss": 0.7759,
+    "log_loss": 0.7626,
     "note": "in-sample optimistic ceiling: best the win% can do after re-scaling its overconfidence"
+  },
+  "recalibrated_heldout": {
+    "slope_w1": -0.0478,
+    "intercept_w0": 0.0074,
+    "test_log_loss": 0.6897,
+    "test_accuracy": 0.4077,
+    "beats_coin": true,
+    "note": "Platt recalibration fit on 60% of games, evaluated on the held-out 40%. w1<0 means MEDICHAM's raw signal is inverted; if test_log_loss<0.693 the DE-BIASED model beats a coin on unseen games."
   },
   "verdict": "MEDICHAM does NOT beat coin; does NOT beat Elo (log-loss). Honest verdict either way."
 }

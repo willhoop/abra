@@ -46,6 +46,14 @@ const sig=x=>1/(1+Math.exp(-x)); const logit=p=>Math.log(Math.max(1e-6,Math.min(
 let bestT=1,bestLL=1e9;
 for(let T=0.5;T<=8;T+=0.1){ let ll=0; for(let i=0;i<ps.length;i++){const pc=sig(logit(ps[i])/T); ll+=logloss(pc,ys[i]);} ll/=ps.length; if(ll<bestLL){bestLL=ll;bestT=T;} }
 const acc = decisive? correct/decisive : null;
+// Platt recalibration on a held-out split: is there GENERALISABLE signal (even if inverted)?
+function platt(P,Y){ let w0=0,w1=1; const lr=0.1;
+  for(let ep=0;ep<4000;ep++){ let g0=0,g1=0; for(let i=0;i<P.length;i++){const x=logit(P[i]);const pr=sig(w0+w1*x);const e=pr-Y[i];g0+=e;g1+=e*x;} w0-=lr*g0/P.length; w1-=lr*g1/P.length; } return [w0,w1]; }
+const idx=[...ps.keys()]; for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+const half=Math.floor(idx.length*0.6), tr=idx.slice(0,half), te=idx.slice(half);
+const [w0,w1]=platt(tr.map(i=>ps[i]),tr.map(i=>ys[i]));
+let llCal=0,accCal=0; for(const i of te){const pc=sig(w0+w1*logit(ps[i])); llCal+=logloss(pc,ys[i]); if(Math.abs(pc-0.5)>0.01&&(pc>0.5)===(ys[i]===1))accCal++;}
+llCal/=te.length; const accCalR=accCal/te.length;
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const ci=a=>{const m=mean(a),v=a.reduce((s,x)=>s+(x-m)**2,0)/a.length,se=Math.sqrt(v/a.length);return [m-1.96*se,m+1.96*se];};
 const r2=x=>Math.round(x*1e4)/1e4;
@@ -60,6 +68,9 @@ const out={
     note:"does MEDICHAM pick the actual winner more than half the time? (calibration-free signal test)" },
   temperature_calibrated:{ best_T:r2(bestT), log_loss:r2(bestLL),
     note:"in-sample optimistic ceiling: best the win% can do after re-scaling its overconfidence" },
+  recalibrated_heldout:{ slope_w1:r2(w1), intercept_w0:r2(w0), test_log_loss:r2(llCal),
+    test_accuracy:r2(accCalR), beats_coin: llCal<0.6931,
+    note:"Platt recalibration fit on 60% of games, evaluated on the held-out 40%. w1<0 means MEDICHAM's raw signal is inverted; if test_log_loss<0.693 the DE-BIASED model beats a coin on unseen games." },
   verdict:null
 };
 const beatsCoin = out.log_loss.medicham < out.log_loss.coin;
@@ -71,4 +82,5 @@ console.log(`  log-loss: MEDICHAM ${out.log_loss.medicham} (CI ${out.log_loss.me
 console.log(`  Brier:    MEDICHAM ${out.brier.medicham} | coin ${out.brier.coin} | Elo ${out.brier.elo}`);
 console.log(`  discrimination: picks real winner ${out.discrimination.accuracy_on_decisive_calls!==null?(out.discrimination.accuracy_on_decisive_calls*100).toFixed(1)+'%':'n/a'} of ${decisive} decisive calls (50% = no signal)`);
 console.log(`  calibrated ceiling: log-loss ${out.temperature_calibrated.log_loss} at T=${out.temperature_calibrated.best_T} (vs coin ${out.log_loss.coin})`);
+console.log(`  RECALIBRATED (held-out 40%): slope ${out.recalibrated_heldout.slope_w1} | test log-loss ${out.recalibrated_heldout.test_log_loss} vs coin 0.6931 | test acc ${(out.recalibrated_heldout.test_accuracy*100).toFixed(1)}% | beats coin: ${out.recalibrated_heldout.beats_coin}`);
 console.log(`  ${out.verdict}`);
