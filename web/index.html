@@ -545,7 +545,7 @@ function roomMedicham(){const c=CAST[2];
    <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
-  return `<div class="panel">${mascotHero(c,"Copy copy! I build teams that beat the <b>live</b> meta. I try thousands of swaps, scoring each with Jolteon, and I make sure you have an answer to <b>Basculegion</b> \u2014 not to Camerupt.")}</div>
+  return `<div class="panel">${mascotHero(c,"Copy copy! First I <b>solve the meta</b> \u2014 the Nash equilibrium of the archetype match-ups \u2014 then I best-respond to it, tuning your team to beat the game as it really is. And I'll always tell you who still counters you, because no one team beats everything.")}</div>
    <div class="panel"><h2>Best version of your team</h2><p class="sub">DITTO iterates from your seed team (below), swapping Pokémon and items to beat the live meta — right in your browser, no server.</p>
      <div style="display:flex;justify-content:center"><button class="battlebtn" onclick="runDitto()">Iterate → best version</button></div>
      <div id="dtout" style="margin-top:14px;color:#889;text-align:center">Pick your seed team below, then press Iterate.</div>
@@ -563,7 +563,7 @@ function roomDitto(){const c=CAST[3];
      <div id="nontrans" style="overflow:auto;text-align:center"></div>
    </div>
    <div class="panel"><h2>The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">When I optimise <i>against</i> Jolteon, I can cheat it \u2014 stacking rare Pok\u00e9mon it over-rates. So Medicham re-checks my teams with real rollouts. Once, Jolteon said my team was <b>90%</b>; Medicham said <b>12%</b>. Medicham was right. That disagreement is a feature: it catches hype <i>and</i> hidden gems.</p></div>
-   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">I hill-climb: start from a team, try swapping one Pok\u00e9mon at a time, and keep the swaps that score better against a gauntlet of <b>real</b> ladder teams. Jolteon scores each candidate in microseconds so I can try thousands. I weight by real usage \u2014 so I care about beating Basculegion, not Camerupt \u2014 and Medicham re-checks my finalists so I don\'t fool myself.</p></div>`;
+   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">First I <b>solve the meta</b>: I take the archetype match-up matrix and compute its Nash equilibrium \u2014 how often each archetype <i>should</i> appear if everyone plays optimally (right now: Rain, Sand, Fake-Out). Then I <b>best-respond to that equilibrium</b>, hill-climbing your team to beat the meta as it actually is, not as a flat usage list. Jolteon scores candidates fast; Medicham plays the finalists out for real and tells you which archetypes still exploit you \u2014 because in a non-transitive meta, <b>no single team beats everything</b>. That's the honest version of a double-oracle: solve the game, answer the game.</p></div>`;
 }
 function roomKadabra(){const c=CAST[4];
   return `<div class="panel">${mascotHero(c,"Paste one of your games and I'll pop in on the turns that actually mattered — not the whole battle — and show you what to do.")}</div>
@@ -770,17 +770,17 @@ function runDitto(){
     out.style.color='#223'; out.style.textAlign='left';
     out.innerHTML=`
       <div style="max-width:540px;margin:0 auto 14px;text-align:center">
-        <div style="font-size:13px;color:#667;font-weight:700;letter-spacing:.02em">TEAM RATING vs THE LIVE META</div>
+        <div style="font-size:13px;color:#667;font-weight:700;letter-spacing:.02em">BEST RESPONSE vs THE EQUILIBRIUM META</div>
         <div style="font-size:30px;font-weight:800;color:#1a9a4a;line-height:1.1">${bp}%<span style="font-size:15px;color:#99a;font-weight:600"> &nbsp;up from ${sp}%</span></div>
         <div style="height:16px;background:#ffe0f1;border:2px solid var(--line);border-radius:99px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${bp}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
-        <div style="font-size:11px;color:#99a;margin-top:4px">usage-weighted gauntlet of 24 ladder teams · full sets are the most common on the ladder</div>
+        <div style="font-size:11px;color:#99a;margin-top:4px">best-responding to the Nash-solved meta (${(typeof META_NASH!=='undefined'?META_NASH.arch.map(a=>a.n):['meta']).join(' / ')}) · full sets are the most common on the ladder</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>
       <div style="margin-top:12px;background:#faf7fb;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;color:#556">
         ${swaps.length?`<div><b>Swaps:</b> `+swaps.map(s=>`${cap(s[0])} → <b>${cap(s[1])}</b> <span style="color:#2a8">+${(s[2]*100).toFixed(1)}</span>`).join(' &nbsp;·&nbsp; ')+`</div>`:`<div style="color:#2a7;font-weight:600">Your seed was already optimal — no species swap improved it.</div>`}
         ${itemUp.length?`<div style="margin-top:5px"><b>Item upgrades:</b> `+itemUp.map(u=>`${cap(u[0])} → <b>${niceName(u[2])}</b>`).join(' &nbsp;·&nbsp; ')+`</div>`:``}
       </div>`+
-      (chk!=null?`<div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid ${chk<40?'#e8b4b4':'#b4d8c0'};background:${chk<40?'#fdf2f2':'#f2faf5'}"><b style="color:${chk<40?'#b4432f':'#1a7a4a'}">MEDICHAM grounded re-check: ${chk}%</b> <span style="color:#778;font-size:12px">vs the top meta core — the Goodhart guard. ${chk<40?'Big gap from JOLTEON means the sheet over-rates this team; trust the rollout.':'The rollout agrees the team is real.'}</span></div>`:``)+
+      (chk!=null?`<div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid ${chk<40?'#e8b4b4':'#b4d8c0'};background:${chk<40?'#fdf2f2':'#f2faf5'}"><b style="color:${chk<40?'#b4432f':'#1a7a4a'}">MEDICHAM grounded value vs the equilibrium meta: ${chk}%</b> <span style="color:#778;font-size:12px">— the Goodhart guard (JOLTEON picks the team, MEDICHAM plays it out). ${chk<40?'Big gap means the sheet over-rates this team; trust the rollout.':'The rollout agrees the team is real.'}</span>`+(exploiters.length?`<div style="margin-top:6px;font-size:12px;color:#b4432f">Still exploited by: `+exploiters.map(e=>`<b>${e[0]}</b> (${e[1]}%)`).join(' · ')+` — no single team beats the whole meta (that's the non-transitivity).</div>`:`<div style="margin-top:6px;font-size:12px;color:#1a7a4a">Holds up against every archetype in the equilibrium meta.</div>`)+`</div>`:``)+
       `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
   },20);
 }
