@@ -1,6 +1,6 @@
 # ABRA — Executive Summary
 
-**Version 1.0 · Last updated 2026-07-22 · Will Hooper**
+**Version 1.1 · Last updated 2026-07-22 · Will Hooper**
 
 ## In one line
 ABRA is the live-data platform for competitive Pokémon Champions: it continuously collects real

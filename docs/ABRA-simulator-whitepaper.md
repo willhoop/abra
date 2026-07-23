@@ -2,8 +2,12 @@
 
 ### Machine-learning foundations for a tiered VGC game model
 
-**Version 1.0 · Last updated 2026-07-22**
+**Version 1.1 · Last updated 2026-07-22**
 **Will Hooper · ABRA**
+
+> **Build status (v1.1):** Tiers 1 (JOLTEON) and 2 (MEDICHAM) and the DITTO outer loop are built,
+> tested, and measured (see §12). The per-turn dynamics model is built. Tier 3 (SLOWKING) is
+> scaffolded and honestly roadmap. Numbers below are from real runs.
 
 > A research white paper on the modelling problem behind ABRA's stages 2–3 (the simulator and the
 > team optimiser). It states the problem formally, surveys the relevant machine-learning literature,
@@ -320,6 +324,9 @@ the positions the player actually reaches.
 
 ## 7. Tier 2 — MEDICHAM, the pragmatic middle
 
+**Status: built** (`engine/medicham.js`, `tests/test-medicham.js`). Rain core beats sun core 0.60,
+mirror 0.51, ~1s / 300 playouts; v1 is sequential-singles (honest scope, true doubles is roadmap).
+
 **MEDICHAM** sidesteps learning dynamics by *specifying* them: it uses CHOMP's exact damage engine — the same pKO-over-16-rolls threat scoring as tier 1 — as a hand-built `T` for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
 or behaviour-cloned move priors from ABRA's `sets`), and roll a matchup out a few turns with a
 handful of stochastic samples to average over damage rolls. It is grounded in real math, requires no
@@ -328,6 +335,12 @@ model training, and reuses code that already exists and is already tested. It is
 and it is a strong baseline against which any learned tier-3 model must justify its cost.
 
 ## 8. DITTO — team optimisation, the outer loop
+
+**Status: built** (`engine/ditto.py`). Uses JOLTEON as evaluator against a gauntlet of real ladder
+teams, double-oracle rounds, usage-weighted threat coverage, and a bias report. Its headline finding
+is a *negative* one, stated plainly in §12: optimising against JOLTEON Goodharts it (a "90%" team is
+really ~12% by MEDICHAM), which is exactly why finalists are vetted by Tier 2. Rarity shrinkage
+(§4.4) and the proven-meta pool are the guards; MEDICHAM is the check.
 
 Given any tier as an evaluator `Ê[win | team]`, optimise the team. Formally, choosing a team `t` to
 maximise expected win rate against the **meta distribution** `D` (which ABRA measures):
@@ -421,25 +434,47 @@ never random, to respect meta drift and avoid leakage.
 
 ## 12. Feasibility — can we actually build this?
 
-Yes, tier by tier, with honesty about each.
+Yes, tier by tier, with honesty about each. **As of v1.4, tiers 1 and 2 and the DITTO outer loop are
+built and measured; tier 3 remains an honest research effort.**
 
-- **Tier 1 (JOLTEON) is built.** A Bradley–Terry logistic model with a min-sample species floor,
-  trained on 5,000 real ladder games (temporal split, humans only). Measured result: **56.6% held-out
-  accuracy vs 49.6% for a coin flip**, Brier 0.251 (calibrated). Modest, exactly as this domain's
-  variance predicts, but genuinely above chance from team composition alone — and it improves as the
-  flywheel adds games and once CHOMP's coverage features (§4.3.1) replace bare species identity.
-  Antisymmetry and calibration are pinned by `tests/test-jolteon.py`. This validates the tier-1 path
-  empirically, not just on paper.
-- **Tier 2 reuses CHOMP.** The damage engine and matchup evaluation exist and are tested; tier 2 is
-  a rollout harness plus behaviour-cloned move priors from ABRA's `sets`. Low new risk.
-- **Tier 3 is a research effort.** A learned dynamics model, belief tracking, and equilibrium search
-  (or offline-RL policy) is the frontier the cited papers occupy. It is *possible* — they prove it —
-  but it needs real compute, careful offline-RL practice, and sustained work, and it should be judged
-  against the tier-2 baseline before its cost is accepted. Grey-box structure (§5.1) and a warm start
-  from open Showdown data are the levers that make it tractable rather than hopeless.
+- **Tier 1 (JOLTEON) is built (v2).** A Bradley–Terry logistic model over per-species strengths, now
+  with **rarity-aware L2 shrinkage** (a species is trusted in proportion to its sample size — seen
+  25×, its rating is pulled toward neutral; seen 1000×, it is trusted) plus speed-edge and
+  firepower-edge features from the dynamics model. On a fresh 4,999-game pull (temporal split, humans
+  only): **~55% held-out accuracy vs ~49% for a coin flip**, Brier ~0.25 (calibrated). The number
+  sits 55–57% depending on the exact games/split — modest, exactly as this domain's variance
+  predicts, but genuinely above chance from team composition alone. Honest ablation: the dynamics
+  features *tie* species-only at this scale (firepower earns weight +0.30; speed-edge is noise), and
+  the rarity shrinkage costs no accuracy while removing the overfit an optimiser could exploit.
+  Antisymmetry and calibration are pinned by `tests/test-jolteon.py`.
+- **Tier 2 (MEDICHAM) is built.** A Monte-Carlo rollout over CHOMP's exact damage engine with a
+  heuristic (behaviour-cloned-later) move policy, sampling damage rolls. Sanity holds: rain core beats
+  sun core **0.60**, mirror match **0.51**, ~1s per 300 playouts. v1 is sequential-singles (one active
+  per side) — honest scope; true doubles turns are roadmap. Pinned by `tests/test-medicham.js`.
+- **The DITTO outer loop is built** — and its most important output is a *negative* result stated
+  plainly. Optimising a team to maximise JOLTEON's score **Goodharts the evaluator**: DITTO finds
+  rare species JOLTEON overrates and stacks them, producing a team JOLTEON scores at **90%** that
+  MEDICHAM's grounded rollouts reveal is **~12%**. This is caught, not hidden: DITTO now (a) restricts
+  to a proven-meta pool, (b) uses **usage-weighted threat coverage** so it guarantees an answer to
+  high-bring threats (Basculegion) and ignores rare ones (Camerupt), (c) prints a **bias report**
+  showing where rarity shrinkage suppresses a pick, and (d) vets every finalist with MEDICHAM. The
+  JOLTEON-low / MEDICHAM-high disagreement is itself a signal — a genuine sleeper the data has not yet
+  confirmed. This is the tiered design (§3) earning its keep.
+- **The dynamics model is built** (`engine/dynamics.js`): the per-turn stream now yields observed
+  speed order (186 species, with Choice-Scarf detection) and observed damage distributions (1,170
+  attacker|move pairs). This is the empirical grounding tier 3 will calibrate against, and it already
+  feeds tier 1 and KADABRA.
+- **Tier 3 (SLOWKING) is a research effort, scaffolded not trained.** A learned dynamics model, belief
+  tracking, and equilibrium search (or offline-RL policy) is the frontier the cited papers occupy. It
+  is *possible* — they prove it — but it needs real compute, careful offline-RL practice, and
+  sustained work, judged against the tier-2 baseline before its cost is accepted. The interface is
+  fixed (`engine/slowking.py`) and the data toward it is already collecting: **30,611 per-turn state
+  transitions** over 4,999 games, with raw logs archived so nothing must be re-pulled. Grey-box
+  structure (§5.1) and a warm start from open Showdown data are the levers that make it tractable.
 
-The disciplined path is to ship tier 1, keep the flywheel turning so the dataset compounds, add tier
-2 for finalist vetting, and treat tier 3 as a funded research track whose bar is set by tier 2.
+The disciplined path — ship tier 1, keep the flywheel turning, add tier 2 for finalist vetting, treat
+tier 3 as a research track whose bar is set by tier 2 — is now demonstrated end-to-end, not just
+proposed.
 
 ## 13. References
 

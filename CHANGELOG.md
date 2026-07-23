@@ -51,6 +51,49 @@ silently rewritten; what changed and why is stated.
   optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
   as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).
 
+## [1.4.0] — 2026-07-22
+
+### Added — the model family (the simulator, stages 2–3, now has working v1s)
+- **Per-turn extraction** (`engine/durable-ingest.js` v2): the extractor now captures a per-turn
+  event stream — move order (→ speed), exact damage % per move, faints, status, and reveals — on
+  every game. Backfilled onto all 4,999 games: **30,611 turns, 55,336 damaging move events.**
+- **Raw-log archive + `MODE=reparse`**: each raw `.log` is archived (`data/*.raw-logs.jsonl`), so any
+  NEW field is a re-parse, never a re-pull. Proven by backfilling `format`/`openSheet` onto 4,999
+  games with **zero network calls.** (Archive is gitignored; the extracted store carries the turns.)
+- **Dynamics model** (`engine/dynamics.js` → `data/dynamics.json`): observed speed (who-moves-first,
+  incl. Choice-Scarf hints) for 186 species, and observed damage distributions for 1,170
+  (attacker, move) pairs. E.g. Garchomp Earthquake mean 57%, Basculegion Wave Crash 62.5%.
+- **JOLTEON v2** (`engine/jolteon.py`): win-probability model gains **rarity-aware L2 shrinkage**
+  (a species seen 25× is pulled toward neutral; seen 1000× is trusted — a Goodhart guard at the
+  model level) plus speed-edge and firepower-edge features from the dynamics model. Honest result:
+  ~55% humans-only held-out vs ~49% coin flip; the dynamics features tie species-only (firepower
+  earns weight +0.30, speed-edge is noise at this scale). Reported straight.
+- **MEDICHAM built** (`engine/medicham.js`): Tier-2 Monte-Carlo rollout over CHOMP's exact damage
+  engine. Rain core beats sun core 0.60; mirror 0.51; ~1s / 300 playouts. Sequential-singles v1
+  (honest scope). `tests/test-medicham.js`.
+- **DITTO built** (`engine/ditto.py`): team optimiser using JOLTEON as evaluator against a gauntlet
+  of REAL ladder teams, double-oracle rounds, **usage-weighted threat coverage** (guarantees an
+  answer to high-bring threats like Basculegion, ignores rare ones like Camerupt), and a **bias
+  report** showing where rarity shrinkage suppresses a pick. Surfaces the Goodhart failure honestly:
+  JOLTEON-optimised "90%" team → MEDICHAM rollouts reveal ~12% → this is *why* Tier-2 vets Tier-1.
+- **KADABRA v1 built** (`engine/kadabra.js`): turn-by-turn coach over a replay — reconstructs each
+  scene, gives the speed read + damage read (cross-checked vs the ladder average, flags high/low
+  rolls), draws the lesson, and background-appends the game (the flywheel from the coaching seat).
+- **SLOWKING scaffold** (`engine/slowking.py`): Tier-3 interface fixed + data-readiness report;
+  honestly flagged as a research effort, not a trained model.
+- **Multi-format + open-sheet tags**: `FORMATS=` env supports collecting other ladders (e.g. the
+  Reg-G best-of-3); every record now carries `format` and `openSheet` (bo3 / agreed open team sheet
+  is a distinct information regime). 42 open-sheet games found in the current store.
+- **ABRA WORLD website** (`web/index.html`): a Club-Penguin-styled interactive town — one room per
+  model — with the JOLTEON win-probability model running live client-side (real embedded weights),
+  sprite team pickers, animated odds meter, and links to the rest of the portfolio.
+- Tests: `tests/test-medicham.js`, `tests/test-dynamics.js` (all green alongside parse + jolteon).
+
+### Changed
+- The flywheel's honest status advances: stages 2 (simulate) and 3 (optimise) now have working v1
+  models (MEDICHAM, DITTO), with the tiered vetting (Tier-1 proposes, Tier-2 checks) demonstrated
+  end-to-end. Tier-3 depth (SLOWKING) remains roadmap.
+
 ## [1.3.0] — 2026-07-22
 
 ### Added
