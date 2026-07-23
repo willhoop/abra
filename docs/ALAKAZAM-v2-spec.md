@@ -90,6 +90,53 @@ CHOMP (pivoted) sits alongside SLOWKING (bring/lead EV) and feeds the belief ("w
 
 ---
 
+## Additional inputs the wider study calls for (do it all)
+
+Beyond I0–I4, the literature (poker endgame solving, AlphaStar scouting, CICERO λ-anchoring, sports
+calibration, VGC-Bench PSRO) implies these. Added to the plan; each ships with metric + CI + baseline.
+
+### More input models
+- **I5. Meta / matchup model** — (a) usage prior + **P(opponent archetype | what's revealed)** (pivot
+  `engine/archetypes.py`); (b) **learned matchup matrix estimated from REAL game outcomes** (aggregate
+  head-to-head archetype win-rates from the stored games, with Wilson CIs) — this replaces the *biased
+  simulated* payoff matrix in SLOWKING / DITTO / non-transitivity, killing that GIGO at the source.
+  *Bar:* held-out log-loss of the matchup predictions vs a usage baseline.
+- **I6. Opponent-type / exploitability model** — infer opponent **skill** (rating + deviation from
+  equilibrium play) and set the **piKL anchor strength λ** accordingly: play near-Nash vs strong
+  opponents (safe/unexploitable), best-respond/exploit vs weak ones (CICERO's DiL-piKL, poker
+  exploitative play, AlphaStar league range). *Bar:* exploit-rate gain vs fixed weak agents in self-play
+  without added exploitability vs strong ones.
+- **I7. Endgame exact solver** — when few mons remain (≤2v2, 1v1), the game is small enough to **solve
+  exactly** (retrograde / full matrix-game solve). Gives ground-truth leaf values and clean **training
+  targets for the I2 value net** (the poker endgame-solving trick). *Bar:* exactness vs brute force on
+  toy endgames.
+- **I8. Self-play data engine + curation** — the fuel for I2 (Metamon used 5M human + **20M self-play**).
+  Formalize `sim/` into a scalable self-play generator writing to the store schema, plus a **dedup /
+  quality filter** on replays. *Bar:* dataset size + a quality audit (no leakage, balanced, deduped).
+- **I-Gimmick. Battle-gimmick module (currently Mega)** — **design principle: model ONE gimmick at a
+  time**, as a **swappable module keyed off `data/regulations.json`**, because each regulation has exactly
+  one active gimmick (Champions Reg M-B = Mega; other regs = Tera or Z-Moves, inactive here). No need to
+  ever carry more than one. For **Mega** specifically: the full forme transform (**stats + types +
+  ability**, not just the ability we did), the **once-per-battle Mega-timing decision**, and a **belief
+  over whether/when the opponent Megas**. When the format rotates, we drop in a new gimmick module, not a
+  rewrite. *Bar:* correct forme stats/types vs Serebii; timing decision measured inside ALAKAZAM's self-play.
+
+### Supporting components (required, not standalone models)
+- **Calibration layer** — temperature / isotonic on **every** probability we emit (the review's mandate;
+  sports/betting calibration). One utility, applied everywhere, reliability-tested.
+- **Information-gain (scouting) reward** — value moves that **reveal** the opponent's hidden set, added to
+  ALAKAZAM's search reward (AlphaStar scouting).
+- **Variance / risk estimate** — how much a line depends on rolls / crits / misses → an honest **"how
+  coin-flippy is this"** readout alongside the EV (sports xG smoothing; poker variance).
+- **Legality / format checker** — Champions dex + item/species clause, so DITTO/PSRO only generate
+  **legal** teams.
+- **Mechanics-coverage tracker** — % of observed moves/abilities the engine models correctly; a live
+  **GIGO gauge** so we always know the simulator's blind spots.
+
+### Resolved open question
+- **Terastallization: NOT active in Reg M-B** (Serebii/game8 + confirmed) — no Tera model. **Mega
+  Evolution is the only gimmick**; complete the **I-Mega** model instead.
+
 ## The capstone — ALAKAZAM (built last)
 
 **Input:** a live position (both actives, HP, field, revealed info) + I1 belief + I2 value/policy + I3
