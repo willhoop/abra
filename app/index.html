@@ -83,6 +83,36 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .house b{position:relative;z-index:1;display:block;margin-top:10px;font-size:17px}
 .house small{position:relative;z-index:1;color:#6a7f97;font-weight:600;font-size:12px}
 @keyframes hop{50%{transform:translateY(-11px) scale(1.06)}}
+/* ---- per-room floating mascot advisor, each with its own personality ---- */
+.advisor{position:fixed;z-index:36;width:78px;height:78px;pointer-events:auto;opacity:.9}
+.advisor .tip{pointer-events:none}
+.advisor .anim{width:100%;height:100%;display:block;cursor:help}
+.advisor img{width:100%;height:100%;image-rendering:pixelated;filter:drop-shadow(0 3px 4px rgba(0,0,0,.16))}
+.advisor .tip{position:absolute;bottom:70px;right:2px;min-width:152px;max-width:236px;background:#fff;border:3px solid var(--line);border-radius:14px;padding:8px 11px;font-size:12.5px;font-weight:600;color:#2a3b52;box-shadow:0 4px 0 var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.advisor .tip.show{opacity:1;transform:none}
+.advisor .tip:after{content:"";position:absolute;bottom:-10px;right:22px;border:7px solid transparent;border-top-color:#fff}
+/* JOLTEON — twitchy, electric, fast */
+@keyframes p-zap{0%,100%{transform:translateY(0) rotate(0)}20%{transform:translateY(-4px) rotate(-4deg)}40%{transform:translateY(-2px) rotate(3deg)}60%{transform:translateY(-6px) scale(1.06)}80%{transform:translateY(-1px) rotate(-2deg)}}
+.p-jolteon{animation:p-zap .5s steps(5,end) infinite}
+/* MEDICHAM — disciplined, still, then a sharp strike */
+@keyframes p-punch{0%,55%,100%{transform:translate(0,0) scale(1)}64%{transform:translate(-6px,-2px) scale(1.05)}72%{transform:translate(6px,0) scale(1.05)}80%{transform:translate(0,0)}}
+.p-medicham{animation:p-punch 2.6s ease-in-out infinite}
+/* DITTO — squishy, gooey, playful */
+@keyframes p-wobble{0%,100%{transform:scale(1,1)}30%{transform:scale(1.1,.9)}60%{transform:scale(.92,1.08) rotate(3deg)}}
+.p-ditto{animation:p-wobble 1.5s ease-in-out infinite}
+/* KADABRA — hovering, aloof, psychic drift */
+@keyframes p-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
+.p-kadabra{animation:p-float 3.6s ease-in-out infinite}
+/* SLOWKING — regal, unhurried sway */
+@keyframes p-sway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-4px) rotate(1.5deg)}}
+.p-slowking{animation:p-sway 5s ease-in-out infinite}
+/* CHOMP — coiled, then lunges */
+@keyframes p-lunge{0%,68%,100%{transform:translateX(0) scale(1)}78%{transform:translateX(-12px) scale(1.08)}86%{transform:translateX(3px) scale(1.02)}}
+.p-chomp{animation:p-lunge 2.1s cubic-bezier(.5,0,.3,1) infinite}
+/* ABRA (town) — sleepy bob */
+@keyframes p-drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.p-town{animation:p-drift 2.9s ease-in-out infinite}
+@media(max-width:1180px){.advisor{display:none}}
 
 /* ---- JOLTEON battle booth ---- */
 .booth{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
@@ -226,20 +256,179 @@ const MC = {"mons":{"venusaur":{"t":["Grass","Poison"],"st":{"hp":157,"at":91,"d
 /* ===== MEDICHAM in the browser (no server) ===== */
 function mcBuild(n){return n.map(x=>{const m=MC.mons[x];return m?{k:x,t:m.t,st:m.st,mv:m.mv,item:m.item,ab:m.ab}:null;}).filter(Boolean);}
 function mcEff(t,dt){let e=1;const r=MC.C[t];if(!r)return 1;for(const d of dt)if(r[d]!=null)e*=r[d];return e;}
-function mcDmg(a,d,ctx){let b={pct:0,minPct:0,pKO:0};for(const id of a.mv){const mv=MC.moves[id];if(!mv||mv.c==='S'||!mv.bp)continue;const ph=mv.c==='P',A=ph?a.st.at:a.st.sa,D=ph?d.st.df:d.st.sd,e=mcEff(mv.t,d.t);if(e===0)continue;const stab=a.t.includes(mv.t)?1.5:1;let wx=1;if(ctx.weather==='rain'){if(mv.t==='Water')wx=1.5;if(mv.t==='Fire')wx=.5;}if(ctx.weather==='sun'){if(mv.t==='Fire')wx=1.5;if(mv.t==='Water')wx=.5;}let dd=Math.floor(Math.floor(22*mv.bp*A/D)/50)+2;if(wx!==1)dd=Math.round(dd*wx);const HP=d.st.hp;let mx=0,mn=1e9,ko=0;for(let r=85;r<=100;r++){let x=Math.floor(dd*r/100);if(stab!==1)x=Math.round(x*stab);x=Math.floor(x*e);if(a.item==='lifeorb')x=Math.round(x*1.3);if(x>mx)mx=x;if(x<mn)mn=x;if(x>=HP)ko++;}const pct=100*mx/HP;if(pct>b.pct)b={pct,minPct:100*mn/HP,pKO:ko/16};}return b;}
+function mcDmg(a,d,ctx){let b={pct:0,minPct:0,pKO:0};for(const id of a.mv){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const ph=mv.c==='P',A=ph?a.st.at:a.st.sa,D=ph?d.st.df:d.st.sd,e=mcEff(mv.t,d.t);if(e===0)continue;const stab=a.t.includes(mv.t)?1.5:1;let wx=1;if(ctx.weather==='rain'){if(mv.t==='Water')wx=1.5;if(mv.t==='Fire')wx=.5;}if(ctx.weather==='sun'){if(mv.t==='Fire')wx=1.5;if(mv.t==='Water')wx=.5;}let dd=Math.floor(Math.floor(22*mv.bp*A/D)/50)+2;if(wx!==1)dd=Math.round(dd*wx);const HP=d.st.hp;let mx=0,mn=1e9,ko=0;for(let r=85;r<=100;r++){let x=Math.floor(dd*r/100);if(stab!==1)x=Math.round(x*stab);x=Math.floor(x*e);if(a.item==='lifeorb')x=Math.round(x*1.3);if(x>mx)mx=x;if(x<mn)mn=x;if(x>=HP)ko++;}const pct=100*mx/HP;if(pct>b.pct)b={pct,minPct:100*mn/HP,pKO:ko/16};}return b;}
 function mcSpd(m,tw,par){let s=m.st.sp;if(m.item==='choicescarf')s=Math.floor(s*1.5);if(tw)s*=2;if(par)s/=4;return s;}
 function mcRoll(A,B){const hpA=A.map(()=>100),hpB=B.map(()=>100);const wof=t=>{for(const m of t){if(m.ab==='drizzle')return'rain';if(m.ab==='drought')return'sun';}return null;};const wa=wof(A),wb=wof(B),weather=(wa&&wb)?null:(wa||wb);const sA=A.map(()=>({st:null,slp:0,boost:0,prot:false})),sB=B.map(()=>({st:null,slp:0,boost:0,prot:false}));const f={twA:0,twB:0};let ai=0,bi=0;const act=(T,S,i,foe,side,hp)=>{const me=T[i];if(S[i].st==='slp'&&S[i].slp>0)return{k:'sleep'};const mn=mcDmg(me,foe,{weather});if(mn.pct<25){let bv=-1,bx=-1;for(let j=0;j<T.length;j++){if(j===i||hp[j]<=0)continue;const x=mcDmg(T[j],foe,{weather});if(x.pKO>bv){bv=x.pKO;bx=j;}}if(bx>=0&&bv>0.5&&Math.random()<0.5)return{k:'switch',idx:bx};}const pr=MC.priors[me.k];if(pr){let r=Math.random(),p=null;for(const q of pr){r-=q[1];if(r<=0){p={mv:q[0],kind:q[2]};break;}}if(p){const safe=mcDmg(foe,me,{weather}).pKO<0.5;if(p.kind==='setup'&&safe&&S[i].boost<4)return{k:'setup'};if(p.kind==='speed'&&safe&&(side==='A'?f.twA:f.twB)<=0)return{k:'tw',side};if(p.kind==='status'&&!S[i].st)return{k:'status'};if(p.kind==='protect'&&!S[i].prot&&Math.random()<0.7)return{k:'protect'};}}return{k:'attack'};};for(let t=0;t<24;t++){if(hpA.every(h=>h<=0)||hpB.every(h=>h<=0))break;const aA=act(A,sA,ai,B[bi],'A',hpA),aB=act(B,sB,bi,A[ai],'B',hpB);if(aA.k==='switch'){ai=aA.idx;sA[ai].boost=0;}if(aB.k==='switch'){bi=aB.idx;sB[bi].boost=0;}sA[ai].prot=false;sB[bi].prot=false;const ap=(a,self,fs,fi,side)=>{if(a.k==='setup')self.boost=Math.min(6,self.boost+2);else if(a.k==='tw'){if(side==='A')f.twA=4;else f.twB=4;}else if(a.k==='status'&&!fs[fi].st){fs[fi].st=['brn','par','slp'][Math.floor(Math.random()*3)];if(fs[fi].st==='slp')fs[fi].slp=1+Math.floor(Math.random()*2);}self.prot=(a.k==='protect');};ap(aA,sA[ai],sB,bi,'A');ap(aB,sB[bi],sA,ai,'B');const mv=[];if(aA.k==='attack')mv.push('A');if(aB.k==='attack')mv.push('B');const sp=s=>s==='A'?mcSpd(A[ai],f.twA>0,sA[ai].st==='par'):mcSpd(B[bi],f.twB>0,sB[bi].st==='par');mv.sort((x,y)=>sp(y)-sp(x)||(Math.random()<0.5?-1:1));const ft={A:false,B:false};for(const s of mv){if(ft[s])continue;const aS=s==='A'?sA[ai]:sB[bi];if(aS.st==='par'&&Math.random()<0.25)continue;if(s==='A'?sB[bi].prot:sA[ai].prot)continue;const at=s==='A'?A[ai]:B[bi],de=s==='A'?B[bi]:A[ai];const d=mcDmg(at,de,{weather});let g=d.minPct+Math.random()*(d.pct-d.minPct);if(aS.boost)g*=(2+aS.boost)/2;if(aS.st==='brn'&&at.st.at>=at.st.sa)g*=0.5;if(s==='A'){hpB[bi]-=g;if(hpB[bi]<=0){ft.B=true;let nx=-1,bv=-1;for(let j=0;j<B.length;j++)if(hpB[j]>0){const x=mcDmg(B[j],A[ai],{weather});if(x.pKO>bv){bv=x.pKO;nx=j;}}if(nx<0)break;bi=nx;sB[bi].boost=0;}}else{hpA[ai]-=g;if(hpA[ai]<=0){ft.A=true;let nx=-1,bv=-1;for(let j=0;j<A.length;j++)if(hpA[j]>0){const x=mcDmg(A[j],B[bi],{weather});if(x.pKO>bv){bv=x.pKO;nx=j;}}if(nx<0)break;ai=nx;sA[ai].boost=0;}}}for(const[arr,S,i]of[[hpA,sA,ai],[hpB,sB,bi]]){const s=S[i];if(s.st==='brn'&&arr[i]>0)arr[i]-=6.25;if(s.st==='slp'){if(s.slp>0)s.slp--;if(s.slp<=0||Math.random()<0.34)s.st=null;}}if(f.twA>0)f.twA--;if(f.twB>0)f.twB--;}const a2=hpA.filter(h=>h>0).length,b2=hpB.filter(h=>h>0).length;if(a2!==b2)return a2>b2?1:0;const hA=hpA.reduce((s,h)=>s+Math.max(0,h),0),hB=hpB.reduce((s,h)=>s+Math.max(0,h),0);return hA>hB?1:(hA<hB?0:0.5);}
-function mcWinProb(na,nb,N){const A=mcBuild(na.slice(0,4)),B=mcBuild(nb.slice(0,4));if(!A.length||!B.length)return null;let s=0;for(let i=0;i<N;i++)s+=mcRoll(A.map(m=>({...m})),B.map(m=>({...m})));return s/N;}
+function mcWinProb(na,nb,N){return MEDI2.winProb2(na,nb,N);}
+// item-override build/score, for DITTO's item tuning (only Life Orb / Choice Scarf change the compact engine)
+function mcBuildI(names,items){return mcBuild(names.slice(0,4)).map(m=>({...m,item:(items&&items[m.k])||m.item}));}
+function mcWinProbI(na,items,nb,N){return MEDI2.winProb2(na,nb,N,items);}
+/* ===== MEDICHAM v3 — embedded doubles engine (see engine/medicham2-browser.js) ===== */
+const MEDI2=(function(){'use strict';
+// ---- curated metadata the compact move table lacks (only fields we can't derive) ----
+const SPREAD = new Set(['earthquake','rockslide','heatwave','blizzard','muddywater','dazzlinggleam','hypervoice','makeitrain','glaciate','icywind','snarl','bulldoze','discharge','lavaplume','eruption','waterspout','surf','electroweb','strugglebug','sludgewave','mistyexplosion','explosion','selfdestruct','breakingswipe','petalblizzard','glaciallance','astralbarrage','originpulse','precipiceblades','landswrath','diamondstorm','sparklingaria','swift','pollenpuff']);
+const PRIO = {fakeout:3,upperhand:3,feint:2,extremespeed:2,firstimpression:2,aquajet:1,bulletpunch:1,machpunch:1,iceshard:1,shadowsneak:1,vacuumwave:1,watershuriken:1,jetpunch:1,quickattack:1,suckerpunch:1,grassyglide:1,accelerock:1,thunderclap:1};
+const ACC = {hydropump:80,hurricane:70,fireblast:85,focusblast:70,thunder:70,blizzard:70,stoneedge:80,megahorn:85,gunkshot:80,iciclecrash:90,playrough:90,dynamicpunch:50,zapcannon:50,highjumpkick:90,drillrun:95,crosschop:80,sleeppowder:75,willowisp:85,thunderwave:90,hypnosis:60,irontail:75,dragonrush:75,inferno:50,fissure:30,sheercold:30,rockslide:90,airslash:95,gigaimpact:90,overheat:90,leafstorm:90,powerwhip:85,meteorbeam:90,muddywater:85,darkvoid:50,sing:55};
+const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','banefulbunker','burningbulwark','silktrap','maxguard']);
+
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
+
+function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
+  return {name,types:m.t.slice(),st:{...m.st},item:(ov&&ov[name])||m.item||'',ability:m.ab||'',moves:m.mv.slice(),
+    curHP:m.st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
+
+function dmgRange(att,def,mv,field,spread){
+  if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
+  const phys=mv.c==='P';
+  let A=phys?att.st.at:att.st.sa,D=phys?def.st.df:def.st.sd;
+  A=Math.floor(A*boostMul(phys?att.boosts.at:att.boosts.sa));
+  D=Math.floor(D*boostMul(phys?def.boosts.df:def.boosts.sd));
+  if(phys&&att.item==='choiceband')A=Math.floor(A*1.5);
+  if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
+  if(!phys&&def.item==='assaultvest')D=Math.floor(D*1.5);
+  if((att.ability==='hugepower'||att.ability==='purepower')&&phys)A*=2;
+  let base=Math.floor(Math.floor(22*mv.bp*A/D)/50)+2;
+  if(spread)base=Math.floor(base*0.75);
+  if(field.weather==='rain'){if(mv.t==='Water')base=Math.floor(base*1.5);if(mv.t==='Fire')base=Math.floor(base*0.5);}
+  if(field.weather==='sun'){if(mv.t==='Fire')base=Math.floor(base*1.5);if(mv.t==='Water')base=Math.floor(base*0.5);}
+  const eff=mcEff(mv.t,def.types); if(eff===0)return{min:0,max:0,eff:0};
+  const stab=att.types.includes(mv.t)?1.5:1;
+  const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
+  const lo=att.item==='lifeorb'?1.3:1;
+  const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(lo>1)d=Math.floor(d*lo);return d;};
+  return {min:roll(85),max:roll(100),eff};
+}
+function bestMoveVs(att,def,field){ let best=null,bs=-1;
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=(d.min+d.max)/2;if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d};}}
+  return best;
+}
+// pick the best target (max damage) for a SPECIFIC move
+function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)return null;
+  let bt=null,bs=-1; for(const f of live){const d=dmgRange(me,f,mv,field,SPREAD.has(id));const sc=(d.min>=f.curHP?1e6:0)+d.max;if(sc>bs){bs=sc;bt={id,mv,spread:SPREAD.has(id),d,target:f};}}
+  return bt; }
+// MEDICHAM policy = behaviour cloning: sample what a real ladder player would click, but always
+// take an obvious KO, and Protect defensively when threatened. This is the whole point of the model —
+// the win rate is the expected outcome under *realistic* play by both sides, not optimal play.
+function chooseAction(me,foes,ally,field,side,rng){
+  if(me.status==='slp'&&me.slp>0)return{kind:'sleep'};
+  const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
+  // strongest option + is a KO available?
+  let bestAtk=null,bestKO=-1,tgt=null;
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const ko=b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0);const sc=ko*1e4+b.d.max;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP;
+  const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
+  const inDanger=incoming>=me.curHP*0.8;
+  const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
+  // 1) take a guaranteed KO most of the time (real players do)
+  if(bestKOsNow&&rng()<0.85) return {kind:'attack',move:bestAtk,target:tgt};
+  // 2) Protect when threatened and can't KO back
+  if(inDanger&&!bestKOsNow&&canProtect&&!me.protect&&me.tookProtectTurns<2&&rng()<0.5) return {kind:'protect'};
+  // 3) behaviour clone: sample the move this species actually clicks, at its real frequency
+  const pr=MC.priors[me.name];
+  if(pr){ let r=rng(),pick=null; for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
+    if(pick){
+      if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2)return{kind:'protect'};
+      if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup'};
+      if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0))return{kind:'tail'};
+      if(pick.kind==='status'&&live.some(f=>!f.status))return{kind:'status',target:live.find(f=>!f.status)};
+      const chosen=targetForMove(me,pick.mv,live,field);            // the sampled damaging move
+      if(chosen)return{kind:'attack',move:chosen,target:chosen.target};
+    }}
+  // 4) fallback: best available attack
+  if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
+  return{kind:'struggle'};
+}
+function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;if(m.status==='par')s*=0.5;return s;}
+function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slp=1+(Math.random()*2|0);}
+
+function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
+  const field={weather:null,weatherT:0,twA:0,twB:0,tr:0};
+  const setW=ms=>{for(const m of ms){if(m.ability==='drizzle'){field.weather='rain';field.weatherT=5;}else if(m.ability==='drought'){field.weather='sun';field.weatherT=5;}else if(m.ability==='sandstream'){field.weather='sand';field.weatherT=5;}else if(m.ability==='snowwarning'){field.weather='snow';field.weatherT=5;}}};
+  const actA=[teamA[0],teamA[1]].filter(Boolean),actB=[teamB[0],teamB[1]].filter(Boolean);
+  const benchA=teamA.slice(2),benchB=teamB.slice(2);
+  setW(actA.concat(actB));
+  const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)f.boosts.at=clamp(f.boosts.at-1,-6,6);};
+  intim(actA,actB);intim(actB,actA);
+  const live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
+  const alive=(a,b)=>live(a).length+live(b).length>0;
+  for(let turn=0;turn<20;turn++){
+    if(!alive(actA,benchA)||!alive(actB,benchB))break;
+    [...actA,...actB].forEach(m=>{if(m)m.protect=false;});
+    const acts=[];
+    const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;acts.push({mon,side,a:chooseAction(mon,foes,ally,field,side,rng)});};
+    mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
+    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=true;it.mon.tookProtectTurns++;}else it.mon.tookProtectTurns=0;}
+    const prio=it=>it.a.kind==='attack'?(PRIO[it.a.move.id]||0):(it.a.kind==='protect'?4:0);
+    acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
+    for(const it of acts){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
+      if(m._flinch){m._flinch=false;continue;}
+      if(m.status==='par'&&rng()<0.25)continue;
+      if(m.status==='slp'){if(m.slp>0){m.slp--;continue;}else m.status='';}
+      const a=it.a;
+      if(a.kind==='setup'){m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);continue;}
+      if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
+      if(a.kind==='status'){const t=a.target;if(t&&!t.fainted&&!t.protect&&!t.status)applyStatus(t,['brn','par','slp'][rng()*3|0]);continue;}
+      if(a.kind!=='attack')continue;
+      const mv=a.move.mv;
+      if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
+      if((ACC[a.move.id]||100)<100&&rng()*100>(ACC[a.move.id]||100))continue;
+      const foes=it.side==='A'?actB:actA;
+      let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
+      if(!targets.length)targets=live(foes).slice(0,1);
+      for(const tg of targets){if(!tg||tg.fainted||tg.protect)continue;
+        const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
+        let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
+        tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
+        else if(a.move.id==='fakeout')tg._flinch=true;}   // Fake Out flinches survivors
+      if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+    }
+    for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
+      if(m.status==='brn')m.curHP-=Math.floor(m.st.hp/16);
+      if(m.item==='leftovers')m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/16));
+      if(m.item==='sitrusberry'&&m.curHP<=m.st.hp/2){m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/4));m.item='';}
+      if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+    if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
+    if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
+    [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
+    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))f.boosts.at=clamp(f.boosts.at-1,-6,6);}}}};
+    refill(actA,benchA,actB);refill(actB,benchB,actA);
+  }
+  const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
+  if(aA!==bA)return aA>bA?1:0;
+  const hp=(a,b)=>[...a,...b].reduce((s,m)=>s+(m?Math.max(0,m.curHP)/m.st.hp:0),0);
+  const ha=hp(actA,benchA),hb=hp(actB,benchB);return ha>hb?1:(ha<hb?0:0.5);
+}
+function winProb2(nA,nB,N,ov){
+  const A0=nA.slice(0,4).filter(n=>MC.mons[n]),B0=nB.slice(0,4).filter(n=>MC.mons[n]);
+  if(!A0.length||!B0.length)return null;
+  let w=0;for(let i=0;i<N;i++){w+=battle(A0.map(n=>buildMon(n,ov)),B0.map(n=>buildMon(n,ov)),ov);}return w/N;
+}
+return {winProb2,dmgRange,buildMon};
+})();
+
 const BY={}; JOLT.roster.forEach(m=>BY[m.n]=m);
+const META_NASH = {"arch":[{"n":"Rain","w":0.371,"t":["pelipper","basculegion","archaludon","kingambit"]},{"n":"Sand","w":0.447,"t":["tyranitar","excadrill","gholdengo","sneasler"]},{"n":"FakeOutSpam","w":0.182,"t":["incineroar","meowstic","kingambit","staraptor"]}],"exploit":0.0012};
+const NONTRANS = {"names":["Rain","Sun","TrickRoom","HyperOffense","Balance","Fairy","Sand","FakeOutSpam"],"matrix":[[0.5,0.537,0.731,0.333,0.93,0.509,0.54,0.4],[0.463,0.5,0.883,0.316,0.878,0.64,0.38,0.47],[0.269,0.117,0.5,0.339,0.166,0.274,0.079,0.479],[0.667,0.684,0.661,0.5,0.609,0.259,0.006,0.186],[0.07,0.122,0.834,0.391,0.5,0.46,0.349,0.797],[0.491,0.36,0.726,0.741,0.54,0.5,0.086,0.654],[0.46,0.62,0.921,0.994,0.651,0.914,0.5,0.585],[0.6,0.53,0.521,0.814,0.203,0.346,0.415,0.5]],"cycles":[["Rain","Balance","FakeOutSpam"],["Sun","Fairy","HyperOffense"],["HyperOffense","Balance","FakeOutSpam"]],"se":0.010206207261596576,"threshold":0.55,"rollouts":1200};
+const MOVESETS = {"charizard":[["heatwave",0.61],["protect",0.16],["weatherball",0.12],["solarbeam",0.06]],"kingambit":[["suckerpunch",0.39],["kowtowcleave",0.32],["ironhead",0.13],["protect",0.1],["lowkick",0.03],["swordsdance",0.02]],"sylveon":[["hypervoice",0.63],["protect",0.11],["quickattack",0.11],["hyperbeam",0.11]],"incineroar":[["fakeout",0.3],["flareblitz",0.24],["partingshot",0.18],["throatchop",0.11],["darkestlariat",0.08],["protect",0.03]],"basculegion":[["lastrespects",0.53],["wavecrash",0.23],["aquajet",0.11],["flipturn",0.07],["protect",0.06]],"garchomp":[["rockslide",0.23],["earthquake",0.22],["dragonclaw",0.18],["stompingtantrum",0.18],["protect",0.12],["poisonjab",0.03]],"whimsicott":[["moonblast",0.35],["tailwind",0.34],["encore",0.15],["protect",0.07],["charm",0.02]],"gengar":[["protect",0.33],["shadowball",0.19],["perishsong",0.16],["sludgebomb",0.12],["disable",0.07],["icywind",0.04]],"sneasler":[["direclaw",0.29],["closecombat",0.26],["fakeout",0.23],["protect",0.07],["poisonjab",0.05],["coaching",0.03]],"archaludon":[["electroshot",0.38],["dragonpulse",0.2],["flashcannon",0.2],["protect",0.17],["dracometeor",0.03]],"pelipper":[["hurricane",0.43],["weatherball",0.24],["tailwind",0.14],["wideguard",0.12],["protect",0.03]],"altaria":[["protect",0.19],["perishsong",0.12],["tailwind",0.1],["firespin",0.1],["willowisp",0.08],["bravebird",0.07]],"swampert":[["wavecrash",0.3],["earthquake",0.28],["protect",0.17],["icepunch",0.12],["highhorsepower",0.03],["waterfall",0.03]],"gengarmega":[["protect",0.45],["shadowball",0.23],["perishsong",0.11],["disable",0.1],["sludgebomb",0.08]],"farigiraf":[["trickroom",0.23],["psychic",0.21],["helpinghand",0.13],["thunderbolt",0.11],["hypervoice",0.08],["twinbeam",0.06]],"tyranitar":[["knockoff",0.26],["rockslide",0.26],["protect",0.17],["rockblast",0.13],["icepunch",0.07],["highhorsepower",0.03]],"excadrill":[["ironhead",0.21],["rockslide",0.2],["highhorsepower",0.2],["protect",0.2],["earthquake",0.17]],"grimmsnarl":[["spiritbreak",0.24],["partingshot",0.2],["lightscreen",0.19],["reflect",0.15],["foulplay",0.1],["fakeout",0.07]],"venusaur":[["sludgebomb",0.28],["earthpower",0.2],["protect",0.16],["sleeppowder",0.15],["gigadrain",0.12],["leafstorm",0.03]],"charizardmegay":[["heatwave",0.47],["protect",0.24],["weatherball",0.2],["solarbeam",0.06]],"staraptor":[["closecombat",0.4],["bravebird",0.17],["protect",0.15],["dualwingbeat",0.14],["tailwind",0.06],["roost",0.03]],"blastoise":[["waterspout",0.3],["darkpulse",0.18],["protect",0.14],["shellsmash",0.1],["aurasphere",0.06],["fakeout",0.06]],"gardevoir":[["hypervoice",0.47],["protect",0.16],["expandingforce",0.07],["psyshock",0.04],["thunderbolt",0.03],["psychic",0.03]],"floetteeternal":[["dazzlinggleam",0.31],["moonblast",0.27],["protect",0.18],["lightofruin",0.14],["calmmind",0.06],["drainingkiss",0.04]],"aerodactyl":[["rockslide",0.47],["tailwind",0.19],["dualwingbeat",0.19],["protect",0.07],["wideguard",0.05]],"milotic":[["scald",0.25],["icywind",0.15],["muddywater",0.15],["hypnosis",0.1],["coil",0.09],["protect",0.09]],"sinistcha":[["matchagotcha",0.41],["ragepowder",0.22],["protect",0.16],["lifedew",0.12],["trickroom",0.04],["shadowball",0.02]],"talonflame":[["tailwind",0.3],["dualwingbeat",0.21],["bravebird",0.1],["protect",0.08],["flareblitz",0.07],["acrobatics",0.05]],"delphox":[["heatwave",0.39],["psychic",0.24],["protect",0.2],["nastyplot",0.08],["psyshock",0.05]],"maushold":[["superfang",0.31],["followme",0.25],["protect",0.18],["populationbomb",0.12],["charm",0.06],["feint",0.02]],"beedrill":[["poisonjab",0.27],["uturn",0.27],["protect",0.11],["fellstinger",0.11],["brickbreak",0.07],["crosspoison",0.04]],"weavile":[["fakeout",0.32],["knockoff",0.29],["tripleaxel",0.12],["throatchop",0.06],["protect",0.04],["icespinner",0.04]],"gholdengo":[["makeitrain",0.35],["shadowball",0.31],["protect",0.18],["powergem",0.08],["nastyplot",0.06]],"dragonite":[["extremespeed",0.21],["protect",0.09],["earthquake",0.08],["tailwind",0.08],["dragonpulse",0.07],["heatwave",0.06]],"sableye":[["encore",0.14],["lightscreen",0.11],["raindance",0.1],["willowisp",0.09],["fakeout",0.09],["disable",0.08]],"scrafty":[["fakeout",0.28],["knockoff",0.22],["drainpunch",0.21],["protect",0.06],["closecombat",0.06],["icepunch",0.04]],"greninja":[["darkpulse",0.17],["icebeam",0.13],["protect",0.12],["weatherball",0.1],["blizzard",0.07],["watershuriken",0.07]],"mamoswine":[["iceshard",0.28],["highhorsepower",0.2],["rockslide",0.13],["protect",0.11],["iciclecrash",0.11],["earthquake",0.09]],"gallade":[["sacredsword",0.3],["psychocut",0.24],["protect",0.12],["leafblade",0.08],["wideguard",0.06],["trickroom",0.04]],"tinkaton":[["fakeout",0.3],["gigatonhammer",0.2],["protect",0.18],["encore",0.07],["playrough",0.07],["icehammer",0.04]],"vivillonfancy":[["sleeppowder",0.42],["protect",0.21],["ragepowder",0.18],["hurricane",0.17]],"politoed":[["weatherball",0.29],["protect",0.25],["perishsong",0.12],["muddywater",0.08],["icywind",0.07],["hypnosis",0.06]],"scizor":[["bulletpunch",0.47],["bugbite",0.14],["protect",0.14],["swordsdance",0.08],["closecombat",0.07],["dualwingbeat",0.03]],"ceruledge":[["shadowsneak",0.33],["bitterblade",0.33],["protect",0.14],["bulkup",0.14],["swordsdance",0.02],["poltergeist",0.02]],"ninetales":[["heatwave",0.2],["protect",0.17],["overheat",0.1],["flamethrower",0.09],["solarbeam",0.07],["faketears",0.05]],"mimikyu":[["trickroom",0.25],["willowisp",0.18],["playrough",0.17],["shadowsneak",0.09],["shadowclaw",0.09],["swordsdance",0.07]],"camerupt":[["earthpower",0.32],["heatwave",0.28],["protect",0.14],["ancientpower",0.12],["eruption",0.09],["flamethrower",0.03]],"araquanid":[["liquidation",0.39],["wideguard",0.18],["leechlife",0.08],["surf",0.07],["protect",0.05],["entrainment",0.04]],"oranguru":[["instruct",0.38],["trickroom",0.26],["psychic",0.13],["protect",0.06],["psychicnoise",0.04],["encore",0.03]],"glalie":[["protect",0.23],["bodyslam",0.23],["explosion",0.18],["round",0.12],["foulplay",0.12],["frostbreath",0.06]],"blaziken":[["protect",0.21],["flareblitz",0.2],["rockslide",0.17],["closecombat",0.12],["detect",0.11],["swordsdance",0.03]],"metagross":[["psychicfangs",0.27],["protect",0.16],["ironhead",0.15],["stompingtantrum",0.07],["bodypress",0.07],["bulletpunch",0.06]],"toxapex":[["infestation",0.29],["toxic",0.26],["banefulbunker",0.25],["wideguard",0.13],["recover",0.02]],"annihilape":[["ragefist",0.28],["protect",0.15],["drainpunch",0.14],["bulkup",0.12],["phantomforce",0.11],["closecombat",0.05]],"malamar":[["superpower",0.35],["knockoff",0.22],["protect",0.11],["trickroom",0.09],["psychocut",0.07],["skillswap",0.05]],"audino":[["simplebeam",0.23],["protect",0.14],["healpulse",0.13],["trickroom",0.12],["dazzlinggleam",0.12],["wish",0.08]],"torkoal":[["eruption",0.41],["protect",0.14],["heatwave",0.12],["weatherball",0.1],["earthpower",0.09],["helpinghand",0.05]],"mausholdfour":[["populationbomb",0.32],["followme",0.28],["superfang",0.11],["protect",0.08],["taunt",0.03],["encore",0.02]],"corviknight":[["bravebird",0.27],["ironhead",0.15],["bulkup",0.14],["bodypress",0.13],["tailwind",0.1],["protect",0.07]],"meowscarada":[["flowertrick",0.3],["tripleaxel",0.28],["knockoff",0.16],["uturn",0.07],["protect",0.04],["thunderpunch",0.03]],"primarina":[["hypervoice",0.46],["moonblast",0.2],["protect",0.15],["calmmind",0.06],["icebeam",0.04],["dazzlinggleam",0.03]],"beedrillmega":[["poisonjab",0.44],["uturn",0.19],["brickbreak",0.19],["lunge",0.06],["drillrun",0.06],["protect",0.06]],"beartic":[["protect",0.3],["iciclecrash",0.3],["closecombat",0.1],["iciclespear",0.1],["earthquake",0.05],["brickbreak",0.05]],"raichu":[["zapcannon",0.32],["fakeout",0.21],["protect",0.12],["focusblast",0.12],["volttackle",0.06],["voltswitch",0.05]],"ninetalesalola":[["blizzard",0.41],["freezedry",0.19],["auroraveil",0.17],["protect",0.1],["moonblast",0.03],["encore",0.03]],"kangaskhan":[["lastresort",0.33],["fakeout",0.29],["doubleedge",0.13],["suckerpunch",0.06],["drainpunch",0.06],["icepunch",0.03]],"azumarill":[["aquajet",0.37],["bellydrum",0.17],["protect",0.14],["playrough",0.13],["liquidation",0.07],["aquatail",0.06]],"falinks":[["noretreat",0.31],["closecombat",0.2],["protect",0.14],["rockslide",0.11],["knockoff",0.09],["brickbreak",0.05]],"sinistchamasterpiece":[["matchagotcha",0.45],["ragepowder",0.26],["protect",0.09],["lifedew",0.08],["trickroom",0.04],["shadowball",0.04]],"meowstic":[["expandingforce",0.25],["psychicterrain",0.17],["fakeout",0.11],["skillswap",0.06],["raindance",0.06],["yawn",0.05]],"ariados":[["ragepowder",0.5],["protect",0.1],["firstimpression",0.1],["toxic",0.1],["stickyweb",0.07],["stringshot",0.07]],"chesnaught":[["wideguard",0.24],["spikyshield",0.2],["drainpunch",0.1],["bodypress",0.09],["woodhammer",0.09],["seedbomb",0.06]],"taurospaldeaaqua":[["wavecrash",0.21],["ragingbull",0.18],["protect",0.16],["closecombat",0.16],["aquajet",0.1],["liquidation",0.08]],"rotomheat":[["discharge",0.26],["voltswitch",0.23],["overheat",0.23],["thunderbolt",0.08],["electroweb",0.06],["willowisp",0.06]],"arcaninehisui":[["rockslide",0.36],["flareblitz",0.25],["headsmash",0.17],["protect",0.11],["extremespeed",0.06],["wildcharge",0.03]],"raichumegax":[["fakeout",0.31],["volttackle",0.26],["voltswitch",0.2],["encore",0.08],["trailblaze",0.05],["nuzzle",0.03]],"venusaurmega":[["earthpower",0.35],["gigadrain",0.24],["sludgebomb",0.16],["protect",0.16],["sludgewave",0.05],["venoshock",0.03]],"drampa":[["hypervoice",0.25],["protect",0.21],["dragonpulse",0.14],["earthpower",0.12],["calmmind",0.12],["thunderbolt",0.07]],"arcanine":[["flareblitz",0.21],["willowisp",0.16],["solarbeam",0.1],["closecombat",0.1],["heatwave",0.1],["snarl",0.05]],"tsareena":[["tropkick",0.21],["tripleaxel",0.2],["highjumpkick",0.13],["powerwhip",0.12],["protect",0.11],["uturn",0.05]],"hippowdon":[["earthquake",0.26],["protect",0.14],["yawn",0.13],["slackoff",0.11],["rockslide",0.09],["stealthrock",0.07]],"empoleon":[["flashcannon",0.34],["vacuumwave",0.16],["protect",0.13],["blizzard",0.1],["icywind",0.06],["hydropump",0.04]],"froslass":[["blizzard",0.41],["protect",0.22],["shadowball",0.18],["auroraveil",0.1],["thunderbolt",0.03]],"rotomfrost":[["blizzard",0.34],["discharge",0.14],["voltswitch",0.11],["thunder",0.11],["thunderbolt",0.09],["shadowball",0.09]],"bellibolt":[["paraboliccharge",0.49],["soak",0.23],["thunderbolt",0.12],["chargebeam",0.03],["acidspray",0.02],["suckerpunch",0.02]],"ampharos":[["thunderbolt",0.23],["dragonpulse",0.22],["protect",0.2],["powergem",0.1],["paraboliccharge",0.06],["dazzlinggleam",0.06]],"chandelure":[["heatwave",0.41],["shadowball",0.24],["trickroom",0.12],["protect",0.12]],"meganium":[["weatherball",0.26],["solarbeam",0.24],["dazzlinggleam",0.23],["protect",0.18],["synthesis",0.04],["earthpower",0.03]],"blastoisemega":[["waterspout",0.27],["darkpulse",0.24],["protect",0.21],["shellsmash",0.15],["waterpulse",0.09],["fakeout",0.03]],"goodra":[["muddywater",0.32],["raindance",0.18],["scald",0.14],["rest",0.09],["protect",0.09],["dracometeor",0.04]],"golurk":[["poltergeist",0.26],["headlongrush",0.24],["icepunch",0.18],["protect",0.13],["drainpunch",0.09],["earthquake",0.06]],"garganacl":[["saltcure",0.35],["protect",0.22],["bodypress",0.17],["rockslide",0.11],["wideguard",0.08],["recover",0.06]],"aggron":[["bodypress",0.37],["heavyslam",0.2],["protect",0.17],["irondefense",0.16],["rockslide",0.04],["highhorsepower",0.04]],"rotomwash":[["hydropump",0.31],["thunderbolt",0.23],["willowisp",0.12],["protect",0.1],["voltswitch",0.07],["discharge",0.07]],"hydreigon":[["darkpulse",0.28],["snarl",0.22],["dracometeor",0.17],["earthpower",0.11],["heatwave",0.05],["protect",0.04]],"overqwil":[["minimize",0.25],["stockpile",0.22],["barbbarrage",0.19],["protect",0.11],["throatchop",0.08],["crunch",0.05]],"jolteon":[["discharge",0.36],["risingvoltage",0.19],["electroweb",0.09],["weatherball",0.08],["protect",0.06],["thunderbolt",0.04]],"delphoxmega":[["heatwave",0.37],["protect",0.26],["psychic",0.16],["psyshock",0.08],["flamethrower",0.05],["nastyplot",0.05]],"dragapult":[["phantomforce",0.17],["dragondarts",0.16],["shadowball",0.14],["lightscreen",0.07],["protect",0.06],["round",0.05]],"skeledirge":[["torchsong",0.51],["shadowball",0.2],["protect",0.11],["slackoff",0.07],["snarl",0.05],["hypervoice",0.02]],"mawile":[["playrough",0.36],["suckerpunch",0.26],["protect",0.16],["ironhead",0.09],["swordsdance",0.07],["rockslide",0.06]],"cofagrigus":[["bodypress",0.23],["trickroom",0.17],["shadowball",0.14],["willowisp",0.13],["hex",0.08],["allyswitch",0.05]],"hatterene":[["dazzlinggleam",0.34],["expandingforce",0.14],["mysticalfire",0.14],["trickroom",0.07],["protect",0.07],["psyshock",0.07]],"pyroar":[["heatwave",0.51],["protect",0.19],["overheat",0.12],["solarbeam",0.07],["flamethrower",0.04],["burningjealousy",0.02]],"palafin":[["flipturn",0.76],["protect",0.1],["jetpunch",0.05],["closecombat",0.05]],"palafinhero":[["jetpunch",0.31],["wavecrash",0.22],["closecombat",0.1],["flipturn",0.08],["ironhead",0.08],["protect",0.07]],"klefki":[["drainingkiss",0.15],["reflect",0.13],["lightscreen",0.1],["calmmind",0.09],["psychup",0.08],["substitute",0.07]],"floettemega":[["dazzlinggleam",0.37],["protect",0.29],["moonblast",0.24],["lightofruin",0.08],["calmmind",0.03]],"mawilemega":[["suckerpunch",0.41],["playrough",0.26],["ironhead",0.1],["swordsdance",0.07],["protect",0.07],["psychicfangs",0.07]],"vivillon":[["sleeppowder",0.49],["protect",0.19],["hurricane",0.06],["tailwind",0.06],["ragepowder",0.05],["quiverdance",0.04]],"froslassmega":[["blizzard",0.49],["protect",0.2],["shadowball",0.1],["auroraveil",0.1],["thunderbolt",0.07],["nastyplot",0.05]],"lucario":[["closecombat",0.13],["protect",0.12],["aurasphere",0.1],["flashcannon",0.08],["bulletpunch",0.08],["meteormash",0.07]],"dragonitemega":[["roost",0.25],["protect",0.25],["dragonpulse",0.12],["blizzard",0.12],["dracometeor",0.12],["thunderbolt",0.06]],"armarouge":[["armorcannon",0.21],["heatwave",0.15],["protect",0.14],["psychic",0.14],["wideguard",0.09],["expandingforce",0.05]],"espathra":[["calmmind",0.27],["protect",0.22],["luminacrash",0.21],["batonpass",0.15],["hypnosis",0.05],["storedpower",0.02]],"scovillain":[["ragepowder",0.32],["protect",0.22],["leechseed",0.14],["overheat",0.08],["flamethrower",0.07],["gigadrain",0.06]],"aegislash":[["kingsshield",0.21],["shadowsneak",0.16],["ironhead",0.14],["poltergeist",0.12],["wideguard",0.12],["shadowball",0.08]],"charizardmegax":[["dragonclaw",0.28],["breakingswipe",0.28],["flamecharge",0.17],["protect",0.11],["willowisp",0.06],["swordsdance",0.06]],"lycanrocdusk":[["rockslide",0.31],["accelerock",0.28],["protect",0.18],["closecombat",0.14],["suckerpunch",0.04],["drillrun",0.03]],"raichumegay":[["zapcannon",0.49],["fakeout",0.19],["protect",0.15],["focusblast",0.13],["voltswitch",0.04]],"heliolisk":[["thunderbolt",0.19],["thunder",0.1],["protect",0.09],["voltswitch",0.08],["discharge",0.07],["allyswitch",0.06]],"barbaracle":[["protect",0.23],["shellsmash",0.23],["rockslide",0.23],["closecombat",0.14],["icywind",0.07],["aquacutter",0.05]],"pinsir":[["feint",0.24],["bodyslam",0.17],["rockslide",0.17],["closecombat",0.1],["earthquake",0.07],["facade",0.03]],"typhlosionhisui":[["eruption",0.7],["shadowball",0.15],["burnup",0.06],["heatwave",0.04],["protect",0.02]],"tyranitarmega":[["rockslide",0.42],["protect",0.32],["knockoff",0.17],["earthquake",0.02],["lowkick",0.02],["highhorsepower",0.02]],"gyarados":[["waterfall",0.35],["crunch",0.13],["dragondance",0.12],["protect",0.12],["earthquake",0.03],["icefang",0.03]],"volcarona":[["quiverdance",0.2],["heatwave",0.17],["protect",0.16],["bugbuzz",0.11],["fierydance",0.09],["tailwind",0.06]],"conkeldurr":[["drainpunch",0.31],["machpunch",0.17],["detect",0.07],["protect",0.07],["wideguard",0.07],["icepunch",0.05]],"forretress":[["bodypress",0.12],["voltswitch",0.12],["pounce",0.12],["irondefense",0.12],["gyroball",0.12],["protect",0.08]],"swampertmega":[["wavecrash",0.28],["protect",0.27],["earthquake",0.18],["icepunch",0.12],["highhorsepower",0.08],["flipturn",0.02]],"noivern":[["airslash",0.28],["tailwind",0.25],["dracometeor",0.17],["protect",0.07],["boomburst",0.04],["dragonpulse",0.04]],"gliscor":[["highhorsepower",0.22],["rockslide",0.19],["earthquake",0.14],["protect",0.11],["tailwind",0.06],["dualwingbeat",0.06]],"glimmora":[["powergem",0.26],["sludgebomb",0.25],["spikyshield",0.2],["earthpower",0.18],["protect",0.03]],"absol":[["knockoff",0.31],["suckerpunch",0.25],["batonpass",0.19],["protect",0.12],["closecombat",0.12]],"vanilluxe":[["blizzard",0.39],["freezedry",0.21],["sheercold",0.13],["protect",0.08],["frostbreath",0.04],["auroraveil",0.04]],"skarmory":[["bravebird",0.35],["ironhead",0.25],["protect",0.14],["swordsdance",0.06],["tailwind",0.06],["drillrun",0.04]],"sceptile":[["dragonpulse",0.3],["earthpower",0.23],["energyball",0.1],["protect",0.09],["gigadrain",0.09],["leafstorm",0.08]],"hydrapple":[["earthpower",0.42],["yawn",0.17],["ficklebeam",0.17],["leafstorm",0.06],["protect",0.06],["recover",0.02]],"kommoo":[["clangingscales",0.4],["aurasphere",0.17],["protect",0.15],["clangoroussoul",0.13],["dragonclaw",0.05],["boomburst",0.02]],"toxicroak":[["fakeout",0.3],["poisonjab",0.26],["closecombat",0.11],["suckerpunch",0.07],["batonpass",0.07],["raindance",0.07]],"clefable":[["followme",0.3],["moonblast",0.25],["calmmind",0.1],["moonlight",0.05],["helpinghand",0.04],["protect",0.04]],"liepard":[["fakeout",0.2],["knockoff",0.11],["thunderwave",0.08],["foulplay",0.07],["screech",0.07],["encore",0.06]],"pangoro":[["detect",0.21],["rockslide",0.21],["knockoff",0.17],["bulletpunch",0.17],["closecombat",0.08],["protect",0.04]],"scolipede":[["protect",0.37],["swordsdance",0.16],["leechlife",0.14],["poisonjab",0.1],["rockslide",0.05],["throatchop",0.05]],"eelektross":[["flamethrower",0.19],["thunderbolt",0.15],["protect",0.14],["gigadrain",0.14],["discharge",0.14],["thunder",0.04]],"kleavor":[["stoneaxe",0.59],["xscissor",0.1],["tailwind",0.08],["closecombat",0.07],["nightslash",0.05],["rockslide",0.04]],"alakazam":[["dazzlinggleam",0.17],["expandingforce",0.16],["psychic",0.14],["speedswap",0.14],["protect",0.12],["focusblast",0.09]],"orthworm":[["shedtail",0.36],["heavyslam",0.16],["bodypress",0.15],["protect",0.1],["helpinghand",0.1],["ironhead",0.05]],"reuniclus":[["psychic",0.33],["trickroom",0.19],["expandingforce",0.1],["protect",0.1],["focusblast",0.06],["shadowball",0.06]],"medicham":[["closecombat",0.19],["fakeout",0.17],["skillswap",0.16],["rockslide",0.09],["zenheadbutt",0.08],["psychocut",0.03]],"torterra":[["irondefense",0.17],["bodypress",0.17],["amnesia",0.14],["earthquake",0.13],["gigadrain",0.07],["wideguard",0.07]],"starmie":[["liquidation",0.36],["protect",0.12],["psychocut",0.08],["scald",0.07],["icespinner",0.06],["aquajet",0.06]],"simipour":[["scald",0.62],["fakeout",0.19],["surf",0.06],["hydropump",0.06],["blizzard",0.06]],"musharna":[["trickroom",0.2],["helpinghand",0.12],["psychic",0.12],["allyswitch",0.12],["protect",0.07],["thunderwave",0.05]],"lycanroc":[["rockslide",0.36],["protect",0.27],["accelerock",0.23],["drillrun",0.09],["closecombat",0.04]],"chimecho":[["storedpower",0.2],["cosmicpower",0.17],["trickroom",0.13],["calmmind",0.11],["psychic",0.08],["protect",0.07]],"scraftymega":[["fakeout",0.5],["knockoff",0.25],["drainpunch",0.1],["firepunch",0.05],["detect",0.05],["icepunch",0.05]],"slowbrogalar":[["shellsidearm",0.5],["trickroom",0.15],["zenheadbutt",0.1],["yawn",0.1],["liquidation",0.05],["healpulse",0.05]],"emboar":[["drainpunch",0.23],["protect",0.18],["bulkup",0.14],["suckerpunch",0.14],["wildcharge",0.14],["flareblitz",0.09]],"mrrime":[["freezedry",0.23],["sheercold",0.17],["roleplay",0.14],["protect",0.14],["fakeout",0.12],["blizzard",0.07]],"samurotthisui":[["ceaselessedge",0.36],["aquacutter",0.17],["suckerpunch",0.12],["nightslash",0.1],["detect",0.08],["flipturn",0.04]],"decidueyehisui":[["triplearrows",0.53],["leafblade",0.18],["protect",0.13],["suckerpunch",0.08],["bravebird",0.03]],"clawitzer":[["waterpulse",0.33],["darkpulse",0.31],["terrainpulse",0.14],["aurasphere",0.08],["sludgebomb",0.04],["protect",0.04]],"ditto":[["dragonpulse",0.07],["protect",0.07],["earthpower",0.07],["transform",0.07],["psychic",0.06],["knockoff",0.04]],"crabominable":[["protect",0.25],["icehammer",0.22],["machpunch",0.19],["icepunch",0.07],["rockslide",0.06],["drainpunch",0.06]],"hawlucha":[["entrainment",0.44],["bravebird",0.13],["detect",0.08],["flyingpress",0.08],["closecombat",0.05],["highjumpkick",0.05]],"aerodactylmega":[["rockslide",0.66],["protect",0.14],["dualwingbeat",0.1],["icefang",0.03],["crunch",0.03],["wideguard",0.03]],"houndoom":[["heatwave",0.41],["darkpulse",0.24],["protect",0.14],["snarl",0.07],["nastyplot",0.06],["overheat",0.04]],"snorlax":[["fissure",0.18],["stockpile",0.14],["bodyslam",0.11],["rockslide",0.09],["bodypress",0.08],["curse",0.07]],"metagrossmega":[["protect",0.3],["psychicfangs",0.23],["ironhead",0.16],["bodypress",0.08],["bulletpunch",0.07],["cosmicpower",0.05]],"abomasnow":[["blizzard",0.4],["earthpower",0.15],["protect",0.12],["iceshard",0.07],["gigadrain",0.07],["energyball",0.04]],"dragalge":[["dracometeor",0.29],["sludgebomb",0.23],["protect",0.18],["flipturn",0.06],["sludgewave",0.06],["dragonpulse",0.03]],"vivillonpokeball":[["sleeppowder",0.52],["hurricane",0.14],["tailwind",0.1],["gigadrain",0.05],["protect",0.05],["pollenpuff",0.03]],"aromatisse":[["drainingkiss",0.26],["trickroom",0.12],["healpulse",0.12],["helpinghand",0.12],["moonblast",0.1],["skillswap",0.07]],"steelix":[["wideguard",0.18],["heavyslam",0.15],["earthpower",0.12],["ancientpower",0.12],["highhorsepower",0.1],["curse",0.06]],"basculegionf":[["hydropump",0.35],["shadowball",0.31],["icebeam",0.17],["flipturn",0.07],["muddywater",0.07],["protect",0.02]],"aurorus":[["hypervoice",0.24],["blizzard",0.19],["hyperbeam",0.14],["ancientpower",0.14],["round",0.1],["protect",0.05]],"vileplume":[["sleeppowder",0.27],["protect",0.2],["afteryou",0.11],["solarbeam",0.11],["sludgebomb",0.11],["gigadrain",0.03]],"krookodile":[["knockoff",0.24],["rockslide",0.18],["protect",0.14],["highhorsepower",0.14],["gunkshot",0.06],["throatchop",0.06]],"slowkinggalar":[["sludgebomb",0.2],["trickroom",0.17],["psychic",0.15],["chillyreception",0.1],["psyshock",0.07],["flamethrower",0.05]],"serperior":[["leafstorm",0.47],["protect",0.19],["glare",0.12],["dragonpulse",0.09],["gigadrain",0.05],["taunt",0.02]],"slowking":[["trickroom",0.32],["chillyreception",0.23],["psychic",0.14],["scald",0.14],["weatherball",0.04],["earthquake",0.04]],"victreebel":[["sludgebomb",0.33],["gigadrain",0.23],["sleeppowder",0.13],["sludgewave",0.1],["strengthsap",0.08],["suckerpunch",0.03]],"rotommow":[["voltswitch",0.29],["leafstorm",0.16],["eerieimpulse",0.1],["thunderbolt",0.07],["trick",0.07],["electroweb",0.07]],"dragalgemega":[["dracometeor",0.28],["protect",0.23],["sludgebomb",0.15],["flipturn",0.13],["scald",0.11],["sludgewave",0.04]],"slowbro":[["scald",0.22],["muddywater",0.1],["trickroom",0.1],["bodypress",0.1],["calmmind",0.09],["psychicnoise",0.09]],"lopunny":[["fakeout",0.32],["closecombat",0.25],["tripleaxel",0.09],["protect",0.07],["afteryou",0.07],["encore",0.05]],"banette":[["destinybond",0.32],["poltergeist",0.29],["disable",0.1],["knockoff",0.1],["trickroom",0.07],["scaryface",0.05]],"mudsdale":[["highhorsepower",0.23],["earthquake",0.19],["bodypress",0.16],["rockslide",0.13],["heavyslam",0.11],["protect",0.1]],"staraptormega":[["closecombat",0.34],["protect",0.28],["bravebird",0.2],["roost",0.08],["dualwingbeat",0.06],["tailwind",0.04]],"wyrdeer":[["earthpower",0.22],["trickroom",0.16],["skillswap",0.16],["protect",0.12],["imprison",0.07],["psyshieldbash",0.06]],"heracross":[["pinmissile",0.32],["rockblast",0.16],["brickbreak",0.1],["earthquake",0.07],["bulletseed",0.07],["rockslide",0.07]],"rhyperior":[["rockslide",0.3],["highhorsepower",0.24],["heatcrash",0.13],["earthquake",0.12],["protect",0.1],["drillrun",0.04]],"salazzle":[["fakeout",0.27],["sludgebomb",0.23],["overheat",0.19],["dragoncheer",0.08],["protect",0.08],["toxic",0.04]],"houndstone":[["lastrespects",0.42],["protect",0.1],["poltergeist",0.1],["willowisp",0.08],["allyswitch",0.07],["bodypress",0.05]],"quaquaval":[["aquastep",0.24],["closecombat",0.24],["detect",0.16],["icespinner",0.08],["bravebird",0.08],["liquidation",0.08]],"espeon":[["psyshock",0.25],["powergem",0.18],["expandingforce",0.14],["trickroom",0.07],["protect",0.07],["psychic",0.07]],"vaporeon":[["yawn",0.2],["scald",0.18],["flipturn",0.11],["icebeam",0.1],["icywind",0.09],["muddywater",0.08]],"flareon":[["flareblitz",0.33],["facade",0.27],["detect",0.2],["quickattack",0.13],["superpower",0.07]],"umbreon":[["foulplay",0.43],["snarl",0.17],["screech",0.09],["helpinghand",0.08],["moonlight",0.05],["yawn",0.04]],"goodrahisui":[["bodypress",0.18],["lifedew",0.11],["flashcannon",0.11],["dragonpulse",0.1],["dragonclaw",0.08],["protect",0.07]],"feraligatr":[["liquidation",0.26],["protect",0.14],["doubleedge",0.13],["aquajet",0.12],["dragondance",0.08],["waterfall",0.08]],"sharpedo":[["crunch",0.5],["protect",0.25],["waterfall",0.06],["liquidation",0.06],["psychicfangs",0.05],["icefang",0.03]],"manectric":[["discharge",0.27],["snarl",0.21],["flamethrower",0.15],["voltswitch",0.12],["protect",0.12],["thunderbolt",0.09]],"pikachu":[["fakeout",0.29],["risingvoltage",0.17],["protect",0.12],["electroweb",0.12],["discharge",0.08],["voltswitch",0.04]],"meganiummega":[["dazzlinggleam",0.43],["protect",0.24],["weatherball",0.19],["solarbeam",0.1],["synthesis",0.05]],"machamp":[["dynamicpunch",0.36],["knockoff",0.13],["rockslide",0.13],["stoneedge",0.11],["wideguard",0.11],["protect",0.09]],"pidgeot":[["hurricane",0.37],["heatwave",0.32],["tailwind",0.21],["protect",0.1]],"kangaskhanmega":[["fakeout",0.53],["suckerpunch",0.2],["bodyslam",0.07],["hammerarm",0.07],["doubleedge",0.07],["lastresort",0.07]],"vivillonhighplains":[["sleeppowder",0.53],["hurricane",0.18],["ragepowder",0.18],["sunnyday",0.06],["protect",0.06]],"lycanrocmidnight":[["stoneedge",0.33],["protect",0.18],["playrough",0.15],["rockslide",0.11],["brickbreak",0.07],["upperhand",0.07]],"zoroarkhisui":[["icywind",0.27],["shadowball",0.2],["hypervoice",0.13],["taunt",0.1],["bittermalice",0.07],["trick",0.03]],"diggersby":[["protect",0.33],["highhorsepower",0.27],["gigaimpact",0.13],["icepunch",0.07],["rockslide",0.07],["substitute",0.07]],"stunfisk":[["yawn",0.33],["protect",0.29],["thunderbolt",0.21],["earthpower",0.12],["sludgebomb",0.04]],"typhlosion":[["heatwave",0.37],["eruption",0.26],["scorchingsands",0.21],["protect",0.16]],"trevenant":[["willowisp",0.31],["allyswitch",0.21],["hornleech",0.14],["protect",0.14],["leechseed",0.07],["substitute",0.03]],"alcremie":[["decorate",0.35],["dazzlinggleam",0.2],["lightscreen",0.15],["drainingkiss",0.15],["protect",0.05],["mysticalfire",0.05]],"glaceon":[["freezedry",0.39],["protect",0.33],["blizzard",0.22],["icywind",0.06]],"greninjamega":[["blizzard",0.27],["icebeam",0.2],["darkpulse",0.13],["rockslide",0.13],["icepunch",0.13],["lowkick",0.13]],"sandaconda":[["bodypress",0.24],["earthquake",0.13],["protect",0.11],["mudslap",0.11],["irondefense",0.09],["rockslide",0.09]],"lopunnymega":[["closecombat",0.36],["fakeout",0.18],["protect",0.12],["afteryou",0.09],["uturn",0.06],["tripleaxel",0.06]],"infernape":[["fakeout",0.3],["overheat",0.13],["uturn",0.09],["vacuumwave",0.09],["heatwave",0.07],["closecombat",0.06]],"morpeko":[["aurawheel",0.35],["taunt",0.2],["protect",0.2],["partingshot",0.15],["batonpass",0.05],["fakeout",0.05]],"taurospaldeablaze":[["ragingbull",0.5],["bulkup",0.18],["protect",0.14],["rockslide",0.14],["earthquake",0.04]],"spiritomb":[["trickroom",0.3],["willowisp",0.22],["darkpulse",0.18],["snarl",0.11],["foulplay",0.07],["taunt",0.07]],"meowsticf":[["fakeout",0.28],["expandingforce",0.28],["darkpulse",0.2],["psychicterrain",0.08],["storedpower",0.05],["protect",0.03]],"toucannon":[["rockblast",0.44],["bulletseed",0.22],["protect",0.17],["tailwind",0.11],["bravebird",0.06]],"runerigus":[["trickroom",0.21],["poltergeist",0.18],["protect",0.18],["earthquake",0.09],["rockslide",0.09],["toxicspikes",0.06]],"blazikenmega":[["protect",0.25],["rockslide",0.25],["flareblitz",0.21],["detect",0.17],["closecombat",0.12]],"leafeon":[["solarblade",0.36],["knockoff",0.15],["leafblade",0.12],["detect",0.12],["raindance",0.12],["yawn",0.06]]};
 const API=location.protocol==='file:'?'http://localhost:8790':'';
 JOLT.roster.sort((a,b)=>(b.use||0)-(a.use||0));   // default order = usage ranking (most-brought first)
 const ani=n=>`https://play.pokemonshowdown.com/sprites/ani/${n}.gif`;
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function niceName(k){return k?String(k).replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\b\w/g,c=>c.toUpperCase()):'—';}
 function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0.5;}
+// matchup term: how much harder A's STAB types hit B's team than the reverse.
+// This is what stops two equally-strong-but-differently-shaped teams reading ~50%.
+function typeEdge(A,B){
+  const eff=(atkN,defN)=>{const at=MC.mons[atkN]&&MC.mons[atkN].t,dt=MC.mons[defN]&&MC.mons[defN].t;if(!at||!dt)return 1;let best=0;for(const t of at)best=Math.max(best,mcEff(t,dt));return best;};
+  const oneWay=(X,Y)=>{let s=0,c=0;for(const x of X)for(const y of Y){s+=eff(x,y);c++;}return c?s/c:1;};
+  return oneWay(A,B)-oneWay(B,A);
+}
 function pwin(A,B){ // A,B arrays of species names -> P(A beats B), the real JOLTEON logistic
   let s=0; A.forEach(n=>s+=(BY[n]?.w||0)); B.forEach(n=>s-=(BY[n]?.w||0));
   s+=JOLT.wSpeed*(mean(A.map(n=>BY[n]?.spd??0.5))-mean(B.map(n=>BY[n]?.spd??0.5)));
   s+=JOLT.wFire *(mean(A.map(n=>BY[n]?.fire??0.5))-mean(B.map(n=>BY[n]?.fire??0.5)));
+  s+=0.55*typeEdge(A,B);   // team-vs-team type coverage — the missing matchup signal
   return 1/(1+Math.exp(-s));
 }
 
@@ -295,18 +484,16 @@ function roomJolteon(){const c=CAST[1];
    <div class="panel"><h2>Battle Odds Booth</h2><p class="sub">Build each team below — the result shows up right here at the top.</p>
      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
        <button class="battlebtn" onclick="doBattle()">BATTLE!</button>
-       <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;font-size:15px;padding:8px 14px" onclick="doMedicham()">MEDICHAM check</button>
        <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">Surprise me</button>
      </div>
      <div class="meterwrap" style="margin-top:12px"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
        <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
      <div class="readout" id="readout">Build two teams and press BATTLE.</div>
-     <div class="readout" id="mcout" style="min-height:0;color:#b4432f"></div>
      <div class="booth two" style="margin-top:16px">
-       <div class="side you"><h3>Your team</h3><div class="slots" id="slotsA"></div>
+       <div class="side you"><h3>Your team</h3><div class="slots" id="slotsA" data-slots="A"></div>
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickA','A',this.value)">
          <div class="picker" id="pickA"></div></div>
-       <div class="side rival"><h3>Rival team</h3><div class="slots" id="slotsB"></div>
+       <div class="side rival"><h3>Rival team</h3><div class="slots" id="slotsB" data-slots="B"></div>
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickB','B',this.value)">
          <div class="picker" id="pickB"></div></div>
      </div>
@@ -324,7 +511,7 @@ function roomJolteon(){const c=CAST[1];
        <div id="savedbar" class="savedbar"></div>
      </div>
    </div>
-   <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by which team hits harder (firepower) and moves first (speed). I'm right about <b>~56%</b> of the time from team sheets alone — a real edge over a coin flip, but not magic: the same two teams don't always give the same winner. That gap is skill and luck, and it's why the other models exist.</p></div>`;
+   <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by coverage, firepower and speed. <b>Straight talk from the held-out backtest:</b> I pick the winner about <b>55%</b> of the time — right at the skill ceiling for this format — but as a <i>probability</i> I'm only about as sharp as the player-rating gap (my log-loss essentially ties a coin's). The team sheet just doesn't carry much more than that, partly because the meta is non-transitive (see Ditto). I'm an honest, instant first read — not an oracle. The rollout (Medicham) and the belief-search (Slowking) are where the real edge lives.</p></div>`;
 }
 
 function tierRow(sprite,name,acro,cost,color,text){
@@ -332,30 +519,51 @@ function tierRow(sprite,name,acro,cost,color,text){
 }
 function roomMedicham(){const c=CAST[2];
   return `<div class="panel">${mascotHero(c,"Hyah! Jolteon guesses fast, but I actually <b>play the game out</b> — CHOMP's exact damage, a few hundred quick rollouts, sampling every roll. Middle of the pack in speed and cost.")}</div>
-   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Enter both teams (comma-separated species, or a PokéPaste). I run the rollout and give a grounded win rate.</p>
-     <div class="grid2">
-       <div><label style="font-weight:700;font-size:13px">Your team</label><textarea id="mcA" class="mcbox" placeholder="pelipper, basculegion, archaludon, kingambit">${teamA.join(', ')}</textarea></div>
-       <div><label style="font-weight:700;font-size:13px">Opponent</label><textarea id="mcB" class="mcbox" placeholder="charizard, venusaur, torkoal, garchomp">${teamB.join(', ')}</textarea></div>
+   <div class="panel"><h2>Play a matchup out</h2><p class="sub">Pick both teams below — your carried team is already loaded. The grounded result shows up right here at the top.</p>
+     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
+       <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff" onclick="runMedichamRoom()">Play it out</button>
      </div>
-     <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;margin-top:10px" onclick="runMedichamRoom()">Play it out</button>
-     <div class="readout" id="mcRoomOut" style="text-align:left;color:#b4432f"></div>
+     <div class="meterwrap" style="margin-top:12px"><div class="mYou" id="mcYou" style="width:50%"></div><div class="mRiv" id="mcRiv"></div>
+       <b id="mcYouL" style="left:12px">50%</b><b id="mcRivL" style="right:12px">50%</b></div>
+     <div class="readout" id="mcRoomOut">Pick two teams and press Play it out.</div>
+     <div class="booth two" style="margin-top:16px">
+       <div class="side you"><h3>Your team</h3><div class="slots" data-slots="A"></div>
+         <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMA','A',this.value)">
+         <div class="picker" id="pickMA"></div></div>
+       <div class="side rival"><h3>Opponent</h3><div class="slots" data-slots="B"></div>
+         <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMB','B',this.value)">
+         <div class="picker" id="pickMB"></div></div>
+     </div>
+     <div class="savedwrap">
+       <div class="savedhead"><b>Saved teams</b> <span style="color:#889;font-size:12px">load into either side, then Play it out</span>
+         <span style="flex:1"></span>
+         <button class="minibtn" onclick="saveCurrent('A')">★ Save your team</button>
+         <button class="minibtn" onclick="saveCurrent('B')">★ Save opponent</button></div>
+       <div class="savedbar"></div>
+     </div>
    </div>
    <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
-  return `<div class="panel">${mascotHero(c,"Copy copy! I build teams that beat the <b>live</b> meta. I try thousands of swaps, scoring each with Jolteon, and I make sure you have an answer to <b>Basculegion</b> \u2014 not to Camerupt.")}</div>
-   <div class="panel"><h2>Build a team to optimise</h2><p class="sub">Your carried team seeds the search. Edit it, or load a saved team.</p>
-     <input id="dtseed" placeholder="garchomp,whimsicott,basculegion,kingambit,charizard,sylveon" value="${teamA.join(',')}" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:8px">
-     <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="document.getElementById('dtseed').value=teamA.join(',')">use my current team</button>
-     <button class="battlebtn" onclick="runDitto()">Build me a team</button>
-     <pre id="dtout" style="margin-top:12px;background:#fff0fa;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:320px;overflow:auto">Press Build me a team. (Needs the local server.)</pre>
+  return `<div class="panel">${mascotHero(c,"Copy copy! First I <b>solve the meta</b> \u2014 the Nash equilibrium of the archetype match-ups \u2014 then I best-respond to it, tuning your team to beat the game as it really is. And I'll always tell you who still counters you, because no one team beats everything.")}</div>
+   <div class="panel"><h2>Best version of your team</h2><p class="sub">DITTO iterates from your seed team (below), swapping Pokémon and items to beat the live meta — right in your browser, no server.</p>
+     <div style="display:flex;justify-content:center"><button class="battlebtn" onclick="runDitto()">Iterate → best version</button></div>
+     <div id="dtout" style="margin-top:14px;color:#889;text-align:center">Pick your seed team below, then press Iterate.</div>
+   </div>
+   <div class="panel"><h2>Your seed team</h2><p class="sub">Pick up to six — carried across every tab.</p>
+     <div class="side you" style="max-width:none"><div class="slots" data-slots="A"></div>
+       <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickD','A',this.value)">
+       <div class="picker" id="pickD"></div></div>
    </div>
    <div class="panel"><h2>Threat rankings</h2><p class="sub">Every common threat on the ladder \u2014 click a column to sort, or search. Straight from the battle logs.</p>
      <input class="pksearch" placeholder="search a threat\u2026" oninput="renderThreats(null,this.value)">
      <div id="threattable"></div>
    </div>
+   <div class="panel"><h2>Why there's no single "best team"</h2><p class="sub">A win-rate matrix among meta archetypes, each played out by MEDICHAM. Green = the row team beats the column team. The cycles underneath are the proof the metagame is <b>rock-paper-scissors</b>: no team beats everything, so there is no #1 — which is why DITTO hands you a spread, and why any single-number rating can only get you so far.</p>
+     <div id="nontrans" style="overflow:auto;text-align:center"></div>
+   </div>
    <div class="panel"><h2>The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">When I optimise <i>against</i> Jolteon, I can cheat it \u2014 stacking rare Pok\u00e9mon it over-rates. So Medicham re-checks my teams with real rollouts. Once, Jolteon said my team was <b>90%</b>; Medicham said <b>12%</b>. Medicham was right. That disagreement is a feature: it catches hype <i>and</i> hidden gems.</p></div>
-   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">I hill-climb: start from a team, try swapping one Pok\u00e9mon at a time, and keep the swaps that score better against a gauntlet of <b>real</b> ladder teams. Jolteon scores each candidate in microseconds so I can try thousands. I weight by real usage \u2014 so I care about beating Basculegion, not Camerupt \u2014 and Medicham re-checks my finalists so I don\'t fool myself.</p></div>`;
+   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">First I <b>solve the meta</b>: I take the archetype match-up matrix and compute its Nash equilibrium \u2014 how often each archetype <i>should</i> appear if everyone plays optimally (right now: Rain, Sand, Fake-Out). Then I <b>best-respond to that equilibrium</b>, hill-climbing your team to beat the meta as it actually is, not as a flat usage list. Jolteon scores candidates fast; Medicham plays the finalists out for real and tells you which archetypes still exploit you \u2014 because in a non-transitive meta, <b>no single team beats everything</b>. That's the honest version of a double-oracle: solve the game, answer the game.</p></div>`;
 }
 function roomKadabra(){const c=CAST[4];
   return `<div class="panel">${mascotHero(c,"Paste one of your games and I'll pop in on the turns that actually mattered — not the whole battle — and show you what to do.")}</div>
@@ -377,8 +585,10 @@ function roomSlowking(){const c=CAST[5];
 function roomChomp(){const c=CAST[6];
   return `<div class="panel">${mascotHero(c,"CHOMP! I'm the engine you actually play with — I pick the best 4 of your 6 and the 2 to lead, covering the opponent's whole team with exact damage math. ABRA feeds me smarter reads over time. ")}</div>
    <div class="panel"><h2>The bring-4 / lead-2 engine</h2><p style="font-weight:600;color:#3a5372">A Showdown userscript. It reads the battle, runs the full Gen-9 damage pipeline across all 16 rolls, and tells you the four to bring and two to lead. It covers the opponent's <b>whole six</b> (you never know their four), with ABRA's usage as advisory intel. Because it auto-updates, a smarter ABRA reaches your plugin with no reinstall.</p>
-     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a>
-     <a class="link" href="go:jolteon" onclick="go('jolteon');return false;">Try the odds booth</a></div>
+     <a class="link" href="https://github.com/willhoop/chomp" target="_blank">Get CHOMP</a></div>
+   <div class="panel"><h2>ORB — the damage calculator</h2>
+     <p style="font-weight:600;color:#3a5372"><b>On-battle Read Board.</b> A Smogon-style damage calculator tuned for Champions — every one of the 16 rolls, items, abilities, weather, spread reduction. It auto-fills from your live battle so you're never retyping stats mid-game; CHOMP feeds it the board.</p>
+     <a class="battlebtn" href="orb.html" target="_blank" style="text-decoration:none;display:inline-block">Open ORB</a></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
 const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
@@ -390,30 +600,56 @@ function go(id){
   stage.innerHTML=`<div class="room on">${ROOMS[id]()}</div>`;
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='jolteon') initBooth();
+  if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); renderSaved(); }
+  if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); renderNonTrans(); }
   if(id==='town') updateStats();
-  if(id==='ditto') renderThreats();
+  spawnAdvisors(id);
 }
 /* ===== Ditto threat rankings table (sortable, searchable) ===== */
-let threatSort='use', threatQ='';
-function sortThreats(k){ threatSort=k; renderThreats(); }
+let threatSort='use', threatQ='', threatAsc=false;
+function sortThreats(k){ if(threatSort===k) threatAsc=!threatAsc; else { threatSort=k; threatAsc=(k==='spd'||k==='games')?false:false; } renderThreats(); }
+// sample-adjusted win: shrink toward 50% by games played, so a rare mon with a few lucky games can't top the chart
+const WIN_K=250;
+function adjWin(r){ return (((r.win!=null?r.win:0.5)*(r.n_games||0))+0.5*WIN_K)/((r.n_games||0)+WIN_K); }
+// real Champions speed stat, with a fallback to the base forme when the exact forme isn't modelled
+function realSpd(r){ if(MC.mons[r.n]&&MC.mons[r.n].st) return MC.mons[r.n].st.sp;
+  const base=(r.sprite||r.n).split('-')[0].replace(/[^a-z0-9]/g,''); if(MC.mons[base]&&MC.mons[base].st) return MC.mons[base].st.sp; return null; }
 function renderThreats(_,q){
   if(q!=null) threatQ=q;
   const el=document.getElementById('threattable'); if(!el)return;
   const f=(threatQ||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const rows=THREATS.filter(r=>!f||r.n.includes(f)).slice().sort((a,b)=>(b[threatSort]||0)-(a[threatSort]||0));
+  const keyVal=(r,k)=> k==='win'?adjWin(r) : k==='spd'?(realSpd(r)==null?-1:realSpd(r)) : k==='games'?(r.n_games||0) : (r[k]||0);
+  const rows=THREATS.filter(r=>!f||r.n.includes(f)).slice().sort((a,b)=>{const d=keyVal(a,threatSort)-keyVal(b,threatSort);return threatAsc?d:-d;});
   const pct=v=>Math.round((v||0)*100)+'%';
   const winc=w=> w>=0.52?'#1a9a4a':(w>0&&w<=0.48?'#d23b3b':'#556');
-  const arrow=k=> threatSort===k?' ▾':'';
-  const H=(k,t)=>`<th onclick="sortThreats('${k}')" class="${threatSort===k?'on':''}">${t}${arrow(k)}</th>`;
+  const arrow=k=> threatSort===k?(threatAsc?' ▲':' ▼'):'';
+  const H=(k,t)=>`<th onclick="sortThreats('${k}')" class="${threatSort===k?'on':''}" title="click to sort — click again for ascending (minimum first)">${t}${arrow(k)}</th>`;
   el.innerHTML=`<table class="ttab"><thead><tr><th>#</th><th class="tnh">Pokémon</th>`+
-    H('use','Usage')+H('bring','Bring')+H('lead','Lead')+H('win','Win%')+H('spd','Speed')+H('dmg','Dmg')+
+    H('use','Usage')+H('bring','Bring')+H('lead','Lead')+H('win','Win%')+H('spd','Speed')+H('games','Games')+
     `</tr></thead><tbody>`+
-    rows.map((r,i)=>`<tr><td class="rk">${i+1}</td>
-      <td class="tn"><img src="${ani(r.sprite)}" onerror="this.onerror=null;this.src='${ani('substitute')}'">${cap(r.n)}</td>
+    rows.map((r,i)=>{const base=(r.sprite||r.n).split('-')[0].replace(/[^a-z0-9]/g,'');const aw=adjWin(r);const sp=realSpd(r);
+      return `<tr><td class="rk">${i+1}</td>
+      <td class="tn"><img src="${ani(r.sprite)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='${ani(base)}';}else{this.onerror=null;this.src='${ani('substitute')}';}">${cap(r.n)}</td>
       <td>${pct(r.use)}</td><td>${pct(r.bring)}</td><td>${pct(r.lead)}</td>
-      <td style="color:${winc(r.win)};font-weight:700">${pct(r.win)}</td>
-      <td>${pct(r.spd)}</td><td>${r.dmg?pct(r.dmg):'—'}</td></tr>`).join('')+
-    `</tbody></table>`;
+      <td style="color:${winc(aw)};font-weight:700" title="raw ${pct(r.win)} over ${r.n_games} games, adjusted for sample size">${pct(aw)}</td>
+      <td>${sp==null?'—':sp}</td><td style="color:#889">${(r.n_games||0).toLocaleString()}</td></tr>`;}).join('')+
+    `</tbody></table><div style="font-size:11px;color:#889;margin-top:6px">Win% is <b>sample-adjusted</b> — shrunk toward 50% by games played, so a rare Pokémon can't top the chart on a few lucky games. <b>Games</b> is how many battles back the number. More data tightens all of these.</div>`;
+}
+/* non-transitivity heatmap: the empirical proof the meta is rock-paper-scissors */
+function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el||typeof NONTRANS==='undefined')return;
+  const N=NONTRANS, n=N.names.length;
+  const cell=v=>{ if(v==null)return '<td style="background:#eee;text-align:center;color:#aaa">—</td>';
+    const p=Math.round(v*100), g=v>=0.5;
+    const col=g?`rgba(42,160,90,${(0.18+0.7*(v-0.5)*2).toFixed(2)})`:`rgba(210,60,60,${(0.18+0.7*(0.5-v)*2).toFixed(2)})`;
+    return `<td style="background:${col};text-align:center;font-weight:600;font-size:11px;padding:3px 5px;color:#122">${p}</td>`; };
+  let html=`<table style="border-collapse:collapse;margin:0 auto"><thead><tr><th></th>`+N.names.map(s=>`<th style="padding:2px 3px;font-size:10px;color:#556;white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
+  for(let i=0;i<n;i++){ html+=`<tr><td style="font-weight:700;font-size:11px;padding:3px 8px;text-align:right;white-space:nowrap">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
+  html+=`</tbody></table>
+   <div style="margin-top:12px;font-weight:800;color:#b4432f">${N.cycles.length} robust rock-paper-scissors cycle${N.cycles.length===1?'':'s'} — every edge clears the noise threshold (${Math.round(N.threshold*100)}%).</div>
+   <div style="font-size:12px;color:#556;margin-top:5px;line-height:1.7">`+N.cycles.map(c=>`<b>${c[0]}</b> beats ${c[1]} beats ${c[2]} beats <b>${c[0]}</b>`).join('<br>')+`</div>
+   <div style="margin-top:12px;padding:9px 11px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:10px;font-size:11.5px;color:#7a5">
+     <b>Preliminary — do not over-read.</b> Computed by the <i>approximate</i> MEDICHAM engine (not validated against the real simulator) over just ${n} archetype teams, ${N.rollouts} rollouts each (95% CI ±${Math.round(196*N.se)}pts). Near-50% cells are coin flips within noise. This <i>illustrates what non-transitivity means and why it matters</i>; it is not yet a settled claim about the live meta — that needs more games and an engine validated to ground truth.</div>`;
+  el.innerHTML=html;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }
@@ -433,10 +669,12 @@ function getSaved(){ try{return JSON.parse(localStorage.getItem('abraSaved')||'[
 function saveCurrent(side){ const t=(side==='B')?teamB:teamA; if(!t.length){alert('That side is empty.');return;} const s=getSaved(); s.unshift({six:t.slice(),ts:Date.now()}); localStorage.setItem('abraSaved',JSON.stringify(s.slice(0,20))); renderSaved(); }
 function loadSaved(i,side){ const s=getSaved(),t=s[i]; if(!t)return; if(side==='B')teamB=t.six.slice(); else teamA=t.six.slice(); renderSlots(); syncSel(); saveTeams(); }
 function delSaved(i){ const s=getSaved(); s.splice(i,1); localStorage.setItem('abraSaved',JSON.stringify(s)); renderSaved(); }
-function renderSaved(){ const el=document.getElementById('savedbar'); if(!el)return; const s=getSaved();
-  el.innerHTML = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
+function renderSaved(){ const els=document.querySelectorAll('.savedbar'); if(!els.length)return; const s=getSaved();
+  const html = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
+  els.forEach(el=>el.innerHTML=html);
 }
-function initBooth(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp'];
+function ensureTeams(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp']; }
+function initBooth(){ ensureTeams();
   renderPick('pickA','A'); renderPick('pickB','B'); renderSlots(); renderSaved(); }
 function renderPick(elId,side,q){const el=document.getElementById(elId);if(!el)return;
   const f=(q||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -447,12 +685,13 @@ function renderPick(elId,side,q){const el=document.getElementById(elId);if(!el)r
 function toggle(n,side){const T=side==='A'?teamA:teamB;const i=T.indexOf(n);
   if(i>=0)T.splice(i,1); else {if(T.length>=6){return;} T.push(n);} renderSlots(); syncSel();}
 function syncSel(){document.querySelectorAll('.pk').forEach(b=>{const T=b.dataset.s==='A'?teamA:teamB;b.classList.toggle('sel',T.includes(b.dataset.n));});}
-function renderSlots(){const sa=document.getElementById('slotsA'),sb=document.getElementById('slotsB');if(!sa)return;
-  const cell=(n,side)=>`<div class="slot" title="${cap(n)} — click × to remove"><img src="${ani(BY[n].sprite)}"><button class="slotx" onclick="toggle('${n}','${side}')">×</button></div>`;
+function renderSlots(){
+  const cell=(n,side)=>`<div class="slot" title="${cap(n)} — click × to remove"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'"><button class="slotx" onclick="toggle('${n}','${side}')">×</button></div>`;
   const render=(team,side)=> team.length
     ? team.map(n=>cell(n,side)).join('')+`<button class="clearx" onclick="clearTeam('${side}')" title="clear whole team">clear ×</button>`
     : '<small style="color:#889">pick some →</small>';
-  sa.innerHTML=render(teamA,'A'); sb.innerHTML=render(teamB,'B'); saveTeams();}
+  document.querySelectorAll('[data-slots]').forEach(box=>{const side=box.dataset.slots;box.innerHTML=render(side==='A'?teamA:teamB,side);});
+  saveTeams();}
 function clearTeam(side){ if(side==='A')teamA=[]; else teamB=[]; renderSlots(); syncSel(); }
 function randomTeams(){const pool=JOLT.roster.map(m=>m.n);const pick=()=>{const s=new Set();while(s.size<4)s.add(pool[Math.floor(Math.random()*pool.length)]);return[...s];};
   teamA=pick();teamB=pick();renderSlots();syncSel();doBattle(true);}
@@ -468,39 +707,147 @@ function doBattle(quiet){
   document.getElementById('mcout').textContent='';
 }
 /* live engines via the local server (start.bat). Graceful if not running. */
-function doMedicham(){
-  if(!teamA.length||!teamB.length){document.getElementById('readout').textContent='Pick teams first!';return;}
-  const el=document.getElementById('mcout'); el.textContent='MEDICHAM is playing it out…';
-  setTimeout(()=>{ const p=mcWinProb(teamA,teamB,200);
-    if(p==null){el.textContent='MEDICHAM could not build those teams — try common species.';return;}
-    const jp=Math.round(pwin(teamA,teamB)*100), mp=Math.round(p*100), gap=Math.abs(jp-mp);
-    el.innerHTML=`MEDICHAM (grounded rollout, in your browser): <b>${mp}%</b> vs JOLTEON's <b>${jp}%</b>. `+(gap<10?'They agree.':gap<25?'A little disagreement.':'<b>Big gap</b> — trust MEDICHAM here.');
-  },20);
-}
-function teamFromInput(v){ v=(v||'').trim(); if(!v) return [];
-  if(/\n|@|Ability:/i.test(v)) return parsePaste(v).map(x=>spriteName(x).n);
-  return v.split(',').map(s=>s.trim().toLowerCase().replace(/[^a-z0-9]/g,'')).filter(Boolean); }
+// booth button: jump to MEDICHAM's room and run the grounded rollout there
+function doMedicham(){ go('medicham'); setTimeout(runMedichamRoom,90); }
 function runMedichamRoom(){
-  const A=teamFromInput(document.getElementById('mcA').value), B=teamFromInput(document.getElementById('mcB').value);
-  const out=document.getElementById('mcRoomOut'); if(!A.length||!B.length){out.textContent='Enter both teams (comma-separated species or a PokéPaste).';return;}
+  const out=document.getElementById('mcRoomOut'); if(!out)return;
+  if(!teamA.length||!teamB.length){out.textContent='Pick both teams first.';return;}
   out.textContent='MEDICHAM is playing it out…';
-  setTimeout(()=>{ const p=mcWinProb(A,B,300);
-    if(p==null){out.textContent='Could not build those teams — try common species.';return;}
-    out.innerHTML=`Grounded win rate for your team: <b style="color:#2a7">${Math.round(p*100)}%</b> over 300 rollouts — computed right here, no server needed.`;
+  setTimeout(()=>{ const N=400, p=mcWinProb(teamA,teamB,N);
+    if(p==null){out.textContent='Could not build those teams — try more common species.';return;}
+    const mp=Math.round(p*100), ci=Math.round(196*Math.sqrt(p*(1-p)/N)), jp=Math.round(pwin(teamA,teamB)*100), gap=Math.abs(jp-mp);
+    const y=document.getElementById('mcYou'); if(y){ y.style.width=mp+'%'; document.getElementById('mcYouL').textContent=mp+'%'; document.getElementById('mcRivL').textContent=(100-mp)+'%'; }
+    out.innerHTML=`Grounded win rate for <b>your</b> team: <b>${mp}% ± ${ci}</b> <span style="color:#889;font-weight:500">(95% CI over ${N} rollouts)</span>. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<=ci?'They agree within the noise.':`Gap of <b>${gap} pts</b> — beyond the noise, MEDICHAM actually played it out, so trust it over JOLTEON here.`);
   },20);
 }
+/* ===== DITTO — in-browser team optimiser (no server) ===== */
+// usage-weighted gauntlet of meta "teams" (4 top-usage mons each), the opponents we optimise against
+function metaGauntlet(k){ const top=JOLT.roster.slice(0,30);
+  const tot=top.reduce((s,m)=>s+(m.use||0.01),0);
+  const pickW=()=>{let r=Math.random()*tot;for(const m of top){r-=(m.use||0.01);if(r<=0)return m.n;}return top[0].n;};
+  const teams=[]; for(let i=0;i<k;i++){const s=new Set();while(s.size<4)s.add(pickW());teams.push([...s]);} return teams; }
+// DITTO scores a team as a BEST RESPONSE to the solved equilibrium meta (data/meta-nash.json),
+// weighted by each archetype's Nash frequency. This is the real double-oracle inner step — best-respond
+// to the meta-Nash — not coordinate ascent against a flat usage gauntlet.
+function dittoScore(team){ if(typeof META_NASH==='undefined')return 0.5; let s=0,w=0; for(const a of META_NASH.arch){ s+=a.w*pwin(team,a.t); w+=a.w; } return w?s/w:0.5; }
+let dittoResult=null, dittoItems=null;
+function loadDittoTeam(){ if(dittoResult){teamA=dittoResult.slice();renderSlots();syncSel();saveTeams();alert('Loaded into your team — it carries to every tab.');} }
+function runDitto(){
+  const out=document.getElementById('dtout'); if(!out)return;
+  const seed=teamA.slice(0,6); if(seed.length<2){out.innerHTML='<span style="color:#b4432f">Pick at least 2 Pokémon in your seed team above.</span>';return;}
+  out.innerHTML='DITTO is best-responding to the equilibrium meta…';
+  setTimeout(()=>{
+    const roster=JOLT.roster.map(m=>m.n);
+    let team=seed.slice(), best=dittoScore(team); const start=best, swaps=[];
+    for(let it=0;it<30;it++){ let improved=false;
+      for(let i=0;i<team.length;i++){ let bi=team[i],bs=best;
+        for(const cand of roster){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=dittoScore(nt); if(sc>bs+1e-6){bs=sc;bi=cand;} }
+        if(bi!==team[i]){ swaps.push([team[i],bi,bs-best]); team[i]=bi; best=bs; improved=true; } }
+      if(!improved)break; }
+    dittoResult=team.slice();
+    // ---- item tuning pass: MEDICHAM-scored (JOLTEON ignores items). Only Life Orb /
+    // Choice Scarf are modelled in the compact browser engine; full item sets are the server engine.
+    // score items + grounded re-check against the EQUILIBRIUM META (Nash-weighted archetypes)
+    const archT=(typeof META_NASH!=='undefined'&&META_NASH.arch.length)?META_NASH.arch:[{n:'core',w:1,t:JOLT.roster.slice(0,4).map(m=>m.n)}];
+    const teamScoreI=items=>{let s=0,w=0;for(const a of archT){s+=a.w*(mcWinProbI(team,items,a.t,80)||0);w+=a.w;}return w?s/w:0;};
+    let items={}; team.forEach(n=>items[n]=MC.mons[n]?MC.mons[n].item:null);
+    let curBest=teamScoreI(items); const itemUp=[];
+    for(const n of team){ const cand=[...new Set([items[n],'lifeorb','choicescarf'].filter(Boolean))]; let bi=items[n],bs=curBest;
+      for(const it of cand){ const trial={...items,[n]:it}; const sc=teamScoreI(trial); if(sc>bs+0.005){bs=sc;bi=it;} }
+      if(bi!==items[n]){ itemUp.push([n,items[n],bi]); items[n]=bi; curBest=bs; } }
+    dittoItems=items;
+    // MEDICHAM grounded value vs the equilibrium meta + the archetypes that still exploit you
+    let chkW=0,chkS=0; const exploiters=[];
+    for(const a of archT){ const v=mcWinProbI(team,items,a.t,200); if(v!=null){ chkS+=a.w*v; chkW+=a.w; if(v<0.45)exploiters.push([a.n,Math.round(v*100)]); } }
+    const check = chkW? chkS/chkW : null;
+    const setCard=n=>{const m=MC.mons[n]||{}; const ms=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,6):(m.mv||[]).map(x=>[x,null]);
+      const chips=ms.map(x=>`<span style="background:#f2f4f8;border-radius:6px;padding:2px 6px;font-size:11px;color:#445">${niceName(x[0])}${x[1]!=null?` <b style="color:#b07">${Math.round(x[1]*100)}</b>`:''}</span>`).join(' ');
+      return `<div style="background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:left">
+        <div style="display:flex;align-items:center;gap:8px"><img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" style="width:46px;height:46px">
+          <div style="line-height:1.25"><b style="font-size:14px">${cap(n)}</b> <span style="color:#888;font-size:12px">@ ${niceName(items[n]||m.item)}</span><br><span style="color:#3a86c0;font-size:12px;font-weight:600">${niceName(m.ab)}</span></div></div>
+        <div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px" title="top-6 moves by ladder usage">${chips||'—'}</div></div>`;};
+    const bp=Math.round(best*100), sp=Math.round(start*100), chk=check!=null?Math.round(check*100):null;
+    out.style.color='#223'; out.style.textAlign='left';
+    out.innerHTML=`
+      <div style="max-width:540px;margin:0 auto 14px;text-align:center">
+        <div style="font-size:13px;color:#667;font-weight:700;letter-spacing:.02em">BEST RESPONSE vs THE EQUILIBRIUM META</div>
+        <div style="font-size:30px;font-weight:800;color:#1a9a4a;line-height:1.1">${bp}%<span style="font-size:15px;color:#99a;font-weight:600"> &nbsp;up from ${sp}%</span></div>
+        <div style="height:16px;background:#ffe0f1;border:2px solid var(--line);border-radius:99px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${bp}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
+        <div style="font-size:11px;color:#99a;margin-top:4px">best-responding to the Nash-solved meta (${(typeof META_NASH!=='undefined'?META_NASH.arch.map(a=>a.n):['meta']).join(' / ')}) · full sets are the most common on the ladder</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>
+      <div style="margin-top:12px;background:#faf7fb;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;color:#556">
+        ${swaps.length?`<div><b>Swaps:</b> `+swaps.map(s=>`${cap(s[0])} → <b>${cap(s[1])}</b> <span style="color:#2a8">+${(s[2]*100).toFixed(1)}</span>`).join(' &nbsp;·&nbsp; ')+`</div>`:`<div style="color:#2a7;font-weight:600">Your seed was already optimal — no species swap improved it.</div>`}
+        ${itemUp.length?`<div style="margin-top:5px"><b>Item upgrades:</b> `+itemUp.map(u=>`${cap(u[0])} → <b>${niceName(u[2])}</b>`).join(' &nbsp;·&nbsp; ')+`</div>`:``}
+      </div>`+
+      (chk!=null?`<div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid ${chk<40?'#e8b4b4':'#b4d8c0'};background:${chk<40?'#fdf2f2':'#f2faf5'}"><b style="color:${chk<40?'#b4432f':'#1a7a4a'}">MEDICHAM grounded value vs the equilibrium meta: ${chk}%</b> <span style="color:#778;font-size:12px">— the Goodhart guard (JOLTEON picks the team, MEDICHAM plays it out). ${chk<40?'Big gap means the sheet over-rates this team; trust the rollout.':'The rollout agrees the team is real.'}</span>`+(exploiters.length?`<div style="margin-top:6px;font-size:12px;color:#b4432f">Still exploited by: `+exploiters.map(e=>`<b>${e[0]}</b> (${e[1]}%)`).join(' · ')+` — no single team beats the whole meta (that's the non-transitivity).</div>`:`<div style="margin-top:6px;font-size:12px;color:#1a7a4a">Holds up against every archetype in the equilibrium meta.</div>`)+`</div>`:``)+
+      `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
+  },20);
+}
+// export the optimised team as a Showdown-importable PokéPaste (species @ item / ability / 4 moves from the common set)
+function dittoPaste(btn){ if(!dittoResult)return; const items=dittoItems||{};
+  const txt=dittoResult.map(n=>{const m=MC.mons[n]||{}; const top=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]); const moves=top.map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(items[n]||m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
+  try{navigator.clipboard.writeText(txt);}catch(e){}
+  if(btn){const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1200);} }
 let KAD=null, kadKeys=[], kadI=0;
 async function runKadabra(){
-  const id=document.getElementById('kdid').value.trim(), me=document.getElementById('kdme').value.trim();
-  const out=document.getElementById('kdout'); if(!id){out.textContent='Paste a replay link first.';return;}
-  out.innerHTML='<div style="font-weight:700">KADABRA is reviewing the game…</div>';
-  try{
-    const r=await fetch(`${API}/api/kadabra?id=${encodeURIComponent(id)}&me=${encodeURIComponent(me)}`); const j=await r.json();
-    const txt=j.json||''; const a=txt.indexOf('{'), b=txt.lastIndexOf('}'); if(a<0) throw 0;
-    KAD=JSON.parse(txt.slice(a,b+1));
-    kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length) kadKeys=KAD.scenes.slice(0,1);
+  const raw=document.getElementById('kdid').value.trim(); const out=document.getElementById('kdout');
+  if(!raw){out.textContent='Paste a replay link first.';return;}
+  const id=(raw.match(/([a-z0-9]+-\d+)/i)||[])[1] || raw.split('/').pop().replace(/\.(json|log)$/,'');
+  out.innerHTML='<div style="font-weight:700">KADABRA is pulling the replay…</div>';
+  let log=null;
+  try{ const r=await fetch('https://replay.pokemonshowdown.com/'+id+'.json'); const j=await r.json(); log=j.log; }catch(e){}
+  if(!log){ try{ const r2=await fetch('https://replay.pokemonshowdown.com/'+id+'.log'); log=await r2.text(); }catch(e){} }
+  if(!log){ out.innerHTML='Could not fetch that replay from the browser (some setups block cross-site requests on <code>file://</code> — opening the site over http fixes it). Or paste the raw replay log here:<br><textarea id="kdlog" style="width:100%;height:110px;margin-top:6px;border:3px solid var(--line);border-radius:10px;padding:8px"></textarea><br><button class="minibtn" style="margin-top:6px" onclick="kadFromLog(document.getElementById(&quot;kdlog&quot;).value, kadMe())">Coach this log</button>'; return; }
+  kadFromLog(log, kadMe());
+}
+function kadMe(){ const e=document.getElementById('kdme'); return e?e.value:''; }
+function kadFromLog(log, me){ const out=document.getElementById('kdout');
+  try{ KAD=kadBuild(log, me);
+    if(!KAD.scenes.length){ out.textContent='Parsed the game, but found no decisive turns to coach.'; return; }
+    kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length)kadKeys=KAD.scenes.slice(0,Math.min(6,KAD.scenes.length));
     kadI=0; renderKad();
-  }catch(e){ out.innerHTML='Live KADABRA needs the local server: run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
+  }catch(e){ out.textContent='Could not parse that replay log.'; }
+}
+// parse a Showdown battle log into KADABRA scenes at the turns where a KO happened
+function kadBuild(log, meName){
+  const L=log.split('\n'); const P={p1:'',p2:''};
+  const cur={p1a:null,p1b:null,p2a:null,p2b:null};
+  const nm=(meName||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const pct=s=>{ if(!s)return 0; if(/fnt/.test(s)||/^0\b/.test(s))return 0; const m=String(s).match(/(\d+)\/(\d+)/); if(m)return Math.max(0,Math.round(100*(+m[1])/(+m[2]))); const n=parseInt(s); return isNaN(n)?100:n; };
+  const stf=s=>{ const m=String(s||'').match(/\b(brn|par|slp|psn|tox|frz)\b/); return m?m[1]:''; };
+  const slotOf=x=>String(x).split(':')[0].trim();
+  const setSlot=(slot,species,hpstr)=>{ cur[slot]={sp:spriteName(species).sprite, hp:pct(hpstr), st:stf(hpstr), name:species}; };
+  const cleanN=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const meSide=()=> (nm && cleanN(P.p2).includes(nm) && !cleanN(P.p1).includes(nm)) ? 'p2':'p1';
+  let turn=0, faints=[], tlog=[]; const scenes=[]; let result='(unfinished)';
+  const flush=()=>{ if(!faints.length)return; const side=meSide(), foeS=side==='p1'?'p2':'p1';
+    const you=[cur[side+'a'],cur[side+'b']].filter(Boolean).map(m=>({sp:m.sp,hp:m.hp,st:m.st}));
+    const foe=[cur[foeS+'a'],cur[foeS+'b']].filter(Boolean).map(m=>({sp:m.sp,hp:m.hp,st:m.st}));
+    const mine=faints.filter(f=>f.slot.startsWith(side)).map(f=>cap(f.name));
+    const theirs=faints.filter(f=>f.slot.startsWith(foeS)).map(f=>cap(f.name));
+    let kind='good', coach='';
+    if(mine.length){ kind='loss'; coach=`You lost ${mine.join(' & ')} on turn ${turn}. This is where momentum swung — check whether Protect, a pivot, or a different lead keeps it alive.`; }
+    else if(theirs.length){ kind='good'; coach=`You KO'd ${theirs.join(' & ')} — clean tempo. Press the advantage while you're up a body.`; }
+    scenes.push({n:turn, you, foe, log:tlog.slice(-4), kind, coach, key:true, _loss:mine.length});
+  };
+  for(const ln of L){ if(ln[0]!=='|')continue; const p=ln.split('|'); const t=p[1];
+    if(t==='player'){ if(p[2]==='p1')P.p1=p[3]||''; if(p[2]==='p2')P.p2=p[3]||''; }
+    else if(t==='switch'||t==='drag'||t==='replace'){ setSlot(slotOf(p[2]),(p[3]||'').split(',')[0],p[4]||'100/100'); }
+    else if(t==='-damage'||t==='-sethp'){ const s=slotOf(p[2]); if(cur[s]){cur[s].hp=pct(p[3]); const st=stf(p[3]); if(st)cur[s].st=st;} }
+    else if(t==='-heal'){ const s=slotOf(p[2]); if(cur[s])cur[s].hp=pct(p[3]); }
+    else if(t==='-status'){ const s=slotOf(p[2]); if(cur[s])cur[s].st=p[3]; }
+    else if(t==='move'){ const s=slotOf(p[2]); const who=cur[s]?cap(cur[s].name):''; if(who)tlog.push(`${who} used ${p[3]}.`); }
+    else if(t==='faint'){ const s=slotOf(p[2]); if(cur[s]){faints.push({slot:s,name:cur[s].name}); tlog.push(`${cap(cur[s].name)} fainted.`); cur[s].hp=0;} }
+    else if(t==='turn'){ flush(); faints=[]; tlog=[]; turn=(+p[2])||turn+1; }
+    else if(t==='win'){ result=(p[2]||'').trim(); flush(); }
+    else if(t==='tie'){ result='tie'; flush(); }
+  }
+  const side=meSide(); const meN=side==='p1'?P.p1:P.p2, foeN=side==='p1'?P.p2:P.p1;
+  const win=nm && cleanN(result).includes(nm);
+  let sc=scenes.slice();
+  if(sc.length>6){ sc.sort((a,b)=>(b._loss-a._loss)||(a.n-b.n)); sc=sc.slice(0,6).sort((a,b)=>a.n-b.n); }
+  return { me:meN||'You', foe:foeN||'Opponent', result: result==='(unfinished)'?'—':(win?'Win':'Loss'), scenes: sc };
 }
 function hpc(h){ return h>50?'#5fd07a':h>20?'#ffc53f':'#ff6b6b'; }
 function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
@@ -527,13 +874,6 @@ function renderKad(){
 }
 function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); renderKad(); }
 function kadGo(i){ kadI=i; renderKad(); }
-async function runDitto(){
-  const seed=document.getElementById('dtseed').value.trim();
-  const out=document.getElementById('dtout'); out.textContent='DITTO is optimising against the live meta... (this one is slow, ~30s)';
-  try{ const r=await fetch(`${API}/api/ditto?seed=${encodeURIComponent(seed)}`); const j=await r.json(); out.textContent=j.text||'(no output)'; }
-  catch(e){ out.innerHTML='Live DITTO needs the local server (and Python): run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
-}
-
 /* ===== PokePaste support — accepts ANY species ===== */
 function spriteName(raw){
   let s=(raw||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -600,6 +940,33 @@ function makeAbra(){
   setTimeout(()=>{ a.classList.add('in'); ring(); loop(); }, Math.random()*2600);
 }
 for(let i=0;i<5;i++) makeAbra();
+
+/* ===== per-room mascot advisor, each with its own voice + animation ===== */
+const PERSONA={
+ town:{tips:["Welcome to ABRA World. Every room runs on real ladder data.","Build a team once — it follows you into every model.","New here? Jolteon gives you the odds in one click."]},
+ jolteon:{tips:["Zap! I call the winner before a single move.","Two stacked teams? Coin flip. I won't lie to you.","I read all six, then who hits harder and moves first.","Fast and cheap — that's my whole thing."]},
+ medicham:{tips:["I don't guess. I play the match all the way out.","Weather wars, Protect, setup — I feel every turn.","If I disagree with Jolteon, believe me. I did the work.","Breathe in. Four hundred rollouts. Breathe out."]},
+ ditto:{tips:["Copy copy! I'll try ten thousand teams for you.","I make sure you answer Basculegion — not Camerupt.","Give me your six; I hand back a sharper six.","Medicham double-checks me so I can't cheat the odds."]},
+ kadabra:{tips:["Turn seven. That is where it slipped away.","I skip the boring turns — only the ones that mattered.","Paste a game. I will show you the exact swing.","A spoon, a mind, your replay. That is all I need."]},
+ slowking:{tips:["Patience. I search what they might bring.","Belief, then Nash — the endgame of this whole project.","The engine is open, so I reason over the true rules.","Slow is smooth. Smooth is a solved game."]},
+ chomp:{tips:["Bring these four. Lead these two. Go.","I cover their whole six — you never see their four.","Exact damage, every roll. No vibes.","Usage tells me what they send. I punish it."]}
+};
+let advTimer=null;
+function spawnAdvisors(id){
+  document.querySelectorAll('.advisor').forEach(a=>a.remove()); if(advTimer){clearTimeout(advTimer);advTimer=null;}
+  const persona=PERSONA[id]; if(!persona||innerWidth<1180) return;
+  const c=CAST.find(x=>x.id===id); const sprite=c?c.sprite:'abra';
+  const a=document.createElement('div'); a.className='advisor'; a.style.right='18px'; a.style.bottom='88px';
+  a.innerHTML=`<div class="tip"></div><div class="anim p-${id}"><img src="${ani(sprite)}" onerror="this.onerror=null;this.src='${ani('abra')}'"></div>`;
+  document.body.appendChild(a);
+  const tips=persona.tips.slice(), tip=a.querySelector('.tip'); let i=(Math.random()*tips.length)|0;
+  const show=()=>{ tip.textContent=tips[i%tips.length]; tip.classList.add('show'); i++; };
+  const hide=()=>tip.classList.remove('show');
+  // greet once when you enter the room, then go quiet; hover the mascot to hear more.
+  setTimeout(()=>{ show(); advTimer=setTimeout(hide,5000); }, 700);
+  a.addEventListener('mouseenter',()=>{ if(advTimer)clearTimeout(advTimer); show(); });
+  a.addEventListener('mouseleave',()=>{ advTimer=setTimeout(hide,1200); });
+}
 
 const cvs=document.getElementById('confetti'),ctx=cvs.getContext('2d');
 function fit(){cvs.width=innerWidth;cvs.height=innerHeight;}fit();addEventListener('resize',fit);
