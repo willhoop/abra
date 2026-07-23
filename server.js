@@ -16,17 +16,17 @@ const ROOT=__dirname, WEB=path.join(ROOT, require('fs').existsSync(path.join(ROO
 const PORT=process.env.PORT||8790;
 
 // find a REAL Python with numpy (skip the Windows Microsoft-Store alias stub).
-function resolvePy(){
+// Resolved LAZILY on first use so the server starts listening instantly.
+let _pyCache;
+function getPy(){
+  if(_pyCache!==undefined) return _pyCache;
   const cands = process.platform==='win32' ? ['py','python','python3'] : ['python3','python'];
   for(const c of cands){ try{ const r=spawnSync(c,['-c','import numpy'],{timeout:8000,encoding:'utf8'});
-    if(r.status===0) return c; }catch(e){} }
+    if(r.status===0){ return _pyCache={cmd:c,numpy:true}; } }catch(e){} }
   for(const c of cands){ try{ const r=spawnSync(c,['--version'],{timeout:5000,encoding:'utf8'});
-    const txt=(r.stdout||'')+(r.stderr||''); if(r.status===0 && !/Microsoft Store|was not found/i.test(txt)) return c+'|nonumpy'; }catch(e){} }
-  return null;
+    const txt=(r.stdout||'')+(r.stderr||''); if(r.status===0 && !/Microsoft Store|was not found/i.test(txt)){ return _pyCache={cmd:c,numpy:false}; } }catch(e){} }
+  return _pyCache={cmd:null,numpy:false};
 }
-const _py=resolvePy();
-const PY = _py ? _py.split('|')[0] : null;
-const PY_HAS_NUMPY = _py && !_py.includes('nonumpy');
 const PY_HELP = "Python with numpy not found. JOLTEON (in-page) and MEDICHAM/KADABRA still work. "+
   "For DITTO: install Python from python.org (check 'Add to PATH'), then run: pip install numpy — and restart start.bat.";
 
@@ -61,13 +61,13 @@ http.createServer((req,res)=>{
     return run('node',[path.join('engine','kadabra.js'),q('id'),q('me')],out=>send(200,'application/json',JSON.stringify({text:out})));
   }
   if(u.pathname==='/api/jolteon'){
-    if(!PY||!PY_HAS_NUMPY) return send(200,'application/json',JSON.stringify({raw:PY_HELP}));
-    return run(PY,[path.join('engine','jolteon.py'),'predict',q('a'),q('b')],out=>send(200,'application/json',JSON.stringify({raw:out})));
+    const py=getPy(); if(!py.cmd||!py.numpy) return send(200,'application/json',JSON.stringify({raw:PY_HELP}));
+    return run(py.cmd,[path.join('engine','jolteon.py'),'predict',q('a'),q('b')],out=>send(200,'application/json',JSON.stringify({raw:out})));
   }
   if(u.pathname==='/api/ditto'){
-    if(!PY||!PY_HAS_NUMPY) return send(200,'application/json',JSON.stringify({text:PY_HELP}));
+    const py=getPy(); if(!py.cmd||!py.numpy) return send(200,'application/json',JSON.stringify({text:PY_HELP}));
     const args=[path.join('engine','ditto.py')]; if(q('seed'))args.push(q('seed'));
-    return run(PY,args,out=>send(200,'application/json',JSON.stringify({text:out})));
+    return run(py.cmd,args,out=>send(200,'application/json',JSON.stringify({text:out})));
   }
   // static files from web/
   let f=u.pathname==='/'?'/index.html':decodeURIComponent(u.pathname);
