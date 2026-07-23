@@ -328,8 +328,10 @@ function dmgRange(att,def,mv,field,spread){
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
   return {min:roll(85),max:roll(100),eff};
 }
+const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttackle:1/3,woodhammer:1/3,headsmash:1/2,lightofruin:1/2,wildcharge:1/4,takedown:1/4,submission:1/4,headcharge:1/4};
+const SELFDROP={closecombat:{df:-1,sd:-1},superpower:{at:-1,df:-1},overheat:{sa:-2},leafstorm:{sa:-2},dracometeor:{sa:-2},fleurcannon:{sa:-2},psychoboost:{sa:-2},makeitrain:{sa:-1},armorcannon:{df:-1,sd:-1},dragonascent:{df:-1,sd:-1},vcreate:{df:-1,sd:-1,sp:-1}};
 function bestMoveVs(att,def,field){ let best=null,bs=-1;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=(d.min+d.max)/2;if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d};}}
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
   return best;
 }
 // pick the best target (max damage) for a SPECIFIC move
@@ -344,8 +346,8 @@ function chooseAction(me,foes,ally,field,side,rng){
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
-  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const ko=b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0);const sc=ko*1e4+b.d.max;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
-  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP;
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=(ACC[b.id]||100)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&(ACC[bestAtk.id]||100)>=100;
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
