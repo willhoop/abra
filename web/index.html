@@ -84,8 +84,9 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .house small{position:relative;z-index:1;color:#6a7f97;font-weight:600;font-size:12px}
 @keyframes hop{50%{transform:translateY(-11px) scale(1.06)}}
 /* ---- per-room floating mascot advisor, each with its own personality ---- */
-.advisor{position:fixed;z-index:36;width:78px;height:78px;pointer-events:none}
-.advisor .anim{width:100%;height:100%;display:block}
+.advisor{position:fixed;z-index:36;width:78px;height:78px;pointer-events:auto;opacity:.9}
+.advisor .tip{pointer-events:none}
+.advisor .anim{width:100%;height:100%;display:block;cursor:help}
 .advisor img{width:100%;height:100%;image-rendering:pixelated;filter:drop-shadow(0 3px 4px rgba(0,0,0,.16))}
 .advisor .tip{position:absolute;bottom:70px;right:2px;min-width:152px;max-width:236px;background:#fff;border:3px solid var(--line);border-radius:14px;padding:8px 11px;font-size:12.5px;font-weight:600;color:#2a3b52;box-shadow:0 4px 0 var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
 .advisor .tip.show{opacity:1;transform:none}
@@ -921,15 +922,19 @@ const PERSONA={
 };
 let advTimer=null;
 function spawnAdvisors(id){
-  document.querySelectorAll('.advisor').forEach(a=>a.remove()); if(advTimer){clearInterval(advTimer);advTimer=null;}
+  document.querySelectorAll('.advisor').forEach(a=>a.remove()); if(advTimer){clearTimeout(advTimer);advTimer=null;}
   const persona=PERSONA[id]; if(!persona||innerWidth<1180) return;
   const c=CAST.find(x=>x.id===id); const sprite=c?c.sprite:'abra';
-  const a=document.createElement('div'); a.className='advisor'; a.style.right='20px'; a.style.bottom='96px';
+  const a=document.createElement('div'); a.className='advisor'; a.style.right='18px'; a.style.bottom='88px';
   a.innerHTML=`<div class="tip"></div><div class="anim p-${id}"><img src="${ani(sprite)}" onerror="this.onerror=null;this.src='${ani('abra')}'"></div>`;
   document.body.appendChild(a);
   const tips=persona.tips.slice(), tip=a.querySelector('.tip'); let i=(Math.random()*tips.length)|0;
-  const show=()=>{ tip.classList.remove('show'); setTimeout(()=>{ tip.textContent=tips[i%tips.length]; tip.classList.add('show'); i++; },420); };
-  setTimeout(show,650); advTimer=setInterval(show,5600);
+  const show=()=>{ tip.textContent=tips[i%tips.length]; tip.classList.add('show'); i++; };
+  const hide=()=>tip.classList.remove('show');
+  // greet once when you enter the room, then go quiet; hover the mascot to hear more.
+  setTimeout(()=>{ show(); advTimer=setTimeout(hide,5000); }, 700);
+  a.addEventListener('mouseenter',()=>{ if(advTimer)clearTimeout(advTimer); show(); });
+  a.addEventListener('mouseleave',()=>{ advTimer=setTimeout(hide,1200); });
 }
 
 const cvs=document.getElementById('confetti'),ctx=cvs.getContext('2d');
