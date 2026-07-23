@@ -145,7 +145,7 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 <canvas id="confetti"></canvas>
 
 <header>
-  <div class="logo">
+  <div class="logo" onclick="go('town')" style="cursor:pointer" title="back to Town">
     <img src="https://play.pokemonshowdown.com/sprites/ani/abra.gif" alt="Abra">
     <h1>ABRA&nbsp;WORLD</h1>
     <img src="https://play.pokemonshowdown.com/sprites/ani/kadabra.gif" alt="Kadabra">
@@ -226,7 +226,8 @@ function roomJolteon(){const c=CAST[1];
      <div class="booth">
        <div class="side you"><h3>🟢 Your team</h3><div class="slots" id="slotsA"></div><div class="picker" id="pickA"></div></div>
        <div class="vs"><div class="vsbadge">VS</div><button class="battlebtn" onclick="doBattle()">BATTLE!</button>
-         <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">🎲 Surprise me</button></div>
+         <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;font-size:15px;padding:8px 14px" onclick="doMedicham()">MEDICHAM check</button>
+         <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">Surprise me</button></div>
        <div class="side rival"><h3>🔴 Rival team</h3><div class="slots" id="slotsB"></div><div class="picker" id="pickB"></div></div>
      </div>
      <div class="pastebox">
@@ -237,7 +238,8 @@ function roomJolteon(){const c=CAST[1];
      </div>
      <div class="meterwrap"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
        <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
-     <div class="readout" id="readout">Build two teams and press BATTLE ⚡</div>
+     <div class="readout" id="readout">Build two teams and press BATTLE.</div>
+     <div class="readout" id="mcout" style="min-height:0;color:#b4432f"></div>
    </div>
    <div class="panel"><h2>🧠 How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by which team hits harder (firepower) and moves first (speed). I'm right about <b>~56%</b> of the time from team sheets alone — a real edge over a coin flip, but not magic: the same two teams don't always give the same winner. That gap is skill and luck, and it's why the other buildings exist.</p></div>`;
 }
@@ -260,7 +262,13 @@ function roomDitto(){const c=CAST[3];
      ${['Incineroar 25%→80% ✓','Garchomp 23%→80% ✓','Whimsicott 22%→80% ✓','Kingambit 21%→76% ✓','Basculegion 20%→79% ✓'].map(t=>`<span class="chip">${t}</span>`).join('')}
      <p style="font-weight:600;color:#3a5372;margin-top:12px">110 rare species carry ~0 usage weight and are ignored on purpose. You get coverage where the ladder lives.</p>
    </div>
-   <div class="panel"><h2>⚖️ The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">When I optimise <i>against</i> Jolteon, I can cheat it — stacking rare Pokémon it over-rates. So Medicham re-checks my teams with real rollouts. Once, Jolteon said my team was <b>90%</b>; Medicham said <b>12%</b>. Medicham was right. That disagreement is a feature: it catches hype <i>and</i> hidden gems.</p></div>`;
+   <div class="panel"><h2>⚖️ The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">When I optimise <i>against</i> Jolteon, I can cheat it — stacking rare Pokémon it over-rates. So Medicham re-checks my teams with real rollouts. Once, Jolteon said my team was <b>90%</b>; Medicham said <b>12%</b>. Medicham was right. That disagreement is a feature: it catches hype <i>and</i> hidden gems.</p></div>
+   <div class="panel"><h2>Run the optimiser (live)</h2>
+     <p class="sub">Optionally seed a team of six (comma-separated), or leave blank. Slow — about 30s. Needs the local server + Python.</p>
+     <input id="dtseed" placeholder="pelipper,whimsicott,archaludon,basculegion,kingambit,sinistcha (optional)" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:10px">
+     <button class="battlebtn" onclick="runDitto()">Build me a team</button>
+     <pre id="dtout" style="margin-top:12px;background:#fff0fa;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:360px;overflow:auto">Press Build me a team.</pre>
+   </div>`;
 }
 function roomKadabra(){const c=CAST[4];
   return `<div class="panel">${mascotHero(c,"Let me replay your game with you, one turn at a time. I rebuild each scene, tell you the better move, and answer your questions before we move on. 🔮")}</div>
@@ -273,6 +281,13 @@ function roomKadabra(){const c=CAST[4];
        <div style="margin-top:8px">🧠 lesson: their Venusaur got a huge roll — prep a switch-in or a faster answer next time.</div>
      </div>
      <p style="font-weight:600;color:#3a5372;margin-top:12px">Every game you review gets quietly added to the town's memory and folds into the models — the flywheel, from the coaching seat.</p>
+   </div>
+   <div class="panel"><h2>Coach a real replay (live)</h2>
+     <p class="sub">Paste a Champions replay link and KADABRA reviews it turn by turn. Needs the local server (start.bat).</p>
+     <input id="kdid" placeholder="https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-..." style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:8px">
+     <input id="kdme" placeholder="your Showdown name (optional)" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:10px">
+     <button class="battlebtn" onclick="runKadabra()">Coach it</button>
+     <pre id="kdout" style="margin-top:12px;background:#f4f1ff;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:360px;overflow:auto">Paste a replay above and press Coach it.</pre>
    </div>`;
 }
 function roomSlowking(){const c=CAST[5];
@@ -322,7 +337,34 @@ function doBattle(){
   const fav = pa>pb?'Your team':'Rival team', edge=Math.abs(pa-pb);
   let msg = edge<8?`📛 dead even — this one's a coin flip!`:edge<20?`🟢 ${fav} is favoured (${Math.max(pa,pb)}%).`:`🔥 ${fav} is a big favourite (${Math.max(pa,pb)}%)!`;
   document.getElementById('readout').innerHTML=msg+`  <span style="color:#889">— JOLTEON, live</span>`;
+  document.getElementById('mcout').textContent='';
   burst(pa>=pb);
+}
+/* live engines via the local server (start.bat). Graceful if not running. */
+async function doMedicham(){
+  if(!teamA.length||!teamB.length){document.getElementById('readout').textContent='Pick teams first!';return;}
+  const el=document.getElementById('mcout'); el.textContent='MEDICHAM is playing it out for real... (a few seconds)';
+  try{
+    const r=await fetch(`/api/medicham?a=${encodeURIComponent(teamA)}&b=${encodeURIComponent(teamB)}&n=250`);
+    const j=await r.json();
+    if(j.p==null){ el.textContent='MEDICHAM could not build those exact teams — try common meta species.'; return; }
+    const jp=Math.round(pwin(teamA,teamB)*100), mp=Math.round(j.p*100), gap=Math.abs(jp-mp);
+    el.innerHTML=`MEDICHAM (grounded rollout): <b>${mp}%</b>  vs  JOLTEON's guess <b>${jp}%</b>. `+
+      (gap<10?'They agree — trust it.':gap<25?'A little disagreement.':'<b>Big gap</b> — JOLTEON may be off here; trust MEDICHAM.');
+  }catch(e){ el.innerHTML='Live MEDICHAM needs the local server: run <code>start.bat</code> (or <code>node server.js</code>), then open <b>localhost:8790</b>.'; }
+}
+async function runKadabra(){
+  const id=document.getElementById('kdid').value.trim(), me=document.getElementById('kdme').value.trim();
+  const out=document.getElementById('kdout'); if(!id){out.textContent='Paste a replay link or id first.';return;}
+  out.textContent='KADABRA is reviewing the game...';
+  try{ const r=await fetch(`/api/kadabra?id=${encodeURIComponent(id)}&me=${encodeURIComponent(me)}`); const j=await r.json(); out.textContent=j.text||'(no output)'; }
+  catch(e){ out.innerHTML='Live KADABRA needs the local server: run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
+}
+async function runDitto(){
+  const seed=document.getElementById('dtseed').value.trim();
+  const out=document.getElementById('dtout'); out.textContent='DITTO is optimising against the live meta... (this one is slow, ~30s)';
+  try{ const r=await fetch(`/api/ditto?seed=${encodeURIComponent(seed)}`); const j=await r.json(); out.textContent=j.text||'(no output)'; }
+  catch(e){ out.innerHTML='Live DITTO needs the local server (and Python): run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
 }
 
 /* ===== PokePaste support — accepts ANY species ===== */
