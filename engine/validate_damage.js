@@ -3,7 +3,8 @@
  * not stat-spread assumptions. Reports per-scenario min/max error, aggregate, and
  * WHERE MEDICHAM diverges (its known missing pieces). This is the GIGO audit. */
 const path=require('path');
-const {calculate,Pokemon,Move,Field,Generations}=require(path.join('/tmp/calcval/node_modules/@smogon/calc'));
+let SC; try{ SC=require('@smogon/calc'); }catch(e){ try{ SC=require('/tmp/calcval/node_modules/@smogon/calc'); }catch(e2){ console.error('need @smogon/calc: npm i @smogon/calc'); process.exit(2); } }
+const {calculate,Pokemon,Move,Field,Generations}=SC;
 // The standalone engine expects mcEff (type chart) in scope (normally the site provides it).
 // Supply a correct Gen-9 chart on globalThis BEFORE requiring, so dmgRange resolves it.
 const TC={Normal:{Rock:.5,Ghost:0,Steel:.5},Fire:{Fire:.5,Water:.5,Grass:2,Ice:2,Bug:2,Rock:.5,Dragon:.5,Steel:2},
@@ -120,5 +121,9 @@ function run(){
  console.log('\n=== AGGREGATE (|% error| vs @smogon/calc, stats aligned) ===');
  console.log(`scenarios: ${errsMin.length} | median abs err: ${med(all).toFixed(1)}% | within 2%: ${within(all,2).toFixed(0)}% | within 5%: ${within(all,5).toFixed(0)}% | within 10%: ${within(all,10).toFixed(0)}%`);
  console.log(`worst: ${Math.max(...all).toFixed(0)}%`);
+ // fail CI on regression
+ const w5=within(all,5), worst=Math.max(...all);
+ if(w5<95||worst>8){ console.error(`REGRESSION: within-5% ${w5.toFixed(0)}% (need >=95), worst ${worst.toFixed(0)}% (need <=8)`); process.exit(1); }
+ console.log('PASS: MEDICHAM damage within tolerance of @smogon/calc');
 }
 run();
