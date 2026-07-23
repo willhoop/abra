@@ -37,3 +37,15 @@ silently rewritten; what changed and why is stated.
   feed a simulator that models games and teams — a self-improving flywheel (collect → simulate →
   optimise teams → play with CHOMP → auto-ingest enemy teams → improve). CHOMP is one small early
   consumer, not the point. White paper §8 states the flywheel and the honest built-vs-roadmap status.
+
+## [1.2.0] — 2026-07-22
+
+### Added
+- **Simulator research white paper** (`docs/ABRA-simulator-whitepaper.md`): an MIT-level treatment of
+  learning a VGC battle simulator from logged replays. Formalises the game (POSG, imperfect info,
+  simultaneous moves), derives three modelling tiers with their estimators and failure modes, frames
+  team optimisation and the self-improving flywheel, and grounds every claim in the 2025 literature
+  (PokéChamp, Metamon, VGC-Bench, ReBeL/Player-of-Games, Sampled/Gumbel MuZero, offline RL). Names the
+  model family in the CHOMP/ABRA tradition — **XATU** (win-prob), **RAPID** (physics rollout),
+  **ALAKAZAM** (learned dynamics; Abra's evolved brain), **DITTO** (team optimiser) — and folds in
+  CHOMP's pKO threat scoring as XATU's features and RAPID's dynamics (grey-box modelling).
