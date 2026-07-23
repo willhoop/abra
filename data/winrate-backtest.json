@@ -1,0 +1,21 @@
+{
+  "generated": "engine/backtest_winrate.js — MEDICHAM P(win) vs realized outcomes, held-out games",
+  "n_games_scored": 300,
+  "rollouts_per_game": 40,
+  "elo_available_on": 290,
+  "log_loss": {
+    "medicham": 1.2599,
+    "medicham_ci95": [
+      1.1271,
+      1.3927
+    ],
+    "coin": 0.6931,
+    "elo": 0.6911
+  },
+  "brier": {
+    "medicham": 0.4098,
+    "coin": 0.25,
+    "elo": 0.249
+  },
+  "verdict": "MEDICHAM does NOT beat coin; does NOT beat Elo (log-loss). Honest verdict either way."
+}

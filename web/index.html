@@ -835,21 +835,25 @@ function runDitto(mode){
   const out=document.getElementById('dtout'); if(!out)return;
   const seed=teamA.slice(0,6); if(seed.length<2){out.innerHTML='<span style="color:#b4432f;font-weight:700">Pick at least 2 Pokémon in your seed team above.</span>';return;}
   out.innerHTML=`<div style="font-weight:700;color:#667;text-align:center;padding:20px">DITTO is ${mode==='build'?'building the best team vs the whole meta… (a few seconds)':'finding your highest-impact swaps…'}</div>`;
-  setTimeout(()=>{
+  setTimeout(async()=>{
+    const YIELD=()=>new Promise(r=>setTimeout(r,0));   // let the browser breathe between chunks (no main-thread freeze)
+    const prog=m=>{out.innerHTML=`<div style="font-weight:700;color:#667;text-align:center;padding:20px">${m}</div>`;};
     const A8=(typeof ARCH8!=='undefined'&&ARCH8.length)?ARCH8:[{n:'core',w:1,t:JOLT.roster.slice(0,4).map(m=>m.n)}];
-    const wt=a=>Math.max(a.w,0.1);   // floor weight so EVERY archetype threat matters, not just the Nash-3
-    const mcTeam=tm=>{let s=0,w=0;for(const a of A8){s+=wt(a)*(mcWinProb(tm,a.t,20)||0);w+=wt(a);}return w?s/w:0;};
-    const pool=JOLT.roster.slice(0,18).map(m=>m.n);
+    const wt=a=>Math.max(a.w,0.1);
+    const SEARCH=A8.slice().sort((x,y)=>wt(y)-wt(x)).slice(0,6);   // hill-climb vs the top-6 archetypes (cheap); full set for the final readout
+    const mcTeam=tm=>{let s=0,w=0;for(const a of SEARCH){s+=wt(a)*(mcWinProb(tm,a.t,12)||0);w+=wt(a);}return w?s/w:0;};
+    const pool=JOLT.roster.slice(0,14).map(m=>m.n);
     let team=seed.slice(), best=mcTeam(team); const start=best, swaps=[];
     if(mode==='refine'){          // keep your core, only the highest-impact swaps (max 2, must clear +5%)
       while(swaps.length<2){ let bi=-1,bc=null,bs=best;
-        for(let i=0;i<team.length;i++)for(const cand of pool){if(team.includes(cand))continue;const nt=team.slice();nt[i]=cand;const sc=mcTeam(nt);if(sc>bs+0.05){bs=sc;bi=i;bc=cand;}}
+        for(let i=0;i<team.length;i++){for(const cand of pool){if(team.includes(cand))continue;const nt=team.slice();nt[i]=cand;const sc=mcTeam(nt);if(sc>bs+0.05){bs=sc;bi=i;bc=cand;}} prog('Refining your team…'); await YIELD();}
         if(bi<0)break; swaps.push([team[bi],bc]); team[bi]=bc; best=bs; }
     } else {                      // build the best team from your seed — full hill-climb vs all threats
       for(let it=0;it<2;it++){ let improved=false;
         for(let i=0;i<team.length;i++){ let bi=team[i],bs=best;
           for(const cand of pool){if(team.includes(cand))continue;const nt=team.slice();nt[i]=cand;const sc=mcTeam(nt);if(sc>bs+0.005){bs=sc;bi=cand;}}
-          if(bi!==team[i]){swaps.push([team[i],bi]);team[i]=bi;best=bs;improved=true;} }
+          if(bi!==team[i]){swaps.push([team[i],bi]);team[i]=bi;best=bs;improved=true;}
+          prog(`Building the best team… pass ${it+1}, slot ${i+1}/6`); await YIELD(); }
         if(!improved)break; }
     }
     dittoResult=team.slice();
@@ -857,6 +861,7 @@ function runDitto(mode){
     const teamScoreI=items=>{let s=0,w=0;for(const a of A8){s+=wt(a)*(mcWinProbI(team,items,a.t,40)||0);w+=wt(a);}return w?s/w:0;};
     let items={}; team.forEach(n=>items[n]=MC.mons[n]?MC.mons[n].item:null);
     { const usd={}; for(const n of team){const it=items[n];if(it&&usd[it])items[n]=null;else if(it)usd[it]=1;} }
+    prog('Tuning items…'); await YIELD();
     let curBest=teamScoreI(items);
     for(const n of team){ const used=new Set(team.filter(x=>x!==n).map(x=>items[x]).filter(Boolean));
       const cand=[...new Set([items[n],'lifeorb','choicescarf'].filter(Boolean))].filter(it=>it===items[n]||!used.has(it));
@@ -865,6 +870,7 @@ function runDitto(mode){
       if(bi!==items[n]){items[n]=bi;curBest=bs;} }
     dittoItems=items;
     // grounded win rate vs ALL 8 archetypes (worst matchups first — most useful)
+    prog('Scoring vs every archetype…'); await YIELD();
     let chkW=0,chkS=0; const perArch=[];
     for(const a of A8){ const v=mcWinProbI(team,items,a.t,150); if(v!=null){ chkS+=wt(a)*v; chkW+=wt(a); perArch.push({n:a.n,v:Math.round(v*100)}); } }
     perArch.sort((x,y)=>x.v-y.v);
