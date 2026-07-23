@@ -46,28 +46,41 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1;
   for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const d=dmgRange(att,def,mv,field,SPREAD.has(id));const sc=(d.min+d.max)/2;if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d};}}
   return best;
 }
+// pick the best target (max damage) for a SPECIFIC move
+function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)return null;
+  let bt=null,bs=-1; for(const f of live){const d=dmgRange(me,f,mv,field,SPREAD.has(id));const sc=(d.min>=f.curHP?1e6:0)+d.max;if(sc>bs){bs=sc;bt={id,mv,spread:SPREAD.has(id),d,target:f};}}
+  return bt; }
+// MEDICHAM policy = behaviour cloning: sample what a real ladder player would click, but always
+// take an obvious KO, and Protect defensively when threatened. This is the whole point of the model —
+// the win rate is the expected outcome under *realistic* play by both sides, not optimal play.
 function chooseAction(me,foes,ally,field,side,rng){
   if(me.status==='slp'&&me.slp>0)return{kind:'sleep'};
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
+  // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
   for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const ko=b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0);const sc=ko*1e4+b.d.max;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP;
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
-  // need-based Protect: if I'm likely KO'd this turn and can't KO back, scout/stall behind Protect.
-  // This is the core defensive play; without it the rollout degenerates into an OHKO race.
-  const bestKOsNow = bestAtk && tgt && bestAtk.d.min>=tgt.curHP;
-  const canProtect = me.moves.some(id=>PROTECTMOVES.has(id));
-  if(inDanger && !bestKOsNow && canProtect && !me.protect && me.tookProtectTurns<2 && rng()<0.55) return {kind:'protect'};
+  const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
+  // 1) take a guaranteed KO most of the time (real players do)
+  if(bestKOsNow&&rng()<0.85) return {kind:'attack',move:bestAtk,target:tgt};
+  // 2) Protect when threatened and can't KO back
+  if(inDanger&&!bestKOsNow&&canProtect&&!me.protect&&me.tookProtectTurns<2&&rng()<0.5) return {kind:'protect'};
+  // 3) behaviour clone: sample the move this species actually clicks, at its real frequency
   const pr=MC.priors[me.name];
-  if(pr){let r=rng(),pick=null;for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
+  if(pr){ let r=rng(),pick=null; for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
     if(pick){
-      if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2&&rng()<0.6)return{kind:'protect'};
-      if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4&&rng()<0.8)return{kind:'setup'};
-      if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0)&&rng()<0.9)return{kind:'tail'};
-      if(pick.kind==='status'&&live.some(f=>!f.status)&&rng()<0.7)return{kind:'status',target:live.find(f=>!f.status)};
+      if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2)return{kind:'protect'};
+      if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup'};
+      if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0))return{kind:'tail'};
+      if(pick.kind==='status'&&live.some(f=>!f.status))return{kind:'status',target:live.find(f=>!f.status)};
+      const chosen=targetForMove(me,pick.mv,live,field);            // the sampled damaging move
+      if(chosen)return{kind:'attack',move:chosen,target:chosen.target};
     }}
-  if(!bestAtk)return{kind:'struggle'};
-  return{kind:'attack',move:bestAtk,target:tgt};
+  // 4) fallback: best available attack
+  if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
+  return{kind:'struggle'};
 }
 function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;if(m.status==='par')s*=0.5;return s;}
 function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slp=1+(Math.random()*2|0);}
