@@ -1089,7 +1089,7 @@ let wx=-60,wdir=1;setInterval(()=>{wx+=wdir*2;if(wx>innerWidth){wdir=-1;walker.s
 /* gently teleporting Abras in the background  */
 function makeAbra(){
   const a=document.createElement('img'); a.className='tp'; a.src=ani('abra'); document.body.appendChild(a);
-  const place=()=>{ a.style.left=(4+Math.random()*88)+'vw'; a.style.top=(16+Math.random()*74)+'vh'; };
+  const place=()=>{ const right=Math.random()<0.5; a.style.left=right?(89+Math.random()*9)+'vw':(1.5+Math.random()*9)+'vw'; a.style.top=(14+Math.random()*72)+'vh'; };  // stay in the empty side margins, never over the content column
   const ring=()=>{ const r=document.createElement('div'); r.className='tpring'; r.style.left=a.style.left; r.style.top=a.style.top;
     document.body.appendChild(r); setTimeout(()=>r.remove(),700); };
   place();
