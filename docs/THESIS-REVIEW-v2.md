@@ -12,7 +12,7 @@
 **Critique.** The harness settles it: on a temporal held-out split, JOLTEON's **log-loss (0.699) is worse than a coin flip (0.693)** and only ties player-Elo (0.691). Accuracy (54.6%) sits at the skill ceiling, but the *probabilities are overconfident* — the model is a decent ranker and a poor forecaster. This is exactly the failure a proper scoring rule is designed to catch and accuracy is designed to hide. Separately, the additive form still cannot represent a non-transitive metagame.
 
 **Fix.** Three, in order of cost:
-1. **[SHIP] Recalibrate.** Fit a single temperature `T>1` (Platt scaling) on the train split and divide the logits by it. Overconfidence is a scalar problem with a scalar fix; this alone should push log-loss below the coin and Elo. *(Implemented this session — see `engine/calibrate.py` and the re-run below.)*
+1. **[SHIP → DONE] Recalibrate.** Fit a single temperature `T>1` (Platt scaling) on a calibration slice of train and divide the logits by it. **Result (`engine/calibrate.py`): T = 5.96** — the model's logits were ~6× too large, i.e. severely overconfident. Held-out log-loss **0.705 → 0.692**, which now **beats the coin (0.693)** and ties Elo (0.691); Brier 0.255 → 0.250. Honest caveat: T≈6 means calibration works by shrinking predictions hard toward 0.5 — it removes false confidence but cannot create signal. The team sheet is worth only a sliver over a coin; real lift needs fix #2.
 2. **[FIX] Add a non-transitive term.** Low-rank antisymmetric interaction `⟨u(A),v(B)⟩−⟨u(B),v(A)⟩` so the model can encode rock-paper-scissors matchups the sum-of-abilities cannot.
 3. **[SHIP] Show the truth on the site.** Display JOLTEON's held-out log-loss vs. baselines. A model that ties Elo should say so, not imply oracular power.
 
