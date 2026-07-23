@@ -7,11 +7,20 @@
  * STORE RAW, ANALYSE ON TOP: this run also archives each raw .log to
  * data/raw-logs.jsonl so any NEW field is a re-parse (mode=reparse), never a
  * re-fetch. Re-pull the network at most once. */
-const https=require('https'), fs=require('fs');
-// one or more Showdown format ids (comma-separated). Champions Reg M-B by default;
-// add the Reg-G best-of-3 (open team sheet) ladder to also collect that regime.
+const https=require('https'), fs=require('fs'), path=require('path');
+// Which format(s) to collect. Source of truth is data/regulations.json (the active
+// regulation), so switching regulations is a one-line config edit. FORMATS env
+// overrides; INCLUDE_BO3=1 also pulls the best-of-3 open-sheet ladder.
 //   FORMATS=gen9championsvgc2026regmb,gen9vgc2025reggbo3 node engine/durable-ingest.js ...
-const FORMATS=(process.env.FORMATS||'gen9championsvgc2026regmb').split(',').map(s=>s.trim()).filter(Boolean);
+function activeFormats(){
+  try{ const r=JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','regulations.json'),'utf8'));
+    const a=r.regulations[r.active]||{}; const out=[a.showdownFormat].filter(Boolean);
+    if(process.env.INCLUDE_BO3 && a.bo3Format) out.push(a.bo3Format);
+    return out.length?out:null;
+  }catch(e){ return null; }
+}
+const FORMATS=(process.env.FORMATS ? process.env.FORMATS.split(',') : (activeFormats()||['gen9championsvgc2026regmb']))
+  .map(s=>s.trim()).filter(Boolean);
 const PAGES=+(process.env.PAGES||2), CONC=+(process.env.CONC||16);
 const STORE=process.argv[2]||'games.jsonl';
 const RAW=process.env.RAW||(STORE.replace(/\.jsonl$/,'')+'.raw-logs.jsonl');
