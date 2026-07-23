@@ -72,7 +72,7 @@ function dmgRange(att,def,mv,field,spread){
   if(att.ability==='technician'&&mv.bp<=60)base=Math.floor(base*1.5);
   const eff=mcEff(mv.t,def.types); if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
-  const IMM={waterabsorb:'Water',stormdrain:'Water',dryskin:'Water',voltabsorb:'Electric',lightningrod:'Electric',motordrive:'Electric',flashfire:'Fire',wellbakedbody:'Fire',sapsipper:'Grass',levitate:'Ground',eartheater:'Ground'};
+  const IMM={waterabsorb:'Water',stormdrain:'Water',dryskin:'Water',voltabsorb:'Electric',lightningrod:'Electric',motordrive:'Electric',flashfire:'Fire',wellbakedbody:'Fire',sapsipper:'Grass',levitate:'Ground',eartheater:'Ground',eelevate:'Ground'};
   if(IMM[def.ability]===mv.t)return{min:0,max:0,eff:0};
   const stab=att.types.includes(mv.t)?(att.ability==='adaptability'?2:1.5):1;
   const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
@@ -183,12 +183,15 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
       if(!targets.length)targets=live(foes).slice(0,1);
       let dealt=0;
-      for(const tg of targets){if(!tg||tg.fainted||tg.protect)continue;
+      for(const tg of targets){if(!tg||tg.fainted)continue;
+        if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)
         const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
+        if(tg.protect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
         dealt+=Math.min(dmg,tg.curHP);
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
-        else if(a.move.id==='fakeout')tg._flinch=true;}   // Fake Out flinches survivors
+        else if(a.move.id==='fakeout')tg._flinch=true;
+        if(tg.ability==='spicyspray'&&mv.c==='P'&&!m.status&&!m.fainted)m.status='brn';}   // Spicy Spray: burns the (contact) attacker
       // recoil: frail spammers pay for Brave Bird / Flare Blitz / Wave Crash
       if(RECOIL[a.move.id]&&dealt>0){m.curHP-=Math.floor(dealt*RECOIL[a.move.id]);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
       // self stat changes; Contrary flips drops into boosts (Malamar Superpower/Overheat ramp)
