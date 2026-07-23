@@ -74,7 +74,9 @@ def svg_to_png_datauri(path):
 
 def img_datauri(path):
     ext=os.path.splitext(path)[1].lower()
-    if ext=='.svg': return svg_to_png_datauri(path)
+    if ext=='.svg':
+        # embed SVG directly — browsers render it, no LibreOffice rasterisation needed
+        return 'data:image/svg+xml;base64,'+base64.b64encode(open(path,'rb').read()).decode()
     mime={'png':'image/png','jpg':'image/jpeg','jpeg':'image/jpeg','gif':'image/gif'}[ext.lstrip('.')]
     return f'data:{mime};base64,'+base64.b64encode(open(path,'rb').read()).decode()
 
@@ -138,5 +140,17 @@ if __name__=='__main__':
                           'kind':'image' if d.lower().endswith(('.svg','.png','.jpg','.jpeg','.gif')) else 'md'} for d in a.docs]}
         base=os.getcwd(); out=a.out
     html=build(man, base)
-    path=to_pdf(html, out)
-    print(f"omnibus -> {path}  ({os.path.getsize(path)//1024} KB, {len(man['sections'])} sections)")
+    # ALWAYS emit a self-contained HTML (robust, no LibreOffice needed) — open it
+    # in a browser to read, or Ctrl+P to make a PDF. This is the durable output.
+    html_out=os.path.splitext(out)[0]+'.html'
+    os.makedirs(os.path.dirname(os.path.abspath(html_out)),exist_ok=True)
+    open(html_out,'w',encoding='utf-8').write(html)
+    print(f"omnibus HTML -> {html_out}  ({os.path.getsize(html_out)//1024} KB, {len(man['sections'])} sections)")
+    # Optionally attempt the heavy PDF (LibreOffice). Off by default so the run
+    # always completes on memory-constrained machines. Set OMNIBUS_PDF=1 to try.
+    if os.environ.get('OMNIBUS_PDF'):
+        try:
+            path=to_pdf(html, out)
+            print(f"omnibus PDF  -> {path}  ({os.path.getsize(path)//1024} KB)")
+        except Exception as e:
+            print(f"omnibus PDF skipped ({type(e).__name__}) — use the HTML (print to PDF from the browser).")
