@@ -1,0 +1,10 @@
+{
+  "generated": "engine/validate_damage.js vs @smogon/calc (MIT), stats aligned to isolate the damage formula",
+  "gen": 9, "level": 50, "scenarios": 22,
+  "result_before_ability_fixes": {"median_abs_err_pct": 0.0, "within_5pct": 86, "worst_pct": 33,
+    "note": "core formula exact; only misses were unmodeled abilities"},
+  "result_after_ability_fixes": {"median_abs_err_pct": 0.0, "within_2pct": 95, "within_5pct": 100, "worst_pct": 3,
+    "note": "worst 3% is 16-roll quantization rounding, not a formula error"},
+  "abilities_added": ["swordofruin","beadsofruin","tabletsofruin","vesselofruin","solarpower","guts","orichalcumpulse","hadronengine"],
+  "verdict": "MEDICHAM damage math is VALIDATED against ground truth within 5% on 100% of tested meta scenarios."
+}

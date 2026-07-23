@@ -31,6 +31,16 @@ function dmgRange(att,def,mv,field,spread){
   if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
   if(!phys&&def.item==='assaultvest')D=Math.floor(D*1.5);
   if((att.ability==='hugepower'||att.ability==='purepower')&&phys)A*=2;
+  // --- stat-multiplying abilities (validated gaps vs @smogon/calc) ---
+  if(att.ability==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
+  if(att.ability==='solarpower'&&!phys&&field.weather==='sun')A=Math.floor(A*1.5);
+  if(att.ability==='orichalcumpulse'&&phys&&field.weather==='sun')A=Math.floor(A*5461/4096);
+  if(att.ability==='hadronengine'&&!phys&&field.terrain==='electric')A=Math.floor(A*5461/4096);
+  // Ruin abilities lower everyone-else's stat (field-wide; handled pairwise)
+  if(phys&&att.ability==='swordofruin')D=Math.floor(D*0.75);
+  if(!phys&&att.ability==='beadsofruin')D=Math.floor(D*0.75);
+  if(phys&&def.ability==='tabletsofruin')A=Math.floor(A*0.75);
+  if(!phys&&def.ability==='vesselofruin')A=Math.floor(A*0.75);
   let base=Math.floor(Math.floor(22*mv.bp*A/D)/50)+2;
   if(spread)base=Math.floor(base*0.75);
   if(field.weather==='rain'){if(mv.t==='Water')base=Math.floor(base*1.5);if(mv.t==='Fire')base=Math.floor(base*0.5);}
