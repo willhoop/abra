@@ -1,0 +1,73 @@
+{
+ "names": [
+  "Rain",
+  "Sun",
+  "TrickRoom",
+  "HyperOffense",
+  "Balance",
+  "Fairy",
+  "Sand",
+  "FakeOutSpam"
+ ],
+ "weights": [
+  0.3712,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.447,
+  0.1818
+ ],
+ "teams": [
+  [
+   "pelipper",
+   "basculegion",
+   "archaludon",
+   "kingambit"
+  ],
+  [
+   "torkoal",
+   "venusaur",
+   "charizard",
+   "tyranitar"
+  ],
+  [
+   "torkoal",
+   "incineroar",
+   "sinistcha",
+   "farigiraf"
+  ],
+  [
+   "tyranitar",
+   "glimmora",
+   "chandelure",
+   "eelektross"
+  ],
+  [
+   "incineroar",
+   "sylveon",
+   "charizard",
+   "farigiraf"
+  ],
+  [
+   "sylveon",
+   "whimsicott",
+   "gholdengo",
+   "archaludon"
+  ],
+  [
+   "tyranitar",
+   "excadrill",
+   "gholdengo",
+   "sneasler"
+  ],
+  [
+   "incineroar",
+   "meowstic",
+   "kingambit",
+   "staraptor"
+  ]
+ ],
+ "exploitability": 0.0012
+}
