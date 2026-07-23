@@ -6,24 +6,39 @@
   "test_clicks_scored": 18117,
   "test_clicks_skipped_thin_prior": 332,
   "min_train_clicks_per_species": 25,
-  "top1_accuracy": 0.3586,
-  "top1_ci95": [
-    0.3516,
-    0.3655
-  ],
-  "top3_accuracy": 0.7156,
-  "top3_ci95": [
-    0.7091,
-    0.7222
-  ],
-  "cross_entropy_nats": {
-    "clone": 2.2665,
-    "clone_ci95": [
+  "species_only_clone": {
+    "top1_accuracy": 0.3586,
+    "top1_ci95": [
+      0.3516,
+      0.3655
+    ],
+    "top3_accuracy": 0.7156,
+    "top3_ci95": [
+      0.7091,
+      0.7222
+    ],
+    "cross_entropy_nats": 2.2665,
+    "ce_ci95": [
       2.2474,
       2.2855
-    ],
-    "global_baseline": 4.5398,
-    "uniform_baseline": 2.9149
+    ]
   },
-  "verdict": "clone beats species-agnostic baseline on cross-entropy; move priors carry real signal"
+  "phase_conditioned_clone": {
+    "top1_accuracy": 0.3762,
+    "top1_ci95": [
+      0.3692,
+      0.3833
+    ],
+    "cross_entropy_nats": 2.59,
+    "ce_ci95": [
+      2.5702,
+      2.6099
+    ]
+  },
+  "baselines": {
+    "global_move_freq_ce": 4.5398,
+    "uniform_moveset_ce": 2.9149
+  },
+  "notes": "Conservative lower bound on the full policy: the state-conditioned KO-take/Protect overrides can only raise human-match on the turns they fire. Phase = early(turns<=2)/mid/late.",
+  "verdict": "phase-conditioning did not help; species-only prior retained"
 }
