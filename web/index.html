@@ -379,8 +379,8 @@ function renderSlots(){const sa=document.getElementById('slotsA'),sb=document.ge
   sa.innerHTML=teamA.map(cell).join('')||'<small style="color:#889">pick some →</small>';
   sb.innerHTML=teamB.map(cell).join('')||'<small style="color:#889">pick some →</small>';}
 function randomTeams(){const pool=JOLT.roster.map(m=>m.n);const pick=()=>{const s=new Set();while(s.size<4)s.add(pool[Math.floor(Math.random()*pool.length)]);return[...s];};
-  teamA=pick();teamB=pick();renderSlots();syncSel();doBattle();}
-function doBattle(){
+  teamA=pick();teamB=pick();renderSlots();syncSel();doBattle(true);}
+function doBattle(quiet){
   if(!teamA.length||!teamB.length){document.getElementById('readout').textContent='Pick at least one Pokémon per side!';return;}
   const p=pwin(teamA,teamB), pa=Math.round(p*100), pb=100-pa;
   document.getElementById('mYou').style.width=pa+'%';
