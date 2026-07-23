@@ -184,7 +184,7 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 
 <main id="stage"></main>
 
-<footer>Built by Will Hooper · ABRA = <b>A</b>utomated <b>B</b>attle <b>R</b>eplay <b>A</b>nalyzer · the models learn from real ladder games and get smarter over time.</footer>
+<footer><a href="https://willhoop.github.io" target="_blank" style="color:#1E2761;font-weight:800;text-decoration:underline">Built by Will Hooper</a> · ABRA = <b>A</b>utomated <b>B</b>attle <b>R</b>eplay <b>A</b>nalyzer · the models learn from real ladder games and get smarter over time.</footer>
 
 <script>
 /* ===== live JOLTEON model (embedded, real weights) ===== */
@@ -303,24 +303,15 @@ function roomDitto(){const c=CAST[3];
    </div>`;
 }
 function roomKadabra(){const c=CAST[4];
-  return `<div class="panel">${mascotHero(c,"Let me replay your game with you, one turn at a time. I rebuild each scene, tell you the better move, and answer your questions before we move on. 🔮")}</div>
-   <div class="panel"><h2>🎬 A reconstructed turn (real replay)</h2>
-     <div style="border:3px solid var(--line);border-radius:16px;padding:14px;background:#f7f4ff;font-weight:600;line-height:1.7">
-       <div><b>Turn 1</b></div>
-       <div>⚡ speed: Raichu moved before Venusaur — <b>you were faster</b></div>
-       <div>🟢 your Raichu Fake Out → 9% <span class="tag2">avg 10%</span></div>
-       <div>🔴 their Venusaur Leaf Storm → <b>99%</b> <span class="tag2">avg 62% — HIGH ROLL 😱</span></div>
-       <div style="margin-top:8px">🧠 lesson: their Venusaur got a huge roll — prep a switch-in or a faster answer next time.</div>
-     </div>
-     <p style="font-weight:600;color:#3a5372;margin-top:12px">Every game you review gets quietly added to the town's memory and folds into the models — the flywheel, from the coaching seat.</p>
-   </div>
-   <div class="panel"><h2>Coach a real replay (live)</h2>
-     <p class="sub">Paste a Champions replay link and KADABRA reviews it turn by turn. Needs the local server (start.bat).</p>
+  return `<div class="panel">${mascotHero(c,"Paste one of your games and I'll pop in on the turns that actually mattered — not the whole battle — and show you what to do.")}</div>
+   <div class="panel"><h2>Coach a real replay</h2>
+     <p class="sub">Paste a Champions replay link and your Showdown name. I rebuild the key turns as scenes.</p>
      <input id="kdid" placeholder="https://replay.pokemonshowdown.com/gen9championsvgc2026regmb-..." style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:8px">
-     <input id="kdme" placeholder="your Showdown name (optional)" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:10px">
+     <input id="kdme" placeholder="your Showdown name" style="width:100%;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:13px;margin-bottom:10px">
      <button class="battlebtn" onclick="runKadabra()">Coach it</button>
-     <pre id="kdout" style="margin-top:12px;background:#f4f1ff;border:3px solid var(--line);border-radius:12px;padding:12px;font-size:12px;white-space:pre-wrap;max-height:360px;overflow:auto">Paste a replay above and press Coach it.</pre>
-   </div>`;
+     <div id="kdout" style="margin-top:14px">Paste a replay above and press Coach it.</div>
+   </div>
+   <div class="panel"><h2>🧠 How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I rebuild the board at every turn straight from the battle log — who was out, their HP, who moved first (that's the real speed), and exactly how much each hit did — then compare every number to the ladder average. I don't march you through the whole game: I stop only on the turns that decided it — a big hit you traded into, a KO you scored, the moment you lost a Pokémon — and show the better line. Every game you review is quietly added to the town's memory and folds into the models.</p></div>`;
 }
 function roomSlowking(){const c=CAST[5];
   return `<div class="panel">${mascotHero(c,"Slowly... wisely... I search over <b>belief states</b> — what your opponent might be hiding — to find the equilibrium-best move. I'm the deep one. I'm also still being built. 📚")}</div>
