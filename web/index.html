@@ -236,10 +236,18 @@ JOLT.roster.sort((a,b)=>(b.use||0)-(a.use||0));   // default order = usage ranki
 const ani=n=>`https://play.pokemonshowdown.com/sprites/ani/${n}.gif`;
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0.5;}
+// matchup term: how much harder A's STAB types hit B's team than the reverse.
+// This is what stops two equally-strong-but-differently-shaped teams reading ~50%.
+function typeEdge(A,B){
+  const eff=(atkN,defN)=>{const at=MC.mons[atkN]&&MC.mons[atkN].t,dt=MC.mons[defN]&&MC.mons[defN].t;if(!at||!dt)return 1;let best=0;for(const t of at)best=Math.max(best,mcEff(t,dt));return best;};
+  const oneWay=(X,Y)=>{let s=0,c=0;for(const x of X)for(const y of Y){s+=eff(x,y);c++;}return c?s/c:1;};
+  return oneWay(A,B)-oneWay(B,A);
+}
 function pwin(A,B){ // A,B arrays of species names -> P(A beats B), the real JOLTEON logistic
   let s=0; A.forEach(n=>s+=(BY[n]?.w||0)); B.forEach(n=>s-=(BY[n]?.w||0));
   s+=JOLT.wSpeed*(mean(A.map(n=>BY[n]?.spd??0.5))-mean(B.map(n=>BY[n]?.spd??0.5)));
   s+=JOLT.wFire *(mean(A.map(n=>BY[n]?.fire??0.5))-mean(B.map(n=>BY[n]?.fire??0.5)));
+  s+=0.55*typeEdge(A,B);   // team-vs-team type coverage — the missing matchup signal
   return 1/(1+Math.exp(-s));
 }
 
