@@ -53,6 +53,8 @@ function chooseAction(team, hp, active, foeActive, ctx, sideState, turnNo, field
   const stMe=sideState[active];
   if(stMe.status==='slp' && stMe.slp>0) return {kind:'sleep'};   // skip, handled in resolve
   const foe=foeActive; const mine=bestMove(me,foe,ctx);
+  const risk=bestMove(foe,me,ctx);   // can the foe KO me if I waste this turn? (tempo / discount guard)
+  const safe=risk.pKO<0.5;
   // clearly outmatched -> maybe switch to a better answer
   if(mine.pct<25){
     let best=-1,bi=-1;
@@ -68,14 +70,14 @@ function chooseAction(team, hp, active, foeActive, ctx, sideState, turnNo, field
     for(const m of dist){ r-=m.p; if(r<=0){ pick=m; break; } }
     if(pick){
       const c=classify(pick.mv), side=me._side==='me'?'A':'B';
-      if(c.kind==='setup' && Math.max(...Object.values(c.boosts))<=2){
+      if(c.kind==='setup' && safe && Math.max(...Object.values(c.boosts))<=2){
         const cur=stMe.boost; const cap=Object.values(c.boosts).some(v=>v>0 && (cur.atk>=4||cur.spa>=4||cur.spe>=4));
         if(!cap) return {kind:'setup',boosts:c.boosts};
       }
       if(c.kind==='speed'){
-        if(c.effect==='tailwind' && field['tw'+side]<=0) return {kind:'tailwind',side};
-        if(c.effect==='trickroom') return {kind:'trickroom'};
-        if(c.effect==='lowerspe') return {kind:'lowerspe'};
+        if(c.effect==='tailwind' && field['tw'+side]<=0 && safe) return {kind:'tailwind',side};
+        if(c.effect==='trickroom' && field.tr<=0 && safe) return {kind:'trickroom'};
+        if(c.effect==='lowerspe' && safe) return {kind:'lowerspe'};
       }
       if(c.kind==='status' && !foeActive._status) return {kind:'status',effect:c.effect};
       if(c.kind==='protect' && !stMe.protLast && Math.random()<0.8) return {kind:'protect'};
