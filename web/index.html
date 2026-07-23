@@ -86,6 +86,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 
 /* ---- JOLTEON battle booth ---- */
 .booth{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
+.booth.two{grid-template-columns:1fr 1fr}
 @media(max-width:760px){.booth{grid-template-columns:1fr}}
 .side{border:3px dashed var(--line);border-radius:18px;padding:12px;background:#f7fbff}
 .side.you{background:#f2fff5}.side.rival{background:#fff2f6}
@@ -252,28 +253,30 @@ function roomTown(){const c=CAST[0];
 
 function roomJolteon(){const c=CAST[1];
   return `<div class="panel">${mascotHero(c,"Zap! Pick a team for each side and I'll tell you who's favoured — before a single move. This is my <b>real</b> model running right here in your browser. ")}</div>
-   <div class="panel"><h2>Battle Odds Booth</h2><p class="sub">Click sprites to build each team (up to 6). Then hit BATTLE.</p>
-     <div class="booth">
-       <div class="side you"><h3> Your team</h3><div class="slots" id="slotsA"></div>
-         <input class="pksearch" placeholder="search Pokémon… (sorted by usage)" oninput="renderPick('pickA','A',this.value)">
-         <div class="picker" id="pickA"></div></div>
-       <div class="vs"><button class="battlebtn" onclick="doBattle()">BATTLE!</button>
-         <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;font-size:15px;padding:8px 14px" onclick="doMedicham()">MEDICHAM check</button>
-         <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">Surprise me</button></div>
-       <div class="side rival"><h3> Rival team</h3><div class="slots" id="slotsB"></div>
-         <input class="pksearch" placeholder="search Pokémon… (sorted by usage)" oninput="renderPick('pickB','B',this.value)">
-         <div class="picker" id="pickB"></div></div>
+   <div class="panel"><h2>Battle Odds Booth</h2><p class="sub">Build each team below — the result shows up right here at the top.</p>
+     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center">
+       <button class="battlebtn" onclick="doBattle()">BATTLE!</button>
+       <button class="battlebtn" style="background:var(--fight);box-shadow:0 5px 0 #c0432f;color:#fff;font-size:15px;padding:8px 14px" onclick="doMedicham()">MEDICHAM check</button>
+       <button class="link" style="box-shadow:0 3px 0 var(--shadow)" onclick="randomTeams()">Surprise me</button>
      </div>
-     <div class="pastebox">
-       <div class="pastecol"><label> Paste a team (PokéPaste) → <button class="minibtn" onclick="loadPaste('A')">load into  yours</button></label>
-         <textarea id="pasteA" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;- Earthquake&#10;&#10;Incineroar @ ..."></textarea></div>
-       <div class="pastecol"><label> Paste a team → <button class="minibtn" onclick="loadPaste('B')">load into  rival</button></label>
-         <textarea id="pasteB" placeholder="paste the opponent's team here..."></textarea></div>
-     </div>
-     <div class="meterwrap"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
+     <div class="meterwrap" style="margin-top:12px"><div class="mYou" id="mYou" style="width:50%"></div><div class="mRiv" id="mRiv"></div>
        <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
      <div class="readout" id="readout">Build two teams and press BATTLE.</div>
      <div class="readout" id="mcout" style="min-height:0;color:#b4432f"></div>
+     <div class="booth two" style="margin-top:16px">
+       <div class="side you"><h3>Your team</h3><div class="slots" id="slotsA"></div>
+         <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickA','A',this.value)">
+         <div class="picker" id="pickA"></div></div>
+       <div class="side rival"><h3>Rival team</h3><div class="slots" id="slotsB"></div>
+         <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickB','B',this.value)">
+         <div class="picker" id="pickB"></div></div>
+     </div>
+     <div class="pastebox">
+       <div class="pastecol"><label>Paste a team (PokéPaste) → <button class="minibtn" onclick="loadPaste('A')">load into yours</button></label>
+         <textarea id="pasteA" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;- Earthquake&#10;&#10;Incineroar @ ..."></textarea></div>
+       <div class="pastecol"><label>Paste a team → <button class="minibtn" onclick="loadPaste('B')">load into rival</button></label>
+         <textarea id="pasteB" placeholder="paste the opponent's team here..."></textarea></div>
+     </div>
    </div>
    <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by which team hits harder (firepower) and moves first (speed). I'm right about <b>~56%</b> of the time from team sheets alone — a real edge over a coin flip, but not magic: the same two teams don't always give the same winner. That gap is skill and luck, and it's why the other buildings exist.</p></div>`;
 }
