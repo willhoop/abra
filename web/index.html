@@ -314,10 +314,10 @@ function roomJolteon(){const c=CAST[1];
        <b id="mYouL" style="left:12px">50%</b><b id="mRivL" style="right:12px">50%</b></div>
      <div class="readout" id="readout">Build two teams and press BATTLE.</div>
      <div class="booth two" style="margin-top:16px">
-       <div class="side you"><h3>Your team</h3><div class="slots" id="slotsA"></div>
+       <div class="side you"><h3>Your team</h3><div class="slots" id="slotsA" data-slots="A"></div>
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickA','A',this.value)">
          <div class="picker" id="pickA"></div></div>
-       <div class="side rival"><h3>Rival team</h3><div class="slots" id="slotsB"></div>
+       <div class="side rival"><h3>Rival team</h3><div class="slots" id="slotsB" data-slots="B"></div>
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickB','B',this.value)">
          <div class="picker" id="pickB"></div></div>
      </div>
@@ -566,16 +566,63 @@ function dittoPaste(btn){ if(!dittoResult)return; const items=dittoItems||{};
   if(btn){const o=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=o,1200);} }
 let KAD=null, kadKeys=[], kadI=0;
 async function runKadabra(){
-  const id=document.getElementById('kdid').value.trim(), me=document.getElementById('kdme').value.trim();
-  const out=document.getElementById('kdout'); if(!id){out.textContent='Paste a replay link first.';return;}
-  out.innerHTML='<div style="font-weight:700">KADABRA is reviewing the game…</div>';
-  try{
-    const r=await fetch(`${API}/api/kadabra?id=${encodeURIComponent(id)}&me=${encodeURIComponent(me)}`); const j=await r.json();
-    const txt=j.json||''; const a=txt.indexOf('{'), b=txt.lastIndexOf('}'); if(a<0) throw 0;
-    KAD=JSON.parse(txt.slice(a,b+1));
-    kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length) kadKeys=KAD.scenes.slice(0,1);
+  const raw=document.getElementById('kdid').value.trim(); const out=document.getElementById('kdout');
+  if(!raw){out.textContent='Paste a replay link first.';return;}
+  const id=(raw.match(/([a-z0-9]+-\d+)/i)||[])[1] || raw.split('/').pop().replace(/\.(json|log)$/,'');
+  out.innerHTML='<div style="font-weight:700">KADABRA is pulling the replay…</div>';
+  let log=null;
+  try{ const r=await fetch('https://replay.pokemonshowdown.com/'+id+'.json'); const j=await r.json(); log=j.log; }catch(e){}
+  if(!log){ try{ const r2=await fetch('https://replay.pokemonshowdown.com/'+id+'.log'); log=await r2.text(); }catch(e){} }
+  if(!log){ out.innerHTML='Could not fetch that replay from the browser (some setups block cross-site requests on <code>file://</code> — opening the site over http fixes it). Or paste the raw replay log here:<br><textarea id="kdlog" style="width:100%;height:110px;margin-top:6px;border:3px solid var(--line);border-radius:10px;padding:8px"></textarea><br><button class="minibtn" style="margin-top:6px" onclick="kadFromLog(document.getElementById(&quot;kdlog&quot;).value, kadMe())">Coach this log</button>'; return; }
+  kadFromLog(log, kadMe());
+}
+function kadMe(){ const e=document.getElementById('kdme'); return e?e.value:''; }
+function kadFromLog(log, me){ const out=document.getElementById('kdout');
+  try{ KAD=kadBuild(log, me);
+    if(!KAD.scenes.length){ out.textContent='Parsed the game, but found no decisive turns to coach.'; return; }
+    kadKeys=KAD.scenes.filter(s=>s.key); if(!kadKeys.length)kadKeys=KAD.scenes.slice(0,Math.min(6,KAD.scenes.length));
     kadI=0; renderKad();
-  }catch(e){ out.innerHTML='Live KADABRA needs the local server: run <code>start.bat</code>, then open <b>localhost:8790</b>.'; }
+  }catch(e){ out.textContent='Could not parse that replay log.'; }
+}
+// parse a Showdown battle log into KADABRA scenes at the turns where a KO happened
+function kadBuild(log, meName){
+  const L=log.split('\n'); const P={p1:'',p2:''};
+  const cur={p1a:null,p1b:null,p2a:null,p2b:null};
+  const nm=(meName||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const pct=s=>{ if(!s)return 0; if(/fnt/.test(s)||/^0\b/.test(s))return 0; const m=String(s).match(/(\d+)\/(\d+)/); if(m)return Math.max(0,Math.round(100*(+m[1])/(+m[2]))); const n=parseInt(s); return isNaN(n)?100:n; };
+  const stf=s=>{ const m=String(s||'').match(/\b(brn|par|slp|psn|tox|frz)\b/); return m?m[1]:''; };
+  const slotOf=x=>String(x).split(':')[0].trim();
+  const setSlot=(slot,species,hpstr)=>{ cur[slot]={sp:spriteName(species).sprite, hp:pct(hpstr), st:stf(hpstr), name:species}; };
+  const cleanN=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const meSide=()=> (nm && cleanN(P.p2).includes(nm) && !cleanN(P.p1).includes(nm)) ? 'p2':'p1';
+  let turn=0, faints=[], tlog=[]; const scenes=[]; let result='(unfinished)';
+  const flush=()=>{ if(!faints.length)return; const side=meSide(), foeS=side==='p1'?'p2':'p1';
+    const you=[cur[side+'a'],cur[side+'b']].filter(Boolean).map(m=>({sp:m.sp,hp:m.hp,st:m.st}));
+    const foe=[cur[foeS+'a'],cur[foeS+'b']].filter(Boolean).map(m=>({sp:m.sp,hp:m.hp,st:m.st}));
+    const mine=faints.filter(f=>f.slot.startsWith(side)).map(f=>cap(f.name));
+    const theirs=faints.filter(f=>f.slot.startsWith(foeS)).map(f=>cap(f.name));
+    let kind='good', coach='';
+    if(mine.length){ kind='loss'; coach=`You lost ${mine.join(' & ')} on turn ${turn}. This is where momentum swung — check whether Protect, a pivot, or a different lead keeps it alive.`; }
+    else if(theirs.length){ kind='good'; coach=`You KO'd ${theirs.join(' & ')} — clean tempo. Press the advantage while you're up a body.`; }
+    scenes.push({n:turn, you, foe, log:tlog.slice(-4), kind, coach, key:true, _loss:mine.length});
+  };
+  for(const ln of L){ if(ln[0]!=='|')continue; const p=ln.split('|'); const t=p[1];
+    if(t==='player'){ if(p[2]==='p1')P.p1=p[3]||''; if(p[2]==='p2')P.p2=p[3]||''; }
+    else if(t==='switch'||t==='drag'||t==='replace'){ setSlot(slotOf(p[2]),(p[3]||'').split(',')[0],p[4]||'100/100'); }
+    else if(t==='-damage'||t==='-sethp'){ const s=slotOf(p[2]); if(cur[s]){cur[s].hp=pct(p[3]); const st=stf(p[3]); if(st)cur[s].st=st;} }
+    else if(t==='-heal'){ const s=slotOf(p[2]); if(cur[s])cur[s].hp=pct(p[3]); }
+    else if(t==='-status'){ const s=slotOf(p[2]); if(cur[s])cur[s].st=p[3]; }
+    else if(t==='move'){ const s=slotOf(p[2]); const who=cur[s]?cap(cur[s].name):''; if(who)tlog.push(`${who} used ${p[3]}.`); }
+    else if(t==='faint'){ const s=slotOf(p[2]); if(cur[s]){faints.push({slot:s,name:cur[s].name}); tlog.push(`${cap(cur[s].name)} fainted.`); cur[s].hp=0;} }
+    else if(t==='turn'){ flush(); faints=[]; tlog=[]; turn=(+p[2])||turn+1; }
+    else if(t==='win'){ result=(p[2]||'').trim(); flush(); }
+    else if(t==='tie'){ result='tie'; flush(); }
+  }
+  const side=meSide(); const meN=side==='p1'?P.p1:P.p2, foeN=side==='p1'?P.p2:P.p1;
+  const win=nm && cleanN(result).includes(nm);
+  let sc=scenes.slice();
+  if(sc.length>6){ sc.sort((a,b)=>(b._loss-a._loss)||(a.n-b.n)); sc=sc.slice(0,6).sort((a,b)=>a.n-b.n); }
+  return { me:meN||'You', foe:foeN||'Opponent', result: result==='(unfinished)'?'—':(win?'Win':'Loss'), scenes: sc };
 }
 function hpc(h){ return h>50?'#5fd07a':h>20?'#ffc53f':'#ff6b6b'; }
 function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
