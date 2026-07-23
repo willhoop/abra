@@ -47,8 +47,9 @@ def kmeans(X, k, iters=60, seed=RNG):
         centers.append(X[rng.choice(n, p=probs)])
     C = np.array(centers, dtype=float)
     labels = np.zeros(n, dtype=int)
+    x2 = (X ** 2).sum(1)[:, None]
     for _ in range(iters):
-        D = np.linalg.norm(X[:, None, :] - C[None, :, :], axis=2)
+        D = x2 - 2 * X @ C.T + (C ** 2).sum(1)[None, :]   # ||x-c||^2, vectorized
         new = D.argmin(1)
         if (new == labels).all():
             labels = new; break
