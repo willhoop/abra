@@ -1,30 +1,30 @@
 {
   "generated": "engine/backtest_winrate.js — MEDICHAM P(win) vs realized outcomes, held-out games",
-  "n_games_scored": 300,
-  "rollouts_per_game": 40,
-  "elo_available_on": 290,
+  "n_games_scored": 600,
+  "rollouts_per_game": 25,
+  "elo_available_on": 581,
   "log_loss": {
-    "medicham": 1.1629,
+    "medicham": 1.2389,
     "medicham_ci95": [
-      1.0347,
-      1.2912
+      1.1448,
+      1.333
     ],
     "coin": 0.6931,
-    "elo": 0.6918
+    "elo": 0.6917
   },
   "brier": {
-    "medicham": 0.3787,
+    "medicham": 0.401,
     "coin": 0.25,
-    "elo": 0.2492
+    "elo": 0.2493
   },
   "discrimination": {
-    "accuracy_on_decisive_calls": 0.4429,
-    "decisive_calls": 289,
+    "accuracy_on_decisive_calls": 0.4333,
+    "decisive_calls": 600,
     "note": "does MEDICHAM pick the actual winner more than half the time? (calibration-free signal test)"
   },
   "temperature_calibrated": {
     "best_T": 8,
-    "log_loss": 0.7511,
+    "log_loss": 0.7759,
     "note": "in-sample optimistic ceiling: best the win% can do after re-scaling its overconfidence"
   },
   "verdict": "MEDICHAM does NOT beat coin; does NOT beat Elo (log-loss). Honest verdict either way."
