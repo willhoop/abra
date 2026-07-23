@@ -1,0 +1,33 @@
+name: ingest
+# Continually collect new ladder games as they are played.
+on:
+  schedule:
+    - cron: '17 * * * *'      # hourly (GitHub may delay on low-activity repos; that's fine)
+  workflow_dispatch:           # allow a manual run from the Actions tab
+permissions:
+  contents: write              # so the job can commit the refreshed data back
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Pull new replays (only appends games not already stored)
+        run: PAGES=6 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
+      - name: Rebuild the meta model
+        run: node engine/analyze.js data/games.ladder.jsonl
+      - name: Commit if the store or model changed
+        run: |
+          git config user.name  "abra-bot"
+          git config user.email "abra-bot@users.noreply.github.com"
+          git add data/games.ladder.jsonl data/meta-usage.json
+          if git diff --cached --quiet; then
+            echo "no new games this run"
+          else
+            git commit -m "ingest: new ladder games $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi

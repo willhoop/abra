@@ -1,0 +1,31 @@
+# Changelog — ABRA
+
+All notable changes to ABRA are recorded here, newest first.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+**Rule.** Every change is logged here in the same pass as the code, together with the matching
+updates to the white paper, the deck, and the technical documentation. A prior conclusion is never
+silently rewritten; what changed and why is stated.
+
+---
+
+## [1.0.0] — 2026-07-22
+
+### Added
+- **ABRA is born**, split out from CHOMP as its own project: the Automated Battle Replay Analyzer.
+  CHOMP stays the bring-4/lead-2 engine; ABRA is the meta-analysis brain that feeds it.
+- **Durable, incremental, no-redo ingest** (`engine/durable-ingest.js`): pulls public Champions
+  Reg M-B replays from the Showdown API (paginated, ~200 logs/sec, concurrent), stores every game
+  raw and tagged — both teams' six, brings, leads, observed moves/items/abilities, result, both
+  ratings, and a bot flag. Appends only new games (dedup by id). Tested on 1,501 real ladder games.
+- **Analysis over the store** (`engine/analyze.js`): usage model at any rating cutoff / humans-only,
+  plus a personal split by Showdown username. Writes `data/meta-usage.json` for CHOMP.
+- **`ME` alias list** so a Showdown rename is a one-word edit, never a re-pull.
+- `tests/test-parse.js` — 12 hand-derived checks on the replay extractor (teams, leads, brings,
+  observed set fields, bot flag, rating, date).
+- Governance: LICENSE (MIT), SECURITY.md, CONTRIBUTING.md, .gitignore, CI workflow.
+
+### Validated
+- High-ladder filter (humans, 1300+) reveals real signal distinct from the raw ladder — e.g.
+  Kingambit 62% win, Incineroar 65% — confirming the tag-and-filter design earns its keep.
