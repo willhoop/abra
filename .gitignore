@@ -6,3 +6,6 @@ Thumbs.db
 .idea/
 .env
 *.local
+
+# raw log archive — local 'never re-pull' insurance; rebuildable, extracted store is committed
+data/*.raw-logs.jsonl
