@@ -459,6 +459,18 @@ tick();
 
 /* ===== boot ===== */
 go('town');
+
+/* if opened as a file, the live engines can't be reached — tell the user how */
+if(location.protocol==='file:'){
+  const b=document.createElement('div');
+  b.style.cssText='position:sticky;top:0;z-index:30;background:#ffdf7e;border-bottom:3px solid var(--line);'+
+    'padding:8px 14px;font-weight:700;text-align:center;font-size:14px;color:#5a4300';
+  b.innerHTML='You are opening the file directly, so JOLTEON works but the live engines are off. '+
+    'For MEDICHAM / KADABRA / DITTO: run <code>start.bat</code>, then open '+
+    '<a href="http://localhost:8790" style="color:#1E2761">localhost:8790</a>. '+
+    '<span style="cursor:pointer;text-decoration:underline" onclick="this.parentElement.remove()">dismiss</span>';
+  document.body.prepend(b);
+}
 </script>
 </body>
 </html>
