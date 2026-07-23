@@ -51,6 +51,54 @@ silently rewritten; what changed and why is stated.
   optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
   as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).
 
+## [1.5.0] — 2026-07-23
+
+### Added
+- **Recency weighting (concept-drift decay)** in JOLTEON: every training game is weighted
+  `w = 0.5 ** (age_days / τ)` with a half-life τ (default 30d), so the models track the *live*
+  metagame instead of averaging over stale history. Normalised to mean 1 (L2 scale unchanged);
+  `τ → ∞` recovers equal weighting. No-op on the current 2-day store (reported honestly);
+  unit-verified on synthetic 90-day data (oldest 0.33, newest 2.14). Same rule applies to the usage
+  model and behaviour-clone. Fully documented in `docs/ARCHITECTURE-NOTES.md`.
+- **SLOWKING white paper** (`docs/SLOWKING-whitepaper.md`): the definitive Tier-3 design — offline
+  belief-state search over a *learned grey-box model* of the *closed* Champions engine (residual over
+  CHOMP), simultaneous-move mixed-Nash subgames, warm-started by the behaviour-clone. Grounded in
+  ReBeL, Student of Games, PokéChamp (ICML 2025), Gumbel MuZero, Metamon. Plus a
+  **research roadmap** (`docs/SLOWKING-research-roadmap.md`) turning it into five buildable papers.
+- **SLOWKING Paper-1 built** (`engine/game-spec.js`): encodes stored replays into
+  `(state, observation, action, reward)` trajectories — 30,608 real state-transitions with actions and
+  terminal rewards. The offline dataset a Tier-3 solver trains on; a re-parse, never a re-pull.
+- **Behaviour-clone + status/field MEDICHAM v2** (`engine/policy.js`, `engine/moves-meta.js`,
+  `engine/medicham.js`): the rollout now samples *what real players click* (Tailwind 34% for
+  Whimsicott, Fake Out 30% for Incineroar, …) and applies the effects — sleep, burn, paralysis,
+  Tailwind (2× speed), Trick Room (inverted order), setup boosts, Protect. Speed control and setup are
+  now *valued emergently*. Fixed a faint-and-replace symmetry bug (mirror back to ~0.50) and gated
+  support on survival (don't set up into a KO). `tests/test-medicham.js`, `tests/test-dynamics.js`.
+- **DITTO ported to Node** (`engine/ditto.js`): the whole live app now runs with **no Python**.
+  JOLTEON scoring reimplemented in JS from the trained weights; **MEDICHAM wired in natively as the
+  finalist re-ranker** (coarse-to-fine: JOLTEON proposes thousands, MEDICHAM decides the finalists).
+  In a real run MEDICHAM overruled JOLTEON — chose the rain team (75.7%) over JOLTEON's tyranitar pick
+  (68% grounded vs 79.8% JOLTEON). `server.js` `/api/ditto` now calls Node.
+- **Local app + server** (`server.js`, `start.bat`, `app/`): the site is served from `app/` and runs
+  the real engines on the user's machine (MEDICHAM/KADABRA/DITTO via Node, JOLTEON in-page). Lazy,
+  robust Python probe (skips the Windows Store stub) kept only for optional JOLTEON *retraining*.
+  Booth is searchable and usage-ranked; team-builder enlarged; live "MEDICHAM check" button.
+- **Multi-format + open-sheet tags**, **dedup-by-replay-id everywhere** (never double-count a game
+  reviewed or self-uploaded), **per-turn extractor + raw-log archive** (any new field is a re-parse).
+- **ABRA WORLD website** with per-model "How X thinks" panels, teleporting-Abra background,
+  usage-ranked sprite picker, PokéPaste input (accepts any species; off-roster treated as neutral).
+- `docs/ARCHITECTURE-NOTES.md`: the Python/JS split rationale and the recency-weighting design, in
+  detail.
+
+### Changed
+- Model labels describe the role (win probability, battle rollouts, team optimiser, replay coach,
+  belief search, bring-4 engine), not the Pokémon name twice.
+
+### Queued
+- **ORB** — CHOMP's auto-fill mid-game calculator (the Life Orb of the CHOMP family): pulls your six
+  (moves/items/EVs) and the opponent's revealed team from the live battle so there's nothing to type
+  mid-game; opens in its own tab.
+
 ## [1.4.0] — 2026-07-22
 
 ### Added — the model family (the simulator, stages 2–3, now has working v1s)

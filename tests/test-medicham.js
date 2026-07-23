@@ -19,8 +19,7 @@ const ab=winProb(full,short,400), ba=winProb(short,full,400);
 chk(ab>=0 && ab<=1 && ba>=0 && ba<=1, 'win probs in [0,1]');
 chk(Math.abs((ab+ba)-1.0)<0.15, `antisymmetric within MC noise (P+P'=${(ab+ba).toFixed(2)})`);
 // behaviour-clone actually loaded and is being used (support moves exist)
-const fs=require('fs'),path=require('path');
-const pr=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/move-priors.json'),'utf8'));
+const pr=JSON.parse(require('fs').readFileSync(path.join(__dirname,'../data/move-priors.json'),'utf8'));
 chk(pr.species.whimsicott && pr.species.whimsicott.moves.some(m=>m.kind==='speed'),
     'behaviour-clone tagged Whimsicott Tailwind as speed control');
 
