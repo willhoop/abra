@@ -1,0 +1,1749 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><style>
+@page { size: Letter; margin: 0.9in; }
+* { box-sizing: border-box; }
+body { font-family: Georgia,'Times New Roman',serif; font-size: 11.5pt; line-height: 1.55; color:#1a1a1a; }
+h1 { font-family:'Segoe UI',Arial,sans-serif; font-size:22pt; color:#1E2761; margin:0 0 2pt; border-bottom:2px solid #1E2761; padding-bottom:6pt; }
+h2 { font-family:'Segoe UI',Arial,sans-serif; font-size:15pt; color:#1E2761; margin:18pt 0 6pt; }
+h3 { font-family:'Segoe UI',Arial,sans-serif; font-size:12.5pt; color:#333; margin:13pt 0 4pt; font-weight:600; }
+p,li { margin:5pt 0; }
+strong { color:#111; }
+code { font-family:'Consolas',monospace; background:#f2f3f7; padding:1px 4px; border-radius:3px; font-size:10pt; }
+pre { background:#f2f3f7; padding:9pt 11pt; border-radius:5px; font-size:9.5pt; line-height:1.4; white-space:pre-wrap; border-left:3px solid #1E2761; }
+pre code { background:none; padding:0; }
+table { border-collapse:collapse; width:100%; margin:10pt 0; font-size:9.5pt; }
+th,td { border:1px solid #d0d3dd; padding:5pt 8pt; text-align:left; vertical-align:top; }
+th { background:#1E2761; color:#fff; font-family:'Segoe UI',Arial,sans-serif; }
+tr:nth-child(even) td { background:#f6f7fb; }
+blockquote { margin:10pt 0; padding:6pt 12pt; background:#f6f7fb; border-left:3px solid #E8B33D; color:#333; font-style:italic; }
+hr { border:none; border-top:1px solid #ccc; margin:16pt 0; }
+a { color:#1E2761; }
+.cover { text-align:center; padding-top:2.4in; }
+.cover .big { font-family:'Segoe UI',Arial,sans-serif; font-size:34pt; color:#1E2761; font-weight:800; border:none; }
+.cover .sub { font-size:15pt; color:#41597a; margin-top:8pt; }
+.cover .meta { font-size:12pt; color:#666; margin-top:26pt; }
+.cover .note { font-size:11pt; color:#444; font-style:italic; max-width:5in; margin:22pt auto 0; }
+.toc { page-break-before:always; }
+.toc h1 { }
+.toc ol { font-size:13pt; line-height:2; }
+.section { page-break-before:always; }
+.divider { font-family:'Segoe UI',Arial,sans-serif; font-size:11pt; color:#E8B33D; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:4pt; }
+.imgwrap { text-align:center; page-break-before:always; }
+.imgwrap img { max-width:100%; border:1px solid #d0d3dd; border-radius:6px; }
+</style></head><body><div class="cover"><div class="big">ABRA — The Special Cut</div>
+      <div class="sub">The whole story, front to back: the cast, how they interact, the win-probability ceiling, and every white paper.</div>
+      <div class="meta">Will Hooper · 2026-07-23</div>
+      <div class="note">A single consecutive read of everything ABRA. Start at the cheat card, glance at the interaction chart, read the predictability study for the CHOMP/JOLTEON/win% dynamic, then the white papers. Updated in the same pass as the code.</div></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="toc"><h1>Contents</h1><ol><li>The cast, on one card</li><li>How the models interact</li><li>Executive Summary</li><li>The Deck (plain English)</li><li>Predictability Study — CHOMP, JOLTEON & the win% ceiling</li><li>White Paper — the data platform</li><li>White Paper — learning the simulator (the ML)</li><li>White Paper — SLOWKING (offline belief-state search)</li><li>SLOWKING — research roadmap</li><li>KADABRA — the coach spec</li><li>Architecture notes (languages, server, recency)</li></ol></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 1</div><h1>ABRA — the cast, on one card</h1>
+<p><strong>Version 1.0 · 2026-07-22 · Will Hooper</strong></p>
+<blockquote>
+<p>Every model is a Pokémon. The Pokémon's <strong>speed</strong> tells you the model's <strong>cost</strong>: fast Pokémon =
+cheap/fast model, slow Pokémon = expensive/deep model. Every name is an acronym.</p>
+</blockquote>
+<h2>What each one does</h2>
+<p>Speed = cost: the faster the Pokémon, the cheaper/faster the model.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Pokémon · speed</th>
+<th>What it does</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ABRA</strong></td>
+<td>Abra</td>
+<td>collects, stores, and models the live ladder</td>
+<td>Built</td>
+</tr>
+<tr>
+<td><strong>JOLTEON</strong></td>
+<td>Jolteon · fastest</td>
+<td>instant team-vs-team win probability</td>
+<td>Built</td>
+</tr>
+<tr>
+<td><strong>MEDICHAM</strong></td>
+<td>Medicham · mid</td>
+<td>short exact-damage rollouts; vets teams</td>
+<td>Built</td>
+</tr>
+<tr>
+<td><strong>SLOWKING</strong></td>
+<td>Slowking · slowest</td>
+<td>deep belief-search (equilibrium play)</td>
+<td>Research</td>
+</tr>
+<tr>
+<td><strong>DITTO</strong></td>
+<td>Ditto</td>
+<td>builds teams vs the live meta</td>
+<td>Built</td>
+</tr>
+<tr>
+<td><strong>KADABRA</strong></td>
+<td>Kadabra</td>
+<td>turn-by-turn coach on your replays</td>
+<td>Built</td>
+</tr>
+<tr>
+<td><strong>CHOMP</strong></td>
+<td>Garchomp</td>
+<td>the bring-4 / lead-2 engine you play with</td>
+<td>Built</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The acronyms.</strong> ABRA — Automated Battle Replay Analyzer. JOLTEON — Joint Odds, Ladder-Trained
+Expected-Outcome Network. MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate
+Moves. SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver.
+DITTO — Double-oracle Iterative Team-Tuning Optimiser. KADABRA — Key Analysis of Decisions, Advice &amp;
+Better Replay Annotation.</p>
+<p><strong>The cost tiers.</strong> JOLTEON: microseconds (one forward pass). MEDICHAM: milliseconds (a few
+rollouts). SLOWKING: seconds (belief search). DITTO uses JOLTEON as its evaluator; KADABRA uses CHOMP
++ ABRA.</p>
+<h2>The supporting data models</h2>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it produces</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>durable-ingest</strong></td>
+<td>every game's teams, brings, leads, revealed sets, result, ratings, bot flag, plus a per-turn stream (move order → speed, damage % per move)</td>
+</tr>
+<tr>
+<td><strong>dynamics</strong></td>
+<td>observed speed (who-moves-first, Scarf hints) and observed damage distributions per move</td>
+</tr>
+<tr>
+<td><strong>analyze</strong> (meta-usage)</td>
+<td>team% / bring% / lead% / win% per species at any rating cutoff — what CHOMP reads</td>
+</tr>
+</tbody>
+</table>
+<h2>The one honest lesson</h2>
+<p>DITTO can <strong>Goodhart</strong> JOLTEON — build a team JOLTEON scores at 90% that is really ~12%. MEDICHAM's
+grounded rollouts catch it. That's why there's a fast guesser <em>and</em> a slower checker: <strong>Tier-1
+proposes, Tier-2 vets.</strong> Their disagreement flags both hype (JOLTEON-high, MEDICHAM-low) and hidden
+gems (JOLTEON-low, MEDICHAM-high).</p>
+<h2>Who feeds whom (quick read)</h2>
+<ul>
+<li><strong>ABRA → everything.</strong> The store + dynamics + usage feed all models.</li>
+<li><strong>JOLTEON → DITTO.</strong> Fast evaluator for the team search.</li>
+<li><strong>MEDICHAM → DITTO, KADABRA.</strong> Grounded rollouts vet teams and answer "what if".</li>
+<li><strong>SLOWKING → KADABRA.</strong> Deep lines (roadmap).</li>
+<li><strong>ABRA → CHOMP.</strong> Usage as advisory intel; CHOMP auto-updates, so a smarter ABRA reaches your plugin with no reinstall.</li>
+<li><strong>KADABRA → ABRA.</strong> Every reviewed game is appended back to the store (the flywheel from the coaching seat).</li>
+</ul>
+<p>See the interaction chart: <code>architecture-diagram.svg</code>.</p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="imgwrap"><div class="divider">Part 2</div><h1>How the models interact</h1><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDQwIDcyMCIgZm9udC1mYW1pbHk9IidCYWxvbyAyJywnU2Vnb2UgVUknLEFyaWFsLHNhbnMtc2VyaWYiPgogIDxkZWZzPgogICAgPG1hcmtlciBpZD0iYXJyb3ciIG1hcmtlcldpZHRoPSIxMCIgbWFya2VySGVpZ2h0PSIxMCIgcmVmWD0iOCIgcmVmWT0iMyIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNMCwwIEw4LDMgTDAsNiBaIiBmaWxsPSIjMjAzNDRhIi8+PC9tYXJrZXI+CiAgICA8bWFya2VyIGlkPSJhcnJvd1kiIG1hcmtlcldpZHRoPSIxMCIgbWFya2VySGVpZ2h0PSIxMCIgcmVmWD0iOCIgcmVmWT0iMyIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNMCwwIEw4LDMgTDAsNiBaIiBmaWxsPSIjZThhNDAwIi8+PC9tYXJrZXI+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZWFmN2ZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZjdmYmZmIi8+PC9saW5lYXJHcmFkaWVudD4KICAgIDxzdHlsZT4KICAgICAgLmJveHtzdHJva2U6IzIwMzQ0YTtzdHJva2Utd2lkdGg6MztyeDoxNjt9CiAgICAgIC50e2ZpbGw6IzIwMzQ0YTtmb250LXdlaWdodDo3MDA7fQogICAgICAuc3tmaWxsOiM0MTU5N2E7Zm9udC13ZWlnaHQ6NjAwO2ZvbnQtc2l6ZToxMnB4O30KICAgICAgLmxhYntmaWxsOiMyMDM0NGE7Zm9udC13ZWlnaHQ6NzAwO2ZvbnQtc2l6ZToxM3B4O30KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDQwIiBoZWlnaHQ9IjcyMCIgZmlsbD0idXJsKCNiZykiLz4KICA8dGV4dCB4PSI1MjAiIHk9IjQyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMwIiBjbGFzcz0idCI+QUJSQSDigJQgaG93IHRoZSBtb2RlbHMgaW50ZXJhY3Q8L3RleHQ+CiAgPHRleHQgeD0iNTIwIiB5PSI2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InMiIGZvbnQtc2l6ZT0iMTQiPkZhc3Qg4oaSIHNsb3csIGNoZWFwIOKGkiBkZWVwLiBFdmVyeXRoaW5nIGlzIGZlZCBieSB0aGUgZGF0YSBwbGF0Zm9ybTsgcGxheWluZyBhbmQgY29hY2hpbmcgZmVlZCBpdCBiYWNrLjwvdGV4dD4KCiAgPCEtLSBsYWRkZXIgLS0+CiAgPGVsbGlwc2UgY3g9IjE4MCIgY3k9IjEyMCIgcng9IjEyMCIgcnk9IjI0IiBmaWxsPSIjY2RlYWZkIiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIvPgogIDx0ZXh0IHg9IjE4MCIgeT0iMTE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idCIgZm9udC1zaXplPSIxNSI+8J+OriBTaG93ZG93biBsYWRkZXI8L3RleHQ+CiAgPHRleHQgeD0iMTgwIiB5PSIxMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj5saXZlIENoYW1waW9ucyBnYW1lczwvdGV4dD4KCiAgPCEtLSBBQlJBIHN0b3JlIC0tPgogIDxyZWN0IHg9IjYwIiB5PSIyMDAiIHdpZHRoPSIyNDAiIGhlaWdodD0iODYiIHJ4PSIxNiIgY2xhc3M9ImJveCIgZmlsbD0iI2ZmZDIzZiIvPgogIDx0ZXh0IHg9IjE4MCIgeT0iMjMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idCIgZm9udC1zaXplPSIxOCI+8J+UriBBQlJBIHN0b3JlPC90ZXh0PgogIDx0ZXh0IHg9IjE4MCIgeT0iMjUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0icyI+ZXZlcnkgZ2FtZSwgcmF3ICsgcGVyLXR1cm4gc3RyZWFtPC90ZXh0PgogIDx0ZXh0IHg9IjE4MCIgeT0iMjcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0icyI+c3RvcmUgcmF3IMK3IG5ldmVyIHJlLXB1bGw8L3RleHQ+CgogIDwhLS0gZHluYW1pY3MgKyB1c2FnZSAtLT4KICA8cmVjdCB4PSI0MCIgeT0iMzMwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjcyIiByeD0iMTQiIGNsYXNzPSJib3giIGZpbGw9IiNiZGYwYzgiLz4KICA8dGV4dCB4PSIxMzAiIHk9IjM2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InQiIGZvbnQtc2l6ZT0iMTUiPvCfk4ogZHluYW1pY3M8L3RleHQ+CiAgPHRleHQgeD0iMTMwIiB5PSIzODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj5zcGVlZCArIGRhbWFnZTwvdGV4dD4KICA8cmVjdCB4PSIyNDAiIHk9IjMzMCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI3MiIgcng9IjE0IiBjbGFzcz0iYm94IiBmaWxsPSIjYmRmMGM4Ii8+CiAgPHRleHQgeD0iMzMwIiB5PSIzNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJ0IiBmb250LXNpemU9IjE1Ij7wn5OIIG1ldGEtdXNhZ2U8L3RleHQ+CiAgPHRleHQgeD0iMzMwIiB5PSIzODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj50ZWFtL2JyaW5nL2xlYWQgJTwvdGV4dD4KCiAgPCEtLSBKT0xURU9OIC0tPgogIDxyZWN0IHg9IjQ3MCIgeT0iMTUwIiB3aWR0aD0iMjIwIiBoZWlnaHQ9Ijg2IiByeD0iMTYiIGNsYXNzPSJib3giIGZpbGw9IiNmZmU2ODAiLz4KICA8dGV4dCB4PSI1ODAiIHk9IjE4MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InQiIGZvbnQtc2l6ZT0iMTgiPuKaoSBKT0xURU9OPC90ZXh0PgogIDx0ZXh0IHg9IjU4MCIgeT0iMjAyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0icyI+VGllciAxIMK3IHdpbiBwcm9iYWJpbGl0eTwvdGV4dD4KICA8dGV4dCB4PSI1ODAiIHk9IjIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InMiPm1pY3Jvc2Vjb25kcyDCtyByYXJpdHktYXdhcmU8L3RleHQ+CgogIDwhLS0gTUVESUNIQU0gLS0+CiAgPHJlY3QgeD0iNDcwIiB5PSIyOTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iODYiIHJ4PSIxNiIgY2xhc3M9ImJveCIgZmlsbD0iI2ZmYjNhNyIvPgogIDx0ZXh0IHg9IjU4MCIgeT0iMzIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idCIgZm9udC1zaXplPSIxOCI+8J+liyBNRURJQ0hBTTwvdGV4dD4KICA8dGV4dCB4PSI1ODAiIHk9IjM0MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InMiPlRpZXIgMiDCtyBleGFjdC1kYW1hZ2Ugcm9sbG91dHM8L3RleHQ+CiAgPHRleHQgeD0iNTgwIiB5PSIzNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj5taWxsaXNlY29uZHMgwrcgdGhlIGNoZWNrZXI8L3RleHQ+CgogIDwhLS0gU0xPV0tJTkcgLS0+CiAgPHJlY3QgeD0iNDcwIiB5PSI0MzAiIHdpZHRoPSIyMjAiIGhlaWdodD0iODIiIHJ4PSIxNiIgc3Ryb2tlPSIjNGZiMGZmIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1kYXNoYXJyYXk9IjggNiIgZmlsbD0iI2RjZWZmZiIvPgogIDx0ZXh0IHg9IjU4MCIgeT0iNDYyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idCIgZm9udC1zaXplPSIxOCI+8J+TmiBTTE9XS0lORzwvdGV4dD4KICA8dGV4dCB4PSI1ODAiIHk9IjQ4MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InMiPlRpZXIgMyDCtyBiZWxpZWYgc2VhcmNoPC90ZXh0PgogIDx0ZXh0IHg9IjU4MCIgeT0iNTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0icyI+c2Vjb25kcyDCtyByb2FkbWFwPC90ZXh0PgoKICA8IS0tIERJVFRPIC0tPgogIDxyZWN0IHg9Ijc3MCIgeT0iMTUwIiB3aWR0aD0iMjIwIiBoZWlnaHQ9Ijg2IiByeD0iMTYiIGNsYXNzPSJib3giIGZpbGw9IiNmZmJmZTgiLz4KICA8dGV4dCB4PSI4ODAiIHk9IjE4MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InQiIGZvbnQtc2l6ZT0iMTgiPvCfp6wgRElUVE88L3RleHQ+CiAgPHRleHQgeD0iODgwIiB5PSIyMDIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj50ZWFtIG9wdGltaXNlciB2cyB0aGUgbWV0YTwvdGV4dD4KICA8dGV4dCB4PSI4ODAiIHk9IjIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InMiPmFuc3dlciBCYXNjdWxlZ2lvbiwgbm90IENhbWVydXB0PC90ZXh0PgoKICA8IS0tIEtBREFCUkEgLS0+CiAgPHJlY3QgeD0iNzcwIiB5PSI0MzAiIHdpZHRoPSIyMjAiIGhlaWdodD0iODIiIHJ4PSIxNiIgY2xhc3M9ImJveCIgZmlsbD0iI2NmYzRmZiIvPgogIDx0ZXh0IHg9Ijg4MCIgeT0iNDYyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0idCIgZm9udC1zaXplPSIxOCI+8J+UriBLQURBQlJBPC90ZXh0PgogIDx0ZXh0IHg9Ijg4MCIgeT0iNDgyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0icyI+dHVybi1ieS10dXJuIGNvYWNoPC90ZXh0PgogIDx0ZXh0IHg9Ijg4MCIgeT0iNTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0icyI+cmV2aWV3cyB5b3VyIGdhbWVzPC90ZXh0PgoKICA8IS0tIENIT01QIC0tPgogIDxyZWN0IHg9IjE1MCIgeT0iNTYwIiB3aWR0aD0iMjQwIiBoZWlnaHQ9Ijg2IiByeD0iMTYiIGNsYXNzPSJib3giIGZpbGw9IiNhOWU1YjciLz4KICA8dGV4dCB4PSIyNzAiIHk9IjU5MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9InQiIGZvbnQtc2l6ZT0iMTgiPvCfpoggQ0hPTVA8L3RleHQ+CiAgPHRleHQgeD0iMjcwIiB5PSI2MTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj5icmluZy00IC8gbGVhZC0yIHlvdSBwbGF5IHdpdGg8L3RleHQ+CiAgPHRleHQgeD0iMjcwIiB5PSI2MzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJzIj5hdXRvLXVwZGF0ZXMgZnJvbSByZXBvPC90ZXh0PgoKICA8IS0tIGFycm93czogbGFkZGVyLT5zdG9yZSAtLT4KICA8bGluZSB4MT0iMTgwIiB5MT0iMTQ0IiB4Mj0iMTgwIiB5Mj0iMTk2IiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8IS0tIHN0b3JlLT5keW5hbWljcy91c2FnZSAtLT4KICA8bGluZSB4MT0iMTUwIiB5MT0iMjg2IiB4Mj0iMTMwIiB5Mj0iMzI2IiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8bGluZSB4MT0iMjEwIiB5MT0iMjg2IiB4Mj0iMzMwIiB5Mj0iMzI2IiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8IS0tIGR5bmFtaWNzL3VzYWdlIC0+IEpPTFRFT04gLS0+CiAgPHBhdGggZD0iTTIyMCAzNTAgQyAzNjAgMzMwLCA0MDAgMjEwLCA0NjYgMjAwIiBmaWxsPSJub25lIiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8IS0tIHN0b3JlIC0+IEpPTFRFT04gKHRyYWluaW5nKSAtLT4KICA8cGF0aCBkPSJNMzAwIDIyMCBDIDM4MCAxOTUsIDQxMCAxOTAsIDQ2NiAxOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIwMzQ0YSIgc3Ryb2tlLXdpZHRoPSIzIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93KSIvPgogIDwhLS0gSk9MVEVPTiAtPiBESVRUTyAtLT4KICA8bGluZSB4MT0iNjkwIiB5MT0iMTkzIiB4Mj0iNzY2IiB5Mj0iMTkzIiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8dGV4dCB4PSI3MjgiIHk9IjE4NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImxhYiIgZm9udC1zaXplPSIxMSI+ZXZhbHVhdG9yPC90ZXh0PgogIDwhLS0gRElUVE8gPC0+IE1FRElDSEFNICh2ZXR0aW5nKSAtLT4KICA8cGF0aCBkPSJNODAwIDIzNiBDIDc0MCAyNjIsIDcwMCAyNzgsIDY2MCAyODgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIwMzQ0YSIgc3Ryb2tlLXdpZHRoPSIzIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93KSIvPgogIDx0ZXh0IHg9Ijc0MiIgeT0iMjcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0ibGFiIiBmb250LXNpemU9IjExIj52ZXRzIGZpbmFsaXN0czwvdGV4dD4KICA8IS0tIEpPTFRFT04gPC0+IE1FRElDSEFNIGRpc2FncmVlbWVudCAtLT4KICA8bGluZSB4MT0iNTgwIiB5MT0iMjM2IiB4Mj0iNTgwIiB5Mj0iMjg2IiBzdHJva2U9IiNlOGE0MDAiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvd1kpIi8+CiAgPHRleHQgeD0iNjQwIiB5PSIyNjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJsYWIiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiNiNDc3MDAiPmFncmVlPyBjYXRjaCBvdmVyZml0PC90ZXh0PgogIDwhLS0gTUVESUNIQU0gLT4gS0FEQUJSQSwgU0xPV0tJTkcgLT4gS0FEQUJSQSAtLT4KICA8cGF0aCBkPSJNNjkwIDM0MCBDIDc0MCAzNzAsIDc2MCA0MjAsIDc4MCA0NTIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIwMzQ0YSIgc3Ryb2tlLXdpZHRoPSIzIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93KSIvPgogIDxsaW5lIHgxPSI2OTAiIHkxPSI0NzEiIHgyPSI3NjYiIHkyPSI0NzEiIHN0cm9rZT0iIzRmYjBmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSI3IDUiIG1hcmtlci1lbmQ9InVybCgjYXJyb3cpIi8+CiAgPCEtLSBtZXRhLXVzYWdlIC0+IENIT01QIC0tPgogIDxwYXRoIGQ9Ik0zMjAgNDAyIEMgMzAwIDQ3MCwgMjg1IDUxMCwgMjc1IDU1NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjAzNDRhIiBzdHJva2Utd2lkdGg9IjMiIG1hcmtlci1lbmQ9InVybCgjYXJyb3cpIi8+CiAgPHRleHQgeD0iMzMwIiB5PSI0ODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJsYWIiIGZvbnQtc2l6ZT0iMTEiPmFkdmlzb3J5IGludGVsPC90ZXh0PgogIDwhLS0gQ0hPTVAgcGxheSAtPiBiYWNrIHRvIGxhZGRlciAoZmVlZGJhY2spIC0tPgogIDxwYXRoIGQ9Ik0xNTAgNjAwIEMgNjAgNTYwLCA2MCAyMDAsIDEyMCAxMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4YTQwMCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIyIDAiIG1hcmtlci1lbmQ9InVybCgjYXJyb3dZKSIvPgogIDx0ZXh0IHg9IjcwIiB5PSIzODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJsYWIiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNiNDc3MDAiIHRyYW5zZm9ybT0icm90YXRlKC05MCA3MCwzODApIj5wbGF5IOKGkiBuZXcgZ2FtZXMgKGZseXdoZWVsKTwvdGV4dD4KICA8IS0tIEtBREFCUkEgLT4gc3RvcmUgKGZlZWRiYWNrKSAtLT4KICA8cGF0aCBkPSJNODgwIDUxMiBDIDg4MCA2NjAsIDM2MCA2OTAsIDMwMCAyODgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4YTQwMCIgc3Ryb2tlLXdpZHRoPSIzIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93WSkiLz4KICA8dGV4dCB4PSI2MDAiIHk9IjY4NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgY2xhc3M9ImxhYiIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2I0NzcwMCI+ZXZlcnkgcmV2aWV3ZWQgZ2FtZSBmZWVkcyBiYWNrIGludG8gdGhlIHN0b3JlPC90ZXh0PgoKICA8IS0tIGxlZ2VuZCAtLT4KICA8cmVjdCB4PSI3NDAiIHk9IjU2MCIgd2lkdGg9IjI1MCIgaGVpZ2h0PSIxMjAiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMjAzNDRhIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSI3NTYiIHk9IjU4NCIgY2xhc3M9InQiIGZvbnQtc2l6ZT0iMTQiPkxlZ2VuZDwvdGV4dD4KICA8bGluZSB4MT0iNzU2IiB5MT0iNjAwIiB4Mj0iNzkyIiB5Mj0iNjAwIiBzdHJva2U9IiMyMDM0NGEiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz4KICA8dGV4dCB4PSI4MDAiIHk9IjYwNCIgY2xhc3M9InMiPmRhdGEgLyBjYWxsczwvdGV4dD4KICA8bGluZSB4MT0iNzU2IiB5MT0iNjI0IiB4Mj0iNzkyIiB5Mj0iNjI0IiBzdHJva2U9IiNlOGE0MDAiIHN0cm9rZS13aWR0aD0iMyIgbWFya2VyLWVuZD0idXJsKCNhcnJvd1kpIi8+CiAgPHRleHQgeD0iODAwIiB5PSI2MjgiIGNsYXNzPSJzIj5mbHl3aGVlbCBmZWVkYmFjazwvdGV4dD4KICA8bGluZSB4MT0iNzU2IiB5MT0iNjQ4IiB4Mj0iNzkyIiB5Mj0iNjQ4IiBzdHJva2U9IiM0ZmIwZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWRhc2hhcnJheT0iNyA1Ii8+CiAgPHRleHQgeD0iODAwIiB5PSI2NTIiIGNsYXNzPSJzIj5yb2FkbWFwIChTTE9XS0lORyk8L3RleHQ+Cjwvc3ZnPgo="></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 3</div><h1>ABRA — Executive Summary</h1>
+<p><strong>Version 1.1 · Last updated 2026-07-22 · Will Hooper</strong></p>
+<h2>In one line</h2>
+<p>ABRA is the live-data platform for competitive Pokémon Champions: it continuously collects real
+ladder games and turns them into a durable dataset that feeds models of games and teams. The CHOMP
+bring-4 engine is one small, early consumer — proof the pipe delivers, not the purpose.</p>
+<h2>The problem</h2>
+<p>Choosing four of your six at team preview depends on what the opponent will bring. Public usage
+sites are stale and averaged; damage calculators see one matchup at a time. Nothing turns the <em>live</em>
+ladder into a model a decision engine can read and that improves as people play.</p>
+<h2>What ABRA does</h2>
+<ul>
+<li><strong>Ingests the ladder automatically.</strong> Public replays, pulled in parallel at ~200 games/second;
+  the ~5,000 recent public games ingest in under a minute. A scheduled cloud job keeps it current
+  hourly, with no operator.</li>
+<li><strong>Stores raw, analyses on top.</strong> Every game is saved with every fact — both teams, brings, leads,
+  observed sets, result, both ratings, and a bot flag. Any question (high-ladder only, humans only,
+  just my games) is a filter on that store, <strong>never</strong> a re-download. This is the property that means
+  the model can change forever without re-pulling.</li>
+<li><strong>Produces a usage model</strong> — team%, bring%, lead%, win% per species, at any rating cutoff — and
+  writes it where CHOMP reads it.</li>
+</ul>
+<h2>How it makes CHOMP smarter</h2>
+<p>CHOMP and ABRA are separate but connected. ABRA feeds CHOMP the ladder usage model as <strong>advisory
+intel</strong> — what the opponent will probably bring and lead. The pick itself covers the opponent's
+<em>whole six</em>: you cannot know which four they will bring, so CHOMP chooses the four that answer all
+six, and ABRA's prediction informs the read rather than gambling the bet. Because CHOMP auto-updates
+from its repository, a better ABRA model reaches the live plugin with no plugin change — the
+"gets smarter over time" loop, closed and tested.</p>
+<h2>Evidence</h2>
+<ul>
+<li>Validated on <strong>1,501 real ladder games</strong> (2,292 human teams). The high-ladder cut (humans, 1300+)
+  reveals distinct signal — top threats near 50% usage, win rates that separate (Kingambit 62%,
+  Incineroar 65%).</li>
+<li>The top of the model independently reproduces a hand-curated threat list built from a <strong>separate
+  ~141,000-battle dataset</strong> — external corroboration that the pipeline is correct.</li>
+<li>The ABRA→CHOMP flow-back is pinned by an automated test on a real battle: CHOMP loads the model
+  and focuses the pick on the opponent's likely four against the user's six.</li>
+</ul>
+<h2>Honest limits</h2>
+<p>Revealed sets are partial (a Pokémon that never attacks reveals no moves). The model is descriptive,
+not a win-probability oracle. Bot and low-ladder games differ from strong play — which is exactly why
+they are tagged, so the consumer chooses the population.</p>
+<h2>The model family (the named cast)</h2>
+<p>The simulator is decomposed into tiers, each a Pokémon whose <em>speed</em> signals the model's cost:</p>
+<ul>
+<li><strong>JOLTEON</strong> — <em>Joint Odds, Ladder-Trained Expected-Outcome Network</em> (Tier 1, fastest): instant
+  team-vs-team win probability. ~55% held-out vs ~49% coin flip; rarity-aware so rare picks aren't
+  overrated. <em>Built.</em></li>
+<li><strong>MEDICHAM</strong> — <em>Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves</em> (Tier 2):
+  short rollouts over CHOMP's exact damage. Rain beats sun 0.60, mirror 0.51. <em>Built.</em></li>
+<li><strong>SLOWKING</strong> — <em>Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver</em>
+  (Tier 3, slowest/wisest): deep belief-search. <em>Scaffolded; honest research roadmap.</em></li>
+<li><strong>DITTO</strong> — <em>Double-oracle Iterative Team-Tuning Optimiser</em>: builds teams vs the live meta,
+  usage-weighted so you get an answer to Basculegion, not Camerupt. <em>Built.</em></li>
+<li><strong>KADABRA</strong> — <em>Key Analysis of Decisions, Advice &amp; Better Replay Annotation</em>: turn-by-turn coach
+  that reconstructs each scene and flags high/low rolls. <em>v1 built.</em></li>
+<li><strong>CHOMP</strong> — the bring-4 / lead-2 engine you play with. <em>Built, separate-but-connected.</em></li>
+</ul>
+<h2>Data now captured per game</h2>
+<p>Beyond teams/brings/leads, the extractor now records a <strong>per-turn stream</strong> — move order (→ real
+speed, Choice-Scarf detection) and exact damage % per move. 30,611 turns, 55,336 damaging hits. Raw
+logs are archived, so any <em>new</em> field is a re-parse, never a re-pull (proven: format tags backfilled
+onto 4,999 games with zero downloads).</p>
+<h2>The flywheel (the reason ABRA exists)</h2>
+<ol>
+<li><strong>Collect</strong> live ladder games — <em>built and running</em>.</li>
+<li><strong>Simulate</strong> — game models from the data (JOLTEON, MEDICHAM) — <em>v1 built</em>.</li>
+<li><strong>Optimise teams</strong> against real meta threats (DITTO), iterating on itself — <em>v1 built</em>.</li>
+<li><strong>Play</strong> the best teams; CHOMP handles bring-4 / lead-2 — <em>built</em>.</li>
+<li><strong>Feed back</strong> — every enemy team you face (incl. every game KADABRA reviews) is auto-added.</li>
+</ol>
+<p>The loop closes: more games → better simulator → better teams → more wins → more games. The most
+important early result is an <em>honest</em> one: DITTO can Goodhart JOLTEON (a "90%" team is really ~12%),
+which MEDICHAM catches — the tiered design earning its keep.</p>
+<h2>Status</h2>
+<p>v1.1 — the data platform is built and validated; Tiers 1–2 and the DITTO optimiser are built and
+measured; Tier 3 (SLOWKING) is scaffolded research. An interactive site (ABRA WORLD) runs JOLTEON
+live in the browser. CHOMP proves the pipe delivers.</p>
+<p><strong>Read next:</strong> <a href="ABRA-deck-plain-english.md">deck</a> · <a href="ABRA-whitepaper.md">white paper</a> ·
+<a href="ABRA-simulator-whitepaper.md">simulator/ML white paper</a> · <a href="KADABRA-coach-spec.md">KADABRA spec</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 4</div><h1>ABRA — the deck</h1>
+<h3>The Pokémon that reads the whole ladder</h3>
+<p><strong>Version 1.1 · Last updated 2026-07-22</strong>
+<strong>Will Hooper</strong></p>
+<blockquote>
+<p>Plain words only. The math and sources live in the <a href="ABRA-whitepaper.md">white paper</a>.</p>
+</blockquote>
+<hr />
+<h2>Slide 1 — What ABRA is</h2>
+<p><strong>A program that watches thousands of real Pokémon games and learns what everyone is playing.</strong></p>
+<p>It reads public battle replays from Pokémon Showdown — the Champions Reg M-B ladder — and turns them
+into a live picture of the metagame. Then it hands that picture to CHOMP.</p>
+<hr />
+<h2>Slide 2 — CHOMP and ABRA are a team</h2>
+<ul>
+<li><strong>CHOMP</strong> picks your four and your lead in the 30 seconds before a battle.</li>
+<li><strong>ABRA</strong> tells CHOMP what the ladder actually brings, so those picks are based on reality.</li>
+</ul>
+<p>Two separate programs, one loop. CHOMP is the hands; ABRA is the eyes.</p>
+<hr />
+<h2>Slide 3 — Why this matters</h2>
+<p>To choose your four well, you need to know what your opponent will bring. A static usage list from a
+website is weeks old and averaged over everyone. ABRA reads the <em>current</em> ladder and updates itself.</p>
+<hr />
+<h2>Slide 4 — It reads thousands of games, fast</h2>
+<p>The replay site lets anyone download public games. ABRA grabs them in parallel — about <strong>200 games a
+second</strong> — so the last few thousand games ingest in under a minute.</p>
+<p>There are roughly <strong>5,000</strong> recent public games available at any moment, and new ones upload
+constantly.</p>
+<hr />
+<h2>Slide 5 — The one rule that saves us from ever redoing it</h2>
+<p><strong>Store everything, decide later.</strong></p>
+<p>For every game, ABRA saves <em>all</em> the facts — both teams, what each side actually brought, what they
+led, the moves and items we saw, who won, both players' ratings, and whether a player was a bot.</p>
+<p>Because everything is stored, any question — "show me only strong players," "hide the bots," "just my
+games" — is answered instantly from the saved data. <strong>We never have to download the games again.</strong></p>
+<hr />
+<h2>Slide 6 — Bots and rating</h2>
+<p>The ladder has automated <strong>bot</strong> accounts mixed in with real people. ABRA flags them. It also saves
+each player's rating. So you can look at the <em>whole</em> ladder, or <em>only humans above 1300</em>, or anything
+in between — your choice, no re-downloading.</p>
+<p>That filter matters: at high ladder the picture sharpens — the top threats show up on half of all
+teams, and some win far more than others.</p>
+<hr />
+<h2>Slide 7 — Keeping your games separate</h2>
+<p>Your own games are just a filter: any game with your Showdown name. So ABRA can show you the whole
+ladder <strong>and</strong> your personal record from the same pile of data.</p>
+<p>Changed your Showdown name? Add the new name to a short list once. Nothing is lost, nothing re-pulled.
+No accounts, ever.</p>
+<hr />
+<h2>Slide 8 — It works for anyone</h2>
+<p>The ladder picture belongs to everyone. Your personal view is just your name. So a friend points ABRA
+at their own name and gets their own analysis from the same shared data. One tool, many users, no
+sign-ups.</p>
+<hr />
+<h2>Slide 9 — It runs itself</h2>
+<p>A scheduled job in the cloud wakes up every hour, grabs the newest games, updates the model, and saves
+it. You don't run anything. The picture stays current on its own — and because CHOMP updates itself
+too, your live plugin quietly gets smarter while you play.</p>
+<hr />
+<h2>Slide 10 — Now it reads <em>inside</em> the games too</h2>
+<p>ABRA no longer just notes who was on each team. For every game it now records, turn by turn, <strong>who
+moved first</strong> (that reveals real speed — even a hidden Choice Scarf) and <strong>exactly how much damage
+each move did</strong>. Thousands of games of this add up to a real picture of the physics: we know
+Basculegion's Wave Crash takes about 62% on average, and we can tell when someone got a lucky roll.</p>
+<hr />
+<h2>Slide 11 — The cast of models</h2>
+<p>Each part of the plan is a Pokémon, and the Pokémon's <strong>speed tells you how expensive the model is</strong>:</p>
+<ul>
+<li>⚡ <strong>JOLTEON</strong> (fastest) — instant "who's favoured?" between two teams. Built.</li>
+<li>🥋 <strong>MEDICHAM</strong> (medium) — actually plays the matchup out a few turns with real damage math. Built.</li>
+<li>📚 <strong>SLOWKING</strong> (slow, wise) — the deep thinker that plans around what the opponent is hiding. Still being built.</li>
+<li>🧬 <strong>DITTO</strong> — builds teams that beat the live ladder, making sure you answer the <em>common</em> threats. Built.</li>
+<li>🔮 <strong>KADABRA</strong> — the coach that replays your game with you and points out the better move. Built.</li>
+<li>🦈 <strong>CHOMP</strong> — the engine you actually play with, picking your 4 and your lead.</li>
+</ul>
+<hr />
+<h2>Slide 12 — The most honest result we have</h2>
+<p>When DITTO built a team to beat JOLTEON's scoring, JOLTEON said it would win <strong>90%</strong> of the time.
+Then MEDICHAM played it out for real and said <strong>12%</strong>. JOLTEON had been fooled — it over-trusted a
+few rare Pokémon. That's not a bug we hid; it's <em>why</em> we have a fast guesser and a slower checker.
+The disagreement between them is a feature: it flags both hype and hidden gems.</p>
+<hr />
+<h2>Slide 13 — ABRA WORLD (the fun part)</h2>
+<p>There's a little snowy town website where every model is its own building. You can pick two teams
+from sprites and watch JOLTEON — the <em>real</em> model — call the odds right in your browser, with
+confetti when the battle resolves. It's <code>web/index.html</code>.</p>
+<hr />
+<h2>Slide 14 — Honest limits</h2>
+<ul>
+<li>A Pokémon that never attacked in a replay tells us nothing about its moves — so what we know about
+  each set is partial.</li>
+<li>These are <strong>descriptions</strong> of what people play, not a prediction of who wins.</li>
+<li>Low-ladder and bot games look different from strong play — which is exactly why we tag them and let
+  you choose.</li>
+</ul>
+<hr />
+<h2>Slide 15 — Read more</h2>
+<p><strong>The white paper</strong> — the data model, the ingest, the math, the sources:
+<strong><a href="ABRA-whitepaper.md">ABRA-whitepaper.md</a></strong></p>
+<p><strong>The simulator / ML white paper</strong> — the machine learning behind the model family:
+<strong><a href="ABRA-simulator-whitepaper.md">ABRA-simulator-whitepaper.md</a></strong></p>
+<p><strong>The coach spec</strong> — how KADABRA teaches: <strong><a href="KADABRA-coach-spec.md">KADABRA-coach-spec.md</a></strong></p>
+<p><strong>The changelog</strong> — what changed and why: <strong><a href="../CHANGELOG.md">CHANGELOG.md</a></strong></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 5</div><h1>How Predictable Is Pokémon Champions? A Ratings-and-Models Study</h1>
+<h3>Measuring the irreducible variance of a competitive VGC metagame</h3>
+<p><strong>Version 1.0 · 2026-07-23 · Will Hooper · ABRA</strong></p>
+<blockquote>
+<p>An empirical study, run entirely over ABRA's durable store of real Champions (Reg M-B) ladder
+games. It asks a question every competitor feels but rarely measures: <strong>when the better team or the
+better player shows up, how often do they actually win?</strong> The answer bounds what <em>any</em> pre-game
+model — JOLTEON, a calibrated CHOMP, anything — can achieve, and it reframes the models' "only ~56%"
+not as weakness but as brushing against a hard ceiling the game itself imposes. Reproduce with
+<code>engine/predictability.py</code>.</p>
+</blockquote>
+<hr />
+<h2>0. The CHOMP–JOLTEON–win% dynamic, in one place</h2>
+<p>Three things people conflate, separated:</p>
+<ul>
+<li><strong>JOLTEON predicts the winner.</strong> Given two team sheets, it outputs a calibrated win <em>probability</em>. It
+  is a forecaster. Its accuracy is ~55%.</li>
+<li><strong>CHOMP decides what to do.</strong> Given your six and theirs, it picks the four to bring and two to lead by
+  exact damage. It is a decision engine. It does not forecast a winner at all.</li>
+<li><strong>Winning percentage is the ceiling both live under.</strong> This study shows the game only lets the better
+  side win ~55%, rising to ~58% with a big edge. That number is set by the game's variance, not by any
+  model.</li>
+</ul>
+<p>How they relate:</p>
+<ol>
+<li><strong>As predictors, CHOMP and JOLTEON would be near-identical in accuracy</strong> (~55–56%) — because both read
+   only the team sheet, and the sheet's predictive power is capped at the ceiling. They differ in <em>how</em>
+   they reach it (JOLTEON = learned species strengths; CHOMP = exact damage), so they make <strong>different
+   mistakes</strong>, which is why you combine them (CHOMP's damage score as a feature in JOLTEON) rather than
+   pick one.</li>
+<li><strong>CHOMP raises your win% a different way than JOLTEON measures it.</strong> JOLTEON tells you the pre-game
+   odds; it cannot change them. CHOMP acts <em>inside</em> the game — bringing the right four — which moves the
+   part of the outcome the forecaster can't see. So CHOMP improves winning <em>by deciding well</em>, not by
+   predicting well.</li>
+<li><strong>The ceiling is the whole point.</strong> Because pre-game prediction caps at ~55–58%, the leverage is
+   downstream of the sheet: in-game decisions (CHOMP now; MEDICHAM/SLOWKING deeper) and team building
+   against the meta (DITTO). Prediction is nearly maxed out; <em>decisions and construction are not.</em></li>
+</ol>
+<p>The rest of this study is the evidence for that ceiling.</p>
+<h2>1. Why this matters</h2>
+<p>Every model in ABRA that predicts a <em>winner before the game</em> — JOLTEON today, a calibrated CHOMP
+tomorrow — lands around 55–57% accuracy, and we have reported that honestly throughout. The natural
+worry is that the models are simply weak. This study tests the alternative hypothesis: that <strong>55–57%
+is close to the maximum any pre-game predictor can reach</strong>, because Champions is a high-variance game
+in which the better side wins only slightly more than half the time. If true, chasing a
+team-sheet model to 70% is chasing a number the game does not contain, and the real leverage is
+elsewhere (in-game decisions, team building against the meta) — exactly where ABRA's other models aim.</p>
+<p>We attack it two ways that need no model at all, then check the model against them.</p>
+<h2>2. Data</h2>
+<p>All finished games in the durable store (4,998 unique replays). For the ratings analysis we keep the
+<strong>2,337 human-vs-human games where both players have a Showdown rating</strong>. Ratings are read directly
+from the replay <code>|player|</code> lines; no modelling is involved. For the JOLTEON analysis we use the same
+humans-only temporal split as the model's own evaluation.</p>
+<h2>3. Result 1 — how often does the better <em>player</em> win?</h2>
+<p>Across 2,318 games with unequal ratings, <strong>the higher-rated player won just 55.0% of the time.</strong> Broken
+down by the size of the rating gap, and compared to what the Elo formula
+<code>p = 1/(1+10^(−Δ/400))</code> predicts:</p>
+<table>
+<thead>
+<tr>
+<th>Rating gap (Δ)</th>
+<th style="text-align: right;">Games</th>
+<th style="text-align: right;">Higher-rated actually wins</th>
+<th style="text-align: right;">Elo predicts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–25</td>
+<td style="text-align: right;">592</td>
+<td style="text-align: right;">49.3%</td>
+<td style="text-align: right;">51.8%</td>
+</tr>
+<tr>
+<td>25–50</td>
+<td style="text-align: right;">547</td>
+<td style="text-align: right;">54.8%</td>
+<td style="text-align: right;">55.3%</td>
+</tr>
+<tr>
+<td>50–100</td>
+<td style="text-align: right;">1034</td>
+<td style="text-align: right;">57.9%</td>
+<td style="text-align: right;">60.5%</td>
+</tr>
+<tr>
+<td>100–200</td>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">57.9%</td>
+<td style="text-align: right;">65.1%</td>
+</tr>
+</tbody>
+</table>
+<p>Two things stand out. First, <strong>at small rating gaps the game is a coin flip</strong> — a 0–25 point edge wins
+49.3%, statistically indistinguishable from chance. Second, <strong>even a large edge tops out around 58%</strong>,
+and it does so <em>below</em> the Elo prediction: a 100–200 point gap "should" win ~65% but wins only ~58%.
+Champions compresses skill. The better player is favoured, but the variance — damage rolls, 50/50
+protects, speed ties, team-matchup luck — repeatedly overrules them.</p>
+<h2>4. Result 2 — how well-calibrated is JOLTEON, and where is the ceiling?</h2>
+<p>On the held-out temporal split (513 games, humans only), JOLTEON scores <strong>54.6% accuracy, Brier 0.252,
+log-loss 0.699</strong> — right where the ratings result says a pre-game predictor should live. Its
+probabilities are reasonably calibrated: when it says 55–65%, the favoured team wins ~60%; when it
+says under 35%, they win ~32%. It is honest about its own uncertainty rather than overconfident.</p>
+<p>The telling number is the <strong>ceiling</strong>. JOLTEON's most extreme honest probability on this data is about
+<strong>81%</strong>, and it reaches that only for a handful of lopsided team-sheet mismatches. For the bulk of real
+games — two competent teams — it correctly declines to be confident, because the game does not permit
+confidence. This is the same wall the ratings analysis hit from the other side.</p>
+<h2>5. Result 3 — CHOMP as a predictor (method and expectation)</h2>
+<p>CHOMP already computes an exact-damage matchup score (<code>teamVs</code> / <code>bring4</code>) for the best-4 of one six
+against the other. Turning that into a win probability is a one-line calibration:
+<code>P(win) = σ(a·(score₁ − score₂) + b)</code>, with <code>a, b</code> fit against the stored outcomes — a logistic on data
+we hold. <code>engine/chomp-predict.js</code> emits the per-game score difference for this fit.</p>
+<p>We report the <strong>method</strong> rather than a full backtest number here for an honest reason: computing
+CHOMP's score requires the full damage engine, and over thousands of games its memory footprint
+exceeds this analysis sandbox's ceiling (it runs in small batches; a full run needs a roomier machine).
+But the <em>expected</em> result is not in doubt, and Results 1–2 tell us why: a calibrated CHOMP predictor
+is another <strong>pre-game team-sheet model</strong>, so it is bounded by the same ~55–58% ceiling. Grounding the
+prediction in exact damage instead of learned species strengths changes <em>how</em> it reaches the ceiling,
+not <em>where</em> the ceiling is. The genuinely valuable use of CHOMP's score is therefore not as a rival
+predictor but as a <strong>feature inside JOLTEON</strong> (§7).</p>
+<h2>6. Synthesis — the predictability ceiling of Champions</h2>
+<p>Three independent measurements agree:</p>
+<ul>
+<li>the <strong>better player</strong> wins ~55% (58% with a big rating edge),</li>
+<li>the <strong>better team</strong> (JOLTEON) is called correctly ~55%, calibrated, with a practical confidence
+  ceiling ~81% reached only on rare mismatches,</li>
+<li>a damage-grounded predictor (CHOMP) is bounded by the same wall by construction.</li>
+</ul>
+<p>So the answer to <em>"how often does the better side win?"</em> is: <strong>only a little more than half — around
+55%, rising to ~58–60% when the edge is large.</strong> That is the irreducible variance of the format. It is
+not a flaw in the models; it is a property of the game, and the models are already near it.</p>
+<h3>What about the better <em>play</em> (per turn)?</h3>
+<p>This study measures the better <em>team</em> and the better <em>player</em>. Measuring how often the better <em>in-game
+move</em> wins is harder: it needs a solver that can say which move was better, i.e. SLOWKING's belief
+search. We cannot yet quantify it from data alone. But the team/player ceiling <strong>bounds</strong> it — in a
+game where the better player wins 55%, individual correct plays swing games by less, which is exactly
+why a coach (KADABRA/ALAKAZAM) should talk in terms of <em>shifting win probability at the margin</em>, not
+guaranteeing outcomes.</p>
+<h2>7. Implications for ABRA</h2>
+<ul>
+<li><strong>Stop chasing pre-game accuracy past ~58%.</strong> It is not there. JOLTEON's rarity-aware ~56% is
+  near-optimal for a team-sheet model; the honest move is calibration, not more accuracy.</li>
+<li><strong>The leverage is downstream of the sheet.</strong> In-game decisions (MEDICHAM, SLOWKING) and team-building
+  against the meta (DITTO) act on the part of the outcome the sheet cannot see — which is most of it.</li>
+<li><strong>Feed CHOMP's damage score into JOLTEON as a feature</strong>, not as a competitor. It adds information a
+  learned-identity model lacks, and it is the most principled way to squeeze the last point or two out
+  of the pre-game predictor before the ceiling stops everyone.</li>
+<li><strong>Coaching should be probabilistic.</strong> Because even large edges only win ~58%, KADABRA's advice is
+  correctly framed as "this play was +X% win probability," not "this play wins."</li>
+</ul>
+<h2>8. Honest limits</h2>
+<p>The ratings are Showdown ladder Elo, which is noisy and non-stationary; the humans-only rated sample
+is 2,337 games from a ~2-day window, so the rating-gap bins (especially 100–200) are small and their
+confidence intervals are wide. The direction — a low, slowly-rising better-side win rate well under
+Elo's prediction — is robust across bins and matches the independent JOLTEON result, but exact
+percentages will move as the store grows (and the recency-weighted models will track that drift). The
+CHOMP backtest number is deferred, not claimed.</p>
+<h2>9. References</h2>
+<ol>
+<li>Elo, A. (1978). <em>The Rating of Chessplayers, Past and Present.</em></li>
+<li>ABRA — <a href="ABRA-simulator-whitepaper.md">simulator white paper</a> (the ~55–57% ceiling, derived);
+   <a href="SLOWKING-whitepaper.md">SLOWKING white paper</a> (why per-move "better play" needs a solver).</li>
+<li>Reproduce: <code>engine/predictability.py</code>, <code>engine/chomp-predict.js</code>.</li>
+</ol>
+<hr />
+<p><strong>Companion.</strong> <a href="MODELS-CHEATSHEET.md">Cheat sheet</a> · <a href="ARCHITECTURE-NOTES.md">Architecture notes</a> ·
+<a href="../CHANGELOG.md">Changelog</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 6</div><h1>Modelling a Live Metagame from Public Replays</h1>
+<h3>A technical description of ABRA, the Automated Battle Replay Analyzer</h3>
+<p><strong>Version 1.0 · Last updated 2026-07-22</strong>
+<strong>Will Hooper · ABRA</strong></p>
+<blockquote>
+<p>This is a living document, updated in the same pass as any change to the code. New information is
+appended; a prior conclusion is not silently rewritten. See <code>CHANGELOG.md</code>.</p>
+</blockquote>
+<hr />
+<h2>Abstract</h2>
+<p>ABRA is a live-data platform for competitive Pokémon Champions (Reg M-B). It continuously ingests
+public battle replays from Pokémon Showdown, extracts the durable facts of every game, and stores
+them as a growing dataset — the foundation for <strong>modelling games and teams</strong>. The near-term model is
+a metagame usage model; the larger goal is a simulator that learns which teams and which in-game
+choices win. This paper states the data model, the ingest architecture, the first analysis, and the
+limits. The governing design rule — <em>store raw, analyse on top</em> — is defended as the property that
+lets every model built on the data change without ever re-fetching. A team-preview engine (CHOMP) is
+one small, early consumer of the output; it is a proof of delivery, not the purpose.</p>
+<h2>1. The problem</h2>
+<p>Competitive VGC has many hard questions — which six to build against the meta, which four to bring,
+how a matchup tends to play out. Answering any of them well needs data on how the ladder <em>actually</em>
+plays, kept current as it changes. Existing tools give static usage snapshots (Pikalytics) or
+per-game damage math (calculators); none continuously collects live games into a durable dataset that
+downstream models — team optimisers, game simulators, decision engines — can all build on. ABRA is
+that collection-and-storage layer. The bring-4 engine (CHOMP) is the first small model on top.</p>
+<h2>2. The data source</h2>
+<p>Pokémon Showdown exposes public replays through a stable API:</p>
+<ul>
+<li><code>search.json?format=&lt;id&gt;</code> — recent public replays for a format, paginated (~51/page, ~100 pages).</li>
+<li><code>search.json?user=&lt;name&gt;</code> — a specific player's public replays.</li>
+<li><code>&lt;id&gt;.log</code> — the full battle protocol for one replay.</li>
+</ul>
+<p>Every replay is a public artifact already attached to public usernames; ABRA reads nothing private
+and creates no accounts (see <code>SECURITY.md</code>).</p>
+<h2>3. The record — what we store per game</h2>
+<p>The extractor (<code>engine/durable-ingest.js</code>, <code>extract()</code>) turns one <code>.log</code> into one durable record:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code>, <code>date</code></td>
+<td>replay id and upload time</td>
+</tr>
+<tr>
+<td><code>p1</code>, <code>p2</code></td>
+<td><code>{name, rating, bot}</code> per player — rating from the <code>\|player\|</code> line, <code>bot</code> by name pattern</td>
+</tr>
+<tr>
+<td><code>six.p1/p2</code></td>
+<td>the revealed team of six (<code>\|poke\|</code> lines at preview)</td>
+</tr>
+<tr>
+<td><code>brought.p1/p2</code></td>
+<td>the Pokémon actually sent out (<code>\|switch\|</code> lines)</td>
+</tr>
+<tr>
+<td><code>lead.p1/p2</code></td>
+<td>the first two sent out</td>
+</tr>
+<tr>
+<td><code>sets</code></td>
+<td>per species, the moves / item / ability the replay <em>revealed</em></td>
+</tr>
+<tr>
+<td><code>winner</code></td>
+<td>the winning name (<code>\|win\|</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>This is deliberately richer than any single analysis needs. That richness is the insurance behind
+the design rule in §5.</p>
+<h2>4. Ingest architecture</h2>
+<ul>
+<li><strong>Concurrent fetch.</strong> A fixed-size promise pool fetches logs in parallel. Measured throughput is
+  ~200 logs/sec, so the full ~5,000 recent public replays ingest in about 25–30 seconds.</li>
+<li><strong>Incremental and idempotent.</strong> The store is append-only JSON Lines keyed by replay id. Each run
+  reads existing ids, requests recent pages, and appends only games not already present. Re-running
+  never duplicates and never re-fetches stored games.</li>
+<li><strong>Never double-counted.</strong> A battle has one fixed Showdown replay id, so a game uploaded by <em>both</em>
+  players — or one you later review in KADABRA, or pull via your own username — is the same id and is
+  ignored if already stored. Every ingest path (ladder scrape, personal pull, coaching review) dedups
+  against the full store, and every analysis loader (<code>jolteon</code>, <code>dynamics</code>, <code>analyze</code>) also dedups by
+  id at read time, so a stray duplicate line can never inflate a count.</li>
+<li><strong>Continuous collection.</strong> A scheduled GitHub Action runs the ingest hourly and commits the
+  refreshed store and model, so the metagame model tracks the live ladder with no operator.</li>
+</ul>
+<h2>5. The governing rule — store raw, analyse on top</h2>
+<p>Every analysis and every filter runs over the stored records, not over the network. Concretely:</p>
+<ul>
+<li>The rating cutoff, the humans-only filter, and the "just my games" filter are all computed from
+  the same store at read time.</li>
+<li>Changing how games are <em>placed</em> (a different rating tier, excluding bots, a new archetype tag) is
+  a re-computation, <strong>never</strong> a re-pull.</li>
+</ul>
+<p>The alternative — deciding the population at fetch time — would force a re-fetch every time the
+question changed. Storing raw makes the fetch a one-time cost and the analysis free to evolve. This
+is the single most important property of the system.</p>
+<h2>6. The usage model</h2>
+<p>For a chosen population, <code>engine/analyze.js</code> computes per species:</p>
+<pre><code>teamRate  = teams containing the species        / teams
+bringRate = games the species was brought        / games it was on the team
+leadRate  = games the species was led            / games it was on the team
+winRate   = games won when the species was brought / games it was brought
+</code></pre>
+<p>Species below a small sample floor (n ≥ 8) are dropped. The result is written to
+<code>data/meta-usage.json</code>, the model CHOMP reads.</p>
+<h3>6.1 A validated result</h3>
+<p>On 1,501 stored games (2,292 human teams), the raw ladder and the high-ladder cut (humans, rating
+≥ 1300, 530 teams) differ meaningfully — the high-ladder cut lifts top-threat usage toward 50% and
+separates win rates (e.g. Kingambit 62%, Incineroar 65%). The top of the raw table independently
+reproduces a hand-curated threat list built from a separate ~141k-battle dataset (Basculegion,
+Whimsicott, Garchomp, Kingambit), which is external corroboration that the pipeline is correct.</p>
+<h2>7. Feeding CHOMP</h2>
+<p>CHOMP is a separate project — only the bring-4 / lead-2 engine. ABRA feeds it the ladder usage model
+(<code>meta-usage.json</code>) as <strong>advisory intel</strong>: what the opponent will <em>probably</em> bring and lead. CHOMP can
+sharpen that into a matchup-aware prediction — their best four against your six — but the <strong>pick itself
+covers the opponent's whole six</strong>. A player cannot know which four the opponent will bring, so CHOMP
+optimises for coverage over all six rather than gambling on a predicted four; ABRA's prediction informs
+the read, not the bet. Because CHOMP auto-updates from its repository, an improved ABRA model reaches
+the live plugin with no plugin change. This is the "gets smarter over time" loop, made concrete, and it
+is pinned by <code>CHOMP/tests/test-meta-flow.js</code>.</p>
+<h2>8. The flywheel — where this is going</h2>
+<p>ABRA's data platform is stage one of a self-improving loop. Each stage feeds the next, and the last
+stage feeds the first:</p>
+<ol>
+<li><strong>Collect</strong> — continuously ingest live ladder games into the durable store. <em>(built and running)</em></li>
+<li><strong>Simulate</strong> — build a near-perfect game simulator from that data: given two teams, model how the
+   matchup tends to play out. <em>(roadmap)</em></li>
+<li><strong>Optimise teams</strong> — run hypothetical teams against the real metagame threats in the simulator and
+   let the search iterate on itself, converging on sixes that beat what the ladder actually brings.
+   <em>(roadmap; the meta threat model that feeds it is built)</em></li>
+<li><strong>Play</strong> — take an optimised team onto the ladder; CHOMP handles the bring-4 / lead-2 in each
+   game. <em>(CHOMP built)</em></li>
+<li><strong>Feed back</strong> — every opponent team you face is auto-added to the store, so playing the game
+   grows the dataset. <em>(the ingest + store support this directly; the auto-add-on-play hook is
+   roadmap)</em></li>
+</ol>
+<p>The loop closes: more games → a better simulator → better teams → more wins → more games. The value
+is not any single model but the flywheel — the system gets stronger the more it is used. This is why
+the design rule (<em>store raw, analyse on top</em>, §5) matters so much: every model in the loop is built
+on the same growing dataset, and none of them ever forces a re-pull.</p>
+<p><strong>Honest status.</strong> Stage 1 is built and validated (§4, §6.1). Stages 2 and 3 — the simulator and the
+self-iterating team optimiser — are not yet built; they are the reason ABRA exists and the next work.
+CHOMP (stage 4) is live. The paper does not claim the flywheel is spinning yet; it claims the
+foundation that makes it possible is in place.</p>
+<h2>9. Limitations</h2>
+<ol>
+<li><strong>Revealed sets are partial.</strong> A Pokémon that never attacked reveals no moves; items/abilities
+   appear only when they trigger. Set inference is a lower bound, not the full set.</li>
+<li><strong>Descriptive, not predictive.</strong> Usage and win rates describe the population; they are not a
+   win-probability model.</li>
+<li><strong>Population choice matters.</strong> Bot and low-ladder games differ from high-ladder play. ABRA tags
+   rating and bots so the consumer chooses the population; it does not decide for them.</li>
+<li><strong>Store growth.</strong> The append-only store grows without bound; pruning by date is future work.</li>
+</ol>
+<h2>10. References</h2>
+<ol>
+<li>Pokémon Showdown replay API — <code>replay.pokemonshowdown.com</code>.</li>
+<li><code>docs/reg-mb-threat-list.md</code> (CHOMP) — the independently curated threat list used for validation.</li>
+<li>Keep a Changelog; Semantic Versioning; ASD-STE100; Diátaxis.</li>
+</ol>
+<hr />
+<p><strong>Companion documents.</strong> <a href="ABRA-deck-plain-english.md">Slide deck</a> ·
+<a href="ABRA-technical-docs.md">Technical documentation</a> · <a href="../CHANGELOG.md">Changelog</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 7</div><h1>Learning a Battle Simulator from Logged Replays</h1>
+<h3>Machine-learning foundations for a tiered VGC game model</h3>
+<p><strong>Version 1.1 · Last updated 2026-07-22</strong>
+<strong>Will Hooper · ABRA</strong></p>
+<blockquote>
+<p><strong>Build status (v1.1):</strong> Tiers 1 (JOLTEON) and 2 (MEDICHAM) and the DITTO outer loop are built,
+tested, and measured (see §12). The per-turn dynamics model is built. Tier 3 (SLOWKING) is
+scaffolded and honestly roadmap. Numbers below are from real runs.</p>
+<p>A research white paper on the modelling problem behind ABRA's stages 2–3 (the simulator and the
+team optimiser). It states the problem formally, surveys the relevant machine-learning literature,
+derives the math for each modelling tier, and gives an honest feasibility assessment. Living
+document; updated in the same pass as the code it describes.</p>
+</blockquote>
+<hr />
+<h2>Abstract</h2>
+<p>ABRA collects a growing corpus of Pokémon Champions (Reg M-B) battle replays. We want to turn that
+corpus into a <em>simulator</em>: a model that, given two teams, predicts how their game tends to resolve,
+so that hypothetical teams can be optimised against the live metagame without playing thousands of
+real games. The underlying game — a two-player, zero-sum, simultaneous-move, stochastic game of
+imperfect information — is implemented by a closed engine we cannot query. We therefore treat the
+problem as <strong>learning a model from logged data</strong>. This paper formalises the game, decomposes the
+simulator into three modelling tiers of increasing fidelity and cost (an outcome model, a hybrid
+rollout model, and a learned dynamics model), derives the estimator and its failure modes for each,
+frames team optimisation as the outer loop of a self-improving flywheel, and specifies an evaluation
+protocol that is honest about the irreducible variance of the domain. We ground each tier in the
+2025 Pokémon-AI literature — PokéChamp, Metamon, and VGC-Bench — and conclude with a feasibility
+assessment: tier 1 is immediately achievable on ABRA's data, tier 2 reuses the existing CHOMP damage
+engine, and tier 3 is a genuine research effort that recent work shows to be possible but expensive.</p>
+<hr />
+<h2>1. Introduction</h2>
+<p>A competitive VGC player faces three nested questions: which six Pokémon to build, which four to
+bring, and how to play the resulting game. CHOMP answers the middle question with exact damage math.
+The hardest lever, and the one with the most upside, is the first: <em>which six beats the current
+metagame.</em> Answering it by trial on the ladder is slow and high-variance. The alternative is to
+<strong>simulate</strong> — to evaluate a candidate team against the meta in software, iterate, and only then
+play. This paper is about building that simulator from the data ABRA already collects.</p>
+<p>The central obstacle is that the Champions battle engine is <strong>closed</strong>. Unlike the standard Smogon
+formats served by <code>pokemon-showdown</code>'s open-source simulator — which the poke-env library exposes to
+RL agents — the Champions ruleset and its stat system are not available as a queryable environment.
+We cannot roll the true dynamics forward for a hypothetical state. What we <em>do</em> have is a large and
+growing set of <strong>observed trajectories</strong>: real games, each a sequence of states and joint actions
+ending in a win or loss. Learning a usable model from such logs, with no ability to interact with
+the true environment, is exactly the setting of <strong>offline (batch) reinforcement learning</strong> and
+<strong>model learning / system identification</strong>. This is not a toy analogy: Metamon (§9) reconstructs
+5M+ trajectories from human Showdown replays and trains competitive agents on them offline.</p>
+<h2>2. The game, formally</h2>
+<p>A single VGC battle is a <strong>partially observable stochastic game (POSG)</strong>, and specifically a
+two-player, zero-sum, <em>simultaneous-move</em> Markov game with imperfect information. We fix notation.</p>
+<ul>
+<li><strong>State</strong> <code>s ∈ S</code>. The full state comprises both teams' species, sets (moves, item, ability, the
+  Champions SP spread), current HP, status, stat stages, field conditions (weather, terrain, screens,
+  Trick Room), and which Pokémon are active. Level 50; no Tera in Champions.</li>
+<li><strong>Players</strong> <code>i ∈ {1, 2}</code>.</li>
+<li><strong>Actions</strong>. At each turn both players choose <em>simultaneously</em> from a legal set <code>A_i(s)</code> — for each
+  of two active Pokémon, a move (with a target) or a switch. The <strong>joint action</strong> is
+  <code>a = (a_1, a_2)</code>. Team preview is a special first move: each player chooses an ordered bring of
+  four from six, <code>A_i = {ordered 4-subsets of the six}</code>, <code>|A_i| = 6·5·4·3 = 360</code>.</li>
+<li><strong>Transition kernel</strong> <code>T(s' | s, a)</code>. Stochastic: damage rolls (16 discrete outcomes, 85–100%),
+  accuracy, secondary-effect procs, critical hits, speed ties. This kernel is the <em>engine</em>, and it
+  is what a full simulator must reproduce.</li>
+<li><strong>Reward</strong>. Zero-sum and terminal: <code>r = +1</code> for the winner, <code>-1</code> for the loser; <code>0</code> elsewhere.
+  Define the <strong>value</strong> of a state to player 1 as <code>V(s) = E[r | s, play]</code> under a solution concept.</li>
+<li><strong>Observation</strong>. Player <code>i</code> sees <code>o_i = O_i(s)</code>: their own team fully, and of the opponent only
+  what has been revealed (the six species at preview; each move/item/ability only once used or
+  triggered). This partial observability is first-class — it is why opponent modelling is a distinct
+  problem, and why belief states matter.</li>
+</ul>
+<p>Two structural facts shape everything downstream:</p>
+<ol>
+<li><strong>Simultaneous moves ⇒ mixed strategies.</strong> Because both players commit without seeing the other's
+   choice, the per-turn subgame is a matrix game whose optimal solution is generally a <em>mixed</em>
+   (randomised) Nash equilibrium, not a single best move. A simulator that assumes deterministic
+   opponent play is systematically wrong at exactly the decision points that matter.</li>
+<li><strong>Imperfect information ⇒ belief states.</strong> The relevant object is not <code>s</code> but a distribution over
+   states consistent with the observation history — a belief <code>b(s)</code>. Solving the game exactly is the
+   province of <strong>counterfactual regret minimisation (CFR)</strong> and its deep variants; approximations are
+   unavoidable at VGC's scale.</li>
+</ol>
+<p>The team-building question sits one level above the battle: it is a <strong>Bayesian game</strong> in which a
+player commits to a team before knowing the opponent's, and payoffs are the expected battle values
+integrated over the opponent distribution the metagame induces.</p>
+<h2>3. Three modelling tiers</h2>
+<p>A single "simulator" of full fidelity is neither necessary nor tractable for every use. We decompose
+it into three tiers, coarse-to-fine, and choose per use (broad search vs. finalist vetting). This is
+the standard model-based pattern: cheap approximate models for planning breadth, expensive accurate
+models for depth.</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Object learned</th>
+<th>Query</th>
+<th>Cost</th>
+<th>Primary use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. JOLTEON</strong> (outcome)</td>
+<td><code>Pψ(win | team_A, team_B)</code></td>
+<td>one forward pass</td>
+<td>~µs (fastest)</td>
+<td>search over thousands of teams</td>
+</tr>
+<tr>
+<td><strong>2. MEDICHAM</strong> (hybrid rollout)</td>
+<td>CHOMP damage + learned policies</td>
+<td>a few short rollouts</td>
+<td>~ms</td>
+<td>ranking finalist teams</td>
+</tr>
+<tr>
+<td><strong>3. SLOWKING</strong> (learned dynamics)</td>
+<td><code>Tθ(s' | s, a)</code> + value/policy</td>
+<td>belief search / playout</td>
+<td>~s (slowest)</td>
+<td>deep vetting, a matchup</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of the paper derives each.</p>
+<h3>3.1 The model family, named</h3>
+<p>Each model gets its own name, in the CHOMP / ABRA tradition — and the Pokémon's <em>speed</em> signals the
+model's cost, fast to slow:</p>
+<ul>
+<li><strong>JOLTEON</strong> — <em>Joint Odds, Ladder-Trained Expected-Outcome Network</em> (Tier 1). The <strong>fastest</strong> model
+  (Jolteon is the quickest of the cast): an instant win-probability call between two teams, from
+  Bradley–Terry strengths plus CHOMP-derived damage/coverage features (§4.3.1). One forward pass,
+  microseconds — fast enough to score a whole team search.</li>
+<li><strong>MEDICHAM</strong> — <em>Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves</em> (Tier 2).
+  Middle of the pack, in name and in speed: it plays a matchup out a few turns using <strong>CHOMP's exact
+  damage engine</strong> and behaviour-cloned move priors. Grounded, approximate, mid-cost.</li>
+<li><strong>SLOWKING</strong> — <em>Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver</em>
+  (Tier 3). The <strong>slowest</strong> and deepest: a slow but wise brain that searches over belief states on a
+  learned dynamics model toward equilibrium play. Slow on purpose — you run it only on finalists.</li>
+<li><strong>DITTO</strong> — <em>Double-oracle Iterative Team-Tuning Optimiser</em> (§8, the outer loop). It tries team
+  after team against the meta and transforms toward the strongest six, the way Ditto tries every form.</li>
+</ul>
+<p>CHOMP (the bring-4 engine) and the coach are <em>consumers</em> of these models, not models themselves. The
+naming makes the pipeline legible and the speeds honest: ABRA feeds MEDICHAM and JOLTEON; those and
+SLOWKING feed DITTO; DITTO's teams and SLOWKING's lines reach the player through CHOMP and the coach;
+the games played feed ABRA. Fast Pokémon do the cheap, broad work; the slow one does the deep work.</p>
+<h2>4. Tier 1 — JOLTEON, the outcome model</h2>
+<h3>4.1 Objective</h3>
+<p>Learn a function that maps an ordered pair of teams to a win probability:
+<code>Pψ(y = 1 | x_A, x_B)</code>, where <code>y = 1</code> iff team <code>A</code> wins and <code>x</code> is a feature encoding of a team.
+This is supervised binary classification on the log: each stored game contributes one labelled
+example (and its mirror, with the label flipped, to enforce the antisymmetry
+<code>P(A beats B) = 1 − P(B beats A)</code>).</p>
+<h3>4.2 The Bradley–Terry / Elo backbone</h3>
+<p>The natural, well-founded baseline treats each team (or, more usefully, each <em>component</em>) as having
+a latent strength and models paired-comparison outcomes with the <strong>Bradley–Terry</strong> model:</p>
+<pre><code>P(A beats B) = σ( β_A − β_B ),   σ(z) = 1 / (1 + e^{−z}).
+</code></pre>
+<p>Fitting <code>β</code> by maximum likelihood over the observed win/loss pairs is exactly logistic regression;
+online, the same model with a specific update rule is <strong>Elo</strong>. Two refinements matter for VGC:</p>
+<ul>
+<li><strong>Teams are compositional.</strong> Rather than a strength per <em>team</em> (there are astronomically many),
+  parameterise strength as a sum over the team's members and interactions:
+  <code>β_A = Σ_{p∈A} w_p + Σ_{p,q∈A} u_{pq}</code>, learning a per-species main effect <code>w_p</code> and pairwise
+  synergy <code>u_{pq}</code>. This is a factorisation-machine view and it generalises to unseen teams built
+  from seen parts — the property we need, since we will score <em>hypothetical</em> teams.</li>
+<li><strong>Matchup structure (advantage cycles).</strong> Pokémon has rock–paper–scissors matchups: strength is
+  not fully captured by a single scalar. The <strong>Blade–Chest</strong> and low-rank bilinear extensions add a
+  vector per team and score <code>β_A − β_B + ⟨c_A, m_B⟩ − ⟨c_B, m_A⟩</code>, which can represent
+  non-transitive advantage (A beats B beats C beats A). Including this term is what lets the model
+  express "this team preys on the current meta" rather than "this team is generically strong."</li>
+</ul>
+<h3>4.3 Features</h3>
+<p><code>x</code> should be a fixed-length encoding of a team invariant to Pokémon order: a multi-hot species
+vector (dimension = legal roster), augmented with observed-set summaries (lead rate, common item,
+revealed moves aggregated from ABRA's <code>sets</code> field), archetype tags (weather, Trick Room, Tailwind),
+and speed-tier and type-coverage summary statistics. A neural encoder (a small permutation-invariant
+DeepSets/Transformer over the six member embeddings) is the expressive upgrade once the linear model
+saturates.</p>
+<h3>4.3.1 CHOMP's threat scoring as damage-grounded features</h3>
+<p>Species identity alone is a weak feature — two teams with the same six can play very differently, and
+what actually decides a matchup is <em>who KOs whom</em>. CHOMP already computes exactly this, and its output
+is the strongest feature JOLTEON can eat. CHOMP scores threats with the real Gen-9 damage pipeline on the
+Champions SP stat system and reports, for an attacker–defender pair, <strong>pKO</strong> — the fraction of the 16
+damage rolls (85–100%) that knock out — combined with a speed check (does the attacker move first).
+Its bring-4 chooses the four that maximise KO-pressure/coverage across the opponent's six.</p>
+<p>For JOLTEON, build the <strong>coverage matrix</strong> <code>K</code> where <code>K_{pq} = pKO(p → q)</code> over every attacker <code>p</code> in
+team A and defender <code>q</code> in team B (and its transpose for B→A), plus the speed-order mask. Summaries of
+<code>K</code> — how many of B's six A can OHKO, the best-case and worst-case coverage, symmetric speed control —
+become the features that carry most of JOLTEON's signal, because they are the real mechanics of the
+matchup rather than a usage proxy. This is grey-box modelling: CHOMP supplies the physics of a single
+exchange; JOLTEON learns how those exchanges aggregate into a game outcome across thousands of real
+results. CHOMP's own validation (its white paper, validation report, and referee report) is therefore
+part of JOLTEON's foundation — the feature generator is already tested.</p>
+<h3>4.4 Estimation and calibration</h3>
+<p>Maximise the regularised conditional log-likelihood:</p>
+<pre><code>ψ* = argmax_ψ  Σ_g [ y_g log Pψ(x_{A,g}, x_{B,g}) + (1−y_g) log(1 − Pψ(·)) ] − λ‖ψ‖².
+</code></pre>
+<p>A win <strong>probability</strong> is only useful if it is <em>calibrated</em> — when the model says 70%, the team should
+win ~70% of the time. We measure calibration with the <strong>Brier score</strong>
+<code>(1/N) Σ (Pψ − y)²</code> and reliability diagrams, and correct residual miscalibration with <strong>Platt
+scaling</strong> or isotonic regression on a held-out split. Calibration, not raw accuracy, is what the team
+optimiser consumes, because it integrates these probabilities over the meta.</p>
+<h3>4.5 What tier 1 can and cannot do</h3>
+<p>It answers "does team A tend to beat team B?" from data, generalises to unseen teams via
+compositional features, and runs fast enough to score a whole search. It does <strong>not</strong> know <em>why</em> — it
+has no notion of turns, and it cannot tell you the line of play. It is a value function without a
+model. That is exactly enough for the outer optimisation loop and nothing more.</p>
+<h2>5. Tier 3 — SLOWKING, learning the dynamics (the true "reconstruction")</h2>
+<p>Tier 3 is what "reconstruct the simulator" literally means: learn the transition kernel
+<code>Tθ(s' | s, a)</code> and a policy/value on top, from logged transitions.</p>
+<h3>5.1 The dynamics model</h3>
+<p>Each replay is a sequence <code>(s_0, a_0, s_1, a_1, …, s_H, r)</code>. Every consecutive triple <code>(s_t, a_t,
+s_{t+1})</code> is a supervised example for a <strong>world model</strong>. Fit by maximum likelihood:</p>
+<pre><code>θ* = argmax_θ  Σ_{t}  log Tθ(s_{t+1} | s_t, a_t).
+</code></pre>
+<p>Because the true kernel factorises (each active Pokémon's move resolves largely independently given
+speed order), a structured model predicting damage-roll distributions, status procs, and stat changes
+per move is far more sample-efficient than a monolithic next-state predictor. Damage is <em>already</em>
+known in closed form (CHOMP's engine); the learned part is the residual — accuracy, secondary
+effects, switching outcomes, and the opponent's hidden set. This is a <strong>grey-box</strong> system
+identification problem: known physics plus a learned residual, which needs far less data than a
+black-box learner.</p>
+<h3>5.2 Partial observability</h3>
+<p>We never observe <code>s</code>; we observe <code>o</code> and must maintain a <strong>belief</strong> <code>b_t = Pr(s_t | o_{≤t}, a_{&lt;t})</code>.
+The opponent's hidden set is the main latent variable. ABRA's usage model supplies the <strong>prior</strong>
+<code>Pr(set | species)</code> (how the ladder builds each Pokémon), and each revealed move/item is a Bayesian
+update. A particle filter over sampled opponent sets, each rolled forward through <code>Tθ</code>, is the
+standard tractable representation. Note the clean division of labour: ABRA (data) supplies the prior;
+the dynamics model supplies the update.</p>
+<h3>5.3 Solving the game on the learned model — search over beliefs, not states</h3>
+<p>With <code>Tθ</code> and beliefs, the game must be searched. Because the information is imperfect, the correct
+object is <strong>not</strong> a tree over states but a search over <strong>public belief states (PBS)</strong> — distributions
+over what each side could hold given everything commonly observed. This is the central idea of
+<strong>ReBeL</strong> (Recursive Belief-based Learning), which combines deep RL with search over PBSs and
+<em>provably converges to a Nash equilibrium</em> in two-player zero-sum imperfect-information games; in the
+perfect-information limit it reduces to AlphaZero. <strong>Player of Games</strong> and <strong>Student of Games</strong> later
+unified perfect- and imperfect-information search into one algorithm. This family — RL + search over
+beliefs — is the principled target for a Pokémon solver, and it subsumes the two simpler options: a
+per-turn <strong>matrix-game Nash</strong> (a small linear program at each node) with <strong>minimax/expectimax</strong> over
+joint actions, which is exactly PokéChamp's architecture (LLM samples actions, models the opponent,
+estimates leaf values; Elo 1300–1500); and the search-free route of a <strong>policy/value network learned
+offline</strong>, as Metamon does via behavioural cloning plus offline RL and AlphaStar Unplugged does at
+scale.</p>
+<h3>5.4 Why offline RL is hard here (and how the literature copes)</h3>
+<p>Learning a policy or value purely from logs suffers <strong>distributional shift</strong>: the model is queried at
+state–action pairs the logging players never took, where its estimates are unconstrained and
+optimistic. The canonical fixes are <strong>conservatism</strong> — Conservative Q-Learning (CQL) penalises
+out-of-distribution action values; Implicit Q-Learning (IQL) avoids querying unseen actions entirely
+— and <strong>return-conditioned supervised learning</strong> — the Decision Transformer casts offline RL as
+sequence modelling, which is the family Metamon uses. Off-policy <strong>evaluation</strong> (weighted importance
+sampling, doubly-robust estimators) lets us score a policy from logs without deploying it, with
+variance that grows with policy divergence. The blunt honest point: without environment access, every
+tier-3 estimate is an extrapolation, and its trustworthiness must be <em>measured</em>, not assumed.</p>
+<h3>5.5 You do not simulate every path — the policy prunes the tree</h3>
+<p>The intuition that <em>"you would not simulate all the paths, machine learning just chooses the few
+viable ones"</em> is exactly how modern game AI is made tractable, and it has a precise form. The
+branching factor of a turn is large (each of two actives can move-with-target or switch), and the
+tree explodes geometrically with depth. AlphaZero tames this with a <strong>policy prior</strong> that biases the
+search toward promising actions; for genuinely large action spaces the fix is to <strong>sample</strong> rather
+than enumerate: <strong>Sampled MuZero</strong> expands only a subset of actions drawn from the prior, <strong>AlphaStar</strong>
+restricts StarCraft's enormous action space to a handful of policy-sampled actions per node, and
+<strong>Gumbel MuZero</strong> makes this sampling near-optimal with few simulations. PokéChamp is the Pokémon
+instance: the LLM proposes only the plausible moves, so the minimax tree never touches the
+overwhelming majority of legal-but-pointless lines.</p>
+<p>For ABRA this means the learned policy is not a luxury on top of the simulator — it <em>is</em> what makes
+the simulator usable. A well-trained policy assigns almost all probability to the two or three viable
+options in a position, so search explores a tree with an effective branching factor of a few, not a
+few dozen. The cost of a "near-perfect" playout is therefore governed by the <em>policy's</em> quality, not
+by the raw size of the game tree. This also answers a practical worry: we never need to model every
+interaction explicitly by hand — a policy trained on enough real games learns which interactions
+matter and silently prunes the rest.</p>
+<h2>6. One model, many queries — playing and testing teams from a shared core</h2>
+<p><strong>Is the team-tester the same model as the game-simulator?</strong> They should share a core. The AlphaZero /
+MuZero pattern is a single network with a shared representation and two heads — a <strong>value</strong> head
+<code>Vφ(belief)</code> and a <strong>policy</strong> head <code>πφ(action | belief)</code>. That one core answers both of ABRA's
+questions:</p>
+<ul>
+<li><strong>Testing teams against the meta</strong> is the value head, marginalised over play and over the meta
+  distribution: <code>E_{o∼D}[ Vφ(team, o) ]</code> (§7). No game needs to be rolled out turn-by-turn to <em>rank</em>
+  teams if the value head is calibrated — this is precisely tier 1, and it can be <strong>distilled</strong> from
+  the full model into a fast outcome head so that team search stays cheap.</li>
+<li><strong>Giving the player the line</strong> is the policy head plus search: from the current belief, the model
+  returns the best move(s) — the very thing the coach surfaces. Because the model has learned how the
+  mechanics and interactions resolve, it can hand the player a <em>recommended path</em>, not just a verdict.
+  Every uploaded game both trains this core and is a state it can now advise on.</li>
+</ul>
+<p>So the honest architecture is <strong>one learned world/value/policy core, queried three ways</strong> — as a fast
+team-evaluator (distilled value head), as a play-advisor (policy + belief search), and as the coach's
+explanation layer. Whether tier 1 remains a separate lightweight model or becomes a distilled head of
+the tier-3 core is an engineering choice, not a conceptual one; both are the same object viewed at
+different cost.</p>
+<h3>6.1 Continual learning — the model updates with every upload</h3>
+<p>"With every game upload the model improves" is <strong>continual (online) learning</strong>, and it has a known
+failure mode — <strong>catastrophic forgetting</strong>, where new data overwrites old competence. The standard
+guards are a <strong>replay buffer</strong> (keep training on a mix of old and new games, never new alone),
+periodic re-fitting rather than pure online updates, and continuing to ingest the <em>whole</em> public
+ladder so the model does not narrow to only the games the current policy likes. Under these guards the
+flywheel (§8) is a continual-learning loop whose data distribution is steered, deliberately, toward
+the positions the player actually reaches.</p>
+<h2>7. Tier 2 — MEDICHAM, the pragmatic middle</h2>
+<p><strong>Status: built</strong> (<code>engine/medicham.js</code>, <code>tests/test-medicham.js</code>). Rain core beats sun core 0.60,
+mirror 0.51, ~1s / 300 playouts; v1 is sequential-singles (honest scope, true doubles is roadmap).</p>
+<p><strong>MEDICHAM</strong> sidesteps learning dynamics by <em>specifying</em> them: it uses CHOMP's exact damage engine — the same pKO-over-16-rolls threat scoring as tier 1 — as a hand-built <code>T</code> for the dominant effect (damage), pair it with cheap policies (best-damage heuristics,
+or behaviour-cloned move priors from ABRA's <code>sets</code>), and roll a matchup out a few turns with a
+handful of stochastic samples to average over damage rolls. It is grounded in real math, requires no
+model training, and reuses code that already exists and is already tested. It is the right first
+<em>playout</em> model precisely because its errors are known and bounded (it ignores multi-turn tactics),
+and it is a strong baseline against which any learned tier-3 model must justify its cost.</p>
+<h2>8. DITTO — team optimisation, the outer loop</h2>
+<p><strong>Status: built</strong> (<code>engine/ditto.py</code>). Uses JOLTEON as evaluator against a gauntlet of real ladder
+teams, double-oracle rounds, usage-weighted threat coverage, and a bias report. Its headline finding
+is a <em>negative</em> one, stated plainly in §12: optimising against JOLTEON Goodharts it (a "90%" team is
+really ~12% by MEDICHAM), which is exactly why finalists are vetted by Tier 2. Rarity shrinkage
+(§4.4) and the proven-meta pool are the guards; MEDICHAM is the check.</p>
+<p>Given any tier as an evaluator <code>Ê[win | team]</code>, optimise the team. Formally, choosing a team <code>t</code> to
+maximise expected win rate against the <strong>meta distribution</strong> <code>D</code> (which ABRA measures):</p>
+<pre><code>t* = argmax_{t ∈ legal}  E_{o ∼ D} [ Pwin(t, o) ].
+</code></pre>
+<p>The legal team space is astronomically large (hundreds of species choose six, times sets), so
+exhaustive search is out. The tractable families:</p>
+<ul>
+<li><strong>Evolutionary / local search.</strong> Seed from meta archetypes or a user pool, mutate one slot at a
+  time, keep improvements. Cheap, anytime, and matches how humans iterate.</li>
+<li><strong>Bayesian optimisation / bandits.</strong> Treat team evaluation as expensive-noisy; use a surrogate over
+  the team-feature space and an acquisition rule to pick the next team to evaluate; <strong>UCB</strong>-style
+  regret bounds apply. Natural when tier-2/3 evaluations are costly.</li>
+<li><strong>Game-theoretic (the principled version).</strong> The meta is not fixed while you optimise — if you find
+  a team that beats the field, the field adapts. The right object is a <strong>Nash of the team-selection
+  metagame</strong>, approximated by <strong>double-oracle / PSRO</strong> (Policy-Space Response Oracles): alternately
+  compute a best-response team to the current population and add it, growing toward equilibrium. This
+  is exactly the "iterate on itself" the flywheel calls for, and it is the game-theoretic baseline
+  VGC-Bench implements.</li>
+</ul>
+<p>Coarse-to-fine ties the tiers together: tier 1 ranks thousands of candidate teams, tier 2 re-ranks
+the top few hundred, tier 3 vets the handful of finalists. No expensive evaluation is ever spent on
+an obviously bad team.</p>
+<h2>9. The self-improving flywheel, formalised</h2>
+<p>The five ABRA stages form a fixed-point iteration. Let <code>D_k</code> be the meta distribution at round <code>k</code>,
+<code>M_k</code> the model fit on data up to <code>k</code>, and <code>Π_k</code> the optimised team(s). Then:</p>
+<pre><code>M_k   = Fit(Data_k)                      # learn the model from logged games
+Π_k   = Optimise(M_k, D_k)               # best team(s) vs the measured meta
+Data_{k+1} = Data_k ∪ Play(Π_k)          # play; ingest every opponent faced
+D_{k+1}    = Meta(Data_{k+1})            # re-measure the meta
+</code></pre>
+<p>This is <strong>expert iteration</strong> — the AlphaZero pattern — with the environment supplied by the live
+ladder rather than self-play. Its appeal is compounding: each turn of the crank adds data where the
+current model is <em>most uncertain</em> (the games you actually play), which is the most valuable data to
+acquire. Its dangers are equally real and must be designed against: <strong>feedback loops</strong> (optimising
+against a meta you also perturb), <strong>distributional collapse</strong> (a model that only ever sees its own
+preferred games forgets the rest of the ladder — mitigated by continuing to ingest the <em>whole</em> public
+ladder, not only your games), and <strong>non-stationarity</strong> (the meta drifts under you; models must be
+re-fit, not frozen). The flywheel is powerful <em>because</em> it is a control loop, and it must be treated
+with a control loop's caution.</p>
+<h2>10. Related work (grounding, 2024–2025)</h2>
+<ul>
+<li><strong>PokéChamp</strong> (Karten, Nguyen, Jin; ICML 2025 spotlight). LLM-augmented <strong>minimax</strong> tree search:
+  the LLM supplies action sampling, opponent modelling, and value estimation inside a two-player game
+  tree; no extra training; Elo 1300–1500 (top 10–30% of humans); ships the largest real-player
+  dataset (3M+ games, 500k+ high-Elo). Directly validates tier-3-by-search (§5.3).</li>
+<li><strong>Metamon</strong> (UT Austin RPL; RLC 2025). <strong>Offline RL</strong> with transformers on 5M+ trajectories
+  reconstructed from human Showdown replays plus 20M+ self-play — the offline, learn-from-logs setting
+  that is ABRA's exactly. Validates tier-3-by-learned-policy (§5.4).</li>
+<li><strong>VGC-Bench</strong> (Angliss et al., 2025). A benchmark for <em>VGC specifically</em>, with the combinatorial
+  team-strategy generalisation problem front and centre, and baselines spanning <strong>behaviour cloning,
+  multi-agent RL (PPO), game-theoretic (double-oracle), LLM, and heuristics</strong> — the method menu of §5
+  and §7. Also extends poke-env with PettingZoo/VGC support.</li>
+<li><strong>PokéAgent Challenge</strong> (NeurIPS 2025). Establishes Pokémon as a standard testbed for sequential
+  decision-making under uncertainty, with Metamon and PokéChamp as baselines.</li>
+<li><strong>Classical foundations.</strong> Bradley–Terry (1952) and Elo for paired comparisons (§4.2); CFR /
+  Deep CFR for imperfect-information equilibria (§2); Dreamer and MuZero for learned-model planning
+  (§5); CQL, IQL, Decision Transformer for offline RL (§5.4); PSRO / double-oracle for empirical-game
+  equilibria (§7).</li>
+</ul>
+<p>The takeaway: none of the three tiers is speculative. Each corresponds to a demonstrated method in the
+current literature. What ABRA contributes is not a new algorithm but the <strong>data pipeline and the
+flywheel</strong> that make these methods self-sustaining on a live, closed-engine format.</p>
+<h2>11. Evaluation protocol</h2>
+<p>Every tier is scored on <strong>held-out games</strong> — a temporal split (train on older games, test on newer),
+never random, to respect meta drift and avoid leakage.</p>
+<ul>
+<li><strong>Outcome model (tier 1).</strong> Test log-likelihood, <strong>Brier score</strong>, calibration reliability diagram,
+  and AUC. Report against two baselines: the constant 50% predictor, and the Bradley–Terry
+  main-effects-only model. A model that cannot beat "the higher-usage team wins" is not yet useful.</li>
+<li><strong>Dynamics model (tier 3).</strong> Per-step next-state log-likelihood and long-horizon rollout
+  divergence (does a 10-turn rollout stay near reality?). Policy quality by <strong>off-policy evaluation</strong>
+  and, ultimately, by <strong>live ladder Elo</strong>, the only unarguable metric.</li>
+<li><strong>The honest ceiling.</strong> Pokémon has irreducible variance: imperfect information plus damage rolls,
+  accuracy, and speed ties mean even a perfect model cannot predict single games with high accuracy —
+  which is why the strongest published agents plateau around Elo 1300–1500 rather than dominating.
+  A prior internal analysis on a coverage heuristic found game-level correlation ≈ 0; that finding
+  stands as the caution. We therefore state success as <strong>calibrated aggregate win-rate improvement of
+  optimised teams over a baseline</strong>, measured over many games, not per-game oracular accuracy.</li>
+</ul>
+<h2>12. Feasibility — can we actually build this?</h2>
+<p>Yes, tier by tier, with honesty about each. <strong>As of v1.4, tiers 1 and 2 and the DITTO outer loop are
+built and measured; tier 3 remains an honest research effort.</strong></p>
+<ul>
+<li><strong>Tier 1 (JOLTEON) is built (v2).</strong> A Bradley–Terry logistic model over per-species strengths, now
+  with <strong>rarity-aware L2 shrinkage</strong> (a species is trusted in proportion to its sample size — seen
+  25×, its rating is pulled toward neutral; seen 1000×, it is trusted) plus speed-edge and
+  firepower-edge features from the dynamics model. On a fresh 4,999-game pull (temporal split, humans
+  only): <strong>~55% held-out accuracy vs ~49% for a coin flip</strong>, Brier ~0.25 (calibrated). The number
+  sits 55–57% depending on the exact games/split — modest, exactly as this domain's variance
+  predicts, but genuinely above chance from team composition alone. Honest ablation: the dynamics
+  features <em>tie</em> species-only at this scale (firepower earns weight +0.30; speed-edge is noise), and
+  the rarity shrinkage costs no accuracy while removing the overfit an optimiser could exploit.
+  Antisymmetry and calibration are pinned by <code>tests/test-jolteon.py</code>.</li>
+<li><strong>Tier 2 (MEDICHAM) is built.</strong> A Monte-Carlo rollout over CHOMP's exact damage engine with a
+  heuristic (behaviour-cloned-later) move policy, sampling damage rolls. Sanity holds: rain core beats
+  sun core <strong>0.60</strong>, mirror match <strong>0.51</strong>, ~1s per 300 playouts. v1 is sequential-singles (one active
+  per side) — honest scope; true doubles turns are roadmap. Pinned by <code>tests/test-medicham.js</code>.</li>
+<li><strong>The DITTO outer loop is built</strong> — and its most important output is a <em>negative</em> result stated
+  plainly. Optimising a team to maximise JOLTEON's score <strong>Goodharts the evaluator</strong>: DITTO finds
+  rare species JOLTEON overrates and stacks them, producing a team JOLTEON scores at <strong>90%</strong> that
+  MEDICHAM's grounded rollouts reveal is <strong>~12%</strong>. This is caught, not hidden: DITTO now (a) restricts
+  to a proven-meta pool, (b) uses <strong>usage-weighted threat coverage</strong> so it guarantees an answer to
+  high-bring threats (Basculegion) and ignores rare ones (Camerupt), (c) prints a <strong>bias report</strong>
+  showing where rarity shrinkage suppresses a pick, and (d) vets every finalist with MEDICHAM. The
+  JOLTEON-low / MEDICHAM-high disagreement is itself a signal — a genuine sleeper the data has not yet
+  confirmed. This is the tiered design (§3) earning its keep.</li>
+<li><strong>The dynamics model is built</strong> (<code>engine/dynamics.js</code>): the per-turn stream now yields observed
+  speed order (186 species, with Choice-Scarf detection) and observed damage distributions (1,170
+  attacker|move pairs). This is the empirical grounding tier 3 will calibrate against, and it already
+  feeds tier 1 and KADABRA.</li>
+<li><strong>Tier 3 (SLOWKING) is a research effort, scaffolded not trained.</strong> A learned dynamics model, belief
+  tracking, and equilibrium search (or offline-RL policy) is the frontier the cited papers occupy. It
+  is <em>possible</em> — they prove it — but it needs real compute, careful offline-RL practice, and
+  sustained work, judged against the tier-2 baseline before its cost is accepted. The interface is
+  fixed (<code>engine/slowking.py</code>) and the data toward it is already collecting: <strong>30,611 per-turn state
+  transitions</strong> over 4,999 games, with raw logs archived so nothing must be re-pulled. Grey-box
+  structure (§5.1) and a warm start from open Showdown data are the levers that make it tractable.</li>
+</ul>
+<p>The disciplined path — ship tier 1, keep the flywheel turning, add tier 2 for finalist vetting, treat
+tier 3 as a research track whose bar is set by tier 2 — is now demonstrated end-to-end, not just
+proposed.</p>
+<h2>13. References</h2>
+<ol>
+<li>Karten, S., Nguyen, A. L., Jin, C. (2025). <em>PokéChamp: an Expert-level Minimax Language Agent.</em>
+   ICML 2025 (spotlight). arXiv:2503.04094.</li>
+<li>UT Austin RPL (2025). <em>Metamon: Human-Level Competitive Pokémon via Scalable Offline Reinforcement
+   Learning with Transformers.</em> RLC 2025. arXiv:2504.04395.</li>
+<li>Angliss, C. et al. (2025). <em>VGC-Bench: A Benchmark for Generalizing Across Diverse Team Strategies
+   in Competitive Pokémon.</em> arXiv:2506.10326.</li>
+<li><em>PokéAgent Challenge</em>, NeurIPS 2025.</li>
+<li>Bradley, R. A., Terry, M. E. (1952). <em>Rank Analysis of Incomplete Block Designs.</em> Biometrika.</li>
+<li>Zinkevich, M. et al. (2007). <em>Regret Minimization in Games with Incomplete Information (CFR).</em> NIPS.</li>
+<li>Kumar, A. et al. (2020). <em>Conservative Q-Learning for Offline RL.</em> NeurIPS.</li>
+<li>Kostrikov, I. et al. (2021). <em>Offline RL with Implicit Q-Learning (IQL).</em></li>
+<li>Chen, L. et al. (2021). <em>Decision Transformer: RL via Sequence Modeling.</em> NeurIPS.</li>
+<li>Schrittwieser, J. et al. (2020). <em>Mastering Atari, Go, Chess and Shogi by Planning with a Learned
+    Model (MuZero).</em> Nature.</li>
+<li>Lanctot, M. et al. (2017). <em>A Unified Game-Theoretic Approach to Multiagent RL (PSRO).</em> NeurIPS.</li>
+<li>Chen, S., Joachims, T. (2016). <em>Modeling Intransitivity in Matchup Outcomes (Blade–Chest).</em> ICML.</li>
+<li>Brown, N. et al. (2020). <em>Combining Deep RL and Search for Imperfect-Information Games (ReBeL).</em>
+    NeurIPS.</li>
+<li>Schmid, M. et al. (2021/2023). <em>Player of Games</em> / <em>Student of Games:</em> unified search + learning
+    across perfect- and imperfect-information games. Science (2023).</li>
+<li>Hubert, T. et al. (2021). <em>Learning and Planning in Complex Action Spaces (Sampled MuZero).</em> ICML.</li>
+<li>Danihelka, I. et al. (2022). <em>Policy Improvement by Planning with Gumbel (Gumbel MuZero).</em> ICLR.</li>
+<li>Vinyals, O. et al. (2019). <em>Grandmaster level in StarCraft II (AlphaStar).</em> Nature; and
+    <em>AlphaStar Unplugged</em> (2023), large-scale offline RL.</li>
+<li>French, R. (1999). <em>Catastrophic Forgetting in Connectionist Networks.</em> Trends in Cognitive Sci.</li>
+<li>Hooper, W. (2026). <em>CHOMP white paper, validation report, and referee report</em> — the Gen-9 damage
+    pipeline, the pKO-over-16-rolls threat score, and the coverage-based bring-4, used here as JOLTEON's
+    feature generator and MEDICHAM's dynamics. <code>Pokemon/CHOMP/docs/</code>.</li>
+</ol>
+<hr />
+<p><strong>Companion documents.</strong> <a href="ABRA-whitepaper.md">ABRA white paper</a> ·
+<a href="EXECUTIVE-SUMMARY.md">Executive summary</a> · <a href="ABRA-technical-docs.md">Technical documentation</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 8</div><h1>SLOWKING: Offline Belief-State Search for a Closed, Simultaneous-Move Battle Engine</h1>
+<h3>Learning a Tier-3 game solver for Pokémon Champions from logged replays alone</h3>
+<p><strong>Version 1.0 · 2026-07-23 · Will Hooper · ABRA</strong></p>
+<blockquote>
+<p>The definitive design for ABRA's deepest model. It states a problem that, in this exact
+combination, is not solved in the published literature — equilibrium-aware search in a
+<strong>closed</strong>, <strong>simultaneous-move</strong>, <strong>imperfect-information</strong> commercial game engine that we may
+only observe <strong>offline</strong> — derives the algorithm end to end, grounds every component in the 2020–2025
+record (ReBeL, Student of Games, PokéChamp, Metamon, MuZero/Gumbel, CFR, offline RL), and gives an
+honest, staged feasibility plan built on data ABRA already collects. Living document; updated in the
+same pass as the code it describes. Companion: <a href="SLOWKING-research-roadmap.md">research roadmap</a>,
+<a href="ABRA-simulator-whitepaper.md">simulator white paper</a>.</p>
+</blockquote>
+<hr />
+<h2>Abstract</h2>
+<p>ABRA collects a growing corpus of Pokémon Champions (Reg M-B) replays — a two-player, zero-sum,
+<em>simultaneous-move</em>, imperfect-information stochastic game whose transition dynamics are implemented
+by a <strong>closed engine we cannot query</strong>. SLOWKING is the model that plays this game near-optimally: it
+searches over <strong>belief states</strong> — distributions over what the opponent is hiding — to return an
+equilibrium-aware policy rather than a greedy best move. The published state of the art for
+imperfect-information search (ReBeL, Student of Games, Player of Games) assumes either a <em>known</em>
+simulator or the ability to interact with the environment; the strongest Pokémon agents (PokéChamp,
+Metamon) either wrap a <em>reconstructed open-source</em> engine or learn model-free from logs without
+equilibrium search. SLOWKING targets the intersection none of them occupy: <strong>equilibrium search over a
+learned model of a closed engine, trained purely offline, in a simultaneous-move doubles setting.</strong> We
+contribute (i) a formalisation of Champions as a partially observable stochastic game with a public
+belief state; (ii) a <strong>grey-box world model</strong> that learns only the <em>residual</em> over CHOMP's exact damage
+calculator, shrinking the learning problem to the parts CHOMP cannot express (status chains, secondary
+effects, switch dynamics, position); (iii) a belief representation and offline update mined from
+revealed-set statistics; (iv) a value/policy pair trained offline with conservative RL and warm-started
+by a behaviour-clone of real ladder play; and (v) a tractable belief-state search that solves each
+simultaneous-move subgame to a <em>mixed</em> strategy and prunes the combinatorial action space with a
+Gumbel policy-improvement operator. We specify an evaluation protocol centred on <strong>exploitability</strong>,
+not just win rate, and give a staged build plan whose early stages are startable today on ABRA's data.
+We do not claim SLOWKING is trained; we claim the problem is well-posed, the design is sound, and the
+foundation is in place.</p>
+<hr />
+<h2>1. Introduction</h2>
+<p>A competitive VGC player answers three nested questions: which six to build (DITTO), which four to
+bring (CHOMP), and <em>how to play the resulting game</em>. The third is the hardest and the highest-ceiling,
+and it is where every shallow model in ABRA stops. JOLTEON (Tier 1) scores teams in one forward pass
+but has no notion of a turn. MEDICHAM (Tier 2) plays a matchup out with exact damage and a
+behaviour-cloned policy, but it is a <em>fixed-policy rollout</em>: it never asks "what is my opponent's best
+response to this line, and what should I mix to be unexploitable?" SLOWKING is the model that asks that
+question and answers it with search.</p>
+<p>Three properties make this genuinely hard, and their <em>conjunction</em> is what places SLOWKING outside the
+existing literature:</p>
+<ol>
+<li><strong>The engine is closed.</strong> Champions is not the Smogon format served by the open-source
+   <code>pokemon-showdown</code> simulator that poke-env exposes to RL agents. Its ruleset and stat system are
+   not a queryable environment. We cannot roll the true dynamics forward for a hypothetical state, so
+   we must <em>learn</em> a model of them from observation — the offline model-learning / system-ID setting.</li>
+<li><strong>Moves are simultaneous.</strong> Both players commit each turn without seeing the other's choice. The
+   per-turn subgame is therefore a matrix game whose optimal solution is generally a <em>mixed</em> Nash
+   equilibrium. A searcher that assumes a deterministic opponent is exploitable exactly at the
+   decision points that matter.</li>
+<li><strong>Information is imperfect, and we are offline.</strong> We see the opponent's six at preview and each
+   set only as it is revealed. The relevant object is a belief over hidden information, and we must
+   learn to track and search over it <em>without ever interacting with the real engine</em> — only from
+   logged trajectories, with all the distribution-shift hazards offline RL is heir to.</li>
+</ol>
+<p>The rest of this paper formalises the game (§2), explains precisely why the standard playbook does not
+port unmodified (§3), derives SLOWKING component by component (§4), specifies offline training (§5) and
+the tractability machinery (§6), gives an honest evaluation protocol (§7) and feasibility assessment
+(§8), situates the work against prior art (§9), and states what is genuinely novel (§10).</p>
+<h2>2. The game, formally</h2>
+<p>A Champions battle is a <strong>partially observable stochastic game (POSG)</strong>: a finite set of players
+<code>i ∈ {1,2}</code>, a state space <code>S</code>, per-player action sets, a stochastic transition kernel, a zero-sum
+terminal reward, and per-player observations.</p>
+<ul>
+<li><strong>State</strong> <code>s ∈ S</code> comprises both teams' species, full sets (moves, item, ability, the Champions SP
+  spread), current HP, status, stat stages, field conditions (weather, terrain, screens, Trick Room,
+  Tailwind timers), and which Pokémon are active. Level 50; no Tera.</li>
+<li><strong>Actions.</strong> At each turn player <code>i</code> chooses <em>simultaneously</em> from <code>A_i(s)</code>: for each of two active
+  Pokémon, a move (with target) or a switch. The joint action is <code>a = (a_1, a_2)</code>. Team preview is a
+  special first move: an ordered bring of four from six, <code>|A_i| = 6·5·4·3 = 360</code>.</li>
+<li><strong>Transition</strong> <code>T(s' | s, a)</code> is stochastic — damage rolls (16 outcomes, 85–100%), accuracy,
+  secondary-effect procs, critical hits, speed ties. <strong>This kernel is the closed engine; reproducing
+  it is the crux.</strong></li>
+<li><strong>Reward</strong> is terminal and zero-sum: <code>+1</code> win, <code>−1</code> loss.</li>
+<li><strong>Observation</strong> <code>o_i = O_i(s)</code>: own team fully; of the opponent, the six species at preview and each
+  move/item/ability only once used or triggered.</li>
+</ul>
+<p>Because information is imperfect, the decision-relevant object is not the world state <code>s</code> but the
+<strong>information state</strong> — the history of one player's own actions and observations — and, for search, the
+<strong>public belief state (PBS)</strong>: the common-knowledge distribution over the pair of information states,
+given the public history. Following ReBeL, converting the game to a game <em>over public belief states</em>
+makes an imperfect-information game behave, for the purposes of value-function search, like a
+perfect-information one: the value of a PBS is well-defined and learnable, and search can proceed on
+PBS nodes. This PBS reformulation is the theoretical backbone of §4.4.</p>
+<p>Two structural facts govern everything downstream: <strong>simultaneous moves ⇒ mixed strategies</strong> (each
+turn is a matrix game; the solution is a distribution), and <strong>imperfect information ⇒ belief states</strong>
+(we plan over <code>b</code>, not <code>s</code>). The team-building layer above the battle is a <strong>Bayesian game</strong> — commit a
+team before seeing the opponent's — and is DITTO's problem, evaluated by the battle values SLOWKING
+defines.</p>
+<h2>3. Why the standard playbook does not port unmodified</h2>
+<p>The modern recipe for superhuman imperfect-information play — ReBeL and Student of Games — is
+<strong>self-play RL + search over public belief states, with a learned value/policy and a CFR-style subgame
+solver.</strong> It is proven to converge toward Nash in two-player zero-sum games and reaches superhuman
+poker and strong Scotland Yard / chess / Go. We adopt its skeleton. But three assumptions it leans on
+are violated here, and each violation forces a design change:</p>
+<ul>
+<li><strong>It assumes a known, queryable simulator (or environment access) for self-play.</strong> ReBeL and SoG
+  generate their own trajectories by playing the game forward through a known ruleset. We <em>cannot</em>: the
+  Champions engine is closed. <strong>Consequence:</strong> we must first <em>learn</em> the transition model <code>Tθ</code>
+  (§4.1) and do all training offline (§5). This is the single biggest departure and the reason
+  SLOWKING is a research effort rather than a re-implementation.</li>
+<li><strong>Canonical treatments are turn-based (sequential).</strong> Poker and Scotland Yard reveal actions in
+  order; the PBS machinery is usually derived for sequential moves. Champions is <em>simultaneous</em>.
+  <strong>Consequence:</strong> the subgame at each node is a genuine matrix game, and the solver must return a
+  mixed strategy over the joint action (§4.5), not a sequence of single-agent decisions.</li>
+<li><strong>Offline RL is fragile.</strong> Learning a value/policy purely from logged data invites
+  distribution-shift and value over-estimation on actions the data never took. <strong>Consequence:</strong> we use
+  <em>conservative</em> offline RL (CQL/IQL-style pessimism) and anchor the policy to a <strong>behaviour-clone</strong> of
+  real play so search never wanders far from supported states (§4.3, §6).</li>
+</ul>
+<p>PokéChamp and Metamon confirm the domain is tractable but sit on the other side of these constraints:
+PokéChamp runs a minimax LLM agent over the <em>open-source</em> engine with no equilibrium guarantee and no
+learned dynamics; Metamon trains strong <em>model-free</em> offline-RL agents from 5M+ reconstructed Showdown
+trajectories but does no belief-state search. SLOWKING = the belief-state searcher, over a <em>learned</em>
+model of a <em>closed</em> engine, in the <em>simultaneous-move</em> setting — the box none of them tick.</p>
+<h2>4. The SLOWKING architecture</h2>
+<p>SLOWKING has five components: a grey-box world model, a belief tracker, an offline value/policy pair,
+a belief-state search that ties them together, and a per-turn mixed-strategy subgame solver.</p>
+<h3>4.1 Grey-box dynamics <code>Tθ(s' | s, a)</code> — learn only the residual over CHOMP</h3>
+<p>The naïve approach learns the entire transition kernel from scratch. That is wasteful: we already own
+an <em>exact</em> partial simulator of the dominant effect. CHOMP's <code>champ-model.js</code> computes, deterministically
+and correctly, the damage distribution of any move in any matchup — STAB, type chart, weather, items,
+abilities, spread, the full 16-roll range — validated against the reference calculator. So we factor
+the kernel:</p>
+<pre><code>T(s' | s, a)  =  T_known(s' | s, a; CHOMP)  ⊙  Tθ_resid(s' | s, a)
+</code></pre>
+<p><code>T_known</code> applies CHOMP's exact damage and the mechanically certain effects (fainting, weather setting,
+speed order under known modifiers). <code>Tθ_resid</code> — the only learned part — models what CHOMP does not
+express: status infliction and its downstream (sleep turns, burn/paralysis dynamics), secondary-effect
+probabilities, switch decisions' consequences, redirection and position in doubles, and the residual
+between predicted and observed damage. This is <strong>grey-box system identification</strong>, and it shrinks the
+learning target to a small, well-supported delta. Two properties of ABRA's data make it learnable now:
+we store the <strong>per-turn stream</strong> (move order → observed speed, exact damage % per move) for 30k+ turns,
+and the <strong>behaviour-clone</strong> (<code>data/move-priors.json</code>) already captures the empirical action policy the
+dynamics must be consistent with. The model is calibrated against <code>data/dynamics.json</code>'s observed
+per-move damage distributions — MEDICHAM's grounding becomes SLOWKING's supervision. <em>Literature:</em>
+MuZero and Dreamer show learned models suffice for planning; Metamon shows Showdown dynamics are
+learnable at scale from logs.</p>
+<h3>4.2 Belief representation and offline update</h3>
+<p>The belief <code>b</code> is a distribution over the opponent's hidden variables: which four of their six were
+brought, and each brought Pokémon's full set (moves/item/ability/spread) consistent with what has been
+revealed. We represent <code>b</code> as a <strong>factored particle set</strong>: a bag of concrete opponent configurations,
+each weighted, sampled from priors and reweighted by observations. The priors are <em>learned from the
+corpus, not assumed</em>: ABRA's usage model gives bring/lead rates; the behaviour-clone gives per-species
+set and move priors; revealed moves/items hard-constrain the support (a Pokémon that has clicked
+Protect and Moonblast cannot be a four-attacks set). The update is Bayesian filtering: on each
+observation <code>o</code>, reweight each particle by <code>P(o | particle)</code> under <code>Tθ</code>, resample, and prune particles
+the observation has falsified. Because every prior is mined from stored data, belief tracking is itself
+an <em>offline-trained</em> component — no environment access required.</p>
+<h3>4.3 Value and policy from offline data</h3>
+<p>Search needs a <strong>value function</strong> <code>V(b)</code> (the equilibrium value of a public belief state) and a
+<strong>policy prior</strong> <code>π(a | b)</code> (a distribution to guide and prune search). We obtain both offline:</p>
+<ul>
+<li><strong>Policy prior</strong> is initialised from the behaviour-clone — the empirical action distribution of real
+  ladder players, per species and turn context (<code>policy.js</code>), already built. This is a strong,
+  data-supported prior that keeps search inside the manifold of plays the data covers, directly
+  mitigating offline distribution shift.</li>
+<li><strong>Value</strong> is trained with <strong>conservative offline RL</strong> (CQL/IQL-style): learn <code>V</code> from logged
+  returns while penalising optimism on out-of-distribution actions, so the searcher is not seduced by
+  states the data never validated. The value target is bootstrapped through the learned model and
+  regressed toward realised game outcomes — the reward is terminal and known (win/loss), which is a gift
+  for credit assignment.</li>
+</ul>
+<p>Both are refined by search via a policy-improvement loop (§6): the searched policy at a state becomes a
+supervised target for <code>π</code>, and the searched value becomes a target for <code>V</code> — the ReBeL/SoG self-improvement
+loop, run <strong>offline through the learned model</strong> instead of the real engine.</p>
+<h3>4.4 Belief-state search</h3>
+<p>At decision time SLOWKING builds a search tree whose nodes are <strong>public belief states</strong>. From the
+current PBS it expands a few plies: at each node it (a) samples opponent configurations from the belief
+(§4.2), (b) proposes candidate joint actions from the policy prior (§4.3), (c) rolls them through the
+grey-box model <code>Tθ</code> (§4.1) to child PBSs, and (d) backs up values from the learned <code>V</code> at the leaves.
+The novelty over perfect-information MCTS is that expansion and back-up operate on <em>belief</em> nodes and
+that each internal node is solved as a <em>simultaneous-move subgame</em> (§4.5) rather than a max/min. This is
+exactly the ReBeL construction — value-function search over PBS with a CFR-style equilibrium solver at
+subgames — adapted to (i) a learned model in place of a known one and (ii) simultaneous rather than
+sequential moves. <em>Literature:</em> ReBeL (PBS value search + CFR), Student of Games / Player of Games
+(growing-tree CFR with learned value, sound convergence).</p>
+<h3>4.5 The simultaneous-move subgame solver</h3>
+<p>Each turn is a matrix game: rows are player 1's legal joint actions (per-slot move/switch), columns are
+player 2's, and the payoff of a cell is the searched value of the resulting child PBS. Its solution is a
+<strong>mixed Nash equilibrium</strong> — a distribution over actions for each side. We compute it with
+<strong>regret-matching / CFR</strong> iterated to low exploitability inside the subgame, yielding <code>σ_i(a_i | b)</code>.
+SLOWKING then plays its own mixed strategy <code>σ_1</code>, which is unexploitable <em>within the searched horizon</em> by
+construction. Two practical points: the combinatorial action space (two slots, moves × targets ×
+switches) is pruned to the top candidates by the policy prior before the matrix is formed (§6), and the
+subgame payoffs reuse the same <code>Tθ</code>/<code>V</code> as the outer search, so the solver adds equilibrium reasoning
+without a second model.</p>
+<h2>5. Offline training pipeline</h2>
+<p>Every component trains from the durable store, never from the live engine, and improves as the store
+grows — the flywheel, applied to Tier 3:</p>
+<ol>
+<li><strong>Trajectories.</strong> Convert each stored replay into <code>(s, o, a, r)</code> transitions via a game-spec encoder
+   (<code>engine/game-spec.js</code>, the roadmap's Paper 1 — built as the first concrete step; see §8). Champions'
+   per-turn stream + raw-log archive means this is a re-parse, never a re-pull.</li>
+<li><strong>Grey-box residual <code>Tθ</code></strong> is fit to observed transitions with CHOMP's <code>T_known</code> subtracted out,
+   supervised by observed damage (<code>dynamics.json</code>) and move order.</li>
+<li><strong>Belief priors</strong> are the existing usage model + behaviour-clone; no training beyond what ABRA
+   already computes.</li>
+<li><strong>Value/policy</strong> are trained with conservative offline RL, warm-started by the behaviour-clone, then
+   refined by searched targets (§4.3).</li>
+<li><strong>Search-and-distil</strong> closes the loop: run belief-state search over <code>Tθ</code> on sampled states, distil the
+   searched policy/value back into <code>π</code>/<code>V</code>, repeat. This is self-improvement without self-play against a
+   real engine — the offline analogue of ReBeL's training loop.</li>
+</ol>
+<h2>6. Making it tractable</h2>
+<p>Three levers keep the cost bounded. <strong>(a) Policy-guided pruning:</strong> the behaviour-cloned prior collapses
+each turn's enormous action set to a handful of plausible candidates before any search — you do not
+simulate every path; the policy proposes the few viable ones (the AlphaStar/Gumbel insight). <strong>(b)
+Gumbel policy improvement:</strong> at the root we select actions by sampling-without-replacement with the
+Gumbel-Top-k trick, which guarantees a policy-improvement step even with <em>very few</em> simulations — Gumbel
+MuZero learns reliably at as few as two simulations per move, the property that makes second-scale
+planning feasible. <strong>(c) Coarse-to-fine across tiers:</strong> SLOWKING is only ever invoked on the handful of
+states that matter — JOLTEON screens thousands of teams, MEDICHAM re-ranks finalists, and SLOWKING vets
+the last few or the critical in-game turns. No expensive belief search is spent where a cheap model
+suffices.</p>
+<h2>7. Evaluation protocol</h2>
+<p>Win rate alone is misleading in a high-variance game, and a searcher can win yet be exploitable. We
+evaluate on four axes:</p>
+<ol>
+<li><strong>Head-to-head</strong> vs the ladder of baselines already in ABRA — the behaviour-clone policy, MEDICHAM's
+   fixed-policy rollout, and a greedy-damage agent — under identical team samples, reporting win rate
+   with confidence intervals.</li>
+<li><strong>Exploitability proxy.</strong> Against a best-response opponent computed within the learned model, measure
+   how much the opponent can gain — the operational definition of "how close to equilibrium." A model-free
+   agent has no such guarantee; this is where belief search should distinguish itself.</li>
+<li><strong>Calibration.</strong> Brier score and reliability curves on SLOWKING's win-probability estimates vs realised
+   outcomes on held-out games (temporal split), as we already do for JOLTEON.</li>
+<li><strong>Ablations.</strong> Grey-box vs learn-from-scratch dynamics; behaviour-clone prior vs uniform; mixed-Nash
+   subgame solver vs deterministic max — each isolates a claimed contribution.</li>
+</ol>
+<p>Crucially, results are reported against the domain's irreducible variance (§ the simulator paper's
+honesty about a ~55–57% team-only ceiling): SLOWKING's job is to raise the <em>in-game</em> decision quality
+above MEDICHAM's fixed policy and to be <em>unexploitable</em>, not to manufacture certainty the game does not
+contain.</p>
+<h2>8. Feasibility, staged and honest</h2>
+<p>We do not claim SLOWKING is built. We claim it is well-posed and that the on-ramp exists:</p>
+<ul>
+<li><strong>Ready today.</strong> The offline corpus (30k+ turn transitions, growing hourly), the exact damage prior
+  (CHOMP), the observed-dynamics supervision (<code>dynamics.json</code>), and the behaviour-clone policy prior
+  (<code>move-priors.json</code>) are all built and tested. Two of the five roadmap papers (the game-spec/data and
+  the value/policy) are startable now on this data.</li>
+<li><strong>First concrete step (this release): <code>engine/game-spec.js</code></strong> — the state/observation/action encoding
+  and a converter that turns stored replays into <code>(s, o, a, r)</code> trajectories. This is Paper 1's deliverable
+  and it makes SLOWKING a build with a first commit, not only a design.</li>
+<li><strong>The research.</strong> The grey-box residual model, the belief-state search, and the offline
+  search-and-distil loop are genuine research — the frontier ReBeL/SoG/Metamon occupy. They need real
+  compute, careful offline-RL practice, and sustained work, and each should be judged against the MEDICHAM
+  baseline before its cost is accepted. Recent results prove this class of method <em>works</em>; none prove it is
+  cheap.</li>
+</ul>
+<p>The disciplined path: ship the data encoder and value/policy on current data; stand up the grey-box model
+against observed dynamics; add belief-state search last, gated by exploitability against MEDICHAM. Every
+stage is useful on its own, and every stage feeds the models above it.</p>
+<h2>9. Relationship to prior work</h2>
+<ul>
+<li><strong>ReBeL</strong> (Brown et al., NeurIPS 2020) — RL+search over public belief states with a CFR subgame
+  solver; converges toward Nash in 2p0s games; superhuman poker. SLOWKING's search skeleton, adapted to a
+  learned model and simultaneous moves.</li>
+<li><strong>Student of Games</strong> (Schmid et al., Science Advances 2023) and <strong>Player of Games</strong> (Schmid et al.,
+  2021) — a unified sound algorithm across perfect/imperfect information via growing-tree CFR with learned
+  value; strong in chess, Go, poker, Scotland Yard. The template for combining search, learning, and
+  game-theoretic reasoning.</li>
+<li><strong>MuZero</strong> (Schrittwieser et al., Nature 2020) and <strong>Gumbel MuZero / Policy improvement by planning
+  with Gumbel</strong> (Danihelka et al., ICLR 2022) — planning with a learned model; policy improvement with few
+  simulations. SLOWKING's learned-model and low-simulation planning basis.</li>
+<li><strong>PokéChamp</strong> (Karten et al., ICML 2025) — expert-level minimax <em>LLM</em> agent over the open-source
+  engine (~1500 Elo, 1M+ game dataset), no learned dynamics, no equilibrium guarantee. A domain proof and
+  a baseline, on the other side of the closed-engine and equilibrium constraints.</li>
+<li><strong>Metamon</strong> (UT Austin RPL, RLC 2025) — human-level <em>model-free</em> offline RL from 5M+ reconstructed
+  Showdown trajectories. Proves offline learning of Showdown play at scale; no belief search.</li>
+<li><strong>VGC-Bench</strong> (Angliss et al., 2025) — a doubles-VGC benchmark with PSRO/self-play baselines; the
+  double-oracle machinery DITTO's outer loop mirrors.</li>
+<li><strong>CFR</strong> (Zinkevich et al., 2007) and <strong>offline RL</strong> — CQL (Kumar et al., 2020), IQL (Kostrikov et
+  al., 2021), Decision Transformer (Chen et al., 2021) — the equilibrium and offline-learning foundations.</li>
+</ul>
+<h2>10. What is genuinely new</h2>
+<p>Each ingredient exists; their <em>combination</em>, in this domain, does not appear in the literature:</p>
+<blockquote>
+<p><strong>Equilibrium-aware belief-state search over a <em>learned grey-box model</em> of a <em>closed</em> battle engine,
+trained <em>entirely offline</em> from public replays, warm-started by a <em>behaviour-clone mined from the same
+corpus</em>, solving <em>simultaneous-move</em> subgames to mixed strategies, in <em>doubles</em> VGC.</strong></p>
+</blockquote>
+<p>ReBeL/SoG assume a known model or environment access; PokéChamp uses an open engine and no equilibrium
+search; Metamon is model-free with no search; MuZero/Gumbel are perfect-information or single-agent. The
+grey-box factorisation that learns only the residual over an exact damage calculator (CHOMP) is, to our
+knowledge, a new device for making offline model-learning tractable in this setting, and it is only
+possible because ABRA already owns both the exact partial simulator and the observed-dynamics supervision
+to fit the residual against. That is the paper's thesis: <strong>the closed engine is not a wall but a residual,
+and the corpus we already store is enough to learn it.</strong></p>
+<h2>11. References</h2>
+<ol>
+<li>Brown, N., Bakhtin, A., Lerer, A., Gong, Q. (2020). <em>Combining Deep Reinforcement Learning and Search
+   for Imperfect-Information Games (ReBeL).</em> NeurIPS. arXiv:2007.13544.</li>
+<li>Schmid, M. et al. (2023). <em>Student of Games: A unified learning algorithm for both perfect and
+   imperfect information games.</em> Science Advances 9(46). DOI:10.1126/sciadv.adg3256.</li>
+<li>Schmid, M. et al. (2021). <em>Player of Games.</em> arXiv:2112.03178.</li>
+<li>Schrittwieser, J. et al. (2020). <em>Mastering Atari, Go, Chess and Shogi by Planning with a Learned
+   Model (MuZero).</em> Nature 588.</li>
+<li>Danihelka, I., Guez, A., Schrittwieser, J., Silver, D. (2022). <em>Policy improvement by planning with
+   Gumbel.</em> ICLR.</li>
+<li>Karten, S., Nguyen, A. L., Jin, C. (2025). <em>PokéChamp: an Expert-level Minimax Language Agent for
+   Competitive Pokémon.</em> ICML (spotlight). arXiv:2503.04094.</li>
+<li>UT Austin RPL (2025). <em>Metamon: Human-Level Competitive Pokémon via Scalable Offline RL with
+   Transformers.</em> RLC. arXiv:2504.04395.</li>
+<li>Angliss, C. et al. (2025). <em>VGC-Bench: Generalizing Across Diverse Team Strategies in Competitive
+   Pokémon.</em> arXiv:2506.10326.</li>
+<li>Zinkevich, M., Johanson, M., Bowling, M., Piccione, C. (2007). <em>Regret Minimization in Games with
+   Incomplete Information (CFR).</em> NIPS.</li>
+<li>Kumar, A., Zhou, A., Tucker, G., Levine, S. (2020). <em>Conservative Q-Learning for Offline RL.</em> NeurIPS.</li>
+<li>Kostrikov, I., Nair, A., Levine, S. (2021). <em>Offline RL with Implicit Q-Learning (IQL).</em></li>
+<li>Chen, L. et al. (2021). <em>Decision Transformer: RL via Sequence Modeling.</em> NeurIPS.</li>
+<li>Hafner, D. et al. (2023). <em>Mastering Diverse Domains through World Models (DreamerV3).</em> arXiv:2301.04104.</li>
+</ol>
+<hr />
+<p><strong>Companion documents.</strong> <a href="SLOWKING-research-roadmap.md">Research roadmap</a> ·
+<a href="ABRA-simulator-whitepaper.md">Simulator white paper</a> · <a href="MODELS-CHEATSHEET.md">Cheat sheet</a> ·
+<a href="EXECUTIVE-SUMMARY.md">Executive summary</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 9</div><h1>SLOWKING — Research Roadmap</h1>
+<h3>Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver</h3>
+<p><strong>Version 0.1 · 2026-07-23 · Will Hooper · ABRA Tier-3</strong></p>
+<blockquote>
+<p>These are not decorations. Each tag in Slowking's Library is a <strong>paper I will write and a
+component I will build</strong> on the road to a real Tier-3 solver. This document turns the five research
+pillars into an ordered plan: what each paper proves, what it produces in code, and how it plugs
+into the pipeline. SLOWKING is the hard one — a genuine research effort — and this is how it gets
+built, honestly, one pillar at a time. The math foundation is already laid in
+<a href="ABRA-simulator-whitepaper.md">the simulator white paper</a>; this is the execution plan on top of it.</p>
+</blockquote>
+<hr />
+<h2>The target</h2>
+<p>Champions is a two-player, zero-sum, <strong>simultaneous-move</strong>, <strong>imperfect-information</strong> stochastic game.
+Solving it well means: track what the opponent is hiding (a belief), look ahead over how the game
+could branch, and play the move that is best against their best response — a <strong>mixed-strategy
+equilibrium</strong>, not a single "best move." SLOWKING is the model that does that. No single paper gets us
+there; five do, in order.</p>
+<h2>The five papers (each a real deliverable)</h2>
+<h3>Paper 1 — POSG / Markov game: the formalism and the offline dataset</h3>
+<p><strong>Proves:</strong> that a Champions battle is a partially-observable stochastic game, and that our logged
+replays are a valid offline dataset of trajectories <code>(s, o, a, r)</code> to learn from.
+<strong>Produces:</strong> <code>engine/game-spec.js</code> — a precise state/observation/action encoding, and a converter
+that turns every stored replay (we already keep the per-turn stream + raw logs) into training
+trajectories. <strong>Status:</strong> the data exists (30k+ turn transitions); the encoding is the first build.</p>
+<h3>Paper 2 — Learned dynamics / world model: <code>Tθ(s' | s, a)</code></h3>
+<p><strong>Proves:</strong> we can learn the transition kernel of the closed Champions engine from logged transitions
+alone, grey-boxed with CHOMP's exact damage as a prior so the model only has to learn what CHOMP
+doesn't (status chains, secondary procs, switch dynamics, position).
+<strong>Produces:</strong> a trained forward model that, given a state and a joint action, predicts the next state
+distribution — the thing we cannot query from the real engine. Calibrated against the observed damage
+distributions (<code>data/dynamics.json</code>) and observed move order.
+<strong>Literature:</strong> MuZero (learned model + planning), Dreamer (latent world models), Metamon
+(reconstructing 5M+ Showdown trajectories offline).</p>
+<h3>Paper 3 — Mixed Nash under simultaneous moves: the per-turn subgame solver</h3>
+<p><strong>Proves:</strong> each turn is a matrix game whose solution is a mixed equilibrium; we can approximate it
+tractably at VGC branching factors.
+<strong>Produces:</strong> a subgame solver (regret-matching / CFR-style) that outputs a <em>distribution</em> over
+actions, so SLOWKING plays unexploitably instead of deterministically — the thing that makes it
+robust to a thinking opponent.
+<strong>Literature:</strong> CFR (Zinkevich et al.), and its modern deep variants.</p>
+<h3>Paper 4 — Belief-state search: planning over what the opponent hides</h3>
+<p><strong>Proves:</strong> searching over belief states (distributions consistent with what's been revealed), not raw
+states, is both necessary (imperfect info) and feasible with the learned model.
+<strong>Produces:</strong> the search itself — a few plies deep, maintaining and updating the opponent belief from
+each observation, combining Papers 2 and 3. This is the core of <code>engine/slowking.py</code>'s
+<code>belief_search</code>, currently a stub.
+<strong>Literature:</strong> ReBeL, Player-of-Games, Student-of-Games (belief-state search that reaches
+superhuman play in imperfect-information games).</p>
+<h3>Paper 5 — Offline RL value/policy: making it strong without a live engine</h3>
+<p><strong>Proves:</strong> we can train a value head and policy from logged data without ever interacting with the
+real engine, avoiding the distributional-shift traps that sink naive offline RL.
+<strong>Produces:</strong> the value function <code>V(belief)</code> and a policy prior that guides the search (so we prune to
+the few viable lines instead of simulating every path) — the piece that makes SLOWKING fast enough to
+be useful.
+<strong>Literature:</strong> CQL, IQL, Decision Transformer; AlphaStar / Gumbel-MuZero for policy-guided pruning.</p>
+<h2>How they compose</h2>
+<pre><code>Paper 1 (spec + data)  -&gt;  Paper 2 (world model Tθ)  -&gt;  Paper 4 (belief search)
+                                   ^                            ^
+                        Paper 5 (value/policy) ----------------/
+                                   Paper 3 (mixed-Nash subgame solver) feeds the search's per-turn choice
+</code></pre>
+<p>SLOWKING = Paper 2's model + Paper 5's value/policy, searched by Paper 4 over beliefs, with Paper 3
+solving each turn's subgame. Papers 1 and 5 are the near-term, data-ready builds; 2–4 are the research.</p>
+<h2>How SLOWKING pays off the moment it exists</h2>
+<ul>
+<li><strong>KADABRA</strong> gets the deep line — "the equilibrium-best play here was X" — with no interface change.</li>
+<li><strong>DITTO</strong> gains a Tier-3 finalist vetter: JOLTEON screens thousands, MEDICHAM re-ranks finalists,
+  SLOWKING vets the last few. (Coarse-to-fine — being wired now with MEDICHAM as the middle tier.)</li>
+<li><strong>MEDICHAM</strong> rollouts get a smarter default policy (Paper 5's policy prior) than the behaviour-clone.</li>
+</ul>
+<h2>Honest status</h2>
+<p>Zero of the five are trained today; the interface (<code>engine/slowking.py</code>) and the data pipeline that
+feeds them are built and the corpus is growing hourly. Papers 1 and 5 are startable now on current
+data. This is a multi-month research track, stated plainly — not a claim that it is done.</p>
+<p><strong>Related.</strong> <a href="ABRA-simulator-whitepaper.md">Simulator white paper</a> · <a href="MODELS-CHEATSHEET.md">Cheat sheet</a> ·
+<a href="EXECUTIVE-SUMMARY.md">Executive summary</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 10</div><h1>KADABRA — Coach Product Spec</h1>
+<h3>Key Analysis of Decisions, Advice &amp; Better Replay Annotation</h3>
+<p><strong>Version 0.1 (spec) · 2026-07-22 · Will Hooper</strong></p>
+<blockquote>
+<p>The interactive coaching front-end of the ABRA platform. ABRA collects and models the ladder;
+<strong>KADABRA is the psychic that shows it back to you</strong> — it walks you through your own game turn by
+turn, recreates each scene, tells you the better play, and answers your questions before you move
+on. Abra → Kadabra: the data platform's teaching evolution.</p>
+</blockquote>
+<hr />
+<h2>1. What it is</h2>
+<p>A <strong>chatbot coach</strong> for a single Champions replay. You paste a replay link; KADABRA reviews the game
+<em>with</em> you, one decision at a time. It is not a wall-of-text report (that is the <code>coach.js</code> summary).
+It is a conversation that stops at each meaningful turn, <strong>reconstructs the scene</strong>, evaluates your
+play against the models, and waits for your questions before advancing.</p>
+<p>It replaces "send Claude a link and have it watch the game" with a purpose-built, instant, repeatable
+tool — and every game you review is silently added to ABRA's database and folded into the model
+(the flywheel, from the coaching seat).</p>
+<h2>2. The core loop (per turn)</h2>
+<ol>
+<li><strong>Reconstruct the scene.</strong> From the parsed log, KADABRA rebuilds the board at this turn: the two
+   active Pokémon per side, HP bars, status, stat stages, weather/terrain/screens, and what is known
+   of each team. It <em>shows</em> this, not just describes it — a rendered board state, so you see the
+   scenario the way it looked in-game.</li>
+<li><strong>State what happened.</strong> "You led Pelipper + Swampert into Gengar + Hydrapple; rain is up; Gengar
+   mega'd and put Swampert to sleep."</li>
+<li><strong>Evaluate the decision.</strong> KADABRA compares the move you made against the model's recommended play
+   (see §4), with the reason: the damage math (CHOMP), the threat read (ABRA usage), and — when
+   available — the deeper line (SLOWKING).</li>
+<li><strong>Answer your questions.</strong> You can ask anything — "why not Protect?", "would Ice Beam have KO'd?",
+   "what if they didn't switch?" — and KADABRA answers from the same models, running the damage calc
+   or a rollout on demand.</li>
+<li><strong>Advance on your say-so.</strong> Only when you're ready does it move to the next decision point. You
+   control the pace; it never dumps the whole game at once.</li>
+</ol>
+<h2>3. Scene reconstruction</h2>
+<p>The parser (<code>engine/durable-ingest.js</code> / <code>engine/coach.js</code>) already reconstructs the full state
+progression from the protocol log — switches, moves, damage, faints, field changes. KADABRA renders
+that state at any turn as a simple board: two active slots per side with sprite, HP %, status chip,
+and a field banner (weather/terrain/Trick Room/Tailwind). Because the whole trajectory is
+reconstructable, the player can also scrub — "show me turn 5" — and KADABRA redraws that scene.</p>
+<h2>4. The advice — where the models plug in</h2>
+<p>"The correct play might have been…" is answered at the fidelity available:</p>
+<ul>
+<li><strong>Now (v1).</strong> CHOMP's exact damage engine gives the KO math for every option (pKO across 16 rolls,
+  speed order), and ABRA's usage model gives the opponent read (their likely set/lead). Together these
+  already justify most coaching calls — "Wave Crash OHKOs their Garchomp in rain; you clicked Protect
+  and gave them a free turn."</li>
+<li><strong>Later (roadmap).</strong> <strong>SLOWKING</strong> (the learned belief-search solver, simulator white paper §5)
+  supplies the deep line — the equilibrium-aware best move accounting for what the opponent might do —
+  and <strong>MEDICHAM</strong> rollouts answer "what if" branches. KADABRA's advice quality rises as those models
+  come online, with no change to the interface.</li>
+</ul>
+<p>KADABRA is a <strong>consumer</strong> of the models (MEDICHAM, JOLTEON, SLOWKING) and of CHOMP, not a model itself.</p>
+<h2>5. The background job — the flywheel from the coaching seat</h2>
+<p>Every replay KADABRA reviews is passed through the ABRA extractor and appended to
+<code>data/games.ladder.jsonl</code> (dedup by id). So a coaching session is also a data-collection event: the
+opponent's team, sets revealed, and result enter the store and improve the models — exactly the
+feed-back stage of the flywheel, triggered by the act of reviewing your own game.</p>
+<h2>6. Interface</h2>
+<p>A single conversational panel: the reconstructed scene on top, the coach's message below, a text box
+for your questions, and a "next decision →" control. Optionally a side rail with the turn timeline so
+you can jump around. Web-based, so it can live alongside the ABRA dashboard.</p>
+<h2>7. Honest status and scope</h2>
+<ul>
+<li><strong>Buildable now:</strong> the parser, scene reconstruction, CHOMP-based advice, the Q&amp;A loop over damage
+  math, and the background ingest. This is a real v1.</li>
+<li><strong>Roadmap:</strong> the <em>depth</em> of "the correct play" scales with SLOWKING and JOLTEON; until then advice is
+  grounded in exact damage + usage, which is honest and already strong, but single-ply.</li>
+<li><strong>Own project?</strong> KADABRA is a distinct product (its own app and, when built, its own repository and
+  full doc set), connected to ABRA (data/models) and CHOMP (damage). It is specced here inside ABRA
+  because it is the platform's front-end; it graduates to its own project folder when we build it.</li>
+</ul>
+<h2>8. The named cast (so the pipeline is legible)</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Pokémon</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ABRA</strong></td>
+<td>Abra</td>
+<td>collects live ladder games, stores + models them</td>
+</tr>
+<tr>
+<td><strong>JOLTEON</strong></td>
+<td>Jolteon (fastest)</td>
+<td>instant team-vs-team win probability</td>
+</tr>
+<tr>
+<td><strong>MEDICHAM</strong></td>
+<td>Medicham (medium)</td>
+<td>quick physics rollouts</td>
+</tr>
+<tr>
+<td><strong>SLOWKING</strong></td>
+<td>Slowking (slow, wise)</td>
+<td>deep learned belief-search game solver</td>
+</tr>
+<tr>
+<td><strong>DITTO</strong></td>
+<td>Ditto</td>
+<td>team optimiser vs the meta</td>
+</tr>
+<tr>
+<td><strong>CHOMP</strong></td>
+<td>Garchomp</td>
+<td>the bring-4 / lead-2 engine (exact damage)</td>
+</tr>
+<tr>
+<td><strong>KADABRA</strong></td>
+<td>Kadabra</td>
+<td>the coach — reviews your games and teaches</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Related.</strong> <a href="ABRA-whitepaper.md">ABRA white paper</a> · <a href="ABRA-simulator-whitepaper.md">Simulator white paper</a> ·
+<a href="EXECUTIVE-SUMMARY.md">Executive summary</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 11</div><h1>ABRA — Architecture Notes</h1>
+<p><strong>Version 1.0 · Last updated 2026-07-23 · Will Hooper</strong></p>
+<blockquote>
+<p>The design decisions behind ABRA that aren't obvious from any single file: why the models are split
+across two languages, how the local app runs the real engines on your own machine, and how recency
+weighting keeps every model tracking the live metagame. Living document; updated with the code.</p>
+</blockquote>
+<hr />
+<h2>1. Why two languages (Python <strong>and</strong> JavaScript)</h2>
+<p>ABRA's engines are deliberately split. It is not an accident or inconsistency — each half of the
+system lives in the language that makes it shortest and safest to write.</p>
+<h3>The rule</h3>
+<ul>
+<li><strong>JavaScript (Node) for anything that touches the battle engine.</strong> CHOMP's damage calculator
+  (<code>CHOMP/engine/champ-model.js</code>) is the validated, exact model of Champions damage — types, STAB,
+  weather, items, abilities, the full 16-roll distribution. It is written in JS. Every model that
+  needs <em>real game mechanics</em> reuses it directly instead of re-implementing (and re-validating) the
+  damage formula:</li>
+<li><strong>MEDICHAM</strong> (<code>engine/medicham.js</code>) — rollouts call CHOMP's <code>bestDamage</code> per hit.</li>
+<li><strong>KADABRA</strong> (<code>engine/kadabra.js</code>) — the coach reconstructs scenes and cross-checks damage.</li>
+<li><strong>the set-builder, behaviour-clone, dynamics</strong> — all Node, all sharing the same move/typing data.
+  Re-porting the damage engine to Python would mean maintaining two copies of the most correctness-
+  critical code in the project. That is the thing we most want to avoid.</li>
+<li><strong>Python (with numpy) for the statistical / machine-learning core.</strong> JOLTEON's training
+  (<code>engine/jolteon.py</code>) and DITTO's search (<code>engine/ditto.py</code>) are linear algebra: logistic-regression
+  gradient descent, vectorised scoring of thousands of teams, rarity-aware regularisation, recency
+  weighting. numpy expresses this in a few lines and runs it fast. Writing weighted logistic
+  regression by hand in JS would be longer and slower with no upside.</li>
+</ul>
+<h3>The boundary, and why it barely matters to a user</h3>
+<p>The split falls on a clean seam: <strong>mechanics = JS, learned numeric models = Python.</strong> The one place
+they meet is DITTO, which uses JOLTEON (Python) as its fast evaluator and MEDICHAM (JS) as its grounded
+vetter — it shells out to both.</p>
+<p>Crucially, <strong>using the models needs almost no Python:</strong>
+- JOLTEON's <em>predictions</em> are a tiny logistic dot-product. We ship the trained weights as JSON and
+  recompute the probability in pure JavaScript in the browser (<code>web/index.html</code>) and could do so in
+  Node. You never need Python to <em>use</em> JOLTEON — only to <em>retrain</em> it.
+- MEDICHAM, KADABRA, CHOMP are Node end to end.
+- Only <strong>DITTO</strong> currently requires Python at run time (numpy for the team search). Because that is
+  the sole run-time Python dependency, the planned <strong>Node port of DITTO</strong> removes Python from the live
+  app entirely: JOLTEON weights are already portable, MEDICHAM is already JS, so a JS DITTO closes the
+  loop and the whole <code>localhost</code> app runs on Node alone. Retraining JOLTEON stays in Python, offline,
+  where numpy earns its keep.</p>
+<h3>The Windows Python gotcha (documented because it will bite)</h3>
+<p>Windows ships a fake <code>python</code> command that opens the Microsoft Store instead of running Python. So on
+a machine without a real Python install, <code>python engine/ditto.py</code> prints <em>"Python was not found; run
+without arguments to install from the Microsoft Store."</em> The server (<code>server.js</code>) handles this: it
+probes <code>py</code>, then <code>python</code>, then <code>python3</code>, skips the Store stub, checks that numpy imports, and — if
+no real Python is found — returns a clear message telling you JOLTEON/MEDICHAM/KADABRA still work and
+how to install Python for DITTO (python.org, "Add to PATH", then <code>pip install numpy</code>). This probe is
+<strong>lazy</strong> (run on the first DITTO/JOLTEON request, not at startup) so the server always starts
+listening instantly.</p>
+<h2>2. The local app — running the real engines on your machine</h2>
+<p><code>web/index.html</code> (mirrored to <code>app/index.html</code>, which the server prefers) is the ABRA WORLD site.
+Opened as a file, it runs <strong>JOLTEON</strong> live in the browser (embedded weights) — that alone needs no
+server. To run the <em>other</em> engines, <code>start.bat</code> launches <code>server.js</code>, a dependency-free Node HTTP
+server that:
+- serves the site from <code>app/</code> (falling back to <code>web/</code>),
+- exposes <code>/api/medicham</code>, <code>/api/kadabra</code> (Node engines), <code>/api/jolteon</code>, <code>/api/ditto</code> (Python
+  engines), and <code>/api/stats</code> (live counts for the town),
+- runs every computation <strong>on your own machine</strong> — nothing is sent anywhere.</p>
+<p><code>start.bat</code> checks Node is installed, opens the browser <em>after</em> a short delay (so the first load
+doesn't race the server), and keeps a window open as the running server. Everything is local; "server"
+here just means "a small program using your computer's own CPU," not a remote host.</p>
+<h2>3. Recency weighting — tracking a metagame that moves</h2>
+<h3>The problem: concept drift</h3>
+<p>A competitive metagame is <strong>non-stationary</strong>. The teams that win shift week to week as players adapt,
+new cores emerge, and old ones fall off. A model trained with every game counted equally averages over
+that history, so it is always partly describing a metagame that no longer exists. In machine-learning
+terms this is <strong>concept drift</strong>, and the standard remedy is to weight recent data more heavily.</p>
+<h3>The mechanism: exponential decay with a half-life</h3>
+<p>Every training game gets a weight that decays exponentially with its age:</p>
+<pre><code>w_i = 0.5 ** ( age_days_i / τ )
+</code></pre>
+<p>where <code>age_days_i</code> is how old game <em>i</em> is relative to the newest game in the set, and <strong>τ (tau) is the
+half-life in days</strong>. Interpretation:
+- a game from <em>today</em> has weight ~1,
+- a game <strong>one half-life</strong> old counts <strong>half</strong>,
+- <strong>two half-lives</strong> → a quarter, <strong>three</strong> → an eighth, and so on.</p>
+<p>Weights are normalised to mean 1 so the regularisation scale (the rarity-aware L2) is unchanged; only
+the <em>relative</em> influence of recent vs. old games shifts. Setting <code>τ → ∞</code> recovers the old equal-weight
+behaviour exactly, so decay is a strict generalisation, not a different model.</p>
+<h3>Where it plugs in</h3>
+<p>The weights enter the <strong>weighted logistic-regression gradient</strong> in JOLTEON's <code>fit()</code>:</p>
+<pre><code>grad = Xᵀ ( w ⊙ (p − y) ) / Σw   +   L2 · θ / Σw
+</code></pre>
+<p>The same <code>w_i = 0.5^(age/τ)</code> applies identically to the <strong>usage model</strong> (weighted species counts) and
+the <strong>behaviour-clone</strong> (weighted move frequencies), so JOLTEON, DITTO's meta gauntlet, CHOMP's usage
+intel, and MEDICHAM's move priors all track the <em>current</em> ladder from one shared decay rule. The
+default half-life is <strong>30 days</strong> (<code>HALF_LIFE</code> env var); shorter τ reacts faster to a shifting meta but
+uses effectively less data, longer τ is steadier but laggier — a bias/variance knob.</p>
+<h3>Honest status on current data</h3>
+<p>ABRA's store currently spans ~2 days, so at τ = 30 days every game's weight is ~1 and decay is a
+<strong>no-op</strong> — reported honestly (the equal-weight and recency-decayed rows are identical). The mechanism
+is unit-tested on synthetic 90-day data (oldest game weight 0.33, newest 2.14 at τ = 30d) and will
+engage automatically as the corpus ages past a few weeks. It costs nothing now and means the models
+never need manual pruning of stale games later — the influence just fades on its own.</p>
+<h3>Why not simply delete old games?</h3>
+<p>Because rare-but-still-relevant information (an off-meta answer that occasionally matters) survives in
+old games, and a hard cutoff throws it away discontinuously. Exponential decay is a soft, continuous
+down-weighting: old games keep a small vote, recent games dominate, and nothing is ever lost from the
+store (which stays the durable, replayable record).</p>
+<hr />
+<p><strong>Related.</strong> <a href="ABRA-simulator-whitepaper.md">Simulator white paper</a> ·
+<a href="SLOWKING-whitepaper.md">SLOWKING white paper</a> · <a href="MODELS-CHEATSHEET.md">Cheat sheet</a> ·
+<a href="../CHANGELOG.md">Changelog</a></p></div></body></html>
