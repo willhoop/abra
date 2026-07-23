@@ -4,18 +4,28 @@
   "rollouts_per_game": 40,
   "elo_available_on": 290,
   "log_loss": {
-    "medicham": 1.2599,
+    "medicham": 1.1629,
     "medicham_ci95": [
-      1.1271,
-      1.3927
+      1.0347,
+      1.2912
     ],
     "coin": 0.6931,
-    "elo": 0.6911
+    "elo": 0.6918
   },
   "brier": {
-    "medicham": 0.4098,
+    "medicham": 0.3787,
     "coin": 0.25,
-    "elo": 0.249
+    "elo": 0.2492
+  },
+  "discrimination": {
+    "accuracy_on_decisive_calls": 0.4429,
+    "decisive_calls": 289,
+    "note": "does MEDICHAM pick the actual winner more than half the time? (calibration-free signal test)"
+  },
+  "temperature_calibrated": {
+    "best_T": 8,
+    "log_loss": 0.7511,
+    "note": "in-sample optimistic ceiling: best the win% can do after re-scaling its overconfidence"
   },
   "verdict": "MEDICHAM does NOT beat coin; does NOT beat Elo (log-loss). Honest verdict either way."
 }
