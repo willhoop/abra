@@ -83,12 +83,34 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .house b{position:relative;z-index:1;display:block;margin-top:10px;font-size:17px}
 .house small{position:relative;z-index:1;color:#6a7f97;font-weight:600;font-size:12px}
 @keyframes hop{50%{transform:translateY(-11px) scale(1.06)}}
-/* ---- per-room floating mascot advisor ---- */
-.advisor{position:fixed;z-index:36;width:76px;height:76px;pointer-events:none;animation:bob 2.6s ease-in-out infinite}
+/* ---- per-room floating mascot advisor, each with its own personality ---- */
+.advisor{position:fixed;z-index:36;width:78px;height:78px;pointer-events:none}
+.advisor .anim{width:100%;height:100%;display:block}
 .advisor img{width:100%;height:100%;image-rendering:pixelated;filter:drop-shadow(0 3px 4px rgba(0,0,0,.16))}
-.advisor .tip{position:absolute;bottom:66px;right:2px;min-width:150px;max-width:230px;background:#fff;border:3px solid var(--line);border-radius:14px;padding:8px 11px;font-size:12.5px;font-weight:600;color:#2a3b52;box-shadow:0 4px 0 var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.advisor .tip{position:absolute;bottom:70px;right:2px;min-width:152px;max-width:236px;background:#fff;border:3px solid var(--line);border-radius:14px;padding:8px 11px;font-size:12.5px;font-weight:600;color:#2a3b52;box-shadow:0 4px 0 var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
 .advisor .tip.show{opacity:1;transform:none}
 .advisor .tip:after{content:"";position:absolute;bottom:-10px;right:22px;border:7px solid transparent;border-top-color:#fff}
+/* JOLTEON — twitchy, electric, fast */
+@keyframes p-zap{0%,100%{transform:translateY(0) rotate(0)}20%{transform:translateY(-4px) rotate(-4deg)}40%{transform:translateY(-2px) rotate(3deg)}60%{transform:translateY(-6px) scale(1.06)}80%{transform:translateY(-1px) rotate(-2deg)}}
+.p-jolteon{animation:p-zap .5s steps(5,end) infinite}
+/* MEDICHAM — disciplined, still, then a sharp strike */
+@keyframes p-punch{0%,55%,100%{transform:translate(0,0) scale(1)}64%{transform:translate(-6px,-2px) scale(1.05)}72%{transform:translate(6px,0) scale(1.05)}80%{transform:translate(0,0)}}
+.p-medicham{animation:p-punch 2.6s ease-in-out infinite}
+/* DITTO — squishy, gooey, playful */
+@keyframes p-wobble{0%,100%{transform:scale(1,1)}30%{transform:scale(1.1,.9)}60%{transform:scale(.92,1.08) rotate(3deg)}}
+.p-ditto{animation:p-wobble 1.5s ease-in-out infinite}
+/* KADABRA — hovering, aloof, psychic drift */
+@keyframes p-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
+.p-kadabra{animation:p-float 3.6s ease-in-out infinite}
+/* SLOWKING — regal, unhurried sway */
+@keyframes p-sway{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-4px) rotate(1.5deg)}}
+.p-slowking{animation:p-sway 5s ease-in-out infinite}
+/* CHOMP — coiled, then lunges */
+@keyframes p-lunge{0%,68%,100%{transform:translateX(0) scale(1)}78%{transform:translateX(-12px) scale(1.08)}86%{transform:translateX(3px) scale(1.02)}}
+.p-chomp{animation:p-lunge 2.1s cubic-bezier(.5,0,.3,1) infinite}
+/* ABRA (town) — sleepy bob */
+@keyframes p-drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.p-town{animation:p-drift 2.9s ease-in-out infinite}
 @media(max-width:1180px){.advisor{display:none}}
 
 /* ---- JOLTEON battle booth ---- */
@@ -742,6 +764,29 @@ function makeAbra(){
   setTimeout(()=>{ a.classList.add('in'); ring(); loop(); }, Math.random()*2600);
 }
 for(let i=0;i<5;i++) makeAbra();
+
+/* ===== per-room mascot advisor, each with its own voice + animation ===== */
+const PERSONA={
+ town:{tips:["Welcome to ABRA World. Every room runs on real ladder data.","Build a team once — it follows you into every model.","New here? Jolteon gives you the odds in one click."]},
+ jolteon:{tips:["Zap! I call the winner before a single move.","Two stacked teams? Coin flip. I won't lie to you.","I read all six, then who hits harder and moves first.","Fast and cheap — that's my whole thing."]},
+ medicham:{tips:["I don't guess. I play the match all the way out.","Weather wars, Protect, setup — I feel every turn.","If I disagree with Jolteon, believe me. I did the work.","Breathe in. Four hundred rollouts. Breathe out."]},
+ ditto:{tips:["Copy copy! I'll try ten thousand teams for you.","I make sure you answer Basculegion — not Camerupt.","Give me your six; I hand back a sharper six.","Medicham double-checks me so I can't cheat the odds."]},
+ kadabra:{tips:["Turn seven. That is where it slipped away.","I skip the boring turns — only the ones that mattered.","Paste a game. I will show you the exact swing.","A spoon, a mind, your replay. That is all I need."]},
+ slowking:{tips:["Patience. I search what they might bring.","Belief, then Nash — the endgame of this whole project.","The engine is open, so I reason over the true rules.","Slow is smooth. Smooth is a solved game."]},
+ chomp:{tips:["Bring these four. Lead these two. Go.","I cover their whole six — you never see their four.","Exact damage, every roll. No vibes.","Usage tells me what they send. I punish it."]}
+};
+let advTimer=null;
+function spawnAdvisors(id){
+  document.querySelectorAll('.advisor').forEach(a=>a.remove()); if(advTimer){clearInterval(advTimer);advTimer=null;}
+  const persona=PERSONA[id]; if(!persona||innerWidth<1180) return;
+  const c=CAST.find(x=>x.id===id); const sprite=c?c.sprite:'abra';
+  const a=document.createElement('div'); a.className='advisor'; a.style.right='20px'; a.style.bottom='96px';
+  a.innerHTML=`<div class="tip"></div><div class="anim p-${id}"><img src="${ani(sprite)}" onerror="this.onerror=null;this.src='${ani('abra')}'"></div>`;
+  document.body.appendChild(a);
+  const tips=persona.tips.slice(), tip=a.querySelector('.tip'); let i=(Math.random()*tips.length)|0;
+  const show=()=>{ tip.classList.remove('show'); setTimeout(()=>{ tip.textContent=tips[i%tips.length]; tip.classList.add('show'); i++; },420); };
+  setTimeout(show,650); advTimer=setInterval(show,5600);
+}
 
 const cvs=document.getElementById('confetti'),ctx=cvs.getContext('2d');
 function fit(){cvs.width=innerWidth;cvs.height=innerHeight;}fit();addEventListener('resize',fit);
