@@ -358,6 +358,13 @@ function roomMedicham(){const c=CAST[2];
          <input class="pksearch" placeholder="search Pokémon (sorted by usage)" oninput="renderPick('pickMB','B',this.value)">
          <div class="picker" id="pickMB"></div></div>
      </div>
+     <div class="savedwrap">
+       <div class="savedhead"><b>Saved teams</b> <span style="color:#889;font-size:12px">load into either side, then Play it out</span>
+         <span style="flex:1"></span>
+         <button class="minibtn" onclick="saveCurrent('A')">★ Save your team</button>
+         <button class="minibtn" onclick="saveCurrent('B')">★ Save opponent</button></div>
+       <div class="savedbar"></div>
+     </div>
    </div>
    <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>`;
 }
@@ -409,7 +416,7 @@ function go(id){
   stage.innerHTML=`<div class="room on">${ROOMS[id]()}</div>`;
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='jolteon') initBooth();
-  if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); }
+  if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); renderSaved(); }
   if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); }
   if(id==='town') updateStats();
 }
@@ -461,8 +468,9 @@ function getSaved(){ try{return JSON.parse(localStorage.getItem('abraSaved')||'[
 function saveCurrent(side){ const t=(side==='B')?teamB:teamA; if(!t.length){alert('That side is empty.');return;} const s=getSaved(); s.unshift({six:t.slice(),ts:Date.now()}); localStorage.setItem('abraSaved',JSON.stringify(s.slice(0,20))); renderSaved(); }
 function loadSaved(i,side){ const s=getSaved(),t=s[i]; if(!t)return; if(side==='B')teamB=t.six.slice(); else teamA=t.six.slice(); renderSlots(); syncSel(); saveTeams(); }
 function delSaved(i){ const s=getSaved(); s.splice(i,1); localStorage.setItem('abraSaved',JSON.stringify(s)); renderSaved(); }
-function renderSaved(){ const el=document.getElementById('savedbar'); if(!el)return; const s=getSaved();
-  el.innerHTML = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
+function renderSaved(){ const els=document.querySelectorAll('.savedbar'); if(!els.length)return; const s=getSaved();
+  const html = s.length ? s.map((t,i)=>`<div class="savedteam"><div class="m">${t.six.map(n=>`<img src="${ani(BY[n]?BY[n].sprite:n)}" onerror="this.onerror=null;this.src='${ani('substitute')}'" title="${cap(n)}">`).join('')}</div><div class="b"><button onclick="loadSaved(${i},'A')" title="load into your team">▶ you</button><button onclick="loadSaved(${i},'B')" title="load into rival">rival</button><button onclick="delSaved(${i})" title="delete">×</button></div></div>`).join('') : '<span style="color:#889;font-size:12px">No saved teams yet — build one, then hit ★ Save.</span>';
+  els.forEach(el=>el.innerHTML=html);
 }
 function ensureTeams(){ if(!teamA.length) teamA=['pelipper','basculegion','archaludon','kingambit']; if(!teamB.length) teamB=['charizard','venusaur','tyranitar','garchomp']; }
 function initBooth(){ ensureTeams();
