@@ -19,7 +19,7 @@ const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 
 function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
   return {name,types:m.t.slice(),st:{...m.st},item:(ov&&ov[name])||m.item||'',ability:m.ab||'',moves:m.mv.slice(),
-    curHP:m.st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_protLast:false}; }
+    curHP:m.st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
 
 function dmgRange(att,def,mv,field,spread){
   if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
@@ -92,6 +92,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     const prio=it=>it.a.kind==='attack'?(PRIO[it.a.move.id]||0):(it.a.kind==='protect'?4:0);
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
     for(const it of acts){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
+      if(m._flinch){m._flinch=false;continue;}
       if(m.status==='par'&&rng()<0.25)continue;
       if(m.status==='slp'){if(m.slp>0){m.slp--;continue;}else m.status='';}
       const a=it.a;
@@ -100,6 +101,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       if(a.kind==='status'){const t=a.target;if(t&&!t.fainted&&!t.protect&&!t.status)applyStatus(t,['brn','par','slp'][rng()*3|0]);continue;}
       if(a.kind!=='attack')continue;
       const mv=a.move.mv;
+      if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
       if((ACC[a.move.id]||100)<100&&rng()*100>(ACC[a.move.id]||100))continue;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
@@ -107,7 +109,8 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       for(const tg of targets){if(!tg||tg.fainted||tg.protect)continue;
         const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
-        tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}}
+        tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
+        else if(a.move.id==='fakeout')tg._flinch=true;}   // Fake Out flinches survivors
       if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     }
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
@@ -117,7 +120,8 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
-    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))f.boosts.at=clamp(f.boosts.at-1,-6,6);}}}};
+    [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
+    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))f.boosts.at=clamp(f.boosts.at-1,-6,6);}}}};
     refill(actA,benchA,actB);refill(actB,benchB,actA);
   }
   const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
