@@ -56,7 +56,7 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .panel .sub{color:#5a708a;font-weight:600;margin:0 0 14px}
 .mascot{width:104px;height:104px;object-fit:contain;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none;
   filter:drop-shadow(0 4px 3px rgba(0,0,0,.14))}
-.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:11px 16px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:11px 16px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px;max-width:620px;font-size:14.5px;line-height:1.4}
 .bubble:before{content:'';position:absolute;left:-14px;top:22px;border:8px solid transparent;border-right-color:var(--line)}
 .bubble:after{content:'';position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:#fff}
 .hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -580,7 +580,7 @@ function roomKadabra(){const c=CAST[4];
      <button class="battlebtn" onclick="runKadabra()">Coach it</button>
      <div id="kdout" style="margin-top:14px">Paste a replay above and press Coach it.</div>
    </div>
-   <div class="panel"><h2>How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I rebuild the board at every turn straight from the battle log — who was out, their HP, who moved first (that's the real speed), and exactly how much each hit did — then compare every number to the ladder average. I don't march you through the whole game: I stop only on the turns that decided it — a big hit you traded into, a KO you scored, the moment you lost a Pokémon — and show the better line. Every game you review is quietly added to the town's memory and folds into the models.</p></div>`;
+   <div class="panel"><h2>How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I read your replay's log to find the turns that <b>actually decided the game</b> — a KO you scored, a big trade, the moment you lost a Pokémon — not every turn, just the ones that mattered. Then I walk you through them <b>one at a time on the real Showdown replay</b>: I set it to that turn, tell you what's happening and what to do, you hit play and watch it unfold, and we step to the next key moment. No scrubbing through the boring turns. Every game you review is added to the town's memory.</p></div>`;
 }
 function roomSlowking(){const c=CAST[5];
   return `<div class="panel">${mascotHero(c,"Slowly... wisely... I search over <b>belief states</b> — what your opponent might be hiding — to find the equilibrium-best move. I'm the deep one. I'm also still being built. ")}</div>
@@ -745,11 +745,16 @@ function runDitto(){
   const seed=teamA.slice(0,6); if(seed.length<2){out.innerHTML='<span style="color:#b4432f">Pick at least 2 Pokémon in your seed team above.</span>';return;}
   out.innerHTML='DITTO is best-responding to the equilibrium meta…';
   setTimeout(()=>{
-    const roster=JOLT.roster.map(m=>m.n);
-    let team=seed.slice(), best=dittoScore(team); const start=best, swaps=[];
-    for(let it=0;it<30;it++){ let improved=false;
+    const archT0=(typeof META_NASH!=='undefined'&&META_NASH.arch.length)?META_NASH.arch:[{n:'core',w:1,t:JOLT.roster.slice(0,4).map(m=>m.n)}];
+    // The REAL objective is the GROUNDED value: MEDICHAM plays your team vs the Nash-weighted meta.
+    // JOLTEON only shortlists candidates (fast coarse filter) — it never decides, because it barely
+    // beats a coin and DITTO would just game it (that's the "84% JOLTEON / 18% MEDICHAM" garbage).
+    const mcTeam=tm=>{let s=0,w=0;for(const a of archT0){s+=a.w*(mcWinProb(tm,a.t,40)||0);w+=a.w;}return w?s/w:0;};
+    const pool=JOLT.roster.slice(0,18).map(m=>m.n);
+    let team=seed.slice(), best=mcTeam(team); const start=best, swaps=[];
+    for(let it=0;it<2;it++){ let improved=false;
       for(let i=0;i<team.length;i++){ let bi=team[i],bs=best;
-        for(const cand of roster){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=dittoScore(nt); if(sc>bs+1e-6){bs=sc;bi=cand;} }
+        for(const cand of pool){ if(team.includes(cand))continue; const nt=team.slice();nt[i]=cand; const sc=mcTeam(nt); if(sc>bs+0.01){bs=sc;bi=cand;} }
         if(bi!==team[i]){ swaps.push([team[i],bi,bs-best]); team[i]=bi; best=bs; improved=true; } }
       if(!improved)break; }
     dittoResult=team.slice();
@@ -788,18 +793,14 @@ function runDitto(){
         <div style="height:16px;background:#ffe0f1;border:2px solid var(--line);border-radius:99px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${bp}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
         <div style="font-size:11px;color:#99a;margin-top:4px">best-responding to the Nash-solved meta (${(typeof META_NASH!=='undefined'?META_NASH.arch.map(a=>a.n):['meta']).join(' / ')}) · full sets are the most common on the ladder</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>
-      <div style="margin-top:12px;background:#faf7fb;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;color:#556">
-        ${swaps.length?`<div><b>Swaps:</b> `+swaps.map(s=>`${cap(s[0])} → <b>${cap(s[1])}</b> <span style="color:#2a8">+${(s[2]*100).toFixed(1)}</span>`).join(' &nbsp;·&nbsp; ')+`</div>`:`<div style="color:#2a7;font-weight:600">Your seed was already optimal — no species swap improved it.</div>`}
-        ${itemUp.length?`<div style="margin-top:5px"><b>Item upgrades:</b> `+itemUp.map(u=>`${cap(u[0])} → <b>${niceName(u[2])}</b>`).join(' &nbsp;·&nbsp; ')+`</div>`:``}
-      </div>`+
-      (chk!=null?`<div style="margin-top:10px;padding:10px 12px;border-radius:12px;border:2px solid ${chk<40?'#e8b4b4':'#b4d8c0'};background:${chk<40?'#fdf2f2':'#f2faf5'}"><b style="color:${chk<40?'#b4432f':'#1a7a4a'}">MEDICHAM grounded value vs the equilibrium meta: ${chk}%</b> <span style="color:#778;font-size:12px">— the Goodhart guard (JOLTEON picks the team, MEDICHAM plays it out). ${chk<40?'Big gap means the sheet over-rates this team; trust the rollout.':'The rollout agrees the team is real.'}</span>`+(exploiters.length?`<div style="margin-top:6px;font-size:12px;color:#b4432f">Still exploited by: `+exploiters.map(e=>`<b>${e[0]}</b> (${e[1]}%)`).join(' · ')+` — no single team beats the whole meta (that's the non-transitivity).</div>`:`<div style="margin-top:6px;font-size:12px;color:#1a7a4a">Holds up against every archetype in the equilibrium meta.</div>`)+`</div>`:``)+
-      `<div style="margin-top:14px"><div style="font-weight:800;margin-bottom:6px">How your team stacks up vs each meta threat</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
-         <thead><tr style="color:#667;text-align:left"><th style="padding:4px 6px">Archetype</th><th style="padding:4px 6px">Meta share</th><th style="padding:4px 6px">Your win %</th><th></th></tr></thead>
-         <tbody>`+perArch.map(p=>`<tr style="border-top:1px solid #eee"><td style="padding:5px 6px;font-weight:700">${p.n}</td><td style="padding:5px 6px;color:#889">${Math.round(p.w*100)}%</td><td style="padding:5px 6px;font-weight:800;color:${p.v>=52?'#1a9a4a':(p.v<=48?'#d23b3b':'#7a7')}">${p.v}%</td><td style="padding:5px 6px;width:130px"><div style="height:9px;background:#eee;border-radius:6px;overflow:hidden"><div style="height:100%;width:${p.v}%;background:${p.v>=50?'#5fd07a':'#e8899a'}"></div></div></td></tr>`).join('')+`</tbody></table>
-        <div style="font-size:11px;color:#99a;margin-top:4px">green = you're favoured, red = they beat you · each row is a MEDICHAM rollout of your team vs that archetype</div></div>`+
-      `<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>`+
+      `<div style="margin-top:16px"><div style="font-weight:800;margin-bottom:8px;font-size:15px">How your team does vs the meta</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+         <tbody>`+perArch.map(p=>`<tr><td style="padding:7px 8px;font-weight:700;white-space:nowrap">${p.n} <span style="color:#bbb;font-weight:500;font-size:11px">${Math.round(p.w*100)}% of meta</span></td><td style="padding:7px 8px;width:62%"><div style="height:20px;background:#f0e6ea;border-radius:10px;overflow:hidden"><div style="height:100%;width:${p.v}%;background:${p.v>=50?'linear-gradient(90deg,#7fe0a0,#2fb45f)':'linear-gradient(90deg,#f2a6b4,#e05a72)'};transition:width .5s"></div></div></td><td style="padding:7px 8px;text-align:right;font-weight:800;font-size:15px;color:${p.v>=50?'#1a9a4a':'#d23b3b'}">${p.v}%</td></tr>`).join('')+`</tbody></table>
+        <div style="font-size:11px;color:#aab;margin-top:6px">green = you win it · red = they beat you · played out by MEDICHAM</div></div>`+
+      (chk!=null?`<div style="margin-top:14px;text-align:center"><span style="font-size:26px;font-weight:800;color:${chk<45?'#d23b3b':'#1a9a4a'}">${chk}%</span> <span style="color:#889;font-size:13px">average vs the whole meta — no one team beats everything</span></div>`:``)+
+      (swaps.length?`<div style="margin-top:8px;font-size:11px;color:#bbc;text-align:center">DITTO swapped ${swaps.length}: `+swaps.slice(0,6).map(s=>`${cap(s[0])}→${cap(s[1])}`).join(' · ')+`</div>`:``)+
+      `<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button class="battlebtn" style="font-size:14px;padding:7px 14px" onclick="loadDittoTeam()">★ Load this as my team</button><button class="minibtn" onclick="dittoPaste(this)">Copy as PokéPaste</button></div>`;
   },20);
 }
 // export the optimised team as a Showdown-importable PokéPaste (species @ item / ability / 4 moves from the common set)
@@ -812,7 +813,7 @@ function copyOrbTeams(btn){ const t=(typeof teamA!=='undefined'&&teamA.length)?t
   const txt=t.map(n=>{const m=MC.mons[n]||{}; const top=(typeof MOVESETS!=='undefined'&&MOVESETS[n])?MOVESETS[n].slice(0,4).map(x=>x[0]):(m.mv||[]); const moves=top.map(x=>'- '+niceName(x)).join('\n'); return `${cap(n)} @ ${niceName(m.item)}\nAbility: ${niceName(m.ab)}\n${moves}`;}).join('\n\n');
   try{navigator.clipboard.writeText(txt);}catch(e){}
   if(btn){const o=btn.textContent;btn.textContent='Copied — paste into the calc’s Import';setTimeout(()=>btn.textContent=o,1800);} }
-let KAD=null, kadKeys=[], kadI=0;
+let KAD=null, kadKeys=[], kadI=0, kadMode='embed';
 async function runKadabra(){
   const raw=document.getElementById('kdid').value.trim(); const out=document.getElementById('kdout');
   if(!raw){out.textContent='Paste a replay link first.';return;}
@@ -829,17 +830,21 @@ async function runKadabra(){
 }
 // KADABRA v2 — embed the REAL Showdown replay (battle left, log right, native targeting/status/field/animation)
 // and overlay KADABRA's turn-stamped coaching beside it. Falls back to the simplified scene view.
+// guided tour: one key moment at a time — the real replay seeked to that turn, KADABRA explains,
+// you hit play to watch it, then step to the next key turn. (Not the whole replay in one lump.)
 function renderKadEmbed(){
-  const wrap=document.getElementById('kdout'); if(!KAD)return;
-  const keys=kadKeys.length?kadKeys:KAD.scenes; const kc={loss:'#ff6b6b',good:'#5fd07a'};
+  const wrap=document.getElementById('kdout'); if(!KAD)return; kadMode='embed';
+  const keys=kadKeys.length?kadKeys:KAD.scenes; if(!keys.length){wrap.textContent='No decisive turns to coach.';return;}
+  kadI=Math.max(0,Math.min(keys.length-1,kadI)); const s=keys[kadI];
+  const kc={loss:'#ff6b6b',good:'#5fd07a'}, col=kc[s.kind]||'#7a6bff';
+  const label=s.kind==='loss'?'swing turn':(s.kind==='good'?'good play':'key turn');
   wrap.innerHTML=`
-    <div style="font-weight:700;margin-bottom:8px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b></div>
-    <iframe src="https://replay.pokemonshowdown.com/${KAD.id}" title="Showdown replay" style="width:100%;height:548px;border:3px solid var(--line);border-radius:14px;background:#eef3fb" allowfullscreen loading="lazy"></iframe>
-    <div style="font-size:12px;color:#889;margin-top:5px">The real Showdown replay — battle on the left, log on the right. If it doesn't load here, <a href="https://replay.pokemonshowdown.com/${KAD.id}" target="_blank" rel="noopener">open it in a new tab</a> · <a href="#" onclick="renderKad();return false">or use the simplified view</a>.</div>
-    <div class="panel" style="margin-top:12px;box-shadow:none">
-      <div style="display:flex;align-items:center;gap:8px"><img src="${ani('kadabra')}" style="width:44px;height:44px" onerror="sprFallback(this)"><b>KADABRA's key moments</b> <span style="color:#889;font-size:12px">scrub the replay to each turn</span></div>
-      <div style="margin-top:8px">`+keys.map(s=>`<div style="padding:9px 11px;margin-top:7px;border-left:4px solid ${kc[s.kind]||'#7a6bff'};background:#f7f8fb;border-radius:0 10px 10px 0"><b>Turn ${s.n}</b> · <b style="color:${kc[s.kind]||'#7a6bff'}">${s.kind==='good'?'good play':'swing turn'}</b> — ${s.coach||s.note}</div>`).join('')+`</div>
-    </div>`;
+    <div style="font-weight:700;margin-bottom:8px">${cap(KAD.me)} vs ${cap(KAD.foe)} — <b>${KAD.result}</b> · <span style="color:#889">key moment ${kadI+1} of ${keys.length}</span></div>
+    <div class="kadpop" style="margin:0 0 10px"><img src="${ani('kadabra')}" onerror="sprFallback(this)">
+      <div class="bubble" style="border-color:${col};max-width:none"><b style="color:${col}">Turn ${s.n} · ${label}</b> — ${s.coach||s.note}</div></div>
+    <iframe src="https://replay.pokemonshowdown.com/${KAD.id}?turn=${s.n}" title="Showdown replay turn ${s.n}" style="width:100%;height:520px;border:3px solid var(--line);border-radius:14px;background:#eef3fb" allowfullscreen></iframe>
+    <div style="font-size:12px;color:#889;margin-top:5px">Set to <b>turn ${s.n}</b> — hit ▶ to watch it play out. <a href="https://replay.pokemonshowdown.com/${KAD.id}?turn=${s.n}" target="_blank" rel="noopener">open in a new tab</a> · <a href="#" onclick="renderKad();return false">simplified view</a></div>
+    <div class="kadstep" style="margin-top:12px"><button onclick="kadNav(-1)">◀ prev moment</button><span style="color:#99a;letter-spacing:3px">${keys.map((k,i)=>i===kadI?'●':'○').join('')}</span><button onclick="kadNav(1)">next moment ▶</button></div>`;
 }
 function kadMe(){ const e=document.getElementById('kdme'); return e?e.value:''; }
 function kadFromLog(log, me){ const out=document.getElementById('kdout');
@@ -896,7 +901,7 @@ function bmon(m,back){ if(!m||!m.sp) return '<div class="bmon"></div>';
     <div class="hpbar"><i style="width:${Math.max(0,m.hp)}%;background:${hpc(m.hp)}"></i></div>
     <img src="${url}" onerror="sprFallback(this)"></div>`; }
 function renderKad(){
-  const wrap=document.getElementById('kdout'); if(!KAD)return;
+  const wrap=document.getElementById('kdout'); if(!KAD)return; kadMode='scene';
   const s=kadKeys[kadI], last=KAD.scenes[KAD.scenes.length-1].n;
   const kindColor={loss:'#ff6b6b',threat:'#ffb03a',good:'#5fd07a'}[s.kind]||'#7a6bff';
   const dots=kadKeys.map((k,i)=>`<span class="kdot ${i===kadI?'on':''}" onclick="kadGo(${i})"></span>`).join('');
@@ -912,7 +917,7 @@ function renderKad(){
       <div class="bubble" style="border-color:${kindColor}"><b>${s.kind==='good'?'Well played':'What to do'}:</b> ${s.coach||s.note}</div></div>
     <div class="kadstep"><button onclick="kadNav(-1)">◀ prev</button>${dots}<button onclick="kadNav(1)">next ▶</button></div>`;
 }
-function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); renderKad(); }
+function kadNav(d){ if(!kadKeys.length)return; kadI=Math.max(0,Math.min(kadKeys.length-1,kadI+d)); (kadMode==='embed'?renderKadEmbed:renderKad)(); }
 function kadGo(i){ kadI=i; renderKad(); }
 /* ===== PokePaste support — accepts ANY species ===== */
 function spriteName(raw){

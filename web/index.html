@@ -793,7 +793,7 @@ function runDitto(){
         <div style="height:16px;background:#ffe0f1;border:2px solid var(--line);border-radius:99px;overflow:hidden;margin-top:6px"><div style="height:100%;width:${bp}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
         <div style="font-size:11px;color:#99a;margin-top:4px">best-responding to the Nash-solved meta (${(typeof META_NASH!=='undefined'?META_NASH.arch.map(a=>a.n):['meta']).join(' / ')}) · full sets are the most common on the ladder</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">`+team.map(setCard).join('')+`</div>`+
       `<div style="margin-top:16px"><div style="font-weight:800;margin-bottom:8px;font-size:15px">How your team does vs the meta</div>
         <table style="width:100%;border-collapse:collapse;font-size:13.5px">
          <tbody>`+perArch.map(p=>`<tr><td style="padding:7px 8px;font-weight:700;white-space:nowrap">${p.n} <span style="color:#bbb;font-weight:500;font-size:11px">${Math.round(p.w*100)}% of meta</span></td><td style="padding:7px 8px;width:62%"><div style="height:20px;background:#f0e6ea;border-radius:10px;overflow:hidden"><div style="height:100%;width:${p.v}%;background:${p.v>=50?'linear-gradient(90deg,#7fe0a0,#2fb45f)':'linear-gradient(90deg,#f2a6b4,#e05a72)'};transition:width .5s"></div></div></td><td style="padding:7px 8px;text-align:right;font-weight:800;font-size:15px;color:${p.v>=50?'#1a9a4a':'#d23b3b'}">${p.v}%</td></tr>`).join('')+`</tbody></table>
