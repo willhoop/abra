@@ -12,7 +12,7 @@
  *   /api/ditto?seed=team                -> team optimiser (slow ~30s)  (needs Python)
  */
 const http=require('http'), fs=require('fs'), path=require('path'), {spawn}=require('child_process');
-const ROOT=__dirname, WEB=path.join(ROOT,'web');
+const ROOT=__dirname, WEB=path.join(ROOT, require('fs').existsSync(path.join(ROOT,'app','index.html'))?'app':'web');
 const PY = process.platform==='win32' ? 'python' : 'python3';
 const PORT=process.env.PORT||8790;
 
