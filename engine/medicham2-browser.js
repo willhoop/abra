@@ -96,7 +96,7 @@ function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)
 // take an obvious KO, and Protect defensively when threatened. This is the whole point of the model —
 // the win rate is the expected outcome under *realistic* play by both sides, not optimal play.
 function chooseAction(me,foes,ally,field,side,rng){
-  if(me.status==='slp'&&me.slp>0)return{kind:'sleep'};
+  // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
@@ -128,7 +128,7 @@ function chooseAction(me,foes,ally,field,side,rng){
 function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;
   if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
   if(m.status==='par')s*=0.5;return s;}
-function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slp=1+(Math.random()*2|0);}
+function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;}
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   const field={weather:null,weatherT:0,twA:0,twB:0,tr:0};
@@ -151,8 +151,9 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
     for(const it of acts){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
-      if(m.status==='par'&&rng()<0.25)continue;
-      if(m.status==='slp'){if(m.slp>0){m.slp--;continue;}else m.status='';}
+      if(m.status==='par'&&rng()<0.125)continue;   // Champions: 12.5% full-para (was 25%)
+      if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25)m.status='';else continue;}   // Champions: 25%/attempt, guaranteed thaw turn 3
+      if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;if(m.slpTurns>=3||(m.slpTurns===2&&rng()<1/3))m.status='';else continue;}   // Champions: 33% wake turn 2, 100% turn 3
       const a=it.a;
       if(a.kind==='setup'){m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);continue;}
       if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
