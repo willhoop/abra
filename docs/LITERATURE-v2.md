@@ -166,6 +166,54 @@ Every phase ships an honest metric with a CI and a baseline (the review's bar), 
 
 ---
 
+## 5b. Cross-domain inspiration — other games & fields that solved pieces of our problem
+
+Widening the lens beyond poker/Pokémon; each of these cracked something we need.
+
+- **Stratego → DeepNash / R-NaD** (DeepMind, *Science* 2022): expert play on a game with **hidden piece
+  identities** (our hidden sets) and a 10^535 tree, **model-free, NO search**, via **Regularized Nash
+  Dynamics** that converges to a robust ε-Nash instead of cycling. *Lesson:* we may not need a perfect
+  simulator+search for ALAKAZAM — an **R-NaD self-play policy** can be robustly unexploitable on its own.
+  Strong evidence for the learning-first (Phase 1) path, and R-NaD specifically handles hidden info.
+- **StarCraft II → AlphaStar** (DeepMind 2019): grandmaster via a **league** (PSRO-like) — a growing
+  pool of agents, best-responses, and a **Nash mixture** to stay robust; and crucially **"scouting"** =
+  actively spending actions to *reduce belief uncertainty*. *Lessons:* (1) build the strategic layer
+  (SLOWKING/DITTO) as a **league / PSRO with Nash-mixture selection** (also VGC-Bench's recommendation);
+  (2) **information-gathering has value** — ALAKAZAM should reward moves that reveal the opponent's set
+  (Protect to scout, forcing reveals), not just immediate damage.
+- **Diplomacy → CICERO / piKL** (Meta, *Science* 2022): tournament-winning play by **human-regularized
+  RL** — maximize expected value **while staying KL-close to a behaviour-clone "anchor" policy.** Pure RL
+  drifts into weird, exploitable, non-human lines; anchoring to human data keeps it strong *and*
+  human-realistic. *Lesson (important):* **ALAKAZAM should be EV-maximizing but KL-anchored to our
+  behaviour-clone.** This is likely the direct cure for MEDICHAM's inversion — the greedy, un-anchored
+  best-response drifted into a biased corner; a piKL-style anchor keeps the policy near real play.
+- **Sports analytics → xG / EPV / EPA / WPA:** an entire mature field that abandoned predicting rare,
+  noisy **outcomes** in favor of **expected-value of decisions** — expected goals (shot quality),
+  expected possession value, expected points added. xG is *more consistent than actual goals* precisely
+  because it smooths variance. *Lesson (framing):* this is our thesis, validated by a real discipline.
+  **CHOMP = "xG for team preview"** (expected value of a bring), **ALAKAZAM = "EPV per move."** Judge and
+  present everything as expected value with calibration, never as an outcome oracle — and it's a great
+  public analogy for why "can't predict the winner" ≠ "useless."
+- **Fighting games / RPS mind-games:** simultaneous-move mixups where the *only* unexploitable play is a
+  **mixed strategy** — being deterministic is being exploitable. *Lesson:* per-turn decisions (Protect
+  vs attack vs switch) must be **mixed** (regret matching), and "predictability" is itself a measurable
+  weakness we can coach.
+- **Card-game drafting (MTG / Hearthstone):** the origin of the word **"metagame"** and of non-transitive
+  deck-matchup matrices; drafting is sequential expected-value under uncertainty. *Lesson:* DITTO's
+  team-building is a **draft/EV** problem, and the meta is rated by **Nash-averaging**, not a scalar.
+- **Chess engines → NNUE** (efficiently-updatable neural evaluation): a small, fast, incrementally-updated
+  neural leaf-eval that made search dramatically stronger. *Lesson:* the ALAKAZAM **leaf value net**
+  should be small and fast (updatable as HP/board changes), so search stays cheap.
+- **Quant finance / betting → Kelly & calibration:** you can't predict one event, but a **calibrated
+  edge** compounded with proper **bet-sizing (Kelly)** wins long-run. *Lesson:* CHOMP/ALAKAZAM should
+  emit a **calibrated edge**, and confidence must be honest (reliability-tested), not theatrical.
+
+**Synthesis of the cross-domain read:** the convergent recipe across Stratego, StarCraft, Diplomacy, and
+poker is — **learn a policy/value by self-play from human data, keep it near human play (KL-anchor),
+select strategies by a Nash mixture for robustness, and (optionally) add depth-limited search for
+tactical exactness.** And sports analytics tells us how to *evaluate and present* it: expected value,
+calibrated, never outcome-prediction. That is exactly ALAKAZAM (inner) + SLOWKING (outer).
+
 ## 6. One-paragraph thesis
 
 Stop predicting who wins — that's the format's irreducible ceiling and even Elo can't beat it. Build a
@@ -186,3 +234,9 @@ judged by decision quality and self-play win-rate with CIs and baselines — not
 - DeepStack (Moravčík et al. 2017) · Libratus (Brown & Sandholm 2018) · Player of Games (Schmid et al. 2021)
 - CFR (Zinkevich 2007) · MCCFR (Lanctot 2009)
 - Chen & Joachims, Modeling Intransitivity (WSDM 2016) · Balduzzi et al., Re-evaluating Evaluation (NeurIPS 2018)
+- DeepNash / R-NaD (Stratego, Science 2022) — https://arxiv.org/abs/2206.15378
+- AlphaStar (StarCraft II, league/PSRO) — https://deepmind.google/blog/alphastar-mastering-the-real-time-strategy-game-starcraft-ii/
+- Pipeline PSRO — https://arxiv.org/abs/2006.08555
+- CICERO / piKL (Diplomacy, human-regularized RL) — https://arxiv.org/abs/2210.05492 · KL-regularized search https://arxiv.org/abs/2112.07544
+- Search in Imperfect Information Games (survey) — https://arxiv.org/abs/2111.05884
+- Sports analytics methodology (expected-value over outcomes) — https://link.springer.com/article/10.1007/s10994-024-06585-0
