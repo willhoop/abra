@@ -13,6 +13,35 @@
 
 ---
 
+## 0. The CHOMP–JOLTEON–win% dynamic, in one place
+
+Three things people conflate, separated:
+
+- **JOLTEON predicts the winner.** Given two team sheets, it outputs a calibrated win *probability*. It
+  is a forecaster. Its accuracy is ~55%.
+- **CHOMP decides what to do.** Given your six and theirs, it picks the four to bring and two to lead by
+  exact damage. It is a decision engine. It does not forecast a winner at all.
+- **Winning percentage is the ceiling both live under.** This study shows the game only lets the better
+  side win ~55%, rising to ~58% with a big edge. That number is set by the game's variance, not by any
+  model.
+
+How they relate:
+
+1. **As predictors, CHOMP and JOLTEON would be near-identical in accuracy** (~55–56%) — because both read
+   only the team sheet, and the sheet's predictive power is capped at the ceiling. They differ in *how*
+   they reach it (JOLTEON = learned species strengths; CHOMP = exact damage), so they make **different
+   mistakes**, which is why you combine them (CHOMP's damage score as a feature in JOLTEON) rather than
+   pick one.
+2. **CHOMP raises your win% a different way than JOLTEON measures it.** JOLTEON tells you the pre-game
+   odds; it cannot change them. CHOMP acts *inside* the game — bringing the right four — which moves the
+   part of the outcome the forecaster can't see. So CHOMP improves winning *by deciding well*, not by
+   predicting well.
+3. **The ceiling is the whole point.** Because pre-game prediction caps at ~55–58%, the leverage is
+   downstream of the sheet: in-game decisions (CHOMP now; MEDICHAM/SLOWKING deeper) and team building
+   against the meta (DITTO). Prediction is nearly maxed out; *decisions and construction are not.*
+
+The rest of this study is the evidence for that ceiling.
+
 ## 1. Why this matters
 
 Every model in ABRA that predicts a *winner before the game* — JOLTEON today, a calibrated CHOMP

@@ -1,16 +1,20 @@
 {
   "title": "ABRA — The Special Cut",
-  "subtitle": "The whole story, front to back: cheat card, the map of the models, then executive summary → deck → white papers → coach spec.",
+  "subtitle": "The whole story, front to back: the cast, how they interact, the win-probability ceiling, and every white paper.",
   "author": "Will Hooper",
-  "note": "A single consecutive read of everything ABRA. Start at the cheat card, glance at the interaction chart, then read straight through. Updated in the same pass as the code it describes.",
+  "note": "A single consecutive read of everything ABRA. Start at the cheat card, glance at the interaction chart, read the predictability study for the CHOMP/JOLTEON/win% dynamic, then the white papers. Updated in the same pass as the code.",
   "out": "docs/ABRA-Special-Cut.pdf",
   "sections": [
     {"label": "The cast, on one card", "file": "docs/MODELS-CHEATSHEET.md"},
     {"label": "How the models interact", "file": "docs/architecture-diagram.svg", "kind": "image"},
     {"label": "Executive Summary", "file": "docs/EXECUTIVE-SUMMARY.md"},
     {"label": "The Deck (plain English)", "file": "docs/ABRA-deck-plain-english.md"},
+    {"label": "Predictability Study — CHOMP, JOLTEON & the win% ceiling", "file": "docs/predictability-study.md"},
     {"label": "White Paper — the data platform", "file": "docs/ABRA-whitepaper.md"},
     {"label": "White Paper — learning the simulator (the ML)", "file": "docs/ABRA-simulator-whitepaper.md"},
-    {"label": "KADABRA — the coach spec", "file": "docs/KADABRA-coach-spec.md"}
+    {"label": "White Paper — SLOWKING (offline belief-state search)", "file": "docs/SLOWKING-whitepaper.md"},
+    {"label": "SLOWKING — research roadmap", "file": "docs/SLOWKING-research-roadmap.md"},
+    {"label": "KADABRA — the coach spec", "file": "docs/KADABRA-coach-spec.md"},
+    {"label": "Architecture notes (languages, server, recency)", "file": "docs/ARCHITECTURE-NOTES.md"}
   ]
 }
