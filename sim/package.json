@@ -1,0 +1,13 @@
+{
+  "name": "abra-sim",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ABRA engine adapter — run real Champions battles in the open-source Showdown sim (self-play, exact rollouts).",
+  "type": "commonjs",
+  "scripts": {
+    "selfplay": "node selfplay.js"
+  },
+  "dependencies": {
+    "pokemon-showdown": "^0.11.9"
+  }
+}
