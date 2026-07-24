@@ -1,6 +1,6 @@
 # ABRA — System Architecture and Engineering Standards
 
-**Version 1.1 · 2026-07-24 · Will Hooper**
+**Version 1.2 · 2026-07-24 · Will Hooper**
 
 A review of the whole system, the rules that follow from it, and how those rules are enforced.
 This document is deliberately blunt. Every fault named here is one this project actually shipped,
@@ -199,6 +199,12 @@ engine changes — which is why none of the faults above reached them.
   parsed with `eval()`). It should be a real data file with a generator. This is the single largest
   remaining violation of S1 and is the reason fault 1.4 was possible.
 - **The site's embedded engine copy** (`web/index.html`) is not yet covered by the contract test.
+- **The rollout engine applies a RANDOM status** (`medicham2-browser.js:205` picks from
+  `['brn','par','slp']` uniformly) and **only Fake Out can flinch** (`:222`). This is fault 1.1
+  recurring: the shared rulebook was built, tested, and never plugged in, so the rollout kept a
+  second and worse one. Highest-severity open item.
+- **Only 25.4% of stored games are clean** — 55.7% involve a bot, 24.0% end in a forfeit, 8.1% run
+  under three turns. There is no shared quality filter, so each model decides for itself.
 - **Secondary effects are defined but not yet consumed by the rollout engine** — the rulebook exists
   and is tested at the point of definition; wiring it into turn simulation is outstanding.
 - **`brought` is still 5 in ~115 games** and 0 in 176; not yet explained.

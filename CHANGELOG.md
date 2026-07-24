@@ -10,6 +10,37 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.0.2] — 2026-07-24
+
+### Fixed — a store check that was aimed away from the fault
+`sanity_check.py` reported "no duplicate ids" while the store held **401 duplicates**. It read only
+the first 5,000 lines; the duplicates all sat past line 7,144. Duplicates enter an append-only log at
+the **end**, which is exactly the region a head-sample cannot see, so the check passed 95/95 on a
+store that was 5% duplicated. The duplicate scan now shares the existing full-file pass.
+
+- Store deduplicated: **7,948 -> 7,547 unique games.**
+- `engine/dedupe_store.py` is new: idempotent, order-preserving, atomic rewrite.
+
+### Notes — where the duplicates come from
+Not from the ingest. `durable-ingest.js` reads every stored id before appending and refuses repeats.
+They come from **git**: an append-only file reconciled by a non-fast-forward merge replays the
+appended block. This happened once before (7,040 duplicates from `merge -X ours`). Because the cause
+is outside the ingest, a one-off cleanup cannot hold, which is why the fix is a re-runnable script
+plus a check that actually looks at the whole file.
+
+Counts computed before this pass were inflated by ~5%, and duplicated rows narrow confidence
+intervals without adding information. Models have not yet been re-run on the deduplicated store.
+
+### Notes — the rollout engine is NOT to standard (found, not yet fixed)
+Two defects in `engine/medicham2-browser.js`, recorded here rather than silently carried:
+- **Status moves apply a uniformly random status.** Line 205 picks from `['brn','par','slp']` at
+  random, so Thunder Wave burns a third of the time and Will-O-Wisp can paralyse.
+- **Only Fake Out can flinch.** Rock Slide's 30% flinch does nothing in simulation.
+The shared rulebook (`data/move-effects.json`, 954 moves, 211 with a secondary, 33 flinch) exists and
+is tested, but the rollout does not read it — a second, worse rulebook that fault 1.1 predicted.
+
+---
+
 ## [3.0.1] — 2026-07-24
 
 ### Fixed — two of the twenty-five natures were missing
