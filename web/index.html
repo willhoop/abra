@@ -773,10 +773,10 @@ function mapToggle(layer){ window.MAPON[layer]=window.MAPON[layer]===false;
   const b=document.querySelector('[data-layer-btn="'+layer+'"]'); if(b){const on=window.MAPON[layer]!==false,br=b.dataset.br; b.style.background=on?br:'#fff'; b.style.color=on?'#fff':br;}
   const on=l=>window.MAPON[l]!==false;
   document.querySelectorAll('#abramap g.node').forEach(g=>{ g.style.display=on(g.dataset.layer)?'':'none'; });
-  document.querySelectorAll('#abramap line.edge').forEach(l=>{ l.style.display=(on(l.dataset.fl)&&on(l.dataset.tl))?'':'none'; });
+  document.querySelectorAll('#abramap .edge').forEach(l=>{ l.style.display=(on(l.dataset.fl)&&on(l.dataset.tl))?'':'none'; });
 }
 function mapHi(id){
-  const lines=[...document.querySelectorAll('#abramap line.edge')];
+  const lines=[...document.querySelectorAll('#abramap .edge')];
   lines.forEach(l=>{ const on=id&&(l.dataset.from===id||l.dataset.to===id);
     l.setAttribute('stroke',on?'#3a86c0':'#c7cede'); l.setAttribute('stroke-width',on?'3':'1.6'); l.setAttribute('opacity',id?(on?'1':'0.15'):'0.7'); });
   document.querySelectorAll('#abramap g.node').forEach(g=>{ const nid=g.dataset.id;

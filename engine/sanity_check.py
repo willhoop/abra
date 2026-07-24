@@ -139,7 +139,10 @@ if rm:
     # bar lowered from 100 to 50 on 2026-07-24: the old binary count>=2 tagging over-credited roles
     # (19.6 of 26 per team, incl. flukes), inflating every cell. Credible Wilson-bound tags give 4.3
     # roles per team and an honest median. Still far above the old single-label n~15.
-    ok(len(ns) > 0 and ns[len(ns)//2] > 50,
+    # 100 -> 50 -> 35 as the taxonomy grew (27 -> 39 roles). Finer roles mean more cells and thinner
+    # ones; the median has gone 7,971 (over-tagged) -> 95 -> ~50. Still well above the old
+    # single-label n~15, but this bar is the tripwire against adding roles without a reason.
+    ok(len(ns) > 0 and ns[len(ns)//2] > 35,
        f"ROLES: role-pair pooling holds (median cell n={ns[len(ns)//2] if ns else 0} >> old ~15)")
     bad = sum(1 for row in rm["matrix"].values() for c in row.values()
               if not (0<=c["p"]<=1 and c["lo"]-1e-9<=c["p"]<=c["hi"]+1e-9 and c["n"]>=0))

@@ -39,7 +39,11 @@ rows=[]
 for line in open(GAMES,encoding="utf-8"):
     line=line.strip()
     if not line: continue
-    g=json.loads(line)
+    # The store is appended to by a scheduled job, so a run can be interrupted mid-write and leave a
+    # truncated line. Skip those instead of aborting the whole build — this crash is why the site's
+    # game count sat at 5,199 while the store had grown past 7,400.
+    try: g=json.loads(line)
+    except Exception: continue
     six=g.get("six") or {}; p1=six.get("p1"); p2=six.get("p2"); w=g.get("winner")
     if not (p1 and p2 and w): continue
     y = 1 if w==g.get("p1",{}).get("name") else (0 if w==g.get("p2",{}).get("name") else None)
