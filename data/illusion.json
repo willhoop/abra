@@ -1,0 +1,217 @@
+{
+ "generated": "2026-07-24",
+ "n_games": 14355,
+ "team_sides_with_a_zoroark": 395,
+ "detections": 156,
+ "detection_rate_per_zoroark_side": 0.3949,
+ "method": "A flag requires a legality contradiction: the apparent species cannot learn the move and Zoroark can. Learnsets from Showdown, walked through prevo/base forms. Species with no learnset data are skipped, so this is a FLOOR on how often Illusion was used, not an estimate.",
+ "caveat": "Illusion is only caught when the disguise actually clicks a Zoroark-exclusive move. A Zoroark that only used shared coverage, or that was broken by a hit before moving, is invisible to this test.",
+ "most_common_disguises": [
+  {
+   "name": "whimsicott",
+   "n": 16
+  },
+  {
+   "name": "vivillonpokeball",
+   "n": 10
+  },
+  {
+   "name": "garchomp",
+   "n": 8
+  },
+  {
+   "name": "hydreigon",
+   "n": 8
+  },
+  {
+   "name": "overqwil",
+   "n": 8
+  },
+  {
+   "name": "charizard",
+   "n": 7
+  },
+  {
+   "name": "chandelure",
+   "n": 6
+  },
+  {
+   "name": "farigiraf",
+   "n": 6
+  },
+  {
+   "name": "gholdengo",
+   "n": 4
+  },
+  {
+   "name": "glimmora",
+   "n": 4
+  },
+  {
+   "name": "ampharos",
+   "n": 4
+  },
+  {
+   "name": "archaludon",
+   "n": 4
+  }
+ ],
+ "most_revealing_moves": [
+  {
+   "name": "hypervoice",
+   "n": 32
+  },
+  {
+   "name": "bittermalice",
+   "n": 30
+  },
+  {
+   "name": "icywind",
+   "n": 19
+  },
+  {
+   "name": "flamethrower",
+   "n": 14
+  },
+  {
+   "name": "shadowball",
+   "n": 14
+  },
+  {
+   "name": "willowisp",
+   "n": 10
+  },
+  {
+   "name": "nastyplot",
+   "n": 8
+  },
+  {
+   "name": "sludgebomb",
+   "n": 6
+  },
+  {
+   "name": "memento",
+   "n": 4
+  },
+  {
+   "name": "nightdaze",
+   "n": 4
+  },
+  {
+   "name": "darkpulse",
+   "n": 2
+  },
+  {
+   "name": "focusblast",
+   "n": 2
+  }
+ ],
+ "species_without_learnset_data": [],
+ "examples": [
+  {
+   "game": "gen9championsvgc2026regmb-2653450644",
+   "side": "p2",
+   "appeared_as": "weavile",
+   "move": "flamethrower",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653450644",
+   "side": "p2",
+   "appeared_as": "gholdengo",
+   "move": "icywind",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653439727",
+   "side": "p2",
+   "appeared_as": "sinistchamasterpiece",
+   "move": "flamethrower",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653412433",
+   "side": "p1",
+   "appeared_as": "heracross",
+   "move": "nastyplot",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653409689",
+   "side": "p1",
+   "appeared_as": "mausholdfour",
+   "move": "shadowball",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653372519",
+   "side": "p2",
+   "appeared_as": "whimsicott",
+   "move": "icywind",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653359804",
+   "side": "p1",
+   "appeared_as": "tsareena",
+   "move": "darkpulse",
+   "zoroark": "zoroark"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653355913",
+   "side": "p1",
+   "appeared_as": "chandelure",
+   "move": "bittermalice",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653355913",
+   "side": "p1",
+   "appeared_as": "chandelure",
+   "move": "focusblast",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653355913",
+   "side": "p1",
+   "appeared_as": "chandelure",
+   "move": "hypervoice",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653352285",
+   "side": "p2",
+   "appeared_as": "gliscor",
+   "move": "icywind",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653347316",
+   "side": "p1",
+   "appeared_as": "maushold",
+   "move": "shadowball",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653350356",
+   "side": "p1",
+   "appeared_as": "dragonite",
+   "move": "shadowball",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653344227",
+   "side": "p1",
+   "appeared_as": "floetteeternal",
+   "move": "hypervoice",
+   "zoroark": "zoroarkhisui"
+  },
+  {
+   "game": "gen9championsvgc2026regmb-2653330738",
+   "side": "p2",
+   "appeared_as": "vivillonpokeball",
+   "move": "hypervoice",
+   "zoroark": "zoroarkhisui"
+  }
+ ]
+}
