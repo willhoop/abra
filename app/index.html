@@ -907,7 +907,7 @@ function renderRoleSpecies(q){
     const s=R.species[n];
     const rows=Object.entries(s.r).slice(0,7).map(([role,v],i)=>{
       const [p,lo,hi]=v, pct=(p*100).toFixed(0);
-      return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0" title="${R.labels[role]} — ${(p*100).toFixed(1)}% of ${s.n} revealed sets (95% CI ${(lo*100).toFixed(1)}–${(hi*100).toFixed(1)}%)">
+      return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0" title="${R.labels[role]} on ${Math.round(p*100)}% of the ${s.n} sets we have seen">
         <span style="width:150px;font-size:11.5px;color:#5a6472;font-weight:700;text-align:right;flex:none">${R.labels[role]}</span>
         <span style="flex:1;height:11px;background:#eef1f6;border-radius:99px;overflow:hidden;display:block">
           <span style="display:block;height:100%;width:${Math.max(2,p*100)}%;background:${PAL[i%PAL.length]}"></span></span>
@@ -994,7 +994,7 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
     const c=gc(a,b);
     if(!c)return `<td title="no games yet" style="background:#f6f7fb;text-align:center;color:#c7cede;font-weight:700">–</td>`;
     const p=Math.round(c.p*100), sig=isSig(c);
-    const tip=`${a} beats ${b}: ${p}% (95% CI ${Math.round(c.lo*100)}–${Math.round(c.hi*100)}%, n=${c.n})${sig?'':' — thin / not yet significant'}`;
+    const tip=`${a} beats ${b} ${p}% of the time, across ${c.n} games${sig?'':' — too few games to trust yet'}`;
     if(!sig)return `<td title="${tip}" style="background:#f4f5f8;text-align:center;font-weight:700;font-size:13px;padding:8px 10px;color:#b7c0cf;cursor:help">${p}<span style="font-size:9px">*</span></td>`;
     const col=c.p>=0.5?`rgba(47,180,95,${(0.2+0.7*(c.p-0.5)*2).toFixed(2)})`:`rgba(224,90,114,${(0.2+0.7*(0.5-c.p)*2).toFixed(2)})`;
     return `<td title="${tip}" style="background:${col};text-align:center;font-weight:800;font-size:14px;padding:8px 10px;color:#122;cursor:help">${p}</td>`; };
@@ -1005,7 +1005,7 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
     ${(window.GURU&&GURU.decisive&&GURU.decisive.length)?`
     <div style="background:#eefaf1;border:3px solid #2fb45f;border-radius:16px;padding:14px 18px;margin-bottom:18px">
       <div style="font-weight:800;font-size:18px;color:#1a7a42">GURU — real matchups, from actual games</div>
-      <div style="font-weight:600;color:#5a6b60;font-size:14px;margin:4px 0 12px">Win rates measured from ${(GURU.n_games||0).toLocaleString()} real games (not the simulator), with 95% confidence intervals. These are the matchups we can actually trust.</div>
+      <div style="font-weight:600;color:#5a6b60;font-size:14px;margin:4px 0 12px">Win rates measured from ${(GURU.n_games||0).toLocaleString()} real games (not the simulator), These are the matchups we can actually trust.</div>
       ${(()=>{const seen=new Set(),rows=[];for(const d of GURU.decisive){const k=[d.a,d.b].sort().join('||');if(seen.has(k))continue;seen.add(k);rows.push(d.p>=0.5?d:{a:d.b,b:d.a,p:1-d.p,ci:[1-d.ci[1],1-d.ci[0]]});}return rows.slice(0,8);})().map(d=>`<div title="range ${Math.round(d.ci[0]*100)}-${Math.round(d.ci[1]*100)}% across the games we have" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         <div style="flex:1;font-weight:700;font-size:14px;text-align:right">${d.a}</div>
         <div style="width:110px;height:22px;background:#e6efe9;border-radius:11px;overflow:hidden"><div style="height:100%;width:${Math.round(d.p*100)}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
@@ -1016,7 +1016,7 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
     <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:800;font-size:15px;color:#556;padding:6px 0">See the full win-rate grid (green = row beats column)</summary>
       <div style="overflow-x:auto">${table}</div></details>
     <div style="margin-top:14px;padding:12px 14px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:12px;font-size:14px;color:#8a6d2a;font-weight:600;line-height:1.5">
-      <b>Live from real games — not simulated.</b> Every cell is measured from actual ladder results with a Wilson 95% CI; hover any cell for its sample size. Cells marked <b>*</b> and greyed are <b>thin or not yet statistically significant</b> (the CI still crosses 50%), so treat them as unknown until more games arrive. Only the coloured cells are claims we stand behind. New archetypes appear here automatically as GURU identifies them.</div>`;
+      <b>Live from real games — not simulated.</b> Every cell is counted from real ladder results — hover any cell to see how many games it rests on. Greyed cells marked <b>*</b> do not have enough games yet to be trusted, so treat them as unknown. Only the coloured cells are claims we stand behind. New archetypes appear here automatically as GURU identifies them.</div>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }
@@ -1084,7 +1084,7 @@ function runMedichamRoom(){
     if(p==null){out.textContent='Could not build those teams — try more common species.';return;}
     const mp=Math.round(p*100), ci=Math.round(196*Math.sqrt(p*(1-p)/N)), jp=Math.round(pwin(teamA,teamB)*100), gap=Math.abs(jp-mp);
     const y=document.getElementById('mcYou'); if(y){ y.style.width=mp+'%'; document.getElementById('mcYouL').textContent=mp+'%'; document.getElementById('mcRivL').textContent=(100-mp)+'%'; }
-    out.innerHTML=`Grounded win rate for <b>your</b> team: <b>${mp}% ± ${ci}</b> <span style="color:#889;font-weight:500">(95% CI over ${N} rollouts)</span>. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<=ci?'They agree within the noise.':`Gap of <b>${gap} pts</b> — beyond the noise, MEDICHAM actually played it out, so trust it over JOLTEON here.`);
+    out.innerHTML=`Grounded win rate for <b>your</b> team: <b>${mp}%</b> <span style="color:#889;font-weight:500">(give or take ${ci}, over ${N} played-out games)</span>. JOLTEON guessed <b>${jp}%</b> from the sheet alone. `+(gap<=ci?'They agree within the noise.':`Gap of <b>${gap} pts</b> — beyond the noise, MEDICHAM actually played it out, so trust it over JOLTEON here.`);
   },20);
 }
 /* ===== DITTO — in-browser team optimiser (no server) ===== */
