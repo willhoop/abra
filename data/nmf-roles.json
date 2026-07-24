@@ -1,0 +1,581 @@
+{
+ "generated": "2026-07-24",
+ "method": "Non-negative Matrix Factorization of the usage-weighted (team-side x move) matrix. Roles are discovered, not declared; a move's loading is learned. Rank and labels are the two human choices \u2014 factors are auto-suggested a name by curated-role overlap only.",
+ "rank": 10,
+ "n_documents": 13025,
+ "n_moves": 221,
+ "min_move_uses": 40,
+ "reconstruction_error_ratio": 0.7922,
+ "factors": [
+  {
+   "id": "R1",
+   "prevalence": 0.126,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 3,
+   "top_moves": [
+    {
+     "move": "Fake Out",
+     "loading": 0.513
+    },
+    {
+     "move": "Flare Blitz",
+     "loading": 0.101
+    },
+    {
+     "move": "Parting Shot",
+     "loading": 0.087
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.054
+    },
+    {
+     "move": "Trick Room",
+     "loading": 0.049
+    },
+    {
+     "move": "Perish Song",
+     "loading": 0.032
+    },
+    {
+     "move": "Zap Cannon",
+     "loading": 0.029
+    },
+    {
+     "move": "Kowtow Cleave",
+     "loading": 0.028
+    },
+    {
+     "move": "Thunderbolt",
+     "loading": 0.027
+    },
+    {
+     "move": "Throat Chop",
+     "loading": 0.027
+    },
+    {
+     "move": "Dire Claw",
+     "loading": 0.027
+    },
+    {
+     "move": "Shadow Ball",
+     "loading": 0.026
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "prevalence": 0.118,
+   "suggested_label": "Special attacker",
+   "suggested_role": "spec_attacker",
+   "overlap": 5,
+   "top_moves": [
+    {
+     "move": "Heat Wave",
+     "loading": 0.782
+    },
+    {
+     "move": "Weather Ball",
+     "loading": 0.037
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.025
+    },
+    {
+     "move": "Psychic",
+     "loading": 0.025
+    },
+    {
+     "move": "Sludge Bomb",
+     "loading": 0.023
+    },
+    {
+     "move": "Solar Beam",
+     "loading": 0.022
+    },
+    {
+     "move": "Sleep Powder",
+     "loading": 0.019
+    },
+    {
+     "move": "Aqua Jet",
+     "loading": 0.019
+    },
+    {
+     "move": "Flip Turn",
+     "loading": 0.012
+    },
+    {
+     "move": "Encore",
+     "loading": 0.012
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.011
+    },
+    {
+     "move": "Hyper Beam",
+     "loading": 0.011
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "prevalence": 0.112,
+   "suggested_label": "Special attacker",
+   "suggested_role": "spec_attacker",
+   "overlap": 7,
+   "top_moves": [
+    {
+     "move": "Electro Shot",
+     "loading": 0.275
+    },
+    {
+     "move": "Hurricane",
+     "loading": 0.165
+    },
+    {
+     "move": "Weather Ball",
+     "loading": 0.126
+    },
+    {
+     "move": "Dragon Pulse",
+     "loading": 0.111
+    },
+    {
+     "move": "Flash Cannon",
+     "loading": 0.1
+    },
+    {
+     "move": "Sludge Bomb",
+     "loading": 0.05
+    },
+    {
+     "move": "Wave Crash",
+     "loading": 0.036
+    },
+    {
+     "move": "Earth Power",
+     "loading": 0.035
+    },
+    {
+     "move": "Matcha Gotcha",
+     "loading": 0.03
+    },
+    {
+     "move": "Spirit Break",
+     "loading": 0.029
+    },
+    {
+     "move": "Light Screen",
+     "loading": 0.023
+    },
+    {
+     "move": "Wide Guard",
+     "loading": 0.021
+    }
+   ]
+  },
+  {
+   "id": "R4",
+   "prevalence": 0.107,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 4,
+   "top_moves": [
+    {
+     "move": "Wave Crash",
+     "loading": 0.353
+    },
+    {
+     "move": "Shadow Ball",
+     "loading": 0.154
+    },
+    {
+     "move": "Make It Rain",
+     "loading": 0.136
+    },
+    {
+     "move": "Stomping Tantrum",
+     "loading": 0.115
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.053
+    },
+    {
+     "move": "Aqua Jet",
+     "loading": 0.047
+    },
+    {
+     "move": "Eruption",
+     "loading": 0.041
+    },
+    {
+     "move": "Light of Ruin",
+     "loading": 0.026
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.021
+    },
+    {
+     "move": "Dazzling Gleam",
+     "loading": 0.021
+    },
+    {
+     "move": "Power Gem",
+     "loading": 0.017
+    },
+    {
+     "move": "Poison Jab",
+     "loading": 0.016
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "prevalence": 0.107,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 7,
+   "top_moves": [
+    {
+     "move": "Rock Slide",
+     "loading": 0.724
+    },
+    {
+     "move": "Knock Off",
+     "loading": 0.044
+    },
+    {
+     "move": "Iron Head",
+     "loading": 0.044
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.029
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.027
+    },
+    {
+     "move": "High Horsepower",
+     "loading": 0.024
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.022
+    },
+    {
+     "move": "Kowtow Cleave",
+     "loading": 0.022
+    },
+    {
+     "move": "Dual Wingbeat",
+     "loading": 0.021
+    },
+    {
+     "move": "Icy Wind",
+     "loading": 0.017
+    },
+    {
+     "move": "Scald",
+     "loading": 0.014
+    },
+    {
+     "move": "Flare Blitz",
+     "loading": 0.013
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "prevalence": 0.106,
+   "suggested_label": "Special attacker",
+   "suggested_role": "spec_attacker",
+   "overlap": 3,
+   "top_moves": [
+    {
+     "move": "Moonblast",
+     "loading": 0.492
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.318
+    },
+    {
+     "move": "Encore",
+     "loading": 0.057
+    },
+    {
+     "move": "Dazzling Gleam",
+     "loading": 0.045
+    },
+    {
+     "move": "Stomping Tantrum",
+     "loading": 0.019
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.014
+    },
+    {
+     "move": "Blizzard",
+     "loading": 0.01
+    },
+    {
+     "move": "Zap Cannon",
+     "loading": 0.01
+    },
+    {
+     "move": "Brave Bird",
+     "loading": 0.01
+    },
+    {
+     "move": "Foul Play",
+     "loading": 0.009
+    },
+    {
+     "move": "Dual Wingbeat",
+     "loading": 0.008
+    },
+    {
+     "move": "Solar Beam",
+     "loading": 0.008
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "prevalence": 0.087,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 5,
+   "top_moves": [
+    {
+     "move": "Close Combat",
+     "loading": 0.451
+    },
+    {
+     "move": "Matcha Gotcha",
+     "loading": 0.124
+    },
+    {
+     "move": "Psychic",
+     "loading": 0.077
+    },
+    {
+     "move": "Dual Wingbeat",
+     "loading": 0.058
+    },
+    {
+     "move": "Knock Off",
+     "loading": 0.057
+    },
+    {
+     "move": "Brave Bird",
+     "loading": 0.043
+    },
+    {
+     "move": "Rage Powder",
+     "loading": 0.041
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.034
+    },
+    {
+     "move": "Iron Head",
+     "loading": 0.034
+    },
+    {
+     "move": "Trick Room",
+     "loading": 0.028
+    },
+    {
+     "move": "Flare Blitz",
+     "loading": 0.027
+    },
+    {
+     "move": "Kowtow Cleave",
+     "loading": 0.027
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "prevalence": 0.086,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 3,
+   "top_moves": [
+    {
+     "move": "Hyper Voice",
+     "loading": 0.749
+    },
+    {
+     "move": "Quick Attack",
+     "loading": 0.056
+    },
+    {
+     "move": "Hyper Beam",
+     "loading": 0.036
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.031
+    },
+    {
+     "move": "Encore",
+     "loading": 0.024
+    },
+    {
+     "move": "Kowtow Cleave",
+     "loading": 0.023
+    },
+    {
+     "move": "Trick Room",
+     "loading": 0.021
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.019
+    },
+    {
+     "move": "Weather Ball",
+     "loading": 0.013
+    },
+    {
+     "move": "Iron Head",
+     "loading": 0.011
+    },
+    {
+     "move": "Flare Blitz",
+     "loading": 0.009
+    },
+    {
+     "move": "Thunderbolt",
+     "loading": 0.008
+    }
+   ]
+  },
+  {
+   "id": "R9",
+   "prevalence": 0.078,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 4,
+   "top_moves": [
+    {
+     "move": "Last Respects",
+     "loading": 0.766
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.072
+    },
+    {
+     "move": "Weather Ball",
+     "loading": 0.033
+    },
+    {
+     "move": "Quick Attack",
+     "loading": 0.026
+    },
+    {
+     "move": "Encore",
+     "loading": 0.024
+    },
+    {
+     "move": "Flip Turn",
+     "loading": 0.023
+    },
+    {
+     "move": "Hyper Beam",
+     "loading": 0.012
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.012
+    },
+    {
+     "move": "Spirit Break",
+     "loading": 0.011
+    },
+    {
+     "move": "Aqua Jet",
+     "loading": 0.01
+    },
+    {
+     "move": "Make It Rain",
+     "loading": 0.007
+    },
+    {
+     "move": "Earth Power",
+     "loading": 0.004
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "prevalence": 0.074,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 5,
+   "top_moves": [
+    {
+     "move": "Earthquake",
+     "loading": 0.705
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.049
+    },
+    {
+     "move": "Sucker Punch",
+     "loading": 0.044
+    },
+    {
+     "move": "Iron Head",
+     "loading": 0.031
+    },
+    {
+     "move": "Kowtow Cleave",
+     "loading": 0.028
+    },
+    {
+     "move": "Weather Ball",
+     "loading": 0.026
+    },
+    {
+     "move": "Hyper Beam",
+     "loading": 0.025
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.023
+    },
+    {
+     "move": "Matcha Gotcha",
+     "loading": 0.021
+    },
+    {
+     "move": "Wide Guard",
+     "loading": 0.017
+    },
+    {
+     "move": "Rage Powder",
+     "loading": 0.016
+    },
+    {
+     "move": "Discharge",
+     "loading": 0.015
+    }
+   ]
+  }
+ ]
+}
