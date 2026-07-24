@@ -108,7 +108,7 @@ ok(dup == 0, f"store: no duplicate ids in first {n} games ({dup} dup)")
 
 print("== 7. every engine + report file is present ==")
 engines = ["guru.py","xatu.py","pory.py","chomp_ev.js","slowking_preview.py","playstyle.js","cores.js",
-           "roles.py","war.py","nmf_roles.py","vocab.py","xatu_belief.py","counterplay.py","illusion.js",
+           "roles.py","war.py","nmf_roles.py","vocab.py","xatu_belief.py","xatu_context.py","counterplay.py","illusion.js",
            "validate_damage.js","medicham2-browser.js","jolteon.py","ditto.py","analyze.js","eval_policy.py",
            "durable-ingest.js","sanity_check.py","refresh-site-data.py"]
 for e in engines: ok(os.path.exists(D("engine", e)), f"engine/{e} present")
@@ -116,7 +116,7 @@ reports = ["damage-validation.json","pory-eval.json","chomp-ev.json","slowking-e
            "slowking-playstyle-eval.json","guru-matchups.json","playstyle-matchups.json","core-matchups.json",
            "policy-eval.json","winrate-backtest.json","value-net.json","meta-nash.json","meta-usage.json",
            "role-matchups.json","roles-eval.json","war.json","pokemon-roles.json",
-           "nmf-roles.json","vocab-usage.json","xatu-belief.json","counterplay.json","illusion.json"]
+           "nmf-roles.json","vocab-usage.json","xatu-belief.json","xatu-context.json","counterplay.json","illusion.json"]
 for r in reports: ok(os.path.exists(D("data", r)), f"data/{r} present")
 
 print("== 8. remaining models: direction + validity ==")
@@ -179,6 +179,14 @@ if xb:
     w = xb["where_the_gain_comes_from"]
     ok(w["belief_ce_on_those"] < w["usage_prior_ce_on_those"],
        "XATU: with all four moves known, the belief state beats the prior outright")
+
+xc = load("data", "xatu-context.json")
+if xc:
+    c = xc["cross_entropy"]; i = xc["improvement"]
+    ok(c["team_context"] < c["usage_prior"],
+       f"XATU/context: teammates help at preview ({c['team_context']} vs {c['usage_prior']})")
+    ok(i["ci95_clustered_by_game"][0] > 0,
+       f"XATU/context: the preview gain clears zero, CI {i['ci95_clustered_by_game']}")
 
 print(f"\nSANITY: {P} passed, {F} failed")
 sys.exit(1 if F else 0)
