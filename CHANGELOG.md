@@ -10,6 +10,45 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.10.0] — 2026-07-24
+
+### Fixed — the store was half duplicates, and every sample size was overstated
+- **`data/games.ladder.jsonl` held 14,361 lines but only 7,315 unique games** — 7,040 duplicate rows,
+  left over from the `merge -X ours` reconciliations during the earlier git incident. Every "14,355
+  games" figure quoted today was inflated roughly 2x, and duplicated rows also narrow confidence
+  intervals artificially. The store is now deduplicated; **no unique game was lost** (verified by id
+  set comparison against the pre-merge backup).
+- **Store reparsed from the raw log archive**, so the mega/weather/terrain parsing now applies to
+  history rather than only to new games. Effect: **12,146 mega events** and **8,752 weather/terrain
+  events** where there were none, and setter abilities appear at last — Pelipper **Drizzle 0 -> 1,490**,
+  Torkoal **Drought 0 -> 613**, Incineroar Intimidate 1,934.
+- **Illegal ability readings rejected.** Log attribution is imperfect (Trace copies opponents; a
+  mis-attributed slot handed Basculegion an "Intimidate" it can never have). Observed abilities are
+  now validated against the species' legal set from the dex, and impossible readings are dropped
+  instead of creating phantom roles.
+
+### Changed — a result got weaker on clean data, and that is reported
+- **COUNTERPLAY's tech-lift, recomputed on the deduplicated store: +0.0274, 95% CI [0.0006, 0.0533].**
+  It was +0.0386, CI [0.0155, 0.0617] on the duplicated store. The interval still excludes zero, but
+  only barely — the earlier version overstated the evidence because duplicate games were counted as
+  independent observations. The direction stands; the confidence does not. **WAR is unaffected in
+  direction and still beats a coin: 0.6856 vs 0.6931, accuracy 54.1%.**
+
+### Notes — what "known" actually means under closed sheets
+- A correction to how the new `species-abilities.json` was described. **Nothing about an opponent's
+  Pokemon is known until it is proven in play — ability, item, and moves alike.** The dex narrows the
+  *possibilities*; it does not reveal the set:
+  - **94 species have exactly one legal ability**, so for those the species genuinely does determine
+    it at preview. That is the only truly certain case.
+  - **213 species have two or three**, so the ability stays a belief until the log proves it —
+    Basculegion is Swift Swim *or* Adaptability *or* Mold Breaker.
+  - **A mega's ability is certain only once it megas.** Before that you cannot see the stone, so you
+    do not even know a mega is coming, let alone which form.
+  - **Items and moves are never given by the dex at all** — only revealed by use.
+- The consequence is a design one: this is a belief-state problem, not a lookup. The right structure
+  is a per-slot information state that starts as the legal possibility set and collapses on each
+  reveal. That is XATU's job, and it is the next thing to build properly.
+
 ## [2.9.0] — 2026-07-24
 
 ### Fixed — the extractor never knew mega evolution existed
