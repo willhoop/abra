@@ -681,7 +681,7 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
    <div class="panel"><h2>The meta looks like rock-paper-scissors</h2><p style="font-weight:600;color:#3a5372">Solving Champions team preview means a <b>mixed Nash strategy</b>, not one "best deck". Across <b>${games} real games</b> the playstyle matchups <i>hint</i> at a cycle:</p>
    ${cycleSVG(S&&S.cycle?S.cycle.cycle:['Trick Room','Hyper Offense','Sand'])}
    <div style="text-align:center;font-size:13px;font-weight:700;color:#8a97ad;margin:0 0 6px">each beats the next, and it loops back — ${cyc}</div>
-   <p style="font-weight:600;color:#3a5372">Each leg leans ~${edge}% to the winner, which <i>if it holds</i> means picking one single playstyle is exploitable while a mixture isn't — the reason to mix. <b>Honest caveat:</b> these matchups are only ~13–18 games each, so the error bars are wide and cross 50%. Treat this as a <b>suggestive pattern, not a settled fact</b> — it sharpens as more games come in.</p>
+   <p style="font-weight:600;color:#3a5372">Each leg leans ~${edge}% to the winner, which <i>if it holds</i> means picking one single playstyle is exploitable while a mixture isn't — the reason to mix. <b>Honest caveat:</b> these matchups are only ~11–18 games each, so the error bars are wide and cross 50%. Treat this as a <b>suggestive pattern, not a settled fact</b> — it sharpens as more games come in.</p>
    <span class="chip">mixed Nash</span><span class="chip">small samples</span><span class="chip">suggestive, not proven</span></div>
    <div class="panel"><h2>My equilibrium mix</h2><p style="font-weight:600;color:#3a5372">How often to be ready for each playstyle if everyone plays optimally:</p>
    <div style="margin-top:6px">${mix}</div>
@@ -1191,7 +1191,7 @@ for(let i=0;i<40;i++){const f=document.createElement('div');f.className='snowf';
 
 
 /* gently teleporting Abras in the background  */
-function makeAbra(){ return; /* right-side teleporting sprite removed */
+function makeAbra(){   /* roaming teleporting Abra sprites in the side margins */
   const a=document.createElement('img'); a.className='tp'; a.src=ani('abra'); document.body.appendChild(a);
   const place=()=>{ const right=Math.random()<0.5; a.style.left=right?(89+Math.random()*9)+'vw':(1.5+Math.random()*9)+'vw'; a.style.top=(14+Math.random()*72)+'vh'; };  // stay in the empty side margins, never over the content column
   const ring=()=>{ const r=document.createElement('div'); r.className='tpring'; r.style.left=a.style.left; r.style.top=a.style.top;

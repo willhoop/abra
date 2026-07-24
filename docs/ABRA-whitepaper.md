@@ -123,9 +123,9 @@ less exploitable than uniform (Nash ≈ 0 vs 0.109), but greedy ≈ Nash because
 near-transitive (a dominant deck). A **playstyle** re-analysis (`engine/playstyle.js` classifies each
 team as TrickRoom / Rain / Sun / Sand / Snow / Setup / PerishTrap / TailwindOffense / FakeOutBalance /
 Stall / HyperOffense) surfaces a non-transitive cycle — **TrickRoom → HyperOffense → Sand → TrickRoom**
-— with a point exploitability gap of 0.115 for greedy. **Honest caveat:** each cycle leg rests on only
-13–18 games (win rates 62% / 71% / 67%) with 95% CIs that cross 50%, so the cycle is a **suggestive
-pattern, not a settled fact**; it will sharpen as the store grows. Reports `data/slowking-eval.json`,
+— with a point exploitability gap of ~0.073 for greedy; the equilibrium now correctly leads with Sun (~31%), since Reg M-B Charizard is Mega-Y (Drought) and is classified as a Sun setter. **Honest caveat:** each cycle leg rests on only
+13–18 games (win rates 73% / 71% / 67%) with 95% CIs that cross 50%, so the cycle is a **suggestive
+pattern, not a settled fact**; it will sharpen as the store grows. Where matchups *are* well-sampled they tend to run flat against intuition — **Rain vs Sun is 51% (n=236)** and **Tailwind vs no-Tailwind is 47% (n=756)**, both statistical coin-flips. Reports `data/slowking-eval.json`,
 `data/slowking-playstyle-eval.json`; test `tests/test-slowking.py`.
 
 ## 5. Mathematics
