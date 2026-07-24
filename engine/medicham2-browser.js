@@ -370,5 +370,8 @@ function winProb2(nA,nB,N,ov){
   let w=0;for(let i=0;i<N;i++){w+=battle(A0.map(n=>buildMon(n,ov)),B0.map(n=>buildMon(n,ov)),ov);}return w/N;
 }
 root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MEDI_SPREAD=SPREAD;
-if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle};
+// exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
+// priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
+if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,
+  moveFx,movePriority,canTakeStatus,applyStatus};
 })(typeof window!=='undefined'?window:globalThis);
