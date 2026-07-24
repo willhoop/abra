@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.9.0] — 2026-07-24
+
+### Fixed — the extractor never knew mega evolution existed
+- **`engine/durable-ingest.js` did not parse `|detailschange|` or `|-mega|`.** Every mega therefore
+  kept its BASE form's identity, and its new ability was never attributed to anything: **904 of 906**
+  Charizard-Mega-Y sets had a blank ability, and Raichu-Mega-X (Electric Surge) was indistinguishable
+  from Raichu-Mega-Y (No Guard) even though they play nothing alike. Now parsed, with the mega, its
+  base form and the stone recorded.
+- **Weather and terrain setters were half-invisible.** A setter ability is usually stated *only* in
+  `|-weather|...[from] ability: Drizzle|[of] p1b: Pelipper`, which we did not read. Verified on a live
+  replay: the fix recovers `pelipper -> Drizzle` and `glimmoramega` + `Glimmoranite`.
+- **`engine/roles.py` had stopped finishing** (>120 s at 14k games). Two hot spots, both replaced with
+  the identical calculation vectorised: the logistic fit, and a bootstrap that was re-running the model
+  600 x |test| x |roles| times when per-row losses do not change between resamples. **5.2 s** now.
+
+### Added
+- **Mega dex from the authoritative source** (`engine/build_mega_dex.js` -> `data/mega-dex-official.json`,
+  merged by `engine/merge_mega_into_engine.js`). Source is Showdown's own `pokedex.json` — the data the
+  server runs this format on. **67 mega formes** added to the engine dex with real types, abilities,
+  base stats and required stone. Damage validation re-run and unchanged (100% within 5%).
+- **Zoroark-Hisui illusion detector** (`engine/illusion.js` -> `data/illusion.json`). Illusion copies the
+  NAME, not the moveset, so a legality contradiction proves the disguise: the apparent species cannot
+  learn the move and Zoroark can. On 395 Zoroark team-sides it proves **156 disguises** (0.39 each).
+  Most common disguise Whimsicott; the giveaway moves are Hyper Voice (32) and **Bitter Malice (30)**,
+  a Zoroark-Hisui signature. Conservative by construction, so the count is a floor.
+- **Weather and terrain roles split by type** — rain/sun/sand/snow and psychic/grassy/electric/misty, on
+  BOTH the setter and abuser side, so "Swift Swim with no Drizzle" is a detectable defect rather than
+  two generic tags that never meet. Taxonomy is **52 roles**, covering **98.0%** of real move usage.
+
+### Notes — measured, including what it cannot yet measure
+- **Mega abilities cannot be harvested from logs, at all.** Mega evolution emits only `detailschange`
+  and `-mega`; no ability line follows. An earlier harvest appeared to find 9 conflicts with the
+  official dex — three were **Trace** correctly copying an opponent's ability, and the rest were
+  attribution noise on 1–6 observations. The official dex is the source; the harvester is kept only
+  to discover which formes exist.
+- **First dead-ability measurement:** 72% of teams carrying an Expanding Force user have **no Psychic
+  Terrain setter**, and 99.6% of Electric Terrain abusers have no setter. The weather equivalents
+  return nothing yet — those roles are ability-based, abilities only announce sometimes, and the
+  Wilson credibility gate correctly drops them as under-observed. Fix is to source abilities from the
+  dex (certain where a species has only one) rather than from observation; not done yet.
+- The store still needs a **reparse** before any of the new mega/weather events exist historically.
+
 ## [2.8.1] — 2026-07-24
 
 ### Notes — a wrong diagnosis, corrected

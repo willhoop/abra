@@ -36,6 +36,23 @@ proper score, a confidence interval, and an honest baseline.
    bulky wall+screens+redirection, Tailwind+Encore, priority — with each team a *blend*, never one label.
    Move-level NMF is coarser (offensive cores dominate). Rank/weighting selection by topic coherence is next.
 
+10. **The field really does tech for the metagame — measured.** Rare "tech" move slots carry
+    **+0.0386** more meta-weighted type coverage than a species' standard kit (95% CI
+    [0.0155, 0.0617], excludes zero; positive in 90/148 species). Against Kingambit (Dark/Steel,
+    on 29% of teams) the top tech answers are Incineroar's Close Combat and Blastoise's Aura
+    Sphere — both **4×**. Design note: the store spans 3 days, so the temporal test was impossible
+    and a cross-sectional design was used instead; that limitation ships with the number.
+11. **A silent data defect can hide an entire mechanic.** The extractor never parsed mega evolution,
+    so 904 of 906 Charizard-Mega-Y sets had no ability, and the damage engine's dex contained ONE
+    mega forme while computing damage for dozens. Raichu-Mega-Y is **No Guard** — which is the whole
+    reason Zap Cannon (50% accuracy) appears on ~590 Raichu sets. A set that looks like a mistake is
+    often a mechanic you are not modelling.
+12. **Some facts are unobservable in principle, and should be labelled as such.** A mega's ability is
+    never announced in a replay log, so it cannot be harvested at any sample size — it has to come
+    from the game's own data files. Conversely, Zoroark's Illusion *can* be proven from logs alone:
+    if the apparent species cannot learn the move and Zoroark can, the disguise is certain. **156
+    proven disguises** across 395 Zoroark team-sides.
+
 ## Platform drafts (kept current)
 
 ### Academic abstract (~150 words)
