@@ -10,18 +10,23 @@
   "terrain": "Terrain setter",
   "fakeout": "Fake Out (tempo)",
   "redirection": "Redirection",
+  "denial": "Weather / effect denial",
   "field_abuser": "Weather / field abuser",
   "taunt": "Taunt",
   "encore": "Encore",
   "priority": "Priority attacker",
   "prankster": "Prankster (priority support)",
-  "status": "Status user",
+  "status_burn": "Burn spreader",
+  "status_para": "Paralysis spreader",
+  "status_sleep": "Sleep spreader",
+  "status_poison": "Poison spreader",
+  "status": "Status spreader (other)",
   "debuff": "Debuff (Intimidate / drops)",
   "setup": "Setup / sweeper",
   "healing": "Healing / sustain",
   "screens": "Screen setter",
   "teamprotect": "Wide / Quick Guard",
-  "helpinghand": "Helping Hand",
+  "helpinghand": "Damage amplifier",
   "pivot": "Pivot",
   "wall": "Bulky wall / support",
   "trapping": "Trapper",
@@ -90,6 +95,13 @@
      "p": 0.0003,
      "lo": 0.0,
      "hi": 0.0016
+    },
+    "denial": {
+     "n": 2,
+     "of": 3566,
+     "p": 0.0006,
+     "lo": 0.0002,
+     "hi": 0.002
     }
    }
   },
@@ -117,7 +129,21 @@
      "lo": 0.3486,
      "hi": 0.3847
     },
+    "status_poison": {
+     "n": 141,
+     "of": 2726,
+     "p": 0.0517,
+     "lo": 0.044,
+     "hi": 0.0607
+    },
     "spec_attacker": {
+     "n": 2,
+     "of": 2726,
+     "p": 0.0007,
+     "lo": 0.0002,
+     "hi": 0.0027
+    },
+    "denial": {
      "n": 2,
      "of": 2726,
      "p": 0.0007,
@@ -185,7 +211,14 @@
      "lo": 0.002,
      "hi": 0.0068
     },
-    "status": {
+    "status_burn": {
+     "n": 5,
+     "of": 2720,
+     "p": 0.0018,
+     "lo": 0.0008,
+     "hi": 0.0043
+    },
+    "status_para": {
      "n": 1,
      "of": 2720,
      "p": 0.0004,
@@ -204,8 +237,8 @@
   "whimsicott": {
    "roles": {
     "speed_tailwind": 0.7046,
-    "encore": 0.2593,
-    "debuff": 0.0861
+    "debuff": 0.0861,
+    "encore": 0.2593
    },
    "top": [
     "speed_tailwind",
@@ -222,19 +255,19 @@
      "lo": 0.6857,
      "hi": 0.7228
     },
-    "encore": {
-     "n": 602,
-     "of": 2322,
-     "p": 0.2593,
-     "lo": 0.2418,
-     "hi": 0.2775
-    },
     "debuff": {
      "n": 200,
      "of": 2322,
      "p": 0.0861,
      "lo": 0.0754,
      "hi": 0.0982
+    },
+    "encore": {
+     "n": 602,
+     "of": 2322,
+     "p": 0.2593,
+     "lo": 0.2418,
+     "hi": 0.2775
     },
     "helpinghand": {
      "n": 17,
@@ -277,6 +310,13 @@
      "p": 0.0116,
      "lo": 0.008,
      "hi": 0.0169
+    },
+    "status": {
+     "n": 11,
+     "of": 2322,
+     "p": 0.0047,
+     "lo": 0.0026,
+     "hi": 0.0085
     },
     "spec_attacker": {
      "n": 20,
@@ -341,7 +381,7 @@
      "lo": 0.0001,
      "hi": 0.0024
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 2322,
      "p": 0.0004,
@@ -376,12 +416,12 @@
      "lo": 0.1252,
      "hi": 0.1542
     },
-    "status": {
-     "n": 24,
+    "status_sleep": {
+     "n": 23,
      "of": 2179,
-     "p": 0.011,
-     "lo": 0.0074,
-     "hi": 0.0163
+     "p": 0.0106,
+     "lo": 0.007,
+     "hi": 0.0158
     },
     "setup": {
      "n": 16,
@@ -403,6 +443,13 @@
      "p": 0.0018,
      "lo": 0.0007,
      "hi": 0.0047
+    },
+    "status_burn": {
+     "n": 1,
+     "of": 2179,
+     "p": 0.0005,
+     "lo": 0.0001,
+     "hi": 0.0026
     },
     "wall": {
      "n": 1,
@@ -485,12 +532,19 @@
      "lo": 0.0014,
      "hi": 0.0066
     },
-    "status": {
+    "status_burn": {
      "n": 24,
      "of": 1971,
      "p": 0.0122,
      "lo": 0.0082,
      "hi": 0.0181
+    },
+    "denial": {
+     "n": 5,
+     "of": 1971,
+     "p": 0.0025,
+     "lo": 0.0011,
+     "hi": 0.0059
     },
     "healing": {
      "n": 2,
@@ -542,6 +596,20 @@
      "p": 0.221,
      "lo": 0.2019,
      "hi": 0.2413
+    },
+    "denial": {
+     "n": 6,
+     "of": 1706,
+     "p": 0.0035,
+     "lo": 0.0016,
+     "hi": 0.0077
+    },
+    "status_poison": {
+     "n": 1,
+     "of": 1706,
+     "p": 0.0006,
+     "lo": 0.0001,
+     "hi": 0.0033
     }
    }
   },
@@ -727,15 +795,15 @@
   "sinistcha": {
    "roles": {
     "healing": 0.5901,
-    "status": 0.5293,
+    "status_burn": 0.5293,
     "spec_attacker": 0.5286,
-    "wall": 0.5007,
     "redirection": 0.3918,
+    "wall": 0.5007,
     "speed_trickroom": 0.1061
    },
    "top": [
     "healing",
-    "status",
+    "status_burn",
     "spec_attacker",
     "wall",
     "redirection",
@@ -751,7 +819,7 @@
      "lo": 0.5644,
      "hi": 0.6153
     },
-    "status": {
+    "status_burn": {
      "n": 758,
      "of": 1432,
      "p": 0.5293,
@@ -765,19 +833,19 @@
      "lo": 0.5027,
      "hi": 0.5544
     },
-    "wall": {
-     "n": 717,
-     "of": 1432,
-     "p": 0.5007,
-     "lo": 0.4748,
-     "hi": 0.5266
-    },
     "redirection": {
      "n": 561,
      "of": 1432,
      "p": 0.3918,
      "lo": 0.3668,
      "hi": 0.4173
+    },
+    "wall": {
+     "n": 717,
+     "of": 1432,
+     "p": 0.5007,
+     "lo": 0.4748,
+     "hi": 0.5266
     },
     "speed_trickroom": {
      "n": 152,
@@ -813,6 +881,13 @@
      "p": 0.0007,
      "lo": 0.0001,
      "hi": 0.0039
+    },
+    "status": {
+     "n": 2,
+     "of": 1432,
+     "p": 0.0014,
+     "lo": 0.0004,
+     "hi": 0.0051
     }
    }
   },
@@ -911,12 +986,26 @@
      "lo": 0.1774,
      "hi": 0.2207
     },
+    "status_para": {
+     "n": 66,
+     "of": 1302,
+     "p": 0.0507,
+     "lo": 0.04,
+     "hi": 0.064
+    },
     "spec_attacker": {
      "n": 204,
      "of": 1302,
      "p": 0.1567,
      "lo": 0.138,
      "hi": 0.1774
+    },
+    "denial": {
+     "n": 19,
+     "of": 1302,
+     "p": 0.0146,
+     "lo": 0.0094,
+     "hi": 0.0227
     },
     "setup": {
      "n": 18,
@@ -939,13 +1028,6 @@
      "lo": 0.01,
      "hi": 0.0236
     },
-    "status": {
-     "n": 2,
-     "of": 1302,
-     "p": 0.0015,
-     "lo": 0.0004,
-     "hi": 0.0056
-    },
     "terrain": {
      "n": 20,
      "of": 1302,
@@ -967,6 +1049,13 @@
      "lo": 0.0004,
      "hi": 0.0056
     },
+    "status": {
+     "n": 1,
+     "of": 1302,
+     "p": 0.0008,
+     "lo": 0.0001,
+     "hi": 0.0043
+    },
     "pivot": {
      "n": 2,
      "of": 1302,
@@ -986,10 +1075,12 @@
   "sneasler": {
    "roles": {
     "fakeout": 0.5125,
+    "status_poison": 0.5013,
     "phys_attacker": 0.2334
    },
    "top": [
     "fakeout",
+    "status_poison",
     "phys_attacker"
    ],
    "sets_seen": 1161,
@@ -1001,6 +1092,13 @@
      "p": 0.5125,
      "lo": 0.4837,
      "hi": 0.5412
+    },
+    "status_poison": {
+     "n": 582,
+     "of": 1161,
+     "p": 0.5013,
+     "lo": 0.4726,
+     "hi": 0.53
     },
     "allysupport": {
      "n": 69,
@@ -1044,6 +1142,13 @@
      "lo": 0.0029,
      "hi": 0.0124
     },
+    "denial": {
+     "n": 3,
+     "of": 1161,
+     "p": 0.0026,
+     "lo": 0.0009,
+     "hi": 0.0076
+    },
     "weather": {
      "n": 3,
      "of": 1161,
@@ -1069,24 +1174,33 @@
   },
   "venusaur": {
    "roles": {
-    "status": 0.1803,
+    "status_poison": 0.4955,
+    "status_sleep": 0.1793,
     "spec_attacker": 0.3415,
     "healing": 0.1821
    },
    "top": [
+    "status_poison",
     "spec_attacker",
     "healing",
-    "status"
+    "status_sleep"
    ],
    "sets_seen": 1104,
    "games": 1104,
    "all_roles": {
-    "status": {
-     "n": 199,
+    "status_poison": {
+     "n": 547,
      "of": 1104,
-     "p": 0.1803,
-     "lo": 0.1587,
-     "hi": 0.204
+     "p": 0.4955,
+     "lo": 0.466,
+     "hi": 0.5249
+    },
+    "status_sleep": {
+     "n": 198,
+     "of": 1104,
+     "p": 0.1793,
+     "lo": 0.1578,
+     "hi": 0.2031
     },
     "spec_attacker": {
      "n": 377,
@@ -1108,6 +1222,13 @@
      "p": 0.1821,
      "lo": 0.1604,
      "hi": 0.2059
+    },
+    "status": {
+     "n": 14,
+     "of": 1104,
+     "p": 0.0127,
+     "lo": 0.0076,
+     "hi": 0.0212
     }
    }
   },
@@ -1210,13 +1331,20 @@
      "p": 0.0018,
      "lo": 0.0005,
      "hi": 0.0066
+    },
+    "denial": {
+     "n": 1,
+     "of": 1097,
+     "p": 0.0009,
+     "lo": 0.0002,
+     "hi": 0.0051
     }
    }
   },
   "tyranitar": {
    "roles": {
-    "phys_attacker": 0.4295,
-    "itemdisrupt": 0.3931
+    "itemdisrupt": 0.3931,
+    "phys_attacker": 0.4295
    },
    "top": [
     "phys_attacker",
@@ -1225,13 +1353,6 @@
    "sets_seen": 1043,
    "games": 1043,
    "all_roles": {
-    "phys_attacker": {
-     "n": 448,
-     "of": 1043,
-     "p": 0.4295,
-     "lo": 0.3998,
-     "hi": 0.4598
-    },
     "itemdisrupt": {
      "n": 410,
      "of": 1043,
@@ -1239,12 +1360,26 @@
      "lo": 0.3639,
      "hi": 0.4231
     },
+    "phys_attacker": {
+     "n": 448,
+     "of": 1043,
+     "p": 0.4295,
+     "lo": 0.3998,
+     "hi": 0.4598
+    },
     "setup": {
      "n": 63,
      "of": 1043,
      "p": 0.0604,
      "lo": 0.0475,
      "hi": 0.0765
+    },
+    "denial": {
+     "n": 7,
+     "of": 1043,
+     "p": 0.0067,
+     "lo": 0.0033,
+     "hi": 0.0138
     },
     "wall": {
      "n": 4,
@@ -1267,7 +1402,7 @@
      "lo": 0.0005,
      "hi": 0.007
     },
-    "status": {
+    "status_para": {
      "n": 2,
      "of": 1043,
      "p": 0.0019,
@@ -1278,16 +1413,25 @@
   },
   "floetteeternal": {
    "roles": {
+    "helpinghand": 0.8105,
     "spec_attacker": 0.2142,
     "setup": 0.1037
    },
    "top": [
+    "helpinghand",
     "spec_attacker",
     "setup"
    ],
    "sets_seen": 1013,
    "games": 1013,
    "all_roles": {
+    "helpinghand": {
+     "n": 821,
+     "of": 1013,
+     "p": 0.8105,
+     "lo": 0.7852,
+     "hi": 0.8334
+    },
     "spec_attacker": {
      "n": 217,
      "of": 1013,
@@ -1316,13 +1460,6 @@
      "lo": 0.0002,
      "hi": 0.0056
     },
-    "helpinghand": {
-     "n": 2,
-     "of": 1013,
-     "p": 0.002,
-     "lo": 0.0005,
-     "hi": 0.0072
-    },
     "wall": {
      "n": 2,
      "of": 1013,
@@ -1341,10 +1478,10 @@
   },
   "grimmsnarl": {
    "roles": {
-    "screens": 0.6254,
-    "wall": 0.6254,
     "debuff": 0.5976,
     "pivot": 0.3578,
+    "screens": 0.6254,
+    "wall": 0.6254,
     "fakeout": 0.1556
    },
    "top": [
@@ -1357,20 +1494,6 @@
    "sets_seen": 1009,
    "games": 1009,
    "all_roles": {
-    "screens": {
-     "n": 631,
-     "of": 1009,
-     "p": 0.6254,
-     "lo": 0.5951,
-     "hi": 0.6547
-    },
-    "wall": {
-     "n": 631,
-     "of": 1009,
-     "p": 0.6254,
-     "lo": 0.5951,
-     "hi": 0.6547
-    },
     "debuff": {
      "n": 603,
      "of": 1009,
@@ -1385,6 +1508,20 @@
      "lo": 0.3288,
      "hi": 0.3878
     },
+    "screens": {
+     "n": 631,
+     "of": 1009,
+     "p": 0.6254,
+     "lo": 0.5951,
+     "hi": 0.6547
+    },
+    "wall": {
+     "n": 631,
+     "of": 1009,
+     "p": 0.6254,
+     "lo": 0.5951,
+     "hi": 0.6547
+    },
     "fakeout": {
      "n": 157,
      "of": 1009,
@@ -1392,7 +1529,21 @@
      "lo": 0.1345,
      "hi": 0.1793
     },
+    "denial": {
+     "n": 1,
+     "of": 1009,
+     "p": 0.001,
+     "lo": 0.0002,
+     "hi": 0.0056
+    },
     "taunt": {
+     "n": 8,
+     "of": 1009,
+     "p": 0.0079,
+     "lo": 0.004,
+     "hi": 0.0156
+    },
+    "status": {
      "n": 8,
      "of": 1009,
      "p": 0.0079,
@@ -1434,14 +1585,14 @@
      "lo": 0.0021,
      "hi": 0.0115
     },
-    "setup": {
+    "healing": {
      "n": 1,
      "of": 1009,
      "p": 0.001,
      "lo": 0.0002,
      "hi": 0.0056
     },
-    "healing": {
+    "setup": {
      "n": 1,
      "of": 1009,
      "p": 0.001,
@@ -1467,6 +1618,13 @@
      "lo": 0.3557,
      "hi": 0.4233
     },
+    "itemdisrupt": {
+     "n": 8,
+     "of": 797,
+     "p": 0.01,
+     "lo": 0.0051,
+     "hi": 0.0197
+    },
     "teamprotect": {
      "n": 7,
      "of": 797,
@@ -1481,13 +1639,6 @@
      "lo": 0.0043,
      "hi": 0.018
     },
-    "itemdisrupt": {
-     "n": 8,
-     "of": 797,
-     "p": 0.01,
-     "lo": 0.0051,
-     "hi": 0.0197
-    },
     "speed_lower": {
      "n": 1,
      "of": 797,
@@ -1501,6 +1652,13 @@
      "p": 0.0176,
      "lo": 0.0105,
      "hi": 0.0293
+    },
+    "status_poison": {
+     "n": 4,
+     "of": 797,
+     "p": 0.005,
+     "lo": 0.002,
+     "hi": 0.0128
     },
     "spec_attacker": {
      "n": 3,
@@ -1521,14 +1679,14 @@
   "raichu": {
    "roles": {
     "fakeout": 0.4604,
-    "status": 0.4195,
+    "status_para": 0.4208,
     "redirection": 0.0673,
-    "pivot": 0.1069,
-    "spec_attacker": 0.1174
+    "spec_attacker": 0.1174,
+    "pivot": 0.1069
    },
    "top": [
     "fakeout",
-    "status",
+    "status_para",
     "spec_attacker",
     "pivot",
     "redirection"
@@ -1543,12 +1701,12 @@
      "lo": 0.4252,
      "hi": 0.496
     },
-    "status": {
-     "n": 318,
+    "status_para": {
+     "n": 319,
      "of": 758,
-     "p": 0.4195,
-     "lo": 0.3849,
-     "hi": 0.455
+     "p": 0.4208,
+     "lo": 0.3862,
+     "hi": 0.4563
     },
     "redirection": {
      "n": 51,
@@ -1557,19 +1715,19 @@
      "lo": 0.0515,
      "hi": 0.0874
     },
-    "pivot": {
-     "n": 81,
-     "of": 758,
-     "p": 0.1069,
-     "lo": 0.0868,
-     "hi": 0.1309
-    },
     "spec_attacker": {
      "n": 89,
      "of": 758,
      "p": 0.1174,
      "lo": 0.0964,
      "hi": 0.1423
+    },
+    "pivot": {
+     "n": 81,
+     "of": 758,
+     "p": 0.1069,
+     "lo": 0.0868,
+     "hi": 0.1309
     },
     "encore": {
      "n": 12,
@@ -1598,6 +1756,13 @@
      "p": 0.0092,
      "lo": 0.0045,
      "hi": 0.0189
+    },
+    "denial": {
+     "n": 3,
+     "of": 758,
+     "p": 0.004,
+     "lo": 0.0013,
+     "hi": 0.0116
     },
     "screens": {
      "n": 7,
@@ -1673,12 +1838,12 @@
      "lo": 0.2635,
      "hi": 0.3298
     },
-    "status": {
-     "n": 20,
+    "status_sleep": {
+     "n": 16,
      "of": 724,
-     "p": 0.0276,
-     "lo": 0.018,
-     "hi": 0.0423
+     "p": 0.0221,
+     "lo": 0.0136,
+     "hi": 0.0356
     },
     "helpinghand": {
      "n": 52,
@@ -1701,6 +1866,13 @@
      "lo": 0.0552,
      "hi": 0.093
     },
+    "status_burn": {
+     "n": 4,
+     "of": 724,
+     "p": 0.0055,
+     "lo": 0.0022,
+     "hi": 0.0141
+    },
     "phys_attacker": {
      "n": 3,
      "of": 724,
@@ -1714,6 +1886,13 @@
      "p": 0.0014,
      "lo": 0.0002,
      "hi": 0.0078
+    },
+    "denial": {
+     "n": 3,
+     "of": 724,
+     "p": 0.0041,
+     "lo": 0.0014,
+     "hi": 0.0121
     },
     "debuff": {
      "n": 1,
@@ -1747,6 +1926,13 @@
      "p": 0.0047,
      "lo": 0.0016,
      "hi": 0.0138
+    },
+    "denial": {
+     "n": 2,
+     "of": 633,
+     "p": 0.0032,
+     "lo": 0.0009,
+     "hi": 0.0114
     },
     "speed_lower": {
      "n": 3,
@@ -1828,6 +2014,13 @@
      "p": 0.0063,
      "lo": 0.0025,
      "hi": 0.0162
+    },
+    "status": {
+     "n": 2,
+     "of": 630,
+     "p": 0.0032,
+     "lo": 0.0009,
+     "hi": 0.0115
     }
    }
   },
@@ -1864,12 +2057,19 @@
      "lo": 0.2683,
      "hi": 0.341
     },
-    "status": {
-     "n": 5,
+    "status_burn": {
+     "n": 3,
      "of": 613,
-     "p": 0.0082,
-     "lo": 0.0035,
-     "hi": 0.019
+     "p": 0.0049,
+     "lo": 0.0017,
+     "hi": 0.0143
+    },
+    "status_sleep": {
+     "n": 3,
+     "of": 613,
+     "p": 0.0049,
+     "lo": 0.0017,
+     "hi": 0.0143
     },
     "terrain": {
      "n": 1,
@@ -1896,15 +2096,17 @@
   },
   "rotomwash": {
    "roles": {
-    "status": 0.3313,
-    "pivot": 0.1646,
+    "status_burn": 0.2531,
     "spec_attacker": 0.4074,
-    "speed_lower": 0.0885
+    "pivot": 0.1646,
+    "speed_lower": 0.0885,
+    "status_para": 0.107
    },
    "top": [
     "spec_attacker",
-    "status",
+    "status_burn",
     "pivot",
+    "status_para",
     "speed_lower"
    ],
    "sets_seen": 486,
@@ -1924,19 +2126,12 @@
      "lo": 0.0236,
      "hi": 0.0578
     },
-    "status": {
-     "n": 161,
+    "status_burn": {
+     "n": 123,
      "of": 486,
-     "p": 0.3313,
-     "lo": 0.2909,
-     "hi": 0.3743
-    },
-    "pivot": {
-     "n": 80,
-     "of": 486,
-     "p": 0.1646,
-     "lo": 0.1343,
-     "hi": 0.2002
+     "p": 0.2531,
+     "lo": 0.2165,
+     "hi": 0.2936
     },
     "spec_attacker": {
      "n": 198,
@@ -1945,12 +2140,26 @@
      "lo": 0.3646,
      "hi": 0.4517
     },
+    "pivot": {
+     "n": 80,
+     "of": 486,
+     "p": 0.1646,
+     "lo": 0.1343,
+     "hi": 0.2002
+    },
     "speed_lower": {
      "n": 43,
      "of": 486,
      "p": 0.0885,
      "lo": 0.0663,
      "hi": 0.1171
+    },
+    "status_para": {
+     "n": 52,
+     "of": 486,
+     "p": 0.107,
+     "lo": 0.0825,
+     "hi": 0.1376
     },
     "setup": {
      "n": 6,
@@ -1992,19 +2201,20 @@
   "milotic": {
    "roles": {
     "speed_lower": 0.3052,
+    "status_burn": 0.4722,
     "setup": 0.4371,
     "spec_attacker": 0.1196,
     "healing": 0.1629,
     "wall": 0.0742,
-    "status": 0.1588
+    "status_sleep": 0.1588
    },
    "top": [
+    "status_burn",
     "setup",
     "speed_lower",
     "healing",
-    "status",
-    "spec_attacker",
-    "wall"
+    "status_sleep",
+    "spec_attacker"
    ],
    "sets_seen": 485,
    "games": 485,
@@ -2015,6 +2225,13 @@
      "p": 0.3052,
      "lo": 0.2658,
      "hi": 0.3475
+    },
+    "status_burn": {
+     "n": 229,
+     "of": 485,
+     "p": 0.4722,
+     "lo": 0.4281,
+     "hi": 0.5166
     },
     "setup": {
      "n": 212,
@@ -2030,6 +2247,13 @@
      "lo": 0.0937,
      "hi": 0.1515
     },
+    "denial": {
+     "n": 18,
+     "of": 485,
+     "p": 0.0371,
+     "lo": 0.0236,
+     "hi": 0.0579
+    },
     "healing": {
      "n": 79,
      "of": 485,
@@ -2044,7 +2268,7 @@
      "lo": 0.0541,
      "hi": 0.1011
     },
-    "status": {
+    "status_sleep": {
      "n": 77,
      "of": 485,
      "p": 0.1588,
@@ -2139,6 +2363,13 @@
      "p": 0.0065,
      "lo": 0.0022,
      "hi": 0.0189
+    },
+    "status_burn": {
+     "n": 1,
+     "of": 463,
+     "p": 0.0022,
+     "lo": 0.0004,
+     "hi": 0.0121
     }
    }
   },
@@ -2219,7 +2450,7 @@
      "lo": 0.0088,
      "hi": 0.0339
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 461,
      "p": 0.0022,
@@ -2279,6 +2510,13 @@
      "lo": 0.0869,
      "hi": 0.1453
     },
+    "denial": {
+     "n": 7,
+     "of": 452,
+     "p": 0.0155,
+     "lo": 0.0075,
+     "hi": 0.0316
+    },
     "setup": {
      "n": 23,
      "of": 452,
@@ -2307,6 +2545,13 @@
      "lo": 0.0012,
      "hi": 0.016
     },
+    "status_para": {
+     "n": 8,
+     "of": 452,
+     "p": 0.0177,
+     "lo": 0.009,
+     "hi": 0.0345
+    },
     "speed_lower": {
      "n": 2,
      "of": 452,
@@ -2321,13 +2566,6 @@
      "lo": 0.0023,
      "hi": 0.0193
     },
-    "healing": {
-     "n": 1,
-     "of": 452,
-     "p": 0.0022,
-     "lo": 0.0004,
-     "hi": 0.0124
-    },
     "trapping": {
      "n": 1,
      "of": 452,
@@ -2335,7 +2573,7 @@
      "lo": 0.0004,
      "hi": 0.0124
     },
-    "status": {
+    "healing": {
      "n": 1,
      "of": 452,
      "p": 0.0022,
@@ -2441,19 +2679,26 @@
      "p": 0.0045,
      "lo": 0.0012,
      "hi": 0.0164
+    },
+    "denial": {
+     "n": 1,
+     "of": 441,
+     "p": 0.0023,
+     "lo": 0.0004,
+     "hi": 0.0127
     }
    }
   },
   "talonflame": {
    "roles": {
     "speed_tailwind": 0.6904,
-    "status": 0.0963,
+    "status_burn": 0.0963,
     "teamprotect": 0.0894,
     "wall": 0.0894
    },
    "top": [
     "speed_tailwind",
-    "status",
+    "status_burn",
     "teamprotect",
     "wall"
    ],
@@ -2467,7 +2712,7 @@
      "lo": 0.6455,
      "hi": 0.7319
     },
-    "status": {
+    "status_burn": {
      "n": 42,
      "of": 436,
      "p": 0.0963,
@@ -2544,6 +2789,13 @@
      "lo": 0.0013,
      "hi": 0.0166
     },
+    "denial": {
+     "n": 3,
+     "of": 436,
+     "p": 0.0069,
+     "lo": 0.0023,
+     "hi": 0.02
+    },
     "healing": {
      "n": 2,
      "of": 436,
@@ -2556,12 +2808,12 @@
   "toxapex": {
    "roles": {
     "trapping": 0.6807,
-    "status": 0.7921,
+    "status_poison": 0.7995,
     "teamprotect": 0.3564,
     "wall": 0.3564
    },
    "top": [
-    "status",
+    "status_poison",
     "trapping",
     "teamprotect",
     "wall"
@@ -2576,12 +2828,12 @@
      "lo": 0.6337,
      "hi": 0.7243
     },
-    "status": {
-     "n": 320,
+    "status_poison": {
+     "n": 323,
      "of": 404,
-     "p": 0.7921,
-     "lo": 0.7498,
-     "hi": 0.8288
+     "p": 0.7995,
+     "lo": 0.7577,
+     "hi": 0.8356
     },
     "teamprotect": {
      "n": 144,
@@ -2623,12 +2875,13 @@
   "sableye": {
    "roles": {
     "weather": 0.2872,
+    "status": 0.2217,
     "screens": 0.3149,
     "wall": 0.3275,
     "allysupport": 0.1159,
     "encore": 0.2771,
-    "status": 0.2292,
-    "fakeout": 0.2443
+    "fakeout": 0.2443,
+    "status_burn": 0.2065
    },
    "top": [
     "wall",
@@ -2647,6 +2900,13 @@
      "p": 0.2872,
      "lo": 0.2449,
      "hi": 0.3335
+    },
+    "status": {
+     "n": 88,
+     "of": 397,
+     "p": 0.2217,
+     "lo": 0.1836,
+     "hi": 0.2651
     },
     "screens": {
      "n": 125,
@@ -2676,7 +2936,7 @@
      "lo": 0.2353,
      "hi": 0.3231
     },
-    "taunt": {
+    "itemdisrupt": {
      "n": 18,
      "of": 397,
      "p": 0.0453,
@@ -2690,19 +2950,19 @@
      "lo": 0.0269,
      "hi": 0.0675
     },
-    "itemdisrupt": {
+    "taunt": {
      "n": 18,
      "of": 397,
      "p": 0.0453,
      "lo": 0.0289,
      "hi": 0.0705
     },
-    "status": {
-     "n": 91,
+    "status_para": {
+     "n": 10,
      "of": 397,
-     "p": 0.2292,
-     "lo": 0.1906,
-     "hi": 0.273
+     "p": 0.0252,
+     "lo": 0.0137,
+     "hi": 0.0457
     },
     "fakeout": {
      "n": 97,
@@ -2710,6 +2970,13 @@
      "p": 0.2443,
      "lo": 0.2046,
      "hi": 0.2889
+    },
+    "status_burn": {
+     "n": 82,
+     "of": 397,
+     "p": 0.2065,
+     "lo": 0.1696,
+     "hi": 0.2491
     },
     "helpinghand": {
      "n": 5,
@@ -2747,6 +3014,13 @@
      "hi": 0.0141
     },
     "speed_lower": {
+     "n": 1,
+     "of": 397,
+     "p": 0.0025,
+     "lo": 0.0004,
+     "hi": 0.0141
+    },
+    "status_poison": {
      "n": 1,
      "of": 397,
      "p": 0.0025,
@@ -2804,6 +3078,13 @@
      "lo": 0.0255,
      "hi": 0.0658
     },
+    "status": {
+     "n": 8,
+     "of": 389,
+     "p": 0.0206,
+     "lo": 0.0105,
+     "hi": 0.0401
+    },
     "speed_lower": {
      "n": 7,
      "of": 389,
@@ -2836,11 +3117,13 @@
   },
   "metagross": {
    "roles": {
+    "denial": 0.4215,
     "phys_attacker": 0.1846,
     "priority": 0.1129,
     "wall": 0.0882
    },
    "top": [
+    "denial",
     "phys_attacker",
     "priority",
     "wall"
@@ -2848,6 +3131,13 @@
    "sets_seen": 363,
    "games": 363,
    "all_roles": {
+    "denial": {
+     "n": 153,
+     "of": 363,
+     "p": 0.4215,
+     "lo": 0.3718,
+     "hi": 0.4728
+    },
     "phys_attacker": {
      "n": 67,
      "of": 363,
@@ -2888,10 +3178,14 @@
   "gengar": {
    "roles": {
     "perish": 0.3673,
-    "spec_attacker": 0.108
+    "spec_attacker": 0.108,
+    "status_poison": 0.2068,
+    "status": 0.1636
    },
    "top": [
     "perish",
+    "status_poison",
+    "status",
     "spec_attacker"
    ],
    "sets_seen": 324,
@@ -2904,12 +3198,12 @@
      "lo": 0.3166,
      "hi": 0.421
     },
-    "status": {
-     "n": 10,
+    "status_sleep": {
+     "n": 3,
      "of": 324,
-     "p": 0.0309,
-     "lo": 0.0168,
-     "hi": 0.0559
+     "p": 0.0093,
+     "lo": 0.0032,
+     "hi": 0.0269
     },
     "spec_attacker": {
      "n": 35,
@@ -2917,6 +3211,20 @@
      "p": 0.108,
      "lo": 0.0787,
      "hi": 0.1465
+    },
+    "status_poison": {
+     "n": 67,
+     "of": 324,
+     "p": 0.2068,
+     "lo": 0.1663,
+     "hi": 0.2542
+    },
+    "status": {
+     "n": 53,
+     "of": 324,
+     "p": 0.1636,
+     "lo": 0.1273,
+     "hi": 0.2078
     },
     "taunt": {
      "n": 3,
@@ -2945,6 +3253,20 @@
      "p": 0.0093,
      "lo": 0.0032,
      "hi": 0.0269
+    },
+    "status_burn": {
+     "n": 5,
+     "of": 324,
+     "p": 0.0154,
+     "lo": 0.0066,
+     "hi": 0.0356
+    },
+    "status_para": {
+     "n": 1,
+     "of": 324,
+     "p": 0.0031,
+     "lo": 0.0005,
+     "hi": 0.0173
     }
    }
   },
@@ -2990,7 +3312,7 @@
      "lo": 0.1628,
      "hi": 0.2541
     },
-    "status": {
+    "status_burn": {
      "n": 1,
      "of": 298,
      "p": 0.0034,
@@ -3081,6 +3403,13 @@
      "lo": 0.0161,
      "hi": 0.0568
     },
+    "status_poison": {
+     "n": 2,
+     "of": 296,
+     "p": 0.0068,
+     "lo": 0.0019,
+     "hi": 0.0243
+    },
     "pivot": {
      "n": 3,
      "of": 296,
@@ -3102,7 +3431,7 @@
      "lo": 0.0006,
      "hi": 0.0189
     },
-    "status": {
+    "status_burn": {
      "n": 1,
      "of": 296,
      "p": 0.0034,
@@ -3116,14 +3445,14 @@
     "redirection": 0.3972,
     "wall": 0.4539,
     "healing": 0.5035,
-    "status": 0.4397,
+    "status_burn": 0.4397,
     "spec_attacker": 0.4397,
     "speed_trickroom": 0.1135
    },
    "top": [
     "healing",
     "wall",
-    "status",
+    "status_burn",
     "spec_attacker",
     "redirection",
     "speed_trickroom"
@@ -3152,7 +3481,7 @@
      "lo": 0.4455,
      "hi": 0.5615
     },
-    "status": {
+    "status_burn": {
      "n": 124,
      "of": 282,
      "p": 0.4397,
@@ -3186,6 +3515,13 @@
      "p": 0.0071,
      "lo": 0.0019,
      "hi": 0.0255
+    },
+    "status_para": {
+     "n": 1,
+     "of": 282,
+     "p": 0.0035,
+     "lo": 0.0006,
+     "hi": 0.0198
     }
    }
   },
@@ -3233,6 +3569,13 @@
      "lo": 0.0785,
      "hi": 0.1518
     },
+    "denial": {
+     "n": 8,
+     "of": 282,
+     "p": 0.0284,
+     "lo": 0.0144,
+     "hi": 0.055
+    },
     "itemdisrupt": {
      "n": 2,
      "of": 282,
@@ -3275,7 +3618,14 @@
      "lo": 0.01,
      "hi": 0.0466
     },
-    "status": {
+    "status_burn": {
+     "n": 3,
+     "of": 276,
+     "p": 0.0109,
+     "lo": 0.0037,
+     "hi": 0.0315
+    },
+    "status_poison": {
      "n": 1,
      "of": 276,
      "p": 0.0036,
@@ -3295,6 +3645,13 @@
      "p": 0.0036,
      "lo": 0.0006,
      "hi": 0.0202
+    },
+    "denial": {
+     "n": 2,
+     "of": 276,
+     "p": 0.0072,
+     "lo": 0.002,
+     "hi": 0.026
     },
     "pivot": {
      "n": 17,
@@ -3321,9 +3678,9 @@
   },
   "scrafty": {
    "roles": {
-    "phys_attacker": 0.476,
-    "itemdisrupt": 0.428,
     "healing": 0.3469,
+    "itemdisrupt": 0.428,
+    "phys_attacker": 0.476,
     "debuff": 0.9852,
     "fakeout": 0.4539
    },
@@ -3337,12 +3694,12 @@
    "sets_seen": 271,
    "games": 271,
    "all_roles": {
-    "phys_attacker": {
-     "n": 129,
+    "healing": {
+     "n": 94,
      "of": 271,
-     "p": 0.476,
-     "lo": 0.4173,
-     "hi": 0.5354
+     "p": 0.3469,
+     "lo": 0.2927,
+     "hi": 0.4053
     },
     "itemdisrupt": {
      "n": 116,
@@ -3351,12 +3708,12 @@
      "lo": 0.3705,
      "hi": 0.4876
     },
-    "healing": {
-     "n": 94,
+    "phys_attacker": {
+     "n": 129,
      "of": 271,
-     "p": 0.3469,
-     "lo": 0.2927,
-     "hi": 0.4053
+     "p": 0.476,
+     "lo": 0.4173,
+     "hi": 0.5354
     },
     "debuff": {
      "n": 267,
@@ -3392,14 +3749,23 @@
      "p": 0.0074,
      "lo": 0.002,
      "hi": 0.0265
+    },
+    "status_poison": {
+     "n": 1,
+     "of": 271,
+     "p": 0.0037,
+     "lo": 0.0007,
+     "hi": 0.0206
     }
    }
   },
   "glimmora": {
    "roles": {
+    "status_poison": 0.3735,
     "spec_attacker": 0.1165
    },
    "top": [
+    "status_poison",
     "spec_attacker"
    ],
    "sets_seen": 249,
@@ -3419,19 +3785,19 @@
      "lo": 0.0007,
      "hi": 0.0224
     },
+    "status_poison": {
+     "n": 93,
+     "of": 249,
+     "p": 0.3735,
+     "lo": 0.3158,
+     "hi": 0.4351
+    },
     "spec_attacker": {
      "n": 29,
      "of": 249,
      "p": 0.1165,
      "lo": 0.0823,
      "hi": 0.1623
-    },
-    "status": {
-     "n": 2,
-     "of": 249,
-     "p": 0.008,
-     "lo": 0.0022,
-     "hi": 0.0288
     },
     "setup": {
      "n": 1,
@@ -3521,17 +3887,17 @@
   },
   "politoed": {
    "roles": {
-    "status": 0.0909,
+    "status_sleep": 0.0909,
     "perish": 0.2294
    },
    "top": [
     "perish",
-    "status"
+    "status_sleep"
    ],
    "sets_seen": 231,
    "games": 231,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 21,
      "of": 231,
      "p": 0.0909,
@@ -3631,6 +3997,20 @@
      "lo": 0.0338,
      "hi": 0.0955
     },
+    "status_para": {
+     "n": 5,
+     "of": 227,
+     "p": 0.022,
+     "lo": 0.0094,
+     "hi": 0.0505
+    },
+    "denial": {
+     "n": 6,
+     "of": 227,
+     "p": 0.0264,
+     "lo": 0.0122,
+     "hi": 0.0565
+    },
     "helpinghand": {
      "n": 1,
      "of": 227,
@@ -3707,6 +4087,13 @@
      "p": 0.0135,
      "lo": 0.0046,
      "hi": 0.039
+    },
+    "denial": {
+     "n": 1,
+     "of": 222,
+     "p": 0.0045,
+     "lo": 0.0008,
+     "hi": 0.0251
     },
     "pivot": {
      "n": 3,
@@ -3864,8 +4251,8 @@
   },
   "ceruledge": {
    "roles": {
-    "priority": 0.5437,
     "setup": 0.3883,
+    "priority": 0.5437,
     "phys_attacker": 0.3398
    },
    "top": [
@@ -3876,13 +4263,6 @@
    "sets_seen": 206,
    "games": 206,
    "all_roles": {
-    "priority": {
-     "n": 112,
-     "of": 206,
-     "p": 0.5437,
-     "lo": 0.4755,
-     "hi": 0.6103
-    },
     "setup": {
      "n": 80,
      "of": 206,
@@ -3890,12 +4270,26 @@
      "lo": 0.3244,
      "hi": 0.4564
     },
+    "priority": {
+     "n": 112,
+     "of": 206,
+     "p": 0.5437,
+     "lo": 0.4755,
+     "hi": 0.6103
+    },
     "phys_attacker": {
      "n": 70,
      "of": 206,
      "p": 0.3398,
      "lo": 0.2786,
      "hi": 0.4069
+    },
+    "denial": {
+     "n": 1,
+     "of": 206,
+     "p": 0.0049,
+     "lo": 0.0009,
+     "hi": 0.027
     },
     "allysupport": {
      "n": 2,
@@ -4037,6 +4431,13 @@
      "lo": 0.0511,
      "hi": 0.1291
     },
+    "denial": {
+     "n": 4,
+     "of": 195,
+     "p": 0.0205,
+     "lo": 0.008,
+     "hi": 0.0515
+    },
     "speed_lower": {
      "n": 3,
      "of": 195,
@@ -4177,13 +4578,6 @@
      "lo": 0.001,
      "hi": 0.0303
     },
-    "taunt": {
-     "n": 4,
-     "of": 183,
-     "p": 0.0219,
-     "lo": 0.0085,
-     "hi": 0.0548
-    },
     "healing": {
      "n": 8,
      "of": 183,
@@ -4191,12 +4585,33 @@
      "lo": 0.0223,
      "hi": 0.0839
     },
-    "status": {
+    "taunt": {
      "n": 4,
      "of": 183,
      "p": 0.0219,
      "lo": 0.0085,
      "hi": 0.0548
+    },
+    "status": {
+     "n": 1,
+     "of": 183,
+     "p": 0.0055,
+     "lo": 0.001,
+     "hi": 0.0303
+    },
+    "status_poison": {
+     "n": 3,
+     "of": 183,
+     "p": 0.0164,
+     "lo": 0.0056,
+     "hi": 0.0471
+    },
+    "status_sleep": {
+     "n": 2,
+     "of": 183,
+     "p": 0.0109,
+     "lo": 0.003,
+     "hi": 0.039
     },
     "setup": {
      "n": 2,
@@ -4230,8 +4645,8 @@
   },
   "malamar": {
    "roles": {
-    "phys_attacker": 0.4111,
     "itemdisrupt": 0.4222,
+    "phys_attacker": 0.4111,
     "speed_trickroom": 0.2444
    },
    "top": [
@@ -4242,19 +4657,19 @@
    "sets_seen": 180,
    "games": 180,
    "all_roles": {
-    "phys_attacker": {
-     "n": 74,
-     "of": 180,
-     "p": 0.4111,
-     "lo": 0.3418,
-     "hi": 0.4841
-    },
     "itemdisrupt": {
      "n": 76,
      "of": 180,
      "p": 0.4222,
      "lo": 0.3524,
      "hi": 0.4953
+    },
+    "phys_attacker": {
+     "n": 74,
+     "of": 180,
+     "p": 0.4111,
+     "lo": 0.3418,
+     "hi": 0.4841
     },
     "speed_trickroom": {
      "n": 44,
@@ -4284,7 +4699,7 @@
      "lo": 0.001,
      "hi": 0.0308
     },
-    "status": {
+    "status_burn": {
      "n": 1,
      "of": 180,
      "p": 0.0056,
@@ -4312,6 +4727,13 @@
      "lo": 0.0087,
      "hi": 0.0557
     },
+    "status_poison": {
+     "n": 2,
+     "of": 180,
+     "p": 0.0111,
+     "lo": 0.0031,
+     "hi": 0.0396
+    },
     "wall": {
      "n": 2,
      "of": 180,
@@ -4323,7 +4745,6 @@
   },
   "meowstic": {
    "roles": {
-    "status": 0.1469,
     "fakeout": 0.2768,
     "terrain": 0.4407,
     "debuff": 0.1017,
@@ -4337,25 +4758,32 @@
     "fakeout",
     "wall",
     "weather",
-    "status",
-    "screens"
+    "screens",
+    "debuff"
    ],
    "sets_seen": 177,
    "games": 177,
    "all_roles": {
-    "status": {
-     "n": 26,
-     "of": 177,
-     "p": 0.1469,
-     "lo": 0.1023,
-     "hi": 0.2065
-    },
     "fakeout": {
      "n": 49,
      "of": 177,
      "p": 0.2768,
      "lo": 0.2162,
      "hi": 0.347
+    },
+    "status_para": {
+     "n": 12,
+     "of": 177,
+     "p": 0.0678,
+     "lo": 0.0392,
+     "hi": 0.1148
+    },
+    "status_sleep": {
+     "n": 14,
+     "of": 177,
+     "p": 0.0791,
+     "lo": 0.0477,
+     "hi": 0.1284
     },
     "terrain": {
      "n": 78,
@@ -4454,12 +4882,14 @@
    "roles": {
     "redirection": 0.5168,
     "wall": 0.5168,
+    "status": 0.3154,
     "setup": 0.255,
     "healing": 0.1477
    },
    "top": [
     "redirection",
     "wall",
+    "status",
     "setup",
     "healing"
    ],
@@ -4480,6 +4910,13 @@
      "lo": 0.4371,
      "hi": 0.5956
     },
+    "status": {
+     "n": 47,
+     "of": 149,
+     "p": 0.3154,
+     "lo": 0.2463,
+     "hi": 0.3939
+    },
     "setup": {
      "n": 38,
      "of": 149,
@@ -4494,7 +4931,7 @@
      "lo": 0.0996,
      "hi": 0.2134
     },
-    "status": {
+    "status_burn": {
      "n": 5,
      "of": 149,
      "p": 0.0336,
@@ -4566,6 +5003,13 @@
      "lo": 0.0012,
      "hi": 0.0373
     },
+    "itemdisrupt": {
+     "n": 6,
+     "of": 148,
+     "p": 0.0405,
+     "lo": 0.0187,
+     "hi": 0.0856
+    },
     "pivot": {
      "n": 6,
      "of": 148,
@@ -4573,12 +5017,12 @@
      "lo": 0.0187,
      "hi": 0.0856
     },
-    "itemdisrupt": {
-     "n": 6,
+    "denial": {
+     "n": 1,
      "of": 148,
-     "p": 0.0405,
-     "lo": 0.0187,
-     "hi": 0.0856
+     "p": 0.0068,
+     "lo": 0.0012,
+     "hi": 0.0373
     }
    }
   },
@@ -4603,7 +5047,7 @@
      "lo": 0.6437,
      "hi": 0.7872
     },
-    "status": {
+    "status_sleep": {
      "n": 2,
      "of": 147,
      "p": 0.0136,
@@ -4773,7 +5217,7 @@
      "lo": 0.0012,
      "hi": 0.0378
     },
-    "status": {
+    "status_burn": {
      "n": 2,
      "of": 146,
      "p": 0.0137,
@@ -4785,13 +5229,13 @@
   "eelektross": {
    "roles": {
     "healing": 0.2448,
-    "status": 0.2238,
+    "status_para": 0.2937,
     "spec_attacker": 0.3357
    },
    "top": [
     "spec_attacker",
-    "healing",
-    "status"
+    "status_para",
+    "healing"
    ],
    "sets_seen": 143,
    "games": 143,
@@ -4810,6 +5254,13 @@
      "lo": 0.0109,
      "hi": 0.0697
     },
+    "denial": {
+     "n": 1,
+     "of": 143,
+     "p": 0.007,
+     "lo": 0.0012,
+     "hi": 0.0385
+    },
     "speed_lower": {
      "n": 5,
      "of": 143,
@@ -4817,12 +5268,12 @@
      "lo": 0.015,
      "hi": 0.0792
     },
-    "status": {
-     "n": 32,
+    "status_para": {
+     "n": 42,
      "of": 143,
-     "p": 0.2238,
-     "lo": 0.1632,
-     "hi": 0.2988
+     "p": 0.2937,
+     "lo": 0.2252,
+     "hi": 0.373
     },
     "spec_attacker": {
      "n": 48,
@@ -4864,12 +5315,19 @@
      "lo": 0.2654,
      "hi": 0.4192
     },
-    "status": {
+    "status_sleep": {
      "n": 4,
      "of": 142,
      "p": 0.0282,
      "lo": 0.011,
      "hi": 0.0702
+    },
+    "status_burn": {
+     "n": 1,
+     "of": 142,
+     "p": 0.007,
+     "lo": 0.0012,
+     "hi": 0.0388
     },
     "setup": {
      "n": 1,
@@ -4890,16 +5348,18 @@
   "altaria": {
    "roles": {
     "trapping": 0.2214,
+    "denial": 0.9695,
     "healing": 0.1679,
-    "status": 0.2137,
     "perish": 0.229,
+    "status_burn": 0.2137,
     "speed_tailwind": 0.2672
    },
    "top": [
+    "denial",
     "speed_tailwind",
     "perish",
     "trapping",
-    "status",
+    "status_burn",
     "healing"
    ],
    "sets_seen": 131,
@@ -4912,6 +5372,13 @@
      "lo": 0.1588,
      "hi": 0.2998
     },
+    "denial": {
+     "n": 127,
+     "of": 131,
+     "p": 0.9695,
+     "lo": 0.9241,
+     "hi": 0.9881
+    },
     "healing": {
      "n": 22,
      "of": 131,
@@ -4919,19 +5386,19 @@
      "lo": 0.1136,
      "hi": 0.2412
     },
-    "status": {
-     "n": 28,
-     "of": 131,
-     "p": 0.2137,
-     "lo": 0.1522,
-     "hi": 0.2916
-    },
     "perish": {
      "n": 30,
      "of": 131,
      "p": 0.229,
      "lo": 0.1654,
      "hi": 0.3081
+    },
+    "status_burn": {
+     "n": 28,
+     "of": 131,
+     "p": 0.2137,
+     "lo": 0.1522,
+     "hi": 0.2916
     },
     "speed_tailwind": {
      "n": 35,
@@ -4968,6 +5435,13 @@
      "lo": 0.0212,
      "hi": 0.0963
     },
+    "status_para": {
+     "n": 4,
+     "of": 131,
+     "p": 0.0305,
+     "lo": 0.0119,
+     "hi": 0.0759
+    },
     "spec_attacker": {
      "n": 1,
      "of": 131,
@@ -4979,8 +5453,8 @@
   },
   "meowscarada": {
    "roles": {
-    "phys_attacker": 0.3203,
     "itemdisrupt": 0.2031,
+    "phys_attacker": 0.3203,
     "pivot": 0.0938
    },
    "top": [
@@ -4991,19 +5465,19 @@
    "sets_seen": 128,
    "games": 128,
    "all_roles": {
-    "phys_attacker": {
-     "n": 41,
-     "of": 128,
-     "p": 0.3203,
-     "lo": 0.2457,
-     "hi": 0.4054
-    },
     "itemdisrupt": {
      "n": 26,
      "of": 128,
      "p": 0.2031,
      "lo": 0.1426,
      "hi": 0.281
+    },
+    "phys_attacker": {
+     "n": 41,
+     "of": 128,
+     "p": 0.3203,
+     "lo": 0.2457,
+     "hi": 0.4054
     },
     "pivot": {
      "n": 12,
@@ -5018,6 +5492,13 @@
      "p": 0.0781,
      "lo": 0.043,
      "hi": 0.1378
+    },
+    "denial": {
+     "n": 1,
+     "of": 128,
+     "p": 0.0078,
+     "lo": 0.0014,
+     "hi": 0.0429
     },
     "speed_trickroom": {
      "n": 1,
@@ -5077,7 +5558,14 @@
      "lo": 0.0125,
      "hi": 0.0794
     },
-    "status": {
+    "denial": {
+     "n": 1,
+     "of": 125,
+     "p": 0.008,
+     "lo": 0.0014,
+     "hi": 0.0439
+    },
+    "status_para": {
      "n": 1,
      "of": 125,
      "p": 0.008,
@@ -5202,11 +5690,19 @@
      "p": 0.0081,
      "lo": 0.0014,
      "hi": 0.0443
+    },
+    "status_poison": {
+     "n": 4,
+     "of": 124,
+     "p": 0.0323,
+     "lo": 0.0126,
+     "hi": 0.08
     }
    }
   },
   "corviknight": {
    "roles": {
+    "denial": 0.2167,
     "speed_tailwind": 0.3333,
     "phys_attacker": 0.2917,
     "setup": 0.3,
@@ -5217,12 +5713,20 @@
     "speed_tailwind",
     "setup",
     "phys_attacker",
+    "denial",
     "healing",
     "wall"
    ],
    "sets_seen": 120,
    "games": 120,
    "all_roles": {
+    "denial": {
+     "n": 26,
+     "of": 120,
+     "p": 0.2167,
+     "lo": 0.1524,
+     "hi": 0.2985
+    },
     "speed_tailwind": {
      "n": 40,
      "of": 120,
@@ -5297,10 +5801,14 @@
   },
   "gengarmega": {
    "roles": {
-    "perish": 0.287
+    "perish": 0.287,
+    "status_poison": 0.113,
+    "status": 0.0957
    },
    "top": [
-    "perish"
+    "perish",
+    "status_poison",
+    "status"
    ],
    "sets_seen": 115,
    "games": 115,
@@ -5311,6 +5819,20 @@
      "p": 0.287,
      "lo": 0.2122,
      "hi": 0.3755
+    },
+    "status_poison": {
+     "n": 13,
+     "of": 115,
+     "p": 0.113,
+     "lo": 0.0673,
+     "hi": 0.1838
+    },
+    "status": {
+     "n": 11,
+     "of": 115,
+     "p": 0.0957,
+     "lo": 0.0543,
+     "hi": 0.1632
     },
     "spec_attacker": {
      "n": 6,
@@ -5337,31 +5859,33 @@
   },
   "rotomheat": {
    "roles": {
-    "pivot": 0.307,
     "spec_attacker": 0.614,
-    "status": 0.4211
+    "pivot": 0.307,
+    "status_para": 0.3158,
+    "status_burn": 0.1316
    },
    "top": [
     "spec_attacker",
-    "status",
-    "pivot"
+    "status_para",
+    "pivot",
+    "status_burn"
    ],
    "sets_seen": 114,
    "games": 114,
    "all_roles": {
-    "pivot": {
-     "n": 35,
-     "of": 114,
-     "p": 0.307,
-     "lo": 0.2298,
-     "hi": 0.3968
-    },
     "spec_attacker": {
      "n": 70,
      "of": 114,
      "p": 0.614,
      "lo": 0.5223,
      "hi": 0.6983
+    },
+    "pivot": {
+     "n": 35,
+     "of": 114,
+     "p": 0.307,
+     "lo": 0.2298,
+     "hi": 0.3968
     },
     "speed_lower": {
      "n": 10,
@@ -5370,12 +5894,12 @@
      "lo": 0.0483,
      "hi": 0.154
     },
-    "status": {
-     "n": 48,
+    "status_para": {
+     "n": 36,
      "of": 114,
-     "p": 0.4211,
-     "lo": 0.3344,
-     "hi": 0.5128
+     "p": 0.3158,
+     "lo": 0.2377,
+     "hi": 0.4059
     },
     "itemdisrupt": {
      "n": 9,
@@ -5383,6 +5907,13 @@
      "p": 0.0789,
      "lo": 0.0421,
      "hi": 0.1433
+    },
+    "status_burn": {
+     "n": 15,
+     "of": 114,
+     "p": 0.1316,
+     "lo": 0.0814,
+     "hi": 0.2058
     },
     "screens": {
      "n": 4,
@@ -5431,7 +5962,7 @@
      "lo": 0.1834,
      "hi": 0.3414
     },
-    "status": {
+    "status_burn": {
      "n": 1,
      "of": 114,
      "p": 0.0088,
@@ -5444,12 +5975,12 @@
    "roles": {
     "screens": 0.1579,
     "wall": 0.1579,
-    "status": 0.114
+    "status_burn": 0.1053
    },
    "top": [
     "screens",
     "wall",
-    "status"
+    "status_burn"
    ],
    "sets_seen": 114,
    "games": 114,
@@ -5460,6 +5991,13 @@
      "p": 0.0877,
      "lo": 0.0483,
      "hi": 0.154
+    },
+    "denial": {
+     "n": 2,
+     "of": 114,
+     "p": 0.0175,
+     "lo": 0.0048,
+     "hi": 0.0617
     },
     "screens": {
      "n": 18,
@@ -5475,12 +6013,12 @@
      "lo": 0.1023,
      "hi": 0.2358
     },
-    "status": {
-     "n": 13,
+    "status_burn": {
+     "n": 12,
      "of": 114,
-     "p": 0.114,
-     "lo": 0.0679,
-     "hi": 0.1854
+     "p": 0.1053,
+     "lo": 0.0612,
+     "hi": 0.175
     },
     "spec_attacker": {
      "n": 4,
@@ -5503,12 +6041,26 @@
      "lo": 0.0243,
      "hi": 0.1101
     },
+    "status": {
+     "n": 5,
+     "of": 114,
+     "p": 0.0439,
+     "lo": 0.0189,
+     "hi": 0.0986
+    },
     "priority": {
      "n": 4,
      "of": 114,
      "p": 0.0351,
      "lo": 0.0137,
      "hi": 0.0868
+    },
+    "status_para": {
+     "n": 3,
+     "of": 114,
+     "p": 0.0263,
+     "lo": 0.009,
+     "hi": 0.0745
     }
    }
   },
@@ -5597,7 +6149,7 @@
      "lo": 0.1232,
      "hi": 0.2688
     },
-    "status": {
+    "status_para": {
      "n": 3,
      "of": 108,
      "p": 0.0278,
@@ -5718,7 +6270,7 @@
      "lo": 0.0017,
      "hi": 0.0511
     },
-    "status": {
+    "status_para": {
      "n": 4,
      "of": 107,
      "p": 0.0374,
@@ -5803,13 +6355,6 @@
      "lo": 0.0584,
      "hi": 0.1748
     },
-    "status": {
-     "n": 3,
-     "of": 107,
-     "p": 0.028,
-     "lo": 0.0096,
-     "hi": 0.0792
-    },
     "speed_lower": {
      "n": 5,
      "of": 107,
@@ -5817,7 +6362,21 @@
      "lo": 0.0201,
      "hi": 0.1048
     },
+    "status_burn": {
+     "n": 3,
+     "of": 107,
+     "p": 0.028,
+     "lo": 0.0096,
+     "hi": 0.0792
+    },
     "debuff": {
+     "n": 2,
+     "of": 107,
+     "p": 0.0187,
+     "lo": 0.0051,
+     "hi": 0.0656
+    },
+    "status_poison": {
      "n": 2,
      "of": 107,
      "p": 0.0187,
@@ -5828,6 +6387,7 @@
   },
   "overqwil": {
    "roles": {
+    "status_poison": 0.1584,
     "phys_attacker": 0.1089,
     "debuff": 0.4851,
     "setup": 0.2475
@@ -5835,11 +6395,19 @@
    "top": [
     "debuff",
     "setup",
+    "status_poison",
     "phys_attacker"
    ],
    "sets_seen": 101,
    "games": 101,
    "all_roles": {
+    "status_poison": {
+     "n": 16,
+     "of": 101,
+     "p": 0.1584,
+     "lo": 0.0999,
+     "hi": 0.2419
+    },
     "phys_attacker": {
      "n": 11,
      "of": 101,
@@ -5875,26 +6443,26 @@
      "lo": 0.0017,
      "hi": 0.054
     },
-    "status": {
-     "n": 6,
-     "of": 101,
-     "p": 0.0594,
-     "lo": 0.0275,
-     "hi": 0.1236
-    },
     "taunt": {
      "n": 1,
      "of": 101,
      "p": 0.0099,
      "lo": 0.0017,
      "hi": 0.054
+    },
+    "status_burn": {
+     "n": 3,
+     "of": 101,
+     "p": 0.0297,
+     "lo": 0.0102,
+     "hi": 0.0837
     }
    }
   },
   "weavile": {
    "roles": {
-    "phys_attacker": 0.4796,
     "itemdisrupt": 0.4694,
+    "phys_attacker": 0.4796,
     "fakeout": 0.6429
    },
    "top": [
@@ -5905,19 +6473,19 @@
    "sets_seen": 98,
    "games": 98,
    "all_roles": {
-    "phys_attacker": {
-     "n": 47,
-     "of": 98,
-     "p": 0.4796,
-     "lo": 0.3833,
-     "hi": 0.5774
-    },
     "itemdisrupt": {
      "n": 46,
      "of": 98,
      "p": 0.4694,
      "lo": 0.3736,
      "hi": 0.5675
+    },
+    "phys_attacker": {
+     "n": 47,
+     "of": 98,
+     "p": 0.4796,
+     "lo": 0.3833,
+     "hi": 0.5774
     },
     "fakeout": {
      "n": 63,
@@ -5939,23 +6507,44 @@
      "p": 0.0612,
      "lo": 0.0284,
      "hi": 0.1272
+    },
+    "denial": {
+     "n": 1,
+     "of": 98,
+     "p": 0.0102,
+     "lo": 0.0018,
+     "hi": 0.0556
+    },
+    "status_poison": {
+     "n": 3,
+     "of": 98,
+     "p": 0.0306,
+     "lo": 0.0105,
+     "hi": 0.0862
     }
    }
   },
   "heliolisk": {
    "roles": {
-    "pivot": 0.102,
     "spec_attacker": 0.2959,
-    "status": 0.1327
+    "pivot": 0.102,
+    "status_para": 0.2143
    },
    "top": [
     "spec_attacker",
-    "status",
+    "status_para",
     "pivot"
    ],
    "sets_seen": 98,
    "games": 98,
    "all_roles": {
+    "spec_attacker": {
+     "n": 29,
+     "of": 98,
+     "p": 0.2959,
+     "lo": 0.2146,
+     "hi": 0.3926
+    },
     "pivot": {
      "n": 10,
      "of": 98,
@@ -5963,12 +6552,12 @@
      "lo": 0.0564,
      "hi": 0.1777
     },
-    "spec_attacker": {
-     "n": 29,
+    "status_para": {
+     "n": 21,
      "of": 98,
-     "p": 0.2959,
-     "lo": 0.2146,
-     "hi": 0.3926
+     "p": 0.2143,
+     "lo": 0.1446,
+     "hi": 0.3055
     },
     "allysupport": {
      "n": 7,
@@ -5990,13 +6579,6 @@
      "p": 0.0408,
      "lo": 0.016,
      "hi": 0.1003
-    },
-    "status": {
-     "n": 13,
-     "of": 98,
-     "p": 0.1327,
-     "lo": 0.0792,
-     "hi": 0.2138
     },
     "healing": {
      "n": 1,
@@ -6044,21 +6626,37 @@
      "p": 0.0102,
      "lo": 0.0018,
      "hi": 0.0556
+    },
+    "status_poison": {
+     "n": 3,
+     "of": 98,
+     "p": 0.0306,
+     "lo": 0.0105,
+     "hi": 0.0862
     }
    }
   },
   "drampa": {
    "roles": {
+    "denial": 0.5263,
     "spec_attacker": 0.3158,
     "setup": 0.4316
    },
    "top": [
+    "denial",
     "setup",
     "spec_attacker"
    ],
    "sets_seen": 95,
    "games": 95,
    "all_roles": {
+    "denial": {
+     "n": 50,
+     "of": 95,
+     "p": 0.5263,
+     "lo": 0.4269,
+     "hi": 0.6237
+    },
     "spec_attacker": {
      "n": 30,
      "of": 95,
@@ -6080,7 +6678,7 @@
      "lo": 0.0058,
      "hi": 0.0735
     },
-    "status": {
+    "status_para": {
      "n": 2,
      "of": 95,
      "p": 0.0211,
@@ -6236,10 +6834,10 @@
    "roles": {
     "redirection": 0.2209,
     "wall": 0.2209,
-    "status": 0.3372
+    "status_sleep": 0.3372
    },
    "top": [
-    "status",
+    "status_sleep",
     "redirection",
     "wall"
    ],
@@ -6260,7 +6858,7 @@
      "lo": 0.1462,
      "hi": 0.3195
     },
-    "status": {
+    "status_sleep": {
      "n": 29,
      "of": 86,
      "p": 0.3372,
@@ -6307,6 +6905,13 @@
      "lo": 0.0021,
      "hi": 0.063
     },
+    "status": {
+     "n": 1,
+     "of": 86,
+     "p": 0.0116,
+     "lo": 0.0021,
+     "hi": 0.063
+    },
     "setup": {
      "n": 1,
      "of": 86,
@@ -6318,17 +6923,17 @@
   },
   "raichumegay": {
    "roles": {
-    "status": 0.4286,
+    "status_para": 0.4286,
     "fakeout": 0.3929
    },
    "top": [
-    "status",
+    "status_para",
     "fakeout"
    ],
    "sets_seen": 84,
    "games": 84,
    "all_roles": {
-    "status": {
+    "status_para": {
      "n": 36,
      "of": 84,
      "p": 0.4286,
@@ -6342,14 +6947,14 @@
      "lo": 0.2953,
      "hi": 0.4998
     },
-    "pivot": {
+    "spec_attacker": {
      "n": 2,
      "of": 84,
      "p": 0.0238,
      "lo": 0.0066,
      "hi": 0.0827
     },
-    "spec_attacker": {
+    "pivot": {
      "n": 2,
      "of": 84,
      "p": 0.0238,
@@ -6620,6 +7225,13 @@
      "lo": 0.0125,
      "hi": 0.1021
     },
+    "status_poison": {
+     "n": 3,
+     "of": 82,
+     "p": 0.0366,
+     "lo": 0.0125,
+     "hi": 0.1021
+    },
     "spec_attacker": {
      "n": 1,
      "of": 82,
@@ -6669,12 +7281,12 @@
      "lo": 0.0263,
      "hi": 0.1349
     },
-    "status": {
-     "n": 5,
+    "status_poison": {
+     "n": 7,
      "of": 82,
-     "p": 0.061,
-     "lo": 0.0263,
-     "hi": 0.1349
+     "p": 0.0854,
+     "lo": 0.042,
+     "hi": 0.1659
     },
     "pivot": {
      "n": 4,
@@ -6683,14 +7295,14 @@
      "lo": 0.0191,
      "hi": 0.1188
     },
-    "weather": {
+    "speed_lower": {
      "n": 1,
      "of": 82,
      "p": 0.0122,
      "lo": 0.0022,
      "hi": 0.0659
     },
-    "speed_lower": {
+    "weather": {
      "n": 1,
      "of": 82,
      "p": 0.0122,
@@ -6758,7 +7370,7 @@
      "lo": 0.0067,
      "hi": 0.0846
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 82,
      "p": 0.0122,
@@ -6881,7 +7493,7 @@
      "lo": 0.0022,
      "hi": 0.0675
     },
-    "status": {
+    "status_sleep": {
      "n": 5,
      "of": 80,
      "p": 0.0625,
@@ -6899,11 +7511,13 @@
   },
   "dragalge": {
    "roles": {
+    "status_poison": 0.3671,
     "pivot": 0.1139,
     "phys_attacker": 0.1139,
     "spec_attacker": 0.2025
    },
    "top": [
+    "status_poison",
     "spec_attacker",
     "pivot",
     "phys_attacker"
@@ -6911,6 +7525,13 @@
    "sets_seen": 79,
    "games": 79,
    "all_roles": {
+    "status_poison": {
+     "n": 29,
+     "of": 79,
+     "p": 0.3671,
+     "lo": 0.2693,
+     "hi": 0.4772
+    },
     "pivot": {
      "n": 9,
      "of": 79,
@@ -6932,12 +7553,19 @@
      "lo": 0.1287,
      "hi": 0.304
     },
-    "status": {
-     "n": 3,
+    "denial": {
+     "n": 1,
      "of": 79,
-     "p": 0.038,
-     "lo": 0.013,
-     "hi": 0.1058
+     "p": 0.0127,
+     "lo": 0.0022,
+     "hi": 0.0683
+    },
+    "status_burn": {
+     "n": 4,
+     "of": 79,
+     "p": 0.0506,
+     "lo": 0.0199,
+     "hi": 0.1231
     },
     "trapping": {
      "n": 1,
@@ -6950,12 +7578,12 @@
   },
   "jolteon": {
    "roles": {
-    "status": 0.4521,
+    "status_para": 0.4795,
     "spec_attacker": 0.4658
    },
    "top": [
-    "spec_attacker",
-    "status"
+    "status_para",
+    "spec_attacker"
    ],
    "sets_seen": 73,
    "games": 73,
@@ -6967,12 +7595,12 @@
      "lo": 0.0472,
      "hi": 0.185
     },
-    "status": {
-     "n": 33,
+    "status_para": {
+     "n": 35,
      "of": 73,
-     "p": 0.4521,
-     "lo": 0.3431,
-     "hi": 0.5658
+     "p": 0.4795,
+     "lo": 0.3688,
+     "hi": 0.5922
     },
     "spec_attacker": {
      "n": 34,
@@ -7029,38 +7657,45 @@
      "p": 0.0137,
      "lo": 0.0024,
      "hi": 0.0736
+    },
+    "status_sleep": {
+     "n": 2,
+     "of": 73,
+     "p": 0.0274,
+     "lo": 0.0075,
+     "hi": 0.0945
     }
    }
   },
   "vivillon": {
    "roles": {
-    "status": 0.6575,
+    "status_sleep": 0.6575,
     "speed_tailwind": 0.1644,
-    "wall": 0.1507,
-    "redirection": 0.1507
+    "redirection": 0.1507,
+    "wall": 0.1507
    },
    "top": [
-    "status",
+    "status_sleep",
     "speed_tailwind",
-    "wall",
-    "redirection"
+    "redirection",
+    "wall"
    ],
    "sets_seen": 73,
    "games": 73,
    "all_roles": {
-    "status": {
-     "n": 48,
-     "of": 73,
-     "p": 0.6575,
-     "lo": 0.5433,
-     "hi": 0.7561
-    },
     "setup": {
      "n": 6,
      "of": 73,
      "p": 0.0822,
      "lo": 0.0382,
      "hi": 0.1679
+    },
+    "status_sleep": {
+     "n": 48,
+     "of": 73,
+     "p": 0.6575,
+     "lo": 0.5433,
+     "hi": 0.7561
     },
     "spec_attacker": {
      "n": 5,
@@ -7076,12 +7711,12 @@
      "lo": 0.0966,
      "hi": 0.2657
     },
-    "screens": {
-     "n": 1,
+    "redirection": {
+     "n": 11,
      "of": 73,
-     "p": 0.0137,
-     "lo": 0.0024,
-     "hi": 0.0736
+     "p": 0.1507,
+     "lo": 0.0863,
+     "hi": 0.25
     },
     "wall": {
      "n": 11,
@@ -7090,12 +7725,12 @@
      "lo": 0.0863,
      "hi": 0.25
     },
-    "redirection": {
-     "n": 11,
+    "screens": {
+     "n": 1,
      "of": 73,
-     "p": 0.1507,
-     "lo": 0.0863,
-     "hi": 0.25
+     "p": 0.0137,
+     "lo": 0.0024,
+     "hi": 0.0736
     },
     "healing": {
      "n": 4,
@@ -7133,13 +7768,13 @@
     "priority": 0.2917,
     "phys_attacker": 0.125,
     "setup": 0.2778,
-    "status": 0.2222
+    "status_burn": 0.2083
    },
    "top": [
     "speed_trickroom",
     "priority",
     "setup",
-    "status",
+    "status_burn",
     "phys_attacker"
    ],
    "sets_seen": 72,
@@ -7173,6 +7808,13 @@
      "lo": 0.0025,
      "hi": 0.0746
     },
+    "status": {
+     "n": 6,
+     "of": 72,
+     "p": 0.0833,
+     "lo": 0.0388,
+     "hi": 0.1701
+    },
     "setup": {
      "n": 20,
      "of": 72,
@@ -7180,12 +7822,12 @@
      "lo": 0.1876,
      "hi": 0.3905
     },
-    "status": {
-     "n": 16,
+    "status_burn": {
+     "n": 15,
      "of": 72,
-     "p": 0.2222,
-     "lo": 0.1417,
-     "hi": 0.3309
+     "p": 0.2083,
+     "lo": 0.1305,
+     "hi": 0.3157
     },
     "healing": {
      "n": 2,
@@ -7214,6 +7856,13 @@
      "p": 0.0139,
      "lo": 0.0025,
      "hi": 0.0746
+    },
+    "status_para": {
+     "n": 2,
+     "of": 72,
+     "p": 0.0278,
+     "lo": 0.0077,
+     "hi": 0.0957
     }
    }
   },
@@ -7229,6 +7878,13 @@
    "sets_seen": 72,
    "games": 72,
    "all_roles": {
+    "status_burn": {
+     "n": 3,
+     "of": 72,
+     "p": 0.0417,
+     "lo": 0.0143,
+     "hi": 0.1155
+    },
     "spec_attacker": {
      "n": 2,
      "of": 72,
@@ -7369,6 +8025,13 @@
      "lo": 0.0228,
      "hi": 0.1398
     },
+    "status_poison": {
+     "n": 2,
+     "of": 69,
+     "p": 0.029,
+     "lo": 0.008,
+     "hi": 0.0997
+    },
     "phys_attacker": {
      "n": 5,
      "of": 69,
@@ -7383,14 +8046,14 @@
      "lo": 0.0149,
      "hi": 0.1202
     },
-    "setup": {
+    "pivot": {
      "n": 2,
      "of": 69,
      "p": 0.029,
      "lo": 0.008,
      "hi": 0.0997
     },
-    "pivot": {
+    "setup": {
      "n": 2,
      "of": 69,
      "p": 0.029,
@@ -7508,7 +8171,7 @@
      "lo": 0.0026,
      "hi": 0.0776
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 69,
      "p": 0.0145,
@@ -7523,13 +8186,13 @@
     "wall": 0.4627,
     "weather": 0.209,
     "speed_trickroom": 0.1045,
-    "status": 0.1194
+    "status_para": 0.1194
    },
    "top": [
     "screens",
     "wall",
     "weather",
-    "status",
+    "status_para",
     "speed_trickroom"
    ],
    "sets_seen": 67,
@@ -7591,7 +8254,7 @@
      "lo": 0.0082,
      "hi": 0.1025
     },
-    "status": {
+    "status_para": {
      "n": 8,
      "of": 67,
      "p": 0.1194,
@@ -7609,26 +8272,35 @@
   },
   "vileplume": {
    "roles": {
-    "status": 0.4478,
-    "healing": 0.194,
     "allysupport": 0.2836,
+    "status_sleep": 0.4328,
+    "healing": 0.194,
+    "status_poison": 0.2836,
     "spec_attacker": 0.2239
    },
    "top": [
-    "status",
+    "status_sleep",
     "allysupport",
+    "status_poison",
     "spec_attacker",
     "healing"
    ],
    "sets_seen": 67,
    "games": 67,
    "all_roles": {
-    "status": {
-     "n": 30,
+    "allysupport": {
+     "n": 19,
      "of": 67,
-     "p": 0.4478,
-     "lo": 0.3348,
-     "hi": 0.5664
+     "p": 0.2836,
+     "lo": 0.1897,
+     "hi": 0.4009
+    },
+    "status_sleep": {
+     "n": 29,
+     "of": 67,
+     "p": 0.4328,
+     "lo": 0.321,
+     "hi": 0.5519
     },
     "healing": {
      "n": 13,
@@ -7637,7 +8309,7 @@
      "lo": 0.1171,
      "hi": 0.3042
     },
-    "allysupport": {
+    "status_poison": {
      "n": 19,
      "of": 67,
      "p": 0.2836,
@@ -7650,6 +8322,20 @@
      "p": 0.2239,
      "lo": 0.1406,
      "hi": 0.3371
+    },
+    "status": {
+     "n": 4,
+     "of": 67,
+     "p": 0.0597,
+     "lo": 0.0235,
+     "hi": 0.1437
+    },
+    "status_para": {
+     "n": 1,
+     "of": 67,
+     "p": 0.0149,
+     "lo": 0.0026,
+     "hi": 0.0798
     },
     "helpinghand": {
      "n": 1,
@@ -7669,8 +8355,8 @@
   },
   "tyranitarmega": {
    "roles": {
-    "phys_attacker": 0.303,
-    "itemdisrupt": 0.2727
+    "itemdisrupt": 0.2727,
+    "phys_attacker": 0.303
    },
    "top": [
     "phys_attacker",
@@ -7679,19 +8365,19 @@
    "sets_seen": 66,
    "games": 66,
    "all_roles": {
-    "phys_attacker": {
-     "n": 20,
-     "of": 66,
-     "p": 0.303,
-     "lo": 0.2055,
-     "hi": 0.4222
-    },
     "itemdisrupt": {
      "n": 18,
      "of": 66,
      "p": 0.2727,
      "lo": 0.18,
      "hi": 0.3904
+    },
+    "phys_attacker": {
+     "n": 20,
+     "of": 66,
+     "p": 0.303,
+     "lo": 0.2055,
+     "hi": 0.4222
     },
     "setup": {
      "n": 1,
@@ -7787,6 +8473,13 @@
      "p": 0.4,
      "lo": 0.2897,
      "hi": 0.5214
+    },
+    "denial": {
+     "n": 2,
+     "of": 65,
+     "p": 0.0308,
+     "lo": 0.0085,
+     "hi": 0.1054
     }
    }
   },
@@ -7826,6 +8519,13 @@
      "p": 0.2462,
      "lo": 0.1576,
      "hi": 0.3631
+    },
+    "status_burn": {
+     "n": 1,
+     "of": 65,
+     "p": 0.0154,
+     "lo": 0.0027,
+     "hi": 0.0821
     },
     "speed_trickroom": {
      "n": 10,
@@ -7911,12 +8611,19 @@
      "lo": 0.0028,
      "hi": 0.0846
     },
-    "status": {
+    "status_sleep": {
      "n": 5,
      "of": 63,
      "p": 0.0794,
      "lo": 0.0344,
      "hi": 0.1727
+    },
+    "status": {
+     "n": 2,
+     "of": 63,
+     "p": 0.0317,
+     "lo": 0.0087,
+     "hi": 0.1086
     },
     "terrain": {
      "n": 3,
@@ -7985,10 +8692,12 @@
    "roles": {
     "speed_trickroom": 0.4677,
     "weather": 0.3387,
-    "pivot": 0.3226
+    "pivot": 0.3226,
+    "status_poison": 0.3871
    },
    "top": [
     "speed_trickroom",
+    "status_poison",
     "weather",
     "pivot"
    ],
@@ -8016,12 +8725,12 @@
      "lo": 0.2195,
      "hi": 0.4463
     },
-    "status": {
-     "n": 6,
+    "status_poison": {
+     "n": 24,
      "of": 62,
-     "p": 0.0968,
-     "lo": 0.0451,
-     "hi": 0.1955
+     "p": 0.3871,
+     "lo": 0.2758,
+     "hi": 0.5115
     },
     "spec_attacker": {
      "n": 6,
@@ -8051,12 +8760,26 @@
      "lo": 0.0089,
      "hi": 0.1102
     },
+    "status_sleep": {
+     "n": 3,
+     "of": 62,
+     "p": 0.0484,
+     "lo": 0.0166,
+     "hi": 0.1329
+    },
     "terrain": {
      "n": 3,
      "of": 62,
      "p": 0.0484,
      "lo": 0.0166,
      "hi": 0.1329
+    },
+    "status_para": {
+     "n": 1,
+     "of": 62,
+     "p": 0.0161,
+     "lo": 0.0029,
+     "hi": 0.0859
     },
     "allysupport": {
      "n": 1,
@@ -8100,6 +8823,13 @@
      "lo": 0.1183,
      "hi": 0.3178
     },
+    "denial": {
+     "n": 1,
+     "of": 60,
+     "p": 0.0167,
+     "lo": 0.0029,
+     "hi": 0.0886
+    },
     "helpinghand": {
      "n": 2,
      "of": 60,
@@ -8140,19 +8870,19 @@
    "sets_seen": 60,
    "games": 60,
    "all_roles": {
-    "phys_attacker": {
-     "n": 9,
-     "of": 60,
-     "p": 0.15,
-     "lo": 0.081,
-     "hi": 0.2611
-    },
     "itemdisrupt": {
      "n": 4,
      "of": 60,
      "p": 0.0667,
      "lo": 0.0262,
      "hi": 0.1593
+    },
+    "phys_attacker": {
+     "n": 9,
+     "of": 60,
+     "p": 0.15,
+     "lo": 0.081,
+     "hi": 0.2611
     },
     "pivot": {
      "n": 2,
@@ -8175,12 +8905,19 @@
      "lo": 0.0171,
      "hi": 0.137
     },
-    "status": {
-     "n": 3,
+    "status_sleep": {
+     "n": 1,
      "of": 60,
-     "p": 0.05,
-     "lo": 0.0171,
-     "hi": 0.137
+     "p": 0.0167,
+     "lo": 0.0029,
+     "hi": 0.0886
+    },
+    "status_poison": {
+     "n": 1,
+     "of": 60,
+     "p": 0.0167,
+     "lo": 0.0029,
+     "hi": 0.0886
     },
     "setup": {
      "n": 4,
@@ -8195,6 +8932,20 @@
      "p": 0.05,
      "lo": 0.0171,
      "hi": 0.137
+    },
+    "status_para": {
+     "n": 2,
+     "of": 60,
+     "p": 0.0333,
+     "lo": 0.0092,
+     "hi": 0.1136
+    },
+    "helpinghand": {
+     "n": 2,
+     "of": 60,
+     "p": 0.0333,
+     "lo": 0.0092,
+     "hi": 0.1136
     },
     "priority": {
      "n": 2,
@@ -8216,13 +8967,6 @@
      "p": 0.05,
      "lo": 0.0171,
      "hi": 0.137
-    },
-    "helpinghand": {
-     "n": 1,
-     "of": 60,
-     "p": 0.0167,
-     "lo": 0.0029,
-     "hi": 0.0886
     },
     "allysupport": {
      "n": 1,
@@ -8299,6 +9043,13 @@
      "p": 0.0517,
      "lo": 0.0177,
      "hi": 0.1414
+    },
+    "status": {
+     "n": 5,
+     "of": 58,
+     "p": 0.0862,
+     "lo": 0.0374,
+     "hi": 0.1864
     }
    }
   },
@@ -8370,25 +9121,30 @@
   },
   "liepard": {
    "roles": {
-    "status": 0.1754,
     "encore": 0.1754,
     "debuff": 0.2982,
     "fakeout": 0.5263,
-    "phys_attacker": 0.2281,
-    "itemdisrupt": 0.2281
+    "itemdisrupt": 0.2281,
+    "phys_attacker": 0.2281
    },
    "top": [
     "fakeout",
     "debuff",
-    "phys_attacker",
     "itemdisrupt",
-    "status",
+    "phys_attacker",
     "encore"
    ],
    "sets_seen": 57,
    "games": 57,
    "all_roles": {
-    "status": {
+    "status_para": {
+     "n": 5,
+     "of": 57,
+     "p": 0.0877,
+     "lo": 0.0381,
+     "hi": 0.1895
+    },
+    "encore": {
      "n": 10,
      "of": 57,
      "p": 0.1754,
@@ -8401,13 +9157,6 @@
      "p": 0.0526,
      "lo": 0.0181,
      "hi": 0.1437
-    },
-    "encore": {
-     "n": 10,
-     "of": 57,
-     "p": 0.1754,
-     "lo": 0.0982,
-     "hi": 0.2937
     },
     "debuff": {
      "n": 17,
@@ -8423,14 +9172,14 @@
      "lo": 0.3992,
      "hi": 0.6501
     },
-    "phys_attacker": {
+    "itemdisrupt": {
      "n": 13,
      "of": 57,
      "p": 0.2281,
      "lo": 0.1384,
      "hi": 0.3521
     },
-    "itemdisrupt": {
+    "phys_attacker": {
      "n": 13,
      "of": 57,
      "p": 0.2281,
@@ -8443,6 +9192,13 @@
      "p": 0.0526,
      "lo": 0.0181,
      "hi": 0.1437
+    },
+    "status_sleep": {
+     "n": 5,
+     "of": 57,
+     "p": 0.0877,
+     "lo": 0.0381,
+     "hi": 0.1895
     },
     "weather": {
      "n": 4,
@@ -8457,6 +9213,13 @@
      "p": 0.0175,
      "lo": 0.0031,
      "hi": 0.0929
+    },
+    "status": {
+     "n": 2,
+     "of": 57,
+     "p": 0.0351,
+     "lo": 0.0097,
+     "hi": 0.1192
     }
    }
   },
@@ -8533,6 +9296,13 @@
      "lo": 0.132,
      "hi": 0.3494
     },
+    "debuff": {
+     "n": 4,
+     "of": 54,
+     "p": 0.0741,
+     "lo": 0.0292,
+     "hi": 0.1755
+    },
     "priority": {
      "n": 3,
      "of": 54,
@@ -8540,12 +9310,12 @@
      "lo": 0.0191,
      "hi": 0.1511
     },
-    "debuff": {
-     "n": 4,
+    "status_poison": {
+     "n": 1,
      "of": 54,
-     "p": 0.0741,
-     "lo": 0.0292,
-     "hi": 0.1755
+     "p": 0.0185,
+     "lo": 0.0033,
+     "hi": 0.0977
     },
     "setup": {
      "n": 5,
@@ -8558,9 +9328,9 @@
   },
   "aggron": {
    "roles": {
-    "phys_attacker": 0.5849,
+    "setup": 0.5094,
     "wall": 0.5472,
-    "setup": 0.5094
+    "phys_attacker": 0.5849
    },
    "top": [
     "phys_attacker",
@@ -8570,12 +9340,12 @@
    "sets_seen": 53,
    "games": 53,
    "all_roles": {
-    "phys_attacker": {
-     "n": 31,
+    "setup": {
+     "n": 27,
      "of": 53,
-     "p": 0.5849,
-     "lo": 0.4509,
-     "hi": 0.7074
+     "p": 0.5094,
+     "lo": 0.3788,
+     "hi": 0.6388
     },
     "wall": {
      "n": 29,
@@ -8584,27 +9354,31 @@
      "lo": 0.4145,
      "hi": 0.6734
     },
-    "setup": {
-     "n": 27,
+    "phys_attacker": {
+     "n": 31,
      "of": 53,
-     "p": 0.5094,
-     "lo": 0.3788,
-     "hi": 0.6388
+     "p": 0.5849,
+     "lo": 0.4509,
+     "hi": 0.7074
     }
    }
   },
   "snorlax": {
    "roles": {
+    "status_para": 0.2692,
+    "status": 0.1154,
     "setup": 0.2115,
     "phys_attacker": 0.2308,
     "wall": 0.1923,
-    "status": 0.1154
+    "status_sleep": 0.1154
    },
    "top": [
+    "status_para",
     "phys_attacker",
     "setup",
     "wall",
-    "status"
+    "status",
+    "status_sleep"
    ],
    "sets_seen": 52,
    "games": 52,
@@ -8615,6 +9389,20 @@
      "p": 0.0192,
      "lo": 0.0034,
      "hi": 0.1012
+    },
+    "status_para": {
+     "n": 14,
+     "of": 52,
+     "p": 0.2692,
+     "lo": 0.1677,
+     "hi": 0.4025
+    },
+    "status": {
+     "n": 6,
+     "of": 52,
+     "p": 0.1154,
+     "lo": 0.054,
+     "hi": 0.2297
     },
     "setup": {
      "n": 11,
@@ -8637,7 +9425,7 @@
      "lo": 0.108,
      "hi": 0.319
     },
-    "status": {
+    "status_sleep": {
      "n": 6,
      "of": 52,
      "p": 0.1154,
@@ -8651,14 +9439,14 @@
      "lo": 0.0034,
      "hi": 0.1012
     },
-    "weather": {
+    "speed_lower": {
      "n": 1,
      "of": 52,
      "p": 0.0192,
      "lo": 0.0034,
      "hi": 0.1012
     },
-    "speed_lower": {
+    "weather": {
      "n": 1,
      "of": 52,
      "p": 0.0192,
@@ -8670,8 +9458,8 @@
   "krookodile": {
    "roles": {
     "debuff": 0.6863,
-    "phys_attacker": 0.3529,
-    "itemdisrupt": 0.3137
+    "itemdisrupt": 0.3137,
+    "phys_attacker": 0.3529
    },
    "top": [
     "debuff",
@@ -8688,12 +9476,12 @@
      "lo": 0.5497,
      "hi": 0.7967
     },
-    "taunt": {
-     "n": 3,
+    "itemdisrupt": {
+     "n": 16,
      "of": 51,
-     "p": 0.0588,
-     "lo": 0.0202,
-     "hi": 0.1592
+     "p": 0.3137,
+     "lo": 0.2033,
+     "hi": 0.4503
     },
     "phys_attacker": {
      "n": 18,
@@ -8702,12 +9490,19 @@
      "lo": 0.2363,
      "hi": 0.4901
     },
-    "itemdisrupt": {
-     "n": 16,
+    "taunt": {
+     "n": 3,
      "of": 51,
-     "p": 0.3137,
-     "lo": 0.2033,
-     "hi": 0.4503
+     "p": 0.0588,
+     "lo": 0.0202,
+     "hi": 0.1592
+    },
+    "status_poison": {
+     "n": 4,
+     "of": 51,
+     "p": 0.0784,
+     "lo": 0.0309,
+     "hi": 0.185
     },
     "setup": {
      "n": 3,
@@ -8728,11 +9523,11 @@
   "houndstone": {
    "roles": {
     "phys_attacker": 0.1176,
-    "status": 0.1569,
+    "status_burn": 0.1569,
     "allysupport": 0.1176
    },
    "top": [
-    "status",
+    "status_burn",
     "phys_attacker",
     "allysupport"
    ],
@@ -8753,7 +9548,7 @@
      "lo": 0.055,
      "hi": 0.2338
     },
-    "status": {
+    "status_burn": {
      "n": 8,
      "of": 51,
      "p": 0.1569,
@@ -8766,6 +9561,13 @@
      "p": 0.1176,
      "lo": 0.055,
      "hi": 0.2338
+    },
+    "status_sleep": {
+     "n": 1,
+     "of": 51,
+     "p": 0.0196,
+     "lo": 0.0035,
+     "hi": 0.103
     },
     "wall": {
      "n": 3,
@@ -8855,6 +9657,13 @@
      "lo": 0.4328,
      "hi": 0.7049
     },
+    "perish": {
+     "n": 1,
+     "of": 47,
+     "p": 0.0213,
+     "lo": 0.0038,
+     "hi": 0.1111
+    },
     "encore": {
      "n": 1,
      "of": 47,
@@ -8863,13 +9672,6 @@
      "hi": 0.1111
     },
     "trapping": {
-     "n": 1,
-     "of": 47,
-     "p": 0.0213,
-     "lo": 0.0038,
-     "hi": 0.1111
-    },
-    "perish": {
      "n": 1,
      "of": 47,
      "p": 0.0213,
@@ -8887,29 +9689,22 @@
   },
   "cofagrigus": {
    "roles": {
-    "speed_trickroom": 0.6522,
     "allysupport": 0.1304,
-    "phys_attacker": 0.3043,
+    "speed_trickroom": 0.6522,
     "wall": 0.3043,
-    "status": 0.3043
+    "phys_attacker": 0.3043,
+    "status_burn": 0.3043
    },
    "top": [
     "speed_trickroom",
-    "phys_attacker",
     "wall",
-    "status",
+    "phys_attacker",
+    "status_burn",
     "allysupport"
    ],
    "sets_seen": 46,
    "games": 46,
    "all_roles": {
-    "speed_trickroom": {
-     "n": 30,
-     "of": 46,
-     "p": 0.6522,
-     "lo": 0.5077,
-     "hi": 0.7732
-    },
     "allysupport": {
      "n": 6,
      "of": 46,
@@ -8917,12 +9712,19 @@
      "lo": 0.0612,
      "hi": 0.2567
     },
-    "phys_attacker": {
-     "n": 14,
+    "speed_trickroom": {
+     "n": 30,
      "of": 46,
-     "p": 0.3043,
-     "lo": 0.1908,
-     "hi": 0.4481
+     "p": 0.6522,
+     "lo": 0.5077,
+     "hi": 0.7732
+    },
+    "status": {
+     "n": 4,
+     "of": 46,
+     "p": 0.087,
+     "lo": 0.0343,
+     "hi": 0.2032
     },
     "wall": {
      "n": 14,
@@ -8931,7 +9733,14 @@
      "lo": 0.1908,
      "hi": 0.4481
     },
-    "status": {
+    "phys_attacker": {
+     "n": 14,
+     "of": 46,
+     "p": 0.3043,
+     "lo": 0.1908,
+     "hi": 0.4481
+    },
+    "status_burn": {
      "n": 14,
      "of": 46,
      "p": 0.3043,
@@ -8946,6 +9755,20 @@
      "hi": 0.2304
     },
     "debuff": {
+     "n": 1,
+     "of": 46,
+     "p": 0.0217,
+     "lo": 0.0038,
+     "hi": 0.1134
+    },
+    "denial": {
+     "n": 2,
+     "of": 46,
+     "p": 0.0435,
+     "lo": 0.012,
+     "hi": 0.1453
+    },
+    "status_poison": {
      "n": 1,
      "of": 46,
      "p": 0.0217,
@@ -8986,6 +9809,13 @@
      "p": 0.4348,
      "lo": 0.3021,
      "hi": 0.5775
+    },
+    "status": {
+     "n": 1,
+     "of": 46,
+     "p": 0.0217,
+     "lo": 0.0038,
+     "hi": 0.1134
     },
     "setup": {
      "n": 1,
@@ -9031,19 +9861,19 @@
      "lo": 0.2242,
      "hi": 0.4983
     },
-    "wall": {
-     "n": 2,
-     "of": 43,
-     "p": 0.0465,
-     "lo": 0.0128,
-     "hi": 0.1546
-    },
     "setup": {
      "n": 1,
      "of": 43,
      "p": 0.0233,
      "lo": 0.0041,
      "hi": 0.1206
+    },
+    "wall": {
+     "n": 2,
+     "of": 43,
+     "p": 0.0465,
+     "lo": 0.0128,
+     "hi": 0.1546
     },
     "teamprotect": {
      "n": 1,
@@ -9056,16 +9886,25 @@
   },
   "metagrossmega": {
    "roles": {
+    "denial": 0.3721,
     "phys_attacker": 0.2093,
     "priority": 0.2791
    },
    "top": [
+    "denial",
     "priority",
     "phys_attacker"
    ],
    "sets_seen": 43,
    "games": 43,
    "all_roles": {
+    "denial": {
+     "n": 16,
+     "of": 43,
+     "p": 0.3721,
+     "lo": 0.2438,
+     "hi": 0.5214
+    },
     "phys_attacker": {
      "n": 9,
      "of": 43,
@@ -9091,8 +9930,8 @@
   },
   "orthworm": {
    "roles": {
-    "phys_attacker": 0.4186,
-    "wall": 0.4884
+    "wall": 0.4884,
+    "phys_attacker": 0.4186
    },
    "top": [
     "wall",
@@ -9101,19 +9940,19 @@
    "sets_seen": 43,
    "games": 43,
    "all_roles": {
-    "phys_attacker": {
-     "n": 18,
-     "of": 43,
-     "p": 0.4186,
-     "lo": 0.2838,
-     "hi": 0.5667
-    },
     "wall": {
      "n": 21,
      "of": 43,
      "p": 0.4884,
      "lo": 0.3462,
      "hi": 0.6325
+    },
+    "phys_attacker": {
+     "n": 18,
+     "of": 43,
+     "p": 0.4186,
+     "lo": 0.2838,
+     "hi": 0.5667
     },
     "speed_lower": {
      "n": 1,
@@ -9187,7 +10026,7 @@
      "lo": 0.0132,
      "hi": 0.1579
     },
-    "status": {
+    "status_sleep": {
      "n": 1,
      "of": 42,
      "p": 0.0238,
@@ -9196,13 +10035,53 @@
     }
    }
   },
+  "floettemega": {
+   "roles": {
+    "helpinghand": 1.0
+   },
+   "top": [
+    "helpinghand"
+   ],
+   "sets_seen": 41,
+   "games": 41,
+   "all_roles": {
+    "helpinghand": {
+     "n": 41,
+     "of": 41,
+     "p": 1.0,
+     "lo": 0.9143,
+     "hi": 1.0
+    },
+    "spec_attacker": {
+     "n": 4,
+     "of": 41,
+     "p": 0.0976,
+     "lo": 0.0386,
+     "hi": 0.2255
+    },
+    "setup": {
+     "n": 2,
+     "of": 41,
+     "p": 0.0488,
+     "lo": 0.0135,
+     "hi": 0.1614
+    },
+    "healing": {
+     "n": 2,
+     "of": 41,
+     "p": 0.0488,
+     "lo": 0.0135,
+     "hi": 0.1614
+    }
+   }
+  },
   "hippowdon": {
    "roles": {
     "healing": 0.3171,
-    "status": 0.3902
+    "status_sleep": 0.3902
    },
    "top": [
-    "status",
+    "status_sleep",
     "healing"
    ],
    "sets_seen": 41,
@@ -9215,7 +10094,7 @@
      "lo": 0.1956,
      "hi": 0.4698
     },
-    "status": {
+    "status_sleep": {
      "n": 16,
      "of": 41,
      "p": 0.3902,
@@ -9230,6 +10109,20 @@
      "hi": 0.2255
     },
     "wall": {
+     "n": 2,
+     "of": 41,
+     "p": 0.0488,
+     "lo": 0.0135,
+     "hi": 0.1614
+    },
+    "status_burn": {
+     "n": 1,
+     "of": 41,
+     "p": 0.0244,
+     "lo": 0.0043,
+     "hi": 0.126
+    },
+    "status": {
      "n": 2,
      "of": 41,
      "p": 0.0488,
@@ -9254,8 +10147,9 @@
   },
   "steelix": {
    "roles": {
-    "phys_attacker": 0.122,
     "wall": 0.4146,
+    "phys_attacker": 0.122,
+    "status": 0.122,
     "setup": 0.122,
     "teamprotect": 0.2927
    },
@@ -9263,11 +10157,19 @@
     "wall",
     "teamprotect",
     "phys_attacker",
+    "status",
     "setup"
    ],
    "sets_seen": 41,
    "games": 41,
    "all_roles": {
+    "wall": {
+     "n": 17,
+     "of": 41,
+     "p": 0.4146,
+     "lo": 0.2776,
+     "hi": 0.5663
+    },
     "phys_attacker": {
      "n": 5,
      "of": 41,
@@ -9275,12 +10177,12 @@
      "lo": 0.0532,
      "hi": 0.2554
     },
-    "wall": {
-     "n": 17,
+    "status": {
+     "n": 5,
      "of": 41,
-     "p": 0.4146,
-     "lo": 0.2776,
-     "hi": 0.5663
+     "p": 0.122,
+     "lo": 0.0532,
+     "hi": 0.2554
     },
     "setup": {
      "n": 5,
@@ -9390,13 +10292,13 @@
   "raichumegax": {
    "roles": {
     "fakeout": 0.4,
-    "pivot": 0.15,
-    "spec_attacker": 0.15
+    "spec_attacker": 0.15,
+    "pivot": 0.15
    },
    "top": [
     "fakeout",
-    "pivot",
-    "spec_attacker"
+    "spec_attacker",
+    "pivot"
    ],
    "sets_seen": 40,
    "games": 40,
@@ -9408,13 +10310,6 @@
      "lo": 0.2635,
      "hi": 0.554
     },
-    "pivot": {
-     "n": 6,
-     "of": 40,
-     "p": 0.15,
-     "lo": 0.0706,
-     "hi": 0.2907
-    },
     "spec_attacker": {
      "n": 6,
      "of": 40,
@@ -9422,7 +10317,14 @@
      "lo": 0.0706,
      "hi": 0.2907
     },
-    "status": {
+    "pivot": {
+     "n": 6,
+     "of": 40,
+     "p": 0.15,
+     "lo": 0.0706,
+     "hi": 0.2907
+    },
+    "status_para": {
      "n": 1,
      "of": 40,
      "p": 0.025,
@@ -9457,12 +10359,12 @@
    "sets_seen": 40,
    "games": 40,
    "all_roles": {
-    "phys_attacker": {
-     "n": 4,
+    "setup": {
+     "n": 7,
      "of": 40,
-     "p": 0.1,
-     "lo": 0.0396,
-     "hi": 0.2305
+     "p": 0.175,
+     "lo": 0.0875,
+     "hi": 0.3195
     },
     "wall": {
      "n": 1,
@@ -9471,12 +10373,12 @@
      "lo": 0.0044,
      "hi": 0.1288
     },
-    "setup": {
-     "n": 7,
+    "phys_attacker": {
+     "n": 4,
      "of": 40,
-     "p": 0.175,
-     "lo": 0.0875,
-     "hi": 0.3195
+     "p": 0.1,
+     "lo": 0.0396,
+     "hi": 0.2305
     },
     "speed_tailwind": {
      "n": 10,
@@ -9515,15 +10417,77 @@
     }
    }
   },
+  "scolipede": {
+   "roles": {
+    "status_poison": 0.3,
+    "setup": 0.925,
+    "healing": 0.3,
+    "phys_attacker": 0.275,
+    "speed_lower": 0.125
+   },
+   "top": [
+    "setup",
+    "status_poison",
+    "healing",
+    "phys_attacker",
+    "speed_lower"
+   ],
+   "sets_seen": 40,
+   "games": 40,
+   "all_roles": {
+    "status_poison": {
+     "n": 12,
+     "of": 40,
+     "p": 0.3,
+     "lo": 0.1807,
+     "hi": 0.4543
+    },
+    "setup": {
+     "n": 37,
+     "of": 40,
+     "p": 0.925,
+     "lo": 0.8014,
+     "hi": 0.9742
+    },
+    "healing": {
+     "n": 12,
+     "of": 40,
+     "p": 0.3,
+     "lo": 0.1807,
+     "hi": 0.4543
+    },
+    "phys_attacker": {
+     "n": 11,
+     "of": 40,
+     "p": 0.275,
+     "lo": 0.1611,
+     "hi": 0.4284
+    },
+    "pivot": {
+     "n": 2,
+     "of": 40,
+     "p": 0.05,
+     "lo": 0.0138,
+     "hi": 0.165
+    },
+    "speed_lower": {
+     "n": 5,
+     "of": 40,
+     "p": 0.125,
+     "lo": 0.0546,
+     "hi": 0.2611
+    }
+   }
+  },
   "serperior": {
    "roles": {
-    "status": 0.2,
+    "status_para": 0.2,
     "spec_attacker": 0.275,
     "healing": 0.175
    },
    "top": [
     "spec_attacker",
-    "status",
+    "status_para",
     "healing"
    ],
    "sets_seen": 40,
@@ -9536,7 +10500,7 @@
      "lo": 0.0044,
      "hi": 0.1288
     },
-    "status": {
+    "status_para": {
      "n": 8,
      "of": 40,
      "p": 0.2,
@@ -9549,6 +10513,13 @@
      "p": 0.275,
      "lo": 0.1611,
      "hi": 0.4284
+    },
+    "status": {
+     "n": 1,
+     "of": 40,
+     "p": 0.025,
+     "lo": 0.0044,
+     "hi": 0.1288
     },
     "screens": {
      "n": 1,
@@ -9571,14 +10542,14 @@
      "lo": 0.0875,
      "hi": 0.3195
     },
-    "phys_attacker": {
+    "itemdisrupt": {
      "n": 1,
      "of": 40,
      "p": 0.025,
      "lo": 0.0044,
      "hi": 0.1288
     },
-    "itemdisrupt": {
+    "phys_attacker": {
      "n": 1,
      "of": 40,
      "p": 0.025,
@@ -9635,6 +10606,13 @@
      "lo": 0.0546,
      "hi": 0.2611
     },
+    "status_sleep": {
+     "n": 1,
+     "of": 40,
+     "p": 0.025,
+     "lo": 0.0044,
+     "hi": 0.1288
+    },
     "screens": {
      "n": 1,
      "of": 40,
@@ -9642,12 +10620,12 @@
      "lo": 0.0044,
      "hi": 0.1288
     },
-    "status": {
-     "n": 3,
+    "status_poison": {
+     "n": 2,
      "of": 40,
-     "p": 0.075,
-     "lo": 0.0258,
-     "hi": 0.1986
+     "p": 0.05,
+     "lo": 0.0138,
+     "hi": 0.165
     },
     "healing": {
      "n": 6,
@@ -9677,6 +10655,13 @@
      "lo": 0.0706,
      "hi": 0.2907
     },
+    "status": {
+     "n": 2,
+     "of": 40,
+     "p": 0.05,
+     "lo": 0.0138,
+     "hi": 0.165
+    },
     "pivot": {
      "n": 4,
      "of": 40,
@@ -9686,77 +10671,33 @@
     }
    }
   },
-  "scolipede": {
-   "roles": {
-    "setup": 0.925,
-    "healing": 0.3,
-    "phys_attacker": 0.275,
-    "speed_lower": 0.125
-   },
-   "top": [
-    "setup",
-    "healing",
-    "phys_attacker",
-    "speed_lower"
-   ],
-   "sets_seen": 40,
-   "games": 40,
-   "all_roles": {
-    "setup": {
-     "n": 37,
-     "of": 40,
-     "p": 0.925,
-     "lo": 0.8014,
-     "hi": 0.9742
-    },
-    "healing": {
-     "n": 12,
-     "of": 40,
-     "p": 0.3,
-     "lo": 0.1807,
-     "hi": 0.4543
-    },
-    "phys_attacker": {
-     "n": 11,
-     "of": 40,
-     "p": 0.275,
-     "lo": 0.1611,
-     "hi": 0.4284
-    },
-    "pivot": {
-     "n": 2,
-     "of": 40,
-     "p": 0.05,
-     "lo": 0.0138,
-     "hi": 0.165
-    },
-    "speed_lower": {
-     "n": 5,
-     "of": 40,
-     "p": 0.125,
-     "lo": 0.0546,
-     "hi": 0.2611
-    }
-   }
-  },
   "slowbro": {
    "roles": {
+    "status_burn": 0.3846,
     "spec_attacker": 0.1282,
     "setup": 0.3333,
     "speed_trickroom": 0.2821,
-    "phys_attacker": 0.1538,
-    "wall": 0.1538
+    "wall": 0.1538,
+    "phys_attacker": 0.1538
    },
    "top": [
+    "status_burn",
     "setup",
     "speed_trickroom",
-    "phys_attacker",
     "wall",
+    "phys_attacker",
     "spec_attacker"
    ],
    "sets_seen": 39,
    "games": 39,
    "all_roles": {
+    "status_burn": {
+     "n": 15,
+     "of": 39,
+     "p": 0.3846,
+     "lo": 0.2489,
+     "hi": 0.541
+    },
     "spec_attacker": {
      "n": 5,
      "of": 39,
@@ -9785,13 +10726,6 @@
      "lo": 0.0406,
      "hi": 0.2358
     },
-    "phys_attacker": {
-     "n": 6,
-     "of": 39,
-     "p": 0.1538,
-     "lo": 0.0725,
-     "hi": 0.2973
-    },
     "wall": {
      "n": 6,
      "of": 39,
@@ -9799,7 +10733,14 @@
      "lo": 0.0725,
      "hi": 0.2973
     },
-    "status": {
+    "phys_attacker": {
+     "n": 6,
+     "of": 39,
+     "p": 0.1538,
+     "lo": 0.0725,
+     "hi": 0.2973
+    },
+    "status_sleep": {
      "n": 3,
      "of": 39,
      "p": 0.0769,
@@ -9869,7 +10810,7 @@
      "lo": 0.0265,
      "hi": 0.2032
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 39,
      "p": 0.0256,
@@ -9916,6 +10857,13 @@
      "lo": 0.056,
      "hi": 0.2671
     },
+    "status": {
+     "n": 1,
+     "of": 39,
+     "p": 0.0256,
+     "lo": 0.0045,
+     "hi": 0.1318
+    },
     "encore": {
      "n": 3,
      "of": 39,
@@ -9923,12 +10871,19 @@
      "lo": 0.0265,
      "hi": 0.2032
     },
-    "status": {
-     "n": 4,
+    "status_burn": {
+     "n": 2,
      "of": 39,
-     "p": 0.1026,
-     "lo": 0.0406,
-     "hi": 0.2358
+     "p": 0.0513,
+     "lo": 0.0142,
+     "hi": 0.1689
+    },
+    "status_sleep": {
+     "n": 3,
+     "of": 39,
+     "p": 0.0769,
+     "lo": 0.0265,
+     "hi": 0.2032
     }
    }
   },
@@ -9972,11 +10927,13 @@
   "beedrill": {
    "roles": {
     "pivot": 0.4595,
-    "phys_attacker": 0.4865
+    "phys_attacker": 0.4865,
+    "status_poison": 0.3514
    },
    "top": [
     "phys_attacker",
-    "pivot"
+    "pivot",
+    "status_poison"
    ],
    "sets_seen": 37,
    "games": 37,
@@ -9994,6 +10951,20 @@
      "p": 0.4865,
      "lo": 0.3345,
      "hi": 0.6411
+    },
+    "status_poison": {
+     "n": 13,
+     "of": 37,
+     "p": 0.3514,
+     "lo": 0.2183,
+     "hi": 0.5124
+    },
+    "denial": {
+     "n": 3,
+     "of": 37,
+     "p": 0.0811,
+     "lo": 0.028,
+     "hi": 0.213
     },
     "debuff": {
      "n": 1,
@@ -10073,6 +11044,13 @@
      "p": 0.027,
      "lo": 0.0048,
      "hi": 0.1382
+    },
+    "status": {
+     "n": 1,
+     "of": 37,
+     "p": 0.027,
+     "lo": 0.0048,
+     "hi": 0.1382
     }
    }
   },
@@ -10130,19 +11108,19 @@
      "lo": 0.0048,
      "hi": 0.1382
     },
-    "priority": {
-     "n": 3,
-     "of": 37,
-     "p": 0.0811,
-     "lo": 0.028,
-     "hi": 0.213
-    },
     "allysupport": {
      "n": 1,
      "of": 37,
      "p": 0.027,
      "lo": 0.0048,
      "hi": 0.1382
+    },
+    "priority": {
+     "n": 3,
+     "of": 37,
+     "p": 0.0811,
+     "lo": 0.028,
+     "hi": 0.213
     },
     "healing": {
      "n": 2,
@@ -10155,9 +11133,9 @@
   },
   "falinks": {
    "roles": {
-    "setup": 0.6667,
+    "itemdisrupt": 0.1944,
     "phys_attacker": 0.3889,
-    "itemdisrupt": 0.1944
+    "setup": 0.6667
    },
    "top": [
     "setup",
@@ -10167,12 +11145,12 @@
    "sets_seen": 36,
    "games": 36,
    "all_roles": {
-    "setup": {
-     "n": 24,
+    "itemdisrupt": {
+     "n": 7,
      "of": 36,
-     "p": 0.6667,
-     "lo": 0.5033,
-     "hi": 0.7979
+     "p": 0.1944,
+     "lo": 0.0975,
+     "hi": 0.3503
     },
     "phys_attacker": {
      "n": 14,
@@ -10181,12 +11159,12 @@
      "lo": 0.2478,
      "hi": 0.5514
     },
-    "itemdisrupt": {
-     "n": 7,
+    "setup": {
+     "n": 24,
      "of": 36,
-     "p": 0.1944,
-     "lo": 0.0975,
-     "hi": 0.3503
+     "p": 0.6667,
+     "lo": 0.5033,
+     "hi": 0.7979
     },
     "priority": {
      "n": 4,
@@ -10194,6 +11172,13 @@
      "p": 0.1111,
      "lo": 0.0441,
      "hi": 0.2532
+    },
+    "denial": {
+     "n": 1,
+     "of": 36,
+     "p": 0.0278,
+     "lo": 0.0049,
+     "hi": 0.1417
     },
     "wall": {
      "n": 4,
@@ -10206,8 +11191,8 @@
   },
   "scraftymega": {
    "roles": {
-    "phys_attacker": 0.2222,
     "itemdisrupt": 0.1944,
+    "phys_attacker": 0.2222,
     "debuff": 1.0,
     "fakeout": 0.5,
     "healing": 0.4167
@@ -10222,19 +11207,19 @@
    "sets_seen": 36,
    "games": 36,
    "all_roles": {
-    "phys_attacker": {
-     "n": 8,
-     "of": 36,
-     "p": 0.2222,
-     "lo": 0.1172,
-     "hi": 0.3809
-    },
     "itemdisrupt": {
      "n": 7,
      "of": 36,
      "p": 0.1944,
      "lo": 0.0975,
      "hi": 0.3503
+    },
+    "phys_attacker": {
+     "n": 8,
+     "of": 36,
+     "p": 0.2222,
+     "lo": 0.1172,
+     "hi": 0.3809
     },
     "debuff": {
      "n": 36,
@@ -10262,11 +11247,13 @@
   "venusaurmega": {
    "roles": {
     "healing": 0.3429,
+    "status_poison": 0.1714,
     "spec_attacker": 0.2
    },
    "top": [
     "healing",
-    "spec_attacker"
+    "spec_attacker",
+    "status_poison"
    ],
    "sets_seen": 35,
    "games": 35,
@@ -10278,6 +11265,13 @@
      "lo": 0.2083,
      "hi": 0.5085
     },
+    "status_poison": {
+     "n": 6,
+     "of": 35,
+     "p": 0.1714,
+     "lo": 0.081,
+     "hi": 0.3268
+    },
     "spec_attacker": {
      "n": 7,
      "of": 35,
@@ -10285,7 +11279,7 @@
      "lo": 0.1004,
      "hi": 0.3589
     },
-    "status": {
+    "status_sleep": {
      "n": 1,
      "of": 35,
      "p": 0.0286,
@@ -10296,13 +11290,15 @@
   },
   "vaporeon": {
    "roles": {
-    "status": 0.2286,
+    "status_sleep": 0.2286,
+    "status_burn": 0.4,
     "spec_attacker": 0.2,
     "pivot": 0.1714,
     "phys_attacker": 0.1714
    },
    "top": [
-    "status",
+    "status_burn",
+    "status_sleep",
     "spec_attacker",
     "pivot",
     "phys_attacker"
@@ -10310,19 +11306,12 @@
    "sets_seen": 35,
    "games": 35,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 8,
      "of": 35,
      "p": 0.2286,
      "lo": 0.1207,
      "hi": 0.3902
-    },
-    "trapping": {
-     "n": 1,
-     "of": 35,
-     "p": 0.0286,
-     "lo": 0.0051,
-     "hi": 0.1453
     },
     "healing": {
      "n": 1,
@@ -10337,6 +11326,20 @@
      "p": 0.0286,
      "lo": 0.0051,
      "hi": 0.1453
+    },
+    "trapping": {
+     "n": 1,
+     "of": 35,
+     "p": 0.0286,
+     "lo": 0.0051,
+     "hi": 0.1453
+    },
+    "status_burn": {
+     "n": 14,
+     "of": 35,
+     "p": 0.4,
+     "lo": 0.2555,
+     "hi": 0.5643
     },
     "weather": {
      "n": 1,
@@ -10384,19 +11387,19 @@
   },
   "vivillonfancy": {
    "roles": {
-    "status": 0.6471,
+    "status_sleep": 0.6471,
     "redirection": 0.3235,
     "wall": 0.3235
    },
    "top": [
-    "status",
+    "status_sleep",
     "redirection",
     "wall"
    ],
    "sets_seen": 34,
    "games": 34,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 22,
      "of": 34,
      "p": 0.6471,
@@ -10436,11 +11439,13 @@
   "sharpedo": {
    "roles": {
     "phys_attacker": 0.2647,
-    "setup": 0.7647
+    "setup": 0.7647,
+    "denial": 0.1471
    },
    "top": [
     "setup",
-    "phys_attacker"
+    "phys_attacker",
+    "denial"
    ],
    "sets_seen": 34,
    "games": 34,
@@ -10458,6 +11463,13 @@
      "p": 0.7647,
      "lo": 0.6,
      "hi": 0.8756
+    },
+    "denial": {
+     "n": 5,
+     "of": 34,
+     "p": 0.1471,
+     "lo": 0.0645,
+     "hi": 0.3013
     },
     "pivot": {
      "n": 3,
@@ -10541,6 +11553,13 @@
      "lo": 0.3087,
      "hi": 0.6355
     },
+    "denial": {
+     "n": 2,
+     "of": 32,
+     "p": 0.0625,
+     "lo": 0.0173,
+     "hi": 0.2015
+    },
     "itemdisrupt": {
      "n": 1,
      "of": 32,
@@ -10583,19 +11602,19 @@
      "lo": 0.0055,
      "hi": 0.1574
     },
-    "status": {
-     "n": 3,
+    "status_para": {
+     "n": 2,
      "of": 32,
-     "p": 0.0938,
-     "lo": 0.0324,
-     "hi": 0.2422
+     "p": 0.0625,
+     "lo": 0.0173,
+     "hi": 0.2015
     },
     "helpinghand": {
-     "n": 3,
+     "n": 4,
      "of": 32,
-     "p": 0.0938,
-     "lo": 0.0324,
-     "hi": 0.2422
+     "p": 0.125,
+     "lo": 0.0497,
+     "hi": 0.2807
     },
     "wall": {
      "n": 4,
@@ -10624,6 +11643,13 @@
      "p": 0.0938,
      "lo": 0.0324,
      "hi": 0.2422
+    },
+    "status_sleep": {
+     "n": 1,
+     "of": 32,
+     "p": 0.0312,
+     "lo": 0.0055,
+     "hi": 0.1574
     }
    }
   },
@@ -10648,7 +11674,7 @@
      "lo": 0.2041,
      "hi": 0.5169
     },
-    "status": {
+    "status_sleep": {
      "n": 4,
      "of": 32,
      "p": 0.125,
@@ -10680,31 +11706,24 @@
   },
   "conkeldurr": {
    "roles": {
-    "priority": 0.2258,
+    "healing": 0.3548,
     "phys_attacker": 0.2258,
-    "healing": 0.3548
+    "priority": 0.2258
    },
    "top": [
     "healing",
-    "priority",
-    "phys_attacker"
+    "phys_attacker",
+    "priority"
    ],
    "sets_seen": 31,
    "games": 31,
    "all_roles": {
-    "priority": {
-     "n": 7,
+    "healing": {
+     "n": 11,
      "of": 31,
-     "p": 0.2258,
-     "lo": 0.1139,
-     "hi": 0.3981
-    },
-    "phys_attacker": {
-     "n": 7,
-     "of": 31,
-     "p": 0.2258,
-     "lo": 0.1139,
-     "hi": 0.3981
+     "p": 0.3548,
+     "lo": 0.2112,
+     "hi": 0.5305
     },
     "itemdisrupt": {
      "n": 2,
@@ -10713,12 +11732,26 @@
      "lo": 0.0179,
      "hi": 0.2072
     },
-    "healing": {
-     "n": 11,
+    "phys_attacker": {
+     "n": 7,
      "of": 31,
-     "p": 0.3548,
-     "lo": 0.2112,
-     "hi": 0.5305
+     "p": 0.2258,
+     "lo": 0.1139,
+     "hi": 0.3981
+    },
+    "priority": {
+     "n": 7,
+     "of": 31,
+     "p": 0.2258,
+     "lo": 0.1139,
+     "hi": 0.3981
+    },
+    "status_poison": {
+     "n": 2,
+     "of": 31,
+     "p": 0.0645,
+     "lo": 0.0179,
+     "hi": 0.2072
     },
     "teamprotect": {
      "n": 3,
@@ -10735,6 +11768,13 @@
      "hi": 0.249
     },
     "allysupport": {
+     "n": 1,
+     "of": 31,
+     "p": 0.0323,
+     "lo": 0.0057,
+     "hi": 0.1619
+    },
+    "status": {
      "n": 1,
      "of": 31,
      "p": 0.0323,
@@ -10789,8 +11829,8 @@
   },
   "goodrahisui": {
    "roles": {
-    "phys_attacker": 0.3667,
     "wall": 0.5,
+    "phys_attacker": 0.3667,
     "healing": 0.2
    },
    "top": [
@@ -10801,19 +11841,19 @@
    "sets_seen": 30,
    "games": 30,
    "all_roles": {
-    "phys_attacker": {
-     "n": 11,
-     "of": 30,
-     "p": 0.3667,
-     "lo": 0.2187,
-     "hi": 0.5449
-    },
     "wall": {
      "n": 15,
      "of": 30,
      "p": 0.5,
      "lo": 0.3315,
      "hi": 0.6685
+    },
+    "phys_attacker": {
+     "n": 11,
+     "of": 30,
+     "p": 0.3667,
+     "lo": 0.2187,
+     "hi": 0.5449
     },
     "debuff": {
      "n": 1,
@@ -10843,22 +11883,38 @@
      "lo": 0.0185,
      "hi": 0.2132
     },
+    "status": {
+     "n": 2,
+     "of": 30,
+     "p": 0.0667,
+     "lo": 0.0185,
+     "hi": 0.2132
+    },
     "setup": {
      "n": 2,
      "of": 30,
      "p": 0.0667,
      "lo": 0.0185,
      "hi": 0.2132
+    },
+    "status_para": {
+     "n": 1,
+     "of": 30,
+     "p": 0.0333,
+     "lo": 0.0059,
+     "hi": 0.1667
     }
    }
   },
   "banette": {
    "roles": {
     "speed_trickroom": 0.1333,
-    "status": 0.1667
+    "status": 0.1667,
+    "status_burn": 0.1667
    },
    "top": [
     "status",
+    "status_burn",
     "speed_trickroom"
    ],
    "sets_seen": 30,
@@ -10871,12 +11927,12 @@
      "lo": 0.0531,
      "hi": 0.2968
     },
-    "phys_attacker": {
-     "n": 1,
+    "status": {
+     "n": 5,
      "of": 30,
-     "p": 0.0333,
-     "lo": 0.0059,
-     "hi": 0.1667
+     "p": 0.1667,
+     "lo": 0.0734,
+     "hi": 0.3356
     },
     "itemdisrupt": {
      "n": 1,
@@ -10885,7 +11941,14 @@
      "lo": 0.0059,
      "hi": 0.1667
     },
-    "status": {
+    "phys_attacker": {
+     "n": 1,
+     "of": 30,
+     "p": 0.0333,
+     "lo": 0.0059,
+     "hi": 0.1667
+    },
+    "status_burn": {
      "n": 5,
      "of": 30,
      "p": 0.1667,
@@ -10947,24 +12010,31 @@
      "p": 0.0345,
      "lo": 0.0061,
      "hi": 0.1718
+    },
+    "denial": {
+     "n": 1,
+     "of": 29,
+     "p": 0.0345,
+     "lo": 0.0061,
+     "hi": 0.1718
     }
    }
   },
   "vivillonpokeball": {
    "roles": {
-    "status": 0.7241,
+    "status_sleep": 0.7241,
     "spec_attacker": 0.2414,
     "speed_tailwind": 0.1379
    },
    "top": [
-    "status",
+    "status_sleep",
     "spec_attacker",
     "speed_tailwind"
    ],
    "sets_seen": 29,
    "games": 29,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 21,
      "of": 29,
      "p": 0.7241,
@@ -11031,33 +12101,33 @@
   },
   "manectric": {
    "roles": {
-    "pivot": 0.2069,
     "spec_attacker": 0.4483,
+    "pivot": 0.2069,
     "debuff": 0.5862,
-    "status": 0.1379
+    "status_para": 0.1724
    },
    "top": [
     "debuff",
     "spec_attacker",
     "pivot",
-    "status"
+    "status_para"
    ],
    "sets_seen": 29,
    "games": 29,
    "all_roles": {
-    "pivot": {
-     "n": 6,
-     "of": 29,
-     "p": 0.2069,
-     "lo": 0.0985,
-     "hi": 0.3839
-    },
     "spec_attacker": {
      "n": 13,
      "of": 29,
      "p": 0.4483,
      "lo": 0.2841,
      "hi": 0.6245
+    },
+    "pivot": {
+     "n": 6,
+     "of": 29,
+     "p": 0.2069,
+     "lo": 0.0985,
+     "hi": 0.3839
     },
     "debuff": {
      "n": 17,
@@ -11066,12 +12136,12 @@
      "lo": 0.4074,
      "hi": 0.7449
     },
-    "status": {
-     "n": 4,
+    "status_para": {
+     "n": 5,
      "of": 29,
-     "p": 0.1379,
-     "lo": 0.055,
-     "hi": 0.3056
+     "p": 0.1724,
+     "lo": 0.076,
+     "hi": 0.3455
     },
     "itemdisrupt": {
      "n": 1,
@@ -11132,12 +12202,12 @@
   "arcanine": {
    "roles": {
     "debuff": 1.0,
-    "status": 0.2857,
+    "status_burn": 0.2857,
     "phys_attacker": 0.1786
    },
    "top": [
     "debuff",
-    "status",
+    "status_burn",
     "phys_attacker"
    ],
    "sets_seen": 28,
@@ -11150,7 +12220,7 @@
      "lo": 0.8794,
      "hi": 1.0
     },
-    "status": {
+    "status_burn": {
      "n": 8,
      "of": 28,
      "p": 0.2857,
@@ -11217,6 +12287,13 @@
      "p": 0.2143,
      "lo": 0.1021,
      "hi": 0.3954
+    },
+    "denial": {
+     "n": 1,
+     "of": 28,
+     "p": 0.0357,
+     "lo": 0.0063,
+     "hi": 0.1771
     }
    }
   },
@@ -11272,7 +12349,7 @@
      "lo": 0.0198,
      "hi": 0.2265
     },
-    "status": {
+    "status_sleep": {
      "n": 1,
      "of": 28,
      "p": 0.0357,
@@ -11299,12 +12376,14 @@
    "roles": {
     "redirection": 0.5556,
     "wall": 0.5556,
-    "priority": 0.2222
+    "priority": 0.2222,
+    "status_poison": 0.1481
    },
    "top": [
     "redirection",
     "wall",
-    "priority"
+    "priority",
+    "status_poison"
    ],
    "sets_seen": 27,
    "games": 27,
@@ -11323,19 +12402,19 @@
      "lo": 0.3731,
      "hi": 0.7241
     },
-    "phys_attacker": {
-     "n": 3,
-     "of": 27,
-     "p": 0.1111,
-     "lo": 0.0385,
-     "hi": 0.2806
-    },
     "itemdisrupt": {
      "n": 1,
      "of": 27,
      "p": 0.037,
      "lo": 0.0066,
      "hi": 0.1828
+    },
+    "phys_attacker": {
+     "n": 3,
+     "of": 27,
+     "p": 0.1111,
+     "lo": 0.0385,
+     "hi": 0.2806
     },
     "priority": {
      "n": 6,
@@ -11344,6 +12423,13 @@
      "lo": 0.1061,
      "hi": 0.4076
     },
+    "status_poison": {
+     "n": 4,
+     "of": 27,
+     "p": 0.1481,
+     "lo": 0.0592,
+     "hi": 0.3248
+    },
     "speed_lower": {
      "n": 3,
      "of": 27,
@@ -11351,14 +12437,14 @@
      "lo": 0.0385,
      "hi": 0.2806
     },
-    "status": {
-     "n": 2,
-     "of": 27,
-     "p": 0.0741,
-     "lo": 0.0206,
-     "hi": 0.2337
-    },
     "healing": {
+     "n": 1,
+     "of": 27,
+     "p": 0.037,
+     "lo": 0.0066,
+     "hi": 0.1828
+    },
+    "status": {
      "n": 1,
      "of": 27,
      "p": 0.037,
@@ -11377,7 +12463,7 @@
    "sets_seen": 27,
    "games": 27,
    "all_roles": {
-    "status": {
+    "status_burn": {
      "n": 2,
      "of": 27,
      "p": 0.0741,
@@ -11456,13 +12542,6 @@
    "sets_seen": 26,
    "games": 26,
    "all_roles": {
-    "taunt": {
-     "n": 3,
-     "of": 26,
-     "p": 0.1154,
-     "lo": 0.04,
-     "hi": 0.2898
-    },
     "debuff": {
      "n": 5,
      "of": 26,
@@ -11477,6 +12556,13 @@
      "lo": 0.1103,
      "hi": 0.4205
     },
+    "taunt": {
+     "n": 3,
+     "of": 26,
+     "p": 0.1154,
+     "lo": 0.04,
+     "hi": 0.2898
+    },
     "fakeout": {
      "n": 15,
      "of": 26,
@@ -11484,14 +12570,14 @@
      "lo": 0.3895,
      "hi": 0.7446
     },
-    "phys_attacker": {
+    "itemdisrupt": {
      "n": 2,
      "of": 26,
      "p": 0.0769,
      "lo": 0.0214,
      "hi": 0.2414
     },
-    "itemdisrupt": {
+    "phys_attacker": {
      "n": 2,
      "of": 26,
      "p": 0.0769,
@@ -11517,7 +12603,7 @@
      "lo": 0.2243,
      "hi": 0.5747
     },
-    "phys_attacker": {
+    "status_poison": {
      "n": 2,
      "of": 26,
      "p": 0.0769,
@@ -11525,6 +12611,13 @@
      "hi": 0.2414
     },
     "wall": {
+     "n": 2,
+     "of": 26,
+     "p": 0.0769,
+     "lo": 0.0214,
+     "hi": 0.2414
+    },
+    "phys_attacker": {
      "n": 2,
      "of": 26,
      "p": 0.0769,
@@ -11545,7 +12638,7 @@
      "lo": 0.04,
      "hi": 0.2898
     },
-    "status": {
+    "status_burn": {
      "n": 2,
      "of": 26,
      "p": 0.0769,
@@ -11577,25 +12670,18 @@
   },
   "rotomfrost": {
    "roles": {
-    "pivot": 0.16,
     "spec_attacker": 0.28,
-    "status": 0.2
+    "pivot": 0.16,
+    "status_para": 0.2
    },
    "top": [
     "spec_attacker",
-    "status",
+    "status_para",
     "pivot"
    ],
    "sets_seen": 25,
    "games": 25,
    "all_roles": {
-    "pivot": {
-     "n": 4,
-     "of": 25,
-     "p": 0.16,
-     "lo": 0.064,
-     "hi": 0.3465
-    },
     "spec_attacker": {
      "n": 7,
      "of": 25,
@@ -11603,7 +12689,21 @@
      "lo": 0.1428,
      "hi": 0.4758
     },
-    "status": {
+    "pivot": {
+     "n": 4,
+     "of": 25,
+     "p": 0.16,
+     "lo": 0.064,
+     "hi": 0.3465
+    },
+    "status_burn": {
+     "n": 2,
+     "of": 25,
+     "p": 0.08,
+     "lo": 0.0222,
+     "hi": 0.2497
+    },
+    "status_para": {
      "n": 5,
      "of": 25,
      "p": 0.2,
@@ -11766,12 +12866,12 @@
      "lo": 0.0232,
      "hi": 0.2585
     },
-    "status": {
-     "n": 3,
+    "status_para": {
+     "n": 1,
      "of": 24,
-     "p": 0.125,
-     "lo": 0.0434,
-     "hi": 0.31
+     "p": 0.0417,
+     "lo": 0.0074,
+     "hi": 0.2024
     },
     "screens": {
      "n": 1,
@@ -11779,6 +12879,13 @@
      "p": 0.0417,
      "lo": 0.0074,
      "hi": 0.2024
+    },
+    "status_sleep": {
+     "n": 2,
+     "of": 24,
+     "p": 0.0833,
+     "lo": 0.0232,
+     "hi": 0.2585
     },
     "healing": {
      "n": 1,
@@ -11800,12 +12907,12 @@
    "roles": {
     "speed_trickroom": 0.5417,
     "debuff": 0.2083,
-    "status": 0.3333,
+    "status_burn": 0.3333,
     "priority": 0.1667
    },
    "top": [
     "speed_trickroom",
-    "status",
+    "status_burn",
     "debuff",
     "priority"
    ],
@@ -11826,7 +12933,7 @@
      "lo": 0.0924,
      "hi": 0.4047
     },
-    "status": {
+    "status_burn": {
      "n": 8,
      "of": 24,
      "p": 0.3333,
@@ -11834,6 +12941,13 @@
      "hi": 0.5329
     },
     "taunt": {
+     "n": 1,
+     "of": 24,
+     "p": 0.0417,
+     "lo": 0.0074,
+     "hi": 0.2024
+    },
+    "status": {
      "n": 1,
      "of": 24,
      "p": 0.0417,
@@ -11859,9 +12973,11 @@
   "dragalgemega": {
    "roles": {
     "pivot": 0.2609,
-    "phys_attacker": 0.2609
+    "phys_attacker": 0.2609,
+    "status_poison": 0.3043
    },
    "top": [
+    "status_poison",
     "pivot",
     "phys_attacker"
    ],
@@ -11882,12 +12998,12 @@
      "lo": 0.1255,
      "hi": 0.4647
     },
-    "status": {
-     "n": 2,
+    "status_poison": {
+     "n": 7,
      "of": 23,
-     "p": 0.087,
-     "lo": 0.0242,
-     "hi": 0.268
+     "p": 0.3043,
+     "lo": 0.156,
+     "hi": 0.5087
     },
     "spec_attacker": {
      "n": 3,
@@ -11895,6 +13011,13 @@
      "p": 0.1304,
      "lo": 0.0454,
      "hi": 0.3213
+    },
+    "status_burn": {
+     "n": 2,
+     "of": 23,
+     "p": 0.087,
+     "lo": 0.0242,
+     "hi": 0.268
     }
    }
   },
@@ -11910,14 +13033,14 @@
    "sets_seen": 21,
    "games": 21,
    "all_roles": {
-    "status": {
+    "healing": {
      "n": 2,
      "of": 21,
      "p": 0.0952,
      "lo": 0.0265,
      "hi": 0.2891
     },
-    "healing": {
+    "status_sleep": {
      "n": 2,
      "of": 21,
      "p": 0.0952,
@@ -11940,92 +13063,29 @@
     }
    }
   },
-  "rotommow": {
-   "roles": {
-    "pivot": 0.3333,
-    "spec_attacker": 0.5238,
-    "status": 0.2857
-   },
-   "top": [
-    "spec_attacker",
-    "pivot",
-    "status"
-   ],
-   "sets_seen": 21,
-   "games": 21,
-   "all_roles": {
-    "itemdisrupt": {
-     "n": 2,
-     "of": 21,
-     "p": 0.0952,
-     "lo": 0.0265,
-     "hi": 0.2891
-    },
-    "pivot": {
-     "n": 7,
-     "of": 21,
-     "p": 0.3333,
-     "lo": 0.1719,
-     "hi": 0.5463
-    },
-    "spec_attacker": {
-     "n": 11,
-     "of": 21,
-     "p": 0.5238,
-     "lo": 0.3237,
-     "hi": 0.7166
-    },
-    "helpinghand": {
-     "n": 1,
-     "of": 21,
-     "p": 0.0476,
-     "lo": 0.0085,
-     "hi": 0.2267
-    },
-    "wall": {
-     "n": 1,
-     "of": 21,
-     "p": 0.0476,
-     "lo": 0.0085,
-     "hi": 0.2267
-    },
-    "allysupport": {
-     "n": 1,
-     "of": 21,
-     "p": 0.0476,
-     "lo": 0.0085,
-     "hi": 0.2267
-    },
-    "speed_lower": {
-     "n": 2,
-     "of": 21,
-     "p": 0.0952,
-     "lo": 0.0265,
-     "hi": 0.2891
-    },
-    "status": {
-     "n": 6,
-     "of": 21,
-     "p": 0.2857,
-     "lo": 0.1381,
-     "hi": 0.4996
-    }
-   }
-  },
   "toxicroak": {
    "roles": {
+    "status_poison": 0.3333,
     "priority": 0.1905,
     "phys_attacker": 0.2381,
     "fakeout": 0.4762
    },
    "top": [
     "fakeout",
+    "status_poison",
     "phys_attacker",
     "priority"
    ],
    "sets_seen": 21,
    "games": 21,
    "all_roles": {
+    "status_poison": {
+     "n": 7,
+     "of": 21,
+     "p": 0.3333,
+     "lo": 0.1719,
+     "hi": 0.5463
+    },
     "priority": {
      "n": 4,
      "of": 21,
@@ -12084,19 +13144,100 @@
     }
    }
   },
-  "salazzle": {
+  "rotommow": {
    "roles": {
-    "status": 0.4286,
-    "fakeout": 0.4762
+    "spec_attacker": 0.5238,
+    "pivot": 0.3333,
+    "status_para": 0.2857
    },
    "top": [
-    "fakeout",
-    "status"
+    "spec_attacker",
+    "pivot",
+    "status_para"
    ],
    "sets_seen": 21,
    "games": 21,
    "all_roles": {
-    "status": {
+    "itemdisrupt": {
+     "n": 2,
+     "of": 21,
+     "p": 0.0952,
+     "lo": 0.0265,
+     "hi": 0.2891
+    },
+    "spec_attacker": {
+     "n": 11,
+     "of": 21,
+     "p": 0.5238,
+     "lo": 0.3237,
+     "hi": 0.7166
+    },
+    "pivot": {
+     "n": 7,
+     "of": 21,
+     "p": 0.3333,
+     "lo": 0.1719,
+     "hi": 0.5463
+    },
+    "helpinghand": {
+     "n": 1,
+     "of": 21,
+     "p": 0.0476,
+     "lo": 0.0085,
+     "hi": 0.2267
+    },
+    "wall": {
+     "n": 1,
+     "of": 21,
+     "p": 0.0476,
+     "lo": 0.0085,
+     "hi": 0.2267
+    },
+    "allysupport": {
+     "n": 1,
+     "of": 21,
+     "p": 0.0476,
+     "lo": 0.0085,
+     "hi": 0.2267
+    },
+    "speed_lower": {
+     "n": 2,
+     "of": 21,
+     "p": 0.0952,
+     "lo": 0.0265,
+     "hi": 0.2891
+    },
+    "status_para": {
+     "n": 6,
+     "of": 21,
+     "p": 0.2857,
+     "lo": 0.1381,
+     "hi": 0.4996
+    },
+    "status_burn": {
+     "n": 1,
+     "of": 21,
+     "p": 0.0476,
+     "lo": 0.0085,
+     "hi": 0.2267
+    }
+   }
+  },
+  "salazzle": {
+   "roles": {
+    "status_poison": 0.4286,
+    "fakeout": 0.4762,
+    "status_burn": 0.1905
+   },
+   "top": [
+    "fakeout",
+    "status_poison",
+    "status_burn"
+   ],
+   "sets_seen": 21,
+   "games": 21,
+   "all_roles": {
+    "status_poison": {
      "n": 9,
      "of": 21,
      "p": 0.4286,
@@ -12116,6 +13257,13 @@
      "p": 0.4762,
      "lo": 0.2834,
      "hi": 0.6763
+    },
+    "status_burn": {
+     "n": 4,
+     "of": 21,
+     "p": 0.1905,
+     "lo": 0.0767,
+     "hi": 0.4
     }
    }
   },
@@ -12219,31 +13367,85 @@
      "p": 0.0476,
      "lo": 0.0085,
      "hi": 0.2267
+    },
+    "status_para": {
+     "n": 1,
+     "of": 21,
+     "p": 0.0476,
+     "lo": 0.0085,
+     "hi": 0.2267
+    }
+   }
+  },
+  "glalie": {
+   "roles": {
+    "status_para": 0.2
+   },
+   "top": [
+    "status_para"
+   ],
+   "sets_seen": 20,
+   "games": 20,
+   "all_roles": {
+    "setup": {
+     "n": 2,
+     "of": 20,
+     "p": 0.1,
+     "lo": 0.0279,
+     "hi": 0.301
+    },
+    "status_para": {
+     "n": 4,
+     "of": 20,
+     "p": 0.2,
+     "lo": 0.0807,
+     "hi": 0.416
+    },
+    "taunt": {
+     "n": 1,
+     "of": 20,
+     "p": 0.05,
+     "lo": 0.0089,
+     "hi": 0.2361
+    },
+    "priority": {
+     "n": 2,
+     "of": 20,
+     "p": 0.1,
+     "lo": 0.0279,
+     "hi": 0.301
+    },
+    "phys_attacker": {
+     "n": 2,
+     "of": 20,
+     "p": 0.1,
+     "lo": 0.0279,
+     "hi": 0.301
     }
    }
   },
   "pangoro": {
    "roles": {
-    "phys_attacker": 0.25,
     "itemdisrupt": 0.25,
+    "phys_attacker": 0.25,
     "priority": 0.15
    },
    "top": [
-    "phys_attacker",
     "itemdisrupt",
+    "phys_attacker",
     "priority"
    ],
    "sets_seen": 20,
    "games": 20,
    "all_roles": {
-    "phys_attacker": {
+    "itemdisrupt": {
      "n": 5,
      "of": 20,
      "p": 0.25,
      "lo": 0.1119,
      "hi": 0.4687
     },
-    "itemdisrupt": {
+    "phys_attacker": {
      "n": 5,
      "of": 20,
      "p": 0.25,
@@ -12371,6 +13573,13 @@
      "lo": 0.0279,
      "hi": 0.301
     },
+    "status": {
+     "n": 1,
+     "of": 20,
+     "p": 0.05,
+     "lo": 0.0089,
+     "hi": 0.2361
+    },
     "encore": {
      "n": 1,
      "of": 20,
@@ -12382,12 +13591,14 @@
   },
   "scovillainmega": {
    "roles": {
+    "status": 0.4,
     "redirection": 0.55,
     "wall": 0.55
    },
    "top": [
     "redirection",
-    "wall"
+    "wall",
+    "status"
    ],
    "sets_seen": 20,
    "games": 20,
@@ -12398,6 +13609,13 @@
      "p": 0.1,
      "lo": 0.0279,
      "hi": 0.301
+    },
+    "status": {
+     "n": 8,
+     "of": 20,
+     "p": 0.4,
+     "lo": 0.2188,
+     "hi": 0.6134
     },
     "redirection": {
      "n": 11,
@@ -12417,9 +13635,9 @@
   },
   "machamp": {
    "roles": {
-    "priority": 0.15,
-    "phys_attacker": 0.4,
     "itemdisrupt": 0.3,
+    "phys_attacker": 0.4,
+    "priority": 0.15,
     "teamprotect": 0.15,
     "wall": 0.15
    },
@@ -12433,12 +13651,12 @@
    "sets_seen": 20,
    "games": 20,
    "all_roles": {
-    "priority": {
-     "n": 3,
+    "itemdisrupt": {
+     "n": 6,
      "of": 20,
-     "p": 0.15,
-     "lo": 0.0524,
-     "hi": 0.3604
+     "p": 0.3,
+     "lo": 0.1455,
+     "hi": 0.519
     },
     "phys_attacker": {
      "n": 8,
@@ -12447,12 +13665,12 @@
      "lo": 0.2188,
      "hi": 0.6134
     },
-    "itemdisrupt": {
-     "n": 6,
+    "priority": {
+     "n": 3,
      "of": 20,
-     "p": 0.3,
-     "lo": 0.1455,
-     "hi": 0.519
+     "p": 0.15,
+     "lo": 0.0524,
+     "hi": 0.3604
     },
     "teamprotect": {
      "n": 3,
@@ -12540,6 +13758,13 @@
      "lo": 0.1181,
      "hi": 0.4879
     },
+    "healing": {
+     "n": 1,
+     "of": 19,
+     "p": 0.0526,
+     "lo": 0.0094,
+     "hi": 0.2464
+    },
     "setup": {
      "n": 1,
      "of": 19,
@@ -12547,12 +13772,12 @@
      "lo": 0.0094,
      "hi": 0.2464
     },
-    "healing": {
-     "n": 1,
+    "status_para": {
+     "n": 2,
      "of": 19,
-     "p": 0.0526,
-     "lo": 0.0094,
-     "hi": 0.2464
+     "p": 0.1053,
+     "lo": 0.0294,
+     "hi": 0.3139
     }
    }
   },
@@ -12591,10 +13816,12 @@
   },
   "goodra": {
    "roles": {
-    "weather": 0.1667
+    "weather": 0.1667,
+    "status_poison": 0.1667
    },
    "top": [
-    "weather"
+    "weather",
+    "status_poison"
    ],
    "sets_seen": 18,
    "games": 18,
@@ -12613,7 +13840,21 @@
      "lo": 0.031,
      "hi": 0.328
     },
-    "status": {
+    "status_burn": {
+     "n": 1,
+     "of": 18,
+     "p": 0.0556,
+     "lo": 0.0099,
+     "hi": 0.2576
+    },
+    "status_poison": {
+     "n": 3,
+     "of": 18,
+     "p": 0.1667,
+     "lo": 0.0584,
+     "hi": 0.3922
+    },
+    "itemdisrupt": {
      "n": 1,
      "of": 18,
      "p": 0.0556,
@@ -12627,19 +13868,19 @@
      "lo": 0.0099,
      "hi": 0.2576
     },
-    "itemdisrupt": {
-     "n": 1,
-     "of": 18,
-     "p": 0.0556,
-     "lo": 0.0099,
-     "hi": 0.2576
-    },
     "spec_attacker": {
      "n": 2,
      "of": 18,
      "p": 0.1111,
      "lo": 0.031,
      "hi": 0.328
+    },
+    "status_para": {
+     "n": 1,
+     "of": 18,
+     "p": 0.0556,
+     "lo": 0.0099,
+     "hi": 0.2576
     }
    }
   },
@@ -12678,14 +13919,14 @@
      "lo": 0.0584,
      "hi": 0.3922
     },
-    "phys_attacker": {
+    "itemdisrupt": {
      "n": 2,
      "of": 18,
      "p": 0.1111,
      "lo": 0.031,
      "hi": 0.328
     },
-    "itemdisrupt": {
+    "phys_attacker": {
      "n": 2,
      "of": 18,
      "p": 0.1111,
@@ -12699,6 +13940,7 @@
     "setup": 0.3889,
     "phys_attacker": 0.2222,
     "healing": 0.2778,
+    "status": 0.2222,
     "teamprotect": 0.1667,
     "wall": 0.3333
    },
@@ -12707,6 +13949,7 @@
     "wall",
     "healing",
     "phys_attacker",
+    "status",
     "teamprotect"
    ],
    "sets_seen": 18,
@@ -12733,6 +13976,13 @@
      "lo": 0.125,
      "hi": 0.5087
     },
+    "status": {
+     "n": 4,
+     "of": 18,
+     "p": 0.2222,
+     "lo": 0.09,
+     "hi": 0.4522
+    },
     "teamprotect": {
      "n": 3,
      "of": 18,
@@ -12751,14 +14001,23 @@
   },
   "pinsir": {
    "roles": {
+    "status_para": 0.3333,
     "phys_attacker": 0.2778
    },
    "top": [
+    "status_para",
     "phys_attacker"
    ],
    "sets_seen": 18,
    "games": 18,
    "all_roles": {
+    "status_para": {
+     "n": 6,
+     "of": 18,
+     "p": 0.3333,
+     "lo": 0.1628,
+     "hi": 0.5625
+    },
     "phys_attacker": {
      "n": 5,
      "of": 18,
@@ -12779,31 +14038,45 @@
      "p": 0.1111,
      "lo": 0.031,
      "hi": 0.328
+    },
+    "denial": {
+     "n": 1,
+     "of": 18,
+     "p": 0.0556,
+     "lo": 0.0099,
+     "hi": 0.2576
     }
    }
   },
   "sandaconda": {
    "roles": {
-    "phys_attacker": 0.2778,
+    "setup": 0.3889,
     "wall": 0.2778,
-    "setup": 0.3889
+    "phys_attacker": 0.2778
    },
    "top": [
     "setup",
-    "phys_attacker",
-    "wall"
+    "wall",
+    "phys_attacker"
    ],
    "sets_seen": 18,
    "games": 18,
    "all_roles": {
-    "phys_attacker": {
+    "setup": {
+     "n": 7,
+     "of": 18,
+     "p": 0.3889,
+     "lo": 0.203,
+     "hi": 0.6138
+    },
+    "wall": {
      "n": 5,
      "of": 18,
      "p": 0.2778,
      "lo": 0.125,
      "hi": 0.5087
     },
-    "wall": {
+    "phys_attacker": {
      "n": 5,
      "of": 18,
      "p": 0.2778,
@@ -12817,14 +14090,7 @@
      "lo": 0.0099,
      "hi": 0.2576
     },
-    "setup": {
-     "n": 7,
-     "of": 18,
-     "p": 0.3889,
-     "lo": 0.203,
-     "hi": 0.6138
-    },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 18,
      "p": 0.0556,
@@ -12836,13 +14102,13 @@
   "victreebel": {
    "roles": {
     "healing": 0.4706,
-    "spec_attacker": 0.3529,
-    "status": 0.1765
+    "status_poison": 0.5882,
+    "spec_attacker": 0.3529
    },
    "top": [
+    "status_poison",
     "healing",
-    "spec_attacker",
-    "status"
+    "spec_attacker"
    ],
    "sets_seen": 17,
    "games": 17,
@@ -12853,6 +14119,13 @@
      "p": 0.4706,
      "lo": 0.2616,
      "hi": 0.6904
+    },
+    "status_poison": {
+     "n": 10,
+     "of": 17,
+     "p": 0.5882,
+     "lo": 0.3601,
+     "hi": 0.7839
     },
     "spec_attacker": {
      "n": 6,
@@ -12868,12 +14141,12 @@
      "lo": 0.0329,
      "hi": 0.3434
     },
-    "status": {
-     "n": 3,
+    "status_sleep": {
+     "n": 2,
      "of": 17,
-     "p": 0.1765,
-     "lo": 0.0619,
-     "hi": 0.4103
+     "p": 0.1176,
+     "lo": 0.0329,
+     "hi": 0.3434
     },
     "weather": {
      "n": 1,
@@ -12929,6 +14202,13 @@
      "lo": 0.5274,
      "hi": 0.9045
     },
+    "status_para": {
+     "n": 1,
+     "of": 17,
+     "p": 0.0588,
+     "lo": 0.0105,
+     "hi": 0.2698
+    },
     "priority": {
      "n": 1,
      "of": 17,
@@ -12937,6 +14217,13 @@
      "hi": 0.2698
     },
     "healing": {
+     "n": 1,
+     "of": 17,
+     "p": 0.0588,
+     "lo": 0.0105,
+     "hi": 0.2698
+    },
+    "denial": {
      "n": 1,
      "of": 17,
      "p": 0.0588,
@@ -13020,31 +14307,33 @@
   },
   "trevenant": {
    "roles": {
-    "status": 0.4375,
     "allysupport": 0.1875,
-    "healing": 0.3125
+    "status_burn": 0.4375,
+    "healing": 0.3125,
+    "status": 0.25
    },
    "top": [
-    "status",
+    "status_burn",
     "healing",
+    "status",
     "allysupport"
    ],
    "sets_seen": 16,
    "games": 16,
    "all_roles": {
-    "status": {
-     "n": 7,
-     "of": 16,
-     "p": 0.4375,
-     "lo": 0.231,
-     "hi": 0.6682
-    },
     "allysupport": {
      "n": 3,
      "of": 16,
      "p": 0.1875,
      "lo": 0.0659,
      "hi": 0.4301
+    },
+    "status_burn": {
+     "n": 7,
+     "of": 16,
+     "p": 0.4375,
+     "lo": 0.231,
+     "hi": 0.6682
     },
     "healing": {
      "n": 5,
@@ -13059,6 +14348,13 @@
      "p": 0.125,
      "lo": 0.035,
      "hi": 0.3602
+    },
+    "status": {
+     "n": 4,
+     "of": 16,
+     "p": 0.25,
+     "lo": 0.1018,
+     "hi": 0.495
     },
     "phys_attacker": {
      "n": 2,
@@ -13159,7 +14455,7 @@
      "lo": 0.0374,
      "hi": 0.3788
     },
-    "status": {
+    "status_sleep": {
      "n": 1,
      "of": 15,
      "p": 0.0667,
@@ -13238,7 +14534,7 @@
    "sets_seen": 15,
    "games": 15,
    "all_roles": {
-    "status": {
+    "status_para": {
      "n": 2,
      "of": 15,
      "p": 0.1333,
@@ -13293,10 +14589,12 @@
    "roles": {
     "speed_trickroom": 0.7143,
     "weather": 0.2857,
-    "pivot": 0.2857
+    "pivot": 0.2857,
+    "status_burn": 0.4286
    },
    "top": [
     "speed_trickroom",
+    "status_burn",
     "weather",
     "pivot"
    ],
@@ -13324,6 +14622,13 @@
      "lo": 0.1172,
      "hi": 0.5465
     },
+    "status_burn": {
+     "n": 6,
+     "of": 14,
+     "p": 0.4286,
+     "lo": 0.2138,
+     "hi": 0.6741
+    },
     "spec_attacker": {
      "n": 2,
      "of": 14,
@@ -13331,7 +14636,7 @@
      "lo": 0.0401,
      "hi": 0.3994
     },
-    "status": {
+    "status_sleep": {
      "n": 1,
      "of": 14,
      "p": 0.0714,
@@ -13356,6 +14661,13 @@
      "p": 0.3846,
      "lo": 0.1771,
      "hi": 0.6448
+    },
+    "status_poison": {
+     "n": 2,
+     "of": 13,
+     "p": 0.1538,
+     "lo": 0.0433,
+     "hi": 0.4224
     }
    }
   },
@@ -13376,7 +14688,14 @@
      "lo": 0.3195,
      "hi": 0.8067
     },
-    "status": {
+    "denial": {
+     "n": 1,
+     "of": 12,
+     "p": 0.0833,
+     "lo": 0.0149,
+     "hi": 0.3539
+    },
+    "status_sleep": {
      "n": 1,
      "of": 12,
      "p": 0.0833,
@@ -13394,19 +14713,19 @@
   },
   "vivillonmarine": {
    "roles": {
-    "status": 0.5833,
+    "status_sleep": 0.5833,
     "redirection": 0.25,
     "wall": 0.25
    },
    "top": [
-    "status",
+    "status_sleep",
     "redirection",
     "wall"
    ],
    "sets_seen": 12,
    "games": 12,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 7,
      "of": 12,
      "p": 0.5833,
@@ -13448,6 +14767,57 @@
     }
    }
   },
+  "beedrillmega": {
+   "roles": {
+    "status_poison": 0.5455,
+    "pivot": 0.1818,
+    "phys_attacker": 0.1818
+   },
+   "top": [
+    "status_poison",
+    "pivot",
+    "phys_attacker"
+   ],
+   "sets_seen": 11,
+   "games": 11,
+   "all_roles": {
+    "status_poison": {
+     "n": 6,
+     "of": 11,
+     "p": 0.5455,
+     "lo": 0.2801,
+     "hi": 0.7873
+    },
+    "debuff": {
+     "n": 1,
+     "of": 11,
+     "p": 0.0909,
+     "lo": 0.0162,
+     "hi": 0.3774
+    },
+    "pivot": {
+     "n": 2,
+     "of": 11,
+     "p": 0.1818,
+     "lo": 0.0514,
+     "hi": 0.477
+    },
+    "phys_attacker": {
+     "n": 2,
+     "of": 11,
+     "p": 0.1818,
+     "lo": 0.0514,
+     "hi": 0.477
+    },
+    "denial": {
+     "n": 1,
+     "of": 11,
+     "p": 0.0909,
+     "lo": 0.0162,
+     "hi": 0.3774
+    }
+   }
+  },
   "lycanroc": {
    "roles": {
     "priority": 0.1818
@@ -13472,6 +14842,13 @@
      "lo": 0.0162,
      "hi": 0.3774
     },
+    "denial": {
+     "n": 1,
+     "of": 11,
+     "p": 0.0909,
+     "lo": 0.0162,
+     "hi": 0.3774
+    },
     "debuff": {
      "n": 1,
      "of": 11,
@@ -13481,33 +14858,17 @@
     }
    }
   },
-  "beedrillmega": {
+  "glimmoramega": {
    "roles": {
-    "pivot": 0.1818,
-    "phys_attacker": 0.1818
+    "status_poison": 0.1818
    },
    "top": [
-    "pivot",
-    "phys_attacker"
+    "status_poison"
    ],
    "sets_seen": 11,
    "games": 11,
    "all_roles": {
-    "debuff": {
-     "n": 1,
-     "of": 11,
-     "p": 0.0909,
-     "lo": 0.0162,
-     "hi": 0.3774
-    },
-    "pivot": {
-     "n": 2,
-     "of": 11,
-     "p": 0.1818,
-     "lo": 0.0514,
-     "hi": 0.477
-    },
-    "phys_attacker": {
+    "status_poison": {
      "n": 2,
      "of": 11,
      "p": 0.1818,
@@ -13526,7 +14887,7 @@
    "sets_seen": 10,
    "games": 10,
    "all_roles": {
-    "status": {
+    "status_burn": {
      "n": 1,
      "of": 10,
      "p": 0.1,
@@ -13544,31 +14905,60 @@
   },
   "simipour": {
    "roles": {
+    "status_burn": 0.4,
     "fakeout": 0.4,
+    "pivot": 0.2,
+    "phys_attacker": 0.2,
+    "speed_lower": 0.2,
     "helpinghand": 0.2,
     "wall": 0.2,
-    "allysupport": 0.2,
-    "speed_lower": 0.2,
-    "pivot": 0.2,
-    "phys_attacker": 0.2
+    "allysupport": 0.2
    },
    "top": [
+    "status_burn",
     "fakeout",
-    "helpinghand",
-    "wall",
-    "allysupport",
+    "pivot",
+    "phys_attacker",
     "speed_lower",
-    "pivot"
+    "helpinghand"
    ],
    "sets_seen": 10,
    "games": 10,
    "all_roles": {
+    "status_burn": {
+     "n": 4,
+     "of": 10,
+     "p": 0.4,
+     "lo": 0.1682,
+     "hi": 0.6873
+    },
     "fakeout": {
      "n": 4,
      "of": 10,
      "p": 0.4,
      "lo": 0.1682,
      "hi": 0.6873
+    },
+    "pivot": {
+     "n": 2,
+     "of": 10,
+     "p": 0.2,
+     "lo": 0.0567,
+     "hi": 0.5098
+    },
+    "phys_attacker": {
+     "n": 2,
+     "of": 10,
+     "p": 0.2,
+     "lo": 0.0567,
+     "hi": 0.5098
+    },
+    "speed_lower": {
+     "n": 2,
+     "of": 10,
+     "p": 0.2,
+     "lo": 0.0567,
+     "hi": 0.5098
     },
     "helpinghand": {
      "n": 2,
@@ -13585,27 +14975,6 @@
      "hi": 0.5098
     },
     "allysupport": {
-     "n": 2,
-     "of": 10,
-     "p": 0.2,
-     "lo": 0.0567,
-     "hi": 0.5098
-    },
-    "speed_lower": {
-     "n": 2,
-     "of": 10,
-     "p": 0.2,
-     "lo": 0.0567,
-     "hi": 0.5098
-    },
-    "pivot": {
-     "n": 2,
-     "of": 10,
-     "p": 0.2,
-     "lo": 0.0567,
-     "hi": 0.5098
-    },
-    "phys_attacker": {
      "n": 2,
      "of": 10,
      "p": 0.2,
@@ -13828,6 +15197,13 @@
      "lo": 0.0224,
      "hi": 0.4709
     },
+    "status": {
+     "n": 1,
+     "of": 8,
+     "p": 0.125,
+     "lo": 0.0224,
+     "hi": 0.4709
+    },
     "setup": {
      "n": 1,
      "of": 8,
@@ -13890,14 +15266,23 @@
   },
   "typhlosion": {
    "roles": {
+    "status_burn": 0.25,
     "spec_attacker": 0.25
    },
    "top": [
+    "status_burn",
     "spec_attacker"
    ],
    "sets_seen": 8,
    "games": 8,
    "all_roles": {
+    "status_burn": {
+     "n": 2,
+     "of": 8,
+     "p": 0.25,
+     "lo": 0.0715,
+     "hi": 0.5907
+    },
     "spec_attacker": {
      "n": 2,
      "of": 8,
@@ -13961,11 +15346,11 @@
   "gourgeistsuper": {
    "roles": {
     "speed_trickroom": 0.375,
-    "status": 0.25
+    "status_burn": 0.25
    },
    "top": [
     "speed_trickroom",
-    "status"
+    "status_burn"
    ],
    "sets_seen": 8,
    "games": 8,
@@ -13977,7 +15362,7 @@
      "lo": 0.1368,
      "hi": 0.6943
     },
-    "status": {
+    "status_burn": {
      "n": 2,
      "of": 8,
      "p": 0.25,
@@ -13995,33 +15380,33 @@
   },
   "forretress": {
    "roles": {
-    "phys_attacker": 0.2857,
     "wall": 0.5714,
-    "pivot": 0.2857,
-    "spec_attacker": 0.2857
+    "phys_attacker": 0.2857,
+    "spec_attacker": 0.2857,
+    "pivot": 0.2857
    },
    "top": [
     "wall",
     "phys_attacker",
-    "pivot",
-    "spec_attacker"
+    "spec_attacker",
+    "pivot"
    ],
    "sets_seen": 7,
    "games": 7,
    "all_roles": {
-    "phys_attacker": {
-     "n": 2,
-     "of": 7,
-     "p": 0.2857,
-     "lo": 0.0822,
-     "hi": 0.6411
-    },
     "wall": {
      "n": 4,
      "of": 7,
      "p": 0.5714,
      "lo": 0.2505,
      "hi": 0.8418
+    },
+    "phys_attacker": {
+     "n": 2,
+     "of": 7,
+     "p": 0.2857,
+     "lo": 0.0822,
+     "hi": 0.6411
     },
     "helpinghand": {
      "n": 1,
@@ -14037,14 +15422,14 @@
      "lo": 0.0257,
      "hi": 0.5131
     },
-    "pivot": {
+    "spec_attacker": {
      "n": 2,
      "of": 7,
      "p": 0.2857,
      "lo": 0.0822,
      "hi": 0.6411
     },
-    "spec_attacker": {
+    "pivot": {
      "n": 2,
      "of": 7,
      "p": 0.2857,
@@ -14072,7 +15457,7 @@
      "lo": 0.0257,
      "hi": 0.5131
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 7,
      "p": 0.1429,
@@ -14083,8 +15468,8 @@
   },
   "bastiodon": {
    "roles": {
-    "wall": 0.5714,
     "setup": 0.2857,
+    "wall": 0.5714,
     "teamprotect": 0.4286
    },
    "top": [
@@ -14095,12 +15480,12 @@
    "sets_seen": 7,
    "games": 7,
    "all_roles": {
-    "phys_attacker": {
-     "n": 1,
+    "setup": {
+     "n": 2,
      "of": 7,
-     "p": 0.1429,
-     "lo": 0.0257,
-     "hi": 0.5131
+     "p": 0.2857,
+     "lo": 0.0822,
+     "hi": 0.6411
     },
     "wall": {
      "n": 4,
@@ -14109,12 +15494,12 @@
      "lo": 0.2505,
      "hi": 0.8418
     },
-    "setup": {
-     "n": 2,
+    "phys_attacker": {
+     "n": 1,
      "of": 7,
-     "p": 0.2857,
-     "lo": 0.0822,
-     "hi": 0.6411
+     "p": 0.1429,
+     "lo": 0.0257,
+     "hi": 0.5131
     },
     "teamprotect": {
      "n": 3,
@@ -14235,16 +15620,25 @@
   },
   "qwilfish": {
    "roles": {
+    "status_poison": 0.5,
     "debuff": 1.0,
     "speed_lower": 0.5
    },
    "top": [
     "debuff",
+    "status_poison",
     "speed_lower"
    ],
    "sets_seen": 6,
    "games": 6,
    "all_roles": {
+    "status_poison": {
+     "n": 3,
+     "of": 6,
+     "p": 0.5,
+     "lo": 0.1876,
+     "hi": 0.8124
+    },
     "debuff": {
      "n": 6,
      "of": 6,
@@ -14260,13 +15654,6 @@
      "hi": 0.8124
     },
     "phys_attacker": {
-     "n": 1,
-     "of": 6,
-     "p": 0.1667,
-     "lo": 0.0301,
-     "hi": 0.5635
-    },
-    "status": {
      "n": 1,
      "of": 6,
      "p": 0.1667,
@@ -14315,7 +15702,7 @@
    "sets_seen": 6,
    "games": 6,
    "all_roles": {
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 6,
      "p": 0.1667,
@@ -14347,19 +15734,19 @@
   },
   "vivillonhighplains": {
    "roles": {
-    "status": 0.8333,
+    "status_sleep": 0.8333,
     "redirection": 0.3333,
     "wall": 0.3333
    },
    "top": [
-    "status",
+    "status_sleep",
     "redirection",
     "wall"
    ],
    "sets_seen": 6,
    "games": 6,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 5,
      "of": 6,
      "p": 0.8333,
@@ -14392,11 +15779,11 @@
   "roserade": {
    "roles": {
     "healing": 0.3333,
-    "status": 0.3333
+    "status_sleep": 0.3333
    },
    "top": [
     "healing",
-    "status"
+    "status_sleep"
    ],
    "sets_seen": 6,
    "games": 6,
@@ -14407,6 +15794,13 @@
      "p": 0.3333,
      "lo": 0.0968,
      "hi": 0.7
+    },
+    "status_poison": {
+     "n": 1,
+     "of": 6,
+     "p": 0.1667,
+     "lo": 0.0301,
+     "hi": 0.5635
     },
     "spec_attacker": {
      "n": 1,
@@ -14422,7 +15816,7 @@
      "lo": 0.0301,
      "hi": 0.5635
     },
-    "status": {
+    "status_sleep": {
      "n": 2,
      "of": 6,
      "p": 0.3333,
@@ -14457,6 +15851,13 @@
      "lo": 0.0968,
      "hi": 0.7
     },
+    "status": {
+     "n": 1,
+     "of": 6,
+     "p": 0.1667,
+     "lo": 0.0301,
+     "hi": 0.5635
+    },
     "phys_attacker": {
      "n": 1,
      "of": 6,
@@ -14464,14 +15865,14 @@
      "lo": 0.0301,
      "hi": 0.5635
     },
-    "setup": {
+    "healing": {
      "n": 1,
      "of": 6,
      "p": 0.1667,
      "lo": 0.0301,
      "hi": 0.5635
     },
-    "healing": {
+    "setup": {
      "n": 1,
      "of": 6,
      "p": 0.1667,
@@ -14501,8 +15902,8 @@
   },
   "rotomfan": {
    "roles": {
-    "pivot": 0.3333,
-    "spec_attacker": 0.6667
+    "spec_attacker": 0.6667,
+    "pivot": 0.3333
    },
    "top": [
     "spec_attacker",
@@ -14511,19 +15912,19 @@
    "sets_seen": 6,
    "games": 6,
    "all_roles": {
-    "pivot": {
-     "n": 2,
-     "of": 6,
-     "p": 0.3333,
-     "lo": 0.0968,
-     "hi": 0.7
-    },
     "spec_attacker": {
      "n": 4,
      "of": 6,
      "p": 0.6667,
      "lo": 0.3,
      "hi": 0.9032
+    },
+    "pivot": {
+     "n": 2,
+     "of": 6,
+     "p": 0.3333,
+     "lo": 0.0968,
+     "hi": 0.7
     },
     "speed_lower": {
      "n": 1,
@@ -14532,7 +15933,7 @@
      "lo": 0.0301,
      "hi": 0.5635
     },
-    "status": {
+    "status_para": {
      "n": 1,
      "of": 6,
      "p": 0.1667,
@@ -14572,14 +15973,14 @@
      "lo": 0.2307,
      "hi": 0.8824
     },
-    "taunt": {
+    "healing": {
      "n": 1,
      "of": 5,
      "p": 0.2,
      "lo": 0.0362,
      "hi": 0.6245
     },
-    "healing": {
+    "taunt": {
      "n": 1,
      "of": 5,
      "p": 0.2,
@@ -14590,11 +15991,11 @@
   },
   "emolga": {
    "roles": {
-    "status": 0.4,
+    "status_para": 0.4,
     "spec_attacker": 0.4
    },
    "top": [
-    "status",
+    "status_para",
     "spec_attacker"
    ],
    "sets_seen": 5,
@@ -14614,7 +16015,7 @@
      "lo": 0.0362,
      "hi": 0.6245
     },
-    "status": {
+    "status_para": {
      "n": 2,
      "of": 5,
      "p": 0.4,
@@ -14632,20 +16033,27 @@
   },
   "stunfisk": {
    "roles": {
-    "status": 0.4
+    "status_sleep": 0.4
    },
    "top": [
-    "status"
+    "status_sleep"
    ],
    "sets_seen": 5,
    "games": 5,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 2,
      "of": 5,
      "p": 0.4,
      "lo": 0.1176,
      "hi": 0.7693
+    },
+    "status_poison": {
+     "n": 1,
+     "of": 5,
+     "p": 0.2,
+     "lo": 0.0362,
+     "hi": 0.6245
     },
     "spec_attacker": {
      "n": 1,
@@ -14658,25 +16066,18 @@
   },
   "aggronmega": {
    "roles": {
-    "phys_attacker": 0.8,
     "wall": 0.8,
+    "phys_attacker": 0.8,
     "setup": 0.4
    },
    "top": [
-    "phys_attacker",
     "wall",
+    "phys_attacker",
     "setup"
    ],
    "sets_seen": 5,
    "games": 5,
    "all_roles": {
-    "phys_attacker": {
-     "n": 4,
-     "of": 5,
-     "p": 0.8,
-     "lo": 0.3755,
-     "hi": 0.9638
-    },
     "wall": {
      "n": 4,
      "of": 5,
@@ -14684,7 +16085,33 @@
      "lo": 0.3755,
      "hi": 0.9638
     },
+    "phys_attacker": {
+     "n": 4,
+     "of": 5,
+     "p": 0.8,
+     "lo": 0.3755,
+     "hi": 0.9638
+    },
     "setup": {
+     "n": 2,
+     "of": 5,
+     "p": 0.4,
+     "lo": 0.1176,
+     "hi": 0.7693
+    }
+   }
+  },
+  "garbodor": {
+   "roles": {
+    "status_poison": 0.4
+   },
+   "top": [
+    "status_poison"
+   ],
+   "sets_seen": 5,
+   "games": 5,
+   "all_roles": {
+    "status_poison": {
      "n": 2,
      "of": 5,
      "p": 0.4,
@@ -14714,17 +16141,17 @@
   },
   "vivillontundra": {
    "roles": {
-    "status": 0.6,
+    "status_sleep": 0.6,
     "speed_tailwind": 0.4
    },
    "top": [
-    "status",
+    "status_sleep",
     "speed_tailwind"
    ],
    "sets_seen": 5,
    "games": 5,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 3,
      "of": 5,
      "p": 0.6,
@@ -14743,11 +16170,11 @@
   "vivillonocean": {
    "roles": {
     "speed_tailwind": 0.5,
-    "status": 0.5
+    "status_sleep": 0.5
    },
    "top": [
     "speed_tailwind",
-    "status"
+    "status_sleep"
    ],
    "sets_seen": 4,
    "games": 4,
@@ -14773,7 +16200,7 @@
      "lo": 0.15,
      "hi": 0.85
     },
-    "status": {
+    "status_sleep": {
      "n": 2,
      "of": 4,
      "p": 0.5,
@@ -14810,26 +16237,26 @@
   },
   "luxray": {
    "roles": {
-    "pivot": 0.5,
     "spec_attacker": 0.5,
+    "pivot": 0.5,
     "debuff": 1.0
    },
    "top": [
     "debuff",
-    "pivot",
-    "spec_attacker"
+    "spec_attacker",
+    "pivot"
    ],
    "sets_seen": 4,
    "games": 4,
    "all_roles": {
-    "pivot": {
+    "spec_attacker": {
      "n": 2,
      "of": 4,
      "p": 0.5,
      "lo": 0.15,
      "hi": 0.85
     },
-    "spec_attacker": {
+    "pivot": {
      "n": 2,
      "of": 4,
      "p": 0.5,
@@ -14865,6 +16292,13 @@
      "hi": 0.6994
     },
     "priority": {
+     "n": 1,
+     "of": 4,
+     "p": 0.25,
+     "lo": 0.0456,
+     "hi": 0.6994
+    },
+    "status_para": {
      "n": 1,
      "of": 4,
      "p": 0.25,
@@ -15056,25 +16490,18 @@
   },
   "florgeswhite": {
    "roles": {
-    "terrain": 1.0,
     "healing": 1.0,
-    "spec_attacker": 1.0
+    "spec_attacker": 1.0,
+    "terrain": 1.0
    },
    "top": [
-    "terrain",
     "healing",
-    "spec_attacker"
+    "spec_attacker",
+    "terrain"
    ],
    "sets_seen": 2,
    "games": 2,
    "all_roles": {
-    "terrain": {
-     "n": 2,
-     "of": 2,
-     "p": 1.0,
-     "lo": 0.3424,
-     "hi": 1.0
-    },
     "healing": {
      "n": 2,
      "of": 2,
@@ -15088,20 +16515,46 @@
      "p": 1.0,
      "lo": 0.3424,
      "hi": 1.0
+    },
+    "terrain": {
+     "n": 2,
+     "of": 2,
+     "p": 1.0,
+     "lo": 0.3424,
+     "hi": 1.0
+    }
+   }
+  },
+  "pinsirmega": {
+   "roles": {
+    "status_para": 1.0
+   },
+   "top": [
+    "status_para"
+   ],
+   "sets_seen": 2,
+   "games": 2,
+   "all_roles": {
+    "status_para": {
+     "n": 2,
+     "of": 2,
+     "p": 1.0,
+     "lo": 0.3424,
+     "hi": 1.0
     }
    }
   },
   "vivillonicysnow": {
    "roles": {
-    "status": 1.0
+    "status_sleep": 1.0
    },
    "top": [
-    "status"
+    "status_sleep"
    ],
    "sets_seen": 2,
    "games": 2,
    "all_roles": {
-    "status": {
+    "status_sleep": {
      "n": 2,
      "of": 2,
      "p": 1.0,
@@ -15131,25 +16584,18 @@
   },
   "vivillonsun": {
    "roles": {
-    "status": 1.0,
     "redirection": 1.0,
-    "wall": 1.0
+    "wall": 1.0,
+    "status_sleep": 1.0
    },
    "top": [
-    "status",
     "redirection",
-    "wall"
+    "wall",
+    "status_sleep"
    ],
    "sets_seen": 2,
    "games": 2,
    "all_roles": {
-    "status": {
-     "n": 2,
-     "of": 2,
-     "p": 1.0,
-     "lo": 0.3424,
-     "hi": 1.0
-    },
     "redirection": {
      "n": 2,
      "of": 2,
@@ -15163,29 +16609,36 @@
      "p": 1.0,
      "lo": 0.3424,
      "hi": 1.0
+    },
+    "status_sleep": {
+     "n": 2,
+     "of": 2,
+     "p": 1.0,
+     "lo": 0.3424,
+     "hi": 1.0
     }
    }
   },
   "rotom": {
    "roles": {
-    "pivot": 1.0,
-    "spec_attacker": 1.0
+    "spec_attacker": 1.0,
+    "pivot": 1.0
    },
    "top": [
-    "pivot",
-    "spec_attacker"
+    "spec_attacker",
+    "pivot"
    ],
    "sets_seen": 2,
    "games": 2,
    "all_roles": {
-    "pivot": {
+    "spec_attacker": {
      "n": 2,
      "of": 2,
      "p": 1.0,
      "lo": 0.3424,
      "hi": 1.0
     },
-    "spec_attacker": {
+    "pivot": {
      "n": 2,
      "of": 2,
      "p": 1.0,

@@ -59,6 +59,13 @@ ROLE_SIGNALS = {
     moves={"Follow Me","Rage Powder"},
     # abilities redirect too: Lightning Rod / Storm Drain pull the whole type at the ally
     abilities={"Lightning Rod","Storm Drain"}),
+ "denial": dict(label="Weather / effect denial",
+    # the counter-role: these shut off what the other team built. Cloud Nine and Air Lock suspend
+    # weather entirely while the mon is out; Neutralizing Gas turns abilities off; Magic Bounce and
+    # Good as Gold refuse status; Mirror Armor reflects stat drops back at an Intimidate lead.
+    moves={"Defog","Haze","Clear Smog","Brick Break","Psychic Fangs","Rapid Spin"},
+    abilities={"Cloud Nine","Air Lock","Neutralizing Gas","Magic Bounce","Good as Gold",
+               "Mirror Armor","Clear Body","White Smoke","Full Metal Body"}),
  "field_abuser": dict(label="Weather / field abuser",
     # a distinct job from SETTING the weather — these are the mons the weather is set FOR
     moves=set(),
@@ -111,8 +118,12 @@ ROLE_SIGNALS = {
     moves={"Light Screen","Reflect","Aurora Veil"}),
  "teamprotect": dict(label="Wide / Quick Guard",
     moves={"Wide Guard","Quick Guard"}),
- "helpinghand": dict(label="Helping Hand",
-    moves={"Helping Hand"}),
+ "helpinghand": dict(label="Damage amplifier",
+    # boosts a partner's damage rather than dealing its own — a real doubles job. Fairy Aura and
+    # Dark Aura raise every Fairy/Dark move on the field; Battery, Power Spot and Steely Spirit
+    # raise the partner's specifically.
+    moves={"Helping Hand"},
+    abilities={"Fairy Aura","Dark Aura","Battery","Power Spot","Steely Spirit"}),
  "pivot": dict(label="Pivot",
     moves={"Parting Shot","Flip Turn","U-turn","Volt Switch","Teleport","Baton Pass","Chilly Reception"}),
  "wall": dict(label="Bulky wall / support",
@@ -163,12 +174,12 @@ SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurr
 # Learning / Label Enhancement — Geng 2016; Lee & Seung 1999). This table is authoritative for a
 # listed move: its roles come only from here (e.g. Fake Out is tempo, NOT an attacker).
 ROLE_OVERRIDE = {
- "Matcha Gotcha": {"spec_attacker", "healing", "status"},   # attack + heal + burn (3 real jobs)
+ "Matcha Gotcha": {"spec_attacker", "healing", "status_burn"},  # attack + heal + burn (3 real jobs)
  "Body Press":    {"wall", "phys_attacker"},                # a wall's attack (Iron Defense + Body Press)
- "Discharge":     {"spec_attacker", "status"},              # spread + paralysis (Lightning Rod core)
+ "Discharge":     {"spec_attacker", "status_para"},         # spread + paralysis (Lightning Rod core)
  "Knock Off":     {"phys_attacker", "itemdisrupt"},         # damage + strip item
  "Parting Shot":  {"pivot", "debuff"},                      # pivot + drop both attacks
- "Nuzzle":        {"status"},                               # the paralysis, not the chip
+ "Nuzzle":        {"status_para"},                          # the paralysis, not the chip
  "Pollen Puff":   {"healing", "spec_attacker"},             # heal ally OR damage foe
  "Flip Turn":     {"pivot", "phys_attacker"},
  "Volt Switch":   {"pivot", "spec_attacker"},

@@ -4,7 +4,7 @@
 
 Generated directly from the tagger, so it cannot drift. `uses` = real in-battle uses for moves, revealed sets for abilities. Blank role = deliberately untagged (ordinary damage, a passive modifier, or a gap worth filling).
 
-Roles in the taxonomy: **27**. Moves listed: **478**. Abilities listed: **99**.
+Roles in the taxonomy: **32**. Moves listed: **486**. Abilities listed: **109**.
 
 
 ## Roles in the taxonomy
@@ -18,18 +18,23 @@ Roles in the taxonomy: **27**. Moves listed: **478**. Abilities listed: **99**.
 | `terrain` | Terrain setter |
 | `fakeout` | Fake Out (tempo) |
 | `redirection` | Redirection |
+| `denial` | Weather / effect denial |
 | `field_abuser` | Weather / field abuser |
 | `taunt` | Taunt |
 | `encore` | Encore |
 | `priority` | Priority attacker |
 | `prankster` | Prankster (priority support) |
-| `status` | Status user |
+| `status_burn` | Burn spreader |
+| `status_para` | Paralysis spreader |
+| `status_sleep` | Sleep spreader |
+| `status_poison` | Poison spreader |
+| `status` | Status spreader (other) |
 | `debuff` | Debuff (Intimidate / drops) |
 | `setup` | Setup / sweeper |
 | `healing` | Healing / sustain |
 | `screens` | Screen setter |
 | `teamprotect` | Wide / Quick Guard |
-| `helpinghand` | Helping Hand |
+| `helpinghand` | Damage amplifier |
 | `pivot` | Pivot |
 | `wall` | Bulky wall / support |
 | `trapping` | Trapper |
@@ -46,13 +51,13 @@ These do several jobs at once; the table is factual, not weighted.
 | move | roles |
 |---|---|
 | **Body Press** | Physical attacker, Bulky wall / support |
-| **Discharge** | Special attacker, Status user |
+| **Discharge** | Special attacker, Paralysis spreader |
 | **Draining Kiss** | Healing / sustain, Special attacker |
 | **Fake Out** | Fake Out (tempo) |
 | **Flip Turn** | Physical attacker, Pivot |
 | **Knock Off** | Item disruption, Physical attacker |
-| **Matcha Gotcha** | Healing / sustain, Special attacker, Status user |
-| **Nuzzle** | Status user |
+| **Matcha Gotcha** | Healing / sustain, Special attacker, Burn spreader |
+| **Nuzzle** | Paralysis spreader |
 | **Parting Shot** | Debuff (Intimidate / drops), Pivot |
 | **Pollen Puff** | Healing / sustain, Special attacker |
 | **U-turn** | Physical attacker, Pivot |
@@ -64,12 +69,12 @@ These do several jobs at once; the table is factual, not weighted.
 |---|---|---|
 | 3795 | Intimidate | Debuff (Intimidate / drops) |
 | 1328 | Stamina | Bulky wall / support |
-| 865 | Fairy Aura | — |
+| 865 | Fairy Aura | Damage amplifier |
 | 645 | Unnerve | — |
 | 373 | Defiant | Setup / sweeper |
 | 359 | Speed Boost | Setup / sweeper |
 | 234 | Mold Breaker | — |
-| 177 | Cloud Nine | — |
+| 177 | Cloud Nine | Weather / effect denial |
 | 138 | Competitive | Setup / sweeper |
 | 117 | Lightning Rod | Redirection |
 | 84 | Pressure | — |
@@ -78,7 +83,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 43 | No Guard | — |
 | 40 | Moody | Setup / sweeper |
 | 33 | Berserk | Setup / sweeper |
-| 26 | Mirror Armor | — |
+| 26 | Mirror Armor | Weather / effect denial |
 | 24 | Moxie | Setup / sweeper |
 | 19 | Insomnia | — |
 | 17 | Justified | Setup / sweeper |
@@ -96,7 +101,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 6 | Hospitality | — |
 | 6 | Sap Sipper | — |
 | 6 | Water Absorb | — |
-| 5 | Good as Gold | — |
+| 5 | Good as Gold | Weather / effect denial |
 | 4 | Chlorophyll | Weather / field abuser |
 | 3 | Gooey | — |
 | 3 | Thick Fat | Bulky wall / support |
@@ -133,14 +138,19 @@ These do several jobs at once; the table is factual, not weighted.
 | 1 | Swift Swim | Weather / field abuser |
 | 1 | Tough Claws | — |
 | 1 | Toxic Debris | — |
+| 0 | Air Lock | Weather / effect denial |
 | 0 | Arena Trap | Trapper |
+| 0 | Battery | Damage amplifier |
 | 0 | Beast Boost | Setup / sweeper |
 | 0 | Chilling Neigh | Setup / sweeper |
+| 0 | Clear Body | Weather / effect denial |
+| 0 | Dark Aura | Damage amplifier |
 | 0 | Desolate Land | Weather setter |
 | 0 | Dry Skin | Weather / field abuser |
 | 0 | Electric Surge | Terrain setter |
 | 0 | Flower Gift | Weather / field abuser |
 | 0 | Fluffy | Bulky wall / support |
+| 0 | Full Metal Body | Weather / effect denial |
 | 0 | Fur Coat | Bulky wall / support |
 | 0 | Grassy Surge | Terrain setter |
 | 0 | Grim Neigh | Setup / sweeper |
@@ -148,9 +158,12 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Ice Body | Weather / field abuser |
 | 0 | Ice Face | Bulky wall / support |
 | 0 | Leaf Guard | Weather / field abuser |
+| 0 | Magic Bounce | Weather / effect denial |
 | 0 | Magnet Pull | Trapper |
 | 0 | Misty Surge | Terrain setter |
+| 0 | Neutralizing Gas | Weather / effect denial |
 | 0 | Orichalcum Pulse | Weather setter |
+| 0 | Power Spot | Damage amplifier |
 | 0 | Primordial Sea | Weather setter |
 | 0 | Protosynthesis | Weather / field abuser |
 | 0 | Psychic Surge | Terrain setter |
@@ -160,7 +173,9 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Sand Veil | Weather / field abuser |
 | 0 | Shadow Tag | Trapper |
 | 0 | Slush Rush | Weather / field abuser |
+| 0 | Steely Spirit | Damage amplifier |
 | 0 | Storm Drain | Redirection |
+| 0 | White Smoke | Weather / effect denial |
 
 ## Every move
 
@@ -182,7 +197,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 2031 | Electro Shot | Special attacker |
 | 1931 | Flare Blitz | Physical attacker |
 | 1865 | Shadow Ball | Special attacker |
-| 1863 | Matcha Gotcha | Healing / sustain, Special attacker, Status user |
+| 1863 | Matcha Gotcha | Healing / sustain, Special attacker, Burn spreader |
 | 1756 | Hurricane | Special attacker |
 | 1634 | Trick Room | Trick Room setter |
 | 1597 | Dragon Pulse | Special attacker |
@@ -192,7 +207,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 1429 | Stomping Tantrum | Physical attacker |
 | 1416 | Iron Head | Physical attacker |
 | 1390 | Dragon Claw | Physical attacker |
-| 1308 | Sludge Bomb | Special attacker |
+| 1308 | Sludge Bomb | Special attacker, Poison spreader |
 | 1281 | Encore | Encore |
 | 1279 | Knock Off | Item disruption, Physical attacker |
 | 1254 | Earth Power | Special attacker |
@@ -207,18 +222,18 @@ These do several jobs at once; the table is factual, not weighted.
 | 922 | Dual Wingbeat | Physical attacker |
 | 864 | Blizzard | Special attacker |
 | 849 | Brave Bird | Physical attacker |
-| 843 | Helping Hand | Ally support / positioning, Helping Hand, Bulky wall / support |
+| 843 | Helping Hand | Ally support / positioning, Damage amplifier, Bulky wall / support |
 | 839 | Light Screen | Screen setter, Bulky wall / support |
 | 818 | High Horsepower | Physical attacker |
-| 781 | Dire Claw | Physical attacker |
-| 717 | Sleep Powder | Status user |
+| 781 | Dire Claw | Physical attacker, Poison spreader |
+| 717 | Sleep Powder | Sleep spreader |
 | 716 | Solar Beam | Special attacker |
 | 711 | Spirit Break | Debuff (Intimidate / drops), Physical attacker |
 | 690 | Throat Chop | Physical attacker |
 | 640 | Infestation | Trapper |
 | 638 | Flip Turn | Physical attacker, Pivot |
-| 626 | Will-O-Wisp | Status user |
-| 620 | Scald | Special attacker |
+| 626 | Will-O-Wisp | Burn spreader |
+| 620 | Scald | Special attacker, Burn spreader |
 | 611 | Hyper Beam | Special attacker |
 | 605 | Giga Drain | Healing / sustain, Special attacker |
 | 604 | Life Dew | Healing / sustain, Bulky wall / support |
@@ -226,20 +241,20 @@ These do several jobs at once; the table is factual, not weighted.
 | 583 | Hydro Pump | Special attacker |
 | 574 | Dark Pulse | Special attacker |
 | 565 | Ice Punch | Physical attacker |
-| 557 | Zap Cannon | Status user |
-| 546 | Baneful Bunker | Status user |
+| 557 | Zap Cannon | Paralysis spreader |
+| 546 | Baneful Bunker | Poison spreader |
 | 545 | Darkest Lariat | Physical attacker |
 | 529 | Drain Punch | Healing / sustain, Physical attacker |
 | 521 | Quick Attack | Physical attacker, Priority attacker |
 | 500 | Water Spout | Special attacker |
 | 484 | Icy Wind | Speed control (lower foe) |
-| 483 | Toxic | Status user |
+| 483 | Toxic | Poison spreader |
 | 464 | Foul Play | Physical attacker |
 | 463 | Follow Me | Redirection, Bulky wall / support |
 | 451 | Body Press | Physical attacker, Bulky wall / support |
 | 448 | Calm Mind | Setup / sweeper |
 | 427 | Muddy Water | Special attacker |
-| 426 | Poison Jab | Physical attacker |
+| 426 | Poison Jab | Physical attacker, Poison spreader |
 | 421 | Draco Meteor | Special attacker |
 | 417 | Play Rough | Physical attacker |
 | 400 | Power Gem | — |
@@ -247,9 +262,9 @@ These do several jobs at once; the table is factual, not weighted.
 | 395 | Detect | _(neutral — everyone runs it)_ |
 | 378 | Swords Dance | Setup / sweeper |
 | 372 | Super Fang | — |
-| 368 | Discharge | Special attacker, Status user |
+| 368 | Discharge | Special attacker, Paralysis spreader |
 | 366 | Rock Blast | — |
-| 363 | Psychic Fangs | — |
+| 363 | Psychic Fangs | Weather / effect denial |
 | 339 | Volt Switch | Pivot, Special attacker |
 | 332 | Light of Ruin | — |
 | 329 | Ice Beam | Special attacker |
@@ -272,16 +287,16 @@ These do several jobs at once; the table is factual, not weighted.
 | 245 | Snarl | Debuff (Intimidate / drops), Special attacker |
 | 244 | Freeze-Dry | Special attacker |
 | 242 | Superpower | — |
-| 237 | Hypnosis | Status user |
+| 237 | Hypnosis | Sleep spreader |
 | 230 | Rock Tomb | Speed control (lower foe) |
 | 229 | Flamethrower | — |
 | 229 | Overheat | Special attacker |
 | 222 | Bitter Blade | Physical attacker |
 | 220 | Last Resort | — |
-| 211 | Disable | — |
-| 211 | Yawn | Status user |
+| 211 | Disable | Status spreader (other) |
+| 211 | Yawn | Sleep spreader |
 | 207 | Draining Kiss | Healing / sustain, Special attacker |
-| 205 | Thunder | Special attacker |
+| 205 | Thunder | Special attacker, Paralysis spreader |
 | 204 | Aurora Veil | Screen setter, Bulky wall / support |
 | 204 | Leaf Storm | Special attacker |
 | 202 | Aura Sphere | Special attacker |
@@ -298,7 +313,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 173 | Spiky Shield | _(neutral — everyone runs it)_ |
 | 172 | Instruct | Ally support / positioning |
 | 170 | Stockpile | — |
-| 169 | Leech Seed | — |
+| 169 | Leech Seed | Status spreader (other) |
 | 168 | Ice Shard | Physical attacker, Priority attacker |
 | 168 | Minimize | — |
 | 164 | Air Slash | Special attacker |
@@ -323,10 +338,10 @@ These do several jobs at once; the table is factual, not weighted.
 | 97 | Surf | — |
 | 95 | Leaf Blade | — |
 | 94 | Acrobatics | — |
-| 94 | Brick Break | — |
+| 94 | Brick Break | Weather / effect denial |
 | 92 | Feint | — |
 | 90 | Stored Power | — |
-| 90 | Thunder Wave | Status user |
+| 90 | Thunder Wave | Paralysis spreader |
 | 87 | Final Gambit | — |
 | 87 | Water Pulse | — |
 | 85 | Quick Guard | Wide / Quick Guard, Bulky wall / support |
@@ -337,14 +352,14 @@ These do several jobs at once; the table is factual, not weighted.
 | 79 | Trop Kick | — |
 | 76 | Baton Pass | Pivot |
 | 75 | Clanging Scales | — |
-| 75 | Gunk Shot | Physical attacker |
+| 75 | Gunk Shot | Physical attacker, Poison spreader |
 | 74 | Meteor Mash | — |
 | 73 | Simple Beam | — |
 | 72 | Gigaton Hammer | Physical attacker |
 | 72 | Salt Cure | — |
 | 71 | Triple Arrows | — |
 | 70 | Psychic Noise | — |
-| 69 | Body Slam | Physical attacker |
+| 69 | Body Slam | Physical attacker, Paralysis spreader |
 | 68 | Stone Axe | — |
 | 67 | Head Smash | — |
 | 66 | Mystical Fire | Special attacker |
@@ -377,7 +392,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 52 | Beat Up | — |
 | 52 | Bug Bite | — |
 | 52 | Sheer Cold | — |
-| 52 | Swagger | — |
+| 52 | Swagger | Status spreader (other) |
 | 51 | Accelerock | Physical attacker, Priority attacker |
 | 51 | Belly Drum | Setup / sweeper |
 | 51 | Breaking Swipe | — |
@@ -387,7 +402,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 48 | Fire Spin | Trapper |
 | 48 | Outrage | — |
 | 48 | Strength Sap | Healing / sustain |
-| 46 | Curse | Setup / sweeper |
+| 46 | Curse | Setup / sweeper, Status spreader (other) |
 | 46 | Heal Pulse | Ally support / positioning |
 | 44 | Lash Out | — |
 | 44 | Night Slash | — |
@@ -396,7 +411,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 41 | Endeavor | — |
 | 40 | Imprison | — |
 | 39 | Entrainment | — |
-| 39 | Haze | — |
+| 39 | Haze | Weather / effect denial |
 | 38 | Zen Headbutt | Physical attacker |
 | 37 | Decorate | Ally support / positioning |
 | 36 | Vacuum Wave | Priority attacker |
@@ -432,11 +447,11 @@ These do several jobs at once; the table is factual, not weighted.
 | 25 | Fire Blast | Special attacker |
 | 25 | Shell Side Arm | — |
 | 24 | Frost Breath | Special attacker |
-| 24 | Glare | Status user |
+| 24 | Glare | Paralysis spreader |
 | 24 | X-Scissor | — |
 | 23 | Trailblaze | — |
 | 22 | Horn Drill | — |
-| 22 | Nuzzle | Status user |
+| 22 | Nuzzle | Paralysis spreader |
 | 22 | Synthesis | Healing / sustain |
 | 22 | Wood Hammer | Physical attacker |
 | 22 | Worry Seed | — |
@@ -446,7 +461,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 20 | Fire Punch | — |
 | 19 | Explosion | — |
 | 19 | Icicle Spear | — |
-| 19 | Scorching Sands | — |
+| 19 | Scorching Sands | Burn spreader |
 | 19 | Wild Charge | — |
 | 18 | Dragon Rush | — |
 | 18 | Heat Crash | — |
@@ -456,7 +471,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 17 | Dynamic Punch | — |
 | 17 | Pollen Puff | Healing / sustain, Special attacker |
 | 17 | Supercell Slam | — |
-| 17 | Toxic Spikes | — |
+| 17 | Toxic Spikes | Poison spreader |
 | 17 | Upper Hand | — |
 | 17 | Water Shuriken | Priority attacker |
 | 16 | Bite | — |
@@ -478,7 +493,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 13 | Gyro Ball | — |
 | 13 | Lunge | Debuff (Intimidate / drops) |
 | 13 | Rest | Healing / sustain |
-| 12 | Confuse Ray | — |
+| 12 | Confuse Ray | Status spreader (other) |
 | 12 | Eerie Impulse | — |
 | 12 | Feather Dance | Debuff (Intimidate / drops) |
 | 12 | Grassy Terrain | Terrain setter |
@@ -501,7 +516,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 10 | Temper Flare | — |
 | 9 | Acid Armor | — |
 | 9 | Assurance | — |
-| 9 | Defog | — |
+| 9 | Defog | Weather / effect denial |
 | 9 | Misty Terrain | Terrain setter |
 | 9 | Mud-Slap | — |
 | 9 | String Shot | Speed control (lower foe) |
@@ -520,7 +535,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 7 | Transform | — |
 | 6 | Beak Blast | — |
 | 6 | Charge Beam | — |
-| 6 | Cross Poison | — |
+| 6 | Cross Poison | Poison spreader |
 | 6 | Fly | — |
 | 6 | Giga Impact | — |
 | 6 | Shelter | — |
@@ -539,8 +554,8 @@ These do several jobs at once; the table is factual, not weighted.
 | 5 | Sticky Web | — |
 | 5 | Struggle Bug | Debuff (Intimidate / drops) |
 | 5 | Thunder Fang | — |
-| 4 | Clear Smog | — |
-| 4 | Flatter | — |
+| 4 | Clear Smog | Weather / effect denial |
+| 4 | Flatter | Status spreader (other) |
 | 4 | Howl | — |
 | 4 | Snowscape | Weather setter |
 | 3 | Aerial Ace | — |
@@ -551,7 +566,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 3 | Grav Apple | — |
 | 3 | Growth | Setup / sweeper |
 | 3 | Hard Press | — |
-| 3 | Lava Plume | — |
+| 3 | Lava Plume | Burn spreader |
 | 3 | Low Sweep | — |
 | 3 | Megahorn | — |
 | 3 | Misty Explosion | — |
@@ -561,7 +576,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 3 | Petal Blizzard | — |
 | 3 | Pounce | — |
 | 3 | Skitter Smack | — |
-| 3 | Stun Spore | Status user |
+| 3 | Stun Spore | Paralysis spreader |
 | 3 | Trick-or-Treat | — |
 | 2 | Acupressure | — |
 | 2 | Air Cutter | — |
@@ -603,44 +618,52 @@ These do several jobs at once; the table is factual, not weighted.
 | 1 | Tearful Look | Debuff (Intimidate / drops) |
 | 0 | Anchor Shot | Trapper |
 | 0 | Apple Acid | Special attacker |
+| 0 | Attract | Status spreader (other) |
 | 0 | Bind | Trapper |
+| 0 | Blue Flare | Burn spreader |
 | 0 | Bolt Strike | Physical attacker |
 | 0 | Captivate | Debuff (Intimidate / drops) |
 | 0 | Collision Course | Physical attacker |
 | 0 | Corrosive Gas | Item disruption |
 | 0 | Covet | Item disruption |
-| 0 | Dark Void | Status user |
+| 0 | Dark Void | Sleep spreader |
+| 0 | Dragon Breath | Paralysis spreader |
 | 0 | Fishious Rend | Physical attacker |
 | 0 | Gear Up | Ally support / positioning |
 | 0 | Geomancy | Setup / sweeper |
 | 0 | Glaciate | Speed control (lower foe) |
 | 0 | Glaive Rush | Physical attacker |
+| 0 | Grass Whistle | Sleep spreader |
 | 0 | Growl | Debuff (Intimidate / drops) |
 | 0 | Hail | Weather setter |
 | 0 | Incinerate | Item disruption |
+| 0 | Inferno | Burn spreader |
 | 0 | Ivy Cudgel | Physical attacker |
 | 0 | Jungle Healing | Healing / sustain |
-| 0 | Lovely Kiss | Status user |
+| 0 | Lovely Kiss | Sleep spreader |
 | 0 | Lunar Blessing | Healing / sustain |
 | 0 | Luster Purge | Special attacker |
 | 0 | Magnetic Flux | Ally support / positioning |
 | 0 | Milk Drink | Healing / sustain |
 | 0 | Noble Roar | Debuff (Intimidate / drops) |
 | 0 | Play Nice | Debuff (Intimidate / drops) |
-| 0 | Poison Gas | Status user |
-| 0 | Poison Powder | Status user |
+| 0 | Poison Gas | Poison spreader |
+| 0 | Poison Powder | Poison spreader |
+| 0 | Rapid Spin | Weather / effect denial |
+| 0 | Sacred Fire | Burn spreader |
 | 0 | Silk Trap | Debuff (Intimidate / drops) |
-| 0 | Sing | Status user |
+| 0 | Sing | Sleep spreader |
 | 0 | Soft-Boiled | Healing / sustain |
 | 0 | Spider Web | Trapper |
-| 0 | Spore | Status user |
+| 0 | Spore | Sleep spreader |
 | 0 | Surging Strikes | Physical attacker |
 | 0 | Tail Glow | Setup / sweeper |
 | 0 | Take Heart | Setup / sweeper |
 | 0 | Teleport | Pivot |
 | 0 | Tera Blast | Special attacker |
 | 0 | Thousand Waves | Trapper |
-| 0 | Toxic Thread | Status user |
+| 0 | Torment | Status spreader (other) |
+| 0 | Toxic Thread | Poison spreader |
 | 0 | Victory Dance | Setup / sweeper |
 | 0 | Work Up | Setup / sweeper |
 | 0 | Wrap | Trapper |
@@ -652,7 +675,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 400 | Power Gem |
 | 372 | Super Fang |
 | 366 | Rock Blast |
-| 363 | Psychic Fangs |
 | 332 | Light of Ruin |
 | 302 | Expanding Force |
 | 249 | Low Kick |
@@ -660,11 +682,9 @@ These do several jobs at once; the table is factual, not weighted.
 | 242 | Superpower |
 | 229 | Flamethrower |
 | 220 | Last Resort |
-| 211 | Disable |
 | 201 | Twin Beam |
 | 186 | Phantom Force |
 | 170 | Stockpile |
-| 169 | Leech Seed |
 | 168 | Minimize |
 | 157 | Skill Swap |
 | 150 | Sacred Sword |
@@ -678,7 +698,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 99 | Rising Voltage |
 | 97 | Surf |
 | 95 | Leaf Blade |
-| 94 | Brick Break |
 | 94 | Acrobatics |
 | 92 | Feint |
 | 90 | Stored Power |
@@ -699,3 +718,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 65 | Psych Up |
 | 64 | Scale Shot |
 | 63 | Thunder Punch |
+| 61 | Ice Fang |
+| 60 | Soak |
+| 59 | Cosmic Power |
+| 58 | Roar |

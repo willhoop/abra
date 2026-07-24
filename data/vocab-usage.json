@@ -7,7 +7,7 @@
   "distinct_items": 113,
   "move_events": 139080
  },
- "role_coverage_of_battle_usage": 0.9084,
+ "role_coverage_of_battle_usage": 0.9195,
  "neutral_share_of_usage": 0.1168,
  "note": "role_coverage = share of NON-neutral in-battle move uses that map to >=1 curated role. Neutral moves (Protect etc.) are excluded and reported as neutral_share. uncovered_top = high-usage moves with no role yet \u2014 candidates to tag.",
  "moves_top": [
@@ -279,7 +279,8 @@
    "kos": 369,
    "ko_rate": 0.282,
    "roles": [
-    "spec_attacker"
+    "spec_attacker",
+    "status_poison"
    ]
   },
   {
@@ -465,7 +466,8 @@
    "kos": 252,
    "ko_rate": 0.323,
    "roles": [
-    "phys_attacker"
+    "phys_attacker",
+    "status_poison"
    ]
   },
   {
@@ -475,7 +477,7 @@
    "kos": 0,
    "ko_rate": 0.0,
    "roles": [
-    "status"
+    "status_sleep"
    ]
   },
   {
@@ -537,7 +539,7 @@
    "kos": 0,
    "ko_rate": 0.0,
    "roles": [
-    "status"
+    "status_burn"
    ]
   },
   {
@@ -547,7 +549,8 @@
    "kos": 169,
    "ko_rate": 0.273,
    "roles": [
-    "spec_attacker"
+    "spec_attacker",
+    "status_burn"
    ]
   },
   {
@@ -630,7 +633,7 @@
    "kos": 223,
    "ko_rate": 0.4,
    "roles": [
-    "status"
+    "status_para"
    ]
   },
   {
@@ -640,7 +643,7 @@
    "kos": 0,
    "ko_rate": 0.0,
    "roles": [
-    "status"
+    "status_poison"
    ]
   },
   {
@@ -702,7 +705,7 @@
    "kos": 0,
    "ko_rate": 0.0,
    "roles": [
-    "status"
+    "status_poison"
    ]
   },
   {
@@ -761,7 +764,8 @@
    "kos": 133,
    "ko_rate": 0.312,
    "roles": [
-    "phys_attacker"
+    "phys_attacker",
+    "status_poison"
    ]
   },
   {
@@ -844,25 +848,11 @@
    "ko_rate": 0.016
   },
   {
-   "move": "Discharge",
-   "battle_uses": 368,
-   "reveals": 181,
-   "kos": 111,
-   "ko_rate": 0.302
-  },
-  {
    "move": "Rock Blast",
    "battle_uses": 366,
    "reveals": 159,
    "kos": 103,
    "ko_rate": 0.281
-  },
-  {
-   "move": "Psychic Fangs",
-   "battle_uses": 363,
-   "reveals": 203,
-   "kos": 132,
-   "ko_rate": 0.364
   },
   {
    "move": "Light of Ruin",
@@ -914,13 +904,6 @@
    "ko_rate": 0.445
   },
   {
-   "move": "Disable",
-   "battle_uses": 211,
-   "reveals": 151,
-   "kos": 0,
-   "ko_rate": 0.0
-  },
-  {
    "move": "Twin Beam",
    "battle_uses": 201,
    "reveals": 109,
@@ -938,13 +921,6 @@
    "move": "Stockpile",
    "battle_uses": 170,
    "reveals": 59,
-   "kos": 0,
-   "ko_rate": 0.0
-  },
-  {
-   "move": "Leech Seed",
-   "battle_uses": 169,
-   "reveals": 100,
    "kos": 0,
    "ko_rate": 0.0
   },
@@ -1040,13 +1016,6 @@
    "ko_rate": 0.463
   },
   {
-   "move": "Brick Break",
-   "battle_uses": 94,
-   "reveals": 69,
-   "kos": 25,
-   "ko_rate": 0.266
-  },
-  {
    "move": "Acrobatics",
    "battle_uses": 94,
    "reveals": 56,
@@ -1101,6 +1070,41 @@
    "reveals": 58,
    "kos": 32,
    "ko_rate": 0.39
+  },
+  {
+   "move": "Trop Kick",
+   "battle_uses": 79,
+   "reveals": 44,
+   "kos": 31,
+   "ko_rate": 0.392
+  },
+  {
+   "move": "Clanging Scales",
+   "battle_uses": 75,
+   "reveals": 42,
+   "kos": 30,
+   "ko_rate": 0.4
+  },
+  {
+   "move": "Meteor Mash",
+   "battle_uses": 74,
+   "reveals": 49,
+   "kos": 28,
+   "ko_rate": 0.378
+  },
+  {
+   "move": "Simple Beam",
+   "battle_uses": 73,
+   "reveals": 55,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Salt Cure",
+   "battle_uses": 72,
+   "reveals": 38,
+   "kos": 11,
+   "ko_rate": 0.153
   }
  ],
  "abilities_top": [
@@ -1121,7 +1125,9 @@
   {
    "ability": "Fairy Aura",
    "reveals": 865,
-   "roles": []
+   "roles": [
+    "helpinghand"
+   ]
   },
   {
    "ability": "Unnerve",
@@ -1150,7 +1156,9 @@
   {
    "ability": "Cloud Nine",
    "reveals": 177,
-   "roles": []
+   "roles": [
+    "denial"
+   ]
   },
   {
    "ability": "Competitive",
@@ -1205,7 +1213,9 @@
   {
    "ability": "Mirror Armor",
    "reveals": 26,
-   "roles": []
+   "roles": [
+    "denial"
+   ]
   },
   {
    "ability": "Moxie",
@@ -1309,7 +1319,9 @@
   {
    "ability": "Good as Gold",
    "reveals": 5,
-   "roles": []
+   "roles": [
+    "denial"
+   ]
   },
   {
    "ability": "Chlorophyll",
