@@ -69,3 +69,23 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 ## Status of the "one thing that unblocks everything"
 **DONE (2026-07-23): the engine's damage math is validated** against `@smogon/calc` — within 5% on 100% of 31 tested scenarios (`engine/validate_damage.js`, `data/damage-validation.json`). MEDICHAM/DITTO no longer rest on unverified numbers.
 **Next priorities, in order:** (1) get the **Champions rule changes** (sleep, paralysis, moves) from the format and model them — the current biggest data gap; (2) harden the rollout **policy** (the last GIGO lever); (3) grow the dataset via the daily pull + self-play so the discovered archetypes and win rates sharpen.
+
+---
+
+## ROLES — multi-label team composition (added 2026-07-24)
+**Job:** describe every team by the set of functional roles it reveals, instead of forcing one archetype label.
+**Method:** 26 roles (speed control, weather, terrain, disruption, status/debuff, priority, prankster, setup, healing, screens, walls, pivot, trapping, perish, ally-support, item-disruption, physical/special attacker). Each **species earns a role from data** — credited once it is observed doing it (≥2 times). Multi-effect moves carry several *factual* roles (Matcha Gotcha = attack+heal+status; Body Press = wall+attack; Knock Off = attack+item-strip; Fake Out = tempo, not attacker). Role *presence* is binary and data-justified; graded strength is **not** hand-set — it is the learned output of the NMF (see below). Team role vectors are built from the **team-preview six** (leak-free). Outputs a **role-pair matchup matrix** with Wilson CIs.
+**Honest status / result:** the role-pair matrix **pools the data** — median cell **n=7,971** (676 cells) vs the old single-label archetype cells of n=11–18: the structural fix for the untrustworthy grid. But predicting the winner from **preview roles ties a coin** (held-out log-loss 0.694 vs 0.693) — consistent with the sheet-level null. The value is descriptive + attribution, not prediction. Per-role logistic coefficients give **win-credit per role**; KO-credit per species comes from the turn log.
+**Code:** `engine/roles.py` → `data/pokemon-roles.json`, `data/role-matchups.json`, `data/roles-eval.json`. Tests: `tests/test-roles.py` (19).
+
+## WAR — Wins Above Replacement (added 2026-07-24)
+**Job:** how many wins a species adds over a freely-available replacement, controlling for teammates and opponents.
+**Method:** ridge-regularized **Adjusted Plus-Minus** (basketball RAPM) — logistic regression of game outcome on the difference of team-preview species-indicator vectors. Replacement = 20th-percentile β; WAR = 0.25·(β−β_repl)·games (the logistic wins conversion). Ridge shrinks rare species toward zero.
+**Honest status / result:** the species model **beats a coin** (held-out log-loss **0.6875 < 0.6931**) and beats the rating baseline (0.6905) — so *which specific species* you bring at preview carries a small real signal that roles and raw sheets do not. Leaders: Basculegion, Kingambit, Sylveon; trailers negative (Maushold, Raichu). Effect sizes small; WAR magnitudes ridge-shrunk and flagged exploratory.
+**Code:** `engine/war.py` → `data/war.json`.
+
+## NMF — emergent roles / archetypes (added 2026-07-24)
+**Job:** discover roles and archetypes from the data instead of hand-declaring them.
+**Method:** Non-negative Matrix Factorization (Lee & Seung 1999; Label Distribution Learning framing, Geng 2016). Two cuts: (1) team×MOVE usage (usage-weighted, so the closed-sheet censoring skew is down-weighted) → offensive cores; (2) team×ROLE → **emergent archetypes**. A team is a non-negative *blend* of factors, never one hard label; a move's loading on a role is **learned, not typed** — this is where graded primary/secondary strength legitimately comes from.
+**Honest status / result:** role-level factorization is the clean cut — recon-err **0.53**, six interpretable archetypes (Intimidate+Fake-Out control; physical offense; special offense+sustain; **bulky wall+screens+redirection**; Tailwind+Encore; priority). Move-level is coarser (recon-err 0.79; attacking moves dominate). Rank and the human names are the only non-data choices; rigorous rank/weighting selection by **topic coherence** (Mimno 2011) is the noted next refinement — reconstruction error is not comparable across weightings.
+**Code:** `engine/nmf_roles.py` → `data/nmf-roles.json`, `data/nmf.js`. Vocabulary census: `engine/vocab.py` → `data/vocab-usage.json` (tags every move/ability/item, counts real battle usage; curated roles cover 90.4% of non-neutral usage). Site booth: the **Role Foundry** (Smeargle) in `web/index.html`.

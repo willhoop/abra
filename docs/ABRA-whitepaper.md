@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 2.4.0 · Last updated 2026-07-23**
+**Version 2.6.0 · Last updated 2026-07-24**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -197,3 +197,62 @@ the pacing item toward the millions of games that path needs.
 
 **Companion documents.** [Slide deck](ABRA-deck-plain-english.md) ·
 [Technical documentation](ABRA-technical-docs.md) · [Model ledger](MODELS.md) · [Changelog](../CHANGELOG.md)
+
+---
+
+## The role family: multi-label composition, WAR, and emergent roles (v2.6.0)
+
+### Motivation
+The earlier playstyle model assigned each team exactly one archetype. This is a **multi-class** framing
+of a **multi-label** object: a real team is Sun *and* Tailwind *and* Fake Out at once. Forcing one label
+discards most of the information and shatters the data into archetype×archetype cells of n≈11–18, which
+is why those matchup numbers were untrustworthy. The literature is explicit: multi-label classification
+(Tsoumakas & Katakis 2007), team-as-mixture-of-latent-roles (topic models; Blei-Ng-Jordan 2003), and
+latent roles beating raw identity for outcome prediction in team sports (arXiv 2304.08272).
+
+### Role tagging (leak-free, data-earned)
+We define 26 functional roles. A **species earns a role from data** — it is credited once it is observed
+performing the role (≥2 times) across the store. Multi-effect moves carry several *factual* roles
+(Matcha Gotcha = special+heal+status; Body Press = wall+attack; Fake Out = tempo, not attacker). Role
+*presence* is binary; graded *strength* is deliberately **not** hand-set (asserting weights violates the
+project's measurement standard). A team's role vector is built from the **team-preview six**, which are
+public in every closed-sheet game, so the representation is uncensored and non-leaking.
+
+Each ordered role pair (a, b) aggregates outcomes across every game where one side had a and the other
+had b, with a Wilson score interval. Because roles co-occur, each game contributes to many cells, so the
+**median cell rises from n≈15 to n=7,971** (676 cells) — the structural fix. Empirically, however, a
+logistic model on the preview role-difference vector predicts the winner at held-out log-loss 0.694 vs a
+coin's 0.693: **roles describe and attribute, they do not predict.** The per-role coefficients are read
+as **win-credit per role**; KO-credit per species is measured directly from the turn log.
+
+### WAR — Wins Above Replacement (species RAPM)
+To attribute wins to individual Pokémon while controlling for teammates and opponents, we use basketball's
+**Regularized Adjusted Plus-Minus**. With one row per game, label y = 1 if p1 won and features
+x_s = 1[s ∈ p1 six] − 1[s ∈ p2 six], a ridge logistic regression yields β_s, species s's adjusted win
+contribution. Ridge shrinks rare species toward zero. With replacement β at the 20th percentile and the
+logistic slope 1/4 at p = 0.5,
+
+  WAR_s = 0.25 · (β_s − β_replacement) · (games s appeared).
+
+Held-out, the species model reaches log-loss **0.6875 < 0.6931 (coin)** and beats the rating baseline
+(0.6905): *which specific species* you bring at preview carries a small real signal that roles and raw
+sheets do not. Leaders are Basculegion, Kingambit, Sylveon; trailers are negative. Effect sizes are small
+and magnitudes ridge-shrunk — reported as an exploratory ordering, not settled wins.
+
+### Emergent roles by NMF
+Rather than hand-declaring roles, we factorize the data with **Non-negative Matrix Factorization**
+(Lee & Seung 1999): X ≈ W H with W, H ≥ 0, so each team is a non-negative **blend** of latent roles and
+each role is a recipe over features. Two cuts: (1) the team×move usage matrix (usage-weighted, which
+down-weights the closed-sheet censoring skew) recovers **offensive cores** but is dominated by attacking
+moves (relative reconstruction error 0.79); (2) the team×role matrix recovers **six clean archetypes**
+(error 0.53): Intimidate+Fake-Out control, physical offense, special offense+sustain, bulky wall+screens+
+redirection, Tailwind+Encore, priority. A move's loading on a role is **learned, not typed** — this is the
+principled source of graded primary/secondary strength (Label Distribution Learning, Geng 2016). The rank
+and the human names are the only non-data choices. Reconstruction error is **not** comparable across
+weightings; the correct model-selection criterion is **topic coherence** (Mimno et al. 2011), noted as the
+next refinement.
+
+### Honest limits
+Preview-composition signal is small; role-level winner-prediction ties a coin and WAR barely clears it.
+Role tags are a censored lower bound on capability (closed sheets reveal only used moves). NMF factors are
+soft and attacker-dominated at the move level. None of these is hidden; each is reported with its baseline.
