@@ -724,8 +724,8 @@ function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
 }
 const MAPPOS={store:[436,24],medicham:[436,104],guru:[110,206],xatu:[286,206],pory:[452,206],dusk:[620,206],hypno:[772,206],mew:[858,104],chomp:[92,320],slowking:[268,320],ditto:[452,320],kadabra:[640,320],alakazam:[408,438],jolteon:[232,560],medi_win:[544,560]};
 // layers = what a model DOES (not its build status)
-const MAPLAYER={store:'collect',mew:'collect',medicham:'simulate',guru:'meta',xatu:'opponent',hypno:'opponent',pory:'value',dusk:'value',chomp:'team',slowking:'team',ditto:'team',kadabra:'battle',alakazam:'battle',jolteon:'retired',medi_win:'retired'};
-const LAYERS=[['collect','Collect data','#7aa7d6','#eef3fa'],['simulate','Simulate damage','#e0a93a','#fff6e0'],['meta','Read the meta','#4faf6a','#e9f9ef'],['opponent','Read the opponent','#3aa6b8','#e4f6f8'],['value','Value a position','#3a86c0','#eaf3fb'],['team','Pick a team','#9a6bd0','#f1e9fb'],['battle','Coach in-battle','#d06a9a','#fceef4'],['retired','Retired (PC)','#b08a8a','#f6eeee']];
+const MAPLAYER={store:'collect',mew:'collect',medicham:'simulate',guru:'meta',xatu:'opponent',hypno:'opponent',pory:'value',dusk:'value',chomp:'preview',slowking:'preview',ditto:'build',kadabra:'battle',alakazam:'battle',jolteon:'retired',medi_win:'retired'};
+const LAYERS=[['collect','Collect data','#7aa7d6','#eef3fa'],['simulate','Simulate damage','#e0a93a','#fff6e0'],['meta','Read the meta','#4faf6a','#e9f9ef'],['opponent','Read the opponent','#3aa6b8','#e4f6f8'],['value','Value a position','#3a86c0','#eaf3fb'],['preview','Team preview (bring/lead)','#9a6bd0','#f1e9fb'],['build','Build a team','#7a9c3a','#f3f7e8'],['battle','Coach in-battle','#d06a9a','#fceef4'],['retired','Retired (PC)','#b08a8a','#f6eeee']];
 const LAYERCOL={}; LAYERS.forEach(([id,,br,bg])=>LAYERCOL[id]=[bg,br]);
 window.MAPON=window.MAPON||{retired:false};   // retired hidden by default; toggle to show
 function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
@@ -764,6 +764,8 @@ function mapHi(id){
     if(!id){g.style.opacity=1;return;}
     const conn=nid===id||lines.some(l=>(l.dataset.from===id&&l.dataset.to===nid)||(l.dataset.to===id&&l.dataset.from===nid));
     g.style.opacity=conn?1:0.28; });
+  const tip=document.getElementById('maptip');
+  if(tip){ if(id){ const g2=document.querySelector('#abramap g.node[data-id="'+id+'"]'); if(g2)tip.textContent=g2.dataset.brief; } else tip.textContent='Hover a model to see what it does.'; }
 }
 function poryDemo(){
   const v=id=>+document.getElementById(id).value;
