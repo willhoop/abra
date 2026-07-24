@@ -36,7 +36,7 @@ for m in roles.SPEC: move_to_roles[m].add("spec_attacker")
 
 # role-neutral moves: everyone runs them, they carry no archetype signal — excluded from
 # the "uncovered = missing role" list and reported separately so they don't fake a low coverage.
-NEUTRAL = {"Protect","Detect","Substitute","Endure","Spiky Shield","King's Shield","Silk Trap"}
+NEUTRAL = {"Protect","Detect","Substitute","Endure","Spiky Shield"}
 
 def load_games():
     with open(STORE, encoding="utf-8") as fh:

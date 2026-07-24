@@ -7,8 +7,9 @@
   "distinct_items": 111,
   "move_events": 123484
  },
- "role_coverage_of_battle_usage": 0.7636,
- "note": "role_coverage = share of actual in-battle move uses that map to >=1 curated role. The rest is either raw damage/Protect or a role we have not named yet \u2014 see uncovered_top.",
+ "role_coverage_of_battle_usage": 0.9042,
+ "neutral_share_of_usage": 0.1163,
+ "note": "role_coverage = share of NON-neutral in-battle move uses that map to >=1 curated role. Neutral moves (Protect etc.) are excluded and reported as neutral_share. uncovered_top = high-usage moves with no role yet \u2014 candidates to tag.",
  "moves_top": [
   {
    "move": "Protect",
@@ -503,7 +504,10 @@
    "reveals": 292,
    "kos": 131,
    "ko_rate": 0.217,
-   "roles": []
+   "roles": [
+    "debuff",
+    "phys_attacker"
+   ]
   },
   {
    "move": "Flip Turn",
@@ -543,7 +547,9 @@
    "reveals": 285,
    "kos": 149,
    "ko_rate": 0.274,
-   "roles": []
+   "roles": [
+    "spec_attacker"
+   ]
   },
   {
    "move": "Hyper Beam",
@@ -561,7 +567,9 @@
    "reveals": 239,
    "kos": 14,
    "ko_rate": 0.026,
-   "roles": []
+   "roles": [
+    "trapping"
+   ]
   },
   {
    "move": "Zap Cannon",
@@ -642,7 +650,9 @@
    "reveals": 207,
    "kos": 0,
    "ko_rate": 0.0,
-   "roles": []
+   "roles": [
+    "status"
+   ]
   },
   {
    "move": "Darkest Lariat",
@@ -650,7 +660,9 @@
    "reveals": 292,
    "kos": 156,
    "ko_rate": 0.346,
-   "roles": []
+   "roles": [
+    "phys_attacker"
+   ]
   },
   {
    "move": "Foul Play",
@@ -658,7 +670,9 @@
    "reveals": 231,
    "kos": 109,
    "ko_rate": 0.244,
-   "roles": []
+   "roles": [
+    "phys_attacker"
+   ]
   },
   {
    "move": "Toxic",
@@ -718,7 +732,9 @@
    "reveals": 258,
    "kos": 153,
    "ko_rate": 0.38,
-   "roles": []
+   "roles": [
+    "spec_attacker"
+   ]
   },
   {
    "move": "Water Spout",
@@ -807,62 +823,6 @@
  ],
  "uncovered_top": [
   {
-   "move": "Protect",
-   "battle_uses": 13817,
-   "reveals": 9800,
-   "kos": 0,
-   "ko_rate": 0.0
-  },
-  {
-   "move": "Spirit Break",
-   "battle_uses": 603,
-   "reveals": 292,
-   "kos": 131,
-   "ko_rate": 0.217
-  },
-  {
-   "move": "Hydro Pump",
-   "battle_uses": 543,
-   "reveals": 285,
-   "kos": 149,
-   "ko_rate": 0.274
-  },
-  {
-   "move": "Infestation",
-   "battle_uses": 540,
-   "reveals": 239,
-   "kos": 14,
-   "ko_rate": 0.026
-  },
-  {
-   "move": "Baneful Bunker",
-   "battle_uses": 452,
-   "reveals": 207,
-   "kos": 0,
-   "ko_rate": 0.0
-  },
-  {
-   "move": "Darkest Lariat",
-   "battle_uses": 451,
-   "reveals": 292,
-   "kos": 156,
-   "ko_rate": 0.346
-  },
-  {
-   "move": "Foul Play",
-   "battle_uses": 447,
-   "reveals": 231,
-   "kos": 109,
-   "ko_rate": 0.244
-  },
-  {
-   "move": "Draco Meteor",
-   "battle_uses": 403,
-   "reveals": 258,
-   "kos": 153,
-   "ko_rate": 0.38
-  },
-  {
    "move": "Body Press",
    "battle_uses": 395,
    "reveals": 197,
@@ -891,13 +851,6 @@
    "ko_rate": 0.012
   },
   {
-   "move": "Detect",
-   "battle_uses": 319,
-   "reveals": 243,
-   "kos": 0,
-   "ko_rate": 0.0
-  },
-  {
    "move": "Rock Blast",
    "battle_uses": 314,
    "reveals": 135,
@@ -924,13 +877,6 @@
    "reveals": 158,
    "kos": 107,
    "ko_rate": 0.408
-  },
-  {
-   "move": "Focus Blast",
-   "battle_uses": 256,
-   "reveals": 191,
-   "kos": 94,
-   "ko_rate": 0.367
   },
   {
    "move": "Rage Fist",
@@ -989,13 +935,6 @@
    "ko_rate": 0.0
   },
   {
-   "move": "Spiky Shield",
-   "battle_uses": 157,
-   "reveals": 113,
-   "kos": 0,
-   "ko_rate": 0.0
-  },
-  {
    "move": "Minimize",
    "battle_uses": 154,
    "reveals": 65,
@@ -1008,13 +947,6 @@
    "reveals": 72,
    "kos": 0,
    "ko_rate": 0.0
-  },
-  {
-   "move": "Waterfall",
-   "battle_uses": 143,
-   "reveals": 84,
-   "kos": 61,
-   "ko_rate": 0.427
   },
   {
    "move": "Phantom Force",
@@ -1085,6 +1017,90 @@
    "reveals": 66,
    "kos": 48,
    "ko_rate": 0.457
+  },
+  {
+   "move": "Ally Switch",
+   "battle_uses": 100,
+   "reveals": 63,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Ancient Power",
+   "battle_uses": 97,
+   "reveals": 52,
+   "kos": 32,
+   "ko_rate": 0.33
+  },
+  {
+   "move": "Heavy Slam",
+   "battle_uses": 96,
+   "reveals": 60,
+   "kos": 39,
+   "ko_rate": 0.406
+  },
+  {
+   "move": "Rising Voltage",
+   "battle_uses": 95,
+   "reveals": 51,
+   "kos": 33,
+   "ko_rate": 0.347
+  },
+  {
+   "move": "Leaf Blade",
+   "battle_uses": 85,
+   "reveals": 60,
+   "kos": 42,
+   "ko_rate": 0.494
+  },
+  {
+   "move": "Stored Power",
+   "battle_uses": 80,
+   "reveals": 27,
+   "kos": 40,
+   "ko_rate": 0.5
+  },
+  {
+   "move": "Acrobatics",
+   "battle_uses": 78,
+   "reveals": 44,
+   "kos": 15,
+   "ko_rate": 0.192
+  },
+  {
+   "move": "Feint",
+   "battle_uses": 78,
+   "reveals": 55,
+   "kos": 15,
+   "ko_rate": 0.192
+  },
+  {
+   "move": "Trop Kick",
+   "battle_uses": 77,
+   "reveals": 42,
+   "kos": 31,
+   "ko_rate": 0.403
+  },
+  {
+   "move": "Final Gambit",
+   "battle_uses": 77,
+   "reveals": 70,
+   "kos": 35,
+   "ko_rate": 0.455
+  },
+  {
+   "move": "Brick Break",
+   "battle_uses": 76,
+   "reveals": 57,
+   "kos": 21,
+   "ko_rate": 0.276
+  },
+  {
+   "move": "Clanging Scales",
+   "battle_uses": 73,
+   "reveals": 40,
+   "kos": 30,
+   "ko_rate": 0.411
   }
  ],
  "abilities_top": [

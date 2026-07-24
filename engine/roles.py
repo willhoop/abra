@@ -69,10 +69,12 @@ ROLE_SIGNALS = {
     abilities={"Prankster","Gale Wings"}),
  "status": dict(label="Status user",
     moves={"Will-O-Wisp","Thunder Wave","Nuzzle","Sleep Powder","Spore","Yawn","Hypnosis","Glare",
-           "Stun Spore","Toxic","Zap Cannon","Lovely Kiss","Sing","Dark Void","Poison Powder","Nuzzle"}),
+           "Stun Spore","Toxic","Zap Cannon","Lovely Kiss","Sing","Dark Void","Poison Powder","Nuzzle",
+           "Baneful Bunker","Toxic Thread","Poison Gas","Sleep Powder"}),
  "debuff": dict(label="Debuff (Intimidate / drops)",
     moves={"Parting Shot","Charm","Snarl","Struggle Bug","Fake Tears","Screech","Tickle","Baby-Doll Eyes",
-           "Feather Dance","Growl","Play Nice","Captivate","Noble Roar","Tearful Look","Spirit Break","Lunge"},
+           "Feather Dance","Growl","Play Nice","Captivate","Noble Roar","Tearful Look","Spirit Break","Lunge",
+           "King's Shield","Silk Trap"},
     abilities={"Intimidate"}),
  "setup": dict(label="Setup / sweeper",
     moves={"Swords Dance","Dragon Dance","Nasty Plot","Calm Mind","Bulk Up","Tail Glow","Quiver Dance",
@@ -124,7 +126,8 @@ SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurr
     "Ice Beam","Sludge Wave","Energy Ball","Dark Pulse","Bug Buzz","Leaf Storm","Frost Breath","Psyshock",
     "Volt Switch","Parabolic Charge","Pollen Puff","Moonlight","Freeze-Dry","Meteor Beam","Terrain Pulse",
     "Hydro Pump","Draco Meteor","Fire Blast","Thunderbolt","Focus Blast","Sludge Bomb","Aura Sphere",
-    "Hex","Tera Blast","Boomburst","Apple Acid","Fickle Beam","Luster Purge","Mystical Fire"}
+    "Hex","Tera Blast","Boomburst","Apple Acid","Fickle Beam","Luster Purge","Mystical Fire",
+    "Matcha Gotcha"}   # Matcha Gotcha: special attacker AND healing (also in the healing set) — multi-role
 
 def signal_roles(moves, ability, item):
     """Which roles a single revealed set demonstrates."""

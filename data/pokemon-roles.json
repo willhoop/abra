@@ -53,6 +53,7 @@
    "roles": [
     "phys_attacker",
     "setup",
+    "spec_attacker",
     "speed_lower"
    ],
    "games": 2430
@@ -127,6 +128,7 @@
     "speed_lower",
     "speed_tailwind",
     "teamprotect",
+    "trapping",
     "wall",
     "weather"
    ],
@@ -395,6 +397,7 @@
     "speed_lower",
     "status",
     "teamprotect",
+    "trapping",
     "wall",
     "weather"
    ],
@@ -752,6 +755,7 @@
     "setup",
     "speed_tailwind",
     "status",
+    "trapping",
     "wall"
    ],
    "games": 109
@@ -821,6 +825,7 @@
     "priority",
     "screens",
     "setup",
+    "spec_attacker",
     "status",
     "wall"
    ],
@@ -1014,6 +1019,7 @@
   },
   "aegislash": {
    "roles": [
+    "debuff",
     "phys_attacker",
     "priority",
     "setup",
@@ -1024,9 +1030,11 @@
   },
   "araquanid": {
    "roles": [
+    "debuff",
     "healing",
     "phys_attacker",
     "teamprotect",
+    "trapping",
     "wall",
     "weather"
    ],
@@ -1201,6 +1209,7 @@
   "samurotthisui": {
    "roles": [
     "helpinghand",
+    "phys_attacker",
     "pivot",
     "priority",
     "wall"
@@ -1317,6 +1326,7 @@
   },
   "snorlax": {
    "roles": [
+    "phys_attacker",
     "setup",
     "status"
    ],
@@ -1558,6 +1568,12 @@
    ],
    "games": 32
   },
+  "hawlucha": {
+   "roles": [
+    "phys_attacker"
+   ],
+   "games": 32
+  },
   "azumarill": {
    "roles": [
     "phys_attacker",
@@ -1596,7 +1612,8 @@
    "roles": [
     "phys_attacker",
     "pivot",
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 30
   },
@@ -1751,6 +1768,7 @@
    "roles": [
     "healing",
     "setup",
+    "spec_attacker",
     "wall"
    ],
    "games": 24
@@ -1775,6 +1793,7 @@
   "dragalgemega": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "status"
    ],
    "games": 23
@@ -2121,6 +2140,12 @@
    ],
    "games": 8
   },
+  "beartic": {
+   "roles": [
+    "phys_attacker"
+   ],
+   "games": 8
+  },
   "mimikyubusted": {
    "roles": [
     "priority"
@@ -2130,6 +2155,13 @@
   "typhlosion": {
    "roles": [
     "spec_attacker"
+   ],
+   "games": 8
+  },
+  "alcremierainbowswirl": {
+   "roles": [
+    "screens",
+    "wall"
    ],
    "games": 8
   },
@@ -2143,13 +2175,6 @@
    "roles": [
     "speed_trickroom",
     "status"
-   ],
-   "games": 8
-  },
-  "alcremierainbowswirl": {
-   "roles": [
-    "screens",
-    "wall"
    ],
    "games": 8
   },
