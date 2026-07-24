@@ -1,0 +1,28 @@
+{
+ "generated": "2026-07-24",
+ "n_games": 7315,
+ "n_train": 5801,
+ "n_test": 1514,
+ "n_move_events": 28521,
+ "move_vocabulary": 429,
+ "repeat_boost_learned": 1.264,
+ "p_next_move_is_a_repeat": 0.5583,
+ "cross_entropy": {
+  "uniform": 6.0615,
+  "usage_prior": 1.8625,
+  "belief": 1.824
+ },
+ "top1_accuracy": {
+  "usage_prior": 0.3481,
+  "belief": 0.3569
+ },
+ "where_the_gain_comes_from": {
+  "events_with_all_four_moves_known": 682,
+  "share_of_events": 0.0239,
+  "usage_prior_ce_on_those": 2.2188,
+  "belief_ce_on_those": 1.6951,
+  "note": "Once four moves are revealed the move set is CLOSED. The usage prior keeps assigning probability to moves that are now impossible; the belief state does not. This is where a usage table is not merely imprecise but wrong."
+ },
+ "method": "Prior fitted on train games only. Belief uses strictly earlier turns of the same held-out game. Cross-entropy is a proper score; lower is better.",
+ "scope": "Models the MOVE slot. Items and abilities are unknown-until-proven too and are tracked as possibility sets elsewhere; EVs never collapse to a value (only to an interval) and need a separate estimator."
+}
