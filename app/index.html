@@ -797,21 +797,45 @@ function roomChomp(){const c=CAST[6];
 }
 function roomRoles(){ const c=CAST.find(x=>x.id==='roles'); const N=window.NMF;
   if(!N||!N.archetypes) return `<div class="panel">${mascotHero(c,"Still loading the role data.")}</div>`;
-  const arch=N.archetypes.map(a=>{
-    const chips=a.top_roles.map(t=>`<span style="display:inline-block;background:#eef2fb;border:1px solid var(--line);border-radius:99px;padding:2px 10px;margin:2px;font-size:12px;font-weight:700;color:#3a5372">${t.label} <b style="color:#6b7a90">${Math.round(t.weight*100)}%</b></span>`).join('');
-    return `<div style="margin:10px 0;padding:11px 13px;border:2px solid var(--line);border-radius:14px;background:#fff">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <b style="font-size:15px">${a.id} · ${a.top_roles[0].label} core</b>
-        <span style="font-size:12px;color:#8a94a6;font-weight:700;white-space:nowrap">${Math.round(a.prevalence*100)}% of teams</span></div>
-      <div style="margin-top:6px">${chips}</div></div>`;}).join('');
+  const PAL=['#ff8c42','#ff5d5d','#5b8dee','#39b98a','#9b6bff','#f0b429','#7a8ba3','#c96bd0'];
+  const NAME={debuff:'Intimidate Control',phys_attacker:'Physical Offense',spec_attacker:'Special Offense',
+    wall:'Bulky Support',speed_tailwind:'Tailwind Offense',priority:'Priority Offense',
+    speed_trickroom:'Trick Room',healing:'Sustain',fakeout:'Tempo Control'};
+  const BLURB={debuff:'Intimidate and stat drops, backed by Fake Out. Grinds your damage down before it lands.',
+    phys_attacker:'Physical attackers with pivot support. Hits hard, switches out, hits again.',
+    spec_attacker:'Special attackers with status and recovery. Wears you down from range.',
+    wall:'Bulk, screens and redirection. Absorbs the hit, protects the win condition.',
+    speed_tailwind:'Tailwind to flip the speed tiers, Encore to lock you in. Wins the turn.',
+    priority:'Priority moves that ignore speed entirely. Finishes what the team started.'};
+  const arch=N.archetypes.map((a,ai)=>{
+    const key=a.top_roles[0].role;
+    const title=NAME[key]||a.top_roles[0].label;
+    const blurb=BLURB[key]||'A recurring blend of roles the data found on its own.';
+    const mons=(a.top_species||[]).slice(0,6).map(s=>
+      `<figure style="margin:0;text-align:center;width:62px" title="${s.species} — appears on ${s.games} teams; +${(s.lift*100).toFixed(0)}% more likely on this archetype than average">
+         <img src="${ani(s.species)}" style="width:56px;height:52px;object-fit:contain;image-rendering:pixelated" onerror="this.style.opacity=.25">
+         <figcaption style="font-size:9.5px;color:#7a8698;font-weight:700;text-transform:capitalize;line-height:1.1;margin-top:-2px">${s.species.replace(/([a-z])([A-Z])/g,'$1 $2')}</figcaption>
+       </figure>`).join('');
+    const segs=a.top_roles.map((t,i)=>
+      `<span title="${t.label} — ${Math.round(t.weight*100)}% of this archetype" style="width:${(t.weight*100).toFixed(1)}%;background:${PAL[i%PAL.length]};display:block;height:100%"></span>`).join('');
+    const legend=a.top_roles.slice(0,4).map((t,i)=>
+      `<span style="font-size:10.5px;color:#7a8698;font-weight:700;margin-right:11px;white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${PAL[i%PAL.length]};margin-right:4px"></i>${t.label}</span>`).join('');
+    return `<div style="margin:14px 0;padding:14px 16px;border:2px solid var(--line);border-left:6px solid ${PAL[ai%PAL.length]};border-radius:16px;background:#fff">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <b style="font-size:17px;letter-spacing:.2px">${title}</b>
+        <span style="font-size:12px;color:#8a94a6;font-weight:800">${Math.round(a.prevalence*100)}% of teams</span></div>
+      <p style="margin:3px 0 9px;font-size:13px;color:#5a6472;line-height:1.45">${blurb}</p>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-start;margin-bottom:10px">${mons}</div>
+      <div style="display:flex;height:9px;border-radius:99px;overflow:hidden;background:#eef1f6">${segs}</div>
+      <div style="margin-top:6px">${legend}</div></div>`;}).join('');
   const cores=N.factors.slice(0,10).map(f=>{
     const chips=f.top_moves.slice(0,7).map(m=>`<span style="display:inline-block;background:#f6f7fb;border:1px solid var(--line);border-radius:8px;padding:1px 7px;margin:1px;font-size:11px;color:#5a6472">${m.move}</span>`).join('');
     return `<div style="margin:7px 0"><b style="font-size:12px;color:#7a6bff">${f.id} · ${f.suggested_label}</b> <span style="font-size:11px;color:#9aa3b2">${Math.round(f.prevalence*100)}%</span><div style="margin-top:2px">${chips}</div></div>`;}).join('');
   return `<div class="panel">${mascotHero(c,"I don't trust hand-written labels — I let the games tell me which roles bundle together.")}</div>
-   <div class="panel"><h2>Emergent archetypes</h2>
-     <p class="sub">Non-negative matrix factorization of every team's role vector — discovered, not declared. Reconstruction error ${N.archetype_recon_error} (lower = tighter). Rank ${N.archetype_rank}.</p>
+   <div class="panel"><h2>The six archetypes the data found</h2>
+     <p class="sub">Nobody wrote these labels. The model read ${Number(N.n_documents).toLocaleString()} teams, noticed which roles keep showing up together, and these six fell out. The Pokémon shown are the ones most distinctive to each — hover any sprite or bar for the numbers.</p>
      ${arch}
-     <p class="sub" style="margin-top:8px">Every team is a <b>blend</b> of these — e.g. "Intimidate control + a splash of Tailwind" — never one hard label. That is the fix for the old single-label matchup grid.</p>
+     <p class="sub" style="margin-top:10px">Every real team is a <b>blend</b> — "Intimidate control with a Tailwind splash" — never one hard label. That is the fix for the old single-label grid, where each matchup rested on ~15 games.</p>
    </div>
    <div class="panel"><h2>Offensive cores <span style="font-size:13px;color:#9aa3b2">(move-level, coarser)</span></h2>
      <p class="sub">The same method on raw move usage. Attacking moves dominate, so it recovers offensive cores by type + speed control rather than support roles — shown honestly. Reconstruction error ${N.reconstruction_error_ratio}.</p>

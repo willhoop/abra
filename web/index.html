@@ -832,10 +832,10 @@ function roomRoles(){ const c=CAST.find(x=>x.id==='roles'); const N=window.NMF;
     const chips=f.top_moves.slice(0,7).map(m=>`<span style="display:inline-block;background:#f6f7fb;border:1px solid var(--line);border-radius:8px;padding:1px 7px;margin:1px;font-size:11px;color:#5a6472">${m.move}</span>`).join('');
     return `<div style="margin:7px 0"><b style="font-size:12px;color:#7a6bff">${f.id} · ${f.suggested_label}</b> <span style="font-size:11px;color:#9aa3b2">${Math.round(f.prevalence*100)}%</span><div style="margin-top:2px">${chips}</div></div>`;}).join('');
   return `<div class="panel">${mascotHero(c,"I don't trust hand-written labels — I let the games tell me which roles bundle together.")}</div>
-   <div class="panel"><h2>Emergent archetypes</h2>
-     <p class="sub">Non-negative matrix factorization of every team's role vector — discovered, not declared. Reconstruction error ${N.archetype_recon_error} (lower = tighter). Rank ${N.archetype_rank}.</p>
+   <div class="panel"><h2>The six archetypes the data found</h2>
+     <p class="sub">Nobody wrote these labels. The model read ${Number(N.n_documents).toLocaleString()} teams, noticed which roles keep showing up together, and these six fell out. The Pokémon shown are the ones most distinctive to each — hover any sprite or bar for the numbers.</p>
      ${arch}
-     <p class="sub" style="margin-top:8px">Every team is a <b>blend</b> of these — e.g. "Intimidate control + a splash of Tailwind" — never one hard label. That is the fix for the old single-label matchup grid.</p>
+     <p class="sub" style="margin-top:10px">Every real team is a <b>blend</b> — "Intimidate control with a Tailwind splash" — never one hard label. That is the fix for the old single-label grid, where each matchup rested on ~15 games.</p>
    </div>
    <div class="panel"><h2>Offensive cores <span style="font-size:13px;color:#9aa3b2">(move-level, coarser)</span></h2>
      <p class="sub">The same method on raw move usage. Attacking moves dominate, so it recovers offensive cores by type + speed control rather than support roles — shown honestly. Reconstruction error ${N.reconstruction_error_ratio}.</p>
