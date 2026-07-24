@@ -103,78 +103,80 @@ These do several jobs at once; the table is factual, not weighted.
 
 | uses | ability | tagged as |
 |---|---|---|
-| 7277 | Intimidate | Debuff (Intimidate / drops) |
-| 2584 | Stamina | Bulky wall / support |
-| 1655 | Fairy Aura | — |
-| 1212 | Unnerve | — |
-| 701 | Speed Boost | Setup / sweeper |
-| 686 | Defiant | Setup / sweeper |
-| 438 | Mold Breaker | — |
-| 328 | Cloud Nine | Weather / effect denial |
-| 253 | Competitive | Setup / sweeper |
-| 235 | Lightning Rod | Redirection |
-| 162 | Eelevate | — |
-| 157 | Pressure | — |
-| 119 | Simple | Setup / sweeper |
-| 85 | No Guard | — |
-| 68 | Moody | Setup / sweeper |
-| 65 | Berserk | Setup / sweeper |
-| 53 | Mirror Armor | Weather / effect denial |
-| 49 | Moxie | Setup / sweeper |
-| 39 | Insomnia | — |
-| 34 | Justified | Setup / sweeper |
-| 32 | Pixilate | — |
-| 26 | Blaze | — |
-| 26 | Sturdy | — |
-| 24 | Supersweet Syrup | Setup / sweeper |
-| 22 | Rough Skin | — |
-| 18 | Unseen Fist | — |
-| 16 | Adaptability | — |
-| 14 | Drizzle | Rain setter |
-| 14 | Prankster | Prankster (priority support) |
-| 14 | Weak Armor | Setup / sweeper |
-| 12 | Hospitality | Healing / sustain |
-| 12 | Sap Sipper | Healing / sustain |
-| 12 | Water Absorb | Healing / sustain |
-| 11 | Good as Gold | Weather / effect denial |
-| 10 | Drought | Sun setter |
-| 8 | Chlorophyll | Sun abuser (needs sun) |
-| 6 | Gooey | — |
-| 6 | Water Bubble | — |
-| 4 | Flame Body | — |
-| 4 | Levitate | — |
-| 4 | Multiscale | Bulky wall / support |
-| 4 | Opportunist | — |
-| 4 | Piercing Drill | — |
-| 4 | Plus | — |
-| 4 | Sand Rush | Sand abuser (needs sand) |
-| 4 | Sand Stream | Sand setter |
-| 4 | Solar Power | Sun abuser (needs sun) |
-| 4 | Thick Fat | Bulky wall / support |
-| 3 | Fire Mane | — |
-| 3 | Snow Warning | Snow setter |
-| 2 | Damp | — |
-| 2 | Earth Eater | Healing / sustain |
-| 2 | Flash Fire | — |
-| 2 | Friend Guard | — |
-| 2 | Frisk | — |
-| 2 | Gale Wings | Prankster (priority support) |
-| 2 | Illuminate | — |
-| 2 | Mega Sol | — |
-| 2 | Motor Drive | — |
-| 2 | Natural Cure | — |
-| 2 | Protean | — |
-| 2 | Queenly Majesty | — |
-| 2 | Rain Dish | Rain abuser (needs rain), Healing / sustain |
-| 2 | Refrigerate | — |
-| 2 | Regenerator | Healing / sustain, Bulky wall / support |
-| 2 | Rock Head | — |
-| 2 | Snow Cloak | Snow abuser (needs snow) |
-| 2 | Supreme Overlord | — |
-| 2 | Swift Swim | Rain abuser (needs rain) |
-| 2 | Tough Claws | — |
-| 2 | Toxic Debris | Hazard setter |
+| 3883 | Intimidate | Debuff (Intimidate / drops) |
+| 3009 | Drought | Sun setter |
+| 1712 | Drizzle | Rain setter |
+| 1320 | Stamina | Bulky wall / support |
+| 1152 | Sand Stream | Sand setter |
+| 801 | Fairy Aura | — |
+| 724 | Snow Warning | Snow setter |
+| 619 | Unnerve | — |
+| 362 | Speed Boost | Setup / sweeper |
+| 356 | Defiant | Setup / sweeper |
+| 221 | Mold Breaker | — |
+| 191 | Cloud Nine | Weather / effect denial |
+| 140 | Electric Surge | Electric Terrain setter |
+| 130 | Competitive | Setup / sweeper |
+| 119 | Lightning Rod | Redirection |
+| 81 | Eelevate | — |
+| 80 | Pressure | — |
+| 62 | Simple | Setup / sweeper |
+| 44 | No Guard | — |
+| 35 | Moody | Setup / sweeper |
+| 33 | Berserk | Setup / sweeper |
+| 28 | Mirror Armor | Weather / effect denial |
+| 25 | Moxie | Setup / sweeper |
+| 21 | Insomnia | — |
+| 18 | Justified | Setup / sweeper |
+| 16 | Pixilate | — |
+| 13 | Sturdy | — |
+| 12 | Supersweet Syrup | Setup / sweeper |
+| 11 | Blaze | — |
+| 11 | Rough Skin | — |
+| 9 | Unseen Fist | — |
+| 8 | Adaptability | — |
+| 7 | Weak Armor | Setup / sweeper |
+| 6 | Good as Gold | Weather / effect denial |
+| 6 | Hospitality | Healing / sustain |
+| 6 | Sap Sipper | Healing / sustain |
+| 6 | Water Absorb | Healing / sustain |
+| 5 | Prankster | Prankster (priority support) |
+| 4 | Chlorophyll | Sun abuser (needs sun) |
+| 3 | Gooey | — |
+| 3 | Sand Spit | Sand setter |
+| 3 | Solar Power | Sun abuser (needs sun) |
+| 2 | Fire Mane | — |
+| 2 | Opportunist | — |
+| 2 | Piercing Drill | — |
+| 2 | Plus | — |
+| 2 | Sand Rush | Sand abuser (needs sand) |
+| 2 | Thick Fat | Bulky wall / support |
+| 2 | Water Bubble | — |
+| 1 | Damp | — |
+| 1 | Earth Eater | Healing / sustain |
+| 1 | Flame Body | — |
+| 1 | Flash Fire | — |
+| 1 | Friend Guard | — |
+| 1 | Frisk | — |
+| 1 | Gale Wings | Prankster (priority support) |
+| 1 | Illuminate | — |
 | 1 | Infiltrator | — |
+| 1 | Levitate | — |
+| 1 | Mega Sol | — |
+| 1 | Motor Drive | — |
+| 1 | Multiscale | Bulky wall / support |
+| 1 | Natural Cure | — |
+| 1 | Protean | — |
+| 1 | Queenly Majesty | — |
+| 1 | Rain Dish | Rain abuser (needs rain), Healing / sustain |
+| 1 | Refrigerate | — |
+| 1 | Regenerator | Healing / sustain, Bulky wall / support |
+| 1 | Rock Head | — |
+| 1 | Snow Cloak | Snow abuser (needs snow) |
+| 1 | Supreme Overlord | — |
+| 1 | Swift Swim | Rain abuser (needs rain) |
+| 1 | Tough Claws | — |
+| 1 | Toxic Debris | Hazard setter |
 | 1 | Unburden | — |
 | 0 | Air Lock | Weather / effect denial |
 | 0 | Arena Trap | Trapper |
@@ -183,7 +185,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Clear Body | Weather / effect denial |
 | 0 | Desolate Land | Sun setter |
 | 0 | Dry Skin | Rain abuser (needs rain), Healing / sustain |
-| 0 | Electric Surge | Electric Terrain setter |
 | 0 | Flower Gift | Sun abuser (needs sun) |
 | 0 | Fluffy | Bulky wall / support |
 | 0 | Full Metal Body | Weather / effect denial |
@@ -208,7 +209,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Psychic Surge | Psychic Terrain setter |
 | 0 | Quark Drive | Electric Terrain abuser |
 | 0 | Sand Force | Sand abuser (needs sand) |
-| 0 | Sand Spit | Sand setter |
 | 0 | Sand Veil | Sand abuser (needs sand) |
 | 0 | Shadow Tag | Trapper |
 | 0 | Slush Rush | Snow abuser (needs snow) |
@@ -221,442 +221,442 @@ These do several jobs at once; the table is factual, not weighted.
 
 | uses | move | tagged as |
 |---|---|---|
-| 30077 | Protect | _(neutral — everyone runs it)_ |
-| 10769 | Heat Wave | Special attacker, Spread attacker (both foes) |
-| 8130 | Rock Slide | Physical attacker, Spread attacker (both foes) |
-| 7316 | Tailwind | Tailwind (speed up) |
-| 7293 | Fake Out | Fake Out (tempo) |
-| 7135 | Hyper Voice | Special attacker, Spread attacker (both foes) |
-| 6946 | Last Respects | Physical attacker |
-| 6097 | Moonblast | Special attacker |
-| 5267 | Earthquake | Physical attacker, Field-wide (hits own partner) |
-| 5251 | Wave Crash | Physical attacker |
-| 5084 | Close Combat | Physical attacker |
-| 4585 | Weather Ball | Special attacker |
-| 4022 | Electro Shot | Special attacker |
-| 3952 | Sucker Punch | Physical attacker, Priority attacker |
-| 3687 | Flare Blitz | Physical attacker |
-| 3588 | Matcha Gotcha | Healing / sustain, Special attacker, Burn spreader |
-| 3581 | Shadow Ball | Special attacker |
-| 3391 | Hurricane | Special attacker |
-| 3113 | Dragon Pulse | Special attacker |
-| 3099 | Trick Room | Trick Room setter |
-| 3018 | Psychic | Special attacker |
-| 2812 | Parting Shot | Debuff (Intimidate / drops), Pivot |
-| 2754 | Stomping Tantrum | Physical attacker |
-| 2741 | Kowtow Cleave | Physical attacker |
-| 2716 | Iron Head | Physical attacker |
-| 2652 | Dragon Claw | Physical attacker |
-| 2482 | Sludge Bomb | Special attacker, Poison spreader |
-| 2463 | Earth Power | Special attacker |
-| 2462 | Encore | Move-lock (Encore / Disable) |
-| 2451 | Knock Off | Item disruption, Physical attacker |
-| 2375 | Rage Powder | Redirection, Bulky wall / support |
-| 2323 | Dazzling Gleam | Special attacker, Spread attacker (both foes) |
-| 2313 | Flash Cannon | Special attacker |
-| 2265 | Thunderbolt | Special attacker |
-| 2225 | Eruption | Special attacker, Spread attacker (both foes) |
-| 2114 | Make It Rain | Special attacker, Spread attacker (both foes) |
-| 1895 | Aqua Jet | Physical attacker, Priority attacker |
-| 1821 | Wide Guard | Wide / Quick Guard, Bulky wall / support |
-| 1784 | Dual Wingbeat | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 1640 | Blizzard | Special attacker, Spread attacker (both foes) |
-| 1635 | Helping Hand | Positioning / ally support, Helping Hand, Bulky wall / support |
-| 1612 | Brave Bird | Physical attacker |
-| 1603 | Light Screen | Screen setter, Bulky wall / support |
-| 1552 | High Horsepower | Physical attacker |
-| 1492 | Dire Claw | Physical attacker, Poison spreader |
-| 1415 | Solar Beam | Special attacker |
-| 1375 | Sleep Powder | Sleep spreader (action denial) |
-| 1367 | Throat Chop | Physical attacker |
-| 1331 | Spirit Break | Debuff (Intimidate / drops), Physical attacker |
-| 1222 | Flip Turn | Physical attacker, Pivot |
-| 1216 | Life Dew | Healing / sustain, Bulky wall / support |
-| 1210 | Infestation | Residual / chip damage, Trapper |
-| 1197 | Will-O-Wisp | Burn spreader |
-| 1175 | Hyper Beam | Special attacker |
-| 1136 | Scald | Special attacker, Burn spreader |
-| 1133 | Hydro Pump | Special attacker |
-| 1119 | Giga Drain | Healing / sustain, Special attacker |
-| 1118 | Zap Cannon | Paralysis spreader |
-| 1113 | Ice Punch | Physical attacker |
-| 1102 | Dark Pulse | Special attacker |
-| 1102 | Reflect | Screen setter, Bulky wall / support |
-| 1031 | Darkest Lariat | Physical attacker |
-| 1025 | Baneful Bunker | Poison spreader |
-| 1016 | Quick Attack | Physical attacker, Priority attacker |
-| 976 | Drain Punch | Healing / sustain, Physical attacker |
-| 943 | Toxic | Poison spreader |
-| 931 | Foul Play | Physical attacker |
-| 925 | Water Spout | Special attacker, Spread attacker (both foes) |
-| 910 | Follow Me | Redirection, Bulky wall / support |
-| 907 | Icy Wind | Speed control (lower foe), Spread attacker (both foes) |
-| 861 | Muddy Water | Special attacker, Spread attacker (both foes) |
-| 859 | Body Press | Physical attacker, Bulky wall / support |
-| 853 | Calm Mind | Setup / sweeper |
-| 853 | Draco Meteor | Special attacker |
-| 833 | Poison Jab | Physical attacker, Poison spreader |
-| 797 | Play Rough | Physical attacker |
-| 773 | Power Gem | Special attacker |
-| 765 | Nasty Plot | Setup / sweeper |
-| 743 | Detect | _(neutral — everyone runs it)_ |
-| 743 | Swords Dance | Setup / sweeper |
-| 715 | Discharge | Special attacker, Paralysis spreader |
-| 713 | Super Fang | Fixed / fractional damage |
-| 689 | Rock Blast | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 686 | Psychic Fangs | Weather / effect denial, Physical attacker |
-| 666 | Volt Switch | Pivot, Special attacker |
-| 650 | Ice Beam | Special attacker |
-| 630 | Light of Ruin | Special attacker |
-| 613 | Liquidation | Physical attacker |
-| 606 | Bullet Punch | Physical attacker, Priority attacker |
-| 590 | Expanding Force | Psychic Terrain abuser, Spread attacker (both foes) |
-| 585 | Shadow Sneak | Physical attacker, Priority attacker |
-| 575 | Focus Blast | Special attacker |
-| 566 | Taunt | Taunt |
-| 535 | Bulk Up | Setup / sweeper |
-| 507 | Extreme Speed | Physical attacker, Priority attacker |
-| 496 | Perish Song | Perish Trap |
-| 492 | Population Bomb | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 488 | Snarl | Debuff (Intimidate / drops), Special attacker, Spread attacker (both foes) |
-| 486 | Rage Fist | Physical attacker |
-| 485 | Roost | Healing / sustain |
-| 478 | Low Kick | Physical attacker |
-| 477 | Rain Dance | Rain setter |
-| 476 | Energy Ball | Special attacker |
-| 472 | Charm | Debuff (Intimidate / drops) |
-| 466 | Hypnosis | Sleep spreader (action denial) |
-| 453 | Bitter Blade | Physical attacker |
-| 453 | Freeze-Dry | Special attacker |
-| 444 | Overheat | Special attacker |
-| 440 | Rock Tomb | Speed control (lower foe) |
-| 437 | Flamethrower | Special attacker |
-| 436 | Last Resort | Physical attacker |
-| 436 | Superpower | Physical attacker |
-| 405 | Yawn | Sleep spreader (action denial) |
-| 404 | Disable | Move-lock (Encore / Disable) |
-| 403 | Aura Sphere | Special attacker |
-| 401 | Draining Kiss | Healing / sustain, Special attacker |
-| 399 | Triple Axel | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 393 | Leaf Storm | Special attacker |
-| 389 | Thunder | Special attacker, Paralysis spreader |
-| 381 | Aurora Veil | Screen setter, Bulky wall / support |
-| 377 | Psyshock | Special attacker |
-| 369 | Twin Beam | Multi-hit (breaks Sash / Sturdy), Special attacker |
-| 368 | Coil | Setup / sweeper |
-| 367 | Dragon Dance | Setup / sweeper |
-| 358 | Crunch | Physical attacker |
-| 342 | Phantom Force | Physical attacker |
-| 341 | U-turn | Physical attacker, Pivot |
-| 336 | Spiky Shield | _(neutral — everyone runs it)_ |
-| 333 | Stockpile | Setup / sweeper |
-| 329 | Air Slash | Special attacker |
-| 328 | Instruct | Positioning / ally support |
-| 328 | Waterfall | Physical attacker |
-| 327 | Minimize | — |
-| 322 | Electroweb | Speed control (lower foe), Spread attacker (both foes) |
-| 313 | Leech Seed | Residual / chip damage, Healing / sustain |
-| 312 | Ice Shard | Physical attacker, Priority attacker |
-| 294 | Skill Swap | — |
-| 283 | Sacred Sword | Physical attacker |
-| 276 | Poltergeist | Physical attacker |
-| 272 | Coaching | Positioning / ally support |
-| 264 | Shell Smash | Setup / sweeper |
-| 261 | Recover | Healing / sustain |
-| 260 | Fake Tears | Debuff (Intimidate / drops) |
-| 257 | Psycho Cut | Physical attacker |
-| 256 | Iron Defense | Setup / sweeper |
-| 245 | Psychic Terrain | Psychic Terrain setter |
-| 239 | Sunny Day | Sun setter |
-| 230 | Double-Edge | Physical attacker |
-| 225 | Volt Tackle | Physical attacker |
-| 218 | Barb Barrage | — |
-| 216 | Ally Switch | Positioning / ally support |
-| 216 | Heavy Slam | Physical attacker |
-| 204 | Ancient Power | Special attacker |
-| 199 | Rising Voltage | Electric Terrain abuser, Special attacker |
-| 186 | Thunder Wave | Paralysis spreader |
-| 185 | Leaf Blade | Physical attacker |
-| 179 | Surf | Field-wide (hits own partner) |
-| 174 | Brick Break | Weather / effect denial, Physical attacker |
-| 173 | Acrobatics | Physical attacker |
-| 173 | Quick Guard | Wide / Quick Guard, Bulky wall / support |
-| 173 | Stored Power | Special attacker |
-| 172 | Feint | Physical attacker |
-| 167 | Final Gambit | Fixed / fractional damage |
-| 158 | Water Pulse | Special attacker |
-| 157 | Trop Kick | Physical attacker |
-| 155 | Grass Knot | Special attacker |
-| 154 | Round | Special attacker |
-| 149 | Clanging Scales | Special attacker |
-| 149 | Flower Trick | Physical attacker |
-| 147 | Gunk Shot | Physical attacker, Poison spreader |
-| 146 | Baton Pass | Pivot |
-| 145 | Stone Edge | Physical attacker |
-| 144 | Meteor Mash | Physical attacker, Setup / sweeper |
-| 144 | Simple Beam | — |
-| 140 | Psychic Noise | Special attacker |
-| 140 | Triple Arrows | — |
-| 134 | Salt Cure | Residual / chip damage |
-| 131 | Gigaton Hammer | Physical attacker |
-| 130 | Parabolic Charge | Healing / sustain, Special attacker, Field-wide (hits own partner) |
-| 128 | Mystical Fire | Special attacker |
-| 125 | Body Slam | Physical attacker, Paralysis spreader |
-| 125 | King's Shield | Debuff (Intimidate / drops) |
-| 125 | Soak | — |
-| 124 | Substitute | _(neutral — everyone runs it)_ |
-| 123 | Stone Axe | Hazard setter |
-| 122 | Psych Up | — |
-| 121 | Scale Shot | Multi-hit (breaks Sash / Sturdy), Physical attacker, Setup / sweeper |
-| 118 | Cosmic Power | — |
-| 118 | Sludge Wave | Special attacker, Field-wide (hits own partner) |
-| 117 | Lumina Crash | — |
-| 116 | Hex | Special attacker |
-| 115 | Head Smash | Physical attacker |
-| 115 | Quash | Positioning / ally support |
-| 114 | Power Whip | Physical attacker |
-| 114 | Thunder Punch | Physical attacker |
-| 113 | Ice Fang | — |
-| 112 | Bug Bite | — |
-| 112 | Struggle | — |
-| 110 | High Jump Kick | — |
-| 110 | Icicle Crash | Physical attacker |
-| 110 | Jet Punch | Physical attacker, Priority attacker |
-| 109 | Beat Up | — |
-| 109 | Gravity | — |
-| 109 | Quiver Dance | Setup / sweeper |
-| 109 | Trick | Item disruption |
-| 107 | Dragon Darts | Multi-hit (breaks Sash / Sturdy) |
-| 106 | After You | Positioning / ally support |
-| 104 | Fissure | — |
-| 104 | Sheer Cold | — |
-| 103 | Roar | Positioning / ally support |
-| 100 | Destiny Bond | — |
-| 100 | Torch Song | Setup / sweeper, Special attacker |
-| 99 | Accelerock | Physical attacker, Priority attacker |
-| 97 | Breaking Swipe | Spread attacker (both foes) |
-| 96 | Headlong Rush | Physical attacker |
-| 96 | Strength Sap | Healing / sustain |
-| 94 | Outrage | Physical attacker |
-| 92 | Belly Drum | Setup / sweeper |
-| 92 | Curse | Residual / chip damage, Setup / sweeper |
-| 90 | Shadow Claw | Physical attacker |
-| 88 | Fire Spin | Residual / chip damage, Trapper |
-| 86 | Endeavor | Fixed / fractional damage |
-| 86 | Heal Pulse | Positioning / ally support, Healing / sustain |
-| 86 | Solar Blade | — |
-| 84 | Night Slash | Physical attacker |
-| 84 | Shed Tail | Positioning / ally support, Pivot, Substitute user |
-| 84 | Swagger | Status spreader (other) |
-| 84 | Zen Headbutt | Physical attacker |
-| 81 | Imprison | Move-lock (Encore / Disable) |
-| 80 | Decorate | Positioning / ally support |
-| 78 | Entrainment | — |
-| 72 | Vacuum Wave | Priority attacker |
-| 71 | Haze | Weather / effect denial |
-| 70 | Armor Cannon | — |
-| 68 | Raging Bull | — |
-| 66 | Leech Life | Healing / sustain, Physical attacker |
-| 65 | Boomburst | Special attacker, Field-wide (hits own partner) |
-| 65 | Ceaseless Edge | Hazard setter, Physical attacker |
-| 64 | Hammer Arm | Physical attacker |
-| 64 | Mach Punch | Physical attacker, Priority attacker |
-| 63 | Alluring Voice | Special attacker |
-| 62 | No Retreat | Setup / sweeper |
-| 62 | Role Play | — |
-| 61 | Tickle | Debuff (Intimidate / drops) |
-| 59 | Chilling Water | — |
-| 59 | Fiery Dance | Setup / sweeper, Special attacker |
-| 59 | Ice Hammer | — |
-| 59 | Slack Off | Healing / sustain |
-| 58 | Stealth Rock | Hazard setter |
-| 57 | Ice Spinner | — |
-| 56 | Lash Out | — |
-| 55 | Dragon Cheer | — |
-| 54 | Blaze Kick | — |
-| 54 | Drill Run | — |
-| 54 | Wish | Healing / sustain, Bulky wall / support |
-| 53 | Bitter Malice | — |
-| 52 | Bug Buzz | Special attacker |
-| 50 | Burn Up | — |
-| 50 | Clangorous Soul | Setup / sweeper |
-| 50 | Shell Side Arm | — |
-| 49 | Scary Face | Speed control (lower foe) |
-| 46 | Frost Breath | Special attacker |
-| 46 | Trailblaze | — |
-| 46 | X-Scissor | Physical attacker |
-| 45 | Venoshock | Special attacker |
-| 45 | Worry Seed | — |
-| 44 | Chilly Reception | Pivot, Snow setter |
-| 44 | Nuzzle | Paralysis spreader |
-| 44 | Wood Hammer | Physical attacker |
-| 43 | Aura Wheel | — |
-| 43 | Horn Drill | — |
-| 42 | Aqua Cutter | — |
-| 42 | Flame Charge | — |
-| 42 | Synthesis | Healing / sustain |
-| 40 | Facade | Physical attacker |
-| 40 | Fire Blast | Special attacker |
-| 40 | Glare | Paralysis spreader |
-| 39 | Wild Charge | Physical attacker |
-| 38 | Fire Punch | Physical attacker |
-| 38 | Icicle Spear | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 37 | Explosion | Field-wide (hits own partner) |
-| 36 | Dragon Rush | Physical attacker |
-| 36 | Heat Crash | — |
-| 36 | Pollen Puff | Healing / sustain, Special attacker |
-| 36 | Psyshield Bash | — |
-| 36 | Scorching Sands | Burn spreader |
-| 36 | Seed Bomb | Physical attacker |
-| 35 | Moonlight | Healing / sustain, Special attacker |
-| 35 | Screech | Debuff (Intimidate / drops) |
-| 35 | Upper Hand | — |
-| 35 | Water Shuriken | Multi-hit (breaks Sash / Sturdy), Priority attacker |
-| 34 | Dynamic Punch | — |
-| 32 | Bite | Physical attacker |
-| 32 | Power Trip | — |
-| 32 | Toxic Spikes | Hazard setter, Poison spreader |
-| 31 | Terrain Pulse | Special attacker |
-| 30 | Supercell Slam | — |
-| 29 | Mortal Spin | Weather / effect denial |
-| 28 | Amnesia | — |
-| 28 | Dig | — |
-| 28 | Gyro Ball | — |
-| 28 | Lunge | Debuff (Intimidate / drops) |
-| 28 | Pin Missile | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 26 | Baby-Doll Eyes | Debuff (Intimidate / drops), Priority attacker |
-| 26 | Dragon Tail | Positioning / ally support |
-| 26 | Grassy Terrain | Grassy Terrain setter |
-| 26 | Memento | — |
-| 26 | Rest | Healing / sustain |
-| 26 | Sandstorm | Sand setter |
-| 26 | Whirlpool | Residual / chip damage, Trapper |
-| 24 | Acid Spray | — |
-| 24 | Bullet Seed | Multi-hit (breaks Sash / Sturdy), Physical attacker |
-| 24 | Confuse Ray | Status spreader (other) |
-| 24 | Eerie Impulse | — |
-| 24 | Feather Dance | Debuff (Intimidate / drops) |
-| 24 | Mirror Coat | — |
-| 23 | Copycat | — |
-| 22 | Aqua Step | — |
-| 22 | Fickle Beam | Special attacker |
-| 22 | First Impression | Physical attacker, Priority attacker |
-| 22 | Pain Split | — |
-| 22 | Storm Throw | Physical attacker |
-| 20 | Bulldoze | Speed control (lower foe), Field-wide (hits own partner) |
-| 20 | Double Team | — |
-| 20 | Horn Leech | Healing / sustain, Physical attacker |
-| 20 | Speed Swap | — |
-| 18 | Cotton Guard | — |
-| 18 | Defog | Weather / effect denial |
-| 18 | Mud Shot | — |
-| 18 | Mud-Slap | — |
-| 18 | String Shot | Speed control (lower foe) |
-| 18 | Switcheroo | Item disruption |
-| 17 | Transform | — |
-| 16 | Agility | Setup / sweeper |
-| 16 | Assurance | — |
-| 16 | Fire Fang | — |
-| 16 | Fling | — |
-| 16 | Grassy Glide | Grassy Terrain abuser, Physical attacker, Priority attacker |
-| 16 | Misty Terrain | Misty Terrain setter |
-| 16 | Safeguard | — |
-| 16 | Self-Destruct | Field-wide (hits own partner) |
-| 15 | Acid Armor | — |
-| 15 | Focus Energy | — |
-| 15 | Iron Tail | Physical attacker |
-| 15 | Metal Burst | — |
-| 14 | Aqua Tail | Physical attacker |
-| 14 | Burning Jealousy | Spread attacker (both foes) |
-| 14 | Fell Stinger | — |
-| 14 | Mean Look | Trapper |
-| 14 | Night Shade | Fixed / fractional damage |
-| 14 | Shelter | — |
-| 14 | Temper Flare | — |
-| 12 | Charge Beam | Setup / sweeper, Special attacker |
-| 12 | Cross Poison | Poison spreader |
-| 12 | Eerie Spell | — |
-| 12 | Fly | — |
-| 12 | Giga Impact | Physical attacker |
-| 12 | Spikes | Hazard setter |
-| 12 | Tidy Up | Weather / effect denial |
-| 11 | Struggle Bug | Debuff (Intimidate / drops), Spread attacker (both foes) |
-| 10 | Beak Blast | — |
-| 10 | Clear Smog | Weather / effect denial |
-| 10 | Electro Ball | — |
-| 10 | Future Sight | Special attacker |
-| 10 | Metal Sound | — |
-| 10 | Mountain Gale | — |
-| 10 | Razor Shell | — |
-| 10 | Smack Down | — |
-| 10 | Spirit Shackle | Trapper |
-| 10 | Steel Beam | Special attacker |
-| 10 | Steel Wing | Physical attacker |
-| 10 | Sticky Web | Hazard setter |
-| 9 | Lava Plume | Field-wide (hits own partner), Burn spreader |
-| 9 | Megahorn | Physical attacker |
-| 8 | Flatter | Status spreader (other) |
-| 8 | Howl | — |
-| 8 | Snowscape | Snow setter |
-| 8 | Spicy Extract | — |
-| 8 | Thunder Fang | — |
-| 6 | Aerial Ace | Physical attacker |
-| 6 | Aqua Ring | — |
-| 6 | Brutal Swing | — |
-| 6 | Electrify | — |
-| 6 | Flying Press | — |
-| 6 | Grav Apple | — |
-| 6 | Growth | Setup / sweeper |
-| 6 | Hard Press | — |
-| 6 | Low Sweep | — |
-| 6 | Misty Explosion | Misty Terrain abuser |
-| 6 | Payback | Physical attacker |
-| 6 | Petal Blizzard | Field-wide (hits own partner) |
-| 6 | Pounce | — |
-| 6 | Skitter Smack | — |
-| 6 | Stun Spore | Paralysis spreader |
-| 6 | Trick-or-Treat | — |
-| 5 | Topsy-Turvy | — |
-| 4 | Acupressure | — |
-| 4 | Air Cutter | Spread attacker (both foes) |
-| 4 | Cotton Spore | Speed control (lower foe) |
-| 4 | Crabhammer | — |
-| 4 | Cross Chop | Physical attacker |
-| 4 | Endure | _(neutral — everyone runs it)_ |
-| 4 | Extrasensory | — |
-| 4 | Fairy Lock | Trapper |
-| 4 | Guard Split | — |
-| 4 | Meteor Beam | Special attacker |
-| 4 | Morning Sun | Healing / sustain |
-| 4 | Night Daze | — |
-| 4 | Snap Trap | — |
-| 4 | Thief | Item disruption |
-| 4 | Wonder Room | — |
-| 3 | Avalanche | Physical attacker |
-| 3 | Electric Terrain | Electric Terrain setter |
-| 3 | Infernal Parade | — |
-| 3 | Rock Polish | Setup / sweeper |
-| 2 | Aromatic Mist | Positioning / ally support |
-| 2 | Axe Kick | — |
-| 2 | Blast Burn | — |
-| 2 | Block | Trapper |
-| 2 | Charge | — |
-| 2 | Double Hit | Multi-hit (breaks Sash / Sturdy) |
-| 2 | Drill Peck | — |
-| 2 | Focus Punch | — |
-| 2 | Frenzy Plant | — |
-| 2 | Gastro Acid | — |
-| 2 | Guard Swap | — |
-| 2 | Magic Room | — |
-| 2 | Mega Kick | — |
-| 2 | Power Split | — |
-| 2 | Return | — |
-| 2 | Rock Wrecker | — |
-| 2 | Sand Tomb | Residual / chip damage, Trapper |
-| 2 | Sparkling Aria | — |
-| 2 | Syrup Bomb | — |
-| 2 | Tearful Look | Debuff (Intimidate / drops) |
+| 15363 | Protect | _(neutral — everyone runs it)_ |
+| 5452 | Heat Wave | Special attacker, Spread attacker (both foes) |
+| 4124 | Rock Slide | Physical attacker, Spread attacker (both foes) |
+| 3716 | Fake Out | Fake Out (tempo) |
+| 3701 | Tailwind | Tailwind (speed up) |
+| 3605 | Hyper Voice | Special attacker, Spread attacker (both foes) |
+| 3505 | Last Respects | Physical attacker |
+| 3094 | Moonblast | Special attacker |
+| 2703 | Earthquake | Physical attacker, Field-wide (hits own partner) |
+| 2668 | Wave Crash | Physical attacker |
+| 2602 | Close Combat | Physical attacker |
+| 2350 | Weather Ball | Special attacker |
+| 2070 | Electro Shot | Special attacker |
+| 2032 | Sucker Punch | Physical attacker, Priority attacker |
+| 1905 | Flare Blitz | Physical attacker |
+| 1845 | Matcha Gotcha | Healing / sustain, Special attacker, Burn spreader |
+| 1825 | Shadow Ball | Special attacker |
+| 1734 | Hurricane | Special attacker |
+| 1604 | Dragon Pulse | Special attacker |
+| 1575 | Trick Room | Trick Room setter |
+| 1545 | Psychic | Special attacker |
+| 1428 | Parting Shot | Debuff (Intimidate / drops), Pivot |
+| 1414 | Stomping Tantrum | Physical attacker |
+| 1403 | Kowtow Cleave | Physical attacker |
+| 1392 | Iron Head | Physical attacker |
+| 1357 | Dragon Claw | Physical attacker |
+| 1259 | Sludge Bomb | Special attacker, Poison spreader |
+| 1254 | Earth Power | Special attacker |
+| 1252 | Knock Off | Item disruption, Physical attacker |
+| 1245 | Encore | Move-lock (Encore / Disable) |
+| 1222 | Rage Powder | Redirection, Bulky wall / support |
+| 1190 | Flash Cannon | Special attacker |
+| 1187 | Dazzling Gleam | Special attacker, Spread attacker (both foes) |
+| 1161 | Thunderbolt | Special attacker |
+| 1145 | Eruption | Special attacker, Spread attacker (both foes) |
+| 1075 | Make It Rain | Special attacker, Spread attacker (both foes) |
+| 963 | Aqua Jet | Physical attacker, Priority attacker |
+| 931 | Wide Guard | Wide / Quick Guard, Bulky wall / support |
+| 906 | Dual Wingbeat | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 843 | Helping Hand | Positioning / ally support, Helping Hand, Bulky wall / support |
+| 836 | Blizzard | Special attacker, Spread attacker (both foes) |
+| 817 | Brave Bird | Physical attacker |
+| 813 | Light Screen | Screen setter, Bulky wall / support |
+| 798 | High Horsepower | Physical attacker |
+| 755 | Dire Claw | Physical attacker, Poison spreader |
+| 727 | Solar Beam | Special attacker |
+| 705 | Throat Chop | Physical attacker |
+| 704 | Sleep Powder | Sleep spreader (action denial) |
+| 674 | Spirit Break | Debuff (Intimidate / drops), Physical attacker |
+| 636 | Life Dew | Healing / sustain, Bulky wall / support |
+| 620 | Infestation | Residual / chip damage, Trapper |
+| 617 | Flip Turn | Physical attacker, Pivot |
+| 606 | Will-O-Wisp | Burn spreader |
+| 599 | Hyper Beam | Special attacker |
+| 573 | Scald | Special attacker, Burn spreader |
+| 572 | Ice Punch | Physical attacker |
+| 571 | Zap Cannon | Paralysis spreader |
+| 570 | Hydro Pump | Special attacker |
+| 568 | Dark Pulse | Special attacker |
+| 564 | Giga Drain | Healing / sustain, Special attacker |
+| 558 | Reflect | Screen setter, Bulky wall / support |
+| 533 | Darkest Lariat | Physical attacker |
+| 526 | Baneful Bunker | Poison spreader |
+| 514 | Quick Attack | Physical attacker, Priority attacker |
+| 498 | Drain Punch | Healing / sustain, Physical attacker |
+| 485 | Toxic | Poison spreader |
+| 477 | Foul Play | Physical attacker |
+| 476 | Water Spout | Special attacker, Spread attacker (both foes) |
+| 466 | Follow Me | Redirection, Bulky wall / support |
+| 458 | Icy Wind | Speed control (lower foe), Spread attacker (both foes) |
+| 446 | Muddy Water | Special attacker, Spread attacker (both foes) |
+| 441 | Draco Meteor | Special attacker |
+| 438 | Calm Mind | Setup / sweeper |
+| 436 | Body Press | Physical attacker, Bulky wall / support |
+| 423 | Poison Jab | Physical attacker, Poison spreader |
+| 408 | Play Rough | Physical attacker |
+| 393 | Nasty Plot | Setup / sweeper |
+| 393 | Power Gem | Special attacker |
+| 386 | Detect | _(neutral — everyone runs it)_ |
+| 379 | Swords Dance | Setup / sweeper |
+| 363 | Super Fang | Fixed / fractional damage |
+| 362 | Discharge | Special attacker, Paralysis spreader |
+| 349 | Rock Blast | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 348 | Psychic Fangs | Weather / effect denial, Physical attacker |
+| 338 | Volt Switch | Pivot, Special attacker |
+| 334 | Ice Beam | Special attacker |
+| 320 | Light of Ruin | Special attacker |
+| 311 | Liquidation | Physical attacker |
+| 309 | Bullet Punch | Physical attacker, Priority attacker |
+| 308 | Expanding Force | Psychic Terrain abuser, Spread attacker (both foes) |
+| 296 | Shadow Sneak | Physical attacker, Priority attacker |
+| 292 | Focus Blast | Special attacker |
+| 290 | Taunt | Taunt |
+| 275 | Bulk Up | Setup / sweeper |
+| 259 | Extreme Speed | Physical attacker, Priority attacker |
+| 253 | Snarl | Debuff (Intimidate / drops), Special attacker, Spread attacker (both foes) |
+| 251 | Perish Song | Perish Trap |
+| 249 | Rage Fist | Physical attacker |
+| 248 | Roost | Healing / sustain |
+| 246 | Low Kick | Physical attacker |
+| 246 | Population Bomb | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 243 | Energy Ball | Special attacker |
+| 243 | Rain Dance | Rain setter |
+| 239 | Charm | Debuff (Intimidate / drops) |
+| 236 | Hypnosis | Sleep spreader (action denial) |
+| 234 | Bitter Blade | Physical attacker |
+| 232 | Freeze-Dry | Special attacker |
+| 225 | Overheat | Special attacker |
+| 225 | Rock Tomb | Speed control (lower foe) |
+| 224 | Flamethrower | Special attacker |
+| 223 | Last Resort | Physical attacker |
+| 222 | Superpower | Physical attacker |
+| 208 | Aura Sphere | Special attacker |
+| 207 | Yawn | Sleep spreader (action denial) |
+| 205 | Disable | Move-lock (Encore / Disable) |
+| 205 | Draining Kiss | Healing / sustain, Special attacker |
+| 204 | Leaf Storm | Special attacker |
+| 202 | Triple Axel | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 201 | Thunder | Special attacker, Paralysis spreader |
+| 195 | Aurora Veil | Screen setter, Bulky wall / support |
+| 194 | Psyshock | Special attacker |
+| 190 | Dragon Dance | Setup / sweeper |
+| 187 | Coil | Setup / sweeper |
+| 185 | Twin Beam | Multi-hit (breaks Sash / Sturdy), Special attacker |
+| 181 | Crunch | Physical attacker |
+| 180 | Phantom Force | Physical attacker |
+| 175 | U-turn | Physical attacker, Pivot |
+| 171 | Spiky Shield | _(neutral — everyone runs it)_ |
+| 169 | Air Slash | Special attacker |
+| 168 | Waterfall | Physical attacker |
+| 167 | Stockpile | Setup / sweeper |
+| 166 | Instruct | Positioning / ally support |
+| 166 | Minimize | — |
+| 163 | Electroweb | Speed control (lower foe), Spread attacker (both foes) |
+| 162 | Leech Seed | Residual / chip damage, Healing / sustain |
+| 159 | Ice Shard | Physical attacker, Priority attacker |
+| 148 | Skill Swap | — |
+| 144 | Sacred Sword | Physical attacker |
+| 141 | Coaching | Positioning / ally support |
+| 139 | Poltergeist | Physical attacker |
+| 135 | Shell Smash | Setup / sweeper |
+| 132 | Fake Tears | Debuff (Intimidate / drops) |
+| 132 | Recover | Healing / sustain |
+| 131 | Iron Defense | Setup / sweeper |
+| 130 | Psycho Cut | Physical attacker |
+| 128 | Psychic Terrain | Psychic Terrain setter |
+| 128 | Sunny Day | Sun setter |
+| 116 | Double-Edge | Physical attacker |
+| 113 | Volt Tackle | Physical attacker |
+| 112 | Ally Switch | Positioning / ally support |
+| 111 | Heavy Slam | Physical attacker |
+| 109 | Barb Barrage | — |
+| 102 | Ancient Power | Special attacker |
+| 102 | Rising Voltage | Electric Terrain abuser, Special attacker |
+| 97 | Thunder Wave | Paralysis spreader |
+| 95 | Leaf Blade | Physical attacker |
+| 95 | Surf | Field-wide (hits own partner) |
+| 89 | Brick Break | Weather / effect denial, Physical attacker |
+| 88 | Quick Guard | Wide / Quick Guard, Bulky wall / support |
+| 88 | Stored Power | Special attacker |
+| 87 | Acrobatics | Physical attacker |
+| 87 | Feint | Physical attacker |
+| 85 | Final Gambit | Fixed / fractional damage |
+| 80 | Water Pulse | Special attacker |
+| 79 | Trop Kick | Physical attacker |
+| 78 | Grass Knot | Special attacker |
+| 77 | Round | Special attacker |
+| 76 | Meteor Mash | Physical attacker, Setup / sweeper |
+| 75 | Baton Pass | Pivot |
+| 75 | Clanging Scales | Special attacker |
+| 75 | Flower Trick | Physical attacker |
+| 74 | Gunk Shot | Physical attacker, Poison spreader |
+| 74 | Simple Beam | — |
+| 73 | Stone Edge | Physical attacker |
+| 70 | Psychic Noise | Special attacker |
+| 70 | Triple Arrows | — |
+| 68 | Parabolic Charge | Healing / sustain, Special attacker, Field-wide (hits own partner) |
+| 67 | Mystical Fire | Special attacker |
+| 67 | Salt Cure | Residual / chip damage |
+| 67 | Soak | — |
+| 66 | Gigaton Hammer | Physical attacker |
+| 63 | Body Slam | Physical attacker, Paralysis spreader |
+| 63 | King's Shield | Debuff (Intimidate / drops) |
+| 63 | Scale Shot | Multi-hit (breaks Sash / Sturdy), Physical attacker, Setup / sweeper |
+| 62 | Psych Up | — |
+| 62 | Stone Axe | Hazard setter |
+| 62 | Substitute | _(neutral — everyone runs it)_ |
+| 61 | Hex | Special attacker |
+| 61 | Lumina Crash | — |
+| 61 | Sludge Wave | Special attacker, Field-wide (hits own partner) |
+| 60 | Bug Bite | — |
+| 60 | Head Smash | Physical attacker |
+| 59 | Cosmic Power | — |
+| 58 | Beat Up | — |
+| 58 | Power Whip | Physical attacker |
+| 58 | Quash | Positioning / ally support |
+| 58 | Thunder Punch | Physical attacker |
+| 57 | Fissure | — |
+| 57 | Ice Fang | — |
+| 57 | Struggle | — |
+| 56 | Icicle Crash | Physical attacker |
+| 56 | Quiver Dance | Setup / sweeper |
+| 55 | Gravity | — |
+| 55 | High Jump Kick | — |
+| 55 | Jet Punch | Physical attacker, Priority attacker |
+| 55 | Trick | Item disruption |
+| 54 | Dragon Darts | Multi-hit (breaks Sash / Sturdy) |
+| 53 | After You | Positioning / ally support |
+| 53 | Roar | Positioning / ally support |
+| 52 | Sheer Cold | — |
+| 51 | Destiny Bond | — |
+| 50 | Accelerock | Physical attacker, Priority attacker |
+| 50 | Strength Sap | Healing / sustain |
+| 50 | Torch Song | Setup / sweeper, Special attacker |
+| 49 | Breaking Swipe | Spread attacker (both foes) |
+| 49 | Zen Headbutt | Physical attacker |
+| 48 | Headlong Rush | Physical attacker |
+| 47 | Curse | Residual / chip damage, Setup / sweeper |
+| 47 | Outrage | Physical attacker |
+| 46 | Belly Drum | Setup / sweeper |
+| 45 | Endeavor | Fixed / fractional damage |
+| 45 | Shadow Claw | Physical attacker |
+| 44 | Fire Spin | Residual / chip damage, Trapper |
+| 43 | Decorate | Positioning / ally support |
+| 43 | Heal Pulse | Positioning / ally support, Healing / sustain |
+| 43 | Shed Tail | Positioning / ally support, Pivot, Substitute user |
+| 43 | Solar Blade | — |
+| 42 | Imprison | Move-lock (Encore / Disable) |
+| 42 | Night Slash | Physical attacker |
+| 42 | Swagger | Status spreader (other) |
+| 41 | Entrainment | — |
+| 36 | Boomburst | Special attacker, Field-wide (hits own partner) |
+| 36 | Haze | Weather / effect denial |
+| 36 | Vacuum Wave | Priority attacker |
+| 35 | Armor Cannon | — |
+| 35 | Ceaseless Edge | Hazard setter, Physical attacker |
+| 34 | Alluring Voice | Special attacker |
+| 34 | Hammer Arm | Physical attacker |
+| 34 | Mach Punch | Physical attacker, Priority attacker |
+| 34 | Raging Bull | — |
+| 33 | Leech Life | Healing / sustain, Physical attacker |
+| 32 | No Retreat | Setup / sweeper |
+| 31 | Chilling Water | — |
+| 31 | Role Play | — |
+| 31 | Stealth Rock | Hazard setter |
+| 31 | Tickle | Debuff (Intimidate / drops) |
+| 30 | Fiery Dance | Setup / sweeper, Special attacker |
+| 30 | Ice Hammer | — |
+| 30 | Lash Out | — |
+| 30 | Slack Off | Healing / sustain |
+| 29 | Bitter Malice | — |
+| 29 | Ice Spinner | — |
+| 28 | Dragon Cheer | — |
+| 27 | Blaze Kick | — |
+| 27 | Drill Run | — |
+| 27 | Wish | Healing / sustain, Bulky wall / support |
+| 26 | Bug Buzz | Special attacker |
+| 25 | Burn Up | — |
+| 25 | Clangorous Soul | Setup / sweeper |
+| 25 | Scary Face | Speed control (lower foe) |
+| 25 | Shell Side Arm | — |
+| 24 | Frost Breath | Special attacker |
+| 24 | Nuzzle | Paralysis spreader |
+| 23 | Horn Drill | — |
+| 23 | Trailblaze | — |
+| 23 | Venoshock | Special attacker |
+| 23 | Worry Seed | — |
+| 23 | X-Scissor | Physical attacker |
+| 22 | Aura Wheel | — |
+| 22 | Chilly Reception | Pivot, Snow setter |
+| 22 | Wood Hammer | Physical attacker |
+| 21 | Aqua Cutter | — |
+| 21 | Flame Charge | — |
+| 21 | Synthesis | Healing / sustain |
+| 20 | Facade | Physical attacker |
+| 20 | Fire Blast | Special attacker |
+| 20 | Glare | Paralysis spreader |
+| 20 | Moonlight | Healing / sustain, Special attacker |
+| 20 | Wild Charge | Physical attacker |
+| 19 | Explosion | Field-wide (hits own partner) |
+| 19 | Fire Punch | Physical attacker |
+| 19 | Icicle Spear | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 19 | Pollen Puff | Healing / sustain, Special attacker |
+| 19 | Screech | Debuff (Intimidate / drops) |
+| 19 | Upper Hand | — |
+| 18 | Dragon Rush | Physical attacker |
+| 18 | Heat Crash | — |
+| 18 | Power Trip | — |
+| 18 | Psyshield Bash | — |
+| 18 | Scorching Sands | Burn spreader |
+| 18 | Seed Bomb | Physical attacker |
+| 18 | Water Shuriken | Multi-hit (breaks Sash / Sturdy), Priority attacker |
+| 17 | Dynamic Punch | — |
+| 17 | Terrain Pulse | Special attacker |
+| 16 | Bite | Physical attacker |
+| 16 | Mortal Spin | Weather / effect denial |
+| 16 | Toxic Spikes | Hazard setter, Poison spreader |
+| 15 | Gyro Ball | — |
+| 15 | Lunge | Debuff (Intimidate / drops) |
+| 15 | Supercell Slam | — |
+| 14 | Amnesia | — |
+| 14 | Dig | — |
+| 14 | Grassy Terrain | Grassy Terrain setter |
+| 14 | Pin Missile | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 14 | Rest | Healing / sustain |
+| 13 | Baby-Doll Eyes | Debuff (Intimidate / drops), Priority attacker |
+| 13 | Dragon Tail | Positioning / ally support |
+| 13 | Memento | — |
+| 13 | Sandstorm | Sand setter |
+| 13 | Whirlpool | Residual / chip damage, Trapper |
+| 12 | Acid Spray | — |
+| 12 | Aqua Step | — |
+| 12 | Bullet Seed | Multi-hit (breaks Sash / Sturdy), Physical attacker |
+| 12 | Confuse Ray | Status spreader (other) |
+| 12 | Copycat | — |
+| 12 | Eerie Impulse | — |
+| 12 | Feather Dance | Debuff (Intimidate / drops) |
+| 12 | Mirror Coat | — |
+| 11 | Fickle Beam | Special attacker |
+| 11 | First Impression | Physical attacker, Priority attacker |
+| 11 | Pain Split | — |
+| 11 | Storm Throw | Physical attacker |
+| 10 | Bulldoze | Speed control (lower foe), Field-wide (hits own partner) |
+| 10 | Double Team | — |
+| 10 | Horn Leech | Healing / sustain, Physical attacker |
+| 10 | Speed Swap | — |
+| 10 | Transform | — |
+| 9 | Agility | Setup / sweeper |
+| 9 | Cotton Guard | — |
+| 9 | Defog | Weather / effect denial |
+| 9 | Mud Shot | — |
+| 9 | Mud-Slap | — |
+| 9 | String Shot | Speed control (lower foe) |
+| 9 | Switcheroo | Item disruption |
+| 8 | Acid Armor | — |
+| 8 | Assurance | — |
+| 8 | Fire Fang | — |
+| 8 | Fling | — |
+| 8 | Focus Energy | — |
+| 8 | Grassy Glide | Grassy Terrain abuser, Physical attacker, Priority attacker |
+| 8 | Iron Tail | Physical attacker |
+| 8 | Metal Burst | — |
+| 8 | Misty Terrain | Misty Terrain setter |
+| 8 | Safeguard | — |
+| 8 | Self-Destruct | Field-wide (hits own partner) |
+| 8 | Shelter | — |
+| 7 | Aqua Tail | Physical attacker |
+| 7 | Beak Blast | — |
+| 7 | Burning Jealousy | Spread attacker (both foes) |
+| 7 | Fell Stinger | — |
+| 7 | Mean Look | Trapper |
+| 7 | Night Shade | Fixed / fractional damage |
+| 7 | Temper Flare | — |
+| 6 | Charge Beam | Setup / sweeper, Special attacker |
+| 6 | Clear Smog | Weather / effect denial |
+| 6 | Cross Poison | Poison spreader |
+| 6 | Eerie Spell | — |
+| 6 | Fly | — |
+| 6 | Giga Impact | Physical attacker |
+| 6 | Lava Plume | Field-wide (hits own partner), Burn spreader |
+| 6 | Megahorn | Physical attacker |
+| 6 | Spikes | Hazard setter |
+| 6 | Sticky Web | Hazard setter |
+| 6 | Struggle Bug | Debuff (Intimidate / drops), Spread attacker (both foes) |
+| 6 | Tidy Up | Weather / effect denial |
+| 5 | Electro Ball | — |
+| 5 | Future Sight | Special attacker |
+| 5 | Metal Sound | — |
+| 5 | Mountain Gale | — |
+| 5 | Razor Shell | — |
+| 5 | Smack Down | — |
+| 5 | Spirit Shackle | Trapper |
+| 5 | Steel Beam | Special attacker |
+| 5 | Steel Wing | Physical attacker |
+| 4 | Flatter | Status spreader (other) |
+| 4 | Howl | — |
+| 4 | Snowscape | Snow setter |
+| 4 | Spicy Extract | — |
+| 4 | Thunder Fang | — |
+| 3 | Aerial Ace | Physical attacker |
+| 3 | Aqua Ring | — |
+| 3 | Brutal Swing | — |
+| 3 | Electrify | — |
+| 3 | Flying Press | — |
+| 3 | Grav Apple | — |
+| 3 | Growth | Setup / sweeper |
+| 3 | Hard Press | — |
+| 3 | Low Sweep | — |
+| 3 | Misty Explosion | Misty Terrain abuser |
+| 3 | Payback | Physical attacker |
+| 3 | Petal Blizzard | Field-wide (hits own partner) |
+| 3 | Pounce | — |
+| 3 | Skitter Smack | — |
+| 3 | Stun Spore | Paralysis spreader |
+| 3 | Topsy-Turvy | — |
+| 3 | Trick-or-Treat | — |
+| 2 | Acupressure | — |
+| 2 | Air Cutter | Spread attacker (both foes) |
+| 2 | Avalanche | Physical attacker |
+| 2 | Cotton Spore | Speed control (lower foe) |
+| 2 | Crabhammer | — |
+| 2 | Cross Chop | Physical attacker |
+| 2 | Electric Terrain | Electric Terrain setter |
+| 2 | Endure | _(neutral — everyone runs it)_ |
+| 2 | Extrasensory | — |
+| 2 | Fairy Lock | Trapper |
+| 2 | Guard Split | — |
+| 2 | Infernal Parade | — |
+| 2 | Meteor Beam | Special attacker |
+| 2 | Morning Sun | Healing / sustain |
+| 2 | Night Daze | — |
+| 2 | Rock Polish | Setup / sweeper |
+| 2 | Snap Trap | — |
+| 2 | Thief | Item disruption |
+| 2 | Wonder Room | — |
+| 1 | Aromatic Mist | Positioning / ally support |
+| 1 | Axe Kick | — |
+| 1 | Blast Burn | — |
+| 1 | Block | Trapper |
+| 1 | Charge | — |
+| 1 | Double Hit | Multi-hit (breaks Sash / Sturdy) |
+| 1 | Drill Peck | — |
+| 1 | Focus Punch | — |
+| 1 | Frenzy Plant | — |
+| 1 | Gastro Acid | — |
+| 1 | Guard Swap | — |
 | 1 | Guillotine | — |
+| 1 | Magic Room | — |
+| 1 | Mega Kick | — |
+| 1 | Power Split | — |
+| 1 | Return | — |
+| 1 | Rock Wrecker | — |
+| 1 | Sand Tomb | Residual / chip damage, Trapper |
+| 1 | Sparkling Aria | — |
+| 1 | Syrup Bomb | — |
+| 1 | Tearful Look | Debuff (Intimidate / drops) |
 | 1 | Whirlwind | Positioning / ally support |
 | 0 | Anchor Shot | Trapper |
 | 0 | Apple Acid | Special attacker |
@@ -765,53 +765,53 @@ These do several jobs at once; the table is factual, not weighted.
 
 | uses | move |
 |---|---|
-| 327 | Minimize |
-| 294 | Skill Swap |
-| 218 | Barb Barrage |
-| 144 | Simple Beam |
-| 140 | Triple Arrows |
-| 125 | Soak |
-| 122 | Psych Up |
-| 118 | Cosmic Power |
-| 117 | Lumina Crash |
-| 113 | Ice Fang |
-| 112 | Struggle |
-| 112 | Bug Bite |
-| 110 | High Jump Kick |
-| 109 | Gravity |
-| 109 | Beat Up |
-| 104 | Sheer Cold |
-| 104 | Fissure |
-| 100 | Destiny Bond |
-| 86 | Solar Blade |
-| 78 | Entrainment |
-| 70 | Armor Cannon |
-| 68 | Raging Bull |
-| 62 | Role Play |
-| 59 | Ice Hammer |
-| 59 | Chilling Water |
-| 57 | Ice Spinner |
-| 56 | Lash Out |
-| 55 | Dragon Cheer |
-| 54 | Drill Run |
-| 54 | Blaze Kick |
-| 53 | Bitter Malice |
-| 50 | Shell Side Arm |
-| 50 | Burn Up |
-| 46 | Trailblaze |
-| 45 | Worry Seed |
-| 43 | Horn Drill |
-| 43 | Aura Wheel |
-| 42 | Flame Charge |
-| 42 | Aqua Cutter |
-| 36 | Psyshield Bash |
-| 36 | Heat Crash |
-| 35 | Upper Hand |
-| 34 | Dynamic Punch |
-| 32 | Power Trip |
-| 30 | Supercell Slam |
-| 28 | Gyro Ball |
-| 28 | Dig |
-| 28 | Amnesia |
-| 26 | Memento |
-| 24 | Mirror Coat |
+| 166 | Minimize |
+| 148 | Skill Swap |
+| 109 | Barb Barrage |
+| 74 | Simple Beam |
+| 70 | Triple Arrows |
+| 67 | Soak |
+| 62 | Psych Up |
+| 61 | Lumina Crash |
+| 60 | Bug Bite |
+| 59 | Cosmic Power |
+| 58 | Beat Up |
+| 57 | Struggle |
+| 57 | Ice Fang |
+| 57 | Fissure |
+| 55 | High Jump Kick |
+| 55 | Gravity |
+| 52 | Sheer Cold |
+| 51 | Destiny Bond |
+| 43 | Solar Blade |
+| 41 | Entrainment |
+| 35 | Armor Cannon |
+| 34 | Raging Bull |
+| 31 | Role Play |
+| 31 | Chilling Water |
+| 30 | Lash Out |
+| 30 | Ice Hammer |
+| 29 | Ice Spinner |
+| 29 | Bitter Malice |
+| 28 | Dragon Cheer |
+| 27 | Drill Run |
+| 27 | Blaze Kick |
+| 25 | Shell Side Arm |
+| 25 | Burn Up |
+| 23 | Worry Seed |
+| 23 | Trailblaze |
+| 23 | Horn Drill |
+| 22 | Aura Wheel |
+| 21 | Flame Charge |
+| 21 | Aqua Cutter |
+| 19 | Upper Hand |
+| 18 | Psyshield Bash |
+| 18 | Power Trip |
+| 18 | Heat Crash |
+| 17 | Dynamic Punch |
+| 15 | Supercell Slam |
+| 15 | Gyro Ball |
+| 14 | Dig |
+| 14 | Amnesia |
+| 13 | Memento |
+| 12 | Mirror Coat |

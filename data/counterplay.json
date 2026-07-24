@@ -1,7 +1,7 @@
 {
  "generated": "2026-07-24",
- "n_games": 14355,
- "n_team_sides": 28710,
+ "n_games": 7315,
+ "n_team_sides": 14630,
  "design": "Cross-sectional. The store spans only 3 days, so the natural temporal test (does counter-usage RISE AFTER a threat rises?) has no identifying variation and was NOT run. Instead: within each species, is the coverage value of its RARE moves higher than its STANDARD moves, where coverage is weighted by current threat prevalence?",
  "thresholds": {
   "min_sets": 25,
@@ -17,7 +17,7 @@
     "Dragon",
     "Ground"
    ],
-   "prevalence": 0.3572
+   "prevalence": 0.356
   },
   {
    "species": "basculegion",
@@ -25,7 +25,7 @@
     "Water",
     "Ghost"
    ],
-   "prevalence": 0.345
+   "prevalence": 0.3433
   },
   {
    "species": "whimsicott",
@@ -33,7 +33,7 @@
     "Grass",
     "Fairy"
    ],
-   "prevalence": 0.3244
+   "prevalence": 0.3226
   },
   {
    "species": "kingambit",
@@ -41,7 +41,7 @@
     "Dark",
     "Steel"
    ],
-   "prevalence": 0.2915
+   "prevalence": 0.2907
   },
   {
    "species": "charizard",
@@ -49,7 +49,7 @@
     "Fire",
     "Flying"
    ],
-   "prevalence": 0.2654
+   "prevalence": 0.2638
   },
   {
    "species": "incineroar",
@@ -57,7 +57,7 @@
     "Fire",
     "Dark"
    ],
-   "prevalence": 0.2142
+   "prevalence": 0.2152
   },
   {
    "species": "sinistcha",
@@ -65,14 +65,14 @@
     "Grass",
     "Ghost"
    ],
-   "prevalence": 0.2016
+   "prevalence": 0.2018
   },
   {
    "species": "sylveon",
    "types": [
     "Fairy"
    ],
-   "prevalence": 0.1996
+   "prevalence": 0.1986
   },
   {
    "species": "pelipper",
@@ -80,7 +80,7 @@
     "Water",
     "Flying"
    ],
-   "prevalence": 0.1679
+   "prevalence": 0.1681
   },
   {
    "species": "archaludon",
@@ -88,7 +88,7 @@
     "Steel",
     "Dragon"
    ],
-   "prevalence": 0.1541
+   "prevalence": 0.1542
   },
   {
    "species": "grimmsnarl",
@@ -96,25 +96,25 @@
     "Dark",
     "Fairy"
    ],
-   "prevalence": 0.1343
+   "prevalence": 0.1342
   },
   {
    "species": "raichu",
    "types": [
     "Electric"
    ],
-   "prevalence": 0.1314
+   "prevalence": 0.1317
   }
  ],
  "result": {
-  "n_species_paired": 148,
-  "mean_coverage_gap": 0.0386,
+  "n_species_paired": 116,
+  "mean_coverage_gap": 0.0274,
   "bootstrap_ci_95": [
-   0.0155,
-   0.0617
+   0.0006,
+   0.0533
   ],
-  "species_with_positive_gap": 90,
-  "share_positive": 0.6081,
+  "species_with_positive_gap": 66,
+  "share_positive": 0.569,
   "reading": "A positive gap means rare 'tech' slots carry more meta-weighted coverage than the species' standard kit - evidence that spare slots are spent answering the field. A CI spanning 0 means we cannot distinguish it from slot noise."
  },
  "per_threat": [
@@ -124,63 +124,63 @@
     "Dragon",
     "Ground"
    ],
-   "prevalence": 0.3572,
+   "prevalence": 0.356,
    "tech_answers": [
     {
      "species": "archaludon",
      "move": "dracometeor",
-     "uses": 176,
+     "uses": 89,
      "move_type": "Dragon",
+     "multiplier": 2.0
+    },
+    {
+     "species": "floetteeternal",
+     "move": "moonblast",
+     "uses": 76,
+     "move_type": "Fairy",
      "multiplier": 2.0
     },
     {
      "species": "tyranitar",
      "move": "icepunch",
-     "uses": 165,
+     "uses": 72,
      "move_type": "Ice",
      "multiplier": 4.0
     },
     {
      "species": "floetteeternal",
+     "move": "dazzlinggleam",
+     "uses": 72,
+     "move_type": "Fairy",
+     "multiplier": 2.0
+    },
+    {
+     "species": "floettemega",
      "move": "drainingkiss",
-     "uses": 88,
+     "uses": 46,
      "move_type": "Fairy",
      "multiplier": 2.0
     },
     {
      "species": "whimsicott",
      "move": "dazzlinggleam",
-     "uses": 74,
+     "uses": 37,
      "move_type": "Fairy",
      "multiplier": 2.0
     },
     {
+     "species": "metagrossmega",
+     "move": "icepunch",
+     "uses": 32,
+     "move_type": "Ice",
+     "multiplier": 4.0
+    },
+    {
      "species": "dragonite",
      "move": "dragonclaw",
-     "uses": 72,
+     "uses": 31,
      "move_type": "Dragon",
      "multiplier": 2.0
-    },
-    {
-     "species": "dragonite",
-     "move": "dracometeor",
-     "uses": 61,
-     "move_type": "Dragon",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
-     "move": "icepunch",
-     "uses": 60,
-     "move_type": "Ice",
-     "multiplier": 4.0
-    },
-    {
-     "species": "scrafty",
-     "move": "icepunch",
-     "uses": 57,
-     "move_type": "Ice",
-     "multiplier": 4.0
     }
    ]
   },
@@ -190,62 +190,62 @@
     "Water",
     "Ghost"
    ],
-   "prevalence": 0.345,
+   "prevalence": 0.3433,
    "tech_answers": [
-    {
-     "species": "raichu",
-     "move": "voltswitch",
-     "uses": 155,
-     "move_type": "Electric",
-     "multiplier": 2.0
-    },
     {
      "species": "venusaur",
      "move": "leafstorm",
-     "uses": 153,
+     "uses": 80,
      "move_type": "Grass",
-     "multiplier": 2.0
-    },
-    {
-     "species": "raichu",
-     "move": "volttackle",
-     "uses": 141,
-     "move_type": "Electric",
      "multiplier": 2.0
     },
     {
      "species": "venusaur",
      "move": "energyball",
-     "uses": 134,
+     "uses": 65,
      "move_type": "Grass",
-     "multiplier": 2.0
-    },
-    {
-     "species": "sinistcha",
-     "move": "shadowball",
-     "uses": 119,
-     "move_type": "Ghost",
      "multiplier": 2.0
     },
     {
      "species": "farigiraf",
      "move": "thunder",
-     "uses": 118,
+     "uses": 62,
      "move_type": "Electric",
+     "multiplier": 2.0
+    },
+    {
+     "species": "sinistcha",
+     "move": "shadowball",
+     "uses": 60,
+     "move_type": "Ghost",
      "multiplier": 2.0
     },
     {
      "species": "venusaur",
      "move": "solarbeam",
-     "uses": 104,
+     "uses": 51,
      "move_type": "Grass",
      "multiplier": 2.0
     },
     {
      "species": "rotomwash",
      "move": "discharge",
-     "uses": 89,
+     "uses": 45,
      "move_type": "Electric",
+     "multiplier": 2.0
+    },
+    {
+     "species": "rotomwash",
+     "move": "electroweb",
+     "uses": 43,
+     "move_type": "Electric",
+     "multiplier": 2.0
+    },
+    {
+     "species": "sableye",
+     "move": "foulplay",
+     "uses": 38,
+     "move_type": "Dark",
      "multiplier": 2.0
     }
    ]
@@ -256,61 +256,61 @@
     "Grass",
     "Fairy"
    ],
-   "prevalence": 0.3244,
+   "prevalence": 0.3226,
    "tech_answers": [
     {
      "species": "garchomp",
      "move": "poisonjab",
-     "uses": 276,
+     "uses": 139,
      "move_type": "Poison",
      "multiplier": 4.0
+    },
+    {
+     "species": "charizard",
+     "move": "heatwave",
+     "uses": 115,
+     "move_type": "Fire",
+     "multiplier": 2.0
     },
     {
      "species": "sneasler",
      "move": "poisonjab",
-     "uses": 166,
+     "uses": 84,
      "move_type": "Poison",
      "multiplier": 4.0
     },
     {
+     "species": "staraptor",
+     "move": "bravebird",
+     "uses": 74,
+     "move_type": "Flying",
+     "multiplier": 2.0
+    },
+    {
      "species": "tyranitar",
      "move": "icepunch",
-     "uses": 165,
+     "uses": 72,
      "move_type": "Ice",
      "multiplier": 2.0
     },
     {
-     "species": "metagross",
-     "move": "bulletpunch",
-     "uses": 83,
-     "move_type": "Steel",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
-     "move": "meteormash",
-     "uses": 70,
-     "move_type": "Steel",
-     "multiplier": 2.0
-    },
-    {
-     "species": "charizard",
-     "move": "airslash",
-     "uses": 69,
+     "species": "staraptor",
+     "move": "dualwingbeat",
+     "uses": 71,
      "move_type": "Flying",
      "multiplier": 2.0
     },
     {
-     "species": "talonflame",
-     "move": "acrobatics",
-     "uses": 61,
-     "move_type": "Flying",
+     "species": "delphox",
+     "move": "heatwave",
+     "uses": 54,
+     "move_type": "Fire",
      "multiplier": 2.0
     },
     {
-     "species": "metagross",
+     "species": "metagrossmega",
      "move": "icepunch",
-     "uses": 60,
+     "uses": 32,
      "move_type": "Ice",
      "multiplier": 2.0
     }
@@ -322,63 +322,63 @@
     "Dark",
     "Steel"
    ],
-   "prevalence": 0.2915,
+   "prevalence": 0.2907,
    "tech_answers": [
+    {
+     "species": "charizard",
+     "move": "heatwave",
+     "uses": 115,
+     "move_type": "Fire",
+     "multiplier": 2.0
+    },
+    {
+     "species": "staraptor",
+     "move": "closecombat",
+     "uses": 88,
+     "move_type": "Fighting",
+     "multiplier": 4.0
+    },
     {
      "species": "torkoal",
      "move": "earthpower",
-     "uses": 142,
+     "uses": 71,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
      "species": "incineroar",
      "move": "closecombat",
-     "uses": 127,
+     "uses": 66,
      "move_type": "Fighting",
      "multiplier": 4.0
     },
     {
-     "species": "tyranitar",
-     "move": "highhorsepower",
-     "uses": 105,
-     "move_type": "Ground",
-     "multiplier": 2.0
-    },
-    {
-     "species": "blastoise",
-     "move": "aurasphere",
-     "uses": 90,
-     "move_type": "Fighting",
-     "multiplier": 4.0
-    },
-    {
-     "species": "dragonite",
-     "move": "earthquake",
-     "uses": 82,
-     "move_type": "Ground",
+     "species": "delphox",
+     "move": "heatwave",
+     "uses": 54,
+     "move_type": "Fire",
      "multiplier": 2.0
     },
     {
      "species": "swampert",
+     "move": "earthquake",
+     "uses": 53,
+     "move_type": "Ground",
+     "multiplier": 2.0
+    },
+    {
+     "species": "swampertmega",
      "move": "highhorsepower",
-     "uses": 74,
+     "uses": 40,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "metagross",
-     "move": "stompingtantrum",
-     "uses": 71,
+     "species": "dragonite",
+     "move": "earthquake",
+     "uses": 39,
      "move_type": "Ground",
      "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
-     "move": "bodypress",
-     "uses": 63,
-     "move_type": "Fighting",
-     "multiplier": 4.0
     }
    ]
   },
@@ -388,61 +388,61 @@
     "Fire",
     "Flying"
    ],
-   "prevalence": 0.2654,
+   "prevalence": 0.2638,
    "tech_answers": [
     {
      "species": "basculegion",
      "move": "flipturn",
-     "uses": 690,
+     "uses": 349,
      "move_type": "Water",
      "multiplier": 2.0
     },
     {
      "species": "gholdengo",
      "move": "powergem",
-     "uses": 286,
+     "uses": 146,
      "move_type": "Rock",
      "multiplier": 4.0
     },
     {
      "species": "garchomp",
      "move": "rocktomb",
-     "uses": 234,
+     "uses": 120,
      "move_type": "Rock",
      "multiplier": 4.0
     },
     {
-     "species": "raichu",
-     "move": "voltswitch",
-     "uses": 155,
-     "move_type": "Electric",
-     "multiplier": 2.0
-    },
-    {
-     "species": "raichu",
-     "move": "volttackle",
-     "uses": 141,
-     "move_type": "Electric",
-     "multiplier": 2.0
-    },
-    {
      "species": "sneasler",
      "move": "rockslide",
-     "uses": 131,
+     "uses": 67,
      "move_type": "Rock",
      "multiplier": 4.0
     },
     {
      "species": "farigiraf",
      "move": "thunder",
-     "uses": 118,
+     "uses": 62,
      "move_type": "Electric",
+     "multiplier": 2.0
+    },
+    {
+     "species": "swampert",
+     "move": "wavecrash",
+     "uses": 59,
+     "move_type": "Water",
      "multiplier": 2.0
     },
     {
      "species": "rotomwash",
      "move": "discharge",
-     "uses": 89,
+     "uses": 45,
+     "move_type": "Electric",
+     "multiplier": 2.0
+    },
+    {
+     "species": "rotomwash",
+     "move": "electroweb",
+     "uses": 43,
      "move_type": "Electric",
      "multiplier": 2.0
     }
@@ -454,62 +454,62 @@
     "Fire",
     "Dark"
    ],
-   "prevalence": 0.2142,
+   "prevalence": 0.2152,
    "tech_answers": [
     {
      "species": "basculegion",
      "move": "flipturn",
-     "uses": 690,
+     "uses": 349,
      "move_type": "Water",
      "multiplier": 2.0
     },
     {
      "species": "gholdengo",
      "move": "powergem",
-     "uses": 286,
+     "uses": 146,
      "move_type": "Rock",
      "multiplier": 2.0
     },
     {
      "species": "garchomp",
      "move": "rocktomb",
-     "uses": 234,
+     "uses": 120,
      "move_type": "Rock",
+     "multiplier": 2.0
+    },
+    {
+     "species": "staraptor",
+     "move": "closecombat",
+     "uses": 88,
+     "move_type": "Fighting",
      "multiplier": 2.0
     },
     {
      "species": "torkoal",
      "move": "earthpower",
-     "uses": 142,
+     "uses": 71,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
      "species": "sneasler",
      "move": "rockslide",
-     "uses": 131,
+     "uses": 67,
      "move_type": "Rock",
      "multiplier": 2.0
     },
     {
      "species": "incineroar",
      "move": "closecombat",
-     "uses": 127,
+     "uses": 66,
      "move_type": "Fighting",
      "multiplier": 2.0
     },
     {
-     "species": "tyranitar",
-     "move": "highhorsepower",
-     "uses": 105,
-     "move_type": "Ground",
-     "multiplier": 2.0
-    },
-    {
-     "species": "blastoise",
-     "move": "aurasphere",
-     "uses": 90,
-     "move_type": "Fighting",
+     "species": "swampert",
+     "move": "wavecrash",
+     "uses": 59,
+     "move_type": "Water",
      "multiplier": 2.0
     }
    ]
@@ -520,62 +520,62 @@
     "Grass",
     "Ghost"
    ],
-   "prevalence": 0.2016,
+   "prevalence": 0.2018,
    "tech_answers": [
+    {
+     "species": "charizard",
+     "move": "heatwave",
+     "uses": 115,
+     "move_type": "Fire",
+     "multiplier": 2.0
+    },
+    {
+     "species": "staraptor",
+     "move": "bravebird",
+     "uses": 74,
+     "move_type": "Flying",
+     "multiplier": 2.0
+    },
     {
      "species": "tyranitar",
      "move": "icepunch",
-     "uses": 165,
+     "uses": 72,
      "move_type": "Ice",
+     "multiplier": 2.0
+    },
+    {
+     "species": "staraptor",
+     "move": "dualwingbeat",
+     "uses": 71,
+     "move_type": "Flying",
      "multiplier": 2.0
     },
     {
      "species": "sinistcha",
      "move": "shadowball",
-     "uses": 119,
+     "uses": 60,
      "move_type": "Ghost",
+     "multiplier": 2.0
+    },
+    {
+     "species": "delphox",
+     "move": "heatwave",
+     "uses": 54,
+     "move_type": "Fire",
      "multiplier": 2.0
     },
     {
      "species": "sableye",
      "move": "foulplay",
-     "uses": 87,
+     "uses": 38,
      "move_type": "Dark",
      "multiplier": 2.0
     },
     {
-     "species": "charizard",
-     "move": "airslash",
-     "uses": 69,
-     "move_type": "Flying",
-     "multiplier": 2.0
-    },
-    {
-     "species": "talonflame",
-     "move": "acrobatics",
-     "uses": 61,
-     "move_type": "Flying",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
+     "species": "metagrossmega",
      "move": "icepunch",
-     "uses": 60,
+     "uses": 32,
      "move_type": "Ice",
-     "multiplier": 2.0
-    },
-    {
-     "species": "annihilape",
-     "move": "phantomforce",
-     "uses": 60,
-     "move_type": "Ghost",
-     "multiplier": 2.0
-    },
-    {
-     "species": "dragonite",
-     "move": "hurricane",
-     "uses": 58,
-     "move_type": "Flying",
      "multiplier": 2.0
     }
    ]
@@ -585,61 +585,61 @@
    "types": [
     "Fairy"
    ],
-   "prevalence": 0.1996,
+   "prevalence": 0.1986,
    "tech_answers": [
     {
      "species": "garchomp",
      "move": "poisonjab",
-     "uses": 276,
+     "uses": 139,
      "move_type": "Poison",
      "multiplier": 2.0
     },
     {
      "species": "sneasler",
      "move": "poisonjab",
-     "uses": 166,
+     "uses": 84,
      "move_type": "Poison",
      "multiplier": 2.0
     },
     {
-     "species": "metagross",
-     "move": "bulletpunch",
-     "uses": 83,
+     "species": "sneasler",
+     "move": "gunkshot",
+     "uses": 25,
+     "move_type": "Poison",
+     "multiplier": 2.0
+    },
+    {
+     "species": "metagrossmega",
+     "move": "meteormash",
+     "uses": 23,
      "move_type": "Steel",
      "multiplier": 2.0
     },
     {
      "species": "metagross",
      "move": "meteormash",
-     "uses": 70,
+     "uses": 20,
      "move_type": "Steel",
      "multiplier": 2.0
     },
     {
-     "species": "sneasler",
-     "move": "gunkshot",
-     "uses": 50,
-     "move_type": "Poison",
+     "species": "metagross",
+     "move": "ironhead",
+     "uses": 19,
+     "move_type": "Steel",
+     "multiplier": 2.0
+    },
+    {
+     "species": "metagross",
+     "move": "bulletpunch",
+     "uses": 14,
+     "move_type": "Steel",
      "multiplier": 2.0
     },
     {
      "species": "glimmora",
      "move": "mortalspin",
-     "uses": 26,
-     "move_type": "Poison",
-     "multiplier": 2.0
-    },
-    {
-     "species": "gengarmega",
-     "move": "sludgebomb",
-     "uses": 24,
-     "move_type": "Poison",
-     "multiplier": 2.0
-    },
-    {
-     "species": "glimmora",
-     "move": "sludgewave",
-     "uses": 24,
+     "uses": 14,
      "move_type": "Poison",
      "multiplier": 2.0
     }
@@ -651,61 +651,61 @@
     "Water",
     "Flying"
    ],
-   "prevalence": 0.1679,
+   "prevalence": 0.1681,
    "tech_answers": [
     {
      "species": "gholdengo",
      "move": "powergem",
-     "uses": 286,
+     "uses": 146,
      "move_type": "Rock",
      "multiplier": 2.0
     },
     {
      "species": "garchomp",
      "move": "rocktomb",
-     "uses": 234,
+     "uses": 120,
      "move_type": "Rock",
      "multiplier": 2.0
     },
     {
-     "species": "raichu",
-     "move": "voltswitch",
-     "uses": 155,
-     "move_type": "Electric",
-     "multiplier": 4.0
-    },
-    {
-     "species": "raichu",
-     "move": "volttackle",
-     "uses": 141,
-     "move_type": "Electric",
-     "multiplier": 4.0
-    },
-    {
      "species": "sneasler",
      "move": "rockslide",
-     "uses": 131,
+     "uses": 67,
      "move_type": "Rock",
      "multiplier": 2.0
     },
     {
      "species": "farigiraf",
      "move": "thunder",
-     "uses": 118,
+     "uses": 62,
      "move_type": "Electric",
      "multiplier": 4.0
     },
     {
      "species": "rotomwash",
      "move": "discharge",
-     "uses": 89,
+     "uses": 45,
      "move_type": "Electric",
      "multiplier": 4.0
     },
     {
      "species": "rotomwash",
      "move": "electroweb",
-     "uses": 83,
+     "uses": 43,
+     "move_type": "Electric",
+     "multiplier": 4.0
+    },
+    {
+     "species": "raichu",
+     "move": "voltswitch",
+     "uses": 34,
+     "move_type": "Electric",
+     "multiplier": 4.0
+    },
+    {
+     "species": "raichu",
+     "move": "zapcannon",
+     "uses": 27,
      "move_type": "Electric",
      "multiplier": 4.0
     }
@@ -717,62 +717,62 @@
     "Steel",
     "Dragon"
    ],
-   "prevalence": 0.1541,
+   "prevalence": 0.1542,
    "tech_answers": [
+    {
+     "species": "staraptor",
+     "move": "closecombat",
+     "uses": 88,
+     "move_type": "Fighting",
+     "multiplier": 2.0
+    },
     {
      "species": "torkoal",
      "move": "earthpower",
-     "uses": 142,
+     "uses": 71,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
      "species": "incineroar",
      "move": "closecombat",
-     "uses": 127,
+     "uses": 66,
      "move_type": "Fighting",
      "multiplier": 2.0
     },
     {
-     "species": "tyranitar",
-     "move": "highhorsepower",
-     "uses": 105,
+     "species": "swampert",
+     "move": "earthquake",
+     "uses": 53,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "blastoise",
-     "move": "aurasphere",
-     "uses": 90,
-     "move_type": "Fighting",
+     "species": "swampertmega",
+     "move": "highhorsepower",
+     "uses": 40,
+     "move_type": "Ground",
      "multiplier": 2.0
     },
     {
      "species": "dragonite",
      "move": "earthquake",
-     "uses": 82,
+     "uses": 39,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "swampert",
-     "move": "highhorsepower",
-     "uses": 74,
-     "move_type": "Ground",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
+     "species": "metagrossmega",
      "move": "stompingtantrum",
-     "uses": 71,
+     "uses": 33,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "metagross",
-     "move": "bodypress",
-     "uses": 63,
-     "move_type": "Fighting",
+     "species": "tyranitarmega",
+     "move": "highhorsepower",
+     "uses": 30,
+     "move_type": "Ground",
      "multiplier": 2.0
     }
    ]
@@ -783,62 +783,62 @@
     "Dark",
     "Fairy"
    ],
-   "prevalence": 0.1343,
+   "prevalence": 0.1342,
    "tech_answers": [
     {
      "species": "garchomp",
      "move": "poisonjab",
-     "uses": 276,
+     "uses": 139,
      "move_type": "Poison",
      "multiplier": 2.0
     },
     {
      "species": "sneasler",
      "move": "poisonjab",
-     "uses": 166,
+     "uses": 84,
      "move_type": "Poison",
      "multiplier": 2.0
     },
     {
      "species": "floetteeternal",
-     "move": "drainingkiss",
-     "uses": 88,
+     "move": "moonblast",
+     "uses": 76,
      "move_type": "Fairy",
      "multiplier": 2.0
     },
     {
-     "species": "metagross",
-     "move": "bulletpunch",
-     "uses": 83,
-     "move_type": "Steel",
+     "species": "floetteeternal",
+     "move": "dazzlinggleam",
+     "uses": 72,
+     "move_type": "Fairy",
+     "multiplier": 2.0
+    },
+    {
+     "species": "floettemega",
+     "move": "drainingkiss",
+     "uses": 46,
+     "move_type": "Fairy",
      "multiplier": 2.0
     },
     {
      "species": "whimsicott",
      "move": "dazzlinggleam",
-     "uses": 74,
+     "uses": 37,
      "move_type": "Fairy",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
-     "move": "meteormash",
-     "uses": 70,
-     "move_type": "Steel",
      "multiplier": 2.0
     },
     {
      "species": "sneasler",
      "move": "gunkshot",
-     "uses": 50,
+     "uses": 25,
      "move_type": "Poison",
      "multiplier": 2.0
     },
     {
-     "species": "ninetalesalola",
-     "move": "moonblast",
-     "uses": 44,
-     "move_type": "Fairy",
+     "species": "metagrossmega",
+     "move": "meteormash",
+     "uses": 23,
+     "move_type": "Steel",
      "multiplier": 2.0
     }
    ]
@@ -848,61 +848,61 @@
    "types": [
     "Electric"
    ],
-   "prevalence": 0.1314,
+   "prevalence": 0.1317,
    "tech_answers": [
     {
      "species": "torkoal",
      "move": "earthpower",
-     "uses": 142,
+     "uses": 71,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "tyranitar",
+     "species": "swampert",
+     "move": "earthquake",
+     "uses": 53,
+     "move_type": "Ground",
+     "multiplier": 2.0
+    },
+    {
+     "species": "swampertmega",
      "move": "highhorsepower",
-     "uses": 105,
+     "uses": 40,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
      "species": "dragonite",
      "move": "earthquake",
-     "uses": 82,
+     "uses": 39,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "swampert",
-     "move": "highhorsepower",
-     "uses": 74,
-     "move_type": "Ground",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
+     "species": "metagrossmega",
      "move": "stompingtantrum",
-     "uses": 71,
+     "uses": 33,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
-     "species": "garchomp",
-     "move": "earthpower",
-     "uses": 28,
+     "species": "tyranitarmega",
+     "move": "highhorsepower",
+     "uses": 30,
+     "move_type": "Ground",
+     "multiplier": 2.0
+    },
+    {
+     "species": "tyranitar",
+     "move": "highhorsepower",
+     "uses": 27,
      "move_type": "Ground",
      "multiplier": 2.0
     },
     {
      "species": "tyranitar",
      "move": "earthquake",
-     "uses": 25,
-     "move_type": "Ground",
-     "multiplier": 2.0
-    },
-    {
-     "species": "metagross",
-     "move": "earthquake",
-     "uses": 19,
+     "uses": 9,
      "move_type": "Ground",
      "multiplier": 2.0
     }
@@ -914,240 +914,240 @@
    "species": "basculegion",
    "move": "icefang",
    "share": 0.0009,
-   "n": 6,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "whimsicott",
-   "move": "icywind",
-   "share": 0.0009,
-   "n": 4,
-   "coverage": 1.3359,
+   "n": 3,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "pelipper",
    "move": "icebeam",
-   "share": 0.0148,
-   "n": 45,
-   "coverage": 1.3359,
+   "share": 0.0149,
+   "n": 23,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "pelipper",
    "move": "icywind",
-   "share": 0.004,
-   "n": 12,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "pelipper",
-   "move": "blizzard",
-   "share": 0.0013,
-   "n": 4,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "gengar",
-   "move": "icywind",
-   "share": 0.0421,
-   "n": 26,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "swampert",
-   "move": "icebeam",
    "share": 0.0039,
    "n": 6,
-   "coverage": 1.3359,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "gengarmega",
+   "move": "icywind",
+   "share": 0.0226,
+   "n": 6,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "tyranitar",
    "move": "icepunch",
-   "share": 0.083,
-   "n": 165,
-   "coverage": 1.3359,
+   "share": 0.0709,
+   "n": 72,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
-   "species": "tyranitar",
-   "move": "icywind",
-   "share": 0.002,
-   "n": 4,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "blastoise",
-   "move": "icywind",
-   "share": 0.0099,
-   "n": 8,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "blastoise",
+   "species": "blastoisemega",
    "move": "icebeam",
-   "share": 0.0246,
-   "n": 20,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "blastoise",
-   "move": "blizzard",
-   "share": 0.0074,
-   "n": 6,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "gardevoir",
-   "move": "icywind",
-   "share": 0.0104,
-   "n": 4,
-   "coverage": 1.3359,
+   "share": 0.0262,
+   "n": 9,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "aerodactyl",
    "move": "icefang",
-   "share": 0.0461,
-   "n": 55,
-   "coverage": 1.3359,
+   "share": 0.0148,
+   "n": 9,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "milotic",
    "move": "blizzard",
-   "share": 0.0108,
-   "n": 10,
-   "coverage": 1.3359,
+   "share": 0.0107,
+   "n": 5,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "tyranitarmega",
+   "move": "icepunch",
+   "share": 0.0392,
+   "n": 13,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "swampert",
+   "move": "icepunch",
+   "share": 0.0368,
+   "n": 29,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "swampert",
+   "move": "icebeam",
+   "share": 0.0038,
+   "n": 3,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "weavile",
    "move": "icespinner",
-   "share": 0.0825,
-   "n": 16,
-   "coverage": 1.3359,
+   "share": 0.08,
+   "n": 8,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "weavile",
    "move": "iciclecrash",
-   "share": 0.0464,
-   "n": 9,
-   "coverage": 1.3359,
+   "share": 0.05,
+   "n": 5,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "weavile",
    "move": "iceshard",
-   "share": 0.067,
-   "n": 13,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "dragonite",
-   "move": "blizzard",
-   "share": 0.007,
-   "n": 6,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "dragonite",
-   "move": "icebeam",
-   "share": 0.0081,
+   "share": 0.07,
    "n": 7,
-   "coverage": 1.3359,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
-   "species": "dragonite",
-   "move": "icywind",
-   "share": 0.0047,
-   "n": 4,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "scrafty",
-   "move": "icepunch",
-   "share": 0.1122,
-   "n": 57,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "greninja",
-   "move": "icywind",
-   "share": 0.042,
-   "n": 10,
-   "coverage": 1.3359,
-   "type": "Ice"
-  },
-  {
-   "species": "greninja",
-   "move": "icepunch",
-   "share": 0.0336,
-   "n": 8,
-   "coverage": 1.3359,
+   "species": "dragonitemega",
+   "move": "blizzard",
+   "share": 0.0142,
+   "n": 3,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "mamoswine",
    "move": "iciclespear",
-   "share": 0.0384,
-   "n": 16,
-   "coverage": 1.3359,
+   "share": 0.0374,
+   "n": 8,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "tinkaton",
    "move": "icehammer",
-   "share": 0.0357,
-   "n": 8,
-   "coverage": 1.3359,
+   "share": 0.0354,
+   "n": 4,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "politoed",
    "move": "icywind",
-   "share": 0.0746,
-   "n": 34,
-   "coverage": 1.3359,
+   "share": 0.0773,
+   "n": 18,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
    "species": "politoed",
    "move": "icebeam",
-   "share": 0.0702,
-   "n": 32,
-   "coverage": 1.3359,
+   "share": 0.073,
+   "n": 17,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
-   "species": "metagross",
+   "species": "metagrossmega",
    "move": "icepunch",
-   "share": 0.0852,
-   "n": 60,
-   "coverage": 1.3359,
+   "share": 0.1164,
+   "n": 32,
+   "coverage": 1.3354,
    "type": "Ice"
   },
   {
-   "species": "toxapex",
-   "move": "icywind",
-   "share": 0.0051,
+   "species": "scrafty",
+   "move": "icepunch",
+   "share": 0.0153,
    "n": 4,
-   "coverage": 1.3359,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "annihilape",
+   "move": "icepunch",
+   "share": 0.0382,
+   "n": 11,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "primarina",
+   "move": "icebeam",
+   "share": 0.0509,
+   "n": 11,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "ninetalesalola",
+   "move": "icywind",
+   "share": 0.016,
+   "n": 6,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "aerodactylmega",
+   "move": "icefang",
+   "share": 0.1149,
+   "n": 20,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "empoleon",
+   "move": "blizzard",
+   "share": 0.0952,
+   "n": 4,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "empoleon",
+   "move": "icebeam",
+   "share": 0.0714,
+   "n": 3,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "froslass",
+   "move": "blizzard",
+   "share": 0.0594,
+   "n": 17,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "froslass",
+   "move": "frostbreath",
+   "share": 0.0315,
+   "n": 9,
+   "coverage": 1.3354,
+   "type": "Ice"
+  },
+  {
+   "species": "froslassmega",
+   "move": "frostbreath",
+   "share": 0.0132,
+   "n": 3,
+   "coverage": 1.3354,
    "type": "Ice"
   }
  ]
