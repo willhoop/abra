@@ -16,9 +16,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
+      # A collection job must never page the owner. Showdown can rate-limit, time out, or serve a
+      # malformed log; none of that is a defect in this repo, and failing the run emailed a failure
+      # notice every hour. These steps report their error and the run carries on.
       - name: Pull new replays (only appends games not already stored)
+        continue-on-error: true
         run: PAGES=6 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
       - name: Rebuild the meta model
+        continue-on-error: true
         run: node engine/analyze.js data/games.ladder.jsonl
       - name: Commit if the store or model changed
         run: |
