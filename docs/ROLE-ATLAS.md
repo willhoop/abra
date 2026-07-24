@@ -4,7 +4,7 @@
 
 Generated directly from the tagger, so it cannot drift. `uses` = real in-battle uses for moves, revealed sets for abilities. Blank role = deliberately untagged (ordinary damage, a passive modifier, or a gap worth filling).
 
-Roles in the taxonomy: **32**. Moves listed: **486**. Abilities listed: **109**.
+Roles in the taxonomy: **32**. Moves listed: **489**. Abilities listed: **107**.
 
 
 ## Roles in the taxonomy
@@ -34,7 +34,7 @@ Roles in the taxonomy: **32**. Moves listed: **486**. Abilities listed: **109**.
 | `healing` | Healing / sustain |
 | `screens` | Screen setter |
 | `teamprotect` | Wide / Quick Guard |
-| `helpinghand` | Damage amplifier |
+| `helpinghand` | Helping Hand |
 | `pivot` | Pivot |
 | `wall` | Bulky wall / support |
 | `trapping` | Trapper |
@@ -69,7 +69,7 @@ These do several jobs at once; the table is factual, not weighted.
 |---|---|---|
 | 3795 | Intimidate | Debuff (Intimidate / drops) |
 | 1328 | Stamina | Bulky wall / support |
-| 865 | Fairy Aura | Damage amplifier |
+| 865 | Fairy Aura | — |
 | 645 | Unnerve | — |
 | 373 | Defiant | Setup / sweeper |
 | 359 | Speed Boost | Setup / sweeper |
@@ -98,9 +98,9 @@ These do several jobs at once; the table is factual, not weighted.
 | 8 | Prankster | Prankster (priority support) |
 | 7 | Weak Armor | Setup / sweeper |
 | 6 | Drought | Weather setter |
-| 6 | Hospitality | — |
-| 6 | Sap Sipper | — |
-| 6 | Water Absorb | — |
+| 6 | Hospitality | Healing / sustain |
+| 6 | Sap Sipper | Healing / sustain |
+| 6 | Water Absorb | Healing / sustain |
 | 5 | Good as Gold | Weather / effect denial |
 | 4 | Chlorophyll | Weather / field abuser |
 | 3 | Gooey | — |
@@ -113,11 +113,11 @@ These do several jobs at once; the table is factual, not weighted.
 | 2 | Opportunist | — |
 | 2 | Piercing Drill | — |
 | 2 | Plus | — |
-| 2 | Regenerator | Bulky wall / support |
+| 2 | Regenerator | Healing / sustain, Bulky wall / support |
 | 2 | Sand Rush | Weather / field abuser |
 | 2 | Sand Stream | Weather setter |
 | 2 | Snow Cloak | Weather / field abuser |
-| 1 | Earth Eater | — |
+| 1 | Earth Eater | Healing / sustain |
 | 1 | Fire Mane | — |
 | 1 | Flash Fire | — |
 | 1 | Friend Guard | — |
@@ -129,7 +129,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 1 | Natural Cure | — |
 | 1 | Protean | — |
 | 1 | Queenly Majesty | — |
-| 1 | Rain Dish | Weather / field abuser |
+| 1 | Rain Dish | Weather / field abuser, Healing / sustain |
 | 1 | Refrigerate | — |
 | 1 | Rock Head | — |
 | 1 | Snow Warning | Weather setter |
@@ -140,13 +140,11 @@ These do several jobs at once; the table is factual, not weighted.
 | 1 | Toxic Debris | — |
 | 0 | Air Lock | Weather / effect denial |
 | 0 | Arena Trap | Trapper |
-| 0 | Battery | Damage amplifier |
 | 0 | Beast Boost | Setup / sweeper |
 | 0 | Chilling Neigh | Setup / sweeper |
 | 0 | Clear Body | Weather / effect denial |
-| 0 | Dark Aura | Damage amplifier |
 | 0 | Desolate Land | Weather setter |
-| 0 | Dry Skin | Weather / field abuser |
+| 0 | Dry Skin | Weather / field abuser, Healing / sustain |
 | 0 | Electric Surge | Terrain setter |
 | 0 | Flower Gift | Weather / field abuser |
 | 0 | Fluffy | Bulky wall / support |
@@ -155,7 +153,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Grassy Surge | Terrain setter |
 | 0 | Grim Neigh | Setup / sweeper |
 | 0 | Hadron Engine | Terrain setter |
-| 0 | Ice Body | Weather / field abuser |
+| 0 | Ice Body | Weather / field abuser, Healing / sustain |
 | 0 | Ice Face | Bulky wall / support |
 | 0 | Leaf Guard | Weather / field abuser |
 | 0 | Magic Bounce | Weather / effect denial |
@@ -163,7 +161,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Misty Surge | Terrain setter |
 | 0 | Neutralizing Gas | Weather / effect denial |
 | 0 | Orichalcum Pulse | Weather setter |
-| 0 | Power Spot | Damage amplifier |
+| 0 | Poison Heal | Healing / sustain |
 | 0 | Primordial Sea | Weather setter |
 | 0 | Protosynthesis | Weather / field abuser |
 | 0 | Psychic Surge | Terrain setter |
@@ -173,8 +171,8 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Sand Veil | Weather / field abuser |
 | 0 | Shadow Tag | Trapper |
 | 0 | Slush Rush | Weather / field abuser |
-| 0 | Steely Spirit | Damage amplifier |
 | 0 | Storm Drain | Redirection |
+| 0 | Volt Absorb | Healing / sustain |
 | 0 | White Smoke | Weather / effect denial |
 
 ## Every move
@@ -222,7 +220,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 922 | Dual Wingbeat | Physical attacker |
 | 864 | Blizzard | Special attacker |
 | 849 | Brave Bird | Physical attacker |
-| 843 | Helping Hand | Ally support / positioning, Damage amplifier, Bulky wall / support |
+| 843 | Helping Hand | Ally support / positioning, Helping Hand, Bulky wall / support |
 | 839 | Light Screen | Screen setter, Bulky wall / support |
 | 818 | High Horsepower | Physical attacker |
 | 781 | Dire Claw | Physical attacker, Poison spreader |
@@ -403,7 +401,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 48 | Outrage | — |
 | 48 | Strength Sap | Healing / sustain |
 | 46 | Curse | Setup / sweeper, Status spreader (other) |
-| 46 | Heal Pulse | Ally support / positioning |
+| 46 | Heal Pulse | Ally support / positioning, Healing / sustain |
 | 44 | Lash Out | — |
 | 44 | Night Slash | — |
 | 43 | Solar Blade | — |
@@ -629,6 +627,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Dark Void | Sleep spreader |
 | 0 | Dragon Breath | Paralysis spreader |
 | 0 | Fishious Rend | Physical attacker |
+| 0 | Floral Healing | Healing / sustain |
 | 0 | Gear Up | Ally support / positioning |
 | 0 | Geomancy | Setup / sweeper |
 | 0 | Glaciate | Speed control (lower foe) |
@@ -649,8 +648,10 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Play Nice | Debuff (Intimidate / drops) |
 | 0 | Poison Gas | Poison spreader |
 | 0 | Poison Powder | Poison spreader |
+| 0 | Purify | Healing / sustain |
 | 0 | Rapid Spin | Weather / effect denial |
 | 0 | Sacred Fire | Burn spreader |
+| 0 | Shore Up | Healing / sustain |
 | 0 | Silk Trap | Debuff (Intimidate / drops) |
 | 0 | Sing | Sleep spreader |
 | 0 | Soft-Boiled | Healing / sustain |

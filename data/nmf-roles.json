@@ -4,352 +4,80 @@
  "archetypes": [
   {
    "id": "A1",
-   "prevalence": 0.202,
-   "top_roles": [
-    {
-     "role": "debuff",
-     "label": "Debuff (Intimidate / drops)",
-     "weight": 0.562
-    },
-    {
-     "role": "fakeout",
-     "label": "Fake Out (tempo)",
-     "weight": 0.189
-    },
-    {
-     "role": "pivot",
-     "label": "Pivot",
-     "weight": 0.048
-    },
-    {
-     "role": "setup",
-     "label": "Setup / sweeper",
-     "weight": 0.047
-    },
-    {
-     "role": "status",
-     "label": "Status user",
-     "weight": 0.035
-    },
-    {
-     "role": "speed_trickroom",
-     "label": "Trick Room setter",
-     "weight": 0.035
-    }
-   ],
-   "top_species": [
-    {
-     "species": "vivillonmonsoon",
-     "lift": 0.2998,
-     "games": 145
-    },
-    {
-     "species": "incineroar",
-     "lift": 0.2111,
-     "games": 3093
-    },
-    {
-     "species": "arcanine",
-     "lift": 0.2091,
-     "games": 40
-    },
-    {
-     "species": "rhyperior",
-     "lift": 0.1944,
-     "games": 101
-    },
-    {
-     "species": "gengar",
-     "lift": 0.1902,
-     "games": 495
-    },
-    {
-     "species": "mawile",
-     "lift": 0.1683,
-     "games": 596
-    }
-   ]
-  },
-  {
-   "id": "A2",
-   "prevalence": 0.193,
-   "top_roles": [
-    {
-     "role": "spec_attacker",
-     "label": "Special attacker",
-     "weight": 0.802
-    },
-    {
-     "role": "status",
-     "label": "Status user",
-     "weight": 0.068
-    },
-    {
-     "role": "healing",
-     "label": "Healing / sustain",
-     "weight": 0.051
-    },
-    {
-     "role": "speed_trickroom",
-     "label": "Trick Room setter",
-     "weight": 0.034
-    },
-    {
-     "role": "pivot",
-     "label": "Pivot",
-     "weight": 0.017
-    },
-    {
-     "role": "fakeout",
-     "label": "Fake Out (tempo)",
-     "weight": 0.008
-    }
-   ],
-   "top_species": [
-    {
-     "species": "rotomfrost",
-     "lift": 0.2207,
-     "games": 33
-    },
-    {
-     "species": "pyroar",
-     "lift": 0.1481,
-     "games": 266
-    },
-    {
-     "species": "jolteon",
-     "lift": 0.1467,
-     "games": 108
-    },
-    {
-     "species": "sceptile",
-     "lift": 0.1324,
-     "games": 247
-    },
-    {
-     "species": "rotomheat",
-     "lift": 0.1194,
-     "games": 158
-    },
-    {
-     "species": "abomasnow",
-     "lift": 0.1155,
-     "games": 50
-    }
-   ]
-  },
-  {
-   "id": "A3",
-   "prevalence": 0.188,
-   "top_roles": [
-    {
-     "role": "wall",
-     "label": "Bulky wall / support",
-     "weight": 0.475
-    },
-    {
-     "role": "screens",
-     "label": "Screen setter",
-     "weight": 0.086
-    },
-    {
-     "role": "redirection",
-     "label": "Redirection",
-     "weight": 0.077
-    },
-    {
-     "role": "status",
-     "label": "Status user",
-     "weight": 0.069
-    },
-    {
-     "role": "setup",
-     "label": "Setup / sweeper",
-     "weight": 0.065
-    },
-    {
-     "role": "healing",
-     "label": "Healing / sustain",
-     "weight": 0.05
-    }
-   ],
-   "top_species": [
-    {
-     "species": "vivillonfancy",
-     "lift": 0.2463,
-     "games": 48
-    },
-    {
-     "species": "audino",
-     "lift": 0.2425,
-     "games": 98
-    },
-    {
-     "species": "archaludon",
-     "lift": 0.2395,
-     "games": 2164
-    },
-    {
-     "species": "swampert",
-     "lift": 0.235,
-     "games": 1198
-    },
-    {
-     "species": "grimmsnarl",
-     "lift": 0.227,
-     "games": 1884
-    },
-    {
-     "species": "steelix",
-     "lift": 0.2205,
-     "games": 55
-    }
-   ]
-  },
-  {
-   "id": "A4",
-   "prevalence": 0.166,
+   "prevalence": 0.198,
    "top_roles": [
     {
      "role": "phys_attacker",
      "label": "Physical attacker",
-     "weight": 0.815
+     "weight": 0.773
     },
     {
      "role": "pivot",
      "label": "Pivot",
-     "weight": 0.047
+     "weight": 0.046
     },
     {
      "role": "itemdisrupt",
      "label": "Item disruption",
-     "weight": 0.046
+     "weight": 0.044
+    },
+    {
+     "role": "status_poison",
+     "label": "Poison spreader",
+     "weight": 0.034
     },
     {
      "role": "setup",
      "label": "Setup / sweeper",
-     "weight": 0.034
-    },
-    {
-     "role": "status",
-     "label": "Status user",
-     "weight": 0.015
+     "weight": 0.033
     },
     {
      "role": "speed_lower",
      "label": "Speed control (lower foe)",
-     "weight": 0.012
+     "weight": 0.011
     }
    ],
    "top_species": [
     {
      "species": "houndstone",
-     "lift": 0.1598,
+     "lift": 0.1822,
      "games": 91
     },
     {
      "species": "typhlosionhisui",
-     "lift": 0.1265,
-     "games": 476
+     "lift": 0.123,
+     "games": 482
     },
     {
      "species": "gholdengo",
-     "lift": 0.1066,
-     "games": 1711
+     "lift": 0.107,
+     "games": 1719
     },
     {
      "species": "excadrill",
-     "lift": 0.0894,
-     "games": 1077
+     "lift": 0.0983,
+     "games": 1079
     },
     {
      "species": "tyranitar",
-     "lift": 0.0844,
-     "games": 1392
+     "lift": 0.0932,
+     "games": 1396
     },
     {
-     "species": "aerodactyl",
-     "lift": 0.0665,
-     "games": 1082
+     "species": "beedrill",
+     "lift": 0.0731,
+     "games": 44
     }
    ]
   },
   {
-   "id": "A5",
-   "prevalence": 0.128,
-   "top_roles": [
-    {
-     "role": "priority",
-     "label": "Priority attacker",
-     "weight": 0.847
-    },
-    {
-     "role": "setup",
-     "label": "Setup / sweeper",
-     "weight": 0.077
-    },
-    {
-     "role": "fakeout",
-     "label": "Fake Out (tempo)",
-     "weight": 0.037
-    },
-    {
-     "role": "encore",
-     "label": "Encore",
-     "weight": 0.014
-    },
-    {
-     "role": "speed_trickroom",
-     "label": "Trick Room setter",
-     "weight": 0.013
-    },
-    {
-     "role": "allysupport",
-     "label": "Ally support / positioning",
-     "weight": 0.006
-    }
-   ],
-   "top_species": [
-    {
-     "species": "dragonite",
-     "lift": 0.1424,
-     "games": 678
-    },
-    {
-     "species": "azumarill",
-     "lift": 0.1371,
-     "games": 77
-    },
-    {
-     "species": "scizor",
-     "lift": 0.1266,
-     "games": 271
-    },
-    {
-     "species": "lycanrocdusk",
-     "lift": 0.1106,
-     "games": 106
-    },
-    {
-     "species": "kingambit",
-     "lift": 0.1093,
-     "games": 4013
-    },
-    {
-     "species": "sylveon",
-     "lift": 0.1059,
-     "games": 2658
-    }
-   ]
-  },
-  {
-   "id": "A6",
-   "prevalence": 0.123,
+   "id": "A2",
+   "prevalence": 0.178,
    "top_roles": [
     {
      "role": "speed_tailwind",
      "label": "Tailwind (speed up)",
-     "weight": 0.843
+     "weight": 0.827
     },
     {
      "role": "encore",
@@ -357,61 +85,333 @@
      "weight": 0.092
     },
     {
+     "role": "status_poison",
+     "label": "Poison spreader",
+     "weight": 0.012
+    },
+    {
      "role": "setup",
      "label": "Setup / sweeper",
-     "weight": 0.011
-    },
-    {
-     "role": "fakeout",
-     "label": "Fake Out (tempo)",
-     "weight": 0.009
-    },
-    {
-     "role": "speed_lower",
-     "label": "Speed control (lower foe)",
      "weight": 0.009
     },
     {
      "role": "taunt",
      "label": "Taunt",
      "weight": 0.008
+    },
+    {
+     "role": "speed_lower",
+     "label": "Speed control (lower foe)",
+     "weight": 0.008
     }
    ],
    "top_species": [
     {
-     "species": "sylveon",
-     "lift": 0.1429,
-     "games": 2658
+     "species": "whimsicott",
+     "lift": 0.1559,
+     "games": 4332
     },
     {
-     "species": "whimsicott",
-     "lift": 0.1405,
-     "games": 4322
+     "species": "sylveon",
+     "lift": 0.1508,
+     "games": 2661
     },
     {
      "species": "talonflame",
-     "lift": 0.109,
-     "games": 608
+     "lift": 0.1384,
+     "games": 610
     },
     {
      "species": "charizard",
-     "lift": 0.1087,
-     "games": 3563
+     "lift": 0.1154,
+     "games": 3584
+    },
+    {
+     "species": "noivern",
+     "lift": 0.0995,
+     "games": 87
     },
     {
      "species": "gardevoir",
-     "lift": 0.0879,
-     "games": 275
+     "lift": 0.099,
+     "games": 276
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "prevalence": 0.174,
+   "top_roles": [
+    {
+     "role": "debuff",
+     "label": "Debuff (Intimidate / drops)",
+     "weight": 0.551
     },
     {
-     "species": "garchomp",
-     "lift": 0.0853,
-     "games": 4789
+     "role": "fakeout",
+     "label": "Fake Out (tempo)",
+     "weight": 0.175
+    },
+    {
+     "role": "pivot",
+     "label": "Pivot",
+     "weight": 0.046
+    },
+    {
+     "role": "setup",
+     "label": "Setup / sweeper",
+     "weight": 0.045
+    },
+    {
+     "role": "speed_trickroom",
+     "label": "Trick Room setter",
+     "weight": 0.034
+    },
+    {
+     "role": "status_poison",
+     "label": "Poison spreader",
+     "weight": 0.031
+    }
+   ],
+   "top_species": [
+    {
+     "species": "vivillonmonsoon",
+     "lift": 0.3011,
+     "games": 145
+    },
+    {
+     "species": "incineroar",
+     "lift": 0.2006,
+     "games": 3101
+    },
+    {
+     "species": "arcanine",
+     "lift": 0.2004,
+     "games": 40
+    },
+    {
+     "species": "rhyperior",
+     "lift": 0.1932,
+     "games": 101
+    },
+    {
+     "species": "gengar",
+     "lift": 0.1836,
+     "games": 496
+    },
+    {
+     "species": "meowsticf",
+     "lift": 0.1659,
+     "games": 31
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "prevalence": 0.171,
+   "top_roles": [
+    {
+     "role": "spec_attacker",
+     "label": "Special attacker",
+     "weight": 0.755
+    },
+    {
+     "role": "healing",
+     "label": "Healing / sustain",
+     "weight": 0.049
+    },
+    {
+     "role": "status_poison",
+     "label": "Poison spreader",
+     "weight": 0.043
+    },
+    {
+     "role": "status_burn",
+     "label": "Burn spreader",
+     "weight": 0.038
+    },
+    {
+     "role": "speed_trickroom",
+     "label": "Trick Room setter",
+     "weight": 0.032
+    },
+    {
+     "role": "status_para",
+     "label": "Paralysis spreader",
+     "weight": 0.022
+    }
+   ],
+   "top_species": [
+    {
+     "species": "rotomfrost",
+     "lift": 0.2175,
+     "games": 34
+    },
+    {
+     "species": "jolteon",
+     "lift": 0.1556,
+     "games": 110
+    },
+    {
+     "species": "pyroar",
+     "lift": 0.144,
+     "games": 268
+    },
+    {
+     "species": "sceptile",
+     "lift": 0.1365,
+     "games": 249
+    },
+    {
+     "species": "slowbrogalar",
+     "lift": 0.132,
+     "games": 30
+    },
+    {
+     "species": "rotomheat",
+     "lift": 0.1228,
+     "games": 158
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "prevalence": 0.158,
+   "top_roles": [
+    {
+     "role": "wall",
+     "label": "Bulky wall / support",
+     "weight": 0.474
+    },
+    {
+     "role": "screens",
+     "label": "Screen setter",
+     "weight": 0.087
+    },
+    {
+     "role": "redirection",
+     "label": "Redirection",
+     "weight": 0.078
+    },
+    {
+     "role": "setup",
+     "label": "Setup / sweeper",
+     "weight": 0.059
+    },
+    {
+     "role": "healing",
+     "label": "Healing / sustain",
+     "weight": 0.049
+    },
+    {
+     "role": "teamprotect",
+     "label": "Wide / Quick Guard",
+     "weight": 0.043
+    }
+   ],
+   "top_species": [
+    {
+     "species": "vivillonfancy",
+     "lift": 0.2465,
+     "games": 48
+    },
+    {
+     "species": "archaludon",
+     "lift": 0.2293,
+     "games": 2184
+    },
+    {
+     "species": "swampert",
+     "lift": 0.2256,
+     "games": 1201
+    },
+    {
+     "species": "audino",
+     "lift": 0.2238,
+     "games": 98
+    },
+    {
+     "species": "grimmsnarl",
+     "lift": 0.2198,
+     "games": 1902
+    },
+    {
+     "species": "steelix",
+     "lift": 0.2092,
+     "games": 55
+    }
+   ]
+  },
+  {
+   "id": "A6",
+   "prevalence": 0.121,
+   "top_roles": [
+    {
+     "role": "priority",
+     "label": "Priority attacker",
+     "weight": 0.842
+    },
+    {
+     "role": "setup",
+     "label": "Setup / sweeper",
+     "weight": 0.073
+    },
+    {
+     "role": "fakeout",
+     "label": "Fake Out (tempo)",
+     "weight": 0.034
+    },
+    {
+     "role": "encore",
+     "label": "Encore",
+     "weight": 0.013
+    },
+    {
+     "role": "speed_trickroom",
+     "label": "Trick Room setter",
+     "weight": 0.012
+    },
+    {
+     "role": "allysupport",
+     "label": "Ally support / positioning",
+     "weight": 0.005
+    }
+   ],
+   "top_species": [
+    {
+     "species": "azumarill",
+     "lift": 0.1418,
+     "games": 77
+    },
+    {
+     "species": "dragonite",
+     "lift": 0.1345,
+     "games": 683
+    },
+    {
+     "species": "scizor",
+     "lift": 0.126,
+     "games": 273
+    },
+    {
+     "species": "ariados",
+     "lift": 0.1041,
+     "games": 45
+    },
+    {
+     "species": "lycanrocdusk",
+     "lift": 0.1035,
+     "games": 107
+    },
+    {
+     "species": "kingambit",
+     "lift": 0.0997,
+     "games": 4019
     }
    ]
   }
  ],
- "archetype_recon_error": 0.5412,
+ "archetype_recon_error": 0.5639,
  "archetype_rank": 6,
  "rank": 10,
  "n_documents": 14605,

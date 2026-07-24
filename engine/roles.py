@@ -113,17 +113,21 @@ ROLE_SIGNALS = {
  "healing": dict(label="Healing / sustain",
     moves={"Recover","Roost","Wish","Life Dew","Pollen Puff","Matcha Gotcha","Synthesis","Moonlight",
            "Morning Sun","Slack Off","Milk Drink","Jungle Healing","Lunar Blessing","Soft-Boiled","Rest",
-           "Strength Sap","Giga Drain","Drain Punch","Horn Leech","Draining Kiss","Leech Life","Parabolic Charge"}),
+           "Strength Sap","Giga Drain","Drain Punch","Horn Leech","Draining Kiss","Leech Life","Parabolic Charge",
+           "Floral Healing","Heal Pulse","Purify","Shore Up"},
+    # Hospitality heals the partner on switch-in; Regenerator heals this mon every time it pivots out.
+    abilities={"Hospitality","Regenerator","Poison Heal","Water Absorb","Volt Absorb","Earth Eater",
+               "Dry Skin","Rain Dish","Ice Body","Sap Sipper"}),
  "screens": dict(label="Screen setter",
     moves={"Light Screen","Reflect","Aurora Veil"}),
  "teamprotect": dict(label="Wide / Quick Guard",
     moves={"Wide Guard","Quick Guard"}),
- "helpinghand": dict(label="Damage amplifier",
-    # boosts a partner's damage rather than dealing its own — a real doubles job. Fairy Aura and
-    # Dark Aura raise every Fairy/Dark move on the field; Battery, Power Spot and Steely Spirit
-    # raise the partner's specifically.
-    moves={"Helping Hand"},
-    abilities={"Fairy Aura","Dark Aura","Battery","Power Spot","Steely Spirit"}),
+ "helpinghand": dict(label="Helping Hand",
+    # Deliberately the ACTIVE, one-turn, targeted boost only. Fairy Aura / Dark Aura are not the
+    # same job: they are passive, permanent and type-wide (and Aura even boosts the opponent's moves
+    # of that type). They are left untagged as passive damage modifiers, in the same class as
+    # Adaptability and Mold Breaker — a stat multiplier is not a role.
+    moves={"Helping Hand"}),
  "pivot": dict(label="Pivot",
     moves={"Parting Shot","Flip Turn","U-turn","Volt Switch","Teleport","Baton Pass","Chilly Reception"}),
  "wall": dict(label="Bulky wall / support",
@@ -134,6 +138,11 @@ ROLE_SIGNALS = {
     moves={"Fairy Lock","Spider Web","Mean Look","Block","Anchor Shot","Thousand Waves","Spirit Shackle",
            "Infestation","Whirlpool","Fire Spin","Sand Tomb","Bind","Wrap"},
     abilities={"Shadow Tag","Arena Trap","Magnet Pull"}),
+ "hazards": dict(label="Hazard setter",
+    # rare in VGC (short games, few switches) but a real job where it appears. Toxic Debris sets
+    # Toxic Spikes passively when the mon is hit by a physical move. Removal lives under "denial".
+    moves={"Stealth Rock","Spikes","Toxic Spikes","Sticky Web","Ceaseless Edge","Stone Axe"},
+    abilities={"Toxic Debris"}),
  "perish": dict(label="Perish Trap",
     moves={"Perish Song"}),
  "allysupport": dict(label="Ally support / positioning",
