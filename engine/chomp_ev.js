@@ -125,6 +125,57 @@ function alignOf(six, br, scoreFn) {
   return { align: 1 - rank / 14, rank: rank + 1, top1: rank === 0, overlap };
 }
 
+/* ---- BELIEF-BUILT OPPONENTS ---------------------------------------------------------------
+ * Until now CHOMP has scored against opponents built by a heuristic (autoPaste picks the highest
+ * base-power moves that cover the most types). That is a guess about what a Pokemon runs, and it is
+ * the same guess regardless of who its teammates are.
+ *
+ * XATU's team-context model says otherwise: a set is chosen to fit a team. Basculegion leads Wave
+ * Crash on a rain team and Last Respects off one - roughly a 2x swing. So here we rebuild the
+ * opponent's six using the FOUR MOVES MOST LIKELY GIVEN THEIR TEAM, taken from real games, and score
+ * brings against that instead.
+ *
+ * This is the actual test of "do better beliefs make better decisions". If the bring metric improves,
+ * belief quality converts into decision quality. If it does not, the preview ceiling holds regardless
+ * of how well we model the opponent - which would itself be worth knowing.
+ */
+let CTXSETS = null, ROLESOF = null;
+try {
+  CTXSETS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'xatu-context-sets.json'), 'utf8'));
+  const pr = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'pokemon-roles.json'), 'utf8'));
+  ROLESOF = {}; for (const [sp, v] of Object.entries(pr.species || {})) ROLESOF[sp] = Object.keys(v.roles || {});
+} catch (e) { CTXSETS = null; }
+
+const CTX_FEATURES = CTXSETS ? CTXSETS.context_features : [];
+function teamContext(six, me) {
+  if (!ROLESOF) return 'none';
+  const tags = CTX_FEATURES.filter(r => six.some(m => m !== me && (ROLESOF[m] || []).includes(r)));
+  return tags.length ? tags.join('|') : 'none';
+}
+const beliefCache = {};
+function monBelief(sp, six) {
+  if (!CTXSETS) return mon(sp);
+  const ck = sp + '@' + teamContext(six, sp);
+  if (ck in beliefCache) return beliefCache[ck];
+  const entry = CTXSETS.sets[sp];
+  let moves = null;
+  if (entry) moves = entry.ctx[teamContext(six, sp)] || entry.default;
+  if (!moves || !moves.length) return beliefCache[ck] = mon(sp);
+  const rk = resolveKey(sp);
+  const base = rk && M.MONS[rk];
+  if (!base) return beliefCache[ck] = mon(sp);
+  // keep everything except the moves identical to the heuristic build, so the ONLY thing that
+  // changes between the two variants is the believed moveset
+  const phys = base.bs.atk >= base.bs.spa;
+  const legal = new Set(S.movesFor(rk).map(n => (M.mvByName[n] || {}).n).filter(Boolean));
+  const use = moves.filter(m => legal.has(m)).slice(0, 4);
+  if (!use.length) return beliefCache[ck] = mon(sp);
+  const paste = `${base.name} @ Life Orb\nAbility: Pressure\nLevel: 50\n${phys ? 'Adamant' : 'Modest'} Nature\n`
+    + `EVs: ${phys ? '2 HP / 32 Atk / 32 Spe' : '2 HP / 32 SpA / 32 Spe'}\n` + use.map(x => '- ' + x).join('\n');
+  try { return beliefCache[ck] = M.buildMon(M.parsePaste(paste)[0]); }
+  catch (e) { return beliefCache[ck] = mon(sp); }
+}
+
 // score functions
 const chompScore = (foeBuilt) => (ix, built) => { try { return M.teamVs(ix.map(i => built[i]), foeBuilt).score; } catch (e) { return -1e9; } };
 const usageScore = (six) => (ix) => ix.reduce((s, i) => s + (bringRate[six[i]] || 0), 0);
@@ -147,10 +198,22 @@ for (const r of rows) {
   const Bl = likely4(r.six2).map(i => B[i]), Al = likely4(r.six1).map(i => A[i]);
   const b1 = alignOf(r.six1, r.br1, chompScore(Bl));
   const b2 = alignOf(r.six2, r.br2, chompScore(Al));
+  // XATU-context variant: same brings, but the OPPONENT is built from the moves they most likely
+  // run given their team, instead of the damage-maximising heuristic
+  let x1 = null, x2 = null;
+  if (CTXSETS) {
+    const Bx = r.six2.map(sp => monBelief(sp, r.six2));
+    const Ax = r.six1.map(sp => monBelief(sp, r.six1));
+    if (!Bx.some(m => !m) && !Ax.some(m => !m)) {
+      x1 = alignOf(r.six1, r.br1, chompScore(Bx));
+      x2 = alignOf(r.six2, r.br2, chompScore(Ax));
+    }
+  }
   data.push({ id: r.id, y: r.y, r1: r.r1, r2: r.r2, ff: ffset.has(r.id),
     a1: c1.align, a2: c2.align, top1_1: c1.top1, top1_2: c2.top1, ov1: c1.overlap, ov2: c2.overlap,
     ua1: u1 ? u1.align : 0.5, ua2: u2 ? u2.align : 0.5,
-    ba1: b1 ? b1.align : 0.5, ba2: b2 ? b2.align : 0.5 });
+    ba1: b1 ? b1.align : 0.5, ba2: b2 ? b2.align : 0.5,
+    xa1: x1 ? x1.align : (b1 ? b1.align : 0.5), xa2: x2 ? x2.align : (b2 ? b2.align : 0.5) });
   if (data.length % 200 === 0) process.stderr.write(`  ${data.length}/${rows.length} (${((Date.now() - t0) / 1000).toFixed(0)}s)\n`);
 }
 
@@ -182,7 +245,8 @@ const rat = x => (x == null ? medRating : x);
 const featChomp  = r => r.a1 - r.a2;
 const featUsage  = r => r.ua1 - r.ua2;
 const featElo    = r => (rat(r.r1) - rat(r.r2)) / 400;
-const featBelief = r => r.ba1 - r.ba2;   // belief-weighted CHOMP (coverage vs opponent's likely-4)
+const featBelief = r => r.ba1 - r.ba2;
+const featCtxBelief = r => r.xa1 - r.xa2;   // opponent built from XATU's team-context movesets   // belief-weighted CHOMP (coverage vs opponent's likely-4)
 
 const ys_te = te.map(r => r.y);
 const mChomp  = fitLogit(tr, featChomp);
