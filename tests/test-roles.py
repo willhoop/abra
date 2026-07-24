@@ -25,7 +25,10 @@ ok("spec_attacker" not in inc, "Incineroar is not a special attacker")
 
 # Torkoal-style: Sunny Day (weather) + Heat Wave + Weather Ball (2 special) + Protect.
 tor = R.signal_roles(["Sunny Day","Heat Wave","Weather Ball","Protect"], "Drought", "Charcoal")
-ok("weather" in tor, "weather setter tagged (Sunny Day / Drought)")
+# Weather is split by TYPE now (2026-07-24): a generic "weather" tag could not answer whether a
+# Swift Swim mon has a RAIN setter or a dead ability, so setter and abuser both name the weather.
+ok("weather_sun" in tor, "SUN setter tagged specifically (Sunny Day / Drought), not generic weather")
+ok("weather_rain" not in tor and "weather_sand" not in tor, "sun setter is not tagged as rain or sand")
 ok("spec_attacker" in tor, "special attacker tagged (Heat Wave + Weather Ball)")
 ok("phys_attacker" not in tor, "not a physical attacker")
 
