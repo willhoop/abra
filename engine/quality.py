@@ -53,7 +53,35 @@ def read_store(path=None):
     return out
 
 
-def reasons(g, cfg=None):
+def behavioural_bots(games, cfg=None):
+    """Accounts that behave like bots regardless of what they are called.
+
+    The decisive signal is TEAM INVARIANCE. A name filter only catches accounts that announce
+    themselves; these did not, and they appeared in more than half the games the name filter passed.
+    An account that plays hundreds of games without ever changing a slot is running a script.
+    Computed once over the whole store, because it is a property of an ACCOUNT, not of a game."""
+    cfg = cfg or config()
+    r = cfg['rules'].get('exclude_behavioural_bots')
+    if not r or not r['on']:
+        return set()
+    games_by = {}
+    teams_by = {}
+    for g in games:
+        for s_ in ('p1', 'p2'):
+            n = (g.get(s_) or {}).get('name')
+            if not n:
+                continue
+            games_by[n] = games_by.get(n, 0) + 1
+            six = tuple(sorted((g.get('six') or {}).get(s_) or []))
+            if six:
+                teams_by.setdefault(n, set()).add(six)
+    return {n for n, c in games_by.items()
+            if c >= r['min_games']
+            and teams_by.get(n)
+            and len(teams_by[n]) <= r['max_distinct_teams']}
+
+
+def reasons(g, cfg=None, bots=None):
     """Every reason this game is unusable. Empty list means clean. Returning ALL reasons rather than
     the first lets the funnel be reported honestly instead of attributing each drop to one cause."""
     cfg = cfg or config()
@@ -61,6 +89,8 @@ def reasons(g, cfg=None):
     bad = []
     if r['exclude_bot_games']['on'] and (g.get('p1', {}).get('bot') or g.get('p2', {}).get('bot')):
         bad.append('bot')
+    if bots and (g.get('p1', {}).get('name') in bots or g.get('p2', {}).get('name') in bots):
+        bad.append('behavioural_bot')
     if r['exclude_forfeits']['on'] and g.get('forfeit'):
         bad.append('forfeit')
     if r['min_turns']['on'] and len(g.get('turns') or []) < r['min_turns']['value']:
@@ -72,8 +102,8 @@ def reasons(g, cfg=None):
     return bad
 
 
-def is_clean(g, cfg=None):
-    return not reasons(g, cfg)
+def is_clean(g, cfg=None, bots=None):
+    return not reasons(g, cfg, bots)
 
 
 def load_games(clean=True, path=None):
@@ -81,7 +111,8 @@ def load_games(clean=True, path=None):
     if not clean:
         return games
     cfg = config()
-    return [g for g in games if is_clean(g, cfg)]
+    bots = behavioural_bots(games, cfg)
+    return [g for g in games if is_clean(g, cfg, bots)]
 
 
 def funnel(path=None):
@@ -95,6 +126,11 @@ def funnel(path=None):
     if r['exclude_bot_games']['on']:
         cur = [g for g in cur if not (g.get('p1', {}).get('bot') or g.get('p2', {}).get('bot'))]
         out['after_bot_filter'] = len(cur)
+    bots = behavioural_bots(games, cfg)
+    if bots:
+        cur = [g for g in cur if g.get('p1', {}).get('name') not in bots
+               and g.get('p2', {}).get('name') not in bots]
+        out['after_behavioural_bots'] = len(cur)
     if r['exclude_forfeits']['on']:
         cur = [g for g in cur if not g.get('forfeit')]
         out['after_forfeit_filter'] = len(cur)
@@ -115,7 +151,8 @@ if __name__ == '__main__':
     total = f['collected']
     print('GAME QUALITY FUNNEL')
     labels = [('collected', 'collected from Showdown'),
-              ('after_bot_filter', 'after removing bot games'),
+              ('after_bot_filter', 'after removing NAMED bot games'),
+              ('after_behavioural_bots', 'after removing accounts that behave like bots'),
               ('after_forfeit_filter', 'after removing forfeits'),
               ('after_min_turns', 'after removing games under 3 turns'),
               ('after_full_bring', 'after requiring all four brought to be revealed')]

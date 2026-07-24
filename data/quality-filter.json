@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-07-24",
   "purpose": "The single definition of a USABLE game. Every model reads this file instead of deciding for itself, so 'which games did that number come from' has one answer.",
   "why": "Before this existed, each model applied its own ad-hoc filtering or none at all. 55.2% of stored games involve a bot and 24.0% end in a forfeit, so a model that filtered nothing was reporting a statistic about bot ladder behaviour and calling it the metagame.",
@@ -9,7 +9,26 @@
       "test": "either player's `bot` flag is true",
       "rationale": "Bot games are not evidence about human play. 11 accounts named pcrlbot<16-hex> account for essentially the entire bot population, playing 338-409 games each.",
       "detection": "username regex /^pcrlbot|bot\\d|^[a-z]+bot$/i applied at ingest",
-      "known_limitation": "Detection is NAME-ONLY. A bot with a human-looking name is invisible to this filter and the number of such accounts is unknown and unquantified. Do not describe the bot-free subset as verified human."
+      "known_limitation": "Detection is NAME-ONLY and catches only self-identifying accounts. It missed five high-volume accounts that the behavioural rule now catches. Never describe the surviving set as verified human."
+    },
+    "exclude_behavioural_bots": {
+      "on": true,
+      "test": "either player's account played >= min_games in the window AND used exactly one distinct team",
+      "min_games": 50,
+      "max_distinct_teams": 1,
+      "rationale": "Name-based detection only catches accounts that announce themselves. These five did not, and they appeared in 52.2% of the games the name filter called clean. The decisive signal is team invariance: Carchdraw84172 played 459 games with exactly one team, 367 of them in a single day - a game every four minutes for twenty-four hours without changing a slot. Active human accounts (15-60 games) reuse their most-common team about 64% of the time, never 100%.",
+      "evidence": {
+        "caught": [
+          "Carchdraw84172 (459 games, 1 team)",
+          "Natsitimer52906 (426, 1)",
+          "Ironbough29517 (294, 1)",
+          "Duskglade57204 (267, 1)",
+          "Scoobsicle40912 (147, 1)"
+        ],
+        "false_positive_check": "No account with >=50 games in this store has more than one distinct team, so the rule separates cleanly. It is stable for thresholds between 50 and 100 games.",
+        "corroborating": "All five share a machine-shaped name (Word+5 digits), forfeit 16-23% of games against a human median of 42%, and run the same two-day burst pattern."
+      },
+      "known_limitation": "Threshold-based, so a bot playing under 50 games or varying its team escapes. This raises the floor on bot detection; it does not establish one. The remaining set must still be described as 'no bot detected', never as 'human'."
     },
     "exclude_forfeits": {
       "on": true,
@@ -36,10 +55,12 @@
     "funnel": {
       "collected": 7547,
       "after_bot_filter": 3378,
-      "after_forfeit_filter": 2372,
-      "after_min_turns": 2354,
-      "after_full_bring": 1941
+      "after_behavioural_bots": 1831,
+      "after_forfeit_filter": 1129,
+      "after_min_turns": 1124,
+      "after_full_bring": 927
     },
-    "note": "These counts are measured on the DEDUPLICATED store. An earlier figure of 2,020 was computed before deduplication and is superseded; it is recorded here rather than deleted so the change is visible."
+    "note": "These counts are measured on the DEDUPLICATED store. An earlier figure of 2,020 was computed before deduplication and is superseded; it is recorded here rather than deleted so the change is visible.",
+    "clean": 927
   }
 }

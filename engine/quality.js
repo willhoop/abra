@@ -36,11 +36,37 @@ function readStore(p) {
   return out;
 }
 
+/* Accounts that BEHAVE like bots regardless of their name. The decisive signal is team invariance:
+ * an account playing hundreds of games without ever changing a slot is running a script. Computed
+ * once over the whole store, because it is a property of an ACCOUNT and not of a game. */
+function behaviouralBots(games, cfg) {
+  cfg = cfg || config();
+  const r = cfg.rules.exclude_behavioural_bots;
+  if (!r || !r.on) return new Set();
+  const count = new Map(), teams = new Map();
+  for (const g of games) {
+    for (const s of ['p1', 'p2']) {
+      const n = (g[s] || {}).name;
+      if (!n) continue;
+      count.set(n, (count.get(n) || 0) + 1);
+      const six = ((g.six || {})[s] || []).slice().sort().join('|');
+      if (six) { if (!teams.has(n)) teams.set(n, new Set()); teams.get(n).add(six); }
+    }
+  }
+  const out = new Set();
+  for (const [n, c] of count) {
+    const t = teams.get(n);
+    if (c >= r.min_games && t && t.size <= r.max_distinct_teams) out.add(n);
+  }
+  return out;
+}
+
 // every reason this game is unusable; empty means clean
-function reasons(g, cfg) {
+function reasons(g, cfg, bots) {
   cfg = cfg || config();
   const r = cfg.rules, bad = [];
   if (r.exclude_bot_games.on && ((g.p1 && g.p1.bot) || (g.p2 && g.p2.bot))) bad.push('bot');
+  if (bots && ((g.p1 && bots.has(g.p1.name)) || (g.p2 && bots.has(g.p2.name)))) bad.push('behavioural_bot');
   if (r.exclude_forfeits.on && g.forfeit) bad.push('forfeit');
   if (r.min_turns.on && (g.turns || []).length < r.min_turns.value) bad.push('short');
   if (r.require_full_bring.on) {
@@ -50,14 +76,15 @@ function reasons(g, cfg) {
   return bad;
 }
 
-const isClean = (g, cfg) => reasons(g, cfg).length === 0;
+const isClean = (g, cfg, bots) => reasons(g, cfg, bots).length === 0;
 
 function loadGames(opts) {
   const o = opts || {};
   const games = readStore(o.path);
   if (o.clean === false) return games;
   const cfg = config();
-  return games.filter(g => isClean(g, cfg));
+  const bots = behaviouralBots(games, cfg);
+  return games.filter(g => isClean(g, cfg, bots));
 }
 
 function funnel(p) {
@@ -67,6 +94,11 @@ function funnel(p) {
   if (r.exclude_bot_games.on) {
     cur = cur.filter(g => !((g.p1 && g.p1.bot) || (g.p2 && g.p2.bot)));
     out.after_bot_filter = cur.length;
+  }
+  const bots = behaviouralBots(games, cfg);
+  if (bots.size) {
+    cur = cur.filter(g => !(bots.has((g.p1 || {}).name) || bots.has((g.p2 || {}).name)));
+    out.after_behavioural_bots = cur.length;
   }
   if (r.exclude_forfeits.on) {
     cur = cur.filter(g => !g.forfeit);
@@ -84,13 +116,14 @@ function funnel(p) {
   return out;
 }
 
-module.exports = { config, readStore, reasons, isClean, loadGames, funnel, STORE, CONFIG };
+module.exports = { config, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, STORE, CONFIG };
 
 if (require.main === module) {
   const f = funnel(), t = f.collected;
   console.log('GAME QUALITY FUNNEL');
   const rows = [['collected', 'collected from Showdown'],
-                ['after_bot_filter', 'after removing bot games'],
+                ['after_bot_filter', 'after removing NAMED bot games'],
+                ['after_behavioural_bots', 'after removing accounts that behave like bots'],
                 ['after_forfeit_filter', 'after removing forfeits'],
                 ['after_min_turns', 'after removing games under 3 turns'],
                 ['after_full_bring', 'after requiring all four brought to be revealed']];
