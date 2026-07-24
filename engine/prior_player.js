@@ -56,6 +56,28 @@ function makePriorPlayer() {
       this.stats = { sampled: 0, fellBack: 0, noPrior: 0 };
     }
 
+    /* Capture the request so chooseMove can work out WHICH Pokemon is choosing.
+     *
+     * The `active` object passed to chooseMove carries only the move list - no species. A first
+     * version read `active.species`, which is undefined, so every decision fell through to uniform
+     * random while reporting itself as a prior sampler. The comparison it produced (32.2 points)
+     * was therefore measuring random-versus-heuristic all over again. `request.active[i]` lines up
+     * with `request.side.pokemon[i]`, whose `details` field carries the species. */
+    receiveRequest(request) {
+      this._req = request;
+      return super.receiveRequest(request);
+    }
+
+    speciesFor(active) {
+      const req = this._req;
+      if (!req || !req.active || !req.side || !req.side.pokemon) return '';
+      const i = req.active.indexOf(active);
+      if (i < 0) return '';
+      const mon = req.side.pokemon[i];
+      if (!mon || !mon.details) return '';
+      return norm(String(mon.details).split(',')[0]);
+    }
+
     /* Sample the move this species actually clicks, at its observed frequency.
      *
      * Falls back to the parent's uniform choice when the species has no prior, or when the sampled
@@ -63,7 +85,7 @@ function makePriorPlayer() {
      * Both cases are COUNTED rather than hidden, because a policy that silently degrades to random
      * would reintroduce the very confound this class exists to remove. */
     chooseMove(active, moves) {
-      const species = norm((active && active.species) || (this.lastSpecies || ''));
+      const species = this.speciesFor(active);
       const rows = this.priors[species];
       if (!rows || !rows.length) {
         this.stats.noPrior++;

@@ -155,6 +155,16 @@ function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)
 // MEDICHAM policy = behaviour cloning: sample what a real ladder player would click, but always
 // take an obvious KO, and Protect defensively when threatened. This is the whole point of the model —
 // the win rate is the expected outcome under *realistic* play by both sides, not optimal play.
+/* POLICY SWITCH. `PURE_PRIORS` disables the three damage-dependent heuristics below, leaving only the
+ * behaviour-clone prior sampling. It exists so this engine can be compared LIKE FOR LIKE against the
+ * official simulator: the Showdown player (engine/prior_player.js) can sample priors but cannot run
+ * the KO / Protect / Wide Guard heuristics, because the request object carries no damage numbers.
+ * With this flag set, both sides are pure prior samplers, and any remaining difference in win rate is
+ * attributable to the RULES rather than to how well each side plays. Off by default - normal rollouts
+ * keep the heuristics, which is what makes them resemble real play. */
+let PURE_PRIORS = false;
+function setPurePriors(v){ PURE_PRIORS = !!v; }
+
 function chooseAction(me,foes,ally,field,side,rng){
   // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
@@ -166,12 +176,15 @@ function chooseAction(me,foes,ally,field,side,rng){
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
-  // 1) take a guaranteed KO most of the time (real players do)
-  if(bestKOsNow&&rng()<0.85) return {kind:'attack',move:bestAtk,target:tgt};
-  // 2) Protect when threatened and can't KO back
-  if(inDanger&&!bestKOsNow&&canProtect&&!me.protect&&me.tookProtectTurns<2&&rng()<0.5) return {kind:'protect'};
-  // 3) behaviour clone: sample the move this species actually clicks, at its real frequency
-  if(me.moves.includes('wideguard')&&live.length>1&&me.tookProtectTurns<2&&!me.protect&&rng()<0.35){const foeSpread=live.some(fo=>(fo.moves||[]).some(id=>SPREAD.has(id)));if(foeSpread)return{kind:'wideguard'};}
+  if(!PURE_PRIORS){
+    // 1) take a guaranteed KO most of the time (real players do)
+    if(bestKOsNow&&rng()<0.85) return {kind:'attack',move:bestAtk,target:tgt};
+    // 2) Protect when threatened and can't KO back
+    if(inDanger&&!bestKOsNow&&canProtect&&!me.protect&&me.tookProtectTurns<2&&rng()<0.5) return {kind:'protect'};
+    // 3) Wide Guard against a spread threat
+    if(me.moves.includes('wideguard')&&live.length>1&&me.tookProtectTurns<2&&!me.protect&&rng()<0.35){const foeSpread=live.some(fo=>(fo.moves||[]).some(id=>SPREAD.has(id)));if(foeSpread)return{kind:'wideguard'};}
+  }
+  // behaviour clone: sample the move this species actually clicks, at its real frequency
   const pr=MC.priors[me.name];
   if(pr){ let r=rng(),pick=null; for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
     if(pick){
@@ -416,5 +429,5 @@ root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MED
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,
-  moveFx,movePriority,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked};
+  moveFx,movePriority,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);
