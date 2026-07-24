@@ -330,18 +330,60 @@
  ],
  "ko_credit_top": [
   {
-   "species": "meganiummega",
-   "brought": 82,
-   "kos": 112,
-   "kos_in_wins": 90,
-   "ko_per_game": 1.366
+   "species": "staraptormega",
+   "brought": 41,
+   "kos": 775,
+   "kos_in_wins": 594,
+   "ko_per_game": 18.902
   },
   {
-   "species": "malamarmega",
-   "brought": 86,
-   "kos": 112,
-   "kos_in_wins": 90,
-   "ko_per_game": 1.302
+   "species": "floettemega",
+   "brought": 40,
+   "kos": 682,
+   "kos_in_wins": 447,
+   "ko_per_game": 17.05
+  },
+  {
+   "species": "delphoxmega",
+   "brought": 53,
+   "kos": 393,
+   "kos_in_wins": 283,
+   "ko_per_game": 7.415
+  },
+  {
+   "species": "metagrossmega",
+   "brought": 41,
+   "kos": 271,
+   "kos_in_wins": 187,
+   "ko_per_game": 6.61
+  },
+  {
+   "species": "swampertmega",
+   "brought": 95,
+   "kos": 620,
+   "kos_in_wins": 422,
+   "ko_per_game": 6.526
+  },
+  {
+   "species": "tyranitarmega",
+   "brought": 64,
+   "kos": 274,
+   "kos_in_wins": 220,
+   "ko_per_game": 4.281
+  },
+  {
+   "species": "charizardmegay",
+   "brought": 464,
+   "kos": 1965,
+   "kos_in_wins": 1389,
+   "ko_per_game": 4.235
+  },
+  {
+   "species": "raichumegay",
+   "brought": 81,
+   "kos": 316,
+   "kos_in_wins": 236,
+   "ko_per_game": 3.901
   },
   {
    "species": "snorlax",
@@ -351,34 +393,6 @@
    "ko_per_game": 1.286
   },
   {
-   "species": "mawilemega",
-   "brought": 246,
-   "kos": 305,
-   "kos_in_wins": 240,
-   "ko_per_game": 1.24
-  },
-  {
-   "species": "eelektrossmega",
-   "brought": 121,
-   "kos": 148,
-   "kos_in_wins": 102,
-   "ko_per_game": 1.223
-  },
-  {
-   "species": "charizardmegax",
-   "brought": 60,
-   "kos": 73,
-   "kos_in_wins": 50,
-   "ko_per_game": 1.217
-  },
-  {
-   "species": "drampamega",
-   "brought": 51,
-   "kos": 62,
-   "kos_in_wins": 48,
-   "ko_per_game": 1.216
-  },
-  {
    "species": "mudsdale",
    "brought": 44,
    "kos": 53,
@@ -386,74 +400,11 @@
    "ko_per_game": 1.205
   },
   {
-   "species": "garchompmega",
-   "brought": 69,
-   "kos": 79,
-   "kos_in_wins": 66,
-   "ko_per_game": 1.145
-  },
-  {
-   "species": "golurkmega",
-   "brought": 58,
-   "kos": 66,
-   "kos_in_wins": 53,
-   "ko_per_game": 1.138
-  },
-  {
-   "species": "cameruptmega",
-   "brought": 92,
-   "kos": 103,
-   "kos_in_wins": 80,
-   "ko_per_game": 1.12
-  },
-  {
-   "species": "sceptilemega",
-   "brought": 121,
-   "kos": 135,
-   "kos_in_wins": 99,
-   "ko_per_game": 1.116
-  },
-  {
-   "species": "pyroarmega",
-   "brought": 115,
-   "kos": 125,
-   "kos_in_wins": 92,
-   "ko_per_game": 1.087
-  },
-  {
-   "species": "gardevoirmega",
-   "brought": 144,
-   "kos": 156,
-   "kos_in_wins": 124,
-   "ko_per_game": 1.083
-  },
-  {
-   "species": "scizormega",
-   "brought": 74,
-   "kos": 79,
-   "kos_in_wins": 57,
-   "ko_per_game": 1.068
-  },
-  {
-   "species": "blastoisemega",
-   "brought": 348,
-   "kos": 369,
-   "kos_in_wins": 264,
-   "ko_per_game": 1.06
-  },
-  {
-   "species": "lucariomega",
-   "brought": 50,
-   "kos": 53,
-   "kos_in_wins": 38,
-   "ko_per_game": 1.06
-  },
-  {
-   "species": "staraptormega",
-   "brought": 746,
-   "kos": 775,
-   "kos_in_wins": 594,
-   "ko_per_game": 1.039
+   "species": "gengarmega",
+   "brought": 113,
+   "kos": 121,
+   "kos_in_wins": 84,
+   "ko_per_game": 1.071
   },
   {
    "species": "bellibolt",
@@ -470,13 +421,6 @@
    "ko_per_game": 0.997
   },
   {
-   "species": "metagrossmega",
-   "brought": 278,
-   "kos": 271,
-   "kos_in_wins": 187,
-   "ko_per_game": 0.975
-  },
-  {
    "species": "azumarill",
    "brought": 40,
    "kos": 39,
@@ -484,25 +428,11 @@
    "ko_per_game": 0.975
   },
   {
-   "species": "aggronmega",
-   "brought": 40,
-   "kos": 39,
+   "species": "palafinhero",
+   "brought": 64,
+   "kos": 61,
    "kos_in_wins": 26,
-   "ko_per_game": 0.975
-  },
-  {
-   "species": "swampertmega",
-   "brought": 637,
-   "kos": 620,
-   "kos_in_wins": 422,
-   "ko_per_game": 0.973
-  },
-  {
-   "species": "kangaskhanmega",
-   "brought": 77,
-   "kos": 74,
-   "kos_in_wins": 56,
-   "ko_per_game": 0.961
+   "ko_per_game": 0.953
   },
   {
    "species": "ceruledge",
@@ -517,27 +447,6 @@
    "kos": 40,
    "kos_in_wins": 27,
    "ko_per_game": 0.952
-  },
-  {
-   "species": "glimmoramega",
-   "brought": 80,
-   "kos": 74,
-   "kos_in_wins": 56,
-   "ko_per_game": 0.925
-  },
-  {
-   "species": "blazikenmega",
-   "brought": 161,
-   "kos": 147,
-   "kos_in_wins": 109,
-   "ko_per_game": 0.913
-  },
-  {
-   "species": "aegislashblade",
-   "brought": 63,
-   "kos": 57,
-   "kos_in_wins": 36,
-   "ko_per_game": 0.905
   },
   {
    "species": "decidueyehisui",
@@ -561,25 +470,11 @@
    "ko_per_game": 0.856
   },
   {
-   "species": "dragalgemega",
-   "brought": 58,
-   "kos": 49,
-   "kos_in_wins": 26,
-   "ko_per_game": 0.845
-  },
-  {
    "species": "archaludon",
    "brought": 1672,
    "kos": 1408,
    "kos_in_wins": 1065,
    "ko_per_game": 0.842
-  },
-  {
-   "species": "floettemega",
-   "brought": 811,
-   "kos": 682,
-   "kos_in_wins": 447,
-   "ko_per_game": 0.841
   },
   {
    "species": "krookodile",
@@ -589,25 +484,130 @@
    "ko_per_game": 0.837
   },
   {
-   "species": "delphoxmega",
-   "brought": 473,
-   "kos": 393,
-   "kos_in_wins": 283,
-   "ko_per_game": 0.831
+   "species": "basculegion",
+   "brought": 3844,
+   "kos": 3057,
+   "kos_in_wins": 1944,
+   "ko_per_game": 0.795
   },
   {
-   "species": "greninjamega",
-   "brought": 64,
-   "kos": 53,
-   "kos_in_wins": 35,
-   "ko_per_game": 0.828
+   "species": "gallade",
+   "brought": 185,
+   "kos": 147,
+   "kos_in_wins": 112,
+   "ko_per_game": 0.795
   },
   {
-   "species": "tyranitarmega",
-   "brought": 332,
-   "kos": 274,
-   "kos_in_wins": 220,
-   "ko_per_game": 0.825
+   "species": "kingambit",
+   "brought": 1780,
+   "kos": 1387,
+   "kos_in_wins": 971,
+   "ko_per_game": 0.779
+  },
+  {
+   "species": "mamoswine",
+   "brought": 217,
+   "kos": 165,
+   "kos_in_wins": 110,
+   "ko_per_game": 0.76
+  },
+  {
+   "species": "excadrill",
+   "brought": 618,
+   "kos": 461,
+   "kos_in_wins": 306,
+   "ko_per_game": 0.746
+  },
+  {
+   "species": "jolteon",
+   "brought": 78,
+   "kos": 58,
+   "kos_in_wins": 52,
+   "ko_per_game": 0.744
+  },
+  {
+   "species": "sylveon",
+   "brought": 2224,
+   "kos": 1638,
+   "kos_in_wins": 1121,
+   "ko_per_game": 0.737
+  },
+  {
+   "species": "arcaninehisui",
+   "brought": 114,
+   "kos": 84,
+   "kos_in_wins": 59,
+   "ko_per_game": 0.737
+  },
+  {
+   "species": "vanilluxe",
+   "brought": 93,
+   "kos": 68,
+   "kos_in_wins": 50,
+   "ko_per_game": 0.731
+  },
+  {
+   "species": "overqwil",
+   "brought": 103,
+   "kos": 74,
+   "kos_in_wins": 58,
+   "ko_per_game": 0.718
+  },
+  {
+   "species": "milotic",
+   "brought": 472,
+   "kos": 337,
+   "kos_in_wins": 252,
+   "ko_per_game": 0.714
+  },
+  {
+   "species": "lycanrocdusk",
+   "brought": 63,
+   "kos": 45,
+   "kos_in_wins": 29,
+   "ko_per_game": 0.714
+  },
+  {
+   "species": "hydreigon",
+   "brought": 231,
+   "kos": 163,
+   "kos_in_wins": 129,
+   "ko_per_game": 0.706
+  },
+  {
+   "species": "gliscor",
+   "brought": 77,
+   "kos": 54,
+   "kos_in_wins": 40,
+   "ko_per_game": 0.701
+  },
+  {
+   "species": "gholdengo",
+   "brought": 1384,
+   "kos": 955,
+   "kos_in_wins": 631,
+   "ko_per_game": 0.69
+  },
+  {
+   "species": "torkoal",
+   "brought": 724,
+   "kos": 495,
+   "kos_in_wins": 347,
+   "ko_per_game": 0.684
+  },
+  {
+   "species": "corviknight",
+   "brought": 120,
+   "kos": 80,
+   "kos_in_wins": 60,
+   "ko_per_game": 0.667
+  },
+  {
+   "species": "samurotthisui",
+   "brought": 63,
+   "kos": 42,
+   "kos_in_wins": 29,
+   "ko_per_game": 0.667
   }
  ],
  "pooling": {

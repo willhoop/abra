@@ -2297,7 +2297,7 @@
      "Fake Out",
      "Gigaton Hammer",
      "Protect",
-     "Thunder Wave"
+     "Ice Hammer"
     ],
     "weather_rain|speed_tailwind": [
      "Fake Out",
@@ -2542,15 +2542,15 @@
      "Close Combat"
     ],
     "weather_snow": [
-     "Protect",
      "Rock Slide",
+     "Protect",
      "Detect",
      "Stone Edge"
     ],
     "weather_sun|speed_tailwind": [
      "Detect",
-     "Protect",
      "Rock Slide",
+     "Protect",
      "Flare Blitz"
     ],
     "speed_trickroom|speed_tailwind": [
@@ -2853,7 +2853,7 @@
      "Dragon Dance",
      "Dragon Claw",
      "Flare Blitz",
-     "Protect"
+     "Scale Shot"
     ]
    }
   },
@@ -3011,31 +3011,31 @@
      "Fake Out",
      "Drain Punch",
      "Low Kick",
-     "Hammer Arm"
+     "Double-Edge"
     ],
     "speed_trickroom|speed_tailwind": [
      "Fake Out",
      "Drain Punch",
      "Double-Edge",
-     "Hammer Arm"
+     "Low Kick"
     ],
     "speed_trickroom": [
      "Fake Out",
-     "Hammer Arm",
      "Double-Edge",
+     "Hammer Arm",
      "Drain Punch"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Fake Out",
      "Drain Punch",
      "Double-Edge",
-     "Hammer Arm"
+     "Low Kick"
     ],
     "weather_rain|speed_tailwind": [
      "Fake Out",
      "Double-Edge",
      "Drain Punch",
-     "Hammer Arm"
+     "Low Kick"
     ]
    }
   },
@@ -3085,7 +3085,7 @@
      "Protect",
      "Dazzling Gleam",
      "Moonblast",
-     "Light of Ruin"
+     "Calm Mind"
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Moonblast",
@@ -3222,6 +3222,12 @@
    ],
    "ctx": {
     "speed_trickroom|speed_tailwind": [
+     "Rock Slide",
+     "Tailwind",
+     "Dual Wingbeat",
+     "Ice Fang"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
      "Rock Slide",
      "Tailwind",
      "Dual Wingbeat",
@@ -3687,28 +3693,6 @@
     ]
    }
   },
-  "palafin": {
-   "default": [
-    "Flip Turn",
-    "Jet Punch",
-    "Protect",
-    "Close Combat"
-   ],
-   "ctx": {
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
-     "Flip Turn",
-     "Protect",
-     "Jet Punch",
-     "Close Combat"
-    ],
-    "weather_rain|speed_tailwind": [
-     "Flip Turn",
-     "Protect",
-     "Jet Punch",
-     "Close Combat"
-    ]
-   }
-  },
   "palafinhero": {
    "default": [
     "Jet Punch",
@@ -3726,8 +3710,8 @@
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Jet Punch",
      "Wave Crash",
-     "Ice Punch",
-     "Drain Punch"
+     "Drain Punch",
+     "Ice Punch"
     ]
    }
   },
@@ -3858,8 +3842,8 @@
     "speed_trickroom|redirection": [
      "Simple Beam",
      "Trick Room",
-     "Yawn",
-     "Skill Swap"
+     "Skill Swap",
+     "Yawn"
     ]
    }
   },
@@ -4034,8 +4018,8 @@
     "speed_trickroom|speed_tailwind": [
      "Stockpile",
      "Minimize",
-     "Will-O-Wisp",
-     "Memento"
+     "Memento",
+     "Will-O-Wisp"
     ],
     "weather_rain|speed_trickroom|speed_tailwind": [
      "Minimize",
@@ -4131,7 +4115,7 @@
      "Discharge",
      "Rising Voltage",
      "Weather Ball",
-     "Protect"
+     "Detect"
     ]
    }
   },
@@ -4481,8 +4465,8 @@
     ],
     "weather_snow|speed_tailwind": [
      "Power Gem",
-     "Sludge Bomb",
      "Spiky Shield",
+     "Sludge Bomb",
      "Earth Power"
     ]
    }
@@ -4581,7 +4565,7 @@
      "Fake Out",
      "Drain Punch",
      "Double-Edge",
-     "Last Resort"
+     "Sucker Punch"
     ]
    }
   },
@@ -4597,7 +4581,7 @@
      "Stockpile",
      "Fissure",
      "Protect",
-     "Rock Slide"
+     "Body Slam"
     ]
    }
   },
@@ -4611,8 +4595,8 @@
    "ctx": {
     "weather_snow|speed_trickroom": [
      "Blizzard",
-     "Energy Ball",
      "Ice Shard",
+     "Energy Ball",
      "Aurora Veil"
     ]
    }
@@ -4703,6 +4687,22 @@
     ]
    }
   },
+  "chandeluremega": {
+   "default": [
+    "Heat Wave",
+    "Shadow Ball",
+    "Protect",
+    "Energy Ball"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Shadow Ball",
+     "Fire Blast",
+     "Protect"
+    ]
+   }
+  },
   "basculegionf": {
    "default": [
     "Hydro Pump",
@@ -4784,8 +4784,8 @@
     "speed_trickroom": [
      "Scald",
      "Ice Beam",
-     "Acid Armor",
-     "Muddy Water"
+     "Muddy Water",
+     "Acid Armor"
     ]
    }
   },

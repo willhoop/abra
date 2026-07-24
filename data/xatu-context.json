@@ -21,7 +21,7 @@
  },
  "top1_accuracy": {
   "usage_prior": 0.4091,
-  "team_context": 0.4298
+  "team_context": 0.4301
  },
  "improvement": {
   "mean_log_loss_reduction": 0.0841,
