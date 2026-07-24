@@ -1,95 +1,112 @@
 # ABRA — Technical Documentation
 
-**Version 1.0 · Last updated 2026-07-22**
+**Version 2.4.0 · Last updated 2026-07-23**
 
-*Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active.
-Organised by the Diátaxis model.*
-
----
-
-# PART 1 — TUTORIAL
-
-## 1.1 Pull the ladder and build the model
-1. Open a terminal in the ABRA folder.
-2. Run `node engine/durable-ingest.js data/games.ladder.jsonl`. This pulls new public replays and
-   appends them to the store. It never re-fetches a stored game.
-3. Run `node engine/analyze.js data/games.ladder.jsonl`. This prints the meta and writes
-   `data/meta-usage.json`.
-
-The model is now current. CHOMP reads `data/meta-usage.json` at its next build.
+*Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
+word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
+Explanation.*
 
 ---
 
-# PART 2 — HOW-TO
+## 1. Tutorial — run ABRA for the first time
 
-## 2.1 Pull more games
-Set `PAGES`. Each page is ~51 replays. `PAGES=100` pulls the full ~5,000 recent public games.
-```
-PAGES=100 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
-```
+Do these steps in order.
 
-## 2.2 Change who counts as "you"
-Set `ME` to a comma-separated list of your Showdown names.
-```
-ME="willhoop,mynewname" node engine/analyze.js data/games.ladder.jsonl
-```
+1. Get the code. Clone the repository `github.com/willhoop/abra`.
+2. Get the sibling engine. Clone `github.com/willhoop/chomp` next to it. ABRA reads it at `../CHOMP`.
+3. Open the site. Open `web/index.html` in a web browser. The site needs no build step and no server.
+4. Visit a model. Click a house in the town. Open **PORY** and move the sliders. The win % updates.
+5. Run one check. In a terminal, run `node engine/validate_damage.js`. It confirms the damage engine.
 
-## 2.3 Look at a different population
-`analyze.js` filters at read time. Edit the `usage(...)` calls to change `minRating` or `humansOnly`.
-No re-pull is needed — the store already holds every game raw.
+You now have the site and one validated model.
 
-## 2.4 Collect games continuously
-The scheduled workflow `.github/workflows/ingest.yml` runs hourly, pulls new games, rebuilds the
-model, and commits it. Enable Actions once on the repository; then it runs itself.
+## 2. How-to — common tasks
 
----
+**Pull new replays.**
+`PAGES=6 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl`
+The command adds only new games. It never duplicates a game and never re-fetches a stored game.
 
-# PART 3 — REFERENCE
+**Rebuild the meta model.**
+`node engine/analyze.js data/games.ladder.jsonl` writes `data/meta-usage.json`.
 
-## 3.1 Folder structure
-| Path | Contents |
+**Refresh the site data.**
+`python3 engine/refresh-site-data.py` writes `data/live.js`, `data/archetypes.json`, and
+`data/kad-replays.js`.
+
+**Run a model or an evaluation.**
+- GURU matchup matrix: `python3 engine/guru.py`
+- XATU belief / policy eval: `python3 engine/eval_policy.py`
+- PORY value net: `python3 engine/pory.py`
+- CHOMP-EV proof: `node engine/chomp_ev.js`
+- SLOWKING preview-Nash (species): `python3 engine/slowking_preview.py`
+- SLOWKING preview-Nash (playstyle): first `node engine/playstyle.js`, then
+  `MATRIX_FILE=data/playstyle-matchups.json TAG=playstyle python3 engine/slowking_preview.py`
+
+**Validate the damage engine.**
+`node engine/validate_damage.js`. It fails if any scenario is more than 5% from `@smogon/calc`.
+
+**Run the tests.**
+`node tests/test-parse.js`, `node tests/test-dynamics.js`, `node tests/test-medicham.js`,
+`node tests/test-chomp-ev.js`, `python3 tests/test-jolteon.py`, `python3 tests/test-slowking.py`.
+
+**Edit the site, then mirror it.** After you change `web/index.html`, copy it: `cp web/index.html app/index.html`.
+
+## 3. Reference
+
+### 3.1 Stored game record (`data/games.ladder.jsonl`, one JSON object per line)
+
+| Field | Meaning |
 |---|---|
-| `engine/durable-ingest.js` | Pull + store. Exports `extract(id, uploadtime, text)`. Source of the record schema. |
-| `engine/analyze.js` | Views over the store; writes `data/meta-usage.json`. |
-| `engine/meta-ingest.js` | A quick one-shot meta build (no durable store). |
-| `data/games.ladder.jsonl` | The durable, append-only store — one JSON record per game. |
-| `data/meta-usage.json` | The model CHOMP reads. |
-| `tests/test-parse.js` | Hand-derived checks on the extractor. |
+| `id`, `date` | replay id and upload time |
+| `p1`, `p2` | `{name, rating, bot}` per player |
+| `six.p1/p2` | the six revealed at preview |
+| `brought.p1/p2` | the four actually brought |
+| `lead.p1/p2` | the two led |
+| `sets` | per species, the revealed moves / item / ability |
+| `turns` | per-turn events (move, damage, faint, status, field) |
+| `winner` | the winning name |
 
-## 3.2 The record schema
-See white paper §3. One JSON object per line: `id`, `date`, `p1`/`p2` `{name, rating, bot}`,
-`six`, `brought`, `lead`, `sets`, `winner`.
+### 3.2 Model outputs
 
-## 3.3 The usage fields
-`teamRate`, `bringRate`, `leadRate`, `winRate` per species. See white paper §6 for the formulas.
-
-## 3.4 Environment variables
-| Variable | Default | Meaning |
+| File | Written by | Contents |
 |---|---|---|
-| `PAGES` | 10 (ingest) | replay list pages to request |
-| `CONC` | 16 | parallel log fetches |
-| `ME` | willhoop | names that count as "you" |
+| `data/damage-validation.json` | `validate_damage.js` | damage error vs `@smogon/calc` |
+| `data/guru-matchups.json`, `guru.js` | `guru.py` | archetype matchup matrix, Wilson CIs |
+| `data/xatu.json`, `xatu.js` | `xatu.py` | opponent set/move belief |
+| `data/pory.js`, `pory-eval.json` | `pory.py` | mid-game value net + its score |
+| `data/chomp-ev.json` | `chomp_ev.js` | the bring proof (null result) |
+| `data/playstyle-matchups.json` | `playstyle.js` | playstyle matchup matrix |
+| `data/slowking-eval.json`, `slowking-playstyle-eval.json`, `slowking*.js` | `slowking_preview.py` | preview equilibrium + exploitability |
+| `data/meta-usage.json`, `live.js` | `analyze.js`, `refresh-site-data.py` | usage model + live site counts |
+
+### 3.3 Continuous collection
+
+A GitHub Action (`.github/workflows/ingest.yml`) runs the pull hourly and commits the store. A
+separate tests workflow runs the test suite and the damage validation on every push and pull request.
+
+## 4. Explanation
+
+**Store raw, analyse on top.** ABRA saves every game with every fact it may ever need. Every filter —
+rating tier, humans-only, archetype, playstyle — runs over the store at read time. A change to how the
+games are segmented is a re-computation, not a re-download. This makes the fetch a one-time cost and
+keeps the analysis free to change.
+
+**Support decisions, do not predict outcomes.** In this format, the winner of a game is near-impossible
+to predict from the two team sheets; even a player-rating model ties a coin. ABRA therefore judges each
+model on a decision, not on the match result. Each probability ships a proper score (log-loss or
+Brier), a confidence interval, and an honest baseline.
+
+**Why the confidence interval is clustered.** States within one game are correlated. A confidence
+interval that resamples states would be too narrow. ABRA resamples whole games instead. For a matchup
+matrix, it also resamples each cell from its Beta distribution before it solves, so the interval
+carries the small-sample uncertainty.
+
+**Honest negatives are kept.** Two results are negative and are reported plainly: the team-picker's
+brings do not beat a coin (CHOMP-EV), and the playstyle rock-paper-scissors cycle rests on small
+samples and is suggestive, not settled. A negative that is measured is more useful than a positive that
+is asserted.
 
 ---
 
-# PART 4 — EXPLANATION
-
-## 4.1 Why store raw and analyse on top
-Deciding the population at fetch time forces a re-fetch when the question changes. Storing every fact
-once makes every later question a filter. This is the property that stops us re-pulling. See white
-paper §5.
-
-## 4.2 Why ABRA is separate from CHOMP
-CHOMP is the bring-4 / lead-2 engine. ABRA is the meta brain. Keeping them separate lets each ship,
-test, and version on its own. They connect through one file, `meta-usage.json`.
-
-## 4.3 Why ABRA is a prior, not the answer
-The opponent brings the four that beat *your* six, not their ladder-average four. That is a matchup
-question, and CHOMP's damage engine answers it. ABRA supplies the prior for when the matchup cannot
-decide. See white paper §7.
-
----
-
-**Companion documents.** [White paper](ABRA-whitepaper.md) ·
-[Deck](ABRA-deck-plain-english.md) · [Executive summary](EXECUTIVE-SUMMARY.md) ·
-[Changelog](../CHANGELOG.md)
+**Companion documents.** [White paper](ABRA-whitepaper.md) · [Deck](ABRA-deck-plain-english.md) ·
+[Project summary](SUMMARY.md) · [Model ledger](MODELS.md) · [Changelog](../CHANGELOG.md)
