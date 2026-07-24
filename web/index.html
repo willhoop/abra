@@ -1135,7 +1135,7 @@ function makeAbra(){ return; /* right-side teleporting sprite removed */
   };
   setTimeout(()=>{ a.classList.add('in'); ring(); loop(); }, Math.random()*2600);
 }
-for(let i=0;i<5;i++) makeAbra();
+/* roaming corner sprites removed per design */ // for(let i=0;i<5;i++) makeAbra();
 
 /* ===== per-room mascot advisor, each with its own voice + animation ===== */
 const PERSONA={
@@ -1149,19 +1149,8 @@ const PERSONA={
 };
 let advTimer=null;
 function spawnAdvisors(id){
+  // Corner mascot advisors removed per design — kill any that exist and do nothing.
   document.querySelectorAll('.advisor').forEach(a=>a.remove()); if(advTimer){clearTimeout(advTimer);advTimer=null;}
-  const persona=PERSONA[id]; if(!persona||innerWidth<1180) return;
-  const c=CAST.find(x=>x.id===id); const sprite=c?c.sprite:'abra';
-  const a=document.createElement('div'); a.className='advisor'; a.style.right='18px'; a.style.bottom='88px';
-  a.innerHTML=`<div class="tip"></div><div class="anim p-${id}"><img src="${ani(sprite)}" onerror="this.onerror=null;this.src='${ani('abra')}'"></div>`;
-  document.body.appendChild(a);
-  const tips=persona.tips.slice(), tip=a.querySelector('.tip'); let i=(Math.random()*tips.length)|0;
-  const show=()=>{ tip.textContent=tips[i%tips.length]; tip.classList.add('show'); i++; };
-  const hide=()=>tip.classList.remove('show');
-  // greet once when you enter the room, then go quiet; hover the mascot to hear more.
-  setTimeout(()=>{ show(); advTimer=setTimeout(hide,5000); }, 700);
-  a.addEventListener('mouseenter',()=>{ if(advTimer)clearTimeout(advTimer); show(); });
-  a.addEventListener('mouseleave',()=>{ advTimer=setTimeout(hide,1200); });
 }
 
 const cvs=document.getElementById('confetti'),ctx=cvs.getContext('2d');
