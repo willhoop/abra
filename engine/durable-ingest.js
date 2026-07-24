@@ -55,7 +55,7 @@ function extract(id, uploadtime, text){
   const slotSp={};         // 'p1a' -> species currently active
   const hp={};             // 'p1a' -> current HP % (0..100)
   const turns=[];          // per-turn event stream
-  let cur=null, lastMove=null, winner=null;
+  let cur=null, lastMove=null, winner=null, forfeit=false;
   const touch=sp=>sets[sp]=sets[sp]||{moves:new Set(),item:null,ability:null};
   const flush=()=>{ if(cur&&cur.ev.length) turns.push(cur); };
   for(const l of text.split('\n')){ let m;
@@ -136,6 +136,9 @@ function extract(id, uploadtime, text){
     }
     else if(m=l.match(/^\|-status\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ if(cur) cur.ev.push({t:'x',s:m[1],mon:slotSp[m[1]],st:m[3].trim()}); }
     else if(m=l.match(/^\|win\|(.*)/)) winner=m[1].trim();
+    // a forfeit means the winner did not necessarily win on the merits - a quality signal that
+    // several models want, and reading it here saves every one of them re-opening the raw logs
+    else if(/\|-message\|.*forfeited/i.test(l)) forfeit=true;
   }
   flush();
   const setsOut={}; for(const k in sets) setsOut[k]={moves:[...sets[k].moves],item:sets[k].item,ability:sets[k].ability};
@@ -147,7 +150,7 @@ function extract(id, uploadtime, text){
            : 'other';
   return { id, date:new Date(uploadtime*1000).toISOString().slice(0,16).replace('T',' '),
     format:fmt, openSheet,
-    p1:P.p1, p2:P.p2, winner:winner||null,
+    p1:P.p1, p2:P.p2, winner:winner||null, forfeit,
     six:{p1:[...new Set(poke.p1)],p2:[...new Set(poke.p2)]},
     brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, turns };
 }
