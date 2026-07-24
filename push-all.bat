@@ -24,7 +24,7 @@ for %%R in ("%~dp0." "%~dp0..\CHOMP" "%~dp0..\..\portfolio") do (
   if exist "%%~fR\.git" (
     echo ===== %%~fR =====
     pushd "%%~fR"
-    REM never pile work on top of a half-finished rebase — that is how the repo got stuck before
+    REM never pile work on top of a half-finished rebase - that is how the repo got stuck before
     if exist "%%~fR\.git\rebase-merge" (
       echo   SKIPPED: a rebase is in progress here. Run "git status" and finish it first.
     ) else (

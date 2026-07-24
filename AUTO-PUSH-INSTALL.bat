@@ -2,7 +2,7 @@
 REM ---------------------------------------------------------------------------
 REM Installs (or removes) the idle publisher so it runs hidden at logon.
 REM
-REM It is a Startup shortcut, NOT a scheduled task — there is no timer. The script
+REM It is a Startup shortcut, NOT a scheduled task - there is no timer. The script
 REM sits idle and only acts once your changes have been quiet for 3 minutes.
 REM
 REM   AUTO-PUSH-INSTALL.bat            -> install
