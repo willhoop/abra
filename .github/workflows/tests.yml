@@ -18,6 +18,8 @@ jobs:
         run: node tests/test-medicham.js
       - name: Damage validation vs @smogon/calc (fails on >5% regression)
         run: node engine/validate_damage.js
+      - name: CHOMP-EV proof invariants (validates committed data/chomp-ev.json)
+        run: node tests/test-chomp-ev.js
 
   python:
     runs-on: ubuntu-latest

@@ -61,6 +61,7 @@ if (fs.existsSync(RAW)) {
 const seen = new Set();
 let rows = [];
 let n_total = 0, n_human = 0;
+const audEval = [], audExcl = [];   // selection audit: turns + rating for qualifying vs excluded games
 for (const line of fs.readFileSync(STORE, 'utf8').split('\n')) {
   if (!line.trim()) continue;
   let g; try { g = JSON.parse(line); } catch (e) { continue; }
@@ -70,14 +71,17 @@ for (const line of fs.readFileSync(STORE, 'utf8').split('\n')) {
   n_human++;
   const six1 = (g.six && g.six.p1 || []).map(idn), six2 = (g.six && g.six.p2 || []).map(idn);
   const br1 = (g.brought && g.brought.p1 || []).map(idn), br2 = (g.brought && g.brought.p2 || []).map(idn);
-  if (six1.length !== 6 || six2.length !== 6 || br1.length !== 4 || br2.length !== 4) continue;
-  // bring must be a subset of the six
-  if (!br1.every(m => six1.includes(m)) || !br2.every(m => six2.includes(m))) continue;
   const y = idn(g.winner) === idn(g.p1.name) ? 1 : (idn(g.winner) === idn(g.p2.name) ? 0 : null);
-  if (y === null) continue;
-  rows.push({ id: g.id, date: g.date || '', y, six1, six2, br1, br2,
-              r1: g.p1.rating || null, r2: g.p2.rating || null });
+  // qualify: both sixes full, both brings a full 4, brings subset of sixes, decidable winner
+  const q = six1.length === 6 && six2.length === 6 && br1.length === 4 && br2.length === 4
+    && br1.every(m => six1.includes(m)) && br2.every(m => six2.includes(m)) && y !== null;
+  const nt = (g.turns && g.turns.length) || 0;
+  const rr = [g.p1.rating, g.p2.rating].filter(x => x != null);
+  const mr = rr.length ? rr.reduce((a, b) => a + b, 0) / rr.length : null;
+  if (q) { rows.push({ id: g.id, date: g.date || '', y, six1, six2, br1, br2, r1: g.p1.rating || null, r2: g.p2.rating || null }); audEval.push({ nt, mr }); }
+  else audExcl.push({ nt, mr });
 }
+const avg = (a, f) => { const v = a.map(f).filter(x => x != null); return v.length ? Math.round((v.reduce((x, y) => x + y, 0) / v.length) * 100) / 100 : null; };
 rows.sort((a, b) => (a.date < b.date ? -1 : 1));
 if (N > 0 && rows.length > N) rows = rows.slice(rows.length - N);
 
@@ -286,6 +290,13 @@ const out = {
     'Likely causes: bring4 scores raw damage coverage over heuristic v1 sets — it ignores speed control, roles, the lead-2 matrix game, and any belief over the opponent\'s real sets.',
     'Path to a real edge: re-score brings with belief-aware value (XATU sets) + the lead stage-game (SLOWKING) + PORY leaf value instead of raw coverage, then re-run this exact test and measure the lift.'
   ],
+  selection_audit: {
+    what: 'The eval set requires BOTH players to reveal all 4 brought mons — this excludes short games (early stomps, quick forfeits). Here is how the qualifying set differs from the excluded human games, so the bias is measured, not asserted.',
+    eval_mean_turns: avg(audEval, x => x.nt), excluded_mean_turns: avg(audExcl, x => x.nt),
+    eval_mean_rating: avg(audEval, x => x.mr), excluded_mean_rating: avg(audExcl, x => x.mr),
+    n_qualifying: audEval.length, n_excluded_human: audExcl.length,
+    direction: 'Longer games are exactly where the bring choice matters MORE (more turns for a coverage edge to pay off). So this selection is, if anything, FAVORABLE to CHOMP — yet CHOMP still ties the coin, which makes the null conservative rather than an artifact of dropping games.'
+  },
   robustness_no_forfeits: (() => {
     if (!ffLoaded) return { note: 'raw-logs absent (CI) — forfeit robustness skipped.' };
     const nonff = data.filter(r => !r.ff);

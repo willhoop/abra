@@ -96,6 +96,16 @@
     "Likely causes: bring4 scores raw damage coverage over heuristic v1 sets — it ignores speed control, roles, the lead-2 matrix game, and any belief over the opponent's real sets.",
     "Path to a real edge: re-score brings with belief-aware value (XATU sets) + the lead stage-game (SLOWKING) + PORY leaf value instead of raw coverage, then re-run this exact test and measure the lift."
   ],
+  "selection_audit": {
+    "what": "The eval set requires BOTH players to reveal all 4 brought mons — this excludes short games (early stomps, quick forfeits). Here is how the qualifying set differs from the excluded human games, so the bias is measured, not asserted.",
+    "eval_mean_turns": 6.5,
+    "excluded_mean_turns": 6.08,
+    "eval_mean_rating": 1279.57,
+    "excluded_mean_rating": 1266.96,
+    "n_qualifying": 1222,
+    "n_excluded_human": 1534,
+    "direction": "Longer games are exactly where the bring choice matters MORE (more turns for a coverage edge to pay off). So this selection is, if anything, FAVORABLE to CHOMP — yet CHOMP still ties the coin, which makes the null conservative rather than an artifact of dropping games."
+  },
   "robustness_no_forfeits": {
     "what": "Re-run excluding forfeit games. Forfeits are usually legitimate concessions (a player quits an already-losing position), so the label is typically correct; this pass confirms the result is not driven by them.",
     "n_forfeit_in_eval": 202,
