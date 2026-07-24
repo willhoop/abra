@@ -1,6 +1,6 @@
 # ADR-001 — Replace the hand-written rules engine with Showdown's Champions mod
 
-**Status:** proposed · **Date:** 2026-07-24 · **Author:** Will Hooper
+**Status:** accepted · **Date:** 2026-07-24 · **Author:** Will Hooper
 
 ## Context
 
@@ -59,6 +59,9 @@ The npm package `pokemon-showdown@0.11.10` does **not** contain the mod; it is p
 master branch. That is why an earlier check of `@pkmn/sim` (201 formats, none matching) wrongly
 concluded no Champions engine existed.
 
+Built from a master checkout, the simulator exposes **14 Champions formats**, including
+`gen9championsvgc2026regmb` - the exact format of every replay in the store.
+
 ## Decision
 
 **Adopt `data/mods/champions/` as the authoritative rules engine.** Drive it through the Showdown
@@ -67,6 +70,39 @@ simulator API rather than continuing to maintain a parallel implementation.
 This is standard **S1 (single source of truth)** applied at the largest scale in the project. We have
 been maintaining a second, worse implementation of rules that already have an authoritative one, and
 paying for it in silent wrongness.
+
+## The speed question, measured
+
+Both engines were benchmarked on the same machine, single core, running complete battles to a winner.
+
+| | battles/sec/core | ms per battle |
+|---|---|---|
+| Official Champions sim (`gen9championsvgc2026regmb`) | **29** | 34.9 |
+| Our hand-written engine | **3,401** | 0.29 |
+
+The official simulator is **117x slower**. That number decides the architecture, and it decides it
+cleanly, because the two uses have completely different budgets:
+
+| Workload | Official, 1 core | Official, 8 cores | Ours, 1 core |
+|---|---|---|---|
+| One matchup, 100 rollouts (a browser click) | 3.4 s | 0.4 s | 0.03 s |
+| One matchup, 400 rollouts (site quality) | 13.8 s | 1.7 s | 0.1 s |
+| Backtest: 927 clean games x 100 rollouts | 53 min | **7 min** | 27 s |
+| Matchup matrix: 50 archetypes squared x 200 | 4.8 hr | **36 min** | 2 min |
+| Training set: 1M labelled positions | 9.6 hr | **1.2 hr** | 5 min |
+
+**Offline: comfortably fast enough.** Every batch job finishes in minutes to a couple of hours, and
+these are jobs that run when the data refreshes, not per request. 117x slower does not matter when
+the job was going to take two minutes.
+
+**Live in the browser: not viable, and not needed.** CHOMP's budget is 50 ms. The official simulator
+manages 1.5 battles in 50 ms; our engine manages 170. No amount of tuning closes a 117x gap.
+
+The resolution is that **the browser should not be simulating at all.** Precompute matchup values
+offline with the official simulator and ship the table. That is strictly better than today on both
+axes at once: the numbers become correct *and* a lookup is faster than 170 rollouts of a wrong
+engine. The speed of our hand-written engine was only ever needed because we were recomputing, at
+request time, something that does not change between requests.
 
 ## Consequences
 
@@ -77,12 +113,10 @@ paying for it in silent wrongness.
 - Damage, accuracy, priority, immunities, abilities and items stop being our problem.
 
 **Given up**
-- Speed. Our engine runs a rollout in microseconds; the full simulator is far heavier. Rollout counts
-  and any in-browser use must be re-measured before this is assumed viable, and that measurement is a
-  precondition of accepting this ADR, not an afterthought.
-- Buildless browser delivery. The simulator is not a file the site can `<script src>`. Either the
-  rollout moves server-side, or the site keeps a cut-down engine that is validated against the
-  simulator by a contract test.
+- Live simulation in the browser. Measured at 117x slower, this is gone and is not coming back. It is
+  replaced by precomputed tables, which is a better answer than the one it replaces.
+- Interactive exploration of arbitrary matchups. Anything outside the precomputed set now costs 3.4 s
+  rather than 30 ms, or needs a server.
 - The current engine's damage output is validated to within 5% of `@smogon/calc` across 31 scenarios.
   That golden master must keep passing against the new path before any switch (**S9**).
 
@@ -96,11 +130,13 @@ paying for it in silent wrongness.
 1. Pin the Showdown master commit; vendor `data/mods/champions/` with provenance (**S4**).
 2. Run the existing 31-scenario damage golden master against the simulator. If it disagrees with
    `@smogon/calc`, resolve that before going further.
-3. Benchmark: rollouts per second, versus the current engine. Decide server-side or hybrid on the
-   number, not on preference.
-4. Move `medicham2-browser.js` behind the same interface, so consumers do not change.
-5. Keep the contract test, re-pointed: the shipped engine must agree with the simulator.
-6. Retire the hand-maintained tables (`ACC`, `SPREAD`, `MEGA_ABIL`, `PRIO_CONDITIONAL`).
+3. ~~Benchmark~~ **done**: 29 vs 3,401 battles/sec/core. Architecture is precompute-offline.
+4. Build the offline job: official simulator produces the matchup table for the archetypes the site
+   shows. Runs on a data refresh, not per request.
+5. Ship the table. `medicham2-browser.js` becomes a lookup with the current engine as fallback only
+   for matchups outside the table.
+6. Keep the contract test, re-pointed: the fallback engine must agree with the simulator.
+7. Retire the hand-maintained tables (`ACC`, `SPREAD`, `MEGA_ABIL`, `PRIO_CONDITIONAL`).
 
 ## Alternative considered
 
