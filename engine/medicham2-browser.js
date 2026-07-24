@@ -379,7 +379,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
-    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);   // same rules on a mid-game switch-in}}}};
+    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in uses the same Intimidate rules */
     refill(actA,benchA,actB);refill(actB,benchB,actA);
   }
   const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
