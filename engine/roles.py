@@ -27,6 +27,7 @@ Pure standard library. No numpy. Deterministic (fixed split + seed). Read-only o
     python3 engine/roles.py
 """
 import json, os, math, random
+import numpy as np
 from collections import defaultdict, Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
