@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-07-24",
+  "purpose": "The single definition of a USABLE game. Every model reads this file instead of deciding for itself, so 'which games did that number come from' has one answer.",
+  "why": "Before this existed, each model applied its own ad-hoc filtering or none at all. 55.2% of stored games involve a bot and 24.0% end in a forfeit, so a model that filtered nothing was reporting a statistic about bot ladder behaviour and calling it the metagame.",
+  "rules": {
+    "exclude_bot_games": {
+      "on": true,
+      "test": "either player's `bot` flag is true",
+      "rationale": "Bot games are not evidence about human play. 11 accounts named pcrlbot<16-hex> account for essentially the entire bot population, playing 338-409 games each.",
+      "detection": "username regex /^pcrlbot|bot\\d|^[a-z]+bot$/i applied at ingest",
+      "known_limitation": "Detection is NAME-ONLY. A bot with a human-looking name is invisible to this filter and the number of such accounts is unknown and unquantified. Do not describe the bot-free subset as verified human."
+    },
+    "exclude_forfeits": {
+      "on": true,
+      "test": "`forfeit` is true",
+      "rationale": "A forfeit records who quit, not who was winning. Including them teaches any win model to predict rage-quits."
+    },
+    "min_turns": {
+      "on": true,
+      "value": 3,
+      "test": "length(turns) >= 3",
+      "rationale": "Under three turns there is not enough play to reveal a bring, a lead trade, or a damage exchange. These are disconnects and instant concessions."
+    },
+    "require_full_bring": {
+      "on": true,
+      "test": "both players' `brought` has exactly 4 entries",
+      "rationale": "`brought` is what the replay REVEALED was brought, not what was selected. A short game reveals two or three. Any analysis of the bring must condition on all four being observed.",
+      "known_limitation": "This conditions on game length, so the filtered set skews toward longer games. A bring statistic computed here is 'the bring, among games long enough to show it', which is not the same as 'the bring'. State it that way."
+    }
+  },
+  "provenance": {
+    "store": "data/games.ladder.jsonl",
+    "measured_on": "2026-07-24",
+    "store_size": 7547,
+    "funnel": {
+      "collected": 7547,
+      "after_bot_filter": 3378,
+      "after_forfeit_filter": 2372,
+      "after_min_turns": 2354,
+      "after_full_bring": 1941
+    },
+    "note": "These counts are measured on the DEDUPLICATED store. An earlier figure of 2,020 was computed before deduplication and is superseded; it is recorded here rather than deleted so the change is visible."
+  }
+}
