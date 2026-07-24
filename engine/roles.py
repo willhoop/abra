@@ -103,6 +103,11 @@ ROLE_SIGNALS = {
     abilities={"Shadow Tag","Arena Trap","Magnet Pull"}),
  "perish": dict(label="Perish Trap",
     moves={"Perish Song"}),
+ "allysupport": dict(label="Ally support / positioning",
+    moves={"Instruct","Ally Switch","After You","Coaching","Decorate","Helping Hand","Quash",
+           "Aromatic Mist","Gear Up","Magnetic Flux","Heal Pulse"}),
+ "itemdisrupt": dict(label="Item disruption",
+    moves={"Trick","Switcheroo","Thief","Covet","Corrosive Gas","Incinerate"}),  # Knock Off via override
  "phys_attacker": dict(label="Physical attacker", moves=set()),   # special-cased (>=2 phys moves)
  "spec_attacker": dict(label="Special attacker", moves=set()),    # special-cased (>=2 spec moves)
 }
@@ -129,19 +134,44 @@ SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurr
     "Hex","Tera Blast","Boomburst","Apple Acid","Fickle Beam","Luster Purge","Mystical Fire",
     "Matcha Gotcha"}   # Matcha Gotcha: special attacker AND healing (also in the healing set) — multi-role
 
+# Weighted overrides for moves that do several jobs at once: {move: {role: weight}}.
+# weight 1.0 = a primary job, <1.0 = a secondary/incidental job. A move here is authoritative —
+# its roles come ONLY from this table (so a move can carry 2 or 3 weighted roles cleanly).
+# Everything not listed gets weight 1.0 for each role its signal set assigns.
+ROLE_WEIGHT_OVERRIDE = {
+ "Matcha Gotcha": {"spec_attacker": 1.0, "healing": 0.6, "status": 0.4},  # attack + heal + burn (3 jobs)
+ "Body Press":    {"wall": 1.0, "phys_attacker": 0.5},                    # a wall's attack
+ "Discharge":     {"spec_attacker": 1.0, "status": 0.5},                  # spread + paralysis (Lightning Rod core)
+ "Knock Off":     {"phys_attacker": 1.0, "itemdisrupt": 0.7},            # damage + strip item
+ "Parting Shot":  {"pivot": 1.0, "debuff": 0.8},                          # pivot + drop both attacks
+ "Nuzzle":        {"status": 1.0, "phys_attacker": 0.2},                  # paralysis chip
+ "Pollen Puff":   {"healing": 1.0, "spec_attacker": 0.5},                 # heal ally OR damage foe
+ "Flip Turn":     {"pivot": 1.0, "phys_attacker": 0.6},
+ "Volt Switch":   {"pivot": 1.0, "spec_attacker": 0.6},
+ "U-turn":        {"pivot": 1.0, "phys_attacker": 0.6},
+ "Draining Kiss": {"healing": 0.7, "spec_attacker": 0.7},
+}
+
 def signal_roles(moves, ability, item):
-    """Which roles a single revealed set demonstrates."""
-    out = set()
+    """Roles a single revealed set demonstrates, as {role: weight} (weight in (0,1])."""
+    out = {}
+    def add(r, w):
+        if w > out.get(r, 0.0): out[r] = w
     mv = set(moves or [])
-    ab = ability
-    for r, sig in ROLE_SIGNALS.items():
-        if r in ("phys_attacker", "spec_attacker"): continue
-        if mv & sig.get("moves", set()):
-            out.add(r)
-        elif ab and ab in sig.get("abilities", set()):
-            out.add(r)
-    if len(mv & PHYS) >= 2: out.add("phys_attacker")
-    if len(mv & SPEC) >= 2: out.add("spec_attacker")
+    for m in mv:
+        if m in ROLE_WEIGHT_OVERRIDE:
+            for r, w in ROLE_WEIGHT_OVERRIDE[m].items(): add(r, w)
+        else:
+            for r, sig in ROLE_SIGNALS.items():
+                if r in ("phys_attacker", "spec_attacker"): continue
+                if m in sig.get("moves", set()): add(r, 1.0)
+    if ability:
+        for r, sig in ROLE_SIGNALS.items():
+            if ability in sig.get("abilities", set()): add(r, 1.0)
+    # count-based attacker roles, from moves NOT already handled by an override
+    nover = {m for m in mv if m not in ROLE_WEIGHT_OVERRIDE}
+    if len(nover & PHYS) >= 2: add("phys_attacker", 1.0)
+    if len(nover & SPEC) >= 2: add("spec_attacker", 1.0)
     return out
 
 # ---------------------------------------------------------------------------
@@ -171,23 +201,29 @@ def build():
 
     # ---- Pass 1: species capability table (roles each species has been SEEN doing) ----
     seen = defaultdict(Counter)        # species -> role -> count
+    seenw = defaultdict(dict)          # species -> role -> max weight observed
     species_games = Counter()
     for g in games:
         appeared = set()
         for mon, s in (g.get("sets") or {}).items():
-            for r in signal_roles(s.get("moves"), s.get("ability"), s.get("item")):
+            for r, w in signal_roles(s.get("moves"), s.get("ability"), s.get("item")).items():
                 seen[mon][r] += 1
+                if w > seenw[mon].get(r, 0.0): seenw[mon][r] = w
             appeared.add(mon)
         for mon in appeared:
             species_games[mon] += 1
-    dex = {}   # species -> sorted list of earned roles
+    dex = {}       # species -> {role: weight} earned (seen >= MIN_SEEN times)
+    dexlist = {}   # species -> sorted role list (for display)
     for mon, ctr in seen.items():
-        dex[mon] = sorted([r for r, c in ctr.items() if c >= MIN_SEEN])
+        dex[mon] = {r: round(seenw[mon][r], 2) for r, c in ctr.items() if c >= MIN_SEEN}
+        dexlist[mon] = sorted(dex[mon])
 
     def team_roles(six):
-        rs = set()
+        """weighted team role vector: {role: max weight across the six}"""
+        rs = {}
         for mon in six:
-            rs |= set(dex.get(mon, []))
+            for r, w in dex.get(mon, {}).items():
+                if w > rs.get(r, 0.0): rs[r] = w
         return rs
 
     # ---- Pass 2+3: role-pair matchup matrix (pooled) ----
