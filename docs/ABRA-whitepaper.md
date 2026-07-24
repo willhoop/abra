@@ -64,7 +64,7 @@ available, and the store grows ~18k/week, so every model below sharpens on its o
 ## 3. The validated foundation — exact damage (MEDICHAM)
 
 The one component that is *not* a coin flip is the damage engine. MEDICHAM's Gen-9 doubles damage
-pipeline (`engine/medicham2-browser.js`) is validated against `@smogon/calc` (the community
+pipeline (`engine/medicham2-browser.js`) is validated against the Smogon damage calculator (the community
 ground-truth) on 31 meta scenarios: **within 5% on 100% of scenarios, median error 0%, worst 3%**
 (16-roll rounding). This is gated in CI (`engine/validate_damage.js` → `data/damage-validation.json`).
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
@@ -111,7 +111,7 @@ conservative. A **belief-weighted** variant (coverage vs the opponent's likely-4
 (0.6924). Interpretation: the bring decision sits at the same near-coin ceiling as pre-game prediction;
 CHOMP's damage math stays validated and useful as a calculator, but "CHOMP builds better brings" is not
 yet empirically supported. This negative is a guardrail: it stops optimising a bring metric that
-carries no held-out winning signal (a Goodhart trap). Report `data/chomp-ev.json`; test
+carries no held-out winning signal . Report `data/chomp-ev.json`; test
 `tests/test-chomp-ev.js`.
 
 ### 4.5 SLOWKING — team-preview Nash and the playstyle cycle (suggestive)
@@ -191,7 +191,7 @@ the pacing item toward the millions of games that path needs.
 8. Chen & Joachims, *Modeling Intransitivity in Matchup Data* (blade-chest), WSDM 2016. · Balduzzi et al., *Re-evaluating Evaluation* (Nash-averaging), NeurIPS 2018.
 9. Jiang, Lim, Yao & Ye, *Statistical Ranking and Combinatorial Hodge Theory* (HodgeRank), 2011.
 10. Wilson, *Probable Inference, the Law of Succession, and Statistical Inference*, JASA 1927.
-11. `@smogon/calc` — community damage ground-truth. · Pokémon Showdown replay API.
+11. the Smogon damage calculator — community damage ground-truth. · Pokémon Showdown replay API.
 
 ---
 

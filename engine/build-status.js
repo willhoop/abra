@@ -28,7 +28,7 @@ const M = [
   { id:'store', name:'STORE', tier:'data', status:'live', metric:`${(guru.n_games||0).toLocaleString()} games stored`,
     detail:'Every public ladder game, kept raw.', sees:'every public replay: both sixes, what was brought, every turn, the sets people revealed', inputs:[] },
   { id:'medicham', name:'MEDI', full:'Medicham', tier:'damage', status:'validated', metric:'damage is exact',
-    detail:'Exact damage maths, checked against @smogon/calc.', sees:'full sets on both sides - species, moves, item, ability, stats. It cannot run on species alone.', inputs:[] },
+    detail:'Exact damage maths, checked against the Smogon damage calculator.', sees:'full sets on both sides - species, moves, item, ability, stats. It cannot run on species alone.', inputs:[] },
   { id:'guru', name:'GURU', full:'Oranguru', tier:'input', status:'built', metric:`${guru.n_archetypes||0} archetypes measured`,
     detail:'Which archetype beats which, measured with error bars.', sees:'team-preview six only. No moves, no items.', inputs:['store'] },
   { id:'xatu', name:'XATU', full:'Xatu', tier:'input', status:'built', metric:`right ${pct(sc.top3_accuracy)} of the time`,

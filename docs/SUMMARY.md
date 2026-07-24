@@ -24,7 +24,7 @@ negatives are reported as negatives.
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Exact Gen-9 doubles damage engine | ✅ Validated | Within 5% of `@smogon/calc` on 100% of 31 scenarios (median 0%) |
+| **MEDICHAM** | Exact Gen-9 doubles damage engine | ✅ Validated | Within 5% of the Smogon damage calculator on 100% of 31 scenarios (median 0%) |
 | **GURU** | Meta matchup matrix from real outcomes | ✅ Built | 13 archetypes over 5,199 games, Wilson CIs (descriptive; winner-prediction ties a coin, as expected) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ✅ **The win** | Log-loss 0.567 vs coin 0.693, calibrated (ECE 1.6%); live in KADABRA |

@@ -43,7 +43,7 @@ The command adds only new games. It never duplicates a game and never re-fetches
   `MATRIX_FILE=data/playstyle-matchups.json TAG=playstyle python3 engine/slowking_preview.py`
 
 **Validate the damage engine.**
-`node engine/validate_damage.js`. It fails if any scenario is more than 5% from `@smogon/calc`.
+`node engine/validate_damage.js`. It fails if any scenario is more than 5% from the Smogon damage calculator.
 
 **Run the tests.**
 `node tests/test-parse.js`, `node tests/test-dynamics.js`, `node tests/test-medicham.js`,
@@ -70,7 +70,7 @@ The command adds only new games. It never duplicates a game and never re-fetches
 
 | File | Written by | Contents |
 |---|---|---|
-| `data/damage-validation.json` | `validate_damage.js` | damage error vs `@smogon/calc` |
+| `data/damage-validation.json` | `validate_damage.js` | damage error against the Smogon damage calculator |
 | `data/guru-matchups.json`, `guru.js` | `guru.py` | archetype matchup matrix, Wilson CIs |
 | `data/xatu.json`, `xatu.js` | `xatu.py` | opponent set/move belief |
 | `data/pory.js`, `pory-eval.json` | `pory.py` | mid-game value net + its score |

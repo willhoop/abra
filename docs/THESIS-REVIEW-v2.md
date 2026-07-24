@@ -18,13 +18,13 @@
 
 ## B. MEDICHAM — the rollout
 
-**Critique.** (i) Policy-bounded: a behavior-cloned policy has covariate shift, and yours over-credits speed-control cores because the clone can't disrupt. (ii) The damage engine has **never been validated against the reference `@smogon/calc`** — "grounded" is unearned until it is. (iii) You show a point estimate; 400 rollouts carry SE ≈ ±2.5%.
+**Critique.** (i) Policy-bounded: a behavior-cloned policy has covariate shift, and yours over-credits speed-control cores because the clone can't disrupt. (ii) The damage engine has **never been validated against the reference the Smogon damage calculator** — "grounded" is unearned until it is. (iii) You show a point estimate; 400 rollouts carry SE ≈ ±2.5%.
 
-**Fix.** **[SHIP]** Print the Monte-Carlo CI (`±1.96·√(p(1−p)/N)`) next to every rollout %. **[FIX]** Write a validation script that samples 100 attacker/defender/move triples, compares your `dmgRange` to `@smogon/calc`, and reports max/mean error; fix rounding until it matches. **[FIX→SCRAP]** DAgger-correct the policy against the real engine, and make the *real* Showdown engine the scorer — at which point the hand-rolled browser engine becomes a labeled approximation, not the source of truth.
+**Fix.** **[SHIP]** Print the Monte-Carlo CI (`±1.96·√(p(1−p)/N)`) next to every rollout %. **[FIX]** Write a validation script that samples 100 attacker/defender/move triples, compares your `dmgRange` to the Smogon damage calculator, and reports max/mean error; fix rounding until it matches. **[FIX→SCRAP]** DAgger-correct the policy against the real engine, and make the *real* Showdown engine the scorer — at which point the hand-rolled browser engine becomes a labeled approximation, not the source of truth.
 
 ## C. DITTO — still mis-named, but now fixable in-repo
 
-**Critique.** Unchanged from v1: coordinate ascent against a static usage gauntlet, scored by a model (JOLTEON) that Section A shows barely beats a coin — Goodhart squared. It is not a double oracle.
+**Critique.** Unchanged from v1: coordinate ascent against a static usage gauntlet, scored by a model (JOLTEON) that Section A shows barely beats a coin —  squared. It is not a double oracle.
 
 **Fix.** **[SCRAP & REBUILD]** You now own the machinery to do it right: `slowking/nash.py` + `solver.team_preview`. Rebuild DITTO as a genuine meta-game — maintain a team population, fill an empirical payoff matrix with **real-engine** rollouts, solve the **meta-Nash**, best-respond to the equilibrium mixture, iterate (PSRO/double-oracle). Output the equilibrium *mixture of teams*, because in a cyclic meta there is no single best team. Until then, at minimum score with the real engine and stop printing "double-oracle."
 
@@ -80,7 +80,7 @@ Credit first: `nash.py`, `belief.py`, `ismcts.py`, `solver.py` are implemented a
 ## Prioritized remediation roadmap
 1. **[tonight] Recalibrate JOLTEON** (temperature scaling) and re-run the harness — *done below*.
 2. **[tonight] Edit the white paper** to stop claiming ReBeL; call the search IS-MCTS/PIMC with known limits.
-3. **Validate the damage engine** vs `@smogon/calc`; add MC confidence intervals to MEDICHAM and DITTO outputs.
+3. **Validate the damage engine** against the Smogon damage calculator; add MC confidence intervals to MEDICHAM and DITTO outputs.
 4. **Rebuild DITTO** on `nash.py` as a real meta-Nash solve; rebuild CHOMP's bring as minimax.
 5. **Wire the engine adapter** (`sim/`), then replace SLOWKING's PIMC with outcome-sampling MCCFR / PBS re-solving and train the value net on self-play.
 6. **Redo the predictability study** with proper scoring; surface CIs and the eval verdict on the site.

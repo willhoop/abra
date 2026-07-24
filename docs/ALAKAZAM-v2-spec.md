@@ -41,7 +41,7 @@ CHOMP (pivoted) sits alongside SLOWKING (bring/lead EV) and feeds the belief ("w
 
 ### I0. Damage engine — ✅ SECURED
 - **Is:** validated Gen-9 doubles damage (Champions rules, Serebii-sourced abilities/status).
-- **Bar (met):** within 5% of `@smogon/calc` on 100% of 31 scenarios (`data/damage-validation.json`),
+- **Bar (met):** within 5% of the Smogon damage calculator on 100% of 31 scenarios (`data/damage-validation.json`),
   gated in CI.
 - **Role:** the exact leaf evaluator + rollout simulator everything else uses.
 

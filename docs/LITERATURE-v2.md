@@ -12,7 +12,7 @@ for **genuinely useful** models. Written 2026-07-23.
    real Champions games, even **player-Elo ≈ a coin** (log-loss 0.687 vs 0.693). JOLTEON (additive
    Bradley-Terry) ties a coin; MEDICHAM's win% is *below* chance because its cloned policy is
    systematically biased (backs fast/offensive teams that lose more). → **Do not build win-predictors.**
-2. **The damage layer is exact.** MEDICHAM's damage matches `@smogon/calc` within 5% on 100% of tests.
+2. **The damage layer is exact.** MEDICHAM's damage matches the Smogon damage calculator within 5% on 100% of tests.
    "Will this KO?" is a *winnable* prediction. → **Build on validated damage.**
 3. **The behaviour-clone has modest fidelity** (top-1 36%, top-3 72% on held-out human moves). Usable
    as an opponent prior, not as truth.

@@ -4,7 +4,7 @@
 
 ## License (you're clear)
 - Repo: https://github.com/smogon/damage-calc
-- `@smogon/calc` (the math engine) and the UI markup/logic are **MIT** — free to use, modify, self-host, even commercially. Keep the LICENSE file + attribution. That's the only obligation.
+- the Smogon damage calculator (the math engine) and the UI markup/logic are **MIT** — free to use, modify, self-host, even commercially. Keep the LICENSE file + attribution. That's the only obligation.
 
 ## The build (runs on your machine — I can't build webpack in the sandbox)
 ```bash
@@ -13,7 +13,7 @@ git clone https://github.com/smogon/damage-calc
 cd damage-calc
 
 # 2. the engine (calculation) lives in calc/ ; the site UI in src/
-cd calc && npm install && npm run compile && cd ..     # builds @smogon/calc
+cd calc && npm install && npm run compile && cd ..     # builds the Smogon damage calculator
 npm install && npm run build                            # builds the web UI
 
 # 3. Champions: the official site serves champions.html?mode=champions.

@@ -237,7 +237,7 @@ this session, each with a proper score + clustered-by-game CI + honest baseline,
 
 ### Findings (honest)
 - **CHOMP-EV is a NULL at the format ceiling.** On 1,205 held-out human games, CHOMP's bring ranking does **not** beat a coin (log-loss 0.6918 vs 0.6931, CIs overlap), ties an Elo and a usage-prior baseline, and winners are only marginally more CHOMP-aligned than losers (0.512, CI [0.493, 0.535] — includes 0.5). CHOMP's top pick matches the human bring ~9.5% of the time (chance 6.7%). **Robust:** dropping all forfeits leaves it unchanged (0.505; log-loss 0.690 vs 0.693). **Selection audit:** eval games average 6.5 turns / 1280 rating vs 6.08 / 1267 excluded — a mild bias that, if anything, *favors* CHOMP, making the null conservative.
-- **What this does NOT impugn:** CHOMP's damage math stays VALIDATED vs `@smogon/calc`; the null is about the *bring-selection signal*, which sits at the same near-coin ceiling as pre-game win prediction. It guards against optimizing a bring metric with no held-out winning signal (the DITTO/Goodhart trap). Path to a real edge: score brings with belief-aware value (XATU) + the lead stage-game (SLOWKING) + PORY leaf value, then re-run this exact test.
+- **What this does NOT impugn:** CHOMP's damage math stays VALIDATED vs `@smogon/calc`; the null is about the *bring-selection signal*, which sits at the same near-coin ceiling as pre-game win prediction. It guards against optimizing a bring metric with no held-out winning signal (the DITTO/measure-gaming trap). Path to a real edge: score brings with belief-aware value (XATU) + the lead stage-game (SLOWKING) + PORY leaf value, then re-run this exact test.
 
 ### Notes
 - White paper and plain-English deck updates for GURU/XATU/PORY/CHOMP-EV are still pending (this pass shipped code + CHANGELOG + MODELS/HANDOFF; the long-form docs are the next documentation pass).
@@ -454,7 +454,7 @@ core). Also a strict self-review that reshaped the roadmap.
   incl. Choice-Scarf hints) for 186 species, and observed damage distributions for 1,170
   (attacker, move) pairs. E.g. Garchomp Earthquake mean 57%, Basculegion Wave Crash 62.5%.
 - **JOLTEON v2** (`engine/jolteon.py`): win-probability model gains **rarity-aware L2 shrinkage**
-  (a species seen 25× is pulled toward neutral; seen 1000× is trusted — a Goodhart guard at the
+  (a species seen 25× is pulled toward neutral; seen 1000× is trusted — a measure-gaming guard at the
   model level) plus speed-edge and firepower-edge features from the dynamics model. Honest result:
   ~55% humans-only held-out vs ~49% coin flip; the dynamics features tie species-only (firepower
   earns weight +0.30, speed-edge is noise at this scale). Reported straight.
@@ -464,7 +464,7 @@ core). Also a strict self-review that reshaped the roadmap.
 - **DITTO built** (`engine/ditto.py`): team optimiser using JOLTEON as evaluator against a gauntlet
   of REAL ladder teams, double-oracle rounds, **usage-weighted threat coverage** (guarantees an
   answer to high-bring threats like Basculegion, ignores rare ones like Camerupt), and a **bias
-  report** showing where rarity shrinkage suppresses a pick. Surfaces the Goodhart failure honestly:
+  report** showing where rarity shrinkage suppresses a pick. Surfaces the measure-gaming failure honestly:
   JOLTEON-optimised "90%" team → MEDICHAM rollouts reveal ~12% → this is *why* Tier-2 vets Tier-1.
 - **KADABRA v1 built** (`engine/kadabra.js`): turn-by-turn coach over a replay — reconstructs each
   scene, gives the speed read + damage read (cross-checked vs the ladder average, flags high/low

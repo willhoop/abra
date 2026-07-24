@@ -15,7 +15,7 @@ proper score, a confidence interval, and an honest baseline.
 ## Headline findings (each measured, with a baseline)
 1. **Winner-from-sheets ≈ a coin.** Player-Elo held-out log-loss 0.687 vs coin 0.693. A cloned-policy
    rollout win% is *below* a coin — systematically inverted (backs fast offensive teams that lose).
-2. **The damage engine is exact.** Within 5% of `@smogon/calc` on 100% of 31 scenarios (median 0%).
+2. **The damage engine is exact.** Within 5% of the Smogon damage calculator on 100% of 31 scenarios (median 0%).
 3. **The live board IS predictable (the win).** PORY mid-game win% log-loss 0.567 vs coin 0.693,
    calibrated to ECE 1.6%, clustered CI [0.548, 0.583].
 4. **Picking the team doesn't beat a coin (honest null).** CHOMP-EV on 1,205 held-out games: bring

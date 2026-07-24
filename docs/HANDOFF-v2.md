@@ -17,11 +17,11 @@ Architecture + build order + acceptance bars: `docs/ALAKAZAM-v2-spec.md`. Living
 `docs/MODELS.md`. External review that triggered this: `docs/EXTERNAL-REVIEW-2026-07-23.md` (+ pdf).
 
 ## Validated findings (the honest ledger)
-- **Damage engine = exact** vs `@smogon/calc` (100% within 5%, gated in CI). `engine/validate_damage.js`, `data/damage-validation.json`.
+- **Damage engine = exact** against the Smogon damage calculator (100% within 5%, gated in CI). `engine/validate_damage.js`, `data/damage-validation.json`.
 - **Pre-game win% = coin** (Bo1 closed). MEDICHAM's win% is *below* chance (inverted — greedy policy backs fast/offensive teams). `data/winrate-backtest.json`.
 - **Behaviour-clone (belief) = modest**: top-1 36% / top-3 72% on held-out human moves. `data/policy-eval.json`.
 - **PORY (mid-game value) = WORKS**: log-loss 0.567 vs coin 0.693, beats material heuristic, calibrated (ECE 1.6%), honest clustered-by-game CI [0.548,0.583]. `data/pory-eval.json`. Proves the pivot. **Now wired into KADABRA** as a per-turn "you're at X%" chip.
-- **CHOMP-EV (bring quality) = NULL at the ceiling**: on 1,205 held-out human games CHOMP's bring ranking ties a coin (log-loss 0.6918 vs 0.6931), an Elo, and a usage prior; winners barely more CHOMP-aligned than losers (0.512, CI [0.493,0.535]). Robust to forfeits; selection audit shows the bias favors CHOMP, so the null is conservative. Damage math stays validated — it's the bring *selection signal* that's at ceiling. `data/chomp-ev.json`, `engine/chomp_ev.js`. Honest negative that blocks a DITTO-style Goodhart.
+- **CHOMP-EV (bring quality) = NULL at the ceiling**: on 1,205 held-out human games CHOMP's bring ranking ties a coin (log-loss 0.6918 vs 0.6931), an Elo, and a usage prior; winners barely more CHOMP-aligned than losers (0.512, CI [0.493,0.535]). Robust to forfeits; selection audit shows the bias favors CHOMP, so the null is conservative. Damage math stays validated — it's the bring *selection signal* that's at ceiling. `data/chomp-ev.json`, `engine/chomp_ev.js`. Honest negative that blocks a DITTO-style .
 
 ## Model roster (final, snappy names)
 Built + validated this session:
@@ -51,6 +51,6 @@ Kept / roles:
 - `data/games.ladder.raw-logs.jsonl` is **gitignored** (large, local-only) — CI-run scripts (`eval_policy.py`, `pory.py`) guard-skip if it's absent.
 
 ## How to verify things
-`node engine/validate_damage.js` (needs `npm i @smogon/calc`), `python3 engine/guru.py|xatu.py|pory.py`,
+`node engine/validate_damage.js` (needs `npm i the Smogon damage calculator`), `python3 engine/guru.py|xatu.py|pory.py`,
 `python3 engine/eval_policy.py`, `node engine/backtest_winrate.js`. Syntax-check the site by extracting
 `<script>` blocks and `node --check`. Always `cp web/index.html app/index.html` after site edits.

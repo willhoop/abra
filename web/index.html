@@ -314,7 +314,7 @@ function dmgRange(att,def,mv,field,spread){
   if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
   if(!phys&&def.item==='assaultvest')D=Math.floor(D*1.5);
   if((att.ability==='hugepower'||att.ability==='purepower')&&phys)A*=2;
-  // --- stat-multiplying abilities (validated vs @smogon/calc, see engine/validate_damage.js) ---
+  // --- stat-multiplying abilities (checked against the Smogon damage calculator, see engine/validate_damage.js) ---
   if(att.ability==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
   if(att.ability==='solarpower'&&!phys&&field.weather==='sun')A=Math.floor(A*1.5);
   if(att.ability==='orichalcumpulse'&&phys&&field.weather==='sun')A=Math.floor(A*5461/4096);
@@ -519,7 +519,7 @@ function pwin(A,B){ // A,B arrays of species names -> P(A beats B), the real JOL
 const CAST=[
  {id:'town', tab:'Town', sprite:'abra', title:'ABRA World', acro:'Automated Battle Replay Analyzer', role:'the data platform', roof:'#ffd23f'},
  {id:'jolteon', tab:'Jolt', full:'Jolteon', sprite:'jolteon', title:"Jolt's Odds Booth", acro:'win probability from team sheets · retired to the PC (ties a coin)', role:'win probability', roof:'#ffd23f'},
- {id:'medicham', tab:'Medi', full:'Medicham', sprite:'medicham', title:"Medi's Dojo", acro:'exact damage engine — validated vs @smogon/calc', role:'battle rollouts', roof:'#ff6b57'},
+ {id:'medicham', tab:'Medi', full:'Medicham', sprite:'medicham', title:"Medi's Dojo", acro:'exact damage engine — checked against the Smogon damage calculator', role:'battle rollouts', roof:'#ff6b57'},
  {id:'ditto', tab:'Ditto', full:'Ditto', sprite:'ditto', title:"Ditto's Team Lab", acro:'team-builder — best-responds to the live meta', role:'team optimiser', roof:'#ff6bd6'},
  {id:'kadabra', tab:'Kadabra', full:'Kadabra', sprite:'kadabra', title:"Kadabra's Theater", acro:'replay coach — shows your win% each key turn', role:'replay coach', roof:'#7a6bff'},
  {id:'slowking', tab:'King', full:'Slowking', sprite:'slowking', title:"King's Library", acro:'team-preview Nash — the equilibrium bring', role:'belief search', roof:'#4fb0ff'},
@@ -636,7 +636,7 @@ function roomMedicham(){const c=CAST[2];
      </div>
    </div>
    <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>
-   <div class="panel"><h2>The honesty machine (Goodhart guard)</h2><p style="font-weight:600;color:#3a5372">This is my most important job. When Ditto builds a team by optimising a fast model, it can <b>game</b> that model — stacking what the model over-rates. So I <b>re-check every team by actually playing it out</b>. Once the sheet said a team was 90%; I played it and it was 12% — and I was right. That disagreement is the whole point: I catch the hype <i>and</i> the hidden gems, so nobody fools the optimiser.</p></div>`;
+   <div class="panel"><h2>The honesty check</h2><p style="font-weight:600;color:#3a5372">This is my most important job. When Ditto builds a team by optimising a fast model, it can <b>game</b> that model — stacking what the model over-rates. So I <b>re-check every team by actually playing it out</b>. Once the sheet said a team was 90%; I played it and it was 12% — and I was right. That disagreement is the whole point: I catch the hype <i>and</i> the hidden gems, so nobody fools the optimiser.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
   return `<div class="panel">${mascotHero(c,"Copy copy! I <b>solve the meta</b>, then tune your team to beat it \u2014 and name who still counters you.")}</div>
