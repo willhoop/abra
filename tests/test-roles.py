@@ -51,7 +51,11 @@ ok(bad == 0 and cells > 0, f"role-matchups: all {cells} cells valid ({bad} bad)"
 # pooling claim must hold: median role-pair cell is far larger than the old 11-18 archetype cells
 ns = sorted(c["n"] for row in mm["matrix"].values() for c in row.values())
 med = ns[len(ns)//2]
-ok(med > 100, f"pooling holds: median role-pair cell n={med} >> old single-label n~15")
+# NOTE (2026-07-24): this bar was 100 when species role tags were binary with a flat count>=2 rule.
+# That rule over-tagged (a team carried 19.6 of 26 roles on average, incl. flukes like Basculegion
+# "debuff" at 2/3566), which inflated every cell. Credible tags (Wilson lower bound on the per-set
+# rate) give 4.3 roles per team and a HONEST median cell. Still >> the old single-label n~15.
+ok(med > 50, f"pooling holds: median role-pair cell n={med} >> old single-label n~15")
 
 ev = json.load(open(D("data","roles-eval.json")))
 ll = ev["log_loss"]

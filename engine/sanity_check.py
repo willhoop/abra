@@ -136,7 +136,10 @@ re_ = load("data", "roles-eval.json")
 war = load("data", "war.json")
 if rm:
     ns = sorted(c["n"] for row in rm["matrix"].values() for c in row.values())
-    ok(len(ns) > 0 and ns[len(ns)//2] > 100,
+    # bar lowered from 100 to 50 on 2026-07-24: the old binary count>=2 tagging over-credited roles
+    # (19.6 of 26 per team, incl. flukes), inflating every cell. Credible Wilson-bound tags give 4.3
+    # roles per team and an honest median. Still far above the old single-label n~15.
+    ok(len(ns) > 0 and ns[len(ns)//2] > 50,
        f"ROLES: role-pair pooling holds (median cell n={ns[len(ns)//2] if ns else 0} >> old ~15)")
     bad = sum(1 for row in rm["matrix"].values() for c in row.values()
               if not (0<=c["p"]<=1 and c["lo"]-1e-9<=c["p"]<=c["hi"]+1e-9 and c["n"]>=0))
