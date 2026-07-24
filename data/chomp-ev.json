@@ -30,6 +30,11 @@
       0.6533,
       0.7365
     ],
+    "chomp_xatu_context": 0.7276,
+    "chomp_xatu_context_ci95": [
+      0.6489,
+      0.8008
+    ],
     "coin": 0.6931,
     "elo_rating": 0.8659,
     "usage_prior": 0.6968

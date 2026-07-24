@@ -82,8 +82,11 @@ function extract(id, uploadtime, text){
     else if(m=l.match(/^\|(?:detailschange|-formechange)\|(p[12][ab]): ([^|]*)\|([^,|]+)/)){
       const slot=m[1], side=slot.slice(0,2), was=slotSp[slot], sp=norm(m[3]);
       nick[side+m[2]]=sp; slotSp[slot]=sp; touch(sp);
-      if(was && was!==sp){ sets[sp].from=was; if(hp[slot]!=null) hp[slot]=hp[slot]; }
-      brought[side].add(sp);
+      if(was && was!==sp){ sets[sp].from=was; }
+      // NOTE: deliberately NOT added to `brought`. A mega is the SAME Pokemon in a new forme, not an
+      // extra one brought. Adding it counted Charizard and Charizard-Mega-Y as two of the four, which
+      // pushed `brought` to 5-6 in ~4,700 games and silently disqualified them from CHOMP-EV
+      // (its eval set collapsed from ~1,200 games to 43 before this was caught).
       if(cur) cur.ev.push({t:'mega',s:slot,mon:sp,from:was||null});
     }
     else if(m=l.match(/^\|-mega\|(p[12][ab]): ([^|]*)\|([^|]+)\|([^|]+)/)){

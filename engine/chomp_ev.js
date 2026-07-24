@@ -257,6 +257,8 @@ const pChomp  = te.map(predLogit(mChomp, featChomp));
 const pUsage  = te.map(predLogit(mUsage, featUsage));
 const pElo    = te.map(predLogit(mElo, featElo));
 const pBelief = te.map(predLogit(mBelief, featBelief));
+const mCtx = fitLogit(tr, featCtxBelief);
+const pCtx = te.map(predLogit(mCtx, featCtxBelief));
 const pCoin   = te.map(() => 0.5);
 
 // ---- clustered bootstrap over games (each game = 1 row -> resample games) ---------------------
@@ -339,6 +341,7 @@ const out = {
     what: 'Held-out P(p1 win)=sigma(a+b*(align1-align2)); lower is better. Cluster/bootstrap over games.',
     chomp_align: chompLL, chomp_align_ci95: bootLL(pChomp, ys_te),
     chomp_belief_weighted: round(ll(pBelief, ys_te), 4), chomp_belief_ci95: bootLL(pBelief, ys_te),
+    chomp_xatu_context: round(ll(pCtx, ys_te), 4), chomp_xatu_context_ci95: bootLL(pCtx, ys_te),
     coin: coinLL,
     elo_rating: round(ll(pElo, ys_te), 4),
     usage_prior: round(ll(pUsage, ys_te), 4)
