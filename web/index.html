@@ -767,7 +767,7 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   return `<div class="panel">${mascotHero(c,"The whole town, wired up. Toggle a layer to sort by what each model DOES; hover a box to trace its connections.")}</div>
    <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
    <div style="margin:4px 0 8px">${btns}</div>
-   <div id="maptip" style="min-height:34px;margin:0 0 6px;padding:8px 12px;background:#f6f8fb;border:1.5px solid #e2e8f1;border-radius:10px;font-weight:600;color:#3a5372;font-size:13.5px;line-height:1.5"><b>Hover any model</b> — it lights up what feeds it and what it feeds.</div>${svg}</div>`;
+   <div id="maptip" style="height:78px;overflow:hidden;box-sizing:border-box;margin:0 0 6px;padding:8px 12px;background:#f6f8fb;border:1.5px solid #e2e8f1;border-radius:10px;font-weight:600;color:#3a5372;font-size:13.5px;line-height:1.5"><b>Hover any model</b> — it lights up what feeds it and what it feeds.</div>${svg}</div>`;
 }
 function mapToggle(layer){ window.MAPON[layer]=window.MAPON[layer]===false;
   const b=document.querySelector('[data-layer-btn="'+layer+'"]'); if(b){const on=window.MAPON[layer]!==false,br=b.dataset.br; b.style.background=on?br:'#fff'; b.style.color=on?'#fff':br;}
