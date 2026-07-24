@@ -530,7 +530,7 @@ CAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.da
 
 /* ===== rooms html ===== */
 function mascotHero(c,bubble){return `<div class="hero"><img class="mascot" src="${ani(c.sprite)}">
-  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
+  <div><h2>${c.title}${c.full?` <span style="font-size:14px;color:#9aa6b3;font-weight:600">· ${c.full}</span>`:''}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
 
 function roomTown(){const c=CAST[0];
   let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">
