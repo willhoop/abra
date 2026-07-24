@@ -7,7 +7,7 @@
   "distinct_items": 113,
   "move_events": 139080
  },
- "role_coverage_of_battle_usage": 0.9195,
+ "role_coverage_of_battle_usage": 0.9204,
  "neutral_share_of_usage": 0.1168,
  "note": "role_coverage = share of NON-neutral in-battle move uses that map to >=1 curated role. Neutral moves (Protect etc.) are excluded and reported as neutral_share. uncovered_top = high-usage moves with no role yet \u2014 candidates to tag.",
  "moves_top": [
@@ -1125,9 +1125,7 @@
   {
    "ability": "Fairy Aura",
    "reveals": 865,
-   "roles": [
-    "helpinghand"
-   ]
+   "roles": []
   },
   {
    "ability": "Unnerve",
@@ -1297,17 +1295,23 @@
   {
    "ability": "Water Absorb",
    "reveals": 6,
-   "roles": []
+   "roles": [
+    "healing"
+   ]
   },
   {
    "ability": "Hospitality",
    "reveals": 6,
-   "roles": []
+   "roles": [
+    "healing"
+   ]
   },
   {
    "ability": "Sap Sipper",
    "reveals": 6,
-   "roles": []
+   "roles": [
+    "healing"
+   ]
   },
   {
    "ability": "Drought",

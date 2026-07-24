@@ -4,7 +4,7 @@
 
 Generated directly from the tagger, so it cannot drift. `uses` = real in-battle uses for moves, revealed sets for abilities. Blank role = deliberately untagged (ordinary damage, a passive modifier, or a gap worth filling).
 
-Roles in the taxonomy: **32**. Moves listed: **489**. Abilities listed: **107**.
+Roles in the taxonomy: **33**. Moves listed: **489**. Abilities listed: **107**.
 
 
 ## Roles in the taxonomy
@@ -38,6 +38,7 @@ Roles in the taxonomy: **32**. Moves listed: **489**. Abilities listed: **107**.
 | `pivot` | Pivot |
 | `wall` | Bulky wall / support |
 | `trapping` | Trapper |
+| `hazards` | Hazard setter |
 | `perish` | Perish Trap |
 | `allysupport` | Ally support / positioning |
 | `itemdisrupt` | Item disruption |
@@ -137,7 +138,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 1 | Supreme Overlord | — |
 | 1 | Swift Swim | Weather / field abuser |
 | 1 | Tough Claws | — |
-| 1 | Toxic Debris | — |
+| 1 | Toxic Debris | Hazard setter |
 | 0 | Air Lock | Weather / effect denial |
 | 0 | Arena Trap | Trapper |
 | 0 | Beast Boost | Setup / sweeper |
@@ -358,7 +359,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 71 | Triple Arrows | — |
 | 70 | Psychic Noise | — |
 | 69 | Body Slam | Physical attacker, Paralysis spreader |
-| 68 | Stone Axe | — |
+| 68 | Stone Axe | Hazard setter |
 | 67 | Head Smash | — |
 | 66 | Mystical Fire | Special attacker |
 | 65 | King's Shield | Debuff (Intimidate / drops) |
@@ -418,7 +419,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 34 | Raging Bull | — |
 | 33 | Fiery Dance | Special attacker |
 | 33 | Mach Punch | Physical attacker, Priority attacker |
-| 32 | Ceaseless Edge | Physical attacker |
+| 32 | Ceaseless Edge | Hazard setter, Physical attacker |
 | 32 | Hammer Arm | — |
 | 31 | Alluring Voice | — |
 | 31 | Ice Spinner | — |
@@ -431,7 +432,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 29 | Boomburst | Special attacker |
 | 29 | Dragon Cheer | — |
 | 29 | Drill Run | — |
-| 29 | Stealth Rock | — |
+| 29 | Stealth Rock | Hazard setter |
 | 28 | Blaze Kick | — |
 | 28 | Bug Buzz | Special attacker |
 | 28 | Scary Face | Speed control (lower foe) |
@@ -469,7 +470,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 17 | Dynamic Punch | — |
 | 17 | Pollen Puff | Healing / sustain, Special attacker |
 | 17 | Supercell Slam | — |
-| 17 | Toxic Spikes | Poison spreader |
+| 17 | Toxic Spikes | Hazard setter, Poison spreader |
 | 17 | Upper Hand | — |
 | 17 | Water Shuriken | Priority attacker |
 | 16 | Bite | — |
@@ -538,7 +539,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 6 | Giga Impact | — |
 | 6 | Shelter | — |
 | 6 | Spicy Extract | — |
-| 6 | Spikes | — |
+| 6 | Spikes | Hazard setter |
 | 6 | Tidy Up | — |
 | 5 | Electro Ball | — |
 | 5 | Future Sight | — |
@@ -549,7 +550,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 5 | Spirit Shackle | Trapper |
 | 5 | Steel Beam | — |
 | 5 | Steel Wing | — |
-| 5 | Sticky Web | — |
+| 5 | Sticky Web | Hazard setter |
 | 5 | Struggle Bug | Debuff (Intimidate / drops) |
 | 5 | Thunder Fang | — |
 | 4 | Clear Smog | Weather / effect denial |
@@ -714,7 +715,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 72 | Salt Cure |
 | 71 | Triple Arrows |
 | 70 | Psychic Noise |
-| 68 | Stone Axe |
 | 67 | Head Smash |
 | 65 | Psych Up |
 | 64 | Scale Shot |
@@ -723,3 +723,4 @@ These do several jobs at once; the table is factual, not weighted.
 | 60 | Soak |
 | 59 | Cosmic Power |
 | 58 | Roar |
+| 58 | Lumina Crash |

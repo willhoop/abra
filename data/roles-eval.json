@@ -12,13 +12,13 @@
   0.6914,
   0.6963
  ],
- "accuracy_roles": 0.5036,
+ "accuracy_roles": 0.5042,
  "headline": "Roles predict the winner at held-out log-loss 0.6938 vs a coin 0.6931 and rating 0.6909.",
  "role_win_credit": [
   {
    "role": "phys_attacker",
    "label": "Physical attacker",
-   "coef": 0.1207,
+   "coef": 0.1208,
    "teams_with": 6700
   },
   {
@@ -36,7 +36,7 @@
   {
    "role": "status_sleep",
    "label": "Sleep spreader",
-   "coef": 0.0837,
+   "coef": 0.0836,
    "teams_with": 267
   },
   {
@@ -48,13 +48,13 @@
   {
    "role": "denial",
    "label": "Weather / effect denial",
-   "coef": 0.0695,
+   "coef": 0.0694,
    "teams_with": 387
   },
   {
    "role": "itemdisrupt",
    "label": "Item disruption",
-   "coef": 0.069,
+   "coef": 0.0691,
    "teams_with": 92
   },
   {
@@ -66,7 +66,7 @@
   {
    "role": "spec_attacker",
    "label": "Special attacker",
-   "coef": 0.0401,
+   "coef": 0.0402,
    "teams_with": 5426
   },
   {
@@ -80,6 +80,12 @@
    "label": "Terrain setter",
    "coef": 0.028,
    "teams_with": 2
+  },
+  {
+   "role": "hazards",
+   "label": "Hazard setter",
+   "coef": 0.0191,
+   "teams_with": 62
   },
   {
    "role": "status",
@@ -102,7 +108,7 @@
   {
    "role": "status_burn",
    "label": "Burn spreader",
-   "coef": 0.0012,
+   "coef": 0.0011,
    "teams_with": 2974
   },
   {
@@ -126,13 +132,13 @@
   {
    "role": "wall",
    "label": "Bulky wall / support",
-   "coef": -0.0033,
+   "coef": -0.0034,
    "teams_with": 5134
   },
   {
    "role": "speed_tailwind",
    "label": "Tailwind (speed up)",
-   "coef": -0.0086,
+   "coef": -0.0085,
    "teams_with": 4502
   },
   {
@@ -144,7 +150,7 @@
   {
    "role": "speed_trickroom",
    "label": "Trick Room setter",
-   "coef": -0.0128,
+   "coef": -0.0129,
    "teams_with": 2369
   },
   {
@@ -162,7 +168,7 @@
   {
    "role": "screens",
    "label": "Screen setter",
-   "coef": -0.0228,
+   "coef": -0.0227,
    "teams_with": 1921
   },
   {
@@ -198,13 +204,13 @@
   {
    "role": "debuff",
    "label": "Debuff (Intimidate / drops)",
-   "coef": -0.0886,
+   "coef": -0.0885,
    "teams_with": 5669
   },
   {
    "role": "encore",
    "label": "Encore",
-   "coef": -0.0918,
+   "coef": -0.0917,
    "teams_with": 1
   }
  ],
@@ -491,8 +497,8 @@
   }
  ],
  "pooling": {
-  "role_pair_cells": 611,
-  "median_cell_n": 72,
+  "role_pair_cells": 648,
+  "median_cell_n": 55,
   "min_cell_n": 1,
   "max_cell_n": 6774,
   "note": "Old single-label playstyle cells were n=11-18; role-pair cells pool every game into many cells, so the median cell here is far larger and can reach significance."

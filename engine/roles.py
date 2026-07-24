@@ -138,6 +138,22 @@ ROLE_SIGNALS = {
     moves={"Fairy Lock","Spider Web","Mean Look","Block","Anchor Shot","Thousand Waves","Spirit Shackle",
            "Infestation","Whirlpool","Fire Spin","Sand Tomb","Bind","Wrap"},
     abilities={"Shadow Tag","Arena Trap","Magnet Pull"}),
+ "spread": dict(label="Spread attacker (both foes)",
+    # hits both opponents at 75% power — the defining doubles job, and the reason Wide Guard and
+    # redirection exist. Kept separate from phys/spec attacker: a mon can be a strong single-target
+    # attacker and never threaten the spread.
+    moves={"Heat Wave","Rock Slide","Blizzard","Hyper Voice","Eruption","Dazzling Gleam","Muddy Water",
+           "Make It Rain","Icy Wind","Electroweb","Snarl","Struggle Bug","Expanding Force","Water Spout",
+           "Glacial Lance","Astral Barrage","Origin Pulse","Precipice Blades","Razor Leaf","Air Cutter",
+           "Swift","Breaking Swipe","Diamond Storm","Overdrive","Relic Song","Sandsear Storm",
+           "Wildbolt Storm","Bleakwind Storm","Springtide Storm","Burning Jealousy","Icy Wind"}),
+ "spread_self": dict(label="Field-wide (hits own partner)",
+    # hits EVERY adjacent Pokemon, including your own partner. That is a team-construction
+    # constraint, not just a damage profile: Earthquake wants a Flying/Levitate partner, Surf wants
+    # Water Absorb/Storm Drain, Discharge wants Volt Absorb/Lightning Rod. Distinct signal.
+    moves={"Earthquake","Surf","Discharge","Lava Plume","Petal Blizzard","Sludge Wave","Bulldoze",
+           "Boomburst","Parabolic Charge","Magnitude","Explosion","Self-Destruct","Searing Shot",
+           "Synchronoise"}),
  "hazards": dict(label="Hazard setter",
     # rare in VGC (short games, few switches) but a real job where it appears. Toxic Debris sets
     # Toxic Spikes passively when the mon is hit by a physical move. Removal lives under "denial".
