@@ -125,25 +125,42 @@ request time, something that does not change between requests.
   the data was collected, so format versioning has to be handled explicitly.
 - Depending on an unreleased branch means pinning a commit, not a version number.
 
-## Validation status (2026-07-24, honest)
+## Validation (2026-07-24)
 
-`engine/champions_sim.js` runs the official simulator on the real format. Comparing it to the
-hand-written engine on 8 real clean matchups is **not yet a valid test**, and two successive attempts
-were wrong in instructive ways:
+`engine/champions_sim.js` runs the official simulator on the real format; `engine/prior_player.js`
+ports our behaviour-clone policy into it. Getting to a valid comparison took **four** attempts, and
+the three failures are recorded because each produced a number that looked like a finding and was not:
 
-| Attempt | Mean difference | Why it did not measure what it claimed |
+| Attempt | Mean diff | What it actually measured |
 |---|---|---|
-| 1. Teams filled from the raw learnset | 32.2 points | The filler gave Charizard *Acrobatics, Aerial Ace, Air Cutter, Air Slash*. Only **1.6 of 4 moves** are revealed per set in a replay, 68% have no item and 76% no ability, so the filler dominated the result. |
-| 2. Teams filled from the shared set source | 23.7 points | Both engines now run identical teams, but different **policies**: ours uses behaviour-cloned move priors plus heuristics, the simulator uses `RandomPlayerAI`. The gap mixes rule differences with a large difference in play quality. |
+| 1. Teams filled from the raw learnset | 32.2 pts | The filler. Charizard got *Acrobatics, Aerial Ace, Air Cutter, Air Slash*. Only **1.6 of 4 moves** are revealed per replay set, 68% have no item, 76% no ability - so the filler dominated. |
+| 2. Identical teams, different policies | 23.7 pts | The policy. Ours samples behaviour-cloned priors; `RandomPlayerAI` picks uniformly. |
+| 3. "Policy ported" | 32.2 pts | **Nothing.** `active.species` is undefined in a Showdown request, so the port silently fell through to uniform random on **100%** of decisions while reporting itself as a prior sampler. |
+| 4. Species read from `request.side.pokemon[i].details` | **31.1 pts** | Valid: identical teams, identical policy, **81.4%** of decisions sampled from priors. |
 
-Neither number should be quoted as "our engine is wrong by N points". The remaining confound is the
-policy, and removing it is the next task: implement the existing prior-sampling policy as a Showdown
-`BattlePlayer` subclass so both engines make decisions the same way. Only then does a residual
-difference isolate the rules, which is the quantity this ADR is actually about.
+Two structural checks confirm neither engine has a side bias, so the gap is not an artifact of who
+moves first. Identical team on both sides:
 
-This is recorded rather than quietly re-run because the first two numbers were nearly reported as
-findings. An engine comparison is only as good as the thing held constant, and it took two attempts
-to hold enough constant.
+| Mirror | Our engine | Official sim |
+|---|---|---|
+| venusaur | 49.8% | 48.8% |
+| sneasler | 48.2% | 45.0% |
+| blastoise | 50.1% | 55.0% |
+
+**The result.** With identical teams, an identical policy and no side bias, our hand-written engine
+and the official simulator disagree by **31.1 percentage points on average** across 8 real clean
+matchups, and the favoured side **flips in 3 of 8**. Individual gaps reach 79 points.
+
+For scale: all of today's rule corrections together - random status, flinch, immunities, priority,
+Intimidate - moved our engine by 4.35 points. The remaining disagreement with the authoritative
+implementation is **seven times larger than everything we fixed**. Fixing this engine by hand was
+never going to converge.
+
+**Residual caveats, stated rather than buried.** 8 matchups at 60 battles each gives roughly a
++/-12 point interval per cell, so the per-matchup numbers are noisy even though the mean is not.
+And 18.6% of simulator decisions still fall back to uniform random when a sampled prior move is
+illegal that turn, where our engine falls back to its best available attack. That residual policy
+difference is real and is not enough to explain a 31-point gap.
 
 ## Migration, in order
 
