@@ -20,7 +20,8 @@ Architecture + build order + acceptance bars: `docs/ALAKAZAM-v2-spec.md`. Living
 - **Damage engine = exact** vs `@smogon/calc` (100% within 5%, gated in CI). `engine/validate_damage.js`, `data/damage-validation.json`.
 - **Pre-game win% = coin** (Bo1 closed). MEDICHAM's win% is *below* chance (inverted — greedy policy backs fast/offensive teams). `data/winrate-backtest.json`.
 - **Behaviour-clone (belief) = modest**: top-1 36% / top-3 72% on held-out human moves. `data/policy-eval.json`.
-- **PORY (mid-game value) = WORKS**: log-loss 0.567 vs coin 0.693, beats material heuristic, calibrated (ECE 1.6%), honest clustered-by-game CI [0.548,0.583]. `data/pory-eval.json`. Proves the pivot.
+- **PORY (mid-game value) = WORKS**: log-loss 0.567 vs coin 0.693, beats material heuristic, calibrated (ECE 1.6%), honest clustered-by-game CI [0.548,0.583]. `data/pory-eval.json`. Proves the pivot. **Now wired into KADABRA** as a per-turn "you're at X%" chip.
+- **CHOMP-EV (bring quality) = NULL at the ceiling**: on 1,205 held-out human games CHOMP's bring ranking ties a coin (log-loss 0.6918 vs 0.6931), an Elo, and a usage prior; winners barely more CHOMP-aligned than losers (0.512, CI [0.493,0.535]). Robust to forfeits; selection audit shows the bias favors CHOMP, so the null is conservative. Damage math stays validated — it's the bring *selection signal* that's at ceiling. `data/chomp-ev.json`, `engine/chomp_ev.js`. Honest negative that blocks a DITTO-style Goodhart.
 
 ## Model roster (final, snappy names)
 Built + validated this session:
@@ -33,9 +34,9 @@ Kept / roles:
 
 ## Build order — DO NEXT (inputs first, capstone last)
 1. ✅ MEDICHAM damage. 2. ✅ GURU + XATU + **PORY**.
-3. **NEXT: CHOMP-EV proof** — the winnable test: do CHOMP's recommended brings beat the human's actual brings, over held-out games, proper score + CI? (CHOMP bring logic lives in the CHOMP repo `github.com/willhoop/chomp`.)
-4. Wire **PORY's live win%** into KADABRA (per-turn "you're at X%") — KADABRA reconstructs board state already.
-5. SLOWKING preview-Nash → DITTO/PSRO team-builder → **ALAKAZAM** (assemble PORY value + XATU belief + MEDICHAM damage with KL-anchored search).
+3. ✅ **CHOMP-EV proof** — ran the winnable test (`engine/chomp_ev.js` → `data/chomp-ev.json`). Result: honest **NULL** — CHOMP's bring ranking ties a coin/Elo/usage prior on held-out games; robust to forfeits + selection-audited. Damage stays validated; the bring *selection* is at the format ceiling. Test + CI: `tests/test-chomp-ev.js`.
+4. ✅ Wired **PORY's live win%** into KADABRA (per-turn "you're at X%" chip; `poryWin()` in `web/index.html`).
+5. **NEXT: SLOWKING preview-Nash** → then DITTO/PSRO team-builder → **ALAKAZAM** (assemble PORY value + XATU belief + MEDICHAM damage with KL-anchored search). *Note:* a belief-aware bring value (XATU + SLOWKING lead stage-game + PORY leaf) is the credible path to a CHOMP bring edge — re-run `chomp_ev.js` after to measure the lift over the null.
 
 ## Hard constraints (honor these)
 - **Compute:** CPU only, no GPU. Keep models small/CPU-trainable. **Inference:** tiny in-browser JSON (like `live.js`), no build step. **Data:** real human replays first (Bo1 closed).

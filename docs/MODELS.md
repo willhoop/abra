@@ -33,8 +33,9 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 ## KADABRA — Key Analysis of Decisions, Advice & Better Replay Annotation
 **Job:** coach a real replay — take you to the turns that mattered.
 **Method (as of 2026-07-23):** parses the replay log to find decisive turns (KOs, losses), then runs a **clean move-by-move walkthrough** — big prev/next arrows, sprites + HP each key turn, and a bold **"what you should've done"** panel with the prescriptive fix. No Showdown iframe (dropped as clutter). **Works offline (`file://`)**: coaches from a locally-bundled set of recent games (`data/kad-replays.js`), with a recent-games picker and a raw-log paste fallback.
-**Honest status:** working offline; coaching is heuristic ("you traded X for nothing — Protect/pivot keeps it alive"), not yet equilibrium-grade — that's ALAKAZAM, later.
-**Code:** `runKadabra`, `kadCoach`, `kadPickerUI`, `kadBuild`, `renderKad` in `web/index.html`; bundle from `engine/refresh-site-data.py`.
+**PORY win% wired in (2026-07-23):** each key moment now shows a **"you're at X%" chip** from PORY, the validated mid-game value net (`poryWin()` reads `data/pory.js`; features = mons alive out of 4 + mean active HP + turn). This is a *validated* per-turn readout (PORY: log-loss 0.567 vs coin 0.693, calibrated), unlike the still-heuristic prose fix.
+**Honest status:** working offline; the prescriptive text is heuristic ("you traded X for nothing — Protect/pivot keeps it alive"), not yet equilibrium-grade — that's ALAKAZAM, later — but the win% chip beside it is real.
+**Code:** `runKadabra`, `kadCoach`, `kadBuild`, `renderKad`, `poryWin` in `web/index.html`; bundle from `engine/refresh-site-data.py`.
 **Open:** deeper per-turn analysis (win-prob delta per decision) once the engine + value net are wired.
 
 ## SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver
@@ -52,6 +53,7 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 
 ## CHOMP / ORB (companion tools, separate repo)
 **CHOMP** — the bring-4/lead-2 decision engine (Showdown userscript). Picks your best 4 and 2 leads by exact damage over the opponent's whole six. *Open:* bring/lead should be a minimax matrix game (`nash.py`), not greedy coverage.
+**CHOMP-EV proof (2026-07-23) — honest NULL.** The winnable test (do CHOMP's brings beat humans' actual brings on held-out games?) was run over 1,205 human games (`engine/chomp_ev.js` → `data/chomp-ev.json`). CHOMP's damage-coverage bring ranking **does not beat a coin** (held-out log-loss 0.6918 vs 0.6931, CIs overlap), **ties** an Elo and a usage-prior baseline, and winners are only marginally more CHOMP-aligned than losers (sign test 0.512, CI [0.493, 0.535]). Robust to dropping all forfeits; a measured selection audit shows the mild eval-set bias *favors* CHOMP, so the null is conservative. **The bring decision sits at the same near-coin ceiling as pre-game prediction** — CHOMP's damage math stays validated and useful as a calculator/EV display, but "CHOMP builds better brings" is not yet empirically supported. This is the guardrail that stops a DITTO-style Goodhart on a signal-free metric. *Next:* re-score brings with XATU belief + SLOWKING lead stage-game + PORY leaf value, then re-run this exact harness and measure the lift.
 **ORB** — On-battle Read Board, the damage calculator. **Decision (2026-07-23):** rather than fork the Smogon calc (the hosted one can't be auto-filled cross-origin, and a fork needs a build), ORB is a **validated Smogon-grade substitute built into the CHOMP dock** — same damage engine validated against `@smogon/calc`, reading the **live battle**: real stats/items, boosts on both actives (Intimidate/setup), weather, terrain, Helping Hand, spread, screens; it prints the conditions it applied. One-click install, auto-updates. (`docs/ORB-smogon-fork.md` kept as the record of the fork option we chose against.)
 
 ---
