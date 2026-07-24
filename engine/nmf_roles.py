@@ -123,29 +123,48 @@ def build():
     # matrix instead is smaller, denser, and answers the archetype question directly: which functional
     # roles co-occur. This is the clean, legible cut.
     RR = roles.ROLES; ri = {r: i for i, r in enumerate(RR)}
-    Xr_rows = []
+    Xr_rows = []; row_six = []          # row_six[i] = the species on that team-side
     for g in games:
         setsd = g.get("sets") or {}
         for side in ("p1", "p2"):
             vec = np.zeros(len(RR)); any_ = False
-            for mon in (g.get("six") or {}).get(side, []):
+            six = (g.get("six") or {}).get(side, [])
+            for mon in six:
                 s = setsd.get(mon)
                 if not s: continue
                 for r in roles.signal_roles(s.get("moves"), s.get("ability"), s.get("item")):
                     vec[ri[r]] += 1; any_ = True
-            if any_: Xr_rows.append(vec)
+            if any_: Xr_rows.append(vec); row_six.append(six)
     Xr = np.array(Xr_rows)
     rr2 = Xr.sum(1, keepdims=True); rr2[rr2 == 0] = 1
     Xrn = Xr / rr2
     ARCH_RANK = 6
     Wa, Ha, arch_err = fit_nmf(Xrn, ARCH_RANK, iters=400)
     aprev = Wa.sum(0)
+
+    # --- species -> archetype affinity -------------------------------------------------
+    # Wa[i] is how much team-side i belongs to each archetype. A species' affinity for an
+    # archetype is its mean membership across the team-sides it appears on, normalised by the
+    # species' overall usage — so a common mon is not automatically "top" of every archetype.
+    Wn = Wa / (Wa.sum(1, keepdims=True) + 1e-12)          # each row sums to 1
+    sp_sum = {}; sp_n = Counter()
+    for i, six in enumerate(row_six):
+        for mon in set(six):
+            sp_sum[mon] = sp_sum.get(mon, np.zeros(ARCH_RANK)) + Wn[i]
+            sp_n[mon] += 1
+    base = Wn.mean(0)                                      # population average membership
+    MIN_SP = 25                                            # species must appear >= 25 times
+    sp_aff = {m: (sp_sum[m]/sp_n[m]) - base for m in sp_sum if sp_n[m] >= MIN_SP}  # lift over base
+
     archetypes = []
     for ai, k in enumerate(np.argsort(-aprev)):
         h = Ha[k]; tot = float(h.sum()) or 1.0
         top = [dict(role=RR[i], label=roles.ROLE_SIGNALS[RR[i]]["label"], weight=round(float(h[i]/tot), 3))
                for i in np.argsort(-h)[:6] if h[i] > 0]
-        archetypes.append(dict(id=f"A{ai+1}", prevalence=round(float(aprev[k]/aprev.sum()), 3), top_roles=top))
+        mons = sorted(sp_aff.items(), key=lambda kv: -kv[1][k])[:6]
+        top_species = [dict(species=m, lift=round(float(v[k]), 4), games=sp_n[m]) for m, v in mons]
+        archetypes.append(dict(id=f"A{ai+1}", prevalence=round(float(aprev[k]/aprev.sum()), 3),
+                               top_roles=top, top_species=top_species))
 
     out = dict(
         generated=__import__("datetime").date.today().isoformat(),
