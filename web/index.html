@@ -522,7 +522,7 @@ const CAST=[
  {id:'xatu', tab:'Xatu', full:'Xatu', sprite:'xatu', title:"Xatu's Roost", acro:'reads the opponent’s hidden set', role:'opponent belief', roof:'#6bd0ff'},
  {id:'pory', tab:'Pory', full:'Porygon', sprite:'porygon', title:"Porygon's Win Meter", acro:'mid-game win% — beats a coin, calibrated', role:'mid-game win %', roof:'#6be0a0'},
  {id:'alakazam', tab:'Alakazam', full:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine · capstone, in development', role:'win-%-optimal move', roof:'#c66bff'},
- {id:'map', tab:'Map', full:'Porygon2', sprite:'porygon2', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
+ {id:'map', tab:'Map', sprite:'porygon2', icon:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3a86c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14"/><path d="M15 6v14"/></svg>', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
 ];
 
 /* ===== build nav ===== */
@@ -739,7 +739,7 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   edges.forEach(([f,t])=>{ const hid=!vis(f)||!vis(t); svg+=`<line class="edge" data-from="${f}" data-to="${t}" data-fl="${lay(f)}" data-tl="${lay(t)}" x1="${cx(f)}" y1="${bot(f)}" x2="${cx(t)}" y2="${top(t)}" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)" style="${hid?'display:none':''}"/>`; });
   S.models.forEach(m=>{ if(!MAPPOS[m.id])return; const [x,y]=MAPPOS[m.id]; const L=lay(m.id); const [bg,br]=LAYERCOL[L]||['#fff','#ccc']; const dash=(m.status==='roadmap'||m.status==='dev')?'stroke-dasharray="5 4"':'';
     const tip=`${m.name}${m.full?' ('+m.full+')':''}  —  IN: ${(ins[m.id]||['—']).join(', ')}   OUT: ${(outs[m.id]||['—']).join(', ')}\n${m.metric} · ${m.detail}`;
-    svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
+    svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" data-brief="${(m.name+(m.full?' ('+m.full+')':'')+' — '+m.detail).replace(/"/g,'&quot;')}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
       `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="${bg}" stroke="${br}" stroke-width="2.5" ${dash}/>`+
       `<text x="${x+NW/2}" y="${y+19}" text-anchor="middle" font-size="13" font-weight="800" fill="#12324f">${m.name}</text>`+
       `<text x="${x+NW/2}" y="${y+35}" text-anchor="middle" font-size="9.5" fill="#5a6472">${m.metric}</text></g>`; });
@@ -747,7 +747,8 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   const btns=LAYERS.map(([id,label,br])=>{const on=window.MAPON[id]!==false; return `<button onclick="mapToggle('${id}')" data-layer-btn="${id}" data-br="${br}" style="border:2px solid ${br};background:${on?br:'#fff'};color:${on?'#fff':br};font-weight:800;font-size:12px;padding:5px 11px;border-radius:99px;margin:3px;cursor:pointer">${label}</button>`;}).join('');
   return `<div class="panel">${mascotHero(c,"The whole town, wired up. Toggle a layer to sort by what each model DOES; hover a box to trace its connections.")}</div>
    <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
-   <div style="margin:4px 0 8px">${btns}</div>${svg}</div>`;
+   <div style="margin:4px 0 8px">${btns}</div>
+   <div id="maptip" style="min-height:34px;margin:0 0 6px;padding:8px 12px;background:#f6f8fb;border:1.5px solid #e2e8f1;border-radius:10px;font-weight:600;color:#3a5372;font-size:13.5px">Hover a model to see what it does.</div>${svg}</div>`;
 }
 function mapToggle(layer){ window.MAPON[layer]=window.MAPON[layer]===false;
   const b=document.querySelector('[data-layer-btn="'+layer+'"]'); if(b){const on=window.MAPON[layer]!==false,br=b.dataset.br; b.style.background=on?br:'#fff'; b.style.color=on?'#fff':br;}
