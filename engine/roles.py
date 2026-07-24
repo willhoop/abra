@@ -195,37 +195,58 @@ def wilson(k, n, z=1.96):
     h = z*math.sqrt(p*(1-p)/n + z*z/(4*n*n))
     return (p, (c-h)/d, (c+h)/d)
 
-MIN_SEEN = 2   # a species must show a role >= this many times to earn the capability (drops flukes)
+# A species does NOT simply "have" a role. The same species is support on one set and offensive on
+# another (Landorus: Choice-Scarf attacker vs Intimidate pivot), so we store a ROLE DISTRIBUTION:
+# p(role | this species appears) = how often its revealed sets play that role. That distribution is
+# also exactly the right object under closed sheets — before the set is revealed it is our *belief*
+# about what this Pokemon might be doing (the same reasoning as XATU).
+#
+# A flat count threshold cannot separate a real minor set from noise: Basculegion showed "debuff" on
+# 2 of 3,566 appearances (0.06%) — a count of 2, but obviously a fluke. So credibility is judged on
+# the WILSON LOWER BOUND of the rate, which automatically demands more evidence from a common species
+# and stays honest (wide interval -> not credible) for a rare one.
+MIN_SEEN  = 2       # need at least this many observations before a rate is even computed
+RATE_FLOOR = 0.05   # a role is CREDIBLE when its Wilson lower bound exceeds this (5% of sets)
+PRESENT_AT = 0.50   # a TEAM counts as having a role when noisy-OR across its six reaches this
 
 def build():
     games = list(load_games())
     n_games = len(games)
 
     # ---- Pass 1: species capability table (roles each species has been SEEN doing) ----
-    seen = defaultdict(Counter)        # species -> role -> count
-    seenw = defaultdict(dict)          # species -> role -> max weight observed
+    seen = defaultdict(Counter)        # species -> role -> sets observed playing it
+    species_sets = Counter()           # species -> revealed sets observed (the denominator)
     species_games = Counter()
     for g in games:
         appeared = set()
         for mon, s in (g.get("sets") or {}).items():
-            for r, w in signal_roles(s.get("moves"), s.get("ability"), s.get("item")).items():
+            species_sets[mon] += 1
+            for r in signal_roles(s.get("moves"), s.get("ability"), s.get("item")):
                 seen[mon][r] += 1
-                if w > seenw[mon].get(r, 0.0): seenw[mon][r] = w
             appeared.add(mon)
         for mon in appeared:
             species_games[mon] += 1
-    dex = {}       # species -> {role: weight} earned (seen >= MIN_SEEN times)
-    dexlist = {}   # species -> sorted role list (for display)
+
+    # species -> {role: p} role DISTRIBUTION, keeping only roles credible by Wilson lower bound
+    dex, dexfull, dexlist = {}, {}, {}
     for mon, ctr in seen.items():
-        dex[mon] = {r: round(seenw[mon][r], 2) for r, c in ctr.items() if c >= MIN_SEEN}
-        dexlist[mon] = sorted(dex[mon])
+        n = species_sets[mon]
+        keep, full = {}, {}
+        for r, c in ctr.items():
+            p, lo, hi = wilson(c, n)
+            full[r] = dict(n=c, of=n, p=round(p, 4), lo=round(lo, 4), hi=round(hi, 4))
+            if c >= MIN_SEEN and lo >= RATE_FLOOR:
+                keep[r] = round(p, 4)          # the probability this species plays that role
+        dex[mon] = keep; dexfull[mon] = full; dexlist[mon] = sorted(keep, key=lambda r: -keep[r])
 
     def team_roles(six):
-        """weighted team role vector: {role: max weight across the six}"""
+        """Soft team role vector. For each role, the probability that AT LEAST ONE of the six plays
+        it: 1 - prod(1 - p_i)  (noisy-OR). This keeps a species' set diversity intact instead of
+        flattening it to yes/no — a mon that is support 30% of the time contributes 0.3, not 1."""
         rs = {}
         for mon in six:
-            for r, w in dex.get(mon, {}).items():
-                if w > rs.get(r, 0.0): rs[r] = w
+            for r, p in dex.get(mon, {}).items():
+                rs[r] = 1.0 - (1.0 - rs.get(r, 0.0)) * (1.0 - p)
         return rs
 
     # ---- Pass 2+3: role-pair matchup matrix (pooled) ----
@@ -237,9 +258,13 @@ def build():
         six = g.get("six") or {}
         w = g.get("winner")
         p1n, p2n = g["p1"]["name"], g["p2"]["name"]
-        if w == p1n: wr, lr = team_roles(six.get("p1", [])), team_roles(six.get("p2", []))
-        elif w == p2n: wr, lr = team_roles(six.get("p2", [])), team_roles(six.get("p1", []))
+        if w == p1n: wrp, lrp = team_roles(six.get("p1", [])), team_roles(six.get("p2", []))
+        elif w == p2n: wrp, lrp = team_roles(six.get("p2", [])), team_roles(six.get("p1", []))
         else: continue
+        # For the COUNTED matrix a team either has the role or not: "more likely than not that at
+        # least one of the six plays it". The soft probabilities are kept for the model below.
+        wr = {r for r, p in wrp.items() if p >= PRESENT_AT}
+        lr = {r for r, p in lrp.items() if p >= PRESENT_AT}
         for r in wr | lr: role_present[r] += 1
         for a in wr:
             for b in lr:
@@ -269,7 +294,8 @@ def build():
         elif w == p2n: y = 0
         else: continue
         r1, r2 = team_roles(six.get("p1", [])), team_roles(six.get("p2", []))
-        x = [ (1 if r in r1 else 0) - (1 if r in r2 else 0) for r in ROLES ]
+        # soft features: difference of the two teams' role PROBABILITIES (keeps set diversity)
+        x = [ r1.get(r, 0.0) - r2.get(r, 0.0) for r in ROLES ]
         dr = (g["p1"].get("rating") or 1000) - (g["p2"].get("rating") or 1000)
         rows.append((g["id"], x, dr, y))
 
@@ -372,7 +398,14 @@ def build():
         generated=__import__("datetime").date.today().isoformat(),
         n_games=n_games, min_seen=MIN_SEEN,
         roles={r: ROLE_SIGNALS[r]["label"] for r in ROLES},
-        species={mon: {"roles": dex[mon], "games": species_games[mon]}
+        rate_floor=RATE_FLOOR, present_at=PRESENT_AT,
+        note=("'roles' is a DISTRIBUTION: p(role | this species appears), because the same species "
+              "is support on one set and offensive on another. A role is listed only when its Wilson "
+              "lower bound clears rate_floor, so a 2-in-3566 fluke is excluded while a genuine minor "
+              "set is kept. 'all_roles' keeps every observed rate with its interval, for audit."),
+        species={mon: {"roles": dex[mon], "top": dexlist[mon][:6],
+                       "sets_seen": species_sets[mon], "games": species_games[mon],
+                       "all_roles": dexfull[mon]}
                  for mon in sorted(dex, key=lambda m: -species_games[m]) if dex[mon]},
     )
     json.dump(dex_out, open(D("data","pokemon-roles.json"),"w"), indent=1)
