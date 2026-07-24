@@ -3,99 +3,89 @@
   "format": "gen9championsvgc2026regmb (Bo1 closed-sheet)",
   "n_total_games": 5602,
   "n_human_games": 2756,
-  "n_eval_games": 151,
-  "n_skipped_unbuildable": 149,
-  "n_train": 120,
-  "n_test": 31,
+  "n_eval_games": 1205,
+  "n_skipped_unbuildable": 17,
+  "n_train": 964,
+  "n_test": 241,
   "headline_beat_test": {
     "what": "P(winner's actual bring was more CHOMP-aligned than the loser's), all eval games. Baseline 0.5.",
-    "p_winner_more_aligned": 0.5728,
+    "p_winner_more_aligned": 0.5116,
     "ci95": [
-      0.4901,
-      0.6424
+      0.4934,
+      0.5349
     ],
-    "mean_align_delta_win_minus_lose": 0.0482,
-    "p_on_heldout_only": 0.5323,
+    "mean_align_delta_win_minus_lose": 0.0126,
+    "p_on_heldout_only": 0.5,
     "verdict": "Winners lean more CHOMP-aligned but CI includes 0.5 — suggestive, not significant."
   },
   "proper_score_logloss": {
     "what": "Held-out P(p1 win)=sigma(a+b*(align1-align2)); lower is better. Cluster/bootstrap over games.",
-    "chomp_align": 0.7337,
+    "chomp_align": 0.6918,
     "chomp_align_ci95": [
-      0.6685,
-      0.8032
+      0.6853,
+      0.6973
     ],
     "coin": 0.6931,
-    "elo_rating": 0.7722,
-    "usage_prior": 0.6847
+    "elo_rating": 0.6906,
+    "usage_prior": 0.6906
   },
   "brier": {
-    "chomp_align": 0.2695,
+    "chomp_align": 0.2493,
     "coin": 0.25,
-    "elo_rating": 0.2868,
-    "usage_prior": 0.2458
+    "elo_rating": 0.2487,
+    "usage_prior": 0.2487
   },
   "logistic_weights": {
     "chomp": {
-      "a": 0.0363,
-      "b": 0.843
+      "a": 0.088,
+      "b": 0.1398
     },
     "usage": {
-      "a": 0.0354,
-      "b": -0.3849
+      "a": 0.0875,
+      "b": -0.2505
     },
     "elo": {
-      "a": 0.1668,
-      "b": 3.0962
+      "a": 0.1037,
+      "b": 1.3122
     }
   },
   "calibration": {
-    "ece": 0.1523,
+    "ece": 0.0083,
     "reliability": [
       [
-        0.358,
-        0.714,
-        7
+        0.495,
+        0.56,
+        25
       ],
       [
-        0.452,
-        0.333,
-        9
-      ],
-      [
-        0.544,
-        0.615,
-        13
-      ],
-      [
-        0.612,
-        0.5,
-        2
+        0.526,
+        0.528,
+        216
       ]
     ]
   },
   "agreement": {
-    "top1_recovery_all": 0.0795,
-    "top1_recovery_winners": 0.0927,
-    "top1_recovery_losers": 0.0662,
-    "mean_overlap_winners": 0.6887,
-    "mean_overlap_losers": 0.6556,
+    "top1_recovery_all": 0.0946,
+    "top1_recovery_winners": 0.0988,
+    "top1_recovery_losers": 0.0905,
+    "mean_overlap_winners": 0.6888,
+    "mean_overlap_losers": 0.6871,
     "winner_top1_by_rating_tier": {
       "lt1200": {
-        "rate": 0.0833,
-        "n": 36
+        "rate": 0.0989,
+        "n": 263
       },
       "1200_1400": {
-        "rate": 0.0941,
-        "n": 85
+        "rate": 0.1021,
+        "n": 666
       },
       "gt1400": {
-        "rate": 0.0909,
-        "n": 22
+        "rate": 0.0844,
+        "n": 154
       },
       "unknown": {
-        "rate": 0.125,
-        "n": 8
+        "rate": 0.0984,
+        "n": 122
       }
     }
   },

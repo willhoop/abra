@@ -75,8 +75,23 @@ const COMBOS = (() => {
   return out; // 15
 })();
 
+// resolve a store species id (idn, hyphen-stripped) to a champ-model MONS key that builds.
+// champ-model keys are hyphenated (rotom-heat, ninetales-alola, basculegion-f); idn strips hyphens,
+// so index MONS keys by idn. Cosmetic formes absent from MONS collapse to their base species.
+const normIndex = {};
+for (const key of Object.keys(M.MONS)) normIndex[idn(key)] = key;
+const COSMETIC = ['vivillon', 'florges', 'maushold', 'alcremie', 'gourgeist', 'sinistcha', 'polteageist'];
+function resolveKey(k) {
+  if (normIndex[k]) return normIndex[k];
+  for (const base of COSMETIC) if (k.startsWith(base) && normIndex[base]) return normIndex[base];
+  return null;
+}
 const monCache = {};
-const mon = k => (k in monCache) ? monCache[k] : (monCache[k] = S.buildOne(k));
+const mon = k => {
+  if (k in monCache) return monCache[k];
+  const rk = resolveKey(k);
+  return monCache[k] = rk ? S.buildOne(rk) : null;
+};
 
 // align of the actual bring among the 15 candidates, scored by fn(subIdx)->score (higher=better)
 function alignOf(six, br, scoreFn) {
