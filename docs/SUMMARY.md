@@ -33,7 +33,9 @@ negatives are reported as negatives.
 | **KADABRA** | Replay coach | ✅ Works offline | Per-turn "you're at X%" from PORY |
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
-| **MEW** | Self-play data engine | 🔜 Roadmap | The path to the millions of games ALAKAZAM's strongest version needs |
+| **MEW** | Self-play data engine | 🔜 Roadmap | Generates the millions of self-play games ALAKAZAM's strongest version needs (the "million games" fuel) |
+| **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
+| **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 
 ## How it fits together
 
