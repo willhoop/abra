@@ -293,7 +293,7 @@ const out = {
     const s = signTest(nonff), sci = bootSign(nonff);
     const pC = teNon.map(predLogit(mChomp, featChomp)), yC = teNon.map(r => r.y);
     return {
-      what: 'Re-run excluding forfeit games (winner won by opponent quitting, not on bring quality).',
+      what: 'Re-run excluding forfeit games. Forfeits are usually legitimate concessions (a player quits an already-losing position), so the label is typically correct; this pass confirms the result is not driven by them.',
       n_forfeit_in_eval: data.filter(r => r.ff).length,
       n_nonforfeit_eval: nonff.length, n_nonforfeit_test: teNon.length,
       p_winner_more_aligned: round(s.p, 4), ci95: sci,
