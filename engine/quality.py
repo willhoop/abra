@@ -19,9 +19,17 @@ STORE = os.path.join(_HERE, '..', 'data', 'games.ladder.jsonl')
 CONFIG = os.path.join(_HERE, '..', 'data', 'quality-filter.json')
 
 
+_CFG = None
+
+
 def config():
-    with open(CONFIG, encoding='utf-8') as fh:
-        return json.load(fh)
+    """Memoised: reasons() runs once per game, and re-reading the file each time made the filter
+    hundreds of times slower than the work it was doing."""
+    global _CFG
+    if _CFG is None:
+        with open(CONFIG, encoding='utf-8') as fh:
+            _CFG = json.load(fh)
+    return _CFG
 
 
 def read_store(path=None):

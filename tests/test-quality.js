@@ -21,16 +21,20 @@ ok(!!cfg.rules.exclude_bot_games.known_limitation, 'the bot rule records that de
 ok(!!cfg.rules.require_full_bring.known_limitation, 'the bring rule records that it conditions on game length');
 
 console.log('== both readers select the same games ==');
+/* Compare a HASH of the sorted id list rather than shipping the whole list between processes.
+ * Identical hashes mean identical selections, and it keeps the test fast enough to stay in CI. */
+const crypto = require('crypto');
+const digest = ids => crypto.createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 16);
 const jsGames = Q.loadGames();
 const jsIds = jsGames.map(g => g.id).sort();
 const py = execFileSync('python3', ['-c',
-  "import sys,json; sys.path.insert(0,'engine'); import quality;" +
-  "print(json.dumps(sorted(g['id'] for g in quality.load_games())))"
-], { cwd: path.join(__dirname, '..'), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-const pyIds = JSON.parse(py);
-ok(jsIds.length === pyIds.length, `same count: JS ${jsIds.length}, Python ${pyIds.length}`);
-const same = jsIds.length === pyIds.length && jsIds.every((id, i) => id === pyIds[i]);
-ok(same, 'the two readers select an identical set of game ids');
+  "import sys,hashlib; sys.path.insert(0,'engine'); import quality;" +
+  "ids=sorted(g['id'] for g in quality.load_games());" +
+  "print(len(ids)); print(hashlib.sha256(','.join(ids).encode()).hexdigest()[:16])"
+], { cwd: path.join(__dirname, '..'), encoding: 'utf8' }).trim().split('\n');
+const pyCount = +py[0], pyHash = py[1].trim();
+ok(jsIds.length === pyCount, `same count: JS ${jsIds.length}, Python ${pyCount}`);
+ok(digest(jsIds) === pyHash, `identical selection (sha ${digest(jsIds)} vs ${pyHash})`);
 
 console.log('== the funnel is internally consistent ==');
 const f = Q.funnel();

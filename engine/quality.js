@@ -16,7 +16,10 @@ const path = require('path');
 const STORE = path.join(__dirname, '..', 'data', 'games.ladder.jsonl');
 const CONFIG = path.join(__dirname, '..', 'data', 'quality-filter.json');
 
-function config() { return JSON.parse(fs.readFileSync(CONFIG, 'utf8')); }
+/* Memoised. `reasons()` is called once per game, and re-reading + re-parsing the config file on each
+ * call turned a 1-second filter into a multi-minute one. Cached after the first read. */
+let _cfg = null;
+function config() { if (!_cfg) _cfg = JSON.parse(fs.readFileSync(CONFIG, 'utf8')); return _cfg; }
 
 /* Deduplicate by id, first occurrence wins - the same order-preserving rule as dedupe_store.py, so
  * an un-deduped file on disk cannot silently change a result. */
