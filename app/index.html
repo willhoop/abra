@@ -520,6 +520,7 @@ const CAST=[
  {id:'guru', tab:'Guru', sprite:'oranguru', title:"Guru's Observatory", acro:'Grounded Usage & Real-matchup Understanding', role:'meta matchup matrix', roof:'#b06bff'},
  {id:'xatu', tab:'Xatu', sprite:'xatu', title:"Xatu's Roost", acro:'eXpected Adversary Tendencies & Unrevealed-set model', role:'opponent belief', roof:'#6bd0ff'},
  {id:'pory', tab:'Pory', sprite:'porygon', title:"Porygon's Win Meter", acro:'Per-turn Odds from Real-replay Yardsticks', role:'mid-game win %', roof:'#6be0a0'},
+ {id:'alakazam', tab:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine (capstone, in development)', role:'win-%-optimal move', roof:'#c66bff'},
 ];
 
 /* ===== build nav ===== */
@@ -700,6 +701,12 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
      </div>
      <div style="text-align:center;margin-top:14px;font-size:38px;font-weight:800;color:#1a9a4a" id="pv_out">50%</div></div>`;
 }
+function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
+  return `<div class="panel">${mascotHero(c,"When I'm built, I'll give you the win-%-optimal move — and your real chance to win — at any point in the battle.")}</div>
+   <div class="panel"><h2>The capstone <span style="font-size:13px;color:#a06bd0">— in development</span></h2><p style="font-weight:600;color:#3a5372">ALAKAZAM is the final, hardest piece of ABRA. Given a live position it will output the <b>best move and your real win chance</b> — by keeping a belief about what the opponent is hiding (Xatu), planning a few turns ahead over the exact damage engine, and scoring positions with Porygon's win meter. It <b>plans</b> instead of just reacting, and keeps its choices <b>unpredictable</b> so it can't be read. This is Kadabra fully evolved.</p>
+   <span class="chip">belief + search</span><span class="chip">mixed strategy</span><span class="chip">Kadabra, evolved</span></div>
+   <div class="panel"><h2>Honest status</h2><p style="font-weight:600;color:#3a5372">Not built yet — but its inputs already are: exact damage, Porygon's value net, Xatu's belief, and Slowking's equilibrium. A light version runs right here in your browser; a version that could beat top human players needs a cloud GPU and months of self-play. It's judged on <b>decision quality</b>, never on calling the winner in advance — that part is a coin flip, and we say so.</p></div>`;
+}
 function poryDemo(){
   const v=id=>+document.getElementById(id).value;
   const ma=v('p_ma'),fa=v('p_fa'),mh=v('p_mh'),fh=v('p_fh'),t=v('p_t');
@@ -726,7 +733,7 @@ function roomChomp(){const c=CAST[6];
      </div></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
-const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory};
+const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam};
 
 /* ===== navigation ===== */
 function go(id){
