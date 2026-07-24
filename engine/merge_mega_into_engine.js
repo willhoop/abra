@@ -33,6 +33,10 @@ const before = Object.keys(MC.mons).length;
 let added = 0, updated = 0, skipped = 0;
 for (const [key, f] of Object.entries(mega.forms)) {
   if (!f.in_our_store) { skipped++; continue; }        // only carry what actually shows up
+  // ONLY touch mega/primal formes. The existing non-mega entries were built elsewhere and are what
+  // the damage validation runs against; rewriting their stats with this file's approximate spread
+  // would be an unrequested behaviour change.
+  if (!/mega|primal/i.test(f.forme || '')) { skipped++; continue; }
   const entry = {
     t: f.types,
     st: f.lvl50,
