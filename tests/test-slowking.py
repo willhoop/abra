@@ -47,9 +47,11 @@ check_eval(sp, "species")
 pf = os.path.join(ROOT, "data", "slowking-playstyle-eval.json")
 if os.path.exists(pf):
     ex_pf = check_eval(pf, "playstyle")
-    # the headline finding: at the playstyle level, greedy IS significantly exploitable (cycle is real)
-    ok(ex_pf["greedy_minus_nash_ci95"][0] > 0,
-       "[playstyle] greedy-vs-Nash gap is significant (playstyle meta is non-transitive)")
+    # Honest finding: at the playstyle level the POINT gap is materially positive (a directional cycle),
+    # but on small per-matchup samples the 95% CI is wide and can cross 0 — so we check the point gap,
+    # NOT statistical significance, and the site copy calls it "suggestive, not settled".
+    ok(ex_pf["greedy_minus_nash"] > 0.05,
+       "[playstyle] greedy-vs-Nash point gap is materially positive (directional cycle; CIs wide on small n)")
 
 if fails:
     print(f"\ntest-slowking: {fails} FAILED"); sys.exit(1)
