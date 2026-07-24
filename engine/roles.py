@@ -134,44 +134,46 @@ SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurr
     "Hex","Tera Blast","Boomburst","Apple Acid","Fickle Beam","Luster Purge","Mystical Fire",
     "Matcha Gotcha"}   # Matcha Gotcha: special attacker AND healing (also in the healing set) — multi-role
 
-# Weighted overrides for moves that do several jobs at once: {move: {role: weight}}.
-# weight 1.0 = a primary job, <1.0 = a secondary/incidental job. A move here is authoritative —
-# its roles come ONLY from this table (so a move can carry 2 or 3 weighted roles cleanly).
-# Everything not listed gets weight 1.0 for each role its signal set assigns.
-ROLE_WEIGHT_OVERRIDE = {
- "Matcha Gotcha": {"spec_attacker": 1.0, "healing": 0.6, "status": 0.4},  # attack + heal + burn (3 jobs)
- "Body Press":    {"wall": 1.0, "phys_attacker": 0.5},                    # a wall's attack
- "Discharge":     {"spec_attacker": 1.0, "status": 0.5},                  # spread + paralysis (Lightning Rod core)
- "Knock Off":     {"phys_attacker": 1.0, "itemdisrupt": 0.7},            # damage + strip item
- "Parting Shot":  {"pivot": 1.0, "debuff": 0.8},                          # pivot + drop both attacks
- "Nuzzle":        {"status": 1.0, "phys_attacker": 0.2},                  # paralysis chip
- "Pollen Puff":   {"healing": 1.0, "spec_attacker": 0.5},                 # heal ally OR damage foe
- "Flip Turn":     {"pivot": 1.0, "phys_attacker": 0.6},
- "Volt Switch":   {"pivot": 1.0, "spec_attacker": 0.6},
- "U-turn":        {"pivot": 1.0, "phys_attacker": 0.6},
- "Draining Kiss": {"healing": 0.7, "spec_attacker": 0.7},
+# Multi-role membership for moves that do several jobs at once: {move: set(roles)}.
+# These sets are FACTUAL (a move's actual in-game effects), not weighted — Matcha Gotcha genuinely
+# attacks, heals, and can burn. The *strength* of each role (primary vs secondary) is deliberately
+# NOT hand-set here: graded weights are LEARNED from co-occurrence by the NMF step (Label Distribution
+# Learning / Label Enhancement — Geng 2016; Lee & Seung 1999). This table is authoritative for a
+# listed move: its roles come only from here (e.g. Fake Out is tempo, NOT an attacker).
+ROLE_OVERRIDE = {
+ "Matcha Gotcha": {"spec_attacker", "healing", "status"},   # attack + heal + burn (3 real jobs)
+ "Body Press":    {"wall", "phys_attacker"},                # a wall's attack (Iron Defense + Body Press)
+ "Discharge":     {"spec_attacker", "status"},              # spread + paralysis (Lightning Rod core)
+ "Knock Off":     {"phys_attacker", "itemdisrupt"},         # damage + strip item
+ "Parting Shot":  {"pivot", "debuff"},                      # pivot + drop both attacks
+ "Nuzzle":        {"status"},                               # the paralysis, not the chip
+ "Pollen Puff":   {"healing", "spec_attacker"},             # heal ally OR damage foe
+ "Flip Turn":     {"pivot", "phys_attacker"},
+ "Volt Switch":   {"pivot", "spec_attacker"},
+ "U-turn":        {"pivot", "phys_attacker"},
+ "Draining Kiss": {"healing", "spec_attacker"},
+ "Fake Out":      {"fakeout"},                              # the flinch/tempo, NOT the tiny attack
 }
 
 def signal_roles(moves, ability, item):
-    """Roles a single revealed set demonstrates, as {role: weight} (weight in (0,1])."""
+    """Roles a single revealed set demonstrates, as {role: 1.0}.
+    Presence is binary and data-justified; graded primary/secondary STRENGTH is learned later
+    by the NMF step, never hand-assigned here (measured, not asserted)."""
     out = {}
-    def add(r, w):
-        if w > out.get(r, 0.0): out[r] = w
     mv = set(moves or [])
     for m in mv:
-        if m in ROLE_WEIGHT_OVERRIDE:
-            for r, w in ROLE_WEIGHT_OVERRIDE[m].items(): add(r, w)
+        if m in ROLE_OVERRIDE:
+            for r in ROLE_OVERRIDE[m]: out[r] = 1.0
         else:
             for r, sig in ROLE_SIGNALS.items():
                 if r in ("phys_attacker", "spec_attacker"): continue
-                if m in sig.get("moves", set()): add(r, 1.0)
+                if m in sig.get("moves", set()): out[r] = 1.0
     if ability:
         for r, sig in ROLE_SIGNALS.items():
-            if ability in sig.get("abilities", set()): add(r, 1.0)
-    # count-based attacker roles, from moves NOT already handled by an override
-    nover = {m for m in mv if m not in ROLE_WEIGHT_OVERRIDE}
-    if len(nover & PHYS) >= 2: add("phys_attacker", 1.0)
-    if len(nover & SPEC) >= 2: add("spec_attacker", 1.0)
+            if ability in sig.get("abilities", set()): out[r] = 1.0
+    nover = {m for m in mv if m not in ROLE_OVERRIDE}
+    if len(nover & PHYS) >= 2: out["phys_attacker"] = 1.0
+    if len(nover & SPEC) >= 2: out["spec_attacker"] = 1.0
     return out
 
 # ---------------------------------------------------------------------------

@@ -25,2327 +25,2493 @@
   "wall": "Bulky wall / support",
   "trapping": "Trapper",
   "perish": "Perish Trap",
+  "allysupport": "Ally support / positioning",
+  "itemdisrupt": "Item disruption",
   "phys_attacker": "Physical attacker",
   "spec_attacker": "Special attacker"
  },
  "species": {
   "basculegion": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "priority": 1.0,
+    "debuff": 1.0
+   },
    "games": 3292
   },
   "charizard": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "phys_attacker",
-    "setup",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 2562
   },
   "garchomp": {
-   "roles": [
-    "phys_attacker",
-    "setup",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "phys_attacker": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 2430
   },
   "whimsicott": {
-   "roles": [
-    "debuff",
-    "encore",
-    "healing",
-    "helpinghand",
-    "screens",
-    "spec_attacker",
-    "speed_lower",
-    "speed_tailwind",
-    "speed_trickroom",
-    "taunt",
-    "terrain",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "debuff": 1.0,
+    "encore": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "taunt": 1.0,
+    "weather": 1.0,
+    "screens": 1.0,
+    "spec_attacker": 1.0,
+    "speed_trickroom": 1.0,
+    "terrain": 1.0,
+    "speed_lower": 1.0,
+    "healing": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 2177
   },
   "sylveon": {
-   "roles": [
-    "debuff",
-    "healing",
-    "priority",
-    "setup",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "setup": 1.0,
+    "debuff": 1.0,
+    "healing": 1.0
+   },
    "games": 2017
   },
   "incineroar": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "healing",
-    "helpinghand",
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "status",
-    "taunt",
-    "wall"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "pivot": 1.0,
+    "phys_attacker": 1.0,
+    "fakeout": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "setup": 1.0,
+    "status": 1.0,
+    "healing": 1.0,
+    "taunt": 1.0
+   },
    "games": 1732
   },
   "kingambit": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 1465
   },
   "archaludon": {
-   "roles": [
-    "debuff",
-    "screens",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "spec_attacker": 1.0,
+    "debuff": 1.0,
+    "screens": 1.0
+   },
    "games": 1446
   },
   "pelipper": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "pivot",
-    "spec_attacker",
-    "speed_lower",
-    "speed_tailwind",
-    "teamprotect",
-    "trapping",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "spec_attacker": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0,
+    "speed_lower": 1.0,
+    "trapping": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "weather": 1.0,
+    "healing": 1.0
+   },
    "games": 1407
   },
   "sinistcha": {
-   "roles": [
-    "healing",
-    "redirection",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "status": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0,
+    "speed_trickroom": 1.0,
+    "setup": 1.0
+   },
    "games": 1253
   },
   "gholdengo": {
-   "roles": [
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 1199
   },
   "farigiraf": {
-   "roles": [
-    "helpinghand",
-    "pivot",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "status",
-    "terrain",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "spec_attacker": 1.0,
+    "weather": 1.0,
+    "screens": 1.0,
+    "setup": 1.0,
+    "status": 1.0,
+    "terrain": 1.0,
+    "itemdisrupt": 1.0,
+    "pivot": 1.0
+   },
    "games": 1128
   },
   "sneasler": {
-   "roles": [
-    "fakeout",
-    "phys_attacker",
-    "pivot",
-    "speed_lower",
-    "taunt",
-    "teamprotect",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "allysupport": 1.0,
+    "phys_attacker": 1.0,
+    "taunt": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "speed_lower": 1.0,
+    "weather": 1.0,
+    "pivot": 1.0
+   },
    "games": 1015
   },
   "venusaur": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "setup": 1.0
+   },
    "games": 984
   },
   "staraptor": {
-   "roles": [
-    "debuff",
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "spec_attacker",
-    "speed_tailwind",
-    "weather"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "phys_attacker": 1.0,
+    "speed_tailwind": 1.0,
+    "healing": 1.0,
+    "pivot": 1.0,
+    "weather": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 960
   },
   "tyranitar": {
-   "roles": [
-    "phys_attacker",
-    "setup",
-    "speed_lower"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "setup": 1.0,
+    "wall": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 905
   },
   "grimmsnarl": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "screens",
-    "speed_lower",
-    "taunt",
-    "terrain",
-    "wall"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "pivot": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "fakeout": 1.0,
+    "taunt": 1.0,
+    "speed_lower": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "terrain": 1.0
+   },
    "games": 902
   },
   "floetteeternal": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "setup",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "healing": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0
+   },
    "games": 895
   },
   "swampert": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 718
   },
   "raichu": {
-   "roles": [
-    "encore",
-    "fakeout",
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "encore": 1.0,
+    "speed_lower": 1.0,
+    "setup": 1.0,
+    "healing": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 682
   },
   "torkoal": {
-   "roles": [
-    "helpinghand",
-    "spec_attacker",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 626
   },
   "delphox": {
-   "roles": [
-    "encore",
-    "setup",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "encore": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 544
   },
   "excadrill": {
-   "roles": [
-    "phys_attacker",
-    "setup",
-    "speed_lower"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 543
   },
   "aerodactyl": {
-   "roles": [
-    "phys_attacker",
-    "setup",
-    "speed_tailwind",
-    "taunt",
-    "teamprotect",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "phys_attacker": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "weather": 1.0,
+    "taunt": 1.0,
+    "setup": 1.0
+   },
    "games": 540
   },
   "rotomwash": {
-   "roles": [
-    "helpinghand",
-    "pivot",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "speed_lower": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "setup": 1.0,
+    "itemdisrupt": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0
+   },
    "games": 450
   },
   "charizardmegay": {
-   "roles": [
-    "helpinghand",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0
+   },
    "games": 435
   },
   "milotic": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "wall": 1.0,
+    "setup": 1.0,
+    "status": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0,
+    "screens": 1.0
+   },
    "games": 423
   },
   "maushold": {
-   "roles": [
-    "debuff",
-    "encore",
-    "helpinghand",
-    "priority",
-    "redirection",
-    "taunt",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "redirection": 1.0,
+    "wall": 1.0,
+    "weather": 1.0,
+    "taunt": 1.0,
+    "debuff": 1.0,
+    "allysupport": 1.0,
+    "encore": 1.0,
+    "priority": 1.0,
+    "helpinghand": 1.0
+   },
    "games": 409
   },
   "talonflame": {
-   "roles": [
-    "debuff",
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "speed_tailwind",
-    "status",
-    "taunt",
-    "teamprotect",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "status": 1.0,
+    "taunt": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "weather": 1.0,
+    "debuff": 1.0,
+    "setup": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 400
   },
   "dragonite": {
-   "roles": [
-    "helpinghand",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "speed_tailwind",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "speed_tailwind": 1.0,
+    "spec_attacker": 1.0,
+    "phys_attacker": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "setup": 1.0,
+    "speed_lower": 1.0,
+    "weather": 1.0
+   },
    "games": 380
   },
   "blastoise": {
-   "roles": [
-    "fakeout",
-    "helpinghand",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "speed_lower": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "fakeout": 1.0,
+    "priority": 1.0,
+    "weather": 1.0
+   },
    "games": 353
   },
   "toxapex": {
-   "roles": [
-    "healing",
-    "speed_lower",
-    "status",
-    "teamprotect",
-    "trapping",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "trapping": 1.0,
+    "status": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "healing": 1.0,
+    "speed_lower": 1.0,
+    "weather": 1.0
+   },
    "games": 348
   },
   "sableye": {
-   "roles": [
-    "encore",
-    "fakeout",
-    "healing",
-    "helpinghand",
-    "phys_attacker",
-    "priority",
-    "screens",
-    "status",
-    "taunt",
-    "trapping",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "weather": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "encore": 1.0,
+    "allysupport": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "taunt": 1.0,
+    "status": 1.0,
+    "fakeout": 1.0,
+    "helpinghand": 1.0,
+    "priority": 1.0,
+    "healing": 1.0,
+    "trapping": 1.0
+   },
    "games": 345
   },
   "ninetalesalola": {
-   "roles": [
-    "encore",
-    "screens",
-    "spec_attacker",
-    "speed_lower",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "screens": 1.0,
+    "wall": 1.0,
+    "spec_attacker": 1.0,
+    "weather": 1.0,
+    "encore": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 329
   },
   "metagross": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup",
-    "speed_lower"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "priority": 1.0,
+    "wall": 1.0,
+    "setup": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 322
   },
   "typhlosionhisui": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 290
   },
   "gengar": {
-   "roles": [
-    "perish",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "speed_trickroom",
-    "status",
-    "taunt"
-   ],
+   "roles": {
+    "perish": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "taunt": 1.0,
+    "speed_trickroom": 1.0,
+    "speed_lower": 1.0,
+    "setup": 1.0
+   },
    "games": 286
   },
   "sinistchamasterpiece": {
-   "roles": [
-    "healing",
-    "redirection",
-    "screens",
-    "spec_attacker",
-    "speed_trickroom",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "status": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0,
+    "speed_trickroom": 1.0,
+    "screens": 1.0
+   },
    "games": 262
   },
   "annihilape": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "speed_lower",
-    "taunt"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "healing": 1.0,
+    "setup": 1.0,
+    "taunt": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "allysupport": 1.0
+   },
    "games": 258
   },
   "mawile": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "phys_attacker": 1.0,
+    "priority": 1.0,
+    "setup": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 256
   },
   "froslass": {
-   "roles": [
-    "helpinghand",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "taunt",
-    "wall"
-   ],
+   "roles": {
+    "screens": 1.0,
+    "wall": 1.0,
+    "taunt": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0
+   },
    "games": 256
   },
   "blaziken": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "spec_attacker": 1.0,
+    "allysupport": 1.0,
+    "pivot": 1.0,
+    "itemdisrupt": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 250
   },
   "scrafty": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "healing",
-    "phys_attacker",
-    "setup",
-    "taunt"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "healing": 1.0,
+    "debuff": 1.0,
+    "allysupport": 1.0,
+    "fakeout": 1.0,
+    "setup": 1.0,
+    "taunt": 1.0
+   },
    "games": 222
   },
   "glimmora": {
-   "roles": [
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 219
   },
   "politoed": {
-   "roles": [
-    "encore",
-    "helpinghand",
-    "perish",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "perish": 1.0,
+    "encore": 1.0,
+    "speed_lower": 1.0,
+    "spec_attacker": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0
+   },
    "games": 215
   },
   "kangaskhan": {
-   "roles": [
-    "fakeout",
-    "healing",
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "priority": 1.0,
+    "healing": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 207
   },
   "hydreigon": {
-   "roles": [
-    "debuff",
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "speed_tailwind",
-    "taunt"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0,
+    "speed_tailwind": 1.0,
+    "taunt": 1.0,
+    "speed_lower": 1.0,
+    "setup": 1.0
+   },
    "games": 206
   },
   "tsareena": {
-   "roles": [
-    "helpinghand",
-    "phys_attacker",
-    "pivot",
-    "taunt",
-    "wall"
-   ],
+   "roles": {
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "taunt": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 203
   },
   "primarina": {
-   "roles": [
-    "healing",
-    "perish",
-    "pivot",
-    "priority",
-    "setup",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "priority": 1.0,
+    "healing": 1.0,
+    "setup": 1.0,
+    "perish": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "wall": 1.0
+   },
    "games": 202
   },
   "ceruledge": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "allysupport": 1.0
+   },
    "games": 200
   },
   "mamoswine": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "speed_lower"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 185
   },
   "hatterene": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "status",
-    "taunt",
-    "wall"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "taunt": 1.0,
+    "status": 1.0,
+    "setup": 1.0
+   },
    "games": 179
   },
   "gardevoir": {
-   "roles": [
-    "debuff",
-    "prankster",
-    "priority",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "weather": 1.0,
+    "setup": 1.0,
+    "debuff": 1.0,
+    "speed_trickroom": 1.0,
+    "wall": 1.0,
+    "prankster": 1.0,
+    "priority": 1.0,
+    "screens": 1.0
+   },
    "games": 177
   },
   "mausholdfour": {
-   "roles": [
-    "encore",
-    "helpinghand",
-    "phys_attacker",
-    "pivot",
-    "redirection",
-    "taunt",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "redirection": 1.0,
+    "wall": 1.0,
+    "weather": 1.0,
+    "encore": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0,
+    "taunt": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 177
   },
   "gallade": {
-   "roles": [
-    "healing",
-    "setup",
-    "speed_trickroom",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "setup": 1.0,
+    "healing": 1.0
+   },
    "games": 161
   },
   "meowstic": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "helpinghand",
-    "screens",
-    "speed_trickroom",
-    "status",
-    "teamprotect",
-    "terrain",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "status": 1.0,
+    "terrain": 1.0,
+    "debuff": 1.0,
+    "speed_trickroom": 1.0,
+    "weather": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "screens": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0
+   },
    "games": 149
   },
   "scizor": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "setup",
-    "speed_tailwind"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "priority": 1.0,
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "pivot": 1.0
+   },
    "games": 142
   },
   "malamar": {
-   "roles": [
-    "debuff",
-    "healing",
-    "phys_attacker",
-    "speed_trickroom"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "speed_trickroom": 1.0,
+    "debuff": 1.0,
+    "healing": 1.0
+   },
    "games": 142
   },
   "eelektross": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "phys_attacker": 1.0,
+    "speed_lower": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "setup": 1.0,
+    "pivot": 1.0
+   },
    "games": 135
   },
   "chandelure": {
-   "roles": [
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "status": 1.0
+   },
    "games": 134
   },
   "sceptile": {
-   "roles": [
-    "healing",
-    "priority",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "priority": 1.0
+   },
    "games": 129
   },
   "oranguru": {
-   "roles": [
-    "encore",
-    "screens",
-    "speed_trickroom",
-    "status",
-    "taunt",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "allysupport": 1.0,
+    "status": 1.0,
+    "weather": 1.0,
+    "encore": 1.0,
+    "taunt": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 127
   },
   "scovillain": {
-   "roles": [
-    "healing",
-    "redirection",
-    "spec_attacker",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "redirection": 1.0,
+    "wall": 1.0,
+    "healing": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 121
   },
   "pyroar": {
-   "roles": [
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 116
   },
   "meowscarada": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "pivot": 1.0,
+    "priority": 1.0
+   },
    "games": 110
   },
   "altaria": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "perish",
-    "setup",
-    "speed_tailwind",
-    "status",
-    "trapping",
-    "wall"
-   ],
+   "roles": {
+    "trapping": 1.0,
+    "healing": 1.0,
+    "status": 1.0,
+    "perish": 1.0,
+    "speed_tailwind": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "setup": 1.0
+   },
    "games": 109
   },
   "greninja": {
-   "roles": [
-    "pivot",
-    "priority",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "priority": 1.0,
+    "spec_attacker": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 108
   },
   "corviknight": {
-   "roles": [
-    "debuff",
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "speed_tailwind",
-    "taunt"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "healing": 1.0,
+    "wall": 1.0,
+    "pivot": 1.0,
+    "taunt": 1.0,
+    "debuff": 1.0
+   },
    "games": 108
   },
   "gengarmega": {
-   "roles": [
-    "perish",
-    "spec_attacker"
-   ],
+   "roles": {
+    "perish": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 107
   },
   "camerupt": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 102
   },
   "rotomheat": {
-   "roles": [
-    "pivot",
-    "screens",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "status": 1.0,
+    "itemdisrupt": 1.0,
+    "screens": 1.0,
+    "wall": 1.0
+   },
    "games": 98
   },
   "clefable": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "pivot",
-    "redirection",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "redirection": 1.0,
+    "wall": 1.0,
+    "speed_lower": 1.0,
+    "healing": 1.0,
+    "status": 1.0,
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0,
+    "pivot": 1.0
+   },
    "games": 98
   },
   "dragapult": {
-   "roles": [
-    "pivot",
-    "priority",
-    "screens",
-    "setup",
-    "spec_attacker",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "priority": 1.0
+   },
    "games": 98
   },
   "tinkaton": {
-   "roles": [
-    "debuff",
-    "encore",
-    "fakeout",
-    "helpinghand",
-    "phys_attacker",
-    "priority",
-    "screens",
-    "setup",
-    "wall"
-   ],
+   "roles": {
+    "encore": 1.0,
+    "phys_attacker": 1.0,
+    "fakeout": 1.0,
+    "itemdisrupt": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "priority": 1.0,
+    "debuff": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0,
+    "setup": 1.0
+   },
    "games": 97
   },
   "overqwil": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "status"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "debuff": 1.0,
+    "setup": 1.0,
+    "priority": 1.0,
+    "status": 1.0
+   },
    "games": 95
   },
   "volcarona": {
-   "roles": [
-    "debuff",
-    "healing",
-    "redirection",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "speed_tailwind",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0,
+    "healing": 1.0,
+    "status": 1.0,
+    "speed_lower": 1.0,
+    "debuff": 1.0
+   },
    "games": 93
   },
   "arcaninehisui": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "debuff": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 92
   },
   "weavile": {
-   "roles": [
-    "fakeout",
-    "phys_attacker",
-    "priority",
-    "taunt"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "fakeout": 1.0,
+    "taunt": 1.0,
+    "priority": 1.0
+   },
    "games": 90
   },
   "swampertmega": {
-   "roles": [
-    "phys_attacker",
-    "pivot"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 88
   },
   "drampa": {
-   "roles": [
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 87
   },
   "zoroarkhisui": {
-   "roles": [
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "taunt"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "taunt": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 87
   },
   "heliolisk": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "weather"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "allysupport": 1.0,
+    "speed_lower": 1.0,
+    "weather": 1.0,
+    "status": 1.0
+   },
    "games": 84
   },
   "kommoo": {
-   "roles": [
-    "healing",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "healing": 1.0,
+    "priority": 1.0
+   },
    "games": 84
   },
   "meganium": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "setup": 1.0
+   },
    "games": 84
   },
   "palafin": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "taunt"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "taunt": 1.0,
+    "priority": 1.0
+   },
    "games": 82
   },
   "basculegionf": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 81
   },
   "lucario": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "priority": 1.0,
+    "spec_attacker": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 81
   },
   "mrrime": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "screens",
-    "spec_attacker",
-    "speed_lower",
-    "speed_trickroom",
-    "wall"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "speed_trickroom": 1.0,
+    "wall": 1.0,
+    "spec_attacker": 1.0,
+    "speed_lower": 1.0,
+    "debuff": 1.0,
+    "screens": 1.0
+   },
    "games": 80
   },
   "vanilluxe": {
-   "roles": [
-    "priority",
-    "screens",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "priority": 1.0
+   },
    "games": 79
   },
   "golurk": {
-   "roles": [
-    "healing",
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 78
   },
   "gyarados": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "setup",
-    "speed_lower",
-    "status",
-    "taunt"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "debuff": 1.0,
+    "status": 1.0,
+    "speed_lower": 1.0,
+    "taunt": 1.0
+   },
    "games": 77
   },
   "dragalge": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 77
   },
   "raichumegay": {
-   "roles": [
-    "fakeout",
-    "pivot",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "fakeout": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 74
   },
   "aegislash": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "debuff": 1.0,
+    "priority": 1.0,
+    "setup": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 73
   },
   "araquanid": {
-   "roles": [
-    "debuff",
-    "healing",
-    "phys_attacker",
-    "teamprotect",
-    "trapping",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "trapping": 1.0,
+    "healing": 1.0,
+    "weather": 1.0,
+    "phys_attacker": 1.0,
+    "debuff": 1.0
+   },
    "games": 72
   },
   "audino": {
-   "roles": [
-    "encore",
-    "healing",
-    "helpinghand",
-    "screens",
-    "setup",
-    "speed_trickroom",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "allysupport": 1.0,
+    "speed_trickroom": 1.0,
+    "healing": 1.0,
+    "wall": 1.0,
+    "screens": 1.0,
+    "setup": 1.0,
+    "helpinghand": 1.0,
+    "encore": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 72
   },
   "jolteon": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "speed_lower",
-    "status",
-    "weather"
-   ],
+   "roles": {
+    "speed_lower": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "weather": 1.0,
+    "pivot": 1.0
+   },
    "games": 71
   },
   "gliscor": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "speed_tailwind",
-    "status"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "setup": 1.0,
+    "status": 1.0,
+    "pivot": 1.0
+   },
    "games": 70
   },
   "starmie": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 70
   },
   "mimikyu": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "status": 1.0,
+    "healing": 1.0
+   },
    "games": 66
   },
   "garganacl": {
-   "roles": [
-    "healing",
-    "setup",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 61
   },
   "palafinhero": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "priority": 1.0,
+    "healing": 1.0
+   },
    "games": 61
   },
   "vivillon": {
-   "roles": [
-    "healing",
-    "redirection",
-    "setup",
-    "spec_attacker",
-    "speed_tailwind",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "speed_tailwind": 1.0,
+    "wall": 1.0,
+    "redirection": 1.0,
+    "healing": 1.0
+   },
    "games": 61
   },
   "rhyperior": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "wall": 1.0
+   },
    "games": 61
   },
   "vivillonmonsoon": {
-   "roles": [
-    "redirection",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "redirection": 1.0,
+    "wall": 1.0,
+    "status": 1.0
+   },
    "games": 60
   },
   "espathra": {
-   "roles": [
-    "pivot",
-    "screens",
-    "setup",
-    "status",
-    "terrain",
-    "wall"
-   ],
+   "roles": {
+    "pivot": 1.0,
+    "setup": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "status": 1.0,
+    "terrain": 1.0
+   },
    "games": 59
   },
   "lycanrocdusk": {
-   "roles": [
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 59
   },
   "tyranitarmega": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 58
   },
   "klefki": {
-   "roles": [
-    "healing",
-    "screens",
-    "setup",
-    "speed_trickroom",
-    "status",
-    "trapping",
-    "wall",
-    "weather"
-   ],
+   "roles": {
+    "screens": 1.0,
+    "wall": 1.0,
+    "weather": 1.0,
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "speed_trickroom": 1.0,
+    "trapping": 1.0,
+    "status": 1.0
+   },
    "games": 57
   },
   "armarouge": {
-   "roles": [
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "teamprotect",
-    "terrain",
-    "wall"
-   ],
+   "roles": {
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "speed_trickroom": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "terrain": 1.0
+   },
    "games": 57
   },
   "lopunny": {
-   "roles": [
-    "encore",
-    "fakeout",
-    "phys_attacker",
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "allysupport": 1.0,
+    "fakeout": 1.0,
+    "encore": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 57
   },
   "chesnaught": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "priority",
-    "setup",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "healing": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 56
   },
   "samurotthisui": {
-   "roles": [
-    "helpinghand",
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "wall"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "priority": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0
+   },
    "games": 56
   },
   "vileplume": {
-   "roles": [
-    "healing",
-    "spec_attacker",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "allysupport": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 55
   },
   "noivern": {
-   "roles": [
-    "spec_attacker",
-    "speed_tailwind",
-    "taunt"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "spec_attacker": 1.0,
+    "taunt": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 54
   },
   "ditto": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "setup",
-    "spec_attacker",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "pivot": 1.0,
+    "wall": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "setup": 1.0,
+    "fakeout": 1.0,
+    "priority": 1.0,
+    "debuff": 1.0
+   },
    "games": 54
   },
   "medicham": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "priority",
-    "setup",
-    "speed_trickroom"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "debuff": 1.0,
+    "speed_trickroom": 1.0,
+    "phys_attacker": 1.0,
+    "priority": 1.0,
+    "pivot": 1.0,
+    "setup": 1.0,
+    "healing": 1.0
+   },
    "games": 53
   },
   "decidueyehisui": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 52
   },
   "liepard": {
-   "roles": [
-    "debuff",
-    "encore",
-    "fakeout",
-    "phys_attacker",
-    "pivot",
-    "status",
-    "taunt",
-    "weather"
-   ],
+   "roles": {
+    "status": 1.0,
+    "encore": 1.0,
+    "taunt": 1.0,
+    "fakeout": 1.0,
+    "debuff": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "pivot": 1.0,
+    "weather": 1.0
+   },
    "games": 51
   },
   "krookodile": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "speed_lower",
-    "taunt"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "taunt": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 47
   },
   "houndstone": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "status"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "status": 1.0,
+    "allysupport": 1.0,
+    "wall": 1.0
+   },
    "games": 47
   },
   "houndoom": {
-   "roles": [
-    "debuff",
-    "priority",
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "priority": 1.0,
+    "debuff": 1.0,
+    "setup": 1.0
+   },
    "games": 46
   },
   "slowkinggalar": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "speed_trickroom",
-    "status",
-    "taunt",
-    "terrain",
-    "weather"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "weather": 1.0,
+    "pivot": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "taunt": 1.0,
+    "terrain": 1.0
+   },
    "games": 46
   },
   "delphoxmega": {
-   "roles": [
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 46
   },
   "snorlax": {
-   "roles": [
-    "phys_attacker",
-    "setup",
-    "status"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "wall": 1.0,
+    "status": 1.0
+   },
    "games": 44
   },
   "kleavor": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "speed_tailwind"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 44
   },
   "alakazam": {
-   "roles": [
-    "screens",
-    "spec_attacker",
-    "terrain",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "spec_attacker": 1.0,
+    "allysupport": 1.0,
+    "terrain": 1.0,
+    "screens": 1.0
+   },
    "games": 43
   },
   "feraligatr": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 43
   },
   "empoleon": {
-   "roles": [
-    "priority",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "priority": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 42
   },
   "mudsdale": {
-   "roles": [
-    "phys_attacker",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 42
   },
   "cofagrigus": {
-   "roles": [
-    "setup",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "allysupport": 1.0,
+    "status": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 40
   },
   "aggron": {
-   "roles": [
-    "phys_attacker",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 39
   },
   "bellibolt": {
-   "roles": [
-    "healing",
-    "screens",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "spec_attacker": 1.0,
+    "screens": 1.0,
+    "wall": 1.0
+   },
    "games": 39
   },
   "skarmory": {
-   "roles": [
-    "phys_attacker",
-    "setup",
-    "speed_tailwind"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "speed_tailwind": 1.0
+   },
    "games": 38
   },
   "beedrill": {
-   "roles": [
-    "phys_attacker",
-    "pivot"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 37
   },
   "ninetales": {
-   "roles": [
-    "debuff",
-    "encore",
-    "spec_attacker",
-    "status"
-   ],
-   "games": 37
-  },
-  "staraptormega": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "speed_tailwind"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "spec_attacker": 1.0,
+    "encore": 1.0,
+    "status": 1.0
+   },
    "games": 37
   },
   "orthworm": {
-   "roles": [
-    "helpinghand",
-    "setup",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "helpinghand": 1.0,
+    "allysupport": 1.0,
+    "setup": 1.0
+   },
+   "games": 37
+  },
+  "staraptormega": {
+   "roles": {
+    "healing": 1.0,
+    "speed_tailwind": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 37
   },
   "floettemega": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "healing": 1.0
+   },
    "games": 37
   },
   "raichumegax": {
-   "roles": [
-    "encore",
-    "fakeout",
-    "pivot"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "encore": 1.0
+   },
    "games": 36
   },
   "scolipede": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "speed_lower"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "healing": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 36
   },
   "crabominable": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "healing": 1.0,
+    "wall": 1.0
+   },
    "games": 35
   },
   "abomasnow": {
-   "roles": [
-    "healing",
-    "priority",
-    "screens",
-    "spec_attacker",
-    "wall"
-   ],
-   "games": 35
-  },
-  "froslassmega": {
-   "roles": [
-    "screens",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "priority": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "healing": 1.0
+   },
    "games": 35
   },
   "steelix": {
-   "roles": [
-    "setup",
-    "spec_attacker",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "teamprotect": 1.0,
+    "spec_attacker": 1.0
+   },
+   "games": 35
+  },
+  "froslassmega": {
+   "roles": {
+    "spec_attacker": 1.0,
+    "screens": 1.0,
+    "wall": 1.0
+   },
    "games": 35
   },
   "serperior": {
-   "roles": [
-    "healing",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 34
   },
   "metagrossmega": {
-   "roles": [
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "wall": 1.0,
+    "priority": 1.0
+   },
    "games": 34
   },
   "umbreon": {
-   "roles": [
-    "debuff",
-    "healing",
-    "helpinghand",
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "status": 1.0,
+    "healing": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "pivot": 1.0
+   },
    "games": 34
   },
   "hippowdon": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "setup",
-    "status"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "status": 1.0,
+    "phys_attacker": 1.0,
+    "wall": 1.0,
+    "setup": 1.0
+   },
    "games": 33
   },
   "ampharos": {
-   "roles": [
-    "healing",
-    "spec_attacker"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 33
   },
   "infernape": {
-   "roles": [
-    "encore",
-    "fakeout",
-    "healing",
-    "phys_attacker",
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "phys_attacker": 1.0,
+    "encore": 1.0,
+    "pivot": 1.0,
+    "priority": 1.0,
+    "healing": 1.0
+   },
    "games": 33
   },
   "vivillonfancy": {
-   "roles": [
-    "redirection",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0
+   },
    "games": 32
   },
   "falinks": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "priority": 1.0,
+    "wall": 1.0
+   },
    "games": 32
   },
   "hawlucha": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 32
   },
   "azumarill": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 31
   },
   "slowbro": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "setup": 1.0,
+    "speed_trickroom": 1.0,
+    "healing": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 31
   },
   "taurospaldeaaqua": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 30
   },
   "mawilemega": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "priority": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 30
   },
   "sharpedo": {
-   "roles": [
-    "phys_attacker",
-    "pivot",
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "setup": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 30
   },
   "venusaurmega": {
-   "roles": [
-    "healing",
-    "spec_attacker"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 29
   },
   "aerodactylmega": {
-   "roles": [
-    "phys_attacker",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0
+   },
    "games": 29
   },
   "wyrdeer": {
-   "roles": [
-    "debuff",
-    "helpinghand",
-    "speed_trickroom",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "debuff": 1.0,
+    "status": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0
+   },
    "games": 28
   },
   "chimecho": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "status": 1.0,
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 28
   },
   "clawitzer": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 28
   },
   "ariados": {
-   "roles": [
-    "phys_attacker",
-    "priority",
-    "redirection",
-    "speed_lower",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "redirection": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "priority": 1.0,
+    "speed_lower": 1.0,
+    "status": 1.0
+   },
    "games": 27
   },
   "barbaracle": {
-   "roles": [
-    "phys_attacker",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 27
   },
   "conkeldurr": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "priority",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "healing": 1.0,
+    "priority": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0
+   },
    "games": 27
   },
   "vaporeon": {
-   "roles": [
-    "pivot",
-    "setup",
-    "spec_attacker",
-    "speed_lower",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "speed_lower": 1.0,
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 27
   },
   "skeledirge": {
-   "roles": [
-    "debuff",
-    "healing",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "debuff": 1.0,
+    "healing": 1.0
+   },
    "games": 27
   },
   "blastoisemega": {
-   "roles": [
-    "fakeout",
-    "setup",
-    "spec_attacker"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "spec_attacker": 1.0,
+    "fakeout": 1.0
+   },
    "games": 26
   },
   "vivillonpokeball": {
-   "roles": [
-    "healing",
-    "spec_attacker",
-    "speed_tailwind",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "speed_tailwind": 1.0
+   },
    "games": 25
   },
   "rotomfrost": {
-   "roles": [
-    "pivot",
-    "status"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "status": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 25
   },
   "manectric": {
-   "roles": [
-    "debuff",
-    "pivot",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "debuff": 1.0,
+    "status": 1.0
+   },
    "games": 25
   },
   "taurospaldeablaze": {
-   "roles": [
-    "debuff",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "debuff": 1.0
+   },
    "games": 25
   },
   "musharna": {
-   "roles": [
-    "helpinghand",
-    "setup",
-    "spec_attacker",
-    "speed_trickroom",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "allysupport": 1.0,
+    "speed_trickroom": 1.0,
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "setup": 1.0
+   },
    "games": 24
   },
   "scraftymega": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "healing",
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "debuff": 1.0,
+    "fakeout": 1.0,
+    "healing": 1.0
+   },
    "games": 24
   },
   "goodrahisui": {
-   "roles": [
-    "healing",
-    "setup",
-    "spec_attacker",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "healing": 1.0,
+    "spec_attacker": 1.0,
+    "setup": 1.0
+   },
    "games": 24
   },
   "spiritomb": {
-   "roles": [
-    "debuff",
-    "priority",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "debuff": 1.0,
+    "status": 1.0,
+    "priority": 1.0
+   },
    "games": 24
   },
   "runerigus": {
-   "roles": [
-    "debuff",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "debuff": 1.0,
+    "status": 1.0
+   },
    "games": 24
   },
   "dragalgemega": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 23
   },
   "banette": {
-   "roles": [
-    "encore",
-    "priority",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "status": 1.0,
+    "encore": 1.0,
+    "priority": 1.0
+   },
    "games": 22
   },
   "toxicroak": {
-   "roles": [
-    "fakeout",
-    "phys_attacker",
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "fakeout": 1.0,
+    "allysupport": 1.0
+   },
    "games": 21
   },
   "salazzle": {
-   "roles": [
-    "fakeout",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "fakeout": 1.0
+   },
    "games": 21
   },
   "alcremie": {
-   "roles": [
-    "healing",
-    "screens",
-    "wall"
-   ],
+   "roles": {
+    "allysupport": 1.0,
+    "screens": 1.0,
+    "wall": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 21
   },
   "pangoro": {
-   "roles": [
-    "debuff",
-    "phys_attacker",
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "priority": 1.0,
+    "debuff": 1.0,
+    "pivot": 1.0
+   },
    "games": 20
   },
   "machamp": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "priority",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0,
+    "healing": 1.0
+   },
    "games": 20
   },
   "hydrapple": {
-   "roles": [
-    "healing",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "status": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 19
   },
   "reuniclus": {
-   "roles": [
-    "spec_attacker",
-    "speed_trickroom"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 19
   },
   "meowsticf": {
-   "roles": [
-    "fakeout",
-    "terrain",
-    "weather"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "weather": 1.0,
+    "terrain": 1.0
+   },
    "games": 19
   },
   "glaceon": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 19
   },
   "sandaconda": {
-   "roles": [
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "wall": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 18
   },
   "quaquaval": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 18
   },
   "victreebel": {
-   "roles": [
-    "healing",
-    "priority",
-    "spec_attacker",
-    "status"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "spec_attacker": 1.0,
+    "priority": 1.0,
+    "status": 1.0
+   },
    "games": 17
   },
   "rotommow": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "speed_lower"
-   ],
+   "roles": {
+    "itemdisrupt": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "speed_lower": 1.0,
+    "status": 1.0
+   },
    "games": 17
   },
   "pidgeot": {
-   "roles": [
-    "spec_attacker",
-    "speed_tailwind"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 17
   },
   "dragonitemega": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 17
   },
   "absol": {
-   "roles": [
-    "pivot",
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0,
+    "pivot": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 16
   },
   "torterra": {
-   "roles": [
-    "healing",
-    "setup",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0,
+    "healing": 1.0,
+    "teamprotect": 1.0,
+    "wall": 1.0
+   },
    "games": 16
   },
   "aromatisse": {
-   "roles": [
-    "healing",
-    "helpinghand",
-    "screens",
-    "speed_trickroom",
-    "wall"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "allysupport": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0,
+    "screens": 1.0
+   },
    "games": 16
   },
   "pinsir": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 16
   },
   "espeon": {
-   "roles": [
-    "spec_attacker",
-    "speed_trickroom"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 16
   },
   "scovillainmega": {
-   "roles": [
-    "healing",
-    "redirection",
-    "wall"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0
+   },
    "games": 16
   },
   "trevenant": {
-   "roles": [
-    "healing",
-    "phys_attacker",
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "status": 1.0,
+    "allysupport": 1.0,
+    "healing": 1.0,
+    "speed_trickroom": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 16
   },
   "morpeko": {
-   "roles": [
-    "debuff",
-    "fakeout",
-    "phys_attacker",
-    "pivot",
-    "taunt"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "pivot": 1.0,
+    "taunt": 1.0,
+    "fakeout": 1.0,
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0
+   },
    "games": 16
   },
   "blazikenmega": {
-   "roles": [
-    "phys_attacker",
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 16
   },
   "slowbrogalar": {
-   "roles": [
-    "speed_trickroom"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "allysupport": 1.0
+   },
    "games": 15
   },
   "kangaskhanmega": {
-   "roles": [
-    "fakeout",
-    "phys_attacker"
-   ],
+   "roles": {
+    "fakeout": 1.0
+   },
    "games": 15
   },
   "aurorus": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 15
   },
   "lopunnymega": {
-   "roles": [
-    "fakeout",
-    "phys_attacker",
-    "pivot"
-   ],
+   "roles": {
+    "fakeout": 1.0,
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 15
   },
   "goodra": {
-   "roles": [
-    "healing",
-    "spec_attacker",
-    "weather"
-   ],
+   "roles": {
+    "weather": 1.0,
+    "healing": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 14
   },
   "slowking": {
-   "roles": [
-    "pivot",
-    "spec_attacker",
-    "speed_trickroom",
-    "weather"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "weather": 1.0,
+    "pivot": 1.0,
+    "spec_attacker": 1.0
+   },
    "games": 14
   },
   "meganiummega": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 14
   },
   "leafeon": {
-   "roles": [
-    "weather"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "itemdisrupt": 1.0,
+    "weather": 1.0
+   },
    "games": 14
   },
   "pikachu": {
-   "roles": [
-    "fakeout",
-    "speed_lower"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "status": 1.0,
+    "fakeout": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 13
   },
   "diggersby": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 13
   },
   "vivillonmarine": {
-   "roles": [
-    "redirection",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0
+   },
    "games": 12
   },
   "flapple": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0
+   },
    "games": 12
   },
   "emboar": {
-   "roles": [
-    "healing",
-    "priority",
-    "setup"
-   ],
+   "roles": {
+    "healing": 1.0,
+    "priority": 1.0,
+    "setup": 1.0
+   },
    "games": 11
   },
   "lycanroc": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0
+   },
    "games": 11
   },
   "beedrillmega": {
-   "roles": [
-    "pivot"
-   ],
+   "roles": {
+    "phys_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 11
   },
   "pyroarmega": {
-   "roles": [
-    "status"
-   ],
+   "roles": {
+    "status": 1.0
+   },
    "games": 11
   },
   "arcanine": {
-   "roles": [
-    "debuff",
-    "status"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "status": 1.0
+   },
    "games": 10
   },
   "charizardmegax": {
-   "roles": [
-    "setup"
-   ],
+   "roles": {
+    "setup": 1.0
+   },
    "games": 10
   },
   "rampardos": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 10
   },
   "decidueye": {
-   "roles": [
-    "speed_tailwind",
-    "trapping"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "trapping": 1.0
+   },
+   "games": 9
+  },
+  "avalugghisui": {
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 9
   },
   "scizormega": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0
+   },
+   "games": 9
+  },
+  "starmiemega": {
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 9
   },
   "cameruptmega": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 8
   },
   "beartic": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 8
   },
   "mimikyubusted": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0
+   },
    "games": 8
   },
   "typhlosion": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 8
   },
   "alcremierainbowswirl": {
-   "roles": [
-    "screens",
-    "wall"
-   ],
+   "roles": {
+    "allysupport": 1.0,
+    "wall": 1.0,
+    "screens": 1.0
+   },
    "games": 8
   },
   "simipour": {
-   "roles": [
-    "fakeout"
-   ],
+   "roles": {
+    "fakeout": 1.0
+   },
    "games": 8
   },
   "gourgeistsuper": {
-   "roles": [
-    "speed_trickroom",
-    "status"
-   ],
+   "roles": {
+    "speed_trickroom": 1.0,
+    "status": 1.0
+   },
    "games": 8
   },
   "forretress": {
-   "roles": [
-    "pivot",
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0,
+    "spec_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 7
   },
   "bastiodon": {
-   "roles": [
-    "setup",
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "setup": 1.0,
+    "wall": 1.0,
+    "teamprotect": 1.0
+   },
    "games": 7
   },
   "lucariomega": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0
+   },
    "games": 7
   },
   "alcremiecaramelswirl": {
-   "roles": [
-    "helpinghand",
-    "wall"
-   ],
+   "roles": {
+    "allysupport": 1.0,
+    "helpinghand": 1.0,
+    "wall": 1.0
+   },
    "games": 7
   },
+  "alcremiemintcream": {
+   "roles": {
+    "allysupport": 1.0
+   },
+   "games": 6
+  },
   "qwilfish": {
-   "roles": [
-    "debuff",
-    "speed_lower"
-   ],
+   "roles": {
+    "debuff": 1.0,
+    "speed_lower": 1.0
+   },
    "games": 6
   },
   "manectricmega": {
-   "roles": [
-    "debuff",
-    "pivot"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "debuff": 1.0
+   },
    "games": 6
   },
   "vivillonhighplains": {
-   "roles": [
-    "redirection",
-    "status",
-    "wall"
-   ],
+   "roles": {
+    "status": 1.0,
+    "redirection": 1.0,
+    "wall": 1.0
+   },
    "games": 6
   },
   "polteageist": {
-   "roles": [
-    "pivot",
-    "setup"
-   ],
+   "roles": {
+    "pivot": 1.0,
+    "setup": 1.0
+   },
    "games": 6
   },
   "chesnaughtmega": {
-   "roles": [
-    "teamprotect",
-    "wall"
-   ],
+   "roles": {
+    "teamprotect": 1.0,
+    "wall": 1.0
+   },
    "games": 6
   },
   "excadrillmega": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 6
   },
   "rotomfan": {
-   "roles": [
-    "pivot",
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "pivot": 1.0
+   },
    "games": 6
   },
   "simisage": {
-   "roles": [
-    "fakeout"
-   ],
+   "roles": {
+    "fakeout": 1.0
+   },
+   "games": 5
+  },
+  "emolga": {
+   "roles": {
+    "spec_attacker": 1.0,
+    "status": 1.0
+   },
    "games": 5
   },
   "stunfisk": {
-   "roles": [
-    "status"
-   ],
+   "roles": {
+    "status": 1.0
+   },
    "games": 5
   },
   "castform": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 5
   },
   "banettemega": {
-   "roles": [
-    "priority"
-   ],
+   "roles": {
+    "priority": 1.0
+   },
    "games": 5
   },
   "vivillonocean": {
-   "roles": [
-    "speed_tailwind",
-    "status"
-   ],
+   "roles": {
+    "speed_tailwind": 1.0,
+    "status": 1.0
+   },
    "games": 4
   },
   "tauros": {
-   "roles": [
-    "debuff"
-   ],
+   "roles": {
+    "debuff": 1.0
+   },
    "games": 4
   },
   "luxray": {
-   "roles": [
-    "debuff",
-    "pivot"
-   ],
+   "roles": {
+    "spec_attacker": 1.0,
+    "pivot": 1.0,
+    "debuff": 1.0
+   },
    "games": 4
   },
   "roserade": {
-   "roles": [
-    "healing"
-   ],
+   "roles": {
+    "healing": 1.0
+   },
    "games": 4
   },
   "chandeluremega": {
-   "roles": [
-    "spec_attacker"
-   ],
+   "roles": {
+    "spec_attacker": 1.0
+   },
    "games": 4
   },
   "florges": {
-   "roles": [
-    "wall"
-   ],
+   "roles": {
+    "wall": 1.0
+   },
    "games": 3
   },
   "dedenne": {
-   "roles": [
-    "speed_lower"
-   ],
+   "roles": {
+    "speed_lower": 1.0
+   },
+   "games": 3
+  },
+  "aggronmega": {
+   "roles": {
+    "wall": 1.0,
+    "phys_attacker": 1.0
+   },
    "games": 3
   },
   "gallademega": {
-   "roles": [
-    "phys_attacker"
-   ],
+   "roles": {
+    "phys_attacker": 1.0
+   },
    "games": 3
   },
   "florgeswhite": {
-   "roles": [
-    "healing",
-    "terrain"
-   ],
-   "games": 2
-  },
-  "vivillonsandstorm": {
-   "roles": [
-    "wall"
-   ],
+   "roles": {
+    "terrain": 1.0,
+    "spec_attacker": 1.0,
+    "healing": 1.0
+   },
    "games": 2
   },
   "vivillonicysnow": {
-   "roles": [
-    "status"
-   ],
+   "roles": {
+    "status": 1.0
+   },
    "games": 2
   }
  }
