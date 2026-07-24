@@ -1,0 +1,2037 @@
+{
+ "generated": "2026-07-24",
+ "n_games": 6639,
+ "min_seen": 2,
+ "roles": {
+  "speed_tailwind": "Tailwind (speed up)",
+  "speed_trickroom": "Trick Room setter",
+  "speed_lower": "Speed control (lower foe)",
+  "weather": "Weather setter",
+  "terrain": "Terrain setter",
+  "fakeout": "Fake Out (tempo)",
+  "redirection": "Redirection",
+  "taunt": "Taunt",
+  "encore": "Encore",
+  "priority": "Priority attacker",
+  "prankster": "Prankster (priority support)",
+  "status": "Status user",
+  "debuff": "Debuff (Intimidate / drops)",
+  "setup": "Setup / sweeper",
+  "healing": "Healing / sustain",
+  "screens": "Screen setter",
+  "teamprotect": "Wide / Quick Guard",
+  "helpinghand": "Helping Hand",
+  "pivot": "Pivot",
+  "wall": "Bulky wall / support",
+  "trapping": "Trapper",
+  "perish": "Perish Trap"
+ },
+ "species": {
+  "basculegion": {
+   "roles": [
+    "debuff",
+    "pivot",
+    "priority"
+   ],
+   "games": 3292
+  },
+  "charizard": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "setup",
+    "wall"
+   ],
+   "games": 2562
+  },
+  "garchomp": {
+   "roles": [
+    "setup",
+    "speed_lower"
+   ],
+   "games": 2430
+  },
+  "whimsicott": {
+   "roles": [
+    "debuff",
+    "encore",
+    "healing",
+    "helpinghand",
+    "screens",
+    "speed_lower",
+    "speed_tailwind",
+    "speed_trickroom",
+    "taunt",
+    "terrain",
+    "wall",
+    "weather"
+   ],
+   "games": 2177
+  },
+  "sylveon": {
+   "roles": [
+    "debuff",
+    "healing",
+    "priority",
+    "setup",
+    "status"
+   ],
+   "games": 2017
+  },
+  "incineroar": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "healing",
+    "helpinghand",
+    "pivot",
+    "setup",
+    "status",
+    "taunt",
+    "wall"
+   ],
+   "games": 1732
+  },
+  "kingambit": {
+   "roles": [
+    "priority",
+    "setup"
+   ],
+   "games": 1465
+  },
+  "archaludon": {
+   "roles": [
+    "debuff",
+    "screens",
+    "wall"
+   ],
+   "games": 1446
+  },
+  "pelipper": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "pivot",
+    "speed_lower",
+    "speed_tailwind",
+    "teamprotect",
+    "wall",
+    "weather"
+   ],
+   "games": 1407
+  },
+  "sinistcha": {
+   "roles": [
+    "healing",
+    "redirection",
+    "setup",
+    "speed_trickroom",
+    "wall"
+   ],
+   "games": 1253
+  },
+  "gholdengo": {
+   "roles": [
+    "setup"
+   ],
+   "games": 1199
+  },
+  "farigiraf": {
+   "roles": [
+    "helpinghand",
+    "pivot",
+    "screens",
+    "setup",
+    "speed_trickroom",
+    "status",
+    "terrain",
+    "wall",
+    "weather"
+   ],
+   "games": 1128
+  },
+  "sneasler": {
+   "roles": [
+    "fakeout",
+    "pivot",
+    "speed_lower",
+    "taunt",
+    "teamprotect",
+    "wall",
+    "weather"
+   ],
+   "games": 1015
+  },
+  "venusaur": {
+   "roles": [
+    "healing",
+    "setup",
+    "status"
+   ],
+   "games": 984
+  },
+  "staraptor": {
+   "roles": [
+    "debuff",
+    "healing",
+    "pivot",
+    "speed_tailwind",
+    "weather"
+   ],
+   "games": 960
+  },
+  "tyranitar": {
+   "roles": [
+    "setup",
+    "speed_lower"
+   ],
+   "games": 905
+  },
+  "grimmsnarl": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "pivot",
+    "priority",
+    "screens",
+    "speed_lower",
+    "taunt",
+    "terrain",
+    "wall"
+   ],
+   "games": 902
+  },
+  "floetteeternal": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "setup",
+    "wall"
+   ],
+   "games": 895
+  },
+  "swampert": {
+   "roles": [
+    "pivot",
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 718
+  },
+  "raichu": {
+   "roles": [
+    "encore",
+    "fakeout",
+    "healing",
+    "pivot",
+    "screens",
+    "setup",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 682
+  },
+  "torkoal": {
+   "roles": [
+    "helpinghand",
+    "status",
+    "wall"
+   ],
+   "games": 626
+  },
+  "delphox": {
+   "roles": [
+    "encore",
+    "setup",
+    "status"
+   ],
+   "games": 544
+  },
+  "excadrill": {
+   "roles": [
+    "setup",
+    "speed_lower"
+   ],
+   "games": 543
+  },
+  "aerodactyl": {
+   "roles": [
+    "setup",
+    "speed_tailwind",
+    "taunt",
+    "teamprotect",
+    "wall",
+    "weather"
+   ],
+   "games": 540
+  },
+  "rotomwash": {
+   "roles": [
+    "helpinghand",
+    "pivot",
+    "screens",
+    "setup",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 450
+  },
+  "charizardmegay": {
+   "roles": [
+    "helpinghand",
+    "wall"
+   ],
+   "games": 435
+  },
+  "milotic": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "screens",
+    "setup",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 423
+  },
+  "maushold": {
+   "roles": [
+    "debuff",
+    "encore",
+    "helpinghand",
+    "priority",
+    "redirection",
+    "taunt",
+    "wall",
+    "weather"
+   ],
+   "games": 409
+  },
+  "talonflame": {
+   "roles": [
+    "debuff",
+    "healing",
+    "pivot",
+    "setup",
+    "speed_tailwind",
+    "status",
+    "taunt",
+    "teamprotect",
+    "wall",
+    "weather"
+   ],
+   "games": 400
+  },
+  "dragonite": {
+   "roles": [
+    "helpinghand",
+    "priority",
+    "setup",
+    "speed_lower",
+    "speed_tailwind",
+    "wall",
+    "weather"
+   ],
+   "games": 380
+  },
+  "blastoise": {
+   "roles": [
+    "fakeout",
+    "helpinghand",
+    "priority",
+    "setup",
+    "speed_lower",
+    "wall",
+    "weather"
+   ],
+   "games": 353
+  },
+  "toxapex": {
+   "roles": [
+    "healing",
+    "speed_lower",
+    "status",
+    "teamprotect",
+    "wall",
+    "weather"
+   ],
+   "games": 348
+  },
+  "sableye": {
+   "roles": [
+    "encore",
+    "fakeout",
+    "healing",
+    "helpinghand",
+    "priority",
+    "screens",
+    "status",
+    "taunt",
+    "trapping",
+    "wall",
+    "weather"
+   ],
+   "games": 345
+  },
+  "ninetalesalola": {
+   "roles": [
+    "encore",
+    "screens",
+    "speed_lower",
+    "wall",
+    "weather"
+   ],
+   "games": 329
+  },
+  "metagross": {
+   "roles": [
+    "priority",
+    "setup",
+    "speed_lower"
+   ],
+   "games": 322
+  },
+  "gengar": {
+   "roles": [
+    "perish",
+    "setup",
+    "speed_lower",
+    "speed_trickroom",
+    "status",
+    "taunt"
+   ],
+   "games": 286
+  },
+  "sinistchamasterpiece": {
+   "roles": [
+    "healing",
+    "redirection",
+    "screens",
+    "speed_trickroom",
+    "wall"
+   ],
+   "games": 262
+  },
+  "annihilape": {
+   "roles": [
+    "healing",
+    "pivot",
+    "setup",
+    "speed_lower",
+    "taunt"
+   ],
+   "games": 258
+  },
+  "mawile": {
+   "roles": [
+    "debuff",
+    "priority",
+    "setup"
+   ],
+   "games": 256
+  },
+  "froslass": {
+   "roles": [
+    "helpinghand",
+    "screens",
+    "setup",
+    "taunt",
+    "wall"
+   ],
+   "games": 256
+  },
+  "blaziken": {
+   "roles": [
+    "pivot",
+    "setup",
+    "speed_lower"
+   ],
+   "games": 250
+  },
+  "scrafty": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "healing",
+    "setup",
+    "taunt"
+   ],
+   "games": 222
+  },
+  "glimmora": {
+   "roles": [
+    "status"
+   ],
+   "games": 219
+  },
+  "politoed": {
+   "roles": [
+    "encore",
+    "helpinghand",
+    "perish",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 215
+  },
+  "kangaskhan": {
+   "roles": [
+    "fakeout",
+    "healing",
+    "priority"
+   ],
+   "games": 207
+  },
+  "hydreigon": {
+   "roles": [
+    "debuff",
+    "pivot",
+    "setup",
+    "speed_lower",
+    "speed_tailwind",
+    "taunt"
+   ],
+   "games": 206
+  },
+  "tsareena": {
+   "roles": [
+    "helpinghand",
+    "pivot",
+    "taunt",
+    "wall"
+   ],
+   "games": 203
+  },
+  "primarina": {
+   "roles": [
+    "healing",
+    "perish",
+    "pivot",
+    "priority",
+    "setup",
+    "wall"
+   ],
+   "games": 202
+  },
+  "ceruledge": {
+   "roles": [
+    "priority",
+    "setup"
+   ],
+   "games": 200
+  },
+  "mamoswine": {
+   "roles": [
+    "priority",
+    "speed_lower"
+   ],
+   "games": 185
+  },
+  "hatterene": {
+   "roles": [
+    "healing",
+    "setup",
+    "speed_trickroom",
+    "status",
+    "taunt",
+    "wall"
+   ],
+   "games": 179
+  },
+  "gardevoir": {
+   "roles": [
+    "debuff",
+    "prankster",
+    "priority",
+    "screens",
+    "setup",
+    "speed_trickroom",
+    "wall",
+    "weather"
+   ],
+   "games": 177
+  },
+  "mausholdfour": {
+   "roles": [
+    "encore",
+    "helpinghand",
+    "pivot",
+    "redirection",
+    "taunt",
+    "wall",
+    "weather"
+   ],
+   "games": 177
+  },
+  "gallade": {
+   "roles": [
+    "healing",
+    "setup",
+    "speed_trickroom",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 161
+  },
+  "meowstic": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "helpinghand",
+    "screens",
+    "speed_trickroom",
+    "status",
+    "teamprotect",
+    "terrain",
+    "wall",
+    "weather"
+   ],
+   "games": 149
+  },
+  "scizor": {
+   "roles": [
+    "pivot",
+    "priority",
+    "setup",
+    "speed_tailwind"
+   ],
+   "games": 142
+  },
+  "malamar": {
+   "roles": [
+    "debuff",
+    "healing",
+    "speed_trickroom"
+   ],
+   "games": 142
+  },
+  "eelektross": {
+   "roles": [
+    "healing",
+    "pivot",
+    "setup",
+    "speed_lower"
+   ],
+   "games": 135
+  },
+  "chandelure": {
+   "roles": [
+    "setup",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 134
+  },
+  "sceptile": {
+   "roles": [
+    "healing",
+    "priority"
+   ],
+   "games": 129
+  },
+  "oranguru": {
+   "roles": [
+    "encore",
+    "screens",
+    "speed_trickroom",
+    "status",
+    "taunt",
+    "wall",
+    "weather"
+   ],
+   "games": 127
+  },
+  "scovillain": {
+   "roles": [
+    "healing",
+    "redirection",
+    "status",
+    "wall"
+   ],
+   "games": 121
+  },
+  "pyroar": {
+   "roles": [
+    "status"
+   ],
+   "games": 116
+  },
+  "meowscarada": {
+   "roles": [
+    "pivot",
+    "priority"
+   ],
+   "games": 110
+  },
+  "altaria": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "perish",
+    "setup",
+    "speed_tailwind",
+    "status",
+    "wall"
+   ],
+   "games": 109
+  },
+  "greninja": {
+   "roles": [
+    "pivot",
+    "priority",
+    "speed_lower"
+   ],
+   "games": 108
+  },
+  "corviknight": {
+   "roles": [
+    "debuff",
+    "healing",
+    "pivot",
+    "setup",
+    "speed_tailwind",
+    "taunt"
+   ],
+   "games": 108
+  },
+  "gengarmega": {
+   "roles": [
+    "perish"
+   ],
+   "games": 107
+  },
+  "rotomheat": {
+   "roles": [
+    "pivot",
+    "screens",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 98
+  },
+  "clefable": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "pivot",
+    "redirection",
+    "setup",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 98
+  },
+  "dragapult": {
+   "roles": [
+    "pivot",
+    "priority",
+    "screens",
+    "setup",
+    "status",
+    "wall"
+   ],
+   "games": 98
+  },
+  "tinkaton": {
+   "roles": [
+    "debuff",
+    "encore",
+    "fakeout",
+    "helpinghand",
+    "priority",
+    "screens",
+    "setup",
+    "wall"
+   ],
+   "games": 97
+  },
+  "overqwil": {
+   "roles": [
+    "debuff",
+    "priority",
+    "setup",
+    "status"
+   ],
+   "games": 95
+  },
+  "volcarona": {
+   "roles": [
+    "debuff",
+    "healing",
+    "redirection",
+    "setup",
+    "speed_lower",
+    "speed_tailwind",
+    "status",
+    "wall"
+   ],
+   "games": 93
+  },
+  "arcaninehisui": {
+   "roles": [
+    "debuff",
+    "priority"
+   ],
+   "games": 92
+  },
+  "weavile": {
+   "roles": [
+    "fakeout",
+    "priority",
+    "taunt"
+   ],
+   "games": 90
+  },
+  "swampertmega": {
+   "roles": [
+    "pivot"
+   ],
+   "games": 88
+  },
+  "drampa": {
+   "roles": [
+    "setup"
+   ],
+   "games": 87
+  },
+  "zoroarkhisui": {
+   "roles": [
+    "speed_lower",
+    "status",
+    "taunt"
+   ],
+   "games": 87
+  },
+  "heliolisk": {
+   "roles": [
+    "pivot",
+    "speed_lower",
+    "status",
+    "weather"
+   ],
+   "games": 84
+  },
+  "kommoo": {
+   "roles": [
+    "healing",
+    "priority",
+    "setup"
+   ],
+   "games": 84
+  },
+  "meganium": {
+   "roles": [
+    "healing",
+    "setup"
+   ],
+   "games": 84
+  },
+  "palafin": {
+   "roles": [
+    "pivot",
+    "priority",
+    "taunt"
+   ],
+   "games": 82
+  },
+  "basculegionf": {
+   "roles": [
+    "pivot",
+    "speed_lower"
+   ],
+   "games": 81
+  },
+  "lucario": {
+   "roles": [
+    "healing",
+    "priority",
+    "setup"
+   ],
+   "games": 81
+  },
+  "mrrime": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "screens",
+    "speed_lower",
+    "speed_trickroom",
+    "wall"
+   ],
+   "games": 80
+  },
+  "vanilluxe": {
+   "roles": [
+    "priority",
+    "screens",
+    "wall"
+   ],
+   "games": 79
+  },
+  "golurk": {
+   "roles": [
+    "healing"
+   ],
+   "games": 78
+  },
+  "gyarados": {
+   "roles": [
+    "debuff",
+    "setup",
+    "speed_lower",
+    "status",
+    "taunt"
+   ],
+   "games": 77
+  },
+  "dragalge": {
+   "roles": [
+    "pivot",
+    "status"
+   ],
+   "games": 77
+  },
+  "raichumegay": {
+   "roles": [
+    "fakeout",
+    "pivot",
+    "status"
+   ],
+   "games": 74
+  },
+  "aegislash": {
+   "roles": [
+    "priority",
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 73
+  },
+  "araquanid": {
+   "roles": [
+    "healing",
+    "teamprotect",
+    "wall",
+    "weather"
+   ],
+   "games": 72
+  },
+  "audino": {
+   "roles": [
+    "encore",
+    "healing",
+    "helpinghand",
+    "screens",
+    "setup",
+    "speed_trickroom",
+    "status",
+    "wall"
+   ],
+   "games": 72
+  },
+  "jolteon": {
+   "roles": [
+    "pivot",
+    "speed_lower",
+    "status",
+    "weather"
+   ],
+   "games": 71
+  },
+  "gliscor": {
+   "roles": [
+    "pivot",
+    "setup",
+    "speed_tailwind",
+    "status"
+   ],
+   "games": 70
+  },
+  "starmie": {
+   "roles": [
+    "pivot",
+    "priority"
+   ],
+   "games": 70
+  },
+  "mimikyu": {
+   "roles": [
+    "healing",
+    "priority",
+    "setup",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 66
+  },
+  "garganacl": {
+   "roles": [
+    "healing",
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 61
+  },
+  "palafinhero": {
+   "roles": [
+    "healing",
+    "pivot",
+    "priority"
+   ],
+   "games": 61
+  },
+  "vivillon": {
+   "roles": [
+    "healing",
+    "redirection",
+    "setup",
+    "speed_tailwind",
+    "status",
+    "wall"
+   ],
+   "games": 61
+  },
+  "vivillonmonsoon": {
+   "roles": [
+    "redirection",
+    "status",
+    "wall"
+   ],
+   "games": 60
+  },
+  "espathra": {
+   "roles": [
+    "pivot",
+    "screens",
+    "setup",
+    "status",
+    "terrain",
+    "wall"
+   ],
+   "games": 59
+  },
+  "lycanrocdusk": {
+   "roles": [
+    "priority"
+   ],
+   "games": 59
+  },
+  "klefki": {
+   "roles": [
+    "healing",
+    "screens",
+    "setup",
+    "speed_trickroom",
+    "status",
+    "trapping",
+    "wall",
+    "weather"
+   ],
+   "games": 57
+  },
+  "armarouge": {
+   "roles": [
+    "setup",
+    "speed_trickroom",
+    "teamprotect",
+    "terrain",
+    "wall"
+   ],
+   "games": 57
+  },
+  "lopunny": {
+   "roles": [
+    "encore",
+    "fakeout",
+    "pivot",
+    "priority"
+   ],
+   "games": 57
+  },
+  "chesnaught": {
+   "roles": [
+    "healing",
+    "priority",
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 56
+  },
+  "samurotthisui": {
+   "roles": [
+    "helpinghand",
+    "pivot",
+    "priority",
+    "wall"
+   ],
+   "games": 56
+  },
+  "vileplume": {
+   "roles": [
+    "healing",
+    "status",
+    "wall"
+   ],
+   "games": 55
+  },
+  "noivern": {
+   "roles": [
+    "speed_tailwind",
+    "taunt"
+   ],
+   "games": 54
+  },
+  "ditto": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "pivot",
+    "priority",
+    "setup",
+    "status",
+    "wall"
+   ],
+   "games": 54
+  },
+  "medicham": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "healing",
+    "pivot",
+    "priority",
+    "setup",
+    "speed_trickroom"
+   ],
+   "games": 53
+  },
+  "decidueyehisui": {
+   "roles": [
+    "priority"
+   ],
+   "games": 52
+  },
+  "liepard": {
+   "roles": [
+    "debuff",
+    "encore",
+    "fakeout",
+    "pivot",
+    "status",
+    "taunt",
+    "weather"
+   ],
+   "games": 51
+  },
+  "krookodile": {
+   "roles": [
+    "debuff",
+    "speed_lower",
+    "taunt"
+   ],
+   "games": 47
+  },
+  "houndstone": {
+   "roles": [
+    "priority",
+    "status"
+   ],
+   "games": 47
+  },
+  "slowkinggalar": {
+   "roles": [
+    "pivot",
+    "speed_trickroom",
+    "status",
+    "taunt",
+    "terrain",
+    "weather"
+   ],
+   "games": 46
+  },
+  "houndoom": {
+   "roles": [
+    "debuff",
+    "priority",
+    "setup"
+   ],
+   "games": 46
+  },
+  "delphoxmega": {
+   "roles": [
+    "setup"
+   ],
+   "games": 46
+  },
+  "snorlax": {
+   "roles": [
+    "setup",
+    "status"
+   ],
+   "games": 44
+  },
+  "kleavor": {
+   "roles": [
+    "pivot",
+    "speed_tailwind"
+   ],
+   "games": 44
+  },
+  "alakazam": {
+   "roles": [
+    "screens",
+    "terrain",
+    "wall"
+   ],
+   "games": 43
+  },
+  "feraligatr": {
+   "roles": [
+    "priority",
+    "setup"
+   ],
+   "games": 43
+  },
+  "mudsdale": {
+   "roles": [
+    "wall"
+   ],
+   "games": 42
+  },
+  "empoleon": {
+   "roles": [
+    "priority",
+    "speed_lower"
+   ],
+   "games": 42
+  },
+  "cofagrigus": {
+   "roles": [
+    "setup",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 40
+  },
+  "aggron": {
+   "roles": [
+    "setup"
+   ],
+   "games": 39
+  },
+  "bellibolt": {
+   "roles": [
+    "healing",
+    "screens",
+    "wall"
+   ],
+   "games": 39
+  },
+  "skarmory": {
+   "roles": [
+    "setup",
+    "speed_tailwind"
+   ],
+   "games": 38
+  },
+  "beedrill": {
+   "roles": [
+    "pivot"
+   ],
+   "games": 37
+  },
+  "ninetales": {
+   "roles": [
+    "debuff",
+    "encore",
+    "status"
+   ],
+   "games": 37
+  },
+  "staraptormega": {
+   "roles": [
+    "healing",
+    "speed_tailwind"
+   ],
+   "games": 37
+  },
+  "orthworm": {
+   "roles": [
+    "helpinghand",
+    "setup",
+    "wall"
+   ],
+   "games": 37
+  },
+  "floettemega": {
+   "roles": [
+    "healing",
+    "setup"
+   ],
+   "games": 37
+  },
+  "raichumegax": {
+   "roles": [
+    "encore",
+    "fakeout",
+    "pivot"
+   ],
+   "games": 36
+  },
+  "scolipede": {
+   "roles": [
+    "healing",
+    "pivot",
+    "setup",
+    "speed_lower"
+   ],
+   "games": 36
+  },
+  "crabominable": {
+   "roles": [
+    "healing",
+    "priority"
+   ],
+   "games": 35
+  },
+  "abomasnow": {
+   "roles": [
+    "healing",
+    "priority",
+    "screens",
+    "wall"
+   ],
+   "games": 35
+  },
+  "steelix": {
+   "roles": [
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 35
+  },
+  "froslassmega": {
+   "roles": [
+    "screens",
+    "wall"
+   ],
+   "games": 35
+  },
+  "serperior": {
+   "roles": [
+    "healing",
+    "status"
+   ],
+   "games": 34
+  },
+  "umbreon": {
+   "roles": [
+    "debuff",
+    "healing",
+    "helpinghand",
+    "pivot",
+    "setup",
+    "status",
+    "wall"
+   ],
+   "games": 34
+  },
+  "metagrossmega": {
+   "roles": [
+    "priority"
+   ],
+   "games": 34
+  },
+  "hippowdon": {
+   "roles": [
+    "healing",
+    "setup",
+    "status"
+   ],
+   "games": 33
+  },
+  "ampharos": {
+   "roles": [
+    "healing"
+   ],
+   "games": 33
+  },
+  "infernape": {
+   "roles": [
+    "encore",
+    "fakeout",
+    "healing",
+    "pivot",
+    "priority"
+   ],
+   "games": 33
+  },
+  "vivillonfancy": {
+   "roles": [
+    "redirection",
+    "status",
+    "wall"
+   ],
+   "games": 32
+  },
+  "falinks": {
+   "roles": [
+    "priority",
+    "setup"
+   ],
+   "games": 32
+  },
+  "azumarill": {
+   "roles": [
+    "priority",
+    "setup"
+   ],
+   "games": 31
+  },
+  "slowbro": {
+   "roles": [
+    "healing",
+    "setup",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 31
+  },
+  "taurospaldeaaqua": {
+   "roles": [
+    "debuff",
+    "priority"
+   ],
+   "games": 30
+  },
+  "mawilemega": {
+   "roles": [
+    "priority",
+    "setup"
+   ],
+   "games": 30
+  },
+  "sharpedo": {
+   "roles": [
+    "pivot",
+    "setup"
+   ],
+   "games": 30
+  },
+  "venusaurmega": {
+   "roles": [
+    "healing"
+   ],
+   "games": 29
+  },
+  "aerodactylmega": {
+   "roles": [
+    "teamprotect",
+    "wall"
+   ],
+   "games": 29
+  },
+  "wyrdeer": {
+   "roles": [
+    "debuff",
+    "helpinghand",
+    "speed_trickroom",
+    "status",
+    "wall"
+   ],
+   "games": 28
+  },
+  "chimecho": {
+   "roles": [
+    "healing",
+    "setup",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 28
+  },
+  "ariados": {
+   "roles": [
+    "priority",
+    "redirection",
+    "speed_lower",
+    "status",
+    "wall"
+   ],
+   "games": 27
+  },
+  "barbaracle": {
+   "roles": [
+    "setup"
+   ],
+   "games": 27
+  },
+  "conkeldurr": {
+   "roles": [
+    "healing",
+    "priority",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 27
+  },
+  "vaporeon": {
+   "roles": [
+    "pivot",
+    "setup",
+    "speed_lower",
+    "status"
+   ],
+   "games": 27
+  },
+  "skeledirge": {
+   "roles": [
+    "debuff",
+    "healing",
+    "status"
+   ],
+   "games": 27
+  },
+  "blastoisemega": {
+   "roles": [
+    "fakeout",
+    "setup"
+   ],
+   "games": 26
+  },
+  "vivillonpokeball": {
+   "roles": [
+    "healing",
+    "speed_tailwind",
+    "status",
+    "wall"
+   ],
+   "games": 25
+  },
+  "rotomfrost": {
+   "roles": [
+    "pivot",
+    "status"
+   ],
+   "games": 25
+  },
+  "manectric": {
+   "roles": [
+    "debuff",
+    "pivot"
+   ],
+   "games": 25
+  },
+  "taurospaldeablaze": {
+   "roles": [
+    "debuff",
+    "setup"
+   ],
+   "games": 25
+  },
+  "musharna": {
+   "roles": [
+    "helpinghand",
+    "setup",
+    "speed_trickroom",
+    "status",
+    "wall"
+   ],
+   "games": 24
+  },
+  "scraftymega": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "healing"
+   ],
+   "games": 24
+  },
+  "goodrahisui": {
+   "roles": [
+    "healing",
+    "setup",
+    "wall"
+   ],
+   "games": 24
+  },
+  "spiritomb": {
+   "roles": [
+    "debuff",
+    "priority",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 24
+  },
+  "runerigus": {
+   "roles": [
+    "debuff",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 24
+  },
+  "dragalgemega": {
+   "roles": [
+    "pivot",
+    "status"
+   ],
+   "games": 23
+  },
+  "banette": {
+   "roles": [
+    "encore",
+    "priority",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 22
+  },
+  "toxicroak": {
+   "roles": [
+    "fakeout",
+    "priority"
+   ],
+   "games": 21
+  },
+  "salazzle": {
+   "roles": [
+    "fakeout",
+    "status"
+   ],
+   "games": 21
+  },
+  "alcremie": {
+   "roles": [
+    "healing",
+    "screens",
+    "wall"
+   ],
+   "games": 21
+  },
+  "machamp": {
+   "roles": [
+    "healing",
+    "priority",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 20
+  },
+  "pangoro": {
+   "roles": [
+    "debuff",
+    "pivot",
+    "priority"
+   ],
+   "games": 20
+  },
+  "hydrapple": {
+   "roles": [
+    "healing",
+    "status"
+   ],
+   "games": 19
+  },
+  "reuniclus": {
+   "roles": [
+    "speed_trickroom"
+   ],
+   "games": 19
+  },
+  "meowsticf": {
+   "roles": [
+    "fakeout",
+    "terrain",
+    "weather"
+   ],
+   "games": 19
+  },
+  "sandaconda": {
+   "roles": [
+    "setup"
+   ],
+   "games": 18
+  },
+  "victreebel": {
+   "roles": [
+    "healing",
+    "priority",
+    "status"
+   ],
+   "games": 17
+  },
+  "rotommow": {
+   "roles": [
+    "pivot",
+    "speed_lower"
+   ],
+   "games": 17
+  },
+  "pidgeot": {
+   "roles": [
+    "speed_tailwind"
+   ],
+   "games": 17
+  },
+  "absol": {
+   "roles": [
+    "pivot",
+    "priority"
+   ],
+   "games": 16
+  },
+  "torterra": {
+   "roles": [
+    "healing",
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 16
+  },
+  "aromatisse": {
+   "roles": [
+    "healing",
+    "helpinghand",
+    "screens",
+    "speed_trickroom",
+    "wall"
+   ],
+   "games": 16
+  },
+  "espeon": {
+   "roles": [
+    "speed_trickroom"
+   ],
+   "games": 16
+  },
+  "scovillainmega": {
+   "roles": [
+    "healing",
+    "redirection",
+    "wall"
+   ],
+   "games": 16
+  },
+  "trevenant": {
+   "roles": [
+    "healing",
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 16
+  },
+  "morpeko": {
+   "roles": [
+    "debuff",
+    "fakeout",
+    "pivot",
+    "taunt"
+   ],
+   "games": 16
+  },
+  "blazikenmega": {
+   "roles": [
+    "setup"
+   ],
+   "games": 16
+  },
+  "slowbrogalar": {
+   "roles": [
+    "speed_trickroom"
+   ],
+   "games": 15
+  },
+  "kangaskhanmega": {
+   "roles": [
+    "fakeout"
+   ],
+   "games": 15
+  },
+  "lopunnymega": {
+   "roles": [
+    "fakeout",
+    "pivot"
+   ],
+   "games": 15
+  },
+  "goodra": {
+   "roles": [
+    "healing",
+    "weather"
+   ],
+   "games": 14
+  },
+  "slowking": {
+   "roles": [
+    "pivot",
+    "speed_trickroom",
+    "weather"
+   ],
+   "games": 14
+  },
+  "leafeon": {
+   "roles": [
+    "weather"
+   ],
+   "games": 14
+  },
+  "pikachu": {
+   "roles": [
+    "fakeout",
+    "speed_lower"
+   ],
+   "games": 13
+  },
+  "vivillonmarine": {
+   "roles": [
+    "redirection",
+    "status",
+    "wall"
+   ],
+   "games": 12
+  },
+  "flapple": {
+   "roles": [
+    "priority"
+   ],
+   "games": 12
+  },
+  "emboar": {
+   "roles": [
+    "healing",
+    "priority",
+    "setup"
+   ],
+   "games": 11
+  },
+  "lycanroc": {
+   "roles": [
+    "priority"
+   ],
+   "games": 11
+  },
+  "beedrillmega": {
+   "roles": [
+    "pivot"
+   ],
+   "games": 11
+  },
+  "pyroarmega": {
+   "roles": [
+    "status"
+   ],
+   "games": 11
+  },
+  "arcanine": {
+   "roles": [
+    "debuff",
+    "status"
+   ],
+   "games": 10
+  },
+  "charizardmegax": {
+   "roles": [
+    "setup"
+   ],
+   "games": 10
+  },
+  "decidueye": {
+   "roles": [
+    "speed_tailwind",
+    "trapping"
+   ],
+   "games": 9
+  },
+  "scizormega": {
+   "roles": [
+    "priority"
+   ],
+   "games": 9
+  },
+  "mimikyubusted": {
+   "roles": [
+    "priority"
+   ],
+   "games": 8
+  },
+  "simipour": {
+   "roles": [
+    "fakeout"
+   ],
+   "games": 8
+  },
+  "gourgeistsuper": {
+   "roles": [
+    "speed_trickroom",
+    "status"
+   ],
+   "games": 8
+  },
+  "alcremierainbowswirl": {
+   "roles": [
+    "screens",
+    "wall"
+   ],
+   "games": 8
+  },
+  "forretress": {
+   "roles": [
+    "pivot",
+    "wall"
+   ],
+   "games": 7
+  },
+  "bastiodon": {
+   "roles": [
+    "setup",
+    "teamprotect",
+    "wall"
+   ],
+   "games": 7
+  },
+  "lucariomega": {
+   "roles": [
+    "priority"
+   ],
+   "games": 7
+  },
+  "alcremiecaramelswirl": {
+   "roles": [
+    "helpinghand",
+    "wall"
+   ],
+   "games": 7
+  },
+  "qwilfish": {
+   "roles": [
+    "debuff",
+    "speed_lower"
+   ],
+   "games": 6
+  },
+  "manectricmega": {
+   "roles": [
+    "debuff",
+    "pivot"
+   ],
+   "games": 6
+  },
+  "vivillonhighplains": {
+   "roles": [
+    "redirection",
+    "status",
+    "wall"
+   ],
+   "games": 6
+  },
+  "polteageist": {
+   "roles": [
+    "pivot",
+    "setup"
+   ],
+   "games": 6
+  },
+  "chesnaughtmega": {
+   "roles": [
+    "teamprotect",
+    "wall"
+   ],
+   "games": 6
+  },
+  "rotomfan": {
+   "roles": [
+    "pivot"
+   ],
+   "games": 6
+  },
+  "simisage": {
+   "roles": [
+    "fakeout"
+   ],
+   "games": 5
+  },
+  "stunfisk": {
+   "roles": [
+    "status"
+   ],
+   "games": 5
+  },
+  "banettemega": {
+   "roles": [
+    "priority"
+   ],
+   "games": 5
+  },
+  "vivillonocean": {
+   "roles": [
+    "speed_tailwind",
+    "status"
+   ],
+   "games": 4
+  },
+  "tauros": {
+   "roles": [
+    "debuff"
+   ],
+   "games": 4
+  },
+  "luxray": {
+   "roles": [
+    "debuff",
+    "pivot"
+   ],
+   "games": 4
+  },
+  "roserade": {
+   "roles": [
+    "healing"
+   ],
+   "games": 4
+  },
+  "florges": {
+   "roles": [
+    "wall"
+   ],
+   "games": 3
+  },
+  "dedenne": {
+   "roles": [
+    "speed_lower"
+   ],
+   "games": 3
+  },
+  "florgeswhite": {
+   "roles": [
+    "healing",
+    "terrain"
+   ],
+   "games": 2
+  },
+  "vivillonsandstorm": {
+   "roles": [
+    "wall"
+   ],
+   "games": 2
+  },
+  "vivillonicysnow": {
+   "roles": [
+    "status"
+   ],
+   "games": 2
+  }
+ }
+}
