@@ -56,7 +56,15 @@ ROLE_SIGNALS = {
  "fakeout": dict(label="Fake Out (tempo)",
     moves={"Fake Out"}),
  "redirection": dict(label="Redirection",
-    moves={"Follow Me","Rage Powder"}),
+    moves={"Follow Me","Rage Powder"},
+    # abilities redirect too: Lightning Rod / Storm Drain pull the whole type at the ally
+    abilities={"Lightning Rod","Storm Drain"}),
+ "field_abuser": dict(label="Weather / field abuser",
+    # a distinct job from SETTING the weather — these are the mons the weather is set FOR
+    moves=set(),
+    abilities={"Chlorophyll","Swift Swim","Sand Rush","Slush Rush","Solar Power","Sand Force",
+               "Protosynthesis","Quark Drive","Flower Gift","Leaf Guard","Ice Body","Rain Dish",
+               "Dry Skin","Sand Veil","Snow Cloak"}),
  "taunt": dict(label="Taunt",
     moves={"Taunt"}),
  "encore": dict(label="Encore",
@@ -80,7 +88,9 @@ ROLE_SIGNALS = {
     moves={"Swords Dance","Dragon Dance","Nasty Plot","Calm Mind","Bulk Up","Tail Glow","Quiver Dance",
            "Shell Smash","Growth","Coil","Clangorous Soul","Victory Dance","Iron Defense","Curse",
            "Belly Drum","Work Up","Agility","Rock Polish","Take Heart","Geomancy","No Retreat"},
-    abilities={"Speed Boost"}),
+    # trigger-boosters: they convert an opponent's debuff or a KO into a stat boost
+    abilities={"Speed Boost","Defiant","Competitive","Moxie","Justified","Berserk","Simple","Moody",
+               "Supersweet Syrup","Weak Armor","Chilling Neigh","Grim Neigh","Beast Boost"}),
  "healing": dict(label="Healing / sustain",
     moves={"Recover","Roost","Wish","Life Dew","Pollen Puff","Matcha Gotcha","Synthesis","Moonlight",
            "Morning Sun","Slack Off","Milk Drink","Jungle Healing","Lunar Blessing","Soft-Boiled","Rest",
