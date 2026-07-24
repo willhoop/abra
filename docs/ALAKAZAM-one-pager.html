@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@page { size: A4; margin: 12mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: "Helvetica Neue", Arial, sans-serif; color: #1e2733; font-size: 11.5pt; line-height: 1.36; margin: 0; }
+h1 { font-size: 27pt; margin: 0; color: #12324f; }
+.sub { font-size: 12pt; color: #3a86c0; font-weight: 700; }
+.lede { font-size: 10.5pt; color: #5a6472; margin: 1px 0 8px; }
+.rule { height: 3px; background: #ffd23f; border-radius: 3px; margin: 6px 0 9px; }
+h2 { font-size: 11.5pt; color: #12324f; margin: 9px 0 1px; }
+p { margin: 0 0 6px; }
+.gloss { margin-top: 9px; background: #f6f8fb; border: 1.5px solid #dfe6ef; border-radius: 9px; padding: 9px 14px; }
+.gloss h2 { margin-top: 0; }
+.gloss dt { font-weight: 800; color: #12324f; display: inline; }
+.gloss dd { display: inline; margin: 0; color: #33475a; }
+.gloss p { margin: 0 0 4px; font-size: 10.5pt; }
+.foot { margin-top: 9px; font-size: 9pt; color: #8a94a3; }
+b { color: #12324f; }
+</style></head><body>
+<h1>ALAKAZAM</h1>
+<div class="sub">The in-battle coach &mdash; a plain brief</div>
+<div class="lede">The final, hardest piece of ABRA, a system that learns competitive Pok&eacute;mon from thousands of real games.</div>
+<div class="rule"></div>
+
+<h2>What it is</h2>
+<p>A coach that, at any moment in a battle, tells you the best move to make and how likely you are to win.</p>
+
+<h2>How it plays</h2>
+<p>Like a strong human thinking hard: it keeps a running guess of what the opponent is hiding, pictures how the next few turns could unfold, and picks the move that wins most often. Two things make it strong &mdash; it <b>plans ahead</b> instead of just reacting, and it keeps its choices <b>unpredictable</b> so it can&rsquo;t be read.</p>
+
+<h2>What it runs on</h2>
+<p>Using it is light &mdash; it runs in a web browser on an ordinary laptop, no special hardware. Building the strongest version is the heavy part: it must learn from a huge pile of past matches and from playing against itself, which needs a powerful rented cloud computer (a GPU) for a while.</p>
+
+<h2>How long</h2>
+<p>A basic but genuinely useful version: about <b>one to two weeks</b>. A version that could beat top human players: <b>a few months</b> &mdash; and most of that time is spent letting it play itself to learn, not the training itself.</p>
+
+<h2>The honest limit</h2>
+<p>Some things simply can&rsquo;t be predicted &mdash; like who wins from the starting line-ups alone, which is close to a coin flip. So ALAKAZAM is judged on making <b>good decisions in the moment</b>, not on calling the winner in advance.</p>
+
+<div class="gloss">
+<h2>A few terms</h2>
+<p><dt>Imperfect information</dt> &mdash; <dd>you can&rsquo;t see everything about the opponent&rsquo;s position, unlike chess.</dd></p>
+<p><dt>Simultaneous move</dt> &mdash; <dd>both players lock in a move at once and reveal together, like rock-paper-scissors.</dd></p>
+<p><dt>Mixed strategy</dt> &mdash; <dd>choosing randomly among options with fixed odds, so you can&rsquo;t be predicted and countered.</dd></p>
+<p><dt>Belief</dt> &mdash; <dd>the AI&rsquo;s running probability estimate of what the opponent is hiding, updated as clues appear.</dd></p>
+<p><dt>Self-play</dt> &mdash; <dd>the AI plays millions of games against copies of itself to make its own training data.</dd></p>
+<p><dt>GPU</dt> &mdash; <dd>a powerful graphics chip used to train large AI models, far faster at it than a laptop.</dd></p>
+</div>
+
+<div class="foot">ABRA &middot; competitive-Pok&eacute;mon decision engine &middot; ALAKAZAM is the in-battle capstone (in development).</div>
+</body></html>
