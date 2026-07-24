@@ -5,60 +5,68 @@
   "n_archetypes": 11,
   "equilibrium_mixture": [
     {
-      "archetype": "Rain",
-      "weight": 0.4842
-    },
-    {
-      "archetype": "Sand",
-      "weight": 0.2525
+      "archetype": "Sun",
+      "weight": 0.3104
     },
     {
       "archetype": "HyperOffense",
-      "weight": 0.098
+      "weight": 0.1997
     },
     {
-      "archetype": "Setup",
-      "weight": 0.054
-    },
-    {
-      "archetype": "PerishTrap",
-      "weight": 0.054
+      "archetype": "Sand",
+      "weight": 0.1904
     },
     {
       "archetype": "TailwindOffense",
-      "weight": 0.0288
+      "weight": 0.0994
     },
     {
-      "archetype": "Snow",
-      "weight": 0.0285
+      "archetype": "Rain",
+      "weight": 0.0929
+    },
+    {
+      "archetype": "Setup",
+      "weight": 0.0332
+    },
+    {
+      "archetype": "PerishTrap",
+      "weight": 0.0332
+    },
+    {
+      "archetype": "FakeOutBalance",
+      "weight": 0.0307
+    },
+    {
+      "archetype": "Stall",
+      "weight": 0.0102
     }
   ],
-  "game_value": -0.0001,
+  "game_value": -0.0,
   "top_nontransitive_cycle": {
     "cycle": [
       "TrickRoom",
       "HyperOffense",
       "Sand"
     ],
-    "min_edge": 0.115
+    "min_edge": 0.167
   },
   "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE meta (a clear top dog). Where a rock-paper-scissors cycle exists \u2014 the min_edge above is positive \u2014 every deck has a counter, so the unexploitable play is a MIXED strategy (this equilibrium), not one deck. Stall, Trick Room, perish-trap and setup are exactly such counter-classes; how visible the cycle is depends on archetype granularity (see notes).",
   "exploitability": {
     "what": "Worst-case win-edge a best pure counter extracts (win-fraction units; lower is better; Nash ~ 0).",
-    "nash": 0.0004,
+    "nash": 0.0007,
     "nash_ci95": [
-      0.0002,
-      0.0039
+      0.0004,
+      0.0045
     ],
-    "greedy_single_deck": 0.115,
-    "uniform": 0.0762,
-    "greedy_minus_nash": 0.1146,
+    "greedy_single_deck": 0.073,
+    "uniform": 0.047,
+    "greedy_minus_nash": 0.0723,
     "greedy_minus_nash_ci95": [
       -0.0001,
-      0.2803
+      0.315
     ]
   },
-  "verdict": "SLOWKING's equilibrium is substantially less exploitable, though sparse matchups keep the 95% CI lower bound near 0 (-0.0001) than picking the single best deck: greedy 0.115 vs Nash 0.0004, gap 0.1146 (CI [-0.0001, 0.2803]). The meta is non-transitive here (rock-paper-scissors), so a MIXED strategy is the right preview object \u2014 the fix for the greedy best-response that inverted old MEDICHAM/DITTO.",
+  "verdict": "SLOWKING's equilibrium is substantially less exploitable, though sparse matchups keep the 95% CI lower bound near 0 (-0.0001) than picking the single best deck: greedy 0.073 vs Nash 0.0007, gap 0.0723 (CI [-0.0001, 0.315]). The meta is non-transitive here (rock-paper-scissors), so a MIXED strategy is the right preview object \u2014 the fix for the greedy best-response that inverted old MEDICHAM/DITTO.",
   "what_this_does_NOT_prove": [
     "NOT a game-winner predictor: exploitability grades the preview DECISION, not who wins a match (GURU's own predictive_test shows per-game prediction ties a coin here).",
     "Archetype-level, not set-level: the matrix is 13 discovered archetypes, not exact teams/sets; a belief over the opponent's real six (XATU) is the documented next refinement.",

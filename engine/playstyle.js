@@ -16,7 +16,8 @@ const idn = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 // species role priors (Reg M-B relevant). A species can carry more than one signal.
 const RAIN = new Set(['pelipper', 'politoed']);
-const SUN = new Set(['torkoal', 'groudon', 'ninetales']);
+// Charizard in Reg M-B is overwhelmingly Mega-Y (Drought) → a sun setter. (Rare Charizardite-X exists.)
+const SUN = new Set(['torkoal', 'groudon', 'ninetales', 'charizard']);
 const SAND = new Set(['tyranitar', 'hippowdon', 'gigalith', 'tyranitarmega']);
 const SNOW = new Set(['ninetalesalola', 'abomasnow', 'abomasnowmega']);
 const TR_SETTER = new Set(['torkoal', 'farigiraf', 'hatterene', 'hattrenemega', 'indeedee', 'indeedeef',
