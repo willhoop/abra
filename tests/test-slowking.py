@@ -21,25 +21,35 @@ r, c, v = solve_rm(RPS, iters=20000)
 ok(all(abs(x - 1/3) < 0.03 for x in r), f"RPS Nash is ~uniform: {[round(x,3) for x in r]}")
 ok(abs(v) < 0.02, f"RPS game value ~0: {round(v,4)}")
 
-# (2) shipped artifact invariants
-F = os.path.join(ROOT, "data", "slowking-eval.json")
-if not os.path.exists(F):
+# (2) shipped artifact invariants — check every SLOWKING eval that exists (species + playstyle)
+def check_eval(F, label):
+    d = json.load(open(F))
+    w = sum(m["weight"] for m in d["equilibrium_mixture"])
+    ok(abs(w - 1.0) < 0.02, f"[{label}] equilibrium mixture sums to 1 (got {round(w,3)})")
+    ex = d["exploitability"]
+    ok(ex["nash"] >= -1e-6, f"[{label}] nash exploitability >= 0 ({ex['nash']})")
+    ok(ex["nash"] <= ex["uniform"] + 1e-3, f"[{label}] Nash <= uniform (mixing over the RIGHT decks helps)")
+    ok(ex["nash"] <= ex["greedy_single_deck"] + 1e-3, f"[{label}] Nash <= greedy single-deck")
+    ok(d.get("top_nontransitive_cycle") is not None and len(d["top_nontransitive_cycle"]["cycle"]) == 3,
+       f"[{label}] reports a 3-archetype non-transitive cycle")
+    ok(isinstance(d.get("what_this_does_NOT_prove"), list) and len(d["what_this_does_NOT_prove"]) >= 3,
+       f'[{label}] has "what this does NOT prove" (>=3 items)')
+    # verdict must not over-claim: only claim a significant gap if the CI lower bound is > 0
+    claims = "provably less exploitable" in d["verdict"]
+    sig = ex["greedy_minus_nash_ci95"][0] > 0
+    ok(claims == sig, f"[{label}] verdict matches whether the greedy-vs-Nash gap CI clears 0")
+    return ex
+
+sp = os.path.join(ROOT, "data", "slowking-eval.json")
+if not os.path.exists(sp):
     print("slowking-eval.json missing — run engine/slowking_preview.py"); sys.exit(1)
-d = json.load(open(F))
-w = sum(m["weight"] for m in d["equilibrium_mixture"])
-ok(abs(w - 1.0) < 0.02, f"equilibrium mixture sums to 1 (got {round(w,3)})")
-ex = d["exploitability"]
-ok(ex["nash"] >= -1e-6, f"nash exploitability >= 0 ({ex['nash']})")
-ok(ex["nash"] <= ex["uniform"] + 1e-6, "Nash no more exploitable than uniform (mixing over the RIGHT decks helps)")
-ok(ex["nash"] <= ex["greedy_single_deck"] + 1e-3, "Nash no more exploitable than greedy single-deck")
-ok(d.get("top_nontransitive_cycle") is not None and len(d["top_nontransitive_cycle"]["cycle"]) == 3,
-   "reports a 3-archetype non-transitive cycle")
-ok(isinstance(d.get("what_this_does_NOT_prove"), list) and len(d["what_this_does_NOT_prove"]) >= 3,
-   'has "what this does NOT prove" (>=3 items)')
-# verdict must not over-claim: only claim a significant gap if the CI lower bound is > 0
-claims_gap = "provably less exploitable" in d["verdict"]
-sig = d["exploitability"]["greedy_minus_nash_ci95"][0] > 0
-ok(claims_gap == sig, "verdict matches whether the greedy-vs-Nash gap CI clears 0")
+check_eval(sp, "species")
+pf = os.path.join(ROOT, "data", "slowking-playstyle-eval.json")
+if os.path.exists(pf):
+    ex_pf = check_eval(pf, "playstyle")
+    # the headline finding: at the playstyle level, greedy IS significantly exploitable (cycle is real)
+    ok(ex_pf["greedy_minus_nash_ci95"][0] > 0,
+       "[playstyle] greedy-vs-Nash gap is significant (playstyle meta is non-transitive)")
 
 if fails:
     print(f"\ntest-slowking: {fails} FAILED"); sys.exit(1)

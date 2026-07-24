@@ -1,0 +1,476 @@
+{
+  "generated": "engine/playstyle.js — playstyle matchup matrix from REAL outcomes (Wilson CIs)",
+  "n_games": 2866,
+  "n_archetypes": 11,
+  "archetypes": [
+    "TailwindOffense",
+    "TrickRoom",
+    "Setup",
+    "Rain",
+    "Sand",
+    "HyperOffense",
+    "PerishTrap",
+    "Snow",
+    "FakeOutBalance",
+    "Sun",
+    "Stall"
+  ],
+  "style_counts": {
+    "Rain": 551,
+    "TailwindOffense": 1925,
+    "Setup": 908,
+    "TrickRoom": 1420,
+    "PerishTrap": 192,
+    "HyperOffense": 230,
+    "Snow": 124,
+    "Sand": 265,
+    "FakeOutBalance": 93,
+    "Stall": 9,
+    "Sun": 15
+  },
+  "matrix": {
+    "TailwindOffense": {
+      "TailwindOffense": null,
+      "TrickRoom": {
+        "p": 0.602,
+        "lo": 0.529,
+        "hi": 0.672,
+        "n": 176
+      },
+      "Setup": null,
+      "Rain": {
+        "p": 0.517,
+        "lo": 0.46,
+        "hi": 0.572,
+        "n": 302
+      },
+      "Sand": {
+        "p": 0.423,
+        "lo": 0.35,
+        "hi": 0.498,
+        "n": 168
+      },
+      "HyperOffense": {
+        "p": 0.561,
+        "lo": 0.453,
+        "hi": 0.663,
+        "n": 82
+      },
+      "PerishTrap": null,
+      "Snow": {
+        "p": 0.634,
+        "lo": 0.518,
+        "hi": 0.736,
+        "n": 71
+      },
+      "FakeOutBalance": {
+        "p": 0.483,
+        "lo": 0.314,
+        "hi": 0.656,
+        "n": 29
+      },
+      "Sun": {
+        "p": 0.778,
+        "lo": 0.453,
+        "hi": 0.937,
+        "n": 9
+      },
+      "Stall": {
+        "p": 0.333,
+        "lo": 0.097,
+        "hi": 0.7,
+        "n": 6
+      }
+    },
+    "TrickRoom": {
+      "TailwindOffense": {
+        "p": 0.398,
+        "lo": 0.328,
+        "hi": 0.471,
+        "n": 176
+      },
+      "TrickRoom": null,
+      "Setup": {
+        "p": 0.5,
+        "lo": 0.386,
+        "hi": 0.614,
+        "n": 70
+      },
+      "Rain": {
+        "p": 0.488,
+        "lo": 0.343,
+        "hi": 0.635,
+        "n": 41
+      },
+      "Sand": {
+        "p": 0.333,
+        "lo": 0.163,
+        "hi": 0.563,
+        "n": 18
+      },
+      "HyperOffense": {
+        "p": 0.615,
+        "lo": 0.355,
+        "hi": 0.823,
+        "n": 13
+      },
+      "PerishTrap": null,
+      "Snow": {
+        "p": 1,
+        "lo": 0.342,
+        "hi": 1,
+        "n": 2
+      },
+      "FakeOutBalance": {
+        "p": 0.333,
+        "lo": 0.061,
+        "hi": 0.792,
+        "n": 3
+      },
+      "Sun": null,
+      "Stall": {
+        "p": 0,
+        "lo": 0,
+        "hi": 0.793,
+        "n": 1
+      }
+    },
+    "Setup": {
+      "TailwindOffense": null,
+      "TrickRoom": {
+        "p": 0.5,
+        "lo": 0.386,
+        "hi": 0.614,
+        "n": 70
+      },
+      "Setup": null,
+      "Rain": null,
+      "Sand": null,
+      "HyperOffense": null,
+      "PerishTrap": null,
+      "Snow": null,
+      "FakeOutBalance": null,
+      "Sun": null,
+      "Stall": null
+    },
+    "Rain": {
+      "TailwindOffense": {
+        "p": 0.483,
+        "lo": 0.428,
+        "hi": 0.54,
+        "n": 302
+      },
+      "TrickRoom": {
+        "p": 0.512,
+        "lo": 0.365,
+        "hi": 0.657,
+        "n": 41
+      },
+      "Setup": null,
+      "Rain": null,
+      "Sand": {
+        "p": 0.476,
+        "lo": 0.334,
+        "hi": 0.623,
+        "n": 42
+      },
+      "HyperOffense": {
+        "p": 0.6,
+        "lo": 0.455,
+        "hi": 0.73,
+        "n": 45
+      },
+      "PerishTrap": null,
+      "Snow": {
+        "p": 0.4,
+        "lo": 0.219,
+        "hi": 0.613,
+        "n": 20
+      },
+      "FakeOutBalance": {
+        "p": 0.44,
+        "lo": 0.267,
+        "hi": 0.629,
+        "n": 25
+      },
+      "Sun": {
+        "p": 0.667,
+        "lo": 0.208,
+        "hi": 0.939,
+        "n": 3
+      },
+      "Stall": {
+        "p": 1,
+        "lo": 0.207,
+        "hi": 1,
+        "n": 1
+      }
+    },
+    "Sand": {
+      "TailwindOffense": {
+        "p": 0.577,
+        "lo": 0.502,
+        "hi": 0.65,
+        "n": 168
+      },
+      "TrickRoom": {
+        "p": 0.667,
+        "lo": 0.437,
+        "hi": 0.837,
+        "n": 18
+      },
+      "Setup": null,
+      "Rain": {
+        "p": 0.524,
+        "lo": 0.377,
+        "hi": 0.666,
+        "n": 42
+      },
+      "Sand": null,
+      "HyperOffense": {
+        "p": 0.294,
+        "lo": 0.133,
+        "hi": 0.531,
+        "n": 17
+      },
+      "PerishTrap": null,
+      "Snow": {
+        "p": 0.714,
+        "lo": 0.359,
+        "hi": 0.918,
+        "n": 7
+      },
+      "FakeOutBalance": {
+        "p": 0.8,
+        "lo": 0.376,
+        "hi": 0.964,
+        "n": 5
+      },
+      "Sun": null,
+      "Stall": null
+    },
+    "HyperOffense": {
+      "TailwindOffense": {
+        "p": 0.439,
+        "lo": 0.337,
+        "hi": 0.547,
+        "n": 82
+      },
+      "TrickRoom": {
+        "p": 0.385,
+        "lo": 0.177,
+        "hi": 0.645,
+        "n": 13
+      },
+      "Setup": null,
+      "Rain": {
+        "p": 0.4,
+        "lo": 0.27,
+        "hi": 0.545,
+        "n": 45
+      },
+      "Sand": {
+        "p": 0.706,
+        "lo": 0.469,
+        "hi": 0.867,
+        "n": 17
+      },
+      "HyperOffense": null,
+      "PerishTrap": null,
+      "Snow": {
+        "p": 0.438,
+        "lo": 0.231,
+        "hi": 0.668,
+        "n": 16
+      },
+      "FakeOutBalance": {
+        "p": 0.471,
+        "lo": 0.262,
+        "hi": 0.69,
+        "n": 17
+      },
+      "Sun": {
+        "p": 1,
+        "lo": 0.207,
+        "hi": 1,
+        "n": 1
+      },
+      "Stall": {
+        "p": 1,
+        "lo": 0.207,
+        "hi": 1,
+        "n": 1
+      }
+    },
+    "PerishTrap": {
+      "TailwindOffense": null,
+      "TrickRoom": null,
+      "Setup": null,
+      "Rain": null,
+      "Sand": null,
+      "HyperOffense": null,
+      "PerishTrap": null,
+      "Snow": null,
+      "FakeOutBalance": null,
+      "Sun": null,
+      "Stall": null
+    },
+    "Snow": {
+      "TailwindOffense": {
+        "p": 0.366,
+        "lo": 0.264,
+        "hi": 0.482,
+        "n": 71
+      },
+      "TrickRoom": {
+        "p": 0,
+        "lo": 0,
+        "hi": 0.658,
+        "n": 2
+      },
+      "Setup": null,
+      "Rain": {
+        "p": 0.6,
+        "lo": 0.387,
+        "hi": 0.781,
+        "n": 20
+      },
+      "Sand": {
+        "p": 0.286,
+        "lo": 0.082,
+        "hi": 0.641,
+        "n": 7
+      },
+      "HyperOffense": {
+        "p": 0.563,
+        "lo": 0.332,
+        "hi": 0.769,
+        "n": 16
+      },
+      "PerishTrap": null,
+      "Snow": null,
+      "FakeOutBalance": {
+        "p": 0.333,
+        "lo": 0.097,
+        "hi": 0.7,
+        "n": 6
+      },
+      "Sun": null,
+      "Stall": null
+    },
+    "FakeOutBalance": {
+      "TailwindOffense": {
+        "p": 0.517,
+        "lo": 0.344,
+        "hi": 0.686,
+        "n": 29
+      },
+      "TrickRoom": {
+        "p": 0.667,
+        "lo": 0.208,
+        "hi": 0.939,
+        "n": 3
+      },
+      "Setup": null,
+      "Rain": {
+        "p": 0.56,
+        "lo": 0.371,
+        "hi": 0.733,
+        "n": 25
+      },
+      "Sand": {
+        "p": 0.2,
+        "lo": 0.036,
+        "hi": 0.624,
+        "n": 5
+      },
+      "HyperOffense": {
+        "p": 0.529,
+        "lo": 0.31,
+        "hi": 0.738,
+        "n": 17
+      },
+      "PerishTrap": null,
+      "Snow": {
+        "p": 0.667,
+        "lo": 0.3,
+        "hi": 0.903,
+        "n": 6
+      },
+      "FakeOutBalance": null,
+      "Sun": {
+        "p": 0.5,
+        "lo": 0.095,
+        "hi": 0.905,
+        "n": 2
+      },
+      "Stall": null
+    },
+    "Sun": {
+      "TailwindOffense": {
+        "p": 0.222,
+        "lo": 0.063,
+        "hi": 0.547,
+        "n": 9
+      },
+      "TrickRoom": null,
+      "Setup": null,
+      "Rain": {
+        "p": 0.333,
+        "lo": 0.061,
+        "hi": 0.792,
+        "n": 3
+      },
+      "Sand": null,
+      "HyperOffense": {
+        "p": 0,
+        "lo": 0,
+        "hi": 0.793,
+        "n": 1
+      },
+      "PerishTrap": null,
+      "Snow": null,
+      "FakeOutBalance": {
+        "p": 0.5,
+        "lo": 0.095,
+        "hi": 0.905,
+        "n": 2
+      },
+      "Sun": null,
+      "Stall": null
+    },
+    "Stall": {
+      "TailwindOffense": {
+        "p": 0.667,
+        "lo": 0.3,
+        "hi": 0.903,
+        "n": 6
+      },
+      "TrickRoom": {
+        "p": 1,
+        "lo": 0.207,
+        "hi": 1,
+        "n": 1
+      },
+      "Setup": null,
+      "Rain": {
+        "p": 0,
+        "lo": 0,
+        "hi": 0.793,
+        "n": 1
+      },
+      "Sand": null,
+      "HyperOffense": {
+        "p": 0,
+        "lo": 0,
+        "hi": 0.793,
+        "n": 1
+      },
+      "PerishTrap": null,
+      "Snow": null,
+      "FakeOutBalance": null,
+      "Sun": null,
+      "Stall": null
+    }
+  }
+}

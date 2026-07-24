@@ -23,7 +23,9 @@ sys.path.insert(0, os.path.join(HERE, "slowking"))
 from nash import solve_rm                       # regret matching -> eps-Nash of a 2p zero-sum game
 np.random.seed(0)
 
-GURU = os.path.join(ROOT, "data", "guru-matchups.json")
+# default = GURU species archetypes; override with MATRIX_FILE (e.g. the playstyle matrix) + TAG
+GURU = os.environ.get("MATRIX_FILE", os.path.join(ROOT, "data", "guru-matchups.json"))
+TAG = os.environ.get("TAG", "")   # "" -> slowking-eval.json ; "playstyle" -> slowking-playstyle-eval.json
 
 
 def build_edge_matrix(matrix, archs, sample=False):
@@ -153,8 +155,9 @@ def main():
             "which is a modelling choice, not a measured fact.",
         ],
     }
-    json.dump(out, open(os.path.join(ROOT, "data", "slowking-eval.json"), "w"), indent=2)
-    with open(os.path.join(ROOT, "data", "slowking.js"), "w") as f:
+    eval_name = f"slowking-{TAG}-eval.json" if TAG else "slowking-eval.json"
+    json.dump(out, open(os.path.join(ROOT, "data", eval_name), "w"), indent=2)
+    with open(os.path.join(ROOT, "data", f"slowking{('-'+TAG) if TAG else ''}.js"), "w") as f:
         f.write("window.SLOWKING=" + json.dumps({"archetypes": archs,
                 "weights": [round(float(x), 4) for x in nash],
                 "exploitability": round(ex_nash, 4)}, separators=(",", ":")) + ";\n")

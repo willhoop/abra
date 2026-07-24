@@ -1,0 +1,1 @@
+window.SLOWKING={"archetypes":["TailwindOffense","TrickRoom","Setup","Rain","Sand","HyperOffense","PerishTrap","Snow","FakeOutBalance","Sun","Stall"],"weights":[0.018,0.0,0.047,0.5053,0.2577,0.0957,0.047,0.0292,0.0,0.0,0.0],"exploitability":0.0002};
