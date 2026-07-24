@@ -529,8 +529,11 @@ const CAST=[
 
 /* ===== build nav ===== */
 const nav=document.getElementById('nav');
-CAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
-  b.innerHTML=`<img src="${ani(c.sprite)}">${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
+/* nav order: MAP first (the orientation view), then the town, then each model.
+   CAST order itself is left alone — some rooms index into it. */
+const NAVCAST=[...CAST.filter(c=>c.id==='map'),...CAST.filter(c=>c.id!=='map')];
+NAVCAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
+  b.innerHTML=`${c.icon?c.icon:`<img src="${ani(c.sprite)}">`}${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
 
 /* ===== rooms html ===== */
 function mascotHero(c,bubble){return `<div class="hero"><img class="mascot" src="${ani(c.sprite)}">
