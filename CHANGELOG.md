@@ -10,6 +10,53 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.8.0] — 2026-07-24
+
+### Fixed
+- **`engine/guru.py` aborted on a truncated store line**, so the site's headline numbers were frozen
+  at **5,199 games** while the store had grown past **7,400**. The ingest job appends on a schedule
+  and an interrupted run can leave a partial line (6 of 7,449 lines). GURU now skips unparseable
+  lines like the other engines. Map metrics are live again.
+- **`engine/vocab.py` ignored the multi-role override table**, so tagged moves (Psychic Fangs, Brick
+  Break, Stockpile) were reported as untagged. Coverage of real in-battle move usage is **97.1%**.
+- **The MAP's hover text** was long and carried leftover nickname glosses ("(MEDIcham)"). Every node
+  blurb rewritten to one plain sentence.
+
+### Changed
+- **MAP edges are curved rather than straight.** A crossing-free drawing is not possible for this
+  dependency graph — ALAKAZAM has six parents spread across a row and MEDI feeds both the far left
+  and the far right — so instead of claiming otherwise, each edge now bows in proportion to how far
+  it travels, which separates lines that previously overlapped. Hover still isolates one path.
+- **Taxonomy expanded 27 → 39 roles**, all from real gameplay distinctions:
+  status split by type (**burn** = a debuff that halves Attack, **paralysis** = speed control,
+  **sleep** = action denial, **poison** = a clock) — each 1,000+ uses and 20–59 species, so none is
+  sparse; **spread attacker** split from **field-wide (hits your own partner)**, because Earthquake /
+  Surf / Discharge constrain team building (they need an immune partner); plus **multi-hit** (breaks
+  Sash, Sturdy, Multiscale, Substitute), **fixed/fractional damage** (Super Fang, Seismic Toss —
+  ignores stats and the type chart), **residual chip**, **hazards** (incl. Toxic Debris),
+  **substitute**, **weather/effect denial** (Cloud Nine, Air Lock, screen-breakers),
+  **weather/field abuser** (distinct from setter), and **positioning** (now including Roar-family
+  forced switches). Freeze is documented as functionally sleep but *not* tagged: no move in Reg M-B
+  sets it, so crediting every Ice attack would be dishonest.
+- Ability mapping corrected throughout: Lightning Rod / Storm Drain → redirection; Hospitality and
+  Regenerator → healing; trigger-boosters (Defiant, Competitive, Moxie) → setup. Fairy Aura and Dark
+  Aura are deliberately **left untagged** — they are passive, permanent, type-wide multipliers, not
+  the same job as Helping Hand's active one-turn boost.
+
+### Added
+- `engine/build_roles_js.py` → `data/roles.js`; the Roles booth gains a **species explorer** showing
+  any Pokémon's role *distribution* with confidence intervals, and archetypes now show their most
+  distinctive Pokémon by lift.
+
+### Notes — the fragmentation trade-off, stated plainly
+- A finer taxonomy costs cell size. The median role-pair cell has moved **7,971** (over-tagged, v2.6)
+  → **95** (credible tags, 27 roles) → **~50** (39 roles). It is still far above the old single-label
+  archetype cells (n=11–18), but the direction is the price of resolution. The test and sanity bars
+  were lowered 100 → 50 → 35 **with the reason recorded in-line**, and they now act as the tripwire
+  against adding roles without a justification.
+- Winner-prediction from preview roles is unchanged at the coin (0.6935 vs 0.6931); WAR still beats
+  it (0.6867, accuracy 54.4%). Neither headline conclusion moved.
+
 ## [2.7.0] — 2026-07-24
 
 ### Changed
