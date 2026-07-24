@@ -54,7 +54,12 @@ for (const t of TARGETS) {
     ` * Generated: ${new Date().toISOString().slice(0, 10)}\n` +
     ` * Entries: ${Object.keys(payload).length}\n` +
     ` * Edit the canonical JSON and re-run the generator instead. */\n`;
-  fs.writeFileSync(t.out, header + `window.${t.global}=` + JSON.stringify(payload) + ';\n', 'utf8');
+  /* Universal wrapper, not a bare `window.X = ...`. The site has a real `window`; node does not, and
+   * the contract test loads these files with `new Function('window', src)(stub)`. All three work if
+   * we resolve the root at call time. A bare window assignment throws in node. */
+  const body = `(function(r){r.${t.global}=` + JSON.stringify(payload) +
+               `;})(typeof window!=='undefined'?window:globalThis);\n`;
+  fs.writeFileSync(t.out, header + body, 'utf8');
   console.log(`  ${path.relative(ABRA, t.out)}  <- ${path.basename(t.json)}  (${Object.keys(payload).length} entries, ${(fs.statSync(t.out).size / 1024).toFixed(0)} KB)`);
   wrote++;
 }

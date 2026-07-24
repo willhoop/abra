@@ -162,7 +162,8 @@ function chooseAction(me,foes,ally,field,side,rng){
       if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2)return{kind:'protect'};
       if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup'};
       if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0))return{kind:'tail'};
-      if(pick.kind==='status'&&live.some(f=>!f.status))return{kind:'status',target:live.find(f=>!f.status)};
+      // carry the MOVE through, not just the intent: which status lands depends on which move it is
+      if(pick.kind==='status'&&live.some(f=>!f.status))return{kind:'status',mv:pick.mv,target:live.find(f=>!f.status)};
       const chosen=targetForMove(me,pick.mv,live,field);            // the sampled damaging move
       if(chosen)return{kind:'attack',move:chosen,target:chosen.target};
     }}
@@ -173,7 +174,39 @@ function chooseAction(me,foes,ally,field,side,rng){
 function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;
   if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
   if(m.status==='par')s*=0.5;return s;}
-function applyStatus(t,st){if(t.status)return;t.status=st;if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;}
+/* ---- SECONDARY AND PRIMARY MOVE EFFECTS -------------------------------------------------------
+ * Read from the SHARED rulebook (CHOMP/data/move-effects.json, exposed here as window.MOVE_EFFECTS
+ * by build/build_browser_data.js). Before this, the rollout had its own rules and they were wrong:
+ *   - a status move applied a UNIFORMLY RANDOM status from ['brn','par','slp'], so Thunder Wave
+ *     burned a third of the time and Will-O-Wisp could paralyse;
+ *   - only Fake Out could ever flinch, so Rock Slide's 30% did nothing.
+ * Reading the one rulebook is what lets the contract test hold this engine and champ-model together.
+ */
+function moveFx(id){ const F=(typeof window!=='undefined'&&window.MOVE_EFFECTS)||
+                            (typeof globalThis!=='undefined'&&globalThis.MOVE_EFFECTS)||null;
+  return (F&&id)?(F[String(id).toLowerCase().replace(/[^a-z0-9]/g,'')]||null):null; }
+
+/* Type and ability immunities. A Pokemon that cannot take a status must not take it - otherwise the
+ * simulation paralyses Electric types and burns Fire types, which changes who wins. */
+const STATUS_IMMUNE_TYPE={ brn:['Fire'], par:['Electric'], frz:['Ice'], psn:['Poison','Steel'], tox:['Poison','Steel'] };
+const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','comatose','thermalexchange'],
+                           par:['limber','comatose'],
+                           frz:['magmaarmor','comatose'],
+                           psn:['immunity','comatose','poisonheal'],
+                           tox:['immunity','comatose','poisonheal'],
+                           slp:['insomnia','vitalspirit','comatose','sweetveil'] };
+function canTakeStatus(t,st){
+  if(!t||t.fainted||t.curHP<=0) return false;
+  if(t.status) return false;                                  // one major status at a time
+  const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
+  if(ab==='shielddust') return false;                          // blocks secondary effects entirely
+  const byType=STATUS_IMMUNE_TYPE[st]||[];
+  if((t.types||[]).some(ty=>byType.includes(ty))) return false;
+  if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
+  return true;
+}
+function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;
+  if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;return true;}
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   const field={weather:null,weatherT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false};
@@ -194,7 +227,11 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
     const prio=it=>it.a.kind==='attack'?(PRIO[it.a.move.id]||0):((it.a.kind==='protect'||it.a.kind==='wideguard')?4:0);
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
-    for(const it of acts){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
+    /* Move order is needed to resolve flinch correctly: a flinch only stops a target that has NOT
+     * yet acted this turn. `acts` is already sorted into resolution order, so position in it IS the
+     * move order. Without this, a slow Rock Slide would "flinch" a foe that had already attacked. */
+    const actedAt=new Map(); acts.forEach((it,i)=>actedAt.set(it.mon,i));
+    for(const [actIdx,it] of acts.entries()){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
       if(m.status==='par'&&rng()<0.125)continue;   // Champions: 12.5% full-para (was 25%)
       if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25)m.status='';else continue;}   // Champions: 25%/attempt, guaranteed thaw turn 3
@@ -202,7 +239,19 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       const a=it.a;
       if(a.kind==='setup'){m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);continue;}
       if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
-      if(a.kind==='status'){const t=a.target;if(t&&!t.fainted&&!t.protect&&!t.status)applyStatus(t,['brn','par','slp'][rng()*3|0]);continue;}
+      /* A status move inflicts the status THAT MOVE inflicts, at THAT MOVE's accuracy. This line used
+       * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
+       * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
+      if(a.kind==='status'){
+        const t=a.target; if(!t||t.fainted||t.protect) continue;
+        const fx=moveFx(a.mv);
+        const st=(fx&&fx.status)||null;
+        if(!st) continue;                                       // not a status-inflicting move; no effect
+        const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
+        if(rng()*100>acc) continue;                              // status moves miss (T-Wave 90, W-o-W 85)
+        applyStatus(t,st);                                       // applyStatus enforces the immunities
+        continue;
+      }
       if(a.kind!=='attack')continue;
       const mv=a.move.mv;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
@@ -219,7 +268,31 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
         if(tg.protect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
         dealt+=Math.min(dmg,tg.curHP);
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
-        else if(a.move.id==='fakeout')tg._flinch=true;
+        else {
+          /* SECONDARY EFFECTS, from the shared rulebook. Rolled once per connecting hit, after
+           * damage, and only on a target still standing. Previously ONLY Fake Out could flinch and
+           * no attacking move could ever inflict a status, so Rock Slide, Iron Head, Scald, Nuzzle
+           * and 207 others were inert. Shield Dust and Sheer Force suppress secondaries entirely. */
+          const tgAb=(tg.ability||'').replace(/[^a-z0-9]/g,'');
+          const mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
+          const fx=moveFx(a.move.id);
+          const suppressed = tgAb==='shielddust' || mAb==='sheerforce';
+          if(fx&&fx.secondary&&!suppressed){
+            for(const s of fx.secondary){
+              if(rng()*100>=(s.chance==null?100:s.chance)) continue;
+              if(s.status){ applyStatus(tg,s.status); }
+              else if(s.volatile==='flinch'){
+                /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
+                 * Inner Focus blocks it outright. Position in `acts` is the move order. */
+                const ti=actedAt.has(tg)?actedAt.get(tg):-1;
+                if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true;
+              }
+            }
+          }
+          // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
+          if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
+            if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true; }
+        }
         if(tg.ability==='spicyspray'&&mv.c==='P'&&!m.status&&!m.fainted)m.status='brn';}   // Spicy Spray: burns the (contact) attacker
       // recoil: frail spammers pay for Brave Bird / Flare Blitz / Wave Crash
       if(RECOIL[a.move.id]&&dealt>0){m.curHP-=Math.floor(dealt*RECOIL[a.move.id]);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
@@ -228,8 +301,16 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       if(sdrop){const sgn=m.ability==='contrary'?-1:1;for(const k in sdrop)m.boosts[k]=clamp(m.boosts[k]+sdrop[k]*sgn,-6,6);}
       if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     }
+    /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the
+     * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this
+     * turn) sat on the flag and stole the target's NEXT turn instead. Fake Out's +3 priority hid this
+     * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
+    [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
       if(m.status==='brn')m.curHP-=Math.floor(m.st.hp/16);
+      if(m.status==='psn')m.curHP-=Math.floor(m.st.hp/8);                       // regular poison: a flat 1/8
+      if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n/16, escalating
+        m.curHP-=Math.floor(m.st.hp*Math.min(15,m.toxTurns)/16);}
       if(m.item==='leftovers')m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/16));
       if(m.item==='sitrusberry'&&m.curHP<=m.st.hp/2){m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/4));m.item='';}
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
