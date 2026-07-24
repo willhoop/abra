@@ -10,6 +10,23 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.8.1] — 2026-07-24
+
+### Notes — a wrong diagnosis, corrected
+- The `auto: <date>` commits were diagnosed as a rogue timer running `push-all.bat` every ~2 minutes.
+  **That was wrong.** Reading the commits properly showed they are authored by the workspace's own
+  auto-commit, which fires ~2 minutes *after files change*, then commits and pushes. The apparent
+  fixed cadence was simply a long stretch of continuous editing. Verified: a test edit was committed
+  and pushed to origin unattended, with nothing outstanding afterwards.
+- Consequence: the publish automation the project needed **already existed**. The idle-publisher
+  scripts added earlier today (`build/auto-push.ps1`, `AUTO-PUSH-START.bat`, `AUTO-PUSH-INSTALL.bat`,
+  `find-autocommit-task.bat`) were removed — a second publisher racing the first is what wedged the
+  repo mid-rebase in the first place. One publisher is correct; two is a bug.
+
+### Kept
+- `push-all.bat` stays disarmed (requires the `GO` argument) and now refuses to act on a repo that is
+  mid-rebase. That guard is the durable fix and is unrelated to the misdiagnosis.
+
 ## [2.8.0] — 2026-07-24
 
 ### Fixed
