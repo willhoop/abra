@@ -1,0 +1,2191 @@
+{
+ "generated": "2026-07-24",
+ "source": "https://play.pokemonshowdown.com/data/pokedex.json",
+ "note": "\"certain\" = the species has exactly ONE possible ability, so it is known from team preview alone with no observation. Otherwise the log must reveal which one is running. Silent abilities (Swift Swim, No Guard, Adaptability) never announce themselves, so without this file they were invisible to role tagging.",
+ "n_species": 307,
+ "n_certain": 94,
+ "n_multi_ability": 213,
+ "n_not_in_dex": 25,
+ "species": {
+  "aerodactyl": {
+   "abilities": [
+    "Rock Head",
+    "Pressure",
+    "Unnerve"
+   ],
+   "certain": null
+  },
+  "kingambit": {
+   "abilities": [
+    "Defiant",
+    "Supreme Overlord",
+    "Pressure"
+   ],
+   "certain": null
+  },
+  "sylveon": {
+   "abilities": [
+    "Cute Charm",
+    "Pixilate"
+   ],
+   "certain": null
+  },
+  "garchomp": {
+   "abilities": [
+    "Sand Veil",
+    "Rough Skin"
+   ],
+   "certain": null
+  },
+  "charizard": {
+   "abilities": [
+    "Blaze",
+    "Solar Power"
+   ],
+   "certain": null
+  },
+  "incineroar": {
+   "abilities": [
+    "Blaze",
+    "Intimidate"
+   ],
+   "certain": null
+  },
+  "whimsicott": {
+   "abilities": [
+    "Prankster",
+    "Infiltrator",
+    "Chlorophyll"
+   ],
+   "certain": null
+  },
+  "basculegion": {
+   "abilities": [
+    "Swift Swim",
+    "Adaptability",
+    "Mold Breaker"
+   ],
+   "certain": null
+  },
+  "grimmsnarl": {
+   "abilities": [
+    "Prankster",
+    "Frisk",
+    "Pickpocket"
+   ],
+   "certain": null
+  },
+  "swampert": {
+   "abilities": [
+    "Torrent",
+    "Damp"
+   ],
+   "certain": null
+  },
+  "pelipper": {
+   "abilities": [
+    "Keen Eye",
+    "Drizzle",
+    "Rain Dish"
+   ],
+   "certain": null
+  },
+  "archaludon": {
+   "abilities": [
+    "Stamina",
+    "Sturdy",
+    "Stalwart"
+   ],
+   "certain": null
+  },
+  "venusaur": {
+   "abilities": [
+    "Overgrow",
+    "Chlorophyll"
+   ],
+   "certain": null
+  },
+  "gengar": {
+   "abilities": [
+    "Cursed Body"
+   ],
+   "certain": "Cursed Body"
+  },
+  "vaporeon": {
+   "abilities": [
+    "Water Absorb",
+    "Hydration"
+   ],
+   "certain": null
+  },
+  "altaria": {
+   "abilities": [
+    "Natural Cure",
+    "Cloud Nine"
+   ],
+   "certain": null
+  },
+  "sneasler": {
+   "abilities": [
+    "Pressure",
+    "Unburden",
+    "Poison Touch"
+   ],
+   "certain": null
+  },
+  "gengarmega": {
+   "abilities": [
+    "Shadow Tag"
+   ],
+   "certain": "Shadow Tag"
+  },
+  "gholdengo": {
+   "abilities": [
+    "Good as Gold"
+   ],
+   "certain": "Good as Gold"
+  },
+  "meganium": {
+   "abilities": [
+    "Overgrow",
+    "Leaf Guard"
+   ],
+   "certain": null
+  },
+  "farigiraf": {
+   "abilities": [
+    "Cud Chew",
+    "Armor Tail",
+    "Sap Sipper"
+   ],
+   "certain": null
+  },
+  "mawile": {
+   "abilities": [
+    "Hyper Cutter",
+    "Intimidate",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "torkoal": {
+   "abilities": [
+    "White Smoke",
+    "Drought",
+    "Shell Armor"
+   ],
+   "certain": null
+  },
+  "gallade": {
+   "abilities": [
+    "Steadfast",
+    "Sharpness",
+    "Justified"
+   ],
+   "certain": null
+  },
+  "excadrill": {
+   "abilities": [
+    "Sand Rush",
+    "Sand Force",
+    "Mold Breaker"
+   ],
+   "certain": null
+  },
+  "hydreigon": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "tyranitar": {
+   "abilities": [
+    "Sand Stream",
+    "Unnerve"
+   ],
+   "certain": null
+  },
+  "floetteeternal": {
+   "abilities": [
+    "Flower Veil",
+    "Symbiosis"
+   ],
+   "certain": null
+  },
+  "charizardmegay": {
+   "abilities": [
+    "Drought"
+   ],
+   "certain": "Drought"
+  },
+  "staraptor": {
+   "abilities": [
+    "Intimidate",
+    "Reckless"
+   ],
+   "certain": null
+  },
+  "ceruledge": {
+   "abilities": [
+    "Flash Fire",
+    "Weak Armor"
+   ],
+   "certain": null
+  },
+  "metagross": {
+   "abilities": [
+    "Clear Body",
+    "Light Metal"
+   ],
+   "certain": null
+  },
+  "blastoise": {
+   "abilities": [
+    "Torrent",
+    "Rain Dish"
+   ],
+   "certain": null
+  },
+  "delphox": {
+   "abilities": [
+    "Blaze",
+    "Magician"
+   ],
+   "certain": null
+  },
+  "sinistcha": {
+   "abilities": [
+    "Hospitality",
+    "Heatproof"
+   ],
+   "certain": null
+  },
+  "lopunny": {
+   "abilities": [
+    "Cute Charm",
+    "Klutz",
+    "Limber"
+   ],
+   "certain": null
+  },
+  "armarouge": {
+   "abilities": [
+    "Flash Fire",
+    "Weak Armor"
+   ],
+   "certain": null
+  },
+  "gardevoir": {
+   "abilities": [
+    "Synchronize",
+    "Trace",
+    "Telepathy"
+   ],
+   "certain": null
+  },
+  "conkeldurr": {
+   "abilities": [
+    "Guts",
+    "Sheer Force",
+    "Iron Fist"
+   ],
+   "certain": null
+  },
+  "typhlosionhisui": {
+   "abilities": [
+    "Blaze",
+    "Frisk"
+   ],
+   "certain": null
+  },
+  "milotic": {
+   "abilities": [
+    "Marvel Scale",
+    "Competitive",
+    "Cute Charm"
+   ],
+   "certain": null
+  },
+  "maushold": {
+   "abilities": [
+    "Friend Guard",
+    "Cheek Pouch",
+    "Technician"
+   ],
+   "certain": null
+  },
+  "talonflame": {
+   "abilities": [
+    "Flame Body",
+    "Gale Wings"
+   ],
+   "certain": null
+  },
+  "tsareena": {
+   "abilities": [
+    "Leaf Guard",
+    "Queenly Majesty",
+    "Sweet Veil"
+   ],
+   "certain": null
+  },
+  "beedrill": {
+   "abilities": [
+    "Swarm",
+    "Sniper"
+   ],
+   "certain": null
+  },
+  "primarina": {
+   "abilities": [
+    "Torrent",
+    "Liquid Voice"
+   ],
+   "certain": null
+  },
+  "dragonite": {
+   "abilities": [
+    "Inner Focus",
+    "Multiscale"
+   ],
+   "certain": null
+  },
+  "ninetalesalola": {
+   "abilities": [
+    "Snow Cloak",
+    "Snow Warning"
+   ],
+   "certain": null
+  },
+  "froslass": {
+   "abilities": [
+    "Snow Cloak",
+    "Cursed Body"
+   ],
+   "certain": null
+  },
+  "barbaracle": {
+   "abilities": [
+    "Tough Claws",
+    "Sniper",
+    "Pickpocket"
+   ],
+   "certain": null
+  },
+  "zoroarkhisui": {
+   "abilities": [
+    "Illusion"
+   ],
+   "certain": "Illusion"
+  },
+  "weavile": {
+   "abilities": [
+    "Pressure",
+    "Pickpocket"
+   ],
+   "certain": null
+  },
+  "mamoswine": {
+   "abilities": [
+    "Oblivious",
+    "Snow Cloak",
+    "Thick Fat"
+   ],
+   "certain": null
+  },
+  "scrafty": {
+   "abilities": [
+    "Shed Skin",
+    "Moxie",
+    "Intimidate"
+   ],
+   "certain": null
+  },
+  "pyroar": {
+   "abilities": [
+    "Rivalry",
+    "Unnerve",
+    "Moxie"
+   ],
+   "certain": null
+  },
+  "clawitzer": {
+   "abilities": [
+    "Mega Launcher"
+   ],
+   "certain": "Mega Launcher"
+  },
+  "tinkaton": {
+   "abilities": [
+    "Mold Breaker",
+    "Own Tempo",
+    "Pickpocket"
+   ],
+   "certain": null
+  },
+  "raichu": {
+   "abilities": [
+    "Static",
+    "Lightning Rod"
+   ],
+   "certain": null
+  },
+  "sableye": {
+   "abilities": [
+    "Keen Eye",
+    "Stall",
+    "Prankster"
+   ],
+   "certain": null
+  },
+  "greninja": {
+   "abilities": [
+    "Torrent",
+    "Protean",
+    "Battle Bond"
+   ],
+   "certain": null
+  },
+  "politoed": {
+   "abilities": [
+    "Water Absorb",
+    "Damp",
+    "Drizzle"
+   ],
+   "certain": null
+  },
+  "vivillonfancy": {
+   "abilities": [
+    "Shield Dust",
+    "Compound Eyes",
+    "Friend Guard"
+   ],
+   "certain": null
+  },
+  "chesnaught": {
+   "abilities": [
+    "Overgrow",
+    "Bulletproof"
+   ],
+   "certain": null
+  },
+  "scizor": {
+   "abilities": [
+    "Swarm",
+    "Technician",
+    "Light Metal"
+   ],
+   "certain": null
+  },
+  "camerupt": {
+   "abilities": [
+    "Magma Armor",
+    "Solid Rock",
+    "Anger Point"
+   ],
+   "certain": null
+  },
+  "mimikyu": {
+   "abilities": [
+    "Disguise"
+   ],
+   "certain": "Disguise"
+  },
+  "araquanid": {
+   "abilities": [
+    "Water Bubble",
+    "Water Absorb"
+   ],
+   "certain": null
+  },
+  "ninetales": {
+   "abilities": [
+    "Flash Fire",
+    "Drought"
+   ],
+   "certain": null
+  },
+  "cameruptmega": {
+   "abilities": [
+    "Sheer Force"
+   ],
+   "certain": "Sheer Force"
+  },
+  "glalie": {
+   "abilities": [
+    "Inner Focus",
+    "Ice Body",
+    "Moody"
+   ],
+   "certain": null
+  },
+  "oranguru": {
+   "abilities": [
+    "Inner Focus",
+    "Telepathy",
+    "Symbiosis"
+   ],
+   "certain": null
+  },
+  "lucario": {
+   "abilities": [
+    "Steadfast",
+    "Inner Focus",
+    "Justified"
+   ],
+   "certain": null
+  },
+  "ariados": {
+   "abilities": [
+    "Swarm",
+    "Insomnia",
+    "Sniper"
+   ],
+   "certain": null
+  },
+  "snorlax": {
+   "abilities": [
+    "Immunity",
+    "Thick Fat",
+    "Gluttony"
+   ],
+   "certain": null
+  },
+  "toxapex": {
+   "abilities": [
+    "Merciless",
+    "Limber",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "blaziken": {
+   "abilities": [
+    "Blaze",
+    "Speed Boost"
+   ],
+   "certain": null
+  },
+  "rampardos": {
+   "abilities": [
+    "Mold Breaker",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "annihilape": {
+   "abilities": [
+    "Vital Spirit",
+    "Inner Focus",
+    "Defiant"
+   ],
+   "certain": null
+  },
+  "leafeon": {
+   "abilities": [
+    "Leaf Guard",
+    "Chlorophyll"
+   ],
+   "certain": null
+  },
+  "starmie": {
+   "abilities": [
+    "Illuminate",
+    "Natural Cure",
+    "Analytic"
+   ],
+   "certain": null
+  },
+  "overqwil": {
+   "abilities": [
+    "Poison Point",
+    "Swift Swim",
+    "Intimidate"
+   ],
+   "certain": null
+  },
+  "audino": {
+   "abilities": [
+    "Healer",
+    "Regenerator",
+    "Klutz"
+   ],
+   "certain": null
+  },
+  "malamar": {
+   "abilities": [
+    "Contrary",
+    "Suction Cups",
+    "Infiltrator"
+   ],
+   "certain": null
+  },
+  "mausholdfour": {
+   "abilities": [
+    "Friend Guard",
+    "Cheek Pouch",
+    "Technician"
+   ],
+   "certain": null
+  },
+  "sinistchamasterpiece": {
+   "abilities": [
+    "Hospitality",
+    "Heatproof"
+   ],
+   "certain": null
+  },
+  "espeon": {
+   "abilities": [
+    "Synchronize",
+    "Magic Bounce"
+   ],
+   "certain": null
+  },
+  "corviknight": {
+   "abilities": [
+    "Pressure",
+    "Unnerve",
+    "Mirror Armor"
+   ],
+   "certain": null
+  },
+  "volcarona": {
+   "abilities": [
+    "Flame Body",
+    "Swarm"
+   ],
+   "certain": null
+  },
+  "meowscarada": {
+   "abilities": [
+    "Overgrow",
+    "Protean"
+   ],
+   "certain": null
+  },
+  "slowkinggalar": {
+   "abilities": [
+    "Curious Medicine",
+    "Own Tempo",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "beedrillmega": {
+   "abilities": [
+    "Adaptability"
+   ],
+   "certain": "Adaptability"
+  },
+  "beartic": {
+   "abilities": [
+    "Snow Cloak",
+    "Slush Rush",
+    "Swift Swim"
+   ],
+   "certain": null
+  },
+  "kangaskhan": {
+   "abilities": [
+    "Early Bird",
+    "Scrappy",
+    "Inner Focus"
+   ],
+   "certain": null
+  },
+  "vivillon": {
+   "abilities": [
+    "Shield Dust",
+    "Compound Eyes",
+    "Friend Guard"
+   ],
+   "certain": null
+  },
+  "azumarill": {
+   "abilities": [
+    "Thick Fat",
+    "Huge Power",
+    "Sap Sipper"
+   ],
+   "certain": null
+  },
+  "falinks": {
+   "abilities": [
+    "Battle Armor",
+    "Defiant"
+   ],
+   "certain": null
+  },
+  "meowstic": {
+   "abilities": [
+    "Keen Eye",
+    "Infiltrator",
+    "Prankster"
+   ],
+   "certain": null
+  },
+  "aegislash": {
+   "abilities": [
+    "Stance Change"
+   ],
+   "certain": "Stance Change"
+  },
+  "charizardmegax": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
+  },
+  "clefable": {
+   "abilities": [
+    "Cute Charm",
+    "Magic Guard",
+    "Unaware"
+   ],
+   "certain": null
+  },
+  "gyarados": {
+   "abilities": [
+    "Intimidate",
+    "Moxie"
+   ],
+   "certain": null
+  },
+  "kommoo": {
+   "abilities": [
+    "Bulletproof",
+    "Soundproof",
+    "Overcoat"
+   ],
+   "certain": null
+  },
+  "noivern": {
+   "abilities": [
+    "Frisk",
+    "Infiltrator",
+    "Telepathy"
+   ],
+   "certain": null
+  },
+  "taurospaldeaaqua": {
+   "abilities": [
+    "Intimidate",
+    "Anger Point",
+    "Cud Chew"
+   ],
+   "certain": null
+  },
+  "rotomheat": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "victreebel": {
+   "abilities": [
+    "Chlorophyll",
+    "Gluttony"
+   ],
+   "certain": null
+  },
+  "alakazam": {
+   "abilities": [
+    "Synchronize",
+    "Inner Focus",
+    "Magic Guard"
+   ],
+   "certain": null
+  },
+  "rhyperior": {
+   "abilities": [
+    "Lightning Rod",
+    "Solid Rock",
+    "Reckless"
+   ],
+   "certain": null
+  },
+  "floettemega": {
+   "abilities": [
+    "Fairy Aura"
+   ],
+   "certain": "Fairy Aura"
+  },
+  "arcaninehisui": {
+   "abilities": [
+    "Intimidate",
+    "Flash Fire",
+    "Rock Head"
+   ],
+   "certain": null
+  },
+  "raichumegax": {
+   "abilities": [
+    "Electric Surge"
+   ],
+   "certain": "Electric Surge"
+  },
+  "venusaurmega": {
+   "abilities": [
+    "Thick Fat"
+   ],
+   "certain": "Thick Fat"
+  },
+  "drampa": {
+   "abilities": [
+    "Berserk",
+    "Sap Sipper",
+    "Cloud Nine"
+   ],
+   "certain": null
+  },
+  "arcanine": {
+   "abilities": [
+    "Intimidate",
+    "Flash Fire",
+    "Justified"
+   ],
+   "certain": null
+  },
+  "hippowdon": {
+   "abilities": [
+    "Sand Stream",
+    "Sand Force"
+   ],
+   "certain": null
+  },
+  "houndstone": {
+   "abilities": [
+    "Sand Rush",
+    "Fluffy"
+   ],
+   "certain": null
+  },
+  "aurorus": {
+   "abilities": [
+    "Refrigerate",
+    "Snow Warning"
+   ],
+   "certain": null
+  },
+  "klefki": {
+   "abilities": [
+    "Prankster",
+    "Magician"
+   ],
+   "certain": null
+  },
+  "rotomfrost": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "empoleon": {
+   "abilities": [
+    "Torrent",
+    "Competitive"
+   ],
+   "certain": null
+  },
+  "flapple": {
+   "abilities": [
+    "Ripen",
+    "Gluttony",
+    "Hustle"
+   ],
+   "certain": null
+  },
+  "ampharos": {
+   "abilities": [
+    "Static",
+    "Plus"
+   ],
+   "certain": null
+  },
+  "bellibolt": {
+   "abilities": [
+    "Electromorphosis",
+    "Static",
+    "Damp"
+   ],
+   "certain": null
+  },
+  "scovillain": {
+   "abilities": [
+    "Chlorophyll",
+    "Insomnia",
+    "Moody"
+   ],
+   "certain": null
+  },
+  "sharpedo": {
+   "abilities": [
+    "Rough Skin",
+    "Speed Boost"
+   ],
+   "certain": null
+  },
+  "chandelure": {
+   "abilities": [
+    "Flash Fire",
+    "Flame Body",
+    "Infiltrator"
+   ],
+   "certain": null
+  },
+  "blastoisemega": {
+   "abilities": [
+    "Mega Launcher"
+   ],
+   "certain": "Mega Launcher"
+  },
+  "golurk": {
+   "abilities": [
+    "Iron Fist",
+    "Klutz",
+    "No Guard"
+   ],
+   "certain": null
+  },
+  "raichualola": {
+   "abilities": [
+    "Surge Surfer"
+   ],
+   "certain": "Surge Surfer"
+  },
+  "garganacl": {
+   "abilities": [
+    "Purifying Salt",
+    "Sturdy",
+    "Clear Body"
+   ],
+   "certain": null
+  },
+  "goodra": {
+   "abilities": [
+    "Sap Sipper",
+    "Hydration",
+    "Gooey"
+   ],
+   "certain": null
+  },
+  "aggron": {
+   "abilities": [
+    "Sturdy",
+    "Rock Head",
+    "Heavy Metal"
+   ],
+   "certain": null
+  },
+  "skeledirge": {
+   "abilities": [
+    "Blaze",
+    "Unaware"
+   ],
+   "certain": null
+  },
+  "rotomwash": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "jolteon": {
+   "abilities": [
+    "Volt Absorb",
+    "Quick Feet"
+   ],
+   "certain": null
+  },
+  "forretress": {
+   "abilities": [
+    "Sturdy",
+    "Overcoat"
+   ],
+   "certain": null
+  },
+  "morpeko": {
+   "abilities": [
+    "Hunger Switch"
+   ],
+   "certain": "Hunger Switch"
+  },
+  "dragapult": {
+   "abilities": [
+    "Clear Body",
+    "Infiltrator",
+    "Cursed Body"
+   ],
+   "certain": null
+  },
+  "eelektross": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "delphoxmega": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "espathra": {
+   "abilities": [
+    "Opportunist",
+    "Frisk",
+    "Speed Boost"
+   ],
+   "certain": null
+  },
+  "heliolisk": {
+   "abilities": [
+    "Dry Skin",
+    "Sand Veil",
+    "Solar Power"
+   ],
+   "certain": null
+  },
+  "cofagrigus": {
+   "abilities": [
+    "Mummy"
+   ],
+   "certain": "Mummy"
+  },
+  "hatterene": {
+   "abilities": [
+    "Healer",
+    "Anticipation",
+    "Magic Bounce"
+   ],
+   "certain": null
+  },
+  "crabominable": {
+   "abilities": [
+    "Hyper Cutter",
+    "Iron Fist",
+    "Anger Point"
+   ],
+   "certain": null
+  },
+  "pangoro": {
+   "abilities": [
+    "Iron Fist",
+    "Mold Breaker",
+    "Scrappy"
+   ],
+   "certain": null
+  },
+  "palafin": {
+   "abilities": [
+    "Zero to Hero"
+   ],
+   "certain": "Zero to Hero"
+  },
+  "palafinhero": {
+   "abilities": [
+    "Zero to Hero"
+   ],
+   "certain": "Zero to Hero"
+  },
+  "mawilemega": {
+   "abilities": [
+    "Huge Power"
+   ],
+   "certain": "Huge Power"
+  },
+  "rotommow": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "froslassmega": {
+   "abilities": [
+    "Snow Warning"
+   ],
+   "certain": "Snow Warning"
+  },
+  "hydrapple": {
+   "abilities": [
+    "Supersweet Syrup",
+    "Regenerator",
+    "Sticky Hold"
+   ],
+   "certain": null
+  },
+  "manectric": {
+   "abilities": [
+    "Static",
+    "Lightning Rod",
+    "Minus"
+   ],
+   "certain": null
+  },
+  "decidueye": {
+   "abilities": [
+    "Overgrow",
+    "Long Reach"
+   ],
+   "certain": null
+  },
+  "dragonitemega": {
+   "abilities": [
+    "Multiscale"
+   ],
+   "certain": "Multiscale"
+  },
+  "lycanrocdusk": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
+  },
+  "raichumegay": {
+   "abilities": [
+    "No Guard"
+   ],
+   "certain": "No Guard"
+  },
+  "pinsir": {
+   "abilities": [
+    "Hyper Cutter",
+    "Mold Breaker",
+    "Moxie"
+   ],
+   "certain": null
+  },
+  "serperior": {
+   "abilities": [
+    "Overgrow",
+    "Contrary"
+   ],
+   "certain": null
+  },
+  "runerigus": {
+   "abilities": [
+    "Wandering Spirit"
+   ],
+   "certain": "Wandering Spirit"
+  },
+  "tyranitarmega": {
+   "abilities": [
+    "Sand Stream"
+   ],
+   "certain": "Sand Stream"
+  },
+  "vileplume": {
+   "abilities": [
+    "Chlorophyll",
+    "Effect Spore"
+   ],
+   "certain": null
+  },
+  "swampertmega": {
+   "abilities": [
+    "Swift Swim"
+   ],
+   "certain": "Swift Swim"
+  },
+  "gliscor": {
+   "abilities": [
+    "Hyper Cutter",
+    "Sand Veil",
+    "Poison Heal"
+   ],
+   "certain": null
+  },
+  "glimmora": {
+   "abilities": [
+    "Toxic Debris",
+    "Corrosion"
+   ],
+   "certain": null
+  },
+  "absol": {
+   "abilities": [
+    "Pressure",
+    "Super Luck",
+    "Justified"
+   ],
+   "certain": null
+  },
+  "vanilluxe": {
+   "abilities": [
+    "Ice Body",
+    "Snow Warning",
+    "Weak Armor"
+   ],
+   "certain": null
+  },
+  "skarmory": {
+   "abilities": [
+    "Keen Eye",
+    "Sturdy",
+    "Weak Armor"
+   ],
+   "certain": null
+  },
+  "blazikenmega": {
+   "abilities": [
+    "Speed Boost"
+   ],
+   "certain": "Speed Boost"
+  },
+  "sceptile": {
+   "abilities": [
+    "Overgrow",
+    "Unburden"
+   ],
+   "certain": null
+  },
+  "ditto": {
+   "abilities": [
+    "Limber",
+    "Imposter"
+   ],
+   "certain": null
+  },
+  "toxicroak": {
+   "abilities": [
+    "Anticipation",
+    "Dry Skin",
+    "Poison Touch"
+   ],
+   "certain": null
+  },
+  "pyroarmega": {
+   "abilities": [
+    "Fire Mane"
+   ],
+   "certain": "Fire Mane"
+  },
+  "liepard": {
+   "abilities": [
+    "Limber",
+    "Unburden",
+    "Prankster"
+   ],
+   "certain": null
+  },
+  "scolipede": {
+   "abilities": [
+    "Poison Point",
+    "Swarm",
+    "Speed Boost"
+   ],
+   "certain": null
+  },
+  "vivillonpokeball": {
+   "abilities": [
+    "Shield Dust",
+    "Compound Eyes",
+    "Friend Guard"
+   ],
+   "certain": null
+  },
+  "hawlucha": {
+   "abilities": [
+    "Limber",
+    "Unburden",
+    "Mold Breaker"
+   ],
+   "certain": null
+  },
+  "kleavor": {
+   "abilities": [
+    "Swarm",
+    "Sheer Force",
+    "Sharpness"
+   ],
+   "certain": null
+  },
+  "goodrahisui": {
+   "abilities": [
+    "Sap Sipper",
+    "Shell Armor",
+    "Gooey"
+   ],
+   "certain": null
+  },
+  "reuniclus": {
+   "abilities": [
+    "Overcoat",
+    "Magic Guard",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "orthworm": {
+   "abilities": [
+    "Earth Eater",
+    "Sand Veil"
+   ],
+   "certain": null
+  },
+  "sandaconda": {
+   "abilities": [
+    "Sand Spit",
+    "Shed Skin",
+    "Sand Veil"
+   ],
+   "certain": null
+  },
+  "medicham": {
+   "abilities": [
+    "Pure Power",
+    "Telepathy"
+   ],
+   "certain": null
+  },
+  "torterra": {
+   "abilities": [
+    "Overgrow",
+    "Shell Armor"
+   ],
+   "certain": null
+  },
+  "quaquaval": {
+   "abilities": [
+    "Torrent",
+    "Moxie"
+   ],
+   "certain": null
+  },
+  "meowsticf": {
+   "abilities": [
+    "Keen Eye",
+    "Infiltrator",
+    "Competitive"
+   ],
+   "certain": null
+  },
+  "heracross": {
+   "abilities": [
+    "Swarm",
+    "Guts",
+    "Moxie"
+   ],
+   "certain": null
+  },
+  "musharna": {
+   "abilities": [
+    "Forewarn",
+    "Synchronize",
+    "Telepathy"
+   ],
+   "certain": null
+  },
+  "simipour": {
+   "abilities": [
+    "Gluttony",
+    "Torrent"
+   ],
+   "certain": null
+  },
+  "lycanroc": {
+   "abilities": [
+    "Keen Eye",
+    "Sand Rush",
+    "Steadfast"
+   ],
+   "certain": null
+  },
+  "chimecho": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "qwilfish": {
+   "abilities": [
+    "Poison Point",
+    "Swift Swim",
+    "Intimidate"
+   ],
+   "certain": null
+  },
+  "scraftymega": {
+   "abilities": [
+    "Intimidate"
+   ],
+   "certain": "Intimidate"
+  },
+  "slowbrogalar": {
+   "abilities": [
+    "Quick Draw",
+    "Own Tempo",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "emboar": {
+   "abilities": [
+    "Blaze",
+    "Reckless"
+   ],
+   "certain": null
+  },
+  "emboarmega": {
+   "abilities": [
+    "Mold Breaker"
+   ],
+   "certain": "Mold Breaker"
+  },
+  "mrrime": {
+   "abilities": [
+    "Tangled Feet",
+    "Screen Cleaner",
+    "Ice Body"
+   ],
+   "certain": null
+  },
+  "decidueyehisui": {
+   "abilities": [
+    "Overgrow",
+    "Scrappy"
+   ],
+   "certain": null
+  },
+  "samurotthisui": {
+   "abilities": [
+    "Torrent",
+    "Sharpness"
+   ],
+   "certain": null
+  },
+  "aerodactylmega": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
+  },
+  "houndoom": {
+   "abilities": [
+    "Early Bird",
+    "Flash Fire",
+    "Unnerve"
+   ],
+   "certain": null
+  },
+  "houndoommega": {
+   "abilities": [
+    "Solar Power"
+   ],
+   "certain": "Solar Power"
+  },
+  "alcremie": {
+   "abilities": [
+    "Sweet Veil",
+    "Aroma Veil"
+   ],
+   "certain": null
+  },
+  "metagrossmega": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
+  },
+  "abomasnow": {
+   "abilities": [
+    "Snow Warning",
+    "Soundproof"
+   ],
+   "certain": null
+  },
+  "dragalge": {
+   "abilities": [
+    "Poison Point",
+    "Poison Touch",
+    "Adaptability"
+   ],
+   "certain": null
+  },
+  "aromatisse": {
+   "abilities": [
+    "Healer",
+    "Aroma Veil"
+   ],
+   "certain": null
+  },
+  "steelix": {
+   "abilities": [
+    "Rock Head",
+    "Sturdy",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "basculegionf": {
+   "abilities": [
+    "Swift Swim",
+    "Adaptability",
+    "Mold Breaker"
+   ],
+   "certain": null
+  },
+  "slowbro": {
+   "abilities": [
+    "Oblivious",
+    "Own Tempo",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "krookodile": {
+   "abilities": [
+    "Intimidate",
+    "Moxie",
+    "Anger Point"
+   ],
+   "certain": null
+  },
+  "slowking": {
+   "abilities": [
+    "Oblivious",
+    "Own Tempo",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "dragalgemega": {
+   "abilities": [
+    "Regenerator"
+   ],
+   "certain": "Regenerator"
+  },
+  "banette": {
+   "abilities": [
+    "Insomnia",
+    "Frisk",
+    "Cursed Body"
+   ],
+   "certain": null
+  },
+  "lopunnymega": {
+   "abilities": [
+    "Scrappy"
+   ],
+   "certain": "Scrappy"
+  },
+  "garchompmega": {
+   "abilities": [
+    "Sand Force"
+   ],
+   "certain": "Sand Force"
+  },
+  "infernape": {
+   "abilities": [
+    "Blaze",
+    "Iron Fist"
+   ],
+   "certain": null
+  },
+  "hawluchamega": {
+   "abilities": [
+    "No Guard"
+   ],
+   "certain": "No Guard"
+  },
+  "castform": {
+   "abilities": [
+    "Forecast"
+   ],
+   "certain": "Forecast"
+  },
+  "mudsdale": {
+   "abilities": [
+    "Own Tempo",
+    "Stamina",
+    "Inner Focus"
+   ],
+   "certain": null
+  },
+  "staraptormega": {
+   "abilities": [
+    "Contrary"
+   ],
+   "certain": "Contrary"
+  },
+  "pidgeot": {
+   "abilities": [
+    "Keen Eye",
+    "Tangled Feet",
+    "Big Pecks"
+   ],
+   "certain": null
+  },
+  "wyrdeer": {
+   "abilities": [
+    "Intimidate",
+    "Frisk",
+    "Sap Sipper"
+   ],
+   "certain": null
+  },
+  "bastiodon": {
+   "abilities": [
+    "Sturdy",
+    "Soundproof"
+   ],
+   "certain": null
+  },
+  "salazzle": {
+   "abilities": [
+    "Corrosion",
+    "Oblivious"
+   ],
+   "certain": null
+  },
+  "umbreon": {
+   "abilities": [
+    "Synchronize",
+    "Inner Focus"
+   ],
+   "certain": null
+  },
+  "flareon": {
+   "abilities": [
+    "Flash Fire",
+    "Guts"
+   ],
+   "certain": null
+  },
+  "alakazammega": {
+   "abilities": [
+    "Trace"
+   ],
+   "certain": "Trace"
+  },
+  "altariamega": {
+   "abilities": [
+    "Pixilate"
+   ],
+   "certain": "Pixilate"
+  },
+  "gourgeistsuper": {
+   "abilities": [
+    "Pickup",
+    "Frisk",
+    "Insomnia"
+   ],
+   "certain": null
+  },
+  "spiritomb": {
+   "abilities": [
+    "Pressure",
+    "Infiltrator"
+   ],
+   "certain": null
+  },
+  "feraligatr": {
+   "abilities": [
+    "Torrent",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "scovillainmega": {
+   "abilities": [
+    "Spicy Spray"
+   ],
+   "certain": "Spicy Spray"
+  },
+  "mimikyubusted": {
+   "abilities": [
+    "Disguise"
+   ],
+   "certain": "Disguise"
+  },
+  "zoroark": {
+   "abilities": [
+    "Illusion"
+   ],
+   "certain": "Illusion"
+  },
+  "florges": {
+   "abilities": [
+    "Flower Veil",
+    "Symbiosis"
+   ],
+   "certain": null
+  },
+  "manectricmega": {
+   "abilities": [
+    "Intimidate"
+   ],
+   "certain": "Intimidate"
+  },
+  "steelixmega": {
+   "abilities": [
+    "Sand Force"
+   ],
+   "certain": "Sand Force"
+  },
+  "pikachu": {
+   "abilities": [
+    "Static",
+    "Lightning Rod"
+   ],
+   "certain": null
+  },
+  "lucariomega": {
+   "abilities": [
+    "Adaptability"
+   ],
+   "certain": "Adaptability"
+  },
+  "samurott": {
+   "abilities": [
+    "Torrent",
+    "Shell Armor"
+   ],
+   "certain": null
+  },
+  "taurospaldeacombat": {
+   "abilities": [
+    "Intimidate",
+    "Anger Point",
+    "Cud Chew"
+   ],
+   "certain": null
+  },
+  "simisage": {
+   "abilities": [
+    "Gluttony",
+    "Overgrow"
+   ],
+   "certain": null
+  },
+  "chandeluremega": {
+   "abilities": [
+    "Infiltrator"
+   ],
+   "certain": "Infiltrator"
+  },
+  "glimmoramega": {
+   "abilities": [
+    "Adaptability"
+   ],
+   "certain": "Adaptability"
+  },
+  "meowsticmmega": {
+   "abilities": [
+    "Trace"
+   ],
+   "certain": "Trace"
+  },
+  "stunfiskgalar": {
+   "abilities": [
+    "Mimicry"
+   ],
+   "certain": "Mimicry"
+  },
+  "meganiummega": {
+   "abilities": [
+    "Mega Sol"
+   ],
+   "certain": "Mega Sol"
+  },
+  "machamp": {
+   "abilities": [
+    "Guts",
+    "No Guard",
+    "Steadfast"
+   ],
+   "certain": null
+  },
+  "emolga": {
+   "abilities": [
+    "Static",
+    "Motor Drive"
+   ],
+   "certain": null
+  },
+  "sceptilemega": {
+   "abilities": [
+    "Lightning Rod"
+   ],
+   "certain": "Lightning Rod"
+  },
+  "simisear": {
+   "abilities": [
+    "Gluttony",
+    "Blaze"
+   ],
+   "certain": null
+  },
+  "banettemega": {
+   "abilities": [
+    "Prankster"
+   ],
+   "certain": "Prankster"
+  },
+  "kangaskhanmega": {
+   "abilities": [
+    "Parental Bond"
+   ],
+   "certain": "Parental Bond"
+  },
+  "gardevoirmega": {
+   "abilities": [
+    "Pixilate"
+   ],
+   "certain": "Pixilate"
+  },
+  "excadrillmega": {
+   "abilities": [
+    "Piercing Drill"
+   ],
+   "certain": "Piercing Drill"
+  },
+  "gyaradosmega": {
+   "abilities": [
+    "Mold Breaker"
+   ],
+   "certain": "Mold Breaker"
+  },
+  "lycanrocmidnight": {
+   "abilities": [
+    "Keen Eye",
+    "Vital Spirit",
+    "No Guard"
+   ],
+   "certain": null
+  },
+  "polteageist": {
+   "abilities": [
+    "Weak Armor",
+    "Cursed Body"
+   ],
+   "certain": null
+  },
+  "avalugghisui": {
+   "abilities": [
+    "Strong Jaw",
+    "Ice Body",
+    "Sturdy"
+   ],
+   "certain": null
+  },
+  "diggersby": {
+   "abilities": [
+    "Pickup",
+    "Cheek Pouch",
+    "Huge Power"
+   ],
+   "certain": null
+  },
+  "stunfisk": {
+   "abilities": [
+    "Static",
+    "Limber",
+    "Sand Veil"
+   ],
+   "certain": null
+  },
+  "typhlosion": {
+   "abilities": [
+    "Blaze",
+    "Flash Fire"
+   ],
+   "certain": null
+  },
+  "trevenant": {
+   "abilities": [
+    "Natural Cure",
+    "Frisk",
+    "Harvest"
+   ],
+   "certain": null
+  },
+  "tyrantrum": {
+   "abilities": [
+    "Strong Jaw",
+    "Rock Head"
+   ],
+   "certain": null
+  },
+  "dedenne": {
+   "abilities": [
+    "Cheek Pouch",
+    "Pickup",
+    "Plus"
+   ],
+   "certain": null
+  },
+  "garbodor": {
+   "abilities": [
+    "Stench",
+    "Weak Armor",
+    "Aftermath"
+   ],
+   "certain": null
+  },
+  "glaceon": {
+   "abilities": [
+    "Snow Cloak",
+    "Ice Body"
+   ],
+   "certain": null
+  },
+  "avalugg": {
+   "abilities": [
+    "Own Tempo",
+    "Ice Body",
+    "Sturdy"
+   ],
+   "certain": null
+  },
+  "roserade": {
+   "abilities": [
+    "Natural Cure",
+    "Poison Point",
+    "Technician"
+   ],
+   "certain": null
+  },
+  "furfrou": {
+   "abilities": [
+    "Fur Coat"
+   ],
+   "certain": "Fur Coat"
+  },
+  "greninjamega": {
+   "abilities": [
+    "Protean"
+   ],
+   "certain": "Protean"
+  },
+  "starmiemega": {
+   "abilities": [
+    "Huge Power"
+   ],
+   "certain": "Huge Power"
+  },
+  "slurpuff": {
+   "abilities": [
+    "Sweet Veil",
+    "Unburden"
+   ],
+   "certain": null
+  },
+  "medichammega": {
+   "abilities": [
+    "Pure Power"
+   ],
+   "certain": "Pure Power"
+  },
+  "chesnaughtmega": {
+   "abilities": [
+    "Bulletproof"
+   ],
+   "certain": "Bulletproof"
+  },
+  "gallademega": {
+   "abilities": [
+    "Inner Focus"
+   ],
+   "certain": "Inner Focus"
+  },
+  "luxray": {
+   "abilities": [
+    "Rivalry",
+    "Intimidate",
+    "Guts"
+   ],
+   "certain": null
+  },
+  "polteageistantique": {
+   "abilities": [
+    "Weak Armor",
+    "Cursed Body"
+   ],
+   "certain": null
+  },
+  "ampharosmega": {
+   "abilities": [
+    "Mold Breaker"
+   ],
+   "certain": "Mold Breaker"
+  },
+  "taurospaldeablaze": {
+   "abilities": [
+    "Intimidate",
+    "Anger Point",
+    "Cud Chew"
+   ],
+   "certain": null
+  },
+  "sharpedomega": {
+   "abilities": [
+    "Strong Jaw"
+   ],
+   "certain": "Strong Jaw"
+  },
+  "aggronmega": {
+   "abilities": [
+    "Filter"
+   ],
+   "certain": "Filter"
+  },
+  "rotomfan": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "appletun": {
+   "abilities": [
+    "Ripen",
+    "Gluttony",
+    "Thick Fat"
+   ],
+   "certain": null
+  },
+  "toucannon": {
+   "abilities": [
+    "Keen Eye",
+    "Skill Link",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "tauros": {
+   "abilities": [
+    "Intimidate",
+    "Anger Point",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "passimian": {
+   "abilities": [
+    "Receiver",
+    "Defiant"
+   ],
+   "certain": null
+  },
+  "eelektrossmega": {
+   "abilities": [
+    "Eelevate"
+   ],
+   "certain": "Eelevate"
+  },
+  "pinsirmega": {
+   "abilities": [
+    "Aerilate"
+   ],
+   "certain": "Aerilate"
+  },
+  "drampamega": {
+   "abilities": [
+    "Berserk"
+   ],
+   "certain": "Berserk"
+  },
+  "gourgeist": {
+   "abilities": [
+    "Pickup",
+    "Frisk",
+    "Insomnia"
+   ],
+   "certain": null
+  },
+  "revavroom": {
+   "abilities": [
+    "Overcoat",
+    "Filter"
+   ],
+   "certain": null
+  },
+  "clefablemega": {
+   "abilities": [
+    "Magic Bounce"
+   ],
+   "certain": "Magic Bounce"
+  },
+  "malamarmega": {
+   "abilities": [
+    "Contrary"
+   ],
+   "certain": "Contrary"
+  },
+  "golurkmega": {
+   "abilities": [
+    "Unseen Fist"
+   ],
+   "certain": "Unseen Fist"
+  },
+  "audinomega": {
+   "abilities": [
+    "Healer"
+   ],
+   "certain": "Healer"
+  },
+  "scizormega": {
+   "abilities": [
+    "Technician"
+   ],
+   "certain": "Technician"
+  },
+  "scolipedemega": {
+   "abilities": [
+    "Shell Armor"
+   ],
+   "certain": "Shell Armor"
+  },
+  "chimechomega": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
+  "arbok": {
+   "abilities": [
+    "Intimidate",
+    "Shed Skin",
+    "Unnerve"
+   ],
+   "certain": null
+  },
+  "pidgeotmega": {
+   "abilities": [
+    "No Guard"
+   ],
+   "certain": "No Guard"
+  },
+  "crabominablemega": {
+   "abilities": [
+    "Iron Fist"
+   ],
+   "certain": "Iron Fist"
+  },
+  "meowsticfmega": {
+   "abilities": [
+    "Trace"
+   ],
+   "certain": "Trace"
+  },
+  "abomasnowmega": {
+   "abilities": [
+    "Snow Warning"
+   ],
+   "certain": "Snow Warning"
+  },
+  "slowbromega": {
+   "abilities": [
+    "Shell Armor"
+   ],
+   "certain": "Shell Armor"
+  },
+  "rotom": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  }
+ }
+}
