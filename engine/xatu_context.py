@@ -183,6 +183,39 @@ def build():
     )
     json.dump(out, open(D("data", "xatu-context.json"), "w"), indent=1)
 
+    # ---- export the context-conditioned movesets so the decision models can USE this belief -----
+    # CHOMP builds the opponent's Pokemon from flat population priors. These are the same species,
+    # but with the four moves most likely GIVEN THE TEAM they are on. Only cells with real evidence
+    # are exported (the shrinkage weight already handles thin ones, but we also require a minimum
+    # count) so the file cannot carry noise into a decision model.
+    MIN_CELL = 8
+    sets_out = {}
+    for sp, byctx in ctx_moves.items():
+        base = prior_of(sp)
+        if not base: continue
+        entry = {"default": [m for m, _ in sorted(base.items(), key=lambda kv: -kv[1])[:4]], "ctx": {}}
+        for ctx, cell in byctx.items():
+            if sum(cell.values()) < MIN_CELL: continue
+            d = context_of(sp, ctx)
+            if not d: continue
+            top = [m for m, _ in sorted(d.items(), key=lambda kv: -kv[1])[:4]]
+            if top != entry["default"]:
+                entry["ctx"][ctx] = top
+        if entry["ctx"]:
+            sets_out[sp] = entry
+    json.dump({
+        "generated": out["generated"],
+        "note": ("Four most likely moves per species GIVEN the team it is on, for decision models "
+                 "that would otherwise use a flat population prior. Only contexts with at least "
+                 f"{MIN_CELL} observations and a moveset that actually differs from the default are "
+                 "listed - if the context changes nothing, it is not recorded."),
+        "context_features": CONTEXT_ROLES,
+        "min_cell": MIN_CELL,
+        "n_species_with_context_specific_sets": len(sets_out),
+        "sets": sets_out,
+    }, open(D("data", "xatu-context-sets.json"), "w"), indent=1)
+    print(f"  exported context-specific movesets for {len(sets_out)} species -> data/xatu-context-sets.json")
+
     ce = out["cross_entropy"]; acc = out["top1_accuracy"]
     print(f"xatu_context — {len(games)} games ({len(test)} held out), {n:,} first reveals")
     print(f"  cross-entropy   usage prior {ce['usage_prior']}   + team context {ce['team_context']}")
