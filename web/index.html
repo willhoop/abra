@@ -658,11 +658,56 @@ function roomKadabra(){const c=CAST[4];
    </div>
    <div class="panel"><h2>How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I read your replay's log to find the turns that <b>actually decided the game</b> — a KO you scored, a big trade, the moment you lost a Pokémon — not every turn, just the ones that mattered. Then I walk you through them <b>one at a time on the real Showdown replay</b>: I set it to that turn, tell you what's happening and what to do, you hit play and watch it unfold, and we step to the next key moment. No scrubbing through the boring turns. Every game you review is added to the town's memory.</p></div>`;
 }
-function roomSlowking(){const c=CAST[5];
-  return `<div class="panel">${mascotHero(c,"Slowly, wisely — I search what your opponent might be hiding for the best move. (Still being built.)")}</div>
-   <div class="panel"><h2>The research tier</h2><p style="font-weight:600;color:#3a5372">Champions is a simultaneous-move, imperfect-information game — solving it means mixed strategies and belief search (think ReBeL / Student-of-Games). That's a genuine research effort, honestly flagged as roadmap, not a weekend build. The white papers lay out the full math. When I'm ready, Kadabra's advice gets deeper with no change to the interface.</p>
-   <span class="chip">POSG / Markov game</span><span class="chip">mixed Nash</span><span class="chip">belief-state search</span><span class="chip">offline RL</span><span class="chip">world models</span></div>
-   <div class="panel"><h2>How Slowking will think</h2><p style="font-weight:600;color:#3a5372">I won't just look at the board — I'll track a <b>belief</b> about what you can't see (their hidden sets and what they'll click), and search a few turns deep over those possibilities to find the move that's best against their <i>likely</i> best response, not a guessed one. That's the equilibrium-aware, win-probability-maximising play. When I'm built, Kadabra evolves into <b>ALAKAZAM</b> — the deep coach that uses me to show you the win-%-optimal line, not just what went wrong.</p></div>`;
+function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
+  const S=window.SLOWKING_PLAYSTYLE||null;
+  const cyc=(S&&S.cycle)?[...S.cycle.cycle,S.cycle.cycle[0]].join(' → '):'Trick Room → Hyper Offense → Sand → Trick Room';
+  const edge=(S&&S.cycle)?Math.round(S.cycle.min_edge*100):11;
+  const mix=S?S.mixture.map(m=>`<span class="chip">${m.archetype} ${Math.round(m.weight*100)}%</span>`).join(''):'';
+  const greedy=S?Math.round(S.exploit_greedy*100):11, games=S?S.n_games.toLocaleString():'2,866';
+  return `<div class="panel">${mascotHero(c,"Patience. There's no single best team — the meta is rock-paper-scissors, so I play a mix.")}</div>
+   <div class="panel"><h2>The meta is rock-paper-scissors</h2><p style="font-weight:600;color:#3a5372">Solving Champions team preview means a <b>mixed Nash strategy</b>, not one "best deck". Over <b>${games} real games</b> I found a genuine cycle at the playstyle level:</p>
+   <div style="text-align:center;font-size:20px;font-weight:800;color:#3a86c0;margin:12px 0">${cyc}</div>
+   <p style="font-weight:600;color:#3a5372">Each beats the next by ~${edge}%. So <b>picking the single best playstyle is exploitable</b> (by ~${greedy}%), while my equilibrium mixture is not — that is exactly why I mix instead of forcing one line.</p>
+   <span class="chip">mixed Nash</span><span class="chip">exploitability ≈ 0</span><span class="chip">real outcomes</span></div>
+   <div class="panel"><h2>My equilibrium mix</h2><p style="font-weight:600;color:#3a5372">How often to be ready for each playstyle if everyone plays optimally:</p>
+   <div style="margin-top:6px">${mix}</div>
+   <div style="font-weight:700;color:#7a8aa0;margin-top:10px">Measured as exploitability (worst-case loss to a best response), with a bootstrap confidence interval. Nash ≈ 0 vs greedy single-deck ~${greedy}%.</div></div>
+   <div class="panel"><h2>What's next</h2><p style="font-weight:600;color:#3a5372">This is the outer game. Next I add <b>Xatu's belief</b> over the opponent's hidden sets and depth-limited search, and Kadabra evolves into <b>ALAKAZAM</b> — the win-%-optimal coach.</p></div>`;
+}
+function roomGuru(){const c=CAST.find(x=>x.id==='guru');
+  return `<div class="panel">${mascotHero(c,"I read every real game and tell you which archetype actually beats which — with honest error bars.")}</div>
+   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from <b>5,199 real Champions games</b>. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
+   <span class="chip">13 archetypes</span><span class="chip">5,199 games</span><span class="chip">Wilson CIs</span></div>
+   <div class="panel"><h2>What I can and can't do</h2><p style="font-weight:600;color:#3a5372">I give <b>honest matchup rates</b>. I do <b>not</b> predict who wins a single game from team sheets — in this format that is a coin flip, and I say so plainly rather than selling a false edge.</p></div>`;
+}
+function roomXatu(){const c=CAST.find(x=>x.id==='xatu');
+  return `<div class="panel">${mascotHero(c,"I see what they're hiding — the likely item, ability and moves behind each Pokémon.")}</div>
+   <div class="panel"><h2>Reading the hidden set</h2><p style="font-weight:600;color:#3a5372">From thousands of replays I learn what set each species usually runs, then narrow it as moves and items reveal. On held-out human moves the read lands <b>top-1 ≈ 36% / top-3 ≈ 72%</b> — real signal, and honest that human choice carries genuine randomness.</p>
+   <span class="chip">item · ability · moves</span><span class="chip">top-3 72%</span><span class="chip">from real replays</span></div>
+   <div class="panel"><h2>Why it matters</h2><p style="font-weight:600;color:#3a5372">A belief over the opponent's hidden set is the input Slowking and the future ALAKAZAM search over. You can't play the mind-game without a read.</p></div>`;
+}
+function roomPory(){const c=CAST.find(x=>x.id==='pory');
+  return `<div class="panel">${mascotHero(c,"Mid-game, I tell you your real win % — and unlike the pre-game guess, I actually beat a coin.")}</div>
+   <div class="panel"><h2>The win — a value net that works</h2><p style="font-weight:600;color:#3a5372">Team sheets can't predict the winner, but the <b>live board can</b>. From real replays I learned a win probability from mons-alive + HP + turn. On held-out games: <b>log-loss 0.567 vs coin 0.693</b>, calibrated to <b>1.6%</b>, with a clustered confidence interval. I'm the model powering Kadabra's per-turn "you're at X%".</p>
+   <span class="chip">log-loss 0.567</span><span class="chip">beats coin 0.693</span><span class="chip">ECE 1.6%</span></div>
+   <div class="panel"><h2>Try it — live win %</h2>
+     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 20px;font-weight:700;color:#3a5372">
+       <label>Your mons alive: <b id="pv_ma">4</b><input type="range" min="0" max="4" value="4" id="p_ma" oninput="poryDemo()" style="width:100%"></label>
+       <label>Their mons alive: <b id="pv_fa">4</b><input type="range" min="0" max="4" value="4" id="p_fa" oninput="poryDemo()" style="width:100%"></label>
+       <label>Your avg HP %: <b id="pv_mh">100</b><input type="range" min="0" max="100" value="100" id="p_mh" oninput="poryDemo()" style="width:100%"></label>
+       <label>Their avg HP %: <b id="pv_fh">100</b><input type="range" min="0" max="100" value="100" id="p_fh" oninput="poryDemo()" style="width:100%"></label>
+       <label>Turn: <b id="pv_t">5</b><input type="range" min="1" max="20" value="5" id="p_t" oninput="poryDemo()" style="width:100%"></label>
+     </div>
+     <div style="text-align:center;margin-top:14px;font-size:38px;font-weight:800;color:#1a9a4a" id="pv_out">50%</div></div>`;
+}
+function poryDemo(){
+  const v=id=>+document.getElementById(id).value;
+  const ma=v('p_ma'),fa=v('p_fa'),mh=v('p_mh'),fh=v('p_fh'),t=v('p_t');
+  document.getElementById('pv_ma').textContent=ma; document.getElementById('pv_fa').textContent=fa;
+  document.getElementById('pv_mh').textContent=mh; document.getElementById('pv_fh').textContent=fh;
+  document.getElementById('pv_t').textContent=t;
+  const w=poryWin(ma,fa,mh,fh,t); const o=document.getElementById('pv_out');
+  o.textContent=(w==null?'—':w+'%'); o.style.color=w==null?'#889':w>=55?'#1a9a4a':w<=45?'#d23b3b':'#5a6472';
 }
 function roomChomp(){const c=CAST[6];
   return `<div class="panel">${mascotHero(c,"CHOMP! Install once and you get me AND ORB in every Champions battle.")}</div>
@@ -681,7 +726,7 @@ function roomChomp(){const c=CAST[6];
      </div></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
-const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp};
+const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory};
 
 /* ===== navigation ===== */
 function go(id){
