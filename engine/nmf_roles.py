@@ -34,6 +34,18 @@ RANK = int(sys.argv[1]) if len(sys.argv) > 1 else 10
 MIN_USE = 40            # a move must be used >= this many times across all games to be a column
 NEUTRAL = {"Protect","Detect","Substitute","Endure","Spiky Shield"}
 
+def fit_nmf(X, rank, iters=300, seed=7):
+    """Non-negative matrix factorization by multiplicative updates (Lee & Seung 1999).
+    Dependency-free (numpy only). Returns W (docs x rank), H (rank x features), rel. Frobenius error."""
+    rng = np.random.default_rng(seed)
+    W = rng.random((X.shape[0], rank)) + 1e-3
+    H = rng.random((rank, X.shape[1])) + 1e-3
+    for _ in range(iters):
+        H *= (W.T @ X) / (W.T @ W @ H + 1e-9)
+        W *= (X @ H.T) / (W @ H @ H.T + 1e-9)
+    err = np.linalg.norm(X - W @ H) / (np.linalg.norm(X) + 1e-12)
+    return W, H, err
+
 def load_games():
     with open(STORE, encoding="utf-8") as fh:
         for line in fh:
@@ -76,20 +88,8 @@ def build():
     # Honest read: at the team level the dominant axis of variation is offensive core + speed
     # control, not tidy support roles — the factors reflect that.
 
-    # ---- NMF (sklearn if present, else multiplicative-update Lee & Seung) ----
-    try:
-        from sklearn.decomposition import NMF
-        model = NMF(n_components=RANK, init="nndsvda", max_iter=500, random_state=7)
-        W = model.fit_transform(X); H = model.components_
-        err = model.reconstruction_err_ / np.linalg.norm(X)
-    except Exception:
-        rng = np.random.default_rng(7)
-        W = rng.random((X.shape[0], RANK)) + 1e-3
-        H = rng.random((RANK, M)) + 1e-3
-        for _ in range(300):
-            H *= (W.T @ X) / (W.T @ W @ H + 1e-9)
-            W *= (X @ H.T) / (W @ H @ H.T + 1e-9)
-        err = np.linalg.norm(X - W @ H) / np.linalg.norm(X)
+    # ---- NMF (multiplicative-update Lee & Seung, dependency-free) ----
+    W, H, err = fit_nmf(X, RANK, iters=300)
 
     # curated-role signal sets for the suggested-label hint
     role_moves = {}
@@ -118,11 +118,44 @@ def build():
             suggested_label=(roles.ROLE_SIGNALS[best]["label"] if best else "(unnamed — you label it)"),
             suggested_role=best, overlap=bestov, top_moves=top))
 
+    # ---- role-level factorization: emergent ARCHETYPES (which curated roles bundle together) ----
+    # Move-level NMF is dominated by attacking moves (offensive cores). Factoring the team x ROLE
+    # matrix instead is smaller, denser, and answers the archetype question directly: which functional
+    # roles co-occur. This is the clean, legible cut.
+    RR = roles.ROLES; ri = {r: i for i, r in enumerate(RR)}
+    Xr_rows = []
+    for g in games:
+        setsd = g.get("sets") or {}
+        for side in ("p1", "p2"):
+            vec = np.zeros(len(RR)); any_ = False
+            for mon in (g.get("six") or {}).get(side, []):
+                s = setsd.get(mon)
+                if not s: continue
+                for r in roles.signal_roles(s.get("moves"), s.get("ability"), s.get("item")):
+                    vec[ri[r]] += 1; any_ = True
+            if any_: Xr_rows.append(vec)
+    Xr = np.array(Xr_rows)
+    rr2 = Xr.sum(1, keepdims=True); rr2[rr2 == 0] = 1
+    Xrn = Xr / rr2
+    from sklearn.decomposition import NMF as _NMF
+    ARCH_RANK = 6
+    am = _NMF(n_components=ARCH_RANK, init="nndsvda", max_iter=600, random_state=7)
+    Wa = am.fit_transform(Xrn); Ha = am.components_
+    arch_err = am.reconstruction_err_ / np.linalg.norm(Xrn)
+    aprev = Wa.sum(0)
+    archetypes = []
+    for ai, k in enumerate(np.argsort(-aprev)):
+        h = Ha[k]; tot = float(h.sum()) or 1.0
+        top = [dict(role=RR[i], label=roles.ROLE_SIGNALS[RR[i]]["label"], weight=round(float(h[i]/tot), 3))
+               for i in np.argsort(-h)[:6] if h[i] > 0]
+        archetypes.append(dict(id=f"A{ai+1}", prevalence=round(float(aprev[k]/aprev.sum()), 3), top_roles=top))
+
     out = dict(
         generated=__import__("datetime").date.today().isoformat(),
-        method=("Non-negative Matrix Factorization of the usage-weighted (team-side x move) matrix. "
-                "Roles are discovered, not declared; a move's loading is learned. Rank and labels are "
-                "the two human choices — factors are auto-suggested a name by curated-role overlap only."),
+        method=("Non-negative Matrix Factorization. Two cuts: (1) team x MOVE usage -> offensive cores; "
+                "(2) team x ROLE -> emergent archetypes (the clean view). Loadings are learned, not "
+                "declared (Lee & Seung 1999; Label Distribution Learning, Geng 2016)."),
+        archetypes=archetypes, archetype_recon_error=round(float(arch_err), 4), archetype_rank=ARCH_RANK,
         rank=RANK, n_documents=len(docs), n_moves=M, min_move_uses=MIN_USE,
         reconstruction_error_ratio=round(float(err), 4),
         factors=factors)
