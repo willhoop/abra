@@ -745,7 +745,7 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   const edges=[]; S.models.forEach(m=>{(m.inputs||[]).forEach(inp=>{const f=MAPPOS[inp]?inp:byName[(inp||'').toUpperCase()]; if(f&&MAPPOS[f]&&MAPPOS[m.id])edges.push([f,m.id]);});});
   const outs={},ins={}; edges.forEach(([f,t])=>{(outs[f]=outs[f]||[]).push(byId[t].name);(ins[t]=ins[t]||[]).push(byId[f].name);});
   const cx=id=>MAPPOS[id][0]+NW/2, top=id=>MAPPOS[id][1], bot=id=>MAPPOS[id][1]+NH;
-  let svg=`<svg id="abramap" viewBox="0 0 1000 630" style="width:100%;height:auto" font-family="Arial"><defs><marker id="mh" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9aa6bb"/></marker></defs>`;
+  let svg=`<svg id="abramap" viewBox="0 0 1000 630" style="width:100%;height:auto" font-family="Arial"><defs><marker id="mh" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9aa6bb"/></marker><marker id="mhIn" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2e9e63"/></marker><marker id="mhOut" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e08a2e"/></marker></defs>`;
   // Curved edges. A strictly crossing-free drawing is impossible for this graph (ALAKAZAM has six
   // parents spread across the row, and MEDI feeds both the far left and the far right), so instead
   // of pretending, each edge bows sideways in proportion to how far it travels. Parallel lines that
@@ -758,8 +758,8 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
     svg+=`<path class="edge" data-from="${f}" data-to="${t}" data-fl="${lay(f)}" data-tl="${lay(t)}" d="M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}" fill="none" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)" style="${hid?'display:none':''}"/>`; });
   S.models.forEach(m=>{ if(!MAPPOS[m.id])return; const [x,y]=MAPPOS[m.id]; const L=lay(m.id); const [bg,br]=LAYERCOL[L]||['#fff','#ccc']; const dash=(m.status==='roadmap'||m.status==='dev')?'stroke-dasharray="5 4"':'';
     const tip=`${m.name}${m.full?' ('+m.full+')':''}  —  IN: ${(ins[m.id]||['—']).join(', ')}   OUT: ${(outs[m.id]||['—']).join(', ')}\n${m.metric} · ${m.detail}`;
-    svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" data-brief="${(m.name+(m.full?' ('+m.full+')':'')+' — '+m.detail).replace(/"/g,'&quot;')}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
-      `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="${bg}" stroke="${br}" stroke-width="2.5" ${dash}/>`+
+    svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" data-brief="${(m.name+(m.full?' ('+m.full+')':'')+' — '+m.detail).replace(/"/g,'&quot;')}" data-nm="${m.name}" data-plain="${(m.detail||'').replace(/"/g,'&quot;')}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
+      `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="${bg}" stroke="${br}" data-br="${br}" stroke-width="2.5" ${dash}/>`+
       `<text x="${x+NW/2}" y="${y+19}" text-anchor="middle" font-size="13" font-weight="800" fill="#12324f">${m.name}</text>`+
       `<text x="${x+NW/2}" y="${y+35}" text-anchor="middle" font-size="9.5" fill="#5a6472">${m.metric}</text></g>`; });
   svg+=`</svg>`;
@@ -767,7 +767,7 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   return `<div class="panel">${mascotHero(c,"The whole town, wired up. Toggle a layer to sort by what each model DOES; hover a box to trace its connections.")}</div>
    <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
    <div style="margin:4px 0 8px">${btns}</div>
-   <div id="maptip" style="min-height:34px;margin:0 0 6px;padding:8px 12px;background:#f6f8fb;border:1.5px solid #e2e8f1;border-radius:10px;font-weight:600;color:#3a5372;font-size:13.5px">Hover a model to see what it does.</div>${svg}</div>`;
+   <div id="maptip" style="min-height:34px;margin:0 0 6px;padding:8px 12px;background:#f6f8fb;border:1.5px solid #e2e8f1;border-radius:10px;font-weight:600;color:#3a5372;font-size:13.5px;line-height:1.5"><b>Hover any model</b> — it lights up what feeds it and what it feeds.</div>${svg}</div>`;
 }
 function mapToggle(layer){ window.MAPON[layer]=window.MAPON[layer]===false;
   const b=document.querySelector('[data-layer-btn="'+layer+'"]'); if(b){const on=window.MAPON[layer]!==false,br=b.dataset.br; b.style.background=on?br:'#fff'; b.style.color=on?'#fff':br;}
@@ -775,16 +775,41 @@ function mapToggle(layer){ window.MAPON[layer]=window.MAPON[layer]===false;
   document.querySelectorAll('#abramap g.node').forEach(g=>{ g.style.display=on(g.dataset.layer)?'':'none'; });
   document.querySelectorAll('#abramap .edge').forEach(l=>{ l.style.display=(on(l.dataset.fl)&&on(l.dataset.tl))?'':'none'; });
 }
+/* Hover = unmistakable. Everything unrelated drops to near-invisible; edges INTO the model are
+   green (what it reads), edges OUT are orange (who reads it), and the caption spells out both
+   directions in words instead of making you trace lines. */
 function mapHi(id){
+  const IN='#2e9e63', OUT='#e08a2e';
   const lines=[...document.querySelectorAll('#abramap .edge')];
-  lines.forEach(l=>{ const on=id&&(l.dataset.from===id||l.dataset.to===id);
-    l.setAttribute('stroke',on?'#3a86c0':'#c7cede'); l.setAttribute('stroke-width',on?'3':'1.6'); l.setAttribute('opacity',id?(on?'1':'0.15'):'0.7'); });
+  const nameOf=n=>{const g=document.querySelector('#abramap g.node[data-id="'+n+'"]');return g?(g.dataset.nm||n):n;};
+  const feeders=[], readers=[];
+  lines.forEach(l=>{
+    const into = id && l.dataset.to===id, outof = id && l.dataset.from===id;
+    if(into) feeders.push(l.dataset.from); if(outof) readers.push(l.dataset.to);
+    l.setAttribute('stroke', into?IN:(outof?OUT:'#c7cede'));
+    l.setAttribute('stroke-width', (into||outof)?'4.5':'1.6');
+    l.setAttribute('opacity', id?((into||outof)?'1':'0.06'):'0.7');
+    l.setAttribute('marker-end', (into||outof)?(into?'url(#mhIn)':'url(#mhOut)'):'url(#mh)');
+  });
   document.querySelectorAll('#abramap g.node').forEach(g=>{ const nid=g.dataset.id;
-    if(!id){g.style.opacity=1;return;}
-    const conn=nid===id||lines.some(l=>(l.dataset.from===id&&l.dataset.to===nid)||(l.dataset.to===id&&l.dataset.from===nid));
-    g.style.opacity=conn?1:0.28; });
+    const box=g.querySelector('rect');
+    if(!id){ g.style.opacity=1; if(box){box.setAttribute('stroke-width','2.5'); if(box.dataset.br)box.setAttribute('stroke',box.dataset.br);} return; }
+    const isSelf=nid===id, isFeed=feeders.includes(nid), isRead=readers.includes(nid);
+    g.style.opacity=(isSelf||isFeed||isRead)?1:0.08;
+    if(box) box.setAttribute('stroke-width', isSelf?'5':(isFeed||isRead)?'3.5':'2.5');
+    if(box&&(isFeed||isRead)) box.setAttribute('stroke', isFeed?IN:OUT);
+    else if(box&&box.dataset.br) box.setAttribute('stroke', box.dataset.br);
+  });
   const tip=document.getElementById('maptip');
-  if(tip){ if(id){ const g2=document.querySelector('#abramap g.node[data-id="'+id+'"]'); if(g2)tip.textContent=g2.dataset.brief; } else tip.textContent='Hover a model to see what it does.'; }
+  if(!tip) return;
+  if(!id){ tip.innerHTML='<b>Hover any model</b> — it lights up what feeds it and what it feeds.'; return; }
+  const g2=document.querySelector('#abramap g.node[data-id="'+id+'"]'); if(!g2) return;
+  const me=g2.dataset.nm||id;
+  const f=feeders.length?feeders.map(nameOf).join(', '):'nothing — it reads the raw store';
+  const r=readers.length?readers.map(nameOf).join(', '):'nothing yet — it is the end of the line';
+  tip.innerHTML=`<b style="font-size:15px">${me}</b> — ${g2.dataset.plain||''}<br>`+
+    `<span style="color:${IN};font-weight:800">▸ reads from:</span> ${f}<br>`+
+    `<span style="color:${OUT};font-weight:800">▸ feeds into:</span> ${r}`;
 }
 function poryDemo(){
   const v=id=>+document.getElementById(id).value;
