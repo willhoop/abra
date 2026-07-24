@@ -97,8 +97,13 @@ const already = mon(['Normal']); already.status = 'par';
 ok(E.canTakeStatus(already, 'brn') === false, 'a Pokemon already statused cannot take a second');
 
 console.log('== 6. end to end: no illegal status appears in real battles ==');
-/* The strongest check available, because it exercises the whole turn loop. Under the old random
- * pick this failed constantly: immunities were never consulted at all. */
+/* HONEST NOTE ON THIS CHECK. It exercises the whole turn loop, but it is a REGRESSION GUARD, not a
+ * discriminating test: run against the pre-fix engine it also reported 0 illegal statuses across 240
+ * survivors, because a status action only fires when a species' behaviour priors happen to contain a
+ * status move and a foe is unstatused, which is rare enough that 60 battles did not surface one.
+ * The discriminating tests are 1-5, which assert the rules directly. This one is kept because it is
+ * the only end-to-end path and would catch a future regression in the wiring, but it should not be
+ * cited as evidence that the old engine was broken - sections 1-5 are that evidence. */
 const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 const pool = Object.keys(MC.mons);
 const typeOf = n => (MC.mons[n] || {}).t || [];
