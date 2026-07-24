@@ -10,6 +10,38 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.5.0] — 2026-07-24
+
+### Added
+- **ROLE model — multi-label team composition** (`engine/roles.py` → `data/pokemon-roles.json`,
+  `data/role-matchups.json`, `data/roles-eval.json`). Replaces the single-label playstyle view.
+  A team is tagged with every role it reveals (24 roles across speed control, weather, terrain,
+  disruption, status/debuff, priority, prankster, setup, healing, screens, walls, pivot, trapping,
+  perish, and physical/special attacker), where each **species earns a role from data** — it is
+  credited once observed doing it (≥2 times). Team role vectors are built from the **team-preview six**
+  (leak-free). Why: the old model forced one label per team and shattered the data into
+  archetype×archetype cells of n=11–18; role-pair pooling gives a **median cell of n=7,750** (576 cells).
+- **Role-pair matchup matrix** with Wilson CIs — the descriptive "which role beats which," now dense
+  enough to reach significance, ready to feed GURU/KING and the site grid.
+- **Win-credit attribution:** per-role logistic coefficients (each role's marginal contribution to
+  winning) plus **KO-credit per species** from the turn log (who actually scored the knockouts in
+  games their side won).
+- **WAR for Pokémon — Wins Above Replacement** (`engine/war.py` → `data/war.json`). Ridge-regularized
+  Adjusted Plus-Minus (basketball RAPM) on team-preview species indicators, with an explicit
+  20th-percentile replacement baseline and the logistic wins conversion (0.25·Δβ·games).
+- **Tests + sanity:** `tests/test-roles.py` (19 checks; hand-derived tags, reads shipped reports so it
+  can't drift). `engine/sanity_check.py` extended to cover the role model + WAR (now 70 checks).
+
+### Notes
+- **Two honest results, stated plainly.** (1) Predicting the winner from **preview roles** ties a coin
+  (held-out log-loss 0.6938 vs 0.6931) — consistent with the sheet-level null; the role model's value
+  is descriptive + attribution, not prediction. (2) But the **species-level WAR model does beat a coin**
+  (0.6875 < 0.6931) and beats the rating baseline (0.6905): *which* species you bring at preview carries
+  a small real signal that raw roles and raw sheets do not. Effect sizes are small; WAR magnitudes are
+  ridge-shrunk and flagged exploratory.
+- White paper / deck / technical docs and the site grid are **not yet** updated for this model — code and
+  reports are written and tested locally; the doc + site pass is the next step (flagged, not silently skipped).
+
 ## [2.4.0] — 2026-07-23
 
 ### Added

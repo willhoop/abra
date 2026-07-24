@@ -101,12 +101,14 @@ ok(dup == 0, f"store: no duplicate ids in first {n} games ({dup} dup)")
 
 print("== 7. every engine + report file is present ==")
 engines = ["guru.py","xatu.py","pory.py","chomp_ev.js","slowking_preview.py","playstyle.js","cores.js",
+           "roles.py","war.py",
            "validate_damage.js","medicham2-browser.js","jolteon.py","ditto.py","analyze.js","eval_policy.py",
            "durable-ingest.js","sanity_check.py","refresh-site-data.py"]
 for e in engines: ok(os.path.exists(D("engine", e)), f"engine/{e} present")
 reports = ["damage-validation.json","pory-eval.json","chomp-ev.json","slowking-eval.json",
            "slowking-playstyle-eval.json","guru-matchups.json","playstyle-matchups.json","core-matchups.json",
-           "policy-eval.json","winrate-backtest.json","value-net.json","meta-nash.json","meta-usage.json"]
+           "policy-eval.json","winrate-backtest.json","value-net.json","meta-nash.json","meta-usage.json",
+           "role-matchups.json","roles-eval.json","war.json","pokemon-roles.json"]
 for r in reports: ok(os.path.exists(D("data", r)), f"data/{r} present")
 
 print("== 8. remaining models: direction + validity ==")
@@ -126,6 +128,26 @@ if cm:
 mn = load("data", "meta-nash.json")                    # DITTO archetype equilibrium
 if mn and "weights" in mn:
     ok(abs(sum(mn["weights"]) - 1) < 0.02, f"DITTO meta-nash weights sum to 1 ({round(sum(mn['weights']),3)})")
+
+print("== 9. ROLE model + WAR: pooling, direction, validity ==")
+rm = load("data", "role-matchups.json")
+re_ = load("data", "roles-eval.json")
+war = load("data", "war.json")
+if rm:
+    ns = sorted(c["n"] for row in rm["matrix"].values() for c in row.values())
+    ok(len(ns) > 0 and ns[len(ns)//2] > 100,
+       f"ROLES: role-pair pooling holds (median cell n={ns[len(ns)//2] if ns else 0} >> old ~15)")
+    bad = sum(1 for row in rm["matrix"].values() for c in row.values()
+              if not (0<=c["p"]<=1 and c["lo"]-1e-9<=c["p"]<=c["hi"]+1e-9 and c["n"]>=0))
+    ok(bad == 0, f"ROLES: all role-pair cells valid ({bad} bad)")
+if re_:
+    ll = re_["log_loss"]
+    ok(abs(ll["coin"]-0.6931) < 1e-3, "ROLES: coin baseline is ln2")
+    ok(ll["roles"] > ll["coin"]-0.02, f"ROLES: preview roles ~ coin ({ll['roles']}) — honest null")
+if war:
+    h = war["held_out"]
+    ok(h["log_loss"] <= h["coin"]+1e-9, f"WAR: species RAPM log-loss {h['log_loss']} <= coin {h['coin']}")
+    ok(war["leaders"][0]["war"] > war["trailers"][-1]["war"], "WAR: leaders rank above trailers")
 
 print(f"\nSANITY: {P} passed, {F} failed")
 sys.exit(1 if F else 0)
