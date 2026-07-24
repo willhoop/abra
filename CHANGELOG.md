@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.6.0] — 2026-07-24
+
+### Added
+- **Emergent roles via NMF** (`engine/nmf_roles.py` → `data/nmf-roles.json`, `data/nmf.js`). Instead of
+  hand-declaring roles, this factorizes the data (Lee & Seung 1999; topic-model / Label Distribution
+  Learning framing, Geng 2016) into roles that are *discovered*. Two cuts: (1) team×MOVE usage →
+  offensive cores (recon-err 0.79; attacking moves dominate — shown honestly); (2) team×ROLE →
+  **emergent archetypes** (recon-err **0.53**, the clean view): Intimidate+Fake-Out control, physical
+  offense, special offense+sustain, **bulky wall + screens + redirection**, Tailwind+Encore, priority.
+  A team is a *blend* of these, never one hard label — the structural fix for the single-label grid.
+- **Vocabulary census** (`engine/vocab.py` → `data/vocab-usage.json`): tags every move/ability/item and
+  counts **actual in-battle usage** (from the turn log), not just sheet reveals. Curated roles cover
+  90.4% of non-neutral battle usage; surfaces high-usage uncovered moves as tagging candidates.
+- **Roles booth on the site** (`web/index.html` → `app/`): the "Role Foundry" (Smeargle) renders the
+  emergent archetypes and offensive cores live from `data/nmf.js`, with the reconstruction errors shown.
+- Role taxonomy grown to **26** roles (added ally-support/positioning and item-disruption); factual
+  multi-role membership for multi-effect moves (Matcha Gotcha = attack+heal+status; Body Press =
+  wall+attack; Knock Off = attack+item-strip; Fake Out = tempo only, not an attacker).
+
+### Changed
+- **Removed hand-set role weights.** An earlier draft assigned fractional primary/secondary weights
+  (0.6, 0.4…) by hand — asserted, not measured. These were stripped: role *presence* is binary and
+  data-justified, and graded *strength* is now the learned output of the NMF, not a typed input. This
+  is the project's "measured, not asserted" rule applied to itself.
+- Sanity extended to 77 checks (role model + WAR + NMF); `tests/test-roles.py` at 19 checks.
+
+### Notes
+- Honest read on the NMF: at the team level the dominant axis of variation is offensive core + speed
+  control, so the move-level cut is coarse; the role-level cut is the useful one. Rank and the human
+  names are the only non-data choices. Rigorous rank/weighting selection by topic coherence (Mimno
+  2011) is noted as the next refinement — reconstruction error alone is not comparable across weightings.
+- Still local + (about to) push. Site booth added; white paper / deck / technical docs for the role
+  family remain to be written in a dedicated docs pass.
+
 ## [2.5.0] — 2026-07-24
 
 ### Added
