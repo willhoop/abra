@@ -1,77 +1,14 @@
 {
  "generated": "2026-07-24",
- "replays_scanned": 301,
- "replays_with_a_mega": 277,
+ "replays_scanned": 2001,
+ "replays_with_a_mega": 1847,
  "note": "Harvested from replay logs, not from a canonical dex - Champions invents megas that do not exist in mainline. Each mega form has exactly one ability, so a single clean observation settles it; observation counts are kept so a gap or a conflict is visible. A null ability means the form was seen but never announced its ability in these logs.",
  "forms": {
-  "staraptormega": {
-   "form": "Staraptor-Mega",
-   "base": "staraptor",
-   "stone": "Staraptite",
-   "megas_seen": 27,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "blastoisemega": {
-   "form": "Blastoise-Mega",
-   "base": "blastoise",
-   "stone": "Blastoisinite",
-   "megas_seen": 20,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "altariamega": {
-   "form": "Altaria-Mega",
-   "base": "altaria",
-   "stone": "Altarianite",
-   "megas_seen": 2,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "slowbromega": {
-   "form": "Slowbro-Mega",
-   "base": "slowbro",
-   "stone": "Slowbronite",
-   "megas_seen": 3,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "swampertmega": {
-   "form": "Swampert-Mega",
-   "base": "swampert",
-   "stone": "Swampertite",
-   "megas_seen": 23,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "raichumegay": {
-   "form": "Raichu-Mega-Y",
-   "base": "raichu",
-   "stone": "Raichunite Y",
-   "megas_seen": 30,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "venusaurmega": {
-   "form": "Venusaur-Mega",
-   "base": "venusaur",
-   "stone": "Venusaurite",
-   "megas_seen": 12,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "scovillainmega": {
-   "form": "Scovillain-Mega",
-   "base": "scovillain",
-   "stone": "Scovillainite",
-   "megas_seen": 1,
+  "gengarmega": {
+   "form": "Gengar-Mega",
+   "base": "gengar",
+   "stone": "Gengarite",
+   "megas_seen": 66,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -80,18 +17,258 @@
    "form": "Charizard-Mega-Y",
    "base": "charizard",
    "stone": "Charizardite Y",
-   "megas_seen": 61,
+   "megas_seen": 391,
    "ability": "Drought",
-   "ability_obs": 62,
+   "ability_obs": 405,
+   "other_abilities_seen": [
+    {
+     "ability": "No Guard",
+     "n": 1
+    },
+    {
+     "ability": "Moxie",
+     "n": 1
+    }
+   ]
+  },
+  "aerodactylmega": {
+   "form": "Aerodactyl-Mega",
+   "base": "aerodactyl",
+   "stone": "Aerodactylite",
+   "megas_seen": 60,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "altariamega": {
+   "form": "Altaria-Mega",
+   "base": "altaria",
+   "stone": "Altarianite",
+   "megas_seen": 11,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "staraptormega": {
+   "form": "Staraptor-Mega",
+   "base": "staraptor",
+   "stone": "Staraptite",
+   "megas_seen": 230,
+   "ability": "Insomnia",
+   "ability_obs": 1,
+   "other_abilities_seen": []
+  },
+  "raichumegay": {
+   "form": "Raichu-Mega-Y",
+   "base": "raichu",
+   "stone": "Raichunite Y",
+   "megas_seen": 121,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "scovillainmega": {
+   "form": "Scovillain-Mega",
+   "base": "scovillain",
+   "stone": "Scovillainite",
+   "megas_seen": 29,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "slowbromega": {
+   "form": "Slowbro-Mega",
+   "base": "slowbro",
+   "stone": "Slowbronite",
+   "megas_seen": 4,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "swampertmega": {
+   "form": "Swampert-Mega",
+   "base": "swampert",
+   "stone": "Swampertite",
+   "megas_seen": 177,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "delphoxmega": {
+   "form": "Delphox-Mega",
+   "base": "delphox",
+   "stone": "Delphoxite",
+   "megas_seen": 143,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "heracrossmega": {
+   "form": "Heracross-Mega",
+   "base": "heracross",
+   "stone": "Heracronite",
+   "megas_seen": 6,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "glimmoramega": {
+   "form": "Glimmora-Mega",
+   "base": "glimmora",
+   "stone": "Glimmoranite",
+   "megas_seen": 23,
+   "ability": null,
+   "ability_obs": 0,
    "other_abilities_seen": []
   },
   "floettemega": {
    "form": "Floette-Mega",
    "base": "floette",
    "stone": "Floettite",
-   "megas_seen": 32,
+   "megas_seen": 224,
    "ability": "Fairy Aura",
-   "ability_obs": 33,
+   "ability_obs": 239,
+   "other_abilities_seen": [
+    {
+     "ability": "Insomnia",
+     "n": 1
+    }
+   ]
+  },
+  "scizormega": {
+   "form": "Scizor-Mega",
+   "base": "scizor",
+   "stone": "Scizorite",
+   "megas_seen": 10,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "blastoisemega": {
+   "form": "Blastoise-Mega",
+   "base": "blastoise",
+   "stone": "Blastoisinite",
+   "megas_seen": 165,
+   "ability": "Water Bubble",
+   "ability_obs": 1,
+   "other_abilities_seen": []
+  },
+  "dragalgemega": {
+   "form": "Dragalge-Mega",
+   "base": "dragalge",
+   "stone": "Dragalgite",
+   "megas_seen": 11,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "malamarmega": {
+   "form": "Malamar-Mega",
+   "base": "malamar",
+   "stone": "Malamarite",
+   "megas_seen": 26,
+   "ability": "Stamina",
+   "ability_obs": 1,
+   "other_abilities_seen": [
+    {
+     "ability": "Supersweet Syrup",
+     "n": 1
+    }
+   ]
+  },
+  "sableyemega": {
+   "form": "Sableye-Mega",
+   "base": "sableye",
+   "stone": "Sablenite",
+   "megas_seen": 8,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "scraftymega": {
+   "form": "Scrafty-Mega",
+   "base": "scrafty",
+   "stone": "Scraftinite",
+   "megas_seen": 94,
+   "ability": "Intimidate",
+   "ability_obs": 118,
+   "other_abilities_seen": []
+  },
+  "venusaurmega": {
+   "form": "Venusaur-Mega",
+   "base": "venusaur",
+   "stone": "Venusaurite",
+   "megas_seen": 107,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "tyranitarmega": {
+   "form": "Tyranitar-Mega",
+   "base": "tyranitar",
+   "stone": "Tyranitarite",
+   "megas_seen": 100,
+   "ability": "Sand Stream",
+   "ability_obs": 25,
+   "other_abilities_seen": [
+    {
+     "ability": "Simple",
+     "n": 1
+    }
+   ]
+  },
+  "dragonitemega": {
+   "form": "Dragonite-Mega",
+   "base": "dragonite",
+   "stone": "Dragoninite",
+   "megas_seen": 131,
+   "ability": "Intimidate",
+   "ability_obs": 1,
+   "other_abilities_seen": []
+  },
+  "mimikyubusted": {
+   "form": "Mimikyu-Busted",
+   "base": null,
+   "stone": null,
+   "megas_seen": 21,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "lucariomega": {
+   "form": "Lucario-Mega",
+   "base": "lucario",
+   "stone": "Lucarionite",
+   "megas_seen": 13,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "pyroarmega": {
+   "form": "Pyroar-Mega",
+   "base": "pyroar",
+   "stone": "Pyroarite",
+   "megas_seen": 54,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "metagrossmega": {
+   "form": "Metagross-Mega",
+   "base": "metagross",
+   "stone": "Metagrossite",
+   "megas_seen": 71,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "houndoommega": {
+   "form": "Houndoom-Mega",
+   "base": "houndoom",
+   "stone": "Houndoominite",
+   "megas_seen": 4,
+   "ability": null,
+   "ability_obs": 0,
    "other_abilities_seen": []
   },
   "meganium": {
@@ -103,191 +280,11 @@
    "ability_obs": 0,
    "other_abilities_seen": []
   },
-  "froslassmega": {
-   "form": "Froslass-Mega",
-   "base": "froslass",
-   "stone": "Froslassite",
-   "megas_seen": 6,
-   "ability": "Snow Warning",
-   "ability_obs": 5,
-   "other_abilities_seen": []
-  },
   "meganiummega": {
    "form": "Meganium-Mega",
    "base": "meganium",
    "stone": "Meganiumite",
-   "megas_seen": 5,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "scizormega": {
-   "form": "Scizor-Mega",
-   "base": "scizor",
-   "stone": "Scizorite",
-   "megas_seen": 2,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "gengarmega": {
-   "form": "Gengar-Mega",
-   "base": "gengar",
-   "stone": "Gengarite",
-   "megas_seen": 9,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "malamarmega": {
-   "form": "Malamar-Mega",
-   "base": "malamar",
-   "stone": "Malamarite",
-   "megas_seen": 6,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "delphoxmega": {
-   "form": "Delphox-Mega",
-   "base": "delphox",
-   "stone": "Delphoxite",
-   "megas_seen": 23,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "sableyemega": {
-   "form": "Sableye-Mega",
-   "base": "sableye",
-   "stone": "Sablenite",
-   "megas_seen": 3,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "tyranitarmega": {
-   "form": "Tyranitar-Mega",
-   "base": "tyranitar",
-   "stone": "Tyranitarite",
-   "megas_seen": 13,
-   "ability": "Sand Stream",
-   "ability_obs": 6,
-   "other_abilities_seen": []
-  },
-  "dragonitemega": {
-   "form": "Dragonite-Mega",
-   "base": "dragonite",
-   "stone": "Dragoninite",
    "megas_seen": 25,
-   "ability": "Intimidate",
-   "ability_obs": 1,
-   "other_abilities_seen": []
-  },
-  "scraftymega": {
-   "form": "Scrafty-Mega",
-   "base": "scrafty",
-   "stone": "Scraftinite",
-   "megas_seen": 11,
-   "ability": "Intimidate",
-   "ability_obs": 11,
-   "other_abilities_seen": []
-  },
-  "dragalgemega": {
-   "form": "Dragalge-Mega",
-   "base": "dragalge",
-   "stone": "Dragalgite",
-   "megas_seen": 3,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "lucariomega": {
-   "form": "Lucario-Mega",
-   "base": "lucario",
-   "stone": "Lucarionite",
-   "megas_seen": 3,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "mimikyubusted": {
-   "form": "Mimikyu-Busted",
-   "base": null,
-   "stone": null,
-   "megas_seen": 4,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "pyroarmega": {
-   "form": "Pyroar-Mega",
-   "base": "pyroar",
-   "stone": "Pyroarite",
-   "megas_seen": 5,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "metagrossmega": {
-   "form": "Metagross-Mega",
-   "base": "metagross",
-   "stone": "Metagrossite",
-   "megas_seen": 17,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "houndoommega": {
-   "form": "Houndoom-Mega",
-   "base": "houndoom",
-   "stone": "Houndoominite",
-   "megas_seen": 2,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "greninjamega": {
-   "form": "Greninja-Mega",
-   "base": "greninja",
-   "stone": "Greninjite",
-   "megas_seen": 1,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "kangaskhanmega": {
-   "form": "Kangaskhan-Mega",
-   "base": "kangaskhan",
-   "stone": "Kangaskhanite",
-   "megas_seen": 5,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "blazikenmega": {
-   "form": "Blaziken-Mega",
-   "base": "blaziken",
-   "stone": "Blazikenite",
-   "megas_seen": 9,
-   "ability": "Speed Boost",
-   "ability_obs": 16,
-   "other_abilities_seen": []
-  },
-  "aerodactylmega": {
-   "form": "Aerodactyl-Mega",
-   "base": "aerodactyl",
-   "stone": "Aerodactylite",
-   "megas_seen": 8,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "glimmoramega": {
-   "form": "Glimmora-Mega",
-   "base": "glimmora",
-   "stone": "Glimmoranite",
-   "megas_seen": 3,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -296,52 +293,88 @@
    "form": "Aggron-Mega",
    "base": "aggron",
    "stone": "Aggronite",
-   "megas_seen": 1,
+   "megas_seen": 19,
    "ability": null,
    "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "blazikenmega": {
+   "form": "Blaziken-Mega",
+   "base": "blaziken",
+   "stone": "Blazikenite",
+   "megas_seen": 41,
+   "ability": "Speed Boost",
+   "ability_obs": 78,
    "other_abilities_seen": []
   },
   "raichumegax": {
    "form": "Raichu-Mega-X",
    "base": "raichu",
    "stone": "Raichunite X",
-   "megas_seen": 4,
+   "megas_seen": 27,
    "ability": "Electric Surge",
-   "ability_obs": 4,
+   "ability_obs": 31,
    "other_abilities_seen": []
   },
   "manectricmega": {
    "form": "Manectric-Mega",
    "base": "manectric",
    "stone": "Manectite",
-   "megas_seen": 1,
+   "megas_seen": 6,
    "ability": "Intimidate",
-   "ability_obs": 1,
-   "other_abilities_seen": []
-  },
-  "excadrillmega": {
-   "form": "Excadrill-Mega",
-   "base": "excadrill",
-   "stone": "Excadrite",
-   "megas_seen": 3,
-   "ability": null,
-   "ability_obs": 0,
+   "ability_obs": 7,
    "other_abilities_seen": []
   },
   "ampharosmega": {
    "form": "Ampharos-Mega",
    "base": "ampharos",
    "stone": "Ampharosite",
-   "megas_seen": 1,
+   "megas_seen": 11,
    "ability": "Mold Breaker",
+   "ability_obs": 11,
+   "other_abilities_seen": []
+  },
+  "excadrillmega": {
+   "form": "Excadrill-Mega",
+   "base": "excadrill",
+   "stone": "Excadrite",
+   "megas_seen": 9,
+   "ability": "Piercing Drill",
    "ability_obs": 1,
+   "other_abilities_seen": []
+  },
+  "froslassmega": {
+   "form": "Froslass-Mega",
+   "base": "froslass",
+   "stone": "Froslassite",
+   "megas_seen": 67,
+   "ability": "Snow Warning",
+   "ability_obs": 70,
+   "other_abilities_seen": []
+  },
+  "greninjamega": {
+   "form": "Greninja-Mega",
+   "base": "greninja",
+   "stone": "Greninjite",
+   "megas_seen": 18,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "kangaskhanmega": {
+   "form": "Kangaskhan-Mega",
+   "base": "kangaskhan",
+   "stone": "Kangaskhanite",
+   "megas_seen": 27,
+   "ability": null,
+   "ability_obs": 0,
    "other_abilities_seen": []
   },
   "garchompmega": {
    "form": "Garchomp-Mega",
    "base": "garchomp",
    "stone": "Garchompite",
-   "megas_seen": 5,
+   "megas_seen": 16,
    "ability": "Speed Boost",
    "ability_obs": 6,
    "other_abilities_seen": []
@@ -350,25 +383,16 @@
    "form": "Drampa-Mega",
    "base": "drampa",
    "stone": "Drampanite",
-   "megas_seen": 1,
-   "ability": null,
-   "ability_obs": 0,
+   "megas_seen": 9,
+   "ability": "Berserk",
+   "ability_obs": 6,
    "other_abilities_seen": []
   },
   "clefablemega": {
    "form": "Clefable-Mega",
    "base": "clefable",
    "stone": "Clefablite",
-   "megas_seen": 3,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "palafinhero": {
-   "form": "Palafin-Hero",
-   "base": null,
-   "stone": null,
-   "megas_seen": 3,
+   "megas_seen": 7,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -377,7 +401,16 @@
    "form": "Camerupt-Mega",
    "base": "camerupt",
    "stone": "Cameruptite",
-   "megas_seen": 4,
+   "megas_seen": 30,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "palafinhero": {
+   "form": "Palafin-Hero",
+   "base": null,
+   "stone": null,
+   "megas_seen": 22,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -386,7 +419,16 @@
    "form": "Golurk-Mega",
    "base": "golurk",
    "stone": "Golurkite",
-   "megas_seen": 3,
+   "megas_seen": 26,
+   "ability": "Unseen Fist",
+   "ability_obs": 3,
+   "other_abilities_seen": []
+  },
+  "lopunnymega": {
+   "form": "Lopunny-Mega",
+   "base": "lopunny",
+   "stone": "Lopunnite",
+   "megas_seen": 17,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -395,16 +437,7 @@
    "form": "Starmie-Mega",
    "base": "starmie",
    "stone": "Starminite",
-   "megas_seen": 1,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "lopunnymega": {
-   "form": "Lopunny-Mega",
-   "base": "lopunny",
-   "stone": "Lopunnite",
-   "megas_seen": 4,
+   "megas_seen": 11,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -413,16 +446,7 @@
    "form": "Gardevoir-Mega",
    "base": "gardevoir",
    "stone": "Gardevoirite",
-   "megas_seen": 5,
-   "ability": null,
-   "ability_obs": 0,
-   "other_abilities_seen": []
-  },
-  "falinksmega": {
-   "form": "Falinks-Mega",
-   "base": "falinks",
-   "stone": "Falinksite",
-   "megas_seen": 3,
+   "megas_seen": 32,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -431,16 +455,30 @@
    "form": "Chandelure-Mega",
    "base": "chandelure",
    "stone": "Chandelurite",
-   "megas_seen": 5,
+   "megas_seen": 9,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
+  },
+  "falinksmega": {
+   "form": "Falinks-Mega",
+   "base": "falinks",
+   "stone": "Falinksite",
+   "megas_seen": 12,
+   "ability": "Simple",
+   "ability_obs": 2,
+   "other_abilities_seen": [
+    {
+     "ability": "Defiant",
+     "n": 2
+    }
+   ]
   },
   "mawilemega": {
    "form": "Mawile-Mega",
    "base": "mawile",
    "stone": "Mawilite",
-   "megas_seen": 12,
+   "megas_seen": 76,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -449,34 +487,34 @@
    "form": "Sceptile-Mega",
    "base": "sceptile",
    "stone": "Sceptilite",
-   "megas_seen": 5,
+   "megas_seen": 38,
    "ability": "Lightning Rod",
-   "ability_obs": 7,
+   "ability_obs": 42,
    "other_abilities_seen": []
   },
   "eelektrossmega": {
    "form": "Eelektross-Mega",
    "base": "eelektross",
    "stone": "Eelektrossite",
-   "megas_seen": 5,
+   "megas_seen": 26,
    "ability": "Eelevate",
-   "ability_obs": 4,
-   "other_abilities_seen": []
-  },
-  "chesnaughtmega": {
-   "form": "Chesnaught-Mega",
-   "base": "chesnaught",
-   "stone": "Chesnaughtite",
-   "megas_seen": 4,
-   "ability": null,
-   "ability_obs": 0,
+   "ability_obs": 25,
    "other_abilities_seen": []
   },
   "crabominablemega": {
    "form": "Crabominable-Mega",
    "base": "crabominable",
    "stone": "Crabominite",
-   "megas_seen": 1,
+   "megas_seen": 17,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "chesnaughtmega": {
+   "form": "Chesnaught-Mega",
+   "base": "chesnaught",
+   "stone": "Chesnaughtite",
+   "megas_seen": 17,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -485,16 +523,16 @@
    "form": "Emboar-Mega",
    "base": "emboar",
    "stone": "Emboarite",
-   "megas_seen": 1,
+   "megas_seen": 5,
    "ability": "Mold Breaker",
-   "ability_obs": 1,
+   "ability_obs": 5,
    "other_abilities_seen": []
   },
   "pidgeotmega": {
    "form": "Pidgeot-Mega",
    "base": "pidgeot",
    "stone": "Pidgeotite",
-   "megas_seen": 2,
+   "megas_seen": 8,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -503,7 +541,7 @@
    "form": "Scolipede-Mega",
    "base": "scolipede",
    "stone": "Scolipite",
-   "megas_seen": 1,
+   "megas_seen": 9,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -512,25 +550,16 @@
    "form": "Gyarados-Mega",
    "base": "gyarados",
    "stone": "Gyaradosite",
-   "megas_seen": 5,
+   "megas_seen": 24,
    "ability": "Mold Breaker",
-   "ability_obs": 5,
-   "other_abilities_seen": []
-  },
-  "hawluchamega": {
-   "form": "Hawlucha-Mega",
-   "base": "hawlucha",
-   "stone": "Hawluchanite",
-   "megas_seen": 1,
-   "ability": null,
-   "ability_obs": 0,
+   "ability_obs": 26,
    "other_abilities_seen": []
   },
   "charizardmegax": {
    "form": "Charizard-Mega-X",
    "base": "charizard",
    "stone": "Charizardite X",
-   "megas_seen": 3,
+   "megas_seen": 11,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -539,21 +568,62 @@
    "form": "Alakazam-Mega",
    "base": "alakazam",
    "stone": "Alakazite",
-   "megas_seen": 2,
-   "ability": "Adaptability",
-   "ability_obs": 1,
+   "megas_seen": 11,
+   "ability": "Intimidate",
+   "ability_obs": 4,
    "other_abilities_seen": [
+    {
+     "ability": "Adaptability",
+     "n": 3
+    },
+    {
+     "ability": "Good as Gold",
+     "n": 2
+    },
     {
      "ability": "Infiltrator",
      "n": 1
+    },
+    {
+     "ability": "Blaze",
+     "n": 1
+    },
+    {
+     "ability": "Regenerator",
+     "n": 1
+    },
+    {
+     "ability": "Drought",
+     "n": 1
+    },
+    {
+     "ability": "Snow Warning",
+     "n": 1
+    },
+    {
+     "ability": "Armor Tail",
+     "n": 1
+    },
+    {
+     "ability": "Flower Veil",
+     "n": 1
     }
    ]
+  },
+  "hawluchamega": {
+   "form": "Hawlucha-Mega",
+   "base": "hawlucha",
+   "stone": "Hawluchanite",
+   "megas_seen": 10,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
   },
   "pinsirmega": {
    "form": "Pinsir-Mega",
    "base": "pinsir",
    "stone": "Pinsirite",
-   "megas_seen": 2,
+   "megas_seen": 8,
    "ability": null,
    "ability_obs": 0,
    "other_abilities_seen": []
@@ -562,6 +632,155 @@
    "form": "Victreebel-Mega",
    "base": "victreebel",
    "stone": "Victreebelite",
+   "megas_seen": 3,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "banettemega": {
+   "form": "Banette-Mega",
+   "base": "banette",
+   "stone": "Banettite",
+   "megas_seen": 16,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "feraligatrmega": {
+   "form": "Feraligatr-Mega",
+   "base": "feraligatr",
+   "stone": "Feraligite",
+   "megas_seen": 6,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "audinomega": {
+   "form": "Audino-Mega",
+   "base": "audino",
+   "stone": "Audinite",
+   "megas_seen": 4,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "sharpedomega": {
+   "form": "Sharpedo-Mega",
+   "base": "sharpedo",
+   "stone": "Sharpedonite",
+   "megas_seen": 3,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "meowsticmmega": {
+   "form": "Meowstic-M-Mega",
+   "base": "meowstic",
+   "stone": "Meowsticite",
+   "megas_seen": 1,
+   "ability": "Prankster",
+   "ability_obs": 1,
+   "other_abilities_seen": [
+    {
+     "ability": "Thick Fat",
+     "n": 1
+    }
+   ]
+  },
+  "glaliemega": {
+   "form": "Glalie-Mega",
+   "base": "glalie",
+   "stone": "Glalitite",
+   "megas_seen": 3,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "medichammega": {
+   "form": "Medicham-Mega",
+   "base": "medicham",
+   "stone": "Medichamite",
+   "megas_seen": 5,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "gallademega": {
+   "form": "Gallade-Mega",
+   "base": "gallade",
+   "stone": "Galladite",
+   "megas_seen": 7,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "steelixmega": {
+   "form": "Steelix-Mega",
+   "base": "steelix",
+   "stone": "Steelixite",
+   "megas_seen": 4,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "absolmega": {
+   "form": "Absol-Mega",
+   "base": "absol",
+   "stone": "Absolite",
+   "megas_seen": 4,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "chimechomega": {
+   "form": "Chimecho-Mega",
+   "base": "chimecho",
+   "stone": "Chimechite",
+   "megas_seen": 4,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "barbaraclemega": {
+   "form": "Barbaracle-Mega",
+   "base": "barbaracle",
+   "stone": "Barbaracite",
+   "megas_seen": 3,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "skarmorymega": {
+   "form": "Skarmory-Mega",
+   "base": "skarmory",
+   "stone": "Skarmorite",
+   "megas_seen": 5,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "meowsticfmega": {
+   "form": "Meowstic-F-Mega",
+   "base": "meowstic",
+   "stone": "Meowsticite",
+   "megas_seen": 1,
+   "ability": "Damp",
+   "ability_obs": 1,
+   "other_abilities_seen": []
+  },
+  "beedrillmega": {
+   "form": "Beedrill-Mega",
+   "base": "beedrill",
+   "stone": "Beedrillite",
+   "megas_seen": 11,
+   "ability": null,
+   "ability_obs": 0,
+   "other_abilities_seen": []
+  },
+  "abomasnowmega": {
+   "form": "Abomasnow-Mega",
+   "base": "abomasnow",
+   "stone": "Abomasite",
    "megas_seen": 1,
    "ability": null,
    "ability_obs": 0,
