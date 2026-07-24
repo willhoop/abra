@@ -4,7 +4,7 @@
 
 Generated directly from the tagger, so it cannot drift. `uses` = real in-battle uses for moves, revealed sets for abilities. Blank role = deliberately untagged (ordinary damage, a passive modifier, or a gap worth filling).
 
-Roles in the taxonomy: **33**. Moves listed: **489**. Abilities listed: **107**.
+Roles in the taxonomy: **35**. Moves listed: **505**. Abilities listed: **107**.
 
 
 ## Roles in the taxonomy
@@ -26,7 +26,7 @@ Roles in the taxonomy: **33**. Moves listed: **489**. Abilities listed: **107**.
 | `prankster` | Prankster (priority support) |
 | `status_burn` | Burn spreader |
 | `status_para` | Paralysis spreader |
-| `status_sleep` | Sleep spreader |
+| `status_sleep` | Sleep spreader (action denial) |
 | `status_poison` | Poison spreader |
 | `status` | Status spreader (other) |
 | `debuff` | Debuff (Intimidate / drops) |
@@ -38,6 +38,8 @@ Roles in the taxonomy: **33**. Moves listed: **489**. Abilities listed: **107**.
 | `pivot` | Pivot |
 | `wall` | Bulky wall / support |
 | `trapping` | Trapper |
+| `spread` | Spread attacker (both foes) |
+| `spread_self` | Field-wide (hits own partner) |
 | `hazards` | Hazard setter |
 | `perish` | Perish Trap |
 | `allysupport` | Ally support / positioning |
@@ -181,15 +183,15 @@ These do several jobs at once; the table is factual, not weighted.
 | uses | move | tagged as |
 |---|---|---|
 | 15613 | Protect | _(neutral — everyone runs it)_ |
-| 5539 | Heat Wave | Special attacker |
-| 4246 | Rock Slide | Physical attacker |
+| 5539 | Heat Wave | Special attacker, Spread attacker (both foes) |
+| 4246 | Rock Slide | Physical attacker, Spread attacker (both foes) |
 | 3794 | Fake Out | Fake Out (tempo) |
 | 3773 | Tailwind | Tailwind (speed up) |
-| 3677 | Hyper Voice | Special attacker |
+| 3677 | Hyper Voice | Special attacker, Spread attacker (both foes) |
 | 3521 | Last Respects | Physical attacker |
 | 3157 | Moonblast | Special attacker |
 | 2748 | Wave Crash | Physical attacker |
-| 2721 | Earthquake | Physical attacker |
+| 2721 | Earthquake | Physical attacker, Field-wide (hits own partner) |
 | 2660 | Close Combat | Physical attacker |
 | 2358 | Weather Ball | Special attacker |
 | 2048 | Sucker Punch | Physical attacker, Priority attacker |
@@ -211,21 +213,21 @@ These do several jobs at once; the table is factual, not weighted.
 | 1279 | Knock Off | Item disruption, Physical attacker |
 | 1254 | Earth Power | Special attacker |
 | 1218 | Rage Powder | Redirection, Bulky wall / support |
-| 1212 | Dazzling Gleam | Special attacker |
+| 1212 | Dazzling Gleam | Special attacker, Spread attacker (both foes) |
 | 1176 | Flash Cannon | Special attacker |
 | 1173 | Thunderbolt | Special attacker |
-| 1159 | Eruption | Special attacker |
-| 1099 | Make It Rain | Special attacker |
+| 1159 | Eruption | Special attacker, Spread attacker (both foes) |
+| 1099 | Make It Rain | Special attacker, Spread attacker (both foes) |
 | 987 | Aqua Jet | Physical attacker, Priority attacker |
 | 953 | Wide Guard | Wide / Quick Guard, Bulky wall / support |
 | 922 | Dual Wingbeat | Physical attacker |
-| 864 | Blizzard | Special attacker |
+| 864 | Blizzard | Special attacker, Spread attacker (both foes) |
 | 849 | Brave Bird | Physical attacker |
 | 843 | Helping Hand | Ally support / positioning, Helping Hand, Bulky wall / support |
 | 839 | Light Screen | Screen setter, Bulky wall / support |
 | 818 | High Horsepower | Physical attacker |
 | 781 | Dire Claw | Physical attacker, Poison spreader |
-| 717 | Sleep Powder | Sleep spreader |
+| 717 | Sleep Powder | Sleep spreader (action denial) |
 | 716 | Solar Beam | Special attacker |
 | 711 | Spirit Break | Debuff (Intimidate / drops), Physical attacker |
 | 690 | Throat Chop | Physical attacker |
@@ -245,14 +247,14 @@ These do several jobs at once; the table is factual, not weighted.
 | 545 | Darkest Lariat | Physical attacker |
 | 529 | Drain Punch | Healing / sustain, Physical attacker |
 | 521 | Quick Attack | Physical attacker, Priority attacker |
-| 500 | Water Spout | Special attacker |
-| 484 | Icy Wind | Speed control (lower foe) |
+| 500 | Water Spout | Special attacker, Spread attacker (both foes) |
+| 484 | Icy Wind | Speed control (lower foe), Spread attacker (both foes) |
 | 483 | Toxic | Poison spreader |
 | 464 | Foul Play | Physical attacker |
 | 463 | Follow Me | Redirection, Bulky wall / support |
 | 451 | Body Press | Physical attacker, Bulky wall / support |
 | 448 | Calm Mind | Setup / sweeper |
-| 427 | Muddy Water | Special attacker |
+| 427 | Muddy Water | Special attacker, Spread attacker (both foes) |
 | 426 | Poison Jab | Physical attacker, Poison spreader |
 | 421 | Draco Meteor | Special attacker |
 | 417 | Play Rough | Physical attacker |
@@ -270,7 +272,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 313 | Liquidation | Physical attacker |
 | 310 | Focus Blast | Special attacker |
 | 304 | Bullet Punch | Physical attacker, Priority attacker |
-| 302 | Expanding Force | — |
+| 302 | Expanding Force | Spread attacker (both foes) |
 | 295 | Shadow Sneak | Physical attacker, Priority attacker |
 | 294 | Taunt | Taunt |
 | 272 | Bulk Up | Setup / sweeper |
@@ -283,17 +285,17 @@ These do several jobs at once; the table is factual, not weighted.
 | 249 | Low Kick | — |
 | 249 | Rain Dance | Weather setter |
 | 247 | Rage Fist | — |
-| 245 | Snarl | Debuff (Intimidate / drops), Special attacker |
+| 245 | Snarl | Debuff (Intimidate / drops), Special attacker, Spread attacker (both foes) |
 | 244 | Freeze-Dry | Special attacker |
 | 242 | Superpower | — |
-| 237 | Hypnosis | Sleep spreader |
+| 237 | Hypnosis | Sleep spreader (action denial) |
 | 230 | Rock Tomb | Speed control (lower foe) |
 | 229 | Flamethrower | — |
 | 229 | Overheat | Special attacker |
 | 222 | Bitter Blade | Physical attacker |
 | 220 | Last Resort | — |
 | 211 | Disable | Status spreader (other) |
-| 211 | Yawn | Sleep spreader |
+| 211 | Yawn | Sleep spreader (action denial) |
 | 207 | Draining Kiss | Healing / sustain, Special attacker |
 | 205 | Thunder | Special attacker, Paralysis spreader |
 | 204 | Aurora Veil | Screen setter, Bulky wall / support |
@@ -308,7 +310,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 186 | Phantom Force | — |
 | 177 | U-turn | Physical attacker, Pivot |
 | 177 | Waterfall | Physical attacker |
-| 173 | Electroweb | Speed control (lower foe) |
+| 173 | Electroweb | Speed control (lower foe), Spread attacker (both foes) |
 | 173 | Spiky Shield | _(neutral — everyone runs it)_ |
 | 172 | Instruct | Ally support / positioning |
 | 170 | Stockpile | — |
@@ -334,7 +336,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 108 | Ally Switch | Ally support / positioning |
 | 107 | Ancient Power | — |
 | 99 | Rising Voltage | — |
-| 97 | Surf | — |
+| 97 | Surf | Field-wide (hits own partner) |
 | 95 | Leaf Blade | — |
 | 94 | Acrobatics | — |
 | 94 | Brick Break | Weather / effect denial |
@@ -367,12 +369,12 @@ These do several jobs at once; the table is factual, not weighted.
 | 64 | Scale Shot | — |
 | 63 | Substitute | _(neutral — everyone runs it)_ |
 | 63 | Thunder Punch | — |
-| 62 | Parabolic Charge | Healing / sustain, Special attacker |
+| 62 | Parabolic Charge | Healing / sustain, Special attacker, Field-wide (hits own partner) |
 | 61 | Ice Fang | — |
 | 60 | Hex | Special attacker |
 | 60 | Soak | — |
 | 59 | Cosmic Power | — |
-| 59 | Sludge Wave | Special attacker |
+| 59 | Sludge Wave | Special attacker, Field-wide (hits own partner) |
 | 58 | Lumina Crash | — |
 | 58 | Quash | Ally support / positioning |
 | 58 | Roar | — |
@@ -394,7 +396,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 52 | Swagger | Status spreader (other) |
 | 51 | Accelerock | Physical attacker, Priority attacker |
 | 51 | Belly Drum | Setup / sweeper |
-| 51 | Breaking Swipe | — |
+| 51 | Breaking Swipe | Spread attacker (both foes) |
 | 51 | Destiny Bond | — |
 | 51 | Headlong Rush | Physical attacker |
 | 50 | Torch Song | — |
@@ -429,7 +431,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 30 | Ice Hammer | — |
 | 30 | No Retreat | Setup / sweeper |
 | 30 | Slack Off | Healing / sustain |
-| 29 | Boomburst | Special attacker |
+| 29 | Boomburst | Special attacker, Field-wide (hits own partner) |
 | 29 | Dragon Cheer | — |
 | 29 | Drill Run | — |
 | 29 | Stealth Rock | Hazard setter |
@@ -458,7 +460,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 21 | Facade | Physical attacker |
 | 21 | Flame Charge | — |
 | 20 | Fire Punch | — |
-| 19 | Explosion | — |
+| 19 | Explosion | Field-wide (hits own partner) |
 | 19 | Icicle Spear | — |
 | 19 | Scorching Sands | Burn spreader |
 | 19 | Wild Charge | — |
@@ -503,7 +505,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 11 | First Impression | Physical attacker, Priority attacker |
 | 11 | Storm Throw | — |
 | 10 | Aqua Step | — |
-| 10 | Bulldoze | Speed control (lower foe) |
+| 10 | Bulldoze | Speed control (lower foe), Field-wide (hits own partner) |
 | 10 | Cotton Guard | — |
 | 10 | Double Team | — |
 | 10 | Fire Fang | — |
@@ -520,12 +522,12 @@ These do several jobs at once; the table is factual, not weighted.
 | 9 | Mud-Slap | — |
 | 9 | String Shot | Speed control (lower foe) |
 | 8 | Aqua Tail | — |
-| 8 | Burning Jealousy | — |
+| 8 | Burning Jealousy | Spread attacker (both foes) |
 | 8 | Eerie Spell | — |
 | 8 | Fling | — |
 | 8 | Grassy Glide | Physical attacker, Priority attacker |
 | 8 | Night Shade | — |
-| 8 | Self-Destruct | — |
+| 8 | Self-Destruct | Field-wide (hits own partner) |
 | 7 | Agility | Setup / sweeper |
 | 7 | Fell Stinger | — |
 | 7 | Focus Energy | — |
@@ -551,7 +553,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 5 | Steel Beam | — |
 | 5 | Steel Wing | — |
 | 5 | Sticky Web | Hazard setter |
-| 5 | Struggle Bug | Debuff (Intimidate / drops) |
+| 5 | Struggle Bug | Debuff (Intimidate / drops), Spread attacker (both foes) |
 | 5 | Thunder Fang | — |
 | 4 | Clear Smog | Weather / effect denial |
 | 4 | Flatter | Status spreader (other) |
@@ -565,20 +567,20 @@ These do several jobs at once; the table is factual, not weighted.
 | 3 | Grav Apple | — |
 | 3 | Growth | Setup / sweeper |
 | 3 | Hard Press | — |
-| 3 | Lava Plume | Burn spreader |
+| 3 | Lava Plume | Field-wide (hits own partner), Burn spreader |
 | 3 | Low Sweep | — |
 | 3 | Megahorn | — |
 | 3 | Misty Explosion | — |
 | 3 | Morning Sun | Healing / sustain |
 | 3 | Night Daze | — |
 | 3 | Payback | — |
-| 3 | Petal Blizzard | — |
+| 3 | Petal Blizzard | Field-wide (hits own partner) |
 | 3 | Pounce | — |
 | 3 | Skitter Smack | — |
 | 3 | Stun Spore | Paralysis spreader |
 | 3 | Trick-or-Treat | — |
 | 2 | Acupressure | — |
-| 2 | Air Cutter | — |
+| 2 | Air Cutter | Spread attacker (both foes) |
 | 2 | Cotton Spore | Speed control (lower foe) |
 | 2 | Crabhammer | — |
 | 2 | Cross Chop | — |
@@ -617,48 +619,63 @@ These do several jobs at once; the table is factual, not weighted.
 | 1 | Tearful Look | Debuff (Intimidate / drops) |
 | 0 | Anchor Shot | Trapper |
 | 0 | Apple Acid | Special attacker |
+| 0 | Astral Barrage | Spread attacker (both foes) |
 | 0 | Attract | Status spreader (other) |
 | 0 | Bind | Trapper |
+| 0 | Bleakwind Storm | Spread attacker (both foes) |
 | 0 | Blue Flare | Burn spreader |
 | 0 | Bolt Strike | Physical attacker |
 | 0 | Captivate | Debuff (Intimidate / drops) |
 | 0 | Collision Course | Physical attacker |
 | 0 | Corrosive Gas | Item disruption |
 | 0 | Covet | Item disruption |
-| 0 | Dark Void | Sleep spreader |
+| 0 | Dark Void | Sleep spreader (action denial) |
+| 0 | Diamond Storm | Spread attacker (both foes) |
 | 0 | Dragon Breath | Paralysis spreader |
 | 0 | Fishious Rend | Physical attacker |
 | 0 | Floral Healing | Healing / sustain |
 | 0 | Gear Up | Ally support / positioning |
 | 0 | Geomancy | Setup / sweeper |
+| 0 | Glacial Lance | Spread attacker (both foes) |
 | 0 | Glaciate | Speed control (lower foe) |
 | 0 | Glaive Rush | Physical attacker |
-| 0 | Grass Whistle | Sleep spreader |
+| 0 | Grass Whistle | Sleep spreader (action denial) |
 | 0 | Growl | Debuff (Intimidate / drops) |
 | 0 | Hail | Weather setter |
 | 0 | Incinerate | Item disruption |
 | 0 | Inferno | Burn spreader |
 | 0 | Ivy Cudgel | Physical attacker |
 | 0 | Jungle Healing | Healing / sustain |
-| 0 | Lovely Kiss | Sleep spreader |
+| 0 | Lovely Kiss | Sleep spreader (action denial) |
 | 0 | Lunar Blessing | Healing / sustain |
 | 0 | Luster Purge | Special attacker |
 | 0 | Magnetic Flux | Ally support / positioning |
+| 0 | Magnitude | Field-wide (hits own partner) |
 | 0 | Milk Drink | Healing / sustain |
 | 0 | Noble Roar | Debuff (Intimidate / drops) |
+| 0 | Origin Pulse | Spread attacker (both foes) |
+| 0 | Overdrive | Spread attacker (both foes) |
 | 0 | Play Nice | Debuff (Intimidate / drops) |
 | 0 | Poison Gas | Poison spreader |
 | 0 | Poison Powder | Poison spreader |
+| 0 | Precipice Blades | Spread attacker (both foes) |
 | 0 | Purify | Healing / sustain |
 | 0 | Rapid Spin | Weather / effect denial |
+| 0 | Razor Leaf | Spread attacker (both foes) |
+| 0 | Relic Song | Spread attacker (both foes) |
 | 0 | Sacred Fire | Burn spreader |
+| 0 | Sandsear Storm | Spread attacker (both foes) |
+| 0 | Searing Shot | Field-wide (hits own partner) |
 | 0 | Shore Up | Healing / sustain |
 | 0 | Silk Trap | Debuff (Intimidate / drops) |
-| 0 | Sing | Sleep spreader |
+| 0 | Sing | Sleep spreader (action denial) |
 | 0 | Soft-Boiled | Healing / sustain |
 | 0 | Spider Web | Trapper |
-| 0 | Spore | Sleep spreader |
+| 0 | Spore | Sleep spreader (action denial) |
+| 0 | Springtide Storm | Spread attacker (both foes) |
 | 0 | Surging Strikes | Physical attacker |
+| 0 | Swift | Spread attacker (both foes) |
+| 0 | Synchronoise | Field-wide (hits own partner) |
 | 0 | Tail Glow | Setup / sweeper |
 | 0 | Take Heart | Setup / sweeper |
 | 0 | Teleport | Pivot |
@@ -667,6 +684,7 @@ These do several jobs at once; the table is factual, not weighted.
 | 0 | Torment | Status spreader (other) |
 | 0 | Toxic Thread | Poison spreader |
 | 0 | Victory Dance | Setup / sweeper |
+| 0 | Wildbolt Storm | Spread attacker (both foes) |
 | 0 | Work Up | Setup / sweeper |
 | 0 | Wrap | Trapper |
 
@@ -678,7 +696,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 372 | Super Fang |
 | 366 | Rock Blast |
 | 332 | Light of Ruin |
-| 302 | Expanding Force |
 | 249 | Low Kick |
 | 247 | Rage Fist |
 | 242 | Superpower |
@@ -698,7 +715,6 @@ These do several jobs at once; the table is factual, not weighted.
 | 109 | Barb Barrage |
 | 107 | Ancient Power |
 | 99 | Rising Voltage |
-| 97 | Surf |
 | 95 | Leaf Blade |
 | 94 | Acrobatics |
 | 92 | Feint |
@@ -724,3 +740,5 @@ These do several jobs at once; the table is factual, not weighted.
 | 59 | Cosmic Power |
 | 58 | Roar |
 | 58 | Lumina Crash |
+| 57 | Struggle |
+| 57 | Power Whip |

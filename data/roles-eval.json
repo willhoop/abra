@@ -12,103 +12,103 @@
   0.6914,
   0.6963
  ],
- "accuracy_roles": 0.5042,
+ "accuracy_roles": 0.5082,
  "headline": "Roles predict the winner at held-out log-loss 0.6938 vs a coin 0.6931 and rating 0.6909.",
  "role_win_credit": [
   {
    "role": "phys_attacker",
    "label": "Physical attacker",
-   "coef": 0.1208,
+   "coef": 0.1219,
    "teams_with": 6700
   },
   {
    "role": "priority",
    "label": "Priority attacker",
-   "coef": 0.1056,
+   "coef": 0.1063,
    "teams_with": 4377
   },
   {
    "role": "speed_lower",
    "label": "Speed control (lower foe)",
-   "coef": 0.1012,
+   "coef": 0.1014,
    "teams_with": 22
   },
   {
    "role": "status_sleep",
-   "label": "Sleep spreader",
-   "coef": 0.0836,
+   "label": "Sleep spreader (action denial)",
+   "coef": 0.0834,
    "teams_with": 267
   },
   {
    "role": "setup",
    "label": "Setup / sweeper",
-   "coef": 0.0792,
+   "coef": 0.0793,
    "teams_with": 2210
-  },
-  {
-   "role": "denial",
-   "label": "Weather / effect denial",
-   "coef": 0.0694,
-   "teams_with": 387
   },
   {
    "role": "itemdisrupt",
    "label": "Item disruption",
-   "coef": 0.0691,
+   "coef": 0.0692,
    "teams_with": 92
+  },
+  {
+   "role": "denial",
+   "label": "Weather / effect denial",
+   "coef": 0.0689,
+   "teams_with": 387
   },
   {
    "role": "perish",
    "label": "Perish Trap",
-   "coef": 0.0565,
+   "coef": 0.0561,
    "teams_with": 232
   },
   {
    "role": "spec_attacker",
    "label": "Special attacker",
-   "coef": 0.0402,
+   "coef": 0.0399,
    "teams_with": 5426
   },
   {
    "role": "fakeout",
    "label": "Fake Out (tempo)",
-   "coef": 0.0342,
+   "coef": 0.0323,
    "teams_with": 4730
   },
   {
    "role": "terrain",
    "label": "Terrain setter",
-   "coef": 0.028,
+   "coef": 0.0281,
    "teams_with": 2
   },
   {
    "role": "hazards",
    "label": "Hazard setter",
-   "coef": 0.0191,
+   "coef": 0.019,
    "teams_with": 62
-  },
-  {
-   "role": "status",
-   "label": "Status spreader (other)",
-   "coef": 0.0182,
-   "teams_with": 0
   },
   {
    "role": "helpinghand",
    "label": "Helping Hand",
-   "coef": 0.0182,
+   "coef": 0.0183,
    "teams_with": 9
+  },
+  {
+   "role": "status",
+   "label": "Status spreader (other)",
+   "coef": 0.0178,
+   "teams_with": 0
   },
   {
    "role": "teamprotect",
    "label": "Wide / Quick Guard",
-   "coef": 0.0133,
+   "coef": 0.0127,
    "teams_with": 19
   },
   {
    "role": "status_burn",
    "label": "Burn spreader",
-   "coef": 0.0011,
+   "coef": 0.0009,
    "teams_with": 2974
   },
   {
@@ -130,87 +130,99 @@
    "teams_with": 0
   },
   {
+   "role": "spread_self",
+   "label": "Field-wide (hits own partner)",
+   "coef": -0.0021,
+   "teams_with": 146
+  },
+  {
    "role": "wall",
    "label": "Bulky wall / support",
-   "coef": -0.0034,
+   "coef": -0.0066,
    "teams_with": 5134
   },
   {
    "role": "speed_tailwind",
    "label": "Tailwind (speed up)",
-   "coef": -0.0085,
+   "coef": -0.0084,
    "teams_with": 4502
   },
   {
    "role": "status_poison",
    "label": "Poison spreader",
-   "coef": -0.009,
+   "coef": -0.0098,
    "teams_with": 2333
   },
   {
    "role": "speed_trickroom",
    "label": "Trick Room setter",
-   "coef": -0.0129,
+   "coef": -0.0131,
    "teams_with": 2369
+  },
+  {
+   "role": "spread",
+   "label": "Spread attacker (both foes)",
+   "coef": -0.0197,
+   "teams_with": 7067
   },
   {
    "role": "weather",
    "label": "Weather setter",
-   "coef": -0.0216,
+   "coef": -0.0219,
    "teams_with": 14
   },
   {
    "role": "healing",
    "label": "Healing / sustain",
-   "coef": -0.0227,
+   "coef": -0.0234,
    "teams_with": 3312
   },
   {
    "role": "screens",
    "label": "Screen setter",
-   "coef": -0.0227,
+   "coef": -0.0243,
    "teams_with": 1921
   },
   {
    "role": "status_para",
    "label": "Paralysis spreader",
-   "coef": -0.0235,
+   "coef": -0.0248,
    "teams_with": 111
   },
   {
    "role": "trapping",
    "label": "Trapper",
-   "coef": -0.0284,
+   "coef": -0.0282,
    "teams_with": 574
   },
   {
    "role": "allysupport",
    "label": "Ally support / positioning",
-   "coef": -0.031,
+   "coef": -0.0311,
    "teams_with": 269
   },
   {
    "role": "pivot",
    "label": "Pivot",
-   "coef": -0.0588,
+   "coef": -0.0602,
    "teams_with": 514
   },
   {
    "role": "redirection",
    "label": "Redirection",
-   "coef": -0.0797,
+   "coef": -0.0801,
    "teams_with": 1061
   },
   {
    "role": "debuff",
    "label": "Debuff (Intimidate / drops)",
-   "coef": -0.0885,
+   "coef": -0.0889,
    "teams_with": 5669
   },
   {
    "role": "encore",
    "label": "Encore",
-   "coef": -0.0917,
+   "coef": -0.0916,
    "teams_with": 1
   }
  ],
@@ -497,10 +509,10 @@
   }
  ],
  "pooling": {
-  "role_pair_cells": 648,
-  "median_cell_n": 55,
+  "role_pair_cells": 749,
+  "median_cell_n": 57,
   "min_cell_n": 1,
-  "max_cell_n": 6774,
+  "max_cell_n": 9018,
   "note": "Old single-label playstyle cells were n=11-18; role-pair cells pool every game into many cells, so the median cell here is far larger and can reach significance."
  }
 }

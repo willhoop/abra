@@ -91,7 +91,10 @@ ROLE_SIGNALS = {
  "status_para": dict(label="Paralysis spreader",
     moves={"Thunder Wave","Nuzzle","Glare","Stun Spore","Zap Cannon","Thunder","Body Slam",
            "Discharge","Nuzzle","Dragon Breath"}),
- "status_sleep": dict(label="Sleep spreader",
+ # Freeze is functionally the same job as sleep (the target cannot act), and the store shows it is
+ # rare: 108 freeze events vs 817 sleep. But no move in Reg M-B *sets* freeze — it is a ~10% rider on
+ # Ice attacks, so tagging every Ice move as action-denial would over-credit them. Recorded, not faked.
+ "status_sleep": dict(label="Sleep spreader (action denial)",
     moves={"Sleep Powder","Spore","Hypnosis","Yawn","Sing","Lovely Kiss","Dark Void","Grass Whistle"}),
  "status_poison": dict(label="Poison spreader",
     moves={"Toxic","Poison Powder","Poison Gas","Baneful Bunker","Toxic Thread","Toxic Spikes",
@@ -154,6 +157,11 @@ ROLE_SIGNALS = {
     moves={"Earthquake","Surf","Discharge","Lava Plume","Petal Blizzard","Sludge Wave","Bulldoze",
            "Boomburst","Parabolic Charge","Magnitude","Explosion","Self-Destruct","Searing Shot",
            "Synchronoise"}),
+ "chip": dict(label="Residual / chip damage",
+    # damage that arrives without attacking: partial-trap chip, Leech Seed drain, sandstorm/hail,
+    # and fractional-HP moves. It wins long games and closes the gap for a revenge KO.
+    moves={"Leech Seed","Super Fang","Nature's Madness","Ruination","Endeavor","Salt Cure","Curse",
+           "Night Shade","Seismic Toss","Pain Split"}),
  "hazards": dict(label="Hazard setter",
     # rare in VGC (short games, few switches) but a real job where it appears. Toxic Debris sets
     # Toxic Spikes passively when the mon is hit by a physical move. Removal lives under "denial".
@@ -211,6 +219,14 @@ ROLE_OVERRIDE = {
  "U-turn":        {"pivot", "phys_attacker"},
  "Draining Kiss": {"healing", "spec_attacker"},
  "Fake Out":      {"fakeout"},                              # the flinch/tempo, NOT the tiny attack
+ # partial-trapping moves do two jobs: they pin the target AND chip it every turn (the Perish/stall
+ # pattern), so they carry the residual-damage tag as well as trapping.
+ "Infestation":   {"trapping", "chip"},
+ "Whirlpool":     {"trapping", "chip"},
+ "Fire Spin":     {"trapping", "chip"},
+ "Sand Tomb":     {"trapping", "chip"},
+ "Bind":          {"trapping", "chip"},
+ "Wrap":          {"trapping", "chip"},
 }
 
 def signal_roles(moves, ability, item):
