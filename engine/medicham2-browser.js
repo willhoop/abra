@@ -58,7 +58,17 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
   const item=(ov&&ov[name])||m.item||'';
   const mf=megaForme(item);
   const types = mf&&mf.t&&mf.t.length ? mf.t.slice() : m.t.slice();
-  const st = mf&&mf.bs ? l50(mf.bs) : {...m.st};
+  /* Swap ONLY the base stats, keeping whatever SP investment this dataset already baked into m.st.
+     Recomputing from scratch would silently drop the spread and make the mega look weaker than the
+     base form. So: work out the SP the stored line implies, then re-apply it to the mega's bases. */
+  let st = {...m.st};
+  if(mf&&mf.bs){
+    const base=l50(m.bs||{hp:0,atk:0,def:0,spa:0,spd:0,spe:0});
+    const meg =l50(mf.bs);
+    if(m.bs){ st={ hp:meg.hp+(m.st.hp-base.hp), at:meg.at+(m.st.at-base.at), df:meg.df+(m.st.df-base.df),
+                   sa:meg.sa+(m.st.sa-base.sa), sd:meg.sd+(m.st.sd-base.sd), sp:meg.sp+(m.st.sp-base.sp) }; }
+    else { st=meg; }
+  }
   return {name,types,st,item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
 
