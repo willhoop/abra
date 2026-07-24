@@ -108,7 +108,7 @@ ok(dup == 0, f"store: no duplicate ids in first {n} games ({dup} dup)")
 
 print("== 7. every engine + report file is present ==")
 engines = ["guru.py","xatu.py","pory.py","chomp_ev.js","slowking_preview.py","playstyle.js","cores.js",
-           "roles.py","war.py","nmf_roles.py","vocab.py",
+           "roles.py","war.py","nmf_roles.py","vocab.py","xatu_belief.py","counterplay.py","illusion.js",
            "validate_damage.js","medicham2-browser.js","jolteon.py","ditto.py","analyze.js","eval_policy.py",
            "durable-ingest.js","sanity_check.py","refresh-site-data.py"]
 for e in engines: ok(os.path.exists(D("engine", e)), f"engine/{e} present")
@@ -116,7 +116,7 @@ reports = ["damage-validation.json","pory-eval.json","chomp-ev.json","slowking-e
            "slowking-playstyle-eval.json","guru-matchups.json","playstyle-matchups.json","core-matchups.json",
            "policy-eval.json","winrate-backtest.json","value-net.json","meta-nash.json","meta-usage.json",
            "role-matchups.json","roles-eval.json","war.json","pokemon-roles.json",
-           "nmf-roles.json","vocab-usage.json"]
+           "nmf-roles.json","vocab-usage.json","xatu-belief.json","counterplay.json","illusion.json"]
 for r in reports: ok(os.path.exists(D("data", r)), f"data/{r} present")
 
 print("== 8. remaining models: direction + validity ==")
@@ -167,6 +167,18 @@ if nmf:
     ok(0 < nmf["archetype_recon_error"] < 1, f"NMF: archetype recon-error {nmf['archetype_recon_error']} in (0,1)")
     ok(len(nmf["archetypes"]) == nmf["archetype_rank"], f"NMF: {len(nmf['archetypes'])} archetypes == rank")
     ok(abs(sum(a["prevalence"] for a in nmf["archetypes"]) - 1) < 0.05, "NMF: archetype prevalence ~ sums to 1")
+
+print("== 10. XATU belief state: does knowing what was revealed help? ==")
+xb = load("data", "xatu-belief.json")
+if xb:
+    ce = xb["cross_entropy"]; imp = xb["improvement_over_prior"]
+    ok(ce["belief"] < ce["usage_prior"],
+       f"XATU: belief {ce['belief']} beats the usage prior {ce['usage_prior']}")
+    ok(imp["ci95_clustered_by_game"][0] > 0,
+       f"XATU: the gain clears zero, CI {imp['ci95_clustered_by_game']}")
+    w = xb["where_the_gain_comes_from"]
+    ok(w["belief_ce_on_those"] < w["usage_prior_ce_on_those"],
+       "XATU: with all four moves known, the belief state beats the prior outright")
 
 print(f"\nSANITY: {P} passed, {F} failed")
 sys.exit(1 if F else 0)

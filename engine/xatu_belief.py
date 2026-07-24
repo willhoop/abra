@@ -118,6 +118,7 @@ def build():
     events_at_cap = 0
     ce_prior_at_cap = ce_belief_at_cap = 0.0
     item_known = Counter(); ability_known = Counter()
+    per_game_delta = {}   # game id -> per-event (prior loss - belief loss), for a clustered CI
 
     for g in test:
         revealed = defaultdict(set)        # (side, species) -> moves seen so far THIS game
@@ -160,12 +161,25 @@ def build():
                     events_at_cap += 1
                     ce_prior_at_cap  += -math.log(pp)
                     ce_belief_at_cap += -math.log(pb)
+                per_game_delta.setdefault(g["id"], []).append(
+                    (-math.log(pp)) - (-math.log(pb)))   # prior loss minus belief loss, per event
                 n += 1
                 seen.add(mv)
 
         for sp, s in (g.get("sets") or {}).items():
             if s.get("item"): item_known[sp] += 1
             if s.get("ability"): ability_known[sp] += 1
+
+    # Clustered bootstrap over GAMES (events inside a game are correlated, so resampling events
+    # would understate the uncertainty). Positive delta = belief is better than the prior.
+    import numpy as _np
+    gids = list(per_game_delta)
+    game_mean = _np.array([_np.mean(per_game_delta[g]) for g in gids]) if gids else _np.array([0.0])
+    rs = _np.random.default_rng(13)
+    idx = rs.integers(0, len(game_mean), size=(2000, len(game_mean)))
+    boot = _np.sort(game_mean[idx].mean(axis=1))
+    delta_mean = float(game_mean.mean())
+    delta_ci = (round(float(boot[int(.025*len(boot))]), 4), round(float(boot[int(.975*len(boot))]), 4))
 
     out = dict(
         generated=__import__("datetime").date.today().isoformat(),
@@ -190,6 +204,14 @@ def build():
             note=("Once four moves are revealed the move set is CLOSED. The usage prior keeps "
                   "assigning probability to moves that are now impossible; the belief state does not. "
                   "This is where a usage table is not merely imprecise but wrong."),
+        ),
+        improvement_over_prior=dict(
+            mean_log_loss_reduction=round(delta_mean, 4),
+            ci95_clustered_by_game=delta_ci,
+            significant=bool(delta_ci[0] > 0),
+            reading=("Positive means the belief state predicts the opponent's next move better than "
+                     "the usage prior. Clustered by game because events within one game are not "
+                     "independent. If the interval includes zero, the gain is not established."),
         ),
         method=("Prior fitted on train games only. Belief uses strictly earlier turns of the same "
                 "held-out game. Cross-entropy is a proper score; lower is better."),

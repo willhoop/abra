@@ -23,6 +23,15 @@
   "belief_ce_on_those": 1.6951,
   "note": "Once four moves are revealed the move set is CLOSED. The usage prior keeps assigning probability to moves that are now impossible; the belief state does not. This is where a usage table is not merely imprecise but wrong."
  },
+ "improvement_over_prior": {
+  "mean_log_loss_reduction": 0.0282,
+  "ci95_clustered_by_game": [
+   0.024,
+   0.0313
+  ],
+  "significant": true,
+  "reading": "Positive means the belief state predicts the opponent's next move better than the usage prior. Clustered by game because events within one game are not independent. If the interval includes zero, the gain is not established."
+ },
  "method": "Prior fitted on train games only. Belief uses strictly earlier turns of the same held-out game. Cross-entropy is a proper score; lower is better.",
  "scope": "Models the MOVE slot. Items and abilities are unknown-until-proven too and are tracked as possibility sets elsewhere; EVs never collapse to a value (only to an interval) and need a separate estimator."
 }
