@@ -1,0 +1,1 @@
+window.SLOWKING={"archetypes":["Charizard-Venusaur","Garchomp-Charizard","Garchomp-Incineroar","Incineroar-Kingambit","Kingambit-Basculegion","Other","Pelipper-Archaludon","Raichu-Sneasler","Rain","Sand","Trick Room","Whimsicott-Garchomp","Whimsicott-Staraptor"],"weights":[0.0,0.0,0.1559,0.0,0.8441,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"exploitability":0.0};

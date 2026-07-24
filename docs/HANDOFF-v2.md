@@ -36,7 +36,8 @@ Kept / roles:
 1. ✅ MEDICHAM damage. 2. ✅ GURU + XATU + **PORY**.
 3. ✅ **CHOMP-EV proof** — ran the winnable test (`engine/chomp_ev.js` → `data/chomp-ev.json`). Result: honest **NULL** — CHOMP's bring ranking ties a coin/Elo/usage prior on held-out games; robust to forfeits + selection-audited. Damage stays validated; the bring *selection* is at the format ceiling. Test + CI: `tests/test-chomp-ev.js`.
 4. ✅ Wired **PORY's live win%** into KADABRA (per-turn "you're at X%" chip; `poryWin()` in `web/index.html`).
-5. **NEXT: SLOWKING preview-Nash** → then DITTO/PSRO team-builder → **ALAKAZAM** (assemble PORY value + XATU belief + MEDICHAM damage with KL-anchored search). *Note:* a belief-aware bring value (XATU + SLOWKING lead stage-game + PORY leaf) is the credible path to a CHOMP bring edge — re-run `chomp_ev.js` after to measure the lift over the null.
+5. ✅ **SLOWKING preview-Nash** — built on GURU's real matchup matrix (`engine/slowking_preview.py` → `data/slowking-eval.json`). Equilibrium mix 0.84/0.16; exploitability Nash≈0 vs uniform 0.109; meta near-transitive at the archetype level (greedy≈Nash) but a real 3-cycle exists. Test + CI: `tests/test-slowking.py`.
+6. **NEXT: refine SLOWKING to playstyle/set level** (stall / Trick Room / perish-trap / setup archetypes + XATU belief over the opponent's six) to expose the non-transitive cycles greedy can't see; then DITTO/PSRO team-builder → **ALAKAZAM** (assemble PORY value + XATU belief + MEDICHAM damage with KL-anchored search). *Also:* a belief-aware bring value (XATU + SLOWKING lead stage-game + PORY leaf) is the credible path to a CHOMP bring edge — re-run `chomp_ev.js` after to measure the lift over the null.
 
 ## Hard constraints (honor these)
 - **Compute:** CPU only, no GPU. Keep models small/CPU-trainable. **Inference:** tiny in-browser JSON (like `live.js`), no build step. **Data:** real human replays first (Bo1 closed).

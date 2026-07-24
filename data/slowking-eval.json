@@ -1,0 +1,48 @@
+{
+  "generated": "engine/slowking_preview.py \u2014 team-preview Nash over GURU's real matchup matrix",
+  "source_matrix": "data/guru-matchups.json",
+  "n_games": 5199,
+  "n_archetypes": 13,
+  "equilibrium_mixture": [
+    {
+      "archetype": "Kingambit-Basculegion",
+      "weight": 0.8441
+    },
+    {
+      "archetype": "Garchomp-Incineroar",
+      "weight": 0.1559
+    }
+  ],
+  "game_value": -0.0,
+  "top_nontransitive_cycle": {
+    "cycle": [
+      "Charizard-Venusaur",
+      "Whimsicott-Garchomp",
+      "Garchomp-Incineroar"
+    ],
+    "min_edge": 0.1
+  },
+  "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE meta (a clear top dog). Where a rock-paper-scissors cycle exists \u2014 the min_edge above is positive \u2014 every deck has a counter, so the unexploitable play is a MIXED strategy (this equilibrium), not one deck. Stall, Trick Room, perish-trap and setup are exactly such counter-classes; how visible the cycle is depends on archetype granularity (see notes).",
+  "exploitability": {
+    "what": "Worst-case win-edge a best pure counter extracts (win-fraction units; lower is better; Nash ~ 0).",
+    "nash": 0.0,
+    "nash_ci95": [
+      0.0001,
+      0.004
+    ],
+    "greedy_single_deck": -0.0,
+    "uniform": 0.1091,
+    "greedy_minus_nash": -0.0,
+    "greedy_minus_nash_ci95": [
+      -0.0002,
+      0.2698
+    ]
+  },
+  "verdict": "No significant exploitability gap between Nash and greedy \u2014 this meta is close to transitive at the archetype level, so mixing buys little here. Honest, and worth stating.",
+  "what_this_does_NOT_prove": [
+    "NOT a game-winner predictor: exploitability grades the preview DECISION, not who wins a match (GURU's own predictive_test shows per-game prediction ties a coin here).",
+    "Archetype-level, not set-level: the matrix is 13 discovered archetypes, not exact teams/sets; a belief over the opponent's real six (XATU) is the documented next refinement.",
+    "Matrix cells vary in support (n): sparse matchups default to a coin (0 edge); the CI propagates that uncertainty but cannot invent data for unseen pairings.",
+    "Antisymmetric idealisation: p(i>j)+p(j>i) need not sum to 1 in finite samples; we symmetrise, which is a modelling choice, not a measured fact."
+  ]
+}

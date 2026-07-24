@@ -33,3 +33,5 @@ jobs:
         run: python tests/test-jolteon.py
       - name: MEDICHAM policy validation (behaviour-clone vs held-out human moves)
         run: python engine/eval_policy.py
+      - name: SLOWKING preview-Nash (regenerate + invariant test)
+        run: python engine/slowking_preview.py && python tests/test-slowking.py
