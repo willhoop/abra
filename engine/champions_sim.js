@@ -91,24 +91,37 @@ function packTeam(species, setsBySpecies) {
     const known = (setsBySpecies && setsBySpecies[name]) || {};
     let moves = (known.moves || []).slice(0, 4);
     if (moves.length < 4) {
-      // fill from the species' own learnset, deterministically, so runs are reproducible
-      const learn = dex.species.getLearnsetData(sp.id);
-      const pool = learn && learn.learnset ? Object.keys(learn.learnset) : [];
-      for (const mv of pool) {
+      /* Fill from the SAME set source the hand-written engine uses (MC.mons[].mv, built by
+       * build/medicham-embed.js from the observed-usage priors), not from the raw learnset.
+       *
+       * An earlier version filled alphabetically from the learnset and gave Charizard
+       * "Acrobatics, Aerial Ace, Air Cutter, Air Slash". Comparing the two engines on THAT produced a
+       * 32-point mean difference which was almost entirely an artifact of the filler, not a finding
+       * about either engine. Only 1.6 of 4 moves are actually revealed per set in a replay, so what
+       * fills the other 2.4 dominates the result. Both engines must be given identical teams or the
+       * comparison measures nothing. */
+      const MC = (typeof globalThis !== 'undefined' && globalThis.MC) || null;
+      const key = String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+      const fallback = (MC && MC.mons[key] && MC.mons[key].mv) || [];
+      for (const mv of fallback) {
         if (moves.length >= 4) break;
         const m = dex.moves.get(mv);
-        if (!m || !m.exists || m.category === 'Status') continue;
+        if (!m || !m.exists) continue;
         if (moves.some(x => dex.moves.get(x).id === m.id)) continue;
         moves.push(m.name);
       }
-      filled.push(`${name}: moves`);
+      filled.push(`${name}: ${4 - moves.length > 0 ? 'moves(partial)' : 'moves'}`);
     }
     if (!moves.length) moves = ['Tackle'];
-    const ability = known.ability || (sp.abilities && sp.abilities['0']) || '';
+    // item and ability likewise come from the shared set source before falling back to the dex
+    const MCm = (typeof globalThis !== 'undefined' && globalThis.MC) || null;
+    const mk = String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const shared = (MCm && MCm.mons[mk]) || {};
+    const ability = known.ability || shared.ab || (sp.abilities && sp.abilities['0']) || '';
     if (!known.ability) filled.push(`${name}: ability`);
     team.push({
       name: sp.name, species: sp.name,
-      item: known.item || '',
+      item: known.item || shared.item || '',
       ability,
       moves,
       nature: known.nature || 'Hardy',

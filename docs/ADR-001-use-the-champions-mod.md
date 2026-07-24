@@ -125,18 +125,40 @@ request time, something that does not change between requests.
   the data was collected, so format versioning has to be handled explicitly.
 - Depending on an unreleased branch means pinning a commit, not a version number.
 
+## Validation status (2026-07-24, honest)
+
+`engine/champions_sim.js` runs the official simulator on the real format. Comparing it to the
+hand-written engine on 8 real clean matchups is **not yet a valid test**, and two successive attempts
+were wrong in instructive ways:
+
+| Attempt | Mean difference | Why it did not measure what it claimed |
+|---|---|---|
+| 1. Teams filled from the raw learnset | 32.2 points | The filler gave Charizard *Acrobatics, Aerial Ace, Air Cutter, Air Slash*. Only **1.6 of 4 moves** are revealed per set in a replay, 68% have no item and 76% no ability, so the filler dominated the result. |
+| 2. Teams filled from the shared set source | 23.7 points | Both engines now run identical teams, but different **policies**: ours uses behaviour-cloned move priors plus heuristics, the simulator uses `RandomPlayerAI`. The gap mixes rule differences with a large difference in play quality. |
+
+Neither number should be quoted as "our engine is wrong by N points". The remaining confound is the
+policy, and removing it is the next task: implement the existing prior-sampling policy as a Showdown
+`BattlePlayer` subclass so both engines make decisions the same way. Only then does a residual
+difference isolate the rules, which is the quantity this ADR is actually about.
+
+This is recorded rather than quietly re-run because the first two numbers were nearly reported as
+findings. An engine comparison is only as good as the thing held constant, and it took two attempts
+to hold enough constant.
+
 ## Migration, in order
 
 1. Pin the Showdown master commit; vendor `data/mods/champions/` with provenance (**S4**).
-2. Run the existing 31-scenario damage golden master against the simulator. If it disagrees with
+2. **Port the policy.** Implement the prior-sampling policy as a Showdown `BattlePlayer` so both
+   engines decide identically. Without this, no engine comparison is interpretable (see above).
+3. Run the existing 31-scenario damage golden master against the simulator. If it disagrees with
    `@smogon/calc`, resolve that before going further.
-3. ~~Benchmark~~ **done**: 29 vs 3,401 battles/sec/core. Architecture is precompute-offline.
-4. Build the offline job: official simulator produces the matchup table for the archetypes the site
+4. ~~Benchmark~~ **done**: 29 vs 3,401 battles/sec/core. Architecture is precompute-offline.
+5. Build the offline job: official simulator produces the matchup table for the archetypes the site
    shows. Runs on a data refresh, not per request.
-5. Ship the table. `medicham2-browser.js` becomes a lookup with the current engine as fallback only
+6. Ship the table. `medicham2-browser.js` becomes a lookup with the current engine as fallback only
    for matchups outside the table.
-6. Keep the contract test, re-pointed: the fallback engine must agree with the simulator.
-7. Retire the hand-maintained tables (`ACC`, `SPREAD`, `MEGA_ABIL`, `PRIO_CONDITIONAL`).
+7. Keep the contract test, re-pointed: the fallback engine must agree with the simulator.
+8. Retire the hand-maintained tables (`ACC`, `SPREAD`, `MEGA_ABIL`, `PRIO_CONDITIONAL`).
 
 ## Alternative considered
 
