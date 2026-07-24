@@ -1,0 +1,78 @@
+{
+ "generated": "2026-07-24",
+ "n_games": 7315,
+ "n_train": 5801,
+ "n_test": 1514,
+ "n_first_reveals": 10237,
+ "question": "At team preview nothing has been revealed, so a belief STATE is just the prior. But the other five Pokemon are public. Does knowing them improve the prediction of this one's set?",
+ "context_features": [
+  "weather_rain",
+  "weather_sun",
+  "weather_sand",
+  "weather_snow",
+  "speed_trickroom",
+  "speed_tailwind",
+  "redirection"
+ ],
+ "shrinkage_K": 12.0,
+ "cross_entropy": {
+  "usage_prior": 2.5257,
+  "team_context": 2.4415
+ },
+ "top1_accuracy": {
+  "usage_prior": 0.4091,
+  "team_context": 0.4302
+ },
+ "improvement": {
+  "mean_log_loss_reduction": 0.0841,
+  "ci95_clustered_by_game": [
+   0.0741,
+   0.0938
+  ],
+  "significant": true,
+  "reading": "Positive means teammates carry information about a set before anything is revealed. If the interval includes zero, team context does not help at preview and CHOMP cannot use it."
+ },
+ "most_common_contexts": [
+  {
+   "context": "speed_tailwind",
+   "n": 2619
+  },
+  {
+   "context": "none",
+   "n": 886
+  },
+  {
+   "context": "speed_trickroom|speed_tailwind|redirection",
+   "n": 662
+  },
+  {
+   "context": "speed_trickroom|redirection",
+   "n": 630
+  },
+  {
+   "context": "weather_rain|speed_tailwind",
+   "n": 629
+  },
+  {
+   "context": "speed_tailwind|redirection",
+   "n": 572
+  },
+  {
+   "context": "weather_rain|speed_trickroom|speed_tailwind|redirection",
+   "n": 423
+  },
+  {
+   "context": "speed_trickroom",
+   "n": 376
+  },
+  {
+   "context": "weather_rain|speed_tailwind|redirection",
+   "n": 359
+  },
+  {
+   "context": "weather_sand|speed_trickroom|speed_tailwind|redirection",
+   "n": 339
+  }
+ ],
+ "method": "Fitted on train games only; scored on each Pokemon's FIRST revealed move in held-out games. Context cells are shrunk toward the species prior by n/(n+K), so a thin context cannot manufacture a signal."
+}
