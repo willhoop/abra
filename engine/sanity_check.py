@@ -92,25 +92,19 @@ if skpj and skp:
     site_top = skpj["mixture"][0]["archetype"]; rep_top = skp["equilibrium_mixture"][0]["archetype"]
     ok(site_top == rep_top, f"site mixture top ({site_top}) == report top ({rep_top})")
 
-print("== 6. store integrity (sample) ==")
-seen, dup, n = set(), 0, 0
-with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
-    for i, line in enumerate(fh):
-        if i >= 5000: break
-        line = line.strip()
-        if not line: continue
-        try: g = json.loads(line)
-        except: ok(False, f"store line {i} bad JSON"); break
-        n += 1
-        if g["id"] in seen: dup += 1
-        seen.add(g["id"])
-ok(dup == 0, f"store: no duplicate ids in first {n} games ({dup} dup)")
+print("== 6. store integrity ==")
+# This check used to read only the FIRST 5000 lines and reported "no duplicate ids" on that sample.
+# It passed while the store held 401 duplicates, all of them past line 7144, because duplicates enter
+# at the END of an append-only file - which is precisely the region a head-sample cannot see. The
+# check now shares the full-file pass below. Sampling the front of an append-only log is not a
+# weaker check, it is a check aimed away from where the fault occurs.
 
 # --- S7: the store has a SHAPE, and it is tested ------------------------------------------------
 # A parser change that breaks these must fail here, immediately. Recording mega evolution once added
 # the mega forme to `brought`, so a Pokemon that megad counted twice; `brought` became 5 in ~4,700
 # games and CHOMP-EV's eval set silently collapsed from ~1,200 games to 43. Nothing caught it.
 _bad_subset = _bad_lead = _bad_winner = _missing = 0
+_seen_ids, _dup_ids, _bad_json = set(), 0, 0
 _brought_len = {}
 _total = 0
 with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
@@ -118,8 +112,10 @@ with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
         line = line.strip()
         if not line: continue
         try: g = json.loads(line)
-        except: continue
+        except: _bad_json += 1; continue
         _total += 1
+        if g.get("id") in _seen_ids: _dup_ids += 1
+        _seen_ids.add(g.get("id"))
         for _f in ("id","date","format","p1","p2","six","brought","lead","sets","turns"):
             if _f not in g: _missing += 1
         for _s in ("p1","p2"):
@@ -131,6 +127,8 @@ with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
             if not set(ld) <= set(br): _bad_lead += 1
         w = g.get("winner")
         if w and w not in (g["p1"].get("name"), g["p2"].get("name")): _bad_winner += 1
+ok(_dup_ids == 0,    f"store: no duplicate ids across ALL {_total} lines ({_dup_ids} dup, {len(_seen_ids)} unique)")
+ok(_bad_json == 0,   f"store: every line parses as JSON ({_bad_json} bad)")
 ok(_bad_subset == 0, f"store shape: every `brought` is a subset of `six` ({_bad_subset} bad of {_total} games)")
 ok(_bad_lead == 0,   f"store shape: every `lead` is a subset of `brought` ({_bad_lead} bad)")
 ok(_bad_winner == 0, f"store shape: the winner is always one of the two players ({_bad_winner} bad)")
