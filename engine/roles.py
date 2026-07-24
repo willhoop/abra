@@ -63,7 +63,9 @@ ROLE_SIGNALS = {
     # the counter-role: these shut off what the other team built. Cloud Nine and Air Lock suspend
     # weather entirely while the mon is out; Neutralizing Gas turns abilities off; Magic Bounce and
     # Good as Gold refuse status; Mirror Armor reflects stat drops back at an Intimidate lead.
-    moves={"Defog","Haze","Clear Smog","Brick Break","Psychic Fangs","Rapid Spin"},
+    # screen/hazard breakers sit here too — Brick Break and Psychic Fangs shatter Light Screen and
+    # Reflect (and they are physical attacks, so they carry that tag as well via the override table).
+    moves={"Defog","Haze","Clear Smog","Rapid Spin","Court Change","Mortal Spin","Tidy Up"},
     abilities={"Cloud Nine","Air Lock","Neutralizing Gas","Magic Bounce","Good as Gold",
                "Mirror Armor","Clear Body","White Smoke","Full Metal Body"}),
  "field_abuser": dict(label="Weather / field abuser",
@@ -74,8 +76,9 @@ ROLE_SIGNALS = {
                "Dry Skin","Sand Veil","Snow Cloak"}),
  "taunt": dict(label="Taunt",
     moves={"Taunt"}),
- "encore": dict(label="Encore",
-    moves={"Encore"}),
+ "encore": dict(label="Move-lock (Encore / Disable)",
+    # same disruption family as Taunt: it takes an option away rather than dealing damage.
+    moves={"Encore","Disable","Torment","Imprison"}),
  "priority": dict(label="Priority attacker",
     moves={"Aqua Jet","Sucker Punch","Quick Attack","Extreme Speed","Bullet Punch","Ice Shard",
            "Shadow Sneak","Grassy Glide","Jet Punch","Mach Punch","Vacuum Wave","Water Shuriken",
@@ -100,7 +103,7 @@ ROLE_SIGNALS = {
     moves={"Toxic","Poison Powder","Poison Gas","Baneful Bunker","Toxic Thread","Toxic Spikes",
            "Gunk Shot","Sludge Bomb","Poison Jab","Cross Poison","Dire Claw"}),
  "status": dict(label="Status spreader (other)",
-    moves={"Confuse Ray","Swagger","Flatter","Attract","Leech Seed","Curse","Torment","Disable"}),
+    moves={"Confuse Ray","Swagger","Flatter","Attract","Teeter Dance"}),
  "debuff": dict(label="Debuff (Intimidate / drops)",
     moves={"Parting Shot","Charm","Snarl","Struggle Bug","Fake Tears","Screech","Tickle","Baby-Doll Eyes",
            "Feather Dance","Growl","Play Nice","Captivate","Noble Roar","Tearful Look","Spirit Break","Lunge",
@@ -158,10 +161,22 @@ ROLE_SIGNALS = {
            "Boomburst","Parabolic Charge","Magnitude","Explosion","Self-Destruct","Searing Shot",
            "Synchronoise"}),
  "chip": dict(label="Residual / chip damage",
-    # damage that arrives without attacking: partial-trap chip, Leech Seed drain, sandstorm/hail,
-    # and fractional-HP moves. It wins long games and closes the gap for a revenge KO.
-    moves={"Leech Seed","Super Fang","Nature's Madness","Ruination","Endeavor","Salt Cure","Curse",
-           "Night Shade","Seismic Toss","Pain Split"}),
+    # damage that arrives every turn without attacking again — partial-trap chip, Leech Seed drain,
+    # Salt Cure, Curse. Wins long games and closes the gap for a revenge KO.
+    moves={"Leech Seed","Salt Cure","Curse","Infestation","Whirlpool","Fire Spin","Sand Tomb"}),
+ "multihit": dict(label="Multi-hit (breaks Sash / Sturdy)",
+    # strikes 2-5 times, so it goes through Focus Sash, Sturdy, Substitute, Disguise and Multiscale
+    # in a single turn. A deliberate answer to those techs, not just extra damage.
+    moves={"Rock Blast","Bullet Seed","Icicle Spear","Pin Missile","Tail Slap","Bone Rush",
+           "Triple Axel","Population Bomb","Surging Strikes","Water Shuriken","Arm Thrust",
+           "Double Hit","Dual Wingbeat","Twin Beam","Scale Shot","Fury Attack","Comet Punch",
+           "Barrage","Double Iron Bash","Dragon Darts","Bonemerang","Twineedle"}),
+ "fixed_damage": dict(label="Fixed / fractional damage",
+    # ignores Attack, defence and the type chart: Super Fang and Ruination always take half, Seismic
+    # Toss and Night Shade deal level damage, Endeavor levels the HP. A different mechanism from
+    # attacking, and the reason a wall is not safe from them.
+    moves={"Super Fang","Nature's Madness","Ruination","Endeavor","Seismic Toss","Night Shade",
+           "Final Gambit","Dragon Rage","Sonic Boom","Guardian of Alola"}),
  "hazards": dict(label="Hazard setter",
     # rare in VGC (short games, few switches) but a real job where it appears. Toxic Debris sets
     # Toxic Spikes passively when the mon is hit by a physical move. Removal lives under "denial".
@@ -189,7 +204,15 @@ PHYS = {"Rock Slide","Wave Crash","Earthquake","Close Combat","Last Respects","S
     "Accelerock","First Impression","Liquidation","Crunch","Gunk Shot","Zen Headbutt","Poison Jab",
     "Drain Punch","Horn Leech","Leech Life","Wood Hammer","Bitter Blade","Ivy Cudgel","Collision Course",
     "Foul Play","Darkest Lariat","Spirit Break","Gigaton Hammer","Surging Strikes","Ceaseless Edge",
-    "Icicle Crash","Stone Edge","Body Slam","Waterfall","Play Rough","Fishious Rend","Bolt Strike"}
+    "Icicle Crash","Stone Edge","Body Slam","Waterfall","Play Rough","Fishious Rend","Bolt Strike",
+    # plain physical attacks with no other job — tagged so they are not left uncategorised
+    "Rock Blast","Low Kick","Rage Fist","Superpower","Last Resort","Phantom Force","Sacred Sword",
+    "Poltergeist","Psycho Cut","Double-Edge","Volt Tackle","Heavy Slam","Leaf Blade","Acrobatics",
+    "Flower Trick","Trop Kick","Meteor Mash","Feint","Aqua Tail","Iron Tail","Wild Charge","Bounce",
+    "Aerial Ace","Night Slash","Cross Chop","Hammer Arm","Thunder Punch","Fire Punch","Bite","Slash",
+    "Smart Strike","Steel Wing","Payback","Revenge","Avalanche","Head Smash","Take Down","Giga Impact",
+    "Outrage","Dragon Rush","Seed Bomb","Power Whip","X-Scissor","Megahorn","Shadow Claw","Zing Zap",
+    "Storm Throw","Retaliate","Triple Axel","Pin Missile","Icicle Spear","Bullet Seed","Scale Shot"}
 SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurricane","Electro Shot",
     "Dragon Pulse","Psychic","Matcha Gotcha","Sludge Bomb","Earth Power","Dazzling Gleam","Flash Cannon",
     "Make It Rain","Thunderbolt","Eruption","Solar Beam","Blizzard","Hyper Beam","Giga Drain","Draining Kiss",
@@ -198,7 +221,12 @@ SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurr
     "Volt Switch","Parabolic Charge","Pollen Puff","Moonlight","Freeze-Dry","Meteor Beam","Terrain Pulse",
     "Hydro Pump","Draco Meteor","Fire Blast","Thunderbolt","Focus Blast","Sludge Bomb","Aura Sphere",
     "Hex","Tera Blast","Boomburst","Apple Acid","Fickle Beam","Luster Purge","Mystical Fire",
-    "Matcha Gotcha"}   # Matcha Gotcha: special attacker AND healing (also in the healing set) — multi-role
+    "Matcha Gotcha",
+    # plain special attacks with no other job
+    "Power Gem","Light of Ruin","Flamethrower","Twin Beam","Ancient Power","Rising Voltage",
+    "Water Pulse","Round","Grass Knot","Clanging Scales","Stored Power","Venoshock","Psyshock",
+    "Future Sight","Psychic Noise","Steel Beam","Aurora Beam","Echoed Voice","Twister","Core Enforcer",
+    "Shadow Ball","Snipe Shot","Chloroblast","Blood Moon","Torch Song","Alluring Voice"}   # Matcha Gotcha: special attacker AND healing (also in the healing set) — multi-role
 
 # Multi-role membership for moves that do several jobs at once: {move: set(roles)}.
 # These sets are FACTUAL (a move's actual in-game effects), not weighted — Matcha Gotcha genuinely
@@ -218,9 +246,13 @@ ROLE_OVERRIDE = {
  "Volt Switch":   {"pivot", "spec_attacker"},
  "U-turn":        {"pivot", "phys_attacker"},
  "Draining Kiss": {"healing", "spec_attacker"},
+ "Leech Seed":    {"healing", "chip"},                      # drains the foe INTO your own HP
+ "Stockpile":     {"setup"},                                # raises both defences (and fuels Swallow)
  "Fake Out":      {"fakeout"},                              # the flinch/tempo, NOT the tiny attack
  # partial-trapping moves do two jobs: they pin the target AND chip it every turn (the Perish/stall
  # pattern), so they carry the residual-damage tag as well as trapping.
+ "Psychic Fangs": {"phys_attacker", "denial"},              # physical AND it breaks both screens
+ "Brick Break":   {"phys_attacker", "denial"},              # same job, Fighting side
  "Infestation":   {"trapping", "chip"},
  "Whirlpool":     {"trapping", "chip"},
  "Fire Spin":     {"trapping", "chip"},
