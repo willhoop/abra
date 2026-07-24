@@ -128,6 +128,9 @@ function alignOf(six, br, scoreFn) {
 // score functions
 const chompScore = (foeBuilt) => (ix, built) => { try { return M.teamVs(ix.map(i => built[i]), foeBuilt).score; } catch (e) { return -1e9; } };
 const usageScore = (six) => (ix) => ix.reduce((s, i) => s + (bringRate[six[i]] || 0), 0);
+// belief proxy: the opponent's LIKELY bring = their 4 highest-bringRate mons (not all 6).
+// Scoring coverage vs the likely-4 tests whether a belief-aware CHOMP beats the all-6 null.
+const likely4 = six => six.map((sp, i) => [i, bringRate[sp] || 0]).sort((a, b) => b[1] - a[1]).slice(0, 4).map(x => x[0]);
 
 // ---- compute per-game features ---------------------------------------------------------------
 const data = [];
@@ -140,9 +143,14 @@ for (const r of rows) {
   if (!c1 || !c2) { skipped++; continue; }
   const u1 = alignOf(r.six1, r.br1, usageScore(r.six1));
   const u2 = alignOf(r.six2, r.br2, usageScore(r.six2));
+  // belief-weighted: score each of MY brings vs the OPPONENT's likely-4 (their top bringRate mons)
+  const Bl = likely4(r.six2).map(i => B[i]), Al = likely4(r.six1).map(i => A[i]);
+  const b1 = alignOf(r.six1, r.br1, chompScore(Bl));
+  const b2 = alignOf(r.six2, r.br2, chompScore(Al));
   data.push({ id: r.id, y: r.y, r1: r.r1, r2: r.r2, ff: ffset.has(r.id),
     a1: c1.align, a2: c2.align, top1_1: c1.top1, top1_2: c2.top1, ov1: c1.overlap, ov2: c2.overlap,
-    ua1: u1 ? u1.align : 0.5, ua2: u2 ? u2.align : 0.5 });
+    ua1: u1 ? u1.align : 0.5, ua2: u2 ? u2.align : 0.5,
+    ba1: b1 ? b1.align : 0.5, ba2: b2 ? b2.align : 0.5 });
   if (data.length % 200 === 0) process.stderr.write(`  ${data.length}/${rows.length} (${((Date.now() - t0) / 1000).toFixed(0)}s)\n`);
 }
 
@@ -171,18 +179,21 @@ function r2ok(x) { return x; }
 const medRating = trRatings.length ? trRatings[Math.floor(trRatings.length / 2)] : 1200;
 const rat = x => (x == null ? medRating : x);
 
-const featChomp = r => r.a1 - r.a2;
-const featUsage = r => r.ua1 - r.ua2;
-const featElo   = r => (rat(r.r1) - rat(r.r2)) / 400;
+const featChomp  = r => r.a1 - r.a2;
+const featUsage  = r => r.ua1 - r.ua2;
+const featElo    = r => (rat(r.r1) - rat(r.r2)) / 400;
+const featBelief = r => r.ba1 - r.ba2;   // belief-weighted CHOMP (coverage vs opponent's likely-4)
 
 const ys_te = te.map(r => r.y);
-const mChomp = fitLogit(tr, featChomp);
-const mUsage = fitLogit(tr, featUsage);
-const mElo   = fitLogit(tr, featElo);
-const pChomp = te.map(predLogit(mChomp, featChomp));
-const pUsage = te.map(predLogit(mUsage, featUsage));
-const pElo   = te.map(predLogit(mElo, featElo));
-const pCoin  = te.map(() => 0.5);
+const mChomp  = fitLogit(tr, featChomp);
+const mUsage  = fitLogit(tr, featUsage);
+const mElo    = fitLogit(tr, featElo);
+const mBelief = fitLogit(tr, featBelief);
+const pChomp  = te.map(predLogit(mChomp, featChomp));
+const pUsage  = te.map(predLogit(mUsage, featUsage));
+const pElo    = te.map(predLogit(mElo, featElo));
+const pBelief = te.map(predLogit(mBelief, featBelief));
+const pCoin   = te.map(() => 0.5);
 
 // ---- clustered bootstrap over games (each game = 1 row -> resample games) ---------------------
 function bootLL(ps, ys, B = 2000) {
@@ -263,10 +274,12 @@ const out = {
   proper_score_logloss: {
     what: 'Held-out P(p1 win)=sigma(a+b*(align1-align2)); lower is better. Cluster/bootstrap over games.',
     chomp_align: chompLL, chomp_align_ci95: bootLL(pChomp, ys_te),
+    chomp_belief_weighted: round(ll(pBelief, ys_te), 4), chomp_belief_ci95: bootLL(pBelief, ys_te),
     coin: coinLL,
     elo_rating: round(ll(pElo, ys_te), 4),
     usage_prior: round(ll(pUsage, ys_te), 4)
   },
+  belief_variant_note: "chomp_belief_weighted scores each bring's coverage vs the OPPONENT'S LIKELY 4 (their top-bringRate mons), a cheap belief proxy, instead of all 6. Tests whether belief-awareness beats the all-6 null before investing in full XATU-set belief.",
   brier: { chomp_align: round(brier(pChomp, ys_te), 4), coin: 0.25,
            elo_rating: round(brier(pElo, ys_te), 4), usage_prior: round(brier(pUsage, ys_te), 4) },
   logistic_weights: { chomp: { a: round(mChomp.a, 4), b: round(mChomp.b, 4) },
