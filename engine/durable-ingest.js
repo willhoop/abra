@@ -56,6 +56,7 @@ function extract(id, uploadtime, text){
   const hp={};             // 'p1a' -> current HP % (0..100)
   const turns=[];          // per-turn event stream
   let cur=null, lastMove=null, winner=null, forfeit=false;
+  const sheets={p1:null,p2:null};   // open team sheets, when the format declares them
   const touch=sp=>sets[sp]=sets[sp]||{moves:new Set(),item:null,ability:null};
   const flush=()=>{ if(cur&&cur.ev.length) turns.push(cur); };
   for(const l of text.split('\n')){ let m;
@@ -135,6 +136,23 @@ function extract(id, uploadtime, text){
       if(cur) cur.ev.push({t:'fs',field:m[1].trim()});
     }
     else if(m=l.match(/^\|-status\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ if(cur) cur.ev.push({t:'x',s:m[1],mon:slotSp[m[1]],st:m[3].trim()}); }
+    /* ---- OPEN TEAM SHEETS (Bo3 / tournament format) --------------------------------------
+       |showteam|p1|Gengar||Gengarite|CursedBody|ShadowBall,PerishSong,...|Timid||F|||50|]Swampert|...
+       This line declares the FULL set of all six: item, ability, every move, nature, level. It is
+       the whole hidden-information problem removed - a perfect-information game. We were detecting
+       these lines only to set the openSheet flag and then discarding the sets themselves, so 1,624
+       stored Bo3 games showed almost no revealed movesets. Now captured into `sheets`. */
+    else if(m=l.match(/^\|showteam\|(p[12])\|(.*)$/)){
+      const side=m[1];
+      sheets[side]=m[2].split(']').map(entry=>{
+        const f=entry.split('|');
+        return { species:norm(f[0]||''), nickname:(f[1]||'')||null, item:(f[2]||'')||null,
+                 ability:(f[3]||'')||null,
+                 moves:(f[4]||'').split(',').filter(Boolean),
+                 nature:(f[5]||'')||null, evs:(f[6]||'')||null, gender:(f[7]||'')||null,
+                 level:+(f[10]||f[11]||50)||50 };
+      }).filter(x=>x.species);
+    }
     else if(m=l.match(/^\|win\|(.*)/)) winner=m[1].trim();
     // a forfeit means the winner did not necessarily win on the merits - a quality signal that
     // several models want, and reading it here saves every one of them re-opening the raw logs
@@ -150,7 +168,7 @@ function extract(id, uploadtime, text){
            : 'other';
   return { id, date:new Date(uploadtime*1000).toISOString().slice(0,16).replace('T',' '),
     format:fmt, openSheet,
-    p1:P.p1, p2:P.p2, winner:winner||null, forfeit,
+    p1:P.p1, p2:P.p2, winner:winner||null, forfeit, sheets,
     six:{p1:[...new Set(poke.p1)],p2:[...new Set(poke.p2)]},
     brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, turns };
 }

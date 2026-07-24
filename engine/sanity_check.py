@@ -106,6 +106,37 @@ with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
         seen.add(g["id"])
 ok(dup == 0, f"store: no duplicate ids in first {n} games ({dup} dup)")
 
+# --- S7: the store has a SHAPE, and it is tested ------------------------------------------------
+# A parser change that breaks these must fail here, immediately. Recording mega evolution once added
+# the mega forme to `brought`, so a Pokemon that megad counted twice; `brought` became 5 in ~4,700
+# games and CHOMP-EV's eval set silently collapsed from ~1,200 games to 43. Nothing caught it.
+_bad_subset = _bad_lead = _bad_winner = _missing = 0
+_brought_len = {}
+_total = 0
+with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
+    for line in fh:
+        line = line.strip()
+        if not line: continue
+        try: g = json.loads(line)
+        except: continue
+        _total += 1
+        for _f in ("id","date","format","p1","p2","six","brought","lead","sets","turns"):
+            if _f not in g: _missing += 1
+        for _s in ("p1","p2"):
+            six = set((g.get("six") or {}).get(_s, []))
+            br  = (g.get("brought") or {}).get(_s, [])
+            ld  = (g.get("lead") or {}).get(_s, [])
+            _brought_len[len(br)] = _brought_len.get(len(br), 0) + 1
+            if not set(br) <= six: _bad_subset += 1
+            if not set(ld) <= set(br): _bad_lead += 1
+        w = g.get("winner")
+        if w and w not in (g["p1"].get("name"), g["p2"].get("name")): _bad_winner += 1
+ok(_bad_subset == 0, f"store shape: every `brought` is a subset of `six` ({_bad_subset} bad of {_total} games)")
+ok(_bad_lead == 0,   f"store shape: every `lead` is a subset of `brought` ({_bad_lead} bad)")
+ok(_bad_winner == 0, f"store shape: the winner is always one of the two players ({_bad_winner} bad)")
+ok(_missing == 0,    f"store shape: every record carries every field ({_missing} missing)")
+ok(max(_brought_len) <= 4, f"store shape: nobody brings more than four ({dict(sorted(_brought_len.items()))})")
+
 print("== 7. every engine + report file is present ==")
 engines = ["guru.py","xatu.py","pory.py","chomp_ev.js","slowking_preview.py","playstyle.js","cores.js",
            "roles.py","war.py","nmf_roles.py","vocab.py","xatu_belief.py","xatu_context.py","counterplay.py","illusion.js",
