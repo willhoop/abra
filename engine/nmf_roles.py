@@ -137,11 +137,8 @@ def build():
     Xr = np.array(Xr_rows)
     rr2 = Xr.sum(1, keepdims=True); rr2[rr2 == 0] = 1
     Xrn = Xr / rr2
-    from sklearn.decomposition import NMF as _NMF
     ARCH_RANK = 6
-    am = _NMF(n_components=ARCH_RANK, init="nndsvda", max_iter=600, random_state=7)
-    Wa = am.fit_transform(Xrn); Ha = am.components_
-    arch_err = am.reconstruction_err_ / np.linalg.norm(Xrn)
+    Wa, Ha, arch_err = fit_nmf(Xrn, ARCH_RANK, iters=400)
     aprev = Wa.sum(0)
     archetypes = []
     for ai, k in enumerate(np.argsort(-aprev)):
