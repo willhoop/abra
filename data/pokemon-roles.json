@@ -24,12 +24,15 @@
   "pivot": "Pivot",
   "wall": "Bulky wall / support",
   "trapping": "Trapper",
-  "perish": "Perish Trap"
+  "perish": "Perish Trap",
+  "phys_attacker": "Physical attacker",
+  "spec_attacker": "Special attacker"
  },
  "species": {
   "basculegion": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "pivot",
     "priority"
    ],
@@ -39,13 +42,16 @@
    "roles": [
     "healing",
     "helpinghand",
+    "phys_attacker",
     "setup",
+    "spec_attacker",
     "wall"
    ],
    "games": 2562
   },
   "garchomp": {
    "roles": [
+    "phys_attacker",
     "setup",
     "speed_lower"
    ],
@@ -58,6 +64,7 @@
     "healing",
     "helpinghand",
     "screens",
+    "spec_attacker",
     "speed_lower",
     "speed_tailwind",
     "speed_trickroom",
@@ -74,6 +81,7 @@
     "healing",
     "priority",
     "setup",
+    "spec_attacker",
     "status"
    ],
    "games": 2017
@@ -84,6 +92,7 @@
     "fakeout",
     "healing",
     "helpinghand",
+    "phys_attacker",
     "pivot",
     "setup",
     "status",
@@ -94,6 +103,7 @@
   },
   "kingambit": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup"
    ],
@@ -103,6 +113,7 @@
    "roles": [
     "debuff",
     "screens",
+    "spec_attacker",
     "wall"
    ],
    "games": 1446
@@ -112,6 +123,7 @@
     "healing",
     "helpinghand",
     "pivot",
+    "spec_attacker",
     "speed_lower",
     "speed_tailwind",
     "teamprotect",
@@ -125,6 +137,7 @@
     "healing",
     "redirection",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "wall"
    ],
@@ -132,7 +145,8 @@
   },
   "gholdengo": {
    "roles": [
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 1199
   },
@@ -142,6 +156,7 @@
     "pivot",
     "screens",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "status",
     "terrain",
@@ -153,6 +168,7 @@
   "sneasler": {
    "roles": [
     "fakeout",
+    "phys_attacker",
     "pivot",
     "speed_lower",
     "taunt",
@@ -166,6 +182,7 @@
    "roles": [
     "healing",
     "setup",
+    "spec_attacker",
     "status"
    ],
    "games": 984
@@ -174,7 +191,9 @@
    "roles": [
     "debuff",
     "healing",
+    "phys_attacker",
     "pivot",
+    "spec_attacker",
     "speed_tailwind",
     "weather"
    ],
@@ -182,6 +201,7 @@
   },
   "tyranitar": {
    "roles": [
+    "phys_attacker",
     "setup",
     "speed_lower"
    ],
@@ -191,6 +211,7 @@
    "roles": [
     "debuff",
     "fakeout",
+    "phys_attacker",
     "pivot",
     "priority",
     "screens",
@@ -206,14 +227,17 @@
     "healing",
     "helpinghand",
     "setup",
+    "spec_attacker",
     "wall"
    ],
    "games": 895
   },
   "swampert": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "setup",
+    "spec_attacker",
     "teamprotect",
     "wall"
    ],
@@ -224,9 +248,11 @@
     "encore",
     "fakeout",
     "healing",
+    "phys_attacker",
     "pivot",
     "screens",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "status",
     "wall"
@@ -236,6 +262,7 @@
   "torkoal": {
    "roles": [
     "helpinghand",
+    "spec_attacker",
     "status",
     "wall"
    ],
@@ -245,12 +272,14 @@
    "roles": [
     "encore",
     "setup",
+    "spec_attacker",
     "status"
    ],
    "games": 544
   },
   "excadrill": {
    "roles": [
+    "phys_attacker",
     "setup",
     "speed_lower"
    ],
@@ -258,6 +287,7 @@
   },
   "aerodactyl": {
    "roles": [
+    "phys_attacker",
     "setup",
     "speed_tailwind",
     "taunt",
@@ -273,6 +303,7 @@
     "pivot",
     "screens",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "status",
     "wall"
@@ -282,6 +313,7 @@
   "charizardmegay": {
    "roles": [
     "helpinghand",
+    "spec_attacker",
     "wall"
    ],
    "games": 435
@@ -292,6 +324,7 @@
     "helpinghand",
     "screens",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "status",
     "wall"
@@ -315,8 +348,10 @@
    "roles": [
     "debuff",
     "healing",
+    "phys_attacker",
     "pivot",
     "setup",
+    "spec_attacker",
     "speed_tailwind",
     "status",
     "taunt",
@@ -329,8 +364,10 @@
   "dragonite": {
    "roles": [
     "helpinghand",
+    "phys_attacker",
     "priority",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "speed_tailwind",
     "wall",
@@ -342,8 +379,10 @@
    "roles": [
     "fakeout",
     "helpinghand",
+    "phys_attacker",
     "priority",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "wall",
     "weather"
@@ -367,6 +406,7 @@
     "fakeout",
     "healing",
     "helpinghand",
+    "phys_attacker",
     "priority",
     "screens",
     "status",
@@ -381,6 +421,7 @@
    "roles": [
     "encore",
     "screens",
+    "spec_attacker",
     "speed_lower",
     "wall",
     "weather"
@@ -389,16 +430,24 @@
   },
   "metagross": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup",
     "speed_lower"
    ],
    "games": 322
   },
+  "typhlosionhisui": {
+   "roles": [
+    "spec_attacker"
+   ],
+   "games": 290
+  },
   "gengar": {
    "roles": [
     "perish",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "speed_trickroom",
     "status",
@@ -411,6 +460,7 @@
     "healing",
     "redirection",
     "screens",
+    "spec_attacker",
     "speed_trickroom",
     "wall"
    ],
@@ -419,6 +469,7 @@
   "annihilape": {
    "roles": [
     "healing",
+    "phys_attacker",
     "pivot",
     "setup",
     "speed_lower",
@@ -429,6 +480,7 @@
   "mawile": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "priority",
     "setup"
    ],
@@ -439,6 +491,7 @@
     "helpinghand",
     "screens",
     "setup",
+    "spec_attacker",
     "taunt",
     "wall"
    ],
@@ -446,8 +499,10 @@
   },
   "blaziken": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "setup",
+    "spec_attacker",
     "speed_lower"
    ],
    "games": 250
@@ -457,6 +512,7 @@
     "debuff",
     "fakeout",
     "healing",
+    "phys_attacker",
     "setup",
     "taunt"
    ],
@@ -464,6 +520,7 @@
   },
   "glimmora": {
    "roles": [
+    "spec_attacker",
     "status"
    ],
    "games": 219
@@ -473,6 +530,7 @@
     "encore",
     "helpinghand",
     "perish",
+    "spec_attacker",
     "speed_lower",
     "status",
     "wall"
@@ -483,6 +541,7 @@
    "roles": [
     "fakeout",
     "healing",
+    "phys_attacker",
     "priority"
    ],
    "games": 207
@@ -492,6 +551,7 @@
     "debuff",
     "pivot",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "speed_tailwind",
     "taunt"
@@ -501,6 +561,7 @@
   "tsareena": {
    "roles": [
     "helpinghand",
+    "phys_attacker",
     "pivot",
     "taunt",
     "wall"
@@ -514,12 +575,14 @@
     "pivot",
     "priority",
     "setup",
+    "spec_attacker",
     "wall"
    ],
    "games": 202
   },
   "ceruledge": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup"
    ],
@@ -527,6 +590,7 @@
   },
   "mamoswine": {
    "roles": [
+    "phys_attacker",
     "priority",
     "speed_lower"
    ],
@@ -536,6 +600,7 @@
    "roles": [
     "healing",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "status",
     "taunt",
@@ -550,6 +615,7 @@
     "priority",
     "screens",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "wall",
     "weather"
@@ -560,6 +626,7 @@
    "roles": [
     "encore",
     "helpinghand",
+    "phys_attacker",
     "pivot",
     "redirection",
     "taunt",
@@ -595,6 +662,7 @@
   },
   "scizor": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "priority",
     "setup",
@@ -606,6 +674,7 @@
    "roles": [
     "debuff",
     "healing",
+    "phys_attacker",
     "speed_trickroom"
    ],
    "games": 142
@@ -613,8 +682,10 @@
   "eelektross": {
    "roles": [
     "healing",
+    "phys_attacker",
     "pivot",
     "setup",
+    "spec_attacker",
     "speed_lower"
    ],
    "games": 135
@@ -622,6 +693,7 @@
   "chandelure": {
    "roles": [
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "status"
    ],
@@ -630,7 +702,8 @@
   "sceptile": {
    "roles": [
     "healing",
-    "priority"
+    "priority",
+    "spec_attacker"
    ],
    "games": 129
   },
@@ -650,6 +723,7 @@
    "roles": [
     "healing",
     "redirection",
+    "spec_attacker",
     "status",
     "wall"
    ],
@@ -657,12 +731,14 @@
   },
   "pyroar": {
    "roles": [
+    "spec_attacker",
     "status"
    ],
    "games": 116
   },
   "meowscarada": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "priority"
    ],
@@ -684,6 +760,7 @@
    "roles": [
     "pivot",
     "priority",
+    "spec_attacker",
     "speed_lower"
    ],
    "games": 108
@@ -692,6 +769,7 @@
    "roles": [
     "debuff",
     "healing",
+    "phys_attacker",
     "pivot",
     "setup",
     "speed_tailwind",
@@ -701,14 +779,22 @@
   },
   "gengarmega": {
    "roles": [
-    "perish"
+    "perish",
+    "spec_attacker"
    ],
    "games": 107
+  },
+  "camerupt": {
+   "roles": [
+    "spec_attacker"
+   ],
+   "games": 102
   },
   "rotomheat": {
    "roles": [
     "pivot",
     "screens",
+    "spec_attacker",
     "speed_lower",
     "status",
     "wall"
@@ -722,6 +808,7 @@
     "pivot",
     "redirection",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "status",
     "wall"
@@ -745,6 +832,7 @@
     "encore",
     "fakeout",
     "helpinghand",
+    "phys_attacker",
     "priority",
     "screens",
     "setup",
@@ -755,6 +843,7 @@
   "overqwil": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "priority",
     "setup",
     "status"
@@ -767,6 +856,7 @@
     "healing",
     "redirection",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "speed_tailwind",
     "status",
@@ -777,6 +867,7 @@
   "arcaninehisui": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "priority"
    ],
    "games": 92
@@ -784,6 +875,7 @@
   "weavile": {
    "roles": [
     "fakeout",
+    "phys_attacker",
     "priority",
     "taunt"
    ],
@@ -791,18 +883,21 @@
   },
   "swampertmega": {
    "roles": [
+    "phys_attacker",
     "pivot"
    ],
    "games": 88
   },
   "drampa": {
    "roles": [
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 87
   },
   "zoroarkhisui": {
    "roles": [
+    "spec_attacker",
     "speed_lower",
     "status",
     "taunt"
@@ -812,6 +907,7 @@
   "heliolisk": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "speed_lower",
     "status",
     "weather"
@@ -829,12 +925,14 @@
   "meganium": {
    "roles": [
     "healing",
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 84
   },
   "palafin": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "priority",
     "taunt"
@@ -844,6 +942,7 @@
   "basculegionf": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "speed_lower"
    ],
    "games": 81
@@ -851,8 +950,10 @@
   "lucario": {
    "roles": [
     "healing",
+    "phys_attacker",
     "priority",
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 81
   },
@@ -861,6 +962,7 @@
     "debuff",
     "fakeout",
     "screens",
+    "spec_attacker",
     "speed_lower",
     "speed_trickroom",
     "wall"
@@ -871,19 +973,22 @@
    "roles": [
     "priority",
     "screens",
+    "spec_attacker",
     "wall"
    ],
    "games": 79
   },
   "golurk": {
    "roles": [
-    "healing"
+    "healing",
+    "phys_attacker"
    ],
    "games": 78
   },
   "gyarados": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "setup",
     "speed_lower",
     "status",
@@ -894,6 +999,7 @@
   "dragalge": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "status"
    ],
    "games": 77
@@ -908,6 +1014,7 @@
   },
   "aegislash": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup",
     "teamprotect",
@@ -918,6 +1025,7 @@
   "araquanid": {
    "roles": [
     "healing",
+    "phys_attacker",
     "teamprotect",
     "wall",
     "weather"
@@ -940,6 +1048,7 @@
   "jolteon": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "speed_lower",
     "status",
     "weather"
@@ -948,6 +1057,7 @@
   },
   "gliscor": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "setup",
     "speed_tailwind",
@@ -957,14 +1067,17 @@
   },
   "starmie": {
    "roles": [
+    "phys_attacker",
     "pivot",
-    "priority"
+    "priority",
+    "spec_attacker"
    ],
    "games": 70
   },
   "mimikyu": {
    "roles": [
     "healing",
+    "phys_attacker",
     "priority",
     "setup",
     "speed_trickroom",
@@ -984,6 +1097,7 @@
   "palafinhero": {
    "roles": [
     "healing",
+    "phys_attacker",
     "pivot",
     "priority"
    ],
@@ -994,9 +1108,16 @@
     "healing",
     "redirection",
     "setup",
+    "spec_attacker",
     "speed_tailwind",
     "status",
     "wall"
+   ],
+   "games": 61
+  },
+  "rhyperior": {
+   "roles": [
+    "phys_attacker"
    ],
    "games": 61
   },
@@ -1021,9 +1142,16 @@
   },
   "lycanrocdusk": {
    "roles": [
+    "phys_attacker",
     "priority"
    ],
    "games": 59
+  },
+  "tyranitarmega": {
+   "roles": [
+    "phys_attacker"
+   ],
+   "games": 58
   },
   "klefki": {
    "roles": [
@@ -1041,6 +1169,7 @@
   "armarouge": {
    "roles": [
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "teamprotect",
     "terrain",
@@ -1052,6 +1181,7 @@
    "roles": [
     "encore",
     "fakeout",
+    "phys_attacker",
     "pivot",
     "priority"
    ],
@@ -1060,6 +1190,7 @@
   "chesnaught": {
    "roles": [
     "healing",
+    "phys_attacker",
     "priority",
     "setup",
     "teamprotect",
@@ -1079,6 +1210,7 @@
   "vileplume": {
    "roles": [
     "healing",
+    "spec_attacker",
     "status",
     "wall"
    ],
@@ -1086,6 +1218,7 @@
   },
   "noivern": {
    "roles": [
+    "spec_attacker",
     "speed_tailwind",
     "taunt"
    ],
@@ -1095,9 +1228,11 @@
    "roles": [
     "debuff",
     "fakeout",
+    "phys_attacker",
     "pivot",
     "priority",
     "setup",
+    "spec_attacker",
     "status",
     "wall"
    ],
@@ -1108,6 +1243,7 @@
     "debuff",
     "fakeout",
     "healing",
+    "phys_attacker",
     "pivot",
     "priority",
     "setup",
@@ -1126,6 +1262,7 @@
     "debuff",
     "encore",
     "fakeout",
+    "phys_attacker",
     "pivot",
     "status",
     "taunt",
@@ -1136,6 +1273,7 @@
   "krookodile": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "speed_lower",
     "taunt"
    ],
@@ -1143,14 +1281,25 @@
   },
   "houndstone": {
    "roles": [
+    "phys_attacker",
     "priority",
     "status"
    ],
    "games": 47
   },
+  "houndoom": {
+   "roles": [
+    "debuff",
+    "priority",
+    "setup",
+    "spec_attacker"
+   ],
+   "games": 46
+  },
   "slowkinggalar": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "speed_trickroom",
     "status",
     "taunt",
@@ -1159,17 +1308,10 @@
    ],
    "games": 46
   },
-  "houndoom": {
-   "roles": [
-    "debuff",
-    "priority",
-    "setup"
-   ],
-   "games": 46
-  },
   "delphoxmega": {
    "roles": [
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 46
   },
@@ -1182,6 +1324,7 @@
   },
   "kleavor": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "speed_tailwind"
    ],
@@ -1190,6 +1333,7 @@
   "alakazam": {
    "roles": [
     "screens",
+    "spec_attacker",
     "terrain",
     "wall"
    ],
@@ -1197,21 +1341,24 @@
   },
   "feraligatr": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup"
    ],
    "games": 43
   },
-  "mudsdale": {
-   "roles": [
-    "wall"
-   ],
-   "games": 42
-  },
   "empoleon": {
    "roles": [
     "priority",
+    "spec_attacker",
     "speed_lower"
+   ],
+   "games": 42
+  },
+  "mudsdale": {
+   "roles": [
+    "phys_attacker",
+    "wall"
    ],
    "games": 42
   },
@@ -1225,6 +1372,7 @@
   },
   "aggron": {
    "roles": [
+    "phys_attacker",
     "setup"
    ],
    "games": 39
@@ -1233,12 +1381,14 @@
    "roles": [
     "healing",
     "screens",
+    "spec_attacker",
     "wall"
    ],
    "games": 39
   },
   "skarmory": {
    "roles": [
+    "phys_attacker",
     "setup",
     "speed_tailwind"
    ],
@@ -1246,6 +1396,7 @@
   },
   "beedrill": {
    "roles": [
+    "phys_attacker",
     "pivot"
    ],
    "games": 37
@@ -1254,6 +1405,7 @@
    "roles": [
     "debuff",
     "encore",
+    "spec_attacker",
     "status"
    ],
    "games": 37
@@ -1261,6 +1413,7 @@
   "staraptormega": {
    "roles": [
     "healing",
+    "phys_attacker",
     "speed_tailwind"
    ],
    "games": 37
@@ -1276,7 +1429,8 @@
   "floettemega": {
    "roles": [
     "healing",
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 37
   },
@@ -1291,6 +1445,7 @@
   "scolipede": {
    "roles": [
     "healing",
+    "phys_attacker",
     "pivot",
     "setup",
     "speed_lower"
@@ -1300,6 +1455,7 @@
   "crabominable": {
    "roles": [
     "healing",
+    "phys_attacker",
     "priority"
    ],
    "games": 35
@@ -1309,14 +1465,7 @@
     "healing",
     "priority",
     "screens",
-    "wall"
-   ],
-   "games": 35
-  },
-  "steelix": {
-   "roles": [
-    "setup",
-    "teamprotect",
+    "spec_attacker",
     "wall"
    ],
    "games": 35
@@ -1324,6 +1473,16 @@
   "froslassmega": {
    "roles": [
     "screens",
+    "spec_attacker",
+    "wall"
+   ],
+   "games": 35
+  },
+  "steelix": {
+   "roles": [
+    "setup",
+    "spec_attacker",
+    "teamprotect",
     "wall"
    ],
    "games": 35
@@ -1331,7 +1490,15 @@
   "serperior": {
    "roles": [
     "healing",
+    "spec_attacker",
     "status"
+   ],
+   "games": 34
+  },
+  "metagrossmega": {
+   "roles": [
+    "phys_attacker",
+    "priority"
    ],
    "games": 34
   },
@@ -1342,20 +1509,16 @@
     "helpinghand",
     "pivot",
     "setup",
+    "spec_attacker",
     "status",
     "wall"
-   ],
-   "games": 34
-  },
-  "metagrossmega": {
-   "roles": [
-    "priority"
    ],
    "games": 34
   },
   "hippowdon": {
    "roles": [
     "healing",
+    "phys_attacker",
     "setup",
     "status"
    ],
@@ -1363,7 +1526,8 @@
   },
   "ampharos": {
    "roles": [
-    "healing"
+    "healing",
+    "spec_attacker"
    ],
    "games": 33
   },
@@ -1372,6 +1536,7 @@
     "encore",
     "fakeout",
     "healing",
+    "phys_attacker",
     "pivot",
     "priority"
    ],
@@ -1387,6 +1552,7 @@
   },
   "falinks": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup"
    ],
@@ -1394,6 +1560,7 @@
   },
   "azumarill": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup"
    ],
@@ -1403,6 +1570,7 @@
    "roles": [
     "healing",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "status"
    ],
@@ -1411,12 +1579,14 @@
   "taurospaldeaaqua": {
    "roles": [
     "debuff",
+    "phys_attacker",
     "priority"
    ],
    "games": 30
   },
   "mawilemega": {
    "roles": [
+    "phys_attacker",
     "priority",
     "setup"
    ],
@@ -1424,6 +1594,7 @@
   },
   "sharpedo": {
    "roles": [
+    "phys_attacker",
     "pivot",
     "setup"
    ],
@@ -1431,12 +1602,14 @@
   },
   "venusaurmega": {
    "roles": [
-    "healing"
+    "healing",
+    "spec_attacker"
    ],
    "games": 29
   },
   "aerodactylmega": {
    "roles": [
+    "phys_attacker",
     "teamprotect",
     "wall"
    ],
@@ -1456,13 +1629,21 @@
    "roles": [
     "healing",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "status"
    ],
    "games": 28
   },
+  "clawitzer": {
+   "roles": [
+    "spec_attacker"
+   ],
+   "games": 28
+  },
   "ariados": {
    "roles": [
+    "phys_attacker",
     "priority",
     "redirection",
     "speed_lower",
@@ -1473,6 +1654,7 @@
   },
   "barbaracle": {
    "roles": [
+    "phys_attacker",
     "setup"
    ],
    "games": 27
@@ -1480,6 +1662,7 @@
   "conkeldurr": {
    "roles": [
     "healing",
+    "phys_attacker",
     "priority",
     "teamprotect",
     "wall"
@@ -1490,6 +1673,7 @@
    "roles": [
     "pivot",
     "setup",
+    "spec_attacker",
     "speed_lower",
     "status"
    ],
@@ -1506,13 +1690,15 @@
   "blastoisemega": {
    "roles": [
     "fakeout",
-    "setup"
+    "setup",
+    "spec_attacker"
    ],
    "games": 26
   },
   "vivillonpokeball": {
    "roles": [
     "healing",
+    "spec_attacker",
     "speed_tailwind",
     "status",
     "wall"
@@ -1529,7 +1715,8 @@
   "manectric": {
    "roles": [
     "debuff",
-    "pivot"
+    "pivot",
+    "spec_attacker"
    ],
    "games": 25
   },
@@ -1544,6 +1731,7 @@
    "roles": [
     "helpinghand",
     "setup",
+    "spec_attacker",
     "speed_trickroom",
     "status",
     "wall"
@@ -1554,7 +1742,8 @@
    "roles": [
     "debuff",
     "fakeout",
-    "healing"
+    "healing",
+    "phys_attacker"
    ],
    "games": 24
   },
@@ -1602,6 +1791,7 @@
   "toxicroak": {
    "roles": [
     "fakeout",
+    "phys_attacker",
     "priority"
    ],
    "games": 21
@@ -1621,32 +1811,36 @@
    ],
    "games": 21
   },
+  "pangoro": {
+   "roles": [
+    "debuff",
+    "phys_attacker",
+    "pivot",
+    "priority"
+   ],
+   "games": 20
+  },
   "machamp": {
    "roles": [
     "healing",
+    "phys_attacker",
     "priority",
     "teamprotect",
     "wall"
    ],
    "games": 20
   },
-  "pangoro": {
-   "roles": [
-    "debuff",
-    "pivot",
-    "priority"
-   ],
-   "games": 20
-  },
   "hydrapple": {
    "roles": [
     "healing",
+    "spec_attacker",
     "status"
    ],
    "games": 19
   },
   "reuniclus": {
    "roles": [
+    "spec_attacker",
     "speed_trickroom"
    ],
    "games": 19
@@ -1659,9 +1853,21 @@
    ],
    "games": 19
   },
+  "glaceon": {
+   "roles": [
+    "spec_attacker"
+   ],
+   "games": 19
+  },
   "sandaconda": {
    "roles": [
     "setup"
+   ],
+   "games": 18
+  },
+  "quaquaval": {
+   "roles": [
+    "phys_attacker"
    ],
    "games": 18
   },
@@ -1669,6 +1875,7 @@
    "roles": [
     "healing",
     "priority",
+    "spec_attacker",
     "status"
    ],
    "games": 17
@@ -1676,13 +1883,21 @@
   "rotommow": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "speed_lower"
    ],
    "games": 17
   },
   "pidgeot": {
    "roles": [
+    "spec_attacker",
     "speed_tailwind"
+   ],
+   "games": 17
+  },
+  "dragonitemega": {
+   "roles": [
+    "spec_attacker"
    ],
    "games": 17
   },
@@ -1712,8 +1927,15 @@
    ],
    "games": 16
   },
+  "pinsir": {
+   "roles": [
+    "phys_attacker"
+   ],
+   "games": 16
+  },
   "espeon": {
    "roles": [
+    "spec_attacker",
     "speed_trickroom"
    ],
    "games": 16
@@ -1729,6 +1951,7 @@
   "trevenant": {
    "roles": [
     "healing",
+    "phys_attacker",
     "speed_trickroom",
     "status"
    ],
@@ -1738,6 +1961,7 @@
    "roles": [
     "debuff",
     "fakeout",
+    "phys_attacker",
     "pivot",
     "taunt"
    ],
@@ -1745,6 +1969,7 @@
   },
   "blazikenmega": {
    "roles": [
+    "phys_attacker",
     "setup"
    ],
    "games": 16
@@ -1757,13 +1982,21 @@
   },
   "kangaskhanmega": {
    "roles": [
-    "fakeout"
+    "fakeout",
+    "phys_attacker"
+   ],
+   "games": 15
+  },
+  "aurorus": {
+   "roles": [
+    "spec_attacker"
    ],
    "games": 15
   },
   "lopunnymega": {
    "roles": [
     "fakeout",
+    "phys_attacker",
     "pivot"
    ],
    "games": 15
@@ -1771,6 +2004,7 @@
   "goodra": {
    "roles": [
     "healing",
+    "spec_attacker",
     "weather"
    ],
    "games": 14
@@ -1778,8 +2012,15 @@
   "slowking": {
    "roles": [
     "pivot",
+    "spec_attacker",
     "speed_trickroom",
     "weather"
+   ],
+   "games": 14
+  },
+  "meganiummega": {
+   "roles": [
+    "spec_attacker"
    ],
    "games": 14
   },
@@ -1793,6 +2034,12 @@
    "roles": [
     "fakeout",
     "speed_lower"
+   ],
+   "games": 13
+  },
+  "diggersby": {
+   "roles": [
+    "phys_attacker"
    ],
    "games": 13
   },
@@ -1849,6 +2096,12 @@
    ],
    "games": 10
   },
+  "rampardos": {
+   "roles": [
+    "phys_attacker"
+   ],
+   "games": 10
+  },
   "decidueye": {
    "roles": [
     "speed_tailwind",
@@ -1862,9 +2115,21 @@
    ],
    "games": 9
   },
+  "cameruptmega": {
+   "roles": [
+    "spec_attacker"
+   ],
+   "games": 8
+  },
   "mimikyubusted": {
    "roles": [
     "priority"
+   ],
+   "games": 8
+  },
+  "typhlosion": {
+   "roles": [
+    "spec_attacker"
    ],
    "games": 8
   },
@@ -1952,9 +2217,16 @@
    ],
    "games": 6
   },
+  "excadrillmega": {
+   "roles": [
+    "phys_attacker"
+   ],
+   "games": 6
+  },
   "rotomfan": {
    "roles": [
-    "pivot"
+    "pivot",
+    "spec_attacker"
    ],
    "games": 6
   },
@@ -1967,6 +2239,12 @@
   "stunfisk": {
    "roles": [
     "status"
+   ],
+   "games": 5
+  },
+  "castform": {
+   "roles": [
+    "spec_attacker"
    ],
    "games": 5
   },
@@ -2002,6 +2280,12 @@
    ],
    "games": 4
   },
+  "chandeluremega": {
+   "roles": [
+    "spec_attacker"
+   ],
+   "games": 4
+  },
   "florges": {
    "roles": [
     "wall"
@@ -2011,6 +2295,12 @@
   "dedenne": {
    "roles": [
     "speed_lower"
+   ],
+   "games": 3
+  },
+  "gallademega": {
+   "roles": [
+    "phys_attacker"
    ],
    "games": 3
   },

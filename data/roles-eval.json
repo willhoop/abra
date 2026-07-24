@@ -4,7 +4,7 @@
  "n_train": 5262,
  "n_test": 1376,
  "log_loss": {
-  "roles": 0.6939,
+  "roles": 0.6938,
   "rating_baseline": 0.6905,
   "coin": 0.6931
  },
@@ -13,12 +13,12 @@
   0.698
  ],
  "accuracy_roles": 0.5051,
- "headline": "Roles predict the winner at held-out log-loss 0.6939 vs a coin 0.6931 and rating 0.6905.",
+ "headline": "Roles predict the winner at held-out log-loss 0.6938 vs a coin 0.6931 and rating 0.6905.",
  "role_win_credit": [
   {
    "role": "pivot",
    "label": "Pivot",
-   "coef": 0.1868,
+   "coef": 0.1867,
    "teams_with": 6631
   },
   {
@@ -36,7 +36,7 @@
   {
    "role": "perish",
    "label": "Perish Trap",
-   "coef": 0.1156,
+   "coef": 0.1157,
    "teams_with": 988
   },
   {
@@ -44,6 +44,18 @@
    "label": "Weather setter",
    "coef": 0.0434,
    "teams_with": 6607
+  },
+  {
+   "role": "phys_attacker",
+   "label": "Physical attacker",
+   "coef": 0.0174,
+   "teams_with": 6638
+  },
+  {
+   "role": "spec_attacker",
+   "label": "Special attacker",
+   "coef": 0.0142,
+   "teams_with": 6638
   },
   {
    "role": "wall",
@@ -54,7 +66,7 @@
   {
    "role": "fakeout",
    "label": "Fake Out (tempo)",
-   "coef": -0.0053,
+   "coef": -0.0054,
    "teams_with": 5622
   },
   {
@@ -72,19 +84,19 @@
   {
    "role": "speed_tailwind",
    "label": "Tailwind (speed up)",
-   "coef": -0.0149,
+   "coef": -0.0151,
    "teams_with": 6362
   },
   {
    "role": "speed_lower",
    "label": "Speed control (lower foe)",
-   "coef": -0.0228,
+   "coef": -0.0229,
    "teams_with": 6615
   },
   {
    "role": "terrain",
    "label": "Terrain setter",
-   "coef": -0.0312,
+   "coef": -0.0313,
    "teams_with": 5591
   },
   {
@@ -108,7 +120,7 @@
   {
    "role": "debuff",
    "label": "Debuff (Intimidate / drops)",
-   "coef": -0.0425,
+   "coef": -0.0426,
    "teams_with": 6624
   },
   {
@@ -120,7 +132,7 @@
   {
    "role": "taunt",
    "label": "Taunt",
-   "coef": -0.0555,
+   "coef": -0.0556,
    "teams_with": 6592
   },
   {
@@ -144,7 +156,7 @@
   {
    "role": "helpinghand",
    "label": "Helping Hand",
-   "coef": -0.1433,
+   "coef": -0.1434,
    "teams_with": 6608
   }
  ],
@@ -431,8 +443,8 @@
   }
  ],
  "pooling": {
-  "role_pair_cells": 484,
-  "median_cell_n": 7352,
+  "role_pair_cells": 576,
+  "median_cell_n": 7750,
   "min_cell_n": 4,
   "max_cell_n": 13206,
   "note": "Old single-label playstyle cells were n=11-18; role-pair cells pool every game into many cells, so the median cell here is far larger and can reach significance."

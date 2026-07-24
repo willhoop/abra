@@ -100,8 +100,26 @@ ROLE_SIGNALS = {
     abilities={"Shadow Tag","Arena Trap","Magnet Pull"}),
  "perish": dict(label="Perish Trap",
     moves={"Perish Song"}),
+ "phys_attacker": dict(label="Physical attacker", moves=set()),   # special-cased (>=2 phys moves)
+ "spec_attacker": dict(label="Special attacker", moves=set()),    # special-cased (>=2 spec moves)
 }
 ROLES = list(ROLE_SIGNALS.keys())
+
+# Damage category for the common attacking moves — tags physical vs special attacker.
+# A mon earns the role when a single set reveals >= 2 moves of that category.
+PHYS = {"Rock Slide","Wave Crash","Earthquake","Close Combat","Last Respects","Sucker Punch","Flare Blitz",
+    "Iron Head","Dragon Claw","Kowtow Cleave","Knock Off","Stomping Tantrum","Aqua Jet","Brave Bird",
+    "Dual Wingbeat","Flip Turn","High Horsepower","Ice Punch","Throat Chop","Dire Claw","Quick Attack",
+    "Bullet Punch","Play Rough","U-turn","Glaive Rush","Headlong Rush","Population Bomb","Triple Axel",
+    "Facade","Fake Out","Extreme Speed","Ice Shard","Shadow Sneak","Grassy Glide","Jet Punch","Mach Punch",
+    "Accelerock","First Impression","Liquidation","Crunch","Gunk Shot","Zen Headbutt","Poison Jab",
+    "Drain Punch","Horn Leech","Leech Life","Wood Hammer","Bitter Blade","Ivy Cudgel","Collision Course"}
+SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurricane","Electro Shot",
+    "Dragon Pulse","Psychic","Matcha Gotcha","Sludge Bomb","Earth Power","Dazzling Gleam","Flash Cannon",
+    "Make It Rain","Thunderbolt","Eruption","Solar Beam","Blizzard","Hyper Beam","Giga Drain","Draining Kiss",
+    "Air Slash","Muddy Water","Overheat","Fiery Dance","Snarl","Scald","Aura Sphere","Water Spout","Thunder",
+    "Ice Beam","Sludge Wave","Energy Ball","Dark Pulse","Bug Buzz","Leaf Storm","Frost Breath","Psyshock",
+    "Volt Switch","Parabolic Charge","Pollen Puff","Moonlight","Freeze-Dry","Meteor Beam","Terrain Pulse"}
 
 def signal_roles(moves, ability, item):
     """Which roles a single revealed set demonstrates."""
@@ -109,10 +127,13 @@ def signal_roles(moves, ability, item):
     mv = set(moves or [])
     ab = ability
     for r, sig in ROLE_SIGNALS.items():
+        if r in ("phys_attacker", "spec_attacker"): continue
         if mv & sig.get("moves", set()):
             out.add(r)
         elif ab and ab in sig.get("abilities", set()):
             out.add(r)
+    if len(mv & PHYS) >= 2: out.add("phys_attacker")
+    if len(mv & SPEC) >= 2: out.add("spec_attacker")
     return out
 
 # ---------------------------------------------------------------------------
