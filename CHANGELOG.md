@@ -10,6 +10,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.1.1] — 2026-07-24
+
+### Fixed — the metagame model was literally the bot's team
+`engine/analyze.js`, which writes `data/meta-usage.json` (the file CHOMP reads to make
+recommendations), read the store directly and filtered only on the per-player `bot` NAME flag. It now
+goes through the shared quality filter.
+
+The old top six by team usage was:
+
+    garchomp, whimsicott, basculegion, kingambit, charizard, sylveon
+
+That is, exactly and in full, the six Pokemon on the team four undetected bot accounts played in
+1,446 identical games. The recommender's picture of the metagame WAS one bot's team.
+
+Corrected top six: `garchomp, incineroar, kingambit, sinistcha, whimsicott, basculegion`.
+
+| species | was | now | change |
+|---|---|---|---|
+| whimsicott | 31.5% | 17.9% | -13.6 |
+| basculegion | 30.5% | 17.8% | -12.6 |
+| charizard | 29.1% | 16.5% | -12.6 |
+| sylveon | 22.8% | 10.5% | -12.3 |
+| garchomp | 34.2% | 24.4% | -9.7 |
+| kingambit | 30.0% | 20.4% | -9.5 |
+| incineroar | 21.0% | 23.5% | +2.5 |
+
+Sampled team-slots drop from 9,594 to 1,854. Incineroar and Sinistcha - genuine top-tier picks that
+the bot did not use - were being pushed down the list by it.
+
+### Added
+- `data/meta-usage.json` now carries its own **provenance block**: source, filter, the full funnel,
+  and the caveat that bot detection is a floor rather than a proof. A consumer can now tell what a
+  number is a statistic about.
+- `ABRA_UNFILTERED=1` recomputes over everything, for demonstrating the difference only.
+
+### Notes
+36 other engines still read the store directly. This one was done first because it is the only one
+whose output is consumed by another product.
+
+---
+
 ## [3.1.0] — 2026-07-24
 
 ### Added — the official Champions engine
