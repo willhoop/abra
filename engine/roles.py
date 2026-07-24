@@ -367,12 +367,23 @@ def build():
     # (Swift Swim, No Guard, Adaptability) were invisible to tagging and their roles never fired.
     # Where the dex settles it, we credit the role on every set of that species; where the species has
     # several possible abilities we still require the log to say which, because that is a belief.
-    certain_ab = {}
+    certain_ab, possible_ab = {}, {}
     try:
         _sa = json.load(open(D("data", "species-abilities.json"), encoding="utf-8"))
         certain_ab = {sp: v["certain"] for sp, v in _sa["species"].items() if v.get("certain")}
+        possible_ab = {sp: set(v.get("abilities") or []) for sp, v in _sa["species"].items()}
     except Exception:
         pass
+
+    def clean_ability(mon, ab):
+        """Reject an observed ability the species cannot legally have.
+        Log attribution is not perfect - Trace copies an opponent's ability, and a mis-attributed
+        slot can hand Basculegion an 'Intimidate' it can never possess. The dex knows the legal set,
+        so an impossible reading is dropped rather than allowed to create a phantom role."""
+        poss = possible_ab.get(mon)
+        if ab and poss and ab not in poss:
+            return certain_ab.get(mon)          # fall back to a certain ability if there is one
+        return ab or certain_ab.get(mon)
 
     seen = defaultdict(Counter)        # species -> role -> sets observed playing it
     species_sets = Counter()           # species -> revealed sets observed (the denominator)
@@ -383,7 +394,7 @@ def build():
             species_sets[mon] += 1
             # if the dex settles this species' ability, use it - the log may simply never have
             # had cause to mention it
-            ab = s.get("ability") or certain_ab.get(mon)
+            ab = clean_ability(mon, s.get("ability"))
             for r in signal_roles(s.get("moves"), ab, s.get("item")):
                 seen[mon][r] += 1
             appeared.add(mon)
