@@ -1,128 +1,128 @@
 {
   "generated": "engine/chomp_ev.js — CHOMP team-preview EV proof (do CHOMP brings beat humans on held-out games)",
   "format": "gen9championsvgc2026regmb (Bo1 closed-sheet)",
-  "n_total_games": 5937,
-  "n_human_games": 2866,
-  "n_eval_games": 1257,
-  "n_skipped_unbuildable": 17,
-  "n_train": 1005,
-  "n_test": 252,
+  "n_total_games": 7315,
+  "n_human_games": 3310,
+  "n_eval_games": 43,
+  "n_skipped_unbuildable": 2,
+  "n_train": 34,
+  "n_test": 9,
   "headline_beat_test": {
     "what": "P(winner's actual bring was more CHOMP-aligned than the loser's), all eval games. Baseline 0.5.",
-    "p_winner_more_aligned": 0.5135,
+    "p_winner_more_aligned": 0.5116,
     "ci95": [
-      0.4909,
-      0.5267
+      0.3721,
+      0.6512
     ],
-    "mean_align_delta_win_minus_lose": 0.0126,
-    "p_on_heldout_only": 0.5179,
+    "mean_align_delta_win_minus_lose": 0.0083,
+    "p_on_heldout_only": 0.3333,
     "verdict": "Winners lean more CHOMP-aligned but CI includes 0.5 — suggestive, not significant."
   },
   "proper_score_logloss": {
     "what": "Held-out P(p1 win)=sigma(a+b*(align1-align2)); lower is better. Cluster/bootstrap over games.",
-    "chomp_align": 0.6918,
+    "chomp_align": 0.7207,
     "chomp_align_ci95": [
-      0.6862,
-      0.6979
+      0.6603,
+      0.777
     ],
-    "chomp_belief_weighted": 0.6924,
+    "chomp_belief_weighted": 0.6963,
     "chomp_belief_ci95": [
-      0.6841,
-      0.7022
+      0.6533,
+      0.7365
     ],
     "coin": 0.6931,
-    "elo_rating": 0.6964,
-    "usage_prior": 0.6919
+    "elo_rating": 0.8659,
+    "usage_prior": 0.6968
   },
   "belief_variant_note": "chomp_belief_weighted scores each bring's coverage vs the OPPONENT'S LIKELY 4 (their top-bringRate mons), a cheap belief proxy, instead of all 6. Tests whether belief-awareness beats the all-6 null before investing in full XATU-set belief.",
   "brier": {
-    "chomp_align": 0.2493,
+    "chomp_align": 0.2637,
     "coin": 0.25,
-    "elo_rating": 0.2515,
-    "usage_prior": 0.2494
+    "elo_rating": 0.3333,
+    "usage_prior": 0.2518
   },
   "logistic_weights": {
     "chomp": {
-      "a": 0.086,
-      "b": 0.1055
+      "a": 0.1137,
+      "b": 0.2836
     },
     "usage": {
-      "a": 0.0852,
-      "b": -0.2582
+      "a": 0.0865,
+      "b": -0.6761
     },
     "elo": {
-      "a": 0.1033,
-      "b": 1.3349
+      "a": 0.1499,
+      "b": 3.3786
     }
   },
   "calibration": {
-    "ece": 0.0025,
+    "ece": 0.0954,
     "reliability": [
       [
-        0.498,
+        0.493,
         0.5,
-        8
+        2
       ],
       [
-        0.523,
-        0.52,
-        244
+        0.549,
+        0.429,
+        7
       ]
     ]
   },
   "agreement": {
-    "top1_recovery_all": 0.0951,
-    "top1_recovery_winners": 0.0994,
-    "top1_recovery_losers": 0.0907,
-    "mean_overlap_winners": 0.6897,
-    "mean_overlap_losers": 0.6879,
+    "top1_recovery_all": 0.0814,
+    "top1_recovery_winners": 0.0698,
+    "top1_recovery_losers": 0.093,
+    "mean_overlap_winners": 0.6686,
+    "mean_overlap_losers": 0.6977,
     "winner_top1_by_rating_tier": {
       "lt1200": {
-        "rate": 0.0939,
-        "n": 277
+        "rate": 0,
+        "n": 16
       },
       "1200_1400": {
-        "rate": 0.1036,
-        "n": 676
+        "rate": 0.0909,
+        "n": 11
       },
       "gt1400": {
-        "rate": 0.0926,
-        "n": 162
+        "rate": 0,
+        "n": 3
       },
       "unknown": {
-        "rate": 0.0986,
-        "n": 142
+        "rate": 0.1538,
+        "n": 13
       }
     }
   },
-  "verdict": "NULL at the format ceiling: CHOMP's bring ranking does NOT beat a coin, an Elo baseline, or a usage prior on held-out games (log-loss 0.6918 vs coin 0.6931, CIs overlap), and winners are only marginally more CHOMP-aligned than losers (0.514, CI includes 0.5). CHOMP's exact damage stays VALIDATED and useful as a calculator/EV display, but \"CHOMP's brings beat humans' brings\" is NOT empirically supported yet — the bring decision sits at the same near-coin ceiling as pre-game win prediction. Honest negative; it guards against optimizing a bring metric that carries no held-out winning signal (the DITTO/Goodhart trap).",
+  "verdict": "NULL at the format ceiling: CHOMP's bring ranking does NOT beat a coin, an Elo baseline, or a usage prior on held-out games (log-loss 0.7207 vs coin 0.6931, CIs overlap), and winners are only marginally more CHOMP-aligned than losers (0.512, CI includes 0.5). CHOMP's exact damage stays VALIDATED and useful as a calculator/EV display, but \"CHOMP's brings beat humans' brings\" is NOT empirically supported yet — the bring decision sits at the same near-coin ceiling as pre-game win prediction. Honest negative; it guards against optimizing a bring metric that carries no held-out winning signal (the DITTO/Goodhart trap).",
   "interpretation": [
-    "CHOMP's top pick matches the human bring only 9.5% of the time (chance 6.7%), overlap 0.689 (chance 0.667) — its pure damage-coverage 4 rarely equals what humans actually bring.",
+    "CHOMP's top pick matches the human bring only 8.1% of the time (chance 6.7%), overlap 0.683 (chance 0.667) — its pure damage-coverage 4 rarely equals what humans actually bring.",
     "No rating-tier gradient: strong players (>1400) are not more CHOMP-aligned than weak ones, so CHOMP is not capturing what good players know about bringing.",
     "Likely causes: bring4 scores raw damage coverage over heuristic v1 sets — it ignores speed control, roles, the lead-2 matrix game, and any belief over the opponent's real sets.",
     "Path to a real edge: re-score brings with belief-aware value (XATU sets) + the lead stage-game (SLOWKING) + PORY leaf value instead of raw coverage, then re-run this exact test and measure the lift."
   ],
   "selection_audit": {
     "what": "The eval set requires BOTH players to reveal all 4 brought mons — this excludes short games (early stomps, quick forfeits). Here is how the qualifying set differs from the excluded human games, so the bias is measured, not asserted.",
-    "eval_mean_turns": 6.58,
-    "excluded_mean_turns": 6.13,
-    "eval_mean_rating": 1279.83,
-    "excluded_mean_rating": 1269.24,
-    "n_qualifying": 1274,
-    "n_excluded_human": 1592,
+    "eval_mean_turns": 7.78,
+    "excluded_mean_turns": 6.38,
+    "eval_mean_rating": 1211.27,
+    "excluded_mean_rating": 1275.1,
+    "n_qualifying": 45,
+    "n_excluded_human": 3265,
     "direction": "Longer games are exactly where the bring choice matters MORE (more turns for a coverage edge to pay off). So this selection is, if anything, FAVORABLE to CHOMP — yet CHOMP still ties the coin, which makes the null conservative rather than an artifact of dropping games."
   },
   "robustness_no_forfeits": {
     "what": "Re-run excluding forfeit games. Forfeits are usually legitimate concessions (a player quits an already-losing position), so the label is typically correct; this pass confirms the result is not driven by them.",
-    "n_forfeit_in_eval": 215,
-    "n_nonforfeit_eval": 1042,
-    "n_nonforfeit_test": 203,
-    "p_winner_more_aligned": 0.5077,
+    "n_forfeit_in_eval": 9,
+    "n_nonforfeit_eval": 34,
+    "n_nonforfeit_test": 9,
+    "p_winner_more_aligned": 0.5441,
     "ci95": [
-      0.4808,
-      0.5345
+      0.3824,
+      0.7059
     ],
-    "logloss_chomp_align": 0.6893,
+    "logloss_chomp_align": 0.7207,
     "logloss_coin": 0.6931,
     "verdict": "Still NULL after removing forfeits — the near-coin result is not a forfeit artifact."
   },

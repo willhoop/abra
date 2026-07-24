@@ -10,6 +10,31 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.10.1] — 2026-07-24
+
+### Changed — every model re-run on the deduplicated store
+All reports were still computed on the 14,361-line store that turned out to be ~half duplicates.
+Re-run on the 7,315 unique games. What survived, and what did not:
+
+| Model | On clean data | Verdict |
+|---|---|---|
+| PORY (mid-game value) | log-loss **0.5648** vs coin 0.6931, ECE 1.8%, CI [0.550, 0.584] | **holds** |
+| WAR (species RAPM) | **0.6856** vs coin 0.6931, accuracy 54.1% | **holds** |
+| MEDICHAM damage | 100% within 5% of the Smogon calculator | **holds** |
+| SLOWKING (species) | greedy 0.078 vs Nash 0.0002, gap CI **[0.0031, 0.0977]** | **holds** |
+| SLOWKING (playstyle) | gap CI **[-0.0001, 0.2105]** | **no longer clears zero** |
+| COUNTERPLAY tech-lift | +0.0274, CI **[0.0006, 0.0533]** (was +0.0386 [0.0155, 0.0617]) | **barely holds** |
+| GURU predictive test | log-loss 0.7007 vs coin 0.6931 | still a coin, as always documented |
+| CHOMP-EV | winners lean more aligned, CI includes 0.5 | still the honest null |
+| XATU policy clone | top-1 32%, phase-conditioning again did not help | unchanged |
+
+- The pattern is consistent and worth stating plainly: **the strong results were unaffected and the
+  marginal ones got weaker.** Duplicated rows inflate apparent independent evidence, so they narrow
+  intervals without adding information. Nothing that was solid became shaky; two things that were
+  already borderline (the playstyle equilibrium gap, the tech-lift) lost the significance they had
+  been credited with.
+- Site data regenerated from the clean store (7,315 games, 48,326 turns, 11 archetypes).
+
 ## [2.10.0] — 2026-07-24
 
 ### Fixed — the store was half duplicates, and every sample size was overstated

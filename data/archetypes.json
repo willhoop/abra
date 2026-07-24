@@ -1,61 +1,87 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 12676,
-  "k_selected": 7,
-  "silhouette": 0.301,
+  "n_games": 14630,
+  "k_selected": 12,
+  "silhouette": 0.306,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Incineroar-Sneasler",
-      "share": 0.373,
+      "n": "Sneasler-Aerodactyl",
+      "share": 0.185,
       "core": [
-        "incineroar",
         "sneasler",
-        "sinistcha",
-        "aerodactyl"
+        "aerodactyl",
+        "tyranitar",
+        "sableye"
       ],
       "signature": [],
-      "w_usage": 0.373
+      "w_usage": 0.19
     },
     {
-      "n": "Charizard-Garchomp",
-      "share": 0.174,
+      "n": "Garchomp-Charizard",
+      "share": 0.148,
       "core": [
-        "charizard",
         "garchomp",
+        "charizard",
         "kingambit",
-        "sylveon"
-      ],
-      "signature": [],
-      "w_usage": 0.174
-    },
-    {
-      "n": "Rain",
-      "share": 0.146,
-      "core": [
-        "pelipper",
-        "archaludon",
-        "grimmsnarl",
         "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.146
+      "w_usage": 0.152
+    },
+    {
+      "n": "Incineroar-Garchomp",
+      "share": 0.101,
+      "core": [
+        "incineroar",
+        "garchomp",
+        "charizard",
+        "venusaur"
+      ],
+      "signature": [
+        "toxapex"
+      ],
+      "w_usage": 0.104
+    },
+    {
+      "n": "Kingambit-Sneasler",
+      "share": 0.095,
+      "core": [
+        "kingambit",
+        "sneasler",
+        "incineroar",
+        "sinistcha"
+      ],
+      "signature": [],
+      "w_usage": 0.098
     },
     {
       "n": "Trick Room",
-      "share": 0.112,
+      "share": 0.088,
       "core": [
         "farigiraf",
-        "torkoal",
         "incineroar",
+        "torkoal",
         "mawile"
       ],
       "signature": [],
-      "w_usage": 0.112
+      "w_usage": 0.091
+    },
+    {
+      "n": "Archaludon-Pelipper",
+      "share": 0.078,
+      "core": [
+        "archaludon",
+        "pelipper",
+        "swampert",
+        "sinistcha"
+      ],
+      "signature": [],
+      "w_usage": 0.08
     },
     {
       "n": "Garchomp-Whimsicott",
-      "share": 0.077,
+      "share": 0.073,
       "core": [
         "garchomp",
         "whimsicott",
@@ -63,11 +89,23 @@
         "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.077
+      "w_usage": 0.075
+    },
+    {
+      "n": "Rain",
+      "share": 0.059,
+      "core": [
+        "pelipper",
+        "archaludon",
+        "basculegion",
+        "venusaur"
+      ],
+      "signature": [],
+      "w_usage": 0.061
     },
     {
       "n": "Sand",
-      "share": 0.066,
+      "share": 0.058,
       "core": [
         "tyranitar",
         "excadrill",
@@ -75,19 +113,31 @@
         "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.066
+      "w_usage": 0.06
     },
     {
-      "n": "Charizard-Venusaur",
-      "share": 0.052,
+      "n": "Raichu-Sinistcha",
+      "share": 0.054,
       "core": [
-        "charizard",
-        "venusaur",
-        "garchomp",
-        "incineroar"
+        "raichu",
+        "sinistcha",
+        "incineroar",
+        "pelipper"
       ],
       "signature": [],
-      "w_usage": 0.052
+      "w_usage": 0.056
+    },
+    {
+      "n": "Talonflame-Garchomp",
+      "share": 0.033,
+      "core": [
+        "talonflame",
+        "garchomp",
+        "gardevoir",
+        "glimmora"
+      ],
+      "signature": [],
+      "w_usage": 0.034
     }
   ]
 }
