@@ -72,7 +72,7 @@ ROLE_SIGNALS = {
            "Stun Spore","Toxic","Zap Cannon","Lovely Kiss","Sing","Dark Void","Poison Powder","Nuzzle"}),
  "debuff": dict(label="Debuff (Intimidate / drops)",
     moves={"Parting Shot","Charm","Snarl","Struggle Bug","Fake Tears","Screech","Tickle","Baby-Doll Eyes",
-           "Feather Dance","Growl","Play Nice","Captivate","Noble Roar","Tearful Look"},
+           "Feather Dance","Growl","Play Nice","Captivate","Noble Roar","Tearful Look","Spirit Break","Lunge"},
     abilities={"Intimidate"}),
  "setup": dict(label="Setup / sweeper",
     moves={"Swords Dance","Dragon Dance","Nasty Plot","Calm Mind","Bulk Up","Tail Glow","Quiver Dance",
@@ -96,7 +96,8 @@ ROLE_SIGNALS = {
            "Follow Me","Rage Powder","Pollen Puff","Wish"},
     abilities={"Stamina","Multiscale","Fur Coat","Ice Face","Fluffy","Thick Fat","Regenerator"}),
  "trapping": dict(label="Trapper",
-    moves={"Fairy Lock","Spider Web","Mean Look","Block","Anchor Shot","Thousand Waves","Spirit Shackle"},
+    moves={"Fairy Lock","Spider Web","Mean Look","Block","Anchor Shot","Thousand Waves","Spirit Shackle",
+           "Infestation","Whirlpool","Fire Spin","Sand Tomb","Bind","Wrap"},
     abilities={"Shadow Tag","Arena Trap","Magnet Pull"}),
  "perish": dict(label="Perish Trap",
     moves={"Perish Song"}),
@@ -113,13 +114,17 @@ PHYS = {"Rock Slide","Wave Crash","Earthquake","Close Combat","Last Respects","S
     "Bullet Punch","Play Rough","U-turn","Glaive Rush","Headlong Rush","Population Bomb","Triple Axel",
     "Facade","Fake Out","Extreme Speed","Ice Shard","Shadow Sneak","Grassy Glide","Jet Punch","Mach Punch",
     "Accelerock","First Impression","Liquidation","Crunch","Gunk Shot","Zen Headbutt","Poison Jab",
-    "Drain Punch","Horn Leech","Leech Life","Wood Hammer","Bitter Blade","Ivy Cudgel","Collision Course"}
+    "Drain Punch","Horn Leech","Leech Life","Wood Hammer","Bitter Blade","Ivy Cudgel","Collision Course",
+    "Foul Play","Darkest Lariat","Spirit Break","Gigaton Hammer","Surging Strikes","Ceaseless Edge",
+    "Icicle Crash","Stone Edge","Body Slam","Waterfall","Play Rough","Fishious Rend","Bolt Strike"}
 SPEC = {"Heat Wave","Hyper Voice","Moonblast","Weather Ball","Shadow Ball","Hurricane","Electro Shot",
     "Dragon Pulse","Psychic","Matcha Gotcha","Sludge Bomb","Earth Power","Dazzling Gleam","Flash Cannon",
     "Make It Rain","Thunderbolt","Eruption","Solar Beam","Blizzard","Hyper Beam","Giga Drain","Draining Kiss",
     "Air Slash","Muddy Water","Overheat","Fiery Dance","Snarl","Scald","Aura Sphere","Water Spout","Thunder",
     "Ice Beam","Sludge Wave","Energy Ball","Dark Pulse","Bug Buzz","Leaf Storm","Frost Breath","Psyshock",
-    "Volt Switch","Parabolic Charge","Pollen Puff","Moonlight","Freeze-Dry","Meteor Beam","Terrain Pulse"}
+    "Volt Switch","Parabolic Charge","Pollen Puff","Moonlight","Freeze-Dry","Meteor Beam","Terrain Pulse",
+    "Hydro Pump","Draco Meteor","Fire Blast","Thunderbolt","Focus Blast","Sludge Bomb","Aura Sphere",
+    "Hex","Tera Blast","Boomburst","Apple Acid","Fickle Beam","Luster Purge","Mystical Fire"}
 
 def signal_roles(moves, ability, item):
     """Which roles a single revealed set demonstrates."""

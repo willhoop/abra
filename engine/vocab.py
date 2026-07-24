@@ -34,6 +34,10 @@ for r, sig in roles.ROLE_SIGNALS.items():
 for m in roles.PHYS: move_to_roles[m].add("phys_attacker")
 for m in roles.SPEC: move_to_roles[m].add("spec_attacker")
 
+# role-neutral moves: everyone runs them, they carry no archetype signal — excluded from
+# the "uncovered = missing role" list and reported separately so they don't fake a low coverage.
+NEUTRAL = {"Protect","Detect","Substitute","Endure","Spiky Shield","King's Shield","Silk Trap"}
+
 def load_games():
     with open(STORE, encoding="utf-8") as fh:
         for line in fh:
@@ -59,15 +63,17 @@ def build():
                     battle_mv[e["mv"]] += 1; total_move_events += 1
                     if e.get("ko"): battle_mv_ko[e["mv"]] += 1
 
-    # coverage: share of in-battle move usage captured by at least one curated role
-    covered = sum(c for m, c in battle_mv.items() if m in move_to_roles)
-    coverage = covered / total_move_events if total_move_events else 0.0
+    # coverage: share of NON-neutral in-battle move usage captured by at least one curated role
+    denom = sum(c for m, c in battle_mv.items() if m not in NEUTRAL)
+    covered = sum(c for m, c in battle_mv.items() if m in move_to_roles and m not in NEUTRAL)
+    coverage = covered / denom if denom else 0.0
+    neutral_share = sum(c for m, c in battle_mv.items() if m in NEUTRAL) / total_move_events if total_move_events else 0.0
 
-    # high-usage moves NOT tied to any curated role — the "you're missing a role here" list
+    # high-usage moves NOT tied to any curated role and NOT neutral — the "missing role / ask Will" list
     uncovered = sorted(
         [dict(move=m, battle_uses=c, reveals=reveal_mv[m],
               kos=battle_mv_ko[m], ko_rate=round(battle_mv_ko[m]/c, 3) if c else 0)
-         for m, c in battle_mv.items() if m not in move_to_roles],
+         for m, c in battle_mv.items() if m not in move_to_roles and m not in NEUTRAL],
         key=lambda d: -d["battle_uses"])
 
     moves = sorted(
@@ -83,8 +89,10 @@ def build():
         totals=dict(distinct_moves=len(battle_mv), distinct_abilities=len(reveal_ab),
                     distinct_items=len(reveal_it), move_events=total_move_events),
         role_coverage_of_battle_usage=round(coverage, 4),
-        note=("role_coverage = share of actual in-battle move uses that map to >=1 curated role. "
-              "The rest is either raw damage/Protect or a role we have not named yet — see uncovered_top."),
+        neutral_share_of_usage=round(neutral_share, 4),
+        note=("role_coverage = share of NON-neutral in-battle move uses that map to >=1 curated role. "
+              "Neutral moves (Protect etc.) are excluded and reported as neutral_share. "
+              "uncovered_top = high-usage moves with no role yet — candidates to tag."),
         moves_top=moves[:80],
         uncovered_top=uncovered[:40],
         abilities_top=sorted(
