@@ -604,7 +604,7 @@ function roomJolteon(){const c=CAST[1];
        <div id="savedbar" class="savedbar"></div>
      </div>
    </div>
-   <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by coverage, firepower and speed. <b>Straight talk from the held-out backtest:</b> I pick the winner about <b>55%</b> of the time — right at the skill ceiling for this format — but as a <i>probability</i> I'm only about as sharp as the player-rating gap (my log-loss essentially ties a coin's). The team sheet just doesn't carry much more than that, partly because the meta is non-transitive (see Ditto). I'm an honest, instant first read — not an oracle. The rollout (Medicham) and the belief-search (Slowking) are where the real edge lives.</p></div>`;
+   <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by coverage, firepower and speed. <b>Straight talk from the held-out backtest:</b> I pick the winner about <b>55%</b> of the time — right at the skill ceiling for this format — but as a <i>probability</i> I'm only about as sharp as the player-rating gap (as a probability I am no sharper than a coin). The team sheet just doesn't carry much more than that, partly because the meta is non-transitive (see Ditto). I'm an honest, instant first read — not an oracle. The rollout (Medicham) and the belief-search (Slowking) are where the real edge lives.</p></div>`;
 }
 
 function tierRow(sprite,name,acro,cost,color,text){
@@ -697,7 +697,7 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
    <span class="chip">mixed Nash</span><span class="chip">small samples</span><span class="chip">suggestive, not proven</span></div>
    <div class="panel"><h2>My equilibrium mix</h2><p style="font-weight:600;color:#3a5372">How often to be ready for each playstyle if everyone plays optimally:</p>
    <div style="margin-top:6px">${mix}</div>
-   <div style="font-weight:700;color:#7a8aa0;margin-top:10px">Measured as exploitability (worst-case loss to a best response), with a bootstrap confidence interval. Nash ≈ 0 vs greedy single-deck ~${greedy}%.</div></div>
+   <div style="font-weight:700;color:#7a8aa0;margin-top:10px">Measured by how much a perfect counter-picker could beat you. Playing the mix is close to unbeatable; committing to one deck loses about ${greedy}% to the right answer.</div></div>
    <div class="panel"><h2>What's next</h2><p style="font-weight:600;color:#3a5372">This is the outer game. Next I add <b>Xatu's belief</b> over the opponent's hidden sets and depth-limited search, and Kadabra evolves into <b>ALAKAZAM</b> — the win-%-optimal coach.</p></div>`;
 }
 function roomGuru(){const c=CAST.find(x=>x.id==='guru');
@@ -714,8 +714,8 @@ function roomXatu(){const c=CAST.find(x=>x.id==='xatu');
 }
 function roomPory(){const c=CAST.find(x=>x.id==='pory');
   return `<div class="panel">${mascotHero(c,"Mid-game, I tell you your real win % — and unlike the pre-game guess, I actually beat a coin.")}</div>
-   <div class="panel"><h2>The win — a value net that works</h2><p style="font-weight:600;color:#3a5372">Team sheets can't predict the winner, but the <b>live board can</b>. From real replays I learned a win probability from mons-alive + HP + turn. On held-out games: <b>log-loss 0.567 vs coin 0.693</b>, calibrated to <b>1.6%</b>, with a clustered confidence interval. I'm the model powering Kadabra's per-turn "you're at X%".</p>
-   <span class="chip">log-loss 0.567</span><span class="chip">beats coin 0.693</span><span class="chip">ECE 1.6%</span></div>
+   <div class="panel"><h2>The win — a value net that works</h2><p style="font-weight:600;color:#3a5372">Team sheets can't predict the winner, but the <b>live board can</b>. From real replays I learned a win probability from mons-alive + HP + turn. On games it had never seen, it is <b>clearly better than guessing</b> — and honest about it: when it says 70%, it really is about 70%. I'm the model powering Kadabra's per-turn "you're at X%".</p>
+   <span class="chip">beats a coin flip</span><span class="chip">well calibrated</span></div>
    <div class="panel"><h2>Try it — live win %</h2>
      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 20px;font-weight:700;color:#3a5372">
        <label>Your mons alive: <b id="pv_ma">4</b><input type="range" min="0" max="4" value="4" id="p_ma" oninput="poryDemo()" style="width:100%"></label>
@@ -880,7 +880,7 @@ function roomRoles(){ const c=CAST.find(x=>x.id==='roles'); const N=window.NMF;
      <p class="sub" style="margin-top:10px">Every real team is a <b>blend</b> — "Intimidate control with a Tailwind splash" — never one hard label. That is the fix for the old single-label grid, where each matchup rested on ~15 games.</p>
    </div>
    <div class="panel"><h2>Offensive cores <span style="font-size:13px;color:#9aa3b2">(move-level, coarser)</span></h2>
-     <p class="sub">The same method on raw move usage. Attacking moves dominate, so it recovers offensive cores by type + speed control rather than support roles — shown honestly. Reconstruction error ${N.reconstruction_error_ratio}.</p>
+     <p class="sub">The same method on raw move usage. Attacking moves dominate here, so this cut finds offensive cores by type rather than support roles — shown as-is.</p>
      ${cores}
    </div>
    <div class="panel"><h2>What any Pokémon actually does</h2>
@@ -1006,10 +1006,10 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
     <div style="background:#eefaf1;border:3px solid #2fb45f;border-radius:16px;padding:14px 18px;margin-bottom:18px">
       <div style="font-weight:800;font-size:18px;color:#1a7a42">GURU — real matchups, from actual games</div>
       <div style="font-weight:600;color:#5a6b60;font-size:14px;margin:4px 0 12px">Win rates measured from ${(GURU.n_games||0).toLocaleString()} real games (not the simulator), with 95% confidence intervals. These are the matchups we can actually trust.</div>
-      ${(()=>{const seen=new Set(),rows=[];for(const d of GURU.decisive){const k=[d.a,d.b].sort().join('||');if(seen.has(k))continue;seen.add(k);rows.push(d.p>=0.5?d:{a:d.b,b:d.a,p:1-d.p,ci:[1-d.ci[1],1-d.ci[0]]});}return rows.slice(0,8);})().map(d=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      ${(()=>{const seen=new Set(),rows=[];for(const d of GURU.decisive){const k=[d.a,d.b].sort().join('||');if(seen.has(k))continue;seen.add(k);rows.push(d.p>=0.5?d:{a:d.b,b:d.a,p:1-d.p,ci:[1-d.ci[1],1-d.ci[0]]});}return rows.slice(0,8);})().map(d=>`<div title="range ${Math.round(d.ci[0]*100)}-${Math.round(d.ci[1]*100)}% across the games we have" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         <div style="flex:1;font-weight:700;font-size:14px;text-align:right">${d.a}</div>
         <div style="width:110px;height:22px;background:#e6efe9;border-radius:11px;overflow:hidden"><div style="height:100%;width:${Math.round(d.p*100)}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
-        <div style="flex:1.3;font-weight:700;font-size:13.5px;color:#1a7a42">${Math.round(d.p*100)}% <span style="color:#8a9a90;font-weight:500">beats <b>${d.b}</b> <span style="color:#8a9a90;font-weight:500">[${Math.round(d.ci[0]*100)}–${Math.round(d.ci[1]*100)}]</span></span></div></div>`).join('')}
+        <div style="flex:1.3;font-weight:700;font-size:13.5px;color:#1a7a42">${Math.round(d.p*100)}% <span style="color:#8a9a90;font-weight:500">beats <b>${d.b}</b></span></div></div>`).join('')}
     </div>`:''}
     <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">Is the meta rock-paper-scissors? <span style="font-size:13px;color:#99a;font-weight:600">(from real games)</span></div>
     ${cycles}
@@ -1306,7 +1306,7 @@ function renderKad(){
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
       <span style="display:inline-block;background:${col};color:#fff;font-weight:800;font-size:14px;padding:4px 14px;border-radius:99px">Turn ${s.n} — ${isLoss?'the swing':'good play'}</span>
-      ${s.wp!=null?`<span title="PORY mid-game win% value net — log-loss 0.567 vs coin 0.693, calibrated (data/pory-eval.json)" style="display:inline-block;background:${s.wp>=55?'#eefaf1':s.wp<=45?'#fff1f3':'#f6f7fb'};color:${s.wp>=55?'#1a9a4a':s.wp<=45?'#d23b3b':'#5a6472'};border:2px solid ${s.wp>=55?'#2fb45f':s.wp<=45?'#e05a72':'var(--line)'};font-weight:800;font-size:14px;padding:3px 12px;border-radius:99px">PORY: you're at ${s.wp}%</span>`:''}
+      ${s.wp!=null?`<span title="PORY reads the live board and estimates your win chance. Beats a coin flip on held-out games, and well calibrated." style="display:inline-block;background:${s.wp>=55?'#eefaf1':s.wp<=45?'#fff1f3':'#f6f7fb'};color:${s.wp>=55?'#1a9a4a':s.wp<=45?'#d23b3b':'#5a6472'};border:2px solid ${s.wp>=55?'#2fb45f':s.wp<=45?'#e05a72':'var(--line)'};font-weight:800;font-size:14px;padding:3px 12px;border-radius:99px">PORY: you're at ${s.wp}%</span>`:''}
     </div>
     <div class="stage">
       <div class="side foe">${s.foe.map(m=>bmon(m,false)).join('')}</div>
