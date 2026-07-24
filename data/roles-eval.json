@@ -330,62 +330,6 @@
  ],
  "ko_credit_top": [
   {
-   "species": "staraptormega",
-   "brought": 41,
-   "kos": 775,
-   "kos_in_wins": 594,
-   "ko_per_game": 18.902
-  },
-  {
-   "species": "floettemega",
-   "brought": 40,
-   "kos": 682,
-   "kos_in_wins": 447,
-   "ko_per_game": 17.05
-  },
-  {
-   "species": "delphoxmega",
-   "brought": 53,
-   "kos": 393,
-   "kos_in_wins": 283,
-   "ko_per_game": 7.415
-  },
-  {
-   "species": "metagrossmega",
-   "brought": 41,
-   "kos": 271,
-   "kos_in_wins": 187,
-   "ko_per_game": 6.61
-  },
-  {
-   "species": "swampertmega",
-   "brought": 95,
-   "kos": 620,
-   "kos_in_wins": 422,
-   "ko_per_game": 6.526
-  },
-  {
-   "species": "tyranitarmega",
-   "brought": 64,
-   "kos": 274,
-   "kos_in_wins": 220,
-   "ko_per_game": 4.281
-  },
-  {
-   "species": "charizardmegay",
-   "brought": 464,
-   "kos": 1965,
-   "kos_in_wins": 1389,
-   "ko_per_game": 4.235
-  },
-  {
-   "species": "raichumegay",
-   "brought": 81,
-   "kos": 316,
-   "kos_in_wins": 236,
-   "ko_per_game": 3.901
-  },
-  {
    "species": "snorlax",
    "brought": 49,
    "kos": 63,
@@ -398,13 +342,6 @@
    "kos": 53,
    "kos_in_wins": 41,
    "ko_per_game": 1.205
-  },
-  {
-   "species": "gengarmega",
-   "brought": 113,
-   "kos": 121,
-   "kos_in_wins": 84,
-   "ko_per_game": 1.071
   },
   {
    "species": "bellibolt",
@@ -426,13 +363,6 @@
    "kos": 39,
    "kos_in_wins": 28,
    "ko_per_game": 0.975
-  },
-  {
-   "species": "palafinhero",
-   "brought": 64,
-   "kos": 61,
-   "kos_in_wins": 26,
-   "ko_per_game": 0.953
   },
   {
    "species": "ceruledge",
@@ -608,6 +538,76 @@
    "kos": 42,
    "kos_in_wins": 29,
    "ko_per_game": 0.667
+  },
+  {
+   "species": "araquanid",
+   "brought": 82,
+   "kos": 54,
+   "kos_in_wins": 38,
+   "ko_per_game": 0.659
+  },
+  {
+   "species": "tsareena",
+   "brought": 214,
+   "kos": 141,
+   "kos_in_wins": 95,
+   "ko_per_game": 0.659
+  },
+  {
+   "species": "meowscarada",
+   "brought": 123,
+   "kos": 80,
+   "kos_in_wins": 59,
+   "ko_per_game": 0.65
+  },
+  {
+   "species": "garchomp",
+   "brought": 2959,
+   "kos": 1855,
+   "kos_in_wins": 1183,
+   "ko_per_game": 0.627
+  },
+  {
+   "species": "heliolisk",
+   "brought": 97,
+   "kos": 60,
+   "kos_in_wins": 51,
+   "ko_per_game": 0.619
+  },
+  {
+   "species": "mrrime",
+   "brought": 81,
+   "kos": 50,
+   "kos_in_wins": 44,
+   "ko_per_game": 0.617
+  },
+  {
+   "species": "kommoo",
+   "brought": 87,
+   "kos": 53,
+   "kos_in_wins": 41,
+   "ko_per_game": 0.609
+  },
+  {
+   "species": "kleavor",
+   "brought": 48,
+   "kos": 29,
+   "kos_in_wins": 26,
+   "ko_per_game": 0.604
+  },
+  {
+   "species": "houndstone",
+   "brought": 51,
+   "kos": 30,
+   "kos_in_wins": 24,
+   "ko_per_game": 0.588
+  },
+  {
+   "species": "ditto",
+   "brought": 65,
+   "kos": 38,
+   "kos_in_wins": 25,
+   "ko_per_game": 0.585
   }
  ],
  "pooling": {

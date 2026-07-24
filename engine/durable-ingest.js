@@ -37,12 +37,10 @@ function baseForme(sp){
   if(BASE_FORME === null){
     BASE_FORME = {};
     try{
-      const md = JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','mega-dex-official.json'),'utf8'));
-      for(const [k,v] of Object.entries(md.forms||{})){
-        if(v.base_species && /mega|primal/i.test(v.forme||'')){
-          BASE_FORME[k] = String(v.base_species).toLowerCase().replace(/[^a-z0-9]/g,'');
-        }
-      }
+      // every forme that exists ONLY during a battle - mega, primal, Palafin-Hero,
+      // Mimikyu-Busted - mapped back to the species team preview actually shows
+      const bf = JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','battle-formes.json'),'utf8'));
+      Object.assign(BASE_FORME, bf.base_of||{});
     }catch(e){ /* fallback below */ }
   }
   if(BASE_FORME[sp]) return BASE_FORME[sp];
