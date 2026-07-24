@@ -33,6 +33,9 @@ for r, sig in roles.ROLE_SIGNALS.items():
     for a in sig.get("abilities", set()): abil_to_roles[a].add(r)
 for m in roles.PHYS: move_to_roles[m].add("phys_attacker")
 for m in roles.SPEC: move_to_roles[m].add("spec_attacker")
+# the override table is authoritative for the moves it lists — without this, multi-role moves
+# (Psychic Fangs, Brick Break, Stockpile...) were wrongly reported as untagged.
+for m, rs in roles.ROLE_OVERRIDE.items(): move_to_roles[m] = set(rs)
 
 # role-neutral moves: everyone runs them, they carry no archetype signal — excluded from
 # the "uncovered = missing role" list and reported separately so they don't fake a low coverage.

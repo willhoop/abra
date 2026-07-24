@@ -184,9 +184,13 @@ ROLE_SIGNALS = {
     abilities={"Toxic Debris"}),
  "perish": dict(label="Perish Trap",
     moves={"Perish Song"}),
- "allysupport": dict(label="Ally support / positioning",
+ "allysupport": dict(label="Positioning / ally support",
+    # moving Pokemon around rather than damaging them — repositioning your own side (Ally Switch,
+    # After You, Instruct, Quash) and forcing the opponent's out (Roar, Whirlwind, Dragon Tail,
+    # Circle Throw), which undoes their setup and their lead.
     moves={"Instruct","Ally Switch","After You","Coaching","Decorate","Helping Hand","Quash",
-           "Aromatic Mist","Gear Up","Magnetic Flux","Heal Pulse"}),
+           "Aromatic Mist","Gear Up","Magnetic Flux","Heal Pulse",
+           "Roar","Whirlwind","Dragon Tail","Circle Throw"}),
  "itemdisrupt": dict(label="Item disruption",
     moves={"Trick","Switcheroo","Thief","Covet","Corrosive Gas","Incinerate"}),  # Knock Off via override
  "phys_attacker": dict(label="Physical attacker", moves=set()),   # special-cased (>=2 phys moves)
@@ -248,6 +252,12 @@ ROLE_OVERRIDE = {
  "Draining Kiss": {"healing", "spec_attacker"},
  "Leech Seed":    {"healing", "chip"},                      # drains the foe INTO your own HP
  "Stockpile":     {"setup"},                                # raises both defences (and fuels Swallow)
+ # attacks that boost the user on hit — they are setup and offense in one move, so no turn is lost
+ "Torch Song":    {"spec_attacker", "setup"},
+ "Scale Shot":    {"phys_attacker", "multihit", "setup"},
+ "Meteor Mash":   {"phys_attacker", "setup"},
+ "Charge Beam":   {"spec_attacker", "setup"},
+ "Fiery Dance":   {"spec_attacker", "setup"},
  "Fake Out":      {"fakeout"},                              # the flinch/tempo, NOT the tiny attack
  # partial-trapping moves do two jobs: they pin the target AND chip it every turn (the Perish/stall
  # pattern), so they carry the residual-damage tag as well as trapping.
