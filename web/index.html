@@ -253,6 +253,7 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 <script src="../data/xatu.js"></script>
 <script src="../data/pory.js"></script>
 <script src="../data/slowking-playstyle.js"></script>
+<script src="../data/status.js"></script>
 <script>
 /* ===== live JOLTEON model (embedded, real weights) ===== */
 const JOLT = {"wSpeed":-0.1626,"wFire":0.3019,"roster":[{"n":"garchomp","sprite":"garchomp","w":-0.093,"spd":0.506,"fire":0.813,"bring":0.402,"use":0.371},{"n":"whimsicott","sprite":"whimsicott","w":0.0763,"spd":0.822,"fire":0.876,"bring":0.773,"use":0.348},{"n":"basculegion","sprite":"basculegion","w":0.01,"spd":0.663,"fire":0.625,"bring":0.761,"use":0.345},{"n":"kingambit","sprite":"kingambit","w":0.3176,"spd":0.073,"fire":0.56,"bring":0.242,"use":0.331},{"n":"charizard","sprite":"charizard","w":0.0412,"spd":0.455,"fire":0.881,"bring":0.901,"use":0.329},{"n":"sylveon","sprite":"sylveon","w":-0.0352,"spd":0.162,"fire":0.815,"bring":0.766,"use":0.261},{"n":"incineroar","sprite":"incineroar","w":-0.0145,"spd":0.134,"fire":1.0,"bring":0.644,"use":0.196},{"n":"sinistcha","sprite":"sinistcha","w":0.0981,"spd":0.147,"fire":0.463,"bring":0.421,"use":0.171},{"n":"farigiraf","sprite":"farigiraf","w":0.0129,"spd":0.105,"fire":0.596,"bring":0.65,"use":0.139},{"n":"pelipper","sprite":"pelipper","w":0.1388,"spd":0.211,"fire":0.561,"bring":0.643,"use":0.136},{"n":"sneasler","sprite":"sneasler","w":0.1453,"spd":0.637,"fire":0.637,"bring":0.721,"use":0.127},{"n":"archaludon","sprite":"archaludon","w":-0.1737,"spd":0.254,"fire":0.707,"bring":0.572,"use":0.118},{"n":"grimmsnarl","sprite":"grimmsnarl","w":0.1393,"spd":0.769,"fire":0.72,"bring":0.595,"use":0.1},{"n":"raichu","sprite":"raichu","w":0.2147,"spd":0.694,"fire":0.676,"bring":0.632,"use":0.091},{"n":"tyranitar","sprite":"tyranitar","w":0.4408,"spd":0.456,"fire":0.834,"bring":0.786,"use":0.087},{"n":"staraptor","sprite":"staraptor","w":0.0228,"spd":0.568,"fire":0.952,"bring":0.623,"use":0.087},{"n":"gholdengo","sprite":"gholdengo","w":-0.2375,"spd":0.31,"fire":0.59,"bring":0.536,"use":0.087},{"n":"venusaur","sprite":"venusaur","w":0.1584,"spd":0.467,"fire":0.793,"bring":0.661,"use":0.086},{"n":"milotic","sprite":"milotic","w":-0.0505,"spd":0.261,"fire":0.518,"bring":0.543,"use":0.081},{"n":"aerodactyl","sprite":"aerodactyl","w":0.3857,"spd":0.713,"fire":0.608,"bring":0.65,"use":0.07},{"n":"swampert","sprite":"swampert","w":0.0197,"spd":0.502,"fire":0.83,"bring":0.574,"use":0.067},{"n":"metagross","sprite":"metagross","w":-0.1139,"spd":0.549,"fire":0.892,"bring":0.547,"use":0.06},{"n":"floetteeternal","sprite":"floette-eternal","w":0.2044,"spd":0.407,"fire":0.716,"bring":0.511,"use":0.06},{"n":"excadrill","sprite":"excadrill","w":0.255,"spd":0.573,"fire":0.583,"bring":0.586,"use":0.059},{"n":"talonflame","sprite":"talonflame","w":0.1276,"spd":0.87,"fire":0.615,"bring":0.715,"use":0.057},{"n":"torkoal","sprite":"torkoal","w":0.0859,"spd":0.016,"fire":0.552,"bring":0.658,"use":0.056},{"n":"sableye","sprite":"sableye","w":0.006,"spd":0.852,"fire":0.405,"bring":0.671,"use":0.055},{"n":"sinistchamasterpiece","sprite":"sinistchamasterpiece","w":-0.0907,"spd":0.227,"fire":0.495,"bring":0.522,"use":0.051},{"n":"rotomwash","sprite":"rotom-wash","w":0.126,"spd":0.398,"fire":0.48,"bring":0.643,"use":0.046},{"n":"ninetalesalola","sprite":"ninetales-alola","w":-0.0788,"spd":0.547,"fire":0.508,"bring":0.672,"use":0.045},{"n":"gengar","sprite":"gengar","w":0.1901,"spd":0.712,"fire":0.877,"bring":0.66,"use":0.045},{"n":"delphox","sprite":"delphox","w":0.2079,"spd":0.617,"fire":0.8,"bring":0.534,"use":0.043},{"n":"annihilape","sprite":"annihilape","w":0.1012,"spd":0.517,"fire":0.722,"bring":0.516,"use":0.042},{"n":"mawile","sprite":"mawile","w":0.3132,"spd":0.222,"fire":0.66,"bring":0.559,"use":0.041},{"n":"dragonite","sprite":"dragonite","w":0.0197,"spd":0.456,"fire":0.636,"bring":0.537,"use":0.04},{"n":"blastoise","sprite":"blastoise","w":-0.0935,"spd":0.392,"fire":0.655,"bring":0.575,"use":0.038},{"n":"toxapex","sprite":"toxapex","w":0.2248,"spd":0.416,"fire":0.41,"bring":0.774,"use":0.037},{"n":"blaziken","sprite":"blaziken","w":0.1431,"spd":0.602,"fire":0.799,"bring":0.656,"use":0.037},{"n":"froslass","sprite":"froslass","w":0.1469,"spd":0.699,"fire":0.668,"bring":0.734,"use":0.036},{"n":"ceruledge","sprite":"ceruledge","w":0.1245,"spd":0.245,"fire":0.802,"bring":0.657,"use":0.036},{"n":"hydreigon","sprite":"hydreigon","w":-0.0187,"spd":0.747,"fire":0.733,"bring":0.596,"use":0.035},{"n":"tsareena","sprite":"tsareena","w":-0.1634,"spd":0.468,"fire":0.945,"bring":0.506,"use":0.035},{"n":"mausholdfour","sprite":"mausholdfour","w":0.2016,"spd":0.553,"fire":0.623,"bring":0.552,"use":0.032},{"n":"glimmora","sprite":"glimmora","w":0.4215,"spd":0.71,"fire":0.72,"bring":0.742,"use":0.031},{"n":"primarina","sprite":"primarina","w":-0.1199,"spd":0.121,"fire":0.715,"bring":0.703,"use":0.03},{"n":"politoed","sprite":"politoed","w":0.1799,"spd":0.082,"fire":0.433,"bring":0.622,"use":0.03},{"n":"kangaskhan","sprite":"kangaskhan","w":0.0977,"spd":0.33,"fire":0.575,"bring":0.77,"use":0.026},{"n":"gardevoir","sprite":"gardevoir","w":0.2734,"spd":0.592,"fire":0.733,"bring":0.648,"use":0.026},{"n":"mamoswine","sprite":"mamoswine","w":-0.0842,"spd":0.6,"fire":0.682,"bring":0.611,"use":0.026},{"n":"scrafty","sprite":"scrafty","w":-0.0232,"spd":0.127,"fire":0.63,"bring":0.745,"use":0.025},{"n":"maushold","sprite":"maushold","w":-0.1114,"spd":0.548,"fire":0.437,"bring":0.545,"use":0.025},{"n":"scizor","sprite":"scizor","w":0.2772,"spd":0.211,"fire":0.696,"bring":0.481,"use":0.025},{"n":"sceptile","sprite":"sceptile","w":0.1771,"spd":0.778,"fire":0.585,"bring":0.595,"use":0.022},{"n":"chandelure","sprite":"chandelure","w":0.396,"spd":0.658,"fire":0.593,"bring":0.558,"use":0.022},{"n":"gallade","sprite":"gallade","w":0.3383,"spd":0.604,"fire":0.732,"bring":0.6,"use":0.021},{"n":"corviknight","sprite":"corviknight","w":0.1111,"spd":0.205,"fire":0.429,"bring":0.54,"use":0.021},{"n":"scovillain","sprite":"scovillain","w":0.2577,"spd":0.435,"fire":0.596,"bring":0.389,"use":0.021},{"n":"malamar","sprite":"malamar","w":-0.1159,"spd":0.328,"fire":0.658,"bring":0.833,"use":0.02},{"n":"meowstic","sprite":"meowstic","w":0.2996,"spd":0.851,"fire":0.592,"bring":0.744,"use":0.02},{"n":"altaria","sprite":"altaria","w":-0.1874,"spd":0.247,"fire":0.601,"bring":0.677,"use":0.019},{"n":"eelektross","sprite":"eelektross","w":0.3314,"spd":0.32,"fire":0.954,"bring":0.667,"use":0.019},{"n":"clefable","sprite":"clefable","w":-0.0415,"spd":0.231,"fire":0.693,"bring":0.41,"use":0.019},{"n":"meowscarada","sprite":"meowscarada","w":-0.1666,"spd":0.846,"fire":0.692,"bring":0.509,"use":0.018},{"n":"lucario","sprite":"lucario","w":-0.1364,"spd":0.755,"fire":0.934,"bring":0.455,"use":0.018},{"n":"oranguru","sprite":"oranguru","w":-0.146,"spd":0.333,"fire":0.273,"bring":0.725,"use":0.016},{"n":"dragapult","sprite":"dragapult","w":-0.2819,"spd":0.667,"fire":0.696,"bring":0.683,"use":0.016},{"n":"greninja","sprite":"greninja","w":-0.1127,"spd":0.865,"fire":0.89,"bring":0.652,"use":0.016},{"n":"volcarona","sprite":"volcarona","w":-0.1701,"spd":0.692,"fire":0.598,"bring":0.628,"use":0.016},{"n":"kommoo","sprite":"kommoo","w":0.07,"spd":0.604,"fire":0.515,"bring":0.595,"use":0.016},{"n":"tinkaton","sprite":"tinkaton","w":-0.126,"spd":0.385,"fire":0.569,"bring":0.629,"use":0.015},{"n":"meganium","sprite":"meganium","w":0.1851,"spd":0.516,"fire":0.669,"bring":0.563,"use":0.015},{"n":"rotomheat","sprite":"rotom-heat","w":0.148,"spd":0.657,"fire":0.535,"bring":0.767,"use":0.014},{"n":"weavile","sprite":"weavile","w":-0.0374,"spd":0.649,"fire":0.68,"bring":0.583,"use":0.014},{"n":"zoroarkhisui","sprite":"zoroark-hisui","w":0.0425,"spd":0.55,"fire":0.652,"bring":0.575,"use":0.014},{"n":"camerupt","sprite":"camerupt","w":0.115,"spd":0,"fire":0.644,"bring":0.543,"use":0.014},{"n":"palafin","sprite":"palafin","w":-0.3271,"spd":0.7,"fire":0.8,"bring":0.462,"use":0.014},{"n":"overqwil","sprite":"overqwil","w":0.079,"spd":0.435,"fire":0.717,"bring":0.829,"use":0.013},{"n":"mrrime","sprite":"mrrime","w":-0.1218,"spd":0.277,"fire":0.829,"bring":0.568,"use":0.013},{"n":"aegislash","sprite":"aegislash","w":-0.0181,"spd":0.491,"fire":0.701,"bring":0.538,"use":0.013},{"n":"drampa","sprite":"drampa","w":-0.073,"spd":0.357,"fire":0.751,"bring":0.5,"use":0.013},{"n":"gyarados","sprite":"gyarados","w":-0.18,"spd":0.444,"fire":0.783,"bring":0.5,"use":0.013},{"n":"araquanid","sprite":"araquanid","w":-0.0927,"spd":0.2,"fire":0.77,"bring":0.444,"use":0.013},{"n":"hatterene","sprite":"hatterene","w":0.0319,"spd":0.014,"fire":0.543,"bring":0.625,"use":0.012},{"n":"pyroar","sprite":"pyroar","w":0.2371,"spd":0.732,"fire":0.836,"bring":0.588,"use":0.012},{"n":"dragalge","sprite":"dragalge","w":-0.1337,"spd":0.136,"fire":0.7,"bring":0.455,"use":0.012},{"n":"arcaninehisui","sprite":"arcanine-hisui","w":-0.0472,"spd":0.528,"fire":0.829,"bring":0.792,"use":0.011},{"n":"heliolisk","sprite":"heliolisk","w":-0.1533,"spd":0.878,"fire":0.73,"bring":0.739,"use":0.011},{"n":"starmie","sprite":"starmie","w":-0.0813,"spd":0.809,"fire":0.817,"bring":0.609,"use":0.011},{"n":"golurk","sprite":"golurk","w":-0.0839,"spd":0,"fire":0.735,"bring":0.438,"use":0.011},{"n":"jolteon","sprite":"jolteon","w":0.1952,"spd":0.692,"fire":0.738,"bring":0.714,"use":0.01},{"n":"chesnaught","sprite":"chesnaught","w":-0.0747,"spd":0.576,"fire":0.815,"bring":0.69,"use":0.01},{"n":"gliscor","sprite":"gliscor","w":0.0572,"spd":0.564,"fire":0.681,"bring":0.654,"use":0.01},{"n":"lopunny","sprite":"lopunny","w":0.2009,"spd":0.767,"fire":0.655,"bring":0.636,"use":0.01},{"n":"vivillon","sprite":"vivillon","w":-0.0288,"spd":0.759,"fire":0.745,"bring":0.733,"use":0.009},{"n":"mimikyu","sprite":"mimikyu","w":0.0282,"spd":0.333,"fire":0.379,"bring":0.714,"use":0.009},{"n":"noivern","sprite":"noivern","w":0.0916,"spd":0.732,"fire":0.704,"bring":0.667,"use":0.009},{"n":"vileplume","sprite":"vileplume","w":-0.1213,"spd":0.682,"fire":0.847,"bring":0.591,"use":0.009},{"n":"vanilluxe","sprite":"vanilluxe","w":0.0181,"spd":0.556,"fire":1.0,"bring":0.5,"use":0.009},{"n":"ditto","sprite":"ditto","w":-0.0031,"spd":0.763,"fire":0.757,"bring":0.353,"use":0.009},{"n":"klefki","sprite":"klefki","w":-0.1066,"spd":0.885,"fire":0.64,"bring":1,"use":0.008},{"n":"espathra","sprite":"espathra","w":-0.108,"spd":0.758,"fire":0.453,"bring":0.588,"use":0.008},{"n":"samurotthisui","sprite":"samurott-hisui","w":0.1022,"spd":0.5,"fire":0.786,"bring":0.538,"use":0.007},{"n":"houndoom","sprite":"houndoom","w":-0.0254,"spd":0.632,"fire":0.714,"bring":0.5,"use":0.007},{"n":"ninetales","sprite":"ninetales","w":-0.1078,"spd":0.769,"fire":0.698,"bring":0.455,"use":0.007},{"n":"feraligatr","sprite":"feraligatr","w":-0.0455,"spd":0.462,"fire":0.76,"bring":0,"use":0.006},{"n":"vivillonfancy","sprite":"vivillonfancy","w":-0.0278,"spd":0.5,"fire":0.697,"bring":0.7,"use":0.005}]};
@@ -511,16 +512,17 @@ function pwin(A,B){ // A,B arrays of species names -> P(A beats B), the real JOL
 /* ===== the cast (rooms) ===== */
 const CAST=[
  {id:'town', tab:'Town', sprite:'abra', title:'ABRA World', acro:'Automated Battle Replay Analyzer', role:'the data platform', roof:'#ffd23f'},
- {id:'jolteon', tab:'Jolteon', sprite:'jolteon', title:"Jolteon's Odds Booth", acro:'Joint Odds, Ladder-Trained Expected-Outcome Network', role:'win probability', roof:'#ffd23f'},
- {id:'medicham', tab:'Medicham', sprite:'medicham', title:"Medicham's Dojo", acro:'Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves', role:'battle rollouts', roof:'#ff6b57'},
- {id:'ditto', tab:'Ditto', sprite:'ditto', title:"Ditto's Team Lab", acro:'Double-oracle Iterative Team-Tuning Optimiser', role:'team optimiser', roof:'#ff6bd6'},
- {id:'kadabra', tab:'Kadabra', sprite:'kadabra', title:"Kadabra's Theater", acro:'Key Analysis of Decisions, Advice & Better Replay Annotation', role:'replay coach', roof:'#7a6bff'},
- {id:'slowking', tab:'Slowking', sprite:'slowking', title:"Slowking's Library", acro:'Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver', role:'belief search', roof:'#4fb0ff'},
- {id:'chomp', tab:'Chomp', sprite:'garchomp', title:"Chomp's Arena", acro:'the bring-4 / lead-2 damage engine', role:'bring-4 engine', roof:'#5fd07a'},
- {id:'guru', tab:'Guru', sprite:'oranguru', title:"Guru's Observatory", acro:'Grounded Usage & Real-matchup Understanding', role:'meta matchup matrix', roof:'#b06bff'},
- {id:'xatu', tab:'Xatu', sprite:'xatu', title:"Xatu's Roost", acro:'eXpected Adversary Tendencies & Unrevealed-set model', role:'opponent belief', roof:'#6bd0ff'},
- {id:'pory', tab:'Pory', sprite:'porygon', title:"Porygon's Win Meter", acro:'Per-turn Odds from Real-replay Yardsticks', role:'mid-game win %', roof:'#6be0a0'},
- {id:'alakazam', tab:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine (capstone, in development)', role:'win-%-optimal move', roof:'#c66bff'},
+ {id:'jolteon', tab:'Jolt', full:'Jolteon', sprite:'jolteon', title:"Jolt's Odds Booth", acro:'win probability from team sheets · retired to the PC (ties a coin)', role:'win probability', roof:'#ffd23f'},
+ {id:'medicham', tab:'Medi', full:'Medicham', sprite:'medicham', title:"Medi's Dojo", acro:'exact damage engine — validated vs @smogon/calc', role:'battle rollouts', roof:'#ff6b57'},
+ {id:'ditto', tab:'Ditto', full:'Ditto', sprite:'ditto', title:"Ditto's Team Lab", acro:'team-builder — best-responds to the live meta', role:'team optimiser', roof:'#ff6bd6'},
+ {id:'kadabra', tab:'Kadabra', full:'Kadabra', sprite:'kadabra', title:"Kadabra's Theater", acro:'replay coach — shows your win% each key turn', role:'replay coach', roof:'#7a6bff'},
+ {id:'slowking', tab:'King', full:'Slowking', sprite:'slowking', title:"King's Library", acro:'team-preview Nash — the equilibrium bring', role:'belief search', roof:'#4fb0ff'},
+ {id:'chomp', tab:'Chomp', full:'Garchomp', sprite:'garchomp', title:"Chomp's Arena", acro:'the bring-4 / lead-2 damage engine', role:'bring-4 engine', roof:'#5fd07a'},
+ {id:'guru', tab:'Guru', full:'Oranguru', sprite:'oranguru', title:"Guru's Observatory", acro:'meta matchup matrix, measured from real games', role:'meta matchup matrix', roof:'#b06bff'},
+ {id:'xatu', tab:'Xatu', full:'Xatu', sprite:'xatu', title:"Xatu's Roost", acro:'reads the opponent’s hidden set', role:'opponent belief', roof:'#6bd0ff'},
+ {id:'pory', tab:'Pory', full:'Porygon', sprite:'porygon', title:"Porygon's Win Meter", acro:'mid-game win% — beats a coin, calibrated', role:'mid-game win %', roof:'#6be0a0'},
+ {id:'alakazam', tab:'Alakazam', full:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine · capstone, in development', role:'win-%-optimal move', roof:'#c66bff'},
+ {id:'map', tab:'Map', full:'Porygon2', sprite:'porygon2', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
 ];
 
 /* ===== build nav ===== */
@@ -530,7 +532,7 @@ CAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.da
 
 /* ===== rooms html ===== */
 function mascotHero(c,bubble){return `<div class="hero"><img class="mascot" src="${ani(c.sprite)}">
-  <div><h2>${c.title}${c.full?` <span style="font-size:14px;color:#9aa6b3;font-weight:600">· ${c.full}</span>`:''}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
+  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
 
 function roomTown(){const c=CAST[0];
   let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">
@@ -720,6 +722,38 @@ function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
    <span class="chip">belief + search</span><span class="chip">mixed strategy</span><span class="chip">Kadabra, evolved</span></div>
    <div class="panel"><h2>Honest status</h2><p style="font-weight:600;color:#3a5372">Not built yet — but its inputs already are: exact damage, Porygon's value net, Xatu's belief, and Slowking's equilibrium. A light version runs right here in your browser; a version that could beat top human players needs a cloud GPU and months of self-play. It's judged on <b>decision quality</b>, never on calling the winner in advance — that part is a coin flip, and we say so.</p></div>`;
 }
+const MAPPOS={store:[436,24],medicham:[436,104],guru:[110,206],xatu:[286,206],pory:[452,206],dusk:[620,206],hypno:[772,206],mew:[858,104],chomp:[92,320],slowking:[268,320],ditto:[452,320],kadabra:[640,320],alakazam:[408,438],jolteon:[232,560],medi_win:[544,560]};
+const MAPCOL={data:['#eef2f8','#9fb0c6'],damage:['#fff6e0','#e0a93a'],input:['#e9f9ef','#2fb45f'],roadmap:['#eef2f8','#aab6c8'],decision:['#eaf6ff','#3a86c0'],capstone:['#efe6fb','#a06bd0'],retired:['#fdeef0','#e0899a']};
+function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
+  if(!S){ return `<div class="panel">${mascotHero(c,"Map data not loaded — run engine/build-status.js.")}</div>`; }
+  const NW=132,NH=46; const byName={},byId={}; S.models.forEach(m=>{byName[m.name.toUpperCase()]=m.id; byId[m.id]=m;});
+  const edges=[]; S.models.forEach(m=>{(m.inputs||[]).forEach(inp=>{const f=byName[(inp||'').toUpperCase()]; if(f&&MAPPOS[f]&&MAPPOS[m.id])edges.push([f,m.id]);});});
+  const outs={},ins={}; edges.forEach(([f,t])=>{(outs[f]=outs[f]||[]).push(byId[t].name);(ins[t]=ins[t]||[]).push(byId[f].name);});
+  const cx=id=>MAPPOS[id][0]+NW/2, top=id=>MAPPOS[id][1], bot=id=>MAPPOS[id][1]+NH;
+  let svg=`<svg id="abramap" viewBox="0 0 1000 630" style="width:100%;height:auto" font-family="Arial"><defs><marker id="mh" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9aa6bb"/></marker></defs>`;
+  edges.forEach(([f,t])=>{ svg+=`<line class="edge" data-from="${f}" data-to="${t}" x1="${cx(f)}" y1="${bot(f)}" x2="${cx(t)}" y2="${top(t)}" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)"/>`; });
+  S.models.forEach(m=>{ if(!MAPPOS[m.id])return; const [x,y]=MAPPOS[m.id]; const [bg,br]=MAPCOL[m.tier]||['#fff','#ccc']; const dash=m.tier==='roadmap'?'stroke-dasharray="5 4"':'';
+    const tip=`${m.name}  —  IN: ${(ins[m.id]||['—']).join(', ')}   OUT: ${(outs[m.id]||['—']).join(', ')}\n${m.metric} · ${m.detail}`;
+    svg+=`<g class="node" data-id="${m.id}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer"><title>${tip}</title>`+
+      `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="${bg}" stroke="${br}" stroke-width="2.5" ${dash}/>`+
+      `<text x="${x+NW/2}" y="${y+19}" text-anchor="middle" font-size="13" font-weight="800" fill="#12324f">${m.name}</text>`+
+      `<text x="${x+NW/2}" y="${y+35}" text-anchor="middle" font-size="9.5" fill="#5a6472">${m.metric}</text></g>`; });
+  svg+=`</svg>`;
+  const leg=[['#2fb45f','built'],['#e0a93a','damage'],['#3a86c0','decision'],['#a06bd0','capstone'],['#aab6c8','roadmap'],['#e0899a','retired (PC)']]
+    .map(([c2,t])=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-weight:700;font-size:12px;color:#5a6472"><span style="width:12px;height:12px;border-radius:3px;background:${c2}"></span>${t}</span>`).join('');
+  return `<div class="panel">${mascotHero(c,"The whole town, wired up. Hover any model to light up what feeds it and what it feeds.")}</div>
+   <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Every box shows its <b>current</b> number, read from that model's report (<code>engine/build-status.js</code> regenerates it). <b>Hover a box</b> — its inputs and outputs light up; the rest dims. The decision tools (CHOMP, KADABRA, ALAKAZAM) are the natural endpoints — they output to <b>you, the player</b>. Everything upstream exists to feed them.</p>
+   <div style="margin:6px 0 8px">${leg}</div>${svg}</div>`;
+}
+function mapHi(id){
+  const lines=[...document.querySelectorAll('#abramap line.edge')];
+  lines.forEach(l=>{ const on=id&&(l.dataset.from===id||l.dataset.to===id);
+    l.setAttribute('stroke',on?'#3a86c0':'#c7cede'); l.setAttribute('stroke-width',on?'3':'1.6'); l.setAttribute('opacity',id?(on?'1':'0.15'):'0.7'); });
+  document.querySelectorAll('#abramap g.node').forEach(g=>{ const nid=g.dataset.id;
+    if(!id){g.style.opacity=1;return;}
+    const conn=nid===id||lines.some(l=>(l.dataset.from===id&&l.dataset.to===nid)||(l.dataset.to===id&&l.dataset.from===nid));
+    g.style.opacity=conn?1:0.28; });
+}
 function poryDemo(){
   const v=id=>+document.getElementById(id).value;
   const ma=v('p_ma'),fa=v('p_fa'),mh=v('p_mh'),fh=v('p_fh'),t=v('p_t');
@@ -746,7 +780,7 @@ function roomChomp(){const c=CAST[6];
      </div></div>
    <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
 }
-const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam};
+const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,map:roomMap};
 
 /* ===== navigation ===== */
 function go(id){
@@ -793,25 +827,39 @@ function renderThreats(_,q){
 /* non-transitivity: lead with the rock-paper-scissors CYCLES (big, whimsical, no tiny text) */
 function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el||typeof NONTRANS==='undefined')return;
   const N=NONTRANS, n=N.names.length;
-  const PAL=['#f2a65a','#6ec6a8','#7a9cf2','#e07a9c','#b58cf2','#f2cf5a','#5ac6d6','#f27a6b'];
-  const colOf={}; N.names.forEach((s,i)=>colOf[s]=PAL[i%PAL.length]);
+  // REAL data (GURU) drives the grid + cycle; nothing hardcoded/simulated. Thin cells are gated.
+  const A=(window.GURU&&GURU.archetypes)||N.names;
+  const M=(window.GURU&&GURU.matrix)||null;
+  const MINN=20;                                   // need at least this many games to call a cell
+  const gc=(a,b)=> (M&&M[a]&&M[a][b])||null;
+  const isSig=c=> !!c && c.n>=MINN && (c.lo>0.5 || c.hi<0.5);   // enough games AND CI clears 50%
+  const PAL=['#f2a65a','#6ec6a8','#7a9cf2','#e07a9c','#b58cf2','#f2cf5a','#5ac6d6','#f27a6b','#8ad17a','#d68cc6','#7ac6a0','#c6a05a','#9aa6e0'];
+  const colOf={}; A.forEach((s,i)=>colOf[s]=PAL[i%PAL.length]);
   const pill=(s)=>`<div style="background:${colOf[s]||'#8a8f99'};color:#fff;font-weight:800;font-size:16px;padding:10px 16px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.15);white-space:nowrap">${s}</div>`;
   const beats=`<div style="display:flex;flex-direction:column;align-items:center;color:#c0563f;font-weight:800;font-size:12px;padding:0 4px"><span style="font-size:20px;line-height:1">→</span>beats</div>`;
-  // hero: each cycle as a loop of pills
-  let cycles=N.cycles.map(c=>`
-    <div style="background:#fff;border:3px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
-        ${pill(c[0])}${beats}${pill(c[1])}${beats}${pill(c[2])}${beats}${pill(c[0])}
-      </div>
-      <div style="text-align:center;color:#8a8f99;font-weight:700;font-size:13px;margin-top:8px">↺ round and round — none of the three is "best"</div>
-    </div>`).join('');
+  // hero: the strongest REAL 3-cycle from GURU, flagged honestly if it isn't yet significant
+  const tri=[];
+  for(let i=0;i<A.length;i++)for(let j=0;j<A.length;j++)for(let k=0;k<A.length;k++){
+    if(i===j||j===k||i===k)continue;
+    const e1=gc(A[i],A[j]),e2=gc(A[j],A[k]),e3=gc(A[k],A[i]);
+    if(e1&&e2&&e3&&e1.p>0.5&&e2.p>0.5&&e3.p>0.5)
+      tri.push({c:[A[i],A[j],A[k]],min:Math.min(e1.p,e2.p,e3.p),sig:isSig(e1)&&isSig(e2)&&isSig(e3)}); }
+  tri.sort((x,y)=>y.min-x.min); const topc=tri[0];
+  let cycles = topc ? `<div style="background:#fff;border:3px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">${pill(topc.c[0])}${beats}${pill(topc.c[1])}${beats}${pill(topc.c[2])}${beats}${pill(topc.c[0])}</div>
+      <div style="text-align:center;font-weight:700;font-size:13px;margin-top:8px;color:${topc.sig?'#1a7a42':'#c08a2a'}">${topc.sig?'↺ a real, statistically significant loop':'⚠ thin data — a hint from real games, not yet statistically significant'}</div>
+    </div>` : `<div style="text-align:center;color:#8a8f99;font-weight:700;font-size:14px;padding:10px">No rock-paper-scissors loop among the significant matchups yet — needs more games.</div>`;
   // supporting matrix, but readable (bigger cells/text) and collapsed by default
-  const cell=v=>{ if(v==null)return '<td style="background:#f0f0f4;text-align:center;color:#bbb;font-weight:700">·</td>';
-    const p=Math.round(v*100), g=v>=0.5;
-    const col=g?`rgba(47,180,95,${(0.15+0.75*(v-0.5)*2).toFixed(2)})`:`rgba(224,90,114,${(0.15+0.75*(0.5-v)*2).toFixed(2)})`;
-    return `<td style="background:${col};text-align:center;font-weight:800;font-size:14px;padding:8px 10px;color:#122">${p}</td>`; };
-  let table=`<table style="border-collapse:collapse;margin:8px auto 0"><thead><tr><th></th>`+N.names.map(s=>`<th style="padding:6px 8px;font-size:13px;font-weight:800;color:${colOf[s]};white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
-  for(let i=0;i<n;i++){ table+=`<tr><td style="font-weight:800;font-size:13px;padding:6px 10px;text-align:right;white-space:nowrap;color:${colOf[N.names[i]]}">${N.names[i]}</td>`+N.matrix[i].map((v,j)=>cell(i===j?null:v)).join('')+`</tr>`; }
+  const cell=(a,b)=>{ if(a===b)return `<td style="background:#f0f0f4;text-align:center;color:#bbb;font-weight:700">·</td>`;
+    const c=gc(a,b);
+    if(!c)return `<td title="no games yet" style="background:#f6f7fb;text-align:center;color:#c7cede;font-weight:700">–</td>`;
+    const p=Math.round(c.p*100), sig=isSig(c);
+    const tip=`${a} beats ${b}: ${p}% (95% CI ${Math.round(c.lo*100)}–${Math.round(c.hi*100)}%, n=${c.n})${sig?'':' — thin / not yet significant'}`;
+    if(!sig)return `<td title="${tip}" style="background:#f4f5f8;text-align:center;font-weight:700;font-size:13px;padding:8px 10px;color:#b7c0cf;cursor:help">${p}<span style="font-size:9px">*</span></td>`;
+    const col=c.p>=0.5?`rgba(47,180,95,${(0.2+0.7*(c.p-0.5)*2).toFixed(2)})`:`rgba(224,90,114,${(0.2+0.7*(0.5-c.p)*2).toFixed(2)})`;
+    return `<td title="${tip}" style="background:${col};text-align:center;font-weight:800;font-size:14px;padding:8px 10px;color:#122;cursor:help">${p}</td>`; };
+  let table=`<table style="border-collapse:collapse;margin:8px auto 0"><thead><tr><th></th>`+A.map(s=>`<th style="padding:6px 8px;font-size:12px;font-weight:800;color:${colOf[s]||'#556'};white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
+  for(const a of A){ table+=`<tr><td style="font-weight:800;font-size:12px;padding:6px 10px;text-align:right;white-space:nowrap;color:${colOf[a]||'#556'}">${a}</td>`+A.map(b=>cell(a,b)).join('')+`</tr>`; }
   table+=`</tbody></table>`;
   el.innerHTML=`
     ${(window.GURU&&GURU.decisive&&GURU.decisive.length)?`
@@ -823,12 +871,12 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
         <div style="width:110px;height:22px;background:#e6efe9;border-radius:11px;overflow:hidden"><div style="height:100%;width:${Math.round(d.p*100)}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
         <div style="flex:1.3;font-weight:700;font-size:13.5px;color:#1a7a42">${Math.round(d.p*100)}% <span style="color:#8a9a90;font-weight:500">[${Math.round(d.ci[0]*100)}–${Math.round(d.ci[1]*100)}] vs ${d.b}</span></div></div>`).join('')}
     </div>`:''}
-    <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">${N.cycles.length} rock-paper-scissors loop${N.cycles.length===1?'':'s'} in the meta <span style="font-size:13px;color:#99a;font-weight:600">(simulated — illustrative)</span></div>
+    <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">Is the meta rock-paper-scissors? <span style="font-size:13px;color:#99a;font-weight:600">(from real games)</span></div>
     ${cycles}
     <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:800;font-size:15px;color:#556;padding:6px 0">See the full win-rate grid (green = row beats column)</summary>
       <div style="overflow-x:auto">${table}</div></details>
     <div style="margin-top:14px;padding:12px 14px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:12px;font-size:14px;color:#8a6d2a;font-weight:600;line-height:1.5">
-      <b>Read this as an illustration, not gospel.</b> MEDICHAM's damage is now validated, but this grid is over just ${n} sample archetypes with ${N.rollouts} rollouts each (±${Math.round(196*N.se)} pts of noise), so near-50% cells are coin flips. It shows <i>why</i> there's no single best team — the settled claim needs more games.</div>`;
+      <b>Live from real games — not simulated.</b> Every cell is measured from actual ladder results with a Wilson 95% CI; hover any cell for its sample size. Cells marked <b>*</b> and greyed are <b>thin or not yet statistically significant</b> (the CI still crosses 50%), so treat them as unknown until more games arrive. Only the coloured cells are claims we stand behind. New archetypes appear here automatically as GURU identifies them.</div>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }
