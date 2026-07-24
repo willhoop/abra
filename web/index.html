@@ -723,27 +723,37 @@ function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
    <div class="panel"><h2>Honest status</h2><p style="font-weight:600;color:#3a5372">Not built yet — but its inputs already are: exact damage, Porygon's value net, Xatu's belief, and Slowking's equilibrium. A light version runs right here in your browser; a version that could beat top human players needs a cloud GPU and months of self-play. It's judged on <b>decision quality</b>, never on calling the winner in advance — that part is a coin flip, and we say so.</p></div>`;
 }
 const MAPPOS={store:[436,24],medicham:[436,104],guru:[110,206],xatu:[286,206],pory:[452,206],dusk:[620,206],hypno:[772,206],mew:[858,104],chomp:[92,320],slowking:[268,320],ditto:[452,320],kadabra:[640,320],alakazam:[408,438],jolteon:[232,560],medi_win:[544,560]};
-const MAPCOL={data:['#eef2f8','#9fb0c6'],damage:['#fff6e0','#e0a93a'],input:['#e9f9ef','#2fb45f'],roadmap:['#eef2f8','#aab6c8'],decision:['#eaf6ff','#3a86c0'],capstone:['#efe6fb','#a06bd0'],retired:['#fdeef0','#e0899a']};
+// layers = what a model DOES (not its build status)
+const MAPLAYER={store:'collect',mew:'collect',medicham:'simulate',guru:'meta',xatu:'opponent',hypno:'opponent',pory:'value',dusk:'value',chomp:'team',slowking:'team',ditto:'team',kadabra:'battle',alakazam:'battle',jolteon:'retired',medi_win:'retired'};
+const LAYERS=[['collect','Collect data','#7aa7d6','#eef3fa'],['simulate','Simulate damage','#e0a93a','#fff6e0'],['meta','Read the meta','#4faf6a','#e9f9ef'],['opponent','Read the opponent','#3aa6b8','#e4f6f8'],['value','Value a position','#3a86c0','#eaf3fb'],['team','Pick a team','#9a6bd0','#f1e9fb'],['battle','Coach in-battle','#d06a9a','#fceef4'],['retired','Retired (PC)','#b08a8a','#f6eeee']];
+const LAYERCOL={}; LAYERS.forEach(([id,,br,bg])=>LAYERCOL[id]=[bg,br]);
+window.MAPON=window.MAPON||{retired:false};   // retired hidden by default; toggle to show
 function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   if(!S){ return `<div class="panel">${mascotHero(c,"Map data not loaded — run engine/build-status.js.")}</div>`; }
   const NW=132,NH=46; const byName={},byId={}; S.models.forEach(m=>{byName[m.name.toUpperCase()]=m.id; byId[m.id]=m;});
-  const edges=[]; S.models.forEach(m=>{(m.inputs||[]).forEach(inp=>{const f=byName[(inp||'').toUpperCase()]; if(f&&MAPPOS[f]&&MAPPOS[m.id])edges.push([f,m.id]);});});
+  const lay=id=>MAPLAYER[id]||'collect', vis=id=>window.MAPON[lay(id)]!==false;
+  const edges=[]; S.models.forEach(m=>{(m.inputs||[]).forEach(inp=>{const f=MAPPOS[inp]?inp:byName[(inp||'').toUpperCase()]; if(f&&MAPPOS[f]&&MAPPOS[m.id])edges.push([f,m.id]);});});
   const outs={},ins={}; edges.forEach(([f,t])=>{(outs[f]=outs[f]||[]).push(byId[t].name);(ins[t]=ins[t]||[]).push(byId[f].name);});
   const cx=id=>MAPPOS[id][0]+NW/2, top=id=>MAPPOS[id][1], bot=id=>MAPPOS[id][1]+NH;
   let svg=`<svg id="abramap" viewBox="0 0 1000 630" style="width:100%;height:auto" font-family="Arial"><defs><marker id="mh" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9aa6bb"/></marker></defs>`;
-  edges.forEach(([f,t])=>{ svg+=`<line class="edge" data-from="${f}" data-to="${t}" x1="${cx(f)}" y1="${bot(f)}" x2="${cx(t)}" y2="${top(t)}" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)"/>`; });
-  S.models.forEach(m=>{ if(!MAPPOS[m.id])return; const [x,y]=MAPPOS[m.id]; const [bg,br]=MAPCOL[m.tier]||['#fff','#ccc']; const dash=m.tier==='roadmap'?'stroke-dasharray="5 4"':'';
-    const tip=`${m.name}  —  IN: ${(ins[m.id]||['—']).join(', ')}   OUT: ${(outs[m.id]||['—']).join(', ')}\n${m.metric} · ${m.detail}`;
-    svg+=`<g class="node" data-id="${m.id}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer"><title>${tip}</title>`+
+  edges.forEach(([f,t])=>{ const hid=!vis(f)||!vis(t); svg+=`<line class="edge" data-from="${f}" data-to="${t}" data-fl="${lay(f)}" data-tl="${lay(t)}" x1="${cx(f)}" y1="${bot(f)}" x2="${cx(t)}" y2="${top(t)}" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)" style="${hid?'display:none':''}"/>`; });
+  S.models.forEach(m=>{ if(!MAPPOS[m.id])return; const [x,y]=MAPPOS[m.id]; const L=lay(m.id); const [bg,br]=LAYERCOL[L]||['#fff','#ccc']; const dash=(m.status==='roadmap'||m.status==='dev')?'stroke-dasharray="5 4"':'';
+    const tip=`${m.name}${m.full?' ('+m.full+')':''}  —  IN: ${(ins[m.id]||['—']).join(', ')}   OUT: ${(outs[m.id]||['—']).join(', ')}\n${m.metric} · ${m.detail}`;
+    svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
       `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="${bg}" stroke="${br}" stroke-width="2.5" ${dash}/>`+
       `<text x="${x+NW/2}" y="${y+19}" text-anchor="middle" font-size="13" font-weight="800" fill="#12324f">${m.name}</text>`+
       `<text x="${x+NW/2}" y="${y+35}" text-anchor="middle" font-size="9.5" fill="#5a6472">${m.metric}</text></g>`; });
   svg+=`</svg>`;
-  const leg=[['#2fb45f','built'],['#e0a93a','damage'],['#3a86c0','decision'],['#a06bd0','capstone'],['#aab6c8','roadmap'],['#e0899a','retired (PC)']]
-    .map(([c2,t])=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-weight:700;font-size:12px;color:#5a6472"><span style="width:12px;height:12px;border-radius:3px;background:${c2}"></span>${t}</span>`).join('');
-  return `<div class="panel">${mascotHero(c,"The whole town, wired up. Hover any model to light up what feeds it and what it feeds.")}</div>
-   <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Every box shows its <b>current</b> number, read from that model's report (<code>engine/build-status.js</code> regenerates it). <b>Hover a box</b> — its inputs and outputs light up; the rest dims. The decision tools (CHOMP, KADABRA, ALAKAZAM) are the natural endpoints — they output to <b>you, the player</b>. Everything upstream exists to feed them.</p>
-   <div style="margin:6px 0 8px">${leg}</div>${svg}</div>`;
+  const btns=LAYERS.map(([id,label,br])=>{const on=window.MAPON[id]!==false; return `<button onclick="mapToggle('${id}')" data-layer-btn="${id}" data-br="${br}" style="border:2px solid ${br};background:${on?br:'#fff'};color:${on?'#fff':br};font-weight:800;font-size:12px;padding:5px 11px;border-radius:99px;margin:3px;cursor:pointer">${label}</button>`;}).join('');
+  return `<div class="panel">${mascotHero(c,"The whole town, wired up. Toggle a layer to sort by what each model DOES; hover a box to trace its connections.")}</div>
+   <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
+   <div style="margin:4px 0 8px">${btns}</div>${svg}</div>`;
+}
+function mapToggle(layer){ window.MAPON[layer]=window.MAPON[layer]===false;
+  const b=document.querySelector('[data-layer-btn="'+layer+'"]'); if(b){const on=window.MAPON[layer]!==false,br=b.dataset.br; b.style.background=on?br:'#fff'; b.style.color=on?'#fff':br;}
+  const on=l=>window.MAPON[l]!==false;
+  document.querySelectorAll('#abramap g.node').forEach(g=>{ g.style.display=on(g.dataset.layer)?'':'none'; });
+  document.querySelectorAll('#abramap line.edge').forEach(l=>{ l.style.display=(on(l.dataset.fl)&&on(l.dataset.tl))?'':'none'; });
 }
 function mapHi(id){
   const lines=[...document.querySelectorAll('#abramap line.edge')];
