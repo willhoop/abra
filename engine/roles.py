@@ -119,7 +119,7 @@ PHYS = {"Rock Slide","Wave Crash","Earthquake","Close Combat","Last Respects","S
     "Iron Head","Dragon Claw","Kowtow Cleave","Knock Off","Stomping Tantrum","Aqua Jet","Brave Bird",
     "Dual Wingbeat","Flip Turn","High Horsepower","Ice Punch","Throat Chop","Dire Claw","Quick Attack",
     "Bullet Punch","Play Rough","U-turn","Glaive Rush","Headlong Rush","Population Bomb","Triple Axel",
-    "Facade","Fake Out","Extreme Speed","Ice Shard","Shadow Sneak","Grassy Glide","Jet Punch","Mach Punch",
+    "Facade","Extreme Speed","Ice Shard","Shadow Sneak","Grassy Glide","Jet Punch","Mach Punch",
     "Accelerock","First Impression","Liquidation","Crunch","Gunk Shot","Zen Headbutt","Poison Jab",
     "Drain Punch","Horn Leech","Leech Life","Wood Hammer","Bitter Blade","Ivy Cudgel","Collision Course",
     "Foul Play","Darkest Lariat","Spirit Break","Gigaton Hammer","Surging Strikes","Ceaseless Edge",
