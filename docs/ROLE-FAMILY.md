@@ -108,3 +108,5 @@ which the move-level cut could not surface. The only human choices are the **ran
 Tsoumakas & Katakis 2007 (multi-label) · Blei, Ng & Jordan 2003 (LDA) · Lee & Seung 1999 (NMF) ·
 Geng 2016 (Label Distribution Learning) · Mimno et al. 2011 (topic coherence) · Rosenbaum-style RAPM
 (basketball adjusted plus-minus) · latent roles in team sports (arXiv 2304.08272).
+
+<!-- auto-push watcher test 2026-07-24T20:10:51Z -->
