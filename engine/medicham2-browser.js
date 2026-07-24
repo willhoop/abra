@@ -225,6 +225,24 @@ const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','comatose','thermalexc
                            psn:['immunity','comatose','poisonheal'],
                            tox:['immunity','comatose','poisonheal'],
                            slp:['insomnia','vitalspirit','comatose','sweetveil'] };
+/* POWDER MOVES. Grass types are immune to all of them, as are Overcoat and Safety Goggles. This is
+ * why Spore misses Rillaboom and Amoonguss entirely - a fact any bring recommendation depends on. */
+const POWDER=new Set(['spore','sleeppowder','stunspore','poisonpowder','cottonspore','ragepowder',
+                      'magicpowder','powder']);
+function powderBlocked(t,moveId){
+  if(!POWDER.has(String(moveId||'').replace(/[^a-z0-9]/g,''))) return false;
+  const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
+  return (t.types||[]).includes('Grass') || ab==='overcoat' ||
+         String(t.item||'').replace(/[^a-z0-9]/g,'')==='safetygoggles';
+}
+/* PRANKSTER. Its +1 priority does not apply against Dark types, and the move fails on them outright
+ * (Gen 7+). Prankster Thunder Wave into a Dark type does nothing at all. */
+function pranksterBlocked(attacker,target,moveId){
+  if((attacker.ability||'').replace(/[^a-z0-9]/g,'')!=='prankster') return false;
+  const fx=moveFx(moveId);
+  if(!fx||fx.category!=='Status') return false;
+  return (target.types||[]).includes('Dark');
+}
 function canTakeStatus(t,st){
   if(!t||t.fainted||t.curHP<=0) return false;
   if(t.status) return false;                                  // one major status at a time
@@ -309,6 +327,8 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
         if(!st) continue;                                       // not a status-inflicting move; no effect
+        if(powderBlocked(t,a.mv)) continue;                     // Grass / Overcoat / Safety Goggles
+        if(pranksterBlocked(m,t,a.mv)) continue;                // Prankster does not touch Dark types
         const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
         if(rng()*100>acc) continue;                              // status moves miss (T-Wave 90, W-o-W 85)
         applyStatus(t,st);                                       // applyStatus enforces the immunities
@@ -396,5 +416,5 @@ root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MED
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,
-  moveFx,movePriority,canTakeStatus,applyStatus,applyIntimidate};
+  moveFx,movePriority,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked};
 })(typeof window!=='undefined'?window:globalThis);
