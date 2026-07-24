@@ -73,6 +73,40 @@ function extract(id, uploadtime, text){
     else if(m=l.match(/^\|-item\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=m[3].trim();} }
     else if(m=l.match(/^\|-enditem\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=sets[sp].item||m[3].trim();} }
     else if(m=l.match(/^\|-ability\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].ability=m[3].trim();} }
+    /* ---- MEGA EVOLUTION -------------------------------------------------------------
+       Showdown announces a mega with |detailschange| (and |-mega|). Without this the slot
+       still points at the BASE species, so the mega's stats, typing and - critically - its
+       NEW ABILITY were never attributed to anything. That left 904 of 906 Charizard-Mega-Y
+       sets with a blank ability, and made Raichu-Mega-X (No Guard) indistinguishable from
+       Raichu-Mega-Y (Electric Surge) even though they play completely differently. */
+    else if(m=l.match(/^\|(?:detailschange|-formechange)\|(p[12][ab]): ([^|]*)\|([^,|]+)/)){
+      const slot=m[1], side=slot.slice(0,2), was=slotSp[slot], sp=norm(m[3]);
+      nick[side+m[2]]=sp; slotSp[slot]=sp; touch(sp);
+      if(was && was!==sp){ sets[sp].from=was; if(hp[slot]!=null) hp[slot]=hp[slot]; }
+      brought[side].add(sp);
+      if(cur) cur.ev.push({t:'mega',s:slot,mon:sp,from:was||null});
+    }
+    else if(m=l.match(/^\|-mega\|(p[12][ab]): ([^|]*)\|([^|]+)\|([^|]+)/)){
+      const slot=m[1]; const sp=slotSp[slot]; if(sp){ touch(sp); sets[sp].item=sets[sp].item||m[4].trim(); }
+    }
+    /* ---- WEATHER / TERRAIN, and WHO switched it on ------------------------------------
+       These lines carry "[from] ability: X|[of] pNa: Species", which is often the only place
+       a setter ability is ever stated (Drought, Drizzle, Electric Surge...). Parsing them
+       recovers the ability AND tells us which side owns the weather. */
+    else if(m=l.match(/^\|-weather\|([^|]+)\|\[from\] ability: ([^|]+)\|\[of\] (p[12][ab])/)){
+      const sp=slotSp[m[3]]; if(sp){ touch(sp); sets[sp].ability=sets[sp].ability||m[2].trim(); }
+      if(cur) cur.ev.push({t:'w',s:m[3],mon:sp||null,field:m[1].trim(),by:m[2].trim()});
+    }
+    else if(m=l.match(/^\|-weather\|([^|]+)/)){
+      const w=m[1].trim(); if(cur && w && w!=='none' && !/upkeep/i.test(l)) cur.ev.push({t:'w',field:w});
+    }
+    else if(m=l.match(/^\|-fieldstart\|move: ([^|]+)\|\[from\] ability: ([^|]+)\|\[of\] (p[12][ab])/)){
+      const sp=slotSp[m[3]]; if(sp){ touch(sp); sets[sp].ability=sets[sp].ability||m[2].trim(); }
+      if(cur) cur.ev.push({t:'fs',s:m[3],mon:sp||null,field:m[1].trim(),by:m[2].trim()});
+    }
+    else if(m=l.match(/^\|-fieldstart\|move: ([^|]+)/)){
+      if(cur) cur.ev.push({t:'fs',field:m[1].trim()});
+    }
     else if(m=l.match(/^\|-status\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ if(cur) cur.ev.push({t:'x',s:m[1],mon:slotSp[m[1]],st:m[3].trim()}); }
     else if(m=l.match(/^\|win\|(.*)/)) winner=m[1].trim();
   }
