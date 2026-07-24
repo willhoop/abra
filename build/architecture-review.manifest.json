@@ -1,0 +1,12 @@
+{
+  "title": "ABRA — Architecture Review",
+  "subtitle": "The scathing review, the eleven standards that follow from it, and what is enforced by what.",
+  "author": "Will Hooper",
+  "note": "Read this as one piece. Section 1 is the list of faults this project actually shipped. Section 2 turns each fault into a rule with a literature basis. Section 4 is the table that says which check enforces which rule - a standard with no check in that column is only a preference. The changelog entries at the end record the two releases this review produced.",
+  "out": "docs/ABRA-Architecture-Review.pdf",
+  "sections": [
+    {"label": "Architecture and Engineering Standards", "file": "docs/ARCHITECTURE.md"},
+    {"label": "Architecture notes (languages, server, recency)", "file": "docs/ARCHITECTURE-NOTES.md"},
+    {"label": "Changelog", "file": "CHANGELOG.md"}
+  ]
+}

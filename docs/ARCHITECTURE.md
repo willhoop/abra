@@ -1,6 +1,6 @@
 # ABRA — System Architecture and Engineering Standards
 
-**Version 1.0 · 2026-07-24 · Will Hooper**
+**Version 1.1 · 2026-07-24 · Will Hooper**
 
 A review of the whole system, the rules that follow from it, and how those rules are enforced.
 This document is deliberately blunt. Every fault named here is one this project actually shipped,
@@ -50,8 +50,17 @@ in the other. Both internally consistent; a raw string compare between them is a
 **1.8 Hand-typed constants presented as findings.** Role weights (0.6, 0.4) and a belief boost (3.0)
 were invented, not measured. When measured, the boost was 1.26 and the reported gain shrank.
 
+**1.9 A lookup table that was silently incomplete.** The nature table held 23 of the 25 natures.
+Naughty and Lax were simply absent, and an absent nature falls through to the neutral multiplier —
+so those sets computed with 1.0 where the game applies 1.1 and 0.9. Nothing crashed and no count
+looked wrong, because **a missing row and a legitimately neutral row are indistinguishable by
+count**. The earlier check asked "did any nature produce an unexpected multiplier?" and 1.0 is an
+expected multiplier, so it passed. A partial table is the same class of fault as a duplicated one:
+knowledge that is asserted rather than enumerated against its source.
+
 The pattern is singular: **knowledge with more than one home, and no mechanism that notices when the
-homes disagree.**
+homes disagree** — or, in 1.9, knowledge with one home that was never checked against the source it
+claims to represent.
 
 ---
 
@@ -115,7 +124,16 @@ to make behaviour-preserving refactors provable rather than hoped for.
 *Applied:* `engine/validate_damage.js` (31 scenarios vs the Smogon calculator) is run before and
 after every engine change.
 
-### S10 — One publisher
+### S10 — Enumerate the domain, do not spot-check it
+Where a rule has a **closed, known domain** — 25 natures, 18 types, 6 stat stages — the test iterates
+the whole domain and asserts the expected behaviour for each member, including a count assertion that
+the reference list is complete. Spot-checking a table cannot detect a missing row, because absence
+usually degrades to a plausible default rather than an error.
+
+*Applied:* `test-mega-and-boosts.js` now walks all 25 natures and asserts the **direction** of change
+for all five stats against a neutral baseline. It found Naughty and Lax on its first run.
+
+### S11 — One publisher
 Exactly one process commits and pushes. Two publishers racing produced a wedged rebase and hours of
 lost work. Any automation touching git refuses to act on a repository that is mid-rebase or
 mid-merge.
@@ -170,7 +188,8 @@ engine changes — which is why none of the faults above reached them.
 | S7 store shape | `sanity_check.py` §6 + integrity audit | applied |
 | S8 measured not asserted | `test-xatu-belief.py` re-derives the boost | applied |
 | S9 golden master | `validate_damage.js` before/after | applied |
-| S10 one publisher | `push-all.bat` guard, mid-rebase refusal | applied |
+| S10 enumerate closed domains | `test-mega-and-boosts.js` walks all 25 natures | applied |
+| S11 one publisher | `push-all.bat` guard, mid-rebase refusal | applied |
 
 ---
 

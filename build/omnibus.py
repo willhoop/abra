@@ -25,7 +25,7 @@ Manifest format (JSON):
   ]
 }
 
-Requires: python-markdown, and LibreOffice (`soffice`) on PATH.
+Requires: python-markdown and WeasyPrint (LibreOffice `soffice` is used only as a fallback).
 Design goal: reproduce this special-cut format for this and all future projects.
 """
 import sys, os, json, base64, subprocess, tempfile, argparse, datetime
@@ -113,14 +113,22 @@ def build(manifest, base='.'):
     return doc
 
 def to_pdf(html, out):
+    """Render to PDF. WeasyPrint first - it honours the @page rules and the CSS in this file, and it
+    is a library rather than an external binary, so the build is reproducible anywhere Python runs.
+    LibreOffice stays as a fallback for machines that have soffice but not WeasyPrint's native deps."""
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    try:
+        from weasyprint import HTML as _WHTML
+        _WHTML(string=html, base_url=os.getcwd()).write_pdf(out)
+        return out
+    except Exception as e:
+        print(f'  weasyprint unavailable ({type(e).__name__}), falling back to LibreOffice')
     with tempfile.TemporaryDirectory() as td:
         htmlp=os.path.join(td,'omnibus.html'); open(htmlp,'w',encoding='utf-8').write(html)
         subprocess.run(['soffice','--headless','--convert-to',
                         'pdf:writer_web_pdf_Export','--outdir',td,htmlp],
                        check=True, capture_output=True, timeout=240)
-        gen=os.path.join(td,'omnibus.pdf')
-        os.makedirs(os.path.dirname(os.path.abspath(out)),exist_ok=True)
-        import shutil; shutil.copy(gen,out)
+        import shutil; shutil.copy(os.path.join(td,'omnibus.pdf'), out)
     return out
 
 if __name__=='__main__':
@@ -146,11 +154,13 @@ if __name__=='__main__':
     os.makedirs(os.path.dirname(os.path.abspath(html_out)),exist_ok=True)
     open(html_out,'w',encoding='utf-8').write(html)
     print(f"omnibus HTML -> {html_out}  ({os.path.getsize(html_out)//1024} KB, {len(man['sections'])} sections)")
-    # Optionally attempt the heavy PDF (LibreOffice). Off by default so the run
-    # always completes on memory-constrained machines. Set OMNIBUS_PDF=1 to try.
-    if os.environ.get('OMNIBUS_PDF'):
+    # The PDF is now produced by DEFAULT. It was previously opt-in behind OMNIBUS_PDF=1 because the
+    # only renderer was LibreOffice, which is heavy and often absent; WeasyPrint is a library, so the
+    # reason for the gate is gone. Every document ships a PDF, so the default must produce one.
+    # Set OMNIBUS_NO_PDF=1 to skip.
+    if not os.environ.get('OMNIBUS_NO_PDF'):
         try:
             path=to_pdf(html, out)
             print(f"omnibus PDF  -> {path}  ({os.path.getsize(path)//1024} KB)")
         except Exception as e:
-            print(f"omnibus PDF skipped ({type(e).__name__}) — use the HTML (print to PDF from the browser).")
+            print(f"omnibus PDF FAILED ({type(e).__name__}: {e}) - use the HTML and print to PDF.")

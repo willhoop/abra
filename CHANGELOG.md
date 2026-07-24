@@ -10,6 +10,31 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.0.1] — 2026-07-24
+
+### Fixed — two of the twenty-five natures were missing
+`CHOMP/engine/champ-model.js` held 23 natures. **Naughty** (+Atk / -SpD) and **Lax** (+Def / -SpD)
+were absent from the table, and an absent nature falls through to the neutral multiplier. Those sets
+therefore computed with 1.0 where the game applies 1.1 and 0.9 — a Naughty Kingambit read 187 Attack
+instead of 205. Both are now present and verified against the Champions calculator.
+
+### Added
+- **S10 — enumerate the domain, do not spot-check it.** Where a rule has a closed, known domain the
+  test walks every member and asserts the expected behaviour, plus a count assertion that the
+  reference list is complete.
+- `tests/test-mega-and-boosts.js` now iterates **all 25 natures** and asserts the *direction* of
+  change for all five stats against a neutral baseline, and pins the Champions stat formula
+  (`stat = (base + 20 + SP) x nature`, `HP = base + 75 + SP`). 24 -> 28 assertions.
+
+### Notes
+- The earlier nature check reported "unexpected multipliers: none" and was **wrong to be reassuring**.
+  It asked whether any nature produced a multiplier outside {0.9, 1.0, 1.1}; a missing nature produces
+  1.0, which is inside that set. A missing row and a legitimately neutral row are indistinguishable by
+  count, which is exactly why S10 asserts direction instead.
+- `docs/ARCHITECTURE.md` -> v1.1: fault 1.9 and standard S10 recorded.
+
+---
+
 ## [3.0.0] — 2026-07-24
 
 ### Architecture — the plumbing, reviewed and standardised

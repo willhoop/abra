@@ -1,0 +1,1121 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><style>
+@page { size: Letter; margin: 0.9in; }
+* { box-sizing: border-box; }
+body { font-family: Georgia,'Times New Roman',serif; font-size: 11.5pt; line-height: 1.55; color:#1a1a1a; }
+h1 { font-family:'Segoe UI',Arial,sans-serif; font-size:22pt; color:#1E2761; margin:0 0 2pt; border-bottom:2px solid #1E2761; padding-bottom:6pt; }
+h2 { font-family:'Segoe UI',Arial,sans-serif; font-size:15pt; color:#1E2761; margin:18pt 0 6pt; }
+h3 { font-family:'Segoe UI',Arial,sans-serif; font-size:12.5pt; color:#333; margin:13pt 0 4pt; font-weight:600; }
+p,li { margin:5pt 0; }
+strong { color:#111; }
+code { font-family:'Consolas',monospace; background:#f2f3f7; padding:1px 4px; border-radius:3px; font-size:10pt; }
+pre { background:#f2f3f7; padding:9pt 11pt; border-radius:5px; font-size:9.5pt; line-height:1.4; white-space:pre-wrap; border-left:3px solid #1E2761; }
+pre code { background:none; padding:0; }
+table { border-collapse:collapse; width:100%; margin:10pt 0; font-size:9.5pt; }
+th,td { border:1px solid #d0d3dd; padding:5pt 8pt; text-align:left; vertical-align:top; }
+th { background:#1E2761; color:#fff; font-family:'Segoe UI',Arial,sans-serif; }
+tr:nth-child(even) td { background:#f6f7fb; }
+blockquote { margin:10pt 0; padding:6pt 12pt; background:#f6f7fb; border-left:3px solid #E8B33D; color:#333; font-style:italic; }
+hr { border:none; border-top:1px solid #ccc; margin:16pt 0; }
+a { color:#1E2761; }
+.cover { text-align:center; padding-top:2.4in; }
+.cover .big { font-family:'Segoe UI',Arial,sans-serif; font-size:34pt; color:#1E2761; font-weight:800; border:none; }
+.cover .sub { font-size:15pt; color:#41597a; margin-top:8pt; }
+.cover .meta { font-size:12pt; color:#666; margin-top:26pt; }
+.cover .note { font-size:11pt; color:#444; font-style:italic; max-width:5in; margin:22pt auto 0; }
+.toc { page-break-before:always; }
+.toc h1 { }
+.toc ol { font-size:13pt; line-height:2; }
+.section { page-break-before:always; }
+.divider { font-family:'Segoe UI',Arial,sans-serif; font-size:11pt; color:#E8B33D; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:4pt; }
+.imgwrap { text-align:center; page-break-before:always; }
+.imgwrap img { max-width:100%; border:1px solid #d0d3dd; border-radius:6px; }
+</style></head><body><div class="cover"><div class="big">ABRA — Architecture Review</div>
+      <div class="sub">The scathing review, the eleven standards that follow from it, and what is enforced by what.</div>
+      <div class="meta">Will Hooper · 2026-07-24</div>
+      <div class="note">Read this as one piece. Section 1 is the list of faults this project actually shipped. Section 2 turns each fault into a rule with a literature basis. Section 4 is the table that says which check enforces which rule - a standard with no check in that column is only a preference. The changelog entries at the end record the two releases this review produced.</div></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="toc"><h1>Contents</h1><ol><li>Architecture and Engineering Standards</li><li>Architecture notes (languages, server, recency)</li><li>Changelog</li></ol></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 1</div><h1>ABRA — System Architecture and Engineering Standards</h1>
+<p><strong>Version 1.1 · 2026-07-24 · Will Hooper</strong></p>
+<p>A review of the whole system, the rules that follow from it, and how those rules are enforced.
+This document is deliberately blunt. Every fault named here is one this project actually shipped,
+and each is paired with the standard that prevents its recurrence and the check that enforces it.</p>
+<hr />
+<h2>1. The review, without softening</h2>
+<p>The models are careful. <strong>The plumbing was not.</strong> Every serious defect found on 2026-07-24 was an
+infrastructure fault, not a modelling error — and each one silently corrupted a model that was
+otherwise sound. In order of severity:</p>
+<p><strong>1.1 Three implementations of the same rules.</strong> Damage, stat stages, spread and mega handling were
+implemented in <code>CHOMP/engine/champ-model.js</code>, <code>ABRA/engine/medicham2-browser.js</code>, and a third
+embedded copy in <code>ABRA/web/index.html</code>. Fowler's <em>Rule of Three</em> says the third duplication is the
+moment to act; we were already past it. The cost was realised: when the canonical engine was taught
+real mega base stats, the rollout engine was left behind and the two disagreed by <strong>30%</strong> on
+Charizard-Mega-Y's Special Attack, with nothing failing.</p>
+<p><strong>1.2 Two hand-maintained copies of the same table, from different sources.</strong> Mega abilities existed
+in <code>champ-model.js</code> (from Showdown) and in <code>medicham2-browser.js</code> (from Serebii). They happened to
+agree. Nothing guaranteed it, and nothing would have reported it if they had not.</p>
+<p><strong>1.3 A data file that stored only derived values.</strong> <code>data/engine-data.js</code> held computed level-50
+stat lines but no base stats. Derived-only data <strong>cannot be recomputed</strong> — so when the forme rules
+changed, the browser engine could not follow. It could only copy a number that was already wrong.</p>
+<p><strong>1.4 A fix applied to the wrong artifact.</strong> 67 mega formes were merged into <code>engine-data.js</code> and
+reported as "in the engine dex". The damage engine reads a <em>different</em> file
+(<code>champions-damage-lab.html</code>, parsed with <code>eval()</code>), so the fix reached nothing. The claim was made
+in good faith and was false.</p>
+<p><strong>1.5 A parser change that silently destroyed an eval set.</strong> Recording mega evolution added the mega
+forme to <code>brought</code>, so a Pokémon that mega-evolved counted twice. <code>brought</code> became 5 in ~4,700
+games, which failed CHOMP-EV's "exactly four" filter and collapsed its eval set from ~1,200 games to
+<strong>43</strong>. No test guarded the shape of the store.</p>
+<p><strong>1.6 Half the store was duplicate rows.</strong> 14,361 lines, 7,315 unique games — 7,040 duplicates from
+<code>merge -X ours</code> reconciliations. Every "14,355 games" claim was inflated ~2×, and duplicated rows
+narrow confidence intervals without adding information. Two marginal results lost significance when
+it was fixed.</p>
+<p><strong>1.7 Cross-boundary identifiers were not normalised.</strong> <code>"sand stream"</code> in one engine, <code>"sandstream"</code>
+in the other. Both internally consistent; a raw string compare between them is a latent bug.</p>
+<p><strong>1.8 Hand-typed constants presented as findings.</strong> Role weights (0.6, 0.4) and a belief boost (3.0)
+were invented, not measured. When measured, the boost was 1.26 and the reported gain shrank.</p>
+<p><strong>1.9 A lookup table that was silently incomplete.</strong> The nature table held 23 of the 25 natures.
+Naughty and Lax were simply absent, and an absent nature falls through to the neutral multiplier —
+so those sets computed with 1.0 where the game applies 1.1 and 0.9. Nothing crashed and no count
+looked wrong, because <strong>a missing row and a legitimately neutral row are indistinguishable by
+count</strong>. The earlier check asked "did any nature produce an unexpected multiplier?" and 1.0 is an
+expected multiplier, so it passed. A partial table is the same class of fault as a duplicated one:
+knowledge that is asserted rather than enumerated against its source.</p>
+<p>The pattern is singular: <strong>knowledge with more than one home, and no mechanism that notices when the
+homes disagree</strong> — or, in 1.9, knowledge with one home that was never checked against the source it
+claims to represent.</p>
+<hr />
+<h2>2. The standards</h2>
+<h3>S1 — Single source of truth, and generate the rest</h3>
+<blockquote>
+<p>"Every piece of knowledge must have a single, unambiguous, authoritative representation within a
+system." — Hunt &amp; Thomas, <em>The Pragmatic Programmer</em> (1999)</p>
+</blockquote>
+<p>Where multiple representations are unavoidable (a browser copy, a cached table), <strong>one is definitive
+and every other is generated by a script</strong>, never hand-synchronised. A generated file carries a
+header saying so and naming its generator.</p>
+<p><em>Applied:</em> <code>data/mega-formes.json</code>, <code>data/move-effects.json</code>, <code>data/battle-formes.json</code>,
+<code>data/species-abilities.json</code> and the <code>MC</code> object in <code>data/engine-data.js</code> are all generated.</p>
+<h3>S2 — Duplication that cannot be removed must be observable</h3>
+<p>Where a second implementation is genuinely required (the site is buildless and cannot <code>require()</code>),
+a <strong>consumer-driven contract test</strong> asserts that all implementations agree on the rules. This is the
+Pact pattern: a shared, executable statement of the agreement, run in CI, so divergence fails a
+build instead of corrupting a model.</p>
+<p><em>Applied:</em> <code>CHOMP/tests/test-engine-contract.js</code> — 20 assertions. It caught the mega drift on its
+first run.</p>
+<h3>S3 — Store source, not just derived values</h3>
+<p>Any dataset a consumer might need to recompute from must carry its <strong>inputs</strong>, not only its outputs.
+Derived values may be included for convenience; they may never be the only representation.</p>
+<p><em>Applied:</em> <code>engine-data.js</code> now carries base stats (<code>bs</code>) alongside the level-50 line (<code>st</code>).</p>
+<h3>S4 — Every dataset records its provenance</h3>
+<p>Source URL, capture date, authority level, and refresh policy. If two sources disagree, the
+higher-authority source wins and the disagreement is reported, not silently resolved. This follows
+standard practice for reproducibility in production ML (versioning, provenance, reproducibility).</p>
+<p><em>Applied:</em> <code>CHOMP/data/PROVENANCE.md</code>; every generated file carries <code>source</code> and <code>generated</code> fields.</p>
+<h3>S5 — Normalise identifiers at every boundary</h3>
+<p>Any identifier crossing a subsystem boundary is compared and keyed as <strong>lowercase alphanumeric
+only</strong>. Display forms are for humans and never for lookups.</p>
+<h3>S6 — Assert the invariant, not the incidental</h3>
+<p>A test states the claim being made. CHOMP-EV's claim is "bring quality does not separate from a
+coin" — a statement about an <em>interval</em>, not a point estimate. Pinning the point broke the test when
+the eval set legitimately changed. Assert <code>CI contains the coin</code>.</p>
+<h3>S7 — The store has a shape, and it is tested</h3>
+<p>Structural invariants are checked on every run: no duplicate ids, <code>brought ⊆ six</code>, <code>lead ⊆ brought</code>,
+the winner is one of the two players, and every record carries every field. A parser change that
+breaks the shape must fail immediately, not months later inside a model.</p>
+<h3>S8 — Measured, never asserted</h3>
+<p>No constant that affects a result is typed by hand. If a weight matters, it is estimated from
+training data and the estimate is reported. If it cannot be estimated, the feature is not shipped.</p>
+<h3>S9 — Golden-master before refactoring</h3>
+<p>Before changing a computation, record its outputs; after, compare. Approval testing exists precisely
+to make behaviour-preserving refactors provable rather than hoped for.</p>
+<p><em>Applied:</em> <code>engine/validate_damage.js</code> (31 scenarios vs the Smogon calculator) is run before and
+after every engine change.</p>
+<h3>S10 — Enumerate the domain, do not spot-check it</h3>
+<p>Where a rule has a <strong>closed, known domain</strong> — 25 natures, 18 types, 6 stat stages — the test iterates
+the whole domain and asserts the expected behaviour for each member, including a count assertion that
+the reference list is complete. Spot-checking a table cannot detect a missing row, because absence
+usually degrades to a plausible default rather than an error.</p>
+<p><em>Applied:</em> <code>test-mega-and-boosts.js</code> now walks all 25 natures and asserts the <strong>direction</strong> of change
+for all five stats against a neutral baseline. It found Naughty and Lax on its first run.</p>
+<h3>S11 — One publisher</h3>
+<p>Exactly one process commits and pushes. Two publishers racing produced a wedged rebase and hours of
+lost work. Any automation touching git refuses to act on a repository that is mid-rebase or
+mid-merge.</p>
+<hr />
+<h2>3. The intended shape</h2>
+<pre><code>                    Showdown (pokedex.json, moves.json, learnsets.json, replays)
+                                          │  generated, provenance-stamped
+                                          ▼
+   CANONICAL RULES  ─────────  CHOMP/engine/champ-model.js
+   damage · stages · crits · formes · secondary effects
+                    │                        │
+       generated ───┘                        └─── contract test (S2)
+                    ▼                                    │
+   data/engine-data.js  ·  mega-formes.js                ▼
+                    │                        ABRA/engine/medicham2-browser.js
+                    ▼                        (browser rollout — must agree)
+   ┌────────────────────────────────────────────────────────────┐
+   │  THE STORE — every public replay, raw, append-only, deduped │
+   └────────────────────────────────────────────────────────────┘
+                    │
+    ┌───────────────┼────────────────┬──────────────┬────────────┐
+    ▼               ▼                ▼              ▼            ▼
+  GURU            XATU             PORY           ROLES         WAR
+ (matchups)     (belief)         (value)        (taxonomy)    (RAPM)
+    └───────────────┴────────────────┴──────────────┴────────────┘
+                                     ▼
+                       CHOMP · SLOWKING · DITTO · KADABRA
+                                     ▼
+                                 ALAKAZAM
+</code></pre>
+<p><strong>Only one component needs a damage calculator.</strong> Everything below it consumes the result. The
+statistical models (GURU, XATU, PORY, ROLES, WAR) never touch damage at all and are unaffected by
+engine changes — which is why none of the faults above reached them.</p>
+<hr />
+<h2>4. Enforcement</h2>
+<table>
+<thead>
+<tr>
+<th>Standard</th>
+<th>Enforced by</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1 generate, don't synchronise</td>
+<td>generator scripts + <code>generated</code>/<code>source</code> headers</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S2 contract test</td>
+<td><code>CHOMP/tests/test-engine-contract.js</code></td>
+<td>20 assertions, passing</td>
+</tr>
+<tr>
+<td>S3 store source values</td>
+<td><code>build_engine_data.js</code> emits <code>bs</code></td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S4 provenance</td>
+<td><code>CHOMP/data/PROVENANCE.md</code> + per-file fields</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S5 identifier normalisation</td>
+<td>contract test compares normalised</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S6 assert the invariant</td>
+<td><code>sanity_check.py</code> CHOMP-EV interval test</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S7 store shape</td>
+<td><code>sanity_check.py</code> §6 + integrity audit</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S8 measured not asserted</td>
+<td><code>test-xatu-belief.py</code> re-derives the boost</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S9 golden master</td>
+<td><code>validate_damage.js</code> before/after</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S10 enumerate closed domains</td>
+<td><code>test-mega-and-boosts.js</code> walks all 25 natures</td>
+<td>applied</td>
+</tr>
+<tr>
+<td>S11 one publisher</td>
+<td><code>push-all.bat</code> guard, mid-rebase refusal</td>
+<td>applied</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>5. Known gaps, stated plainly</h2>
+<ul>
+<li><strong>The canonical engine's dex is still scraped from an HTML file</strong> (<code>champions-damage-lab.html</code>,
+  parsed with <code>eval()</code>). It should be a real data file with a generator. This is the single largest
+  remaining violation of S1 and is the reason fault 1.4 was possible.</li>
+<li><strong>The site's embedded engine copy</strong> (<code>web/index.html</code>) is not yet covered by the contract test.</li>
+<li><strong>Secondary effects are defined but not yet consumed by the rollout engine</strong> — the rulebook exists
+  and is tested at the point of definition; wiring it into turn simulation is outstanding.</li>
+<li><strong><code>brought</code> is still 5 in ~115 games</strong> and 0 in 176; not yet explained.</li>
+</ul>
+<h2>Sources</h2>
+<p>Hunt &amp; Thomas, <em>The Pragmatic Programmer</em> (1999) — DRY, single source of truth ·
+Fowler, <em>Refactoring</em> — Rule of Three, duplicated logic ·
+consumer-driven contract testing (Pact) ·
+approval / golden-master testing ·
+versioning, provenance and reproducibility in production ML (Kästner, CMU).</p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 2</div><h1>ABRA — Architecture Notes</h1>
+<p><strong>Version 1.0 · Last updated 2026-07-23 · Will Hooper</strong></p>
+<blockquote>
+<p>The design decisions behind ABRA that aren't obvious from any single file: why the models are split
+across two languages, how the local app runs the real engines on your own machine, and how recency
+weighting keeps every model tracking the live metagame. Living document; updated with the code.</p>
+</blockquote>
+<hr />
+<h2>1. Why two languages (Python <strong>and</strong> JavaScript)</h2>
+<p>ABRA's engines are deliberately split. It is not an accident or inconsistency — each half of the
+system lives in the language that makes it shortest and safest to write.</p>
+<h3>The rule</h3>
+<ul>
+<li><strong>JavaScript (Node) for anything that touches the battle engine.</strong> CHOMP's damage calculator
+  (<code>CHOMP/engine/champ-model.js</code>) is the validated, exact model of Champions damage — types, STAB,
+  weather, items, abilities, the full 16-roll distribution. It is written in JS. Every model that
+  needs <em>real game mechanics</em> reuses it directly instead of re-implementing (and re-validating) the
+  damage formula:</li>
+<li><strong>MEDICHAM</strong> (<code>engine/medicham.js</code>) — rollouts call CHOMP's <code>bestDamage</code> per hit.</li>
+<li><strong>KADABRA</strong> (<code>engine/kadabra.js</code>) — the coach reconstructs scenes and cross-checks damage.</li>
+<li><strong>the set-builder, behaviour-clone, dynamics</strong> — all Node, all sharing the same move/typing data.
+  Re-porting the damage engine to Python would mean maintaining two copies of the most correctness-
+  critical code in the project. That is the thing we most want to avoid.</li>
+<li><strong>Python (with numpy) for the statistical / machine-learning core.</strong> JOLTEON's training
+  (<code>engine/jolteon.py</code>) and DITTO's search (<code>engine/ditto.py</code>) are linear algebra: logistic-regression
+  gradient descent, vectorised scoring of thousands of teams, rarity-aware regularisation, recency
+  weighting. numpy expresses this in a few lines and runs it fast. Writing weighted logistic
+  regression by hand in JS would be longer and slower with no upside.</li>
+</ul>
+<h3>The boundary, and why it barely matters to a user</h3>
+<p>The split falls on a clean seam: <strong>mechanics = JS, learned numeric models = Python.</strong> The one place
+they meet is DITTO, which uses JOLTEON (Python) as its fast evaluator and MEDICHAM (JS) as its grounded
+vetter — it shells out to both.</p>
+<p>Crucially, <strong>using the models needs almost no Python:</strong>
+- JOLTEON's <em>predictions</em> are a tiny logistic dot-product. We ship the trained weights as JSON and
+  recompute the probability in pure JavaScript in the browser (<code>web/index.html</code>) and could do so in
+  Node. You never need Python to <em>use</em> JOLTEON — only to <em>retrain</em> it.
+- MEDICHAM, KADABRA, CHOMP are Node end to end.
+- Only <strong>DITTO</strong> currently requires Python at run time (numpy for the team search). Because that is
+  the sole run-time Python dependency, the planned <strong>Node port of DITTO</strong> removes Python from the live
+  app entirely: JOLTEON weights are already portable, MEDICHAM is already JS, so a JS DITTO closes the
+  loop and the whole <code>localhost</code> app runs on Node alone. Retraining JOLTEON stays in Python, offline,
+  where numpy earns its keep.</p>
+<h3>The Windows Python gotcha (documented because it will bite)</h3>
+<p>Windows ships a fake <code>python</code> command that opens the Microsoft Store instead of running Python. So on
+a machine without a real Python install, <code>python engine/ditto.py</code> prints <em>"Python was not found; run
+without arguments to install from the Microsoft Store."</em> The server (<code>server.js</code>) handles this: it
+probes <code>py</code>, then <code>python</code>, then <code>python3</code>, skips the Store stub, checks that numpy imports, and — if
+no real Python is found — returns a clear message telling you JOLTEON/MEDICHAM/KADABRA still work and
+how to install Python for DITTO (python.org, "Add to PATH", then <code>pip install numpy</code>). This probe is
+<strong>lazy</strong> (run on the first DITTO/JOLTEON request, not at startup) so the server always starts
+listening instantly.</p>
+<h2>2. The local app — running the real engines on your machine</h2>
+<p><code>web/index.html</code> (mirrored to <code>app/index.html</code>, which the server prefers) is the ABRA WORLD site.
+Opened as a file, it runs <strong>JOLTEON</strong> live in the browser (embedded weights) — that alone needs no
+server. To run the <em>other</em> engines, <code>start.bat</code> launches <code>server.js</code>, a dependency-free Node HTTP
+server that:
+- serves the site from <code>app/</code> (falling back to <code>web/</code>),
+- exposes <code>/api/medicham</code>, <code>/api/kadabra</code> (Node engines), <code>/api/jolteon</code>, <code>/api/ditto</code> (Python
+  engines), and <code>/api/stats</code> (live counts for the town),
+- runs every computation <strong>on your own machine</strong> — nothing is sent anywhere.</p>
+<p><code>start.bat</code> checks Node is installed, opens the browser <em>after</em> a short delay (so the first load
+doesn't race the server), and keeps a window open as the running server. Everything is local; "server"
+here just means "a small program using your computer's own CPU," not a remote host.</p>
+<h2>3. Recency weighting — tracking a metagame that moves</h2>
+<h3>The problem: concept drift</h3>
+<p>A competitive metagame is <strong>non-stationary</strong>. The teams that win shift week to week as players adapt,
+new cores emerge, and old ones fall off. A model trained with every game counted equally averages over
+that history, so it is always partly describing a metagame that no longer exists. In machine-learning
+terms this is <strong>concept drift</strong>, and the standard remedy is to weight recent data more heavily.</p>
+<h3>The mechanism: exponential decay with a half-life</h3>
+<p>Every training game gets a weight that decays exponentially with its age:</p>
+<pre><code>w_i = 0.5 ** ( age_days_i / τ )
+</code></pre>
+<p>where <code>age_days_i</code> is how old game <em>i</em> is relative to the newest game in the set, and <strong>τ (tau) is the
+half-life in days</strong>. Interpretation:
+- a game from <em>today</em> has weight ~1,
+- a game <strong>one half-life</strong> old counts <strong>half</strong>,
+- <strong>two half-lives</strong> → a quarter, <strong>three</strong> → an eighth, and so on.</p>
+<p>Weights are normalised to mean 1 so the regularisation scale (the rarity-aware L2) is unchanged; only
+the <em>relative</em> influence of recent vs. old games shifts. Setting <code>τ → ∞</code> recovers the old equal-weight
+behaviour exactly, so decay is a strict generalisation, not a different model.</p>
+<h3>Where it plugs in</h3>
+<p>The weights enter the <strong>weighted logistic-regression gradient</strong> in JOLTEON's <code>fit()</code>:</p>
+<pre><code>grad = Xᵀ ( w ⊙ (p − y) ) / Σw   +   L2 · θ / Σw
+</code></pre>
+<p>The same <code>w_i = 0.5^(age/τ)</code> applies identically to the <strong>usage model</strong> (weighted species counts) and
+the <strong>behaviour-clone</strong> (weighted move frequencies), so JOLTEON, DITTO's meta gauntlet, CHOMP's usage
+intel, and MEDICHAM's move priors all track the <em>current</em> ladder from one shared decay rule. The
+default half-life is <strong>30 days</strong> (<code>HALF_LIFE</code> env var); shorter τ reacts faster to a shifting meta but
+uses effectively less data, longer τ is steadier but laggier — a bias/variance knob.</p>
+<h3>Honest status on current data</h3>
+<p>ABRA's store currently spans ~2 days, so at τ = 30 days every game's weight is ~1 and decay is a
+<strong>no-op</strong> — reported honestly (the equal-weight and recency-decayed rows are identical). The mechanism
+is unit-tested on synthetic 90-day data (oldest game weight 0.33, newest 2.14 at τ = 30d) and will
+engage automatically as the corpus ages past a few weeks. It costs nothing now and means the models
+never need manual pruning of stale games later — the influence just fades on its own.</p>
+<h3>Why not simply delete old games?</h3>
+<p>Because rare-but-still-relevant information (an off-meta answer that occasionally matters) survives in
+old games, and a hard cutoff throws it away discontinuously. Exponential decay is a soft, continuous
+down-weighting: old games keep a small vote, recent games dominate, and nothing is ever lost from the
+store (which stays the durable, replayable record).</p>
+<hr />
+<p><strong>Related.</strong> <a href="ABRA-simulator-whitepaper.md">Simulator white paper</a> ·
+<a href="SLOWKING-whitepaper.md">SLOWKING white paper</a> · <a href="MODELS-CHEATSHEET.md">Cheat sheet</a> ·
+<a href="../CHANGELOG.md">Changelog</a></p></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 3</div><h1>Changelog — ABRA</h1>
+<p>All notable changes to ABRA are recorded here, newest first.
+The format follows <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>.
+Versions follow <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<p><strong>Rule.</strong> Every change is logged here in the same pass as the code, together with the matching
+updates to the white paper, the deck, and the technical documentation. A prior conclusion is never
+silently rewritten; what changed and why is stated.</p>
+<hr />
+<h2>[3.0.1] — 2026-07-24</h2>
+<h3>Fixed — two of the twenty-five natures were missing</h3>
+<p><code>CHOMP/engine/champ-model.js</code> held 23 natures. <strong>Naughty</strong> (+Atk / -SpD) and <strong>Lax</strong> (+Def / -SpD)
+were absent from the table, and an absent nature falls through to the neutral multiplier. Those sets
+therefore computed with 1.0 where the game applies 1.1 and 0.9 — a Naughty Kingambit read 187 Attack
+instead of 205. Both are now present and verified against the Champions calculator.</p>
+<h3>Added</h3>
+<ul>
+<li><strong>S10 — enumerate the domain, do not spot-check it.</strong> Where a rule has a closed, known domain the
+  test walks every member and asserts the expected behaviour, plus a count assertion that the
+  reference list is complete.</li>
+<li><code>tests/test-mega-and-boosts.js</code> now iterates <strong>all 25 natures</strong> and asserts the <em>direction</em> of
+  change for all five stats against a neutral baseline, and pins the Champions stat formula
+  (<code>stat = (base + 20 + SP) x nature</code>, <code>HP = base + 75 + SP</code>). 24 -&gt; 28 assertions.</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li>The earlier nature check reported "unexpected multipliers: none" and was <strong>wrong to be reassuring</strong>.
+  It asked whether any nature produced a multiplier outside {0.9, 1.0, 1.1}; a missing nature produces
+  1.0, which is inside that set. A missing row and a legitimately neutral row are indistinguishable by
+  count, which is exactly why S10 asserts direction instead.</li>
+<li><code>docs/ARCHITECTURE.md</code> -&gt; v1.1: fault 1.9 and standard S10 recorded.</li>
+</ul>
+<hr />
+<h2>[3.0.0] — 2026-07-24</h2>
+<h3>Architecture — the plumbing, reviewed and standardised</h3>
+<p><code>docs/ARCHITECTURE.md</code> is new: a blunt review of the whole system, ten engineering standards drawn
+from it, and the check that enforces each. Every fault named there is one this project actually
+shipped. The pattern behind all of them was singular: <strong>knowledge with more than one home, and no
+mechanism that noticed when the homes disagreed.</strong></p>
+<h3>Fixed — faults found by the review</h3>
+<ul>
+<li><strong>Three implementations of the same rules</strong> (canonical engine, browser rollout, embedded site
+  copy). When the canonical engine learned real mega base stats the rollout was left behind and the
+  two disagreed by <strong>30%</strong> on Charizard-Mega-Y's Special Attack, silently. Fowler's Rule of Three
+  says the third duplication is the moment to act; we were past it.</li>
+<li><strong><code>data/engine-data.js</code> stored only DERIVED values</strong> (level-50 stat lines, no base stats). Data
+  that cannot be recomputed can only be copied — which is exactly why the browser engine could not
+  follow the forme fix. It is now generated by <code>build/build_engine_data.js</code> and carries base stats.</li>
+<li><strong>A mega dex merged into the wrong artifact.</strong> 67 formes were added to <code>engine-data.js</code> and
+  reported as "in the engine dex"; the damage engine reads a different file entirely, so the fix
+  reached nothing. The claim was made in good faith and was false.</li>
+<li><strong>Two hand-maintained mega-ability tables</strong> from different sources (Showdown and Serebii). They
+  agreed by luck. Now one generated file, <code>data/mega-formes.json</code>, read by both.</li>
+<li><strong>Identifiers were not normalised across boundaries</strong> (<code>"sand stream"</code> vs <code>"sandstream"</code>).</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong><code>CHOMP/tests/test-engine-contract.js</code></strong> — a consumer-driven contract test (the Pact pattern):
+  an executable statement of what every implementation must agree on. It caught the mega drift on
+  its first run. 20 assertions.</li>
+<li><strong><code>CHOMP/data/move-effects.json</code></strong> — one secondary-effect rulebook generated from Showdown's
+  <code>moves.json</code>: 954 moves, 211 with a secondary effect, 33 that can flinch, with accuracy, status
+  chances and stat drops. Two rules that are easy to get wrong are stated once and tested:
+  <strong>a flinch only lands if the user moves first</strong> and expires at end of turn; <strong>a status cannot
+  apply to a Pokémon that already has one</strong>, and type immunities hold (Scald cannot burn a Fire
+  type — verified at 0%).</li>
+<li><strong>Store-shape invariants</strong> in <code>sanity_check.py</code> (S7): <code>brought ⊆ six</code>, <code>lead ⊆ brought</code>, winner is
+  a player, every field present, nobody brings more than four. A parser change that breaks the store
+  now fails immediately — the mega double-count silently collapsed CHOMP-EV's eval set from ~1,200
+  games to <strong>43</strong> before anything noticed.</li>
+<li><strong>Open team sheets are now parsed.</strong> <code>|showteam|</code> declares every Pokémon's item, ability, all four
+  moves and nature — the entire hidden-information problem removed. We were detecting these lines
+  only to set a flag and discarding the sets. 1,624 Bo3 games are affected; that data now accumulates.</li>
+<li><strong>Forfeit flag</strong> captured at parse time (1,911 of 7,948 games, 24%), so quality filters no longer
+  need the raw archive.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Mega formes: all <strong>95 stones</strong> now carry real base stats, typing and ability. Pre-mega state is
+  explicit and overridable (<code>premega: true</code>) — holding the stone is not the same as having used it.</li>
+<li>Stat stages (±6) are supported for attacker and defender, with the full crit rule pinned: a crit
+  <strong>ignores</strong> the attacker's drops and the defender's boosts, and <strong>keeps</strong> the attacker's boosts and
+  the defender's drops. Only the first of those four was previously asserted.</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li>The Champions stat formula simplifies exactly: <strong>normal stat = (base + 20 + SP) × nature</strong>, and
+  <strong>HP = base + 75 + SP</strong>, for every base value 1–255. SP budget is 66.</li>
+<li>Largest remaining gap, stated plainly: the canonical engine's dex is still scraped from an HTML
+  file and parsed with <code>eval()</code>. That is the reason the wrong-artifact fault was possible, and it is
+  the top of the remaining list in <code>ARCHITECTURE.md</code> §5.</li>
+</ul>
+<h2>[2.10.1] — 2026-07-24</h2>
+<h3>Changed — every model re-run on the deduplicated store</h3>
+<p>All reports were still computed on the 14,361-line store that turned out to be ~half duplicates.
+Re-run on the 7,315 unique games. What survived, and what did not:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>On clean data</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PORY (mid-game value)</td>
+<td>log-loss <strong>0.5648</strong> vs coin 0.6931, ECE 1.8%, CI [0.550, 0.584]</td>
+<td><strong>holds</strong></td>
+</tr>
+<tr>
+<td>WAR (species RAPM)</td>
+<td><strong>0.6856</strong> vs coin 0.6931, accuracy 54.1%</td>
+<td><strong>holds</strong></td>
+</tr>
+<tr>
+<td>MEDICHAM damage</td>
+<td>100% within 5% of the Smogon calculator</td>
+<td><strong>holds</strong></td>
+</tr>
+<tr>
+<td>SLOWKING (species)</td>
+<td>greedy 0.078 vs Nash 0.0002, gap CI <strong>[0.0031, 0.0977]</strong></td>
+<td><strong>holds</strong></td>
+</tr>
+<tr>
+<td>SLOWKING (playstyle)</td>
+<td>gap CI <strong>[-0.0001, 0.2105]</strong></td>
+<td><strong>no longer clears zero</strong></td>
+</tr>
+<tr>
+<td>COUNTERPLAY tech-lift</td>
+<td>+0.0274, CI <strong>[0.0006, 0.0533]</strong> (was +0.0386 [0.0155, 0.0617])</td>
+<td><strong>barely holds</strong></td>
+</tr>
+<tr>
+<td>GURU predictive test</td>
+<td>log-loss 0.7007 vs coin 0.6931</td>
+<td>still a coin, as always documented</td>
+</tr>
+<tr>
+<td>CHOMP-EV</td>
+<td>winners lean more aligned, CI includes 0.5</td>
+<td>still the honest null</td>
+</tr>
+<tr>
+<td>XATU policy clone</td>
+<td>top-1 32%, phase-conditioning again did not help</td>
+<td>unchanged</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The pattern is consistent and worth stating plainly: <strong>the strong results were unaffected and the
+  marginal ones got weaker.</strong> Duplicated rows inflate apparent independent evidence, so they narrow
+  intervals without adding information. Nothing that was solid became shaky; two things that were
+  already borderline (the playstyle equilibrium gap, the tech-lift) lost the significance they had
+  been credited with.</li>
+<li>Site data regenerated from the clean store (7,315 games, 48,326 turns, 11 archetypes).</li>
+</ul>
+<h2>[2.10.0] — 2026-07-24</h2>
+<h3>Fixed — the store was half duplicates, and every sample size was overstated</h3>
+<ul>
+<li><strong><code>data/games.ladder.jsonl</code> held 14,361 lines but only 7,315 unique games</strong> — 7,040 duplicate rows,
+  left over from the <code>merge -X ours</code> reconciliations during the earlier git incident. Every "14,355
+  games" figure quoted today was inflated roughly 2x, and duplicated rows also narrow confidence
+  intervals artificially. The store is now deduplicated; <strong>no unique game was lost</strong> (verified by id
+  set comparison against the pre-merge backup).</li>
+<li><strong>Store reparsed from the raw log archive</strong>, so the mega/weather/terrain parsing now applies to
+  history rather than only to new games. Effect: <strong>12,146 mega events</strong> and <strong>8,752 weather/terrain
+  events</strong> where there were none, and setter abilities appear at last — Pelipper <strong>Drizzle 0 -&gt; 1,490</strong>,
+  Torkoal <strong>Drought 0 -&gt; 613</strong>, Incineroar Intimidate 1,934.</li>
+<li><strong>Illegal ability readings rejected.</strong> Log attribution is imperfect (Trace copies opponents; a
+  mis-attributed slot handed Basculegion an "Intimidate" it can never have). Observed abilities are
+  now validated against the species' legal set from the dex, and impossible readings are dropped
+  instead of creating phantom roles.</li>
+</ul>
+<h3>Changed — a result got weaker on clean data, and that is reported</h3>
+<ul>
+<li><strong>COUNTERPLAY's tech-lift, recomputed on the deduplicated store: +0.0274, 95% CI [0.0006, 0.0533].</strong>
+  It was +0.0386, CI [0.0155, 0.0617] on the duplicated store. The interval still excludes zero, but
+  only barely — the earlier version overstated the evidence because duplicate games were counted as
+  independent observations. The direction stands; the confidence does not. <strong>WAR is unaffected in
+  direction and still beats a coin: 0.6856 vs 0.6931, accuracy 54.1%.</strong></li>
+</ul>
+<h3>Notes — what "known" actually means under closed sheets</h3>
+<ul>
+<li>A correction to how the new <code>species-abilities.json</code> was described. <strong>Nothing about an opponent's
+  Pokemon is known until it is proven in play — ability, item, and moves alike.</strong> The dex narrows the
+  <em>possibilities</em>; it does not reveal the set:</li>
+<li><strong>94 species have exactly one legal ability</strong>, so for those the species genuinely does determine
+    it at preview. That is the only truly certain case.</li>
+<li><strong>213 species have two or three</strong>, so the ability stays a belief until the log proves it —
+    Basculegion is Swift Swim <em>or</em> Adaptability <em>or</em> Mold Breaker.</li>
+<li><strong>A mega's ability is certain only once it megas.</strong> Before that you cannot see the stone, so you
+    do not even know a mega is coming, let alone which form.</li>
+<li><strong>Items and moves are never given by the dex at all</strong> — only revealed by use.</li>
+<li><strong>EVs are the hardest of all, and are never stated anywhere.</strong> They are only <em>bounded</em>, and only
+    by inference: a damage roll narrows an attacking stat to a range rather than a value (16 possible
+    rolls, all consistent with a band of EVs), and moving first only proves a Speed <em>inequality</em>
+    against whatever it outsped — sharpest at a known benchmark, useless in Trick Room or under a
+    Choice Scarf. So an EV spread never collapses to a point the way an ability or an item does; it
+    narrows to an interval that tightens with every turn. The engine's level-50 numbers assume a
+    standard competitive spread and are labelled an approximation for exactly this reason.</li>
+<li>The consequence is a design one: this is a belief-state problem, not a lookup. The right structure
+  is a per-slot information state that starts as the legal possibility set and collapses on each
+  reveal. That is XATU's job, and it is the next thing to build properly.</li>
+</ul>
+<h2>[2.9.0] — 2026-07-24</h2>
+<h3>Fixed — the extractor never knew mega evolution existed</h3>
+<ul>
+<li><strong><code>engine/durable-ingest.js</code> did not parse <code>|detailschange|</code> or <code>|-mega|</code>.</strong> Every mega therefore
+  kept its BASE form's identity, and its new ability was never attributed to anything: <strong>904 of 906</strong>
+  Charizard-Mega-Y sets had a blank ability, and Raichu-Mega-X (Electric Surge) was indistinguishable
+  from Raichu-Mega-Y (No Guard) even though they play nothing alike. Now parsed, with the mega, its
+  base form and the stone recorded.</li>
+<li><strong>Weather and terrain setters were half-invisible.</strong> A setter ability is usually stated <em>only</em> in
+  <code>|-weather|...[from] ability: Drizzle|[of] p1b: Pelipper</code>, which we did not read. Verified on a live
+  replay: the fix recovers <code>pelipper -&gt; Drizzle</code> and <code>glimmoramega</code> + <code>Glimmoranite</code>.</li>
+<li><strong><code>engine/roles.py</code> had stopped finishing</strong> (&gt;120 s at 14k games). Two hot spots, both replaced with
+  the identical calculation vectorised: the logistic fit, and a bootstrap that was re-running the model
+  600 x |test| x |roles| times when per-row losses do not change between resamples. <strong>5.2 s</strong> now.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong>Mega dex from the authoritative source</strong> (<code>engine/build_mega_dex.js</code> -&gt; <code>data/mega-dex-official.json</code>,
+  merged by <code>engine/merge_mega_into_engine.js</code>). Source is Showdown's own <code>pokedex.json</code> — the data the
+  server runs this format on. <strong>67 mega formes</strong> added to the engine dex with real types, abilities,
+  base stats and required stone. Damage validation re-run and unchanged (100% within 5%).</li>
+<li><strong>Zoroark-Hisui illusion detector</strong> (<code>engine/illusion.js</code> -&gt; <code>data/illusion.json</code>). Illusion copies the
+  NAME, not the moveset, so a legality contradiction proves the disguise: the apparent species cannot
+  learn the move and Zoroark can. On 395 Zoroark team-sides it proves <strong>156 disguises</strong> (0.39 each).
+  Most common disguise Whimsicott; the giveaway moves are Hyper Voice (32) and <strong>Bitter Malice (30)</strong>,
+  a Zoroark-Hisui signature. Conservative by construction, so the count is a floor.</li>
+<li><strong>Weather and terrain roles split by type</strong> — rain/sun/sand/snow and psychic/grassy/electric/misty, on
+  BOTH the setter and abuser side, so "Swift Swim with no Drizzle" is a detectable defect rather than
+  two generic tags that never meet. Taxonomy is <strong>52 roles</strong>, covering <strong>98.0%</strong> of real move usage.</li>
+</ul>
+<h3>Notes — measured, including what it cannot yet measure</h3>
+<ul>
+<li><strong>Mega abilities cannot be harvested from logs, at all.</strong> Mega evolution emits only <code>detailschange</code>
+  and <code>-mega</code>; no ability line follows. An earlier harvest appeared to find 9 conflicts with the
+  official dex — three were <strong>Trace</strong> correctly copying an opponent's ability, and the rest were
+  attribution noise on 1–6 observations. The official dex is the source; the harvester is kept only
+  to discover which formes exist.</li>
+<li><strong>First dead-ability measurement:</strong> 72% of teams carrying an Expanding Force user have <strong>no Psychic
+  Terrain setter</strong>, and 99.6% of Electric Terrain abusers have no setter. The weather equivalents
+  return nothing yet — those roles are ability-based, abilities only announce sometimes, and the
+  Wilson credibility gate correctly drops them as under-observed. Fix is to source abilities from the
+  dex (certain where a species has only one) rather than from observation; not done yet.</li>
+<li>The store still needs a <strong>reparse</strong> before any of the new mega/weather events exist historically.</li>
+</ul>
+<h2>[2.8.1] — 2026-07-24</h2>
+<h3>Notes — a wrong diagnosis, corrected</h3>
+<ul>
+<li>The <code>auto: &lt;date&gt;</code> commits were diagnosed as a rogue timer running <code>push-all.bat</code> every ~2 minutes.
+  <strong>That was wrong.</strong> Reading the commits properly showed they are authored by the workspace's own
+  auto-commit, which fires ~2 minutes <em>after files change</em>, then commits and pushes. The apparent
+  fixed cadence was simply a long stretch of continuous editing. Verified: a test edit was committed
+  and pushed to origin unattended, with nothing outstanding afterwards.</li>
+<li>Consequence: the publish automation the project needed <strong>already existed</strong>. The idle-publisher
+  scripts added earlier today (<code>build/auto-push.ps1</code>, <code>AUTO-PUSH-START.bat</code>, <code>AUTO-PUSH-INSTALL.bat</code>,
+  <code>find-autocommit-task.bat</code>) were removed — a second publisher racing the first is what wedged the
+  repo mid-rebase in the first place. One publisher is correct; two is a bug.</li>
+</ul>
+<h3>Kept</h3>
+<ul>
+<li><code>push-all.bat</code> stays disarmed (requires the <code>GO</code> argument) and now refuses to act on a repo that is
+  mid-rebase. That guard is the durable fix and is unrelated to the misdiagnosis.</li>
+</ul>
+<h2>[2.8.0] — 2026-07-24</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong><code>engine/guru.py</code> aborted on a truncated store line</strong>, so the site's headline numbers were frozen
+  at <strong>5,199 games</strong> while the store had grown past <strong>7,400</strong>. The ingest job appends on a schedule
+  and an interrupted run can leave a partial line (6 of 7,449 lines). GURU now skips unparseable
+  lines like the other engines. Map metrics are live again.</li>
+<li><strong><code>engine/vocab.py</code> ignored the multi-role override table</strong>, so tagged moves (Psychic Fangs, Brick
+  Break, Stockpile) were reported as untagged. Coverage of real in-battle move usage is <strong>97.1%</strong>.</li>
+<li><strong>The MAP's hover text</strong> was long and carried leftover nickname glosses ("(MEDIcham)"). Every node
+  blurb rewritten to one plain sentence.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>MAP edges are curved rather than straight.</strong> A crossing-free drawing is not possible for this
+  dependency graph — ALAKAZAM has six parents spread across a row and MEDI feeds both the far left
+  and the far right — so instead of claiming otherwise, each edge now bows in proportion to how far
+  it travels, which separates lines that previously overlapped. Hover still isolates one path.</li>
+<li><strong>Taxonomy expanded 27 → 39 roles</strong>, all from real gameplay distinctions:
+  status split by type (<strong>burn</strong> = a debuff that halves Attack, <strong>paralysis</strong> = speed control,
+  <strong>sleep</strong> = action denial, <strong>poison</strong> = a clock) — each 1,000+ uses and 20–59 species, so none is
+  sparse; <strong>spread attacker</strong> split from <strong>field-wide (hits your own partner)</strong>, because Earthquake /
+  Surf / Discharge constrain team building (they need an immune partner); plus <strong>multi-hit</strong> (breaks
+  Sash, Sturdy, Multiscale, Substitute), <strong>fixed/fractional damage</strong> (Super Fang, Seismic Toss —
+  ignores stats and the type chart), <strong>residual chip</strong>, <strong>hazards</strong> (incl. Toxic Debris),
+  <strong>substitute</strong>, <strong>weather/effect denial</strong> (Cloud Nine, Air Lock, screen-breakers),
+  <strong>weather/field abuser</strong> (distinct from setter), and <strong>positioning</strong> (now including Roar-family
+  forced switches). Freeze is documented as functionally sleep but <em>not</em> tagged: no move in Reg M-B
+  sets it, so crediting every Ice attack would be dishonest.</li>
+<li>Ability mapping corrected throughout: Lightning Rod / Storm Drain → redirection; Hospitality and
+  Regenerator → healing; trigger-boosters (Defiant, Competitive, Moxie) → setup. Fairy Aura and Dark
+  Aura are deliberately <strong>left untagged</strong> — they are passive, permanent, type-wide multipliers, not
+  the same job as Helping Hand's active one-turn boost.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><code>engine/build_roles_js.py</code> → <code>data/roles.js</code>; the Roles booth gains a <strong>species explorer</strong> showing
+  any Pokémon's role <em>distribution</em> with confidence intervals, and archetypes now show their most
+  distinctive Pokémon by lift.</li>
+</ul>
+<h3>Notes — the fragmentation trade-off, stated plainly</h3>
+<ul>
+<li>A finer taxonomy costs cell size. The median role-pair cell has moved <strong>7,971</strong> (over-tagged, v2.6)
+  → <strong>95</strong> (credible tags, 27 roles) → <strong>~50</strong> (39 roles). It is still far above the old single-label
+  archetype cells (n=11–18), but the direction is the price of resolution. The test and sanity bars
+  were lowered 100 → 50 → 35 <strong>with the reason recorded in-line</strong>, and they now act as the tripwire
+  against adding roles without a justification.</li>
+<li>Winner-prediction from preview roles is unchanged at the coin (0.6935 vs 0.6931); WAR still beats
+  it (0.6867, accuracy 54.4%). Neither headline conclusion moved.</li>
+</ul>
+<h2>[2.7.0] — 2026-07-24</h2>
+<h3>Changed</h3>
+<ul>
+<li><strong>A species now has a role DISTRIBUTION, not a role list.</strong> The same species is support on one set
+  and offensive on another, so <code>dex[species][role]</code> is now <code>p(role | that species appears)</code> measured
+  across its revealed sets, and a team's role vector is a <strong>noisy-OR</strong> over its six
+  (<code>1 − Π(1 − p_i)</code> = probability at least one of them plays the role). Under closed sheets this is
+  also the correct object: before the set is revealed, the distribution <em>is</em> our belief.</li>
+<li><strong>Credibility is judged by a Wilson lower bound on the rate, not a flat count.</strong> The old
+  <code>count ≥ 2</code> rule could not tell a real minor set from noise — it tagged Basculegion as <em>debuff</em> on
+  <strong>2 of 3,566</strong> appearances (0.06%). A role now counts only when the Wilson lower bound of its
+  per-set rate clears 5%, which automatically demands more evidence from a common species and stays
+  honest for a rare one.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Ability→role gaps found by audit:</strong> <em>Lightning Rod</em> and <em>Storm Drain</em> now map to <strong>redirection</strong>
+  (they redirect, and were untagged). Added a new role <strong>weather/field abuser</strong> (Chlorophyll, Swift
+  Swim, Sand Rush, Solar Power, Protosynthesis, Quark Drive…) — a distinct job from <em>setting</em> the
+  weather. Trigger-boosters (Defiant, Competitive, Moxie, Justified, Berserk…) now map to <strong>setup</strong>.
+  Taxonomy is 27 roles; curated roles cover <strong>90.8%</strong> of real in-battle move usage.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong><code>docs/ROLE-ATLAS.md</code> (+ PDF)</strong> — the master list: every move (478) and ability (99) with the role
+  it is tagged as, generated directly from <code>engine/roles.py</code> so it cannot drift, plus a ranked list of
+  untagged-but-used moves as tagging candidates. Generator: <code>engine/role_atlas.py</code>.</li>
+<li><strong><code>docs/ROLE-FAMILY.md</code> (+ PDF)</strong> — one read-through of the role model, WAR, and the emergent NMF
+  archetypes, with every result stated against its baseline.</li>
+<li>Site: the MAP tab now renders a real <strong>map icon</strong> in the nav, town and room hero (the Porygon2
+  sprite is gone), and <strong>MAP is first</strong> in the nav order.</li>
+</ul>
+<h3>Notes — a prior number changed, and why (not silently rewritten)</h3>
+<ul>
+<li>The v2.6.0 claim "median role-pair cell <strong>n = 7,971</strong>" was <strong>inflated by over-tagging</strong>: under the
+  old binary rule a team carried <strong>19.6 of 26</strong> roles on average, so nearly every game landed in
+  nearly every cell. With credible tags a team carries <strong>4.3 of 27</strong>, and the honest median cell is
+  <strong>n ≈ 95</strong>. That is still far above the old single-label archetype cells (n = 11–18) — the pooling
+  argument stands — but the earlier figure overstated it. Test and sanity bars moved 100 → 50 with
+  the reason recorded in-line.</li>
+<li>Winner-prediction from preview roles remains at the coin (0.694 vs 0.693); WAR still beats it
+  (0.6875). Neither conclusion changed.</li>
+<li>The hourly <strong>ingest</strong> workflow no longer fails the run when Showdown rate-limits or serves a bad
+  log (<code>continue-on-error</code> on the fetch/rebuild steps) — it was emailing a failure notice every hour.</li>
+</ul>
+<h2>[2.6.0] — 2026-07-24</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Emergent roles via NMF</strong> (<code>engine/nmf_roles.py</code> → <code>data/nmf-roles.json</code>, <code>data/nmf.js</code>). Instead of
+  hand-declaring roles, this factorizes the data (Lee &amp; Seung 1999; topic-model / Label Distribution
+  Learning framing, Geng 2016) into roles that are <em>discovered</em>. Two cuts: (1) team×MOVE usage →
+  offensive cores (recon-err 0.79; attacking moves dominate — shown honestly); (2) team×ROLE →
+  <strong>emergent archetypes</strong> (recon-err <strong>0.53</strong>, the clean view): Intimidate+Fake-Out control, physical
+  offense, special offense+sustain, <strong>bulky wall + screens + redirection</strong>, Tailwind+Encore, priority.
+  A team is a <em>blend</em> of these, never one hard label — the structural fix for the single-label grid.</li>
+<li><strong>Vocabulary census</strong> (<code>engine/vocab.py</code> → <code>data/vocab-usage.json</code>): tags every move/ability/item and
+  counts <strong>actual in-battle usage</strong> (from the turn log), not just sheet reveals. Curated roles cover
+  90.4% of non-neutral battle usage; surfaces high-usage uncovered moves as tagging candidates.</li>
+<li><strong>Roles booth on the site</strong> (<code>web/index.html</code> → <code>app/</code>): the "Role Foundry" (Smeargle) renders the
+  emergent archetypes and offensive cores live from <code>data/nmf.js</code>, with the reconstruction errors shown.</li>
+<li>Role taxonomy grown to <strong>26</strong> roles (added ally-support/positioning and item-disruption); factual
+  multi-role membership for multi-effect moves (Matcha Gotcha = attack+heal+status; Body Press =
+  wall+attack; Knock Off = attack+item-strip; Fake Out = tempo only, not an attacker).</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>Removed hand-set role weights.</strong> An earlier draft assigned fractional primary/secondary weights
+  (0.6, 0.4…) by hand — asserted, not measured. These were stripped: role <em>presence</em> is binary and
+  data-justified, and graded <em>strength</em> is now the learned output of the NMF, not a typed input. This
+  is the project's "measured, not asserted" rule applied to itself.</li>
+<li>Sanity extended to 77 checks (role model + WAR + NMF); <code>tests/test-roles.py</code> at 19 checks.</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li>Honest read on the NMF: at the team level the dominant axis of variation is offensive core + speed
+  control, so the move-level cut is coarse; the role-level cut is the useful one. Rank and the human
+  names are the only non-data choices. Rigorous rank/weighting selection by topic coherence (Mimno
+  2011) is noted as the next refinement — reconstruction error alone is not comparable across weightings.</li>
+<li>Still local + (about to) push. Site booth added; white paper / deck / technical docs for the role
+  family remain to be written in a dedicated docs pass.</li>
+</ul>
+<h2>[2.5.0] — 2026-07-24</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>ROLE model — multi-label team composition</strong> (<code>engine/roles.py</code> → <code>data/pokemon-roles.json</code>,
+  <code>data/role-matchups.json</code>, <code>data/roles-eval.json</code>). Replaces the single-label playstyle view.
+  A team is tagged with every role it reveals (24 roles across speed control, weather, terrain,
+  disruption, status/debuff, priority, prankster, setup, healing, screens, walls, pivot, trapping,
+  perish, and physical/special attacker), where each <strong>species earns a role from data</strong> — it is
+  credited once observed doing it (≥2 times). Team role vectors are built from the <strong>team-preview six</strong>
+  (leak-free). Why: the old model forced one label per team and shattered the data into
+  archetype×archetype cells of n=11–18; role-pair pooling gives a <strong>median cell of n=7,750</strong> (576 cells).</li>
+<li><strong>Role-pair matchup matrix</strong> with Wilson CIs — the descriptive "which role beats which," now dense
+  enough to reach significance, ready to feed GURU/KING and the site grid.</li>
+<li><strong>Win-credit attribution:</strong> per-role logistic coefficients (each role's marginal contribution to
+  winning) plus <strong>KO-credit per species</strong> from the turn log (who actually scored the knockouts in
+  games their side won).</li>
+<li><strong>WAR for Pokémon — Wins Above Replacement</strong> (<code>engine/war.py</code> → <code>data/war.json</code>). Ridge-regularized
+  Adjusted Plus-Minus (basketball RAPM) on team-preview species indicators, with an explicit
+  20th-percentile replacement baseline and the logistic wins conversion (0.25·Δβ·games).</li>
+<li><strong>Tests + sanity:</strong> <code>tests/test-roles.py</code> (19 checks; hand-derived tags, reads shipped reports so it
+  can't drift). <code>engine/sanity_check.py</code> extended to cover the role model + WAR (now 70 checks).</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li><strong>Two honest results, stated plainly.</strong> (1) Predicting the winner from <strong>preview roles</strong> ties a coin
+  (held-out log-loss 0.6938 vs 0.6931) — consistent with the sheet-level null; the role model's value
+  is descriptive + attribution, not prediction. (2) But the <strong>species-level WAR model does beat a coin</strong>
+  (0.6875 &lt; 0.6931) and beats the rating baseline (0.6905): <em>which</em> species you bring at preview carries
+  a small real signal that raw roles and raw sheets do not. Effect sizes are small; WAR magnitudes are
+  ridge-shrunk and flagged exploratory.</li>
+<li>White paper / deck / technical docs and the site grid are <strong>not yet</strong> updated for this model — code and
+  reports are written and tested locally; the doc + site pass is the next step (flagged, not silently skipped).</li>
+</ul>
+<h2>[2.4.0] — 2026-07-23</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>v2 models on the site (<code>web/index.html</code> → <code>app/</code>):</strong> new booths for <strong>GURU</strong> (meta matchup matrix), <strong>XATU</strong> (opponent belief), <strong>PORY</strong> (mid-game win% — with a live interactive "your win %" demo driven by <code>data/pory.js</code>), and <strong>ALAKAZAM</strong> (the in-battle capstone, honestly flagged in-development). SLOWKING's booth rewritten to show its real equilibrium mixture + a <strong>rock-paper-scissors triangle diagram</strong>. Model names rendered in <strong>ALL CAPS</strong> across the nav and town.</li>
+<li><strong>Playstyle layer</strong> (<code>engine/playstyle.js</code> → <code>data/playstyle-matchups.json</code>; SLOWKING re-run → <code>data/slowking-playstyle-eval.json</code>): classifies each real team by playstyle and builds a playstyle×playstyle matrix; surfaces the strongest non-transitive cycle (TrickRoom → HyperOffense → Sand → TrickRoom).</li>
+<li><strong>ALAKAZAM plain-English one-pager</strong> (<code>docs/ALAKAZAM-one-pager.md</code> + <code>.pdf</code>): context, what it will be, how it works, compute needs, timeline — for a non-Pokémon audience.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>Honest framing of the playstyle cycle:</strong> the cycle legs are 62% / 71% / 67% but on only n=13–18 games each, with 95% CIs that cross 50%. Site copy now calls it a <strong>suggestive pattern, not a settled fact</strong> — it sharpens as the store grows. No overclaiming.</li>
+<li><strong>Docs folder cleaned:</strong> 13 superseded/duplicate files (old simulator whitepaper, special-cut, v2-plan PDF, old summaries/reviews/handoffs) moved to <code>docs/archive/</code>; one canonical version of each kept.</li>
+<li><strong>Site chrome:</strong> removed the static side-advisor mascot (kept the roaming Abra sprites).</li>
+</ul>
+<h3>Documentation (full v2 rewrite — brought to standard)</h3>
+<ul>
+<li><strong>White paper, deck, and technical docs rewritten for v2</strong> (they had drifted to pre-pivot v1). The white paper now covers the empirical ceiling, every model with its validated result (incl. the two honest negatives), the mathematics (Wilson interval, value-net logistic, regret-matching/exploitability, clustered + Beta-resampled CIs, HodgeRank for future core analysis), limits, and cited sources. The deck is plain-English; the technical docs are ASD-STE100 Simplified Technical English organised by Diátaxis. Each ships a matching <strong>PDF</strong>.</li>
+<li><strong>New <code>docs/SUMMARY.md</code> (+ PDF):</strong> one-page whole-project + per-component summary table.</li>
+<li><strong>Corrected an error</strong> in the ALAKAZAM one-pager: poker is <em>sequential</em>, not simultaneous — reframed as "hidden information like poker <strong>plus</strong> same-time choices like rock-paper-scissors."</li>
+<li><strong>CLAUDE.md</strong> now lists the docs that MUST update in the same pass as any change (living-docs enforcement), so the white paper/deck/technical docs cannot silently drift again.</li>
+</ul>
+<h3>Removed</h3>
+<ul>
+<li>Nothing deleted — superseded docs are archived (reversible), not destroyed.</li>
+</ul>
+<hr />
+<h2>[2.3.0] — 2026-07-23</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>SLOWKING preview-Nash</strong> (<code>engine/slowking_preview.py</code> → <code>data/slowking-eval.json</code>, <code>data/slowking.js</code>): solves GURU's real 13-archetype matchup matrix (5,199 games) to an equilibrium mixed strategy and grades it by <strong>exploitability</strong> (the spec's acceptance bar for the strategic layer) against greedy-single-deck and uniform baselines, with a bootstrap CI that propagates matchup-count uncertainty (Beta resampling). Also reports the strongest <strong>non-transitive 3-cycle</strong> in the meta.</li>
+<li><strong>Playstyle layer</strong> (<code>engine/playstyle.js</code> → <code>data/playstyle-matchups.json</code>; SLOWKING re-run with <code>MATRIX_FILE=…/playstyle TAG=playstyle</code> → <code>data/slowking-playstyle-eval.json</code>): a rule-based classifier tags each real team by playstyle (TrickRoom / Rain / Sun / Sand / Snow / Setup / PerishTrap / TailwindOffense / FakeOutBalance / Stall / HyperOffense) and builds a playstyle×playstyle matrix from 2,866 games. <strong>This is where the non-transitivity is real:</strong> greedy single-playstyle exploitability 0.115 vs Nash 0.0002, gap CI [0.001, 0.280] (clears 0), with a clean cycle <strong>TrickRoom → HyperOffense → Sand → TrickRoom</strong> (~0.115 edge/leg). Equilibrium: Rain 0.51 / Sand 0.26 / HyperOffense 0.10 / Setup / PerishTrap / Snow.</li>
+<li><strong>Test + CI:</strong> <code>tests/test-slowking.py</code> — a hand-derived Rock-Paper-Scissors unit test of the Nash solver (answer is uniform, value 0) plus shipped-artifact invariants; gated in the <code>tests</code> workflow (regenerates the artifact then checks it).</li>
+<li><strong>Portfolio:</strong> ABRA added to <code>willhoop.github.io</code> as a one-object entry in the <code>PROJECTS</code> array (its own convention), leading with a measured number (PORY 0.567 vs coin 0.693). A <code>PUSH-TO-GITHUB.bat</code> was added to the portfolio repo for one-click publishing.</li>
+</ul>
+<h3>Findings (honest)</h3>
+<ul>
+<li><strong>Equilibrium mixture:</strong> Kingambit-Basculegion 0.84 / Garchomp-Incineroar 0.16. Exploitability <strong>Nash ≈ 0 vs uniform 0.109</strong> — mixing over the right decks is far less exploitable than spreading evenly.</li>
+<li><strong>Greedy ≈ Nash at the archetype level:</strong> this meta is currently near-transitive (a dominant deck), so "pick the single best deck" is about as unexploitable as the equilibrium <em>right now</em> — stated plainly rather than spun as a win for mixing. <strong>However</strong> a real rock-paper-scissors cycle exists (Charizard-Venusaur → Whimsicott-Garchomp → Garchomp-Incineroar → back, ~0.10 edge/leg), and the greedy-vs-Nash gap CI reaches 0.27, so under plausible resamples the meta is non-transitive. Finer, playstyle-level archetypes (stall / Trick Room / perish-trap / setup) would expose more cycles — the documented next refinement.</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li>Archetype-level, not set-level: SLOWKING solves over 13 discovered archetypes, not exact teams/sets; a belief over the opponent's real six (XATU) is the next refinement. Exploitability grades the preview <em>decision</em>, never who wins a match (GURU's own predictive test ties a coin).</li>
+</ul>
+<hr />
+<h2>[2.2.0] — 2026-07-23</h2>
+<p>The v2 decision-stack release: stop predicting winners, support decisions. Models built + graded
+this session, each with a proper score + clustered-by-game CI + honest baseline, persisted to JSON.</p>
+<h3>Added</h3>
+<ul>
+<li><strong>GURU</strong> — meta/matchup matrix from REAL game outcomes with Wilson CIs (<code>engine/guru.py</code> → <code>data/guru.js</code>). Replaces the biased <em>simulated</em> payoff matrix at the source.</li>
+<li><strong>XATU</strong> — opponent belief (item/ability/moves) inferred from replays (<code>engine/xatu.py</code> → <code>data/xatu.js</code>).</li>
+<li><strong>PORY</strong> — mid-game win-prob value net from real replays (<code>engine/pory.py</code> → <code>data/pory.js</code>). <strong>The win:</strong> held-out log-loss <strong>0.567 vs coin 0.693</strong>, beats a material-sign heuristic, calibrated (ECE 1.6%), clustered-by-game CI [0.548, 0.583]. Proves the v2 pivot — mid-game state is predictable even though pre-game sheets are not.</li>
+<li><strong>PORY wired into KADABRA:</strong> the coach now shows a per-turn <strong>"you're at X%"</strong> chip at each key moment, computed in-browser from <code>data/pory.js</code> (site includes it now). <code>web/index.html</code> <code>kadBuild</code>/<code>renderKad</code>; mirrored to <code>app/</code>.</li>
+<li><strong>CHOMP-EV proof</strong> (<code>engine/chomp_ev.js</code> → <code>data/chomp-ev.json</code>): the winnable team-preview test — do CHOMP's recommended brings beat humans' actual brings on held-out games? Ranks each side's actual bring among all 15 candidate brings by CHOMP exact-damage coverage; headline sign test + held-out logistic log-loss (Brier too), clustered bootstrap CI, baselines = coin / Elo / usage-prior, plus a forfeit-robustness pass and a measured selection audit.</li>
+<li><strong>Test + CI:</strong> <code>tests/test-chomp-ev.js</code> validates the committed <code>data/chomp-ev.json</code> invariants (split bookkeeping, score ranges, CI brackets, verdict-vs-numbers consistency, honesty block); gated in the <code>tests</code> workflow.</li>
+</ul>
+<h3>Findings (honest)</h3>
+<ul>
+<li><strong>CHOMP-EV is a NULL at the format ceiling.</strong> On 1,205 held-out human games, CHOMP's bring ranking does <strong>not</strong> beat a coin (log-loss 0.6918 vs 0.6931, CIs overlap), ties an Elo and a usage-prior baseline, and winners are only marginally more CHOMP-aligned than losers (0.512, CI [0.493, 0.535] — includes 0.5). CHOMP's top pick matches the human bring ~9.5% of the time (chance 6.7%). <strong>Robust:</strong> dropping all forfeits leaves it unchanged (0.505; log-loss 0.690 vs 0.693). <strong>Selection audit:</strong> eval games average 6.5 turns / 1280 rating vs 6.08 / 1267 excluded — a mild bias that, if anything, <em>favors</em> CHOMP, making the null conservative.</li>
+<li><strong>What this does NOT impugn:</strong> CHOMP's damage math stays VALIDATED vs <code>@smogon/calc</code>; the null is about the <em>bring-selection signal</em>, which sits at the same near-coin ceiling as pre-game win prediction. It guards against optimizing a bring metric with no held-out winning signal (the DITTO/measure-gaming trap). Path to a real edge: score brings with belief-aware value (XATU) + the lead stage-game (SLOWKING) + PORY leaf value, then re-run this exact test.</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li>White paper and plain-English deck updates for GURU/XATU/PORY/CHOMP-EV are still pending (this pass shipped code + CHANGELOG + MODELS/HANDOFF; the long-form docs are the next documentation pass).</li>
+</ul>
+<hr />
+<h2>[2.1.0] — 2026-07-23</h2>
+<h3>Validated</h3>
+<ul>
+<li><strong>MEDICHAM damage engine validated against <code>@smogon/calc</code></strong> (<code>engine/validate_damage.js</code>): with stats aligned, matches the ground-truth calc within 5% on 100% of 31 meta scenarios (median 0% error). Fixed the level-50 harness bug, then closed the ability gaps it surfaced.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong>Ability/item layer, each validated vs Smogon:</strong> Ruin quartet, Solar Power, Guts, Orichalcum Pulse, Hadron Engine, Adaptability, Technician, Tinted Lens, Filter/Solid Rock, Multiscale, Thick Fat, Heatproof, Purifying Salt, type-immunity abilities, Expert Belt, Muscle Band, Wise Glasses.</li>
+<li><strong>DITTO policy hardening:</strong> accuracy-weighted move value, recoil cost, self-stat-drop moves (Close Combat/Superpower/Overheat) with <strong>Contrary</strong> flip, <strong>Mega ability tracking</strong> (base vs Mega stone — Staraptor→Contrary, Swampert→Swift Swim + canonical Megas), weather-speed abilities (Swift Swim/Chlorophyll/Sand Rush/Slush Rush). Reduces the speed/frailty over-crediting (the Staraptor problem).</li>
+<li><strong>Site now grows:</strong> <code>data/live.js</code> (counts + data-derived archetypes) and <code>data/kad-replays.js</code> (offline replay bundle) regenerate via <code>engine/refresh-site-data.py</code>, run by the daily replay pull. Town stats + DITTO archetypes read live.</li>
+<li><strong>Archetypes discovered from data</strong> (<code>engine/archetypes.py</code>, k-means over 9,998+ real teams), not hand-listed — refreshes as the meta shifts.</li>
+<li><strong>ORB (CHOMP dock) upgraded to a validated Smogon-grade substitute:</strong> reads live stats/items/boosts/weather/terrain/Helping Hand/spread/screens, shows applied conditions. One-click install; auto-updates.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>KADABRA works offline (<code>file://</code>) — coaches from the local bundle, clean move-by-move viewer with arrows and a bold "what you should've done" (dropped the Showdown iframe clutter).</li>
+<li>Abilities corrected from a curated meta map (no more bogus "Pressure"); real move names + spacing; Laplace smoothing so win rates never read 0%/100%.</li>
+<li>Non-transitivity view rebuilt as big whimsical rock-paper-scissors loops (no tiny text). Town card honesty (daily, real counts). Footer/sprite overlap.</li>
+</ul>
+<h3>Known gaps (not guessed — need confirmation)</h3>
+<ul>
+<li><strong>Champions rule changes vs Gen 9</strong> (sleep, paralysis, specific move changes) are NOT yet modelled — pending the exact format rules.</li>
+<li>Enemy EVs are assumed (unknowable). Mega <strong>stats/types</strong> not yet swapped (abilities are).</li>
+</ul>
+<hr />
+<h2>[2.0.0] — 2026-07-23</h2>
+<p>The "honest instrument" release: a real doubles engine, an evaluation layer that grades every
+probability, the SLOWKING belief-search stack, and the first learned value function (the flywheel's
+core). Also a strict self-review that reshaped the roadmap.</p>
+<h3>Added</h3>
+<ul>
+<li><strong>MEDICHAM v3 — real Gen-9 doubles engine</strong> (<code>engine/medicham2-browser.js</code>, embedded in the site):
+  replaces the 1v1 OHKO-chain that collapsed to 0%/100%. Damage formula with boosts/spread/crit/rolls,
+  weather, Trick Room, Tailwind, priority, Protect, items, abilities, Fake Out; behaviour-cloned policy
+  (samples real move rates), need-based Protect. Verified: mirror 0.50, healthy distribution, 400
+  rollouts/29ms. Win rates now carry a 95% CI on the site.</li>
+<li><strong>Evaluation harness</strong> (<code>engine/eval_harness.py</code>): temporal held-out log-loss / Brier / calibration
+  vs coin, player-Elo, and usage baselines with bootstrap CIs. <strong>Verdict: JOLTEON ties a coin in
+  log-loss</strong> — demoted from headline predictor to fast prior + baseline; site copy made honest.</li>
+<li><strong>Calibration</strong> (<code>engine/calibrate.py</code>): temperature scaling; the Python JOLTEON was 6× overconfident.</li>
+<li><strong>Learned in-battle value function</strong> (<code>engine/train_value.py</code> → <code>data/value-net.json</code>): reconstructs
+  per-turn HP state and regresses the outcome. Beats a coin (log-loss 0.682) and is calibrated — the
+  first genuinely learned, calibrated component, and the leaf evaluator + flywheel core.</li>
+<li><strong>SLOWKING infrastructure</strong> (<code>engine/slowking/</code>): <code>nash.py</code> (equilibrium, verified on RPS/2×2),
+  <code>belief.py</code> (public-belief-state + Bayesian filter), <code>ismcts.py</code> (simultaneous-move regret matching,
+  recovers exact Nash), <code>game.py</code> (engine interface), <code>solver.py</code> (team-preview Nash + continual
+  re-solve; returns bring <em>mixes</em> + win%), <code>value.py</code> (loads the learned leaf). All unit-tested.</li>
+<li><strong>Self-play data pipeline</strong> (<code>sim/generate-dataset.js</code>) writing engine games into the store schema —
+  the unlimited, unbiased "more games" path. Scraper default raised 2→25 pages (~10× per run).</li>
+<li><strong>Non-transitivity finding</strong> (<code>data/nontransitivity.json</code>, DITTO tab): the meta is rock-paper-scissors
+  (3 robust cycles after noise control) — empirical proof an additive rating can't capture it. Shown
+  with an explicit "preliminary, thin data" caveat.</li>
+<li><strong>Docs:</strong> <code>docs/POKER-TO-POKEMON.md</code> (the founding white paper), <code>docs/THESIS-REVIEW.md</code> +
+  <code>docs/THESIS-REVIEW-v2.md</code> (strict self-critique with fixes), <code>docs/COMPETITORS.md</code> (VGC-Bench et al.
+  and how we refine them), <code>docs/OVERNIGHT-HANDOFF.md</code>.</li>
+<li><strong>Site:</strong> in-browser DITTO (item tuning + PokéPaste export) and KADABRA (client-side replay coach);
+  MEDICHAM/DITTO use the sprite picker; saved-teams in the matchup; ORB opens from Chomp's room;
+  per-room personality mascots; threats table with sample-adjusted Win%, real speed, Games column.</li>
+</ul>
+<h3>Changed / Honest corrections</h3>
+<ul>
+<li>JOLTEON reframed as a fast prior, not an oracle (backtest: ~coin in log-loss).</li>
+<li>White paper corrected: the current SLOWKING search is IS-MCTS/PIMC (strategy fusion), a rung below
+  the ReBeL target — no longer overclaimed.</li>
+<li>Non-transitivity presented as preliminary (approximate engine, small sample), not a settled claim.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>MEDICHAM special-move bug (special attackers dealt 0 damage); booth slot regression that broke
+  "Surprise me"; DITTO/KADABRA no longer require a server.</li>
+</ul>
+<hr />
+<h2>[1.0.0] — 2026-07-22</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>ABRA is born</strong>, split out from CHOMP as its own project: the Automated Battle Replay Analyzer.
+  CHOMP stays the bring-4/lead-2 engine; ABRA is the meta-analysis brain that feeds it.</li>
+<li><strong>Durable, incremental, no-redo ingest</strong> (<code>engine/durable-ingest.js</code>): pulls public Champions
+  Reg M-B replays from the Showdown API (paginated, ~200 logs/sec, concurrent), stores every game
+  raw and tagged — both teams' six, brings, leads, observed moves/items/abilities, result, both
+  ratings, and a bot flag. Appends only new games (dedup by id). Tested on 1,501 real ladder games.</li>
+<li><strong>Analysis over the store</strong> (<code>engine/analyze.js</code>): usage model at any rating cutoff / humans-only,
+  plus a personal split by Showdown username. Writes <code>data/meta-usage.json</code> for CHOMP.</li>
+<li><strong><code>ME</code> alias list</strong> so a Showdown rename is a one-word edit, never a re-pull.</li>
+<li><code>tests/test-parse.js</code> — 12 hand-derived checks on the replay extractor (teams, leads, brings,
+  observed set fields, bot flag, rating, date).</li>
+<li>Governance: LICENSE (MIT), SECURITY.md, CONTRIBUTING.md, .gitignore, CI workflow.</li>
+</ul>
+<h3>Validated</h3>
+<ul>
+<li>High-ladder filter (humans, 1300+) reveals real signal distinct from the raw ladder — e.g.
+  Kingambit 62% win, Incineroar 65% — confirming the tag-and-filter design earns its keep.</li>
+</ul>
+<h2>[1.1.0] — 2026-07-22</h2>
+<h3>Changed</h3>
+<ul>
+<li><strong>Reframed to its true scope.</strong> ABRA is documented as the live-data platform whose purpose is to
+  feed a simulator that models games and teams — a self-improving flywheel (collect → simulate →
+  optimise teams → play with CHOMP → auto-ingest enemy teams → improve). CHOMP is one small early
+  consumer, not the point. White paper §8 states the flywheel and the honest built-vs-roadmap status.</li>
+</ul>
+<h2>[1.2.0] — 2026-07-22</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Simulator research white paper</strong> (<code>docs/ABRA-simulator-whitepaper.md</code>): an MIT-level treatment of
+  learning a VGC battle simulator from logged replays. Formalises the game (POSG, imperfect info,
+  simultaneous moves), derives three modelling tiers with their estimators and failure modes, frames
+  team optimisation and the self-improving flywheel, and grounds every claim in the 2025 literature
+  (PokéChamp, Metamon, VGC-Bench, ReBeL/Player-of-Games, Sampled/Gumbel MuZero, offline RL). Names the
+  model family in the CHOMP/ABRA tradition — <strong>JOLTEON</strong> (fastest, win-prob),
+  <strong>MEDICHAM</strong> (Rapidash, rollouts), <strong>SLOWKING</strong> (slow deep learned dynamics), <strong>DITTO</strong> (team
+  optimiser) — speed of the Pokémon matches the cost of the model. Folds in CHOMP's pKO threat scoring
+  as JOLTEON's features and MEDICHAM's dynamics (grey-box modelling).</li>
+</ul>
+<h2>[1.6.0] — 2026-07-23</h2>
+<h3>Major finding</h3>
+<ul>
+<li><strong>The Champions engine is OPEN, not closed</strong> (<code>docs/OPEN-ENGINE-FINDING.md</code>). Verified by cloning
+  <code>smogon/pokemon-showdown</code>: the exact format <code>[Gen 9 Champions] VGC 2026 Reg M-B</code> (and its Bo3
+  variant) is in <code>config/formats.ts</code>, backed by a full <code>champions</code> mod (SP system in
+  <code>data/mods/champions/scripts.ts</code>). This overturns the project's founding assumption. SLOWKING no
+  longer needs to <em>learn</em> the dynamics — it can query the real engine (ReBeL over a known simulator),
+  and MEDICHAM/DITTO/JOLTEON can use exact rollouts + self-play. SLOWKING white paper §3 corrected;
+  roadmap task added to wire the engine as ABRA's simulator.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li><strong>MEDICHAM runs in the browser</strong> — the damage engine, type chart, sets, and behaviour-clone priors
+  (96KB) are embedded in <code>web/index.html</code>; the rollout runs client-side (~40ms / 200 rollouts). The
+  "MEDICHAM check" button and Medicham's run panel now work with <strong>no server</strong>. Validated: mirror
+  0.53, rain-vs-sun 0.19 (matches the Node engine).</li>
+<li><strong>Combined team+rating predictor</strong> (<code>engine/predictability.py</code> §2.5): the real pre-game ceiling is
+  ~57% — combining team sheets AND player ratings does no better than team alone, confirming the game
+  is variance-dominated (and that the two ~55%s are different axes that corroborate, not the same
+  claim). Predictability study updated with the honest framing.</li>
+<li><strong>ABRA MCP server</strong> (<code>mcp/</code>): exposes the models as tools Claude can call — <code>abra_win_probability</code>
+  (JOLTEON), <code>abra_rollout</code> (MEDICHAM), <code>abra_threats</code>, <code>abra_species_stats</code>, <code>abra_optimize_team</code>
+  (DITTO), <code>abra_coach_replay</code> (KADABRA). Local stdio server; <code>claude mcp add abra -- node mcp/server.js</code>.</li>
+<li><strong>Regulation registry + archive</strong> (<code>data/regulations.json</code>, <code>build/archive-regulation.js</code>): the
+  active regulation is a one-line config edit; ingest/analysis read it. When a reg ends,
+  <code>archive-regulation.js</code> snapshots the store + all models into <code>data/archive/&lt;id&gt;/</code> (date-stamped,
+  with a manifest) so previous-regulation data is preserved forever. <code>--rotate</code> starts a fresh store.</li>
+<li><strong>Mega Evolution</strong> added to the game's action model (SLOWKING white paper §2) as a per-turn step.</li>
+<li><strong>Ditto page rebuilt</strong>: team-builder on top + a live, sortable/searchable <strong>threat rankings table</strong>
+  (usage / bring / lead / win% / speed) from the real stats; static chips removed.</li>
+<li><strong>Team carries between models</strong> (localStorage), hover-× to remove a Pokémon / clear team, usage-
+  ranked picker, in-browser MEDICHAM, lightning flash on JOLTEON, confetti idle-loop stopped.</li>
+<li><strong>Omnibus is now robust</strong> (<code>build/omnibus.py</code>): always emits a self-contained HTML (SVG embedded
+  directly, no LibreOffice), attempts the PDF only if <code>OMNIBUS_PDF=1</code> — reproduces the Special Cut
+  reliably as the docs grow.</li>
+<li>New docs sewn into the Special Cut: predictability study, SLOWKING white paper + roadmap,
+  architecture notes.</li>
+</ul>
+<h2>[1.5.0] — 2026-07-23</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Recency weighting (concept-drift decay)</strong> in JOLTEON: every training game is weighted
+  <code>w = 0.5 ** (age_days / τ)</code> with a half-life τ (default 30d), so the models track the <em>live</em>
+  metagame instead of averaging over stale history. Normalised to mean 1 (L2 scale unchanged);
+  <code>τ → ∞</code> recovers equal weighting. No-op on the current 2-day store (reported honestly);
+  unit-verified on synthetic 90-day data (oldest 0.33, newest 2.14). Same rule applies to the usage
+  model and behaviour-clone. Fully documented in <code>docs/ARCHITECTURE-NOTES.md</code>.</li>
+<li><strong>SLOWKING white paper</strong> (<code>docs/SLOWKING-whitepaper.md</code>): the definitive Tier-3 design — offline
+  belief-state search over a <em>learned grey-box model</em> of the <em>closed</em> Champions engine (residual over
+  CHOMP), simultaneous-move mixed-Nash subgames, warm-started by the behaviour-clone. Grounded in
+  ReBeL, Student of Games, PokéChamp (ICML 2025), Gumbel MuZero, Metamon. Plus a
+  <strong>research roadmap</strong> (<code>docs/SLOWKING-research-roadmap.md</code>) turning it into five buildable papers.</li>
+<li><strong>SLOWKING Paper-1 built</strong> (<code>engine/game-spec.js</code>): encodes stored replays into
+  <code>(state, observation, action, reward)</code> trajectories — 30,608 real state-transitions with actions and
+  terminal rewards. The offline dataset a Tier-3 solver trains on; a re-parse, never a re-pull.</li>
+<li><strong>Behaviour-clone + status/field MEDICHAM v2</strong> (<code>engine/policy.js</code>, <code>engine/moves-meta.js</code>,
+  <code>engine/medicham.js</code>): the rollout now samples <em>what real players click</em> (Tailwind 34% for
+  Whimsicott, Fake Out 30% for Incineroar, …) and applies the effects — sleep, burn, paralysis,
+  Tailwind (2× speed), Trick Room (inverted order), setup boosts, Protect. Speed control and setup are
+  now <em>valued emergently</em>. Fixed a faint-and-replace symmetry bug (mirror back to ~0.50) and gated
+  support on survival (don't set up into a KO). <code>tests/test-medicham.js</code>, <code>tests/test-dynamics.js</code>.</li>
+<li><strong>DITTO ported to Node</strong> (<code>engine/ditto.js</code>): the whole live app now runs with <strong>no Python</strong>.
+  JOLTEON scoring reimplemented in JS from the trained weights; <strong>MEDICHAM wired in natively as the
+  finalist re-ranker</strong> (coarse-to-fine: JOLTEON proposes thousands, MEDICHAM decides the finalists).
+  In a real run MEDICHAM overruled JOLTEON — chose the rain team (75.7%) over JOLTEON's tyranitar pick
+  (68% grounded vs 79.8% JOLTEON). <code>server.js</code> <code>/api/ditto</code> now calls Node.</li>
+<li><strong>Local app + server</strong> (<code>server.js</code>, <code>start.bat</code>, <code>app/</code>): the site is served from <code>app/</code> and runs
+  the real engines on the user's machine (MEDICHAM/KADABRA/DITTO via Node, JOLTEON in-page). Lazy,
+  robust Python probe (skips the Windows Store stub) kept only for optional JOLTEON <em>retraining</em>.
+  Booth is searchable and usage-ranked; team-builder enlarged; live "MEDICHAM check" button.</li>
+<li><strong>Multi-format + open-sheet tags</strong>, <strong>dedup-by-replay-id everywhere</strong> (never double-count a game
+  reviewed or self-uploaded), <strong>per-turn extractor + raw-log archive</strong> (any new field is a re-parse).</li>
+<li><strong>ABRA WORLD website</strong> with per-model "How X thinks" panels, teleporting-Abra background,
+  usage-ranked sprite picker, PokéPaste input (accepts any species; off-roster treated as neutral).</li>
+<li><code>docs/ARCHITECTURE-NOTES.md</code>: the Python/JS split rationale and the recency-weighting design, in
+  detail.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Model labels describe the role (win probability, battle rollouts, team optimiser, replay coach,
+  belief search, bring-4 engine), not the Pokémon name twice.</li>
+</ul>
+<h3>Queued</h3>
+<ul>
+<li><strong>ORB</strong> — CHOMP's auto-fill mid-game calculator (the Life Orb of the CHOMP family): pulls your six
+  (moves/items/EVs) and the opponent's revealed team from the live battle so there's nothing to type
+  mid-game; opens in its own tab.</li>
+</ul>
+<h2>[1.4.0] — 2026-07-22</h2>
+<h3>Added — the model family (the simulator, stages 2–3, now has working v1s)</h3>
+<ul>
+<li><strong>Per-turn extraction</strong> (<code>engine/durable-ingest.js</code> v2): the extractor now captures a per-turn
+  event stream — move order (→ speed), exact damage % per move, faints, status, and reveals — on
+  every game. Backfilled onto all 4,999 games: <strong>30,611 turns, 55,336 damaging move events.</strong></li>
+<li><strong>Raw-log archive + <code>MODE=reparse</code></strong>: each raw <code>.log</code> is archived (<code>data/*.raw-logs.jsonl</code>), so any
+  NEW field is a re-parse, never a re-pull. Proven by backfilling <code>format</code>/<code>openSheet</code> onto 4,999
+  games with <strong>zero network calls.</strong> (Archive is gitignored; the extracted store carries the turns.)</li>
+<li><strong>Dynamics model</strong> (<code>engine/dynamics.js</code> → <code>data/dynamics.json</code>): observed speed (who-moves-first,
+  incl. Choice-Scarf hints) for 186 species, and observed damage distributions for 1,170
+  (attacker, move) pairs. E.g. Garchomp Earthquake mean 57%, Basculegion Wave Crash 62.5%.</li>
+<li><strong>JOLTEON v2</strong> (<code>engine/jolteon.py</code>): win-probability model gains <strong>rarity-aware L2 shrinkage</strong>
+  (a species seen 25× is pulled toward neutral; seen 1000× is trusted — a measure-gaming guard at the
+  model level) plus speed-edge and firepower-edge features from the dynamics model. Honest result:
+  ~55% humans-only held-out vs ~49% coin flip; the dynamics features tie species-only (firepower
+  earns weight +0.30, speed-edge is noise at this scale). Reported straight.</li>
+<li><strong>MEDICHAM built</strong> (<code>engine/medicham.js</code>): Tier-2 Monte-Carlo rollout over CHOMP's exact damage
+  engine. Rain core beats sun core 0.60; mirror 0.51; ~1s / 300 playouts. Sequential-singles v1
+  (honest scope). <code>tests/test-medicham.js</code>.</li>
+<li><strong>DITTO built</strong> (<code>engine/ditto.py</code>): team optimiser using JOLTEON as evaluator against a gauntlet
+  of REAL ladder teams, double-oracle rounds, <strong>usage-weighted threat coverage</strong> (guarantees an
+  answer to high-bring threats like Basculegion, ignores rare ones like Camerupt), and a <strong>bias
+  report</strong> showing where rarity shrinkage suppresses a pick. Surfaces the measure-gaming failure honestly:
+  JOLTEON-optimised "90%" team → MEDICHAM rollouts reveal ~12% → this is <em>why</em> Tier-2 vets Tier-1.</li>
+<li><strong>KADABRA v1 built</strong> (<code>engine/kadabra.js</code>): turn-by-turn coach over a replay — reconstructs each
+  scene, gives the speed read + damage read (cross-checked vs the ladder average, flags high/low
+  rolls), draws the lesson, and background-appends the game (the flywheel from the coaching seat).</li>
+<li><strong>SLOWKING scaffold</strong> (<code>engine/slowking.py</code>): Tier-3 interface fixed + data-readiness report;
+  honestly flagged as a research effort, not a trained model.</li>
+<li><strong>Multi-format + open-sheet tags</strong>: <code>FORMATS=</code> env supports collecting other ladders (e.g. the
+  Reg-G best-of-3); every record now carries <code>format</code> and <code>openSheet</code> (bo3 / agreed open team sheet
+  is a distinct information regime). 42 open-sheet games found in the current store.</li>
+<li><strong>ABRA WORLD website</strong> (<code>web/index.html</code>): a Club-Penguin-styled interactive town — one room per
+  model — with the JOLTEON win-probability model running live client-side (real embedded weights),
+  sprite team pickers, animated odds meter, and links to the rest of the portfolio.</li>
+<li>Tests: <code>tests/test-medicham.js</code>, <code>tests/test-dynamics.js</code> (all green alongside parse + jolteon).</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>The flywheel's honest status advances: stages 2 (simulate) and 3 (optimise) now have working v1
+  models (MEDICHAM, DITTO), with the tiered vetting (Tier-1 proposes, Tier-2 checks) demonstrated
+  end-to-end. Tier-3 depth (SLOWKING) remains roadmap.</li>
+</ul>
+<h2>[1.3.0] — 2026-07-22</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>JOLTEON v1 built</strong> (<code>engine/jolteon.py</code>) — the Tier-1 win-probability model, a Bradley–Terry
+  logistic over per-species strengths with a min-sample floor (anti-overfit). Trained on 5,000 real
+  ladder games (temporal split, humans only). <strong>Measured: 56.6% held-out accuracy vs 49.6% baseline</strong>,
+  Brier 0.251 (calibrated) — a real, honest, modest edge from team composition alone, as the domain's
+  variance predicts. Ships a <code>predict</code> CLI and <code>tests/test-jolteon.py</code> (antisymmetry, mirror=50%,
+  coverage, range). Model saved to <code>data/jolteon-weights.json</code>.</li>
+<li><strong>Full ladder pulled</strong> — the durable store grew from 1,501 to <strong>5,000 games</strong> (incremental, dedup).</li>
+</ul>
+<h3>Notes</h3>
+<ul>
+<li>The first training on 1,501 games did <strong>not</strong> beat the baseline; more data (5,000) and a min-sample
+  floor were what cleared it. Recorded honestly: this is why the flywheel (more games over time) and
+  damage-grounded features (§4.3.1) matter, not species identity alone.</li>
+</ul></div></body></html>
