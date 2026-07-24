@@ -40,10 +40,27 @@ function megaAbility(name,item,baseAb){ if(!item)return baseAb;
   if(name==='raichu'){ if(/y$/.test(item))return 'noguard'; if(/x$/.test(item))return 'electricsurge'; }   // Raichunite Y / X
   if(MEGA_ABIL[name] && /ite[xy]?$/.test(item)) return MEGA_ABIL[name];
   return baseAb; }
+/* Mega formes, from the SAME generated source the canonical engine uses (CHOMP/data/mega-formes.json,
+ * exposed to the browser as window.MEGA_FORMES). This engine previously kept its own hand-written
+ * mega table and never swapped mega STATS at all, so when the canonical engine learned real mega
+ * stats the two silently disagreed by 30% on Charizard-Mega-Y's Special Attack. Reading one shared
+ * file is what makes tests/test-engine-contract.js able to hold them together. */
+function megaForme(item){
+  const F=(typeof window!=='undefined'&&window.MEGA_FORMES)||null;
+  if(!F||!item) return null;
+  return F[String(item).toLowerCase().replace(/[^a-z0-9]/g,'')]||null;
+}
+// level-50 stat line, identical convention to champ-model's statL50/hpL50 (Champions SP system)
+function l50(bs,sp){ const S=(b,v)=>Math.floor((Math.floor((2*b+31)*50/100)+5+(+v||0)));
+  return { hp:Math.floor((2*bs.hp+31)*50/100)+50+10, at:S(bs.atk,sp&&sp.at), df:S(bs.def,sp&&sp.df),
+           sa:S(bs.spa,sp&&sp.sa), sd:S(bs.spd,sp&&sp.sd), sp:S(bs.spe,sp&&sp.sp) }; }
 function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
   const item=(ov&&ov[name])||m.item||'';
-  return {name,types:m.t.slice(),st:{...m.st},item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
-    curHP:m.st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
+  const mf=megaForme(item);
+  const types = mf&&mf.t&&mf.t.length ? mf.t.slice() : m.t.slice();
+  const st = mf&&mf.bs ? l50(mf.bs) : {...m.st};
+  return {name,types,st,item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
 
 function dmgRange(att,def,mv,field,spread){
   if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
