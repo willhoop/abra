@@ -493,15 +493,19 @@ def build():
     ll_coin = LN2
     acc_role = sum(1 for r in test if (pred_role(r) >= .5) == (r[3]==1))/len(test)
 
-    # bootstrap CI on role held-out log-loss (resample test games)
-    rng = random.Random(7)
-    boots = []
-    tl = list(test)
-    for _ in range(600):
-        sample = [tl[rng.randrange(len(tl))] for _ in range(len(tl))]
-        boots.append(logloss(sample, pred_role))
-    boots.sort()
-    ci = (round(boots[int(.025*len(boots))],4), round(boots[int(.975*len(boots))],4))
+    # Bootstrap CI on the held-out log-loss.
+    # A per-row loss does not change between resamples, so we compute the losses ONCE and resample
+    # the loss vector instead of re-running the model. Identical distribution, and it turns
+    # 600 x |test| x |roles| work into 600 cheap means - this loop was the reason the script stopped
+    # finishing once the store passed 14k games.
+    per_row = np.array([
+        -(r[3]*math.log(max(1e-12, min(1-1e-12, pred_role(r))))
+          + (1-r[3])*math.log(max(1e-12, min(1-1e-12, 1-pred_role(r)))))
+        for r in test])
+    rs = np.random.default_rng(7)
+    idx = rs.integers(0, len(per_row), size=(600, len(per_row)))
+    boots = np.sort(per_row[idx].mean(axis=1))
+    ci = (round(float(boots[int(.025*len(boots))]),4), round(float(boots[int(.975*len(boots))]),4))
 
     coeffs = sorted(
         [dict(role=r, label=ROLE_SIGNALS[r]["label"], coef=round(wr[i],4),
