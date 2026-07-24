@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.1.0] — 2026-07-24
+
+### Added — the official Champions engine
+Showdown's `champions` mod exists in the master branch and implements this format exactly.
+`engine/champions_sim.js` runs it on `gen9championsvgc2026regmb` — the format id on every replay in
+the store — at pinned commit `20ad99ff`. `engine/prior_player.js` ports our behaviour-clone policy
+into it so the two engines can be compared like for like.
+
+- `data/quality-filter.json` v1.1 — behavioural bot detection by **team invariance**. Five accounts
+  the name filter missed (459 / 426 / 294 / 267 / 147 games, **one team each**) were in 52.2% of the
+  previously-clean set. Clean games: 1,941 -> **927 of 7,547 (12.3%)**.
+- `engine/quality.js` and `engine/quality.py` — one shared definition, cross-checked by a test that
+  asserts both readers select an identical set of game ids.
+- `engine/dedupe_store.py`, `build/build_browser_data.js`, `tests/test-rollout-effects.js` (39),
+  `tests/test-quality.js` (24), `docs/ADR-001-use-the-champions-mod.md`.
+
+### Fixed — the rollout engine was wrong in eight ways, all silent
+Random status instead of the move's status; only Fake Out could flinch; no type or ability
+immunities; priority a hand-typed table of 18 moves (all 14 negative-priority moves resolved at 0, so
+Trick Room went at normal speed); flinch leaked into the next turn; **Intimidate applied
+unconditionally with the sign reversed on Defiant and Competitive**; no powder immunity; Prankster hit
+Dark types. Measured effect on 120 real matchups: mean **4.35** points of P(win), max 24.2, favourite
+flipped in 9.2%.
+
+Also: the nature table held 23 of 25 (Naughty and Lax fell through to neutral), and the store's
+duplicate check read only the first 5,000 lines while all 401 duplicates sat past line 7,144.
+
+### Notes — what the validation actually showed
+With identical teams, an identical policy, and both engines verified symmetric on mirror matchups,
+our engine and the official simulator disagree by **31.1 percentage points on average**, flipping the
+favourite in 3 of 8 matchups. Everything we fixed today was worth 4.35 points. The remaining gap is
+seven times larger. This is why ADR-001 replaces the engine rather than continuing to repair it.
+
+Three earlier versions of that comparison were wrong (32.2, 23.7, and a 32.2 where the policy port
+silently fell through to random on 100% of decisions). All three are recorded in the ADR rather than
+quietly re-run.
+
+### Notes — measured, not asserted
+Three Champions status constants had lived as unsourced inline comments. Checked against the mod's
+`conditions.ts`: paralysis `randomChance(1, 8)` = 12.5%, sleep `sample([2, 3, 3])`, freeze
+`randomChance(1, 4)` with `startTime = 3`. All three correct, and all three now cited. Independently
+measured from 7,948 raw logs: 13.8% [11.9, 16.0], 35.3% [31.5, 39.2], 31.6% [23.3, 41.4].
+
+The stat formula is confirmed from `scripts.ts`: `base + SP + 20`, and HP `base + SP + 75`.
+
+### Notes — the meta model was reporting a bot's team
+Four of the five undetected bot accounts played the **same six Pokémon** in 1,446 games. Those six are
+exactly the species whose usage collapses once they are removed: Basculegion 34.1% -> 17.9%,
+Whimsicott 31.9% -> 17.9%, Garchomp 35.5% -> 24.4%, Charizard 26.1% -> 16.5%, Sylveon 19.4% -> 10.5%,
+Kingambit 29.1% -> 20.4%. `meta-usage.json`, which CHOMP reads, carries the inflated figures.
+**37 engines still read the store directly and bypass the quality filter.** Not yet fixed.
+
+---
+
 ## [3.0.2] — 2026-07-24
 
 ### Fixed — a store check that was aimed away from the fault
