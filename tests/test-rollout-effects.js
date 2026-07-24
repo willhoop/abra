@@ -148,5 +148,35 @@ for (let trial = 0; trial < 40; trial++) {
 }
 ok(leaked === 0, `no Pokemon left a battle still flinching (${leaked} leaked of ${seen})`);
 
+
+console.log('== 8. Intimidate is not a blanket -1 ==');
+/* Intimidate was applied unconditionally to every foe. It is on Incineroar, the most-used Pokemon in
+ * the format, so the error was paid in nearly every game. Defiant is the worst case: the target gains
+ * +2 Attack, so treating it as -1 gets the SIGN wrong - a three-stage error on the stat the engine
+ * then uses to decide whether a KO lands. Expected values are the game's own rules. */
+const foe = (ability) => ({ ability, fainted: false, curHP: 100,
+                            boosts: { at: 0, df: 0, sa: 0, sd: 0, sp: 0 } });
+const intim = (ability) => { const f = foe(ability); const r = E.applyIntimidate(f); return { r, f }; };
+
+const plain = intim('');
+ok(plain.f.boosts.at === -1, 'an ordinary Pokemon drops to -1 Attack');
+
+for (const ab of ['clearbody', 'whitesmoke', 'fullmetalbody', 'hypercutter', 'innerfocus',
+                  'oblivious', 'owntempo', 'scrappy', 'guarddog', 'mirrorarmor']) {
+  const { f } = intim(ab);
+  ok(f.boosts.at === 0, `${ab} takes no Attack drop from Intimidate`);
+}
+const d = intim('defiant');
+ok(d.f.boosts.at === 2,  'Defiant REVERSES it: +2 Attack, not -1');
+const c = intim('competitive');
+ok(c.f.boosts.sa === 2 && c.f.boosts.at === 0, 'Competitive gives +2 Special Attack, Attack untouched');
+const ct = intim('contrary');
+ok(ct.f.boosts.at === 1, 'Contrary flips the drop into +1 Attack');
+const si = intim('simple');
+ok(si.f.boosts.at === -2, 'Simple doubles the drop to -2 Attack');
+// the sign error, stated as the thing it actually costs
+ok(d.f.boosts.at - plain.f.boosts.at === 3,
+   'a Defiant target is three stages better off than the old code assumed');
+
 console.log(`\nROLLOUT EFFECT TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

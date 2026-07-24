@@ -235,6 +235,29 @@ function canTakeStatus(t,st){
   if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
   return true;
 }
+/* INTIMIDATE. This used to be an unconditional `boosts.at - 1` on every foe, which is wrong three
+ * different ways, and Intimidate is on Incineroar - the most-used Pokemon in the format - so the
+ * error was paid in almost every game:
+ *   BLOCKED  by Clear Body, White Smoke, Full Metal Body, Hyper Cutter, Inner Focus, Oblivious,
+ *            Own Tempo, Scrappy and Guard Dog. These take no drop at all.
+ *   REVERSED by Defiant (+2 Attack) and Competitive (+2 Special Attack) - the target ends up
+ *            STRONGER. Treating that as -1 gets the sign wrong, a 3-stage swing on Attack.
+ *   FLIPPED  by Contrary (+1) and doubled by Simple (-2); Mirror Armor reflects it back.
+ * Getting Defiant backwards means the engine thought a Defiant switch-in was punished when it is
+ * actually rewarded - the exact read a bring/lead recommendation depends on. */
+const INTIM_IMMUNE=['clearbody','whitesmoke','fullmetalbody','hypercutter','innerfocus','oblivious',
+                    'owntempo','scrappy','guarddog','mirrorarmor'];
+function applyIntimidate(f){
+  if(!f||f.fainted) return 'none';
+  const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
+  if(INTIM_IMMUNE.includes(ab)) return 'blocked';
+  if(ab==='defiant'){     f.boosts.at=clamp(f.boosts.at+2,-6,6); return 'defiant'; }
+  if(ab==='competitive'){ f.boosts.sa=clamp(f.boosts.sa+2,-6,6); return 'competitive'; }
+  if(ab==='contrary'){    f.boosts.at=clamp(f.boosts.at+1,-6,6); return 'contrary'; }
+  if(ab==='simple'){      f.boosts.at=clamp(f.boosts.at-2,-6,6); return 'simple'; }
+  f.boosts.at=clamp(f.boosts.at-1,-6,6);
+  return 'dropped';
+}
 function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;return true;}
 
@@ -244,7 +267,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   const actA=[teamA[0],teamA[1]].filter(Boolean),actB=[teamB[0],teamB[1]].filter(Boolean);
   const benchA=teamA.slice(2),benchB=teamB.slice(2);
   setW(actA.concat(actB));
-  const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)f.boosts.at=clamp(f.boosts.at-1,-6,6);};
+  const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
   intim(actA,actB);intim(actB,actA);
   const live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
   const alive=(a,b)=>live(a).length+live(b).length>0;
@@ -356,7 +379,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
-    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))f.boosts.at=clamp(f.boosts.at-1,-6,6);}}}};
+    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);   // same rules on a mid-game switch-in}}}};
     refill(actA,benchA,actB);refill(actB,benchB,actA);
   }
   const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
@@ -373,5 +396,5 @@ root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MED
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,
-  moveFx,movePriority,canTakeStatus,applyStatus};
+  moveFx,movePriority,canTakeStatus,applyStatus,applyIntimidate};
 })(typeof window!=='undefined'?window:globalThis);
