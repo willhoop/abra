@@ -1,0 +1,1468 @@
+{
+ "generated": "2026-07-24",
+ "n_games": 6639,
+ "totals": {
+  "distinct_moves": 433,
+  "distinct_abilities": 68,
+  "distinct_items": 111,
+  "move_events": 123484
+ },
+ "role_coverage_of_battle_usage": 0.7636,
+ "note": "role_coverage = share of actual in-battle move uses that map to >=1 curated role. The rest is either raw damage/Protect or a role we have not named yet \u2014 see uncovered_top.",
+ "moves_top": [
+  {
+   "move": "Protect",
+   "battle_uses": 13817,
+   "reveals": 9800,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": []
+  },
+  {
+   "move": "Heat Wave",
+   "battle_uses": 5095,
+   "reveals": 2865,
+   "kos": 1977,
+   "ko_rate": 0.388,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Rock Slide",
+   "battle_uses": 3766,
+   "reveals": 2228,
+   "kos": 1237,
+   "ko_rate": 0.328,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Tailwind",
+   "battle_uses": 3458,
+   "reveals": 2820,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "speed_tailwind"
+   ]
+  },
+  {
+   "move": "Hyper Voice",
+   "battle_uses": 3383,
+   "reveals": 1857,
+   "kos": 1414,
+   "ko_rate": 0.418,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Last Respects",
+   "battle_uses": 3361,
+   "reveals": 1646,
+   "kos": 1713,
+   "ko_rate": 0.51,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Fake Out",
+   "battle_uses": 3361,
+   "reveals": 2808,
+   "kos": 105,
+   "ko_rate": 0.031,
+   "roles": [
+    "fakeout",
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Moonblast",
+   "battle_uses": 2855,
+   "reveals": 1618,
+   "kos": 726,
+   "ko_rate": 0.254,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Wave Crash",
+   "battle_uses": 2418,
+   "reveals": 1519,
+   "kos": 1126,
+   "ko_rate": 0.466,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Earthquake",
+   "battle_uses": 2408,
+   "reveals": 1494,
+   "kos": 1066,
+   "ko_rate": 0.443,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Close Combat",
+   "battle_uses": 2304,
+   "reveals": 1312,
+   "kos": 937,
+   "ko_rate": 0.407,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Weather Ball",
+   "battle_uses": 2117,
+   "reveals": 1464,
+   "kos": 822,
+   "ko_rate": 0.388,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Electro Shot",
+   "battle_uses": 1873,
+   "reveals": 846,
+   "kos": 582,
+   "ko_rate": 0.311,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Sucker Punch",
+   "battle_uses": 1792,
+   "reveals": 1055,
+   "kos": 572,
+   "ko_rate": 0.319,
+   "roles": [
+    "phys_attacker",
+    "priority"
+   ]
+  },
+  {
+   "move": "Shadow Ball",
+   "battle_uses": 1647,
+   "reveals": 1044,
+   "kos": 630,
+   "ko_rate": 0.383,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Flare Blitz",
+   "battle_uses": 1633,
+   "reveals": 1031,
+   "kos": 624,
+   "ko_rate": 0.382,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Matcha Gotcha",
+   "battle_uses": 1624,
+   "reveals": 757,
+   "kos": 380,
+   "ko_rate": 0.234,
+   "roles": [
+    "healing",
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Hurricane",
+   "battle_uses": 1558,
+   "reveals": 864,
+   "kos": 483,
+   "ko_rate": 0.31,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Dragon Pulse",
+   "battle_uses": 1421,
+   "reveals": 806,
+   "kos": 474,
+   "ko_rate": 0.334,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Trick Room",
+   "battle_uses": 1414,
+   "reveals": 1250,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "speed_trickroom"
+   ]
+  },
+  {
+   "move": "Psychic",
+   "battle_uses": 1373,
+   "reveals": 760,
+   "kos": 381,
+   "ko_rate": 0.277,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Parting Shot",
+   "battle_uses": 1331,
+   "reveals": 904,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "debuff",
+    "pivot"
+   ]
+  },
+  {
+   "move": "Stomping Tantrum",
+   "battle_uses": 1251,
+   "reveals": 714,
+   "kos": 377,
+   "ko_rate": 0.301,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Iron Head",
+   "battle_uses": 1232,
+   "reveals": 842,
+   "kos": 526,
+   "ko_rate": 0.427,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Kowtow Cleave",
+   "battle_uses": 1226,
+   "reveals": 769,
+   "kos": 500,
+   "ko_rate": 0.408,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Dragon Claw",
+   "battle_uses": 1200,
+   "reveals": 790,
+   "kos": 341,
+   "ko_rate": 0.284,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Earth Power",
+   "battle_uses": 1164,
+   "reveals": 716,
+   "kos": 352,
+   "ko_rate": 0.302,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Encore",
+   "battle_uses": 1154,
+   "reveals": 770,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "encore"
+   ]
+  },
+  {
+   "move": "Sludge Bomb",
+   "battle_uses": 1138,
+   "reveals": 741,
+   "kos": 319,
+   "ko_rate": 0.28,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Knock Off",
+   "battle_uses": 1119,
+   "reveals": 722,
+   "kos": 418,
+   "ko_rate": 0.374,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Rage Powder",
+   "battle_uses": 1089,
+   "reveals": 746,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "redirection",
+    "wall"
+   ]
+  },
+  {
+   "move": "Flash Cannon",
+   "battle_uses": 1074,
+   "reveals": 655,
+   "kos": 327,
+   "ko_rate": 0.304,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Dazzling Gleam",
+   "battle_uses": 1060,
+   "reveals": 689,
+   "kos": 427,
+   "ko_rate": 0.403,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Thunderbolt",
+   "battle_uses": 1035,
+   "reveals": 617,
+   "kos": 335,
+   "ko_rate": 0.324,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Eruption",
+   "battle_uses": 1001,
+   "reveals": 556,
+   "kos": 414,
+   "ko_rate": 0.414,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Make It Rain",
+   "battle_uses": 979,
+   "reveals": 651,
+   "kos": 418,
+   "ko_rate": 0.427,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Aqua Jet",
+   "battle_uses": 877,
+   "reveals": 579,
+   "kos": 287,
+   "ko_rate": 0.327,
+   "roles": [
+    "phys_attacker",
+    "priority"
+   ]
+  },
+  {
+   "move": "Dual Wingbeat",
+   "battle_uses": 834,
+   "reveals": 510,
+   "kos": 272,
+   "ko_rate": 0.326,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Wide Guard",
+   "battle_uses": 827,
+   "reveals": 522,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "teamprotect",
+    "wall"
+   ]
+  },
+  {
+   "move": "Blizzard",
+   "battle_uses": 744,
+   "reveals": 450,
+   "kos": 327,
+   "ko_rate": 0.44,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Light Screen",
+   "battle_uses": 742,
+   "reveals": 661,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "screens",
+    "wall"
+   ]
+  },
+  {
+   "move": "Brave Bird",
+   "battle_uses": 741,
+   "reveals": 451,
+   "kos": 323,
+   "ko_rate": 0.436,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Helping Hand",
+   "battle_uses": 741,
+   "reveals": 474,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "helpinghand",
+    "wall"
+   ]
+  },
+  {
+   "move": "Dire Claw",
+   "battle_uses": 693,
+   "reveals": 417,
+   "kos": 226,
+   "ko_rate": 0.326,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "High Horsepower",
+   "battle_uses": 690,
+   "reveals": 442,
+   "kos": 234,
+   "ko_rate": 0.339,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Solar Beam",
+   "battle_uses": 660,
+   "reveals": 507,
+   "kos": 270,
+   "ko_rate": 0.409,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Throat Chop",
+   "battle_uses": 635,
+   "reveals": 377,
+   "kos": 174,
+   "ko_rate": 0.274,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Sleep Powder",
+   "battle_uses": 625,
+   "reveals": 324,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "status"
+   ]
+  },
+  {
+   "move": "Spirit Break",
+   "battle_uses": 603,
+   "reveals": 292,
+   "kos": 131,
+   "ko_rate": 0.217,
+   "roles": []
+  },
+  {
+   "move": "Flip Turn",
+   "battle_uses": 572,
+   "reveals": 455,
+   "kos": 79,
+   "ko_rate": 0.138,
+   "roles": [
+    "phys_attacker",
+    "pivot"
+   ]
+  },
+  {
+   "move": "Life Dew",
+   "battle_uses": 558,
+   "reveals": 318,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "healing",
+    "wall"
+   ]
+  },
+  {
+   "move": "Will-O-Wisp",
+   "battle_uses": 556,
+   "reveals": 390,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "status"
+   ]
+  },
+  {
+   "move": "Hydro Pump",
+   "battle_uses": 543,
+   "reveals": 285,
+   "kos": 149,
+   "ko_rate": 0.274,
+   "roles": []
+  },
+  {
+   "move": "Hyper Beam",
+   "battle_uses": 541,
+   "reveals": 440,
+   "kos": 261,
+   "ko_rate": 0.482,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Infestation",
+   "battle_uses": 540,
+   "reveals": 239,
+   "kos": 14,
+   "ko_rate": 0.026,
+   "roles": []
+  },
+  {
+   "move": "Zap Cannon",
+   "battle_uses": 537,
+   "reveals": 316,
+   "kos": 215,
+   "ko_rate": 0.4,
+   "roles": [
+    "status"
+   ]
+  },
+  {
+   "move": "Ice Punch",
+   "battle_uses": 520,
+   "reveals": 378,
+   "kos": 222,
+   "ko_rate": 0.427,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Scald",
+   "battle_uses": 506,
+   "reveals": 233,
+   "kos": 131,
+   "ko_rate": 0.259,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Giga Drain",
+   "battle_uses": 505,
+   "reveals": 296,
+   "kos": 160,
+   "ko_rate": 0.317,
+   "roles": [
+    "healing",
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Reflect",
+   "battle_uses": 504,
+   "reveals": 436,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "screens",
+    "wall"
+   ]
+  },
+  {
+   "move": "Dark Pulse",
+   "battle_uses": 494,
+   "reveals": 291,
+   "kos": 200,
+   "ko_rate": 0.405,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Quick Attack",
+   "battle_uses": 483,
+   "reveals": 405,
+   "kos": 168,
+   "ko_rate": 0.348,
+   "roles": [
+    "phys_attacker",
+    "priority"
+   ]
+  },
+  {
+   "move": "Baneful Bunker",
+   "battle_uses": 452,
+   "reveals": 207,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": []
+  },
+  {
+   "move": "Darkest Lariat",
+   "battle_uses": 451,
+   "reveals": 292,
+   "kos": 156,
+   "ko_rate": 0.346,
+   "roles": []
+  },
+  {
+   "move": "Foul Play",
+   "battle_uses": 447,
+   "reveals": 231,
+   "kos": 109,
+   "ko_rate": 0.244,
+   "roles": []
+  },
+  {
+   "move": "Toxic",
+   "battle_uses": 433,
+   "reveals": 247,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "status"
+   ]
+  },
+  {
+   "move": "Drain Punch",
+   "battle_uses": 427,
+   "reveals": 246,
+   "kos": 175,
+   "ko_rate": 0.41,
+   "roles": [
+    "healing",
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Follow Me",
+   "battle_uses": 425,
+   "reveals": 298,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "redirection",
+    "wall"
+   ]
+  },
+  {
+   "move": "Icy Wind",
+   "battle_uses": 414,
+   "reveals": 223,
+   "kos": 67,
+   "ko_rate": 0.162,
+   "roles": [
+    "speed_lower"
+   ]
+  },
+  {
+   "move": "Muddy Water",
+   "battle_uses": 403,
+   "reveals": 175,
+   "kos": 124,
+   "ko_rate": 0.308,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Draco Meteor",
+   "battle_uses": 403,
+   "reveals": 258,
+   "kos": 153,
+   "ko_rate": 0.38,
+   "roles": []
+  },
+  {
+   "move": "Water Spout",
+   "battle_uses": 398,
+   "reveals": 229,
+   "kos": 176,
+   "ko_rate": 0.442,
+   "roles": [
+    "spec_attacker"
+   ]
+  },
+  {
+   "move": "Body Press",
+   "battle_uses": 395,
+   "reveals": 197,
+   "kos": 134,
+   "ko_rate": 0.339,
+   "roles": []
+  },
+  {
+   "move": "Poison Jab",
+   "battle_uses": 394,
+   "reveals": 269,
+   "kos": 125,
+   "ko_rate": 0.317,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Calm Mind",
+   "battle_uses": 382,
+   "reveals": 256,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "setup"
+   ]
+  },
+  {
+   "move": "Play Rough",
+   "battle_uses": 361,
+   "reveals": 217,
+   "kos": 157,
+   "ko_rate": 0.435,
+   "roles": [
+    "phys_attacker"
+   ]
+  },
+  {
+   "move": "Power Gem",
+   "battle_uses": 360,
+   "reveals": 246,
+   "kos": 137,
+   "ko_rate": 0.381,
+   "roles": []
+  },
+  {
+   "move": "Swords Dance",
+   "battle_uses": 350,
+   "reveals": 300,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "setup"
+   ]
+  },
+  {
+   "move": "Nasty Plot",
+   "battle_uses": 346,
+   "reveals": 297,
+   "kos": 0,
+   "ko_rate": 0.0,
+   "roles": [
+    "setup"
+   ]
+  },
+  {
+   "move": "Discharge",
+   "battle_uses": 338,
+   "reveals": 167,
+   "kos": 97,
+   "ko_rate": 0.287,
+   "roles": []
+  }
+ ],
+ "uncovered_top": [
+  {
+   "move": "Protect",
+   "battle_uses": 13817,
+   "reveals": 9800,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Spirit Break",
+   "battle_uses": 603,
+   "reveals": 292,
+   "kos": 131,
+   "ko_rate": 0.217
+  },
+  {
+   "move": "Hydro Pump",
+   "battle_uses": 543,
+   "reveals": 285,
+   "kos": 149,
+   "ko_rate": 0.274
+  },
+  {
+   "move": "Infestation",
+   "battle_uses": 540,
+   "reveals": 239,
+   "kos": 14,
+   "ko_rate": 0.026
+  },
+  {
+   "move": "Baneful Bunker",
+   "battle_uses": 452,
+   "reveals": 207,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Darkest Lariat",
+   "battle_uses": 451,
+   "reveals": 292,
+   "kos": 156,
+   "ko_rate": 0.346
+  },
+  {
+   "move": "Foul Play",
+   "battle_uses": 447,
+   "reveals": 231,
+   "kos": 109,
+   "ko_rate": 0.244
+  },
+  {
+   "move": "Draco Meteor",
+   "battle_uses": 403,
+   "reveals": 258,
+   "kos": 153,
+   "ko_rate": 0.38
+  },
+  {
+   "move": "Body Press",
+   "battle_uses": 395,
+   "reveals": 197,
+   "kos": 134,
+   "ko_rate": 0.339
+  },
+  {
+   "move": "Power Gem",
+   "battle_uses": 360,
+   "reveals": 246,
+   "kos": 137,
+   "ko_rate": 0.381
+  },
+  {
+   "move": "Discharge",
+   "battle_uses": 338,
+   "reveals": 167,
+   "kos": 97,
+   "ko_rate": 0.287
+  },
+  {
+   "move": "Super Fang",
+   "battle_uses": 328,
+   "reveals": 190,
+   "kos": 4,
+   "ko_rate": 0.012
+  },
+  {
+   "move": "Detect",
+   "battle_uses": 319,
+   "reveals": 243,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Rock Blast",
+   "battle_uses": 314,
+   "reveals": 135,
+   "kos": 87,
+   "ko_rate": 0.277
+  },
+  {
+   "move": "Psychic Fangs",
+   "battle_uses": 313,
+   "reveals": 175,
+   "kos": 116,
+   "ko_rate": 0.371
+  },
+  {
+   "move": "Light of Ruin",
+   "battle_uses": 288,
+   "reveals": 220,
+   "kos": 174,
+   "ko_rate": 0.604
+  },
+  {
+   "move": "Expanding Force",
+   "battle_uses": 262,
+   "reveals": 158,
+   "kos": 107,
+   "ko_rate": 0.408
+  },
+  {
+   "move": "Focus Blast",
+   "battle_uses": 256,
+   "reveals": 191,
+   "kos": 94,
+   "ko_rate": 0.367
+  },
+  {
+   "move": "Rage Fist",
+   "battle_uses": 227,
+   "reveals": 118,
+   "kos": 136,
+   "ko_rate": 0.599
+  },
+  {
+   "move": "Low Kick",
+   "battle_uses": 215,
+   "reveals": 155,
+   "kos": 76,
+   "ko_rate": 0.353
+  },
+  {
+   "move": "Last Resort",
+   "battle_uses": 206,
+   "reveals": 81,
+   "kos": 92,
+   "ko_rate": 0.447
+  },
+  {
+   "move": "Flamethrower",
+   "battle_uses": 197,
+   "reveals": 134,
+   "kos": 77,
+   "ko_rate": 0.391
+  },
+  {
+   "move": "Disable",
+   "battle_uses": 187,
+   "reveals": 131,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Superpower",
+   "battle_uses": 186,
+   "reveals": 99,
+   "kos": 64,
+   "ko_rate": 0.344
+  },
+  {
+   "move": "Twin Beam",
+   "battle_uses": 167,
+   "reveals": 87,
+   "kos": 35,
+   "ko_rate": 0.21
+  },
+  {
+   "move": "Stockpile",
+   "battle_uses": 162,
+   "reveals": 55,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Spiky Shield",
+   "battle_uses": 157,
+   "reveals": 113,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Minimize",
+   "battle_uses": 154,
+   "reveals": 65,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Instruct",
+   "battle_uses": 152,
+   "reveals": 72,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Waterfall",
+   "battle_uses": 143,
+   "reveals": 84,
+   "kos": 61,
+   "ko_rate": 0.427
+  },
+  {
+   "move": "Phantom Force",
+   "battle_uses": 138,
+   "reveals": 50,
+   "kos": 25,
+   "ko_rate": 0.181
+  },
+  {
+   "move": "Skill Swap",
+   "battle_uses": 135,
+   "reveals": 103,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Leech Seed",
+   "battle_uses": 133,
+   "reveals": 82,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Poltergeist",
+   "battle_uses": 129,
+   "reveals": 81,
+   "kos": 53,
+   "ko_rate": 0.411
+  },
+  {
+   "move": "Sacred Sword",
+   "battle_uses": 128,
+   "reveals": 82,
+   "kos": 70,
+   "ko_rate": 0.547
+  },
+  {
+   "move": "Psycho Cut",
+   "battle_uses": 125,
+   "reveals": 78,
+   "kos": 52,
+   "ko_rate": 0.416
+  },
+  {
+   "move": "Coaching",
+   "battle_uses": 117,
+   "reveals": 81,
+   "kos": 0,
+   "ko_rate": 0.0
+  },
+  {
+   "move": "Barb Barrage",
+   "battle_uses": 109,
+   "reveals": 26,
+   "kos": 19,
+   "ko_rate": 0.174
+  },
+  {
+   "move": "Volt Tackle",
+   "battle_uses": 105,
+   "reveals": 74,
+   "kos": 43,
+   "ko_rate": 0.41
+  },
+  {
+   "move": "Double-Edge",
+   "battle_uses": 105,
+   "reveals": 66,
+   "kos": 48,
+   "ko_rate": 0.457
+  }
+ ],
+ "abilities_top": [
+  {
+   "ability": "Intimidate",
+   "reveals": 3308,
+   "roles": [
+    "debuff"
+   ]
+  },
+  {
+   "ability": "Stamina",
+   "reveals": 1201,
+   "roles": [
+    "wall"
+   ]
+  },
+  {
+   "ability": "Fairy Aura",
+   "reveals": 763,
+   "roles": []
+  },
+  {
+   "ability": "Unnerve",
+   "reveals": 541,
+   "roles": []
+  },
+  {
+   "ability": "Speed Boost",
+   "reveals": 329,
+   "roles": [
+    "setup"
+   ]
+  },
+  {
+   "ability": "Defiant",
+   "reveals": 290,
+   "roles": []
+  },
+  {
+   "ability": "Mold Breaker",
+   "reveals": 192,
+   "roles": []
+  },
+  {
+   "ability": "Cloud Nine",
+   "reveals": 149,
+   "roles": []
+  },
+  {
+   "ability": "Lightning Rod",
+   "reveals": 113,
+   "roles": []
+  },
+  {
+   "ability": "Competitive",
+   "reveals": 112,
+   "roles": []
+  },
+  {
+   "ability": "Eelevate",
+   "reveals": 79,
+   "roles": []
+  },
+  {
+   "ability": "Pressure",
+   "reveals": 70,
+   "roles": []
+  },
+  {
+   "ability": "Simple",
+   "reveals": 55,
+   "roles": []
+  },
+  {
+   "ability": "No Guard",
+   "reveals": 39,
+   "roles": []
+  },
+  {
+   "ability": "Berserk",
+   "reveals": 31,
+   "roles": []
+  },
+  {
+   "ability": "Moody",
+   "reveals": 26,
+   "roles": []
+  },
+  {
+   "ability": "Mirror Armor",
+   "reveals": 24,
+   "roles": []
+  },
+  {
+   "ability": "Moxie",
+   "reveals": 24,
+   "roles": []
+  },
+  {
+   "ability": "Insomnia",
+   "reveals": 19,
+   "roles": []
+  },
+  {
+   "ability": "Pixilate",
+   "reveals": 15,
+   "roles": []
+  },
+  {
+   "ability": "Justified",
+   "reveals": 15,
+   "roles": []
+  },
+  {
+   "ability": "Sturdy",
+   "reveals": 12,
+   "roles": []
+  },
+  {
+   "ability": "Blaze",
+   "reveals": 12,
+   "roles": []
+  },
+  {
+   "ability": "Supersweet Syrup",
+   "reveals": 11,
+   "roles": []
+  },
+  {
+   "ability": "Rough Skin",
+   "reveals": 11,
+   "roles": []
+  },
+  {
+   "ability": "Unseen Fist",
+   "reveals": 9,
+   "roles": []
+  },
+  {
+   "ability": "Weak Armor",
+   "reveals": 7,
+   "roles": []
+  },
+  {
+   "ability": "Water Absorb",
+   "reveals": 6,
+   "roles": []
+  },
+  {
+   "ability": "Drizzle",
+   "reveals": 6,
+   "roles": [
+    "weather"
+   ]
+  },
+  {
+   "ability": "Hospitality",
+   "reveals": 6,
+   "roles": []
+  },
+  {
+   "ability": "Prankster",
+   "reveals": 6,
+   "roles": [
+    "prankster"
+   ]
+  },
+  {
+   "ability": "Adaptability",
+   "reveals": 6,
+   "roles": []
+  },
+  {
+   "ability": "Sap Sipper",
+   "reveals": 6,
+   "roles": []
+  },
+  {
+   "ability": "Good as Gold",
+   "reveals": 5,
+   "roles": []
+  },
+  {
+   "ability": "Drought",
+   "reveals": 4,
+   "roles": [
+    "weather"
+   ]
+  },
+  {
+   "ability": "Chlorophyll",
+   "reveals": 4,
+   "roles": []
+  },
+  {
+   "ability": "Water Bubble",
+   "reveals": 3,
+   "roles": []
+  },
+  {
+   "ability": "Gooey",
+   "reveals": 3,
+   "roles": []
+  },
+  {
+   "ability": "Multiscale",
+   "reveals": 2,
+   "roles": [
+    "wall"
+   ]
+  },
+  {
+   "ability": "Plus",
+   "reveals": 2,
+   "roles": []
+  }
+ ],
+ "items_top": [
+  {
+   "item": "Sitrus Berry",
+   "reveals": 3130
+  },
+  {
+   "item": "Focus Sash",
+   "reveals": 1942
+  },
+  {
+   "item": "White Herb",
+   "reveals": 328
+  },
+  {
+   "item": "Choice Scarf",
+   "reveals": 241
+  },
+  {
+   "item": "Chople Berry",
+   "reveals": 202
+  },
+  {
+   "item": "Roseli Berry",
+   "reveals": 163
+  },
+  {
+   "item": "Life Orb",
+   "reveals": 158
+  },
+  {
+   "item": "Leftovers",
+   "reveals": 153
+  },
+  {
+   "item": "Colbur Berry",
+   "reveals": 150
+  },
+  {
+   "item": "Kasib Berry",
+   "reveals": 131
+  },
+  {
+   "item": "Mystic Water",
+   "reveals": 58
+  },
+  {
+   "item": "Occa Berry",
+   "reveals": 54
+  },
+  {
+   "item": "Lum Berry",
+   "reveals": 46
+  },
+  {
+   "item": "Mental Herb",
+   "reveals": 43
+  },
+  {
+   "item": "Coba Berry",
+   "reveals": 43
+  },
+  {
+   "item": "Shuca Berry",
+   "reveals": 34
+  },
+  {
+   "item": "Passho Berry",
+   "reveals": 31
+  },
+  {
+   "item": "Charizardite Y",
+   "reveals": 27
+  },
+  {
+   "item": "Light Clay",
+   "reveals": 26
+  },
+  {
+   "item": "Fairy Feather",
+   "reveals": 17
+  },
+  {
+   "item": "Swampertite",
+   "reveals": 14
+  },
+  {
+   "item": "Froslassite",
+   "reveals": 12
+  },
+  {
+   "item": "Charcoal",
+   "reveals": 11
+  },
+  {
+   "item": "Iron Ball",
+   "reveals": 10
+  },
+  {
+   "item": "Delphoxite",
+   "reveals": 10
+  },
+  {
+   "item": "Yache Berry",
+   "reveals": 10
+  },
+  {
+   "item": "Staraptite",
+   "reveals": 9
+  },
+  {
+   "item": "Expert Belt",
+   "reveals": 9
+  },
+  {
+   "item": "Wacan Berry",
+   "reveals": 9
+  },
+  {
+   "item": "Babiri Berry",
+   "reveals": 9
+  },
+  {
+   "item": "Wide Lens",
+   "reveals": 8
+  },
+  {
+   "item": "Charti Berry",
+   "reveals": 8
+  },
+  {
+   "item": "Raichunite Y",
+   "reveals": 7
+  },
+  {
+   "item": "Dragoninite",
+   "reveals": 7
+  },
+  {
+   "item": "Gengarite",
+   "reveals": 6
+  },
+  {
+   "item": "Silk Scarf",
+   "reveals": 6
+  },
+  {
+   "item": "Haban Berry",
+   "reveals": 6
+  },
+  {
+   "item": "Floettite",
+   "reveals": 6
+  },
+  {
+   "item": "Drampanite",
+   "reveals": 5
+  },
+  {
+   "item": "Black Glasses",
+   "reveals": 5
+  }
+ ]
+}
