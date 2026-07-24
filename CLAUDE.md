@@ -22,3 +22,17 @@ is a re-filter, never a re-pull. Never design an analysis that forces re-fetchin
 ## The CHOMP loop
 ABRA produces `meta-usage.json`; CHOMP reads it to infer real leads/sets. When ABRA improves, CHOMP
 gets smarter without a plugin change.
+
+## Living docs — update these EVERY change (do not let them drift)
+Any change to a model, a result, or the site updates ALL of the following in the **same pass**, each
+with its matching PDF where applicable, plus a CHANGELOG entry and a version bump:
+- `docs/ABRA-whitepaper.md` (+ `.pdf`) — technical, with math + cited sources + honest results/CIs.
+- `docs/ABRA-deck-plain-english.md` (+ `.pdf`) — plain-English; links the white paper on the last slide.
+- `docs/ABRA-technical-docs.md` (+ `.pdf`) — ASD-STE100 Simplified Technical English, by Diátaxis.
+- `docs/SUMMARY.md` (+ `.pdf`) — whole-project + per-component summary table.
+- `docs/MODELS.md` — the per-model living ledger. · `docs/HANDOFF-v2.md` — current state/build order.
+- `CHANGELOG.md` — Keep-a-Changelog; the top version matches the artifacts.
+A result reported on the site or in the deck must match the number in the white paper and the model's
+JSON report. Rebuild PDFs from the `.md` (pandoc → HTML → weasyprint; see `docs/` build notes).
+This standard failed once by drifting to v1 while code moved to v2 — it is now written down so it is
+checked, not remembered.

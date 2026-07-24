@@ -22,6 +22,12 @@ silently rewritten; what changed and why is stated.
 - **Docs folder cleaned:** 13 superseded/duplicate files (old simulator whitepaper, special-cut, v2-plan PDF, old summaries/reviews/handoffs) moved to `docs/archive/`; one canonical version of each kept.
 - **Site chrome:** removed the static side-advisor mascot (kept the roaming Abra sprites).
 
+### Documentation (full v2 rewrite — brought to standard)
+- **White paper, deck, and technical docs rewritten for v2** (they had drifted to pre-pivot v1). The white paper now covers the empirical ceiling, every model with its validated result (incl. the two honest negatives), the mathematics (Wilson interval, value-net logistic, regret-matching/exploitability, clustered + Beta-resampled CIs, HodgeRank for future core analysis), limits, and cited sources. The deck is plain-English; the technical docs are ASD-STE100 Simplified Technical English organised by Diátaxis. Each ships a matching **PDF**.
+- **New `docs/SUMMARY.md` (+ PDF):** one-page whole-project + per-component summary table.
+- **Corrected an error** in the ALAKAZAM one-pager: poker is *sequential*, not simultaneous — reframed as "hidden information like poker **plus** same-time choices like rock-paper-scissors."
+- **CLAUDE.md** now lists the docs that MUST update in the same pass as any change (living-docs enforcement), so the white paper/deck/technical docs cannot silently drift again.
+
 ### Removed
 - Nothing deleted — superseded docs are archived (reversible), not destroyed.
 
