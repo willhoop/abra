@@ -58,9 +58,23 @@ ROLE_SIGNALS = {
     moves={"Sandstorm"}, abilities={"Sand Stream","Sand Spit"}),
  "weather_snow": dict(label="Snow setter",
     moves={"Snowscape","Hail","Chilly Reception"}, abilities={"Snow Warning"}),
- "terrain": dict(label="Terrain setter",
-    moves={"Psychic Terrain","Grassy Terrain","Misty Terrain","Electric Terrain"},
-    abilities={"Psychic Surge","Grassy Surge","Misty Surge","Electric Surge","Hadron Engine"}),
+ # Terrain gets the same setter/abuser split as weather, for the same reason: Expanding Force is
+ # dead without PSYCHIC terrain specifically, and Grassy Glide without GRASSY.
+ # Measured in this format: there are NO terrain-setting abilities in the store at all - no Psychic
+ # Surge, no Grassy Surge. Terrain is set by MOVE (Meowstic 150, Farigiraf 42), with one exception:
+ # Raichu-Mega-X carries Electric Surge (confirmed in Showdown's dex and in replay logs).
+ "terrain_psychic": dict(label="Psychic Terrain setter",
+    moves={"Psychic Terrain"}, abilities={"Psychic Surge"}),
+ "terrain_grassy": dict(label="Grassy Terrain setter",
+    moves={"Grassy Terrain"}, abilities={"Grassy Surge"}),
+ "terrain_electric": dict(label="Electric Terrain setter",
+    moves={"Electric Terrain"}, abilities={"Electric Surge","Hadron Engine"}),
+ "terrain_misty": dict(label="Misty Terrain setter",
+    moves={"Misty Terrain"}, abilities={"Misty Surge"}),
+ "abuser_psychic": dict(label="Psychic Terrain abuser", moves={"Expanding Force"}, abilities=set()),
+ "abuser_grassy": dict(label="Grassy Terrain abuser", moves={"Grassy Glide"}, abilities={"Grass Pelt"}),
+ "abuser_electric": dict(label="Electric Terrain abuser", moves={"Rising Voltage"}, abilities={"Quark Drive","Surge Surfer"}),
+ "abuser_misty": dict(label="Misty Terrain abuser", moves={"Misty Explosion"}, abilities=set()),
  "fakeout": dict(label="Fake Out (tempo)",
     moves={"Fake Out"}),
  "redirection": dict(label="Redirection",
@@ -440,20 +454,23 @@ def build():
     test  = [r for r in rows if split(r[0]) == "test"]
 
     def fit_logistic(data, dim, get_x, l2=1.0, iters=400, lr=0.1):
-        w = [0.0]*dim; b = 0.0
-        N = len(data)
+        """Ridge logistic by full-batch gradient descent, vectorised.
+
+        The original was a triple Python loop (rows x features x iterations). At 28k team-sides and
+        ~50 roles that is ~5x10^8 interpreted operations per fit and the script stopped finishing.
+        numpy does the same arithmetic in compiled code; the update rule is unchanged, so results
+        match the previous implementation."""
+        X = np.asarray([get_x(r) for r in data], dtype=np.float64)
+        y = np.asarray([r[3] for r in data], dtype=np.float64)
+        N = len(data) or 1
+        w = np.zeros(dim); b = 0.0
         for _ in range(iters):
-            gw = [0.0]*dim; gb = 0.0
-            for row in data:
-                x = get_x(row); y = row[3]
-                z = b + sum(w[i]*x[i] for i in range(dim))
-                p = 1/(1+math.exp(-z))
-                e = p - y
-                for i in range(dim): gw[i] += e*x[i]
-                gb += e
-            for i in range(dim): w[i] = w[i] - lr*(gw[i]/N + l2*w[i]/N)
-            b -= lr*gb/N
-        return w, b
+            z = X @ w + b
+            p = 1.0 / (1.0 + np.exp(-z))
+            e = p - y
+            w -= lr * ((X.T @ e) / N + l2 * w / N)
+            b -= lr * (e.sum() / N)
+        return w.tolist(), float(b)
 
     def logloss(data, predict):
         s = 0.0
