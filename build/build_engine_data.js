@@ -60,15 +60,21 @@ const MC = {
   priors: prior.priors || {},
 };
 
-const header = `/* engine-data.js — GENERATED. Do not hand-edit.
- * Source of truth: CHOMP/engine/champ-model.js (MONS, C) via ABRA/build/build_engine_data.js
- * Generated: ${new Date().toISOString().slice(0, 10)}
- * Carries BOTH base stats (bs) and the level-50 line (st): consumers must be able to RECOMPUTE,
- * not merely copy, or they cannot follow a change such as a mega forme swap. */
-`;
-fs.writeFileSync(OUT, header + '(function(root){\nconst MC = ' + JSON.stringify(MC) +
-  ';\nroot.MC = MC;\n})(typeof window !== "undefined" ? window : globalThis);\n');
+// Surgical replacement: swap ONLY the MC object inside the existing file, preserving its wrapper,
+// its mcEff helper and its export block. Rewriting the whole file previously dropped those and broke
+// every consumer - a generator must not quietly change a module's public surface.
+const src = fs.readFileSync(OUT, 'utf8');
+const m = src.match(/const MC = \{[\s\S]*?\};/);
+if (!m) { console.error('could not locate the MC object in ' + OUT); process.exit(1); }
+const stamp = `/* engine-data.js — the Champions mon/move/type-chart data.
+ * GENERATED for the MC object by ABRA/build/build_engine_data.js from CHOMP/engine/champ-model.js.
+ * Carries BOTH base stats (bs) and the level-50 line (st) so consumers can RECOMPUTE, not just copy.
+ * Last generated: ${new Date().toISOString().slice(0, 10)}. Do not hand-edit the MC object. */\n`;
+let out = src.replace(m[0], 'const MC = ' + JSON.stringify(MC) + ';');
+out = out.replace(/^\/\*[\s\S]*?\*\/\n/, stamp);
+fs.writeFileSync(OUT, out);
 
 console.log(`build_engine_data — ${Object.keys(mons).length} species written`);
 console.log(`  base stats present: ${Object.values(mons).filter(m => m.bs).length}`);
-console.log(`  moves: ${Object.keys(MC.moves).length} | type chart: ${Object.keys(MC.C).length}`);
+console.log(`  moves preserved: ${Object.keys(MC.moves).length} | type chart: ${Object.keys(MC.C).length}`);
+console.log('  wrapper, mcEff and exports left untouched');
