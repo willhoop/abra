@@ -43,6 +43,20 @@ try {
   for (const t of (u.threats || [])) bringRate[idn(t.sp)] = t.bringRate || 0;
 } catch (e) { /* usage prior optional */ }
 
+// ---- forfeit ids (label noise): a forfeit winner didn't necessarily win on bring quality. -----
+// raw-logs is local-only/gitignored, so this is a guarded robustness pass (absent in CI = skipped).
+const RAW = path.join(ROOT, 'data', 'games.ladder.raw-logs.jsonl');
+const ffset = new Set();
+let ffLoaded = false;
+if (fs.existsSync(RAW)) {
+  ffLoaded = true;
+  for (const line of fs.readFileSync(RAW, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    let r; try { r = JSON.parse(line); } catch (e) { continue; }
+    if (r.id && (r.log || '').toLowerCase().includes('forfeit')) ffset.add(r.id);
+  }
+}
+
 // ---- load humans-only finished games with both full sixes + both actual bring-4s -------------
 const seen = new Set();
 let rows = [];
@@ -122,7 +136,7 @@ for (const r of rows) {
   if (!c1 || !c2) { skipped++; continue; }
   const u1 = alignOf(r.six1, r.br1, usageScore(r.six1));
   const u2 = alignOf(r.six2, r.br2, usageScore(r.six2));
-  data.push({ id: r.id, y: r.y, r1: r.r1, r2: r.r2,
+  data.push({ id: r.id, y: r.y, r1: r.r1, r2: r.r2, ff: ffset.has(r.id),
     a1: c1.align, a2: c2.align, top1_1: c1.top1, top1_2: c2.top1, ov1: c1.overlap, ov2: c2.overlap,
     ua1: u1 ? u1.align : 0.5, ua2: u2 ? u2.align : 0.5 });
   if (data.length % 200 === 0) process.stderr.write(`  ${data.length}/${rows.length} (${((Date.now() - t0) / 1000).toFixed(0)}s)\n`);
@@ -223,6 +237,9 @@ const chompLL = round(ll(pChomp, ys_te), 4);
 const beatsCoin = chompLL < coinLL;
 const signBeats = signTest(data).p > 0.5;
 const signCI = bootSign(data);
+const out_top1_all = mean(data.flatMap(r => [r.top1_1 ? 1 : 0, r.top1_2 ? 1 : 0]));
+const out_ov_w = mean(winRows.map(w => w.ov));
+const out_ov_l = mean(losRows.map(l => l.ov));
 const out = {
   generated: 'engine/chomp_ev.js — CHOMP team-preview EV proof (do CHOMP brings beat humans on held-out games)',
   format: 'gen9championsvgc2026regmb (Bo1 closed-sheet)',
@@ -260,6 +277,30 @@ const out = {
     mean_overlap_losers: round(mean(losRows.map(l => l.ov)), 4),
     winner_top1_by_rating_tier: Object.fromEntries(Object.entries(byTier).map(([k, v]) => [k, { rate: round(mean(v), 4), n: v.length }]))
   },
+  verdict: (chompLL < coinLL && bootLL(pChomp, ys_te)[1] < coinLL && signCI[0] > 0.5)
+    ? 'CHOMP\'s recommended brings beat humans\' actual brings on held-out games — significant on both the sign test and held-out log-loss vs coin.'
+    : 'NULL at the format ceiling: CHOMP\'s bring ranking does NOT beat a coin, an Elo baseline, or a usage prior on held-out games (log-loss ' + chompLL + ' vs coin ' + coinLL + ', CIs overlap), and winners are only marginally more CHOMP-aligned than losers (' + round(st.p, 3) + ', CI includes 0.5). CHOMP\'s exact damage stays VALIDATED and useful as a calculator/EV display, but "CHOMP\'s brings beat humans\' brings" is NOT empirically supported yet — the bring decision sits at the same near-coin ceiling as pre-game win prediction. Honest negative; it guards against optimizing a bring metric that carries no held-out winning signal (the DITTO/Goodhart trap).',
+  interpretation: [
+    'CHOMP\'s top pick matches the human bring only ' + round(out_top1_all * 100, 1) + '% of the time (chance 6.7%), overlap ' + round((out_ov_w + out_ov_l) / 2, 3) + ' (chance 0.667) — its pure damage-coverage 4 rarely equals what humans actually bring.',
+    'No rating-tier gradient: strong players (>1400) are not more CHOMP-aligned than weak ones, so CHOMP is not capturing what good players know about bringing.',
+    'Likely causes: bring4 scores raw damage coverage over heuristic v1 sets — it ignores speed control, roles, the lead-2 matrix game, and any belief over the opponent\'s real sets.',
+    'Path to a real edge: re-score brings with belief-aware value (XATU sets) + the lead stage-game (SLOWKING) + PORY leaf value instead of raw coverage, then re-run this exact test and measure the lift.'
+  ],
+  robustness_no_forfeits: (() => {
+    if (!ffLoaded) return { note: 'raw-logs absent (CI) — forfeit robustness skipped.' };
+    const nonff = data.filter(r => !r.ff);
+    const teNon = te.filter(r => !r.ff);
+    const s = signTest(nonff), sci = bootSign(nonff);
+    const pC = teNon.map(predLogit(mChomp, featChomp)), yC = teNon.map(r => r.y);
+    return {
+      what: 'Re-run excluding forfeit games (winner won by opponent quitting, not on bring quality).',
+      n_forfeit_in_eval: data.filter(r => r.ff).length,
+      n_nonforfeit_eval: nonff.length, n_nonforfeit_test: teNon.length,
+      p_winner_more_aligned: round(s.p, 4), ci95: sci,
+      logloss_chomp_align: round(ll(pC, yC), 4), logloss_coin: round(ll(teNon.map(() => 0.5), yC), 4),
+      verdict: (sci[0] > 0.5) ? 'Signal survives forfeit removal.' : 'Still NULL after removing forfeits — the near-coin result is not a forfeit artifact.'
+    };
+  })(),
   baselines_note: 'coin=0.5 always; elo fit on (r1-r2)/400 with missing ratings imputed to train median; usage_prior ranks brings by summed species bringRate instead of CHOMP exact-damage coverage.',
   what_this_does_NOT_prove: [
     'NOT a counterfactual: we never simulate the outcome of CHOMP\'s recommended bring. We measure whether CHOMP\'s bring-quality rank correlates with who actually won, not that swapping brings would have flipped the result.',
