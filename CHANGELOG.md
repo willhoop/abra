@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [2.7.0] — 2026-07-24
+
+### Changed
+- **A species now has a role DISTRIBUTION, not a role list.** The same species is support on one set
+  and offensive on another, so `dex[species][role]` is now `p(role | that species appears)` measured
+  across its revealed sets, and a team's role vector is a **noisy-OR** over its six
+  (`1 − Π(1 − p_i)` = probability at least one of them plays the role). Under closed sheets this is
+  also the correct object: before the set is revealed, the distribution *is* our belief.
+- **Credibility is judged by a Wilson lower bound on the rate, not a flat count.** The old
+  `count ≥ 2` rule could not tell a real minor set from noise — it tagged Basculegion as *debuff* on
+  **2 of 3,566** appearances (0.06%). A role now counts only when the Wilson lower bound of its
+  per-set rate clears 5%, which automatically demands more evidence from a common species and stays
+  honest for a rare one.
+
+### Fixed
+- **Ability→role gaps found by audit:** *Lightning Rod* and *Storm Drain* now map to **redirection**
+  (they redirect, and were untagged). Added a new role **weather/field abuser** (Chlorophyll, Swift
+  Swim, Sand Rush, Solar Power, Protosynthesis, Quark Drive…) — a distinct job from *setting* the
+  weather. Trigger-boosters (Defiant, Competitive, Moxie, Justified, Berserk…) now map to **setup**.
+  Taxonomy is 27 roles; curated roles cover **90.8%** of real in-battle move usage.
+
+### Added
+- **`docs/ROLE-ATLAS.md` (+ PDF)** — the master list: every move (478) and ability (99) with the role
+  it is tagged as, generated directly from `engine/roles.py` so it cannot drift, plus a ranked list of
+  untagged-but-used moves as tagging candidates. Generator: `engine/role_atlas.py`.
+- **`docs/ROLE-FAMILY.md` (+ PDF)** — one read-through of the role model, WAR, and the emergent NMF
+  archetypes, with every result stated against its baseline.
+- Site: the MAP tab now renders a real **map icon** in the nav, town and room hero (the Porygon2
+  sprite is gone), and **MAP is first** in the nav order.
+
+### Notes — a prior number changed, and why (not silently rewritten)
+- The v2.6.0 claim "median role-pair cell **n = 7,971**" was **inflated by over-tagging**: under the
+  old binary rule a team carried **19.6 of 26** roles on average, so nearly every game landed in
+  nearly every cell. With credible tags a team carries **4.3 of 27**, and the honest median cell is
+  **n ≈ 95**. That is still far above the old single-label archetype cells (n = 11–18) — the pooling
+  argument stands — but the earlier figure overstated it. Test and sanity bars moved 100 → 50 with
+  the reason recorded in-line.
+- Winner-prediction from preview roles remains at the coin (0.694 vs 0.693); WAR still beats it
+  (0.6875). Neither conclusion changed.
+- The hourly **ingest** workflow no longer fails the run when Showdown rate-limits or serves a bad
+  log (`continue-on-error` on the fetch/rebuild steps) — it was emailing a failure notice every hour.
+
 ## [2.6.0] — 2026-07-24
 
 ### Added
