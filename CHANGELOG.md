@@ -45,6 +45,13 @@ silently rewritten; what changed and why is stated.
   - **A mega's ability is certain only once it megas.** Before that you cannot see the stone, so you
     do not even know a mega is coming, let alone which form.
   - **Items and moves are never given by the dex at all** — only revealed by use.
+  - **EVs are the hardest of all, and are never stated anywhere.** They are only *bounded*, and only
+    by inference: a damage roll narrows an attacking stat to a range rather than a value (16 possible
+    rolls, all consistent with a band of EVs), and moving first only proves a Speed *inequality*
+    against whatever it outsped — sharpest at a known benchmark, useless in Trick Room or under a
+    Choice Scarf. So an EV spread never collapses to a point the way an ability or an item does; it
+    narrows to an interval that tightens with every turn. The engine's level-50 numbers assume a
+    standard competitive spread and are labelled an approximation for exactly this reason.
 - The consequence is a design one: this is a belief-state problem, not a lookup. The right structure
   is a per-slot information state that starts as the legal possibility set and collapses on each
   reveal. That is XATU's job, and it is the next thing to build properly.
