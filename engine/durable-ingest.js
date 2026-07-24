@@ -29,6 +29,27 @@ const get=u=>new Promise(r=>{const q=https.get(u,x=>{let d='';x.on('data',c=>d+=
 const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const isBot=n=>/^pcrlbot|bot\d|^[a-z]+bot$/i.test(n||'');
 
+// Mega/primal formes collapse to their base species for `six`/`brought`/`lead`, because team
+// preview only ever shows the base. Built from data/mega-dex-official.json when present, with a
+// name-shape fallback so it still works if that file is missing.
+let BASE_FORME = null;
+function baseForme(sp){
+  if(BASE_FORME === null){
+    BASE_FORME = {};
+    try{
+      const md = JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','mega-dex-official.json'),'utf8'));
+      for(const [k,v] of Object.entries(md.forms||{})){
+        if(v.base_species && /mega|primal/i.test(v.forme||'')){
+          BASE_FORME[k] = String(v.base_species).toLowerCase().replace(/[^a-z0-9]/g,'');
+        }
+      }
+    }catch(e){ /* fallback below */ }
+  }
+  if(BASE_FORME[sp]) return BASE_FORME[sp];
+  const m = /^(.*?)(mega[xy]?|primal)$/.exec(sp);
+  return m && m[1] ? m[1] : sp;
+}
+
 function extract(id, uploadtime, text){
   const P={p1:{},p2:{}}, poke={p1:[],p2:[]}, brought={p1:new Set(),p2:new Set()}, lead={p1:[],p2:[]};
   const sets={};           // species -> {moves:Set, item, ability}
@@ -46,8 +67,13 @@ function extract(id, uploadtime, text){
     else if(m=l.match(/^\|(?:switch|drag|replace)\|(p[12][ab]): ([^|]*)\|([^,|]+)[^|]*(?:\|(\d+)\/(\d+))?/)){
       const slot=m[1], side=slot.slice(0,2), sp=norm(m[3]);
       nick[side+m[2]]=sp; slotSp[slot]=sp; hp[slot]=m[4]?Math.round(100*+m[4]/+m[5]):100;
-      brought[side].add(sp); touch(sp);
-      if(lead[side].length<2&&!lead[side].includes(sp))lead[side].push(sp);
+      // `brought` and `lead` must speak the same language as `six`, which comes from team preview
+      // and therefore always names the BASE forme. A mega that switches back in is logged as
+      // "Charizard-Mega-Y", so recording it verbatim put a species in `brought` that was not in
+      // `six` (1,649 games) and pushed the count to 5 (1,560 games). Normalise to the base.
+      const bsp=baseForme(sp);
+      brought[side].add(bsp); touch(sp);
+      if(lead[side].length<2&&!lead[side].includes(bsp))lead[side].push(bsp);
       if(cur) cur.ev.push({t:'s',s:slot,mon:sp});
     }
     else if(m=l.match(/^\|move\|(p[12][ab]): ([^|]*)\|([^|]+)(?:\|(p[12][ab]):)?/)){
