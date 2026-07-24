@@ -33,5 +33,8 @@ jobs:
         run: python tests/test-jolteon.py
       - name: MEDICHAM policy validation (behaviour-clone vs held-out human moves)
         run: python engine/eval_policy.py
-      - name: SLOWKING preview-Nash (regenerate + invariant test)
-        run: python engine/slowking_preview.py && python tests/test-slowking.py
+      - name: SLOWKING preview-Nash — species + playstyle (regenerate + invariant test)
+        run: |
+          python engine/slowking_preview.py
+          MATRIX_FILE=data/playstyle-matchups.json TAG=playstyle python engine/slowking_preview.py
+          python tests/test-slowking.py
