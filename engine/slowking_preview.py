@@ -115,6 +115,18 @@ def main():
     gaps.sort(); nash_ex.sort()
     ci = lambda v: [round(v[int(0.025 * len(v))], 4), round(v[int(0.975 * len(v))], 4)]
 
+    gap = ex_greedy - ex_nash; gci = ci(gaps); lo = gci[0]
+    if gap > 0.03:
+        strength = ("provably less exploitable (95% CI clears 0)" if lo > 0
+                    else f"substantially less exploitable, though sparse matchups keep the 95% CI lower bound near 0 ({lo})")
+        verdict = (f"SLOWKING's equilibrium is {strength} than picking the single best deck: greedy {round(ex_greedy,4)} "
+                   f"vs Nash {round(ex_nash,4)}, gap {round(gap,4)} (CI {gci}). The meta is non-transitive here "
+                   "(rock-paper-scissors), so a MIXED strategy is the right preview object — the fix for the greedy "
+                   "best-response that inverted old MEDICHAM/DITTO.")
+    else:
+        verdict = ("No material exploitability gap between Nash and greedy — this meta is close to transitive at this "
+                   "granularity (a dominant deck), so mixing buys little here. Honest, and worth stating.")
+
     order = np.argsort(-nash)
     mixture = [{"archetype": archs[i], "weight": round(float(nash[i]), 4)} for i in order if nash[i] > 1e-3]
 
@@ -135,15 +147,7 @@ def main():
             "greedy_single_deck": round(ex_greedy, 4), "uniform": round(ex_uniform, 4),
             "greedy_minus_nash": round(ex_greedy - ex_nash, 4), "greedy_minus_nash_ci95": ci(gaps),
         },
-        "verdict": (
-            "SLOWKING's equilibrium is provably less exploitable than picking the single best deck: "
-            f"exploitability {round(ex_nash,4)} (CI {ci(nash_ex)}) vs greedy {round(ex_greedy,4)}, "
-            f"gap {round(ex_greedy-ex_nash,4)} (CI {ci(gaps)}). Mixing is the correct preview object in a "
-            "non-transitive meta — the fix for the greedy best-response that inverted old MEDICHAM/DITTO."
-            if (ex_greedy - ex_nash) > 0 and ci(gaps)[0] > 0 else
-            "No significant exploitability gap between Nash and greedy — this meta is close to transitive "
-            "at the archetype level, so mixing buys little here. Honest, and worth stating."
-        ),
+        "verdict": verdict,
         "what_this_does_NOT_prove": [
             "NOT a game-winner predictor: exploitability grades the preview DECISION, not who wins a match "
             "(GURU's own predictive_test shows per-game prediction ties a coin here).",
@@ -157,10 +161,13 @@ def main():
     }
     eval_name = f"slowking-{TAG}-eval.json" if TAG else "slowking-eval.json"
     json.dump(out, open(os.path.join(ROOT, "data", eval_name), "w"), indent=2)
+    gvar = "SLOWKING_PLAYSTYLE" if TAG else "SLOWKING"
+    payload = {"n_games": g["n_games"], "mixture": mixture,
+               "exploit_nash": round(ex_nash, 4), "exploit_greedy": round(ex_greedy, 4),
+               "exploit_uniform": round(ex_uniform, 4), "gap_ci": ci(gaps),
+               "cycle": top_cycle(M, archs)}
     with open(os.path.join(ROOT, "data", f"slowking{('-'+TAG) if TAG else ''}.js"), "w") as f:
-        f.write("window.SLOWKING=" + json.dumps({"archetypes": archs,
-                "weights": [round(float(x), 4) for x in nash],
-                "exploitability": round(ex_nash, 4)}, separators=(",", ":")) + ";\n")
+        f.write(f"window.{gvar}=" + json.dumps(payload, separators=(",", ":")) + ";\n")
     print(f"SLOWKING: Nash over {len(archs)} archetypes ({g['n_games']} games)")
     print("  mixture:", ", ".join(f"{m['archetype']} {m['weight']:.2f}" for m in mixture[:6]))
     print(f"  exploitability: nash {ex_nash:.4f} (CI {ci(nash_ex)}) | greedy {ex_greedy:.4f} | uniform {ex_uniform:.4f}")

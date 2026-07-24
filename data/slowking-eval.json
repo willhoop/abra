@@ -28,17 +28,17 @@
     "nash": 0.0,
     "nash_ci95": [
       0.0001,
-      0.004
+      0.0038
     ],
     "greedy_single_deck": -0.0,
     "uniform": 0.1091,
     "greedy_minus_nash": -0.0,
     "greedy_minus_nash_ci95": [
       -0.0002,
-      0.2698
+      0.2701
     ]
   },
-  "verdict": "No significant exploitability gap between Nash and greedy \u2014 this meta is close to transitive at the archetype level, so mixing buys little here. Honest, and worth stating.",
+  "verdict": "No material exploitability gap between Nash and greedy \u2014 this meta is close to transitive at this granularity (a dominant deck), so mixing buys little here. Honest, and worth stating.",
   "what_this_does_NOT_prove": [
     "NOT a game-winner predictor: exploitability grades the preview DECISION, not who wins a match (GURU's own predictive_test shows per-game prediction ties a coin here).",
     "Archetype-level, not set-level: the matrix is 13 discovered archetypes, not exact teams/sets; a belief over the opponent's real six (XATU) is the documented next refinement.",
