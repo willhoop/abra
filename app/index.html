@@ -42,6 +42,10 @@ nav{position:relative;z-index:6;display:flex;gap:8px;justify-content:center;flex
 .tab{border:3px solid var(--line);background:#fff;border-radius:16px;padding:8px 14px;font-size:15px;font-weight:700;
   color:var(--ink);box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s,background .15s;display:flex;align-items:center;gap:7px}
 .tab img{width:28px;height:28px;object-fit:contain;image-rendering:pixelated}
+.tab svg{width:26px;height:26px;flex:none;display:block}
+.house .plat svg{width:56px;height:56px;display:block;margin:0 auto}
+.hero .mascotsvg{width:104px;height:104px;flex:none;display:flex;align-items:center;justify-content:center}
+.hero .mascotsvg svg{width:92px;height:92px;stroke-width:1.6}
 .tab:hover{transform:translateY(-2px);background:#fff7d6}
 .tab:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
 .tab.on{background:var(--electric);box-shadow:0 4px 0 var(--electric2);transform:translateY(-1px)}
@@ -524,23 +528,26 @@ const CAST=[
  {id:'pory', tab:'Pory', full:'Porygon', sprite:'porygon', title:"Porygon's Win Meter", acro:'mid-game win% — beats a coin, calibrated', role:'mid-game win %', roof:'#6be0a0'},
  {id:'alakazam', tab:'Alakazam', full:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine · capstone, in development', role:'win-%-optimal move', roof:'#c66bff'},
  {id:'roles', tab:'Roles', full:'Smeargle', sprite:'smeargle', title:"The Role Foundry", acro:'roles the data found — emergent archetypes, not hand-labels', role:'emergent roles', roof:'#ff9f43'},
- {id:'map', tab:'Map', sprite:'porygon2', icon:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3a86c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14"/><path d="M15 6v14"/></svg>', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
+ {id:'map', tab:'Map', icon:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3a86c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14"/><path d="M15 6v14"/></svg>', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
 ];
 
 /* ===== build nav ===== */
 const nav=document.getElementById('nav');
-CAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
-  b.innerHTML=`<img src="${ani(c.sprite)}">${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
+/* nav order: MAP first (the orientation view), then the town, then each model.
+   CAST order itself is left alone — some rooms index into it. */
+const NAVCAST=[...CAST.filter(c=>c.id==='map'),...CAST.filter(c=>c.id!=='map')];
+NAVCAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
+  b.innerHTML=`${c.icon?c.icon:`<img src="${ani(c.sprite)}">`}${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
 
 /* ===== rooms html ===== */
-function mascotHero(c,bubble){return `<div class="hero"><img class="mascot" src="${ani(c.sprite)}">
+function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
   <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
 
 function roomTown(){const c=CAST[0];
   let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">
      <div class="roof" style="background:${h.roof}"></div>
      <div class="tint" style="background:${h.roof}"></div>
-     <div class="plat"><img src="${ani(h.sprite)}"></div>
+     <div class="plat">${h.icon?h.icon:`<img src="${ani(h.sprite)}">`}</div>
      <b>${h.tab.toUpperCase()}</b><small>${h.role}</small></div>`).join('');
   return `<div class="panel">${mascotHero(c,"Welcome! I keep every Champions ladder game — and each room is a model that learns from them.")}</div>
    <div class="panel"><h2>The town</h2><p class="sub">Each house is a model — click to visit</p><div class="map">${houses}</div></div>
