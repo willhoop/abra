@@ -849,9 +849,41 @@ function roomRoles(){ const c=CAST.find(x=>x.id==='roles'); const N=window.NMF;
      <p class="sub">The same method on raw move usage. Attacking moves dominate, so it recovers offensive cores by type + speed control rather than support roles — shown honestly. Reconstruction error ${N.reconstruction_error_ratio}.</p>
      ${cores}
    </div>
+   <div class="panel"><h2>What any Pokémon actually does</h2>
+     <p class="sub">A species doesn't <i>have</i> a role — the same Pokémon is support on one set and offensive on another. So each one carries a <b>distribution</b>: how often its revealed sets play each role. Search one.</p>
+     <input class="pksearch" id="roleq" placeholder="search a Pokémon — try incineroar, landorus, rillaboom" oninput="renderRoleSpecies(this.value)">
+     <div id="rolespec"></div>
+     <p class="sub" style="margin-top:8px">A role is listed only when the <b>lower bound</b> of its rate clears ${Math.round((window.ROLES?ROLES.rate_floor:0.05)*100)}% — so a one-off tech set can't masquerade as a job. Bars show the rate; hover for the interval and the raw counts.</p>
+   </div>
    <div class="panel"><h2>Why this beats hand-labels</h2>
      <p class="sub">Roles emerge from co-occurrence, so a new move joins a role on its own, and each move's <b>strength</b> is learned rather than typed (Lee &amp; Seung 1999; Label Distribution Learning, Geng 2016). The only human choices are the rank and the names — everything else comes from ${Number(N.n_documents).toLocaleString()} team-sides across the store.</p>
    </div>`;
+}
+/* species role-distribution explorer (data/roles.js) */
+function renderRoleSpecies(q){
+  const box=document.getElementById('rolespec'); if(!box) return;
+  const R=window.ROLES; if(!R||!R.species){ box.innerHTML=''; return; }
+  q=(q||'').trim().toLowerCase();
+  let names=Object.keys(R.species);
+  names = q ? names.filter(n=>n.includes(q)) : names.sort((a,b)=>R.species[b].n-R.species[a].n).slice(0,6);
+  names = names.sort((a,b)=>R.species[b].n-R.species[a].n).slice(0,8);
+  if(!names.length){ box.innerHTML='<p class="sub">No Pokémon by that name in the store yet.</p>'; return; }
+  const PAL=['#ff8c42','#5b8dee','#39b98a','#9b6bff','#f0b429','#ff5d5d','#7a8ba3','#c96bd0'];
+  box.innerHTML=names.map(n=>{
+    const s=R.species[n];
+    const rows=Object.entries(s.r).slice(0,7).map(([role,v],i)=>{
+      const [p,lo,hi]=v, pct=(p*100).toFixed(0);
+      return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0" title="${R.labels[role]} — ${(p*100).toFixed(1)}% of ${s.n} revealed sets (95% CI ${(lo*100).toFixed(1)}–${(hi*100).toFixed(1)}%)">
+        <span style="width:150px;font-size:11.5px;color:#5a6472;font-weight:700;text-align:right;flex:none">${R.labels[role]}</span>
+        <span style="flex:1;height:11px;background:#eef1f6;border-radius:99px;overflow:hidden;display:block">
+          <span style="display:block;height:100%;width:${Math.max(2,p*100)}%;background:${PAL[i%PAL.length]}"></span></span>
+        <span style="width:34px;font-size:11px;color:#8a94a6;font-weight:800;flex:none">${pct}%</span></div>`;}).join('');
+    return `<div style="margin:11px 0;padding:11px 14px;border:2px solid var(--line);border-radius:14px;background:#fff">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <img src="${ani(n)}" style="width:52px;height:48px;object-fit:contain;image-rendering:pixelated" onerror="this.style.opacity=.25">
+        <div><b style="font-size:15px;text-transform:capitalize">${n.replace(/([a-z])([A-Z])/g,'$1 $2')}</b>
+        <div style="font-size:11px;color:#8a94a6;font-weight:700">${s.n.toLocaleString()} revealed sets</div></div></div>
+      ${rows}</div>`;}).join('');
 }
 const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,map:roomMap};
 
@@ -864,6 +896,7 @@ function go(id){
   if(id==='jolteon') initBooth();
   if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); renderSaved(); }
   if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); renderNonTrans(); }
+  if(id==='roles') renderRoleSpecies('');
   if(id==='town') updateStats();
   spawnAdvisors(id);
 }

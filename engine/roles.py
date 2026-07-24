@@ -75,10 +75,22 @@ ROLE_SIGNALS = {
            "Accelerock","First Impression","Ice Shard","Baby-Doll Eyes"}),
  "prankster": dict(label="Prankster (priority support)",
     abilities={"Prankster","Gale Wings"}),
- "status": dict(label="Status user",
-    moves={"Will-O-Wisp","Thunder Wave","Nuzzle","Sleep Powder","Spore","Yawn","Hypnosis","Glare",
-           "Stun Spore","Toxic","Zap Cannon","Lovely Kiss","Sing","Dark Void","Poison Powder","Nuzzle",
-           "Baneful Bunker","Toxic Thread","Poison Gas","Sleep Powder"}),
+ # Status is split by TYPE, because the four do different jobs and each is well-sampled
+ # (1,000-1,300 uses, 20-59 species carrying one). Burn and paralysis also carry their functional
+ # cross-tag: a burn halves Attack (a debuff, competing with Intimidate) and paralysis halves Speed
+ # (speed control, competing with Tailwind). Lumping them as one "status" role hid that.
+ "status_burn": dict(label="Burn spreader",
+    moves={"Will-O-Wisp","Scald","Sacred Fire","Lava Plume","Scorching Sands","Inferno","Blue Flare"}),
+ "status_para": dict(label="Paralysis spreader",
+    moves={"Thunder Wave","Nuzzle","Glare","Stun Spore","Zap Cannon","Thunder","Body Slam",
+           "Discharge","Nuzzle","Dragon Breath"}),
+ "status_sleep": dict(label="Sleep spreader",
+    moves={"Sleep Powder","Spore","Hypnosis","Yawn","Sing","Lovely Kiss","Dark Void","Grass Whistle"}),
+ "status_poison": dict(label="Poison spreader",
+    moves={"Toxic","Poison Powder","Poison Gas","Baneful Bunker","Toxic Thread","Toxic Spikes",
+           "Gunk Shot","Sludge Bomb","Poison Jab","Cross Poison","Dire Claw"}),
+ "status": dict(label="Status spreader (other)",
+    moves={"Confuse Ray","Swagger","Flatter","Attract","Leech Seed","Curse","Torment","Disable"}),
  "debuff": dict(label="Debuff (Intimidate / drops)",
     moves={"Parting Shot","Charm","Snarl","Struggle Bug","Fake Tears","Screech","Tickle","Baby-Doll Eyes",
            "Feather Dance","Growl","Play Nice","Captivate","Noble Roar","Tearful Look","Spirit Break","Lunge",
