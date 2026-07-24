@@ -160,6 +160,10 @@ ROLE_SIGNALS = {
     moves={"Earthquake","Surf","Discharge","Lava Plume","Petal Blizzard","Sludge Wave","Bulldoze",
            "Boomburst","Parabolic Charge","Magnitude","Explosion","Self-Destruct","Searing Shot",
            "Synchronoise"}),
+ "substitute": dict(label="Substitute user",
+    # a Substitute blocks status and redirection outright and forces the opponent to break it first.
+    # Shed Tail hands one to the incoming Pokemon, which is why it is also a positioning move.
+    moves={"Substitute","Shed Tail"}),
  "chip": dict(label="Residual / chip damage",
     # damage that arrives every turn without attacking again — partial-trap chip, Leech Seed drain,
     # Salt Cure, Curse. Wins long games and closes the gap for a revenge KO.
@@ -254,6 +258,7 @@ ROLE_OVERRIDE = {
  "Stockpile":     {"setup"},                                # raises both defences (and fuels Swallow)
  # attacks that boost the user on hit — they are setup and offense in one move, so no turn is lost
  "Torch Song":    {"spec_attacker", "setup"},
+ "Shed Tail":     {"substitute", "allysupport", "pivot"},   # sub + hands it over + switches out
  "Scale Shot":    {"phys_attacker", "multihit", "setup"},
  "Meteor Mash":   {"phys_attacker", "setup"},
  "Charge Beam":   {"spec_attacker", "setup"},

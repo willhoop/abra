@@ -746,7 +746,16 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
   const outs={},ins={}; edges.forEach(([f,t])=>{(outs[f]=outs[f]||[]).push(byId[t].name);(ins[t]=ins[t]||[]).push(byId[f].name);});
   const cx=id=>MAPPOS[id][0]+NW/2, top=id=>MAPPOS[id][1], bot=id=>MAPPOS[id][1]+NH;
   let svg=`<svg id="abramap" viewBox="0 0 1000 630" style="width:100%;height:auto" font-family="Arial"><defs><marker id="mh" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9aa6bb"/></marker></defs>`;
-  edges.forEach(([f,t])=>{ const hid=!vis(f)||!vis(t); svg+=`<line class="edge" data-from="${f}" data-to="${t}" data-fl="${lay(f)}" data-tl="${lay(t)}" x1="${cx(f)}" y1="${bot(f)}" x2="${cx(t)}" y2="${top(t)}" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)" style="${hid?'display:none':''}"/>`; });
+  // Curved edges. A strictly crossing-free drawing is impossible for this graph (ALAKAZAM has six
+  // parents spread across the row, and MEDI feeds both the far left and the far right), so instead
+  // of pretending, each edge bows sideways in proportion to how far it travels. Parallel lines that
+  // would overlap as straight segments separate visibly, and hovering isolates one path.
+  edges.forEach(([f,t])=>{ const hid=!vis(f)||!vis(t);
+    const x1=cx(f), y1=bot(f), x2=cx(t), y2=top(t);
+    const dx=x2-x1, dy=Math.max(1,y2-y1);
+    const bow=Math.max(-70,Math.min(70,dx*0.28));           // long sideways runs bow more
+    const c1x=x1+bow*0.35, c1y=y1+dy*0.42, c2x=x2-bow*0.35, c2y=y2-dy*0.42;
+    svg+=`<path class="edge" data-from="${f}" data-to="${t}" data-fl="${lay(f)}" data-tl="${lay(t)}" d="M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}" fill="none" stroke="#c7cede" stroke-width="1.6" opacity="0.7" marker-end="url(#mh)" style="${hid?'display:none':''}"/>`; });
   S.models.forEach(m=>{ if(!MAPPOS[m.id])return; const [x,y]=MAPPOS[m.id]; const L=lay(m.id); const [bg,br]=LAYERCOL[L]||['#fff','#ccc']; const dash=(m.status==='roadmap'||m.status==='dev')?'stroke-dasharray="5 4"':'';
     const tip=`${m.name}${m.full?' ('+m.full+')':''}  —  IN: ${(ins[m.id]||['—']).join(', ')}   OUT: ${(outs[m.id]||['—']).join(', ')}\n${m.metric} · ${m.detail}`;
     svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" data-brief="${(m.name+(m.full?' ('+m.full+')':'')+' — '+m.detail).replace(/"/g,'&quot;')}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
