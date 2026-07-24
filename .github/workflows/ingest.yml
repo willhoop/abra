@@ -26,8 +26,15 @@ jobs:
           git config user.email "abra-bot@users.noreply.github.com"
           git add data/games.ladder.jsonl data/meta-usage.json
           if git diff --cached --quiet; then
-            echo "no new games this run"
-          else
-            git commit -m "ingest: new ladder games $(date -u +%Y-%m-%dT%H:%MZ)"
-            git push
+            echo "no new games this run"; exit 0
           fi
+          git commit -m "ingest: new ladder games $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Manual pushes move origin between runs, so a plain push is rejected
+          # (non-fast-forward) and the job fails + emails. Rebase onto origin and retry.
+          # .gitattributes marks the .jsonl stores merge=union so appends never conflict.
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && exit 0
+            echo "push attempt $i failed; retrying"; sleep 5
+          done
+          echo "::warning::ingest could not push after 3 attempts; will retry next hour"
+          exit 0   # do not fail the workflow — a transient push race is not an error

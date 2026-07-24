@@ -1,0 +1,6 @@
+# Append-only stores: when two writers (the hourly ingest bot and a manual push) both add
+# lines, auto-UNION both sides instead of raising a merge conflict. Readers dedupe by id,
+# so duplicate lines are harmless. This is the fix for the ingest Action's recurring failures.
+data/games.ladder.jsonl merge=union
+data/games.bo3.jsonl    merge=union
+*.jsonl                 merge=union
