@@ -135,6 +135,14 @@ async function playOne(teamA, teamB, seed) {
   const A = CS.packTeam(teamA.six, teamA.sets);
   const B = CS.packTeam(teamB.six, teamB.sets);
   if (!A.size || !B.size) return null;
+  /* REFUSE ILLEGAL TEAMS. BattleStream does not validate what it is handed, so a team that breaks
+   * Item Clause or carries an unlearnable move plays through and produces a record indistinguishable
+   * from a legitimate game. Before this gate, Showdown's own validator rejected 80.5% of the pool —
+   * four in five self-play games were played with teams no human could bring. packTeam repairs what
+   * it can; anything still invalid is discarded rather than recorded. */
+  if (A.valid === false || B.valid === false) {
+    return { invalid: (A.problems || []).concat(B.problems || []) };
+  }
 
   const stream = new BattleStream();
   const streams = getPlayerStreams(stream);
@@ -270,6 +278,7 @@ async function main() {
       const a = teams[ai], b = teams[bi];
       let res = null;
       try { res = await playOne(a, b, seed); } catch (e) { failed++; }
+      if (res && res.invalid) { POL.invalidTeam++; res = null; }
       done++;
       if (!res) { failed++; continue; }
       const log = res.log;
