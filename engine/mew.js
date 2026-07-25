@@ -95,12 +95,25 @@ async function playOne(teamA, teamB, seed) {
   const stream = new BattleStream();
   const streams = getPlayerStreams(stream);
 
-  /* The swappable part. `random` is Showdown's own RandomPlayerAI - cheap, unbiased, and the right
-   * thing to prove the plumbing with. A behaviour-cloned policy replaces exactly this and nothing
-   * else; note that a random opponent produces games no human would ever play, so these are useful
-   * for matchup structure but NOT as training data for a value net. */
-  const mk = (s) => (POLICY === 'random' ? new RandomPlayerAI(s) : new RandomPlayerAI(s));
-  const p1 = mk(streams.p1), p2 = mk(streams.p2);
+  /* The swappable part, and the ONLY thing that differs between the two modes.
+   *
+   *   random — Showdown's own RandomPlayerAI. Cheap and unbiased, correct for matchup structure and
+   *     for proving the plumbing, but it produces games no human would ever play. Valid for a
+   *     matchup table; NOT valid as training data for a value net, which would learn "P(win) when
+   *     both players move at random" — a question nobody has.
+   *   prior — engine/prior_player.js, which samples the move a species actually clicks at its
+   *     observed frequency. VGC-Bench's cross-evaluation found clone-then-self-play (BCSP) is the
+   *     strongest configuration, so this is the mode that matters.
+   *
+   * The previous version of this line returned RandomPlayerAI on BOTH branches — a stub that would
+   * have reported `policy: "prior"` on every record while playing uniformly at random. That is
+   * exactly the failure ADR-001 attempt 3 recorded, where a policy port silently fell through to
+   * random on 100% of decisions while reporting itself as a prior sampler, and produced a 32.2-point
+   * "finding" that measured nothing. PriorPlayerAI counts its own fallbacks for the same reason, and
+   * MEW now reports the sampled rate so a broken policy is visible rather than assumed. */
+  let Player = RandomPlayerAI;
+  if (POLICY === 'prior') Player = require('./prior_player.js').makePriorPlayer();
+  const p1 = new Player(streams.p1), p2 = new Player(streams.p2);
   p1.start(); p2.start();
 
   void streams.omniscient.write(
@@ -111,7 +124,11 @@ async function playOne(teamA, teamB, seed) {
   let log = '';
   for await (const chunk of streams.omniscient) log += chunk + '\n';
   if (!/\|win\|/.test(log)) return null;       // never resolved; not evidence either way
-  return log;
+  /* Return the policy's own accounting alongside the log. A prior sampler that quietly degrades to
+   * uniform random is indistinguishable from a working one unless the rate is reported, and that is
+   * precisely how ADR-001 attempt 3 produced a 32.2-point number that measured nothing. */
+  const st = (p) => (p && p.stats) ? p.stats : null;
+  return { log, stats: [st(p1), st(p2)].filter(Boolean) };
 }
 
 let _bits = null;
@@ -141,6 +158,7 @@ async function main() {
   const out = fs.createWriteStream(OUT, { flags: 'a' });
   const startedAt = Math.floor(Date.now() / 1000);
   let done = 0, written = 0, failed = 0;
+  const POL = { sampled: 0, fellBack: 0, noPrior: 0 };
 
   const jobs = Array.from({ length: N }, (_, i) => i);
   async function worker() {
@@ -150,10 +168,12 @@ async function main() {
       // independent draws; a team may face itself, which is a legitimate mirror
       const a = teams[(seed * 2654435761) % teams.length];
       const b = teams[(seed * 40503 + 17) % teams.length];
-      let log = null;
-      try { log = await playOne(a, b, seed); } catch (e) { failed++; }
+      let res = null;
+      try { res = await playOne(a, b, seed); } catch (e) { failed++; }
       done++;
-      if (!log) { failed++; continue; }
+      if (!res) { failed++; continue; }
+      const log = res.log;
+      for (const s of (res.stats || [])) { POL.sampled += s.sampled; POL.fellBack += s.fellBack; POL.noPrior += s.noPrior; }
       const rec = extract(`selfplay-${SEED0}-${i}`, startedAt, log);
       if (!rec || (rec.six.p1 || []).length < 4 || (rec.six.p2 || []).length < 4) { failed++; continue; }
       /* Provenance on every record. A self-play game that ever loses its label becomes
