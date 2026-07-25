@@ -25,9 +25,9 @@ negatives are reported as negatives.
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
 | **MEDICHAM** | Hand-written doubles damage engine | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables |
-| **GURU** | Meta matchup matrix from real outcomes | ⚠️ Unwired | 13 archetypes, Wilson CIs (descriptive; winner-prediction ties a coin). Still reads the store RAW — one of 28 engines bypassing the quality filter |
+| **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells** | Now quality-filtered (2026-07-25). On 1,124 clean games: 11 archetypes, **0 statistically-decisive matchups** (n≥30, CI excluding 50%), and its predictive test scores 0.735 vs a coin 0.693 — worse than a coin. Descriptive structure only |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
-| **PORY** | Mid-game win-probability value net | ✅ **The win** | Log-loss 0.567 vs coin 0.693, calibrated (ECE 1.6%); live in KADABRA |
+| **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss 0.567 vs coin 0.693 — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |
 | **CHOMP** | Bring-4 / lead-2 team-preview engine | ✅ Ships (standalone) | Exact-damage picker; **CHOMP-EV proof: brings tie a coin (honest null)** |
 | **SLOWKING** | Team-preview Nash (mixed strategy) | ✅ Built | Equilibrium ≪ exploitable than uniform; playstyle cycle is **suggestive on small samples** |
 | **KADABRA** | Replay coach | ✅ Works offline | Per-turn "you're at X%" from PORY |
@@ -94,8 +94,11 @@ Most results here are also **underpowered**: 1,124 clean games can only detect a
 accuracy points, and a 2-point effect needs ~4,900. `engine/eval_harness.py` now refuses to report a
 null without stating what it could have seen.
 
-The load-bearing wins are unchanged and both are about *measurement* rather than prediction: the
-validated damage engine, and PORY's mid-game value net (log-loss 0.567 vs a coin's 0.693).
+The one load-bearing win is the **validated damage engine** — 31/31 within 2% against two independent
+oracles. PORY was the other, until 2026-07-25 showed it loses to a two-feature material baseline.
+The project's two genuine contributions are the ones it treats as plumbing: **behavioural bot
+detection**, and the **measurement discipline** that dissolved WAR, the 55% ceiling and GURU's matchup
+matrix in a single day.
 
 ## Correction — the scrape over-samples bots
 
