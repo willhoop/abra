@@ -431,7 +431,7 @@ def main():
         "encoder_version": ENCODER_VERSION,
         "n_features": len(FEATURE_NAMES),
         "sources": [os.path.relpath(p, ROOT) for p in paths if os.path.exists(p)],
-        "n_states": int(len(X)), "n_games": int(n_games),
+        "n_states": n_states, "n_games": int(n_games),
         "split": {"train": int(tr.sum()), "val": int(va.sum()), "test": int(te.sum())},
         "arms": rows,
     }, open(OUT, "w"), indent=1)
