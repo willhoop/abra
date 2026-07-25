@@ -16,16 +16,46 @@ const N = parseInt(process.argv[2] || '12', 10);
 const SRC = D('data', 'games.selfplay.jsonl');
 if (!fs.existsSync(SRC)) { console.error(`no self-play store at ${SRC}; run engine/mew.js first`); process.exit(1); }
 
-const all = [];
-for (const line of fs.readFileSync(SRC, 'utf8').split('\n')) {
-  const t = line.trim(); if (!t) continue;
-  try { all.push(JSON.parse(t)); } catch { /* skip */ }
+/* STREAM. The store is ~1GB at 200,004 games and V8 caps a single string near 512MB, so
+ * readFileSync(...).split('\n') threw ERR_STRING_TOO_LONG the moment the corpus got real.
+ *
+ * Only N games are ever shown, so the whole store is never held: a bounded "longest so far" list is
+ * kept and everything else is dropped as it streams past. Memory is O(N), not O(store). */
+let total = 0;
+const best = [];                       // ascending by turn count, length <= N
+function consider(g) {
+  const len = (g.turns || []).length;
+  if (best.length < N) {
+    best.push(g);
+    best.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
+  } else if (len > (best[0].turns || []).length) {
+    best[0] = g;
+    best.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
+  }
 }
-if (!all.length) { console.error('self-play store is empty'); process.exit(1); }
+{
+  const fd = fs.openSync(SRC, 'r');
+  const buf = Buffer.alloc(1 << 20);
+  let carry = '';
+  try {
+    for (;;) {
+      const n = fs.readSync(fd, buf, 0, buf.length, null);
+      if (n <= 0) break;
+      const lines = (carry + buf.toString('utf8', 0, n)).split('\n');
+      carry = lines.pop();
+      for (const line of lines) {
+        const t = line.trim(); if (!t) continue;
+        let g; try { g = JSON.parse(t); } catch { continue; }
+        total++; consider(g);
+      }
+    }
+    if (carry.trim()) { try { const g = JSON.parse(carry.trim()); total++; consider(g); } catch (e) {} }
+  } finally { fs.closeSync(fd); }
+}
+if (!total) { console.error('self-play store is empty'); process.exit(1); }
 
 /* Prefer games with some length — a 2-turn game shows nothing about what MEW does. */
-const ranked = all.slice().sort((a, b) => (b.turns || []).length - (a.turns || []).length);
-const picked = ranked.slice(0, N);
+const picked = best.slice().reverse();
 
 const slim = picked.map(g => ({
   id: g.id,
@@ -47,7 +77,7 @@ const meta = {
   generated: new Date().toISOString().slice(0, 10),
   engine_commit: (picked[0].selfplay || {}).engine_commit || null,
   format: (picked[0].selfplay || {}).format || null,
-  total_selfplay_games: all.length,
+  total_selfplay_games: total,
   shown: slim.length,
 };
 
@@ -58,4 +88,4 @@ const out =
   `window.MEW = ${JSON.stringify({ meta, games: slim })};\n`;
 
 fs.writeFileSync(D('data', 'mew.js'), out);
-console.log(`wrote data/mew.js — ${slim.length} of ${all.length} games, ${(out.length / 1024).toFixed(0)} KB`);
+console.log(`wrote data/mew.js — ${slim.length} of ${total.toLocaleString()} games, ${(out.length / 1024).toFixed(0)} KB`);
