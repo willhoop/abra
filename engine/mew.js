@@ -214,7 +214,7 @@ async function main() {
   if (rawOut) process.stderr.write(`  raw logs -> ${path.relative(ROOT, RAW_OUT)} (PORY reads this, not the records)\n`);
   const startedAt = Math.floor(Date.now() / 1000);
   let done = 0, written = 0, failed = 0;
-  const POL = { sampled: 0, fellBack: 0, noPrior: 0 };
+  const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0 };
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
    * ------------------------------------------------------------------------------------------
@@ -282,7 +282,10 @@ async function main() {
       done++;
       if (!res) { failed++; continue; }
       const log = res.log;
-      for (const s of (res.stats || [])) { POL.sampled += s.sampled; POL.fellBack += s.fellBack; POL.noPrior += s.noPrior; }
+      for (const s of (res.stats || [])) {
+        POL.sampled += s.sampled; POL.fellBack += s.fellBack; POL.noPrior += s.noPrior;
+        POL.previewSampled += s.previewSampled || 0; POL.previewDefault += s.previewDefault || 0;
+      }
       const rec = extract(`selfplay-${SEED0}-${i}`, startedAt, log);
       if (!rec || (rec.six.p1 || []).length < 4 || (rec.six.p2 || []).length < 4) { failed++; continue; }
       /* Provenance on every record. A self-play game that ever loses its label becomes
@@ -311,6 +314,20 @@ async function main() {
     const pct = (100 * POL.sampled / tot).toFixed(1);
     process.stderr.write(`  policy=${POLICY}: ${pct}% of decisions sampled from priors ` +
       `(${POL.fellBack} fell back — move illegal this turn, ${POL.noPrior} had no prior for the species)\n`);
+    /* TEAM PREVIEW ACCOUNTING. The preview sampler degrades to the constant 'default' bring when
+     * data/bring-priors.json is missing, and that degradation is invisible in the games themselves —
+     * they look completely normal, every team just always brings the same four. Report it. */
+    const pv = POL.previewSampled + POL.previewDefault;
+    if (pv) {
+      process.stderr.write(`  team preview: ${POL.previewSampled.toLocaleString()} sampled from bring/lead priors, ` +
+        `${POL.previewDefault.toLocaleString()} fell back to the constant 'default'\n`);
+      if (POL.previewSampled === 0) {
+        process.stderr.write('  WARNING: every preview used the CONSTANT default bring — run node engine/bring_priors.js\n');
+      }
+    }
+    if (POL.invalidTeam) {
+      process.stderr.write(`  ${POL.invalidTeam.toLocaleString()} games discarded: team failed Showdown's TeamValidator after repair\n`);
+    }
     if (POL.sampled === 0) {
       process.stderr.write('  WARNING: the policy sampled NOTHING. It is running as uniform random.\n');
       process.stderr.write('  This is ADR-001 attempt 3 recurring. Do not use this batch.\n');
