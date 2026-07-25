@@ -46,13 +46,26 @@ def fit_nmf(X, rank, iters=300, seed=7):
     err = np.linalg.norm(X - W @ H) / (np.linalg.norm(X) + 1e-12)
     return W, H, err
 
+# --- QUALITY FILTER (data/quality-filter.json) -------------------------------------------------
+# This used to read the store RAW, so the emergent archetypes below were factorized over bot games.
+# That matters more here than almost anywhere: four undetected bot accounts played the SAME six
+# Pokemon in 1,446 games, and NMF finds recurring structure - a single team repeated that many
+# times is exactly the kind of pattern it will happily promote to an "archetype".
+# The definition is shared rather than repeated: engine/quality.py reads data/quality-filter.json.
+# ABRA_UNFILTERED=1 restores the old behaviour, for showing the difference.
+import sys as _sys
+import importlib.util as _ilu
+_qspec = _ilu.spec_from_file_location("quality", D("engine", "quality.py"))
+_quality = _ilu.module_from_spec(_qspec); _qspec.loader.exec_module(_quality)
+_UNFILTERED = bool(os.environ.get("ABRA_UNFILTERED"))
+
 def load_games():
-    with open(STORE, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line: continue
-            try: yield json.loads(line)
-            except Exception: continue
+    games = _quality.load_games(clean=not _UNFILTERED)
+    _sys.stderr.write(
+        ("WARNING: ABRA_UNFILTERED - all %d games, bots and forfeits included\n" % len(games))
+        if _UNFILTERED else
+        ("quality filter: %d usable of %d collected\n" % (len(games), len(_quality.read_store()))))
+    return iter(games)
 
 def build():
     games = list(load_games())

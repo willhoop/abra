@@ -1,334 +1,334 @@
 {
  "generated": "2026-07-24",
- "n_games": 7314,
- "n_species": 181,
+ "n_games": 8355,
+ "n_species": 192,
  "min_games": 30,
  "ridge": 6.0,
- "replacement_beta": -0.0541,
+ "replacement_beta": -0.051,
  "method": "Ridge-regularized adjusted plus-minus (RAPM) logistic on team-preview species indicators; WAR = 0.25*(beta - replacement_beta)*games. Leak-free (preview only).",
  "held_out": {
-  "log_loss": 0.6856,
+  "log_loss": 0.686,
   "coin": 0.6931,
-  "accuracy": 0.5413
+  "accuracy": 0.539
  },
  "caveat": "Preview composition barely separates from a coin, so WAR magnitudes are small and uncertain; ridge shrinks rare species toward zero. Treat as exploratory ordering, not settled wins. It sharpens as more games arrive.",
  "leaders": [
   {
    "species": "basculegion",
-   "games": 4360,
-   "beta": 0.2266,
-   "war": 305.99,
-   "war_per_game": 0.0702
+   "games": 4852,
+   "beta": 0.1814,
+   "war": 281.87,
+   "war_per_game": 0.0581
   },
   {
    "species": "kingambit",
-   "games": 3678,
-   "beta": 0.0691,
-   "war": 113.28,
-   "war_per_game": 0.0308
+   "games": 4147,
+   "beta": 0.0903,
+   "war": 146.5,
+   "war_per_game": 0.0353
   },
   {
    "species": "farigiraf",
-   "games": 1813,
-   "beta": 0.1022,
-   "war": 70.87,
-   "war_per_game": 0.0391
-  },
-  {
-   "species": "sylveon",
-   "games": 2711,
-   "beta": 0.0459,
-   "war": 67.84,
-   "war_per_game": 0.025
-  },
-  {
-   "species": "tyranitar",
-   "games": 1334,
-   "beta": 0.1377,
-   "war": 63.96,
-   "war_per_game": 0.0479
-  },
-  {
-   "species": "milotic",
-   "games": 839,
-   "beta": 0.2472,
-   "war": 63.2,
-   "war_per_game": 0.0753
-  },
-  {
-   "species": "aerodactyl",
-   "games": 1061,
-   "beta": 0.1696,
-   "war": 59.36,
-   "war_per_game": 0.0559
-  },
-  {
-   "species": "staraptor",
-   "games": 1792,
-   "beta": 0.0635,
-   "war": 52.69,
-   "war_per_game": 0.0294
-  },
-  {
-   "species": "venusaur",
-   "games": 1634,
-   "beta": 0.068,
-   "war": 49.88,
-   "war_per_game": 0.0305
+   "games": 2114,
+   "beta": 0.1272,
+   "war": 94.19,
+   "war_per_game": 0.0446
   },
   {
    "species": "garchomp",
-   "games": 4389,
-   "beta": -0.0103,
-   "war": 48.15,
-   "war_per_game": 0.011
+   "games": 4949,
+   "beta": 0.0182,
+   "war": 85.6,
+   "war_per_game": 0.0173
   },
   {
-   "species": "swampert",
-   "games": 1185,
-   "beta": 0.0962,
-   "war": 44.55,
-   "war_per_game": 0.0376
+   "species": "tyranitar",
+   "games": 1513,
+   "beta": 0.1736,
+   "war": 84.94,
+   "war_per_game": 0.0561
+  },
+  {
+   "species": "aerodactyl",
+   "games": 1235,
+   "beta": 0.1636,
+   "war": 66.25,
+   "war_per_game": 0.0536
+  },
+  {
+   "species": "sylveon",
+   "games": 2938,
+   "beta": 0.0357,
+   "war": 63.63,
+   "war_per_game": 0.0217
+  },
+  {
+   "species": "venusaur",
+   "games": 1912,
+   "beta": 0.0781,
+   "war": 61.69,
+   "war_per_game": 0.0323
+  },
+  {
+   "species": "milotic",
+   "games": 953,
+   "beta": 0.2034,
+   "war": 60.6,
+   "war_per_game": 0.0636
   },
   {
    "species": "sneasler",
-   "games": 1773,
-   "beta": 0.046,
-   "war": 44.41,
-   "war_per_game": 0.025
-  },
-  {
-   "species": "floetteeternal",
-   "games": 1514,
-   "beta": 0.0489,
-   "war": 38.99,
-   "war_per_game": 0.0258
-  },
-  {
-   "species": "archaludon",
-   "games": 2112,
-   "beta": 0.0178,
-   "war": 38.0,
-   "war_per_game": 0.018
-  },
-  {
-   "species": "talonflame",
-   "games": 615,
-   "beta": 0.1438,
-   "war": 30.43,
-   "war_per_game": 0.0495
-  },
-  {
-   "species": "excadrill",
-   "games": 1052,
-   "beta": 0.0479,
-   "war": 26.84,
-   "war_per_game": 0.0255
+   "games": 2072,
+   "beta": 0.0644,
+   "war": 59.79,
+   "war_per_game": 0.0289
   },
   {
    "species": "pelipper",
-   "games": 2267,
-   "beta": -0.0081,
-   "war": 26.1,
-   "war_per_game": 0.0115
+   "games": 2555,
+   "beta": 0.0308,
+   "war": 52.21,
+   "war_per_game": 0.0204
+  },
+  {
+   "species": "staraptor",
+   "games": 2039,
+   "beta": 0.0482,
+   "war": 50.55,
+   "war_per_game": 0.0248
+  },
+  {
+   "species": "swampert",
+   "games": 1336,
+   "beta": 0.085,
+   "war": 45.43,
+   "war_per_game": 0.034
+  },
+  {
+   "species": "floetteeternal",
+   "games": 1744,
+   "beta": 0.0333,
+   "war": 36.74,
+   "war_per_game": 0.0211
+  },
+  {
+   "species": "archaludon",
+   "games": 2372,
+   "beta": 0.0071,
+   "war": 34.44,
+   "war_per_game": 0.0145
+  },
+  {
+   "species": "talonflame",
+   "games": 721,
+   "beta": 0.1389,
+   "war": 34.22,
+   "war_per_game": 0.0475
   },
   {
    "species": "ceruledge",
-   "games": 392,
-   "beta": 0.2054,
-   "war": 25.44,
-   "war_per_game": 0.0649
+   "games": 448,
+   "beta": 0.2207,
+   "war": 30.43,
+   "war_per_game": 0.0679
   },
   {
    "species": "glimmora",
-   "games": 362,
-   "beta": 0.1911,
-   "war": 22.19,
-   "war_per_game": 0.0613
+   "games": 423,
+   "beta": 0.2342,
+   "war": 30.16,
+   "war_per_game": 0.0713
   },
   {
    "species": "blastoise",
-   "games": 602,
-   "beta": 0.0924,
-   "war": 22.06,
-   "war_per_game": 0.0366
+   "games": 739,
+   "beta": 0.0961,
+   "war": 27.18,
+   "war_per_game": 0.0368
   },
   {
-   "species": "metagross",
-   "games": 666,
-   "beta": 0.0722,
-   "war": 21.04,
-   "war_per_game": 0.0316
-  },
-  {
-   "species": "froslass",
-   "games": 502,
-   "beta": 0.1097,
-   "war": 20.56,
-   "war_per_game": 0.041
+   "species": "excadrill",
+   "games": 1179,
+   "beta": 0.0316,
+   "war": 24.34,
+   "war_per_game": 0.0206
   },
   {
    "species": "hydreigon",
-   "games": 389,
-   "beta": 0.1474,
-   "war": 19.6,
-   "war_per_game": 0.0504
-  },
-  {
-   "species": "politoed",
-   "games": 327,
-   "beta": 0.1722,
-   "war": 18.5,
-   "war_per_game": 0.0566
-  },
-  {
-   "species": "gengar",
-   "games": 492,
-   "beta": 0.0954,
-   "war": 18.39,
-   "war_per_game": 0.0374
+   "games": 443,
+   "beta": 0.1631,
+   "war": 23.71,
+   "war_per_game": 0.0535
   },
   {
    "species": "annihilape",
-   "games": 478,
-   "beta": 0.0982,
-   "war": 18.2,
-   "war_per_game": 0.0381
-  },
-  {
-   "species": "gardevoir",
-   "games": 282,
-   "beta": 0.2016,
-   "war": 18.03,
-   "war_per_game": 0.0639
-  },
-  {
-   "species": "mawile",
-   "games": 599,
-   "beta": 0.0648,
-   "war": 17.81,
-   "war_per_game": 0.0297
+   "games": 541,
+   "beta": 0.1193,
+   "war": 23.03,
+   "war_per_game": 0.0426
   },
   {
    "species": "mausholdfour",
-   "games": 345,
-   "beta": 0.1438,
-   "war": 17.07,
-   "war_per_game": 0.0495
+   "games": 399,
+   "beta": 0.1769,
+   "war": 22.73,
+   "war_per_game": 0.057
   },
   {
-   "species": "incineroar",
-   "games": 2805,
-   "beta": -0.0299,
-   "war": 16.98,
-   "war_per_game": 0.0061
+   "species": "froslass",
+   "games": 625,
+   "beta": 0.0903,
+   "war": 22.08,
+   "war_per_game": 0.0353
+  },
+  {
+   "species": "politoed",
+   "games": 371,
+   "beta": 0.164,
+   "war": 19.94,
+   "war_per_game": 0.0538
+  },
+  {
+   "species": "gengar",
+   "games": 563,
+   "beta": 0.0833,
+   "war": 18.9,
+   "war_per_game": 0.0336
+  },
+  {
+   "species": "mawile",
+   "games": 713,
+   "beta": 0.055,
+   "war": 18.89,
+   "war_per_game": 0.0265
+  },
+  {
+   "species": "metagross",
+   "games": 757,
+   "beta": 0.0388,
+   "war": 17.0,
+   "war_per_game": 0.0225
+  },
+  {
+   "species": "gardevoir",
+   "games": 322,
+   "beta": 0.1491,
+   "war": 16.11,
+   "war_per_game": 0.05
+  },
+  {
+   "species": "scizor",
+   "games": 316,
+   "beta": 0.1304,
+   "war": 14.33,
+   "war_per_game": 0.0453
   }
  ],
  "trailers": [
   {
-   "species": "oranguru",
-   "games": 185,
-   "beta": -0.112,
-   "war": -2.68,
-   "war_per_game": -0.0145
+   "species": "dragalge",
+   "games": 151,
+   "beta": -0.1494,
+   "war": -3.71,
+   "war_per_game": -0.0246
   },
   {
-   "species": "dragalge",
-   "games": 131,
-   "beta": -0.1491,
-   "war": -3.11,
-   "war_per_game": -0.0237
+   "species": "vivillonmonsoon",
+   "games": 208,
+   "beta": -0.1253,
+   "war": -3.86,
+   "war_per_game": -0.0186
+  },
+  {
+   "species": "gholdengo",
+   "games": 1975,
+   "beta": -0.0605,
+   "war": -4.7,
+   "war_per_game": -0.0024
   },
   {
    "species": "palafin",
-   "games": 148,
-   "beta": -0.17,
-   "war": -4.29,
-   "war_per_game": -0.029
-  },
-  {
-   "species": "typhlosionhisui",
-   "games": 534,
-   "beta": -0.0863,
-   "war": -4.3,
-   "war_per_game": -0.008
+   "games": 186,
+   "beta": -0.1631,
+   "war": -5.21,
+   "war_per_game": -0.028
   },
   {
    "species": "clefable",
-   "games": 216,
-   "beta": -0.1398,
-   "war": -4.63,
-   "war_per_game": -0.0214
+   "games": 254,
+   "beta": -0.1424,
+   "war": -5.81,
+   "war_per_game": -0.0229
   },
   {
    "species": "dragapult",
-   "games": 185,
-   "beta": -0.1614,
-   "war": -4.96,
-   "war_per_game": -0.0268
-  },
-  {
-   "species": "delphox",
-   "games": 1049,
-   "beta": -0.0739,
-   "war": -5.19,
-   "war_per_game": -0.0049
+   "games": 208,
+   "beta": -0.1688,
+   "war": -6.13,
+   "war_per_game": -0.0295
   },
   {
    "species": "sableye",
-   "games": 620,
-   "beta": -0.0972,
-   "war": -6.68,
-   "war_per_game": -0.0108
+   "games": 717,
+   "beta": -0.1013,
+   "war": -9.02,
+   "war_per_game": -0.0126
   },
   {
    "species": "hatterene",
-   "games": 303,
-   "beta": -0.2237,
-   "war": -12.85,
-   "war_per_game": -0.0424
-  },
-  {
-   "species": "grimmsnarl",
-   "games": 1843,
-   "beta": -0.0887,
-   "war": -15.93,
-   "war_per_game": -0.0086
-  },
-  {
-   "species": "dragonite",
-   "games": 696,
-   "beta": -0.1579,
-   "war": -18.05,
-   "war_per_game": -0.0259
-  },
-  {
-   "species": "charizard",
-   "games": 3405,
-   "beta": -0.0774,
-   "war": -19.76,
-   "war_per_game": -0.0058
+   "games": 325,
+   "beta": -0.1876,
+   "war": -11.1,
+   "war_per_game": -0.0342
   },
   {
    "species": "raichu",
-   "games": 1805,
-   "beta": -0.125,
-   "war": -31.99,
-   "war_per_game": -0.0177
+   "games": 2078,
+   "beta": -0.084,
+   "war": -17.18,
+   "war_per_game": -0.0083
+  },
+  {
+   "species": "dragonite",
+   "games": 825,
+   "beta": -0.1391,
+   "war": -18.17,
+   "war_per_game": -0.022
+  },
+  {
+   "species": "delphox",
+   "games": 1222,
+   "beta": -0.1134,
+   "war": -19.07,
+   "war_per_game": -0.0156
+  },
+  {
+   "species": "grimmsnarl",
+   "games": 2094,
+   "beta": -0.0875,
+   "war": -19.11,
+   "war_per_game": -0.0091
   },
   {
    "species": "whimsicott",
-   "games": 4016,
-   "beta": -0.0958,
-   "war": -41.78,
-   "war_per_game": -0.0104
+   "games": 4417,
+   "beta": -0.0783,
+   "war": -30.18,
+   "war_per_game": -0.0068
+  },
+  {
+   "species": "charizard",
+   "games": 3765,
+   "beta": -0.0916,
+   "war": -38.24,
+   "war_per_game": -0.0102
   },
   {
    "species": "maushold",
-   "games": 825,
-   "beta": -0.3792,
-   "war": -67.04,
-   "war_per_game": -0.0813
+   "games": 921,
+   "beta": -0.349,
+   "war": -68.61,
+   "war_per_game": -0.0745
   }
  ]
 }

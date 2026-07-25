@@ -38,13 +38,26 @@ LN2 = math.log(2)
 MIN_GAMES = 30          # a species must appear on >= this many sixes to get a WAR
 RIDGE = 6.0             # L2 strength — strong, because most species are rare (honest shrinkage)
 
+# --- QUALITY FILTER (data/quality-filter.json) -------------------------------------------------
+# This used to read the store RAW, so every number below was computed over bot games. Of 8,356
+# stored games only 1,061 survive the filter, and four undetected bot accounts played the SAME six
+# Pokemon in 1,446 of them - which is how meta-usage.json came to report one script's team as the
+# metagame. The definition is shared rather than repeated here: engine/quality.py reads
+# data/quality-filter.json, and tests/test-quality.js asserts the JS and Python readers select an
+# identical set of ids. ABRA_UNFILTERED=1 restores the old behaviour, for showing the difference.
+import sys as _sys
+import importlib.util as _ilu
+_qspec = _ilu.spec_from_file_location("quality", D("engine", "quality.py"))
+_quality = _ilu.module_from_spec(_qspec); _qspec.loader.exec_module(_quality)
+_UNFILTERED = bool(os.environ.get("ABRA_UNFILTERED"))
+
 def load_games():
-    with open(STORE, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line: continue
-            try: yield json.loads(line)
-            except Exception: continue
+    games = _quality.load_games(clean=not _UNFILTERED)
+    _sys.stderr.write(
+        ("WARNING: ABRA_UNFILTERED - all %d games, bots and forfeits included\n" % len(games))
+        if _UNFILTERED else
+        ("quality filter: %d usable of %d collected\n" % (len(games), len(_quality.read_store()))))
+    return iter(games)
 
 def build():
     games = [g for g in load_games() if g.get("winner") in
