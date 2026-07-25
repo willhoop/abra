@@ -844,7 +844,10 @@ function renderMew(){
       var ring = (MEW_T>=0&&active[side][sp]&&!faint[sp]) ? 'box-shadow:0 0 0 3px #ff8fd0' : '';
       return '<div style="width:54px;text-align:center;opacity:'+op+';'+gray+'">'+
         '<img src="'+mewSprite(sp)+'" style="width:48px;height:48px;border-radius:9px;background:#fff;border:2px solid #e2e8f1;'+ring+'" alt="'+sp+'">'+
-        '<div style="font-size:9.5px;font-weight:700;color:#6d829b;line-height:1.15">'+mewPretty(sp)+'</div></div>';
+        /* clip, do not wrap: "sinistchamasterpiece" is 20 characters and overflowed its 54px cell,
+           overlapping the two sprites beside it. The sprite is the identifier; the label is a hint. */
+        '<div title="'+mewPretty(sp)+'" style="font-size:9px;font-weight:700;color:#6d829b;line-height:1.15;'+
+        'max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+mewPretty(sp)+'</div></div>';
     }).join('');
     return '<div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px">'+
       '<div style="font-weight:800;color:#3a5372;margin-bottom:7px;font-size:13.5px">'+nm+(won?' <span style="color:#1a9a4a">— winner</span>':'')+'</div>'+
