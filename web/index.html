@@ -811,6 +811,7 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
 }
 function roomMew(){const c=CAST.find(x=>x.id==='mew');
   return `<div class="panel">${mascotHero(c,"I play this format against myself, over and over, so the other models have games to learn from.")}</div>
+   ${mewViewerPanel()}
    <div class="panel"><h2>Why a practice field</h2><p style="font-weight:600;color:#3a5372">Every other room learns from <b>real ladder replays</b>, and there are only so many of those — about 9,000, growing a few hundred a day. Questions about <b>people</b> (does the better player win? what will they bring?) genuinely need real games and have to wait. But questions about <b>the game itself</b> — what does this position turn into? — don't. Those just need games, and I can make as many as the machine will run: <b>~45 a second</b>, roughly 160,000 an hour.</p>
    <span class="chip">official engine</span><span class="chip">real ladder teams</span><span class="chip">never mixed with real games</span></div>
    <div class="panel"><h2>What one practice game is</h2><p style="font-weight:600;color:#3a5372">A complete battle in the <b>official Champions simulator</b> — the same code Showdown runs, pinned to one commit. Two teams that real players actually brought, each picking <b>4 of their 6</b> and leading <b>2</b>, then playing to a winner. Both sides choose moves the way real players do: sampled from how often that Pokémon actually clicks each move, not at random.</p>
@@ -822,13 +823,20 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
    <div class="panel"><h2>Every game can be replayed exactly</h2><p style="font-weight:600;color:#3a5372">Each battle records the <b>seed</b> that produced it, the policy, and the exact engine commit. Re-run that seed and you get <b>the same game, move for move</b> — verified byte-identical. That matters because the whole point is claims like <i>"switching here is what won it"</i>, and a claim you can't re-run is a claim you can't check.</p>
    <span class="chip">seeded dice</span><span class="chip">seeded decisions</span><span class="chip">pinned engine</span></div>
    <div class="panel"><h2>Honest limits</h2><p style="font-weight:600;color:#3a5372">These are <b>practice games, not real ones</b>, and they are labelled as such in every record so they can never be mistaken for ladder data. The players are decent imitations of human habits, not strong play — so my games teach <b>what positions turn into</b>, not what a champion would do. And the teams are real, but the hidden parts (spreads, items, the moves nobody revealed) are <b>sampled</b> from what the format actually runs, which is an estimate.</p></div>
-   <div class="panel"><h2>Watch MEW play itself</h2>
-     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-       <select id="mewpick" style="flex:1;min-width:220px;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:14px;font-weight:700"></select>
-       <span id="mewverdict" style="font-weight:800;color:#3a5372"></span>
+   <div class="panel">${howIThink('mew')}</div>`;
+}
+/* The battle viewer, as its own panel so it can sit FIRST in the room — it is the thing people came
+   to see, and it used to be buried under four explainers. */
+function mewViewerPanel(){
+  return `<div class="panel"><h2>Watch MEW play itself</h2>
+     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+       <select id="mewpick" style="flex:1;min-width:200px;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:14px;font-weight:700"></select>
+       <input id="mewseed" placeholder="or paste a seed…" style="width:150px;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:14px;font-weight:700">
+       <button class="battlebtn" onclick="mewFindSeed()">Find</button>
      </div>
-     <div id="mewteams" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
-     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;margin:14px 0">
+     <div id="mewseedmsg" style="font-size:12.5px;font-weight:700;color:#6d829b;margin-bottom:8px"></div>
+     <div id="mewfield"></div>
+     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;margin:12px 0">
        <button class="battlebtn" onclick="mewGo(-1e9)">&laquo; start</button>
        <button class="battlebtn" onclick="mewGo(-1)">&lsaquo; back</button>
        <span id="mewturn" style="font-weight:800;color:#6d829b;min-width:130px;text-align:center">team preview</span>
@@ -836,8 +844,8 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
        <button class="battlebtn" onclick="mewGo(1e9)">end &raquo;</button>
        <button class="battlebtn" id="mewplay" onclick="mewPlay()">&#9654; play</button>
      </div>
-     <div id="mewlog" style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:12px 14px;min-height:130px;font-weight:600;color:#3a5372;font-size:14px;line-height:1.7"></div>
-     <div id="mewprov" style="margin-top:12px;font-size:12.5px;color:#6d829b;font-weight:700"></div>
+     <div id="mewlog" class="bfieldlog"></div>
+     <div id="mewprov" style="margin-top:10px;font-size:12.5px;color:#6d829b;font-weight:700"></div>
    </div>`;
 }
 /* ===== MEW battle viewer =====

@@ -127,7 +127,7 @@ window.ABRA_STATUS = {
    "name": "MEW",
    "tier": "collect",
    "status": "built",
-   "metric": "200,004 self-play games generated on the official engine",
+   "metric": "199,524 self-play games generated on the official engine",
    "detail": "self-play games",
    "inputs": [
     "medicham"
