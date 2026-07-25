@@ -10,6 +10,112 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.3.0] — 2026-07-25
+
+### Added — Smogon's official statistics, archived monthly, and what they immediately corrected
+
+ABRA's ladder collection began 2026-07-22. Reg M-B started mid-June, so five weeks of the regulation
+are missing and are **not recoverable**: Showdown's replay search exposes only a recent window, and
+although an old replay still resolves by id, the ids are not discoverable — an archived sample of 324
+Reg M-B games spans 1.9M sequential ids, because Showdown numbers across every format at once. Data
+not captured at the time is gone.
+
+Smogon has been computing statistics over the **whole ladder** throughout and publishes them monthly.
+`engine/fetch_smogon_stats.js` archives them and `.github/workflows/smogon-stats.yml` runs it on the
+4th and 11th of each month — in CI rather than on a machine, because a cron in the cloud cannot be
+forgotten and the files stop being retrievable if nobody takes them. June 2026 backfilled: 16 files,
+5.4 MB, both Reg M-B formats at cutoffs 0/1500/1630/1760.
+
+**Cutoffs are weightings, not subsets.** All four files report the same 1,163,315 battles; the cutoff
+changes how heavily strong play is weighted. "1760" never means "only 1760+ players".
+
+#### Every Pokémon had a flat SP spread. That was wrong in every damage figure.
+
+`champions_sim.js` gave every Pokémon `11/11/11/11/11/11` and nature Hardy, justified as "spread
+evenly when unknown rather than maximising, because maximising would systematically overstate every
+unknown Pokemon". The caution was right and the result was still badly wrong.
+
+Real Garchomp runs **Jolly 2/32/0/0/0/32 on 42% of sets**. Since `stat = base + SP + 20`, that is
+Attack **182** against the flat assumption's **161** — the format's most-used attacker understated by
+**13%**, in every damage number the project has produced and in every MEW battle generated.
+
+Flat spreads also erase the format's shape: **92% of real spreads touch the 32-per-stat cap**, so a
+flat one invents a jack-of-all-trades that exists nowhere on the ladder.
+
+`engine/smogon_priors.js` parses the moveset files into per-species spreads, items, abilities, moves
+and teammates — 283 species. `set_priors.js` now samples a real spread proportional to how often it
+is run, and prefers Smogon's **P(move is ON the set)** over our `move-priors.json` **P(move | action)**,
+which is a different quantity: a move clicked rarely can still sit on most sets. Smogon's percentages
+sum to ~400% precisely because every Pokémon carries four.
+
+**Two mechanics confirmed against an independent source.** The SP budget is 66 and 97% of real
+spreads spend all of it. And SP is capped at **32 per stat** — an early version asserted "sums to 66"
+and flagged 100 spreads including `Jolly:32/0/0/0/0/32`, which sums to 64. Those were not malformed;
+a two-stat spread cannot spend more, however much budget remains. Both invariants are now asserted.
+
+### Fixed — open team sheets were parsed and then discarded
+
+CHANGELOG 3.0.0 claimed "open team sheets are now parsed … the entire hidden-information problem
+removed". The parsing landed; the **use** of it never did. `extract()` built its output only from what
+play revealed and never merged the `sheets` it had just captured, so an open-sheet game came out
+exactly as blind as a closed-sheet one. ARCHITECTURE fault 1.4 again — a fix applied to the wrong
+artifact and reported as done.
+
+Caught by importing an archived OTS corpus and noticing impossible numbers:
+
+| | moves/4 | no item | no ability |
+|---|---|---|---|
+| closed-sheet ladder | 1.38 | 69.7% | 75.5% |
+| OTS **before** fix | 1.50 | 69.7% | 73.8% |
+| OTS **after** fix | **4.30** | **0.4%** | **10.1%** |
+
+52,964 sets, 86% declared complete. The 1,624 Bo3 games already in the store have been blind this
+whole time and will come back complete on the next reparse.
+
+### Added — two metagames, published separately
+
+`meta-usage.json` used to publish one distribution and call it "the metagame". There are two.
+
+- **competitive** (filtered): what humans choose when trying. Correct for tournament preparation, for
+  any claim *about the game*, and for anything an agent should imitate.
+- **ladder** (everything): what you actually face. **6,297 of 8,356 stored games involve a bot —
+  three in four opponents.** Filtering them out optimises for a metagame the user meets one game in
+  four.
+
+The top six differ, and informatively:
+
+```
+competitive   garchomp, incineroar, kingambit, sinistcha, whimsicott, basculegion
+ladder        garchomp, whimsicott, kingambit, basculegion, charizard, incineroar
+```
+
+Charizard is 25.7% on the ladder view and outside the competitive top six — it is a bot-team member,
+correctly surfacing as something you will meet.
+
+The ladder view is not merely "unfiltered". Bots are the **most predictable opponent in the format**:
+one account played 459 games with a single team, four ran the same six in 1,446. "23% of your
+opponents will bring precisely these six" is more actionable than any distribution, because it is
+certain rather than probabilistic.
+
+And there is a genuine grey area, which is why both ship rather than one being chosen: **humans copy
+strong bot teams to practise against**, so a bot team can re-enter the competitive metagame as a
+legitimate archetype. Neither view alone is the truth. Consumers must state which they used.
+
+### Notes — what the archives could and could not settle
+
+- **Uploaded replays are broadly representative.** Comparing our uploaded Bo3 games against Smogon's
+  whole-ladder Bo3 file for the same month and format: mean absolute difference **1.84 points** over
+  the top 20 non-mega species, Spearman **0.733** across 202. Only 3.2% of battles are uploaded, but
+  what is uploaded looks like the ladder. Mega formes appear to differ wildly only because Smogon
+  counts the mega as its own species while our extractor collapses megas to base forme.
+- **Our bot filter is far more aggressive than anyone else's.** Smogon does not filter bots at all
+  (it weights by rating); VGC-Bench filters for open sheets only. Ours removes ~75% of the store.
+  Consequence: **our filtered numbers are not directly comparable to theirs.**
+- **The store is 8,757 unique games, 0 duplicates**, after a night of pushes, rebases and CI commits.
+  The `merge=union` removal is holding.
+
+---
+
 ## [3.2.0] — 2026-07-25
 
 ### Changed — five engines now read through the quality filter, and one headline result did not survive

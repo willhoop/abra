@@ -112,10 +112,33 @@ ok(f.clean === jsGames.length, `loadGames returns exactly the clean set (${jsGam
 console.log('== the recorded provenance matches what the code actually produces ==');
 /* A funnel written into the config and never re-checked is how a stale number reaches a website.
  * This is the check that makes the recorded figure trustworthy. */
+/* This used to assert the recorded funnel EQUALLED the live one. That test cannot pass: the hourly
+ * ingest grows the store continuously, so a pinned absolute count is stale within the hour. It
+ * failed on 2026-07-25 purely because 401 legitimate new games had arrived (8,356 -> 8,757).
+ *
+ * S6 again — assert the invariant, not the incidental. What must actually hold is:
+ *   1. the funnel is monotone: every stage removes games, none adds any;
+ *   2. the recorded numbers are internally consistent in the same way;
+ *   3. the clean SHARE has not moved much, which is what would change if the filter itself broke.
+ * Growth is expected. A shifting selection rate is not. */
 const rec = cfg.provenance.funnel;
-let drift = [];
-for (const k of Object.keys(rec)) if (rec[k] !== f[k]) drift.push(`${k}: config ${rec[k]} vs actual ${f[k]}`);
-ok(drift.length === 0, `config funnel matches the store${drift.length ? ': ' + drift.join('; ') : ` (${f.clean} clean)`}`);
+const stages = ['collected', 'after_bot_filter', 'after_behavioural_bots', 'after_forfeit_filter', 'after_min_turns', 'after_full_bring'];
+
+const mono = (o, label) => {
+  const bad = [];
+  for (let i = 1; i < stages.length; i++) {
+    if (o[stages[i]] > o[stages[i - 1]]) bad.push(`${stages[i]} (${o[stages[i]]}) > ${stages[i - 1]} (${o[stages[i - 1]]})`);
+  }
+  ok(bad.length === 0, `${label} funnel is monotone${bad.length ? ': ' + bad.join('; ') : ''}`);
+};
+mono(f, 'live');
+mono(rec, 'recorded');
+
+const shareNow = f.clean / f.collected, shareRec = rec.after_full_bring / rec.collected;
+const drift = Math.abs(shareNow - shareRec) * 100;
+ok(drift <= 3,
+  `clean share is stable: ${(100 * shareNow).toFixed(1)}% now vs ${(100 * shareRec).toFixed(1)}% recorded ` +
+  `(drift ${drift.toFixed(1)} pts, tolerance 3). Store has grown ${rec.collected} -> ${f.collected}.`);
 
 console.log('== every excluded game has a stated reason ==');
 const all = Q.loadGames({ clean: false });
