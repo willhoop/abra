@@ -104,12 +104,33 @@ function storeShape() {
   if (!fs.existsSync(STORE)) { ok(false, 'self-play store exists'); return; }
   const ids = new Set();
   let n = 0, dupes = 0, badSubset = 0, badLead = 0, badWinner = 0, unlabelled = 0;
+  /* SIDE BALANCE OVER THE WHOLE CORPUS, not over 300 sampled battles.
+   *
+   * The mirror check above runs a few hundred games and can only resolve a bias of roughly +/-5.6
+   * points at n=300. A real 0.9-point side bias is therefore INVISIBLE to it by construction, and
+   * one duly shipped: the first 200,004-game corpus had p1 winning 50.86% of non-mirror games, CI
+   * [50.58, 51.15], because the matchup enumeration emitted pairs as (low index, high index) and
+   * always sent the low index to p1.
+   *
+   * Here n is the entire corpus, so the interval is tight enough to catch it. Mirrors are counted
+   * separately because a bias there means the HARNESS is unfair, while a bias only in non-mirrors
+   * means the pairing is. Those are different bugs and the split names which one. */
+  let mirN = 0, mirP1 = 0, nonN = 0, nonP1 = 0;
   eachLine(STORE, (line) => {
     const t = line.trim(); if (!t) return;
     let g; try { g = JSON.parse(t); } catch { return; }
     n++;
     if (ids.has(g.id)) dupes++; else ids.add(g.id);
     if (g.source !== 'selfplay') unlabelled++;
+    {
+      const nm = [(g.p1 || {}).name, (g.p2 || {}).name];
+      if (g.winner && nm.includes(g.winner)) {
+        const sameTeam = ((g.six || {}).p1 || []).slice().sort().join('|') ===
+                         ((g.six || {}).p2 || []).slice().sort().join('|');
+        const p1won = g.winner === nm[0];
+        if (sameTeam) { mirN++; if (p1won) mirP1++; } else { nonN++; if (p1won) nonP1++; }
+      }
+    }
     for (const s of ['p1', 'p2']) {
       const six = new Set(((g.six || {})[s] || []).map(norm));
       const br = ((g.brought || {})[s] || []).map(norm);
@@ -122,6 +143,17 @@ function storeShape() {
   });
   ok(n > 0, `${n.toLocaleString()} self-play games present`);
   ok(dupes === 0, `no duplicate ids (${dupes})`);
+  for (const [lbl, k, N, why] of [
+    ['non-mirror', nonP1, nonN, 'the pairing puts one side of the matchup list on p1'],
+    ['mirror', mirP1, mirN, 'the harness itself favours a side'],
+  ]) {
+    if (!N) continue;
+    const [p, lo, hi] = wilson(k, N);
+    const fair = lo <= 0.5 && hi >= 0.5;
+    ok(fair, `side balance, ${lbl}: p1 won ${(100 * p).toFixed(2)}% of ${N.toLocaleString()} ` +
+       `(95% CI [${(100 * lo).toFixed(2)}, ${(100 * hi).toFixed(2)}])` +
+       (fair ? '' : ` — CI EXCLUDES 50, meaning ${why}`));
+  }
   ok(badSubset === 0, `every brought is a subset of six (${badSubset} bad)`);
   ok(badLead === 0, `every lead is a subset of brought (${badLead} bad)`);
   ok(badWinner === 0, `winner is one of the two players (${badWinner} bad)`);
