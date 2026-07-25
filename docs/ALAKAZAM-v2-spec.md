@@ -166,6 +166,60 @@ not — measure honestly). Runs in a **Web Worker/WASM/backend**, never the main
 
 ---
 
+## The end-game deliverable — PLAY ALAKAZAM AT A CHOSEN ELO
+
+The capstone is not a number in a table. It is: **a human opens the site and plays a full Champions
+game against ALAKAZAM, with a difficulty dial set in Elo.** Everything above is the machinery that
+makes that possible; this is the thing the project is actually for.
+
+**Why an Elo dial is the right interface, and why it is more than a slider.** A model that only ever
+plays as hard as it can is useless for training — you lose, learn nothing about *why*, and cannot
+practise a specific matchup against a specific standard of opponent. The literature is unambiguous
+that calibrated difficulty is a distinct problem from strength:
+
+- **Maia** (McIlroy-Young et al., KDD 2020) trained *separate* networks per rating band on human chess
+  games and showed each one predicts the moves of players at **that** rating far better than a strong
+  engine does. Weakening a strong engine does **not** reproduce a 1200-rated player — it produces a
+  2800-rated player making occasional absurd blunders, which is a different and unconvincing thing.
+- **AlphaStar** (Vinyals et al., *Nature* 2019) maintained a **league** of distinct agents rather than
+  one optimum, precisely because a single self-play optimum is exploitable and unrepresentative.
+- **Metamon** (Grigsby et al., 2025) is the direct precedent in Pokémon: policies trained on human
+  ladder data at different skill strata behave differently, not merely worse.
+
+So the dial must select **between policies trained to imitate a band**, not a single policy with noise
+injected. ABRA is already positioned for this: the ladder store carries a rating on most games, and
+MEW's policy layer is swappable (`--policy`), which is exactly the seam a band-conditioned policy
+plugs into.
+
+**Design.**
+
+1. **Band the ladder store by rating.** Measure, do not assume, how much data each band has — the
+   statistical-power block already in `eval_harness.py` decides which bands are supportable. Bands
+   with too little data are not offered rather than being offered dishonestly.
+2. **Behaviour-clone one policy per band** (the BCSP recipe VGC-Bench found strongest: clone, then
+   self-play from the clone). Bands share the state encoder and the value net; only the policy head
+   differs.
+3. **Calibrate the dial empirically.** The label "1500" must be *earned*: the agent set to 1500 plays
+   a large sample against the other bands and against the behaviour clones, and its realised win rates
+   must place it near 1500 on the standard Elo scale. A dial labelled with a rating it has not
+   demonstrated is an asserted constant, which S-standards forbid.
+4. **Ship it in the browser.** Inference for a policy of this size is small; search is the expensive
+   part, so the Elo dial can also govern *search depth*, which is a legitimate strength lever on top
+   of the band-conditioned policy — but never a substitute for it.
+
+**Acceptance bar.** For each offered band: (a) realised Elo within a stated CI of the label, measured
+against the other bands; (b) move-agreement with held-out human games **at that band** exceeding
+agreement at every other band — the Maia test, and the one that distinguishes genuine imitation from a
+handicapped expert; (c) a full game playable in a browser without blocking the main thread.
+
+**Honest status.** Not started. It depends on the value net (in progress), the belief model, and a
+self-play corpus large enough to train from. The rating data also has a known problem: this project has
+already measured that the better-rated player wins only about **52.4%** of ladder games, with a CI that
+includes 50 — so ladder Elo is a **weak** signal here, and band separation must be demonstrated rather
+than assumed. If bands cannot be distinguished, that is a finding and gets reported as one.
+
+---
+
 ## Build order (inputs first, capstone last)
 
 1. **I0 damage engine** — ✅ done.
