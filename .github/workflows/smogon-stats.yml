@@ -1,0 +1,62 @@
+name: smogon-stats
+# Archive Smogon's official monthly usage statistics for our formats.
+#
+# WHY THIS RUNS IN CI AND NOT ON A MACHINE. ABRA's ladder collection began 2026-07-22; Reg M-B
+# started mid-June, and those five weeks are gone — Showdown's replay search exposes only a recent
+# window, and old replay ids are not discoverable (324 archived games span 1.9M sequential ids).
+# Smogon's monthly files are the ONLY source that covers a period after it has passed, and they stop
+# being retrievable if nobody archives them. A cron in the cloud cannot be forgotten.
+#
+# WHAT THEY GIVE US: P(move is ON the set) rather than our P(move | action); item, ability and SPREAD
+# distributions where our closed-sheet store has 69.7% unknown items and 75.5% unknown abilities; and
+# rating cutoffs (0/1500/1630/1760) so high-ladder priors need no bot detection at all.
+on:
+  schedule:
+    # Smogon publishes in the first days of the following month. Run on the 4th, and again on the
+    # 11th in case the first attempt was early. The job is idempotent — it skips files it already has.
+    - cron: '0 7 4 * *'
+    - cron: '0 7 11 * *'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Month to fetch (YYYY-MM). Blank = most recent published.'
+        required: false
+permissions:
+  contents: write
+concurrency:
+  group: smogon-stats
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      # Smogon can be slow or briefly unavailable; that is not a defect in this repo and must never
+      # page the owner. The ingest workflow already learned this.
+      - name: Fetch usage + moveset files
+        continue-on-error: true
+        run: node engine/fetch_smogon_stats.js ${{ github.event.inputs.month }}
+
+      - name: Commit anything new
+        run: |
+          git config user.name  "abra-bot"
+          git config user.email "abra-bot@users.noreply.github.com"
+          git add data/smogon-stats
+          if git diff --cached --quiet; then
+            echo "no new stats this run"; exit 0
+          fi
+          MONTHS=$(git diff --cached --name-only | sed -n 's|data/smogon-stats/\([0-9-]*\)/.*|\1|p' | sort -u | tr '\n' ' ')
+          git commit -m "stats: archive Smogon monthly usage/moveset files ($MONTHS)"
+          # Reconcile explicitly rather than with a merge driver — .gitattributes deliberately has no
+          # merge=union, because that driver is what duplicated the store four times.
+          for i in 1 2 3; do
+            git fetch origin main || { sleep 5; continue; }
+            git rebase origin/main || { git rebase --abort; echo "rebase conflict; leaving for a human"; exit 0; }
+            git push origin main && exit 0
+            echo "push attempt $i failed; retrying"; sleep 5
+          done
+          echo "::warning::could not push stats; will retry next run"
+          exit 0
