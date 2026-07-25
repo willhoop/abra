@@ -65,14 +65,35 @@ function extract(id, uploadtime, text){
     else if(m=l.match(/^\|turn\|(\d+)/)){ flush(); cur={n:+m[1],ev:[]}; }
     else if(m=l.match(/^\|(?:switch|drag|replace)\|(p[12][ab]): ([^|]*)\|([^,|]+)[^|]*(?:\|(\d+)\/(\d+))?/)){
       const slot=m[1], side=slot.slice(0,2), sp=norm(m[3]);
-      nick[side+m[2]]=sp; slotSp[slot]=sp; hp[slot]=m[4]?Math.round(100*+m[4]/+m[5]):100;
-      // `brought` and `lead` must speak the same language as `six`, which comes from team preview
-      // and therefore always names the BASE forme. A mega that switches back in is logged as
-      // "Charizard-Mega-Y", so recording it verbatim put a species in `brought` that was not in
-      // `six` (1,649 games) and pushed the count to 5 (1,560 games). Normalise to the base.
-      const bsp=baseForme(sp);
-      brought[side].add(bsp); touch(sp);
-      if(lead[side].length<2&&!lead[side].includes(bsp))lead[side].push(bsp);
+      /* ---- A COPIED SPECIES IS NOT AN EXTRA POKEMON -------------------------------------
+         Ditto's Imposter, and Zoroark's Illusion, make the SPECIES field disagree with the
+         NICKNAME. A transformed Ditto switching in is logged as
+
+             |switch|p2a: Ditto|Sneasler, L50|131/131
+
+         — nickname Ditto, details Sneasler. Taking the species verbatim put the OPPONENT'S
+         Pokemon into this side's `brought`, pushing the count to five and breaking the
+         subset invariant. Caught on the first 200,004-game self-play corpus: 5 games, every
+         one a Ditto team, every offender a species from the other side.
+
+         Nicknames are unique within a team, so if this nickname is already bound to a
+         different species, this is the SAME Pokemon wearing another form — exactly the mega
+         case below, and handled the same way: track it for damage attribution, but do not
+         count it as brought. */
+      const known=nick[side+m[2]];
+      const copied = known && known!==sp && baseForme(known)!==baseForme(sp);
+      slotSp[slot]=sp; hp[slot]=m[4]?Math.round(100*+m[4]/+m[5]):100;
+      if(!copied) nick[side+m[2]]=sp;
+      touch(sp);
+      if(!copied){
+        // `brought` and `lead` must speak the same language as `six`, which comes from team preview
+        // and therefore always names the BASE forme. A mega that switches back in is logged as
+        // "Charizard-Mega-Y", so recording it verbatim put a species in `brought` that was not in
+        // `six` (1,649 games) and pushed the count to 5 (1,560 games). Normalise to the base.
+        const bsp=baseForme(sp);
+        brought[side].add(bsp);
+        if(lead[side].length<2&&!lead[side].includes(bsp))lead[side].push(bsp);
+      }
       if(cur) cur.ev.push({t:'s',s:slot,mon:sp});
     }
     else if(m=l.match(/^\|move\|(p[12][ab]): ([^|]*)\|([^|]+)(?:\|(p[12][ab]):)?/)){
