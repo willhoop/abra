@@ -1,37 +1,25 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
   "n_games": 2248,
-  "k_selected": 3,
-  "silhouette": 0.067,
+  "k_selected": 4,
+  "silhouette": 0.124,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Basculegion-Whimsicott",
-      "share": 0.692,
+      "n": "Garchomp-Incineroar",
+      "share": 0.655,
       "core": [
-        "basculegion",
-        "whimsicott",
-        "sinistcha",
-        "charizard"
-      ],
-      "signature": [],
-      "w_usage": 0.692
-    },
-    {
-      "n": "Raichu-Talonflame",
-      "share": 0.159,
-      "core": [
-        "raichu",
-        "talonflame",
         "garchomp",
-        "sinistcha"
+        "incineroar",
+        "kingambit",
+        "whimsicott"
       ],
       "signature": [],
-      "w_usage": 0.159
+      "w_usage": 0.655
     },
     {
       "n": "Farigiraf-Incineroar",
-      "share": 0.149,
+      "share": 0.142,
       "core": [
         "farigiraf",
         "incineroar",
@@ -39,9 +27,33 @@
         "sylveon"
       ],
       "signature": [
-        "sylveon"
+        "mawile"
       ],
-      "w_usage": 0.149
+      "w_usage": 0.142
+    },
+    {
+      "n": "Rain",
+      "share": 0.126,
+      "core": [
+        "pelipper",
+        "archaludon",
+        "swampert",
+        "basculegion"
+      ],
+      "signature": [],
+      "w_usage": 0.126
+    },
+    {
+      "n": "Sand",
+      "share": 0.077,
+      "core": [
+        "tyranitar",
+        "excadrill",
+        "sinistcha",
+        "staraptor"
+      ],
+      "signature": [],
+      "w_usage": 0.077
     }
   ]
 }
