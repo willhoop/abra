@@ -140,6 +140,72 @@ separate tests workflow runs the test suite and the damage validation on every p
 
 ## 4. Explanation
 
+### 4.0 What a neural network is here, and why it is not automatically an upgrade
+
+Every model in ABRA answers one question: given the board right now, what is P(I win)? PORY answers it
+with **logistic regression** — multiply each feature by a weight, add them up, squash to 0..1:
+
+    p = sigmoid(w0 + w1*alive_diff + w2*hp_diff + ...)
+
+That can only draw a straight dividing line through feature space. It cannot express *"being one
+Pokémon ahead matters enormously on turn 3 and barely on turn 25"*, because that is an **interaction**
+between two features, and a sum of independent terms has no way to say it.
+
+A **neural network** is the same idea with a middle step. Inputs are combined into H hidden units,
+each its own weighted sum passed through a nonlinearity (ReLU: `max(0, x)`), and those are combined
+into the answer:
+
+    h = relu(W1 @ x + b1)     # H learned intermediate quantities
+    p = sigmoid(W2 @ h + b2)
+
+Each hidden unit can become a detector for a **conjunction** — "ahead on material AND my active is
+faster AND Trick Room is not up" — and the output layer weighs the detectors. Universal approximation
+(Cybenko 1989; Hornik 1991) says one hidden layer of sufficient width can represent any continuous
+function on a bounded domain, so the network is strictly **more expressive** than the linear model.
+
+**Strictly more expressive is a claim about representation, not about learning.** Extra capacity spent
+on features that contain no interactions buys nothing and costs variance. `engine/pory_baseline.py`
+already established the relevant fact: PORY's six material features are **beaten by two of them**
+(`alive_diff + hp_diff` at 0.5822 vs PORY's 0.5840). If the features carry no more signal, a network
+fitted to them lands in the same place — and reporting otherwise would be measuring the estimator
+rather than the game.
+
+This is the lesson the game-playing literature learned repeatedly. **TD-Gammon** (Tesauro 1994) needed
+hand-designed board features, not checker counts. **AlphaGo Zero / AlphaZero** (Silver et al. 2017,
+2018) feed the value head a *stack of planes* — piece positions, repetition, side to move — because
+material is precisely the baseline a value net must beat, and it beats it by seeing **where** the
+pieces are. Leela Chess Zero's ablations show the value head collapsing toward the handcrafted
+evaluation when the positional planes are stripped.
+
+So the binding constraint was **representation, not capacity**. `engine/state_encoder.py` supplies the
+planes: HP per slot, active vs benched, status, stat boosts, weather / terrain / Trick Room / Tailwind
+/ screens, hazards, and the active Pokémon's types — 121 features where PORY had 6.
+
+`engine/pory_nn.py` then separates the two explanations rather than conflating them, by running eight
+arms on one split:
+
+| arm | what it isolates |
+|---|---|
+| `B2` logistic, `alive_diff + hp_diff` | **the bar** — two material features |
+| `L6` logistic, PORY's six | PORY itself |
+| `LR` logistic, rich features | gain from **representation** alone |
+| `N6` network, PORY's six | gain from **nonlinearity** alone |
+| `NR` network, rich features | both |
+
+If the network wins only on `N6`, the gain is nonlinearity. If only on `LR`, PORY was feature-starved
+rather than model-starved. If neither beats `B2`, that is the result and it is reported as such.
+
+Species identity is deliberately **excluded**: ~240 species one-hot across 8 slots is a
+1,920-dimensional input, which on ~9,000 real games would be fitted almost entirely to noise. Species
+enters only through type. Embeddings become defensible once the self-play corpus is large enough, and
+the encoder is versioned so that change is visible rather than silent.
+
+Two methodological points that decide whether any of these numbers mean anything. **Splits are by
+game, never by state** — turns within a game share an outcome, so splitting on states leaks the label
+across the boundary and flatters every arm equally. And **every state is emitted twice with the sides
+swapped**, because antisymmetry in the two players is a property of the game; a model trained on p1's
+view alone will not respect it.
+
 **Store raw, analyse on top.** ABRA saves every game with every fact it may ever need. Every filter —
 rating tier, humans-only, archetype, playstyle — runs over the store at read time. A change to how the
 games are segmented is a re-computation, not a re-download. This makes the fetch a one-time cost and
