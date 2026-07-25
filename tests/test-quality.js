@@ -71,25 +71,20 @@ const jsGames = Q.loadGames();
 const jsIds = jsGames.map(g => g.id).sort();
 /* Find a REAL Python. `python3` alone is a Linux assumption: on Windows the python.org installer
  * ships python.exe (not python3.exe), and `python3` resolves to the Microsoft Store alias stub,
- * which prints "Python was not found" and exits 9009. This test therefore passed in CI and could
- * never run on the development machine. Same probe as server.js. */
-const PY_CANDIDATES = [['python3', []], ['python', []], ['py', ['-3']]];
-function findPython() {
-  for (const [cmd, pre] of PY_CANDIDATES) {
-    try {
-      const v = execFileSync(cmd, [...pre, '-c', 'print(1)'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-      if (v.trim() === '1') return [cmd, pre];
-    } catch (e) { /* not installed, or the Store stub - try the next */ }
-  }
-  return null;
-}
-const found = findPython();
+ * which prints "Python was not found" and exits 9009.
+ *
+ * Resolution now lives in engine/python.js (S12) rather than being duplicated here and in server.js.
+ * The old local probe tried only python3/python/py and therefore SKIPPED on this project's own
+ * development machine, where those names all resolve to the stub while a working Python 3.12.10 sits
+ * in %LOCALAPPDATA%\Programs\Python. A parity test that silently skips is worse than one that fails:
+ * it reports success while checking nothing. */
+const found = require('../engine/python.js').find();
 if (!found) {
-  console.error('SKIP: no working Python found (tried python3, python, py -3).');
+  console.error('SKIP: no working Python found (probed names and standard install roots).');
   console.error('The JS/Python parity check cannot run. Install Python or add it to PATH.');
   process.exit(2);   // distinct from a real failure, so CI can tell them apart
 }
-const [PYCMD, PYPRE] = found;
+const [PYCMD, PYPRE] = [found.cmd, found.args];
 const py = execFileSync(PYCMD, [...PYPRE, '-c',
   "import sys,hashlib; sys.path.insert(0,'engine'); import quality;" +
   "ids=sorted(g['id'] for g in quality.load_games());" +
