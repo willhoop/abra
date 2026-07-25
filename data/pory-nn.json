@@ -1,0 +1,76 @@
+{
+ "encoder_version": 2,
+ "n_features": 121,
+ "sources": [
+  "data\\games.ladder.raw-logs.jsonl"
+ ],
+ "n_states": 8792,
+ "n_games": 700,
+ "split": {
+  "train": 5566,
+  "val": 1662,
+  "test": 1564
+ },
+ "arms": [
+  {
+   "arm": "B0  coin",
+   "logloss": 0.6931,
+   "acc": 0.5,
+   "auc": 0.5,
+   "calib": 0.0
+  },
+  {
+   "arm": "B1  alive_diff",
+   "logloss": 0.6358,
+   "acc": 0.6004,
+   "auc": 0.6653,
+   "calib": 0.0145
+  },
+  {
+   "arm": "B2  alive_diff+hp_diff",
+   "logloss": 0.6333,
+   "acc": 0.6151,
+   "auc": 0.6793,
+   "calib": 0.0196
+  },
+  {
+   "arm": "B3  sign(alive_diff)",
+   "logloss": 0.6456,
+   "acc": 0.6004,
+   "auc": 0.658,
+   "calib": 0.0175
+  },
+  {
+   "arm": "L6  logistic, material",
+   "logloss": 0.6335,
+   "acc": 0.6151,
+   "auc": 0.6793,
+   "calib": 0.0216
+  },
+  {
+   "arm": "LR  logistic, rich",
+   "logloss": 0.6164,
+   "acc": 0.6522,
+   "auc": 0.7238,
+   "calib": 0.0508
+  },
+  {
+   "arm": "N6  network, material",
+   "logloss": 0.621,
+   "acc": 0.6125,
+   "auc": 0.6795,
+   "calib": 0.0199,
+   "hidden": 32,
+   "val_logloss": 0.634
+  },
+  {
+   "arm": "NR  network, rich",
+   "logloss": 0.6585,
+   "acc": 0.6292,
+   "auc": 0.697,
+   "calib": 0.0778,
+   "hidden": 32,
+   "val_logloss": 0.5797
+  }
+ ]
+}
