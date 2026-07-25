@@ -233,6 +233,26 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
   animation:tpr .7s ease-out forwards;box-shadow:0 0 14px #ffd23f}
 @keyframes tpr{from{opacity:.9;transform:scale(.3)}to{opacity:0;transform:scale(2.3)}}
 </style>
+<style>
+/* FIRST-PAINT SKELETON.
+ * The page is ~305KB with 284KB of inline script and nine render-blocking <script src> tags ahead
+ * of it (kad-replays.js alone is 220KB). #stage is empty in the HTML and is not filled until
+ * go('town') runs on the LAST line of the LAST script block, so on a slow load the browser paints
+ * the header and footer and then nothing — which is all a visitor saw for that gap.
+ *
+ * This paints a placeholder immediately from static markup. go() overwrites #stage wholesale, so
+ * the skeleton needs no teardown code: it is gone the instant the real room renders. */
+#stage .skel{max-width:1080px;margin:0 auto;padding:0 16px}
+#stage .skel-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+#stage .skel-b{background:linear-gradient(100deg,#eaf2fb 30%,#f7fbff 50%,#eaf2fb 70%);
+  background-size:220% 100%;animation:skelshine 1.25s linear infinite;
+  border:2px solid #e2ecf7;border-radius:14px}
+#stage .skel-tile{width:150px;height:104px}
+#stage .skel-bar{height:16px;border-radius:8px;margin:0 auto 12px}
+@keyframes skelshine{0%{background-position:180% 0}100%{background-position:-80% 0}}
+@media (prefers-reduced-motion:reduce){#stage .skel-b{animation:none}}
+#stage .skel-note{text-align:center;color:#6d829b;font-weight:700;font-size:13.5px;margin-top:6px}
+</style>
 </head>
 <body>
 <div class="sky" id="sky"></div>
@@ -250,7 +270,14 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 
 <nav id="nav"></nav>
 
-<main id="stage"></main>
+<main id="stage"><div class="skel" aria-hidden="true">
+  <div class="skel-b skel-bar" style="width:210px"></div>
+  <div class="skel-row">
+    <div class="skel-b skel-tile"></div><div class="skel-b skel-tile"></div><div class="skel-b skel-tile"></div>
+    <div class="skel-b skel-tile"></div><div class="skel-b skel-tile"></div><div class="skel-b skel-tile"></div>
+  </div>
+  <div class="skel-note">waking the town…</div>
+</div></main>
 
 <footer style="margin-bottom:96px"><a href="https://willhoop.github.io" target="_blank" style="color:#1E2761;font-weight:800;text-decoration:underline">Built by Will Hooper</a> · ABRA = <b>A</b>utomated <b>B</b>attle <b>R</b>eplay <b>A</b>nalyzer · grounded in real ladder games, evaluated honestly, and built to learn from self-play over time.</footer>
 
