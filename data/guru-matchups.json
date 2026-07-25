@@ -1,723 +1,159 @@
 {
   "generated": "engine/guru.py \u2014 archetype matchup matrix from REAL outcomes (Wilson CIs)",
   "n_games": 1124,
-  "n_archetypes": 11,
+  "n_archetypes": 5,
   "archetypes": [
     "Farigiraf-Incineroar",
-    "Garchomp-Charizard",
-    "Garchomp-Talonflame",
-    "Incineroar-Sinistcha",
+    "Garchomp-Incineroar",
     "Other",
-    "Pelipper-Archaludon",
-    "Raichu-Sneasler",
-    "Sableye-Kingambit",
-    "Sand",
-    "Sinistcha-Staraptor",
-    "Trick Room"
+    "Rain",
+    "Sand"
   ],
   "decisive_matchups": [],
   "n_decisive": 0,
   "predictive_test": {
     "test_games": 225,
-    "log_loss_matchup_prior": 0.7118,
+    "log_loss_matchup_prior": 0.7038,
     "log_loss_coin": 0.6931,
     "log_loss_usage": 0.6924,
-    "winner_pick_accuracy": 0.5051,
+    "winner_pick_accuracy": 0.5194,
     "note": "per-game prediction is expected near the coin (format ceiling); GURU's VALUE is the validated matchup STRUCTURE below."
   },
   "matrix": {
     "Farigiraf-Incineroar": {
       "Farigiraf-Incineroar": null,
-      "Garchomp-Charizard": {
-        "p": 0.545,
-        "lo": 0.38,
-        "hi": 0.702,
-        "n": 33
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.625,
-        "lo": 0.306,
-        "hi": 0.863,
-        "n": 8
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.35,
-        "lo": 0.181,
-        "hi": 0.567,
-        "n": 20
+      "Garchomp-Incineroar": {
+        "p": 0.568,
+        "lo": 0.485,
+        "hi": 0.648,
+        "n": 139
       },
       "Other": {
-        "p": 0.0,
-        "lo": 0.0,
-        "hi": 0.562,
-        "n": 3
+        "p": 0.436,
+        "lo": 0.293,
+        "hi": 0.59,
+        "n": 39
       },
-      "Pelipper-Archaludon": {
-        "p": 0.235,
-        "lo": 0.096,
-        "hi": 0.473,
-        "n": 17
-      },
-      "Raichu-Sneasler": {
-        "p": 0.409,
-        "lo": 0.233,
-        "hi": 0.613,
-        "n": 22
-      },
-      "Sableye-Kingambit": {
-        "p": 0.667,
-        "lo": 0.208,
-        "hi": 0.939,
-        "n": 3
+      "Rain": {
+        "p": 0.4,
+        "lo": 0.276,
+        "hi": 0.538,
+        "n": 50
       },
       "Sand": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Trick Room": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
+        "p": 0.515,
+        "lo": 0.352,
+        "hi": 0.675,
+        "n": 33
       }
     },
-    "Garchomp-Charizard": {
+    "Garchomp-Incineroar": {
       "Farigiraf-Incineroar": {
-        "p": 0.455,
-        "lo": 0.298,
-        "hi": 0.62,
-        "n": 33
+        "p": 0.432,
+        "lo": 0.352,
+        "hi": 0.515,
+        "n": 139
       },
-      "Garchomp-Charizard": null,
-      "Garchomp-Talonflame": {
-        "p": 0.5,
-        "lo": 0.326,
-        "hi": 0.674,
-        "n": 28
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.493,
-        "lo": 0.38,
-        "hi": 0.607,
-        "n": 71
-      },
+      "Garchomp-Incineroar": null,
       "Other": {
-        "p": 0.524,
-        "lo": 0.324,
-        "hi": 0.717,
-        "n": 21
+        "p": 0.496,
+        "lo": 0.408,
+        "hi": 0.584,
+        "n": 119
       },
-      "Pelipper-Archaludon": {
-        "p": 0.407,
-        "lo": 0.311,
-        "hi": 0.509,
-        "n": 91
-      },
-      "Raichu-Sneasler": {
-        "p": 0.415,
-        "lo": 0.321,
-        "hi": 0.516,
-        "n": 94
-      },
-      "Sableye-Kingambit": {
-        "p": 0.625,
-        "lo": 0.386,
-        "hi": 0.815,
-        "n": 16
+      "Rain": {
+        "p": 0.435,
+        "lo": 0.366,
+        "hi": 0.505,
+        "n": 191
       },
       "Sand": {
-        "p": 0.5,
-        "lo": 0.314,
-        "hi": 0.686,
-        "n": 24
+        "p": 0.553,
+        "lo": 0.471,
+        "hi": 0.633,
+        "n": 141
+      }
+    },
+    "Other": {
+      "Farigiraf-Incineroar": {
+        "p": 0.564,
+        "lo": 0.41,
+        "hi": 0.707,
+        "n": 39
       },
-      "Sinistcha-Staraptor": {
+      "Garchomp-Incineroar": {
+        "p": 0.504,
+        "lo": 0.416,
+        "hi": 0.592,
+        "n": 119
+      },
+      "Other": null,
+      "Rain": {
         "p": 0.538,
         "lo": 0.386,
         "hi": 0.684,
         "n": 39
       },
-      "Trick Room": {
-        "p": 0.353,
-        "lo": 0.173,
-        "hi": 0.587,
-        "n": 17
-      }
-    },
-    "Garchomp-Talonflame": {
-      "Farigiraf-Incineroar": {
-        "p": 0.375,
-        "lo": 0.137,
-        "hi": 0.694,
-        "n": 8
-      },
-      "Garchomp-Charizard": {
-        "p": 0.5,
-        "lo": 0.326,
-        "hi": 0.674,
-        "n": 28
-      },
-      "Garchomp-Talonflame": null,
-      "Incineroar-Sinistcha": {
-        "p": 0.562,
-        "lo": 0.332,
-        "hi": 0.769,
-        "n": 16
-      },
-      "Other": {
-        "p": 0.455,
-        "lo": 0.213,
-        "hi": 0.72,
-        "n": 11
-      },
-      "Pelipper-Archaludon": {
-        "p": 0.667,
-        "lo": 0.417,
-        "hi": 0.848,
-        "n": 15
-      },
-      "Raichu-Sneasler": {
-        "p": 0.474,
-        "lo": 0.273,
-        "hi": 0.683,
-        "n": 19
-      },
-      "Sableye-Kingambit": {
-        "p": 1.0,
-        "lo": 0.342,
-        "hi": 1.0,
-        "n": 2
-      },
       "Sand": {
-        "p": 0.5,
-        "lo": 0.095,
-        "hi": 0.905,
-        "n": 2
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.875,
-        "lo": 0.529,
-        "hi": 0.978,
-        "n": 8
-      },
-      "Trick Room": {
-        "p": 0.333,
-        "lo": 0.097,
-        "hi": 0.7,
-        "n": 6
+        "p": 0.565,
+        "lo": 0.368,
+        "hi": 0.744,
+        "n": 23
       }
     },
-    "Incineroar-Sinistcha": {
+    "Rain": {
       "Farigiraf-Incineroar": {
-        "p": 0.65,
-        "lo": 0.433,
-        "hi": 0.819,
-        "n": 20
-      },
-      "Garchomp-Charizard": {
-        "p": 0.507,
-        "lo": 0.393,
-        "hi": 0.62,
-        "n": 71
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.438,
-        "lo": 0.231,
-        "hi": 0.668,
-        "n": 16
-      },
-      "Incineroar-Sinistcha": null,
-      "Other": {
-        "p": 0.357,
-        "lo": 0.163,
-        "hi": 0.612,
-        "n": 14
-      },
-      "Pelipper-Archaludon": {
-        "p": 0.582,
-        "lo": 0.45,
-        "hi": 0.703,
-        "n": 55
-      },
-      "Raichu-Sneasler": {
-        "p": 0.575,
-        "lo": 0.422,
-        "hi": 0.715,
-        "n": 40
-      },
-      "Sableye-Kingambit": {
-        "p": 0.625,
-        "lo": 0.306,
-        "hi": 0.863,
-        "n": 8
-      },
-      "Sand": {
-        "p": 0.615,
-        "lo": 0.355,
-        "hi": 0.823,
-        "n": 13
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.476,
-        "lo": 0.283,
-        "hi": 0.676,
-        "n": 21
-      },
-      "Trick Room": {
-        "p": 0.5,
-        "lo": 0.29,
-        "hi": 0.71,
-        "n": 18
-      }
-    },
-    "Other": {
-      "Farigiraf-Incineroar": {
-        "p": 1.0,
-        "lo": 0.438,
-        "hi": 1.0,
-        "n": 3
-      },
-      "Garchomp-Charizard": {
-        "p": 0.476,
-        "lo": 0.283,
-        "hi": 0.676,
-        "n": 21
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.545,
-        "lo": 0.28,
-        "hi": 0.787,
-        "n": 11
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.643,
-        "lo": 0.388,
-        "hi": 0.837,
-        "n": 14
-      },
-      "Other": null,
-      "Pelipper-Archaludon": {
-        "p": 0.545,
-        "lo": 0.28,
-        "hi": 0.787,
-        "n": 11
-      },
-      "Raichu-Sneasler": {
         "p": 0.6,
-        "lo": 0.357,
-        "hi": 0.802,
-        "n": 15
+        "lo": 0.462,
+        "hi": 0.724,
+        "n": 50
       },
-      "Sableye-Kingambit": {
-        "p": 0.4,
-        "lo": 0.168,
-        "hi": 0.687,
-        "n": 10
-      },
-      "Sand": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.667,
-        "lo": 0.208,
-        "hi": 0.939,
-        "n": 3
-      },
-      "Trick Room": {
-        "p": 1.0,
-        "lo": 0.342,
-        "hi": 1.0,
-        "n": 2
-      }
-    },
-    "Pelipper-Archaludon": {
-      "Farigiraf-Incineroar": {
-        "p": 0.765,
-        "lo": 0.527,
-        "hi": 0.904,
-        "n": 17
-      },
-      "Garchomp-Charizard": {
-        "p": 0.593,
-        "lo": 0.491,
-        "hi": 0.689,
-        "n": 91
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.333,
-        "lo": 0.152,
-        "hi": 0.583,
-        "n": 15
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.418,
-        "lo": 0.297,
-        "hi": 0.55,
-        "n": 55
+      "Garchomp-Incineroar": {
+        "p": 0.565,
+        "lo": 0.495,
+        "hi": 0.634,
+        "n": 191
       },
       "Other": {
-        "p": 0.455,
-        "lo": 0.213,
-        "hi": 0.72,
-        "n": 11
-      },
-      "Pelipper-Archaludon": null,
-      "Raichu-Sneasler": {
-        "p": 0.415,
-        "lo": 0.278,
-        "hi": 0.566,
-        "n": 41
-      },
-      "Sableye-Kingambit": {
-        "p": 0.833,
-        "lo": 0.436,
-        "hi": 0.97,
-        "n": 6
-      },
-      "Sand": {
-        "p": 0.625,
-        "lo": 0.386,
-        "hi": 0.815,
-        "n": 16
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.417,
-        "lo": 0.193,
-        "hi": 0.68,
-        "n": 12
-      },
-      "Trick Room": {
-        "p": 0.667,
-        "lo": 0.417,
-        "hi": 0.848,
-        "n": 15
-      }
-    },
-    "Raichu-Sneasler": {
-      "Farigiraf-Incineroar": {
-        "p": 0.591,
-        "lo": 0.387,
-        "hi": 0.767,
-        "n": 22
-      },
-      "Garchomp-Charizard": {
-        "p": 0.585,
-        "lo": 0.484,
-        "hi": 0.679,
-        "n": 94
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.526,
-        "lo": 0.317,
-        "hi": 0.727,
-        "n": 19
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.425,
-        "lo": 0.285,
-        "hi": 0.578,
-        "n": 40
-      },
-      "Other": {
-        "p": 0.4,
-        "lo": 0.198,
-        "hi": 0.643,
-        "n": 15
-      },
-      "Pelipper-Archaludon": {
-        "p": 0.585,
-        "lo": 0.434,
-        "hi": 0.722,
-        "n": 41
-      },
-      "Raichu-Sneasler": null,
-      "Sableye-Kingambit": {
-        "p": 0.714,
-        "lo": 0.359,
-        "hi": 0.918,
-        "n": 7
-      },
-      "Sand": {
-        "p": 0.533,
-        "lo": 0.301,
-        "hi": 0.752,
-        "n": 15
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.583,
-        "lo": 0.32,
-        "hi": 0.807,
-        "n": 12
-      },
-      "Trick Room": {
-        "p": 0.727,
-        "lo": 0.434,
-        "hi": 0.903,
-        "n": 11
-      }
-    },
-    "Sableye-Kingambit": {
-      "Farigiraf-Incineroar": {
-        "p": 0.333,
-        "lo": 0.061,
-        "hi": 0.792,
-        "n": 3
-      },
-      "Garchomp-Charizard": {
-        "p": 0.375,
-        "lo": 0.185,
-        "hi": 0.614,
-        "n": 16
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.0,
-        "lo": 0.0,
-        "hi": 0.658,
-        "n": 2
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.375,
-        "lo": 0.137,
-        "hi": 0.694,
-        "n": 8
-      },
-      "Other": {
-        "p": 0.6,
-        "lo": 0.313,
-        "hi": 0.832,
-        "n": 10
-      },
-      "Pelipper-Archaludon": {
-        "p": 0.167,
-        "lo": 0.03,
-        "hi": 0.564,
-        "n": 6
-      },
-      "Raichu-Sneasler": {
-        "p": 0.286,
-        "lo": 0.082,
-        "hi": 0.641,
-        "n": 7
-      },
-      "Sableye-Kingambit": null,
-      "Sand": {
-        "p": 1.0,
-        "lo": 0.207,
-        "hi": 1.0,
-        "n": 1
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Trick Room": {
-        "p": 0.0,
-        "lo": 0.0,
-        "hi": 0.793,
-        "n": 1
-      }
-    },
-    "Sand": {
-      "Farigiraf-Incineroar": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Garchomp-Charizard": {
-        "p": 0.5,
-        "lo": 0.314,
-        "hi": 0.686,
-        "n": 24
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.5,
-        "lo": 0.095,
-        "hi": 0.905,
-        "n": 2
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.385,
-        "lo": 0.177,
-        "hi": 0.645,
-        "n": 13
-      },
-      "Other": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Pelipper-Archaludon": {
-        "p": 0.375,
-        "lo": 0.185,
-        "hi": 0.614,
-        "n": 16
-      },
-      "Raichu-Sneasler": {
-        "p": 0.467,
-        "lo": 0.248,
-        "hi": 0.699,
-        "n": 15
-      },
-      "Sableye-Kingambit": {
-        "p": 0.0,
-        "lo": 0.0,
-        "hi": 0.793,
-        "n": 1
-      },
-      "Sand": null,
-      "Sinistcha-Staraptor": {
-        "p": 0.571,
-        "lo": 0.25,
-        "hi": 0.842,
-        "n": 7
-      },
-      "Trick Room": {
-        "p": 1.0,
-        "lo": 0.342,
-        "hi": 1.0,
-        "n": 2
-      }
-    },
-    "Sinistcha-Staraptor": {
-      "Farigiraf-Incineroar": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
-      "Garchomp-Charizard": {
         "p": 0.462,
         "lo": 0.316,
         "hi": 0.614,
         "n": 39
       },
-      "Garchomp-Talonflame": {
-        "p": 0.125,
-        "lo": 0.022,
-        "hi": 0.471,
-        "n": 8
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.524,
-        "lo": 0.324,
-        "hi": 0.717,
-        "n": 21
-      },
-      "Other": {
-        "p": 0.333,
-        "lo": 0.061,
-        "hi": 0.792,
-        "n": 3
-      },
-      "Pelipper-Archaludon": {
-        "p": 0.583,
-        "lo": 0.32,
-        "hi": 0.807,
-        "n": 12
-      },
-      "Raichu-Sneasler": {
-        "p": 0.417,
-        "lo": 0.193,
-        "hi": 0.68,
-        "n": 12
-      },
-      "Sableye-Kingambit": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
-      },
+      "Rain": null,
       "Sand": {
-        "p": 0.429,
-        "lo": 0.158,
-        "hi": 0.75,
-        "n": 7
-      },
-      "Sinistcha-Staraptor": null,
-      "Trick Room": {
-        "p": 0.6,
-        "lo": 0.231,
-        "hi": 0.882,
-        "n": 5
+        "p": 0.463,
+        "lo": 0.321,
+        "hi": 0.613,
+        "n": 41
       }
     },
-    "Trick Room": {
+    "Sand": {
       "Farigiraf-Incineroar": {
-        "p": 0.5,
-        "lo": 0.15,
-        "hi": 0.85,
-        "n": 4
+        "p": 0.485,
+        "lo": 0.325,
+        "hi": 0.648,
+        "n": 33
       },
-      "Garchomp-Charizard": {
-        "p": 0.647,
-        "lo": 0.413,
-        "hi": 0.827,
-        "n": 17
-      },
-      "Garchomp-Talonflame": {
-        "p": 0.667,
-        "lo": 0.3,
-        "hi": 0.903,
-        "n": 6
-      },
-      "Incineroar-Sinistcha": {
-        "p": 0.5,
-        "lo": 0.29,
-        "hi": 0.71,
-        "n": 18
+      "Garchomp-Incineroar": {
+        "p": 0.447,
+        "lo": 0.367,
+        "hi": 0.529,
+        "n": 141
       },
       "Other": {
-        "p": 0.0,
-        "lo": 0.0,
-        "hi": 0.658,
-        "n": 2
+        "p": 0.435,
+        "lo": 0.256,
+        "hi": 0.632,
+        "n": 23
       },
-      "Pelipper-Archaludon": {
-        "p": 0.333,
-        "lo": 0.152,
-        "hi": 0.583,
-        "n": 15
+      "Rain": {
+        "p": 0.537,
+        "lo": 0.387,
+        "hi": 0.679,
+        "n": 41
       },
-      "Raichu-Sneasler": {
-        "p": 0.273,
-        "lo": 0.097,
-        "hi": 0.566,
-        "n": 11
-      },
-      "Sableye-Kingambit": {
-        "p": 1.0,
-        "lo": 0.207,
-        "hi": 1.0,
-        "n": 1
-      },
-      "Sand": {
-        "p": 0.0,
-        "lo": 0.0,
-        "hi": 0.658,
-        "n": 2
-      },
-      "Sinistcha-Staraptor": {
-        "p": 0.4,
-        "lo": 0.118,
-        "hi": 0.769,
-        "n": 5
-      },
-      "Trick Room": null
+      "Sand": null
     }
   }
 }

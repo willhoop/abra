@@ -45,10 +45,10 @@ OUT   = os.path.join(HERE, "..", "data", "archetypes.json")
 # This is deliberately COARSE now and widens on its own as the store grows — at ~330 clean games/day
 # the ceiling rises without anyone editing a constant. Set ARCH_MIN_CELL to change the target.
 #
-#   1,124 games ->  K<=4      (today)
-#   5,000       ->  K<=9
-#   9,700       ->  K<=12     (65/35 matchups become callable)
-MIN_CELL = int(os.environ.get("ARCH_MIN_CELL", "60"))
+#   1,124 games ->  K<=6      (today, at MIN_CELL=30 — GURU's own decisive bar)
+#   5,000       ->  K<=12
+#   at MIN_CELL=80 (65/35 actually detectable) today's cap would be K<=3
+MIN_CELL = int(os.environ.get("ARCH_MIN_CELL", "30"))
 K_FLOOR, K_CEIL = 3, 12
 
 
@@ -134,10 +134,17 @@ def main():
     glob = X.mean(0)  # global usage per species
 
     # K is capped by what the SAMPLE can support, not only by what the clustering prefers.
-    krange, kcap = k_range_for(total)
+    #
+    # The cap is computed from GAMES, not teams. This file clusters teams (two per game), but the
+    # thing that starves is GURU's matrix, and a game fills exactly ONE cell of it — the pair of
+    # archetypes that played each other. Sizing K off team count would double the apparent sample and
+    # licence a K the matrix cannot fill.
+    n_games = max(1, len(teams) // 2)
+    krange, kcap = k_range_for(n_games)
     _sys.stderr.write(
-        "archetypes: %d teams -> K capped at %d (cells %d, target >=%d games/cell; "
-        "raise ARCH_MIN_CELL to go coarser)\n" % (total, kcap, kcap * kcap, MIN_CELL))
+        "archetypes: %d teams (%d games) -> K capped at %d; %d cells, ~%.0f games/cell "
+        "against a target of %d (ARCH_MIN_CELL)\n"
+        % (len(teams), n_games, kcap, kcap * kcap, n_games / (kcap * kcap), MIN_CELL))
 
     best = None
     for k in krange:
