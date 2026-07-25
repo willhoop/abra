@@ -17,6 +17,7 @@ window.ABRA_STATUS = {
     "xatu",
     "pory",
     "hypno",
+    "roles",
     "jolteon"
    ],
    "derived": false,
@@ -198,6 +199,20 @@ window.ABRA_STATUS = {
    "sees": [],
    "derived": false,
    "evidence": null
+  },
+  {
+   "id": "roles",
+   "name": "ROLES",
+   "tier": "meta",
+   "status": "null",
+   "metric": "does not predict winners — 0.6914 against a coin's 0.6931 and plain player rating's 0.6908. Useful as description, not as evidence about outcomes.",
+   "detail": "what job each Pokemon does",
+   "inputs": [
+    "store"
+   ],
+   "sees": [],
+   "derived": true,
+   "evidence": "data/roles.js: log_loss vs coin and rating baseline"
   },
   {
    "id": "alakazam",

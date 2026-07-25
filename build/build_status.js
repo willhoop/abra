@@ -55,6 +55,7 @@ const MODELS = [
   { id: 'slowking', name: 'KING',     tier: 'preview',   detail: 'the unexploitable mix',         inputs: ['guru', 'medicham'],      fallback: 'built' },
   { id: 'ditto',    name: 'DITTO',    tier: 'build',     detail: 'builds teams',                  inputs: ['slowking', 'medicham'],  fallback: 'pivot' },
   { id: 'kadabra',  name: 'KADABRA',  tier: 'battle',    detail: 'coaches a replay',              inputs: ['pory', 'medicham'],      fallback: 'built' },
+  { id: 'roles',    name: 'ROLES',    tier: 'meta',      detail: 'what job each Pokemon does',    inputs: ['store'],                 fallback: 'built' },
   { id: 'alakazam', name: 'ALAKAZAM', tier: 'battle',    detail: 'in-battle coach',               inputs: ['slowking', 'xatu', 'pory'], fallback: 'dev' },
   { id: 'jolteon',  name: 'JOLT',     tier: 'retired',   detail: 'win% from sheets',              inputs: ['store'],                 fallback: 'retired' },
   { id: 'medi_win', name: 'MEDI-WIN', tier: 'retired',   detail: 'old win% guess',                inputs: ['medicham'],              fallback: 'retired' },
@@ -135,6 +136,28 @@ const RULES = {
       status: n > 1000 ? 'built' : 'dev',
       metric: `${n.toLocaleString()} self-play games generated on the official engine`,
       why: 'data/games.selfplay.jsonl: record count',
+    };
+  },
+
+  /* ROLES groups Pokemon by the job they do. The grouping is useful as DESCRIPTION; the question
+   * here is whether it PREDICTS. Bar: beat a coin, and beat the rating-only baseline — a model
+   * that loses to "compare the two players' ladder ratings" has added nothing, since that baseline
+   * needs no model at all. */
+  roles() {
+    const R = readJSVar('data/roles.js', 'ROLES');
+    const L = R && R.log_loss;
+    if (!L || L.roles == null) return null;
+    const beatsCoin = L.roles < (L.coin ?? 0.6931);
+    const beatsRating = L.rating_baseline == null || L.roles < L.rating_baseline;
+    const ok = beatsCoin && beatsRating;
+    return {
+      status: ok ? 'built' : 'null',
+      metric: ok ? `beats a coin and the rating baseline (${L.roles.toFixed(4)})`
+                 : `does not predict winners — ${L.roles.toFixed(4)} against a coin's ` +
+                   `${(L.coin ?? 0.6931).toFixed(4)}` +
+                   (L.rating_baseline != null ? ` and plain player rating's ${L.rating_baseline.toFixed(4)}` : '') +
+                   '. Useful as description, not as evidence about outcomes.',
+      why: 'data/roles.js: log_loss vs coin and rating baseline',
     };
   },
 

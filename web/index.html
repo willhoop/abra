@@ -611,7 +611,21 @@ const CAST=[
 const nav=document.getElementById('nav');
 /* nav order: MAP first (the orientation view), then the town, then each model.
    CAST order itself is left alone — some rooms index into it. */
-const NAVCAST=[...CAST.filter(c=>c.id==='map'),...CAST.filter(c=>c.id!=='map')];
+/* ONLY WORKING MODELS GET A TAB. Anything tested-and-failed, retired, or not built yet lives in
+   the PC and is reached from there — a model in the PC should not also sit in the top row as if it
+   were on equal footing. The filter reads data/status.js (S13), so the nav re-sorts itself when a
+   model's evidence changes: fail a test and your tab disappears into the PC on the next build;
+   start working and it comes back. Nothing here is a maintained list.
+   MAP, TOWN and PC are fixtures — they are places, not models. */
+const FIXTURES=['map','town','pc'];
+const WORKING=['live','validated','win','built'];
+function navShows(id){
+  if(FIXTURES.includes(id)) return true;
+  const m=statusFor(id);
+  if(!m) return true;                       // unknown -> show it rather than silently hide a room
+  return WORKING.includes(m.status);
+}
+const NAVCAST=[...CAST.filter(c=>c.id==='map'),...CAST.filter(c=>c.id!=='map')].filter(c=>navShows(c.id));
 NAVCAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
   b.innerHTML=`${c.icon?c.icon:`<img src="${ani(c.sprite)}">`}${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
 
