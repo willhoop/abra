@@ -322,7 +322,26 @@ async function main() {
       const seed = SEED0 + i;
       const k = ((i % TOTAL) * STRIDE + OFF) % TOTAL;
       const [ai, bi] = pairForIndex(k);
-      const a = teams[ai], b = teams[bi];
+      /* SIDES MUST BE SHUFFLED, OR THE ENUMERATION ITSELF CREATES A SIDE BIAS.
+       *
+       * pairForIndex returns the pair with ai <= bi, so sending ai to p1 unconditionally puts every
+       * low-index team permanently on p1 and every high-index team permanently on p2. The pool is
+       * ordered by first appearance in the store, which tracks usage, so that is not a neutral
+       * ordering — it systematically sorts teams by side.
+       *
+       * MEASURED on the first 200,004-game corpus: p1 won 50.86% of 119,826 non-mirror games, 95% CI
+       * [50.58, 51.15] — excluding 50. The 174 mirror games showed nothing (CI [45.5, 60.2]),
+       * confirming the harness is fair and the ordering was the culprit.
+       *
+       * This slipped through because validate_selfplay's mirror check runs 300 battles, which can
+       * only resolve a bias of about +/-5.6 points. An 0.9-point bias is invisible to it by
+       * construction — the same underpowered-null trap that has caught this project before. The
+       * validator now also checks side balance across the WHOLE corpus, where n is large enough to
+       * see it.
+       *
+       * The swap is keyed to the seed, so it stays deterministic and reproducible. */
+      const swap = ((k * 2654435761) >>> 0) & 1;
+      const a = teams[swap ? bi : ai], b = teams[swap ? ai : bi];
       let res = null;
       try { res = await playOne(a, b, seed); } catch (e) { failed++; }
       if (res && res.invalid) { POL.invalidTeam++; res = null; }
