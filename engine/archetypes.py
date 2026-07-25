@@ -13,6 +13,15 @@ weight by how much of the ladder it is. Emits data/archetypes.json.
 No external ML deps required (numpy only). Deterministic (seeded).
 """
 import json, os, math, random
+
+# --- QUALITY FILTER (S12: one reader, not a block pasted per engine) ------------------------------
+# This engine used to open the store directly, so every number below was computed over a population
+# that is roughly three-quarters bot games. engine/store.py is the single reader; the definition
+# lives in data/quality-filter.json. ABRA_UNFILTERED=1 restores the old behaviour for comparison.
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from store import load_games as _abra_load_games
+
 from collections import Counter
 import numpy as np
 
@@ -25,11 +34,7 @@ RNG = 42
 
 def load_teams():
     teams = []
-    with open(GAMES, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line: continue
-            g = json.loads(line)
+    for g in _abra_load_games():
             for p in ("p1", "p2"):
                 six = (g.get("six") or {}).get(p)
                 if six and len(six) >= 4:

@@ -11,6 +11,15 @@ Bar: this is the same behaviour-clone validated in eval_policy.py (top-1 ~36%, t
 held-out human moves) — a modest but honestly-measured opponent prior, not an oracle.
 """
 import json, os, collections
+
+# --- QUALITY FILTER (S12: one reader, not a block pasted per engine) ------------------------------
+# This engine used to open the store directly, so every number below was computed over a population
+# that is roughly three-quarters bot games. engine/store.py is the single reader; the definition
+# lives in data/quality-filter.json. ABRA_UNFILTERED=1 restores the old behaviour for comparison.
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from store import load_games as _abra_load_games
+
 HERE=os.path.dirname(os.path.abspath(__file__)); ROOT=os.path.dirname(HERE)
 GAMES=os.path.join(ROOT,"data","games.ladder.jsonl")
 RAW=os.path.join(ROOT,"data","games.ladder.raw-logs.jsonl")
@@ -19,10 +28,7 @@ norm=lambda s:"".join(c for c in s.lower() if c.isalnum())
 item=collections.defaultdict(collections.Counter)
 abil=collections.defaultdict(collections.Counter)
 lead=collections.Counter(); n_teams=0
-for line in open(GAMES,encoding="utf-8"):
-    line=line.strip()
-    if not line: continue
-    g=json.loads(line)
+for g in _abra_load_games():
     for sp,st in (g.get("sets") or {}).items():
         if st.get("item"): item[sp][norm(st["item"])]+=1
         if st.get("ability"): abil[sp][norm(st["ability"])]+=1

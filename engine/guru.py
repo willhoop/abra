@@ -12,6 +12,15 @@ honest test: can the real-outcome matchup prior predict game winners better than
 i.e. which archetypes reliably beat which, with CIs — used by SLOWKING/DITTO instead of the sim.)
 """
 import json, os, math, collections
+
+# --- QUALITY FILTER (S12: one reader, not a block pasted per engine) ------------------------------
+# This engine used to open the store directly, so every number below was computed over a population
+# that is roughly three-quarters bot games. engine/store.py is the single reader; the definition
+# lives in data/quality-filter.json. ABRA_UNFILTERED=1 restores the old behaviour for comparison.
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from store import load_games as _abra_load_games
+
 HERE=os.path.dirname(os.path.abspath(__file__)); ROOT=os.path.dirname(HERE)
 GAMES=os.path.join(ROOT,"data","games.ladder.jsonl")
 ARCH=os.path.join(ROOT,"data","archetypes.json")
@@ -36,14 +45,10 @@ def assign(team):
     return best if bs>0 else "Other"
 
 rows=[]
-for line in open(GAMES,encoding="utf-8"):
-    line=line.strip()
-    if not line: continue
-    # The store is appended to by a scheduled job, so a run can be interrupted mid-write and leave a
-    # truncated line. Skip those instead of aborting the whole build — this crash is why the site's
-    # game count sat at 5,199 while the store had grown past 7,400.
-    try: g=json.loads(line)
-    except Exception: continue
+# Games arrive already parsed and quality-filtered from engine/store.py, so the truncated-line
+# guard that used to live here is gone with the raw file read. That guard existed because an
+# interrupted append left a partial line and crashed the build, freezing the site at 5,199 games.
+for g in _abra_load_games():
     six=g.get("six") or {}; p1=six.get("p1"); p2=six.get("p2"); w=g.get("winner")
     if not (p1 and p2 and w): continue
     y = 1 if w==g.get("p1",{}).get("name") else (0 if w==g.get("p2",{}).get("name") else None)
