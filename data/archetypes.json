@@ -1,71 +1,71 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 2256,
+  "n_games": 2334,
   "k_selected": 5,
-  "silhouette": 0.113,
+  "silhouette": 0.122,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Kingambit-Whimsicott",
-      "share": 0.455,
+      "n": "Incineroar-Sneasler",
+      "share": 0.434,
       "core": [
-        "kingambit",
-        "whimsicott",
-        "farigiraf",
-        "sneasler"
+        "incineroar",
+        "sneasler",
+        "raichu",
+        "floetteeternal"
       ],
       "signature": [],
-      "w_usage": 0.455
+      "w_usage": 0.434
     },
     {
-      "n": "Garchomp-Charizard",
-      "share": 0.221,
+      "n": "Garchomp-Kingambit",
+      "share": 0.244,
       "core": [
         "garchomp",
-        "charizard",
         "kingambit",
+        "charizard",
         "whimsicott"
       ],
       "signature": [
-        "kingambit"
+        "whimsicott"
       ],
-      "w_usage": 0.221
+      "w_usage": 0.244
     },
     {
-      "n": "Sand",
-      "share": 0.158,
-      "core": [
-        "sinistcha",
-        "tyranitar",
-        "excadrill",
-        "incineroar"
-      ],
-      "signature": [],
-      "w_usage": 0.158
-    },
-    {
-      "n": "Pelipper-Archaludon",
-      "share": 0.111,
+      "n": "Rain",
+      "share": 0.126,
       "core": [
         "pelipper",
         "archaludon",
         "swampert",
-        "grimmsnarl"
+        "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.111
+      "w_usage": 0.126
     },
     {
-      "n": "Gengar-Incineroar",
-      "share": 0.055,
+      "n": "Trick Room",
+      "share": 0.12,
       "core": [
-        "gengar",
+        "farigiraf",
         "incineroar",
-        "politoed",
-        "swampert"
+        "torkoal",
+        "mawile"
       ],
       "signature": [],
-      "w_usage": 0.055
+      "w_usage": 0.12
+    },
+    {
+      "n": "Sand",
+      "share": 0.077,
+      "core": [
+        "tyranitar",
+        "excadrill",
+        "sinistcha",
+        "staraptor"
+      ],
+      "signature": [],
+      "w_usage": 0.077
     }
   ]
 }
