@@ -71,6 +71,38 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
    display:none, so the whole honesty layer was written and then invisibly deleted -- a review
    marked "site never showed the usable count" as FIXED while the CSS was removing the fix.
    If a claim needs a caveat, the caveat ships with it. */
+/* ---- MEW battle field: laid out like a Showdown battle rather than two flat sprite lists.
+   Opponent up and to the right with front sprites, you down and to the left with BACK sprites,
+   a horizon between them, benched Pokemon small beside each side, HP bars under every active. */
+.bfield{position:relative;border:3px solid var(--line);border-radius:16px;overflow:hidden;
+        background:linear-gradient(#bfe4ff 0%,#dff1ff 48%,#cfeecb 48%,#a9dfa2 100%);padding:10px 12px}
+.brow{display:flex;align-items:flex-end;gap:12px;position:relative;z-index:2}
+.brow.foe{justify-content:flex-end}
+.brow.me{justify-content:flex-start;margin-top:6px}
+.bground{height:1px;background:rgba(0,0,0,.08);margin:4px 0}
+.bmons{display:flex;gap:10px;align-items:flex-end}
+.bslot{width:96px;text-align:center}
+.bslot.empty{width:96px;height:1px}
+.bslot img{width:84px;height:84px;object-fit:contain;image-rendering:pixelated;
+           filter:drop-shadow(0 3px 2px rgba(0,0,0,.28))}
+.bslot.big img{width:96px;height:96px}
+.bslot.fainted img{filter:grayscale(1);opacity:.28}
+.bname{font-size:10.5px;font-weight:800;color:#2c405c;line-height:1.1;
+       max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+       text-shadow:0 1px 0 rgba(255,255,255,.85)}
+.hpbar{height:7px;border-radius:5px;background:#e6ecf5;border:1.5px solid #9fb0c8;overflow:hidden;margin-top:3px}
+.hpbar > i{display:block;height:100%;transition:width .25s}
+.bteamtag{font-size:11.5px;font-weight:900;color:#2c405c;text-shadow:0 1px 0 rgba(255,255,255,.85);
+          min-width:92px}
+.bteamtag b{color:#1a7f3c}
+.bbench{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;max-width:96px}
+.bbenchmon{width:26px;height:26px;object-fit:contain;image-rendering:pixelated;opacity:.85}
+.bbenchmon.fainted{filter:grayscale(1);opacity:.25}
+.bfieldlog{background:#0f1626;color:#e6ecf8;border:3px solid var(--line);border-radius:12px;
+           padding:11px 14px;min-height:120px;font-weight:600;font-size:13.5px;line-height:1.75;
+           font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.bfieldlog b{color:#ffd76e}
+@media(max-width:560px){ .bslot,.bslot.big{width:72px} .bslot img,.bslot.big img{width:68px;height:68px} }
 .chip{display:inline-block;background:#eef4ff;border:2px solid var(--line);border-radius:999px;
       padding:3px 10px;margin:3px 4px 0 0;font-size:12px;font-weight:800;color:#3a5372;
       vertical-align:middle}
@@ -615,6 +647,40 @@ function statusBadge(id){
 function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
   <div><h2>${c.title}</h2><p class="sub">${c.acro}</p>${statusBadge(c.id)}<div class="bubble">${bubble}</div></div></div>`;}
 
+/* ---- "How I think", the closing bubble every room ends on -------------------------------------
+   One panel per room, in the model's own voice, saying plainly what it does and — where it has been
+   tested and failed — saying that too. The status line underneath is generated from
+   data/status.js (S13), so a room can never keep claiming to work after its evidence says
+   otherwise. */
+const HOW_I_THINK={
+  store:    "I do one job and I do it constantly: pull every public Champions replay, parse it once, and keep the raw log forever. Everything else in this town reads from me. If I ever lose a game, no model downstream can get it back — so I never delete, I only append.",
+  medicham: "I work out exactly how much damage a move does — every roll, item, ability, weather and speed check. That part is checked against the official calculator and it is right. What I am NOT good at is playing the game out afterwards; the engine I use for that was measured badly wrong, so trust my damage and ignore my win rates until it is rebuilt.",
+  guru:     "I split teams into archetypes and ask which beats which. Honest answer: on the games we have, not one matchup is solid enough to call. I am a well-built machine waiting for enough data to say anything, and I would rather tell you that than hand you a number I cannot defend.",
+  xatu:     "I guess what the opponent is holding — which moves, which item — from what they have shown so far and what the format usually runs. The more they reveal, the sharper I get. I am a prior, not a mind reader, and I get more useful the longer a game runs.",
+  pory:     "I look at a board and say who is winning. What I actually do is count Pokémon and health, and I have been measured against exactly that: I do not beat it. The richer read of the board helps a little, but on clean games even that is thin. I am honest arithmetic, not a value net.",
+  dusk:     "Not built yet. When I am, I will solve the endgames exactly — the small positions where the tree is finally short enough to search to the finish, so the answer is proved rather than estimated.",
+  hypno:    "Not built yet. My job will be to rate the player across the table, not just their team — because who is piloting a team changes what it does.",
+  mew:      "I play this format against myself, forever, on the official engine. My two players are not good — they pick moves by how often those moves get used, and they will Protect twice in a row because they do not know it fails. That is fine: my job is to be fast and unbiased, so the models that come after me have something to learn from. Every game I make carries its seed, so any battle can be re-run move for move.",
+  chomp:    "I take your six and theirs, run every move through verified damage maths, and pick the four to bring. Tested against real games, my picks are no better than a coin. The damage underneath is solid; turning it into a bring decision is the part I have not cracked.",
+  slowking: "At team preview there is no single best answer — whatever you always bring, someone counters. So I look for the MIX: how often to bring each thing so nobody can exploit you. The idea is sound; the matchup numbers I am built on are not solid yet, which caps how much I can promise.",
+  ditto:    "I take a team and try to improve it, hill-climbing against the metagame. Both things I stand on — the rollout engine and the archetype grid — are currently unreliable, so treat what I output as a conversation starter, not advice.",
+  kadabra:  "Give me a replay and I walk it turn by turn, flagging where the win probability moved most. I am only as good as the meter I read from, and that meter is currently just counting Pokémon — so I am better at showing you WHERE a game turned than at telling you why.",
+  alakazam: "I am the one this is all for: at any point in a battle, the move with the best chance of winning, and your real odds. To get there I need a belief about their set, a value for each position, and the sense not to always play the top-rated move — because in a game where both sides choose at once, being predictable is how you get beaten.",
+  jolteon:  "I guessed the winner from team sheets alone. I have been retired to the PC. I barely beat a coin, and as a probability I am no sharper than one — the team sheet simply does not carry that much. Knowing that is worth more than the model was.",
+  medi_win: "Retired. I was an early attempt at a win estimate and I have been superseded. I am kept visible so nobody rebuilds me by accident.",
+};
+function howIThink(id){
+  const txt=HOW_I_THINK[id]; if(!txt) return '';
+  const m=statusFor(id);
+  const tail=m?`<div style="margin-top:9px">${statusBadge(id)}</div>`:'';
+  const c=(typeof CAST!=='undefined')?CAST.find(x=>x.id===id):null;
+  return `<h2>How I think</h2>
+    <div class="hero" style="align-items:flex-start">
+      ${c?`<img class="mascot" src="${ani(c.sprite)}" style="width:64px;height:64px">`:''}
+      <div><div class="bubble" style="font-size:14.5px">${txt}</div>${tail}</div>
+    </div>`;
+}
+
 function roomTown(){const c=CAST[0];
   let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">
      <div class="roof" style="background:${h.roof}"></div>
@@ -823,7 +889,7 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
    <div class="panel"><h2>Every game can be replayed exactly</h2><p style="font-weight:600;color:#3a5372">Each battle records the <b>seed</b> that produced it, the policy, and the exact engine commit. Re-run that seed and you get <b>the same game, move for move</b> — verified byte-identical. That matters because the whole point is claims like <i>"switching here is what won it"</i>, and a claim you can't re-run is a claim you can't check.</p>
    <span class="chip">seeded dice</span><span class="chip">seeded decisions</span><span class="chip">pinned engine</span></div>
    <div class="panel"><h2>Honest limits</h2><p style="font-weight:600;color:#3a5372">These are <b>practice games, not real ones</b>, and they are labelled as such in every record so they can never be mistaken for ladder data. The players are decent imitations of human habits, not strong play — so my games teach <b>what positions turn into</b>, not what a champion would do. And the teams are real, but the hidden parts (spreads, items, the moves nobody revealed) are <b>sampled</b> from what the format actually runs, which is an estimate.</p></div>
-   <div class="panel">${howIThink('mew')}</div>`;
+   `;
 }
 /* The battle viewer, as its own panel so it can sit FIRST in the room — it is the thing people came
    to see, and it used to be buried under four explainers. */
@@ -854,7 +920,23 @@ function mewViewerPanel(){
    loaded by the browser). */
 var MEW_I=0, MEW_T=-1, MEW_TIMER=null;
 function mewGames(){ return (window.MEW&&window.MEW.games)||[]; }
-function mewSprite(sp){ return 'https://play.pokemonshowdown.com/sprites/gen5/'+String(sp||'').toLowerCase().replace(/[^a-z0-9]/g,'')+'.png'; }
+/* Showdown sprite ids HYPHENATE the forme; our store normalises hyphens away. Stripping them for
+   every species gave 404s on exactly the ones that carry a forme — sinistchamasterpiece,
+   lycanrocdusk, mausholdfour, vivillonfancy — and Sinistcha-Masterpiece is a top-30 species here,
+   so it had no image anywhere on the site. Put the hyphen back before the known forme suffixes. */
+const FORME_SUFFIX=['masterpiece','alola','galar','hisui','paldea','megax','megay','mega','primal',
+  'dusk','midnight','midday','four','family','fancy','eternal','wash','heat','frost','mow','fan',
+  'therian','origin','crowned','hero','busted','bloodmoon','combat','blaze','aqua','rapidstrike',
+  'singlestrike','sunny','rainy','snowy','zen','school','male','female'];
+function spriteId(sp){
+  let s=String(sp||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  for(const suf of FORME_SUFFIX){
+    if(s.length>suf.length && s.endsWith(suf)) return s.slice(0,-suf.length)+'-'+suf;
+  }
+  return s;
+}
+function mewSprite(sp){ return 'https://play.pokemonshowdown.com/sprites/gen5/'+spriteId(sp)+'.png'; }
+function mewSpriteBack(sp){ return 'https://play.pokemonshowdown.com/sprites/gen5-back/'+spriteId(sp)+'.png'; }
 function mewPretty(sp){ return String(sp||'').replace(/([a-z])([A-Z])/g,'$1 $2'); }
 function initMew(){
   var G=mewGames(), sel=document.getElementById('mewpick');
@@ -869,6 +951,28 @@ function initMew(){
     ' generated games. Every record carries its seed, so any battle here re-runs move for move.';
   MEW_I=0; MEW_T=-1; renderMew();
 }
+/* Seed lookup. The browser only ever holds the 12-game sample — the full store is a gigabyte and
+   must never be shipped to a page — so an unknown seed cannot be replayed here. Rather than fail
+   silently, say so and hand over the exact command that regenerates that battle locally, which
+   works because every record carries the seed that produced it. */
+function mewFindSeed(){
+  var q=String((document.getElementById('mewseed')||{}).value||'').trim().replace(/[^0-9]/g,'');
+  var msg=document.getElementById('mewseedmsg');
+  if(!q){ msg.innerHTML='Enter a seed — or pick a battle from the list.'; return; }
+  var G=mewGames();
+  var i=G.findIndex(function(g){ return String(g.seed)===q; });
+  if(i>=0){
+    mewStop(); MEW_I=i; MEW_T=-1;
+    var sel=document.getElementById('mewpick'); if(sel) sel.value=String(i);
+    msg.innerHTML='<span style="color:#1a7f3c">Found seed '+q+' — battle '+(i+1)+'.</span>';
+    renderMew();
+  } else {
+    msg.innerHTML='Seed <b>'+q+'</b> is not in the 12 bundled here (the full store is ~1GB and stays off the site). '+
+      'To watch it, regenerate it locally — it will be identical move for move:<br>'+
+      '<code style="background:#0f1626;color:#e6ecf8;padding:2px 7px;border-radius:5px;display:inline-block;margin-top:5px">'+
+      'node engine/mew.js --n 1 --seed '+q+' --policy prior</code>';
+  }
+}
 function mewStop(){ if(MEW_TIMER){ clearInterval(MEW_TIMER); MEW_TIMER=null; var b=document.getElementById('mewplay'); if(b) b.innerHTML='&#9654; play'; } }
 function mewPlay(){
   if(MEW_TIMER){ mewStop(); return; }
@@ -881,30 +985,76 @@ function mewPlay(){
 }
 function mewGo(d){ mewStop(); var n=(mewGames()[MEW_I].turns||[]).length;
   MEW_T = d<=-1e9 ? -1 : d>=1e9 ? n-1 : Math.max(-1,Math.min(n-1,MEW_T+d)); renderMew(); }
+/* Replay the game up to MEW_T and return who is on the field, at what HP.
+   The bundle records per-event DAMAGE rather than absolute HP, so HP is reconstructed by
+   accumulating hits on each species — the same way the log itself reads. */
+function mewStateAt(g, upto){
+  var st={p1:{active:[],hp:{},faint:{}},p2:{active:[],hp:{},faint:{}}};
+  ['p1','p2'].forEach(function(s){
+    ((g.brought||{})[s]||[]).forEach(function(sp){ st[s].hp[sp]=100; });
+    var ld=((g.lead||{})[s]||[]).slice(0,2);
+    st[s].active=ld.slice();
+  });
+  for(var t=0;t<=upto && t<(g.turns||[]).length;t++){
+    (g.turns[t].ev||[]).forEach(function(e){
+      var side=String(e.s||'').slice(0,2); if(!st[side]) return;
+      if(e.t==='s'&&e.mon){
+        // a switch replaces whoever stood in that position
+        var pos=String(e.s||'').slice(2)==='b'?1:0;
+        st[side].active[pos]=e.mon;
+        if(st[side].hp[e.mon]==null) st[side].hp[e.mon]=100;
+      }
+      if(e.t==='f'&&e.mon){ st[side].faint[e.mon]=1; st[side].hp[e.mon]=0; }
+      if(e.t==='m'&&e.dmg&&e.tgt){
+        var foe=side==='p1'?'p2':'p1';
+        // damage lands on the target, whichever side it is on
+        var owner = (st[foe].hp[e.tgt]!=null) ? foe : side;
+        st[owner].hp[e.tgt]=Math.max(0,(st[owner].hp[e.tgt]==null?100:st[owner].hp[e.tgt])-e.dmg);
+      }
+    });
+  }
+  return st;
+}
+function hpBar(pct){
+  var c = pct>50 ? '#4fc46a' : pct>20 ? '#e8b53a' : '#e0554f';
+  return '<div class="hpbar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%;background:'+c+'"></i></div>';
+}
+function mewMon(sp, side, st, big){
+  if(!sp) return '<div class="bslot empty"></div>';
+  var hp = st.hp[sp]==null?100:st.hp[sp];
+  var out = st.faint[sp];
+  var back = side==='p1';
+  var url = back ? mewSpriteBack(sp) : mewSprite(sp);
+  return '<div class="bslot'+(out?' fainted':'')+(big?' big':'')+'">'
+    + '<img src="'+url+'" alt="'+sp+'" onerror="this.onerror=null;this.src=\''+mewSprite(sp)+'\'">'
+    + '<div class="bname" title="'+mewPretty(sp)+'">'+mewPretty(sp)+'</div>'
+    + hpBar(hp)
+    + '</div>';
+}
 function renderMew(){
   var g=mewGames()[MEW_I]; if(!g) return;
-  var faint={}, active={p1:{},p2:{}};
-  for(var t=0;t<=MEW_T&&t<(g.turns||[]).length;t++) (g.turns[t].ev||[]).forEach(function(e){
-    if(e.t==='f'&&e.mon) faint[e.mon]=1;
-    if(e.s&&e.mon){ var s=String(e.s).slice(0,2); if(active[s]) active[s][e.mon]=1; }
-  });
-  document.getElementById('mewteams').innerHTML=['p1','p2'].map(function(side){
-    var six=(g.six||{})[side]||[], br=(g.brought||{})[side]||[];
-    var nm=side==='p1'?'MEW-A':'MEW-B', won=g.winner===nm;
-    var mons=six.map(function(sp){
-      var op = br.indexOf(sp)>=0 ? 1 : .3, gray = faint[sp] ? 'filter:grayscale(1);opacity:.25' : '';
-      var ring = (MEW_T>=0&&active[side][sp]&&!faint[sp]) ? 'box-shadow:0 0 0 3px #ff8fd0' : '';
-      return '<div style="width:54px;text-align:center;opacity:'+op+';'+gray+'">'+
-        '<img src="'+mewSprite(sp)+'" style="width:48px;height:48px;border-radius:9px;background:#fff;border:2px solid #e2e8f1;'+ring+'" alt="'+sp+'">'+
-        /* clip, do not wrap: "sinistchamasterpiece" is 20 characters and overflowed its 54px cell,
-           overlapping the two sprites beside it. The sprite is the identifier; the label is a hint. */
-        '<div title="'+mewPretty(sp)+'" style="font-size:9px;font-weight:700;color:#6d829b;line-height:1.15;'+
-        'max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+mewPretty(sp)+'</div></div>';
-    }).join('');
-    return '<div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px">'+
-      '<div style="font-weight:800;color:#3a5372;margin-bottom:7px;font-size:13.5px">'+nm+(won?' <span style="color:#1a9a4a">— winner</span>':'')+'</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:5px">'+mons+'</div></div>';
-  }).join('');
+  var st=mewStateAt(g, MEW_T);
+  var bench=function(side){
+    var br=((g.brought||{})[side]||[]);
+    return br.filter(function(sp){ return st[side].active.indexOf(sp)<0; })
+      .map(function(sp){
+        var out=st[side].faint[sp];
+        return '<img class="bbenchmon'+(out?' fainted':'')+'" src="'+mewSprite(sp)+'" title="'+mewPretty(sp)+(out?' (fainted)':'')+'" alt="'+sp+'">';
+      }).join('');
+  };
+  var wonA=g.winner==='MEW-A', wonB=g.winner==='MEW-B';
+  document.getElementById('mewfield').innerHTML =
+    '<div class="bfield">'
+    + '<div class="brow foe">'
+    +   '<div class="bteamtag">MEW-B'+(wonB?' <b>WON</b>':'')+'<div class="bbench">'+bench('p2')+'</div></div>'
+    +   '<div class="bmons">'+mewMon(st.p2.active[0],'p2',st.p2,true)+mewMon(st.p2.active[1],'p2',st.p2,true)+'</div>'
+    + '</div>'
+    + '<div class="bground"></div>'
+    + '<div class="brow me">'
+    +   '<div class="bmons">'+mewMon(st.p1.active[0],'p1',st.p1,true)+mewMon(st.p1.active[1],'p1',st.p1,true)+'</div>'
+    +   '<div class="bteamtag">MEW-A'+(wonA?' <b>WON</b>':'')+'<div class="bbench">'+bench('p1')+'</div></div>'
+    + '</div>'
+    + '</div>';
   var log=document.getElementById('mewlog');
   if(MEW_T<0){
     var f=function(s){return (((g[s]||{}).p1)||[]).map(mewPretty).join(', ');};
