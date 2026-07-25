@@ -33,3 +33,10 @@ data/games.selfplay*.jsonl
 data/games.ots.jsonl
 data/games.selfplay.raw-logs.jsonl
 data/.mew-shards/
+
+# Subagent git worktrees. These are real git repos, so `git add -A` records them as
+# SUBMODULE references (mode 160000) with no .gitmodules entry — which makes the repo
+# unclonable. GitHub Pages then fails at Checkout with "No url found for submodule path",
+# and the site silently stops deploying while every push still reports success. Cost: 90
+# minutes of a dead site and ~20 failed builds on 2026-07-25.
+.claude/worktrees/
