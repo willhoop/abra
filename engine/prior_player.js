@@ -208,7 +208,9 @@ function makePriorPlayer() {
       const avail = rows.filter(([id]) => legal.has(id));
       const mass = avail.reduce((s, [, p]) => s + p, 0);
       if (mass > 0) {
-        let r = Math.random() * mass;
+        /* Seeded, for the same reason as the preview draw: this is THE move decision, so an unseeded
+         * draw here makes every recorded game unreplayable no matter what else is pinned. */
+        let r = this.prng.random() * mass;
         for (const [id, p] of avail) {
           r -= p;
           if (r <= 0) { this.stats.sampled++; return legal.get(id); }
