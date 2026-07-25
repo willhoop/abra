@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.3.0 · Last updated 2026-07-25**
+**Version 3.4.0 · Last updated 2026-07-25**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -33,6 +33,44 @@ Needs a BUILT master checkout; the champions mod is not in the npm package.
 **Generate self-play games (MEW).**
 `SHOWDOWN_PATH=... node engine/mew.js --n 1000` then `SHOWDOWN_PATH=... node engine/validate_selfplay.js`
 Output goes to `data/games.selfplay.jsonl` and must NEVER be pooled with the ladder store.
+
+**Generate self-play at scale (the farm).**
+`SHOWDOWN_PATH=... node engine/mew_farm.js --n 200000 --procs 12 --conc 1`
+
+`--conc` must stay at 1. The simulator is synchronous and CPU-bound, so in-process concurrency never
+overlaps real work; it only holds N battles live at once and multiplies GC pressure. Measured on
+8 physical / 16 logical cores: 8 procs at `--conc 4` gave 11 games/sec, the same 8 procs at `--conc 1`
+gave 38. Process count is the unit; 12 procs / conc 1 reproduced at 44–46 games/sec.
+
+Two files are written, and **both are needed**:
+
+| file | contains | read by |
+|---|---|---|
+| `data/games.selfplay.jsonl` | game-level records (six / brought / lead / winner) | store-shaped engines |
+| `data/games.selfplay.raw-logs.jsonl` | full protocol logs, `{id, uploadtime, log}` | PORY, `state_encoder.py` |
+
+The value models reconstruct per-turn board states by replaying the **protocol log**; the records are
+summaries and contain no per-turn state. A corpus written without the sidecar is unreadable by the
+models it exists to train. Budget ~5 KB per game per file.
+
+**Every battle is replayable.** A record carries `id`, `selfplay.seed`, `selfplay.policy` and
+`selfplay.engine_commit`, and both the battle dice and both players' decision PRNGs are derived from
+that seed. Re-running the same seed against the same pinned engine reproduces the game byte-for-byte
+(verified 25/25, excluding the `|t:|` wall-clock line). This is what makes a claim like "this switch
+won the game" checkable rather than asserted.
+
+**Teams are validated against Showdown, not against our own rules.** `packTeam` enforces Item Clause
+during packing, then runs the official `TeamValidator` and repairs what it can; MEW discards anything
+still invalid rather than recording it. `BattleStream` does **not** validate — it plays whatever it is
+handed — so without this gate an illegal team produces a record indistinguishable from a legitimate
+game. Before the gate, the validator rejected 80.5% of the pool. Cost is 4.30 ms/team, ~9.6% of a
+battle.
+
+**Team preview is sampled, not fixed.** `chooseTeamPreview` draws four of six weighted by measured
+P(brought | on team) and two leads weighted by P(lead | brought), from `data/bring-priors.json`
+(regenerate with `node engine/bring_priors.js`). `MEW_PREVIEW_TEMP` controls how far the draw wanders
+from the common line: 1.0 samples proportional to measured propensity, lower collapses toward the
+single most likely bring, higher flattens toward uniform.
 
 **Refresh the official priors.**
 `node engine/fetch_smogon_stats.js` then `node engine/smogon_priors.js`
