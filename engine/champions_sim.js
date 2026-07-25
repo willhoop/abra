@@ -121,7 +121,31 @@ function packTeam(species, setsBySpecies) {
     /* Last resort only. If this fires the species has no prior at all, which is a data gap worth
      * seeing rather than papering over — it used to be the SILENT common case. */
     if (!moves.length) { moves = ['Tackle']; filled.push(`${name}: NO PRIOR — fell back to Tackle`); }
-    const ability = f.ability || (sp.abilities && sp.abilities['0']) || '';
+    /* THE ABILITY MUST BE ONE THIS SPECIES CAN ACTUALLY HAVE.
+     * ----------------------------------------------------------------------------------------
+     * `f.ability` is sampled from observed ladder sets, and the observation is keyed by SPECIES
+     * NAME across a whole replay. When a species is mis-attributed during ingest (or shares a name
+     * with a forme that has different abilities), the prior can hand back an ability the species
+     * cannot legally hold — and BattleStream does NOT run the team validator, so it is accepted in
+     * silence and simply applied.
+     *
+     * Measured on the live pool: 8 of 1,800 packed sets (0.4%) carried an illegal ability, including
+     * Meowstic with Intimidate, Snorlax with No Guard and Gardevoir with Good as Gold. Intimidate
+     * alone shifts every physical damage roll against that side, so these are not cosmetic — they
+     * quietly corrupt the battles they appear in.
+     *
+     * Illegal abilities are replaced with the species' primary ability and REPORTED in `filled`,
+     * because a silent correction here would hide the ingest bug that produced it. */
+    let ability = f.ability || (sp.abilities && sp.abilities['0']) || '';
+    if (ability) {
+      const legal = Object.values(sp.abilities || {});
+      const key = (x) => String(x).toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (!legal.some(a => key(a) === key(ability))) {
+        const fallback = (sp.abilities && sp.abilities['0']) || '';
+        filled.push(`${name}: ILLEGAL ABILITY ${ability} (legal: ${legal.join('/')}) -> ${fallback}`);
+        ability = fallback;
+      }
+    }
     team.push({
       name: sp.name, species: sp.name,
       item: f.item || "",
