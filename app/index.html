@@ -702,8 +702,8 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
 }
 function roomGuru(){const c=CAST.find(x=>x.id==='guru');
   return `<div class="panel">${mascotHero(c,"I read every real game and tell you which archetype actually beats which — with honest error bars.")}</div>
-   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from <b>5,199 real Champions games</b>. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
-   <span class="chip">13 archetypes</span><span class="chip">5,199 games</span><span class="chip">Wilson CIs</span></div>
+   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from real Champions games. Of <b>8,757</b> collected, <b>1,124</b> survive the quality filter (12.8%); the rest are bot games, forfeits, or too short to reveal a bring. <b>GURU is still computed on the unfiltered store</b> and its numbers will move when it is wired to the filter. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
+   <span class="chip">13 archetypes</span><span class="chip">8,757 collected, 1,124 usable</span><span class="chip">Wilson CIs</span></div>
    <div class="panel"><h2>What I can and can't do</h2><p style="font-weight:600;color:#3a5372">I give <b>honest matchup rates</b>. I do <b>not</b> predict who wins a single game from team sheets — in this format that is a coin flip, and I say so plainly rather than selling a false edge.</p></div>`;
 }
 function roomXatu(){const c=CAST.find(x=>x.id==='xatu');

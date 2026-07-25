@@ -1,0 +1,12 @@
+# Pinned Python environment for ABRA.
+#
+# WHY THIS FILE EXISTS: as of 2026-07-25 there was no pinned environment, no .python-version and no
+# container. numpy was not installed on the author's own machine and the analysis scripts could not
+# run until it was added mid-session. A reviewer attempting replication would not have got past
+# setup. engine/champions_sim.js pins a Showdown COMMIT, which is exactly the right instinct — it had
+# simply never been applied to this project's own dependencies.
+#
+#   python -m pip install -r requirements.txt
+#
+# Verified working: Python 3.12.10 on Windows, 2026-07-25.
+numpy==2.5.1
