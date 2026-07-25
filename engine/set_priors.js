@@ -32,6 +32,19 @@
  *
  * WHAT THIS STILL CANNOT DO. It cannot recover the real set. Self-play games are between PLAUSIBLE
  * RECONSTRUCTIONS of observed teams. Any result that turns on exact sets must say so.
+ *
+ * KNOWN LIMITATION, MEASURED — low-marginal moves are over-represented on generated sets.
+ * Incineroar's priors list eight candidate moves and every set needs four, so even a move with a
+ * 0.9% marginal (Close Combat) lands on ~45% of generated sets once the common moves are taken. The
+ * top of the ranking is right — Fake Out 82%, Flare Blitz 72%, Parting Shot 67%, matching the
+ * marginal order — but the tail is inflated by the four-slot constraint, not by the sampler.
+ *
+ * Two things cause it and neither is fixed here. P(move | action), which is what move-priors.json
+ * measures, is not P(move on set) — a move clicked rarely may still be on many sets, or vice versa.
+ * And the candidate pool is only the moves actually OBSERVED, so it is far smaller than the real
+ * learnset and offers nothing else to draw. The principled fix is to fit P(set) over a
+ * learnset-sized pool with a floor for unobserved moves. Until then, treat generated sets as
+ * "typical for the species, with a tech slot more often than reality".
  */
 'use strict';
 const fs = require('fs');
