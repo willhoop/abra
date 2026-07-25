@@ -51,17 +51,20 @@
   },
   "provenance": {
     "store": "data/games.ladder.jsonl",
-    "measured_on": "2026-07-24",
-    "store_size": 7547,
+    "measured_on": "2026-07-25",
+    "store_size": 8356,
     "funnel": {
-      "collected": 7547,
-      "after_bot_filter": 3378,
-      "after_behavioural_bots": 1831,
-      "after_forfeit_filter": 1129,
-      "after_min_turns": 1124,
-      "after_full_bring": 927
+      "collected": 8356,
+      "after_bot_filter": 3618,
+      "after_behavioural_bots": 2059,
+      "after_forfeit_filter": 1288,
+      "after_min_turns": 1283,
+      "after_full_bring": 1061
     },
-    "note": "These counts are measured on the DEDUPLICATED store. An earlier figure of 2,020 was computed before deduplication and is superseded; it is recorded here rather than deleted so the change is visible.",
-    "clean": 927
+    "note": "These counts are measured on the DEDUPLICATED store. Prior figures are kept rather than deleted so every change is visible: 2,020 clean was computed BEFORE deduplication and is superseded; 927 clean of 7,547 was measured on 2026-07-24 and is superseded by the reparse of 2026-07-25, which recovered 356 games the parsed store had lost and added 453 collected by the hourly Action. The clean SHARE is essentially unchanged (12.3% -> 12.7%); the store simply got bigger. A sixth behavioural bot (HospitalityCheck) crossed the threshold at this size.",
+    "clean": 1061,
+    "superseded": {
+      "2026-07-24": { "store_size": 7547, "clean": 927 }
+    }
   }
 }
