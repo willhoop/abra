@@ -669,6 +669,10 @@ const HOW_I_THINK={
   alakazam: "I am the one this is all for: at any point in a battle, the move with the best chance of winning, and your real odds. To get there I need a belief about their set, a value for each position, and the sense not to always play the top-rated move — because in a game where both sides choose at once, being predictable is how you get beaten.",
   jolteon:  "I guessed the winner from team sheets alone. I have been retired to the PC. I barely beat a coin, and as a probability I am no sharper than one — the team sheet simply does not carry that much. Knowing that is worth more than the model was.",
   medi_win: "Retired. I was an early attempt at a win estimate and I have been superseded. I am kept visible so nobody rebuilds me by accident.",
+  roles:    "I find the jobs Pokémon do — setter, redirector, breaker — by noticing which moves keep turning up together, rather than by anyone typing a list. That part works and it is a genuinely useful way to see the format. What I cannot do is predict who wins: tested, I land level with a coin and slightly behind simply comparing the two players' ratings. Describe, not predict.",
+  town:     "I am the front door. Every house here is one model, and each says plainly whether it works, whether it was tested, and what it is built on. Some of them failed — those are in the PC, still visible, because a model that was measured and lost is worth more than one nobody checked.",
+  map:      "I show how the town wires together: who reads from whom, and who feeds what. Solid boxes are in use; dashed ones are not built yet; faded ones have been shelved. Hover any box to light up its inputs and outputs. The whole diagram is drawn from the same status file the rooms use, so it cannot drift out of date.",
+  pc:       "I hold everything that is not currently working — tested-and-failed, retired, or never built. Nothing here is deleted. Which box a model sits in is not a list anyone maintains: it is read from the evaluation results, so a model files itself away when it fails and lets itself out when it starts working.",
 };
 function howIThink(id){
   const txt=HOW_I_THINK[id]; if(!txt) return '';
@@ -1079,7 +1083,11 @@ function renderMew(){
     log.innerHTML=lines.length?lines.join('<br>'):'<span style="color:#8fa0b6">(nothing recorded this turn)</span>';
     document.getElementById('mewturn').textContent='turn '+(T.n!=null?T.n:MEW_T+1)+' of '+(g.turns||[]).length;
   }
-  document.getElementById('mewverdict').innerHTML='<span style="color:#1a9a4a">'+(g.winner||'—')+'</span> won · seed '+(g.seed!=null?g.seed:'—');
+  /* The winner is drawn on the field tag now, so there is no separate verdict line. The seed goes
+     under the field, because it is the thing that makes a battle re-runnable and people copy it. */
+  var sd=document.getElementById('mewseedmsg');
+  if(sd && !sd.dataset.sticky) sd.innerHTML='seed <b>'+(g.seed!=null?g.seed:'—')+'</b> · '+
+    ((g.turns||[]).length)+' turns · re-run it with <code style="background:#0f1626;color:#e6ecf8;padding:1px 6px;border-radius:4px">node engine/mew.js --n 1 --seed '+g.seed+'</code>';
 }
 function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
   return `<div class="panel">${mascotHero(c,"When I'm built, I'll give you the win-%-optimal move — and your real chance to win — at any point in the battle.")}</div>
