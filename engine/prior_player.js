@@ -32,16 +32,37 @@ function loadBase() {
 
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-/* Build species -> [[moveId, probability], ...] from the same priors table the hand-written engine
- * reads, so there is one behavioural definition rather than two. */
+/* Build species -> [[moveId, probability], ...].
+ *
+ * READS THE FILE, NOT A BROWSER GLOBAL. This used to read `globalThis.MC.priors`, which exists only
+ * when the site bundle is loaded — so under Node it threw, and PriorPlayerAI could not be
+ * constructed at all. MEW's first attempt to use it produced 0 games from 40 battles.
+ *
+ * That is the third instance of the same defect this week: packTeam filled unrevealed moves from
+ * `globalThis.MC` and silently produced teams of Tackle, and `set_priors.js` was written to replace
+ * it. A module that runs in both the browser and Node must load from disk and treat the global as an
+ * optional accelerator, never as the source.
+ *
+ * data/move-priors.json is the behaviour-clone: P(move | species) measured from real ladder play,
+ * e.g. incineroar over 3,130 observed actions. */
 function priorTable() {
-  const MC = (typeof globalThis !== 'undefined' && globalThis.MC) || null;
-  if (!MC || !MC.priors) {
-    throw new Error('MC.priors not loaded — require data/engine-data.js before constructing PriorPlayerAI');
-  }
+  const fs = require('fs');
   const out = {};
-  for (const [sp, rows] of Object.entries(MC.priors)) {
-    out[sp] = (rows || []).map(r => [norm(r[0]), +r[1] || 0]);
+  try {
+    const j = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'move-priors.json'), 'utf8'));
+    for (const [sp, v] of Object.entries(j.species || {})) {
+      const rows = (v.moves || []).filter(m => m && m.mv && m.p > 0).map(m => [norm(m.mv), +m.p]);
+      if (rows.length) out[norm(sp)] = rows;
+    }
+  } catch (e) { /* fall through to the global, then to empty */ }
+  if (!Object.keys(out).length) {
+    const MC = (typeof globalThis !== 'undefined' && globalThis.MC) || null;
+    if (MC && MC.priors) {
+      for (const [sp, rows] of Object.entries(MC.priors)) out[norm(sp)] = (rows || []).map(r => [norm(r[0]), +r[1] || 0]);
+    }
+  }
+  if (!Object.keys(out).length) {
+    throw new Error('no move priors found — expected data/move-priors.json');
   }
   return out;
 }

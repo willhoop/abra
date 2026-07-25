@@ -30,9 +30,25 @@
  *   3. Real teams - sampled from the CLEAN ladder store. Self-play on invented teams would model a
  *      metagame that does not exist.
  *
+ * TWO POLICIES, AND THE CHOICE MATTERS MORE THAN THE COUNT.
+ *   --policy random  Showdown's RandomPlayerAI. Unbiased, cheap, correct for matchup structure and
+ *                    for proving the plumbing. NOT valid as training data for a value net: a model
+ *                    would learn "P(win) when both players move at random", which is nobody's
+ *                    question.
+ *   --policy prior   engine/prior_player.js — samples the move a species actually clicks at its
+ *                    observed frequency, from data/move-priors.json. This is the mode that matters:
+ *                    VGC-Bench's cross-evaluation found clone-then-self-play (BCSP) the strongest
+ *                    configuration in this domain.
+ *
+ * The run reports what fraction of decisions the policy actually sampled. That line is not decoration
+ * — ADR-001 attempt 3 fell through to uniform random on 100% of decisions while reporting itself as a
+ * prior sampler, and produced a 32.2-point "finding" that measured nothing. When `--policy prior` was
+ * first wired here it reported "no decisions at all" and wrote 0 games from 40 battles, because
+ * prior_player.js read the priors from a browser global. That is the third instance of that same
+ * defect this week, and the counter is what caught it.
+ *
  * USAGE
- *   SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/mew.js --n 500
- *   SHOWDOWN_PATH=... node engine/mew.js --n 500 --policy random   (default; policy pending)
+ *   SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/mew.js --n 1000 --policy prior
  *   --out <file>     override the destination (still never the ladder store)
  *   --conc <n>       concurrent battles (default 4)
  *   --seed <n>       base seed, for reproducibility
@@ -188,6 +204,23 @@ async function main() {
   await Promise.all(Array.from({ length: Math.max(1, CONC) }, worker));
   await new Promise(r => out.end(r));
   process.stderr.write(`MEW done: ${written} games -> ${path.relative(ROOT, OUT)} (${failed} discarded)\n`);
+  /* REPORT THE POLICY'S OWN ACCOUNTING. A prior sampler that degrades to uniform random produces
+   * games that look fine and measure nothing — ADR-001 attempt 3 reported itself as a prior sampler
+   * while falling through to random on 100% of decisions, and the 32.2-point "finding" it produced
+   * was an artifact. attempt 4, wired correctly, sampled 81.4%. If this line ever reads 0%, the
+   * policy is not running and no result from the batch means anything. */
+  const tot = POL.sampled + POL.fellBack + POL.noPrior;
+  if (tot) {
+    const pct = (100 * POL.sampled / tot).toFixed(1);
+    process.stderr.write(`  policy=${POLICY}: ${pct}% of decisions sampled from priors ` +
+      `(${POL.fellBack} fell back — move illegal this turn, ${POL.noPrior} had no prior for the species)\n`);
+    if (POL.sampled === 0) {
+      process.stderr.write('  WARNING: the policy sampled NOTHING. It is running as uniform random.\n');
+      process.stderr.write('  This is ADR-001 attempt 3 recurring. Do not use this batch.\n');
+    }
+  } else if (POLICY !== 'random') {
+    process.stderr.write(`  WARNING: policy=${POLICY} reported no decisions at all — it is not wired.\n`);
+  }
 }
 
 module.exports = { realTeams, playOne };
