@@ -26,13 +26,39 @@ decisions with search and learned policies.
 This is the correction that matters most, and it reverses an earlier draft of this document.
 
 [`cameronangliss/vgc-battle-logs`](https://huggingface.co/datasets/cameronangliss/vgc-battle-logs)
-— **88,905 battle logs**, ~177,810 trajectories, ~1.47M transitions, **630 MB**, **MIT licensed**,
-covering **four Gen 9 Champions formats including Regs M-A and M-B**. That is ABRA's format.
+— **MIT licensed**, four files whose names are Showdown format ids:
 
-And the part that matters more than the size: it is **filtered for Open Team Sheets**. Complete sets
-are visible. ABRA's single largest data weakness is that a closed-sheet replay reveals a mean of 1.38
-of four moves, 69.7% no item, 75.5% no ability — and ADR-001 records twice that *whatever fills that
-gap dominates any result*. This corpus does not have the gap.
+```
+logs_gen9championsvgc2026regma.json       47 MB
+logs_gen9championsvgc2026regmabo3.json
+logs_gen9championsvgc2026regmb.json        2 MB   <- ABRA's exact format
+logs_gen9championsvgc2026regmbbo3.json    26 MB
+```
+
+`gen9championsvgc2026regmb` is character-for-character the id in `engine/champions_sim.js`. It is
+Pokémon Champions, not Scarlet/Violet — the paper's "Scarlet and Violet" phrasing refers to the
+underlying Gen 9 species data.
+
+**MEASURED, because the 88,905 headline is misleading for our purposes.** Downloaded and counted:
+
+| File | Games | Dates |
+|---|---|---|
+| Reg M-B **Bo1** | **324** | 2026-06-18 → 06-20 |
+| Reg M-B **Bo3** | **3,843** | 2026-06-17 → 06-20 |
+
+The 88,905 total is dominated by Reg M-A and the Bo3 formats. **In ABRA's exact format the dataset
+holds 324 games against our 8,356 — we have 25× more.** Id sets are disjoint (theirs `2635…`, ours
+`2653…`): zero overlap, different weeks.
+
+Collection also **stopped on 2026-06-20**, over a month before this survey. ABRA's hourly ingest is
+live. So on volume and recency in Reg M-B Bo1, ABRA is ahead, not behind.
+
+**What is genuinely worth having is not games, it is SETS.** Every file is filtered for **Open Team
+Sheets**, so the full set is declared. Across the two M-B files that is roughly **50,000 complete
+sets** in our format. ABRA has almost none: a closed-sheet replay reveals a mean of 1.38 of four
+moves, 69.7% no item, 75.5% no ability, and ADR-001 records twice that *whatever fills that gap
+dominates any result*. `engine/set_priors.js` fills it from usage priors and has **never been checked
+against a real set, because we had none to check against.**
 
 *Consequence for ABRA — three uses, in order of value:*
 
@@ -172,7 +198,9 @@ mixed-strategy argument by years.
 | Singles battling agent | Foul Play (MCTS), PA-Agent (RL) | none | **Behind. Not our format** |
 | Doubles/VGC agent | VGC-Bench (benchmark) | ALAKAZAM (spec only) | **Both early. Genuinely open** |
 | Battle engine correctness | poke-engine (Foul Play, GPL) | official Champions mod, verified 31/31 vs `@smogon/calc` | **Level, and ours is the authority** |
-| Training data volume | **vgc-battle-logs: 88,905 doubles logs, Reg M-A/M-B, MIT, open team sheets** | 1,061 clean closed-sheet games | **Far behind. Adopt it.** PokéAgent/Metamon are singles and beside the point |
+| Data volume, **Reg M-B Bo1** | vgc-battle-logs: **324** games, stopped 2026-06-20 | **8,356**, live hourly | **Ahead, 25×.** No overlap |
+| Data volume, **Reg M-B Bo3** | **3,843** open-sheet games | ~0, bucket scaffolded and empty | **Behind. Worth adopting** |
+| **Complete sets** (ground truth) | ~**50,000** from open team sheets | ~0; 1.38 of 4 moves revealed | **Behind, and this is the one that matters** |
 | Belief-state / equilibrium search | **Ihara et al. 2018** compared determinization vs information sets for Pokémon and found IS-MCTS better; belief-MCTS is a mature literature | SLOWKING/ALAKAZAM (spec, unbuilt) | **Not first. Not even close.** The narrow claim that survives is PBS re-solving in *doubles*, and that is a gap of degree, not of kind |
 | Mid-game value function | implicit in RL agents | **PORY, calibrated, log-loss 0.567 vs 0.693** | **Comparable, and ours is explicit and measured** |
 | Evaluation honesty | weak — VGC-Bench's LLM at n=20 | proper scores, CIs, baselines, power gate | **Ahead. This is the real differentiator** |
@@ -267,7 +295,7 @@ flattering direction. Recorded here rather than quietly edited out:
 
 | Claimed | Actually |
 |---|---|
-| "No public VGC doubles corpus exists" | 88,905 in-format doubles logs, MIT, **with open team sheets** |
+| "No public VGC doubles corpus exists" | One exists, MIT, with open team sheets — but **324 games in our exact format against our 8,356**, and it stopped collecting on 2026-06-20. The 88,905 headline is mostly Reg M-A and Bo3. Claimed "far behind on data" twice; wrong both times |
 | "Nobody has done belief search in Pokémon" | Ihara et al. 2018 compared determinization vs information sets and found IS-MCTS better |
 | "Nobody has a doubles agent" | VGC-Bench's PSRO and BC agents play doubles and are cross-evaluated |
 
