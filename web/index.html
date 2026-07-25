@@ -603,6 +603,7 @@ const CAST=[
  {id:'alakazam', tab:'Alakazam', full:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine · capstone, in development', role:'win-%-optimal move', roof:'#c66bff'},
  {id:'roles', tab:'Roles', full:'Smeargle', sprite:'smeargle', title:"The Role Foundry", acro:'roles the data found — emergent archetypes, not hand-labels', role:'emergent roles', roof:'#ff9f43'},
  {id:'mew', tab:'Mew', full:'Mew', sprite:'mew', title:"Mew's Practice Field", acro:'self-play data engine — plays the format against itself, forever', role:'self-play corpus', roof:'#ff8fd0'},
+ {id:'pc', tab:'PC', sprite:'porygon2', title:'The PC', acro:'where models go when they are not working', role:'archive', roof:'#b9a8c8'},
  {id:'map', tab:'Map', icon:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3a86c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14"/><path d="M15 6v14"/></svg>', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
 ];
 
@@ -1317,13 +1318,61 @@ function renderRoleSpecies(q){
         <div style="font-size:11px;color:#8a94a6;font-weight:700">${s.n.toLocaleString()} revealed sets</div></div></div>
       ${rows}</div>`;}).join('');
 }
-const ROOMS={town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,mew:roomMew,map:roomMap};
+/* ---- THE PC: everything not currently working ------------------------------------------------
+   Which models land here is NOT a list anyone maintains. It is read from data/status.js, which
+   build/build_status.js derives from the evaluation artifacts (S13). A model that gets tested and
+   fails moves itself into the PC on the next build; one that starts working moves itself out.
+   Three boxes, because "tested and it failed" and "never built" are different states and showing
+   them the same way is how a roadmap item starts looking like a result. */
+function roomPC(){
+  const S=(window.ABRA_STATUS&&window.ABRA_STATUS.models)||[];
+  const card=(m)=>{
+    const c=CAST.find(x=>x.id===m.id);
+    const spr=c?`<img src="${ani(c.sprite)}" style="width:46px;height:46px;image-rendering:pixelated" alt="">`:'';
+    const [cls,label]=STATUS_LOOK[m.status]||['',m.status];
+    const clickable=c&&ROOMS[m.id];
+    return `<div style="display:flex;gap:11px;align-items:flex-start;background:#f6f8fb;border:2px solid #e2e8f1;
+              border-radius:12px;padding:11px;${clickable?'cursor:pointer':''}"
+              ${clickable?`onclick="go('${m.id}')"`:''}>
+      <div style="filter:grayscale(.75);opacity:.75">${spr}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:900;color:#3a5372;font-size:14px">${m.name}</div>
+        <div style="font-weight:700;color:#6d829b;font-size:12.5px;margin:2px 0 5px">${m.detail}</div>
+        <div style="font-weight:700;color:#5a6f8a;font-size:12.5px">${m.metric||''}</div>
+        <span class="chip ${cls}">${label}</span><span class="chip">${m.derived?'measured':'not yet measured'}</span>
+      </div></div>`;
+  };
+  const group=(title,blurb,list)=>`<div class="panel"><h2>${title}</h2>
+     <p style="font-weight:600;color:#3a5372">${blurb}</p>
+     ${list.length?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:10px">${list.map(card).join('')}</div>`
+                 :'<p style="font-weight:700;color:#8fa0b6">Nothing in this box right now.</p>'}</div>`;
+
+  const failed  = S.filter(m=>m.status==='null');
+  const retired = S.filter(m=>m.status==='retired');
+  const unbuilt = S.filter(m=>m.status==='roadmap'||m.status==='dev'||m.status==='pivot');
+  const working = S.filter(m=>['live','validated','win','built'].includes(m.status));
+
+  return `<div class="panel"><div class="hero">
+      <img class="mascot" src="https://play.pokemonshowdown.com/sprites/ani/porygon2.gif" alt="">
+      <div><h2>The PC</h2><p class="sub">where models go when they are not working</p>
+      <div class="bubble">Storage for everything that is tested-and-failed, retired, or not built yet.
+      Nothing here is deleted — a model that failed is a result, and keeping it visible stops anyone
+      rebuilding it by accident. <b>${working.length} of ${S.length}</b> models are currently in active use.</div></div>
+    </div></div>
+    ${group('Tested — and it did not work','These were built, measured against a fair baseline, and lost. That is a real finding, not a bug, and it is worth more than a number nobody checked.',failed)}
+    ${group('Retired','Superseded or withdrawn. Kept on the shelf so the mistake is not repeated.',retired)}
+    ${group('Not built yet','Designed, scoped, or half-finished. No claim is being made about any of these — nobody has measured them.',unbuilt)}`;
+}
+const ROOMS={pc:roomPC,town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,mew:roomMew,map:roomMap};
 
 /* ===== navigation ===== */
 function go(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.id===id));
   const stage=document.getElementById('stage');
-  stage.innerHTML=`<div class="room on">${ROOMS[id]()}</div>`;
+  /* Every room closes with "How I think" — appended HERE rather than written into each room, so a
+     new room cannot ship without one and none of them can drift out of sync with its status. */
+  const closer=howIThink(id);
+  stage.innerHTML=`<div class="room on">${ROOMS[id]()}${closer?`<div class="panel">${closer}</div>`:''}</div>`;
   window.scrollTo({top:0,behavior:'smooth'});
   if(id==='jolteon') initBooth();
   if(id==='medicham'){ ensureTeams(); renderPick('pickMA','A'); renderPick('pickMB','B'); renderSlots(); syncSel(); renderSaved(); }
