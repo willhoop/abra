@@ -10,6 +10,136 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.4.0] — 2026-07-25
+
+### Fixed — six defects in MEW, every one found by testing the chain before the first large run
+
+The self-play engine had been built, validated and benchmarked, and was about to generate a corpus.
+Testing it end to end first — from team construction through to the file PORY actually reads — found
+six faults. Four of them produce data that looks completely normal and is quietly wrong, which is the
+only kind of bug that matters for a training corpus. Recorded in the order they would have done
+damage.
+
+**1. Four in five self-play teams were illegal.** `BattleStream` does not run the team validator; it
+plays whatever it is handed. Showdown's own `TeamValidator` rejected **80.5% of the pool (161/200
+teams)**. The dominant cause was Item Clause — VGC permits one of each item per team, the set sampler
+drew items independently per species, and **66 teams carried two Focus Sashes**. Every such game was
+played with a team no human could bring, and nothing anywhere reported a problem.
+
+`packTeam` now enforces Item Clause during packing (resampling from the species' own measured item
+distribution rather than blanking the item, which would have biased the corpus toward itemless
+Pokemon), then validates and repairs, and MEW discards anything still invalid instead of recording
+it. **100% valid**, at a measured 9.6% throughput cost — 4.30 ms/team with the validator cached, and
+constructing it per call rather than once accounted for 6.5 ms of the original 7.7.
+
+The hand-rolled learnset check written first was itself wrong — 40 false positives on cosmetic formes
+(Sinistcha-Masterpiece does learn Matcha Gotcha). Asking the official validator is both correct and
+less code. S12 applies to legality rules as much as to constants.
+
+**2. Illegal abilities, 0.4% of packed sets.** Meowstic with Intimidate, Snorlax with No Guard,
+Gardevoir with Good as Gold. Abilities were sampled from observed sets keyed by species name and
+never checked against the species. Intimidate alone shifts every physical damage roll against that
+side, so these silently corrupted the battles they appeared in. Now clamped to the species' legal set
+and **reported in `filled`** — a silent correction would hide the ingest fault that produced it.
+
+**3. Matchup coverage was 0.15%.** Both teams were drawn as linear functions of the same seed:
+
+    const a = teams[(seed * 2654435761) % teams.length];
+    const b = teams[(seed * 40503 + 17) % teams.length];
+
+Two linear maps of one counter do not explore a 2-D space, they walk a 1-D lattice through it.
+Measured over 1,000,000 sequential seeds on a 1,326-team pool: **1,325 distinct matchups of 879,801
+possible, each replayed ~755 times**, and zero mirror matches despite a comment asserting they
+occurred. Independent random draws would have reached 68%.
+
+Matchups are now **enumerated** over the triangular index of unordered pairs, verified bijective at
+T=5, 50 and 1,326 (879,801 pairs, every one exactly once, zero malformed). The walk order is
+scrambled by a stride coprime to the total, so coverage stays exactly-once while any **prefix** of an
+interrupted run remains spread across the whole pool rather than being one team's matchups.
+
+**4. Team preview was a constant.** `RandomPlayerAI.chooseTeamPreview` returns the literal `'default'`
+— bring slots 1-4, lead 1-2 — and `PriorPlayerAI` did not override it. Every game with a given team
+therefore made the identical preview decision: **1 of C(6,4) x C(4,2) = 90 choices per side**,
+forever. Team selection is a large share of VGC skill and it was a fixed constant.
+
+It is now sampled from measured ladder behaviour (`engine/bring_priors.js`: P(brought | on team) and
+P(lead | brought), shrunk by 10 pseudo-observations). Uniform sampling over all 90 was rejected
+deliberately — most brings are ones no player would make, and the corpus would fill with positions
+that never occur. The lead rankings have face validity: Grimmsnarl 84%, Talonflame 82%, Whimsicott
+77%, which are the format's actual screens and Tailwind leads. `p_lead` is measured from turn-1 leads
+and is unbiased; `p_bring` comes from REVEALED species and is biased down, so it is a ranking rather
+than a calibrated rate.
+
+A consequence worth stating plainly: the 40–92% spread in per-species bring rates reported earlier in
+this session was **positional artifact of the constant `default` bring**, not preference. It is
+retracted.
+
+**5. Battles were not replayable.** `>start {seed}` seeds the battle's dice; it does nothing for the
+players, whose PRNG defaulted to a fresh random seed, and two draws in the policy used
+`Math.random()`. A recorded seed therefore reproduced the damage rolls but not the decisions, and the
+game diverged at the first choice. Any claim of the form "this switch is what won the game" was
+unfalsifiable. Both players are now seeded from the battle seed via `PRNG.get`, and every sampling
+draw uses the player's own PRNG. **Verified: 25/25 games byte-identical across separate runs** once
+the `|t:|` wall-clock line is excluded.
+
+**6. Writes were not durable, and the claim that they were is retracted.** The record and log streams
+were `createWriteStream(..., {flags:'a'})`, described in a comment as keeping everything already
+flushed if a run were killed. That was false. Observed directly: during a 12-worker run **every shard
+sat at exactly 0 bytes for fifteen minutes** while each worker held ~500 MB resident. Records are
+~5 KB, workers out-produce the disk, and Node answers backpressure by queueing in memory — nothing
+reaches disk until the stream closes at process exit.
+
+Three consequences: a killed worker lost **all** of its games rather than the last few; memory grew
+in proportion to games generated (~170 MB queued per worker at 16,667 games); and progress was
+invisible, which is how a **healthy 200,000-game run was mistaken for a hung one and killed at 15
+minutes**, when each worker needed ~1.7 hours. Batched `appendFileSync` (50 records) bounds memory
+and lands data continuously — verified at 7 MB / 21 MB / 31 MB on disk at t=20/40/60s of a live run.
+
+### Fixed — the JS/Python parity test was verifying nothing
+
+`tests/test-quality.js` probed `python3`, `python`, `py -3` and skipped with exit 2 when none worked.
+On Windows all three resolve to the **Microsoft Store alias stub**, which prints "Python was not
+found" and exits 9009 — while a working Python 3.12.10 sits in `%LOCALAPPDATA%\Programs\Python`. The
+test that guarantees the two quality filters select identical games had therefore been skipping on
+the development machine, reporting success while checking nothing.
+
+`engine/python.js` (new) resolves a real interpreter by **executing** each candidate and requiring it
+to echo a token — a name resolving on PATH proves nothing — and additionally searches the standard
+install roots. The probe had been duplicated in `server.js` and the test and had drifted; it is now
+one reader (S12). The parity check now runs: **27 passed**.
+
+### Added
+
+- `engine/bring_priors.js` — measured bring/lead propensities from clean ladder games.
+- `engine/state_encoder.py` — a rich per-turn state encoding (121 features): HP per slot, active vs
+  benched, status, boosts, weather/terrain/Trick Room/Tailwind/screens, hazards, active types. Both
+  perspectives are emitted with sides swapped, because antisymmetry in the two players is a property
+  of the game and a model trained on p1's view alone will not respect it.
+- `engine/pory_nn.py` — the network-versus-baselines comparison, eight arms on one split.
+- `engine/python.js`, `build/serve.js`.
+
+### Changed
+
+- `engine/mew_farm.js` — **`--conc` now defaults to 1, not 4.** The prior default cost 4x. Measured on
+  8 physical / 16 logical cores: 8 procs at conc 4 gave 11 games/sec, the same 8 procs at conc 1 gave
+  38. The simulator is synchronous and CPU-bound, so in-process concurrency never overlaps real work —
+  it holds N battles live at once and multiplies GC pressure. 12 procs / conc 1 reproduced at 44–46.
+  Two earlier throughput figures in this file are retracted: a projection of 131 games/sec
+  (extrapolated from one process, never measured) and a claim that scaling collapses past 4 processes
+  (measured, but every row carried the bad `--conc`, so a config artifact was written up as a hardware
+  limit). Run-to-run variance is large — 8/conc-1 measured 37.8 and 15.1 on identical config — so
+  single microbenchmarks here are worth ±2x.
+- `engine/mew_farm.js` — merges the raw-log shards. It previously deleted the entire shard directory
+  at merge, **destroying every protocol log a distributed run produced** at the moment it succeeded.
+  Single-process runs kept them; the farm silently did not.
+- `engine/mew.js` — writes a `.raw-logs.jsonl` sidecar in the ladder's own `{id, uploadtime, log}`
+  schema. MEW captured the full omniscient log, passed it to `extract()`, and discarded it; but
+  `extract()` produces game-level summaries and every value model reconstructs board states from the
+  **protocol log**. A million games in the old format would have been unreadable by the model they
+  exist to train.
+
+---
+
 ## [3.3.0] — 2026-07-25
 
 ### Added — Smogon's official statistics, archived monthly, and what they immediately corrected
