@@ -38,11 +38,14 @@ header{position:relative;z-index:5;text-align:center;padding:18px 12px 6px}
 @keyframes bob{50%{transform:translateY(-8px)}}
 .tagline{color:#25405a;font-weight:600;margin:4px 0 0;font-size:15px;text-shadow:0 1px 0 #fff}
 
-nav{position:relative;z-index:6;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 10px 6px;max-width:1000px;margin:0 auto}
-.tab{border:3px solid var(--line);background:#fff;border-radius:16px;padding:8px 14px;font-size:15px;font-weight:700;
-  color:var(--ink);box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s,background .15s;display:flex;align-items:center;gap:7px}
-.tab img{width:28px;height:28px;object-fit:contain;image-rendering:pixelated}
-.tab svg{width:26px;height:26px;flex:none;display:block}
+/* The tab row was capped at 1000px with tabs sized for six of them. At nine it wrapped and left a
+   single orphaned tab centred on its own line, which read as a mistake. Wider cap plus slightly
+   tighter tabs so the row fits on a normal screen and wraps evenly rather than 8-and-1. */
+nav{position:relative;z-index:6;display:flex;gap:7px;justify-content:center;flex-wrap:wrap;padding:8px 10px 4px;max-width:1180px;margin:0 auto}
+.tab{border:3px solid var(--line);background:#fff;border-radius:14px;padding:6px 11px;font-size:14px;font-weight:700;
+  color:var(--ink);box-shadow:0 4px 0 var(--line);transition:transform .08s,box-shadow .08s,background .15s;display:flex;align-items:center;gap:6px}
+.tab img{width:24px;height:24px;object-fit:contain;image-rendering:pixelated}
+.tab svg{width:22px;height:22px;flex:none;display:block}
 .house .plat svg{width:56px;height:56px;display:block;margin:0 auto}
 .hero .mascotsvg{width:104px;height:104px;flex:none;display:flex;align-items:center;justify-content:center}
 .hero .mascotsvg svg{width:92px;height:92px;stroke-width:1.6}
@@ -604,7 +607,6 @@ const CAST=[
  {id:'roles', tab:'Roles', full:'Smeargle', sprite:'smeargle', title:"The Role Foundry", acro:'roles the data found — emergent archetypes, not hand-labels', role:'emergent roles', roof:'#ff9f43'},
  {id:'mew', tab:'Mew', full:'Mew', sprite:'mew', title:"Mew's Practice Field", acro:'self-play data engine — plays the format against itself, forever', role:'self-play corpus', roof:'#ff8fd0'},
  {id:'pc', tab:'PC', sprite:'porygon2', title:'The PC', acro:'where models go when they are not working', role:'archive', roof:'#b9a8c8'},
- {id:'map', tab:'Map', icon:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3a86c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14"/><path d="M15 6v14"/></svg>', title:"The Map", acro:'how every model feeds the next — live from the data', role:'the whole town, wired', roof:'#6bb0e0'},
 ];
 
 /* ===== build nav ===== */
@@ -617,7 +619,7 @@ const nav=document.getElementById('nav');
    model's evidence changes: fail a test and your tab disappears into the PC on the next build;
    start working and it comes back. Nothing here is a maintained list.
    MAP, TOWN and PC are fixtures — they are places, not models. */
-const FIXTURES=['map','town','pc'];
+const FIXTURES=['town','pc'];
 const WORKING=['live','validated','win','built'];
 function navShows(id){
   if(FIXTURES.includes(id)) return true;
@@ -625,7 +627,7 @@ function navShows(id){
   if(!m) return true;                       // unknown -> show it rather than silently hide a room
   return WORKING.includes(m.status);
 }
-const NAVCAST=[...CAST.filter(c=>c.id==='map'),...CAST.filter(c=>c.id!=='map')].filter(c=>navShows(c.id));
+const NAVCAST=CAST.filter(c=>navShows(c.id));
 NAVCAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b.dataset.id=c.id;
   b.innerHTML=`${c.icon?c.icon:`<img src="${ani(c.sprite)}">`}${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
 
@@ -669,7 +671,7 @@ function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="ma
    otherwise. */
 const HOW_I_THINK={
   store:    "I do one job and I do it constantly: pull every public Champions replay, parse it once, and keep the raw log forever. Everything else in this town reads from me. If I ever lose a game, no model downstream can get it back — so I never delete, I only append.",
-  medicham: "I work out exactly how much damage a move does — every roll, item, ability, weather and speed check. That part is checked against the official calculator and it is right. What I am NOT good at is playing the game out afterwards; the engine I use for that was measured badly wrong, so trust my damage and ignore my win rates until it is rebuilt.",
+  medicham: "I don't guess from a team sheet — I play the matchup out. Each turn I sample what a real player would click here, apply exact damage with a random roll, and see who is left standing. Do that a few hundred times and a win rate falls out. The damage half is checked against the official calculator and it is right. The playing-out half is not: the engine I use for it was measured about 30 points off the real simulator and it picks the wrong winner in three matchups out of eight, on movesets that are invented rather than observed. So trust my damage and ignore my win rates until that engine is replaced.",
   guru:     "I split teams into archetypes and ask which beats which. Honest answer: on the games we have, not one matchup is solid enough to call. I am a well-built machine waiting for enough data to say anything, and I would rather tell you that than hand you a number I cannot defend.",
   xatu:     "I guess what the opponent is holding — which moves, which item — from what they have shown so far and what the format usually runs. The more they reveal, the sharper I get. I am a prior, not a mind reader, and I get more useful the longer a game runs.",
   pory:     "I look at a board and say who is winning. What I actually do is count Pokémon and health, and I have been measured against exactly that: I do not beat it. The richer read of the board helps a little, but on clean games even that is thin. I am honest arithmetic, not a value net.",
@@ -701,13 +703,22 @@ function howIThink(id){
 }
 
 function roomTown(){const c=CAST[0];
-  let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">
+  /* The town shows the models that WORK. Everything tested-and-failed, retired or unbuilt lives in
+     the PC — the same status-driven filter the nav uses (S13), so a house appears or disappears when
+     its evidence changes and nobody maintains a list. Showing a failed model a house next to a
+     working one is the thing the two reviews objected to most. */
+  const pcCount=((window.ABRA_STATUS&&window.ABRA_STATUS.models)||[]).filter(m=>!navShows(m.id)).length;
+  let houses=CAST.slice(1).filter(h=>h.id!=='map'&&h.id!=='pc'&&navShows(h.id))
+    .map(h=>`<div class="house" onclick="go('${h.id}')">
      <div class="roof" style="background:${h.roof}"></div>
      <div class="tint" style="background:${h.roof}"></div>
      <div class="plat">${h.icon?h.icon:`<img src="${ani(h.sprite)}">`}</div>
      <b>${h.tab.toUpperCase()}</b><small>${h.role}</small></div>`).join('');
   return `<div class="panel">${mascotHero(c,"Welcome! I keep every Champions ladder game — and each room is a model that learns from them.")}</div>
-   <div class="panel"><h2>The town</h2><p class="sub">Each house is a model — click to visit</p><div class="map">${houses}</div></div>
+   <div class="panel"><h2>The town</h2><p class="sub">Each house is a model that works — click to visit.
+     ${pcCount} more are in <a href="#" onclick="go('pc');return false" style="font-weight:800;color:#c0432f">the PC</a>: tested and failed, retired, or not built yet.</p>
+     <div class="map">${houses}</div></div>
+   ${mapPanel()}
    <div class="panel"><h2>What the town has collected</h2>
      <div class="statgrid">
        <div class="stat"><b id="statGames">${(window.LIVE&&LIVE.games?LIVE.games:5200).toLocaleString()}</b><span>real ladder games stored</span></div>
@@ -767,7 +778,7 @@ function roomJolteon(){const c=CAST[1];
        <div id="savedbar" class="savedbar"></div>
      </div>
    </div>
-   <div class="panel"><h2>How Jolteon thinks</h2><p style="font-weight:600;color:#3a5372">I add up a learned <b>strength</b> for every Pokémon on each side, then nudge it by coverage, firepower and speed. <b>Straight talk from the held-out backtest:</b> I pick the winner slightly more often than a coin, and as a <i>probability</i> I am no sharper than a coin. I used to say I sat "right at the skill ceiling for this format" — <b>that was retracted</b>. The ceiling it referred to was measured on data full of bot games; once those were removed the ceiling dropped far enough that we can no longer say it is above a coin flip at all. So the comparison meant nothing, and the honest statement is simply: the team sheet does not carry much. The team sheet just doesn't carry much more than that, partly because the meta is non-transitive (see Ditto). I'm an honest, instant first read — not an oracle. The rollout (Medicham) and the belief-search (Slowking) are where the real edge lives.</p></div>`;
+   `;
 }
 
 function tierRow(sprite,name,acro,cost,color,text){
@@ -799,7 +810,6 @@ function roomMedicham(){const c=CAST[2];
      </div>
    </div>
    <div class="panel" style="border-color:#f0a8a8;background:#fff6f6"><h2 style="color:#9a2b2b">⚠ Do not trust these numbers yet</h2><p style="font-weight:600;color:#7a3b3b">This room plays battles out using a <b>battle engine we wrote by hand</b>, and we have since measured it against the real Pokémon Showdown engine. It disagrees badly — on the matchups we tested it was off by about <b>30 points on average</b>, and it picked the <b>wrong winner in three out of eight</b>. On top of that, the movesets it uses are <b>invented, not observed</b>: every Pokémon has Protect in its last slot, and over half carry filler moves nobody runs. Whimsicott does not even have Tailwind, the move it is famous for.</p><p style="font-weight:600;color:#7a3b3b">We decided to replace this engine with the real simulator. That work has not shipped. Until it does, treat anything below as a <b>toy</b>, not a read — and in particular ignore the line telling you to trust it over Jolteon.</p><span class="chip null">rejected engine</span><span class="chip null">made-up movesets</span></div>
-   <div class="panel"><h2>How Medicham thinks</h2><p style="font-weight:600;color:#3a5372">I don't guess from the team sheet — I <b>play the matchup out</b>. Each turn I sample what a real player would click here (Tailwind, Spore, Swords Dance, or the hardest hit) from thousands of ladder games, apply CHOMP's exact damage with a random roll, and see who's left standing. Do that a few hundred times and the win rate falls out. Because I actually resolve status, speed control and setup, I catch things Jolteon can't — including when Jolteon over-rates a team.</p></div>
    <div class="panel"><h2>The honesty check</h2><p style="font-weight:600;color:#3a5372">This is my most important job. When Ditto builds a team by optimising a fast model, it can <b>game</b> that model — stacking what the model over-rates. So I <b>re-check every team by actually playing it out</b>. Once the sheet said a team was 90%; I played it and it was 12% — and I was right. That disagreement is the whole point: I catch the hype <i>and</i> the hidden gems, so nobody fools the optimiser.</p></div>`;
 }
 function roomDitto(){const c=CAST[3];
@@ -823,7 +833,7 @@ function roomDitto(){const c=CAST[3];
      <div id="nontrans" style="overflow:auto;text-align:center"></div>
    </div>
    <div class="panel" style="border-color:#f0a8a8;background:#fff6f6"><h2 style="color:#9a2b2b">⚠ Built on numbers we do not stand behind</h2><p style="font-weight:600;color:#7a3b3b">Everything in this room is computed from two things we have already flagged as unreliable: the <b>hand-written battle engine</b> (measured badly wrong against the real simulator, see Medicham) and the <b>archetype matchup grid</b> below — in which, by our own testing, <b>not one cell is statistically solid</b>. That is why every cell in the grid is greyed and starred.</p><p style="font-weight:600;color:#7a3b3b">So the "rock-paper-scissors metagame" claim below is a <b>hunch worth investigating</b>, not something we have shown. Team scores here should not be used to pick a team.</p><span class="chip null">no reliable cells</span><span class="chip null">rejected engine</span></div>
-   <div class="panel"><h2>How Ditto thinks</h2><p style="font-weight:600;color:#3a5372">First I <b>solve the meta</b>: I take the archetype match-up matrix and compute its Nash equilibrium \u2014 how often each archetype <i>should</i> appear if everyone plays optimally (right now: Rain, Sand, Fake-Out). Then I <b>best-respond to that equilibrium</b>, hill-climbing your team to beat the meta as it actually is, not as a flat usage list. Jolteon scores candidates fast; Medicham plays the finalists out for real and tells you which archetypes still exploit you \u2014 because in a non-transitive meta, <b>no single team beats everything</b>. That's the honest version of a double-oracle: solve the game, answer the game.</p></div>`;
+   `;
 }
 function roomKadabra(){const c=CAST[4];
   return `<div class="panel">${mascotHero(c,"Paste a game — I walk you through the turns that decided it.")}</div>
@@ -834,7 +844,7 @@ function roomKadabra(){const c=CAST[4];
      <button class="battlebtn" onclick="runKadabra()">Coach it</button>
      <div id="kdout" style="margin-top:14px">Paste a replay above and press Coach it.</div>
    </div>
-   <div class="panel"><h2>How Kadabra thinks</h2><p style="font-weight:600;color:#3a5372">I read your replay's log to find the turns that <b>actually decided the game</b> — a KO you scored, a big trade, the moment you lost a Pokémon — not every turn, just the ones that mattered. Then I walk you through them <b>one at a time on the real Showdown replay</b>: I set it to that turn, tell you what's happening and what to do, you hit play and watch it unfold, and we step to the next key moment. No scrubbing through the boring turns. Every game you review is added to the town's memory.</p></div>`;
+   `;
 }
 function cycleSVG(labels){
   const pts=[[190,36],[330,176],[50,176]], col=['#3a86c0','#e0863a','#7a6bff'];
@@ -1115,8 +1125,11 @@ const MAPLAYER={store:'collect',mew:'collect',medicham:'simulate',guru:'meta',xa
 const LAYERS=[['collect','Collect data','#7aa7d6','#eef3fa'],['simulate','Simulate damage','#e0a93a','#fff6e0'],['meta','Read the meta','#4faf6a','#e9f9ef'],['opponent','Read the opponent','#3aa6b8','#e4f6f8'],['value','Value a position','#3a86c0','#eaf3fb'],['preview','Team preview (bring/lead)','#9a6bd0','#f1e9fb'],['build','Build a team','#7a9c3a','#f3f7e8'],['battle','Coach in-battle','#d06a9a','#fceef4'],['retired','Retired (PC)','#b08a8a','#f6eeee']];
 const LAYERCOL={}; LAYERS.forEach(([id,,br,bg])=>LAYERCOL[id]=[bg,br]);
 window.MAPON=window.MAPON||{retired:false};   // retired hidden by default; toggle to show
-function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
-  if(!S){ return `<div class="panel">${mascotHero(c,"Map data not loaded — run engine/build-status.js.")}</div>`; }
+/* The map is a PANEL, not a room. It belongs on the home page — it is the orientation view, and
+   making it a separate tab meant the first thing a visitor needs was one click away from where
+   they land. roomTown() renders it directly. */
+function mapPanel(){ const S=window.STATUS;
+  if(!S){ return `<div class="panel"><h2>The map</h2><p style="font-weight:600;color:#3a5372">Map data not loaded — run <code>node build/build_status.js</code>.</p></div>`; }
   const NW=132,NH=46; const byName={},byId={}; S.models.forEach(m=>{byName[m.name.toUpperCase()]=m.id; byId[m.id]=m;});
   const lay=id=>MAPLAYER[id]||'collect', vis=id=>window.MAPON[lay(id)]!==false;
   const edges=[]; S.models.forEach(m=>{(m.inputs||[]).forEach(inp=>{const f=MAPPOS[inp]?inp:byName[(inp||'').toUpperCase()]; if(f&&MAPPOS[f]&&MAPPOS[m.id])edges.push([f,m.id]);});});
@@ -1179,8 +1192,7 @@ function roomMap(){ const c=CAST.find(x=>x.id==='map'); const S=window.STATUS;
       `<text x="${x+NW/2}" y="${y+35}" text-anchor="middle" font-size="9.5" fill="#5a6472">${m.metric}</text></g>`; });
   svg+=`</svg>`;
   const btns=LAYERS.map(([id,label,br])=>{const on=window.MAPON[id]!==false; return `<button onclick="mapToggle('${id}')" data-layer-btn="${id}" data-br="${br}" style="border:2px solid ${br};background:${on?br:'#fff'};color:${on?'#fff':br};font-weight:800;font-size:12px;padding:5px 11px;border-radius:99px;margin:3px;cursor:pointer">${label}</button>`;}).join('');
-  return `<div class="panel">${mascotHero(c,"The whole town, wired up. Toggle a layer to sort by what each model DOES; hover a box to trace its connections.")}</div>
-   <div class="panel"><h2>The map — live from the data</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
+  return `<div class="panel"><h2>The map — how the town wires together</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
    <div style="margin:4px 0 8px">${btns}</div>
    <div id="maptip" style="height:78px;overflow:hidden;box-sizing:border-box;margin:0 0 6px;padding:8px 12px;background:#f6f8fb;border:1.5px solid #e2e8f1;border-radius:10px;font-weight:600;color:#3a5372;font-size:13.5px;line-height:1.5"><b>Hover any model</b> — it lights up what feeds it and what it feeds.</div>${svg}</div>`;
 }
@@ -1251,7 +1263,7 @@ function roomChomp(){const c=CAST[6];
        <div style="font-weight:700;color:#7a8aa0;margin-top:8px">One install from GitHub. ORB ships inside CHOMP — nothing else to download or paste. It auto-updates, so a smarter ABRA reaches you with no reinstall.</div>
      </div></div>
    <div class="panel" style="border-color:#f0c48a;background:#fffaf3"><h2 style="color:#8a5a1a">⚠ Tested against real games — and it did not beat a coin</h2><p style="font-weight:600;color:#6a4a1a">We checked Chomp's bring advice against about twelve hundred real games it had never seen. <b>It did not do better than guessing.</b> Its top pick matched what the human actually brought roughly one time in ten, against a base rate of about one in fifteen — a little above chance, and not enough to call a result.</p><p style="font-weight:600;color:#6a4a1a">The damage maths underneath <i>is</i> verified and genuinely good. Turning correct damage numbers into a correct bring decision is the part that does not work yet. Use it to check whether something gets KO'd, not to choose your four.</p><span class="chip null">bring advice: no better than a coin</span><span class="chip ok">damage maths: verified</span></div>
-   <div class="panel"><h2>How Chomp thinks</h2><p style="font-weight:600;color:#3a5372">Different job from Jolteon: I don't predict a winner, I make the <b>decision</b>. Given your six and theirs, I run every one of your Pokémon's moves against their whole six through the exact damage engine — all 16 rolls, speed order, items, weather — and pick the four that cover everything plus the two to lead. Jolteon says <i>who's favoured</i>; I say <i>what to bring</i>. ABRA's usage tells me what they'll probably send, but I cover the whole six so I'm never caught out.</p></div>`;
+   `;
 }
 function roomRoles(){ const c=CAST.find(x=>x.id==='roles'); const N=window.NMF;
   if(!N||!N.archetypes) return `<div class="panel">${mascotHero(c,"Still loading the role data.")}</div>`;
@@ -1385,7 +1397,7 @@ function roomPC(){
     ${group('Retired','Superseded or withdrawn. Kept on the shelf so the mistake is not repeated.',retired)}
     ${group('Not built yet','Designed, scoped, or half-finished. No claim is being made about any of these — nobody has measured them.',unbuilt)}`;
 }
-const ROOMS={pc:roomPC,town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,mew:roomMew,map:roomMap};
+const ROOMS={pc:roomPC,town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,mew:roomMew};
 
 /* ===== navigation ===== */
 function go(id){

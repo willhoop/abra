@@ -260,3 +260,4 @@ window.ABRA_STATUS = {
   }
  ]
 };
+window.STATUS = window.ABRA_STATUS;   /* alias: the map room reads this name */
