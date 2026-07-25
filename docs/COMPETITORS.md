@@ -1,46 +1,216 @@
-# Competitive landscape & how ABRA refines it
+# Competitive landscape — public attempts at Pokémon battle AI
 
-Honest positioning: competitive-Pokémon AI is an active field. We are not first, and several groups are ahead of us on parts of this. This document studies their methods and states exactly where ABRA refines, complements, or should simply *adopt* their work.
+**Surveyed 2026-07-25.** Supersedes the 2026-07-23 version, which covered only the academic tier and
+predated the NeurIPS 2025 results.
 
-## The competitors
+Honest positioning: this is an active field and several groups are ahead of ABRA on agents. This
+document maps each public attempt against ABRA, states what we can take from it, and — because it
+determines whether we may take anything at all — records the licence.
 
-### 1. VGC-Bench (Angliss et al., 2025) — the state of the art, and our closest neighbor
-- **What it is:** a benchmark + agents for VGC doubles, on `poke-env`. Ships **~700k human battle logs**, standardized evaluation, and baselines spanning heuristics, LLMs, behavior cloning, and **multi-agent RL with empirical game theory — self-play, fictitious play, and double oracle (4 PSRO variants)**. ([paper](https://arxiv.org/abs/2506.10326), [code](https://github.com/cameronangliss/vgc-bench))
-- **Their key result / open problem:** in a *single-team* mirror they beat a professional. But as the **team set grows, the best single-team agent gets more *exploitable* and generalizes worse** — team space is ~10^139, and the optimal strategy depends heavily on both teams. **Generalization-vs-exploitability is the unsolved core.**
-- **How ABRA refines / complements:**
-  - They apply game theory at the **team-strategy** level (PSRO over policies). SLOWKING targets the **in-battle** level — ReBeL/DeepStack **continual re-solving over a public belief state**, which I could not find done for VGC. That's the genuinely additive piece.
-  - Their exploitability problem is a *Nash* problem. Our `nash.py` + `solver.team_preview` compute the **equilibrium team/bring mixture** directly; reporting the *mixture* (not one team) is the principled answer to "any single team is exploitable."
-  - **Adopt, don't rebuild:** their 700k dataset (behavior-clone prior, offline pretraining) and `poke-env` (RL harness). Reinventing these would be wasteful.
+---
 
-### 2. "Human-Level Competitive Pokémon via Scalable Offline RL with Transformers" (2025)
-- **What it is:** offline RL (transformer policy) trained on large human replay corpora, reaching human-level in **singles**.
-- **Refine:** extend to **doubles + hidden-info belief search**; use their offline-RL policy as the **behavior-clone prior** that seeds MEDICHAM/SLOWKING, then improve it online with self-play (offline pretrain → online flywheel is the standard, powerful recipe).
+## 1. The two findings that should change what we build
 
-### 3. PokéLLMon (2024) — the LLM agent
-- **What it is:** an LLM battle agent using in-context RL + knowledge-augmented generation; human-parity in randoms.
-- **Refine:** LLMs are strong at *knowledge and explanation*, weak at *exact game-solving under a turn timer*. Right division of labor: **LLM powers KADABRA** (replay coaching, natural-language "why") and knowledge priors; **game-theoretic search makes the decisions**. Don't ask an LLM to compute a Nash mix.
+**1.1 The strongest public battling agents are RL and MCTS, not LLMs.** The PokéAgent Challenge
+(NeurIPS 2025) drew 100+ teams and 650+ participants. Track 1, competitive battling, was won by
+**PA-Agent (RL)** and **Foul Play (MCTS)**; the LLM entry (August) took a Judges' Choice rather than
+the win. The organisers' summary is blunt — *RL specialists dominated partially observable two-player
+games*. The paper adds that Pokémon battling is "nearly orthogonal to standard LLM benchmarks."
 
-### 4. `poke-env`, `reuniclusVGC` (DQN), heuristic bots
-- The infrastructure layer and simple baselines. **Adopt `poke-env`** as the agent harness; treat DQN/heuristics as the floor our search must clear.
+*Consequence for ABRA:* the LLM route is not the play for decisions. Keep LLMs where PokéLLMon showed
+they earn their place — explanation and knowledge retrieval, i.e. KADABRA's prose — and make the
+decisions with search and learned policies.
 
-## Where ABRA is actually differentiated (be honest, it's a short list)
-1. **In-battle belief search (ReBeL-style) for VGC** — the piece the field hasn't published. This is our real research bet.
-2. **Equilibrium team *mixtures*** as the direct answer to VGC-Bench's exploitability finding.
-3. **Evaluation honesty as a feature** — proper scoring, calibration, and confidence intervals shown to the user (and in our own docs, including publishing where a model only ties a coin). The field reports win-rates against baselines; almost nobody surfaces calibration to *players*.
-4. **The open Champions engine + self-play flywheel** giving exact dynamics and unlimited unbiased data.
-5. **A consumer product**, not a benchmark — win-prob, rollout, team-opt, coach, calc, in one place.
+**1.2 The Track 1 winner is singles-only.** Foul Play plays *single* battles across generations. It
+does not do doubles or VGC. VGC-Bench is the only serious public work in doubles, and it is a
+benchmark rather than a deployed agent.
 
-## Concrete refinements to their methods (the to-do that matters)
-- **VGC-Bench PSRO → belief-conditioned best-response + continual re-solving.** Their best-response is to a static mixture; make it re-solve against the *belief* each turn, and report **exploitability with CIs**, not just head-to-head win-rate.
-- **Behavior cloning → DAgger against the open engine.** Both their BC agents and our MEDICHAM policy suffer covariate shift; correct it on-policy with the real simulator as the expert-labeler.
-- **Offline → online.** Pretrain the policy/value nets on the 700k human logs (their data), then run the self-play flywheel (our engine + `train_value.py`) on top. Offline gives a strong prior cheaply; online removes the human selection bias.
-- **Team generalization.** Instead of one policy per team, condition the policy/value on a **team embedding** and train across many teams (they show this trades peak strength for generalization) — then let the equilibrium layer handle exploitability.
+*Consequence for ABRA:* **VGC doubles remains genuinely under-served.** ABRA's format choice is a
+real differentiator, not a niche we ended up in by accident. The strongest public agent cannot play
+our format at all.
 
-## The one-sentence position
-> VGC-Bench solved "can an RL agent beat a pro on a fixed team" and exposed that broad, unexploitable play is the hard part; ABRA's bet is that **in-battle belief search plus equilibrium team mixtures** — the poker-AI playbook they didn't fully port — is the way to close that gap, delivered as an honestly-evaluated product rather than a benchmark.
+---
+
+## 2. The projects
+
+### 2.1 PokéAgent Challenge (NeurIPS 2025) — [arXiv:2603.15563](https://arxiv.org/abs/2603.15563)
+
+The current centre of gravity. Two tracks (competitive battling, RPG speedrunning), a live
+leaderboard, and — the part that matters most to us — **a released dataset of 20M+ battle
+trajectories** with heuristic, RL and LLM baselines.
+
+**What ABRA can take:** the dataset, directly. ABRA's entire power problem is n=1,061 clean games;
+20M trajectories is four orders of magnitude more. Even if most are not Reg M-B doubles, they are
+usable for pre-training a policy and value net before fine-tuning on our format — the standard
+offline-pretrain-then-specialise recipe.
+
+**Action:** verify the dataset's licence and format coverage. This is the single highest-value
+external resource identified in this survey.
+
+### 2.2 Foul Play — [github.com/pmariglia/foul-play](https://github.com/pmariglia/foul-play) · **GPL-3.0**
+
+Track 1 co-winner. Root-parallelised **Monte Carlo Tree Search** over `poke-engine`, a bespoke Rust
+battle engine, guided by a **hand-written evaluation function rather than rollouts**.
+
+That last detail is the interesting one. Foul Play does not roll out to terminal; it searches and
+evaluates at the leaf — the DeepStack/AlphaBeta shape, and precisely the architecture SLOWKING and
+ALAKAZAM are specified to have. Someone has now won a competition with it in this domain.
+
+**What ABRA can take:** the architectural confirmation, and the design lesson that a good leaf
+evaluator beats deep rollouts. ABRA already has the leaf evaluator — PORY.
+
+**LICENCE WARNING.** Foul Play is **GPL-3.0**, which is viral. ABRA is MIT. Copying Foul Play code,
+or linking `poke-engine`, would force ABRA to become GPL. **Read it for ideas; do not vendor it.**
+This is the one project in this survey with a licence that constrains us.
+
+### 2.3 VGC-Bench — [github.com/cameronangliss/VGC-Bench](https://github.com/cameronangliss/VGC-Bench) · **MIT** · [arXiv:2506.10326](https://arxiv.org/abs/2506.10326)
+
+The closest neighbour: **doubles VGC**, on poke-env, with four PSRO variants (pure self-play,
+fictitious play, double oracle, exploitation), behaviour cloning, an LLM wrapper, and three poke-env
+heuristics. Ships a scraping pipeline rather than logs. Cross-evaluated across 1 / 4 / 16 / 64 team
+settings.
+
+**Their headline result, and it changes MEW's priority:** the strongest agent is **BCSP — self-play
+initialised with behaviour cloning.** Not pure self-play, not pure imitation. Clone first, then
+improve by self-play.
+
+**What ABRA can take:** three things, and it is MIT so we actually may.
+1. **The BCSP sequence.** MEW currently runs random self-play. Random is correct for plumbing and for
+   matchup structure, but VGC-Bench says it is not what wins. The behaviour-cloned policy is the
+   deliverable, not the upgrade.
+2. **The PSRO implementations** — DITTO's rebuild has been "to do" for two versions and is
+   implemented here, in our format, under a licence we can use.
+3. **Their BC pipeline**, which turns logs into state-action trajectories. That is SLOWKING Paper 1 /
+   `engine/game-spec.js`.
+
+**Their known weakness, which is ours to avoid:** the LLM baseline is evaluated on **20 battles**
+against 200 for every other agent. That comparison cannot support a conclusion — the same
+underpowered-claim problem ABRA gated against on 2026-07-25 (`engine/eval_harness.py`).
+
+**Their open problem:** as team diversity grows, the best single-team agent becomes more exploitable
+and generalises worse. Team space is ~10^139. Exploitability vs generalisation is unsolved.
+
+### 2.4 Metamon — [arXiv:2504.04395](https://arxiv.org/abs/2504.04395)
+
+Offline RL with transformers on **5M human trajectories + 20M self-play**, reaching the top decile of
+human players in singles, model-free, **with no search at all**.
+
+**What ABRA can take:** the mixture ratio. Roughly 4:1 self-play to human. And the sobering lesson
+that a large enough learned policy may not need search — which means ALAKAZAM's search layer must be
+measured against the no-search policy and kept only if it earns its cost.
+
+### 2.5 PokéChamp (ICML 2025) — minimax LLM agent
+
+Expert-level minimax agent over the open engine, ~1500 Elo, no learned dynamics, no equilibrium
+guarantee. A domain proof and a baseline.
+
+### 2.6 PokéLLMon — [arXiv:2402.01118](https://arxiv.org/abs/2402.01118)
+
+First LLM agent at human parity in randoms, via state→text prompting and retrieval-augmented
+generation. Superseded on strength by RL, but its RAG-of-knowledge layer is the right model for
+KADABRA's explanations.
+
+### 2.7 poke-env — [github.com/hsahovic/poke-env](https://github.com/hsahovic/poke-env) · **MIT**
+
+The infrastructure layer. Python library for scripted agents, self-play and RL against a local
+Showdown server; subclass `Player`, override `choose_move`. Everything above is built on it.
+
+**What ABRA can take:** it is the standard harness and it is MIT. ABRA currently drives the simulator
+directly through `BattleStream` in `engine/champions_sim.js`, which works and is verified. poke-env
+would matter if we want to reuse VGC-Bench's agents, since those are written against it.
+
+*Open question:* whether poke-env's doubles support is complete for our format. VGC-Bench is built on
+it and does doubles, which is suggestive but not confirmation.
+
+### 2.8 The hobbyist bot lineage — absent from the previous survey
+
+A decade of open-source Showdown bots that solved practical problems before the academics arrived:
+**Technical Machine** (David Stone), **pmariglia/showdown** (the ancestor of Foul Play), **MariBot**,
+and forks such as **jfiacco/showdown** and **Agetian/showdown-battlebot**. **PsyMew** is a recent
+Foul Play fork that swaps the decision engine for an LLM pipeline (Gemini or Claude).
+
+**What ABRA can take:** mostly operational rather than algorithmic — protocol handling, reconnection,
+team validation, ladder etiquette. Technical Machine's deliberate non-determinism (it varies between
+good options so opponents cannot read it) is a small, real idea that anticipates the
+mixed-strategy argument by years.
+
+---
+
+## 3. Mapped against ABRA
+
+| Capability | Best public work | ABRA | Verdict |
+|---|---|---|---|
+| Singles battling agent | Foul Play (MCTS), PA-Agent (RL) | none | **Behind. Not our format** |
+| Doubles/VGC agent | VGC-Bench (benchmark) | ALAKAZAM (spec only) | **Both early. Genuinely open** |
+| Battle engine correctness | poke-engine (Foul Play, GPL) | official Champions mod, verified 31/31 vs `@smogon/calc` | **Level, and ours is the authority** |
+| Training data volume | PokéAgent 20M+, Metamon 25M | 1,061 clean games | **Far behind. Adopt, do not scrape** |
+| Belief-state / equilibrium search | nobody, in VGC | SLOWKING/ALAKAZAM (spec) | **Still the open bet** |
+| Mid-game value function | implicit in RL agents | **PORY, calibrated, log-loss 0.567 vs 0.693** | **Comparable, and ours is explicit and measured** |
+| Evaluation honesty | weak — VGC-Bench's LLM at n=20 | proper scores, CIs, baselines, power gate | **Ahead. This is the real differentiator** |
+| Team building | VGC-Bench PSRO | DITTO (needs rebuild) | **Behind. Adopt their PSRO** |
+
+---
+
+## 4. What to adopt, what to build
+
+**Adopt (MIT, no obstacle):**
+- PokéAgent's 20M trajectory dataset — pending licence check. Fixes the power problem outright.
+- VGC-Bench's PSRO implementations for the DITTO rebuild.
+- VGC-Bench's BC pipeline instead of writing `game-spec.js` from scratch.
+- poke-env if and when we need their agents to run.
+
+**Read but do not vendor (GPL-3.0):**
+- Foul Play and poke-engine. Ideas only. Vendoring would relicense ABRA.
+
+**Keep building — nobody else is:**
+- Belief-state search in doubles VGC.
+- The measured-evaluation discipline. On the evidence of this survey it is ABRA's strongest and least
+  contested claim.
+
+**Stop building:**
+- Anything that duplicates a scraper, a harness or a PSRO loop that exists under MIT.
+
+---
+
+## 5. Licences, in one place
+
+| Project | Licence | May we use the code? |
+|---|---|---|
+| VGC-Bench | **MIT** | Yes |
+| poke-env | **MIT** | Yes |
+| Foul Play / poke-engine | **GPL-3.0** | **No** — viral, ABRA is MIT. Ideas only |
+| PokéAgent dataset | **unverified** | Check before use |
+| Metamon | unverified | Check before use |
+| Showdown / champions mod | as upstream | Already used, pinned at `20ad99f` |
+
+ABRA is MIT. Any GPL code entering this repository would change that for the whole project, which is
+a decision to be made deliberately and not by accident in a pull request.
+
+---
+
+## 6. Engine-design lineage
+
+How the strongest engines in *other* games generate data and evaluate positions — Stockfish NNUE
+(billions of positions at modest depth), Leela Chess Zero (self-play with policy temperature ≈ 2.25
+for deliberate diversity), KataGo (sample efficiency as a first-class target), AlphaZero (and why its
+no-metagame assumption does not transfer) — is treated in **`docs/MEW-whitepaper.md` §2**, where it
+informs MEW's design directly.
+
+---
+
+## 7. Position, in one sentence
+
+The field has settled that RL and search beat LLMs at battling, and the strongest public agent cannot
+play doubles at all — so ABRA's bet remains **belief-state search in VGC doubles, evaluated honestly**,
+built on adopted MIT infrastructure and an external dataset rather than on a scraper we maintain
+ourselves.
 
 ## Sources
-- [VGC-Bench](https://arxiv.org/abs/2506.10326) · [code](https://github.com/cameronangliss/vgc-bench)
-- [Human-Level Competitive Pokémon via Offline RL with Transformers](https://arxiv.org/html/2504.04395v1)
-- [PokéLLMon](https://arxiv.org/abs/2402.01118) · [poke-env](https://github.com/hsahovic/poke-env)
-- [ReBeL](https://arxiv.org/pdf/2007.13544) · [DeepStack](https://arxiv.org/pdf/1701.01724) · [PSRO](https://arxiv.org/pdf/1711.00832)
+
+- PokéAgent Challenge — [arXiv:2603.15563](https://arxiv.org/abs/2603.15563) · [pokeagent.github.io](https://pokeagent.github.io/) · [results summary](https://www.inf.uni-hamburg.de/en/inst/basecamp/projects/archive/2025/41-pokeagent-challenge.html)
+- Foul Play — [github.com/pmariglia/foul-play](https://github.com/pmariglia/foul-play) (GPL-3.0) · [design notes](https://pmariglia.github.io/posts/foul-play/)
+- VGC-Bench — [github.com/cameronangliss/VGC-Bench](https://github.com/cameronangliss/VGC-Bench) (MIT) · [arXiv:2506.10326](https://arxiv.org/abs/2506.10326)
+- Metamon — [arXiv:2504.04395](https://arxiv.org/abs/2504.04395)
+- PokéLLMon — [arXiv:2402.01118](https://arxiv.org/abs/2402.01118)
+- poke-env — [github.com/hsahovic/poke-env](https://github.com/hsahovic/poke-env) (MIT)
+- PsyMew — [Smogon thread](https://www.smogon.com/forums/threads/psymew-open-source-ai-battle-bot-project.3781351/)
