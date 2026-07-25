@@ -1,71 +1,45 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 2334,
-  "k_selected": 5,
-  "silhouette": 0.122,
+  "n_games": 2422,
+  "k_selected": 3,
+  "silhouette": 0.119,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Incineroar-Sneasler",
-      "share": 0.434,
-      "core": [
-        "incineroar",
-        "sneasler",
-        "raichu",
-        "floetteeternal"
-      ],
-      "signature": [],
-      "w_usage": 0.434
-    },
-    {
       "n": "Garchomp-Kingambit",
-      "share": 0.244,
+      "share": 0.666,
       "core": [
         "garchomp",
         "kingambit",
-        "charizard",
-        "whimsicott"
+        "whimsicott",
+        "charizard"
       ],
-      "signature": [
-        "whimsicott"
-      ],
-      "w_usage": 0.244
+      "signature": [],
+      "w_usage": 0.666
     },
     {
-      "n": "Rain",
-      "share": 0.126,
+      "n": "Sand",
+      "share": 0.193,
+      "core": [
+        "sinistcha",
+        "tyranitar",
+        "excadrill",
+        "staraptor"
+      ],
+      "signature": [],
+      "w_usage": 0.193
+    },
+    {
+      "n": "Pelipper-Archaludon",
+      "share": 0.141,
       "core": [
         "pelipper",
         "archaludon",
         "swampert",
-        "basculegion"
+        "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.126
-    },
-    {
-      "n": "Trick Room",
-      "share": 0.12,
-      "core": [
-        "farigiraf",
-        "incineroar",
-        "torkoal",
-        "mawile"
-      ],
-      "signature": [],
-      "w_usage": 0.12
-    },
-    {
-      "n": "Sand",
-      "share": 0.077,
-      "core": [
-        "tyranitar",
-        "excadrill",
-        "sinistcha",
-        "staraptor"
-      ],
-      "signature": [],
-      "w_usage": 0.077
+      "w_usage": 0.141
     }
   ]
 }
