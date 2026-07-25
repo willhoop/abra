@@ -27,3 +27,5 @@ data/games.selfplay.jsonl
 # the source files via engine/ingest_ots.js, and a different information regime from the
 # closed-sheet ladder store, so it lives in its own bucket.
 data/games.ots.jsonl
+data/games.selfplay.raw-logs.jsonl
+data/.mew-shards/
