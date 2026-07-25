@@ -126,4 +126,10 @@ function run(){
  if(w5<95||worst>8){ console.error(`REGRESSION: within-5% ${w5.toFixed(0)}% (need >=95), worst ${worst.toFixed(0)}% (need <=8)`); process.exit(1); }
  console.log('PASS: MEDICHAM damage within tolerance of @smogon/calc');
 }
-run();
+/* S1 - the scenario table has ONE home. engine/validate_damage_sim.js runs the same 31 scenarios
+ * through the OFFICIAL Champions engine, and a second copy of this table would be free to drift from
+ * this one without anything noticing. Export it instead. MV/CALCMOVE go with it because a scenario
+ * is meaningless without the move metadata it indexes. */
+module.exports = { SCENARIOS: S, MV, CALCMOVE, W_NONE };
+
+if (require.main === module) run();
