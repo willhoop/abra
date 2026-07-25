@@ -76,8 +76,14 @@ ok(abs(ll["coin"] - 0.6931) < 1e-3, "coin baseline is ln2")
 ok(ll["roles"] > ll["coin"] - 0.02, "roles ~ coin (honest: preview roles barely separate)")
 
 war = json.load(open(D("data","war.json")))
-ok(war["held_out"]["log_loss"] < war["held_out"]["coin"] + 1e-9,
-   f"WAR model log-loss {war['held_out']['log_loss']} <= coin {war['held_out']['coin']}")
+# WITHDRAWN 2026-07-25. This asserted WAR beats a coin. On the quality-filtered store it does not
+# (0.7048 vs 0.6931, accuracy 0.502). It only ever beat the coin while bot games were counted: four
+# accounts played the SAME six Pokemon in 1,446 games, so a species RAPM learned which species
+# belonged to the busiest account. Basculegion's WAR fell 281.87 -> 23.64 when the filter went on.
+# Now asserts the honest claim - preview species sits AT the coin - with a two-sided bound, because
+# a sudden large WIN would be as suspicious as the collapse was.
+ok(abs(war["held_out"]["log_loss"] - war["held_out"]["coin"]) < 0.03,
+   f"WAR is at the coin ({war['held_out']['log_loss']} vs {war['held_out']['coin']}) — honest null")
 ok(len(war["leaders"]) > 0 and war["leaders"][0]["war"] > war["trailers"][-1]["war"],
    "WAR ordering: leaders above trailers")
 
