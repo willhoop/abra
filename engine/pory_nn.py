@@ -341,6 +341,11 @@ def main():
 
     Xtr_r, Xva_r, Xte_r = standardise(X[tr], X[va], X[te])
     ytr, yva, yte = Y[tr], Y[va], Y[te]
+    # X is no longer needed and is the largest single allocation; drop it before training.
+    del X
+    import gc; gc.collect()
+    print(f"  feature matrices: {Xtr_r.nbytes/2**20:.0f} + {Xva_r.nbytes/2**20:.0f} + "
+          f"{Xte_r.nbytes/2**20:.0f} MB ({Xtr_r.dtype})")
 
     Xtr_m = material_view(Xtr_r, FEATURE_NAMES)
     Xva_m = material_view(Xva_r, FEATURE_NAMES)
