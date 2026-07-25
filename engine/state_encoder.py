@@ -94,6 +94,36 @@ def _feature_names():
     for t in TERRAINS:
         n.append(f"terrain_{t}")
     n += ["trickroom"]
+
+    # ---- REVEALED INFORMATION AND BELIEF -------------------------------------------------------
+    # Pokemon is partially observed, and the hidden part is not the board -- it is the SETS. A good
+    # player does not merely track what has been revealed; they hold a distribution over what has
+    # not, conditioned on what they have seen. That is a belief state, and it is the single thing
+    # the 121-feature encoder was missing that the literature says matters most (see
+    # docs/NEURAL-ARCHITECTURE.md: Metamon infers the opponent's team "entirely from memory").
+    #
+    # These features are computed against data/move-priors.json -- the same measured usage priors
+    # MEW samples sets from -- so the model sees what an informed player would infer, not an oracle.
+    for side in ("me", "foe"):
+        n += [
+            f"{side}_moves_revealed",     # distinct moves seen across the team, normalised
+            f"{side}_slots_known",        # fraction of active mons' 4 move slots revealed
+            f"{side}_items_revealed",
+            f"{side}_abilities_revealed",
+            f"{side}_belief_top_p",       # prior mass on the single most likely UNREVEALED move
+            f"{side}_belief_entropy",     # normalised entropy over unrevealed moves: how guessable
+            f"{side}_prior_coverage",     # prior mass already accounted for by revealed moves
+        ]
+
+    # ---- HISTORY --------------------------------------------------------------------------------
+    # The old encoder saw one frozen snapshot, so it could not represent "I am losing ground" versus
+    # "I am gaining it" -- two positions with identical material and opposite prognosis. Lags plus
+    # deltas are the cheapest faithful version of memory, and our own ablation said representation,
+    # not capacity, was the binding constraint.
+    n += ["hp_diff_lag1", "hp_diff_lag2", "hp_diff_lag3",
+          "alive_diff_lag1", "alive_diff_lag3",
+          "hp_diff_delta1", "hp_diff_delta3", "alive_diff_delta1",
+          "turns_since_faint_me", "turns_since_faint_foe"]
     return n
 
 
@@ -101,9 +131,70 @@ FEATURE_NAMES = _feature_names()
 N_FEATURES = len(FEATURE_NAMES)
 
 
+_PRIORS = None
+
+
+def _priors():
+    """species -> [{mv, p}, ...] from data/move-priors.json, loaded once.
+
+    Missing file is not fatal: belief features degrade to zero and every other feature is
+    unaffected, so the encoder still runs on a machine that has not built priors yet.
+    """
+    global _PRIORS
+    if _PRIORS is None:
+        _PRIORS = {}
+        try:
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data",
+                                "move-priors.json")
+            with open(path, encoding="utf-8") as fh:
+                blob = json.load(fh)
+            for sp, rec in (blob.get("species") or {}).items():
+                mv = [(_norm(m.get("mv")), float(m.get("p") or 0.0)) for m in (rec.get("moves") or [])]
+                if mv:
+                    _PRIORS[_norm(sp)] = mv
+        except Exception:
+            _PRIORS = {}
+    return _PRIORS
+
+
+def _belief(side):
+    """(top_p, entropy, coverage) over the UNREVEALED moves of this side's active Pokemon.
+
+    top_p     how much prior mass sits on the single likeliest move we have not yet seen -- high
+              means "you can guess what is coming".
+    entropy   normalised Shannon entropy over the unrevealed moves; high means genuinely uncertain.
+    coverage  prior mass already explained by what HAS been revealed -- high means their kit is
+              largely known, which is what shifts a good player from guessing to reading.
+    """
+    P = _priors()
+    tops, ents, covs, n = 0.0, 0.0, 0.0, 0
+    for k in side.active_keys:
+        pri = P.get(k)
+        if not pri:
+            continue
+        seen = side.moves_seen.get(k) or set()
+        unseen = [(mv, p) for mv, p in pri if mv not in seen]
+        cov = sum(p for mv, p in pri if mv in seen)
+        tot = sum(p for _, p in unseen)
+        if unseen and tot > 0:
+            tops += max(p for _, p in unseen) / tot
+            e = 0.0
+            for _, p in unseen:
+                q = p / tot
+                if q > 0:
+                    e -= q * math.log(q)
+            ents += e / math.log(len(unseen)) if len(unseen) > 1 else 0.0
+        covs += cov
+        n += 1
+    if not n:
+        return (0.0, 0.0, 0.0)
+    return (tops / n, ents / n, covs / n)
+
+
 class _Side:
     __slots__ = ("hp", "alive", "active", "active_keys", "status", "boosts", "tailwind", "reflect",
-                 "lightscreen", "hazard", "types", "order")
+                 "lightscreen", "hazard", "types", "order",
+                 "moves_seen", "items_seen", "abilities_seen")
 
     def __init__(self):
         self.hp = {}          # slotkey -> hp fraction 0..1
@@ -121,10 +212,16 @@ class _Side:
         self.hazard = 0
         self.types = {}       # position -> list of types
         self.order = []       # stable slot ordering for slot features
+        self.moves_seen = {}     # species -> set of normalised move ids revealed so far
+        self.items_seen = set()  # species whose item has been revealed
+        self.abilities_seen = set()
 
 
 def _blank_state():
-    return {"p1": _Side(), "p2": _Side(), "weather": "", "terrain": "", "trickroom": 0}
+    return {"p1": _Side(), "p2": _Side(), "weather": "", "terrain": "", "trickroom": 0,
+            # history is stored ONCE from p1's point of view and negated for p2, so the two
+            # perspectives stay exactly antisymmetric rather than drifting apart
+            "hist": [], "last_faint": {"p1": 0, "p2": 0}}
 
 
 def winner_side(log):
@@ -202,6 +299,52 @@ def _vec_for(st, me, foe, turn):
     for t in TERRAINS:
         v[ix[f"terrain_{t}"]] = 1.0 if st["terrain"] == t else 0.0
     v[ix["trickroom"]] = st["trickroom"]
+
+    # ---- revealed information and belief, per side ---------------------------------------------
+    for tag, p in (("me", me), ("foe", foe)):
+        side = st[p]
+        seen_total = sum(len(s) for s in side.moves_seen.values())
+        v[ix[f"{tag}_moves_revealed"]] = min(1.0, seen_total / 16.0)   # 4 mons x 4 moves
+        act_seen = [len(side.moves_seen.get(k) or ()) for k in side.active_keys]
+        v[ix[f"{tag}_slots_known"]] = (sum(min(4, x) for x in act_seen) / (4.0 * len(act_seen))
+                                       if act_seen else 0.0)
+        v[ix[f"{tag}_items_revealed"]] = min(1.0, len(side.items_seen) / 4.0)
+        v[ix[f"{tag}_abilities_revealed"]] = min(1.0, len(side.abilities_seen) / 4.0)
+        top_p, ent, cov = _belief(side)
+        v[ix[f"{tag}_belief_top_p"]] = top_p
+        v[ix[f"{tag}_belief_entropy"]] = ent
+        v[ix[f"{tag}_prior_coverage"]] = cov
+
+    # ---- history ---------------------------------------------------------------------------------
+    # `hist` holds (alive_diff, hp_diff) from p1's view; flip the sign when the perspective is p2 so
+    # the two rows for a turn stay exact mirrors of one another.
+    sgn = 1.0 if me == "p1" else -1.0
+    hist = st["hist"]
+
+    def lag(i):
+        """i turns back; clamps to the oldest entry so early turns are flat rather than absent."""
+        if not hist:
+            return (0.0, 0.0)
+        a, h = hist[max(0, len(hist) - 1 - i)]
+        return (sgn * a, sgn * h)
+
+    a1, h1 = lag(1)
+    a2, h2 = lag(2)
+    a3, h3 = lag(3)
+    cur_a, cur_h = v[ix["alive_diff"]], v[ix["hp_diff"]]
+    v[ix["hp_diff_lag1"]] = h1
+    v[ix["hp_diff_lag2"]] = h2
+    v[ix["hp_diff_lag3"]] = h3
+    v[ix["alive_diff_lag1"]] = a1
+    v[ix["alive_diff_lag3"]] = a3
+    v[ix["hp_diff_delta1"]] = cur_h - h1
+    v[ix["hp_diff_delta3"]] = cur_h - h3
+    v[ix["alive_diff_delta1"]] = cur_a - a1
+    # Turns since either side last lost a Pokemon. Recency of a KO is momentum, and a snapshot
+    # cannot express it: 2-1 immediately after a trade plays very differently from 2-1 held for
+    # five turns. Normalised and capped so it stays on the same scale as everything else.
+    v[ix["turns_since_faint_me"]] = min(1.0, max(0, turn - st["last_faint"][me]) / 10.0)
+    v[ix["turns_since_faint_foe"]] = min(1.0, max(0, turn - st["last_faint"][foe]) / 10.0)
     return v
 
 
@@ -216,6 +359,12 @@ _RE_FIELD = re.compile(r"^\|-fieldstart\|move: ([A-Za-z ]+)")
 _RE_FIELDEND = re.compile(r"^\|-fieldend\|move: ([A-Za-z ]+)")
 _RE_SIDESTART = re.compile(r"^\|-sidestart\|(p[12])[^|]*\|(?:move: )?([A-Za-z ]+)")
 _RE_SIDEEND = re.compile(r"^\|-sideend\|(p[12])[^|]*\|(?:move: )?([A-Za-z ]+)")
+# Revealed-information sources. A move used, an item that triggered, an ability that announced
+# itself -- each one narrows the belief over that Pokemon's set, which is what a good player is
+# actually tracking turn to turn.
+_RE_MOVE = re.compile(r"^\|move\|(p[12])([ab]): ([^|]*)\|([^|]+)")
+_RE_ITEM = re.compile(r"^\|-(?:item|enditem)\|(p[12])([ab])")
+_RE_ABIL = re.compile(r"^\|-ability\|(p[12])([ab])")
 
 
 def encode_log(log, dex_types=None):
@@ -274,9 +423,32 @@ def encode_log(log, dex_types=None):
                     pass
             continue
 
+        m = _RE_MOVE.match(ln)
+        if m:
+            p, pos, mv = m.group(1), m.group(2), _norm(m.group(4))
+            k = key_of.get(p + pos)
+            if k and mv:
+                st[p].moves_seen.setdefault(k, set()).add(mv)
+            continue
+
+        m = _RE_ITEM.match(ln)
+        if m:
+            k = key_of.get(m.group(1) + m.group(2))
+            if k:
+                st[m.group(1)].items_seen.add(k)
+            continue
+
+        m = _RE_ABIL.match(ln)
+        if m:
+            k = key_of.get(m.group(1) + m.group(2))
+            if k:
+                st[m.group(1)].abilities_seen.add(k)
+            continue
+
         m = _RE_FAINT.match(ln)
         if m:
             p, pos = m.group(1), m.group(2)
+            st["last_faint"][p] = turn
             k = key_of.get(p + pos)
             if k:
                 st[p].alive[k] = False
@@ -367,6 +539,15 @@ def encode_log(log, dex_types=None):
                 pass
             if turn >= 1:
                 # BOTH perspectives, sides swapped. Antisymmetry is a property of the game.
-                out.append((_vec_for(st, "p1", "p2", turn), 1 if w == "p1" else 0))
-                out.append((_vec_for(st, "p2", "p1", turn), 1 if w == "p2" else 0))
+                r1 = _vec_for(st, "p1", "p2", turn)
+                r2 = _vec_for(st, "p2", "p1", turn)
+                out.append((r1, 1 if w == "p1" else 0))
+                out.append((r2, 1 if w == "p2" else 0))
+                # Append AFTER encoding, so a turn's own row never contains that turn as its lag --
+                # doing it before would leak the present into the past and make lag1 a copy of the
+                # current value, which looks like a strong feature and is actually a bug.
+                _i = {n: i for i, n in enumerate(FEATURE_NAMES)}
+                st["hist"].append((r1[_i["alive_diff"]], r1[_i["hp_diff"]]))
+                if len(st["hist"]) > 8:
+                    st["hist"].pop(0)
     return out
