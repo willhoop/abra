@@ -21,7 +21,11 @@ __pycache__/
 
 # MEW self-play output. Unbounded by design and regenerable from a seed, so it does not
 # belong in git. The small browser sample (data/mew.js) IS committed.
-data/games.selfplay.jsonl
+# Every self-play artifact, not just the canonical filename. A regeneration written to
+# data/games.selfplay.new.jsonl slipped past the exact-name rule and a 987MB file was committed by
+# build/sync.sh's `git add -A`, which GitHub rejected outright ("pre-receive hook declined").
+# Self-play output is REGENERABLE from a seed; it must never enter git.
+data/games.selfplay*.jsonl
 
 # Archived open-team-sheet corpus (cameronangliss/vgc-battle-logs, MIT). Re-importable from
 # the source files via engine/ingest_ots.js, and a different information regime from the

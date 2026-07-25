@@ -35,6 +35,20 @@ for attempt in 1 2 3 4 5; do
   # silently not pushed, which is exactly the failure this script exists to prevent. An untracked or
   # modified file is work, and work that is not committed is work that is not backed up.
   if [ -n "$(git status --porcelain)" ]; then
+    # REFUSE TO COMMIT ANYTHING GITHUB WILL REJECT. `git add -A` once swept up a 987MB
+    # in-progress self-play corpus (data/games.selfplay.new.jsonl -- the exact-name ignore rule
+    # did not cover the temp filename), and the push failed with "pre-receive hook declined"
+    # AFTER the commit existed, which then had to be unwound by hand. GitHub's hard limit is
+    # 100MB; anything approaching it here is regenerable output that does not belong in git.
+    big="$(git status --porcelain | awk '{print $2}' | while read -r f; do
+             [ -f "$f" ] && [ "$(stat -c%s "$f" 2>/dev/null || echo 0)" -gt 52428800 ] && echo "$f"
+           done)"
+    if [ -n "$big" ]; then
+      echo "  REFUSING to auto-commit -- these exceed 50MB and are almost certainly generated:"
+      echo "$big" | sed 's/^/    /'
+      echo "  add them to .gitignore (self-play output is regenerable from its seed), then re-run."
+      exit 1
+    fi
     echo "  uncommitted work present -- committing it"
     git add -A
     git commit -q -m "wip: local changes swept up by build/sync.sh" || true

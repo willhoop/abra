@@ -21,16 +21,42 @@ if (!fs.existsSync(SRC)) { console.error(`no self-play store at ${SRC}; run engi
  *
  * Only N games are ever shown, so the whole store is never held: a bounded "longest so far" list is
  * kept and everything else is dropped as it streams past. Memory is O(N), not O(store). */
+/* SAMPLE ACROSS THE LENGTH DISTRIBUTION, NOT THE TOP OF IT.
+ *
+ * This used to keep the N LONGEST games. On a real corpus that is badly misleading: self-play games
+ * run to a median of about 10 turns, and the longest-first rule filled the viewer with 75-82 turn
+ * marathons -- every one of the 12 shipped battles. Those are the freak tail, and they are the tail
+ * where the policy looks worst, because two bots that do not understand that repeat Protect fails
+ * will stall each other for eighty turns. A viewer showing only those misrepresents both the corpus
+ * and the model.
+ *
+ * Reservoir sampling keeps a uniform random sample of the whole corpus in one pass and constant
+ * memory, then a few of the longest are added back deliberately so the tail is still visible. Seeded
+ * so the same store always produces the same bundle. */
 let total = 0;
-const best = [];                       // ascending by turn count, length <= N
+const RESERVOIR = Math.max(1, N - 2);   // leave room for 2 deliberately-long games
+const pool = [];
+const longest = [];
+let rng = 20260725;                     // fixed seed: the bundle must be reproducible
+const rand = () => ((rng = (rng * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+
 function consider(g) {
   const len = (g.turns || []).length;
-  if (best.length < N) {
-    best.push(g);
-    best.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
-  } else if (len > (best[0].turns || []).length) {
-    best[0] = g;
-    best.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
+  if (len < 4) return;                  // a 3-turn game shows nothing about what MEW does
+  // uniform reservoir over everything
+  if (pool.length < RESERVOIR) {
+    pool.push(g);
+  } else {
+    const j = Math.floor(rand() * total);
+    if (j < RESERVOIR) pool[j] = g;
+  }
+  // keep the two longest as well, so the tail is represented rather than hidden
+  if (longest.length < 2) {
+    longest.push(g);
+    longest.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
+  } else if (len > (longest[0].turns || []).length) {
+    longest[0] = g;
+    longest.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
   }
 }
 {
@@ -54,8 +80,14 @@ function consider(g) {
 }
 if (!total) { console.error('self-play store is empty'); process.exit(1); }
 
-/* Prefer games with some length — a 2-turn game shows nothing about what MEW does. */
-const picked = best.slice().reverse();
+/* Merge the uniform sample with the two long ones, dedupe by id, and order shortest-first so the
+ * viewer opens on something typical rather than on an eighty-turn stall. */
+const seenIds = new Set();
+const picked = [];
+for (const g of pool.concat(longest)) {
+  if (g && !seenIds.has(g.id)) { seenIds.add(g.id); picked.push(g); }
+}
+picked.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
 
 const slim = picked.map(g => ({
   id: g.id,
