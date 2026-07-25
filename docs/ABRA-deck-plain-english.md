@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 2.4.0 · 2026-07-23 · Will Hooper**
+**Version 3.3.0 · 2026-07-25 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -36,8 +36,11 @@ in, and never has to re-download anything. It runs on a normal laptop; no specia
 
 Each model is a "house" you can visit on the site:
 
-- **MEDICHAM** — the damage engine. Knows exactly how hard every move hits. (Checked against the
-  community standard and matches it.)
+- **MEDICHAM** — the damage engine. Matches the community standard, but disagrees with the game's
+  OFFICIAL engine by a wide margin, so it is being replaced by that engine and kept only as a
+  lookup.
+- **MEW** — plays the official engine against itself, so we are not limited to the games people
+  happen to upload.
 - **GURU** — reads the metagame: which team styles beat which, from real results, with error bars.
 - **XATU** — reads the opponent: the likely item, ability, and moves behind each Pokémon.
 - **PORY** — the win meter: mid-battle, tells you your real chance to win.

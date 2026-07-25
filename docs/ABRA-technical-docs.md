@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 2.4.0 · Last updated 2026-07-23**
+**Version 3.3.0 · Last updated 2026-07-25**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -21,6 +21,22 @@ Do these steps in order.
 You now have the site and one validated model.
 
 ## 2. How-to — common tasks
+
+**Repair the raw archive before any reparse.**
+`MODE=backfill node engine/durable-ingest.js data/games.ladder.jsonl`
+The hourly Action appends to the store while the raw archive is gitignored, so CI-collected games have no local raw log. `MODE=reparse` REFUSES to run while any stored game is missing one, because reparse rebuilds the store from the archive and would delete them.
+
+**Run the official Champions engine.**
+`SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/champions_sim.js`
+Needs a BUILT master checkout; the champions mod is not in the npm package.
+
+**Generate self-play games (MEW).**
+`SHOWDOWN_PATH=... node engine/mew.js --n 1000` then `SHOWDOWN_PATH=... node engine/validate_selfplay.js`
+Output goes to `data/games.selfplay.jsonl` and must NEVER be pooled with the ladder store.
+
+**Refresh the official priors.**
+`node engine/fetch_smogon_stats.js` then `node engine/smogon_priors.js`
+CI does this on the 4th and 11th of each month.
 
 **Pull new replays.**
 `PAGES=6 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl`

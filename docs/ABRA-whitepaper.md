@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 2.6.0 · Last updated 2026-07-24**
+**Version 3.3.0 · Last updated 2026-07-25**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -27,7 +27,10 @@ road to the in-battle engine (ALAKAZAM).
 ## 1. The empirical ceiling (why the design is what it is)
 
 On 600+ held-out real Champions games, a Bradley-Terry player-Elo model reaches a held-out log-loss of
-**0.687 against a coin's 0.693** — a real but negligible edge. A cloned-policy rollout engine
+**0.687 against a coin's 0.693** — a real but negligible edge. **A 2026-07-25 re-measurement makes the
+ceiling lower still:** the previously published "higher-rated player wins 55.0%" was computed with a
+name-only bot filter that missed six high-volume accounts. Removing them gives **52.4%, 95% CI
+[49.9, 54.9]** — an interval containing a coin flip. A cloned-policy rollout engine
 (MEDICHAM) does *worse* than a coin as a raw win-predictor (log-loss ≈ 1.2; it picks the actual winner
 on ~44% of decisive calls, i.e. it is systematically *inverted*, over-backing fast offensive teams that
 lose more). After held-out Platt recalibration it only edges the coin (0.6897 vs 0.6931).
