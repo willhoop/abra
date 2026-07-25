@@ -1402,42 +1402,84 @@ for(let i=0;i<40;i++){const f=document.createElement('div');f.className='snowf';
 
 /* SHINY ODDS — 1/4096, the base rate from Gen 6 onward.
  *
- * ROLLED ONCE PER PAGE LOAD, not per teleport. The distinction matters: five sprites blinking every
- * ~4 seconds is ~4,500 rolls an hour, which at 1/4096 each would make a shiny a 67%-per-hour event —
- * common enough to be worthless. One roll per visit means the odds describe what they should
- * describe: the chance that THIS visit has a shiny Abra in it.
+ * ROLLED PER TELEPORT, so every blink-in is its own encounter, exactly as an encounter is a roll in
+ * game. Five sprites teleporting roughly every four seconds is ~4,500 rolls an hour, which works out
+ * at about a 2-in-3 chance of finding one if the page is left open for an hour. That is deliberate:
+ * it makes it a hunt you can actually complete rather than a number nobody ever sees.
  *
- * If it hits, exactly one of the five is chosen, so the page never shows two. */
+ * Once found it STAYS shiny — the sprite keeps it for the rest of the session, so you can watch the
+ * one you caught. */
 const SHINY_ODDS = 4096;
-const SHINY_THIS_VISIT = Math.floor(Math.random() * SHINY_ODDS) === 0;
-const SHINY_INDEX = SHINY_THIS_VISIT ? Math.floor(Math.random() * 5) : -1;
-let _abraN = 0;
 
 function makeAbra(){   /* roaming teleporting Abra sprites in the side margins */
-  const a=document.createElement('img'); a.className='tp'; document.body.appendChild(a);
-  const shiny = (_abraN++ === SHINY_INDEX);
-  a.src = ani('abra', shiny);
-  if (shiny) { a.classList.add('shiny'); a.title = 'Shiny Abra — 1 in ' + SHINY_ODDS.toLocaleString(); }
-  const place=()=>{ const right=Math.random()<0.5; a.style.left=right?(89+Math.random()*9)+'vw':(1.5+Math.random()*9)+'vw'; a.style.top=(14+Math.random()*72)+'vh'; };  // stay in the empty side margins, never over the content column
-  const ring=()=>{ const r=document.createElement('div'); r.className=shiny?'tpring shinyring':'tpring'; r.style.left=a.style.left; r.style.top=a.style.top;
-    document.body.appendChild(r); setTimeout(()=>r.remove(),shiny?1600:700); };
+  const a=document.createElement('img'); a.className='tp'; a.src=ani('abra'); document.body.appendChild(a);
+  let shiny=false;
   const roll=()=>{
-    if(shiny) return;                                   // already shiny: keep it
+    if(shiny) return;                                    // already found: keep it
     if(Math.floor(Math.random()*SHINY_ODDS)!==0) return;
-    shiny=true; SHINY_FOUND=true;
+    shiny=true;
     a.src=ani('abra',true);
     a.classList.add('shiny');
     a.title='Shiny Abra — 1 in '+SHINY_ODDS.toLocaleString();
   };
+  /* Pick a spot that is inside the viewport, outside the content column, and not on top of another
+   * Abra. The previous version used raw vw/vh percentages, which had three problems: a sprite placed
+   * at 98vw hung off the right edge because its own 52px width was never subtracted; the margins
+   * were assumed rather than measured, so a narrow window put Abras over the text; and nothing
+   * stopped two of them landing in the same place.
+   *
+   * Measured against the real content box, so it adapts to the window instead of guessing. */
+  const slot = { x: -999, y: -999 };
+  ABRAS.push(slot);
+  const place = () => {
+    const S = 52, PAD = 12, EDGE = 8;
+    const W = window.innerWidth, H = window.innerHeight;
+    // the actual content column, measured — not a hardcoded percentage
+    const main = document.querySelector('.wrap, main, #app, .container') || document.body;
+    const box = main.getBoundingClientRect();
+    const leftLimit = Math.max(EDGE, Math.min(box.left, W) - S - PAD);   // right edge of the left margin
+    const rightStart = Math.min(W - S - EDGE, Math.max(0, box.right) + PAD);
+    const leftUsable = leftLimit > EDGE, rightUsable = rightStart < W - S - EDGE;
+    if (!leftUsable && !rightUsable) return;                            // no room: stay put
+
+    for (let t = 0; t < 40; t++) {
+      const goRight = rightUsable && (!leftUsable || Math.random() < 0.5);
+      const x = goRight
+        ? rightStart + Math.random() * Math.max(1, (W - S - EDGE) - rightStart)
+        : EDGE + Math.random() * Math.max(1, leftLimit - EDGE);
+      const y = H * 0.12 + Math.random() * Math.max(1, H * 0.76 - S);
+      const cx = Math.min(Math.max(x, EDGE), W - S - EDGE);             // never past a wall
+      const cy = Math.min(Math.max(y, EDGE), H - S - EDGE);
+      const clash = ABRAS.some(o => o !== slot &&
+        Math.abs(o.x - cx) < S + PAD && Math.abs(o.y - cy) < S + PAD);
+      if (clash) continue;
+      slot.x = cx; slot.y = cy;
+      a.style.left = cx + 'px'; a.style.top = cy + 'px';
+      return;
+    }
+    // 40 failures means the margins are genuinely full — keep the current spot rather than overlap
+  };
+  const ring=()=>{ const r=document.createElement('div'); r.className=shiny?'tpring shinyring':'tpring'; r.style.left=a.style.left; r.style.top=a.style.top;
+    document.body.appendChild(r); setTimeout(()=>r.remove(),shiny?1600:700); };
   place();
   const loop=()=>{
     a.classList.remove('in'); a.classList.add('out');            // teleport out
-    setTimeout(()=>{ place(); a.classList.remove('out'); a.classList.add('in'); ring(); }, 500);  // blink in elsewhere
+    setTimeout(()=>{ place(); roll(); a.classList.remove('out'); a.classList.add('in'); ring(); }, 500);  // blink in elsewhere
     setTimeout(loop, 2600+Math.random()*3400);
   };
-  setTimeout(()=>{ a.classList.add('in'); ring(); loop(); }, Math.random()*2600);
+  setTimeout(()=>{ roll(); a.classList.add('in'); ring(); loop(); }, Math.random()*2600);
 }
+/* Live positions, so each Abra can avoid the others. */
+const ABRAS = [];
 for(let i=0;i<5;i++) makeAbra();
+/* A resize can leave a sprite outside the new viewport or over the content; re-place them all. */
+let _abraResize=null;
+window.addEventListener('resize',()=>{ clearTimeout(_abraResize);
+  _abraResize=setTimeout(()=>document.querySelectorAll('.tp').forEach(el=>{
+    const S=52,E=8,W=window.innerWidth,H=window.innerHeight;
+    el.style.left=Math.min(Math.max(parseFloat(el.style.left)||E,E),W-S-E)+'px';
+    el.style.top =Math.min(Math.max(parseFloat(el.style.top )||E,E),H-S-E)+'px';
+  }),150); });
 
 /* ===== per-room mascot advisor, each with its own voice + animation ===== */
 const PERSONA={
