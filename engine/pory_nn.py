@@ -276,15 +276,25 @@ class MLP:
 
 # ---------------------------------------------------------------------------------------------
 def standardise(Xtr, *others):
-    mu = Xtr.mean(axis=0)
-    sd = Xtr.std(axis=0)
+    """Standardise on TRAIN statistics, in float32, in place.
+
+    MEMORY MATTERS HERE AND IT KILLED A RUN. numpy's mean/std return float64, so the natural
+    expression `(X - mu) / sd` silently PROMOTES a float32 matrix to float64 and allocates a fresh
+    copy. At 1.4M states x 121 features that is 680MB -> 1.36GB per array, three arrays, on top of the
+    original — roughly 5GB for what should be 2, and the process was killed with no traceback and no
+    output. Casting the statistics to float32 and dividing in place keeps it flat.
+    """
+    mu = Xtr.mean(axis=0, dtype=np.float64).astype(np.float32)
+    sd = Xtr.std(axis=0, dtype=np.float64).astype(np.float32)
     sd[sd < 1e-8] = 1.0
-    # keep the bias column as a constant 1
+    # keep the bias column a constant 1
     if FEATURE_NAMES and FEATURE_NAMES[0] == "bias":
-        mu[0], sd[0] = 0.0, 1.0
-    out = [(Xtr - mu) / sd]
-    for O in others:
-        out.append((O - mu) / sd)
+        mu[0], sd[0] = np.float32(0.0), np.float32(1.0)
+    out = []
+    for O in (Xtr,) + others:
+        O -= mu          # in place, stays float32
+        O /= sd
+        out.append(O)
     return out
 
 
