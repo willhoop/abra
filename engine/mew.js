@@ -74,6 +74,22 @@ const CONC = parseInt(arg('conc', '4'), 10);
 const SEED0 = parseInt(arg('seed', '1'), 10);
 const POLICY = arg('policy', 'random');
 const OUT = path.resolve(arg('out', OUT_DEFAULT));
+/* RAW LOGS ARE THE POINT, AND THIS FILE USED TO THROW THEM AWAY.
+ * ------------------------------------------------------------------------------------------------
+ * playOne() captures the full omniscient protocol log, hands it to extract(), and dropped it. But
+ * extract() produces the GAME-LEVEL store schema — six / brought / winner — and every downstream
+ * value model reconstructs per-turn board states by replaying the PROTOCOL LOG. pory.py reads
+ * data/games.ladder.raw-logs.jsonl with exactly the shape {id, uploadtime, log} and parses |turn|,
+ * |switch|, |-damage| out of it.
+ *
+ * So a self-play corpus written only as store records is unreadable by the model it exists to train.
+ * A million games would have produced zero usable board states. The log is now written to a sidecar
+ * in the ladder's own raw-log schema, so PORY consumes self-play through the SAME reconstruction
+ * code path it uses for real games — no second parser to drift.
+ *
+ * Sized at ~5KB/game: 1M games is ~5GB of logs beside ~5GB of records. --no-raw skips it. */
+const RAW_OUT = process.argv.includes('--no-raw') ? null
+  : path.resolve(arg('raw', OUT.replace(/\.jsonl$/, '') + '.raw-logs.jsonl'));
 
 if (path.resolve(OUT) === path.resolve(LADDER)) {
   console.error('REFUSING: --out is the ladder store. Self-play must never enter it.');
@@ -184,6 +200,10 @@ async function main() {
   process.stderr.write(`MEW: ${teams.length} distinct clean teams | engine ${v.pinned_commit.slice(0, 12)} | policy ${POLICY}\n`);
 
   const out = fs.createWriteStream(OUT, { flags: 'a' });
+  /* Same append semantics as the record stream: a run killed at hour five keeps everything already
+   * flushed, and the farm merges shards by id. */
+  const rawOut = RAW_OUT ? fs.createWriteStream(RAW_OUT, { flags: 'a' }) : null;
+  if (rawOut) process.stderr.write(`  raw logs -> ${path.relative(ROOT, RAW_OUT)} (PORY reads this, not the records)\n`);
   const startedAt = Math.floor(Date.now() / 1000);
   let done = 0, written = 0, failed = 0;
   const POL = { sampled: 0, fellBack: 0, noPrior: 0 };
@@ -261,12 +281,16 @@ async function main() {
       rec.source = 'selfplay';
       rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: CS.FORMAT, policy: POLICY, seed };
       out.write(JSON.stringify(rec) + '\n');
+      /* Written under the SAME id as the record, so a board state can always be traced back to the
+       * game, the teams, the policy and the seed that produced it. */
+      if (rawOut) rawOut.write(JSON.stringify({ id: rec.id, uploadtime: startedAt, log }) + '\n');
       written++;
       if (done % 25 === 0) process.stderr.write(`  ${done}/${N} played, ${written} written, ${failed} discarded\n`);
     }
   }
   await Promise.all(Array.from({ length: Math.max(1, CONC) }, worker));
   await new Promise(r => out.end(r));
+  if (rawOut) await new Promise(r => rawOut.end(r));
   process.stderr.write(`MEW done: ${written} games -> ${path.relative(ROOT, OUT)} (${failed} discarded)\n`);
   /* REPORT THE POLICY'S OWN ACCOUNTING. A prior sampler that degrades to uniform random produces
    * games that look fine and measure nothing — ADR-001 attempt 3 reported itself as a prior sampler
