@@ -21,13 +21,38 @@ games*. The paper adds that Pokémon battling is "nearly orthogonal to standard 
 they earn their place — explanation and knowledge retrieval, i.e. KADABRA's prose — and make the
 decisions with search and learned policies.
 
-**1.2 The Track 1 winner is singles-only.** Foul Play plays *single* battles across generations. It
-does not do doubles or VGC. VGC-Bench is the only serious public work in doubles, and it is a
-benchmark rather than a deployed agent.
+**1.2 A public VGC doubles corpus EXISTS, in our exact regulation, under MIT.**
 
-*Consequence for ABRA:* **VGC doubles remains genuinely under-served.** ABRA's format choice is a
-real differentiator, not a niche we ended up in by accident. The strongest public agent cannot play
-our format at all.
+This is the correction that matters most, and it reverses an earlier draft of this document.
+
+[`cameronangliss/vgc-battle-logs`](https://huggingface.co/datasets/cameronangliss/vgc-battle-logs)
+— **88,905 battle logs**, ~177,810 trajectories, ~1.47M transitions, **630 MB**, **MIT licensed**,
+covering **four Gen 9 Champions formats including Regs M-A and M-B**. That is ABRA's format.
+
+And the part that matters more than the size: it is **filtered for Open Team Sheets**. Complete sets
+are visible. ABRA's single largest data weakness is that a closed-sheet replay reveals a mean of 1.38
+of four moves, 69.7% no item, 75.5% no ability — and ADR-001 records twice that *whatever fills that
+gap dominates any result*. This corpus does not have the gap.
+
+*Consequence for ABRA — three uses, in order of value:*
+
+1. **Ground truth for set reconstruction.** `engine/set_priors.js` currently guesses the missing 2.6
+   moves from usage priors and has never been checked against a real set, because we had none. OTS
+   games give real complete sets to validate against. This converts our biggest unquantified
+   assumption into a measurable error rate.
+2. **10× the data**, in-format, for anything that does not depend on hidden information — matchup
+   structure, team construction, damage, policy training.
+3. **Raw Showdown logs**, so `extract()` parses them with no new code.
+
+*The honest caveat:* OTS is a **different information regime** from ABRA's closed-sheet Bo1 ladder.
+XATU's entire subject is what is hidden and how belief narrows on reveal — a question that does not
+exist when both sheets are open. So this corpus supplements the ladder store for engine and policy
+work; it cannot replace it for belief work, and the two must not be pooled without saying which is
+which.
+
+**Foul Play, the Track 1 co-winner, is still singles-only** and cannot play our format. But
+"nobody has a doubles agent" was wrong: VGC-Bench's PSRO and BC agents play doubles, and they are
+cross-evaluated. ABRA is behind on agents in doubles, not ahead.
 
 ---
 
@@ -148,7 +173,7 @@ mixed-strategy argument by years.
 | Doubles/VGC agent | VGC-Bench (benchmark) | ALAKAZAM (spec only) | **Both early. Genuinely open** |
 | Battle engine correctness | poke-engine (Foul Play, GPL) | official Champions mod, verified 31/31 vs `@smogon/calc` | **Level, and ours is the authority** |
 | Training data volume | PokéAgent 20M+, Metamon 5.3M — **both singles** | 1,061 clean games, **doubles** | **No public doubles corpus exists. Keep collecting; MEW is necessary** |
-| Belief-state / equilibrium search | nobody, in VGC | SLOWKING/ALAKAZAM (spec) | **Still the open bet** |
+| Belief-state / equilibrium search | **Ihara et al. 2018** compared determinization vs information sets for Pokémon and found IS-MCTS better; belief-MCTS is a mature literature | SLOWKING/ALAKAZAM (spec, unbuilt) | **Not first. Not even close.** The narrow claim that survives is PBS re-solving in *doubles*, and that is a gap of degree, not of kind |
 | Mid-game value function | implicit in RL agents | **PORY, calibrated, log-loss 0.567 vs 0.693** | **Comparable, and ours is explicit and measured** |
 | Evaluation honesty | weak — VGC-Bench's LLM at n=20 | proper scores, CIs, baselines, power gate | **Ahead. This is the real differentiator** |
 | Team building | VGC-Bench PSRO | DITTO (needs rebuild) | **Behind. Adopt their PSRO** |
