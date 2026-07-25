@@ -102,9 +102,36 @@ def material_view(x, names):
     return x[:, ix]
 
 
-def load(paths, limit=None):
+def clean_ids():
+    """Game ids that survive the quality filter, for --clean.
+
+    WHY THIS IS A JOIN AND NOT A FLAG. The whole PORY family reads the RAW LOG archive, whose
+    records are {id, uploadtime, log} — the schema carries no `bot` and no `forfeit` field, so the
+    filter cannot be applied where the data is read. Every PORY number ever published was therefore
+    computed on the unfiltered population: roughly three-quarters bot games, and every rage-quit.
+
+    That matters more than it sounds. A forfeit records who QUIT, not who was winning — and people
+    quit precisely when they are behind on material, which is exactly what this model predicts from.
+    Including forfeits does not add noise, it adds a circular label. It is also the identical
+    mechanism that already dissolved WAR and the 55% skill ceiling, the project's two previous
+    headline retractions.
+
+    So the ids are taken from the filtered store and used as a whitelist against the log archive.
+    Returns None if the store is unavailable, and the caller then refuses to claim it ran clean.
+    """
+    try:
+        sys.path.insert(0, HERE)
+        from store import load_games
+        return {g.get("id") for g in load_games(clean=True, announce=False) if g.get("id")}
+    except Exception as e:
+        print(f"  could not load the filtered store ({e}) — cannot run clean")
+        return None
+
+
+def load(paths, limit=None, keep=None):
     X, Y, G = [], [], []
     seen = 0
+    dropped = 0
     for path in paths:
         if not os.path.exists(path):
             print(f"  (missing {os.path.relpath(path, ROOT)} — skipped)")
@@ -124,13 +151,17 @@ def load(paths, limit=None):
                 if not rows:
                     continue
                 gid = r.get("id") or f"g{seen}"
+                if keep is not None and gid not in keep:
+                    dropped += 1
+                    continue
                 for v, y in rows:
                     X.append(v); Y.append(y); G.append(gid)
                 n_games += 1
                 seen += 1
                 if limit and n_games >= limit:
                     break
-        print(f"  {os.path.basename(path)}: {n_games:,} games")
+        print(f"  {os.path.basename(path)}: {n_games:,} games"
+              + (f"  ({dropped:,} dropped by the quality filter)" if keep is not None else ""))
     if not X:
         return None
     return np.asarray(X, dtype=np.float32), np.asarray(Y, dtype=np.float32), np.asarray(G)
@@ -315,6 +346,8 @@ def main():
     ap.add_argument("--selfplay-only", action="store_true")
     ap.add_argument("--limit", type=int, default=None, help="cap games per source")
     ap.add_argument("--hidden", type=int, default=0, help="0 = pick by validation")
+    ap.add_argument("--clean", action="store_true",
+                    help="restrict to games surviving the quality filter (no bots, no forfeits)")
     args = ap.parse_args()
 
     paths = []
