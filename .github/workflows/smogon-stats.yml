@@ -40,11 +40,18 @@ jobs:
         continue-on-error: true
         run: node engine/fetch_smogon_stats.js ${{ github.event.inputs.month }}
 
+      # Rebuild the derived priors, or a newly-fetched month sits unused until someone remembers.
+      # smogon_priors.js defaults to the newest archived month, so July's file is picked up the
+      # moment it lands. This is the step that actually feeds set construction and the spreads.
+      - name: Rebuild priors from the newest month
+        continue-on-error: true
+        run: node engine/smogon_priors.js
+
       - name: Commit anything new
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/smogon-stats
+          git add data/smogon-stats data/smogon-priors.json
           if git diff --cached --quiet; then
             echo "no new stats this run"; exit 0
           fi
