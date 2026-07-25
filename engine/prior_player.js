@@ -155,7 +155,11 @@ function makePriorPlayer() {
         const left = pool.slice(), out = [];
         while (out.length < k && left.length) {
           const ws = left.map(i => w(sp[i], key, dflt));
-          let r = Math.random() * ws.reduce((a, b) => a + b, 0);
+          /* this.prng, NOT Math.random(). RandomPlayerAI seeds this.prng from options.seed, so every
+           * decision the player makes is reproducible from the battle's recorded seed. Math.random()
+           * here would make the preview — the single largest branch in the game — unreplayable, and a
+           * claim like "switching here won the game" cannot be checked if the game cannot be re-run. */
+          let r = this.prng.random() * ws.reduce((a, b) => a + b, 0);
           let j = 0;
           while (j < left.length - 1 && (r -= ws[j]) > 0) j++;
           out.push(left[j]); left.splice(j, 1);

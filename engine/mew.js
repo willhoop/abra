@@ -165,7 +165,25 @@ async function playOne(teamA, teamB, seed) {
    * MEW now reports the sampled rate so a broken policy is visible rather than assumed. */
   let Player = RandomPlayerAI;
   if (POLICY === 'prior') Player = require('./prior_player.js').makePriorPlayer();
-  const p1 = new Player(streams.p1), p2 = new Player(streams.p2);
+  /* SEED THE PLAYERS, NOT JUST THE BATTLE.
+   * ------------------------------------------------------------------------------------------
+   * `>start {seed}` below seeds the BATTLE's rng — damage rolls, crits, accuracy, speed ties. It
+   * does nothing for the PLAYERS, whose PRNG defaults to a fresh random seed, so re-running a
+   * recorded seed reproduced the dice and not the decisions. The game diverged at the first choice.
+   *
+   * That matters because the whole point of the corpus is claims of the form "this switch is what
+   * won the game", and such a claim is unfalsifiable if the game cannot be replayed. With both
+   * halves seeded, (seed + teams + engine_commit) reproduces a battle exactly, and all three are
+   * recorded on every row.
+   *
+   * The two players get DIFFERENT derived seeds; sharing one would have both sides making mirrored
+   * draws at every decision. */
+  const pseed = (off) => {
+    const s = (seed + off * 0x9E3779B1) >>> 0;
+    return [s & 0xffff, (s >>> 4) & 0xffff, (s >>> 8) & 0xffff, (s >>> 12) & 0xffff];
+  };
+  const p1 = new Player(streams.p1, { seed: pseed(1) });
+  const p2 = new Player(streams.p2, { seed: pseed(2) });
   p1.start(); p2.start();
 
   void streams.omniscient.write(
