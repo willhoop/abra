@@ -42,7 +42,7 @@ A team's role vector is built from the **team-preview six**, which are public in
 so the representation does not leak and is not censored by who won.
 
 **Result — the pooling fix.** Every game now contributes to many role-pair cells, so the median matchup
-cell rises from **n ≈ 15 to n ≈ 7,971** (676 cells), each with a Wilson confidence interval. That is the
+cell rises from **n ≈ 15 to **n = 20** across 1,051 cells (measured 2026-07-25 on 1,061 quality-filtered games)** — the 7,971 figure published in v2.6.0 was retracted in 2.7.0 as an over-tagging artifact and has since gone 7,971 → 95 → ~50 → 20, each with a Wilson confidence interval. That is the
 structural repair of the grid. But predicting the winner from preview roles still **ties a coin**
 (held-out log-loss 0.694 vs 0.693) — so the role model *describes and attributes*; it does not predict.
 The per-role logistic coefficients are read as **win-credit per role**, and KO-credit per species is

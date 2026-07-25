@@ -26,7 +26,7 @@ proper score, a confidence interval, and an honest baseline.
    15 → 1,367 teams and Rain vs Sun is even (51/49, n=236); Tailwind vs no-Tailwind is 47% (n=756).
 7. **Single-label archetypes were the bug; multi-label roles pool the data.** Tagging each team by the
    26 functional roles it reveals (not one archetype) lifts the median matchup cell from n≈15 to
-   **n=7,971** — the structural fix for the untrustworthy grid. But predicting the winner from preview
+   **n=20** across 1,051 cells (2026-07-25, clean games) — still above the old single-label cells of 11–18, but only just. An earlier n=7,971 was retracted in 2.7.0 as an over-tagging artifact. But predicting the winner from preview
    roles still **ties a coin** (0.694 vs 0.693): roles describe and attribute, they don't predict.
 8. **WAR: which *species* you bring carries a small real signal.** A ridge Adjusted-Plus-Minus (RAPM)
    model on preview species **beats a coin** (0.6875 vs 0.6931) and the rating baseline (0.6905) — where

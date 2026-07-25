@@ -220,7 +220,7 @@ public in every closed-sheet game, so the representation is uncensored and non-l
 
 Each ordered role pair (a, b) aggregates outcomes across every game where one side had a and the other
 had b, with a Wilson score interval. Because roles co-occur, each game contributes to many cells, so the
-**median cell rises from n≈15 to n=7,971** (676 cells) — the structural fix. Empirically, however, a
+**median cell rises from n≈15 to **n = 20** across 1,051 cells (measured 2026-07-25 on 1,061 quality-filtered games)**. The figure of 7,971 published in v2.6.0 was retracted in 2.7.0 as an artifact of over-tagging (19.6 of 26 roles per team); it has since gone 7,971 → 95 → ~50 → 20 as the taxonomy sharpened and the games were filtered — the structural fix. Empirically, however, a
 logistic model on the preview role-difference vector predicts the winner at held-out log-loss 0.694 vs a
 coin's 0.693: **roles describe and attribute, they do not predict.** The per-role coefficients are read
 as **win-credit per role**; KO-credit per species is measured directly from the turn log.
