@@ -4,12 +4,12 @@
  "sources": [
   "data\\games.ladder.raw-logs.jsonl"
  ],
- "n_states": 131038,
- "n_games": 9639,
+ "n_states": 22414,
+ "n_games": 1250,
  "split": {
-  "train": 78336,
-  "val": 25626,
-  "test": 27076
+  "train": 12952,
+  "val": 4426,
+  "test": 5036
  },
  "arms": [
   {
@@ -21,56 +21,56 @@
   },
   {
    "arm": "B1  alive_diff",
-   "logloss": 0.5947,
-   "acc": 0.6422,
-   "auc": 0.7229,
-   "calib": 0.0047
+   "logloss": 0.6374,
+   "acc": 0.6066,
+   "auc": 0.6689,
+   "calib": 0.0044
   },
   {
    "arm": "B2  alive_diff+hp_diff",
-   "logloss": 0.5748,
-   "acc": 0.6738,
-   "auc": 0.7569,
-   "calib": 0.0083
+   "logloss": 0.6192,
+   "acc": 0.6436,
+   "auc": 0.7093,
+   "calib": 0.0156
   },
   {
    "arm": "B3  sign(alive_diff)",
-   "logloss": 0.6069,
-   "acc": 0.6422,
-   "auc": 0.7135,
-   "calib": 0.0027
-  },
-  {
-   "arm": "L6  logistic, material",
-   "logloss": 0.5748,
-   "acc": 0.6738,
-   "auc": 0.7569,
+   "logloss": 0.6437,
+   "acc": 0.6066,
+   "auc": 0.6627,
    "calib": 0.0083
   },
   {
+   "arm": "L6  logistic, material",
+   "logloss": 0.6192,
+   "acc": 0.6436,
+   "auc": 0.7093,
+   "calib": 0.0156
+  },
+  {
    "arm": "LR  logistic, rich",
-   "logloss": 0.5473,
-   "acc": 0.689,
-   "auc": 0.7802,
-   "calib": 0.0064
+   "logloss": 0.616,
+   "acc": 0.6531,
+   "auc": 0.715,
+   "calib": 0.0327
   },
   {
    "arm": "N6  network, material",
-   "logloss": 0.5671,
-   "acc": 0.6734,
-   "auc": 0.7599,
-   "calib": 0.0103,
+   "logloss": 0.619,
+   "acc": 0.6356,
+   "auc": 0.7045,
+   "calib": 0.0205,
    "hidden": 64,
-   "val_logloss": 0.5656
+   "val_logloss": 0.6014
   },
   {
    "arm": "NR  network, rich",
-   "logloss": 0.558,
-   "acc": 0.6789,
-   "auc": 0.7701,
-   "calib": 0.0204,
+   "logloss": 0.638,
+   "acc": 0.6098,
+   "auc": 0.6761,
+   "calib": 0.0502,
    "hidden": 64,
-   "val_logloss": 0.5588
+   "val_logloss": 0.6233
   }
  ]
 }
