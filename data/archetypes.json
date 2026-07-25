@@ -1,13 +1,13 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 16712,
+  "n_games": 17514,
   "k_selected": 12,
-  "silhouette": 0.255,
+  "silhouette": 0.246,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
       "n": "Garchomp-Basculegion",
-      "share": 0.223,
+      "share": 0.219,
       "core": [
         "garchomp",
         "basculegion",
@@ -15,47 +15,23 @@
         "charizard"
       ],
       "signature": [],
-      "w_usage": 0.236
+      "w_usage": 0.227
     },
     {
-      "n": "Sneasler-Aerodactyl",
-      "share": 0.211,
+      "n": "Sinistcha-Raichu",
+      "share": 0.217,
       "core": [
+        "sinistcha",
+        "raichu",
         "sneasler",
-        "aerodactyl",
-        "rotomwash",
-        "talonflame"
+        "milotic"
       ],
       "signature": [],
-      "w_usage": 0.224
-    },
-    {
-      "n": "Whimsicott-Garchomp",
-      "share": 0.101,
-      "core": [
-        "whimsicott",
-        "garchomp",
-        "incineroar",
-        "sneasler"
-      ],
-      "signature": [],
-      "w_usage": 0.107
-    },
-    {
-      "n": "Trick Room",
-      "share": 0.089,
-      "core": [
-        "farigiraf",
-        "torkoal",
-        "incineroar",
-        "mawile"
-      ],
-      "signature": [],
-      "w_usage": 0.094
+      "w_usage": 0.225
     },
     {
       "n": "Pelipper-Archaludon",
-      "share": 0.063,
+      "share": 0.089,
       "core": [
         "pelipper",
         "archaludon",
@@ -63,19 +39,57 @@
         "sinistcha"
       ],
       "signature": [],
-      "w_usage": 0.067
+      "w_usage": 0.092
     },
     {
-      "n": "Rain",
-      "share": 0.058,
+      "n": "Whimsicott-Garchomp",
+      "share": 0.087,
       "core": [
-        "pelipper",
-        "archaludon",
-        "basculegion",
-        "venusaur"
+        "whimsicott",
+        "garchomp",
+        "incineroar",
+        "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.061
+      "w_usage": 0.09
+    },
+    {
+      "n": "Kingambit-Sneasler",
+      "share": 0.084,
+      "core": [
+        "kingambit",
+        "sneasler",
+        "basculegion",
+        "froslass"
+      ],
+      "signature": [
+        "dragonite"
+      ],
+      "w_usage": 0.087
+    },
+    {
+      "n": "Trick Room",
+      "share": 0.061,
+      "core": [
+        "farigiraf",
+        "torkoal",
+        "incineroar",
+        "mawile"
+      ],
+      "signature": [],
+      "w_usage": 0.063
+    },
+    {
+      "n": "Venusaur-Charizard",
+      "share": 0.058,
+      "core": [
+        "venusaur",
+        "charizard",
+        "garchomp",
+        "incineroar"
+      ],
+      "signature": [],
+      "w_usage": 0.06
     },
     {
       "n": "Sand",
@@ -87,43 +101,31 @@
         "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.06
-    },
-    {
-      "n": "Venusaur-Charizard",
-      "share": 0.056,
-      "core": [
-        "venusaur",
-        "charizard",
-        "incineroar",
-        "garchomp"
-      ],
-      "signature": [],
       "w_usage": 0.059
     },
     {
-      "n": "Raichu-Sinistcha",
-      "share": 0.052,
+      "n": "Rain",
+      "share": 0.053,
       "core": [
-        "raichu",
-        "sinistcha",
         "pelipper",
-        "talonflame"
+        "archaludon",
+        "basculegion",
+        "venusaur"
       ],
       "signature": [],
       "w_usage": 0.055
     },
     {
-      "n": "Kingambit-Basculegion",
-      "share": 0.034,
+      "n": "Rotomwash-Incineroar",
+      "share": 0.039,
       "core": [
-        "kingambit",
-        "basculegion",
-        "sneasler",
-        "froslass"
+        "rotomwash",
+        "incineroar",
+        "garchomp",
+        "kingambit"
       ],
       "signature": [],
-      "w_usage": 0.036
+      "w_usage": 0.04
     }
   ]
 }

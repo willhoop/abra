@@ -195,23 +195,78 @@ function sampleMoves(species, have, k, seed) {
   return out;
 }
 
+/* Sample a SPREAD from Smogon's official distribution, proportional to how often it is actually run.
+ *
+ * WHY THIS MATTERS MORE THAN THE MOVES. champions_sim.js gave every Pokemon a flat
+ * 11/11/11/11/11/11, documented as "spread evenly when unknown rather than maximising, because
+ * maximising would systematically overstate every unknown Pokemon". The reasoning was sound and the
+ * result was still badly wrong: real Garchomp runs Jolly 2/32/0/0/0/32 on 42% of sets. Since
+ * stat = base + SP + 20, that is Attack 182 against the flat assumption's 161 — a 13% understatement
+ * on the format's most-used attacker, applied to EVERY damage figure the project has computed.
+ *
+ * Flat spreads do not merely lose accuracy, they lose the SHAPE of the format: real sets are
+ * specialised (92% touch the 32 cap on some stat), so a flat spread makes every Pokemon a
+ * jack-of-all-trades that exists nowhere on the ladder. */
+function sampleSpread(species, seed) {
+  let SM = null;
+  try { SM = require('./smogon_priors.js').forSpecies(species); } catch (e) { /* optional */ }
+  if (!SM || !SM.spreads || !SM.spreads.length) return null;
+  const r = rng((seed || 1) + norm(species).length * 104729);
+  let tot = 0; for (const s of SM.spreads) tot += s.pct;
+  if (tot <= 0) return null;
+  let x = r() * tot, i = 0;
+  for (; i < SM.spreads.length; i++) { x -= SM.spreads[i].pct; if (x <= 0) break; }
+  if (i >= SM.spreads.length) i = SM.spreads.length - 1;
+  const s = SM.spreads[i];
+  return { nature: s.nature, sp: { hp: s.sp[0], atk: s.sp[1], def: s.sp[2], spa: s.sp[3], spd: s.sp[4], spe: s.sp[5] }, pct: s.pct };
+}
+
 /* The public call. Returns what is KNOWN plus what was FILLED, so callers can report the split. */
 function fillSet(species, known, seed) {
   known = known || {};
   const have = (known.moves || []).slice(0, 4);
   const filled = [];
   let moves = have.slice();
+
+  /* Prefer Smogon's P(move is ON the set) over our P(move | action) when available. They are
+   * different quantities: a move clicked rarely can still sit on most sets. Smogon's percentages sum
+   * to ~400% precisely because every Pokemon carries four. */
   if (moves.length < 4) {
-    const drawn = sampleMoves(species, moves, 4 - moves.length, (seed || 1) + norm(species).length * 7919);
+    let drawn = [];
+    try {
+      const SM = require('./smogon_priors.js').forSpecies(species);
+      if (SM && SM.moves && SM.moves.length) {
+        const r = rng((seed || 1) + norm(species).length * 7919);
+        const pool = SM.moves.filter(m => !moves.some(h => norm(h) === norm(m.move)));
+        while (moves.length + drawn.length < 4 && pool.length) {
+          let tot = 0; for (const m of pool) tot += m.pct;
+          if (tot <= 0) break;
+          let x = r() * tot, i = 0;
+          for (; i < pool.length; i++) { x -= pool[i].pct; if (x <= 0) break; }
+          if (i >= pool.length) i = pool.length - 1;
+          drawn.push(pool[i].move); pool.splice(i, 1);
+        }
+      }
+    } catch (e) { /* fall through to the behaviour-clone */ }
+    if (!drawn.length) drawn = sampleMoves(species, moves, 4 - moves.length, (seed || 1) + norm(species).length * 7919);
     if (drawn.length) filled.push(`${species}: ${drawn.length} move(s)`);
     moves = moves.concat(drawn);
   }
+
   const gear = gearPriors()[norm(species)] || {};
-  const item = known.item || gear.item || '';
-  const ability = known.ability || gear.ability || '';
-  if (!known.item && gear.item) filled.push(`${species}: item`);
-  if (!known.ability && gear.ability) filled.push(`${species}: ability`);
-  return { moves, item, ability, filled, knownMoves: have.length };
+  let SM = null;
+  try { SM = require('./smogon_priors.js').forSpecies(species); } catch (e) { /* optional */ }
+  const smItem = SM && SM.items && SM.items[0] ? SM.items[0].item : null;
+  const smAbil = SM && SM.abilities && SM.abilities[0] ? SM.abilities[0].ability : null;
+
+  const item = known.item || smItem || gear.item || '';
+  const ability = known.ability || smAbil || gear.ability || '';
+  if (!known.item && (smItem || gear.item)) filled.push(`${species}: item`);
+  if (!known.ability && (smAbil || gear.ability)) filled.push(`${species}: ability`);
+
+  const spread = sampleSpread(species, seed);
+  if (spread) filled.push(`${species}: spread`);
+  return { moves, item, ability, spread, filled, knownMoves: have.length };
 }
 
 function coverage() {

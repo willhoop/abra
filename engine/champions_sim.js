@@ -127,10 +127,22 @@ function packTeam(species, setsBySpecies) {
       item: f.item || "",
       ability,
       moves,
-      nature: known.nature || 'Hardy',
-      // Champions uses SP, not EVs, and the budget is 66. Spread it evenly when unknown rather than
-      // maximising, because maximising would systematically overstate every unknown Pokemon.
-      evs: known.evs || { hp: 11, atk: 11, def: 11, spa: 11, spd: 11, spe: 11 },
+      /* SPREAD AND NATURE, sampled from Smogon's official distribution rather than assumed.
+       *
+       * This used to be a flat 11/11/11/11/11/11 with nature Hardy, justified as "spread it evenly
+       * when unknown rather than maximising, because maximising would systematically overstate every
+       * unknown Pokemon". The caution was right and the result was still badly wrong. Real Garchomp
+       * runs Jolly 2/32/0/0/0/32 on 42% of sets; since stat = base + SP + 20 that is Attack 182
+       * against the flat 161, so the format's most-used attacker was understated by 13% in EVERY
+       * damage figure this project has produced — including the golden master and every MEW battle.
+       *
+       * Flat spreads also erase the SHAPE of the format. 92% of real spreads touch the 32-per-stat
+       * cap; a flat one invents a jack-of-all-trades that exists nowhere on the ladder.
+       *
+       * Falls back to the old flat spread only when there is no prior for the species, and that case
+       * is reported in `filled` rather than passing silently. */
+      nature: known.nature || (f.spread && f.spread.nature) || 'Hardy',
+      evs: known.evs || (f.spread && f.spread.sp) || { hp: 11, atk: 11, def: 11, spa: 11, spd: 11, spe: 11 },
       ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
       level: 50,
       gender: '',

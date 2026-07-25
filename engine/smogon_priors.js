@@ -14,9 +14,12 @@
  *      ~400% precisely because every Pokemon carries four moves.
  *   3. ITEMS and ABILITIES, where our closed-sheet store has 69.7% and 75.5% unknown.
  *
- * Every spread in the file sums to exactly 66, which is independent confirmation of the SP budget
- * recorded in docs/ARCHITECTURE.md. The parser asserts it and reports violations rather than
- * silently accepting a file whose format has changed.
+ * The spreads also confirm two mechanics against an independent source. The SP budget is 66, as
+ * docs/ARCHITECTURE.md records — 97% of real spreads spend all of it. And SP is capped at 32 PER
+ * STAT, which is why 92% of spreads touch 32 somewhere and why Jolly:32/0/0/0/0/32 sums to only 64:
+ * a two-stat spread cannot spend more, however much budget is left. The parser asserts both
+ * (total <= 66, every stat <= 32) and reports violations rather than silently accepting a file
+ * whose format has changed.
  *
  * CUTOFFS ARE WEIGHTINGS, NOT SUBSETS. All four files for a month report the same total battles
  * (1,163,315 for 2026-06 Reg M-B); the cutoff changes how heavily high-rated games are weighted, it
@@ -81,7 +84,13 @@ function parseMoveset(text) {
     const nameM = head.match(/^\s*\|\s*([^|]+?)\s*\|\s*$/m);
     if (!nameM) continue;
     const name = nameM[1].trim();
-    if (!name || /^(Abilities|Items|Spreads|Moves|Teammates|Checks and Counters)$/.test(name)) continue;
+    /* Reject the metadata rows. Without this a block whose first bar-line happened to be
+     * "Raw count: 239061" became a SPECIES, which is how a 300-species format produced 566 entries
+     * and why some "species" carried impossible spreads. */
+    if (!name) continue;
+    if (/^(Abilities|Items|Spreads|Moves|Teammates|Checks and Counters)$/.test(name)) continue;
+    if (/^(Raw count|Avg\. weight|Viability Ceiling)\b/.test(name)) continue;
+    if (/^[\d.%\s]+$/.test(name)) continue;
     const body = chunks.slice(i, i + 14).join('\n');
     const raw = Number((body.match(/Raw count:\s*(\d+)/) || [])[1] || 0);
     if (!raw) continue;
@@ -97,7 +106,14 @@ function parseMoveset(text) {
     const moves     = grab('Moves', 'Teammates|Checks and Counters');
     const teammates = grab('Teammates', 'Checks and Counters');
 
-    /* A spread is "Nature:hp/atk/def/spa/spd/spe" and MUST sum to the SP budget of 66. */
+    /* A spread is "Nature:hp/atk/def/spa/spd/spe".
+     *
+     * THE INVARIANT IS NOT "sums to 66". An early version asserted that and flagged 100 spreads,
+     * including Jolly:32/0/0/0/0/32 which sums to 64. Those are not malformed — they reveal the
+     * mechanic: SP is capped at 32 PER STAT, so a two-stat spread cannot exceed 64 no matter how
+     * much budget remains. The real invariants are: total <= 66 (the budget), and every stat <= 32
+     * (the per-stat cap). Both are asserted, and unspent budget is recorded rather than treated as
+     * an error, because "how much budget do real sets leave on the table" is itself a finding. */
     const spreads = [];
     for (const s of spreadsR) {
       const m = s.name.match(/^(\w+):([\d/]+)$/);
@@ -105,8 +121,10 @@ function parseMoveset(text) {
       const sp = m[2].split('/').map(Number);
       if (sp.length !== 6 || sp.some(x => !Number.isFinite(x))) continue;
       const sum = sp.reduce((a, b) => a + b, 0);
-      if (sum !== 66) violations.push(`${name} ${s.name} sums to ${sum}`);
-      spreads.push({ nature: m[1], sp, pct: s.pct });
+      if (sum > 66) violations.push(`${name} ${s.name} sums to ${sum} (> budget 66)`);
+      const over = sp.filter(x => x > 32);
+      if (over.length) violations.push(`${name} ${s.name} has a stat above the 32 cap`);
+      spreads.push({ nature: m[1], sp, pct: s.pct, total: sum, unspent: 66 - sum });
     }
 
     species[norm(name)] = {
@@ -147,7 +165,7 @@ function build() {
     for (const v of violations.slice(0, 5)) console.error('  ' + v);
     console.error('  The file format may have changed, or the budget is not 66 this regulation.');
   } else {
-    console.log(`all spreads sum to 66 — SP budget confirmed against the official statistics`);
+    console.log(`all spreads respect the budget (<=66) and the per-stat cap (<=32) — confirmed against official statistics`);
   }
 }
 
