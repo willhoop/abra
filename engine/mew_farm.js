@@ -9,29 +9,42 @@
  * Questions about THE GAME have no data constraint at all — they only ever had a throughput
  * constraint, and nobody had measured it.
  *
- * MEASURED SCALING, 2026-07-25, on 8 physical / 16 logical cores. This is the honest curve, and it
- * is NOT linear — an earlier note in this file projected 131 games/sec from a single-process rate
- * and linear scaling. That was wrong by 5.7x, and it was wrong the same way half the results in this
- * project were wrong: extrapolated instead of measured.
+ * CONC MUST BE 1. THIS IS THE WHOLE PERFORMANCE STORY AND IT COST TWO WRONG ANSWERS TO FIND.
+ * ----------------------------------------------------------------------------------------
+ * This file originally spawned workers with a hardcoded `--conc 4`, and measured 2026-07-25 on
+ * 8 physical / 16 logical cores:
  *
- *     procs   games/sec
- *       1       10.1
- *       2       17.5
- *       4       23.1     <- optimum
- *       8       10.8     <- WORSE than 4
+ *     procs  conc   games/sec
+ *       4      4       23
+ *       8      4       11      <- looks like parallelism collapsing past 4 cores
+ *       8      2        9
+ *       8      1       38      <- same 8 cores, 4x faster
+ *      12      1       44-46   <- reproduced twice
+ *      16      1       24
+ *      20      1       15
  *
- * Past four workers the throughput collapses. The Showdown simulator is memory-heavy and the
- * processes contend for cache, so extra workers actively cost. The default is therefore 4, not
- * "most of your cores".
+ * The simulator is synchronous and CPU-bound, so in-process concurrency never overlaps any real
+ * work — it just holds N battles live at once and multiplies GC pressure. At 8 procs x 4 conc that
+ * is 32 simultaneous battles and the machine thrashes. Raising --conc looks like it should help and
+ * costs 4x.
  *
- * At ~23 games/sec:
- *       1,000,000 games   ~12 hours    (an overnight run — enough to train a value net)
- *       5,000,000 games   ~2.5 days
- *      20,000,000 games   ~10 days     (Metamon scale; not a weekend)
+ * TWO WRONG ANSWERS CAME OUT OF THIS, both recorded because the failure mode is instructive:
+ *   1. An early note here projected 131 games/sec by taking one process's rate and multiplying by
+ *      12. Never measured. Real answer is ~45.
+ *   2. The correction then claimed scaling "collapses past 4 processes" and 1M would take 12 hours.
+ *      That WAS measured — but every row carried the bad --conc, so a config artifact got written up
+ *      as a hardware limit.
+ * Measure the thing you are varying, and vary one thing.
  *
- * WHY SEPARATE PROCESSES rather than threads: the simulator is synchronous and CPU-bound, so a
- * single Node process pins one core no matter how high --conc goes. Concurrency inside a process
- * only overlaps await points, which is why 8-way --conc still gave ~10 games/sec.
+ * RUN-TO-RUN VARIANCE IS LARGE. 8/conc-1 measured 37.8 and 15.1 on separate sweeps of identical
+ * config. Treat any single microbenchmark here as +/- 2x. 12 procs is the default because it was the
+ * fastest AND the only setting that reproduced (46.2, 44.2). A real run reports its own sustained
+ * rate at the end; trust that number over this comment.
+ *
+ * At ~45 games/sec:
+ *       1,000,000 games   ~6 hours     (overnight — enough to train a value net)
+ *       5,000,000 games   ~31 hours
+ *      20,000,000 games   ~5 days      (Metamon scale)
  *
  * SEEDS ARE DISJOINT BY CONSTRUCTION. Each worker owns a contiguous seed block, so two workers can
  * never generate the same battle, and any single game remains reproducible from its recorded seed.
@@ -57,6 +70,9 @@ const N = parseInt(arg('n', '100000'), 10);
 /* Leave a core or two for the OS, or the machine becomes unusable and the run slows down anyway. */
 const PROCS = parseInt(arg('procs', String(Math.max(1, Math.min(16, Math.floor(os.cpus().length * 0.75))))), 10);
 const POLICY = arg('policy', 'prior');
+/* 1, not 4 — see the header. In-process concurrency cannot overlap CPU-bound simulation and cost 4x
+ * when it was hardcoded here. Exposed as a flag only so the finding stays re-measurable. */
+const CONC = arg('conc', '1');
 const SEED0 = parseInt(arg('seed', String(Date.now() % 1e7)), 10);
 const OUT = path.resolve(arg('out', D('data', 'games.selfplay.jsonl')));
 const KEEP = process.argv.includes('--keep-shards');
@@ -89,7 +105,7 @@ const poolFile = path.join(shardDir, 'teams.json');
 process.env.MEW_TEAMS = poolFile;
 
 console.error(`MEW FARM: ${N.toLocaleString()} games across ${PROCS} processes (${per.toLocaleString()} each)`);
-console.error(`  policy=${POLICY}  seeds ${SEED0}..${SEED0 + PROCS * per}  -> ${path.relative(ROOT, OUT)}`);
+console.error(`  policy=${POLICY}  conc=${CONC}  seeds ${SEED0}..${SEED0 + PROCS * per}  -> ${path.relative(ROOT, OUT)}`);
 
 const started = Date.now();
 const shards = [];
@@ -103,7 +119,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
   const child = spawn(process.execPath, [
     D('engine', 'mew.js'),
     '--n', String(per),
-    '--conc', '4',
+    '--conc', String(CONC),
     '--policy', POLICY,
     '--seed', String(SEED0 + i * per),
     '--out', shard,
