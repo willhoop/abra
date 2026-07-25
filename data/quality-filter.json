@@ -23,10 +23,11 @@
           "Natsitimer52906 (426, 1)",
           "Ironbough29517 (294, 1)",
           "Duskglade57204 (267, 1)",
-          "Scoobsicle40912 (147, 1)"
+          "Scoobsicle40912 (147, 1)",
+          "HospitalityCheck (55, 1) - crossed the threshold on 2026-07-25 as the store grew to 8,356. Unlike the other five its name is NOT machine-shaped, so the corroborating evidence below does not extend to it."
         ],
         "false_positive_check": "No account with >=50 games in this store has more than one distinct team, so the rule separates cleanly. It is stable for thresholds between 50 and 100 games.",
-        "corroborating": "All five share a machine-shaped name (Word+5 digits), forfeit 16-23% of games against a human median of 42%, and run the same two-day burst pattern."
+        "corroborating": "The original five share a machine-shaped name (Word+5 digits), forfeit 16-23% of games against a human median of 42%, and run the same two-day burst pattern. HospitalityCheck matches the team-invariance rule (55 games, 1 team) but not the naming pattern, and sits just above the 50-game threshold - it is the weakest of the six and the one to re-examine first if the rule is ever loosened."
       },
       "known_limitation": "Threshold-based, so a bot playing under 50 games or varying its team escapes. This raises the floor on bot detection; it does not establish one. The remaining set must still be described as 'no bot detected', never as 'human'."
     },

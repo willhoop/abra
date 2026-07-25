@@ -28,7 +28,30 @@ const allGames = Q.loadGames({ clean: false });
 const bots = Q.behaviouralBots(allGames);
 for (const n of ['Carchdraw84172', 'Natsitimer52906', 'Ironbough29517', 'Duskglade57204', 'Scoobsicle40912'])
   ok(bots.has(n), `${n} is detected as a behavioural bot`);
-ok(bots.size === 5, `exactly 5 accounts detected (${bots.size})`);
+
+/* S6 - assert the invariant, not the incidental. This used to pin `bots.size === 5`, which broke on
+ * 2026-07-25 when the store grew and a sixth account (HospitalityCheck, 55 games, 1 team) crossed
+ * the threshold. That is the rule working, not a regression, and a bare count cannot tell the two
+ * apart. What must hold is the RULE: every detected account has at least min_games and exactly one
+ * distinct team. A false positive breaks that; a genuine new bot does not. */
+{
+  const R = cfg.rules.exclude_behavioural_bots;
+  const seen = new Map();
+  for (const g of allGames) for (const s of ['p1', 'p2']) {
+    const n = (g[s] || {}).name; if (!n) continue;
+    const six = ((g.six || {})[s] || []).slice().sort().join('|'); if (!six) continue;
+    if (!seen.has(n)) seen.set(n, { games: 0, teams: new Set() });
+    const r = seen.get(n); r.games++; r.teams.add(six);
+  }
+  const bad = [...bots].filter(n => {
+    const r = seen.get(n);
+    return !r || r.games < R.min_games || r.teams.size > R.max_distinct_teams;
+  });
+  ok(bad.length === 0,
+    `every detected account satisfies the rule (>=${R.min_games} games, <=${R.max_distinct_teams} team)` +
+    (bad.length ? ` - violations: ${bad.join(', ')}` : ` [${bots.size} detected]`));
+  ok(bots.size >= 5, `at least the five originally documented accounts are caught (${bots.size})`);
+}
 // no account that varies its team should ever be caught, at any volume
 const varied = new Map();
 for (const g of allGames) for (const s of ['p1','p2']) {
@@ -46,7 +69,28 @@ const crypto = require('crypto');
 const digest = ids => crypto.createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 16);
 const jsGames = Q.loadGames();
 const jsIds = jsGames.map(g => g.id).sort();
-const py = execFileSync('python3', ['-c',
+/* Find a REAL Python. `python3` alone is a Linux assumption: on Windows the python.org installer
+ * ships python.exe (not python3.exe), and `python3` resolves to the Microsoft Store alias stub,
+ * which prints "Python was not found" and exits 9009. This test therefore passed in CI and could
+ * never run on the development machine. Same probe as server.js. */
+const PY_CANDIDATES = [['python3', []], ['python', []], ['py', ['-3']]];
+function findPython() {
+  for (const [cmd, pre] of PY_CANDIDATES) {
+    try {
+      const v = execFileSync(cmd, [...pre, '-c', 'print(1)'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      if (v.trim() === '1') return [cmd, pre];
+    } catch (e) { /* not installed, or the Store stub - try the next */ }
+  }
+  return null;
+}
+const found = findPython();
+if (!found) {
+  console.error('SKIP: no working Python found (tried python3, python, py -3).');
+  console.error('The JS/Python parity check cannot run. Install Python or add it to PATH.');
+  process.exit(2);   // distinct from a real failure, so CI can tell them apart
+}
+const [PYCMD, PYPRE] = found;
+const py = execFileSync(PYCMD, [...PYPRE, '-c',
   "import sys,hashlib; sys.path.insert(0,'engine'); import quality;" +
   "ids=sorted(g['id'] for g in quality.load_games());" +
   "print(len(ids)); print(hashlib.sha256(','.join(ids).encode()).hexdigest()[:16])"
