@@ -342,6 +342,9 @@ def main():
     Xtr_r, Xva_r, Xte_r = standardise(X[tr], X[va], X[te])
     ytr, yva, yte = Y[tr], Y[va], Y[te]
     # X is no longer needed and is the largest single allocation; drop it before training.
+    # Capture what the report needs FIRST — deleting X and then reading len(X) in the JSON dump
+    # threw UnboundLocalError after a 50-minute run had already produced every number.
+    n_states = int(len(X))
     del X
     import gc; gc.collect()
     print(f"  feature matrices: {Xtr_r.nbytes/2**20:.0f} + {Xva_r.nbytes/2**20:.0f} + "
