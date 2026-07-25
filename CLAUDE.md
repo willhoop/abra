@@ -3,6 +3,21 @@
 Project-specific context. Universal rules are inherited from the Pokémon umbrella and the global
 instructions; only what is specific to ABRA is here.
 
+## Cowork handoff
+
+Cowork drafts docs and analysis; Claude Code applies, tests and pushes.
+
+- Cowork writes ONLY to `docs/_inbox/`. Never anywhere else in the repo.
+- Claude Code writes ONLY to `docs/_outbox/`. Never into `_inbox`.
+  Single writer per folder, so the two sessions cannot collide.
+- When the user says **"apply inbox"**: read every file in `docs/_inbox/`, apply what you agree
+  with, fill any `<<MEASURED>>` placeholder with a real measured number, run the tests, commit and
+  push, then move the file to `docs/_inbox/applied/` and write a short result note to
+  `docs/_outbox/`.
+- Cowork never authors a number. If a draft contains a figure that is not `<<MEASURED>>`, treat it
+  as suspect and verify it yourself.
+- You are the sole publisher. Cowork runs no git and no scripts.
+
 ## WHO MAY WRITE TO THIS REPO (S11 — one publisher)
 
 Three agents can touch these files. Only one may touch git.
