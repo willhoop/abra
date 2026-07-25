@@ -13,3 +13,8 @@ data/*.raw-logs.jsonl
 # archived raw logs + store snapshots are large local preservation; keep the small models
 **/*.raw-logs.jsonl
 data/archive/**/games.*.ladder.jsonl
+
+# Python bytecode. 14 .pyc files were committed before this rule existed; they are
+# machine- and version-specific build artifacts, not source.
+__pycache__/
+*.pyc
