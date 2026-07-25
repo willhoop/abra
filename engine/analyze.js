@@ -1,11 +1,28 @@
 /* Operation Ladder — analysis over the durable store.
  * ONE store -> many views by filter. Never re-pulls. */
 const fs=require('fs');
-const STORE=process.argv[2]||'data/games.ladder.jsonl';
+const path=require('path');
+const Q=require(path.join(__dirname,'quality.js'));
+const STORE=process.argv[2]||null;
 const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,''));
-const _seen=new Set();
-const games=fs.readFileSync(STORE,'utf8').split('\n').filter(Boolean).map(l=>JSON.parse(l))
-  .filter(g=>!_seen.has(g.id)&&_seen.add(g.id));   // dedup by replay id — never double-count a game
+
+/* GAMES COME THROUGH THE SHARED QUALITY FILTER (data/quality-filter.json).
+ *
+ * This file used to read the store directly and filter only on the per-player `bot` NAME flag. That
+ * missed five high-volume accounts which were not named like bots, four of which played the SAME six
+ * Pokemon in 1,446 games. Their team dominated the output: this file was reporting Basculegion at
+ * 34.1% team usage when the real figure among non-bot accounts is 17.9%, and the same for the other
+ * five members of that one team. `data/meta-usage.json` is what CHOMP reads to make recommendations,
+ * so a bot's team was being handed to the recommender as the metagame.
+ *
+ * Set ABRA_UNFILTERED=1 to compute over everything, which is only ever useful for demonstrating the
+ * difference the filter makes. */
+const UNFILTERED = !!process.env.ABRA_UNFILTERED;
+const games = Q.loadGames({ clean: !UNFILTERED, path: STORE });
+const _funnel = Q.funnel(STORE);
+process.stderr.write(UNFILTERED
+  ? `WARNING: ABRA_UNFILTERED — using all ${games.length} games, including bots and forfeits\n`
+  : `quality filter: ${games.length} usable of ${_funnel.collected} collected (${(100*games.length/_funnel.collected).toFixed(1)}%)\n`);
 const idn=n=>(n||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 
 function usage(rows, {minRating=0, humansOnly=true}={}){
@@ -51,6 +68,21 @@ if(mine.length){
 
 // write the shared meta model the plugin/dashboard read
 const out=usage(games,{humansOnly:true});
-fs.writeFileSync('data/meta-usage.json',JSON.stringify({format:'gen9championsvgc2026regmb',generated:new Date().toISOString().slice(0,10),
-  sampledTeams:out.sides, threats:out.table.map(t=>({sp:t.sp,teamRate:+t.team.toFixed(4),bringRate:+t.bring.toFixed(3),leadRate:+t.lead.toFixed(3),winRate:t.win!=null?+t.win.toFixed(3):null,n:t.n}))}));
+/* The model CHOMP reads. It now carries its own provenance: which games it was computed from and
+ * what was excluded, so a consumer can tell whether a number is about the metagame or about a bot. */
+fs.writeFileSync('data/meta-usage.json',JSON.stringify({
+  format:'gen9championsvgc2026regmb',
+  generated:new Date().toISOString().slice(0,10),
+  provenance:{
+    source:'data/games.ladder.jsonl',
+    filter:'data/quality-filter.json',
+    filtered:!UNFILTERED,
+    collected:_funnel.collected,
+    usable:games.length,
+    funnel:_funnel,
+    caveat:'Bot detection is name-based plus a team-invariance rule. Accounts that play few games or vary their team can still escape it. Describe this set as "no bot detected", not as human.',
+  },
+  sampledTeams:out.sides,
+  threats:out.table.map(t=>({sp:t.sp,teamRate:+t.team.toFixed(4),bringRate:+t.bring.toFixed(3),leadRate:+t.lead.toFixed(3),winRate:t.win!=null?+t.win.toFixed(3):null,n:t.n}))
+}, null, 1));
 console.log('\nwrote data/meta-usage.json');
