@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 2.6.0 · 2026-07-24 · Will Hooper**
+**Version 3.3.0 · 2026-07-25 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -24,8 +24,8 @@ negatives are reported as negatives.
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Exact Gen-9 doubles damage engine | ✅ Validated | Within 5% of the Smogon damage calculator on 100% of 31 scenarios (median 0%) |
-| **GURU** | Meta matchup matrix from real outcomes | ✅ Built | 13 archetypes over 5,199 games, Wilson CIs (descriptive; winner-prediction ties a coin, as expected) |
+| **MEDICHAM** | Hand-written doubles damage engine | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables |
+| **GURU** | Meta matchup matrix from real outcomes | ⚠️ Unwired | 13 archetypes, Wilson CIs (descriptive; winner-prediction ties a coin). Still reads the store RAW — one of 28 engines bypassing the quality filter |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ✅ **The win** | Log-loss 0.567 vs coin 0.693, calibrated (ECE 1.6%); live in KADABRA |
 | **CHOMP** | Bring-4 / lead-2 team-preview engine | ✅ Ships (standalone) | Exact-damage picker; **CHOMP-EV proof: brings tie a coin (honest null)** |
@@ -33,7 +33,7 @@ negatives are reported as negatives.
 | **KADABRA** | Replay coach | ✅ Works offline | Per-turn "you're at X%" from PORY |
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
-| **MEW** | Self-play data engine | 🔜 Roadmap | Generates the millions of self-play games ALAKAZAM's strongest version needs (the "million games" fuel) |
+| **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=20** across 1,051 cells (vs old single-label n=11–18) — the 7,971 once published was retracted in 2.7.0; preview roles tie a coin (honest null) |
@@ -56,8 +56,41 @@ deck, the technical docs, and the CHANGELOG in the same pass.
 | CHOMP (bring engine) | `github.com/willhoop/chomp` | Showdown userscript |
 | Portfolio | `github.com/willhoop/willhoop.github.io` | `willhoop.github.io` |
 
+## The data, as of 2026-07-25
+
+| | |
+|---|---|
+| Collected (closed-sheet Bo1 ladder) | **8,757** games, growing hourly |
+| Usable after the quality filter | **1,124** (12.8%) |
+| Self-play (MEW, official engine) | 1,000 — separate file, never pooled |
+| Open-team-sheet archive | 4,167 (MIT, 2026-06-17..20) — separate file, different information regime |
+| Smogon official priors | 283 species, whole-ladder aggregate |
+
+## Two metagames, not one
+
+`meta-usage.json` publishes both, because they answer different questions:
+
+```
+competitive  garchomp, incineroar, kingambit, sinistcha, whimsicott, basculegion
+ladder       garchomp, whimsicott, kingambit, basculegion, charizard, incineroar
+```
+
+**Competitive** is what humans choose when trying — right for tournament prep and for any claim about
+the game. **Ladder** is what you actually face: three in four stored games involve a bot, so filtering
+them out optimises for a metagame you meet one game in four. Charizard sits at 25.7% on the ladder
+view and outside the competitive top six because it is on the bot team. Consumers must say which they
+used.
+
 ## Honest ceilings
 
-Predicting the match winner from sheets is a permanent coin flip in this format. The meta-structure
-models (playstyle, cores) are small-sample and stay suggestive until the store grows (~18k games/week).
-The load-bearing wins are the validated damage and the mid-game value net.
+Predicting the match winner from sheets is a coin flip in this format — and the previously published
+55.0% skill ceiling was itself measured with bots included. Removing them gives 52.4%, an interval
+that contains a coin flip. Every preview-level model now sits at that ceiling: JOLTEON, roles,
+CHOMP-EV, and as of 3.2.0 **WAR, whose result is withdrawn**.
+
+Most results here are also **underpowered**: 1,124 clean games can only detect an edge of ~4.2
+accuracy points, and a 2-point effect needs ~4,900. `engine/eval_harness.py` now refuses to report a
+null without stating what it could have seen.
+
+The load-bearing wins are unchanged and both are about *measurement* rather than prediction: the
+validated damage engine, and PORY's mid-game value net (log-loss 0.567 vs a coin's 0.693).
