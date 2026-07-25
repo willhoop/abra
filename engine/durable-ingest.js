@@ -24,7 +24,7 @@ const FORMATS=(process.env.FORMATS ? process.env.FORMATS.split(',') : (activeFor
 const PAGES=+(process.env.PAGES||25), CONC=+(process.env.CONC||16);  // was 2 (~100 games/run); 25 exhausts the public pool (~1250/format), auto-stops when empty
 const STORE=process.argv[2]||'games.jsonl';
 const RAW=process.env.RAW||(STORE.replace(/\.jsonl$/,'')+'.raw-logs.jsonl');
-const MODE=process.env.MODE||'fetch'; // fetch | reparse
+const MODE=process.env.MODE||'fetch'; // fetch | reparse | backfill
 const get=u=>new Promise(r=>{const q=https.get(u,x=>{let d='';x.on('data',c=>d+=c);x.on('end',()=>r(d));});q.on('error',()=>r(''));q.setTimeout(12000,()=>{q.destroy();r('');});});
 const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const isBot=n=>/^pcrlbot|bot\d|^[a-z]+bot$/i.test(n||'');
@@ -175,9 +175,68 @@ function extract(id, uploadtime, text){
 async function pool(items,fn,c){const out=[];let i=0;await Promise.all(Array.from({length:c},async()=>{while(i<items.length){const k=i++;out[k]=await fn(items[k]);}}));return out;}
 
 async function main(){
+  /* backfill mode: refetch raw logs for games that are in STORE but missing from the archive.
+     WHY THIS IS NEEDED. The hourly GitHub Action appends to STORE, but the raw archive is
+     gitignored (41 MB and growing), so a CI-ingested game never gets a local raw log. The store
+     and the archive therefore drift apart silently, and "a new question is a re-parse, never a
+     re-pull" stops being true for exactly the games CI collected. Found 2026-07-24: 453 games were
+     in the store with no raw log, and a plain reparse would have deleted every one of them.
+     RUN THIS BEFORE ANY REPARSE. It is idempotent and does nothing when the archive is complete. */
+  if(MODE==='backfill'){
+    if(!fs.existsSync(STORE)){ process.stderr.write(`no store at ${STORE}\n`); return; }
+    const recs=new Map();
+    for(const l of fs.readFileSync(STORE,'utf8').split('\n')){ if(!l.trim())continue;
+      try{ const g=JSON.parse(l); recs.set(g.id,g); }catch(e){} }
+    const have=new Set();
+    if(fs.existsSync(RAW)) for(const l of fs.readFileSync(RAW,'utf8').split('\n')){ if(!l.trim())continue;
+      try{ have.add(JSON.parse(l).id); }catch(e){} }
+    const missing=[...recs.keys()].filter(id=>!have.has(id));
+    process.stderr.write(`store ${recs.size}, archive ${have.size}, missing ${missing.length}\n`);
+    if(!missing.length){ process.stderr.write('archive is complete; nothing to do\n'); return; }
+    // The .json endpoint carries the authoritative `uploadtime`. extract() derives `date` from it
+    // (new Date(uploadtime*1000)), so guessing it corrupts the date on every backfilled record.
+    // Fall back to reconstructing the timestamp from the store's own date string, which is UTC.
+    const tsFromDate=d=>{ if(!d) return null; const ms=Date.parse(String(d).replace(' ','T')+':00Z');
+      return Number.isFinite(ms)?Math.floor(ms/1000):null; };
+    const res=await pool(missing, async id=>{
+      let log=null, uploadtime=null;
+      try{ const j=JSON.parse(await get(`https://replay.pokemonshowdown.com/${id}.json`)); log=j.log; uploadtime=j.uploadtime; }catch(e){}
+      if(!log) log=await get(`https://replay.pokemonshowdown.com/${id}.log`);
+      if(uploadtime==null) uploadtime=tsFromDate((recs.get(id)||{}).date);
+      return [id,log,uploadtime];
+    }, CONC);
+    const out=fs.createWriteStream(RAW,{flags:'a'}); let ok=0, noLog=0, noTime=0;
+    for(const [id,log,uploadtime] of res){
+      if(!log||log.length<50){ noLog++; continue; }
+      if(uploadtime==null){ noTime++; continue; }
+      out.write(JSON.stringify({id,uploadtime,log})+'\n'); ok++;
+    }
+    await new Promise(r=>out.end(r));
+    process.stderr.write(`backfilled ${ok} raw logs (${noLog} unavailable, ${noTime} no timestamp)\n`);
+    if(noLog||noTime) process.stderr.write('WARNING: archive still incomplete — do NOT reparse yet\n');
+    return;
+  }
   // reparse mode: rebuild STORE from the raw-log archive, no network.
   if(MODE==='reparse'){
     if(!fs.existsSync(RAW)){ process.stderr.write(`no raw archive at ${RAW}; run a fetch first.\n`); return; }
+    /* GUARD: reparse REPLACES the store with whatever the archive can rebuild, so any game the
+       archive is missing is destroyed. That is not hypothetical — 453 CI-ingested games had no raw
+       log on 2026-07-24. Refuse rather than silently lose them. MODE=backfill fixes it; FORCE=1
+       overrides if the loss is genuinely intended. */
+    if(fs.existsSync(STORE)){
+      const have=new Set();
+      for(const l of fs.readFileSync(RAW,'utf8').split('\n')){ if(!l.trim())continue;
+        try{ have.add(JSON.parse(l).id); }catch(e){} }
+      let orphan=0;
+      for(const l of fs.readFileSync(STORE,'utf8').split('\n')){ if(!l.trim())continue;
+        try{ if(!have.has(JSON.parse(l).id)) orphan++; }catch(e){} }
+      if(orphan && !process.env.FORCE){
+        process.stderr.write(`REFUSING TO REPARSE: ${orphan} stored games have no raw log.\n`+
+          `Reparsing would delete them. Run:  MODE=backfill node engine/durable-ingest.js ${STORE}\n`+
+          `Then reparse. Set FORCE=1 only if losing those games is intended.\n`);
+        process.exitCode=1; return;
+      }
+    }
     const tmp=STORE+'.tmp', out=fs.createWriteStream(tmp); let n=0;
     for(const l of fs.readFileSync(RAW,'utf8').split('\n')){ if(!l.trim())continue;
       let r; try{r=JSON.parse(l);}catch(e){continue;} const rec=extract(r.id,r.uploadtime,r.log);
