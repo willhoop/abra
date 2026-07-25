@@ -77,12 +77,16 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 /* ---- MEW battle field: laid out like a Showdown battle rather than two flat sprite lists.
    Opponent up and to the right with front sprites, you down and to the left with BACK sprites,
    a horizon between them, benched Pokemon small beside each side, HP bars under every active. */
+/* CAPPED AND CENTRED. Left at full panel width the two sides sat in opposite corners of a 1400px
+   box with a lake of empty grass between them — the sprites were fine, the spacing was not. A real
+   battle reads as two teams close enough to be fighting each other. */
 .bfield{position:relative;border:3px solid var(--line);border-radius:16px;overflow:hidden;
-        background:linear-gradient(#bfe4ff 0%,#dff1ff 48%,#cfeecb 48%,#a9dfa2 100%);padding:10px 12px}
-.brow{display:flex;align-items:flex-end;gap:12px;position:relative;z-index:2}
+        background:linear-gradient(#bfe4ff 0%,#dff1ff 46%,#cfeecb 46%,#a9dfa2 100%);
+        padding:12px 14px;max-width:560px;margin:0 auto}
+.brow{display:flex;align-items:flex-end;gap:14px;position:relative;z-index:2}
 .brow.foe{justify-content:flex-end}
-.brow.me{justify-content:flex-start;margin-top:6px}
-.bground{height:1px;background:rgba(0,0,0,.08);margin:4px 0}
+.brow.me{justify-content:flex-start;margin-top:2px}
+.bground{height:1px;background:rgba(0,0,0,.08);margin:2px 0}
 .bmons{display:flex;gap:10px;align-items:flex-end}
 .bslot{width:96px;text-align:center}
 .bslot.empty{width:96px;height:1px}
@@ -95,12 +99,16 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
        text-shadow:0 1px 0 rgba(255,255,255,.85)}
 .hpbar{height:7px;border-radius:5px;background:#e6ecf5;border:1.5px solid #9fb0c8;overflow:hidden;margin-top:3px}
 .hpbar > i{display:block;height:100%;transition:width .25s}
-.bteamtag{font-size:11.5px;font-weight:900;color:#2c405c;text-shadow:0 1px 0 rgba(255,255,255,.85);
-          min-width:92px}
+.bteamtag{font-size:12px;font-weight:900;color:#2c405c;text-shadow:0 1px 0 rgba(255,255,255,.85);
+          min-width:128px}
 .bteamtag b{color:#1a7f3c}
-.bbench{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;max-width:96px}
-.bbenchmon{width:26px;height:26px;object-fit:contain;image-rendering:pixelated;opacity:.85}
+/* The bench was 26px, which at a glance read as debris beside the team name rather than as
+   "these are your other two Pokemon". Bigger, on a tinted strip, so it is legible as a bench. */
+.bbench{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;max-width:128px;
+        background:rgba(255,255,255,.5);border:1.5px solid rgba(0,0,0,.08);border-radius:9px;padding:3px}
+.bbenchmon{width:36px;height:36px;object-fit:contain;image-rendering:pixelated;opacity:.9}
 .bbenchmon.fainted{filter:grayscale(1);opacity:.25}
+.bbenchlbl{font-size:9px;font-weight:800;color:#5a6f8a;letter-spacing:.4px;margin-top:4px}
 .bfieldlog{background:#0f1626;color:#e6ecf8;border:3px solid var(--line);border-radius:12px;
            padding:11px 14px;min-height:120px;font-weight:600;font-size:13.5px;line-height:1.75;
            font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -1071,17 +1079,21 @@ function renderMew(){
         return '<img class="bbenchmon'+(out?' fainted':'')+'" src="'+mewSprite(sp)+'" title="'+mewPretty(sp)+(out?' (fainted)':'')+'" alt="'+sp+'">';
       }).join('');
   };
+  var benchBlock=function(side){
+    var b=bench(side);
+    return b ? '<div class="bbenchlbl">ON THE BENCH</div><div class="bbench">'+b+'</div>' : '';
+  };
   var wonA=g.winner==='MEW-A', wonB=g.winner==='MEW-B';
   document.getElementById('mewfield').innerHTML =
     '<div class="bfield">'
     + '<div class="brow foe">'
-    +   '<div class="bteamtag">MEW-B'+(wonB?' <b>WON</b>':'')+'<div class="bbench">'+bench('p2')+'</div></div>'
+    +   '<div class="bteamtag">MEW-B'+(wonB?' <b>WON</b>':'')+benchBlock('p2')+'</div>'
     +   '<div class="bmons">'+mewMon(st.p2.active[0],'p2',st.p2,true)+mewMon(st.p2.active[1],'p2',st.p2,true)+'</div>'
     + '</div>'
     + '<div class="bground"></div>'
     + '<div class="brow me">'
     +   '<div class="bmons">'+mewMon(st.p1.active[0],'p1',st.p1,true)+mewMon(st.p1.active[1],'p1',st.p1,true)+'</div>'
-    +   '<div class="bteamtag">MEW-A'+(wonA?' <b>WON</b>':'')+'<div class="bbench">'+bench('p1')+'</div></div>'
+    +   '<div class="bteamtag">MEW-A'+(wonA?' <b>WON</b>':'')+benchBlock('p1')+'</div>'
     + '</div>'
     + '</div>';
   var log=document.getElementById('mewlog');
