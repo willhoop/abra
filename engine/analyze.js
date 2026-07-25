@@ -66,8 +66,35 @@ if(mine.length){
   for(const t of worst) console.log('  '+t.sp.padEnd(14),(100*t.win).toFixed(0).padStart(4)+'%  (n='+t.n+')');
 }
 
-// write the shared meta model the plugin/dashboard read
+/* ---- TWO METAGAMES, NOT ONE ---------------------------------------------------------------
+ * This file used to publish a single distribution and call it "the metagame". There are two, and
+ * which one is correct depends entirely on what the reader is doing.
+ *
+ *   COMPETITIVE (filtered). What humans choose when they are trying. The right answer for tournament
+ *   preparation, for any claim ABOUT THE GAME, and for anything an agent should learn to imitate —
+ *   bots play badly, and a policy trained on them gets worse.
+ *
+ *   LADDER (everything). What you will actually face. 6,297 of 8,356 stored games involve a bot:
+ *   THREE IN FOUR OPPONENTS. A tool that helps someone climb must model the population they meet,
+ *   and filtering bots out optimises for a metagame they encounter one game in four.
+ *
+ * The ladder view is not merely "unfiltered data". Bots are the most predictable opponent in the
+ * format — one account played 459 games with a single team, and four ran the same six in 1,446. A
+ * fixed, high-frequency opponent is the easiest thing in the world to prepare for, and "23% of your
+ * opponents will bring precisely these six" is more actionable than any distribution.
+ *
+ * There is also a genuine grey area, which is why this ships both rather than picking: humans copy
+ * strong bot teams to practise against, so a bot team can re-enter the competitive metagame as a
+ * legitimate archetype. Neither view alone is the truth.
+ *
+ * Both are written. Consumers must state which they used. */
 const out=usage(games,{humansOnly:true});
+const _all = Q.loadGames({ clean:false, path: STORE });
+const ladderOut = UNFILTERED ? out : usage(_all,{humansOnly:true});
+const view = o => ({
+  sampledTeams:o.sides,
+  threats:o.table.map(t=>({sp:t.sp,teamRate:+t.team.toFixed(4),bringRate:+t.bring.toFixed(3),leadRate:+t.lead.toFixed(3),winRate:t.win!=null?+t.win.toFixed(3):null,n:t.n}))
+});
 /* The model CHOMP reads. It now carries its own provenance: which games it was computed from and
  * what was excluded, so a consumer can tell whether a number is about the metagame or about a bot. */
 fs.writeFileSync('data/meta-usage.json',JSON.stringify({
@@ -82,7 +109,26 @@ fs.writeFileSync('data/meta-usage.json',JSON.stringify({
     funnel:_funnel,
     caveat:'Bot detection is name-based plus a team-invariance rule. Accounts that play few games or vary their team can still escape it. Describe this set as "no bot detected", not as human.',
   },
+  /* Top level stays the COMPETITIVE view so existing consumers keep the corrected behaviour they
+   * were given in 3.1.1. The two views are also published explicitly, and `views.ladder` is the one
+   * a laddering tool should read. */
   sampledTeams:out.sides,
-  threats:out.table.map(t=>({sp:t.sp,teamRate:+t.team.toFixed(4),bringRate:+t.bring.toFixed(3),leadRate:+t.lead.toFixed(3),winRate:t.win!=null?+t.win.toFixed(3):null,n:t.n}))
+  threats:view(out).threats,
+  views:{
+    competitive:{
+      ...view(out),
+      population:'quality-filtered — no bot detected',
+      use:'tournament preparation; claims about the game; anything an agent should imitate',
+      games:games.length,
+    },
+    ladder:{
+      ...view(ladderOut),
+      population:'every stored game, bots included',
+      use:'what you will actually face while laddering',
+      games:_all.length,
+      note:'Bots are the MOST predictable opponent here — one account played 459 games with a single team. For a climbing tool that is free information, not contamination.',
+    },
+  },
+  choosing:'State which view you used. They answer different questions and neither is "the" metagame.',
 }, null, 1));
-console.log('\nwrote data/meta-usage.json');
+console.log('\nwrote data/meta-usage.json (competitive + ladder views)');
