@@ -76,8 +76,10 @@ ladder       garchomp, whimsicott, kingambit, basculegion, charizard, incineroar
 ```
 
 **Competitive** is what humans choose when trying — right for tournament prep and for any claim about
-the game. **Ladder** is what you actually face: three in four stored games involve a bot, so filtering
-them out optimises for a metagame you meet one game in four. Charizard sits at 25.7% on the ladder
+the game. **Ladder** is what you actually face: three in four STORED games involve a bot. That is a property of what gets
+uploaded rather than of the ladder: bot-team species are over-represented in the scrape by a mean of
++8.3 points against Smogon whole-ladder statistics, while other top species run -2.9. The true share
+of bot opponents is lower than the store implies, but it is not small. Charizard sits at 25.7% on the ladder
 view and outside the competitive top six because it is on the bot team. Consumers must say which they
 used.
 
@@ -94,3 +96,22 @@ null without stating what it could have seen.
 
 The load-bearing wins are unchanged and both are about *measurement* rather than prediction: the
 validated damage engine, and PORY's mid-game value net (log-loss 0.567 vs a coin's 0.693).
+
+## Correction — the scrape over-samples bots
+
+Measured 2026-07-25 against Smogon's whole-ladder statistics for the same format and month
+(1,163,315 battles vs our 8,757 uploaded):
+
+| | mean difference, uploaded vs whole ladder |
+|---|---|
+| The five bot-team species | **+8.3 points** |
+| Every other top species | **−2.9 points** |
+
+75% of *stored* games involve a detected bot. That is a fact about **what gets uploaded**, not about
+the ladder — bots save replays far more readily than humans do. Any statement of the form "three in
+four of your opponents are bots" is therefore an overestimate and should not be made from this store.
+
+This also bounds the earlier upload-bias result. Comparing our open-team-sheet Bo3 games against the
+whole Bo3 ladder gave a mean absolute difference of only 1.84 points — but that corpus contains
+almost no bots (29 named-bot sides in 4,167 games). So **human** upload bias is small; **bot** upload
+bias is large, and the closed-sheet Bo1 store carries the latter.
