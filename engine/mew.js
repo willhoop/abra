@@ -225,10 +225,39 @@ async function main() {
   if (teams.length < 2) { console.error(`need at least 2 distinct clean teams, found ${teams.length}`); process.exit(1); }
   process.stderr.write(`MEW: ${teams.length} distinct clean teams | engine ${v.pinned_commit.slice(0, 12)} | policy ${POLICY}\n`);
 
-  const out = fs.createWriteStream(OUT, { flags: 'a' });
-  /* Same append semantics as the record stream: a run killed at hour five keeps everything already
-   * flushed, and the farm merges shards by id. */
-  const rawOut = RAW_OUT ? fs.createWriteStream(RAW_OUT, { flags: 'a' }) : null;
+  /* BATCHED SYNCHRONOUS APPENDS, NOT A WRITE STREAM. THIS WAS MEASURED, NOT ASSUMED.
+   * ------------------------------------------------------------------------------------------
+   * These were fs.createWriteStream(..., {flags:'a'}), and the comment above them claimed a run
+   * killed part-way "keeps everything already flushed". That claim was FALSE and the failure was
+   * observed directly: during a 12-worker run, every shard file sat at exactly 0 bytes for fifteen
+   * minutes while the workers each held ~500MB resident. Records are ~5KB, the workers out-produce
+   * the disk, and Node answers backpressure by queueing in memory — so nothing reached disk until
+   * the stream was closed at process exit.
+   *
+   * Two consequences, both bad for a multi-hour run:
+   *   1. A worker killed before it finishes loses ALL of its games, not the last few.
+   *   2. Memory grows without bound in proportion to games generated — 16,667 games per worker is
+   *      ~170MB of queued records per worker before the process ever writes anything.
+   * It also makes progress unobservable, which is how a healthy run got mistaken for a hung one and
+   * killed at 15 minutes.
+   *
+   * appendFileSync on a batch bounds both: memory is capped at BATCH records, and everything older
+   * than the last BATCH is durably on disk. The syscall cost is amortised over the batch, and it is
+   * negligible next to a ~90ms battle. */
+  const BATCH = 50;
+  const bufRec = [], bufRaw = [];
+  const flush = (force) => {
+    if (bufRec.length && (force || bufRec.length >= BATCH)) {
+      fs.appendFileSync(OUT, bufRec.join(''));
+      bufRec.length = 0;
+    }
+    if (RAW_OUT && bufRaw.length && (force || bufRaw.length >= BATCH)) {
+      fs.appendFileSync(RAW_OUT, bufRaw.join(''));
+      bufRaw.length = 0;
+    }
+  };
+  const out = { write: (s) => { bufRec.push(s); flush(false); } };
+  const rawOut = RAW_OUT ? { write: (s) => { bufRaw.push(s); flush(false); } } : null;
   if (rawOut) process.stderr.write(`  raw logs -> ${path.relative(ROOT, RAW_OUT)} (PORY reads this, not the records)\n`);
   const startedAt = Math.floor(Date.now() / 1000);
   let done = 0, written = 0, failed = 0;
@@ -319,8 +348,7 @@ async function main() {
     }
   }
   await Promise.all(Array.from({ length: Math.max(1, CONC) }, worker));
-  await new Promise(r => out.end(r));
-  if (rawOut) await new Promise(r => rawOut.end(r));
+  flush(true);      // durable before the summary claims a count
   process.stderr.write(`MEW done: ${written} games -> ${path.relative(ROOT, OUT)} (${failed} discarded)\n`);
   /* REPORT THE POLICY'S OWN ACCOUNTING. A prior sampler that degrades to uniform random produces
    * games that look fine and measure nothing — ADR-001 attempt 3 reported itself as a prior sampler
