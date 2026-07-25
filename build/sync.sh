@@ -30,6 +30,16 @@ for attempt in 1 2 3 4 5; do
   echo "== sync attempt $attempt =="
   git fetch origin --quiet || true
 
+  # COMMIT LOCAL WORK FIRST. The first version compared refs only and reported "already in sync"
+  # while an uncommitted new file sat in the working tree -- so a doc written seconds earlier was
+  # silently not pushed, which is exactly the failure this script exists to prevent. An untracked or
+  # modified file is work, and work that is not committed is work that is not backed up.
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "  uncommitted work present -- committing it"
+    git add -A
+    git commit -q -m "wip: local changes swept up by build/sync.sh" || true
+  fi
+
   if [ -z "$(git log origin/main..HEAD --oneline)" ] && [ -z "$(git log HEAD..origin/main --oneline)" ]; then
     echo "  already in sync"; exit 0
   fi
