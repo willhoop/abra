@@ -1,151 +1,157 @@
 {
  "generated": "2026-07-24",
- "n_games": 7315,
- "n_train": 5801,
- "n_test": 1513,
+ "n_games": 1061,
+ "n_train": 838,
+ "n_test": 223,
  "log_loss": {
-  "roles": 0.6914,
-  "rating_baseline": 0.6908,
+  "roles": 0.6915,
+  "rating_baseline": 0.6949,
   "coin": 0.6931
  },
  "role_logloss_ci": [
-  0.6886,
-  0.6942
+  0.6783,
+  0.7049
  ],
- "accuracy_roles": 0.5195,
- "headline": "Roles predict the winner at held-out log-loss 0.6914 vs a coin 0.6931 and rating 0.6908.",
+ "accuracy_roles": 0.5247,
+ "headline": "Roles predict the winner at held-out log-loss 0.6915 vs a coin 0.6931 and rating 0.6949.",
  "role_win_credit": [
-  {
-   "role": "setup",
-   "label": "Setup / sweeper",
-   "coef": 0.1068,
-   "teams_with": 1522
-  },
-  {
-   "role": "multihit",
-   "label": "Multi-hit (breaks Sash / Sturdy)",
-   "coef": 0.0997,
-   "teams_with": 191
-  },
-  {
-   "role": "status_sleep",
-   "label": "Sleep spreader (action denial)",
-   "coef": 0.0903,
-   "teams_with": 262
-  },
-  {
-   "role": "weather_rain",
-   "label": "Rain setter",
-   "coef": 0.0893,
-   "teams_with": 2537
-  },
   {
    "role": "priority",
    "label": "Priority attacker",
-   "coef": 0.086,
-   "teams_with": 4032
-  },
-  {
-   "role": "weather_sand",
-   "label": "Sand setter",
-   "coef": 0.0803,
-   "teams_with": 1383
-  },
-  {
-   "role": "fakeout",
-   "label": "Fake Out (tempo)",
-   "coef": 0.074,
-   "teams_with": 4199
-  },
-  {
-   "role": "speed_lower",
-   "label": "Speed control (lower foe)",
-   "coef": 0.071,
-   "teams_with": 23
-  },
-  {
-   "role": "phys_attacker",
-   "label": "Physical attacker",
-   "coef": 0.0557,
-   "teams_with": 6046
-  },
-  {
-   "role": "spec_attacker",
-   "label": "Special attacker",
-   "coef": 0.0519,
-   "teams_with": 4765
+   "coef": 0.1914,
+   "teams_with": 486
   },
   {
    "role": "terrain_psychic",
    "label": "Psychic Terrain setter",
-   "coef": 0.0379,
+   "coef": 0.1836,
    "teams_with": 0
   },
   {
    "role": "spread",
    "label": "Spread attacker (both foes)",
-   "coef": 0.0377,
-   "teams_with": 5814
+   "coef": 0.1762,
+   "teams_with": 822
   },
   {
-   "role": "itemdisrupt",
-   "label": "Item disruption",
-   "coef": 0.0369,
-   "teams_with": 14
+   "role": "multihit",
+   "label": "Multi-hit (breaks Sash / Sturdy)",
+   "coef": 0.1464,
+   "teams_with": 111
+  },
+  {
+   "role": "allysupport",
+   "label": "Positioning / ally support",
+   "coef": 0.1422,
+   "teams_with": 85
+  },
+  {
+   "role": "weather_rain",
+   "label": "Rain setter",
+   "coef": 0.1379,
+   "teams_with": 372
+  },
+  {
+   "role": "weather_sand",
+   "label": "Sand setter",
+   "coef": 0.0985,
+   "teams_with": 225
+  },
+  {
+   "role": "helpinghand",
+   "label": "Helping Hand",
+   "coef": 0.0907,
+   "teams_with": 9
+  },
+  {
+   "role": "status_sleep",
+   "label": "Sleep spreader (action denial)",
+   "coef": 0.0835,
+   "teams_with": 25
+  },
+  {
+   "role": "redirection",
+   "label": "Redirection",
+   "coef": 0.0783,
+   "teams_with": 518
   },
   {
    "role": "perish",
    "label": "Perish Trap",
-   "coef": 0.033,
+   "coef": 0.0738,
+   "teams_with": 0
+  },
+  {
+   "role": "abuser_psychic",
+   "label": "Psychic Terrain abuser",
+   "coef": 0.0685,
    "teams_with": 0
   },
   {
    "role": "abuser_electric",
    "label": "Electric Terrain abuser",
-   "coef": 0.0317,
-   "teams_with": 15
+   "coef": 0.068,
+   "teams_with": 5
   },
   {
-   "role": "helpinghand",
-   "label": "Helping Hand",
-   "coef": 0.0317,
-   "teams_with": 9
+   "role": "wall",
+   "label": "Bulky wall / support",
+   "coef": 0.0602,
+   "teams_with": 774
   },
   {
-   "role": "status_burn",
-   "label": "Burn spreader",
-   "coef": 0.0205,
-   "teams_with": 2869
-  },
-  {
-   "role": "speed_trickroom",
-   "label": "Trick Room setter",
-   "coef": 0.0194,
-   "teams_with": 2197
+   "role": "screens",
+   "label": "Screen setter",
+   "coef": 0.0512,
+   "teams_with": 220
   },
   {
    "role": "status_para",
    "label": "Paralysis spreader",
-   "coef": 0.0175,
-   "teams_with": 119
+   "coef": 0.0492,
+   "teams_with": 34
   },
   {
-   "role": "hazards",
-   "label": "Hazard setter",
-   "coef": 0.0107,
-   "teams_with": 62
+   "role": "fakeout",
+   "label": "Fake Out (tempo)",
+   "coef": 0.0356,
+   "teams_with": 732
   },
   {
-   "role": "speed_tailwind",
-   "label": "Tailwind (speed up)",
-   "coef": 0.0075,
-   "teams_with": 4437
+   "role": "speed_lower",
+   "label": "Speed control (lower foe)",
+   "coef": 0.0272,
+   "teams_with": 0
+  },
+  {
+   "role": "substitute",
+   "label": "Substitute user",
+   "coef": 0.02,
+   "teams_with": 16
+  },
+  {
+   "role": "taunt",
+   "label": "Taunt",
+   "coef": 0.0176,
+   "teams_with": 0
+  },
+  {
+   "role": "fixed_damage",
+   "label": "Fixed / fractional damage",
+   "coef": 0.0132,
+   "teams_with": 0
+  },
+  {
+   "role": "status_burn",
+   "label": "Burn spreader",
+   "coef": 0.0033,
+   "teams_with": 351
   },
   {
    "role": "terrain_grassy",
    "label": "Grassy Terrain setter",
-   "coef": -0.0,
-   "teams_with": 2
+   "coef": 0.0,
+   "teams_with": 0
   },
   {
    "role": "terrain_electric",
@@ -196,12 +202,6 @@
    "teams_with": 0
   },
   {
-   "role": "taunt",
-   "label": "Taunt",
-   "coef": 0.0,
-   "teams_with": 0
-  },
-  {
    "role": "prankster",
    "label": "Prankster (priority support)",
    "coef": 0.0,
@@ -214,407 +214,407 @@
    "teams_with": 0
   },
   {
+   "role": "speed_tailwind",
+   "label": "Tailwind (speed up)",
+   "coef": -0.0007,
+   "teams_with": 501
+  },
+  {
+   "role": "itemdisrupt",
+   "label": "Item disruption",
+   "coef": -0.0168,
+   "teams_with": 46
+  },
+  {
    "role": "status_poison",
    "label": "Poison spreader",
-   "coef": -0.0054,
-   "teams_with": 2219
-  },
-  {
-   "role": "teamprotect",
-   "label": "Wide / Quick Guard",
-   "coef": -0.0094,
-   "teams_with": 7
-  },
-  {
-   "role": "substitute",
-   "label": "Substitute user",
-   "coef": -0.0162,
-   "teams_with": 73
-  },
-  {
-   "role": "abuser_psychic",
-   "label": "Psychic Terrain abuser",
-   "coef": -0.0173,
-   "teams_with": 0
-  },
-  {
-   "role": "trapping",
-   "label": "Trapper",
-   "coef": -0.0177,
-   "teams_with": 567
-  },
-  {
-   "role": "healing",
-   "label": "Healing / sustain",
-   "coef": -0.0265,
-   "teams_with": 2858
-  },
-  {
-   "role": "denial",
-   "label": "Weather / effect denial",
-   "coef": -0.0303,
-   "teams_with": 2034
-  },
-  {
-   "role": "allysupport",
-   "label": "Positioning / ally support",
-   "coef": -0.0328,
-   "teams_with": 336
-  },
-  {
-   "role": "screens",
-   "label": "Screen setter",
-   "coef": -0.0331,
-   "teams_with": 1884
-  },
-  {
-   "role": "weather_sun",
-   "label": "Sun setter",
-   "coef": -0.0447,
-   "teams_with": 1102
-  },
-  {
-   "role": "spread_self",
-   "label": "Field-wide (hits own partner)",
-   "coef": -0.0458,
-   "teams_with": 128
-  },
-  {
-   "role": "weather_snow",
-   "label": "Snow setter",
-   "coef": -0.047,
-   "teams_with": 838
-  },
-  {
-   "role": "chip",
-   "label": "Residual / chip damage",
-   "coef": -0.0496,
-   "teams_with": 673
+   "coef": -0.0202,
+   "teams_with": 166
   },
   {
    "role": "debuff",
    "label": "Debuff (Intimidate / drops)",
-   "coef": -0.0532,
-   "teams_with": 5576
+   "coef": -0.0242,
+   "teams_with": 789
   },
   {
-   "role": "wall",
-   "label": "Bulky wall / support",
-   "coef": -0.0594,
-   "teams_with": 4838
+   "role": "spec_attacker",
+   "label": "Special attacker",
+   "coef": -0.0275,
+   "teams_with": 717
   },
   {
    "role": "pivot",
    "label": "Pivot",
-   "coef": -0.0748,
-   "teams_with": 459
+   "coef": -0.0465,
+   "teams_with": 331
+  },
+  {
+   "role": "denial",
+   "label": "Weather / effect denial",
+   "coef": -0.0526,
+   "teams_with": 280
+  },
+  {
+   "role": "phys_attacker",
+   "label": "Physical attacker",
+   "coef": -0.0554,
+   "teams_with": 862
+  },
+  {
+   "role": "healing",
+   "label": "Healing / sustain",
+   "coef": -0.057,
+   "teams_with": 255
+  },
+  {
+   "role": "setup",
+   "label": "Setup / sweeper",
+   "coef": -0.0692,
+   "teams_with": 411
+  },
+  {
+   "role": "weather_snow",
+   "label": "Snow setter",
+   "coef": -0.0763,
+   "teams_with": 149
+  },
+  {
+   "role": "spread_self",
+   "label": "Field-wide (hits own partner)",
+   "coef": -0.0871,
+   "teams_with": 39
   },
   {
    "role": "encore",
    "label": "Move-lock (Encore / Disable)",
-   "coef": -0.0842,
-   "teams_with": 47
+   "coef": -0.0892,
+   "teams_with": 13
   },
   {
-   "role": "redirection",
-   "label": "Redirection",
-   "coef": -0.1384,
-   "teams_with": 752
+   "role": "hazards",
+   "label": "Hazard setter",
+   "coef": -0.1002,
+   "teams_with": 14
   },
   {
-   "role": "fixed_damage",
-   "label": "Fixed / fractional damage",
-   "coef": -0.1445,
-   "teams_with": 0
+   "role": "teamprotect",
+   "label": "Wide / Quick Guard",
+   "coef": -0.1081,
+   "teams_with": 13
+  },
+  {
+   "role": "weather_sun",
+   "label": "Sun setter",
+   "coef": -0.1104,
+   "teams_with": 145
+  },
+  {
+   "role": "speed_trickroom",
+   "label": "Trick Room setter",
+   "coef": -0.1188,
+   "teams_with": 402
+  },
+  {
+   "role": "chip",
+   "label": "Residual / chip damage",
+   "coef": -0.1598,
+   "teams_with": 116
+  },
+  {
+   "role": "trapping",
+   "label": "Trapper",
+   "coef": -0.1705,
+   "teams_with": 95
   }
  ],
  "ko_credit_top": [
   {
-   "species": "snorlax",
-   "brought": 49,
-   "kos": 63,
-   "kos_in_wins": 41,
-   "ko_per_game": 1.286
-  },
-  {
-   "species": "mudsdale",
-   "brought": 44,
-   "kos": 53,
-   "kos_in_wins": 41,
-   "ko_per_game": 1.205
-  },
-  {
-   "species": "bellibolt",
-   "brought": 41,
-   "kos": 41,
-   "kos_in_wins": 35,
-   "ko_per_game": 1.0
+   "species": "archaludon",
+   "brought": 186,
+   "kos": 189,
+   "kos_in_wins": 134,
+   "ko_per_game": 1.016
   },
   {
    "species": "annihilape",
-   "brought": 288,
-   "kos": 287,
-   "kos_in_wins": 232,
-   "ko_per_game": 0.997
-  },
-  {
-   "species": "azumarill",
-   "brought": 40,
-   "kos": 39,
-   "kos_in_wins": 28,
-   "ko_per_game": 0.975
-  },
-  {
-   "species": "ceruledge",
-   "brought": 210,
-   "kos": 200,
-   "kos_in_wins": 167,
-   "ko_per_game": 0.952
-  },
-  {
-   "species": "empoleon",
-   "brought": 42,
-   "kos": 40,
-   "kos_in_wins": 27,
-   "ko_per_game": 0.952
-  },
-  {
-   "species": "decidueyehisui",
-   "brought": 55,
-   "kos": 48,
-   "kos_in_wins": 37,
-   "ko_per_game": 0.873
-  },
-  {
-   "species": "armarouge",
-   "brought": 61,
-   "kos": 53,
-   "kos_in_wins": 40,
-   "ko_per_game": 0.869
-  },
-  {
-   "species": "primarina",
-   "brought": 216,
-   "kos": 185,
-   "kos_in_wins": 123,
-   "ko_per_game": 0.856
-  },
-  {
-   "species": "archaludon",
-   "brought": 1672,
-   "kos": 1408,
-   "kos_in_wins": 1065,
-   "ko_per_game": 0.842
-  },
-  {
-   "species": "krookodile",
-   "brought": 49,
-   "kos": 41,
-   "kos_in_wins": 36,
-   "ko_per_game": 0.837
-  },
-  {
-   "species": "basculegion",
-   "brought": 3844,
-   "kos": 3057,
-   "kos_in_wins": 1944,
-   "ko_per_game": 0.795
-  },
-  {
-   "species": "gallade",
-   "brought": 185,
-   "kos": 147,
-   "kos_in_wins": 112,
-   "ko_per_game": 0.795
-  },
-  {
-   "species": "kingambit",
-   "brought": 1780,
-   "kos": 1387,
-   "kos_in_wins": 971,
-   "ko_per_game": 0.779
+   "brought": 76,
+   "kos": 74,
+   "kos_in_wins": 49,
+   "ko_per_game": 0.974
   },
   {
    "species": "mamoswine",
-   "brought": 217,
-   "kos": 165,
-   "kos_in_wins": 110,
-   "ko_per_game": 0.76
+   "brought": 46,
+   "kos": 43,
+   "kos_in_wins": 24,
+   "ko_per_game": 0.935
   },
   {
-   "species": "excadrill",
-   "brought": 618,
-   "kos": 461,
-   "kos_in_wins": 306,
-   "ko_per_game": 0.746
-  },
-  {
-   "species": "jolteon",
-   "brought": 78,
-   "kos": 58,
-   "kos_in_wins": 52,
-   "ko_per_game": 0.744
-  },
-  {
-   "species": "sylveon",
-   "brought": 2224,
-   "kos": 1638,
-   "kos_in_wins": 1121,
-   "ko_per_game": 0.737
-  },
-  {
-   "species": "arcaninehisui",
-   "brought": 114,
-   "kos": 84,
-   "kos_in_wins": 59,
-   "ko_per_game": 0.737
-  },
-  {
-   "species": "vanilluxe",
-   "brought": 93,
-   "kos": 68,
-   "kos_in_wins": 50,
-   "ko_per_game": 0.731
-  },
-  {
-   "species": "overqwil",
-   "brought": 103,
-   "kos": 74,
-   "kos_in_wins": 58,
-   "ko_per_game": 0.718
-  },
-  {
-   "species": "milotic",
-   "brought": 472,
-   "kos": 337,
-   "kos_in_wins": 252,
-   "ko_per_game": 0.714
-  },
-  {
-   "species": "lycanrocdusk",
-   "brought": 63,
-   "kos": 45,
-   "kos_in_wins": 29,
-   "ko_per_game": 0.714
-  },
-  {
-   "species": "hydreigon",
-   "brought": 231,
-   "kos": 163,
-   "kos_in_wins": 129,
-   "ko_per_game": 0.706
-  },
-  {
-   "species": "gliscor",
-   "brought": 77,
-   "kos": 54,
-   "kos_in_wins": 40,
-   "ko_per_game": 0.701
-  },
-  {
-   "species": "gholdengo",
-   "brought": 1384,
-   "kos": 955,
-   "kos_in_wins": 631,
-   "ko_per_game": 0.69
+   "species": "kingambit",
+   "brought": 246,
+   "kos": 229,
+   "kos_in_wins": 162,
+   "ko_per_game": 0.931
   },
   {
    "species": "torkoal",
-   "brought": 724,
-   "kos": 495,
-   "kos_in_wins": 347,
-   "ko_per_game": 0.684
+   "brought": 98,
+   "kos": 89,
+   "kos_in_wins": 53,
+   "ko_per_game": 0.908
   },
   {
-   "species": "corviknight",
-   "brought": 120,
-   "kos": 80,
-   "kos_in_wins": 60,
-   "ko_per_game": 0.667
+   "species": "sylveon",
+   "brought": 154,
+   "kos": 132,
+   "kos_in_wins": 90,
+   "ko_per_game": 0.857
   },
   {
-   "species": "samurotthisui",
-   "brought": 63,
-   "kos": 42,
-   "kos_in_wins": 29,
-   "ko_per_game": 0.667
+   "species": "basculegion",
+   "brought": 290,
+   "kos": 237,
+   "kos_in_wins": 164,
+   "ko_per_game": 0.817
   },
   {
-   "species": "araquanid",
-   "brought": 82,
-   "kos": 54,
-   "kos_in_wins": 38,
-   "ko_per_game": 0.659
+   "species": "ceruledge",
+   "brought": 50,
+   "kos": 40,
+   "kos_in_wins": 33,
+   "ko_per_game": 0.8
+  },
+  {
+   "species": "hydreigon",
+   "brought": 65,
+   "kos": 49,
+   "kos_in_wins": 32,
+   "ko_per_game": 0.754
+  },
+  {
+   "species": "gholdengo",
+   "brought": 143,
+   "kos": 104,
+   "kos_in_wins": 63,
+   "ko_per_game": 0.727
   },
   {
    "species": "tsareena",
-   "brought": 214,
-   "kos": 141,
-   "kos_in_wins": 95,
-   "ko_per_game": 0.659
+   "brought": 44,
+   "kos": 31,
+   "kos_in_wins": 22,
+   "ko_per_game": 0.705
   },
   {
-   "species": "meowscarada",
-   "brought": 123,
-   "kos": 80,
-   "kos_in_wins": 59,
-   "ko_per_game": 0.65
+   "species": "excadrill",
+   "brought": 107,
+   "kos": 75,
+   "kos_in_wins": 58,
+   "ko_per_game": 0.701
   },
   {
    "species": "garchomp",
-   "brought": 2959,
-   "kos": 1855,
-   "kos_in_wins": 1183,
-   "ko_per_game": 0.627
+   "brought": 366,
+   "kos": 253,
+   "kos_in_wins": 155,
+   "ko_per_game": 0.691
   },
   {
-   "species": "heliolisk",
-   "brought": 97,
-   "kos": 60,
-   "kos_in_wins": 51,
-   "ko_per_game": 0.619
+   "species": "primarina",
+   "brought": 52,
+   "kos": 35,
+   "kos_in_wins": 20,
+   "ko_per_game": 0.673
   },
   {
-   "species": "mrrime",
-   "brought": 81,
-   "kos": 50,
-   "kos_in_wins": 44,
-   "ko_per_game": 0.617
-  },
-  {
-   "species": "kommoo",
-   "brought": 87,
-   "kos": 53,
-   "kos_in_wins": 41,
-   "ko_per_game": 0.609
-  },
-  {
-   "species": "kleavor",
+   "species": "mausholdfour",
    "brought": 48,
+   "kos": 32,
+   "kos_in_wins": 23,
+   "ko_per_game": 0.667
+  },
+  {
+   "species": "pelipper",
+   "brought": 222,
+   "kos": 145,
+   "kos_in_wins": 85,
+   "ko_per_game": 0.653
+  },
+  {
+   "species": "rotomwash",
+   "brought": 98,
+   "kos": 64,
+   "kos_in_wins": 42,
+   "ko_per_game": 0.653
+  },
+  {
+   "species": "sneasler",
+   "brought": 227,
+   "kos": 148,
+   "kos_in_wins": 95,
+   "ko_per_game": 0.652
+  },
+  {
+   "species": "milotic",
+   "brought": 109,
+   "kos": 68,
+   "kos_in_wins": 43,
+   "ko_per_game": 0.624
+  },
+  {
+   "species": "kangaskhan",
+   "brought": 55,
    "kos": 29,
-   "kos_in_wins": 26,
-   "ko_per_game": 0.604
+   "kos_in_wins": 23,
+   "ko_per_game": 0.527
   },
   {
-   "species": "houndstone",
-   "brought": 51,
-   "kos": 30,
+   "species": "incineroar",
+   "brought": 321,
+   "kos": 168,
+   "kos_in_wins": 99,
+   "ko_per_game": 0.523
+  },
+  {
+   "species": "scizor",
+   "brought": 41,
+   "kos": 21,
+   "kos_in_wins": 15,
+   "ko_per_game": 0.512
+  },
+  {
+   "species": "ninetalesalola",
+   "brought": 66,
+   "kos": 33,
    "kos_in_wins": 24,
-   "ko_per_game": 0.588
+   "ko_per_game": 0.5
   },
   {
-   "species": "ditto",
-   "brought": 65,
+   "species": "glimmora",
+   "brought": 60,
+   "kos": 30,
+   "kos_in_wins": 17,
+   "ko_per_game": 0.5
+  },
+  {
+   "species": "politoed",
+   "brought": 62,
+   "kos": 25,
+   "kos_in_wins": 20,
+   "ko_per_game": 0.403
+  },
+  {
+   "species": "venusaur",
+   "brought": 103,
    "kos": 38,
+   "kos_in_wins": 22,
+   "ko_per_game": 0.369
+  },
+  {
+   "species": "farigiraf",
+   "brought": 222,
+   "kos": 81,
+   "kos_in_wins": 44,
+   "ko_per_game": 0.365
+  },
+  {
+   "species": "tyranitar",
+   "brought": 189,
+   "kos": 68,
+   "kos_in_wins": 47,
+   "ko_per_game": 0.36
+  },
+  {
+   "species": "blaziken",
+   "brought": 64,
+   "kos": 22,
+   "kos_in_wins": 15,
+   "ko_per_game": 0.344
+  },
+  {
+   "species": "talonflame",
+   "brought": 117,
+   "kos": 35,
+   "kos_in_wins": 23,
+   "ko_per_game": 0.299
+  },
+  {
+   "species": "sinistcha",
+   "brought": 228,
+   "kos": 67,
+   "kos_in_wins": 47,
+   "ko_per_game": 0.294
+  },
+  {
+   "species": "sinistchamasterpiece",
+   "brought": 51,
+   "kos": 15,
+   "kos_in_wins": 7,
+   "ko_per_game": 0.294
+  },
+  {
+   "species": "scrafty",
+   "brought": 49,
+   "kos": 13,
+   "kos_in_wins": 11,
+   "ko_per_game": 0.265
+  },
+  {
+   "species": "aerodactyl",
+   "brought": 125,
+   "kos": 32,
    "kos_in_wins": 25,
-   "ko_per_game": 0.585
+   "ko_per_game": 0.256
+  },
+  {
+   "species": "gardevoir",
+   "brought": 49,
+   "kos": 12,
+   "kos_in_wins": 7,
+   "ko_per_game": 0.245
+  },
+  {
+   "species": "grimmsnarl",
+   "brought": 147,
+   "kos": 34,
+   "kos_in_wins": 25,
+   "ko_per_game": 0.231
+  },
+  {
+   "species": "meowstic",
+   "brought": 49,
+   "kos": 11,
+   "kos_in_wins": 8,
+   "ko_per_game": 0.224
+  },
+  {
+   "species": "dragonite",
+   "brought": 62,
+   "kos": 13,
+   "kos_in_wins": 3,
+   "ko_per_game": 0.21
+  },
+  {
+   "species": "maushold",
+   "brought": 43,
+   "kos": 9,
+   "kos_in_wins": 6,
+   "ko_per_game": 0.209
+  },
+  {
+   "species": "whimsicott",
+   "brought": 244,
+   "kos": 50,
+   "kos_in_wins": 30,
+   "ko_per_game": 0.205
   }
  ],
  "pooling": {
-  "role_pair_cells": 1137,
-  "median_cell_n": 52,
+  "role_pair_cells": 1051,
+  "median_cell_n": 20,
   "min_cell_n": 1,
-  "max_cell_n": 4758,
+  "max_cell_n": 686,
   "note": "Old single-label playstyle cells were n=11-18; role-pair cells pool every game into many cells, so the median cell here is far larger and can reach significance."
  }
 }
