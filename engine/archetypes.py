@@ -28,7 +28,38 @@ import numpy as np
 HERE = os.path.dirname(__file__)
 GAMES = os.path.join(HERE, "..", "data", "games.ladder.jsonl")
 OUT   = os.path.join(HERE, "..", "data", "archetypes.json")
-K_RANGE = range(5, 13)      # let the data pick between 5 and 12 archetypes
+# --- HOW MANY ARCHETYPES THE DATA CAN ACTUALLY SUPPORT --------------------------------------------
+# K used to be chosen purely by silhouette over range(5,13) — "how many clusters are there?" — with
+# no reference to whether the sample could support that many. It could not.
+#
+# GURU builds an archetype-vs-archetype matrix, so cells scale as K SQUARED. On 2026-07-25, K=11 gave
+# 121 cells over 1,124 clean games: a MEDIAN CELL OF 11 GAMES, and zero statistically-decisive
+# matchups. Calling a 65/35 matchup needs n=80 per cell; a 60/40 needs 189. The model was not wrong,
+# it was starved — asked to resolve 121 cells from a sample that supports a handful.
+#
+# So K is now bounded by the data as well as by the clustering. Each game lands in one cell, so mean
+# cell occupancy is roughly N/K^2, and requiring that to clear MIN_CELL gives
+#
+#     K <= sqrt(N / MIN_CELL)
+#
+# This is deliberately COARSE now and widens on its own as the store grows — at ~330 clean games/day
+# the ceiling rises without anyone editing a constant. Set ARCH_MIN_CELL to change the target.
+#
+#   1,124 games ->  K<=4      (today)
+#   5,000       ->  K<=9
+#   9,700       ->  K<=12     (65/35 matchups become callable)
+MIN_CELL = int(os.environ.get("ARCH_MIN_CELL", "60"))
+K_FLOOR, K_CEIL = 3, 12
+
+
+def k_range_for(n_games):
+    """The widest K this sample can support, floored at 3 so there is always a matrix."""
+    cap = int(math.sqrt(max(1, n_games) / max(1, MIN_CELL)))
+    cap = max(K_FLOOR, min(K_CEIL, cap))
+    return range(K_FLOOR, cap + 1), cap
+
+
+K_RANGE = range(5, 13)      # replaced at runtime by k_range_for(); kept so the module imports alone
 MIN_SHARE = 0.03            # drop micro-clusters (<3% of ladder) as noise
 RNG = 42
 
@@ -102,8 +133,14 @@ def main():
         for s in t: X[r, sidx[s]] = 1.0
     glob = X.mean(0)  # global usage per species
 
+    # K is capped by what the SAMPLE can support, not only by what the clustering prefers.
+    krange, kcap = k_range_for(total)
+    _sys.stderr.write(
+        "archetypes: %d teams -> K capped at %d (cells %d, target >=%d games/cell; "
+        "raise ARCH_MIN_CELL to go coarser)\n" % (total, kcap, kcap * kcap, MIN_CELL))
+
     best = None
-    for k in K_RANGE:
+    for k in krange:
         labels, C = kmeans(X, k)
         sil = silhouette(X, labels, C)
         if best is None or sil > best[0]:
