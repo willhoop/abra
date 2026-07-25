@@ -71,14 +71,42 @@ async function mirrorSymmetry(n) {
     `mirror is 50/50: p1 won ${a}/${played} = ${(100 * p).toFixed(1)}%, 95% CI [${(100 * lo).toFixed(1)}, ${(100 * hi).toFixed(1)}]`);
 }
 
+/* Read a .jsonl line by line WITHOUT ever holding it as one string.
+ *
+ * This validator used to do `fs.readFileSync(STORE, 'utf8').split('\n')`, which is fine on a few
+ * thousand games and fails outright on a real corpus: V8 caps a single string at ~512MB
+ * (0x1fffffe8 chars), and the first 200,004-game run produced a 988MB store. The validator threw
+ * ERR_STRING_TOO_LONG before checking a single invariant — so the tool that exists to certify a
+ * large corpus was the one thing guaranteed to break on one.
+ *
+ * Chunked reads with a carry buffer keep memory flat regardless of file size. */
+function eachLine(file, fn) {
+  const fd = fs.openSync(file, 'r');
+  const buf = Buffer.alloc(1 << 20);
+  let carry = '';
+  try {
+    for (;;) {
+      const bytes = fs.readSync(fd, buf, 0, buf.length, null);
+      if (bytes <= 0) break;
+      const chunk = carry + buf.toString('utf8', 0, bytes);
+      const lines = chunk.split('\n');
+      carry = lines.pop();               // last piece may be a partial line
+      for (const line of lines) fn(line);
+    }
+    if (carry) fn(carry);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 function storeShape() {
   console.log('\n== 2. store shape (S7), same invariants as the ladder store ==');
   if (!fs.existsSync(STORE)) { ok(false, 'self-play store exists'); return; }
   const ids = new Set();
   let n = 0, dupes = 0, badSubset = 0, badLead = 0, badWinner = 0, unlabelled = 0;
-  for (const line of fs.readFileSync(STORE, 'utf8').split('\n')) {
-    const t = line.trim(); if (!t) continue;
-    let g; try { g = JSON.parse(t); } catch { continue; }
+  eachLine(STORE, (line) => {
+    const t = line.trim(); if (!t) return;
+    let g; try { g = JSON.parse(t); } catch { return; }
     n++;
     if (ids.has(g.id)) dupes++; else ids.add(g.id);
     if (g.source !== 'selfplay') unlabelled++;
@@ -91,8 +119,8 @@ function storeShape() {
     }
     const names = [(g.p1 || {}).name, (g.p2 || {}).name];
     if (g.winner && !names.includes(g.winner)) badWinner++;
-  }
-  ok(n > 0, `${n} self-play games present`);
+  });
+  ok(n > 0, `${n.toLocaleString()} self-play games present`);
   ok(dupes === 0, `no duplicate ids (${dupes})`);
   ok(badSubset === 0, `every brought is a subset of six (${badSubset} bad)`);
   ok(badLead === 0, `every lead is a subset of brought (${badLead} bad)`);
@@ -127,11 +155,11 @@ function setRealism() {
   console.log('\n== 4. set realism ==');
   if (!fs.existsSync(STORE)) { ok(false, 'self-play store exists'); return; }
   const mv = {}; let total = 0;
-  for (const line of fs.readFileSync(STORE, 'utf8').split('\n')) {
-    const t = line.trim(); if (!t) continue;
-    let g; try { g = JSON.parse(t); } catch { continue; }
+  eachLine(STORE, (line) => {
+    const t = line.trim(); if (!t) return;
+    let g; try { g = JSON.parse(t); } catch { return; }
     for (const sp of Object.keys(g.sets || {})) for (const m of (g.sets[sp].moves || [])) { mv[m] = (mv[m] || 0) + 1; total++; }
-  }
+  });
   const top = Object.entries(mv).sort((a, b) => b[1] - a[1]);
   console.log('  top moves: ' + top.slice(0, 6).map(([m, c]) => `${m} ${(100 * c / total).toFixed(1)}%`).join(', '));
   const tackle = (mv['Tackle'] || 0) / Math.max(1, total);
