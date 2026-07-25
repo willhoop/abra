@@ -18,3 +18,7 @@ data/archive/**/games.*.ladder.jsonl
 # machine- and version-specific build artifacts, not source.
 __pycache__/
 *.pyc
+
+# MEW self-play output. Unbounded by design and regenerable from a seed, so it does not
+# belong in git. The small browser sample (data/mew.js) IS committed.
+data/games.selfplay.jsonl
