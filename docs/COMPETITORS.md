@@ -39,13 +39,17 @@ The current centre of gravity. Two tracks (competitive battling, RPG speedrunnin
 leaderboard, and — the part that matters most to us — **a released dataset of 20M+ battle
 trajectories** with heuristic, RL and LLM baselines.
 
-**What ABRA can take:** the dataset, directly. ABRA's entire power problem is n=1,061 clean games;
-20M trajectories is four orders of magnitude more. Even if most are not Reg M-B doubles, they are
-usable for pre-training a policy and value net before fine-tuning on our format — the standard
-offline-pretrain-then-specialise recipe.
+**FORMAT, CHECKED — and it changes the recommendation.** Track 1 runs **Gen 1 OU and Gen 9 OU**,
+both **singles**. The 20M is 4M human replays plus 18M self-play, spanning generations but **not
+doubles or VGC**. The paper carries **CC BY-NC-SA 4.0**; the dataset's own terms are not stated in
+the paper and must be read from the HuggingFace repo before any use. NC would matter if ABRA ever
+becomes commercial.
 
-**Action:** verify the dataset's licence and format coverage. This is the single highest-value
-external resource identified in this survey.
+**What ABRA can take:** less than it first appears. This is not a drop-in fix for our sample size,
+because it is the wrong format. It is a plausible **pre-training** corpus — learn Pokémon-general
+representations from singles, fine-tune on Reg M-B doubles — but singles→doubles transfer is
+unproven and doubles adds a partner, spread damage, redirection and a 4-of-6 bring. Treat it as an
+experiment with an acceptance bar, not as a solution.
 
 ### 2.2 Foul Play — [github.com/pmariglia/foul-play](https://github.com/pmariglia/foul-play) · **GPL-3.0**
 
@@ -143,7 +147,7 @@ mixed-strategy argument by years.
 | Singles battling agent | Foul Play (MCTS), PA-Agent (RL) | none | **Behind. Not our format** |
 | Doubles/VGC agent | VGC-Bench (benchmark) | ALAKAZAM (spec only) | **Both early. Genuinely open** |
 | Battle engine correctness | poke-engine (Foul Play, GPL) | official Champions mod, verified 31/31 vs `@smogon/calc` | **Level, and ours is the authority** |
-| Training data volume | PokéAgent 20M+, Metamon 25M | 1,061 clean games | **Far behind. Adopt, do not scrape** |
+| Training data volume | PokéAgent 20M+, Metamon 5.3M — **both singles** | 1,061 clean games, **doubles** | **No public doubles corpus exists. Keep collecting; MEW is necessary** |
 | Belief-state / equilibrium search | nobody, in VGC | SLOWKING/ALAKAZAM (spec) | **Still the open bet** |
 | Mid-game value function | implicit in RL agents | **PORY, calibrated, log-loss 0.567 vs 0.693** | **Comparable, and ours is explicit and measured** |
 | Evaluation honesty | weak — VGC-Bench's LLM at n=20 | proper scores, CIs, baselines, power gate | **Ahead. This is the real differentiator** |
@@ -154,10 +158,14 @@ mixed-strategy argument by years.
 ## 4. What to adopt, what to build
 
 **Adopt (MIT, no obstacle):**
-- PokéAgent's 20M trajectory dataset — pending licence check. Fixes the power problem outright.
 - VGC-Bench's PSRO implementations for the DITTO rebuild.
 - VGC-Bench's BC pipeline instead of writing `game-spec.js` from scratch.
 - poke-env if and when we need their agents to run.
+
+**Do NOT treat as a data fix:**
+- PokéAgent's 20M and Metamon's 5.3M are **singles only**. Neither closes ABRA's power problem,
+  because neither is the format we study. Useful as a pre-training experiment; not a substitute for
+  collecting Reg M-B doubles.
 
 **Read but do not vendor (GPL-3.0):**
 - Foul Play and poke-engine. Ideas only. Vendoring would relicense ABRA.
@@ -179,8 +187,8 @@ mixed-strategy argument by years.
 | VGC-Bench | **MIT** | Yes |
 | poke-env | **MIT** | Yes |
 | Foul Play / poke-engine | **GPL-3.0** | **No** — viral, ABRA is MIT. Ideas only |
-| PokéAgent dataset | **unverified** | Check before use |
-| Metamon | unverified | Check before use |
+| PokéAgent dataset | paper **CC BY-NC-SA 4.0**, dataset terms unstated | Read HuggingFace terms first; NC would block commercial use |
+| Metamon | **MIT** (code); dataset terms unstated | Code yes. Data is singles only, terms unread |
 | Showdown / champions mod | as upstream | Already used, pinned at `20ad99f` |
 
 ABRA is MIT. Any GPL code entering this repository would change that for the whole project, which is
@@ -202,8 +210,8 @@ informs MEW's design directly.
 
 The field has settled that RL and search beat LLMs at battling, and the strongest public agent cannot
 play doubles at all — so ABRA's bet remains **belief-state search in VGC doubles, evaluated honestly**,
-built on adopted MIT infrastructure and an external dataset rather than on a scraper we maintain
-ourselves.
+built on adopted MIT infrastructure — but on data we collect ourselves, because every public corpus
+is singles and no public VGC doubles dataset exists.
 
 ## Sources
 
