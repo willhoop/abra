@@ -85,6 +85,18 @@ if (path.resolve(OUT) === path.resolve(LADDER)) {
  * would make MEW play one script's team against itself over and over - the same contamination that
  * broke meta-usage.json, reproduced at scale. */
 function realTeams() {
+  /* A precomputed pool short-circuits the whole filter pass. mew_farm.js builds it ONCE and hands
+   * the same file to every worker, because each worker otherwise re-reads the 8,757-game store and
+   * re-runs behavioural bot detection before generating a single battle. With 12 workers that
+   * startup cost dominated everything: a 2,400-game farm run measured 16 games/sec against a
+   * per-process rate of 10.9, i.e. parallelism was buying almost nothing. */
+  const pool = process.env.MEW_TEAMS;
+  if (pool && fs.existsSync(pool)) {
+    try {
+      const t = JSON.parse(fs.readFileSync(pool, 'utf8'));
+      if (Array.isArray(t) && t.length) return t;
+    } catch (e) { /* fall through and compute it */ }
+  }
   const Q = require('./quality.js');
   const games = Q.loadGames();                 // clean only
   const seen = new Set(), teams = [];

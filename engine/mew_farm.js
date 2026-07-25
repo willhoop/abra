@@ -63,6 +63,20 @@ const per = Math.ceil(N / PROCS);
 const shardDir = path.join(path.dirname(OUT), '.mew-shards');
 fs.mkdirSync(shardDir, { recursive: true });
 
+/* Build the team pool ONCE and share it. Without this every worker re-reads the store and re-runs
+ * behavioural bot detection before its first battle, and that startup dominates: a 2,400-game run
+ * across 12 workers measured 16 games/sec against a per-process rate of 10.9, so parallelism was
+ * buying essentially nothing. */
+const poolFile = path.join(shardDir, 'teams.json');
+{
+  const t0 = Date.now();
+  const teams = require('./mew.js').realTeams();
+  fs.writeFileSync(poolFile, JSON.stringify(teams));
+  console.error(`  team pool: ${teams.length} distinct clean teams, built once in ` +
+                `${((Date.now() - t0) / 1000).toFixed(1)}s and shared with every worker`);
+}
+process.env.MEW_TEAMS = poolFile;
+
 console.error(`MEW FARM: ${N.toLocaleString()} games across ${PROCS} processes (${per.toLocaleString()} each)`);
 console.error(`  policy=${POLICY}  seeds ${SEED0}..${SEED0 + PROCS * per}  -> ${path.relative(ROOT, OUT)}`);
 
