@@ -189,10 +189,39 @@ mixed-strategy argument by years.
 | Foul Play / poke-engine | **GPL-3.0** | **No** — viral, ABRA is MIT. Ideas only |
 | PokéAgent dataset | paper **CC BY-NC-SA 4.0**, dataset terms unstated | Read HuggingFace terms first; NC would block commercial use |
 | Metamon | **MIT** (code); dataset terms unstated | Code yes. Data is singles only, terms unread |
-| Showdown / champions mod | as upstream | Already used, pinned at `20ad99f` |
+| Pokémon Showdown / champions mod | **MIT** — verified from LICENSE, "The MIT License (MIT)" | Yes. Already used, pinned at `20ad99f`. Vendoring `data/mods/champions/` is permitted provided the copyright notice travels with it (ADR-001 migration step 1) |
+| `@smogon/calc` | MIT | Yes. Already a dependency; it is the damage ground truth |
+
+All of the above were read from the LICENSE file itself, not from a badge or an abstract.
 
 ABRA is MIT. Any GPL code entering this repository would change that for the whole project, which is
-a decision to be made deliberately and not by accident in a pull request.
+a decision to be made deliberately and not by accident in a pull request. In practice the rule is
+simple: **everything ABRA actually depends on is MIT, and the single GPL project in the field
+(Foul Play / poke-engine) is one we only read.**
+
+---
+
+## 5b. Can ABRA enter anything?
+
+Checked 2026-07-25.
+
+**NeurIPS 2026** runs 6–12 December in Sydney, with satellites in Atlanta and Paris.
+
+| Route | Deadline | Status |
+|---|---|---|
+| Propose a competition | 15 May 2026 (accept 15 June) | **Closed** |
+| Propose a workshop | 6 June 2026 | **Closed** |
+| Enter an accepted 2026 competition | varies | **Open in principle** — the accepted list is not published in the newsletter and must be read from the official competition page |
+| MLRC 2026 → TMLR | 30 September 2026 | **Open** |
+| arXiv preprint | none | **Always open** |
+
+**The catch, and it is the important part: the PokéAgent Challenge is not VGC.** Its battling track is
+Gen 1 OU and Gen 9 OU — singles. ABRA cannot enter its doubles work into a singles competition, and
+converting ABRA to singles would discard the one thing that makes it distinct.
+
+So the realistic routes are (a) a paper rather than a competition, and (b) proposing a **VGC doubles**
+competition for NeurIPS 2027, where the pitch writes itself: the 2025 battling winner cannot play the
+format, and no public doubles corpus exists.
 
 ---
 
