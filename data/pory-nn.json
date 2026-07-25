@@ -21,56 +21,56 @@
   },
   {
    "arm": "B1  alive_diff",
-   "logloss": 0.6535,
-   "acc": 0.5831,
-   "auc": 0.6362,
-   "calib": 0.0079
+   "logloss": 0.5946,
+   "acc": 0.6413,
+   "auc": 0.7222,
+   "calib": 0.0059
   },
   {
    "arm": "B2  alive_diff+hp_diff",
-   "logloss": 0.6495,
-   "acc": 0.5975,
-   "auc": 0.6513,
-   "calib": 0.0177
+   "logloss": 0.5734,
+   "acc": 0.6742,
+   "auc": 0.7577,
+   "calib": 0.0079
   },
   {
    "arm": "B3  sign(alive_diff)",
-   "logloss": 0.6604,
-   "acc": 0.5831,
-   "auc": 0.6302,
-   "calib": 0.0004
+   "logloss": 0.6074,
+   "acc": 0.6413,
+   "auc": 0.7127,
+   "calib": 0.0026
   },
   {
    "arm": "L6  logistic, material",
-   "logloss": 0.6495,
-   "acc": 0.5975,
-   "auc": 0.6513,
-   "calib": 0.0177
+   "logloss": 0.5734,
+   "acc": 0.6742,
+   "auc": 0.7577,
+   "calib": 0.0079
   },
   {
    "arm": "LR  logistic, rich",
-   "logloss": 0.5523,
-   "acc": 0.6862,
-   "auc": 0.7768,
-   "calib": 0.0086
+   "logloss": 0.5478,
+   "acc": 0.688,
+   "auc": 0.7794,
+   "calib": 0.0064
   },
   {
    "arm": "N6  network, material",
-   "logloss": 0.6216,
-   "acc": 0.5983,
-   "auc": 0.6657,
-   "calib": 0.0105,
+   "logloss": 0.5655,
+   "acc": 0.6731,
+   "auc": 0.7603,
+   "calib": 0.0061,
    "hidden": 64,
-   "val_logloss": 0.6206
+   "val_logloss": 0.5602
   },
   {
    "arm": "NR  network, rich",
-   "logloss": 0.5718,
-   "acc": 0.675,
-   "auc": 0.7615,
-   "calib": 0.03,
+   "logloss": 0.5622,
+   "acc": 0.6803,
+   "auc": 0.7686,
+   "calib": 0.0246,
    "hidden": 64,
-   "val_logloss": 0.5659
+   "val_logloss": 0.5589
   }
  ]
 }
