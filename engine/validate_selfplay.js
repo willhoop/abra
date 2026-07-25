@@ -144,7 +144,11 @@ function setRealism() {
 }
 
 (async () => {
-  const n = parseInt((process.argv.find(a => a.startsWith('--mirrors=')) || '').split('=')[1] || '40', 10);
+  /* 300, not 40. At 40 the interval is [24.2, 53.0], which contains 50 only because it is too wide
+   * to exclude anything — an observed 37.5% passed. A check that cannot fail is not a check, and it
+   * is the same underpowered-null problem the power gate in eval_harness.py was added to stop.
+   * At 300 the interval is [45.4, 56.6], which would actually catch a side bias. */
+  const n = parseInt((process.argv.find(a => a.startsWith('--mirrors=')) || '').split('=')[1] || '300', 10);
   const v = CS.verify();
   if (!v.ok) { console.error('format not found; set SHOWDOWN_PATH to a built master checkout'); process.exit(2); }
   console.log(`MEW SELF-PLAY VALIDATION — engine ${v.pinned_commit.slice(0, 12)}, ${v.format}`);
