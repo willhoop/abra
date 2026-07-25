@@ -172,7 +172,7 @@ mixed-strategy argument by years.
 | Singles battling agent | Foul Play (MCTS), PA-Agent (RL) | none | **Behind. Not our format** |
 | Doubles/VGC agent | VGC-Bench (benchmark) | ALAKAZAM (spec only) | **Both early. Genuinely open** |
 | Battle engine correctness | poke-engine (Foul Play, GPL) | official Champions mod, verified 31/31 vs `@smogon/calc` | **Level, and ours is the authority** |
-| Training data volume | PokéAgent 20M+, Metamon 5.3M — **both singles** | 1,061 clean games, **doubles** | **No public doubles corpus exists. Keep collecting; MEW is necessary** |
+| Training data volume | **vgc-battle-logs: 88,905 doubles logs, Reg M-A/M-B, MIT, open team sheets** | 1,061 clean closed-sheet games | **Far behind. Adopt it.** PokéAgent/Metamon are singles and beside the point |
 | Belief-state / equilibrium search | **Ihara et al. 2018** compared determinization vs information sets for Pokémon and found IS-MCTS better; belief-MCTS is a mature literature | SLOWKING/ALAKAZAM (spec, unbuilt) | **Not first. Not even close.** The narrow claim that survives is PBS re-solving in *doubles*, and that is a gap of degree, not of kind |
 | Mid-game value function | implicit in RL agents | **PORY, calibrated, log-loss 0.567 vs 0.693** | **Comparable, and ours is explicit and measured** |
 | Evaluation honesty | weak — VGC-Bench's LLM at n=20 | proper scores, CIs, baselines, power gate | **Ahead. This is the real differentiator** |
@@ -260,12 +260,30 @@ informs MEW's design directly.
 
 ---
 
-## 7. Position, in one sentence
+## 7. Position, stated without inflation
 
-The field has settled that RL and search beat LLMs at battling, and the strongest public agent cannot
-play doubles at all — so ABRA's bet remains **belief-state search in VGC doubles, evaluated honestly**,
-built on adopted MIT infrastructure — but on data we collect ourselves, because every public corpus
-is singles and no public VGC doubles dataset exists.
+Three claims in an earlier draft of this document were wrong, and they were all wrong in the
+flattering direction. Recorded here rather than quietly edited out:
+
+| Claimed | Actually |
+|---|---|
+| "No public VGC doubles corpus exists" | 88,905 in-format doubles logs, MIT, **with open team sheets** |
+| "Nobody has done belief search in Pokémon" | Ihara et al. 2018 compared determinization vs information sets and found IS-MCTS better |
+| "Nobody has a doubles agent" | VGC-Bench's PSRO and BC agents play doubles and are cross-evaluated |
+
+The honest position: ABRA is **behind on agents**, has **far less data than it should** given a
+larger in-format corpus is freely available, and is **not first** on belief search.
+
+What is actually ours, stated plainly and without claiming novelty it does not have:
+
+- a **closed-sheet Bo1** store, which is a different information regime from the public OTS corpus,
+- an engine wiring **verified** against an independent damage oracle (31/31 within 2%),
+- an explicit, **calibrated** mid-game value function (PORY, log-loss 0.567 vs 0.693),
+- and an evaluation discipline — proper scores, clustered CIs, honest baselines, and now a power
+  gate — that this survey found the field does not consistently apply.
+
+That is a sound engineering position. It is not a breakthrough, and the documents should stop
+implying otherwise.
 
 ## Sources
 
