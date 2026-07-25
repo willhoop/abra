@@ -160,6 +160,34 @@ function extract(id, uploadtime, text){
   }
   flush();
   const setsOut={}; for(const k in sets) setsOut[k]={moves:[...sets[k].moves],item:sets[k].item,ability:sets[k].ability};
+  /* MERGE THE DECLARED SHEETS. `sheets` was captured above and then never used: setsOut was built
+   * only from what play REVEALED, so an open-team-sheet game came out exactly as blind as a
+   * closed-sheet one. Measured on the 4,167-game OTS archive before this fix: 1.50 of 4 moves,
+   * 69.7% no item, 73.8% no ability — indistinguishable from the closed-sheet ladder's 1.38 / 69.7%
+   * / 75.5%, when the correct answer is 4 of 4 and zero missing.
+   *
+   * CHANGELOG 3.0.0 said "open team sheets are now parsed ... the entire hidden-information problem
+   * removed". The parsing landed; the USE of it did not. That is ARCHITECTURE fault 1.4 again — a
+   * fix applied to the wrong artifact and reported as done.
+   *
+   * A declared sheet is the ACTUAL set, so it wins over inference. Observed moves are unioned in
+   * anyway: a mega forme can reveal a move under a species name the sheet lists differently, and
+   * dropping it would lose a real observation. `declared` is stamped so no consumer mistakes a
+   * known set for an inferred one. */
+  for(const side of ['p1','p2']){
+    for(const e of (sheets[side]||[])){
+      if(!e.species) continue;
+      const prev=setsOut[e.species]||{moves:[],item:null,ability:null};
+      const merged=new Set([...(e.moves||[]), ...(prev.moves||[])]);
+      setsOut[e.species]={
+        moves:[...merged],
+        item:e.item||prev.item||null,
+        ability:e.ability||prev.ability||null,
+        nature:e.nature||null,
+        declared:true,          // from |showteam|, not inferred from play
+      };
+    }
+  }
   // information regime + format tags (bo3 is open team sheet; players may also agree to it)
   const tier=(text.match(/^\|tier\|(.+)$/m)||[])[1]||null;
   const openSheet=/\|showteam\|/.test(text) || /best of three|bo3/i.test(tier||'');
