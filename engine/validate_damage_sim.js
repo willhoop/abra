@@ -90,23 +90,28 @@ function simDamage(sc, calcStats) {
   if (wid) { battle.field.weather = wid; battle.field.weatherState = { id: wid, duration: 5 }; }
 
   /* randomizer() is trunc(baseDamage * (100 - random(16)) / 100), so random(16)->15 is the 85% floor
-   * and random(16)->0 the 100% ceiling.
+   * and random(16)->0 the 100% ceiling. Overriding battle.random pins the roll.
    *
-   * CAREFUL, this bit is a trap. A blanket `random = () => 0` also forces a CRITICAL HIT, because the
-   * crit check is randomChance(1, 24) === random(24) === 0. The first version of this file did that
-   * and produced a "maximum" 1.5x above the real one — 168-300 where calc said 168-200, and a minimum
-   * ABOVE the maximum. Return a non-zero value for every call that is not the damage roll.
+   * CRITS MUST BE PINNED SEPARATELY, and this is the trap that cost two debugging rounds.
+   * `battle.randomChance()` delegates straight to `battle.prng`, so it NEVER passes through
+   * `battle.random` and an override there cannot reach the crit roll. The PRNG also advances between
+   * the two calls, so one call crit and the other did not — producing a "minimum" 1.5x ABOVE the
+   * maximum (368 vs 290) and a maximum 1.5x too high (300 where calc said 200). Setting willCrit
+   * explicitly is deterministic, and matches @smogon/calc, whose default range is the non-crit range.
    *
-   * Also take a FRESH active move per call: moveHitData (which caches the crit decision per target)
-   * lives on the move object, so reusing it lets the first call's outcome leak into the second. */
+   * A fresh active move per call also matters: moveHitData caches the crit decision per target slot
+   * on the move object, so a reused move leaks the first call's outcome into the second. */
   const orig = battle.random.bind(battle);
-  const roll = (v) => (n) => (n === 16 ? v : 1);   // 1, never 0 => no forced crit
-
-  battle.random = roll(15);
-  const lo = battle.actions.getDamage(src, tgt, battle.dex.getActiveMove(moveName));
-  battle.random = roll(0);
-  const hi = battle.actions.getDamage(src, tgt, battle.dex.getActiveMove(moveName));
-  battle.random = orig;
+  const dmgAt = (rollValue) => {
+    battle.random = (n) => (n === 16 ? rollValue : 1);
+    const m = battle.dex.getActiveMove(moveName);
+    m.willCrit = false;
+    const d = battle.actions.getDamage(src, tgt, m);
+    battle.random = orig;
+    return d;
+  };
+  const lo = dmgAt(15);
+  const hi = dmgAt(0);
 
   /* Spread reduction is applied by moveHit in a real turn, NOT by getDamage. @smogon/calc applies it
    * because the Field says Doubles. Apply it here so the two are comparable, and only for moves that
