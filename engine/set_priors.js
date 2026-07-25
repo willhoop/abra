@@ -85,19 +85,98 @@ function rng(seed) {
   return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
 }
 
-/* Draw up to `k` distinct moves from the species prior, proportional to p, excluding `have`. */
+/* Pairwise co-occurrence, measured from revealed sets in the CLEAN store.
+ * co[sp][a][b] = times a and b were revealed on the same set. solo[sp][a] = times a was revealed. */
+let _co = null;
+function coocc() {
+  if (_co) return _co;
+  _co = {};
+  try {
+    const Q = require('./quality.js');
+    for (const g of Q.loadGames()) {
+      for (const [sp0, s] of Object.entries(g.sets || {})) {
+        const sp = norm(sp0);
+        const mv = [...new Set((s.moves || []).map(norm))].filter(Boolean);
+        if (mv.length < 1) continue;
+        const e = _co[sp] = _co[sp] || { solo: {}, pair: {} };
+        for (const a of mv) {
+          e.solo[a] = (e.solo[a] || 0) + 1;
+          for (const b of mv) if (a !== b) {
+            (e.pair[a] = e.pair[a] || {})[b] = (e.pair[a][b] || 0) + 1;
+          }
+        }
+      }
+    }
+  } catch (err) { /* no store: fall back to independent marginals */ }
+  return _co;
+}
+
+/* Draw up to `k` distinct moves, CONDITIONAL on what is already on the set.
+ *
+ * WHY NOT INDEPENDENT MARGINALS. P(move) and P(set) are different objects. Incineroar's marginals
+ * are fakeout .302, flareblitz .245, partingshot .184, throatchop .114, darkestlariat .079. Drawing
+ * four independently produced "darkestlariat, partingshot, fakeout, throatchop" — it MISSED Flare
+ * Blitz, the second most common move on the species, and took BOTH Dark-type physical attacks. Real
+ * sets carry one. Independent sampling from correct marginals builds sets no human would build.
+ *
+ * So each subsequent draw is reweighted by the measured LIFT of a candidate against every move
+ * already chosen: lift(m|s) = P(m and s together) / (P(m) * P(s)) approximated from counts. Moves
+ * that genuinely travel together (Fake Out with Flare Blitz) get boosted; near-substitutes that
+ * rarely co-occur (Darkest Lariat with Throat Chop) get suppressed. Lift is clamped so a single
+ * thin cell cannot dominate, and falls back to 1 (independence) when there is no evidence.
+ */
 function sampleMoves(species, have, k, seed) {
-  const pool = (movePriors()[norm(species)] || []).filter(m => !have.some(h => norm(h) === norm(m.mv)));
+  const sp = norm(species);
+  const pool = (movePriors()[sp] || []).filter(m => !have.some(h => norm(h) === norm(m.mv)));
+  if (!pool.length) return [];
+  const e = coocc()[sp] || { solo: {}, pair: {} };
+  const nSets = Math.max(1, Object.values(e.solo).reduce((a, b) => Math.max(a, b), 0));
+
+  /* Lift, SHRUNK BY EVIDENCE. Raw lift is badly biased at small counts: a rare move has a tiny
+   * expected co-occurrence, so (both+0.5)/(expected+0.5) is large almost by construction, while a
+   * common move sits near 1. Unshrunk, that INVERTS the ranking — Close Combat (marginal 0.9%)
+   * landed on 45% of sampled Incineroar sets, and Darkest Lariat (7.9%) matched Flare Blitz (24.5%).
+   *
+   * So the lift is pulled toward 1 (independence) by how much evidence supports it, n/(n+K) with
+   * K=10 — the same shrinkage rule xatu_context.py uses for its context cells (K=12). A pair seen
+   * once barely moves the draw; a pair seen fifty times moves it a lot. */
+  const K = 10;
+  const lift = (a, b) => {
+    const sa = e.solo[a], sb = e.solo[b];
+    if (!sa || !sb) return 1;                       // no evidence -> independence
+    const both = (e.pair[a] || {})[b] || 0;
+    const expected = (sa * sb) / nSets;
+    if (expected <= 0) return 1;
+    const raw = (both + 0.5) / (expected + 0.5);
+    const clamped = Math.min(3, Math.max(0.2, raw));
+    const n = Math.min(sa, sb);                     // evidence is bounded by the rarer of the two
+    const w = n / (n + K);
+    return 1 + (clamped - 1) * w;
+  };
+
+  const chosen = have.map(norm);
   const out = [];
   const r = rng(seed);
   const avail = pool.slice();
   while (out.length < k && avail.length) {
-    let tot = 0; for (const m of avail) tot += m.p;
+    /* GEOMETRIC mean of the lifts, not the product. The product compounds: with three moves already
+     * chosen a clamped 3x lift becomes 27x, which was enough to put Darkest Lariat (marginal 7.9%)
+     * on 80% of sampled Incineroar sets — above Flare Blitz at 24.5%. The geometric mean keeps the
+     * adjustment on the scale of a single lift however much context there is, so co-occurrence
+     * reshapes the draw without overwhelming the marginal it is adjusting. */
+    const w = avail.map(m => {
+      if (!chosen.length) return m.p;
+      let logsum = 0;
+      for (const c of chosen) logsum += Math.log(lift(norm(m.mv), c));
+      return m.p * Math.exp(logsum / chosen.length);
+    });
+    let tot = 0; for (const x of w) tot += x;
     if (tot <= 0) break;
-    let x = r() * tot, i = 0;
-    for (; i < avail.length; i++) { x -= avail[i].p; if (x <= 0) break; }
-    if (i >= avail.length) i = avail.length - 1;
+    let t = r() * tot, i = 0;
+    for (; i < w.length; i++) { t -= w[i]; if (t <= 0) break; }
+    if (i >= w.length) i = w.length - 1;
     out.push(avail[i].mv);
+    chosen.push(norm(avail[i].mv));
     avail.splice(i, 1);
   }
   return out;
