@@ -3,6 +3,38 @@
 Project-specific context. Universal rules are inherited from the Pokémon umbrella and the global
 instructions; only what is specific to ABRA is here.
 
+## WHO MAY WRITE TO THIS REPO (S11 — one publisher)
+
+Three agents can touch these files. Only one may touch git.
+
+| Agent | May run tests/engines | May run git |
+|---|---|---|
+| **Claude Code** (runs on the machine, has the credentials) | yes | **yes — only this one** |
+| **Cowork** (isolated VM, no git credentials, `push` cannot authenticate) | no — it has no real store | **never** |
+| **The workspace auto-commit** (fires ~2 min after a file changes, commits AND pushes) | n/a | it will anyway — see below |
+
+**Cowork proposes; Claude Code applies and pushes.** Cowork must not run a git command at all. Not a
+trust judgement — its shell cannot authenticate a push, so it fails partway and leaves state behind.
+That is how this repo reached a detached HEAD 43 commits into a 45-commit rebase.
+
+**Never run both agents against this repo at the same time.** They cannot see each other's edits and
+the later write silently wins.
+
+**The auto-commit is the real collision risk, not Cowork.** It is an unattended publisher that pushes
+on a timer (confirmed in CHANGELOG 2.8.1 — an earlier diagnosis blaming a `push-all.bat` timer was
+wrong and was retracted). An auto-commit landing while a rebase is half-finished is what wedges the
+repository. Therefore:
+
+- **Before any git work, `git status` must be clean AND no rebase may be in progress.** Check first,
+  every time. If a rebase is in progress, FINISH it (`git rebase --continue`) — do not `git checkout`
+  away from it, which abandons every commit already replayed.
+- `push-all.bat` stays disarmed behind its `GO` argument and refuses to act mid-rebase. Leave it that
+  way. Its header comments still describe the retracted timer diagnosis and point at
+  `find-autocommit-task.bat`, which was deleted — ignore both.
+- Never use `git merge -X ours`, and never restore `merge=union` in `.gitattributes`. The union driver
+  is the confirmed cause of the store duplicating, it applies to `rebase` as well as `merge`, and it is
+  why switching to rebase alone did not stop it. See `.gitattributes` and CHANGELOG 3.1.2.
+
 ## What ABRA is
 The Automated Battle Replay Analyzer. It ingests public Champions Reg M-B replays from Pokémon
 Showdown, models the ladder meta, and feeds `data/meta-usage.json` to CHOMP. **Separate but
