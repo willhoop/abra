@@ -1,6 +1,34 @@
-# Append-only stores: when two writers (the hourly ingest bot and a manual push) both add
-# lines, auto-UNION both sides instead of raising a merge conflict. Readers dedupe by id,
-# so duplicate lines are harmless. This is the fix for the ingest Action's recurring failures.
-data/games.ladder.jsonl merge=union
-data/games.bo3.jsonl    merge=union
-*.jsonl                 merge=union
+# NO MERGE DRIVER ON THE APPEND-ONLY STORES. This is deliberate. Do not add `merge=union` back.
+#
+# WHY (2026-07-24, found while repairing the fourth duplication). These files previously carried:
+#
+#     data/games.ladder.jsonl merge=union
+#     data/games.bo3.jsonl    merge=union
+#     *.jsonl                 merge=union
+#
+# with the comment "readers dedupe by id, so duplicate lines are harmless". Both halves of that
+# were wrong, and the union driver — not `git merge -X ours` — is the mechanism that duplicated
+# the store (7,040 lines once, then 401, then 8,139).
+#
+# `merge=union` resolves a conflicting hunk by concatenating BOTH sides in full. On an append-only
+# log, every divergent reconciliation therefore replays the whole appended block, doubling it.
+# The critical consequence: **the union driver applies to `git rebase` as well as `git merge`.**
+# Switching push-all.bat from `merge -X ours` to `rebase` does NOT stop this by itself. The driver
+# had to go, or the duplication returns on the next divergence.
+#
+# And the duplicates are not harmless. They break the S7 store-shape assertions in
+# engine/sanity_check.py, and they corrupt every game count the site and the white paper publish.
+#
+# WHAT HAPPENS NOW INSTEAD. With no driver, two writers appending to the same tail produce a real
+# merge conflict and the reconciliation STOPS. That is the intended behaviour, and it matches
+# push-all.bat, which refuses to auto-resolve. A conflict here is a loud, recoverable event;
+# a silent doubling is neither.
+#
+# TO RESOLVE ONE. Keep both sides' lines, then let the deduplicator settle it:
+#
+#     git checkout --theirs data/games.ladder.jsonl   # or edit to keep both blocks
+#     python engine/dedupe_store.py --write           # idempotent, order-preserving, atomic
+#     git add data/games.ladder.jsonl
+#
+# The ingest itself never creates duplicates: engine/durable-ingest.js reads every existing id
+# before appending. Duplicates have only ever entered this repository through git reconciliation.

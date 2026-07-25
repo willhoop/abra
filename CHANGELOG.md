@@ -10,6 +10,66 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.1.2] — 2026-07-24
+
+### Fixed — the store duplication was `merge=union`, not `merge -X ours`
+
+The diagnosis carried in `docs/HANDOFF-2026-07-24.md` and `docs/PROJECT-HANDOFF.md` named
+`git merge -X ours` as the confirmed cause of the store duplicating three times. That is wrong, and
+acting on it would not have stopped a fourth occurrence.
+
+`.gitattributes` carried `data/games.ladder.jsonl merge=union` (and a catch-all `*.jsonl
+merge=union`), added to stop the ingest Action's merge conflicts, with the note "readers dedupe by
+id, so duplicate lines are harmless".
+
+`merge=union` resolves a conflicting hunk by concatenating **both** sides in full. On an append-only
+log every divergent reconciliation replays the entire appended block, doubling it. The decisive
+point the old diagnosis missed: **the union driver applies to `git rebase` as well as `git merge`.**
+Rewriting `push-all.bat` to use `--rebase` (shipped in 3.1.1) therefore did not remove the mechanism;
+it only changed which command triggered it.
+
+The merge driver has been removed. Divergent appends now produce a real conflict and the
+reconciliation stops, which is what `push-all.bat` already expects. Resolution procedure is recorded
+in `.gitattributes` itself.
+
+The second half of the old note was also wrong: duplicates are not harmless. They break the S7
+store-shape assertions and they corrupt every game count published by the site and the white paper.
+
+### Repaired — store deduplicated, rebase completed
+
+The repository was not in the state the handoff described. It was not a plain detached HEAD: an
+interactive rebase was stopped 43 commits into 45. The documented repair (`git checkout main`) would
+have abandoned those 43 replayed commits, and because `main` had diverged from `origin/main` by two
+`ingest:` commits, the subsequent push would have been rejected as non-fast-forward — the exact point
+at which a reconciliation strategy gets reached for. The rebase was completed instead; it finished
+clean, with no conflicts.
+
+`engine/dedupe_store.py --write` then took `data/games.ladder.jsonl` from 16,139 lines to **8,000
+unique**, 0 duplicates, 0 unparseable, and a second run is a no-op. The store is 8,000 rather than
+the 7,547 the handoff predicted because the two `ingest:` commits already on `origin/main` added
+games after that document was written.
+
+### Known issue — `sanity_check.py` reports 96 assertions, 94 passed, 2 failed
+
+Reported plainly rather than worked around. Both failures are S7 store-shape:
+
+    FAIL  store shape: every `brought` is a subset of `six`  (1,006 bad of 8,000 games)
+    FAIL  store shape: nobody brings more than four
+          ({0: 180, 2: 1001, 3: 1929, 4: 12022, 5: 845, 6: 23} over 16,000 player-sides)
+
+These are **not** introduced by the deduplication, and not introduced by keeping the first of each
+duplicated id. Evidence: the deduplicated store is byte-identical to the one already on
+`origin/main`, and the same check run against the pre-incident merge base `4a5b455` is far worse —
+11,239 bad player-sides, with 9,364 sides showing five brought and 3 showing seven. The current
+figures are an improvement on the pre-incident store, not a regression from it.
+
+Cause is not yet established and is not asserted here. One hypothesis worth testing first, given
+`engine/illusion.js` already exists to detect exactly this: Illusion (Zoroark) causes a replay to
+reveal a species that is not on the team, which would produce both a `brought ⊄ six` violation and a
+brought count above four from a single mechanic. Untested.
+
+---
+
 ## [3.1.1] — 2026-07-24
 
 ### Fixed — the metagame model was literally the bot's team
