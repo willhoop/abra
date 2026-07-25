@@ -22,3 +22,8 @@ __pycache__/
 # MEW self-play output. Unbounded by design and regenerable from a seed, so it does not
 # belong in git. The small browser sample (data/mew.js) IS committed.
 data/games.selfplay.jsonl
+
+# Archived open-team-sheet corpus (cameronangliss/vgc-battle-logs, MIT). Re-importable from
+# the source files via engine/ingest_ots.js, and a different information regime from the
+# closed-sheet ladder store, so it lives in its own bucket.
+data/games.ots.jsonl
