@@ -1,85 +1,61 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 15432,
+  "n_games": 16712,
   "k_selected": 12,
-  "silhouette": 0.309,
+  "silhouette": 0.255,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Raichu-Talonflame",
-      "share": 0.205,
-      "core": [
-        "raichu",
-        "talonflame",
-        "sneasler",
-        "sableye"
-      ],
-      "signature": [],
-      "w_usage": 0.217
-    },
-    {
-      "n": "Charizard-Garchomp",
-      "share": 0.157,
-      "core": [
-        "charizard",
-        "garchomp",
-        "kingambit",
-        "sylveon"
-      ],
-      "signature": [],
-      "w_usage": 0.166
-    },
-    {
-      "n": "Whimsicott-Incineroar",
-      "share": 0.107,
-      "core": [
-        "whimsicott",
-        "incineroar",
-        "garchomp",
-        "sneasler"
-      ],
-      "signature": [],
-      "w_usage": 0.113
-    },
-    {
-      "n": "Incineroar-Sinistcha",
-      "share": 0.105,
-      "core": [
-        "incineroar",
-        "sinistcha",
-        "venusaur",
-        "toxapex"
-      ],
-      "signature": [],
-      "w_usage": 0.111
-    },
-    {
-      "n": "Trick Room",
-      "share": 0.074,
-      "core": [
-        "farigiraf",
-        "torkoal",
-        "venusaur",
-        "scrafty"
-      ],
-      "signature": [],
-      "w_usage": 0.078
-    },
-    {
       "n": "Garchomp-Basculegion",
-      "share": 0.07,
+      "share": 0.223,
       "core": [
         "garchomp",
         "basculegion",
-        "gholdengo",
-        "whimsicott"
+        "whimsicott",
+        "charizard"
       ],
       "signature": [],
-      "w_usage": 0.074
+      "w_usage": 0.236
+    },
+    {
+      "n": "Sneasler-Aerodactyl",
+      "share": 0.211,
+      "core": [
+        "sneasler",
+        "aerodactyl",
+        "rotomwash",
+        "talonflame"
+      ],
+      "signature": [],
+      "w_usage": 0.224
+    },
+    {
+      "n": "Whimsicott-Garchomp",
+      "share": 0.101,
+      "core": [
+        "whimsicott",
+        "garchomp",
+        "incineroar",
+        "sneasler"
+      ],
+      "signature": [],
+      "w_usage": 0.107
+    },
+    {
+      "n": "Trick Room",
+      "share": 0.089,
+      "core": [
+        "farigiraf",
+        "torkoal",
+        "incineroar",
+        "mawile"
+      ],
+      "signature": [],
+      "w_usage": 0.094
     },
     {
       "n": "Pelipper-Archaludon",
-      "share": 0.065,
+      "share": 0.063,
       "core": [
         "pelipper",
         "archaludon",
@@ -87,7 +63,19 @@
         "sinistcha"
       ],
       "signature": [],
-      "w_usage": 0.069
+      "w_usage": 0.067
+    },
+    {
+      "n": "Rain",
+      "share": 0.058,
+      "core": [
+        "pelipper",
+        "archaludon",
+        "basculegion",
+        "venusaur"
+      ],
+      "signature": [],
+      "w_usage": 0.061
     },
     {
       "n": "Sand",
@@ -102,20 +90,32 @@
       "w_usage": 0.06
     },
     {
-      "n": "Rain",
-      "share": 0.057,
+      "n": "Venusaur-Charizard",
+      "share": 0.056,
       "core": [
-        "pelipper",
-        "archaludon",
-        "basculegion",
-        "venusaur"
+        "venusaur",
+        "charizard",
+        "incineroar",
+        "garchomp"
       ],
       "signature": [],
-      "w_usage": 0.06
+      "w_usage": 0.059
+    },
+    {
+      "n": "Raichu-Sinistcha",
+      "share": 0.052,
+      "core": [
+        "raichu",
+        "sinistcha",
+        "pelipper",
+        "talonflame"
+      ],
+      "signature": [],
+      "w_usage": 0.055
     },
     {
       "n": "Kingambit-Basculegion",
-      "share": 0.049,
+      "share": 0.034,
       "core": [
         "kingambit",
         "basculegion",
@@ -123,7 +123,7 @@
         "froslass"
       ],
       "signature": [],
-      "w_usage": 0.052
+      "w_usage": 0.036
     }
   ]
 }
