@@ -102,13 +102,17 @@ N_FEATURES = len(FEATURE_NAMES)
 
 
 class _Side:
-    __slots__ = ("hp", "alive", "active", "status", "boosts", "tailwind", "reflect",
+    __slots__ = ("hp", "alive", "active", "active_keys", "status", "boosts", "tailwind", "reflect",
                  "lightscreen", "hazard", "types", "order")
 
     def __init__(self):
         self.hp = {}          # slotkey -> hp fraction 0..1
         self.alive = {}       # slotkey -> bool
-        self.active = set()   # slot letters currently on field ('a','b')
+        self.active = set()   # slot POSITIONS currently on field ('a','b')
+        # Same information keyed by SPECIES. It exists because conflating the two silently zeroed
+        # active_count, hp_active_mean and every slot*_active feature — they compared species keys
+        # against the letters 'a'/'b', so the set was always empty and the features always 0.
+        self.active_keys = set()
         self.status = {}      # slotkey -> status string
         self.boosts = {}      # position ('a'/'b') -> {stat: stage}
         self.tailwind = 0
@@ -150,13 +154,20 @@ def _vec_for(st, me, foe, turn):
         keys = side.order[:6]
         alive = [k for k in keys if side.alive.get(k, True)]
         hps = [side.hp.get(k, 1.0) for k in alive]
-        act = [k for k in keys if k in {f"{p}" for p in side.active}]
-        v[ix[f"{tag}_alive"]] = len(alive)
+        act = [k for k in keys if k in side.active_keys]
+        # ALIVE IS 4 MINUS FAINTS, NOT THE NUMBER REVEALED.
+        # `order` only accumulates a Pokemon once it has switched in, so counting it directly reported
+        # 2 alive on turn 1 of every game — the two leads — and climbed as the game revealed more.
+        # That is not what either player believes: bring-4 is common knowledge in VGC, so both sides
+        # know four are present from team preview onward. pory.py uses 4 - faints for exactly this
+        # reason, and the two encoders have to agree or the arms are not comparable.
+        fainted = sum(1 for k in keys if not side.alive.get(k, True))
+        v[ix[f"{tag}_alive"]] = max(0, 4 - fainted)
         v[ix[f"{tag}_hp_mean"]] = sum(hps) / len(hps) if hps else 0.0
         acthp = [side.hp.get(k, 1.0) for k in act if side.alive.get(k, True)]
         v[ix[f"{tag}_hp_active_mean"]] = sum(acthp) / len(acthp) if acthp else 0.0
         v[ix[f"{tag}_active_count"]] = len(acthp)
-        v[ix[f"{tag}_fainted"]] = sum(1 for k in keys if not side.alive.get(k, True))
+        v[ix[f"{tag}_fainted"]] = fainted
         for k in range(4):
             if k < len(keys):
                 key = keys[k]
@@ -180,7 +191,7 @@ def _vec_for(st, me, foe, turn):
                     key = f"{tag}_activetype_{_norm(t)}"
                     if key in ix:
                         v[ix[key]] = 1.0
-        tot[tag] = (len(alive), sum(hps) / len(hps) if hps else 0.0)
+        tot[tag] = (max(0, 4 - fainted), sum(hps) / len(hps) if hps else 0.0)
 
     v[ix["alive_diff"]] = tot["me"][0] - tot["foe"][0]
     v[ix["hp_diff"]] = tot["me"][1] - tot["foe"][1]
@@ -230,7 +241,12 @@ def encode_log(log, dex_types=None):
             p, pos, _nick, species = m.group(1), m.group(2), m.group(3), m.group(4)
             side = st[p]
             k = _norm(species)
+            # whoever was standing in this position is no longer active
+            prev = key_of.get(p + pos)
+            if prev is not None:
+                side.active_keys.discard(prev)
             key_of[p + pos] = k
+            side.active_keys.add(k)
             if k not in side.order:
                 side.order.append(k)
             side.alive.setdefault(k, True)
@@ -265,6 +281,7 @@ def encode_log(log, dex_types=None):
             if k:
                 st[p].alive[k] = False
                 st[p].hp[k] = 0.0
+                st[p].active_keys.discard(k)
             st[p].active.discard(pos)
             continue
 
