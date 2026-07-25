@@ -7,20 +7,31 @@
  * genuinely need to wait.
  *
  * Questions about THE GAME have no data constraint at all — they only ever had a throughput
- * constraint, and nobody had measured it. Benchmarked 2026-07-25 on this machine:
+ * constraint, and nobody had measured it.
  *
- *     10.9 games/sec per process · 12 processes -> ~131 games/sec
- *       1,000,000 games   ~2.1 hours
- *       5,000,000 games   ~10.6 hours
- *      20,000,000 games   ~42.5 hours     (Metamon trained on 20M self-play)
+ * MEASURED SCALING, 2026-07-25, on 8 physical / 16 logical cores. This is the honest curve, and it
+ * is NOT linear — an earlier note in this file projected 131 games/sec from a single-process rate
+ * and linear scaling. That was wrong by 5.7x, and it was wrong the same way half the results in this
+ * project were wrong: extrapolated instead of measured.
  *
- * So a Metamon-scale corpus is two days of laptop time, not a grant application. MEW was already
- * built and validated; it had simply never been run at scale.
+ *     procs   games/sec
+ *       1       10.1
+ *       2       17.5
+ *       4       23.1     <- optimum
+ *       8       10.8     <- WORSE than 4
  *
- * WHY SEPARATE PROCESSES rather than threads: the Showdown simulator is synchronous and CPU-bound,
- * so a single Node process pins one core no matter how high --conc goes. Concurrency inside a
- * process only overlaps the await points, which is why 8-way --conc gave 10.9 games/sec rather than
- * 80. Cores are the unit.
+ * Past four workers the throughput collapses. The Showdown simulator is memory-heavy and the
+ * processes contend for cache, so extra workers actively cost. The default is therefore 4, not
+ * "most of your cores".
+ *
+ * At ~23 games/sec:
+ *       1,000,000 games   ~12 hours    (an overnight run — enough to train a value net)
+ *       5,000,000 games   ~2.5 days
+ *      20,000,000 games   ~10 days     (Metamon scale; not a weekend)
+ *
+ * WHY SEPARATE PROCESSES rather than threads: the simulator is synchronous and CPU-bound, so a
+ * single Node process pins one core no matter how high --conc goes. Concurrency inside a process
+ * only overlaps await points, which is why 8-way --conc still gave ~10 games/sec.
  *
  * SEEDS ARE DISJOINT BY CONSTRUCTION. Each worker owns a contiguous seed block, so two workers can
  * never generate the same battle, and any single game remains reproducible from its recorded seed.
