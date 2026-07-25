@@ -80,7 +80,7 @@ Every probability ships a **proper score** (log-loss and/or Brier), a **confiden
 to JSON and gated in CI.
 
 ### 4.1 GURU — meta / matchup matrix (descriptive)
-From REAL outcomes, `engine/guru.py` builds a 13-archetype × 13-archetype matchup matrix over 5,199
+From REAL outcomes, `engine/guru.py` builds an archetype × archetype matchup matrix (K is chosen from the data; see `data/archetypes.json`) over the generated game count in `data/live.js` (hardcoded sizes are retracted, S13) —
 games, each cell a win-rate with a **Wilson score interval**. GURU is *descriptive*: its own predictive
 test shows per-game winner prediction from the matrix ties a coin (log-loss 0.7122 vs 0.6931), exactly
 as §1 predicts. Its value is honest matchup structure with error bars, and it is the real (not
@@ -93,7 +93,7 @@ opponent's next move from state. On held-out human moves the behaviour-clone rea
 uniform-over-moveset (2.91). A modest but real signal; human move choice has genuine entropy. Output:
 `data/xatu.json`, `data/xatu.js`; harness `engine/eval_policy.py` → `data/policy-eval.json`.
 
-### 4.3 PORY — mid-game win-probability value net (the win)
+### 4.3 PORY — mid-game win probability (RETRACTED as a value net; it is material arithmetic)
 The pivot's proof. `engine/pory.py` reconstructs per-turn board state (mons alive out of four, mean
 active HP, turn) and fits a logistic value net. Held-out, clustered by game: **log-loss 0.567 vs coin
 0.693**, beating a material-sign heuristic, **calibrated to ECE 1.6%**, CI **[0.548, 0.583]**. The

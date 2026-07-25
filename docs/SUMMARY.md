@@ -60,7 +60,7 @@ deck, the technical docs, and the CHANGELOG in the same pass.
 
 | | |
 |---|---|
-| Collected (closed-sheet Bo1 ladder) | **8,757** games, growing hourly |
+| Collected (closed-sheet Bo1 ladder) | see `data/live.js` — generated on every refresh, growing hourly (hardcoded sizes retracted, S13) |
 | Usable after the quality filter | **1,124** (12.8%) |
 | Self-play (MEW, official engine) | 1,000 — separate file, never pooled |
 | Open-team-sheet archive | 4,167 (MIT, 2026-06-17..20) — separate file, different information regime |
@@ -103,7 +103,7 @@ matrix in a single day.
 ## Correction — the scrape over-samples bots
 
 Measured 2026-07-25 against Smogon's whole-ladder statistics for the same format and month
-(1,163,315 battles vs our 8,757 uploaded):
+(1,163,315 battles vs the count generated into `data/live.js`):
 
 | | mean difference, uploaded vs whole ladder |
 |---|---|

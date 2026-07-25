@@ -42,7 +42,24 @@ try:
 except Exception as e:
     print('arch load err', e)
 
+# --- THE QUALITY FUNNEL, so the site never hardcodes it again ------------------------------------
+# The page carried "8,757 collected, 1,124 usable" as literal text in three places, alongside four
+# other dataset sizes in four other rooms. All of them were stale, and a prior review that marked
+# this FIXED had replaced one hardcoded number with a newer hardcoded number. S13: if it can be
+# derived, no human types it. usable is the SAME definition every engine uses -- engine/store.py
+# reading data/quality-filter.json -- so the site and the models can never disagree about it.
+usable=None
+try:
+    import sys as _s
+    _s.path.insert(0,P('engine'))
+    from store import load_games as _lg
+    usable=sum(1 for _ in _lg(clean=True, announce=False))
+except Exception as e:
+    print('usable count unavailable:', e)
+
 live={'games':games,'turns':turns,'dmgProfiles':len(pairs),
+      'usable':usable,
+      'usablePct':(round(100.0*usable/games,1) if usable and games else None),
       'updated':datetime.date.today().isoformat(),'archetypes':arch}
 open(P('data','live.js'),'w',encoding='utf-8').write('window.LIVE='+json.dumps(live,separators=(',',':'))+';\n')
 

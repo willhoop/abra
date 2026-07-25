@@ -40,6 +40,38 @@ const RETRACTED = [
   { bad: /higher-rated player (?:wins|won) (?:just )?55\.0%|\b55\.0% of the time\b/, what: 'the 55.0% skill ceiling',
     why: 'measured with bots included; 52.4% with behavioural bots removed, CI includes 50',
     allowIfNear: /bot|superseded|retract|contaminat/i },
+
+  /* ---- added 2026-07-25, after an adversarial review found the project had not applied its own
+   * retraction mechanism to its own Critical finding on the day it made it. Every entry below was
+   * live in five or more documents while the evidence said otherwise. */
+
+  { bad: /\b0\.567\b/, what: "PORY's headline log-loss of 0.567 vs a coin's 0.693",
+    why: 'the comparison is to a COIN, which is not the bar. Against alive_diff+hp_diff -- two ' +
+         'material features -- PORY scores identically to four decimals. Its fitted weights reduce ' +
+         'algebraically to sigmoid(1.256*alive_diff + 1.544*hp_diff): my_alive and foe_alive carry ' +
+         'exactly equal-and-opposite coefficients, and turn is exactly zero. Publish the gain over ' +
+         'MATERIAL, never the gain over a coin.',
+    allowIfNear: /retract|withdraw|superseded|material|two.feature|coin is not the bar|arithmetic|shipped fit|does not rescue/i },
+
+  { bad: /PORY[^.\n]{0,40}\b(?:the win|a value net that works|validated)\b/i,
+    what: 'PORY framed as "the win" / a validated value net',
+    why: 'PORY is a two-parameter material model. It ties the two-feature baseline and adds nothing ' +
+         'over counting Pokemon. The `turn` feature is STRUCTURALLY unfittable: pory.py emits each ' +
+         'state twice with sides swapped and the label flipped, so any feature invariant under that ' +
+         'swap has a cancelling gradient and is pinned to zero forever.',
+    allowIfNear: /retract|withdraw|superseded|counting|two.(?:parameter|feature)|arithmetic|does not beat|shown to tie/i },
+
+  { bad: /\b(?:8,757|5,199|2,020|7,716)\b/, what: 'a hardcoded dataset size',
+    why: 'dataset sizes are generated into data/live.js by engine/refresh-site-data.py from the ' +
+         'same filter the models use. Six different hardcoded sizes were live across six rooms at ' +
+         'once, and a prior fix replaced one literal with a newer literal that went stale the same ' +
+         'day. Reference the generated value; never type a count. (S13)',
+    allowIfNear: /generated|hardcod|stale|retract|superseded|derive|S13|both wrong|wrong\.|claims|fix the site|defensible/i },
+
+  { bad: /\bnot 3 clean games\b|\b1,?061 clean games\b/, what: 'the 1,061-clean-game figure',
+    why: 'superseded as the store grows; the current funnel is written to data/live.js on every ' +
+         'refresh. Quote the generated number or none at all.',
+    allowIfNear: /generated|superseded|retract|live\.js/i },
 ];
 
 function scanDocs() {

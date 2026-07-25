@@ -43,7 +43,7 @@ Each model is a "house" you can visit on the site:
   happen to upload.
 - **GURU** — reads the metagame: which team styles beat which, from real results, with error bars.
 - **XATU** — reads the opponent: the likely item, ability, and moves behind each Pokémon.
-- **PORY** — the win meter: mid-battle, tells you your real chance to win.
+- **PORY** — mid-battle win chance. **Retracted as a finding:** it works out to counting how many Pokémon each side has left and how healthy they are, and it does not beat exactly that baseline.
 - **SLOWKING** — the strategist: there's no single best team, so it plays a smart mix.
 - **CHOMP** — the team picker: which four to bring, which two to lead.
 - **ALAKAZAM** — the coach (in progress): the best move to make, right now.

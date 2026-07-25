@@ -348,6 +348,8 @@ def main():
     ap.add_argument("--hidden", type=int, default=0, help="0 = pick by validation")
     ap.add_argument("--clean", action="store_true",
                     help="restrict to games surviving the quality filter (no bots, no forfeits)")
+    ap.add_argument("--transfer", action="store_true",
+                    help="train on self-play ONLY, evaluate on ladder ONLY (the transfer test)")
     args = ap.parse_args()
 
     paths = []
@@ -367,14 +369,56 @@ def main():
             print("REFUSING to run: --clean was requested and the filter could not be applied.")
             return
         print(f"  quality filter: {len(keep):,} games pass (no bot detected, no forfeit)")
-    got = load(paths, args.limit, keep=keep)
-    if got is None:
-        print("no data — nothing to do"); return
-    X, Y, G = got
+    if args.transfer:
+        # ---- THE TRANSFER TEST -------------------------------------------------------------
+        # Train ONLY on self-play, evaluate ONLY on real human games. This is the experiment that
+        # decides whether generating self-play at scale is worth doing at all.
+        #
+        # Every previous run mixed the two, which cannot answer the question: with ~86% of the rows
+        # coming from self-play, the model was largely being graded on the same fixed prior policy
+        # it was fitted to. A corpus that predicts itself proves nothing about human play.
+        #
+        # The self-play policy never looks at the board — it samples moves by how often they get
+        # used — so the honest prior is that it learns the FORMAT'S PHYSICS (what a position turns
+        # into) rather than the pressure of a real game. Written down before the run:
+        #   docs/THEORY.md prediction 1 — "a value net trained only on self-play will transfer
+        #   poorly to human games, beating B2 by less on ladder than it does on self-play."
+        # If it transfers well, the 1M-game run is justified immediately.
+        #
+        # The ladder side is filtered (no bots, no forfeits) whenever --clean is given, because a
+        # test set full of rage-quits would flatter any material model. Held-out is the WHOLE
+        # ladder set: none of it was seen in training, so no split is needed on that side.
+        sp_got = load([SELFPLAY_RAW], args.limit)
+        if sp_got is None:
+            print("no self-play corpus — run engine/mew_farm.js first"); return
+        Xs, Ys, Gs = sp_got
+        la_got = load([LADDER_RAW], args.limit, keep=keep)
+        if la_got is None:
+            print("no ladder corpus"); return
+        Xl, Yl, Gl = la_got
 
-    sp = np.array([split_of(g) for g in G])
-    tr, va, te = sp == "train", sp == "val", sp == "test"
-    n_games = len(set(G.tolist()))
+        # a validation slice out of SELF-PLAY only — the ladder set must stay untouched
+        s_sp = np.array([split_of(g) for g in Gs])
+        s_tr, s_va = s_sp != "test", s_sp == "test"
+        X = np.concatenate([Xs, Xl]); Y = np.concatenate([Ys, Yl])
+        G = np.concatenate([Gs, Gl])
+        n_sp = len(Xs)
+        tr = np.zeros(len(X), bool); va = np.zeros(len(X), bool); te = np.zeros(len(X), bool)
+        tr[:n_sp] = s_tr; va[:n_sp] = s_va; te[n_sp:] = True
+        n_games = len(set(G.tolist()))
+        print(f"  TRANSFER: train on SELF-PLAY ({s_tr.sum():,} states, {len(set(Gs.tolist())):,} games)")
+        print(f"            test  on LADDER    ({te.sum():,} states, {len(set(Gl.tolist())):,} games"
+              + (", quality-filtered" if keep else ", UNFILTERED") + ")")
+        del Xs, Xl, sp_got, la_got
+    else:
+        got = load(paths, args.limit, keep=keep)
+        if got is None:
+            print("no data — nothing to do"); return
+        X, Y, G = got
+
+        sp = np.array([split_of(g) for g in G])
+        tr, va, te = sp == "train", sp == "val", sp == "test"
+        n_games = len(set(G.tolist()))
     print(f"  {len(X):,} board states from {n_games:,} games "
           f"({tr.sum():,} train / {va.sum():,} val / {te.sum():,} test)")
     print(f"  base rate: {Y.mean():.4f} (0.5 expected — both perspectives are emitted)")

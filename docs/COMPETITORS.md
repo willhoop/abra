@@ -202,7 +202,7 @@ mixed-strategy argument by years.
 | Data volume, **Reg M-B Bo3** | **3,843** open-sheet games | ~0, bucket scaffolded and empty | **Behind. Worth adopting** |
 | **Complete sets** (ground truth) | ~**50,000** from open team sheets | ~0; 1.38 of 4 moves revealed | **Behind, and this is the one that matters** |
 | Belief-state / equilibrium search | **Ihara et al. 2018** compared determinization vs information sets for Pokémon and found IS-MCTS better; belief-MCTS is a mature literature | SLOWKING/ALAKAZAM (spec, unbuilt) | **Not first. Not even close.** The narrow claim that survives is PBS re-solving in *doubles*, and that is a gap of degree, not of kind |
-| Mid-game value function | implicit in RL agents | **PORY, calibrated, log-loss 0.567 vs 0.693** | **Comparable, and ours is explicit and measured** |
+| Mid-game value function | implicit in RL agents | **PORY — RETRACTED: ties a two-feature material baseline; see below** | **Comparable, and ours is explicit and measured** |
 | Evaluation honesty | weak — VGC-Bench's LLM at n=20 | proper scores, CIs, baselines, power gate | **Ahead. This is the real differentiator** |
 | Team building | VGC-Bench PSRO | DITTO (needs rebuild) | **Behind. Adopt their PSRO** |
 
@@ -306,7 +306,7 @@ What is actually ours, stated plainly and without claiming novelty it does not h
 
 - a **closed-sheet Bo1** store, which is a different information regime from the public OTS corpus,
 - an engine wiring **verified** against an independent damage oracle (31/31 within 2%),
-- an explicit, **calibrated** mid-game value function (PORY, log-loss 0.567 vs 0.693),
+- an explicit, calibrated mid-game value function (PORY — **retracted**: it ties `alive_diff + hp_diff` exactly, so it is material arithmetic, not a value net),
 - and an evaluation discipline — proper scores, clustered CIs, honest baselines, and now a power
   gate — that this survey found the field does not consistently apply.
 

@@ -669,6 +669,28 @@ function statusBadge(id){
   return `<div style="margin:6px 0 2px"><span class="chip ${cls}" title="${String(tip).replace(/"/g,'&quot;')}">${label}</span>`
        + `<span class="chip" title="${m.derived?'derived from a measured artifact':'declared — no artifact answers this yet'}">${measured}</span></div>`;
 }
+
+/* ---- DATASET COUNTS COME FROM ONE GENERATED PLACE ---------------------------------------------
+   The page carried "8,757 collected", "1,124 usable", "about 9,000", "3,310", "2,122" and a
+   "13 archetypes" chip that disagreed with the 5 in guru.js -- six different answers to "how big
+   is your data", every one hardcoded and every one stale. A prior review marked this FIXED by
+   replacing one literal with a newer literal, which went stale within the day.
+   engine/refresh-site-data.py now writes both numbers into data/live.js from the SAME filter the
+   models use (engine/store.py over data/quality-filter.json), so the site and the science cannot
+   disagree. S13: if it can be derived, no human types it. */
+function nCollected(){ return (window.LIVE&&LIVE.games)||null; }
+function nUsable(){ return (window.LIVE&&LIVE.usable)||null; }
+function nUsablePct(){ return (window.LIVE&&LIVE.usablePct)||null; }
+function fmtN(n){ return n==null?'—':Number(n).toLocaleString(); }
+function datasetLine(){
+  const c=nCollected(), u=nUsable(), p=nUsablePct();
+  if(c==null) return 'dataset size unavailable';
+  if(u==null) return fmtN(c)+' collected';
+  return fmtN(c)+' collected, '+fmtN(u)+' usable ('+p+'%)';
+}
+function nArchetypes(){
+  try{ return (window.GURU&&(GURU.archetypes||GURU.names||[]).length)||null; }catch(e){ return null; }
+}
 function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
   <div><h2>${c.title}</h2><p class="sub">${c.acro}</p>${statusBadge(c.id)}<div class="bubble">${bubble}</div></div></div>`;}
 
@@ -885,8 +907,8 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
 }
 function roomGuru(){const c=CAST.find(x=>x.id==='guru');
   return `<div class="panel">${mascotHero(c,"I read every real game and tell you which archetype actually beats which — with honest error bars.")}</div>
-   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from real Champions games. Of <b>8,757</b> collected, <b>1,124</b> survive the quality filter (12.8%); the rest are bot games, forfeits, or too short to reveal a bring. <b>GURU is now computed on the filtered set, and the result changed:</b> across 11 archetypes there are <b>0 statistically-decisive matchups</b> (n&ge;30 with a Wilson interval excluding 50%). On clean games the archetype matrix does not separate from chance, and its predictive test scores 0.735 against a coin&rsquo;s 0.693 &mdash; worse than a coin. The matrix is descriptive structure, not evidence that one archetype beats another. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
-   <span class="chip">13 archetypes</span><span class="chip">8,757 collected, 1,124 usable</span><span class="chip">Wilson CIs</span></div>
+   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from real Champions games. Of <b>${fmtN(nCollected())}</b> collected, <b>${fmtN(nUsable())}</b> survive the quality filter (${nUsablePct()}%); the rest are bot games, forfeits, or too short to reveal a bring. <b>GURU is now computed on the filtered set, and the result changed:</b> across ${nArchetypes()||'the'} archetypes there are <b>0 statistically-decisive matchups</b> (n&ge;30 with a Wilson interval excluding 50%). On clean games the archetype matrix does not separate from chance, and its predictive test scores 0.735 against a coin&rsquo;s 0.693 &mdash; worse than a coin. The matrix is descriptive structure, not evidence that one archetype beats another. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
+   <span class="chip">${nArchetypes()||'?'} archetypes</span><span class="chip">${datasetLine()}</span><span class="chip">Wilson CIs</span></div>
    <div class="panel"><h2>What I can and can't do</h2><p style="font-weight:600;color:#3a5372">I give <b>honest matchup rates</b>. I do <b>not</b> predict who wins a single game from team sheets — in this format that is a coin flip, and I say so plainly rather than selling a false edge.</p></div>`;
 }
 function roomXatu(){const c=CAST.find(x=>x.id==='xatu');
@@ -915,7 +937,7 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
 function roomMew(){const c=CAST.find(x=>x.id==='mew');
   return `<div class="panel">${mascotHero(c,"I play this format against myself, over and over, so the other models have games to learn from.")}</div>
    ${mewViewerPanel()}
-   <div class="panel"><h2>Why a practice field</h2><p style="font-weight:600;color:#3a5372">Every other room learns from <b>real ladder replays</b>, and there are only so many of those — about 9,000, growing a few hundred a day. Questions about <b>people</b> (does the better player win? what will they bring?) genuinely need real games and have to wait. But questions about <b>the game itself</b> — what does this position turn into? — don't. Those just need games, and I can make as many as the machine will run: <b>~45 a second</b>, roughly 160,000 an hour.</p>
+   <div class="panel"><h2>Why a practice field</h2><p style="font-weight:600;color:#3a5372">Every other room learns from <b>real ladder replays</b>, and there are only so many of those — ${fmtN(nCollected())} collected and just ${fmtN(nUsable())} that survive the quality filter, growing a few hundred a day. Questions about <b>people</b> (does the better player win? what will they bring?) genuinely need real games and have to wait. But questions about <b>the game itself</b> — what does this position turn into? — don't. Those just need games, and I can make as many as the machine will run: <b>~45 a second</b>, roughly 160,000 an hour.</p>
    <span class="chip">official engine</span><span class="chip">real ladder teams</span><span class="chip">never mixed with real games</span></div>
    <div class="panel"><h2>What one practice game is</h2><p style="font-weight:600;color:#3a5372">A complete battle in the <b>official Champions simulator</b> — the same code Showdown runs, pinned to one commit. Two teams that real players actually brought, each picking <b>4 of their 6</b> and leading <b>2</b>, then playing to a winner. Both sides choose moves the way real players do: sampled from how often that Pokémon actually clicks each move, not at random.</p>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px">
