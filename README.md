@@ -1,6 +1,11 @@
 # ABRA
 ### Automated Battle Replay Analyzer
 
+> **New here? Read [docs/ORIENTATION.md](docs/ORIENTATION.md) first.** It is the entry point: what
+> the project is, the two principles that govern the data, what each model does, and the failure mode
+> this project keeps hitting. Its figures are measured; several older documents carry figures that
+> were later retracted.
+
 **Platform: Pokémon Showdown.** ABRA is the **live-data platform** for competitive Pokémon Champions
 (Reg M-B). It continuously collects real battle replays from the Showdown API and turns them into a
 durable, growing dataset — the foundation for **modelling games and teams**: a simulator that learns
