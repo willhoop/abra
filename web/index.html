@@ -583,8 +583,37 @@ NAVCAST.forEach(c=>{const b=document.createElement('button');b.className='tab';b
   b.innerHTML=`${c.icon?c.icon:`<img src="${ani(c.sprite)}">`}${c.tab.toUpperCase()}`;b.onclick=()=>go(c.id);nav.appendChild(b);});
 
 /* ===== rooms html ===== */
+/* STATUS BADGE, RENDERED FROM data/status.js — never typed into a room.
+   S13: a file nobody generates is a file that will lie. build/build_status.js derives each model's
+   status from its evaluation artifact, so a new result relabels the room on the next build with
+   nobody editing this page. `derived:false` is shown differently on purpose — "measured as null"
+   and "nobody has measured it" are different claims, and conflating them is how a roadmap item
+   starts looking like a result. */
+const STATUS_LOOK={
+  live:      ['ok',  'collecting'],
+  validated: ['ok',  'validated against an independent oracle'],
+  win:       ['ok',  'beats its baseline'],
+  built:     ['',    'built'],
+  dev:       ['warn','in progress'],
+  roadmap:   ['warn','not built yet'],
+  pivot:     ['warn','being reworked'],
+  null:      ['null','tested — no better than a coin'],
+  retired:   ['null','retired to the PC'],
+};
+function statusFor(id){
+  const S=(window.ABRA_STATUS&&window.ABRA_STATUS.models)||[];
+  return S.find(m=>m.id===id)||null;
+}
+function statusBadge(id){
+  const m=statusFor(id); if(!m) return '';
+  const [cls,label]=STATUS_LOOK[m.status]||['',m.status];
+  const measured=m.derived?'measured':'not yet measured';
+  const tip=`${m.metric||''}${m.evidence?'  ·  from '+m.evidence:'  ·  no artifact yet'}`;
+  return `<div style="margin:6px 0 2px"><span class="chip ${cls}" title="${String(tip).replace(/"/g,'&quot;')}">${label}</span>`
+       + `<span class="chip" title="${m.derived?'derived from a measured artifact':'declared — no artifact answers this yet'}">${measured}</span></div>`;
+}
 function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
-  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
+  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p>${statusBadge(c.id)}<div class="bubble">${bubble}</div></div></div>`;}
 
 function roomTown(){const c=CAST[0];
   let houses=CAST.slice(1).map(h=>`<div class="house" onclick="go('${h.id}')">

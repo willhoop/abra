@@ -85,14 +85,19 @@ const RULES = {
   /* CHOMP is a decision model; the bar is beating a coin on held-out human bring choices. */
   chomp() {
     const j = readJSON('data/chomp-ev.json');
-    if (!j) return null;
-    const ll = j.logloss ?? j.test_logloss;
-    if (ll == null) return null;
+    const p = j && j.proper_score_logloss;
+    if (!p || p.chomp_align == null || p.coin == null) return null;
+    /* The bar is the CONFIDENCE INTERVAL, not the point estimate. CHOMP scores 0.6932 against a
+     * coin's 0.6931 with a CI spanning the coin, so it is a tie and the honest label is null.
+     * Comparing point estimates alone is how this project previously called a 0.0018 gap a result. */
+    const beats = p.chomp_align < p.coin &&
+                  Array.isArray(p.chomp_align_ci95) && p.chomp_align_ci95[1] < p.coin;
     return {
-      status: ll < 0.690 ? 'built' : 'null',
-      metric: ll < 0.690 ? `beats a coin on held-out brings (${ll.toFixed(4)})`
-                         : `does not beat a coin on held-out brings (${ll.toFixed(4)} vs 0.6931)`,
-      why: 'data/chomp-ev.json: logloss vs a coin',
+      status: beats ? 'built' : 'null',
+      metric: beats
+        ? `beats a coin on held-out brings (${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)})`
+        : `does not beat a coin on held-out brings (${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)}, intervals overlap)`,
+      why: 'data/chomp-ev.json: proper_score_logloss vs coin, with CI',
     };
   },
 
