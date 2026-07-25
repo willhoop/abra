@@ -37,7 +37,7 @@ negatives are reported as negatives.
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=7,971** (vs old n≈15); preview roles tie a coin (honest null) |
-| **WAR** | Wins Above Replacement (species RAPM) | ✅ Built | **Beats a coin** (0.6875 vs 0.6931) and rating (0.6905) — which species you bring carries small real signal |
+| **WAR** | Wins Above Replacement (species RAPM) | ⚠️ **Null** | **Withdrawn 2026-07-25.** Beat a coin only on the unfiltered store (0.6860). On clean games: **0.7048 vs coin 0.6931, accuracy 0.502** — the signal was four bots playing one team 1,446 times |
 | **NMF** | Emergent roles / archetypes | ✅ Built | Role-level factorization → 6 clean archetypes (recon-err 0.53); a team is a *blend*, learned not hand-labelled |
 
 ## How it fits together

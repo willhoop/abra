@@ -10,6 +10,93 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.2.0] — 2026-07-25
+
+### Changed — five engines now read through the quality filter, and one headline result did not survive
+
+`war.py`, `roles.py`, `nmf_roles.py`, `vocab.py` and `counterplay.py` each carried an identical
+`load_games()` that opened the store directly. They now read through `engine/quality.py`, which reads
+the single definition in `data/quality-filter.json`. No threshold is duplicated in any of them.
+`ABRA_UNFILTERED=1` restores the old behaviour, for demonstrating the difference only — the same
+switch `analyze.js` already had.
+
+Each engine was run **both ways on the same store**, so the difference below is the filter alone and
+not the reparse.
+
+#### WAR no longer beats a coin. The prior conclusion is withdrawn.
+
+| | held-out log-loss | vs coin 0.6931 | accuracy |
+|---|---|---|---|
+| unfiltered (as previously published) | **0.6860** | beats it | 0.539 |
+| clean, 1,061 games | **0.7048** | **worse than a coin** | 0.502 |
+
+This is the finding of the release and it is a negative one. WAR was described in the white paper,
+`MODELS.md`, `ROLE-FAMILY.md`, `SUMMARY.md` and `PUBLICATION.md` as the model that *did* clear the
+bar — "which specific species you bring at preview carries a small real signal that roles and raw
+sheets do not". **On games with no bot detected, it does not.**
+
+The mechanism is visible in the coefficients. Basculegion's WAR falls from **281.87 to 23.64**, and
+Basculegion is one of the six Pokemon that four undetected bot accounts played in 1,446 identical
+games. A ridge RAPM fitted on that data is not learning which species win; it is learning which
+species belong to the account that played the most games. Charizard, also on that team, is the
+largest negative in both runs — the same artifact with the sign reversed.
+
+Accuracy of **0.502** is the plainest statement of it: on clean data the species model is a coin.
+
+This does not touch PORY (0.567 vs 0.693), which is measured mid-game rather than at preview and is
+unaffected by this change.
+
+#### COUNTERPLAY got stronger, and that is also informative
+
+| | tech-vs-standard coverage gap | 95% CI | species positive |
+|---|---|---|---|
+| unfiltered | +0.0321 | (0.0078, 0.0561) | 72/124 (58%) |
+| clean | **+0.0707** | **(0.0252, 0.1179)** | 36/55 (65%) |
+
+More than double, with the interval further from zero. This is the expected direction once the
+mechanism is stated: the claim is about **human** choices — that players spend spare move slots
+answering the metagame — and a bot never re-teches. Bot games were not noise here, they were
+counter-evidence, and removing them sharpened the effect rather than shrinking it.
+
+The top-threat list also corrects to the post-filter metagame:
+`garchomp, incineroar, kingambit, sinistcha, basculegion, whimsicott`.
+
+#### ROLES is unchanged in conclusion, corrected in magnitude
+
+Preview roles still tie a coin — held-out log-loss **0.6915** vs 0.6931, CI (0.6783, 0.7049), which
+contains the coin. That conclusion has never moved and does not move now.
+
+The **role-pair median cell is 20**, across 1,051 cells. For the record of a number that has been
+wrong in three documents for two versions:
+
+| figure | where it came from | status |
+|---|---|---|
+| n = 7,971 | v2.6.0, over-tagged (19.6 of 26 roles per team) | retracted in 2.7.0, **still printed in the white paper, ROLE-FAMILY.md and PUBLICATION.md** |
+| n ≈ 95 | 2.7.0, credible tags, 27 roles | superseded |
+| n ≈ 50 | 2.8.0, 39 roles | superseded |
+| **n = 20** | **this release: 52 roles, 1,061 clean games** | current |
+
+The direction is the honest story: every step that made the taxonomy more precise, and now the games
+cleaner, has cost cell size. n=20 is still above the single-label archetype cells (11–18) that
+motivated the role model, but the pooling argument is far weaker than 7,971 ever suggested.
+
+#### VOCAB and NMF
+
+VOCAB: 1,061 games, 26,677 move events, 380 distinct moves; curated roles cover **97.3%** of real
+in-battle move usage. NMF still factorises cleanly. Neither makes a claim that turns on the filter.
+
+### Notes — why this was the right thing to do before any model work
+
+The project's own build order (`docs/ALAKAZAM-v2-spec.md`) is inputs first, capstone last. The store
+and the rules engine were secured earlier today; the filter was the third input and the only one
+still broken. Wiring it first meant WAR's result was retracted **before** anything was built on top
+of it, rather than after.
+
+**28 engines still read the store raw.** These five were done first because they share an identical
+`load_games()`, so one patch reached all five.
+
+---
+
 ## [3.1.2] — 2026-07-24
 
 ### Fixed — the store duplication was `merge=union`, not `merge -X ours`

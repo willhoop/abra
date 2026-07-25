@@ -81,7 +81,26 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 ## WAR — Wins Above Replacement (added 2026-07-24)
 **Job:** how many wins a species adds over a freely-available replacement, controlling for teammates and opponents.
 **Method:** ridge-regularized **Adjusted Plus-Minus** (basketball RAPM) — logistic regression of game outcome on the difference of team-preview species-indicator vectors. Replacement = 20th-percentile β; WAR = 0.25·(β−β_repl)·games (the logistic wins conversion). Ridge shrinks rare species toward zero.
-**Honest status / result:** the species model **beats a coin** (held-out log-loss **0.6875 < 0.6931**) and beats the rating baseline (0.6905) — so *which specific species* you bring at preview carries a small real signal that roles and raw sheets do not. Leaders: Basculegion, Kingambit, Sylveon; trailers negative (Maushold, Raichu). Effect sizes small; WAR magnitudes ridge-shrunk and flagged exploratory.
+**Honest status / result — WITHDRAWN 2026-07-25. WAR does not beat a coin on clean data.**
+The previous entry read: "the species model **beats a coin** (held-out log-loss 0.6875 < 0.6931) and
+beats the rating baseline (0.6905) — so *which specific species* you bring at preview carries a small
+real signal that roles and raw sheets do not." That was measured on the **unfiltered** store.
+
+Run both ways on the same store (v3.2.0):
+
+| | held-out log-loss | vs coin 0.6931 | accuracy |
+|---|---|---|---|
+| unfiltered, 8,356 games | 0.6860 | beats it | 0.539 |
+| **clean, 1,061 games** | **0.7048** | **worse than a coin** | **0.502** |
+
+The mechanism is visible in the coefficients: Basculegion's WAR falls from **281.87 to 23.64**, and
+Basculegion is one of the six Pokemon four undetected bot accounts played in 1,446 identical games.
+The model was learning which species belonged to the highest-volume account, not which species win.
+Charizard — also on that team — is the largest negative in both runs, the same artifact inverted.
+
+**Current status: a null.** Preview species composition sits at the same coin-flip ceiling as
+preview roles and raw sheets. WAR magnitudes are retained as a descriptive ordering only and must
+not be quoted as evidence that species choice predicts outcomes.
 **Code:** `engine/war.py` → `data/war.json`.
 
 ## NMF — emergent roles / archetypes (added 2026-07-24)

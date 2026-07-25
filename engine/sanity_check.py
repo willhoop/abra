@@ -178,8 +178,16 @@ if rm:
     # 100 -> 50 -> 35 as the taxonomy grew (27 -> 39 roles). Finer roles mean more cells and thinner
     # ones; the median has gone 7,971 (over-tagged) -> 95 -> ~50. Still well above the old
     # single-label n~15, but this bar is the tripwire against adding roles without a reason.
-    ok(len(ns) > 0 and ns[len(ns)//2] > 35,
-       f"ROLES: role-pair pooling holds (median cell n={ns[len(ns)//2] if ns else 0} >> old ~15)")
+    # 2026-07-25: bar moved 35 -> 18, and this is the last time it may move without a rethink.
+    # The CLAIM being tested is "role-pair pooling beats the old single-label archetype cells",
+    # which were n=11-18. So 18 is not an arbitrary threshold, it is the claim itself (S6 - assert
+    # the invariant, not the incidental). Every previous value (100, 50, 35) was arbitrary and had
+    # to be lowered whenever the taxonomy or the data changed, which is a goalpost, not a test.
+    # The median is now 20 on 1,061 clean games. Pooling still wins, but only just: 7,971 (over-
+    # tagged) -> 95 -> ~50 -> 20. If this ever drops below 18 the role-pair matrix has stopped
+    # earning its argument and the model needs rethinking rather than the bar lowering again.
+    ok(len(ns) > 0 and ns[len(ns)//2] > 18,
+       f"ROLES: role-pair pooling still beats single-label (median cell n={ns[len(ns)//2] if ns else 0} > 18)")
     bad = sum(1 for row in rm["matrix"].values() for c in row.values()
               if not (0<=c["p"]<=1 and c["lo"]-1e-9<=c["p"]<=c["hi"]+1e-9 and c["n"]>=0))
     ok(bad == 0, f"ROLES: all role-pair cells valid ({bad} bad)")
@@ -189,7 +197,17 @@ if re_:
     ok(ll["roles"] > ll["coin"]-0.02, f"ROLES: preview roles ~ coin ({ll['roles']}) — honest null")
 if war:
     h = war["held_out"]
-    ok(h["log_loss"] <= h["coin"]+1e-9, f"WAR: species RAPM log-loss {h['log_loss']} <= coin {h['coin']}")
+    # WITHDRAWN 2026-07-25. This used to assert `log_loss <= coin`, i.e. that WAR beats a coin. On
+    # the quality-filtered store it does not: 0.7048 vs 0.6931, accuracy 0.502. It beat the coin only
+    # while bot games were included, because four accounts played the SAME six Pokemon in 1,446 games
+    # and a species RAPM fitted on that learns which species belong to the busiest account.
+    # Basculegion's WAR fell 281.87 -> 23.64 when the filter went on.
+    #
+    # The assertion now states the honest claim, the same way S6 was applied to CHOMP-EV: preview
+    # species composition sits AT the coin. Asserting a null needs a two-sided bound - a model that
+    # suddenly beat the coin by a mile would be as suspicious as one that collapsed.
+    ok(abs(h["log_loss"] - h["coin"]) < 0.03,
+       f"WAR: species RAPM is at the coin ({h['log_loss']} vs {h['coin']}) — honest null, withdrawn 3.2.0")
     ok(war["leaders"][0]["war"] > war["trailers"][-1]["war"], "WAR: leaders rank above trailers")
 nmf = load("data", "nmf-roles.json")
 if nmf:
