@@ -1,16 +1,15 @@
 {
  "encoder_version": 2,
- "n_features": 121,
+ "n_features": 145,
  "sources": [
-  "data\\games.ladder.raw-logs.jsonl",
-  "data\\games.selfplay.raw-logs.jsonl"
+  "data\\games.ladder.raw-logs.jsonl"
  ],
- "n_states": 1404802,
- "n_games": 69243,
+ "n_states": 131038,
+ "n_games": 9639,
  "split": {
-  "train": 841662,
-  "val": 280256,
-  "test": 282884
+  "train": 78336,
+  "val": 25626,
+  "test": 27076
  },
  "arms": [
   {
@@ -22,56 +21,56 @@
   },
   {
    "arm": "B1  alive_diff",
-   "logloss": 0.5636,
-   "acc": 0.6697,
-   "auc": 0.7591,
-   "calib": 0.0026
-  },
-  {
-   "arm": "B2  alive_diff+hp_diff",
-   "logloss": 0.5258,
-   "acc": 0.7145,
-   "auc": 0.8067,
-   "calib": 0.0052
-  },
-  {
-   "arm": "B3  sign(alive_diff)",
-   "logloss": 0.5774,
-   "acc": 0.6697,
-   "auc": 0.7483,
-   "calib": 0.005
-  },
-  {
-   "arm": "L6  logistic, material",
-   "logloss": 0.5257,
-   "acc": 0.7145,
-   "auc": 0.8067,
-   "calib": 0.0052
-  },
-  {
-   "arm": "LR  logistic, rich",
-   "logloss": 0.5155,
-   "acc": 0.721,
-   "auc": 0.8145,
+   "logloss": 0.5947,
+   "acc": 0.6422,
+   "auc": 0.7229,
    "calib": 0.0047
   },
   {
+   "arm": "B2  alive_diff+hp_diff",
+   "logloss": 0.5748,
+   "acc": 0.6738,
+   "auc": 0.7569,
+   "calib": 0.0083
+  },
+  {
+   "arm": "B3  sign(alive_diff)",
+   "logloss": 0.6069,
+   "acc": 0.6422,
+   "auc": 0.7135,
+   "calib": 0.0027
+  },
+  {
+   "arm": "L6  logistic, material",
+   "logloss": 0.5748,
+   "acc": 0.6738,
+   "auc": 0.7569,
+   "calib": 0.0083
+  },
+  {
+   "arm": "LR  logistic, rich",
+   "logloss": 0.5473,
+   "acc": 0.689,
+   "auc": 0.7802,
+   "calib": 0.0064
+  },
+  {
    "arm": "N6  network, material",
-   "logloss": 0.5226,
-   "acc": 0.7144,
-   "auc": 0.8078,
-   "calib": 0.005,
+   "logloss": 0.5671,
+   "acc": 0.6734,
+   "auc": 0.7599,
+   "calib": 0.0103,
    "hidden": 64,
-   "val_logloss": 0.5284
+   "val_logloss": 0.5656
   },
   {
    "arm": "NR  network, rich",
-   "logloss": 0.5145,
-   "acc": 0.7218,
-   "auc": 0.8157,
-   "calib": 0.0123,
+   "logloss": 0.558,
+   "acc": 0.6789,
+   "auc": 0.7701,
+   "calib": 0.0204,
    "hidden": 64,
-   "val_logloss": 0.5207
+   "val_logloss": 0.5588
   }
  ]
 }
