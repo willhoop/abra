@@ -20,12 +20,15 @@ const PORT=process.env.PORT||8790;
 let _pyCache;
 function getPy(){
   if(_pyCache!==undefined) return _pyCache;
-  const cands = process.platform==='win32' ? ['py','python','python3'] : ['python3','python'];
-  for(const c of cands){ try{ const r=spawnSync(c,['-c','import numpy'],{timeout:8000,encoding:'utf8'});
-    if(r.status===0){ return _pyCache={cmd:c,numpy:true}; } }catch(e){} }
-  for(const c of cands){ try{ const r=spawnSync(c,['--version'],{timeout:5000,encoding:'utf8'});
-    const txt=(r.stdout||'')+(r.stderr||''); if(r.status===0 && !/Microsoft Store|was not found/i.test(txt)){ return _pyCache={cmd:c,numpy:false}; } }catch(e){} }
-  return _pyCache={cmd:null,numpy:false};
+  /* Resolution lives in engine/python.js (S12) — this probe used to be duplicated here and in
+   * tests/test-quality.js, and the two copies drifted. The shared one also searches the standard
+   * install roots, so it finds a python.org install that the Store alias stub is shadowing on PATH. */
+  const found = require('./engine/python.js').find();
+  if(!found) return _pyCache={cmd:null,numpy:false};
+  const cmd = found.args.length ? [found.cmd,...found.args].join(' ') : found.cmd;
+  let numpy=false;
+  try{ const r=spawnSync(found.cmd,[...found.args,'-c','import numpy'],{timeout:8000,encoding:'utf8'}); numpy=(r.status===0); }catch(e){}
+  return _pyCache={cmd:found.cmd,args:found.args,numpy,display:cmd};
 }
 const PY_HELP = "Python with numpy not found. JOLTEON (in-page) and MEDICHAM/KADABRA still work. "+
   "For DITTO: install Python from python.org (check 'Add to PATH'), then run: pip install numpy — and restart start.bat.";

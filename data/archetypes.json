@@ -1,59 +1,71 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 2248,
-  "k_selected": 4,
-  "silhouette": 0.124,
+  "n_games": 2256,
+  "k_selected": 5,
+  "silhouette": 0.113,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Garchomp-Incineroar",
-      "share": 0.655,
+      "n": "Kingambit-Whimsicott",
+      "share": 0.455,
+      "core": [
+        "kingambit",
+        "whimsicott",
+        "farigiraf",
+        "sneasler"
+      ],
+      "signature": [],
+      "w_usage": 0.455
+    },
+    {
+      "n": "Garchomp-Charizard",
+      "share": 0.221,
       "core": [
         "garchomp",
-        "incineroar",
+        "charizard",
         "kingambit",
         "whimsicott"
       ],
-      "signature": [],
-      "w_usage": 0.655
-    },
-    {
-      "n": "Farigiraf-Incineroar",
-      "share": 0.142,
-      "core": [
-        "farigiraf",
-        "incineroar",
-        "kingambit",
-        "sylveon"
-      ],
       "signature": [
-        "mawile"
+        "kingambit"
       ],
-      "w_usage": 0.142
+      "w_usage": 0.221
     },
     {
-      "n": "Rain",
-      "share": 0.126,
+      "n": "Sand",
+      "share": 0.158,
+      "core": [
+        "sinistcha",
+        "tyranitar",
+        "excadrill",
+        "incineroar"
+      ],
+      "signature": [],
+      "w_usage": 0.158
+    },
+    {
+      "n": "Pelipper-Archaludon",
+      "share": 0.111,
       "core": [
         "pelipper",
         "archaludon",
         "swampert",
-        "basculegion"
+        "grimmsnarl"
       ],
       "signature": [],
-      "w_usage": 0.126
+      "w_usage": 0.111
     },
     {
-      "n": "Sand",
-      "share": 0.077,
+      "n": "Gengar-Incineroar",
+      "share": 0.055,
       "core": [
-        "tyranitar",
-        "excadrill",
-        "sinistcha",
-        "staraptor"
+        "gengar",
+        "incineroar",
+        "politoed",
+        "swampert"
       ],
       "signature": [],
-      "w_usage": 0.077
+      "w_usage": 0.055
     }
   ]
 }
