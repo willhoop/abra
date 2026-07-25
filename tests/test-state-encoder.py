@@ -129,5 +129,45 @@ labels = [y for g in enc for _, y in g]
 ok(abs(sum(labels) / max(1, len(labels)) - 0.5) < 1e-9,
    f"labels are exactly balanced at {sum(labels)/max(1,len(labels)):.4f} — both perspectives are emitted")
 
+# ---- 5. history must not leak the present into the past ----------------------------------------
+# The lag features are appended AFTER a turn is encoded. If that order is ever reversed, lag1
+# becomes a copy of the current value: the model would score brilliantly and be reading its own
+# answer back. A perfect correlation between hp_diff and hp_diff_lag1 is the signature.
+pairs = [(r[IX["hp_diff"]], r[IX["hp_diff_lag1"]]) for g in enc for r, _ in g]
+mid = [p for p in pairs if abs(p[0]) > 1e-9]          # ignore the flat opening turns
+identical = sum(1 for a, b in mid if abs(a - b) < 1e-12)
+frac = identical / max(1, len(mid))
+ok(frac < 0.98,
+   f"hp_diff_lag1 is not a copy of hp_diff ({100*frac:.1f}% identical over {len(mid)} states) — "
+   "if this hits 100% the history is leaking the current turn and every score is inflated")
+
+# ---- 6. belief features stay in range ----------------------------------------------------------
+# top_p and entropy are normalised probabilities; coverage is prior mass. All must sit in [0,1] or
+# the priors file is being misread.
+bad = []
+for nm in ("me_belief_top_p", "me_belief_entropy", "me_prior_coverage",
+           "foe_belief_top_p", "foe_belief_entropy", "foe_prior_coverage"):
+    vals = [r[IX[nm]] for g in enc for r, _ in g]
+    if min(vals) < -1e-9 or max(vals) > 1.0 + 1e-9:
+        bad.append(f"{nm} [{min(vals):.3f},{max(vals):.3f}]")
+ok(not bad, "belief features are all within [0,1]" + (f" — out of range: {', '.join(bad)}" if bad else ""))
+
+# ---- 7. belief actually moves as information is revealed ---------------------------------------
+# prior_coverage should RISE over a game: every move used narrows what remains unknown. If it is
+# flat, the revealed-move tracking is not wired to the belief calculation.
+rose = 0
+tried = 0
+for g in enc:
+    if len(g) < 8:
+        continue
+    early = g[0][0][IX["foe_prior_coverage"]]
+    late = g[-2][0][IX["foe_prior_coverage"]]
+    tried += 1
+    if late > early:
+        rose += 1
+ok(tried and rose / tried > 0.7,
+   f"foe_prior_coverage rises over the game in {100*rose/max(1,tried):.0f}% of games — "
+   "revealed moves are narrowing the belief")
+
 print(f"\nSTATE ENCODER TESTS: {P} passed, {F} failed")
 sys.exit(1 if F else 0)

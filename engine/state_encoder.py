@@ -52,6 +52,9 @@ separate them.
     rows = encode_log(protocol_log)     # [(features, label_for_p1_perspective), ...]
 """
 import re
+import os
+import json
+import math
 
 ENCODER_VERSION = 2
 
@@ -152,7 +155,11 @@ def _priors():
                 mv = [(_norm(m.get("mv")), float(m.get("p") or 0.0)) for m in (rec.get("moves") or [])]
                 if mv:
                     _PRIORS[_norm(sp)] = mv
-        except Exception:
+        except (OSError, ValueError, TypeError, KeyError):
+            # ONLY the errors that mean "no usable priors file". A bare `except Exception` here
+            # swallowed a NameError from three missing imports and silently returned zero species,
+            # so every belief feature was identically 0 and the encoder looked like it worked. The
+            # all-zero-feature test caught it; the exception handler was actively hiding it.
             _PRIORS = {}
     return _PRIORS
 
