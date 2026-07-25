@@ -65,7 +65,8 @@ http.createServer((req,res)=>{
   }
   if(u.pathname==='/api/jolteon'){
     const py=getPy(); if(!py.cmd||!py.numpy) return send(200,'application/json',JSON.stringify({raw:PY_HELP}));
-    return run(py.cmd,[path.join('engine','jolteon.py'),'predict',q('a'),q('b')],out=>send(200,'application/json',JSON.stringify({raw:out})));
+    /* py.args matters: the resolver may return the `py -3` launcher, where the -3 is not optional. */
+    return run(py.cmd,[...(py.args||[]),path.join('engine','jolteon.py'),'predict',q('a'),q('b')],out=>send(200,'application/json',JSON.stringify({raw:out})));
   }
   if(u.pathname==='/api/ditto'){
     // Node port — no Python needed. JOLTEON (JS scoring) proposes, MEDICHAM (native) decides.
