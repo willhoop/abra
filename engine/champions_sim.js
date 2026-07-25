@@ -46,6 +46,12 @@ function sim() {
       BattleStream: require(path.join(dist, 'battle-stream')).BattleStream,
       getPlayerStreams: require(path.join(dist, 'battle-stream')).getPlayerStreams,
       RandomPlayerAI: require(path.join(base, 'dist', 'sim', 'tools', 'random-player-ai')).RandomPlayerAI,
+      /* The OFFICIAL legality check. Every rule about what a team may contain — item clause, species
+       * clause, learnsets, ability legality, format bans — already exists here and is maintained
+       * upstream. Reimplementing any of it by hand would drift the moment the format changes, and a
+       * hand-rolled learnset walk written for this project already produced 40 false positives on
+       * cosmetic formes (Sinistcha-Masterpiece does learn Matcha Gotcha). Ask the source of truth. */
+      TeamValidator: require(path.join(dist, 'team-validator')).TeamValidator,
     };
   } catch (e) {
     throw new Error(
@@ -85,6 +91,11 @@ function packTeam(species, setsBySpecies) {
   const dex = Dex.forFormat(FORMAT);
   const team = [];
   const filled = [];
+  /* ITEM CLAUSE. VGC allows ONE of each item per team, and this sampler draws items per species
+   * independently, so it duplicated them constantly. Showdown's own TeamValidator rejected 80.5% of
+   * the pool (158/200 teams), 66 of them for a second Focus Sash. Real teams never look like that,
+   * so four in five self-play games were being played with teams no human could legally bring. */
+  const usedItems = new Set();
   for (const name of species) {
     const sp = dex.species.get(name);
     if (!sp || !sp.exists) { filled.push(`${name}: UNKNOWN SPECIES`); continue; }
@@ -146,9 +157,25 @@ function packTeam(species, setsBySpecies) {
         ability = fallback;
       }
     }
+    /* Resample the item rather than blanking it on a clash: dropping to no-item would bias the whole
+     * corpus toward itemless Pokemon, which is its own distortion. Reseeding fillSet redraws from the
+     * species' measured item distribution, so the replacement is still something that species runs.
+     * Only if several draws all collide do we fall back to no item, and that is reported. */
+    let item = f.item || '';
+    if (item && usedItems.has(item)) {
+      const baseSeed = (setsBySpecies && setsBySpecies.__seed) || 1;
+      let alt = '';
+      for (let k = 1; k <= 6 && !alt; k++) {
+        const g = SP.fillSet(name, known, baseSeed + k * 7919);
+        if (g.item && !usedItems.has(g.item)) alt = g.item;
+      }
+      filled.push(`${name}: ITEM CLAUSE ${item} already used -> ${alt || 'none'}`);
+      item = alt;
+    }
+    if (item) usedItems.add(item);
     team.push({
       name: sp.name, species: sp.name,
-      item: f.item || "",
+      item,
       ability,
       moves,
       /* SPREAD AND NATURE, sampled from Smogon's official distribution rather than assumed.
