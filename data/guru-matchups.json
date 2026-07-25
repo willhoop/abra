@@ -1,159 +1,128 @@
 {
   "generated": "engine/guru.py \u2014 archetype matchup matrix from REAL outcomes (Wilson CIs)",
   "n_games": 1124,
-  "n_archetypes": 5,
+  "n_archetypes": 4,
   "archetypes": [
+    "Basculegion-Whimsicott",
     "Farigiraf-Incineroar",
-    "Garchomp-Incineroar",
     "Other",
-    "Rain",
-    "Sand"
+    "Raichu-Talonflame"
   ],
-  "decisive_matchups": [],
-  "n_decisive": 0,
+  "decisive_matchups": [
+    {
+      "a": "Basculegion-Whimsicott",
+      "b": "Raichu-Talonflame",
+      "p": 0.412,
+      "ci": [
+        0.343,
+        0.486
+      ],
+      "n": 177
+    },
+    {
+      "a": "Raichu-Talonflame",
+      "b": "Basculegion-Whimsicott",
+      "p": 0.588,
+      "ci": [
+        0.514,
+        0.657
+      ],
+      "n": 177
+    }
+  ],
+  "n_decisive": 2,
   "predictive_test": {
     "test_games": 225,
-    "log_loss_matchup_prior": 0.7038,
+    "log_loss_matchup_prior": 0.6961,
     "log_loss_coin": 0.6931,
     "log_loss_usage": 0.6924,
-    "winner_pick_accuracy": 0.5194,
+    "winner_pick_accuracy": 0.5067,
     "note": "per-game prediction is expected near the coin (format ceiling); GURU's VALUE is the validated matchup STRUCTURE below."
   },
   "matrix": {
-    "Farigiraf-Incineroar": {
-      "Farigiraf-Incineroar": null,
-      "Garchomp-Incineroar": {
-        "p": 0.568,
-        "lo": 0.485,
-        "hi": 0.648,
-        "n": 139
+    "Basculegion-Whimsicott": {
+      "Basculegion-Whimsicott": null,
+      "Farigiraf-Incineroar": {
+        "p": 0.522,
+        "lo": 0.454,
+        "hi": 0.589,
+        "n": 207
       },
       "Other": {
-        "p": 0.436,
-        "lo": 0.293,
-        "hi": 0.59,
-        "n": 39
+        "p": 0.477,
+        "lo": 0.386,
+        "hi": 0.57,
+        "n": 109
       },
-      "Rain": {
-        "p": 0.4,
-        "lo": 0.276,
-        "hi": 0.538,
-        "n": 50
-      },
-      "Sand": {
-        "p": 0.515,
-        "lo": 0.352,
-        "hi": 0.675,
-        "n": 33
+      "Raichu-Talonflame": {
+        "p": 0.412,
+        "lo": 0.343,
+        "hi": 0.486,
+        "n": 177
       }
     },
-    "Garchomp-Incineroar": {
-      "Farigiraf-Incineroar": {
-        "p": 0.432,
-        "lo": 0.352,
-        "hi": 0.515,
-        "n": 139
+    "Farigiraf-Incineroar": {
+      "Basculegion-Whimsicott": {
+        "p": 0.478,
+        "lo": 0.411,
+        "hi": 0.546,
+        "n": 207
       },
-      "Garchomp-Incineroar": null,
+      "Farigiraf-Incineroar": null,
       "Other": {
-        "p": 0.496,
-        "lo": 0.408,
-        "hi": 0.584,
-        "n": 119
+        "p": 0.469,
+        "lo": 0.372,
+        "hi": 0.568,
+        "n": 96
       },
-      "Rain": {
-        "p": 0.435,
-        "lo": 0.366,
-        "hi": 0.505,
-        "n": 191
-      },
-      "Sand": {
-        "p": 0.553,
-        "lo": 0.471,
-        "hi": 0.633,
-        "n": 141
+      "Raichu-Talonflame": {
+        "p": 0.578,
+        "lo": 0.484,
+        "hi": 0.666,
+        "n": 109
       }
     },
     "Other": {
-      "Farigiraf-Incineroar": {
-        "p": 0.564,
-        "lo": 0.41,
-        "hi": 0.707,
-        "n": 39
+      "Basculegion-Whimsicott": {
+        "p": 0.523,
+        "lo": 0.43,
+        "hi": 0.614,
+        "n": 109
       },
-      "Garchomp-Incineroar": {
-        "p": 0.504,
-        "lo": 0.416,
-        "hi": 0.592,
-        "n": 119
+      "Farigiraf-Incineroar": {
+        "p": 0.531,
+        "lo": 0.432,
+        "hi": 0.628,
+        "n": 96
       },
       "Other": null,
-      "Rain": {
-        "p": 0.538,
-        "lo": 0.386,
-        "hi": 0.684,
-        "n": 39
-      },
-      "Sand": {
-        "p": 0.565,
-        "lo": 0.368,
-        "hi": 0.744,
-        "n": 23
+      "Raichu-Talonflame": {
+        "p": 0.533,
+        "lo": 0.422,
+        "hi": 0.642,
+        "n": 75
       }
     },
-    "Rain": {
-      "Farigiraf-Incineroar": {
-        "p": 0.6,
-        "lo": 0.462,
-        "hi": 0.724,
-        "n": 50
+    "Raichu-Talonflame": {
+      "Basculegion-Whimsicott": {
+        "p": 0.588,
+        "lo": 0.514,
+        "hi": 0.657,
+        "n": 177
       },
-      "Garchomp-Incineroar": {
-        "p": 0.565,
-        "lo": 0.495,
-        "hi": 0.634,
-        "n": 191
+      "Farigiraf-Incineroar": {
+        "p": 0.422,
+        "lo": 0.334,
+        "hi": 0.516,
+        "n": 109
       },
       "Other": {
-        "p": 0.462,
-        "lo": 0.316,
-        "hi": 0.614,
-        "n": 39
+        "p": 0.467,
+        "lo": 0.358,
+        "hi": 0.578,
+        "n": 75
       },
-      "Rain": null,
-      "Sand": {
-        "p": 0.463,
-        "lo": 0.321,
-        "hi": 0.613,
-        "n": 41
-      }
-    },
-    "Sand": {
-      "Farigiraf-Incineroar": {
-        "p": 0.485,
-        "lo": 0.325,
-        "hi": 0.648,
-        "n": 33
-      },
-      "Garchomp-Incineroar": {
-        "p": 0.447,
-        "lo": 0.367,
-        "hi": 0.529,
-        "n": 141
-      },
-      "Other": {
-        "p": 0.435,
-        "lo": 0.256,
-        "hi": 0.632,
-        "n": 23
-      },
-      "Rain": {
-        "p": 0.537,
-        "lo": 0.387,
-        "hi": 0.679,
-        "n": 41
-      },
-      "Sand": null
+      "Raichu-Talonflame": null
     }
   }
 }

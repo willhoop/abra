@@ -53,7 +53,16 @@ K_FLOOR, K_CEIL = 3, 12
 
 
 def k_range_for(n_games):
-    """The widest K this sample can support, floored at 3 so there is always a matrix."""
+    """The widest K this sample can support, floored at 2 so there is always a matrix.
+
+    ARCH_K forces an exact K, which exists so the trade-off can be SWEPT rather than argued: fewer
+    archetypes means more games per cell but a coarser question, and the only way to know where that
+    stops paying is to run GURU at each K and count what clears.
+    """
+    forced = os.environ.get("ARCH_K")
+    if forced:
+        k = max(2, min(K_CEIL, int(forced)))
+        return range(k, k + 1), k
     cap = int(math.sqrt(max(1, n_games) / max(1, MIN_CELL)))
     cap = max(K_FLOOR, min(K_CEIL, cap))
     return range(K_FLOOR, cap + 1), cap
