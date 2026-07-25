@@ -89,39 +89,42 @@ function packTeam(species, setsBySpecies) {
     const sp = dex.species.get(name);
     if (!sp || !sp.exists) { filled.push(`${name}: UNKNOWN SPECIES`); continue; }
     const known = (setsBySpecies && setsBySpecies[name]) || {};
-    let moves = (known.moves || []).slice(0, 4);
-    if (moves.length < 4) {
-      /* Fill from the SAME set source the hand-written engine uses (MC.mons[].mv, built by
-       * build/medicham-embed.js from the observed-usage priors), not from the raw learnset.
-       *
-       * An earlier version filled alphabetically from the learnset and gave Charizard
-       * "Acrobatics, Aerial Ace, Air Cutter, Air Slash". Comparing the two engines on THAT produced a
-       * 32-point mean difference which was almost entirely an artifact of the filler, not a finding
-       * about either engine. Only 1.6 of 4 moves are actually revealed per set in a replay, so what
-       * fills the other 2.4 dominates the result. Both engines must be given identical teams or the
-       * comparison measures nothing. */
-      const MC = (typeof globalThis !== 'undefined' && globalThis.MC) || null;
-      const key = String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
-      const fallback = (MC && MC.mons[key] && MC.mons[key].mv) || [];
-      for (const mv of fallback) {
-        if (moves.length >= 4) break;
-        const m = dex.moves.get(mv);
-        if (!m || !m.exists) continue;
-        if (moves.some(x => dex.moves.get(x).id === m.id)) continue;
-        moves.push(m.name);
-      }
-      filled.push(`${name}: ${4 - moves.length > 0 ? 'moves(partial)' : 'moves'}`);
+
+    /* Fill unrevealed slots from the BEHAVIOUR-CLONE priors (engine/set_priors.js reading
+     * data/move-priors.json), not from the raw learnset and not from globalThis.
+     *
+     * Two failures produced this code path, both of the same kind: only ~1.38 of 4 moves are
+     * revealed per set, so WHATEVER FILLS THE OTHER 2.6 DOMINATES ANY RESULT.
+     *   1. An early version filled alphabetically from the learnset and gave Charizard "Acrobatics,
+     *      Aerial Ace, Air Cutter, Air Slash". The engine comparison built on it reported a
+     *      32-point difference that was almost entirely filler (ADR-001, attempt 1).
+     *   2. The version this replaces read `globalThis.MC`, which exists only when the browser bundle
+     *      is loaded. Under Node it is undefined, the fallback list was empty, and every unrevealed
+     *      slot fell through to the literal ['Tackle'] below. The first MEW self-play run produced
+     *      games whose most common move was Tackle, by 4x over Protect. Nothing errored.
+     *
+     * set_priors samples proportional to measured P(move | species) rather than taking the top four,
+     * because a modal set asserts a set we never observed, and because variety across games is
+     * wanted (the reason Leela Chess Zero runs self-play at a raised policy temperature). Draws are
+     * seeded, so a run reproduces. */
+    const SP = require('./set_priors.js');
+    const f = SP.fillSet(name, known, (setsBySpecies && setsBySpecies.__seed) || 1);
+    let moves = [];
+    for (const mv of f.moves) {
+      if (moves.length >= 4) break;
+      const m = dex.moves.get(mv);
+      if (!m || !m.exists) continue;                       // prior may name a move illegal in-format
+      if (moves.some(x => dex.moves.get(x).id === m.id)) continue;
+      moves.push(m.name);
     }
-    if (!moves.length) moves = ['Tackle'];
-    // item and ability likewise come from the shared set source before falling back to the dex
-    const MCm = (typeof globalThis !== 'undefined' && globalThis.MC) || null;
-    const mk = String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
-    const shared = (MCm && MCm.mons[mk]) || {};
-    const ability = known.ability || shared.ab || (sp.abilities && sp.abilities['0']) || '';
-    if (!known.ability) filled.push(`${name}: ability`);
+    if (f.filled.length) filled.push(...f.filled);
+    /* Last resort only. If this fires the species has no prior at all, which is a data gap worth
+     * seeing rather than papering over — it used to be the SILENT common case. */
+    if (!moves.length) { moves = ['Tackle']; filled.push(`${name}: NO PRIOR — fell back to Tackle`); }
+    const ability = f.ability || (sp.abilities && sp.abilities['0']) || '';
     team.push({
       name: sp.name, species: sp.name,
-      item: known.item || shared.item || '',
+      item: f.item || "",
       ability,
       moves,
       nature: known.nature || 'Hardy',
