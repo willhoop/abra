@@ -76,6 +76,8 @@ const CONC = arg('conc', '1');
 const SEED0 = parseInt(arg('seed', String(Date.now() % 1e7)), 10);
 const OUT = path.resolve(arg('out', D('data', 'games.selfplay.jsonl')));
 const KEEP = process.argv.includes('--keep-shards');
+/* Mirrors mew.js: the log sidecar sits beside the record file under the same stem. */
+const RAW_OUT = OUT.replace(/\.jsonl$/, '') + '.raw-logs.jsonl';
 
 if (path.resolve(OUT) === path.resolve(LADDER)) {
   console.error('REFUSING: --out is the ladder store. Self-play must never enter it.');
@@ -153,15 +155,46 @@ Promise.all(workers).then(() => {
         seen.add(id); out.write(t + '\n'); kept++;
       }
     }
-    out.end(() => {
-      for (const s of shards) { try { fs.unlinkSync(s); } catch (e) {} }
+    /* THE RAW LOGS MUST BE MERGED TOO, AND THIS STEP DID NOT EXIST.
+     * ------------------------------------------------------------------------------------------
+     * Each worker writes a sidecar of protocol logs beside its record shard, and those logs are the
+     * ONLY thing PORY can read — the records are game-level summaries with no per-turn state. The
+     * merge below used to delete the entire shard directory, so every raw log a distributed run
+     * produced was destroyed at the moment the run succeeded. A single-process run kept them; the
+     * farm silently did not.
+     *
+     * Filtered through the SAME `seen` id set, so records and logs stay exactly in step. */
+    const rawShards = shards.map(s => s.replace(/\.jsonl$/, '') + '.raw-logs.jsonl');
+    const rawOut = fs.createWriteStream(RAW_OUT, { flags: 'w' });
+    let rawKept = 0;
+    for (const s of rawShards) {
+      if (!fs.existsSync(s)) continue;
+      for (const line of fs.readFileSync(s, 'utf8').split('\n')) {
+        const t = line.trim(); if (!t) continue;
+        let id;
+        try { id = JSON.parse(t).id; } catch { continue; }
+        if (!seen.has(id)) continue;          // its record was dropped as a dupe; drop the log too
+        rawOut.write(t + '\n'); rawKept++;
+      }
+    }
+    let pending = 2;
+    const finish = () => {
+      if (--pending) return;
+      for (const s of shards.concat(rawShards)) { try { fs.unlinkSync(s); } catch (e) {} }
+      try { fs.unlinkSync(poolFile); } catch (e) {}
       try { fs.rmdirSync(shardDir); } catch (e) {}
       const rate = kept / Math.max(1, elapsed);
       console.error(`\nMEW FARM done: ${kept.toLocaleString()} games in ${(elapsed / 60).toFixed(1)} min ` +
                     `(${rate.toFixed(0)}/sec, ${failed} workers failed, ${dupes} duplicate ids dropped)`);
       console.error(`  -> ${path.relative(ROOT, OUT)}`);
+      console.error(`  -> ${path.relative(ROOT, RAW_OUT)}  (${rawKept.toLocaleString()} raw logs)`);
+      if (rawKept !== kept) {
+        console.error(`  WARNING: ${kept.toLocaleString()} records but ${rawKept.toLocaleString()} logs — these must match.`);
+      }
       console.error(`  VALIDATE BEFORE USE: node engine/validate_selfplay.js`);
-    });
+    };
+    out.end(finish);
+    rawOut.end(finish);
   } else {
     console.error(`\nMEW FARM done in ${(elapsed / 60).toFixed(1)} min; shards left in ${path.relative(ROOT, shardDir)}`);
   }
