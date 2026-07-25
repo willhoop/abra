@@ -22,6 +22,7 @@
  */
 'use strict';
 const path = require('path');
+const fs = require('fs');
 
 function loadBase() {
   const base = process.env.SHOWDOWN_PATH || '/tmp/ps';
@@ -74,10 +75,20 @@ let _bring = undefined;
 function bringTable() {
   if (_bring !== undefined) return _bring;
   const f = path.join(__dirname, '..', 'data', 'bring-priors.json');
-  try {
-    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
-    _bring = (j && j.species && Object.keys(j.species).length) ? j : null;
-  } catch (e) { _bring = null; }
+  if (!fs.existsSync(f)) {
+    process.stderr.write(`  WARNING: ${path.relative(path.join(__dirname, '..'), f)} missing — team preview will be the CONSTANT 'default'.\n`);
+    process.stderr.write('  Run: node engine/bring_priors.js\n');
+    _bring = null;
+    return _bring;
+  }
+  /* Deliberately NOT wrapped in a silent catch. A malformed priors file must crash the run, not
+   * quietly return null and hand back a corpus in which every team made the same preview decision —
+   * that is indistinguishable from a working run and is how ADR-001 attempt 3 happened. */
+  const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+  if (!j || !j.species || !Object.keys(j.species).length) {
+    throw new Error(`${f} has no species table — regenerate with engine/bring_priors.js`);
+  }
+  _bring = j;
   return _bring;
 }
 
