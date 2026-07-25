@@ -33,7 +33,7 @@ const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; c
 const RETRACTED = [
   { bad: /\b7,?971\b/, what: 'role-pair median cell n=7,971',
     why: 'retracted in 2.7.0 as an over-tagging artifact; measured value is 20 across 1,051 cells',
-    allowIfNear: /retract|artifact|superseded|→ 20|-> 20|was retracted/i },
+    allowIfNear: /retract|artifact|superseded|inflated|over-tagg|→ 20|-> 20/i },
   { bad: /\b0\.6875\b/, what: "WAR's held-out log-loss of 0.6875",
     why: 'withdrawn in 3.2.0 — that figure came from the unfiltered store; on clean games WAR scores 0.7048, worse than a coin',
     allowIfNear: /withdraw|unfiltered|superseded|retract/i },
@@ -44,10 +44,16 @@ const RETRACTED = [
 
 function scanDocs() {
   console.log('== 1. retracted numbers must not be stated as fact ==');
+  /* CHANGELOG.md is EXEMPT, and deliberately so. It is the historical record: a retracted figure
+   * must remain in the entry that published it and in the entry that withdrew it, or the retraction
+   * itself becomes unreadable. The rule applies to documents that assert CURRENT fact.
+   * docs/archive/ is exempt for the same reason. */
+  const EXEMPT = new Set(['CHANGELOG.md']);
   const files = [];
   for (const dir of ['docs', '.']) {
     for (const f of fs.readdirSync(D(dir))) {
       if (!f.endsWith('.md')) continue;
+      if (EXEMPT.has(f)) continue;
       if (dir === 'docs' && f === 'archive') continue;
       files.push(path.join(dir, f));
     }
@@ -57,10 +63,15 @@ function scanDocs() {
     for (const rel of files) {
       const p = D(rel);
       if (!fs.statSync(p).isFile()) continue;
-      for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
-        if (!r.bad.test(line)) continue;
-        if (r.allowIfNear && r.allowIfNear.test(line)) continue;   // stated WITH its retraction: fine
-        hits.push(`${rel}: ${line.trim().slice(0, 90)}`);
+      /* Check a WINDOW, not the line. A properly-written retraction usually quotes the old figure on
+       * one line and marks it withdrawn on another — matching line-by-line flagged exactly that and
+       * would have punished the correct behaviour. */
+      const lines = fs.readFileSync(p, 'utf8').split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (!r.bad.test(lines[i])) continue;
+        const ctx = lines.slice(Math.max(0, i - 4), i + 3).join(' ');
+        if (r.allowIfNear && r.allowIfNear.test(ctx)) continue;   // stated WITH its retraction: fine
+        hits.push(`${rel}: ${lines[i].trim().slice(0, 90)}`);
       }
     }
     ok(hits.length === 0,

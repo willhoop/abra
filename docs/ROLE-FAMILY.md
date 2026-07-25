@@ -59,7 +59,7 @@ the logistic slope of ¼ at a coin flip:
 
 > **WAR = 0.25 × (β − β_replacement) × games appeared.**
 
-**Result.** The species model **beats a coin** — held-out log-loss **0.6875 vs 0.6931** — and beats the
+**Result — WITHDRAWN.** The species model appeared to beat a coin at held-out log-loss 0.6875 vs 0.6931, a figure **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games — and beats the
 rating baseline (0.6905). So *which specific species* you bring at preview carries a small, real signal
 that roles alone and raw sheets do not. Leaders: Basculegion, Kingambit, Sylveon; trailers negative
 (Maushold, Raichu). Effect sizes are small and the magnitudes are ridge-shrunk, so WAR is an exploratory

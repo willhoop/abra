@@ -234,8 +234,7 @@ logistic slope 1/4 at p = 0.5,
 
   WAR_s = 0.25 · (β_s − β_replacement) · (games s appeared).
 
-Held-out, the species model reaches log-loss **0.6875 < 0.6931 (coin)** and beats the rating baseline
-(0.6905): *which specific species* you bring at preview carries a small real signal that roles and raw
+Held-out, the species model reached log-loss 0.6875 against a coin's 0.6931 — a result now **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games. It does not beat a coin: *which specific species* you bring at preview carries a small real signal that roles and raw
 sheets do not. Leaders are Basculegion, Kingambit, Sylveon; trailers are negative. Effect sizes are small
 and magnitudes ridge-shrunk — reported as an exploratory ordering, not settled wins.
 

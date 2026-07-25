@@ -133,6 +133,32 @@ usually degrades to a plausible default rather than an error.
 *Applied:* `test-mega-and-boosts.js` now walks all 25 natures and asserts the **direction** of change
 for all five stats against a neutral baseline. It found Naughty and Lax on its first run.
 
+### S12 — Everything is linked. Nothing is hardcoded.
+> Added 2026-07-25, after a night in which a retracted figure was found standing in five documents,
+> a regulation start date was wrong by a month, and a format id was repeated in four files.
+
+A value that exists in one place must be **referenced** from everywhere else, never **restated**.
+This is S1 extended from data to prose and configuration, and it is the standard that most of this
+project's documentation failures reduce to.
+
+**In code.** No literal that already lives in a config or a data file. Format ids come from
+`data/regulations.json`, thresholds from `data/quality-filter.json`, the SP budget from the source
+that measures it. If a constant must be written down once, it is written down once and imported.
+
+**In documents.** A figure belongs in the artifact that computes it; every other document **links**
+to it rather than copying the number. A copied number is a number that will be wrong later, and the
+copy never learns it was retracted. `n=7,971` survived three retractions in five documents for
+exactly this reason.
+
+**In configuration.** One key, one meaning, one home. `regulations.json` said the active regulation
+started `2026-07` while Smogon's own statistics and the archived replays both put it at `2026-06-17`
+— a hardcoded date nobody could check because nothing pointed at the evidence.
+
+*Enforced by:* `tests/test-docs-current.js` — a registry of retracted figures that fails the build if
+one reappears as fact, plus a check that the living documents track the CHANGELOG version. The
+retraction registry is the mechanism: **when a number is withdrawn, it goes in the registry, and the
+build refuses to let it come back.**
+
 ### S11 — One publisher
 Exactly one process commits and pushes. Two publishers racing produced a wedged rebase and hours of
 lost work. Any automation touching git refuses to act on a repository that is mid-rebase or
@@ -190,6 +216,7 @@ engine changes — which is why none of the faults above reached them.
 | S9 golden master | `validate_damage.js` before/after | applied |
 | S10 enumerate closed domains | `test-mega-and-boosts.js` walks all 25 natures | applied |
 | S11 one publisher | `push-all.bat` guard, mid-rebase refusal | applied |
+| S12 linked, never hardcoded | `tests/test-docs-current.js` — retraction registry + version currency | applied 2026-07-25 |
 
 ---
 

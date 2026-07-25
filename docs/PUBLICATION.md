@@ -29,7 +29,7 @@ proper score, a confidence interval, and an honest baseline.
    **n=20** across 1,051 cells (2026-07-25, clean games) — still above the old single-label cells of 11–18, but only just. An earlier n=7,971 was retracted in 2.7.0 as an over-tagging artifact. But predicting the winner from preview
    roles still **ties a coin** (0.694 vs 0.693): roles describe and attribute, they don't predict.
 8. **WAR: which *species* you bring carries a small real signal.** A ridge Adjusted-Plus-Minus (RAPM)
-   model on preview species **beats a coin** (0.6875 vs 0.6931) and the rating baseline (0.6905) — where
+   model on preview species appeared to beat a coin (0.6875 vs 0.6931), a result **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games — where
    roles and raw sheets do not. Leaders Basculegion / Kingambit / Sylveon; effect sizes small, ridge-shrunk.
 9. **Roles can be discovered, not declared.** NMF of the team×role matrix recovers six interpretable
    archetypes (recon-err 0.53) — Intimidate+Fake-Out control, physical offense, special offense+sustain,

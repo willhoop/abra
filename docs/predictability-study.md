@@ -63,7 +63,7 @@ humans-only temporal split as the model's own evaluation.
 
 ## 3. Result 1 — how often does the better *player* win?
 
-Across 2,318 games with unequal ratings, **the higher-rated player won just 55.0% of the time.** Broken
+Across 2,318 games with unequal ratings the higher-rated player won 55.0% of the time — **a figure superseded on 2026-07-25**. It was computed with the NAME-only bot flag, which missed six high-volume accounts. Removing behavioural bots gives **52.4%, 95% CI [49.9, 54.9]**, which includes a coin flip; the full quality filter gives 50.9%. See docs/STUDY-DESIGN-skill-vs-luck.md. Broken
 down by the size of the rating gap, and compared to what the Elo formula
 `p = 1/(1+10^(−Δ/400))` predicts:
 
