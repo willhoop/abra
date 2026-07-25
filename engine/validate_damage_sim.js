@@ -89,21 +89,30 @@ function simDamage(sc, calcStats) {
   const wid = WEATHER_ID[weather];
   if (wid) { battle.field.weather = wid; battle.field.weatherState = { id: wid, duration: 5 }; }
 
-  const move = battle.dex.getActiveMove(moveName);
-
-  /* randomizer() is trunc(baseDamage * (100 - random(16)) / 100). random(16)->15 is the 85% floor,
-   * random(16)->0 the 100% ceiling. Overriding it gives the exact range instead of one sample. */
+  /* randomizer() is trunc(baseDamage * (100 - random(16)) / 100), so random(16)->15 is the 85% floor
+   * and random(16)->0 the 100% ceiling.
+   *
+   * CAREFUL, this bit is a trap. A blanket `random = () => 0` also forces a CRITICAL HIT, because the
+   * crit check is randomChance(1, 24) === random(24) === 0. The first version of this file did that
+   * and produced a "maximum" 1.5x above the real one — 168-300 where calc said 168-200, and a minimum
+   * ABOVE the maximum. Return a non-zero value for every call that is not the damage roll.
+   *
+   * Also take a FRESH active move per call: moveHitData (which caches the crit decision per target)
+   * lives on the move object, so reusing it lets the first call's outcome leak into the second. */
   const orig = battle.random.bind(battle);
-  battle.random = (n) => (n === 16 ? 15 : 0);
-  const lo = battle.actions.getDamage(src, tgt, move);
-  battle.random = (n) => 0;
-  const hi = battle.actions.getDamage(src, tgt, move);
+  const roll = (v) => (n) => (n === 16 ? v : 1);   // 1, never 0 => no forced crit
+
+  battle.random = roll(15);
+  const lo = battle.actions.getDamage(src, tgt, battle.dex.getActiveMove(moveName));
+  battle.random = roll(0);
+  const hi = battle.actions.getDamage(src, tgt, battle.dex.getActiveMove(moveName));
   battle.random = orig;
 
   /* Spread reduction is applied by moveHit in a real turn, NOT by getDamage. @smogon/calc applies it
    * because the Field says Doubles. Apply it here so the two are comparable, and only for moves that
    * actually hit more than one target. */
-  const spreads = move.target === 'allAdjacent' || move.target === 'allAdjacentFoes';
+  const tgtKind = battle.dex.moves.get(moveName).target;
+  const spreads = tgtKind === 'allAdjacent' || tgtKind === 'allAdjacentFoes';
   const f = spreads ? 0.75 : 1;
   const adj = v => (typeof v === 'number' ? Math.floor(v * f) : v);
   return { lo: adj(lo), hi: adj(hi), spread: spreads };
