@@ -7,7 +7,8 @@
       "showdownFormat": "gen9championsvgc2026regmb",
       "bo3Format": "gen9championsvgc2026regmbbo3",
       "openTeamSheets": true,
-      "started": "2026-07",
+      "started": "2026-06-17",
+      "started_evidence": "Smogon publishes gen9championsvgc2026regmb usage for 2026-06, and archived replays run 2026-06-17..20. The earlier value of '2026-07' was wrong by a month and would understate the regulation's age in any recency weighting.",
       "status": "active"
     }
   }

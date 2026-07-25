@@ -21,6 +21,10 @@ on:
       month:
         description: 'Month to fetch (YYYY-MM). Blank = most recent published.'
         required: false
+      regen_mew:
+        description: 'Also rebuild the MEW self-play corpus on the new priors (slow — builds Showdown).'
+        required: false
+        default: 'false'
 permissions:
   contents: write
 concurrency:
@@ -47,11 +51,30 @@ jobs:
         continue-on-error: true
         run: node engine/smogon_priors.js
 
+      # Regenerate MEW on the new priors, or the self-play corpus silently ages against them. This
+      # is not hypothetical: the batch generated on 2026-07-25 used a flat 11/11/11/11/11/11 spread
+      # and understated Garchomp's Attack by 13%, and the batch before that filled every unrevealed
+      # move slot with Tackle. Neither errored; both were caught by eye. The corpus must be rebuilt
+      # whenever the priors that produced it change, and validate_selfplay is the gate that says so.
+      #
+      # Needs a built Showdown master checkout, which CI does not have, so this is opt-in via
+      # workflow_dispatch rather than run on the cron. Left explicit rather than silently skipped.
+      - name: Regenerate MEW self-play (manual runs only — needs SHOWDOWN_PATH)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.regen_mew == 'true'
+        continue-on-error: true
+        run: |
+          git clone --depth 1 https://github.com/smogon/pokemon-showdown /tmp/ps
+          cd /tmp/ps && npm install --no-audit --no-fund && node build && cd -
+          rm -f data/games.selfplay.jsonl
+          SHOWDOWN_PATH=/tmp/ps node engine/mew.js --n 1000 --conc 4 --seed $(date +%Y%m%d)
+          SHOWDOWN_PATH=/tmp/ps node engine/validate_selfplay.js --mirrors=300
+          node build/build_mew_bundle.js 12
+
       - name: Commit anything new
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/smogon-stats data/smogon-priors.json
+          git add data/smogon-stats data/smogon-priors.json data/mew.js
           if git diff --cached --quiet; then
             echo "no new stats this run"; exit 0
           fi
