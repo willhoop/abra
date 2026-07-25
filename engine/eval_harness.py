@@ -47,6 +47,76 @@ def logloss(p, y):
     p = np.clip(p, 1e-6, 1 - 1e-6); return -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
 def acc(p, y): return np.mean((p >= 0.5).astype(int) == y)
 
+def min_detectable_edge(n, alpha=0.05, power=0.80):
+    """The smallest edge over a coin this sample could detect, in accuracy points.
+
+    THE POWER GATE. A null is only a finding if you say how big an effect you could have SEEN.
+    "Rating does not beat a coin" and "rating does not beat a coin by more than 5.4 points, at
+    n=676" are different statements: the first sounds like a discovery, the second is true and
+    tells you exactly when to re-check.
+
+    This project has published several nulls from a three-day store - JOLTEON, preview roles,
+    CHOMP-EV, WAR, and the rating ceiling - without ever stating their power. On 2026-07-25 the
+    rating ceiling turned out to be underpowered by a factor of about eight: detecting a 2-point
+    edge needs ~4,900 games and we had 676.
+
+    Two-sided test of p vs 0.5. Variance is taken at p=0.5, which is the conservative choice and
+    also the right one when the whole question is whether p differs from 0.5 at all.
+    """
+    from math import sqrt
+    z_a = 1.959963985 if abs(alpha - 0.05) < 1e-9 else _z(1 - alpha / 2)
+    z_b = 0.841621234 if abs(power - 0.80) < 1e-9 else _z(power)
+    if not n or n <= 0:
+        return None
+    return float((z_a + z_b) * sqrt(0.25 / n))
+
+
+def _z(q):
+    """Inverse normal CDF (Acklam's rational approximation). Only used for non-default alpha/power."""
+    import math
+    a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+         1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00]
+    b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+         6.680131188771972e+01, -1.328068155288572e+01]
+    c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+         -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00]
+    d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00]
+    pl, ph = 0.02425, 1 - 0.02425
+    if q < pl:
+        t = math.sqrt(-2 * math.log(q))
+        return (((((c[0]*t+c[1])*t+c[2])*t+c[3])*t+c[4])*t+c[5]) / ((((d[0]*t+d[1])*t+d[2])*t+d[3])*t+1)
+    if q > ph:
+        t = math.sqrt(-2 * math.log(1 - q))
+        return -(((((c[0]*t+c[1])*t+c[2])*t+c[3])*t+c[4])*t+c[5]) / ((((d[0]*t+d[1])*t+d[2])*t+d[3])*t+1)
+    t = q - 0.5; r = t * t
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*t / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1)
+
+
+def power_block(n, observed_acc=None):
+    """The block every model report should carry. Turns a bare null into an honest one."""
+    from math import ceil
+    mde = min_detectable_edge(n)
+    if mde is None:
+        return {"n": n, "error": "no sample"}
+    out = {
+        "n": int(n),
+        "min_detectable_edge_pts": round(100 * mde, 2),
+        "can_detect_accuracy_at_or_above": round(50 + 100 * mde, 2),
+        "games_needed_for": {f"{pts}pt": int(ceil((1.959963985 + 0.841621234) ** 2 * 0.25 / (pts / 100.0) ** 2))
+                             for pts in (1, 2, 3, 5)},
+        "reading": ("A null here means 'no effect larger than min_detectable_edge_pts was visible at "
+                    "this sample size'. It does NOT mean the effect is zero. Quote the two together "
+                    "or not at all."),
+    }
+    if observed_acc is not None:
+        edge = abs(100 * (observed_acc - 0.5))
+        out["observed_edge_pts"] = round(edge, 2)
+        out["powered"] = bool(edge >= 100 * mde)
+        out["verdict"] = ("real effect at this sample size" if edge >= 100 * mde
+                          else "UNDERPOWERED - cannot distinguish from a coin")
+    return out
+
+
 def boot_ci(metric, p, y, B=2000, seed=0):
     rng = np.random.default_rng(seed); n = len(y); vals = np.empty(B)
     for i in range(B):
@@ -126,7 +196,20 @@ def main():
     print(f"  JOLTEON log-loss {ll_j:.3f}  vs  coin {ll_c:.3f}  vs  Elo {ll_e:.3f}")
     if ll_j < ll_e: print("  -> JOLTEON beats the player-Elo baseline in log-loss: the team sheet adds real signal.")
     else:           print("  -> JOLTEON does NOT beat player-Elo: the team-sheet model is not earning its keep.")
+
+    # THE POWER GATE. Print it next to the verdict, always, so a null can never be quoted without
+    # the size of the effect it could actually have seen.
+    pw = power_block(len(y), observed_acc=float(acc(p_jolt, y)))
+    print("\nPOWER")
+    print(f"  n = {pw['n']}: can only detect an edge of {pw['min_detectable_edge_pts']} points or more "
+          f"(accuracy >= {pw['can_detect_accuracy_at_or_above']}%)")
+    print(f"  JOLTEON's observed edge: {pw['observed_edge_pts']} points -> {pw['verdict']}")
+    print("  games needed: " + ", ".join(f"{k} {v}" for k, v in pw["games_needed_for"].items()))
+    if not pw["powered"]:
+        print("  A null at this size is 'not visible', NOT 'not there'. Do not publish it as an effect of zero.")
+
     out = {'test_n': len(te), 'ece': e,
+           'power': pw,
            'logloss': {'coin': ll_c, 'elo': float(ll_e), 'usage': float(logloss(p_use,y)), 'jolteon': float(ll_j)},
            'brier': {'coin': float(brier(p_coin,y)), 'elo': float(brier(p_elo,y)), 'jolteon': float(brier(p_jolt,y))}}
     json.dump(out, open(os.path.join(HERE, '../data/eval-report.json'), 'w'), indent=2)
