@@ -63,10 +63,24 @@ duplicated id. Evidence: the deduplicated store is byte-identical to the one alr
 11,239 bad player-sides, with 9,364 sides showing five brought and 3 showing seven. The current
 figures are an improvement on the pre-incident store, not a regression from it.
 
-Cause is not yet established and is not asserted here. One hypothesis worth testing first, given
-`engine/illusion.js` already exists to detect exactly this: Illusion (Zoroark) causes a replay to
-reveal a species that is not on the team, which would produce both a `brought ⊄ six` violation and a
-brought count above four from a single mechanic. Untested.
+**Cause established — battle forme changes are appended to `brought`.** Of the 1,033 offending
+entries, **1,003 contain `mega`**; the remaining 30 are `palafinhero` (18), `aegislashblade` (7),
+`mimikyubusted` (4) and `morpekohangry` (1). Zoroark accounts for **zero**. Every case is the same
+mechanism: a forme change during battle is recorded as an additional species in `brought`, while
+`six` carries the base forme, so the side shows five or six brought and the forme name is not a
+member of `six`.
+
+This is `docs/ARCHITECTURE.md` fault 1.5 recurring. That fault was recorded when the mega double
+count collapsed CHOMP-EV's eval set from ~1,200 games to 43, and §5 of the same document still lists
+"`brought` is still 5 in ~115 games and 0 in 176; not yet explained" as an open gap. It is now
+explained, and it has grown from ~115 sides to 845 at five and 23 at six.
+
+The fix belongs in `engine/durable-ingest.js` — a forme change must update the identity of an
+existing `brought` entry rather than append a new one — followed by a `MODE=reparse`, which the raw
+archive makes free. Not done in this pass.
+
+An earlier version of this entry named Zoroark's Illusion as the likely cause. That was a guess and
+it is wrong; the measurement above replaces it.
 
 ---
 
