@@ -360,7 +360,14 @@ def main():
 
     print(f"PORY-NN  (state encoder v{ENCODER_VERSION}, {len(FEATURE_NAMES)} features)")
     print("loading:")
-    got = load(paths, args.limit)
+    keep = None
+    if args.clean:
+        keep = clean_ids()
+        if keep is None:
+            print("REFUSING to run: --clean was requested and the filter could not be applied.")
+            return
+        print(f"  quality filter: {len(keep):,} games pass (no bot detected, no forfeit)")
+    got = load(paths, args.limit, keep=keep)
     if got is None:
         print("no data — nothing to do"); return
     X, Y, G = got
