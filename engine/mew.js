@@ -275,9 +275,18 @@ async function playOne(teamA, teamB, seed) {
    * probability is NOT the mega rate: RandomPlayerAI spends the roll on the first available form
    * change in the order terastallize -> dynamax -> mega, so in Gen 9 a Tera consumes it and the mega
    * waits for another turn. Raising this number has less effect than it looks like it should. */
-  /* SIDES ALTERNATE. If the challenger always sat on p1 any advantage that side carries — move
-   * order on speed ties, who the engine asks first — would be scored as policy strength. Swapping
-   * on every other battle cancels it, and `swapped` is recorded so the result can be read back. */
+  /* SIDES ALTERNATE — AND THE FIRST VERSION OF THIS COMMENT GAVE THE WRONG REASON.
+   *
+   * It said p1 might enjoy a move-order advantage. It does not. Pokemon is SIMULTANEOUS: both sides
+   * lock in without seeing the other, and execution order is priority, then Speed, then a random
+   * tie-break (Battle.speedSort collects equal-speed actors and shuffles them). There is no seat
+   * that moves first, so there is nothing there to cancel.
+   *
+   * The swap is kept because a DIFFERENT asymmetry is real: games are indexed against a triangular
+   * enumeration of unordered team pairs (a <= b), so team A is always the lower-indexed team and
+   * team B the higher. The team list is not in arbitrary order, so the seat correlates with which
+   * team you are handed. Alternating cancels that, which is what the p1/p2 split in the head-to-head
+   * output is there to verify — measured at 61.4% and 59.0%, a gap well inside noise. */
   const swapped = !!(POLICY2 && (seed % 2 === 1));
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
