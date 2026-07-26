@@ -93,7 +93,33 @@ Default to 1630 (~91,000 effective) and never quote 1760 as authoritative.
 
 Ordered by what blocks what.
 
-1. **Set diversity, RE-SCOPED — smaller and more specific than first reported.**
+1. **Set diversity — CLOSED. The gap does not exist.** *(kept, because the way it was wrong is the
+   useful part)*
+
+   Final measurement, at matched sample size across 76 shared species: **we produce 13.2 distinct
+   sets per species against a real 11.3.** We are slightly MORE varied than the ladder. There is
+   nothing to fix.
+
+   It was reported as a defect three times, at 23-against-51, then 9.8-against-13.0, then as a
+   thin-candidate-pool problem, and every version was a measurement artifact:
+
+   - `realism_report` capped the generated corpus with `--limit` but read the real one in full, and
+     distinct-counts grow with n mechanically. On 292 games against 13,249 it printed 5.7 against
+     52.0 and flagged itself "large" every run.
+   - Real games reveal fewer moves per set (1.40 of 4 against our 1.83), so more partial views of the
+     SAME set count as distinct on the real side.
+   - The thin-pool explanation was tested directly: correlation between our candidate-pool size and
+     the gap is **0.04** across 28 species. None.
+
+   **The lesson, which generalises past this item:** every one of those was a denominator or
+   sample-size mismatch between the two corpora, and the same class of error previously invented a
+   switching defect (23.3 against 46.7 per 100 moves, which is 4.3 against 5.7 per game). Before
+   believing any generated-vs-real gap, check that both sides had the same opportunity to produce it.
+
+   What remains true and is now item 1a: we produce the single most common set 48% of the time
+   against a real 44%. Small, real, and not what any of the above was about.
+
+2. ~~**Set diversity, RE-SCOPED**~~ *(superseded by the above; text kept for the record)*
 
    The realism report showed 23 distinct sets per species against 51 real, and that was called the
    largest remaining gap. It was mostly a measurement artifact. Two confounds, both inflating the

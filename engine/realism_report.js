@@ -83,7 +83,12 @@ function gather(store, logs, limit) {
        * Only revealed data is available, so this UNDERSTATES diversity equally for both corpora —
        * which is fine, because the comparison is what matters, not the level. */
       const key = sp + '::' + (s.moves || []).map(norm).sort().join(',') + '::' + norm((s || {}).item || '');
-      (R.setKeys[sp] = R.setKeys[sp] || new Set()).add(key);
+      /* KEPT AS A LIST, NOT A SET, so diversity can be compared at MATCHED SAMPLE SIZE.
+       * Storing a Set here made the metric uncomparable: --limit caps the generated corpus while the
+       * real one is read in full, and distinct-counts grow with n no matter what, so the line
+       * reported 5.7 against 52.0 on 292 games against 13,249 and flagged itself "large" every single
+       * run. A diagnostic that always fires is one people learn to scroll past. */
+      (R.setKeys[sp] = R.setKeys[sp] || []).push(key);
     }
     if (Array.isArray(g.turns)) { R.turnsTotal += g.turns.length; R.turnsGames++; }
     if (limit && R.games >= limit) return false;
@@ -150,12 +155,23 @@ function main() {
    * instantly (one key per species). But a gap here is a prompt to check properly — fully-revealed
    * sets only, at equal sample size — not a defect on its own. Done that way the gap is 9.8 against
    * 13.0 rather than the 23 against 51 this line shows. */
-  const div = (R) => {
-    const ks = Object.keys(R.setKeys).filter(k => R.setKeys[k].size > 0);
-    if (!ks.length) return 0;
-    return ks.reduce((a, k) => a + R.setKeys[k].size, 0) / ks.length;
+  /* Compare only species present in BOTH, and only over the first min(n) observations of each, so
+   * the two sides face the same opportunity to be varied. Measured this way the gap was 9.8 against
+   * 13.0 where the naive count said 23 against 51. */
+  const divPair = () => {
+    const shared = Object.keys(self.setKeys).filter(k => (real.setKeys[k] || []).length);
+    let a = 0, b = 0, used = 0;
+    for (const k of shared) {
+      const n = Math.min(self.setKeys[k].length, real.setKeys[k].length);
+      if (n < 10) continue;                    /* too few to say anything about variety */
+      a += new Set(self.setKeys[k].slice(0, n)).size;
+      b += new Set(real.setKeys[k].slice(0, n)).size;
+      used++;
+    }
+    return used ? [a / used, b / used, used] : [0, 0, 0];
   };
-  add('distinct revealed sets per species', div(self), div(real), '');
+  const [dSelf, dReal, dN] = divPair();
+  add(`distinct sets per species (matched n, ${dN} spp)`, dSelf, dReal, '');
 
   console.log('  metric                                 generated      real        gap');
   console.log('  ' + '-'.repeat(72));
