@@ -56,27 +56,31 @@ const FEATURES = [
    * pull available, the honest answer was that the old model could not say: it had assumed the
    * answer. These are the FRACTION of targets hit in each bucket (so a spread move can be 4x on one
    * foe and resisted by the other), with a neutral hit as the reference level. */
-  'eff4',         // 4x
-  'eff2',         // 2x
-  'effHalf',      // 0.5x
-  'effQuarter',   // 0.25x
-  'allyHit',      // the move also hits my OWN partner and my partner is not immune to it
+  'eff4',            // it hits a 4x weakness
+  'eff2',            // it hits a 2x weakness
+  'effHalf',         // it is resisted
+  'effQuarter',      // it is resisted twice over
+  'allyHit',         // it also hits my own partner, and my partner is not immune to it
   /* P(the target's ABILITY nullifies this move). Flash Fire eating Fire and Armor Tail refusing
    * priority are FACTS about the game, not judgements about value, so encoding them costs nothing
    * in ceiling. They are read from data/ability-blocks.json, which is measured from recorded
    * battles rather than typed, and weighted by Smogon's per-species ability odds — so this never
    * peeks at hidden information, it only knows what the population knows. */
-  'abilityBlock',
-  'immune',       // the target is outright immune — the move does literally nothing
-  'stab',         // the move's type is one of the user's types
-  'bp',           // base power / 100; 0 for status moves
-  'isStatus',     // the move deals no damage
-  'tgtHurt',      // 1 - target's HP fraction; a finishing blow scores differently from an opener
-  'deadStatus',   // move.status set, but the target already carries a status -> it fails
-  'deadSide',     // move.sideCondition already up on the user's side -> it fails
-  'deadField',    // move.pseudoWeather already active -> it fails
-  'deadWeather',  // move.weather already the active weather -> it fails
-  'deadStall',    // move.stallingMove and the user stalled last turn -> it usually fails
+  'abilityBlock',    // the target probably has an ability that eats it
+  'immune',          // it does nothing at all
+  'stab',            // it matches my own type
+  'bp',              // it is a powerful move
+  /* ACCURACY. A fact in the dex (`move.accuracy`) that this model could not see, so it had no way to
+   * learn that people click Rock Slide over Focus Blast for reasons that have nothing to do with type
+   * or power. `true` in the dex means "never misses", which is why this is not simply a division. */
+  'accuracy',        // how often it hits
+  'isStatus',        // it is a status move
+  'tgtHurt',         // the target is already hurt
+  'deadStatus',      // the target already has a status, so it would fail
+  'deadSide',        // that side effect is already up, so it would fail
+  'deadField',       // that field effect is already up, so it would fail
+  'deadWeather',     // that weather is already set, so it would fail
+  'deadStall',       // I protected last turn, so it would probably fail
   /* ---- STATS. FACTS THE MODEL COULD NOT SEE AT ALL UNTIL NOW ------------------------------------
    * Speed is a fact. So are Attack, Defence and HP. They sit in the dex for every species and none
    * of them were features, which is why this model could not learn any of the things it was
@@ -84,10 +88,16 @@ const FEATURES = [
    * when it cannot see Attack, and it cannot learn what Tailwind is for when it cannot see Speed.
    * The judgement is still fitted — only the ingredients are supplied. Each is scaled so a value
    * near 0 means "typical for this format" and the sign carries the meaning. */
-  'fasterThanTarget',  // 1 if the user outspeeds the target at base — who moves first
-  'tgtPhysical',       // the target's Attack share of its two offences: is it a physical attacker
-  'defMismatch',       // my attacking side against the target's WEAKER defence: am I hitting the soft side
-  'tgtBulk',           // the target's HP x relevant defence, scaled: how much work it takes to remove
+  /* ---- WHO MOVES FIRST -------------------------------------------------------------------------
+   * Not a judgement, a rule: priority beats speed, Tailwind doubles a side's speed, and Trick Room
+   * reverses the whole order. The first version of this compared BASE SPEED and nothing else, which
+   * is wrong on every Tailwind turn, every Trick Room turn and every priority move -- and Trick Room
+   * teams are a pillar of this format. board.js already tracks all three; it simply was not asked. */
+  'movesFirst',      // I move before the target, counting priority, Tailwind and Trick Room
+  'priority',        // this move cuts the queue (Fake Out, Sucker Punch, Extreme Speed)
+  'tgtPhysical',     // the target attacks physically rather than specially (negative = specially)
+  'defMismatch',     // I hit its softer defence
+  'tgtBulk',         // the target is bulky
   /* ---- DOES IT KILL. THE LARGEST HOLE IN THIS MODEL --------------------------------------------
    * Until now MAG could not tell whether a move removes the thing it is aimed at. Most of what a VGC
    * turn is about is exactly that, and the evidence the model was straining for it is already on
@@ -108,17 +118,50 @@ const FEATURES = [
    * The stat lines come from the same public source as everything else the model sees: Smogon's
    * observed spreads. That is not peeking at hidden information -- both players know what a Garchomp
    * usually runs, exactly as both players know it usually has Rough Skin. */
-  'koTarget',     // fraction of this move's targets the MINIMUM roll removes outright -- a guaranteed kill
-  'dmgFrac',      // expected damage as a share of the target's REMAINING hp, averaged, capped at 1
+  'koTarget',        // the odds this really kills it: the worst roll still does, and the move lands
+  'dmgFrac',         // how much of what is left of the target it takes
   /* WILL I BE KILLED. This cannot be a feature on its own, and the reason is structural rather than
    * a judgement call: a conditional logit compares candidates within one decision, so any quantity
    * identical across all of a Pokemon's options -- and "am I threatened" is a property of the board,
    * not of the move -- cancels exactly out of the softmax and can never receive a weight. It has to
    * enter as an INTERACTION with something the move changes. These are those interactions. */
-  'killsThreat',  // this move kills a foe whose own best move is estimated to kill me
-  'koFirst',      // it kills AND I outspeed that target -- the kill lands before its attack does
-  'protectThreatened', // this move protects and I am facing an estimated kill
-  'priorLogP',    // log of the behaviour clone's P(move | species). What the CURRENT bot uses alone.
+  'killsThreat',     // it kills the thing that was about to kill me
+  'koFirst',         // it kills, and I move first, so the kill lands before their attack
+  'protectThreatened', // this move protects, and I am facing a kill
+  /* ---- WHAT A MOVE DOES TO THE OTHER PLAYER'S OPTIONS -------------------------------------------
+   * Taunt, Encore and Disable have no base power, set no status, no screen and no weather. In every
+   * version of this vector before now they were INDISTINGUISHABLE from any other status move, and so
+   * they rode entirely on how often people click them. A model that cannot represent what Taunt does
+   * can never learn when it is right.
+   *
+   * No move is named here. `move.volatileStatus` is a dex DATA field and it carries all of them --
+   * taunt, encore, disable, followme, ragepowder, substitute, 35 distinct values in this format. The
+   * split is by `move.target`, which is also data: a volatile aimed at the opponent takes something
+   * away from them, a volatile aimed at yourself adds something to you, and those are different acts.
+   *
+   * KNOWN GAP, STATED: the stored games do not record volatile statuses, so this cannot tell that a
+   * target is ALREADY taunted -- the way deadStatus can tell they are already burned. Taunting into
+   * a Taunt therefore looks the same as the first one. That is a data limitation, not a modelling
+   * choice, and it will stay until the ingest records them. */
+  'volatileOnFoe',   // it takes an option away from the target (Taunt, Encore, Disable)
+  'volatileOnSelf',  // it puts something on me or my side (Substitute, Follow Me, Rage Powder)
+  /* ---- STATUS THAT ACTUALLY BITES ---------------------------------------------------------------
+   * Burn halves physical Attack. That is a rule of the game, not an opinion, which is why it is
+   * allowed in here -- and it is the whole reason Will-O-Wisp into a special attacker is a wasted
+   * turn. The model already had `tgtPhysical` and `isStatus` separately and could not multiply them:
+   * a linear score cannot form "burn AND physical" out of two main effects, so it had no way to
+   * express the difference. Paralysis is the same shape against a fast target. */
+  'statusBites',     // the status this inflicts hits a stat the target actually relies on
+  /* ---- AM I EVEN GOING TO GET TO DO THIS -------------------------------------------------------
+   * If a kill is aimed at me and I do not move first, everything I might click is worth nothing --
+   * I am gone before it happens. That is a fact about the queue, and it is the condition that makes
+   * switching or Protect right rather than merely available. */
+  'diesBeforeMoving', // I am facing a kill and I do not move first
+  /* ---- WHAT THE CROWD DOES ---------------------------------------------------------------------
+   * The only feature here that is not a fact about the game. It is what the previous bot ran on by
+   * itself, kept as one term among 25 rather than as the whole model, so its pull can be measured
+   * against the facts instead of assumed. */
+  'priorLogP',       // it is a popular move
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
 
@@ -316,11 +359,19 @@ function dmgMon(mon, D) {
 
 /* Estimated damage of `m` (typed as it will actually land) from `att` onto `def`.
  * `{min, max, mean}` as a FRACTION of the defender's max hp. */
-function dmgFractions(D, att, def, m, mType, spread) {
+/* Showdown's weather ids -> the two the damage formula multiplies on. Written as a mapping FROM the
+ * tracked value rather than as a test for a named move, so a new weather setter needs no edit. */
+const WEATHER_KIND = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain' };
+
+function dmgFractions(D, att, def, m, mType, spread, board) {
   if (!att || !def) return null;
   const mv = { t: mType, bp: m.basePower || 0, c: m.category === 'Physical' ? 'P' : 'S' };
   if (!mv.bp) return null;
-  const field = { weather: '', terrain: '' };
+  /* THIS PASSED AN EMPTY FIELD, and the board knew the weather the whole time. Sun multiplies Fire
+   * by 1.5 and rain multiplies Water by 1.5, so every damage number under weather was wrong -- on a
+   * Torkoal/Drought or Pelipper/Drizzle team, which is most of what this format's damage comes from.
+   * Same class of bug as scoring Weather Ball as Normal, in the code written to fix that one. */
+  const field = { weather: (board && WEATHER_KIND[board.weather]) || '', terrain: '' };
   const r = D.dmgRange(att, def, mv, field, !!spread);
   if (!r || !def.st || !def.st.hp) return null;
   return { min: r.min / def.st.hp, max: r.max / def.st.hp, mean: (r.min + r.max) / 2 / def.st.hp };
@@ -356,7 +407,7 @@ function incomingThreat(board, side, user, att, D) {
       for (const id of (fm.moves || [])) {
         const fmv = MC.moves[id];
         if (!fmv || !fmv.bp) continue;
-        const r = dmgFractions(D, fm, att, { basePower: fmv.bp, category: fmv.c === 'P' ? 'Physical' : 'Special' }, fmv.t, false);
+        const r = dmgFractions(D, fm, att, { basePower: fmv.bp, category: fmv.c === 'P' ? 'Physical' : 'Special' }, fmv.t, false, board);
         if (r && r.mean > best) best = r.mean;
       }
       threat.set(f.mon, best);
@@ -368,7 +419,7 @@ function incomingThreat(board, side, user, att, D) {
   return val;
 }
 
-let _blocks = null, _abil = null;
+let _blocks = null, _abil = null, _sash = null;
 function abilityTables() {
   if (_blocks !== null) return { blocks: _blocks, abil: _abil };
   const fs2 = require('fs'), p2 = require('path');
@@ -376,11 +427,16 @@ function abilityTables() {
   const b = rd('ability-blocks.json');
   _blocks = (b && b.abilities) || {};
   const sp = rd('smogon-priors.json');
-  _abil = {};
+  _abil = {}; _sash = {};
   for (const [k, v] of Object.entries((sp && sp.species) || {})) {
     if (v && v.abilities) _abil[norm(k)] = v.abilities.map(a => [norm(a.ability), (+a.pct || 0) / 100]);
+    /* FOCUS SASH IS THE MOST COMMON ITEM IN THIS FORMAT -- 12.4% of everything held, measured off the
+     * same usage file. It survives any single hit from full health at 1 HP, which means a "guaranteed
+     * kill" on a healthy target is simply not guaranteed, and MAG had no way to know that. The odds
+     * are per species and public, exactly like the ability odds beside them. */
+    if (v && v.items) for (const it of v.items) if (norm(it.item) === 'focussash') _sash[norm(k)] = (+it.pct || 0) / 100;
   }
-  return { blocks: _blocks, abil: _abil };
+  return { blocks: _blocks, abil: _abil, sash: _sash };
 }
 
 /* Does a measured rule match this move? The rule strings come out of the derivation, so a new rule
@@ -503,6 +559,17 @@ function featuresFor(cand, user, board, side, dex, priorP) {
 
   const damaging = m.category !== 'Status' && m.basePower > 0;
   set('isStatus', damaging ? 0 : 1);
+  /* `accuracy === true` is the dex's way of saying "cannot miss" and is NOT the number 1 -- reading
+   * it as a number would give every never-miss move an accuracy of 0.01. */
+  const acc = (m.accuracy === true || m.accuracy == null) ? 1 : Math.max(0, Math.min(1, m.accuracy / 100));
+  set('accuracy', acc);
+  set('priority', Math.max(-1, Math.min(1, (m.priority || 0) / 3)));   // dex field, scaled
+
+  /* A volatile aimed at the opponent removes an option from them; aimed at yourself it adds one to
+   * you. `move.target` is the dex's own field, so neither branch names a move. */
+  if (m.volatileStatus) {
+    if (SELF_TARGETS.has(m.target)) set('volatileOnSelf', 1); else set('volatileOnFoe', 1);
+  }
   set('bp', damaging ? Math.min(2.5, (m.basePower || 0) / 100) : 0);
 
   /* The type this move will ACTUALLY hit with on this board — see moveType. Using m.type here
@@ -559,9 +626,24 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     if (ub && tbs.length) {
       const avg = k => tbs.reduce((a, b) => a + b[k], 0) / tbs.length;
       const tb = { hp: avg('hp'), atk: avg('atk'), def: avg('def'), spa: avg('spa'), spd: avg('spd'), spe: avg('spe') };
-      set('fasterThanTarget', ub.spe > tb.spe ? 1 : 0);
+      /* Tailwind is a side condition and Trick Room a pseudo-weather, both already tracked. Speeds
+       * are base lines -- the exact spread is hidden -- so this is the order two informed players
+       * would both expect, not a claim about the actual stat. */
+      const foeSide = side === 'p1' ? 'p2' : 'p1';
+      const mySpe = ub.spe * (board.hasSide(side, 'tailwind') ? 2 : 1);
+      const thSpe = tb.spe * (board.hasSide(foeSide, 'tailwind') ? 2 : 1);
+      const slowFirst = board.hasField('trickroom');
+      /* A priority move goes first regardless of speed. What the OPPONENT is about to click is
+       * unknown, so this claims the queue only for my own priority -- it never assumes theirs is 0. */
+      set('movesFirst', (m.priority || 0) > 0 ? 1 : ((slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0));
       const off = tb.atk + tb.spa;
-      if (off) set('tgtPhysical', (tb.atk - tb.spa) / off);
+      const physShare = off ? (tb.atk - tb.spa) / off : 0;
+      if (off) set('tgtPhysical', physShare);
+      /* Burn cuts Attack, so it bites a physical target and is close to wasted on a special one.
+       * Paralysis cuts Speed, so it bites hardest on something that currently outruns me. Read off
+       * `move.status`, a dex data field -- there is no move named here either. */
+      if (m.status === 'brn') set('statusBites', physShare);
+      else if (m.status === 'par') set('statusBites', ub.spe < tb.spe ? 1 : 0);
       /* Which of the target's defences my move actually attacks, relative to its other one. A
        * physical move into a target whose Defence is far below its Special Defence scores high. */
       if (!damaging) { /* status moves have no attacking side */ }
@@ -591,11 +673,12 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       if (att && damaging && hits.length) {
         const uSp2 = dex.species.get(user.species);
         const uSpe = (uSp2 && uSp2.exists && uSp2.baseStats && uSp2.baseStats.spe) || 0;
-        let kos = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0;
+        let kos = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0, sashDrag = 0;
+        const SASH = abilityTables().sash || {};
         for (const h of hits) {
           const dm = dmgMon(h, D);
           if (!dm) continue;
-          const r = dmgFractions(D, att, dm, m, mType, !!(cand.spread && cand.spread.length > 1));
+          const r = dmgFractions(D, att, dm, m, mType, !!(cand.spread && cand.spread.length > 1), board);
           if (!r) continue;
           n2++;
           const left = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
@@ -604,16 +687,28 @@ function featuresFor(cand, user, board, side, dex, priorP) {
            * guaranteed kill, since any roll meets zero. */
           if (left > 0 && r.min >= left) {
             kos++;
+            /* Only from FULL health: a Sash is already gone once the holder has taken a hit, so it
+             * cannot save a target that is visibly damaged. This is why the drag is conditioned on
+             * hp rather than applied flat. */
+            if (left >= 1) sashDrag += (SASH[norm(h.species)] || SASH[baseSpecies(h.species)] || 0);
             /* Removing the thing that was going to remove me is a different act from removing
              * something harmless, and no combination of the existing features can say so. */
             if ((threat.get(h) || 0) >= myLeft) killsThreatening = 1;
             const hSp2 = dex.species.get(h.species);
-            const hSpe = (hSp2 && hSp2.exists && hSp2.baseStats && hSp2.baseStats.spe) || 0;
-            if (uSpe > hSpe) killsFirst = 1;
+            const hSpe = ((hSp2 && hSp2.exists && hSp2.baseStats && hSp2.baseStats.spe) || 0) *
+                         (board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 2 : 1);
+            const mine = uSpe * (board.hasSide(side, 'tailwind') ? 2 : 1);
+            const first = (m.priority || 0) > 0 || (board.hasField('trickroom') ? mine < hSpe : mine > hSpe);
+            if (first) killsFirst = 1;
           }
         }
         if (n2) {
-          set('koTarget', kos / n2);
+          /* SCALED BY ACCURACY, because "will this kill" is not only a damage question. A Focus Blast
+           * that removes the target on its worst roll still fails three times in ten, and calling
+           * that a guaranteed kill is exactly the kind of confident wrong number this file exists to
+           * stop. The separate `accuracy` feature carries the general reluctance to click a shaky
+           * move; this one carries the odds the KILL specifically happens. */
+          set('koTarget', (kos / n2) * acc * (1 - sashDrag / Math.max(1, n2)));
           set('dmgFrac', fracSum / n2);
           set('killsThreat', killsThreatening);
           set('koFirst', killsFirst);
@@ -622,6 +717,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       /* stallingMove is the dex's own flag for the Protect family, so Baneful Bunker, Spiky Shield
        * and Burning Bulwark are covered without any of them being named here. */
       if (m.stallingMove) set('protectThreatened', threatened);
+      set('diesBeforeMoving', threatened && !x[FEATURE_INDEX.movesFirst] ? 1 : 0);
     }
   }
 

@@ -102,20 +102,48 @@ function extract(id, uploadtime, text){
       lastMove={slot,sp,mv:m[3].trim(),tgt:m[4]||null,dmg:0};
       if(cur) cur.ev.push({t:'m',s:slot,mon:sp,mv:m[3].trim(),tgt:m[4]?slotSp[m[4]]:null,dmg:0});
     }
+    /* ---- HP IS RECORDED ABSOLUTELY, NOT AS A RUNNING TOTAL OF DAMAGE ---------------------
+       This used to write ONLY the delta (`dmg`) onto the move, and the absolute figure it had
+       just computed was thrown away. Every consumer therefore had to rebuild health by adding
+       damage up, and since healing was never emitted as an event at all -- no Leftovers tick,
+       no Sitrus, no Regenerator, no residual burn or sandstorm chip -- the rebuilt number could
+       only ever drift DOWNWARD from the truth.
+
+       That is not a cosmetic gap. It is measured: MAGNEMITE's "this move is a guaranteed kill"
+       fired on targets that actually died 56.5% of the time, because it was aiming at Pokemon
+       it believed were far closer to death than they were. Sitrus Berry alone is 10.7% of every
+       item held in this format.
+
+       The protocol states health absolutely on every line (`|-damage|p1a: Garchomp|142/207`), so
+       there was never a reason to accumulate. `hp` on an event is now the percentage that mon is
+       at AFTER the event, and healing and residual chip get events of their own. `dmg` stays for
+       the consumers that already use it. */
     else if(m=l.match(/^\|-damage\|(p[12][ab])[^|]*\|(\d+)\/(\d+)(.*)/)){
       const slot=m[1], nw=Math.round(100*+m[2]/+m[3]), was=hp[slot]==null?100:hp[slot];
       const delta=Math.max(0,was-nw); hp[slot]=nw;
       const residual=/\[from\]/.test(m[4]);
       if(!residual && cur && cur.ev.length){ // attribute to the just-used move
-        const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,delta); e.tgt=e.tgt||slotSp[slot]; }
+        const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,delta); e.tgt=e.tgt||slotSp[slot]; e.tgthp=nw; }
       }
+      /* Chip damage is nobody's move, so it cannot ride on one -- burn, sandstorm, Life Orb and
+         Rocky Helmet all land here and were previously invisible to every replay. */
+      else if(residual && cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw});
     }
     else if(m=l.match(/^\|-damage\|(p[12][ab])[^|]*\|0 fnt(.*)/)){
       const slot=m[1], was=hp[slot]==null?100:hp[slot]; hp[slot]=0;
-      if(!/\[from\]/.test(m[2]) && cur){ const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,was); e.ko=true; } }
+      if(!/\[from\]/.test(m[2]) && cur){ const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,was); e.ko=true; e.tgthp=0; } }
+      else if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:0});
     }
     else if(m=l.match(/^\|faint\|(p[12][ab])/)){ if(cur) cur.ev.push({t:'f',s:m[1],mon:slotSp[m[1]]}); }
-    else if(m=l.match(/^\|-heal\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){ hp[m[1]]=Math.round(100*+m[2]/+m[3]); }
+    else if(m=l.match(/^\|-heal\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){
+      const slot=m[1], nw=Math.round(100*+m[2]/+m[3]); hp[slot]=nw;
+      if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw});
+    }
+    /* |-sethp| is how Pain Split and a few others state a new value outright. */
+    else if(m=l.match(/^\|-sethp\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){
+      const slot=m[1], nw=Math.round(100*+m[2]/+m[3]); hp[slot]=nw;
+      if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw});
+    }
     else if(m=l.match(/^\|-item\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=m[3].trim();} }
     else if(m=l.match(/^\|-enditem\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=sets[sp].item||m[3].trim();} }
     else if(m=l.match(/^\|-ability\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].ability=m[3].trim();} }

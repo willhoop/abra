@@ -273,14 +273,24 @@ function decisionsFor(g, tally) {
         /* Damage lands on the named species. The foe side is searched first because that is where a
          * move almost always points; a mirror match can still put it on the wrong slot, which is the
          * same ambiguity counted at choice time and is why `ambiguous` decisions are dropped. */
-        if (e.tgt && e.dmg) {
+        /* ABSOLUTE WHEN THE STORE HAS IT, SUBTRACTION ONLY AS A FALLBACK.
+         * Subtracting damage can only ever drift DOWNWARD, because healing was never recorded as an
+         * event: no Leftovers tick, no Sitrus, no Regenerator, no residual burn. That is not a
+         * theoretical worry, it was measured -- MAG's "guaranteed kill" was followed by an actual
+         * death 56.5% of the time, because it was aiming at Pokemon it believed were nearly dead.
+         * engine/durable-ingest.js now writes the absolute figure the protocol always stated, and
+         * engine/reprocess.js rebuilt the store from the raw logs. 3,849 ladder games predate raw-log
+         * archiving and cannot be rebuilt, so the old subtraction still runs for those. */
+        if (e.tgt && (e.tgthp != null || e.dmg)) {
           const foeSide = side === 'p1' ? 'p2' : 'p1';
           let hit = false;
           for (const s of [foeSide, side]) {
             for (const L of ['a', 'b']) {
               const m2 = board.slot(s, L);
               if (m2 && base(m2.species) === base(e.tgt) && !m2.fainted) {
-                m2.hp = Math.max(0, m2.hp - e.dmg / 100); hit = true; break;
+                m2.hp = e.tgthp != null ? Math.max(0, e.tgthp / 100)
+                                        : Math.max(0, m2.hp - e.dmg / 100);
+                hit = true; break;
               }
             }
             if (hit) break;
@@ -288,6 +298,10 @@ function decisionsFor(g, tally) {
         }
       }
       else if (e.t === 'x' && side) { const m2 = board.slot(side, letter); if (m2) m2.status = norm(e.st); }
+      /* Healing and chip damage — Sitrus, Leftovers, Regenerator, burn, sandstorm, Life Orb, Rocky
+       * Helmet. Nobody's move, so they cannot ride on one, and before the store carried them every
+       * replay in this project believed the board was more damaged than it was. */
+      else if (e.t === 'hp' && side) { const m2 = board.slot(side, letter); if (m2 && e.hp != null) m2.hp = Math.max(0, e.hp / 100); }
       else if (e.t === 'f' && side) { board.faint(side, letter); }
       else if (e.t === 'w' && e.field) { board.setWeather(e.field); }
       else if (e.t === 'fs' && e.field) {

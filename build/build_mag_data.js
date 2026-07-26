@@ -39,6 +39,57 @@ if ((W.features || []).join(',') !== B.FEATURES.join(',')) {
   process.exit(1);
 }
 
+/* ---- THE GLOSSARY: what MAG is allowed to see, READ OUT OF THE SOURCE ---------------------------
+ *
+ * The site has to be able to show every input the model gets, because "what is this thing allowed to
+ * know?" is the question that decides whether a result means anything. Typing that list into the HTML
+ * would put a 26-row description of the model in a file that does not change when the model does —
+ * hand-maintained state (S13) describing the very thing it would go stale against, which is the exact
+ * shape of the stale-PDF and stale-artifact problems this project has already had twice.
+ *
+ * So it is PARSED from the FEATURES block in engine/board.js. Each feature's plain-English line is
+ * the comment already sitting beside it, and the group headings are the `---- LIKE THIS ----` banners
+ * already used to divide the block. Adding a feature to board.js publishes it here with no edit.
+ *
+ * If a feature has no comment the build FAILS rather than shipping a blank row, because a silently
+ * undocumented input is worse than a missing page. */
+const featDoc = (() => {
+  const src = fs.readFileSync(D('engine', 'board.js'), 'utf8');
+  const m = src.match(/const FEATURES = \[([\s\S]*?)\n\];/);
+  if (!m) { console.error('could not find the FEATURES block in engine/board.js'); process.exit(1); }
+  const out = {}; const order = [];
+  let group = 'What the move does', pending = [];
+  for (let raw of m[1].split('\n')) {
+    const line = raw.trim();
+    const banner = line.match(/-{3,}\s*(.+?)\s*-{3,}/);
+    if (banner) { group = tidy(banner[1]); pending = []; continue; }
+    const entry = line.match(/^'([a-zA-Z0-9]+)',\s*(?:\/\/\s*(.*))?$/);
+    if (entry) {
+      const en = tidy(entry[2] || pending.join(' '));
+      if (!en) { console.error(`feature '${entry[1]}' has no description in engine/board.js`); process.exit(1); }
+      out[entry[1]] = { en, group }; order.push(entry[1]);
+      pending = [];
+      continue;
+    }
+    /* Comment prose accumulates so a feature documented by the block ABOVE it still gets a line. */
+    const prose = line.replace(/^\/\*+/, '').replace(/\*+\/$/, '').replace(/^\*+/, '').trim();
+    if (prose && !/^-+$/.test(prose)) pending.push(prose); else if (!prose) pending = [];
+  }
+  const missing = B.FEATURES.filter(f => !out[f]);
+  if (missing.length) { console.error('features with no glossary entry: ' + missing.join(', ')); process.exit(1); }
+  return { doc: out, order };
+})();
+
+/* First sentence only, em-dashes and stray punctuation cleaned. The comments are written for a
+ * programmer reading the file; the site wants the first clause of each, which is reliably the
+ * definition — the rest is the argument for why the feature exists. */
+function tidy(s) {
+  if (!s) return '';
+  let t = String(s).replace(/\s+/g, ' ').trim();
+  t = t.split(/\.\s|\s--\s|\s—\s/)[0].trim();
+  return t.replace(/[.,;:]+$/, '');
+}
+
 /* ---- moves: only the fields a feature reads ---------------------------------------------------- */
 const moves = {};
 for (const m of dex.moves.all()) {
@@ -147,6 +198,13 @@ const OUT = {
   generated: new Date().toISOString().slice(0, 10),
   source: 'build/build_mag_data.js',
   features: B.FEATURES,
+  /* name -> {en, group}, parsed from board.js. The site renders every input the model gets. */
+  featDoc: featDoc.doc,
+  /* Standard errors, so the page can MARK a feature whose 95% interval contains zero instead of
+   * presenting a weight the data cannot tell apart from "this input does nothing". The site showing
+   * a confident-looking bar for killsThreat (+0.027, interval spanning zero) would be the same
+   * failure as quoting a model without checking what it was trained on. */
+  standardErrors: W.standardErrors || null,
   weights: W.weights,
   spread: W.spread || null,
   shipped: W.shipped || 'unweighted',
