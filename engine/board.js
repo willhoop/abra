@@ -61,6 +61,12 @@ const FEATURES = [
   'effHalf',      // 0.5x
   'effQuarter',   // 0.25x
   'allyHit',      // the move also hits my OWN partner and my partner is not immune to it
+  /* P(the target's ABILITY nullifies this move). Flash Fire eating Fire and Armor Tail refusing
+   * priority are FACTS about the game, not judgements about value, so encoding them costs nothing
+   * in ceiling. They are read from data/ability-blocks.json, which is measured from recorded
+   * battles rather than typed, and weighted by Smogon's per-species ability odds — so this never
+   * peeks at hidden information, it only knows what the population knows. */
+  'abilityBlock',
   'immune',       // the target is outright immune — the move does literally nothing
   'stab',         // the move's type is one of the user's types
   'bp',           // base power / 100; 0 for status moves
@@ -218,6 +224,82 @@ class Board {
  * `cand` is {move, targetMon} where move is a Showdown dex move object and targetMon is a tracked
  * mon or null (for self-targeting and field moves).
  * ------------------------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------------------------
+ * ABILITY IMMUNITY, WITHOUT CHEATING
+ *
+ * We rarely know the opponent's ability. Rather than peek, this asks the question a good player
+ * asks: how likely is it that the thing in front of me has an ability that eats this? Smogon
+ * publishes the ability distribution per species over the whole ladder, so the answer is a
+ * probability rather than a guess, and it is the same number offline and online.
+ * ------------------------------------------------------------------------------------------- */
+let _blocks = null, _abil = null;
+function abilityTables() {
+  if (_blocks !== null) return { blocks: _blocks, abil: _abil };
+  const fs2 = require('fs'), p2 = require('path');
+  const rd = f => { try { return JSON.parse(fs2.readFileSync(p2.join(__dirname, '..', 'data', f), 'utf8')); } catch (e) { return null; } };
+  const b = rd('ability-blocks.json');
+  _blocks = (b && b.abilities) || {};
+  const sp = rd('smogon-priors.json');
+  _abil = {};
+  for (const [k, v] of Object.entries((sp && sp.species) || {})) {
+    if (v && v.abilities) _abil[norm(k)] = v.abilities.map(a => [norm(a.ability), (+a.pct || 0) / 100]);
+  }
+  return { blocks: _blocks, abil: _abil };
+}
+
+/* Does a measured rule match this move? The rule strings come out of the derivation, so a new rule
+ * discovered from data needs no edit here beyond a matcher for its shape. */
+function ruleMatches(rule, m, pPrankster) {
+  if (!rule || rule === 'unclear') return false;
+  if (rule.startsWith('type:')) return norm(m.type) === norm(rule.slice(5));
+  if (rule === 'status') return m.category === 'Status';
+  if (rule === 'sound') return !!(m.flags && m.flags.sound);
+  if (rule === 'bullet') return !!(m.flags && m.flags.bullet);
+  if (rule === 'powder') return !!(m.flags && m.flags.powder);
+  if (rule === 'priority') return m.priority > 0;
+  /* EFFECTIVE priority, and it depends on WHO IS USING THE MOVE.
+   *
+   * Armor Tail and Queenly Majesty stop moves that go early. A status move goes early only if its
+   * USER has Prankster — so Whimsicott's Thunder Wave into Farigiraf is refused and an ordinary
+   * Pokemon's Thunder Wave is not. A first version returned true for every status move regardless of
+   * user, which told MAG that no status move ever lands on Farigiraf. That is the exact over-claim
+   * this file rejects elsewhere (see the tie-break note in build/build_ability_blocks.js) and it was
+   * shipped anyway. Returned as a PROBABILITY, because whether the user has Prankster is itself only
+   * known to the population. */
+  if (rule === 'effective-priority') {
+    if (m.priority > 0) return 1;
+    return m.category === 'Status' ? (pPrankster || 0) : 0;
+  }
+  return false;
+}
+
+/* How likely is the USER to have Prankster — the ability that gives a status move priority, and so
+ * the only way a status move can be caught by a priority blocker. Measured from the same Smogon
+ * ability table as everything else. */
+function pranksterProb(userSpecies) {
+  const { abil } = abilityTables();
+  const rows = abil[norm(userSpecies)] || abil[baseSpecies(userSpecies)];
+  if (!rows) return 0;
+  for (const [ab, pr] of rows) if (ab === 'prankster') return pr;
+  return 0;
+}
+
+function abilityBlockProb(move, targetSpecies, mType, userSpecies) {
+  const { blocks, abil } = abilityTables();
+  const rows = abil[norm(targetSpecies)] || abil[baseSpecies(targetSpecies)];
+  if (!rows || !rows.length) return 0;
+  const probe = Object.assign(Object.create(Object.getPrototypeOf(move) || Object.prototype), move, { type: mType });
+  const pPrank = userSpecies ? pranksterProb(userSpecies) : 0;
+  let p = 0;
+  for (const [ab, pr] of rows) {
+    const e = blocks[ab];
+    if (!e) continue;
+    const hit = ruleMatches(e.rule, probe, pPrank);
+    p += pr * (hit === true ? 1 : (+hit || 0));
+  }
+  return Math.min(1, p);
+}
+
 /* THE TYPE OF A MOVE IS NOT ALWAYS A FIXED FIELD.
  *
  * Thirteen moves in this format change type with the board, and `move.type` is their BASE type, not
@@ -325,6 +407,16 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     }
   }
 
+  /* ---- WOULD AN ABILITY SIMPLY EAT IT? ------------------------------------------------------- */
+  {
+    const list = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+    if (list.length) {
+      let pSum = 0;
+      for (const h of list) pSum += abilityBlockProb(m, h.species, mType, user.species);
+      set('abilityBlock', pSum / list.length);
+    }
+  }
+
   /* ---- IT ALSO HITS MY OWN PARTNER -----------------------------------------------------------
    * Sixteen moves in this format are `allAdjacent`, which in doubles means they hit the ally as well
    * as both foes — Earthquake, Discharge, Lava Plume, Sludge Wave, Explosion. The first version
@@ -402,4 +494,4 @@ function candidates(moves, user, board, side, dex) {
   return out;
 }
 
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, norm, baseSpecies, SELF_TARGETS };
+module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, abilityBlockProb, norm, baseSpecies, SELF_TARGETS };

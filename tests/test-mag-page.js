@@ -99,7 +99,11 @@ pageCtx.MAGF = MAG.features;
 pageCtx.MAGIX = {};
 MAG.features.forEach((f, i) => { pageCtx.MAGIX[f] = i; });
 vm.createContext(pageCtx);
-vm.runInContext(liftConst('magMoveType') + '\n' + lift('eff1') + '\n' + lift('feats'), pageCtx);
+/* feats() also calls the ability-block helpers now, so they are lifted alongside it. A missing one
+ * surfaces as "not defined" rather than as a quietly wrong number, which is the failure mode to
+ * want — the whole point of this file is that the page and the engine cannot drift apart. */
+vm.runInContext([liftConst('magMoveType'), lift('magRule'), lift('magPrankster'),
+  lift('magAbilityBlock'), lift('eff1'), lift('feats')].join('\n'), pageCtx);
 
 check('the page scores every fixture position exactly as the engine did', () => {
   const fx = MAG.fixture;

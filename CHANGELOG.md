@@ -10,6 +10,49 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.12.0] — 2026-07-26
+
+### Abilities that eat a move — derived from real battles, not typed
+
+"Flash Fire is immune to Fire" is a **rule of the game**, not a judgement about value, so encoding it
+costs nothing in ceiling — the same way a chess engine is told how a knight moves. That is the line
+this project now works to: **encode what the game permits, learn what is valuable.** "Moving first is
+good" stays out, because it is usually true and flatly wrong under Trick Room, and only data knows
+the difference.
+
+`build/build_ability_blocks.js` reads the rules out of **14,744 recorded battles** rather than typing
+them, because a fact typed in July is a fact nobody re-checks in November. Probing Showdown's own
+handlers with a stubbed battle context was tried first and **failed silently** — it reported Fake Out
+getting through Armor Tail.
+
+`engine/board.js` gains `abilityBlock`: the probability that the target's ability nullifies the move,
+weighted by Smogon's per-species ability odds — so it never peeks at hidden information, it only
+knows what the population knows. Fitted weight **−1.75, 95% CI [−1.96, −1.55]**. Held out:
+**−1.5858**, from −1.5927.
+
+### Three wrong rules caught on the way, all the same mistake
+
+1. **Assuming the rule is about type.** The first derivation recorded the *types* of everything an
+   ability stopped, which is right for Levitate and badly wrong for the rest: Armor Tail came out
+   "blocks Dark/Normal/Flying/Fire/Grass/Fairy" — merely the types of priority moves people threw at
+   it. Fixed by testing candidate rules (type, priority, status, sound, bullet, powder) and taking
+   the one that explains the evidence most cleanly.
+2. **Letting a broad rule win a tie.** Good as Gold blocks status moves; "priority or status" also
+   explained 100% of what it stopped, being broader — and would have claimed Fake Out, which Good as
+   Gold does not block. **Ties now go to the narrower rule**, breadth measured as how many moves in
+   the format each rule matches.
+3. **Over-claiming anyway, in the shipped version.** The priority rule counted *every* status move,
+   so it told MAG that no status move ever lands on Farigiraf. Armor Tail blocks moves that go
+   **early**, and a status move goes early only if its **user has Prankster** — so Whimsicott's
+   Thunder Wave is refused and an ordinary Pokemon's is not. The rule now depends on the user and
+   returns a probability. Measured: from Whimsicott 99%, from Incineroar 0%, and Fake Out 99%
+   from anyone.
+
+All three are the same error — generalising from what was observed into cases that were not — and
+the third one shipped despite the first two being caught the same hour.
+
+---
+
 ## [3.11.2] — 2026-07-26
 
 ### The Protect-chain measurement was wrong, and the "bot signature" reading of it was wrong twice

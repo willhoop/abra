@@ -44,7 +44,9 @@ const moves = {};
 for (const m of dex.moves.all()) {
   if (!m || !m.exists || m.isNonstandard || m.isZ || m.isMax) continue;
   const e = { n: m.name, t: m.type, c: m.category === 'Status' ? 'S' : (m.category === 'Physical' ? 'P' : 'E'),
-              bp: m.basePower || 0, tg: m.target || 'normal' };
+              bp: m.basePower || 0, tg: m.target || 'normal', pr: m.priority || 0 };
+  const fl = {}; for (const k of ['sound', 'bullet', 'powder']) if (m.flags && m.flags[k]) fl[k] = 1;
+  if (Object.keys(fl).length) e.fl = fl;
   if (m.status) e.st = norm(m.status);
   if (m.sideCondition) e.sc = norm(m.sideCondition);
   const fk = B.fieldKey(m);
@@ -132,6 +134,12 @@ const OUT = {
   priorFloor: B.PRIOR_FLOOR,
   heldOut: W.heldOut || null,
   moves, mons, chart, priors,
+  /* The ability tables, so the page can compute abilityBlock exactly as engine/board.js does.
+   * blocks = the measured rule per ability; abil = Smogon's per-species ability odds. */
+  blocks: (() => { try { return JSON.parse(fs.readFileSync(D('data','ability-blocks.json'),'utf8')).abilities || {}; } catch(e){ return {}; } })(),
+  abil: (() => { const o={}; try { const j=JSON.parse(fs.readFileSync(D('data','smogon-priors.json'),'utf8'));
+      for (const [k,v] of Object.entries(j.species||{})) if (v && v.abilities) o[norm(k)] = v.abilities.map(a=>[norm(a.ability), (+a.pct||0)/100]);
+    } catch(e){} return o; })(),
   fixture: fixture(),
 };
 

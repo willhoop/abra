@@ -1,0 +1,214 @@
+{
+ "generated": "2026-07-26",
+ "source": "measured from recorded battles",
+ "games": 14744,
+ "minObservations": 4,
+ "note": "Which abilities nullify which moves, read from |-immune| and |cant| protocol lines rather than typed. An ability nobody triggered is absent; counts are published so a rare entry is visible as rare. blocksTypes = the move types it absorbed; blocksPriority = it refused priority moves.",
+ "abilities": {
+  "flashfire": {
+   "observations": 282,
+   "rule": "type:Fire",
+   "purity": 0.943,
+   "alternatives": [
+    "type:Fire 94%",
+    "bullet 6%",
+    "type:Normal 6%"
+   ],
+   "topMoves": {
+    "heatwave": 112,
+    "eruption": 18,
+    "weatherball": 8,
+    "overheat": 2
+   }
+  },
+  "waterabsorb": {
+   "observations": 20,
+   "rule": "unclear",
+   "purity": 0.8,
+   "alternatives": [
+    "type:Water 80%",
+    "effective-priority 50%",
+    "status 30%"
+   ],
+   "topMoves": {
+    "aquajet": 2,
+    "surf": 2,
+    "perishsong": 2,
+    "wavecrash": 1
+   }
+  },
+  "armortail": {
+   "observations": 1048,
+   "rule": "effective-priority",
+   "purity": 0.981,
+   "alternatives": [
+    "effective-priority 98%",
+    "priority 80%",
+    "type:Normal 51%"
+   ],
+   "topMoves": {
+    "fakeout": 198,
+    "suckerpunch": 96,
+    "aquajet": 53,
+    "partingshot": 33
+   }
+  },
+  "queenlymajesty": {
+   "observations": 128,
+   "rule": "effective-priority",
+   "purity": 0.984,
+   "alternatives": [
+    "effective-priority 98%",
+    "priority 81%",
+    "type:Normal 44%"
+   ],
+   "topMoves": {
+    "suckerpunch": 20,
+    "fakeout": 19,
+    "encore": 6,
+    "aquajet": 6
+   }
+  },
+  "levitate": {
+   "observations": 1242,
+   "rule": "type:Ground",
+   "purity": 1,
+   "alternatives": [
+    "type:Ground 100%"
+   ],
+   "topMoves": {
+    "earthquake": 472,
+    "stompingtantrum": 89,
+    "earthpower": 41,
+    "highhorsepower": 13
+   }
+  },
+  "goodasgold": {
+   "observations": 234,
+   "rule": "status",
+   "purity": 1,
+   "alternatives": [
+    "status 100%",
+    "effective-priority 100%",
+    "type:Normal 42%"
+   ],
+   "topMoves": {
+    "sleeppowder": 19,
+    "perishsong": 16,
+    "encore": 16,
+    "partingshot": 8
+   }
+  },
+  "eartheater": {
+   "observations": 14,
+   "rule": "type:Ground",
+   "purity": 1,
+   "alternatives": [
+    "type:Ground 100%"
+   ],
+   "topMoves": {
+    "earthquake": 6,
+    "earthpower": 1
+   }
+  },
+  "eelevate": {
+   "observations": 182,
+   "rule": "type:Ground",
+   "purity": 1,
+   "alternatives": [
+    "type:Ground 100%"
+   ],
+   "topMoves": {
+    "earthquake": 53,
+    "stompingtantrum": 19,
+    "highhorsepower": 10,
+    "earthpower": 7
+   }
+  },
+  "soundproof": {
+   "observations": 48,
+   "rule": "sound",
+   "purity": 1,
+   "alternatives": [
+    "sound 100%",
+    "type:Normal 71%",
+    "status 33%"
+   ],
+   "topMoves": {
+    "hypervoice": 15,
+    "partingshot": 6,
+    "perishsong": 2,
+    "torchsong": 1
+   }
+  },
+  "bulletproof": {
+   "observations": 44,
+   "rule": "bullet",
+   "purity": 1,
+   "alternatives": [
+    "bullet 100%",
+    "type:Poison 32%",
+    "type:Normal 32%"
+   ],
+   "topMoves": {
+    "weatherball": 7,
+    "sludgebomb": 7,
+    "shadowball": 5,
+    "zapcannon": 2
+   }
+  },
+  "dryskin": {
+   "observations": 22,
+   "rule": "type:Water",
+   "purity": 1,
+   "alternatives": [
+    "type:Water 100%"
+   ],
+   "topMoves": {
+    "surf": 4,
+    "waterspout": 4,
+    "wavecrash": 3
+   }
+  },
+  "voltabsorb": {
+   "observations": 14,
+   "rule": "type:Electric",
+   "purity": 1,
+   "alternatives": [
+    "type:Electric 100%"
+   ],
+   "topMoves": {
+    "electroshot": 5,
+    "discharge": 1,
+    "voltswitch": 1
+   }
+  },
+  "purifyingsalt": {
+   "observations": 4,
+   "rule": "status",
+   "purity": 1,
+   "alternatives": [
+    "status 100%",
+    "effective-priority 100%",
+    "powder 50%"
+   ],
+   "topMoves": {
+    "toxic": 1,
+    "sleeppowder": 1
+   }
+  },
+  "oblivious": {
+   "observations": 4,
+   "rule": "type:Dark",
+   "purity": 1,
+   "alternatives": [
+    "type:Dark 100%",
+    "status 100%",
+    "effective-priority 100%"
+   ],
+   "topMoves": {
+    "taunt": 2
+   }
+  }
+ }
+}

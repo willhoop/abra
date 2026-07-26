@@ -921,6 +921,30 @@ function eff1(atkType,defTypes){
   return mult;
 }
 const magMoveType=(m,board)=>(m.tw&&(m.tw[board.weather||'none']))||m.t;
+/* Mirrors engine/board.js ruleMatches + abilityBlockProb. An ability that eats a move is a FACT
+   about the game, so it costs nothing in ceiling to know it; the rules come from
+   data/ability-blocks.json, measured from recorded battles, and are weighted by how likely the
+   species is to have that ability -- so it never peeks at hidden information. */
+function magRule(rule,m,pPrank){
+  if(!rule||rule==='unclear') return 0;
+  if(rule.indexOf('type:')===0) return String(m.t).toLowerCase()===rule.slice(5).toLowerCase()?1:0;
+  if(rule==='status') return m.c==='S'?1:0;
+  if(rule==='sound') return m.fl&&m.fl.sound?1:0;
+  if(rule==='bullet') return m.fl&&m.fl.bullet?1:0;
+  if(rule==='powder') return m.fl&&m.fl.powder?1:0;
+  if(rule==='priority') return (m.pr||0)>0?1:0;
+  if(rule==='effective-priority'){ if((m.pr||0)>0) return 1; return m.c==='S'?(pPrank||0):0; }
+  return 0;
+}
+function magPrankster(sp){ const r=(MAG.abil||{})[sp]; if(!r) return 0;
+  for(const [a,p] of r) if(a==='prankster') return p; return 0; }
+function magAbilityBlock(m,tgtId,mType,userId){
+  const rows=(MAG.abil||{})[tgtId]; if(!rows) return 0;
+  const probe={t:mType,c:m.c,pr:m.pr,fl:m.fl};
+  const pk=magPrankster(userId); let p=0;
+  for(const [ab,pr] of rows){ const e=(MAG.blocks||{})[ab]; if(!e) continue; p+=pr*magRule(e.rule,probe,pk); }
+  return Math.min(1,p);
+}
 function feats(mvId,target,board,user,priorP){
   const m=MAG.moves[mvId]; const x=new Array(MAGF.length).fill(0);
   if(!m) return x;
@@ -950,6 +974,11 @@ function feats(mvId,target,board,user,priorP){
   /* Moves flagged allAdjacent hit my own partner as well. Only counted when the partner does NOT
      resist it — a Flying partner under Earthquake is free, and pretending otherwise was what made
      the first version of this feature meaningless. */
+  {
+    const list=(target.spread&&target.spread.length)?target.spread:(target.mon?[target.mon]:[]);
+    if(list.length){ let ps=0; for(const h of list) ps+=magAbilityBlock(m,h.id,mt,user.id);
+      x[MAGIX.abilityBlock]=ps/list.length; }
+  }
   if(dmg&&target.allies&&target.allies.length){
     for(const al of target.allies){ const at=(MAG.mons[al.id]||{}).t||[];
       if(!at.length) continue;
@@ -1153,7 +1182,7 @@ function magTable(rows){
     <div style="font-size:11.5px;color:#6b7691;margin-top:8px">Click a row for the sum behind its score. The percentages follow from the scores: one point of score is worth about <b>2.7&times;</b> the chance of being picked.</div>`;
 }
 
-const MAGLABEL={eff4:'it hits a 4&times; weakness',eff2:'it hits a 2&times; weakness',
+const MAGLABEL={abilityBlock:'an ability would eat it',eff4:'it hits a 4&times; weakness',eff2:'it hits a 2&times; weakness',
   effHalf:'it is resisted',effQuarter:'it is resisted twice over',
   allyHit:'it also hits my own partner',immune:'it does nothing at all',stab:'it matches my own type',
   bp:'it is a powerful move',isStatus:'it is a status move',tgtHurt:'the target is already hurt',
