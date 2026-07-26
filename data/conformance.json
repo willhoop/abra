@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-26T22:47:54.938Z",
+ "generated": "2026-07-26T23:02:53.075Z",
  "by": "engine/conformance.js",
- "files": 132,
+ "files": 133,
  "findings": [
   {
    "std": "convention",
@@ -50,12 +50,6 @@
    "file": "build/archive-regulation.js",
    "what": "no opening comment",
    "why": "every file states why it exists"
-  },
-  {
-   "std": "S8",
-   "file": "build/triggers.js",
-   "what": "Z_ALPHA = 1.959964 with no stated derivation",
-   "why": "a constant that decides must say where it came from"
   },
   {
    "std": "convention",
@@ -164,12 +158,6 @@
    "file": "data/xatu.js",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "dead",
-   "file": "engine/chomp-predict.js",
-   "what": "nothing runs it: no import, no entry point, no command anywhere",
-   "why": "unreachable code is an unmaintained claim"
   }
  ]
 }

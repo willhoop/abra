@@ -36,7 +36,10 @@ const ROOT = path.join(__dirname, '..');
 const Q = require(path.join(ROOT, 'engine', 'quality.js'));
 const EV = path.join(ROOT, 'data', 'chomp-ev.json');
 
-const Z_ALPHA = 1.959964;   /* two-sided 95% */
+/* The two-sided 95% normal quantile, inverse-CDF(0.975). A mathematical constant like pi, not a
+ * tuned threshold — S8 governs numbers that could have been estimated from data, and this one
+ * could not be. Written to seven figures so the power calculation below is exact. */
+const Z_ALPHA = 1.959964;
 const Z_POWER = 0.841621;   /* 80% power */
 
 function requiredN(p) {

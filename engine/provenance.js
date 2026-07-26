@@ -98,7 +98,13 @@ function deriveGraph() {
       if (dep === file) continue;
       if (readsNear(writers[0].src, dep)) from.push(dep);
     }
-    out.push({ file, by, from });
+    /* WHICH CORPUS ITS COUNT SHOULD BE JUDGED AGAINST, derived from what the generator reads.
+     * data/policy-weights.json is fitted on the OPEN-SHEET games, so comparing its count to the
+     * ladder's clean total called it unsafe for declaring 2,723 — a false alarm. That annotation was
+     * hand-written in the first version of this file and lost when the graph became derived, which
+     * is the exact regression deriving it was supposed to prevent. */
+    const corpus = /games\.(ots|bo3)\.jsonl/.test(writers[0].src) ? 'opensheet' : 'ladder';
+    out.push({ file, by, from, corpus });
   }
   return out;
 }

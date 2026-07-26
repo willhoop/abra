@@ -130,8 +130,11 @@ function checkAsserted(f, src) {
   let m;
   while ((m = DECISION_NAME.exec(src))) {
     const at = m.index;
-    const before = src.slice(Math.max(0, at - 500), at);
-    const derived = /measured|derived|estimated|fitted|from the data|counted|observed|Wilson|standard error|because/i.test(before);
+    /* Look BOTH ways. build/triggers.js writes `const Z_ALPHA = 1.959964;  /* two-sided 95% *\/`,
+     * where the justification is a trailing comment — and the first version of this check only read
+     * backwards, so it reported a constant that was already explained. */
+    const context = src.slice(Math.max(0, at - 500), at) + src.slice(at, at + 200);
+    const derived = /measured|derived|estimated|fitted|from the data|counted|observed|Wilson|standard error|quantile|two-sided|normal|because/i.test(context);
     if (!derived) flag('S8', f.rel, `${m[1]} = ${m[2]} with no stated derivation`, 'a constant that decides must say where it came from');
   }
 }
@@ -179,6 +182,12 @@ function checkOrphans(srcs) {
     const body = bodies.get(s.rel) || '';
     const isEntry = /require\.main === module|if __name__|process\.argv|argparse|^#!/m.test(body);
     if (isEntry) continue;
+    /* A TOP-LEVEL SCRIPT is an entry point too, and the first version did not know it.
+     * engine/chomp-predict.js is 43 lines that run on load and write their output — no export, no
+     * guard, because it needs neither. `node engine/chomp-predict.js` is exactly how the
+     * predictability study documents running it. A file that exports nothing is not a library, so
+     * the only way it can be used at all is by being run. */
+    if (!/module\.exports|^export /m.test(body)) continue;
     /* A package marker is reached by the import system, not by a caller. */
     if (/__init__\.py$/.test(s.rel)) continue;
     /* A file that WRITES a data artifact which exists is a build step, and build steps are run by
