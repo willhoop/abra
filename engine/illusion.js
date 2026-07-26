@@ -1,3 +1,6 @@
+// RAW-STORE-OK: identifies disguised Zoroark by LEGALITY CONTRADICTION, which is a fact about a specific battle and true regardless of who played it. Filtering would drop real detections without changing any rate.
+// Anything measuring BEHAVIOUR must go through quality (load_games/loadGames) instead --
+// bot games are ~87% of the store.
 /* illusion.js - catch Zoroark-Hisui pretending to be a teammate.
  *
  * The mechanic: Illusion makes Zoroark appear as another Pokemon on its own team. You do not see a

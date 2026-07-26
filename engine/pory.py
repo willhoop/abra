@@ -73,9 +73,27 @@ def winner_side(log):
     if win==p["p2"]: return "p2"
     return None
 
+# CLEAN GAMES ONLY. PORY learns P(win | board state) from the protocol logs, which is a claim about
+# how games actually go. The store is ~15,000 records of which ~1,900 are clean; the rest are bot
+# games, forfeits, partial brings and stubs. A bot that plays the same line every game supplies
+# thousands of near-identical board states with a correlated outcome, which is the worst possible
+# training data for a value function -- it looks like signal and is one account's habit.
+def _clean_ids():
+    try:
+        import sys as _s
+        _s.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from store import load_games as _lg
+        return {g.get("id") for g in _lg(clean=True, announce=False) if g.get("id")}
+    except Exception as e:
+        print("PORY: quality filter unavailable (%s) — refusing to train on the raw store." % e)
+        return None
+
 def main():
     if not os.path.exists(RAW):
         print("PORY: raw-logs not present — skipping."); return
+    _CLEAN=_clean_ids()
+    if not _CLEAN:
+        print("PORY: no clean id set — aborting rather than training on bot games."); return
     X=[]; Y=[]; order=[]
     gi=0
     for line in open(RAW,encoding="utf-8"):
@@ -83,6 +101,7 @@ def main():
         if not line: continue
         try: r=json.loads(line)
         except: continue
+        if r.get("id") not in _CLEAN: continue
         log=r.get("log","");
         w=winner_side(log)
         if w is None: continue

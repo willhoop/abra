@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# RAW-STORE-OK: asserts STRUCTURAL invariants of the store itself -- duplicate ids, brought within six, required fields. A malformed bot game is still a malformed record, so these checks must see every row; filtering would hide exactly the corruption they exist to catch.
+# Anything measuring BEHAVIOUR must go through quality (load_games/loadGames) instead --
+# bot games are ~87% of the store.
 """ABRA system sanity checks — data validity, metric sanity, and cross-consistency
 between the shipped JSON reports, the site data files, and the docs. Read-only.
     python3 engine/sanity_check.py

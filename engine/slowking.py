@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# RAW-STORE-OK: reports corpus INVENTORY (how many games and turn-streams exist) for a readiness check, not a behavioural rate. It is counting what is on disk, which is the raw store by definition.
+# Anything measuring BEHAVIOUR must go through quality (load_games/loadGames) instead --
+# bot games are ~87% of the store.
 """SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive
 Nash Game-solver (ABRA Tier-3, the slowest & wisest of the cast).
 
