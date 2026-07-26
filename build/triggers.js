@@ -93,6 +93,37 @@ function formatTrigger() {
   return { baseline, recent, rn, intruders };
 }
 
+/* Is this regulation's archive still worth anything?
+ *
+ * WHY THIS IS A TRIGGER AND NOT A RECOMMENDATION. build/archive-regulation.js exists and works -- it
+ * copies the store, the raw logs and the derived models into data/archive/<reg>/. But it had to be
+ * run by hand, so the archive sat at 4,999 games while the live store passed 15,000. On the day the
+ * format rotates, that stale snapshot is all that would survive of this regulation.
+ *
+ * That matters more than it looks. We pin a Showdown commit, and a genuinely new gimmick would need
+ * Showdown to implement it before we could simulate the format at all. In that window, the archived
+ * corpus is the only thing this project can still work on. Losing it is the one unrecoverable
+ * failure available here.
+ *
+ * So the archive refreshes on a measured condition -- the live store having grown well past what was
+ * archived -- rather than on someone remembering. Deliberately generous (1.5x) because archiving is
+ * cheap and copies are idempotent, while being late is not. */
+function archiveTrigger() {
+  const MAN = path.join(ROOT, 'data', 'archive');
+  let best = null;
+  try {
+    for (const d of fs.readdirSync(MAN)) {
+      const f = path.join(MAN, d, 'MANIFEST.json');
+      if (!fs.existsSync(f)) continue;
+      const m = JSON.parse(fs.readFileSync(f, 'utf8'));
+      if (!best || (m.games || 0) > (best.games || 0)) best = Object.assign({ dir: d }, m);
+    }
+  } catch (e) { /* no archive yet */ }
+  const live = Q.readStore().length;
+  const archived = best ? (best.games || 0) : 0;
+  return { best, live, archived, due: !best || live > archived * 1.5 };
+}
+
 function main() {
   const fire = process.argv.includes('--fire');
   const cleanN = Q.loadGames().length;
@@ -151,6 +182,25 @@ function main() {
     } else {
       console.log('                no rotation detected');
     }
+  }
+
+  const a = archiveTrigger();
+  console.log('');
+  console.log(`  archive     : ${a.archived.toLocaleString()} games preserved (${a.best ? a.best.dir : 'none'}), live store ${a.live.toLocaleString()}`);
+  if (a.due || (f && f.intruders.length)) {
+    const why = (f && f.intruders.length) ? 'the format is rotating' : 'the live store has outgrown it';
+    console.log(`                DUE — ${why}.`);
+    if (fire) {
+      console.log('                archiving ...');
+      try {
+        execFileSync(process.execPath, [path.join(ROOT, 'build', 'archive-regulation.js')],
+          { cwd: ROOT, encoding: 'utf8', stdio: 'inherit' });
+      } catch (e) { console.log('                archive failed: ' + e.message); }
+    } else {
+      console.log('                run with --fire, or: node build/archive-regulation.js');
+    }
+  } else {
+    console.log('                current');
   }
 }
 
