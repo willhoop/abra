@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-26T22:44:34.751Z",
+ "generated": "2026-07-26T22:47:54.938Z",
  "by": "engine/conformance.js",
  "files": 132,
  "findings": [
@@ -95,12 +95,6 @@
   },
   {
    "std": "S13",
-   "file": "data/display-maps.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/eval-report.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -131,12 +125,6 @@
   },
   {
    "std": "S13",
-   "file": "data/nontransitivity.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
    "file": "data/pory-nn.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -144,24 +132,6 @@
   {
    "std": "S13",
    "file": "data/pory.js",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/quality-filter.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/real-sets.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie"
-  },
-  {
-   "std": "S13",
-   "file": "data/regulations.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

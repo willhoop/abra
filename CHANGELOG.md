@@ -10,6 +10,61 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.20.0] — 2026-07-26
+
+### Full-codebase conformance review: the standards are now executable
+
+132 source files, 23,909 lines, checked against S1–S13. Report in
+[`docs/CONFORMANCE-REVIEW-2026-07-26.md`](docs/CONFORMANCE-REVIEW-2026-07-26.md).
+
+**`engine/conformance.js` (new)** encodes the standards as checks. They were good standards and
+nothing enforced them — they were kept by whoever remembered, which over one evening produced a
+hand-typed threshold inside a file arguing against hand-typed thresholds, a hardcoded list inside the
+tool built to catch hardcoded lists, two models quoted without checking their data, and a Pokémon not
+legal in the format. Each passed review by someone who had just written the rule it broke.
+
+### S12 — one format id, thirteen copies
+
+`champions_sim.js` declared it as a literal and eleven other files restated it. `regulations.json`
+already held it and two ingesters already read it. **All thirteen now do; S12 findings 13 → 0.** On a
+regulation rotation every copy would have kept describing a metagame that no longer exists, and
+nothing would have noticed, because a stale format id produces plausible output rather than an error.
+
+### Three dead files deleted, and the stale claim one of them was propping up
+
+All three were swept in by the auto-commit watcher on 23 July. `display-maps.json` (19 KB) and
+`real-sets.json` (10 KB) were referenced by **nothing**.
+
+`nontransitivity.json` was worse: nothing generated or loaded it, yet **`docs/MODELS.md` cited it as
+live fact — "the meta is rock-paper-scissors"**. It was computed two days before the quality filter
+existed, so its cycles were measured over a corpus that is 87% bots. Re-run on clean data, the
+equilibrium collapses to 100% on one option with zero gap to greedy, and the clean matrix has 0
+decisive matchups. Withdrawn in `MODELS.md`, and the file **deleted rather than kept — a stale
+artifact on disk is how a retracted claim gets quoted again**, which is precisely what happened to it.
+
+### The checker was wrong three times before it was trusted, and once dangerously
+
+- It called **`engine/bring_priors.js` dead**. The hourly workflow invokes it by name; acting on that
+  **would have stopped data collection**. Files are also reached by workflows, scripts and documented
+  commands.
+- It called **`build/build_engine_data.js` dead**. It generates the file the entire site loads.
+- It reported **13 hardcoded format ids when 3 were real** — the other ten were the format named in
+  prose, explaining itself. It now strips comments before looking.
+
+False positives were treated as more serious than gaps throughout: a report that cries wolf is one
+people learn to scroll past, which is how the project reached this state.
+
+### Still open, catalogued rather than claimed done
+
+13 generated artifacts that do not say they are generated, one undeclared constant
+(`Z_ALPHA = 1.959964` in `triggers.js`), 13 files without the project's standard header paragraph,
+and one dead-code candidate (`chomp-predict.js`). All listed by `node engine/conformance.js`.
+
+Full test suite green throughout: 9 JS suites, 6 Python suites, selftest at 24 passed / 1 failed —
+the failure being the 18-file raw-reader tracker, which is the intended signal.
+
+---
+
 ## [3.19.0] — 2026-07-26
 
 ### One shape for every model, and the audit graph is derived rather than typed

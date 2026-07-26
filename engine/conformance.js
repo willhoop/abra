@@ -147,6 +147,11 @@ function checkGeneratedFiles(srcs) {
   for (const file of files) {
     if (!/\.(json|js)$/.test(file)) continue;
     if (/^games\./.test(file)) continue;                       // stores, not artifacts
+    /* CONFIG IS NOT AN ARTIFACT. data/quality-filter.json and data/regulations.json are the SOURCES
+     * S12 points everything else at — hand-maintained on purpose, and each already carries its own
+     * version and purpose fields. Flagging them as "generated but does not say so" was the checker
+     * misreading the direction of the dependency. */
+    if (/^(quality-filter|regulations)\.json$/.test(file)) continue;
     const generated = allSrc.includes(file);
     const body = read(D('data', file)).slice(0, 400);
     const saysGenerated = /GENERATED|generated|do not hand-edit|provenance/i.test(body);

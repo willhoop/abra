@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.19.0 · Last updated 2026-07-26.**
+**Version 3.20.0 · Last updated 2026-07-26.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -66,7 +66,14 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 - `engine/calibrate.py` — temperature scaling.
 - `docs/THESIS-REVIEW.md` / `THESIS-REVIEW-v2.md` — strict self-critique with fixes (willing to scrap/rebuild).
 - `docs/COMPETITORS.md` — VGC-Bench, PokéLLMon, offline-RL transformers, and how we refine them.
-- Non-transitivity: `data/nontransitivity.json` — the meta is rock-paper-scissors (labeled preliminary, approximate engine).
+- ~~Non-transitivity: `data/nontransitivity.json` — the meta is rock-paper-scissors.~~ **WITHDRAWN 2026-07-26.**
+  The file was computed 2026-07-23, two days before the quality filter, and nothing regenerated it — so the
+  cycles it showed were measured over a corpus that is 87% bots, forfeits and stubs. Re-run on clean data,
+  SLOWKING's equilibrium collapses to **100% on a single option** with **zero** gap between mixing and
+  picking the best, and the clean GURU matrix contains **0 decisive matchups**. The file is deleted rather
+  than kept, because a stale artifact on disk is how a retracted claim gets quoted again.
+  The honest reading is *no usable input*, not *mixing does not help*: a Nash solution over a matrix of
+  noise says nothing either way. See CHANGELOG 3.16.0.
 
 ## Status of the "one thing that unblocks everything"
 **DONE (2026-07-23): the engine's damage math is validated** against the Smogon damage calculator — within 5% on 100% of 31 tested scenarios (`engine/validate_damage.js`, `data/damage-validation.json`). MEDICHAM/DITTO no longer rest on unverified numbers.
@@ -169,7 +176,7 @@ not be quoted as evidence that species choice predicts outcomes.
 **It samples, it does not take the best move** — a greedy bot sails past 23.4% super-effective and is *less* human. Same argument as DEFENSE §2.
 **Two findings worth keeping.** The behaviour clone alone is a *worse* probabilistic model of human choice than choosing uniformly at random, and the fit weights it at only +0.25 — it is far too confident about the popular move. And the largest learned effects are not damage terms at all, they are the "this move is already dead" terms at −2.3. Reading the board is mostly about **not clicking moves that cannot work**.
 **Honest status / what it does NOT do:** it does not decide **switches** (inherited unchanged — 8.38 per game against a real 10.67, now the largest behavioural gap); it runs **no damage calculation**, with base power and type effectiveness standing in for one; it has **no model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and ~11% of clicks could not be matched to a candidate and were dropped — mostly redirection (Follow Me, Rage Powder), where the protocol records the target that was *hit*, not the one chosen. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
-**Corpus (as of 3.19.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. 58,085 usable decisions.
+**Corpus (as of 3.20.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. 58,085 usable decisions.
 **Covariate shift, corrected automatically:** open-sheet TEAMS differ from closed-sheet teams by 551.9 points of total absolute species difference (`engine/corpus_shift.js`), while measured behaviour given a board differs by at most 1.49. Every refit re-estimates on a sample reweighted to the closed-sheet species mix and reports the shift **in standard errors**. Five weights move materially — `priorLogP` 10.8 SE, `bp` 6.2 SE (sign flips) — so the **reweighted vector ships**, since MEW draws its teams from the ladder store. Board-reading weights (`eff`, `immune`, `deadStatus`) do not move.
 **Code:** `engine/board.js`, `engine/fit_policy.js`, `engine/magnemite.js`, `engine/corpus_shift.js` → `data/policy-weights.json` (both weight vectors, standard errors, and which shipped). Six assertions in `engine/selftest.js` under "board reading".
 
