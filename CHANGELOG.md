@@ -10,6 +10,56 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.16.0] — 2026-07-26
+
+### WITHDRAWN: "this metagame is rock-paper-scissors, so you must mix"
+
+Quoted earlier tonight as the justification for building a mixed-strategy branch scorer, citing
+SLOWKING's equilibrium — a 48/33/19 mixture and a named cycle through Charizard-Venusaur, Trick Room
+and Incineroar-Sneasler. **Both came from a stale artifact computed on the UNFILTERED store.**
+
+`data/slowking-eval.json` is dated **24 July** and reports **7,314 games over 8 archetypes**. GURU was
+quality-filtered on **25 July**, one day later. The clean store has never held more than about 2,000
+games, so 7,314 could only have come from the raw store — which is 87% bots, forfeits and stubs.
+
+Re-run against the current clean matrix (1,124 games, 5 archetypes, **0 decisive matchups**):
+
+| | stale, unfiltered | clean |
+|---|---|---|
+| equilibrium | 48% / 33% / 19% mixture | **100% on one option** |
+| gap between mixing and picking the best | material | **zero** |
+| cycle found | Charizard-Venusaur → Trick Room → Incineroar-Sneasler | **none** |
+
+SLOWKING's own output now says it: *"this meta is close to transitive at this granularity, so mixing
+buys little here."*
+
+### But the honest reading is "no input", not "mixing does not help"
+
+The clean matrix contains **0 decisive matchups** — every cell's interval spans a coin. A Nash
+solution over a matrix of noise is meaningless in either direction, so this cannot distinguish
+"mixing is unnecessary" from "there is nothing here to solve". **SLOWKING currently has no usable
+input**, and that is the accurate statement.
+
+### What still stands, and it is the thing that matters
+
+The case for a mixed strategy does **not** depend on GURU at all. It rests on a direct measurement
+made tonight: a challenger built only to counter MAG beat it **63.2%**, and beat MAG's predecessor
+68.2% where MAG manages 60.2%. MAG is demonstrably readable. That is measured on fresh games and is
+untouched by any of the above.
+
+So: the *empirical* claim about this metagame being cyclic is withdrawn. The *specific* claim that
+MAG is exploitable stands. Whether mixing at the TURN level helps is untested — a team-preview null
+over five coarse buckets says nothing about it.
+
+### The rule this violated
+
+Quoting a model's output without checking what its inputs were built from. The stale file carried no
+warning, was a day older than the filter that invalidated it, and was cited as evidence for an
+architecture. Every published artifact should record the corpus it was computed on, and a consumer
+should refuse one that predates the filter it depends on.
+
+---
+
 ## [3.15.0] — 2026-07-26
 
 ### The ladder: optimise for winning, against an opponent that improves too — and it caught my own bad statistics
