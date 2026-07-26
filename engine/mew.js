@@ -82,6 +82,10 @@ const POLICY = arg('policy', 'random');
  * they are different objectives and only this one is the goal. Nothing in the project measured it
  * until now. */
 const POLICY2 = arg('policy2', '');
+/* A weight file for the SECOND player only. This is what makes an exploitability search possible:
+ * the challenger is MAG's own machinery with different numbers, so any win it manages is due to the
+ * numbers rather than to a different kind of player. */
+const WEIGHTS2 = arg('weights2', '');
 /* Per-decision probability of taking an available form change. See the block at the Player
  * construction for why this is not the same thing as the mega rate. */
 const MEGA_P = parseFloat(arg('mega', '0.85'));
@@ -289,9 +293,12 @@ async function playOne(teamA, teamB, seed) {
    * output is there to verify — measured at 61.4% and 59.0%, a gap well inside noise. */
   const swapped = !!(POLICY2 && (seed % 2 === 1));
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
+  const optA = { seed: pseed(1), mega: MEGA_P };
+  const optB = { seed: pseed(2), mega: MEGA_P };
+  if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
-  const p1 = new PA(streams.p1, { seed: pseed(1), mega: MEGA_P });
-  const p2 = new PB(streams.p2, { seed: pseed(2), mega: MEGA_P });
+  const p1 = new PA(streams.p1, optA);
+  const p2 = new PB(streams.p2, optB);
   p1.start(); p2.start();
 
   void streams.omniscient.write(
