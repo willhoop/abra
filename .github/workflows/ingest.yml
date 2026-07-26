@@ -43,6 +43,11 @@ jobs:
         run: |
           node engine/policy.js data/games.ladder.jsonl data/move-priors.json
           node engine/bring_priors.js
+      # ORIENTATION is the entry point and carried its key figures as typed text, which went stale
+      # the moment the store grew. Same rule as everything else here: derived, never typed.
+      - name: Re-derive the figures in ORIENTATION.md
+        continue-on-error: true
+        run: node build/sync_orientation.js
       - name: Recount the site's clean-game stats
         continue-on-error: true
         run: python3 engine/refresh-site-data.py
@@ -50,7 +55,7 @@ jobs:
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json
+          git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json docs/ORIENTATION.md
           if git diff --cached --quiet; then
             echo "no new games this run"; exit 0
           fi
@@ -76,8 +81,9 @@ jobs:
             node engine/analyze.js data/games.ladder.jsonl || true
             node engine/policy.js data/games.ladder.jsonl data/move-priors.json || true
             node engine/bring_priors.js || true
+            node build/sync_orientation.js || true
             python3 engine/refresh-site-data.py || true
-            git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json
+            git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json docs/ORIENTATION.md
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0
             fi

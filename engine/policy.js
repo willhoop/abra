@@ -16,8 +16,22 @@ const sp={};                 // species -> {all:{move:count}, t1:{move:count}, a
 const seen=new Set();
 function bump(o,m){ o[m]=(o[m]||0)+1; }
 
+/* CLEAN GAMES ONLY -- THIS IS THE BEHAVIOUR CLONE, SO IT IS THE WORST PLACE TO GET THIS WRONG.
+ *
+ * This read the WHOLE store. Of ~15,000 records only ~1,900 are clean; the rest are bot games,
+ * forfeits, partial brings and stubs. So "what real ladder players actually click" -- the header
+ * claim of this very file -- was in fact what BOTS click, by roughly seven to one. That distribution
+ * is what MEW's pilot samples from and what MEDICHAM rolls out, so every downstream claim about
+ * human behaviour inherited it.
+ *
+ * quality.js is the single definition of usable and every other consumer goes through it. */
+const CLEAN=(()=>{ try{ return new Set(require('./quality.js').loadGames({path:STORE}).map(g=>g.id)); }
+                   catch(e){ console.error('quality.js unavailable:',e.message); return null; } })();
+if(!CLEAN||!CLEAN.size){ console.error('refusing to build the behaviour clone without the clean filter'); process.exit(1); }
+
 for(const line of fs.readFileSync(STORE,'utf8').split('\n')){
   if(!line.trim())continue; let r; try{r=JSON.parse(line);}catch(e){continue;}
+  if(!CLEAN.has(r.id))continue;
   if(seen.has(r.id))continue; seen.add(r.id);
   for(const t of (r.turns||[])){
     for(const e of t.ev){
