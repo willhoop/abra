@@ -115,7 +115,9 @@ function makePriorPlayer() {
       this.bringPriors = options.bringPriors !== undefined ? options.bringPriors : bringTable();
       this.previewTemp = options.previewTemp != null ? +options.previewTemp
         : (process.env.MEW_PREVIEW_TEMP != null ? +process.env.MEW_PREVIEW_TEMP : 1.0);
-      this.stats = { sampled: 0, fellBack: 0, noPrior: 0, previewSampled: 0, previewDefault: 0 };
+      /* SPECIES THAT MUST NOT BE PILOTED BY POPULARITY — see chooseMove for why this exists. */
+      this.uniformFor = new Set((options.uniformFor || []).map(norm));
+      this.stats = { sampled: 0, fellBack: 0, noPrior: 0, previewSampled: 0, previewDefault: 0, uniform: 0 };
     }
 
     /* Capture the request so chooseMove can work out WHICH Pokemon is choosing.
@@ -256,6 +258,29 @@ function makePriorPlayer() {
      * would reintroduce the very confound this class exists to remove. */
     chooseMove(active, moves) {
       const species = this.speciesFor(active);
+
+      /* ---- THE SPECIES UNDER TEST GETS EQUAL AIRTIME, NOT POPULARITY-WEIGHTED AIRTIME ------------
+       *
+       * Sampling a move by how often it is clicked is right for an OPPONENT — it puts the board in
+       * positions that resemble real games. It is wrong for the Pokemon whose build is being
+       * measured, and measurably so.
+       *
+       * The priors are renormalised over whichever four moves the build carries, so a build that
+       * swaps a common move for a rare one gets that slot clicked LESS. Measured on Garchomp:
+       * Earthquake occupies 29.4% of the pilot's decisions, Stomping Tantrum in the same slot only
+       * 25.2% — 0.86x the airtime. So build_lab systematically gives rare moves fewer chances to
+       * prove themselves, and rarity is the very thing under test. The experiment was biased toward
+       * builds made of popular moves, which is circular: popularity is what we wanted to test
+       * against, not with.
+       *
+       * Uniform over the legal moves removes the bias without touching the opponent's realism. It
+       * is deliberately NOT applied globally — a corpus piloted uniformly everywhere would explore
+       * positions that never occur, which is the failure the whole behaviour-clone exists to avoid. */
+      if (this.uniformFor.size && this.uniformFor.has(species)) {
+        const pick = moves[Math.floor(this.prng.random() * moves.length)] || moves[0];
+        if (pick) { this.stats.uniform++; return pick.choice; }
+      }
+
       const rows = this.priors[species];
       if (!rows || !rows.length) {
         this.stats.noPrior++;

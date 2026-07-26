@@ -113,7 +113,7 @@ function makeOpponent(kind) {
   return require('./prior_player.js').makePriorPlayer();
 }
 
-async function playOne(packA, packB, seed, oppKind) {
+async function playOne(packA, packB, seed, oppKind, uniformFor) {
   const { BattleStream, getPlayerStreams } = CS.sim();
   const Player = require('./prior_player.js').makePriorPlayer();
   const Opp = makeOpponent(oppKind);
@@ -125,7 +125,8 @@ async function playOne(packA, packB, seed, oppKind) {
     const s = (seed + off * 0x9E3779B1) >>> 0;
     return [s & 0xffff, (s >>> 4) & 0xffff, (s >>> 8) & 0xffff, (s >>> 12) & 0xffff];
   };
-  const p1 = new Player(streams.p1, { seed: pseed(1), mega: 0.85 });
+  /* p1 carries the build being measured, so its tested species is piloted uniformly. */
+  const p1 = new Player(streams.p1, { seed: pseed(1), mega: 0.85, uniformFor });
   const p2 = new Opp(streams.p2, { seed: pseed(2), mega: 0.85 });
   p1.start(); p2.start();
   void streams.omniscient.write(
@@ -280,7 +281,7 @@ async function playOne(packA, packB, seed, oppKind) {
       const A = CS.packTeam(base, Object.assign({}, forced, { __seed: opp.seed * 2 + 1 }));
       const B = CS.packTeam(opp.six, Object.assign({}, opp.sets, { __seed: opp.seed * 2 + 2 }));
       let r = null;
-      try { r = await playOne(A.packed, B.packed, opp.seed, OPP); } catch (e) { r = null; }
+      try { r = await playOne(A.packed, B.packed, opp.seed, OPP, [speciesName]); } catch (e) { r = null; }
       if (r === null) { wins.push(0); continue; }
       wins.push(r ? 1 : 0);
       if (r) w++;
