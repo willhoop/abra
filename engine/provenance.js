@@ -112,12 +112,20 @@ for (const a of ARTIFACTS) {
     const dm = mtime(dep);
     if (dm && mt < dm) { notes.push(`older than its input ${dep}`); warn = true; }
   }
+  /* An artifact may READ the raw store if it says why, the same convention engine/selftest.js
+   * enforces on source files. The declaration must be in the artifact itself so a consumer sees it,
+   * not buried in a generator nobody opens. */
+  const declared = j && (j.raw_store_ok || j.RAW_STORE_OK);
   const n = declaredGames(j);
   const ceiling = a.corpus === 'opensheet' ? openCleanCount : cleanCount;
   const ceilingName = a.corpus === 'opensheet' ? 'clean open-sheet' : 'clean ladder';
   if (n != null && ceiling != null && n > ceiling * 1.2) {
-    notes.push(`declares ${n.toLocaleString()} games but only ${ceiling.toLocaleString()} are ${ceilingName} — cannot have been filtered`);
-    bad = true;
+    if (declared) {
+      notes.push(`reads the raw store, declared: ${String(declared).slice(0, 80)}`);
+    } else {
+      notes.push(`declares ${n.toLocaleString()} games but only ${ceiling.toLocaleString()} are ${ceilingName} — cannot have been filtered`);
+      bad = true;
+    }
   }
   /* A generator whose filter is OPT-IN must say it was switched on. pory_nn.py takes --clean and
    * defaults to off, so an artifact from it that records no such flag was almost certainly trained
@@ -155,4 +163,32 @@ if (unsafe.length) {
 console.log('\n  This checks what artifacts DECLARE about themselves. It cannot catch one that records a');
 console.log('  corpus it did not use — only re-running the generator can.');
 
-if (STRICT && unsafe.length) process.exit(1);
+/* ---- AND NO GENERATOR MAY MAKE THE FILTER OPT-IN ---------------------------------------------
+ * The pory-nn failure was not that someone forgot a flag, it was that the DEFAULT was wrong: a
+ * plain run trained on the raw archive and you had to remember `--clean` to get the right answer.
+ * Four other models already have it the right way round (filter by default, ABRA_UNFILTERED=1 to opt
+ * out). This makes the wrong shape a build failure rather than a thing to notice. */
+const OPTIN = [];
+for (const dir of ['engine', 'build']) {
+  const d = D(dir);
+  if (!fs.existsSync(d)) continue;
+  for (const f of fs.readdirSync(d)) {
+    if (!/\.(js|py)$/.test(f)) continue;
+    let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); } catch (e) { continue; }
+    if (!/add_argument\(\s*["']--clean["']|includes\(\s*['"]--clean['"]\s*\)/.test(src)) continue;
+    /* A file may keep the raw archive as its default if it DECLARES why, the same RAW-STORE-OK
+     * convention engine/selftest.js already enforces on every raw reader. build_ability_blocks.js
+     * carries one: the quantity is mechanics rather than behaviour, and the rules were verified
+     * identical on clean-only data before the exception was taken. */
+    if (/RAW-STORE-OK/.test(src)) continue;
+    OPTIN.push(dir + '/' + f);
+  }
+}
+if (OPTIN.length) {
+  console.log('\n  OPT-IN FILTERS — the lazy path is the wrong path in these files:');
+  for (const f of OPTIN) console.log('    ' + f + '  (make clean the DEFAULT and take an --unfiltered escape hatch)');
+} else {
+  console.log('\n  No generator makes the quality filter opt-in. Clean is the default everywhere.');
+}
+
+if (STRICT && (unsafe.length || OPTIN.length)) process.exit(1);

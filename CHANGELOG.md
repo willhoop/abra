@@ -10,6 +10,45 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.18.0] — 2026-07-26
+
+### The lazy path is now the right path
+
+Asked whether the bad games should simply be deleted so they cannot be used by accident. **No — and
+the reason they keep getting used is structural, not a matter of discipline.**
+
+**They carry real value, and four things need them:** the behavioural bot detector identifies bot
+ACCOUNTS by watching them replay one team across many games, so deleting the games destroys the
+ability to find the bots; ability mechanics derived from all 14,933 battles yield 14 rules against 11
+from clean-only, because physics does not care who is at the keyboard; the scrape-bias correction
+needs them to measure the bias; and every past filtering decision becomes permanent and unreviewable
+without the raw data. It is also the project's governing rule — *store raw, analyse on top; changing
+how we segment games is a re-filter, never a re-pull.*
+
+**The actual defect was that the wrong answer was the easy one.** `engine/pory_nn.py` took `--clean`
+as an OPT-IN flag, so a plain run trained on the raw archive — which is how `data/pory-nn.json` came
+to declare **61,274 games** against a clean store of ~2,000, and how its numbers came to be quoted in
+conversation as PORY's honest standing.
+
+Four other models already had it the right way round: `guru.py`, `archetypes.py`, `counterplay.py`
+and `nmf_roles.py` all filter by default and take `ABRA_UNFILTERED=1` to opt out. `pory_nn.py` now
+matches them, and `engine/provenance.js` fails the build on any generator that makes the filter
+opt-in — with an exception for a file carrying a `RAW-STORE-OK` declaration, the same convention
+`selftest.js` already enforces.
+
+### The one justified exception, verified rather than argued
+
+`build/build_ability_blocks.js` keeps the raw archive as its default. The defence is that ability
+rules are mechanics rather than behaviour, and it was checked rather than asserted: both were
+computed and **every rule is identical**, while filtering loses Volt Absorb, Water Absorb and
+Purifying Salt entirely. The declaration and the comparison are recorded in the file and in the
+artifact, so a reader sees them without opening the generator.
+
+**This holds only because the quantity is mechanical.** Nothing about how people play may be taken
+from the raw archive on the same reasoning.
+
+---
+
 ## [3.17.0] — 2026-07-26
 
 ### Every input audited before anything else gets built

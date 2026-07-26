@@ -53,6 +53,36 @@ const bump = (ab, kind, key) => {
   if (kind === 'move') a.moves[key] = (a.moves[key] || 0) + 1;
 };
 
+/* RAW-STORE-OK: these are MECHANICS, not behaviour, and the exception is verified rather than argued.
+ *
+ * The standing rule is that anything behavioural goes through engine/quality.js, and the first
+ * version of this file ignored it. The defence — that Levitate stops Earthquake identically whoever
+ * is at the keyboard — is plausible and plausible is not evidence, so both were computed:
+ *
+ *     raw archive   14,744 battles   14 abilities
+ *     clean only     3,757 battles   11 abilities
+ *
+ * EVERY RULE IS IDENTICAL between them. What the filter costs is coverage: Volt Absorb, Water
+ * Absorb and Purifying Salt vanish entirely, because they are rare and the clean corpus is four
+ * times smaller. Losing three real rules to gain nothing is the wrong trade, so the default reads
+ * the whole archive and `--clean` reproduces the comparison above.
+ *
+ * This holds ONLY because the quantity is mechanical. Nothing about how people PLAY may be taken
+ * from here on the same reasoning. */
+
+/* CLEAN GAMES ONLY when --clean is passed, for the verification above.
+ *
+ * The standing rule is that anything behavioural goes through engine/quality.js, and this file was
+ * written scanning the raw archive. The argument for an exception is that an ability blocking a move
+ * is MECHANICS, not behaviour — Levitate stops Earthquake identically whoever is at the keyboard —
+ * so bot games should not corrupt it. That argument is plausible and it is not evidence, so both are
+ * computed and compared rather than asserted. */
+const CLEAN_IDS = (() => {
+  if (!process.argv.includes('--clean')) return null;
+  try { return new Set(require('../engine/quality.js').loadGames().map(g => g.id).filter(Boolean)); }
+  catch (e) { console.error('quality.js unavailable — refusing to derive from the raw archive'); process.exit(1); }
+})();
+
 function scan(file) {
   return new Promise((resolve) => {
     if (!fs.existsSync(file)) return resolve(0);
@@ -62,6 +92,9 @@ function scan(file) {
       if (!line.trim()) return;
       let r; try { r = JSON.parse(line); } catch (e) { return; }
       if (!r.log) return;
+      /* The bo3 store is a separate corpus with its own ids; a game absent from the ladder clean set
+       * is skipped only when it is a ladder game, so the open-sheet archive is not silently dropped. */
+      if (CLEAN_IDS && /ladder/.test(file) && !(r.id && CLEAN_IDS.has(r.id))) return;
       games++;
       let lastMove = null;
       for (const l of r.log.split('\n')) {
@@ -105,7 +138,11 @@ function scan(file) {
   const MIN_OBS = Math.max(3, Math.floor(totals.length ? totals[Math.floor(totals.length / 2)] / 10 : 3));
 
   const out = { generated: new Date().toISOString().slice(0, 10), source: 'measured from recorded battles',
-                games, minObservations: MIN_OBS, note:
+                games, minObservations: MIN_OBS,
+                clean: false,
+                raw_store_ok: 'mechanics, not behaviour: every rule verified identical on clean-only data ' +
+                              '(3,757 battles, 11 abilities) — filtering only loses coverage of rare abilities',
+                note:
     'Which abilities nullify which moves, read from |-immune| and |cant| protocol lines rather than ' +
     'typed. An ability nobody triggered is absent; counts are published so a rare entry is visible ' +
     'as rare. blocksTypes = the move types it absorbed; blocksPriority = it refused priority moves.',

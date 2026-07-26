@@ -1,8 +1,10 @@
 {
  "generated": "2026-07-26",
  "source": "measured from recorded battles",
- "games": 14744,
+ "games": 14933,
  "minObservations": 4,
+ "clean": false,
+ "raw_store_ok": "mechanics, not behaviour: every rule verified identical on clean-only data (3,757 battles, 11 abilities) — filtering only loses coverage of rare abilities",
  "note": "Which abilities nullify which moves, read from |-immune| and |cant| protocol lines rather than typed. An ability nobody triggered is absent; counts are published so a rare entry is visible as rare. blocksTypes = the move types it absorbed; blocksPriority = it refused priority moves.",
  "abilities": {
   "flashfire": {
@@ -38,53 +40,53 @@
    }
   },
   "armortail": {
-   "observations": 1048,
+   "observations": 1066,
    "rule": "effective-priority",
    "purity": 0.981,
    "alternatives": [
     "effective-priority 98%",
     "priority 80%",
-    "type:Normal 51%"
+    "type:Normal 50%"
    ],
    "topMoves": {
     "fakeout": 198,
-    "suckerpunch": 96,
-    "aquajet": 53,
-    "partingshot": 33
+    "suckerpunch": 100,
+    "aquajet": 54,
+    "partingshot": 36
    }
   },
   "queenlymajesty": {
-   "observations": 128,
+   "observations": 130,
    "rule": "effective-priority",
-   "purity": 0.984,
+   "purity": 0.985,
    "alternatives": [
     "effective-priority 98%",
-    "priority 81%",
-    "type:Normal 44%"
+    "priority 80%",
+    "type:Normal 45%"
    ],
    "topMoves": {
     "suckerpunch": 20,
     "fakeout": 19,
-    "encore": 6,
+    "encore": 7,
     "aquajet": 6
    }
   },
   "levitate": {
-   "observations": 1242,
+   "observations": 1264,
    "rule": "type:Ground",
    "purity": 1,
    "alternatives": [
     "type:Ground 100%"
    ],
    "topMoves": {
-    "earthquake": 472,
-    "stompingtantrum": 89,
-    "earthpower": 41,
+    "earthquake": 481,
+    "stompingtantrum": 90,
+    "earthpower": 42,
     "highhorsepower": 13
    }
   },
   "goodasgold": {
-   "observations": 234,
+   "observations": 236,
    "rule": "status",
    "purity": 1,
    "alternatives": [
@@ -94,8 +96,8 @@
    ],
    "topMoves": {
     "sleeppowder": 19,
+    "encore": 17,
     "perishsong": 16,
-    "encore": 16,
     "partingshot": 8
    }
   },
@@ -112,16 +114,16 @@
    }
   },
   "eelevate": {
-   "observations": 182,
+   "observations": 190,
    "rule": "type:Ground",
    "purity": 1,
    "alternatives": [
     "type:Ground 100%"
    ],
    "topMoves": {
-    "earthquake": 53,
+    "earthquake": 56,
     "stompingtantrum": 19,
-    "highhorsepower": 10,
+    "highhorsepower": 11,
     "earthpower": 7
    }
   },
@@ -158,14 +160,14 @@
    }
   },
   "dryskin": {
-   "observations": 22,
+   "observations": 26,
    "rule": "type:Water",
    "purity": 1,
    "alternatives": [
     "type:Water 100%"
    ],
    "topMoves": {
-    "surf": 4,
+    "surf": 6,
     "waterspout": 4,
     "wavecrash": 3
    }

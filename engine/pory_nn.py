@@ -346,8 +346,15 @@ def main():
     ap.add_argument("--selfplay-only", action="store_true")
     ap.add_argument("--limit", type=int, default=None, help="cap games per source")
     ap.add_argument("--hidden", type=int, default=0, help="0 = pick by validation")
-    ap.add_argument("--clean", action="store_true",
-                    help="restrict to games surviving the quality filter (no bots, no forfeits)")
+    # CLEAN IS THE DEFAULT. It used to be opt-in via --clean, which made the LAZY path the WRONG
+    # path: a plain run trained on the raw archive, and data/pory-nn.json ended up declaring 61,274
+    # games against a clean store of ~2,000. Its numbers were then quoted as PORY's honest standing.
+    #
+    # Every other model here already does it the right way round -- guru.py, archetypes.py,
+    # counterplay.py and nmf_roles.py all filter by default and take ABRA_UNFILTERED=1 to opt out.
+    # This is now the same, and the artifact records which way it ran so nobody has to guess again.
+    ap.add_argument("--unfiltered", action="store_true",
+                    help="train on the RAW archive including bots and forfeits (for comparison only)")
     ap.add_argument("--transfer", action="store_true",
                     help="train on self-play ONLY, evaluate on ladder ONLY (the transfer test)")
     args = ap.parse_args()
@@ -363,7 +370,7 @@ def main():
     print(f"PORY-NN  (state encoder v{ENCODER_VERSION}, {len(FEATURE_NAMES)} features)")
     print("loading:")
     keep = None
-    if args.clean:
+    if (not args.unfiltered):
         keep = clean_ids()
         if keep is None:
             print("REFUSING to run: --clean was requested and the filter could not be applied.")
