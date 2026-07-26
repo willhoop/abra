@@ -32,6 +32,17 @@ jobs:
       #
       # The raw protocol logs are gitignored (~1GB), so this runner cannot recompute the two
       # log-derived figures; refresh-site-data.py carries those forward rather than zeroing them.
+      # THE DERIVED PRIORS MUST TRACK THE META, NOT THE DAY THEY WERE LAST RUN BY HAND.
+      # Smogon's half of the model already auto-updates (monthly workflow, month auto-detected) and
+      # the ladder store grows hourly -- but move-priors and bring-priors were regenerated only when
+      # somebody remembered. That is the same defect as the hand-maintained site counts: a number
+      # derived once is a hardcode with extra steps, and these two drift as the metagame moves.
+      # Both read the store through the clean filter, so they never learn from bot games.
+      - name: Re-derive the behaviour priors from the current clean store
+        continue-on-error: true
+        run: |
+          node engine/policy.js data/games.ladder.jsonl data/move-priors.json
+          node engine/bring_priors.js
       - name: Recount the site's clean-game stats
         continue-on-error: true
         run: python3 engine/refresh-site-data.py
@@ -39,7 +50,7 @@ jobs:
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/games.ladder.jsonl data/meta-usage.json data/live.js
+          git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json
           if git diff --cached --quiet; then
             echo "no new games this run"; exit 0
           fi
@@ -63,8 +74,10 @@ jobs:
             cat "$RUNNER_TEMP/ours.jsonl" >> data/games.ladder.jsonl
             python3 engine/dedupe_store.py --write || true
             node engine/analyze.js data/games.ladder.jsonl || true
+            node engine/policy.js data/games.ladder.jsonl data/move-priors.json || true
+            node engine/bring_priors.js || true
             python3 engine/refresh-site-data.py || true
-            git add data/games.ladder.jsonl data/meta-usage.json data/live.js
+            git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0
             fi
