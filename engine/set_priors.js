@@ -75,9 +75,32 @@ function gearPriors() {
   if (_gear) return _gear;
   _gear = {};
   const item = {}, abil = {};
+  /* WHICH GAMES COUNT FOR AN ITEM, AND WHY IT IS NOT THE SAME ANSWER AS FOR BEHAVIOUR.
+   *
+   * This read only quality-filtered games, which left FIFTEEN observations deciding Charizard's
+   * item and ten deciding Staraptor's. At that size the estimate is barely better than a guess,
+   * and Tyranitar's stone rate moves from 47% to 27% depending on which pile you use.
+   *
+   * The filter exists to stop bot games contaminating claims about how people PLAY. An item is not
+   * a play decision though -- it is a team-building fact, and bot teams are overwhelmingly copied
+   * human teams, so excluding them throws away most of the evidence for no gain.
+   *
+   * But the raw store cannot be used either: a bot grinding 200 games on one team would contribute
+   * 200 identical observations and swamp everyone else -- precisely the team-invariance the filter
+   * detects.
+   *
+   * So: use the WHOLE store, and count each distinct (player, species, item, ability) ONCE. A bot
+   * playing the same Tyranitar two hundred times counts as one Tyranitar, exactly like a human who
+   * played it once. That keeps the sample size without letting repetition vote. */
+  const seenCombo = new Set();
   try {
     const Q = require('./quality.js');
-    for (const g of Q.loadGames()) {
+    for (const g of Q.loadGames({ clean: false })) {
+      const owner = { p1: norm(((g.p1 || {}).name) || 'p1'), p2: norm(((g.p2 || {}).name) || 'p2') };
+      const voteKey = (sp, s, side) =>
+        owner[side] + '|' + sp + '|' + norm((s && s.item) || '') + '|' + norm((s && s.ability) || '');
+      const owners = (sp) => ['p1', 'p2'].filter(side =>
+        (((g.brought || {})[side]) || []).map(norm).includes(sp));
       for (const [sp0, s] of Object.entries(g.sets || {})) {
         const sp = norm(sp0);
         /* CANONICALISE THE ITEM NAME BEFORE COUNTING. The store carries the same item under two
@@ -86,6 +109,20 @@ function gearPriors() {
          * two entries, understating how often it is actually held (Charizard's stone read 67% + 13%
          * instead of 80%) and letting a rarely-seen spelling win a sample. Key on the normalised
          * form, keep the most common spelling for display. */
+        /* One vote per (player, species, item, ability). A player who ran this exact set before has
+         * already voted; repetition does not get to count again. Sets belonging to nobody we can
+         * identify (species not in either bring list) are skipped rather than attributed. */
+        const sides = owners(sp);
+        if (!sides.length) continue;
+        let voted = false;
+        for (const side of sides) {
+          const key = voteKey(sp, s, side);
+          if (seenCombo.has(key)) continue;
+          seenCombo.add(key);
+          voted = true;
+        }
+        if (!voted) continue;
+
         if (s && s.item) {
           const key = norm(s.item);
           const bucket = (item[sp] = item[sp] || {});
