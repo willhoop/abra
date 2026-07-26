@@ -67,16 +67,36 @@ p − (p² + (1−p)²) = (2p − 1)(1 − p)
 positive exactly when `p > ½`. **The crossover is arithmetic, not a tuned threshold** — which is what
 makes it admissible under S12/S13.
 
-**The honest limit.** Accuracy per slot is not the only objective. A generator that always emits the
-mode produces zero diversity, and the corpus exists partly to cover the position space. That is why
-`set_space.js` enumerates by *substitution* into the top four rather than forcing all four — the Bayes
-rule governs a single slot, not the design of a corpus.
+**THE HONEST LIMIT — AND IT IS LARGER THAN THIS SECTION FIRST CLAIMED.**
 
-**Measured, and currently violated.** The rule is derived but not yet applied to set generation, and
-the shortfall is systematic across every species tested — locked moves appear on our sets **2.6
-points less often** than Smogon says they should (Farigiraf 5.8, Kingambit 5.5, Sinistcha 0.3). One
-Kingambit in seven is generated with no Sucker Punch, a set nobody runs. Open defect, not a defended
-choice.
+This was implemented, measured, and reverted the same hour. Forcing every move above 50% put all of
+them on 100% of generated sets and drove Kingambit's Low Kick from 47.8% to **zero**, Swords Dance to
+**zero**. Mean deviation from Smogon went from 2.6 points under to 17.5 points over. The set space
+collapsed to one build per species.
+
+The error was applying the right theorem to the wrong objective. Two different goals are in play and
+they have *opposite* optima:
+
+| goal | optimal rule |
+|---|---|
+| guess ONE opponent's set as accurately as possible | **take the mode** (Bayes, 0-1 loss) |
+| generate a CORPUS whose sets are distributed like reality | **sample from the distribution** |
+
+Probability matching is suboptimal for per-instance accuracy and *correct* for distributional
+fidelity — a generated corpus is closest to the truth in distribution when it is drawn from the
+truth. Set generation exists to populate a corpus, so it wants the second rule. XATU, which predicts
+a specific opponent's set from partial revelation, wants the first.
+
+So the 50% rule stands where it was derived — `set_space.js`, choosing which slots a build experiment
+should hold fixed — and does **not** govern set generation. The earlier text in this section implied
+otherwise and was wrong.
+
+**The real defect, correctly sized.** Our locked moves appear 2.6 points *less* often than Smogon
+says (Farigiraf 5.8, Kingambit 5.5, Sinistcha 0.3) — a small, systematic under-production, not a
+missing rule. Its cause is the sequential weighted draw: once common moves are taken, the four-slot
+constraint forces rare ones onto the set. The principled fix is to sample each move independently at
+its Smogon *set-rate* and repair to exactly four, which targets the marginals directly. Open, and
+deliberately not fixed by forcing.
 
 ---
 
