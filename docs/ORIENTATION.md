@@ -94,10 +94,10 @@ The model CHOMP reads was, for a period, a description of one script's team rath
 metagame. That is the concrete reason this filter exists and why every engine must go through it.
 
 <!-- BEGIN:RAWREADERS -->
-**23 engine tools still read the store with neither the clean filter nor a declared reason.**
+**22 engine tools still read the store with neither the clean filter nor a declared reason.**
 `engine/selftest.js` fails while any remain, and names them:
 
-`engine/backtest_winrate.js`, `engine/calibrate.py`, `engine/chomp-predict.js`, `engine/chomp_ev.js`, `engine/coach.js`, `engine/cores.js`, `engine/ditto.js`, `engine/ditto.py`, `engine/dynamics.js`, `engine/eval_harness.py`, `engine/eval_policy.py`, `engine/flywheel.py`, `engine/illusion.js`, `engine/jolteon.py`, `engine/mew_farm.js`, `engine/playstyle.js`, `engine/pory.py`, `engine/pory_baseline.py`, `engine/predictability.py`, `engine/role_atlas.py`, `engine/sanity_check.py`, `engine/slowking.py`, `engine/validate_selfplay.js`
+`engine/backtest_winrate.js`, `engine/calibrate.py`, `engine/chomp-predict.js`, `engine/coach.js`, `engine/cores.js`, `engine/ditto.js`, `engine/ditto.py`, `engine/dynamics.js`, `engine/eval_harness.py`, `engine/eval_policy.py`, `engine/flywheel.py`, `engine/illusion.js`, `engine/jolteon.py`, `engine/mew_farm.js`, `engine/playstyle.js`, `engine/pory.py`, `engine/pory_baseline.py`, `engine/predictability.py`, `engine/role_atlas.py`, `engine/sanity_check.py`, `engine/slowking.py`, `engine/validate_selfplay.js`
 
 Anything they publish is computed over a store that is 87.4% unusable.
 <!-- END:RAWREADERS -->

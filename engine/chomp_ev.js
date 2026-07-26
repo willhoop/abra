@@ -62,11 +62,31 @@ const seen = new Set();
 let rows = [];
 let n_total = 0, n_human = 0;
 const audEval = [], audExcl = [];   // selection audit: turns + rating for qualifying vs excluded games
+/* THE FULL QUALITY FILTER, NOT JUST NAMED BOTS.
+ *
+ * This excluded accounts whose USERNAME announces them as a bot, and nothing else. The store's
+ * biggest contaminant is the opposite case: accounts that play like a script under an ordinary
+ * name, caught only by team invariance. Of ~15,000 records ~1,905 survive the full filter; this
+ * loop was keeping about twice that, including behavioural bots and games too short to reveal a
+ * bring.
+ *
+ * It matters more here than almost anywhere else. The claim this file makes -- does CHOMP's
+ * bring-quality ranking track who actually won -- is a claim about HUMAN decisions. A scripted
+ * account brings the same four every game, so its bring quality is a constant and its wins are
+ * noise against that constant. ORIENTATION already records that undetected bots running one team
+ * once dominated the usage table; the same accounts are in here.
+ *
+ * quality.js is the single definition and every other consumer goes through it. */
+const CLEAN = (() => { try { return new Set(require('./quality.js').loadGames().map(g => g.id)); }
+                       catch (e) { console.error('quality.js unavailable:', e.message); return null; } })();
+if (!CLEAN || !CLEAN.size) { console.error('refusing to score bring quality without the clean filter'); process.exit(1); }
+
 for (const line of fs.readFileSync(STORE, 'utf8').split('\n')) {
   if (!line.trim()) continue;
   let g; try { g = JSON.parse(line); } catch (e) { continue; }
   if (seen.has(g.id)) continue; seen.add(g.id);
   n_total++;
+  if (!CLEAN.has(g.id)) continue;
   if (!g.winner || g.p1.bot || g.p2.bot) continue;
   n_human++;
   const six1 = (g.six && g.six.p1 || []).map(idn), six2 = (g.six && g.six.p2 || []).map(idn);
