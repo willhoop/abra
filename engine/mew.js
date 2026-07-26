@@ -115,18 +115,51 @@ function realTeams() {
   }
   const Q = require('./quality.js');
   const games = Q.loadGames();                 // clean only
-  const seen = new Set(), teams = [];
+
+  /* KEEP THE TEAMS DISTINCT, BUT REMEMBER HOW OFTEN EACH WAS PLAYED.
+   *
+   * This deduplicated and stopped there, with the comment "duplicates re-weight the meta" — which
+   * has it exactly backwards. Deduplicating is what re-weights the meta: a team played two hundred
+   * times ended up counting the same as a team played once, so the generated metagame came out far
+   * FLATTER than the real one. Measured against real games:
+   *
+   *     Basculegion   28.4% of generated games   54.5% of real
+   *     Garchomp      40.0%                      56.8%
+   *     Kingambit     30.8%                      48.2%
+   *     mean absolute gap over the top 12 species: 11.6 points
+   *
+   * Popularity is a real property of the format, not noise to be normalised away. A model trained
+   * on the flattened version under-prepares against exactly the threats it will meet most.
+   *
+   * BUT FLAT IS PROBABLY RIGHT, AND THE REASON IS WHAT THESE GAMES ARE FOR.
+   *
+   * They exist so a value function has positions to learn from. For that, COVERAGE of the position
+   * space beats fidelity to the current metagame: whether Basculegion appears in 28% or 54% of games
+   * does not change what a position is worth, and a flatter draw visits more of the space. Metamon
+   * built a deliberately DIVERSE set of teams for exactly this reason rather than reproducing the
+   * live ladder, and VGC-Bench's agents degraded as team diversity rose — so neither result argues
+   * for chasing the real distribution here.
+   *
+   * Where the real distribution IS required — "what will I actually face on ladder" — the answer
+   * should come from the ladder store or from Smogon, both of which measure it directly and neither
+   * of which needs self-play to estimate it.
+   *
+   * So: the pool stays DISTINCT and is drawn from UNIFORMLY by default, and each entry carries `n`
+   * (clean games it appeared in) so popularity weighting is available when a question actually needs
+   * it. Deduplication is a deliberate choice here, not an oversight — it is recorded as such because
+   * the previous comment claimed the opposite. */
+  const byKey = new Map();
   for (const g of games) {
     for (const side of ['p1', 'p2']) {
       const six = ((g.six || {})[side] || []).filter(Boolean);
       if (six.length !== 6) continue;
       const key = six.slice().sort().join('|');
-      if (seen.has(key)) continue;             // distinct teams only; duplicates re-weight the meta
-      seen.add(key);
-      teams.push({ six, sets: g.sets || {} });
+      const prev = byKey.get(key);
+      if (prev) { prev.n++; continue; }
+      byKey.set(key, { six, sets: g.sets || {}, n: 1 });
     }
   }
-  return teams;
+  return [...byKey.values()];
 }
 
 // ---- one self-play battle ----------------------------------------------------------------------
