@@ -171,7 +171,7 @@ setup builds.
    rule about setup moves; it is what reading the board means. Everything above is scaffolding until
    it exists.
 
-**UPDATE (v3.7.0): option 3 now exists — and it does not fix this.** `engine/score_policy.js` reads
+**UPDATE (v3.7.0): option 3 now exists — and it does not fix this.** `engine/magnemite.js` reads
 the board (§6), so the *opponents* in a `build_lab` run are board-conditioned. The **species under
 test is deliberately excluded**, because the argument at the top of this section still holds: equal
 airtime per arm is what makes the comparison unbiased, and a board-aware pilot allocates airtime by

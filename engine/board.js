@@ -11,12 +11,12 @@
  *     moves that outright failed        ours  8.7%   real  2.7%
  *
  * A player who cannot see the other side aims at random and clicks moves that cannot work. This file
- * is the eyes. It does not decide anything — engine/score_policy.js does that — it only reconstructs
+ * is the eyes. It does not decide anything — engine/magnemite.js does that — it only reconstructs
  * the state and turns (move, target) pairs into numbers.
  *
  * ONE DEFINITION, TWO CONSUMERS (S12).
  * The feature vector is defined here exactly once and imported by both the fitter
- * (engine/fit_policy.js, offline, reading stored games) and the player (engine/score_policy.js,
+ * (engine/fit_policy.js, offline, reading stored games) and the player (engine/magnemite.js,
  * online, inside the simulator). If those two ever computed features differently the fitted weights
  * would be applied to a different vector than they were learned on, and the resulting bot would be
  * wrong in a way no test would catch. That is why FEATURES is a single exported list and why both

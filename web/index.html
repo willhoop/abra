@@ -310,6 +310,7 @@ canvas#confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 <script src="../data/nmf.js"></script>
 <script src="../data/roles.js"></script>
 <script src="../data/mew.js"></script>
+<script src="../data/mag.js"></script>
 <script>
 /* ===== live JOLTEON model (embedded, real weights) ===== */
 const JOLT = {"wSpeed":-0.1626,"wFire":0.3019,"roster":[{"n":"garchomp","sprite":"garchomp","w":-0.093,"spd":0.506,"fire":0.813,"bring":0.402,"use":0.371},{"n":"whimsicott","sprite":"whimsicott","w":0.0763,"spd":0.822,"fire":0.876,"bring":0.773,"use":0.348},{"n":"basculegion","sprite":"basculegion","w":0.01,"spd":0.663,"fire":0.625,"bring":0.761,"use":0.345},{"n":"kingambit","sprite":"kingambit","w":0.3176,"spd":0.073,"fire":0.56,"bring":0.242,"use":0.331},{"n":"charizard","sprite":"charizard","w":0.0412,"spd":0.455,"fire":0.881,"bring":0.901,"use":0.329},{"n":"sylveon","sprite":"sylveon","w":-0.0352,"spd":0.162,"fire":0.815,"bring":0.766,"use":0.261},{"n":"incineroar","sprite":"incineroar","w":-0.0145,"spd":0.134,"fire":1.0,"bring":0.644,"use":0.196},{"n":"sinistcha","sprite":"sinistcha","w":0.0981,"spd":0.147,"fire":0.463,"bring":0.421,"use":0.171},{"n":"farigiraf","sprite":"farigiraf","w":0.0129,"spd":0.105,"fire":0.596,"bring":0.65,"use":0.139},{"n":"pelipper","sprite":"pelipper","w":0.1388,"spd":0.211,"fire":0.561,"bring":0.643,"use":0.136},{"n":"sneasler","sprite":"sneasler","w":0.1453,"spd":0.637,"fire":0.637,"bring":0.721,"use":0.127},{"n":"archaludon","sprite":"archaludon","w":-0.1737,"spd":0.254,"fire":0.707,"bring":0.572,"use":0.118},{"n":"grimmsnarl","sprite":"grimmsnarl","w":0.1393,"spd":0.769,"fire":0.72,"bring":0.595,"use":0.1},{"n":"raichu","sprite":"raichu","w":0.2147,"spd":0.694,"fire":0.676,"bring":0.632,"use":0.091},{"n":"tyranitar","sprite":"tyranitar","w":0.4408,"spd":0.456,"fire":0.834,"bring":0.786,"use":0.087},{"n":"staraptor","sprite":"staraptor","w":0.0228,"spd":0.568,"fire":0.952,"bring":0.623,"use":0.087},{"n":"gholdengo","sprite":"gholdengo","w":-0.2375,"spd":0.31,"fire":0.59,"bring":0.536,"use":0.087},{"n":"venusaur","sprite":"venusaur","w":0.1584,"spd":0.467,"fire":0.793,"bring":0.661,"use":0.086},{"n":"milotic","sprite":"milotic","w":-0.0505,"spd":0.261,"fire":0.518,"bring":0.543,"use":0.081},{"n":"aerodactyl","sprite":"aerodactyl","w":0.3857,"spd":0.713,"fire":0.608,"bring":0.65,"use":0.07},{"n":"swampert","sprite":"swampert","w":0.0197,"spd":0.502,"fire":0.83,"bring":0.574,"use":0.067},{"n":"metagross","sprite":"metagross","w":-0.1139,"spd":0.549,"fire":0.892,"bring":0.547,"use":0.06},{"n":"floetteeternal","sprite":"floette-eternal","w":0.2044,"spd":0.407,"fire":0.716,"bring":0.511,"use":0.06},{"n":"excadrill","sprite":"excadrill","w":0.255,"spd":0.573,"fire":0.583,"bring":0.586,"use":0.059},{"n":"talonflame","sprite":"talonflame","w":0.1276,"spd":0.87,"fire":0.615,"bring":0.715,"use":0.057},{"n":"torkoal","sprite":"torkoal","w":0.0859,"spd":0.016,"fire":0.552,"bring":0.658,"use":0.056},{"n":"sableye","sprite":"sableye","w":0.006,"spd":0.852,"fire":0.405,"bring":0.671,"use":0.055},{"n":"sinistchamasterpiece","sprite":"sinistchamasterpiece","w":-0.0907,"spd":0.227,"fire":0.495,"bring":0.522,"use":0.051},{"n":"rotomwash","sprite":"rotom-wash","w":0.126,"spd":0.398,"fire":0.48,"bring":0.643,"use":0.046},{"n":"ninetalesalola","sprite":"ninetales-alola","w":-0.0788,"spd":0.547,"fire":0.508,"bring":0.672,"use":0.045},{"n":"gengar","sprite":"gengar","w":0.1901,"spd":0.712,"fire":0.877,"bring":0.66,"use":0.045},{"n":"delphox","sprite":"delphox","w":0.2079,"spd":0.617,"fire":0.8,"bring":0.534,"use":0.043},{"n":"annihilape","sprite":"annihilape","w":0.1012,"spd":0.517,"fire":0.722,"bring":0.516,"use":0.042},{"n":"mawile","sprite":"mawile","w":0.3132,"spd":0.222,"fire":0.66,"bring":0.559,"use":0.041},{"n":"dragonite","sprite":"dragonite","w":0.0197,"spd":0.456,"fire":0.636,"bring":0.537,"use":0.04},{"n":"blastoise","sprite":"blastoise","w":-0.0935,"spd":0.392,"fire":0.655,"bring":0.575,"use":0.038},{"n":"toxapex","sprite":"toxapex","w":0.2248,"spd":0.416,"fire":0.41,"bring":0.774,"use":0.037},{"n":"blaziken","sprite":"blaziken","w":0.1431,"spd":0.602,"fire":0.799,"bring":0.656,"use":0.037},{"n":"froslass","sprite":"froslass","w":0.1469,"spd":0.699,"fire":0.668,"bring":0.734,"use":0.036},{"n":"ceruledge","sprite":"ceruledge","w":0.1245,"spd":0.245,"fire":0.802,"bring":0.657,"use":0.036},{"n":"hydreigon","sprite":"hydreigon","w":-0.0187,"spd":0.747,"fire":0.733,"bring":0.596,"use":0.035},{"n":"tsareena","sprite":"tsareena","w":-0.1634,"spd":0.468,"fire":0.945,"bring":0.506,"use":0.035},{"n":"mausholdfour","sprite":"mausholdfour","w":0.2016,"spd":0.553,"fire":0.623,"bring":0.552,"use":0.032},{"n":"glimmora","sprite":"glimmora","w":0.4215,"spd":0.71,"fire":0.72,"bring":0.742,"use":0.031},{"n":"primarina","sprite":"primarina","w":-0.1199,"spd":0.121,"fire":0.715,"bring":0.703,"use":0.03},{"n":"politoed","sprite":"politoed","w":0.1799,"spd":0.082,"fire":0.433,"bring":0.622,"use":0.03},{"n":"kangaskhan","sprite":"kangaskhan","w":0.0977,"spd":0.33,"fire":0.575,"bring":0.77,"use":0.026},{"n":"gardevoir","sprite":"gardevoir","w":0.2734,"spd":0.592,"fire":0.733,"bring":0.648,"use":0.026},{"n":"mamoswine","sprite":"mamoswine","w":-0.0842,"spd":0.6,"fire":0.682,"bring":0.611,"use":0.026},{"n":"scrafty","sprite":"scrafty","w":-0.0232,"spd":0.127,"fire":0.63,"bring":0.745,"use":0.025},{"n":"maushold","sprite":"maushold","w":-0.1114,"spd":0.548,"fire":0.437,"bring":0.545,"use":0.025},{"n":"scizor","sprite":"scizor","w":0.2772,"spd":0.211,"fire":0.696,"bring":0.481,"use":0.025},{"n":"sceptile","sprite":"sceptile","w":0.1771,"spd":0.778,"fire":0.585,"bring":0.595,"use":0.022},{"n":"chandelure","sprite":"chandelure","w":0.396,"spd":0.658,"fire":0.593,"bring":0.558,"use":0.022},{"n":"gallade","sprite":"gallade","w":0.3383,"spd":0.604,"fire":0.732,"bring":0.6,"use":0.021},{"n":"corviknight","sprite":"corviknight","w":0.1111,"spd":0.205,"fire":0.429,"bring":0.54,"use":0.021},{"n":"scovillain","sprite":"scovillain","w":0.2577,"spd":0.435,"fire":0.596,"bring":0.389,"use":0.021},{"n":"malamar","sprite":"malamar","w":-0.1159,"spd":0.328,"fire":0.658,"bring":0.833,"use":0.02},{"n":"meowstic","sprite":"meowstic","w":0.2996,"spd":0.851,"fire":0.592,"bring":0.744,"use":0.02},{"n":"altaria","sprite":"altaria","w":-0.1874,"spd":0.247,"fire":0.601,"bring":0.677,"use":0.019},{"n":"eelektross","sprite":"eelektross","w":0.3314,"spd":0.32,"fire":0.954,"bring":0.667,"use":0.019},{"n":"clefable","sprite":"clefable","w":-0.0415,"spd":0.231,"fire":0.693,"bring":0.41,"use":0.019},{"n":"meowscarada","sprite":"meowscarada","w":-0.1666,"spd":0.846,"fire":0.692,"bring":0.509,"use":0.018},{"n":"lucario","sprite":"lucario","w":-0.1364,"spd":0.755,"fire":0.934,"bring":0.455,"use":0.018},{"n":"oranguru","sprite":"oranguru","w":-0.146,"spd":0.333,"fire":0.273,"bring":0.725,"use":0.016},{"n":"dragapult","sprite":"dragapult","w":-0.2819,"spd":0.667,"fire":0.696,"bring":0.683,"use":0.016},{"n":"greninja","sprite":"greninja","w":-0.1127,"spd":0.865,"fire":0.89,"bring":0.652,"use":0.016},{"n":"volcarona","sprite":"volcarona","w":-0.1701,"spd":0.692,"fire":0.598,"bring":0.628,"use":0.016},{"n":"kommoo","sprite":"kommoo","w":0.07,"spd":0.604,"fire":0.515,"bring":0.595,"use":0.016},{"n":"tinkaton","sprite":"tinkaton","w":-0.126,"spd":0.385,"fire":0.569,"bring":0.629,"use":0.015},{"n":"meganium","sprite":"meganium","w":0.1851,"spd":0.516,"fire":0.669,"bring":0.563,"use":0.015},{"n":"rotomheat","sprite":"rotom-heat","w":0.148,"spd":0.657,"fire":0.535,"bring":0.767,"use":0.014},{"n":"weavile","sprite":"weavile","w":-0.0374,"spd":0.649,"fire":0.68,"bring":0.583,"use":0.014},{"n":"zoroarkhisui","sprite":"zoroark-hisui","w":0.0425,"spd":0.55,"fire":0.652,"bring":0.575,"use":0.014},{"n":"camerupt","sprite":"camerupt","w":0.115,"spd":0,"fire":0.644,"bring":0.543,"use":0.014},{"n":"palafin","sprite":"palafin","w":-0.3271,"spd":0.7,"fire":0.8,"bring":0.462,"use":0.014},{"n":"overqwil","sprite":"overqwil","w":0.079,"spd":0.435,"fire":0.717,"bring":0.829,"use":0.013},{"n":"mrrime","sprite":"mrrime","w":-0.1218,"spd":0.277,"fire":0.829,"bring":0.568,"use":0.013},{"n":"aegislash","sprite":"aegislash","w":-0.0181,"spd":0.491,"fire":0.701,"bring":0.538,"use":0.013},{"n":"drampa","sprite":"drampa","w":-0.073,"spd":0.357,"fire":0.751,"bring":0.5,"use":0.013},{"n":"gyarados","sprite":"gyarados","w":-0.18,"spd":0.444,"fire":0.783,"bring":0.5,"use":0.013},{"n":"araquanid","sprite":"araquanid","w":-0.0927,"spd":0.2,"fire":0.77,"bring":0.444,"use":0.013},{"n":"hatterene","sprite":"hatterene","w":0.0319,"spd":0.014,"fire":0.543,"bring":0.625,"use":0.012},{"n":"pyroar","sprite":"pyroar","w":0.2371,"spd":0.732,"fire":0.836,"bring":0.588,"use":0.012},{"n":"dragalge","sprite":"dragalge","w":-0.1337,"spd":0.136,"fire":0.7,"bring":0.455,"use":0.012},{"n":"arcaninehisui","sprite":"arcanine-hisui","w":-0.0472,"spd":0.528,"fire":0.829,"bring":0.792,"use":0.011},{"n":"heliolisk","sprite":"heliolisk","w":-0.1533,"spd":0.878,"fire":0.73,"bring":0.739,"use":0.011},{"n":"starmie","sprite":"starmie","w":-0.0813,"spd":0.809,"fire":0.817,"bring":0.609,"use":0.011},{"n":"golurk","sprite":"golurk","w":-0.0839,"spd":0,"fire":0.735,"bring":0.438,"use":0.011},{"n":"jolteon","sprite":"jolteon","w":0.1952,"spd":0.692,"fire":0.738,"bring":0.714,"use":0.01},{"n":"chesnaught","sprite":"chesnaught","w":-0.0747,"spd":0.576,"fire":0.815,"bring":0.69,"use":0.01},{"n":"gliscor","sprite":"gliscor","w":0.0572,"spd":0.564,"fire":0.681,"bring":0.654,"use":0.01},{"n":"lopunny","sprite":"lopunny","w":0.2009,"spd":0.767,"fire":0.655,"bring":0.636,"use":0.01},{"n":"vivillon","sprite":"vivillon","w":-0.0288,"spd":0.759,"fire":0.745,"bring":0.733,"use":0.009},{"n":"mimikyu","sprite":"mimikyu","w":0.0282,"spd":0.333,"fire":0.379,"bring":0.714,"use":0.009},{"n":"noivern","sprite":"noivern","w":0.0916,"spd":0.732,"fire":0.704,"bring":0.667,"use":0.009},{"n":"vileplume","sprite":"vileplume","w":-0.1213,"spd":0.682,"fire":0.847,"bring":0.591,"use":0.009},{"n":"vanilluxe","sprite":"vanilluxe","w":0.0181,"spd":0.556,"fire":1.0,"bring":0.5,"use":0.009},{"n":"ditto","sprite":"ditto","w":-0.0031,"spd":0.763,"fire":0.757,"bring":0.353,"use":0.009},{"n":"klefki","sprite":"klefki","w":-0.1066,"spd":0.885,"fire":0.64,"bring":1,"use":0.008},{"n":"espathra","sprite":"espathra","w":-0.108,"spd":0.758,"fire":0.453,"bring":0.588,"use":0.008},{"n":"samurotthisui","sprite":"samurott-hisui","w":0.1022,"spd":0.5,"fire":0.786,"bring":0.538,"use":0.007},{"n":"houndoom","sprite":"houndoom","w":-0.0254,"spd":0.632,"fire":0.714,"bring":0.5,"use":0.007},{"n":"ninetales","sprite":"ninetales","w":-0.1078,"spd":0.769,"fire":0.698,"bring":0.455,"use":0.007},{"n":"feraligatr","sprite":"feraligatr","w":-0.0455,"spd":0.462,"fire":0.76,"bring":0,"use":0.006},{"n":"vivillonfancy","sprite":"vivillonfancy","w":-0.0278,"spd":0.5,"fire":0.697,"bring":0.7,"use":0.005}]};
@@ -577,6 +578,7 @@ const CAST=[
  {id:'guru', tab:'Guru', full:'Oranguru', sprite:'oranguru', title:"Guru's Observatory", acro:'meta matchup matrix, measured from real games', role:'meta matchup matrix', roof:'#b06bff'},
  {id:'xatu', tab:'Xatu', full:'Xatu', sprite:'xatu', title:"Xatu's Roost", acro:'reads the opponent’s hidden set', role:'opponent belief', roof:'#6bd0ff'},
  {id:'pory', tab:'Pory', full:'Porygon', sprite:'porygon', title:"Porygon's Win Meter", acro:'mid-game win% — no better than counting Pokémon', role:'mid-game win %', roof:'#6be0a0'},
+ {id:'magnemite', tab:'Mag', full:'Magnemite', sprite:'magnemite', title:"Mag's Targeting Range", acro:'Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates', role:'in-battle move choice', roof:'#4a7fd6'},
  {id:'alakazam', tab:'Alakazam', full:'Alakazam', sprite:'alakazam', title:"Alakazam's Tower", acro:'the in-battle decision engine · capstone, in development', role:'win-%-optimal move', roof:'#c66bff'},
  {id:'roles', tab:'Roles', full:'Smeargle', sprite:'smeargle', title:"The Role Foundry", acro:'roles the data found — emergent archetypes, not hand-labels', role:'emergent roles', roof:'#ff9f43'},
  {id:'mew', tab:'Mew', full:'Mew', sprite:'mew', title:"Mew's Practice Field", acro:'self-play data engine — plays the format against itself, forever', role:'self-play corpus', roof:'#ff8fd0'},
@@ -898,6 +900,203 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
      </div>
      <div style="text-align:center;margin-top:14px;font-size:38px;font-weight:800;color:#1a9a4a" id="pv_out">50%</div></div>`;
 }
+
+/* ===== MAGNEMITE — the in-battle move choice, as a room =========================================
+   The scoring functions below (eff1, feats) are a SECOND implementation of engine/board.js
+   featuresFor — the engine runs in Node, this runs in a browser. That is exactly the drift this
+   project keeps paying for, so data/mag.js ships a fixture the real engine scored, the room
+   re-scores it on open, and tests/test-mag-page.js lifts these two functions out of this file and
+   fails the build if they ever disagree. Nothing here is typed: weights, moves, species, the type
+   chart and the popularity priors all come out of the generated bundle. */
+const MAGF=(window.MAG&&MAG.features)||[], MAGIX={}; MAGF.forEach((f,i)=>MAGIX[f]=i);
+const MAGTC={Normal:'#9fa19f',Fire:'#e62829',Water:'#2980ef',Electric:'#fac000',Grass:'#3fa129',Ice:'#3dcef3',
+ Fighting:'#ff8000',Poison:'#9141cb',Ground:'#915121',Flying:'#81b9ef',Psychic:'#ef4179',Bug:'#91a119',
+ Rock:'#afa981',Ghost:'#704170',Dragon:'#5060e1',Dark:'#50413f',Steel:'#60a1b8',Fairy:'#ef70ef',Stellar:'#40b5a5'};
+
+function eff1(atkType,defTypes){
+  let mult=0;
+  for(const d of defTypes){ const v=MAG.chart[atkType]?MAG.chart[atkType][d]:0;
+    if(v==='i') return 'i';
+    mult+=(typeof v==='number'?v:0); }
+  return mult;
+}
+function feats(mvId,target,board,user,priorP){
+  const m=MAG.moves[mvId]; const x=new Array(MAGF.length).fill(0);
+  if(!m) return x;
+  const dmg=m.c!=='S'&&m.bp>0;
+  x[MAGIX.isStatus]=dmg?0:1;
+  x[MAGIX.bp]=dmg?Math.min(2.5,m.bp/100):0;
+  const ut=(MAG.mons[user.id]||{}).t||[];
+  x[MAGIX.stab]=dmg&&ut.map(t=>String(t).toLowerCase()).includes(String(m.t).toLowerCase())?1:0;
+  const hits=dmg?(target.spread?target.spread:(target.mon?[target.mon]:[])):[];
+  if(hits.length){
+    let effSum=0,imm=0,hurt=0,n=0;
+    for(const h of hits){ const ht=(MAG.mons[h.id]||{}).t||[];
+      hurt+=Math.max(0,1-h.hp);
+      if(!ht.length){n++;continue;}
+      const e=eff1(m.t,ht);
+      if(e==='i') imm++; else effSum+=e;
+      n++; }
+    if(n){ x[MAGIX.eff]=effSum/n; x[MAGIX.immune]=imm===n?1:0; x[MAGIX.tgtHurt]=hurt/n; }
+  }
+  if(m.st&&target.mon&&target.mon.status) x[MAGIX.deadStatus]=1;
+  if(m.sc&&board.side[m.sc]) x[MAGIX.deadSide]=1;
+  if(m.fd&&board.field[m.fd]) x[MAGIX.deadField]=1;
+  if(m.wx&&String(m.wx).toLowerCase()===String(board.weather).toLowerCase()) x[MAGIX.deadWeather]=1;
+  if(m.sl&&board.stalled) x[MAGIX.deadStall]=1;
+  x[MAGIX.priorLogP]=Math.log(Math.max(MAG.priorFloor,priorP||0));
+  return x;
+}
+const magDot=x=>{let s=0;for(let k=0;k<MAG.weights.length;k++)s+=MAG.weights[k]*x[k];return s;};
+
+function magSelfCheck(){
+  const fx=MAG.fixture; if(!fx) return '';
+  const user={id:fx.user}, foes=fx.foes.map(id=>({id,hp:1,status:''}));
+  const board={side:{},field:{},weather:'',stalled:false};
+  let worst=0;
+  for(const c of fx.cases){
+    const tgt = c.tgt==='*'?{spread:foes} : (c.tgt===''?{}:{mon:foes.find(f=>f.id===c.tgt)});
+    const x=feats(c.mv,tgt,board,user,(MAG.priors[fx.user]||{})[c.mv]||0);
+    for(let k=0;k<x.length;k++) worst=Math.max(worst,Math.abs(x[k]-c.x[k]));
+  }
+  return worst<1e-9
+    ? `<div style="font-size:12px;color:#1f8a4c;font-weight:700">self-check passed &mdash; this page scores ${fx.cases.length} fixture positions identically to the engine.</div>`
+    : `<div style="background:#fbe6e3;border:2px solid #e8b0a8;border-radius:12px;padding:10px;color:#8c2f22;font-weight:700">SELF-CHECK FAILED &mdash; this page disagrees with engine/board.js by up to ${worst.toFixed(4)}. The numbers below are NOT what the bot uses. Rebuild with <code>node build/build_mag_data.js</code>.</div>`;
+}
+
+const MAGMONS=()=>Object.keys(MAG.mons).filter(k=>MAG.mons[k].mv&&MAG.mons[k].mv.length).sort((a,b)=>MAG.mons[a].n.localeCompare(MAG.mons[b].n));
+const magPick=(want,i)=>{const L=MAGMONS();return L.includes(want)?want:L[i%L.length];};
+
+function roomMagnemite(){const c=CAST.find(x=>x.id==='magnemite');
+  if(!window.MAG) return `<div class="panel">${mascotHero(c,"My data bundle is missing.")}</div><div class="panel"><h2>Not built yet</h2><p style="font-weight:600;color:#3a5372">Run <code>node build/build_mag_data.js</code> to generate <code>data/mag.js</code>.</p></div>`;
+  const L=MAGMONS(), opts=v=>L.map(k=>`<option value="${k}"${k===v?' selected':''}>${MAG.mons[k].n}</option>`).join('');
+  const h=MAG.heldOut;
+  return `<div class="panel">${mascotHero(c,"I look at what is actually standing in front of me, then pick the move and the target. The old bot picked by popularity and aimed with a coin flip.")}</div>
+  <div class="panel"><h2>Set a board up and watch it choose</h2>
+    ${magSelfCheck()}
+    <p style="font-weight:600;color:#3a5372">Nobody wrote my rules. They were <b>measured</b> from tens of thousands of real human decisions in games where both teams were public &mdash; so we could see not just what someone clicked, but everything they <i>could</i> have clicked.${h&&h.boardAware?` I guess a human's next click <b>${(100*h.boardAware.acc).toFixed(0)}%</b> of the time; the old popularity-only bot manages <b>${(100*h.behaviourCloneOnly.acc).toFixed(0)}%</b>.`:''}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px" id="magGrid">
+      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:11px">
+        <div style="font-weight:800;color:#6d829b;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Your side</div>
+        <div style="display:flex;gap:9px;align-items:center;margin-bottom:7px">
+          <img id="magYouImg" style="width:52px;height:52px;object-fit:contain;image-rendering:pixelated" onerror="this.style.opacity=.25">
+          <select id="magYou" onchange="magOnYou()" style="flex:1;min-width:0">${opts(magPick('pelipper',0))}</select>
+        </div>
+        <div id="magYouTypes" style="margin-bottom:8px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="magMoves"></div>
+      </div>
+      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:11px">
+        <div style="font-weight:800;color:#6d829b;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Their side &mdash; two targets, it must pick one</div>
+        <div style="display:flex;gap:9px;align-items:center;margin-bottom:4px">
+          <img id="magFAImg" style="width:52px;height:52px;object-fit:contain;image-rendering:pixelated" onerror="this.style.opacity=.25">
+          <select id="magFA" onchange="magRender()" style="flex:1;min-width:0">${opts(magPick('garchomp',1))}</select>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#6d829b;margin:0 0 8px 61px">HP <input type="range" id="magHPA" min="1" max="100" value="100" oninput="magRender()" style="width:88px;vertical-align:middle"><span id="magHPAv">100%</span>
+          <label style="margin-left:8px"><input type="checkbox" id="magStA" onchange="magRender()"> statused</label></div>
+        <div style="display:flex;gap:9px;align-items:center;margin-bottom:4px">
+          <img id="magFBImg" style="width:52px;height:52px;object-fit:contain;image-rendering:pixelated" onerror="this.style.opacity=.25">
+          <select id="magFB" onchange="magRender()" style="flex:1;min-width:0">${opts(magPick('incineroar',2))}</select>
+        </div>
+        <div style="font-size:12px;font-weight:700;color:#6d829b;margin:0 0 0 61px">HP <input type="range" id="magHPB" min="1" max="100" value="100" oninput="magRender()" style="width:88px;vertical-align:middle"><span id="magHPBv">100%</span>
+          <label style="margin-left:8px"><input type="checkbox" id="magStB" onchange="magRender()"> statused</label></div>
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;font-weight:700;color:#3a5372">
+      <label><input type="checkbox" id="magTW" onchange="magRender()"> Tailwind already up on your side</label>
+      <label><input type="checkbox" id="magTR" onchange="magRender()"> Trick Room already up</label>
+      <label><input type="checkbox" id="magStall" onchange="magRender()"> you Protected last turn</label>
+      <label>Weather <select id="magWX" onchange="magRender()" style="padding:3px"><option value="">none</option><option value="sunnyday">Sun</option><option value="raindance">Rain</option><option value="sandstorm">Sand</option><option value="snowscape">Snow</option></select></label>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="magOut">
+    <div class="panel"><h2>Mag &mdash; reads the board</h2><div id="magA"></div></div>
+    <div class="panel"><h2>The old bot &mdash; popularity, random target</h2><div id="magB"></div></div>
+  </div>
+  <div class="panel"><h2>What I am weighing</h2><div id="magW"></div>
+    <p style="font-weight:600;color:#3a5372;margin-bottom:0;font-size:13px">These pulls were fitted, not chosen. The biggest ones are not about damage at all &mdash; they are about <b>not clicking a move that cannot work</b>.</p></div>
+  <div class="panel"><h2>What I do not do</h2><p style="font-weight:600;color:#3a5372">I do not decide <b>when to switch</b> &mdash; that is still a coin flip, and it is the biggest thing still missing. I run <b>no damage calculation</b>: base power and type effectiveness stand in for one. And I have <b>no idea what you are about to do</b>, so I cannot read a Protect or bait a switch. I am one turn deep.</p></div>`;
+}
+
+function magTypeChips(id){ return ((MAG.mons[id]||{}).t||[]).map(t=>`<span style="display:inline-block;color:#fff;border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:800;margin-right:3px;background:${MAGTC[t]||'#888'}">${t}</span>`).join(''); }
+
+function magInit(){ if(window.MAG) magOnYou(); }
+function magOnYou(){
+  const y=document.getElementById('magYou').value;
+  const def=((MAG.mons[y]||{}).mv||[]).slice(0,4); while(def.length<4) def.push('protect');
+  const MOVES=Object.keys(MAG.moves).sort((a,b)=>MAG.moves[a].n.localeCompare(MAG.moves[b].n));
+  document.getElementById('magMoves').innerHTML=def.map((m,i)=>
+    `<select id="magMv${i}" onchange="magRender()">${MOVES.map(k=>`<option value="${k}"${k===m?' selected':''}>${MAG.moves[k].n}</option>`).join('')}</select>`).join('');
+  magRender();
+}
+function magRender(){
+  const g=id=>document.getElementById(id); if(!g('magYou')) return;
+  const y=g('magYou').value,a=g('magFA').value,b=g('magFB').value;
+  g('magYouImg').src=ani(y); g('magFAImg').src=ani(a); g('magFBImg').src=ani(b);
+  g('magYouTypes').innerHTML=magTypeChips(y);
+  g('magHPAv').textContent=g('magHPA').value+'%'; g('magHPBv').textContent=g('magHPB').value+'%';
+  const foes=[{id:a,hp:+g('magHPA').value/100,status:g('magStA').checked?'par':''},
+              {id:b,hp:+g('magHPB').value/100,status:g('magStB').checked?'par':''}];
+  const board={side:{tailwind:g('magTW').checked},field:{trickroom:g('magTR').checked},
+               weather:g('magWX').value,stalled:g('magStall').checked};
+  const user={id:y};
+  const ids=[0,1,2,3].map(i=>g('magMv'+i)?g('magMv'+i).value:null).filter(Boolean);
+  const cands=[];
+  for(const id of ids){ const m=MAG.moves[id]; if(!m) continue;
+    const pri=(MAG.priors[y]||{})[id]||0, tg=m.tg||'normal';
+    if(tg==='allAdjacentFoes'||tg==='allAdjacent') cands.push({id,m,label:'both',tgt:{spread:foes},pri});
+    else if(['normal','any','adjacentFoe'].includes(tg)) for(const f of foes) cands.push({id,m,label:MAG.mons[f.id].n,tgt:{mon:f},pri});
+    else cands.push({id,m,label:'—',tgt:{},pri});
+  }
+  for(const c of cands){ c.x=feats(c.id,c.tgt,board,user,c.pri); c.s=magDot(c.x); }
+  const mx=Math.max(...cands.map(c=>c.s)); let z=0;
+  for(const c of cands){ c.e=Math.exp(c.s-mx); z+=c.e; } for(const c of cands) c.p=c.e/z;
+  const old=cands.map(c=>Object.assign({},c));
+  const nT={}; for(const c of old) nT[c.id]=(nT[c.id]||0)+1;
+  let zz=0; for(const c of old){ c.p=Math.max(MAG.priorFloor,c.pri)/nT[c.id]; zz+=c.p; } for(const c of old) c.p/=zz;
+  g('magA').innerHTML=magTable(cands,true); g('magB').innerHTML=magTable(old,false);
+  g('magW').innerHTML=magWeights();
+}
+function magWhy(c){
+  const x=c.x,t=[]; const tag=(cls,txt)=>`<span style="display:inline-block;border-radius:5px;padding:1px 6px;font-size:10.5px;font-weight:800;margin:0 4px 3px 0;white-space:nowrap;${cls}">${txt}</span>`;
+  const G='background:#e3f4e9;color:#1f8a4c', B='background:#fbe6e3;color:#b03a2e', N='background:#eef1f6;color:#6b7691', W='background:#fdf3dd;color:#c08a1a';
+  if(x[MAGIX.immune]) t.push(tag(B,'does nothing &mdash; immune'));
+  else if(x[MAGIX.eff]>=2) t.push(tag(G,'4&times; super effective'));
+  else if(x[MAGIX.eff]>0) t.push(tag(G,'2&times; super effective'));
+  else if(x[MAGIX.eff]<=-2) t.push(tag(B,'4&times; resisted'));
+  else if(x[MAGIX.eff]<0) t.push(tag(B,'resisted'));
+  if(x[MAGIX.deadSide]||x[MAGIX.deadField]) t.push(tag(B,'already up'));
+  if(x[MAGIX.deadWeather]) t.push(tag(B,'weather already set'));
+  if(x[MAGIX.deadStatus]) t.push(tag(B,'target already statused'));
+  if(x[MAGIX.deadStall]) t.push(tag(W,'protected last turn'));
+  if(x[MAGIX.stab]) t.push(tag(N,'STAB'));
+  if(x[MAGIX.tgtHurt]>0.5) t.push(tag(G,'target is hurt'));
+  if(!t.length) t.push(tag(N,'neutral'));
+  return t.join('');
+}
+function magTable(list,showWhy){
+  const rows=list.slice().sort((p,q)=>q.p-p.p);
+  return `<table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>`+rows.map((c,i)=>`
+    <tr style="${i===0?'background:#eef4ff;':''}">
+      <td style="padding:5px 6px;border-top:1px solid #eef1f6;font-weight:800">${c.m.n}</td>
+      <td style="padding:5px 6px;border-top:1px solid #eef1f6;font-size:11.5px;color:#6b7691">${c.label}</td>
+      <td style="padding:5px 6px;border-top:1px solid #eef1f6;white-space:nowrap"><b style="display:inline-block;width:38px">${(100*c.p).toFixed(0)}%</b>
+        <span style="display:inline-block;width:52px;height:9px;border-radius:5px;background:#e6eaf2;overflow:hidden;vertical-align:middle"><i style="display:block;height:100%;width:${Math.round(100*c.p)}%;background:linear-gradient(90deg,#5f8ee0,#2f5fc0)"></i></span></td>
+      <td style="padding:5px 6px;border-top:1px solid #eef1f6">${showWhy?magWhy(c):'<span style="font-size:11.5px;color:#6b7691">by how popular the move is</span>'}</td>
+    </tr>`).join('')+`</tbody></table>`;
+}
+function magWeights(){
+  const label={eff:'hits a weakness',immune:'does nothing at all',stab:'same type as the user',bp:'raw power',
+    isStatus:'is a status move',tgtHurt:'target is already hurt',deadStatus:'target already has a status',
+    deadSide:'that side effect is already up',deadField:'that field effect is already up',
+    deadWeather:'that weather is already set',deadStall:'protected last turn',priorLogP:'how popular the move is'};
+  const rows=MAGF.map((f,i)=>({f,w:MAG.weights[i]})).sort((a,b)=>Math.abs(b.w)-Math.abs(a.w));
+  return `<table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>`+rows.map(r=>{
+    const neg=r.w<0,m=Math.min(1,Math.abs(r.w)/2.4);
+    return `<tr><td style="padding:4px 6px;border-top:1px solid #eef1f6;font-weight:700">${label[r.f]||r.f}</td>
+      <td style="padding:4px 6px;border-top:1px solid #eef1f6"><span style="display:inline-block;width:110px;height:9px;border-radius:5px;background:#e6eaf2;overflow:hidden;vertical-align:middle"><i style="display:block;height:100%;width:${Math.round(100*m)}%;background:${neg?'linear-gradient(90deg,#e08a80,#c0392b)':'linear-gradient(90deg,#5f8ee0,#2f5fc0)'}"></i></span>
+      <span style="font-size:11.5px;color:#6b7691;margin-left:7px">${neg?'pushes away from':'pulls toward'}</span></td></tr>`;}).join('')+`</tbody></table>`;
+}
+
 function roomMew(){const c=CAST.find(x=>x.id==='mew');
   return `<div class="panel">${mascotHero(c,"I play this format against myself, over and over, so the other models have games to learn from.")}</div>
    ${mewViewerPanel()}
@@ -1275,7 +1474,7 @@ function roomPC(){
     ${group('Retired','Superseded or withdrawn. Kept on the shelf so the mistake is not repeated.',retired)}
     ${group('Not built yet','Designed, scoped, or half-finished. No claim is being made about any of these — nobody has measured them.',unbuilt)}`;
 }
-const ROOMS={pc:roomPC,town:roomTown,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,mew:roomMew};
+const ROOMS={pc:roomPC,town:roomTown,magnemite:roomMagnemite,jolteon:roomJolteon,medicham:roomMedicham,ditto:roomDitto,kadabra:roomKadabra,slowking:roomSlowking,chomp:roomChomp,guru:roomGuru,xatu:roomXatu,pory:roomPory,alakazam:roomAlakazam,roles:roomRoles,mew:roomMew};
 
 /* ===== navigation ===== */
 function go(id){
@@ -1291,6 +1490,7 @@ function go(id){
   if(id==='ditto'){ ensureTeams(); renderPick('pickD','A'); renderSlots(); syncSel(); renderThreats(); renderNonTrans(); }
   if(id==='roles') renderRoleSpecies('');
   if(id==='mew') initMew(); else mewStop();
+  if(id==='magnemite') magInit();
   if(id==='town') updateStats();
   spawnAdvisors(id);
 }

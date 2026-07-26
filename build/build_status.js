@@ -56,6 +56,7 @@ const MODELS = [
   { id: 'ditto',    name: 'DITTO',    tier: 'build',     detail: 'builds teams',                  inputs: ['slowking', 'medicham'],  fallback: 'pivot' },
   { id: 'kadabra',  name: 'KADABRA',  tier: 'battle',    detail: 'coaches a replay',              inputs: ['pory', 'medicham'],      fallback: 'built' },
   { id: 'roles',    name: 'ROLES',    tier: 'meta',      detail: 'what job each Pokemon does',    inputs: ['store'],                 fallback: 'built' },
+  { id: 'magnemite', name: 'MAG',      tier: 'battle',    detail: 'picks the move and the target', inputs: ['store'],                 fallback: 'built' },
   { id: 'alakazam', name: 'ALAKAZAM', tier: 'battle',    detail: 'in-battle coach',               inputs: ['slowking', 'xatu', 'pory'], fallback: 'dev' },
   { id: 'jolteon',  name: 'JOLT',     tier: 'retired',   detail: 'win% from sheets',              inputs: ['store'],                 fallback: 'retired' },
   { id: 'medi_win', name: 'MEDI-WIN', tier: 'retired',   detail: 'old win% guess',                inputs: ['medicham'],              fallback: 'retired' },
@@ -63,6 +64,27 @@ const MODELS = [
 
 /* ---- DERIVATION: each rule names its artifact and its bar ------------------------------------- */
 const RULES = {
+  /* MAGNEMITE is a decision model and the bar is the policy it replaces: it must predict a real
+   * human's next (move, target) better than the behaviour clone does. Both numbers are held out by
+   * GAME and written by engine/fit_policy.js, so this reads the artifact rather than a claim. A
+   * refit that loses to the clone relabels the room automatically — which is the point of deriving
+   * status instead of typing it. */
+  magnemite() {
+    const j = readJSON('data/policy-weights.json');
+    const h = j && j.heldOut;
+    if (!h || !h.boardAware || !h.behaviourCloneOnly) return null;
+    const a = h.boardAware.acc, b = h.behaviourCloneOnly.acc;
+    if (a == null || b == null) return null;
+    const gain = 100 * (a - b);
+    return {
+      status: h.boardAware.ll > h.behaviourCloneOnly.ll ? 'win' : 'null',
+      metric: h.boardAware.ll > h.behaviourCloneOnly.ll
+        ? `guesses a human's next click ${(100 * a).toFixed(0)}% of the time, ${gain.toFixed(0)} points better than popularity alone`
+        : `no better than popularity alone (${(100 * a).toFixed(0)}% against ${(100 * b).toFixed(0)}%)`,
+      why: 'data/policy-weights.json: boardAware vs behaviourCloneOnly, held out by game',
+    };
+  },
+
   /* PORY is "a win" only if the rich feature set beats the two-feature material baseline by a
    * margin worth reporting. Equal-to-four-decimals is a tie, and a tie with counting Pokemon is
    * not a value net. Bar: LR must beat B2 by at least 0.01 nats. */

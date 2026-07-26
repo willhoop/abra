@@ -1,4 +1,4 @@
-/* score_policy.js — the scoring bot. A player that looks at the other side of the field.
+/* magnemite.js — the scoring bot. A player that looks at the other side of the field.
  *
  * WHAT IT IS
  * ----------

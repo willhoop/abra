@@ -243,7 +243,7 @@ Ordered by what blocks what.
 
    `engine/board.js` reconstructs the board a decision was made against; `engine/fit_policy.js` fits
    (move, target) features to 48,538 real human clicks from 2,240 clean open-sheet games by
-   conditional logit; `engine/score_policy.js` plays it. `mew.js --policy score`.
+   conditional logit; `engine/magnemite.js` plays it. `mew.js --policy score`.
 
    Open sheets are used because they are the only corpus where the **choice set** is known rather
    than guessed — a normal replay reveals only the moves that were *used*, so alternatives

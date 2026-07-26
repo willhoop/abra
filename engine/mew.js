@@ -216,11 +216,11 @@ async function playOne(teamA, teamB, seed) {
    * MEW now reports the sampled rate so a broken policy is visible rather than assumed. */
   let Player = RandomPlayerAI;
   if (POLICY === 'prior') Player = require('./prior_player.js').makePriorPlayer();
-  /* score — engine/score_policy.js. Everything `prior` does, plus it reads the board: it scores
+  /* score — engine/magnemite.js. Everything `prior` does, plus it reads the board: it scores
    * every (move, target) pair with weights fitted to real human clicks and samples from that. It is
    * the only mode that AIMS; the other two let RandomPlayerAI pick the foe with a coin flip before
    * the policy is consulted, which is most of what "super effective" means in doubles. */
-  if (POLICY === 'score') Player = require('./score_policy.js').makeScoringPlayer();
+  if (POLICY === 'score') Player = require('./magnemite.js').makeScoringPlayer();
   /* SEED THE PLAYERS, NOT JUST THE BATTLE.
    * ------------------------------------------------------------------------------------------
    * `>start {seed}` below seeds the BATTLE's rng — damage rolls, crits, accuracy, speed ties. It

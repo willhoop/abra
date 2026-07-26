@@ -49,7 +49,13 @@ jobs:
       # moment it lands. This is the step that actually feeds set construction and the spreads.
       - name: Rebuild priors from the newest month
         continue-on-error: true
-        run: node engine/smogon_priors.js
+        run: |
+          node engine/smogon_priors.js
+          # The Bo3 OPEN-TEAM-SHEET population, into its own file. Smogon has always published it and
+          # fetch_smogon_stats.js has always downloaded it; nothing read it until 3.9.0. Separate
+          # output on purpose — writing it over smogon-priors.json would repoint every set, spread,
+          # item and ability prior in the project at a different metagame with nothing to notice.
+          node engine/smogon_priors.js --bo3
 
       # Regenerate MEW on the new priors, or the self-play corpus silently ages against them. This
       # is not hypothetical: the batch generated on 2026-07-25 used a flat 11/11/11/11/11/11 spread
@@ -74,7 +80,7 @@ jobs:
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/smogon-stats data/smogon-priors.json data/mew.js
+          git add data/smogon-stats data/smogon-priors.json data/smogon-priors-bo3.json data/mew.js
           if git diff --cached --quiet; then
             echo "no new stats this run"; exit 0
           fi

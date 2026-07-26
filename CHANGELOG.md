@@ -10,6 +10,53 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.9.0] — 2026-07-26
+
+### The scoring bot is now MAGNEMITE, and it has a room on the site
+
+**MAGNEMITE — Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates.**
+"MAG" in the nav. The name is thematically right: the model's single biggest win was **locking onto
+the correct target**, which the old policy left to a coin flip. `engine/score_policy.js` →
+`engine/magnemite.js`.
+
+**A real room in `web/index.html`, not a separate page.** Set a board up — your active and its four
+moves, the two Pokémon opposite, their HP, whether they are statused, whether Tailwind or Trick Room
+is already up, whether you Protected last turn — and watch it choose, with MAG on the left and the
+old popularity-only bot on the right. Every row carries the reason in plain words: *4× super
+effective*, *does nothing — immune*, *already up*, *target is hurt*. Underneath, what it is weighing,
+as bars.
+
+The tab is **derived, not placed**. `build/build_status.js` gains a MAGNEMITE rule that reads
+`data/policy-weights.json` and compares the fit to the behaviour clone it replaces, both held out by
+game. It currently reports *"guesses a human's next click 33% of the time, 7 points better than
+popularity alone"* and a status of **win**. A refit that loses to the clone relabels the room and
+drops the tab into the PC on the next build, with nobody editing the page.
+
+**Two implementations of one definition, and the guard against them drifting.** The room re-implements
+`engine/board.js` `featuresFor` in browser JavaScript, because the engine runs in Node. That is
+exactly the drift this project keeps paying for, so `build/build_mag_data.js` ships a fixture the
+**real engine** scored inside `data/mag.js`; the room re-scores it on open and shows a red banner on
+any disagreement; and `tests/test-mag-page.js` lifts the page's own scoring functions out of the HTML
+and fails the build if they disagree. Nine assertions, including that the page aims a 4× move at the
+right foe and that Tailwind loses value once Tailwind is up.
+
+Nothing in the room is typed: weights, moves, species, the type chart and the popularity priors all
+come from the generated bundle (500 moves, 357 species, 111 KB).
+
+### Smogon's Bo3 open-team-sheet statistics were being downloaded and never opened
+
+`engine/fetch_smogon_stats.js` has pulled `gen9championsvgc2026regmbbo3` at all four cutoffs since it
+was written. `engine/smogon_priors.js` only ever read the closed-sheet format, so **every** prior in
+the project — sets, spreads, items, abilities, the build space — described one metagame while the
+policy work had moved to the other.
+
+`node engine/smogon_priors.js --bo3` now builds `data/smogon-priors-bo3.json`, and the monthly
+workflow builds both. Separate files on purpose: writing the open-sheet population over
+`smogon-priors.json` would repoint every downstream prior at a different metagame with nothing to
+notice it. First build confirms they are not the same population — **224 species against 283**.
+
+---
+
 ## [3.8.0] — 2026-07-26
 
 ### We were not collecting the Bo3 open-team-sheet ladder. Now we are.

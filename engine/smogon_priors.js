@@ -55,13 +55,28 @@ function latestMonth() {
   return null;
 }
 
-function activeFormat() {
+/* WHICH POPULATION. `--bo3` selects the best-of-three OPEN-TEAM-SHEET ladder.
+ *
+ * Smogon publishes that format separately at all four cutoffs, and engine/fetch_smogon_stats.js has
+ * been downloading it since it was written — into data/smogon-stats/<month>/{usage,moveset}/ right
+ * beside the main format. It was never READ. Every prior in this project (sets, spreads, items,
+ * abilities, the build space) came from the closed-sheet ladder alone.
+ *
+ * That matters now the policy work has moved to open sheets, because the two are not the same
+ * metagame: over our own corpora Garchomp is on 81.6% of open-sheet teams against 47.7% of closed
+ * (engine/corpus_shift.js). Smogon can settle that over their whole battle count rather than our
+ * couple of thousand games — but only if the file is opened.
+ *
+ * The two are written to SEPARATE outputs and never merged, for the same reason the game stores are
+ * separate: they describe different populations, and a consumer must say which one it used. */
+function activeFormat(bo3) {
   try {
     const r = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
     const a = r.regulations[r.active] || {};
-    if (a.showdownFormat) return a.showdownFormat;
+    if (bo3 && a.bo3Format) return a.bo3Format;
+    if (!bo3 && a.showdownFormat) return a.showdownFormat;
   } catch (e) { /* fall through */ }
-  return 'gen9championsvgc2026regmb';
+  return bo3 ? 'gen9championsvgc2026regmbbo3' : 'gen9championsvgc2026regmb';
 }
 
 /* Percentage rows look like:  | Kasib Berry 31.726%                    | */
@@ -188,7 +203,12 @@ function parseMoveset(text) {
 function build() {
   const month = arg('month', latestMonth());
   const cutoff = arg('cutoff', '1630');
-  const fmt = arg('format', activeFormat());
+  /* --bo3 switches BOTH the format and the destination. They move together on purpose: writing the
+   * open-sheet population over data/smogon-priors.json would silently repoint every set, spread,
+   * item and ability prior in the project at a different metagame, with nothing to notice it. */
+  const wantBo3 = process.argv.includes('--bo3');
+  const fmt = arg('format', activeFormat(wantBo3));
+  const outFile = wantBo3 ? 'smogon-priors-bo3.json' : 'smogon-priors.json';
   if (!month) { console.error('no archived stats found; run engine/fetch_smogon_stats.js first'); process.exit(1); }
   const file = path.join(STATS, month, 'moveset', `${fmt}-${cutoff}.txt`);
   if (!fs.existsSync(file)) { console.error(`missing ${path.relative(ROOT, file)}`); process.exit(1); }
@@ -204,8 +224,9 @@ function build() {
     species_count: n,
     species,
   };
-  fs.writeFileSync(D('data', 'smogon-priors.json'), JSON.stringify(out));
-  console.log(`wrote data/smogon-priors.json — ${n} species from ${month} ${fmt}-${cutoff}`);
+  out.open_team_sheets = wantBo3;
+  fs.writeFileSync(D('data', outFile), JSON.stringify(out));
+  console.log(`wrote data/${outFile} — ${n} species from ${month} ${fmt}-${cutoff}`);
   if (violations.length) {
     console.error(`WARNING: ${violations.length} spread(s) did not sum to the SP budget of 66:`);
     for (const v of violations.slice(0, 5)) console.error('  ' + v);

@@ -18,6 +18,7 @@ window.ABRA_STATUS = {
     "pory",
     "hypno",
     "roles",
+    "magnemite",
     "jolteon"
    ],
    "derived": false,
@@ -142,7 +143,7 @@ window.ABRA_STATUS = {
    "name": "CHOMP",
    "tier": "preview",
    "status": "null",
-   "metric": "does not beat a coin on held-out brings (0.6932 vs 0.6931, intervals overlap)",
+   "metric": "does not beat a coin on held-out brings (0.6929 vs 0.6931, intervals overlap)",
    "detail": "picks your four",
    "inputs": [
     "medicham",
@@ -213,6 +214,20 @@ window.ABRA_STATUS = {
    "sees": [],
    "derived": true,
    "evidence": "data/roles.js: log_loss vs coin and rating baseline"
+  },
+  {
+   "id": "magnemite",
+   "name": "MAG",
+   "tier": "battle",
+   "status": "win",
+   "metric": "guesses a human's next click 33% of the time, 7 points better than popularity alone",
+   "detail": "picks the move and the target",
+   "inputs": [
+    "store"
+   ],
+   "sees": [],
+   "derived": true,
+   "evidence": "data/policy-weights.json: boardAware vs behaviourCloneOnly, held out by game"
   },
   {
    "id": "alakazam",
