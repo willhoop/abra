@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.6.0 · Last updated 2026-07-26**
+**Version 3.7.0 · Last updated 2026-07-26**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -141,6 +141,30 @@ pattern, not a settled fact**; it will sharpen as the store grows. Where matchup
 train mean/std; `P(win) = σ(w·z + b)`. Graded by held-out **log-loss** `−(y·ln p + (1−y)·ln(1−p))` and
 **Brier** `(p−y)²`; the coin scores `ln 2 = 0.6931` and `0.25` respectively.
 
+**Discrete choice — the scoring bot's policy (v3.7.0).** A player facing a turn chooses one of the
+legal (move, target) pairs. Writing `x_j` for the attributes of alternative `j` — type effectiveness
+against that specific target, base power, whether the move is already dead on the board, and the
+behaviour clone's `P(move | species)` — the conditional logit model (McFadden 1974) is
+
+`P(pick j) = exp(w·x_j) / Σ_k exp(w·x_k)`,
+
+with `w` estimated by maximising `Σ_i [ w·x_{i,chosen} − ln Σ_k exp(w·x_{i,k}) ]` over 48,538 real
+human decisions from 2,240 clean open-sheet games. The weights are **estimated, never written
+down**, and the realism report is never consulted during fitting — it is held back as the
+out-of-sample check, because a diagnostic stops being evidence once it becomes the objective.
+
+Held out **by game** (decisions within a game are correlated — the same clustering argument as the
+CIs below): logL/decision **−1.6006** and top-1 **33.6%**, against the behaviour clone alone at
+−1.9302 / 27.1% and uniform at −1.7627 / 24.1%. Open-sheet games are used because they are the only
+corpus in which the **choice set** is known rather than guessed: a normal replay reveals only the
+moves that were *used*, so alternatives reconstructed from revelation are biased by revelation.
+
+The model's known limitation is **independence of irrelevant alternatives**: logit implies the odds
+between two options are unaffected by what else is on the menu, which fails for close substitutes
+(the red-bus/blue-bus problem). A set carrying two moves of the same type is exactly that case.
+Nested or mixed logit is the remedy and neither is implemented, so the fitted probabilities are a
+good ranking and only an approximate distribution.
+
 **Equilibrium and exploitability.** Each preview is a two-player zero-sum matrix game on an
 antisymmetric edge matrix `M[i,j] = (p(i>j) − p(j>i))/2`. Regret matching (Hart & Mas-Colell) converges
 to an ε-Nash. For a strategy `x`, **exploitability** `= −minⱼ (x·M[:,j])` — the worst-case loss to a
@@ -164,9 +188,13 @@ cores beat which" and for quantifying how cyclic the meta really is.
 2. **Revealed sets are partial** (a mon that never attacked reveals no moves); belief is a lower bound.
 3. **Small samples in the meta layer.** Playstyle and core matchups are thin; those results are
    suggestive until the store grows.
-4. **Policy is the residual GIGO.** The damage is validated; the rollout *policy* is behaviour-cloned
-   and over-credits speed control. The learning path (PORY, ALAKAZAM) partly sidesteps this by learning
-   from real outcomes.
+4. **Policy is the residual GIGO — reduced in 3.7.0, not removed.** The damage is validated; the
+   *policy* was behaviour-cloned and board-blind. The scoring bot (§5) roughly halved both gaps that
+   measured that blindness — super-effective moves 9.7% → 14.9% against a human 21.4%, moves that
+   outright failed 9.7% → 6.3% against 2.5% — but it is **one ply**: no damage calculation, no model
+   of the opponent's move, no search, and the **switch decision is still uniform random** (8.38
+   switches per game against a real 10.67). Every `build_lab` win rate on record was measured against
+   the older board-blind pilot and none has been re-run, so all of them remain provisional.
 5. **Champions rule specifics** (sleep/paralysis edge cases) are flagged, not yet fully modelled.
 
 ## 7. The road to ALAKAZAM
@@ -194,7 +222,8 @@ the pacing item toward the millions of games that path needs.
 8. Chen & Joachims, *Modeling Intransitivity in Matchup Data* (blade-chest), WSDM 2016. · Balduzzi et al., *Re-evaluating Evaluation* (Nash-averaging), NeurIPS 2018.
 9. Jiang, Lim, Yao & Ye, *Statistical Ranking and Combinatorial Hodge Theory* (HodgeRank), 2011.
 10. Wilson, *Probable Inference, the Law of Succession, and Statistical Inference*, JASA 1927.
-11. the Smogon damage calculator — community damage ground-truth. · Pokémon Showdown replay API.
+11. McFadden, *Conditional Logit Analysis of Qualitative Choice Behavior*, in Zarembka (ed.), **Frontiers in Econometrics**, Academic Press 1974 — the discrete-choice model the scoring bot's policy is fitted with (§5).
+12. the Smogon damage calculator — community damage ground-truth. · Pokémon Showdown replay API.
 
 ---
 

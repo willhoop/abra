@@ -171,6 +171,18 @@ setup builds.
    rule about setup moves; it is what reading the board means. Everything above is scaffolding until
    it exists.
 
+**UPDATE (v3.7.0): option 3 now exists — and it does not fix this.** `engine/score_policy.js` reads
+the board (§6), so the *opponents* in a `build_lab` run are board-conditioned. The **species under
+test is deliberately excluded**, because the argument at the top of this section still holds: equal
+airtime per arm is what makes the comparison unbiased, and a board-aware pilot allocates airtime by
+how good each move looks, which is the treatment under study.
+
+So the two halves of this section have come apart. The bias in *how much* each move is measured is
+still removed, by the uniform pilot. The bias in *when* is still there, unchanged, because the pilot
+that would fix it is the one thing this design cannot use. Choosing between equal airtime and
+sensible timing is a real design question and it is open; it is not a patch, and it should not be
+recorded as solved.
+
 ---
 
 ## 5. Deriving structure from the 400-sum identity
@@ -191,11 +203,84 @@ Garchomp's Earthquake (76.9%) as a free choice.
 
 ---
 
-## 6. What none of this defends
+## 6. Fitting the scoring bot as a discrete choice, and the assumption it rests on
 
-- **Every current `build_lab` win rate is conditioned on a pilot that does not read the board**
-  (super-effective 11.2% against a human 21.4%; failed moves 8.6% against 2.5%). No statistical
-  correction repairs that, and it makes each result provisional.
+**Decision.** The board-aware policy's weights are **estimated from human clicks** by conditional
+logit, rather than written as a scoring function and tuned.
+
+**The formal frame.** At each decision a player faced a set of alternatives — every (move, target)
+pair legal that turn — and picked one. That is the canonical **discrete choice** setting, and the
+conditional logit model is McFadden's ([*Conditional Logit Analysis of Qualitative Choice
+Behavior*, in Zarembka (ed.), Frontiers in Econometrics,
+1974](https://eml.berkeley.edu/reprints/mcfadden/zarembka.pdf)), the work the 2000 Nobel cited. Each
+alternative `j` carries attributes `x_j`; the model is
+
+```
+P(pick j) = exp(w . x_j) / sum_k exp(w . x_k)
+```
+
+and `w` is chosen to maximise the log-likelihood of what people actually did. Crucially the
+attributes belong to the **alternatives**, not to the chooser, which is exactly our situation: "how
+effective is this move against that specific foe" is a property of the option.
+
+**Why estimated and not written down.** The obvious alternative is `score = power × effectiveness`
+with coefficients tuned until the realism report looks right. That has as many free parameters as it
+has terms, every one of them asserted, and tuning them against the number being reported is circular
+— the report stops being evidence the moment it becomes the objective. Here the realism report is
+never consulted during fitting and is held back as the out-of-sample check. It is the same discipline
+as §5: prefer the quantity that arithmetic or data fixes over the one a person picks.
+
+**Measured.** Held out **by game** — decisions within a game share teams, players and board, so
+splitting by decision leaks across the split:
+
+| model | logL/decision | top-1 |
+|---|---|---|
+| uniform over candidates | −1.7627 | 24.1% |
+| behaviour clone alone | −1.9302 | 27.1% |
+| board-aware fit | −1.6006 | 33.6% |
+
+**A result that was not expected and is worth keeping.** The behaviour clone alone is a *worse*
+probabilistic model of human choice than picking uniformly at random, and the fit assigns it a
+coefficient of only **+0.25** — i.e. it wants the clone flattened by a factor of four. Popularity is
+real signal about which move gets clicked, but as a distribution it is far too confident. That is a
+finding about the clone, not about this fit, and it is why the clone's own top-1 of 27.1% here sits
+below the 35.9% `eval_policy.py` reports: that harness scores over a move list, this one over
+(move, target) pairs, and the extra choice is the one the clone has no opinion about at all.
+
+**THE ASSUMPTION, WHICH IS THE INTERESTING PART: independence of irrelevant alternatives.** Logit
+implies the odds between any two options do not depend on what else is available. That is known to
+fail when two alternatives are close substitutes — the red-bus/blue-bus problem — and Pokemon is
+full of close substitutes. A set carrying two Fire moves splits its "click a Fire move" mass across
+both, and logit will mis-state the odds against the third, dissimilar option. Nested or mixed logit
+is the standard remedy and neither is implemented.
+
+So the fitted probabilities should be read as a good ranking and an **approximate** distribution, and
+the place it is most likely to be wrong is a set with redundant coverage. This is not a reason to
+distrust the realism numbers — those are measured from played games, not predicted — but it is a
+reason not to quote the per-decision probabilities as calibrated.
+
+**Two further limits, stated rather than buried.** The corpus is open-team-sheet games, the only ones
+where the choice set is known rather than guessed, and open-sheet play hedges less than closed ladder
+play. And ~11% of clicks could not be matched to a candidate and were dropped, the largest single
+cause being redirection (Follow Me, Rage Powder), where the protocol records the target that was
+*hit* rather than the one that was chosen.
+
+---
+
+## 7. What none of this defends
+
+- **Every `build_lab` win rate ON RECORD is still conditioned on a pilot that does not read the
+  board**, and none has been re-run since §6's policy shipped. The pilot is no longer the only
+  option — the scoring bot closed roughly half of each gap (super-effective 9.7% → 14.9% against a
+  human 21.4%; failed moves 9.7% → 6.3% against 2.5%) — but no statistical correction repairs an
+  already-published number, so every result in the lab remains provisional until it is re-measured.
+- **The species under test is still piloted board-blind, deliberately.** `build_lab` needs equal
+  airtime per arm (§4), so the scoring bot keeps the uniform pilot for exactly that species. The
+  opponents now read the board and the tested Pokemon does not. This means §4's flaw — setup moves
+  are not exchangeable in time, so setup builds are understated — **survives unchanged**, and an
+  earlier note in the backlog claiming the scoring bot dissolved it was wrong.
+- **The bot is one ply.** No damage calculation, no model of what the opponent will do, no search,
+  and the switch decision is still `RandomPlayerAI`'s — 8.38 switches per game against a real 10.67.
 - **External validity is untested.** `build_lab` measures one host team against 40 opponents and does
   not currently state that scope in its output.
 - **24 engine tools** still read the ladder store without a clean filter or a declared reason. Their

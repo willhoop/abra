@@ -225,6 +225,112 @@ check('a stone-holding species is offered its own stone, not another', () => {
 });
 
 /* ---- the honest-numbers guard ------------------------------------------------------------------- */
+/* ---- BOARD READING ------------------------------------------------------------------------------
+ * The scoring bot's failure modes are all silent. It still plays a full battle and writes a normal
+ * corpus whether or not it is aiming, whether or not its weights line up with the features they were
+ * fitted on, and whether or not it can see that a Pokemon is still alive. Each of those produced a
+ * plausible run during development. */
+console.log('\nboard reading');
+
+const B = require('./board.js');
+
+check('the fitted weights match the feature list the code computes', () => {
+  const fs = require('fs');
+  const f = path.join(__dirname, '..', 'data', 'policy-weights.json');
+  if (!fs.existsSync(f)) return 'data/policy-weights.json missing — run node engine/fit_policy.js';
+  const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+  /* THE DRIFT GUARD. The weight vector is a plain array indexed through board.js FEATURES. Insert a
+   * feature in the middle without refitting and every weight after it silently applies to a
+   * different quantity — the bot runs, produces games, and is wrong with nothing to show for it. */
+  const got = (j.features || []).join(','), want = B.FEATURES.join(',');
+  if (got !== want) return `weights fitted against [${got}] but the code computes [${want}]`;
+  if (!Array.isArray(j.weights) || j.weights.length !== B.FEATURES.length) return 'weight vector is the wrong length';
+  return true;
+});
+
+check('the board-aware fit beat the behaviour clone it replaces', () => {
+  const fs = require('fs');
+  const f = path.join(__dirname, '..', 'data', 'policy-weights.json');
+  if (!fs.existsSync(f)) return 'data/policy-weights.json missing';
+  const h = (JSON.parse(fs.readFileSync(f, 'utf8')).heldOut) || {};
+  if (!h.boardAware || !h.behaviourCloneOnly) return 'the weight file records no held-out comparison';
+  /* A refit that comes out WORSE than the policy it replaces must not ship quietly. This is the
+   * head-to-head gate from BACKLOG item 4, applied to the one thing already measurable. */
+  return h.boardAware.ll > h.behaviourCloneOnly.ll ||
+    `the fit scores ${h.boardAware.ll.toFixed(4)} against the clone's ${h.behaviourCloneOnly.ll.toFixed(4)} — do not ship it`;
+});
+
+check('a damaged Pokemon is not buried alive', () => {
+  const bd = new B.Board();
+  bd.switchIn('p2', 'a', 'Incineroar');
+  const m = bd.slot('p2', 'a');
+  m.hp = 0;                                   // stored games record damage but never healing
+  if (!bd.field().some(f => f.mon === m)) return 'a mon at 0 tracked HP left the field without fainting';
+  bd.faint('p2', 'a');
+  return !bd.field().some(f => f.mon === m) || 'a fainted mon is still on the field';
+});
+
+/* The rest need the simulator for the type chart. Reported as skipped rather than passed when it is
+ * absent, because a skipped check that prints "ok" is worse than no check at all. */
+let dex = null;
+try { const CS = require('./champions_sim.js'); dex = CS.sim().Dex.forFormat(CS.FORMAT); } catch (e) { dex = null; }
+function checkDex(name, fn) {
+  if (!dex) { process.stdout.write('  skip ' + name + '   -- no SHOWDOWN_PATH, type chart unavailable\n'); return; }
+  check(name, fn);
+}
+
+function twoFoes() {
+  const bd = new B.Board();
+  bd.switchIn('p1', 'a', 'Pelipper'); bd.switchIn('p1', 'b', 'Archaludon');
+  bd.switchIn('p2', 'a', 'Garchomp'); bd.switchIn('p2', 'b', 'Incineroar');
+  return bd;
+}
+const effOf = (c, user, bd, side) => B.featuresFor(c, user, bd, side, dex, 0)[B.FEATURE_INDEX.eff];
+
+checkDex('a single-target move offers one candidate per foe, scored separately', () => {
+  const bd = twoFoes(), user = bd.slot('p1', 'a');
+  const cs = B.candidates(['icebeam'], user, bd, 'p1', dex);
+  if (cs.length !== 2) return 'got ' + cs.length + ' candidates, expected one per living foe';
+  const byFoe = {};
+  for (const c of cs) byFoe[c.targetMon.species] = effOf(c, user, bd, 'p1');
+  /* Ice Beam is 4x on Garchomp and resisted by Incineroar. If these ever come out equal the aim is
+   * not being scored and the bot is back to a coin flip, which is the whole defect it was built for. */
+  if (!(byFoe.garchomp > byFoe.incineroar)) return `Garchomp ${byFoe.garchomp} vs Incineroar ${byFoe.incineroar}`;
+  return true;
+});
+
+checkDex('a spread move is scored against everything it hits, not as a status move', () => {
+  /* Both foes weak to Rock, DELIBERATELY. The first version of this check used Garchomp and
+   * Incineroar, whose Rock Slide effectiveness is -1 and +1 — an average of exactly zero. It failed
+   * while the code was correct, which is the same class of error as the bug it is guarding against:
+   * a test whose expected value is arrived at by assumption rather than arithmetic. */
+  const bd = new B.Board();
+  bd.switchIn('p1', 'a', 'Archaludon');
+  bd.switchIn('p2', 'a', 'Charizard'); bd.switchIn('p2', 'b', 'Incineroar');
+  const user = bd.slot('p1', 'a');
+  const cs = B.candidates(['rockslide'], user, bd, 'p1', dex);
+  if (cs.length !== 1) return 'a spread move should be one candidate, got ' + cs.length;
+  if (!cs[0].spread || cs[0].spread.length !== 2) return 'the spread list did not pick up both foes';
+  const x = B.featuresFor(cs[0], user, bd, 'p1', dex, 0);
+  /* Scoring these against no target at all read their effectiveness as zero and made Rock Slide,
+   * Heat Wave and Dazzling Gleam look like status moves — a large share of all damage in doubles. */
+  if (x[B.FEATURE_INDEX.isStatus] !== 0) return 'a damaging spread move was scored as a status move';
+  return x[B.FEATURE_INDEX.eff] > 0 || 'Rock Slide scored ' + x[B.FEATURE_INDEX.eff] + ' against two Rock-weak foes';
+});
+
+checkDex('a move that cannot work right now is marked dead', () => {
+  const bd = twoFoes(), user = bd.slot('p1', 'a');
+  const before = B.candidates(['tailwind'], user, bd, 'p1', dex)[0];
+  const iDead = B.FEATURE_INDEX.deadSide;
+  if (B.featuresFor(before, user, bd, 'p1', dex, 0)[iDead] !== 0) return 'Tailwind read as dead before it was set';
+  const mv = dex.moves.get('tailwind');
+  bd.startSide('p1', mv.sideCondition, mv.condition && mv.condition.duration);
+  if (B.featuresFor(before, user, bd, 'p1', dex, 0)[iDead] !== 1) return 'Tailwind not marked dead with Tailwind already up';
+  /* And it must expire on its own, from the dex duration rather than a number written here. */
+  for (let i = 0; i < (mv.condition.duration || 4); i++) bd.endTurn();
+  return B.featuresFor(before, user, bd, 'p1', dex, 0)[iDead] === 0 || 'Tailwind never expired';
+});
+
 console.log('\nreporting');
 
 check('the blind spot is reported and is plausible', () => {
@@ -268,7 +374,13 @@ check('every raw reader of the ladder store declares why', () => {
       /* Either it filters, or it states in the file why it must not. The declaration lives at the
        * SITE OF USE rather than as a list of filenames in this test: a list here would rot the
        * moment somebody adds a file, and is exactly the hand-maintained state S13 forbids. */
-      const filters = /load_games|loadGames|isClean|clean=True|cleanIds|_cleanIds/.test(src);
+      /* `.reasons(` is the other genuine filter idiom and is recognised deliberately, not as a
+       * loophole. quality.js exposes exactly two entry points: loadGames() for records that carry a
+       * store id, and reasons() for a record judged on its own structure — which is what a self-play
+       * or open-sheet game needs, since it has no id in the ladder store to look up. Rejecting
+       * reasons() would have pushed correctly-filtered files into declaring RAW-STORE-OK, which is
+       * the opposite of what this check is for. */
+      const filters = /load_games|loadGames|isClean|clean=True|cleanIds|_cleanIds|\.reasons\(/.test(src);
       const declares = /RAW-STORE-OK/.test(src);
       if (!filters && !declares) offenders.push(r + '/' + f);
     }

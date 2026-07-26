@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.6.0 · 2026-07-26 · Will Hooper**
+**Version 3.7.0 · 2026-07-26 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -44,17 +44,39 @@ Each model is a "house" you can visit on the site:
 - **GURU** — reads the metagame: which team styles beat which, from real results, with error bars.
 - **XATU** — reads the opponent: the likely item, ability, and moves behind each Pokémon.
 - **PORY** — mid-battle win chance. **Retracted as a finding:** it works out to counting how many Pokémon each side has left and how healthy they are, and it does not beat exactly that baseline.
+- **The scoring bot** — the part that finally *looks at the board*.
 - **SLOWKING** — the strategist: there's no single best team, so it plays a smart mix.
 - **CHOMP** — the team picker: which four to bring, which two to lead.
 - **ALAKAZAM** — the coach (in progress): the best move to make, right now.
 
 ---
 
-## Slide 5 — The win
+## Slide 5 — The win: the practice opponent can finally see
 
-**PORY beats a coin flip.** Mid-game, using how many Pokémon each side has left and their health, it
-calls your win chance far better than chance — and it's *calibrated*, meaning when it says 70% it's
-really about 70%. It's live on the site as a per-turn "you're at X%".
+Everything ABRA claims about "this build beats that build" comes from playing the game out against a
+practice opponent. That opponent used to pick its move purely by **how popular the move is** — it had
+no idea what was standing in front of it. So it fired attacks at Pokémon that were flat immune, it
+used moves that couldn't possibly work, and when there were two enemies to aim at, it picked one by
+flipping a coin.
+
+We fixed it by **watching what people actually do**. We took about 48,000 real decisions from games
+where both players' full teams were public — so we could see not just what someone clicked, but
+everything they *could* have clicked — and learned how much a real player's choice depends on what's
+in front of them. Nobody wrote the rules; they were measured.
+
+The result, checked on games the learning never saw:
+
+- it now hits the enemy's weakness **half again as often** as before,
+- it wastes **a third fewer** moves on things that simply cannot work,
+- and it almost never fires at something immune any more.
+
+It is still short of a human on all three, and one thing it still does badly is decide **when to
+switch** — that's the next job. But the practice opponent is no longer playing blind, which means the
+numbers it produces are worth more than they were.
+
+**PORY** also beats a coin flip mid-game, using how many Pokémon each side has left and their health,
+and it's *calibrated* — when it says 70% it's really about 70%. It's live on the site as a per-turn
+"you're at X%".
 
 ---
 
@@ -74,6 +96,11 @@ Saying what we *can't* prove, as plainly as what we can, is the whole point.
 
 ## Slide 7 — What's next
 
+- **Teach it when to switch.** The scoring bot chooses its attacks well now, but it still decides
+  when to swap Pokémon at random — and swapping is a big part of how the game is really played. It's
+  the same machinery, pointed at one more decision.
+- **Re-run the build experiments.** Every "this build is better" result on record was measured
+  against the *old*, blind opponent. They all need re-measuring before they can be trusted.
 - **ALAKAZAM** — the in-battle coach. A light version runs in your browser; a version that could beat
   top humans needs a rented cloud computer and months of the AI playing itself to learn.
 - **A million games.** Real games trickle in ~18k/week; the AI playing itself can generate millions

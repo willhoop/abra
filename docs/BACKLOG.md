@@ -34,8 +34,29 @@ concrete: anything here should be actionable without re-deriving why.
 
 ## STATE AS OF 2026-07-26 — READ THIS FIRST IN A NEW SESSION
 
-**The scoring bot is the only thing left that matters.** Everything below it is either done or is
-scaffolding that now maintains itself.
+**The scoring bot exists (v3.7.0). It reads the board, and both gaps it was built for roughly
+halved.** It is one ply and it does not decide switches, so it is a first version, not a finished
+one — see item 3 for exactly what it does and does not do.
+
+| out of sample, 600 seed-matched battles | prior (was) | score (now) | real |
+|---|---|---|---|
+| moves that were super effective | 9.71% | **14.91%** | 21.37% |
+| moves that outright failed | 9.68% | **6.34%** | 2.47% |
+| moves that hit an immune target | 4.30% | **2.92%** | 1.91% |
+| moves that were Protect-type | 21.62% | **16.71%** | 13.87% |
+| switches per game | 8.31 | 8.38 | 10.67 |
+
+**What is next, in order.** (1) **Switching** — the one decision still inherited untouched, and the
+last big behavioural gap at 8.38 against 10.67. It is also what the residual mega gap was traced to.
+(2) The **head-to-head gate**, item 4, which is now meaningful because there are two policies to
+compare. (3) `build_lab` re-run: every win rate in it was measured against a pilot that could not
+read the board, so they are all provisional and none has been re-measured yet.
+
+**The two findings from the fit that generalise past it.** The behaviour clone alone predicts human
+clicks *worse than choosing uniformly at random*, and the fit weights it at only +0.25 — it is far
+too confident about the popular move. And the biggest learned effects are not about damage: they are
+the "this move is already dead" terms. Reading the board is mostly about **not clicking moves that
+cannot work**.
 
 **Settled tonight, do not redo:**
 - Set diversity is CLOSED — measured at matched n we are MORE varied than the ladder (12.75 v 12.17).
@@ -64,7 +85,15 @@ spare at 1.9x the required accrual rate.
 3. `build_lab` tests ONE host team against 40 opponents and does not say so in its output.
 4. 18 non-live files still read the store undeclared.
 5. Uniform piloting is unbiased across moves only if they are exchangeable in time. Setup moves are
-   not, so setup builds are currently understated. Dissolved by the scoring bot, not patchable.
+   not, so setup builds are currently understated. **This was previously recorded as "dissolved by
+   the scoring bot" — it is not, and that entry was optimistic.** The scoring bot keeps `uniformFor`
+   for the species under test, deliberately, because `build_lab` needs equal airtime per arm. So the
+   *opponents* now read the board and the *tested species* still does not, and setup builds are still
+   understated. Dissolving it properly means giving the tested species a board-aware pilot and
+   accepting unequal airtime, or scoring the arms some other way — an open design question, not a
+   patch.
+6. Every `build_lab` win rate on record was measured against the old board-blind pilot. None has been
+   re-run against the scoring bot, so all of them are provisional.
 
 ---
 
@@ -210,12 +239,43 @@ Ordered by what blocks what.
    the fix gives 80.5%, so that knob is saturated. Most likely the back-slot holder still reaches the
    field less than a human's, consistent with our 4.3 switches per game against 5.7 — which makes
    this downstream of item 3, the scoring bot.
-3. **The scoring bot.** Two gaps are not fixable by tuning priors — super-effective moves at 10.8%
-   against 23.4%, failed moves at 8.7% against 2.7%. Those are what "does not read the board" looks
-   like as numbers. It is also what makes `build_lab` trustworthy, since today it measures what beats
-   *bad* play.
+3. **The scoring bot — BUILT in v3.7.0, and it is one ply.**
+
+   `engine/board.js` reconstructs the board a decision was made against; `engine/fit_policy.js` fits
+   (move, target) features to 48,538 real human clicks from 2,240 clean open-sheet games by
+   conditional logit; `engine/score_policy.js` plays it. `mew.js --policy score`.
+
+   Open sheets are used because they are the only corpus where the **choice set** is known rather
+   than guessed — a normal replay reveals only the moves that were *used*, so alternatives
+   reconstructed from revelation are biased by revelation itself.
+
+   Held out by game: logL/decision **−1.6006** and top-1 **33.6%**, against the behaviour clone's
+   −1.9302 and 27.1%. The realism-report numbers are in the STATE block above and in CHANGELOG 3.7.0.
+
+   **Most of the win was aiming, not move choice.** `RandomPlayerAI` picks which foe to hit with
+   `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the
+   move was — and in doubles aiming is most of what "super effective" means.
+
+   **What it still does not do, stated so nobody assumes otherwise:**
+   - it does **not** decide switches (inherited unchanged — item 3a below),
+   - it runs **no damage calculation**; base power and type effectiveness stand in for one,
+   - it has **no model of the opponent's move**, so it cannot read a Protect or bait a switch,
+   - it is **one ply**. No search.
+
+   Two honest caveats. The weights are fitted on open-sheet games, where both players see everything
+   and hedge less than on the closed ladder. And ~11% of clicks in the corpus could not be matched to
+   a candidate and were dropped; the largest single cause is redirection (Follow Me, Rage Powder),
+   where the protocol records the *actual* target rather than the chosen one.
+
+3a. **Switching — now the largest behavioural gap.** 8.38 switches per game against a real 10.67, and
+   the decision is still `RandomPlayerAI`'s. It is also where the residual mega gap was traced to
+   (item 2), and the natural next application of exactly the machinery item 3 just built: the
+   board is already tracked, and "switch" is one more candidate in the same choice set.
+
 4. **Head-to-head gate.** New bot versus old, a few thousand games. If an iteration does not beat the
-   previous one above chance, stop and find out why rather than looping on a broken crank.
+   previous one above chance, stop and find out why rather than looping on a broken crank. **Now
+   meaningful**, because as of 3.7.0 there are two policies to compare and `selftest.js` already
+   refuses to bless a refit that scores worse than the clone it replaces.
 5. **The transfer test** — train on self-play, evaluate on real games. Never completed. The only
    check in the project that is not self-referential.
 

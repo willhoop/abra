@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.6.0 · Last updated 2026-07-26**
+**Version 3.7.0 · Last updated 2026-07-26**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -33,6 +33,37 @@ Needs a BUILT master checkout; the champions mod is not in the npm package.
 **Generate self-play games (MEW).**
 `SHOWDOWN_PATH=... node engine/mew.js --n 1000` then `SHOWDOWN_PATH=... node engine/validate_selfplay.js`
 Output goes to `data/games.selfplay.jsonl` and must NEVER be pooled with the ladder store.
+
+**Fit the scoring bot's policy.**
+`SHOWDOWN_PATH=... node engine/fit_policy.js`
+Reads every clean open-team-sheet game, builds one row per human decision, fits by conditional logit,
+and writes `data/policy-weights.json`. It prints the held-out comparison against the behaviour clone;
+if the fit does not beat the clone it says so in plain words and the weights must not ship.
+`engine/selftest.js` refuses a weight file that lost to the clone, and refuses one whose feature list
+does not match what `engine/board.js` computes.
+
+**Play with the scoring policy.**
+`SHOWDOWN_PATH=... node engine/mew.js --n 1000 --policy score`
+
+| `--policy` | what it does |
+|---|---|
+| `random` | Showdown's `RandomPlayerAI`. Correct for plumbing and matchup structure; not valid as training data |
+| `prior` | samples the move a species actually clicks, from `data/move-priors.json`. Board-blind |
+| `score` | tracks the board and scores every (move, target) pair with the fitted weights. **The only mode that aims** |
+
+Check the run's own accounting: `policy=score` must report ~100% of decisions scored and a non-zero
+`aiming:` line. A run reporting 0% is not a scoring bot.
+
+**Compare two policies fairly.** Pass the SAME `--seed` to both runs — MEW derives its team sampling
+from it, so the two corpora play identical teams and the comparison is paired rather than confounded
+by which teams each happened to draw:
+
+```
+node engine/mew.js --n 600 --policy prior --seed 4242 --out data/_a.jsonl
+node engine/mew.js --n 600 --policy score --seed 4242 --out data/_b.jsonl
+node engine/realism_report.js --self data/_a.jsonl
+node engine/realism_report.js --self data/_b.jsonl
+```
 
 **Generate self-play at scale (the farm).**
 `SHOWDOWN_PATH=... node engine/mew_farm.js --n 200000 --procs 12 --conc 1`
@@ -131,6 +162,7 @@ The command adds only new games. It never duplicates a game and never re-fetches
 | `data/chomp-ev.json` | `chomp_ev.js` | the bring proof (null result) |
 | `data/playstyle-matchups.json` | `playstyle.js` | playstyle matchup matrix |
 | `data/slowking-eval.json`, `slowking-playstyle-eval.json`, `slowking*.js` | `slowking_preview.py` | preview equilibrium + exploitability |
+| `data/policy-weights.json` | `fit_policy.js` | the scoring bot's fitted weights, the feature list they were fitted against, and the held-out comparison against the behaviour clone |
 | `data/meta-usage.json`, `live.js` | `analyze.js`, `refresh-site-data.py` | usage model + live site counts |
 
 ### 3.3 Continuous collection

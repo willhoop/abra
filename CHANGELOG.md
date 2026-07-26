@@ -10,6 +10,121 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.7.0] — 2026-07-26
+
+### The scoring bot — a player that looks at the other side of the field
+
+Backlog item 3, and the one everything else was waiting on. The behaviour clone answers a single
+question — *what does this species usually click?* — and is blind to the board. That showed up as two
+numbers no amount of prior-tuning could fix, and it made every `build_lab` result a measurement of
+what beats **bad** play.
+
+- **`engine/board.js` (new)** reconstructs the state a decision was made against, and turns
+  (move, target) pairs into features. Every "this move cannot work right now" test reads a dex **data
+  field** — `move.status`, `move.sideCondition`, `move.pseudoWeather`, `move.weather`,
+  `move.stallingMove` — and compares it against tracked state. **No move is named anywhere in the
+  file**, so a move added by a future regulation is handled without an edit (S13).
+- **`engine/fit_policy.js` (new)** fits those features to what people actually clicked, by
+  conditional logit over **2,240 clean open-sheet games and 48,538 decisions**.
+- **`engine/score_policy.js` (new)** is the player. `engine/mew.js` gains `--policy score`.
+
+**Why open team sheets.** A choice model needs the *choice set* — the moves that could have been
+clicked. A normal replay only reveals moves that were **used**, so alternatives reconstructed from
+revelation are biased by revelation itself. Open sheets publish all four moves of all six up front.
+The caveat is recorded in the weight file: open-sheet play involves less hedging against unknown
+sets, so the weights are learned on a slightly different game than the one they are played in.
+
+**Held out by game** (decisions inside a game are correlated, so splitting by decision leaks):
+
+| model | logL/decision | top-1 |
+|---|---|---|
+| uniform over candidates | −1.7627 | 24.1% |
+| behaviour clone alone (the current bot) | −1.9302 | 27.1% |
+| board-aware fit | **−1.6006** | **33.6%** |
+
+In-sample −1.5997 against held-out −1.6006, so it is not memorising games; weights identical at 200,
+300 and 500 iterations.
+
+**Two findings worth stating on their own.** The behaviour clone alone scores **worse than picking
+uniformly at random** (−1.93 against −1.76), and the fit puts only **+0.25** on it — it is saying the
+clone is far too confident about the popular move. And the largest learned effects are not about
+damage at all: they are the "this move is already dead" features, at −2.3 each. Reading the board
+turns out to be mostly about **not clicking moves that cannot work**.
+
+### Measured out of sample — 600 seed-matched battles per policy
+
+The fit never consults the realism report; it is held back as the out-of-sample check, because it
+stops being evidence the moment it becomes the objective.
+
+| metric | prior (was) | score (now) | real |
+|---|---|---|---|
+| moves that were super effective | 9.71% | **14.91%** | 21.37% |
+| moves that outright failed | 9.68% | **6.34%** | 2.47% |
+| moves that hit an immune target | 4.30% | **2.92%** | 1.91% |
+| moves that were Protect-type | 21.62% | **16.71%** | 13.87% |
+| moves resisted | 14.78% | **9.92%** | 11.20% |
+| turns per game | 11.57 | 10.70 | 8.35 |
+| games containing a mega | 81.15% | 84.78% | 98.52% |
+| usable games of 591 | 382 | **427** | — |
+
+Both target gaps roughly halved. Immune moves and Protect spam fell without being targeted, and more
+games survive the quality filter, so the games are less degenerate.
+
+**Aiming is most of it.** `RandomPlayerAI` picks which foe to hit with `prng.random(2)` *before*
+`chooseMove` is called, so the target was a coin flip no matter how good the move choice was — and in
+doubles, aiming is most of what "super effective" means. 13,474 decisions in this batch chose a target.
+
+**It samples, it does not take the best move.** A greedy bot sails past 23.4% super-effective and is
+*less* human, not more. Same argument as DEFENSE §2: a corpus is closest to reality in distribution
+when it is drawn from the distribution.
+
+### Reported plainly: one metric moved the wrong way, and it is measurement
+
+Distinct sets per species goes from 0.53 above real to **4.21 above**. This change does not touch set
+generation at all, so the underlying diversity cannot have moved. The scoring bot uses more of its
+moveset, so it **reveals** more: 2.00 moves per set against the prior policy's 1.90 and a real 1.70,
+and distinct counts over partial views grow with revelation depth. This is exactly the confound
+BACKLOG item 1 documents.
+
+Switches per game barely moved (8.31 → 8.38 against a real 10.67) because the switch decision is
+inherited untouched. Said because it is the next thing, not because this release quietly does it.
+
+### Four silent failures found and fixed
+
+- **Pokemon were being buried alive.** HP was tracked as cumulative damage and the store records no
+  healing, so mons drifted to zero and left the field without ever fainting. **1,219 unmatched clicks
+  were aimed at a foe the tracker had already retired.** Faints now come only from faint events.
+- **Spread moves were scored as status moves.** Rock Slide, Heat Wave and Dazzling Gleam were treated
+  as target-less, so their type effectiveness read as zero — a large share of all damage in doubles.
+  Once corrected, `tgtHurt` flipped from −0.19 to **+0.31**: humans do finish weakened targets.
+- **A locked two-turn move killed the battle.** The request omits `target` for a charging move, and
+  defaulting the missing field to `normal` made the engine reject the choice outright.
+- **MEW reported the new policy through the wrong counter**, printing "0.0% sampled" and "the policy
+  sampled NOTHING — do not use this batch" over a run in which 100% of decisions were scored. A false
+  alarm on that line is worse than none: it is the line that catches a genuinely dead policy. Team
+  preview accounting also moved out of the prior-only branch, where it would have silently stopped
+  being reported.
+
+### `engine/selftest.js` grows a board-reading section
+
+Six checks, all of failures that would otherwise look fine: the weight vector matching the feature
+list it was fitted against (insert a feature without refitting and every later weight silently
+applies to a different quantity), a refit that comes out worse than the policy it replaces, a damaged
+Pokemon staying on the field, per-foe scoring, spread scoring, and a dead move expiring on its own
+from the dex duration.
+
+One of those checks was itself wrong on the first run: it asserted Rock Slide scores above zero
+against Garchomp and Incineroar, whose effectiveness is −1 and +1 — an average of exactly zero. It
+failed while the code was correct. Fixed by choosing two Rock-weak foes, and recorded here because it
+is the same error class the file exists to catch: an expected value arrived at by assumption.
+
+The clean-data check now recognises `quality.reasons()` as a genuine filter alongside `loadGames()` —
+it is the entry point for a record judged on its own structure rather than by store id, and rejecting
+it would have pushed a correctly-filtered file into declaring `RAW-STORE-OK`. Still RED on the same
+**18** undeclared raw readers; that is the tracker, not a regression.
+
+---
+
 ## [3.6.0] — 2026-07-26
 
 ### The build space is now derived from Smogon instead of typed by hand

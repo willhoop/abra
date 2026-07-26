@@ -40,3 +40,8 @@ data/.mew-shards/
 # and the site silently stops deploying while every push still reports success. Cost: 90
 # minutes of a dead site and ~20 failed builds on 2026-07-25.
 .claude/worktrees/
+
+# md_to_pdf.js writes <name>.print.html as an intermediate and deletes it on the way out. One was
+# swept into the repo by the auto-commit watcher (3a2514a, "auto: Sat 07/25/2026") and then showed
+# up as a spurious deletion on the next PDF rebuild. It is a build temp; it is not an artifact.
+docs/*.print.html
