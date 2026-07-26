@@ -1,0 +1,69 @@
+{
+ "generated": "2026-07-26T21:45:17.373Z",
+ "method": "champion/challenger hill-climb over the policy weights, promotion gated on a Wilson interval clear of 50%",
+ "limits": "searches 17 numbers, not a policy space; cannot learn anything the feature set cannot see",
+ "gensRequested": 2,
+ "gamesPerMatch": 60,
+ "probesPerGen": 2,
+ "seed": 20260726,
+ "features": [
+  "eff4",
+  "eff2",
+  "effHalf",
+  "effQuarter",
+  "allyHit",
+  "abilityBlock",
+  "immune",
+  "stab",
+  "bp",
+  "isStatus",
+  "tgtHurt",
+  "deadStatus",
+  "deadSide",
+  "deadField",
+  "deadWeather",
+  "deadStall",
+  "priorLogP"
+ ],
+ "generations": [
+  {
+   "gen": 0,
+   "weights": [
+    1.3113861462718746,
+    0.958444267250874,
+    -0.7953308546595944,
+    -1.147536651905469,
+    0.19379772689969743,
+    -2.357044200884619,
+    -2.243762998172088,
+    0.1073280877513822,
+    0.04301750345981261,
+    0.38480828546306656,
+    0.34291569584918286,
+    -1.1139564247862277,
+    -1.9506491737054295,
+    -1.8987026680198198,
+    -1.289196993119066,
+    -0.7774622132722978,
+    0.1906983791099244
+   ],
+   "note": "MAG, fitted to imitate humans"
+  }
+ ],
+ "history": [
+  {
+   "gen": 1,
+   "rate": 0.5,
+   "n": 60,
+   "promoted": false
+  },
+  {
+   "gen": 2,
+   "rate": 0.4745762711864407,
+   "n": 59,
+   "promoted": false
+  }
+ ],
+ "roundRobin": [],
+ "cycles": []
+}

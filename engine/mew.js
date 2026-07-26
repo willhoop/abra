@@ -86,6 +86,9 @@ const POLICY2 = arg('policy2', '');
  * the challenger is MAG's own machinery with different numbers, so any win it manages is due to the
  * numbers rather than to a different kind of player. */
 const WEIGHTS2 = arg('weights2', '');
+/* ...and for the FIRST player, so a champion/challenger ladder can pit two learned vectors against
+ * each other rather than always measuring against whatever happens to be in data/. */
+const WEIGHTS1 = arg('weights', '');
 /* Per-decision probability of taking an available form change. See the block at the Player
  * construction for why this is not the same thing as the mega rate. */
 const MEGA_P = parseFloat(arg('mega', '0.85'));
@@ -295,6 +298,7 @@ async function playOne(teamA, teamB, seed) {
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
   const optA = { seed: pseed(1), mega: MEGA_P };
   const optB = { seed: pseed(2), mega: MEGA_P };
+  if (WEIGHTS1) { (swapped ? optB : optA).weightsFile = WEIGHTS1; }
   if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
   const p1 = new PA(streams.p1, optA);
