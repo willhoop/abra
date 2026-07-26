@@ -295,10 +295,34 @@ regardless. So the composition gap changes *which situations were sampled*, not 
 from them*.
 
 That is still covariate shift, so it is corrected rather than argued away: `fit_policy.js`
-re-estimates on a sample importance-weighted to the closed-sheet species mix on **every run** and
-reports whether the weights move. They do not — the largest change is `deadStatus` by **0.222**, on
-a weight of −1.374, with 47% of the sample surviving reweighting. If that ever stops being true the
-conclusion is void, and the run says so in words.
+re-estimates on a sample importance-weighted to the closed-sheet species mix on **every run**.
+
+**AND THE WEIGHTS DO MOVE. An earlier version of this section said they did not, and it was wrong.**
+That claim came from comparing the shift against a **hand-typed 0.25** — the invented constant
+S12/S13 exist to forbid. Conditional logit has the observed information in closed form, so every
+weight now carries a standard error and the shift is judged against the same z = 1.96 the project
+uses for every Wilson interval. Measured properly:
+
+| feature | open-sheet fit | reweighted to closed | shift |
+|---|---|---|---|
+| `priorLogP` | +0.241 | +0.192 | **10.8 SE** |
+| `bp` | −0.131 | +0.032 | 6.2 SE — *the sign flips* |
+| `deadSide` | −2.293 | −1.928 | 3.4 SE |
+| `stab` | +0.164 | +0.121 | 2.5 SE |
+| `deadField` | −2.185 | −1.883 | 2.1 SE |
+
+The objection therefore has real teeth, and lands exactly where it should: what moves is the
+**popularity** term and the **base power** term, not board-reading. `eff` (+0.800), `immune`
+(−2.073), `deadStatus` and `deadStall` are unmoved. Reading the board transfers between the two
+metagames; how much popularity is worth does not — unsurprising, since `priorLogP` is itself derived
+from the closed ladder.
+
+The **reweighted vector ships**, because MEW samples its teams from the clean ladder store and the
+bot therefore plays in the closed-sheet metagame. Both vectors, the standard errors, and which one
+shipped are recorded in `data/policy-weights.json`.
+
+The lesson generalises past this section and is the same one §2 records: a threshold that is *typed*
+rather than *derived* will eventually return the answer you assumed. Here it hid a 10-SE effect.
 
 **Three residual limits, stated rather than buried.**
 

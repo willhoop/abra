@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.8.0] — 2026-07-26
+
+### We were not collecting the Bo3 open-team-sheet ladder. Now we are.
+
+Asked directly: *does the pull grab the Bo3 open-team-sheet data too?* It did not. The capability was
+fully wired and never switched on — `data/regulations.json` already names the format
+(`gen9championsvgc2026regmbbo3`) and already says `"openTeamSheets": true`, `durable-ingest.js`
+already honours an `INCLUDE_BO3` flag, and **nothing anywhere in the repo ever set it.**
+
+Confirmed against the simulator's own format table, and the distinction turns out to matter:
+
+| format | ruleset | consequence |
+|---|---|---|
+| `gen9championsvgc2026regmb` (main ladder) | `Open Team Sheets` | **optional** — both players must agree, which is why only 184 of 15,386 stored games carry sheets |
+| `gen9championsvgc2026regmbbo3` | **`Force Open Team Sheets`** | **every game** publishes all six sets of both sides |
+
+So the Bo3 ladder is a continuously-refreshing corpus in which the **choice set of every decision is
+known** — the one thing `fit_policy.js` needs and the reason it had been fitted on an external
+archive instead. It is also our own scrape of our own ladder.
+
+- `ingest.yml` now pulls it hourly into **`data/games.bo3.jsonl`**, a **separate store**. Bo3 is a
+  different information regime and a different metagame; pooling it into the ladder store would
+  silently change every behavioural statistic in the project. The format id is read from
+  `regulations.json`, so a regulation rotation carries it automatically.
+- The reconcile loop preserves that store across its `git reset --hard` exactly as it does the ladder
+  store. Omitting that would have discarded every Bo3 game on the first push race.
+- `fit_policy.js` now reads all three open-sheet sources: **48,538 → 58,085 usable decisions.**
+
+**A store nobody was deduplicating.** `data/games.bo3.jsonl` was being written by something on this
+machine that is not in the repo, and survived only because `git add -A` swept it up. It held **595
+duplicate lines out of 2,504** — the same append-only-under-git duplication that has hit the ladder
+store twice. `dedupe_store.py` was hardcoded to one path; it now takes one, defaulting to the ladder
+store so every existing caller is unchanged, and the workflow dedupes both.
+
+### The fitted weights now ship confidence intervals — and that changed the answer
+
+3.7.1 judged "did the covariate correction move the weights" against a **hand-typed 0.25**. That is
+precisely the invented constant S12/S13 forbid, it was mine, and it was wrong: it reported the
+weights as *stable* when they are not.
+
+Conditional logit has the observed information in closed form, so every weight now carries a proper
+standard error and the shift is measured in **standard errors** against the same z = 1.96 the project
+uses for every Wilson interval. Judged properly, five weights move materially:
+
+| feature | open-sheet fit | reweighted to closed | shift |
+|---|---|---|---|
+| `priorLogP` | +0.241 | +0.192 | **10.8 SE** |
+| `bp` | −0.131 | +0.032 | 6.2 SE (sign flips) |
+| `deadSide` | −2.293 | −1.928 | 3.4 SE |
+| `stab` | +0.164 | +0.121 | 2.5 SE |
+| `deadField` | −2.185 | −1.883 | 2.1 SE |
+
+So the open-sheet objection has real teeth, and precisely where it should: the terms that move are
+**popularity** and **base power**, not board-reading. `eff` (+0.800), `immune` (−2.073),
+`deadStatus` and `deadStall` are unmoved. Reading the board transfers between the two metagames;
+how much popularity is worth does not — which is unsurprising, since `priorLogP` is itself derived
+from the closed ladder.
+
+**The reweighted vector now ships**, because MEW draws its teams from the clean ladder store and the
+bot therefore plays in the closed-sheet metagame. Both vectors are recorded in
+`data/policy-weights.json` along with which one shipped and why.
+
+Every weight is also printed with a 95% interval, and any interval containing zero is labelled as a
+feature doing no measurable work — this project asks that of every other model and this one had been
+shipping a bare vector.
+
+---
+
 ## [3.7.1] — 2026-07-26
 
 ### The open-sheet corpus objection, measured instead of argued

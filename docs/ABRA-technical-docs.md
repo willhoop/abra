@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.7.1 · Last updated 2026-07-26**
+**Version 3.8.0 · Last updated 2026-07-26**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -46,9 +46,21 @@ does not match what `engine/board.js` computes.
 `SHOWDOWN_PATH=... node engine/corpus_shift.js`
 Compares open-sheet against closed-sheet ladder on the same code: team composition, behaviour given a
 board, bot contamination before and after filtering, and mean rating. Run it before trusting a refit.
-The teams differ by 551.9 points of total absolute species difference; the behaviour differs by at
-most 1.49. That split is why the corpus is usable — the policy is conditional on the board and never
-learns what to bring.
+The teams differ by 551.9 points of total absolute species difference; the measured behaviour differs
+by at most 1.49. `fit_policy.js` then re-estimates on a sample reweighted to the closed-sheet species
+mix and reports the shift **in standard errors**. Five weights move materially — `priorLogP` by 10.8
+SE, `bp` by 6.2 SE (its sign flips) — so the **reweighted vector ships**. Board-reading weights
+(`eff`, `immune`, `deadStatus`) do not move: reading the board transfers between the two metagames,
+how much popularity is worth does not.
+
+**Pull the Bo3 open-team-sheet ladder.**
+`PAGES=6 CONC=20 FORMATS=gen9championsvgc2026regmbbo3 node engine/durable-ingest.js data/games.bo3.jsonl`
+CI does this hourly. This format's ruleset carries **`Force Open Team Sheets`**, so every game
+publishes all six sets of both sides — the only continuously-collected corpus in which the choice set
+of a decision is known. The main ladder format carries plain `Open Team Sheets`, which is optional and
+needs both players to agree, which is why only ~1% of the closed store has sheets.
+**It goes in its own store and is never pooled with the ladder store** — different information regime,
+different metagame. Dedupe it with `python3 engine/dedupe_store.py data/games.bo3.jsonl --write`.
 
 **Play with the scoring policy.**
 `SHOWDOWN_PATH=... node engine/mew.js --n 1000 --policy score`

@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-26T19:00:24.133Z",
+ "generated": "2026-07-26T19:18:21.889Z",
  "features": [
   "eff",
   "immune",
@@ -15,51 +15,94 @@
   "priorLogP"
  ],
  "weights": [
-  0.7952591325555136,
-  -2.059984858710649,
-  0.17526974746580165,
-  -0.1620478432972297,
-  0.28231155763796334,
-  0.3110985584215937,
-  -1.3737932087001832,
-  -2.303493506679114,
-  -2.367621413719118,
-  -0.941917194272571,
-  -0.8579076270907018,
-  0.2496766666721292
+  0.8107774880341777,
+  -1.9892026876065214,
+  0.12068565332643023,
+  0.03217701975913322,
+  0.34200650317347014,
+  0.33601408204670186,
+  -1.1054615662475422,
+  -1.9283355014895156,
+  -1.8827411990727134,
+  -1.3472898085773446,
+  -0.7620504141834329,
+  0.19207498579908744
+ ],
+ "weights_unweighted": [
+  0.8006639928181339,
+  -2.064969534291396,
+  0.16388571115361064,
+  -0.13102225421457814,
+  0.29414921437108027,
+  0.3085065947224306,
+  -1.2436295913624227,
+  -2.29304764626158,
+  -2.184868779404566,
+  -1.0794141437232867,
+  -0.8413423294157698,
+  0.24050744729512735
+ ],
+ "weights_reweighted_to_closed": [
+  0.8107774880341777,
+  -1.9892026876065214,
+  0.12068565332643023,
+  0.03217701975913322,
+  0.34200650317347014,
+  0.33601408204670186,
+  -1.1054615662475422,
+  -1.9283355014895156,
+  -1.8827411990727134,
+  -1.3472898085773446,
+  -0.7620504141834329,
+  0.19207498579908744
+ ],
+ "shipped": "reweighted_to_closed",
+ "standardErrors": [
+  0.00956789361044805,
+  0.05865725532319946,
+  0.01700089414202465,
+  0.02632530143438342,
+  0.02571698181993119,
+  0.02493532815920479,
+  0.1290640134534428,
+  0.10826218723864914,
+  0.14577060925088675,
+  0.217275822982283,
+  0.050747941911896834,
+  0.004464880456232919
  ],
  "lambda": 0,
  "corpus": {
-  "games": 2240,
-  "decisions": 48538,
-  "train": 39392,
-  "test": 9146
+  "games": 2679,
+  "decisions": 58085,
+  "train": 47270,
+  "test": 10815
  },
  "heldOut": {
   "uniform": {
-   "ll": -1.7626980271281667,
-   "acc": 0.24108900065602448
+   "ll": -1.7631344302617944,
+   "acc": 0.2408691631992603
   },
   "behaviourCloneOnly": {
-   "ll": -1.929712828703543,
-   "acc": 0.27115678985348785
+   "ll": -1.9301862577848148,
+   "acc": 0.26925566343042073
   },
   "boardAware": {
-   "ll": -1.6005889193741225,
-   "acc": 0.33588453968948173
+   "ll": -1.5994210407233078,
+   "acc": 0.3345353675450763
   },
-  "gain_logL": 0.3291239093294205,
-  "gain_top1_points": 6.472774983599389
+  "gain_logL": 0.33076521706150697,
+  "gain_top1_points": 6.527970411465556
  },
  "covariateShift": {
   "note": "Open-sheet TEAMS differ enormously from closed-sheet teams (551.9 points of total absolute species difference, engine/corpus_shift.js). Open-sheet BEHAVIOUR given a board does not (largest gap 1.49 points). This model is conditional on the board and never learns what to bring, so the composition gap changes which situations were sampled, not what was learned from them.",
   "reweighted_max_weight_change": {
-   "feature": "deadStatus",
-   "delta": 0.22186020949572094
+   "feature": "deadSide",
+   "delta": 0.36471214477206426
   },
   "effective_sample_size": {
-   "ess": 18341,
-   "of": 39392
+   "ess": 19704,
+   "of": 47270
   }
  },
  "caveat": "Fitted on open-team-sheet games, the only corpus where the CHOICE SET is known rather than guessed. Known unmodelled gaps: ability-based immunity and priority-blocking abilities (Armor Tail, Queenly Majesty) are invisible to the feature set, which computes immunity from TYPES only; and ~11% of clicks were dropped as unmatched, mostly redirection (Follow Me, Rage Powder). Open-sheet players also average ~185 rating points lower, though measured move quality is close to flat in rating."

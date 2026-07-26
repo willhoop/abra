@@ -42,9 +42,18 @@ def scan(path):
     return keep, dup, bad, len(seen)
 
 def main():
-    path = os.path.abspath(STORE)
+    # WHICH store. Defaults to the ladder store so every existing caller is unchanged, but the
+    # append-only reconciliation problem this script exists to fix is a property of append-only
+    # JSONL under git, not of one file -- the Bo3 open-sheet store is reconciled the same way in the
+    # same workflow and needs the same protection. Hardcoding one path meant the second store had
+    # no dedupe at all.
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    path = os.path.abspath(args[0] if args else STORE)
+    if not os.path.exists(path):
+        print(f"no such store: {path}")
+        return 0
     keep, dup, bad, uniq = scan(path)
-    print(f"store: {len(keep) + dup} lines -> {len(keep)} unique ({dup} duplicates, {bad} unparseable)")
+    print(f"{os.path.basename(path)}: {len(keep) + dup} lines -> {len(keep)} unique ({dup} duplicates, {bad} unparseable)")
     if dup == 0:
         print("nothing to do")
         return 0

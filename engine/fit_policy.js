@@ -163,7 +163,21 @@ function loadCorpus() {
     if (g.id) seen.add(g.id);
     games.push(g);
   };
-  for (const f of ['games.ots.jsonl', 'games.ladder.jsonl']) {
+  /* THREE SOURCES OF KNOWN CHOICE SETS, AND THEY ARE NOT EQUALLY GOOD.
+   *
+   *   games.bo3.jsonl     OUR OWN scrape of gen9championsvgc2026regmbbo3, whose ruleset carries
+   *                       "Force Open Team Sheets" — so EVERY game in it publishes all six sets.
+   *                       Same ladder, same regulation, same population as the closed store. This is
+   *                       the best of the three and it was sitting unused while the fit ran on an
+   *                       external archive.
+   *   games.ladder.jsonl  the closed-sheet ladder, whose ruleset carries plain "Open Team Sheets" —
+   *                       OPTIONAL, both players must agree. That is why only ~1% of it has sheets,
+   *                       and those few are exactly the games usable here.
+   *   games.ots.jsonl     the external VGC-Bench archive. Largest, but a different collection with a
+   *                       different metagame (engine/corpus_shift.js measures it).
+   *
+   * All three are deduplicated by replay id and every one goes through quality.js. */
+  for (const f of ['games.bo3.jsonl', 'games.ots.jsonl', 'games.ladder.jsonl']) {
     const p = D('data', f);
     if (!fs.existsSync(p)) continue;
     for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
@@ -314,6 +328,68 @@ function logLik(rows, w) {
  * unweighted; the question this answers is "do the estimated weights move when the open-sheet
  * metagame is reweighted to look like the closed one", which is a question about the estimate, not
  * about held-out fit. */
+/* STANDARD ERRORS ON THE FITTED WEIGHTS.
+ *
+ * Every other model in this project ships a confidence interval and this one shipped a bare vector,
+ * which also meant the covariate-shift check had nothing to judge "did the weights move" against —
+ * it compared the shift to a hand-typed 0.25, exactly the invented constant S12/S13 forbid.
+ *
+ * For conditional logit the observed information is available in closed form. With p_ij the fitted
+ * choice probabilities and xbar_i = sum_j p_ij x_ij,
+ *
+ *     H = sum_i sum_j p_ij (x_ij - xbar_i)(x_ij - xbar_i)'
+ *
+ * and the covariance of the estimate is H^-1. One pass, a 12x12 inverse, and every weight gets a
+ * standard error — so "this weight moved" becomes a question with a scale rather than a taste. */
+function standardErrors(rows, w, nf) {
+  const H = Array.from({ length: nf }, () => new Array(nf).fill(0));
+  for (const r of rows) {
+    const s = new Array(r.feats.length);
+    let max = -Infinity;
+    for (let j = 0; j < r.feats.length; j++) {
+      let v = 0; const f = r.feats[j];
+      for (let k = 0; k < nf; k++) v += w[k] * f[k];
+      s[j] = v; if (v > max) max = v;
+    }
+    let z = 0;
+    for (let j = 0; j < s.length; j++) { s[j] = Math.exp(s[j] - max); z += s[j]; }
+    const xbar = new Array(nf).fill(0);
+    for (let j = 0; j < s.length; j++) {
+      const p = s[j] / z, f = r.feats[j];
+      for (let k = 0; k < nf; k++) xbar[k] += p * f[k];
+    }
+    for (let j = 0; j < s.length; j++) {
+      const p = s[j] / z, f = r.feats[j];
+      const d = new Array(nf);
+      for (let k = 0; k < nf; k++) d[k] = f[k] - xbar[k];
+      for (let a = 0; a < nf; a++) {
+        if (!d[a]) continue;
+        for (let b = 0; b < nf; b++) H[a][b] += p * d[a] * d[b];
+      }
+    }
+  }
+  /* Gauss-Jordan inverse of a small symmetric matrix; a tiny ridge keeps it invertible if a feature
+   * is degenerate in this sample rather than throwing on it. */
+  const n = nf;
+  const A = H.map((row, i) => row.slice().concat(Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))));
+  for (let i = 0; i < n; i++) A[i][i] += 1e-9;
+  for (let c = 0; c < n; c++) {
+    let piv = c;
+    for (let r2 = c + 1; r2 < n; r2++) if (Math.abs(A[r2][c]) > Math.abs(A[piv][c])) piv = r2;
+    if (Math.abs(A[piv][c]) < 1e-12) return new Array(nf).fill(NaN);
+    [A[c], A[piv]] = [A[piv], A[c]];
+    const d = A[c][c];
+    for (let j = 0; j < 2 * n; j++) A[c][j] /= d;
+    for (let r2 = 0; r2 < n; r2++) {
+      if (r2 === c) continue;
+      const f = A[r2][c];
+      if (!f) continue;
+      for (let j = 0; j < 2 * n; j++) A[r2][j] -= f * A[c][j];
+    }
+  }
+  return Array.from({ length: nf }, (_, k) => Math.sqrt(Math.max(0, A[k][n + k])));
+}
+
 function fit(rows, nf, lambda, iters, useIW) {
   const w = new Array(nf).fill(0);
   const m = new Array(nf).fill(0), v = new Array(nf).fill(0);
@@ -418,10 +494,16 @@ function main() {
   const ess = s2 > 0 ? (s1 * s1) / s2 : 0;
   const wIW = fit(train, nf, best.lambda, ITERS, true);
   const teIW = logLik(test, wIW);
-  let maxMove = 0, whichMove = '';
+  const SE = standardErrors(train, best.w, nf);
+  /* The shift is judged in STANDARD ERRORS, not against a number chosen here. 1.96 is the same
+   * z the project already uses for every Wilson interval, so a shift inside it is a shift this
+   * sample could not have distinguished from noise in the first place. */
+  let maxMove = 0, whichMove = '', maxZ = 0, whichZ = '';
   for (let k = 0; k < nf; k++) {
     const d = Math.abs(wIW[k] - best.w[k]);
     if (d > maxMove) { maxMove = d; whichMove = B.FEATURES[k]; }
+    const z = SE[k] > 0 ? d / SE[k] : 0;
+    if (z > maxZ) { maxZ = z; whichZ = B.FEATURES[k]; }
   }
   console.log('\nCOVARIATE SHIFT — open-sheet teams are NOT closed-sheet teams');
   console.log(`  the two metagames differ in composition (engine/corpus_shift.js measures it), so the`);
@@ -429,10 +511,32 @@ function main() {
   console.log(`  effective sample size after reweighting: ${Math.round(ess).toLocaleString()} of ${train.length.toLocaleString()} ` +
               `(${(100 * ess / Math.max(1, train.length)).toFixed(0)}% — a small number here would mean the correction ate the sample)`);
   console.log(`  largest weight change: ${whichMove} moved ${maxMove.toFixed(3)}`);
+  console.log(`  largest change RELATIVE TO ITS OWN STANDARD ERROR: ${whichZ} at ${maxZ.toFixed(2)} SE`);
   console.log(`  held-out logL reweighted ${teIW.ll.toFixed(4)} against unweighted ${best.te.ll.toFixed(4)}`);
-  console.log(maxMove < 0.25
-    ? '  -> the weights are stable under the correction; the composition shift does not drive them.'
-    : '  -> MATERIAL: the weights depend on which metagame they were fitted in. Prefer the reweighted fit.');
+  /* WHICH VECTOR SHIPS.
+   *
+   * The bot plays in the CLOSED-sheet metagame — MEW samples its teams from the clean ladder store —
+   * so when the correction moves a weight further than this sample can resolve, the reweighted
+   * estimate is the one that describes the distribution the bot actually plays in. Shipping the
+   * unweighted vector in that case would be knowingly fitting the wrong population.
+   *
+   * An earlier version of this check compared the shift to a hand-typed 0.25 and concluded "stable".
+   * That was the invented constant S12/S13 forbid, and it was hiding a real effect: priorLogP has a
+   * very tight standard error, so a small absolute move is a large one in the units that matter. */
+  const material = maxZ >= 1.96;
+  console.log(material
+    ? '  -> MATERIAL: a weight moved further than this sample can resolve. The REWEIGHTED vector\n' +
+      '     ships, because the bot plays in the closed-sheet metagame, not this one.'
+    : '  -> every weight moved less than this sample can resolve; the unweighted vector ships.');
+  if (material) {
+    console.log('\n  the weights that actually moved (unweighted -> reweighted, in standard errors)');
+    const moved = B.FEATURES.map((f, k) => ({ f, a: best.w[k], b: wIW[k], z: SE[k] > 0 ? Math.abs(wIW[k] - best.w[k]) / SE[k] : 0 }))
+      .filter(r => r.z >= 1.96).sort((x, y) => y.z - x.z);
+    for (const r of moved) {
+      console.log(`    ${r.f.padEnd(12)} ${(r.a >= 0 ? '+' : '') + r.a.toFixed(3)} -> ${(r.b >= 0 ? '+' : '') + r.b.toFixed(3)}   ${r.z.toFixed(1)} SE`);
+    }
+  }
+  const shipW = material ? wIW : best.w;
 
   const gain = best.te.ll - baseBot.ll;
   const accGain = 100 * (best.te.acc - baseBot.acc);
@@ -444,13 +548,22 @@ function main() {
   }
 
   console.log('\nWHAT THE FIT LEARNED (weight per feature; sign and size are the interesting part)\n');
-  const order = B.FEATURES.map((f, i) => [f, best.w[i]]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-  for (const [f, wv] of order) console.log(`  ${f.padEnd(12)} ${wv >= 0 ? '+' : ''}${wv.toFixed(3)}`);
+  const order = B.FEATURES.map((f, i) => [f, best.w[i], SE[i]]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  for (const [f, wv, se] of order) {
+    const lo = wv - 1.96 * se, hi = wv + 1.96 * se;
+    const crosses = lo <= 0 && hi >= 0;
+    console.log(`  ${f.padEnd(12)} ${(wv >= 0 ? '+' : '') + wv.toFixed(3)}   95% CI [${lo.toFixed(3)}, ${hi.toFixed(3)}]` +
+      (crosses ? '   <- interval contains zero; this feature is not doing measurable work' : ''));
+  }
 
   const out = {
     generated: new Date().toISOString(),
     features: B.FEATURES,
-    weights: best.w,
+    weights: shipW,
+    weights_unweighted: best.w,
+    weights_reweighted_to_closed: wIW,
+    shipped: material ? 'reweighted_to_closed' : 'unweighted',
+    standardErrors: SE,
     lambda: best.lambda,
     corpus: { games: games.length, decisions: rows.length, train: train.length, test: test.length },
     heldOut: {

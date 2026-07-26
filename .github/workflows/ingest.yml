@@ -22,6 +22,29 @@ jobs:
       - name: Pull new replays (only appends games not already stored)
         continue-on-error: true
         run: PAGES=6 CONC=20 node engine/durable-ingest.js data/games.ladder.jsonl
+      # THE BEST-OF-3 LADDER, INTO ITS OWN STORE. NEVER POOLED.
+      #
+      # gen9championsvgc2026regmbbo3 carries "Force Open Team Sheets" in its ruleset, so EVERY game
+      # publishes all six sets of both sides. That makes it the only continuously-collected corpus in
+      # which the CHOICE SET of a decision is known rather than guessed, which is exactly what
+      # engine/fit_policy.js needs -- and it is our own scrape of our own ladder, unlike the external
+      # archive the policy was first fitted on.
+      #
+      # The main format's ruleset says plain "Open Team Sheets", which is OPTIONAL -- both players
+      # must agree -- which is why only ~1% of the closed store carries sheets.
+      #
+      # SEPARATE FILE, DELIBERATELY. Bo3 is a different information regime and a different metagame;
+      # pooling it into games.ladder.jsonl would silently change every behavioural statistic in the
+      # project. The format id comes from data/regulations.json, so a regulation rotation carries it.
+      - name: Pull the Bo3 open-team-sheet ladder (separate store, never pooled)
+        continue-on-error: true
+        run: |
+          BO3=$(node -e "const r=require('./data/regulations.json');process.stdout.write((r.regulations[r.active]||{}).bo3Format||'')")
+          if [ -n "$BO3" ]; then
+            PAGES=6 CONC=20 FORMATS="$BO3" node engine/durable-ingest.js data/games.bo3.jsonl
+          else
+            echo "no bo3Format for the active regulation; nothing to pull"
+          fi
       - name: Rebuild the meta model
         continue-on-error: true
         run: node engine/analyze.js data/games.ladder.jsonl
@@ -61,7 +84,7 @@ jobs:
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
+          git add data/games.ladder.jsonl data/games.bo3.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
           if git diff --cached --quiet; then
             echo "no new games this run"; exit 0
           fi
@@ -81,16 +104,25 @@ jobs:
           for i in 1 2 3; do
             git fetch origin main || { echo "fetch failed"; sleep 5; continue; }
             cp data/games.ladder.jsonl "$RUNNER_TEMP/ours.jsonl"
+            # The Bo3 store is append-only under git too, so it is reconciled the SAME way:
+            # keep ours across the reset, append, dedupe by id. Omitting it here would have
+            # thrown away every Bo3 game this run collected on the first push race.
+            cp data/games.bo3.jsonl "$RUNNER_TEMP/ours-bo3.jsonl" 2>/dev/null || true
             git reset --hard origin/main
             cat "$RUNNER_TEMP/ours.jsonl" >> data/games.ladder.jsonl
+            # `|| true` is load-bearing: GitHub runs this block under `bash -e`, so a bare
+            # `[ -f x ] && cat x` returns 1 on the very first run (when the file does not exist yet)
+            # and would abort the step BEFORE the push, silently losing the whole hour's ingest.
+            if [ -f "$RUNNER_TEMP/ours-bo3.jsonl" ]; then cat "$RUNNER_TEMP/ours-bo3.jsonl" >> data/games.bo3.jsonl; fi || true
             python3 engine/dedupe_store.py --write || true
+            python3 engine/dedupe_store.py data/games.bo3.jsonl --write || true
             node engine/analyze.js data/games.ladder.jsonl || true
             node engine/policy.js data/games.ladder.jsonl data/move-priors.json || true
             node engine/bring_priors.js || true
             node build/triggers.js --fire || true
             node build/sync_orientation.js || true
             python3 engine/refresh-site-data.py || true
-            git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
+            git add data/games.ladder.jsonl data/games.bo3.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0
             fi
