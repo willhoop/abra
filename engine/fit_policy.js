@@ -494,6 +494,20 @@ function main() {
   const ess = s2 > 0 ? (s1 * s1) / s2 : 0;
   const wIW = fit(train, nf, best.lambda, ITERS, true);
   const teIW = logLik(test, wIW);
+  /* HOW MUCH EACH FEATURE ACTUALLY VARIES. A weight is only comparable to another weight if the two
+   * things they multiply are on the same scale, and they are not: most features are 0/1 flags while
+   * `eff` runs about -4..+2 and `priorLogP` about -7.6..0. Reporting raw weights side by side
+   * therefore understates the wide-ranging features. The standard deviation of each feature across
+   * every candidate in the corpus turns a weight into "how much this swings a score in practice",
+   * which is the quantity a reader actually wants. */
+  const spread = (() => {
+    const n = new Array(nf).fill(0), mean = new Array(nf).fill(0), m2 = new Array(nf).fill(0);
+    for (const r of rows) for (const f of r.feats) for (let k = 0; k < nf; k++) {
+      n[k]++; const d = f[k] - mean[k]; mean[k] += d / n[k]; m2[k] += d * (f[k] - mean[k]);
+    }
+    return m2.map((v, k) => (n[k] > 1 ? Math.sqrt(v / (n[k] - 1)) : 0));
+  })();
+
   const SE = standardErrors(train, best.w, nf);
   /* The shift is judged in STANDARD ERRORS, not against a number chosen here. 1.96 is the same
    * z the project already uses for every Wilson interval, so a shift inside it is a shift this
@@ -564,6 +578,7 @@ function main() {
     weights_reweighted_to_closed: wIW,
     shipped: material ? 'reweighted_to_closed' : 'unweighted',
     standardErrors: SE,
+    spread,
     lambda: best.lambda,
     corpus: { games: games.length, decisions: rows.length, train: train.length, test: test.length },
     heldOut: {

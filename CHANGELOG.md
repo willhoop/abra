@@ -10,6 +10,69 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.9.1] — 2026-07-26
+
+### Weather Ball was being scored as a Normal move. It is Water under rain.
+
+Reported from the site: *Weather Ball changes type with the weather, Pelipper sets rain, so it should
+be super effective on Incineroar.* Correct, and the bug was in **`engine/board.js`**, not just the
+page — `featuresFor` read `move.type`, which is the move's type **on paper**. Thirteen moves in this
+format change type with the board, and Weather Ball is the one that matters: Pelipper sets rain on
+switch-in with Drizzle, so a rain team's main attack was being scored as a Normal move that is
+neutral on everything, when it is a Water move that is super effective on Incineroar and carries
+STAB. Terrain Pulse has the same problem on terrain.
+
+`moveType()` now resolves it by **calling Showdown's own `onModifyType` handler** with a stub of the
+tracked board and asking what the type would be. The mapping is not written down anywhere — the
+source of truth answers for itself, so a regulation that changes a move stays correct. Moves whose
+handler needs context the stub cannot supply (Judgment, Techno Blast, Tera Blast — item, species and
+Tera dependent) fall back to their base type, which is a stated gap rather than a solved problem.
+
+Refitted on the corrected features: **58,281 decisions**, held-out top-1 33.3%, +6.4 points over the
+behaviour clone. `build/build_mag_data.js` asks the handler once per trackable weather and ships the
+answers, and the browser fixture now scores **under rain** so this specific bug cannot come back
+unnoticed. It immediately caught two harnesses that were not reproducing the fixture's weather.
+
+### The weights chart was plotting the wrong quantity
+
+Asked directly: *is the direction all that matters, or the magnitude too?* Both matter — the score is
+a sum, so a term twice as large moves the answer twice as far. But the chart was comparing **raw
+weights**, and those are only comparable if the things they multiply share a scale. They do not: most
+features are 0-or-1 flags, while `eff` runs about −4..+2 and `priorLogP` about −7.6..0.
+
+So the chart now plots **weight × how much that feature actually varies**, measured across every
+candidate in the corpus and shipped in `data/policy-weights.json`. That reorders it completely, and
+**corrects a claim this changelog has been repeating**:
+
+| by raw weight | by actual influence |
+|---|---|
+| `deadSide` −2.29 | **`eff` +0.47** |
+| `deadField` −2.19 | `immune` −0.45 |
+| `immune` −2.07 | `priorLogP` +0.33 |
+| `eff` +0.80 | `deadSide` −0.20 |
+
+Earlier entries said "the biggest learned effects are not about damage at all, they are the dead-move
+terms". That is true **per occurrence** — a dead move is punished about five times harder than a
+weakness is rewarded — and false **overall**, because dead moves are rare while effectiveness differs
+on every board. Hitting a weakness is the single biggest driver of a real decision. Both statements
+are now on the page, distinguished.
+
+### The room, remade
+
+The old-bot comparison panel is gone — it existed to prove the improvement once, that is recorded
+here, and it does not need permanent screen space. In its place: the **actual score** for every
+option in its own column, and any row opens to show the arithmetic that produced it, term by term.
+The opening board changed from Pelipper into Garchomp + Incineroar — where Hurricane is neutral on
+**both**, so it scored 17% and 17% and looked like a bot that was not aiming — to Garchomp into
+Charizard + Kingambit, which puts immunity, aiming, super-effective and spread on screen at once.
+
+"What I do not do" now says **why not yet** for each item, because none of them are impossible:
+switching needs to know when a human could have switched and did not (open sheets give that);
+a real damage calculation needs the target's spread, item and ability (open sheets give that too);
+and reading a Protect is a search problem, which is ALAKAZAM's.
+
+---
+
 ## [3.9.0] — 2026-07-26
 
 ### The scoring bot is now MAGNEMITE, and it has a room on the site

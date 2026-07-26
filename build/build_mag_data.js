@@ -52,6 +52,20 @@ for (const m of dex.moves.all()) {
   if (m.weather) e.wx = norm(m.weather);
   if (m.stallingMove) e.sl = 1;
   if (m.condition && m.condition.duration) e.du = m.condition.duration;
+  /* MOVES WHOSE TYPE DEPENDS ON THE BOARD. Weather Ball is Normal on paper and Water under rain,
+   * and Pelipper sets rain on switch-in — so a rain team's main attack was being scored as a
+   * neutral Normal move. The mapping is not typed: engine/board.js moveType() calls Showdown's own
+   * onModifyType handler, and this asks it once per weather we can track, so the browser gets the
+   * same answer without shipping the handler. */
+  if (typeof m.onModifyType === 'function') {
+    const tw = {};
+    for (const w of ['', 'sunnyday', 'raindance', 'sandstorm', 'snowscape']) {
+      const bd = new B.Board(); bd.setWeather(w);
+      const t = B.moveType(m, bd, dex);
+      if (t && t !== m.type) tw[w || 'none'] = t;
+    }
+    if (Object.keys(tw).length) e.tw = tw;
+  }
   moves[m.id] = e;
 }
 
@@ -95,14 +109,17 @@ function fixture() {
   bd.switchIn('p2', 'a', 'Garchomp'); bd.switchIn('p2', 'b', 'Incineroar');
   const user = bd.slot('p1', 'a');
   const cases = [];
-  for (const mv of ['icebeam', 'hurricane', 'rockslide', 'tailwind', 'protect']) {
+  /* Rain is set deliberately: it is the board on which Weather Ball changes type, which the first
+   * version of this model got wrong, so the fixture now pins it. */
+  bd.setWeather('raindance');
+  for (const mv of ['icebeam', 'hurricane', 'rockslide', 'tailwind', 'protect', 'weatherball']) {
     const cands = B.candidates([mv], user, bd, 'p1', dex);
     for (const c of cands) {
       const x = B.featuresFor(c, user, bd, 'p1', dex, (priors.pelipper || {})[mv] || 0);
       cases.push({ mv, tgt: c.targetMon ? norm(c.targetMon.species) : (c.spread ? '*' : ''), x });
     }
   }
-  return { user: 'pelipper', foes: ['garchomp', 'incineroar'], cases };
+  return { user: 'pelipper', foes: ['garchomp', 'incineroar'], weather: 'raindance', cases };
 }
 
 const OUT = {
@@ -110,6 +127,7 @@ const OUT = {
   source: 'build/build_mag_data.js',
   features: B.FEATURES,
   weights: W.weights,
+  spread: W.spread || null,
   shipped: W.shipped || 'unweighted',
   priorFloor: B.PRIOR_FLOOR,
   heldOut: W.heldOut || null,

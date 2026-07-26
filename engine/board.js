@@ -208,6 +208,38 @@ class Board {
  * `cand` is {move, targetMon} where move is a Showdown dex move object and targetMon is a tracked
  * mon or null (for self-targeting and field moves).
  * ------------------------------------------------------------------------------------------- */
+/* THE TYPE OF A MOVE IS NOT ALWAYS A FIXED FIELD.
+ *
+ * Thirteen moves in this format change type with the board, and `move.type` is their BASE type, not
+ * the type they will actually hit with. Weather Ball is the one that matters: it is Normal on paper
+ * and Water under rain — and Pelipper, which runs it, sets rain on switch-in with Drizzle. So a
+ * standard rain lead was having its main attack scored as a Normal move that is neutral on
+ * everything, when it is really a Water move that is super effective on Incineroar. Terrain Pulse is
+ * the same story on terrain.
+ *
+ * The mapping is NOT written here. Showdown carries it as an `onModifyType` handler, so the handler
+ * is CALLED with a stub of the board and asked what the type would be. That is the source of truth
+ * answering for itself, which keeps it correct if a regulation changes a move — and a move whose
+ * handler needs more context than the stub provides simply falls back to its base type rather than
+ * guessing.
+ *
+ * The remaining twelve depend on an item, a species or a Tera type rather than the board (Judgment,
+ * Techno Blast, Tera Blast, Revelation Dance...). Those still fall back, and that is a known gap
+ * rather than a solved problem. */
+function moveType(m, board, dex) {
+  if (!m || typeof m.onModifyType !== 'function') return m ? m.type : '';
+  const probe = { type: m.type };
+  const field = {
+    isTerrain: t => board.hasField(t),
+    isWeather: w => norm(board.weather) === norm(w),
+    getPseudoWeather: t => (board.hasField(t) ? {} : null),
+    effectiveWeather: () => norm(board.weather),
+  };
+  const user = { effectiveWeather: () => norm(board.weather), hasItem: () => false, getItem: () => ({}) };
+  try { m.onModifyType.call({ field, dex }, probe, user); } catch (e) { return m.type; }
+  return probe.type || m.type;
+}
+
 /* The key a field-setting move is tracked under. Trick Room reports `pseudoWeather`, the terrains
  * report `terrain`; both are dex fields and both land in the same namespace so `deadField` is one
  * feature rather than two nearly-identical ones. Returns '' for a move that sets no field. */
@@ -245,9 +277,13 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   set('isStatus', damaging ? 0 : 1);
   set('bp', damaging ? Math.min(2.5, (m.basePower || 0) / 100) : 0);
 
+  /* The type this move will ACTUALLY hit with on this board — see moveType. Using m.type here
+   * scored Weather Ball as Normal under rain, which is the single most common way this format's
+   * rain teams attack. */
+  const mType = moveType(m, board, dex);
   const userSp = dex.species.get(user.species);
   const userTypes = (userSp && userSp.exists && userSp.types) || [];
-  set('stab', damaging && userTypes.map(norm).includes(norm(m.type)) ? 1 : 0);
+  set('stab', damaging && userTypes.map(norm).includes(norm(mType)) ? 1 : 0);
 
   /* A spread move is scored against everything it will hit, averaged; a single-target move against
    * the one mon it is aimed at. Averaging is what makes the two comparable in the same units, so the
@@ -263,8 +299,8 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       /* getImmunity is asked FIRST because getEffectiveness returns 0 for an immunity, which is the
        * same value it returns for a neutral hit. Collapsing "does nothing" into "normal damage" is
        * exactly the class of error this file exists to remove. */
-      if (!dex.getImmunity(m.type, hTypes)) immuneCount++;
-      else effSum += dex.getEffectiveness(m.type, hTypes);
+      if (!dex.getImmunity(mType, hTypes)) immuneCount++;
+      else effSum += dex.getEffectiveness(mType, hTypes);
       n++;
     }
     if (n) {
@@ -328,4 +364,4 @@ function candidates(moves, user, board, side, dex) {
   return out;
 }
 
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, norm, baseSpecies, SELF_TARGETS };
+module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, norm, baseSpecies, SELF_TARGETS };

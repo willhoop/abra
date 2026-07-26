@@ -80,6 +80,16 @@ check('the page still defines the scoring functions this test lifts', () => {
   lift('eff1'); lift('feats'); return true;
 });
 
+/* magMoveType is an arrow const, not a function declaration, so it is lifted by line rather than by
+ * brace matching. It resolves Weather Ball to Water under rain; without it the page would score a
+ * rain team's main attack as a neutral Normal move, which is the bug it exists to prevent. */
+function liftConst(name) {
+  const re = new RegExp('^const ' + name + '=.*$', 'm');
+  const m = re.exec(html);
+  if (!m) throw new Error(`web/index.html no longer defines ${name} — this test is stale`);
+  return m[0];
+}
+
 const pageCtx = {
   MAG, Math, String, Number, Array, Object, console,
   norm: s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''),
@@ -89,13 +99,16 @@ pageCtx.MAGF = MAG.features;
 pageCtx.MAGIX = {};
 MAG.features.forEach((f, i) => { pageCtx.MAGIX[f] = i; });
 vm.createContext(pageCtx);
-vm.runInContext(lift('eff1') + '\n' + lift('feats'), pageCtx);
+vm.runInContext(liftConst('magMoveType') + '\n' + lift('eff1') + '\n' + lift('feats'), pageCtx);
 
 check('the page scores every fixture position exactly as the engine did', () => {
   const fx = MAG.fixture;
   const user = { id: fx.user };
   const foes = fx.foes.map(id => ({ id, hp: 1, status: '' }));
-  const board = { side: {}, field: {}, weather: '', stalled: false };
+  /* The fixture carries the weather it was scored under — Weather Ball is a different type in rain,
+   * which is the whole reason that case is in there. Ignoring it made the page look wrong when it
+   * was the harness that was not reproducing the board. */
+  const board = { side: {}, field: {}, weather: fx.weather || '', stalled: false };
   let worst = 0, worstCase = '';
   for (const c of fx.cases) {
     let tgt;
