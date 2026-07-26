@@ -10,6 +10,48 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.13.0] — 2026-07-26
+
+### Measured before building: humans do NOT choose their two moves independently
+
+MAG decides each of its two Pokemon separately, blind to what its partner is doing. Before building
+joint scoring, the question was whether the effect is real. It is, and it is large — over 18,575 real
+turns where both Pokemon acted:
+
+| joint effect | if chosen independently | what humans actually do |
+|---|---|---|
+| both aim a single-target attack at the **same** foe | ~50% | **23.4%** |
+| both use Protect on the same turn | 1.66% of turns | **3.47% — 2.1x** |
+| Follow Me / Rage Powder used, partner then attacks | — | **97%** |
+
+**Aiming is the big one.** MAG picks each target separately, so it doubles into one foe about half the
+time; humans do it under a quarter of the time. That is a measurable gap MAG fails today, and it is a
+new realism metric with a clear target.
+
+Redirection is the cleanest case there is: Follow Me is used to enable the partner and essentially
+nothing else. A model that scores the two Pokemon separately cannot represent that at all.
+
+### And the finding that contradicted my own prediction
+
+I expected humans to **avoid** double Protect as wasteful. They do it **twice as often as chance**. It
+is a real tactic — scouting, stalling a Trick Room or Tailwind out, ducking a predicted double-up.
+Had this been hand-written as a rule, it would have been written as a penalty and it would have been
+backwards. Another entry for the same ledger: the values must be learned.
+
+### A third keying error, caught before it was published
+
+The first version of this measurement keyed the two Pokemon on **resolution order** rather than on
+their field slot. Protect has +4 priority so it almost always resolves first, which manufactured a
+fake asymmetry — "slot A protects 22.2%, slot B 3.5%" — and inflated the double-Protect effect to
+4.45x. Keyed on the actual slot, the two sides come out at 12.5% and 13.3% as they must, and the
+effect is 2.1x.
+
+That is the third time tonight a keying or denominator mistake invented an effect, after
+switches-per-move and the Protect-chain counter. The rule is now in three changelog entries and was
+still not applied before running the query.
+
+---
+
 ## [3.12.0] — 2026-07-26
 
 ### Abilities that eat a move — derived from real battles, not typed
