@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.5.0] — 2026-07-26
+
+### The self-play corpus was not modelling this format
+
+Four independent defects, none of which errored, combined to leave 199,524 self-play games with
+essentially **no mega evolutions** — in a format where **93% of real ladder games contain one**.
+
+- **The player was never told it could mega.** `RandomPlayerAI` defaults `mega` to 0 and
+  `engine/mew.js` never passed the option. Now passed as a per-decision probability.
+- **The teams had no stones.** `fillSet` consulted Smogon's *base-forme* item list first, which
+  contains no stones at all. Our own parse of real Champions replays does. Our measurement now wins.
+- **Every Tyranitar held a stone.** `gearPriors` kept only the mode, turning a choice into a species
+  trait. The full distribution is kept and sampled.
+- **Megas used base-forme moves.** Mega Dragonite is special, ordinary Dragonite is physical, and 26
+  mega formes had their own priors sitting unused. Unrevealed slots now re-drawn from the mega forme.
+
+Result: **54.7% of self-play games contain a mega**, from ~0%.
+
+### Smogon's statistics adopted, after verifying the methodology
+
+We had been deriving from ~1,700 clean replays what Smogon publishes from **1,163,315 battles**.
+Before relying on it, the key claim was checked: does Smogon know a Pokémon held a mega stone even
+when it died without revealing it? **Yes — verified three ways.**
+
+- **Raw counts sum to exactly 12.00 per battle** (13,959,780 ÷ 1,163,315). A VGC battle has 12
+  Pokémon across the two teams, so every team slot is counted, brought or not. The `Real` column is
+  5.49 per battle — that one is appearances.
+- **They publish EV spreads**, which are never revealed in battle and can only come from team data.
+- **Base-forme Charizard's item list contains zero mega stones.** Reveal-derived data would show
+  stone-holders that died in the base entry. None appear.
+
+Now parsed and available: **mega formes as separate species** (`megaInfo()`), **Checks and
+Counters** with 95% intervals, **full teammates** (was truncated to 10), **viability ceiling**.
+
+Stone-holding rates, weighted usage, 2026-06 cutoff 1630: Charizard 99.3% (Y 96.1% / X 3.2%),
+Swampert 98.0%, Metagross 96.0%, Raichu 88.3%, Staraptor 81.7%, Tyranitar 66.0%, Aerodactyl 58.3%,
+Venusaur 55.5%.
+
+**Retracted from earlier the same session:** the claim that Smogon's non-mega share was inflated by
+Pokémon that carried a stone and died before using it. It is not — those are counted under the mega
+forme. The base entries are genuinely stone-less builds.
+
+### The bots do not know the type chart
+
+Measured, bots vs humans: hit something **immune** 4.3% vs 2.2%; **super effective** 9.9% vs
+**23.4%**; **outright failed** 10.3% vs 2.7%. Super-effective-to-immune ratio 2.3:1 against humans'
+10.7:1 — one bot move in twenty-three does literally nothing.
+
+### Also
+
+- **Redundant protection moves.** Sets held both Protect and Detect (1.1% of protection users across
+  40,000 games). Redundant families now capped at one member per set, in both draw paths; 0 of 4,800
+  after.
+- **Mega timing confirmed.** Of 16,631 mega events in real games, **zero** occurred on the mon's
+  switch-in turn — switching is that turn's action. 1.88% of switch-ins faint before acting.
+- **Seed base wrapped every 2.78 hours** (`Date.now() % 1e7`), regenerating identical battles under
+  fresh ids. Fixed, plus a guard against the engine's 28-bit seed ceiling. Adjacent seeds were
+  checked and are *not* correlated.
+- **Site numbers generated, not typed** (S13): dataset counts, team count, matchups and turns-per-game
+  now derive from `data/live.js`, each tile showing its own arithmetic. Turns-per-game had been
+  computed over all 12,872 collected games beside a tile using clean games only — corrected to 8.3.
+- **MEW's replay viewer replaced** with Pokémon Showdown's own player. MEW stores the exact Showdown
+  protocol, so it reads our games with no conversion; the hand-written viewer is deleted.
+
+### Superseded
+
+The 199,524-game corpus is **obsolete** — every game was played with no megas, wrong items, and mega
+Pokémon using base-forme moves. Mechanically valid, but not this format. Regenerate before analysis.
+
+Full write-up: `docs/FINDINGS-2026-07-26.md`.
+
 ## [3.4.0] — 2026-07-25
 
 ### Fixed — six defects in MEW, every one found by testing the chain before the first large run
