@@ -10,6 +10,64 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.6.0] — 2026-07-26
+
+### The build space is now derived from Smogon instead of typed by hand
+
+`build_lab` split moves at a hand-written `LOCK_AT = 85`. That violated S12/S13 and was wrong in both
+directions: it called Garchomp's Earthquake a free choice at 76.9% usage, and said nothing at all
+about how much room was left once the four most common moves were fixed.
+
+- **`engine/set_space.js` (new)** replaces the threshold with an identity. Smogon's move percentages
+  are shares of sets and every set has four moves, so the listed percentages plus "Other" sum to 400.
+  Therefore `freedom = (400 - sum of the top four) / 100` reads directly as *slots a real player
+  changes*: Garchomp 0.71, Farigiraf 1.47, Kingambit 0.59. Across 259 species with 2,000+ teams the
+  four most common moves account for **68% of every move slot played**.
+- **Where a cutoff is genuinely needed there is an exact one.** Always-including a move that sits on
+  a fraction `p` of sets matches reality on `p`; sampling it matches on `p² + (1-p)²`. The difference
+  is `(2p-1)(1-p)`, so always-include wins **exactly when p > 1/2**. No tuning, no judgement.
+- **The blind spot is now quantified and printed.** Smogon buckets rare moves as "Other" at 15–20%
+  per species, so `1 - (1 - other/400)^4` ≈ **17% of real sets contain a move no prior of ours can
+  propose** (median 17%, worst 19%; Kingambit 3%). This is a floor on set realism and had never been
+  written down. Spreads are worse — Garchomp's spread "Other" is 38.4% against 19.8% for moves.
+
+### `build_lab` runs a full factorial
+
+One-factor-at-a-time cannot detect interactions, and factorial designs need fewer runs for the same
+power. The design now crosses move-combinations × items × spreads.
+
+**Confirmed on the first 240-battle smoke run:** Adamant beats Jolly by ~10 points **under Life Orb**
+and does nothing **under Choice Scarf**. Neither sweep alone could have produced that sentence.
+
+### Three bugs found by that run
+
+- **`fillSet` ignored a caller-supplied spread** and re-sampled from the prior, so any experiment
+  holding the spread fixed was not holding it fixed.
+- **`build_lab` forwarded only moves/item/ability into `packTeam`**, dropping the spread entirely, so
+  all three spread arms were the same team. The tell was win rates identical *to the decimal* across
+  supposedly different arms — a genuinely varied factor cannot tie that exactly.
+- **The results table never printed the spread**, which is how the above survived a full run looking
+  like a tie rather than a defect.
+
+### A previously reported cause was tested and disproven
+
+BACKLOG item 1 claimed the set-diversity gap came from too thin a candidate pool. Measured: the
+correlation between our pool size and the gap is **0.04** across 28 species — none. Every species has
+~7.8 candidates, Rotom-Wash and Garchomp alike, and Rotom-Wash has no gap.
+
+The measurable cause is **mode collapse**: we produce the single most common set **48%** of the time
+against a real **44%**, concentrated exactly where the gap is — Toxapex +18 points, Whimsicott +15,
+Garchomp +11, Kingambit **−2** (we are slightly *more* varied than reality).
+
+### Documentation
+
+- **`docs/METHODOLOGY.md` (new)** — every design choice with the literature behind it: common random
+  numbers for paired comparison (Goldsman; Nelson & Matejcik 1995; Yang & Nelson 1991) including the
+  negative-covariance failure mode; factorial versus OFAT (Czitrom; Box/Hunter/Hunter); self-play
+  overfitting and league training (AlphaStar; Minimax Exploiter; NeurIPS 2023); Benjamini–Hochberg.
+
+---
+
 ## [3.5.0] — 2026-07-26
 
 ### The self-play corpus was not modelling this format
