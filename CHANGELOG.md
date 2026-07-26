@@ -97,6 +97,38 @@ often than a human's, consistent with 4.3 switches per game against 5.7 — down
 
 ---
 
+### Adversarial review, and an engine selftest
+
+`docs/REVIEW-2026-07-26.md` — two passes at v3.6.0, statistical and engineering, every finding
+grounded in a measurement or a line of code. **Three of the defects it found were in the measurement
+apparatus rather than the model**, and one of those reverses the project's top backlog item.
+
+- **Set diversity is CLOSED — the gap never existed.** `realism_report` capped the generated corpus
+  with `--limit` but read the real one in full, and distinct-counts grow with n mechanically. Compared
+  at matched n across 76 shared species: **13.2 distinct sets per species for us against 11.3 real.**
+  We are slightly *more* varied than the ladder. It had been reported as a defect three times.
+- **`build_lab` compared each arm to a field mean containing that arm**, shrinking every effect by
+  exactly `(m-1)/m` — 17% at m=6, 1.2% at m=84, so it hid in the small runs people iterate on.
+- **The factorial took a nested prefix when subsampled**, freezing the move axis and confounding
+  factors with loop position. Now stride-walked, coprime to the cell count.
+- **`--conc` does nothing** — 14.9 / 14.4 / 14.3 games/sec at conc 1 / 4 / 12. The simulator is
+  CPU-bound and single-threaded; the 46 games/sec figure is a 12-**process** number and no tool here
+  fans out. `set_space` now prints both, so the top-14 factorial is honestly ~39 hours as shipped.
+
+**`engine/selftest.js` (new)** — 17 assertions on the parts that fail silently, no Showdown checkout
+needed. It found a bug on its first run: an unlisted forme resolved to nothing and produced an
+**empty moveset**, so the Pokémon plays Struggle all game and nothing is raised. `forSpecies` and
+`resolveSpecies` now strip trailing hyphenated qualifiers progressively — a rule that covers formes
+nobody has thought of yet, replacing a hand-kept list that was itself an S13 violation and had
+already failed three times.
+
+**Known and NOT fixed:** every `build_lab` win rate is still conditioned on a pilot that does not read
+the board (super-effective 10.8% against 23.3%, failed moves 8.6% against 2.7%, games 10.1 turns
+against 6.3). That makes every current build result provisional, and it is why the scoring bot is
+the top of the backlog. `build_lab` also tests one host team against 40 opponents without saying so.
+
+---
+
 ## [3.5.0] — 2026-07-26
 
 ### The self-play corpus was not modelling this format
