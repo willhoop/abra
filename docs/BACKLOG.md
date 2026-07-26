@@ -32,6 +32,42 @@ concrete: anything here should be actionable without re-deriving why.
 
 ---
 
+## STATE AS OF 2026-07-26 — READ THIS FIRST IN A NEW SESSION
+
+**The scoring bot is the only thing left that matters.** Everything below it is either done or is
+scaffolding that now maintains itself.
+
+**Settled tonight, do not redo:**
+- Set diversity is CLOSED — measured at matched n we are MORE varied than the ladder (12.75 v 12.17).
+- `move-priors.json` was learned from bot games (7:1) and is now clean-filtered. Distributions moved
+  up to 8 points. This was the largest real defect in the project.
+- All five live models now either filter or carry a `RAW-STORE-OK` declaration saying why they must
+  not. `engine/selftest.js` enforces it and is RED with 18 remaining — all non-live.
+- `build_lab` had three statistical defects (self-comparison, nested-prefix factorial, pilot airtime
+  bias). All fixed. See `docs/DEFENSE.md`.
+- Megas 74% -> 80%; the residual is a lead/switch issue downstream of the scoring bot.
+
+**Runs itself now — do not hand-maintain any of it:**
+`move-priors`, `bring-priors`, `data/live.js`, ORIENTATION's figures, the CHOMP re-run trigger,
+regulation-rotation detection, and the archive. All hourly, all derived.
+
+**~2026-08-15**: the clean corpus passes 10,609 games and `build/triggers.js --fire` re-runs the
+CHOMP proof automatically. Reg M-B is scheduled to end 2026-09-02, so it resolves with ~18 days to
+spare at 1.9x the required accrual rate.
+
+**Known and not fixed:**
+1. `pory.py` reports "beats coin AND material heuristic" while its own CI [0.6264, 0.7321] spans the
+   coin's 0.6931. Same overclaim pattern `build_lab` had. Check before quoting it.
+2. Generated sets under-produce Smogon's locked moves by 2.6 points. The fix is per-move Bernoulli
+   sampling at the Smogon set-rate with repair to four — NOT force-inclusion, which was tried,
+   collapsed Kingambit's variety to zero, and was reverted (`docs/DEFENSE.md` §2).
+3. `build_lab` tests ONE host team against 40 opponents and does not say so in its output.
+4. 18 non-live files still read the store undeclared.
+5. Uniform piloting is unbiased across moves only if they are exchangeable in time. Setup moves are
+   not, so setup builds are currently understated. Dissolved by the scoring bot, not patchable.
+
+---
+
 ## THE END GOAL
 
 **ALAKAZAM climbs the real ladder, high. That is the proof.**
