@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.16.0 · 2026-07-26 · Will Hooper**
+**Version 3.17.0 · 2026-07-26 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 

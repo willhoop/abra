@@ -10,6 +10,55 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.17.0] — 2026-07-26
+
+### Every input audited before anything else gets built
+
+Directive, and it is the right one: *do not wire up SLOWKING and PORY and XATU only to say afterwards
+that the data was bad — make the inputs bulletproof first.* The SLOWKING withdrawal in 3.16.0 was
+exactly that failure, and it was not a one-off.
+
+`engine/provenance.js` checks every published artifact against four questions no file currently
+answers about itself:
+
+1. **Is it older than the quality filter?** Then it was computed under different rules about what
+   counts as a usable game. This is precisely what invalidated SLOWKING.
+2. **Is it older than its own inputs?** Then it describes a corpus that has since moved.
+3. **Does it declare more games than exist clean?** Then it cannot have been filtered.
+4. **Does it record a corpus at all?** A file that does not say what it was built from can never be
+   checked by anyone.
+
+### What the audit found
+
+**Four artifacts are UNSAFE and must not be quoted:**
+
+| artifact | why |
+|---|---|
+| `pory-nn.json` | its generator's filter is **opt-in** (`--clean`, default off) and the file does not record it was used; declares **61,274 games** against ~2,000 clean |
+| `playstyle-matchups.json` | predates the quality filter; declares 3,310 games against ~2,000 clean |
+| `slowking-playstyle-eval.json` | derived from the above, and also predates the filter |
+| *(and `slowking-eval.json`, fixed in 3.16.0 by re-running it)* | |
+
+**And I quoted one of them in this very conversation.** The comparison offered as "the honest state of
+PORY" — that simply counting Pokemon and HP scores 0.638 against PORY's 0.674 — came from
+`pory-nn.json`, which was trained without the filter switched on. **Withdrawn.** PORY's standing is
+now unknown rather than weak; `pory-eval.json` itself (from `pory.py`, which does refuse the raw
+store) is a separate and still-usable artifact.
+
+**Eight more are possibly stale** — older than inputs that have since grown, or recording no game
+count at all. `move-priors.json`, `bring-priors.json` and `chomp-ev.json` state no corpus, so nobody
+can check them without re-running them.
+
+### The checker's own false alarm, fixed before it shipped
+
+The first version compared every artifact's game count against the **ladder** clean count and flagged
+`policy-weights.json` as unsafe for declaring 2,723 games. It is fitted on the **open-sheet** corpus,
+which is a different population with its own clean count. A checker that cries wolf is one people
+learn to scroll past — the same argument this project already made about a diagnostic that fired
+every run — so each artifact now declares which corpus its count should be judged against.
+
+---
+
 ## [3.16.0] — 2026-07-26
 
 ### WITHDRAWN: "this metagame is rock-paper-scissors, so you must mix"
