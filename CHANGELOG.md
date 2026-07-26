@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.15.0] — 2026-07-26
+
+### The ladder: optimise for winning, against an opponent that improves too — and it caught my own bad statistics
+
+`engine/ladder.js` runs champion versus challenger: beat the champion and you become it, so the bar
+rises every generation instead of staying frozen. That matters because hill-climbing against a fixed
+opponent is the trap this project already fell into — MAG's 60% over the prior bot turned out to be
+mostly punishing a flaw it had been built to punish.
+
+**The first run produced a false promotion, and the round robin is what caught it.** A generation-3
+champion was promoted for beating generation 2 at **56.1%** over 319 games, then scored **49%**
+against the very same opponent when replayed on different seeds.
+
+The cause was mine: the challenger is the **best of five probes**, so its measured win rate is the
+maximum of several noisy draws and is optimistically biased. Testing that maximum with an ordinary
+95% interval — as though it were a single pre-planned comparison — is not a valid test. It is the
+same selection error the project already documented once in `build_lab`, committed again.
+
+**Fixed: a winner must now win twice.** Once to be selected, then again in a confirmation match on
+independent seeds against the same champion, and only the second interval counts.
+
+### And the reassuring message was also wrong
+
+The first run printed *"No cycle detected: every champion beats or ties all of its ancestors."* Every
+single ancestor comparison had an interval spanning a coin — nothing was decided either way. The
+honest statement is that the round robin **had no power at that sample size**, not that the ladder
+is clean. It now says that instead, and only claims a clean result when at least one comparison was
+actually decisive.
+
+That distinction matters more here than usual: in a cyclic metagame a ladder can climb forever
+without going anywhere, and "no cycle detected" is precisely the sentence that would hide it.
+
+### Net result of the first run: nothing established
+
+Two promotions, both unconfirmed, and a round robin that could not resolve anything. **No evidence
+the ladder improved on MAG.** Reported as a null rather than as two generations of progress, which is
+what the original output would have implied.
+
+---
+
 ## [3.14.0] — 2026-07-26
 
 ### MAG is exploitable, and the thing that exploits it is simply a better player

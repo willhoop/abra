@@ -120,14 +120,26 @@ const wilson = (p, n) => {
       if (!bestR || r.rate > bestR.rate) { bestR = r; bestW = cand; }
     }
     if (!bestR) { console.log(`  gen ${g}: every probe failed`); continue; }
-    const [lo] = wilson(bestR.rate, bestR.n);
-    /* PROMOTION GATE: the challenger must beat the champion with its interval clear of a coin.
-     * Promoting on a nominal lead would let noise walk the champion sideways forever, which looks
-     * exactly like progress on a chart. */
-    const promoted = lo > 0.5;
-    console.log(`  gen ${g}  best challenger ${(100 * bestR.rate).toFixed(1)}%  n=${bestR.n}  ` +
-      (promoted ? '-> PROMOTED' : '(not clear of a coin, champion holds)'));
-    history.push({ gen: g, rate: bestR.rate, n: bestR.n, promoted });
+
+    /* PROMOTION NEEDS A CONFIRMATION MATCH ON FRESH SEEDS, AND THE FIRST VERSION DID NOT HAVE ONE.
+     *
+     * The challenger is the BEST OF ${PROBES} probes, so its measured win rate is the maximum of
+     * several noisy draws and is optimistically biased. Testing that maximum with an ordinary 95%
+     * interval, as if it were a single pre-planned comparison, is not a valid test — and it showed:
+     * a gen-3 champion promoted on 56.1% came back at 49% when replayed against the same opponent
+     * on different seeds. The round robin caught it, which is the only reason it is known.
+     *
+     * So a winner must now win TWICE: once to be selected, then again on independent seeds against
+     * the same champion, with the confirmation interval clear of a coin. Selection happens in the
+     * first match; the second is the one that counts. */
+    const conf = play(champ, bestW, `g${g}-confirm`, SEED0 + 31337 + g * 611953, GAMES);
+    const [clo] = conf ? wilson(conf.rate, conf.n) : [0];
+    const promoted = !!conf && clo > 0.5;
+    console.log(`  gen ${g}  best of ${PROBES}: ${(100 * bestR.rate).toFixed(1)}%  ->  confirmation ` +
+      (conf ? `${(100 * conf.rate).toFixed(1)}%  n=${conf.n}` : 'FAILED') + '  ' +
+      (promoted ? '-> PROMOTED' : '(did not replicate, champion holds)'));
+    history.push({ gen: g, selectionRate: bestR.rate, selectionN: bestR.n,
+                   confirmRate: conf ? conf.rate : null, confirmN: conf ? conf.n : null, promoted });
     if (promoted) { champ = bestW; gens.push({ gen: g, weights: champ.slice() }); scale = 0.7; }
     else scale *= 0.8;
   }
@@ -149,8 +161,17 @@ const wilson = (p, n) => {
     console.log(`    gen ${row.gen}  ${line}`);
   }
   const cycles = grid.flatMap(r => r.vs.filter(v => v.losesTo).map(v => `gen${r.gen} loses to gen${v.ancestor}`));
+  /* "No cycle detected" is only worth saying if the round robin could have detected one. When every
+   * comparison is inconclusive the honest statement is that the test had no power, not that the
+   * ladder is clean — the first version printed the reassuring version regardless. */
+  const decisive = grid.flatMap(r => r.vs).filter(v => v.beats || v.losesTo).length;
+  const comparisons = grid.flatMap(r => r.vs).length;
   console.log('');
-  if (cycles.length) {
+  if (comparisons && !decisive) {
+    console.log(`  INCONCLUSIVE: all ${comparisons} ancestor comparisons had intervals spanning a coin.`);
+    console.log('  This says nothing about whether the ladder is climbing or going round — the round');
+    console.log('  robin simply had no power at this sample size. Raise --games before reading it.');
+  } else if (cycles.length) {
     console.log('  NON-TRANSITIVITY DETECTED: ' + cycles.join(', '));
     console.log('  A later champion losing to an earlier one means the ladder is going round, not up.');
     console.log('  Win-maximising self-play cannot fix that; it needs a regret-minimising update.');
