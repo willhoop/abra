@@ -173,39 +173,47 @@ async function playOne(packA, packB, seed, oppKind) {
    * interpretable than random draws, because every arm then differs in exactly one thing and the
    * difference is attributable to it.
    *
-   * LOCK_AT is a threshold on usage, not a judgement: a move on >=85% of sets is not a choice.
-   * --mode draw restores the old sampling for cases where the whole set is genuinely open. */
-  const LOCK_AT = 85, CAND_MIN = 3;
+   * WHAT REPLACED THE OLD THRESHOLD. This used to split moves at a hand-typed LOCK_AT = 85, which
+   * S12/S13 forbid and which was wrong anyway — it called Earthquake a free choice on a Garchomp that
+   * runs it 77% of the time. `set_space.js` derives the structure instead, from the fact that move
+   * percentages sum to 400 because every set has four moves. See that file's header for the
+   * arithmetic and for why 50% is the one cutoff that is not a matter of taste.
+   *
+   * AND WHY THIS IS NOW A FULL FACTORIAL. One-factor-at-a-time cannot detect interactions: vary the
+   * item alone and then the move alone, and a build that wins because of Life Orb TOGETHER WITH
+   * Stomping Tantrum is invisible in both sweeps. Crossing the three axes costs no more games for the
+   * same precision — every game informs every factor's main effect at once — and it is the only
+   * design that can answer "is it the item, the move, or the pair". --mode draw restores sampling. */
   const builds = [];
   const seenKey = new Set();
   const speciesName = base.find(x => norm(x) === SPECIES);
+  const SS = require('./set_space.js');
   const SM = (() => { try { return require('./smogon_priors.js').forSpecies(speciesName); } catch (e) { return null; } })();
+  const F = (MODE === 'flex') ? SS.factorial(speciesName, SM) : null;
 
-  if (MODE === 'flex' && SM && SM.moves && SM.moves.length >= 4) {
-    const locked = SM.moves.filter(m => m.pct >= LOCK_AT).map(m => m.move);
-    const open = 4 - locked.length;
-    const cands = SM.moves.filter(m => m.pct < LOCK_AT && m.pct >= CAND_MIN).map(m => m.move);
-    if (open === 1 && cands.length) {
-      for (const c of cands.slice(0, NBUILDS)) {
-        const f = SP.fillSet(speciesName, { moves: locked.concat([c]) }, 104729);
-        builds.push({ id: builds.length + 1, set: f, key: norm(c), varying: c });
-      }
-      console.log(`  locked  : ${locked.join(', ')}  (>=${LOCK_AT}% of real sets)`);
-      console.log(`  varying : the one open slot — ${cands.slice(0, NBUILDS).join(' / ')}`);
-    } else if (open >= 2 && cands.length >= 2) {
-      /* Two open slots: enumerate pairs, capped at NBUILDS. */
-      outer:
-      for (let i = 0; i < cands.length; i++) {
-        for (let j = i + 1; j < cands.length; j++) {
-          const pick = [cands[i], cands[j]].slice(0, open);
-          const f = SP.fillSet(speciesName, { moves: locked.concat(pick) }, 104729);
-          builds.push({ id: builds.length + 1, set: f, key: pick.map(norm).sort().join(','), varying: pick.join(' + ') });
-          if (builds.length >= NBUILDS) break outer;
+  if (F && F.moveCombos.length) {
+    const sp = F.space;
+    for (const mc of F.moveCombos) {
+      for (const it of F.items) {
+        for (const spr of F.spreads) {
+          if (builds.length >= NBUILDS) break;
+          const known = { moves: mc.moves };
+          if (it.value) known.item = it.value.item;
+          if (spr.value) { known.nature = spr.value.nature; known.evs = spr.value.sp; }
+          const f = SP.fillSet(speciesName, known, 104729);
+          builds.push({
+            id: builds.length + 1, set: f,
+            key: [mc.label, it.label, spr.label].join('|'),
+            varying: `${mc.label}  /  ${it.label}  /  ${spr.label}`,
+            cell: { moves: mc.label, item: it.label, spread: spr.label },
+          });
         }
       }
-      console.log(`  locked  : ${locked.join(', ') || '(none reach ' + LOCK_AT + '%)'}`);
-      console.log(`  varying : ${open} open slots, enumerated in pairs from ${cands.length} candidates`);
     }
+    console.log(`  reference: ${sp.standard.map(m => m.move).join(', ')}`);
+    console.log(`  freedom  : ${sp.freedom.toFixed(2)} of 4 slots differ from that in real sets`);
+    console.log(`  blind    : ${(100 * sp.pSetAffected).toFixed(0)}% of real sets use a move Smogon does not list`);
+    console.log(`  factorial: ${F.moveCombos.length} move-combos x ${F.items.length} items x ${F.spreads.length} spreads = ${F.cells} cells`);
   }
 
   /* Fall back to sampling when the flex structure is unusable (no Smogon entry, or every slot open). */
@@ -229,9 +237,19 @@ async function playOne(packA, packB, seed, oppKind) {
 
   const results = [];
   for (const b of builds) {
-    /* Force this exact set for the species; everything else on the team fills as usual. */
+    /* Force this exact set for the species; everything else on the team fills as usual.
+     *
+     * THE SPREAD MUST BE FORWARDED. This forwarded moves/item/ability only, so packTeam re-sampled
+     * the spread from the prior and every spread arm of the factorial became the same team. The
+     * symptom was three "different" spreads returning win rates identical to the decimal — which is
+     * the useful tell, because a genuinely varied factor cannot tie that exactly. Any factor this
+     * object does not carry is a factor the experiment silently is not testing. */
     const forced = {};
-    forced[base.find(x => norm(x) === SPECIES)] = { moves: b.set.moves, item: b.set.item, ability: b.set.ability };
+    const sp = b.set.spread;
+    forced[base.find(x => norm(x) === SPECIES)] = {
+      moves: b.set.moves, item: b.set.item, ability: b.set.ability,
+      nature: sp && sp.nature, evs: sp && sp.sp,
+    };
     const wins = [];
     let w = 0, played = 0;
     for (const opp of field) {
@@ -280,7 +298,10 @@ async function playOne(packA, packB, seed, oppKind) {
       `  [${(100 * r.lo).toFixed(1)}, ${(100 * r.hi).toFixed(1)}]`.padEnd(16) +
       ((r.diff >= 0 ? '+' : '') + (100 * r.diff).toFixed(1)).padStart(8) +
       r.p2.toFixed(3).padStart(8) + sig + '  ' +
-      r.set.item + ' | ' + (r.set.moves || []).join('/'));
+      /* Print every factor that varies, or a reader cannot tell two arms apart — which is how the
+       * dropped-spread bug survived a full run looking like a tie rather than like a defect. */
+      (r.cell ? [r.cell.item, r.cell.spread, r.cell.moves].join(' | ')
+              : r.set.item + ' | ' + (r.set.moves || []).join('/')));
   });
   console.log('  ' + '-'.repeat(94));
   const survivors = results.filter(r => cutoff > 0 && r.p2 <= cutoff);
@@ -298,7 +319,8 @@ async function playOne(packA, packB, seed, oppKind) {
     fs.writeFileSync(path.isAbsolute(OUT) ? OUT : D(OUT), JSON.stringify({
       species: SPECIES, team: base, games_per_build: NGAMES, seed: SEED0,
       bh_cutoff: cutoff,
-      builds: results.map(r => ({ item: r.set.item, ability: r.set.ability, moves: r.set.moves,
+      builds: results.map(r => ({ cell: r.cell, item: r.set.item, ability: r.set.ability,
+        moves: r.set.moves, spread: r.set.spread,
         win: r.p, ci: [r.lo, r.hi], vs_field: r.diff, p: r.p2, significant: cutoff > 0 && r.p2 <= cutoff })),
       caveat: 'win rates under a usage-sampling pilot that does not read the board; not human play',
     }, null, 1));

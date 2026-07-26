@@ -553,8 +553,24 @@ function fillSet(species, known, seed) {
     }
   }
 
-  const spread = sampleSpread(species, seed);
-  if (spread) filled.push(`${species}: spread`);
+  /* A CALLER-SUPPLIED SPREAD IS AN INSTRUCTION, NOT A HINT.
+   *
+   * This used to sample unconditionally, which silently broke any experiment that wanted to hold the
+   * spread fixed or vary it deliberately: build_lab would ask for Adamant 252 Atk, get a re-sampled
+   * Jolly, and then attribute the resulting win-rate difference to whichever move it thought it was
+   * testing. Moves and items were already honoured when known; the spread was the one axis that was
+   * not, so the omission was invisible until the factorial started crossing all three.
+   *
+   * `evs` arrives as Smogon's six-element array in HP/Atk/Def/SpA/SpD/Spe order — the same order the
+   * moveset files print — and is widened to the named form the rest of the pipeline uses. */
+  let spread = null;
+  if (known.nature && known.evs) {
+    const e = known.evs;
+    spread = { nature: known.nature, sp: { hp: e[0], atk: e[1], def: e[2], spa: e[3], spd: e[4], spe: e[5] }, pct: null };
+  } else {
+    spread = sampleSpread(species, seed);
+    if (spread) filled.push(`${species}: spread`);
+  }
   return { moves, item, ability, spread, filled, knownMoves: have.length };
 }
 

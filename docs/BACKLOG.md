@@ -34,20 +34,31 @@ concrete: anything here should be actionable without re-deriving why.
 
 ## THE END GOAL
 
-**A person should be able to play a battle against ALAKAZAM.**
+**ALAKAZAM climbs the real ladder, high. That is the proof.**
 
-Not a report, not a coaching tool over a finished replay — a live opponent you can sit down against
-and lose to. Everything below is scaffolding for that. When a decision is ambiguous, the question is
-which option gets us to a playable opponent.
+A person should also be able to sit down and play it — but the ladder is the *test*, and it is the
+right one for a reason worth stating: **it is the only measure in this project that self-play cannot
+fake.** Every internal number can be gamed by a bot that gets good at beating itself. Ladder rating
+is external, adversarial, and measured by people trying to win.
 
-That implies things the current design does not yet have:
+It is also, precisely, the transfer test at full scale. A model that has overfit to its own play
+will climb to a plateau and stop; one that has learned Pokemon will keep going.
 
-- A policy that chooses in **real time**, at human pace, not a batch job.
-- An interface to play through — Showdown accepts a custom client or a bot account, and the replay
-  player already in `web/replay.html` proves the protocol side works both ways.
-- Play strong enough to be worth the match. `docs/THEORY.md` §5 scopes this honestly: a **fixed team**
-  against the **measured metagame** is achievable; a general agent across 1,933 teams is an open
-  research problem that VGC-Bench has not solved either.
+Honest about the bar: VGC-Bench beat a professional **on a single fixed team** and degraded as team
+variety rose. The PokeAgent Challenge (NeurIPS 2025, 100+ teams) concludes the general problem is
+**unsolved**, with large gaps between LLM agents, RL agents, and strong humans. So "stupidly high"
+is a research-grade target, not an engineering one — and the fixed-team scoping in
+`docs/THEORY.md` §5 is the version that is actually reachable first.
+
+What it requires that we do not have:
+  - a policy that decides in **real time**, at human pace
+  - a Showdown connection — a bot account or custom client. `web/replay.html` already proves we
+    speak the protocol in one direction
+  - **ladder discipline**: a rating is only meaningful over hundreds of games, and every one is
+    public and permanent
+
+Everything below is scaffolding for that. When a decision is ambiguous, the question is which option
+moves a real rating.
 
 ---
 
@@ -99,9 +110,23 @@ Ordered by what blocks what.
    slots), Toxapex 4 v 11.
 
    So the fix is not "make everything more varied" — most Pokemon do not run varied movesets and
-   ours are right. It is that our candidate pool is only moves we have OBSERVED, which is too thin
-   for the few species with real choice. Fitting P(set) over a learnset-sized pool with a floor for
-   unobserved moves would address it, and only matters for those species.
+   ours are right.
+
+   **The stated cause was then tested and is WRONG.** The claim was that our candidate pool is too
+   thin. Measured: the correlation between our pool size and the diversity gap is **0.04** over 28
+   species — none. Every species has ~7.8 candidates, Rotom-Wash and Garchomp alike, and Rotom-Wash
+   has no gap. Pool size is not the mechanism.
+
+   What IS measurable, on the same 28 species: we produce the single most common set **48%** of the
+   time against a real **44%**, and the excess is concentrated exactly where the gap is —
+   Toxapex +18 points, Whimsicott +15, Garchomp +11, Kingambit **-2** (we are slightly more varied
+   than reality). It is mode collapse in the sampler, not a missing pool.
+
+   There is also a **floor** on how well this can ever be fixed, now quantified. Smogon lists moves
+   individually to about 1% and buckets the rest as "Other", which runs 15-20% for nearly every
+   species. Since a set is four moves, `1 - (1 - other/400)^4` says **~17% of real sets contain a
+   move no prior of ours can propose**. Kingambit is the exception at 3%. Reported by
+   `engine/set_space.js`; do not chase the last few points of diversity without accounting for it.
 2. **Megas at 74% against a real 93%.** The remaining gap is the bring policy: the stone-holder is
    often not among the four brought. Real players bring their mega.
 3. **The scoring bot.** Two gaps are not fixable by tuning priors — super-effective moves at 10.8%
