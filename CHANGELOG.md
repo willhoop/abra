@@ -10,6 +10,32 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.9.2] — 2026-07-26
+
+### Correction: open team sheets do not show the stat spread
+
+3.9.1 said a damage calculation "needs the target's spread, item and ability &mdash; which in a normal
+game you do not know. In open team sheets you do." **The last part is wrong**, and it was pointed out
+immediately.
+
+Measured over **60,852 sheet entries** across both open-sheet corpora:
+
+| on the sheet | not on the sheet |
+|---|---|
+| species, ability, nature, level &mdash; 100% | **stat spread &mdash; 0%** |
+| item 99.8%, all four moves 99.9% | IVs 0%, Tera type 0% |
+
+So an exact damage number is **not** available even with sheets open: how much a Pokemon invested in
+a stat stays hidden either way. The claim overstated what open sheets buy.
+
+What they do buy is real, though, and larger than it first looks. **Nature is revealed** &mdash; and
+Smogon lists its spread statistics keyed by nature, so knowing it cuts the plausible spreads for a
+species from about six to one or two. Item and ability, the two biggest multipliers in a damage
+calculation, are known outright. So the open-sheet damage calculation is a **tight estimate**, not an
+exact figure, and the page now says exactly that.
+
+---
+
 ## [3.9.1] — 2026-07-26
 
 ### Weather Ball was being scored as a Normal move. It is Water under rain.
