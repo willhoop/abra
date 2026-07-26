@@ -139,7 +139,17 @@ function main() {
   add('turns per game', self.turnsGames ? self.turnsTotal / self.turnsGames : 0,
       real.turnsGames ? real.turnsTotal / real.turnsGames : 0, ' turns');
 
-  /* SET DIVERSITY, the axis that would have caught the identical-Incineroar bug immediately. */
+  /* SET DIVERSITY — READ THIS WITH CARE, IT IS EASY TO MISREAD.
+   *
+   * This counts distinct combinations of REVEALED moves, and revelation depth differs between the
+   * two corpora: real games show 1.40 of 4 moves on average, ours 1.83. So the same underlying set
+   * appears as MORE distinct partial views in real games, and the real side is inflated. Sample size
+   * inflates it further, since distinct-counts grow with n.
+   *
+   * Reported anyway, because it is the axis that would have caught the identical-Incineroar bug
+   * instantly (one key per species). But a gap here is a prompt to check properly — fully-revealed
+   * sets only, at equal sample size — not a defect on its own. Done that way the gap is 9.8 against
+   * 13.0 rather than the 23 against 51 this line shows. */
   const div = (R) => {
     const ks = Object.keys(R.setKeys).filter(k => R.setKeys[k].size > 0);
     if (!ks.length) return 0;

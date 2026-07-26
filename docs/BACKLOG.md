@@ -82,9 +82,26 @@ Default to 1630 (~91,000 effective) and never quote 1760 as authoritative.
 
 Ordered by what blocks what.
 
-1. **Set diversity** — 23 distinct sets per species against 51 in real games. The candidate pool is
-   only moves we have *observed*, so it is far smaller than a real learnset. The principled fix is
-   fitting P(set) over a learnset-sized pool with a floor for unobserved moves.
+1. **Set diversity, RE-SCOPED — smaller and more specific than first reported.**
+
+   The realism report showed 23 distinct sets per species against 51 real, and that was called the
+   largest remaining gap. It was mostly a measurement artifact. Two confounds, both inflating the
+   real side: real games reveal FEWER moves per set (1.40 of 4 against our 1.83), so more partial
+   views of the SAME set count as distinct; and real supplies 4.6x more sets (114,670 against
+   24,822), and distinct-counts grow with sample size mechanically.
+
+   Compared fairly — fully-revealed sets only, equal sample size per species — it is **9.8 against
+   13.0**, a 25% gap rather than 55%.
+
+   And it is concentrated exactly where the locked/flex structure predicts. Pokemon whose sets are
+   locked already match: Rotom-Wash 12 v 12, Corviknight 14 v 15, Politoed 10 v 8 (ours is MORE
+   varied). The gap lives in species with several genuinely open slots: Garchomp 14 v 35 (three open
+   slots), Toxapex 4 v 11.
+
+   So the fix is not "make everything more varied" — most Pokemon do not run varied movesets and
+   ours are right. It is that our candidate pool is only moves we have OBSERVED, which is too thin
+   for the few species with real choice. Fitting P(set) over a learnset-sized pool with a floor for
+   unobserved moves would address it, and only matters for those species.
 2. **Megas at 74% against a real 93%.** The remaining gap is the bring policy: the stone-holder is
    often not among the four brought. Real players bring their mega.
 3. **The scoring bot.** Two gaps are not fixable by tuning priors — super-effective moves at 10.8%
