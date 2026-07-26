@@ -16,6 +16,26 @@ except Exception as e:
 
 # 2) counts from the stored games
 games=sum(1 for l in open(P('data','games.ladder.jsonl'),encoding='utf-8') if l.strip())
+# EVERY LEARNABLE COUNT IS OVER CLEAN GAMES ONLY.
+# -------------------------------------------------------------------------------------------------
+# turns and dmgProfiles were counted over the WHOLE raw-log file. The store holds ~14,800 records of
+# which ~1,865 are clean; the rest are bot games, forfeits, partial brings and stubs. So the site
+# advertised ~79,000 "turns with damage + speed" and ~5,300 damage profiles that the models are not
+# allowed to learn from, in a tile beside a usable count of 1,865 -- two different populations in
+# adjacent tiles, which is exactly the defect the comment further down says was already fixed once
+# for turnsPerGame. It came back because nothing enforced it.
+#
+# `games` stays raw deliberately: it is labelled "collected", and the funnel from collected to
+# usable is something the site should SHOW rather than hide.
+_cleanIds=set()
+try:
+    import sys as _s0
+    _s0.path.insert(0,P('engine'))
+    from store import load_games as _lg0
+    _cleanIds={g.get('id') for g in _lg0(clean=True, announce=False) if g.get('id')}
+except Exception as e:
+    print('clean id set unavailable -- counts fall back to raw:', e)
+
 turns=0; pairs=set(); rawrows=[]
 for l in open(P('data','games.ladder.raw-logs.jsonl'),encoding='utf-8'):
     l=l.strip()
@@ -23,6 +43,7 @@ for l in open(P('data','games.ladder.raw-logs.jsonl'),encoding='utf-8'):
     try: r=json.loads(l)
     except: continue
     if r.get('id') and r.get('log'): rawrows.append(r)
+    if _cleanIds and r.get('id') not in _cleanIds: continue
     log=r.get('log','') ; turns+=log.count('\n|turn|')
     slot={}
     for ln in log.split('\n'):

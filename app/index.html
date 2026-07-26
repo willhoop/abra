@@ -723,20 +723,14 @@ function roomTown(){const c=CAST[0];
    ${mapPanel()}
    <div class="panel"><h2>What the town has collected</h2>
      <div class="statgrid">
-       <div class="stat"><b id="statGames">${(window.LIVE&&LIVE.games?LIVE.games:5200).toLocaleString()}</b><span>real ladder games stored</span></div>
-       <div class="stat"><b id="statTurns">${(window.LIVE&&LIVE.turns?LIVE.turns:32624).toLocaleString()}</b><span>turns with damage + speed</span></div>
-       <div class="stat"><b id="statDmg">${(window.LIVE&&LIVE.dmgProfiles?LIVE.dmgProfiles:3523).toLocaleString()}</b><span>observed move-damage profiles</span></div>
-       <div class="stat"><b>daily</b><span>auto-collects new games</span></div>
+       <div class="stat"><b id="statUsable">${(window.LIVE&&LIVE.usable?LIVE.usable:0).toLocaleString()}</b><span>clean games the models learn from</span></div>
+       <div class="stat"><b id="statGames">${(window.LIVE&&LIVE.games?LIVE.games:0).toLocaleString()}</b><span>collected in total &mdash; only ${(window.LIVE&&LIVE.usablePct?LIVE.usablePct:0)}% is usable</span></div>
+       <div class="stat"><b id="statTurns">${(window.LIVE&&LIVE.turns?LIVE.turns:0).toLocaleString()}</b><span>clean turns with damage + speed</span></div>
+       <div class="stat"><b id="statDmg">${(window.LIVE&&LIVE.dmgProfiles?LIVE.dmgProfiles:0).toLocaleString()}</b><span>move-damage profiles, clean games only</span></div>
      </div>
      <div style="text-align:center;font-size:12px;color:#9aa3b2;font-weight:600;margin-top:8px">last updated ${(window.LIVE&&LIVE.updated)?LIVE.updated:'today'} · grows every day as new games come in</div>
-     <p style="margin-top:14px;font-weight:600;color:#3a5372">Store raw, analyse on top — any new question is a re-filter of the town's memory, never a re-download. The more games played, the smarter every building gets. </p>
-   </div>
-   <div class="panel"><h2>MEW — the self-play engine</h2>
-     <a class="link" onclick="go('mew')" style="cursor:pointer"> Visit Mew's Practice Field &rarr;</a>
-     <p class="sub" style="margin-top:8px">MEW runs the <b>official</b> Showdown Champions engine against itself on real ladder teams,
-     so the models are not limited to the games people happen to upload. <b>200,004 games</b> generated,
-     97% of decisions sampled from a behaviour-clone of real play, every team checked by Showdown's own
-     validator. It says nothing about <i>people</i> &mdash; that still needs real replays.</p>
+     <p style="margin-top:14px;font-weight:600;color:#3a5372">Store raw, analyse on top — any new question is a re-filter of the town's memory, never a re-download.</p>
+     <p style="margin-top:8px;font-weight:600;color:#7a869a">Most of what gets collected cannot be learned from: bot games, forfeits, half-finished brings and stubs. Every number on this site is counted over the <b>clean</b> games only. Bot games are not a realism baseline &mdash; measuring our bots against other people&rsquo;s bots and calling the gap realism proves nothing.</p>
    </div>
    <div class="panel"><h2>Doors to the rest of Will's world</h2>
      <a class="link" href="https://willhoop.github.io" target="_blank"> Portfolio</a>
