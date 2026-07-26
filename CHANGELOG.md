@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.19.0] — 2026-07-26
+
+### One shape for every model, and the audit graph is derived rather than typed
+
+Directive: standardise across all models, no stale models, no hardcodes, only links.
+
+**`engine/stamp.js` (new)** is the single provenance block every artifact carries. Until now each
+model described itself differently or not at all — `n_games` in one file, `games` in another,
+`corpus.games` in a third, and nothing whatsoever in `chomp-ev.json`, `move-priors.json` or
+`bring-priors.json`. Four fields, the same everywhere:
+
+| field | why |
+|---|---|
+| `corpus` | which file the data came from |
+| `games` | how many, so it can be checked against what exists clean |
+| `clean` | whether the quality filter ran — the single most important bit |
+| `filter` | the filter version in force, so a later rule change is detectable |
+
+The filter version is the modification time of `data/quality-filter.json`, not a number somebody
+types, because a version number is a thing to forget to bump. `raw_store_ok` takes a **reason**, never
+a boolean, and `stamp()` throws if given one.
+
+### The checker was breaking the rule it exists to enforce
+
+`provenance.js` carried a **hand-written list** of every artifact, its generator and its inputs —
+exactly the hand-maintained state S13 forbids, inside the tool built to catch it. Such a list is
+correct the day it is written and rots when anyone adds a model.
+
+It is now **derived from the source**: a generator that writes `data/x.json` names it beside a write
+call, one that reads `data/y.json` names it beside a read. Both are greppable facts about the code
+rather than claims about it, so a new model joins the audit by existing.
+
+The difference is the whole point: the typed list covered **15** artifacts. The derived graph finds
+**60**, of which **28 are UNSAFE** and 15 possibly stale. **Three quarters of the pipeline was
+outside the audit I had just written.**
+
+A first attempt at the dependency edges matched any filename appearing anywhere in a generator, which
+gave `xatu-context.json` seventeen inputs because they were named in comments. The name must now sit
+within ~120 characters of an actual read.
+
+### Standing state
+
+`No generator makes the quality filter opt-in. Clean is the default everywhere.` — the audit's own
+last line, now true.
+
+**28 artifacts remain unsafe to quote.** They are listed by `node engine/provenance.js` and none of
+them should appear in any result until regenerated. That is the honest size of the problem, and it
+was not visible before tonight.
+
+---
+
 ## [3.18.0] — 2026-07-26
 
 ### The lazy path is now the right path

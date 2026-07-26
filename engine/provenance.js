@@ -40,29 +40,69 @@ const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const STRICT = process.argv.includes('--strict');
 
-/* Each artifact, the generator that writes it, and what it is derived FROM. Kept here rather than
- * guessed, because "what does this depend on" is a fact about the pipeline that no file states. */
-const ARTIFACTS = [
-  { file: 'guru-matchups.json',     by: 'engine/guru.py',              from: ['games.ladder.jsonl'] },
-  { file: 'slowking-eval.json',     by: 'engine/slowking_preview.py',  from: ['guru-matchups.json'] },
-  { file: 'slowking-playstyle-eval.json', by: 'engine/slowking_preview.py', from: ['playstyle-matchups.json'] },
-  { file: 'playstyle-matchups.json', by: 'engine/playstyle.js',        from: ['games.ladder.jsonl'] },
-  { file: 'pory-eval.json',         by: 'engine/pory.py',              from: ['games.ladder.jsonl'] },
-  { file: 'pory-nn.json',           by: 'engine/pory_nn.py',           from: ['games.ladder.jsonl'], optInFilter: true },
-  { file: 'chomp-ev.json',          by: 'engine/chomp_ev.js',          from: ['games.ladder.jsonl'] },
-  /* Fitted on the OPEN-SHEET corpus, not the ladder store, so its game count must be compared
-   * against that. The first version of this checker compared everything to the ladder's clean count
-   * and flagged this as unsafe — a false alarm, and a checker that cries wolf is one people learn to
-   * scroll past, which is the failure this file exists to prevent. */
-  { file: 'policy-weights.json',    by: 'engine/fit_policy.js',        from: ['games.ots.jsonl', 'games.bo3.jsonl', 'move-priors.json'], corpus: 'opensheet' },
-  { file: 'move-priors.json',       by: 'engine/policy.js',            from: ['games.ladder.jsonl'] },
-  { file: 'bring-priors.json',      by: 'engine/bring_priors.js',      from: ['games.ladder.jsonl'] },
-  { file: 'ability-blocks.json',    by: 'build/build_ability_blocks.js', from: ['games.ladder.jsonl'] },
-  { file: 'smogon-priors.json',     by: 'engine/smogon_priors.js',     from: [] },
-  { file: 'exploitability.json',    by: 'engine/exploit.js',           from: ['policy-weights.json'] },
-  { file: 'ladder.json',            by: 'engine/ladder.js',            from: ['policy-weights.json'] },
-  { file: 'mag.js',                 by: 'build/build_mag_data.js',     from: ['policy-weights.json', 'ability-blocks.json', 'smogon-priors.json'] },
-];
+/* THE ARTIFACT GRAPH IS DERIVED, NOT TYPED.
+ *
+ * The first version of this file carried a hand-written list of every artifact, its generator and
+ * its inputs — which is precisely the hand-maintained state S13 forbids, in the very tool built to
+ * enforce it. A list like that is correct on the day it is written and rots the moment somebody adds
+ * a model, and a provenance checker that silently stops covering half the pipeline is worse than
+ * none at all.
+ *
+ * So the graph is read out of the source. A generator that WRITES data/x.json names it in a write
+ * call; one that READS data/y.json names it too. Both are greppable facts about the code rather than
+ * claims about it, so a new model joins the audit by existing.
+ */
+function deriveGraph() {
+  const gens = [];
+  for (const dir of ['engine', 'build']) {
+    const d = D(dir);
+    if (!fs.existsSync(d)) continue;
+    for (const f of fs.readdirSync(d)) {
+      if (!/\.(js|py)$/.test(f)) continue;
+      let src; try { src = fs.readFileSync(path.join(d, f), 'utf8'); } catch (e) { continue; }
+      gens.push({ id: dir + '/' + f, src });
+    }
+  }
+  /* A write looks like writeFileSync(...'name.json'...) or open(...,'w') on a joined path; both end
+   * up naming the file, so the filename plus a nearby write verb is the signal. */
+  const WRITE = /(writeFileSync|to_json|open\s*\(|dump\s*\()/;
+  /* Just look for the literal filename. A quoted-delimiter regex is not worth the escaping here —
+   * the filenames are distinctive enough that a substring match is exact in practice. */
+  const named = (src, file) => src.indexOf(file) >= 0;
+  /* The filename within ~120 characters of something that opens a file for reading. */
+  const READ = /(readFileSync|require\s*\(|open\s*\(|read_json|load_games|loadGames|json\.load)/;
+  function readsNear(src, file) {
+    let i = src.indexOf(file);
+    while (i >= 0) {
+      if (READ.test(src.slice(Math.max(0, i - 120), i + 40))) return true;
+      i = src.indexOf(file, i + 1);
+    }
+    return false;
+  }
+
+  const dataFiles = fs.readdirSync(D('data'))
+    .filter(f => /\.(json|js)$/.test(f) && !/^games\./.test(f) && f !== 'quality-filter.json');
+
+  const out = [];
+  for (const file of dataFiles) {
+    const writers = gens.filter(g => named(g.src, file) && WRITE.test(g.src));
+    if (!writers.length) continue;                    // nothing generates it; not an artifact
+    const by = writers[0].id;
+    /* Its inputs: every other data file its generator actually READS.
+     *
+     * A plain substring match was tried first and was far too loose — any filename mentioned in a
+     * comment counted as a dependency, which gave xatu-context.json seventeen of them. The name must
+     * now sit close to a read verb, so a file discussed in prose is not mistaken for a file opened. */
+    const from = [];
+    for (const dep of dataFiles.concat(fs.readdirSync(D('data')).filter(f => /^games\..*\.jsonl$/.test(f)))) {
+      if (dep === file) continue;
+      if (readsNear(writers[0].src, dep)) from.push(dep);
+    }
+    out.push({ file, by, from });
+  }
+  return out;
+}
+const ARTIFACTS = deriveGraph();
 
 const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; } catch (e) { return null; } };
 const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
