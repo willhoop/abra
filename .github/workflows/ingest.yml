@@ -45,6 +45,12 @@ jobs:
           node engine/bring_priors.js
       # ORIENTATION is the entry point and carried its key figures as typed text, which went stale
       # the moment the store grew. Same rule as everything else here: derived, never typed.
+      # Two things that must happen on a CONDITION nobody is watching for: re-run the CHOMP proof
+      # once the clean corpus can actually resolve it, and shout if the regulation rotates. Both are
+      # derived from data we already have. --fire lets it re-run chomp_ev itself when due.
+      - name: Conditional triggers (CHOMP power, regulation rotation)
+        continue-on-error: true
+        run: node build/triggers.js --fire
       - name: Re-derive the figures in ORIENTATION.md
         continue-on-error: true
         run: node build/sync_orientation.js
@@ -55,7 +61,7 @@ jobs:
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json docs/ORIENTATION.md
+          git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
           if git diff --cached --quiet; then
             echo "no new games this run"; exit 0
           fi
@@ -81,9 +87,10 @@ jobs:
             node engine/analyze.js data/games.ladder.jsonl || true
             node engine/policy.js data/games.ladder.jsonl data/move-priors.json || true
             node engine/bring_priors.js || true
+            node build/triggers.js --fire || true
             node build/sync_orientation.js || true
             python3 engine/refresh-site-data.py || true
-            git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json docs/ORIENTATION.md
+            git add data/games.ladder.jsonl data/meta-usage.json data/live.js data/move-priors.json data/bring-priors.json data/chomp-ev.json docs/ORIENTATION.md
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0
             fi
