@@ -94,8 +94,22 @@ const CONFIG_VALUES = (() => {
  * it. Everything else must go through those. */
 const CONFIG_READERS = /regulations\.json|quality-filter\.json/;
 
-function checkHardcodes(f, src) {
-  if (/regulations\.json/.test(src)) return;           // it reads the config; naming a fallback is fine
+/* Comments are PROSE, and prose may name a thing in order to explain it. build/triggers.js discusses
+ * why two subsystems label the same format differently — that is documentation doing its job, not a
+ * hardcode. Only code is checked, so the report stays about things that would actually go stale. */
+function stripComments(src) {
+  const NL = String.fromCharCode(10);
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split(NL)
+    .map(line => line.replace(/\/\/.*$/, '').replace(/^\s*#.*$/, ''))
+    .join(NL)
+    .replace(/<!--[\s\S]*?-->/g, ' ');
+}
+
+function checkHardcodes(f, srcRaw) {
+  const src = stripComments(srcRaw);
+  if (/regulations\.json/.test(srcRaw)) return;        // it reads the config; naming a fallback is fine
   for (const c of CONFIG_VALUES) {
     if (src.includes(c.value)) {
       flag('S12', f.rel, `hardcodes "${c.value}"`, `lives in ${c.home} (${c.key}) — reference it`);

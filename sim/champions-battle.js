@@ -16,6 +16,16 @@ let PS;
 try { PS = require('pokemon-showdown'); }
 catch (e) { PS = null; }
 
+/* S12: the active format id lives in data/regulations.json and is read, never restated. The literal
+ * below is the fallback for a corrupt or missing config — the one case where a sensible guess beats
+ * crashing a batch job. */
+function activeFormat() {
+  try {
+    const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
+    return (r.regulations[r.active] || {}).showdownFormat || 'gen9championsvgc2026regmb';
+  } catch (e) { return 'gen9championsvgc2026regmb'; }
+}
+
 // accept a plain function or a { agent, note } object
 function norm(a) {
   if (typeof a === 'function') return { agent: a, note: null };
@@ -25,7 +35,9 @@ function norm(a) {
 async function playBattle(team1, team2, agent1, agent2, opts = {}) {
   if (!PS) throw new Error("pokemon-showdown not installed. Run:  cd sim && npm install pokemon-showdown");
   const { BattleStream, getPlayerStreams, Teams } = PS;
-  const format = opts.format || 'gen9championsvgc2026regmb';
+  /* S12: the default comes from data/regulations.json, not from a literal here. A caller may
+     still override it, which is what the option is for. */
+  const format = opts.format || activeFormat();
   const pack = t => (typeof t === 'string' ? t : Teams.pack(t));
 
   const streams = getPlayerStreams(new BattleStream());

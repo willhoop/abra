@@ -25,6 +25,8 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 const S = require('./sets.js');
+/* The active format id, from data/regulations.json — never restated (S12). */
+const ACTIVE_FORMAT = (() => { try { const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8')); return (r.regulations[r.active] || {}).showdownFormat || 'gen9championsvgc2026regmb'; } catch (e) { return 'gen9championsvgc2026regmb'; } })();
 const M = S.M;
 const ROOT = path.join(__dirname, '..');
 const STORE = path.join(ROOT, 'data', 'games.ladder.jsonl');
@@ -343,7 +345,8 @@ const out_ov_w = mean(winRows.map(w => w.ov));
 const out_ov_l = mean(losRows.map(l => l.ov));
 const out = {
   generated: 'engine/chomp_ev.js — CHOMP team-preview EV proof (do CHOMP brings beat humans on held-out games)',
-  format: 'gen9championsvgc2026regmb (Bo1 closed-sheet)',
+  /* S12: format from data/regulations.json, not restated. */
+  format: ACTIVE_FORMAT + ' (Bo1 closed-sheet)',
   n_total_games: n_total, n_human_games: n_human,
   n_eval_games: data.length, n_skipped_unbuildable: skipped,
   n_train: tr.length, n_test: te.length,

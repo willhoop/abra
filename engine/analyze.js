@@ -3,6 +3,8 @@
 const fs=require('fs');
 const path=require('path');
 const Q=require(path.join(__dirname,'quality.js'));
+/* The active format id, from data/regulations.json — never restated (S12). */
+const ACTIVE_FORMAT = (() => { try { const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8')); return (r.regulations[r.active] || {}).showdownFormat || 'gen9championsvgc2026regmb'; } catch (e) { return 'gen9championsvgc2026regmb'; } })();
 const STORE=process.argv[2]||null;
 const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,''));
 
@@ -98,7 +100,9 @@ const view = o => ({
 /* The model CHOMP reads. It now carries its own provenance: which games it was computed from and
  * what was excluded, so a consumer can tell whether a number is about the metagame or about a bot. */
 fs.writeFileSync('data/meta-usage.json',JSON.stringify({
-  format:'gen9championsvgc2026regmb',
+  /* S12: the format is not restated here. It comes from data/regulations.json via the one
+     loader, so a regulation rotation relabels every artifact at once. */
+  format: ACTIVE_FORMAT,
   generated:new Date().toISOString().slice(0,10),
   provenance:{
     source:'data/games.ladder.jsonl',

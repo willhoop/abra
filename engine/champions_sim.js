@@ -25,7 +25,26 @@
 'use strict';
 const path = require('path');
 
-const FORMAT = 'gen9championsvgc2026regmb';
+/* THE FORMAT ID LIVES IN ONE PLACE (S12) AND THIS IS NOT IT.
+ *
+ * It was a literal here, and copied into a dozen other files besides — analyze.js, chomp_ev.js,
+ * ingest_ots.js, the site, the dataset generator. When Reg M-B rotates, every one of those keeps
+ * describing a metagame that no longer exists, and nothing notices because a stale format id
+ * produces plausible output rather than an error.
+ *
+ * data/regulations.json is the single source: it names the active regulation, its Showdown format,
+ * its Bo3 format and its start date, and engine/durable-ingest.js and engine/fetch_smogon_stats.js
+ * already read it. This now does too, and everything downstream imports FORMAT from here rather than
+ * restating it. The literal survives only as the fallback for a corrupt config, which is the one case
+ * where guessing beats crashing a collection job. */
+const FORMAT = (() => {
+  try {
+    const r = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
+    const a = r.regulations[r.active] || {};
+    if (a.showdownFormat) return a.showdownFormat;
+  } catch (e) { /* fall through */ }
+  return 'gen9championsvgc2026regmb';
+})();
 // Pinned, not floating: the mod lives only on master, so there is no version number to depend on.
 const PINNED_COMMIT = '20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4';
 const PINNED_DATE = '2026-07-22';

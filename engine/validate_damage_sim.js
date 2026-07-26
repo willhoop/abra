@@ -42,7 +42,16 @@ try {
   process.exit(2);
 }
 
-const FORMAT = 'gen9championsvgc2026regmb';
+/* S12: the active format lives in data/regulations.json and is never restated. The literal
+ * survives only as a fallback for a corrupt config, where guessing beats crashing. */
+const FORMAT = (() => {
+  try {
+    const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
+    const a = r.regulations[r.active] || {};
+    if (a.showdownFormat) return a.showdownFormat;
+  } catch (e) { /* fall through */ }
+  return 'gen9championsvgc2026regmb';
+})();
 /* Filler so both sides field a legal six and team preview can bring four. These never act — only
  * slot 1 of each side is ever asked for damage — but the format will not start without them. */
 const FILLER = ['Sylveon', 'Kingambit', 'Whimsicott', 'Basculegion'];
