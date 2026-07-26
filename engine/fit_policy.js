@@ -1,0 +1,368 @@
+/* fit_policy.js — learn how much a human's move choice depends on the board.
+ *
+ *   SHOWDOWN_PATH=... node engine/fit_policy.js   ->   data/policy-weights.json
+ *
+ * WHAT THIS IS
+ * ------------
+ * A discrete-choice fit. At every decision a real player faced a set of (move, target) pairs and
+ * picked one. Each pair is described by the features in engine/board.js — type effectiveness against
+ * the actual target, base power, whether the move is already dead on the board, and the behaviour
+ * clone's P(move | species). Fitting is conditional logit:
+ *
+ *     P(pick j) = exp(w . x_j) / sum_k exp(w . x_k)
+ *
+ * maximised over w by gradient ascent on the log-likelihood of what people really clicked.
+ *
+ * WHY IT IS A FIT AND NOT A SCORING FUNCTION SOMEBODY WROTE
+ * --------------------------------------------------------
+ * The obvious way to make a bot aim better is to write `score = damage * effectiveness` and tune the
+ * coefficients until the realism report looks right. That is an asserted model, it has as many free
+ * parameters as it has terms, and tuning it against the number being reported is circular — the
+ * report stops being evidence the moment it becomes the objective.
+ *
+ * Here the coefficients are estimated from 2,136 clean open-sheet games and the realism report is
+ * never consulted during fitting. It is held back as the out-of-sample check, which is the only role
+ * it can play honestly.
+ *
+ * A GREEDY BOT WOULD OVERSHOOT, WHICH IS THE POINT.
+ * The target is not "maximise super-effective moves". Humans hit super effectively on 23.4% of moves,
+ * not 100%, because they also click Protect, set Tailwind, and hit a resisted button to break a Sash.
+ * A max-damage bot sails past 23.4% and is LESS human, not more. Fitting to observed clicks targets
+ * the right quantity — it reproduces the rate rather than maximising it.
+ *
+ * WHY OPEN TEAM SHEETS, AND THE CAVEAT THAT COMES WITH THEM
+ * --------------------------------------------------------
+ * A choice model needs the CHOICE SET: the moves the player could have clicked. A normal replay only
+ * reveals moves that were used, so the alternatives are unobservable and any set reconstructed from
+ * revealed moves is biased by revelation — a move is in it BECAUSE it was clicked. Open-sheet games
+ * publish all four moves of all six Pokemon up front, so the choice set is known exactly.
+ *
+ * The caveat, stated rather than buried: open-sheet play is not identical to closed play. Both
+ * players can see everything, so there is less bluffing and less hedging against an unknown set.
+ * These weights are therefore fitted on a slightly different game than the one the ladder plays. It
+ * is the only corpus where the choice set is not guessed, which is why it is used, and the direction
+ * of the bias is toward MORE board-reading rather than less.
+ */
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const CS = require('./champions_sim.js');
+const Q = require('./quality.js');
+const B = require('./board.js');
+
+const ROOT = path.join(__dirname, '..');
+const D = (...p) => path.join(ROOT, ...p);
+const OUT = D('data', 'policy-weights.json');
+const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
+
+const { Dex } = CS.sim();
+const dex = Dex.forFormat(CS.FORMAT);
+const norm = B.norm, base = B.baseSpecies;
+
+/* ---------------------------------------------------------------------------------------------
+ * THE BEHAVIOUR CLONE, as a feature
+ *
+ * Read exactly the table engine/prior_player.js reads, so that "weight 1 on priorLogP and 0 on
+ * everything else" reproduces the CURRENT bot's move distribution. That equivalence is what makes
+ * the baseline in the report a real baseline rather than a strawman.
+ * ------------------------------------------------------------------------------------------- */
+function priorTable() {
+  const j = JSON.parse(fs.readFileSync(D('data', 'move-priors.json'), 'utf8'));
+  const out = {};
+  for (const [sp, v] of Object.entries(j.species || {})) {
+    const row = {};
+    for (const m of v.moves || []) if (m && m.mv) row[norm(m.mv)] = +m.p || 0;
+    out[norm(sp)] = row;
+  }
+  return out;
+}
+const PRIORS = priorTable();
+const priorFor = (species, moveId) => {
+  const r = PRIORS[norm(species)] || PRIORS[base(species)] || null;
+  return r ? (r[norm(moveId)] || 0) : 0;
+};
+
+/* ---------------------------------------------------------------------------------------------
+ * CORPUS
+ *
+ * Both open-sheet sources, deduplicated by replay id, every game through engine/quality.js.
+ * GARBODOR: the raw store is 87% bots, forfeits and stubs; nothing here touches it unfiltered.
+ * ------------------------------------------------------------------------------------------- */
+function loadCorpus() {
+  const cfg = Q.config();
+  const seen = new Set();
+  const games = [];
+  const rejected = {};
+  const add = (g) => {
+    if (!g || !g.openSheet || !g.sheets || !g.sheets.p1 || !g.sheets.p2) return;
+    if (g.id && seen.has(g.id)) return;
+    const why = Q.reasons(g, cfg, null);
+    if (why.length) { for (const r of why) rejected[r] = (rejected[r] || 0) + 1; return; }
+    if (g.id) seen.add(g.id);
+    games.push(g);
+  };
+  for (const f of ['games.ots.jsonl', 'games.ladder.jsonl']) {
+    const p = D('data', f);
+    if (!fs.existsSync(p)) continue;
+    for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      let g; try { g = JSON.parse(line); } catch (e) { continue; }
+      add(g);
+    }
+  }
+  return { games, rejected };
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * REPLAY -> DECISIONS
+ *
+ * Decisions in a turn are made SIMULTANEOUSLY, before any of that turn's events resolve, so the
+ * board a decision is scored against is the board at the START of the turn. Collecting features
+ * after applying the turn's own damage would let the model see the future — the single easiest way
+ * to produce a fit that looks excellent and cannot be reproduced by a player.
+ *
+ * The one exception is mega evolution, applied before collection: a player commits to the mega as
+ * part of the same choice, so the typing they were choosing with is the mega's.
+ * ------------------------------------------------------------------------------------------- */
+function decisionsFor(g, tally) {
+  const out = [];
+  const board = new B.Board();
+
+  const sheet = {};
+  for (const side of ['p1', 'p2']) {
+    for (const m of g.sheets[side] || []) {
+      if (m && m.species) sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
+    }
+  }
+  for (const side of ['p1', 'p2']) {
+    const lead = (g.lead || {})[side] || [];
+    if (lead[0]) board.switchIn(side, 'a', lead[0]);
+    if (lead[1]) board.switchIn(side, 'b', lead[1]);
+  }
+
+  for (const t of g.turns || []) {
+    const ev = t.ev || [];
+    for (const e of ev) {
+      if (e.t !== 'mega' || !e.s) continue;
+      const mon = board.slot(e.s.slice(0, 2), e.s.slice(2));
+      if (mon) { mon.species = norm(e.mon); }
+    }
+
+    for (const e of ev) {
+      if (e.t !== 'm' || !e.s || !e.mon || !e.mv) continue;
+      tally.seen++;
+      const side = e.s.slice(0, 2), letter = e.s.slice(2);
+      const user = board.slot(side, letter);
+      if (!user || user.fainted) { tally.noUser++; continue; }
+      const sh = sheet[base(e.mon)];
+      if (!sh) { tally.noSheet++; continue; }
+
+      const cands = B.candidates(sh.moves, user, board, side, dex);
+      if (cands.length < 2) { tally.trivial++; continue; }
+
+      /* Which candidate did they actually pick? A stored target is a SPECIES name, not a slot, so a
+       * mirror match is genuinely ambiguous; those are counted and dropped rather than guessed. */
+      const mvId = norm(dex.moves.get(e.mv) && dex.moves.get(e.mv).id || e.mv);
+      const matches = [];
+      for (let i = 0; i < cands.length; i++) {
+        const c = cands[i];
+        if (norm(c.move.id) !== mvId) continue;
+        if (!c.targetMon) { matches.push(i); continue; }
+        if (e.tgt && base(c.targetMon.species) === base(e.tgt)) matches.push(i);
+      }
+      if (!matches.length) { tally.unmatched++; continue; }
+      if (matches.length > 1) { tally.ambiguous++; continue; }
+
+      const feats = cands.map(c => B.featuresFor(c, user, board, side, dex, priorFor(user.species, c.move.id)));
+      out.push({ game: g.id || '', feats, chosen: matches[0] });
+      tally.kept++;
+    }
+
+    /* ---- now resolve the turn ---------------------------------------------------------------- */
+    for (const e of ev) {
+      const side = e.s ? e.s.slice(0, 2) : null, letter = e.s ? e.s.slice(2) : null;
+      if (e.t === 's' && side) { board.switchIn(side, letter, e.mon); }
+      else if (e.t === 'm' && side) {
+        const user = board.slot(side, letter);
+        const mv = dex.moves.get(e.mv);
+        /* "It worked" offline means the setter was not already up. Nothing in the store says a move
+         * failed, so this is the best available reading; it is applied identically by the live
+         * player, whose |-fail| lines make it exact. The asymmetry is small and is in the direction
+         * of the fit UNDER-counting dead moves, never over-counting them. */
+        if (user && mv && mv.exists) {
+          const already = (mv.sideCondition && board.hasSide(side, mv.sideCondition)) ||
+                          (B.fieldKey(mv) && board.hasField(B.fieldKey(mv)));
+          B.noteMove(board, side, user, mv, !already);
+        }
+        /* Damage lands on the named species. The foe side is searched first because that is where a
+         * move almost always points; a mirror match can still put it on the wrong slot, which is the
+         * same ambiguity counted at choice time and is why `ambiguous` decisions are dropped. */
+        if (e.tgt && e.dmg) {
+          const foeSide = side === 'p1' ? 'p2' : 'p1';
+          let hit = false;
+          for (const s of [foeSide, side]) {
+            for (const L of ['a', 'b']) {
+              const m2 = board.slot(s, L);
+              if (m2 && base(m2.species) === base(e.tgt) && !m2.fainted) {
+                m2.hp = Math.max(0, m2.hp - e.dmg / 100); hit = true; break;
+              }
+            }
+            if (hit) break;
+          }
+        }
+      }
+      else if (e.t === 'x' && side) { const m2 = board.slot(side, letter); if (m2) m2.status = norm(e.st); }
+      else if (e.t === 'f' && side) { board.faint(side, letter); }
+      else if (e.t === 'w' && e.field) { board.setWeather(e.field); }
+      else if (e.t === 'fs' && e.field) {
+        const mv = dex.moves.get(e.field);
+        const k = mv && mv.exists ? B.fieldKey(mv) : norm(e.field);
+        if (k) board.startField(k, mv && mv.condition && mv.condition.duration);
+      }
+    }
+    board.endTurn();
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * CONDITIONAL LOGIT
+ * ------------------------------------------------------------------------------------------- */
+function logLik(rows, w) {
+  let ll = 0, correct = 0;
+  for (const r of rows) {
+    let max = -Infinity, bestI = 0;
+    const s = new Array(r.feats.length);
+    for (let j = 0; j < r.feats.length; j++) {
+      let v = 0; const f = r.feats[j];
+      for (let k = 0; k < w.length; k++) v += w[k] * f[k];
+      s[j] = v;
+      if (v > max) { max = v; bestI = j; }
+    }
+    let z = 0;
+    for (let j = 0; j < s.length; j++) z += Math.exp(s[j] - max);
+    ll += (s[r.chosen] - max) - Math.log(z);
+    if (bestI === r.chosen) correct++;
+  }
+  return { ll: ll / Math.max(1, rows.length), acc: correct / Math.max(1, rows.length) };
+}
+
+function fit(rows, nf, lambda, iters) {
+  const w = new Array(nf).fill(0);
+  const m = new Array(nf).fill(0), v = new Array(nf).fill(0);
+  const lr = 0.05, b1 = 0.9, b2 = 0.999, eps = 1e-8;
+  for (let it = 1; it <= iters; it++) {
+    const g = new Array(nf).fill(0);
+    for (const r of rows) {
+      const s = new Array(r.feats.length);
+      let max = -Infinity;
+      for (let j = 0; j < r.feats.length; j++) {
+        let x = 0; const f = r.feats[j];
+        for (let k = 0; k < nf; k++) x += w[k] * f[k];
+        s[j] = x; if (x > max) max = x;
+      }
+      let z = 0;
+      for (let j = 0; j < s.length; j++) { s[j] = Math.exp(s[j] - max); z += s[j]; }
+      const fc = r.feats[r.chosen];
+      for (let k = 0; k < nf; k++) g[k] += fc[k];
+      for (let j = 0; j < s.length; j++) {
+        const p = s[j] / z, f = r.feats[j];
+        for (let k = 0; k < nf; k++) g[k] -= p * f[k];
+      }
+    }
+    for (let k = 0; k < nf; k++) {
+      let gk = g[k] / rows.length - lambda * w[k];
+      m[k] = b1 * m[k] + (1 - b1) * gk;
+      v[k] = b2 * v[k] + (1 - b2) * gk * gk;
+      const mh = m[k] / (1 - Math.pow(b1, it)), vh = v[k] / (1 - Math.pow(b2, it));
+      w[k] += lr * mh / (Math.sqrt(vh) + eps);
+    }
+  }
+  return w;
+}
+
+function main() {
+  const ITERS = +arg('--iters', 300);
+  console.log('FIT POLICY — how much does a human move choice depend on the board?\n');
+
+  const { games, rejected } = loadCorpus();
+  if (!games.length) { console.error('no clean open-sheet games found'); process.exit(1); }
+  const rej = Object.entries(rejected).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v.toLocaleString()}`).join(', ');
+  console.log(`  corpus     ${games.length.toLocaleString()} clean open-sheet games`);
+  console.log(`  rejected   ${rej}`);
+
+  const tally = { seen: 0, kept: 0, noUser: 0, noSheet: 0, trivial: 0, unmatched: 0, ambiguous: 0 };
+  let rows = [];
+  for (const g of games) rows = rows.concat(decisionsFor(g, tally));
+  console.log(`  decisions  ${tally.seen.toLocaleString()} seen -> ${tally.kept.toLocaleString()} usable`);
+  console.log(`             dropped: ${tally.trivial.toLocaleString()} had only one candidate (no information), ` +
+              `${tally.noSheet.toLocaleString()} species not on a sheet, ${tally.unmatched.toLocaleString()} click not matched, ` +
+              `${tally.ambiguous.toLocaleString()} target ambiguous (mirror), ${tally.noUser.toLocaleString()} no active user`);
+  if (rows.length < 500) { console.error('too few decisions to fit'); process.exit(1); }
+
+  /* HELD OUT BY GAME, NOT BY DECISION. Decisions inside one game share teams, players and board, so
+   * splitting by decision leaks the answer across the split and every model looks good. */
+  const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
+  const train = rows.filter(r => hash(r.game) % 5 !== 0);
+  const test = rows.filter(r => hash(r.game) % 5 === 0);
+  console.log(`  split      ${train.length.toLocaleString()} train / ${test.length.toLocaleString()} held out (split by GAME)\n`);
+
+  const nf = B.FEATURES.length;
+  const iPrior = B.FEATURE_INDEX.priorLogP;
+
+  /* Baselines. `bot` is literally the current player: sample the behaviour clone, aim at random. */
+  const wUniform = new Array(nf).fill(0);
+  const wBot = new Array(nf).fill(0); wBot[iPrior] = 1;
+  const base0 = logLik(test, wUniform);
+  const baseBot = logLik(test, wBot);
+
+  /* The regularisation strength is SELECTED on held-out likelihood, not chosen. */
+  let best = null;
+  for (const lambda of [0, 1e-5, 1e-4, 1e-3, 1e-2]) {
+    const w = fit(train, nf, lambda, ITERS);
+    const te = logLik(test, w);
+    if (!best || te.ll > best.te.ll) best = { lambda, w, te, tr: logLik(train, w) };
+  }
+
+  console.log('HELD-OUT FIT (higher log-likelihood is better; 0 would be perfect prediction)\n');
+  const line = (name, r) => console.log(`  ${name.padEnd(34)} logL/decision ${r.ll.toFixed(4).padStart(8)}   top-1 ${(100 * r.acc).toFixed(1).padStart(5)}%`);
+  line('uniform over candidates', base0);
+  line('behaviour clone alone (current bot)', baseBot);
+  line('board-aware fit', best.te);
+  console.log(`\n  regularisation selected on held-out data: lambda = ${best.lambda}`);
+  console.log(`  in-sample logL ${best.tr.ll.toFixed(4)} against held-out ${best.te.ll.toFixed(4)} ` +
+              `(a large gap here would mean the fit is memorising games, not learning play)`);
+
+  const gain = best.te.ll - baseBot.ll;
+  const accGain = 100 * (best.te.acc - baseBot.acc);
+  console.log(`\n  Against the current bot: ${gain >= 0 ? '+' : ''}${gain.toFixed(4)} logL/decision, ` +
+              `${accGain >= 0 ? '+' : ''}${accGain.toFixed(1)} points of top-1 accuracy.`);
+  if (gain <= 0) {
+    console.log('  NEGATIVE RESULT: reading the board did NOT predict human choices better than');
+    console.log('  popularity alone. Do not ship these weights on the strength of this run.');
+  }
+
+  console.log('\nWHAT THE FIT LEARNED (weight per feature; sign and size are the interesting part)\n');
+  const order = B.FEATURES.map((f, i) => [f, best.w[i]]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  for (const [f, wv] of order) console.log(`  ${f.padEnd(12)} ${wv >= 0 ? '+' : ''}${wv.toFixed(3)}`);
+
+  const out = {
+    generated: new Date().toISOString(),
+    features: B.FEATURES,
+    weights: best.w,
+    lambda: best.lambda,
+    corpus: { games: games.length, decisions: rows.length, train: train.length, test: test.length },
+    heldOut: {
+      uniform: base0, behaviourCloneOnly: baseBot, boardAware: best.te,
+      gain_logL: gain, gain_top1_points: accGain,
+    },
+    caveat: 'Fitted on open-team-sheet games, where both players see all sets. Closed ladder play ' +
+            'involves more hedging against unknown sets, so these weights are learned on a slightly ' +
+            'different game than the one they are played in.',
+  };
+  fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
+  console.log(`\n  -> ${path.relative(ROOT, OUT)}`);
+}
+
+if (require.main === module) main();
+module.exports = { decisionsFor, logLik, fit, loadCorpus, priorFor };

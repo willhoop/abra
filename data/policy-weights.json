@@ -1,0 +1,55 @@
+{
+ "generated": "2026-07-26T18:19:27.742Z",
+ "features": [
+  "eff",
+  "immune",
+  "stab",
+  "bp",
+  "isStatus",
+  "tgtHurt",
+  "deadStatus",
+  "deadSide",
+  "deadField",
+  "deadWeather",
+  "deadStall",
+  "priorLogP"
+ ],
+ "weights": [
+  0.795259039772624,
+  -2.0599843712412076,
+  0.17526972522250442,
+  -0.16204774454299103,
+  0.28231159023950847,
+  0.3110984968687831,
+  -1.3737932378831903,
+  -2.3034942984117794,
+  -2.3676227537536447,
+  -0.9419172620967828,
+  -0.8579074722678228,
+  0.24967663495309195
+ ],
+ "lambda": 0,
+ "corpus": {
+  "games": 2240,
+  "decisions": 48538,
+  "train": 39392,
+  "test": 9146
+ },
+ "heldOut": {
+  "uniform": {
+   "ll": -1.7626980271281667,
+   "acc": 0.24108900065602448
+  },
+  "behaviourCloneOnly": {
+   "ll": -1.929712828703543,
+   "acc": 0.27115678985348785
+  },
+  "boardAware": {
+   "ll": -1.6005889193880731,
+   "acc": 0.33588453968948173
+  },
+  "gain_logL": 0.32912390931546986,
+  "gain_top1_points": 6.472774983599389
+ },
+ "caveat": "Fitted on open-team-sheet games, where both players see all sets. Closed ladder play involves more hedging against unknown sets, so these weights are learned on a slightly different game than the one they are played in."
+}
