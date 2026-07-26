@@ -347,8 +347,15 @@ async function playOne(packA, packB, seed, oppKind, uniformFor) {
     console.log('  With ' + NGAMES + ' games per arm the smallest detectable paired difference is roughly ' +
       (100 * 1.96 * Math.sqrt(0.25 / NGAMES) * 1.4).toFixed(1) + ' points; run more games to resolve less.');
   }
-  console.log('\n  These are win rates IN THE HANDS OF A WEAK PILOT that samples moves by usage and');
-  console.log('  never reads the board. A build that suits it need not suit a human.');
+  console.log('');
+  console.log('  READ THIS BEFORE BELIEVING ANY ROW.');
+  console.log(`  The ${SPECIES} under test is piloted UNIFORMLY over its legal moves, so every build`);
+  console.log('  gets each of its four moves equal airtime. Usage-weighting it gave rare moves less');
+  console.log('  airtime than the common ones they replaced (measured 0.86x), biasing the result');
+  console.log('  toward builds made of popular moves — which is what this test exists to question,');
+  console.log('  not assume. Opponents keep the behaviour clone so positions stay realistic.');
+  console.log('  But NEITHER side reads the board. These are win rates in the hands of a weak');
+  console.log('  pilot; a build that suits it need not suit a human.');
 
   if (OUT) {
     fs.writeFileSync(path.isAbsolute(OUT) ? OUT : D(OUT), JSON.stringify({
