@@ -193,9 +193,33 @@ async function playOne(packA, packB, seed, oppKind) {
 
   if (F && F.moveCombos.length) {
     const sp = F.space;
-    for (const mc of F.moveCombos) {
-      for (const it of F.items) {
-        for (const spr of F.spreads) {
+    /* ---- SUBSAMPLING A FACTORIAL MUST STAY BALANCED -------------------------------------------
+     *
+     * The obvious triple loop with a `break` at NBUILDS does not truncate a factorial, it takes a
+     * NESTED PREFIX of one: with 7 move-combos x 4 items x 3 spreads and --builds 6, every arm came
+     * back with the SAME moves and the design silently collapsed to an item/spread study. Factors
+     * become confounded with position in the loop, which is the one thing a factorial exists to
+     * prevent.
+     *
+     * So enumerate every cell, then walk it with a stride coprime to the total. Coprimality makes
+     * the walk visit all cells before repeating, and because the stride is near the golden ratio it
+     * spreads the subset evenly across all three axes instead of marching down one. Same trick, and
+     * the same reason, as the matchup enumeration in mew.js. */
+    const cells = [];
+    for (const mc of F.moveCombos) for (const it of F.items) for (const spr of F.spreads) cells.push([mc, it, spr]);
+    let order = cells;
+    if (NBUILDS < cells.length) {
+      const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+      let stride = Math.max(1, Math.floor(cells.length * 0.6180339887));
+      while (gcd(stride, cells.length) !== 1) stride++;
+      order = [];
+      for (let k = 0, at = 0; k < cells.length; k++, at = (at + stride) % cells.length) order.push(cells[at]);
+      console.log(`  NOTE: ${cells.length} cells but --builds ${NBUILDS}. Taking a stride-balanced subset,`);
+      console.log('        not the first N — a nested prefix would confound the factors.');
+    }
+    {
+      for (const [mc, it, spr] of order) {
+        {
           if (builds.length >= NBUILDS) break;
           const known = { moves: mc.moves };
           if (it.value) known.item = it.value.item;
@@ -271,13 +295,23 @@ async function playOne(packA, packB, seed, oppKind) {
   const meanWins = results[0].wins.map((_, i) => {
     let s = 0; for (const r of results) s += r.wins[i]; return s / results.length;
   });
+  const M = results.length;
   for (const r of results) {
-    /* paired against the average arm on the same opponent */
-    let d = 0; for (let i = 0; i < r.wins.length; i++) d += r.wins[i] - meanWins[i];
+    /* PAIRED AGAINST THE OTHER ARMS ON THE SAME OPPONENT — LEAVE-ONE-OUT, WHICH IT WAS NOT.
+     *
+     * This compared each arm to a field mean that INCLUDED that arm. An arm is then partly being
+     * compared to itself, which shrinks every reported difference by exactly (m-1)/m and makes the m
+     * tests more correlated than the Benjamini-Hochberg step assumes. At m=6 that is a 17%
+     * understatement of every effect; at m=84 it is 1.2%, so it hides precisely in the small
+     * exploratory runs people actually iterate on.
+     *
+     * Excluding self costs nothing: mean of the others = (m*mean - self) / (m-1). */
+    const other = i => (M > 1 ? (M * meanWins[i] - r.wins[i]) / (M - 1) : meanWins[i]);
+    let d = 0; for (let i = 0; i < r.wins.length; i++) d += r.wins[i] - other(i);
     const diff = d / r.wins.length;
     /* variance of the paired difference */
     let v = 0;
-    for (let i = 0; i < r.wins.length; i++) { const x = (r.wins[i] - meanWins[i]) - diff; v += x * x; }
+    for (let i = 0; i < r.wins.length; i++) { const x = (r.wins[i] - other(i)) - diff; v += x * x; }
     v /= Math.max(1, r.wins.length - 1);
     const se = Math.sqrt(v / Math.max(1, r.wins.length));
     r.diff = diff;
