@@ -88,6 +88,36 @@ const FEATURES = [
   'tgtPhysical',       // the target's Attack share of its two offences: is it a physical attacker
   'defMismatch',       // my attacking side against the target's WEAKER defence: am I hitting the soft side
   'tgtBulk',           // the target's HP x relevant defence, scaled: how much work it takes to remove
+  /* ---- DOES IT KILL. THE LARGEST HOLE IN THIS MODEL --------------------------------------------
+   * Until now MAG could not tell whether a move removes the thing it is aimed at. Most of what a VGC
+   * turn is about is exactly that, and the evidence the model was straining for it is already on
+   * record: when the same 21 features were re-optimised for WINNING instead of for resembling people,
+   * the weight on `tgtHurt` -- "the target is already damaged", the only KO proxy available -- rose
+   * from +0.34 to +2.75. It was reaching for a kill signal through the one crude channel it had.
+   *
+   * A kill is a FACT. It follows from the stats, the type chart and the damage formula, so encoding
+   * it costs nothing in ceiling -- the same argument that admitted speed, burn and Flash Fire. What
+   * stays fitted is how much a kill is WORTH relative to everything else.
+   *
+   * The damage number is not computed here. engine/medicham2-browser.js already carries the one
+   * damage formula in this project that has been checked move-for-move against @smogon/calc (31 of
+   * 31 within 2%), and the repository has already been burned once by a second implementation
+   * drifting from the first -- mega Charizard-Y's Special Attack disagreed by 30%. So this calls
+   * that function. A fourth damage engine is not a feature.
+   *
+   * The stat lines come from the same public source as everything else the model sees: Smogon's
+   * observed spreads. That is not peeking at hidden information -- both players know what a Garchomp
+   * usually runs, exactly as both players know it usually has Rough Skin. */
+  'koTarget',     // fraction of this move's targets the MINIMUM roll removes outright -- a guaranteed kill
+  'dmgFrac',      // expected damage as a share of the target's REMAINING hp, averaged, capped at 1
+  /* WILL I BE KILLED. This cannot be a feature on its own, and the reason is structural rather than
+   * a judgement call: a conditional logit compares candidates within one decision, so any quantity
+   * identical across all of a Pokemon's options -- and "am I threatened" is a property of the board,
+   * not of the move -- cancels exactly out of the softmax and can never receive a weight. It has to
+   * enter as an INTERACTION with something the move changes. These are those interactions. */
+  'killsThreat',  // this move kills a foe whose own best move is estimated to kill me
+  'koFirst',      // it kills AND I outspeed that target -- the kill lands before its attack does
+  'protectThreatened', // this move protects and I am facing an estimated kill
   'priorLogP',    // log of the behaviour clone's P(move | species). What the CURRENT bot uses alone.
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
@@ -243,6 +273,101 @@ class Board {
  * publishes the ability distribution per species over the whole ladder, so the answer is a
  * probability rather than a guess, and it is the same number offline and online.
  * ------------------------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------------------------
+ * DAMAGE — BORROWED, NOT REIMPLEMENTED
+ *
+ * The one damage formula in this project that has been validated against an independent
+ * implementation lives in engine/medicham2-browser.js. It reads its species table out of
+ * data/engine-data.js through two globals, which is why the require below looks odd: loading that
+ * file for its SIDE EFFECT is the documented way to use it (engine/backtest_winrate.js does the
+ * same). Nothing here recomputes a stat, a type multiplier or a roll.
+ *
+ * WHEN IT IS UNAVAILABLE the features go to zero AND the failure is COUNTED. A damage feature that
+ * silently reads zero is indistinguishable from "this move does nothing", which would be the third
+ * time this file shipped a bug of exactly that shape (Rock Slide scored as a status move; an
+ * immunity scored as a neutral hit). featuresFor exports the counter so callers can assert on it.
+ * ------------------------------------------------------------------------------------------- */
+let _dmg = null;                 // null = not tried, false = unavailable
+const dmgFailures = { unavailable: 0, unknownSpecies: 0 };
+function damageEngine() {
+  if (_dmg !== null) return _dmg;
+  try {
+    require(require('path').join(__dirname, '..', 'data', 'engine-data.js'));   // sets globalThis.MC, mcEff
+    const M = require('./medicham2-browser.js');
+    _dmg = (M && typeof M.dmgRange === 'function' && typeof M.buildMon === 'function' && globalThis.MC) ? M : false;
+  } catch (e) { _dmg = false; }
+  return _dmg;
+}
+
+/* A tracked mon -> the shape the damage formula expects. Returns null when the species is not in the
+ * table, which is a real condition (a forme the usage data has never seen) and not an error. */
+function dmgMon(mon, D) {
+  if (!mon) return null;
+  const key = MC.mons[norm(mon.species)] ? norm(mon.species) : (MC.mons[baseSpecies(mon.species)] ? baseSpecies(mon.species) : null);
+  if (!key) { dmgFailures.unknownSpecies++; return null; }
+  const b = D.buildMon(key);
+  if (!b) { dmgFailures.unknownSpecies++; return null; }
+  /* Live state the tracker DOES know, applied on top: current hp as a fraction of the built max, and
+   * status, because a burn halves physical damage and that is a fact the formula already handles. */
+  if (typeof mon.hp === 'number') b.curHP = Math.max(0, Math.round(b.st.hp * mon.hp));
+  if (mon.status) b.status = norm(mon.status);
+  return b;
+}
+
+/* Estimated damage of `m` (typed as it will actually land) from `att` onto `def`.
+ * `{min, max, mean}` as a FRACTION of the defender's max hp. */
+function dmgFractions(D, att, def, m, mType, spread) {
+  if (!att || !def) return null;
+  const mv = { t: mType, bp: m.basePower || 0, c: m.category === 'Physical' ? 'P' : 'S' };
+  if (!mv.bp) return null;
+  const field = { weather: '', terrain: '' };
+  const r = D.dmgRange(att, def, mv, field, !!spread);
+  if (!r || !def.st || !def.st.hp) return null;
+  return { min: r.min / def.st.hp, max: r.max / def.st.hp, mean: (r.min + r.max) / 2 / def.st.hp };
+}
+
+/* WHAT IS AIMED AT ME. For each living foe, the hardest its usage-listed moves could hit this
+ * Pokemon, as a share of my maximum hp.
+ *
+ * CACHED PER DECISION, and that is not an optimisation detail. This is a property of the BOARD, so
+ * it is identical across every candidate the same Pokemon is choosing between — recomputing it eight
+ * times per turn would multiply the damage calls by the size of the choice set for an answer that
+ * cannot change. It is also the reason "am I threatened" cannot be a feature on its own: a quantity
+ * constant across a decision cancels out of a conditional logit exactly. */
+/* KEYED ON THE BOARD OBJECT, and the first version was not. It cached on a string of side, species,
+ * hp, turn and field size, which two DIFFERENT boards collide on trivially — and the returned map is
+ * keyed by mon OBJECTS, so a collision does not return a wrong number, it returns a map whose keys
+ * are from someone else's battle and every lookup silently misses. Caught because `killsThreat` read
+ * zero in a scenario built specifically to make it fire. */
+const _threatCache = new WeakMap();
+function incomingThreat(board, side, user, att, D) {
+  const key = `${side}|${user && user.species}|${user && user.hp}|${board.turn}|` +
+    board.field().map(f => `${f.side}${f.letter}${f.mon.species}${f.mon.hp}`).join(',');
+  const hit = _threatCache.get(board);
+  if (hit && hit.key === key) return hit.val;
+  const threat = new Map();
+  let worst = 0;
+  if (att) {
+    for (const f of board.field()) {
+      if (f.side === side || !f.mon || f.mon.fainted) continue;
+      const fm = dmgMon(f.mon, D);
+      if (!fm) continue;
+      let best = 0;
+      for (const id of (fm.moves || [])) {
+        const fmv = MC.moves[id];
+        if (!fmv || !fmv.bp) continue;
+        const r = dmgFractions(D, fm, att, { basePower: fmv.bp, category: fmv.c === 'P' ? 'Physical' : 'Special' }, fmv.t, false);
+        if (r && r.mean > best) best = r.mean;
+      }
+      threat.set(f.mon, best);
+      if (best > worst) worst = best;
+    }
+  }
+  const val = { threat, worst };
+  _threatCache.set(board, { key, val });
+  return val;
+}
+
 let _blocks = null, _abil = null;
 function abilityTables() {
   if (_blocks !== null) return { blocks: _blocks, abil: _abil };
@@ -449,6 +574,57 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     }
   }
 
+  /* ---- DOES IT KILL, AND AM I ABOUT TO BE KILLED ----------------------------------------------
+   * A guaranteed kill is the MINIMUM roll meeting what is LEFT of the target, not the average roll
+   * meeting its full bar. That is the question a player actually asks ("is this a roll or is it
+   * clean?"), and using the mean here would have MAG calling coin-flips certainties. */
+  {
+    const D = damageEngine();
+    if (!D) dmgFailures.unavailable++;
+    else {
+      const att = dmgMon(user, D);
+      const myLeft = Math.max(0, typeof user.hp === 'number' ? user.hp : 1);
+      const { threat, worst } = incomingThreat(board, side, user, att, D);
+      const threatened = att && worst >= myLeft ? 1 : 0;
+
+      const hits = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+      if (att && damaging && hits.length) {
+        const uSp2 = dex.species.get(user.species);
+        const uSpe = (uSp2 && uSp2.exists && uSp2.baseStats && uSp2.baseStats.spe) || 0;
+        let kos = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0;
+        for (const h of hits) {
+          const dm = dmgMon(h, D);
+          if (!dm) continue;
+          const r = dmgFractions(D, att, dm, m, mType, !!(cand.spread && cand.spread.length > 1));
+          if (!r) continue;
+          n2++;
+          const left = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
+          fracSum += left > 0 ? Math.min(1, r.mean / left) : 1;
+          /* left > 0 is not paranoia: a fainted mon left in the hit list would make EVERY move a
+           * guaranteed kill, since any roll meets zero. */
+          if (left > 0 && r.min >= left) {
+            kos++;
+            /* Removing the thing that was going to remove me is a different act from removing
+             * something harmless, and no combination of the existing features can say so. */
+            if ((threat.get(h) || 0) >= myLeft) killsThreatening = 1;
+            const hSp2 = dex.species.get(h.species);
+            const hSpe = (hSp2 && hSp2.exists && hSp2.baseStats && hSp2.baseStats.spe) || 0;
+            if (uSpe > hSpe) killsFirst = 1;
+          }
+        }
+        if (n2) {
+          set('koTarget', kos / n2);
+          set('dmgFrac', fracSum / n2);
+          set('killsThreat', killsThreatening);
+          set('koFirst', killsFirst);
+        }
+      }
+      /* stallingMove is the dex's own flag for the Protect family, so Baneful Bunker, Spiky Shield
+       * and Burning Bulwark are covered without any of them being named here. */
+      if (m.stallingMove) set('protectThreatened', threatened);
+    }
+  }
+
   /* ---- WOULD AN ABILITY SIMPLY EAT IT? ------------------------------------------------------- */
   {
     const list = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
@@ -536,4 +712,7 @@ function candidates(moves, user, board, side, dex) {
   return out;
 }
 
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, abilityBlockProb, norm, baseSpecies, SELF_TARGETS };
+/* dmgFailures is exported so a caller can ASSERT the damage features were live. A run in which the
+ * damage engine failed to load produces a full, plausible-looking feature vector with four zeros in
+ * it, and nothing about the output would say so. */
+module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
