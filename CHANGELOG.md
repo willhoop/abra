@@ -10,6 +10,67 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.14.0] — 2026-07-26
+
+### MAG is exploitable, and the thing that exploits it is simply a better player
+
+The first exploitability measurement this project has ever run on in-battle play, and it answers the
+question that has been open all evening: are we building something that plays okay, or something
+that approaches solved. **Plays okay.**
+
+`engine/exploit.js` hill-climbed a challenger over **MAG's own 17 features** — same machinery, only
+different numbers — to maximise its win rate against MAG. Eighteen rounds, ~220 games each, about
+forty minutes:
+
+| | win rate | 95% CI |
+|---|---|---|
+| challenger vs **MAG** | 63.2% | [56.6, 69.3] |
+| MAG vs the prior bot | 60.2% | [57.4, 63.0] |
+| **challenger vs the prior bot** | **68.2%** | **[64.6, 71.6]** |
+
+**MAG is more exploitable than it is strong.** A counter found by a crude search beats it by more
+than it beat its own predecessor.
+
+**And it is not a rock-paper-scissors counter — it is transitively better.** Played against the old
+prior bot, the challenger wins 68.2% where MAG manages 60.2%, on non-overlapping intervals. It is not
+exploiting MAG specifically; it is a straightforwardly stronger policy that MAG's fitting procedure
+failed to find.
+
+**Which number to trust.** The 63.2% is the maximum over eighteen searched candidates and is
+therefore optimistically biased — it was selected on that opponent. The **68.2% against the prior bot
+is an independent evaluation** the search never optimised against, and it is the solid one.
+
+### Why the fitting missed it, and what the counter actually learned
+
+MAG's weights were fitted to **predict a human's next click**. The challenger's were fitted to **win**.
+Those are different objectives and they disagree, in an interpretable way:
+
+| feature | MAG (imitates humans) | challenger (wins games) |
+|---|---|---|
+| never waste a move (`immune`) | −2.24 | **−9.11** |
+| finish a weakened target (`tgtHurt`) | +0.34 | **+2.75** |
+| hit a 4x weakness (`eff4`) | +1.31 | **+0.19** |
+| hit a 2x weakness (`eff2`) | +0.96 | +0.09 |
+
+The winning policy barely cares about type effectiveness and cares enormously about **not wasting a
+turn and finishing what is already hurt**. That is a real hypothesis about the game — KOs win games,
+chip damage does not — and it is the opposite of what humans visibly do.
+
+**This is the clearest demonstration yet that imitation is a ceiling, not a target.** Everything
+reported about MAG until today measured how well it predicts people. Optimising the same seventeen
+features for *winning* instead found something clearly stronger in forty minutes.
+
+`abilityBlock` fell to ~0 in the challenger, one release after being added. It may be genuinely
+unhelpful for winning, or noise in an 18-round search; it is flagged, not concluded.
+
+### What this changes
+
+The imitation fit should stop being treated as the objective. It is a sane initialisation and it is
+now demonstrably leaving strength on the table. The next step is the one that was always the plan:
+generate games with MAG and optimise for the outcome rather than for resemblance.
+
+---
+
 ## [3.13.0] — 2026-07-26
 
 ### Measured before building: humans do NOT choose their two moves independently
