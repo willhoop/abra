@@ -74,6 +74,44 @@ function pctRows(section) {
   return out;
 }
 
+/* CHECKS AND COUNTERS — the richest block in the file, and we were throwing it away.
+ *
+ * Smogon publishes, per species, what actually beats it, measured server-side over every game
+ * played. The format is two lines per entry:
+ *
+ *     | Torkoal 61.576 (64.17±0.65)            |
+ *     |     (36.5% KOed / 27.7% switched out)
+ *
+ * score      Smogon's check/counter number (higher = better check)
+ * winRate    percentage with a 95% interval, ALREADY carrying its own uncertainty
+ * koPct      how often the matchup ends with the subject KOed
+ * switchPct  how often it ends with the subject switching out
+ *
+ * This is exactly what GURU and COUNTERPLAY were trying to derive from ~1,700 clean replays, where
+ * nothing reached significance. Smogon computes it from hundreds of thousands of games — Garchomp's
+ * raw count alone is 736,366 — and hands over the interval with it.
+ */
+function checkRows(section) {
+  const out = [];
+  const lines = (section || '').split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^\|\s+([A-Za-z][A-Za-z0-9'.\- ]*?)\s+([\d.]+)\s+\(([\d.]+)±([\d.]+)\)/);
+    if (!m) continue;
+    const next = lines[i + 1] || '';
+    const k = next.match(/\(([\d.]+)%\s*KOed\s*\/\s*([\d.]+)%\s*switched out\)/);
+    out.push({
+      species: norm(m[1]),
+      name: m[1].trim(),
+      score: parseFloat(m[2]),
+      winRate: parseFloat(m[3]),
+      ci95: parseFloat(m[4]),
+      koPct: k ? parseFloat(k[1]) : null,
+      switchPct: k ? parseFloat(k[2]) : null,
+    });
+  }
+  return out;
+}
+
 function parseMoveset(text) {
   const species = {};
   const violations = [];
@@ -127,13 +165,21 @@ function parseMoveset(text) {
       spreads.push({ nature: m[1], sp, pct: s.pct, total: sum, unspent: 66 - sum });
     }
 
+    /* Checks and Counters is the LAST block, so it runs to the end of the species body. */
+    const ccm = body.match(/\|\s*Checks and Counters\s*\|([\s\S]*)$/);
+    const checks = ccm ? checkRows(ccm[1]) : [];
+    const viability = Number((body.match(/Viability Ceiling:\s*(\d+)/) || [])[1] || 0) || null;
+
     species[norm(name)] = {
-      name, raw,
+      name, raw, viability,
       abilities: abilities.map(a => ({ ability: a.name, pct: a.pct })),
       items: items.map(a => ({ item: a.name, pct: a.pct })),
       spreads,
       moves: moves.map(a => ({ move: a.name, pct: a.pct })),
-      teammates: teammates.slice(0, 10).map(a => ({ species: norm(a.name), pct: a.pct })),
+      /* Teammates were truncated to 10. Kept in full: partner frequency over hundreds of thousands
+       * of games is a far better archetype signal than clustering 1,933 observed teams. */
+      teammates: teammates.map(a => ({ species: norm(a.name), pct: a.pct })),
+      checks,
     };
   }
   return { species, violations };
@@ -218,5 +264,5 @@ function megaInfo(sp) {
   return { rate: megaRaw / total, options, baseRaw, megaRaw };
 }
 
-module.exports = { parseMoveset, priors, forSpecies, build };
+module.exports = { parseMoveset, priors, forSpecies, build, megaInfo };
 if (require.main === module) build();

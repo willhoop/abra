@@ -662,7 +662,9 @@ function nArchetypes(){
   try{ return (window.GURU&&(GURU.archetypes||GURU.names||[]).length)||null; }catch(e){ return null; }
 }
 function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
-  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
+  <!-- No tagline. The title names the room and the bubble says what it does; a one-line acronym
+       gloss between them just repeated one or the other. -->
+  <div><h2>${c.title}</h2><div class="bubble">${bubble}</div></div></div>`;}
 
 /* ---- "How I think", the closing bubble every room ends on -------------------------------------
    One panel per room, in the model's own voice, saying plainly what it does and — where it has been
@@ -910,7 +912,7 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px">
      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">${fmtN(nMatchups())}</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">possible team matchups</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">T&times;(T+1)&divide;2, T=${fmtN(nTeams())}</div></div>
      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">90</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">ways to pick 4 and lead 2</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">C(6,4)&times;C(4,2) = 15&times;6</div></div>
-     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">${nTurnsPerGame()||"—"}</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">turns per real game</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">${fmtN(nTurns())} turns &divide; ${fmtN(nCollected())} games</div></div>
+     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">${nTurnsPerGame()||"—"}</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">turns per clean game</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">mean over ${fmtN(nUsable())} clean games</div></div>
    </div></div>
    <div class="panel"><h2>Every game can be replayed exactly</h2><p style="font-weight:600;color:#3a5372">Each battle records the <b>seed</b> that produced it, the policy, and the exact engine commit. Re-run that seed and you get <b>the same game, move for move</b> — verified byte-identical. That matters because the whole point is claims like <i>"switching here is what won it"</i>, and a claim you can't re-run is a claim you can't check.</p></div>
    <div class="panel"><h2>Honest limits</h2><p style="font-weight:600;color:#3a5372">These are <b>practice games, not real ones</b>, and they are labelled as such in every record so they can never be mistaken for ladder data. The players are decent imitations of human habits, not strong play — so my games teach <b>what positions turn into</b>, not what a champion would do. And the teams are real, but the hidden parts (spreads, items, the moves nobody revealed) are <b>sampled</b> from what the format actually runs, which is an estimate.</p></div>

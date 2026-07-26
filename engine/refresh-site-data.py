@@ -61,19 +61,27 @@ except Exception as e:
 # which was T=1,376; the pool has since grown and the figure went stale unnoticed. Generated now,
 # with the site showing the arithmetic rather than a bare number. (S13)
 teams=None
+cleanTurns=None
 try:
     _seen=set()
+    _ct=0; _cg=0
     for _g in _lg(clean=True, announce=False):
         for _s in ('p1','p2'):
             _six=(_g.get('six') or {}).get(_s) or []
             if len(_six)>=4: _seen.add('|'.join(sorted(_six)))
+        # turns per game must be measured on the SAME population as everything else beside it.
+        # It was turns-over-ALL-games (12,872, three-quarters of them bot games) sitting next to a
+        # team count computed on clean games only -- two different denominators in adjacent tiles.
+        _t=_g.get('turns')
+        if isinstance(_t,list): _ct+=len(_t); _cg+=1
     teams=len(_seen)
+    cleanTurns=(round(_ct/_cg,1) if _cg else None)
 except Exception as e:
-    print('team count unavailable:', e)
+    print('team/turn count unavailable:', e)
 
 live={'games':games,'turns':turns,'dmgProfiles':len(pairs),
       'usable':usable,'teams':teams,
-      'turnsPerGame':(round(turns/games,1) if games else None),
+      'turnsPerGame':cleanTurns,
       'usablePct':(round(100.0*usable/games,1) if usable and games else None),
       'updated':datetime.date.today().isoformat(),'archetypes':arch}
 open(P('data','live.js'),'w',encoding='utf-8').write('window.LIVE='+json.dumps(live,separators=(',',':'))+';\n')
