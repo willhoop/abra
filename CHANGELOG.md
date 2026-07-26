@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.10.0] — 2026-07-26
+
+### Effectiveness is no longer forced to be linear, and spread moves now know they hit your partner
+
+Both came out of a direct challenge to the fitted weights.
+
+**"Should a 4x hit be the highest click?"** The old model could not answer, because it had assumed
+the answer: a single `eff` term on Showdown's integer scale forces 4x to be worth **exactly twice**
+2x by construction. Effectiveness is now one-hot — a separate fitted weight per bucket, expressed as
+the fraction of targets hit in each, with a neutral hit as the reference level. Measured:
+
+| bucket | pull |
+|---|---|
+| 4x weakness | **+1.27** |
+| 2x weakness | +0.95 |
+| resisted | −0.79 |
+| resisted twice over | −1.12 |
+| immune | **−2.24** |
+
+So a 4x hit is the biggest positive pull available — but only **1.33x** the pull of a 2x hit, not
+2x. The old linear model was overstating the 4x premium by half. Humans treat super-effective as
+close to a threshold, which is unsurprising once you notice that both usually take the same number
+of hits to matter. And the strongest single term in the whole model remains a **negative** one:
+doing nothing at all.
+
+**Sixteen moves hit your own partner** — `allAdjacent`, which includes Earthquake, Discharge, Lava
+Plume, Sludge Wave and Explosion. They were lumped in with foe-only spreads (`allAdjacentFoes`) and
+scored against the opponents ONLY, so clicking Earthquake beside your own Garchomp looked free. It is
+not, and the fit can now price it.
+
+**The first version of that feature returned a POSITIVE weight** — "humans like hitting their own
+partner" — which is not a credible reading. It fired on any non-immune ally, so it was mostly
+measuring "this is a strong, popular spread move". Narrowed to fire only when the partner does not
+resist, it comes back at **+0.11, 95% CI [0.01, 0.21]**: still positive, barely distinguishable from
+zero. **Reported as a null.** The honest reading is that real teams are built so the partner resists
+whatever it stands next to, so there is little left to detect — not that the cost is unreal.
+
+Held out by game: **−1.5927**, against −1.5953 for the linear model. A real but small gain.
+
+### Also
+
+The room gains a **partner slot**, without which the ally feature could not be demonstrated at all.
+`web/index.html` scoring, `engine/selftest.js` and `tests/test-mag-page.js` all follow the new
+feature list, and the drift guard caught the page still computing the old single `eff` term.
+
+**Confirmed rather than assumed while checking a related claim:** Showdown separates the
+one-at-a-time major statuses (`brn/par/tox/slp`, on `move.status`) from stackable volatiles (Encore,
+Taunt, confusion, on `move.volatileStatus`), and `deadStatus` only ever reads the former. That parse
+was already correct.
+
+---
+
 ## [3.9.2] — 2026-07-26
 
 ### Correction: open team sheets do not show the stat spread

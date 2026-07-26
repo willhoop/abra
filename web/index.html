@@ -936,14 +936,25 @@ function feats(mvId,target,board,user,priorP){
   x[MAGIX.stab]=dmg&&ut.map(t=>String(t).toLowerCase()).includes(String(mt).toLowerCase())?1:0;
   const hits=dmg?(target.spread?target.spread:(target.mon?[target.mon]:[])):[];
   if(hits.length){
-    let effSum=0,imm=0,hurt=0,n=0;
+    let imm=0,hurt=0,n=0,b4=0,b2=0,bH=0,bQ=0;
     for(const h of hits){ const ht=(MAG.mons[h.id]||{}).t||[];
       hurt+=Math.max(0,1-h.hp);
       if(!ht.length){n++;continue;}
       const e=eff1(mt,ht);
-      if(e==='i') imm++; else effSum+=e;
+      if(e==='i') imm++;
+      else if(e>=2) b4++; else if(e===1) b2++; else if(e===-1) bH++; else if(e<=-2) bQ++;
       n++; }
-    if(n){ x[MAGIX.eff]=effSum/n; x[MAGIX.immune]=imm===n?1:0; x[MAGIX.tgtHurt]=hurt/n; }
+    if(n){ x[MAGIX.eff4]=b4/n; x[MAGIX.eff2]=b2/n; x[MAGIX.effHalf]=bH/n; x[MAGIX.effQuarter]=bQ/n;
+           x[MAGIX.immune]=imm===n?1:0; x[MAGIX.tgtHurt]=hurt/n; }
+  }
+  /* Moves flagged allAdjacent hit my own partner as well. Only counted when the partner does NOT
+     resist it — a Flying partner under Earthquake is free, and pretending otherwise was what made
+     the first version of this feature meaningless. */
+  if(dmg&&target.allies&&target.allies.length){
+    for(const al of target.allies){ const at=(MAG.mons[al.id]||{}).t||[];
+      if(!at.length) continue;
+      const e=eff1(mt,at);
+      if(e!=='i'&&e>=0){ x[MAGIX.allyHit]=1; break; } }
   }
   if(m.st&&target.mon&&target.mon.status) x[MAGIX.deadStatus]=1;
   if(m.sc&&board.side[m.sc]) x[MAGIX.deadSide]=1;
@@ -978,7 +989,7 @@ const magHas=k=>!!(MAG.mons[k]&&MAG.mons[k].mv&&MAG.mons[k].mv.length);
    for 4x and 0.5x, and Dragon Claw is flat. The first version opened on Pelipper into Garchomp and
    Incineroar, where Hurricane is neutral on BOTH — it scored them 17% and 17% and looked for all
    the world like a bot that was not aiming at all. */
-const MAGDEF={you:'garchomp',foes:['charizard','kingambit'],moves:['earthquake','rockslide','dragonclaw','protect']};
+const MAGDEF={you:'garchomp',ally:'incineroar',foes:['charizard','kingambit'],moves:['earthquake','rockslide','dragonclaw','protect']};
 const magPick=(want,i)=>{const L=MAGMONS();return magHas(want)?want:L[i%L.length];};
 
 function roomMagnemite(){const c=CAST.find(x=>x.id==='magnemite');
@@ -999,6 +1010,14 @@ function roomMagnemite(){const c=CAST.find(x=>x.id==='magnemite');
         </div>
         <div id="magYouTypes" style="margin-bottom:8px"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="magMoves"></div>
+        <div style="display:flex;gap:9px;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid #e2e8f1">
+          <img id="magAllyImg" style="width:38px;height:38px;object-fit:contain;image-rendering:pixelated" onerror="this.style.opacity=.25">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10.5px;font-weight:800;color:#6d829b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">my partner</div>
+            ${sel('magAlly',magPick(MAGDEF.ally,3),'magRender()')}
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:#6b7691;margin-top:6px">Earthquake and friends hit this Pok&eacute;mon too &mdash; unless it resists them.</div>
       </div>
       <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:11px">
         <div style="font-weight:800;color:#6d829b;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Them &mdash; two targets, I must choose</div>
@@ -1064,11 +1083,16 @@ function magRender(){
   const board={side:{tailwind:g('magTW').checked},field:{trickroom:g('magTR').checked},
                weather:g('magWX').value,stalled:g('magStall').checked};
   const user={id:y};
+  const allyId=g('magAlly')?g('magAlly').value:null;
+  const ally=allyId?[{id:allyId,hp:1,status:''}]:[];
+  if(g('magAllyImg')&&allyId) g('magAllyImg').src=ani(allyId);
   const ids=[0,1,2,3].map(i=>g('magMv'+i)?g('magMv'+i).value:null).filter(Boolean);
   const cands=[];
   for(const id of ids){ const m=MAG.moves[id]; if(!m) continue;
     const pri=(MAG.priors[y]||{})[id]||0, tg=m.tg||'normal';
-    if(tg==='allAdjacentFoes'||tg==='allAdjacent') cands.push({id,m,label:'both at once',tgt:{spread:foes},pri});
+    if(tg==='allAdjacentFoes'||tg==='allAdjacent') cands.push({id,m,
+        label:tg==='allAdjacent'?'everything':'both foes',
+        tgt:{spread:foes,allies:tg==='allAdjacent'?ally:null},pri});
     else if(['normal','any','adjacentFoe'].includes(tg)) for(const f of foes) cands.push({id,m,label:MAG.mons[f.id].n,tgt:{mon:f},pri});
     else cands.push({id,m,label:'itself',tgt:{},pri});
   }
@@ -1092,10 +1116,11 @@ function magWhy(c){
   const x=c.x,t=[]; const tag=(cls,txt)=>`<span style="display:inline-block;border-radius:5px;padding:1px 6px;font-size:10.5px;font-weight:800;margin:0 4px 3px 0;white-space:nowrap;${cls}">${txt}</span>`;
   const G='background:#e3f4e9;color:#1f8a4c', B='background:#fbe6e3;color:#b03a2e', N='background:#eef1f6;color:#6b7691', W='background:#fdf3dd;color:#c08a1a';
   if(x[MAGIX.immune]) t.push(tag(B,'does nothing at all'));
-  else if(x[MAGIX.eff]>=2) t.push(tag(G,'4&times; damage'));
-  else if(x[MAGIX.eff]>0) t.push(tag(G,'2&times; damage'));
-  else if(x[MAGIX.eff]<=-2) t.push(tag(B,'&frac14; damage'));
-  else if(x[MAGIX.eff]<0) t.push(tag(B,'half damage'));
+  else if(x[MAGIX.eff4]>0) t.push(tag(G,'4&times; damage'));
+  else if(x[MAGIX.eff2]>0) t.push(tag(G,'2&times; damage'));
+  else if(x[MAGIX.effQuarter]>0) t.push(tag(B,'&frac14; damage'));
+  else if(x[MAGIX.effHalf]>0) t.push(tag(B,'half damage'));
+  if(x[MAGIX.allyHit]) t.push(tag(W,'hits my own partner'));
   if(x[MAGIX.deadSide]||x[MAGIX.deadField]) t.push(tag(B,'already up &mdash; would fail'));
   if(x[MAGIX.deadWeather]) t.push(tag(B,'weather already set'));
   if(x[MAGIX.deadStatus]) t.push(tag(B,'already statused'));
@@ -1128,7 +1153,9 @@ function magTable(rows){
     <div style="font-size:11.5px;color:#6b7691;margin-top:8px">Click a row for the sum behind its score. The percentages follow from the scores: one point of score is worth about <b>2.7&times;</b> the chance of being picked.</div>`;
 }
 
-const MAGLABEL={eff:'it hits a weakness',immune:'it does nothing at all',stab:'it matches my own type',
+const MAGLABEL={eff4:'it hits a 4&times; weakness',eff2:'it hits a 2&times; weakness',
+  effHalf:'it is resisted',effQuarter:'it is resisted twice over',
+  allyHit:'it also hits my own partner',immune:'it does nothing at all',stab:'it matches my own type',
   bp:'it is a powerful move',isStatus:'it is a status move',tgtHurt:'the target is already hurt',
   deadStatus:'the target already has a status',deadSide:'that side effect is already up',
   deadField:'that field effect is already up',deadWeather:'that weather is already set',

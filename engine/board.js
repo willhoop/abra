@@ -50,7 +50,17 @@ const baseSpecies = s => norm(s).replace(/mega[xy]?$/, '');
  * weight file records the list it was fitted against (fit_policy.js refuses to load a mismatch).
  * ------------------------------------------------------------------------------------------- */
 const FEATURES = [
-  'eff',          // type effectiveness of the move against THIS target, on Showdown's integer scale
+  /* EFFECTIVENESS IS ONE-HOT, NOT LINEAR — and that is a correction.
+   * A single `eff` term on Showdown's integer scale forces 4x to be worth EXACTLY twice 2x, by
+   * construction rather than by measurement. Asked directly whether a 4x hit should be the biggest
+   * pull available, the honest answer was that the old model could not say: it had assumed the
+   * answer. These are the FRACTION of targets hit in each bucket (so a spread move can be 4x on one
+   * foe and resisted by the other), with a neutral hit as the reference level. */
+  'eff4',         // 4x
+  'eff2',         // 2x
+  'effHalf',      // 0.5x
+  'effQuarter',   // 0.25x
+  'allyHit',      // the move also hits my OWN partner and my partner is not immune to it
   'immune',       // the target is outright immune — the move does literally nothing
   'stab',         // the move's type is one of the user's types
   'bp',           // base power / 100; 0 for status moves
@@ -290,7 +300,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
    * fitted `eff` weight means the same thing for Rock Slide as for Ice Beam. */
   const hitList = damaging ? (cand.spread && cand.spread.length ? cand.spread : (t ? [t] : [])) : [];
   if (hitList.length) {
-    let effSum = 0, immuneCount = 0, hurtSum = 0, n = 0;
+    let immuneCount = 0, hurtSum = 0, n = 0, b4 = 0, b2 = 0, bHalf = 0, bQ = 0;
     for (const h of hitList) {
       const hSp = dex.species.get(h.species);
       const hTypes = (hSp && hSp.exists && hSp.types) || [];
@@ -300,15 +310,40 @@ function featuresFor(cand, user, board, side, dex, priorP) {
        * same value it returns for a neutral hit. Collapsing "does nothing" into "normal damage" is
        * exactly the class of error this file exists to remove. */
       if (!dex.getImmunity(mType, hTypes)) immuneCount++;
-      else effSum += dex.getEffectiveness(mType, hTypes);
+      else {
+        const e = dex.getEffectiveness(mType, hTypes);
+        if (e >= 2) b4++; else if (e === 1) b2++; else if (e === -1) bHalf++; else if (e <= -2) bQ++;
+      }
       n++;
     }
     if (n) {
-      set('eff', effSum / n);
+      set('eff4', b4 / n); set('eff2', b2 / n); set('effHalf', bHalf / n); set('effQuarter', bQ / n);
       /* Immune only counts when the move does nothing to ANYTHING it hits. A spread move that one
        * foe is immune to is still a perfectly good move against the other. */
       set('immune', immuneCount === n ? 1 : 0);
       set('tgtHurt', hurtSum / n);
+    }
+  }
+
+  /* ---- IT ALSO HITS MY OWN PARTNER -----------------------------------------------------------
+   * Sixteen moves in this format are `allAdjacent`, which in doubles means they hit the ally as well
+   * as both foes — Earthquake, Discharge, Lava Plume, Sludge Wave, Explosion. The first version
+   * lumped those in with foe-only spreads and scored them against the opponents ONLY, so clicking
+   * Earthquake next to your own Garchomp looked free. It is not, and the fit is now allowed to price
+   * it. An ally that is immune (a Flying partner under Earthquake) is not counted, because that is
+   * the case where it really is free. */
+  if (damaging && cand.allies && cand.allies.length) {
+    for (const al of cand.allies) {
+      const aSp = dex.species.get(al.species);
+      const aTypes = (aSp && aSp.exists && aSp.types) || [];
+      if (!aTypes.length || !dex.getImmunity(mType, aTypes)) continue;   // immune partner: it is free
+      /* ONLY WHEN IT ACTUALLY COSTS SOMETHING. A first version fired on any non-immune ally and came
+       * back with a POSITIVE weight — i.e. "humans like hitting their own partner", which is not a
+       * credible reading. It was confounded: Earthquake and Discharge are strong, popular spread
+       * moves, so the feature was mostly measuring "this is a good move". Real teams are built so the
+       * partner RESISTS the spread move it sits next to, and that case is not a cost at all. Firing
+       * only when the ally takes neutral damage or worse separates the two. */
+      if (dex.getEffectiveness(mType, aTypes) >= 0) { set('allyHit', 1); break; }
     }
   }
 
@@ -349,7 +384,10 @@ function candidates(moves, user, board, side, dex) {
     if (!m || !m.exists) continue;
     const tgt = m.target || 'normal';
     if (SPREAD_TARGETS.has(tgt)) {
-      out.push({ move: m, targetMon: null, spread: foes.map(f => f.mon), targetKey: '' });
+      /* `allAdjacent` reaches the ally as well; `allAdjacentFoes` does not. Lumping the two was the
+       * bug that made Earthquake look free beside your own partner. */
+      const alsoAlly = tgt === 'allAdjacent' ? allies.map(f => f.mon) : null;
+      out.push({ move: m, targetMon: null, spread: foes.map(f => f.mon), allies: alsoAlly, targetKey: '' });
     } else if (tgt === 'adjacentAlly') {
       out.push({ move: m, targetMon: allies.length ? allies[0].mon : null, ally: true, targetKey: '' });
     } else if (SELF_TARGETS.has(tgt)) {

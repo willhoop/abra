@@ -285,7 +285,9 @@ function twoFoes() {
   bd.switchIn('p2', 'a', 'Garchomp'); bd.switchIn('p2', 'b', 'Incineroar');
   return bd;
 }
-const effOf = (c, user, bd, side) => B.featuresFor(c, user, bd, side, dex, 0)[B.FEATURE_INDEX.eff];
+/* Effectiveness is one-hot now, so 'how effective' is read as the 4x bucket then the 2x bucket. */
+const effOf = (c, user, bd, side) => { const x = B.featuresFor(c, user, bd, side, dex, 0);
+  return 2 * x[B.FEATURE_INDEX.eff4] + x[B.FEATURE_INDEX.eff2] - x[B.FEATURE_INDEX.effHalf] - 2 * x[B.FEATURE_INDEX.effQuarter]; };
 
 checkDex('a single-target move offers one candidate per foe, scored separately', () => {
   const bd = twoFoes(), user = bd.slot('p1', 'a');
@@ -315,7 +317,7 @@ checkDex('a spread move is scored against everything it hits, not as a status mo
   /* Scoring these against no target at all read their effectiveness as zero and made Rock Slide,
    * Heat Wave and Dazzling Gleam look like status moves — a large share of all damage in doubles. */
   if (x[B.FEATURE_INDEX.isStatus] !== 0) return 'a damaging spread move was scored as a status move';
-  return x[B.FEATURE_INDEX.eff] > 0 || 'Rock Slide scored ' + x[B.FEATURE_INDEX.eff] + ' against two Rock-weak foes';
+  return (x[B.FEATURE_INDEX.eff4] + x[B.FEATURE_INDEX.eff2]) > 0 || 'Rock Slide hit no super-effective bucket against two Rock-weak foes';
 });
 
 checkDex('a move that cannot work right now is marked dead', () => {
