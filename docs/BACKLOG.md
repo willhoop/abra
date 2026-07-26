@@ -127,8 +127,27 @@ Ordered by what blocks what.
    species. Since a set is four moves, `1 - (1 - other/400)^4` says **~17% of real sets contain a
    move no prior of ours can propose**. Kingambit is the exception at 3%. Reported by
    `engine/set_space.js`; do not chase the last few points of diversity without accounting for it.
-2. **Megas at 74% against a real 93%.** The remaining gap is the bring policy: the stone-holder is
-   often not among the four brought. Real players bring their mega.
+2. **Megas — was 74% against a real 93%, now 80%. Partly fixed; the stated cause was wrong.**
+
+   The claim here was "real players bring their mega". **They do not.** Smogon's raw counts (teams
+   containing it) against real counts (battles it played) say a mega forme is brought **0.90x** as
+   often as a non-mega. Mega-capable species were already being brought at 88.6% against a real
+   92.6%, so the bring was close to right all along.
+
+   Three other candidates were measured and ruled out: team generation puts **1.54** stones on a team
+   against the **1.58** Smogon implies, and stones match their holder 99.6% of the time; raising the
+   player's form-change probability from 0.85 to 1.0 moved the rate **0.7 points**; and Champions has
+   no Terastallization, so the tera-before-mega priority inside `RandomPlayerAI` never fires
+   (measured 0.00 teras per game).
+
+   The cause was the **lead**, not the bring — a stone holder in the back of a game that ended before
+   it came out. `bring_priors.js` now measures 77.5% of real sides mega and 57.7% of megas are a
+   lead, and `chooseTeamPreview` aims at both. **74% -> 80.1%** on 300 seed-matched games.
+
+   **Still open:** 80% against 93%, and 1.07 against 1.58 megas per game. Form-change 1.0 on top of
+   the fix gives 80.5%, so that knob is saturated. Most likely the back-slot holder still reaches the
+   field less than a human's, consistent with our 4.3 switches per game against 5.7 — which makes
+   this downstream of item 3, the scoring bot.
 3. **The scoring bot.** Two gaps are not fixable by tuning priors — super-effective moves at 10.8%
    against 23.4%, failed moves at 8.7% against 2.7%. Those are what "does not read the board" looks
    like as numbers. It is also what makes `build_lab` trustworthy, since today it measures what beats

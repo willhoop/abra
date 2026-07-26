@@ -68,6 +68,35 @@ Garchomp +11, Kingambit **−2** (we are slightly *more* varied than reality).
 
 ---
 
+### Mega rate 74% -> 80%, and three ruled-out causes
+
+The preview draw now knows about mega stones. `bring_priors.js` measures two numbers from real
+protocol logs — **77.5%** of real sides mega at all, **57.7%** of megas are one of the two leads —
+and `chooseTeamPreview` aims at both. On 300 seed-matched games with identical teams, only the
+preview policy changed: **71.6% -> 80.1%** of games contain a mega, 0.96 -> 1.07 megas per game.
+
+The species priors could not express this, because "Charizard" and "Charizard holding Charizardite Y"
+are the same key and different decisions.
+
+**The previously stated cause was wrong.** BACKLOG said "real players bring their mega". Smogon's raw
+counts against real counts say a mega forme is brought **0.90x** as often as a non-mega. Ruled out by
+measurement, not argument:
+
+- **team generation** — 1.54 stones per packed team against the 1.58 Smogon implies; stones match
+  their holder 99.6% of the time
+- **the form-change probability** — 0.85 to 1.0 moved the rate 0.7 points. Now a `--mega` flag so the
+  claim can be re-checked
+- **Terastallization stealing the roll** — `RandomPlayerAI` checks tera before mega, but Champions has
+  no tera at all: measured 0.00 per game
+
+The cause was the **lead**, not the bring.
+
+**Residual, unfixed:** 80% against 93%, 1.07 against 1.58 megas per game. Form-change 1.0 on top of
+the fix gives 80.5%, so that is saturated. Most likely a back-slot holder still reaches the field less
+often than a human's, consistent with 4.3 switches per game against 5.7 — downstream of the scoring bot.
+
+---
+
 ## [3.5.0] — 2026-07-26
 
 ### The self-play corpus was not modelling this format
