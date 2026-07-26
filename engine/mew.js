@@ -216,6 +216,11 @@ async function playOne(teamA, teamB, seed) {
    * MEW now reports the sampled rate so a broken policy is visible rather than assumed. */
   let Player = RandomPlayerAI;
   if (POLICY === 'prior') Player = require('./prior_player.js').makePriorPlayer();
+  /* score — engine/score_policy.js. Everything `prior` does, plus it reads the board: it scores
+   * every (move, target) pair with weights fitted to real human clicks and samples from that. It is
+   * the only mode that AIMS; the other two let RandomPlayerAI pick the foe with a coin flip before
+   * the policy is consulted, which is most of what "super effective" means in doubles. */
+  if (POLICY === 'score') Player = require('./score_policy.js').makeScoringPlayer();
   /* SEED THE PLAYERS, NOT JUST THE BATTLE.
    * ------------------------------------------------------------------------------------------
    * `>start {seed}` below seeds the BATTLE's rng — damage rolls, crits, accuracy, speed ties. It
@@ -334,7 +339,8 @@ async function main() {
   if (rawOut) process.stderr.write(`  raw logs -> ${path.relative(ROOT, RAW_OUT)} (PORY reads this, not the records)\n`);
   const startedAt = Math.floor(Date.now() / 1000);
   let done = 0, written = 0, failed = 0;
-  const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0 };
+  const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0,
+                scored: 0, scoreFellBack: 0, aimed: 0 };
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
    * ------------------------------------------------------------------------------------------
@@ -424,6 +430,7 @@ async function main() {
       for (const s of (res.stats || [])) {
         POL.sampled += s.sampled; POL.fellBack += s.fellBack; POL.noPrior += s.noPrior;
         POL.previewSampled += s.previewSampled || 0; POL.previewDefault += s.previewDefault || 0;
+        POL.scored += s.scored || 0; POL.scoreFellBack += s.scoreFellBack || 0; POL.aimed += s.aimed || 0;
       }
       const rec = extract(`selfplay-${SEED0}-${i}`, startedAt, log);
       if (!rec || (rec.six.p1 || []).length < 4 || (rec.six.p2 || []).length < 4) { failed++; continue; }
@@ -447,31 +454,62 @@ async function main() {
    * while falling through to random on 100% of decisions, and the 32.2-point "finding" it produced
    * was an artifact. attempt 4, wired correctly, sampled 81.4%. If this line ever reads 0%, the
    * policy is not running and no result from the batch means anything. */
-  const tot = POL.sampled + POL.fellBack + POL.noPrior;
+  /* THE SCORING POLICY HAS ITS OWN COUNTER AND MUST BE CHECKED ON ITS OWN TERMS. It does not
+   * "sample from priors" at all -- it scores -- so the prior-sampling line below would read 0% for a
+   * perfectly healthy run and 0% is the exact signature of the ADR-001 attempt 3 failure. Reporting
+   * the wrong counter for a mode is how a broken run gets waved through. */
+  if (POLICY === 'score') {
+    const st = POL.scored + POL.scoreFellBack;
+    if (st) {
+      process.stderr.write(`  policy=score: ${(100 * POL.scored / st).toFixed(1)}% of decisions scored against the board ` +
+        `(${POL.scoreFellBack.toLocaleString()} fell back to the prior sampler)\n`);
+      process.stderr.write(`  aiming: ${POL.aimed.toLocaleString()} decisions chose WHICH foe to hit ` +
+        `(the prior policy leaves that to a coin flip)\n`);
+      if (POL.scored === 0) {
+        process.stderr.write('  WARNING: the scoring policy scored NOTHING. It is running as the prior sampler.\n');
+      }
+    } else {
+      process.stderr.write('  WARNING: policy=score reported no decisions at all -- it is not wired.\n');
+    }
+  }
+  /* Gated on the mode, not on whether the counter happens to be non-zero. The scoring policy still
+   * falls back to the prior sampler a few dozen times a batch (no active user, no scorable
+   * candidate), which was enough to make `tot` truthy and print "0.0% sampled from priors" followed
+   * by "the policy sampled NOTHING — do not use this batch" over a run in which every single
+   * decision was scored correctly. */
+  const tot = POLICY === 'score' ? 0 : POL.sampled + POL.fellBack + POL.noPrior;
   if (tot) {
     const pct = (100 * POL.sampled / tot).toFixed(1);
     process.stderr.write(`  policy=${POLICY}: ${pct}% of decisions sampled from priors ` +
       `(${POL.fellBack} fell back — move illegal this turn, ${POL.noPrior} had no prior for the species)\n`);
-    /* TEAM PREVIEW ACCOUNTING. The preview sampler degrades to the constant 'default' bring when
-     * data/bring-priors.json is missing, and that degradation is invisible in the games themselves —
-     * they look completely normal, every team just always brings the same four. Report it. */
-    const pv = POL.previewSampled + POL.previewDefault;
-    if (pv) {
-      process.stderr.write(`  team preview: ${POL.previewSampled.toLocaleString()} sampled from bring/lead priors, ` +
-        `${POL.previewDefault.toLocaleString()} fell back to the constant 'default'\n`);
-      if (POL.previewSampled === 0) {
-        process.stderr.write('  WARNING: every preview used the CONSTANT default bring — run node engine/bring_priors.js\n');
-      }
-    }
-    if (POL.invalidTeam) {
-      process.stderr.write(`  ${POL.invalidTeam.toLocaleString()} games discarded: team failed Showdown's TeamValidator after repair\n`);
-    }
     if (POL.sampled === 0) {
       process.stderr.write('  WARNING: the policy sampled NOTHING. It is running as uniform random.\n');
       process.stderr.write('  This is ADR-001 attempt 3 recurring. Do not use this batch.\n');
     }
-  } else if (POLICY !== 'random') {
+  } else if (POLICY !== 'random' && POLICY !== 'score') {
+    /* `score` is excluded because it does not sample priors and reports through its own counter
+     * above. Leaving it here fired a "not wired" warning on a run in which 100% of decisions were
+     * scored — a false alarm on this line is worse than none, because this is the line that is
+     * supposed to catch a genuinely dead policy. */
     process.stderr.write(`  WARNING: policy=${POLICY} reported no decisions at all — it is not wired.\n`);
+  }
+
+  /* TEAM PREVIEW ACCOUNTING, reported for EVERY policy that has a preview sampler.
+   *
+   * This used to sit inside the prior-sampling branch, so it vanished the moment a policy stopped
+   * reporting prior samples — the scoring policy inherits the same preview sampler and its
+   * degradation would have gone unreported. The failure it exists to catch is invisible in the games
+   * themselves: without data/bring-priors.json every team simply brings the same four, forever. */
+  const pv = POL.previewSampled + POL.previewDefault;
+  if (pv) {
+    process.stderr.write(`  team preview: ${POL.previewSampled.toLocaleString()} sampled from bring/lead priors, ` +
+      `${POL.previewDefault.toLocaleString()} fell back to the constant 'default'\n`);
+    if (POL.previewSampled === 0) {
+      process.stderr.write('  WARNING: every preview used the CONSTANT default bring — run node engine/bring_priors.js\n');
+    }
+  }
+  if (POL.invalidTeam) {
+    process.stderr.write(`  ${POL.invalidTeam.toLocaleString()} games discarded: team failed Showdown's TeamValidator after repair\n`);
   }
 }
 
