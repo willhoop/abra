@@ -44,10 +44,11 @@ publish: per-turn behaviour.
 
 ---
 
-## 2. Always-include above 50% — this is the Bayes rule, not a preference
+## 2. The 50% rule — where it applies, and where applying it broke things
 
-**Decision.** A move Smogon reports on ≥50% of sets is placed on every generated set. Below 50%, it
-is sampled.
+**Decision.** In `set_space.js`, a move Smogon reports on ≥50% of sets is treated as fixed when
+deciding which slots a build experiment should vary. It is **not** force-included during set
+generation — see the limit below, which is the more instructive half of this section.
 
 **The formal result.** Under 0–1 loss on a discrete outcome, the Bayes-optimal decision is the **mode
 of the conditional distribution**, `argmax_a p(Y = a | X)` — not a draw from that distribution
