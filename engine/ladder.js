@@ -167,7 +167,14 @@ const wilson = (p, n) => {
   const decisive = grid.flatMap(r => r.vs).filter(v => v.beats || v.losesTo).length;
   const comparisons = grid.flatMap(r => r.vs).length;
   console.log('');
-  if (comparisons && !decisive) {
+  /* Zero comparisons is not "clean", it is "nothing ran". The first version of this guard tested
+   * `comparisons && !decisive`, which is FALSE when comparisons is 0, so a run whose round robin
+   * failed entirely fell through and printed the reassuring line anyway. Same shape of mistake as
+   * the one it was written to fix. */
+  if (!comparisons) {
+    console.log('  NOTHING TO REPORT: no ancestor comparison completed. Either nothing was promoted');
+    console.log('  or the matches failed to run. This says nothing about the ladder either way.');
+  } else if (!decisive) {
     console.log(`  INCONCLUSIVE: all ${comparisons} ancestor comparisons had intervals spanning a coin.`);
     console.log('  This says nothing about whether the ladder is climbing or going round — the round');
     console.log('  robin simply had no power at this sample size. Raise --games before reading it.');

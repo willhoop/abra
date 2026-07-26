@@ -77,6 +77,17 @@ const FEATURES = [
   'deadField',    // move.pseudoWeather already active -> it fails
   'deadWeather',  // move.weather already the active weather -> it fails
   'deadStall',    // move.stallingMove and the user stalled last turn -> it usually fails
+  /* ---- STATS. FACTS THE MODEL COULD NOT SEE AT ALL UNTIL NOW ------------------------------------
+   * Speed is a fact. So are Attack, Defence and HP. They sit in the dex for every species and none
+   * of them were features, which is why this model could not learn any of the things it was
+   * repeatedly asked about: it cannot learn that burn is worth more against a physical attacker
+   * when it cannot see Attack, and it cannot learn what Tailwind is for when it cannot see Speed.
+   * The judgement is still fitted — only the ingredients are supplied. Each is scaled so a value
+   * near 0 means "typical for this format" and the sign carries the meaning. */
+  'fasterThanTarget',  // 1 if the user outspeeds the target at base — who moves first
+  'tgtPhysical',       // the target's Attack share of its two offences: is it a physical attacker
+  'defMismatch',       // my attacking side against the target's WEAKER defence: am I hitting the soft side
+  'tgtBulk',           // the target's HP x relevant defence, scaled: how much work it takes to remove
   'priorLogP',    // log of the behaviour clone's P(move | species). What the CURRENT bot uses alone.
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
@@ -404,6 +415,37 @@ function featuresFor(cand, user, board, side, dex, priorP) {
        * foe is immune to is still a perfectly good move against the other. */
       set('immune', immuneCount === n ? 1 : 0);
       set('tgtHurt', hurtSum / n);
+    }
+  }
+
+  /* ---- THE STAT FACTS -------------------------------------------------------------------------
+   * Base stats, not the live in-battle numbers: the spread is hidden information in a closed-sheet
+   * game and the base line is what both players genuinely know. Scaled by the format's own spread of
+   * that stat so the numbers are comparable across features and nothing here is a typed constant. */
+  {
+    const uSp = dex.species.get(user.species);
+    const ub = uSp && uSp.exists && uSp.baseStats;
+    /* Averaged over everything the move hits, exactly as effectiveness is. Reading these off
+     * `targetMon` alone left every SPREAD move at zero on all four stat features — a systematic
+     * blind spot on a large share of the damage in doubles, and the same mistake that scored Rock
+     * Slide as a status move two versions ago. */
+    const statList = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+    const tbs = statList.map(h => { const sp2 = dex.species.get(h.species); return sp2 && sp2.exists && sp2.baseStats; }).filter(Boolean);
+    if (ub && tbs.length) {
+      const avg = k => tbs.reduce((a, b) => a + b[k], 0) / tbs.length;
+      const tb = { hp: avg('hp'), atk: avg('atk'), def: avg('def'), spa: avg('spa'), spd: avg('spd'), spe: avg('spe') };
+      set('fasterThanTarget', ub.spe > tb.spe ? 1 : 0);
+      const off = tb.atk + tb.spa;
+      if (off) set('tgtPhysical', (tb.atk - tb.spa) / off);
+      /* Which of the target's defences my move actually attacks, relative to its other one. A
+       * physical move into a target whose Defence is far below its Special Defence scores high. */
+      if (!damaging) { /* status moves have no attacking side */ }
+      else {
+        const hitsDef = m.category === 'Physical';
+        const mine = hitsDef ? tb.def : tb.spd, other = hitsDef ? tb.spd : tb.def;
+        if (mine + other) set('defMismatch', (other - mine) / (mine + other));
+        set('tgtBulk', Math.min(2, (tb.hp * mine) / 9000));
+      }
     }
   }
 
