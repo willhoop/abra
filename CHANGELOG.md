@@ -10,6 +10,44 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.21.0] — 2026-07-26
+
+### Every document has a PDF, and the list is derived
+
+23 of 36 markdown documents had **no PDF at all** — including ARCHITECTURE.md, MODELS.md, BACKLOG.md
+and THEORY.md, which are the four a new reader would reach for first. The cause was that the build
+list was typed on the command line each release, so it only ever covered the six somebody remembered,
+and the source-to-output mapping (`DEFENSE.md` → `ABRA-Defense.pdf`) was retyped every time — S13, in
+the publishing step of a project whose discipline is that documents track the code.
+
+**`build/build_pdfs.js` (new)** derives it: every `docs/*.md` gets `docs/<same name>.pdf`. Three
+legacy output names are kept in one place because published links point at them; everything new
+builds to its own name. `--check` reports stale or missing without building, so CI can fail on a
+document that says something the project no longer believes.
+
+35 built. Markdown stays as the source — it is what git can diff and what the PDFs are built from.
+
+### `docs/ROADMAP.md` (new)
+
+Written to one bar: **a claim is only on the completed list if it would survive twenty hours of
+someone trying to break it.** Several items that would have been on it a week ago are not, for
+failing to be true when re-run today.
+
+What passed: the quality filter and behavioural bot detection; the damage engine at 31/31 against an
+independent implementation; MAGNEMITE's out-of-sample improvement; the exploitability result and what
+it proves about imitation; the open-sheet corpus check; hourly Bo3 collection; the derived ability
+rules; and the self-auditing tooling.
+
+What did not, and is now listed as such: MAG is exploitable and is a starting position rather than a
+player; the ladder has produced no evidence; 28 artifacts are unsafe to quote; and eight models are
+retracted, null, or without usable input — recorded by name so they are not quoted again.
+
+The summary the roadmap ends on: *the project's most valuable output to date is not a model — it is
+the ability to tell which of its own results are real, demonstrated by dissolving four of them in a
+single day.*
+
+---
+
 ## [3.20.0] — 2026-07-26
 
 ### Full-codebase conformance review: the standards are now executable
