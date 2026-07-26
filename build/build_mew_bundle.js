@@ -12,8 +12,9 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 
-const N = parseInt(process.argv[2] || '12', 10);
+const N = parseInt(process.argv[2] || '50', 10);
 const SRC = D('data', 'games.selfplay.jsonl');
+const RAW = D('data', 'games.selfplay.raw-logs.jsonl');
 if (!fs.existsSync(SRC)) { console.error(`no self-play store at ${SRC}; run engine/mew.js first`); process.exit(1); }
 
 /* STREAM. The store is ~1GB at 200,004 games and V8 caps a single string near 512MB, so
@@ -89,21 +90,52 @@ for (const g of pool.concat(longest)) {
 }
 picked.sort((a, b) => (a.turns || []).length - (b.turns || []).length);
 
-const slim = picked.map(g => ({
+/* ---- SHIP THE RAW PROTOCOL LOG, NOT A PRE-CHEWED SUMMARY --------------------------------------
+ * This used to emit a custom {turns:[{n,ev:[...]}]} structure that only our hand-written viewer
+ * could read. That was the wrong call: MEW records the EXACT Pokemon Showdown protocol, so the
+ * official Showdown replay player — the one every player already knows, with animations, a running
+ * log, ability triggers, weather and status icons — reads our games with no conversion at all.
+ * Verified 2026-07-25 against play.pokemonshowdown.com/js/replay-embed.js: it rendered a Champions
+ * battle correctly, resolved Sinistcha-Masterpiece, and reported "[Mawile's Intimidate]".
+ *
+ * A raw log averages ~7KB, so 50 battles is ~0.35MB — smaller per unit of usefulness than the
+ * summary it replaces, and it can never drift from what the simulator actually emitted.
+ */
+const wantIds = new Set(picked.map(g => g.id));
+const logById = new Map();
+{
+  const fd = fs.openSync(RAW, 'r');
+  const buf = Buffer.alloc(1 << 20);
+  let carry = '';
+  try {
+    for (;;) {
+      const n = fs.readSync(fd, buf, 0, buf.length, null);
+      if (n <= 0) break;
+      const lines = (carry + buf.toString('utf8', 0, n)).split('\n');
+      carry = lines.pop();
+      for (const line of lines) {
+        const t = line.trim(); if (!t) continue;
+        let r; try { r = JSON.parse(t); } catch { continue; }
+        if (wantIds.has(r.id) && r.log) logById.set(r.id, r.log);
+      }
+      if (logById.size === wantIds.size) break;
+    }
+    if (carry.trim()) { try { const r = JSON.parse(carry.trim()); if (wantIds.has(r.id) && r.log) logById.set(r.id, r.log); } catch (e) {} }
+  } finally { fs.closeSync(fd); }
+}
+
+const slim = picked.filter(g => logById.has(g.id)).map(g => ({
   id: g.id,
   winner: g.winner,
   policy: (g.selfplay || {}).policy || 'unknown',
   seed: (g.selfplay || {}).seed,
-  six: g.six,
-  brought: g.brought,
-  lead: g.lead,
-  sets: g.sets,
-  // only the fields the viewer draws, and only real events
-  turns: (g.turns || []).map(t => ({
-    n: t.n,
-    ev: (t.ev || []).filter(e => ['m', 'd', 'f', 's', 'w', 'mega'].includes(e.t)),
-  })),
+  turns: (g.turns || []).length,
+  log: logById.get(g.id),
 }));
+if (!slim.length) {
+  console.error('no raw logs matched the sampled games — is ' + path.basename(RAW) + ' present?');
+  process.exit(1);
+}
 
 const meta = {
   generated: new Date().toISOString().slice(0, 10),

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEW replay</title>
+<!--
+  MEW replay frame — renders a self-play battle with the OFFICIAL Pokemon Showdown replay player.
+
+  WHY A FRAME, AND WHY NOT OUR OWN VIEWER
+  ---------------------------------------
+  MEW records the exact Showdown protocol, so the real replay player reads our games with no
+  conversion at all. We had hand-written a viewer instead — sprites and HP bars — and it was worse
+  in every way that mattered: no animation, no running log, no ability triggers, no weather or
+  status, and a layout nobody recognises. Verified 2026-07-25 that the official embed renders a
+  Champions battle correctly, resolves Sinistcha-Masterpiece (a sprite our own viewer could not
+  find), and reports things we never modelled at all, such as "[Mawile's Intimidate]".
+
+  It lives in an IFRAME because replay-embed.js initialises once against the DOM it finds at load.
+  ABRA's site is a single page that swaps rooms in and out, so re-pointing a frame is far more
+  robust than trying to tear down and rebuild the player in place.
+
+  LICENSING. The player is LOADED FROM Showdown's own servers, which is exactly what every replay
+  downloaded from the site does. We are not redistributing their client (it is AGPL-3.0), we are
+  linking to the hosted copy the way it is meant to be used.
+
+  HONEST LIMIT. Champions is a MOD. The public client carries standard Gen 9 data, so the battle
+  animates and reads correctly — the protocol is standard — but any stat number the client displays
+  in a tooltip comes from base Gen 9, not the Champions SP system. Trust the battle, not the tooltip.
+
+    replay.html?seed=5561914
+-->
+<style>
+  body{margin:0;background:#f6f8fb;font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+  #msg{padding:18px;color:#3a5372;font-weight:700}
+  #msg code{background:#0f1626;color:#e6ecf8;padding:2px 7px;border-radius:5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div id="msg">loading…</div>
+<div class="wrapper replay-wrapper" style="max-width:100%;margin:0 auto">
+  <input type="hidden" name="replayid" value="mew">
+  <div class="battle"></div>
+  <div class="battle-log"></div>
+  <script type="text/plain" class="battle-log-data" id="logdata"></script>
+</div>
+<script src="../data/mew.js"></script>
+<script>
+(function(){
+  var q = new URLSearchParams(location.search);
+  var want = (q.get('seed')||'').replace(/[^0-9]/g,'');
+  var games = (window.MEW && window.MEW.games) || [];
+  var g = null;
+  if (want) {
+    g = games.find(function(x){ return String(x.seed) === want; });
+    /* NO FALLBACK when a seed was explicitly asked for. Falling back to games[0] here meant an
+       unknown seed silently played a DIFFERENT battle — the viewer looked like it worked and showed
+       you someone else's game. Silently answering a different question is worse than saying no. */
+  } else {
+    g = games[0];
+  }
+
+  var msg = document.getElementById('msg');
+  if (!g || !g.log) {
+    msg.innerHTML = want
+      ? 'Seed <b>'+want+'</b> is not among the '+games.length+' bundled here. The full store is about a '
+        + 'gigabyte and stays off the site — regenerate that exact battle locally and it will be '
+        + 'identical move for move:<br><br><code>node engine/mew.js --n 1 --seed '+want+' --policy prior</code>'
+      : 'No battles bundled — run <code>node build/build_mew_bundle.js</code>.';
+    return;
+  }
+  msg.style.display = 'none';
+  document.getElementById('logdata').textContent = g.log;
+
+  /* replay-embed.js reads .battle-log-data at load, so it is injected only AFTER the log is in
+     place. Appending it earlier gives an empty battle with no error. */
+  var s = document.createElement('script');
+  s.src = 'https://play.pokemonshowdown.com/js/replay-embed.js';
+  s.onerror = function(){
+    msg.style.display = '';
+    msg.innerHTML = 'Could not reach play.pokemonshowdown.com to load the replay player. '
+      + 'The battle itself is fine — it is stored here — but the viewer is theirs and needs their site up.';
+  };
+  document.body.appendChild(s);
+})();
+</script>
+</body>
+</html>

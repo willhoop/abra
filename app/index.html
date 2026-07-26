@@ -74,46 +74,9 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
    display:none, so the whole honesty layer was written and then invisibly deleted -- a review
    marked "site never showed the usable count" as FIXED while the CSS was removing the fix.
    If a claim needs a caveat, the caveat ships with it. */
-/* ---- MEW battle field: laid out like a Showdown battle rather than two flat sprite lists.
-   Opponent up and to the right with front sprites, you down and to the left with BACK sprites,
-   a horizon between them, benched Pokemon small beside each side, HP bars under every active. */
-/* CAPPED AND CENTRED. Left at full panel width the two sides sat in opposite corners of a 1400px
-   box with a lake of empty grass between them — the sprites were fine, the spacing was not. A real
-   battle reads as two teams close enough to be fighting each other. */
-.bfield{position:relative;border:3px solid var(--line);border-radius:16px;overflow:hidden;
-        background:linear-gradient(#bfe4ff 0%,#dff1ff 46%,#cfeecb 46%,#a9dfa2 100%);
-        padding:12px 14px;max-width:560px;margin:0 auto}
-.brow{display:flex;align-items:flex-end;gap:14px;position:relative;z-index:2}
-.brow.foe{justify-content:flex-end}
-.brow.me{justify-content:flex-start;margin-top:2px}
-.bground{height:1px;background:rgba(0,0,0,.08);margin:2px 0}
-.bmons{display:flex;gap:10px;align-items:flex-end}
-.bslot{width:96px;text-align:center}
-.bslot.empty{width:96px;height:1px}
-.bslot img{width:84px;height:84px;object-fit:contain;image-rendering:pixelated;
-           filter:drop-shadow(0 3px 2px rgba(0,0,0,.28))}
-.bslot.big img{width:96px;height:96px}
-.bslot.fainted img{filter:grayscale(1);opacity:.28}
-.bname{font-size:10.5px;font-weight:800;color:#2c405c;line-height:1.1;
-       max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-       text-shadow:0 1px 0 rgba(255,255,255,.85)}
-.hpbar{height:7px;border-radius:5px;background:#e6ecf5;border:1.5px solid #9fb0c8;overflow:hidden;margin-top:3px}
-.hpbar > i{display:block;height:100%;transition:width .25s}
-.bteamtag{font-size:12px;font-weight:900;color:#2c405c;text-shadow:0 1px 0 rgba(255,255,255,.85);
-          min-width:128px}
-.bteamtag b{color:#1a7f3c}
-/* The bench was 26px, which at a glance read as debris beside the team name rather than as
-   "these are your other two Pokemon". Bigger, on a tinted strip, so it is legible as a bench. */
-.bbench{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;max-width:128px;
-        background:rgba(255,255,255,.5);border:1.5px solid rgba(0,0,0,.08);border-radius:9px;padding:3px}
-.bbenchmon{width:36px;height:36px;object-fit:contain;image-rendering:pixelated;opacity:.9}
-.bbenchmon.fainted{filter:grayscale(1);opacity:.25}
-.bbenchlbl{font-size:9px;font-weight:800;color:#5a6f8a;letter-spacing:.4px;margin-top:4px}
-.bfieldlog{background:#0f1626;color:#e6ecf8;border:3px solid var(--line);border-radius:12px;
-           padding:11px 14px;min-height:120px;font-weight:600;font-size:13.5px;line-height:1.75;
-           font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.bfieldlog b{color:#ffd76e}
-@media(max-width:560px){ .bslot,.bslot.big{width:72px} .bslot img,.bslot.big img{width:68px;height:68px} }
+/* The hand-written battle-field CSS lived here. Deleted with the viewer it styled:
+   the replay is now rendered by Showdown's own player in an iframe (web/replay.html),
+   which brings its own styling, animations and running log. */
 .chip{display:inline-block;background:#eef4ff;border:2px solid var(--line);border-radius:999px;
       padding:3px 10px;margin:3px 4px 0 0;font-size:12px;font-weight:800;color:#3a5372;
       vertical-align:middle}
@@ -954,199 +917,65 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
    to see, and it used to be buried under four explainers. */
 function mewViewerPanel(){
   return `<div class="panel"><h2>Watch MEW play itself</h2>
+     <p style="font-weight:600;color:#3a5372;margin-top:0">Played on the official Champions simulator and replayed in
+     <b>Pokémon Showdown's own replay player</b> — the one you already know. Paste any seed from the bundle,
+     or leave it blank for a random one.</p>
      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-       <select id="mewpick" style="flex:1;min-width:200px;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:14px;font-weight:700"></select>
-       <input id="mewseed" placeholder="or paste a seed…" style="width:150px;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:14px;font-weight:700">
-       <button class="battlebtn" onclick="mewFindSeed()">Find</button>
+       <input id="mewseed" placeholder="paste a seed…" inputmode="numeric"
+              onkeydown="if(event.key==='Enter')mewFindSeed()"
+              style="flex:1;min-width:180px;max-width:260px;border:3px solid var(--line);border-radius:12px;padding:9px;font-size:15px;font-weight:700">
+       <button class="battlebtn" onclick="mewFindSeed()">Watch it</button>
+       <button class="battlebtn" onclick="mewRandom()">Surprise me</button>
      </div>
      <div id="mewseedmsg" style="font-size:12.5px;font-weight:700;color:#6d829b;margin-bottom:8px"></div>
-     <div id="mewfield"></div>
-     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;margin:12px 0">
-       <button class="battlebtn" onclick="mewGo(-1e9)">&laquo; start</button>
-       <button class="battlebtn" onclick="mewGo(-1)">&lsaquo; back</button>
-       <span id="mewturn" style="font-weight:800;color:#6d829b;min-width:130px;text-align:center">team preview</span>
-       <button class="battlebtn" onclick="mewGo(1)">forward &rsaquo;</button>
-       <button class="battlebtn" onclick="mewGo(1e9)">end &raquo;</button>
-       <button class="battlebtn" id="mewplay" onclick="mewPlay()">&#9654; play</button>
-     </div>
-     <div id="mewlog" class="bfieldlog"></div>
+     <iframe id="mewframe" title="MEW replay" style="width:100%;height:620px;border:3px solid var(--line);border-radius:14px;background:#fff"></iframe>
      <div id="mewprov" style="margin-top:10px;font-size:12.5px;color:#6d829b;font-weight:700"></div>
    </div>`;
 }
-/* ===== MEW battle viewer =====
-   Folded in from the old standalone web/mew.html so the whole project lives on one site. Reads the
-   generated data/mew.js bundle (a 12-game sample; the full store is unbounded and must never be
-   loaded by the browser). */
-var MEW_I=0, MEW_T=-1, MEW_TIMER=null;
+/* ===== MEW replay =====
+   The battle is rendered by the OFFICIAL Showdown replay player inside web/replay.html, because MEW
+   stores the exact Showdown protocol and that player reads it with no conversion. We previously
+   hand-wrote a viewer — sprites and HP bars — and it was worse in every way: no animation, no
+   running log, no ability triggers, no weather or status. It is deleted rather than kept alongside.
+
+   The frame is re-pointed rather than rebuilt, because replay-embed.js initialises once against the
+   DOM it finds at load, and this site swaps rooms in and out of one page. */
 function mewGames(){ return (window.MEW&&window.MEW.games)||[]; }
-/* Showdown sprite ids HYPHENATE the forme; our store normalises hyphens away. Stripping them for
-   every species gave 404s on exactly the ones that carry a forme — sinistchamasterpiece,
-   lycanrocdusk, mausholdfour, vivillonfancy — and Sinistcha-Masterpiece is a top-30 species here,
-   so it had no image anywhere on the site. Put the hyphen back before the known forme suffixes. */
-const FORME_SUFFIX=['masterpiece','alola','galar','hisui','paldea','megax','megay','mega','primal',
-  'dusk','midnight','midday','four','family','fancy','eternal','wash','heat','frost','mow','fan',
-  'therian','origin','crowned','hero','busted','bloodmoon','combat','blaze','aqua','rapidstrike',
-  'singlestrike','sunny','rainy','snowy','zen','school','male','female'];
-function spriteId(sp){
-  let s=String(sp||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  for(const suf of FORME_SUFFIX){
-    if(s.length>suf.length && s.endsWith(suf)) return s.slice(0,-suf.length)+'-'+suf;
-  }
-  return s;
+function mewShow(seed, note){
+  var f=document.getElementById('mewframe'); if(!f) return;
+  f.src='replay.html?seed='+encodeURIComponent(seed)+'&t='+Date.now();
+  var g=mewGames().find(function(x){ return String(x.seed)===String(seed); });
+  var m=document.getElementById('mewseedmsg');
+  if(m) m.innerHTML=(note?note+' · ':'')+'seed <b>'+seed+'</b>'+(g?' · '+g.turns+' turns · '+g.winner+' won':'')+
+    ' · re-run it exactly: <code style="background:#0f1626;color:#e6ecf8;padding:1px 6px;border-radius:4px">node engine/mew.js --n 1 --seed '+seed+'</code>';
 }
-function mewSprite(sp){ return 'https://play.pokemonshowdown.com/sprites/gen5/'+spriteId(sp)+'.png'; }
-function mewSpriteBack(sp){ return 'https://play.pokemonshowdown.com/sprites/gen5-back/'+spriteId(sp)+'.png'; }
-function mewPretty(sp){ return String(sp||'').replace(/([a-z])([A-Z])/g,'$1 $2'); }
-function initMew(){
-  var G=mewGames(), sel=document.getElementById('mewpick');
-  if(!sel) return;
-  if(!G.length){ document.getElementById('mewlog').textContent='No sample bundled — run: node build/build_mew_bundle.js'; return; }
-  sel.innerHTML=G.map(function(g,i){return '<option value="'+i+'">Battle '+(i+1)+' — '+((g.turns||[]).length)+' turns</option>';}).join('');
-  sel.onchange=function(){ mewStop(); MEW_I=+this.value; MEW_T=-1; renderMew(); };
-  var m=(window.MEW&&window.MEW.meta)||{};
-  document.getElementById('mewprov').innerHTML=
-    'engine '+String(m.engine_commit||'—').slice(0,12)+' · format '+(m.format||'—')+
-    ' · policy '+((G[0]||{}).policy||'—')+' · showing '+G.length+' of '+(m.total_selfplay_games||0).toLocaleString()+
-    ' generated games. Every record carries its seed, so any battle here re-runs move for move.';
-  MEW_I=0; MEW_T=-1; renderMew();
+function mewRandom(){
+  var G=mewGames(); if(!G.length) return;
+  var g=G[Math.floor(Math.random()*G.length)];
+  var box=document.getElementById('mewseed'); if(box) box.value=g.seed;
+  mewShow(g.seed,'random pick');
 }
-/* Seed lookup. The browser only ever holds the 12-game sample — the full store is a gigabyte and
-   must never be shipped to a page — so an unknown seed cannot be replayed here. Rather than fail
-   silently, say so and hand over the exact command that regenerates that battle locally, which
-   works because every record carries the seed that produced it. */
 function mewFindSeed(){
   var q=String((document.getElementById('mewseed')||{}).value||'').trim().replace(/[^0-9]/g,'');
-  var msg=document.getElementById('mewseedmsg');
-  if(!q){ msg.innerHTML='Enter a seed — or pick a battle from the list.'; return; }
+  var m=document.getElementById('mewseedmsg');
+  if(!q){ mewRandom(); return; }
+  var g=mewGames().find(function(x){ return String(x.seed)===q; });
+  if(g){ mewShow(q,'found'); return; }
+  /* Unknown seeds are NOT an error. Only 50 battles ship; the store is ~1GB and stays off the site.
+     The frame still loads and explains how to regenerate that exact battle locally. */
+  mewShow(q,'not bundled');
+}
+function initMew(){
   var G=mewGames();
-  var i=G.findIndex(function(g){ return String(g.seed)===q; });
-  if(i>=0){
-    mewStop(); MEW_I=i; MEW_T=-1;
-    var sel=document.getElementById('mewpick'); if(sel) sel.value=String(i);
-    msg.innerHTML='<span style="color:#1a7f3c">Found seed '+q+' — battle '+(i+1)+'.</span>';
-    renderMew();
-  } else {
-    msg.innerHTML='Seed <b>'+q+'</b> is not in the 12 bundled here (the full store is ~1GB and stays off the site). '+
-      'To watch it, regenerate it locally — it will be identical move for move:<br>'+
-      '<code style="background:#0f1626;color:#e6ecf8;padding:2px 7px;border-radius:5px;display:inline-block;margin-top:5px">'+
-      'node engine/mew.js --n 1 --seed '+q+' --policy prior</code>';
-  }
+  var meta=(window.MEW&&window.MEW.meta)||{};
+  var prov=document.getElementById('mewprov');
+  if(prov) prov.innerHTML='engine '+String(meta.engine_commit||'—').slice(0,12)+' · '+(meta.format||'—')+
+    ' · policy '+((G[0]||{}).policy||'—')+' · showing '+G.length+' of '+(meta.total_selfplay_games||0).toLocaleString()+
+    ' generated games. Every record carries its seed, so any battle here re-runs move for move.'+
+    '<br>Replay player is Pok&eacute;mon Showdown&rsquo;s own, loaded from their site. Champions is a mod, so the battle is exact but any stat tooltip shows base Gen 9 numbers.';
+  if(G.length) mewShow(G[0].seed);
 }
-function mewStop(){ if(MEW_TIMER){ clearInterval(MEW_TIMER); MEW_TIMER=null; var b=document.getElementById('mewplay'); if(b) b.innerHTML='&#9654; play'; } }
-function mewPlay(){
-  if(MEW_TIMER){ mewStop(); return; }
-  document.getElementById('mewplay').innerHTML='&#10074;&#10074; pause';
-  MEW_TIMER=setInterval(function(){
-    var n=(mewGames()[MEW_I].turns||[]).length;
-    if(MEW_T>=n-1){ mewStop(); return; }
-    MEW_T++; renderMew();
-  },850);
-}
-function mewGo(d){ mewStop(); var n=(mewGames()[MEW_I].turns||[]).length;
-  MEW_T = d<=-1e9 ? -1 : d>=1e9 ? n-1 : Math.max(-1,Math.min(n-1,MEW_T+d)); renderMew(); }
-/* Replay the game up to MEW_T and return who is on the field, at what HP.
-   The bundle records per-event DAMAGE rather than absolute HP, so HP is reconstructed by
-   accumulating hits on each species — the same way the log itself reads. */
-function mewStateAt(g, upto){
-  var st={p1:{active:[],hp:{},faint:{}},p2:{active:[],hp:{},faint:{}}};
-  ['p1','p2'].forEach(function(s){
-    ((g.brought||{})[s]||[]).forEach(function(sp){ st[s].hp[sp]=100; });
-    var ld=((g.lead||{})[s]||[]).slice(0,2);
-    st[s].active=ld.slice();
-  });
-  for(var t=0;t<=upto && t<(g.turns||[]).length;t++){
-    (g.turns[t].ev||[]).forEach(function(e){
-      var side=String(e.s||'').slice(0,2); if(!st[side]) return;
-      if(e.t==='s'&&e.mon){
-        // a switch replaces whoever stood in that position
-        var pos=String(e.s||'').slice(2)==='b'?1:0;
-        st[side].active[pos]=e.mon;
-        if(st[side].hp[e.mon]==null) st[side].hp[e.mon]=100;
-      }
-      if(e.t==='f'&&e.mon){ st[side].faint[e.mon]=1; st[side].hp[e.mon]=0; }
-      if(e.t==='m'&&e.dmg&&e.tgt){
-        var foe=side==='p1'?'p2':'p1';
-        // damage lands on the target, whichever side it is on
-        var owner = (st[foe].hp[e.tgt]!=null) ? foe : side;
-        st[owner].hp[e.tgt]=Math.max(0,(st[owner].hp[e.tgt]==null?100:st[owner].hp[e.tgt])-e.dmg);
-      }
-    });
-  }
-  return st;
-}
-function hpBar(pct){
-  var c = pct>50 ? '#4fc46a' : pct>20 ? '#e8b53a' : '#e0554f';
-  return '<div class="hpbar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%;background:'+c+'"></i></div>';
-}
-function mewMon(sp, side, st, big){
-  if(!sp) return '<div class="bslot empty"></div>';
-  var hp = st.hp[sp]==null?100:st.hp[sp];
-  var out = st.faint[sp];
-  var back = side==='p1';
-  var url = back ? mewSpriteBack(sp) : mewSprite(sp);
-  return '<div class="bslot'+(out?' fainted':'')+(big?' big':'')+'">'
-    + '<img src="'+url+'" alt="'+sp+'" onerror="this.onerror=null;this.src=\''+mewSprite(sp)+'\'">'
-    + '<div class="bname" title="'+mewPretty(sp)+'">'+mewPretty(sp)+'</div>'
-    + hpBar(hp)
-    + '</div>';
-}
-function renderMew(){
-  var g=mewGames()[MEW_I]; if(!g) return;
-  var st=mewStateAt(g, MEW_T);
-  var bench=function(side){
-    var br=((g.brought||{})[side]||[]);
-    return br.filter(function(sp){ return st[side].active.indexOf(sp)<0; })
-      .map(function(sp){
-        var out=st[side].faint[sp];
-        return '<img class="bbenchmon'+(out?' fainted':'')+'" src="'+mewSprite(sp)+'" title="'+mewPretty(sp)+(out?' (fainted)':'')+'" alt="'+sp+'">';
-      }).join('');
-  };
-  var benchBlock=function(side){
-    var b=bench(side);
-    return b ? '<div class="bbenchlbl">ON THE BENCH</div><div class="bbench">'+b+'</div>' : '';
-  };
-  var wonA=g.winner==='MEW-A', wonB=g.winner==='MEW-B';
-  document.getElementById('mewfield').innerHTML =
-    '<div class="bfield">'
-    + '<div class="brow foe">'
-    +   '<div class="bteamtag">MEW-B'+(wonB?' <b>WON</b>':'')+benchBlock('p2')+'</div>'
-    +   '<div class="bmons">'+mewMon(st.p2.active[0],'p2',st.p2,true)+mewMon(st.p2.active[1],'p2',st.p2,true)+'</div>'
-    + '</div>'
-    + '<div class="bground"></div>'
-    + '<div class="brow me">'
-    +   '<div class="bmons">'+mewMon(st.p1.active[0],'p1',st.p1,true)+mewMon(st.p1.active[1],'p1',st.p1,true)+'</div>'
-    +   '<div class="bteamtag">MEW-A'+(wonA?' <b>WON</b>':'')+benchBlock('p1')+'</div>'
-    + '</div>'
-    + '</div>';
-  var log=document.getElementById('mewlog');
-  if(MEW_T<0){
-    var f=function(s){return (((g[s]||{}).p1)||[]).map(mewPretty).join(', ');};
-    log.innerHTML='<b>MEW-A</b> brings '+(((g.brought||{}).p1)||[]).map(mewPretty).join(', ')+
-      '<br>&nbsp;&nbsp;leads '+(((g.lead||{}).p1)||[]).map(mewPretty).join(' + ')+
-      '<br><br><b>MEW-B</b> brings '+(((g.brought||{}).p2)||[]).map(mewPretty).join(', ')+
-      '<br>&nbsp;&nbsp;leads '+(((g.lead||{}).p2)||[]).map(mewPretty).join(' + ');
-    document.getElementById('mewturn').textContent='team preview';
-  } else {
-    var T=(g.turns||[])[MEW_T]||{ev:[]};
-    var lines=(T.ev||[]).map(function(e){
-      var who='<b>'+mewPretty(e.mon||'?')+'</b>';
-      if(e.t==='m'){ var s=who+' used <b>'+(e.mv||'?')+'</b>';
-        if(e.tgt&&e.tgt!==e.mon) s+=' &rarr; '+mewPretty(e.tgt);
-        if(e.dmg) s+=' <span style="color:#e07a2a">('+e.dmg+'%)</span>'; return s; }
-      if(e.t==='f') return '<span style="color:#d0454c;font-weight:800">'+mewPretty(e.mon||'?')+' fainted</span>';
-      if(e.t==='s') return who+' switched in';
-      if(e.t==='mega') return who+' Mega Evolved';
-      return '';
-    }).filter(Boolean);
-    log.innerHTML=lines.length?lines.join('<br>'):'<span style="color:#8fa0b6">(nothing recorded this turn)</span>';
-    document.getElementById('mewturn').textContent='turn '+(T.n!=null?T.n:MEW_T+1)+' of '+(g.turns||[]).length;
-  }
-  /* The winner is drawn on the field tag now, so there is no separate verdict line. The seed goes
-     under the field, because it is the thing that makes a battle re-runnable and people copy it. */
-  var sd=document.getElementById('mewseedmsg');
-  if(sd && !sd.dataset.sticky) sd.innerHTML='seed <b>'+(g.seed!=null?g.seed:'—')+'</b> · '+
-    ((g.turns||[]).length)+' turns · re-run it with <code style="background:#0f1626;color:#e6ecf8;padding:1px 6px;border-radius:4px">node engine/mew.js --n 1 --seed '+g.seed+'</code>';
-}
+function mewStop(){}
 function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
   return `<div class="panel">${mascotHero(c,"When I'm built, I'll give you the win-%-optimal move — and your real chance to win — at any point in the battle.")}</div>
    <div class="panel"><h2>The capstone <span style="font-size:13px;color:#a06bd0">— in development</span></h2><p style="font-weight:600;color:#3a5372">ALAKAZAM is the final, hardest piece of ABRA. Given a live position it will output the <b>best move and your real win chance</b> — by keeping a belief about what the opponent is hiding (Xatu), planning a few turns ahead over the exact damage engine, and scoring positions with Porygon's win meter. It <b>plans</b> instead of just reacting, and keeps its choices <b>unpredictable</b> so it can't be read. This is Kadabra fully evolved.</p>
