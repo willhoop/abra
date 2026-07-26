@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.11.1 · 2026-07-26 · Will Hooper**
+**Version 3.11.2 · 2026-07-26 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -34,7 +34,7 @@ negatives are reported as negatives.
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
-| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | ✅ **Built (3.11.1)** | Conditional logit fitted to **48,538 real human clicks** from 2,240 clean open-sheet games. Held out by game: top-1 **33.6%** against the behaviour clone's 27.1%. Out of sample it roughly halved both gaps it was built for — super-effective **9.7% → 14.9%** (real 21.4%), failed moves **9.7% → 6.3%** (real 2.5%). Does **not** decide switches; no damage calc; one ply |
+| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | ✅ **Built (3.11.2)** | Conditional logit fitted to **48,538 real human clicks** from 2,240 clean open-sheet games. Held out by game: top-1 **33.6%** against the behaviour clone's 27.1%. Out of sample it roughly halved both gaps it was built for — super-effective **9.7% → 14.9%** (real 21.4%), failed moves **9.7% → 6.3%** (real 2.5%). Does **not** decide switches; no damage calc; one ply |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=20** across 1,051 cells (vs old single-label n=11–18) — the 7,971 once published was retracted in 2.7.0; preview roles tie a coin (honest null) |

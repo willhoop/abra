@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.11.1 · Last updated 2026-07-26**
+**Version 3.11.2 · Last updated 2026-07-26**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -141,7 +141,7 @@ pattern, not a settled fact**; it will sharpen as the store grows. Where matchup
 train mean/std; `P(win) = σ(w·z + b)`. Graded by held-out **log-loss** `−(y·ln p + (1−y)·ln(1−p))` and
 **Brier** `(p−y)²`; the coin scores `ln 2 = 0.6931` and `0.25` respectively.
 
-**Discrete choice — the scoring bot's policy (v3.11.1).** A player facing a turn chooses one of the
+**Discrete choice — the scoring bot's policy (v3.11.2).** A player facing a turn chooses one of the
 legal (move, target) pairs. Writing `x_j` for the attributes of alternative `j` — type effectiveness
 against that specific target, base power, whether the move is already dead on the board, and the
 behaviour clone's `P(move | species)` — the conditional logit model (McFadden 1974) is
@@ -188,7 +188,7 @@ cores beat which" and for quantifying how cyclic the meta really is.
 2. **Revealed sets are partial** (a mon that never attacked reveals no moves); belief is a lower bound.
 3. **Small samples in the meta layer.** Playstyle and core matchups are thin; those results are
    suggestive until the store grows.
-4. **Policy is the residual GIGO — reduced in 3.11.1, not removed.** The damage is validated; the
+4. **Policy is the residual GIGO — reduced in 3.11.2, not removed.** The damage is validated; the
    *policy* was behaviour-cloned and board-blind. The scoring bot (§5) roughly halved both gaps that
    measured that blindness — super-effective moves 9.7% → 14.9% against a human 21.4%, moves that
    outright failed 9.7% → 6.3% against 2.5% — but it is **one ply**: no damage calculation, no model

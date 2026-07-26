@@ -10,6 +10,43 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.11.2] — 2026-07-26
+
+### The Protect-chain measurement was wrong, and the "bot signature" reading of it was wrong twice
+
+3.11.1 reported Protect chains up to nine long and treated a long chain as evidence of a failing bot.
+Two corrections, both from the same objection: *a human would never click Protect nine times, it only
+has 8 PP.*
+
+**First: Protect has 5 base PP, 8 with PP Ups. A chain of nine is not something a bot does — it is
+something my detector invented.** It keyed the chain on the field SLOT rather than on the Pokemon, so
+when one fainted and its replacement used Protect, the counter carried on as if it were the same
+Pokemon. Re-keyed on slot *and* species, and restricted to the moves the dex actually marks
+`stallingMove` (Wide Guard and Quick Guard have 16 PP and different mechanics and should never have
+been in the bucket):
+
+| | share of moves | repeated immediately | longest chain, same Pokemon |
+|---|---|---|---|
+| humans, as published in 3.11.1 | 14.3% | 12.5% | 9 |
+| **humans, corrected** | **13.8%** | **8.1%** | **8** |
+
+Eight is exactly max PP. Nothing anomalous survives.
+
+**Second: even a chain longer than eight would not be bot evidence.** A Leppa Berry restores PP, so a
+Pokemon can Protect to empty, eat the berry and continue. The "impossible, therefore a bot" reading
+was wrong on its own terms.
+
+**The bot-side figures in 3.11.1 came from the same broken detector and are withdrawn**, not merely
+adjusted — the prior bot's 42.8% and MAG's 21.5% must be re-measured before either is quoted again.
+The qualitative point that the baseline over-Protects survives; the numbers do not.
+
+This is the third time a denominator or keying mistake has manufactured a defect in this project,
+after switches-per-move and the set-diversity artifact. The rule stands and was not applied here:
+before believing any gap, check that both sides had the same opportunity to produce it — and check
+what the counter is actually keyed on.
+
+---
+
 ## [3.11.1] — 2026-07-26
 
 ### Withdrawn: "MAG wins 60% of the time" as a claim about competence
