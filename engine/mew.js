@@ -73,6 +73,15 @@ const N = parseInt(arg('n', '100'), 10);
 const CONC = parseInt(arg('conc', '4'), 10);
 const SEED0 = parseInt(arg('seed', '1'), 10);
 const POLICY = arg('policy', 'random');
+/* THE HEAD-TO-HEAD GATE (backlog item 4). `--policy2` gives the SECOND player a different policy, so
+ * two bots can be played against each other and the question "is the new one actually better" gets an
+ * answer in WINS rather than in how well it predicts a human.
+ *
+ * That distinction is the whole point. A policy fitted to imitate people is graded on how often it
+ * guesses their next click, and that number can improve while the bot gets no better at winning —
+ * they are different objectives and only this one is the goal. Nothing in the project measured it
+ * until now. */
+const POLICY2 = arg('policy2', '');
 /* Per-decision probability of taking an available form change. See the block at the Player
  * construction for why this is not the same thing as the mega rate. */
 const MEGA_P = parseFloat(arg('mega', '0.85'));
@@ -166,6 +175,17 @@ function realTeams() {
 }
 
 // ---- one self-play battle ----------------------------------------------------------------------
+/* One place that maps a policy NAME to a player class, so both sides of a head-to-head resolve the
+ * same way and a new policy cannot be wired into one side only.
+ *   random  Showdown's RandomPlayerAI — cheap and unbiased, not valid as training data.
+ *   prior   engine/prior_player.js — samples the move a species actually clicks. Board-blind.
+ *   score   engine/magnemite.js — MAG. Reads the board and chooses the target too. */
+function pickPolicy(name) {
+  if (name === 'prior') return require('./prior_player.js').makePriorPlayer();
+  if (name === 'score') return require('./magnemite.js').makeScoringPlayer();
+  return simBits().RandomPlayerAI;
+}
+
 async function playOne(teamA, teamB, seed) {
   const { BattleStream, getPlayerStreams, RandomPlayerAI, Teams } = simBits();
   /* THE SETS MUST VARY BETWEEN GAMES, AND FOR 199,524 GAMES THEY DID NOT.
@@ -214,13 +234,8 @@ async function playOne(teamA, teamB, seed) {
    * random on 100% of decisions while reporting itself as a prior sampler, and produced a 32.2-point
    * "finding" that measured nothing. PriorPlayerAI counts its own fallbacks for the same reason, and
    * MEW now reports the sampled rate so a broken policy is visible rather than assumed. */
-  let Player = RandomPlayerAI;
-  if (POLICY === 'prior') Player = require('./prior_player.js').makePriorPlayer();
-  /* score — engine/magnemite.js. Everything `prior` does, plus it reads the board: it scores
-   * every (move, target) pair with weights fitted to real human clicks and samples from that. It is
-   * the only mode that AIMS; the other two let RandomPlayerAI pick the foe with a coin flip before
-   * the policy is consulted, which is most of what "super effective" means in doubles. */
-  if (POLICY === 'score') Player = require('./magnemite.js').makeScoringPlayer();
+  const Player = pickPolicy(POLICY);
+
   /* SEED THE PLAYERS, NOT JUST THE BATTLE.
    * ------------------------------------------------------------------------------------------
    * `>start {seed}` below seeds the BATTLE's rng — damage rolls, crits, accuracy, speed ties. It
@@ -260,8 +275,14 @@ async function playOne(teamA, teamB, seed) {
    * probability is NOT the mega rate: RandomPlayerAI spends the roll on the first available form
    * change in the order terastallize -> dynamax -> mega, so in Gen 9 a Tera consumes it and the mega
    * waits for another turn. Raising this number has less effect than it looks like it should. */
-  const p1 = new Player(streams.p1, { seed: pseed(1), mega: MEGA_P });
-  const p2 = new Player(streams.p2, { seed: pseed(2), mega: MEGA_P });
+  /* SIDES ALTERNATE. If the challenger always sat on p1 any advantage that side carries — move
+   * order on speed ties, who the engine asks first — would be scored as policy strength. Swapping
+   * on every other battle cancels it, and `swapped` is recorded so the result can be read back. */
+  const swapped = !!(POLICY2 && (seed % 2 === 1));
+  const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
+  const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
+  const p1 = new PA(streams.p1, { seed: pseed(1), mega: MEGA_P });
+  const p2 = new PB(streams.p2, { seed: pseed(2), mega: MEGA_P });
   p1.start(); p2.start();
 
   void streams.omniscient.write(
@@ -276,7 +297,7 @@ async function playOne(teamA, teamB, seed) {
    * uniform random is indistinguishable from a working one unless the rate is reported, and that is
    * precisely how ADR-001 attempt 3 produced a 32.2-point number that measured nothing. */
   const st = (p) => (p && p.stats) ? p.stats : null;
-  return { log, stats: [st(p1), st(p2)].filter(Boolean) };
+  return { log, swapped, stats: [st(p1), st(p2)].filter(Boolean) };
 }
 
 let _bits = null;
@@ -438,6 +459,14 @@ async function main() {
        * indistinguishable from a real one, and that is unrecoverable. */
       rec.source = 'selfplay';
       rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: CS.FORMAT, policy: POLICY, seed };
+      if (POLICY2) {
+        /* Which POLICY won, not which side. `swapped` says where the challenger sat this battle. */
+        const sw = res && res.swapped;
+        rec.selfplay.policy2 = POLICY2;
+        rec.selfplay.swapped = !!sw;
+        const p1won = rec.winner && rec.p1 && rec.winner === rec.p1.name;
+        rec.selfplay.winnerPolicy = p1won ? (sw ? POLICY2 : POLICY) : (sw ? POLICY : POLICY2);
+      }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the
        * game, the teams, the policy and the seed that produced it. */

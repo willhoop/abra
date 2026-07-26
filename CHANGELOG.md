@@ -10,6 +10,42 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.11.0] — 2026-07-26
+
+### The head-to-head gate, and the first evidence MAG is actually BETTER rather than just more human
+
+Backlog item 4, and it was overdue. Everything reported about MAG until now measured how well it
+**predicts a human's next click**. That is a different question from whether it **wins**, and only the
+second one is the goal. The distinction was raised directly and it was fair: a policy fitted to
+imitate people can get better at imitating while getting no better at playing.
+
+`engine/mew.js` gains `--policy2`, so two policies play each other. Sides **alternate every battle**,
+because a challenger that always sat on p1 would score that seat's advantages as policy strength, and
+the winner is recorded as a **policy** rather than a side.
+
+**MAG against the prior bot it replaced, 1,176 decisive games:**
+
+| | |
+|---|---|
+| MAG wins | 708 |
+| prior bot wins | 468 |
+| MAG win rate | **60.2%**, 95% CI [57.4, 63.0] |
+
+The interval clears a coin comfortably. Balanced across seats — 61.4% on p1, 59.0% on p2 — so it is
+not a side artifact. **This is the first result in the project showing the board-aware policy is
+better at the game, not merely better at resembling people.**
+
+### Withdrawn: the old self-play corpus as evidence for anything
+
+Previous entries used the 199,524-game self-play corpus to argue that outcome-based learning needs a
+strong starting policy, citing PORY's weakness on it. **That corpus is not usable evidence** — it was
+generated before the mega option was passed to the players, so essentially no game in it contains a
+mega evolution in a format built around megas, and the set generator of the time could put two
+Protect-family moves on one set. PORY's weakness on it may be those defects rather than anything
+about outcome learning. The argument is withdrawn; the head-to-head above does not depend on it.
+
+---
+
 ## [3.10.0] — 2026-07-26
 
 ### Effectiveness is no longer forced to be linear, and spread moves now know they hit your partner
