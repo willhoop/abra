@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.7.1] — 2026-07-26
+
+### The open-sheet corpus objection, measured instead of argued
+
+Raised against 3.7.0: *open team sheet teams have different incentives than closed team sheet teams.*
+Correct, and sharper than the caveat 3.7.0 recorded — that one said open-sheet players *hedge less*,
+which is about play. The real point is that the **teams themselves** are built differently, because a
+surprise set or a bluff item is worth nothing against someone who read your sheet before game one.
+The corpus even ships with a warning saying so: *"Different information AND incentive regime … Do
+not pool."* It was there and the fit used the corpus anyway.
+
+**`engine/corpus_shift.js` (new)** measures it, applying the same code to both corpora so a
+difference is the population and not the measurement. The objection is right, and large:
+
+| | open-sheet | closed ladder |
+|---|---|---|
+| Garchomp on a team | 81.6% | 47.7% |
+| Basculegion | 61.3% | 33.2% |
+| Staraptor | 44.0% | 25.1% |
+| Tyranitar | 7.4% | 21.2% |
+| Sitrus Berry (share of items) | 8.4% | 17.5% |
+
+**551.9 points of total absolute species difference across 109 species.** Not the same metagame.
+
+But behaviour *given a board* — the only thing the policy learns — is nearly identical: super
+effective 35.59% against 37.08%, resisted 15.06% against 15.04%, immune 1.00% against 0.97%, dead
+moves 1.30% against 1.53%, status 33.89% against 34.09%, Protect 13.87% against 13.79%.
+
+That split is what licenses the corpus. The model is **conditional** on the board and never learns
+what to bring — MEW samples teams from the clean ladder store regardless — so the composition gap
+changes which situations were sampled, not what was learned from them.
+
+**Corrected rather than argued away.** `fit_policy.js` now re-estimates on a sample
+importance-weighted to the closed-sheet species mix on **every run**, and reports whether the weights
+move. They do not: largest change `deadStatus` by **0.222** on a weight of −1.374, with 47% of the
+sample surviving reweighting (Kish effective sample size, reported so a correction that ate the
+sample would be visible). If that ever stops holding, the run says so in words and the conclusion is
+void.
+
+### "Most games are bot games" — checked on this corpus specifically, and it is the cleaner one
+
+`quality.js`'s bot detection was tuned on our own scrape, so running it over a corpus somebody else
+assembled proves little by itself. `corpus_shift.js` applies the project's own **team-invariance**
+signal to both, before and after filtering:
+
+| corpus | accounts flagged | games touched | after filtering |
+|---|---|---|---|
+| open-sheet | 1 | 50 of 4,167 (1.2%) | 0 remain |
+| closed ladder store | 7 | 1,980 of 14,878 (13.3%) | 0 remain |
+
+The scraped open-sheet corpus is **less** bot-contaminated than our own ladder store, not more. But
+the rule needs ≥50 games from one account to fire and only 6 of 2,149 open-sheet accounts play that
+many, so this is a **floor on detection, not a clean bill of health** — the right phrase stays "no
+bot detected", never "human".
+
+### Move quality barely varies with rating, which is a finding about the metrics
+
+Raised alongside: low-rated players make rule-ignorant plays — Prankster Taunt into Farigiraf, Fake
+Out into Tsareena. Measured against the protocol on the clean closed store:
+
+| rating | failed | immune | super effective | blocked action |
+|---|---|---|---|---|
+| under 1100 | 2.59% | 1.94% | 22.59% | 4.66% |
+| 1100–1250 | 2.38% | 2.13% | 21.57% | 4.25% |
+| 1250–1400 | 2.34% | 2.40% | 20.50% | 4.25% |
+| 1400+ | 2.30% | 1.61% | 21.21% | 3.43% |
+
+Blocked actions do fall with rating. Failed and immune moves are **flat**, and low-rated players hit
+super effectively *slightly more often*. So the open-sheet corpus being ~185 rating points weaker is
+less dangerous than it looks — but the sharper consequence is that **these realism metrics are not
+skill metrics**. Matching a human failure rate makes the bot human-*like*, not good, and ALAKAZAM
+eventually needs the second thing.
+
+### A gap the feature set cannot represent, now named
+
+The specific plays raised are real and present: **Armor Tail 52, Queenly Majesty 9** in the clean
+closed store. **No feature in `board.js` can represent any of them** — `immune` is computed from
+**types only**, so ability-based immunity (Levitate, Flash Fire, Storm Drain, Sap Sipper) and
+priority-blocking abilities are invisible to the model. Recorded in `data/policy-weights.json` and
+DEFENSE §6 as a known hole rather than fixed here; at ~0.2% of moves it is a small slice of the
+remaining 3.87-point failed-move gap, and switching is the larger prize.
+
+---
+
 ## [3.7.0] — 2026-07-26
 
 ### The scoring bot — a player that looks at the other side of the field

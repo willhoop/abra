@@ -259,11 +259,64 @@ the place it is most likely to be wrong is a set with redundant coverage. This i
 distrust the realism numbers — those are measured from played games, not predicted — but it is a
 reason not to quote the per-decision probabilities as calibrated.
 
-**Two further limits, stated rather than buried.** The corpus is open-team-sheet games, the only ones
-where the choice set is known rather than guessed, and open-sheet play hedges less than closed ladder
-play. And ~11% of clicks could not be matched to a candidate and were dropped, the largest single
-cause being redirection (Follow Me, Rage Powder), where the protocol records the target that was
-*hit* rather than the one that was chosen.
+**THE CORPUS OBJECTION, AND WHY IT SPLITS IN TWO.** The fit uses open-team-sheet games, and the
+obvious objection is that open sheets change the incentives — a surprise set or a bluff item is worth
+nothing against someone who read your sheet before game one, so the **teams** are built differently,
+not merely played differently. The corpus ships with a warning saying exactly that: *"Different
+information AND incentive regime … Do not pool."*
+
+The objection is correct about teams and the effect is large. Measured by `engine/corpus_shift.js`
+over 2,136 clean open-sheet and 1,802 clean closed-sheet games:
+
+| | open-sheet | closed ladder |
+|---|---|---|
+| Garchomp on a team | 81.6% | 47.7% |
+| Basculegion | 61.3% | 33.2% |
+| Staraptor | 44.0% | 25.1% |
+| Tyranitar | 7.4% | 21.2% |
+| Sitrus Berry (share of items) | 8.4% | 17.5% |
+
+**551.9 points of total absolute difference across 109 species.** These are not the same metagame.
+
+But the behaviour *given a board* — the thing the policy actually learns — is nearly identical:
+
+| | open-sheet | closed ladder | gap |
+|---|---|---|---|
+| super effective (of damaging moves) | 35.59% | 37.08% | 1.49 |
+| resisted | 15.06% | 15.04% | 0.02 |
+| immune | 1.00% | 0.97% | 0.03 |
+| a move that could not work | 1.30% | 1.53% | 0.23 |
+| status moves | 33.89% | 34.09% | 0.20 |
+| Protect-family | 13.87% | 13.79% | 0.08 |
+
+That split is what licenses the corpus. The model is **conditional** — `P(choice | board, choice
+set)` — and it never learns what to bring; MEW samples its teams from the clean ladder store
+regardless. So the composition gap changes *which situations were sampled*, not *what was learned
+from them*.
+
+That is still covariate shift, so it is corrected rather than argued away: `fit_policy.js`
+re-estimates on a sample importance-weighted to the closed-sheet species mix on **every run** and
+reports whether the weights move. They do not — the largest change is `deadStatus` by **0.222**, on
+a weight of −1.374, with 47% of the sample surviving reweighting. If that ever stops being true the
+conclusion is void, and the run says so in words.
+
+**Three residual limits, stated rather than buried.**
+
+1. **Rating.** Open-sheet players average **1096** against the closed store's **1281**. Measured
+   against the protocol on the closed store, though, move quality is close to flat in rating — failed
+   moves run 2.59% at under 1100 and 2.30% at 1400–1600, and low-rated players hit *super effectively
+   slightly more often*. Which is itself worth stating: **these realism metrics are not skill
+   metrics.** Matching a human failure rate makes the bot human-like, not good, and above some point
+   ALAKAZAM needs the second thing.
+2. **Rule-ignorant plays exist and are not modelled.** Clicking a priority move into an ability that
+   blocks it — Prankster Taunt into Farigiraf's Armor Tail, Fake Out into Queenly Majesty — appears
+   61 times in the clean closed store (Armor Tail 52, Queenly Majesty 9), and **no feature in
+   `board.js` can represent it**: `immune` is computed from TYPES only. Ability-based immunity
+   generally (Levitate, Flash Fire, Storm Drain, Sap Sipper) is the same hole and is the bigger half
+   of it. Blocked-action rate does fall with rating, 4.66% under 1100 to 3.43% above 1400.
+3. **~11% of clicks could not be matched** to a candidate and were dropped, the largest single cause
+   being redirection (Follow Me, Rage Powder), where the protocol records the target that was *hit*
+   rather than the one that was chosen.
 
 ---
 

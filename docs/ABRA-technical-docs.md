@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.7.0 · Last updated 2026-07-26**
+**Version 3.7.1 · Last updated 2026-07-26**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -41,6 +41,14 @@ and writes `data/policy-weights.json`. It prints the held-out comparison against
 if the fit does not beat the clone it says so in plain words and the weights must not ship.
 `engine/selftest.js` refuses a weight file that lost to the clone, and refuses one whose feature list
 does not match what `engine/board.js` computes.
+
+**Check the corpus the policy was fitted on.**
+`SHOWDOWN_PATH=... node engine/corpus_shift.js`
+Compares open-sheet against closed-sheet ladder on the same code: team composition, behaviour given a
+board, bot contamination before and after filtering, and mean rating. Run it before trusting a refit.
+The teams differ by 551.9 points of total absolute species difference; the behaviour differs by at
+most 1.49. That split is why the corpus is usable — the policy is conditional on the board and never
+learns what to bring.
 
 **Play with the scoring policy.**
 `SHOWDOWN_PATH=... node engine/mew.js --n 1000 --policy score`

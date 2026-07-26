@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-26T18:19:27.742Z",
+ "generated": "2026-07-26T19:00:24.133Z",
  "features": [
   "eff",
   "immune",
@@ -15,18 +15,18 @@
   "priorLogP"
  ],
  "weights": [
-  0.795259039772624,
-  -2.0599843712412076,
-  0.17526972522250442,
-  -0.16204774454299103,
-  0.28231159023950847,
-  0.3110984968687831,
-  -1.3737932378831903,
-  -2.3034942984117794,
-  -2.3676227537536447,
-  -0.9419172620967828,
-  -0.8579074722678228,
-  0.24967663495309195
+  0.7952591325555136,
+  -2.059984858710649,
+  0.17526974746580165,
+  -0.1620478432972297,
+  0.28231155763796334,
+  0.3110985584215937,
+  -1.3737932087001832,
+  -2.303493506679114,
+  -2.367621413719118,
+  -0.941917194272571,
+  -0.8579076270907018,
+  0.2496766666721292
  ],
  "lambda": 0,
  "corpus": {
@@ -45,11 +45,22 @@
    "acc": 0.27115678985348785
   },
   "boardAware": {
-   "ll": -1.6005889193880731,
+   "ll": -1.6005889193741225,
    "acc": 0.33588453968948173
   },
-  "gain_logL": 0.32912390931546986,
+  "gain_logL": 0.3291239093294205,
   "gain_top1_points": 6.472774983599389
  },
- "caveat": "Fitted on open-team-sheet games, where both players see all sets. Closed ladder play involves more hedging against unknown sets, so these weights are learned on a slightly different game than the one they are played in."
+ "covariateShift": {
+  "note": "Open-sheet TEAMS differ enormously from closed-sheet teams (551.9 points of total absolute species difference, engine/corpus_shift.js). Open-sheet BEHAVIOUR given a board does not (largest gap 1.49 points). This model is conditional on the board and never learns what to bring, so the composition gap changes which situations were sampled, not what was learned from them.",
+  "reweighted_max_weight_change": {
+   "feature": "deadStatus",
+   "delta": 0.22186020949572094
+  },
+  "effective_sample_size": {
+   "ess": 18341,
+   "of": 39392
+  }
+ },
+ "caveat": "Fitted on open-team-sheet games, the only corpus where the CHOICE SET is known rather than guessed. Known unmodelled gaps: ability-based immunity and priority-blocking abilities (Armor Tail, Queenly Majesty) are invisible to the feature set, which computes immunity from TYPES only; and ~11% of clicks were dropped as unmatched, mostly redirection (Follow Me, Rage Powder). Open-sheet players also average ~185 rating points lower, though measured move quality is close to flat in rating."
 }

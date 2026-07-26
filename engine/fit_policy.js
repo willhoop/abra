@@ -88,6 +88,68 @@ const priorFor = (species, moveId) => {
  * Both open-sheet sources, deduplicated by replay id, every game through engine/quality.js.
  * GARBODOR: the raw store is 87% bots, forfeits and stubs; nothing here touches it unfiltered.
  * ------------------------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------------------------
+ * THE OPEN-SHEET METAGAME IS NOT THE CLOSED-SHEET METAGAME, AND THAT IS MEASURED, NOT ASSUMED
+ *
+ * Open team sheets change the incentives on TEAM BUILDING, not just on play: a surprise set or a
+ * bluff item is worth nothing against an opponent who read your sheet before game one. The corpus
+ * even ships with a warning saying so ("Different information AND incentive regime ... Do not pool").
+ *
+ * Measured with engine/corpus_shift.js, the difference in teams is large:
+ *
+ *     Garchomp     81.6% of open-sheet teams   47.7% of closed      Tyranitar  7.4% v 21.2%
+ *     Basculegion  61.3%                       33.2%                Sitrus     8.4% v 17.5% of items
+ *     total absolute difference across 109 species: 551.9 points
+ *
+ * and the difference in BEHAVIOUR GIVEN A BOARD is not:
+ *
+ *     super effective 35.6% v 37.1%   resisted 15.1% v 15.0%   immune 1.00% v 0.97%
+ *     dead moves 1.30% v 1.53%        status 33.9% v 34.1%     Protect 13.9% v 13.8%
+ *
+ * That distinction is what licenses using this corpus at all. The fit is a CONDITIONAL model,
+ * P(choice | board, choice set) — it never learns what to bring, and MEW draws its teams from the
+ * clean LADDER store regardless. So the composition shift changes which situations the fit saw, not
+ * the behaviour it is learning.
+ *
+ * It is still a shift, and this function corrects for it the standard way: importance weighting.
+ * Each decision is weighted by how much more or less common its acting species is in closed play,
+ * which reweights the open-sheet sample to look like the closed-sheet metagame. Nothing here is
+ * typed — both shares are counted from the two corpora — and the weights are normalised to mean 1
+ * so the log-likelihood stays on its usual scale.
+ *
+ * Reweighting can quietly destroy a sample by concentrating it on a handful of rows, so the
+ * effective sample size (Kish, (sum w)^2 / sum w^2) is reported rather than assumed harmless.
+ * ------------------------------------------------------------------------------------------- */
+function speciesShares() {
+  const cfg = Q.config();
+  const count = (games) => {
+    const c = {}; let n = 0;
+    for (const g of games) {
+      n++;
+      for (const s of ['p1', 'p2']) for (const sp of ((g.six || {})[s] || [])) {
+        const k = base(sp); c[k] = (c[k] || 0) + 1;
+      }
+    }
+    return { c, n };
+  };
+  const openG = [], closedG = [];
+  for (const l of fs.readFileSync(D('data', 'games.ots.jsonl'), 'utf8').split('\n')) {
+    if (!l.trim()) continue; let g; try { g = JSON.parse(l); } catch (e) { continue; }
+    if (!Q.reasons(g, cfg, null).length) openG.push(g);
+  }
+  for (const g of Q.loadGames()) if (!g.openSheet) closedG.push(g);
+  const O = count(openG), C = count(closedG);
+  const ratio = {};
+  for (const sp of new Set([...Object.keys(O.c), ...Object.keys(C.c)])) {
+    const o = (O.c[sp] || 0) / Math.max(1, O.n);
+    const c = (C.c[sp] || 0) / Math.max(1, C.n);
+    /* A species absent from one side gets no ratio; those decisions keep weight 1 rather than 0 or
+     * infinity, so the correction never deletes or explodes a slice of the sample. */
+    ratio[sp] = (o > 0 && c > 0) ? c / o : 1;
+  }
+  return { ratio, openGames: O.n, closedGames: C.n };
+}
+
 function loadCorpus() {
   const cfg = Q.config();
   const seen = new Set();
@@ -174,7 +236,7 @@ function decisionsFor(g, tally) {
       if (matches.length > 1) { tally.ambiguous++; continue; }
 
       const feats = cands.map(c => B.featuresFor(c, user, board, side, dex, priorFor(user.species, c.move.id)));
-      out.push({ game: g.id || '', feats, chosen: matches[0] });
+      out.push({ game: g.id || '', sp: base(e.mon), feats, chosen: matches[0] });
       tally.kept++;
     }
 
@@ -247,13 +309,21 @@ function logLik(rows, w) {
   return { ll: ll / Math.max(1, rows.length), acc: correct / Math.max(1, rows.length) };
 }
 
-function fit(rows, nf, lambda, iters) {
+/* `useIW` estimates on the IMPORTANCE-WEIGHTED sample — each decision counted in proportion to how
+ * much more or less common its acting species is in closed-sheet play. Evaluation is always
+ * unweighted; the question this answers is "do the estimated weights move when the open-sheet
+ * metagame is reweighted to look like the closed one", which is a question about the estimate, not
+ * about held-out fit. */
+function fit(rows, nf, lambda, iters, useIW) {
   const w = new Array(nf).fill(0);
   const m = new Array(nf).fill(0), v = new Array(nf).fill(0);
   const lr = 0.05, b1 = 0.9, b2 = 0.999, eps = 1e-8;
+  let mass = 0;
+  for (const r of rows) mass += useIW ? (r.iw || 1) : 1;
   for (let it = 1; it <= iters; it++) {
     const g = new Array(nf).fill(0);
     for (const r of rows) {
+      const iw = useIW ? (r.iw || 1) : 1;
       const s = new Array(r.feats.length);
       let max = -Infinity;
       for (let j = 0; j < r.feats.length; j++) {
@@ -264,14 +334,14 @@ function fit(rows, nf, lambda, iters) {
       let z = 0;
       for (let j = 0; j < s.length; j++) { s[j] = Math.exp(s[j] - max); z += s[j]; }
       const fc = r.feats[r.chosen];
-      for (let k = 0; k < nf; k++) g[k] += fc[k];
+      for (let k = 0; k < nf; k++) g[k] += iw * fc[k];
       for (let j = 0; j < s.length; j++) {
         const p = s[j] / z, f = r.feats[j];
-        for (let k = 0; k < nf; k++) g[k] -= p * f[k];
+        for (let k = 0; k < nf; k++) g[k] -= iw * p * f[k];
       }
     }
     for (let k = 0; k < nf; k++) {
-      let gk = g[k] / rows.length - lambda * w[k];
+      let gk = g[k] / mass - lambda * w[k];
       m[k] = b1 * m[k] + (1 - b1) * gk;
       v[k] = b2 * v[k] + (1 - b2) * gk * gk;
       const mh = m[k] / (1 - Math.pow(b1, it)), vh = v[k] / (1 - Math.pow(b2, it));
@@ -333,6 +403,37 @@ function main() {
   console.log(`  in-sample logL ${best.tr.ll.toFixed(4)} against held-out ${best.te.ll.toFixed(4)} ` +
               `(a large gap here would mean the fit is memorising games, not learning play)`);
 
+  /* ---- IS THE FIT AN ARTEFACT OF THE OPEN-SHEET METAGAME? ------------------------------------
+   * Re-estimate on the sample reweighted to the closed-sheet species mix and compare the weights.
+   * If they barely move, the composition shift does not bias the policy; if they move a lot, these
+   * weights describe a metagame the bot does not play in. Automatic, so it is re-checked on every
+   * refit rather than argued about once. */
+  const SH = speciesShares();
+  let iwSum = 0, iwN = 0;
+  for (const r of rows) { r.iw = SH.ratio[r.sp] != null ? SH.ratio[r.sp] : 1; iwSum += r.iw; iwN++; }
+  const iwMean = iwSum / Math.max(1, iwN);
+  for (const r of rows) r.iw /= iwMean;
+  let s1 = 0, s2 = 0;
+  for (const r of train) { s1 += r.iw; s2 += r.iw * r.iw; }
+  const ess = s2 > 0 ? (s1 * s1) / s2 : 0;
+  const wIW = fit(train, nf, best.lambda, ITERS, true);
+  const teIW = logLik(test, wIW);
+  let maxMove = 0, whichMove = '';
+  for (let k = 0; k < nf; k++) {
+    const d = Math.abs(wIW[k] - best.w[k]);
+    if (d > maxMove) { maxMove = d; whichMove = B.FEATURES[k]; }
+  }
+  console.log('\nCOVARIATE SHIFT — open-sheet teams are NOT closed-sheet teams');
+  console.log(`  the two metagames differ in composition (engine/corpus_shift.js measures it), so the`);
+  console.log(`  fit is re-estimated on a sample reweighted to the closed-sheet species mix.`);
+  console.log(`  effective sample size after reweighting: ${Math.round(ess).toLocaleString()} of ${train.length.toLocaleString()} ` +
+              `(${(100 * ess / Math.max(1, train.length)).toFixed(0)}% — a small number here would mean the correction ate the sample)`);
+  console.log(`  largest weight change: ${whichMove} moved ${maxMove.toFixed(3)}`);
+  console.log(`  held-out logL reweighted ${teIW.ll.toFixed(4)} against unweighted ${best.te.ll.toFixed(4)}`);
+  console.log(maxMove < 0.25
+    ? '  -> the weights are stable under the correction; the composition shift does not drive them.'
+    : '  -> MATERIAL: the weights depend on which metagame they were fitted in. Prefer the reweighted fit.');
+
   const gain = best.te.ll - baseBot.ll;
   const accGain = 100 * (best.te.acc - baseBot.acc);
   console.log(`\n  Against the current bot: ${gain >= 0 ? '+' : ''}${gain.toFixed(4)} logL/decision, ` +
@@ -356,10 +457,24 @@ function main() {
       uniform: base0, behaviourCloneOnly: baseBot, boardAware: best.te,
       gain_logL: gain, gain_top1_points: accGain,
     },
-    caveat: 'Fitted on open-team-sheet games, where both players see all sets. Closed ladder play ' +
-            'involves more hedging against unknown sets, so these weights are learned on a slightly ' +
-            'different game than the one they are played in.',
+    covariateShift: {
+      note: 'Open-sheet TEAMS differ enormously from closed-sheet teams (551.9 points of total ' +
+            'absolute species difference, engine/corpus_shift.js). Open-sheet BEHAVIOUR given a ' +
+            'board does not (largest gap 1.49 points). This model is conditional on the board and ' +
+            'never learns what to bring, so the composition gap changes which situations were ' +
+            'sampled, not what was learned from them.',
+      reweighted_max_weight_change: null,   // filled below
+      effective_sample_size: null,
+    },
+    caveat: 'Fitted on open-team-sheet games, the only corpus where the CHOICE SET is known rather ' +
+            'than guessed. Known unmodelled gaps: ability-based immunity and priority-blocking ' +
+            'abilities (Armor Tail, Queenly Majesty) are invisible to the feature set, which ' +
+            'computes immunity from TYPES only; and ~11% of clicks were dropped as unmatched, ' +
+            'mostly redirection (Follow Me, Rage Powder). Open-sheet players also average ~185 ' +
+            'rating points lower, though measured move quality is close to flat in rating.',
   };
+  out.covariateShift.reweighted_max_weight_change = { feature: whichMove, delta: maxMove };
+  out.covariateShift.effective_sample_size = { ess: Math.round(ess), of: train.length };
   fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
   console.log(`\n  -> ${path.relative(ROOT, OUT)}`);
 }
