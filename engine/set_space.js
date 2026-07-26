@@ -180,8 +180,15 @@ function main() {
   }
   console.log('  ' + '-'.repeat(88));
   console.log('  total cells across these species: ' + total.toLocaleString());
-  console.log('  at 2,000 games per cell that is ' + (total * 2000).toLocaleString() +
-    ' games, ~' + (total * 2000 / 46 / 3600).toFixed(1) + ' hours at 46 games/sec\n');
+  /* QUOTE THE RATE YOU CAN ACTUALLY GET. This printed only the 46 games/sec figure, which is a
+   * TWELVE-PROCESS number — and no tool here fans out across processes, so nobody reading this could
+   * reach it. Measured single-process throughput is 14.9 games/sec, and --conc does not change it
+   * (14.9 / 14.4 / 14.3 at conc 1 / 4 / 12) because the simulator is CPU-bound and single-threaded.
+   * Both numbers are printed so the plan is costed against the tool that exists. */
+  const G = total * 2000;
+  console.log('  at 2,000 games per cell that is ' + G.toLocaleString() + ' games:');
+  console.log('    ~' + (G / 14.9 / 3600).toFixed(1) + ' hours as shipped (one process, 14.9 games/sec)');
+  console.log('    ~' + (G / 46 / 3600).toFixed(1) + ' hours across 12 processes (46 games/sec) — fan-out NOT built\n');
   console.log('  freedom  = slots a real player changes away from the four most common moves');
   console.log('  blind    = the part of that hidden in Smogon\'s "Other" bucket');
   console.log('  cells    = full factorial, so move/item/spread INTERACTIONS are visible.');
