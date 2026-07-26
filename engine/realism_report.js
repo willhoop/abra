@@ -62,16 +62,50 @@ function eachLine(file, fn) {
 /* ---- gather ------------------------------------------------------------------------------------
  * Two passes per corpus: the STORE gives team composition and revealed sets, the LOGS give what
  * actually happened. Both are needed — a defect can live in either. */
-function gather(store, logs, limit) {
+/* WHICH GAMES COUNT AS "REAL" — AND THIS FILE USED TO GET IT BADLY WRONG.
+ *
+ * gather() read the ladder store line by line and treated every record as a real human game. The
+ * store is not that. Of 14,453 records, 1,838 are clean — 13%. The rest are 9,103 bot games, 4,593
+ * partial brings, 3,430 forfeits, 1,950 behavioural bots and 1,177 games too short to mean anything.
+ *
+ * So every "real" baseline this tool printed was 87% contaminated, and contaminated in the direction
+ * that matters most: bot games are exactly the thing self-play is supposed to be BETTER than, so
+ * comparing our bots against a pile of other people's bots and calling the gap "realism" is
+ * circular. engine/quality.js already decides this correctly and every other consumer uses it; this
+ * file simply never called it.
+ *
+ * THE FILTER IS APPLIED TO BOTH SIDES. That is not symmetry for its own sake — the recurring bug in
+ * this project is a rule applied to one corpus and not the other (the diversity metric, the
+ * switch-rate denominator). Filtering only the real side would swap one mismatch for another: real
+ * games would be required to have a full bring and a minimum length while ours were not. */
+function cleanIds() {
+  try {
+    const Q = require('./quality.js');
+    const ids = new Set();
+    for (const g of Q.loadGames()) if (g.id) ids.add(g.id);
+    return ids;
+  } catch (e) { return null; }
+}
+
+/* Self-play records carry no account names or bot flags, so the bot rules cannot fire on them; the
+ * structural rules (forfeit, short, partial bring) can and should. */
+function cleanSelf(g, Q, cfg) {
+  try { return Q.reasons(g, cfg, null).length === 0; } catch (e) { return true; }
+}
+
+function gather(store, logs, limit, keep) {
   const R = {
-    games: 0, species: {}, items: {}, setKeys: {},
+    games: 0, rejected: 0, species: {}, items: {}, setKeys: {},
     turnsTotal: 0, turnsGames: 0,
     moves: 0, immune: 0, resisted: 0, superEff: 0, failed: 0, crit: 0,
     megaGames: 0, switches: 0, protects: 0, logGames: 0, faints: 0,
   };
+  const seen = new Set();
   eachLine(store, (line) => {
     const t = line.trim(); if (!t) return;
     let g; try { g = JSON.parse(t); } catch { return; }
+    if (keep && !keep(g)) { R.rejected++; return; }
+    if (g.id) seen.add(g.id);
     R.games++;
     const all = new Set();
     for (const s of ['p1', 'p2']) ((g.six || {})[s] || []).forEach(x => all.add(norm(x)));
@@ -97,6 +131,9 @@ function gather(store, logs, limit) {
     const t = line.trim(); if (!t) return;
     let r; try { r = JSON.parse(t); } catch { return; }
     if (!r.log) return;
+    /* The logs must be filtered by the SAME set of games, or the per-move rates come from a
+     * different population than the per-game ones and nothing in the table is comparable. */
+    if (keep && !(r.id && seen.has(r.id))) return;
     R.logGames++;
     if (/^\|-mega\|/m.test(r.log)) R.megaGames++;
     for (const l of r.log.split('\n')) {
@@ -119,11 +156,21 @@ const fmt = (x, d = 2) => x.toFixed(d);
 
 function main() {
   console.log('REALISM REPORT — generated games vs real ladder games\n');
-  const self = gather(SELF_STORE, SELF_LOGS, LIMIT);
-  const real = gather(LAD_STORE, LAD_LOGS, 0);
+  const Q = (() => { try { return require('./quality.js'); } catch (e) { return null; } })();
+  const cfg = Q ? Q.config() : null;
+  const ids = cleanIds();
+  if (!ids) {
+    console.error('cannot load engine/quality.js — refusing to report against an unfiltered store.');
+    process.exit(1);
+  }
+  const self = gather(SELF_STORE, SELF_LOGS, LIMIT, g => cleanSelf(g, Q, cfg));
+  const real = gather(LAD_STORE, LAD_LOGS, 0, g => g.id && ids.has(g.id));
   if (!self.games) { console.error('no generated games found at ' + SELF_STORE); process.exit(1); }
-  console.log(`  generated: ${self.games.toLocaleString()} games (${self.logGames.toLocaleString()} logs)`);
-  console.log(`  real      : ${real.games.toLocaleString()} games (${real.logGames.toLocaleString()} logs)\n`);
+  console.log(`  generated: ${self.games.toLocaleString()} games (${self.logGames.toLocaleString()} logs)` +
+    (self.rejected ? `  — ${self.rejected.toLocaleString()} rejected as unusable` : ''));
+  console.log(`  real      : ${real.games.toLocaleString()} CLEAN games (${real.logGames.toLocaleString()} logs)` +
+    `  — ${real.rejected.toLocaleString()} rejected (bots, forfeits, partial brings, too short)`);
+  console.log('  both sides pass engine/quality.js. Bot games are NOT a realism baseline.\n');
 
   const rows = [];
   const add = (name, s, r, unit = '%') => rows.push({ name, s, r, unit, gap: Math.abs(s - r) });

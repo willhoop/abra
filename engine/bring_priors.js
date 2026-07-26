@@ -46,9 +46,15 @@ const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 /* How often does a side mega at all, and how often is the mega-evolver one of the two leads?
  * Read from the protocol logs of real games, streamed — the file is ~1GB and V8 caps a string at
  * about 512MB, so readFileSync on it throws. */
-function measureMegas() {
+function measureMegas(cleanIds) {
   const LOGS = path.join(ROOT, 'data', 'games.ladder.raw-logs.jsonl');
   if (!fs.existsSync(LOGS)) return null;
+  /* CLEAN GAMES ONLY. The store is 14,453 records of which 1,838 are clean; the rest are bot games,
+   * forfeits, partial brings and stubs. The first version of this function read every one of them,
+   * so the "real" mega numbers it produced were 87% other people's bots — and bot behaviour is the
+   * one thing these priors must not imitate. Every other consumer in the engine goes through
+   * quality.loadGames(); this one has to as well. */
+  if (!cleanIds || !cleanIds.size) return null;
   let sides = 0, megaSides = 0, megas = 0, megaLeads = 0;
   const fd = fs.openSync(LOGS, 'r');
   const buf = Buffer.alloc(1 << 20);
@@ -63,6 +69,7 @@ function measureMegas() {
         const t = line.trim(); if (!t) continue;
         let x; try { x = JSON.parse(t); } catch { continue; }
         if (!x.log) continue;
+        if (!x.id || !cleanIds.has(x.id)) continue;
         sides += 2;
         const leads = new Set();
         const didMega = new Set();
@@ -147,7 +154,7 @@ function main() {
    *
    * These two numbers are read off REAL games, where a mega is directly observable in the protocol
    * log, and they are what the preview sampler aims at. Measured, not chosen. */
-  const megaStats = measureMegas();
+  const megaStats = measureMegas(new Set(games.map(g => g.id).filter(Boolean)));
 
   fs.writeFileSync(OUT, JSON.stringify({
     generated: new Date().toISOString().slice(0, 10),

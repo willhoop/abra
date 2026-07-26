@@ -237,6 +237,35 @@ check('the blind spot is reported and is plausible', () => {
   return (kg && kg.pSetAffected < sp.pSetAffected) || 'Kingambit is no longer the most locked species';
 });
 
+/* ---- THE ONE THAT KEEPS COMING BACK -------------------------------------------------------------
+ * Bot games are not a realism baseline. The ladder store is 87% unusable — bots, forfeits, partial
+ * brings, stubs — and any tool that reads it line by line instead of through quality.loadGames() is
+ * silently comparing our bots against other people's bots and calling the difference realism. It has
+ * happened repeatedly. These assertions make it a test failure instead of a conversation. */
+console.log('\nclean-data discipline');
+
+check('the ladder store is mostly NOT usable, and we know it', () => {
+  const Q = require('./quality.js');
+  const all = Q.readStore(), clean = Q.loadGames();
+  if (!all.length) return 'store is empty';
+  if (clean.length >= all.length) return 'filter removed nothing — is quality.js wired?';
+  if (clean.length / all.length > 0.5) return 'clean fraction is ' + (100 * clean.length / all.length).toFixed(0) + '%, expected far lower — filter may have loosened';
+  return true;
+});
+
+check('no engine tool reads the ladder store without the clean filter', () => {
+  const fs = require('fs');
+  const dir = __dirname;
+  const offenders = [];
+  for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.js'))) {
+    if (['quality.js', 'selftest.js'].includes(f)) continue;
+    const src = fs.readFileSync(path.join(dir, f), 'utf8');
+    /* names the ladder store but never mentions the module that decides what is usable */
+    if (/games\.ladder[\w.-]*\.jsonl/.test(src) && !/quality/.test(src)) offenders.push(f);
+  }
+  return offenders.length === 0 || 'reads the ladder store raw: ' + offenders.join(', ');
+});
+
 console.log('\n' + '-'.repeat(60));
 console.log(`  ${pass} passed, ${fail} failed`);
 if (fail) {
