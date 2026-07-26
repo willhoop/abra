@@ -10,6 +10,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.11.1] — 2026-07-26
+
+### Withdrawn: "MAG wins 60% of the time" as a claim about competence
+
+3.11.0 reported MAG beating the prior bot 60.2% and called it the first evidence the policy is
+better at the game. The number is real. **The framing was not**, and the objection was exact: *do we
+want MAG playing against the bot that clicks Protect eight times in a row?*
+
+Measured, and the description was literally accurate:
+
+| | Protect-family, share of moves | clicked Protect AGAIN straight after | longest chain |
+|---|---|---|---|
+| prior bot | 23.6% | **42.8%** | 8 |
+| MAG | 16.7% | 21.5% | 8 |
+| **real humans** | 14.3% | **12.5%** | 9 |
+
+The baseline wastes roughly a quarter of its turns on Protect and follows one Protect with another
+almost half the time. MAG has a fitted term for exactly that failure. **So a large part of that 60%
+is MAG beating a self-inflicted flaw it was specifically built to punish** — which is close to
+teaching to the test, and is not evidence of competence. The claim is withdrawn. What survives is
+weaker and still worth having: reading the board is not *harmful*, which was not guaranteed.
+
+**MAG is not competent by this measure either.** It still repeats Protect at nearly double the human
+rate and still produces an eight-long chain.
+
+### The finding that cuts the other way, and defends the whole design
+
+**Humans chain Protect too — up to nine in a row, 12.5% of the time.** So a hand-written rule saying
+"never Protect twice" would be *more* wrong than the fitted weight, not less. The defect was never
+the behaviour; it was the **rate**. A rule cannot express a rate, and this is the concrete case for
+why nothing in this model is typed: two hundred hand-written rules would beat the other bots and
+would encode a ceiling equal to whoever wrote them.
+
+### What a competent opponent actually means
+
+The opponent should be **the policy's own previous version**, not a fixed weak bot — that is what
+makes the bar rise as the policy improves, and it is the missing piece between where this is and
+outcome-based learning. `--policy2` now makes that runnable; nothing yet runs it.
+
+---
+
 ## [3.11.0] — 2026-07-26
 
 ### The head-to-head gate, and the first evidence MAG is actually BETTER rather than just more human
