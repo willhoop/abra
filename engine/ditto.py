@@ -50,12 +50,20 @@ def fast_scores(six):
     return 1/(1+np.exp(-(s-_MW)))
 
 def load_meta(min_rating=1300, cap=400):
+    """The metagame DITTO is scored against — real teams that real people brought.
+
+    This read the store directly and rejected a side on `g[side]['bot']`, the name-only flag. That
+    check misses any bot that does not announce itself, and the project measured what that costs:
+    six unflagged accounts appearing in 52.2% of the games the name-only filter called clean, one of
+    them playing 459 games with a single team. A gauntlet built from those is one script's team
+    repeated, and every counter-team DITTO proposed would be tuned to beat that script.
+
+    engine/store.load_games applies the real filter, behavioural bot detection included.
+    """
+    import store as _store
     seen=set(); teams=[]
-    for line in open(STORE,encoding='utf-8'):
-        if not line.strip():continue
-        g=json.loads(line)
+    for g in _store.load_games(announce=False):
         for side in ('p1','p2'):
-            if g[side].get('bot'):continue
             if (g[side].get('rating') or 0)<min_rating:continue
             six=tuple(sorted(J.idn(x) for x in g['six'][side]))
             if len(six)<6 or six in seen:continue

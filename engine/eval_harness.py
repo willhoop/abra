@@ -24,15 +24,28 @@ import jolteon as J   # reuse the deployed trainer's featurizer / fitter
 STORE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, '../data/games.ladder.jsonl')
 
 def load_with_ratings(path, humans_only=True):
+    """Every usable game, with ratings, newest last.
+
+    THE FILTER USED TO BE `g['p1'].get('bot')` AND THAT IS THE ONE THAT FAILED.
+    A name-only bot check catches accounts that announce themselves and nothing else. The project
+    measured what it misses: six high-volume accounts, unflagged, appearing in 52.2% of the games
+    this exact check called clean. One of them played 459 games with a single team, 367 of them in
+    one day.
+
+    engine/store.load_games is the single definition of usable -- it applies the same rules as every
+    other consumer, including the behavioural bot detector that catches team-invariant accounts, and
+    it announces the population it returned so a number's denominator is never invisible.
+
+    ABRA_UNFILTERED=1 still restores the old behaviour for comparison, which is how the difference
+    was measured in the first place.
+    """
     rows, seen = [], set()
-    for line in open(path, encoding='utf-8'):
-        if not line.strip(): continue
-        g = json.loads(line)
+    import store as _store
+    for g in _store.load_games(clean=humans_only, announce=False, path=path):
         gid = g.get('id')
         if gid in seen: continue
         seen.add(gid)
         if not g.get('winner'): continue
-        if humans_only and (g['p1'].get('bot') or g['p2'].get('bot')): continue
         a = [J.idn(x) for x in g['six']['p1']]; b = [J.idn(x) for x in g['six']['p2']]
         if len(a) < 4 or len(b) < 4: continue
         y = 1 if J.idn(g['winner']) == J.idn(g['p1']['name']) else 0

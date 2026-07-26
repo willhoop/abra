@@ -1,15 +1,30 @@
 {
-  "test_n": 513,
-  "ece": 0.03385990497185468,
+  "test_n": 412,
+  "ece": 0.08340695553569895,
+  "power": {
+    "n": 412,
+    "min_detectable_edge_pts": 6.9,
+    "can_detect_accuracy_at_or_above": 56.9,
+    "games_needed_for": {
+      "1pt": 19623,
+      "2pt": 4906,
+      "3pt": 2181,
+      "5pt": 785
+    },
+    "reading": "A null here means 'no effect larger than min_detectable_edge_pts was visible at this sample size'. It does NOT mean the effect is zero. Quote the two together or not at all.",
+    "observed_edge_pts": 1.94,
+    "powered": false,
+    "verdict": "UNDERPOWERED - cannot distinguish from a coin"
+  },
   "logloss": {
     "coin": 0.6931471805599453,
-    "elo": 0.6909155366294272,
-    "usage": 0.762142676191389,
-    "jolteon": 0.6987051201530181
+    "elo": 0.6875356843796506,
+    "usage": 0.7938421598652114,
+    "jolteon": 0.7033586522036891
   },
   "brier": {
     "coin": 0.25,
-    "elo": 0.24878728115278845,
-    "jolteon": 0.2522526840313304
+    "elo": 0.24729914958765198,
+    "jolteon": 0.2546985121370319
   }
 }

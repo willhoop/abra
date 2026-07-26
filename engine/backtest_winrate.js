@@ -8,11 +8,17 @@ const {winProb2}=require(path.join(__dirname,'medicham2-browser.js'));
 const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const N=+(process.env.N||40), MAXG=+(process.env.MAXG||350);
 
-const lines=fs.readFileSync(path.join(__dirname,'..','data','games.ladder.jsonl'),'utf8').split('\n').filter(Boolean);
-const split=Math.floor(lines.length*0.8);
-const held=lines.slice(split);                                   // temporal held-out fifth
+/* CLEAN GAMES ONLY. This used to read the store line by line, which meant the "real game outcomes"
+ * MEDICHAM was being validated against were ~87% bots, forfeits and stubs — it was measuring whether
+ * a rollout can predict what a script does. engine/quality.js is the single definition of usable and
+ * every other consumer goes through it. The split stays TEMPORAL (oldest 80% to train on elsewhere,
+ * newest fifth held out here), which is the only honest split when the metagame moves under you. */
+const {loadGames}=require(path.join(__dirname,'quality.js'));
+const clean=loadGames();
+const split=Math.floor(clean.length*0.8);
+const held=clean.slice(split);                                   // temporal held-out fifth
 let rows=[];
-for(const l of held){ let g; try{g=JSON.parse(l);}catch(e){continue;}
+for(const g of held){
   const br=g.brought||{}; const p1=(br.p1||g.six?.p1||[]).map(norm).filter(n=>MC.mons[n]);
   const p2=(br.p2||g.six?.p2||[]).map(norm).filter(n=>MC.mons[n]);
   if(p1.length<3||p2.length<3) continue;
