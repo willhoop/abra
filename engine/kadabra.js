@@ -1,3 +1,6 @@
+// RAW-STORE-OK: replays specific games back to a human viewer; the viewer asked for THAT game, filtered or not
+// Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+// must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 /* KADABRA — Key Analysis of Decisions, Advice & Better Replay Annotation.
  * The interactive coaching front-end of ABRA (spec: docs/KADABRA-coach-spec.md).
  *

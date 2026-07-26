@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# RAW-STORE-OK: exercises the encoder on whatever records exist; it asserts shape, never a behavioural rate
+# Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+# must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 """test-state-encoder.py — the rich state encoder must agree with PORY's own reconstruction.
 
 WHY THIS TEST EXISTS

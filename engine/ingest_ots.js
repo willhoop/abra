@@ -1,3 +1,6 @@
+// RAW-STORE-OK: WRITES to the store; filtering on the way in would silently discard games we could never recover
+// Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+// must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 /* ingest_ots.js — import the archived OPEN TEAM SHEET corpus into its own bucket.
  *
  * WHY. ABRA's ladder collection began 2026-07-22. Reg M-B started in mid-June, so roughly five weeks

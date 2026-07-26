@@ -253,17 +253,29 @@ check('the ladder store is mostly NOT usable, and we know it', () => {
   return true;
 });
 
-check('no engine tool reads the ladder store without the clean filter', () => {
-  const fs = require('fs');
-  const dir = __dirname;
+check('every raw reader of the ladder store declares why', () => {
+  const fs = require('fs'), pathm = require('path');
+  const ROOT = pathm.join(__dirname, '..');
   const offenders = [];
-  for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.js'))) {
-    if (['quality.js', 'selftest.js'].includes(f)) continue;
-    const src = fs.readFileSync(path.join(dir, f), 'utf8');
-    /* names the ladder store but never mentions the module that decides what is usable */
-    if (/games\.ladder[\w.-]*\.jsonl/.test(src) && !/quality/.test(src)) offenders.push(f);
+  for (const r of ['engine', 'build', 'web', 'app', 'tests']) {
+    const dir = pathm.join(ROOT, r);
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir)) {
+      if (!/\.(js|py)$/.test(f)) continue;
+      if (['quality.js', 'quality.py', 'selftest.js'].includes(f)) continue;
+      let src; try { src = fs.readFileSync(pathm.join(dir, f), 'utf8'); } catch (e) { continue; }
+      if (!/games\.ladder[\w.-]*\.jsonl/.test(src)) continue;
+      /* Either it filters, or it states in the file why it must not. The declaration lives at the
+       * SITE OF USE rather than as a list of filenames in this test: a list here would rot the
+       * moment somebody adds a file, and is exactly the hand-maintained state S13 forbids. */
+      const filters = /load_games|loadGames|isClean|clean=True|cleanIds|_cleanIds/.test(src);
+      const declares = /RAW-STORE-OK/.test(src);
+      if (!filters && !declares) offenders.push(r + '/' + f);
+    }
   }
-  return offenders.length === 0 || 'reads the ladder store raw: ' + offenders.join(', ');
+  return offenders.length === 0 ||
+    offenders.length + ' file(s) read the ladder store with neither a clean filter nor a ' +
+    'RAW-STORE-OK declaration: ' + offenders.join(', ');
 });
 
 console.log('\n' + '-'.repeat(60));

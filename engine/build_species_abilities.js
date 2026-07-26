@@ -1,3 +1,6 @@
+// RAW-STORE-OK: extracts FACTS about the game (which abilities a species can have), not how often anyone chooses them
+// Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+// must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 /* build_species_abilities.js - what ability can each species actually have?
  *
  * The problem this solves: role tagging reads abilities out of replay logs, but a log only names an

@@ -3,7 +3,7 @@
 site GROWS as new games arrive. Run after each replay pull (the daily task does this).
 Writes: data/live.js (counts + discovered archetypes) and data/kad-replays.js
 (recent replays bundled for offline KADABRA coaching). Also refreshes archetypes.json."""
-import json, os, datetime, subprocess, sys
+import json, io, os, datetime, subprocess, sys
 HERE=os.path.dirname(os.path.abspath(__file__)); ROOT=os.path.dirname(HERE)
 def P(*a): return os.path.join(ROOT,*a)
 norm=lambda s:''.join(c for c in s.lower() if c.isalnum())
@@ -100,7 +100,30 @@ try:
 except Exception as e:
     print('team/turn count unavailable:', e)
 
-live={'games':games,'turns':turns,'dmgProfiles':len(pairs),
+# WHAT CI CANNOT RECOMPUTE, IT MUST NOT DESTROY.
+# -------------------------------------------------------------------------------------------------
+# data/*.raw-logs.jsonl is gitignored -- it is ~1GB and GitHub rejects it -- so a CI run has the
+# ladder STORE but not the protocol LOGS. turns and dmgProfiles are derived from the logs, so in CI
+# they come out as 0. Writing that would wipe two real measurements off the site every hour and
+# replace them with zeroes, which is worse than stale.
+#
+# So: recount whatever this environment can see, and carry forward anything it cannot. games,
+# usable, teams and turnsPerGame all come from the tracked store and are therefore always fresh --
+# which is the pair the site actually leads with.
+_prev={}
+try:
+    _t=io.open(P('data','live.js'),encoding='utf-8').read()
+    _prev=json.loads(_t[_t.index('=')+1:].rstrip().rstrip(';'))
+except Exception:
+    pass
+if not pairs and _prev.get('dmgProfiles'):
+    print('no raw logs here -- carrying forward turns/dmgProfiles from the previous run')
+    turns=_prev.get('turns',turns) or turns
+    _pairsN=_prev.get('dmgProfiles')
+else:
+    _pairsN=len(pairs)
+
+live={'games':games,'turns':turns,'dmgProfiles':_pairsN,
       'usable':usable,'teams':teams,
       'turnsPerGame':cleanTurns,
       'usablePct':(round(100.0*usable/games,1) if usable and games else None),

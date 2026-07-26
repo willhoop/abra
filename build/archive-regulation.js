@@ -1,3 +1,6 @@
+// RAW-STORE-OK: archives a whole regulation verbatim; an archive that dropped 87% of its records would not be an archive
+// Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+// must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 /* Archive a regulation's data + models before moving to the next one.
  * Snapshots the current store, usage model, dynamics, behaviour-clone and JOLTEON
  * weights into data/archive/<id>/ (date-stamped), so previous-regulation data is

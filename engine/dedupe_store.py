@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# RAW-STORE-OK: deduplicates the store itself; it must see every record, including the ones the filter would drop
+# Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+# must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 """dedupe_store.py - remove duplicate game records from the append-only store.
 
 WHY THIS EXISTS. `data/games.ladder.jsonl` is append-only, and the ingest already refuses to write an

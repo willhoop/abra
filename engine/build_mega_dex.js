@@ -1,3 +1,6 @@
+// RAW-STORE-OK: extracts FACTS about the game (which stone maps to which forme). A Charizard mega-evolving is the same fact whoever clicked it
+// Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+// must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 /* build_mega_dex.js - build the mega/forme dex from Showdown's OWN data file.
  *
  * Source of truth: https://play.pokemonshowdown.com/data/pokedex.json

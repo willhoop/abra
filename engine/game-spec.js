@@ -1,3 +1,6 @@
+// RAW-STORE-OK: derives the protocol//schema shape, which is a property of the simulator and not of the players
+// Reads data/games.ladder.jsonl unfiltered ON PURPOSE. Anything measuring BEHAVIOUR
+// must go through quality (loadGames/load_games) instead — bot games are 87% of the store.
 /* SLOWKING — Paper 1 deliverable: the game-spec encoder.
  * Turns stored Champions replays into (state, observation, action, reward)
  * trajectories — the offline dataset a Tier-3 belief-search solver trains on.
