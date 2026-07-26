@@ -928,6 +928,10 @@ function mewViewerPanel(){
        <button class="battlebtn" onclick="mewRandom()">Surprise me</button>
      </div>
      <div id="mewseedmsg" style="font-size:12.5px;font-weight:700;color:#6d829b;margin-bottom:8px"></div>
+     <!-- The bundled seeds, listed. Twice I handed over seeds that went stale when the bundle was
+          rebuilt, and there was no way to see which ones were actually available. Now the page
+          says. Generated from the bundle, so it can never disagree with it. -->
+     <div id="mewseedlist" style="margin-bottom:10px"></div>
      <iframe id="mewframe" title="MEW replay" style="width:100%;height:620px;border:3px solid var(--line);border-radius:14px;background:#fff"></iframe>
      <div id="mewprov" style="margin-top:10px;font-size:12.5px;color:#6d829b;font-weight:700"></div>
    </div>`;
@@ -965,7 +969,22 @@ function mewFindSeed(){
      The frame still loads and explains how to regenerate that exact battle locally. */
   mewShow(q,'not bundled');
 }
+function mewSeedList(){
+  var el=document.getElementById('mewseedlist'); if(!el) return;
+  var G=mewGames().slice().sort(function(a,b){ return a.turns-b.turns; });
+  if(!G.length){ el.innerHTML=''; return; }
+  var chips=G.map(function(g){
+    var tag = g.turns<=8?'quick' : g.turns<=20?'typical' : 'marathon';
+    var col = g.turns<=8?'ok' : g.turns<=20?'' : 'warn';
+    return '<span class="chip '+col+'" style="cursor:pointer" title="'+g.turns+' turns · '+g.winner+' won'
+      +'" onclick="document.getElementById(\'mewseed\').value='+g.seed+';mewFindSeed()">'
+      + g.seed + ' <span style="opacity:.65;font-weight:700">'+g.turns+'t</span></span>';
+  }).join('');
+  el.innerHTML='<div style="font-size:12px;font-weight:800;color:#6d829b;margin-bottom:4px">'
+    + G.length+' BATTLES AVAILABLE — click one</div>'+chips;
+}
 function initMew(){
+  mewSeedList();
   var G=mewGames();
   var meta=(window.MEW&&window.MEW.meta)||{};
   var prov=document.getElementById('mewprov');

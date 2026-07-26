@@ -73,7 +73,26 @@ const POLICY = arg('policy', 'prior');
 /* 1, not 4 — see the header. In-process concurrency cannot overlap CPU-bound simulation and cost 4x
  * when it was hardcoded here. Exposed as a flag only so the finding stays re-measurable. */
 const CONC = arg('conc', '1');
-const SEED0 = parseInt(arg('seed', String(Date.now() % 1e7)), 10);
+/* SEED BASE. This was `Date.now() % 1e7`, which WRAPS EVERY 2.78 HOURS (10^7 milliseconds). Two
+ * runs started roughly 2.78 hours apart therefore drew the same base and produced overlapping seed
+ * ranges — literally the same battles again, under different ids, silently inflating a corpus with
+ * duplicates that no id check would catch. At one run per night it never bit; at the cadence needed
+ * for millions of games it certainly would.
+ *
+ * The replacement uses minutes since epoch, multiplied clear of any plausible run size, so two runs
+ * collide only if started in the same minute. There is also a hard ceiling worth knowing about:
+ *
+ *   THE ENGINE ONLY USES 28 BITS OF THE SEED. mew.js expands an integer to Showdown's four 16-bit
+ *   words as [s&0xffff, (s>>4)&0xffff, (s>>8)&0xffff, (s>>12)&0xffff], so every bit above 27 is
+ *   discarded and any two seeds 268,435,456 apart are the SAME BATTLE. Making the number longer
+ *   buys nothing past that. 268M distinct battles is far beyond Metamon scale (20M), so this is a
+ *   documented ceiling rather than a live problem — but the guard below refuses to run past it
+ *   instead of silently wrapping.
+ *
+ * Adjacent seeds were checked and are NOT correlated: seeds N and N+1 on identical teams diverge at
+ * the first protocol line, so the PRNG decorrelates the neighbouring states properly. */
+const SEED_CEILING = 2 ** 28;
+const SEED0 = parseInt(arg('seed', String((Math.floor(Date.now() / 60000) * 997) % SEED_CEILING)), 10);
 const OUT = path.resolve(arg('out', D('data', 'games.selfplay.jsonl')));
 const KEEP = process.argv.includes('--keep-shards');
 /* Mirrors mew.js: the log sidecar sits beside the record file under the same stem. */
@@ -89,6 +108,16 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 
 const per = Math.ceil(N / PROCS);
+
+/* Refuse to run past the 28-bit ceiling rather than wrap into battles already generated. A silent
+ * wrap would produce exact duplicates carrying fresh ids, which is the one corruption a duplicate-id
+ * check cannot see. */
+if (SEED0 + N >= SEED_CEILING) {
+  console.error(`REFUSING: seeds ${SEED0}..${SEED0 + N} cross the engine's 28-bit ceiling ` +
+                `(${SEED_CEILING.toLocaleString()}). Past it the seed wraps and regenerates battles ` +
+                `that already exist. Pass a lower --seed.`);
+  process.exit(1);
+}
 const shardDir = path.join(path.dirname(OUT), '.mew-shards');
 fs.mkdirSync(shardDir, { recursive: true });
 
