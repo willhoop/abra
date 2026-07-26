@@ -202,6 +202,7 @@ treated as suspect and verified independently.
 | `ABRA-whitepaper.md` | Technical, with maths and cited sources |
 | `ABRA-deck-plain-english.md` | Plain English; links the white paper |
 | `ABRA-technical-docs.md` | ASD-STE100, organised by Diátaxis |
+| `DEFENSE.md` | Statistical defense of each design decision: the formal result, the citation, and the measurement that confirms or contradicts it |
 | `METHODOLOGY.md` | Why the experiments are designed the way they are, with the literature and the measurements that confirm or contradict it |
 | `BACKLOG.md` | What is known-available and unused, what is left, and what the project is ultimately for |
 | `CHANGELOG.md` | Newest first; the top version matches the artefacts |
