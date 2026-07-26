@@ -87,10 +87,27 @@ function cosmeticBase(sp) {
   }
   return null;
 }
-/* Resolve a species name against a lookup table, falling back to its cosmetic base. */
+/* Resolve a species name against a lookup table, falling back to its cosmetic base.
+ *
+ * THE SUFFIX LIST IS A BACKSTOP, NOT THE MECHANISM — because a hand-kept list of formes is exactly
+ * the hand maintenance S13 forbids, and it fails SILENTLY. A name matching nothing yields an EMPTY
+ * moveset rather than an error, so the Pokemon plays Struggle and nobody notices. It has now happened
+ * three times: Vivillon patterns, Floette-Eternal, and Tatsugiri-Droopy — the last found by
+ * engine/selftest.js after the previous two had supposedly closed the class.
+ *
+ * So try the general rule first: a forme name is the base plus a hyphenated qualifier, and the raw
+ * names arrive hyphenated ("Tatsugiri-Droopy"). Strip trailing segments one at a time and take the
+ * first that resolves. That handles every present and FUTURE cosmetic forme without an edit, which
+ * is the point. The explicit list stays only for names that arrive already normalised, where the
+ * hyphens are gone and there is nothing to strip. */
 function resolveSpecies(sp, table) {
   const n = norm(sp);
   if (table[n]) return n;
+  const parts = String(sp || '').split('-');
+  for (let k = parts.length - 1; k > 0; k--) {
+    const cand = norm(parts.slice(0, k).join('-'));
+    if (cand && table[cand]) return cand;
+  }
   const base = cosmeticBase(n);
   return (base && table[base]) ? base : n;
 }

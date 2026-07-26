@@ -222,7 +222,27 @@ function priors() {
   catch (e) { _p = { species: {} }; }
   return _p;
 }
-function forSpecies(sp) { return priors().species[norm(sp)] || null; }
+/* Exact name first, then progressively strip trailing hyphenated qualifiers.
+ *
+ * A forme Smogon does not list separately — because it is cosmetic, or too rare to make the file —
+ * used to resolve to nothing, and nothing here means an EMPTY MOVESET rather than an exception. The
+ * Pokemon then plays Struggle for the whole game and no error is ever raised. It has bitten three
+ * times (Vivillon patterns, Floette-Eternal, Tatsugiri-Droopy) so it is now handled by a RULE that
+ * covers formes nobody has thought of yet, rather than by a list somebody has to remember to extend.
+ *
+ * Exact match is tried first, so a forme with genuinely different moves (Rotom-Wash, Urshifu-Rapid-
+ * Strike) still gets its own entry and is never folded into its base. */
+function forSpecies(sp) {
+  const S = priors().species;
+  const n = norm(sp);
+  if (S[n]) return S[n];
+  const parts = String(sp || '').split('-');
+  for (let k = parts.length - 1; k > 0; k--) {
+    const cand = norm(parts.slice(0, k).join('-'));
+    if (cand && S[cand]) return S[cand];
+  }
+  return null;
+}
 
 /* MEGA EVOLUTION, STRAIGHT FROM SMOGON — the authoritative source we already download.
  *
