@@ -1,0 +1,283 @@
+{
+ "generated": "2026-07-26T22:40:18.631Z",
+ "by": "engine/conformance.js",
+ "files": 132,
+ "findings": [
+  {
+   "std": "convention",
+   "file": "engine/analyze.js",
+   "what": "header is one line",
+   "why": "headers explain the failure the file prevents"
+  },
+  {
+   "std": "S12",
+   "file": "engine/analyze.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "engine/build_mega_dex.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "engine/build_species_abilities.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "engine/champions_sim.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "engine/chomp_ev.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "engine/fit_policy.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "engine/game-spec.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "engine/illusion.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "engine/ingest_ots.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "engine/ingest_ots.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "engine/kadabra.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "engine/mega_harvest.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "engine/meta-ingest.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "engine/validate_damage_sim.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "build/archive-regulation.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "build/triggers.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S8",
+   "file": "build/triggers.js",
+   "what": "Z_ALPHA = 1.959964 with no stated derivation",
+   "why": "a constant that decides must say where it came from"
+  },
+  {
+   "std": "convention",
+   "file": "tests/test-dynamics.js",
+   "what": "header is one line",
+   "why": "headers explain the failure the file prevents"
+  },
+  {
+   "std": "convention",
+   "file": "tests/test-medicham.js",
+   "what": "header is one line",
+   "why": "headers explain the failure the file prevents"
+  },
+  {
+   "std": "convention",
+   "file": "web/index.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "web/index.html",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "web/orb.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "web/replay.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "sim/champions-battle.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "sim/generate-dataset.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "sim/selfplay.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S13",
+   "file": "data/calibration.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/display-maps.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/eval-report.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/jolteon-weights.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/kad-replays.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/live.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/meta-nash.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/nontransitivity.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/pory-nn.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/pory.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/quality-filter.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/real-sets.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/regulations.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/slowking-playstyle.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/slowking.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/trajectories.sample.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/value-net.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/xatu.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "dead",
+   "file": "engine/chomp-predict.js",
+   "what": "nothing runs it: no import, no entry point, no command anywhere",
+   "why": "unreachable code is an unmaintained claim"
+  }
+ ]
+}
