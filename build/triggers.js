@@ -118,6 +118,20 @@ function main() {
       }
     } else {
       console.log(`                not yet — ${Math.max(0, c.need - c.cleanN).toLocaleString()} more clean games needed`);
+      /* PROJECT THE DATE, because 'not yet' is useless without 'when'. The accrual rate is measured
+       * from the clean games' own timestamps -- no rate is typed, and if the ladder slows the
+       * projection slips on its own. Compare it against the regulation end date yourself: the
+       * corpus stops being about this metagame the moment the format rotates, which is what the
+       * format check below is for. */
+      const ds = Q.loadGames().map(g => g.date && Date.parse(String(g.date).replace(' ', 'T') + ':00Z'))
+        .filter(x => x && !isNaN(x)).sort((a, b) => a - b);
+      const span = ds.length > 1 ? (ds[ds.length - 1] - ds[0]) / 86400000 : 0;
+      const perDay = span > 0 ? ds.length / span : 0;
+      if (perDay > 0) {
+        const days = (c.need - c.cleanN) / perDay;
+        const eta = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+        console.log(`                accruing ${perDay.toFixed(0)} clean/day (over ${span.toFixed(1)} days) -> ~${eta}`);
+      }
     }
   }
 
