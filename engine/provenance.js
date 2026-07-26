@@ -85,7 +85,20 @@ function deriveGraph() {
 
   const out = [];
   for (const file of dataFiles) {
-    const writers = gens.filter(g => named(g.src, file) && WRITE.test(g.src));
+    /* A WRITER names the file NEXT TO a write call, not merely somewhere in a file that also
+     * happens to write something else. Matching loosely credited data/policy-weights.json to
+     * engine/brood.js, which reads it, and data/xatu-context.json to this very file, which only
+     * mentions it in a report. Attributing an artifact to the wrong generator means fixing the
+     * wrong generator. */
+    const writesNear = (src) => {
+      let i = src.indexOf(file);
+      while (i >= 0) {
+        if (WRITE.test(src.slice(Math.max(0, i - 200), i + 60))) return true;
+        i = src.indexOf(file, i + 1);
+      }
+      return false;
+    };
+    const writers = gens.filter(g => named(g.src, file) && writesNear(g.src));
     if (!writers.length) continue;                    // nothing generates it; not an artifact
     const by = writers[0].id;
     /* Its inputs: every other data file its generator actually READS.
