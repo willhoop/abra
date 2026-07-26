@@ -73,6 +73,9 @@ const N = parseInt(arg('n', '100'), 10);
 const CONC = parseInt(arg('conc', '4'), 10);
 const SEED0 = parseInt(arg('seed', '1'), 10);
 const POLICY = arg('policy', 'random');
+/* Per-decision probability of taking an available form change. See the block at the Player
+ * construction for why this is not the same thing as the mega rate. */
+const MEGA_P = parseFloat(arg('mega', '0.85'));
 const OUT = path.resolve(arg('out', OUT_DEFAULT));
 /* RAW LOGS ARE THE POINT, AND THIS FILE USED TO THROW THEM AWAY.
  * ------------------------------------------------------------------------------------------------
@@ -245,8 +248,13 @@ async function playOne(teamA, teamB, seed) {
    *
    * The engine enforces the rest: one mega per side per battle. So a team carrying two stones
    * behaves correctly on its own — whichever eligible Pokemon is out first takes it, and the other
-   * plays on unevolved, which is exactly the Tyranitar-holding-a-stone-while-Steelix-megas case. */
-  const MEGA_P = 0.85;
+   * plays on unevolved, which is exactly the Tyranitar-holding-a-stone-while-Steelix-megas case.
+   *
+   * IT IS A FLAG BECAUSE IT IS A TUNING KNOB, AND KNOBS GET SWEPT. Fixed at 0.85 it could only be
+   * argued about; exposed, its effect on the mega rate can be measured. Note also that this
+   * probability is NOT the mega rate: RandomPlayerAI spends the roll on the first available form
+   * change in the order terastallize -> dynamax -> mega, so in Gen 9 a Tera consumes it and the mega
+   * waits for another turn. Raising this number has less effect than it looks like it should. */
   const p1 = new Player(streams.p1, { seed: pseed(1), mega: MEGA_P });
   const p2 = new Player(streams.p2, { seed: pseed(2), mega: MEGA_P });
   p1.start(); p2.start();

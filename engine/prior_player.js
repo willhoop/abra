@@ -33,6 +33,16 @@ function loadBase() {
 
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
+/* Mega stones are the only items whose id ends in "ite" — Charizardite Y, Tyranitarite, Swampertite.
+ * The length guard keeps the handful of short false friends out; there is no item called just "ite",
+ * but "White Herb" and friends normalise to something ending in other letters, so the tail test is
+ * enough on its own and the guard is belt-and-braces. Deliberately a rule about the item id rather
+ * than a list of stones, so a new mega in a future regulation is handled without an edit (S13). */
+const isMegaStone = it => {
+  const s = norm(it);
+  return s.length > 4 && /ite$|itex$|itey$/.test(s);
+};
+
 /* Build species -> [[moveId, probability], ...].
  *
  * READS THE FILE, NOT A BROWSER GLOBAL. This used to read `globalThis.MC.priors`, which exists only
@@ -168,8 +178,60 @@ function makePriorPlayer() {
       };
 
       const size = Math.min(4, team.length);
-      const four = pick(idx, 'p_bring', P.mean_bring, size);
-      const leads = pick(four, 'p_lead', P.mean_lead, Math.min(2, four.length));
+      let four = pick(idx, 'p_bring', P.mean_bring, size);
+      let leads = pick(four, 'p_lead', P.mean_lead, Math.min(2, four.length));
+
+      /* ---- THE MEGA STONE OVERRIDES THE SPECIES PRIOR --------------------------------------------
+       *
+       * p_bring and p_lead are keyed on species, so "Charizard" and "Charizard holding Charizardite
+       * Y" get the same weight — but the stone is the single most important thing a player is looking
+       * at during preview, and the format is built around it.
+       *
+       * Leaving it out cost 21 points of realism: 74% of self-play games contained a mega against a
+       * real 93%. Every other candidate was measured and ruled out — team generation puts 1.54 stones
+       * on a team against Smogon's 1.58, mega-capable species were already brought at 88.6% against a
+       * real 92.6%, and raising the form-change probability to 1.0 moved the rate 0.7 points. The
+       * cause was the stone holder sitting in the back of a game that ended before it came out.
+       *
+       * Both numbers below are measured from real protocol logs by engine/bring_priors.js and read
+       * from the file. Nothing here is chosen: p_side_megas is how often a real side megas at all,
+       * p_mega_is_lead is how often the mega-evolver was one of the two leads. */
+      const M = P.mega;
+      if (M && M.p_side_megas) {
+        const holders = idx.filter(i => isMegaStone(team[i] && team[i].item));
+        if (holders.length) {
+          /* Pick which stone to commit to by the species prior, so a team carrying two stones still
+           * behaves sensibly — the engine allows only one mega per side regardless. */
+          const hw = holders.map(i => w(sp[i], 'p_bring', P.mean_bring));
+          let r = this.prng.random() * hw.reduce((a, b) => a + b, 0), h = 0;
+          while (h < holders.length - 1 && (r -= hw[h]) > 0) h++;
+          const star = holders[h];
+
+          if (this.prng.random() < M.p_side_megas && !four.includes(star)) {
+            /* Displace the LEAST likely of the four rather than a random one, so the rest of the
+             * bring stays the bring the priors wanted. */
+            let worst = 0;
+            for (let k = 1; k < four.length; k++) {
+              if (w(sp[four[k]], 'p_bring', P.mean_bring) < w(sp[four[worst]], 'p_bring', P.mean_bring)) worst = k;
+            }
+            four[worst] = star;
+            leads = leads.map(i => (i === four[worst] ? star : i)).filter(i => four.includes(i));
+            if (leads.length < Math.min(2, four.length)) {
+              for (const i of four) if (!leads.includes(i) && leads.length < 2) leads.push(i);
+            }
+          }
+          /* Then lead with it at the measured rate. Being in the back of a doubles game is how a
+           * mega fails to happen, so this is the half of the fix that actually moves the number. */
+          if (four.includes(star) && !leads.includes(star) && this.prng.random() < M.p_mega_is_lead) {
+            let worst = 0;
+            for (let k = 1; k < leads.length; k++) {
+              if (w(sp[leads[k]], 'p_lead', P.mean_lead) < w(sp[leads[worst]], 'p_lead', P.mean_lead)) worst = k;
+            }
+            leads[worst] = star;
+          }
+        }
+      }
+
       const rest = four.filter(i => !leads.includes(i));
       this.stats.previewSampled++;
       /* Showdown expects 1-based slot order; the first two are the leads in doubles. */

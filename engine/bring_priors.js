@@ -43,6 +43,55 @@ const OUT = path.join(ROOT, 'data', 'bring-priors.json');
 const SHRINK = 10;                 // pseudo-observations pulling a thin species toward the mean
 const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
+/* How often does a side mega at all, and how often is the mega-evolver one of the two leads?
+ * Read from the protocol logs of real games, streamed — the file is ~1GB and V8 caps a string at
+ * about 512MB, so readFileSync on it throws. */
+function measureMegas() {
+  const LOGS = path.join(ROOT, 'data', 'games.ladder.raw-logs.jsonl');
+  if (!fs.existsSync(LOGS)) return null;
+  let sides = 0, megaSides = 0, megas = 0, megaLeads = 0;
+  const fd = fs.openSync(LOGS, 'r');
+  const buf = Buffer.alloc(1 << 20);
+  let carry = '';
+  try {
+    for (;;) {
+      const r = fs.readSync(fd, buf, 0, buf.length, null);
+      if (r <= 0) break;
+      const lines = (carry + buf.toString('utf8', 0, r)).split('\n');
+      carry = lines.pop();
+      for (const line of lines) {
+        const t = line.trim(); if (!t) continue;
+        let x; try { x = JSON.parse(t); } catch { continue; }
+        if (!x.log) continue;
+        sides += 2;
+        const leads = new Set();
+        const didMega = new Set();
+        let preTurn1 = true;
+        for (const l of x.log.split('\n')) {
+          if (l.startsWith('|turn|')) preTurn1 = false;
+          else if (preTurn1 && l.startsWith('|switch|')) leads.add(l.split('|')[2]);
+          else if (l.startsWith('|-mega|')) {
+            const who = l.split('|')[2];
+            megas++;
+            if (leads.has(who)) megaLeads++;
+            didMega.add(String(who).slice(0, 2));   /* p1 / p2 */
+          }
+        }
+        megaSides += didMega.size;
+      }
+    }
+  } finally { fs.closeSync(fd); }
+  if (!megas) return null;
+  return {
+    n_sides: sides,
+    /* fraction of SIDES that produced a mega. Only one per side is legal, so this is also the
+     * probability that a given team megas at all. */
+    p_side_megas: +(megaSides / sides).toFixed(4),
+    /* given a mega happened, it was one of the two leads this often */
+    p_mega_is_lead: +(megaLeads / megas).toFixed(4),
+  };
+}
+
 function main() {
   const games = Q.loadGames();     // clean only — bot games have their own bring habits
   const onTeam = {}, brought = {}, led = {};
@@ -84,6 +133,22 @@ function main() {
     };
   }
 
+  /* ---- MEGA STONES ARE A BRING RULE OF THEIR OWN, AND IT HAD TO BE MEASURED SEPARATELY ----------
+   *
+   * The per-species priors above cannot express this. They are keyed on species, but "Charizard"
+   * and "Charizard holding Charizardite Y" are the same key and different decisions, and the item
+   * is exactly what a player is looking at during team preview.
+   *
+   * It cost us 21 points of realism. Self-play produced a mega in 74% of games against a real 93%,
+   * and every other explanation was tested and ruled out: team generation puts 1.54 stones on a team
+   * against Smogon's expected 1.58; mega-capable species are brought at 88.6% against a real 92.6%;
+   * and raising the player's form-change probability from 0.85 to 1.0 moved the rate by 0.7 points.
+   * What was left is that the stone holder sat in the back and the game ended before it came out.
+   *
+   * These two numbers are read off REAL games, where a mega is directly observable in the protocol
+   * log, and they are what the preview sampler aims at. Measured, not chosen. */
+  const megaStats = measureMegas();
+
   fs.writeFileSync(OUT, JSON.stringify({
     generated: new Date().toISOString().slice(0, 10),
     n_sides: n,
@@ -91,6 +156,7 @@ function main() {
     shrink: SHRINK,
     mean_bring: +meanBring.toFixed(4),
     mean_lead: +meanLead.toFixed(4),
+    mega: megaStats,
     caveat: 'p_bring is measured from REVEALED species and is biased down; treat it as a ranking. '
           + 'p_lead is measured from turn-1 leads and is unbiased.',
     species: out,
