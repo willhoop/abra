@@ -57,6 +57,44 @@ const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 let _moves = null;      // species -> [{mv, p}]
 let _gear = null;       // species -> {item, ability}
 
+/* ---- COSMETIC FORMES RESOLVE TO THEIR BASE ----------------------------------------------------
+ *
+ * Our store records the forme a replay named — sinistchamasterpiece, mausholdfour,
+ * vivillonmonsoon, vivillonelegant and eight more Vivillon patterns. Smogon collapses all of them
+ * into one entry (sinistcha 860,069 · maushold 194,126 · vivillon 35,448), and so does most of our
+ * own prior data, because the split names are rare individually.
+ *
+ * The consequence was silent and total: `vivillonmonsoon` matched no prior anywhere, so fillSet
+ * returned an EMPTY MOVESET. Around 2,100 team slots in the store carry a cosmetic forme name.
+ *
+ * The suffixes below are cosmetic in this format — the same Pokemon wearing a different coat, with
+ * the same stats and the same learnset. Collapsing them is correct, not an approximation. The guard
+ * is what keeps it safe: only fall back when the exact name has NO data and the base does, so a
+ * genuinely distinct forme (Rotom-Wash, Slowbro-Galar, Ninetales-Alola) is never folded into
+ * something it does not play like. */
+const COSMETIC_SUFFIX = [
+  'masterpiece', 'unremarkable',                     // Sinistcha / Poltchageist
+  'four', 'three',                                   // Maushold family size
+  'monsoon', 'elegant', 'sandstorm', 'continental', 'jungle', 'polar', 'modern', 'savanna',
+  'garden', 'marine', 'archipelago', 'highplains', 'icysnow', 'meadow', 'ocean', 'river',
+  'sun', 'tundra', 'fancy', 'pokeball',              // Vivillon patterns
+  'red', 'orange', 'yellow', 'blue', 'white',        // Florges / Flabebe flowers
+];
+function cosmeticBase(sp) {
+  const n = norm(sp);
+  for (const suf of COSMETIC_SUFFIX) {
+    if (n.length > suf.length && n.endsWith(suf)) return n.slice(0, -suf.length);
+  }
+  return null;
+}
+/* Resolve a species name against a lookup table, falling back to its cosmetic base. */
+function resolveSpecies(sp, table) {
+  const n = norm(sp);
+  if (table[n]) return n;
+  const base = cosmeticBase(n);
+  return (base && table[base]) ? base : n;
+}
+
 function movePriors() {
   if (_moves) return _moves;
   _moves = {};
@@ -252,10 +290,10 @@ function coocc() {
  * thin cell cannot dominate, and falls back to 1 (independence) when there is no evidence.
  */
 function sampleMoves(species, have, k, seed) {
-  const sp = norm(species);
+  const sp = resolveSpecies(species, movePriors());
   const pool = (movePriors()[sp] || []).filter(m => !have.some(h => norm(h) === norm(m.mv)));
   if (!pool.length) return [];
-  const e = coocc()[sp] || { solo: {}, pair: {} };
+  const e = coocc()[resolveSpecies(sp, coocc())] || { solo: {}, pair: {} };
   const nSets = Math.max(1, Object.values(e.solo).reduce((a, b) => Math.max(a, b), 0));
 
   /* Lift, SHRUNK BY EVIDENCE. Raw lift is badly biased at small counts: a rare move has a tiny
@@ -408,7 +446,7 @@ function fillSet(species, known, seed) {
     moves = moves.concat(drawn);
   }
 
-  const gear = gearPriors()[norm(species)] || {};
+  const gear = gearPriors()[resolveSpecies(species, gearPriors())] || {};
   let SM = null;
   try { SM = require('./smogon_priors.js').forSpecies(species); } catch (e) { /* optional */ }
   const smItem = SM && SM.items && SM.items[0] ? SM.items[0].item : null;

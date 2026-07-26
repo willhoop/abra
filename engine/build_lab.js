@@ -55,6 +55,7 @@ const SEED0 = parseInt(arg('seed', '4242'), 10);
 const TEAM = arg('team', '');
 const OUT = arg('out', '');
 const OPP = arg('opponent', 'prior');   // prior | random — see makeOpponent
+const MODE = arg('mode', 'flex');      // flex = enumerate the open slot | draw = sample whole sets
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('set SHOWDOWN_PATH to a BUILT pokemon-showdown master checkout');
@@ -159,15 +160,64 @@ async function playOne(packA, packB, seed, oppKind) {
     field.push({ six: t.six, sets: t.sets, seed: SEED0 + i * 7919 });
   }
 
-  /* Candidate builds: draw distinct sets for the species from the measured priors. */
+  /* ---- CANDIDATE BUILDS: ENUMERATE THE OPEN SLOT, DO NOT DRAW AT RANDOM --------------------------
+   *
+   * Drawing four moves from the distribution produces sets that DO NOT EXIST. Incineroar runs Fake
+   * Out on 100% of real sets, Parting Shot on 95%, Flare Blitz on 91% — but independent draws
+   * happily return "Throat Chop / Flare Blitz / Will-O-Wisp / Protect", with no Fake Out at all.
+   * Comparing fictional builds burns thousands of games answering a question nobody asked.
+   *
+   * Real sets are mostly locked. Measured from Smogon: Incineroar has THREE forced slots and one
+   * genuinely open; Whimsicott two and two; Garchomp one and three. So the honest experiment is to
+   * fix what is locked and enumerate the open slot exhaustively — which is both smaller and more
+   * interpretable than random draws, because every arm then differs in exactly one thing and the
+   * difference is attributable to it.
+   *
+   * LOCK_AT is a threshold on usage, not a judgement: a move on >=85% of sets is not a choice.
+   * --mode draw restores the old sampling for cases where the whole set is genuinely open. */
+  const LOCK_AT = 85, CAND_MIN = 3;
   const builds = [];
   const seenKey = new Set();
-  for (let s = 1; builds.length < NBUILDS && s < NBUILDS * 60; s++) {
-    const f = SP.fillSet(base.find(x => norm(x) === SPECIES), {}, s * 104729);
-    const key = (f.moves || []).map(norm).sort().join(',') + '|' + norm(f.item) + '|' + norm(f.ability);
-    if (seenKey.has(key)) continue;
-    seenKey.add(key);
-    builds.push({ id: builds.length + 1, set: f, key });
+  const speciesName = base.find(x => norm(x) === SPECIES);
+  const SM = (() => { try { return require('./smogon_priors.js').forSpecies(speciesName); } catch (e) { return null; } })();
+
+  if (MODE === 'flex' && SM && SM.moves && SM.moves.length >= 4) {
+    const locked = SM.moves.filter(m => m.pct >= LOCK_AT).map(m => m.move);
+    const open = 4 - locked.length;
+    const cands = SM.moves.filter(m => m.pct < LOCK_AT && m.pct >= CAND_MIN).map(m => m.move);
+    if (open === 1 && cands.length) {
+      for (const c of cands.slice(0, NBUILDS)) {
+        const f = SP.fillSet(speciesName, { moves: locked.concat([c]) }, 104729);
+        builds.push({ id: builds.length + 1, set: f, key: norm(c), varying: c });
+      }
+      console.log(`  locked  : ${locked.join(', ')}  (>=${LOCK_AT}% of real sets)`);
+      console.log(`  varying : the one open slot — ${cands.slice(0, NBUILDS).join(' / ')}`);
+    } else if (open >= 2 && cands.length >= 2) {
+      /* Two open slots: enumerate pairs, capped at NBUILDS. */
+      outer:
+      for (let i = 0; i < cands.length; i++) {
+        for (let j = i + 1; j < cands.length; j++) {
+          const pick = [cands[i], cands[j]].slice(0, open);
+          const f = SP.fillSet(speciesName, { moves: locked.concat(pick) }, 104729);
+          builds.push({ id: builds.length + 1, set: f, key: pick.map(norm).sort().join(','), varying: pick.join(' + ') });
+          if (builds.length >= NBUILDS) break outer;
+        }
+      }
+      console.log(`  locked  : ${locked.join(', ') || '(none reach ' + LOCK_AT + '%)'}`);
+      console.log(`  varying : ${open} open slots, enumerated in pairs from ${cands.length} candidates`);
+    }
+  }
+
+  /* Fall back to sampling when the flex structure is unusable (no Smogon entry, or every slot open). */
+  if (!builds.length) {
+    for (let s = 1; builds.length < NBUILDS && s < NBUILDS * 60; s++) {
+      const f = SP.fillSet(speciesName, {}, s * 104729);
+      const key = (f.moves || []).map(norm).sort().join(',') + '|' + norm(f.item) + '|' + norm(f.ability);
+      if (seenKey.has(key)) continue;
+      seenKey.add(key);
+      builds.push({ id: builds.length + 1, set: f, key, varying: '(sampled)' });
+    }
+    console.log('  builds sampled from the priors (no usable locked/flex structure)');
   }
   if (builds.length < 2) { console.error('could not draw enough distinct builds'); process.exit(1); }
 
