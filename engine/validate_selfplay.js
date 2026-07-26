@@ -183,6 +183,68 @@ async function determinism() {
   ok(a.length > 0 && b.length > 0, 'battles run reproducibly to completion');
 }
 
+/* ---- 5. FORMAT REALISM: does the corpus play like the format it claims to model? ----------------
+ *
+ * This check exists because 199,524 self-play games shipped containing essentially ZERO mega
+ * evolutions, in a format where 93% of real ladder games contain one, and every other check passed.
+ * Store shape was clean, ids were unique, determinism held, Protect was correctly the top move. The
+ * corpus was structurally perfect and was not playing Champions.
+ *
+ * So the corpus is compared against REAL GAMES on things that are cheap to count and impossible to
+ * fake: does a mega happen, how often does a move hit something immune, how often does one outright
+ * fail. Each is a measured ladder rate, not a hand-picked threshold, and the bands are wide because
+ * the point is to catch a corpus that is qualitatively wrong, not to police a few points.
+ */
+function formatRealism() {
+  console.log('\n== 5. format realism (self-play vs real ladder games) ==');
+  const LADDER = D('data', 'games.ladder.raw-logs.jsonl');
+  const SELF = D('data', 'games.selfplay.raw-logs.jsonl');
+  if (!fs.existsSync(SELF)) { ok(false, 'self-play raw logs exist (needed to check realism)'); return; }
+  if (!fs.existsSync(LADDER)) { console.log('  (no ladder logs to compare against — skipped)'); return; }
+
+  const scan = (file, cap) => {
+    let n = 0, mega = 0, moves = 0, immune = 0, failed = 0;
+    eachLine(file, (line) => {
+      if (cap && n >= cap) return;
+      const t = line.trim(); if (!t) return;
+      let r; try { r = JSON.parse(t); } catch { return; }
+      if (!r.log) return;
+      n++;
+      if (/^\|-mega\|/m.test(r.log)) mega++;
+      for (const l of r.log.split('\n')) {
+        if (l.startsWith('|move|')) moves++;
+        else if (l.startsWith('|-immune|')) immune++;
+        else if (l.startsWith('|-fail|')) failed++;
+      }
+    });
+    return { n, megaPct: 100 * mega / Math.max(1, n),
+             immunePct: 100 * immune / Math.max(1, moves),
+             failPct: 100 * failed / Math.max(1, moves) };
+  };
+
+  const real = scan(LADDER, 0);
+  const self = scan(SELF, 20000);
+  console.log(`  real ladder: ${real.n.toLocaleString()} games · mega ${real.megaPct.toFixed(1)}% · ` +
+              `immune ${real.immunePct.toFixed(2)}% · failed ${real.failPct.toFixed(2)}%`);
+  console.log(`  self-play  : ${self.n.toLocaleString()} games · mega ${self.megaPct.toFixed(1)}% · ` +
+              `immune ${self.immunePct.toFixed(2)}% · failed ${self.failPct.toFixed(2)}%`);
+
+  /* MEGA IS A HARD GATE. Anything below half the real rate means the mechanic is broken, not merely
+   * under-played — that is the failure this whole check was written for. */
+  ok(self.megaPct >= real.megaPct * 0.5,
+    `mega evolution happens (self-play ${self.megaPct.toFixed(1)}% vs ladder ${real.megaPct.toFixed(1)}%; ` +
+    `bar is half the real rate)` +
+    (self.megaPct < real.megaPct * 0.5 ? ' — THE CORPUS IS NOT PLAYING THIS FORMAT' : ''));
+
+  /* These two are SOFT: the policy is known to be weaker than a human and we do not pretend
+   * otherwise. They fail only on a collapse, which would mean a broken policy rather than a weak
+   * one. Reported either way so the gap is visible rather than assumed. */
+  ok(self.immunePct <= Math.max(8, real.immunePct * 4),
+    `immune-move rate is not pathological (${self.immunePct.toFixed(2)}% vs ladder ${real.immunePct.toFixed(2)}%)`);
+  ok(self.failPct <= Math.max(20, real.failPct * 6),
+    `failed-move rate is not pathological (${self.failPct.toFixed(2)}% vs ladder ${real.failPct.toFixed(2)}%)`);
+}
+
 function setRealism() {
   console.log('\n== 4. set realism ==');
   if (!fs.existsSync(STORE)) { ok(false, 'self-play store exists'); return; }
@@ -214,6 +276,7 @@ function setRealism() {
   console.log(`MEW SELF-PLAY VALIDATION — engine ${v.pinned_commit.slice(0, 12)}, ${v.format}`);
   storeShape();
   setRealism();
+  formatRealism();
   await determinism();
   await mirrorSymmetry(n);
   console.log(`\nSELF-PLAY VALIDATION: ${PASS} passed, ${FAIL} failed`);

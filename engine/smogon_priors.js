@@ -246,8 +246,25 @@ function forSpecies(sp) { return priors().species[norm(sp)] || null; }
 function megaInfo(sp) {
   const P = priors().species;
   const base = norm(sp);
-  if (!P[base] && !Object.keys(P).some(k => k.startsWith(base + 'mega'))) return null;
-  const formes = Object.keys(P).filter(k => k === base + 'mega' || k === base + 'megax' || k === base + 'megay');
+  let formes = Object.keys(P).filter(k => k === base + 'mega' || k === base + 'megax' || k === base + 'megay');
+
+  /* SMOGON DROPS THE FORME SUFFIX WHEN IT NAMES A MEGA, AND THAT BROKE A TOP-USAGE POKEMON.
+   *
+   * Floette-Eternal is the base; Smogon calls its mega simply "Floette-Mega". So the direct lookup
+   * builds `floetteeternalmega`, which does not exist, and Floette-Eternal — 239,898 raw usage,
+   * among the most-played in the format — silently received no mega stone at all.
+   *
+   * Fall back to a stem match: find a mega whose stem is a PREFIX of the species we were asked
+   * about. The guard matters as much as the match — only accept when Smogon has NO base entry for
+   * that stem, because if it does, the mega belongs to that base and not to our forme. Without it,
+   * a query for Slowbro-Galar would wrongly attach Slowbronite, which Slowbro-Galar cannot use. */
+  if (!formes.length) {
+    const cands = Object.keys(P).filter(k => /mega[xy]?$/.test(k));
+    formes = cands.filter(k => {
+      const stem = k.replace(/mega[xy]?$/, '');
+      return stem && stem !== base && base.startsWith(stem) && !P[stem];
+    });
+  }
   if (!formes.length) return null;
   const baseRaw = (P[base] || {}).raw || 0;
   let megaRaw = 0;

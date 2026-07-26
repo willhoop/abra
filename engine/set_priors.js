@@ -138,8 +138,8 @@ function gearPriors() {
    *
    * This returned only the single most common item per species, so every generated Tyranitar held
    * a Tyranitarite and every Charizard held the same stone. Both are wrong, and wrong in opposite
-   * directions: almost every Charizard really does carry its stone, while plenty of Tyranitars run
-   * Assault Vest or a berry and never mega at all — the stone is a choice, not a species trait.
+   * directions: almost every Charizard really does carry its stone, while a third of Tyranitars run
+   * a berry or a Sash instead and never mega at all — the stone is a choice, not a species trait.
    * Collapsing to the mode erases exactly that choice.
    *
    * Counts are kept so fillSet can SAMPLE proportionally, which reproduces the real split: near-
@@ -184,8 +184,30 @@ function sampleDist(dist, r) {
 }
 
 /* Deterministic PRNG so a seeded MEW run reproduces exactly. */
+/* Seeded PRNG. THE SEED MUST BE AVALANCHED BEFORE USE, and skipping that silently destroyed every
+ * single-draw sample in this file.
+ *
+ * Raw xorshift32 barely mixes on its first output — it is almost linear in the seed:
+ *
+ *     seed  3 -> 0.000189      seed  9 -> 0.000567
+ *     seed  5 -> 0.000315      seed 11 -> 0.000692
+ *     seed  7 -> 0.000441      seed 13 -> 0.000818
+ *
+ * Every value sits near zero, so any ONE-DRAW decision always landed on the first entry of its
+ * distribution: the modal item, the modal spread. Across 199,524 self-play games every Incineroar
+ * held a Sitrus Berry with the same Careful spread, and the "sampled, not top-k" design this file
+ * argues for at length produced modal sets anyway. Moves escaped only because they draw four times
+ * and the later draws decorrelate.
+ *
+ * A splitmix32 finalizer on the seed fixes it: one multiply-xor-shift round before the stream starts,
+ * so the first output is already well distributed. */
 function rng(seed) {
   let s = (seed >>> 0) || 1;
+  /* splitmix32 avalanche — cheap, and enough to decorrelate adjacent seeds */
+  s = (s + 0x9E3779B9) >>> 0;
+  s = Math.imul(s ^ (s >>> 16), 0x21f0aaad) >>> 0;
+  s = Math.imul(s ^ (s >>> 15), 0x735a2d97) >>> 0;
+  s = (s ^ (s >>> 15)) >>> 0 || 1;
   return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
 }
 
@@ -410,9 +432,52 @@ function fillSet(species, known, seed) {
   /* Sample the ladder distribution rather than taking its mode, so "almost every Charizard carries
    * the stone, plenty of Tyranitars do not" comes out of the data instead of being asserted. */
   const rGear = rng((seed || 1) + norm(species).length * 15485863);
-  const item = known.item || sampleDist(gear.itemDist, rGear) || gear.item || smItem || '';
+
+  /* MEGA STONES COME FROM SMOGON, NOT FROM OUR REPLAYS. THIS IS THE ONE PLACE THEIR DATA IS
+   * STRICTLY BETTER AND THE REASON IS STRUCTURAL, NOT VOLUME.
+   *
+   * An item enters our store only when a replay REVEALS it, and a mega stone reveals itself by the
+   * mega — 16,631 `|-mega|` lines against 1,282 `|-item|` lines in 10,740 games. A Tyranitar holding
+   * Assault Vest may reveal nothing all game. So our estimate is selection-biased in a direction we
+   * cannot correct from replays: we had Tyranitar at 20% where the true rate is 66%.
+   *
+   * Smogon computes from the TEAM, server-side, so a Pokemon that dies in the back without revealing
+   * anything is still counted. Verified three ways before adopting it (docs/FINDINGS-2026-07-26.md
+   * §4.2), the decisive one being that their raw counts sum to exactly 12.00 per battle across
+   * 1,163,315 battles — a VGC battle has 12 Pokemon across the two teams, so every slot is counted
+   * whether or not it was ever brought.
+   *
+   * megaInfo also carries the X/Y split, so Charizard comes out 96.1% Y / 3.2% X / 0.7% no stone
+   * rather than "always the modal stone". */
+  let megaItem = null;
+  if (!known.item) {
+    try {
+      const mi = require('./smogon_priors.js').megaInfo(species);
+      if (mi && mi.rate > 0) {
+        if (rGear() < mi.rate) {
+          /* which forme, weighted by how often each is actually run */
+          const tot = mi.options.reduce((a, o) => a + o.raw, 0);
+          let x = rGear() * tot;
+          for (const o of mi.options) { x -= o.raw; if (x <= 0) { megaItem = o.stone; break; } }
+          if (!megaItem) megaItem = mi.options[0].stone;
+        } else {
+          megaItem = '';   // explicitly NOT a stone: this build genuinely runs something else
+        }
+      }
+    } catch (e) { /* no Smogon data for this species — fall through to our own priors */ }
+  }
+
+  /* When Smogon says "no stone this time", the ordinary item draw must not hand one back. */
+  const stoneish = (v) => { const n = norm(v); return (n.endsWith('ite') || /ite[xy]$/.test(n)) && n !== 'whiteherb' && n.length > 5; };
+  let itemDist = gear.itemDist;
+  if (megaItem === '' && itemDist) {
+    itemDist = Object.fromEntries(Object.entries(itemDist).filter(([k]) => !stoneish(k)));
+    if (!Object.keys(itemDist).length) itemDist = null;
+  }
+
+  const item = known.item || megaItem || sampleDist(itemDist, rGear) || (megaItem === '' ? (smItem || '') : (gear.item || smItem || ''));
   const ability = known.ability || sampleDist(gear.abilityDist, rGear) || gear.ability || smAbil || '';
-  if (!known.item && (smItem || gear.item)) filled.push(`${species}: item`);
+  if (!known.item && (megaItem || smItem || gear.item)) filled.push(`${species}: item`);
   if (!known.ability && (smAbil || gear.ability)) filled.push(`${species}: ability`);
 
   /* A MEGA'S MOVES ARE NOT THE BASE FORME'S MOVES.

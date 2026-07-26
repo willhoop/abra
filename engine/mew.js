@@ -132,8 +132,23 @@ function realTeams() {
 // ---- one self-play battle ----------------------------------------------------------------------
 async function playOne(teamA, teamB, seed) {
   const { BattleStream, getPlayerStreams, RandomPlayerAI, Teams } = simBits();
-  const A = CS.packTeam(teamA.six, teamA.sets);
-  const B = CS.packTeam(teamB.six, teamB.sets);
+  /* THE SETS MUST VARY BETWEEN GAMES, AND FOR 199,524 GAMES THEY DID NOT.
+   *
+   * packTeam passes `setsBySpecies.__seed` down to fillSet, defaulting to 1 when absent — and this
+   * call never supplied one. So every draw used seed 1 and every Incineroar in the entire run was
+   * byte-identical: Sitrus Berry, Darkest Lariat / Throat Chop / Parting Shot / Fake Out, Careful,
+   * 32/-/14/-/20/-. Twenty-five packTeam calls on the same six produced ONE distinct team.
+   *
+   * set_priors.js opens by defending sampled-over-modal sets precisely because "a generator that
+   * always plays the same line explores a narrow band of states". That intent was defeated by a
+   * default argument, silently, for the whole run — the games explored exactly one build per
+   * species, which is a far narrower world than the format.
+   *
+   * The battle seed is per game and already disjoint across workers, so deriving from it gives
+   * variety across games while keeping a run exactly reproducible. The two sides are offset so a
+   * mirror match does not hand both players the identical build. */
+  const A = CS.packTeam(teamA.six, Object.assign({}, teamA.sets, { __seed: seed * 2 + 1 }));
+  const B = CS.packTeam(teamB.six, Object.assign({}, teamB.sets, { __seed: seed * 2 + 2 }));
   if (!A.size || !B.size) return null;
   /* REFUSE ILLEGAL TEAMS. BattleStream does not validate what it is handed, so a team that breaks
    * Item Clause or carries an unlearnable move plays through and produces a record indistinguishable
