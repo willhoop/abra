@@ -1,59 +1,47 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 3454,
-  "k_selected": 6,
-  "silhouette": 0.119,
+  "n_games": 3676,
+  "k_selected": 5,
+  "silhouette": 0.122,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Farigiraf-Sneasler",
-      "share": 0.354,
+      "n": "Trick Room",
+      "share": 0.459,
       "core": [
+        "incineroar",
         "farigiraf",
-        "sneasler",
         "raichu",
-        "aerodactyl"
+        "torkoal"
       ],
       "signature": [],
-      "w_usage": 0.354
+      "w_usage": 0.459
     },
     {
       "n": "Garchomp-Charizard",
-      "share": 0.174,
+      "share": 0.22,
       "core": [
         "garchomp",
         "charizard",
         "kingambit",
-        "sylveon"
+        "whimsicott"
       ],
       "signature": [
         "aerodactyl"
       ],
-      "w_usage": 0.174
+      "w_usage": 0.22
     },
     {
-      "n": "Whimsicott-Basculegion",
-      "share": 0.152,
+      "n": "Kingambit-Sneasler",
+      "share": 0.139,
       "core": [
-        "whimsicott",
-        "basculegion",
-        "garchomp",
-        "kingambit"
-      ],
-      "signature": [],
-      "w_usage": 0.152
-    },
-    {
-      "n": "Incineroar-Sinistcha",
-      "share": 0.133,
-      "core": [
-        "incineroar",
-        "sinistcha",
+        "kingambit",
         "sneasler",
-        "kingambit"
+        "basculegion",
+        "whimsicott"
       ],
       "signature": [],
-      "w_usage": 0.133
+      "w_usage": 0.139
     },
     {
       "n": "Rain",
@@ -69,7 +57,7 @@
     },
     {
       "n": "Sand",
-      "share": 0.076,
+      "share": 0.071,
       "core": [
         "tyranitar",
         "excadrill",
@@ -77,7 +65,7 @@
         "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.076
+      "w_usage": 0.071
     }
   ]
 }
