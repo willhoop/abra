@@ -182,8 +182,25 @@ async function playOne(teamA, teamB, seed) {
     const s = (seed + off * 0x9E3779B1) >>> 0;
     return [s & 0xffff, (s >>> 4) & 0xffff, (s >>> 8) & 0xffff, (s >>> 12) & 0xffff];
   };
-  const p1 = new Player(streams.p1, { seed: pseed(1) });
-  const p2 = new Player(streams.p2, { seed: pseed(2) });
+  /* MEGA EVOLUTION MUST BE TURNED ON EXPLICITLY.
+   *
+   * RandomPlayerAI does `this.mega = options.mega || 0`, so the default is NEVER. We never passed
+   * the option, so across 199,524 self-play games the bots mega-evolved essentially zero times —
+   * while 93% of real ladder games contain one, in a format built around megas. The corpus was
+   * missing the defining mechanic of the game.
+   *
+   * The option is a per-decision probability, which happens to model the real behaviour well: a
+   * high value means the mega usually happens the first turn the Pokemon is on the field, and
+   * occasionally a turn or two later. That matches how it actually goes — most players mega turn 1,
+   * some wait. It is deliberately NOT 1.0, because megaing immediately every single time is its own
+   * kind of wrong.
+   *
+   * The engine enforces the rest: one mega per side per battle. So a team carrying two stones
+   * behaves correctly on its own — whichever eligible Pokemon is out first takes it, and the other
+   * plays on unevolved, which is exactly the Tyranitar-holding-a-stone-while-Steelix-megas case. */
+  const MEGA_P = 0.85;
+  const p1 = new Player(streams.p1, { seed: pseed(1), mega: MEGA_P });
+  const p2 = new Player(streams.p2, { seed: pseed(2), mega: MEGA_P });
   p1.start(); p2.start();
 
   void streams.omniscient.write(

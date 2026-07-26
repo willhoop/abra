@@ -80,16 +80,70 @@ function gearPriors() {
     for (const g of Q.loadGames()) {
       for (const [sp0, s] of Object.entries(g.sets || {})) {
         const sp = norm(sp0);
-        if (s && s.item) { (item[sp] = item[sp] || {})[s.item] = (item[sp][s.item] || 0) + 1; }
+        /* CANONICALISE THE ITEM NAME BEFORE COUNTING. The store carries the same item under two
+         * spellings depending on which protocol line revealed it — "CharizarditeY" from one path
+         * and "Charizardite Y" from another. Counted separately they split one item's rate across
+         * two entries, understating how often it is actually held (Charizard's stone read 67% + 13%
+         * instead of 80%) and letting a rarely-seen spelling win a sample. Key on the normalised
+         * form, keep the most common spelling for display. */
+        if (s && s.item) {
+          const key = norm(s.item);
+          const bucket = (item[sp] = item[sp] || {});
+          const rec = (bucket[key] = bucket[key] || { n: 0, names: {} });
+          rec.n++;
+          rec.names[s.item] = (rec.names[s.item] || 0) + 1;
+        }
         if (s && s.ability) { (abil[sp] = abil[sp] || {})[s.ability] = (abil[sp][s.ability] || 0) + 1; }
       }
     }
   } catch (e) { return _gear; }
+  /* KEEP THE WHOLE DISTRIBUTION, NOT THE MODE.
+   *
+   * This returned only the single most common item per species, so every generated Tyranitar held
+   * a Tyranitarite and every Charizard held the same stone. Both are wrong, and wrong in opposite
+   * directions: almost every Charizard really does carry its stone, while plenty of Tyranitars run
+   * Assault Vest or a berry and never mega at all — the stone is a choice, not a species trait.
+   * Collapsing to the mode erases exactly that choice.
+   *
+   * Counts are kept so fillSet can SAMPLE proportionally, which reproduces the real split: near-
+   * universal stones on the species that always mega, a genuine mix on the ones that sometimes do.
+   * `item` stays as the mode for callers that want one value. */
   const top = o => o ? Object.entries(o).sort((a, b) => b[1] - a[1])[0][0] : null;
+  /* Collapse the canonical buckets back to {displayName: count}, picking the spelling that was
+   * actually seen most often for each item. */
+  const flatten = (buckets) => {
+    if (!buckets) return null;
+    const out = {};
+    for (const rec of Object.values(buckets)) {
+      const name = Object.entries(rec.names).sort((a, b) => b[1] - a[1])[0][0];
+      out[name] = (out[name] || 0) + rec.n;
+    }
+    return out;
+  };
   for (const sp of new Set([...Object.keys(item), ...Object.keys(abil)])) {
-    _gear[sp] = { item: top(item[sp]), ability: top(abil[sp]) };
+    const idist = flatten(item[sp]);
+    _gear[sp] = {
+      item: top(idist),
+      ability: top(abil[sp]),
+      itemDist: idist,                     // {displayName: count}, spellings merged
+      abilityDist: abil[sp] || null,
+    };
   }
   return _gear;
+}
+
+/* Draw from a {value: count} table proportionally, with a seeded PRNG so a seeded MEW run stays
+ * reproducible. Returns null on an empty table so callers can fall through to their next source. */
+function sampleDist(dist, r) {
+  if (!dist) return null;
+  const entries = Object.entries(dist);
+  if (!entries.length) return null;
+  let total = 0;
+  for (const [, c] of entries) total += c;
+  if (total <= 0) return null;
+  let x = r() * total;
+  for (const [v, c] of entries) { x -= c; if (x <= 0) return v; }
+  return entries[entries.length - 1][0];
 }
 
 /* Deterministic PRNG so a seeded MEW run reproduces exactly. */
@@ -191,9 +245,38 @@ function sampleMoves(species, have, k, seed) {
     out.push(avail[i].mv);
     chosen.push(norm(avail[i].mv));
     avail.splice(i, 1);
+
+    /* ONE MOVE PER REDUNDANT FAMILY. Co-occurrence lift discourages nonsense pairs but cannot
+     * forbid them, so sets came out with BOTH Protect and Detect — measured at 1.1% of Pokemon that
+     * used any protection move, across 40,000 games. No real player runs two; the second slot is
+     * simply wasted, and a bot holding both wastes turns failing with one after the other.
+     *
+     * Same argument for the other exact-duplicate families: two forms of the same effect where
+     * carrying both is strictly worse than carrying one plus anything else. This is a legality-
+     * shaped constraint on SET CONSTRUCTION, not a play heuristic — it says what a set looks like,
+     * never what to click. */
+    const fam = FAMILY_OF[norm(avail_last_picked(out))];
+    if (fam) {
+      for (let j = avail.length - 1; j >= 0; j--) {
+        if (FAMILY_OF[norm(avail[j].mv)] === fam) avail.splice(j, 1);
+      }
+    }
   }
   return out;
 }
+function avail_last_picked(out) { return out[out.length - 1]; }
+
+/* Redundant move families: carrying two members is never a real set. */
+const FAMILY_OF = {};
+[
+  ['protect', ['protect', 'detect', 'spikyshield', 'banefulbunker', 'burningbulwark', 'silktrap',
+               'obstruct', 'kingsshield']],
+  ['tailwind', ['tailwind']],
+  ['weather', ['raindance', 'sunnyday', 'sandstorm', 'snowscape', 'hail', 'chillyreception']],
+  ['terrain', ['electricterrain', 'grassyterrain', 'psychicterrain', 'mistyterrain']],
+  ['trickroom', ['trickroom']],
+  ['fakeout', ['fakeout']],
+].forEach(([fam, moves]) => { if (moves.length > 1) moves.forEach(m => { FAMILY_OF[m] = fam; }); });
 
 /* Sample a SPREAD from Smogon's official distribution, proportional to how often it is actually run.
  *
@@ -238,13 +321,26 @@ function fillSet(species, known, seed) {
       if (SM && SM.moves && SM.moves.length) {
         const r = rng((seed || 1) + norm(species).length * 7919);
         const pool = SM.moves.filter(m => !moves.some(h => norm(h) === norm(m.move)));
+        /* Drop family duplicates already present among the REVEALED moves, so a set that showed
+         * Protect cannot then be handed Detect. The same rule is applied after each draw below. */
+        for (let j = pool.length - 1; j >= 0; j--) {
+          const f = FAMILY_OF[norm(pool[j].move)];
+          if (f && moves.some(h => FAMILY_OF[norm(h)] === f)) pool.splice(j, 1);
+        }
         while (moves.length + drawn.length < 4 && pool.length) {
           let tot = 0; for (const m of pool) tot += m.pct;
           if (tot <= 0) break;
           let x = r() * tot, i = 0;
           for (; i < pool.length; i++) { x -= pool[i].pct; if (x <= 0) break; }
           if (i >= pool.length) i = pool.length - 1;
-          drawn.push(pool[i].move); pool.splice(i, 1);
+          const picked = pool[i].move;
+          drawn.push(picked); pool.splice(i, 1);
+          const fam = FAMILY_OF[norm(picked)];
+          if (fam) {
+            for (let j = pool.length - 1; j >= 0; j--) {
+              if (FAMILY_OF[norm(pool[j].move)] === fam) pool.splice(j, 1);
+            }
+          }
         }
       }
     } catch (e) { /* fall through to the behaviour-clone */ }
@@ -259,10 +355,63 @@ function fillSet(species, known, seed) {
   const smItem = SM && SM.items && SM.items[0] ? SM.items[0].item : null;
   const smAbil = SM && SM.abilities && SM.abilities[0] ? SM.abilities[0].ability : null;
 
-  const item = known.item || smItem || gear.item || '';
-  const ability = known.ability || smAbil || gear.ability || '';
+  /* OUR OWN LADDER PARSE OUTRANKS SMOGON FOR ITEMS, AND THE REASON IS MEGA STONES.
+   *
+   * Smogon's Champions moveset files list no mega stones at all — Charizard's top items come back
+   * as Choice Scarf / Life Orb / Charcoal, Tyranitar as Choice Scarf. Our own parse of real
+   * Champions replays says Charizard holds CharizarditeY and Tyranitar holds Tyranitarite, and
+   * 82.1% of the 12,872 games in the ladder store record a mega stone on some set.
+   *
+   * Because smItem was consulted FIRST, every generated team lost its stone. A Pokemon with no
+   * stone cannot mega evolve, so the self-play corpus contained essentially no megas while 93% of
+   * real ladder games contain one — in a format built around them. That is the single largest
+   * realism defect found in the corpus, and it came from preferring an external source over our own
+   * direct measurement of this exact format.
+   *
+   * Smogon stays as the FALLBACK: it covers species our store has not seen enough of. But where we
+   * have measured this format ourselves, our measurement wins. */
+  /* Sample the ladder distribution rather than taking its mode, so "almost every Charizard carries
+   * the stone, plenty of Tyranitars do not" comes out of the data instead of being asserted. */
+  const rGear = rng((seed || 1) + norm(species).length * 15485863);
+  const item = known.item || sampleDist(gear.itemDist, rGear) || gear.item || smItem || '';
+  const ability = known.ability || sampleDist(gear.abilityDist, rGear) || gear.ability || smAbil || '';
   if (!known.item && (smItem || gear.item)) filled.push(`${species}: item`);
   if (!known.ability && (smAbil || gear.ability)) filled.push(`${species}: ability`);
+
+  /* A MEGA'S MOVES ARE NOT THE BASE FORME'S MOVES.
+   *
+   * Mega Dragonite is a special attacker; ordinary Dragonite is physical. Our own measured priors
+   * say exactly that — `dragonite` leads with Extreme Speed (21%) and Earthquake, while
+   * `dragonitemega` leads with Roost, Dragon Pulse, Blizzard and Draco Meteor. Twenty-six mega
+   * formes carry their own move priors and every one of them was being ignored, because the moves
+   * were drawn from the base species before the item was even known.
+   *
+   * So once a mega stone has been assigned, the UNREVEALED slots are re-drawn from the mega forme's
+   * prior. Anything the replay actually revealed is kept — that is observation, not inference. */
+  let megaForme = null;
+  if (item && !known.item) {
+    const it = norm(item);
+    const base = norm(species);
+    if (it.endsWith('ite') || /ite[xy]$/.test(it)) {
+      const MP = movePriors();
+      const cand = /ite y$|itey$/.test(it) ? [base + 'megay', base + 'mega']
+                 : /ite x$|itex$/.test(it) ? [base + 'megax', base + 'mega']
+                 : [base + 'mega', base + 'megay', base + 'megax'];
+      megaForme = cand.find(k => MP[k] && (MP[k].length || (MP[k].moves || []).length)) || null;
+    }
+  }
+  if (megaForme) {
+    const keptKnown = have.slice();
+    const need = 4 - keptKnown.length;
+    if (need > 0) {
+      const redrawn = sampleMoves(megaForme, keptKnown, need,
+                                  (seed || 1) + norm(megaForme).length * 7919);
+      if (redrawn.length) {
+        moves = keptKnown.concat(redrawn);
+        filled.push(`${species}: ${redrawn.length} move(s) from ${megaForme}`);
+      }
+    }
+  }
 
   const spread = sampleSpread(species, seed);
   if (spread) filled.push(`${species}: spread`);
