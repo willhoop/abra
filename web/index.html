@@ -63,7 +63,10 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 .panel .sub{color:#5a708a;font-weight:600;margin:0 0 14px}
 .mascot{width:104px;height:104px;object-fit:contain;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none;
   filter:drop-shadow(0 4px 3px rgba(0,0,0,.14))}
-.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:13px 18px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px;max-width:860px;font-size:16px;line-height:1.45;text-wrap:balance}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:16px;padding:13px 18px;font-weight:600;box-shadow:0 4px 0 var(--shadow);flex:1;min-width:240px;max-width:860px;font-size:16px;line-height:1.45}
+/* NOT text-wrap:balance. Balance equalises line LENGTHS, so a short sentence in a wide bubble gets
+   broken into two stubby even lines instead of filling the row — the box looked wide while the text
+   wrapped at half of it. Normal wrapping fills the line, which is what a speech bubble wants. */
 .bubble:before{content:'';position:absolute;left:-14px;top:22px;border:8px solid transparent;border-right-color:var(--line)}
 .bubble:after{content:'';position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:#fff}
 .hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -655,7 +658,7 @@ function nArchetypes(){
   try{ return (window.GURU&&(GURU.archetypes||GURU.names||[]).length)||null; }catch(e){ return null; }
 }
 function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
-  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p>${statusBadge(c.id)}<div class="bubble">${bubble}</div></div></div>`;}
+  <div><h2>${c.title}</h2><p class="sub">${c.acro}</p><div class="bubble">${bubble}</div></div></div>`;}
 
 /* ---- "How I think", the closing bubble every room ends on -------------------------------------
    One panel per room, in the model's own voice, saying plainly what it does and — where it has been
@@ -686,7 +689,7 @@ const HOW_I_THINK={
 function howIThink(id){
   const txt=HOW_I_THINK[id]; if(!txt) return '';
   const m=statusFor(id);
-  const tail=m?`<div style="margin-top:9px">${statusBadge(id)}</div>`:'';
+  const tail='';
   const c=(typeof CAST!=='undefined')?CAST.find(x=>x.id===id):null;
   return `<h2>How I think</h2>
     <div class="hero" style="align-items:flex-start">
@@ -861,8 +864,7 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
    <div class="panel"><h2>The meta looks like rock-paper-scissors</h2><p style="font-weight:600;color:#3a5372">Solving Champions team preview means a <b>mixed Nash strategy</b>, not one "best deck". Across <b>${games} real games</b> the playstyle matchups <i>hint</i> at a cycle:</p>
    ${cycleSVG(S&&S.cycle?S.cycle.cycle:['Trick Room','Hyper Offense','Sand'])}
    <div style="text-align:center;font-size:13px;font-weight:700;color:#8a97ad;margin:0 0 6px">each beats the next, and it loops back — ${cyc}</div>
-   <p style="font-weight:600;color:#3a5372">Each leg leans ~${edge}% to the winner, which <i>if it holds</i> means picking one single playstyle is exploitable while a mixture isn't — the reason to mix. <b>Honest caveat:</b> these matchups are only ~11–18 games each, so the error bars are wide and cross 50%. Treat this as a <b>suggestive pattern, not a settled fact</b> — it sharpens as more games come in.</p>
-   <span class="chip">mixed Nash</span><span class="chip">small samples</span><span class="chip">suggestive, not proven</span></div>
+   <p style="font-weight:600;color:#3a5372">Each leg leans ~${edge}% to the winner, which <i>if it holds</i> means picking one single playstyle is exploitable while a mixture isn't — the reason to mix. <b>Honest caveat:</b> these matchups are only ~11–18 games each, so the error bars are wide and cross 50%. Treat this as a <b>suggestive pattern, not a settled fact</b> — it sharpens as more games come in.</p></div>
    <div class="panel"><h2>My equilibrium mix</h2><p style="font-weight:600;color:#3a5372">How often to be ready for each playstyle if everyone plays optimally:</p>
    <div style="margin-top:6px">${mix}</div>
    <div style="font-weight:700;color:#7a8aa0;margin-top:10px">Measured by how much a perfect counter-picker could beat you. Playing the mix is close to unbeatable; committing to one deck loses about ${greedy}% to the right answer.</div></div>
@@ -871,13 +873,12 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
 function roomGuru(){const c=CAST.find(x=>x.id==='guru');
   return `<div class="panel">${mascotHero(c,"I read every real game and tell you which archetype actually beats which — with honest error bars.")}</div>
    <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from real Champions games. Of <b>${fmtN(nCollected())}</b> collected, <b>${fmtN(nUsable())}</b> survive the quality filter (${nUsablePct()}%); the rest are bot games, forfeits, or too short to reveal a bring. <b>GURU is now computed on the filtered set, and the result changed:</b> across ${nArchetypes()||'the'} archetypes there are <b>0 statistically-decisive matchups</b> (n&ge;30 with a Wilson interval excluding 50%). On clean games the archetype matrix does not separate from chance, and its predictive test scores 0.735 against a coin&rsquo;s 0.693 &mdash; worse than a coin. The matrix is descriptive structure, not evidence that one archetype beats another. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
-   <span class="chip">${nArchetypes()||'?'} archetypes</span><span class="chip">${datasetLine()}</span><span class="chip">Wilson CIs</span></div>
+   <span class="chip">${nArchetypes()||'?'} archetypes</span><span class="chip">${datasetLine()}</span></div>
    <div class="panel"><h2>What I can and can't do</h2><p style="font-weight:600;color:#3a5372">I give <b>honest matchup rates</b>. I do <b>not</b> predict who wins a single game from team sheets — in this format that is a coin flip, and I say so plainly rather than selling a false edge.</p></div>`;
 }
 function roomXatu(){const c=CAST.find(x=>x.id==='xatu');
   return `<div class="panel">${mascotHero(c,"I see what they're hiding — the likely item, ability and moves behind each Pokémon.")}</div>
-   <div class="panel"><h2>Reading the hidden set</h2><p style="font-weight:600;color:#3a5372">From thousands of replays I learn what set each species usually runs, then narrow it as moves and items reveal. On held-out human moves the read lands <b>top-1 ≈ 36% / top-3 ≈ 72%</b> — real signal, and honest that human choice carries genuine randomness.</p>
-   <span class="chip">item · ability · moves</span><span class="chip">top-3 72%</span><span class="chip">from real replays</span></div>
+   <div class="panel"><h2>Reading the hidden set</h2><p style="font-weight:600;color:#3a5372">From thousands of replays I learn what set each species usually runs, then narrow it as moves and items reveal. On held-out human moves the read lands <b>top-1 ≈ 36% / top-3 ≈ 72%</b> — real signal, and honest that human choice carries genuine randomness.</p></div>
    <div class="panel"><h2>Why it matters</h2><p style="font-weight:600;color:#3a5372">A belief over the opponent's hidden set is the input Slowking and the future ALAKAZAM search over. You can't play the mind-game without a read.</p></div>`;
 }
 function roomPory(){const c=CAST.find(x=>x.id==='pory');
@@ -886,7 +887,7 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
    <p style="font-weight:600;color:#3a5372">Turn number has <b>no effect at all</b> — and not because it does not matter. Because of the way I was trained, it could never have had one. Nobody noticed for months.</p>
    <p style="font-weight:600;color:#3a5372">So yes, I beat a coin. But <i>"whoever has more Pokémon left is winning"</i> also beats a coin, and that is not a discovery. Measured head-to-head against exactly that, I score <b>the same</b>. I add nothing over counting.</p>
    <p style="font-weight:600;color:#3a5372">The real finding is elsewhere: a <b>richer</b> read of the board — who is out, what is boosted, the weather, what the opponent has shown you — genuinely does beat plain counting. That gain came from feeding the model better information, not from making it bigger.</p>
-   <span class="chip null">no better than counting Pokémon</span><span class="chip warn">trained on unfiltered data — bots and rage-quits included</span><span class="chip">claim retracted 2026-07-25</span></div>
+   <span class="chip null">no better than counting Pokémon</span><span class="chip warn">trained on unfiltered data — bots and rage-quits included</span></div>
    <div class="panel"><h2>Try it — live win %</h2>
      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 20px;font-weight:700;color:#3a5372">
        <label>Your mons alive: <b id="pv_ma">4</b><input type="range" min="0" max="4" value="4" id="p_ma" oninput="poryDemo()" style="width:100%"></label>
@@ -900,16 +901,14 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
 function roomMew(){const c=CAST.find(x=>x.id==='mew');
   return `<div class="panel">${mascotHero(c,"I play this format against myself, over and over, so the other models have games to learn from.")}</div>
    ${mewViewerPanel()}
-   <div class="panel"><h2>Why a practice field</h2><p style="font-weight:600;color:#3a5372">Every other room learns from <b>real ladder replays</b>, and there are only so many of those — ${fmtN(nCollected())} collected and just ${fmtN(nUsable())} that survive the quality filter, growing a few hundred a day. Questions about <b>people</b> (does the better player win? what will they bring?) genuinely need real games and have to wait. But questions about <b>the game itself</b> — what does this position turn into? — don't. Those just need games, and I can make as many as the machine will run: <b>~45 a second</b>, roughly 160,000 an hour.</p>
-   <span class="chip">official engine</span><span class="chip">real ladder teams</span><span class="chip">never mixed with real games</span></div>
+   <div class="panel"><h2>Why a practice field</h2><p style="font-weight:600;color:#3a5372">Every other room learns from <b>real ladder replays</b>, and there are only so many of those — ${fmtN(nCollected())} collected and just ${fmtN(nUsable())} that survive the quality filter, growing a few hundred a day. Questions about <b>people</b> (does the better player win? what will they bring?) genuinely need real games and have to wait. But questions about <b>the game itself</b> — what does this position turn into? — don't. Those just need games, and I can make as many as the machine will run: <b>~45 a second</b>, roughly 160,000 an hour.</p></div>
    <div class="panel"><h2>What one practice game is</h2><p style="font-weight:600;color:#3a5372">A complete battle in the <b>official Champions simulator</b> — the same code Showdown runs, pinned to one commit. Two teams that real players actually brought, each picking <b>4 of their 6</b> and leading <b>2</b>, then playing to a winner. Both sides choose moves the way real players do: sampled from how often that Pokémon actually clicks each move, not at random.</p>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px">
      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">947,376</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">possible team matchups</div></div>
      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">90</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">ways to pick 4 and lead 2</div></div>
      <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">~11</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">board states per game</div></div>
    </div></div>
-   <div class="panel"><h2>Every game can be replayed exactly</h2><p style="font-weight:600;color:#3a5372">Each battle records the <b>seed</b> that produced it, the policy, and the exact engine commit. Re-run that seed and you get <b>the same game, move for move</b> — verified byte-identical. That matters because the whole point is claims like <i>"switching here is what won it"</i>, and a claim you can't re-run is a claim you can't check.</p>
-   <span class="chip">seeded dice</span><span class="chip">seeded decisions</span><span class="chip">pinned engine</span></div>
+   <div class="panel"><h2>Every game can be replayed exactly</h2><p style="font-weight:600;color:#3a5372">Each battle records the <b>seed</b> that produced it, the policy, and the exact engine commit. Re-run that seed and you get <b>the same game, move for move</b> — verified byte-identical. That matters because the whole point is claims like <i>"switching here is what won it"</i>, and a claim you can't re-run is a claim you can't check.</p></div>
    <div class="panel"><h2>Honest limits</h2><p style="font-weight:600;color:#3a5372">These are <b>practice games, not real ones</b>, and they are labelled as such in every record so they can never be mistaken for ladder data. The players are decent imitations of human habits, not strong play — so my games teach <b>what positions turn into</b>, not what a champion would do. And the teams are real, but the hidden parts (spreads, items, the moves nobody revealed) are <b>sampled</b> from what the format actually runs, which is an estimate.</p></div>
    `;
 }
@@ -927,13 +926,7 @@ function mewViewerPanel(){
        <button class="battlebtn" onclick="mewFindSeed()">Watch it</button>
        <button class="battlebtn" onclick="mewRandom()">Surprise me</button>
      </div>
-     <div id="mewseedmsg" style="font-size:12.5px;font-weight:700;color:#6d829b;margin-bottom:8px"></div>
-     <!-- The bundled seeds, listed. Twice I handed over seeds that went stale when the bundle was
-          rebuilt, and there was no way to see which ones were actually available. Now the page
-          says. Generated from the bundle, so it can never disagree with it. -->
-     <div id="mewseedlist" style="margin-bottom:10px"></div>
-     <iframe id="mewframe" title="MEW replay" style="width:100%;height:620px;border:3px solid var(--line);border-radius:14px;background:#fff"></iframe>
-     <div id="mewprov" style="margin-top:10px;font-size:12.5px;color:#6d829b;font-weight:700"></div>
+     <iframe id="mewframe" title="MEW replay" style="width:100%;height:560px;border:3px solid var(--line);border-radius:14px;background:#fff;display:block"></iframe>
    </div>`;
 }
 /* ===== MEW replay =====
@@ -945,60 +938,43 @@ function mewViewerPanel(){
    The frame is re-pointed rather than rebuilt, because replay-embed.js initialises once against the
    DOM it finds at load, and this site swaps rooms in and out of one page. */
 function mewGames(){ return (window.MEW&&window.MEW.games)||[]; }
-function mewShow(seed, note){
+/* The frame reports its real height as the player builds itself, so a 4-turn battle does not sit
+   above 400px of grey. Fixed-height iframes always leave a slab under short content. */
+window.addEventListener('message', function(e){
+  var h = e && e.data && e.data.mewHeight;
+  if (!h) return;
+  var f = document.getElementById('mewframe');
+  if (f) f.style.height = Math.max(320, Math.min(900, h + 8)) + 'px';
+});
+function mewShow(seed){
   var f=document.getElementById('mewframe'); if(!f) return;
+  /* Cache-bust so re-picking the same seed reloads the player rather than showing a stale frame. */
   f.src='replay.html?seed='+encodeURIComponent(seed)+'&t='+Date.now();
-  var g=mewGames().find(function(x){ return String(x.seed)===String(seed); });
-  var m=document.getElementById('mewseedmsg');
-  if(m) m.innerHTML=(note?note+' · ':'')+'seed <b>'+seed+'</b>'+(g?' · '+g.turns+' turns · '+g.winner+' won':'')+
-    ' · re-run it exactly: <code style="background:#0f1626;color:#e6ecf8;padding:1px 6px;border-radius:4px">node engine/mew.js --n 1 --seed '+seed+'</code>';
 }
 function mewRandom(){
   var G=mewGames(); if(!G.length) return;
   var g=G[Math.floor(Math.random()*G.length)];
   var box=document.getElementById('mewseed'); if(box) box.value=g.seed;
-  mewShow(g.seed,'random pick');
+  mewShow(g.seed);
 }
 function mewFindSeed(){
   var q=String((document.getElementById('mewseed')||{}).value||'').trim().replace(/[^0-9]/g,'');
-  var m=document.getElementById('mewseedmsg');
   if(!q){ mewRandom(); return; }
   var g=mewGames().find(function(x){ return String(x.seed)===q; });
-  if(g){ mewShow(q,'found'); return; }
+  if(g){ mewShow(q); return; }
   /* Unknown seeds are NOT an error. Only 50 battles ship; the store is ~1GB and stays off the site.
      The frame still loads and explains how to regenerate that exact battle locally. */
-  mewShow(q,'not bundled');
-}
-function mewSeedList(){
-  var el=document.getElementById('mewseedlist'); if(!el) return;
-  var G=mewGames().slice().sort(function(a,b){ return a.turns-b.turns; });
-  if(!G.length){ el.innerHTML=''; return; }
-  var chips=G.map(function(g){
-    var tag = g.turns<=8?'quick' : g.turns<=20?'typical' : 'marathon';
-    var col = g.turns<=8?'ok' : g.turns<=20?'' : 'warn';
-    return '<span class="chip '+col+'" style="cursor:pointer" title="'+g.turns+' turns · '+g.winner+' won'
-      +'" onclick="document.getElementById(\'mewseed\').value='+g.seed+';mewFindSeed()">'
-      + g.seed + ' <span style="opacity:.65;font-weight:700">'+g.turns+'t</span></span>';
-  }).join('');
-  el.innerHTML='<div style="font-size:12px;font-weight:800;color:#6d829b;margin-bottom:4px">'
-    + G.length+' BATTLES AVAILABLE — click one</div>'+chips;
+  mewShow(q);
 }
 function initMew(){
-  mewSeedList();
   var G=mewGames();
   var meta=(window.MEW&&window.MEW.meta)||{};
-  var prov=document.getElementById('mewprov');
-  if(prov) prov.innerHTML='engine '+String(meta.engine_commit||'—').slice(0,12)+' · '+(meta.format||'—')+
-    ' · policy '+((G[0]||{}).policy||'—')+' · showing '+G.length+' of '+(meta.total_selfplay_games||0).toLocaleString()+
-    ' generated games. Every record carries its seed, so any battle here re-runs move for move.'+
-    '<br>Replay player is Pok&eacute;mon Showdown&rsquo;s own, loaded from their site. Champions is a mod, so the battle is exact but any stat tooltip shows base Gen 9 numbers.';
   if(G.length) mewShow(G[0].seed);
 }
 function mewStop(){}
 function roomAlakazam(){const c=CAST.find(x=>x.id==='alakazam');
   return `<div class="panel">${mascotHero(c,"When I'm built, I'll give you the win-%-optimal move — and your real chance to win — at any point in the battle.")}</div>
-   <div class="panel"><h2>The capstone <span style="font-size:13px;color:#a06bd0">— in development</span></h2><p style="font-weight:600;color:#3a5372">ALAKAZAM is the final, hardest piece of ABRA. Given a live position it will output the <b>best move and your real win chance</b> — by keeping a belief about what the opponent is hiding (Xatu), planning a few turns ahead over the exact damage engine, and scoring positions with Porygon's win meter. It <b>plans</b> instead of just reacting, and keeps its choices <b>unpredictable</b> so it can't be read. This is Kadabra fully evolved.</p>
-   <span class="chip">belief + search</span><span class="chip">mixed strategy</span><span class="chip">Kadabra, evolved</span></div>
+   <div class="panel"><h2>The capstone <span style="font-size:13px;color:#a06bd0">— in development</span></h2><p style="font-weight:600;color:#3a5372">ALAKAZAM is the final, hardest piece of ABRA. Given a live position it will output the <b>best move and your real win chance</b> — by keeping a belief about what the opponent is hiding (Xatu), planning a few turns ahead over the exact damage engine, and scoring positions with Porygon's win meter. It <b>plans</b> instead of just reacting, and keeps its choices <b>unpredictable</b> so it can't be read. This is Kadabra fully evolved.</p></div>
    <div class="panel"><h2>Honest status</h2><p style="font-weight:600;color:#3a5372">Not built yet — but its inputs already are: exact damage, Porygon's value net, Xatu's belief, and Slowking's equilibrium. A light version runs right here in your browser; a version that could beat top human players needs a cloud GPU and months of self-play. It's judged on <b>decision quality</b>, never on calling the winner in advance — that part is a coin flip, and we say so.</p></div>`;
 }
 const MAPPOS={store:[436,24],medicham:[436,104],guru:[110,206],xatu:[286,206],pory:[452,206],dusk:[620,206],hypno:[772,206],mew:[858,104],chomp:[92,320],slowking:[268,320],ditto:[452,320],kadabra:[640,320],alakazam:[408,438],jolteon:[232,560],medi_win:[544,560]};
@@ -1205,7 +1181,7 @@ function roomRoles(){ const c=CAST.find(x=>x.id==='roles'); const N=window.NMF;
    <div class="panel" style="border-color:#f0c48a;background:#fffaf3"><h2 style="color:#8a5a1a">⚠ Interesting to look at, not proven to predict</h2>
      <p style="font-weight:600;color:#6a4a1a">This panel used to be headed "why this beats hand-labels". We then tested whether these roles help predict who wins. <b>They do not.</b> They land level with a coin flip, and slightly <i>worse</i> than simply comparing the two players' ladder ratings — which takes no model at all.</p>
      <p style="font-weight:600;color:#6a4a1a">The role groupings are still a genuinely useful way to <b>describe</b> the metagame and to see which Pokémon do similar jobs. They are just not evidence about outcomes, and the old heading claimed more than we can show.</p>
-     <span class="chip null">does not predict winners</span><span class="chip">loses to plain player rating</span><span class="chip ok">useful as description</span>
+     <span class="chip null">does not predict winners</span><span class="chip ok">useful as description</span>
    </div>`;
 }
 /* species role-distribution explorer (data/roles.js) */

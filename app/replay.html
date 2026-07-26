@@ -31,7 +31,9 @@
     replay.html?seed=5561914
 -->
 <style>
-  body{margin:0;background:#f6f8fb;font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
+  /* transparent, so the frame never paints a grey slab under a short battle */
+  html,body{margin:0;background:transparent;overflow-x:hidden;
+            font:14px/1.5 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif}
   #msg{padding:18px;color:#3a5372;font-weight:700}
   #msg code{background:#0f1626;color:#e6ecf8;padding:2px 7px;border-radius:5px;font-size:12.5px}
 </style>
@@ -74,6 +76,20 @@
 
   /* replay-embed.js reads .battle-log-data at load, so it is injected only AFTER the log is in
      place. Appending it earlier gives an empty battle with no error. */
+  /* Tell the parent how tall we actually are, so the frame fits the battle instead of leaving a
+     grey slab under a short one. Polled rather than measured once, because the player builds its
+     DOM asynchronously and grows as the log renders. */
+  function postHeight(){
+    var h = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      (document.querySelector('.replay-wrapper') || {scrollHeight:0}).scrollHeight
+    );
+    if (h > 40) parent.postMessage({ mewHeight: h }, '*');
+  }
+  setInterval(postHeight, 400);
+  window.addEventListener('load', postHeight);
+
   var s = document.createElement('script');
   s.src = 'https://play.pokemonshowdown.com/js/replay-embed.js';
   s.onerror = function(){
