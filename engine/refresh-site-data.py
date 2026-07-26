@@ -57,8 +57,23 @@ try:
 except Exception as e:
     print('usable count unavailable:', e)
 
+# Distinct clean teams -> the matchup space MEW enumerates. Hardcoded on the site as 947,376,
+# which was T=1,376; the pool has since grown and the figure went stale unnoticed. Generated now,
+# with the site showing the arithmetic rather than a bare number. (S13)
+teams=None
+try:
+    _seen=set()
+    for _g in _lg(clean=True, announce=False):
+        for _s in ('p1','p2'):
+            _six=(_g.get('six') or {}).get(_s) or []
+            if len(_six)>=4: _seen.add('|'.join(sorted(_six)))
+    teams=len(_seen)
+except Exception as e:
+    print('team count unavailable:', e)
+
 live={'games':games,'turns':turns,'dmgProfiles':len(pairs),
-      'usable':usable,
+      'usable':usable,'teams':teams,
+      'turnsPerGame':(round(turns/games,1) if games else None),
       'usablePct':(round(100.0*usable/games,1) if usable and games else None),
       'updated':datetime.date.today().isoformat(),'archetypes':arch}
 open(P('data','live.js'),'w',encoding='utf-8').write('window.LIVE='+json.dumps(live,separators=(',',':'))+';\n')

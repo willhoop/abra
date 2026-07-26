@@ -644,6 +644,10 @@ function statusBadge(id){
    engine/refresh-site-data.py now writes both numbers into data/live.js from the SAME filter the
    models use (engine/store.py over data/quality-filter.json), so the site and the science cannot
    disagree. S13: if it can be derived, no human types it. */
+function nTeams(){ return (window.LIVE&&LIVE.teams)||null; }
+function nTurns(){ return (window.LIVE&&LIVE.turns)||null; }
+function nTurnsPerGame(){ return (window.LIVE&&LIVE.turnsPerGame)||null; }
+function nMatchups(){ const t=nTeams(); return t? (t*(t+1))/2 : null; }
 function nCollected(){ return (window.LIVE&&LIVE.games)||null; }
 function nUsable(){ return (window.LIVE&&LIVE.usable)||null; }
 function nUsablePct(){ return (window.LIVE&&LIVE.usablePct)||null; }
@@ -904,9 +908,9 @@ function roomMew(){const c=CAST.find(x=>x.id==='mew');
    <div class="panel"><h2>Why a practice field</h2><p style="font-weight:600;color:#3a5372">Every other room learns from <b>real ladder replays</b>, and there are only so many of those — ${fmtN(nCollected())} collected and just ${fmtN(nUsable())} that survive the quality filter, growing a few hundred a day. Questions about <b>people</b> (does the better player win? what will they bring?) genuinely need real games and have to wait. But questions about <b>the game itself</b> — what does this position turn into? — don't. Those just need games, and I can make as many as the machine will run: <b>~45 a second</b>, roughly 160,000 an hour.</p></div>
    <div class="panel"><h2>What one practice game is</h2><p style="font-weight:600;color:#3a5372">A complete battle in the <b>official Champions simulator</b> — the same code Showdown runs, pinned to one commit. Two teams that real players actually brought, each picking <b>4 of their 6</b> and leading <b>2</b>, then playing to a winner. Both sides choose moves the way real players do: sampled from how often that Pokémon actually clicks each move, not at random.</p>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px">
-     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">947,376</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">possible team matchups</div></div>
-     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">90</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">ways to pick 4 and lead 2</div></div>
-     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">~11</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">board states per game</div></div>
+     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">${fmtN(nMatchups())}</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">possible team matchups</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">T&times;(T+1)&divide;2, T=${fmtN(nTeams())}</div></div>
+     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">90</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">ways to pick 4 and lead 2</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">C(6,4)&times;C(4,2) = 15&times;6</div></div>
+     <div style="background:#f6f8fb;border:2px solid #e2e8f1;border-radius:12px;padding:10px;text-align:center"><div style="font-size:26px;font-weight:800;color:#e0559f">${nTurnsPerGame()||"—"}</div><div style="font-weight:700;color:#6d829b;font-size:12.5px">turns per real game</div><div style="font-weight:700;color:#8fa0b6;font-size:11px;margin-top:4px;font-family:ui-monospace,Menlo,monospace">${fmtN(nTurns())} turns &divide; ${fmtN(nCollected())} games</div></div>
    </div></div>
    <div class="panel"><h2>Every game can be replayed exactly</h2><p style="font-weight:600;color:#3a5372">Each battle records the <b>seed</b> that produced it, the policy, and the exact engine commit. Re-run that seed and you get <b>the same game, move for move</b> — verified byte-identical. That matters because the whole point is claims like <i>"switching here is what won it"</i>, and a claim you can't re-run is a claim you can't check.</p></div>
    <div class="panel"><h2>Honest limits</h2><p style="font-weight:600;color:#3a5372">These are <b>practice games, not real ones</b>, and they are labelled as such in every record so they can never be mistaken for ladder data. The players are decent imitations of human habits, not strong play — so my games teach <b>what positions turn into</b>, not what a champion would do. And the teams are real, but the hidden parts (spreads, items, the moves nobody revealed) are <b>sampled</b> from what the format actually runs, which is an estimate.</p></div>
@@ -940,12 +944,32 @@ function mewViewerPanel(){
 function mewGames(){ return (window.MEW&&window.MEW.games)||[]; }
 /* The frame reports its real height as the player builds itself, so a 4-turn battle does not sit
    above 400px of grey. Fixed-height iframes always leave a slab under short content. */
-window.addEventListener('message', function(e){
-  var h = e && e.data && e.data.mewHeight;
-  if (!h) return;
+/* SIZE THE FRAME TO THE BATTLE, MEASURED FROM THE PARENT.
+ *
+ * The first attempt had replay.html post document.body.scrollHeight. That can never shrink: the
+ * body fills the iframe, so it reports the FRAME's height back to the frame — a feedback loop that
+ * locks in whatever height it started at and leaves a grey slab under a short battle.
+ *
+ * The frame is same-origin, so the parent can just measure the thing that actually matters: the
+ * bottom edge of Showdown's battle scene and its log. Polled because the player builds its DOM
+ * asynchronously and grows as the log renders. */
+function mewFitFrame(){
   var f = document.getElementById('mewframe');
-  if (f) f.style.height = Math.max(320, Math.min(900, h + 8)) + 'px';
-});
+  if (!f) return;
+  var d;
+  try { d = f.contentDocument; } catch (e) { return; }
+  if (!d || !d.body) return;
+  var bottom = 0;
+  ['.battle', '.battle-log', '#msg'].forEach(function(sel){
+    var el = d.querySelector(sel);
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    if (r.height > 0) bottom = Math.max(bottom, r.top + r.height);
+  });
+  if (bottom < 60) return;                       // nothing rendered yet — leave the current height
+  f.style.height = Math.round(bottom + 12) + 'px';
+}
+setInterval(mewFitFrame, 500);
 function mewShow(seed){
   var f=document.getElementById('mewframe'); if(!f) return;
   /* Cache-bust so re-picking the same seed reloads the player rather than showing a stale frame. */
