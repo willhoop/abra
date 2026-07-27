@@ -221,10 +221,19 @@ function decisionsFor(g, tally) {
   const sheet = {};
   for (const side of ['p1', 'p2']) {
     for (const m of g.sheets[side] || []) {
-      if (m && m.species) sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
+      if (m && m.species) {
+        sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
+        /* The sheet's nature reaches the board, so the damage estimate is computed against the
+         * spreads consistent with it rather than all of them. Public information on this ladder. */
+        board.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
+      }
     }
   }
   for (const side of ['p1', 'p2']) {
+    /* THE BENCH, so a switch is a candidate at all. Without it board.bench() is empty and every
+     * switch decision below silently finds nothing to match against -- the feature would be dead
+     * weight in the vector rather than obviously broken. */
+    board.setParty(side, ((g.brought || {})[side] || []));
     const lead = (g.lead || {})[side] || [];
     if (lead[0]) board.switchIn(side, 'a', lead[0]);
     if (lead[1]) board.switchIn(side, 'b', lead[1]);
@@ -238,7 +247,38 @@ function decisionsFor(g, tally) {
       if (mon) { mon.species = norm(e.mon); }
     }
 
+    /* WHICH SWITCHES WERE A CHOICE. A `t:'s'` covers two different acts: a player deciding to pull
+     * something out, and a player being made to replace something that just fainted. Only the first
+     * is a decision, and scoring the second would teach the model that switching follows death.
+     * A slot whose occupant fainted EARLIER IN THE SAME TURN was forced. */
+    const forcedSlot = new Set();
     for (const e of ev) {
+      if (e.t === 'f' && e.s) forcedSlot.add(e.s);
+      else if (e.t === 's' && e.s && forcedSlot.has(e.s)) forcedSlot.add(e.s + '|used');
+    }
+
+    for (const e of ev) {
+      if (e.t === 's' && e.s && !forcedSlot.has(e.s)) {
+        /* A voluntary switch, scored against the same candidate list the moves are scored against --
+         * the whole point is that "bring Torkoal in" competes with "click Earthquake" rather than
+         * being decided separately by a coin, which is what happens today. */
+        tally.seen++;
+        const side = e.s.slice(0, 2), letter = e.s.slice(2);
+        const user = board.slot(side, letter);
+        if (!user || user.fainted) { tally.noUser++; continue; }
+        const sh = sheet[base(user.species)];
+        if (!sh) { tally.noSheet++; continue; }
+        const cands = B.candidates(sh.moves, user, board, side, dex);
+        if (cands.length < 2) { tally.trivial++; continue; }
+        const want = base(e.mon);
+        const idx = cands.findIndex(c => c.switchTo && c.switchTo === want);
+        if (idx < 0) { tally.unmatched++; continue; }
+        const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
+          c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id)));
+        out.push({ game: g.id || '', sp: base(user.species), feats, chosen: idx });
+        tally.kept++;
+        continue;
+      }
       if (e.t !== 'm' || !e.s || !e.mon || !e.mv) continue;
       tally.seen++;
       const side = e.s.slice(0, 2), letter = e.s.slice(2);
@@ -256,14 +296,15 @@ function decisionsFor(g, tally) {
       const matches = [];
       for (let i = 0; i < cands.length; i++) {
         const c = cands[i];
-        if (norm(c.move.id) !== mvId) continue;
+        if (!c.move || norm(c.move.id) !== mvId) continue;
         if (!c.targetMon) { matches.push(i); continue; }
         if (e.tgt && base(c.targetMon.species) === base(e.tgt)) matches.push(i);
       }
       if (!matches.length) { tally.unmatched++; continue; }
       if (matches.length > 1) { tally.ambiguous++; continue; }
 
-      const feats = cands.map(c => B.featuresFor(c, user, board, side, dex, priorFor(user.species, c.move.id)));
+      const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
+        c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id)));
       out.push({ game: g.id || '', sp: base(e.mon), feats, chosen: matches[0] });
       tally.kept++;
     }

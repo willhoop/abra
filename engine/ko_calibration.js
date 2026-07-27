@@ -56,7 +56,12 @@ for (const g of games) {
   const sheet = {};
   for (const side of ['p1', 'p2']) {
     for (const m of (g.sheets && g.sheets[side]) || []) {
-      if (m && m.species) sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
+      if (m && m.species) {
+        sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
+        /* The sheet's nature reaches the board, so the damage estimate is computed against the
+         * spreads consistent with it rather than all of them. Public information on this ladder. */
+        boardOf.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
+      }
     }
   }
   for (const side of ['p1', 'p2']) {

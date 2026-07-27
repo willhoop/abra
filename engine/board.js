@@ -191,6 +191,21 @@ const FEATURES = [
    * I am gone before it happens. That is a fact about the queue, and it is the condition that makes
    * switching or Protect right rather than merely available. */
   'diesBeforeMoving', // I am facing a kill and I do not move first
+  /* ---- SWITCHING -------------------------------------------------------------------------------
+   * The facts, and only the facts. "Switch when threatened if the incoming Pokemon can take the hit"
+   * is a good rule and it is NOT written here, because writing it would cap the model at whoever
+   * wrote it. What goes in is what is measurable -- how much of the incoming attack the replacement
+   * would actually eat, and whether it outruns the thing threatening it -- and the weight on each is
+   * fitted from games where people did and did not switch.
+   *
+   * The two survival terms are separate on purpose. Run and Bun's AI, which is a hand-tuned rulebook
+   * and worth reading for its shape rather than its numbers, tests exactly this pair: come in only if
+   * the replacement is faster and not one-shot, OR slower and not two-shot. Whether that conjunction
+   * is right is a judgement, so it is left to the fit; the two halves are supplied as facts. */
+  'isSwitch',        // this candidate is a switch, not a move
+  'switchSurvives1', // the replacement lives through the hardest thing aimed at me
+  'switchSurvives2', // it lives through that twice
+  'switchFaster',    // the replacement outruns the thing that was threatening me
   /* ---- WHAT THE CROWD DOES ---------------------------------------------------------------------
    * The only feature here that is not a fact about the game. It is what the previous bot ran on by
    * itself, kept as one term among 25 rather than as the whole model, so its pull can be measured
@@ -222,6 +237,17 @@ class Board {
       p1: { active: {}, sideConditions: new Map() },
       p2: { active: {}, sideConditions: new Map() },
     };
+    /* THE BENCH. Until now this tracked only the field, which is why switching was not merely scored
+     * badly but was UNREPRESENTABLE: there was nothing to score. `party` is what each side brought
+     * (four in this format), `graveyard` is who is gone. Both worlds can supply them -- the store has
+     * `brought`, the live protocol has team preview -- and a side whose party is unknown simply
+     * produces no switch candidates rather than guessing at one. */
+    /* WHAT THE TEAM SHEET REVEALED. On the open-sheet ladder this is nature, item, ability and moves
+     * for all six — public information both players have, so using it is not peeking. It is kept
+     * per side and species so a switch-in arrives already knowing what it is. */
+    this.sheet = { p1: {}, p2: {} };
+    this.party = { p1: [], p2: [] };
+    this.graveyard = { p1: new Set(), p2: new Set() };
     this.pseudoWeather = new Map();
     this.weather = '';
     /* Counted, not hidden: when a stored target name matches a species on both sides we cannot tell
@@ -281,6 +307,27 @@ class Board {
     return out;
   }
 
+  setSheet(side, species, info) {
+    if (!species || !info) return;
+    this.sheet[side][baseSpecies(species)] = info;
+  }
+
+  setParty(side, list) {
+    this.party[side] = (list || []).map(s => baseSpecies(s)).filter(Boolean);
+  }
+
+  /* Who could come in right now: brought, not already out, not dead. */
+  bench(side) {
+    const out = [];
+    const onField = new Set(Object.values(this.sides[side].active)
+      .filter(m => m && !m.fainted).map(m => baseSpecies(m.species)));
+    for (const sp of this.party[side] || []) {
+      if (onField.has(sp) || this.graveyard[side].has(sp)) continue;
+      if (!out.includes(sp)) out.push(sp);
+    }
+    return out;
+  }
+
   switchIn(side, letter, species) {
     this.sides[side].active[letter] = {
       species: norm(species),
@@ -297,6 +344,8 @@ class Board {
        * good for, the tgtHurt feature. */
       fainted: false,
       status: '',
+      /* Copied onto the mon so featuresFor never has to work out which side it is looking at. */
+      nature: (this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).nature || '',
       /* STAT STAGES, absolute, cleared here because a boost belongs to the POKEMON and not to the
        * slot -- leaving them would put an Intimidate drop on the mon that replaced its victim.
        * Keys are the protocol's (atk/def/spa/spd/spe); the damage formula's own keys are different
@@ -323,6 +372,8 @@ class Board {
   }
 
   faint(side, letter) {
+    const gone = this.sides[side].active[letter];
+    if (gone) this.graveyard[side].add(baseSpecies(gone.species));
     const m = this.slot(side, letter);
     if (m) { m.fainted = true; m.hp = 0; }
   }
@@ -421,7 +472,7 @@ function dmgMon(mon, D) {
  * over the ones we have. Their top six only cover about 19% of Incineroar sets, so this is a better
  * estimate and still not the truth; what it buys is a probability instead of a false certainty. */
 let _spreads = null;
-function spreadLines(species, dex) {
+function spreadLines(species, dex, nature) {
   if (_spreads === null) {
     _spreads = {};
     try {
@@ -433,11 +484,25 @@ function spreadLines(species, dex) {
       }
     } catch (e) { /* no priors: the caller falls back to the single stored line */ }
   }
-  const rows = _spreads[norm(species)] || _spreads[baseSpecies(species)];
+  let rows = _spreads[norm(species)] || _spreads[baseSpecies(species)];
   if (!rows || !rows.length) return null;
   const sp0 = dex.species.get(species) || dex.species.get(baseSpecies(species));
   const bs = sp0 && sp0.exists && sp0.baseStats;
   if (!bs) return null;
+  /* NARROWED BY THE NATURE, WHEN THE NATURE IS KNOWN — and on the open-sheet ladder it always is,
+   * because Force Open Team Sheets publishes it on 100% of entries while publishing the investment on
+   * 0%. Measured across 1,687 published spreads: 43.9% of a set's SP sits on the stat its nature
+   * raises, against 14.0% on any other stat, where no signal at all would be 20% each. 82.5% of
+   * spreads put at least 40% of their investment there. Adamant means Attack, Timid means Speed.
+   *
+   * So seeing "Adamant" removes most of the spread distribution, and what is left is the part worth
+   * computing damage against. Falls back to the full distribution when no published spread matches,
+   * because an empty set would silently produce no damage at all. */
+  if (nature) {
+    const want = norm(nature);
+    const kept = rows.filter(r => norm(r.nature || '') === want);
+    if (kept.length) rows = kept;
+  }
   const total = rows.reduce((a, r) => a + (+r.pct || 0), 0) || 1;
 
   /* Champions invests SP directly into a stat rather than through EVs, which is why this is an
@@ -470,11 +535,34 @@ function spreadLines(species, dex) {
  * tracked value rather than as a test for a named move, so a new weather setter needs no edit. */
 const WEATHER_KIND = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain' };
 
-function dmgFractions(D, att, def, m, mType, spread, board, defStats) {
+function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) {
   if (!att || !def) return null;
   /* A stat line from the spread distribution replaces the stored one. Copied rather than mutated,
    * because the same built mon is reused across every spread and every candidate move. */
   if (defStats) def = Object.assign(Object.create(Object.getPrototypeOf(def) || Object.prototype), def, { st: defStats });
+
+  /* MOVES THAT ATTACK WITH THE WRONG STAT. Body Press is physical but hits with DEFENCE, and Psyshock
+   * is special but hits the target's Defence — both are `overrideOffensiveStat` /
+   * `overrideDefensiveStat` in the dex, and the damage formula this calls reads only the category.
+   * So Body Press was being computed off Attack, which for the bulky Pokemon that actually run it is
+   * the stat they deliberately did not invest in. It is on 1.25% of teams here.
+   *
+   * Handled by swapping the number the formula will read rather than by editing the formula, so the
+   * validated implementation stays untouched. */
+  const oOff = origMove && origMove.overrideOffensiveStat;
+  const oDef = origMove && origMove.overrideDefensiveStat;
+  if (oOff || oDef) {
+    const K = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
+    const phys = m.category === 'Physical';
+    if (oOff && K[oOff]) {
+      const st = { ...att.st }; st[phys ? 'at' : 'sa'] = att.st[K[oOff]];
+      att = Object.assign(Object.create(Object.getPrototypeOf(att) || Object.prototype), att, { st });
+    }
+    if (oDef && K[oDef]) {
+      const st = { ...def.st }; st[phys ? 'df' : 'sd'] = def.st[K[oDef]];
+      def = Object.assign(Object.create(Object.getPrototypeOf(def) || Object.prototype), def, { st });
+    }
+  }
   const mv = { t: mType, bp: m.basePower || 0, c: m.category === 'Physical' ? 'P' : 'S' };
   if (!mv.bp) return null;
   /* THIS PASSED AN EMPTY FIELD, and the board knew the weather the whole time. Sun multiplies Fire
@@ -751,6 +839,55 @@ function boardStub(board, dex) {
   };
 }
 
+/* BASE POWER THAT IS COMPUTED, NOT PRINTED.
+ *
+ * 29 moves in this format carry `basePower: 0` and a `basePowerCallback`: Low Kick and Grass Knot
+ * scale with the target's weight, Heavy Slam with the ratio of the two weights, Gyro Ball and
+ * Electro Ball with the ratio of speeds. Reading `m.basePower` gives zero for all of them, and this
+ * file decides `damaging` by `basePower > 0` — so every one was being scored as a STATUS MOVE, with
+ * no effectiveness, no damage and no kill. That is the Rock Slide bug a third time.
+ *
+ * Measured, they are not common but they are not nothing: Low Kick is on 1.87% of teams and was
+ * clicked 237 times in 3,281 clean games, Grass Knot 45, Heavy Slam 33.
+ *
+ * The callback is CALLED rather than reimplemented. Weight comes from the dex; speed comes from the
+ * same spread distribution the damage estimate uses, so Gyro Ball is judged against the speeds people
+ * actually run. A callback the stub cannot satisfy throws and falls back to the printed value.
+ *
+ * Iron Ball and Float Stone change weight and are not modelled: both are under 0.1% of held items
+ * here, and inventing an item the target probably does not have would be a worse error than the one
+ * being fixed. */
+function movePower(m, board, dex, user, target) {
+  if (!m) return 0;
+  if (typeof m.basePowerCallback !== 'function') return m.basePower || 0;
+  const mon = (mo) => {
+    const sp = mo && (dex.species.get(mo.species) || dex.species.get(baseSpecies(mo.species)));
+    const bs = sp && sp.exists ? sp.baseStats : null;
+    const lines = mo ? spreadLines(mo.species, dex, mo.nature) : null;
+    const st = lines && lines.length ? lines[0].st : null;
+    return {
+      /* Showdown weighs in hectograms and getWeight returns exactly that. */
+      getWeight: () => (sp && sp.exists ? (sp.weighthg || 1) : 1),
+      getStat: (k) => {
+        if (!st && !bs) return 1;
+        const K = { spe: 'sp', atk: 'at', def: 'df', spa: 'sa', spd: 'sd', hp: 'hp' };
+        if (st && K[k] != null) return st[K[k]] || 1;
+        return (bs && bs[k]) || 1;
+      },
+      hp: Math.max(1, Math.round(100 * (mo && typeof mo.hp === 'number' ? mo.hp : 1))), maxhp: 100,
+      positiveBoosts: () => 0, volatiles: {}, status: (mo && mo.status) || '',
+      hasType: () => false, hasAbility: () => false, hasItem: () => false, getItem: () => ({}),
+      side: { sideConditions: {} }, species: { name: mo ? mo.species : '' },
+    };
+  };
+  try {
+    const bp = m.basePowerCallback.call(boardStub(board, dex), mon(user), mon(target), m);
+    if (typeof bp === 'number' && bp > 0) return bp;
+    if (bp === false) return 0;
+  } catch (e) { /* fall through */ }
+  return m.basePower || 0;
+}
+
 /* Accuracy AFTER the board has had its say. `true` means "cannot miss" and is not the number 1. */
 function moveAccuracy(m, board, dex) {
   const printed = (m.accuracy === true || m.accuracy == null) ? 1 : Math.max(0, Math.min(1, m.accuracy / 100));
@@ -817,12 +954,19 @@ function noteMove(board, side, user, move, worked) {
 }
 
 function featuresFor(cand, user, board, side, dex, priorP) {
+  /* A SWITCH SHARES NO FEATURE WITH A MOVE, so it returns early rather than running the move code
+   * with a null move. Every move feature stays at zero, which is correct and not a gap: they are all
+   * statements about a move that is not being used. */
+  if (cand && cand.switchTo) return switchFeatures(cand, user, board, side, dex, priorP);
   const m = cand.move;
   const t = cand.targetMon;
   const x = new Array(FEATURES.length).fill(0);
   const set = (name, v) => { x[FEATURE_INDEX[name]] = v; };
 
-  const damaging = m.category !== 'Status' && m.basePower > 0;
+  /* Computed, not printed — see movePower. `damaging` decided on m.basePower alone read Low Kick,
+   * Grass Knot, Heavy Slam and Gyro Ball as status moves. */
+  const realBP = movePower(m, board, dex, user, t || (cand.spread && cand.spread[0]) || null);
+  const damaging = m.category !== 'Status' && realBP > 0;
   set('isStatus', damaging ? 0 : 1);
   /* `accuracy === true` is the dex's way of saying "cannot miss" and is NOT the number 1 -- reading
    * it as a number would give every never-miss move an accuracy of 0.01. */
@@ -884,7 +1028,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   if (m.volatileStatus) {
     if (SELF_TARGETS.has(m.target)) set('volatileOnSelf', 1); else set('volatileOnFoe', 1);
   }
-  set('bp', damaging ? Math.min(2.5, (m.basePower || 0) / 100) : 0);
+  set('bp', damaging ? Math.min(2.5, realBP / 100) : 0);
 
   /* The type this move will ACTUALLY hit with on this board — see moveType. Using m.type here
    * scored Weather Ball as Normal under rain, which is the single most common way this format's
@@ -1003,12 +1147,16 @@ function featuresFor(cand, user, board, side, dex, priorP) {
           const dm = dmgMon(h, D);
           if (!dm) continue;
           const isSpread = !!(cand.spread && cand.spread.length > 1);
+          /* PER TARGET, because that is what these moves depend on: Low Kick and Grass Knot scale
+           * with the target's weight, so the same click is 80 into an Incineroar and 100 into a
+           * Kingambit. A single number computed once would be wrong for one of them. */
+          const mForDmg = { basePower: movePower(m, board, dex, user, h), category: m.category };
           /* OVER THE SPREADS PEOPLE ACTUALLY RUN, not against one guessed stat line. Falls back to
            * the single stored line for a species the usage data has no spreads for. */
-          const lines = spreadLines(h.species, dex) || [{ p: 1, st: null }];
+          const lines = spreadLines(h.species, dex, h.nature) || [{ p: 1, st: null }];
           let koP = 0, meanFrac = 0, minKills = false;
           for (const L of lines) {
-            const r = dmgFractions(D, att, dm, m, mType, isSpread, board, L.st);
+            const r = dmgFractions(D, att, dm, mForDmg, mType, isSpread, board, L.st, m);
             if (!r) continue;
             const leftL = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
             meanFrac += L.p * (leftL > 0 ? Math.min(1, r.mean / leftL) : 1);
@@ -1155,10 +1303,58 @@ function candidates(moves, user, board, side, dex) {
       out.push({ move: m, targetMon: null, targetKey: '' });
     }
   }
+  /* SWITCHING IS A CHOICE, AND IT WAS NOT ON THE LIST. Everything above is a move; a switch has no
+   * type, no power and no target, so none of the move features mean anything for it and MAG simply
+   * had no opinion -- the decision fell through to the random player it inherits from, in both the
+   * forced and the voluntary case. Measured: MAG switches 8.4 times a game against a human 10.7, so
+   * roughly the right NUMBER of switches and the wrong ones, which is worse than not switching at
+   * all: you take a free hit on the way in and land in a matchup you did not choose. */
+  for (const sp of board.bench(side)) out.push({ move: null, targetMon: null, switchTo: sp, targetKey: 's:' + sp });
   return out;
+}
+
+/* The feature vector for bringing something else in. Deliberately short: the only things knowable
+ * about a replacement before it arrives are what it takes and how fast it is. */
+function switchFeatures(cand, user, board, side, dex, priorP) {
+  const x = new Array(FEATURES.length).fill(0);
+  const set = (n, v) => { x[FEATURE_INDEX[n]] = v; };
+  set('isSwitch', 1);
+  set('priorLogP', Math.log(Math.max(PRIOR_FLOOR, priorP || PRIOR_FLOOR)));
+
+  const D = damageEngine();
+  if (!D) { dmgFailures.unavailable++; return x; }
+
+  /* The replacement arrives at full health, so what matters is whether the hardest incoming attack
+   * takes all of it, or half of it. Measured against the same spread distribution everything else
+   * now uses, so a bulky switch-in is not judged on a stat line nobody runs. */
+  const incoming = { species: cand.switchTo, hp: 1, boosts: {}, fainted: false };
+  const inMon = dmgMon(incoming, D);
+  const { worst } = incomingThreat(board, side, user, inMon, D);
+  if (inMon) {
+    set('switchSurvives1', worst < 1 ? 1 : 0);
+    set('switchSurvives2', worst < 0.5 ? 1 : 0);
+  }
+
+  /* Faster than the biggest threat on the field. Base speeds, adjusted for Tailwind and reversed
+   * under Trick Room, exactly as movesFirst does -- one definition of the queue, not two. */
+  const inSp = dex.species.get(cand.switchTo);
+  const mySpe = ((inSp && inSp.exists && inSp.baseStats && inSp.baseStats.spe) || 0) *
+                (board.hasSide(side, 'tailwind') ? 2 : 1);
+  const foeSide = side === 'p1' ? 'p2' : 'p1';
+  let fastest = 0;
+  for (const f of board.field()) {
+    if (f.side === side || !f.mon || f.mon.fainted) continue;
+    const fs2 = dex.species.get(f.mon.species);
+    const s2 = ((fs2 && fs2.exists && fs2.baseStats && fs2.baseStats.spe) || 0) *
+               (board.hasSide(foeSide, 'tailwind') ? 2 : 1);
+    if (s2 > fastest) fastest = s2;
+  }
+  const slowFirst = board.hasField('trickroom');
+  set('switchFaster', (slowFirst ? mySpe < fastest : mySpe > fastest) ? 1 : 0);
+  return x;
 }
 
 /* dmgFailures is exported so a caller can ASSERT the damage features were live. A run in which the
  * damage engine failed to load produces a full, plausible-looking feature vector with four zeros in
  * it, and nothing about the output would say so. */
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
+module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
