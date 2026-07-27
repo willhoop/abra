@@ -471,12 +471,27 @@ not a merge at all.
 - **The five stale living documents (F7).** Bumping the version headers would satisfy the check and
   assert something false. Their content needs to absorb this review's corrections, which is section 4's
   table applied to five documents.
-- **Handoff §6 items 2, 4, 5, 6, 7, 8, 10** — joint scoring wiring, the sampler fix, volatiles,
-  the defensive type chart, mega item detection, CHOMP regeneration, hardcoded names. All are model and
-  feature work. They touch `board.js`, and the project's hardest-won rule is that `board.js` must not be
-  edited while a fit or self-play run is in flight; both were in flight for most of this session. They
-  also each require a 12-minute refit and a re-measurement to state honestly, and are better done as one
-  batch with a single refit than piecemeal.
+- **Handoff §6 items 2, 5, 6, 7, 8, 10** — joint scoring wiring, volatiles, the defensive type chart,
+  mega item detection, CHOMP regeneration, hardcoded names. Item 4, the sampler, is done (F9). These
+  touch `board.js`, and each needs a 12-minute refit plus a re-measurement to state honestly, so they
+  belong in one batch with a single refit rather than piecemeal.
+
+  **On volatiles specifically (§6.5), the scope is larger than the handoff implies, and I measured why.**
+  `engine/durable-ingest.js` records no volatiles at all — grepping it for `-start`, `volatile`, `perish`
+  and `taunt` returns nothing. So the sequence is not "add features to `board.js`". It is:
+
+  1. `durable-ingest.js` must parse `|-start|` / `|-end|` and store per-slot volatiles;
+  2. `reprocess.js` must rebuild the store from the archived raw logs to backfill them — 3,849 ladder
+     games predate raw-log archiving and can never carry them;
+  3. `board.js` gains the tracking and the features;
+  4. `mag_bot.js` must populate them live from the protocol stream, or they are zero in play;
+  5. refit.
+
+  **If someone does step 3 alone, the features are constant zero across the whole fit corpus and the
+  optimiser assigns them arbitrary near-zero weights that look measured.** That is exactly the failure
+  shape of F1 and F5 — a feature that is silently absent while appearing present — in a project that has
+  now been bitten by it twice in one week. Doing this in the wrong order does not produce a partial
+  feature; it produces a confident wrong number. Left undone deliberately.
 - **The three clean h2h cells** (91.8% greedy-vs-sampling, 55.5% new-vs-old, 81.9% full-vs-random) were
   **not re-run**. They are quoted from the handoff. They predate F1, and F1 only touched `DROP=` runs, so
   they are probably unaffected — but "probably unaffected" is not measured, and they should be re-run
