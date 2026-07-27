@@ -377,7 +377,9 @@ function makeScoringPlayer(opts = {}) {
           p: Math.round(pct[i] * 1000) / 1000,
         })).sort((a, b) => b.s - a.s);
         this.stats.thoughts.push({
-          turn: this.board.turn, side: me, slot: info.slot,
+          /* `info` belongs to the per-move loop above and is long out of scope here -- the slot we
+           * want is this active position, which `i` already identifies. */
+          turn: this.board.turn, side: me, slot: String.fromCharCode(97 + Math.max(0, i)),
           mon: user.species, chose: j, opts: opts.slice(0, 8),
         });
       }
