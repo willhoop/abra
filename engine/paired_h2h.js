@@ -79,7 +79,12 @@ const pct = (a, b) => b ? (100 * a / b).toFixed(1) + '%' : 'n/a';
 function describe(g) {
   const sp = (g && g.selfplay) || {};
   const name = (pol) => {
-    if (pol === 'score') return 'MAG — scores every option, then takes a WEIGHTED ROLL (not the best)';
+    if (pol === 'score') {
+      const rule = sp.greedy ? 'takes its BEST-scoring option every time'
+                             : 'takes a WEIGHTED ROLL over its scores, not the best';
+      const sw = sp.switching ? ', switching ON' : ', switching off';
+      return `MAG — ${rule}${sw}`;
+    }
     if (pol === 'prior') return 'behaviour clone — clicks what people click, blind to the board';
     if (pol === 'random') {
       /* ABSENT IS NOT THE SAME AS ZERO. The flag only started being recorded partway through the

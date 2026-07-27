@@ -105,6 +105,9 @@ const RANDMOVE = parseFloat(arg('randmove', '1'));
 /* --switching  let MAG choose to switch. Measured as a 10-point LOSS against a random opponent, so
  *              it is off until the switch policy is worth more than not switching. */
 const SWITCHING = process.argv.includes('--switching');
+/* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
+ *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
+const GREEDY = process.argv.includes('--greedy');
 /* A weight file for the SECOND player only. This is what makes an exploitability search possible:
  * the challenger is MAG's own machinery with different numbers, so any win it manages is due to the
  * numbers rather than to a different kind of player. */
@@ -372,8 +375,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * "swapped" on both halves. The caller states it explicitly there. */
   const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING };
-  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
+  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
   if (WEIGHTS1) { (swapped ? optB : optA).weightsFile = WEIGHTS1; }
   if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
@@ -569,6 +572,11 @@ async function main() {
       /* Recorded so a run can describe ITSELF later. Two runs tonight differed only in whether the
        * random opponent could switch, and nothing in the file said so. */
       if (RANDMOVE !== 1) rec.selfplay.randmove = RANDMOVE;
+      /* The DECISION RULE is not the policy name, and leaving it out mislabelled a run: a greedy
+       * MAG and a sampling MAG both record policy "score" while differing by nine points of win
+       * rate. Anything that changes what the bot DOES belongs on the record. */
+      if (GREEDY) rec.selfplay.greedy = true;
+      if (SWITCHING) rec.selfplay.switching = true;
       if (POLICY2) {
         /* Which POLICY won, not which side. `swapped` says where the challenger sat this battle. */
         const sw = res && res.swapped;

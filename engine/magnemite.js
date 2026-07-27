@@ -83,6 +83,7 @@ function makeScoringPlayer(opts = {}) {
       /* Opt-in: the viewer wants it, a training run does not. */
       this.keepThoughts = !!(options && options.keepThoughts);
       this.allowSwitch = !!(options && options.switching);
+      this.greedy = !!(options && options.greedy);
       this.stats.thoughts = [];
       /* Priors as a map per species, so scoring a candidate is a lookup rather than a scan. */
       this.priorMap = {};
@@ -334,8 +335,25 @@ function makeScoringPlayer(opts = {}) {
 
       /* this.prng, never Math.random(): the parent seeds it from the battle seed, and a move
        * decision drawn outside that seed makes the whole game unreplayable. */
-      let r = this.prng.random() * total, j = 0;
-      while (j < exp.length - 1 && (r -= exp[j]) > 0) j++;
+      /* GREEDY IS A FLAG, NOT A DEFAULT, AND THE REASON IS THAT NOBODY HAS MEASURED IT.
+       *
+       * This class SAMPLES because it is built to reproduce a human distribution -- see the header.
+       * That is right for generating a realistic corpus and it is not obviously right for WINNING: a
+       * sampler deliberately clicks its worse option some of the time, and against an opponent with
+       * nothing to exploit that is pure loss.
+       *
+       * But the argmax of an IMITATION model is not the same thing as a good move. These weights
+       * were fitted to predict clicks, and the ones greedy would lock onto include isStatus +0.50,
+       * protectThreatened +0.49 and accuracy -1.51 -- a greedy bot on that vector may Protect nearly
+       * every turn. Sampling currently smooths that out. Which effect wins is a measurement. */
+      let j = 0;
+      if (this.greedy) {
+        let best = -Infinity;
+        for (let q = 0; q < scores.length; q++) if (scores[q] > best) { best = scores[q]; j = q; }
+      } else {
+        let r = this.prng.random() * total;
+        while (j < exp.length - 1 && (r -= exp[j]) > 0) j++;
+      }
       this.stats.scored++;
       /* Claim the switch so this turn's other slot cannot pick the same body. */
       if (cands[j].switchTo) {
