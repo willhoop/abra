@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.24.0] — 2026-07-27
+
+### The set sampler draws whole observed sets, and the correction that existed was unreachable
+
+`set_priors.fillSet` filled unrevealed move slots from P(move | species) independently, which cannot
+represent a **slot**: Dire Claw and Gunk Shot are both perfectly normal Sneasler moves competing for one
+place, so marginals paired them at roughly P(a)·P(b) and the bot brought a Sneasler holding both.
+
+The interesting part is that a fix was already in the file and could not be reached. `sampleMoves()`
+carries a measured co-occurrence lift built precisely to stop near-substitutes pairing up — but
+`fillSet` consulted **Smogon's percentages first** and only fell through to `sampleMoves` when Smogon
+returned nothing, which is rare. So for most species the correction was dead code and the sampler drew
+raw marginals.
+
+**What is used now.** An open team sheet *is* the joint distribution, observed directly, and this
+project holds **37,903 complete four-move sets across 232 species** in `games.bo3.jsonl` and
+`games.ots.jsonl`. The sampler had been using none of them. `observedSets()` loads them (clean games
+only, corpus named by path); `observedDraw()` takes the sets containing every already-revealed move —
+the exact conditional distribution — and falls back to maximum-overlap nearest neighbour rather than
+silence, because returning nothing would send the rarest builds back to the sampler that gets them
+wrong. Species with fewer than 8 observed sets still use the marginal paths, which is now the third
+preference rather than the first.
+
+**Measured, `engine/stab_audit.js`,** two-or-more same-type attacking moves per set:
+
+| corpus | human | generated before | generated after | gap before | gap after |
+|---|---|---|---|---|---|
+| bo3 (12,619 sets) | 23.0% | 32.9% | **27.4%** | +9.9 [8.8, 11.0] | **+4.3 [3.3, 5.4]** |
+| ots (25,284 sets) | 23.6% | 33.0% | **27.4%** | +9.4 [8.6, 10.2] | **+3.7 [3.0, 4.5]** |
+| ladder (1,392 sets) | 28.5% | 35.1% | **30.0%** | +6.6 [3.1, 10.0] | **+1.4 [−1.9, 4.8]** — now noise |
+
+Sneasler holding both Dire Claw and Gunk Shot: **3.3% of 300 draws → 0.0%**.
+
+**The residual +4.3 is not claimed as fixed.** Roughly half the original gap remains, from species below
+the 8-set floor and from partially-revealed sets that mix an observed draw with what was already on
+them. Recorded as open in `docs/ARCHITECTURE-REVIEW-2026-07-27.md` §6.
+
+**`tests/test-set-realism.js` (new)** — 6 checks, threshold 6.0 points, chosen to sit between the
+pre-fix +9.9 and the current +4.3 so it fails on the old sampler and passes with headroom on the new
+one. Verified both ways: pre-fix **3 passed, 3 failed**; current **6 passed, 0 failed**. It asserts
+direction as well as magnitude, so the sampler cannot be "fixed" into under-producing doubles instead;
+it asserts the observed-set store is populated, because if that store ever empties the sampler silently
+reverts to marginals with nothing failing; and it checks the named Sneasler case directly.
+
+---
+
 ## [3.23.0] — 2026-07-27
 
 ### RETRACTED: "dropping popularity makes MAG predict human clicks better". The drop never applied.

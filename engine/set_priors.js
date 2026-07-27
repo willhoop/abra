@@ -266,6 +266,84 @@ function rng(seed) {
   return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
 }
 
+/* COMPLETE OBSERVED SETS, from the corpora where all four moves are public.
+ *
+ * WHY THIS EXISTS. Everything below models a set as four draws with a correction applied. No
+ * correction is needed when the whole set was published: an open team sheet IS the joint distribution,
+ * observed directly. `data/games.bo3.jsonl` (our own scrape; the Bo3 ruleset carries Force Open Team
+ * Sheets) and `data/games.ots.jsonl` (external archive) together hold roughly 38,000 complete
+ * four-move sets. Until 2026-07-27 the sampler used none of them.
+ *
+ * Measured effect of not using them, engine/stab_audit.js: generated sets carried two-or-more
+ * same-type attacking moves 9.9 points more often than human sets on bo3 [8.8, 11.0] and 9.4 points
+ * more on ots [8.6, 10.2] — two independent corpora agreeing, across 40 of 58 species with enough
+ * observations to judge. Sneasler was generated holding both Dire Claw and Gunk Shot; both are normal
+ * Sneasler moves and they compete for one slot, which is precisely what marginals cannot represent.
+ *
+ * The store is keyed on normalised species. Only sets with four distinct moves are kept: a partial
+ * sheet is the revelation bias this exists to avoid. */
+let _observed = null;
+function observedSets() {
+  if (_observed) return _observed;
+  _observed = {};
+  const path = require('path');
+  const fs = require('fs');
+  try {
+    const Q = require('./quality.js');
+    for (const f of ['games.bo3.jsonl', 'games.ots.jsonl']) {
+      const p = path.join(__dirname, '..', 'data', f);
+      if (!fs.existsSync(p)) continue;
+      for (const g of Q.loadGames({ path: p })) {
+        for (const side of ['p1', 'p2']) {
+          for (const st of (g.sheets && g.sheets[side]) || []) {
+            if (!st || !st.species || !Array.isArray(st.moves)) continue;
+            const mv = [...new Set(st.moves.map(norm))].filter(Boolean);
+            if (mv.length !== 4) continue;
+            const sp = norm(st.species);
+            (_observed[sp] = _observed[sp] || []).push(mv);
+          }
+        }
+      }
+    }
+  } catch (err) { /* no store: every caller below falls back to the marginal paths */ }
+  return _observed;
+}
+
+/* Draw a whole observed set consistent with what is already revealed.
+ *
+ * Returns null rather than guessing when the species has too few observations to draw from — 8 is the
+ * floor at which a draw is sampling rather than memorising one player's team. A null sends the caller
+ * back to the co-occurrence-corrected marginals, which is the right order of preference: observed
+ * joint, then corrected marginals, then raw marginals. */
+function observedDraw(species, have, seed) {
+  const OB = observedSets();
+  const sp = resolveSpecies(norm(species), OB);
+  const pool = OB[sp];
+  if (!pool || pool.length < 8) return null;
+  const want = have.map(norm).filter(Boolean);
+
+  /* Sets that contain everything already revealed. That is the conditional distribution, exactly. */
+  let cand = pool.filter(s => want.every(w => s.includes(w)));
+  /* NEAREST NEIGHBOUR, not silence. If no observed set contains all of them — a genuinely unusual
+   * build, or a sheet we mis-parsed — take the sets that overlap most. Returning null here instead
+   * would send exactly the rarest cases back to the sampler that gets them wrong. */
+  if (!cand.length) {
+    let best = -1;
+    for (const s of pool) {
+      const ov = want.reduce((a, w) => a + (s.includes(w) ? 1 : 0), 0);
+      if (ov > best) best = ov;
+    }
+    cand = pool.filter(s => want.reduce((a, w) => a + (s.includes(w) ? 1 : 0), 0) === best);
+  }
+  if (!cand.length) return null;
+  const r = rng((seed || 1) + sp.length * 104729);
+  const chosen = cand[Math.min(cand.length - 1, Math.floor(r() * cand.length))];
+  /* Keep the revealed moves and fill the rest from the drawn set, so a known move is never displaced. */
+  const out = want.slice();
+  for (const m of chosen) if (out.length < 4 && !out.includes(m)) out.push(m);
+  return out.length === 4 ? out.slice(want.length) : null;
+}
+
 /* Pairwise co-occurrence, measured from revealed sets in the CLEAN store.
  * co[sp][a][b] = times a and b were revealed on the same set. solo[sp][a] = times a was revealed. */
 let _co = null;
@@ -430,7 +508,21 @@ function fillSet(species, known, seed) {
    * to ~400% precisely because every Pokemon carries four. */
   if (moves.length < 4) {
     let drawn = [];
+
+    /* OBSERVED JOINT FIRST. An open team sheet is the set distribution, measured — not four marginals
+     * with a correction bolted on. Tried before anything else, because the two paths below are both
+     * independence approximations and the better one was unreachable: `sampleMoves` carries a measured
+     * co-occurrence lift built precisely to stop near-substitutes pairing up, and fillSet only reached
+     * it when Smogon returned nothing, which is rare. So the correction existed and was bypassed for
+     * most species, and generated sets kept pairing Dire Claw with Gunk Shot. */
+    const ob = observedDraw(species, moves, (seed || 1) + norm(species).length * 7919);
+    if (ob && ob.length) {
+      drawn = ob;
+      filled.push(`${species}: ${ob.length} move(s) from an observed open-sheet set`);
+    }
+
     try {
+      if (drawn.length) throw new Error('already drawn from an observed set');
       const SM = require('./smogon_priors.js').forSpecies(species);
       if (SM && SM.moves && SM.moves.length) {
         const r = rng((seed || 1) + norm(species).length * 7919);
@@ -596,7 +688,7 @@ function coverage() {
   return { species_with_move_priors: Object.keys(m).length, species_with_gear_priors: Object.keys(g).length };
 }
 
-module.exports = { fillSet, movePriors, gearPriors, coverage, sampleMoves };
+module.exports = { fillSet, movePriors, gearPriors, coverage, sampleMoves, observedSets, observedDraw };
 
 if (require.main === module) {
   console.log(JSON.stringify(coverage(), null, 2));
