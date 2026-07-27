@@ -135,7 +135,7 @@ function speciesShares() {
   const openG = [], closedG = [];
   for (const l of fs.readFileSync(D('data', 'games.ots.jsonl'), 'utf8').split('\n')) {
     if (!l.trim()) continue; let g; try { g = JSON.parse(l); } catch (e) { continue; }
-    if (!Q.reasons(g, cfg, null).length) openG.push(g);
+    if (!Q.reasons(g, cfg, bots).length) openG.push(g);
   }
   for (const g of Q.loadGames()) if (!g.openSheet) closedG.push(g);
   const O = count(openG), C = count(closedG);
@@ -152,13 +152,24 @@ function speciesShares() {
 
 function loadCorpus() {
   const cfg = Q.config();
+  /* THE BEHAVIOURAL BOT SET, WHICH THIS USED TO PASS AS `null`.
+   *
+   * Q.reasons takes it as a third argument and skips the check entirely without it, so the corpus
+   * was screened only for accounts that ANNOUNCE themselves as bots. That is the exact filter the
+   * project measured as inadequate: six unflagged accounts appearing in 52.2% of the games a
+   * name-only check called clean, one of them playing 459 games with a single team.
+   *
+   * It let one game through out of 3,260 here, because those accounts' other games were already
+   * being rejected as forfeits or partial brings. One game is nothing. A disabled check is not --
+   * it would have gone on being disabled as the corpus grew. */
+  const bots = Q.behaviouralBots(Q.readStore());
   const seen = new Set();
   const games = [];
   const rejected = {};
   const add = (g) => {
     if (!g || !g.openSheet || !g.sheets || !g.sheets.p1 || !g.sheets.p2) return;
     if (g.id && seen.has(g.id)) return;
-    const why = Q.reasons(g, cfg, null);
+    const why = Q.reasons(g, cfg, bots);
     if (why.length) { for (const r of why) rejected[r] = (rejected[r] || 0) + 1; return; }
     if (g.id) seen.add(g.id);
     games.push(g);
