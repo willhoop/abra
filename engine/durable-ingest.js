@@ -168,6 +168,23 @@ function extract(id, uploadtime, text){
         if(cur) cur.ev.push({t:'b',s:m[2],mon:slotSp[m[2]],b:{...(boosts[m[2]]||{})}});
       }
     }
+    /* ---- WHAT ACTUALLY HAPPENED TO THE MOVE -----------------------------------------------
+       Recorded so a model's EXPECTATION can be checked against the engine's ANSWER. MAG predicts
+       accuracy, immunity, ability blocks and kills; the protocol states all four outright and none
+       of them were kept. Without these, the only way to find a mechanic MAG does not know is for a
+       human to think of it and ask -- which is how every gap this session was found, and does not
+       scale. engine/surprise.js turns these into a ranked list of what to fix next. */
+    else if(m=l.match(/^\|-miss\|(p[12][ab])/)){ if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.miss=1;} }
+    else if(m=l.match(/^\|-immune\|(p[12][ab])/)){ if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.immune=1;} }
+    else if(m=l.match(/^\|-fail\|(p[12][ab])/)){ if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.fail=1;} }
+    else if(m=l.match(/^\|-crit\|(p[12][ab])/)){ if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.crit=1;} }
+    else if(m=l.match(/^\|-prepare\|(p[12][ab])/)){ if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.charging=1;} }
+    /* An ability that ate the move names itself: |-immune|p2a: X|[from] ability: Flash Fire, and
+       |-activate| carries Armor Tail and friends. Kept as the ability NAME so the review can say
+       which rule was missed rather than only that something was. */
+    else if(m=l.match(/^\|-(?:activate|block)\|(p[12][ab])[^|]*\|ability: ([^|]+)/)){
+      if(cur){const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e)e.blockedBy=m[2].trim();}
+    }
     else if(m=l.match(/^\|faint\|(p[12][ab])/)){ if(cur) cur.ev.push({t:'f',s:m[1],mon:slotSp[m[1]]}); }
     else if(m=l.match(/^\|-heal\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){
       const slot=m[1], nw=Math.round(100*+m[2]/+m[3]); hp[slot]=nw;

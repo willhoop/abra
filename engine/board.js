@@ -73,7 +73,18 @@ const FEATURES = [
   /* ACCURACY. A fact in the dex (`move.accuracy`) that this model could not see, so it had no way to
    * learn that people click Rock Slide over Focus Blast for reasons that have nothing to do with type
    * or power. `true` in the dex means "never misses", which is why this is not simply a division. */
-  'accuracy',        // how often it hits
+  'accuracy',        // how often it hits, on THIS board (snow makes Blizzard certain)
+  /* ---- MOVES THAT COST MORE THAN A TURN ---------------------------------------------------------
+   * A two-turn move gives the opponent a free turn, and a recharge move gives them one afterwards.
+   * Both are dex data (`flags.charge`, `self.volatileStatus === 'mustrecharge'`) and neither was
+   * visible, so Hyper Beam looked like a very strong Normal move with no downside at all. Solar Beam
+   * in sun and Electro Shot in rain skip the charge, which is asked of the handler, not written down. */
+  'chargeTurn',      // it needs a turn to wind up on this board
+  'rechargeTurn',    // it costs me the turn AFTER this one
+  /* ---- PIVOTS ------------------------------------------------------------------------------------
+   * U-turn, Volt Switch, Flip Turn, Parting Shot, Chilly Reception, Baton Pass, Shed Tail. They deal
+   * damage AND switch, which is a different act from either, and `move.selfSwitch` says so in data. */
+  'pivots',          // it damages and brings me out
   'isStatus',        // it is a status move
   'tgtHurt',         // the target is already hurt
   'deadStatus',      // the target already has a status, so it would fail
@@ -81,6 +92,16 @@ const FEATURES = [
   'deadField',       // that field effect is already up, so it would fail
   'deadWeather',     // that weather is already set, so it would fail
   'deadStall',       // I protected last turn, so it would probably fail
+  /* PRANKSTER DOES NOT WORK ON DARK TYPES, and this is the nastiest member of the "dead move" family
+   * because the ability that is supposed to HELP is what kills it. Whimsicott's Thunder Wave into
+   * Kingambit does nothing whatsoever, while an ordinary Pokemon's Thunder Wave into the same
+   * Kingambit lands perfectly well. So it cannot be read off the target alone or off the move alone;
+   * it is the conjunction, and it is weighted by how likely this user is to have Prankster at all.
+   *
+   * Showdown enforces it in battle-actions rather than in a handler, so unlike Gale Wings above there
+   * is nothing to probe -- the type test is written here, which makes it the one Pokemon rule in this
+   * block. It is stated plainly rather than hidden. */
+  'pranksterFailsDark', // my Prankster status move is aimed at a Dark type, so it does nothing
   /* ---- STATS. FACTS THE MODEL COULD NOT SEE AT ALL UNTIL NOW ------------------------------------
    * Speed is a fact. So are Attack, Defence and HP. They sit in the dex for every species and none
    * of them were features, which is why this model could not learn any of the things it was
@@ -120,6 +141,7 @@ const FEATURES = [
    * usually runs, exactly as both players know it usually has Rough Skin. */
   'koTarget',        // the odds this really kills it: the worst roll still does, and the move lands
   'dmgFrac',         // how much of what is left of the target it takes
+  'tgtMayProtect',   // how often this target blocks: the biggest reason a sure kill is not one
   /* WILL I BE KILLED. This cannot be a feature on its own, and the reason is structural rather than
    * a judgement call: a conditional logit compares candidates within one decision, so any quantity
    * identical across all of a Pokemon's options -- and "am I threatened" is a property of the board,
@@ -443,6 +465,36 @@ function incomingThreat(board, side, user, att, D) {
   return val;
 }
 
+/* HOW OFTEN DOES THE THING IN FRONT OF ME SIMPLY BLOCK?
+ *
+ * Measured, and it is the single biggest reason MAG's "guaranteed kill" is not one: of 3,538 kill
+ * calls that did not kill, 46.3% had the target Protecting -- five times the next cause. That is not
+ * a damage error at all, and no amount of work on the damage formula would have touched it.
+ *
+ * The number is already in the project. data/move-priors.json holds P(move | species) over real
+ * clicks, so P(Protect | this species) needs no new derivation -- it is the same public population
+ * statistic as the ability odds this file already uses, and it peeks at nothing hidden. Charizard
+ * clicks Protect on 59.0% of its turns, the median species on 12.5%. */
+let _protP = null;
+function protectOdds(species) {
+  if (_protP === null) {
+    _protP = {};
+    try {
+      const fs3 = require('fs'), p3 = require('path');
+      const j = JSON.parse(fs3.readFileSync(p3.join(__dirname, '..', 'data', 'move-priors.json'), 'utf8'));
+      for (const [sp, v] of Object.entries(j.species || {})) {
+        for (const mv of v.moves || []) {
+          /* stallingMove is the flag, not the name -- but move-priors stores names, so the family is
+           * matched on the dex's own flag at build time where the dex is available. Here the id is
+           * all there is, and Protect is the only member with meaningful usage in this format. */
+          if (norm(mv.mv) === 'protect') _protP[norm(sp)] = +mv.p || 0;
+        }
+      }
+    } catch (e) { /* absent priors leave every species at 0, which is the old behaviour */ }
+  }
+  return _protP[norm(species)] || _protP[baseSpecies(species)] || 0;
+}
+
 let _blocks = null, _abil = null, _sash = null;
 function abilityTables() {
   if (_blocks !== null) return { blocks: _blocks, abil: _abil };
@@ -487,6 +539,51 @@ function ruleMatches(rule, m, pPrankster) {
     return m.category === 'Status' ? (pPrankster || 0) : 0;
   }
   return false;
+}
+
+/* EFFECTIVE PRIORITY — ASKED, NOT LISTED.
+ *
+ * Prankster gives status moves +1. Gale Wings gives Flying moves +1, but only at full health. Triage
+ * gives healing moves +3. Every one of these is an ability HANDLER in Showdown (`onModifyPriority`),
+ * not a data field, and writing that list here would put a table of Pokemon rules in a file whose
+ * whole claim is that it holds none — and it would go stale the moment a regulation adds another.
+ *
+ * So every ability the species might have is asked directly, and the answer is weighted by how often
+ * the population actually runs it: the same treatment abilityBlock already gives the other side.
+ * Gale Wings needing full health is not encoded here either — the stub carries the real hp and the
+ * handler decides.
+ *
+ * Returned as an expected value, because which ability this Pokemon has is not knowable. */
+function effectivePriority(m, board, dex, user) {
+  const basePri = m.priority || 0;
+  const { abil } = abilityTables();
+  const rows = (user && (abil[norm(user.species)] || abil[baseSpecies(user.species)])) || null;
+  if (!rows || !rows.length) return basePri;
+  const hp = typeof user.hp === 'number' ? user.hp : 1;
+  const ctx = boardStub(board, dex);
+  const stubMon = {
+    hp: Math.max(1, Math.round(100 * hp)), maxhp: 100,
+    species: { name: user.species }, side: {}, volatiles: {},
+    effectiveWeather: () => norm(board.weather),
+    hasItem: () => false, getItem: () => ({}), hasAbility: () => false, hasType: () => false,
+  };
+  let expected = basePri;
+  for (const [ab, pr] of rows) {
+    if (!pr) continue;
+    const A = dex.abilities.get(ab);
+    if (!A || !A.exists || typeof A.onModifyPriority !== 'function') continue;
+    /* A MUTABLE COPY, because some handlers WRITE to the move they are handed -- Prankster sets
+     * `move.pranksterBoosted = true` before returning. Passing the dex's own frozen move object made
+     * that throw, the throw was caught, and Prankster silently contributed nothing: Whimsicott's
+     * Tailwind read as going last. Gale Wings, which only reads, worked the whole time, so the bug
+     * looked like "the probe works" until a second ability was tested. Same construction
+     * abilityBlockProb already uses, so the prototype's getters survive. */
+    const probe = Object.assign(Object.create(Object.getPrototypeOf(m) || Object.prototype), m);
+    let got;
+    try { got = A.onModifyPriority.call(ctx, basePri, stubMon, null, probe); } catch (e) { continue; }
+    if (typeof got === 'number' && got !== basePri) expected += (got - basePri) * pr;
+  }
+  return expected;
 }
 
 /* How likely is the USER to have Prankster — the ability that gives a status move priority, and so
@@ -548,6 +645,86 @@ function moveType(m, board, dex) {
   return probe.type || m.type;
 }
 
+/* THE SAME PROBE, FOR EVERYTHING ELSE THE BOARD CHANGES ABOUT A MOVE.
+ *
+ * moveType above exists because Weather Ball is Normal on paper and Water under rain, and scoring it
+ * as Normal was the single most common way this format's rain teams attack. That was not a one-off:
+ * a whole class of rules lives in Showdown as HANDLER CODE rather than as a data field, and every one
+ * of them was invisible here.
+ *
+ *   Blizzard is 70% accurate, and 100% in snow.
+ *   Solar Beam takes two turns, and one in sun. Electro Shot takes two, and one in rain.
+ *
+ * Both are `onModifyMove` / `onTryMove` on the move itself. So rather than write down which moves do
+ * this -- which would be a rule about Pokemon, and this file has none -- the handler is CALLED with a
+ * stub of the current board and asked. A move added by a future regulation is handled with no edit,
+ * and a handler this stub cannot satisfy throws and falls back to the printed value rather than
+ * inventing one.
+ *
+ * Costs nothing in ceiling: "Blizzard cannot miss in snow" is a fact, exactly like Flash Fire. */
+function boardStub(board, dex) {
+  const wx = () => norm(board.weather);
+  const field = {
+    isTerrain: t => board.hasField(t),
+    isWeather: w => (Array.isArray(w) ? w.some(x => norm(x) === wx()) : norm(w) === wx()),
+    getPseudoWeather: t => (board.hasField(t) ? {} : null),
+    effectiveWeather: wx,
+    weather: wx(),
+  };
+  /* The battle's own logging calls. A handler that announces itself -- `this.add('-prepare', ...)` --
+   * would otherwise THROW on the stub and be silently caught, which is exactly what happened: Solar
+   * Beam kept reporting a charge turn in sun because the probe died one line before the check. Any
+   * handler needing more than these still falls back to the printed value rather than guessing. */
+  const noop = () => {};
+  /* boost/heal/damage because a charging move may DO something on the wind-up turn -- Electro Shot
+   * raises Special Attack as it charges, and without a `boost` stub the probe died before reaching
+   * the rain check. runEvent returns true, which is "nothing objected", the same answer a real
+   * battle gives when no handler intervenes; returning false would read as "no charge needed" and
+   * be wrong in the silent direction. */
+  return {
+    field, dex, add: noop, addMove: noop, attrLastMove: noop, hint: noop, debug: noop,
+    boost: noop, heal: noop, damage: noop, effectState: {}, runEvent: () => true,
+  };
+}
+
+/* Accuracy AFTER the board has had its say. `true` means "cannot miss" and is not the number 1. */
+function moveAccuracy(m, board, dex) {
+  const printed = (m.accuracy === true || m.accuracy == null) ? 1 : Math.max(0, Math.min(1, m.accuracy / 100));
+  if (!m || typeof m.onModifyMove !== 'function') return printed;
+  const probe = { accuracy: m.accuracy, type: m.type, basePower: m.basePower, flags: { ...(m.flags || {}) } };
+  const ctx = boardStub(board, dex);
+  const stubMon = { effectiveWeather: () => norm(board.weather), hasItem: () => false, getItem: () => ({}), hasAbility: () => false };
+  try { m.onModifyMove.call(ctx, probe, stubMon, stubMon); } catch (e) { return printed; }
+  return (probe.accuracy === true || probe.accuracy == null) ? 1
+       : Math.max(0, Math.min(1, probe.accuracy / 100));
+}
+
+/* Does this move need a turn to charge on THIS board? Solar Beam does not in sun, Electro Shot does
+ * not in rain. Showdown expresses that by deleting the charge flag inside onTryMove, so the probe
+ * asks whether the flag survives rather than testing a weather by name. */
+function chargeTurns(m, board, dex) {
+  if (!m) return 0;
+  if (m.self && m.self.volatileStatus === 'mustrecharge') return -1;   // the turn is spent AFTER, not before
+  if (!(m.flags && m.flags.charge)) return 0;
+  if (typeof m.onTryMove !== 'function') return 1;
+  const probe = { flags: { ...(m.flags || {}) }, id: m.id, name: m.name };
+  const ctx = boardStub(board, dex);
+  const stubMon = {
+    effectiveWeather: () => norm(board.weather),
+    hasItem: () => false, getItem: () => ({}), hasAbility: () => false,
+    removeVolatile: () => {}, addVolatile: () => {}, volatiles: {},
+  };
+  try {
+    const r = m.onTryMove.call(ctx, stubMon, stubMon, probe);
+    /* THE RETURN VALUE IS THE SIGNAL, and it is subtle enough to be worth stating. Showdown's
+     * two-turn moves return `null` to mean "stop here, this turn is the charge", and fall through to
+     * an implicit `undefined` when the weather lets them fire at once. So undefined means NO charge.
+     * Getting this backwards is silent -- both are falsy. */
+    if (r === null) return 1;
+    return 0;
+  } catch (e) { return 1; }
+}
+
 /* The key a field-setting move is tracked under. Trick Room reports `pseudoWeather`, the terrains
  * report `terrain`; both are dex fields and both land in the same namespace so `deadField` is one
  * feature rather than two nearly-identical ones. Returns '' for a move that sets no field. */
@@ -585,9 +762,42 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   set('isStatus', damaging ? 0 : 1);
   /* `accuracy === true` is the dex's way of saying "cannot miss" and is NOT the number 1 -- reading
    * it as a number would give every never-miss move an accuracy of 0.01. */
-  const acc = (m.accuracy === true || m.accuracy == null) ? 1 : Math.max(0, Math.min(1, m.accuracy / 100));
+  const acc = moveAccuracy(m, board, dex);
   set('accuracy', acc);
-  set('priority', Math.max(-1, Math.min(1, (m.priority || 0) / 3)));   // dex field, scaled
+  const ch = chargeTurns(m, board, dex);
+  set('chargeTurn', ch > 0 ? 1 : 0);
+  set('rechargeTurn', ch < 0 ? 1 : 0);
+  set('pivots', m.selfSwitch ? 1 : 0);
+  /* Effective priority, not printed priority: a status move on a Prankster user cuts the queue even
+   * though the dex says 0. Held as a probability because whether this species has Prankster is only
+   * known to the population, exactly as abilityBlock is. */
+  let effPri = effectivePriority(m, board, dex, user);
+  /* The Dark check, applied to BOTH the queue and the failure feature, because a Prankster move into
+   * a Dark type does not go first either -- it simply does not happen. */
+  if (m.category === 'Status') {
+    const pPrank = pranksterProb(user.species);
+    if (pPrank > 0) {
+      const aimed = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+      let darkShare = 0;
+      for (const h of aimed) {
+        const hs = dex.species.get(h.species);
+        if (hs && hs.exists && (hs.types || []).map(norm).includes('dark')) darkShare++;
+      }
+      if (aimed.length && darkShare) {
+        const p = pPrank * (darkShare / aimed.length);
+        set('pranksterFailsDark', p);
+        effPri -= p;                                  // the boost is not granted into a Dark type
+      }
+    }
+  }
+  set('priority', Math.max(-1, Math.min(1, effPri / 3)));
+  /* SET HERE, NOT ONLY IN THE STAT BLOCK. That block needs a TARGET to compare speeds against, so
+   * every targetless move -- Tailwind, Protect, Trick Room, every screen -- was silently scoring
+   * movesFirst = 0 regardless of priority or Prankster. Whimsicott's Tailwind, the clearest case of
+   * a move that goes first, read as going last. The speed comparison below only ever raises it. */
+  /* Above zero means the queue is cut outright; a fraction is the chance this species runs the
+   * ability that grants it. The speed comparison in the stat block can only raise this. */
+  set('movesFirst', Math.max(0, Math.min(1, effPri > 0 ? Math.min(1, effPri) : 0)));
 
   /* Scaled by the 6-stage maximum the game itself allows, so the number is a share of the range
    * rather than a raw count and nothing here is a constant chosen by me. */
@@ -673,9 +883,19 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       const mySpe = ub.spe * (board.hasSide(side, 'tailwind') ? 2 : 1);
       const thSpe = tb.spe * (board.hasSide(foeSide, 'tailwind') ? 2 : 1);
       const slowFirst = board.hasField('trickroom');
-      /* A priority move goes first regardless of speed. What the OPPONENT is about to click is
-       * unknown, so this claims the queue only for my own priority -- it never assumes theirs is 0. */
-      set('movesFirst', (m.priority || 0) > 0 ? 1 : ((slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0));
+      /* PRANKSTER, WHICH IS MY OWN ABILITY AND WAS INVISIBLE.
+       *
+       * This file already computed P(the user has Prankster) -- but only to ask whether Armor Tail
+       * would REFUSE the move. It never asked the other half of the same fact: Prankster gives my
+       * status moves +1, so Whimsicott's Tailwind and Thunder Wave go first. MAG could see the
+       * ability when it hurt and not when it helped.
+       *
+       * That is the general shape of "does each Pokemon need its own AI". It does not. It needs its
+       * OWN traits as features, so one model learns what Prankster is worth and applies it to every
+       * Pokemon that has it -- including ones the corpus has barely seen. 2,103 clean games across
+       * 263 species is about eight games each; there is no such thing as a per-species model here. */
+      set('movesFirst', Math.max(x[FEATURE_INDEX.movesFirst],
+        (slowFirst ? mySpe < thSpe : mySpe > thSpe) ? 1 : 0));
       const off = tb.atk + tb.spa;
       const physShare = off ? (tb.atk - tb.spa) / off : 0;
       if (off) set('tgtPhysical', physShare);
@@ -713,7 +933,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       if (att && damaging && hits.length) {
         const uSp2 = dex.species.get(user.species);
         const uSpe = (uSp2 && uSp2.exists && uSp2.baseStats && uSp2.baseStats.spe) || 0;
-        let kos = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0, sashDrag = 0;
+        let kos = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0, sashDrag = 0, protDrag = 0, protAll = 0;
         const SASH = abilityTables().sash || {};
         for (const h of hits) {
           const dm = dmgMon(h, D);
@@ -721,6 +941,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
           const r = dmgFractions(D, att, dm, m, mType, !!(cand.spread && cand.spread.length > 1), board);
           if (!r) continue;
           n2++;
+          protAll += protectOdds(h.species);
           const left = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
           fracSum += left > 0 ? Math.min(1, r.mean / left) : 1;
           /* left > 0 is not paranoia: a fainted mon left in the hit list would make EVERY move a
@@ -731,6 +952,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
              * cannot save a target that is visibly damaged. This is why the drag is conditioned on
              * hp rather than applied flat. */
             if (left >= 1) sashDrag += (SASH[norm(h.species)] || SASH[baseSpecies(h.species)] || 0);
+            protDrag += protectOdds(h.species);
             /* Removing the thing that was going to remove me is a different act from removing
              * something harmless, and no combination of the existing features can say so. */
             if ((threat.get(h) || 0) >= myLeft) killsThreatening = 1;
@@ -748,7 +970,12 @@ function featuresFor(cand, user, board, side, dex, priorP) {
            * that a guaranteed kill is exactly the kind of confident wrong number this file exists to
            * stop. The separate `accuracy` feature carries the general reluctance to click a shaky
            * move; this one carries the odds the KILL specifically happens. */
-          set('koTarget', (kos / n2) * acc * (1 - sashDrag / Math.max(1, n2)));
+          /* Discounted by the odds the target simply BLOCKS. Measured as 46.3% of every false kill
+           * call, and it is not a damage question -- the arithmetic was right, they pressed Protect.
+           * A move already stalled last turn is far less likely to stall again, which deadStall
+           * carries separately, so this is not conditioned on it here. */
+          set('koTarget', (kos / n2) * acc * (1 - sashDrag / Math.max(1, n2)) * (1 - protDrag / Math.max(1, n2)));
+          set('tgtMayProtect', protAll / n2);
           set('dmgFrac', fracSum / n2);
           set('killsThreat', killsThreatening);
           set('koFirst', killsFirst);
@@ -851,4 +1078,4 @@ function candidates(moves, user, board, side, dex) {
 /* dmgFailures is exported so a caller can ASSERT the damage features were live. A run in which the
  * damage engine failed to load produces a full, plausible-looking feature vector with four zeros in
  * it, and nothing about the output would say so. */
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
+module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };

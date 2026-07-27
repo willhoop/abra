@@ -133,6 +133,9 @@ function speciesShares() {
     return { c, n };
   };
   const openG = [], closedG = [];
+  /* The same behavioural bot set loadCorpus uses. Screening the covariate-shift comparison with a
+   * weaker filter than the fit itself would make the two sides incomparable. */
+  const bots = Q.behaviouralBots(Q.readStore());
   for (const l of fs.readFileSync(D('data', 'games.ots.jsonl'), 'utf8').split('\n')) {
     if (!l.trim()) continue; let g; try { g = JSON.parse(l); } catch (e) { continue; }
     if (!Q.reasons(g, cfg, bots).length) openG.push(g);
