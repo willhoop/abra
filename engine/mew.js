@@ -90,6 +90,21 @@ const POLICY2 = arg('policy2', '');
  *           closed-sheet game measures them switched off. */
 const PAIRED = process.argv.includes('--paired');
 const FORMAT_ARG = arg('format', '');
+/* --thoughts   record MAG's per-decision scores onto each game, so a replay can show WHY it clicked.
+ *              Off by default: a million-game training run should not pay for a viewer feature.
+ * --randmove p RandomPlayerAI switches only when `prng.random() > this.move`, and `this.move`
+ *              defaults to 1 -- so THE DEFAULT RANDOM PLAYER NEVER SWITCHES VOLUNTARILY. It is
+ *              uniform over MOVES, not over moves and switches, and that makes it a STRONGER
+ *              opponent, not a weaker one: a random switch surrenders a turn and walks into a
+ *              matchup it did not pick. p = 0.8 gives a switch about a fifth of the time one is
+ *              legal, roughly what genuinely uniform choice over 6-8 move-and-target options plus
+ *              two bench slots produces by itself. A win rate against p = 0.8 is NOT comparable to
+ *              one against the default, which is why the flag is explicit rather than a new default. */
+const THOUGHTS = process.argv.includes('--thoughts');
+const RANDMOVE = parseFloat(arg('randmove', '1'));
+/* --switching  let MAG choose to switch. Measured as a 10-point LOSS against a random opponent, so
+ *              it is off until the switch policy is worth more than not switching. */
+const SWITCHING = process.argv.includes('--switching');
 /* A weight file for the SECOND player only. This is what makes an exploitability search possible:
  * the challenger is MAG's own machinery with different numbers, so any win it manages is due to the
  * numbers rather than to a different kind of player. */
@@ -195,8 +210,34 @@ function realTeams() {
  *   random  Showdown's RandomPlayerAI — cheap and unbiased, not valid as training data.
  *   prior   engine/prior_player.js — samples the move a species actually clicks. Board-blind.
  *   score   engine/magnemite.js — MAG. Reads the board and chooses the target too. */
+/* RANDOM, BUT ABLE TO SWITCH IN DOUBLES.
+ *
+ * Showdown's RandomPlayerAI filters its switch list on `!pokemon[j].active` and nothing else, so in
+ * doubles both slots of a turn can pick the SAME benched Pokemon and the simulator refuses the
+ * second: "The Pokemon in slot 3 can only switch in once". That never surfaced before because the
+ * default `move: 1` means it never switches voluntarily at all -- turning switching on turned the
+ * latent bug on with it. engine/magnemite.js needed the identical fix an hour earlier.
+ *
+ * Claims are tracked per REQUEST, which both slots of a turn share, so the set clears exactly when
+ * a new turn arrives. */
+function randomSwitcher() {
+  const Base = simBits().RandomPlayerAI;
+  return class RandomSwitcherAI extends Base {
+    chooseSwitch(active, switches) {
+      if (this._claimReq !== this._req) { this._claimReq = this._req; this._claimed = new Set(); }
+      const free = (switches || []).filter(s => !this._claimed.has(s.slot));
+      const pick = super.chooseSwitch(active, free.length ? free : switches);
+      this._claimed.add(pick);
+      return pick;
+    }
+    receiveRequest(request) { this._req = request; return super.receiveRequest(request); }
+  };
+}
+
 function pickPolicy(name) {
   if (name === 'prior') return require('./prior_player.js').makePriorPlayer();
+  /* Only wrapped when switching is actually enabled, so the default path stays Showdown's own class. */
+  if (name === 'random' && RANDMOVE < 1) return randomSwitcher();
   if (name === 'score') return require('./magnemite.js').makeScoringPlayer();
   /* score@<path> — MAG as it exists in ANOTHER CHECKOUT of this repository.
    *
@@ -331,8 +372,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * "swapped" on both halves. The caller states it explicitly there. */
   const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
-  const optA = { seed: pseed(1), mega: MEGA_P };
-  const optB = { seed: pseed(2), mega: MEGA_P };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING };
+  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING };
   if (WEIGHTS1) { (swapped ? optB : optA).weightsFile = WEIGHTS1; }
   if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
@@ -525,6 +566,9 @@ async function main() {
        * indistinguishable from a real one, and that is unrecoverable. */
       rec.source = 'selfplay';
       rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: FORMAT_ARG || CS.FORMAT, policy: POLICY, seed };
+      /* Recorded so a run can describe ITSELF later. Two runs tonight differed only in whether the
+       * random opponent could switch, and nothing in the file said so. */
+      if (RANDMOVE !== 1) rec.selfplay.randmove = RANDMOVE;
       if (POLICY2) {
         /* Which POLICY won, not which side. `swapped` says where the challenger sat this battle. */
         const sw = res && res.swapped;

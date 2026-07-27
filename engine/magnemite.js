@@ -82,6 +82,7 @@ function makeScoringPlayer(opts = {}) {
       this.stats.aimed = 0;
       /* Opt-in: the viewer wants it, a training run does not. */
       this.keepThoughts = !!(options && options.keepThoughts);
+      this.allowSwitch = !!(options && options.switching);
       this.stats.thoughts = [];
       /* Priors as a map per species, so scoring a candidate is a lookup rather than a scan. */
       this.priorMap = {};
@@ -89,6 +90,40 @@ function makeScoringPlayer(opts = {}) {
         const r = {}; for (const [id, p] of rows) r[id] = p;
         this.priorMap[sp] = r;
       }
+    }
+
+    /* A REJECTED CHOICE MUST NOT KILL THE BATTLE, BUT IT MUST NOT BE SILENT EITHER.
+     *
+     * Two slots choosing simultaneously can both name the same benched Pokemon, and the simulator
+     * refuses the second. The claim tracking below prevents the cases found so far; this catches
+     * whatever is left, because a run of 20,000 games dying on game 50 loses everything and a
+     * quietly-swallowed error loses the evidence.
+     *
+     * `default` is Showdown's own "pick something legal" instruction, so the battle continues with a
+     * valid move. The COUNT is what matters: it is reported at the end of every run, so a recovery
+     * that starts happening often is visible as a number rather than as a slowly worse bot. */
+    receiveError(error) {
+      const msg = String((error && error.message) || error);
+      if (/\[Invalid choice\]/.test(msg)) {
+        this.stats.rejectedChoices = (this.stats.rejectedChoices || 0) + 1;
+        this.stats.lastRejection = msg;
+        this.choose('default');
+        return;
+      }
+      return super.receiveError(error);
+    }
+
+    /* FORCED REPLACEMENTS COLLIDE TOO. When both Pokemon faint in one turn the simulator asks for two
+     * replacements and the inherited chooseSwitch picks each independently -- so both slots can name
+     * the same benched Pokemon and the battle dies on "can only switch in once". The claim tracking
+     * on chooseMove does not help: this path never goes through chooseMove at all. Same bug, second
+     * entrance, and it only appeared once switching was enabled anywhere. */
+    chooseSwitch(active, switches) {
+      if (this._claimReq !== this._req) { this._claimReq = this._req; this._claimed = new Set(); }
+      const free = (switches || []).filter(sw => !this._claimed.has(sw.slot));
+      const pick = super.chooseSwitch(active, free.length ? free : switches);
+      this._claimed.add(pick);
+      return pick;
     }
 
     priorFor(species, moveId) {
@@ -247,10 +282,30 @@ function makeScoringPlayer(opts = {}) {
        * Tracked per REQUEST: both slots of a turn share one request object, so a set keyed on it
        * clears exactly when a new turn arrives, with no bookkeeping to get wrong. */
       if (this._claimReq !== this._req) { this._claimReq = this._req; this._claimed = new Set(); }
-      if (canSwitch && !this._req.forceSwitch) {
+      /* SWITCHING IS OFF BY DEFAULT, AND THAT IS A MEASUREMENT, NOT TIMIDITY.
+       *
+       * A 2x2 against a random opponent, 10,000 paired games per cell, forced open sheets:
+       *
+       *   MAG cannot switch, monkey cannot   81.9% of decisive pairs
+       *   MAG CAN switch,    monkey can      71.6%
+       *   MAG CAN switch,    monkey cannot   71.6%   <- identical, so the monkey is not the cause
+       *
+       * The last two cells matching is what settles it: enabling MAG's own switching costs TEN
+       * POINTS and the opponent's switching costs nothing. Which is exactly what the fit said and
+       * what I under-weighted -- switchSurvives1 +0.055, switchFaster -0.112, switchSurvives2 with
+       * an interval containing zero. Weights fitted out of noise, acted on 4.43 times a game.
+       *
+       * The capability is needed for ALAKAZAM and the plumbing is now correct, so it stays and is
+       * reachable with `switching: true`. It is default-off until a switch policy beats not
+       * switching, and the number to beat is 81.9%. */
+      if (this.allowSwitch && canSwitch && !this._req.forceSwitch) {
         party.forEach((p, idx) => {
           if (!p || p.active) return;
-          if (this._claimed.has(idx)) return;                      // my partner is already taking it
+          /* ONE-BASED, to match chooseSwitch. The two claim sites used different bases -- this one
+           * stored the 0-based party index and chooseSwitch stored Showdown's 1-based slot -- so
+           * neither could see the other's claim and the collision came straight back. `switch N` is
+           * 1-based, so that is the convention both now use. */
+          if (this._claimed.has(idx + 1)) return;                  // my partner is already taking it
           if (String(p.condition || '').includes('fnt')) return;   // dead, not a legal switch
           const sp = B.norm((p.details || p.ident || '').split(',')[0].replace(/^p[12][a-z]?:\s*/, ''));
           if (!sp) return;
@@ -285,7 +340,7 @@ function makeScoringPlayer(opts = {}) {
       /* Claim the switch so this turn's other slot cannot pick the same body. */
       if (cands[j].switchTo) {
         const n = parseInt(String(cands[j].choice).split(' ')[1], 10);
-        if (n > 0) this._claimed.add(n - 1);
+        if (n > 0) this._claimed.add(n);                          // 1-based, as chooseSwitch stores it
       }
 
       /* WHAT IT WAS THINKING, KEPT. The scores exist for a microsecond inside this function and were

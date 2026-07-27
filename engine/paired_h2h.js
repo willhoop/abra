@@ -68,7 +68,44 @@ const d = 1 + z * z / n, c = (p + z * z / (2 * n)) / d;
 const hw = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d;
 
 const pct = (a, b) => b ? (100 * a / b).toFixed(1) + '%' : 'n/a';
+/* WHAT ACTUALLY PLAYED WHAT, IN WORDS.
+ *
+ * Three runs tonight were identified only by filename — h2h-monkey, h2h-monkey2, h2h-cell3 — and two
+ * of them differed in a way that changes the meaning of every number in the report: whether the
+ * random opponent could switch at all. A win rate against a monkey that never switches is not
+ * comparable to one against a monkey that does, and nothing in the output said which was which.
+ *
+ * Read off the record rather than typed, so a report cannot describe a run it did not come from. */
+function describe(g) {
+  const sp = (g && g.selfplay) || {};
+  const name = (pol) => {
+    if (pol === 'score') return 'MAG — scores every option, then takes a WEIGHTED ROLL (not the best)';
+    if (pol === 'prior') return 'behaviour clone — clicks what people click, blind to the board';
+    if (pol === 'random') {
+      /* ABSENT IS NOT THE SAME AS ZERO. The flag only started being recorded partway through the
+       * evening, so a run made before that has no field — and reading that silence as "never
+       * switched" mislabels the one run where it did. Say so instead. */
+      if (sp.randmove == null) return 'pure random — SWITCH SETTING NOT RECORDED (run predates the flag)';
+      return sp.randmove < 1
+        ? `pure random — switches about ${Math.round(100 * (1 - sp.randmove))}% of the time`
+        : 'pure random — MOVES ONLY, never switches by choice';
+    }
+    if (String(pol).startsWith('score@')) return 'MAG from another checkout: ' + String(pol).slice(6);
+    return String(pol || '?');
+  };
+  return {
+    a: name(sp.policy),
+    b: name(sp.policy2 || sp.policy),
+    fmt: /bo3/.test(String(sp.format || '')) ? 'open team sheets (forced)' : 'closed team sheets',
+  };
+}
 console.log(`PAIRED HEAD-TO-HEAD — ${file}\n`);
+if (rows.length) {
+  const d = describe(rows[0]);
+  console.log(`  NEW  =  ${d.a}`);
+  console.log(`  OLD  =  ${d.b}`);
+  console.log(`  format  ${d.fmt}\n`);
+}
 console.log(`  complete pairs        ${pairs.toLocaleString()}`);
 if (halves) console.log(`  dropped, half a pair  ${halves.toLocaleString()}`);
 if (mismatchedTeams) console.log(`  dropped, not a true pair ${mismatchedTeams.toLocaleString()}`);

@@ -156,7 +156,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
    * happened on the first 20,000-game comparison. Forwarded rather than re-declared, so a flag added
    * to mew.js is farmable without touching this file. */
   const extra = [];
-  for (const k of ['policy2', 'format', 'weights', 'weights2']) {
+  for (const k of ['policy2', 'format', 'weights', 'weights2', 'randmove']) {
     const v = arg(k, '');
     if (v) extra.push('--' + k, v);
   }
