@@ -80,6 +80,9 @@ function makeScoringPlayer(opts = {}) {
       this.stats.scored = 0;
       this.stats.scoreFellBack = 0;
       this.stats.aimed = 0;
+      /* Opt-in: the viewer wants it, a training run does not. */
+      this.keepThoughts = !!(options && options.keepThoughts);
+      this.stats.thoughts = [];
       /* Priors as a map per species, so scoring a candidate is a lookup rather than a scan. */
       this.priorMap = {};
       for (const [sp, rows] of Object.entries(this.priors || {})) {
@@ -222,11 +225,47 @@ function makeScoringPlayer(opts = {}) {
           cands.push({ raw: m, move: mv, targetMon: null, choice: m.choice });
         }
       }
+      /* SWITCHING WAS ADDED TO THE FITTER AND NEVER TO THE PLAYER.
+       *
+       * engine/board.js grew switch candidates and engine/fit_policy.js learned weights for them --
+       * switchSurvives1, switchSurvives2, switchFaster -- and this list contains only MOVES, so the
+       * bot never once scored a switch. The weights existed and were unreachable, which is the same
+       * class of defect as a feature that computes to zero: everything runs, nothing objects, and
+       * the capability simply is not there.
+       *
+       * The request is authoritative about which switches are legal (trapped, already active,
+       * fainted), so the party is read from it rather than from the tracked board. `switch N` is
+       * 1-based over the side's full party. */
+      const party = (this._req && this._req.side && this._req.side.pokemon) || [];
+      const canSwitch = !(active && active.trapped) && !(active && active.maybeTrapped);
+      /* TWO SLOTS CANNOT CLAIM THE SAME BENCHED POKEMON, and this class decides them one at a time.
+       * Both slots independently picked the best switch-in and the simulator refused the second:
+       * "The Pokémon in slot 3 can only switch in once". That is the joint-decision problem in
+       * miniature -- the same one the pair model exists to solve -- surfacing as a hard error rather
+       * than as a bad move, only because the rules happen to forbid this particular collision.
+       *
+       * Tracked per REQUEST: both slots of a turn share one request object, so a set keyed on it
+       * clears exactly when a new turn arrives, with no bookkeeping to get wrong. */
+      if (this._claimReq !== this._req) { this._claimReq = this._req; this._claimed = new Set(); }
+      if (canSwitch && !this._req.forceSwitch) {
+        party.forEach((p, idx) => {
+          if (!p || p.active) return;
+          if (this._claimed.has(idx)) return;                      // my partner is already taking it
+          if (String(p.condition || '').includes('fnt')) return;   // dead, not a legal switch
+          const sp = B.norm((p.details || p.ident || '').split(',')[0].replace(/^p[12][a-z]?:\s*/, ''));
+          if (!sp) return;
+          cands.push({ raw: null, move: null, switchTo: sp, targetMon: null, choice: `switch ${idx + 1}` });
+        });
+      }
+
       if (!cands.length) { this.stats.scoreFellBack++; return super.chooseMove(active, moves); }
 
       const scores = cands.map(c => {
-        if (!c.move) return -Infinity;
-        const x = B.featuresFor(c, user, this.board, me, dex, this.priorFor(user.species, c.move.id));
+        /* A switch has no move, and that is not the same thing as an unparseable move -- the first
+         * version returned -Infinity for both and made every switch unpickable. */
+        if (!c.move && !c.switchTo) return -Infinity;
+        const x = B.featuresFor(c, user, this.board, me, dex,
+          c.switchTo ? B.PRIOR_FLOOR : this.priorFor(user.species, c.move.id));
         let s = 0; for (let k = 0; k < this.w.length; k++) s += this.w[k] * x[k];
         return s;
       });
@@ -243,6 +282,32 @@ function makeScoringPlayer(opts = {}) {
       let r = this.prng.random() * total, j = 0;
       while (j < exp.length - 1 && (r -= exp[j]) > 0) j++;
       this.stats.scored++;
+      /* Claim the switch so this turn's other slot cannot pick the same body. */
+      if (cands[j].switchTo) {
+        const n = parseInt(String(cands[j].choice).split(' ')[1], 10);
+        if (n > 0) this._claimed.add(n - 1);
+      }
+
+      /* WHAT IT WAS THINKING, KEPT. The scores exist for a microsecond inside this function and were
+       * thrown away, so a replay could show what MAG did and never why -- and "why did it click
+       * that" is the only question worth asking of a scoring model. Recorded per decision: every
+       * option, its score, and the probability that score implies after the softmax.
+       *
+       * Costs one small object per decision and is dropped entirely unless a caller asks for it, so
+       * a million-game run does not pay for a feature only the viewer uses. */
+      if (this.keepThoughts) {
+        const pct = exp.map(e => e / total);
+        const opts = cands.map((c, i) => ({
+          mv: c.move ? c.move.name : (c.switchTo ? 'switch: ' + c.switchTo : '?'),
+          tgt: c.targetMon ? c.targetMon.species : null,
+          s: Math.round(scores[i] * 1000) / 1000,
+          p: Math.round(pct[i] * 1000) / 1000,
+        })).sort((a, b) => b.s - a.s);
+        this.stats.thoughts.push({
+          turn: this.board.turn, side: me, slot: info.slot,
+          mon: user.species, chose: j, opts: opts.slice(0, 8),
+        });
+      }
       if (cands[j].targetMon && doubles) this.stats.aimed++;
       return cands[j].choice;
     }

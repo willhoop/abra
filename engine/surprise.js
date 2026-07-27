@@ -156,7 +156,13 @@ for (const g of games) {
       else if (e.t === 'w') bd.setWeather(e.field);
       else if (e.t === 'fs') bd.startField(e.field, 5);
     }
-    bd.turn++;
+    /* endTurn(), NOT turn++. The counter is the visible half; endTurn also rolls
+     * stalledThisTurn -> stalledLastTurn, advances turnsActive and moves moveThisTurn into
+     * lastMove. Incrementing the number by hand leaves deadStall permanently 0 and every
+     * Fake Out permanently legal -- silently, in a replay that otherwise looks correct.
+     * engine/fit_policy.js and engine/magnemite.js always called endTurn; every analysis file
+     * written on 2026-07-26 did not, and engine/feature_coverage.js is what caught it. */
+    bd.endTurn();
   }
 }
 

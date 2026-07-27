@@ -181,7 +181,13 @@ for (const g of games) {
         if (k) board.startField(k, mv && mv.condition && mv.condition.duration);
       }
     }
-    board.turn++;
+    /* endTurn(), NOT turn++. The counter is the visible half; endTurn also rolls
+     * stalledThisTurn -> stalledLastTurn, advances turnsActive and moves moveThisTurn into
+     * lastMove. Incrementing the number by hand leaves deadStall permanently 0 and every
+     * Fake Out permanently legal -- silently, in a replay that otherwise looks correct.
+     * engine/fit_policy.js and engine/magnemite.js always called endTurn; every analysis file
+     * written on 2026-07-26 did not, and engine/feature_coverage.js is what caught it. */
+    board.endTurn();
   }
 }
 
