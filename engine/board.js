@@ -142,6 +142,7 @@ const FEATURES = [
   'koTarget',        // the odds this really kills it: the worst roll still does, and the move lands
   'dmgFrac',         // how much of what is left of the target it takes
   'tgtMayProtect',   // how often this target blocks: the biggest reason a sure kill is not one
+  'killIsRoll',      // it kills some spreads and not others: a roll rather than a read
   /* WILL I BE KILLED. This cannot be a feature on its own, and the reason is structural rather than
    * a judgement call: a conditional logit compares candidates within one decision, so any quantity
    * identical across all of a Pokemon's options -- and "am I threatened" is a property of the board,
@@ -403,14 +404,77 @@ function dmgMon(mon, D) {
   return b;
 }
 
+/* THE SPREAD IS NOT KNOWN, SO STOP PRETENDING IT IS.
+ *
+ * Every damage number here was computed against ONE stat line: the single set the usage data lists
+ * first. Measured, that line is right 4.9% of the time for Incineroar, 3.5% for Farigiraf, 10.3% for
+ * Sinistcha. The bulky support Pokemon -- exactly the ones whose survival decides whether a move is
+ * a kill -- are the ones the point estimate gets most wrong, because their spreads are the most
+ * varied. Garchomp at 42.0% and Whimsicott at 47.7% are the concentrated exceptions.
+ *
+ * So a kill stops being a yes/no computed against a guess, and becomes the SHARE OF PLAUSIBLE
+ * SPREADS it kills. "This kills a defensive Incineroar and does not kill a specially defensive one"
+ * is a fact the old feature could not express in either direction.
+ *
+ * Nothing hidden is used. These are Smogon's published spreads for the format -- the same public
+ * source as the ability and item odds -- and the weights are their observed shares, renormalised
+ * over the ones we have. Their top six only cover about 19% of Incineroar sets, so this is a better
+ * estimate and still not the truth; what it buys is a probability instead of a false certainty. */
+let _spreads = null;
+function spreadLines(species, dex) {
+  if (_spreads === null) {
+    _spreads = {};
+    try {
+      const fs4 = require('fs'), p4 = require('path');
+      const j = JSON.parse(fs4.readFileSync(p4.join(__dirname, '..', 'data', 'smogon-priors.json'), 'utf8'));
+      for (const [k, v] of Object.entries(j.species || {})) {
+        const rows = (v.spreads || []).filter(s => s && Array.isArray(s.sp));
+        if (rows.length) _spreads[norm(k)] = rows;
+      }
+    } catch (e) { /* no priors: the caller falls back to the single stored line */ }
+  }
+  const rows = _spreads[norm(species)] || _spreads[baseSpecies(species)];
+  if (!rows || !rows.length) return null;
+  const sp0 = dex.species.get(species) || dex.species.get(baseSpecies(species));
+  const bs = sp0 && sp0.exists && sp0.baseStats;
+  if (!bs) return null;
+  const total = rows.reduce((a, r) => a + (+r.pct || 0), 0) || 1;
+
+  /* Champions invests SP directly into a stat rather than through EVs, which is why this is an
+   * addition and not a division by four. Same formula as engine/medicham2-browser.js l50. */
+  const stat = (base, put) => Math.floor((2 * base + 31) * 50 / 100) + 5 + (+put || 0);
+  const out = [];
+  for (const r of rows) {
+    const [h, a, d, sa, sd, s] = r.sp;
+    const line = {
+      hp: Math.floor((2 * bs.hp + 31) * 50 / 100) + 50 + 10 + (+h || 0),
+      at: stat(bs.atk, a), df: stat(bs.def, d),
+      sa: stat(bs.spa, sa), sd: stat(bs.spd, sd), sp: stat(bs.spe, s),
+    };
+    /* Nature is a 10% swing on two stats and is published beside the spread, so leaving it out would
+     * put every bulky set 10% too frail and every attacker 10% too weak. */
+    const nat = r.nature && dex.natures.get(r.nature);
+    if (nat && nat.exists) {
+      const K = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
+      if (K[nat.plus]) line[K[nat.plus]] = Math.floor(line[K[nat.plus]] * 1.1);
+      if (K[nat.minus]) line[K[nat.minus]] = Math.floor(line[K[nat.minus]] * 0.9);
+    }
+    out.push({ p: (+r.pct || 0) / total, st: line });
+  }
+  return out;
+}
+
 /* Estimated damage of `m` (typed as it will actually land) from `att` onto `def`.
  * `{min, max, mean}` as a FRACTION of the defender's max hp. */
 /* Showdown's weather ids -> the two the damage formula multiplies on. Written as a mapping FROM the
  * tracked value rather than as a test for a named move, so a new weather setter needs no edit. */
 const WEATHER_KIND = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain' };
 
-function dmgFractions(D, att, def, m, mType, spread, board) {
+function dmgFractions(D, att, def, m, mType, spread, board, defStats) {
   if (!att || !def) return null;
+  /* A stat line from the spread distribution replaces the stored one. Copied rather than mutated,
+   * because the same built mon is reused across every spread and every candidate move. */
+  if (defStats) def = Object.assign(Object.create(Object.getPrototypeOf(def) || Object.prototype), def, { st: defStats });
   const mv = { t: mType, bp: m.basePower || 0, c: m.category === 'Physical' ? 'P' : 'S' };
   if (!mv.bp) return null;
   /* THIS PASSED AN EMPTY FIELD, and the board knew the weather the whole time. Sun multiplies Fire
@@ -933,20 +997,31 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       if (att && damaging && hits.length) {
         const uSp2 = dex.species.get(user.species);
         const uSpe = (uSp2 && uSp2.exists && uSp2.baseStats && uSp2.baseStats.spe) || 0;
-        let kos = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0, sashDrag = 0, protDrag = 0, protAll = 0;
+        let kos = 0, killShare = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0, sashDrag = 0, protDrag = 0, protAll = 0;
         const SASH = abilityTables().sash || {};
         for (const h of hits) {
           const dm = dmgMon(h, D);
           if (!dm) continue;
-          const r = dmgFractions(D, att, dm, m, mType, !!(cand.spread && cand.spread.length > 1), board);
-          if (!r) continue;
+          const isSpread = !!(cand.spread && cand.spread.length > 1);
+          /* OVER THE SPREADS PEOPLE ACTUALLY RUN, not against one guessed stat line. Falls back to
+           * the single stored line for a species the usage data has no spreads for. */
+          const lines = spreadLines(h.species, dex) || [{ p: 1, st: null }];
+          let koP = 0, meanFrac = 0, minKills = false;
+          for (const L of lines) {
+            const r = dmgFractions(D, att, dm, m, mType, isSpread, board, L.st);
+            if (!r) continue;
+            const leftL = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
+            meanFrac += L.p * (leftL > 0 ? Math.min(1, r.mean / leftL) : 1);
+            if (leftL > 0 && r.min >= leftL) { koP += L.p; minKills = true; }
+          }
           n2++;
           protAll += protectOdds(h.species);
           const left = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
-          fracSum += left > 0 ? Math.min(1, r.mean / left) : 1;
+          fracSum += meanFrac;
+          killShare += koP;
           /* left > 0 is not paranoia: a fainted mon left in the hit list would make EVERY move a
            * guaranteed kill, since any roll meets zero. */
-          if (left > 0 && r.min >= left) {
+          if (left > 0 && minKills) {
             kos++;
             /* Only from FULL health: a Sash is already gone once the holder has taken a hit, so it
              * cannot save a target that is visibly damaged. This is why the drag is conditioned on
@@ -974,7 +1049,15 @@ function featuresFor(cand, user, board, side, dex, priorP) {
            * call, and it is not a damage question -- the arithmetic was right, they pressed Protect.
            * A move already stalled last turn is far less likely to stall again, which deadStall
            * carries separately, so this is not conditioned on it here. */
-          set('koTarget', (kos / n2) * acc * (1 - sashDrag / Math.max(1, n2)) * (1 - protDrag / Math.max(1, n2)));
+          /* THE SHARE OF PLAUSIBLE SPREADS THIS KILLS, not a yes/no against one guessed stat line.
+           * A move that removes a defensive Incineroar and not a specially defensive one now reads
+           * as the roll it is, which the old feature could not say in either direction. */
+          set('koTarget', (killShare / n2) * acc * (1 - sashDrag / Math.max(1, n2)) * (1 - protDrag / Math.max(1, n2)));
+          /* IS IT A ROLL? Peaks at a coin flip and falls to zero at both certainties, so "I do not
+           * know whether this kills" is expressible as its own thing rather than hiding inside a
+           * middling probability -- which is the difference between a read and a gamble. */
+          const kp = killShare / n2;
+          set('killIsRoll', 4 * kp * (1 - kp));
           set('tgtMayProtect', protAll / n2);
           set('dmgFrac', fracSum / n2);
           set('killsThreat', killsThreatening);
@@ -1078,4 +1161,4 @@ function candidates(moves, user, board, side, dex) {
 /* dmgFailures is exported so a caller can ASSERT the damage features were live. A run in which the
  * damage engine failed to load produces a full, plausible-looking feature vector with four zeros in
  * it, and nothing about the output would say so. */
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
+module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
