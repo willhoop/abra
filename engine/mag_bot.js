@@ -98,6 +98,23 @@ const rooms = new Map();
  * they beat it, and a number nobody is keeping is a number nobody will remember. */
 const RECORD = { you: 0, mag: 0, tie: 0 };
 
+/* IF THE NAME IS ALREADY TAKEN, SAY SO. LOUDLY.
+ *
+ * Two bot processes cannot both be MAG. The server hands the name to one and silently refuses the
+ * other, which then sits there connected, logged in as nobody, ignoring every challenge -- and looks
+ * exactly like a broken bot. That cost twenty minutes tonight. A connection that has not acquired
+ * its name within five seconds is a failure and now announces itself as one. */
+let loggedIn = false;
+setTimeout(() => {
+  if (!loggedIn) {
+    console.error(`
+  COULD NOT BECOME "${NAME}" — almost certainly another instance already has it.`);
+    console.error('  Close the other one, or run this with a different name:');
+    console.error(`      node engine/mag_bot.js --name ${NAME}2
+`);
+  }
+}, 5000);
+
 ws.onopen = () => console.log(`connected to ${SERVER}`);
 ws.onerror = (e) => console.error('socket error:', e && e.message ? e.message : e);
 ws.onclose = () => { console.log('disconnected'); process.exit(0); };
@@ -128,6 +145,7 @@ function handle(room, line) {
   if (cmd === 'popup') { console.error('SERVER SAYS: ' + line.slice(8).replace(/\|\|/g, '  ')); return; }
 
   if (cmd === 'updateuser' && String(p[2] || '').replace(/^[ !@#$%^&*]/, '') === NAME) {
+    loggedIn = true;
     console.log(`logged in as ${NAME} — challenge it from the client`);
     return;
   }
