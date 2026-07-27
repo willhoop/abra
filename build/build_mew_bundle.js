@@ -13,9 +13,17 @@ const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 
 const N = parseInt(process.argv[2] || '50', 10);
-const SRC = D('data', 'games.selfplay.jsonl');
-const RAW = D('data', 'games.selfplay.raw-logs.jsonl');
-if (!fs.existsSync(SRC)) { console.error(`no self-play store at ${SRC}; run engine/mew.js first`); process.exit(1); }
+/* --src <file>  bundle from ANY run, not only the self-play store.
+ *
+ * The booth could only ever show games from data/games.selfplay.jsonl, so every head-to-head this
+ * project runs -- MAG against its predecessor, MAG against a random bot -- was unwatchable. A seed
+ * could be quoted and not played, which made "here are some seeds to review" useless advice. Any
+ * store written by engine/mew.js has the same shape and a raw-logs file beside it, so there was
+ * never a reason to hardcode one. */
+const srcArg = (() => { const i = process.argv.indexOf('--src'); return i > 0 ? process.argv[i + 1] : null; })();
+const SRC = srcArg ? path.resolve(srcArg) : D('data', 'games.selfplay.jsonl');
+const RAW = SRC.replace(/\.jsonl$/, '.raw-logs.jsonl');
+if (!fs.existsSync(SRC)) { console.error(`no store at ${SRC}; run engine/mew.js first`); process.exit(1); }
 
 /* STREAM. The store is ~1GB at 200,004 games and V8 caps a single string near 512MB, so
  * readFileSync(...).split('\n') threw ERR_STRING_TOO_LONG the moment the corpus got real.
