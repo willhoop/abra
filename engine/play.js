@@ -106,7 +106,7 @@ function menu(title, items) {
       });
     };
     console.log(`
-${C.b}${title}${C.r}   ${C.dim}↑↓ or type a number · enter · t = MAG's reasoning${C.r}`);
+${C.b}${title}${C.r}   ${C.dim}↑↓ or type a number · enter · t = MAG's scores${C.r}`);
     draw(true);
 
     const done = (v) => {
@@ -119,7 +119,7 @@ ${C.b}${title}${C.r}   ${C.dim}↑↓ or type a number · enter · t = MAG's rea
       if (key && key.ctrl && key.name === 'c') { process.stdin.setRawMode(false); process.exit(0); }
       if (key && (key.name === 'up' || key.name === 'k')) { cur = (cur - 1 + items.length) % items.length; draw(); return; }
       if (key && (key.name === 'down' || key.name === 'j')) { cur = (cur + 1) % items.length; draw(); return; }
-      if (ch === 't') { WHY = !WHY; process.stdout.write(`  ${C.dim}MAG's reasoning ${WHY ? 'ON' : 'off'}${C.r}
+      if (ch === 't') { WHY = !WHY; process.stdout.write(`  ${C.dim}MAG's scores ${WHY ? 'ON' : 'off'}${C.r}
 `); draw(true); return; }
       if (ch && /^[1-9]$/.test(ch)) {
         const n = parseInt(ch, 10) - 1;
@@ -139,7 +139,7 @@ ${C.b}${title}${C.r}   ${C.dim}↑↓ or type a number · enter · t = MAG's rea
 async function askOpt(q) {
   for (;;) {
     const a = (await ask(q)).trim().toLowerCase();
-    if (a === 'w') { WHY = !WHY; console.log(`   ${C.dim}MAG's reasoning ${WHY ? 'ON' : 'off'}  (press w again to flip)${C.r}`); continue; }
+    if (a === 'w') { WHY = !WHY; console.log(`   ${C.dim}MAG's scores ${WHY ? 'ON' : 'off'}  (press w again to flip)${C.r}`); continue; }
     return a;
   }
 }
@@ -163,6 +163,42 @@ function showThoughts(bot, state) {
 }
 
 let theirsSix = [];
+/* THE TEAM SHEETS, ALWAYS ON.
+ *
+ * This is an open-team-sheet format: both players see all six sets, items, abilities and moves
+ * before the first turn. Hiding that behind a toggle would make this interface HARDER than the real
+ * game, and every judgement about whether MAG misplayed depends on knowing what it had available.
+ * Only the SCORES toggle — those are the model's private reasoning and are genuinely extra. */
+const SHEETS = { you: [], mag: [] };
+function setLine(st) {
+  const it = st.item ? '@ ' + st.item : '';
+  const tail = [it, st.ability, st.nature].filter(Boolean).join(' · ');
+  return C.b + pretty(st.species || st.name) + C.r + '  ' + C.dim + tail + C.r + '\n' +
+         '        ' + C.dim + (st.moves || []).join('  ·  ') + C.r;
+}
+function printSheets() {
+  for (const [who, label] of [['you', 'YOUR TEAM'], ['mag', "MAG'S TEAM"]]) {
+    if (!SHEETS[who].length) continue;
+    console.log('\n' + C.b + C.c + label + C.r);
+    for (const st of SHEETS[who]) console.log('   ' + setLine(st));
+  }
+}
+/* Shown at every decision: your active pair in full, and MAG's whole six, because on an open sheet
+ * that is public and it is what you are actually deciding against. */
+function printActive(req) {
+  const act = (req.side.pokemon || []).filter(p2 => p2.active)
+    .map(p2 => String(p2.details || '').split(',')[0].toLowerCase());
+  const find = nm => SHEETS.you.find(st => String(st.species || st.name).toLowerCase() === nm);
+  const rows = act.map(find).filter(Boolean);
+  if (rows.length) {
+    console.log(C.dim + '   ── your sets ──' + C.r);
+    for (const st of rows) console.log('   ' + setLine(st));
+  }
+  if (SHEETS.mag.length) {
+    console.log(C.dim + "   ── MAG's six (open sheet) ──" + C.r);
+    for (const st of SHEETS.mag) console.log('   ' + setLine(st));
+  }
+}
 function humanPlayer(BattlePlayer) {
   return class Human extends BattlePlayer {
     constructor(stream, opts = {}, debug = false) { super(stream, debug); this.side = null; }
@@ -181,6 +217,7 @@ function humanPlayer(BattlePlayer) {
       const mine = (req.side.pokemon || []).filter(p => p.active);
       console.log(`\n${C.b}your side${C.r}`);
       for (const p of mine) console.log(`   ${pretty(String(p.details || '').split(',')[0]).padEnd(20)} ${bar(hpOf(p))}  ${p.condition}`);
+      if (!req.teamPreview) printActive(req);
 
       /* TEAM PREVIEW IS A REQUEST TOO, and the first version fell through it into the move loop and
        * sent an empty choice. In this format you bring FOUR of six and the first two lead. */
@@ -332,13 +369,21 @@ const hpOf = p => {
    * edit, which reads as "MAG has no team" rather than as a missing variable. */
   theirsSix = theirs.six.map(pretty);
 
+  /* Unpacked from the SAME packed strings handed to the simulator, so what is shown is exactly what
+   * is being played rather than a second description that can drift from it. */
+  const packYou = myPacked || CS.packTeam(mine.six, Object.assign({}, mine.sets, { __seed: SEED * 2 + 1 })).packed;
+  const packMag = CS.packTeam(theirs.six, Object.assign({}, theirs.sets, { __seed: SEED * 2 + 2 })).packed;
+  try { SHEETS.you = Teams.unpack(packYou) || []; } catch (e) { SHEETS.you = []; }
+  try { SHEETS.mag = Teams.unpack(packMag) || []; } catch (e) { SHEETS.mag = []; }
+  printSheets();
+
   /* packTeam takes (six, setsBySpecies) and needs a per-call __seed, or every Incineroar comes out
    * byte-identical — the default-argument bug that flattened a 199,524-game corpus into one build
    * per species. Same call shape engine/mew.js uses, deliberately. */
   void streams.omniscient.write(
     `>start ${JSON.stringify({ formatid: CS.FORMAT, seed: [SEED & 0xffff, SEED >> 4 & 0xffff, SEED >> 8 & 0xffff, SEED >> 12 & 0xffff] })}\n` +
-    `>player p1 ${JSON.stringify({ name: 'You', team: myPacked || CS.packTeam(mine.six, Object.assign({}, mine.sets, { __seed: SEED * 2 + 1 })).packed })}\n` +
-    `>player p2 ${JSON.stringify({ name: 'MAG', team: CS.packTeam(theirs.six, Object.assign({}, theirs.sets, { __seed: SEED * 2 + 2 })).packed })}\n`);
+    `>player p1 ${JSON.stringify({ name: 'You', team: packYou })}\n` +
+    `>player p2 ${JSON.stringify({ name: 'MAG', team: packMag })}\n`);
 
   for await (const chunk of streams.omniscient) {
     if (/\|win\||\|tie\|/.test(chunk)) {

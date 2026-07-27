@@ -1,63 +1,49 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_games": 4334,
+  "n_games": 4482,
   "k_selected": 5,
-  "silhouette": 0.123,
+  "silhouette": 0.122,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Incineroar-Whimsicott",
-      "share": 0.476,
+      "n": "Kingambit-Garchomp",
+      "share": 0.577,
       "core": [
-        "incineroar",
-        "whimsicott",
-        "sneasler",
-        "raichu"
-      ],
-      "signature": [],
-      "w_usage": 0.476
-    },
-    {
-      "n": "Garchomp-Charizard",
-      "share": 0.21,
-      "core": [
+        "kingambit",
         "garchomp",
-        "charizard",
-        "kingambit",
-        "whimsicott"
-      ],
-      "signature": [
-        "kingambit"
-      ],
-      "w_usage": 0.21
-    },
-    {
-      "n": "Trick Room",
-      "share": 0.13,
-      "core": [
-        "farigiraf",
-        "incineroar",
-        "kingambit",
-        "torkoal"
+        "whimsicott",
+        "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.13
+      "w_usage": 0.577
+    },
+    {
+      "n": "Incineroar-Sinistcha",
+      "share": 0.175,
+      "core": [
+        "incineroar",
+        "sinistcha",
+        "garchomp",
+        "charizard"
+      ],
+      "signature": [],
+      "w_usage": 0.175
     },
     {
       "n": "Rain",
-      "share": 0.121,
+      "share": 0.118,
       "core": [
-        "archaludon",
         "pelipper",
+        "archaludon",
         "swampert",
         "basculegion"
       ],
       "signature": [],
-      "w_usage": 0.121
+      "w_usage": 0.118
     },
     {
       "n": "Sand",
-      "share": 0.063,
+      "share": 0.073,
       "core": [
         "tyranitar",
         "excadrill",
@@ -65,7 +51,19 @@
         "staraptor"
       ],
       "signature": [],
-      "w_usage": 0.063
+      "w_usage": 0.073
+    },
+    {
+      "n": "Gengar-Incineroar",
+      "share": 0.057,
+      "core": [
+        "gengar",
+        "incineroar",
+        "politoed",
+        "archaludon"
+      ],
+      "signature": [],
+      "w_usage": 0.057
     }
   ]
 }

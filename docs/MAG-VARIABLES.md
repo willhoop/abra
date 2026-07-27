@@ -1,0 +1,216 @@
+# MAG — every variable, what it means, and why its weight is what it is
+
+**2026-07-27** · 46 features · fitted on 70,681 human decisions from 3,281 clean open-sheet games
+
+Nobody typed these numbers. Each one is fitted: the model is shown a real human decision, all the
+options that person had, and the weights are nudged until the option they actually clicked comes
+out most likely. So every weight answers one question — **what makes a human more likely to click
+this** — and never *what wins*.
+
+`ZERO` marks a weight whose 95% interval contains zero: the data cannot tell it from no effect.
+
+The last column is the same fit with **popularity removed entirely**, which is the experiment that
+showed the facts were being crowded out.
+
+
+## What the move does
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `eff4` | +1.291 | +1.193 | it hits a 4x weakness |
+| `eff2` | +0.918 | +0.907 | it hits a 2x weakness |
+| `stab` | +0.024 `ZERO` | +0.247 | it matches my own type |
+| `bp` | -0.030 `ZERO` | -0.029 | it is a powerful move |
+| `allyHit` | -0.045 `ZERO` | -0.155 | it also hits my own partner, and my partner is not immune to it |
+| `accuracy` | -0.591 | -0.673 | how often it hits, on THIS board (snow makes Blizzard certain) |
+| `effHalf` | -0.863 | -0.818 | it is resisted |
+| `effQuarter` | -0.987 | -0.986 | it is resisted twice over |
+| `immune` | -2.201 | -2.149 | it does nothing at all |
+| `abilityBlock` | -2.287 | -2.308 | the target probably has an ability that eats it |
+
+## MOVES THAT COST MORE THAN A TURN
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `rechargeTurn` | -0.592 | -0.632 | it costs me the turn AFTER this one |
+| `chargeTurn` | -1.294 | -1.408 | it needs a turn to wind up on this board |
+
+## PIVOTS
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `isStatus` | +0.487 | +0.488 | it is a status move |
+| `tgtHurt` | +0.351 | +0.333 | the target is already hurt |
+| `pivots` | -0.584 | -0.325 | it damages and brings me out |
+| `deadWeather` | -1.164 | -1.384 | that weather is already set, so it would fail |
+| `deadStall` | -1.182 | -1.011 | I protected last turn, so it would probably fail |
+| `deadStatus` | -1.400 | -1.261 | the target already has a status, so it would fail |
+| `deadField` | -1.902 | -1.372 | that field effect is already up, so it would fail |
+| `pranksterFailsDark` | -1.968 | -1.966 | my Prankster status move is aimed at a Dark type, so it does nothing |
+| `deadSide` | -2.119 | -1.946 | that side effect is already up, so it would fail |
+
+## WHO MOVES FIRST
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `defMismatch` | +0.370 | +0.380 | I hit its softer defence |
+| `tgtBulk` | +0.199 | +0.230 | the target is bulky |
+| `movesFirst` | +0.106 | +0.108 | I move before the target, counting priority, Tailwind and Trick Room |
+| `tgtPhysical` | -0.264 | -0.259 | the target attacks physically rather than specially (negative = specially) |
+| `priority` | -0.409 | -0.206 | this move cuts the queue (Fake Out, Sucker Punch, Extreme Speed) |
+
+## DOES IT KILL
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `killIsRoll` | +0.950 | +1.011 | it kills some spreads and not others: a roll rather than a read |
+| `tgtMayProtect` | +0.545 | +0.622 | how often this target blocks: the biggest reason a sure kill is not one |
+| `protectThreatened` | +0.266 | +0.356 | this move protects, and I am facing a kill |
+| `koFirst` | +0.068 | +0.062 | it kills, and I move first, so the kill lands before their attack |
+| `dmgFrac` | -0.071 | +0.005 | how much of what is left of the target it takes |
+| `killsThreat` | -0.079 | -0.025 | it kills the thing that was about to kill me |
+| `koTarget` | -0.160 | -0.150 | the odds this really kills it: the worst roll still does, and the move lands |
+
+## WHAT A MOVE DOES TO THE OTHER PLAYER'S OPTIONS
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `volatileOnSelf` | +0.222 | +0.214 | it puts something on me or my side (Substitute, Follow Me, Rage Powder) |
+| `volatileOnFoe` | -0.404 | -0.496 | it takes an option away from the target (Taunt, Encore, Disable) |
+
+## STAT STAGES
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `myOffenseStage` | +2.004 | +1.474 | how boosted the stat I am attacking with already is |
+| `movesBoostMe` | +0.201 | +0.242 | this move raises one of my own stats |
+| `tgtDefenseStage` | -0.024 `ZERO` | -0.019 | how boosted the defence I am attacking into already is |
+| `movesLowerFoe` | -0.370 | -1.134 | this move lowers one of the target's stats |
+
+## STATUS THAT ACTUALLY BITES
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `statusBites` | +0.615 | +0.214 | the status this inflicts hits a stat the target actually relies on |
+
+## AM I EVEN GOING TO GET TO DO THIS
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `diesBeforeMoving` | -0.418 | -0.385 | I am facing a kill and I do not move first |
+
+## SWITCHING
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `switchSurvives1` | +0.233 | +0.247 | the replacement lives through the hardest thing aimed at me |
+| `switchSurvives2` | -0.122 | -0.045 | it lives through that twice |
+| `switchFaster` | -0.125 | -0.148 | the replacement outruns the thing that was threatening me |
+| `isSwitch` | -0.151 `ZERO` | -2.083 | this candidate is a switch, not a move |
+
+## WHAT THE CROWD DOES
+
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `priorLogP` | +0.157 | -1.728 | it is a popular move |
+
+---
+
+# Why the weights look wrong (and mostly are not)
+
+Several weights have a sign that looks absurd — power is negative, accuracy is negative, killing
+things is negative, Fake Out's priority is negative. Reading any single one as *"MAG dislikes this"*
+is the mistake. Here is what is actually happening, in each case.
+
+## 1. Several features measure the same thing, so the fit splits one effect between them
+
+Measured overlap between the damage-ish features:
+
+| pair | correlation |
+|---|---:|
+| `bp` ↔ `dmgFrac` | **+0.68** |
+| `dmgFrac` ↔ `koTarget` | +0.59 |
+| `eff2` ↔ `dmgFrac` | +0.50 |
+| `bp` ↔ `accuracy` | +0.43 |
+| `koTarget` ↔ `tgtHurt` | +0.42 |
+
+It is the same effect described five ways. `eff4` at **+1.29** takes the credit, and the others are
+left fitting the leftovers — which go negative. Added together they are right; read one at a time
+they are nonsense. This is why the model predicts well while its individual numbers look mad.
+
+## 2. `koTarget` is negative because it is half of a curve
+
+`koTarget` (−0.16) and `killIsRoll` (+0.95) are in the same model and have to be read together. The
+pull from a kill chance *p* is `−0.16·p + 0.95·4p(1−p)`, which is a hump:
+
+| kill chance | pull |
+|---:|---:|
+| 10% | +0.32 |
+| 40% | +0.84 |
+| **52%** | **+0.86 (peak)** |
+| 90% | +0.19 |
+| 100% | −0.16 |
+
+So it was never *"people avoid kills"*. **A coin-flip kill is the most-clicked thing in the game.**
+A certain kill usually means the target was nearly dead and something cheaper was available; a
+zero-chance kill means the move does not threaten. The big attacks into healthy things sit in the
+middle.
+
+## 3. `priority` is negative because `movesFirst` already took the credit
+
+`movesFirst` covers "I act before they do", including priority. `priority` therefore only receives
+the residual — and among moves that go first, the priority ones are clicked *less* than the ones that
+go first through raw Speed. It is not a judgement about Fake Out.
+
+## 4. The switch weights are noise, and acting on them cost ten points
+
+`switchSurvives1` +0.23, `switchFaster` −0.13, `switchSurvives2` −0.12 with an interval spanning
+zero. Fitted from a signal the corpus cannot resolve. Enabling switching on those weights was
+measured across 30,000 paired games:
+
+| MAG | opponent | decisive pairs won |
+|---|---|---:|
+| cannot switch | cannot switch | **81.9%** |
+| **can** switch | can switch | 71.6% |
+| **can** switch | cannot switch | **71.6%** |
+
+The last two being identical is what proves it: the opponent's switching is worth nothing and MAG's
+own costs ten points. Switching is off by default until a switch policy beats 81.9%.
+
+The reason is visible in the feature list: every switch feature is about **damage and speed**. None
+of them can see being perish-trapped, Encored, Taunted or confused — the board tracks no volatile
+statuses at all. So it takes the marginal switches and none of the mandatory ones.
+
+## 5. `tgtMayProtect` is positive, which is a confound not a preference
+
++0.55 says people click *into* likely-Protect targets more often. Almost certainly because the
+species that Protect most are also the common, strong, frequently-targeted ones. The feature is
+doing real work inside the kill estimate, where it discounts a "guaranteed" kill by the odds the
+target simply blocks — Protect was **46% of every false kill call** before it was added.
+
+## 6. `priorLogP` was the largest single weight, and removing it made the model better
+
+"How often people click this move" is the only feature here that is **not a fact about the game**. It
+is what the previous bot ran on by itself, kept as one term among 46 so its pull could be measured
+instead of assumed.
+
+Refitting with it removed entirely:
+
+| | top-1 accuracy | over the old bot |
+|---|---:|---:|
+| with popularity | 34.6% | +7.4 pts |
+| **without popularity** | **35.2%** | **+14.3 pts** |
+
+It predicts human clicks **better without the feature that describes human clicks**, because
+popularity was crowding out the facts. That is the imitation ceiling showing up as a number.
+
+---
+
+# What the weights cannot tell you
+
+They are fitted to predict clicks, and predicting clicks is not winning. The same 46 features
+re-optimised for **winning** beat the imitation-fitted version 63.2%. And simply taking the
+best-scoring move instead of sampling is worth **+9 points** of win rate — five times what a whole
+night of new features bought.
+
+The features are facts. What they are worth is still fitted to the wrong objective.

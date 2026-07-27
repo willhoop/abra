@@ -1,0 +1,60 @@
+Gengar @ Gengarite  
+Ability: Cursed Body  
+Level: 50  
+EVs: 2 HP / 32 SpA / 32 Spe  
+Timid Nature  
+- Perish Song  
+- Shadow Ball  
+- Sludge Bomb  
+- Protect  
+
+Incineroar @ Sitrus Berry  
+Ability: Intimidate  
+Level: 50  
+EVs: 32 HP / 24 Def / 8 SpD / 2 Spe  
+Impish Nature  
+- Flare Blitz  
+- Throat Chop  
+- Parting Shot  
+- Fake Out  
+
+Vaporeon @ Rindo Berry  
+Ability: Water Absorb  
+Level: 50  
+EVs: 14 HP / 32 Def / 20 SpA  
+Quiet Nature  
+- Scald  
+- Fake Tears  
+- Ice Beam  
+- Acid Armor  
+
+Altaria @ Altarianite  
+Ability: Cloud Nine  
+Level: 50  
+EVs: 32 HP / 23 Atk / 1 Def / 1 SpD / 9 Spe  
+Impish Nature  
+- Fire Spin  
+- Protect  
+- Hyper Voice  
+- Hurricane  
+
+Sneasler @ White Herb  
+Ability: Unburden  
+Level: 50  
+EVs: 32 Atk / 2 Def / 32 Spe  
+Jolly Nature  
+- Fake Out  
+- Close Combat  
+- Dire Claw  
+- Protect  
+
+Kingambit @ Chople Berry  
+Ability: Defiant  
+Level: 50  
+EVs: 32 HP / 32 Atk / 2 SpD  
+Brave Nature  
+- Kowtow Cleave  
+- Sucker Punch  
+- Protect  
+- Swords Dance  
+

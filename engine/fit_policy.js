@@ -52,7 +52,7 @@ const B = require('./board.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
-const OUT = D('data', 'policy-weights.json');
+const OUT = process.env.OUT_WEIGHTS ? require('path').resolve(process.env.OUT_WEIGHTS) : D('data', 'policy-weights.json');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 
 const { Dex } = CS.sim();
@@ -303,8 +303,12 @@ function decisionsFor(g, tally) {
       if (!matches.length) { tally.unmatched++; continue; }
       if (matches.length > 1) { tally.ambiguous++; continue; }
 
-      const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
-        c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id)));
+      const feats = cands.map(c => {
+        const x = B.featuresFor(c, user, board, side, dex,
+          c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id));
+        for (const i of DROP_IDX) x[i] = 0;
+        return x;
+      });
       out.push({ game: g.id || '', sp: base(e.mon), feats, chosen: matches[0] });
       tally.kept++;
     }
@@ -497,6 +501,23 @@ function fit(rows, nf, lambda, iters, useIW) {
     }
   }
   return w;
+}
+
+/* DROP=<feature>  fit as if that feature did not exist.
+ *
+ * Zeroing a column and REFITTING is not the same as zeroing a fitted weight: the rest of the vector
+ * re-optimises around the absence, which is the only way to ask "how much was this actually adding"
+ * rather than "how crippled is the model without it".
+ *
+ * The one worth asking about is priorLogP -- "how often people click this move". It is the single
+ * feature that is NOT a fact about the game, it is the largest swing in the model, and it is exactly
+ * the imitation ceiling everything else in this project keeps running into. */
+const DROP = (process.env.DROP || '').split(',').map(s2 => s2.trim()).filter(Boolean);
+const DROP_IDX = DROP.map(f => B.FEATURE_INDEX[f]).filter(i => i != null);
+if (DROP.length) {
+  if (DROP_IDX.length !== DROP.length) { console.error(`unknown feature in DROP=${DROP}`); process.exit(1); }
+  console.log(`DROPPING ${DROP.join(', ')} — refitting everything else around the absence
+`);
 }
 
 function main() {
