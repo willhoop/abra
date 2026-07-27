@@ -254,12 +254,82 @@ FAIL the page implements every feature in the bundle, not a subset
   -- the page assigns 21 of 47 features; 27 are never written and therefore silently 0
 ```
 
-### F6 — 16 files still read the raw ladder store
+### F6 — the raw-store offender count was overstated, and 12 real ones remain
 
-`selftest.js` lists them: `calibrate.py`, `chomp-predict.js`, `coach.js`, `cores.js`, `ditto.js`,
-`dynamics.js`, `eval_policy.py`, `flywheel.py`, `jolteon.py`, `mew_farm.js`, `playstyle.js`,
-`pory_baseline.py`, `predictability.py`, `reprocess.js`, `role_atlas.py`, `stamp.js`. One of the
-original 17, `validate_selfplay.js`, is fixed. **Not addressed** — see section 6.
+Reported as 17. Measured down to **12**, and the four removed were removed for four different reasons,
+which is the useful part.
+
+`validate_selfplay.js` was a genuine offender and is fixed (F4). `reprocess.js` was a genuine reader
+that is **legitimately** so — it rebuilds the store from raw logs, and `isClean` is an analysis filter,
+not a retention policy; filtering there would silently delete replays that can never be re-fetched. It
+carries `RAW-STORE-OK` on those merits.
+
+The other three were never reading the store at all. The guard greps for the filename anywhere in a
+file, so it counted `coach.js` (names it in a `console.log` describing where a finished game goes),
+`stamp.js` (shows it in a usage docstring as the value a caller passes for `corpus:`), and `mew_farm.js`
+— which resolves the path **only to refuse to write output over it**, a safety guard counted as a
+violation of the rule it protects. All three verified as non-readers:
+
+```
+$ grep -n "readFileSync\|createReadStream\|open(" engine/{coach,mew_farm,stamp}.js | grep -i ladder
+(no output)
+```
+
+This matters because the guard is deliberately left failing while offenders remain, so **its number is
+the project's measure of remaining debt**. Reporting 17 when the truth is 12 makes the one honest signal
+noisy, and a noisy signal gets ignored.
+
+The tempting fix — strip comments and string literals before matching — is wrong, and worth recording as
+a near-miss: `readFileSync('data/games.ladder.jsonl')` puts the path inside a string, so stripping
+strings would create false **negatives**, the one error this check must never make. A separate
+`RAW-STORE-NOT-READ` declaration is recognised instead, and it has to state what the path is for.
+
+**The 12 that remain are real**: `calibrate.py`, `chomp-predict.js`, `cores.js`, `ditto.js`,
+`dynamics.js`, `eval_policy.py`, `flywheel.py`, `jolteon.py`, `playstyle.js`, `pory_baseline.py`,
+`predictability.py`, `role_atlas.py`. Each is an analysis script that should filter and each needs its own
+verification that filtering does not move a published number. **Not addressed** — see section 6.
+
+### F9 — the sampler's own fix for independence was unreachable
+
+**What is wrong.** `set_priors.fillSet` filled unrevealed move slots by drawing from P(move | species)
+independently, which cannot represent a *slot*: Dire Claw and Gunk Shot are both perfectly normal
+Sneasler moves competing for one place, so marginals paired them at roughly P(a)·P(b).
+
+The part worth naming is that a correction already existed. `sampleMoves()` carries a measured
+co-occurrence lift built precisely to stop near-substitutes pairing up — and `fillSet` consulted
+**Smogon's percentages first**, falling through to `sampleMoves` only when Smogon returned nothing,
+which is rare. For most species the correction was dead code.
+
+**How it was proved.** `engine/stab_audit.js`, on the corpora that actually carry sheets (F2), and a
+direct draw of the named case.
+
+**What it could have put in front of a reader.** Anything computed on generated teams. Only ~1.38 of 4
+moves are revealed per set on the ladder, so whatever fills the other 2.6 dominates the result — ADR-001's
+lesson recurring in a subtler form.
+
+**Fixed, and how I know.** An open team sheet *is* the joint distribution, and this project holds
+**37,903 complete four-move sets across 232 species** in `games.bo3.jsonl` and `games.ots.jsonl` that the
+sampler was not using. `observedDraw()` takes the sets containing every revealed move — the exact
+conditional — with maximum-overlap nearest neighbour as the fallback rather than silence, because
+returning nothing would send the rarest builds back to the sampler that gets them wrong. Marginals are
+now the third preference, not the first.
+
+| corpus | human | before | after | gap before | gap after |
+|---|---|---|---|---|---|
+| bo3 (12,619 sets) | 23.0% | 32.9% | **27.4%** | +9.9 [8.8, 11.0] | **+4.3 [3.3, 5.4]** |
+| ots (25,284 sets) | 23.6% | 33.0% | **27.4%** | +9.4 [8.6, 10.2] | **+3.7 [3.0, 4.5]** |
+| ladder (1,392 sets) | 28.5% | 35.1% | **30.0%** | +6.6 [3.1, 10.0] | **+1.4 [−1.9, 4.8]** — noise |
+
+Sneasler holding both Dire Claw and Gunk Shot: **3.3% of 300 draws → 0.0%**.
+
+`tests/test-set-realism.js` — 6 checks at a 6.0-point threshold, sitting between the pre-fix +9.9 and the
+current +4.3. Verified in both directions by restoring the old file: **pre-fix 3 passed / 3 failed,
+current 6 passed / 0 failed.** It asserts direction as well as magnitude, so the sampler cannot be
+"fixed" into under-producing doubles; and it asserts the observed-set store is populated, because if that
+store ever empties the sampler reverts to marginals with nothing failing.
+
+**Roughly half the gap remains and is not claimed as fixed** — species below the 8-set floor still use
+marginals, and a partially-revealed set still mixes an observed draw with what was on it already.
 
 ### F7 — five living documents are a release behind
 
@@ -306,15 +376,22 @@ Landed as `40ad1fe`, pushed to `origin/main`.
 | `data/mag.js` | Regenerated from `board.js` | F5 — stale at 46 features |
 | `data/policy-weights.json`, `-nopop.json` | Both refitted against the gated `deadNoLastMove`, nopop refitted again after F1 | Handoff §0 and F1 |
 | `.gitignore` | `data/quarantine/` | `git add -A` staged 177 MB of withdrawn data; one file exceeds GitHub's 100 MB limit |
-| `CHANGELOG.md` | 3.23.0 | Same-pass rule |
+| `engine/set_priors.js` | `observedSets()` / `observedDraw()`; whole observed sets tried before the marginal paths | F9 — independence, and a correction that was unreachable |
+| `tests/test-set-realism.js` | **New.** 6 checks; verified to fail on the pre-fix sampler | F9 regression guard |
+| `engine/selftest.js` | Recognises `RAW-STORE-NOT-READ` for files that name the path without opening it | F6 — the count was overstated by 3 |
+| `engine/coach.js`, `mew_farm.js`, `stamp.js` | `RAW-STORE-NOT-READ` declarations | F6 — verified non-readers |
+| `engine/reprocess.js` | `RAW-STORE-OK` on its merits | F6 — rebuilding the store must read dirty records |
+| `CHANGELOG.md` | 3.23.0, 3.24.0 | Same-pass rule |
 
 **Test results.**
 
 | | before | after |
 |---|---|---|
-| Checks CI executed | 6 of 18 files | 21 discovered, all executed locally |
-| `run-all.js` | did not exist | **18 passed, 3 failed, 0 skipped** |
-| `engine/selftest.js` | 24 passed, 1 failed (17 offenders) | 24 passed, 1 failed (**16** offenders) |
+| Checks CI executed | 6 of 18 files | 22 discovered, all executed locally |
+| `run-all.js` | did not exist | **18 passed, 3 failed, 1 skipped** |
+| `engine/selftest.js` | 24 passed, 1 failed (17 offenders) | 24 passed, 1 failed (**12** offenders) |
+| `tests/test-set-realism.js` | did not exist | **6 passed**; pre-fix code gives 3 passed / 3 failed |
+| Same-type-attack gap (bo3) | +9.9 points | **+4.3 points** |
 | `engine/validate_selfplay.js` on a real run | 3 passed, 3 failed | **16 passed, 0 failed**, 1 inconclusive |
 | `tests/test-mag-page.js` | 7 passed, 2 failed, extent hidden | 8 passed, 2 failed, extent reported |
 | `tests/test-drop-guard.js` | did not exist | **7 passed** |
@@ -380,10 +457,14 @@ not a merge at all.
 
 ## 6. What I could not do
 
-- **The 16 remaining raw-store readers (F6).** Not attempted. Each needs a judgement about whether it
-  genuinely requires raw data — `reprocess.js` rebuilds the store from raw logs and legitimately does —
-  or should filter. Adding `RAW-STORE-OK` to all 16 would turn the check green while changing nothing,
-  which is worse than leaving it red.
+- **The 12 remaining raw-store readers (F6).** Not attempted. Each is an analysis script that should
+  filter, and each needs its own verification that filtering does not move a number it has already
+  published. Adding `RAW-STORE-OK` to all 12 would turn the check green while changing nothing, which is
+  worse than leaving it red. The four that were resolved were resolved on their individual merits, not
+  by blanket declaration.
+- **Roughly half the set-sampler gap (F9).** +9.9 down to +4.3, not to zero. Species with fewer than 8
+  observed complete sets still draw from marginals, and a partially-revealed set still mixes an observed
+  draw with what was already on it. Both are tractable; neither is done.
 - **The browser re-implementation (F5).** Left failing on purpose. Fixing it means extending
   `data/mag.js` with fields it does not carry and porting 26 features, unverifiable tonight against a
   page I cannot exercise in a browser. The audit constraint says leave an unverifiable fix undone.
