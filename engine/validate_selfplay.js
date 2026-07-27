@@ -353,6 +353,14 @@ function setRealism() {
   formatRealism();
   await determinism();
   await mirrorSymmetry(n);
-  console.log(`\nSELF-PLAY VALIDATION: ${PASS} passed, ${FAIL} failed`);
+  /* THE INCONCLUSIVE COUNT IS PART OF THE RESULT.
+   *
+   * This line read `${PASS} passed, ${FAIL} failed` while INCONCLUSIVE was being incremented and never
+   * printed — so a run with a check that could not be judged reported "16 passed, 0 failed" and looked
+   * completely clean. That is the same defect this file's own sample-floor fix was written to remove,
+   * and the same one tests/run-all.js separates skips for. Counting a thing and not showing it is
+   * indistinguishable from not counting it. */
+  console.log(`\nSELF-PLAY VALIDATION: ${PASS} passed, ${FAIL} failed` +
+    (INCONCLUSIVE ? `, ${INCONCLUSIVE} inconclusive (too few observations to judge — not a pass)` : ''));
   process.exit(FAIL ? 1 : 0);
 })();

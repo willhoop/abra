@@ -522,8 +522,11 @@ function fillSet(species, known, seed) {
     }
 
     try {
-      if (drawn.length) throw new Error('already drawn from an observed set');
-      const SM = require('./smogon_priors.js').forSpecies(species);
+      /* Skipped by a null, not by a thrown Error. The first version of this threw to jump out of the
+       * block, which allocated an exception on the common path and hijacked a catch whose comment says
+       * "fall through to the behaviour-clone" — so a real failure inside the Smogon lookup and a
+       * deliberate skip became the same event. */
+      const SM = drawn.length ? null : require('./smogon_priors.js').forSpecies(species);
       if (SM && SM.moves && SM.moves.length) {
         const r = rng((seed || 1) + norm(species).length * 7919);
         const pool = SM.moves.filter(m => !moves.some(h => norm(h) === norm(m.move)));
