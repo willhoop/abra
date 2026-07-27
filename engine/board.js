@@ -214,6 +214,175 @@ const FEATURES = [
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
 
+/* ---------------------------------------------------------------------------------------------
+ * THE JOINT LAYER — what a PAIR of moves is, over and above two moves
+ *
+ * MAG decides its two Pokemon one at a time and neither decision ever sees the other. The play that
+ * exposes this is the ordinary one: the left Pokemon Protects to survive a kill while the right one
+ * removes the thing that was going to kill it. MAG does not score that badly -- it CANNOT REPRESENT
+ * IT. There is no number anywhere in the 46 features that means "my partner is handling it".
+ *
+ * The obvious repair is to score all pairs and add the two scores. That is still wrong, and wrong in
+ * a way with a number attached. Both your Pokemon can kill the Charizard; independently each scores
+ * "I get a kill", the best thing available; summed, that reads as TWO kills. What actually happens
+ * is one kill and one wasted turn, and the Kingambit you ignored takes a free shot. Measured: humans
+ * aim both attacks at the same foe 23.4% of the time, independent choice gives ~50%, and MAG sits at
+ * the 50% end.
+ *
+ * So a pair's score is the sum of its parts PLUS these, and every one is a fact about the pair that
+ * neither half can state alone. What they are worth stays fitted.
+ * ------------------------------------------------------------------------------------------- */
+const JOINT_FEATURES = [
+  'bothSameTarget',     // both moves are aimed at the same foe
+  'overkill',           // aimed at the same foe, and one alone already removes it
+  'focusFireKills',     // aimed at the same foe, neither alone removes it, together they do
+  'partnerCoversMe',    // one of us is facing a kill and the OTHER removes the thing threatening it
+  'redirectThenAttack', // one takes the turn's attacks (Follow Me / Rage Powder) and the other swings
+  'bothStatus',         // neither move damages anything: a turn spent on nothing
+  'bothSwitch',         // both Pokemon leave at once, surrendering the field entirely
+  /* ---- SYNERGY: ONE MOVE MAKING THE OTHER ONE WORK -----------------------------------------------
+   * Everything above is about the two moves NOT wasting each other. These are the opposite: a pair
+   * where one move exists only to make the other one land or land harder. Helping Hand does nothing
+   * by itself; it is 50% more damage on the partner, which turns a roll into a kill. Prankster
+   * Tailwind does nothing by itself either; it goes first and flips the partner from moving second
+   * to moving first, which is the difference between an Earthquake landing and not.
+   *
+   * Neither is expressible in a single move's vector -- Helping Hand's whole value is a property of
+   * the OTHER click -- and neither is a rule about Pokemon: the ally-targeting status move, the side
+   * condition, the speed order and the kill probability are all already computed facts. What the
+   * combination is worth stays fitted. */
+  'boostsPartnerDamage',  // one of us buffs the other and the other is actually attacking
+  'boostMayConvertKill',  // ...and the partner's kill is a coin flip, so the buff could decide it
+  'speedSetupHelpsPartner', // one sets Tailwind or Trick Room and the partner is currently moving second
+  'weatherSetupHelpsPartner', // one sets the weather the partner's move is boosted by, this turn
+  'healsPartner',           // one restores the other rather than doing anything to the opponent
+  'redirectThenSetup',      // one soaks the turn's attacks and the other spends it setting up safely
+  'doubleKO',               // the pair removes BOTH foes at once and the field is emptied
+  'flinchThenSetup',        // one flinches a foe (Fake Out) and the other uses the free turn
+  'terrainSetupHelpsPartner', // one lays the terrain the partner's move is boosted by
+  'screenWhileThreatened',  // one puts a screen up while the other is facing a kill
+  'spreadFreeBesideAlly',   // my spread move hits everything and my own partner does not care
+];
+const JOINT_INDEX = Object.fromEntries(JOINT_FEATURES.map((f, i) => [f, i]));
+
+/* `xa`/`xb` are the two single-move vectors, so the kill and threat work already done is reused
+ * rather than recomputed -- this reads them rather than calling the damage engine again. */
+function jointFeaturesFor(A, B, xa, xb) {
+  const j = new Array(JOINT_FEATURES.length).fill(0);
+  const set = (n, v) => { j[JOINT_INDEX[n]] = v; };
+  if (!A || !B) return j;
+
+  const swA = !!A.switchTo, swB = !!B.switchTo;
+  if (swA && swB) set('bothSwitch', 1);
+  if (swA || swB) return j;                 // the rest are statements about two MOVES
+
+  const F = (x, n) => x[FEATURE_INDEX[n]];
+  const sameTarget = A.targetMon && B.targetMon && A.targetMon === B.targetMon;
+  if (sameTarget) {
+    set('bothSameTarget', 1);
+    const ka = F(xa, 'koTarget'), kb = F(xb, 'koTarget');
+    /* Overkill and focus fire are the two sides of aiming together, and they pull opposite ways:
+     * one is a wasted move, the other is the only way to remove something bulky. Kept apart so the
+     * fit can price them separately instead of averaging them into nothing. */
+    if (Math.max(ka, kb) >= 0.5) set('overkill', 1);
+    else if (F(xa, 'dmgFrac') + F(xb, 'dmgFrac') >= 1) set('focusFireKills', 1);
+  }
+
+  /* THE PROTECT PLAY. One of us cannot survive the turn, and the other one kills what is threatening
+   * -- the exact combination that has no expression in either move's own vector. */
+  const aStuck = F(xa, 'diesBeforeMoving') > 0 || F(xa, 'protectThreatened') > 0;
+  const bStuck = F(xb, 'diesBeforeMoving') > 0 || F(xb, 'protectThreatened') > 0;
+  if ((aStuck && F(xb, 'killsThreat') > 0) || (bStuck && F(xa, 'killsThreat') > 0)) set('partnerCoversMe', 1);
+
+  /* Follow Me and Rage Powder are only worth a turn because the partner does something with it.
+   * Measured: a redirection is followed by a partner attack 97% of the time. */
+  const redirA = F(xa, 'volatileOnSelf') > 0 && F(xa, 'isStatus') > 0;
+  const redirB = F(xb, 'volatileOnSelf') > 0 && F(xb, 'isStatus') > 0;
+  if ((redirA && F(xb, 'isStatus') === 0) || (redirB && F(xa, 'isStatus') === 0)) set('redirectThenAttack', 1);
+
+  if (F(xa, 'isStatus') > 0 && F(xb, 'isStatus') > 0) set('bothStatus', 1);
+
+  /* HELPING HAND AND FRIENDS. Identified by what the dex says they aim at -- a status move pointed at
+   * your own partner -- rather than by name, so anything else of that shape is covered too. The
+   * "could decide it" half uses killIsRoll, which already peaks exactly where a 50% damage boost has
+   * something to convert: a certain kill needs no help and a hopeless one cannot be rescued. */
+  const buffs = c => c && c.move && c.move.category === 'Status' &&
+    (c.move.target === 'adjacentAlly' || c.ally === true);
+  const attacks = x => F(x, 'isStatus') === 0;
+  if ((buffs(A) && attacks(xb)) || (buffs(B) && attacks(xa))) {
+    set('boostsPartnerDamage', 1);
+    const partner = buffs(A) ? xb : xa;
+    if (F(partner, 'killIsRoll') > 0.5) set('boostMayConvertKill', 1);
+  }
+
+  /* SPEED SET UP FOR SOMEONE ELSE. Tailwind on a Prankster user resolves before the partner acts, so
+   * the partner's Earthquake lands first this turn rather than next -- but only if it was moving
+   * second to begin with, which is what makes this a fact about the pair. */
+  const speedSets = c => c && c.move && (norm(c.move.sideCondition || '') === 'tailwind' ||
+    fieldKey(c.move) === 'trickroom');
+  if ((speedSets(A) && F(xb, 'movesFirst') < 1) || (speedSets(B) && F(xa, 'movesFirst') < 1)) {
+    set('speedSetupHelpsPartner', 1);
+  }
+  /* RAIN FOR THE WATER MOVE, SUN FOR THE FIRE ONE. The weather a move sets is `move.weather`, a dex
+   * data field, and what the weather does to damage is already in the formula -- what neither half
+   * can say is that the setter and the beneficiary are the SAME TURN's pair. Only counted when the
+   * weather is not already up, since setting it again changes nothing. */
+  const WX_HELPS = { raindance: 'water', primordialsea: 'water', sunnyday: 'fire', desolateland: 'fire' };
+  const setsWx = c => (c && c.move && norm(c.move.weather || '')) || '';
+  const partnerType = c => (c && c.move ? norm(c.move.type || '') : '');
+  for (const [setter, other] of [[A, B], [B, A]]) {
+    const w = setsWx(setter);
+    if (w && WX_HELPS[w] && partnerType(other) === WX_HELPS[w] && norm(A.__weather || '') !== w) {
+      set('weatherSetupHelpsPartner', 1);
+    }
+  }
+
+  /* Life Dew, Hospitality, Jungle Healing. A move aimed at your own side that restores health --
+   * `move.heal` and the heal flag are both dex data, so no move is named. */
+  const healsAlly = c => c && c.move && (c.move.target === 'adjacentAlly' || c.move.target === 'allies' ||
+    c.move.target === 'allySide') && (c.move.heal || (c.move.flags && c.move.flags.heal));
+  if (healsAlly(A) || healsAlly(B)) set('healsPartner', 1);
+
+  /* FOLLOW ME PLUS SET UP. redirectThenAttack only fires when the partner ATTACKS, so the other half
+   * of what redirection is for -- buying a free turn to boost behind it -- was invisible. */
+  if ((redirA && F(xb, 'movesBoostMe') > 0) || (redirB && F(xa, 'movesBoostMe') > 0)) set('redirectThenSetup', 1);
+
+  /* BOTH FOES GONE IN ONE TURN. The single strongest thing a pair can do in doubles and the exact
+   * opposite of overkill -- same two kill probabilities, aimed at DIFFERENT things. Neither move's
+   * own vector can distinguish the two cases; only the pair can. */
+  if (A.targetMon && B.targetMon && A.targetMon !== B.targetMon &&
+      F(xa, 'koTarget') >= 0.5 && F(xb, 'koTarget') >= 0.5) set('doubleKO', 1);
+
+  /* FAKE OUT BUYS A TURN AND SOMEBODY HAS TO SPEND IT. A flinch is a secondary effect in the dex, so
+   * this is read off `move.secondaries` rather than by naming Fake Out -- Iron Head and Rock Slide
+   * carry the same flag at lower odds and are covered for free. */
+  const flinches = c => c && c.move && (c.move.secondaries || []).some(s => s && s.volatileStatus === 'flinch');
+  if ((flinches(A) && F(xb, 'isStatus') > 0) || (flinches(B) && F(xa, 'isStatus') > 0)) set('flinchThenSetup', 1);
+
+  /* Terrain is the other half of the weather idea: Electric Terrain for an Electric move, Grassy for
+   * Grass, Psychic for Psychic. `move.terrain` is a data field and the type match is the type chart. */
+  const TERRAIN_HELPS = { electricterrain: 'electric', grassyterrain: 'grass', psychicterrain: 'psychic' };
+  for (const [setter, other] of [[A, B], [B, A]]) {
+    const t2 = setter && setter.move && norm(setter.move.terrain || '');
+    if (t2 && TERRAIN_HELPS[t2] && other && other.move && norm(other.move.type || '') === TERRAIN_HELPS[t2]) {
+      set('terrainSetupHelpsPartner', 1);
+    }
+  }
+
+  /* A screen halves what comes in, so it is worth most on the turn the partner cannot survive. */
+  const screens = c => c && c.move && /reflect|lightscreen|auroraveil/.test(norm(c.move.sideCondition || ''));
+  if ((screens(A) && (F(xb, 'diesBeforeMoving') > 0 || F(xb, 'protectThreatened') > 0)) ||
+      (screens(B) && (F(xa, 'diesBeforeMoving') > 0 || F(xa, 'protectThreatened') > 0))) set('screenWhileThreatened', 1);
+
+  /* EARTHQUAKE BESIDE A FLYING PARTNER. allyHit already says the partner is not hurt by my spread
+   * move; what it cannot say is that the pair is therefore free -- I hit both foes and pay nothing,
+   * which is a different thing from a single-target move that also happens not to hurt anybody. */
+  const freeSpread = (c, x) => c && c.move && c.spread && c.spread.length > 1 && F(x, 'allyHit') === 0;
+  if (freeSpread(A, xa) || freeSpread(B, xb)) set('spreadFreeBesideAlly', 1);
+
+  return j;
+}
+
 /* P(move|species) is a top-8 table, so a legal move can be absent from it. A floor is needed rather
  * than -Infinity, which would make the move unpickable and silently shrink every choice set. The
  * floor is derived, not chosen: it is half the smallest probability the table can express at the
@@ -529,6 +698,39 @@ function spreadLines(species, dex, nature) {
   return out;
 }
 
+/* ABILITIES THE DAMAGE FORMULA DOES NOT KNOW ABOUT, priced by how often the format runs them.
+ *
+ * Audited rather than guessed: of every ability in this format with a damage-affecting handler, the
+ * validated formula covers all but 2.4% -- Technician, Tough Claws, Huge Power, Multiscale, Scrappy
+ * and the rest are already in it. The gaps that matter are:
+ *
+ *   FRIEND GUARD  0.87%, the largest, and it is invisible to a damage formula by construction: it
+ *                 sits on the target's PARTNER and cuts damage to the target by a quarter. A kill
+ *                 that is thwarted by the thing standing next to what you aimed at.
+ *   SHARPNESS     0.44%, +50% on slicing moves, read off `move.flags.slicing` rather than a list.
+ *
+ * Weighted by the usage odds, exactly as abilityBlock is, because whether the mon in front of you
+ * has it is knowable only to the population. Applied as a multiplier on the result rather than by
+ * editing the validated formula, which stays untouched. */
+function unmodelledAbilityMult(m, attacker, target, targetAlly) {
+  const { abil } = abilityTables();
+  const odds = (mon, want) => {
+    if (!mon) return 0;
+    const rows = abil[norm(mon.species)] || abil[baseSpecies(mon.species)];
+    if (!rows) return 0;
+    for (const [ab, pr] of rows) if (ab === want) return pr;
+    return 0;
+  };
+  let mult = 1;
+  const fg = odds(targetAlly, 'friendguard');
+  if (fg) mult *= (1 - fg) + fg * 0.75;
+  if (m && m.flags && m.flags.slicing) {
+    const sh = odds(attacker, 'sharpness');
+    if (sh) mult *= (1 - sh) + sh * 1.5;
+  }
+  return mult;
+}
+
 /* Estimated damage of `m` (typed as it will actually land) from `att` onto `def`.
  * `{min, max, mean}` as a FRACTION of the defender's max hp. */
 /* Showdown's weather ids -> the two the damage formula multiplies on. Written as a mapping FROM the
@@ -590,7 +792,14 @@ function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) 
  * zero in a scenario built specifically to make it fire. */
 const _threatCache = new WeakMap();
 function incomingThreat(board, side, user, att, D) {
-  const key = `${side}|${user && user.species}|${user && user.hp}|${board.turn}|` +
+  /* THE DEFENDER IS PART OF THE KEY, and leaving it out is what made every switch feature useless.
+   * This answers "how hard is the hardest thing aimed at THIS Pokemon", and switch candidates ask it
+   * about the mon coming IN while `user` stays the one currently out. Keyed on `user` alone, every
+   * switch candidate in a decision received the first one's answer -- Torkoal and Whimsicott, whose
+   * bulk is nothing alike, both read survives1=1 survives2=0. Identical features cannot discriminate,
+   * so the fit correctly reported a null, and the null was mine rather than the game's. */
+  const who = att ? `${att.name || ''}|${att.st && att.st.hp}|${att.st && att.st.df}|${att.st && att.st.sd}` : '-';
+  const key = `${side}|${who}|${user && user.hp}|${board.turn}|` +
     board.field().map(f => `${f.side}${f.letter}${f.mon.species}${f.mon.hp}`).join(',');
   const hit = _threatCache.get(board);
   if (hit && hit.key === key) return hit.val;
@@ -1154,10 +1363,20 @@ function featuresFor(cand, user, board, side, dex, priorP) {
           /* OVER THE SPREADS PEOPLE ACTUALLY RUN, not against one guessed stat line. Falls back to
            * the single stored line for a species the usage data has no spreads for. */
           const lines = spreadLines(h.species, dex, h.nature) || [{ p: 1, st: null }];
+          /* Whoever is standing NEXT TO the target, because Friend Guard is theirs and not the
+           * target's. This is the only place a damage number depends on a third Pokemon. */
+          let tgtAlly = null;
+          for (const f of board.field()) {
+            if (f.mon === h || f.mon.fainted) continue;
+            const hSide = board.field().find(z => z.mon === h);
+            if (hSide && f.side === hSide.side) { tgtAlly = f.mon; break; }
+          }
+          const abMult = unmodelledAbilityMult(m, user, h, tgtAlly);
           let koP = 0, meanFrac = 0, minKills = false;
           for (const L of lines) {
-            const r = dmgFractions(D, att, dm, mForDmg, mType, isSpread, board, L.st, m);
-            if (!r) continue;
+            const r0 = dmgFractions(D, att, dm, mForDmg, mType, isSpread, board, L.st, m);
+            if (!r0) continue;
+            const r = { min: r0.min * abMult, max: r0.max * abMult, mean: r0.mean * abMult };
             const leftL = Math.max(0, typeof h.hp === 'number' ? h.hp : 1);
             meanFrac += L.p * (leftL > 0 ? Math.min(1, r.mean / leftL) : 1);
             if (leftL > 0 && r.min >= leftL) { koP += L.p; minKills = true; }
@@ -1240,7 +1459,18 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     for (const al of cand.allies) {
       const aSp = dex.species.get(al.species);
       const aTypes = (aSp && aSp.exists && aSp.types) || [];
-      if (!aTypes.length || !dex.getImmunity(mType, aTypes)) continue;   // immune partner: it is free
+      if (!aTypes.length || !dex.getImmunity(mType, aTypes)) continue;   // type-immune partner: free
+      /* AN ABILITY MAKES IT FREE TOO, and this only tested TYPES. Discharge next to your own
+       * Lightning Rod partner, Surf next to Water Absorb, anything next to Telepathy -- all read as
+       * costing something when they cost nothing, and Lightning Rod's case is not merely free but
+       * beneficial. Teams are BUILT around this, so it is not an edge case.
+       *
+       * Uses the same measured table as abilityBlock rather than a list typed here. That covers
+       * Levitate (3.40% of the format, 1,264 observations), Flash Fire, Volt Absorb and Earth Eater.
+       * KNOWN GAP, STATED: Lightning Rod (1.30%) and Telepathy (0.26%) are ABSENT from the derived
+       * table -- the derivation never observed them refusing a move -- so those two still read as a
+       * cost. That is a data gap, not a modelling choice, and it is 1.6% of the format. */
+      if (abilityBlockProb(m, al.species, mType, user.species) >= 0.5) continue;
       /* ONLY WHEN IT ACTUALLY COSTS SOMETHING. A first version fired on any non-immune ally and came
        * back with a POSITIVE weight — i.e. "humans like hitting their own partner", which is not a
        * credible reading. It was confounded: Earthquake and Discharge are strong, popular spread
@@ -1357,4 +1587,4 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
 /* dmgFailures is exported so a caller can ASSERT the damage features were live. A run in which the
  * damage engine failed to load produces a full, plausible-looking feature vector with four zeros in
  * it, and nothing about the output would say so. */
-module.exports = { FEATURES, FEATURE_INDEX, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
+module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
