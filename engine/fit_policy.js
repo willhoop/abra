@@ -214,6 +214,55 @@ function loadCorpus() {
  * The one exception is mega evolution, applied before collection: a player commits to the mega as
  * part of the same choice, so the typing they were choosing with is the mega's.
  * ------------------------------------------------------------------------------------------- */
+/* THE DROP MUST REACH EVERY ROW.
+ *
+ * `DROP=<feature>` fits as if a feature did not exist, and it does that by zeroing the column. A
+ * decision's features get built in TWO places in this function -- a voluntary switch and a move --
+ * and for one release only the move path zeroed it. A DROP fit therefore kept the real value on
+ * every switch row. The column was not constant, so the optimiser happily fitted a coefficient to
+ * what had become a proxy for "this row is a switch": `priorLogP` came out at -1.73 (SE 0.05) in a
+ * fit whose entire purpose was its absence, with the OPPOSITE SIGN to the full model's +0.16.
+ *
+ * Consequences, both of which were published: the no-popularity arm of the popularity x greedy 2x2
+ * was never a no-popularity model, and "dropping how often people click this makes MAG predict human
+ * clicks BETTER" was measured on it.
+ *
+ * Every feature build now goes through this one function, and assertDropped() refuses to fit if any
+ * row escaped it anyway. A drop that silently half-applies is worse than one that crashes. */
+function featsFor(cands, user, board, side) {
+  return cands.map(c => {
+    const x = B.featuresFor(c, user, board, side, dex,
+      c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id));
+    for (const i of DROP_IDX) x[i] = 0;
+    return x;
+  });
+}
+
+/* The check that makes the above fail loudly. A dropped column must be identically zero across the
+ * whole corpus; anything else means a build path was missed. Refuse to fit rather than report. */
+function assertDropped(rows) {
+  if (!DROP_IDX.length) return;
+  for (let k = 0; k < DROP_IDX.length; k++) {
+    const i = DROP_IDX[k];
+    let worst = 0, offending = 0;
+    for (const r of rows) {
+      for (const x of r.feats) {
+        const v = Math.abs(x[i]);
+        if (v > 0) { offending++; if (v > worst) worst = v; }
+      }
+    }
+    if (offending) {
+      console.error(`\nDROP=${DROP[k]} DID NOT APPLY. ${offending.toLocaleString()} candidate rows ` +
+        `still carry a nonzero value (largest |x| = ${worst.toFixed(4)}).\n` +
+        `A dropped feature must be identically zero everywhere or the fit gives it a coefficient ` +
+        `for being a proxy of whichever rows escaped. Refusing to fit.`);
+      process.exit(1);
+    }
+  }
+  console.log(`  drop check ${DROP.join(', ')} is identically zero across all ` +
+    `${rows.length.toLocaleString()} decisions`);
+}
+
 function decisionsFor(g, tally) {
   const out = [];
   const board = new B.Board();
@@ -273,8 +322,7 @@ function decisionsFor(g, tally) {
         const want = base(e.mon);
         const idx = cands.findIndex(c => c.switchTo && c.switchTo === want);
         if (idx < 0) { tally.unmatched++; continue; }
-        const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
-          c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id)));
+        const feats = featsFor(cands, user, board, side);
         out.push({ game: g.id || '', sp: base(user.species), feats, chosen: idx });
         tally.kept++;
         continue;
@@ -303,12 +351,7 @@ function decisionsFor(g, tally) {
       if (!matches.length) { tally.unmatched++; continue; }
       if (matches.length > 1) { tally.ambiguous++; continue; }
 
-      const feats = cands.map(c => {
-        const x = B.featuresFor(c, user, board, side, dex,
-          c.switchTo ? B.PRIOR_FLOOR : priorFor(user.species, c.move.id));
-        for (const i of DROP_IDX) x[i] = 0;
-        return x;
-      });
+      const feats = featsFor(cands, user, board, side);
       out.push({ game: g.id || '', sp: base(e.mon), feats, chosen: matches[0] });
       tally.kept++;
     }
@@ -538,6 +581,7 @@ function main() {
               `${tally.noSheet.toLocaleString()} species not on a sheet, ${tally.unmatched.toLocaleString()} click not matched, ` +
               `${tally.ambiguous.toLocaleString()} target ambiguous (mirror), ${tally.noUser.toLocaleString()} no active user`);
   if (rows.length < 500) { console.error('too few decisions to fit'); process.exit(1); }
+  assertDropped(rows);
 
   /* HELD OUT BY GAME, NOT BY DECISION. Decisions inside one game share teams, players and board, so
    * splitting by decision leaks the answer across the split and every model looks good. */
@@ -701,4 +745,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { decisionsFor, logLik, fit, loadCorpus, priorFor };
+module.exports = { decisionsFor, logLik, fit, loadCorpus, priorFor, assertDropped, DROP, DROP_IDX };

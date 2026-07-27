@@ -79,6 +79,24 @@ function reasons(g, cfg, bots) {
 const isClean = (g, cfg, bots) => reasons(g, cfg, bots).length === 0;
 
 function loadGames(opts) {
+  /* A NON-OBJECT ARGUMENT IS A PROGRAMMING ERROR, NOT A CORPUS SELECTOR.
+   *
+   * `engine/stab_audit.js` called `loadGames('ots')`, meaning "the open-team-sheet store". A string has
+   * no `.path`, so `readStore(undefined)` silently fell back to STORE — the closed-sheet LADDER store.
+   * The audit then reported "2,245 clean open-sheet games" when data/games.ots.jsonl holds 4,167 games
+   * that are 100% sheeted; what it had actually read was clean LADDER games, of which 116 (5.2%) happen
+   * to carry a sheet. Its stated premise — "all four moves public, no revelation bias" — was false for
+   * 95% of the sample, and the resulting figure looked entirely plausible.
+   *
+   * There is no honest default to pick here: guessing which store a caller meant is what produced the
+   * defect. Throwing costs one stack trace and stops a wrong number reaching a document. */
+  if (opts != null && (typeof opts !== 'object' || Array.isArray(opts))) {
+    throw new TypeError(
+      `loadGames() takes an options object, not ${JSON.stringify(opts)}. ` +
+      `To choose a corpus, pass its path: loadGames({ path: 'data/games.ots.jsonl' }). ` +
+      `A bare string silently read the default ladder store and produced a published figure ` +
+      `computed on the wrong corpus.`);
+  }
   const o = opts || {};
   const games = readStore(o.path);
   if (o.clean === false) return games;

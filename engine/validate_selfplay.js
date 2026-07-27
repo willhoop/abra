@@ -30,10 +30,34 @@ const { extract } = require('./durable-ingest.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
-const STORE = D('data', 'games.selfplay.jsonl');
+
+/* THE STORE UNDER TEST IS AN ARGUMENT, NOT A CONSTANT.
+ *
+ *   node engine/validate_selfplay.js [store.jsonl]
+ *
+ * This was `const STORE = D('data','games.selfplay.jsonl')` and argv was ignored. mew_farm.js ends
+ * every run by printing "VALIDATE BEFORE USE: node engine/validate_selfplay.js" — pointing the
+ * acceptance gate at a file it structurally could not read. Run against data/h2h-nopop-greedy.jsonl
+ * on 2026-07-27 it reported "FAIL self-play store exists" three times about a 59 MB file that was
+ * plainly there, because it was looking somewhere else entirely. A gate that cannot be aimed at the
+ * artifact it gates is decoration, and it reads as coverage in a review.
+ *
+ * The raw-log path is DERIVED from the store path rather than named separately, so the two cannot
+ * drift apart the way the hardcoded pair did. */
+const STORE = process.argv[2] && !process.argv[2].startsWith('--')
+  ? path.resolve(process.argv[2])
+  : D('data', 'games.selfplay.jsonl');
+const SELF_RAW = STORE.replace(/\.jsonl$/, '.raw-logs.jsonl');
+if (!fs.existsSync(STORE)) {
+  console.error(`no such store: ${STORE}\n` +
+    `usage: node engine/validate_selfplay.js [store.jsonl]\n` +
+    `Refusing to report pass/fail about a file that is not there — three of these checks used to ` +
+    `report FAIL for an absent default, which is indistinguishable from a data defect.`);
+  process.exit(2);
+}
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-let PASS = 0, FAIL = 0;
+let PASS = 0, FAIL = 0, INCONCLUSIVE = 0;
 const ok = (cond, msg) => { if (cond) { PASS++; console.log('  ok   ' + msg); } else { FAIL++; console.log('  FAIL ' + msg); } };
 
 function wilson(k, n) {
@@ -147,8 +171,28 @@ function storeShape() {
     ['non-mirror', nonP1, nonN, 'the pairing puts one side of the matchup list on p1'],
     ['mirror', mirP1, mirN, 'the harness itself favours a side'],
   ]) {
+    /* A MINIMUM SAMPLE BEFORE THIS IS ALLOWED TO FAIL.
+     *
+     * The guard was `if (!N) continue`, which skips only an empty sample. On a paired MAG-vs-random
+     * run there are almost no true mirrors — data/h2h-nopop-greedy.jsonl produced EIGHT — and 7 of 8
+     * gives a Wilson interval of [52.9, 97.8]. That excludes 50, so this reported "the harness itself
+     * favours a side" from eight games, while the dedicated 300-battle mirror check in section 1 said
+     * 53.3% [47.7, 58.9] and passed. A check that contradicts a better-powered check on the same
+     * question, in the same run, is worse than no check: it trains the reader to ignore failures.
+     *
+     * 100 is the floor at which the interval is narrower than +/-10 points and the result means
+     * something. Below it the honest report is "cannot tell", which is neither a pass nor a failure —
+     * counting it as either would be asserting a result the sample cannot support. */
+    const MIN_BALANCE_N = 100;
     if (!N) continue;
     const [p, lo, hi] = wilson(k, N);
+    if (N < MIN_BALANCE_N) {
+      INCONCLUSIVE++;
+      console.log(`  ----  side balance, ${lbl}: only ${N} game(s) — too few to judge ` +
+        `(would read ${(100 * p).toFixed(1)}%, CI [${(100 * lo).toFixed(1)}, ${(100 * hi).toFixed(1)}]). ` +
+        `Not a pass and not a failure; section 1 tests this properly.`);
+      continue;
+    }
     const fair = lo <= 0.5 && hi >= 0.5;
     ok(fair, `side balance, ${lbl}: p1 won ${(100 * p).toFixed(2)}% of ${N.toLocaleString()} ` +
        `(95% CI [${(100 * lo).toFixed(2)}, ${(100 * hi).toFixed(2)}])` +
@@ -198,17 +242,44 @@ async function determinism() {
 function formatRealism() {
   console.log('\n== 5. format realism (self-play vs real ladder games) ==');
   const LADDER = D('data', 'games.ladder.raw-logs.jsonl');
-  const SELF = D('data', 'games.selfplay.raw-logs.jsonl');
+  const SELF = SELF_RAW;   /* derived from the store under test, not a second hardcoded name */
   if (!fs.existsSync(SELF)) { ok(false, 'self-play raw logs exist (needed to check realism)'); return; }
   if (!fs.existsSync(LADDER)) { console.log('  (no ladder logs to compare against — skipped)'); return; }
 
-  const scan = (file, cap) => {
-    let n = 0, mega = 0, moves = 0, immune = 0, failed = 0;
+  /* GARBODOR: THE BASELINE MUST BE CLEAN GAMES.
+   *
+   * This scanned data/games.ladder.raw-logs.jsonl line by line with no filter, so "real ladder" was
+   * 13,374 games of which roughly seven in eight are bot games, forfeits, partial brings or stubs.
+   * Measuring a self-play corpus of bots against a corpus that is mostly other people's bots, and
+   * calling the difference realism, is circular — beating bots is the thing self-play is supposed to
+   * do. This file was one of the 17 that engine/selftest.js listed as reading the raw store with
+   * neither a filter nor a declaration, and the guard was failing while nothing ran it.
+   *
+   * The filter is applied to the LADDER side only, deliberately, and that asymmetry is the correct
+   * one: "clean" means a real human game that went the distance, which every self-play game is by
+   * construction. Filtering self-play by the same rule would remove nothing and cost a pass over
+   * 59 MB. What must NOT differ is the population each rate is computed over, and both are now
+   * "games whose log we scanned", stated in the output. */
+  let cleanIds = null;
+  try {
+    cleanIds = new Set(require('./quality.js').loadGames().map(g => g.id).filter(Boolean));
+    console.log(`  ladder baseline filtered to ${cleanIds.size.toLocaleString()} clean games ` +
+      `(engine/quality.js isClean)`);
+  } catch (e) {
+    console.log(`  WARNING: could not load the clean filter (${e.message}). Refusing to compare ` +
+      `against the raw store.`);
+    ok(false, 'the ladder baseline is filtered through engine/quality.js');
+    return;
+  }
+
+  const scan = (file, cap, ids) => {
+    let n = 0, mega = 0, moves = 0, immune = 0, failed = 0, skippedDirty = 0;
     eachLine(file, (line) => {
       if (cap && n >= cap) return;
       const t = line.trim(); if (!t) return;
       let r; try { r = JSON.parse(t); } catch { return; }
       if (!r.log) return;
+      if (ids && !ids.has(r.id)) { skippedDirty++; return; }
       n++;
       if (/^\|-mega\|/m.test(r.log)) mega++;
       for (const l of r.log.split('\n')) {
@@ -217,14 +288,17 @@ function formatRealism() {
         else if (l.startsWith('|-fail|')) failed++;
       }
     });
-    return { n, megaPct: 100 * mega / Math.max(1, n),
+    return { n, skippedDirty, megaPct: 100 * mega / Math.max(1, n),
              immunePct: 100 * immune / Math.max(1, moves),
              failPct: 100 * failed / Math.max(1, moves) };
   };
 
-  const real = scan(LADDER, 0);
-  const self = scan(SELF, 20000);
-  console.log(`  real ladder: ${real.n.toLocaleString()} games · mega ${real.megaPct.toFixed(1)}% · ` +
+  const real = scan(LADDER, 0, cleanIds);
+  const self = scan(SELF, 20000, null);
+  ok(real.n > 0, `the clean ladder baseline is non-empty (${real.n.toLocaleString()} games, ` +
+    `${real.skippedDirty.toLocaleString()} dirty logs excluded)`);
+  if (!real.n) return;
+  console.log(`  real ladder: ${real.n.toLocaleString()} CLEAN games · mega ${real.megaPct.toFixed(1)}% · ` +
               `immune ${real.immunePct.toFixed(2)}% · failed ${real.failPct.toFixed(2)}%`);
   console.log(`  self-play  : ${self.n.toLocaleString()} games · mega ${self.megaPct.toFixed(1)}% · ` +
               `immune ${self.immunePct.toFixed(2)}% · failed ${self.failPct.toFixed(2)}%`);

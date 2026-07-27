@@ -10,6 +10,138 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.23.0] — 2026-07-27
+
+### RETRACTED: "dropping popularity makes MAG predict human clicks better". The drop never applied.
+
+`DROP=<feature>` in `engine/fit_policy.js` refits the model as if a feature did not exist, by zeroing
+its column. `decisionsFor` builds a decision's features in **two** places — once for a voluntary
+switch, once for a move — and only the move path zeroed it. Every switch row kept its real value.
+
+The column was therefore not constant. It had become a proxy for *"this row is a switch"*, and the
+optimiser fitted a confident coefficient to it: `priorLogP` came out at **−1.73, SE 0.05** in a fit
+whose entire purpose was its absence, with the **opposite sign** to the full model's +0.16. Nothing
+errored. The fit exited 0 and wrote a weight file.
+
+Refitting with the drop actually applied reverses the published result:
+
+| held-out top-1 human-click accuracy | value |
+|---|---|
+| full model (popularity in) | 30.9% |
+| popularity dropped — as published (broken) | 35.3% — *better* |
+| popularity dropped — drop actually applied | **28.7% — worse** |
+
+So dropping popularity makes MAG **worse** at predicting human clicks, not better. The claim in
+CHANGELOG 3.22.0 and in commit `baa6425` is withdrawn. Both weight files were refitted.
+
+**Fixed:** both paths now go through one `featsFor()`. `assertDropped()` refuses to fit if any row
+escaped — it checks the whole corpus, not a leading sample. `tests/test-drop-guard.js` (7 checks) has
+a behavioural half and a structural half; the structural half counts `B.featuresFor(` call sites and
+fails on the pre-fix code (2 sites) while passing on the fix (1).
+
+### The set-sampler audit was reading the closed-sheet ladder store
+
+`engine/stab_audit.js` called `Q.loadGames('ots')`. `loadGames` takes an **options object**, so the
+string had no `.path`, `readStore` fell back to its default, and the audit read
+`data/games.ladder.jsonl` — the CLOSED-sheet ladder. It printed "clean open-sheet games 2,245" while
+its stated premise, *all four moves public, no revelation bias*, was false for **95%** of that sample:
+only 116 of those 2,245 games (5.2%) carry a sheet at all.
+
+Measured on the corpora that actually have sheets, the finding is **stronger** and now replicates
+across two independent collections:
+
+| corpus | clean games | sheeted | human sets | human | generated | gap | 95% CI |
+|---|---|---|---|---|---|---|---|
+| `games.bo3.jsonl` (ours, sheets forced) | 1,059 | 99.4% | 12,619 | 23.0% | 32.9% | **+9.9** | [8.8, 11.0] |
+| `games.ots.jsonl` (external archive) | 2,114 | 100% | 25,284 | 23.6% | 33.0% | **+9.4** | [8.6, 10.2] |
+| `games.ladder.jsonl` (what was measured) | 2,245 | 5.2% | 1,392 | 28.5% | 35.1% | +6.6 | [3.1, 10.0] |
+
+The old headline was **+6.2 points from 1,392 sets**; it is **+9.4 to +9.9 points from 12,619–25,284
+sets**, and the two corpora agree. The per-species list is entirely different — Scrafty +47.9, Metagross
++40.0, Annihilape +40.0, none of which appeared before — and **40 of 58** per-species gaps clear zero.
+Every row now carries the interval on its own gap; the generated sample is matched to the observed one
+instead of being a quarter its size.
+
+`loadGames()` now throws on a non-object argument. There is no honest default: guessing which store a
+caller meant is what produced this.
+
+### The test suite ran 6 of 18 files, and the gate that catches silent wrongness ran never
+
+`.github/workflows/tests.yml` named each test in its own step. It named **6** of the 18 files in
+`tests/`, and did not run `engine/selftest.js`, `engine/conformance.js` or
+`engine/validate_selfplay.js` at all.
+
+`selftest.js` — whose own header calls it "the checks that catch silent wrongness" — **was failing the
+whole time**: 17 files read the raw ladder store with neither a clean filter nor a `RAW-STORE-OK`
+declaration. That is the GARBODOR rule, and the guard was left failing on purpose while nothing
+observed it.
+
+**`tests/run-all.js` (new)** derives the list: 21 checks discovered. It keeps three outcomes distinct
+that the hand-written workflow blurred into two — passed, failed, and **never ran**. A skip prints its
+reason and is not a pass. Exit code 2 means "could not run" so a gate whose corpus is gitignored stays
+listed instead of being forgotten. It also warns about `engine/*.js` files that report their own
+pass/fail summary and are run by nothing, which is how `validate_selfplay.js` was found.
+
+### The MEW acceptance gate could not be aimed at the artifact it gates
+
+`engine/validate_selfplay.js` hardcoded `STORE = data/games.selfplay.jsonl` and ignored `argv`, while
+`mew_farm.js` ends every run by printing "VALIDATE BEFORE USE: node engine/validate_selfplay.js".
+Pointed at a real 59 MB run it reported **"FAIL self-play store exists"** three times about a file
+that was plainly there. The store is now an argument and the raw-log path is derived from it.
+
+Two further defects in the same file, both found by running it:
+
+- **It baselined "realism" against the raw ladder store** — 13,374 games, roughly seven in eight of
+  them bot games, forfeits, partial brings or stubs. Measuring a corpus of bots against other people's
+  bots and calling the difference realism is circular. Filtered through `quality.js`, the real-ladder
+  mega rate is **98.3% on 1,725 clean games**, not the 92.9% this file's own header quotes.
+- **A side-balance check fired on 8 games.** Its guard was `if (!N) continue`, which skips only an
+  empty sample. Seven wins in eight gives a Wilson interval of [52.9, 97.8], which excludes 50, so it
+  announced "the harness itself favours a side" — while the dedicated 300-battle mirror check in the
+  same run said 53.3% [47.7, 58.9] and passed. It now needs 100 games and otherwise reports
+  *inconclusive*, which is neither a pass nor a failure.
+
+### The site's MAGNEMITE room scores a 21-feature model and presents it as MAG
+
+`web/index.html` re-implements `featuresFor`. It assigns **21 of 47** features; the other 26 are never
+written and sit at the zero the array was filled with. `data/mag.js` was also stale at 46 features,
+missing `deadNoLastMove` — regenerated.
+
+`tests/test-mag-page.js` passed this for weeks because a fixture position where the engine also scored
+zero agrees perfectly. Two checks were strengthened: the fixture comparison now reports **how many**
+features disagree (7 across 9 cases: accuracy, koTarget, dmgFrac, tgtMayProtect, movesFirst, priority,
+volatileOnSelf) instead of printing one example; and a new structural check reads the page's own source
+for `x[MAGIX.<name>]` assignments and requires one per bundled feature.
+
+**Not fixed, deliberately.** The 26 missing features cannot be written into the page as it stands —
+`data/mag.js` does not ship the fields they need, including no accuracy field on a bundled move at all.
+Closing it means extending the bundle and porting the logic, or deriving the browser scorer from
+`board.js` instead of re-implementing it, which is the S13-correct answer. The check fails loudly in
+the meantime rather than reporting a subset as agreement.
+
+### Measured: the store duplication story is half right
+
+The three large doublings all occurred with `merge=union` **active** (added at ancestry depth 307,
+removed at 417; the doublings sit at 329, 336 and 383). That much holds. But a fourth event — `009af26`
+"store: dedupe after rebase (137 duplicate lines)" — sits at depth **625**, with no active union
+attribute, 208 commits after the driver was removed. `.gitattributes` states that the driver "had to
+go, or the duplication returns on the next divergence"; the driver went and a duplication returned
+anyway. Recorded as a hypothesis with a known counter-example rather than as the cause. A fifth event
+is visible at depth 14: a commit published a store of **0 lines** and nothing caught it.
+
+Current store measures clean: **17,075 lines, 17,075 unique ids, 0 duplicates, 0 unparseable.**
+
+### Also
+
+`data/h2h-nopop-greedy.jsonl` quarantined to `data/quarantine/` and re-run clean: **4,823 pairs,
+90.8% of 2,814 decisive pairs [89.6, 91.8]** to MAG. The retracted figure was 35.4%. `engine/
+encore_test.js` moved to `tests/test-encore-gate.js`; it and `engine/stab_audit.js` both carried
+absolute `C:/Users/willj/...` paths and a hardcoded `SHOWDOWN_PATH` default, so neither could ever have
+run on CI or another machine. `stab_audit.js` also had a `Q.loadGames ? ... : []` fallback that would
+have reported a clean "+0.0 points" difference computed from nothing.
+
+---
+
 ## [3.22.0] — 2026-07-27
 
 ### Encore no longer fires into a fresh switch-in, and Prankster is why the first fix was wrong

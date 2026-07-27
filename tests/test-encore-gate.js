@@ -7,10 +7,15 @@
  * Prankster is held as P(this species has Prankster), so the fast case scores near 1 rather than
  * exactly 1 — the model does not get to see the opponent's ability sheet any more than a player does.
  */
-process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
-const R = 'C:/Users/willj/Projects/Pokemon/ABRA/';
-const B = require(R + 'engine/board.js');
-const CS = require(R + 'engine/champions_sim.js');
+/* PATHS ARE RELATIVE TO THIS FILE. They were absolute — a hardcoded `C:/Users/willj/Projects/Pokemon/
+ * ABRA/` prefix and a hardcoded SHOWDOWN_PATH default — which is exactly how a check sits in the repo
+ * passing on one machine and being unrunnable on every other, CI included. SHOWDOWN_PATH stays an
+ * environment variable with no default: an absent simulator must fail loudly, not silently resolve to
+ * somebody else's filesystem. */
+const path = require('path');
+const ROOT = path.join(__dirname, '..');
+const B = require(path.join(ROOT, 'engine', 'board.js'));
+const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 

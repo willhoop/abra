@@ -52,3 +52,10 @@ data/h2h-*.jsonl
 data/games.h2h*.jsonl
 data/games.magtest*.jsonl
 data/games.pair*.jsonl
+
+# QUARANTINED RUNS. Corpora withdrawn as contaminated, kept on disk so a retraction can be checked
+# against the actual bytes rather than against a note about them. Never committed.
+# The pattern above does NOT match a subdirectory, so `git add -A` duly staged 177 MB of withdrawn
+# self-play here on 2026-07-27 -- and one of those files is over GitHub's 100 MB hard limit, so the
+# push would have been rejected after the commit was already made.
+data/quarantine/

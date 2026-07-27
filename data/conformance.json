@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-27T02:10:52.662Z",
+ "generated": "2026-07-27T06:01:41.883Z",
  "by": "engine/conformance.js",
- "files": 141,
+ "files": 151,
  "findings": [
   {
    "std": "convention",
@@ -43,6 +43,12 @@
    "std": "S12",
    "file": "engine/game-spec.js",
    "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:trickroom",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/h2h_stats.js",
+   "what": "names 3 Pokemon thing(s) in code: move:protect, move:detect, move:endure",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -200,6 +206,12 @@
    "file": "data/meta-nash.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/policy-weights-nomf.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

@@ -1,40 +1,56 @@
 name: tests
 on: [push, pull_request]
 
+# ONE STEP, AND THE LIST IS DERIVED.
+#
+# This file used to name each test in its own `- name:` step. On 2026-07-27 it named 6 of the 18 test
+# files in tests/, and it did not run engine/selftest.js at all — the gate whose own header calls it
+# "the checks that catch silent wrongness", and which was FAILING at the time (17 files reading the raw
+# ladder store with neither a clean filter nor a declaration). engine/conformance.js and
+# engine/validate_selfplay.js were not run either.
+#
+# A hand-kept list of tests is a promise to remember to add the next one, and this repository has now
+# broken that promise twice: here, and in the PDF build list that covered 13 of 36 documents. S13 says
+# a fact derivable from an artifact is never typed, and the set of tests in a repository is such a fact.
+#
+# tests/run-all.js discovers everything, runs it, and keeps three outcomes distinct that a hand-written
+# workflow blurs into two: passed, failed, and NEVER RAN. A skip is printed with its reason and is not
+# counted as a pass.
+
 jobs:
-  javascript:
+  all:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Install @smogon/calc (ground-truth for damage validation)
-        run: npm init -y >/dev/null 2>&1 && npm install @smogon/calc
-      - name: Parse/ingest tests
-        run: node tests/test-parse.js
-      - name: Dynamics tests
-        run: node tests/test-dynamics.js
-      - name: MEDICHAM engine tests
-        run: node tests/test-medicham.js
-      - name: Damage validation vs @smogon/calc (fails on >5% regression)
-        run: node engine/validate_damage.js
-      - name: CHOMP-EV proof invariants (validates committed data/chomp-ev.json)
-        run: node tests/test-chomp-ev.js
-
-  python:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
-      - name: Install deps
+      - name: Install @smogon/calc (ground-truth for damage validation)
+        run: npm init -y >/dev/null 2>&1 && npm install @smogon/calc
+      - name: Install python deps
         run: pip install numpy
-      - name: JOLTEON eval
-        run: python tests/test-jolteon.py
-      - name: MEDICHAM policy validation (behaviour-clone vs held-out human moves)
-        run: python engine/eval_policy.py
-      - name: SLOWKING preview-Nash — species + playstyle (regenerate + invariant test)
+
+      # The Champions mod is not in the npm package, so the three simulator-dependent checks need a
+      # built master checkout of pokemon-showdown. Without SHOWDOWN_PATH, run-all.js reports them as
+      # SKIPPED with that reason rather than passing silently. Building master here is what would let
+      # CI run them; it is deliberately not done, because a green CI that silently tracks an upstream
+      # master is a different kind of lie. The skip is visible in the log, which is the point.
+      - name: Run every check (list derived from the repository, not typed here)
+        run: node tests/run-all.js
+
+      # Separate because this one is validated against an external package rather than this repository,
+      # and a regression in @smogon/calc is not a regression in ABRA.
+      - name: Damage validation vs @smogon/calc (fails on >5% regression)
+        run: node engine/validate_damage.js
+
+      # Not discovered by run-all.js because it REGENERATES data before asserting on it, so it is a
+      # build step with a check attached rather than a check.
+      - name: SLOWKING preview-Nash — regenerate, then assert the invariants
         run: |
           python engine/slowking_preview.py
           MATRIX_FILE=data/playstyle-matchups.json TAG=playstyle python engine/slowking_preview.py
           python tests/test-slowking.py
+
+      - name: MEDICHAM policy validation (behaviour-clone vs held-out human moves)
+        run: python engine/eval_policy.py
