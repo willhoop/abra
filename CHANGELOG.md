@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.25.0] — 2026-07-27
+
+### RETRACTED: "CHOMP's bring direction is the winning direction". The bootstrap PRNG was broken.
+
+Every confidence interval in `engine/chomp_ev.js` came from a clustered bootstrap driven by this:
+
+```js
+seedState = (seedState * 1103515245 + 12345) & 0x7fffffff
+```
+
+That recurrence is correct in C, where the arithmetic is 32-bit. JavaScript has no integers. A mid-range
+state times 1103515245 is about 1.4e18, past `Number.MAX_SAFE_INTEGER` (9.0e15), so the product loses its
+**low** bits to float rounding — and the low bits are exactly what the mask and `Math.floor(rnd() * n)`
+consume. Measured over 200,000 draws:
+
+| | measured | should be |
+|---|---|---|
+| mean | **0.4954** | 0.5 |
+| chi-square, 10 bins | **159.5** (9 df) | < 16.9 at 5% |
+| distinct values | **16,403** | ~200,000 |
+
+χ² = 159.5 on 9 df rejects uniformity at p < 10⁻²⁸, and the generator cycles with a period around sixteen
+thousand.
+
+**What gave it away** was the shape of the headline interval: `p = 0.5129, ci95 [0.5021, 0.5395]` is
+asymmetric by a factor of 2.5 around a proportion near 0.5, which a healthy bootstrap cannot produce at
+n = 2,124. The Wilson interval is **[0.4916, 0.5341]** and it contains 0.5.
+
+Swapped for mulberry32 (all arithmetic through `Math.imul` and `>>>`, so the state never leaves 32-bit
+range; mean 0.49984, χ² 13.2, 199,989 distinct) and re-ran the file otherwise unchanged:
+
+| | p | ci95 | verdict the file printed |
+|---|---|---|---|
+| broken | 0.5129 | [0.5021, 0.5395] | "CI clear of 0.5 — CHOMP's bring direction is the winning direction." |
+| fixed | 0.5132 | **[0.493, 0.533]** | **"suggestive, not significant."** |
+
+The verdict is gated on `signCI[0] > 0.5`, so **the broken generator is the only reason this project ever
+claimed a significant CHOMP bring effect.** The correct branch was already written in the same ternary.
+
+The same file's proper score behaves the same way: CHOMP-alignment log-loss **0.6923, CI [0.6905, 0.694]**
+against a coin's ln 2 = 0.6931. The interval contains the coin, so CHOMP's win-probability model is not
+distinguishable from a coin flip on this evidence. Every location quoting `CI [0.5021, 0.5395]` is now
+wrong and is corrected in `docs/THESIS-DEFENCE-REVIEW-2026-07-27.md`.
+
+`build/build_mew_bundle.js` carried the same recurrence for its reservoir sample. Lower stakes — it biases
+which games land in a viewer bundle rather than publishing an interval — but fixed for the same reason.
+
+**`tests/test-prng.js` (new)** — 7 checks. It lifts each generator out of its source rather than
+re-typing it, then asserts mean, χ² uniformity across 10 bins, and distinct-value count against the short
+period. A structural check refuses the constant outright, with comments stripped first so the two files
+can keep *describing* the old bug without tripping it. Verified to fail on the pre-fix code (3 failures)
+and pass on the fix. A bad PRNG is the ideal silent failure: plausible numbers, no exception, and the
+output is a confidence interval — the one artifact a reader is least likely to re-derive.
+
+### Measured: the full-bring filter's selection bias, which the filter file predicted but nobody sized
+
+`data/quality-filter.json` states the limitation correctly and has all along: requiring all four brought
+to be revealed "conditions on game length, so the filtered set skews toward longer games." Isolating that
+rule — games passing every other rule, split on full bring:
+
+| | n | mean turns | median |
+|---|---|---|---|
+| full bring (kept) | 2,245 | **8.4** | 8 |
+| partial (dropped) | 487 | **5.8** | 6 |
+
+Difference 2.6 turns, Welch **t = 23.5**. Across 84 species with ≥60 appearances, 15 differ at |z| > 1.96
+between kept and dropped — against 4.2 expected by chance at that threshold, so there is a real aggregate
+effect — but Bonferroni requires |z| > 3.43 and **the largest observed is 2.9, so no individual species
+difference is established.** Fast offensive Pokémon skew to the dropped short games (Volcarona, Mimikyu,
+Oranguru); bulk and support skew to the kept long ones (Incineroar 3.84% vs 2.89%, Grimmsnarl).
+
+The magnitude is a lower bound: the dropped set has incomplete brings by construction, so it under-counts
+species revealed late — the comparison is contaminated by the censoring it measures. A censoring-aware
+estimator is required and does not exist.
+
+### Also
+
+The funnel in `data/quality-filter.json` records `store_size: 8356, clean: 1061` from 2026-07-25. Measured
+now: **17,075 collected → 2,245 usable (13.1%)**. The store doubled; the clean share barely moved
+(12.7% → 13.1%), so nothing downstream is wrong, but a hand-kept provenance record in the file whose
+purpose is to be the single answer is out of date.
+
+---
+
 ## [3.24.0] — 2026-07-27
 
 ### The set sampler draws whole observed sets, and the correction that existed was unreachable

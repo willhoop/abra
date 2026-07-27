@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-27T06:18:17.836Z",
+ "generated": "2026-07-27T06:42:20.878Z",
  "by": "engine/conformance.js",
- "files": 152,
+ "files": 153,
  "findings": [
   {
    "std": "convention",
@@ -152,6 +152,12 @@
    "file": "tests/test-medicham.js",
    "what": "header is one line",
    "why": "headers explain the failure the file prevents"
+  },
+  {
+   "std": "S8",
+   "file": "tests/test-prng.js",
+   "what": "CHI_LIMIT = 27.877 with no stated derivation",
+   "why": "a constant that decides must say where it came from"
   },
   {
    "std": "convention",

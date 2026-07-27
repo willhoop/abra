@@ -47,7 +47,26 @@ const RESERVOIR = Math.max(1, N - 2);   // leave room for 2 deliberately-long ga
 const pool = [];
 const longest = [];
 let rng = 20260725;                     // fixed seed: the bundle must be reproducible
-const rand = () => ((rng = (rng * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+/* This was `(rng * 1103515245 + 12345) & 0x7fffffff`, the same overflowing LCG that invalidated every
+ * confidence interval in engine/chomp_ev.js. In JavaScript a mid-range state times 1103515245 is about
+ * 1.4e18, past Number.MAX_SAFE_INTEGER, so the low bits — the ones a reservoir sample depends on — are
+ * float rounding noise. Measured: mean 0.4954, chi-square 159.5 on 9 df (5% critical value 16.9), and
+ * only 16,403 distinct values in 200,000 draws.
+ *
+ * The stakes here are lower than in chomp_ev.js: this file samples which games go into a viewer bundle,
+ * so a biased draw makes the bundle unrepresentative rather than publishing a wrong interval. It is
+ * fixed anyway, because "the sample is biased in a way nobody characterised" is not a property worth
+ * keeping, and because tests/test-prng.js now refuses the constant outright.
+ *
+ * mulberry32: all arithmetic via Math.imul and >>>, so the state never leaves 32-bit integer range.
+ * Still deterministic from the seed above, so the bundle stays reproducible. */
+const rand = () => {
+  rng = (rng + 0x6D2B79F5) | 0;
+  let t = rng;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
 
 function consider(g) {
   const len = (g.turns || []).length;

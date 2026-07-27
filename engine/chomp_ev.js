@@ -36,7 +36,36 @@ const N = +(process.env.N || 0); // 0 = no cap
 
 const idn = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 let seedState = 12345;
-const rnd = () => { seedState = (seedState * 1103515245 + 12345) & 0x7fffffff; return seedState / 0x7fffffff; };
+/* THE BOOTSTRAP PRNG WAS BROKEN BY INTEGER OVERFLOW, AND IT INVALIDATED EVERY INTERVAL IN THIS FILE.
+ *
+ * It was the textbook LCG `seedState = (seedState * 1103515245 + 12345) & 0x7fffffff`. That recurrence is
+ * correct in C, where the arithmetic is 32-bit. In JavaScript every number is a float64, and a mid-range
+ * state times 1103515245 is about 1.4e18 — well past Number.MAX_SAFE_INTEGER (9.0e15). The product loses
+ * its LOW bits to floating-point rounding, and the low bits are exactly what the mask and
+ * `Math.floor(rnd() * n)` depend on. Measured on the old generator over 200,000 draws:
+ *
+ *     mean                      0.4954    (want 0.5)
+ *     chi-square, 10 bins       159.5     (9 df; the 5% critical value is 16.9)
+ *     distinct values           16,403    out of 200,000 draws — it cycles
+ *
+ * So the "clustered bootstrap over games" resampled from roughly sixteen thousand repeating indices with
+ * a visibly non-uniform distribution, and every ci95 this file emits came out of it.
+ *
+ * The damage was not academic. The headline sign test reported p = 0.5129 with ci95 [0.5021, 0.5395] —
+ * asymmetric by a factor of 2.5 around a proportion near 0.5, which a well-behaved bootstrap cannot
+ * produce at n = 2,124. The correct Wilson interval is [0.4916, 0.5341], which CONTAINS 0.5. The verdict
+ * string is gated on `signCI[0] > 0.5`, so this generator is the only reason the file ever printed
+ * "CI clear of 0.5" rather than the "suggestive, not significant" branch it already contained.
+ *
+ * mulberry32: every step goes through Math.imul and >>>, so the state stays in 32-bit integer range and
+ * never reaches the float53 boundary. Same seed in, same sequence out, so runs stay reproducible. */
+const rnd = () => {
+  seedState = (seedState + 0x6D2B79F5) | 0;
+  let t = seedState;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
 
 // ---- usage prior: species -> bringRate (naive "bring your most-brought 4") -------------------
 const bringRate = {};

@@ -1,0 +1,495 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><style>
+@page { size: Letter; margin: 0.9in; }
+* { box-sizing: border-box; }
+body { font-family: Georgia,'Times New Roman',serif; font-size: 11.5pt; line-height: 1.55; color:#1a1a1a; }
+h1 { font-family:'Segoe UI',Arial,sans-serif; font-size:22pt; color:#1E2761; margin:0 0 2pt; border-bottom:2px solid #1E2761; padding-bottom:6pt; }
+h2 { font-family:'Segoe UI',Arial,sans-serif; font-size:15pt; color:#1E2761; margin:18pt 0 6pt; }
+h3 { font-family:'Segoe UI',Arial,sans-serif; font-size:12.5pt; color:#333; margin:13pt 0 4pt; font-weight:600; }
+p,li { margin:5pt 0; }
+strong { color:#111; }
+code { font-family:'Consolas',monospace; background:#f2f3f7; padding:1px 4px; border-radius:3px; font-size:10pt; }
+pre { background:#f2f3f7; padding:9pt 11pt; border-radius:5px; font-size:9.5pt; line-height:1.4; white-space:pre-wrap; border-left:3px solid #1E2761; }
+pre code { background:none; padding:0; }
+table { border-collapse:collapse; width:100%; margin:10pt 0; font-size:9.5pt; }
+th,td { border:1px solid #d0d3dd; padding:5pt 8pt; text-align:left; vertical-align:top; }
+th { background:#1E2761; color:#fff; font-family:'Segoe UI',Arial,sans-serif; }
+tr:nth-child(even) td { background:#f6f7fb; }
+blockquote { margin:10pt 0; padding:6pt 12pt; background:#f6f7fb; border-left:3px solid #E8B33D; color:#333; font-style:italic; }
+hr { border:none; border-top:1px solid #ccc; margin:16pt 0; }
+a { color:#1E2761; }
+.cover { text-align:center; padding-top:2.4in; }
+.cover .big { font-family:'Segoe UI',Arial,sans-serif; font-size:34pt; color:#1E2761; font-weight:800; border:none; }
+.cover .sub { font-size:15pt; color:#41597a; margin-top:8pt; }
+.cover .meta { font-size:12pt; color:#666; margin-top:26pt; }
+.cover .note { font-size:11pt; color:#444; font-style:italic; max-width:5in; margin:22pt auto 0; }
+.toc { page-break-before:always; }
+.toc h1 { }
+.toc ol { font-size:13pt; line-height:2; }
+.section { page-break-before:always; }
+.divider { font-family:'Segoe UI',Arial,sans-serif; font-size:11pt; color:#E8B33D; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:4pt; }
+.imgwrap { text-align:center; page-break-before:always; }
+.imgwrap img { max-width:100%; border:1px solid #d0d3dd; border-radius:6px; }
+</style></head><body><div class="cover"><div class="big">ABRA — Thesis Defence Review</div>
+      <div class="sub"></div>
+      <div class="meta">Will Hooper · 2026-07-27</div>
+      <div class="note"></div></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="toc"><h1>Contents</h1><ol><li>THESIS-DEFENCE-REVIEW-2026-07-27</li></ol></div><p style="page-break-after:always; margin:0; font-size:0; line-height:0">&nbsp;</p><div class="section"><div class="divider">Part 1</div><h1>Thesis Defence Review — ABRA</h1>
+<p><strong>Date:</strong> 2026-07-27 · <strong>Verdict: MAJOR REVISIONS</strong></p>
+<p>Every figure below was produced by running something on 2026-07-27. No number in this review was taken
+from a document in this repository, because several are known stale — including, as it turns out, the
+provenance block of the file whose stated purpose is to be the single answer to "which games did that
+number come from".</p>
+<hr />
+<h2>1. The claim</h2>
+<p>The thesis asserts that a board-aware linear model of human move choice, fitted on open-team-sheet
+replays, (a) predicts human clicks better than a behaviour clone, (b) plays better than its predecessor
+and than random, and (c) that team-preview composition carries a small but real signal about who wins.</p>
+<p><strong>This is a competent application of known methods to a new dataset. It is not a methodological
+contribution, and the thesis must say so in those words.</strong> Conditional logit on hand-designed features,
+ridge-regularised plus-minus, NMF for soft clustering, and noisy-OR aggregation are all off-the-shelf.
+What is new is the dataset and the domain encoding — the feature set for VGC doubles, the treatment of a
+switch as a candidate competing with a move, the dead-move family. That is a legitimate contribution and
+it is not nothing. It is also not novel method, and the documents currently blur the two by presenting
+each borrowed technique with its sabermetrics or basketball provenance in a way that reads as inheriting
+that literature's validation.</p>
+<p>The strongest genuinely novel element is the treatment of <strong>choice-set knowledge as the licensing
+condition for the fit</strong> — the argument that only open-sheet games let you condition on what the player
+could have clicked. That is a real methodological point about replay data and it is under-sold relative
+to the borrowed machinery.</p>
+<hr />
+<h2>2. The mathematics</h2>
+<h3>2.1 The bootstrap is invalid, and a headline result reverses. This is the central finding.</h3>
+<p><code>engine/chomp_ev.js</code> computes every confidence interval it publishes with a clustered bootstrap over
+games. The generator driving it was:</p>
+<pre><code class="language-js">seedState = (seedState * 1103515245 + 12345) &amp; 0x7fffffff
+</code></pre>
+<p>That recurrence is correct in C, where the arithmetic is 32-bit. JavaScript has no integers: a mid-range
+state times 1103515245 is about 1.4 × 10^18, past <code>Number.MAX_SAFE_INTEGER</code> (9.0 × 10^15). The product
+loses its <strong>low</strong> bits to floating-point rounding, and the low bits are precisely what the mask and
+<code>Math.floor(rnd() * n)</code> consume. Measured over 200,000 draws:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>measured</th>
+<th>should be</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mean</td>
+<td><strong>0.4954</strong></td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>χ² over 10 equal bins</td>
+<td><strong>159.5</strong> (9 df)</td>
+<td>&lt; 16.9 at 5%</td>
+</tr>
+<tr>
+<td>distinct values in 200,000 draws</td>
+<td><strong>16,403</strong></td>
+<td>~200,000</td>
+</tr>
+</tbody>
+</table>
+<p>χ² = 159.5 on 9 degrees of freedom rejects uniformity at p &lt; 10⁻²⁸. The generator also cycles with an
+effective period around sixteen thousand. Every interval this file emitted came out of it.</p>
+<p><strong>The consequence is not academic.</strong> The headline was reported as</p>
+<blockquote>
+<p><code>p_winner_more_aligned: 0.5129</code>, <code>ci95: [0.5021, 0.5395]</code></p>
+</blockquote>
+<p>That interval is asymmetric by a factor of 2.5 around a proportion near 0.5 — impossible for a
+well-behaved bootstrap at n = 2,124, and the tell that led me to the generator. The Wilson interval,
+computed independently:</p>
+<pre><code>p = 0.5129, n = 2124  -&gt;  95% Wilson CI [0.4916, 0.5341]   contains 0.5
+</code></pre>
+<p>Replacing the generator with mulberry32 (all arithmetic through <code>Math.imul</code>, never leaving 32-bit range;
+mean 0.49984, χ² 13.2, 199,989 distinct) and re-running the file unchanged otherwise:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>p</th>
+<th>ci95</th>
+<th>verdict printed by the file's own logic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>broken generator</td>
+<td>0.5129</td>
+<td>[0.5021, 0.5395]</td>
+<td><em>"CI clear of 0.5 — CHOMP's bring direction is the winning direction."</em></td>
+</tr>
+<tr>
+<td>working generator</td>
+<td>0.5132</td>
+<td><strong>[0.493, 0.533]</strong></td>
+<td><em>"suggestive, not significant."</em></td>
+</tr>
+</tbody>
+</table>
+<p>The verdict string is gated on <code>signCI[0] &gt; 0.5</code>. <strong>The broken generator is the only reason this project
+ever claimed a significant CHOMP bring effect.</strong> The correct branch was already written and sitting in
+the same ternary expression.</p>
+<p>The same file's proper score behaves likewise: CHOMP-alignment log-loss <strong>0.6923, CI [0.6905, 0.694]</strong>
+against a coin's ln 2 = 0.6931. The interval contains the coin. CHOMP's win-probability model is not
+distinguishable from a coin flip on this evidence.</p>
+<p><strong>Fixed and verified</strong> in both files carrying the recurrence (<code>engine/chomp_ev.js</code>,
+<code>build/build_mew_bundle.js</code>), with <code>tests/test-prng.js</code> (7 checks) asserting mean, uniformity, period and
+refusing the constant structurally. Verified to fail on the pre-fix code (3 failures) and pass on the
+fix.</p>
+<h3>2.2 The WAR ridge parameter is chosen by hand. This is a fatal flaw for a thesis.</h3>
+<p><code>engine/war.py</code>:</p>
+<pre><code class="language-python">MIN_GAMES = 30          # a species must appear on &gt;= this many sixes to get a WAR
+RIDGE = 6.0             # L2 strength — strong, because most species are rare (honest shrinkage)
+</code></pre>
+<p>There is no cross-validation, no generalised cross-validation, no marginal-likelihood or evidence
+maximisation, and no sensitivity analysis. The comment is a rationale for <em>why shrinkage is desirable</em>,
+not a criterion that selects 6.0 rather than 3.0 or 20.0. A regularisation parameter chosen because it
+felt appropriately strong determines every WAR ordering the thesis reports, and the direction of that
+influence is exactly where it hurts: ridge shrinks rare species hardest, so the <em>ranking</em> of the tail is
+a function of an unjustified constant.</p>
+<p>The file partially concedes this — it labels the output "exploratory ordering" — but a thesis cannot
+report a quantity as a result and defend it as exploratory when challenged. Either it is a result and λ
+is selected by a criterion, or it is exploratory and it must not appear in a results table.</p>
+<p><strong>What makes this worse is that the project already knows how to do it.</strong> <code>engine/fit_policy.js</code>
+selects its ridge parameter properly:</p>
+<pre><code>regularisation selected on held-out data: lambda = 0
+</code></pre>
+<p>by grid search over {0, 1e-5, 1e-4, 1e-3, 1e-2} maximising held-out log-likelihood. So the correct
+practice exists in the codebase, twenty files away, and was not applied to WAR.</p>
+<h3>2.3 The NMF rank is a literal. "Next" is not a justification.</h3>
+<p><code>engine/nmf_roles.py</code>:</p>
+<pre><code class="language-python">RANK = int(sys.argv[1]) if len(sys.argv) &gt; 1 else 10
+...
+ARCH_RANK = 6
+</code></pre>
+<p>Rank 10 by default, rank 6 for archetypes, both typed. No reconstruction-error elbow, no topic-coherence
+computation, no stability selection across seeds, no held-out perplexity. The documents name Mimno et
+al. (2011) topic coherence as "next"; the code contains no coherence function. <strong>A named criterion that
+is never computed is a decorative citation</strong> — it signals awareness of the standard without meeting it,
+which is worse for a thesis than not citing it, because it implies the check was done.</p>
+<p>The claim rests on this. "Emergent roles" is a claim about structure recovered from data; if the number
+of roles is chosen by hand, the structure is partly imposed. Rank selection is not a detail here, it is
+the result.</p>
+<h3>2.4 The noisy-OR independence assumption does not hold, and the direction of the error is knowable</h3>
+<p><code>engine/roles.py</code>:</p>
+<pre><code class="language-python">rs[r] = 1.0 - (1.0 - rs.get(r, 0.0)) * (1.0 - p)   # noisy-OR across the six
+</code></pre>
+<p><code>1 − Π(1 − pᵢ)</code> is P(at least one of the six plays role r) <strong>if and only if</strong> the events "member i plays
+role r" are mutually independent conditional on the team. In VGC team construction they are not, and
+they fail in both directions:</p>
+<ul>
+<li><strong>Anti-correlated by design.</strong> Teams are built to <em>cover</em> roles. A team that already has a Trick Room
+  setter does not usually bring a second; a team with one redirector rarely brings two. Conditional on
+  member 1 filling role r, member 2 is <em>less</em> likely to.</li>
+<li><strong>Positively correlated by archetype.</strong> Sand teams stack sand abusers; rain teams stack swimmers.
+  Conditional on one member being a weather abuser, the next is <em>more</em> likely to be.</li>
+</ul>
+<p>Where anti-correlation dominates — which is the common case for the specialist roles this model cares
+about — noisy-OR <strong>systematically overstates</strong> P(team has role r), because it multiplies out
+probabilities that in reality exclude each other. The <code>PRESENT_AT = 0.50</code> threshold is then applied to an
+inflated quantity, and it is itself a hand-set constant. Two hand-set constants and a violated
+independence assumption stand between the data and every role-prevalence figure.</p>
+<p>This is fixable without abandoning the approach: estimate P(team has role r) <strong>directly from observed
+sixes</strong> rather than aggregating per-species probabilities. The open-sheet corpora hold 37,903 complete
+sets across 232 species and roughly 6,400 complete team compositions — enough to measure the joint
+directly, exactly as the set sampler was corrected to do (see the architecture review, F9). The
+aggregation is unnecessary, not merely unjustified.</p>
+<h3>2.5 What checks out</h3>
+<p>Not padding — these were checked and are correct, and a defence should say which criticisms do not land:</p>
+<ul>
+<li><strong>Wilson intervals.</strong> The implementations in <code>fit_policy.js</code> and <code>validate_selfplay.js</code> use the correct
+  score-interval form with continuity term, <code>(p + z²/2n)/(1 + z²/n) ± z√(p(1−p)/n + z²/4n²)/(1 + z²/n)</code>.
+  I re-derived the CHOMP headline independently and got [0.4916, 0.5341]; the corrected bootstrap
+  returned [0.493, 0.533]. Agreement to 0.002 is what a healthy bootstrap should give.</li>
+<li><strong>A coin's log-loss.</strong> Quoted throughout as 0.6931. ln 2 = 0.69314718. Correct.</li>
+<li><strong>The percentile bootstrap structure.</strong> Resampling <em>games</em> rather than decisions is the right
+  clustering unit, B = 2000 is adequate, and taking the 2.5/97.5 percentiles is the correct percentile
+  method. The method was right; only the generator was broken.</li>
+<li><strong>Held-out split by game, not by decision.</strong> Decisions within a game share teams and board, so
+  splitting by decision would leak. The code splits on a hash of the game id. Correct, and the comment
+  explains why.</li>
+</ul>
+<hr />
+<h2>3. Statistical validity</h2>
+<h3>3.1 The regularisation parameter is selected on the set reported as held out</h3>
+<p><code>fit_policy.js</code> picks λ by maximising log-likelihood on <code>test</code>, then reports the same <code>test</code> numbers as
+the held-out result. There is no third split. The reported held-out figures are therefore selection
+targets, and are optimistically biased.</p>
+<p><strong>In practice the bias here is small, and honesty requires saying so.</strong> The grid has five candidates and
+the selected value is λ = 0 — the unregularised endpoint, meaning no shrinkage was chosen at all — and
+in-sample log-likelihood (−1.7566) is <em>worse</em> than held-out (−1.7524). A model that does not overfit at
+47 features on 67,506 training decisions has little room for selection optimism. The methodology is
+nonetheless wrong and must be corrected to train/validation/test before these numbers appear in a
+results chapter.</p>
+<p>The inverted train/test gap is itself unexamined and should be. Held-out beating in-sample usually means
+the split is not exchangeable — for instance if held-out games have systematically fewer candidates per
+decision, making them easier. Nobody has checked.</p>
+<h3>3.2 There is no untouched holdout anywhere in this project</h3>
+<p>The split is <code>hash(game_id) % 5</code>, deterministic and stable across every refit. Dozens of refits have
+been run during development, each reporting accuracy on the same 15,330 decisions, with feature
+decisions taken in between on the basis of those reports. That is textbook validation-set usage. <strong>No
+genuinely held-out set exists</strong>, and the thesis cannot claim one. The fix is cheap and must be done
+before submission: reserve a third slice by hash, never look at it, and report it once.</p>
+<h3>3.3 No multiplicity correction exists anywhere, and it matters</h3>
+<p>Nothing in this project corrects for multiple comparisons. I measured the scale of the problem on a
+concrete case — species-level bring-rate differences between games the quality filter keeps and games it
+drops, 84 species with ≥ 60 appearances:</p>
+<ul>
+<li><strong>15 of 84</strong> reach |z| &gt; 1.96.</li>
+<li>Under the null, 84 tests at α = 0.05 give an expected 4.2. Observing 15 is a global effect (binomial
+  z ≈ 5.4).</li>
+<li>Bonferroni at α = 0.05 requires |z| &gt; 3.43. <strong>The largest observed is |z| = 2.9.</strong> Not one species
+  survives correction.</li>
+</ul>
+<p>The honest statement is therefore: <em>the filter demonstrably biases bring rates in aggregate, and no
+individual species' difference is established.</em> Neither half of that sentence appears in any document.
+The same discipline has to be applied to the 47 fitted weights, of which several are reported as
+"materially moved" on single-comparison intervals.</p>
+<h3>3.4 The quality filter conditions on an outcome-correlated variable — quantified</h3>
+<p><code>require_full_bring</code> demands that both players' <code>brought</code> has four entries. <code>brought</code> is what the replay
+<em>revealed</em>, so this conditions on the game lasting long enough to reveal it.</p>
+<p><strong>The project already identifies this.</strong> <code>data/quality-filter.json</code> carries a <code>known_limitation</code> field
+stating it precisely: <em>"This conditions on game length, so the filtered set skews toward longer games. A
+bring statistic computed here is 'the bring, among games long enough to show it', which is not the same
+as 'the bring'. State it that way."</em> That is exactly right and it deserves credit.</p>
+<p><strong>Nobody measured it.</strong> Isolating the rule — taking games that pass every other rule, then splitting on
+full bring:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>n</th>
+<th>mean turns</th>
+<th>median</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>full bring (<strong>kept</strong>)</td>
+<td>2,245</td>
+<td><strong>8.4</strong></td>
+<td>8</td>
+</tr>
+<tr>
+<td>partial bring (<strong>dropped</strong>)</td>
+<td>487</td>
+<td><strong>5.8</strong></td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+<p>Difference 2.6 turns, Welch t = <strong>23.5</strong>. The skew is not marginal; it is overwhelming.</p>
+<p>Direction of the induced bias, from the species comparison in §3.3: fast offensive Pokémon
+(Volcarona, Mimikyu, Oranguru) are over-represented among the <em>dropped</em> short games, while bulkier and
+support Pokémon (Incineroar 3.84% vs 2.89%, Grimmsnarl, Basculegion) are over-represented among the
+<em>kept</em> long games. That is exactly the mechanism you would predict, which is corroborating.</p>
+<p><strong>A caveat that limits my own estimate</strong>, and which must be stated: the dropped set has incomplete
+brings by construction, so its denominator counts only revealed slots. Species revealed late are
+under-counted there. The comparison is contaminated by the very censoring it measures, so the <em>direction</em>
+is interpretable and the <em>magnitude</em> is a lower bound at best. Doing this properly needs a
+censoring-aware estimator — inverse-probability weighting on P(reveal all four | game length), or a
+survival treatment of reveal time. That analysis does not exist and is required.</p>
+<h3>3.5 The provenance block is stale by a factor of two</h3>
+<p><code>data/quality-filter.json</code> records <code>store_size: 8356</code>, <code>clean: 1061</code>, measured 2026-07-25. Measured now:</p>
+<pre><code>collected 17,075 -&gt; after bot filter 6,143 -&gt; behavioural bots 4,302 -&gt; forfeits 2,751
+-&gt; min turns 2,732 -&gt; full bring 2,245        USABLE 2,245 of 17,075 (13.1%)
+</code></pre>
+<p>The store has doubled and the clean count has doubled. This is a hand-maintained number in the file
+whose stated purpose is <em>"so 'which games did that number come from' has one answer"</em> — and the one
+answer is out of date. The clean <em>share</em> is stable (12.7% → 13.1%), which is the thing the file was
+really asserting, so nothing downstream is wrong; but a thesis cannot ship a provenance record that
+disagrees with the data it describes.</p>
+<h3>3.6 The behaviour clone is badly calibrated and nobody says so</h3>
+<p>From the fit run:</p>
+<table>
+<thead>
+<tr>
+<th>model</th>
+<th>log-likelihood / decision</th>
+<th>top-1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>uniform over candidates</td>
+<td>−1.9582</td>
+<td>21.0%</td>
+</tr>
+<tr>
+<td>behaviour clone alone</td>
+<td><strong>−2.6220</strong></td>
+<td>23.4%</td>
+</tr>
+<tr>
+<td>board-aware fit</td>
+<td>−1.7524</td>
+<td>30.9%</td>
+</tr>
+</tbody>
+</table>
+<p>The behaviour clone — the model the previous bot actually used — ranks <em>better</em> than uniform on top-1
+accuracy while scoring <em>substantially worse</em> than uniform on log-likelihood. That is the signature of
+severe overconfidence: it puts high probability on its favourite and is wrong often enough that the
+proper score punishes it below a model that knows nothing. This is an interesting and reportable result
+about behaviour cloning in this domain, and it is currently just three numbers printed next to each
+other with no comment.</p>
+<hr />
+<h2>4. The null results</h2>
+<p><strong>This section is where the thesis is strongest, and the credit is unqualified.</strong> The null results are
+not buried. <code>docs/ABRA-whitepaper.md</code> puts one in its opening framing at line 20 — <em>"near-impossible in
+this format — even a player-Elo model ties a coin. ABRA therefore does not sell..."</em> — and returns to it
+in the conclusion at line 287. The role-level winner prediction is reported as log-loss 0.7122 against a
+coin's 0.6931, i.e. <strong>worse than a coin</strong>, and described as "ties a coin", which is if anything generous
+to itself in wording while being accurate about significance. <code>docs/HANDOFF-2026-07-27.md</code> §7 leads with
+"the honest headline" and reports that the largest measured improvement all session was not a feature at
+all. The retraction discipline is real: prior conclusions are struck through with reasons rather than
+edited away, and CHANGELOG 3.1.2 retracts a root-cause diagnosis explicitly.</p>
+<p>Two things now need to move into that column:</p>
+<ol>
+<li><strong>The CHOMP bring effect is a null result</strong> as of §2.1. The claim "CHOMP's bring direction is the
+   winning direction" must be withdrawn and restated as suggestive-not-significant, and every document
+   quoting <code>CI [0.5021, 0.5395]</code> updated to <code>[0.493, 0.533]</code>.</li>
+<li><strong>The popularity-drop result was an artifact</strong> and has already been retracted this session
+   (CHANGELOG 3.23.0): dropping move popularity makes held-out top-1 <em>worse</em>, 30.9% → 28.7%, not better.</li>
+</ol>
+<p>A thesis that has to convert two positives into nulls during its own defence has a problem with its
+verification, not with its honesty. The honesty norms here are genuinely above what I usually see. The
+verification machinery is what failed.</p>
+<hr />
+<h2>5. Literature</h2>
+<ul>
+<li><strong>RAPM / plus-minus.</strong> <code>war.py</code> cites the basketball provenance and states the confound it solves
+  (teammate collinearity). The transfer argument is made, not merely asserted: species co-occurrence in
+  a six is structurally the same confound as lineup co-occurrence. This citation earns its place.</li>
+<li><strong>Mimno et al. (2011), topic coherence.</strong> <strong>Decorative.</strong> Named repeatedly as the next step for NMF
+  rank selection; no coherence is ever computed. Either compute it or drop the reference.</li>
+<li><strong>NMF.</strong> No citation to Lee &amp; Seung (1999) for the multiplicative update rule that <code>fit_nmf</code>
+  implements, despite implementing it. The method is used correctly and uncredited — the opposite failure
+  from the one above, and also a defect.</li>
+<li><strong>Noisy-OR.</strong> Used without citation to Pearl (1988), and without stating the independence assumption
+  it requires. §2.4.</li>
+<li><strong>Sabermetric WAR.</strong> The name is borrowed for a quantity that is not WAR — no replacement level is
+  defined anywhere. "Wins above replacement" without a replacement baseline is a borrowed brand, and a
+  committee will ask what replacement means here. Either define it or rename the statistic.</li>
+<li><strong>Wilson (1927), McNemar (1947).</strong> <code>paired_h2h.js</code> correctly identifies its own test as McNemar's and
+  explains why decisive pairs are the honest denominator. Correct and well-reasoned.</li>
+</ul>
+<hr />
+<h2>6. Construct validity</h2>
+<p><strong>The central problem is stated by the thesis itself and then not resolved.</strong> The model is fitted to
+<em>human clicks</em> and evaluated on <em>wins</em>. Those are different objectives, and <code>HANDOFF-2026-07-27.md</code> §7
+says so plainly: "fitting to human clicks and winning games are different objectives, and this model is
+fitted to the first one." Good. But the results chapter then reports win rates as evidence of model
+quality, which re-blurs exactly what that sentence separates.</p>
+<p>Concretely:</p>
+<ul>
+<li><strong>MAG beats a random-clicking opponent on 90.8% of decisive pairs</strong> (4,823 pairs, CI [89.6, 91.8],
+  re-run clean on 2026-07-27). This is a floor, not a measure of skill. A random opponent establishes
+  that the model is not broken. It says nothing about play against humans, and the thesis has <strong>no
+  measurement of MAG against a human opponent at all</strong> beyond one person playing it for ten minutes —
+  which, to be fair, is how both of the session's real bugs were found.</li>
+<li><strong>The win-probability model is validated against the project's own simulator.</strong> That establishes
+  internal consistency. Accuracy against real games is a separate claim requiring real games, and the
+  CHOMP log-loss result (§2.1) is the closest thing to it — and it does not beat a coin.</li>
+<li><strong><code>mean_align_delta_win_minus_lose: 0.0117</code>.</strong> Even had the interval cleared 0.5, an effect this small
+  on a constructed alignment scale needs an argument that the scale is meaningful. None is given.</li>
+</ul>
+<hr />
+<h2>7. Reproducibility</h2>
+<p>Could an independent researcher reproduce every number? <strong>No, and the gaps are specific:</strong></p>
+<ol>
+<li><strong>The bootstrap was seeded, so it was reproducibly wrong.</strong> Determinism is not correctness. This is
+   the sharpest reproducibility lesson in the project: a fixed seed made a broken generator produce the
+   same wrong interval every time, which reads as stability.</li>
+<li><strong><code>requirements.txt</code> pins numpy and nothing else.</strong> The documented PDF toolchain (<code>build/omnibus.py</code>,
+   weasyprint) cannot be installed on the author's own machine — it imports but cannot load its native
+   libraries. <code>build/md_to_pdf.js</code> exists solely to work around this and says so in its header. So the
+   documented build path has never been a reproducible dependency.</li>
+<li><strong>A published experiment had no runner in the repository.</strong> The no-popularity greedy cell was
+   reported, retracted, and re-run — and nothing in the repo produced <code>data/h2h-nopop-greedy.jsonl</code>. Only
+   readers exist. I had to reconstruct the invocation from <code>mew.js</code> flags. An experiment whose command
+   exists only in a shell history is not reproducible.</li>
+<li><strong>The self-play harness does not stamp its own configuration.</strong> <code>paired_h2h.js</code> printed "SWITCH
+   SETTING NOT RECORDED (run predates the flag)" about a run created minutes earlier. Provenance for
+   that dimension is unrecoverable from the artifact.</li>
+<li><strong>3,849 ladder games predate raw-log archiving</strong> and cannot be reparsed, so any figure that depends on
+   a parser improvement is computed on a corpus that is permanently heterogeneous.</li>
+<li><strong><code>SHOWDOWN_PATH</code> pins a Showdown commit.</strong> This is done well and is worth naming: the simulator
+   dependency is version-pinned where most projects of this kind leave it floating.</li>
+</ol>
+<hr />
+<h2>What I could not evaluate and why</h2>
+<ul>
+<li><strong>I did not re-run WAR, NMF, or the role model.</strong> They consume <code>data/pokemon-roles.json</code> and
+  <code>data/xatu-context-sets.json</code>, both of which the project's own handoff marks UNSAFE because they were
+  built on the unfiltered store. Re-running them would produce numbers from known-contaminated inputs,
+  and I would not be able to separate a method problem from an input problem. <strong>Every quantitative claim
+  in §2.2, §2.3 and §2.4 is therefore about the code and the choice of constants, which I read directly —
+  not about the output values, which I did not verify.</strong> Those inputs must be regenerated on clean data
+  before the mathematics can be assessed on its results.</li>
+<li><strong>I did not verify the WAR clustered bootstrap</strong> for the same reason.</li>
+<li><strong>Topic coherence was not computed.</strong> I am criticising its absence, not reporting its value.</li>
+<li><strong>MEW's 200,004-game corpus was not audited.</strong> It is gitignored and I did not regenerate it.</li>
+<li><strong>Whether the test split was literally inspected during development</strong> cannot be established from the
+  repository — there are no analysis logs, only committed results. I infer repeated inspection from the
+  deterministic split plus the number of refits in the changelog. It is an inference, not a measurement.</li>
+<li><strong>The censoring-aware bring estimate (§3.4)</strong> I could not compute, because it needs a model of
+  P(reveal all four | length) that does not exist. I have quantified the length skew and the direction of
+  the species bias, and I have said explicitly that my magnitude estimate is contaminated.</li>
+<li><strong>Nothing was evaluated against a human opponent.</strong> No such data exists in the repository.</li>
+</ul>
+<hr />
+<h2>Verdict: MAJOR REVISIONS</h2>
+<p>Not a fail. The infrastructure discipline is real, the retraction culture is genuinely better than most
+submitted work, the null results are foregrounded rather than buried, and the choice-set argument that
+licenses the fit is a real contribution. A candidate who reports "the biggest improvement all session was
+not a feature, it was taking the argmax" is doing science.</p>
+<p>But two headline results reversed under examination <strong>during the defence</strong>, one of them because a random
+number generator was broken in a way that four checks would have caught, and the parameters governing
+three of the four models are hand-set constants with no selection criterion. That is not a presentation
+problem. The verification layer is not yet at doctoral standard, and until it is, no number in the thesis
+can be relied upon — including the ones that happen to be right.</p>
+<h3>Precisely what must be done to reach a pass</h3>
+<ol>
+<li><strong>Select the WAR ridge parameter by a criterion.</strong> K-fold cross-validation over a λ grid on
+   held-out log-likelihood, reporting the selected λ, the CV curve, and a sensitivity table of the top-20
+   WAR ordering at λ ∈ {λ<em>/4, λ</em>/2, λ<em>, 2λ</em>, 4λ*}. If the ordering is unstable across that range, say so
+   and withdraw the ranking as a result.</li>
+<li><strong>Select the NMF rank by a criterion, and compute the one already cited.</strong> Reconstruction error
+   versus rank with an elbow analysis; topic coherence per Mimno et al. (2011) actually implemented; and
+   stability selection — refit at each rank across ≥ 20 seeds and report mean pairwise cluster agreement.
+   Choose the rank that the criteria support and report all three curves. Cite Lee &amp; Seung (1999) for the
+   update rule.</li>
+<li><strong>Replace noisy-OR with a direct estimate.</strong> Measure P(team has role r) from observed sixes in the
+   open-sheet corpora (~6,400 complete compositions available). Report the discrepancy against the
+   noisy-OR figure — that discrepancy is itself a publishable measurement of how much the independence
+   assumption costs. Derive <code>PRESENT_AT</code> from the data or remove the threshold.</li>
+<li><strong>Introduce a third split and never look at it.</strong> Train / validation / test by game hash. Tune λ on
+   validation, report once on test. Re-report every headline held-out figure from the untouched slice.
+   Separately, diagnose why held-out log-likelihood currently exceeds in-sample.</li>
+<li><strong>Apply a multiplicity correction wherever more than one comparison is reported.</strong> Benjamini–Hochberg
+   across the 47 fitted weights and across any per-species table. State the number of comparisons made
+   before each reported effect. Re-report which weights remain "materially moved" after correction.</li>
+<li><strong>Quantify the full-bring selection bias with a censoring-aware estimator.</strong> Inverse-probability
+   weighting on P(all four revealed | length), or a survival treatment of reveal time. Report every bring
+   statistic both raw and corrected, and if they differ, the corrected one is the result.</li>
+<li><strong>Regenerate <code>pokemon-roles.json</code> and <code>xatu-context-sets.json</code> on clean data</strong>, then re-run everything
+   downstream. Until then §2.2–§2.4 cannot be assessed on their outputs at all.</li>
+<li><strong>Withdraw the CHOMP bring claim</strong> in every location, replacing <code>CI [0.5021, 0.5395]</code> with
+   <code>[0.493, 0.533]</code> and the verdict with "suggestive, not significant". State in the results chapter that
+   the CHOMP win-probability model does not beat a coin: log-loss 0.6923, CI [0.6905, 0.694], against
+   ln 2 = 0.6931.</li>
+<li><strong>Measure MAG against human opponents.</strong> A random-bot floor of 90.8% is not an evaluation. Even 200
+   ladder games with a pre-registered stopping rule would convert the central claim from internally
+   consistent to externally validated.</li>
+<li><strong>Commit a runner for every published experiment</strong>, and stamp each run's full configuration into its
+    output records. An experiment reproducible only from shell history is not reproducible.</li>
+<li><strong>State in the introduction that the contribution is domain encoding and dataset, not method.</strong> Then
+    argue the choice-set point properly, because it is the genuinely novel idea and it is currently
+    buried under borrowed machinery.</li>
+</ol>
+<p>Items 1, 2, 3, 4, 5 and 8 are the barrier. Items 9 and 11 are what would make this a thesis rather than
+a well-engineered system with a results appendix.</p></div></body></html>
