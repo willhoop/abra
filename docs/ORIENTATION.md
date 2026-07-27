@@ -55,18 +55,18 @@ games were in that state. Two guards now exist:
 `tests/test-quality.js` asserts both select an identical set of ids.
 
 <!-- BEGIN:FUNNEL -->
-Of **16,950** games collected, **2,222** are usable — **13.1%**.
+Of **17,376** games collected, **2,265** are usable — **13.0%**.
 
 Games are dropped for five reasons, in this order:
 
 | Stage | Games remaining |
 |---|---|
-| collected | 16,950 |
-| after removing named bots | 6,098 |
-| after removing accounts that behave like bots | 4,257 |
-| after removing forfeits | 2,717 |
-| after removing games under 3 turns | 2,698 |
-| after requiring all four brought to be revealed | **2,222** |
+| collected | 17,376 |
+| after removing named bots | 6,193 |
+| after removing accounts that behave like bots | 4,352 |
+| after removing forfeits | 2,779 |
+| after removing games under 3 turns | 2,760 |
+| after requiring all four brought to be revealed | **2,265** |
 <!-- END:FUNNEL -->
 
 1. **Named bots** — accounts whose usernames announce them.
@@ -94,12 +94,12 @@ The model CHOMP reads was, for a period, a description of one script's team rath
 metagame. That is the concrete reason this filter exists and why every engine must go through it.
 
 <!-- BEGIN:RAWREADERS -->
-**17 engine tools still read the store with neither the clean filter nor a declared reason.**
+**15 engine tools still read the store with neither the clean filter nor a declared reason.**
 `engine/selftest.js` fails while any remain, and names them:
 
-`engine/calibrate.py`, `engine/chomp-predict.js`, `engine/coach.js`, `engine/cores.js`, `engine/ditto.js`, `engine/dynamics.js`, `engine/eval_policy.py`, `engine/flywheel.py`, `engine/jolteon.py`, `engine/mew_farm.js`, `engine/playstyle.js`, `engine/pory_baseline.py`, `engine/predictability.py`, `engine/reprocess.js`, `engine/role_atlas.py`, `engine/stamp.js`, `engine/validate_selfplay.js`
+`engine/calibrate.py`, `engine/chomp-predict.js`, `engine/coach.js`, `engine/cores.js`, `engine/ditto.js`, `engine/dynamics.js`, `engine/eval_policy.py`, `engine/flywheel.py`, `engine/jolteon.py`, `engine/mew_farm.js`, `engine/playstyle.js`, `engine/pory_baseline.py`, `engine/predictability.py`, `engine/role_atlas.py`, `engine/stamp.js`
 
-Anything they publish is computed over a store that is 86.9% unusable.
+Anything they publish is computed over a store that is 87.0% unusable.
 <!-- END:RAWREADERS -->
 
 
