@@ -571,14 +571,28 @@ async function main() {
        * indistinguishable from a real one, and that is unrecoverable. */
       rec.source = 'selfplay';
       rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: FORMAT_ARG || CS.FORMAT, policy: POLICY, seed };
-      /* Recorded so a run can describe ITSELF later. Two runs tonight differed only in whether the
-       * random opponent could switch, and nothing in the file said so. */
-      if (RANDMOVE !== 1) rec.selfplay.randmove = RANDMOVE;
+      /* WRITTEN UNCONDITIONALLY, INCLUDING THE DEFAULTS.
+       *
+       * These three were written only when they differed from their default: `if (RANDMOVE !== 1)`,
+       * `if (GREEDY)`, `if (SWITCHING)`. That overloads a MISSING field with two incompatible meanings —
+       * "the default was used" and "this run predates the flag" — and `paired_h2h.js` has to guess,
+       * so it printed "SWITCH SETTING NOT RECORDED (run predates the flag)" about a run created
+       * minutes earlier, three times on 2026-07-27. The provenance of a published experiment was
+       * unrecoverable from its own records while the run was still warm.
+       *
+       * A record states its whole configuration. Recording only the interesting deviations requires the
+       * reader to know what the defaults were on the day it ran, which is exactly the hand-kept
+       * knowledge S13 exists to forbid. Cost is a few bytes per game. */
+      rec.selfplay.randmove = RANDMOVE;
       /* The DECISION RULE is not the policy name, and leaving it out mislabelled a run: a greedy
        * MAG and a sampling MAG both record policy "score" while differing by nine points of win
        * rate. Anything that changes what the bot DOES belongs on the record. */
-      if (GREEDY) rec.selfplay.greedy = true;
-      if (SWITCHING) rec.selfplay.switching = true;
+      rec.selfplay.greedy = !!GREEDY;
+      rec.selfplay.switching = !!SWITCHING;
+      /* The weight files too — a run of "policy score" says nothing about WHICH fit played it, and the
+       * popularity-on and popularity-off arms of a 2x2 are distinguished by nothing else. */
+      if (WEIGHTS1) rec.selfplay.weights = WEIGHTS1;
+      if (WEIGHTS2) rec.selfplay.weights2 = WEIGHTS2;
       if (POLICY2) {
         /* Which POLICY won, not which side. `swapped` says where the challenger sat this battle. */
         const sw = res && res.swapped;

@@ -87,10 +87,14 @@ function describe(g) {
     }
     if (pol === 'prior') return 'behaviour clone — clicks what people click, blind to the board';
     if (pol === 'random') {
-      /* ABSENT IS NOT THE SAME AS ZERO. The flag only started being recorded partway through the
-       * evening, so a run made before that has no field — and reading that silence as "never
-       * switched" mislabels the one run where it did. Say so instead. */
-      if (sp.randmove == null) return 'pure random — SWITCH SETTING NOT RECORDED (run predates the flag)';
+      /* ABSENT IS NOT THE SAME AS ZERO, and absent now means genuinely absent.
+       *
+       * engine/mew.js used to write `randmove` only when it differed from its default of 1, so a run
+       * using the default looked identical to a run made before the flag existed. This message duly
+       * fired on runs created minutes earlier — three times on 2026-07-27 — and read as though the data
+       * were old rather than the record being incomplete. mew.js now stamps the setting unconditionally,
+       * so silence here really does mean a record written before that change. */
+      if (sp.randmove == null) return 'pure random — switch setting not recorded (record predates 3.26.0)';
       return sp.randmove < 1
         ? `pure random — switches about ${Math.round(100 * (1 - sp.randmove))}% of the time`
         : 'pure random — MOVES ONLY, never switches by choice';

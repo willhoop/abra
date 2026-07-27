@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.26.0] — 2026-07-27
+
+### Every self-play record states its whole configuration, including the defaults
+
+`engine/mew.js` wrote `randmove`, `greedy` and `switching` **only when they differed from their defaults**.
+That overloads a missing field with two incompatible meanings — "the default was used" and "this run
+predates the flag" — so `engine/paired_h2h.js` had to guess, and printed **"SWITCH SETTING NOT RECORDED
+(run predates the flag)"** about runs created minutes earlier. It did so three times on 2026-07-27, on the
+two runs that answered the popularity × greedy question. The provenance of a published experiment was
+unrecoverable from its own records while the run was still warm.
+
+Now written unconditionally, plus the weight-file paths — a run of `policy=score` says nothing about
+*which* fit played it, and the two arms of a popularity 2×2 are distinguished by nothing else. Recording
+only deviations requires the reader to know what the defaults were on the day, which is the hand-kept
+knowledge S13 forbids.
+
+### xorshift32 seeded with zero returns zero forever, in three files
+
+`engine/brood.js`, `engine/exploit.js` and `engine/ladder.js` all did `let _s = SEED0 >>> 0`. xorshift32
+has exactly one fixed point and it is 0 — every shift and xor of zero is zero. Measured from seed 0 over
+200,000 draws: **mean 0.00000, one distinct value.**
+
+Both `--seed 0` and a non-numeric `--seed abc` reach it, because `+arg(...)` yields 0 or NaN and
+`NaN >>> 0` is 0. In `brood.js` the result is a hang, since `gauss()` spins on `while (!u) u = rnd()` —
+that is the *good* case. In `ladder.js` and `exploit.js` every "random" choice silently becomes identical
+and the run reports a result anyway. Guarded with `(SEED0 >>> 0) || 1`; seed 0 now gives mean 0.50013 and
+50,000 distinct values over 50,000 draws.
+
+These three were audited because the broken LCG in 3.25.0 raised the question of what else generates
+randomness here. The xorshift itself is sound: `<<` and `^` coerce to int32 *before* operating, which is
+exactly why it survives where the LCG's float64 multiply did not.
+
+### Not affected, and worth stating
+
+`engine/paired_h2h.js` uses **no random source at all** — it computes the Wilson score interval in closed
+form. The paired head-to-head figures never touched the broken bootstrap.
+
+### Measured: popularity helps winning too, so it was never dragging MAG down
+
+The fourth cell of the popularity × greedy 2×2 and its matching control, both run identically — closed
+sheets, greedy, paired, versus the random bot:
+
+| arm | decisive pairs | 95% CI |
+|---|---|---|
+| **popularity in** + greedy | **93.2%** | [92.3, 94.1] |
+| popularity out + greedy | 90.8% | [89.6, 91.8] |
+
+Intervals do not overlap, so popularity is worth about **2.4 points of decisive pairs**, on top of the
+2.2 points of human-click prediction from 3.23.0. The retracted claim had it backwards in both
+directions. The earlier handoff cells (91.8%, 81.9%) were run on **open** sheets and are not comparable;
+MAG's features read the sheet, which is why the control was re-run rather than the old figure reused.
+
+---
+
 ## [3.25.0] — 2026-07-27
 
 ### RETRACTED: "CHOMP's bring direction is the winning direction". The bootstrap PRNG was broken.

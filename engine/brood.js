@@ -49,7 +49,15 @@ const OUT = D('data', 'brood.json');
 
 const base = JSON.parse(fs.readFileSync(D('data', 'policy-weights.json'), 'utf8'));
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-brood-'));
-let _s = SEED0 >>> 0;
+/* NEVER ZERO. xorshift32 has exactly one fixed point and it is 0 — every shift and xor of zero is zero,
+ * so the generator returns 0.00000 forever. Measured from seed 0 over 200,000 draws: mean 0.00000, one
+ * distinct value. Both `--seed 0` and a non-numeric `--seed abc` reach it, because `+arg(...)` yields 0
+ * or NaN and `NaN >>> 0` is 0.
+ *
+ * In this file the consequence is a HANG, not a wrong number: gauss() below spins on
+ * `while (!u) u = rnd()` and never leaves. That is the good case. In ladder.js and exploit.js the same
+ * seed silently makes every "random" choice identical and the run still reports a result. */
+let _s = (SEED0 >>> 0) || 1;
 const rnd = () => { _s ^= _s << 13; _s ^= _s >>> 17; _s ^= _s << 5; _s >>>= 0; return _s / 4294967296; };
 const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 

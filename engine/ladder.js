@@ -60,7 +60,12 @@ if ((base.features || []).join(',') !== B.FEATURES.join(',')) {
 }
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-ladder-'));
 
-let _s = SEED0 >>> 0;
+/* NEVER ZERO. xorshift32 has one fixed point and it is 0: every shift and xor of zero is zero, so the
+ * generator returns 0.00000 forever — measured from seed 0, mean 0.00000 and one distinct value over
+ * 200,000 draws. `--seed 0` reaches it, and so does a non-numeric `--seed abc`, because `+arg(...)` gives
+ * NaN and `NaN >>> 0` is 0. Nothing errors: every "random" choice becomes identical and the run reports a
+ * result anyway. */
+let _s = (SEED0 >>> 0) || 1;
 const rnd = () => { _s ^= _s << 13; _s ^= _s >>> 17; _s ^= _s << 5; _s >>>= 0; return _s / 4294967296; };
 const gauss = () => { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 
