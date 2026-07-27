@@ -83,6 +83,58 @@ function render(line) {
 /* ---- the human ------------------------------------------------------------------------------- */
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const ask = q => new Promise(res => rl.question(q, res));
+/* ---- MENU: ARROW KEYS OR TYPING, WHICHEVER YOU REACH FOR --------------------------------------
+ *
+ * Typing a number is fastest once you know the list; arrows are better when you are reading it. The
+ * two are not in tension, so both work: up/down (or w/s, or j/k) to move, Enter to take it, or just
+ * press the number. `t` toggles MAG's reasoning at any menu.
+ *
+ * Raw mode is entered only for the duration of one menu and always restored, including on Ctrl-C --
+ * a terminal left in raw mode after a crash stops echoing what you type, which is a miserable thing
+ * to do to somebody's shell. */
+function menu(title, items) {
+  return new Promise((resolve) => {
+    let cur = 0;
+    const draw = (first) => {
+      if (!first) process.stdout.write(`[${items.length}A`);
+      items.forEach((it, i) => {
+        const sel = i === cur;
+        const mark = sel ? `${C.c}›${C.r}` : ' ';
+        const label = sel ? `${C.b}${it.label}${C.r}` : it.label;
+        process.stdout.write(`[2K  ${mark} ${C.dim}${i + 1}.${C.r} ${label}
+`);
+      });
+    };
+    console.log(`
+${C.b}${title}${C.r}   ${C.dim}↑↓ or type a number · enter · t = MAG's reasoning${C.r}`);
+    draw(true);
+
+    const done = (v) => {
+      process.stdin.setRawMode(false);
+      process.stdin.removeListener('keypress', onKey);
+      process.stdin.pause();
+      resolve(v);
+    };
+    const onKey = (ch, key) => {
+      if (key && key.ctrl && key.name === 'c') { process.stdin.setRawMode(false); process.exit(0); }
+      if (key && (key.name === 'up' || key.name === 'k')) { cur = (cur - 1 + items.length) % items.length; draw(); return; }
+      if (key && (key.name === 'down' || key.name === 'j')) { cur = (cur + 1) % items.length; draw(); return; }
+      if (ch === 't') { WHY = !WHY; process.stdout.write(`  ${C.dim}MAG's reasoning ${WHY ? 'ON' : 'off'}${C.r}
+`); draw(true); return; }
+      if (ch && /^[1-9]$/.test(ch)) {
+        const n = parseInt(ch, 10) - 1;
+        if (n < items.length) { cur = n; draw(); return done(items[cur]); }
+        return;
+      }
+      if (key && (key.name === 'return' || key.name === 'enter' || key.name === 'space')) return done(items[cur]);
+    };
+    readline.emitKeypressEvents(process.stdin);
+    if (process.stdin.isTTY) process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on('keypress', onKey);
+  });
+}
+
 /* One prompt handles the toggle, so every input point supports it without repeating the check. */
 async function askOpt(q) {
   for (;;) {
@@ -135,17 +187,20 @@ function humanPlayer(BattlePlayer) {
       if (req.teamPreview) {
         console.log(`
 ${C.b}team preview — bring four, first two lead${C.r}`);
-        (req.side.pokemon || []).forEach((p, k) => {
-          const sp = pretty(String(p.details || '').split(',')[0]);
-          console.log(`   ${C.b}${k + 1}${C.r}. ${sp}`);
-        });
-        console.log(`   ${C.dim}MAG brings: ${theirsSix.join(', ')}${C.r}`);
-        const a = await askOpt('   four numbers, lead first (e.g. 1342) > ');
-        const digits = String(a).replace(/[^1-6]/g, '').split('');
-        const seen = new Set(); const order = [];
-        for (const d of digits) { if (!seen.has(d)) { seen.add(d); order.push(d); } }
-        while (order.length < 4) for (let k = 1; k <= 6 && order.length < 4; k++) { if (!seen.has(String(k))) { seen.add(String(k)); order.push(String(k)); } }
-        return this.choose('team ' + order.slice(0, 4).join(''));
+        console.log(`   ${C.dim}MAG's six: ${theirsSix.join(', ')}${C.r}`);
+        /* Four sequential picks rather than one typed string: the order IS the lead order, and a
+         * four-digit blob is easy to get backwards. Each pick removes itself from the next list. */
+        const pool = (req.side.pokemon || []).map((p, k) => ({
+          label: pretty(String(p.details || '').split(',')[0]), idx: k,
+        }));
+        const order = [];
+        const slotName = ['lead 1', 'lead 2', 'back 1', 'back 2'];
+        for (let k = 0; k < 4; k++) {
+          const left = pool.filter(o => !order.includes(o.idx));
+          const got = await menu(`${slotName[k]}`, left);
+          order.push(got.idx);
+        }
+        return this.choose('team ' + order.map(i => i + 1).join(''));
       }
 
       const choices = [];
@@ -156,9 +211,9 @@ ${C.b}team preview — bring four, first two lead${C.r}`);
           const bench = (req.side.pokemon || [])
             .map((p, idx) => ({ p, idx }))
             .filter(({ p }) => !p.active && !/fnt/.test(p.condition || ''));
-          bench.forEach(({ p, idx }, k) => console.log(`   ${C.b}${k + 1}${C.r}. ${pretty(String(p.details || '').split(',')[0])}  ${p.condition}`));
-          const a = await askOpt('   > ');
-          const pick = bench[Math.max(0, Math.min(bench.length - 1, (parseInt(a, 10) || 1) - 1))];
+          const pick = await menu('send something in', bench.map(({ p, idx }) => ({
+            label: `${pretty(String(p.details || '').split(',')[0])}  ${C.dim}${p.condition}${C.r}`, idx,
+          })));
           choices.push(`switch ${pick.idx + 1}`);
         }
         return this.choose(choices.join(', '));
@@ -179,18 +234,18 @@ ${C.b}team preview — bring four, first two lead${C.r}`);
             opts.push({ label: `${C.c}switch to ${pretty(String(p.details || '').split(',')[0])}${C.r}  ${p.condition}`, choice: `switch ${idx + 1}` });
           });
         }
-        opts.forEach((o, k) => console.log(`   ${C.b}${k + 1}${C.r}. ${o.label}`));
-        const a = await askOpt('   > ');
-        const n = Math.max(1, Math.min(opts.length, parseInt(a, 10) || 1));
-        let ch = opts[n - 1].choice;
+        const picked = await menu(`${pretty(String(me.details || '').split(',')[0])} — what do you do?`, opts);
+        let ch = picked.choice;
         /* Doubles needs a target for a single-target move, and getting this wrong is the difference
          * between hitting the thing you meant and the thing beside it. */
         if (/^move /.test(ch)) {
           const mv = (act.moves || [])[parseInt(ch.split(' ')[1], 10) - 1];
           if (mv && ['normal', 'any', 'adjacentFoe'].includes(mv.target)) {
-            console.log(`   aim at:  ${C.b}1${C.r}. left foe   ${C.b}2${C.r}. right foe`);
-            const t = await askOpt('   > ');
-            ch += ' ' + (String(t).trim() === '2' ? '2' : '1');
+            const t = await menu('aim at', [
+              { label: 'left foe', choice: '1' },
+              { label: 'right foe', choice: '2' },
+            ]);
+            ch += ' ' + t.choice;
           }
         }
         choices.push(ch);
@@ -213,8 +268,25 @@ const hpOf = p => {
   if (teams.length < 2) { console.error('need clean teams; run the ingest first'); process.exit(1); }
   /* realTeams returns {six, sets} objects, not lists of sets. Picked from the seed alone so
    * `--seed N` replays the same matchup — the whole point of being able to report a bad turn. */
-  const idx = (n) => Math.abs((SEED * 2654435761 + n * 40503) | 0) % teams.length;
-  const mine = teams[idx(1)], theirs = teams[idx(2)];
+  const idx = (n, pool) => Math.abs((SEED * 2654435761 + n * 40503) | 0) % pool.length;
+
+  /* --vs <species>  give MAG a team that actually runs the thing you want to play against.
+   *
+   * Drawn from the SAME clean pool, just filtered -- so it is still a real team somebody laddered
+   * with, not one invented to make a point. If nothing in the pool has it, that is itself worth
+   * knowing and is said out loud rather than silently falling back. */
+  const VS = String(arg('vs', '')).toLowerCase().replace(/[^a-z0-9]/g, '');
+  let theirPool = teams;
+  if (VS) {
+    const hits = teams.filter(t => (t.six || []).some(sp => String(sp).toLowerCase().replace(/[^a-z0-9]/g, '') === VS));
+    if (!hits.length) {
+      console.error(`no clean team in the pool runs "${VS}" — it may not be played in this format.`);
+      process.exit(1);
+    }
+    theirPool = hits;
+    console.log(`${C.dim}MAG drawn from ${hits.length} real teams that run ${pretty(VS)}${C.r}`);
+  }
+  const mine = teams[idx(1, teams)], theirs = theirPool[idx(2, theirPool)];
 
   /* --team <pokepaste.txt> — bring your own six.
    *
@@ -245,11 +317,20 @@ const hpOf = p => {
   you.peek = () => showThoughts(bot, seenThoughts);
   you.start(); bot.start();
 
-  console.log(`${C.b}ABRA — you vs MAG${C.r}   ${C.dim}seed ${SEED}${C.r}`);
+  /* THE SEED, ALONE ON ITS OWN LINE AND WITHOUT COLOUR CODES AROUND THE DIGITS.
+   *
+   * Reporting a bad turn means quoting the seed, and a seed buried in a decorated header is fiddly
+   * to grab. A bare number delimited by spaces is one double-click in every terminal. Printed again
+   * when the game ends, because that is when you know whether it was worth keeping. */
+  console.log(`${C.b}ABRA — you vs MAG${C.r}`);
+  console.log(`${C.dim}seed${C.r}  ${SEED}`);
   console.log(`${C.dim}engine ${CS.PINNED_COMMIT.slice(0, 12)} · ${CS.FORMAT}`);
   console.log(`${C.dim}MAG: ${GREEDY ? 'takes its best move' : 'weighted roll over its scores'}, switching ${SWITCHING ? 'ON' : 'off'}${C.r}\n`);
   console.log(`${C.b}your six:${C.r}   ${myPacked ? '(from your paste)' : mine.six.map(pretty).join(', ')}`);
   console.log(`${C.b}MAG's six:${C.r}  ${theirs.six.map(pretty).join(', ')}\n`);
+  /* The team-preview menu shows this too and was rendering blank — the assignment got dropped in an
+   * edit, which reads as "MAG has no team" rather than as a missing variable. */
+  theirsSix = theirs.six.map(pretty);
 
   /* packTeam takes (six, setsBySpecies) and needs a per-call __seed, or every Incineroar comes out
    * byte-identical — the default-argument bug that flattened a 199,524-game corpus into one build
@@ -260,7 +341,13 @@ const hpOf = p => {
     `>player p2 ${JSON.stringify({ name: 'MAG', team: CS.packTeam(theirs.six, Object.assign({}, theirs.sets, { __seed: SEED * 2 + 2 })).packed })}\n`);
 
   for await (const chunk of streams.omniscient) {
-    if (/\|win\||\|tie\|/.test(chunk)) break;
+    if (/\|win\||\|tie\|/.test(chunk)) {
+      console.log(`
+${C.dim}replay this exact game:${C.r}`);
+      console.log(`node engine/play.js --seed ${SEED}${VS ? ' --vs ' + VS : ''}${GREEDY ? ' --greedy' : ''}${SWITCHING ? ' --switching' : ''}`);
+      console.log(`${C.dim}seed${C.r}  ${SEED}`);
+      break;
+    }
   }
   rl.close();
 })();
