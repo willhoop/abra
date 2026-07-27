@@ -82,6 +82,14 @@ const POLICY = arg('policy', 'random');
  * they are different objectives and only this one is the goal. Nothing in the project measured it
  * until now. */
 const POLICY2 = arg('policy2', '');
+/* --paired  play every matchup twice, once each way, on the same seed. The only honest way to
+ *           compare two policies: team difficulty cancels within the pair instead of averaging out.
+ * --format  which regulation to play. Defaults to the ladder format, but the Bo3 id carries
+ *           `Force Open Team Sheets`, and several of MAG's features READ THE SHEET -- the spread
+ *           distribution is narrowed by the opponent's revealed nature. Testing those in a
+ *           closed-sheet game measures them switched off. */
+const PAIRED = process.argv.includes('--paired');
+const FORMAT_ARG = arg('format', '');
 /* A weight file for the SECOND player only. This is what makes an exploitability search possible:
  * the challenger is MAG's own machinery with different numbers, so any win it manages is due to the
  * numbers rather than to a different kind of player. */
@@ -190,10 +198,33 @@ function realTeams() {
 function pickPolicy(name) {
   if (name === 'prior') return require('./prior_player.js').makePriorPlayer();
   if (name === 'score') return require('./magnemite.js').makeScoringPlayer();
+  /* score@<path> — MAG as it exists in ANOTHER CHECKOUT of this repository.
+   *
+   * Comparing two versions of a model by running each against a third opponent and subtracting the
+   * two win rates is a much weaker claim than it sounds: the intervals are wide, the third opponent
+   * may be bad enough to compress both, and nothing is seed-matched across the two runs. The only
+   * clean answer is to put the two versions on opposite sides of the SAME battle.
+   *
+   * That cannot be done with a weight file, because the feature LIST changes between versions and
+   * magnemite.js correctly refuses a vector that does not match. So the other version is loaded from
+   * its own tree, with its own board.js and its own weights, as a genuinely separate module.
+   *
+   *   git worktree add ../ABRA-old <commit>
+   *   node engine/mew.js --policy score --policy2 score@../ABRA-old
+   */
+  if (name.startsWith('score@')) {
+    const other = path.resolve(name.slice('score@'.length));
+    const mod = path.join(other, 'engine', 'magnemite.js');
+    if (!fs.existsSync(mod)) throw new Error(`no magnemite.js under ${other}`);
+    const made = require(mod).makeScoringPlayer();
+    process.stderr.write(`  policy score@${other}: ${require(path.join(other, 'engine', 'board.js')).FEATURES.length} features
+`);
+    return made;
+  }
   return simBits().RandomPlayerAI;
 }
 
-async function playOne(teamA, teamB, seed) {
+async function playOne(teamA, teamB, seed, forceSwap) {
   const { BattleStream, getPlayerStreams, RandomPlayerAI, Teams } = simBits();
   /* THE SETS MUST VARY BETWEEN GAMES, AND FOR 199,524 GAMES THEY DID NOT.
    *
@@ -294,7 +325,11 @@ async function playOne(teamA, teamB, seed) {
    * team B the higher. The team list is not in arbitrary order, so the seat correlates with which
    * team you are handed. Alternating cancels that, which is what the p1/p2 split in the head-to-head
    * output is there to verify — measured at 61.4% and 59.0%, a gap well inside noise. */
-  const swapped = !!(POLICY2 && (seed % 2 === 1));
+  /* WHICH POLICY SITS ON WHICH SIDE. Normally seed parity, which is fine when every game has its own
+   * seed. In --paired mode both halves of a pair share a seed on purpose, so parity would hand them
+   * the SAME assignment and the pair would prove nothing -- caught by a two-game run reporting
+   * "swapped" on both halves. The caller states it explicitly there. */
+  const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
   const optA = { seed: pseed(1), mega: MEGA_P };
   const optB = { seed: pseed(2), mega: MEGA_P };
@@ -306,7 +341,7 @@ async function playOne(teamA, teamB, seed) {
   p1.start(); p2.start();
 
   void streams.omniscient.write(
-    `>start ${JSON.stringify({ formatid: CS.FORMAT, seed: [seed & 0xffff, (seed >> 4) & 0xffff, (seed >> 8) & 0xffff, (seed >> 12) & 0xffff] })}\n` +
+    `>start ${JSON.stringify({ formatid: FORMAT_ARG || CS.FORMAT, seed: [seed & 0xffff, (seed >> 4) & 0xffff, (seed >> 8) & 0xffff, (seed >> 12) & 0xffff] })}\n` +
     `>player p1 ${JSON.stringify({ name: 'MEW-A', team: A.packed })}\n` +
     `>player p2 ${JSON.stringify({ name: 'MEW-B', team: B.packed })}`);
 
@@ -439,8 +474,10 @@ async function main() {
   async function worker() {
     while (jobs.length) {
       const i = jobs.shift();
-      const seed = SEED0 + i;
-      const k = ((i % TOTAL) * STRIDE + OFF) % TOTAL;
+      /* In paired mode consecutive indices are the SAME matchup on the same seed, played both ways. */
+      const gi = PAIRED ? (i >> 1) : i;
+      const seed = SEED0 + gi;
+      const k = ((gi % TOTAL) * STRIDE + OFF) % TOTAL;
       const [ai, bi] = pairForIndex(k);
       /* SIDES MUST BE SHUFFLED, OR THE ENUMERATION ITSELF CREATES A SIDE BIAS.
        *
@@ -460,10 +497,19 @@ async function main() {
        * see it.
        *
        * The swap is keyed to the seed, so it stays deterministic and reproducible. */
-      const swap = ((k * 2654435761) >>> 0) & 1;
+      /* PAIRED SIDES. Without this, side assignment is a hash and roughly half the games are
+       * swapped -- but every game has DIFFERENT teams, so a team-difficulty advantage does not
+       * cancel, it merely averages out with a great deal of noise. In `--paired` mode the same
+       * matchup and the same seed are played twice, once each way, so whatever edge the teams carry
+       * appears identically on both sides of the comparison and cancels exactly. It is the
+       * difference between an unpaired and a paired test, and it costs nothing but a second battle. */
+      /* In paired mode the TEAMS stay put and the POLICIES change sides -- that is the whole point.
+       * Swapping the teams instead would leave each bot facing a different opponent and cancel
+       * nothing, which is exactly what the first version of this did. */
+      const swap = PAIRED ? 0 : (((k * 2654435761) >>> 0) & 1);
       const a = teams[swap ? bi : ai], b = teams[swap ? ai : bi];
       let res = null;
-      try { res = await playOne(a, b, seed); } catch (e) { failed++; }
+      try { res = await playOne(a, b, seed, PAIRED ? (i & 1) : null); } catch (e) { failed++; }
       if (res && res.invalid) { POL.invalidTeam++; res = null; }
       done++;
       if (!res) { failed++; continue; }
@@ -478,7 +524,7 @@ async function main() {
       /* Provenance on every record. A self-play game that ever loses its label becomes
        * indistinguishable from a real one, and that is unrecoverable. */
       rec.source = 'selfplay';
-      rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: CS.FORMAT, policy: POLICY, seed };
+      rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: FORMAT_ARG || CS.FORMAT, policy: POLICY, seed };
       if (POLICY2) {
         /* Which POLICY won, not which side. `swapped` says where the challenger sat this battle. */
         const sw = res && res.swapped;
