@@ -302,6 +302,9 @@ function decisionsFor(g, tally) {
        * Helmet. Nobody's move, so they cannot ride on one, and before the store carried them every
        * replay in this project believed the board was more damaged than it was. */
       else if (e.t === 'hp' && side) { const m2 = board.slot(side, letter); if (m2 && e.hp != null) m2.hp = Math.max(0, e.hp / 100); }
+      /* Stat stages, absolute -- Intimidate, Snarl, Icy Wind, Swords Dance. Written as a whole set
+       * by the ingest rather than as a delta, so a dropped event cannot corrupt everything after it. */
+      else if (e.t === 'b' && side) { const m2 = board.slot(side, letter); if (m2 && e.b) m2.boosts = { ...e.b }; }
       else if (e.t === 'f' && side) { board.faint(side, letter); }
       else if (e.t === 'w' && e.field) { board.setWeather(e.field); }
       else if (e.t === 'fs' && e.field) {

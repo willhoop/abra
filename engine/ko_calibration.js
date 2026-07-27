@@ -151,6 +151,9 @@ for (const g of games) {
       }
       else if (e.t === 'f' && side) { const u = boardOf.slot(side, letter); if (u) u.fainted = true; }
       else if (e.t === 'hp' && side) { const u = boardOf.slot(side, letter); if (u && e.hp != null) u.hp = Math.max(0, e.hp / 100); }
+      /* Stat stages, absolute -- Intimidate, Snarl, Icy Wind, Swords Dance. Written as a whole set
+       * by the ingest rather than as a delta, so a dropped event cannot corrupt everything after it. */
+      else if (e.t === 'b' && side) { const u = boardOf.slot(side, letter); if (u && e.b) u.boosts = { ...e.b }; }
       else if (e.t === 'w') boardOf.setWeather(e.field);
       else if (e.t === 'fs') boardOf.startField(e.field, 5);
     }

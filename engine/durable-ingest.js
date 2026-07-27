@@ -53,7 +53,8 @@ function extract(id, uploadtime, text){
   const sets={};           // species -> {moves:Set, item, ability}
   const nick={};           // 'p1a'+nickname -> species     (for move/reveal attribution)
   const slotSp={};         // 'p1a' -> species currently active
-  const hp={};             // 'p1a' -> current HP % (0..100)
+  const hp={};
+  const boosts={};   // slot -> {atk,def,spa,spd,spe} stage, absolute             // 'p1a' -> current HP % (0..100)
   const turns=[];          // per-turn event stream
   let cur=null, lastMove=null, winner=null, forfeit=false;
   const sheets={p1:null,p2:null};   // open team sheets, when the format declares them
@@ -83,6 +84,9 @@ function extract(id, uploadtime, text){
       const known=nick[side+m[2]];
       const copied = known && known!==sp && baseForme(known)!==baseForme(sp);
       slotSp[slot]=sp; hp[slot]=m[4]?Math.round(100*+m[4]/+m[5]):100;
+      /* Stat stages belong to the POKEMON, not the slot, so anything switching in starts clean.
+         Getting this wrong would leave an Intimidate drop on the mon that replaced its victim. */
+      boosts[slot]={};
       if(!copied) nick[side+m[2]]=sp;
       touch(sp);
       if(!copied){
@@ -133,6 +137,36 @@ function extract(id, uploadtime, text){
       const slot=m[1], was=hp[slot]==null?100:hp[slot]; hp[slot]=0;
       if(!/\[from\]/.test(m[2]) && cur){ const e=[...cur.ev].reverse().find(x=>x.t==='m'); if(e){ e.dmg=Math.max(e.dmg,was); e.ko=true; e.tgthp=0; } }
       else if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:0});
+    }
+    /* ---- STAT STAGES ---------------------------------------------------------------------
+       Intimidate, Snarl, Icy Wind, Swords Dance, Tailwind's cousins. NONE of this was recorded,
+       so every replay in this project has believed every Pokemon on the field was sitting at
+       neutral for its entire life. The damage formula has always had the machinery to apply
+       stages (`boostMul`) and has always been handed zeros.
+
+       It is not a small effect and it is measured, not assumed: of MAGNEMITE's false "guaranteed
+       kill" calls, 8.8% had an Intimidate on the field cutting the physical damage by a third.
+       Intimidate is the most common ability in this format.
+
+       ABSOLUTE, NOT A DELTA -- the lesson the HP bug taught. The running stage per stat is kept
+       here and the FULL set is written onto the event, so a consumer never has to add anything up
+       and a missed line cannot corrupt everything after it. */
+    else if(m=l.match(/^\|-(boost|unboost|setboost)\|(p[12][ab])[^|]*\|([a-z]+)\|(-?\d+)/)){
+      const kind=m[1], slot=m[2], st=m[3], n=+m[4];
+      const b=boosts[slot]||(boosts[slot]={});
+      if(kind==='setboost') b[st]=n;
+      else b[st]=Math.max(-6,Math.min(6,(b[st]||0)+(kind==='unboost'?-n:n)));
+      if(cur) cur.ev.push({t:'b',s:slot,mon:slotSp[slot],b:{...b}});
+    }
+    else if(m=l.match(/^\|-(clearboost|clearnegativeboost|clearallboost)\|?(p[12][ab])?/)){
+      if(m[1]==='clearallboost'){ for(const k of Object.keys(boosts)) boosts[k]={};
+        if(cur) for(const k of Object.keys(slotSp)) cur.ev.push({t:'b',s:k,mon:slotSp[k],b:{}}); }
+      else if(m[2]){
+        const b=boosts[m[2]]||(boosts[m[2]]={});
+        if(m[1]==='clearnegativeboost'){ for(const k of Object.keys(b)) if(b[k]<0) delete b[k]; }
+        else boosts[m[2]]={};
+        if(cur) cur.ev.push({t:'b',s:m[2],mon:slotSp[m[2]],b:{...(boosts[m[2]]||{})}});
+      }
     }
     else if(m=l.match(/^\|faint\|(p[12][ab])/)){ if(cur) cur.ev.push({t:'f',s:m[1],mon:slotSp[m[1]]}); }
     else if(m=l.match(/^\|-heal\|(p[12][ab])[^|]*\|(\d+)\/(\d+)/)){

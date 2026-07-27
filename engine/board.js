@@ -145,6 +145,17 @@ const FEATURES = [
    * choice, and it will stay until the ingest records them. */
   'volatileOnFoe',   // it takes an option away from the target (Taunt, Encore, Disable)
   'volatileOnSelf',  // it puts something on me or my side (Substitute, Follow Me, Rage Powder)
+  /* ---- STAT STAGES ------------------------------------------------------------------------------
+   * Intimidate, Snarl, Icy Wind, Swords Dance. The stages now reach the damage estimate, so their
+   * effect on how hard a move hits is already inside dmgFrac and koTarget. These four are the
+   * separate question of whether a stage is worth CHASING or worth AVOIDING, which is a judgement
+   * and therefore fitted rather than written down.
+   *
+   * `move.boosts` and `move.self.boosts` are dex data fields, so no move is named here either. */
+  'myOffenseStage',  // how boosted the stat I am attacking with already is
+  'tgtDefenseStage', // how boosted the defence I am attacking into already is
+  'movesBoostMe',    // this move raises one of my own stats
+  'movesLowerFoe',   // this move lowers one of the target's stats
   /* ---- STATUS THAT ACTUALLY BITES ---------------------------------------------------------------
    * Burn halves physical Attack. That is a rule of the game, not an opinion, which is why it is
    * allowed in here -- and it is the whole reason Will-O-Wisp into a special attacker is a wasted
@@ -263,6 +274,11 @@ class Board {
        * good for, the tgtHurt feature. */
       fainted: false,
       status: '',
+      /* STAT STAGES, absolute, cleared here because a boost belongs to the POKEMON and not to the
+       * slot -- leaving them would put an Intimidate drop on the mon that replaced its victim.
+       * Keys are the protocol's (atk/def/spa/spd/spe); the damage formula's own keys are different
+       * and the translation happens at exactly one place, in dmgMon. */
+      boosts: {},
       /* TURNS ACTIVE — and the FAKE OUT note promised in the header.
        *
        * Fake Out, First Impression and Mat Block work only on the turn the user came out, and that
@@ -354,6 +370,14 @@ function dmgMon(mon, D) {
    * status, because a burn halves physical damage and that is a fact the formula already handles. */
   if (typeof mon.hp === 'number') b.curHP = Math.max(0, Math.round(b.st.hp * mon.hp));
   if (mon.status) b.status = norm(mon.status);
+  /* THE STAGES, TRANSLATED ONCE. dmgRange has always had boostMul and has always been handed zeros,
+   * so an Intimidated attacker hit as hard as a fresh one -- worth a third of its physical damage,
+   * and 8.8% of MAG's false "guaranteed kill" calls had an Intimidate sitting on the field. */
+  const BK = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
+  for (const [proto, mine] of Object.entries(BK)) {
+    const v = mon.boosts && mon.boosts[proto];
+    if (v) b.boosts[mine] = Math.max(-6, Math.min(6, v));
+  }
   return b;
 }
 
@@ -564,6 +588,22 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   const acc = (m.accuracy === true || m.accuracy == null) ? 1 : Math.max(0, Math.min(1, m.accuracy / 100));
   set('accuracy', acc);
   set('priority', Math.max(-1, Math.min(1, (m.priority || 0) / 3)));   // dex field, scaled
+
+  /* Scaled by the 6-stage maximum the game itself allows, so the number is a share of the range
+   * rather than a raw count and nothing here is a constant chosen by me. */
+  {
+    const ub2 = mySelf => mySelf;
+    const off = m.category === 'Physical' ? 'atk' : 'spa';
+    const def = m.category === 'Physical' ? 'def' : 'spd';
+    if (damaging) {
+      set('myOffenseStage', ((user.boosts && user.boosts[off]) || 0) / 6);
+      const dl = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+      if (dl.length) set('tgtDefenseStage', dl.reduce((a, h) => a + ((h.boosts && h.boosts[def]) || 0), 0) / dl.length / 6);
+    }
+    const selfB = (m.self && m.self.boosts) || (SELF_TARGETS.has(m.target) ? m.boosts : null);
+    if (selfB && Object.values(selfB).some(v => v > 0)) set('movesBoostMe', 1);
+    if (m.boosts && !SELF_TARGETS.has(m.target) && Object.values(m.boosts).some(v => v < 0)) set('movesLowerFoe', 1);
+  }
 
   /* A volatile aimed at the opponent removes an option from them; aimed at yourself it adds one to
    * you. `move.target` is the dex's own field, so neither branch names a move. */
