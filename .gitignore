@@ -45,3 +45,10 @@ data/.mew-shards/
 # swept into the repo by the auto-commit watcher (3a2514a, "auto: Sat 07/25/2026") and then showed
 # up as a spurious deletion on the next PDF rebuild. It is a build temp; it is not an artifact.
 docs/*.print.html
+
+# Head-to-head experiment outputs. Large, regenerable from the seed recorded in every record,
+# and not a durable store -- the ladder and bo3 archives are the things worth keeping.
+data/h2h-*.jsonl
+data/games.h2h*.jsonl
+data/games.magtest*.jsonl
+data/games.pair*.jsonl

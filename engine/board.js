@@ -22,13 +22,22 @@
  * wrong in a way no test would catch. That is why FEATURES is a single exported list and why both
  * adapters end up in the same `featuresFor` call.
  *
- * NOTHING HERE IS A RULE ABOUT POKEMON (S13).
+ * ALMOST NOTHING HERE IS A RULE ABOUT POKEMON (S13) — AND THE WORD "ALMOST" IS NEW.
  * Every "this move cannot work right now" test reads a DATA FIELD off the Showdown dex —
  * `move.status`, `move.sideCondition`, `move.pseudoWeather`, `move.weather`, `move.stallingMove` —
- * and compares it to tracked state. There is no list of moves anywhere in this file. A move added by
- * a future regulation is handled without an edit, and a move whose failure condition is expressed as
- * code rather than data (Fake Out is the notable one) is simply NOT covered here, deliberately,
- * rather than covered by a hand-written special case. See the FAKE OUT note on turnsActive below.
+ * and compares it to tracked state. Where a rule lives in a HANDLER rather than a field, the handler
+ * is CALLED with a stub of the board (see moveType, moveAccuracy, chargeTurns, effectivePriority),
+ * so Weather Ball's retyping, Blizzard's accuracy in snow, Solar Beam firing at once in sun and Gale
+ * Wings' full-health condition are all read from Showdown rather than restated here.
+ *
+ * This header used to claim there was NO list of moves in this file. One evening of adding features
+ * made that false — 18 distinct Pokemon names appeared in the code. Most were derivable and are now
+ * derived (see `derived()`); the rest are collected in GAME_RULES, in one place, each with the
+ * reason it cannot be read from data. A claim that quietly stops being true is worse than a rule
+ * that was always visible, so the exceptions are declared rather than the claim repeated.
+ *
+ * A move whose failure condition is expressed as code with no probeable handler (Fake Out is the
+ * notable one) is still simply NOT covered, deliberately. See the FAKE OUT note on turnsActive.
  */
 'use strict';
 
@@ -318,8 +327,8 @@ function jointFeaturesFor(A, B, xa, xb) {
   /* SPEED SET UP FOR SOMEONE ELSE. Tailwind on a Prankster user resolves before the partner acts, so
    * the partner's Earthquake lands first this turn rather than next -- but only if it was moving
    * second to begin with, which is what makes this a fact about the pair. */
-  const speedSets = c => c && c.move && (norm(c.move.sideCondition || '') === 'tailwind' ||
-    fieldKey(c.move) === 'trickroom');
+  const speedSets = c => c && c.move && ((DERIVED && DERIVED.speedSide.has(norm(c.move.sideCondition || ''))) ||
+    fieldKey(c.move) === GAME_RULES.trickRoomField);
   if ((speedSets(A) && F(xb, 'movesFirst') < 1) || (speedSets(B) && F(xa, 'movesFirst') < 1)) {
     set('speedSetupHelpsPartner', 1);
   }
@@ -327,7 +336,7 @@ function jointFeaturesFor(A, B, xa, xb) {
    * data field, and what the weather does to damage is already in the formula -- what neither half
    * can say is that the setter and the beneficiary are the SAME TURN's pair. Only counted when the
    * weather is not already up, since setting it again changes nothing. */
-  const WX_HELPS = { raindance: 'water', primordialsea: 'water', sunnyday: 'fire', desolateland: 'fire' };
+  const WX_HELPS = GAME_RULES.weatherBoost;
   const setsWx = c => (c && c.move && norm(c.move.weather || '')) || '';
   const partnerType = c => (c && c.move ? norm(c.move.type || '') : '');
   for (const [setter, other] of [[A, B], [B, A]]) {
@@ -361,7 +370,7 @@ function jointFeaturesFor(A, B, xa, xb) {
 
   /* Terrain is the other half of the weather idea: Electric Terrain for an Electric move, Grassy for
    * Grass, Psychic for Psychic. `move.terrain` is a data field and the type match is the type chart. */
-  const TERRAIN_HELPS = { electricterrain: 'electric', grassyterrain: 'grass', psychicterrain: 'psychic' };
+  const TERRAIN_HELPS = GAME_RULES.terrainBoost;
   for (const [setter, other] of [[A, B], [B, A]]) {
     const t2 = setter && setter.move && norm(setter.move.terrain || '');
     if (t2 && TERRAIN_HELPS[t2] && other && other.move && norm(other.move.type || '') === TERRAIN_HELPS[t2]) {
@@ -370,7 +379,7 @@ function jointFeaturesFor(A, B, xa, xb) {
   }
 
   /* A screen halves what comes in, so it is worth most on the turn the partner cannot survive. */
-  const screens = c => c && c.move && /reflect|lightscreen|auroraveil/.test(norm(c.move.sideCondition || ''));
+  const screens = c => c && c.move && DERIVED && DERIVED.screens.has(norm(c.move.sideCondition || ''));
   if ((screens(A) && (F(xb, 'diesBeforeMoving') > 0 || F(xb, 'protectThreatened') > 0)) ||
       (screens(B) && (F(xa, 'diesBeforeMoving') > 0 || F(xa, 'protectThreatened') > 0))) set('screenWhileThreatened', 1);
 
@@ -722,10 +731,10 @@ function unmodelledAbilityMult(m, attacker, target, targetAlly) {
     return 0;
   };
   let mult = 1;
-  const fg = odds(targetAlly, 'friendguard');
+  const fg = odds(targetAlly, GAME_RULES.unmodelledAbilities.friendGuard);
   if (fg) mult *= (1 - fg) + fg * 0.75;
   if (m && m.flags && m.flags.slicing) {
-    const sh = odds(attacker, 'sharpness');
+    const sh = odds(attacker, GAME_RULES.unmodelledAbilities.sharpness);
     if (sh) mult *= (1 - sh) + sh * 1.5;
   }
   return mult;
@@ -776,6 +785,84 @@ function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) 
   if (!r || !def.st || !def.st.hp) return null;
   return { min: r.min / def.st.hp, max: r.max / def.st.hp, mean: (r.min + r.max) / 2 / def.st.hp };
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * DERIVED FROM THE DEX, NOT TYPED
+ *
+ * This file's header claims there is no list of moves in it. Over one evening of adding features
+ * that claim became FALSE: 18 distinct Pokemon names appeared in the code, most of them mine. These
+ * three sets put the derivable ones back where they belong.
+ *
+ *   speed side conditions  the only one with an onModifySpe handler is Tailwind, and the handler is
+ *                          CALLED for the multiplier rather than 2 being written down
+ *   screens                the side conditions that modify incoming damage: Reflect, Light Screen,
+ *                          Aurora Veil. Typing the first two missed the third
+ *   the Protect family     `stallingMove` gives Protect, Detect, Endure, Spiky Shield, King's Shield
+ *                          and Baneful Bunker. The Protect-odds table was keyed on the NAME
+ *                          "protect" alone and silently scored the other five at zero
+ *
+ * What remains typed is listed in GAME_RULES below, with the reason each cannot be read from data.
+ * ------------------------------------------------------------------------------------------- */
+/* Module-level handles, because two consumers cannot reach the dex: jointFeaturesFor is handed two
+ * already-computed vectors, and protectOdds reads a usage file. Both are filled the first time
+ * derived() runs, which featuresFor guarantees before either is used. */
+let DERIVED = null, STALL = null;
+let _derived = null;
+function derived(dex) {
+  if (_derived) return _derived;
+  const speedSide = new Map();   // sideCondition id -> multiplier
+  const screens = new Set();
+  const stalling = new Set();
+  for (const m of dex.moves.all()) {
+    if (!m || !m.exists || m.isNonstandard) continue;
+    if (m.stallingMove) stalling.add(norm(m.id));
+    if (!m.sideCondition) continue;
+    const id = norm(m.sideCondition);
+    const c = dex.conditions.get(m.sideCondition);
+    if (!c || !c.exists) continue;
+    if (typeof c.onModifySpe === 'function' && !speedSide.has(id)) {
+      /* Ask the handler what it does to a speed of 100 rather than assuming it doubles. */
+      let mult = 2;
+      try {
+        const got = c.onModifySpe.call({}, 100, { side: {}, hasAbility: () => false });
+        if (typeof got === 'number' && got > 0) mult = got / 100;
+      } catch (e) { /* keep the fallback */ }
+      speedSide.set(id, mult);
+    }
+    if (typeof c.onAnyModifyDamage === 'function' || typeof c.onAnyModifyDamagePhase1 === 'function' ||
+        typeof c.onAnyModifyDamagePhase2 === 'function') screens.add(id);
+  }
+  _derived = { speedSide, screens, stalling };
+  DERIVED = _derived; STALL = stalling;
+  return _derived;
+}
+
+/* THE IRREDUCIBLE RULES, IN ONE PLACE AND DECLARED.
+ *
+ * Each of these is a rule of Pokemon that Showdown expresses as procedural code rather than as a
+ * data field, so there is nothing to read and nothing to probe. They are written here, together,
+ * with the reason -- rather than scattered through the file where they look like ordinary code.
+ * If one is wrong it is wrong in exactly one visible place. */
+const GAME_RULES = {
+  /* Trick Room reverses the speed order. Its condition exposes only onFieldStart/onFieldEnd; the
+   * reversal lives in the battle's action sort, which cannot be called without a battle. */
+  trickRoomField: 'trickroom',
+  /* Sun boosts Fire and rain boosts Water. Implemented in battle-actions' damage chain. */
+  weatherBoost: { sunnyday: 'fire', desolateland: 'fire', raindance: 'water', primordialsea: 'water' },
+  /* Terrain boosts its own type for a grounded user. Same place. */
+  terrainBoost: { electricterrain: 'electric', grassyterrain: 'grass', psychicterrain: 'psychic' },
+  /* Burn halves physical Attack; paralysis quarters Speed. Status effects, applied in the formula. */
+  statusHitsStat: { brn: 'physical', par: 'speed' },
+  /* A Prankster-boosted status move fails against a Dark type. Enforced in battle-actions, not in
+   * the ability's own handler, so probing Prankster cannot reveal it. */
+  pranksterFailsType: 'dark',
+  /* Two damage-affecting abilities the validated formula does not implement. Chosen by AUDIT -- they
+   * are the two largest gaps by usage share in this format (0.87% and 0.44%), not by taste. */
+  unmodelledAbilities: { friendGuard: 'friendguard', sharpness: 'sharpness' },
+  /* Survives any single hit from full health. Focus Sash's onDamage is not distinguishable from
+   * other damage-reducing items by shape alone. It is the most-held item in the format at 12.4%. */
+  survivesFromFull: 'focussash',
+};
 
 /* WHAT IS AIMED AT ME. For each living foe, the hardest its usage-listed moves could hit this
  * Pokemon, as a share of my maximum hp.
@@ -848,12 +935,24 @@ function protectOdds(species) {
           /* stallingMove is the flag, not the name -- but move-priors stores names, so the family is
            * matched on the dex's own flag at build time where the dex is available. Here the id is
            * all there is, and Protect is the only member with meaningful usage in this format. */
-          if (norm(mv.mv) === 'protect') _protP[norm(sp)] = +mv.p || 0;
+          /* EVERY stalling move, not the one called "protect". Detect, Endure, Spiky Shield,
+           * King's Shield and Baneful Bunker all block, and keying on the name scored all five at
+           * zero -- so a Toxapex clicking Baneful Bunker looked like a target that never blocks. */
+          if (STALL && STALL.has(norm(mv.mv))) _protP[norm(sp)] = (_protP[norm(sp)] || 0) + (+mv.p || 0);
         }
       }
     } catch (e) { /* absent priors leave every species at 0, which is the old behaviour */ }
   }
   return _protP[norm(species)] || _protP[baseSpecies(species)] || 0;
+}
+
+/* The multiplier a side's speed-affecting conditions apply right now. Derived, so a future
+ * regulation adding another Tailwind is handled without an edit. */
+function speedMult(board, side, dex) {
+  const d = derived(dex);
+  let mult = 1;
+  for (const [id, m] of d.speedSide) if (board.hasSide(side, id)) mult *= m;
+  return mult;
 }
 
 let _blocks = null, _abil = null, _sash = null;
@@ -871,7 +970,7 @@ function abilityTables() {
      * same usage file. It survives any single hit from full health at 1 HP, which means a "guaranteed
      * kill" on a healthy target is simply not guaranteed, and MAG had no way to know that. The odds
      * are per species and public, exactly like the ability odds beside them. */
-    if (v && v.items) for (const it of v.items) if (norm(it.item) === 'focussash') _sash[norm(k)] = (+it.pct || 0) / 100;
+    if (v && v.items) for (const it of v.items) if (norm(it.item) === GAME_RULES.survivesFromFull) _sash[norm(k)] = (+it.pct || 0) / 100;
   }
   return { blocks: _blocks, abil: _abil, sash: _sash };
 }
@@ -1163,6 +1262,7 @@ function noteMove(board, side, user, move, worked) {
 }
 
 function featuresFor(cand, user, board, side, dex, priorP) {
+  derived(dex);        // fills DERIVED / STALL before anything downstream reads them
   /* A SWITCH SHARES NO FEATURE WITH A MOVE, so it returns early rather than running the move code
    * with a null move. Every move feature stays at zero, which is correct and not a gap: they are all
    * statements about a move that is not being used. */
@@ -1198,7 +1298,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       let darkShare = 0;
       for (const h of aimed) {
         const hs = dex.species.get(h.species);
-        if (hs && hs.exists && (hs.types || []).map(norm).includes('dark')) darkShare++;
+        if (hs && hs.exists && (hs.types || []).map(norm).includes(GAME_RULES.pranksterFailsType)) darkShare++;
       }
       if (aimed.length && darkShare) {
         const p = pPrank * (darkShare / aimed.length);
@@ -1297,9 +1397,9 @@ function featuresFor(cand, user, board, side, dex, priorP) {
        * are base lines -- the exact spread is hidden -- so this is the order two informed players
        * would both expect, not a claim about the actual stat. */
       const foeSide = side === 'p1' ? 'p2' : 'p1';
-      const mySpe = ub.spe * (board.hasSide(side, 'tailwind') ? 2 : 1);
-      const thSpe = tb.spe * (board.hasSide(foeSide, 'tailwind') ? 2 : 1);
-      const slowFirst = board.hasField('trickroom');
+      const mySpe = ub.spe * speedMult(board, side, dex);
+      const thSpe = tb.spe * speedMult(board, foeSide, dex);
+      const slowFirst = board.hasField(GAME_RULES.trickRoomField);
       /* PRANKSTER, WHICH IS MY OWN ABILITY AND WAS INVISIBLE.
        *
        * This file already computed P(the user has Prankster) -- but only to ask whether Armor Tail
@@ -1319,8 +1419,9 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       /* Burn cuts Attack, so it bites a physical target and is close to wasted on a special one.
        * Paralysis cuts Speed, so it bites hardest on something that currently outruns me. Read off
        * `move.status`, a dex data field -- there is no move named here either. */
-      if (m.status === 'brn') set('statusBites', physShare);
-      else if (m.status === 'par') set('statusBites', ub.spe < tb.spe ? 1 : 0);
+      const bites = GAME_RULES.statusHitsStat[norm(m.status || '')];
+      if (bites === 'physical') set('statusBites', physShare);
+      else if (bites === 'speed') set('statusBites', ub.spe < tb.spe ? 1 : 0);
       /* Which of the target's defences my move actually attacks, relative to its other one. A
        * physical move into a target whose Defence is far below its Special Defence scores high. */
       if (!damaging) { /* status moves have no attacking side */ }
@@ -1400,9 +1501,10 @@ function featuresFor(cand, user, board, side, dex, priorP) {
             if ((threat.get(h) || 0) >= myLeft) killsThreatening = 1;
             const hSp2 = dex.species.get(h.species);
             const hSpe = ((hSp2 && hSp2.exists && hSp2.baseStats && hSp2.baseStats.spe) || 0) *
-                         (board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 2 : 1);
-            const mine = uSpe * (board.hasSide(side, 'tailwind') ? 2 : 1);
-            const first = (m.priority || 0) > 0 || (board.hasField('trickroom') ? mine < hSpe : mine > hSpe);
+                         speedMult(board, side === 'p1' ? 'p2' : 'p1', dex);
+            const mine = uSpe * speedMult(board, side, dex);
+            const first = (m.priority || 0) > 0 ||
+              (board.hasField(GAME_RULES.trickRoomField) ? mine < hSpe : mine > hSpe);
             if (first) killsFirst = 1;
           }
         }
@@ -1569,17 +1671,17 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
    * under Trick Room, exactly as movesFirst does -- one definition of the queue, not two. */
   const inSp = dex.species.get(cand.switchTo);
   const mySpe = ((inSp && inSp.exists && inSp.baseStats && inSp.baseStats.spe) || 0) *
-                (board.hasSide(side, 'tailwind') ? 2 : 1);
+                speedMult(board, side, dex);
   const foeSide = side === 'p1' ? 'p2' : 'p1';
   let fastest = 0;
   for (const f of board.field()) {
     if (f.side === side || !f.mon || f.mon.fainted) continue;
     const fs2 = dex.species.get(f.mon.species);
     const s2 = ((fs2 && fs2.exists && fs2.baseStats && fs2.baseStats.spe) || 0) *
-               (board.hasSide(foeSide, 'tailwind') ? 2 : 1);
+               speedMult(board, foeSide, dex);
     if (s2 > fastest) fastest = s2;
   }
-  const slowFirst = board.hasField('trickroom');
+  const slowFirst = board.hasField(GAME_RULES.trickRoomField);
   set('switchFaster', (slowFirst ? mySpe < fastest : mySpe > fastest) ? 1 : 0);
   return x;
 }

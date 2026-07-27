@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-26T23:02:53.075Z",
+ "generated": "2026-07-27T02:10:52.662Z",
  "by": "engine/conformance.js",
- "files": 133,
+ "files": 141,
  "findings": [
   {
    "std": "convention",
@@ -22,10 +22,28 @@
    "why": "every file states why it exists"
   },
   {
+   "std": "S12",
+   "file": "engine/corpus_shift.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/dynamics.js",
+   "what": "names 8 Pokemon thing(s) in code: move:fakeout, move:followme, move:ragepowder, move:protect, move:detect, ...",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
    "std": "convention",
    "file": "engine/game-spec.js",
    "what": "no opening comment",
    "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "engine/game-spec.js",
+   "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:trickroom",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
    "std": "convention",
@@ -46,10 +64,76 @@
    "why": "every file states why it exists"
   },
   {
+   "std": "S12",
+   "file": "engine/ko_calibration.js",
+   "what": "names 7 Pokemon thing(s) in code: move:protect, move:followme, move:ragepowder, move:reflect, move:lightscreen, ...",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/medicham.js",
+   "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/medicham2-browser.js",
+   "what": "names 18 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:ragepowder, ...",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/moves-meta.js",
+   "what": "names 7 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect, move:detect, move:followme, ...",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/playstyle.js",
+   "what": "names 1 Pokemon thing(s) in code: move:tailwind",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/selftest.js",
+   "what": "names 4 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, item:choicescarf",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/sets.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/set_priors.js",
+   "what": "names 5 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, move:trickroom, move:fakeout",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/validate_damage.js",
+   "what": "names 1 Pokemon thing(s) in code: move:earthquake",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/validate_selfplay.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
    "std": "convention",
    "file": "build/archive-regulation.js",
    "what": "no opening comment",
    "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "build/build_mag_data.js",
+   "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
    "std": "convention",

@@ -107,7 +107,10 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(2);
 }
 
-const per = Math.ceil(N / PROCS);
+let per = Math.ceil(N / PROCS);
+/* Paired runs must hand each worker an EVEN count, or the last matchup of every block comes back
+ * as half a pair and is discarded -- 12 workers would silently lose 12 pairs. */
+if (process.argv.includes('--paired') && (per % 2)) per++;
 
 /* Refuse to run past the 28-bit ceiling rather than wrap into battles already generated. A silent
  * wrap would produce exact duplicates carrying fresh ids, which is the one corruption a duplicate-id
@@ -147,6 +150,17 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
   shards.push(shard);
   try { fs.unlinkSync(shard); } catch (e) { /* fresh */ }
   /* Each worker owns seed block [SEED0 + i*per, SEED0 + (i+1)*per), so blocks cannot overlap. */
+  /* PASS THE REST THROUGH. The worker command was a fixed list, so a head-to-head (--policy2), a
+   * different regulation (--format) or a paired run (--paired) could not be farmed at all -- they
+   * had to go through a single process at roughly a fifth of the throughput, which is exactly what
+   * happened on the first 20,000-game comparison. Forwarded rather than re-declared, so a flag added
+   * to mew.js is farmable without touching this file. */
+  const extra = [];
+  for (const k of ['policy2', 'format', 'weights', 'weights2']) {
+    const v = arg(k, '');
+    if (v) extra.push('--' + k, v);
+  }
+  if (process.argv.includes('--paired')) extra.push('--paired');
   const child = spawn(process.execPath, [
     D('engine', 'mew.js'),
     '--n', String(per),
@@ -154,6 +168,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
     '--policy', POLICY,
     '--seed', String(SEED0 + i * per),
     '--out', shard,
+    ...extra,
   ], { env: process.env, stdio: ['ignore', 'ignore', 'pipe'] });
 
   let tail = '';

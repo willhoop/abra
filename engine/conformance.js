@@ -116,6 +116,44 @@ function checkHardcodes(f, srcRaw) {
       break;                                           // one finding per file is enough to act on
     }
   }
+  checkNamedPokemon(f, src);
+}
+
+/* S12b — A NAMED MOVE, ABILITY OR ITEM IS A HARDCODE TOO, AND NOTHING CHECKED FOR ONE.
+ *
+ * This tool only ever looked for the format id. It passed engine/board.js on a full review, and
+ * hours later that file held EIGHTEEN typed Pokemon names, most added the same evening, in a file
+ * whose own header said "there is no list of moves anywhere in this file".
+ *
+ * It was not cosmetic. The Protect-odds table keyed on the name "protect", so Toxapex -- whose only
+ * stalling move is Baneful Bunker, on 28% of its sets -- scored as a target that NEVER blocks. And
+ * Protect is 46% of every false kill call this model makes, so the typed name fed straight into the
+ * largest measured error in the project.
+ *
+ * The rule is not "never name anything". Some rules genuinely live in Showdown's procedural code and
+ * cannot be read from data -- Trick Room reversing the speed order is one. Those belong in ONE
+ * declared block, and a file that has one is exempt: the point is that the exceptions are visible
+ * and counted, not that they do not exist. */
+const NAMED = [
+  ['move', /\b(protect|detect|endure|tailwind|trickroom|reflect|lightscreen|auroraveil|followme|ragepowder|helpinghand|fakeout|solarbeam|electroshot|blizzard|earthquake|uturn|quash)\b/],
+  ['ability', /\b(prankster|galewings|friendguard|sharpness|intimidate|levitate|flashfire|lightningrod|telepathy|technician)\b/],
+  ['item', /\b(focussash|choicescarf|choiceband|lifeorb|assaultvest|leftovers|sitrusberry)\b/],
+];
+function checkNamedPokemon(f, src) {
+  const rel = String(f.rel).split('\\').join('/');
+  if (!/^(engine|build)\//.test(rel) || !/\.js$/.test(rel)) return;
+  /* A file that declares its exceptions in one place has already done the work. */
+  if (/GAME_RULES\s*=/.test(src)) return;
+  const found = new Set();
+  for (const [kind, re] of NAMED) {
+    const g = new RegExp(re.source, 'g');
+    let m;
+    while ((m = g.exec(src))) found.add(kind + ':' + m[1]);
+  }
+  if (!found.size) return;
+  flag('S12', f.rel, `names ${found.size} Pokemon thing(s) in code: ${[...found].slice(0, 5).join(', ')}` +
+       (found.size > 5 ? ', ...' : ''),
+       'derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block');
 }
 
 /* ---------------------------------------------------------------------------------------------
