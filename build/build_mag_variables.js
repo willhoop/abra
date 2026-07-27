@@ -24,9 +24,11 @@ const doc = M.featDoc || {};
 const se = W.standardErrors || [];
 
 let np = {};
+let NPW = null;
 try {
   const NP = JSON.parse(fs.readFileSync(D('data', 'policy-weights-nopop.json'), 'utf8'));
   NP.features.forEach((f, i) => { np[f] = NP.weights[i]; });
+  NPW = NP;
 } catch (e) { np = null; }
 
 const rows = W.features.map((f, i) => ({
@@ -48,7 +50,33 @@ md += 'options that person had, and the weights are nudged until the option they
 md += 'out most likely. So every weight answers one question — **what makes a human more likely to click\n';
 md += 'this** — and never *what wins*.\n\n';
 md += '`ZERO` marks a weight whose 95% interval contains zero: the data cannot tell it from no effect.\n\n';
-if (np) md += 'The last column is the same fit with **popularity removed entirely** — the experiment that\nshowed the facts were being crowded out.\n\n';
+/* THE INTERPRETATION IS DERIVED, NOT TYPED.
+ *
+ * This line used to read "the experiment that showed the facts were being crowded out" — a hardcoded
+ * conclusion about a result that turned out to be an artifact. `DROP=` zeroed the feature on move rows
+ * only, not on voluntary-switch rows, so the no-popularity fit still contained popularity and handed it
+ * a confident −1.73 (SE 0.05). With the drop actually applied, removing popularity makes MAG WORSE at
+ * predicting human clicks. See CHANGELOG 3.23.0.
+ *
+ * A generated document that hardcodes what its own numbers mean is S13 with extra steps: the table
+ * refreshed on every refit and the sentence above it did not. The comparison is now read out of the two
+ * weight files, so the sentence cannot outlive the result it describes. */
+if (np) {
+  const acc = j => (j && j.heldOut && j.heldOut.boardAware) ? j.heldOut.boardAware.acc : null;
+  const a1 = acc(W), a2 = acc(NPW);
+  md += 'The last column is the same fit with **popularity removed entirely**.\n\n';
+  if (a1 != null && a2 != null) {
+    const d = 100 * (a2 - a1);
+    md += `On held-out human decisions the full model picks the option the person actually clicked ` +
+          `**${(100 * a1).toFixed(1)}%** of the time; without popularity, **${(100 * a2).toFixed(1)}%** — ` +
+          `${d >= 0 ? 'a gain' : '**a loss**'} of ${Math.abs(d).toFixed(1)} points.` +
+          (d < 0
+            ? ' So popularity carries real signal and is not crowding the board facts out. An earlier' +
+              ' version of this document asserted the opposite, from a fit whose `DROP=` reached only' +
+              ' half the corpus.\n\n'
+            : ' Both figures are read from the weight files, never typed here.\n\n');
+  }
+}
 
 for (const [g, list] of Object.entries(groups)) {
   md += `\n## ${g}\n\n`;
