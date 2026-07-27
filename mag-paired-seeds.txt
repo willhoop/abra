@@ -1,0 +1,2635 @@
+PAIRS WHERE ONE BOT WON BOTH SIDES
+
+Same two teams, same seed, sides switched. Winning BOTH is the only
+thing the teams cannot explain -- 69% of pairs split, and those say nothing.
+
+
+################################################################################
+NEW MAG WON BOTH SIDES  --  SEED 8313594
+################################################################################
+
+==============================================================================
+SIDES NORMAL   57 turns   WON BY NEW MAG
+  p1 NEW MAG : audino, incineroar, tyranitar, grimmsnarl
+  p2 OLD MAG : froslass, milotic, sinistcha, sneasler
+==============================================================================
+
+Turn 1
+   [OLD MAG] froslass used Thunderbolt on incineroar  (20%)
+   [OLD MAG] milotic used Recover  FAILED
+   [NEW MAG] incineroar used Flare Blitz on froslass  (100%, KO)
+   [OLD MAG] froslass FAINTED
+   [NEW MAG] audino used Simple Beam on milotic
+   [OLD MAG] sent in sinistcha
+
+Turn 2
+   [NEW MAG] incineroar used Protect on incineroar
+   [OLD MAG] milotic used Hypnosis on audino
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 3
+   [NEW MAG] incineroar used Parting Shot on sinistcha
+   [OLD MAG] sinistcha stats -> {"atk":-1}
+   [OLD MAG] sinistcha stats -> {"atk":-1,"spa":-1}
+   [NEW MAG] sent in tyranitar
+   weather: Sandstorm (Sand Stream)
+   [OLD MAG] milotic used Hypnosis on tyranitar  MISSED
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+
+Turn 4
+   [OLD MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] tyranitar used Knock Off on sinistcha  (59%)
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":1,"spa":2}
+   [OLD MAG] milotic stats -> {"atk":1,"spa":2,"def":2}
+   [OLD MAG] milotic stats -> {"atk":1,"spa":2,"def":2,"accuracy":2}
+   [NEW MAG] audino used Simple Beam on sinistcha
+
+Turn 5
+   [NEW MAG] tyranitar used Dragon Dance on tyranitar
+   [NEW MAG] tyranitar stats -> {"atk":1}
+   [NEW MAG] tyranitar stats -> {"atk":1,"spe":1}
+   [OLD MAG] milotic used Hypnosis on audino
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 6
+   [OLD MAG] milotic used Protect on milotic
+   [OLD MAG] sinistcha used Matcha Gotcha on audino  (37%)
+   [NEW MAG] tyranitar used Rock Slide on sinistcha  (33%)
+
+Turn 7
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] milotic used Protect  FAILED
+   [NEW MAG] audino used Simple Beam on sinistcha
+   [NEW MAG] tyranitar used Rock Slide on milotic  (20%)
+
+Turn 8
+   [NEW MAG] audino used Simple Beam  FAILED
+   [OLD MAG] sinistcha used Matcha Gotcha on audino  (31%)
+   [OLD MAG] milotic used Hypnosis on tyranitar
+
+Turn 9
+   [OLD MAG] milotic used Recover on milotic
+   [NEW MAG] tyranitar used Knock Off on sinistcha  (43%, KO)
+   [OLD MAG] sinistcha FAINTED
+   [NEW MAG] audino used Trick Room on audino
+   [OLD MAG] sent in sneasler
+
+Turn 10
+   [NEW MAG] tyranitar used Dragon Dance on tyranitar
+   [NEW MAG] tyranitar stats -> {"atk":2,"spe":1}
+   [NEW MAG] tyranitar stats -> {"atk":2,"spe":2}
+   [OLD MAG] sneasler used Close Combat on tyranitar  (45%, KO)
+   [OLD MAG] sneasler stats -> {"def":-1}
+   [OLD MAG] sneasler stats -> {"def":-1,"spd":-1}
+   [NEW MAG] tyranitar FAINTED
+   [OLD MAG] sneasler stats -> {}
+   [OLD MAG] milotic used Recover  FAILED
+   [NEW MAG] audino used Heal Pulse on sneasler  FAILED
+   [NEW MAG] sent in incineroar
+   [OLD MAG] sneasler stats -> {"atk":-1}
+   [OLD MAG] milotic stats -> {"atk":-1,"spa":2,"def":2,"accuracy":2}
+
+Turn 11
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] incineroar used Fake Out on sneasler  (18%)
+   [NEW MAG] audino used Heal Pulse on milotic
+
+Turn 12
+   [OLD MAG] sneasler used Close Combat on audino  (66%)
+   [OLD MAG] sneasler stats -> {"atk":-1,"def":-1}
+   [OLD MAG] sneasler stats -> {"atk":-1,"def":-1,"spd":-1}
+   [OLD MAG] milotic used Hypnosis on incineroar
+   [NEW MAG] audino used Trick Room on audino
+   field: Trick Room
+
+Turn 13
+   [NEW MAG] audino used Simple Beam on sneasler
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-3,"spa":2,"def":2,"accuracy":2}
+   [OLD MAG] milotic stats -> {"atk":-3,"spa":0,"def":2,"accuracy":2}
+   [NEW MAG] sent in grimmsnarl
+   [OLD MAG] milotic used Recover  FAILED
+   [OLD MAG] sneasler used Close Combat on audino  (18%, KO)
+   [OLD MAG] sneasler stats -> {"atk":-1,"def":-3,"spd":-1}
+   [OLD MAG] sneasler stats -> {"atk":-1,"def":-3,"spd":-3}
+   [NEW MAG] audino FAINTED
+   [NEW MAG] sent in incineroar
+   [OLD MAG] sneasler stats -> {"atk":-3,"def":-3,"spd":-3}
+   [OLD MAG] milotic stats -> {"atk":-5,"spa":0,"def":2,"accuracy":2}
+
+Turn 14
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [NEW MAG] incineroar used Flare Blitz on sneasler  (82%, KO)
+   [OLD MAG] sneasler FAINTED
+   [OLD MAG] milotic used Recover  FAILED
+
+Turn 15
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":0,"def":2,"accuracy":2}
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-2,"def":2,"accuracy":2}
+   [OLD MAG] milotic used Recover  FAILED
+
+Turn 16
+   [NEW MAG] incineroar used Protect on incineroar
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (12%)
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-4,"def":2,"accuracy":2}
+   [OLD MAG] milotic used Recover on milotic
+
+Turn 17
+   [NEW MAG] incineroar used Protect  FAILED
+   [NEW MAG] grimmsnarl used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-4,"def":2,"accuracy":2}
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-6,"def":2,"accuracy":2}
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":-4,"spa":-6,"def":2,"accuracy":2}
+   [OLD MAG] milotic stats -> {"atk":-4,"spa":-6,"def":4,"accuracy":2}
+   [OLD MAG] milotic stats -> {"atk":-4,"spa":-6,"def":4,"accuracy":4}
+
+Turn 18
+   [NEW MAG] grimmsnarl used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-6,"def":4,"accuracy":4}
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-6,"def":4,"accuracy":4}
+   [OLD MAG] milotic used Recover  FAILED
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-6,"def":4,"accuracy":4}
+   [OLD MAG] milotic stats -> {"atk":-6,"spa":-6,"def":4,"accuracy":4}
+
+Turn 19
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] incineroar used Protect on incineroar
+   [NEW MAG] grimmsnarl used Spirit Break on milotic
+
+Turn 20
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":-4,"spa":-6,"def":4,"accuracy":4}
+   [OLD MAG] milotic stats -> {"atk":-4,"spa":-6,"def":6,"accuracy":4}
+   [OLD MAG] milotic stats -> {"atk":-4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 21
+   [NEW MAG] incineroar used Protect on incineroar
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+
+Turn 22
+   [OLD MAG] milotic used Hypnosis on incineroar
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (6%)
+
+Turn 23
+   [OLD MAG] milotic used Hypnosis on grimmsnarl
+
+Turn 24
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+
+Turn 25
+   [NEW MAG] incineroar used Protect on incineroar
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] milotic used Hypnosis on incineroar
+
+Turn 26
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+
+Turn 27
+   [NEW MAG] incineroar used Protect on incineroar
+   [OLD MAG] milotic used Hypnosis on incineroar
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (7%)
+
+Turn 28
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":-2,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (6%)
+
+Turn 29
+   [NEW MAG] incineroar used Protect on incineroar
+   [NEW MAG] grimmsnarl used Light Screen  FAILED
+   [OLD MAG] milotic used Hypnosis on grimmsnarl
+
+Turn 30
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 31
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+
+Turn 32
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] milotic used Hypnosis on incineroar
+
+Turn 33
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] grimmsnarl used Spirit Break on milotic
+
+Turn 34
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 35
+   [OLD MAG] milotic used Hypnosis on grimmsnarl
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+
+Turn 36
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":0,"spa":-6,"def":6,"accuracy":6}
+
+Turn 37
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] milotic used Hypnosis on incineroar
+
+Turn 38
+   [OLD MAG] milotic used Hypnosis on grimmsnarl
+
+Turn 39
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 40
+   [OLD MAG] milotic used Hypnosis on grimmsnarl  FAILED
+   [NEW MAG] incineroar used Flare Blitz on milotic  (6%)
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (6%)
+
+Turn 41
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] incineroar used Flare Blitz on milotic
+
+Turn 42
+   [OLD MAG] milotic used Hypnosis on grimmsnarl
+   [NEW MAG] incineroar used Flare Blitz on milotic  (6%)
+
+Turn 43
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 44
+   [NEW MAG] grimmsnarl used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+
+Turn 45
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+
+Turn 46
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] grimmsnarl used Parting Shot on milotic
+   [NEW MAG] incineroar used Flare Blitz on milotic
+
+Turn 47
+   [NEW MAG] grimmsnarl used Light Screen  FAILED
+   [OLD MAG] milotic used Hypnosis on incineroar
+
+Turn 48
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (8%)
+
+Turn 49
+   [NEW MAG] grimmsnarl used Light Screen  FAILED
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 50
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] incineroar used Flare Blitz on milotic
+
+Turn 51
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] milotic used Hypnosis on grimmsnarl
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 52
+   [OLD MAG] milotic used Hypnosis on incineroar
+
+Turn 53
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (5%)
+
+Turn 54
+   [OLD MAG] milotic used Hypnosis on incineroar
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (6%)
+
+Turn 55
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (8%)
+
+Turn 56
+   [OLD MAG] milotic used Coil on milotic
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] incineroar used Flare Blitz on milotic  (6%)
+   [NEW MAG] grimmsnarl used Spirit Break on milotic  (7%)
+
+Turn 57
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] milotic used Struggle on grimmsnarl  (17%)
+   [OLD MAG] milotic FAINTED
+
+==============================================================================
+SIDES SWAPPED   49 turns   WON BY NEW MAG
+  p1 OLD MAG : audino, incineroar, tyranitar, grimmsnarl
+  p2 NEW MAG : froslass, milotic, sinistcha, sneasler
+==============================================================================
+
+Turn 1
+   [NEW MAG] froslass used Thunderbolt on incineroar  (20%)
+   [NEW MAG] milotic used Hypnosis on incineroar  MISSED
+   [OLD MAG] incineroar used Flare Blitz on froslass  (100%, KO)
+   [NEW MAG] froslass FAINTED
+   [OLD MAG] audino used Simple Beam on milotic
+   [NEW MAG] sent in sinistcha
+
+Turn 2
+   [OLD MAG] incineroar used Protect on incineroar
+   [NEW MAG] milotic used Hypnosis on audino
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 3
+   [OLD MAG] incineroar used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-1}
+   [NEW MAG] sinistcha stats -> {"atk":-1,"spa":-1}
+   [OLD MAG] sent in tyranitar
+   weather: Sandstorm (Sand Stream)
+   [NEW MAG] milotic used Hypnosis on tyranitar
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+
+Turn 4
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":1,"spa":2}
+   [NEW MAG] milotic stats -> {"atk":1,"spa":2,"def":2}
+   [NEW MAG] milotic stats -> {"atk":1,"spa":2,"def":2,"accuracy":2}
+   [OLD MAG] audino used Simple Beam on sinistcha
+
+Turn 5
+   [NEW MAG] milotic used Hypnosis on audino
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 6
+   [NEW MAG] milotic used Protect on milotic
+   [NEW MAG] sinistcha used Matcha Gotcha on audino  (25%)
+   [OLD MAG] tyranitar used Rock Slide on sinistcha  MISSED
+
+Turn 7
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] audino used Simple Beam on sinistcha
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":3,"spa":2,"def":2,"accuracy":2}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":2,"def":4,"accuracy":2}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":2,"def":4,"accuracy":4}
+   [OLD MAG] tyranitar used Low Kick on sinistcha
+
+Turn 8
+   [OLD MAG] audino used Simple Beam  FAILED
+   [NEW MAG] sinistcha used Matcha Gotcha on audino  (35%)
+   [NEW MAG] milotic used Hypnosis  FAILED
+   [OLD MAG] tyranitar used Knock Off on milotic  (8%)
+
+Turn 9
+   [NEW MAG] sinistcha used Matcha Gotcha on tyranitar  (30%)
+   [NEW MAG] milotic used Hypnosis on tyranitar
+   [OLD MAG] audino used Trick Room on audino
+
+Turn 10
+   [NEW MAG] milotic used Hypnosis on audino
+   [NEW MAG] sinistcha used Matcha Gotcha on audino  (15%, KO)
+   [OLD MAG] tyranitar FAINTED
+   [OLD MAG] sent in incineroar
+   [NEW MAG] sinistcha stats -> {"atk":-3,"spa":-1}
+   [NEW MAG] milotic stats -> {"atk":1,"spa":2,"def":4,"accuracy":4}
+
+Turn 11
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [NEW MAG] milotic used Hypnosis on audino  FAILED
+   [OLD MAG] incineroar used Parting Shot on milotic
+   [NEW MAG] milotic stats -> {"atk":-1,"spa":2,"def":4,"accuracy":4}
+   [NEW MAG] milotic stats -> {"atk":-1,"spa":0,"def":4,"accuracy":4}
+   [OLD MAG] sent in grimmsnarl
+
+Turn 12
+   [NEW MAG] milotic used Protect on milotic
+   [OLD MAG] grimmsnarl used Parting Shot on milotic
+   [NEW MAG] sinistcha used Matcha Gotcha on grimmsnarl  (16%)
+   [OLD MAG] audino used Trick Room on audino
+   field: Trick Room
+
+Turn 13
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] audino used Encore on sinistcha
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":1,"spa":0,"def":4,"accuracy":4}
+   [NEW MAG] milotic stats -> {"atk":1,"spa":0,"def":6,"accuracy":4}
+   [NEW MAG] milotic stats -> {"atk":1,"spa":0,"def":6,"accuracy":6}
+
+Turn 14
+   [NEW MAG] sinistcha used Protect  FAILED
+   [OLD MAG] audino used Heal Pulse on milotic
+   [OLD MAG] grimmsnarl used Spirit Break on milotic  (6%)
+   [NEW MAG] milotic stats -> {"atk":1,"spa":-2,"def":6,"accuracy":6}
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-2,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-2,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-2,"def":6,"accuracy":6}
+
+Turn 15
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] audino used Encore on sinistcha
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":5,"spa":-2,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":5,"spa":-2,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":5,"spa":-2,"def":6,"accuracy":6}
+
+Turn 16
+   [OLD MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] audino used Heal Pulse on sinistcha  FAILED
+   [NEW MAG] sinistcha used Matcha Gotcha on audino  (10%)
+   [NEW MAG] milotic used Hypnosis on grimmsnarl
+
+Turn 17
+   [NEW MAG] milotic used Hypnosis on audino
+   [NEW MAG] sinistcha used Matcha Gotcha on audino  (11%)
+
+Turn 18
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on milotic
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-2,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-4,"def":6,"accuracy":6}
+   [OLD MAG] sent in incineroar
+   [NEW MAG] sinistcha stats -> {"atk":-5,"spa":-1}
+   [NEW MAG] milotic stats -> {"atk":1,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic used Hypnosis on incineroar
+
+Turn 19
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] milotic used Hypnosis on audino  FAILED
+   [OLD MAG] incineroar used Flare Blitz on sinistcha  (69%)
+   [OLD MAG] audino used Heal Pulse on sinistcha
+
+Turn 20
+   [NEW MAG] milotic used Hypnosis on audino
+   [NEW MAG] sinistcha used Matcha Gotcha on incineroar  (16%)  MISSED
+   [OLD MAG] incineroar used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-1}
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-3}
+   [OLD MAG] sent in grimmsnarl
+
+Turn 21
+   [NEW MAG] milotic used Protect on milotic
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on sinistcha
+
+Turn 22
+   [OLD MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":3,"spa":-4,"def":6,"accuracy":6}
+   [OLD MAG] audino used Simple Beam  FAILED
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 23
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] audino used Encore on sinistcha
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha  (25%)
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-5}
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":5,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":5,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":5,"spa":-4,"def":6,"accuracy":6}
+
+Turn 24
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] audino used Encore  FAILED
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha  (26%)
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] milotic used Recover on milotic
+
+Turn 25
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [OLD MAG] audino used Simple Beam  FAILED
+   [NEW MAG] milotic used Hypnosis on audino
+
+Turn 26
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Light Screen on grimmsnarl
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+
+Turn 27
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+
+Turn 28
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha  (25%)
+   [OLD MAG] audino used Trick Room on audino
+   field: Trick Room
+
+Turn 29
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [OLD MAG] audino used Simple Beam  FAILED
+   [NEW MAG] milotic used Hypnosis on audino
+
+Turn 30
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+
+Turn 31
+   [NEW MAG] milotic used Protect on milotic
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] audino used Heal Pulse on sinistcha
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha  (26%)
+
+Turn 32
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [OLD MAG] audino used Simple Beam  FAILED
+   [NEW MAG] milotic used Hypnosis on audino
+
+Turn 33
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-4,"def":6,"accuracy":6}
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha  (22%)
+
+Turn 34
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] milotic used Hypnosis on grimmsnarl
+
+Turn 35
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] milotic used Hypnosis on grimmsnarl
+   [OLD MAG] audino used Trick Room on audino
+   field: Trick Room
+
+Turn 36
+   [OLD MAG] audino used Simple Beam  FAILED
+   [OLD MAG] grimmsnarl used Spirit Break on milotic  (6%)
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] sinistcha used Matcha Gotcha on grimmsnarl  (6%)
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+
+Turn 37
+   [OLD MAG] audino used Heal Pulse on sinistcha
+   [OLD MAG] grimmsnarl used Spirit Break on milotic  (7%)
+   [NEW MAG] sinistcha used Matcha Gotcha on grimmsnarl  (6%)
+   [NEW MAG] milotic used Hypnosis on audino
+
+Turn 38
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Light Screen on grimmsnarl
+   [NEW MAG] milotic used Hypnosis on grimmsnarl
+
+Turn 39
+   [NEW MAG] milotic used Protect on milotic
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Spirit Break on sinistcha  (23%)
+
+Turn 40
+   [OLD MAG] grimmsnarl used Parting Shot on sinistcha
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] sinistcha used Matcha Gotcha on audino  (4%)
+   [OLD MAG] audino used Heal Pulse on sinistcha
+
+Turn 41
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] grimmsnarl used Reflect on grimmsnarl
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] audino used Simple Beam  FAILED
+
+Turn 42
+   [OLD MAG] grimmsnarl used Parting Shot on milotic
+   [NEW MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [OLD MAG] sent in incineroar
+   [NEW MAG] sinistcha stats -> {"atk":-6,"spa":-6}
+   [NEW MAG] milotic stats -> {"atk":2,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] sinistcha used Matcha Gotcha on incineroar  (4%)
+   [OLD MAG] audino used Trick Room on audino
+   field: Trick Room
+
+Turn 43
+   [OLD MAG] incineroar used Protect on incineroar
+   [NEW MAG] milotic used Protect on milotic
+   [OLD MAG] audino used Simple Beam on milotic
+   [NEW MAG] sinistcha used Matcha Gotcha on incineroar  (6%)
+
+Turn 44
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] audino used Encore on sinistcha
+   [OLD MAG] incineroar used Flare Blitz on sinistcha  (75%)
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+
+Turn 45
+   [NEW MAG] milotic used Protect on milotic
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] audino used Simple Beam  FAILED
+   [OLD MAG] incineroar used Flare Blitz on sinistcha  (25%, KO)
+   [NEW MAG] sinistcha FAINTED
+   [NEW MAG] sent in sneasler
+
+Turn 46
+   [OLD MAG] audino used Simple Beam  FAILED
+   [OLD MAG] incineroar used Parting Shot on sneasler
+   [NEW MAG] sneasler stats -> {"atk":-1}
+   [NEW MAG] sneasler stats -> {"atk":-1,"spa":-1}
+   [OLD MAG] sent in grimmsnarl
+   [NEW MAG] sneasler stats -> {}
+   [NEW MAG] milotic used Coil on milotic
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] milotic stats -> {"atk":6,"spa":-6,"def":6,"accuracy":6}
+   [NEW MAG] sneasler used Close Combat on audino  (89%)
+   [NEW MAG] sneasler stats -> {"def":-1}
+   [NEW MAG] sneasler stats -> {"def":-1,"spd":-1}
+
+Turn 47
+   [NEW MAG] milotic used Protect on milotic
+   [NEW MAG] sneasler used Dire Claw on grimmsnarl  (50%, KO)
+   [OLD MAG] grimmsnarl FAINTED
+   [OLD MAG] audino used Simple Beam on milotic
+   [OLD MAG] sent in incineroar
+   [NEW MAG] sneasler stats -> {"def":-1,"spd":-1,"atk":-1}
+   [NEW MAG] milotic stats -> {"atk":4,"spa":-6,"def":6,"accuracy":6}
+
+Turn 48
+   [OLD MAG] incineroar used Protect on incineroar
+   [NEW MAG] sneasler used Close Combat on audino  (24%, KO)
+   [NEW MAG] sneasler stats -> {"def":-2,"spd":-1,"atk":-1}
+   [NEW MAG] sneasler stats -> {"def":-2,"spd":-2,"atk":-1}
+   [OLD MAG] audino FAINTED
+   [NEW MAG] milotic used Recover on milotic
+
+Turn 49
+   [NEW MAG] sneasler used Close Combat on incineroar
+   [NEW MAG] sneasler stats -> {"def":-3,"spd":-2,"atk":-1}
+   [NEW MAG] sneasler stats -> {"def":-3,"spd":-3,"atk":-1}
+   [OLD MAG] incineroar FAINTED
+
+
+################################################################################
+NEW MAG WON BOTH SIDES  --  SEED 8300567
+################################################################################
+
+==============================================================================
+SIDES NORMAL   66 turns   WON BY NEW MAG
+  p1 NEW MAG : sneasler, audino, overqwil, sableye
+  p2 OLD MAG : annihilape, whimsicott, metagross, charizard
+==============================================================================
+
+Turn 1
+   [NEW MAG] sneasler used Close Combat on annihilape  NO EFFECT
+   [OLD MAG] whimsicott used Moonblast on audino  (33%)
+   [OLD MAG] annihilape used Drain Punch on audino  (53%)
+   [NEW MAG] audino used Heal Pulse on whimsicott  FAILED
+
+Turn 2
+   [OLD MAG] whimsicott used Protect on whimsicott
+   [NEW MAG] sneasler used Dire Claw on whimsicott
+   [OLD MAG] annihilape used Drain Punch on audino  (14%, KO)
+   [NEW MAG] audino FAINTED
+   [NEW MAG] sent in overqwil
+   [OLD MAG] annihilape stats -> {"atk":-1}
+   [OLD MAG] annihilape stats -> {"atk":1}
+   [OLD MAG] whimsicott stats -> {"atk":-1}
+
+Turn 3
+   [NEW MAG] sneasler used Dire Claw on whimsicott  (99%)
+   [OLD MAG] annihilape used Shadow Claw on sneasler  (89%)
+   [NEW MAG] overqwil used Stockpile on overqwil
+   [NEW MAG] overqwil stats -> {"def":1}
+   [NEW MAG] overqwil stats -> {"def":1,"spd":1}
+
+Turn 4
+   [NEW MAG] sneasler used Dire Claw on whimsicott  (1%, KO)  FAILED
+   [OLD MAG] whimsicott FAINTED
+   [OLD MAG] annihilape used Rage Fist on sneasler  (11%, KO)
+   [NEW MAG] sneasler FAINTED
+   [NEW MAG] overqwil used Stockpile on overqwil
+   [NEW MAG] overqwil stats -> {"def":2,"spd":1}
+   [NEW MAG] overqwil stats -> {"def":2,"spd":2}
+   [NEW MAG] sent in sableye
+   [OLD MAG] sent in metagross
+
+Turn 5
+   [OLD MAG] annihilape used Protect on annihilape
+   [NEW MAG] overqwil used Protect on overqwil
+   [OLD MAG] metagross used Bullet Punch on sableye  (29%)
+   [NEW MAG] sableye used Will-O-Wisp on annihilape
+
+Turn 6
+   [OLD MAG] metagross used Bullet Punch on overqwil  (13%)
+   [OLD MAG] annihilape used Rage Fist on overqwil  (10%)
+   [NEW MAG] overqwil used Stockpile on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":2}
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3}
+   [NEW MAG] sableye used Will-O-Wisp on metagross
+
+Turn 7
+   [OLD MAG] annihilape used Protect on annihilape
+   [OLD MAG] metagross used Protect on metagross
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":2}
+   [NEW MAG] sableye used Will-O-Wisp on annihilape
+
+Turn 8
+   [NEW MAG] overqwil used Protect on overqwil
+   [OLD MAG] metagross used Protect  FAILED
+   [OLD MAG] annihilape used Rage Fist on sableye  (46%)
+   [NEW MAG] sableye used Reflect on sableye
+
+Turn 9
+   [OLD MAG] annihilape used Protect on annihilape
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":4}
+   [OLD MAG] metagross used Psychic Fangs on overqwil  NO EFFECT
+   [NEW MAG] sableye used Rain Dance on sableye
+   weather: RainDance
+
+Turn 10
+   [OLD MAG] annihilape used Shadow Claw on sableye  (25%, KO)
+   [NEW MAG] sableye FAINTED
+   [NEW MAG] overqwil used Stockpile  FAILED
+   [OLD MAG] metagross used Psychic Fangs on overqwil  NO EFFECT
+
+Turn 11
+   [OLD MAG] annihilape used Protect on annihilape
+   [OLD MAG] metagross used Protect on metagross
+   [NEW MAG] overqwil used Rest on overqwil  FAILED
+
+Turn 12
+   [OLD MAG] annihilape used Protect  FAILED
+   [OLD MAG] metagross used Bullet Punch on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 13
+   [OLD MAG] annihilape used Protect on annihilape
+   [OLD MAG] metagross used Bullet Punch on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 14
+   [OLD MAG] metagross used Bullet Punch on overqwil  MISSED
+   [OLD MAG] annihilape used Drain Punch on overqwil  (27%)
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 15
+   [OLD MAG] metagross used Protect on metagross
+   [OLD MAG] annihilape used Drain Punch on overqwil  (27%)
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 16
+   [OLD MAG] metagross used Protect  FAILED
+   [OLD MAG] annihilape used Drain Punch on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 17
+   [OLD MAG] annihilape used Protect on annihilape
+   [OLD MAG] metagross used Bullet Punch on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 18
+   [OLD MAG] metagross used Bullet Punch on overqwil  (6%)
+   [OLD MAG] annihilape used Rage Fist on overqwil  (9%)
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 19
+   [OLD MAG] annihilape used Protect on annihilape
+   [NEW MAG] overqwil used Stockpile  FAILED
+   [OLD MAG] metagross used Ice Punch on overqwil  (7%)
+
+Turn 20
+   [OLD MAG] metagross used Protect on metagross
+   [OLD MAG] annihilape used Drain Punch on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 21
+   [OLD MAG] metagross used Protect on metagross
+   [OLD MAG] annihilape used Rage Fist on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 22
+   [NEW MAG] overqwil used Protect on overqwil
+   [OLD MAG] metagross used Bullet Punch on overqwil
+   [OLD MAG] annihilape used Drain Punch on overqwil
+
+Turn 23
+   [NEW MAG] overqwil used Protect  FAILED
+   [OLD MAG] metagross used Bullet Punch on overqwil  MISSED
+   [OLD MAG] annihilape used Drain Punch on overqwil  MISSED
+   [OLD MAG] metagross FAINTED
+   [OLD MAG] sent in charizard
+
+Turn 24
+   [OLD MAG] charizard used Helping Hand on annihilape
+   [OLD MAG] annihilape used Drain Punch on overqwil  (34%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 25
+   [OLD MAG] charizard used Protect on charizard
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 26
+   [OLD MAG] charizard used Protect on charizard
+   [NEW MAG] overqwil used Protect on overqwil
+   [OLD MAG] annihilape used Drain Punch on overqwil
+
+Turn 27
+   [OLD MAG] charizard used Protect  FAILED
+   [OLD MAG] annihilape used Shadow Claw on overqwil  (11%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 28
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+   [NEW MAG] overqwil used Minimize on overqwil
+   [NEW MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 29
+   [OLD MAG] annihilape used Rage Fist on overqwil  (8%)
+   [OLD MAG] charizard used Weather Ball on overqwil  (12%)
+   [NEW MAG] overqwil used Rest on overqwil
+
+Turn 30
+   [OLD MAG] charizard used Helping Hand on annihilape
+   [OLD MAG] annihilape used Rage Fist on overqwil  MISSED
+
+Turn 31
+   [OLD MAG] charizard used Protect on charizard
+   [OLD MAG] annihilape used Drain Punch on overqwil  MISSED
+
+Turn 32
+   [OLD MAG] charizard used Protect  FAILED
+   [NEW MAG] overqwil used Protect on overqwil
+   [OLD MAG] annihilape used Drain Punch on overqwil
+
+Turn 33
+   [OLD MAG] annihilape used Rage Fist on overqwil  MISSED
+   [OLD MAG] charizard used Heat Wave on overqwil  (32%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 34
+   [NEW MAG] overqwil used Protect on overqwil
+   [OLD MAG] annihilape used Rage Fist on overqwil
+   [OLD MAG] charizard used Heat Wave on overqwil
+
+Turn 35
+   [OLD MAG] charizard used Helping Hand on annihilape
+   [NEW MAG] overqwil used Protect  FAILED
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+
+Turn 36
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [OLD MAG] charizard used Weather Ball on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 37
+   [OLD MAG] charizard used Protect on charizard
+   [OLD MAG] annihilape used Rage Fist on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 38
+   [OLD MAG] annihilape used Rage Fist on overqwil  (9%)
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+   [NEW MAG] overqwil used Rest on overqwil
+
+Turn 39
+   [OLD MAG] charizard used Protect on charizard
+   [OLD MAG] annihilape used Shadow Claw on overqwil  (13%)
+
+Turn 40
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+
+Turn 41
+   [OLD MAG] charizard used Protect on charizard
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 42
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [OLD MAG] charizard used Weather Ball on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 43
+   [OLD MAG] annihilape used Shadow Claw on overqwil  (12%)
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 44
+   [OLD MAG] annihilape used Shadow Claw on overqwil  (13%)
+   [OLD MAG] charizard used Heat Wave on overqwil  (28%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 45
+   [OLD MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [OLD MAG] charizard used Weather Ball on overqwil  MISSED
+   [NEW MAG] overqwil used Rest on overqwil
+
+Turn 46
+   [OLD MAG] annihilape used Shadow Claw on overqwil  (11%)
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+
+Turn 47
+   [OLD MAG] annihilape used Struggle on overqwil  (11%)
+   [OLD MAG] charizard used Weather Ball on overqwil  MISSED
+
+Turn 48
+   [OLD MAG] annihilape used Struggle on overqwil  (12%)
+   [OLD MAG] charizard used Heat Wave on overqwil  (32%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 49
+   [OLD MAG] annihilape used Struggle on overqwil  (11%)
+   [OLD MAG] charizard used Weather Ball on overqwil  (11%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 50
+   [OLD MAG] annihilape used Struggle on overqwil  (13%)
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+   [NEW MAG] overqwil used Rest on overqwil
+
+Turn 51
+   [OLD MAG] annihilape used Struggle on overqwil  (12%)
+   [OLD MAG] annihilape FAINTED
+   [OLD MAG] charizard used Heat Wave on overqwil  MISSED
+
+Turn 52
+   weather: SunnyDay (Drought)
+   [OLD MAG] charizardmegay used Weather Ball on overqwil  MISSED
+
+Turn 53
+   [OLD MAG] charizardmegay used Heat Wave on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 54
+   [OLD MAG] charizardmegay used Weather Ball on overqwil  MISSED
+   [NEW MAG] overqwil used Rest on overqwil  FAILED
+
+Turn 55
+   [OLD MAG] charizardmegay used Weather Ball on overqwil  (67%)
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 56
+   [OLD MAG] charizardmegay used Weather Ball on overqwil  MISSED
+   [NEW MAG] overqwil used Stockpile  FAILED
+
+Turn 57
+   [OLD MAG] charizardmegay used Weather Ball on overqwil  MISSED
+   [NEW MAG] overqwil used Rest on overqwil
+
+Turn 58
+   [OLD MAG] charizardmegay used Weather Ball on overqwil  (14%)
+
+Turn 59
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+
+Turn 60
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+   [NEW MAG] overqwil used Rest on overqwil
+
+Turn 61
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+
+Turn 62
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+
+Turn 63
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+   [NEW MAG] overqwil used Struggle on charizardmegay  (26%)
+
+Turn 64
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+   [NEW MAG] overqwil used Struggle on charizardmegay  (24%)
+
+Turn 65
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+   [NEW MAG] overqwil used Struggle on charizardmegay  (27%)
+
+Turn 66
+   [OLD MAG] charizardmegay used Helping Hand  FAILED
+   [NEW MAG] overqwil used Struggle on charizardmegay  (23%, KO)
+   [OLD MAG] charizardmegay FAINTED
+
+==============================================================================
+SIDES SWAPPED   34 turns   WON BY NEW MAG
+  p1 OLD MAG : sneasler, audino, overqwil, sableye
+  p2 NEW MAG : annihilape, whimsicott, metagross, charizard
+==============================================================================
+
+Turn 1
+   [OLD MAG] sneasler used Fake Out on whimsicott  (23%)
+   [NEW MAG] annihilape used Drain Punch on audino  (52%)
+   [OLD MAG] audino used Heal Pulse on whimsicott
+
+Turn 2
+   [NEW MAG] whimsicott used Protect on whimsicott
+   [OLD MAG] sneasler used Dire Claw on whimsicott
+   [NEW MAG] annihilape used Drain Punch on audino  (48%, KO)
+   [OLD MAG] audino FAINTED
+   [OLD MAG] sent in overqwil
+   [NEW MAG] annihilape stats -> {"atk":-1}
+   [NEW MAG] annihilape stats -> {"atk":1}
+   [NEW MAG] whimsicott stats -> {"atk":-1}
+
+Turn 3
+   [OLD MAG] sneasler used Dire Claw on whimsicott  (99%)
+   [NEW MAG] annihilape used Shadow Claw on sneasler  (89%)
+   [OLD MAG] overqwil used Stockpile on overqwil
+   [OLD MAG] overqwil stats -> {"def":1}
+   [OLD MAG] overqwil stats -> {"def":1,"spd":1}
+
+Turn 4
+   [OLD MAG] sneasler used Dire Claw on whimsicott  (1%, KO)  FAILED
+   [NEW MAG] whimsicott FAINTED
+   [NEW MAG] annihilape used Rage Fist on sneasler  (11%, KO)
+   [OLD MAG] sneasler FAINTED
+   [OLD MAG] overqwil used Stockpile on overqwil
+   [OLD MAG] overqwil stats -> {"def":2,"spd":1}
+   [OLD MAG] overqwil stats -> {"def":2,"spd":2}
+   [OLD MAG] sent in sableye
+   [NEW MAG] sent in metagross
+
+Turn 5
+   [NEW MAG] annihilape used Protect on annihilape
+   [OLD MAG] overqwil used Protect on overqwil
+   [NEW MAG] metagross used Bullet Punch on sableye  (29%)
+   [OLD MAG] sableye used Will-O-Wisp on metagross
+
+Turn 6
+   [NEW MAG] metagross used Bullet Punch on overqwil  (6%)
+   [NEW MAG] annihilape used Rage Fist on overqwil  (11%)
+   [OLD MAG] overqwil used Stockpile on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":2}
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3}
+   [OLD MAG] sableye used Will-O-Wisp on metagross  FAILED
+
+Turn 7
+   [NEW MAG] metagross used Protect on metagross
+   [NEW MAG] annihilape used Shadow Claw on overqwil  (13%)
+   [OLD MAG] overqwil used Rest on overqwil
+   [OLD MAG] sableye used Will-O-Wisp on annihilape
+
+Turn 8
+   [NEW MAG] annihilape used Rage Fist on sableye  (25%)
+   [NEW MAG] metagross used Ice Punch on overqwil  (6%)
+   [OLD MAG] sableye used Reflect on sableye
+
+Turn 9
+   [NEW MAG] annihilape used Protect on annihilape
+   [NEW MAG] metagross used Psychic Fangs on overqwil  NO EFFECT
+   [OLD MAG] sableye used Rain Dance on sableye
+   weather: RainDance
+
+Turn 10
+   [NEW MAG] annihilape used Shadow Claw on sableye  (46%, KO)
+   [OLD MAG] sableye FAINTED
+   [OLD MAG] overqwil used Stockpile  FAILED
+   [NEW MAG] metagross used Psychic Fangs on overqwil  NO EFFECT
+
+Turn 11
+   [NEW MAG] annihilape used Protect on annihilape
+   [OLD MAG] overqwil used Protect on overqwil
+   [NEW MAG] metagross used Protect  FAILED
+
+Turn 12
+   [NEW MAG] annihilape used Protect on annihilape
+   [NEW MAG] metagross used Bullet Punch on overqwil  (3%)
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":2}
+
+Turn 13
+   [NEW MAG] annihilape used Protect  FAILED
+   [NEW MAG] metagross used Bullet Punch on overqwil  (6%)
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":4}
+
+Turn 14
+   [NEW MAG] metagross used Bullet Punch on overqwil  (6%)
+   [NEW MAG] annihilape used Drain Punch on overqwil  (11%)
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 15
+   [NEW MAG] metagross used Protect on metagross
+   [NEW MAG] annihilape used Drain Punch on overqwil  MISSED
+   [OLD MAG] overqwil used Stockpile  FAILED
+
+Turn 16
+   [NEW MAG] metagross used Protect  FAILED
+   [NEW MAG] annihilape used Drain Punch on overqwil  MISSED
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 17
+   [NEW MAG] annihilape used Protect on annihilape
+   [NEW MAG] metagross used Bullet Punch on overqwil  (6%)
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 18
+   [NEW MAG] metagross used Bullet Punch on overqwil  MISSED
+   [NEW MAG] annihilape used Rage Fist on overqwil  MISSED
+   [OLD MAG] overqwil used Stockpile  FAILED
+
+Turn 19
+   [NEW MAG] annihilape used Protect on annihilape
+   [OLD MAG] overqwil used Stockpile  FAILED
+   [NEW MAG] metagross used Ice Punch on overqwil  MISSED
+
+Turn 20
+   [NEW MAG] metagross used Protect on metagross
+   [NEW MAG] annihilape used Drain Punch on overqwil  MISSED
+   [OLD MAG] overqwil used Stockpile  FAILED
+
+Turn 21
+   [NEW MAG] metagross used Protect  FAILED
+   [NEW MAG] annihilape used Rage Fist on overqwil  (4%)
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 22
+   [NEW MAG] annihilape used Protect on annihilape
+   [OLD MAG] overqwil used Protect on overqwil
+   [NEW MAG] metagross used Bullet Punch on overqwil
+   [NEW MAG] metagross FAINTED
+   [NEW MAG] sent in charizard
+
+Turn 23
+   [NEW MAG] charizard used Helping Hand on annihilape
+   [OLD MAG] overqwil used Protect on overqwil
+   [NEW MAG] annihilape used Drain Punch on overqwil
+
+Turn 24
+   [NEW MAG] annihilape used Shadow Claw on overqwil  MISSED
+   [NEW MAG] charizard used Heat Wave on overqwil  MISSED
+   [OLD MAG] overqwil used Stockpile  FAILED
+
+Turn 25
+   [NEW MAG] annihilape used Rage Fist on overqwil  (4%)
+   [NEW MAG] charizard used Heat Wave on overqwil  MISSED
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 26
+   [OLD MAG] overqwil used Protect on overqwil
+   [NEW MAG] annihilape used Drain Punch on overqwil
+   [NEW MAG] charizard used Heat Wave on overqwil
+
+Turn 27
+   [NEW MAG] annihilape used Drain Punch on overqwil  (13%)
+   [NEW MAG] charizard used Weather Ball on overqwil  (12%)
+   [OLD MAG] overqwil used Stockpile  FAILED
+
+Turn 28
+   [NEW MAG] annihilape used Rage Fist on overqwil  MISSED
+   [NEW MAG] charizard used Weather Ball on overqwil  (11%)
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 29
+   [NEW MAG] charizard used Protect on charizard
+   [NEW MAG] annihilape used Drain Punch on overqwil  MISSED
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 30
+   [NEW MAG] charizard used Protect  FAILED
+   [OLD MAG] overqwil used Protect on overqwil
+   [NEW MAG] annihilape used Shadow Claw on overqwil
+   [NEW MAG] annihilape FAINTED
+
+Turn 31
+   weather: SunnyDay (Drought)
+   [OLD MAG] overqwil used Protect  FAILED
+   [NEW MAG] charizardmegay used Heat Wave on overqwil  MISSED
+
+Turn 32
+   [NEW MAG] charizardmegay used Protect on charizardmegay
+   [OLD MAG] overqwil used Minimize on overqwil
+   [OLD MAG] overqwil stats -> {"def":3,"spd":3,"evasion":6}
+
+Turn 33
+   [NEW MAG] charizardmegay used Weather Ball on overqwil  (65%)
+   [OLD MAG] overqwil used Stockpile  FAILED
+
+Turn 34
+   [NEW MAG] charizardmegay used Heat Wave on overqwil  (41%, KO)
+   [OLD MAG] overqwil FAINTED
+
+
+################################################################################
+NEW MAG WON BOTH SIDES  --  SEED 8310520
+################################################################################
+
+==============================================================================
+SIDES NORMAL   28 turns   WON BY NEW MAG
+  p1 NEW MAG : gengar, altaria, tinkaton, toxapex
+  p2 OLD MAG : gengar, grimmsnarl, mawile, vivillonfancy
+==============================================================================
+
+Turn 1
+   [OLD MAG] gengarmega used Perish Song on gengarmega
+   [NEW MAG] gengar used Psychic on gengarmega  (82%)
+   [NEW MAG] altaria used Perish Song  FAILED
+   [OLD MAG] grimmsnarl used Foul Play on gengar  (80%)
+
+Turn 2
+   [NEW MAG] altaria used Protect on altaria
+   [OLD MAG] grimmsnarl used Scary Face on altaria
+   [NEW MAG] gengarmega used Shadow Ball on grimmsnarl  (20%)
+   [OLD MAG] grimmsnarl stats -> {"spd":-1}
+   [OLD MAG] gengarmega used Perish Song  FAILED
+
+Turn 3
+   [NEW MAG] gengarmega used Protect on gengarmega
+   [OLD MAG] gengarmega used Disable on altaria
+   [NEW MAG] altaria used Fire Spin on grimmsnarl  (7%)
+   [OLD MAG] grimmsnarl used Foul Play on gengarmega
+
+Turn 4
+   [OLD MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] gengarmega used Shadow Ball on gengarmega  (20%, KO)
+   [NEW MAG] gengarmega FAINTED
+   [NEW MAG] altaria used Perish Song  FAILED
+   [OLD MAG] gengarmega FAINTED
+   [NEW MAG] altaria FAINTED
+   [OLD MAG] grimmsnarl FAINTED
+   [NEW MAG] sent in tinkaton
+   [OLD MAG] sent in mawile
+   [NEW MAG] sent in toxapex
+   [OLD MAG] sent in vivillonfancy
+   [NEW MAG] tinkaton stats -> {"atk":-1}
+   [NEW MAG] toxapex stats -> {"atk":-1}
+
+Turn 5
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [OLD MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] vivillonfancy used Sleep Powder on tinkaton
+   [NEW MAG] toxapex used Recover  FAILED
+
+Turn 6
+   [OLD MAG] mawile used Protect on mawile
+   [NEW MAG] tinkaton used Thunder Wave on mawile
+   [OLD MAG] vivillonfancy used Sleep Powder on toxapex
+
+Turn 7
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [OLD MAG] mawile used Protect  FAILED
+   [OLD MAG] vivillonfancy used Pollen Puff on toxapex  (11%)
+
+Turn 8
+   [OLD MAG] mawile used Protect on mawile
+   [NEW MAG] tinkaton used Thunder Wave on vivillonfancy
+   [OLD MAG] vivillonfancy used Pollen Puff on tinkaton  (7%)
+   [NEW MAG] toxapex used Toxic on mawile
+
+Turn 9
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [OLD MAG] vivillonfancy used Protect on vivillonfancy
+   [OLD MAG] mawile used Sucker Punch  FAILED
+   [NEW MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 10
+   [NEW MAG] tinkaton used Protect  FAILED
+   [OLD MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] vivillonfancy used Pollen Puff on tinkaton  (6%)
+   [NEW MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 11
+   [OLD MAG] mawile used Protect on mawile
+   [NEW MAG] tinkaton used Knock Off on mawile
+   [OLD MAG] vivillonfancy used Sleep Powder on toxapex
+
+Turn 12
+   [OLD MAG] mawile used Sucker Punch  FAILED
+   [NEW MAG] tinkaton used Thunder Wave on mawile  MISSED
+   [OLD MAG] vivillonfancy used Pollen Puff on tinkaton  (7%)
+
+Turn 13
+   [OLD MAG] mawile used Protect on mawile
+   [NEW MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] tinkaton used Thunder Wave on mawile
+   [OLD MAG] vivillonfancy used Sleep Powder on tinkaton
+
+Turn 14
+   [NEW MAG] toxapex used Wide Guard on toxapex
+   [OLD MAG] mawile used Sucker Punch  FAILED
+
+Turn 15
+   [OLD MAG] mawile used Protect on mawile
+   [NEW MAG] tinkaton used Knock Off on vivillonfancy  (19%)
+   [NEW MAG] toxapex used Infestation on vivillonfancy  (3%)
+
+Turn 16
+   [NEW MAG] tinkaton used Thunder Wave on mawile
+   [NEW MAG] toxapex used Infestation on vivillonfancy  (2%)
+   [OLD MAG] mawile used Swords Dance on mawile
+   [OLD MAG] mawile stats -> {"atk":2}
+
+Turn 17
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [OLD MAG] vivillonfancy used Sleep Powder on toxapex
+
+Turn 18
+   [NEW MAG] tinkaton used Knock Off on vivillonfancy  (14%)
+   [OLD MAG] vivillonfancy used Sleep Powder on tinkaton
+   [OLD MAG] mawile used Play Rough on tinkaton  (34%)
+
+Turn 19
+   [OLD MAG] vivillonfancy used Protect on vivillonfancy
+   [NEW MAG] toxapex used Infestation on mawile  (1%)
+   [OLD MAG] mawile used Swords Dance on mawile
+   [OLD MAG] mawile stats -> {"atk":4}
+
+Turn 20
+   [NEW MAG] toxapex used Wide Guard on toxapex
+   [OLD MAG] vivillonfancy used Sleep Powder on toxapex
+   [OLD MAG] mawile used Play Rough on toxapex  (30%)
+
+Turn 21
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [OLD MAG] vivillonfancy used Protect on vivillonfancy
+   [OLD MAG] mawile used Protect on mawile
+
+Turn 22
+   [NEW MAG] tinkaton used Knock Off on vivillonfancy  (2%, KO)
+   [OLD MAG] vivillonfancy FAINTED
+   [OLD MAG] mawile used Play Rough on toxapex  (30%)
+   [NEW MAG] toxapex stats -> {"atk":-2}
+
+Turn 23
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [NEW MAG] toxapex used Recover on toxapex
+
+Turn 24
+   [OLD MAG] mawile used Sucker Punch  FAILED
+   [NEW MAG] tinkaton used Thunder Wave on mawile  FAILED
+   [NEW MAG] toxapex used Recover on toxapex
+
+Turn 25
+   [NEW MAG] tinkaton used Protect on tinkaton
+   [NEW MAG] toxapex used Infestation on mawile  (1%)
+   [OLD MAG] mawile used Swords Dance on mawile
+   [OLD MAG] mawile stats -> {"atk":6}
+
+Turn 26
+   [OLD MAG] mawile used Protect on mawile
+   [NEW MAG] tinkaton used Knock Off on mawile
+   [NEW MAG] toxapex used Infestation on mawile
+
+Turn 27
+   [NEW MAG] tinkaton used Knock Off on mawile  (6%)
+   [NEW MAG] toxapex used Toxic  FAILED
+
+Turn 28
+   [OLD MAG] mawile used Sucker Punch on toxapex  (40%)
+   [NEW MAG] tinkaton used Knock Off on mawile  (4%, KO)
+   [OLD MAG] mawile FAINTED
+
+==============================================================================
+SIDES SWAPPED   44 turns   WON BY NEW MAG
+  p1 OLD MAG : gengar, altaria, tinkaton, toxapex
+  p2 NEW MAG : gengar, grimmsnarl, vivillonfancy, mawile
+==============================================================================
+
+Turn 1
+   [NEW MAG] gengarmega used Perish Song on gengarmega
+   [OLD MAG] gengar used Psychic on gengarmega  (82%)
+   [OLD MAG] altaria used Perish Song  FAILED
+   [NEW MAG] grimmsnarl used Foul Play on gengar  (80%)
+
+Turn 2
+   [OLD MAG] altaria used Protect on altaria
+   [OLD MAG] gengarmega used Shadow Ball on gengarmega  (18%, KO)
+   [NEW MAG] gengarmega FAINTED
+   [NEW MAG] grimmsnarl used Foul Play on gengarmega  (20%, KO)
+   [OLD MAG] gengarmega FAINTED
+   [NEW MAG] sent in vivillonfancy
+   [OLD MAG] sent in tinkaton
+
+Turn 3
+   [OLD MAG] altaria used Protect on altaria
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] tinkaton used Thunder Wave on grimmsnarl
+   [NEW MAG] vivillonfancy used Sleep Powder on tinkaton
+
+Turn 4
+   [NEW MAG] vivillonfancy used Pollen Puff on altaria  (15%)
+   [OLD MAG] altaria used Perish Song on altaria
+   [OLD MAG] altaria FAINTED
+   [NEW MAG] grimmsnarl FAINTED
+   [OLD MAG] sent in toxapex
+   [NEW MAG] sent in mawile
+   [OLD MAG] tinkaton stats -> {"atk":-1}
+   [OLD MAG] toxapex stats -> {"atk":-1}
+
+Turn 5
+   [NEW MAG] vivillonfancy used Protect on vivillonfancy
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [OLD MAG] tinkaton used Thunder Wave on vivillonfancy
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":2}
+
+Turn 6
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] tinkaton used Thunder Wave on mawile
+   [NEW MAG] vivillonfancy used Pollen Puff on tinkaton  (7%)
+   [OLD MAG] toxapex used Toxic on mawile
+
+Turn 7
+   [OLD MAG] tinkaton used Protect on tinkaton
+   [NEW MAG] vivillonfancy used Sleep Powder on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":4}
+   [OLD MAG] tinkaton FAINTED
+   [NEW MAG] vivillonfancy FAINTED
+
+Turn 8
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 9
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 10
+   [NEW MAG] mawile used Play Rough on toxapex  (38%)
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 11
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Sucker Punch  FAILED
+
+Turn 12
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 13
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Wide Guard  FAILED
+
+Turn 14
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 15
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Wide Guard  FAILED
+
+Turn 16
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Recover on toxapex
+
+Turn 17
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Recover  FAILED
+
+Turn 18
+   [NEW MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 19
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 20
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 21
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 22
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Recover  FAILED
+
+Turn 23
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Toxic on mawile
+
+Turn 24
+   [NEW MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 25
+   [NEW MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 26
+   [NEW MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 27
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Toxic on mawile
+
+Turn 28
+   [NEW MAG] mawile used Play Rough on toxapex  (40%)
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 29
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Recover on toxapex
+
+Turn 30
+   [NEW MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] toxapex used Toxic on mawile  NO EFFECT
+
+Turn 31
+   [NEW MAG] mawile used Sucker Punch  FAILED
+   [OLD MAG] toxapex used Recover  FAILED
+
+Turn 32
+   [NEW MAG] mawile used Protect on mawile
+   [OLD MAG] toxapex used Infestation on mawile
+
+Turn 33
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Recover  FAILED
+
+Turn 34
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Recover  FAILED
+
+Turn 35
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 36
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+
+Turn 37
+   [OLD MAG] toxapex used Wide Guard on toxapex
+   [NEW MAG] mawile used Sucker Punch  FAILED
+
+Turn 38
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Infestation on mawile  (1%)
+
+Turn 39
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Recover  FAILED
+
+Turn 40
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Infestation on mawile  (1%)
+
+Turn 41
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Infestation on mawile
+
+Turn 42
+   [NEW MAG] mawile used Swords Dance on mawile
+   [NEW MAG] mawile stats -> {"atk":6}
+   [OLD MAG] toxapex used Infestation on mawile  (1%)
+
+Turn 43
+   [NEW MAG] mawile used Play Rough on toxapex  (59%)
+   [OLD MAG] toxapex used Infestation on mawile  (2%)
+
+Turn 44
+   [NEW MAG] mawile used Play Rough on toxapex  (41%, KO)
+   [OLD MAG] toxapex FAINTED
+
+
+################################################################################
+OLD MAG WON BOTH SIDES  --  SEED 8306716
+################################################################################
+
+==============================================================================
+SIDES NORMAL   51 turns   WON BY OLD MAG
+  p1 NEW MAG : aerodactyl, chesnaught, scizor, grimmsnarl
+  p2 OLD MAG : incineroar, medicham, aegislash, ditto
+==============================================================================
+
+Turn 1
+   [NEW MAG] aerodactyl used Dual Wingbeat on incineroar  (11%)
+   [OLD MAG] medicham used Ice Punch on aerodactyl  (51%)
+   [NEW MAG] chesnaught used Body Press on incineroar  (61%)
+   [OLD MAG] incineroar used Parting Shot on chesnaught
+   [NEW MAG] chesnaught stats -> {"atk":-2}
+   [NEW MAG] chesnaught stats -> {"atk":-2,"spa":-1}
+   [OLD MAG] sent in aegislash
+
+Turn 2
+   [NEW MAG] aerodactyl used Dual Wingbeat on aegislash  (5%)
+   [OLD MAG] medicham used Ice Punch on chesnaught  (35%)
+   [NEW MAG] chesnaught used Iron Defense on chesnaught
+   [NEW MAG] chesnaught stats -> {"atk":-2,"spa":-1,"def":2}
+   [OLD MAG] aegislashblade used Poltergeist on aerodactyl  (49%, KO)
+   [NEW MAG] aerodactyl FAINTED
+   [NEW MAG] sent in scizor
+
+Turn 3
+   [NEW MAG] chesnaught used Wide Guard on chesnaught
+   [OLD MAG] medicham used Skill Swap on scizor
+   [NEW MAG] scizor used Bug Bite on medicham  (58%)
+   [OLD MAG] aegislashblade used Poltergeist on chesnaught  MISSED
+
+Turn 4
+   [OLD MAG] aegislashblade used Shadow Sneak on scizor  (25%)
+   [OLD MAG] medicham used Ice Punch on chesnaught  (11%)
+   [NEW MAG] scizor used Swords Dance on scizor
+   [NEW MAG] scizor stats -> {"atk":2}
+   [NEW MAG] chesnaught used Wood Hammer on medicham  (37%)
+
+Turn 5
+   [OLD MAG] medicham used Skill Swap on scizor
+   [NEW MAG] scizor used Swords Dance on scizor
+   [NEW MAG] scizor stats -> {"atk":4}
+   [NEW MAG] chesnaught used Wood Hammer on medicham  (5%, KO)
+   [OLD MAG] medicham FAINTED
+   [OLD MAG] aegislashblade used Poltergeist on scizor  (72%)
+   [OLD MAG] sent in ditto
+
+Turn 6
+   [NEW MAG] scizor used Protect on scizor
+   [OLD MAG] ditto used Transform on scizor
+   [NEW MAG] chesnaught used Body Press on ditto  (88%)
+   [OLD MAG] aegislashblade used Poltergeist on scizor
+
+Turn 7
+   [OLD MAG] ditto used Bullet Punch on chesnaught  (34%)
+   [OLD MAG] aegislashblade used Shadow Sneak on scizor  (3%, KO)
+   [NEW MAG] scizor FAINTED
+   [NEW MAG] chesnaught used Body Press on ditto  (12%, KO)
+   [OLD MAG] ditto FAINTED
+   [OLD MAG] sent in incineroar
+   [NEW MAG] sent in grimmsnarl
+   [NEW MAG] grimmsnarl stats -> {"atk":-1}
+   [NEW MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":2}
+
+Turn 8
+   [NEW MAG] chesnaught used Body Press on incineroar  (43%, KO)
+   [OLD MAG] incineroar FAINTED
+   [OLD MAG] aegislashblade used Poltergeist on chesnaught  (25%)
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (40%)
+   [OLD MAG] aegislashblade stats -> {"spa":-1}
+
+Turn 9
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (12%)
+   [NEW MAG] chesnaught used Iron Defense on chesnaught
+   [NEW MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":4}
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (17%)
+   [OLD MAG] aegislashblade stats -> {"spa":-2}
+
+Turn 10
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [NEW MAG] chesnaught used Iron Defense on chesnaught
+   [NEW MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+   [OLD MAG] aegislashblade used Poltergeist on chesnaught  (34%, KO)
+   [NEW MAG] chesnaught FAINTED
+
+Turn 11
+   [OLD MAG] aegislashblade used Wide Guard on aegislashblade
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+
+Turn 12
+   [OLD MAG] aegislashblade used Wide Guard on aegislashblade
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (17%)
+   [OLD MAG] aegislashblade stats -> {"spa":-3}
+
+Turn 13
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-3,"atk":-1}
+   [OLD MAG] aegislashblade stats -> {"spa":-4,"atk":-1}
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (6%)
+
+Turn 14
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-4,"atk":-2}
+   [OLD MAG] aegislashblade stats -> {"spa":-5,"atk":-2}
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (4%)
+
+Turn 15
+   [OLD MAG] aegislashblade used Wide Guard on aegislashblade
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-5,"atk":-3}
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-3}
+
+Turn 16
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (5%)
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-4}
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-4}
+
+Turn 17
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (4%)
+
+Turn 18
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (3%)
+
+Turn 19
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (16%)
+   [OLD MAG] aegislashblade used Poltergeist on grimmsnarl  (7%)
+
+Turn 20
+   [OLD MAG] aegislash used King's Shield on aegislash
+   [NEW MAG] grimmsnarl used Parting Shot on aegislash
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-5}
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-5}
+
+Turn 21
+   [OLD MAG] aegislash used King's Shield  FAILED
+   [NEW MAG] grimmsnarl used Spirit Break on aegislash  (7%)
+
+Turn 22
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+
+Turn 23
+   [OLD MAG] aegislash used King's Shield  FAILED
+   [NEW MAG] grimmsnarl used Spirit Break on aegislash  (8%)
+
+Turn 24
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+
+Turn 25
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Light Screen  FAILED
+
+Turn 26
+   [OLD MAG] aegislash used King's Shield  FAILED
+   [NEW MAG] grimmsnarl used Parting Shot on aegislash
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-6}
+
+Turn 27
+   [OLD MAG] aegislash used King's Shield on aegislash
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+
+Turn 28
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Parting Shot on aegislash
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-6}
+
+Turn 29
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+
+Turn 30
+   [OLD MAG] aegislash used King's Shield  FAILED
+   [NEW MAG] grimmsnarl used Spirit Break on aegislash  (7%)
+
+Turn 31
+   [NEW MAG] grimmsnarl used Light Screen  FAILED
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 32
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 33
+   [OLD MAG] aegislash used King's Shield on aegislash
+   [NEW MAG] grimmsnarl used Parting Shot on aegislash
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislash stats -> {"spa":-6,"atk":-6}
+
+Turn 34
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+
+Turn 35
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+
+Turn 36
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Reflect  FAILED
+
+Turn 37
+   [OLD MAG] aegislash used Wide Guard on aegislash
+   [NEW MAG] grimmsnarl used Spirit Break on aegislash  (7%)
+
+Turn 38
+   [NEW MAG] grimmsnarl used Light Screen  FAILED
+   [OLD MAG] aegislashblade used Poltergeist on grimmsnarl  (6%)
+
+Turn 39
+   [OLD MAG] aegislash used King's Shield on aegislash
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+
+Turn 40
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 41
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 42
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (15%)
+
+Turn 43
+   [NEW MAG] grimmsnarl used Reflect  FAILED
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 44
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (18%)
+
+Turn 45
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 46
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+   [NEW MAG] grimmsnarl used Parting Shot on aegislashblade
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-6}
+   [OLD MAG] aegislashblade stats -> {"spa":-6,"atk":-6}
+
+Turn 47
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+
+Turn 48
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (16%)
+
+Turn 49
+   [OLD MAG] aegislashblade used Shadow Sneak on grimmsnarl  (2%)
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (18%)
+
+Turn 50
+   [NEW MAG] grimmsnarl used Spirit Break on aegislashblade  (18%)
+   [OLD MAG] aegislashblade used Struggle on grimmsnarl  (5%)
+
+Turn 51
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] aegislashblade used Struggle on grimmsnarl  (24%, KO)
+   [NEW MAG] grimmsnarl FAINTED
+
+==============================================================================
+SIDES SWAPPED   20 turns   WON BY OLD MAG
+  p1 OLD MAG : aerodactyl, chesnaught, scizor
+  p2 NEW MAG : incineroar, medicham, aegislash, ditto
+==============================================================================
+
+Turn 1
+   [OLD MAG] aerodactyl used Protect on aerodactyl
+   [NEW MAG] medicham used Ice Punch on chesnaught  (24%)
+   [OLD MAG] chesnaught used Body Press on incineroar  (65%)
+   [NEW MAG] incineroar used Parting Shot on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-2}
+   [OLD MAG] chesnaught stats -> {"atk":-2,"spa":-1}
+   [NEW MAG] sent in aegislash
+
+Turn 2
+   [OLD MAG] aerodactyl used Dual Wingbeat on medicham  (44%)
+   [NEW MAG] medicham used Ice Punch on chesnaught  (24%)
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-2,"spa":-1,"def":2}
+   [NEW MAG] aegislashblade used Poltergeist on aerodactyl  (99%)
+
+Turn 3
+   [OLD MAG] aerodactyl used Dual Wingbeat on medicham  (15%, KO)
+   [NEW MAG] medicham FAINTED
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-2,"spa":-1,"def":4}
+   [NEW MAG] aegislashblade used Poltergeist on chesnaught  MISSED
+   [NEW MAG] sent in ditto
+
+Turn 4
+   [OLD MAG] aerodactyl used Protect on aerodactyl
+   [NEW MAG] aegislashblade used Shadow Sneak on chesnaught  (5%)
+   [NEW MAG] ditto used Transform on aerodactyl
+   [OLD MAG] chesnaught used Body Press on ditto  (100%, KO)
+   [NEW MAG] ditto FAINTED
+   [NEW MAG] sent in incineroar
+   [OLD MAG] aerodactyl stats -> {"atk":-2}
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":4}
+
+Turn 5
+   [OLD MAG] aerodactyl used Rock Slide on aegislashblade  (11%)  MISSED
+   [OLD MAG] chesnaught used Body Press on incineroar  (35%, KO)
+   [NEW MAG] incineroar FAINTED
+
+Turn 6
+   [OLD MAG] aerodactyl used Protect on aerodactyl
+   [NEW MAG] aegislashblade used Shadow Sneak on aerodactyl
+   [OLD MAG] chesnaught used Wood Hammer on aegislashblade  (16%)
+
+Turn 7
+   [NEW MAG] aegislashblade used Shadow Sneak on chesnaught  (6%)
+   [OLD MAG] aerodactyl used Rock Slide on aegislashblade  (14%)
+   [OLD MAG] chesnaught used Wood Hammer on aegislashblade  (17%)
+
+Turn 8
+   [OLD MAG] aerodactyl used Protect on aerodactyl
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+   [NEW MAG] aegislashblade used Poltergeist  FAILED
+
+Turn 9
+   [OLD MAG] aerodactyl used Protect  FAILED
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+   [NEW MAG] aegislashblade used Poltergeist on chesnaught  (13%)
+
+Turn 10
+   [NEW MAG] aegislashblade used Shadow Sneak on aerodactyl  (1%, KO)
+   [OLD MAG] aerodactyl FAINTED
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+   [OLD MAG] sent in scizor
+
+Turn 11
+   [OLD MAG] scizor used Protect on scizor
+   [NEW MAG] aegislashblade used Shadow Sneak on chesnaught  (5%)
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+
+Turn 12
+   [NEW MAG] aegislashblade used Shadow Sneak on chesnaught  (5%)
+   [OLD MAG] scizor used Bug Bite on aegislashblade  (23%)
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+
+Turn 13
+   [OLD MAG] scizor used Protect on scizor
+   [OLD MAG] chesnaught used Wood Hammer on aegislashblade  (18%)
+   [NEW MAG] aegislashblade used Poltergeist on scizor
+
+Turn 14
+   [OLD MAG] scizor used Protect on scizor
+   [NEW MAG] aegislashblade used Shadow Sneak on chesnaught  (28%)
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+
+Turn 15
+   [OLD MAG] scizor used Protect on scizor
+   [OLD MAG] chesnaught used Wide Guard on chesnaught
+   [NEW MAG] aegislashblade used Poltergeist on chesnaught  (13%)
+
+Turn 16
+   [OLD MAG] scizor used Protect on scizor
+   [OLD MAG] chesnaught used Wood Hammer on aegislashblade  (15%)
+   [NEW MAG] aegislashblade used Poltergeist on chesnaught  (12%)
+
+Turn 17
+   [OLD MAG] scizor used Swords Dance on scizor
+   [OLD MAG] scizor stats -> {"atk":2}
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+   [NEW MAG] aegislashblade used Poltergeist on chesnaught  (12%)
+
+Turn 18
+   [OLD MAG] scizor used Protect on scizor
+   [NEW MAG] aegislash used King's Shield on aegislash
+   [OLD MAG] chesnaught used Iron Defense on chesnaught
+   [OLD MAG] chesnaught stats -> {"atk":-3,"spa":-1,"def":6}
+
+Turn 19
+   [OLD MAG] chesnaught used Wide Guard on chesnaught
+   [NEW MAG] aegislash used Wide Guard on aegislash
+   [OLD MAG] scizor used Bug Bite on aegislash  (22%)
+
+Turn 20
+   [NEW MAG] aegislashblade used Shadow Sneak on chesnaught  (4%)
+   [OLD MAG] scizor used Bug Bite on aegislashblade  (54%, KO)
+   [NEW MAG] aegislashblade FAINTED
+
+
+################################################################################
+OLD MAG WON BOTH SIDES  --  SEED 8317282
+################################################################################
+
+==============================================================================
+SIDES NORMAL   22 turns   WON BY OLD MAG
+  p1 NEW MAG : armarouge, eelektross, kangaskhan, garchomp
+  p2 OLD MAG : grimmsnarl, sinistcha, clefable, staraptor
+==============================================================================
+
+Turn 1
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Scary Face on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-2}
+   [NEW MAG] eelektross used Supercell Slam on grimmsnarl  (34%)
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 2
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Scary Face on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-4}
+   [NEW MAG] eelektross used Supercell Slam on grimmsnarl  (33%)
+   [OLD MAG] sinistcha used Life Dew  FAILED
+
+Turn 3
+   [NEW MAG] eelektross used Protect on eelektross
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on eelektross
+   [NEW MAG] armarouge used Calm Mind on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-4,"spa":1}
+   [NEW MAG] armarouge stats -> {"spe":-4,"spa":1,"spd":1}
+
+Turn 4
+   [NEW MAG] armarouge used Protect on armarouge
+   [OLD MAG] grimmsnarl used Parting Shot on armarouge
+   [NEW MAG] eelektross used Supercell Slam on grimmsnarl  (33%)
+   [OLD MAG] sinistcha used Life Dew  FAILED
+
+Turn 5
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Parting Shot on eelektross
+   [NEW MAG] eelektross stats -> {"atk":-1}
+   [NEW MAG] eelektross stats -> {"atk":-1,"spa":-1}
+   [OLD MAG] sent in clefable
+   [NEW MAG] eelektross used Thunderbolt on clefable  (39%)
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+
+Turn 6
+   [NEW MAG] eelektross used Supercell Slam on clefable  (27%)
+   [OLD MAG] clefable used Psych Up on eelektross
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [NEW MAG] armarouge used Trick Room on armarouge
+
+Turn 7
+   [NEW MAG] armarouge used Protect on armarouge
+   [NEW MAG] eelektross used Thunderbolt on clefable  (34%, KO)
+   [OLD MAG] clefable FAINTED
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [OLD MAG] sent in staraptor
+   [NEW MAG] armarouge stats -> {"spe":-4,"spa":1,"spd":1,"atk":-1}
+   [NEW MAG] eelektross stats -> {"atk":-2,"spa":-1}
+
+Turn 8
+   [NEW MAG] armarouge used Protect  FAILED
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [NEW MAG] eelektross used Thunderbolt on staraptormega  (56%)
+   [OLD MAG] staraptormega used Close Combat on eelektross  (59%)
+   [OLD MAG] staraptormega stats -> {"def":1}
+   [OLD MAG] staraptormega stats -> {"def":1,"spd":1}
+
+Turn 9
+   [NEW MAG] eelektross used Thunderbolt on staraptormega  (42%)
+   [OLD MAG] sinistcha used Life Dew  FAILED
+   [OLD MAG] staraptormega used Close Combat on eelektross  (41%, KO)
+   [OLD MAG] staraptormega stats -> {"def":2,"spd":1}
+   [OLD MAG] staraptormega stats -> {"def":2,"spd":2}
+   [NEW MAG] eelektross FAINTED
+   [NEW MAG] armarouge used Trick Room on armarouge
+   [NEW MAG] sent in kangaskhan
+
+Turn 10
+   [OLD MAG] staraptormega used Close Combat on kangaskhan  (100%, KO)
+   [OLD MAG] staraptormega stats -> {"def":3,"spd":2}
+   [OLD MAG] staraptormega stats -> {"def":3,"spd":3}
+   [NEW MAG] kangaskhan FAINTED
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [NEW MAG] armarouge used Trick Room on armarouge
+   [NEW MAG] sent in garchomp
+
+Turn 11
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] garchomp used Rock Slide on staraptormega  (17%)
+   [OLD MAG] staraptormega used Brave Bird on garchomp  (56%)
+   [OLD MAG] staraptormega FAINTED
+   [OLD MAG] sinistcha used Life Dew on sinistcha
+   [OLD MAG] sent in grimmsnarl
+
+Turn 12
+   [NEW MAG] garchomp used Rock Slide on sinistcha  (22%)
+   [OLD MAG] sinistcha used Life Dew on sinistcha
+   [NEW MAG] armarouge used Trick Room on armarouge
+   field: Trick Room
+
+Turn 13
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Foul Play on armarouge  (26%)
+   [NEW MAG] armarouge stats -> {"spe":-4,"spa":1,"spd":1,"atk":-1,"def":-1}
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":1,"atk":-1,"def":-1}
+   [OLD MAG] sinistcha used Matcha Gotcha on garchomp
+   [NEW MAG] garchomp used Rock Slide on sinistcha  (19%)
+
+Turn 14
+   [NEW MAG] armarouge used Protect on armarouge
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on garchomp
+   [NEW MAG] garchomp stats -> {"atk":-1}
+   [NEW MAG] garchomp stats -> {"atk":-1,"spa":-1}
+   [NEW MAG] garchomp used Rock Slide on sinistcha  MISSED
+
+Turn 15
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Parting Shot on garchomp
+   [NEW MAG] garchomp stats -> {"atk":-2,"spa":-1}
+   [NEW MAG] garchomp stats -> {"atk":-2,"spa":-2}
+   [OLD MAG] sinistcha used Matcha Gotcha on garchomp
+   [NEW MAG] garchomp used Rock Slide on grimmsnarl  (11%)
+
+Turn 16
+   [NEW MAG] armarouge used Protect  FAILED
+   [OLD MAG] grimmsnarl used Foul Play on garchomp  (27%)
+   [OLD MAG] sinistcha used Matcha Gotcha on garchomp  (17%, KO)
+   [NEW MAG] garchomp FAINTED
+
+Turn 17
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":1,"atk":-2,"def":-1}
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":0,"spd":1,"atk":-2,"def":-1}
+   [NEW MAG] armarouge used Calm Mind on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":1,"atk":-2,"def":-1}
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":2,"atk":-2,"def":-1}
+
+Turn 18
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Parting Shot on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":2,"atk":-3,"def":-1}
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":0,"spd":2,"atk":-3,"def":-1}
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 19
+   [NEW MAG] armarouge used Protect on armarouge
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] grimmsnarl used Parting Shot on armarouge
+
+Turn 20
+   [NEW MAG] armarouge used Calm Mind on armarouge
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":2,"atk":-3,"def":-1}
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":3,"atk":-3,"def":-1}
+   [OLD MAG] grimmsnarl used Foul Play on armarouge  (26%)
+   [NEW MAG] armarouge stats -> {"spe":-2,"spa":1,"spd":3,"atk":-3,"def":-2}
+   [NEW MAG] armarouge stats -> {"spe":0,"spa":1,"spd":3,"atk":-3,"def":-2}
+   [OLD MAG] sinistcha used Life Dew on sinistcha
+
+Turn 21
+   [OLD MAG] sinistcha used Protect on sinistcha
+   [NEW MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] grimmsnarl used Foul Play on armarouge  (33%)
+   [NEW MAG] armarouge stats -> {"spe":0,"spa":1,"spd":3,"atk":-3,"def":-3}
+   [NEW MAG] armarouge stats -> {"spe":2,"spa":1,"spd":3,"atk":-3,"def":-3}
+
+Turn 22
+   [OLD MAG] grimmsnarl used Foul Play on armarouge  (31%, KO)
+   [NEW MAG] armarouge FAINTED
+
+==============================================================================
+SIDES SWAPPED   49 turns   WON BY OLD MAG
+  p1 OLD MAG : eelektross, kangaskhan, armarouge, garchomp
+  p2 NEW MAG : grimmsnarl, sinistcha, staraptor, clefable
+==============================================================================
+
+Turn 1
+   [NEW MAG] grimmsnarl used Fake Out on kangaskhan  (12%)
+   [OLD MAG] eelektrossmega used Supercell Slam on grimmsnarl  (41%)
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 2
+   [NEW MAG] grimmsnarl used Scary Face on eelektrossmega
+   [OLD MAG] eelektrossmega stats -> {"spe":-2}
+   [OLD MAG] eelektrossmega used Thunderbolt on grimmsnarl  (48%)
+   [NEW MAG] sinistcha used Life Dew  FAILED
+   [OLD MAG] kangaskhan used Last Resort  FAILED
+
+Turn 3
+   [NEW MAG] grimmsnarl used Parting Shot on kangaskhan  FAILED
+   [OLD MAG] kangaskhan stats -> {"atk":-1}
+   [OLD MAG] kangaskhan stats -> {"atk":-1,"spa":-1}
+   [NEW MAG] sent in staraptor
+   [OLD MAG] eelektrossmega stats -> {"spe":-2,"atk":-1}
+   [OLD MAG] eelektrossmega used Supercell Slam on staraptor  MISSED
+   [NEW MAG] sinistcha used Matcha Gotcha on eelektrossmega  (26%)
+   [OLD MAG] kangaskhan used Double-Edge on staraptor  (40%)
+
+Turn 4
+   [OLD MAG] eelektrossmega used Thunderbolt on staraptormega  (60%, KO)
+   [NEW MAG] staraptormega FAINTED
+   [OLD MAG] eelektrossmega stats -> {"spe":-2,"atk":-1,"spa":1}
+   [NEW MAG] sinistcha used Matcha Gotcha on eelektrossmega  (28%, KO)
+   [OLD MAG] eelektrossmega FAINTED
+   [OLD MAG] kangaskhan used Last Resort  FAILED
+   [OLD MAG] sent in armarouge
+   [NEW MAG] sent in grimmsnarl
+
+Turn 5
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] grimmsnarl used Parting Shot on kangaskhan
+   [OLD MAG] kangaskhan stats -> {"atk":-2,"spa":-1}
+   [OLD MAG] kangaskhan stats -> {"atk":-2,"spa":-2}
+   [NEW MAG] sent in clefable
+   [NEW MAG] sinistcha used Life Dew  FAILED
+   [OLD MAG] kangaskhan used Last Resort  FAILED
+
+Turn 6
+   [OLD MAG] kangaskhan used Last Resort  FAILED
+   [NEW MAG] clefable used Psych Up on armarouge
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [OLD MAG] armarouge used Trick Room on armarouge
+
+Turn 7
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] kangaskhan used Double-Edge on clefable  (41%)
+   [NEW MAG] clefable used Psych Up on armarouge
+
+Turn 8
+   [OLD MAG] armarouge used Protect  FAILED
+   [OLD MAG] kangaskhan used Double-Edge on clefable  (41%)
+   [OLD MAG] kangaskhan FAINTED
+   [NEW MAG] sinistcha used Life Dew  FAILED
+   [NEW MAG] clefable used Heal Pulse on armarouge  FAILED
+   [OLD MAG] sent in garchomp
+
+Turn 9
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] garchomp used Poison Jab on clefable  (43%, KO)
+   [NEW MAG] clefable FAINTED
+   [OLD MAG] armarouge used Trick Room on armarouge
+   field: Trick Room
+   [NEW MAG] sent in grimmsnarl
+
+Turn 10
+   [NEW MAG] grimmsnarl used Parting Shot on garchomp
+   [OLD MAG] garchomp stats -> {"atk":-1}
+   [OLD MAG] garchomp stats -> {"atk":-1,"spa":-1}
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":1}
+   [OLD MAG] armarouge stats -> {"spa":1,"spd":1}
+   [NEW MAG] sinistcha used Matcha Gotcha on garchomp  (30%)
+   [OLD MAG] garchomp used Poison Jab on grimmsnarl  (37%, KO)
+   [NEW MAG] grimmsnarl FAINTED
+
+Turn 11
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [OLD MAG] garchomp used Poison Jab on sinistcha
+
+Turn 12
+   [NEW MAG] sinistcha used Life Dew  FAILED
+   [OLD MAG] garchomp used Poison Jab on sinistcha  (15%)
+   [OLD MAG] armarouge used Trick Room on armarouge
+
+Turn 13
+   [OLD MAG] garchomp used Poison Jab on sinistcha  (16%)
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [OLD MAG] armarouge used Trick Room on armarouge
+
+Turn 14
+   [OLD MAG] armarouge used Protect on armarouge
+   [OLD MAG] garchomp used Poison Jab on sinistcha  (16%)
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge  (26%)
+
+Turn 15
+   [OLD MAG] garchomp used Poison Jab on sinistcha  (7%)
+   [NEW MAG] sinistcha used Life Dew on sinistcha
+   [OLD MAG] armarouge used Trick Room on armarouge
+   field: Trick Room
+
+Turn 16
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":2,"spd":1}
+   [OLD MAG] armarouge stats -> {"spa":2,"spd":2}
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge  (28%)
+   [OLD MAG] garchomp used Poison Jab on sinistcha  (7%)
+   [OLD MAG] garchomp FAINTED
+
+Turn 17
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 18
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":3,"spd":2}
+   [OLD MAG] armarouge stats -> {"spa":3,"spd":3}
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge  (6%)
+
+Turn 19
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Life Dew on sinistcha
+
+Turn 20
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] armarouge used Trick Room on armarouge
+   field: Trick Room
+
+Turn 21
+   [OLD MAG] armarouge used Trick Room on armarouge
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 22
+   [OLD MAG] armarouge used Protect on armarouge
+   [NEW MAG] sinistcha used Protect  FAILED
+
+Turn 23
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":4,"spd":3}
+   [OLD MAG] armarouge stats -> {"spa":4,"spd":4}
+   [NEW MAG] sinistcha used Life Dew  FAILED
+
+Turn 24
+   [OLD MAG] armarouge used Protect on armarouge
+   [NEW MAG] sinistcha used Protect  FAILED
+
+Turn 25
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 26
+   [OLD MAG] armarouge used Protect  FAILED
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 27
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 28
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] armarouge used Wide Guard  FAILED
+
+Turn 29
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":5,"spd":4}
+   [OLD MAG] armarouge stats -> {"spa":5,"spd":5}
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge  MISSED
+
+Turn 30
+   [NEW MAG] sinistcha used Protect on sinistcha
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":5}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+
+Turn 31
+   [OLD MAG] armarouge used Protect on armarouge
+   [NEW MAG] sinistcha used Life Dew  FAILED
+
+Turn 32
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 33
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Life Dew  FAILED
+
+Turn 34
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 35
+   [OLD MAG] armarouge used Protect  FAILED
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge  (5%)
+
+Turn 36
+   [OLD MAG] armarouge used Protect on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 37
+   [NEW MAG] sinistcha used Life Dew  FAILED
+   [OLD MAG] armarouge used Trick Room on armarouge
+   field: Trick Room
+
+Turn 38
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge  (5%)
+
+Turn 39
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 40
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Life Dew  FAILED
+
+Turn 41
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+
+Turn 42
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Matcha Gotcha on armarouge
+
+Turn 43
+   [OLD MAG] armarouge used Wide Guard on armarouge
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 44
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Life Dew  FAILED
+
+Turn 45
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6}
+   [NEW MAG] sinistcha used Struggle on armarouge  (6%)
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-1}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-1,"spe":2}
+
+Turn 46
+   [NEW MAG] sinistcha used Struggle on armarouge  (11%)
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-2,"spe":2}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-2,"spe":4}
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-2,"spe":4}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-2,"spe":4}
+
+Turn 47
+   [NEW MAG] sinistcha used Struggle on armarouge  (12%)
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-3,"spe":4}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-3,"spe":6}
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-3,"spe":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-3,"spe":6}
+
+Turn 48
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-3,"spe":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-3,"spe":6}
+   [NEW MAG] sinistcha used Struggle on armarouge  (16%)
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-4,"spe":6}
+
+Turn 49
+   [OLD MAG] armarouge used Calm Mind on armarouge
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-4,"spe":6}
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-4,"spe":6}
+   [NEW MAG] sinistcha used Struggle on armarouge  (19%)
+   [OLD MAG] armarouge stats -> {"spa":6,"spd":6,"def":-5,"spe":6}
+   [NEW MAG] sinistcha FAINTED

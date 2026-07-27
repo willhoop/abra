@@ -1,0 +1,779 @@
+TYPICAL PAIRED GAMES  (7-12 turns, the normal band -- median is 9)
+
+Same two teams, same seed, sides switched. One bot won BOTH.
+
+
+################################################################################
+NEW MAG WON BOTH SIDES   --   SEED 8300001
+################################################################################
+
+==============================================================================
+SIDES NORMAL   12 turns   WON BY NEW MAG
+  p1 NEW MAG : whimsicott, staraptor, malamar, raichu
+  p2 OLD MAG : whimsicott, farigiraf, gholdengo, mamoswine
+==============================================================================
+
+Turn 1
+   [NEW MAG] staraptor used Protect on staraptor
+   [OLD MAG] whimsicott used Tailwind on whimsicott
+   [NEW MAG] whimsicott used Encore
+   [OLD MAG] farigiraf used Trick Room on farigiraf
+   field: Trick Room
+
+Turn 2
+   [OLD MAG] farigiraf used Helping Hand on whimsicott
+   [OLD MAG] whimsicott used Protect on whimsicott
+   [NEW MAG] staraptor used Brave Bird on whimsicott
+   [NEW MAG] whimsicott used Moonblast on whimsicott
+
+Turn 3
+   [OLD MAG] whimsicott used Encore on staraptor
+   [OLD MAG] farigiraf used Psychic on staraptor  (52%)
+   [NEW MAG] staraptor used Brave Bird on whimsicott  (99%)
+   [NEW MAG] whimsicott used Moonblast on farigiraf  (35%)
+
+Turn 4
+   [OLD MAG] farigiraf used Helping Hand on whimsicott
+   [NEW MAG] whimsicott used Tailwind on whimsicott
+   [NEW MAG] staraptor used Brave Bird on whimsicott  (1%, KO)
+   [OLD MAG] whimsicott FAINTED
+   [OLD MAG] sent in gholdengo
+
+Turn 5
+   [NEW MAG] whimsicott used Encore
+   [OLD MAG] farigiraf used Psychic on whimsicott  (61%)
+   [OLD MAG] gholdengo used Shadow Ball on staraptor  NO EFFECT
+   [NEW MAG] staraptor used Brave Bird on farigiraf  (47%)
+
+Turn 6
+   [OLD MAG] farigiraf used Protect on farigiraf
+   [NEW MAG] whimsicott used Moonblast on farigiraf
+   [NEW MAG] staraptor used Final Gambit on farigiraf
+   [OLD MAG] gholdengo used Shadow Ball on whimsicott  (39%, KO)
+   [NEW MAG] whimsicott FAINTED
+   [NEW MAG] sent in malamar
+
+Turn 7
+   [NEW MAG] staraptor used Protect on staraptor
+   [NEW MAG] malamar used Knock Off on farigiraf  (18%, KO)
+   [OLD MAG] farigiraf FAINTED
+   [OLD MAG] gholdengo used Make It Rain on staraptor  (54%)
+   [OLD MAG] gholdengo stats -> {"spa":-2}
+   [OLD MAG] sent in mamoswine
+
+Turn 8
+   [OLD MAG] gholdengo used Protect on gholdengo
+   [OLD MAG] mamoswine used Ice Shard on staraptor  (7%, KO)
+   [NEW MAG] staraptor FAINTED
+   [NEW MAG] malamar used Superpower on mamoswine  (70%)
+   [NEW MAG] malamar stats -> {"atk":1}
+   [NEW MAG] malamar stats -> {"atk":1,"def":1}
+   [NEW MAG] sent in raichu
+
+Turn 9
+   [NEW MAG] raichu used Protect on raichu
+   [OLD MAG] mamoswine used High Horsepower on raichu
+   [OLD MAG] gholdengo used Thunderbolt on raichu
+   [NEW MAG] malamar used Superpower on mamoswine  (20%, KO)
+   [NEW MAG] malamar stats -> {"atk":2,"def":1}
+   [NEW MAG] malamar stats -> {"atk":2,"def":2}
+   [OLD MAG] mamoswine FAINTED
+
+Turn 10
+   [OLD MAG] gholdengo used Protect on gholdengo
+   [NEW MAG] raichu used Zap Cannon on gholdengo
+   [NEW MAG] malamar used Trick Room on malamar
+   field: Trick Room
+
+Turn 11
+   [OLD MAG] gholdengo used Protect on gholdengo
+   [NEW MAG] raichu used Protect on raichu
+   [NEW MAG] malamar used Psycho Cut on gholdengo
+
+Turn 12
+   [NEW MAG] malamar used Knock Off on gholdengo  (100%, KO)
+   [OLD MAG] gholdengo FAINTED
+
+==============================================================================
+SIDES SWAPPED   9 turns   WON BY NEW MAG
+  p1 OLD MAG : whimsicott, staraptor, malamar, raichu
+  p2 NEW MAG : whimsicott, farigiraf, raichu
+==============================================================================
+
+Turn 1
+   [NEW MAG] whimsicott used Protect on whimsicott
+   [OLD MAG] staraptor used Protect on staraptor
+   [OLD MAG] whimsicott used Encore
+   [NEW MAG] farigiraf used Trick Room on farigiraf
+   field: Trick Room
+
+Turn 2
+   [NEW MAG] whimsicott used Protect on whimsicott
+   [NEW MAG] farigiraf used Protect on farigiraf
+   [OLD MAG] staraptor used Brave Bird on whimsicott
+   [OLD MAG] whimsicott used Moonblast on whimsicott
+
+Turn 3
+   [NEW MAG] farigiraf used Helping Hand on whimsicott
+   [NEW MAG] whimsicott used Encore on whimsicott
+   [OLD MAG] staraptor used Final Gambit on whimsicott  (99%)
+   [OLD MAG] staraptor FAINTED
+   [OLD MAG] whimsicott used Moonblast on farigiraf  (30%)
+   [OLD MAG] sent in malamar
+
+Turn 4
+   [NEW MAG] whimsicott used Protect on whimsicott
+   [OLD MAG] malamar used Knock Off on farigiraf  (35%)
+   [OLD MAG] whimsicott used Moonblast on whimsicott
+   [NEW MAG] farigiraf used Trick Room on farigiraf
+
+Turn 5
+   [NEW MAG] whimsicott used Energy Ball on malamar  (36%)
+   [OLD MAG] whimsicott used Moonblast on whimsicott  (1%, KO)
+   [NEW MAG] whimsicott FAINTED
+   [OLD MAG] malamar used Superpower on farigiraf  (26%)
+   [OLD MAG] malamar stats -> {"atk":1}
+   [OLD MAG] malamar stats -> {"atk":1,"def":1}
+   [NEW MAG] farigiraf used Psychic on whimsicott  (66%)
+   [NEW MAG] sent in raichu
+
+Turn 6
+   [NEW MAG] farigiraf used Protect on farigiraf
+   [OLD MAG] whimsicott used Tailwind on whimsicott
+   [NEW MAG] raichumegay used Nuzzle on malamar  (4%)
+   [OLD MAG] malamar used Trick Room on malamar
+   field: Trick Room
+
+Turn 7
+   [NEW MAG] farigiraf used Psychic on whimsicott  (34%, KO)
+   [OLD MAG] whimsicott FAINTED
+   [OLD MAG] malamar used Psycho Cut on raichumegay  (79%)
+   [NEW MAG] raichumegay used Zap Cannon on malamar  (60%, KO)
+   [OLD MAG] malamar FAINTED
+   [OLD MAG] sent in raichu
+
+Turn 8
+   [NEW MAG] farigiraf used Protect on farigiraf
+   [NEW MAG] raichumegay used Focus Blast on raichumegay  (75%)
+   [OLD MAG] raichumegay used Zap Cannon on farigiraf
+
+Turn 9
+   [NEW MAG] farigiraf used Psychic on raichumegay  (25%, KO)
+   [OLD MAG] raichumegay FAINTED
+
+
+################################################################################
+NEW MAG WON BOTH SIDES   --   SEED 8300006
+################################################################################
+
+==============================================================================
+SIDES NORMAL   11 turns   WON BY NEW MAG
+  p1 NEW MAG : maushold, floetteeternal, incineroar, charizard
+  p2 OLD MAG : mawile, oranguru, torkoal, decidueyehisui
+==============================================================================
+
+Turn 1
+   [NEW MAG] maushold used Protect on maushold
+   [NEW MAG] floetteeternal used Light of Ruin on oranguru  (64%)
+   [OLD MAG] mawilemega used Play Rough on floetteeternal  (58%, KO)
+   [NEW MAG] floetteeternal FAINTED
+   [OLD MAG] oranguru used Trick Room on oranguru  FAILED
+   field: Trick Room
+   [NEW MAG] sent in incineroar
+   [OLD MAG] mawilemega stats -> {"atk":-1}
+
+Turn 2
+   [OLD MAG] oranguru used Instruct  FAILED
+   [NEW MAG] incineroar used Flare Blitz on oranguru  (36%, KO)
+   [OLD MAG] oranguru FAINTED
+   [OLD MAG] mawilemega used Rock Slide on maushold  (27%)
+   [OLD MAG] sent in torkoal
+   weather: SunnyDay (Drought)
+
+Turn 3
+   [NEW MAG] maushold used Follow Me on maushold
+   [OLD MAG] torkoal used Earth Power on maushold  (34%)
+   [NEW MAG] incineroar used Darkest Lariat on mawilemega  (21%)
+   [OLD MAG] mawilemega used Play Rough on maushold  (39%, KO)
+   [NEW MAG] maushold FAINTED
+   [NEW MAG] sent in charizard
+
+Turn 4
+   [OLD MAG] torkoal used Protect on torkoal
+   [NEW MAG] charizard used Protect on charizard
+   [NEW MAG] incineroar used Flare Blitz on torkoal
+   [OLD MAG] mawilemega used Play Rough on incineroar  MISSED
+
+Turn 5
+   [OLD MAG] torkoal used Protect  FAILED
+   [NEW MAG] incineroar used Parting Shot on torkoal
+   [OLD MAG] torkoal stats -> {"atk":-1}
+   [OLD MAG] torkoal stats -> {"atk":-1,"spa":-1}
+   [OLD MAG] mawilemega used Swords Dance on mawilemega
+   [OLD MAG] mawilemega stats -> {"atk":1}
+   [NEW MAG] charizardmegay used Heat Wave on torkoal  (79%, KO)  MISSED
+   [OLD MAG] mawilemega FAINTED
+   [OLD MAG] sent in decidueyehisui
+
+Turn 6
+   [NEW MAG] charizardmegay used Protect on charizardmegay
+   [OLD MAG] decidueyehisui used Brave Bird on incineroar  (43%)
+   [NEW MAG] incineroar used Flare Blitz on torkoal  (33%)
+   [OLD MAG] torkoal used Earth Power on incineroar  (32%)
+
+Turn 7
+   [NEW MAG] charizardmegay used Weather Ball on decidueyehisui  (83%, KO)
+   [OLD MAG] decidueyehisui FAINTED
+   [NEW MAG] incineroar used Parting Shot on torkoal
+   [OLD MAG] torkoal stats -> {"atk":-2,"spa":-1}
+   [OLD MAG] torkoal stats -> {"atk":-2,"spa":-2}
+   [OLD MAG] torkoal used Earth Power on incineroar  (3%, KO)
+   [NEW MAG] incineroar FAINTED
+
+Turn 8
+   [NEW MAG] charizardmegay used Heat Wave on torkoal  (36%)
+   [OLD MAG] torkoal used Weather Ball on charizardmegay  (9%)
+
+Turn 9
+   [OLD MAG] torkoal used Protect on torkoal
+   [NEW MAG] charizardmegay used Weather Ball on torkoal
+
+Turn 10
+   [NEW MAG] charizardmegay used Weather Ball on torkoal  (28%)
+   [OLD MAG] torkoal used Weather Ball on charizardmegay  (8%)
+
+Turn 11
+   [NEW MAG] charizardmegay used Weather Ball on torkoal  (28%, KO)
+   [OLD MAG] torkoal FAINTED
+
+==============================================================================
+SIDES SWAPPED   9 turns   WON BY NEW MAG
+  p1 OLD MAG : maushold, floetteeternal, incineroar, charizard
+  p2 NEW MAG : mawile, oranguru, torkoal, decidueyehisui
+==============================================================================
+
+Turn 1
+   [OLD MAG] maushold used Protect on maushold
+   [OLD MAG] floetteeternal used Light of Ruin on oranguru  (64%)
+   [NEW MAG] mawilemega used Play Rough on floetteeternal  (58%, KO)
+   [OLD MAG] floetteeternal FAINTED
+   [NEW MAG] oranguru used Trick Room on oranguru  FAILED
+   field: Trick Room
+   [OLD MAG] sent in incineroar
+   [NEW MAG] mawilemega stats -> {"atk":-1}
+
+Turn 2
+   [NEW MAG] oranguru used Instruct  FAILED
+   [OLD MAG] incineroar used Flare Blitz on oranguru  (36%, KO)
+   [NEW MAG] oranguru FAINTED
+   [NEW MAG] mawilemega used Play Rough on incineroar  (34%)
+   [OLD MAG] maushold used Super Fang on mawilemega  (50%)
+   [NEW MAG] sent in torkoal
+   weather: SunnyDay (Drought)
+
+Turn 3
+   [OLD MAG] maushold used Follow Me on maushold
+   [NEW MAG] torkoal used Earth Power on maushold  (30%)
+   [OLD MAG] incineroar used Darkest Lariat on mawilemega  (36%)
+   [NEW MAG] mawilemega used Play Rough on maushold  (65%)
+
+Turn 4
+   [OLD MAG] maushold used Follow Me on maushold
+   [NEW MAG] torkoal used Earth Power on maushold  (5%, KO)
+   [OLD MAG] maushold FAINTED
+   [OLD MAG] incineroar used Flare Blitz on torkoal  (35%)
+   [NEW MAG] mawilemega used Play Rough on incineroar  MISSED
+   [OLD MAG] sent in charizard
+
+Turn 5
+   [NEW MAG] torkoal used Protect on torkoal
+   [NEW MAG] mawilemega used Sucker Punch on charizardmegay  (35%)
+   [OLD MAG] incineroar used Flare Blitz on mawilemega  (14%, KO)
+   [NEW MAG] mawilemega FAINTED
+   [OLD MAG] charizardmegay used Weather Ball on torkoal
+   [NEW MAG] sent in decidueyehisui
+
+Turn 6
+   [OLD MAG] charizardmegay used Solar Beam on decidueyehisui  (28%)
+   [NEW MAG] decidueyehisui used Brave Bird on incineroar  (55%)
+   [OLD MAG] incineroar used Darkest Lariat on torkoal  (34%)
+   [NEW MAG] torkoal used Earth Power on incineroar  (12%, KO)
+   [OLD MAG] incineroar FAINTED
+
+Turn 7
+   [OLD MAG] charizardmegay used Protect on charizardmegay
+   [NEW MAG] torkoal used Protect on torkoal
+   [NEW MAG] decidueyehisui used Sucker Punch  FAILED
+
+Turn 8
+   [NEW MAG] torkoal used Protect on torkoal
+   [NEW MAG] decidueyehisui used Sucker Punch on charizardmegay  (33%)
+   [OLD MAG] charizardmegay used Weather Ball on decidueyehisui  (22%)
+
+Turn 9
+   [NEW MAG] decidueyehisui used Sucker Punch on charizardmegay  (32%, KO)
+   [OLD MAG] charizardmegay FAINTED
+
+
+################################################################################
+NEW MAG WON BOTH SIDES   --   SEED 8300049
+################################################################################
+
+==============================================================================
+SIDES NORMAL   9 turns   WON BY NEW MAG
+  p1 NEW MAG : tyranitar, sinistcha, gholdengo, milotic
+  p2 OLD MAG : raichu, staraptor, incineroar, torkoal
+==============================================================================
+
+Turn 1
+   [OLD MAG] raichumegay used Zap Cannon on tyranitar  (46%)
+   [OLD MAG] staraptor used Close Combat on tyranitar  (54%, KO)
+   [OLD MAG] staraptor stats -> {"def":-1}
+   [OLD MAG] staraptor stats -> {"def":-1,"spd":-1}
+   [NEW MAG] tyranitar FAINTED
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [NEW MAG] sent in gholdengo
+
+Turn 2
+   [NEW MAG] gholdengo used Protect on gholdengo
+   [OLD MAG] raichumegay used Protect on raichumegay
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] staraptor used U-turn on sinistcha  (18%)
+   [OLD MAG] sent in incineroar
+   [NEW MAG] gholdengo stats -> {"atk":-1}
+   [NEW MAG] sinistcha stats -> {"atk":-2}
+
+Turn 3
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] incineroar used Flare Blitz on sinistcha  (70%, KO)
+   [NEW MAG] sinistcha FAINTED
+   [NEW MAG] gholdengo used Nasty Plot on gholdengo
+   [NEW MAG] gholdengo stats -> {"atk":-1,"spa":2}
+   [OLD MAG] raichumegay used Zap Cannon on gholdengo  (84%)
+   [NEW MAG] sent in milotic
+
+Turn 4
+   [NEW MAG] milotic used Protect on milotic
+   [OLD MAG] raichumegay used Protect on raichumegay
+   [OLD MAG] incineroar used Darkest Lariat on gholdengo  (16%, KO)
+   [NEW MAG] gholdengo FAINTED
+
+Turn 5
+   [OLD MAG] incineroar used Parting Shot on milotic
+   [NEW MAG] milotic stats -> {"atk":-1}
+   [NEW MAG] milotic stats -> {"atk":-1,"spa":2}
+   [NEW MAG] milotic stats -> {"atk":-1,"spa":1}
+   [NEW MAG] milotic stats -> {"atk":-1,"spa":3}
+   [OLD MAG] sent in staraptor
+   [NEW MAG] milotic stats -> {"atk":-2,"spa":3}
+   [NEW MAG] milotic stats -> {"atk":-2,"spa":5}
+   [NEW MAG] milotic used Muddy Water on raichumegay  (94%, KO)
+   [OLD MAG] raichumegay FAINTED
+   [OLD MAG] staraptor FAINTED
+   [OLD MAG] sent in torkoal
+   [OLD MAG] sent in incineroar
+   [NEW MAG] milotic stats -> {"atk":-3,"spa":5}
+   [NEW MAG] milotic stats -> {"atk":-3,"spa":6}
+   weather: SunnyDay (Drought)
+
+Turn 6
+   [OLD MAG] incineroar used Fake Out on milotic  (9%)
+   [OLD MAG] torkoal used Earth Power on milotic  (16%)
+
+Turn 7
+   [NEW MAG] milotic used Life Dew on milotic
+   [OLD MAG] incineroar used Darkest Lariat on milotic  (29%)
+   [OLD MAG] torkoal used Earth Power on milotic  (16%)
+
+Turn 8
+   [NEW MAG] milotic used Protect on milotic
+   [OLD MAG] incineroar used Parting Shot on milotic
+   [OLD MAG] torkoal used Solar Beam
+
+Turn 9
+   [NEW MAG] milotic used Muddy Water on incineroar  (100%, KO)
+   [OLD MAG] torkoal FAINTED
+   [OLD MAG] incineroar FAINTED
+
+==============================================================================
+SIDES SWAPPED   8 turns   WON BY NEW MAG
+  p1 OLD MAG : tyranitar, sinistcha, gholdengo, milotic
+  p2 NEW MAG : raichu, staraptor, incineroar
+==============================================================================
+
+Turn 1
+   [NEW MAG] raichumegay used Zap Cannon on tyranitar  (46%)
+   [NEW MAG] staraptor used Close Combat on tyranitar  (54%, KO)
+   [NEW MAG] staraptor stats -> {"def":-1}
+   [NEW MAG] staraptor stats -> {"def":-1,"spd":-1}
+   [OLD MAG] tyranitar FAINTED
+   [OLD MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+   [OLD MAG] sent in gholdengo
+
+Turn 2
+   [NEW MAG] raichumegay used Protect on raichumegay
+   [OLD MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] gholdengo used Shadow Ball on staraptor  NO EFFECT
+   [NEW MAG] staraptor used U-turn on sinistcha  (18%)
+   [NEW MAG] sent in incineroar
+   [OLD MAG] gholdengo stats -> {"atk":-1}
+   [OLD MAG] sinistcha stats -> {"atk":-2}
+
+Turn 3
+   [OLD MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] incineroar used Darkest Lariat on sinistcha  (51%)
+   [OLD MAG] gholdengo used Nasty Plot on gholdengo
+   [OLD MAG] gholdengo stats -> {"atk":-1,"spa":2}
+   [NEW MAG] raichumegay used Zap Cannon on sinistcha  (19%, KO)
+   [OLD MAG] sinistcha FAINTED
+   [OLD MAG] sent in milotic
+
+Turn 4
+   [NEW MAG] raichumegay used Protect on raichumegay
+   [NEW MAG] incineroar used Darkest Lariat on gholdengo  (78%)
+   [OLD MAG] milotic used Muddy Water on raichumegay  (42%)
+   [OLD MAG] gholdengo used Shadow Ball on raichumegay
+
+Turn 5
+   [OLD MAG] gholdengo used Protect on gholdengo
+   [NEW MAG] incineroar used Flare Blitz on gholdengo
+   [OLD MAG] milotic used Life Dew on milotic  NO EFFECT
+   [NEW MAG] raichumegay used Focus Blast on milotic  (32%)
+
+Turn 6
+   [NEW MAG] raichumegay used Zap Cannon on gholdengo  (22%, KO)
+   [OLD MAG] gholdengo FAINTED
+   [OLD MAG] milotic used Life Dew on milotic
+   [NEW MAG] incineroar used Darkest Lariat on milotic  (27%)
+
+Turn 7
+   [OLD MAG] milotic used Protect on milotic
+   [NEW MAG] raichumegay used Zap Cannon on milotic
+   [NEW MAG] incineroar used Darkest Lariat on milotic
+
+Turn 8
+   [NEW MAG] raichumegay used Zap Cannon on milotic  (66%, KO)
+   [OLD MAG] milotic FAINTED
+
+
+################################################################################
+OLD MAG WON BOTH SIDES   --   SEED 8300018
+################################################################################
+
+==============================================================================
+SIDES NORMAL   8 turns   WON BY OLD MAG
+  p1 NEW MAG : garchomp, staraptor, whimsicott, basculegion
+  p2 OLD MAG : wyrdeer, grimmsnarl, scrafty, incineroar
+==============================================================================
+
+Turn 1
+   [OLD MAG] grimmsnarl used Light Screen on grimmsnarl
+   [NEW MAG] garchomp used Rock Slide on grimmsnarl  (17%)
+   [NEW MAG] staraptor used Tailwind on staraptor
+
+Turn 2
+   [NEW MAG] garchomp used Protect on garchomp
+   [NEW MAG] staraptor used Close Combat on grimmsnarl  (19%)
+   [NEW MAG] staraptor stats -> {"atk":-1,"def":-1}
+   [NEW MAG] staraptor stats -> {"atk":-1,"def":-1,"spd":-1}
+   [OLD MAG] wyrdeer used Psyshield Bash on staraptor  (44%)
+   [OLD MAG] wyrdeer stats -> {"atk":-1,"def":1}
+   [OLD MAG] grimmsnarl used Spirit Break on garchomp
+
+Turn 3
+   [NEW MAG] staraptor used Protect on staraptor
+   [NEW MAG] garchomp used Rock Slide on grimmsnarl  (18%)
+   [OLD MAG] wyrdeer used Skill Swap on garchomp
+   [OLD MAG] wyrdeer stats -> {"atk":-2,"def":1}
+   [OLD MAG] grimmsnarl stats -> {"atk":-2}
+
+Turn 4
+   [NEW MAG] garchomp used Dragon Claw on wyrdeer  (23%)
+   [NEW MAG] staraptor used Close Combat on grimmsnarl  (23%)
+   [NEW MAG] staraptor stats -> {"atk":-1,"def":-2,"spd":-1}
+   [NEW MAG] staraptor stats -> {"atk":-1,"def":-2,"spd":-2}
+   [OLD MAG] wyrdeer used Psyshield Bash on garchomp  (18%)
+   [OLD MAG] wyrdeer stats -> {"atk":-2,"def":2}
+   [OLD MAG] grimmsnarl used Spirit Break on garchomp  (32%)
+   [NEW MAG] garchomp stats -> {"atk":-1,"spa":-1}
+
+Turn 5
+   [NEW MAG] garchomp used Earthquake on grimmsnarl  (23%, KO)  NO EFFECT
+   [OLD MAG] grimmsnarl FAINTED
+   [NEW MAG] staraptor used Close Combat on wyrdeer  (11%)
+   [NEW MAG] staraptor stats -> {"atk":-1,"def":-3,"spd":-2}
+   [NEW MAG] staraptor stats -> {"atk":-1,"def":-3,"spd":-3}
+   [OLD MAG] wyrdeer used Skill Swap on garchomp
+   [NEW MAG] garchomp stats -> {"atk":-2,"spa":-1}
+   [NEW MAG] staraptor stats -> {"atk":-2,"def":-3,"spd":-3}
+   [OLD MAG] sent in scrafty
+   [NEW MAG] garchomp stats -> {"atk":-3,"spa":-1}
+   [NEW MAG] staraptor stats -> {"atk":-3,"def":-3,"spd":-3}
+
+Turn 6
+   [NEW MAG] garchomp used Earthquake on wyrdeer  (19%)  NO EFFECT
+   [NEW MAG] staraptor used Brave Bird on wyrdeer  (9%)
+   [OLD MAG] scrafty used Knock Off on staraptor  (53%, KO)
+   [NEW MAG] staraptor FAINTED
+   [OLD MAG] wyrdeer used Trick Room on wyrdeer
+   field: Trick Room
+   [NEW MAG] sent in whimsicott
+
+Turn 7
+   [OLD MAG] scrafty used Close Combat on garchomp  (1%, KO)
+   [OLD MAG] scrafty stats -> {"def":-1}
+   [OLD MAG] scrafty stats -> {"def":-1,"spd":-1}
+   [NEW MAG] garchomp FAINTED
+   [OLD MAG] wyrdeer used Psyshield Bash on whimsicott  (29%)
+   [OLD MAG] wyrdeer stats -> {"atk":-2,"def":3}
+   [NEW MAG] whimsicott used Moonblast on wyrdeer  (26%, KO)
+   [OLD MAG] wyrdeer FAINTED
+   [OLD MAG] sent in incineroar
+   [NEW MAG] sent in basculegion
+   [NEW MAG] basculegion stats -> {"atk":-1}
+   [NEW MAG] whimsicott stats -> {"atk":-1}
+
+Turn 8
+   [OLD MAG] incineroar used Flare Blitz on whimsicott  (71%, KO)
+   [NEW MAG] whimsicott FAINTED
+   [OLD MAG] scrafty used Knock Off on basculegion  (100%, KO)
+   [NEW MAG] basculegion FAINTED
+
+==============================================================================
+SIDES SWAPPED   10 turns   WON BY OLD MAG
+  p1 OLD MAG : garchomp, staraptor, whimsicott, basculegion
+  p2 NEW MAG : wyrdeer, grimmsnarl, incineroar, scrafty
+==============================================================================
+
+Turn 1
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] garchomp used Rock Slide on grimmsnarl  (17%)
+   [OLD MAG] staraptor used Tailwind on staraptor
+
+Turn 2
+   [OLD MAG] garchomp used Protect on garchomp
+   [OLD MAG] staraptor used Close Combat on grimmsnarl  (19%)
+   [OLD MAG] staraptor stats -> {"atk":-1,"def":-1}
+   [OLD MAG] staraptor stats -> {"atk":-1,"def":-1,"spd":-1}
+   [NEW MAG] wyrdeer used Psyshield Bash on garchomp
+   [NEW MAG] grimmsnarl used Spirit Break on garchomp
+
+Turn 3
+   [OLD MAG] staraptor used Protect on staraptor
+   [OLD MAG] garchomp used Rock Slide on grimmsnarl  (17%)
+   [NEW MAG] wyrdeer used Skill Swap on garchomp
+   [NEW MAG] wyrdeer stats -> {"atk":-2}
+   [NEW MAG] grimmsnarl stats -> {"atk":-2}
+
+Turn 4
+   [NEW MAG] wyrdeer used Helping Hand on grimmsnarl
+   [NEW MAG] grimmsnarl used Parting Shot on staraptor
+   [OLD MAG] staraptor stats -> {"atk":-2,"def":-1,"spd":-1}
+   [OLD MAG] staraptor stats -> {"atk":-2,"def":-1,"spd":-1,"spa":-1}
+   [NEW MAG] sent in incineroar
+   [OLD MAG] garchomp stats -> {"atk":-2}
+   [OLD MAG] staraptor stats -> {"atk":-3,"def":-1,"spd":-1,"spa":-1}
+   [OLD MAG] garchomp used Dragon Claw on wyrdeer  (27%)
+   [OLD MAG] staraptor used Close Combat on incineroar  (21%)
+   [OLD MAG] staraptor stats -> {"atk":-3,"def":-2,"spd":-1,"spa":-1}
+   [OLD MAG] staraptor stats -> {"atk":-3,"def":-2,"spd":-2,"spa":-1}
+
+Turn 5
+   [OLD MAG] garchomp used Earthquake on incineroar  (43%)  NO EFFECT
+   [OLD MAG] staraptor used Close Combat on incineroar  (24%)
+   [OLD MAG] staraptor stats -> {"atk":-3,"def":-3,"spd":-2,"spa":-1}
+   [OLD MAG] staraptor stats -> {"atk":-3,"def":-3,"spd":-3,"spa":-1}
+   [NEW MAG] wyrdeer used Psyshield Bash on garchomp  MISSED
+   [NEW MAG] incineroar used Throat Chop on garchomp  (30%)
+
+Turn 6
+   [OLD MAG] garchomp used Earthquake on incineroar  (29%, KO)  NO EFFECT
+   [NEW MAG] incineroar FAINTED
+   [OLD MAG] staraptor used Brave Bird on wyrdeer  (5%, KO)
+   [NEW MAG] wyrdeer FAINTED
+   [NEW MAG] sent in grimmsnarl
+   [NEW MAG] sent in scrafty
+   [OLD MAG] garchomp stats -> {"atk":-3}
+   [OLD MAG] staraptor stats -> {"atk":-4,"def":-3,"spd":-3,"spa":-1}
+
+Turn 7
+   [NEW MAG] grimmsnarl used Light Screen on grimmsnarl
+   [OLD MAG] garchomp used Earthquake on scrafty  (21%)  NO EFFECT
+   [OLD MAG] staraptor used Brave Bird on scrafty  (28%)
+   [NEW MAG] scrafty used Close Combat on staraptor  (90%, KO)
+   [NEW MAG] scrafty stats -> {"def":-1}
+   [NEW MAG] scrafty stats -> {"def":-1,"spd":-1}
+   [OLD MAG] staraptor FAINTED
+   [OLD MAG] sent in whimsicott
+
+Turn 8
+   [NEW MAG] grimmsnarl used Reflect on grimmsnarl
+   [OLD MAG] whimsicott used Moonblast on grimmsnarl  (27%, KO)
+   [NEW MAG] grimmsnarl FAINTED
+   [OLD MAG] garchomp used Earthquake on scrafty  (18%)
+   [NEW MAG] scrafty used Drain Punch on whimsicott  (26%)
+
+Turn 9
+   [OLD MAG] garchomp stats -> {"atk":-4}
+   [OLD MAG] whimsicott stats -> {"atk":-1}
+   [OLD MAG] whimsicott used Encore on scraftymega  NO EFFECT
+   [OLD MAG] garchomp used Dragon Claw on scraftymega  (14%)
+   [OLD MAG] garchomp FAINTED
+   [NEW MAG] scraftymega used Knock Off on whimsicott  (38%)
+   [OLD MAG] sent in basculegion
+
+Turn 10
+   [OLD MAG] basculegion used Last Respects on scraftymega  (30%, KO)
+   [NEW MAG] scraftymega FAINTED
+
+
+################################################################################
+OLD MAG WON BOTH SIDES   --   SEED 8300035
+################################################################################
+
+==============================================================================
+SIDES NORMAL   8 turns   WON BY OLD MAG
+  p1 NEW MAG : weavile, whimsicott, gardevoir, meowstic
+  p2 OLD MAG : incineroar, floetteeternal, basculegion, sinistcha
+==============================================================================
+
+Turn 1
+   [NEW MAG] weavile used Fake Out on floetteeternal  (21%)
+   [NEW MAG] whimsicott used Tailwind on whimsicott
+   [OLD MAG] incineroar used Throat Chop on weavile  (28%)
+
+Turn 2
+   [NEW MAG] weavile used Triple Axel on floetteeternal  (33%, KO)
+   [OLD MAG] floetteeternal FAINTED
+   [NEW MAG] whimsicott used Endeavor on incineroar  (17%)
+   [OLD MAG] incineroar used Flare Blitz on weavile  (72%, KO)
+   [NEW MAG] weavile FAINTED
+   [NEW MAG] sent in gardevoir
+   [OLD MAG] sent in basculegion
+
+Turn 3
+   [NEW MAG] whimsicott used Fake Tears on incineroar  NO EFFECT
+   [NEW MAG] gardevoirmega used Expanding Force on basculegion  (65%)
+   [OLD MAG] basculegion used Wave Crash on gardevoirmega  (100%, KO)
+   [NEW MAG] gardevoirmega FAINTED
+   [OLD MAG] incineroar used Throat Chop on whimsicott  (13%)
+   [NEW MAG] sent in meowstic
+
+Turn 4
+   [NEW MAG] whimsicott used Endeavor on basculegion  NO EFFECT
+   [NEW MAG] meowstic used Thunderbolt on basculegion  (10%, KO)
+   [OLD MAG] basculegion FAINTED
+   [OLD MAG] incineroar used Flare Blitz on whimsicott  (77%)
+   [OLD MAG] sent in sinistcha
+
+Turn 5
+   [NEW MAG] whimsicott used Fake Tears on sinistcha
+   [OLD MAG] sinistcha stats -> {"spd":-2}
+   [NEW MAG] meowstic used Psychic Terrain on meowstic
+   field: Psychic Terrain
+   [OLD MAG] sinistcha used Life Dew  FAILED
+   [OLD MAG] incineroar used Flare Blitz on whimsicott  (4%, KO)
+   [NEW MAG] whimsicott FAINTED
+
+Turn 6
+   [OLD MAG] incineroar used Protect on incineroar
+   [OLD MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] meowstic used Light Screen on meowstic
+
+Turn 7
+   [OLD MAG] sinistcha used Rage Powder on sinistcha
+   [NEW MAG] meowstic used Light Screen  FAILED
+   [OLD MAG] incineroar used Throat Chop on meowstic  (27%)
+
+Turn 8
+   [NEW MAG] meowstic used Thunderbolt on incineroar  (17%)
+   [OLD MAG] sinistcha used Matcha Gotcha on meowstic  (24%)
+   [OLD MAG] incineroar used Throat Chop on meowstic  (49%, KO)
+   [NEW MAG] meowstic FAINTED
+
+==============================================================================
+SIDES SWAPPED   12 turns   WON BY OLD MAG
+  p1 OLD MAG : weavile, whimsicott, gardevoir, meowstic
+  p2 NEW MAG : incineroar, floetteeternal, basculegion, sinistcha
+==============================================================================
+
+Turn 1
+   [OLD MAG] weavile used Fake Out on floetteeternal  (21%)
+   [OLD MAG] whimsicott used Tailwind on whimsicott
+   [NEW MAG] incineroar used Throat Chop on weavile  (28%)
+
+Turn 2
+   [OLD MAG] weavile used Triple Axel on floetteeternal  (33%, KO)
+   [NEW MAG] floetteeternal FAINTED
+   [OLD MAG] whimsicott used Dazzling Gleam on incineroar  (21%)
+   [NEW MAG] incineroar used Flare Blitz on weavile  (72%, KO)
+   [OLD MAG] weavile FAINTED
+   [OLD MAG] sent in gardevoir
+   [NEW MAG] sent in basculegion
+
+Turn 3
+   [OLD MAG] whimsicott used Fake Tears on basculegion
+   [NEW MAG] basculegion stats -> {"spd":-2}
+   [OLD MAG] gardevoirmega used Expanding Force on basculegion  (100%, KO)
+   [NEW MAG] basculegion FAINTED
+   [NEW MAG] incineroar used Throat Chop on gardevoirmega  (52%)
+   [NEW MAG] sent in sinistcha
+
+Turn 4
+   [NEW MAG] incineroar used Protect on incineroar
+   [OLD MAG] gardevoirmega used Expanding Force on sinistcha  (71%)
+   [OLD MAG] whimsicott used Endeavor on incineroar
+   [NEW MAG] sinistcha used Matcha Gotcha on gardevoirmega  (15%)  MISSED
+
+Turn 5
+   [OLD MAG] gardevoirmega used Protect on gardevoirmega
+   [OLD MAG] whimsicott used Fake Tears on sinistcha
+   [NEW MAG] sinistcha stats -> {"spd":-2}
+   [NEW MAG] incineroar used Flare Blitz on whimsicott  (83%)
+   [NEW MAG] sinistcha used Trick Room on sinistcha
+   field: Trick Room
+
+Turn 6
+   [NEW MAG] incineroar used Protect on incineroar
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] whimsicott used Endeavor on sinistcha  NO EFFECT
+   [OLD MAG] gardevoirmega used Thunderbolt on sinistcha  (51%)
+
+Turn 7
+   [OLD MAG] gardevoirmega used Protect on gardevoirmega
+   [NEW MAG] sinistcha used Rage Powder on sinistcha
+   [OLD MAG] whimsicott used Fake Tears on incineroar  NO EFFECT
+   [NEW MAG] incineroar used Flare Blitz on whimsicott  (2%, KO)
+   [OLD MAG] whimsicott FAINTED
+   [OLD MAG] sent in meowstic
+
+Turn 8
+   [NEW MAG] incineroar used Protect on incineroar
+   [OLD MAG] meowstic used Fake Out on incineroar
+   [NEW MAG] sinistcha used Life Dew on sinistcha
+   [OLD MAG] gardevoirmega used Thunderbolt on incineroar
+
+Turn 9
+   [NEW MAG] incineroar used Flare Blitz on meowstic  (40%)
+   [NEW MAG] sinistcha used Life Dew on sinistcha
+   [OLD MAG] meowstic used Light Screen on meowstic
+   [OLD MAG] gardevoirmega used Expanding Force on sinistcha  (61%, KO)
+   [NEW MAG] sinistcha FAINTED
+
+Turn 10
+   [OLD MAG] gardevoirmega used Protect on gardevoirmega
+   [OLD MAG] meowstic used Psychic Terrain on meowstic
+   field: Psychic Terrain
+   [NEW MAG] incineroar used Throat Chop on gardevoirmega
+
+Turn 11
+   [OLD MAG] gardevoirmega used Protect on gardevoirmega
+   [OLD MAG] meowstic used Thunderbolt on incineroar  (17%)
+   [NEW MAG] incineroar used Flare Blitz on meowstic  (43%)
+
+Turn 12
+   [OLD MAG] gardevoirmega used Hyper Voice on incineroar  (70%)
+   [OLD MAG] meowstic used Thunderbolt on incineroar
+   [NEW MAG] incineroar FAINTED
