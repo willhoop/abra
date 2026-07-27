@@ -32,3 +32,14 @@
 #
 # The ingest itself never creates duplicates: engine/durable-ingest.js reads every existing id
 # before appending. Duplicates have only ever entered this repository through git reconciliation.
+
+# THE GAME STORES ARE SETS, NOT TEXT. One line per game, keyed on game id, append-only. Git's line
+# merge is meaningless on them and its default resolutions are destructive: taking either side of a
+# conflict deletes whatever the other side collected, and the replays behind those games age off
+# Showdown's server, so the loss is permanent and invisible. build/merge-jsonl-store.js unions them
+# by id instead. Bind it once per clone with: bash build/setup-git.sh
+data/games.ladder.jsonl           merge=jsonl-store
+data/games.bo3.jsonl              merge=jsonl-store
+data/games.ots.jsonl              merge=jsonl-store
+data/games.ladder.raw-logs.jsonl  merge=jsonl-store
+data/games.bo3.raw-logs.jsonl     merge=jsonl-store
