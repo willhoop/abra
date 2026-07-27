@@ -1,5 +1,13 @@
 /* reprocess.js — rebuild a game store from the raw logs we already have.
  *
+ * RAW-STORE-OK: this file REBUILDS the store, so it must read every record including the dirty ones.
+ * Filtering here would be actively destructive. A bot game, a forfeit or a partial bring is still a real
+ * record the store is meant to hold; `isClean` is an ANALYSIS filter, not a retention policy. Dropping
+ * what fails it would silently delete replays that can never be re-fetched, because they age off
+ * Showdown's server and this archive is the only copy that will ever exist. The GARBODOR rule governs
+ * what may be used as a BASELINE, not what may be stored, and this file is on the storage side of that
+ * line.
+ *
  *   node engine/reprocess.js data/games.ladder.jsonl
  *   node engine/reprocess.js data/games.bo3.jsonl
  *   node engine/reprocess.js --all

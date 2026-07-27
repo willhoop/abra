@@ -47,6 +47,27 @@ Sneasler holding both Dire Claw and Gunk Shot: **3.3% of 300 draws → 0.0%**.
 the 8-set floor and from partially-revealed sets that mix an observed draw with what was already on
 them. Recorded as open in `docs/ARCHITECTURE-REVIEW-2026-07-27.md` §6.
 
+### The GARBODOR count was overstated, because naming a path is not reading it
+
+`engine/selftest.js` greps for the store filename anywhere in a file, so three files that never open it
+were counted as unfiltered readers: `coach.js` names it in a `console.log` describing where a finished
+game goes, `stamp.js` shows it in a usage docstring as the value a caller passes for `corpus:`, and
+`mew_farm.js` resolves it **only to refuse to write output over it** — a safety guard counted as a
+violation of the rule it protects.
+
+The count matters because this check is deliberately left failing while offenders remain, so its number
+is the project's measure of remaining debt. Stripping comments and strings before matching is the obvious
+fix and is wrong: `readFileSync('data/games.ladder.jsonl')` puts the path inside a string, so it would
+produce false negatives — the one error this check must never make. A separate `RAW-STORE-NOT-READ`
+declaration is recognised instead, and it has to say what the path is for.
+
+`reprocess.js` gets `RAW-STORE-OK` on its merits: it REBUILDS the store, so it must read the dirty
+records too. `isClean` is an analysis filter, not a retention policy, and filtering there would silently
+delete replays that can never be re-fetched.
+
+**17 → 12 offenders**, and all 12 are real. Each is an analysis script that should filter, and each needs
+its own verification that filtering does not change a published output, so none were touched here.
+
 **`tests/test-set-realism.js` (new)** — 6 checks, threshold 6.0 points, chosen to sit between the
 pre-fix +9.9 and the current +4.3 so it fails on the old sampler and passes with headroom on the new
 one. Verified both ways: pre-fix **3 passed, 3 failed**; current **6 passed, 0 failed**. It asserts

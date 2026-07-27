@@ -60,6 +60,11 @@ const { spawn } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
+/* RAW-STORE-NOT-READ: this path is resolved so the farm can REFUSE to write its output over the durable
+ * store — see the --out collision check below. It is never opened for reading. The clean team pool comes
+ * from quality.js via the pool builder, which is why the run log reports "distinct clean teams".
+ * engine/selftest.js greps for the filename anywhere in a file, so this safety guard was being counted
+ * as a violation of the very rule it protects. */
 const LADDER = D('data', 'games.ladder.jsonl');
 
 function arg(name, dflt) {

@@ -384,7 +384,26 @@ check('every raw reader of the ladder store declares why', () => {
        * the opposite of what this check is for. */
       const filters = /load_games|loadGames|isClean|clean=True|cleanIds|_cleanIds|\.reasons\(/.test(src);
       const declares = /RAW-STORE-OK/.test(src);
-      if (!filters && !declares) offenders.push(r + '/' + f);
+      /* MENTIONING THE PATH IS NOT READING IT.
+       *
+       * This greps for the filename anywhere in the file, so it counted three files that never open the
+       * store: engine/coach.js names it in a console.log describing what WOULD happen to a game,
+       * engine/stamp.js shows it as `corpus: 'games.ladder.jsonl'` in a usage docstring, and
+       * engine/mew_farm.js resolves the path only to REFUSE to write output over it — a safety guard,
+       * counted as a violation of the rule it protects.
+       *
+       * The count matters, because this check is deliberately left failing while offenders remain, so
+       * its number IS the project's measure of remaining GARBODOR debt. Reporting 16 when the truth is
+       * 13 makes the one honest signal noisy, and a noisy signal gets ignored.
+       *
+       * Stripping comments and string literals before matching is the obvious fix and is WRONG:
+       * `fs.readFileSync('data/games.ladder.jsonl')` puts the path inside a string, so that would
+       * create false NEGATIVES — the one error this check must never make. So the declaration is
+       * explicit and separate instead. RAW-STORE-OK means "I read the raw store, and here is why that
+       * is legitimate". RAW-STORE-NOT-READ means "I name this path and never open it", and it has to
+       * say what for. Both live at the site of use, never as a list of filenames in this file. */
+      const notRead = /RAW-STORE-NOT-READ/.test(src);
+      if (!filters && !declares && !notRead) offenders.push(r + '/' + f);
     }
   }
   return offenders.length === 0 ||

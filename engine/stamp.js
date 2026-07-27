@@ -1,5 +1,10 @@
 /* stamp.js — the provenance block every artifact carries, in one shape.
  *
+ * RAW-STORE-NOT-READ: this file opens no corpus at all. The store filename appears once, in the usage
+ * example below, as the value a CALLER would pass for `corpus:`. engine/selftest.js greps for the
+ * filename anywhere in a file, so the documentation of the provenance helper was itself counted as an
+ * unfiltered read of the store.
+ *
  *   const { stamp } = require('./stamp.js');
  *   fs.writeFileSync(out, JSON.stringify({ ...stamp({ by: 'engine/foo.js', corpus: 'games.ladder.jsonl',
  *                                                     games: n, clean: true }), ...result }));

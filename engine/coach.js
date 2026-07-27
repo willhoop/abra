@@ -45,5 +45,8 @@ let META={}; try{ (JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','m
   if(seen.length){ console.log(`\nOpponent sets revealed this game (intel):`);
     for(const [k,v] of seen.slice(0,6)) console.log(`  ${k}: ${[...v.moves].slice(0,4).join('/')||'—'}${v.item?' @ '+v.item:''}${v.ability?' ['+v.ability+']':''}`); }
 
+  /* RAW-STORE-NOT-READ: this file never opens the ladder store. The path appears only in the message
+   * below, telling the user where a finished game ends up. engine/selftest.js greps for the filename
+   * anywhere in a file, so a sentence ABOUT the store was counted as a read OF it. */
   console.log(`\n[background] this game would be appended to data/games.ladder.jsonl and folded into the model.`);
 })();
