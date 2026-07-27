@@ -89,6 +89,86 @@ const pickTeam = () => {
   return null;
 };
 
+
+/* ---- THE LIVE ODDS WINDOW ----------------------------------------------------------------------
+ *
+ * MAG scores every option and those numbers are destroyed the moment it clicks. They were being
+ * printed to a terminal — the wrong place to look when the battle is in a browser. This serves the
+ * latest decision as a page, so it can sit beside the game and move as the turn moves.
+ *
+ * Deliberately a poll rather than a socket: the page must survive the bot restarting, and a dead
+ * socket that never reconnects is worse than a page that quietly retries twice a second.
+ */
+const OVERLAY_PORT = +(arg('port', '8081'));
+let LATEST = { turn: 0, room: '', decisions: [] };
+const HISTORY = [];   // one entry per decision, for the trace
+
+const PAGE = `<!doctype html><meta charset=utf-8><title>MAG — live odds</title>
+<style>
+ *{box-sizing:border-box} body{margin:0;background:#0f1116;color:#e8ecf3;
+   font:14px/1.45 ui-monospace,Menlo,Consolas,monospace}
+ header{padding:12px 16px;border-bottom:1px solid #232838;display:flex;justify-content:space-between;align-items:center}
+ h1{font:600 13px/1 system-ui;margin:0;letter-spacing:.14em;text-transform:uppercase;color:#7c8persist}
+ h1{color:#7c88a8}
+ .room{font-size:11px;color:#5b647d}
+ .mon{padding:10px 12px;border-bottom:1px solid #1a1e2a}
+ /* NARROW BY DESIGN. This is meant to sit in a snapped half-screen column beside the battle, not to
+  * be a page you visit. Everything below keeps it legible at ~360px: the move name truncates before
+  * it wraps, the target drops to its own line, and the bars stay tall enough to read at a glance. */
+ @media (max-width:520px){
+   .mon{padding:8px 10px}
+   .row{grid-template-columns:40px 1fr;gap:6px;margin:4px 0}
+   .barwrap{height:22px}
+   .lbl{font-size:12px;padding:0 7px;gap:5px}
+   .tgt{font-size:10px}
+   header{padding:8px 10px}
+ }
+ .name{font:600 15px/1 system-ui;margin-bottom:10px;color:#fff}
+ .row{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;margin:5px 0}
+ .pct{text-align:right;font-variant-numeric:tabular-nums;color:#9aa6c0}
+ .barwrap{background:#171b26;border-radius:4px;height:26px;position:relative;overflow:hidden}
+ .bar{position:absolute;inset:0 auto 0 0;border-radius:4px;
+   background:linear-gradient(90deg,#2f5fc0,#5f8ee0);transition:width .35s cubic-bezier(.2,.7,.3,1)}
+ .lbl{position:absolute;inset:0;display:flex;align-items:center;padding:0 10px;gap:8px;
+   font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden}
+ .lbl span:first-child{overflow:hidden;text-overflow:ellipsis}
+ .top .bar{background:linear-gradient(90deg,#1f7a4d,#3fbf7f)}
+ .tgt{color:#98a4bd;font-size:12px}
+ .empty{padding:40px 16px;color:#5b647d;text-align:center}
+</style>
+<header><h1>MAG — what it is weighing</h1><span class=room id=room>waiting…</span></header>
+<div id=body class=empty>challenge MAGBOT and this fills in</div>
+<script>
+const COLORS=['#5f8ee0','#3fbf7f','#d98b3f','#b06be0','#e05f7f','#4fc4c4'];
+async function tick(){
+  let d; try{ d=await (await fetch('/odds')).json(); }catch(e){ return; }
+  document.getElementById('room').textContent = d.room ? d.room+' · turn '+d.turn : 'waiting for a turn…';
+  const body=document.getElementById('body');
+  if(!d.decisions.length){ return; }
+  body.className='';
+  body.innerHTML = d.decisions.map(dec=>{
+    const rows = dec.opts.map((o,i)=>{
+      const pct=(100*o.p);
+      return '<div class="row'+(i===0?' top':'')+'"><div class=pct>'+pct.toFixed(0)+'%</div>'+
+        '<div class=barwrap><div class=bar style="width:'+Math.max(2,pct)+'%"></div>'+
+        '<div class=lbl><span>'+o.mv+'</span>'+(o.tgt?'<span class=tgt>→ '+o.tgt+'</span>':'')+'</div></div></div>';
+    }).join('');
+    return '<div class=mon><div class=name>'+dec.mon+'</div>'+rows+'</div>';
+  }).join('');
+}
+setInterval(tick,500); tick();
+</script>`;
+
+require('http').createServer((req, res) => {
+  if (req.url === '/odds') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ ...LATEST, history: HISTORY.slice(-120) }));
+    return;
+  }
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+  res.end(PAGE);
+}).listen(OVERLAY_PORT, () => console.log(`live odds: http://localhost:${OVERLAY_PORT}`));
+
 const ws = new WebSocket(SERVER);
 const send = (s) => ws.send(s);
 /* Rooms are tracked so two simultaneous challenges do not share a player object — each battle gets
@@ -150,8 +230,29 @@ function handle(room, line) {
     return;
   }
 
-  /* Any challenge in this format is accepted, with a real clean ladder team. */
-  if (cmd === 'pm' && /wants to battle/.test(line)) return;
+  /* A CHALLENGE ARRIVES AS A PM, NOT AS `updatechallenges`.
+   *
+   * The first version listened for `updatechallenges` -- and then, worse, explicitly IGNORED any pm
+   * mentioning a battle. So the one message that mattered was thrown away by name. What the server
+   * actually sends is:
+   *
+   *     |pm| BBB| AAA|/challenge gen9championsvgc2026regmb|gen9championsvgc2026regmb|||
+   *
+   * Found by simulating both sides and dumping every line the CHALLENGED client receives, after
+   * three rounds of guessing at it from the outside. */
+  if (cmd === 'pm') {
+    const from = String(p[2] || '').replace(/^[ !@#$%^&*+ -]/, '').trim();
+    const payload = p.slice(4).join('|');
+    const m = /^\/challenge\s+(\S+)/.exec(payload);
+    if (!m || !from || from === NAME) return;
+    const fmt = m[1];
+    const team = pickTeam();
+    if (!team) { console.error('could not draw a VALID team — not accepting'); return; }
+    console.log(`challenge from ${from} (${fmt}) — accepting`);
+    send(`|/utm ${team}`);
+    send(`|/accept ${from}`);
+    return;
+  }
   if (cmd === 'updatechallenges') {
     let data; try { data = JSON.parse(p[2]); } catch (e) { return; }
     for (const [who, fmt] of Object.entries(data.challengesFrom || {})) {
@@ -179,10 +280,37 @@ function handle(room, line) {
     bot.start();
     rooms.set(room, { stream, bot, shown: 0 });
     console.log(`joined ${room}`);
+    /* ACCEPT OPEN TEAM SHEETS -- BUT ONLY DURING TEAM PREVIEW.
+     *
+     * The main Champions format offers them; the Bo3 id forces them. Half of MAG's work reads the
+     * sheet -- the SP spread distribution is narrowed by the opponent's revealed nature -- so
+     * declining, or simply never answering, measures those features switched off. It is also the
+     * regime the weights were FITTED in, so playing closed-sheet is playing a different game to the
+     * one the model learned.
+     *
+     * Sent on `|teampreview` rather than on joining the room: sending it after preview is an ERROR,
+     * and reconnecting to a battle already in progress made the bot send it late, take the server's
+     * complaint as a fatal error, and exit. See the teampreview branch below. */
   }
   const st = rooms.get(room);
+  /* The one moment it is legal to agree. */
+  if (line.startsWith('|teampreview')) {
+    send(`${room}|/acceptopenteamsheets`);
+    console.log(`${room}: agreeing to open team sheets`);
+  }
+  if (line.startsWith('|showteam|')) console.log(`${room}: OPEN SHEETS ARE UP — sets are visible`);
   st.stream.push(line);
 
+  {
+    const th = (st.bot.stats && st.bot.stats.thoughts) || [];
+    /* The window is fed whether or not --why is on: it is a separate surface and silencing the
+     * terminal should not blank the page. */
+    if (th.length > st.shown) {
+      const fresh = th.slice(Math.max(0, th.length - 2));
+      LATEST = { turn: fresh[fresh.length - 1].turn, room, decisions: fresh };
+      for (const d of fresh) if (d.opts && d.opts.length) HISTORY.push(d.opts[0].p);
+    }
+  }
   if (WHY) {
     const th = (st.bot.stats && st.bot.stats.thoughts) || [];
     for (; st.shown < th.length; st.shown++) {

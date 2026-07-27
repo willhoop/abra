@@ -111,6 +111,19 @@ const FEATURES = [
    * is nothing to probe -- the type test is written here, which makes it the one Pokemon rule in this
    * block. It is stated plainly rather than hidden. */
   'pranksterFailsDark', // my Prankster status move is aimed at a Dark type, so it does nothing
+  /* ENCORE INTO A FRESH SWITCH-IN ALWAYS FAILS, and MAG did it in a real game against a person.
+   *
+   * Encore locks a target into its LAST MOVE, so a Pokemon that just came in -- having used nothing
+   * -- cannot be Encored at all. Same for Disable, Torment, Spite, Mimic and Instruct: every one
+   * operates on a move the target has already made. Encore is on 5.34% of teams in this format, so
+   * this is not a corner case.
+   *
+   * The state was already tracked: `lastMove` is set by endTurn and a switch-in starts with none.
+   * The feature simply did not exist, which is the whole "this move cannot work right now" family
+   * -- deadStatus, deadSide, deadField -- missing its seventh member.
+   *
+   * Found by a human playing the bot for ten minutes, which no automated check had managed. */
+  'deadNoLastMove', // it needs the target to have already moved, and the target just switched in
   /* ---- STATS. FACTS THE MODEL COULD NOT SEE AT ALL UNTIL NOW ------------------------------------
    * Speed is a fact. So are Attack, Defence and HP. They sit in the dex for every species and none
    * of them were features, which is why this model could not learn any of the things it was
@@ -859,6 +872,10 @@ const GAME_RULES = {
   /* Two damage-affecting abilities the validated formula does not implement. Chosen by AUDIT -- they
    * are the two largest gaps by usage share in this format (0.87% and 0.44%), not by taste. */
   unmodelledAbilities: { friendGuard: 'friendguard', sharpness: 'sharpness' },
+  /* Moves that operate on the target's LAST MOVE, so they fail against anything that has not moved.
+   * Showdown expresses each one as procedural code inside its own condition, so there is no field to
+   * read and nothing to probe without a live battle -- hence the declared list. */
+  needsTargetToHaveMoved: ['encore', 'disable', 'torment', 'spite', 'mimic', 'instruct', 'mirrormove'],
   /* Survives any single hit from full health. Focus Sash's onDamage is not distinguishable from
    * other damage-reducing items by shape alone. It is the most-held item in the format at 12.4%. */
   survivesFromFull: 'focussash',
@@ -1332,6 +1349,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     if (m.boosts && !SELF_TARGETS.has(m.target) && Object.values(m.boosts).some(v => v < 0)) set('movesLowerFoe', 1);
   }
 
+
   /* A volatile aimed at the opponent removes an option from them; aimed at yourself it adds one to
    * you. `move.target` is the dex's own field, so neither branch names a move. */
   if (m.volatileStatus) {
@@ -1590,6 +1608,28 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   if (fieldKey(m) && board.hasField(fieldKey(m))) set('deadField', 1);
   if (m.weather && norm(m.weather) === norm(board.weather)) set('deadWeather', 1);
   if (m.stallingMove && user.stalledLastTurn) set('deadStall', 1);
+
+  /* Does this move need the target to have already moved? Encore, Disable, Torment and the rest fail
+   * outright against something with no last move -- the same shape as deadStatus, keyed on lastMove.
+   *
+   * BUT IT DEPENDS ON WHO MOVES FIRST, and that is the whole point. A fresh switch-in has no last
+   * move AT THE MOMENT OF THE DECISION, yet it is about to make one. If my Encore is SLOWER, the
+   * target moves, gains a last move, and Encore lands -- that is the normal way the move is used. If
+   * my Encore resolves FIRST it hits a target that still has not moved, and fails.
+   *
+   * Which makes PRANKSTER the worst case rather than an edge case: +1 priority on a status move means
+   * Whimsicott, Sableye and Grimmsnarl essentially always resolve first, so Prankster Encore into a
+   * fresh switch-in fails EVERY time. The version this replaces flagged slow Encore -- the good play
+   * -- just as hard as fast Encore. Gating on movesFirst is why this sits down here: move order is
+   * not settled until Tailwind, Trick Room and priority have all been applied above. */
+  if (GAME_RULES.needsTargetToHaveMoved.includes(norm(m.id))) {
+    const aimed = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+    if (aimed.length) {
+      let noMove = 0;
+      for (const h of aimed) if (!h.lastMove && !h.moveThisTurn) noMove++;
+      set('deadNoLastMove', (noMove / aimed.length) * x[FEATURE_INDEX.movesFirst]);
+    }
+  }
 
   set('priorLogP', Math.log(Math.max(PRIOR_FLOOR, priorP || 0)));
   return x;

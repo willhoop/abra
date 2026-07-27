@@ -10,6 +10,58 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.22.0] — 2026-07-27
+
+### Encore no longer fires into a fresh switch-in, and Prankster is why the first fix was wrong
+
+A human playing the bot for ten minutes found what no automated check had: MAG was clicking Encore at
+Pokémon that had just switched in, where it fails outright. The whole "this move cannot work right
+now" family — `deadStatus`, `deadSide`, `deadField`, `deadWeather`, `deadStall` — was missing this
+member. Added `GAME_RULES.needsTargetToHaveMoved` (Encore, Disable, Torment, Spite, Mimic, Instruct,
+Mirror Move) and feature #47 `deadNoLastMove`. Encore is on **5.34%** of teams in this format. The fit
+agreed hard: **−2.943**, 95% CI [−3.359, −2.528].
+
+The first version was still wrong, and the user said why: *"especially if they have Prankster
+Encore."* The fact is not "the target has no last move" but "the target has no last move **and I
+resolve first**." A fresh switch-in is about to move; a **slower** Encore lands after it does, which
+is the normal correct play. Only a faster one fails — and Prankster's +1 makes Whimsicott, Sableye
+and Grimmsnarl fail *every* time. The ungated feature penalised the good play exactly as hard as the
+bad one. Now gated on `movesFirst`, and moved to the bottom of `featuresFor` because move order is not
+settled until Tailwind, Trick Room and priority have been applied.
+
+### Measured: the set sampler invents move combinations humans do not play, and misses ones they do
+
+Prompted by a generated Sneasler holding both Dire Claw and Gunk Shot. Against open team sheets
+(all four moves public, no revelation bias) from 2,245 clean games: sets with two or more *attacking*
+moves of one type are **28.5%** for humans and **34.7%** generated. The per-species split is the real
+result — Incineroar 0.0% → 22.5%, Raichu 9.3% → 30.0%, but **Kingambit 98.9% → 71.0%**, because Sucker
+Punch and Kowtow Cleave are both Dark and nearly every Kingambit runs both.
+
+So this is not a case for a "no two same-type attacks" rule, which would be wrong 99% of the time for
+Kingambit. It is `set_priors.fillSet` drawing each move **independently** from P(move | species) when
+real sets are correlated within a role: two moves competing for one slot get paired at P(a)·P(b).
+Not yet fixed — `engine/stab_audit.js` measures it and `docs/HANDOFF-2026-07-27.md` proposes drawing
+whole observed sets instead.
+
+### Retracted before it was ever reported: the no-popularity greedy experiment
+
+The fourth cell of the popularity × greedy 2×2 returned "35.4% of decisive pairs against a bot that
+clicks at random." Losing two-to-one to a monkey takes confidently bad play, and the cause was ours:
+the weight file was fitted at 46 features, `board.js` went to 47 mid-run, and the run kept writing for
+another seven minutes. Games before and after the edit were not playing the same model. Discarded.
+**New rule: never edit `board.js` while a fit or a self-play run is in flight** — Node caches the
+module at require time, so old and new feature vectors land in one output file with no error.
+
+### Also
+
+`engine/mag_bot.js` — the live-odds page drops the confidence trace graph (user asked; the team sheet
+it might have shown is already available by hovering the sprites in Showdown). `engine/encore_test.js`
+promoted from scratch. `fit_policy.js` flags documented: they are the environment variables `DROP=` and
+`OUT_WEIGHTS=`, and passing `--drop`/`--out` is silently ignored — it did a plain refit and overwrote
+the main weight file.
+
+---
+
 ## [3.21.0] — 2026-07-26
 
 ### Every document has a PDF, and the list is derived

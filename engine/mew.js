@@ -115,6 +115,8 @@ const WEIGHTS2 = arg('weights2', '');
 /* ...and for the FIRST player, so a champion/challenger ladder can pit two learned vectors against
  * each other rather than always measuring against whatever happens to be in data/. */
 const WEIGHTS1 = arg('weights', '');
+/* mew_farm forwards --weights, so a whole cell of an experiment can be run on an alternate vector
+ * without touching the shipped one. */
 /* Per-decision probability of taking an available form change. See the block at the Player
  * construction for why this is not the same thing as the mega rate. */
 const MEGA_P = parseFloat(arg('mega', '0.85'));

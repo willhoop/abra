@@ -105,6 +105,14 @@ function makeScoringPlayer(opts = {}) {
      * that starts happening often is visible as a number rather than as a slowly worse bot. */
     receiveError(error) {
       const msg = String((error && error.message) || error);
+      /* ANY server complaint, not only a rejected choice. A room-level message -- "you cannot agree
+       * to open team sheets after Team Preview" -- was fatal, and killed a bot mid-session over
+       * something that did not concern the battle at all. Counted, never silent, never fatal. */
+      if (!/\[Invalid choice\]/.test(msg)) {
+        this.stats.serverComplaints = (this.stats.serverComplaints || 0) + 1;
+        this.stats.lastComplaint = msg;
+        return;
+      }
       if (/\[Invalid choice\]/.test(msg)) {
         this.stats.rejectedChoices = (this.stats.rejectedChoices || 0) + 1;
         this.stats.lastRejection = msg;
