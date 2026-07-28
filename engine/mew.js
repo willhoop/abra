@@ -659,7 +659,11 @@ async function main() {
          * from first principles. */
         rec.selfplay.winnerArm = p1won === !sw ? 1 : 2;
         rec.selfplay.winnerWeights = rec.selfplay.winnerArm === 1 ? (WEIGHTS1 || null) : (WEIGHTS2 || WEIGHTS1 || null);
-        if (POLICY === POLICY2 && WEIGHTS1 === WEIGHTS2) rec.selfplay.armsIdentical = true;
+        /* Identical means IDENTICAL — same policy, same weights AND same flags. The first version
+         * checked only the policy name and the weights file, so a --joint run (which differs by a
+         * flag and nothing else) stamped every record armsIdentical:true, i.e. it claimed the A/B was
+         * a mirror match when it was the actual experiment. */
+        if (POLICY === POLICY2 && WEIGHTS1 === WEIGHTS2 && JOINT_A === JOINT_B) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the
