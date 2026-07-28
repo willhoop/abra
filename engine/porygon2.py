@@ -353,6 +353,41 @@ def main():
     sub = rng.choice(len(Yh), size=min(12000, len(Yh)), replace=False)
     Zh_e, Xh_e, Yh_e = Zh[sub], Xh[sub], Yh[sub]
 
+    # ---- THE LEARNING CURVE: does more self-play keep paying, or does it plateau? --------------
+    # This is the decisive question for a k-NN, and it is the one thing a parametric model cannot
+    # match if the answer is "keeps paying": a nearest-neighbour model improves with data at no
+    # training cost, so a rising curve means the value function gets better for free every time the
+    # self-play generator runs. A FLAT curve means the opposite -- the ceiling is the feature set,
+    # not the sample size, and effort should go into features instead.
+    #
+    # Subsamples are nested and seeded, so each point is a superset of the last and the comparison is
+    # not confounded by which games happened to be drawn.
+    if "--curve" in sys.argv:
+        rng0 = np.random.default_rng(1)
+        order = rng0.permutation(len(Ys))
+        rng = np.random.default_rng(0)
+        sub = rng.choice(len(Yh), size=min(8000, len(Yh)), replace=False)
+        Zh_c, Yh_c = Zh[sub], Yh[sub]
+        print("  LEARNING CURVE — accuracy on held-out HUMAN games, k=200", flush=True)
+        print("    train positions     accuracy      Brier", flush=True)
+        curve = []
+        for frac in (0.125, 0.25, 0.5, 1.0):
+            n = max(200, int(len(Ys) * frac))
+            idx = order[:n]
+            p = knn_predict(Zs[idx], Ys[idx], Zh_c, k=200)
+            a, b = acc(p, Yh_c), brier(p, Yh_c)
+            curve.append({"positions": int(n), "accuracy": round(100 * a, 2), "brier": round(b, 4)})
+            print("    %11s      %5.1f%%      %.4f" % (f"{n:,}", 100 * a, b), flush=True)
+        d = curve[-1]["accuracy"] - curve[0]["accuracy"]
+        print("", flush=True)
+        print("    8x the data moved accuracy %+.1f points." % d, flush=True)
+        print("    %s" % ("Still climbing — more self-play is the cheapest improvement available."
+                          if d >= 0.8 else
+                          "Flat. The ceiling is the FEATURE SET, not the sample size: adding data is "
+                          "not the lever, adding what a position vector can see is."), flush=True)
+        print("", flush=True)
+        json.dump(curve, open(os.path.join(ROOT, "data", "porygon2-curve.json"), "w"), indent=1)
+
     rows = []
     rows.append(("coin", np.full(len(Yh_e), 0.5)))
     sign = np.clip(0.5 + 0.15 * Xh_e[:, 0], 0.02, 0.98)

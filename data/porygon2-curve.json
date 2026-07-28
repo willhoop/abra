@@ -1,0 +1,22 @@
+[
+ {
+  "positions": 9171,
+  "accuracy": 62.81,
+  "brier": 0.2223
+ },
+ {
+  "positions": 18342,
+  "accuracy": 62.3,
+  "brier": 0.2226
+ },
+ {
+  "positions": 36684,
+  "accuracy": 62.02,
+  "brier": 0.2216
+ },
+ {
+  "positions": 73368,
+  "accuracy": 62.62,
+  "brier": 0.221
+ }
+]
