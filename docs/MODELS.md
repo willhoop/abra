@@ -8,26 +8,43 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 
 ---
 
-## THE JOINT LAYER — stale and never wired in (status corrected 2026-07-28)
-**Job:** score the PAIR of choices, not two choices separately. 18 features covering coordination —
-`focusFireKills`, `redirectThenAttack`, `boostsPartnerDamage`, `speedSetupHelpsPartner`,
-`weatherSetupHelpsPartner`, `healsPartner`, `doubleKO`, `flinchThenSetup`, `screenWhileThreatened`,
-`spreadFreeBesideAlly`, and the rest.
-**Status:** fitted, **never wired into `magnemite.js`**, and now stale (46 features against board.js's
-48, so it silently refuses to load). The playing bot has therefore always chosen its two slots
-independently.
-**I retired this earlier today and was wrong.** The retirement rested on the double-target rate — MAG
-24.6% against humans 23.2%, a gap the aiming logic had closed. But that metric touches **2 of the 18
-features**. The other 16 are coordination it cannot see. Judging a team-coordination model by a
-targeting statistic is judging a ninth of it.
+## DODUO — Doubles Optimiser: Decisions United, One turn (named 2026-07-28)
+**Job:** score the PAIR of choices, not two choices separately. Named for the two heads on one body:
+two slots, one decision. 18 coordination features — `focusFireKills`, `redirectThenAttack`,
+`boostsPartnerDamage`, `speedSetupHelpsPartner`, `weatherSetupHelpsPartner`, `healsPartner`,
+`doubleKO`, `flinchThenSetup`, `screenWhileThreatened`, `spreadFreeBesideAlly`, and the rest.
 **Why it matters, and it is a strategic argument not a tidiness one (Will's):** a team must optimise
 for TEAM success, not individual Pokémon success. A policy that picks each slot independently can be
 set positions that REQUIRE coordination and will fail them every time — a repeatable hole rather than
 variance, and precisely what WOBBUFFET searches for.
-**The decisive fact:** it has never been in the loop, so the project has never tested whether
-coordinated choice helps. Retiring it would have closed a question that was never opened.
-**Next:** refit at 48 features (`engine/fit_joint.js`), wire it into `magnemite.js`, and head-to-head
-it against the independent-slot bot. Blocked while MACHAMP runs.
+**I retired this earlier and was wrong.** The retirement rested on the double-target rate — MAG 24.6%
+against humans 23.2%. That metric touches **2 of the 18 features**. Judging a team-coordination model
+by a targeting statistic is judging a ninth of it.
+**Refitted at 48 features 2026-07-28** — 5,250 clean games, 18,740 usable joint turns, 15,345 train /
+3,395 held out:
+
+| predicting which PAIR a human clicked | log-lik | top-1 |
+|---|---|---|
+| two moves decided separately (what MAG did) | −3.6374 | 5.9% |
+| refitted, joint terms forced to zero | −3.1643 | 12.0% |
+| with the joint terms | −2.9890 | **14.5%** |
+
+Read the middle row before the last. **Over half the gain is just refitting the single-move weights
+on pair data**; only the final 2.5 points belong to the coordination terms themselves. And all of
+this predicts a human click — it is not evidence the pair wins more games.
+**Now wired into `magnemite.js` for the first time** (`--joint`, off by default). It had never once
+been in the loop, so the project had never tested whether coordinated choice helps; retiring it would
+have closed a question that was never opened.
+**The wiring bug worth remembering:** the first smoke test decided **0 pairs and fell back 99 times**
+while reporting nothing wrong — 0 games discarded, no error. The partner's options were read from the
+raw request rather than the reshaped list `chooseMove` receives, so every partner candidate parsed as
+unusable. A head-to-head run at that point would have returned ~50% and I would have reported that
+coordination does not help. It was caught only because the fallback is COUNTED and printed. Fixed:
+100% of eligible turns now decided as a pair.
+**Honest status:** head-to-head against the independent-slot bot is **RUNNING** (2,000 games,
+`--paired`). Until it lands, DODUO is a better predictor of human pairs and nothing more.
+**Code:** `engine/fit_joint.js` → `data/policy-weights-joint.json`; played via `--joint` in
+`engine/mew.js`.
 
 ## MACHAMP — Match-Arbitrated CHAMpion Promotion (named 2026-07-28)
 **Job:** make MAG stronger by WINNING, not by resembling people.
