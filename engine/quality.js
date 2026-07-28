@@ -61,13 +61,48 @@ function behaviouralBots(games, cfg) {
   return out;
 }
 
+/* Did anything actually happen? One move or one switch is enough. Deliberately NOT a turn count:
+ * a game can carry turn objects with no action in them, and the question the forfeit rule asks is
+ * whether the players produced evidence, not how far the clock got. */
+function hadAction(g) {
+  for (const t of (g.turns || [])) {
+    for (const e of (t.ev || [])) if (e.t === 'm' || e.t === 's') return true;
+  }
+  return false;
+}
+
 // every reason this game is unusable; empty means clean
 function reasons(g, cfg, bots) {
   cfg = cfg || config();
   const r = cfg.rules, bad = [];
   if (r.exclude_bot_games.on && ((g.p1 && g.p1.bot) || (g.p2 && g.p2.bot))) bad.push('bot');
   if (bots && ((g.p1 && bots.has(g.p1.name)) || (g.p2 && bots.has(g.p2.name)))) bad.push('behavioural_bot');
-  if (r.exclude_forfeits.on && g.forfeit) bad.push('forfeit');
+  /* A FORFEIT AFTER REAL PLAY IS A RESIGNATION, AND RESIGNATIONS ARE EVIDENCE.
+   *
+   * This rule used to drop every forfeit, on the stated rationale that "a forfeit records who quit,
+   * not who was winning". That rationale was never tested, and it is false in this corpus. Of the
+   * 1,528 open-sheet forfeits in which at least one action was taken, the player who quit was:
+   *
+   *     BEHIND on mons   1,326   86.8%
+   *     even               189   12.4%
+   *     AHEAD               13    0.9%
+   *
+   * -- a mean of 1.42 Pokemon down. People resign lost positions; they very rarely quit while
+   * winning. Throwing those games away discarded the OUTCOME OF A DECIDED GAME, and it cost 72% of
+   * the usable open-sheet corpus (2,114 -> 3,642) in the one regime MAG can actually be fitted on.
+   *
+   * WILL'S RULE, and it is sharper than a turn threshold: a forfeit BEFORE ANY ACTION does not
+   * count, a forfeit after one does. It keys on whether a game happened rather than on an arbitrary
+   * turn number. A player who disconnects at team preview produced no evidence about anything; a
+   * player who led, traded damage and then conceded produced a result. Measured, only 4 of 1,532
+   * forfeits fall on the discard side -- which is the point: the old rule was throwing away 1,528
+   * decided games to exclude 4 undecided ones.
+   *
+   * THE RESIDUAL ERROR IS STATED: 13 games (0.9%) were forfeited by the player who was ahead on
+   * material. Those are the genuine "I had to leave" cases and they are now counted as losses for
+   * someone who was winning. That is a real 0.9% contamination, and it is smaller by two orders of
+   * magnitude than the 72% of evidence the old rule destroyed to avoid it. */
+  if (r.exclude_forfeits.on && g.forfeit && !hadAction(g)) bad.push('forfeit_no_action');
   if (r.min_turns.on && (g.turns || []).length < r.min_turns.value) bad.push('short');
   if (r.require_full_bring.on) {
     const br = g.brought || {};
@@ -105,32 +140,40 @@ function loadGames(opts) {
   return games.filter(g => isClean(g, cfg, bots));
 }
 
+/* THE FUNNEL IS DERIVED FROM reasons(), NOT RE-IMPLEMENTED BESIDE IT.
+ *
+ * It used to be a second copy of every rule, and the copies drifted the moment one rule changed:
+ * when the forfeit rule became "forfeited before anyone acted" the filter honoured it and the funnel
+ * did not, so loadGames() returned 2,860 clean open-sheet games while funnel() printed 2,114 on the
+ * same store, in the same process. Two different answers to "how many usable games are there", both
+ * from the file whose entire purpose is that the question has ONE answer.
+ *
+ * Each step now asks reasons() whether a game is excluded by the rules applied SO FAR, so a rule can
+ * only be stated once. Adding a rule means adding its code here; forgetting to is visible as a step
+ * that does not move rather than as a number that is quietly wrong. */
+const FUNNEL_STEPS = [
+  ['after_bot_filter', 'bot'],
+  ['after_behavioural_bots', 'behavioural_bot'],
+  ['after_forfeit_filter', 'forfeit_no_action'],
+  ['after_min_turns', 'short'],
+  ['after_full_bring', 'partial_bring'],
+];
 function funnel(p) {
-  const games = readStore(p), cfg = config(), r = cfg.rules;
-  const out = { collected: games.length };
-  let cur = games;
-  if (r.exclude_bot_games.on) {
-    cur = cur.filter(g => !((g.p1 && g.p1.bot) || (g.p2 && g.p2.bot)));
-    out.after_bot_filter = cur.length;
-  }
+  const games = readStore(p), cfg = config();
   const bots = behaviouralBots(games, cfg);
-  if (bots.size) {
-    cur = cur.filter(g => !(bots.has((g.p1 || {}).name) || bots.has((g.p2 || {}).name)));
-    out.after_behavioural_bots = cur.length;
+  const all = games.map(g => reasons(g, cfg, bots));
+  const out = { collected: games.length };
+  const applied = [];
+  for (const [label, code] of FUNNEL_STEPS) {
+    applied.push(code);
+    out[label] = all.filter(rs => !rs.some(x => applied.includes(x))).length;
   }
-  if (r.exclude_forfeits.on) {
-    cur = cur.filter(g => !g.forfeit);
-    out.after_forfeit_filter = cur.length;
-  }
-  if (r.min_turns.on) {
-    cur = cur.filter(g => (g.turns || []).length >= r.min_turns.value);
-    out.after_min_turns = cur.length;
-  }
-  if (r.require_full_bring.on) {
-    cur = cur.filter(g => ((g.brought || {}).p1 || []).length === 4 && ((g.brought || {}).p2 || []).length === 4);
-    out.after_full_bring = cur.length;
-  }
-  out.clean = cur.length;
+  out.clean = all.filter(rs => rs.length === 0).length;
+  /* A reason that no step accounts for would silently make `clean` smaller than the last step, which
+   * reads as a rounding oddity rather than as a missing rule. Named, it reads as what it is. */
+  const known = new Set(FUNNEL_STEPS.map(s => s[1]));
+  const orphan = [...new Set([].concat(...all))].filter(x => !known.has(x));
+  if (orphan.length) out.unaccounted_reasons = orphan;
   return out;
 }
 

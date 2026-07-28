@@ -1,6 +1,9 @@
 {
-  "version": "1.1.0",
-  "updated": "2026-07-24",
+  "version": "1.2.0",
+  "updated": "2026-07-28",
+  "changelog": {
+    "1.2.0": "exclude_forfeits narrowed to forfeits BEFORE ANY ACTION, after measuring that the player who quit was behind on mons in 86.8% of cases and ahead in 0.9%. Clean open-sheet games 2,114 -> 2,860 (+35%); clean ladder games 2,653 -> 3,571 (+35%). Mean game length in the clean corpus moves 8.46 -> 8.09 turns; median (8) and p90 (12) do not move, because require_full_bring already excluded the genuinely abandoned games. EVERY number computed on a clean corpus before this date was computed on a different, smaller population and needs re-running."
+  },
   "purpose": "The single definition of a USABLE game. Every model reads this file instead of deciding for itself, so 'which games did that number come from' has one answer.",
   "why": "Before this existed, each model applied its own ad-hoc filtering or none at all. 55.2% of stored games involve a bot and 24.0% end in a forfeit, so a model that filtered nothing was reporting a statistic about bot ladder behaviour and calling it the metagame.",
   "rules": {
@@ -33,8 +36,21 @@
     },
     "exclude_forfeits": {
       "on": true,
-      "test": "`forfeit` is true",
-      "rationale": "A forfeit records who quit, not who was winning. Including them teaches any win model to predict rage-quits."
+      "test": "`forfeit` is true AND the game contains no move or switch event",
+      "rationale": "A forfeit AFTER real play is a resignation, and a resignation is the outcome of a decided game. A forfeit before anyone acted is not evidence about anything.",
+      "superseded_rationale": "Until 2026-07-28 this rule dropped EVERY forfeit, on the stated reason that 'a forfeit records who quit, not who was winning'. That was never tested and it is false in this corpus - see measured below. It is kept here rather than deleted so the change is visible.",
+      "measured": {
+        "on": "data/games.ots.jsonl, 2026-07-28",
+        "forfeits_total": 1532,
+        "forfeits_with_no_action": 4,
+        "forfeits_with_action": 1528,
+        "forfeiter_was_behind_on_mons": "1,326 of 1,528 = 86.8%",
+        "forfeiter_was_even": "189 = 12.4%",
+        "forfeiter_was_ahead": "13 = 0.9%",
+        "mean_mon_differential": "+1.42 (positive = the player who quit was down)",
+        "conclusion": "People resign lost positions and very rarely quit while winning. The old rule discarded 1,528 decided games in order to exclude 4 undecided ones."
+      },
+      "known_limitation": "13 games (0.9%) were forfeited by the player who was AHEAD on material - the genuine 'had to leave' cases. Those are now recorded as losses for a player who was winning. This is a real contamination and it is stated rather than hidden; it is two orders of magnitude smaller than the evidence the previous rule destroyed to avoid it."
     },
     "min_turns": {
       "on": true,
@@ -51,19 +67,31 @@
   },
   "provenance": {
     "store": "data/games.ladder.jsonl",
-    "measured_on": "2026-07-25",
-    "store_size": 8356,
+    "measured_on": "2026-07-28",
+    "store_size": 20688,
     "funnel": {
-      "collected": 8356,
-      "after_bot_filter": 3618,
-      "after_behavioural_bots": 2059,
-      "after_forfeit_filter": 1288,
-      "after_min_turns": 1283,
-      "after_full_bring": 1061
+      "collected": 20688,
+      "after_bot_filter": 7311,
+      "after_behavioural_bots": 5235,
+      "after_forfeit_filter": 5209,
+      "after_min_turns": 4872,
+      "after_full_bring": 3571
     },
-    "note": "These counts are measured on the DEDUPLICATED store. Prior figures are kept rather than deleted so every change is visible: 2,020 clean was computed BEFORE deduplication and is superseded; 927 clean of 7,547 was measured on 2026-07-24 and is superseded by the reparse of 2026-07-25, which recovered 356 games the parsed store had lost and added 453 collected by the hourly Action. The clean SHARE is essentially unchanged (12.3% -> 12.7%); the store simply got bigger. A sixth behavioural bot (HospitalityCheck) crossed the threshold at this size.",
-    "clean": 1061,
+    "open_sheet_funnel": {
+      "store": "data/games.ots.jsonl",
+      "collected": 4167,
+      "after_bot_filter": 4138,
+      "after_behavioural_bots": 4088,
+      "after_forfeit_filter": 4084,
+      "after_min_turns": 3865,
+      "after_full_bring": 2860,
+      "clean": 2860,
+      "why_it_matters": "Open-sheet games are the only regime MAG can be fitted on. This is the corpus that grew by 35%."
+    },
+    "note": "These counts are measured on the DEDUPLICATED store. Prior figures are kept rather than deleted so every change is visible: 2,020 clean was computed BEFORE deduplication and is superseded; 927 clean of 7,547 was measured on 2026-07-24 and is superseded by the reparse of 2026-07-25, which recovered 356 games the parsed store had lost and added 453 collected by the hourly Action. A sixth behavioural bot (HospitalityCheck) crossed the threshold at this size. The 2026-07-28 jump in clean SHARE (12.7% -> 17.3%) is NOT store growth: it is the forfeit rule change in 1.2.0, which readmitted resignations from decided games.",
+    "clean": 3571,
     "superseded": {
+      "2026-07-25": { "store_size": 8356, "clean": 1061, "note": "all forfeits excluded" },
       "2026-07-24": { "store_size": 7547, "clean": 927 }
     }
   }

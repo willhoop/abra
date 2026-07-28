@@ -81,6 +81,21 @@ def behavioural_bots(games, cfg=None):
             and len(teams_by[n]) <= r['max_distinct_teams']}
 
 
+def had_action(g):
+    """Did anything actually happen? One move or one switch is enough.
+
+    Deliberately NOT a turn count: a game can carry turn objects with no action in them, and the
+    question the forfeit rule asks is whether the players produced evidence, not how far the clock
+    got. Must stay byte-for-byte equivalent to hadAction() in engine/quality.js -- tests/test-quality.js
+    compares the two implementations' selections by hash, which is how the drift after the 1.2.0
+    forfeit change was caught (JS 3,571 clean, Python 2,684, same store, same config)."""
+    for t in (g.get('turns') or []):
+        for e in (t.get('ev') or []):
+            if e.get('t') in ('m', 's'):
+                return True
+    return False
+
+
 def reasons(g, cfg=None, bots=None):
     """Every reason this game is unusable. Empty list means clean. Returning ALL reasons rather than
     the first lets the funnel be reported honestly instead of attributing each drop to one cause."""
@@ -91,8 +106,8 @@ def reasons(g, cfg=None, bots=None):
         bad.append('bot')
     if bots and (g.get('p1', {}).get('name') in bots or g.get('p2', {}).get('name') in bots):
         bad.append('behavioural_bot')
-    if r['exclude_forfeits']['on'] and g.get('forfeit'):
-        bad.append('forfeit')
+    if r['exclude_forfeits']['on'] and g.get('forfeit') and not had_action(g):
+        bad.append('forfeit_no_action')
     if r['min_turns']['on'] and len(g.get('turns') or []) < r['min_turns']['value']:
         bad.append('short')
     if r['require_full_bring']['on']:
@@ -115,34 +130,36 @@ def load_games(clean=True, path=None):
     return [g for g in games if is_clean(g, cfg, bots)]
 
 
+FUNNEL_STEPS = [
+    ('after_bot_filter', 'bot'),
+    ('after_behavioural_bots', 'behavioural_bot'),
+    ('after_forfeit_filter', 'forfeit_no_action'),
+    ('after_min_turns', 'short'),
+    ('after_full_bring', 'partial_bring'),
+]
+
+
 def funnel(path=None):
-    """Counts at each successive stage, in the order the rules are applied. Cumulative, so each row
-    is 'what survives everything up to and including this rule'."""
+    """Counts at each successive stage, cumulative: 'what survives everything up to and including
+    this rule'.
+
+    DERIVED FROM reasons(), NOT RE-IMPLEMENTED BESIDE IT. This used to be a second copy of every
+    rule -- a third copy overall, counting engine/quality.js -- and the copies drifted the moment one
+    rule changed. Mirrors FUNNEL_STEPS in engine/quality.js exactly."""
     games = read_store(path)
     cfg = config()
-    r = cfg['rules']
-    out = {'collected': len(games)}
-    cur = games
-    if r['exclude_bot_games']['on']:
-        cur = [g for g in cur if not (g.get('p1', {}).get('bot') or g.get('p2', {}).get('bot'))]
-        out['after_bot_filter'] = len(cur)
     bots = behavioural_bots(games, cfg)
-    if bots:
-        cur = [g for g in cur if g.get('p1', {}).get('name') not in bots
-               and g.get('p2', {}).get('name') not in bots]
-        out['after_behavioural_bots'] = len(cur)
-    if r['exclude_forfeits']['on']:
-        cur = [g for g in cur if not g.get('forfeit')]
-        out['after_forfeit_filter'] = len(cur)
-    if r['min_turns']['on']:
-        cur = [g for g in cur if len(g.get('turns') or []) >= r['min_turns']['value']]
-        out['after_min_turns'] = len(cur)
-    if r['require_full_bring']['on']:
-        cur = [g for g in cur
-               if len((g.get('brought') or {}).get('p1') or []) == 4
-               and len((g.get('brought') or {}).get('p2') or []) == 4]
-        out['after_full_bring'] = len(cur)
-    out['clean'] = len(cur)
+    all_reasons = [reasons(g, cfg, bots) for g in games]
+    out = {'collected': len(games)}
+    applied = []
+    for label, code in FUNNEL_STEPS:
+        applied.append(code)
+        out[label] = sum(1 for rs in all_reasons if not any(x in applied for x in rs))
+    out['clean'] = sum(1 for rs in all_reasons if not rs)
+    known = {c for _, c in FUNNEL_STEPS}
+    orphan = sorted({x for rs in all_reasons for x in rs} - known)
+    if orphan:
+        out['unaccounted_reasons'] = orphan
     return out
 
 
