@@ -1,0 +1,23 @@
+{
+ "generated": "2026-07-28T09:44:41.129Z",
+ "by": "engine/mew.js --policy score --policy2 score@../ABRA-prebatch",
+ "what": "Did the 2026-07-28 mechanics batch make MAG play better? New MAG (48 features) against the pre-batch build (47 features, commit 2a60c1d) on the SAME battles, sides swapped.",
+ "games": 1368,
+ "new_mag_wins": 654,
+ "prebatch_wins": 714,
+ "new_mag_winrate_pct": 47.81,
+ "ci95": [
+  45.2,
+  50.5
+ ],
+ "by_side": {
+  "swapped": "319/681 = 46.8%",
+  "straight": "335/687 = 48.8%"
+ },
+ "verdict": "INCONCLUSIVE, point estimate below 50%. The batch did not improve playing strength and may have slightly hurt it.",
+ "corroborating": [
+  "top-1 accuracy 31.13% -> 30.37%",
+  "opponent joint recall at k=5 +0.5 points"
+ ],
+ "caveat": "Both builds carry their own board.js and weights, which is the only clean way to compare across a feature-list change. Teams are sampled from the clean ladder store by seed, identical for both sides."
+}
