@@ -35,6 +35,7 @@
 const fs = require('fs');
 const path = require('path');
 const B = require('./board.js');
+const V = require('./variance.js');
 const { makePriorPlayer, norm } = require('./prior_player.js');
 
 const WEIGHTS_FILE = path.join(__dirname, '..', 'data', 'policy-weights.json');
@@ -84,6 +85,11 @@ function makeScoringPlayer(opts = {}) {
       this.keepThoughts = !!(options && options.keepThoughts);
       this.allowSwitch = !!(options && options.switching);
       this.greedy = !!(options && options.greedy);
+      /* RISK PREFERENCE, and it must be asked for. `{ skillGap, strength }` -- skillGap is what you
+       * believe about the opponent in win-probability points, strength is how hard to tilt. Absent or
+       * zero makes engine/variance.js an exact no-op, which is the right default: applying a variance
+       * preference without a stated belief about the opponent is strictly worse than not applying one. */
+      this.risk = (options && options.risk) || null;
       this.stats.thoughts = [];
       /* Priors as a map per species, so scoring a candidate is a lookup rather than a scan. */
       this.priorMap = {};
@@ -324,6 +330,13 @@ function makeScoringPlayer(opts = {}) {
 
       if (!cands.length) { this.stats.scoreFellBack++; return super.chooseMove(active, moves); }
 
+      /* THE RISK LEVER, OFF BY DEFAULT. Computed once per decision rather than per candidate: the
+       * win probability is a property of the BOARD, so recomputing it inside the map would multiply
+       * the work by the size of the choice set for an answer that cannot change -- the same reason
+       * incomingThreat is cached in board.js. */
+      const riskOn = this.risk && (this.risk.skillGap || this.risk.strength);
+      const pWin = riskOn ? V.winProb(this.board, me) : 0.5;
+
       const scores = cands.map(c => {
         /* A switch has no move, and that is not the same thing as an unparseable move -- the first
          * version returned -Infinity for both and made every switch unpickable. */
@@ -331,7 +344,10 @@ function makeScoringPlayer(opts = {}) {
         const x = B.featuresFor(c, user, this.board, me, dex,
           c.switchTo ? B.PRIOR_FLOOR : this.priorFor(user.species, c.move.id));
         let s = 0; for (let k = 0; k < this.w.length; k++) s += this.w[k] * x[k];
-        return s;
+        /* An underdog should take the swingy line and a favourite should decline it. This is a
+         * CORRECTION, not a free improvement -- see the header of engine/variance.js. It is exactly
+         * a no-op unless a skill gap is asserted, so the default behaviour is unchanged. */
+        return riskOn ? V.adjust(s, x, pWin, this.risk) : s;
       });
 
       let max = -Infinity;
