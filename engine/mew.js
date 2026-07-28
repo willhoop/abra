@@ -108,6 +108,21 @@ const SWITCHING = process.argv.includes('--switching');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 const GREEDY = process.argv.includes('--greedy');
+/* --risk-a <skillGap>  give PLAYER A ONLY a variance preference (engine/variance.js).
+ *
+ * Asymmetric on purpose, because a symmetric run measures nothing: at skillGap 0 the lever is an
+ * exact no-op, so MAG-with-lever against MAG-with-lever comes back 50% and could be misread as "the
+ * lever does not work" when it was never switched on. Putting it on ONE side creates the only
+ * comparison that carries information.
+ *
+ * THE FIRST EXPERIMENT TO RUN IS THE FALSIFIER, not the flattering one: assert a skill gap that does
+ * NOT exist against an equal opponent. Variance preference is a CORRECTION for a mis-calibrated value
+ * function, so claiming an edge you do not have should COST you. If it wins instead, the effect is
+ * not variance preference and the model behind engine/variance.js is wrong. */
+const RISK_A = (() => {
+  const i = process.argv.indexOf('--risk-a');
+  return i > 0 ? { skillGap: parseFloat(process.argv[i + 1]) || 0, strength: 1.0 } : null;
+})();
 /* A weight file for the SECOND player only. This is what makes an exploitability search possible:
  * the challenger is MAG's own machinery with different numbers, so any win it manages is due to the
  * numbers rather than to a different kind of player. */
@@ -377,7 +392,7 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * "swapped" on both halves. The caller states it explicitly there. */
   const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY, risk: RISK_A };
   const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
   if (WEIGHTS1) { (swapped ? optB : optA).weightsFile = WEIGHTS1; }
   if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
