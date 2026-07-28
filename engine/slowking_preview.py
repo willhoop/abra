@@ -151,6 +151,27 @@ def main():
     ex_nash, ex_greedy, ex_uniform = (exploitability(s, M) for s in (nash, greedy, uniform))
 
     # CI: propagate matchup-count uncertainty by Beta-resampling the cells, re-solving each time.
+    #
+    # KNOWN DEFECT, DIAGNOSED 2026-07-28, NOT YET FIXED. These intervals do not contain their own
+    # point estimates. Measured on the 8-archetype playstyle matrix:
+    #
+    #     exploitability   nash 0.0003   CI [0.0006, 0.0033]   <- point BELOW the interval
+    #     greedy - nash    gap  0.3887   CI [0.0244, 0.3777]   <- point ABOVE the interval
+    #
+    # The cause is the iteration count on the next line against line 145. The point estimate solves
+    # the observed matrix with iters=15000; every bootstrap sample solves with iters=1000. Regret
+    # matching approaches Nash as iterations grow, so the bootstrap replicates are systematically
+    # UNDER-CONVERGED and carry residual exploitability the point estimate has already worked off.
+    # The interval is therefore dominated by solver error at a different setting, not by the matchup-
+    # count uncertainty it claims to propagate -- and it is biased in a direction that makes Nash look
+    # worse and the gap look smaller than the point estimate says.
+    #
+    # NOT FIXED HERE, deliberately: tests/test-slowking.py asserts on these numbers and the published
+    # cycle claim rests on them, so changing the estimator changes a shipped result and is Will's call.
+    # The fix is to solve the replicates at the same iters as the point estimate and re-run, which
+    # costs 15x the bootstrap time. Until then, treat both intervals as unusable rather than as
+    # evidence -- this is the fifth member of the "verdicts asserting significance their own
+    # uncertainty does not support" family the handoff warns about.
     B = int(os.environ.get("B", 100)); gaps = []; nash_ex = []
     for _ in range(B):
         Ms = build_edge_matrix(matrix, archs, sample=True)
