@@ -232,6 +232,25 @@ const FEATURES = [
    * The only feature here that is not a fact about the game. It is what the previous bot ran on by
    * itself, kept as one term among 25 rather than as the whole model, so its pull can be measured
    * against the facts instead of assumed. */
+  /* ---- PROTECTING INTO AN ENCORE -----------------------------------------------------------
+   * Will's observation, and it is a rule good players follow explicitly: you do not Protect in front
+   * of a Prankster or a fast Encore user unless you are Dark. Protect is the most predictable move in
+   * the game, Encore locks you into your LAST move, and a Pokemon locked into Protect fails it every
+   * turn afterwards and is helpless while its partner is dismantled.
+   *
+   * The Dark clause is the same fact pranksterFailsDark already carries, seen from the other side: a
+   * Prankster-boosted Encore does nothing to a Dark type, so a Dark Pokemon may Protect freely into
+   * Whimsicott. That feature is the OFFENSIVE direction -- my Prankster move into a Dark target --
+   * and this is the DEFENSIVE mirror, which did not exist.
+   *
+   * A FEATURE, NOT A RULE, and Will was explicit about why: protecting into an Encore user can still
+   * be correct, so this must not prune the option. It states the fact and the fit prices it, which is
+   * the same argument that keeps every other Pokemon rule in this file out of the scoring.
+   *
+   * Not a corner case. Encore is 5.34% of this format's usage and 3.77% of it is PRANKSTER Encore,
+   * dominated by Whimsicott -- 469,820, base Speed 116, Prankster on 100% of sets, and the fourth
+   * most common Pokemon in the store. */
+  'stallIntoEncore', // I am about to Protect and something across from me can Encore me for it
   'priorLogP',       // it is a popular move
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
@@ -833,9 +852,13 @@ function derived(dex) {
   const speedSide = new Map();   // sideCondition id -> multiplier
   const screens = new Set();
   const stalling = new Set();
+  /* MOVES THAT LOCK THE TARGET INTO ITS LAST MOVE. Derived from `volatileStatus === 'encore'`, a dex
+   * data field, so Encore is not named and anything sharing its shape is picked up. */
+  const locking = new Set();
   for (const m of dex.moves.all()) {
     if (!m || !m.exists || m.isNonstandard) continue;
     if (m.stallingMove) stalling.add(norm(m.id));
+    if (norm(m.volatileStatus || '') === 'encore') locking.add(norm(m.id));
     if (!m.sideCondition) continue;
     const id = norm(m.sideCondition);
     const c = dex.conditions.get(m.sideCondition);
@@ -852,7 +875,7 @@ function derived(dex) {
     if (typeof c.onAnyModifyDamage === 'function' || typeof c.onAnyModifyDamagePhase1 === 'function' ||
         typeof c.onAnyModifyDamagePhase2 === 'function') screens.add(id);
   }
-  _derived = { speedSide, screens, stalling };
+  _derived = { speedSide, screens, stalling, locking };
   DERIVED = _derived; STALL = stalling;
   return _derived;
 }
@@ -947,6 +970,28 @@ function incomingThreat(board, side, user, att, D) {
  * clicks, so P(Protect | this species) needs no new derivation -- it is the same public population
  * statistic as the ability odds this file already uses, and it peeks at nothing hidden. Charizard
  * clicks Protect on 59.0% of its turns, the median species on 12.5%. */
+/* P(this species clicks this specific move), from the same public per-species click table
+ * protectOdds reads. Generalised out of it so a second consumer does not need a second loader, and
+ * cached whole rather than per query. Peeks at nothing hidden: it is a population statistic, exactly
+ * like the ability odds and the spreads. */
+let _mvP = null;
+function movePriorOdds(species, moveId) {
+  if (_mvP === null) {
+    _mvP = {};
+    try {
+      const fs5 = require('fs'), p5 = require('path');
+      const j = JSON.parse(fs5.readFileSync(p5.join(__dirname, '..', 'data', 'move-priors.json'), 'utf8'));
+      for (const [sp, v] of Object.entries(j.species || {})) {
+        const row = {};
+        for (const mv of v.moves || []) if (mv && mv.mv) row[norm(mv.mv)] = +mv.p || 0;
+        _mvP[norm(sp)] = row;
+      }
+    } catch (e) { /* absent priors leave every species at 0, which is the old behaviour */ }
+  }
+  const r = _mvP[norm(species)] || _mvP[baseSpecies(species)];
+  return r ? (r[norm(moveId)] || 0) : 0;
+}
+
 let _protP = null;
 function protectOdds(species) {
   if (_protP === null) {
@@ -1859,6 +1904,42 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       /* stallingMove is the dex's own flag for the Protect family, so Baneful Bunker, Spiky Shield
        * and Burning Bulwark are covered without any of them being named here. */
       if (m.stallingMove) set('protectThreatened', threatened);
+      /* PROTECTING INTO AN ENCORE. Fires only on the Protect family, and only when something across
+       * the field can actually punish it. Three factors, each already available:
+       *
+       *   P(that foe carries Encore)   move-priors, the same public per-species click table
+       *                                protectOdds reads. Derived family, so Encore is not named.
+       *   does it move first           effectivePriority on ITS Encore, which is where Prankster
+       *                                enters -- Whimsicott's Encore is +1 and lands before I move
+       *                                again, an ordinary Pokemon's does not.
+       *   am I Dark                    a Prankster-boosted Encore fails outright on a Dark type, so
+       *                                the Prankster share of the threat is removed for a Dark user.
+       *                                The non-Prankster share still applies: a fast Encore works on
+       *                                a Dark type perfectly well. */
+      if (m.stallingMove) {
+        const d3 = derived(dex);
+        const iAmDark = userTypes.map(norm).includes('dark');
+        let worst = 0;
+        for (const f of board.field()) {
+          if (f.side === side || !f.mon || f.mon.fainted) continue;
+          const foeSp = effSpecies(f.mon, dex);
+          let pHas = 0;
+          for (const id of d3.locking) pHas += movePriorOdds(foeSp, id);
+          if (pHas <= 0) continue;
+          const pPrank = pranksterProb(foeSp);
+          /* Split the threat by route, because only the Prankster route is refused by a Dark type. */
+          const viaPrankster = pPrank * (iAmDark ? 0 : 1);
+          /* The non-Prankster route needs raw speed: it only bites if that Pokemon outruns me. */
+          const foeFast = expectedSpe(foeSp, dex, f.mon.nature) * speedMult(board, f.side, dex) * monSpeedMult(f.mon, board, dex);
+          const mineNow = expectedSpe(effSpecies(user, dex), dex, user.nature) * speedMult(board, side, dex) * monSpeedMult(user, board, dex);
+          const slowFirst2 = board.hasField(GAME_RULES.trickRoomField);
+          const outruns = slowFirst2 ? (foeFast < mineNow) : (foeFast > mineNow);
+          const viaSpeed = (1 - pPrank) * (outruns ? 1 : 0);
+          const p = Math.min(1, pHas) * Math.min(1, viaPrankster + viaSpeed);
+          if (p > worst) worst = p;
+        }
+        set('stallIntoEncore', worst);
+      }
       set('diesBeforeMoving', threatened && !x[FEATURE_INDEX.movesFirst] ? 1 : 0);
     }
   }
