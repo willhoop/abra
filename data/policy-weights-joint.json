@@ -142,5 +142,12 @@
   "pairs": 12035,
   "heldOut": 2111
  },
- "caveat": "Predicts which PAIR a human clicked. Not evidence that the pair wins more games."
+ "caveat": "Predicts which PAIR a human clicked. Not evidence that the pair wins more games.",
+ "RETIRED": {
+  "date": "2026-07-28",
+  "status": "RETIRED — do not load, do not refit without re-establishing the need first.",
+  "why": "This layer existed to fix ONE measured defect: MAG aimed both of its Pokemon at the same foe far more often than people do. That defect no longer exists. Measured 2026-07-28 on two-move turns — humans 23.2% of 24,557, MAG self-play 24.6% of 43,141, a gap of 1.4 points. The aiming logic in magnemite.js (which rebuilds the choice string with the target it actually wants, rather than inheriting RandomPlayerAI coin flip) closed it without the joint layer.",
+  "also": "It was already inert: engine/magnemite.js never reads this file, so the playing bot has never used it. Only engine/branch_recall.js and engine/opponent_recall.js consume it, both analysis-only, and both find it stale — 46 features against board.js 48, so it silently refuses to load.",
+  "if_revived": "Re-measure the double-target gap first. If it is still within a couple of points of human behaviour, the layer is solving a problem that is not there. engine/fit_joint.js regenerates it."
+ }
 }

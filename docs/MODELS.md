@@ -8,6 +8,21 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 
 ---
 
+## THE JOINT LAYER — retired 2026-07-28
+**Job it was built for:** MAG chose its two Pokemon's moves independently, and aimed both at the same
+foe far more often than people do. The joint layer scored the PAIR, with 18 features about how two
+choices interact (focus fire, overkill, redirect-then-attack, double KO).
+**Why it is retired:** the defect is gone. Measured on two-move turns — humans **23.2%** of 24,557,
+MAG self-play **24.6%** of 43,141. A 1.4-point gap. The aiming logic in `magnemite.js`, which rebuilds
+the choice string with the target it actually wants instead of inheriting RandomPlayerAI's coin flip,
+closed it without the joint layer ever being wired in.
+**It was already inert.** `engine/magnemite.js` never read `data/policy-weights-joint.json`, so the
+playing bot has never used it. Only two analysis scripts consume it, and both find it stale — 46
+features against board.js's 48, so it silently refuses to load. A stale artifact that fails quietly is
+this project's signature hazard; it now carries a RETIRED marker with the evidence.
+**Before reviving it:** re-measure the double-target gap. If MAG is still within a couple of points of
+human behaviour, the layer is solving a problem that is not there. `engine/fit_joint.js` regenerates it.
+
 ## MACHAMP — Match-Arbitrated CHAMpion Promotion (named 2026-07-28)
 **Job:** make MAG stronger by WINNING, not by resembling people.
 **Method:** champion/challenger hill-climb over MAG's policy weights. Candidates are perturbations of the current champion; each plays the champion over hundreds of seed-matched games and is promoted only when a Wilson interval clears 50%. The opponent is the CURRENT champion, so the bar rises every generation — hill-climbing against a frozen target produces a policy that beats that target and nothing else, which this project already fell for once.
