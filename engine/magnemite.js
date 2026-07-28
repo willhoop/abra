@@ -85,6 +85,27 @@ function makeScoringPlayer(opts = {}) {
       this.keepThoughts = !!(options && options.keepThoughts);
       this.allowSwitch = !!(options && options.switching);
       this.greedy = !!(options && options.greedy);
+      /* THE JOINT LAYER, OPT-IN. data/policy-weights-joint.json holds FEATURES.length single weights
+       * followed by JOINT_FEATURES.length pair weights, fitted by engine/fit_joint.js on the choice
+       * of a PAIR. Loaded only when asked for, and refused outright if its feature list disagrees
+       * with board.js -- a stale pair vector would score the wrong columns and the bot would look
+       * merely worse rather than broken. */
+      this.joint = false; this.wj = null;
+      this.jointK = +(options && options.jointK) || 6;
+      if (options && options.joint) {
+        try {
+          const JW = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'policy-weights-joint.json'), 'utf8'));
+          const okS = (JW.features || []).join(',') === B.FEATURES.join(',');
+          const okJ = (JW.jointFeatures || []).join(',') === B.JOINT_FEATURES.join(',');
+          if (!okS || !okJ) throw new Error('joint weights do not match board.js — refit engine/fit_joint.js');
+          if ((JW.weights || []).length !== B.FEATURES.length + B.JOINT_FEATURES.length) throw new Error('joint weight vector is the wrong length');
+          this.wj = JW.weights; this.joint = true;
+        } catch (e) {
+          /* Loud. Asking for the joint layer and silently not getting it is the failure this project
+           * has already been bitten by twice. */
+          throw new Error(`magnemite: joint layer requested but unavailable — ${e.message}`);
+        }
+      }
       /* RISK PREFERENCE, and it must be asked for. `{ skillGap, strength }` -- skillGap is what you
        * believe about the opponent in win-probability points, strength is how hard to tilt. Absent or
        * zero makes engine/variance.js an exact no-op, which is the right default: applying a variance
@@ -219,18 +240,18 @@ function makeScoringPlayer(opts = {}) {
       return super.receiveRequest(request);
     }
 
-    /* ---- THE DECISION ------------------------------------------------------------------------ */
-    chooseMove(active, moves) {
-      const species = this.speciesFor(active);
-      /* The species under test keeps its uniform pilot — build_lab needs equal airtime per arm and
-       * that requirement is unchanged by this class. See prior_player.js for why. */
-      if (this.uniformFor.size && this.uniformFor.has(species)) return super.chooseMove(active, moves);
-
+    /* ---- CANDIDATES FOR ONE SLOT --------------------------------------------------------------
+     *
+     * Split out of chooseMove so the JOINT layer can build the PARTNER's list too. Deciding a pair
+     * requires both slots' options at once, and this logic previously existed only inside the
+     * per-slot decision, which is a large part of why the pair model was never wired in: there was
+     * no way to ask "what can my partner do" without duplicating a hundred lines of legality
+     * handling. Returns null when the slot cannot be scored, and every caller falls back. */
+    _candsFor(active, moves, i) {
       const me = this.me || 'p1';
       const foeSide = me === 'p1' ? 'p2' : 'p1';
-      const i = this._req && this._req.active ? this._req.active.indexOf(active) : 0;
       const user = this.board.slot(me, String.fromCharCode(97 + Math.max(0, i)));
-      if (!user) { this.stats.scoreFellBack++; return super.chooseMove(active, moves); }
+      if (!user) return null;
 
       const foes = this.board.field().filter(f => f.side === foeSide);
       const allies = this.board.field().filter(f => f.side === me && f.mon !== user);
@@ -326,6 +347,131 @@ function makeScoringPlayer(opts = {}) {
           if (!sp) return;
           cands.push({ raw: null, move: null, switchTo: sp, targetMon: null, choice: `switch ${idx + 1}` });
         });
+      }
+
+      return cands.length ? { cands, user, doubles } : null;
+    }
+
+    /* Score one slot's candidate list. Returns the raw feature vectors alongside the scores, because
+     * the joint layer needs the vectors -- jointFeaturesFor reads the kill and threat terms out of
+     * them rather than calling the damage engine a second time. */
+    _scoreCands(cands, user, me) {
+      const riskOn = this.risk && (this.risk.skillGap || this.risk.strength);
+      const pWin = riskOn ? V.winProb(this.board, me) : 0.5;
+      const xs = [], ss = [];
+      for (const c of cands) {
+        if (!c.move && !c.switchTo) { xs.push(null); ss.push(-Infinity); continue; }
+        const x = B.featuresFor(c, user, this.board, me, dex,
+          c.switchTo ? B.PRIOR_FLOOR : this.priorFor(user.species, c.move.id));
+        let sc = 0; for (let k = 0; k < this.w.length; k++) sc += this.w[k] * x[k];
+        xs.push(x); ss.push(riskOn ? V.adjust(sc, x, pWin, this.risk) : sc);
+      }
+      return { xs, ss };
+    }
+
+    /* Decide BOTH slots at once. Returns this slot's choice string and parks the partner's, or null
+     * to fall through to the independent path -- which it does whenever the partner's options cannot
+     * be built, so a failure here is a silent degradation to the old behaviour rather than an error.
+     * That degradation is COUNTED (stats.jointFellBack), because an unmeasured fallback is how a
+     * feature ends up "wired in" and never actually running. */
+    _decidePair(active, moves, i, candsA, userA, me) {
+      const other = 1 - i;
+      const actB = this._req.active[other];
+      if (!actB || actB.trapped === undefined && !actB.moves) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+      const builtB = this._candsFor(actB, actB.moves || [], other);
+      if (!builtB) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+
+      const A = this._scoreCands(candsA, userA, me);
+      const Bc = this._scoreCands(builtB.cands, builtB.user, me);
+
+      /* Cap each slot at TOPK by single-move score, exactly as fit_joint.js did. */
+      const topIdx = (ss, k) => ss.map((v, q) => [v, q]).filter(([v]) => isFinite(v))
+        .sort((a, b) => b[0] - a[0]).slice(0, k).map(([, q]) => q);
+      const ia = topIdx(A.ss, this.jointK), ib = topIdx(Bc.ss, this.jointK);
+      if (!ia.length || !ib.length) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+
+      const NF = B.FEATURES.length;
+      const pairs = [], ps = [];
+      for (const a of ia) for (const b of ib) {
+        /* Two slots cannot switch to the same body -- the collision the independent path handles
+         * with _claimed. Here it is a property of the PAIR, so it is simply not a legal pair. */
+        if (candsA[a].switchTo && builtB.cands[b].switchTo
+            && candsA[a].choice === builtB.cands[b].choice) continue;
+        const jf = B.jointFeaturesFor(candsA[a], builtB.cands[b], A.xs[a], Bc.xs[b]);
+        let sc = A.ss[a] + Bc.ss[b];
+        for (let k = 0; k < jf.length; k++) sc += this.wj[NF + k] * jf[k];
+        pairs.push([a, b]); ps.push(sc);
+      }
+      if (!pairs.length) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+
+      let max = -Infinity; for (const v of ps) if (v > max) max = v;
+      if (!isFinite(max)) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+      const exp = ps.map(v => Math.exp(v - max));
+      const total = exp.reduce((x, y) => x + y, 0);
+      if (!(total > 0)) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+
+      let q = 0;
+      if (this.greedy) { let best = -Infinity; for (let z = 0; z < ps.length; z++) if (ps[z] > best) { best = ps[z]; q = z; } }
+      else { let r = this.prng.random() * total; while (q < exp.length - 1 && (r -= exp[q]) > 0) q++; }
+
+      const [pa, pb] = pairs[q];
+      this.stats.scored += 2;
+      this.stats.jointDecided = (this.stats.jointDecided || 0) + 1;
+      this._jointReq = this._req;
+      this._jointPick = [];
+      this._jointPick[other] = builtB.cands[pb].choice;
+      /* Both halves of the pair are claimed here, or the partner's parked switch would collide with
+       * whatever the independent path picks if it ever runs for that slot. */
+      for (const c of [candsA[pa], builtB.cands[pb]]) {
+        if (!c.switchTo) continue;
+        const n = parseInt(String(c.choice).split(' ')[1], 10);
+        if (n > 0) this._claimed.add(n);
+      }
+      if (candsA[pa].targetMon) this.stats.aimed++;
+      return candsA[pa].choice;
+    }
+
+    /* ---- THE DECISION ------------------------------------------------------------------------ */
+    chooseMove(active, moves) {
+      const species = this.speciesFor(active);
+      /* The species under test keeps its uniform pilot — build_lab needs equal airtime per arm and
+       * that requirement is unchanged by this class. See prior_player.js for why. */
+      if (this.uniformFor.size && this.uniformFor.has(species)) return super.chooseMove(active, moves);
+
+      const me = this.me || 'p1';
+      const i = this._req && this._req.active ? this._req.active.indexOf(active) : 0;
+
+      /* THE PAIR DECIDED ON MY PARTNER'S TURN THROUGH THIS FUNCTION. Showdown calls chooseMove once
+       * per active slot; the joint path below decides BOTH at once on the first call and parks the
+       * partner's choice here for the second. */
+      if (this._jointReq === this._req && this._jointPick && this._jointPick[i] != null) {
+        const pick = this._jointPick[i]; this._jointPick[i] = null;
+        this.stats.jointUsed = (this.stats.jointUsed || 0) + 1;
+        return pick;
+      }
+
+      const built = this._candsFor(active, moves, i);
+      if (!built) { this.stats.scoreFellBack++; return super.chooseMove(active, moves); }
+      const { cands, user, doubles } = built;
+
+      /* ---- THE JOINT LAYER ----------------------------------------------------------------------
+       *
+       * Will's argument, and the reason the earlier retirement was reversed: a bot that picks each
+       * slot independently can be set positions that REQUIRE coordination and will fail them every
+       * time. That is a repeatable hole rather than variance.
+       *
+       * Scored as sum-of-singles PLUS the fitted pair terms, which is the same form fit_joint.js
+       * fitted, so the weights mean here what they meant there. The pair list is capped at TOPK by
+       * single-move score per slot for the same reason the fit capped it -- every pair is ~10x10 and
+       * the vast majority are two bad moves.
+       *
+       * OFF BY DEFAULT until it beats the single-move player head to head. It has never been
+       * measured, and enabling it on the strength of the argument alone is exactly the mistake this
+       * project keeps correcting. */
+      if (this.joint && this.wj && doubles && this._req && this._req.active && this._req.active.length > 1
+          && !this._req.forceSwitch) {
+        const pair = this._decidePair(active, moves, i, cands, user, me);
+        if (pair) return pair;
       }
 
       if (!cands.length) { this.stats.scoreFellBack++; return super.chooseMove(active, moves); }

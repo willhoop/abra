@@ -108,6 +108,10 @@ const SWITCHING = process.argv.includes('--switching');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 const GREEDY = process.argv.includes('--greedy');
+/* --joint / --joint2  turn the PAIR model on, per arm. Per arm rather than globally because the
+ * whole point is an A/B: coordinated choice versus independent choice, same weights otherwise. */
+const JOINT_A = process.argv.includes('--joint');
+const JOINT_B = process.argv.includes('--joint2');
 /* --risk-a <skillGap>  give PLAYER A ONLY a variance preference (engine/variance.js).
  *
  * Asymmetric on purpose, because a symmetric run measures nothing: at skillGap 0 the lever is an
@@ -402,6 +406,12 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   if (RISK_A) { (swapped ? optB : optA).risk = RISK_A; }
   if (WEIGHTS1) { (swapped ? optB : optA).weightsFile = WEIGHTS1; }
   if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
+  /* Routed by `swapped` exactly as the weights are. optA/optB are per-SIDE, not per-arm -- setting
+   * this in the object literal above would have pinned the joint layer to p1 no matter which arm was
+   * supposed to have it, so half the games would have tested the wrong thing and the A/B would have
+   * come back at a plausible-looking 50%. */
+  if (JOINT_A) { (swapped ? optB : optA).joint = true; }
+  if (JOINT_B) { (swapped ? optA : optB).joint = true; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
   const p1 = new PA(streams.p1, optA);
   const p2 = new PB(streams.p2, optB);
@@ -482,6 +492,9 @@ async function main() {
   if (rawOut) process.stderr.write(`  raw logs -> ${path.relative(ROOT, RAW_OUT)} (PORY reads this, not the records)\n`);
   const startedAt = Math.floor(Date.now() / 1000);
   let done = 0, written = 0, failed = 0;
+  /* First occurrence of each distinct failure message, so a CONFIGURATION error is visible instead
+   * of being counted into `failed` alongside ordinary battle failures and never printed. */
+  const seenErr = new Set();
   const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0,
                 scored: 0, scoreFellBack: 0, aimed: 0 };
 
@@ -576,7 +589,22 @@ async function main() {
       const swap = PAIRED ? 0 : (((k * 2654435761) >>> 0) & 1);
       const a = teams[swap ? bi : ai], b = teams[swap ? ai : bi];
       let res = null;
-      try { res = await playOne(a, b, seed, PAIRED ? (i & 1) : null); } catch (e) { failed++; }
+      /* A CONFIG ERROR IS NOT A BATTLE FAILURE, and swallowing both into `failed++` makes them
+       * indistinguishable. Asking for the joint layer with a stale weight file printed "4 discarded"
+       * and nothing else -- the thrown message naming the actual problem never reached the terminal.
+       * The first distinct error is surfaced once, then counting resumes as before: battles really do
+       * fail for ordinary reasons and a per-game dump would bury the run. */
+      try { res = await playOne(a, b, seed, PAIRED ? (i & 1) : null); } catch (e) {
+        failed++;
+        const msg = String((e && e.message) || e);
+        if (!seenErr.has(msg)) {
+          seenErr.add(msg);
+          process.stderr.write(`  game failed: ${msg}\n`);
+          if (/joint layer requested|weights do not match|wrong length/.test(msg)) {
+            process.stderr.write('  this is a CONFIGURATION error, not a battle error — every game will fail the same way.\n');
+          }
+        }
+      }
       if (res && res.invalid) { POL.invalidTeam++; res = null; }
       done++;
       if (!res) { failed++; continue; }
@@ -610,6 +638,7 @@ async function main() {
        * rate. Anything that changes what the bot DOES belongs on the record. */
       rec.selfplay.greedy = !!GREEDY;
       rec.selfplay.switching = !!SWITCHING;
+      rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
       /* The weight files too — a run of "policy score" says nothing about WHICH fit played it, and the
        * popularity-on and popularity-off arms of a 2x2 are distinguished by nothing else. */
       if (WEIGHTS1) rec.selfplay.weights = WEIGHTS1;
