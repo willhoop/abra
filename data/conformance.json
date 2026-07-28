@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-28T07:01:07.763Z",
+ "generated": "2026-07-28T08:54:17.079Z",
  "by": "engine/conformance.js",
- "files": 154,
+ "files": 159,
  "findings": [
   {
    "std": "convention",
@@ -140,6 +140,12 @@
    "file": "build/build_mag_data.js",
    "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "convention",
+   "file": "build/compress-stores.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
   },
   {
    "std": "convention",
