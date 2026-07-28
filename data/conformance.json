@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-28T09:23:40.247Z",
+ "generated": "2026-07-28T09:53:02.040Z",
  "by": "engine/conformance.js",
- "files": 160,
+ "files": 161,
  "findings": [
   {
    "std": "convention",
@@ -73,6 +73,12 @@
    "std": "S12",
    "file": "engine/ko_calibration.js",
    "what": "names 7 Pokemon thing(s) in code: move:protect, move:followme, move:ragepowder, move:reflect, move:lightscreen, ...",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/mechanics_coverage.js",
+   "what": "names 1 Pokemon thing(s) in code: ability:prankster",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -185,6 +191,12 @@
   },
   {
    "std": "S13",
+   "file": "data/ab-batch-effect.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/calibration.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -240,6 +252,12 @@
   {
    "std": "S13",
    "file": "data/porygon2-curve.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/porygon2-species.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

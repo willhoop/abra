@@ -179,12 +179,66 @@ intervals as unusable.
 
 ---
 
+## 5b. THE SECOND OVERNIGHT PASS — FOUR RESULTS, THREE OF THEM NEGATIVE
+
+**The mechanics batch did not make MAG play better.** Measured properly this time, both
+builds on opposite sides of the same battles, each with its own `board.js` and weights:
+
+    new MAG (48 features) vs pre-batch (commit 2a60c1d, 47 features)
+    1,368 decisive games — new MAG won 654 = 47.8%, 95% CI [45.2, 50.5]
+    swapped half 46.8%, straight half 48.8% — both agree, so not a slot artefact
+
+Inconclusive, point estimate **below** 50%. Three independent measurements agree:
+head-to-head 47.8%, top-1 31.13% → 30.37%, opponent joint recall +0.5 points.
+**Correctness is not strength.** Every mechanic added is individually verified and none
+of it reached the play.
+
+**My collinearity diagnosis was wrong.** I blamed rivalry inside the kill block. Deleting
+`koFirst`, `killsThreat` and `dmgFrac` and refitting leaves `koTarget` at **−0.173** — it
+does not recover. The siblings are not the absorber. What `koTarget` actually correlates
+with once its family is set aside is **`tgtHurt` at +0.524**: a move kills largely
+*because* the target is nearly dead, and the model already knows that. **Redundancy, not
+rivalry** — which means every "fix the collinear block" plan, including the one at the top
+of my own list, was aimed at the wrong thing.
+
+Three repairs, none beats the baseline:
+
+    baseline (lambda 0)   logL -1.7694   top-1 30.38%
+    ridge lambda 0.03     logL -1.8268   top-1 28.87%   signs fixed, costs 1.5 points
+    collapse to one       logL -1.7698   top-1 30.38%   coefficient still -0.085
+    drop the other three  logL -1.7694   top-1 30.38%   koTarget still -0.173
+
+The signs can be bought with ridge; **prediction is the price**.
+
+**The coverage document was rebuilt because it was wrong twice over.** Grepping source
+credited `speedboost` and `prankster` to the damage engine (they appear in a species
+lookup table) and missed twelve type-immunity abilities (bare object keys). A "fix" then
+did nothing, because `` in a JS template literal is a backspace character — and the
+regenerated numbers were identical and reported as corrected. **Both earlier figures
+(22.37% and 59.41%) were artefacts.** Rebuilt as an experiment: swap the ability, rerun
+the real code, see if anything moves.
+
+    192 abilities:  35 responsive (34.47%)   155 blind (59.36%)
+
+The blind list is concentrated in `onStart` / `onSwitchInPriority` — Intimidate 5.65%,
+weather setters 9.4% combined. Those are the **conditional, one-step-ahead** mechanics no
+static feature vector can hold. "Blind" means cannot *anticipate*, not cannot observe.
+
+**One positive.** PORYGON2 gained the conversion terms (`matchup_edge`, `speed_edge`,
+`type_threat`). `matchup_edge` is immediately the 6th most predictive feature of 17, and
+weighting the k-NN distance **flipped from hurting to helping** — best is now weighted
+k=50 at **63.6%** [62.7, 64.5] against 62.8% before. Intervals overlap, so suggestive
+rather than settled; the qualitative flip is the part that is not noise.
+
+---
+
 ## 6. WHAT I WOULD DO NEXT, IN ORDER
 
 1. **Read the falsifier result** (`engine/mew.js --risk-a`). It decides whether
    `engine/variance.js` stays or goes.
-2. **Fix the collinearity** — ridge, or collapse the kill block to one feature. It is the
-   largest known defect and it now affects five features.
+2. ~~Fix the collinearity~~ — **tested and dead.** Deleting the block does not recover the
+   sign; the absorber is `tgtHurt`, not the siblings. Ridge fixes the signs and costs 1.5
+   points of top-1. Nothing to do here.
 3. **Give PORYGON2 the conversion terms** — `koTarget`, `movesFirst`, type matchup. The
    learning curve says data is not the lever and the feature set is. This is the single
    highest-value item.
