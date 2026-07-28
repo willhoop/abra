@@ -1,0 +1,155 @@
+{
+ "generated": "2026-07-28T13:43:18",
+ "by": "engine/nmf_rank.py",
+ "what": "Bootstrap factor stability for NMF rank selection. For each rank, NMF is fitted on two independent bootstrap resamples and the two factor sets are matched greedily by cosine similarity; the reported number is the mean similarity of matched pairs, averaged over several pairs. It answers: if a different sample of games had been collected, would the same archetypes have been found?",
+ "criterion": "bootstrap factor stability (cf. Brunet et al. 2004, consensus NMF)",
+ "why_not_coherence": "Mimno et al. 2011 topic coherence is built for LDA over word co-occurrence and transfers awkwardly to a small dense team x role matrix. Stability asks the question this project actually needs answered.",
+ "matrix": {
+  "rows": 7330,
+  "cols": 46,
+  "roles": [
+   "abuser_electric",
+   "abuser_psychic",
+   "abuser_rain",
+   "abuser_sand",
+   "abuser_sun",
+   "allysupport",
+   "chip",
+   "debuff",
+   "denial",
+   "encore",
+   "fakeout",
+   "fixed_damage",
+   "hazards",
+   "healing",
+   "helpinghand",
+   "itemdisrupt",
+   "multihit",
+   "perish",
+   "phys_attacker",
+   "pivot",
+   "prankster",
+   "priority",
+   "redirection",
+   "screens",
+   "setup",
+   "spec_attacker",
+   "speed_lower",
+   "speed_tailwind",
+   "speed_trickroom",
+   "spread",
+   "spread_self",
+   "status_burn",
+   "status_para",
+   "status_poison",
+   "status_sleep",
+   "substitute",
+   "taunt",
+   "teamprotect",
+   "terrain_electric",
+   "terrain_psychic",
+   "trapping",
+   "wall",
+   "weather_rain",
+   "weather_sand",
+   "weather_snow",
+   "weather_sun"
+  ]
+ },
+ "bootstrap_pairs": 6,
+ "iters": 300,
+ "results": [
+  {
+   "rank": 2,
+   "stability": 0.9993,
+   "recon_err": 0.6327,
+   "null_stability": 0.9984,
+   "excess_over_null": 0.0009
+  },
+  {
+   "rank": 3,
+   "stability": 0.9082,
+   "recon_err": 0.5794,
+   "null_stability": 0.987,
+   "excess_over_null": -0.0788
+  },
+  {
+   "rank": 4,
+   "stability": 0.9992,
+   "recon_err": 0.5271,
+   "null_stability": 0.9217,
+   "excess_over_null": 0.0775
+  },
+  {
+   "rank": 5,
+   "stability": 0.907,
+   "recon_err": 0.4979,
+   "null_stability": 0.8822,
+   "excess_over_null": 0.0248
+  },
+  {
+   "rank": 6,
+   "stability": 0.8148,
+   "recon_err": 0.4701,
+   "null_stability": 0.9218,
+   "excess_over_null": -0.107
+  },
+  {
+   "rank": 7,
+   "stability": 0.8451,
+   "recon_err": 0.4446,
+   "null_stability": 0.9543,
+   "excess_over_null": -0.1092
+  },
+  {
+   "rank": 8,
+   "stability": 0.8722,
+   "recon_err": 0.4171,
+   "null_stability": 0.9291,
+   "excess_over_null": -0.0569
+  },
+  {
+   "rank": 9,
+   "stability": 0.8601,
+   "recon_err": 0.3937,
+   "null_stability": 0.9384,
+   "excess_over_null": -0.0783
+  },
+  {
+   "rank": 10,
+   "stability": 0.8885,
+   "recon_err": 0.372,
+   "null_stability": 0.925,
+   "excess_over_null": -0.0365
+  },
+  {
+   "rank": 11,
+   "stability": 0.9419,
+   "recon_err": 0.3498,
+   "null_stability": 0.9625,
+   "excess_over_null": -0.0206
+  },
+  {
+   "rank": 12,
+   "stability": 0.8545,
+   "recon_err": 0.3332,
+   "null_stability": 0.894,
+   "excess_over_null": -0.0395
+  }
+ ],
+ "most_reproducible": {
+  "rank": 4,
+  "stability": 0.9992,
+  "recon_err": 0.5271,
+  "null_stability": 0.9217,
+  "excess_over_null": 0.0775
+ },
+ "shipped_rank": {
+  "rank": 6,
+  "stability": 0.8148,
+  "recon_err": 0.4701,
+  "null_stability": 0.9218,
+  "excess_over_null": -0.107
+ },
+ "caveat": "Reconstruction error falls monotonically with rank by construction and cannot select it; it is reported beside stability, not instead of it. This selects a rank, it does not name the factors, and it makes no claim that the selected rank is 'true'."
+}

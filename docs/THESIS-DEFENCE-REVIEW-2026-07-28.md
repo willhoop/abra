@@ -168,8 +168,46 @@ it is the expected behaviour of this design.
 
 **The candidate built the correct guard and then ran the experiment at a sample size the
 guard makes useless.** The confirmation gate is doing its job — refusing everything — but a
-procedure that can only ever refuse is not a search. Raising games-per-match is not a
-refinement here; it is the difference between running the experiment and not running it.
+procedure that can only ever refuse is not a search.
+
+### 2.5a Correction to this section, made before the defence closed
+
+I prescribed "≥2,400 games per match" above. **That prescription was wrong, and the
+project's own instrument shows why.** I computed it assuming the effect to be detected is
+about 2 points. It is not. `engine/brood.js` — which exists precisely to measure this and
+had never been used to set MACHAMP's parameters — was run during the defence: 8 candidates,
+each judged twice on independent seeds, 400 games per look.
+
+| | |
+|---|---|
+| observed spread between candidates | 8.3 points |
+| of which noise | **0.9 points** |
+| of which real | **8.2 points** |
+| **reliability** | **99%** |
+
+The candidates genuinely differ by an order of magnitude more than the measurement error.
+Resolving an 8.2-point spread needs **about 286 games**, not 2,400. **The binding constraint
+is exploration width, not statistical power**, and brood's recommendation is 10 candidates
+per generation against the 5 that were run.
+
+This also explains the four failed generations more precisely than "underpowered". Generation
+2's best-of-5 confirmed at 55.3%, CI [49.6, 60.9] — it missed by a hair and would have cleared
+at 400 games. Meanwhile brood's own son 0 scored 64.1% and replicated at 62.0%. **A candidate
+that good exists in the perturbation neighbourhood; MACHAMP's five draws never contained one.**
+
+I let this correction stand in the text rather than editing the prescription silently, because
+a defence that quietly revises its own arithmetic is doing the thing it criticises. The
+substantive criticism survives — the experiment as run could not answer the question — but my
+proposed remedy was the wrong one, and the right one was measurable with a tool already in
+the repository.
+
+**One further result, incidental to the parameter question and more important than it.** Brood's
+sons are random perturbations of MAG's shipped, imitation-fitted weights. Son 0 beat the shipped
+weights **64.1% and again 62.0%**. A *random perturbation* of the thesis's move-selection model
+beats that model roughly five times in eight. This is independent corroboration of WOBBUFFET's
+63.2% by an entirely separate route, and it is the §6 construct-validity failure demonstrated a
+second time: **the shipped weights are not merely unvalidated for strength, they are measurably
+suboptimal for it.**
 
 ---
 
