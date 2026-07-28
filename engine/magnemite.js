@@ -369,6 +369,39 @@ function makeScoringPlayer(opts = {}) {
       return { xs, ss };
     }
 
+    /* THE PARTNER'S MOVE LIST, IN THE SHAPE chooseMove IS GIVEN.
+     *
+     * These are not the same object. The base class hands chooseMove a RESHAPED list --
+     * `{ choice, move: { slot, move, target, zMove } }` -- built in random-player-ai.ts, while
+     * `request.active[j].moves` is the raw request entry, `{ move: 'Protect', id, pp, target,
+     * disabled }`. Passing the raw one to _candsFor made `info.move` undefined for every option, so
+     * dex.moves.get('') failed, every candidate came back unscoreable, and the pair path fell back
+     * to independent choice on all 99 eligible turns of the smoke test while reporting nothing
+     * wrong. The joint counters are what caught it -- a win rate alone would have read as "the pair
+     * model does not help", which would have been a false negative on Will's argument.
+     *
+     * Mirrors the base class: drop disabled moves, keep the 1-based slot, and build a choice string
+     * that is already legal, since _candsFor only re-aims the foe-targeting cases. */
+    _movesForSlot(act, i) {
+      const raw = (act && act.moves) || [];
+      const hasAlly = !!(this._req && this._req.side && (this._req.side.pokemon || [])[i ^ 1]
+        && !String((this._req.side.pokemon[i ^ 1] || {}).condition || '').endsWith(' fnt'));
+      const out = [];
+      raw.forEach((m, k) => {
+        if (!m || m.disabled) return;
+        const tgt = m.target;
+        if (tgt === 'adjacentAlly' && !hasAlly) return;
+        let choice = `move ${k + 1}`;
+        if (this._req.active.length > 1) {
+          if (['normal', 'any', 'adjacentFoe'].includes(tgt)) choice += ' 1';
+          else if (tgt === 'adjacentAlly') choice += ` -${(i ^ 1) + 1}`;
+          else if (tgt === 'adjacentAllyOrSelf') choice += ` -${(hasAlly ? (i ^ 1) : i) + 1}`;
+        }
+        out.push({ choice, move: { slot: k + 1, move: m.move, target: tgt, zMove: false } });
+      });
+      return out;
+    }
+
     /* Decide BOTH slots at once. Returns this slot's choice string and parks the partner's, or null
      * to fall through to the independent path -- which it does whenever the partner's options cannot
      * be built, so a failure here is a silent degradation to the old behaviour rather than an error.
@@ -377,8 +410,9 @@ function makeScoringPlayer(opts = {}) {
     _decidePair(active, moves, i, candsA, userA, me) {
       const other = 1 - i;
       const actB = this._req.active[other];
-      if (!actB || actB.trapped === undefined && !actB.moves) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
-      const builtB = this._candsFor(actB, actB.moves || [], other);
+      const movesB = actB ? this._movesForSlot(actB, other) : [];
+      if (!movesB.length) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
+      const builtB = this._candsFor(actB, movesB, other);
       if (!builtB) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
 
       const A = this._scoreCands(candsA, userA, me);

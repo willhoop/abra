@@ -496,7 +496,7 @@ async function main() {
    * of being counted into `failed` alongside ordinary battle failures and never printed. */
   const seenErr = new Set();
   const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0,
-                scored: 0, scoreFellBack: 0, aimed: 0 };
+                scored: 0, scoreFellBack: 0, aimed: 0, jointDecided: 0, jointFellBack: 0, jointUsed: 0 };
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
    * ------------------------------------------------------------------------------------------
@@ -613,6 +613,7 @@ async function main() {
         POL.sampled += s.sampled; POL.fellBack += s.fellBack; POL.noPrior += s.noPrior;
         POL.previewSampled += s.previewSampled || 0; POL.previewDefault += s.previewDefault || 0;
         POL.scored += s.scored || 0; POL.scoreFellBack += s.scoreFellBack || 0; POL.aimed += s.aimed || 0;
+        POL.jointDecided += s.jointDecided || 0; POL.jointFellBack += s.jointFellBack || 0; POL.jointUsed += s.jointUsed || 0;
       }
       const rec = extract(`selfplay-${SEED0}-${i}`, startedAt, log);
       if (!rec || (rec.six.p1 || []).length < 4 || (rec.six.p2 || []).length < 4) { failed++; continue; }
@@ -687,6 +688,19 @@ async function main() {
         `(${POL.scoreFellBack.toLocaleString()} fell back to the prior sampler)\n`);
       process.stderr.write(`  aiming: ${POL.aimed.toLocaleString()} decisions chose WHICH foe to hit ` +
         `(the prior policy leaves that to a coin flip)\n`);
+      /* THE JOINT LAYER MUST PROVE IT RAN. Asking for --joint and silently getting the independent
+       * player is indistinguishable in the win rate from a pair model that simply does not help, and
+       * the second conclusion would be wrong and would stick. So the counters are printed whenever
+       * the layer is requested, and a zero is called out rather than left to be noticed. */
+      if (JOINT_A || JOINT_B) {
+        const jt = POL.jointDecided + POL.jointFellBack;
+        process.stderr.write(`  joint layer: ${POL.jointDecided.toLocaleString()} turns decided as a PAIR` +
+          (jt ? ` (${(100 * POL.jointDecided / jt).toFixed(1)}% of pair-eligible turns; ` +
+                `${POL.jointFellBack.toLocaleString()} fell back to independent choice)` : '') + '\n');
+        if (POL.jointDecided === 0) {
+          process.stderr.write('  WARNING: --joint was requested and NOT ONE turn was decided as a pair.\n');
+        }
+      }
       if (POL.scored === 0) {
         process.stderr.write('  WARNING: the scoring policy scored NOTHING. It is running as the prior sampler.\n');
       }
