@@ -537,6 +537,10 @@ class Board {
       status: '',
       /* Copied onto the mon so featuresFor never has to work out which side it is looking at. */
       nature: (this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).nature || '',
+      /* THE ITEM, for the same reason and because move ORDER depends on it. The sheet has carried an
+       * item since setSheet was written and nothing read it, so Choice Scarf -- 6.52% of every item
+       * in this format, and a flat +50% Speed -- was invisible to the one feature it most affects. */
+      item: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).item || ''),
       /* STAT STAGES, absolute, cleared here because a boost belongs to the POKEMON and not to the
        * slot -- leaving them would put an Intimidate drop on the mon that replaced its victim.
        * Keys are the protocol's (atk/def/spa/spd/spe); the damage formula's own keys are different
@@ -972,6 +976,117 @@ function speedMult(board, side, dex) {
   return mult;
 }
 
+/* WHAT THIS POKEMON DOES TO ITS OWN SPEED — the other half of move order, and it was missing.
+ *
+ * speedMult above covers SIDE conditions: Tailwind and anything a future regulation adds with the
+ * same shape. It cannot see anything belonging to the Pokemon, and three families of those decide
+ * move order constantly in this format:
+ *
+ *   Choice Scarf         +50% Speed, 6.52% of every item held here, and the single most common
+ *                        reason a "slower" Pokemon moves first.
+ *   paralysis            halves Speed. GAME_RULES already declared `par: 'speed'` and the only place
+ *                        it was read was statusBites -- "does the status I am INFLICTING bite" --
+ *                        never for the speed of the mon actually paralysed.
+ *   weather Speed        Swift Swim, Chlorophyll, Sand Rush, Slush Rush all DOUBLE Speed in their
+ *                        weather. Rain and Sun are the two largest archetypes in the format.
+ *
+ * NOTHING IS NAMED HERE. All three expose `onModifySpe` in the dex -- the item, the ability and the
+ * paralysis condition alike -- so each handler is CALLED and asked, exactly as effectivePriority asks
+ * onModifyPriority and moveType asks onModifyType. A regulation that adds a fourth weather-speed
+ * ability or another Scarf needs no edit, and a handler this stub cannot satisfy returns nothing and
+ * is skipped rather than guessed at.
+ *
+ * The ability term is an EXPECTED value, weighted by Smogon's per-species odds, because which
+ * ability a Pokemon has is known to the population and not to the player -- the same treatment
+ * abilityBlock and effectivePriority already give. The item is read from the REVEALED SHEET, which
+ * is public in this regime, so it is applied at full weight rather than as a probability. */
+/* EXPECTED SPEED, INVESTMENT INCLUDED — and the reason this is not base Speed.
+ *
+ * Both speed comparisons in this file used `baseStats.spe`, defended in a comment as "the exact
+ * spread is hidden, so this is the order two informed players would both expect". That defence does
+ * not survive contact with the rest of the file: spreadLines() already turns Smogon's PUBLISHED
+ * spreads into probability-weighted stat lines, and the DAMAGE calculation uses it for exactly the
+ * same reason abilityBlock uses the ability odds -- the population's investment is public knowledge
+ * even when one player's is not. Applying that to damage and withholding it from speed is one
+ * argument used inconsistently.
+ *
+ * And the error is large. Base 102 Garchomp is 169 Speed fully invested and 123 uninvested; base
+ * Speed gets the ORDER wrong whenever two Pokemon differ in investment, which is most of the time.
+ * Speed is the stat this format invests in most heavily, so base stats are at their least
+ * informative precisely here.
+ *
+ * Weighted by each spread's share, narrowed by the nature when the sheet publishes one -- which on
+ * this ladder it always does. Falls back to the base stat when the species has no published spread,
+ * which is a real condition rather than an error. */
+function expectedSpe(species, dex, nature) {
+  const rows = spreadLines(species, dex, nature || '');
+  if (rows && rows.length) {
+    let s = 0, w = 0;
+    for (const r of rows) { s += (r.p || 0) * (r.st && r.st.sp || 0); w += (r.p || 0); }
+    if (w > 0 && s > 0) return s / w;
+  }
+  const sp = dex.species.get(species) || dex.species.get(baseSpecies(species));
+  return (sp && sp.exists && sp.baseStats && sp.baseStats.spe) || 0;
+}
+
+function speedStub(board) {
+  const wx = () => norm(board.weather);
+  const field = {
+    isWeather: w => (Array.isArray(w) ? w.some(x => norm(x) === wx()) : norm(w) === wx()),
+    effectiveWeather: wx,
+    isTerrain: t => board.hasField(t),
+    getPseudoWeather: t => (board.hasField(t) ? {} : null),
+  };
+  return {
+    field, dex: null,
+    /* Showdown handlers return their answer through chainModify/finalModify rather than as a plain
+     * number. Probing with a speed of 100 and reading the result back as result/100 recovers the
+     * multiplier whichever route the handler takes. */
+    chainModify: v => 100 * (Array.isArray(v) ? v[0] / v[1] : v),
+    finalModify: v => v,
+  };
+}
+function monSpeedMult(mon, board, dex) {
+  if (!mon) return 1;
+  let mult = 1;
+  const ctx = speedStub(board);
+  const stub = {
+    effectiveWeather: () => norm(board.weather),
+    hasItem: () => false, getItem: () => ({}), hasAbility: () => false,
+    volatiles: {}, side: {}, status: norm(mon.status || ''), species: { name: mon.species },
+  };
+  const ask = h => {
+    if (typeof h !== 'function') return null;
+    let got; try { got = h.call(ctx, 100, stub); } catch (e) { return null; }
+    return (typeof got === 'number' && got > 0) ? got / 100 : null;
+  };
+  /* The item, from the revealed sheet. */
+  if (mon.item) {
+    const it = dex.items.get(mon.item);
+    if (it && it.exists) { const m = ask(it.onModifySpe); if (m) mult *= m; }
+  }
+  /* Paralysis, from the condition itself rather than from a 0.5 written here. */
+  if (mon.status) {
+    const c = dex.conditions.get(norm(mon.status));
+    if (c && c.exists) { const m = ask(c.onModifySpe); if (m) mult *= m; }
+  }
+  /* The abilities this species might have, weighted by how often the population runs each. */
+  const { abil } = abilityTables();
+  const rows = abil[norm(mon.species)] || abil[baseSpecies(mon.species)];
+  if (rows && rows.length) {
+    let expected = 1;
+    for (const [ab, pr] of rows) {
+      if (!pr) continue;
+      const A = dex.abilities.get(ab);
+      if (!A || !A.exists) continue;
+      const m = ask(A.onModifySpe);
+      if (m && m !== 1) expected += (m - 1) * pr;
+    }
+    mult *= expected;
+  }
+  return mult;
+}
+
 let _blocks = null, _abil = null, _sash = null;
 function abilityTables() {
   if (_blocks !== null) return { blocks: _blocks, abil: _abil };
@@ -1088,6 +1203,61 @@ function abilityBlockProb(move, targetSpecies, mType, userSpecies) {
     p += pr * (hit === true ? 1 : (+hit || 0));
   }
   return Math.min(1, p);
+}
+
+/* SOME BLOCKERS PROTECT THE WHOLE SIDE, NOT THEMSELVES.
+ *
+ * Armor Tail, Queenly Majesty and Dazzling refuse priority moves aimed at ANY member of their side.
+ * abilityBlockProb above asks only about the mon actually targeted, so aiming Fake Out at Farigiraf
+ * was correctly refused at 99% while aiming the same Fake Out at Farigiraf's PARTNER read as a clean
+ * hit. Half the mechanic, and the missing half is the one that decides targeting in doubles.
+ *
+ * WHICH ABILITIES ARE SIDE-WIDE IS READ FROM THE DEX, NOT LISTED HERE. Showdown implements the
+ * side-wide ones as `onFoeTryMove` and the self-only ones as `onTryHit` -- Armor Tail, Queenly
+ * Majesty and Dazzling all carry the first, Flash Fire the second. So the handler NAME is the
+ * classifier, and an ability added by a future regulation is covered without an edit.
+ *
+ * The measured rule still decides WHETHER a given move is refused: this only changes WHO has to be
+ * carrying the ability for the refusal to apply. Weighted by the same Smogon odds as everywhere
+ * else, because which ability the partner has is population knowledge, not private knowledge. */
+let _sideWide = null;
+function sideWideAbilities(dex) {
+  if (_sideWide) return _sideWide;
+  _sideWide = new Set();
+  const { blocks } = abilityTables();
+  for (const ab of Object.keys(blocks || {})) {
+    const A = dex.abilities.get(ab);
+    if (A && A.exists && typeof A.onFoeTryMove === 'function') _sideWide.add(norm(ab));
+  }
+  return _sideWide;
+}
+
+/* P(anything on `foeSide` other than the target refuses this move on the target's behalf). */
+function allySideBlockProb(move, board, foeSide, targetSpecies, mType, userSpecies, dex) {
+  const wide = sideWideAbilities(dex);
+  if (!wide.size) return 0;
+  const { blocks, abil } = abilityTables();
+  const probe = Object.assign(Object.create(Object.getPrototypeOf(move) || Object.prototype), move, { type: mType });
+  const pPrank = userSpecies ? pranksterProb(userSpecies) : 0;
+  let pNone = 1;
+  for (const f of board.field()) {
+    if (f.side !== foeSide || !f.mon || f.mon.fainted) continue;
+    /* The target itself is already handled by abilityBlockProb; counting it twice would double the
+     * refusal odds of a Farigiraf aimed at directly. */
+    if (baseSpecies(f.mon.species) === baseSpecies(targetSpecies)) continue;
+    const rows = abil[norm(f.mon.species)] || abil[baseSpecies(f.mon.species)];
+    if (!rows) continue;
+    let p = 0;
+    for (const [ab, pr] of rows) {
+      if (!wide.has(norm(ab))) continue;
+      const e = blocks[ab];
+      if (!e) continue;
+      const hit = ruleMatches(e.rule, probe, pPrank);
+      p += pr * (hit === true ? 1 : (+hit || 0));
+    }
+    pNone *= (1 - Math.min(1, p));
+  }
+  return 1 - pNone;
 }
 
 /* THE TYPE OF A MOVE IS NOT ALWAYS A FIXED FIELD.
@@ -1415,8 +1585,12 @@ function featuresFor(cand, user, board, side, dex, priorP) {
        * are base lines -- the exact spread is hidden -- so this is the order two informed players
        * would both expect, not a claim about the actual stat. */
       const foeSide = side === 'p1' ? 'p2' : 'p1';
-      const mySpe = ub.spe * speedMult(board, side, dex);
-      const thSpe = tb.spe * speedMult(board, foeSide, dex);
+      /* INVESTMENT-AWARE, not base stats: see expectedSpe. The target's is averaged over everything
+       * the move hits, exactly as the other stat features above are. */
+      const myBaseSpe = expectedSpe(user.species, dex, user.nature);
+      const thBaseSpe = statList.reduce((a, h) => a + expectedSpe(h.species, dex, h.nature), 0) / statList.length;
+      const mySpe = myBaseSpe * speedMult(board, side, dex) * monSpeedMult(user, board, dex);
+      const thSpe = thBaseSpe * speedMult(board, foeSide, dex) * monSpeedMult(t, board, dex);
       const slowFirst = board.hasField(GAME_RULES.trickRoomField);
       /* PRANKSTER, WHICH IS MY OWN ABILITY AND WAS INVISIBLE.
        *
@@ -1562,8 +1736,15 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   {
     const list = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
     if (list.length) {
+      const fSide = side === 'p1' ? 'p2' : 'p1';
       let pSum = 0;
-      for (const h of list) pSum += abilityBlockProb(m, h.species, mType, user.species);
+      for (const h of list) {
+        /* The target's own ability, and then anything on its side that refuses on its behalf.
+         * Combined as "neither declines", so two blockers cannot sum past certainty. */
+        const own = abilityBlockProb(m, h.species, mType, user.species);
+        const ally = allySideBlockProb(m, board, fSide, h.species, mType, user.species, dex);
+        pSum += 1 - (1 - own) * (1 - ally);
+      }
       set('abilityBlock', pSum / list.length);
     }
   }
@@ -1707,18 +1888,18 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
     set('switchSurvives2', worst < 0.5 ? 1 : 0);
   }
 
-  /* Faster than the biggest threat on the field. Base speeds, adjusted for Tailwind and reversed
-   * under Trick Room, exactly as movesFirst does -- one definition of the queue, not two. */
-  const inSp = dex.species.get(cand.switchTo);
-  const mySpe = ((inSp && inSp.exists && inSp.baseStats && inSp.baseStats.spe) || 0) *
-                speedMult(board, side, dex);
+  /* Faster than the biggest threat on the field. Investment-aware speeds, adjusted for Tailwind and
+   * reversed under Trick Room, exactly as movesFirst does -- one definition of the queue, not two.
+   * The incoming mon's own item and status are not applied: it is on the bench, so its status is not
+   * tracked and its item is only known if the sheet published one. speedMult (side conditions) does
+   * apply, because those belong to the side and are already in effect when it lands. */
+  const mySpe = expectedSpe(cand.switchTo, dex, '') * speedMult(board, side, dex);
   const foeSide = side === 'p1' ? 'p2' : 'p1';
   let fastest = 0;
   for (const f of board.field()) {
     if (f.side === side || !f.mon || f.mon.fainted) continue;
-    const fs2 = dex.species.get(f.mon.species);
-    const s2 = ((fs2 && fs2.exists && fs2.baseStats && fs2.baseStats.spe) || 0) *
-               speedMult(board, foeSide, dex);
+    const s2 = expectedSpe(f.mon.species, dex, f.mon.nature) *
+               speedMult(board, foeSide, dex) * monSpeedMult(f.mon, board, dex);
     if (s2 > fastest) fastest = s2;
   }
   const slowFirst = board.hasField(GAME_RULES.trickRoomField);
