@@ -271,6 +271,30 @@ def boot_ci(fn, p, y, n=400):
     return float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5))
 
 
+def logistic_weights(Z, Y, iters=1500, lr=0.3, lam=1e-3):
+    """Per-feature importance, learned rather than asserted.
+
+    WILL'S POINT, AND IT IS THE CENTRAL WEAKNESS OF A k-NN: Euclidean distance in standardised space
+    treats every feature as equally important. "Trick Room is up" then counts exactly as much as "I
+    have two more Pokemon alive", which is plainly wrong, and it is why adding MORE features to a
+    nearest-neighbour model can make it WORSE -- irrelevant dimensions dilute the distance and the
+    neighbourhood fills with positions that merely happen to agree about terrain.
+
+    So the dimensions are scaled by how much they actually predict the outcome. A logistic fit on the
+    same training data gives that directly: the magnitude of each coefficient is how far the log-odds
+    move per standard deviation of that feature. Cheap, and derived from the data rather than chosen.
+
+    Returned as |coefficient|, normalised to mean 1 so the overall distance scale -- and therefore the
+    meaning of k -- is unchanged. Only the RELATIVE geometry moves."""
+    Zb = np.hstack([np.ones((len(Z), 1)), Z])
+    w = np.zeros(Zb.shape[1])
+    for _ in range(iters):
+        p = 1.0 / (1.0 + np.exp(-Zb @ w))
+        w -= lr * (Zb.T @ (p - Y) / len(Y) + lam * w)
+    a = np.abs(w[1:])
+    return a / (a.mean() + 1e-9)
+
+
 def knn_predict(Xtr, Ytr, Xte, k=50, chunk=2000):
     """Distance-weighted k-NN in standardised space, brute force in numpy.
 
@@ -314,12 +338,33 @@ def main():
     mu, sd = Xs.mean(0), Xs.std(0) + 1e-9
     Zs, Zh = (Xs - mu) / sd, (Xh - mu) / sd
 
+    fw = logistic_weights(Zs, Ys)
+    print("  learned feature weights (relative, mean 1) — how much each actually predicts:", flush=True)
+    for n, v in sorted(zip(FEATURES, fw), key=lambda t: -t[1]):
+        print("    %-16s %5.2f  %s" % (n, v, "#" * int(round(v * 8))), flush=True)
+    print("", flush=True)
+
+    # EVALUATION SUBSAMPLE. Every k-NN config is a |test| x |train| distance matrix; at 38k x 58k
+    # that is 2.2 billion distances per config and the run stopped being interactive. A fixed random
+    # 12,000-position subsample of the HELD-OUT HUMAN set keeps the +/- on accuracy near 0.5 points,
+    # which is far tighter than the differences being compared. Seeded, so every model below is
+    # scored on the SAME positions and the comparison stays paired.
+    rng = np.random.default_rng(0)
+    sub = rng.choice(len(Yh), size=min(12000, len(Yh)), replace=False)
+    Zh_e, Xh_e, Yh_e = Zh[sub], Xh[sub], Yh[sub]
+
     rows = []
-    rows.append(("coin", np.full(len(Yh), 0.5)))
-    sign = np.clip(0.5 + 0.15 * Xh[:, 0], 0.02, 0.98)
+    rows.append(("coin", np.full(len(Yh_e), 0.5)))
+    sign = np.clip(0.5 + 0.15 * Xh_e[:, 0], 0.02, 0.98)
     rows.append(("material sign", sign))
-    for k in (10, 25, 50, 100, 200):
-        rows.append(("PORYGON2 k=%d" % k, knn_predict(Zs, Ys, Zh, k=k)))
+    Zsw, Zhw = Zs * fw, Zh_e * fw
+    for k in (50, 200):
+        print("    ...plain k=%d" % k, flush=True)
+        rows.append(("plain k=%d" % k, knn_predict(Zs, Ys, Zh_e, k=k)))
+    for k in (50, 200):
+        print("    ...weighted k=%d" % k, flush=True)
+        rows.append(("weighted k=%d" % k, knn_predict(Zsw, Ys, Zhw, k=k)))
+    Yh = Yh_e; Xh = Xh_e
 
     print("  model                 accuracy            Brier      (lower is better)")
     print("  " + "-" * 66)

@@ -97,6 +97,21 @@ function dmgRange(att,def,mv,field,spread){
   if(phys&&att.item==='choiceband')A=Math.floor(A*1.5);
   if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
   if(!phys&&def.item==='assaultvest')D=Math.floor(D*1.5);
+  /* WEATHER RAISES A DEFENCE, and both halves were missing. Snow gives an Ice type x1.5 DEFENCE and
+   * sand gives a Rock type x1.5 SPECIAL DEFENCE -- these are passive properties of the weather, not
+   * abilities, so nothing in the ability chain above could ever have caught them. Found by Will
+   * asking whether the engine knew; grep returned zero for both.
+   *
+   * Not a corner case: Snow Warning is 287,161 usage in this format and Sand Stream 147,107, and the
+   * teams built around them are exactly the ones that field the Ice and Rock types this protects. The
+   * effect is to OVERESTIMATE damage into every Rock in sand and every Ice in snow, which flows
+   * straight into koTarget -- so MAG has been calling kills that cannot happen against the two
+   * archetypes most likely to be running those types.
+   *
+   * Defence-raising only. Neither weather boosts the matching ATTACK, which is the natural
+   * mis-statement of the rule and would be wrong in the opposite direction. */
+  if(phys&&field.weather==='snow'&&def.types.includes('Ice'))D=Math.floor(D*1.5);
+  if(!phys&&field.weather==='sand'&&def.types.includes('Rock'))D=Math.floor(D*1.5);
   if((att.ability==='hugepower'||att.ability==='purepower')&&phys)A*=2;
   // --- stat-multiplying abilities (validated gaps vs @smogon/calc) ---
   if(att.ability==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
