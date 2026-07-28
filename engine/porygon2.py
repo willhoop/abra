@@ -62,6 +62,32 @@ SELF_RAW = os.path.join(ROOT, "data", "games.selfplay.porygon2.raw-logs.jsonl")
 OUT = os.path.join(ROOT, "data", "porygon2.json")
 np.random.seed(0)
 
+# Species types, Speed and the type chart, exported from data/engine-data.js so this file does not
+# carry a second copy of the rules. Regenerate with the snippet in that JSON's `note`.
+try:
+    with open(os.path.join(ROOT, "data", "porygon2-species.json"), encoding="utf-8") as fh:
+        SPX = json.load(fh)
+except Exception:
+    SPX = {"eff": {}, "mons": {}}
+EFF, MONS = SPX.get("eff", {}), SPX.get("mons", {})
+
+
+def _sid(name):
+    return "".join(c for c in str(name).lower() if c.isalnum())
+
+
+def _best_eff(att_types, def_types):
+    """Best type effectiveness the attacker's own types can produce against the defender.
+    A stand-in for 'how hard can this thing hit that thing' using only STAB, which is what a public
+    log reveals without knowing the moveset."""
+    best = 0.0
+    for a in att_types or []:
+        m = 1.0
+        for d in def_types or []:
+            m *= EFF.get(a, {}).get(d, 1.0)
+        best = max(best, m)
+    return best if best else 1.0
+
 # ---------------------------------------------------------------------------------------------
 # THE POSITION VECTOR
 #
@@ -78,6 +104,17 @@ FEATURES = [
     "alive_diff", "hp_active_diff", "hp_total_diff", "my_alive", "foe_alive", "turn",
     "status_diff", "boost_diff", "tailwind_diff", "screen_diff", "hazard_diff",
     "trickroom", "weather_on", "terrain_on",
+    # ---- THE CONVERSION TERMS -----------------------------------------------------------------
+    # The learning curve said the ceiling is the feature set, not the sample size: eight times the
+    # data moved accuracy -0.2 points. Everything above describes MATERIAL and FIELD -- what has
+    # already happened. Will's framing is that most of Pokemon is "make my Pokemon move faster" and
+    # "make my Pokemon hit harder", and those are CAUSES; alive_diff and hp_diff are the effects they
+    # eventually produce. A value function looking only at effects is looking downstream.
+    #
+    # These three are the cheapest available causes, computed from the same protocol log:
+    "matchup_edge",   # how hard my active hits theirs, minus how hard theirs hits mine (STAB, type)
+    "speed_edge",     # do I outrun them, signed and scaled
+    "type_threat",    # the worst effectiveness THEY have on me -- being 4x weak is not symmetric
 ]
 
 def parse_states(log):
@@ -89,6 +126,7 @@ def parse_states(log):
     boost = {"p1": 0, "p2": 0}
     side = {"p1": {"tailwind": 0, "screen": 0, "hazard": 0}, "p2": {"tailwind": 0, "screen": 0, "hazard": 0}}
     field = {"trickroom": 0, "weather": 0, "terrain": 0}
+    active = {}                  # slot -> species id, for the matchup features
     turn = 0
     out = []
 
@@ -109,6 +147,7 @@ def parse_states(log):
             "status": dict(status), "boost": dict(boost),
             "side": {s: dict(side[s]) for s in ("p1", "p2")},
             "field": dict(field),
+            "active": dict(active),
         })
 
     for ln in log.split("\n"):
@@ -132,6 +171,8 @@ def parse_states(log):
                 mm = re.search(r"(\d+)\/(\d+)", p[4])
                 if mm and int(mm.group(2)): m = 100.0 * int(mm.group(1)) / int(mm.group(2))
             hp[slot] = 100.0 if m is None else m
+            if len(p) > 3:
+                active[slot] = _sid(p[3].split(",")[0])
         elif tag in ("-damage", "-heal", "-sethp"):
             if len(p) > 3:
                 import re
@@ -186,6 +227,50 @@ def vec(st, me):
         float(st["side"][me]["screen"] - st["side"][you]["screen"]),
         float(st["side"][me]["hazard"] - st["side"][you]["hazard"]),
         float(st["field"]["trickroom"]), float(st["field"]["weather"]), float(st["field"]["terrain"]),
+    ] + _matchup(st, me, you)
+
+
+def _matchup(st, me, you):
+    """The three conversion terms. Averaged over the active slots on each side, because doubles has
+    two of each and picking one would be arbitrary.
+
+    Effectiveness is computed from the attacker's OWN TYPES, not its moveset: a public log does not
+    reveal the moves before they are used, and this has to be computable at every turn including the
+    first. It is a floor on the real matchup, not the whole of it -- a coverage move outside its own
+    types is invisible here. Stated because it caps what these features can be worth."""
+    act = st.get("active") or {}
+
+    def types_of(side):
+        got = []
+        for L in ("a", "b"):
+            sid = act.get(side + L)
+            if sid and sid in MONS:
+                got.append(MONS[sid].get("t") or [])
+        return got
+
+    def speed_of(side):
+        got = [MONS[act[side + L]].get("spe", 0) for L in ("a", "b")
+               if act.get(side + L) and act.get(side + L) in MONS]
+        return (sum(got) / len(got)) if got else 0.0
+
+    mine, theirs = types_of(me), types_of(you)
+    if not mine or not theirs:
+        return [0.0, 0.0, 0.0]
+
+    def avg_best(atts, defs):
+        vals = [_best_eff(a, d) for a in atts for d in defs]
+        return sum(vals) / len(vals) if vals else 1.0
+
+    my_on_them = avg_best(mine, theirs)
+    their_on_me = avg_best(theirs, mine)
+    ms, ys = speed_of(me), speed_of(you)
+    # Scaled so a typical value sits near 0 and the sign carries the meaning, as board.js does.
+    speed_edge = 0.0 if (ms + ys) == 0 else (ms - ys) / max(ms, ys)
+    worst = max([_best_eff(t, m) for t in theirs for m in mine] or [1.0])
+    return [
+        math.log(max(0.25, my_on_them) / max(0.25, their_on_me)),
+        speed_edge,
+        math.log(max(0.25, worst)),
     ]
 
 

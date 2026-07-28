@@ -1,0 +1,101 @@
+{
+ "generated": "2026-07-28T09:50:13.232Z",
+ "by": "engine/collinearity_fix.js",
+ "what": "Three repairs for the kill-feature collinearity, each refit on the same split. The bar is held-out likelihood: a repair that costs prediction is a preference, not a fix.",
+ "kill_block": [
+  "koTarget",
+  "koFirst",
+  "killsThreat",
+  "dmgFrac"
+ ],
+ "results": {
+  "baseline": {
+   "logL": -1.7693542610697122,
+   "top1": 30.38413772429446,
+   "kill": [
+    -0.197,
+    0.085,
+    -0.115,
+    0.066
+   ]
+  },
+  "ridge": [
+   {
+    "lambda": 0.001,
+    "logL": -1.7749214439806948,
+    "top1": 30.127189413729603,
+    "kill": [
+     -0.179,
+     0.099,
+     -0.096,
+     0.167
+    ],
+    "signsFixed": false
+   },
+   {
+    "lambda": 0.01,
+    "logL": -1.8025063848375735,
+    "top1": 29.390604256777014,
+    "kill": [
+     -0.067,
+     0.153,
+     -0.029,
+     0.311
+    ],
+    "signsFixed": false
+   },
+   {
+    "lambda": 0.03,
+    "logL": -1.8267786852858083,
+    "top1": 28.87242516380455,
+    "kill": [
+     0.029,
+     0.166,
+     0.015,
+     0.295
+    ],
+    "signsFixed": true
+   },
+   {
+    "lambda": 0.1,
+    "logL": -1.861957124131635,
+    "top1": 27.737570125476424,
+    "kill": [
+     0.08,
+     0.131,
+     0.039,
+     0.206
+    ],
+    "signsFixed": true
+   },
+   {
+    "lambda": 0.3,
+    "logL": -1.8994470217251316,
+    "top1": 27.587683610980257,
+    "kill": [
+     0.059,
+     0.074,
+     0.029,
+     0.11
+    ],
+    "signsFixed": true
+   }
+  ],
+  "collapse": {
+   "logL": -1.7697512750693831,
+   "top1": 30.375572780608966,
+   "killCoef": -0.085,
+   "direction": [
+    0.459,
+    0.339,
+    0.268,
+    0.776
+   ]
+  },
+  "drop": {
+   "logL": -1.7694215575922339,
+   "top1": 30.38413772429446,
+   "koTarget": -0.173
+  }
+ }
+}

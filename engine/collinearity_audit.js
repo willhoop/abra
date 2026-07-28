@@ -35,6 +35,31 @@
  * leaves collinear coefficients completely unconstrained, which is the condition under which credit
  * splits and signs flip.
  *
+ * THE DIAGNOSIS BELOW WAS TESTED AND IS WRONG — CORRECTED 2026-07-28
+ * ------------------------------------------------------------------
+ * This file blamed collinearity WITHIN the kill block: four features measuring the same thing and
+ * splitting the credit. engine/collinearity_fix.js tested that directly by deleting koFirst,
+ * killsThreat and dmgFrac and refitting. If the block were fighting itself, koTarget would recover
+ * its solo sign. It did not:
+ *
+ *     koTarget alone, only feature in the model      +0.764
+ *     koTarget with the other three DELETED          -0.173
+ *     koTarget in the full 48-feature fit            -0.197
+ *
+ * Deleting the siblings changed nothing, so they are not the absorber. Measured afterwards, what
+ * koTarget actually correlates with once its own family is set aside is `tgtHurt` at +0.524 -- "the
+ * target is already damaged".
+ *
+ * So the real story is redundancy, not rivalry: a move is likely to kill largely BECAUSE the target
+ * is nearly dead, and the model already knows the target is nearly dead. Conditional on that,
+ * "this specific move finishes it" adds little to predicting which button a human presses. The
+ * negative sign is small and is what is left after tgtHurt has taken the signal.
+ *
+ * THE PRACTICAL CONSEQUENCE IS UNCHANGED, and both routes reach it: do not quote koTarget,
+ * killsThreat, koFirst or dmgFrac as statements about the game, and do not expect improving one of
+ * them to move the model. What changed is the REASON, and the reason matters for what to do next --
+ * splitting or regularising the kill block cannot help, because the block was never the problem.
+ *
  * WHAT THIS IS AND IS NOT
  * -----------------------
  * It is NOT an argument that the weights predict badly — they were selected on held-out likelihood
