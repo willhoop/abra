@@ -143,11 +143,12 @@
   "heldOut": 2111
  },
  "caveat": "Predicts which PAIR a human clicked. Not evidence that the pair wins more games.",
- "RETIRED": {
+ "STATUS": {
   "date": "2026-07-28",
-  "status": "RETIRED — do not load, do not refit without re-establishing the need first.",
-  "why": "This layer existed to fix ONE measured defect: MAG aimed both of its Pokemon at the same foe far more often than people do. That defect no longer exists. Measured 2026-07-28 on two-move turns — humans 23.2% of 24,557, MAG self-play 24.6% of 43,141, a gap of 1.4 points. The aiming logic in magnemite.js (which rebuilds the choice string with the target it actually wants, rather than inheriting RandomPlayerAI coin flip) closed it without the joint layer.",
-  "also": "It was already inert: engine/magnemite.js never reads this file, so the playing bot has never used it. Only engine/branch_recall.js and engine/opponent_recall.js consume it, both analysis-only, and both find it stale — 46 features against board.js 48, so it silently refuses to load.",
-  "if_revived": "Re-measure the double-target gap first. If it is still within a couple of points of human behaviour, the layer is solving a problem that is not there. engine/fit_joint.js regenerates it."
+  "state": "NOT RETIRED — stale (46 features vs board.js 48) and NEVER WIRED IN. Refit and wire, do not discard.",
+  "retirement_reversed_because": "Will: teams must optimise for TEAM success, not individual Pokemon success, and a bot that decides each slot independently is systematically exploitable. He is right and the earlier retirement was reasoned from the wrong evidence.",
+  "what_was_wrong_with_retiring_it": "It was retired on the double-target rate (MAG 24.6% vs humans 23.2%). That metric touches 2 of the 18 joint features — bothSameTarget and overkill. The other 16 are coordination the rate cannot see: focusFireKills, redirectThenAttack, boostsPartnerDamage, speedSetupHelpsPartner, weatherSetupHelpsPartner, healsPartner, doubleKO, flinchThenSetup, screenWhileThreatened, spreadFreeBesideAlly and the rest. Judging a coordination model by a targeting statistic is judging a ninth of it.",
+  "the_real_argument": "It has NEVER been wired into magnemite.js, so the project has never tested whether coordinated choice helps. Retiring it would have closed a question that was never opened.",
+  "exploitability": "A policy that picks each slot independently can be set positions that REQUIRE coordination and will fail them every time. That is a repeatable hole, not variance — exactly what engine/exploit.js (WOBBUFFET) searches for."
  }
 }

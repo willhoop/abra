@@ -8,20 +8,26 @@ Guiding principle: **garbage in, garbage out.** The browser engine's **damage ma
 
 ---
 
-## THE JOINT LAYER — retired 2026-07-28
-**Job it was built for:** MAG chose its two Pokemon's moves independently, and aimed both at the same
-foe far more often than people do. The joint layer scored the PAIR, with 18 features about how two
-choices interact (focus fire, overkill, redirect-then-attack, double KO).
-**Why it is retired:** the defect is gone. Measured on two-move turns — humans **23.2%** of 24,557,
-MAG self-play **24.6%** of 43,141. A 1.4-point gap. The aiming logic in `magnemite.js`, which rebuilds
-the choice string with the target it actually wants instead of inheriting RandomPlayerAI's coin flip,
-closed it without the joint layer ever being wired in.
-**It was already inert.** `engine/magnemite.js` never read `data/policy-weights-joint.json`, so the
-playing bot has never used it. Only two analysis scripts consume it, and both find it stale — 46
-features against board.js's 48, so it silently refuses to load. A stale artifact that fails quietly is
-this project's signature hazard; it now carries a RETIRED marker with the evidence.
-**Before reviving it:** re-measure the double-target gap. If MAG is still within a couple of points of
-human behaviour, the layer is solving a problem that is not there. `engine/fit_joint.js` regenerates it.
+## THE JOINT LAYER — stale and never wired in (status corrected 2026-07-28)
+**Job:** score the PAIR of choices, not two choices separately. 18 features covering coordination —
+`focusFireKills`, `redirectThenAttack`, `boostsPartnerDamage`, `speedSetupHelpsPartner`,
+`weatherSetupHelpsPartner`, `healsPartner`, `doubleKO`, `flinchThenSetup`, `screenWhileThreatened`,
+`spreadFreeBesideAlly`, and the rest.
+**Status:** fitted, **never wired into `magnemite.js`**, and now stale (46 features against board.js's
+48, so it silently refuses to load). The playing bot has therefore always chosen its two slots
+independently.
+**I retired this earlier today and was wrong.** The retirement rested on the double-target rate — MAG
+24.6% against humans 23.2%, a gap the aiming logic had closed. But that metric touches **2 of the 18
+features**. The other 16 are coordination it cannot see. Judging a team-coordination model by a
+targeting statistic is judging a ninth of it.
+**Why it matters, and it is a strategic argument not a tidiness one (Will's):** a team must optimise
+for TEAM success, not individual Pokémon success. A policy that picks each slot independently can be
+set positions that REQUIRE coordination and will fail them every time — a repeatable hole rather than
+variance, and precisely what WOBBUFFET searches for.
+**The decisive fact:** it has never been in the loop, so the project has never tested whether
+coordinated choice helps. Retiring it would have closed a question that was never opened.
+**Next:** refit at 48 features (`engine/fit_joint.js`), wire it into `magnemite.js`, and head-to-head
+it against the independent-slot bot. Blocked while MACHAMP runs.
 
 ## MACHAMP — Match-Arbitrated CHAMpion Promotion (named 2026-07-28)
 **Job:** make MAG stronger by WINNING, not by resembling people.
