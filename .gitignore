@@ -27,10 +27,29 @@ __pycache__/
 # Self-play output is REGENERABLE from a seed; it must never enter git.
 data/games.selfplay*.jsonl
 
-# Archived open-team-sheet corpus (cameronangliss/vgc-battle-logs, MIT). Re-importable from
-# the source files via engine/ingest_ots.js, and a different information regime from the
-# closed-sheet ladder store, so it lives in its own bucket.
+# THE GAME STORES ARE TRACKED COMPRESSED, NOT PLAIN.
+#
+# data/games.ladder.jsonl reached 84.6 MB against GitHub's HARD per-file limit of 100 MB. At the
+# hourly collector's ~100 games/hour that was ~3,788 games -- about 38 hours -- from the point where
+# every push fails, INCLUDING the ingest Action's own commit. gzip is the measure
+# build/archive-regulation.js already applies to raw logs, and it is decisive here:
+#
+#     games.ladder.jsonl   84.6 MB -> 10.1 MB   (12%)
+#     games.ots.jsonl      30.4 MB ->  3.2 MB   (11%)
+#     games.bo3.jsonl      22.6 MB ->  2.1 MB   (9%)
+#
+# So git carries `<store>.jsonl.gz`, written by build/compress-stores.js, and the plain .jsonl is
+# ignored. The plain file is still what the collector appends to and what every local run reads --
+# engine/quality.js and engine/quality.py fall back to the .gz only when the plain file is absent,
+# which is the fresh-clone case. Local workflow does not change.
+#
+# NOTE ON games.ots.jsonl: it was ALREADY listed here and tracked anyway, because .gitignore does not
+# apply to files git is already following. It was committed before the rule was written, so the rule
+# silently did nothing for 30.4 MB. All three are now `git rm --cached`ed, which is what actually
+# makes an ignore rule take effect on a tracked path.
+data/games.ladder.jsonl
 data/games.ots.jsonl
+data/games.bo3.jsonl
 data/games.selfplay.raw-logs.jsonl
 data/.mew-shards/
 

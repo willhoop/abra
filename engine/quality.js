@@ -21,11 +21,39 @@ const CONFIG = path.join(__dirname, '..', 'data', 'quality-filter.json');
 let _cfg = null;
 function config() { if (!_cfg) _cfg = JSON.parse(fs.readFileSync(CONFIG, 'utf8')); return _cfg; }
 
+/* THE STORE IS TRACKED COMPRESSED, AND READ EITHER WAY.
+ *
+ * data/games.ladder.jsonl reached 84.6 MB against GitHub's HARD per-file limit of 100 MB. At the
+ * hourly collector's ~100 games/hour that was 3,788 games -- about 38 hours -- from the point where
+ * every push fails, including the ingest Action's own. gzip takes the three stores from 137.6 MB to
+ * 15.4 MB (12%, 11%, 9%), which is the same measure build/archive-regulation.js already applies to
+ * raw logs for exactly this reason.
+ *
+ * So git tracks `<store>.jsonl.gz` and .gitignore excludes the plain `.jsonl`. The plain file is
+ * still what the collector appends to and still what exists on a working machine, so nothing about
+ * local workflow changes; it is simply no longer the thing git carries.
+ *
+ * PLAIN WINS WHEN BOTH EXIST, and that ordering is deliberate. The plain file is the live one the
+ * collector is writing; the .gz is a snapshot taken at commit time by build/compress-stores.js.
+ * Preferring the .gz would silently serve stale games to every model on the one machine that is
+ * actually collecting them. On a fresh clone only the .gz exists and it is read directly. */
+function storePath(p) {
+  const want = p || STORE;
+  if (fs.existsSync(want)) return want;
+  if (fs.existsSync(want + '.gz')) return want + '.gz';
+  return want;                     // let the read throw with the name the caller asked for
+}
+function readStoreText(p) {
+  const f = storePath(p);
+  if (f.endsWith('.gz')) return require('zlib').gunzipSync(fs.readFileSync(f)).toString('utf8');
+  return fs.readFileSync(f, 'utf8');
+}
+
 /* Deduplicate by id, first occurrence wins - the same order-preserving rule as dedupe_store.py, so
  * an un-deduped file on disk cannot silently change a result. */
 function readStore(p) {
   const seen = new Set(), out = [];
-  for (const line of fs.readFileSync(p || STORE, 'utf8').split('\n')) {
+  for (const line of readStoreText(p).split('\n')) {
     const s = line.trim();
     if (!s) continue;
     let g; try { g = JSON.parse(s); } catch (e) { continue; }

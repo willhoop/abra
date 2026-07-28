@@ -32,11 +32,30 @@ def config():
     return _CFG
 
 
+def _store_handle(path=None):
+    """Open the store, compressed or not. Must match storePath()/readStoreText() in quality.js.
+
+    THE STORE IS TRACKED COMPRESSED. data/games.ladder.jsonl reached 84.6 MB against GitHub's HARD
+    100 MB per-file limit -- about 38 hours of collection from the point where every push fails.
+    git now tracks <store>.jsonl.gz and .gitignore excludes the plain .jsonl.
+
+    PLAIN WINS WHEN BOTH EXIST: the plain file is the live one the collector appends to, the .gz is a
+    commit-time snapshot. Preferring the .gz would serve stale games on the very machine collecting
+    them. On a fresh clone only the .gz is present and it is read directly."""
+    want = path or STORE
+    if os.path.exists(want):
+        return open(want, encoding='utf-8')
+    if os.path.exists(want + '.gz'):
+        import gzip
+        return gzip.open(want + '.gz', 'rt', encoding='utf-8')
+    return open(want, encoding='utf-8')      # raise with the name the caller asked for
+
+
 def read_store(path=None):
     """Every record, deduplicated by id, first occurrence wins - the same order-preserving rule as
     engine/dedupe_store.py, so an un-deduped file on disk cannot change a result."""
     seen, out = set(), []
-    with open(path or STORE, encoding='utf-8') as fh:
+    with _store_handle(path) as fh:
         for line in fh:
             line = line.strip()
             if not line:
