@@ -1,10 +1,10 @@
 {
- "generated": "2026-07-28T07:21:30.083Z",
+ "generated": "2026-07-28T09:12:59.646Z",
  "by": "engine/opponent_recall.js",
  "what": "Recall of the OPPONENT'S JOINT (two-slot) action at k. The metric for MAG as the sigma_opp abstraction in the EV sum, which is the branching that actually costs — as opposed to recall_at_k.js, which measures one Pokemon's choice and describes a list the search layer intends to evaluate in full anyway.",
  "weights_file": "data\\policy-weights.json",
  "shipped_vector": "reweighted_to_closed",
- "n_features": 47,
+ "n_features": 48,
  "scoring": "additive: the joint score is the sum of the two per-slot scores. The fitted joint layer (data/policy-weights-joint.json) is STALE — 46 features against board.js's 47 — and was not used. An additive score is also what a policy prior supplies to a search.",
  "corpus": {
   "games": 5036,
@@ -21,14 +21,14 @@
   "100+": 45
  },
  "recall": {
-  "top1": 9.42,
-  "top2": 17.09,
-  "top3": 22.88,
-  "top5": 32.8,
-  "top8": 44.89,
-  "top10": 51.21,
-  "top15": 64.32,
-  "top20": 73.63
+  "top1": 9.39,
+  "top2": 17.32,
+  "top3": 23.06,
+  "top5": 33.29,
+  "top8": 45.33,
+  "top10": 51.76,
+  "top15": 64.69,
+  "top20": 74.51
  },
  "random_shortlist_recall": {
   "top1": 2.04,
@@ -40,6 +40,6 @@
   "top15": 30.56,
   "top20": 40.03
  },
- "both_slots_in_own_top5": 76.51,
+ "both_slots_in_own_top5": 77.06,
  "caveat": "Held out by hash(game) % 5, deterministic and inspected across many refits, so a validation set in practice rather than a virgin holdout. Recall is against the HUMAN's joint choice, not the objectively best one. Turns where only one slot produced a scoreable decision are reported separately and excluded, because a singleton is an easier problem."
 }

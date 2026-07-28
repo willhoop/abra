@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-28T07:36:52.767Z",
+ "generated": "2026-07-28T09:15:06.854Z",
  "by": "engine/collinearity_audit.js",
  "what": "Each feature fitted ALONE versus its weight in the full model, beside a model-free lift measuring whether humans actually prefer it. A feature strong alone and near-zero in company has had its credit split among correlated neighbours; its individual weight is not a statement about the game.",
  "weights_file": "data\\policy-weights.json",
@@ -12,91 +12,91 @@
  "features": {
   "koTarget": {
    "solo": 0.7639,
-   "joint": -0.1639,
+   "joint": -0.2061,
    "lift": 1.41,
    "verdict": "SIGN FLIPS"
   },
   "koFirst": {
    "solo": 0.9023,
-   "joint": 0.0601,
+   "joint": 0.0893,
    "lift": 1.819,
    "verdict": "absorbed"
   },
   "killsThreat": {
    "solo": 0.5836,
-   "joint": -0.0639,
+   "joint": -0.0979,
    "lift": 1.552,
    "verdict": "SIGN FLIPS"
   },
   "dmgFrac": {
    "solo": 0.6485,
-   "joint": -0.076,
+   "joint": -0.0043,
    "lift": 1.388,
    "verdict": "SIGN FLIPS"
   },
   "killIsRoll": {
    "solo": 1.2569,
-   "joint": 0.941,
+   "joint": 0.9037,
    "lift": 2.188,
    "verdict": null
   },
   "tgtHurt": {
    "solo": 0.1715,
-   "joint": 0.366,
+   "joint": 0.3131,
    "lift": 0.99,
    "verdict": null
   },
   "bp": {
    "solo": 0.0437,
-   "joint": 0.0058,
+   "joint": 0.0176,
    "lift": 1.021,
    "verdict": null
   },
   "tgtMayProtect": {
    "solo": 0.2485,
-   "joint": 0.5743,
+   "joint": 0.6752,
    "lift": 0.676,
    "verdict": null
   },
   "eff4": {
    "solo": 1.2685,
-   "joint": 1.2772,
+   "joint": 1.2909,
    "lift": 2.187,
    "verdict": null
   },
   "eff2": {
    "solo": 1.0294,
-   "joint": 0.9279,
+   "joint": 0.8823,
    "lift": 1.893,
    "verdict": null
   },
   "immune": {
    "solo": -2.3229,
-   "joint": -2.198,
+   "joint": -2.1456,
    "lift": 0.115,
    "verdict": null
   },
   "deadNoLastMove": {
-   "solo": -3.2694,
-   "joint": -3.4339,
-   "lift": 0.047,
+   "solo": -3.1789,
+   "joint": -3.0353,
+   "lift": 0.049,
    "verdict": null
   },
   "isSwitch": {
    "solo": -0.295,
-   "joint": -0.1668,
+   "joint": -0.0628,
    "lift": 0.792,
    "verdict": null
   },
   "movesFirst": {
-   "solo": 0.3877,
-   "joint": 0.1119,
-   "lift": 1.153,
-   "verdict": null
+   "solo": 0.4123,
+   "joint": 0.1268,
+   "lift": 1.154,
+   "verdict": "absorbed"
   },
   "myOffenseStage": {
    "solo": 1.3203,
-   "joint": 1.9686,
+   "joint": 1.9304,
    "lift": 1.248,
    "verdict": null
   }

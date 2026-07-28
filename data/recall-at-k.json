@@ -1,40 +1,40 @@
 {
- "generated": "2026-07-28T06:00:21.721Z",
+ "generated": "2026-07-28T09:12:09.186Z",
  "by": "engine/recall_at_k.js",
  "what": "How often the human-chosen option survives a cut to MAG's top k. The metric for MAG as a PRUNER feeding a search, as opposed to top-1 accuracy which is the metric for MAG as a decider.",
  "weights_file": "data\\policy-weights.json",
  "shipped_vector": "reweighted_to_closed",
- "n_features": 47,
+ "n_features": 48,
  "corpus": {
-  "games": 3685,
-  "decisions": 91086,
-  "held_out": 16929
+  "games": 5036,
+  "decisions": 121609,
+  "held_out": 23351
  },
- "mean_candidates": 7.27,
+ "mean_candidates": 7.36,
  "candidate_distribution": {
   "3": 2,
-  "4": 1147,
-  "5": 1161,
-  "6": 2410,
-  "7": 3940,
-  "8": 4756,
-  "9": 2631,
-  "10": 844,
-  "11": 38
+  "4": 1227,
+  "5": 1444,
+  "6": 3251,
+  "7": 5510,
+  "8": 6828,
+  "9": 3817,
+  "10": 1219,
+  "11": 53
  },
  "recall": {
-  "top1": 31.13,
-  "top2": 52.84,
-  "top3": 68.24,
-  "top5": 87.91,
+  "top1": 30.37,
+  "top2": 51.95,
+  "top3": 67.13,
+  "top5": 87.4,
   "top8": 99.1
  },
  "random_shortlist_recall": {
-  "top1": 14.52,
-  "top2": 29.05,
-  "top3": 43.57,
-  "top5": 70.92,
-  "top8": 97.21
+  "top1": 14.26,
+  "top2": 28.52,
+  "top3": 42.78,
+  "top5": 69.97,
+  "top8": 97.08
  },
  "caveat": "The held-out split is hash(game) % 5, deterministic and inspected across many refits, so it is a validation set in practice rather than an untouched holdout. Recall here is measured against HUMAN choices, which is not the same as against the objectively best move — a human shortlist ceiling, not a game-theoretic one."
 }
