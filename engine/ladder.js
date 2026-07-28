@@ -48,9 +48,21 @@ const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
 
-const GENS = +arg('gens', 8);
-const GAMES = +arg('games', 240);
-const PROBES = +arg('probes', 6);         // candidates tried per generation
+/* DEFAULTS FROM engine/brood.js, WHICH MEASURED THEM, rather than from taste.
+ *
+ * brood ran 8 candidates twice each on independent seeds and decomposed the spread: 8.3 points
+ * observed, 0.9 of it noise, 8.2 real -- 99% reliability. It recommended 10 candidates per
+ * generation and reported ~286 games as sufficient to resolve that spread. 400 is used for headroom.
+ *
+ * GENS is now an UPPER BOUND, not a target. Both previous runs set it by hand (6, then 8) with
+ * nothing behind either number, and the run ends on STOP_AFTER consecutive failures at full
+ * perturbation instead. */
+const GENS = +arg('gens', 30);            // upper bound; STOP_AFTER ends the run
+const GAMES = +arg('games', 400);         // brood: ~286 resolves the measured 8.2-point spread
+const PROBES = +arg('probes', 10);        // brood: recommended candidates per generation
+const STOP_AFTER = +arg('stop-after', 3); // consecutive failures AT FULL SCALE before stopping
+/* 1 = no annealing. See the note at the promotion step for why shrinking fought the gate. */
+const SHRINK = +arg('shrink', 1);
 const SEED0 = +arg('seed', 20260726);
 const OUT = D('data', 'ladder.json');
 
@@ -114,6 +126,7 @@ const wilson = (p, n) => {
   const gens = [{ gen: 0, weights: base.weights.slice(), note: 'MAG, fitted to imitate humans' }];
   let champ = base.weights.slice();
   let scale = 0.7;
+  let fails = 0;
   const history = [];
 
   for (let g = 1; g <= GENS; g++) {
@@ -145,8 +158,40 @@ const wilson = (p, n) => {
       (promoted ? '-> PROMOTED' : '(did not replicate, champion holds)'));
     history.push({ gen: g, selectionRate: bestR.rate, selectionN: bestR.n,
                    confirmRate: conf ? conf.rate : null, confirmN: conf ? conf.n : null, promoted });
-    if (promoted) { champ = bestW; gens.push({ gen: g, weights: champ.slice() }); scale = 0.7; }
-    else scale *= 0.8;
+    if (promoted) { champ = bestW; gens.push({ gen: g, weights: champ.slice() }); scale = 0.7; fails = 0; }
+    else { fails++; scale *= SHRINK; }
+
+    /* THE ANNEALING USED TO FIGHT THE GATE, AND THE GATE ALWAYS WON.
+     *
+     * Every failure multiplied the perturbation by 0.8, so the 2026-07-28 run walked
+     * 0.700 -> 0.560 -> 0.448 -> 0.358 -> 0.287 -> 0.229 -> 0.184 across eight generations. That is
+     * the standard simulated-annealing instinct and it is wrong HERE, because the sample size did
+     * not move with it.
+     *
+     * engine/brood.js measured that 400 games resolves the real spread between candidates -- 8.2
+     * points, 99% of it signal -- but it measured that AT SCALE 0.7. Shrink the perturbation and the
+     * candidates become near-clones of the champion, the true spread between them shrinks with it,
+     * and 400 games can no longer resolve the difference. The Wilson gate then correctly refuses,
+     * and goes on refusing forever.
+     *
+     * So the search was structurally guaranteed to stop improving after its first failure, whether
+     * or not better weights existed in the neighbourhood. Six of the eight generations in that run
+     * could never have promoted anything, and its null said nothing about whether outcome
+     * optimisation works -- which was the entire question.
+     *
+     * SHRINK now defaults to 1 (no annealing): hold the perturbation fixed and let the confirmation
+     * gate do the filtering, which keeps brood's measured 400-game figure valid for the whole run.
+     * --shrink <r> restores annealing for anyone who wants it, and --games-scale raises the sample
+     * size as the perturbation falls so that power tracks the effect size instead of lagging it.
+     *
+     * STOPPING IS NOW A CRITERION, NOT A NUMBER. --gens was picked by hand in both previous runs
+     * (6, then 8) with nothing behind either. STOP_AFTER consecutive failures at FULL scale means
+     * the neighbourhood really has been searched; failures at a reduced scale do not count toward
+     * it, because those are the uninformative ones. */
+    if (fails >= STOP_AFTER && scale >= 0.7 - 1e-9) {
+      console.log(`  stopping: ${fails} consecutive failures at full perturbation — the neighbourhood is searched`);
+      break;
+    }
   }
 
   /* ---- IS IT REALLY BETTER, OR IS IT A CYCLE? ------------------------------------------------- */

@@ -560,9 +560,12 @@ class Board {
        * item since setSheet was written and nothing read it, so Choice Scarf -- 6.52% of every item
        * in this format, and a flat +50% Speed -- was invisible to the one feature it most affects. */
       item: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).item || ''),
-      /* The forme it will actually be, if the sheet's item is its own mega stone. Filled in below,
-       * because megaFormeOf needs the dex and the Board deliberately does not hold one. */
-      mega: '',
+      /* The forme it will actually be, if the sheet's item is its own mega stone. Filled in by
+       * effSpecies, because megaFormeOf needs the dex and the Board deliberately does not hold one.
+       * `megaFor` records which species the answer was computed for, so a mid-battle transformation
+       * into something the stone did not predict -- Ditto copying, Illusion breaking -- invalidates
+       * it instead of silently keeping the old forme. */
+      mega: '', megaFor: null,
       /* STAT STAGES, absolute, cleared here because a boost belongs to the POKEMON and not to the
        * slot -- leaving them would put an Intimidate drop on the mon that replaced its victim.
        * Keys are the protocol's (atk/def/spa/spd/spe); the damage formula's own keys are different
@@ -1299,7 +1302,26 @@ function megaFormeOf(species, item, dex) {
  * itself deliberately holds no dex, so this is done here where one is in scope. */
 function effSpecies(mon, dex) {
   if (!mon) return '';
-  if (mon.mega === '' && dex) mon.mega = megaFormeOf(mon.species, mon.item, dex) || null;
+  /* THE CACHE IS KEYED ON THE SPECIES IT WAS COMPUTED FOR, and the first version was not.
+   *
+   * It cached on `mon.mega === ''` alone, so the answer was computed once and never revisited. That
+   * is correct for mega evolution, where the stone predicts the forme and the later `detailschange`
+   * agrees with it. It is WRONG for every other mid-battle transformation, and this project has two
+   * that matter:
+   *
+   *   DITTO / Imposter        copies whatever is across from it on switch-in. Its cached forme is
+   *                           stale the instant it transforms.
+   *   ZOROARK-HISUI / Illusion  was never the species the board believed. When Illusion breaks the
+   *                           species changes to something no stone predicted, and the cache holds
+   *                           the disguise.
+   *
+   * Both paths already rewrite mon.species when it happens -- magnemite.js on detailschange, and
+   * fit_policy.js on the mega event -- so the fix is simply to notice that it changed. Recording the
+   * species the cache was computed FOR turns a stale value into a recomputed one. */
+  if (mon.megaFor !== mon.species && dex) {
+    mon.mega = megaFormeOf(mon.species, mon.item, dex) || null;
+    mon.megaFor = mon.species;
+  }
   return mon.mega || mon.species;
 }
 
