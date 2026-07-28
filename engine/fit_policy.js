@@ -169,9 +169,27 @@ function loadCorpus() {
   const seen = new Set();
   const games = [];
   const rejected = {};
+  /* NO_FORFEITS=1 — exclude every forfeited game, whatever the quality filter now says.
+   *
+   * On 2026-07-28 the forfeit rule was narrowed to "before any action", which readmitted 1,528
+   * resignations and grew the clean corpus 35%. That was justified by measuring that the player who
+   * quit was BEHIND on mons 86.8% of the time -- which establishes the OUTCOME is trustworthy. It
+   * does not establish that the DECISIONS are representative, and this file fits a model of
+   * decisions, not outcomes. Measured afterwards, they are not quite:
+   *
+   *     hit super effectively   23.1% completed   vs   20.4% in resignation games
+   *     landed a KO             10.8%             vs    8.4%
+   *
+   * so 24.5% of the training decisions now come from games someone was on the way to conceding.
+   * That may be worse PLAY or merely worse POSITIONS -- a losing player genuinely has fewer
+   * super-effective options -- and this flag is how the two are told apart. Refit with it on, put
+   * the result on the opposite side of the same battles as the build fitted without it, and the
+   * head-to-head answers which. Nothing else changes between the two fits. */
+  const NO_FORFEITS = !!process.env.NO_FORFEITS;
   const add = (g) => {
     if (!g || !g.openSheet || !g.sheets || !g.sheets.p1 || !g.sheets.p2) return;
     if (g.id && seen.has(g.id)) return;
+    if (NO_FORFEITS && g.forfeit) { rejected.forfeit_excluded_by_flag = (rejected.forfeit_excluded_by_flag || 0) + 1; return; }
     const why = Q.reasons(g, cfg, bots);
     if (why.length) { for (const r of why) rejected[r] = (rejected[r] || 0) + 1; return; }
     if (g.id) seen.add(g.id);
