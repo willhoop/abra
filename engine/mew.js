@@ -392,8 +392,14 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * "swapped" on both halves. The caller states it explicitly there. */
   const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY, risk: RISK_A };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
   const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
+  /* THE RISK OPTION FOLLOWS THE POLICY, NOT THE SLOT -- the same rule weightsFile uses two lines
+   * below. A first version pinned it to optA and therefore always to p1, which happened not to
+   * matter for the falsifier (both sides ran the same policy class, so `swapped` changed nothing)
+   * but would have silently measured "p1 with a lever" rather than "policy A with a lever" the
+   * moment the two policies differed. */
+  if (RISK_A) { (swapped ? optB : optA).risk = RISK_A; }
   if (WEIGHTS1) { (swapped ? optB : optA).weightsFile = WEIGHTS1; }
   if (WEIGHTS2) { (swapped ? optA : optB).weightsFile = WEIGHTS2; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];

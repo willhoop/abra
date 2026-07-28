@@ -207,5 +207,25 @@ function adjust(score, x, p, opts = {}) {
  *      for it is on the unverified list and must be re-measured first.
  *
  * Test 1 is the falsifier and it is the one to run first, because a lever that helps when it should
- * hurt is measuring something else. */
+ * hurt is measuring something else.
+ *
+ * TEST 1 HAS NOW BEEN RUN, AND IT IS INCONCLUSIVE. 1,200 self-play games, one side asserting a
+ * skillGap of 0.10 it does not have, against an identical opponent; then the same 1,200 seeds again
+ * with the lever off, so the two runs pair game-for-game.
+ *
+ *     unpaired   risk side won 48.6% of 1,176 decisive games, 95% CI [45.7, 51.4]
+ *     paired     1,158 of 1,176 games ended with the SAME winner either way (98.5%)
+ *                18 discordant: 7 losses turned into wins, 11 wins turned into losses
+ *                exact two-sided p = 0.481
+ *
+ * The direction is what the falsifier predicts -- asserting an edge you do not have cost 4 net games
+ * -- and the effect is indistinguishable from chance. Reported as inconclusive rather than as weak
+ * support, because reading a direction off p = 0.48 is exactly the error this project keeps making.
+ *
+ * THE MORE USEFUL FINDING IS THAT THE LEVER IS NEARLY INERT AT THIS SETTING. It changes 2.1% of picks
+ * when behind and flips 1.5% of games. A test with power over that needs roughly 200 discordant
+ * pairs, so about 13,000 games at this discordance rate -- around two hours of self-play -- or a
+ * larger `strength`, which is a free parameter nobody has calibrated. Either is cheap; neither has
+ * been done. Until one is, engine/variance.js remains a mechanism with a verified SHAPE and no
+ * verified EFFECT, and it stays off by default. */
 module.exports = { winProb, varianceOf, adjust, sideState, poryModel, matchEquity, stakeRatio };

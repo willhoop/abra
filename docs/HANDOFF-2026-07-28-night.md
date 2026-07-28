@@ -92,9 +92,24 @@ Defaults to an exact no-op and must be switched on with a stated belief.
 - **MAG cannot narrow the opponent's turn.** Joint recall 33.3% at k=5, 74.5% at k=20 against
   ~56 joint actions. There is no k that is both affordable and honest.
 
+**INCONCLUSIVE — the falsifier ran, and it settled nothing**
+- 1,200 games with one side asserting a `skillGap` of 0.10 it does not have, then the same
+  1,200 seeds with the lever off so the runs pair game-for-game.
+
+      unpaired   risk side won 48.6% of 1,176 decisive games, 95% CI [45.7, 51.4]
+      paired     1,158 of 1,176 ended with the SAME winner (98.5%)
+                 18 discordant: 7 losses became wins, 11 wins became losses
+                 exact two-sided p = 0.481
+
+  The direction is what the falsifier predicts — asserting an edge you do not have cost 4 net
+  games — and it is indistinguishable from chance. **Reported as inconclusive, not as weak
+  support**; reading a direction off p = 0.48 is the error this project keeps making.
+- The useful part: **the lever is nearly inert at this setting.** It changes 2.1% of picks and
+  flips 1.5% of games. Power over that needs ~200 discordant pairs — about 13,000 games, ~2
+  hours — or a larger `strength`, which nobody has calibrated. `variance.js` is a mechanism with
+  a verified shape and no verified effect. It stays off.
+
 **NOT VERIFIED — do not quote**
-- Whether the risk lever wins games. The falsifier is the experiment: assert a gap you do not
-  have against an equal opponent; it should **lose**. If it wins, the model is wrong.
 - MAG against a human. Still never measured (task 24).
 - Everything in `HANDOFF-2026-07-27.md` §4 marked NOT VERIFIED.
 
