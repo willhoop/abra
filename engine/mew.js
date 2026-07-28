@@ -112,6 +112,13 @@ const GREEDY = process.argv.includes('--greedy');
  * whole point is an A/B: coordinated choice versus independent choice, same weights otherwise. */
 const JOINT_A = process.argv.includes('--joint');
 const JOINT_B = process.argv.includes('--joint2');
+/* --joint-zero / --joint-zero2  THE CONTROL. Runs the whole pair path -- same top-K cap, same
+ * softmax over pairs, same single weights from the joint fit -- with the 18 coordination weights set
+ * to zero. Against this arm the only difference is coordination itself. Against the ordinary
+ * independent player it would also differ by the mechanics of choosing over pairs, which is a
+ * separate effect and would be silently attributed to coordination. */
+const JOINTZ_A = process.argv.includes('--joint-zero');
+const JOINTZ_B = process.argv.includes('--joint-zero2');
 /* --risk-a <skillGap>  give PLAYER A ONLY a variance preference (engine/variance.js).
  *
  * Asymmetric on purpose, because a symmetric run measures nothing: at skillGap 0 the lever is an
@@ -412,6 +419,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * come back at a plausible-looking 50%. */
   if (JOINT_A) { (swapped ? optB : optA).joint = true; }
   if (JOINT_B) { (swapped ? optA : optB).joint = true; }
+  if (JOINTZ_A) { (swapped ? optB : optA).jointZero = true; }
+  if (JOINTZ_B) { (swapped ? optA : optB).jointZero = true; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
   const p1 = new PA(streams.p1, optA);
   const p2 = new PB(streams.p2, optB);
@@ -640,6 +649,7 @@ async function main() {
       rec.selfplay.greedy = !!GREEDY;
       rec.selfplay.switching = !!SWITCHING;
       rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
+      rec.selfplay.jointZero = !!JOINTZ_A; rec.selfplay.jointZero2 = !!JOINTZ_B;
       /* The weight files too — a run of "policy score" says nothing about WHICH fit played it, and the
        * popularity-on and popularity-off arms of a 2x2 are distinguished by nothing else. */
       if (WEIGHTS1) rec.selfplay.weights = WEIGHTS1;
@@ -663,7 +673,8 @@ async function main() {
          * checked only the policy name and the weights file, so a --joint run (which differs by a
          * flag and nothing else) stamped every record armsIdentical:true, i.e. it claimed the A/B was
          * a mirror match when it was the actual experiment. */
-        if (POLICY === POLICY2 && WEIGHTS1 === WEIGHTS2 && JOINT_A === JOINT_B) rec.selfplay.armsIdentical = true;
+        if (POLICY === POLICY2 && WEIGHTS1 === WEIGHTS2 && JOINT_A === JOINT_B
+            && JOINTZ_A === JOINTZ_B) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the
@@ -696,7 +707,7 @@ async function main() {
        * player is indistinguishable in the win rate from a pair model that simply does not help, and
        * the second conclusion would be wrong and would stick. So the counters are printed whenever
        * the layer is requested, and a zero is called out rather than left to be noticed. */
-      if (JOINT_A || JOINT_B) {
+      if (JOINT_A || JOINT_B || JOINTZ_A || JOINTZ_B) {
         const jt = POL.jointDecided + POL.jointFellBack;
         process.stderr.write(`  joint layer: ${POL.jointDecided.toLocaleString()} turns decided as a PAIR` +
           (jt ? ` (${(100 * POL.jointDecided / jt).toFixed(1)}% of pair-eligible turns; ` +

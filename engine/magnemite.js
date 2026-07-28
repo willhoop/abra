@@ -91,8 +91,9 @@ function makeScoringPlayer(opts = {}) {
        * with board.js -- a stale pair vector would score the wrong columns and the bot would look
        * merely worse rather than broken. */
       this.joint = false; this.wj = null;
+      this.jointZero = !!(options && options.jointZero);
       this.jointK = +(options && options.jointK) || 6;
-      if (options && options.joint) {
+      if (options && (options.joint || options.jointZero)) {
         try {
           const JW = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'policy-weights-joint.json'), 'utf8'));
           const okS = (JW.features || []).join(',') === B.FEATURES.join(',');
@@ -355,7 +356,18 @@ function makeScoringPlayer(opts = {}) {
     /* Score one slot's candidate list. Returns the raw feature vectors alongside the scores, because
      * the joint layer needs the vectors -- jointFeaturesFor reads the kill and threat terms out of
      * them rather than calling the damage engine a second time. */
-    _scoreCands(cands, user, me) {
+    _scoreCands(cands, user, me, wv) {
+      /* THE WEIGHT VECTOR IS AN ARGUMENT, and that is not a refactor for tidiness.
+       *
+       * fit_joint.js fits its single-move block and its pair block TOGETHER, so the pair weights are
+       * calibrated against ITS singles, not against the shipped ones. The two disagree badly --
+       * 23 of 48 features carry opposite signs, and stallIntoEncore is +4.231 in the joint fit
+       * against -1.993 shipped. Scoring the singles with one vector and adding the other's pair
+       * terms sums two blocks on different scales, which is not a coordination model; it is noise
+       * with a coordination-shaped correction bolted on. The first head-to-head did exactly that and
+       * lost 31.2% on decisive pairs, and I would have reported that as "coordination does not
+       * win". */
+      const w = wv || this.w;
       const riskOn = this.risk && (this.risk.skillGap || this.risk.strength);
       const pWin = riskOn ? V.winProb(this.board, me) : 0.5;
       const xs = [], ss = [];
@@ -363,7 +375,7 @@ function makeScoringPlayer(opts = {}) {
         if (!c.move && !c.switchTo) { xs.push(null); ss.push(-Infinity); continue; }
         const x = B.featuresFor(c, user, this.board, me, dex,
           c.switchTo ? B.PRIOR_FLOOR : this.priorFor(user.species, c.move.id));
-        let sc = 0; for (let k = 0; k < this.w.length; k++) sc += this.w[k] * x[k];
+        let sc = 0; for (let k = 0; k < w.length; k++) sc += w[k] * x[k];
         xs.push(x); ss.push(riskOn ? V.adjust(sc, x, pWin, this.risk) : sc);
       }
       return { xs, ss };
@@ -415,8 +427,10 @@ function makeScoringPlayer(opts = {}) {
       const builtB = this._candsFor(actB, movesB, other);
       if (!builtB) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
 
-      const A = this._scoreCands(candsA, userA, me);
-      const Bc = this._scoreCands(builtB.cands, builtB.user, me);
+      /* The joint file's OWN single block, so both halves of the pair score come from one fit. */
+      const wS = this.wj.slice(0, B.FEATURES.length);
+      const A = this._scoreCands(candsA, userA, me, wS);
+      const Bc = this._scoreCands(builtB.cands, builtB.user, me, wS);
 
       /* Cap each slot at TOPK by single-move score, exactly as fit_joint.js did. */
       const topIdx = (ss, k) => ss.map((v, q) => [v, q]).filter(([v]) => isFinite(v))
@@ -433,7 +447,13 @@ function makeScoringPlayer(opts = {}) {
             && candsA[a].choice === builtB.cands[b].choice) continue;
         const jf = B.jointFeaturesFor(candsA[a], builtB.cands[b], A.xs[a], Bc.xs[b]);
         let sc = A.ss[a] + Bc.ss[b];
-        for (let k = 0; k < jf.length; k++) sc += this.wj[NF + k] * jf[k];
+        /* jointZero is THE CONTROL ARM, and it has to run this whole path rather than skip it.
+         * Choosing over PAIRS is a different distribution from choosing per SLOT even when the pair
+         * terms are all zero -- the top-K cap and the softmax over pairs both change behaviour on
+         * their own. Comparing pair-terms-on against the independent player would confound
+         * coordination with the mechanics of pair sampling; comparing it against pair-terms-ZEROED
+         * isolates the 18 coordination weights and nothing else. */
+        if (!this.jointZero) for (let k = 0; k < jf.length; k++) sc += this.wj[NF + k] * jf[k];
         pairs.push([a, b]); ps.push(sc);
       }
       if (!pairs.length) { this.stats.jointFellBack = (this.stats.jointFellBack || 0) + 1; return null; }
