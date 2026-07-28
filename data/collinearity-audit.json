@@ -1,0 +1,105 @@
+{
+ "generated": "2026-07-28T07:36:52.767Z",
+ "by": "engine/collinearity_audit.js",
+ "what": "Each feature fitted ALONE versus its weight in the full model, beside a model-free lift measuring whether humans actually prefer it. A feature strong alone and near-zero in company has had its credit split among correlated neighbours; its individual weight is not a statement about the game.",
+ "weights_file": "data\\policy-weights.json",
+ "lambda_in_fit": 0,
+ "corpus": {
+  "games": 5036,
+  "train": 98258,
+  "held_out": 23351
+ },
+ "features": {
+  "koTarget": {
+   "solo": 0.7639,
+   "joint": -0.1639,
+   "lift": 1.41,
+   "verdict": "SIGN FLIPS"
+  },
+  "koFirst": {
+   "solo": 0.9023,
+   "joint": 0.0601,
+   "lift": 1.819,
+   "verdict": "absorbed"
+  },
+  "killsThreat": {
+   "solo": 0.5836,
+   "joint": -0.0639,
+   "lift": 1.552,
+   "verdict": "SIGN FLIPS"
+  },
+  "dmgFrac": {
+   "solo": 0.6485,
+   "joint": -0.076,
+   "lift": 1.388,
+   "verdict": "SIGN FLIPS"
+  },
+  "killIsRoll": {
+   "solo": 1.2569,
+   "joint": 0.941,
+   "lift": 2.188,
+   "verdict": null
+  },
+  "tgtHurt": {
+   "solo": 0.1715,
+   "joint": 0.366,
+   "lift": 0.99,
+   "verdict": null
+  },
+  "bp": {
+   "solo": 0.0437,
+   "joint": 0.0058,
+   "lift": 1.021,
+   "verdict": null
+  },
+  "tgtMayProtect": {
+   "solo": 0.2485,
+   "joint": 0.5743,
+   "lift": 0.676,
+   "verdict": null
+  },
+  "eff4": {
+   "solo": 1.2685,
+   "joint": 1.2772,
+   "lift": 2.187,
+   "verdict": null
+  },
+  "eff2": {
+   "solo": 1.0294,
+   "joint": 0.9279,
+   "lift": 1.893,
+   "verdict": null
+  },
+  "immune": {
+   "solo": -2.3229,
+   "joint": -2.198,
+   "lift": 0.115,
+   "verdict": null
+  },
+  "deadNoLastMove": {
+   "solo": -3.2694,
+   "joint": -3.4339,
+   "lift": 0.047,
+   "verdict": null
+  },
+  "isSwitch": {
+   "solo": -0.295,
+   "joint": -0.1668,
+   "lift": 0.792,
+   "verdict": null
+  },
+  "movesFirst": {
+   "solo": 0.3877,
+   "joint": 0.1119,
+   "lift": 1.153,
+   "verdict": null
+  },
+  "myOffenseStage": {
+   "solo": 1.3203,
+   "joint": 1.9686,
+   "lift": 1.248,
+   "verdict": null
+  }
+ },
+ "caveat": "Collinear coefficients can be individually meaningless while the MODEL is well calibrated, because the correlated block still carries the right total. This is not evidence the weights predict badly — lambda was selected on held-out likelihood. It is evidence that single weights inside the damage/kill block cannot be quoted as findings."
+}
