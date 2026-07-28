@@ -41,8 +41,38 @@ raw request rather than the reshaped list `chooseMove` receives, so every partne
 unusable. A head-to-head run at that point would have returned ~50% and I would have reported that
 coordination does not help. It was caught only because the fallback is COUNTED and printed. Fixed:
 100% of eligible turns now decided as a pair.
-**Honest status:** head-to-head against the independent-slot bot is **RUNNING** (2,000 games,
-`--paired`). Until it lands, DODUO is a better predictor of human pairs and nothing more.
+**MEASURED 2026-07-28, AND IT LOSES.** Coordination ON against coordination ZEROED — the entire
+pair path either way, same single weights, same top-K cap, same softmax over pairs, so the only
+difference is the 18 coordination weights. 2,000 seed-paired games, harness fair at 49.3%:
+
+| | result |
+|---|---|
+| unpaired win rate, coordination ON | **42.0%** [39.9, 44.3] over 1,934 games |
+| decisive pairs, coordination ON wins both | **28.4%** [23.9, 33.3] of 356 |
+
+Not close, well powered, and consistent across every cut. It loses hardest in short games
+(22.0% under 8 turns) and when it does not draw first blood (14.1%), which is a bot giving away
+tempo. It KOs less (22.3% against 25.1%) and Protects nearly twice as often (1.74% against
+0.93%).
+
+**Why, and it is the same lesson MACHAMP taught.** These are IMITATION weights. The fit prices
+`spreadFreeBesideAlly` at −5.054, `terrainSetupHelpsPartner` at −3.989 and
+`screenWhileThreatened` at −3.372, at lambda = 0. Those are statements that humans rarely click
+those pairs, not that the pairs are bad — and a bot told to avoid a free spread move beside its
+own ally by −5 will decline its best plays. Predicting a human pair (14.5% top-1, up from 5.9%)
+and winning are different objectives, and this is the cleanest separation of the two the project
+has measured.
+
+**What this does NOT settle.** Will's argument was about EXPLOITABILITY — that a bot choosing
+each slot independently can be set positions it fails every time. That is a claim about the
+worst case against a prepared opponent, not about the average, and a policy can be worse on
+average while being harder to counter. Nothing here tests it. `engine/exploit.js` now accepts
+`--target <weights.json>`, so WOBBUFFET can be pointed at DODUO for the first time. Until that
+runs, the coordination question is open, not closed.
+
+**The coordination features are not refuted either — the imitation fit of them is.** Refitting
+the 18 pair weights for WINNING rather than for resemblance (MACHAMP over the joint vector) is
+the untested version of this idea.
 **Code:** `engine/fit_joint.js` → `data/policy-weights-joint.json`; played via `--joint` in
 `engine/mew.js`.
 

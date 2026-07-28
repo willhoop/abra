@@ -12,8 +12,10 @@ the part worth keeping.
 
 1. **The forfeit hypothesis is dead.** I told you the forfeit corpus was probably why your
    mechanics work looked flat. It is not. Two independent measurements say so.
-2. **DODUO — the joint layer — is wired into the playing bot for the first time.** It had
-   never once been in the loop. It is now, off by default, and its head-to-head is running.
+2. **DODUO — the joint layer — is wired in, measured, and it LOSES.** It had never once been in
+   the loop. Coordination as fitted by imitation wins 28.4% [23.9, 33.3] of decisive pairs
+   against the same bot with the coordination weights zeroed. It stays off by default. This does
+   NOT settle your exploitability argument, which is a different question and still open.
 3. **MACHAMP produced a champion that beats the imitation-fitted MAG 57.3%.** Shipping it is
    your call, not mine.
 
@@ -100,11 +102,29 @@ PAIRS rather than per slot. That last one changes behaviour on its own with ever
 weight set to zero, and it would have been credited to coordination. `--joint-zero` now runs
 the entire pair path with the 18 coordination weights zeroed.
 
-### The corrected experiment
+### The corrected experiment — coordination LOSES
 
 `--joint` against `--joint-zero2`, 2,000 seed-paired games, identical in every other respect.
-**PENDING — result not yet in.** Do not quote the 31.2% as DODUO's verdict; it belongs to the
-hybrid described in (b).
+Harness fair at 49.3% [47.1, 51.6].
+
+| | result |
+|---|---|
+| unpaired win rate, coordination ON | **42.0%** [39.9, 44.3] over 1,934 games |
+| decisive pairs, coordination ON wins both | **28.4%** [23.9, 33.3] of 356 |
+
+Not close, well powered, consistent in every cut. Worst in short games (22.0% under 8 turns) and
+when it does not draw first blood (14.1%) — a bot giving away tempo. It KOs less (22.3% against
+25.1%) and Protects nearly twice as often (1.74% against 0.93%).
+
+**Why: these are imitation weights.** The fit prices `spreadFreeBesideAlly` at −5.054,
+`terrainSetupHelpsPartner` at −3.989 and `screenWhileThreatened` at −3.372, at lambda = 0. Those
+say humans rarely click those pairs, not that the pairs are bad. A bot told to avoid a free
+spread move beside its own ally by −5 declines its best plays. Same lesson MACHAMP taught, and
+the cleanest separation of predicting from winning the project has measured: 14.5% top-1 on
+human pairs, 28.4% of decisive pairs won.
+
+(The earlier 31.2% belongs to the scrambled hybrid in (b). Do not quote it. It happens to land
+near this figure, which is a coincidence — it was measuring a different thing.)
 
 ### What it still does not test
 
@@ -152,10 +172,12 @@ replaces the `--gens 8` I had invented with no criterion behind it.
 
 ## Open, in the order I would take them
 
-1. **DODUO head-to-head result** — running as of this writing.
-2. **WOBBUFFET on `--target`** — exploitability of MACHAMP's champion, and of DODUO. This is the
+1. **WOBBUFFET on `--target`** — exploitability of MACHAMP's champion, and of DODUO. This is the
    test that actually carries your argument, and it has never been run against anything but the
    shipped imitation vector.
+2. **Refit the 18 coordination weights for WINNING, not for resemblance** — MACHAMP over the
+   joint vector. The coordination FEATURES are not refuted by the above; the imitation fit of
+   them is. This is the untested version of the idea and it follows directly from the result.
 3. **Re-run what was computed on the pre-forfeit corpus** — partially done. `nmf-roles`
    deliberately not regenerated at the unsupported rank 6.
 4. **SLOWKING's intervals** — diagnosed, unfixed, your call. The bootstrap solves at 1,000
