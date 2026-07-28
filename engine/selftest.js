@@ -382,7 +382,30 @@ check('every raw reader of the ladder store declares why', () => {
        * or open-sheet game needs, since it has no id in the ladder store to look up. Rejecting
        * reasons() would have pushed correctly-filtered files into declaring RAW-STORE-OK, which is
        * the opposite of what this check is for. */
-      const filters = /load_games|loadGames|isClean|clean=True|cleanIds|_cleanIds|\.reasons\(/.test(src);
+      /* DEFINING A LOADER IS NOT USING THE CLEAN ONE — a false NEGATIVE, and the worst kind.
+       *
+       * This matched the bare string `load_games`, so a file that declares its OWN
+       * `def load_games()` reading the store line by line with no filter at all satisfied the check by
+       * naming a function. Three files did exactly that and passed silently for weeks:
+       * engine/xatu_context.py, engine/xatu_belief.py and engine/train_value.py. The first of those
+       * builds data/xatu-context-sets.json, which CHOMP consumes — so a CHOMP input was derived from a
+       * store that is ~87% bots, forfeits and stubs, while the guard reported no offence.
+       *
+       * On 2026-07-27 this check was corrected from 17 offenders to 12 by removing three files that
+       * only MENTION the path. That correction was right and incomplete: the same pass should have
+       * found these three, so the true debt was 15. Over-counting is noise; under-counting is a clean
+       * bill of health for contaminated data.
+       *
+       * Stripping the definition out and re-testing is NOT enough, which was the first attempt: the file
+       * goes on to CALL its own loader, so the name still appears and the check still passes. The rule
+       * has to be structural — a loader name counts as evidence of filtering only if the file did not
+       * define that loader itself. */
+      const definesOwnLoader = /(^|\n)[ \t]*(?:def[ \t]+_?load_games[ \t]*\(|function[ \t]+loadGames[ \t]*\(|const[ \t]+loadGames[ \t]*=)/.test(src);
+      const importsQuality = /quality\.(?:js|py)|_quality\b|from[ \t]+quality|require\([^)]*quality/.test(src);
+      /* Idioms that cannot be satisfied by naming a local function: they name quality.js's own surface. */
+      const otherFilterIdiom = /isClean|clean=True|cleanIds|_cleanIds|\.reasons\(/.test(src);
+      const borrowsTheRealLoader = /load_games|loadGames/.test(src) && !definesOwnLoader;
+      const filters = importsQuality || otherFilterIdiom || borrowsTheRealLoader;
       const declares = /RAW-STORE-OK/.test(src);
       /* MENTIONING THE PATH IS NOT READING IT.
        *

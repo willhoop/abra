@@ -50,13 +50,36 @@ STORE = D("data", "games.ladder.jsonl")
 ALPHA = 0.5     # Laplace on the species prior
 K = 12.0        # shrinkage strength: a context cell needs ~K observations to be half-trusted
 
+# --- QUALITY FILTER (data/quality-filter.json) -------------------------------------------------
+# This read the store RAW, line by line, with no filter of any kind — so every context cell in
+# data/xatu-context-sets.json was computed over a population that is roughly 87% bot games,
+# forfeits, partial brings and stubs. CHOMP consumes that file, which means a CHOMP input was
+# derived from exactly the data the GARBODOR rule exists to keep out of a baseline.
+#
+# WHY NOTHING CAUGHT IT. engine/selftest.js checks that every file naming the ladder store either
+# filters or declares why not, and it looked for the string `load_games`. This file DEFINED its own
+# `def load_games()`, so it satisfied the guard by naming a function — a false negative in the check
+# that matters most here. Two sibling files did the same (xatu_belief.py, train_value.py). The guard
+# now tests structurally: a loader name is evidence of filtering only if the file did not define that
+# loader itself, which took the reported debt from 12 files to the true 15.
+#
+# The definition is shared rather than repeated: engine/quality.py reads data/quality-filter.json and
+# tests/test-quality.js asserts the JS and Python readers select an identical set of ids.
+# ABRA_UNFILTERED=1 restores the old behaviour, for showing the difference.
+import sys as _sys
+import importlib.util as _ilu
+_qspec = _ilu.spec_from_file_location("quality", D("engine", "quality.py"))
+_quality = _ilu.module_from_spec(_qspec); _qspec.loader.exec_module(_quality)
+_UNFILTERED = bool(os.environ.get("ABRA_UNFILTERED"))
+
+
 def load_games():
-    with open(STORE, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line: continue
-            try: yield json.loads(line)
-            except Exception: continue
+    games = _quality.load_games(clean=not _UNFILTERED)
+    _sys.stderr.write(
+        ("WARNING: ABRA_UNFILTERED - all %d games, bots and forfeits included\n" % len(games))
+        if _UNFILTERED else
+        ("quality filter: %d usable of %d collected\n" % (len(games), len(_quality.read_store()))))
+    return iter(games)
 
 def split(gid):
     h = 0

@@ -1,9 +1,9 @@
 {
- "generated": "2026-07-24",
- "n_games": 7716,
- "n_train": 6123,
- "n_test": 1593,
- "n_first_reveals": 10770,
+ "generated": "2026-07-28",
+ "n_games": 2653,
+ "n_train": 2113,
+ "n_test": 540,
+ "n_first_reveals": 4139,
  "question": "At team preview nothing has been revealed, so a belief STATE is just the prior. But the other five Pokemon are public. Does knowing them improve the prediction of this one's set?",
  "context_features": [
   "weather_rain",
@@ -16,18 +16,18 @@
  ],
  "shrinkage_K": 12.0,
  "cross_entropy": {
-  "usage_prior": 2.4921,
-  "team_context": 2.4084
+  "usage_prior": 3.595,
+  "team_context": 3.5624
  },
  "top1_accuracy": {
-  "usage_prior": 0.407,
-  "team_context": 0.4286
+  "usage_prior": 0.3706,
+  "team_context": 0.3791
  },
  "improvement": {
-  "mean_log_loss_reduction": 0.0839,
+  "mean_log_loss_reduction": 0.0324,
   "ci95_clustered_by_game": [
-   0.0743,
-   0.0936
+   0.021,
+   0.0435
   ],
   "significant": true,
   "reading": "Positive means teammates carry information about a set before anything is revealed. If the interval includes zero, team context does not help at preview and CHOMP cannot use it."
@@ -35,43 +35,43 @@
  "most_common_contexts": [
   {
    "context": "speed_tailwind",
-   "n": 2723
+   "n": 637
   },
   {
    "context": "none",
-   "n": 929
-  },
-  {
-   "context": "speed_trickroom|speed_tailwind|redirection",
-   "n": 718
+   "n": 371
   },
   {
    "context": "speed_trickroom|redirection",
-   "n": 667
+   "n": 327
   },
   {
-   "context": "weather_rain|speed_tailwind",
-   "n": 651
+   "context": "speed_trickroom|speed_tailwind|redirection",
+   "n": 269
   },
   {
-   "context": "speed_tailwind|redirection",
-   "n": 599
-  },
-  {
-   "context": "weather_rain|speed_trickroom|speed_tailwind|redirection",
-   "n": 456
+   "context": "speed_trickroom|speed_tailwind",
+   "n": 240
   },
   {
    "context": "speed_trickroom",
-   "n": 397
+   "n": 226
   },
   {
-   "context": "weather_rain|speed_tailwind|redirection",
-   "n": 393
+   "context": "weather_rain|speed_tailwind",
+   "n": 221
+  },
+  {
+   "context": "speed_tailwind|redirection",
+   "n": 218
   },
   {
    "context": "weather_sand|speed_trickroom|speed_tailwind|redirection",
-   "n": 357
+   "n": 163
+  },
+  {
+   "context": "redirection",
+   "n": 132
   }
  ],
  "method": "Fitted on train games only; scored on each Pokemon's FIRST revealed move in held-out games. Context cells are shrunk toward the species prior by n/(n+K), so a thin context cannot manufacture a signal."

@@ -10,6 +10,70 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.27.0] — 2026-07-28
+
+### The GARBODOR guard had a false negative, and a CHOMP input was built on the raw store
+
+`engine/selftest.js` checks that every file naming the ladder store either filters or declares why not,
+and it looked for the string `load_games`. Three files **defined their own** `def load_games()` reading the
+store line by line with no filter at all — so they satisfied the guard by naming a function:
+
+- `engine/xatu_context.py` — builds `data/xatu-context-sets.json`, **which CHOMP consumes**
+- `engine/xatu_belief.py`
+- `engine/train_value.py`
+
+A false negative is the one error this check must never make, and it produced exactly the outcome the
+GARBODOR rule exists to prevent: a CHOMP input derived from a population that is ~87% bot games,
+forfeits, partial brings and stubs, with the guard reporting no offence.
+
+**This also corrects yesterday's correction.** On 2026-07-27 the offender count was taken from 17 to 12 by
+recognising three files that only *mention* the path. That was right and incomplete — the same pass should
+have found these three. **The true debt was 15.** Over-counting is noise; under-counting is a clean bill of
+health for contaminated data, and it is the worse direction to be wrong in.
+
+The guard is now structural rather than textual: a loader name counts as evidence of filtering only if the
+file did not define that loader itself. Stripping the definition and re-testing was the first attempt and
+does not work, because the file goes on to *call* its own loader.
+
+### Regenerated on clean data — and CHOMP does not survive it
+
+`engine/xatu_context.py` now reads through `engine/quality.py`. `data/pokemon-roles.json` was not unsafe —
+`roles.py` has always filtered, so the handoff's claim was wrong for that file — but it was **stale**,
+generated 2026-07-24 against 1,061 clean games. Both regenerated in dependency order (roles → context →
+CHOMP-EV) against the current store: **2,653 usable of 20,387 collected.**
+
+**Roles, on 2.5× the data.** Held-out log-loss `roles = 0.6975`, `rating = 0.6982`, coin = 0.6931, CI
+(0.6908, 0.7036). The existing null result **holds up**: role-level winner prediction still ties a coin.
+334 species tagged, 52 roles, 978 matchup cells, median n = 51.
+
+**XATU context survives.** Cross-entropy 3.595 → 3.5624, improvement **+0.0324, CI (0.021, 0.0435)**,
+which clears zero. Top-1 37.1% → 37.9%. A small real effect on clean data.
+
+**CHOMP-EV, on 2,603 eval games with clean inputs and a working bootstrap:**
+
+| model | held-out log-loss | 95% CI |
+|---|---|---|
+| naive usage prior — "bring your most-brought four" | **0.6919** | — |
+| CHOMP alignment | 0.6925 | [0.6898, 0.6951] |
+| CHOMP + XATU context | 0.6926 | [0.6903, 0.6949] |
+| CHOMP + belief weighting | 0.6929 | [0.6904, 0.6955] |
+| a coin | 0.6931 | — |
+| Elo rating | 0.6938 | — |
+
+Every CHOMP variant's interval contains the coin, and **the naive baseline is better than all three of
+them.** Adding XATU context and belief weighting makes the score slightly *worse*, which is consistent
+with the project's existing null result that better beliefs did not improve the bring decision.
+
+The bring effect is essentially unchanged by cleaning: **0.5132 → 0.5134, CI [0.4944, 0.5319]**, still
+containing 0.5. So cleaning the inputs neither rescued CHOMP nor explained away its weakness — it simply
+confirmed it on 20% more games.
+
+**Stated plainly, because it is the point of the exercise: CHOMP has no demonstrated edge over bringing
+your four most-used Pokémon.** That is a null result, and it is reported here with the same prominence the
+positive results get.
+
+---
+
 ## [3.26.0] — 2026-07-27
 
 ### Every self-play record states its whole configuration, including the defaults
