@@ -36,7 +36,37 @@
       "Snow",
       "TailwindOffense"
     ],
-    "min_edge": 0.079
+    "min_edge": 0.079,
+    "legs": [
+      {
+        "from": "TrickRoom",
+        "to": "Snow",
+        "n": 5,
+        "win_pct": 80.0,
+        "clears_50": false,
+        "well_sampled": false
+      },
+      {
+        "from": "Snow",
+        "to": "TailwindOffense",
+        "n": 19,
+        "win_pct": 57.9,
+        "clears_50": false,
+        "well_sampled": false
+      },
+      {
+        "from": "TailwindOffense",
+        "to": "TrickRoom",
+        "n": 52,
+        "win_pct": 59.6,
+        "clears_50": false,
+        "well_sampled": true
+      }
+    ],
+    "min_games_required": 50,
+    "candidate_triples_searched": 990,
+    "supported": false,
+    "note": "supported=true requires every leg to clear 50% and rest on >=50 games. This is the strongest of 990 candidate triples, so an unsupported cycle is what noise looks like, not weak evidence of structure."
   },
   "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE meta (a clear top dog). Where a rock-paper-scissors cycle exists \u2014 the min_edge above is positive \u2014 every deck has a counter, so the unexploitable play is a MIXED strategy (this equilibrium), not one deck. Stall, Trick Room, perish-trap and setup are exactly such counter-classes; how visible the cycle is depends on archetype granularity (see notes).",
   "exploitability": {

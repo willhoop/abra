@@ -66,11 +66,30 @@ def build_edge_matrix(matrix, archs, sample=False):
     return M
 
 
-def top_cycle(M, archs):
-    """Find the strongest non-transitive 3-cycle i>j>k>i (rock-paper-scissors): the triple whose
-    WEAKEST edge is largest. A positive strength means a real cycle exists — greedy 'pick the best
-    deck' is exploitable there, because every deck has a counter. This is what stall / Trick Room /
-    perish-trap / setup create: strategy classes that beat some and lose to others, not a total order."""
+def top_cycle(M, archs, matrix=None, min_n=50):
+    """Strongest non-transitive 3-cycle i>j>k>i, reported WITH the sample size behind each leg.
+
+    THIS USED TO MANUFACTURE FINDINGS. It searched every ordered triple - 990 of them for 11 playstyles
+    - kept whichever had the largest weakest leg, and asserted in its own docstring that "A positive
+    strength means a real cycle exists". No sample-size floor, no significance test. On a sparse matrix
+    it therefore ALWAYS returns something positive, and tests/test-slowking.py went on to REQUIRE that a
+    cycle be reported. A maximum over 990 candidates was being published as a discovery.
+
+    Measured on data/playstyle-matchups.json, 2026-07-28, for the cycle it reported:
+
+        TrickRoom    beats HyperOffense   65% of 23 games   range 45%-81%   spans a coin
+        HyperOffense beats Sand           57% of 23 games   range 37%-74%   spans a coin
+        Sand         beats TrickRoom      71% of 24 games   range 51%-85%   clears, barely
+
+    Two legs of three are indistinguishable from a coin flip, on 23 games each. Requiring every leg to
+    clear 50% AND rest on at least min_n games leaves NO cycle at all in that matrix. Across 990
+    candidate triples at a 5% threshold you would expect roughly 17 spurious cycles by chance, so
+    finding one is what noise looks like rather than evidence against it.
+
+    The strongest triple is still reported, because it is a useful descriptive summary. It now carries
+    the games behind each leg and an explicit `supported` flag, and `supported` is False unless every
+    leg is both a win and adequately sampled. Anything claiming a cycle exists must read that flag.
+    """
     n = len(archs); best = None
     for i in range(n):
         for j in range(n):
@@ -79,8 +98,36 @@ def top_cycle(M, archs):
                 if k in (i, j): continue
                 strength = min(M[i, j], M[j, k], M[k, i])   # all three legs must be wins to be a cycle
                 if best is None or strength > best[0]:
-                    best = (strength, [archs[i], archs[j], archs[k]])
-    return {"cycle": best[1], "min_edge": round(float(best[0]), 4)} if best else None
+                    best = (strength, [archs[i], archs[j], archs[k]], [(i, j), (j, k), (k, i)])
+    if not best:
+        return None
+    out = {"cycle": best[1], "min_edge": round(float(best[0]), 4)}
+
+    if matrix is not None:
+        legs, supported = [], best[0] > 0
+        for (a, b) in best[2]:
+            cell = (matrix.get(archs[a]) or {}).get(archs[b])
+            if cell and cell.get("n"):
+                lo, hi, nn = cell.get("lo"), cell.get("hi"), cell["n"]
+                clears = (lo is not None and lo > 0.5) or (hi is not None and hi < 0.5)
+                legs.append({"from": archs[a], "to": archs[b], "n": nn,
+                             "win_pct": round(100 * cell.get("p", 0.0), 1),
+                             "clears_50": bool(clears), "well_sampled": nn >= min_n})
+                if not (clears and nn >= min_n):
+                    supported = False
+            else:
+                legs.append({"from": archs[a], "to": archs[b], "n": 0,
+                             "clears_50": False, "well_sampled": False})
+                supported = False
+        out["legs"] = legs
+        out["min_games_required"] = min_n
+        out["candidate_triples_searched"] = n * (n - 1) * (n - 2)
+        out["supported"] = supported
+        out["note"] = ("supported=true requires every leg to clear 50%% and rest on >=%d games. This is "
+                       "the strongest of %d candidate triples, so an unsupported cycle is what noise "
+                       "looks like, not weak evidence of structure."
+                       % (min_n, n * (n - 1) * (n - 2)))
+    return out
 
 
 def exploitability(x, M):
@@ -135,7 +182,7 @@ def main():
         "source_matrix": "data/guru-matchups.json", "n_games": g["n_games"], "n_archetypes": len(archs),
         "equilibrium_mixture": mixture,
         "game_value": round(float(val), 4),
-        "top_nontransitive_cycle": top_cycle(M, archs),
+        "top_nontransitive_cycle": top_cycle(M, archs, matrix),
         "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE "
             "meta (a clear top dog). Where a rock-paper-scissors cycle exists — the min_edge above is "
             "positive — every deck has a counter, so the unexploitable play is a MIXED strategy (this "
@@ -165,7 +212,7 @@ def main():
     payload = {"n_games": g["n_games"], "mixture": mixture,
                "exploit_nash": round(ex_nash, 4), "exploit_greedy": round(ex_greedy, 4),
                "exploit_uniform": round(ex_uniform, 4), "gap_ci": ci(gaps),
-               "cycle": top_cycle(M, archs)}
+               "cycle": top_cycle(M, archs, matrix)}
     with open(os.path.join(ROOT, "data", f"slowking{('-'+TAG) if TAG else ''}.js"), "w") as f:
         f.write(f"window.{gvar}=" + json.dumps(payload, separators=(",", ":")) + ";\n")
     print(f"SLOWKING: Nash over {len(archs)} archetypes ({g['n_games']} games)")

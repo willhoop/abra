@@ -165,8 +165,34 @@ def main():
       "features":["bias","alive_diff","hp_diff","my_alive","foe_alive","turn/10"],
       "verdict": None,
     }
-    beats = out["log_loss"]["pory"] < out["log_loss"]["coin"] and out["log_loss"]["pory"] < out["log_loss"]["material_heuristic"]
-    out["verdict"]= "PORY beats coin AND the material heuristic on held-out log-loss — a real, calibrated value net." if beats else "PORY does not clearly beat both baselines — needs work."
+    # THE INTERVAL DECIDES, NOT THE POINT ESTIMATE.
+    #
+    # This compared point estimates only. PORY scored 0.6739 against a coin's 0.6931, so it printed
+    # "PORY beats coin AND the material heuristic - a real, calibrated value net." But PORY's own 95%
+    # interval is [0.6264, 0.7321], which CONTAINS the coin, and the material heuristic sits at 0.6793,
+    # well inside it too. The file asserted a result its own uncertainty does not support.
+    #
+    # Same defect as engine/chomp_ev.js on 2026-07-27, where a verdict gated on a point estimate
+    # announced a significant CHOMP bring effect that vanished once the interval was computed with a
+    # working PRNG. Lower log-loss is better, so clearing a baseline means the interval's UPPER bound
+    # is below it.
+    #
+    # Independent corroboration that the cautious verdict is the right one: data/pory-nn.json trains a
+    # network on 1.3M states and lands at 0.6314, against 0.6375 for a two-feature baseline of
+    # alive-count plus HP-difference. The whole network buys 0.006 over counting bodies and HP, and the
+    # RICHER feature sets score worse than material-only (0.6419 and 0.65). PORY is a material counter.
+    lo, hi = out["log_loss"]["pory_ci95"]
+    beats = hi < out["log_loss"]["coin"] and hi < out["log_loss"]["material_heuristic"]
+    if beats:
+        out["verdict"] = ("PORY beats coin AND the material heuristic on held-out log-loss, interval "
+                          "clear of both - a real, calibrated value net.")
+    else:
+        out["verdict"] = (
+            "PORY does NOT clearly beat its baselines. Point estimate %.4f vs coin %.4f and material "
+            "heuristic %.4f, but PORY's 95%% interval [%.4f, %.4f] contains them, so the difference is "
+            "not distinguishable from noise. Treat PORY as a material counter until the interval clears "
+            "the baselines." % (out["log_loss"]["pory"], out["log_loss"]["coin"],
+                                out["log_loss"]["material_heuristic"], lo, hi))
     json.dump(out,open(os.path.join(ROOT,"data","pory-eval.json"),"w"),indent=2)
     with open(os.path.join(ROOT,"data","pory.js"),"w") as f:
         f.write("window.PORY="+json.dumps({"weights":out["weights"],"mean":out["feat_mean"],"std":out["feat_std"],"features":out["features"]},separators=(",",":"))+";\n")

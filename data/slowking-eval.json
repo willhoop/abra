@@ -16,7 +16,37 @@
       "Sand",
       "Rain"
     ],
-    "min_edge": 0.037
+    "min_edge": 0.037,
+    "legs": [
+      {
+        "from": "Garchomp-Incineroar",
+        "to": "Sand",
+        "n": 141,
+        "win_pct": 55.3,
+        "clears_50": false,
+        "well_sampled": true
+      },
+      {
+        "from": "Sand",
+        "to": "Rain",
+        "n": 41,
+        "win_pct": 53.7,
+        "clears_50": false,
+        "well_sampled": false
+      },
+      {
+        "from": "Rain",
+        "to": "Garchomp-Incineroar",
+        "n": 191,
+        "win_pct": 56.5,
+        "clears_50": false,
+        "well_sampled": true
+      }
+    ],
+    "min_games_required": 50,
+    "candidate_triples_searched": 60,
+    "supported": false,
+    "note": "supported=true requires every leg to clear 50% and rest on >=50 games. This is the strongest of 60 candidate triples, so an unsupported cycle is what noise looks like, not weak evidence of structure."
   },
   "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE meta (a clear top dog). Where a rock-paper-scissors cycle exists \u2014 the min_edge above is positive \u2014 every deck has a counter, so the unexploitable play is a MIXED strategy (this equilibrium), not one deck. Stall, Trick Room, perish-trap and setup are exactly such counter-classes; how visible the cycle is depends on archetype granularity (see notes).",
   "exploitability": {
