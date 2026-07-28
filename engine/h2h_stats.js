@@ -26,13 +26,32 @@ const readline = require('readline');
 const file = process.argv[2] || 'data/h2h-farm-20k.jsonl';
 const NEW = 'score';
 
+/* WHICH ARM WON, WITHOUT TRUSTING THE NAME.
+ *
+ * This compared `winnerPolicy === 'score'`, which is only meaningful when the two arms carry
+ * DIFFERENT policy names. The A/B this project runs most often does not: `--policy score
+ * --policy2 score` with two different --weights files. Every game in such a run is labelled
+ * "score", so the old test returned 1 for every game, every pair scored 2, and the run silently
+ * reported no decisive pairs rather than reporting that it could not tell the arms apart.
+ *
+ * mew.js now writes `winnerArm` (1 = --weights, 2 = --weights2). Prefer it, fall back to the name
+ * for the older files already on disk, and fall back to reconstructing from the winning SIDE and
+ * `swapped` for files written before either existed. */
+const wonNew = g => {
+  const s = g.selfplay;
+  if (typeof s.winnerArm === 'number') return s.winnerArm === 1 ? 1 : 0;
+  if (s.policy2 && s.policy !== s.policy2) return s.winnerPolicy === NEW ? 1 : 0;
+  if (g.winner && g.p1) return ((g.winner === g.p1.name) === !s.swapped) ? 1 : 0;
+  return null;
+};
+
 const games = [];
 (async () => {
   const rl = readline.createInterface({ input: fs.createReadStream(file), crlfDelay: Infinity });
   for await (const line of rl) {
     if (!line.trim()) continue;
     let g; try { g = JSON.parse(line); } catch (e) { continue; }
-    if (!g.selfplay || !g.selfplay.winnerPolicy) continue;
+    if (!g.selfplay || wonNew(g) === null) continue;
     games.push(g);
   }
   report();
@@ -71,7 +90,7 @@ function report() {
   for (const [k, gs] of bySeed) {
     if (gs.length !== 2) continue;
     if (gs[0].selfplay.swapped === gs[1].selfplay.swapped) continue;
-    const w = gs.map(g => (g.selfplay.winnerPolicy === NEW ? 1 : 0));
+    const w = gs.map(wonNew);
     pairs.push({ k, gs, score: w[0] + w[1], turns: gs.map(g => (g.turns || []).length) });
   }
 

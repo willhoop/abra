@@ -621,6 +621,15 @@ async function main() {
         rec.selfplay.swapped = !!sw;
         const p1won = rec.winner && rec.p1 && rec.winner === rec.p1.name;
         rec.selfplay.winnerPolicy = p1won ? (sw ? POLICY2 : POLICY) : (sw ? POLICY : POLICY2);
+        /* winnerPolicy records a NAME, so it goes blind the moment both arms share one. That is
+         * exactly the A/B this project runs most often -- `--policy score --policy2 score` with two
+         * different --weights files -- and it silently produced 1,365 games all labelled "score",
+         * i.e. an unscoreable run that looked complete. Record the winning WEIGHT FILE too, which is
+         * unambiguous whenever the arms differ at all, and the side, so a run can always be rescored
+         * from first principles. */
+        rec.selfplay.winnerArm = p1won === !sw ? 1 : 2;
+        rec.selfplay.winnerWeights = rec.selfplay.winnerArm === 1 ? (WEIGHTS1 || null) : (WEIGHTS2 || WEIGHTS1 || null);
+        if (POLICY === POLICY2 && WEIGHTS1 === WEIGHTS2) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the
