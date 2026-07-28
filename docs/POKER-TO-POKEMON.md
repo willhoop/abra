@@ -67,13 +67,80 @@ The `engine/slowking/` package is the program above, built and unit-tested:
 - **`game.py`** — the engine-agnostic game interface; `ChampionsGame` is the adapter to the open Showdown simulator (the one integration still to be wired).
 - **`solver.py`** — the orchestrator: team-preview Nash and in-battle continual re-solving, each returning a **mixed strategy plus its win-probability value** — precisely the object we want.
 
-## 6. Training plan (the ReBeL upgrade and the data question)
+## 6. The EV calculation, stated explicitly
+
+Sections 1–5 argue the analogy and name the components. This section writes down the quantity the whole project exists to compute, names each term in poker's vocabulary, and says plainly which terms are finished and which are not. Everything numeric here is measured, and the measurement is named.
+
+### 6.1 The object
+
+For a joint action `a` (both of my Pokémon's choices) in public state `s`:
+
+> **EV(a) = Σ_r P(r) · Σ_b σ_opp(b | r) · V(T(s, a, b))**
+
+| term | poker name | what it is here | ABRA component |
+|---|---|---|---|
+| `r`, `P(r)` | **range** | which 4 of their 6 they brought, and their sets | `belief.py`, CHOMP |
+| `σ_opp(b \| r)` | **range vs range** | the *frequencies* of their actions, not a guess at one move | XATU |
+| `T(s, a, b)` | **the deck** | damage rolls, crits, accuracy, speed ties | `champions_sim` |
+| `V(·)` | **equity** | how good the resulting position is | PORY |
+| the choice of `a` | **strategy** | a mixed strategy over `a`, not an argmax | SLOWKING |
+
+The single most important structural fact is in the last row, and §6.2 is about it.
+
+**One term is genuinely finished, and it is the one poker does not get.** `T` is exact. Poker AIs must reason about a deck they cannot see; we own the generator — the open-source Showdown Champions engine — so chance is sampled exactly rather than modelled. This converts the transition function from the hardest thing to learn into a function call, and it is the discovery that makes the ReBeL program tractable here at all (§4c).
+
+### 6.2 Mixing is not randomizing: you never fold aces preflop
+
+A recurring misreading of equilibrium play is that it means *playing randomly so as to be unpredictable*. It does not, and the distinction decides whether this architecture plays well or badly.
+
+An equilibrium strategy mixes **only among actions whose counterfactual values are close**, and plays **pure** wherever one action dominates. No equilibrium in any poker game folds aces preflop: the EV gap is enormous, so the mix collapses to a point. Regret matching produces this automatically — a strictly dominated action accumulates negative regret and receives probability ~0. Balance is a property of the *close* decisions, and it costs nothing on the easy ones.
+
+The failure mode this rules out is real and specific: an agent that randomizes uniformly over its candidate list in the name of unexploitability. That agent is indeed hard to read and it loses to everyone, because it Protects into nothing and clicks resisted moves at equilibrium frequency.
+
+**And this is precisely why the value function is load-bearing rather than a refinement.** Regret matching mixes according to the counterfactual values it is handed. Hand it good values and it plays pure where the game is clear and balanced where it is close. Hand it a material-only evaluator and the "close" set is drawn wrongly — moves that are actually dominated look comparable, so the equilibrium mixes into them. **A Nash mix over wrong EVs is not a safe default; it is a worse player than greedy over the same wrong EVs, because greedy at least commits to the best of them.** This is the strongest available argument for sequencing PORY (§6.5) before search.
+
+### 6.3 Unexploitable is not the same as winning
+
+Exploitability is the project's scoreboard (§1, and the measured 63%), and it is the right scoreboard for the question *"can a prepared opponent read us?"* It is **not** the same question as *"do we win the most games against the field we actually face."*
+
+- A Nash strategy guarantees you cannot **lose** much to anybody. It does not maximise winnings against **weak** opponents; it declines the exploits that beat them.
+- A maximally exploitative strategy best-responds to the opponent's observed tendencies. It beats a weak field by more, and it is itself exploitable by a strong one.
+
+Poker practice is to play exploitatively where reads are reliable and fall back toward equilibrium against strong or unknown opposition. The same choice is open here and has not yet been made deliberately: the public ladder is not an equilibrium field, so an agent optimised purely for low exploitability may leave a large amount of measurable win rate on the table against it. Both targets are legitimate; they are different objectives and should not be conflated in a single reported number.
+
+### 6.4 Where the cost is — measured
+
+The horizon is short and the branching is enormous (§4b). Measured over **7,254 real decisions** from 300 clean open-sheet games, using `board.js`'s own candidate builder:
+
+| level | size | cost at ~50 ms a rollout |
+|---|---|---|
+| one Pokémon choosing | **mean 7.1** (median 7, p90 9, max 10) | trivial |
+| my turn — slot A × slot B | **~51** | ~3 s |
+| the matrix — mine × theirs | **~2,584** | **~2 minutes** |
+
+This reconciles two claims in the project's own documents that appear to contradict each other. "Do not prune — recall is 87.9% at top-5 and the mean decision has 7.3 options" is a statement about the **per-slot** list, and it is correct: pruning 7 candidates to 5 discards 12% of the genuinely best moves to save four rollouts. "Breadth, not depth, is the binding constraint, and action abstraction is where the real work is" (§4b) is a statement about the **joint matrix**, and it is also correct: 2,584 cells is two minutes per turn.
+
+They are about different levels, and the resolution is the design: **MAG orders the per-slot list and prunes nothing; abstraction happens on the joint action space.** The costing in the current plan — top 5 × their 3 likeliest × 3 samples ≈ 45 rollouts ≈ 2 s — *is* an action abstraction. It has simply never been named as one, and abstractions in poker are judged by a specific criterion: how much exploitability the abstraction itself introduces. That has not been measured here.
+
+### 6.5 Status, term by term
+
+| term | status | evidence |
+|---|---|---|
+| `T` transition | **done, exact** | the real engine; 31 of 31 damage cases within 2% of `@smogon/calc` |
+| `σ_opp` opponent frequencies | **the best model in the project** | XATU team context **+0.0324** [0.021, 0.0435] |
+| strategy / mixing | **built, unit-tested** | `nash.py` recovers RPS and an asymmetric 2×2 exactly |
+| `P(r)` range | **weak** | CHOMP 51.3% [49.4, 53.2] — a coin, and it loses to "their four most-used" |
+| `V` equity | **the bottleneck** | material-only. Richer features help and the network hurts (0.6154 logistic vs 0.6203 baseline) |
+
+Four of five terms are in hand. **EV cannot be computed until `V` is a value function rather than a material count** — and by §6.2, a search built on the current `V` would not merely be less accurate, it would mix into dominated actions and play worse than the greedy policy it replaces.
+
+## 7. Training plan (the ReBeL upgrade and the data question)
 
 Two coupled needs, one answer.
 
 The leaf value network and policy network are trained by **self-play** on the real engine, exactly as ReBeL trains on poker self-play. Self-play also resolves ABRA's chronic **sample-size and selection-bias problem**: public ladder replays are a small, self-selected slice of games played (people save wins and flashy games), so any statistic learned from them is biased and scarce (~2,000 usable human games after dedup). **Engine self-play is unlimited and bias-free by construction** — it is simultaneously the data source for the value net and the cure for the data problem. The loop: (1) self-play with the current policy on the open engine; (2) label PBSs with re-solved values; (3) train value+policy nets; (4) repeat. Held-out human games remain the *calibration* set, scored with proper scoring rules (log-loss, Brier, reliability) — never the training signal, to avoid laundering the selection bias back in.
 
-## 7. Honest limitations and open problems
+## 8. Honest limitations and open problems
 
 - **Not yet a bot.** The solver is correct and tested; it is *waiting on* the engine adapter and the value net. We do not claim superhuman play today; we claim a sound chassis and a concrete path.
 - **Action abstraction is unsolved here.** How aggressively to bucket moves/targets without discarding the equilibrium is real research.
@@ -81,7 +148,7 @@ The leaf value network and policy network are trained by **self-play** on the re
 - **Equilibrium vs. exploitation.** Nash play is unexploitable but not maximally exploitative against a *known weak* opponent. Poker's exploitative extensions (e.g., modelling opponent deviations) are a natural follow-on, not a v1 feature.
 - **Compute.** ReBeL-scale training is nontrivial; a scaled-down value net over abstracted states is the realistic first target.
 
-## 8. Conclusion
+## 9. Conclusion
 
 VGC has, for years, been analyzed with damage calculators and usage statistics — the equivalent of poker "hand-strength charts." The lesson of the last decade of poker research is that the game is won by **belief-based, equilibrium search**, and that once the transition dynamics are available (here: the open engine), that machinery ports over cleanly, with three well-understood modifications for simultaneity, scale, and chance. SLOWKING is the attempt to bring that machinery to Pokémon in full, honestly, and with its evaluation held to the same standard poker researchers held themselves to.
 
