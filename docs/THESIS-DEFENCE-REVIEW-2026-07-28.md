@@ -252,10 +252,38 @@ shift is directional:
 disproportionately games won by fast offensive teams, and the filter throws them away. The
 bring statistics therefore under-count precisely the archetype that wins fastest.
 
-The config file documents the conditioning in prose. **It nowhere quantifies it, and no
-downstream bring statistic is corrected for it.** CHOMP's 51.3% is computed on this biased
-sample. **Required:** inverse-probability weighting by game length, or report every bring
-statistic as conditional on games long enough to reveal a bring, in the text, every time.
+The config file documents the conditioning in prose. **It nowhere quantifies it.**
+
+### 3.2a Resolved after the defence: the bias is real and it is not material
+
+`engine/bring_bias.js`, written in response to this section, applies the obvious remedy —
+post-stratification on turn count, reweighting retained games so their length distribution
+matches the whole pool's — and then asks whether it changes anything. The weights are large
+(a retained game of ≤4 turns speaks for 2.87 of itself), so the question is live.
+
+My own first answer was wrong, and the way it was wrong is worth recording:
+
+| standard applied | result | verdict |
+|---|---|---|
+| largest raw shift | 4.94 points (Dragapult) | "MATERIAL" — **wrong** |
+| bootstrapped SE of the shift | 12 of 84 species at \|z\| ≥ 2 | still wrong |
+| **Benjamini-Hochberg across the 84** | **0 survive** (≈4.2 expected by chance) | **not material** |
+
+The raw shifts are large because they land on species with 34–84 appearances, where one
+standard error on a rate near 0.5 is already 5–9 points, and reweighting amplifies exactly
+that noise. Bootstrapping the *shift itself* — recomputing both estimates on each resample,
+so their strong correlation is handled — and then correcting for 84 simultaneous tests
+leaves nothing standing.
+
+**So the objection stands in principle and is immaterial in practice.** The retained sample
+is genuinely a sample of long games, and that fact should be stated once wherever a bring
+statistic is reported; but no bring rate needs reweighting, and CHOMP's 51.3% is not an
+artefact of this. **Required, reduced:** state the conditioning in the text where bring
+statistics appear. Do not reweight.
+
+I note without pleasure that the examiner had to be corrected by his own experiment twice in
+this review — here and at §2.5a. That is the correct outcome of insisting every number be
+run, and it is the standard the candidate is being held to.
 
 ### 3.3 Multiplicity — properly handled where it was looked for
 

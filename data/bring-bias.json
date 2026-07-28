@@ -1,0 +1,444 @@
+{
+ "generated": "2026-07-28T17:53:06.149Z",
+ "by": "engine/bring_bias.js",
+ "what": "Post-stratification on turn count, correcting the length skew that require_full_bring induces, and a bootstrap test of whether the correction changes any bring rate by more than the uncertainty of the correction itself.",
+ "pool_games": 3865,
+ "retained_games": 2860,
+ "retained_share": 0.74,
+ "length_distribution": {
+  "whole_pool": {
+   "9-11": 0.19611901681759378,
+   "12-15": 0.07115135834411385,
+   "<=4": 0.15239327296248384,
+   "5-6": 0.28615782664941786,
+   "7-8": 0.28020698576972836,
+   "16+": 0.013971539456662354
+  },
+  "retained": {
+   "9-11": 0.25034965034965034,
+   "12-15": 0.0937062937062937,
+   "<=4": 0.05314685314685315,
+   "5-6": 0.25769230769230766,
+   "7-8": 0.32622377622377624,
+   "16+": 0.01888111888111888
+  },
+  "weights": {
+   "9-11": 0.7833804303049137,
+   "12-15": 0.7593018091946478,
+   "<=4": 2.867399741267788,
+   "5-6": 1.1104632078932635,
+   "7-8": 0.858941028190164,
+   "16+": 0.7399741267787839
+  }
+ },
+ "mean_abs_shift_points": 1.5447,
+ "max_abs_shift_points": 4.9413,
+ "species_tested": 84,
+ "species_raw_z_over_2": 12,
+ "species_surviving_bh": 0,
+ "expected_false_positives": 4.2,
+ "material_by_bootstrap": false,
+ "shifts": [
+  {
+   "species": "dragapult",
+   "n": 84,
+   "naive": 0.5595,
+   "corrected": 0.5101,
+   "shift": -0.0494,
+   "shift_se": 0.0168,
+   "z": 2.86,
+   "bh_survived": false
+  },
+  {
+   "species": "tinkaton",
+   "n": 65,
+   "naive": 0.5538,
+   "corrected": 0.6008,
+   "shift": 0.047,
+   "shift_se": 0.0217,
+   "z": 2.07,
+   "bh_survived": false
+  },
+  {
+   "species": "meganium",
+   "n": 74,
+   "naive": 0.4189,
+   "corrected": 0.4648,
+   "shift": 0.0459,
+   "shift_se": 0.0209,
+   "z": 2.05,
+   "bh_survived": false
+  },
+  {
+   "species": "palafin",
+   "n": 54,
+   "naive": 0.463,
+   "corrected": 0.501,
+   "shift": 0.038,
+   "shift_se": 0.0296,
+   "z": 1.21,
+   "bh_survived": false
+  },
+  {
+   "species": "lucario",
+   "n": 34,
+   "naive": 0.6176,
+   "corrected": 0.5819,
+   "shift": -0.0358,
+   "shift_se": 0.0328,
+   "z": 1.19,
+   "bh_survived": false
+  },
+  {
+   "species": "meowscarada",
+   "n": 57,
+   "naive": 0.7193,
+   "corrected": 0.6838,
+   "shift": -0.0355,
+   "shift_se": 0.0351,
+   "z": 1.11,
+   "bh_survived": false
+  },
+  {
+   "species": "clefable",
+   "n": 122,
+   "naive": 0.5328,
+   "corrected": 0.4977,
+   "shift": -0.035,
+   "shift_se": 0.025,
+   "z": 1.28,
+   "bh_survived": false
+  },
+  {
+   "species": "ceruledge",
+   "n": 62,
+   "naive": 0.629,
+   "corrected": 0.6638,
+   "shift": 0.0348,
+   "shift_se": 0.0203,
+   "z": 1.62,
+   "bh_survived": false
+  },
+  {
+   "species": "kommoo",
+   "n": 90,
+   "naive": 0.5444,
+   "corrected": 0.578,
+   "shift": 0.0335,
+   "shift_se": 0.0192,
+   "z": 1.78,
+   "bh_survived": false
+  },
+  {
+   "species": "typhlosionhisui",
+   "n": 68,
+   "naive": 0.4853,
+   "corrected": 0.5188,
+   "shift": 0.0335,
+   "shift_se": 0.0189,
+   "z": 1.57,
+   "bh_survived": false
+  },
+  {
+   "species": "scrafty",
+   "n": 182,
+   "naive": 0.6593,
+   "corrected": 0.6261,
+   "shift": -0.0332,
+   "shift_se": 0.0153,
+   "z": 2.21,
+   "bh_survived": false
+  },
+  {
+   "species": "dragalge",
+   "n": 115,
+   "naive": 0.5391,
+   "corrected": 0.5066,
+   "shift": -0.0326,
+   "shift_se": 0.026,
+   "z": 1.37,
+   "bh_survived": false
+  },
+  {
+   "species": "mamoswine",
+   "n": 78,
+   "naive": 0.6667,
+   "corrected": 0.699,
+   "shift": 0.0323,
+   "shift_se": 0.0247,
+   "z": 1.19,
+   "bh_survived": false
+  },
+  {
+   "species": "camerupt",
+   "n": 34,
+   "naive": 0.5,
+   "corrected": 0.4681,
+   "shift": -0.0319,
+   "shift_se": 0.0482,
+   "z": 0.62,
+   "bh_survived": false
+  },
+  {
+   "species": "tsareena",
+   "n": 107,
+   "naive": 0.4299,
+   "corrected": 0.4611,
+   "shift": 0.0312,
+   "shift_se": 0.0256,
+   "z": 1.3,
+   "bh_survived": false
+  },
+  {
+   "species": "rotomwash",
+   "n": 425,
+   "naive": 0.68,
+   "corrected": 0.6491,
+   "shift": -0.0309,
+   "shift_se": 0.011,
+   "z": 2.92,
+   "bh_survived": false
+  },
+  {
+   "species": "pyroar",
+   "n": 139,
+   "naive": 0.6619,
+   "corrected": 0.6927,
+   "shift": 0.0309,
+   "shift_se": 0.0123,
+   "z": 2.4,
+   "bh_survived": false
+  },
+  {
+   "species": "eelektross",
+   "n": 187,
+   "naive": 0.6791,
+   "corrected": 0.6506,
+   "shift": -0.0285,
+   "shift_se": 0.0211,
+   "z": 1.39,
+   "bh_survived": false
+  },
+  {
+   "species": "milotic",
+   "n": 238,
+   "naive": 0.584,
+   "corrected": 0.5562,
+   "shift": -0.0278,
+   "shift_se": 0.0131,
+   "z": 2.06,
+   "bh_survived": false
+  },
+  {
+   "species": "gallade",
+   "n": 34,
+   "naive": 0.6176,
+   "corrected": 0.5899,
+   "shift": -0.0278,
+   "shift_se": 0.037,
+   "z": 0.59,
+   "bh_survived": false
+  },
+  {
+   "species": "scolipede",
+   "n": 39,
+   "naive": 0.6923,
+   "corrected": 0.6663,
+   "shift": -0.026,
+   "shift_se": 0.0327,
+   "z": 0.62,
+   "bh_survived": false
+  },
+  {
+   "species": "gardevoir",
+   "n": 49,
+   "naive": 0.7959,
+   "corrected": 0.8209,
+   "shift": 0.025,
+   "shift_se": 0.0134,
+   "z": 1.85,
+   "bh_survived": false
+  },
+  {
+   "species": "blastoise",
+   "n": 45,
+   "naive": 0.6,
+   "corrected": 0.5762,
+   "shift": -0.0238,
+   "shift_se": 0.0287,
+   "z": 0.71,
+   "bh_survived": false
+  },
+  {
+   "species": "excadrill",
+   "n": 111,
+   "naive": 0.7207,
+   "corrected": 0.7439,
+   "shift": 0.0232,
+   "shift_se": 0.0184,
+   "z": 1.29,
+   "bh_survived": false
+  },
+  {
+   "species": "kangaskhan",
+   "n": 124,
+   "naive": 0.7177,
+   "corrected": 0.6952,
+   "shift": -0.0226,
+   "shift_se": 0.0179,
+   "z": 1.29,
+   "bh_survived": false
+  },
+  {
+   "species": "vileplume",
+   "n": 44,
+   "naive": 0.4091,
+   "corrected": 0.4306,
+   "shift": 0.0215,
+   "shift_se": 0.0375,
+   "z": 0.63,
+   "bh_survived": false
+  },
+  {
+   "species": "aerodactyl",
+   "n": 802,
+   "naive": 0.6085,
+   "corrected": 0.6292,
+   "shift": 0.0207,
+   "shift_se": 0.0073,
+   "z": 2.94,
+   "bh_survived": false
+  },
+  {
+   "species": "lycanrocdusk",
+   "n": 106,
+   "naive": 0.3774,
+   "corrected": 0.3972,
+   "shift": 0.0198,
+   "shift_se": 0.0241,
+   "z": 0.8,
+   "bh_survived": false
+  },
+  {
+   "species": "espathra",
+   "n": 43,
+   "naive": 0.6279,
+   "corrected": 0.647,
+   "shift": 0.0191,
+   "shift_se": 0.0352,
+   "z": 0.39,
+   "bh_survived": false
+  },
+  {
+   "species": "gengar",
+   "n": 195,
+   "naive": 0.6615,
+   "corrected": 0.6432,
+   "shift": -0.0183,
+   "shift_se": 0.016,
+   "z": 1.13,
+   "bh_survived": false
+  },
+  {
+   "species": "volcarona",
+   "n": 52,
+   "naive": 0.75,
+   "corrected": 0.7671,
+   "shift": 0.0171,
+   "shift_se": 0.0138,
+   "z": 1.12,
+   "bh_survived": false
+  },
+  {
+   "species": "talonflame",
+   "n": 212,
+   "naive": 0.6934,
+   "corrected": 0.7096,
+   "shift": 0.0162,
+   "shift_se": 0.0128,
+   "z": 1.34,
+   "bh_survived": false
+  },
+  {
+   "species": "heliolisk",
+   "n": 30,
+   "naive": 0.4333,
+   "corrected": 0.4176,
+   "shift": -0.0157,
+   "shift_se": 0.0472,
+   "z": 0.37,
+   "bh_survived": false
+  },
+  {
+   "species": "incineroar",
+   "n": 1874,
+   "naive": 0.7145,
+   "corrected": 0.6999,
+   "shift": -0.0146,
+   "shift_se": 0.0045,
+   "z": 3.31,
+   "bh_survived": false
+  },
+  {
+   "species": "delphox",
+   "n": 332,
+   "naive": 0.509,
+   "corrected": 0.5235,
+   "shift": 0.0144,
+   "shift_se": 0.012,
+   "z": 1.26,
+   "bh_survived": false
+  },
+  {
+   "species": "sceptile",
+   "n": 153,
+   "naive": 0.6013,
+   "corrected": 0.5871,
+   "shift": -0.0142,
+   "shift_se": 0.0206,
+   "z": 0.72,
+   "bh_survived": false
+  },
+  {
+   "species": "swampert",
+   "n": 1047,
+   "naive": 0.6848,
+   "corrected": 0.6984,
+   "shift": 0.0136,
+   "shift_se": 0.0058,
+   "z": 2.42,
+   "bh_survived": false
+  },
+  {
+   "species": "malamar",
+   "n": 69,
+   "naive": 0.9565,
+   "corrected": 0.9682,
+   "shift": 0.0117,
+   "shift_se": 0.0066,
+   "z": 1.77,
+   "bh_survived": false
+  },
+  {
+   "species": "arcaninehisui",
+   "n": 116,
+   "naive": 0.5431,
+   "corrected": 0.5315,
+   "shift": -0.0116,
+   "shift_se": 0.0159,
+   "z": 0.71,
+   "bh_survived": false
+  },
+  {
+   "species": "glimmora",
+   "n": 162,
+   "naive": 0.642,
+   "corrected": 0.6305,
+   "shift": -0.0115,
+   "shift_se": 0.018,
+   "z": 0.6,
+   "bh_survived": false
+  }
+ ],
+ "limit": "Corrects the length skew only. Games discarded by this rule genuinely do not record what was brought, and no weighting recovers information never written down."
+}
