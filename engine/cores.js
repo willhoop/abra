@@ -21,12 +21,18 @@ const pairsOf = four => {
 };
 
 // pass 1: rows + core frequency
-const seen = new Set(); const rows = []; const freq = {};
-for (const line of fs.readFileSync(STORE, 'utf8').split('\n')) {
-  if (!line.trim()) continue;
-  let g; try { g = JSON.parse(line); } catch (e) { continue; }
-  if (seen.has(g.id)) continue; seen.add(g.id);
-  if (!g.winner || g.p1.bot || g.p2.bot) continue;
+/* CLEAN GAMES, NOT THE RAW STORE (GARBODOR). This read games.ladder.jsonl directly and dropped only
+ * self-identifying bots, so every core win rate below was computed over a population that is ~83%
+ * bot games, forfeits and stubs. A core matchup matrix is exactly what that ruins: a handful of bot
+ * accounts replaying one team thousands of times promotes their pair to a 'core' with a confident
+ * win rate attached.
+ *
+ * engine/quality.js is the single definition every behavioural number in this project goes through,
+ * and it deduplicates by id, which is why the local `seen` set is gone. */
+const Q = require('./quality.js');
+const rows = []; const freq = {};
+for (const g of Q.loadGames({ path: STORE })) {
+  if (!g.winner || !g.p1 || !g.p2) continue;
   const b1 = (g.brought && g.brought.p1 || []).map(idn), b2 = (g.brought && g.brought.p2 || []).map(idn);
   if (b1.length < 2 || b2.length < 2) continue;
   const p1win = idn(g.winner) === idn(g.p1.name);

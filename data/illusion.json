@@ -1,109 +1,109 @@
 {
- "generated": "2026-07-24",
- "n_games": 7315,
- "team_sides_with_a_zoroark": 201,
- "detections": 81,
- "detection_rate_per_zoroark_side": 0.403,
+ "generated": "2026-07-28",
+ "n_games": 21189,
+ "team_sides_with_a_zoroark": 668,
+ "detections": 348,
+ "detection_rate_per_zoroark_side": 0.521,
  "method": "A flag requires a legality contradiction: the apparent species cannot learn the move and Zoroark can. Learnsets from Showdown, walked through prevo/base forms. Species with no learnset data are skipped, so this is a FLOOR on how often Illusion was used, not an estimate.",
  "caveat": "Illusion is only caught when the disguise actually clicks a Zoroark-exclusive move. A Zoroark that only used shared coverage, or that was broken by a hit before moving, is invisible to this test.",
  "most_common_disguises": [
   {
    "name": "whimsicott",
-   "n": 8
-  },
-  {
-   "name": "vivillonpokeball",
-   "n": 5
+   "n": 22
   },
   {
    "name": "garchomp",
-   "n": 4
+   "n": 20
   },
   {
-   "name": "hydreigon",
-   "n": 4
+   "name": "kingambit",
+   "n": 14
   },
   {
    "name": "overqwil",
-   "n": 4
+   "n": 10
+  },
+  {
+   "name": "staraptor",
+   "n": 10
+  },
+  {
+   "name": "archaludon",
+   "n": 9
+  },
+  {
+   "name": "raichu",
+   "n": 8
   },
   {
    "name": "farigiraf",
-   "n": 3
+   "n": 7
   },
   {
-   "name": "charizardmegay",
-   "n": 3
+   "name": "ditto",
+   "n": 7
+  },
+  {
+   "name": "swampert",
+   "n": 7
   },
   {
    "name": "gholdengo",
-   "n": 2
+   "n": 6
   },
   {
-   "name": "chandelure",
-   "n": 2
-  },
-  {
-   "name": "glimmora",
-   "n": 2
-  },
-  {
-   "name": "charizard",
-   "n": 2
-  },
-  {
-   "name": "ampharos",
-   "n": 2
+   "name": "sinistchamasterpiece",
+   "n": 6
   }
  ],
  "most_revealing_moves": [
   {
-   "name": "hypervoice",
-   "n": 17
-  },
-  {
    "name": "bittermalice",
-   "n": 16
+   "n": 70
   },
   {
-   "name": "icywind",
-   "n": 10
-  },
-  {
-   "name": "flamethrower",
-   "n": 7
+   "name": "hypervoice",
+   "n": 60
   },
   {
    "name": "shadowball",
-   "n": 7
+   "n": 33
   },
   {
-   "name": "willowisp",
-   "n": 5
+   "name": "icywind",
+   "n": 31
   },
   {
    "name": "nastyplot",
-   "n": 4
+   "n": 23
   },
   {
-   "name": "sludgebomb",
-   "n": 3
+   "name": "flamethrower",
+   "n": 18
+  },
+  {
+   "name": "willowisp",
+   "n": 16
   },
   {
    "name": "memento",
-   "n": 2
-  },
-  {
-   "name": "nightdaze",
-   "n": 2
-  },
-  {
-   "name": "darkpulse",
-   "n": 1
+   "n": 14
   },
   {
    "name": "focusblast",
-   "n": 1
+   "n": 10
+  },
+  {
+   "name": "sludgebomb",
+   "n": 10
+  },
+  {
+   "name": "psychic",
+   "n": 9
+  },
+  {
+   "name": "taunt",
+   "n": 9
   }
  ],
  "species_without_learnset_data": [],

@@ -31,9 +31,16 @@ const dmg={};   // 'sp|move' -> {n,sum,max,rolls:[]}
 let games=0, nonTR=0; const seen=new Set();
 
 function side(slot){ return slot.slice(0,2); }
-for(const line of fs.readFileSync(STORE,'utf8').split('\n')){
-  if(!line.trim())continue; let r; try{r=JSON.parse(line);}catch(e){continue;}
-  if(seen.has(r.id))continue; seen.add(r.id);   // dedup by replay id — never double-count
+/* CLEAN GAMES, NOT THE RAW STORE (GARBODOR). Speed and damage profiles read straight from
+ * games.ladder.jsonl with no filter, so 'fastest observed' was measuring whichever bot account
+ * happened to spam a Choice Scarf mon. The same fix applied to engine/cores.js on 2026-07-28 moved
+ * its top core from Basculegion+Charizard (1,991 games) to Archaludon+Pelipper (371) -- the previous
+ * leader vanished from the top eight entirely, because it was one bot's team replayed thousands of
+ * times. Profiles built the same way carry the same defect.
+ *
+ * quality.js deduplicates by id, so the local `seen` set is redundant and removed. */
+const Q = require('./quality.js');
+for(const r of Q.loadGames({ path: STORE })){
   const turns=r.turns||[]; if(!turns.length)continue; games++;
   // Trick Room active? (crude but safe: any use of Trick Room in the game -> drop from speed signal)
   const hasTR=turns.some(t=>t.ev.some(e=>e.t==='m'&&key(e.mv)==='trickroom'));
