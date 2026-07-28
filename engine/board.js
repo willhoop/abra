@@ -541,6 +541,9 @@ class Board {
        * item since setSheet was written and nothing read it, so Choice Scarf -- 6.52% of every item
        * in this format, and a flat +50% Speed -- was invisible to the one feature it most affects. */
       item: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).item || ''),
+      /* The forme it will actually be, if the sheet's item is its own mega stone. Filled in below,
+       * because megaFormeOf needs the dex and the Board deliberately does not hold one. */
+      mega: '',
       /* STAT STAGES, absolute, cleared here because a boost belongs to the POKEMON and not to the
        * slot -- leaving them would put an Intimidate drop on the mon that replaced its victim.
        * Keys are the protocol's (atk/def/spa/spd/spe); the damage formula's own keys are different
@@ -1071,8 +1074,7 @@ function monSpeedMult(mon, board, dex) {
     if (c && c.exists) { const m = ask(c.onModifySpe); if (m) mult *= m; }
   }
   /* The abilities this species might have, weighted by how often the population runs each. */
-  const { abil } = abilityTables();
-  const rows = abil[norm(mon.species)] || abil[baseSpecies(mon.species)];
+  const rows = abilityOdds(effSpecies(mon, dex), dex);
   if (rows && rows.length) {
     let expected = 1;
     for (const [ab, pr] of rows) {
@@ -1205,6 +1207,113 @@ function abilityBlockProb(move, targetSpecies, mType, userSpecies) {
   return Math.min(1, p);
 }
 
+/* A POKEMON HOLDING ITS OWN MEGA STONE IS THE MEGA, AND THE SHEET SAYS SO.
+ *
+ * The store writes lowercase BASE forms -- across 20,387 teams and 273 distinct species strings the
+ * only one matching /mega/ is `meganium` -- so every mega in this format was tracked as its base
+ * species. That is not cosmetic. 76 mega formes carry 17.7% of this format's usage and they do not
+ * merely have better stats, they have DIFFERENT ABILITIES:
+ *
+ *     Staraptor-Mega   428,748   Contrary          (base Staraptor: Intimidate)
+ *     Swampert-Mega    319,208   Swift Swim        (base: Torrent)
+ *     Charizard-M-Y    258,306   Drought           (base: Blaze)
+ *     Gengar-Mega       89,335   Shadow Tag        (base: Cursed Body)
+ *
+ * So every ability-weighted feature in this file -- abilityBlock, effectivePriority, the speed
+ * multiplier, the Contrary check -- was asking about the wrong Pokemon for a sixth of the format.
+ *
+ * DERIVED FROM THE ITEM, WHICH IS PUBLIC HERE. Showdown's item carries `megaStone`, a map from base
+ * species to the forme it becomes, so no stone and no forme is named here and a regulation adding
+ * another is handled with no edit. Open Team Sheets publish the item before turn one, which is
+ * precisely why this is knowable rather than a guess -- it is the same public-information argument
+ * that admits the ability odds and the spreads.
+ *
+ * STATED PLAINLY: this treats a stone-holder as ALREADY its mega forme. Before it actually megas the
+ * live stats are the base form's, so this is early by up to a turn. That is the right error to make:
+ * both players can read the sheet, both know it is going to mega, and the alternative -- discovering
+ * Contrary after Staraptor has already clicked Close Combat -- is the one that loses games. */
+function megaFormeOf(species, item, dex) {
+  if (!item) return null;
+  const it = dex.items.get(norm(item));
+  if (!it || !it.exists || !it.megaStone) return null;
+  const base = baseSpecies(species);
+  const ms = it.megaStone;
+  if (typeof ms === 'string') {
+    /* A plain name: only apply it if it really is this species' stone, so a misread item cannot
+     * turn a Garchomp into somebody else's mega. */
+    return baseSpecies(ms) === base ? norm(ms) : null;
+  }
+  for (const [from, to] of Object.entries(ms)) {
+    if (baseSpecies(from) === base) return norm(to);
+  }
+  return null;
+}
+
+/* The species whose ABILITIES and STATS this Pokemon will actually be using. Resolved once per
+ * Pokemon and cached on it: '' means not yet asked, null means asked and it is not a mega. The Board
+ * itself deliberately holds no dex, so this is done here where one is in scope. */
+function effSpecies(mon, dex) {
+  if (!mon) return '';
+  if (mon.mega === '' && dex) mon.mega = megaFormeOf(mon.species, mon.item, dex) || null;
+  return mon.mega || mon.species;
+}
+
+/* THE ABILITY ODDS FOR A SPECIES — and for a MEGA they are not odds at all.
+ *
+ * Everywhere else in this file "which ability does it have" is a population question answered by
+ * Smogon's usage table. For a mega forme it is not a question: mega evolution always confers the
+ * forme's own ability, and the dex states it outright.
+ *
+ * That distinction is not pedantry, it is a data defect this exposed. Smogon's table cannot see a
+ * mega's ability and records the gap as a literal entry:
+ *
+ *     staraptormega:   "No Ability" 81.1%,  "Contrary" 18.9%
+ *
+ * Trusting those odds makes Swords Dance on a Staraptor-Mega read as raising Attack 81% of the time
+ * when it never does. The usage table is authoritative about what people RUN; it is not
+ * authoritative about what the game DOES, and a mega's ability is the second kind of fact.
+ *
+ * So: mega formes take their ability from the dex at probability 1, everything else keeps the
+ * measured odds. Nothing is named -- the forme list comes from the item's own megaStone map. */
+function abilityOdds(species, dex) {
+  const { abil } = abilityTables();
+  const sp = dex && dex.species.get(species);
+  if (sp && sp.exists && sp.isMega) {
+    const fixed = Object.values(sp.abilities || {}).map(a => norm(a)).filter(Boolean);
+    if (fixed.length === 1) return [[fixed[0], 1]];
+  }
+  return abil[norm(species)] || abil[baseSpecies(species)] || null;
+}
+
+/* WHAT DOES THIS BOOST TABLE ACTUALLY DO TO THIS POKEMON?
+ *
+ * `want` is +1 to ask "does it end up RAISING a stat" and -1 for "does it end up LOWERING one".
+ * Returns the probability, over the species' possible abilities, that the answer is yes -- so a
+ * Pokemon with no boost-modifying ability returns 1 for a move that plainly does it, and a certain
+ * Contrary user returns 0. Abilities are asked, never listed: `onChangeBoost` is the handler
+ * Showdown gives to Contrary (inverts) and Simple (doubles) alike. */
+function expectedBoostSign(boosts, species, dex, want) {
+  if (!boosts) return 0;
+  const plain = Object.values(boosts).some(v => (want > 0 ? v > 0 : v < 0)) ? 1 : 0;
+  const rows = abilityOdds(species, dex);
+  if (!rows || !rows.length) return plain;
+  let p = 0, seen = 0;
+  for (const [ab, pr] of rows) {
+    if (!pr) continue;
+    seen += pr;
+    const A = dex.abilities.get(ab);
+    let out = boosts;
+    if (A && A.exists && typeof A.onChangeBoost === 'function') {
+      const copy = Object.assign({}, boosts);
+      try { A.onChangeBoost.call({}, copy, {}, null, null); out = copy; } catch (e) { out = boosts; }
+    }
+    p += pr * (Object.values(out).some(v => (want > 0 ? v > 0 : v < 0)) ? 1 : 0);
+  }
+  /* Odds that do not sum to 1 mean the usage table is missing some of this species' abilities; the
+   * remainder keeps the unmodified answer rather than silently counting as "no ability". */
+  return p + Math.max(0, 1 - seen) * plain;
+}
+
 /* SOME BLOCKERS PROTECT THE WHOLE SIDE, NOT THEMSELVES.
  *
  * Armor Tail, Queenly Majesty and Dazzling refuse priority moves aimed at ANY member of their side.
@@ -1245,7 +1354,7 @@ function allySideBlockProb(move, board, foeSide, targetSpecies, mType, userSpeci
     /* The target itself is already handled by abilityBlockProb; counting it twice would double the
      * refusal odds of a Farigiraf aimed at directly. */
     if (baseSpecies(f.mon.species) === baseSpecies(targetSpecies)) continue;
-    const rows = abil[norm(f.mon.species)] || abil[baseSpecies(f.mon.species)];
+    const rows = abilityOdds(effSpecies(f.mon, dex), dex);
     if (!rows) continue;
     let p = 0;
     for (const [ab, pr] of rows) {
@@ -1514,9 +1623,31 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       const dl = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
       if (dl.length) set('tgtDefenseStage', dl.reduce((a, h) => a + ((h.boosts && h.boosts[def]) || 0), 0) / dl.length / 6);
     }
+    /* CONTRARY INVERTS THE STAT CHANGE, so "this move raises one of my stats" is not a property of
+     * the move alone. Staraptor-Mega has it, and Staraptor-Mega is the single most-used mega in this
+     * format at 428,748 -- a Swords Dance on it LOWERS Attack, and Intimidate RAISES it.
+     *
+     * Not named here, and neither is Simple. Showdown implements both as `onChangeBoost`, so the
+     * handler is CALLED with the move's own boost table and asked what it becomes: Contrary returns
+     * {atk:1} as {atk:-1}, Simple returns it as {atk:2}. Any future ability of that shape is handled
+     * with no edit.
+     *
+     * Expected values, weighted by the Smogon odds, because which ability a Pokemon has is knowable
+     * to the population and not to the player -- exactly as abilityBlock and effectivePriority are.
+     *
+     * CORRECTING THE HANDOFF, which said Contrary "inverts myOffenseStage, MAG's strongest positive
+     * feature". It does not. myOffenseStage reads stages ALREADY on the board, recorded from real
+     * protocol events, so it is right whatever produced them. What Contrary changes is the PREDICTED
+     * effect of a move being considered, which is these two features and only these two. */
     const selfB = (m.self && m.self.boosts) || (SELF_TARGETS.has(m.target) ? m.boosts : null);
-    if (selfB && Object.values(selfB).some(v => v > 0)) set('movesBoostMe', 1);
-    if (m.boosts && !SELF_TARGETS.has(m.target) && Object.values(m.boosts).some(v => v < 0)) set('movesLowerFoe', 1);
+    if (selfB) set('movesBoostMe', expectedBoostSign(selfB, effSpecies(user, dex), dex, +1));
+    if (m.boosts && !SELF_TARGETS.has(m.target)) {
+      const dl2 = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
+      if (dl2.length) {
+        set('movesLowerFoe',
+          dl2.reduce((a, h) => a + expectedBoostSign(m.boosts, effSpecies(h, dex), dex, -1), 0) / dl2.length);
+      }
+    }
   }
 
 
@@ -1587,8 +1718,8 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       const foeSide = side === 'p1' ? 'p2' : 'p1';
       /* INVESTMENT-AWARE, not base stats: see expectedSpe. The target's is averaged over everything
        * the move hits, exactly as the other stat features above are. */
-      const myBaseSpe = expectedSpe(user.species, dex, user.nature);
-      const thBaseSpe = statList.reduce((a, h) => a + expectedSpe(h.species, dex, h.nature), 0) / statList.length;
+      const myBaseSpe = expectedSpe(effSpecies(user, dex), dex, user.nature);
+      const thBaseSpe = statList.reduce((a, h) => a + expectedSpe(effSpecies(h, dex), dex, h.nature), 0) / statList.length;
       const mySpe = myBaseSpe * speedMult(board, side, dex) * monSpeedMult(user, board, dex);
       const thSpe = thBaseSpe * speedMult(board, foeSide, dex) * monSpeedMult(t, board, dex);
       const slowFirst = board.hasField(GAME_RULES.trickRoomField);
@@ -1741,8 +1872,8 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       for (const h of list) {
         /* The target's own ability, and then anything on its side that refuses on its behalf.
          * Combined as "neither declines", so two blockers cannot sum past certainty. */
-        const own = abilityBlockProb(m, h.species, mType, user.species);
-        const ally = allySideBlockProb(m, board, fSide, h.species, mType, user.species, dex);
+        const own = abilityBlockProb(m, effSpecies(h, dex), mType, effSpecies(user, dex));
+        const ally = allySideBlockProb(m, board, fSide, effSpecies(h, dex), mType, effSpecies(user, dex), dex);
         pSum += 1 - (1 - own) * (1 - ally);
       }
       set('abilityBlock', pSum / list.length);
@@ -1898,7 +2029,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
   let fastest = 0;
   for (const f of board.field()) {
     if (f.side === side || !f.mon || f.mon.fainted) continue;
-    const s2 = expectedSpe(f.mon.species, dex, f.mon.nature) *
+    const s2 = expectedSpe(effSpecies(f.mon, dex), dex, f.mon.nature) *
                speedMult(board, foeSide, dex) * monSpeedMult(f.mon, board, dex);
     if (s2 > fastest) fastest = s2;
   }
