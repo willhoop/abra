@@ -288,8 +288,17 @@ function decisionsFor(g, tally) {
     if (lead[1]) board.switchIn(side, 'b', lead[1]);
   }
 
+  /* WHICH TURN AND WHICH SLOT, carried on every row. Purely additive -- the fit ignores these and
+   * every existing caller is unaffected -- but without them a decision cannot be paired with the
+   * other decision its player made on the same turn, and a VGC turn is a JOINT choice of two.
+   * engine/opponent_recall.js needs that pairing to ask what the opponent's whole turn was, which is
+   * the branching that actually costs (~51 joint actions a side, not ~7). Tagging here rather than
+   * re-walking the replay elsewhere: this function's turn ordering, forced-switch detection and
+   * board resolution are subtle, and a second copy of them would drift. */
+  let turnIx = 0;
   for (const t of g.turns || []) {
     const ev = t.ev || [];
+    turnIx++;
     for (const e of ev) {
       if (e.t !== 'mega' || !e.s) continue;
       const mon = board.slot(e.s.slice(0, 2), e.s.slice(2));
@@ -323,7 +332,7 @@ function decisionsFor(g, tally) {
         const idx = cands.findIndex(c => c.switchTo && c.switchTo === want);
         if (idx < 0) { tally.unmatched++; continue; }
         const feats = featsFor(cands, user, board, side);
-        out.push({ game: g.id || '', sp: base(user.species), feats, chosen: idx });
+        out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx });
         tally.kept++;
         continue;
       }
@@ -352,7 +361,7 @@ function decisionsFor(g, tally) {
       if (matches.length > 1) { tally.ambiguous++; continue; }
 
       const feats = featsFor(cands, user, board, side);
-      out.push({ game: g.id || '', sp: base(e.mon), feats, chosen: matches[0] });
+      out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: matches[0] });
       tally.kept++;
     }
 
