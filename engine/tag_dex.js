@@ -383,6 +383,144 @@ const MOVE_TAGS = [
                scope: c.onFoeDisableMove ? 'both foes' : 'one target',
                fromUsersOwnMoves: !!c.onFoeDisableMove };
     } },
+  /* Will: "bug bite eats berry... and immediately gains that effect." Exactly right, and it was
+   * tagged `contact` and nothing else at 105 uses.
+   *
+   * Bug Bite does not merely remove the berry, it CONSUMES it and the user gets the effect on the
+   * spot -- so Bug Bite into a Sitrus Berry heals the attacker, and into a resist berry wastes it.
+   * That is a damaging move with a heal attached, priced as a plain 60 BP hit.
+   *
+   * The wider family is every move that moves an item between Pokemon, which is a different
+   * mechanic from readsTargetItem (reading the slot) -- these WRITE it, and board.js tracks
+   * observed items, so a swap or a steal invalidates a belief the engine is holding. */
+  { tag: 'takesTargetItem', param: 'moves, destroys or consumes the target item -- and may gain its effect', probe: 'takesTargetItem',
+    why: 'Bug Bite (105) eats the berry and gets the effect immediately; Knock Off (1,663) removes '
+       + 'it; Trick (268) swaps it. Each one invalidates an item the board is still assuming',
+    of: m => {
+      const src = String(m.onHit || '') + String(m.onAfterHit || '');
+      const eats  = /eatItem|singleEvent\('Eat'/.test(src);
+      const swaps = /setItem\(.*takeItem|myItem|yourItem/.test(src);
+      const takes = /takeItem\(/.test(src);
+      if (!eats && !swaps && !takes) return null;
+      return { consumesAndGainsEffect: eats, swaps, removes: takes && !eats };
+    } },
+  /* Will: "if user is holding iron ball, the variable power heavy slam and low kick would be
+   * different right, same with the float stone."
+   *
+   * Right in principle, wrong on Iron Ball specifically -- it halves Speed and grounds the holder
+   * (onModifySpe, onEffectiveness) and does NOT touch weight. Float Stone genuinely halves weight,
+   * as do the Light Metal and Heavy Metal abilities.
+   *
+   * The split that matters: Heavy Slam and Heat Crash compare the USER's weight to the target's,
+   * while Low Kick and Grass Knot read the target's alone. build_engine_data.js stores only the
+   * static species weight, so every modifier is invisible -- but the whole population of modifiers
+   * is 8 sheets, well under Will's own 0.5% floor, so this is tagged and left unbuilt on purpose. */
+  { tag: 'weightBased', param: 'base power comes from a weight lookup -- whose weight, and modifiable', probe: 'weightBased',
+    why: 'Low Kick (1,880 uses) reads the target weight; Heavy Slam (121) reads the RATIO of user '
+       + 'to target. The engine stores static species weight, so Float Stone, Light Metal and Heavy '
+       + 'Metal are all invisible -- 8 sheets total, below the floor, so recorded not built',
+    of: m => {
+      const src = String(m.basePowerCallback || '');
+      if (!/getWeight/.test(src)) return null;
+      return { usesUserWeight: /pokemon\.getWeight/.test(src),
+               usesTargetWeight: /target\.getWeight/.test(src) };
+    } },
+  /* Will: "acrobatics checks if the item is gone right, is that what variable power means... same
+   * with unburden."
+   *
+   * variablePower flags THAT the power moves but never says on what, so Acrobatics and Low Kick
+   * carried an identical tag while depending on completely different state. This names the state.
+   *
+   * The cluster matters more than either member. Acrobatics doubles its power with an empty item
+   * slot and Unburden doubles Speed once the slot empties -- and the slot empties through Knock Off,
+   * Trick, a consumed berry or a spent Focus Sash. So an opponent knocking my item off can hand me
+   * a 110 BP move AND double my Speed in the same instant, a causal chain nothing in the engine can
+   * currently follow. board.js began tracking observed items tonight, which is what makes it
+   * computable at all. */
+  { tag: 'readsOwnItem', param: 'the USER item slot changes this move -- empty is a buff, not a loss', probe: 'readsOwnItem',
+    why: 'Acrobatics is 55 BP holding anything and 110 holding nothing. Paired with Unburden, losing '
+       + 'an item is an upgrade, and the engine reads item loss as pure damage taken',
+    of: m => {
+      const src = String(m.basePowerCallback || '');
+      if (!/pokemon\.item|source\.item|hasItem/.test(src)) return null;
+      return { doublesWhenEmpty: /\* 2|\*2/.test(src) };
+    } },
+  /* Will: "psychic noise has healblock, for two turns." Correct, and it was tagged `sound` alone at
+   * 96 uses. It is also the ONLY move in the format that applies heal block -- Heal Block itself is
+   * never brought -- and the duration differs by source: the move lasts 5 turns, Psychic Noise's
+   * version lasts 2. A single shared duration constant would have been wrong. */
+  { tag: 'blocksHealing', param: 'the target cannot heal for N turns', probe: 'blocksHealing',
+    why: 'Psychic Noise (96 uses) shuts off Leftovers, Sitrus, drain moves and Regenerator for two '
+       + 'turns. Every heal the bot is counting on during that window is worth zero',
+    of: m => {
+      const src = JSON.stringify(m.secondaries || '') + String(m.volatileStatus || '');
+      if (!/healblock/i.test(src)) return null;
+      return { turns: /psychicnoise/.test(norm(m.id)) ? 2 : 5 };
+    } },
+  /* Will, deadpan: "what about the obscure alluring voice mechanic of confusion if stats were
+   * raised this turn that im sure comes up every game."
+   *
+   * Fair. Alluring Voice is 0.13% of sheets and Burning Jealousy 0.049%, both under his own 0.5%
+   * floor, and neither deserves engine surface. They are tagged anyway only because they are ONE
+   * mechanic -- punish a target that boosted this turn -- so the derivation is four lines and costs
+   * nothing. The floor governs what gets BUILT, not what gets named. */
+  { tag: 'punishesBoostedTarget', param: 'lands an effect only if the target had a stat rise THIS turn', probe: 'punishesBoostedTarget',
+    why: 'Alluring Voice confuses and Burning Jealousy burns, both conditional on the target having '
+       + 'just set up. Below the build floor, recorded so the mechanic is not lost',
+    of: m => {
+      /* The condition is a FUNCTION inside secondaries[].onHit, and JSON.stringify drops functions
+       * silently -- so stringifying the array matched nothing and the empty-tag guard caught it
+       * within a minute. Same family of bug as selfBoost and onModifyMovePriority: the data was
+       * there, the reader looked in a shape that could not contain it. */
+      const parts = [String(m.onHit || '')];
+      for (const sec of (m.secondaries || []))
+        for (const k of Object.keys(sec || {}))
+          if (typeof sec[k] === 'function') parts.push(String(sec[k]));
+      return /statsRaisedThisTurn/.test(parts.join(' ')) ? { onlyIfTargetBoostedThisTurn: true } : null;
+    } },
+  /* Will: "soak needs a change target type category." Soak is 78 uses and rewrites the target to
+   * pure Water, which invalidates every type-effectiveness number the engine holds for that
+   * Pokemon -- both what it resists and what it takes. Nothing recomputes a matchup mid-battle. */
+  { tag: 'changesTargetType', param: 'rewrites or extends the target typing, invalidating every matchup', probe: 'changesTargetType',
+    why: 'Soak (78 uses) makes the target pure Water; Trick-or-Treat adds Ghost. The defensive type '
+       + 'chart is computed once from the species and never revisited',
+    of: m => {
+      const src = String(m.onHit || '') + String(m.onTryHit || '');
+      if (!/setType|addType/.test(src)) return null;
+      return { replaces: /setType/.test(src), adds: /addType/.test(src) };
+    } },
+  /* Will: "high jump kick needs an if-miss-then-bad-things-happen tag." The crash is the whole
+   * reason the move is a gamble -- miss and the user takes half its max HP for nothing. A scorer
+   * that only weights damage-times-accuracy prices it identically to a safe move of the same
+   * expected damage, which is precisely the risk blindness Will has been describing all night. */
+  { tag: 'crashOnMiss', param: 'MISSING costs the user HP -- the downside is not merely zero', probe: 'crashOnMiss',
+    why: 'High Jump Kick and Jump Kick take half the user max HP on a miss. Expected damage alone '
+       + 'cannot distinguish a whiff that costs nothing from one that costs half your health',
+    of: m => {
+      const c = m.hasCrashDamage || /crash/i.test(String(m.onMoveFail || ''));
+      return c ? { fraction: 0.5 } : null;
+    } },
+  /* Will: "pollen puff can be used to heal ur partner or as offensive attack, its genius, good luck
+   * tagging that one man."
+   *
+   * It is genuinely the hardest shape in the set, and it breaks an assumption the whole taxonomy
+   * rests on: that a move HAS a behaviour. Pollen Puff has two, chosen by who you aim at. Fired at
+   * a foe it is a 90 BP special attack; fired at your partner onTryHit zeroes the base power and
+   * onHit heals half their max HP instead.
+   *
+   * So the honest fix is not a cleverer tag, it is admitting the unit is wrong. A tag belongs to a
+   * (move, target) pair, not to a move. MAG already scores every move against every legal target,
+   * so the tag carries both branches and the existing loop picks the right one -- no new machinery,
+   * just stopping the pretence that one move means one thing. */
+  { tag: 'dualPurpose', param: 'behaves as a DIFFERENT move depending on whether the target is a foe or an ally', probe: 'dualPurpose',
+    why: 'Pollen Puff (77 uses) is a 90 BP attack at a foe and a 50% heal at a partner. Scored as '
+       + 'one thing it is wrong in both directions -- a wasted attack, or a heal nobody can see',
+    of: m => {
+      const src = String(m.onTryHit || '') + String(m.onHit || '');
+      if (!/isAlly\(target\)/.test(src)) return null;
+      return { atFoe: m.basePower ? m.basePower + ' BP attack' : 'effect',
+               atAlly: /this\.heal/.test(src) ? 'heals the ally' : 'different effect' };
+    } },
   { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
        + 'legally do, which nothing represents, and the chip is residual damage nothing counts',
@@ -471,14 +609,19 @@ const MOVE_TAGS = [
    * since Protect is simply irrelevant to a self-target or a side condition. Real users: Feint (222),
    * Phantom Force (201), Future Sight (5). */
   { tag: 'ignoresProtect', param: 'Protect does NOT stop it', probe: 'ignoresProtect',
-    why: 'Feint, Phantom Force, Future Sight. tgtMayProtect discounts these as if a Protect saves the '
-       + 'target, and it does not',
-    of: m => (['normal', 'any', 'adjacentFoe', 'allAdjacentFoes', 'allAdjacent', 'all'].includes(m.target)
-              && !(m.flags && m.flags.protect)) ? { ignoresProtect: true } : null },
-  /* Will: "spiky shield does chip damage sorta like rough skin right?" -- yes, the same parameter
-   * with a different gate. Rough Skin punishes contact always; these punish it only while the shield
-   * is up. Read from the move's own condition.onHit, which is where Baneful Bunker's poison lives
-   * too. */
+    why: 'Feint, Phantom Force, Shadow Force. The bot values Protect as a guaranteed block, so a '
+       + 'move that goes through it is mispriced on BOTH sides of the turn',
+    /* SCOPED, on Will's challenge ("wdym ignores protect" -- about After You). The tag derives from
+     * the ABSENCE of flags.protect, which is technically true of a status move aimed at your own
+     * partner and tells you nothing: Protect was never going to block it. 17 of 31 members were
+     * that kind. It now fires only where a Protect could actually have stopped something -- a
+     * damaging move, or one aimed at a foe. Same defect Will found in neverMisses on Protect. */
+    of: m => {
+      if (m.flags && m.flags.protect) return null;
+      const hitsFoe = /adjacentFoe|allAdjacentFoes|allAdjacent|^any$|^normal$/.test(m.target || '');
+      if (m.category === 'Status' && !hitsFoe) return null;
+      return { throughProtect: true };
+    } },
   { tag: 'punishesContact', param: 'the attacker pays for touching the shield', probe: 'punishesContact',
     why: 'Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with '
        + 'a condition, and it makes clicking a contact move into a likely Protect worse than it looks',

@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T05:56:55.911Z",
+ "generated": "2026-07-29T06:06:20.362Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -319,6 +319,124 @@
    ]
   },
   {
+   "tag": "takesTargetItem",
+   "kind": "move",
+   "param": "moves, destroys or consumes the target item -- and may gain its effect",
+   "why": "Bug Bite (105) eats the berry and gets the effect immediately; Knock Off (1,663) removes it; Trick (268) swaps it. Each one invalidates an item the board is still assuming",
+   "consumedBy": null,
+   "used": false,
+   "n": 9,
+   "uses": 2051,
+   "examples": [
+    "Corrosive Gas",
+    "Bug Bite",
+    "Knock Off",
+    "Switcheroo",
+    "Thief",
+    "Trick"
+   ]
+  },
+  {
+   "tag": "weightBased",
+   "kind": "move",
+   "param": "base power comes from a weight lookup -- whose weight, and modifiable",
+   "why": "Low Kick (1,880 uses) reads the target weight; Heavy Slam (121) reads the RATIO of user to target. The engine stores static species weight, so Float Stone, Light Metal and Heavy Metal are all invisible -- 8 sheets total, below the floor, so recorded not built",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 2250,
+   "examples": [
+    "Grass Knot",
+    "Heat Crash",
+    "Heavy Slam",
+    "Low Kick"
+   ]
+  },
+  {
+   "tag": "readsOwnItem",
+   "kind": "move",
+   "param": "the USER item slot changes this move -- empty is a buff, not a loss",
+   "why": "Acrobatics is 55 BP holding anything and 110 holding nothing. Paired with Unburden, losing an item is an upgrade, and the engine reads item loss as pure damage taken",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 92,
+   "examples": [
+    "Acrobatics"
+   ]
+  },
+  {
+   "tag": "blocksHealing",
+   "kind": "move",
+   "param": "the target cannot heal for N turns",
+   "why": "Psychic Noise (96 uses) shuts off Leftovers, Sitrus, drain moves and Regenerator for two turns. Every heal the bot is counting on during that window is worth zero",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 96,
+   "examples": [
+    "Psychic Noise"
+   ]
+  },
+  {
+   "tag": "punishesBoostedTarget",
+   "kind": "move",
+   "param": "lands an effect only if the target had a stat rise THIS turn",
+   "why": "Alluring Voice confuses and Burning Jealousy burns, both conditional on the target having just set up. Below the build floor, recorded so the mechanic is not lost",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 118,
+   "examples": [
+    "Alluring Voice",
+    "Burning Jealousy"
+   ]
+  },
+  {
+   "tag": "changesTargetType",
+   "kind": "move",
+   "param": "rewrites or extends the target typing, invalidating every matchup",
+   "why": "Soak (78 uses) makes the target pure Water; Trick-or-Treat adds Ghost. The defensive type chart is computed once from the species and never revisited",
+   "consumedBy": null,
+   "used": false,
+   "n": 5,
+   "uses": 88,
+   "examples": [
+    "Trick-or-Treat",
+    "Forest's Curse",
+    "Magic Powder",
+    "Soak"
+   ]
+  },
+  {
+   "tag": "crashOnMiss",
+   "kind": "move",
+   "param": "MISSING costs the user HP -- the downside is not merely zero",
+   "why": "High Jump Kick and Jump Kick take half the user max HP on a miss. Expected damage alone cannot distinguish a whiff that costs nothing from one that costs half your health",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 134,
+   "examples": [
+    "High Jump Kick",
+    "Supercell Slam"
+   ]
+  },
+  {
+   "tag": "dualPurpose",
+   "kind": "move",
+   "param": "behaves as a DIFFERENT move depending on whether the target is a foe or an ally",
+   "why": "Pollen Puff (77 uses) is a 90 BP attack at a foe and a 50% heal at a partner. Scored as one thing it is wrong in both directions -- a wasted attack, or a heal nobody can see",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 86,
+   "examples": [
+    "Pollen Puff",
+    "Shell Side Arm"
+   ]
+  },
+  {
    "tag": "partialTrap",
    "kind": "move",
    "param": "target cannot switch for 4-5 turns AND takes 1/8 chip each turn",
@@ -513,18 +631,18 @@
    "tag": "ignoresProtect",
    "kind": "move",
    "param": "Protect does NOT stop it",
-   "why": "Feint, Phantom Force, Future Sight. tgtMayProtect discounts these as if a Protect saves the target, and it does not",
+   "why": "Feint, Phantom Force, Shadow Force. The bot values Protect as a guaranteed block, so a move that goes through it is mispriced on BOTH sides of the turn",
    "consumedBy": null,
    "used": false,
-   "n": 31,
-   "uses": 7621,
+   "n": 14,
+   "uses": 1020,
    "examples": [
-    "Sandstorm",
-    "Snowscape",
     "After You",
-    "Chilly Reception",
     "Curse",
-    "Decorate"
+    "Decorate",
+    "Feint",
+    "Future Sight",
+    "Mean Look"
    ]
   },
   {
@@ -2419,11 +2537,17 @@
   "corrosivegas": {
    "name": "Corrosive Gas",
    "tags": [
+    "takesTargetItem",
     "spreadAll",
     "statusCategory"
    ],
    "uses": 1,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": false,
+     "removes": true
+    },
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
@@ -2993,7 +3117,6 @@
    "tags": [
     "moveClass",
     "neverMisses",
-    "ignoresProtect",
     "setsWeather",
     "statusCategory"
    ],
@@ -3007,9 +3130,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsWeather": {
      "weather": "Sandstorm"
@@ -3062,7 +3182,6 @@
    "name": "Snowscape",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsWeather",
     "statusCategory"
    ],
@@ -3071,9 +3190,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsWeather": {
      "weather": "snowscape"
@@ -3140,12 +3256,18 @@
   "stuffcheeks": {
    "name": "Stuff Cheeks",
    "tags": [
+    "takesTargetItem",
     "neverMisses",
     "statChangeInCode",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": true,
+     "swaps": false,
+     "removes": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -3198,10 +3320,15 @@
   "trickortreat": {
    "name": "Trick-or-Treat",
    "tags": [
+    "changesTargetType",
     "statusCategory"
    ],
    "uses": 4,
    "params": {
+    "changesTargetType": {
+     "replaces": false,
+     "adds": true
+    },
     "statusCategory": {
      "status": true
     }
@@ -3295,12 +3422,16 @@
    "name": "Acrobatics",
    "tags": [
     "variablePower",
+    "readsOwnItem",
     "contact"
    ],
    "uses": 92,
    "params": {
     "variablePower": {
      "computed": true
+    },
+    "readsOwnItem": {
+     "doublesWhenEmpty": true
     },
     "contact": {
      "contact": true
@@ -3368,7 +3499,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statusCategory": {
      "status": true
@@ -3443,10 +3574,14 @@
   "alluringvoice": {
    "name": "Alluring Voice",
    "tags": [
+    "punishesBoostedTarget",
     "sound"
    ],
    "uses": 86,
    "params": {
+    "punishesBoostedTarget": {
+     "onlyIfTargetBoostedThisTurn": true
+    },
     "sound": {
      "sound": true
     }
@@ -3762,11 +3897,15 @@
   "axekick": {
    "name": "Axe Kick",
    "tags": [
+    "crashOnMiss",
     "contact",
     "inflictsConfusion"
    ],
    "uses": 0,
    "params": {
+    "crashOnMiss": {
+     "fraction": 0.5
+    },
     "contact": {
      "contact": true
     },
@@ -4023,7 +4162,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statusCategory": {
      "status": true
@@ -4181,10 +4320,16 @@
   "bugbite": {
    "name": "Bug Bite",
    "tags": [
+    "takesTargetItem",
     "contact"
    ],
    "uses": 105,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": false,
+     "removes": true
+    },
     "contact": {
      "contact": true
     }
@@ -4301,10 +4446,14 @@
   "burningjealousy": {
    "name": "Burning Jealousy",
    "tags": [
+    "punishesBoostedTarget",
     "spreadFoes"
    ],
    "uses": 32,
    "params": {
+    "punishesBoostedTarget": {
+     "onlyIfTargetBoostedThisTurn": true
+    },
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
@@ -4431,7 +4580,6 @@
    "name": "Chilly Reception",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "pivotStatus",
     "setsWeather",
     "statusCategory"
@@ -4441,9 +4589,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "pivotStatus": {
      "selfSwitch": true
@@ -4743,10 +4888,16 @@
   "covet": {
    "name": "Covet",
    "tags": [
+    "takesTargetItem",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": true,
+     "removes": true
+    },
     "contact": {
      "contact": true
     }
@@ -4836,7 +4987,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statusCategory": {
      "status": true
@@ -4905,7 +5056,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "boostsTarget": {
      "boosts": {
@@ -5391,7 +5542,6 @@
    "name": "Electric Terrain",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsTerrain",
     "statusCategory"
    ],
@@ -5400,9 +5550,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsTerrain": {
      "terrain": "electricterrain"
@@ -5650,7 +5797,6 @@
    "name": "Fairy Lock",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsRoom",
     "statusCategory"
    ],
@@ -5659,9 +5805,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsRoom": {
      "pseudoWeather": "fairylock"
@@ -5720,7 +5863,7 @@
      "sign": "+"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     }
    }
   },
@@ -6159,10 +6302,15 @@
   "forestscurse": {
    "name": "Forest's Curse",
    "tags": [
+    "changesTargetType",
     "statusCategory"
    ],
    "uses": 1,
    "params": {
+    "changesTargetType": {
+     "replaces": false,
+     "adds": true
+    },
     "statusCategory": {
      "status": true
     }
@@ -6218,7 +6366,7 @@
    "uses": 6,
    "params": {
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     }
    }
   },
@@ -6297,12 +6445,17 @@
    "name": "Grass Knot",
    "tags": [
     "variablePower",
+    "weightBased",
     "contact"
    ],
    "uses": 244,
    "params": {
     "variablePower": {
      "computed": true
+    },
+    "weightBased": {
+     "usesUserWeight": false,
+     "usesTargetWeight": true
     },
     "contact": {
      "contact": true
@@ -6325,7 +6478,6 @@
    "name": "Grassy Terrain",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsTerrain",
     "statusCategory"
    ],
@@ -6334,9 +6486,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsTerrain": {
      "terrain": "grassyterrain"
@@ -6351,7 +6500,6 @@
    "tags": [
     "sealsMoves",
     "neverMisses",
-    "ignoresProtect",
     "accuracyMod",
     "statusCategory"
    ],
@@ -6365,9 +6513,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "accuracyMod": {
      "accuracy": true
@@ -6525,7 +6670,6 @@
    "name": "Haze",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "clearsBoosts",
     "statusCategory"
    ],
@@ -6534,9 +6678,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "clearsBoosts": {
      "resets": true
@@ -6663,12 +6804,17 @@
    "name": "Heat Crash",
    "tags": [
     "variablePower",
+    "weightBased",
     "contact"
    ],
    "uses": 5,
    "params": {
     "variablePower": {
      "computed": true
+    },
+    "weightBased": {
+     "usesUserWeight": true,
+     "usesTargetWeight": true
     },
     "contact": {
      "contact": true
@@ -6703,12 +6849,17 @@
    "name": "Heavy Slam",
    "tags": [
     "variablePower",
+    "weightBased",
     "contact"
    ],
    "uses": 121,
    "params": {
     "variablePower": {
      "computed": true
+    },
+    "weightBased": {
+     "usesUserWeight": true,
+     "usesTargetWeight": true
     },
     "contact": {
      "contact": true
@@ -6764,10 +6915,14 @@
   "highjumpkick": {
    "name": "High Jump Kick",
    "tags": [
+    "crashOnMiss",
     "contact"
    ],
    "uses": 84,
    "params": {
+    "crashOnMiss": {
+     "fraction": 0.5
+    },
     "contact": {
      "contact": true
     }
@@ -7232,6 +7387,7 @@
    "tags": [
     "conditionalPower",
     "readsTargetItem",
+    "takesTargetItem",
     "contact"
    ],
    "uses": 1663,
@@ -7242,6 +7398,11 @@
     "readsTargetItem": {
      "failsIfNone": false,
      "mult": 1.5
+    },
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": false,
+     "removes": true
     },
     "contact": {
      "contact": true
@@ -7492,12 +7653,17 @@
    "name": "Low Kick",
    "tags": [
     "variablePower",
+    "weightBased",
     "contact"
    ],
    "uses": 1880,
    "params": {
     "variablePower": {
      "computed": true
+    },
+    "weightBased": {
+     "usesUserWeight": false,
+     "usesTargetWeight": true
     },
     "contact": {
      "contact": true
@@ -7589,11 +7755,16 @@
   "magicpowder": {
    "name": "Magic Powder",
    "tags": [
+    "changesTargetType",
     "powder",
     "statusCategory"
    ],
    "uses": 5,
    "params": {
+    "changesTargetType": {
+     "replaces": true,
+     "adds": false
+    },
     "powder": {
      "powder": true
     },
@@ -7606,7 +7777,6 @@
    "name": "Magic Room",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "suppressesItems",
     "statusCategory"
    ],
@@ -7615,9 +7785,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "suppressesItems": {
      "suppress": true
@@ -7706,7 +7873,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statusCategory": {
      "status": true
@@ -7913,7 +8080,6 @@
    "name": "Misty Terrain",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsTerrain",
     "statusCategory"
    ],
@@ -7922,9 +8088,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsTerrain": {
      "terrain": "mistyterrain"
@@ -8284,7 +8447,6 @@
    "tags": [
     "sound",
     "neverMisses",
-    "ignoresProtect",
     "statusCategory",
     "perishClock"
    ],
@@ -8296,9 +8458,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "statusCategory": {
      "status": true
@@ -8352,7 +8511,7 @@
      "contact": true
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "chargeTurn": {
      "charge": true
@@ -8396,10 +8555,16 @@
   "pluck": {
    "name": "Pluck",
    "tags": [
+    "takesTargetItem",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": false,
+     "removes": true
+    },
     "contact": {
      "contact": true
     }
@@ -8469,10 +8634,15 @@
   "pollenpuff": {
    "name": "Pollen Puff",
    "tags": [
+    "dualPurpose",
     "moveClass"
    ],
    "uses": 77,
    "params": {
+    "dualPurpose": {
+     "atFoe": "90 BP attack",
+     "atAlly": "heals the ally"
+    },
     "moveClass": {
      "classes": [
       "bullet"
@@ -8691,10 +8861,14 @@
   "psychicnoise": {
    "name": "Psychic Noise",
    "tags": [
+    "blocksHealing",
     "sound"
    ],
    "uses": 96,
    "params": {
+    "blocksHealing": {
+     "turns": 2
+    },
     "sound": {
      "sound": true
     }
@@ -8704,7 +8878,6 @@
    "name": "Psychic Terrain",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsTerrain",
     "statusCategory"
    ],
@@ -8713,9 +8886,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsTerrain": {
      "terrain": "psychicterrain"
@@ -8758,7 +8928,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statChangeInCode": {
      "procedural": true
@@ -8922,7 +9092,6 @@
    "name": "Rain Dance",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsWeather",
     "statusCategory"
    ],
@@ -8931,9 +9100,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsWeather": {
      "weather": "RainDance"
@@ -9057,11 +9223,16 @@
   "reflecttype": {
    "name": "Reflect Type",
    "tags": [
+    "changesTargetType",
     "neverMisses",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
+    "changesTargetType": {
+     "replaces": true,
+     "adds": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -9148,7 +9319,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "forcesSwitch": {
      "forceSwitch": true
@@ -9266,7 +9437,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statusCategory": {
      "status": true
@@ -9629,10 +9800,15 @@
   "shellsidearm": {
    "name": "Shell Side Arm",
    "tags": [
+    "dualPurpose",
     "inflictsPoison"
    ],
    "uses": 9,
    "params": {
+    "dualPurpose": {
+     "atFoe": "90 BP attack",
+     "atAlly": "different effect"
+    },
     "inflictsPoison": {
      "p": 0.2,
      "via": "secondary"
@@ -9950,10 +10126,15 @@
   "soak": {
    "name": "Soak",
    "tags": [
+    "changesTargetType",
     "statusCategory"
    ],
    "uses": 78,
    "params": {
+    "changesTargetType": {
+     "replaces": true,
+     "adds": false
+    },
     "statusCategory": {
      "status": true
     }
@@ -10504,7 +10685,6 @@
    "name": "Sunny Day",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "setsWeather",
     "statusCategory"
    ],
@@ -10513,9 +10693,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "setsWeather": {
      "weather": "sunnyday"
@@ -10528,10 +10705,14 @@
   "supercellslam": {
    "name": "Supercell Slam",
    "tags": [
+    "crashOnMiss",
     "contact"
    ],
    "uses": 50,
    "params": {
+    "crashOnMiss": {
+     "fraction": 0.5
+    },
     "contact": {
      "contact": true
     }
@@ -10675,10 +10856,16 @@
   "switcheroo": {
    "name": "Switcheroo",
    "tags": [
+    "takesTargetItem",
     "statusCategory"
    ],
    "uses": 7,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": true,
+     "removes": true
+    },
     "statusCategory": {
      "status": true
     }
@@ -10809,7 +10996,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "lowersTarget": {
      "readFrom": "m.boosts",
@@ -10825,7 +11012,6 @@
    "name": "Teatime",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "statusCategory"
    ],
    "uses": 0,
@@ -10833,9 +11019,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "statusCategory": {
      "status": true
@@ -10900,10 +11083,16 @@
   "thief": {
    "name": "Thief",
    "tags": [
+    "takesTargetItem",
     "contact"
    ],
    "uses": 7,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": true,
+     "removes": true
+    },
     "contact": {
      "contact": true
     }
@@ -11216,7 +11405,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "statusCategory": {
      "status": true
@@ -11244,10 +11433,16 @@
   "trick": {
    "name": "Trick",
    "tags": [
+    "takesTargetItem",
     "statusCategory"
    ],
    "uses": 268,
    "params": {
+    "takesTargetItem": {
+     "consumesAndGainsEffect": false,
+     "swaps": true,
+     "removes": true
+    },
     "statusCategory": {
      "status": true
     }
@@ -11258,7 +11453,6 @@
    "tags": [
     "priority",
     "neverMisses",
-    "ignoresProtect",
     "reversesSpeed",
     "statusCategory"
    ],
@@ -11271,9 +11465,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "reversesSpeed": {
      "reverses": true
@@ -11603,7 +11794,7 @@
      "note": "default for status"
     },
     "ignoresProtect": {
-     "ignoresProtect": true
+     "throughProtect": true
     },
     "forcesSwitch": {
      "forceSwitch": true
@@ -11697,7 +11888,6 @@
    "name": "Wonder Room",
    "tags": [
     "neverMisses",
-    "ignoresProtect",
     "swapsDefences",
     "statusCategory"
    ],
@@ -11706,9 +11896,6 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
-    },
-    "ignoresProtect": {
-     "ignoresProtect": true
     },
     "swapsDefences": {
      "swaps": true

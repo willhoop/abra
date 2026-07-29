@@ -43,7 +43,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Parting Shot | 4,827 | 7.3% | `sound` `pivotStatus` `statChangeInCode` `lowersTarget` `statusCategory` |
 | Weather Ball | 4,739 | 7.2% | `weatherScaled` `moveClass` |
 | Earthquake | 4,569 | 6.9% | `spreadAll` |
-| Trick Room | 4,461 | 6.8% | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` `statusCategory` |
+| Trick Room | 4,461 | 6.8% | `priority` `neverMisses` `reversesSpeed` `statusCategory` |
 | Iron Head | 4,349 | 6.6% | `contact` `flinches` |
 | Wave Crash | 4,092 | 6.2% | `contact` `recoil` |
 | Heat Wave | 4,091 | 6.2% | `spreadFoes` `moveClass` `inflictsBurn` |
@@ -71,7 +71,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Dazzling Gleam | 2,023 | 3.1% | `spreadFoes` |
 | Sludge Bomb | 2,005 | 3.0% | `moveClass` `inflictsPoison` |
 | Reflect | 2,000 | 3.0% | `neverMisses` `halvesDamage` `statusCategory` |
-| Low Kick | 1,880 | 2.8% | `variablePower` `contact` |
+| Low Kick | 1,880 | 2.8% | `variablePower` `weightBased` `contact` |
 | Thunderbolt | 1,874 | 2.8% | `inflictsParalysis` |
 | Flash Cannon | 1,806 | 2.7% | `secondaryStatEffect` |
 | Nasty Plot | 1,779 | 2.7% | `neverMisses` `boostsUser` `statusCategory` |
@@ -81,7 +81,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Dual Wingbeat | 1,738 | 2.6% | `multiHit` `contact` |
 | Life Dew | 1,694 | 2.6% | `neverMisses` `statusCategory` `healsSelf` `healsAlly` |
 | Electro Shot | 1,679 | 2.5% | `chargeTurn` `chargeSkippedByWeather` |
-| Knock Off | 1,663 | 2.5% | `conditionalPower` `readsTargetItem` `contact` |
+| Knock Off | 1,663 | 2.5% | `conditionalPower` `readsTargetItem` `takesTargetItem` `contact` |
 | Blizzard | 1,547 | 2.3% | `weatherScaled` `spreadFoes` `moveClass` `inflictsFreeze` |
 | Dire Claw | 1,520 | 2.3% | `contact` `moveClass` `proceduralStatus` |
 | Make It Rain | 1,437 | 2.2% | `spreadFoes` `lowersUser` |
@@ -116,7 +116,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Light of Ruin | 718 | 1.1% | `recoil` |
 | Hydro Pump | 718 | 1.1% | `untagged` |
 | Drain Punch | 710 | 1.1% | `contact` `moveClass` `drain` |
-| Rain Dance | 704 | 1.1% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Rain Dance | 704 | 1.1% | `neverMisses` `setsWeather` `statusCategory` |
 | Charm | 700 | 1.1% | `lowersTarget` `statusCategory` |
 | Aura Sphere | 688 | 1.0% | `moveClass` `neverMissesAttack` |
 | Power Gem | 687 | 1.0% | `untagged` |
@@ -127,7 +127,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Snarl | 569 | 0.9% | `spreadFoes` `sound` `secondaryStatEffect` |
 | Body Press | 567 | 0.9% | `swapsStat` `contact` |
 | Bulk Up | 567 | 0.9% | `neverMisses` `boostsUser` `statusCategory` |
-| Perish Song | 562 | 0.9% | `sound` `neverMisses` `ignoresProtect` `statusCategory` `perishClock` |
+| Perish Song | 562 | 0.9% | `sound` `neverMisses` `statusCategory` `perishClock` |
 | Ice Beam | 561 | 0.9% | `inflictsFreeze` |
 | Liquidation | 557 | 0.8% | `contact` `secondaryStatEffect` |
 | Yawn | 542 | 0.8% | `neverMisses` `statusCategory` `delayedSleep` |
@@ -149,10 +149,10 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Disable | 416 | 0.6% | `sealsMoves` `statusCategory` `locksTarget` |
 | Spiky Shield | 407 | 0.6% | `priority` `neverMisses` `punishesContact` `stalling` `statusCategory` |
 | Discharge | 406 | 0.6% | `spreadAll` `inflictsParalysis` |
-| Sunny Day | 379 | 0.6% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Sunny Day | 379 | 0.6% | `neverMisses` `setsWeather` `statusCategory` |
 | Quick Guard | 366 | 0.6% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
 | Rage Fist | 364 | 0.6% | `needsUntrackedState` `variablePower` `contact` `moveClass` |
-| Haze | 362 | 0.5% | `neverMisses` `ignoresProtect` `clearsBoosts` `statusCategory` |
+| Haze | 362 | 0.5% | `neverMisses` `clearsBoosts` `statusCategory` |
 | Ice Shard | 361 | 0.5% | `priority` |
 | Shadow Sneak | 348 | 0.5% | `priority` `contact` |
 | Fake Tears | 347 | 0.5% | `lowersTarget` `statusCategory` |
@@ -171,11 +171,11 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Roar | 283 | 0.4% | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` `statusCategory` |
 | Hypnosis | 278 | 0.4% | `statusCategory` `inflictsSleep` |
 | Population Bomb | 276 | 0.4% | `multiHit` `multiAccuracy` `contact` `moveClass` |
-| Trick | 268 | 0.4% | `statusCategory` |
+| Trick | 268 | 0.4% | `takesTargetItem` `statusCategory` |
 | Shell Smash | 249 | 0.4% | `neverMisses` `boostsUser` `lowersUser` `statusCategory` |
 | Substitute | 247 | 0.4% | `costsUserHP` `neverMisses` `substitute` `statusCategory` |
 | Accelerock | 244 | 0.4% | `priority` `contact` |
-| Grass Knot | 244 | 0.4% | `variablePower` `contact` |
+| Grass Knot | 244 | 0.4% | `variablePower` `weightBased` `contact` |
 | Leech Seed | 237 | 0.4% | `statusCategory` |
 | Feint | 225 | 0.3% | `priority` `ignoresProtect` |
 | Gunk Shot | 224 | 0.3% | `inflictsPoison` |
@@ -209,28 +209,28 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Gigaton Hammer | 123 | 0.2% | `cantUseTwice` |
 | Power Whip | 122 | 0.2% | `contact` |
 | Trop Kick | 121 | 0.2% | `contact` `secondaryStatEffect` |
-| Heavy Slam | 121 | 0.2% | `variablePower` `contact` |
+| Heavy Slam | 121 | 0.2% | `variablePower` `weightBased` `contact` |
 | Stone Edge | 111 | 0.2% | `critRatioUp` |
 | Nuzzle | 110 | 0.2% | `contact` `inflictsParalysis` |
 | Leaf Blade | 109 | 0.2% | `critRatioUp` `contact` `moveClass` |
 | After You | 107 | 0.2% | `reordersTurn` `neverMisses` `ignoresProtect` `statusCategory` |
 | Hammer Arm | 107 | 0.2% | `contact` `moveClass` `lowersUser` |
-| Bug Bite | 105 | 0.2% | `contact` |
+| Bug Bite | 105 | 0.2% | `takesTargetItem` `contact` |
 | Jet Punch | 100 | 0.2% | `priority` `contact` `moveClass` |
 | Sludge Wave | 98 | 0.1% | `spreadAll` `inflictsPoison` |
-| Psychic Noise | 96 | 0.1% | `sound` |
+| Psychic Noise | 96 | 0.1% | `blocksHealing` `sound` |
 | Leech Life | 94 | 0.1% | `contact` `drain` |
-| Acrobatics | 92 | 0.1% | `variablePower` `contact` |
+| Acrobatics | 92 | 0.1% | `variablePower` `readsOwnItem` `contact` |
 | Instruct | 92 | 0.1% | `reordersTurn` `instructsTarget` `neverMisses` `statusCategory` |
 | Rising Voltage | 91 | 0.1% | `terrainScaled` `variablePower` |
 | Scorching Sands | 89 | 0.1% | `thawsTarget` `inflictsBurn` |
 | Blaze Kick | 87 | 0.1% | `critRatioUp` `contact` `inflictsBurn` |
-| Alluring Voice | 86 | 0.1% | `sound` |
+| Alluring Voice | 86 | 0.1% | `punishesBoostedTarget` `sound` |
 | Expanding Force | 84 | 0.1% | `terrainScaled` `conditionalPower` |
-| High Jump Kick | 84 | 0.1% | `contact` |
-| Soak | 78 | 0.1% | `statusCategory` |
+| High Jump Kick | 84 | 0.1% | `crashOnMiss` `contact` |
+| Soak | 78 | 0.1% | `changesTargetType` `statusCategory` |
 | Ally Switch | 77 | 0.1% | `priority` `neverMisses` `statusCategory` |
-| Pollen Puff | 77 | 0.1% | `moveClass` |
+| Pollen Puff | 77 | 0.1% | `dualPurpose` `moveClass` |
 | Mystical Fire | 76 | 0.1% | `secondaryStatEffect` |
 | Endeavor | 75 | 0.1% | `fixedDamage` `contact` |
 | Body Slam | 72 | 0.1% | `contact` `inflictsParalysis` |
@@ -255,9 +255,9 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Upper Hand | 56 | 0.1% | `priority` `contact` `needsTargetToAttack` `flinches` |
 | Dragon Darts | 55 | 0.1% | `multiHit` |
 | Acid Spray | 54 | 0.1% | `moveClass` `secondaryStatEffect` |
-| Psychic Terrain | 52 | 0.1% | `neverMisses` `ignoresProtect` `setsTerrain` `statusCategory` |
+| Psychic Terrain | 52 | 0.1% | `neverMisses` `setsTerrain` `statusCategory` |
 | Baby-Doll Eyes | 50 | 0.1% | `priority` `lowersTarget` `statusCategory` |
-| Supercell Slam | 50 | 0.1% | `contact` |
+| Supercell Slam | 50 | 0.1% | `crashOnMiss` `contact` |
 | Dragon Tail | 49 | 0.1% | `priority` `contact` `forcesSwitch` |
 | Triple Arrows | 49 | 0.1% | `critRatioUp` `secondaryStatEffect` `flinches` |
 | Fire Punch | 48 | 0.1% | `contact` `moveClass` `inflictsBurn` |
@@ -281,12 +281,12 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Round | 36 | 0.1% | `variablePower` `sound` |
 | Burn Up | 35 | 0.1% | `thawsTarget` |
 | Outrage | 35 | 0.1% | `contact` |
-| Gravity | 34 | 0.1% | `sealsMoves` `neverMisses` `ignoresProtect` `accuracyMod` `statusCategory` |
+| Gravity | 34 | 0.1% | `sealsMoves` `neverMisses` `accuracyMod` `statusCategory` |
 | Slack Off | 34 | 0.1% | `neverMisses` `statusCategory` `healsSelf` |
 | Ceaseless Edge | 33 | 0.1% | `contact` `moveClass` |
 | Chilling Water | 33 | 0.1% | `secondaryStatEffect` |
 | Synthesis | 33 | 0.1% | `neverMisses` `statusCategory` `healsSelf` |
-| Burning Jealousy | 32 | 0.0% | `spreadFoes` |
+| Burning Jealousy | 32 | 0.0% | `punishesBoostedTarget` `spreadFoes` |
 | Facade | 32 | 0.0% | `conditionalPower` `contact` |
 | Frost Breath | 32 | 0.0% | `alwaysCrit` |
 | Armor Cannon | 31 | 0.0% | `lowersUser` |
@@ -333,7 +333,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Lunge | 18 | 0.0% | `contact` `secondaryStatEffect` |
 | Shelter | 18 | 0.0% | `neverMisses` `boostsUser` `statusCategory` |
 | Bulldoze | 17 | 0.0% | `spreadAll` `secondaryStatEffect` |
-| Chilly Reception | 17 | 0.0% | `neverMisses` `ignoresProtect` `pivotStatus` `setsWeather` `statusCategory` |
+| Chilly Reception | 17 | 0.0% | `neverMisses` `pivotStatus` `setsWeather` `statusCategory` |
 | Drill Run | 17 | 0.0% | `critRatioUp` `contact` |
 | Pin Missile | 17 | 0.0% | `multiHit` |
 | Sticky Web | 17 | 0.0% | `neverMisses` `hazard` `statusCategory` |
@@ -359,7 +359,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Whirlwind | 12 | 0.0% | `priority` `moveClass` `neverMisses` `ignoresProtect` `forcesSwitch` `statusCategory` |
 | Aqua Step | 11 | 0.0% | `contact` `secondaryStatEffect` |
 | Boomburst | 11 | 0.0% | `spreadAll` `sound` |
-| Electric Terrain | 11 | 0.0% | `neverMisses` `ignoresProtect` `setsTerrain` `statusCategory` |
+| Electric Terrain | 11 | 0.0% | `neverMisses` `setsTerrain` `statusCategory` |
 | Explosion | 11 | 0.0% | `spreadAll` `userFaints` |
 | Storm Throw | 10 | 0.0% | `alwaysCrit` `contact` |
 | Agility | 10 | 0.0% | `neverMisses` `boostsUser` `statusCategory` |
@@ -373,7 +373,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Fire Fang | 9 | 0.0% | `contact` `moveClass` `inflictsBurn` `flinches` |
 | Low Sweep | 9 | 0.0% | `contact` `secondaryStatEffect` |
 | Mud Shot | 9 | 0.0% | `secondaryStatEffect` |
-| Shell Side Arm | 9 | 0.0% | `inflictsPoison` |
+| Shell Side Arm | 9 | 0.0% | `dualPurpose` `inflictsPoison` |
 | Simple Beam | 9 | 0.0% | `statusCategory` |
 | Solar Blade | 9 | 0.0% | `conditionalPower` `contact` `moveClass` `chargeTurn` `chargeSkippedByWeather` |
 | Steel Wing | 9 | 0.0% | `contact` `secondaryStatEffect` |
@@ -390,8 +390,8 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Electro Ball | 7 | 0.0% | `needsUntrackedState` `variablePower` `moveClass` |
 | Morning Sun | 7 | 0.0% | `neverMisses` `statusCategory` `healsSelf` |
 | Self-Destruct | 7 | 0.0% | `spreadAll` `userFaints` |
-| Switcheroo | 7 | 0.0% | `statusCategory` |
-| Thief | 7 | 0.0% | `contact` |
+| Switcheroo | 7 | 0.0% | `takesTargetItem` `statusCategory` |
+| Thief | 7 | 0.0% | `takesTargetItem` `contact` |
 | Mountain Gale | 6 | 0.0% | `flinches` |
 | Toxic Thread | 6 | 0.0% | `lowersTarget` `statusCategory` `inflictsPoison` |
 | Clear Smog | 6 | 0.0% | `neverMissesAttack` `clearsBoosts` `statChangeInCode` |
@@ -404,13 +404,13 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Thunder Fang | 6 | 0.0% | `contact` `moveClass` `inflictsParalysis` `flinches` |
 | Aqua Ring | 5 | 0.0% | `neverMisses` `statusCategory` |
 | Drill Peck | 5 | 0.0% | `contact` |
-| Grassy Terrain | 5 | 0.0% | `neverMisses` `ignoresProtect` `setsTerrain` `statusCategory` |
-| Heat Crash | 5 | 0.0% | `variablePower` `contact` |
+| Grassy Terrain | 5 | 0.0% | `neverMisses` `setsTerrain` `statusCategory` |
+| Heat Crash | 5 | 0.0% | `variablePower` `weightBased` `contact` |
 | Icicle Spear | 5 | 0.0% | `multiHit` |
-| Magic Powder | 5 | 0.0% | `powder` `statusCategory` |
+| Magic Powder | 5 | 0.0% | `changesTargetType` `powder` `statusCategory` |
 | Mean Look | 5 | 0.0% | `neverMisses` `ignoresProtect` `statusCategory` |
 | Meteor Beam | 5 | 0.0% | `chargeTurn` |
-| Misty Terrain | 5 | 0.0% | `neverMisses` `ignoresProtect` `setsTerrain` `statusCategory` |
+| Misty Terrain | 5 | 0.0% | `neverMisses` `setsTerrain` `statusCategory` |
 | Poison Fang | 5 | 0.0% | `contact` `moveClass` `inflictsToxic` |
 | Power Swap | 5 | 0.0% | `neverMisses` `statChangeInCode` `lowersTarget` `statusCategory` |
 | Spikes | 5 | 0.0% | `neverMisses` `hazard` `statusCategory` |
@@ -420,8 +420,8 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Bone Rush | 4 | 0.0% | `multiHit` |
 | Crabhammer | 4 | 0.0% | `critRatioUp` `contact` |
 | Growth | 4 | 0.0% | `weatherScaled` `neverMisses` `boostsUser` `statusCategory` |
-| Sandstorm | 4 | 0.0% | `moveClass` `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
-| Trick-or-Treat | 4 | 0.0% | `statusCategory` |
+| Sandstorm | 4 | 0.0% | `moveClass` `neverMisses` `setsWeather` `statusCategory` |
+| Trick-or-Treat | 4 | 0.0% | `changesTargetType` `statusCategory` |
 | Amnesia | 4 | 0.0% | `neverMisses` `boostsUser` `statusCategory` |
 | Copycat | 4 | 0.0% | `neverMisses` `statusCategory` |
 | Defog | 4 | 0.0% | `neverMisses` `statChangeInCode` `lowersTarget` `statusCategory` |
@@ -434,7 +434,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Terrain Pulse | 4 | 0.0% | `terrainScaled` `moveClass` |
 | Torment | 4 | 0.0% | `sealsMoves` `statusCategory` `locksTarget` |
 | First Impression | 3 | 0.0% | `priority` `contact` |
-| Snowscape | 3 | 0.0% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Snowscape | 3 | 0.0% | `neverMisses` `setsWeather` `statusCategory` |
 | Blast Burn | 3 | 0.0% | `recharge` |
 | Charge Beam | 3 | 0.0% | `secondaryStatEffect` |
 | Dig | 3 | 0.0% | `contact` `chargeTurn` |
@@ -454,16 +454,16 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Guillotine | 2 | 0.0% | `fixedDamage` `contact` `ohko` |
 | Power Trip | 2 | 0.0% | `variablePower` `contact` |
 | Raging Fury | 2 | 0.0% | `untagged` |
-| Wonder Room | 2 | 0.0% | `neverMisses` `ignoresProtect` `swapsDefences` `statusCategory` |
+| Wonder Room | 2 | 0.0% | `neverMisses` `swapsDefences` `statusCategory` |
 | Belch | 1 | 0.0% | `untagged` |
-| Corrosive Gas | 1 | 0.0% | `spreadAll` `statusCategory` |
+| Corrosive Gas | 1 | 0.0% | `takesTargetItem` `spreadAll` `statusCategory` |
 | Electrify | 1 | 0.0% | `neverMisses` `statusCategory` |
 | Syrup Bomb | 1 | 0.0% | `moveClass` |
 | Aromatic Mist | 1 | 0.0% | `neverMisses` `boostsTarget` `statusCategory` |
 | Charge | 1 | 0.0% | `neverMisses` `boostsUser` `statusCategory` |
 | Cross Poison | 1 | 0.0% | `critRatioUp` `contact` `moveClass` `inflictsPoison` |
 | Eerie Spell | 1 | 0.0% | `sound` |
-| Forest's Curse | 1 | 0.0% | `statusCategory` |
+| Forest's Curse | 1 | 0.0% | `changesTargetType` `statusCategory` |
 | Lava Plume | 1 | 0.0% | `spreadAll` `inflictsBurn` |
 | Magnet Rise | 1 | 0.0% | `neverMisses` `failsWithoutWeather` `statusCategory` |
 | Mud-Slap | 1 | 0.0% | `secondaryStatEffect` |
@@ -1650,41 +1650,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Scorching Sands | 89 | 0.1% |
 | Burn Up | 35 | 0.1% |
 
-### `ignoresProtect` — 11.6%, 31 moves — **NOT READ**
-
-*Protect does NOT stop it*
-
-| move | on sheets | share |
-|---|---:|---:|
-| Trick Room | 4,461 | 6.8% |
-| Rain Dance | 704 | 1.1% |
-| Perish Song | 562 | 0.9% |
-| Sunny Day | 379 | 0.6% |
-| Haze | 362 | 0.5% |
-| Roar | 283 | 0.4% |
-| Feint | 225 | 0.3% |
-| Phantom Force | 205 | 0.3% |
-| After You | 107 | 0.2% |
-| Curse | 62 | 0.1% |
-| Psychic Terrain | 52 | 0.1% |
-| Psych Up | 46 | 0.1% |
-| Transform | 39 | 0.1% |
-| Gravity | 34 | 0.1% |
-| Decorate | 18 | 0.0% |
-| Chilly Reception | 17 | 0.0% |
-| Role Play | 12 | 0.0% |
-| Whirlwind | 12 | 0.0% |
-| Electric Terrain | 11 | 0.0% |
-| Future Sight | 6 | 0.0% |
-| Grassy Terrain | 5 | 0.0% |
-| Mean Look | 5 | 0.0% |
-| Misty Terrain | 5 | 0.0% |
-| Sandstorm | 4 | 0.0% |
-| Snowscape | 3 | 0.0% |
-| Wonder Room | 2 | 0.0% |
-
-*5 more carry this tag but appear on no sheet in the corpus.*
-
 ### `doublesSideSpeed` — 10.7%, 1 moves
 
 *my whole side moves at x2 speed for the duration*
@@ -2091,6 +2056,32 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *4 more carry this tag but appear on no sheet in the corpus.*
 
+### `weightBased` — 3.4%, 4 moves — **NOT READ**
+
+*base power comes from a weight lookup -- whose weight, and modifiable*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Low Kick | 1,880 | 2.8% |
+| Grass Knot | 244 | 0.4% |
+| Heavy Slam | 121 | 0.2% |
+| Heat Crash | 5 | 0.0% |
+
+### `takesTargetItem` — 3.1%, 9 moves — **NOT READ**
+
+*moves, destroys or consumes the target item -- and may gain its effect*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Knock Off | 1,663 | 2.5% |
+| Trick | 268 | 0.4% |
+| Bug Bite | 105 | 0.2% |
+| Switcheroo | 7 | 0.0% |
+| Thief | 7 | 0.0% |
+| Corrosive Gas | 1 | 0.0% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
 ### `readsTargetItem` — 2.8%, 2 moves — **NOT READ**
 
 *damage or success depends on what the TARGET is holding*
@@ -2206,6 +2197,27 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Spore | 3 | 0.0% |
 
 *1 more carry this tag but appear on no sheet in the corpus.*
+
+### `ignoresProtect` — 1.5%, 14 moves — **NOT READ**
+
+*Protect does NOT stop it*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Roar | 283 | 0.4% |
+| Feint | 225 | 0.3% |
+| Phantom Force | 205 | 0.3% |
+| After You | 107 | 0.2% |
+| Curse | 62 | 0.1% |
+| Psych Up | 46 | 0.1% |
+| Transform | 39 | 0.1% |
+| Decorate | 18 | 0.0% |
+| Role Play | 12 | 0.0% |
+| Whirlwind | 12 | 0.0% |
+| Future Sight | 6 | 0.0% |
+| Mean Look | 5 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
 
 ### `punishesContact` — 1.5%, 3 moves — **NOT READ**
 
@@ -2441,6 +2453,17 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Frost Breath | 32 | 0.0% |
 | Storm Throw | 10 | 0.0% |
 
+### `crashOnMiss` — 0.2%, 3 moves — **NOT READ**
+
+*MISSING costs the user HP -- the downside is not merely zero*
+
+| move | on sheets | share |
+|---|---:|---:|
+| High Jump Kick | 84 | 0.1% |
+| Supercell Slam | 50 | 0.1% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
 ### `cantUseTwice` — 0.2%, 1 moves — **NOT READ**
 
 *cannot be selected the turn after it is used*
@@ -2448,6 +2471,15 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | move | on sheets | share |
 |---|---:|---:|
 | Gigaton Hammer | 123 | 0.2% |
+
+### `punishesBoostedTarget` — 0.2%, 2 moves — **NOT READ**
+
+*lands an effect only if the target had a stat rise THIS turn*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Alluring Voice | 86 | 0.1% |
+| Burning Jealousy | 32 | 0.0% |
 
 ### `passesState` — 0.2%, 2 moves — **NOT READ**
 
@@ -2469,6 +2501,22 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Sticky Web | 17 | 0.0% |
 | Spikes | 5 | 0.0% |
 
+### `blocksHealing` — 0.1%, 1 moves — **NOT READ**
+
+*the target cannot heal for N turns*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Psychic Noise | 96 | 0.1% |
+
+### `readsOwnItem` — 0.1%, 1 moves — **NOT READ**
+
+*the USER item slot changes this move -- empty is a buff, not a loss*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Acrobatics | 92 | 0.1% |
+
 ### `instructsTarget` — 0.1%, 1 moves — **NOT READ**
 
 *the target immediately repeats its last move, out of turn*
@@ -2476,6 +2524,28 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | move | on sheets | share |
 |---|---:|---:|
 | Instruct | 92 | 0.1% |
+
+### `changesTargetType` — 0.1%, 5 moves — **NOT READ**
+
+*rewrites or extends the target typing, invalidating every matchup*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Soak | 78 | 0.1% |
+| Magic Powder | 5 | 0.0% |
+| Trick-or-Treat | 4 | 0.0% |
+| Forest's Curse | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `dualPurpose` — 0.1%, 2 moves — **NOT READ**
+
+*behaves as a DIFFERENT move depending on whether the target is a foe or an ally*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Pollen Puff | 77 | 0.1% |
+| Shell Side Arm | 9 | 0.0% |
 
 ### `setsTerrain` — 0.1%, 4 moves
 
@@ -3414,15 +3484,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 150 |
-| — move / ability / item | 86 / 41 / 19 |
+| tags total | 158 |
+| — move / ability / item | 94 / 41 / 19 |
 | moves tagged | 500 |
 | abilities tagged | 248 |
 | items tagged | 146 |
-| **tags read by nothing** | **86** |
+| **tags read by nothing** | **94** |
 | tags that match no member at all | 7 |
 
-**86 of 150 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**94 of 158 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
