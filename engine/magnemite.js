@@ -254,6 +254,28 @@ function makeScoringPlayer(opts = {}) {
         return;
       }
 
+      /* ITEM CHANGES, so the sheet stops being believed once it is out of date.
+       *
+       *   |-item|p2a: Whimsicott|Focus Sash        gained -- Trick, Switcheroo, a Symbiosis pass
+       *   |-enditem|p2a: Whimsicott|Focus Sash     lost or CONSUMED -- Knock Off, a used Sash, a
+       *                                            berry eaten
+       *
+       * Knock Off alone is 1,640 uses. Without this the Sash drag would be certain of an item a
+       * good opponent had deliberately removed, which is worse than the population prior it
+       * replaced -- the prior at least hedged. */
+      if (line.startsWith('|-item|') || line.startsWith('|-enditem|')) {
+        const gained = line.startsWith('|-item|');
+        const q = line.slice(gained ? 7 : 10).split('|');
+        const m2 = /^(p[12])([a-c]): (.*)$/.exec(q[0] || '');
+        if (m2 && this.board) {
+          const mon = this.board.slot(m2[1], m2[2]);
+          const sp = mon ? mon.species : m2[3];
+          this.board.noteItem(m2[1], sp, gained ? (q[1] || '') : '');
+          this.stats.itemEvents = (this.stats.itemEvents || 0) + 1;
+        }
+        return;
+      }
+
       const p = line.slice(1).split('|');
       const cmd = p[0];
       const who = (s) => { const m = SLOT.exec(s || ''); return m ? { side: m[1], letter: m[2] } : null; };

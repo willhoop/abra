@@ -456,6 +456,9 @@ class Board {
      * for all six — public information both players have, so using it is not peeking. It is kept
      * per side and species so a switch-in arrives already knowing what it is. */
     this.sheet = { p1: {}, p2: {} };
+    /* What they are holding NOW, as observed. Empty until an item event is seen; sheetItem falls
+     * back to the declared sheet for anything not in here. */
+    this.itemNow = { p1: {}, p2: {} };
     this.party = { p1: [], p2: [] };
     this.graveyard = { p1: new Set(), p2: new Set() };
     this.pseudoWeather = new Map();
@@ -522,9 +525,28 @@ class Board {
    * fall back to population statistics only on null, or a closed-sheet game and a genuinely itemless
    * Pokemon become the same thing. */
   sheetItem(side, species) {
+    /* OBSERVED BEATS DECLARED. The sheet states what they STARTED with; Knock Off (1,640 uses),
+     * Trick (266), Switcheroo, Thief and Fling all change it mid-battle, and a consumed Focus Sash
+     * or eaten berry is simply gone.
+     *
+     * This matters more since the Sash drag started trusting the sheet: it used to be a 78.6%
+     * probability, which was at least a hedge after a Knock Off. Trusting the sheet made it a hard
+     * 1.0 -- so without this, MAG would be CERTAIN of a Sash that a good opponent had removed on
+     * purpose, and would decline kills that land every time.
+     *
+     * '' is a real answer meaning "no item now", distinct from null meaning "no sheet". */
+    const obs = this.itemNow && this.itemNow[side] && this.itemNow[side][baseSpecies(species)];
+    if (obs !== undefined) return obs;
     const e = this.sheet && this.sheet[side] && this.sheet[side][baseSpecies(species)];
     if (!e || e.item === undefined || e.item === null) return null;
     return e.item;
+  }
+
+  /* Recorded from the protocol: |-item| (gained, e.g. Trick) and |-enditem| (lost or consumed). */
+  noteItem(side, species, item) {
+    if (!this.itemNow) this.itemNow = { p1: {}, p2: {} };
+    if (!this.itemNow[side]) this.itemNow[side] = {};
+    this.itemNow[side][baseSpecies(species)] = item === null || item === undefined ? '' : norm(item);
   }
 
   setSheet(side, species, info) {
