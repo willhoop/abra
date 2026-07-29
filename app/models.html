@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABRA — the model map</title>
+<!-- THE MODEL MAP (Will: "make a new map and flowchart of all models and how they input and
+     output"). One picture: data flows down — collectors to stores to generated artifacts to
+     models to decisions. Every box says what goes IN, what comes OUT, and its honest status.
+     Statuses are the project's own claims from its tests and writeups, colour-coded:
+     green = live and measured, amber = live but weak/unproven, grey = retired (ties a coin),
+     purple = planned. KADABRA is marked "role open" per Will, 2026-07-29. -->
+<style>
+:root{--bg:#eceff5;--line:#22303f;--ink:#1a2233;--dim:#5a6a84}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#f4f6fb,#e7ebf3);color:var(--ink);
+  font-family:-apple-system,'Segoe UI',Roboto,sans-serif;padding:16px}
+.wrap{max-width:1150px;margin:0 auto}
+h1{font-size:24px;letter-spacing:2px;margin:0 0 2px}
+.sub{color:var(--dim);font-size:13px;font-weight:600;margin-bottom:10px}
+.panel{background:#fff;border:3px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 5px 0 rgba(34,48,63,.15)}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--dim);margin:10px 2px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1.5px solid var(--line)}
+</style></head><body><div class="wrap">
+<h1>THE MODEL MAP</h1>
+<div class="sub">What every model eats, what it produces, and its honest status — data flows top to bottom. Nothing here claims more than its own tests do.</div>
+<div class="legend">
+  <span><i style="background:#dff5e6"></i>live &amp; measured</span>
+  <span><i style="background:#fff2dc"></i>live, weak or unproven</span>
+  <span><i style="background:#e8e8ec"></i>retired (ties a coin)</span>
+  <span><i style="background:#f1e8fc"></i>planned</span>
+  <span><i style="background:#fde4e0"></i>quarantined by rule</span>
+</div>
+<div class="panel">
+<svg viewBox="0 0 1160 1310" xmlns="http://www.w3.org/2000/svg" font-family="Verdana,sans-serif">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#5a6a84"/>
+  </marker>
+  <marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#7b3fd4"/>
+  </marker>
+</defs>
+<style>
+  .box{stroke:#22303f;stroke-width:2.5;rx:12}
+  .t{font-size:14px;font-weight:bold;fill:#1a2233}
+  .io{font-size:10px;fill:#3a5372;font-weight:600}
+  .st{font-size:9.5px;font-weight:bold}
+  .band{font-size:11px;font-weight:bold;fill:#8a97ad;letter-spacing:2px}
+  .fl{stroke:#5a6a84;stroke-width:2;fill:none;marker-end:url(#arr)}
+  .flp{stroke:#7b3fd4;stroke-width:2.2;fill:none;marker-end:url(#arrP);stroke-dasharray:6 4}
+  .lbl{font-size:9px;fill:#5a6a84;font-weight:700}
+</style>
+
+<!-- ================= BAND 1: WHERE GAMES COME FROM ================= -->
+<text x="20" y="28" class="band">WHERE GAMES COME FROM</text>
+<rect class="box" x="20" y="40" width="250" height="86" fill="#fff2dc"/>
+<text x="34" y="62" class="t">LADDER COLLECTOR</text>
+<text x="34" y="79" class="io">in: public Champions replays (hourly)</text>
+<text x="34" y="92" class="io">out: games.ladder.jsonl — RAW store</text>
+<text x="34" y="112" class="st" fill="#9a2b2b">⚠ 87% bots &amp; stubs — NEVER read raw (Garbodor rule)</text>
+
+<rect class="box" x="310" y="40" width="250" height="86" fill="#dff5e6"/>
+<text x="324" y="62" class="t">MEW — self-play farm</text>
+<text x="324" y="79" class="io">in: real teams + the official simulator</text>
+<text x="324" y="92" class="io">out: millions of games (35/sec), seed-paired A/Bs</text>
+<text x="324" y="112" class="st" fill="#1f7a3c">live — ran today's 600k tags-on/off head-to-head</text>
+
+<rect class="box" x="600" y="40" width="250" height="86" fill="#fde4e0"/>
+<text x="614" y="62" class="t">TOWER GAMES (Will's)</text>
+<text x="614" y="79" class="io">in: Will playing the Battle Tower</text>
+<text x="614" y="92" class="io">out: browser-local record, source: tower-human</text>
+<text x="614" y="112" class="st" fill="#9a2b2b">quarantined by rule — never trains, analyzable on request</text>
+
+<rect class="box" x="890" y="40" width="250" height="86" fill="#dff5e6"/>
+<text x="904" y="62" class="t">SHOWDOWN HANDLERS</text>
+<text x="904" y="79" class="io">in: the game's own source (pinned)</text>
+<text x="904" y="92" class="io">out: what every move/item/ability DOES</text>
+<text x="904" y="112" class="st" fill="#1f7a3c">the rulebook — read, never retyped</text>
+
+<!-- quality filter -->
+<rect class="box" x="20" y="170" width="250" height="64" fill="#dff5e6"/>
+<text x="34" y="192" class="t">QUALITY FILTER</text>
+<text x="34" y="209" class="io">in: raw ladder store · out: ~3k CLEAN games</text>
+<text x="34" y="224" class="st" fill="#1f7a3c">every honest human-stat starts here</text>
+<path class="fl" d="M145,126 L145,170"/>
+
+<!-- ================= BAND 2: GENERATED ARTIFACTS ================= -->
+<text x="20" y="290" class="band">GENERATED ARTIFACTS — if it can be derived, no human types it</text>
+<rect class="box" x="20" y="304" width="256" height="80" fill="#dff5e6"/>
+<text x="34" y="326" class="t">TAG ARTIFACT (tags.json)</text>
+<text x="34" y="343" class="io">in: Showdown handlers via tag_dex.js probes</text>
+<text x="34" y="356" class="io">out: 171 tags — which weather, what chance, how much</text>
+<text x="34" y="372" class="st" fill="#1f7a3c">11 families wired &amp; gate-tested; ~105 not yet read</text>
+
+<rect class="box" x="306" y="304" width="256" height="80" fill="#dff5e6"/>
+<text x="320" y="326" class="t">BEHAVIOUR PRIORS</text>
+<text x="320" y="343" class="io">in: clean games — what each species really clicks</text>
+<text x="320" y="356" class="io">out: move-priors.json (per-species distributions)</text>
+<text x="320" y="372" class="st" fill="#1f7a3c">feeds the clone, the boss's mind-read, self-play</text>
+
+<rect class="box" x="592" y="304" width="256" height="80" fill="#dff5e6"/>
+<text x="606" y="326" class="t">META USAGE</text>
+<text x="606" y="343" class="io">in: 5,368 competitive teams (clean view)</text>
+<text x="606" y="356" class="io">out: threat ranks, bring/lead/win rates</text>
+<text x="606" y="372" class="st" fill="#1f7a3c">now also picks the Tower's guardians</text>
+
+<rect class="box" x="878" y="304" width="262" height="80" fill="#fff2dc"/>
+<text x="892" y="326" class="t">FITTED WEIGHTS</text>
+<text x="892" y="343" class="io">in: games + board.js features (fit_policy)</text>
+<text x="892" y="356" class="io">out: policy-weights.json — what mattered, measured</text>
+<text x="892" y="372" class="st" fill="#8a5a1a">refit pending: pricing features queued behind the farm</text>
+
+<path class="fl" d="M145,234 L145,304"/>
+<path class="fl" d="M435,126 C435,220 435,240 435,304"/>
+<path class="fl" d="M1015,126 L1015,180 L148,180 L148,304" opacity="0"/>
+<path class="fl" d="M1015,126 C1015,220 200,240 180,304"/>
+<path class="fl" d="M270,210 C420,240 700,260 720,304"/>
+<path class="fl" d="M435,126 C700,200 990,240 1000,304"/>
+
+<!-- ================= BAND 3: THE ENGINE ================= -->
+<text x="20" y="450" class="band">THE ENGINE — one source of truth for every number</text>
+<rect class="box" x="20" y="464" width="540" height="120" fill="#dff5e6"/>
+<text x="34" y="488" class="t">MEDICHAM — damage &amp; battle engine (node + browser, one file)</text>
+<text x="34" y="507" class="io">in: species stats · TAG ARTIFACT · move rulebook · priors</text>
+<text x="34" y="521" class="io">out: dmgRange (median 0% / worst 3% vs Smogon calc) · full doubles rollouts · winProb2</text>
+<text x="34" y="535" class="io">out: THE PRICES — punishExposure (cost of a click) · clickFragility (bench risk) · futureSight</text>
+<text x="34" y="549" class="io">out: battleInit/battleTurn — the same loop, stepped, so a human can drive side A</text>
+<text x="34" y="570" class="st" fill="#1f7a3c">live &amp; measured — 200+ gate checks; every consumer below reads THIS, never its own copy</text>
+
+<rect class="box" x="600" y="464" width="256" height="88" fill="#fff2dc"/>
+<text x="614" y="486" class="t">XATU — opponent belief</text>
+<text x="614" y="503" class="io">in: revealed info during a game</text>
+<text x="614" y="516" class="io">out: beliefs about what's hidden</text>
+<text x="614" y="536" class="st" fill="#8a5a1a">built, not yet feeding rollouts. Open sheets need only</text>
+<text x="614" y="548" class="st" fill="#8a5a1a">bring + EV spread; full XATU waits for closed sheets</text>
+
+<rect class="box" x="884" y="464" width="256" height="88" fill="#dff5e6"/>
+<text x="898" y="486" class="t">SLOWKING — preview Nash</text>
+<text x="898" y="503" class="io">in: matchup values over both sixes</text>
+<text x="898" y="516" class="io">out: equilibrium bring-4 / lead-2</text>
+<text x="898" y="536" class="st" fill="#1f7a3c">the team-preview answer;</text>
+<text x="898" y="548" class="st" fill="#1f7a3c">feeds ALAKAZAM's bring belief later</text>
+
+<path class="fl" d="M148,384 L148,464"/>
+<path class="fl" d="M435,384 C435,420 300,430 290,464"/>
+<path class="fl" d="M720,384 C720,420 500,430 480,464"/>
+
+<!-- ================= BAND 4: THE DECIDERS ================= -->
+<text x="20" y="650" class="band">THE DECIDERS — models that pick something</text>
+<rect class="box" x="20" y="664" width="360" height="104" fill="#dff5e6"/>
+<text x="34" y="688" class="t">MAG — the in-battle move choice</text>
+<text x="34" y="706" class="io">in: the live board + open sheets → board.js features</text>
+<text x="34" y="719" class="io">in: MEDICHAM's damage · FITTED WEIGHTS</text>
+<text x="34" y="732" class="io">out: the click — a weighted roll over scores (unreadable)</text>
+<text x="34" y="752" class="st" fill="#1f7a3c">live. Next: exposure/fragility features + refit + the</text>
+<text x="34" y="763" class="st" fill="#1f7a3c">switching 2×2 (number to beat: 81.9%)</text>
+
+<rect class="box" x="410" y="664" width="250" height="104" fill="#dff5e6"/>
+<text x="424" y="688" class="t">DITTO — team optimiser</text>
+<text x="424" y="706" class="io">in: meta matrix + a seed team</text>
+<text x="424" y="719" class="io">out: a tuned team</text>
+<text x="424" y="737" class="st" fill="#1f7a3c">honesty check: MEDICHAM replays</text>
+<text x="424" y="749" class="st" fill="#1f7a3c">every candidate so the optimiser</text>
+<text x="424" y="761" class="st" fill="#1f7a3c">can't game its own model</text>
+
+<rect class="box" x="690" y="664" width="220" height="104" fill="#e8e8ec"/>
+<text x="704" y="688" class="t">THE PC (retired)</text>
+<text x="704" y="706" class="io">JOLTEON — sheet win% : ties a coin</text>
+<text x="704" y="719" class="io">PORYGON — mid-game win% : no better</text>
+<text x="704" y="732" class="io">than counting mons</text>
+<text x="704" y="752" class="st" fill="#667">successor: a VALUE NET trained on</text>
+<text x="704" y="763" class="st" fill="#667">MEW self-play (planned)</text>
+
+<rect class="box" x="940" y="664" width="200" height="104" fill="#fff2dc"/>
+<text x="954" y="688" class="t">KADABRA</text>
+<text x="954" y="706" class="io">was: replay coach —</text>
+<text x="954" y="719" class="io">win% each key turn</text>
+<text x="954" y="739" class="st" fill="#8a5a1a">ROLE OPEN — Will, 2026-07-29:</text>
+<text x="954" y="751" class="st" fill="#8a5a1a">"the kadabra coach can be</text>
+<text x="954" y="763" class="st" fill="#8a5a1a">something else"</text>
+
+<path class="fl" d="M290,584 L290,664"/>
+<path class="fl" d="M1012,384 C1012,420 1090,430 1060,464" opacity="0"/>
+<path class="fl" d="M480,584 C480,620 500,630 510,664"/>
+<path class="fl" d="M290,584 C600,620 760,630 780,664"/>
+
+<!-- ================= BAND 5: THE CAPSTONE ================= -->
+<text x="20" y="850" class="band">THE CAPSTONE</text>
+<rect class="box" x="20" y="864" width="1120" height="150" fill="#f1e8fc"/>
+<text x="34" y="890" class="t" fill="#4a2482">ALAKAZAM — plans instead of reacting (in development; judged on decision quality, never on calling winners)</text>
+<text x="34" y="912" class="io">in: MEDICHAM's honest evaluator + prices (✔ built) · FITTED policy with pricing features (next) · a real VALUE NET (planned, fed by MEW)</text>
+<text x="34" y="926" class="io">in: belief — open sheets: what's in the back + the exact EV spread (SLOWKING + nature→1-2 published spreads) · closed sheets: full XATU (later)</text>
+<text x="34" y="940" class="io">out: the win-%-optimal move AND your real win chance, as a MIXED strategy — searched a few turns deep, unreadable by design</text>
+<text x="34" y="962" class="st" fill="#4a2482">shipping today under its name: FUTURE SIGHT (the forecast read) and the BATTLE TOWER boss — the same machinery, growing into the capstone</text>
+<text x="34" y="984" class="st" fill="#8a5a1a">build order: evaluator ✔ → pricing into the fit → switching (vs 81.9%) → value net → belief → search. Each step measured before the next.</text>
+
+<path class="flp" d="M200,768 L200,864"/>
+<path class="flp" d="M535,768 C535,800 420,820 400,864"/>
+<path class="flp" d="M800,768 L800,864"/>
+<path class="flp" d="M1012,552 C1012,600 1000,780 990,864"/>
+<path class="flp" d="M728,552 C728,600 700,780 690,864"/>
+
+<!-- ================= BAND 6: WHAT A HUMAN TOUCHES ================= -->
+<text x="20" y="1080" class="band">WHAT A HUMAN TOUCHES</text>
+<rect class="box" x="20" y="1094" width="360" height="86" fill="#dff5e6"/>
+<text x="34" y="1118" class="t">THE BATTLE TOWER</text>
+<text x="34" y="1136" class="io">ABRA half asleep → KADABRA awake → ALAKAZAM.</text>
+<text x="34" y="1149" class="io">Priced move buttons; the boss reads your clicks aloud</text>
+<text x="34" y="1168" class="st" fill="#1f7a3c">live — your games stay yours (tower-human)</text>
+
+<rect class="box" x="410" y="1094" width="360" height="86" fill="#dff5e6"/>
+<text x="424" y="1118" class="t">CHOMP + ORB (installable)</text>
+<text x="424" y="1136" class="io">in: your live battle + open sheets</text>
+<text x="424" y="1149" class="io">out: bring-4/lead-2 advice · docked damage calc</text>
+<text x="424" y="1168" class="st" fill="#8a5a1a">damage verified · bring advice honestly ≈ a coin</text>
+
+<rect class="box" x="800" y="1094" width="340" height="86" fill="#dff5e6"/>
+<text x="814" y="1118" class="t">ABRA WORLD (the site)</text>
+<text x="814" y="1136" class="io">every model's room, its numbers and its nulls,</text>
+<text x="814" y="1149" class="io">in plain English — including this map</text>
+<text x="814" y="1168" class="st" fill="#1f7a3c">the project's honest face</text>
+
+<path class="fl" d="M200,1014 L200,1094"/>
+<path class="fl" d="M580,1014 L580,1094"/>
+<path class="fl" d="M970,1014 L970,1094"/>
+
+<text x="20" y="1235" class="lbl">Rules the map obeys: derived, never typed (S13) · clean data only (Garbodor) · measured, not asserted · Will's games quarantined · one engine, no copies.</text>
+<text x="20" y="1252" class="lbl">Generated 2026-07-29 during the tag-wiring push. The 600k strength verdict was in flight when this was drawn.</text>
+</svg>
+</div>
+</div></body></html>
