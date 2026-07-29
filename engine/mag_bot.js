@@ -142,7 +142,7 @@ const PAGE = `<!doctype html><meta charset=utf-8><title>MAG — live odds</title
  .empty{padding:40px 16px;color:#5b647d;text-align:center}
 </style>
 <header><h1>MAG — what it is weighing</h1><span class=room id=room>waiting…</span></header>
-<div id=body class=empty>challenge MAGBOT and this fills in</div>
+<div id=body class=empty>challenge ${NAME} and this fills in</div>
 <script>
 const COLORS=['#5f8ee0','#3fbf7f','#d98b3f','#b06be0','#e05f7f','#4fc4c4'];
 async function tick(){
@@ -296,7 +296,18 @@ function handle(room, line) {
      * weaker bot. 27.5% of sheet entries in this format carry a mega item.
      *
      * Default matches mew.js so the thing you play is the thing that was measured. */
-    const bot = new Player(stream, { greedy: GREEDY, switching: SWITCHING, keepThoughts: WHY,
+    const bot = new Player(stream, { greedy: GREEDY, switching: SWITCHING, /* ALWAYS ON, not gated behind --why.
+                                      *
+                                      * The comment further down claims "the window is fed whether
+                                      * or not --why is on", and it was not: keepThoughts: WHY meant
+                                      * the bot never RECORDED its per-option scores unless the
+                                      * terminal flag was set, so the live-odds page sat on
+                                      * "waiting for a turn..." through an entire battle. Will hit
+                                      * exactly that. --why controls TERMINAL printing; the page is a
+                                      * separate surface and silencing one should not blank the
+                                      * other. Cost is one small object per decision, which a live
+                                      * bot can obviously afford. */
+                                     keepThoughts: true,
                                      mega: MEGA_P,
                                      weightsFile: WEIGHTS || undefined });
     bot.start();
