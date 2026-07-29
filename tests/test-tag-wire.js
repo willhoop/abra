@@ -597,6 +597,29 @@ console.log('\nwire 15 — spreadFoes / spreadAll');
     'and a partner that Protected eats nothing — the quake respects Protect like any hit');
 }
 
+/* ---- WIRE 16: secondary stat drops — Icy Wind is speed control at last ----------------------- */
+console.log('\nwire 16 — secondary stat drops');
+{
+  const drop = (moveId, defAbility) => {
+    const a = M.buildMon('pelipper', {}); a.item = ''; a.moves = [moveId];
+    const d = M.buildMon('garchomp', {}); d.item = ''; d.moves = ['protect'];
+    if (defAbility) d.ability = defAbility;
+    d.st = Object.assign({}, d.st, { hp: 9999 }); d.curHP = 9999;
+    const sA = MC.priors[a.name], sD = MC.priors[d.name];
+    MC.priors[a.name] = null; MC.priors[d.name] = null;
+    const S = M.battleInit([a], [d]);
+    try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], moveId, d, S.field)]])); }
+    finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
+    return d;
+  };
+  const iw = drop('icywind');
+  ok(iw.boosts.sp === -1, `Icy Wind drops the target's Speed (${iw.boosts.sp}) — the format's speed control was a no-op secondary`);
+  const sn = drop('snarl');
+  ok(sn.boosts.sa === -1, `Snarl drops SpA (${sn.boosts.sa})`);
+  const cb = drop('icywind', 'clearbody');
+  ok(cb.boosts.sp === 0, 'Clear Body refuses the drop — the shared gate holds');
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

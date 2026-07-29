@@ -970,6 +970,20 @@ function battleTurn(S,rng,actsForA,actsForB){
             for(const s of fx.secondary){
               if(rng()*100>=(s.chance==null?100:s.chance)) continue;
               if(s.status){ applyStatus(tg,s.status); }
+              /* WIRE 16 -- secondary STAT DROPS, the third kind of secondary and the one that was
+               * silently missing: Icy Wind and Electroweb (100% spe-1, the format's speed control),
+               * Snarl (spa-1), Breaking Swipe (atk-1), Crunch's 20% def-1. The rulebook carried
+               * targetBoosts all along; this block only ever read status and flinch. Clear Body /
+               * White Smoke / Full Metal Body refuse drops, from their own shared gate. */
+              else if(s.targetBoosts&&tg.boosts){
+                if(!(tgAb==='clearbody'||tgAb==='whitesmoke'||tgAb==='fullmetalbody')){
+                  for(const k in s.targetBoosts){
+                    const _st=SD2ENG[k];
+                    if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]<0)
+                      tg.boosts[_st]=clamp(tg.boosts[_st]+s.targetBoosts[k],-6,6);
+                  }
+                }
+              }
               else if(s.volatile==='flinch'){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
                  * Inner Focus blocks it outright. Position in `acts` is the move order. */
