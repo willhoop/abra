@@ -1509,6 +1509,51 @@ const ABILITY_TAGS = [
        + 'moves is zero on this Pokemon -- the first tag that invalidates other tags',
     of: a => (a.onModifyMove && /delete move\.secondaries/.test(String(a.onModifyMove)))
              ? { secondaryChance: 0, powerMult: 1.3 } : null },
+  /* Will: "bulletproof is a class of moves we already blocked out i thought." Exactly -- `bullet`
+   * is already a linkage key (16 moves, 13,644 move-slots), and Bulletproof is simply a subscriber
+   * to it that returns immunity. It was sitting UNTAGGED. This is the same tag shape as Soundproof
+   * on `sound` and Overcoat on `powder`, so it derives the flag rather than naming abilities. */
+  { tag: 'immuneToMoveClass', param: 'moves carrying one FLAG deal zero -- the flag is a linkage key', probe: 'immuneToMoveClass',
+    why: 'Bulletproof blocks the 16 bullet moves (13,644 move-slots), Soundproof the sound ones, '
+       + 'Overcoat powder. Not a type immunity and invisible to the type chart',
+    of: a => {
+      const src = String(a.onTryHit || '') + String(a.onAllyTryHitSide || '');
+      const f = (src.match(/flags\["(\w+)"\]/) || src.match(/flags\.(\w+)/) || [])[1];
+      if (!f || !/return null|-immune/.test(src)) return null;
+      return { blocksFlag: f };
+    } },
+  /* Will: "infiltrator ignores sub right." It does, and more -- it also passes through Reflect,
+   * Light Screen, Safeguard, Mist and Aurora Veil. It was UNTAGGED.
+   *
+   * Under linkage this is a WRITER that nullifies other tags: every screen the opponent has set,
+   * which the damage engine is applying as a x0.5, simply does not exist against this Pokemon. So
+   * it belongs with Sheer Force as a tag whose job is to invalidate other tags' values. */
+  { tag: 'ignoresScreensAndSubs', param: 'screens, Safeguard and Substitute do not apply to its moves', probe: 'infiltrates',
+    why: 'Infiltrator. Reflect and Light Screen are a x0.5 the damage engine applies -- against '
+       + 'this ability that multiplier is 1.0, and a Substitute the bot is hiding behind is not there',
+    of: a => (a.onModifyMove && /infiltrates\s*=\s*true/.test(String(a.onModifyMove)))
+             ? { ignoresScreens: true, ignoresSubstitute: true } : null },
+  /* Will: "mega sol is special, solarbeam in one turn, weather ball is fire."
+   *
+   * The sharpest case in the whole review. Mega Sol does NOT set weather -- it makes the holder's
+   * own moves resolve AS IF harsh sun were up. A private, per-Pokemon weather that the field never
+   * reports.
+   *
+   * That breaks every weather tag built tonight, because all of them read the FIELD: weatherScaled,
+   * chargeSkippedByWeather, speedCond, weatherSetter. Ask the field and it says 'none' while this
+   * Pokemon fires a one-turn Solar Beam and a Fire-type Weather Ball. It is a WRITER on the weather
+   * key scoped to a single Pokemon, so any consumer has to ask 'what weather does THIS mon see',
+   * never 'what weather is up'. */
+  { tag: 'privateWeather', param: 'the HOLDER moves resolve as if a weather were up, while the field says none', probe: 'onWeatherModifyDamage',
+    why: 'Mega Sol reaches 139 fields. Solar Beam becomes one turn, Weather Ball becomes Fire, and '
+       + 'every weather-conditional tag reads the FIELD -- which reports no weather at all',
+    of: a => {
+      const src = String(a.onWeatherModifyDamage || '') + String(a.onAnyWeatherModifyDamage || '');
+      if (!src) return null;
+      const w = weatherIn(src);
+      return { actsAsWeather: w.length ? w : ['sun'], visibleOnField: false,
+               affects: 'only this Pokemon' };
+    } },
   { tag: 'blocksStatusMoves', param: 'every Status-category move fails against it', probe: 'goodasgold',
     why: 'Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% '
        + 'of move slots that are status',
@@ -1663,8 +1708,12 @@ const ABILITY_TAGS = [
        * conditional buff. */
       const wx = String(a.onWeather || '');
       const chip = /this\.damage/.test(wx) ? (wx.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] : null;
-      return { mult: multiplierIn(src), inWeather: w.length ? w : null, onlyWhen: hpGateIn(src),
-               costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
+      /* Will, on Fire Mane: the boost is type-gated and the tag never said which type -- so Fire
+       * Mane and Huge Power carried the same shape while one applies to a single type and the
+       * other to everything. Same defect as Swift Swim not naming rain. */
+      const ty = (src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1] || null;
+      return { mult: multiplierIn(src), onType: ty, inWeather: w.length ? w : null,
+               onlyWhen: hpGateIn(src), costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
     } },
   { tag: 'blocksMove', param: 'a whole class of move fails', probe: 'onFoeTryMove',
     why: 'already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold',

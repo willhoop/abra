@@ -200,18 +200,18 @@ which is exactly the hole this section exists to close.
 | Eelevate | **259** | 0 | `boostsOnKO` `typeImmunity` |
 | Mold Breaker | **237** | 130 | `ignoresDefenderAbility` |
 | Electric Surge | **217** | 0 | `terrainSetter` |
-| Magic Bounce | **190** | 92 | `reflectsStatusMoves` |
+| Magic Bounce | **190** | 92 | `reflectsStatusMoves` `immuneToMoveClass` |
 | Fire Mane | **188** | 0 | `damageBoost` |
 | Protean | **171** | 167 | `typeBecomesMoveType` |
-| Mega Sol | **139** | 0 | `untagged` |
+| Mega Sol | **139** | 0 | `privateWeather` |
 | Parental Bond | **133** | 0 | `hitsTwice` |
 | Sand Force | **109** | 18 | `damageBoost` `weatherChipImmune` |
 | Shell Armor | **103** | 25 | `preventsCrit` |
-| Infiltrator | **97** | 56 | `untagged` |
+| Infiltrator | **97** | 56 | `ignoresScreensAndSubs` |
 | Iron Fist | **70** | 55 | `boostsMoveClass` `damageBoost` |
 | Berserk | **55** | 32 | `untagged` |
 | Piercing Drill | **53** | 0 | `untagged` |
-| Bulletproof | **53** | 52 | `untagged` |
+| Bulletproof | **53** | 52 | `immuneToMoveClass` |
 | Stalwart | **45** | 27 | `untagged` |
 | Filter | **38** | 0 | `damageReduce` |
 | Unseen Fist | **26** | 0 | `untagged` |
@@ -742,7 +742,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Queenly Majesty | 226 | 0.3% | `blocksMove` |
 | Snow Cloak | 219 | 0.3% | `writesAccuracy` `accuracyMod` `weatherChipImmune` |
 | Compound Eyes | 210 | 0.3% | `writesAccuracy` `accuracyMod` |
-| Soundproof | 207 | 0.3% | `reflectsStatusMoves` |
+| Soundproof | 207 | 0.3% | `reflectsStatusMoves` `immuneToMoveClass` |
 | Unaware | 173 | 0.3% | `ignoresStatStages` |
 | Solid Rock | 170 | 0.3% | `damageReduce` |
 | Protean | 167 | 0.3% | `typeBecomesMoveType` |
@@ -757,8 +757,8 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Flame Body | 114 | 0.2% | `punishesAttacker` `contactPunish` |
 | Trace | 114 | 0.2% | `untagged` |
 | Sheer Force | 94 | 0.1% | `removesOwnSecondaries` `damageBoost` |
-| Magic Bounce | 92 | 0.1% | `reflectsStatusMoves` |
-| Overcoat | 90 | 0.1% | `weatherChipImmune` |
+| Magic Bounce | 92 | 0.1% | `reflectsStatusMoves` `immuneToMoveClass` |
+| Overcoat | 90 | 0.1% | `immuneToMoveClass` `weatherChipImmune` |
 | Pressure | 85 | 0.1% | `untagged` |
 | Huge Power | 75 | 0.1% | `damageBoost` |
 | Leaf Guard | 75 | 0.1% | `statusImmune` |
@@ -771,10 +771,10 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Limber | 63 | 0.1% | `statusImmune` |
 | Magic Guard | 60 | 0.1% | `untagged` |
 | Supreme Overlord | 60 | 0.1% | `damageBoost` |
-| Infiltrator | 56 | 0.1% | `untagged` |
+| Infiltrator | 56 | 0.1% | `ignoresScreensAndSubs` |
 | Iron Fist | 55 | 0.1% | `boostsMoveClass` `damageBoost` |
 | Synchronize | 53 | 0.1% | `untagged` |
-| Bulletproof | 52 | 0.1% | `untagged` |
+| Bulletproof | 52 | 0.1% | `immuneToMoveClass` |
 | Dry Skin | 52 | 0.1% | `typeImmunity` |
 | Poison Point | 51 | 0.1% | `punishesAttacker` `contactPunish` |
 | Cute Charm | 48 | 0.1% | `punishesAttacker` `contactPunish` |
@@ -3055,55 +3055,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
-### `untagged` — 2.1%, 43 abilities — **NOT READ**
-
-*?*
-
-| abilitie | on sheets | share |
-|---|---:|---:|
-| Rain Dish | 240 | 0.4% |
-| Stance Change | 149 | 0.2% |
-| Trace | 114 | 0.2% |
-| Pressure | 85 | 0.1% |
-| Frisk | 72 | 0.1% |
-| Cloud Nine | 70 | 0.1% |
-| Magic Guard | 60 | 0.1% |
-| Infiltrator | 56 | 0.1% |
-| Synchronize | 53 | 0.1% |
-| Bulletproof | 52 | 0.1% |
-| Magician | 41 | 0.1% |
-| Moxie | 37 | 0.1% |
-| Symbiosis | 37 | 0.1% |
-| Berserk | 32 | 0.0% |
-| Pickpocket | 28 | 0.0% |
-| Stalwart | 27 | 0.0% |
-| Screen Cleaner | 24 | 0.0% |
-| Hunger Switch | 23 | 0.0% |
-| Steadfast | 23 | 0.0% |
-| Marvel Scale | 21 | 0.0% |
-| Aroma Veil | 20 | 0.0% |
-| Early Bird | 14 | 0.0% |
-| Quick Draw | 13 | 0.0% |
-| Sweet Veil | 13 | 0.0% |
-| Corrosion | 11 | 0.0% |
-| Cud Chew | 8 | 0.0% |
-| Heavy Metal | 6 | 0.0% |
-| Poison Heal | 5 | 0.0% |
-| Gluttony | 4 | 0.0% |
-| Curious Medicine | 3 | 0.0% |
-| Forecast | 2 | 0.0% |
-| Forewarn | 2 | 0.0% |
-| Fur Coat | 2 | 0.0% |
-| Light Metal | 2 | 0.0% |
-| Long Reach | 2 | 0.0% |
-| Anticipation | 1 | 0.0% |
-| Cheek Pouch | 1 | 0.0% |
-| Hydration | 1 | 0.0% |
-| Shield Dust | 1 | 0.0% |
-| Steely Spirit | 1 | 0.0% |
-
-*3 more carry this tag but appear on no sheet in the corpus.*
-
 ### `blocksBerries` — 2.0%, 3 abilities — **NOT READ**
 
 *their berries cannot be eaten*
@@ -3138,6 +3089,53 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Magma Armor | 44 | 0.1% |
 | Sand Force | 18 | 0.0% |
 | Ice Body | 6 | 0.0% |
+
+### `untagged` — 1.9%, 40 abilities — **NOT READ**
+
+*?*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Rain Dish | 240 | 0.4% |
+| Stance Change | 149 | 0.2% |
+| Trace | 114 | 0.2% |
+| Pressure | 85 | 0.1% |
+| Frisk | 72 | 0.1% |
+| Cloud Nine | 70 | 0.1% |
+| Magic Guard | 60 | 0.1% |
+| Synchronize | 53 | 0.1% |
+| Magician | 41 | 0.1% |
+| Moxie | 37 | 0.1% |
+| Symbiosis | 37 | 0.1% |
+| Berserk | 32 | 0.0% |
+| Pickpocket | 28 | 0.0% |
+| Stalwart | 27 | 0.0% |
+| Screen Cleaner | 24 | 0.0% |
+| Hunger Switch | 23 | 0.0% |
+| Steadfast | 23 | 0.0% |
+| Marvel Scale | 21 | 0.0% |
+| Aroma Veil | 20 | 0.0% |
+| Early Bird | 14 | 0.0% |
+| Quick Draw | 13 | 0.0% |
+| Sweet Veil | 13 | 0.0% |
+| Corrosion | 11 | 0.0% |
+| Cud Chew | 8 | 0.0% |
+| Heavy Metal | 6 | 0.0% |
+| Poison Heal | 5 | 0.0% |
+| Gluttony | 4 | 0.0% |
+| Curious Medicine | 3 | 0.0% |
+| Forecast | 2 | 0.0% |
+| Forewarn | 2 | 0.0% |
+| Fur Coat | 2 | 0.0% |
+| Light Metal | 2 | 0.0% |
+| Long Reach | 2 | 0.0% |
+| Anticipation | 1 | 0.0% |
+| Cheek Pouch | 1 | 0.0% |
+| Hydration | 1 | 0.0% |
+| Shield Dust | 1 | 0.0% |
+| Steely Spirit | 1 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
 
 ### `disablesAttacker` — 1.3%, 1 abilities — **NOT READ**
 
@@ -3238,6 +3236,19 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Iron Fist | 55 | 0.1% |
 | Mega Launcher | 20 | 0.0% |
 | Strong Jaw | 5 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `immuneToMoveClass` — 0.7%, 5 abilities — **NOT READ**
+
+*moves carrying one FLAG deal zero -- the flag is a linkage key*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Soundproof | 207 | 0.3% |
+| Magic Bounce | 92 | 0.1% |
+| Overcoat | 90 | 0.1% |
+| Bulletproof | 52 | 0.1% |
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
@@ -3394,6 +3405,14 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *2 more carry this tag but appear on no sheet in the corpus.*
 
+### `ignoresScreensAndSubs` — 0.1%, 1 abilities — **NOT READ**
+
+*screens, Safeguard and Substitute do not apply to its moves*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Infiltrator | 56 | 0.1% |
+
 ### `critDamageUp` — 0.0%, 1 abilities — **NOT READ**
 
 *the CRIT MULTIPLIER itself, not its probability*
@@ -3424,6 +3443,12 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 ### `boostsOnKO` — 0.0%, 2 abilities — **NOT READ**
 
 *highest stat +1 every time it takes something down*
+
+*Legal in the format, never brought.*
+
+### `privateWeather` — 0.0%, 1 abilities — **NOT READ**
+
+*the HOLDER moves resolve as if a weather were up, while the field says none*
 
 *Legal in the format, never brought.*
 
@@ -3785,15 +3810,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 169 |
-| — move / ability / item | 94 / 52 / 19 |
+| tags total | 172 |
+| — move / ability / item | 94 / 55 / 19 |
 | moves tagged | 500 |
-| abilities tagged | 257 |
+| abilities tagged | 258 |
 | items tagged | 146 |
-| **tags read by nothing** | **104** |
+| **tags read by nothing** | **107** |
 | tags that match no member at all | 7 |
 
-**104 of 169 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**107 of 172 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
