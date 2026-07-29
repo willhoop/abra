@@ -37,6 +37,17 @@ console.log('FRAGILITY — what their bench does to my committed click\n');
     'the same click against a bench with NO setter is not fragile — the threat must exist on the sheet');
 }
 
+/* Will's Heat Wave case: no charge mechanics involved, just rain's x0.5 on Fire — the flip
+ * re-values through the WHOLE damage engine, so every weather consequence rides at once. */
+{
+  const x = M.clickFragility(mon('incineroar'), 'heatwave', mon('whimsicott'), [mon('pelipper')], F(''));
+  ok(x && x.fragile && x.retention > 0.4 && x.retention < 0.55 && x.cause === 'pelipper',
+    `Heat Wave into a benched Pelipper retains ${x && x.retention} — rain halves Fire, nothing else needed`);
+  const x2 = M.clickFragility(mon('pelipper'), 'hydropump', mon('whimsicott'), [mon('torkoal')], F(''));
+  ok(x2 && x2.fragile && x2.retention < 0.55,
+    `and the mirror for free: Hydro Pump into a benched Torkoal retains ${x2 && x2.retention}`);
+}
+
 /* type immunity: the absorber prices to zero AND reports what it gains */
 {
   const att = mon('pelipper'), tgt = mon('garchomp');
