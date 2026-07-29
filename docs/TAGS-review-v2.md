@@ -1,6 +1,6 @@
 # Tag review — corrected pass
 
-**127 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
+**128 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
 
 ## Every point from your review
 
@@ -87,7 +87,7 @@ one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 
 **Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
 has nothing. **2,065 uses**.
 
-## 64 of 127 tags are read by nothing
+## 65 of 128 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
@@ -123,6 +123,7 @@ has nothing. **2,065 uses**.
 | `statusImmune` | 0.4% | a status cannot land |
 | `inflictsConfusion` | 0.4% | P(confusion): they hit themselves some of the time |
 | `blocksSoundMoves` | 0.3% | they cannot use sound moves for 2 turns |
+| `proceduralStatus` | 0.2% | one status from a set, chosen at random in the handler |
 | `survivesFromFull` | 0.2% | a lethal hit from full HP leaves 1 |
 | `curesStatus` | 0.2% | a status is removed the moment it lands |
 | `ignoresDefenderAbility` | 0.2% | suppress every defender-side ability tag for this move |
@@ -219,7 +220,7 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | Electro Shot | 1,667 | 0.64% | `chargeTurn` `chargeSkippedByWeather` |
 | Knock Off | 1,640 | 0.63% | `conditionalPower` `contact` |
 | Blizzard | 1,532 | 0.59% | `weatherScaled` `spreadFoes` `inflictsFreeze` |
-| Dire Claw | 1,509 | 0.58% | `contact` |
+| Dire Claw | 1,509 | 0.58% | `contact` `proceduralStatus` |
 | Ice Punch | 1,421 | 0.54% | `contact` `inflictsFreeze` |
 | Make It Rain | 1,420 | 0.54% | `spreadFoes` `lowersUser` |
 | Roost | 1,353 | 0.52% | `neverMisses` `statusCategory` `healsSelf` |
@@ -962,6 +963,17 @@ Total tagged: **9**  ·  4 legal but unused  ·  share: **0.4%**
 
 Total tagged: **1**  ·  share: **0.3%**
 
+## `proceduralStatus` — one status from a set, chosen at random in the handler  **← NOT READ**
+
+*Dire Claw (1,509 uses) rolls poison / paralysis / sleep at 10% each; Tri Attack rolls burn / paralysis / freeze. The secondary declares a chance and no status, so every status probe misses them*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Dire Claw | 1,509 | p:0.3,oneOf:[psn,par,slp],each:0.1 |
+| Tri Attack | 1 | p:0.2,oneOf:[brn,par,frz],each:0.067 |
+
+Total tagged: **2**  ·  share: **0.2%**
+
 ## `failsWithoutWeather` — the move does NOTHING unless a weather is up  **← NOT READ**
 
 *Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can currently say so*
@@ -1208,7 +1220,7 @@ Total tagged: **0**  ·  share: **0.0%**
 | Thunder Wave | 284 | status:true |
 | *…106 more* | | |
 
-Total tagged: **175**  ·  29 legal but unused  ·  share: **15.0%**
+Total tagged: **175**  ·  29 legal but unused  ·  share: **14.9%**
 
 ## `neverMisses` — P(hit) = 1 (the default for a self-targeting status move)
 
@@ -1665,7 +1677,7 @@ Total tagged: **22**  ·  2 legal but unused  ·  share: **0.9%**
 | Parabolic Charge | 70 | drain:[1,2] |
 | Horn Leech | 6 | drain:[1,2] |
 
-Total tagged: **8**  ·  share: **0.9%**
+Total tagged: **8**  ·  share: **0.8%**
 
 ## `spreadAll` — x0.75, hits BOTH ENEMIES AND MY PARTNER
 

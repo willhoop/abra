@@ -616,6 +616,32 @@ const MOVE_TAGS = [
     why: 'Perish Song, 560 uses. Ignores HP, typing, items and abilities. No damage feature can see '
        + 'it and no kill calculation applies',
     of: m => /perishsong/.test(norm(m.id)) ? { turns: 3 } : null },
+  /* Will: "dire claw gets all the status inflictors" ... "but sleep para poison", "well not
+   * freeze", "or burn?". Exactly right, and the dex confirms it -- Dire Claw's handler is
+   * `this.sample(["psn","par","slp"])`, so 30% overall is 10% each of poison, paralysis and sleep.
+   * NOT freeze and NOT burn; Tri Attack is the one that rolls burn/para/freeze.
+   *
+   * These are invisible to statusOdds because the secondary declares only a CHANCE -- the status is
+   * chosen at random inside onHit. Dire Claw is 1,509 uses and was tagged `contact` and nothing else.
+   * The statuses are recovered by reading the sample list out of the handler rather than naming
+   * them, so Tri Attack and anything added later fall out too. */
+  { tag: 'proceduralStatus', param: 'one status from a set, chosen at random in the handler', probe: 'proceduralStatus',
+    why: 'Dire Claw (1,509 uses) rolls poison / paralysis / sleep at 10% each; Tri Attack rolls '
+       + 'burn / paralysis / freeze. The secondary declares a chance and no status, so every '
+       + 'status probe misses them',
+    of: m => {
+      const secs = [...(m.secondaries || []), ...(m.secondary ? [m.secondary] : [])];
+      for (const sec of secs) {
+        if (!sec || !sec.chance || sec.status || sec.boosts || sec.volatileStatus) continue;
+        const src = String(sec.onHit || m.onHit || '');
+        const pick = /sample\(\s*\[([^\]]*)\]/.exec(src);
+        if (!pick) continue;
+        const list = pick[1].split(',').map(x => x.replace(/[^a-z]/gi, '')).filter(Boolean);
+        if (!list.length) continue;
+        return { p: sec.chance / 100, oneOf: list, each: +(sec.chance / 100 / list.length).toFixed(3) };
+      }
+      return null;
+    } },
   { tag: 'inflictsStatus', param: 'status := x (any)', probe: 'statusBites',
     why: 'burn halves physical damage, paralysis halves speed -- both are damage/order parameters',
     of: m => m.status ? { status: m.status } : null },

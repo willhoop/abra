@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T03:44:14.739Z",
+ "generated": "2026-07-29T03:59:37.790Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -976,6 +976,20 @@
    "uses": 560,
    "examples": [
     "Perish Song"
+   ]
+  },
+  {
+   "tag": "proceduralStatus",
+   "kind": "move",
+   "param": "one status from a set, chosen at random in the handler",
+   "why": "Dire Claw (1,509 uses) rolls poison / paralysis / sleep at 10% each; Tri Attack rolls burn / paralysis / freeze. The secondary declares a chance and no status, so every status probe misses them",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 1510,
+   "examples": [
+    "Dire Claw",
+    "Tri Attack"
    ]
   },
   {
@@ -2118,12 +2132,22 @@
   "direclaw": {
    "name": "Dire Claw",
    "tags": [
-    "contact"
+    "contact",
+    "proceduralStatus"
    ],
    "uses": 1509,
    "params": {
     "contact": {
      "contact": true
+    },
+    "proceduralStatus": {
+     "p": 0.3,
+     "oneOf": [
+      "psn",
+      "par",
+      "slp"
+     ],
+     "each": 0.1
     }
    }
   },
@@ -10170,6 +10194,24 @@
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "triattack": {
+   "name": "Tri Attack",
+   "tags": [
+    "proceduralStatus"
+   ],
+   "uses": 1,
+   "params": {
+    "proceduralStatus": {
+     "p": 0.2,
+     "oneOf": [
+      "brn",
+      "par",
+      "frz"
+     ],
+     "each": 0.067
     }
    }
   },
