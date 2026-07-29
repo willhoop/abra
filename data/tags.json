@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T06:06:20.362Z",
+ "generated": "2026-07-29T06:11:36.077Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2392,6 +2392,4357 @@
    ]
   }
  ],
+ "linkage": {
+  "contact": {
+   "note": "the move touches the target",
+   "abilities": [
+    {
+     "id": "roughskin",
+     "name": "Rough Skin",
+     "uses": 3762
+    },
+    {
+     "id": "poisontouch",
+     "name": "Poison Touch",
+     "uses": 528
+    },
+    {
+     "id": "static",
+     "name": "Static",
+     "uses": 278
+    },
+    {
+     "id": "toughclaws",
+     "name": "Tough Claws",
+     "uses": 272
+    },
+    {
+     "id": "flamebody",
+     "name": "Flame Body",
+     "uses": 114
+    },
+    {
+     "id": "poisonpoint",
+     "name": "Poison Point",
+     "uses": 51
+    },
+    {
+     "id": "cutecharm",
+     "name": "Cute Charm",
+     "uses": 48
+    },
+    {
+     "id": "pickpocket",
+     "name": "Pickpocket",
+     "uses": 28
+    },
+    {
+     "id": "wanderingspirit",
+     "name": "Wandering Spirit",
+     "uses": 21
+    },
+    {
+     "id": "effectspore",
+     "name": "Effect Spore",
+     "uses": 20
+    },
+    {
+     "id": "mummy",
+     "name": "Mummy",
+     "uses": 16
+    },
+    {
+     "id": "gooey",
+     "name": "Gooey",
+     "uses": 10
+    },
+    {
+     "id": "fluffy",
+     "name": "Fluffy",
+     "uses": 3
+    },
+    {
+     "id": "longreach",
+     "name": "Long Reach",
+     "uses": 2
+    },
+    {
+     "id": "aftermath",
+     "name": "Aftermath",
+     "uses": 0
+    },
+    {
+     "id": "ironbarbs",
+     "name": "Iron Barbs",
+     "uses": 0
+    },
+    {
+     "id": "lingeringaroma",
+     "name": "Lingering Aroma",
+     "uses": 0
+    },
+    {
+     "id": "perishbody",
+     "name": "Perish Body",
+     "uses": 0
+    },
+    {
+     "id": "tanglinghair",
+     "name": "Tangling Hair",
+     "uses": 0
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "fakeout",
+     "name": "Fake Out",
+     "uses": 7934
+    },
+    {
+     "id": "closecombat",
+     "name": "Close Combat",
+     "uses": 5558
+    },
+    {
+     "id": "ironhead",
+     "name": "Iron Head",
+     "uses": 4349
+    },
+    {
+     "id": "wavecrash",
+     "name": "Wave Crash",
+     "uses": 4092
+    },
+    {
+     "id": "flareblitz",
+     "name": "Flare Blitz",
+     "uses": 4090
+    },
+    {
+     "id": "suckerpunch",
+     "name": "Sucker Punch",
+     "uses": 3949
+    },
+    {
+     "id": "dragonclaw",
+     "name": "Dragon Claw",
+     "uses": 3888
+    },
+    {
+     "id": "aquajet",
+     "name": "Aqua Jet",
+     "uses": 3066
+    },
+    {
+     "id": "kowtowcleave",
+     "name": "Kowtow Cleave",
+     "uses": 3006
+    },
+    {
+     "id": "bravebird",
+     "name": "Brave Bird",
+     "uses": 2309
+    },
+    {
+     "id": "stompingtantrum",
+     "name": "Stomping Tantrum",
+     "uses": 2132
+    },
+    {
+     "id": "lowkick",
+     "name": "Low Kick",
+     "uses": 1880
+    },
+    {
+     "id": "throatchop",
+     "name": "Throat Chop",
+     "uses": 1778
+    },
+    {
+     "id": "flipturn",
+     "name": "Flip Turn",
+     "uses": 1774
+    },
+    {
+     "id": "dualwingbeat",
+     "name": "Dual Wingbeat",
+     "uses": 1738
+    },
+    {
+     "id": "knockoff",
+     "name": "Knock Off",
+     "uses": 1663
+    },
+    {
+     "id": "direclaw",
+     "name": "Dire Claw",
+     "uses": 1520
+    },
+    {
+     "id": "icepunch",
+     "name": "Ice Punch",
+     "uses": 1432
+    },
+    {
+     "id": "psychicfangs",
+     "name": "Psychic Fangs",
+     "uses": 1356
+    },
+    {
+     "id": "highhorsepower",
+     "name": "High Horsepower",
+     "uses": 1294
+    },
+    {
+     "id": "darkestlariat",
+     "name": "Darkest Lariat",
+     "uses": 1259
+    },
+    {
+     "id": "quickattack",
+     "name": "Quick Attack",
+     "uses": 1216
+    },
+    {
+     "id": "spiritbreak",
+     "name": "Spirit Break",
+     "uses": 1122
+    },
+    {
+     "id": "playrough",
+     "name": "Play Rough",
+     "uses": 919
+    },
+    {
+     "id": "poisonjab",
+     "name": "Poison Jab",
+     "uses": 767
+    },
+    {
+     "id": "uturn",
+     "name": "U-turn",
+     "uses": 749
+    },
+    {
+     "id": "drainpunch",
+     "name": "Drain Punch",
+     "uses": 710
+    },
+    {
+     "id": "bulletpunch",
+     "name": "Bullet Punch",
+     "uses": 570
+    },
+    {
+     "id": "foulplay",
+     "name": "Foul Play",
+     "uses": 569
+    },
+    {
+     "id": "bodypress",
+     "name": "Body Press",
+     "uses": 567
+    },
+    {
+     "id": "liquidation",
+     "name": "Liquidation",
+     "uses": 557
+    },
+    {
+     "id": "extremespeed",
+     "name": "Extreme Speed",
+     "uses": 455
+    },
+    {
+     "id": "infestation",
+     "name": "Infestation",
+     "uses": 450
+    },
+    {
+     "id": "drainingkiss",
+     "name": "Draining Kiss",
+     "uses": 445
+    },
+    {
+     "id": "superfang",
+     "name": "Super Fang",
+     "uses": 442
+    },
+    {
+     "id": "icefang",
+     "name": "Ice Fang",
+     "uses": 433
+    },
+    {
+     "id": "ragefist",
+     "name": "Rage Fist",
+     "uses": 364
+    },
+    {
+     "id": "shadowsneak",
+     "name": "Shadow Sneak",
+     "uses": 348
+    },
+    {
+     "id": "tripleaxel",
+     "name": "Triple Axel",
+     "uses": 332
+    },
+    {
+     "id": "meteormash",
+     "name": "Meteor Mash",
+     "uses": 319
+    },
+    {
+     "id": "brickbreak",
+     "name": "Brick Break",
+     "uses": 293
+    },
+    {
+     "id": "populationbomb",
+     "name": "Population Bomb",
+     "uses": 276
+    },
+    {
+     "id": "accelerock",
+     "name": "Accelerock",
+     "uses": 244
+    },
+    {
+     "id": "grassknot",
+     "name": "Grass Knot",
+     "uses": 244
+    },
+    {
+     "id": "crunch",
+     "name": "Crunch",
+     "uses": 218
+    },
+    {
+     "id": "waterfall",
+     "name": "Waterfall",
+     "uses": 215
+    },
+    {
+     "id": "bitterblade",
+     "name": "Bitter Blade",
+     "uses": 211
+    },
+    {
+     "id": "phantomforce",
+     "name": "Phantom Force",
+     "uses": 205
+    },
+    {
+     "id": "thunderpunch",
+     "name": "Thunder Punch",
+     "uses": 205
+    },
+    {
+     "id": "headsmash",
+     "name": "Head Smash",
+     "uses": 190
+    },
+    {
+     "id": "superpower",
+     "name": "Superpower",
+     "uses": 182
+    },
+    {
+     "id": "doubleedge",
+     "name": "Double-Edge",
+     "uses": 166
+    },
+    {
+     "id": "sacredsword",
+     "name": "Sacred Sword",
+     "uses": 145
+    },
+    {
+     "id": "volttackle",
+     "name": "Volt Tackle",
+     "uses": 145
+    },
+    {
+     "id": "powerwhip",
+     "name": "Power Whip",
+     "uses": 122
+    },
+    {
+     "id": "tropkick",
+     "name": "Trop Kick",
+     "uses": 121
+    },
+    {
+     "id": "heavyslam",
+     "name": "Heavy Slam",
+     "uses": 121
+    },
+    {
+     "id": "nuzzle",
+     "name": "Nuzzle",
+     "uses": 110
+    },
+    {
+     "id": "leafblade",
+     "name": "Leaf Blade",
+     "uses": 109
+    },
+    {
+     "id": "hammerarm",
+     "name": "Hammer Arm",
+     "uses": 107
+    },
+    {
+     "id": "bugbite",
+     "name": "Bug Bite",
+     "uses": 105
+    },
+    {
+     "id": "jetpunch",
+     "name": "Jet Punch",
+     "uses": 100
+    },
+    {
+     "id": "leechlife",
+     "name": "Leech Life",
+     "uses": 94
+    },
+    {
+     "id": "acrobatics",
+     "name": "Acrobatics",
+     "uses": 92
+    },
+    {
+     "id": "blazekick",
+     "name": "Blaze Kick",
+     "uses": 87
+    },
+    {
+     "id": "highjumpkick",
+     "name": "High Jump Kick",
+     "uses": 84
+    },
+    {
+     "id": "endeavor",
+     "name": "Endeavor",
+     "uses": 75
+    },
+    {
+     "id": "bodyslam",
+     "name": "Body Slam",
+     "uses": 72
+    },
+    {
+     "id": "breakingswipe",
+     "name": "Breaking Swipe",
+     "uses": 70
+    },
+    {
+     "id": "lastresort",
+     "name": "Last Resort",
+     "uses": 70
+    },
+    {
+     "id": "shadowclaw",
+     "name": "Shadow Claw",
+     "uses": 69
+    },
+    {
+     "id": "nightslash",
+     "name": "Night Slash",
+     "uses": 65
+    },
+    {
+     "id": "zenheadbutt",
+     "name": "Zen Headbutt",
+     "uses": 60
+    },
+    {
+     "id": "wildcharge",
+     "name": "Wild Charge",
+     "uses": 58
+    },
+    {
+     "id": "upperhand",
+     "name": "Upper Hand",
+     "uses": 56
+    },
+    {
+     "id": "supercellslam",
+     "name": "Supercell Slam",
+     "uses": 50
+    },
+    {
+     "id": "dragontail",
+     "name": "Dragon Tail",
+     "uses": 49
+    },
+    {
+     "id": "firepunch",
+     "name": "Fire Punch",
+     "uses": 48
+    },
+    {
+     "id": "lashout",
+     "name": "Lash Out",
+     "uses": 47
+    },
+    {
+     "id": "icespinner",
+     "name": "Ice Spinner",
+     "uses": 44
+    },
+    {
+     "id": "machpunch",
+     "name": "Mach Punch",
+     "uses": 37
+    },
+    {
+     "id": "outrage",
+     "name": "Outrage",
+     "uses": 35
+    },
+    {
+     "id": "ceaselessedge",
+     "name": "Ceaseless Edge",
+     "uses": 33
+    },
+    {
+     "id": "facade",
+     "name": "Facade",
+     "uses": 32
+    },
+    {
+     "id": "icehammer",
+     "name": "Ice Hammer",
+     "uses": 31
+    },
+    {
+     "id": "temperflare",
+     "name": "Temper Flare",
+     "uses": 30
+    },
+    {
+     "id": "xscissor",
+     "name": "X-Scissor",
+     "uses": 29
+    },
+    {
+     "id": "headlongrush",
+     "name": "Headlong Rush",
+     "uses": 28
+    },
+    {
+     "id": "assurance",
+     "name": "Assurance",
+     "uses": 26
+    },
+    {
+     "id": "hardpress",
+     "name": "Hard Press",
+     "uses": 26
+    },
+    {
+     "id": "gyroball",
+     "name": "Gyro Ball",
+     "uses": 24
+    },
+    {
+     "id": "stoneaxe",
+     "name": "Stone Axe",
+     "uses": 24
+    },
+    {
+     "id": "trailblaze",
+     "name": "Trailblaze",
+     "uses": 24
+    },
+    {
+     "id": "woodhammer",
+     "name": "Wood Hammer",
+     "uses": 24
+    },
+    {
+     "id": "aerialace",
+     "name": "Aerial Ace",
+     "uses": 23
+    },
+    {
+     "id": "bite",
+     "name": "Bite",
+     "uses": 22
+    },
+    {
+     "id": "mortalspin",
+     "name": "Mortal Spin",
+     "uses": 21
+    },
+    {
+     "id": "gigaimpact",
+     "name": "Giga Impact",
+     "uses": 20
+    },
+    {
+     "id": "megahorn",
+     "name": "Megahorn",
+     "uses": 20
+    },
+    {
+     "id": "lunge",
+     "name": "Lunge",
+     "uses": 18
+    },
+    {
+     "id": "drillrun",
+     "name": "Drill Run",
+     "uses": 17
+    },
+    {
+     "id": "dragonrush",
+     "name": "Dragon Rush",
+     "uses": 16
+    },
+    {
+     "id": "fellstinger",
+     "name": "Fell Stinger",
+     "uses": 15
+    },
+    {
+     "id": "aquatail",
+     "name": "Aqua Tail",
+     "uses": 13
+    },
+    {
+     "id": "aquastep",
+     "name": "Aqua Step",
+     "uses": 11
+    },
+    {
+     "id": "stormthrow",
+     "name": "Storm Throw",
+     "uses": 10
+    },
+    {
+     "id": "crosschop",
+     "name": "Cross Chop",
+     "uses": 10
+    },
+    {
+     "id": "irontail",
+     "name": "Iron Tail",
+     "uses": 10
+    },
+    {
+     "id": "firefang",
+     "name": "Fire Fang",
+     "uses": 9
+    },
+    {
+     "id": "lowsweep",
+     "name": "Low Sweep",
+     "uses": 9
+    },
+    {
+     "id": "solarblade",
+     "name": "Solar Blade",
+     "uses": 9
+    },
+    {
+     "id": "steelwing",
+     "name": "Steel Wing",
+     "uses": 9
+    },
+    {
+     "id": "psyshieldbash",
+     "name": "Psyshield Bash",
+     "uses": 8
+    },
+    {
+     "id": "flamecharge",
+     "name": "Flame Charge",
+     "uses": 8
+    },
+    {
+     "id": "pounce",
+     "name": "Pounce",
+     "uses": 8
+    },
+    {
+     "id": "ragingbull",
+     "name": "Raging Bull",
+     "uses": 8
+    },
+    {
+     "id": "avalanche",
+     "name": "Avalanche",
+     "uses": 7
+    },
+    {
+     "id": "counter",
+     "name": "Counter",
+     "uses": 7
+    },
+    {
+     "id": "thief",
+     "name": "Thief",
+     "uses": 7
+    },
+    {
+     "id": "dynamicpunch",
+     "name": "Dynamic Punch",
+     "uses": 6
+    },
+    {
+     "id": "focuspunch",
+     "name": "Focus Punch",
+     "uses": 6
+    },
+    {
+     "id": "hornleech",
+     "name": "Horn Leech",
+     "uses": 6
+    },
+    {
+     "id": "thunderfang",
+     "name": "Thunder Fang",
+     "uses": 6
+    },
+    {
+     "id": "drillpeck",
+     "name": "Drill Peck",
+     "uses": 5
+    },
+    {
+     "id": "heatcrash",
+     "name": "Heat Crash",
+     "uses": 5
+    },
+    {
+     "id": "poisonfang",
+     "name": "Poison Fang",
+     "uses": 5
+    },
+    {
+     "id": "steelroller",
+     "name": "Steel Roller",
+     "uses": 5
+    },
+    {
+     "id": "crabhammer",
+     "name": "Crabhammer",
+     "uses": 4
+    },
+    {
+     "id": "megakick",
+     "name": "Mega Kick",
+     "uses": 4
+    },
+    {
+     "id": "rapidspin",
+     "name": "Rapid Spin",
+     "uses": 4
+    },
+    {
+     "id": "reversal",
+     "name": "Reversal",
+     "uses": 4
+    },
+    {
+     "id": "firstimpression",
+     "name": "First Impression",
+     "uses": 3
+    },
+    {
+     "id": "dig",
+     "name": "Dig",
+     "uses": 3
+    },
+    {
+     "id": "flyingpress",
+     "name": "Flying Press",
+     "uses": 3
+    },
+    {
+     "id": "razorshell",
+     "name": "Razor Shell",
+     "uses": 3
+    },
+    {
+     "id": "skittersmack",
+     "name": "Skitter Smack",
+     "uses": 3
+    },
+    {
+     "id": "brutalswing",
+     "name": "Brutal Swing",
+     "uses": 2
+    },
+    {
+     "id": "guillotine",
+     "name": "Guillotine",
+     "uses": 2
+    },
+    {
+     "id": "powertrip",
+     "name": "Power Trip",
+     "uses": 2
+    },
+    {
+     "id": "crosspoison",
+     "name": "Cross Poison",
+     "uses": 1
+    },
+    {
+     "id": "payback",
+     "name": "Payback",
+     "uses": 1
+    }
+   ],
+   "moveUses": 77226,
+   "reactorUses": 5153
+  },
+  "sound": {
+   "note": "sound-based",
+   "abilities": [
+    {
+     "id": "liquidvoice",
+     "name": "Liquid Voice",
+     "uses": 243
+    },
+    {
+     "id": "soundproof",
+     "name": "Soundproof",
+     "uses": 207
+    },
+    {
+     "id": "punkrock",
+     "name": "Punk Rock",
+     "uses": 0
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "partingshot",
+     "name": "Parting Shot",
+     "uses": 4827
+    },
+    {
+     "id": "hypervoice",
+     "name": "Hyper Voice",
+     "uses": 2496
+    },
+    {
+     "id": "snarl",
+     "name": "Snarl",
+     "uses": 569
+    },
+    {
+     "id": "perishsong",
+     "name": "Perish Song",
+     "uses": 562
+    },
+    {
+     "id": "clangingscales",
+     "name": "Clanging Scales",
+     "uses": 312
+    },
+    {
+     "id": "roar",
+     "name": "Roar",
+     "uses": 283
+    },
+    {
+     "id": "clangoroussoul",
+     "name": "Clangorous Soul",
+     "uses": 190
+    },
+    {
+     "id": "psychicnoise",
+     "name": "Psychic Noise",
+     "uses": 96
+    },
+    {
+     "id": "alluringvoice",
+     "name": "Alluring Voice",
+     "uses": 86
+    },
+    {
+     "id": "bugbuzz",
+     "name": "Bug Buzz",
+     "uses": 40
+    },
+    {
+     "id": "round",
+     "name": "Round",
+     "uses": 36
+    },
+    {
+     "id": "howl",
+     "name": "Howl",
+     "uses": 26
+    },
+    {
+     "id": "torchsong",
+     "name": "Torch Song",
+     "uses": 26
+    },
+    {
+     "id": "dragoncheer",
+     "name": "Dragon Cheer",
+     "uses": 14
+    },
+    {
+     "id": "boomburst",
+     "name": "Boomburst",
+     "uses": 11
+    },
+    {
+     "id": "screech",
+     "name": "Screech",
+     "uses": 3
+    },
+    {
+     "id": "sparklingaria",
+     "name": "Sparkling Aria",
+     "uses": 3
+    },
+    {
+     "id": "eeriespell",
+     "name": "Eerie Spell",
+     "uses": 1
+    },
+    {
+     "id": "uproar",
+     "name": "Uproar",
+     "uses": 1
+    }
+   ],
+   "moveUses": 9582,
+   "reactorUses": 450
+  },
+  "punch": {
+   "note": "a punching move",
+   "abilities": [
+    {
+     "id": "ironfist",
+     "name": "Iron Fist",
+     "uses": 55
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "icepunch",
+     "name": "Ice Punch",
+     "uses": 1432
+    },
+    {
+     "id": "drainpunch",
+     "name": "Drain Punch",
+     "uses": 710
+    },
+    {
+     "id": "bulletpunch",
+     "name": "Bullet Punch",
+     "uses": 570
+    },
+    {
+     "id": "ragefist",
+     "name": "Rage Fist",
+     "uses": 364
+    },
+    {
+     "id": "meteormash",
+     "name": "Meteor Mash",
+     "uses": 319
+    },
+    {
+     "id": "thunderpunch",
+     "name": "Thunder Punch",
+     "uses": 205
+    },
+    {
+     "id": "hammerarm",
+     "name": "Hammer Arm",
+     "uses": 107
+    },
+    {
+     "id": "jetpunch",
+     "name": "Jet Punch",
+     "uses": 100
+    },
+    {
+     "id": "firepunch",
+     "name": "Fire Punch",
+     "uses": 48
+    },
+    {
+     "id": "machpunch",
+     "name": "Mach Punch",
+     "uses": 37
+    },
+    {
+     "id": "icehammer",
+     "name": "Ice Hammer",
+     "uses": 31
+    },
+    {
+     "id": "headlongrush",
+     "name": "Headlong Rush",
+     "uses": 28
+    },
+    {
+     "id": "dynamicpunch",
+     "name": "Dynamic Punch",
+     "uses": 6
+    },
+    {
+     "id": "focuspunch",
+     "name": "Focus Punch",
+     "uses": 6
+    }
+   ],
+   "moveUses": 3963,
+   "reactorUses": 55
+  },
+  "bullet": {
+   "note": "ballistic",
+   "abilities": [
+    {
+     "id": "bulletproof",
+     "name": "Bulletproof",
+     "uses": 52
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "weatherball",
+     "name": "Weather Ball",
+     "uses": 4739
+    },
+    {
+     "id": "shadowball",
+     "name": "Shadow Ball",
+     "uses": 3332
+    },
+    {
+     "id": "sludgebomb",
+     "name": "Sludge Bomb",
+     "uses": 2005
+    },
+    {
+     "id": "focusblast",
+     "name": "Focus Blast",
+     "uses": 1105
+    },
+    {
+     "id": "zapcannon",
+     "name": "Zap Cannon",
+     "uses": 1077
+    },
+    {
+     "id": "aurasphere",
+     "name": "Aura Sphere",
+     "uses": 688
+    },
+    {
+     "id": "energyball",
+     "name": "Energy Ball",
+     "uses": 457
+    },
+    {
+     "id": "pollenpuff",
+     "name": "Pollen Puff",
+     "uses": 77
+    },
+    {
+     "id": "acidspray",
+     "name": "Acid Spray",
+     "uses": 54
+    },
+    {
+     "id": "rockblast",
+     "name": "Rock Blast",
+     "uses": 39
+    },
+    {
+     "id": "gyroball",
+     "name": "Gyro Ball",
+     "uses": 24
+    },
+    {
+     "id": "bulletseed",
+     "name": "Bullet Seed",
+     "uses": 21
+    },
+    {
+     "id": "seedbomb",
+     "name": "Seed Bomb",
+     "uses": 16
+    },
+    {
+     "id": "electroball",
+     "name": "Electro Ball",
+     "uses": 7
+    },
+    {
+     "id": "beakblast",
+     "name": "Beak Blast",
+     "uses": 2
+    },
+    {
+     "id": "syrupbomb",
+     "name": "Syrup Bomb",
+     "uses": 1
+    }
+   ],
+   "moveUses": 13644,
+   "reactorUses": 52
+  },
+  "powder": {
+   "note": "a powder",
+   "abilities": [
+    {
+     "id": "overcoat",
+     "name": "Overcoat",
+     "uses": 90
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "ragepowder",
+     "name": "Rage Powder",
+     "uses": 3886
+    },
+    {
+     "id": "sleeppowder",
+     "name": "Sleep Powder",
+     "uses": 742
+    },
+    {
+     "id": "cottonspore",
+     "name": "Cotton Spore",
+     "uses": 20
+    },
+    {
+     "id": "stunspore",
+     "name": "Stun Spore",
+     "uses": 12
+    },
+    {
+     "id": "magicpowder",
+     "name": "Magic Powder",
+     "uses": 5
+    },
+    {
+     "id": "spore",
+     "name": "Spore",
+     "uses": 3
+    }
+   ],
+   "moveUses": 4668,
+   "reactorUses": 90
+  },
+  "wind": {
+   "note": "wind-based",
+   "abilities": [
+    {
+     "id": "windpower",
+     "name": "Wind Power",
+     "uses": 0
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "tailwind",
+     "name": "Tailwind",
+     "uses": 7052
+    },
+    {
+     "id": "heatwave",
+     "name": "Heat Wave",
+     "uses": 4091
+    },
+    {
+     "id": "hurricane",
+     "name": "Hurricane",
+     "uses": 2275
+    },
+    {
+     "id": "blizzard",
+     "name": "Blizzard",
+     "uses": 1547
+    },
+    {
+     "id": "icywind",
+     "name": "Icy Wind",
+     "uses": 854
+    },
+    {
+     "id": "petalblizzard",
+     "name": "Petal Blizzard",
+     "uses": 12
+    },
+    {
+     "id": "whirlwind",
+     "name": "Whirlwind",
+     "uses": 12
+    },
+    {
+     "id": "sandstorm",
+     "name": "Sandstorm",
+     "uses": 4
+    }
+   ],
+   "moveUses": 15847,
+   "reactorUses": 0
+  },
+  "slicing": {
+   "note": "a cutting move",
+   "abilities": [
+    {
+     "id": "sharpness",
+     "name": "Sharpness",
+     "uses": 155
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "dragonclaw",
+     "name": "Dragon Claw",
+     "uses": 3888
+    },
+    {
+     "id": "kowtowcleave",
+     "name": "Kowtow Cleave",
+     "uses": 3006
+    },
+    {
+     "id": "direclaw",
+     "name": "Dire Claw",
+     "uses": 1520
+    },
+    {
+     "id": "populationbomb",
+     "name": "Population Bomb",
+     "uses": 276
+    },
+    {
+     "id": "bitterblade",
+     "name": "Bitter Blade",
+     "uses": 211
+    },
+    {
+     "id": "psychocut",
+     "name": "Psycho Cut",
+     "uses": 193
+    },
+    {
+     "id": "sacredsword",
+     "name": "Sacred Sword",
+     "uses": 145
+    },
+    {
+     "id": "airslash",
+     "name": "Air Slash",
+     "uses": 141
+    },
+    {
+     "id": "leafblade",
+     "name": "Leaf Blade",
+     "uses": 109
+    },
+    {
+     "id": "shadowclaw",
+     "name": "Shadow Claw",
+     "uses": 69
+    },
+    {
+     "id": "nightslash",
+     "name": "Night Slash",
+     "uses": 65
+    },
+    {
+     "id": "ceaselessedge",
+     "name": "Ceaseless Edge",
+     "uses": 33
+    },
+    {
+     "id": "xscissor",
+     "name": "X-Scissor",
+     "uses": 29
+    },
+    {
+     "id": "aquacutter",
+     "name": "Aqua Cutter",
+     "uses": 27
+    },
+    {
+     "id": "stoneaxe",
+     "name": "Stone Axe",
+     "uses": 24
+    },
+    {
+     "id": "aerialace",
+     "name": "Aerial Ace",
+     "uses": 23
+    },
+    {
+     "id": "solarblade",
+     "name": "Solar Blade",
+     "uses": 9
+    },
+    {
+     "id": "razorshell",
+     "name": "Razor Shell",
+     "uses": 3
+    },
+    {
+     "id": "crosspoison",
+     "name": "Cross Poison",
+     "uses": 1
+    }
+   ],
+   "moveUses": 9772,
+   "reactorUses": 155
+  },
+  "bite": {
+   "note": "a biting move",
+   "abilities": [
+    {
+     "id": "strongjaw",
+     "name": "Strong Jaw",
+     "uses": 5
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "psychicfangs",
+     "name": "Psychic Fangs",
+     "uses": 1356
+    },
+    {
+     "id": "icefang",
+     "name": "Ice Fang",
+     "uses": 433
+    },
+    {
+     "id": "crunch",
+     "name": "Crunch",
+     "uses": 218
+    },
+    {
+     "id": "bite",
+     "name": "Bite",
+     "uses": 22
+    },
+    {
+     "id": "firefang",
+     "name": "Fire Fang",
+     "uses": 9
+    },
+    {
+     "id": "thunderfang",
+     "name": "Thunder Fang",
+     "uses": 6
+    },
+    {
+     "id": "poisonfang",
+     "name": "Poison Fang",
+     "uses": 5
+    }
+   ],
+   "moveUses": 2049,
+   "reactorUses": 5
+  },
+  "heal": {
+   "note": "a healing move",
+   "abilities": [
+    {
+     "id": "triage",
+     "name": "Triage",
+     "uses": 0
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "matchagotcha",
+     "name": "Matcha Gotcha",
+     "uses": 3422
+    },
+    {
+     "id": "lifedew",
+     "name": "Life Dew",
+     "uses": 1694
+    },
+    {
+     "id": "roost",
+     "name": "Roost",
+     "uses": 1363
+    },
+    {
+     "id": "gigadrain",
+     "name": "Giga Drain",
+     "uses": 820
+    },
+    {
+     "id": "drainpunch",
+     "name": "Drain Punch",
+     "uses": 710
+    },
+    {
+     "id": "strengthsap",
+     "name": "Strength Sap",
+     "uses": 519
+    },
+    {
+     "id": "drainingkiss",
+     "name": "Draining Kiss",
+     "uses": 445
+    },
+    {
+     "id": "recover",
+     "name": "Recover",
+     "uses": 305
+    },
+    {
+     "id": "bitterblade",
+     "name": "Bitter Blade",
+     "uses": 211
+    },
+    {
+     "id": "leechlife",
+     "name": "Leech Life",
+     "uses": 94
+    },
+    {
+     "id": "paraboliccharge",
+     "name": "Parabolic Charge",
+     "uses": 70
+    },
+    {
+     "id": "healpulse",
+     "name": "Heal Pulse",
+     "uses": 62
+    },
+    {
+     "id": "wish",
+     "name": "Wish",
+     "uses": 46
+    },
+    {
+     "id": "rest",
+     "name": "Rest",
+     "uses": 44
+    },
+    {
+     "id": "slackoff",
+     "name": "Slack Off",
+     "uses": 34
+    },
+    {
+     "id": "synthesis",
+     "name": "Synthesis",
+     "uses": 33
+    },
+    {
+     "id": "moonlight",
+     "name": "Moonlight",
+     "uses": 21
+    },
+    {
+     "id": "morningsun",
+     "name": "Morning Sun",
+     "uses": 7
+    },
+    {
+     "id": "hornleech",
+     "name": "Horn Leech",
+     "uses": 6
+    },
+    {
+     "id": "healingwish",
+     "name": "Healing Wish",
+     "uses": 4
+    }
+   ],
+   "moveUses": 9910,
+   "reactorUses": 0
+  },
+  "priorityMove": {
+   "note": "the move has positive priority",
+   "abilities": [
+    {
+     "id": "armortail",
+     "name": "Armor Tail",
+     "uses": 1699
+    },
+    {
+     "id": "queenlymajesty",
+     "name": "Queenly Majesty",
+     "uses": 226
+    },
+    {
+     "id": "dazzling",
+     "name": "Dazzling",
+     "uses": 0
+    }
+   ],
+   "items": [],
+   "moves": [
+    {
+     "id": "protect",
+     "name": "Protect",
+     "uses": 43795
+    },
+    {
+     "id": "fakeout",
+     "name": "Fake Out",
+     "uses": 7934
+    },
+    {
+     "id": "suckerpunch",
+     "name": "Sucker Punch",
+     "uses": 3949
+    },
+    {
+     "id": "ragepowder",
+     "name": "Rage Powder",
+     "uses": 3886
+    },
+    {
+     "id": "aquajet",
+     "name": "Aqua Jet",
+     "uses": 3066
+    },
+    {
+     "id": "wideguard",
+     "name": "Wide Guard",
+     "uses": 2098
+    },
+    {
+     "id": "helpinghand",
+     "name": "Helping Hand",
+     "uses": 2051
+    },
+    {
+     "id": "quickattack",
+     "name": "Quick Attack",
+     "uses": 1216
+    },
+    {
+     "id": "detect",
+     "name": "Detect",
+     "uses": 1179
+    },
+    {
+     "id": "followme",
+     "name": "Follow Me",
+     "uses": 944
+    },
+    {
+     "id": "bulletpunch",
+     "name": "Bullet Punch",
+     "uses": 570
+    },
+    {
+     "id": "extremespeed",
+     "name": "Extreme Speed",
+     "uses": 455
+    },
+    {
+     "id": "banefulbunker",
+     "name": "Baneful Bunker",
+     "uses": 451
+    },
+    {
+     "id": "spikyshield",
+     "name": "Spiky Shield",
+     "uses": 407
+    },
+    {
+     "id": "quickguard",
+     "name": "Quick Guard",
+     "uses": 366
+    },
+    {
+     "id": "iceshard",
+     "name": "Ice Shard",
+     "uses": 361
+    },
+    {
+     "id": "shadowsneak",
+     "name": "Shadow Sneak",
+     "uses": 348
+    },
+    {
+     "id": "accelerock",
+     "name": "Accelerock",
+     "uses": 244
+    },
+    {
+     "id": "feint",
+     "name": "Feint",
+     "uses": 225
+    },
+    {
+     "id": "vacuumwave",
+     "name": "Vacuum Wave",
+     "uses": 143
+    },
+    {
+     "id": "kingsshield",
+     "name": "King's Shield",
+     "uses": 130
+    },
+    {
+     "id": "jetpunch",
+     "name": "Jet Punch",
+     "uses": 100
+    },
+    {
+     "id": "allyswitch",
+     "name": "Ally Switch",
+     "uses": 77
+    },
+    {
+     "id": "upperhand",
+     "name": "Upper Hand",
+     "uses": 56
+    },
+    {
+     "id": "babydolleyes",
+     "name": "Baby-Doll Eyes",
+     "uses": 50
+    },
+    {
+     "id": "machpunch",
+     "name": "Mach Punch",
+     "uses": 37
+    },
+    {
+     "id": "watershuriken",
+     "name": "Water Shuriken",
+     "uses": 16
+    },
+    {
+     "id": "firstimpression",
+     "name": "First Impression",
+     "uses": 3
+    },
+    {
+     "id": "endure",
+     "name": "Endure",
+     "uses": 3
+    }
+   ],
+   "moveUses": 74160,
+   "reactorUses": 1925
+  },
+  "statusMove": {
+   "note": "a status-category move",
+   "abilities": [
+    {
+     "id": "prankster",
+     "name": "Prankster",
+     "uses": 4692
+    },
+    {
+     "id": "goodasgold",
+     "name": "Good as Gold",
+     "uses": 1450
+    },
+    {
+     "id": "stancechange",
+     "name": "Stance Change",
+     "uses": 149
+    },
+    {
+     "id": "disguise",
+     "name": "Disguise",
+     "uses": 64
+    },
+    {
+     "id": "magician",
+     "name": "Magician",
+     "uses": 41
+    },
+    {
+     "id": "anticipation",
+     "name": "Anticipation",
+     "uses": 1
+    },
+    {
+     "id": "wonderguard",
+     "name": "Wonder Guard",
+     "uses": 0
+    },
+    {
+     "id": "wonderskin",
+     "name": "Wonder Skin",
+     "uses": 0
+    }
+   ],
+   "items": [
+    {
+     "id": "quickclaw",
+     "name": "Quick Claw",
+     "uses": 39
+    }
+   ],
+   "moves": [
+    {
+     "id": "protect",
+     "name": "Protect",
+     "uses": 43795
+    },
+    {
+     "id": "tailwind",
+     "name": "Tailwind",
+     "uses": 7052
+    },
+    {
+     "id": "partingshot",
+     "name": "Parting Shot",
+     "uses": 4827
+    },
+    {
+     "id": "trickroom",
+     "name": "Trick Room",
+     "uses": 4461
+    },
+    {
+     "id": "ragepowder",
+     "name": "Rage Powder",
+     "uses": 3886
+    },
+    {
+     "id": "encore",
+     "name": "Encore",
+     "uses": 2786
+    },
+    {
+     "id": "lightscreen",
+     "name": "Light Screen",
+     "uses": 2359
+    },
+    {
+     "id": "wideguard",
+     "name": "Wide Guard",
+     "uses": 2098
+    },
+    {
+     "id": "helpinghand",
+     "name": "Helping Hand",
+     "uses": 2051
+    },
+    {
+     "id": "reflect",
+     "name": "Reflect",
+     "uses": 2000
+    },
+    {
+     "id": "nastyplot",
+     "name": "Nasty Plot",
+     "uses": 1779
+    },
+    {
+     "id": "lifedew",
+     "name": "Life Dew",
+     "uses": 1694
+    },
+    {
+     "id": "roost",
+     "name": "Roost",
+     "uses": 1363
+    },
+    {
+     "id": "swordsdance",
+     "name": "Swords Dance",
+     "uses": 1216
+    },
+    {
+     "id": "calmmind",
+     "name": "Calm Mind",
+     "uses": 1184
+    },
+    {
+     "id": "detect",
+     "name": "Detect",
+     "uses": 1179
+    },
+    {
+     "id": "willowisp",
+     "name": "Will-O-Wisp",
+     "uses": 1112
+    },
+    {
+     "id": "followme",
+     "name": "Follow Me",
+     "uses": 944
+    },
+    {
+     "id": "taunt",
+     "name": "Taunt",
+     "uses": 881
+    },
+    {
+     "id": "auroraveil",
+     "name": "Aurora Veil",
+     "uses": 860
+    },
+    {
+     "id": "sleeppowder",
+     "name": "Sleep Powder",
+     "uses": 742
+    },
+    {
+     "id": "raindance",
+     "name": "Rain Dance",
+     "uses": 704
+    },
+    {
+     "id": "charm",
+     "name": "Charm",
+     "uses": 700
+    },
+    {
+     "id": "bulkup",
+     "name": "Bulk Up",
+     "uses": 567
+    },
+    {
+     "id": "perishsong",
+     "name": "Perish Song",
+     "uses": 562
+    },
+    {
+     "id": "yawn",
+     "name": "Yawn",
+     "uses": 542
+    },
+    {
+     "id": "coaching",
+     "name": "Coaching",
+     "uses": 529
+    },
+    {
+     "id": "strengthsap",
+     "name": "Strength Sap",
+     "uses": 519
+    },
+    {
+     "id": "toxic",
+     "name": "Toxic",
+     "uses": 495
+    },
+    {
+     "id": "banefulbunker",
+     "name": "Baneful Bunker",
+     "uses": 451
+    },
+    {
+     "id": "disable",
+     "name": "Disable",
+     "uses": 416
+    },
+    {
+     "id": "spikyshield",
+     "name": "Spiky Shield",
+     "uses": 407
+    },
+    {
+     "id": "sunnyday",
+     "name": "Sunny Day",
+     "uses": 379
+    },
+    {
+     "id": "quickguard",
+     "name": "Quick Guard",
+     "uses": 366
+    },
+    {
+     "id": "haze",
+     "name": "Haze",
+     "uses": 362
+    },
+    {
+     "id": "faketears",
+     "name": "Fake Tears",
+     "uses": 347
+    },
+    {
+     "id": "dragondance",
+     "name": "Dragon Dance",
+     "uses": 345
+    },
+    {
+     "id": "coil",
+     "name": "Coil",
+     "uses": 306
+    },
+    {
+     "id": "recover",
+     "name": "Recover",
+     "uses": 305
+    },
+    {
+     "id": "thunderwave",
+     "name": "Thunder Wave",
+     "uses": 287
+    },
+    {
+     "id": "roar",
+     "name": "Roar",
+     "uses": 283
+    },
+    {
+     "id": "hypnosis",
+     "name": "Hypnosis",
+     "uses": 278
+    },
+    {
+     "id": "trick",
+     "name": "Trick",
+     "uses": 268
+    },
+    {
+     "id": "shellsmash",
+     "name": "Shell Smash",
+     "uses": 249
+    },
+    {
+     "id": "substitute",
+     "name": "Substitute",
+     "uses": 247
+    },
+    {
+     "id": "leechseed",
+     "name": "Leech Seed",
+     "uses": 237
+    },
+    {
+     "id": "scaryface",
+     "name": "Scary Face",
+     "uses": 208
+    },
+    {
+     "id": "clangoroussoul",
+     "name": "Clangorous Soul",
+     "uses": 190
+    },
+    {
+     "id": "tickle",
+     "name": "Tickle",
+     "uses": 179
+    },
+    {
+     "id": "imprison",
+     "name": "Imprison",
+     "uses": 160
+    },
+    {
+     "id": "irondefense",
+     "name": "Iron Defense",
+     "uses": 149
+    },
+    {
+     "id": "kingsshield",
+     "name": "King's Shield",
+     "uses": 130
+    },
+    {
+     "id": "quash",
+     "name": "Quash",
+     "uses": 127
+    },
+    {
+     "id": "afteryou",
+     "name": "After You",
+     "uses": 107
+    },
+    {
+     "id": "instruct",
+     "name": "Instruct",
+     "uses": 92
+    },
+    {
+     "id": "soak",
+     "name": "Soak",
+     "uses": 78
+    },
+    {
+     "id": "allyswitch",
+     "name": "Ally Switch",
+     "uses": 77
+    },
+    {
+     "id": "bellydrum",
+     "name": "Belly Drum",
+     "uses": 69
+    },
+    {
+     "id": "batonpass",
+     "name": "Baton Pass",
+     "uses": 65
+    },
+    {
+     "id": "stealthrock",
+     "name": "Stealth Rock",
+     "uses": 64
+    },
+    {
+     "id": "swagger",
+     "name": "Swagger",
+     "uses": 64
+    },
+    {
+     "id": "curse",
+     "name": "Curse",
+     "uses": 62
+    },
+    {
+     "id": "healpulse",
+     "name": "Heal Pulse",
+     "uses": 62
+    },
+    {
+     "id": "quiverdance",
+     "name": "Quiver Dance",
+     "uses": 58
+    },
+    {
+     "id": "skillswap",
+     "name": "Skill Swap",
+     "uses": 56
+    },
+    {
+     "id": "psychicterrain",
+     "name": "Psychic Terrain",
+     "uses": 52
+    },
+    {
+     "id": "babydolleyes",
+     "name": "Baby-Doll Eyes",
+     "uses": 50
+    },
+    {
+     "id": "noretreat",
+     "name": "No Retreat",
+     "uses": 48
+    },
+    {
+     "id": "psychup",
+     "name": "Psych Up",
+     "uses": 46
+    },
+    {
+     "id": "wish",
+     "name": "Wish",
+     "uses": 46
+    },
+    {
+     "id": "rest",
+     "name": "Rest",
+     "uses": 44
+    },
+    {
+     "id": "shedtail",
+     "name": "Shed Tail",
+     "uses": 41
+    },
+    {
+     "id": "destinybond",
+     "name": "Destiny Bond",
+     "uses": 39
+    },
+    {
+     "id": "transform",
+     "name": "Transform",
+     "uses": 39
+    },
+    {
+     "id": "gravity",
+     "name": "Gravity",
+     "uses": 34
+    },
+    {
+     "id": "slackoff",
+     "name": "Slack Off",
+     "uses": 34
+    },
+    {
+     "id": "synthesis",
+     "name": "Synthesis",
+     "uses": 33
+    },
+    {
+     "id": "memento",
+     "name": "Memento",
+     "uses": 31
+    },
+    {
+     "id": "worryseed",
+     "name": "Worry Seed",
+     "uses": 29
+    },
+    {
+     "id": "painsplit",
+     "name": "Pain Split",
+     "uses": 27
+    },
+    {
+     "id": "howl",
+     "name": "Howl",
+     "uses": 26
+    },
+    {
+     "id": "moonlight",
+     "name": "Moonlight",
+     "uses": 21
+    },
+    {
+     "id": "stockpile",
+     "name": "Stockpile",
+     "uses": 21
+    },
+    {
+     "id": "tidyup",
+     "name": "Tidy Up",
+     "uses": 21
+    },
+    {
+     "id": "cottonspore",
+     "name": "Cotton Spore",
+     "uses": 20
+    },
+    {
+     "id": "entrainment",
+     "name": "Entrainment",
+     "uses": 20
+    },
+    {
+     "id": "glare",
+     "name": "Glare",
+     "uses": 20
+    },
+    {
+     "id": "toxicspikes",
+     "name": "Toxic Spikes",
+     "uses": 20
+    },
+    {
+     "id": "decorate",
+     "name": "Decorate",
+     "uses": 18
+    },
+    {
+     "id": "shelter",
+     "name": "Shelter",
+     "uses": 18
+    },
+    {
+     "id": "chillyreception",
+     "name": "Chilly Reception",
+     "uses": 17
+    },
+    {
+     "id": "stickyweb",
+     "name": "Sticky Web",
+     "uses": 17
+    },
+    {
+     "id": "cosmicpower",
+     "name": "Cosmic Power",
+     "uses": 15
+    },
+    {
+     "id": "dragoncheer",
+     "name": "Dragon Cheer",
+     "uses": 14
+    },
+    {
+     "id": "minimize",
+     "name": "Minimize",
+     "uses": 14
+    },
+    {
+     "id": "acidarmor",
+     "name": "Acid Armor",
+     "uses": 13
+    },
+    {
+     "id": "stringshot",
+     "name": "String Shot",
+     "uses": 13
+    },
+    {
+     "id": "roleplay",
+     "name": "Role Play",
+     "uses": 12
+    },
+    {
+     "id": "stunspore",
+     "name": "Stun Spore",
+     "uses": 12
+    },
+    {
+     "id": "whirlwind",
+     "name": "Whirlwind",
+     "uses": 12
+    },
+    {
+     "id": "electricterrain",
+     "name": "Electric Terrain",
+     "uses": 11
+    },
+    {
+     "id": "agility",
+     "name": "Agility",
+     "uses": 10
+    },
+    {
+     "id": "eerieimpulse",
+     "name": "Eerie Impulse",
+     "uses": 10
+    },
+    {
+     "id": "sleeptalk",
+     "name": "Sleep Talk",
+     "uses": 10
+    },
+    {
+     "id": "topsyturvy",
+     "name": "Topsy-Turvy",
+     "uses": 10
+    },
+    {
+     "id": "cottonguard",
+     "name": "Cotton Guard",
+     "uses": 9
+    },
+    {
+     "id": "simplebeam",
+     "name": "Simple Beam",
+     "uses": 9
+    },
+    {
+     "id": "featherdance",
+     "name": "Feather Dance",
+     "uses": 8
+    },
+    {
+     "id": "morningsun",
+     "name": "Morning Sun",
+     "uses": 7
+    },
+    {
+     "id": "switcheroo",
+     "name": "Switcheroo",
+     "uses": 7
+    },
+    {
+     "id": "toxicthread",
+     "name": "Toxic Thread",
+     "uses": 6
+    },
+    {
+     "id": "safeguard",
+     "name": "Safeguard",
+     "uses": 6
+    },
+    {
+     "id": "speedswap",
+     "name": "Speed Swap",
+     "uses": 6
+    },
+    {
+     "id": "aquaring",
+     "name": "Aqua Ring",
+     "uses": 5
+    },
+    {
+     "id": "grassyterrain",
+     "name": "Grassy Terrain",
+     "uses": 5
+    },
+    {
+     "id": "magicpowder",
+     "name": "Magic Powder",
+     "uses": 5
+    },
+    {
+     "id": "meanlook",
+     "name": "Mean Look",
+     "uses": 5
+    },
+    {
+     "id": "mistyterrain",
+     "name": "Misty Terrain",
+     "uses": 5
+    },
+    {
+     "id": "powerswap",
+     "name": "Power Swap",
+     "uses": 5
+    },
+    {
+     "id": "spikes",
+     "name": "Spikes",
+     "uses": 5
+    },
+    {
+     "id": "spite",
+     "name": "Spite",
+     "uses": 5
+    },
+    {
+     "id": "growth",
+     "name": "Growth",
+     "uses": 4
+    },
+    {
+     "id": "sandstorm",
+     "name": "Sandstorm",
+     "uses": 4
+    },
+    {
+     "id": "trickortreat",
+     "name": "Trick-or-Treat",
+     "uses": 4
+    },
+    {
+     "id": "amnesia",
+     "name": "Amnesia",
+     "uses": 4
+    },
+    {
+     "id": "copycat",
+     "name": "Copycat",
+     "uses": 4
+    },
+    {
+     "id": "defog",
+     "name": "Defog",
+     "uses": 4
+    },
+    {
+     "id": "focusenergy",
+     "name": "Focus Energy",
+     "uses": 4
+    },
+    {
+     "id": "healingwish",
+     "name": "Healing Wish",
+     "uses": 4
+    },
+    {
+     "id": "torment",
+     "name": "Torment",
+     "uses": 4
+    },
+    {
+     "id": "snowscape",
+     "name": "Snowscape",
+     "uses": 3
+    },
+    {
+     "id": "endure",
+     "name": "Endure",
+     "uses": 3
+    },
+    {
+     "id": "gastroacid",
+     "name": "Gastro Acid",
+     "uses": 3
+    },
+    {
+     "id": "screech",
+     "name": "Screech",
+     "uses": 3
+    },
+    {
+     "id": "spore",
+     "name": "Spore",
+     "uses": 3
+    },
+    {
+     "id": "confuseray",
+     "name": "Confuse Ray",
+     "uses": 2
+    },
+    {
+     "id": "wonderroom",
+     "name": "Wonder Room",
+     "uses": 2
+    },
+    {
+     "id": "corrosivegas",
+     "name": "Corrosive Gas",
+     "uses": 1
+    },
+    {
+     "id": "electrify",
+     "name": "Electrify",
+     "uses": 1
+    },
+    {
+     "id": "aromaticmist",
+     "name": "Aromatic Mist",
+     "uses": 1
+    },
+    {
+     "id": "charge",
+     "name": "Charge",
+     "uses": 1
+    },
+    {
+     "id": "forestscurse",
+     "name": "Forest's Curse",
+     "uses": 1
+    },
+    {
+     "id": "magnetrise",
+     "name": "Magnet Rise",
+     "uses": 1
+    },
+    {
+     "id": "recycle",
+     "name": "Recycle",
+     "uses": 1
+    },
+    {
+     "id": "spicyextract",
+     "name": "Spicy Extract",
+     "uses": 1
+    },
+    {
+     "id": "sweetscent",
+     "name": "Sweet Scent",
+     "uses": 1
+    }
+   ],
+   "moveUses": 101567,
+   "reactorUses": 6436
+  },
+  "physicalMove": {
+   "note": "a physical move",
+   "abilities": [
+    {
+     "id": "toxicdebris",
+     "name": "Toxic Debris",
+     "uses": 417
+    },
+    {
+     "id": "hustle",
+     "name": "Hustle",
+     "uses": 9
+    },
+    {
+     "id": "weakarmor",
+     "name": "Weak Armor",
+     "uses": 9
+    },
+    {
+     "id": "iceface",
+     "name": "Ice Face",
+     "uses": 0
+    },
+    {
+     "id": "toxicboost",
+     "name": "Toxic Boost",
+     "uses": 0
+    }
+   ],
+   "items": [
+    {
+     "id": "muscleband",
+     "name": "Muscle Band",
+     "uses": 48
+    }
+   ],
+   "moves": [
+    {
+     "id": "fakeout",
+     "name": "Fake Out",
+     "uses": 7934
+    },
+    {
+     "id": "rockslide",
+     "name": "Rock Slide",
+     "uses": 6980
+    },
+    {
+     "id": "closecombat",
+     "name": "Close Combat",
+     "uses": 5558
+    },
+    {
+     "id": "earthquake",
+     "name": "Earthquake",
+     "uses": 4569
+    },
+    {
+     "id": "ironhead",
+     "name": "Iron Head",
+     "uses": 4349
+    },
+    {
+     "id": "wavecrash",
+     "name": "Wave Crash",
+     "uses": 4092
+    },
+    {
+     "id": "flareblitz",
+     "name": "Flare Blitz",
+     "uses": 4090
+    },
+    {
+     "id": "suckerpunch",
+     "name": "Sucker Punch",
+     "uses": 3949
+    },
+    {
+     "id": "dragonclaw",
+     "name": "Dragon Claw",
+     "uses": 3888
+    },
+    {
+     "id": "aquajet",
+     "name": "Aqua Jet",
+     "uses": 3066
+    },
+    {
+     "id": "lastrespects",
+     "name": "Last Respects",
+     "uses": 3034
+    },
+    {
+     "id": "kowtowcleave",
+     "name": "Kowtow Cleave",
+     "uses": 3006
+    },
+    {
+     "id": "bravebird",
+     "name": "Brave Bird",
+     "uses": 2309
+    },
+    {
+     "id": "stompingtantrum",
+     "name": "Stomping Tantrum",
+     "uses": 2132
+    },
+    {
+     "id": "lowkick",
+     "name": "Low Kick",
+     "uses": 1880
+    },
+    {
+     "id": "throatchop",
+     "name": "Throat Chop",
+     "uses": 1778
+    },
+    {
+     "id": "flipturn",
+     "name": "Flip Turn",
+     "uses": 1774
+    },
+    {
+     "id": "dualwingbeat",
+     "name": "Dual Wingbeat",
+     "uses": 1738
+    },
+    {
+     "id": "knockoff",
+     "name": "Knock Off",
+     "uses": 1663
+    },
+    {
+     "id": "direclaw",
+     "name": "Dire Claw",
+     "uses": 1520
+    },
+    {
+     "id": "icepunch",
+     "name": "Ice Punch",
+     "uses": 1432
+    },
+    {
+     "id": "psychicfangs",
+     "name": "Psychic Fangs",
+     "uses": 1356
+    },
+    {
+     "id": "highhorsepower",
+     "name": "High Horsepower",
+     "uses": 1294
+    },
+    {
+     "id": "darkestlariat",
+     "name": "Darkest Lariat",
+     "uses": 1259
+    },
+    {
+     "id": "quickattack",
+     "name": "Quick Attack",
+     "uses": 1216
+    },
+    {
+     "id": "spiritbreak",
+     "name": "Spirit Break",
+     "uses": 1122
+    },
+    {
+     "id": "playrough",
+     "name": "Play Rough",
+     "uses": 919
+    },
+    {
+     "id": "poisonjab",
+     "name": "Poison Jab",
+     "uses": 767
+    },
+    {
+     "id": "uturn",
+     "name": "U-turn",
+     "uses": 749
+    },
+    {
+     "id": "drainpunch",
+     "name": "Drain Punch",
+     "uses": 710
+    },
+    {
+     "id": "bulletpunch",
+     "name": "Bullet Punch",
+     "uses": 570
+    },
+    {
+     "id": "foulplay",
+     "name": "Foul Play",
+     "uses": 569
+    },
+    {
+     "id": "bodypress",
+     "name": "Body Press",
+     "uses": 567
+    },
+    {
+     "id": "liquidation",
+     "name": "Liquidation",
+     "uses": 557
+    },
+    {
+     "id": "rocktomb",
+     "name": "Rock Tomb",
+     "uses": 491
+    },
+    {
+     "id": "extremespeed",
+     "name": "Extreme Speed",
+     "uses": 455
+    },
+    {
+     "id": "superfang",
+     "name": "Super Fang",
+     "uses": 442
+    },
+    {
+     "id": "icefang",
+     "name": "Ice Fang",
+     "uses": 433
+    },
+    {
+     "id": "ragefist",
+     "name": "Rage Fist",
+     "uses": 364
+    },
+    {
+     "id": "iceshard",
+     "name": "Ice Shard",
+     "uses": 361
+    },
+    {
+     "id": "shadowsneak",
+     "name": "Shadow Sneak",
+     "uses": 348
+    },
+    {
+     "id": "tripleaxel",
+     "name": "Triple Axel",
+     "uses": 332
+    },
+    {
+     "id": "meteormash",
+     "name": "Meteor Mash",
+     "uses": 319
+    },
+    {
+     "id": "brickbreak",
+     "name": "Brick Break",
+     "uses": 293
+    },
+    {
+     "id": "populationbomb",
+     "name": "Population Bomb",
+     "uses": 276
+    },
+    {
+     "id": "accelerock",
+     "name": "Accelerock",
+     "uses": 244
+    },
+    {
+     "id": "feint",
+     "name": "Feint",
+     "uses": 225
+    },
+    {
+     "id": "gunkshot",
+     "name": "Gunk Shot",
+     "uses": 224
+    },
+    {
+     "id": "beatup",
+     "name": "Beat Up",
+     "uses": 223
+    },
+    {
+     "id": "crunch",
+     "name": "Crunch",
+     "uses": 218
+    },
+    {
+     "id": "waterfall",
+     "name": "Waterfall",
+     "uses": 215
+    },
+    {
+     "id": "bitterblade",
+     "name": "Bitter Blade",
+     "uses": 211
+    },
+    {
+     "id": "phantomforce",
+     "name": "Phantom Force",
+     "uses": 205
+    },
+    {
+     "id": "thunderpunch",
+     "name": "Thunder Punch",
+     "uses": 205
+    },
+    {
+     "id": "psychocut",
+     "name": "Psycho Cut",
+     "uses": 193
+    },
+    {
+     "id": "headsmash",
+     "name": "Head Smash",
+     "uses": 190
+    },
+    {
+     "id": "iciclecrash",
+     "name": "Icicle Crash",
+     "uses": 184
+    },
+    {
+     "id": "poltergeist",
+     "name": "Poltergeist",
+     "uses": 183
+    },
+    {
+     "id": "superpower",
+     "name": "Superpower",
+     "uses": 182
+    },
+    {
+     "id": "doubleedge",
+     "name": "Double-Edge",
+     "uses": 166
+    },
+    {
+     "id": "sacredsword",
+     "name": "Sacred Sword",
+     "uses": 145
+    },
+    {
+     "id": "volttackle",
+     "name": "Volt Tackle",
+     "uses": 145
+    },
+    {
+     "id": "flowertrick",
+     "name": "Flower Trick",
+     "uses": 124
+    },
+    {
+     "id": "scaleshot",
+     "name": "Scale Shot",
+     "uses": 124
+    },
+    {
+     "id": "gigatonhammer",
+     "name": "Gigaton Hammer",
+     "uses": 123
+    },
+    {
+     "id": "powerwhip",
+     "name": "Power Whip",
+     "uses": 122
+    },
+    {
+     "id": "tropkick",
+     "name": "Trop Kick",
+     "uses": 121
+    },
+    {
+     "id": "heavyslam",
+     "name": "Heavy Slam",
+     "uses": 121
+    },
+    {
+     "id": "stoneedge",
+     "name": "Stone Edge",
+     "uses": 111
+    },
+    {
+     "id": "nuzzle",
+     "name": "Nuzzle",
+     "uses": 110
+    },
+    {
+     "id": "leafblade",
+     "name": "Leaf Blade",
+     "uses": 109
+    },
+    {
+     "id": "hammerarm",
+     "name": "Hammer Arm",
+     "uses": 107
+    },
+    {
+     "id": "bugbite",
+     "name": "Bug Bite",
+     "uses": 105
+    },
+    {
+     "id": "jetpunch",
+     "name": "Jet Punch",
+     "uses": 100
+    },
+    {
+     "id": "leechlife",
+     "name": "Leech Life",
+     "uses": 94
+    },
+    {
+     "id": "acrobatics",
+     "name": "Acrobatics",
+     "uses": 92
+    },
+    {
+     "id": "blazekick",
+     "name": "Blaze Kick",
+     "uses": 87
+    },
+    {
+     "id": "highjumpkick",
+     "name": "High Jump Kick",
+     "uses": 84
+    },
+    {
+     "id": "endeavor",
+     "name": "Endeavor",
+     "uses": 75
+    },
+    {
+     "id": "bodyslam",
+     "name": "Body Slam",
+     "uses": 72
+    },
+    {
+     "id": "breakingswipe",
+     "name": "Breaking Swipe",
+     "uses": 70
+    },
+    {
+     "id": "lastresort",
+     "name": "Last Resort",
+     "uses": 70
+    },
+    {
+     "id": "shadowclaw",
+     "name": "Shadow Claw",
+     "uses": 69
+    },
+    {
+     "id": "nightslash",
+     "name": "Night Slash",
+     "uses": 65
+    },
+    {
+     "id": "zenheadbutt",
+     "name": "Zen Headbutt",
+     "uses": 60
+    },
+    {
+     "id": "wildcharge",
+     "name": "Wild Charge",
+     "uses": 58
+    },
+    {
+     "id": "upperhand",
+     "name": "Upper Hand",
+     "uses": 56
+    },
+    {
+     "id": "dragondarts",
+     "name": "Dragon Darts",
+     "uses": 55
+    },
+    {
+     "id": "supercellslam",
+     "name": "Supercell Slam",
+     "uses": 50
+    },
+    {
+     "id": "dragontail",
+     "name": "Dragon Tail",
+     "uses": 49
+    },
+    {
+     "id": "triplearrows",
+     "name": "Triple Arrows",
+     "uses": 49
+    },
+    {
+     "id": "firepunch",
+     "name": "Fire Punch",
+     "uses": 48
+    },
+    {
+     "id": "lashout",
+     "name": "Lash Out",
+     "uses": 47
+    },
+    {
+     "id": "icespinner",
+     "name": "Ice Spinner",
+     "uses": 44
+    },
+    {
+     "id": "rockblast",
+     "name": "Rock Blast",
+     "uses": 39
+    },
+    {
+     "id": "machpunch",
+     "name": "Mach Punch",
+     "uses": 37
+    },
+    {
+     "id": "outrage",
+     "name": "Outrage",
+     "uses": 35
+    },
+    {
+     "id": "ceaselessedge",
+     "name": "Ceaseless Edge",
+     "uses": 33
+    },
+    {
+     "id": "facade",
+     "name": "Facade",
+     "uses": 32
+    },
+    {
+     "id": "icehammer",
+     "name": "Ice Hammer",
+     "uses": 31
+    },
+    {
+     "id": "temperflare",
+     "name": "Temper Flare",
+     "uses": 30
+    },
+    {
+     "id": "xscissor",
+     "name": "X-Scissor",
+     "uses": 29
+    },
+    {
+     "id": "headlongrush",
+     "name": "Headlong Rush",
+     "uses": 28
+    },
+    {
+     "id": "aquacutter",
+     "name": "Aqua Cutter",
+     "uses": 27
+    },
+    {
+     "id": "saltcure",
+     "name": "Salt Cure",
+     "uses": 26
+    },
+    {
+     "id": "assurance",
+     "name": "Assurance",
+     "uses": 26
+    },
+    {
+     "id": "hardpress",
+     "name": "Hard Press",
+     "uses": 26
+    },
+    {
+     "id": "fissure",
+     "name": "Fissure",
+     "uses": 24
+    },
+    {
+     "id": "gyroball",
+     "name": "Gyro Ball",
+     "uses": 24
+    },
+    {
+     "id": "stoneaxe",
+     "name": "Stone Axe",
+     "uses": 24
+    },
+    {
+     "id": "trailblaze",
+     "name": "Trailblaze",
+     "uses": 24
+    },
+    {
+     "id": "woodhammer",
+     "name": "Wood Hammer",
+     "uses": 24
+    },
+    {
+     "id": "aerialace",
+     "name": "Aerial Ace",
+     "uses": 23
+    },
+    {
+     "id": "barbbarrage",
+     "name": "Barb Barrage",
+     "uses": 22
+    },
+    {
+     "id": "bite",
+     "name": "Bite",
+     "uses": 22
+    },
+    {
+     "id": "aurawheel",
+     "name": "Aura Wheel",
+     "uses": 21
+    },
+    {
+     "id": "bulletseed",
+     "name": "Bullet Seed",
+     "uses": 21
+    },
+    {
+     "id": "mortalspin",
+     "name": "Mortal Spin",
+     "uses": 21
+    },
+    {
+     "id": "sandtomb",
+     "name": "Sand Tomb",
+     "uses": 21
+    },
+    {
+     "id": "gigaimpact",
+     "name": "Giga Impact",
+     "uses": 20
+    },
+    {
+     "id": "megahorn",
+     "name": "Megahorn",
+     "uses": 20
+    },
+    {
+     "id": "lunge",
+     "name": "Lunge",
+     "uses": 18
+    },
+    {
+     "id": "bulldoze",
+     "name": "Bulldoze",
+     "uses": 17
+    },
+    {
+     "id": "drillrun",
+     "name": "Drill Run",
+     "uses": 17
+    },
+    {
+     "id": "pinmissile",
+     "name": "Pin Missile",
+     "uses": 17
+    },
+    {
+     "id": "dragonrush",
+     "name": "Dragon Rush",
+     "uses": 16
+    },
+    {
+     "id": "seedbomb",
+     "name": "Seed Bomb",
+     "uses": 16
+    },
+    {
+     "id": "fellstinger",
+     "name": "Fell Stinger",
+     "uses": 15
+    },
+    {
+     "id": "aquatail",
+     "name": "Aqua Tail",
+     "uses": 13
+    },
+    {
+     "id": "fling",
+     "name": "Fling",
+     "uses": 13
+    },
+    {
+     "id": "petalblizzard",
+     "name": "Petal Blizzard",
+     "uses": 12
+    },
+    {
+     "id": "aquastep",
+     "name": "Aqua Step",
+     "uses": 11
+    },
+    {
+     "id": "explosion",
+     "name": "Explosion",
+     "uses": 11
+    },
+    {
+     "id": "stormthrow",
+     "name": "Storm Throw",
+     "uses": 10
+    },
+    {
+     "id": "crosschop",
+     "name": "Cross Chop",
+     "uses": 10
+    },
+    {
+     "id": "irontail",
+     "name": "Iron Tail",
+     "uses": 10
+    },
+    {
+     "id": "gravapple",
+     "name": "Grav Apple",
+     "uses": 9
+    },
+    {
+     "id": "firefang",
+     "name": "Fire Fang",
+     "uses": 9
+    },
+    {
+     "id": "lowsweep",
+     "name": "Low Sweep",
+     "uses": 9
+    },
+    {
+     "id": "solarblade",
+     "name": "Solar Blade",
+     "uses": 9
+    },
+    {
+     "id": "steelwing",
+     "name": "Steel Wing",
+     "uses": 9
+    },
+    {
+     "id": "psyshieldbash",
+     "name": "Psyshield Bash",
+     "uses": 8
+    },
+    {
+     "id": "flamecharge",
+     "name": "Flame Charge",
+     "uses": 8
+    },
+    {
+     "id": "pounce",
+     "name": "Pounce",
+     "uses": 8
+    },
+    {
+     "id": "ragingbull",
+     "name": "Raging Bull",
+     "uses": 8
+    },
+    {
+     "id": "smackdown",
+     "name": "Smack Down",
+     "uses": 8
+    },
+    {
+     "id": "avalanche",
+     "name": "Avalanche",
+     "uses": 7
+    },
+    {
+     "id": "counter",
+     "name": "Counter",
+     "uses": 7
+    },
+    {
+     "id": "selfdestruct",
+     "name": "Self-Destruct",
+     "uses": 7
+    },
+    {
+     "id": "thief",
+     "name": "Thief",
+     "uses": 7
+    },
+    {
+     "id": "mountaingale",
+     "name": "Mountain Gale",
+     "uses": 6
+    },
+    {
+     "id": "dynamicpunch",
+     "name": "Dynamic Punch",
+     "uses": 6
+    },
+    {
+     "id": "focuspunch",
+     "name": "Focus Punch",
+     "uses": 6
+    },
+    {
+     "id": "hornleech",
+     "name": "Horn Leech",
+     "uses": 6
+    },
+    {
+     "id": "thunderfang",
+     "name": "Thunder Fang",
+     "uses": 6
+    },
+    {
+     "id": "drillpeck",
+     "name": "Drill Peck",
+     "uses": 5
+    },
+    {
+     "id": "heatcrash",
+     "name": "Heat Crash",
+     "uses": 5
+    },
+    {
+     "id": "iciclespear",
+     "name": "Icicle Spear",
+     "uses": 5
+    },
+    {
+     "id": "poisonfang",
+     "name": "Poison Fang",
+     "uses": 5
+    },
+    {
+     "id": "steelroller",
+     "name": "Steel Roller",
+     "uses": 5
+    },
+    {
+     "id": "bonerush",
+     "name": "Bone Rush",
+     "uses": 4
+    },
+    {
+     "id": "crabhammer",
+     "name": "Crabhammer",
+     "uses": 4
+    },
+    {
+     "id": "megakick",
+     "name": "Mega Kick",
+     "uses": 4
+    },
+    {
+     "id": "metalburst",
+     "name": "Metal Burst",
+     "uses": 4
+    },
+    {
+     "id": "rapidspin",
+     "name": "Rapid Spin",
+     "uses": 4
+    },
+    {
+     "id": "reversal",
+     "name": "Reversal",
+     "uses": 4
+    },
+    {
+     "id": "firstimpression",
+     "name": "First Impression",
+     "uses": 3
+    },
+    {
+     "id": "dig",
+     "name": "Dig",
+     "uses": 3
+    },
+    {
+     "id": "flyingpress",
+     "name": "Flying Press",
+     "uses": 3
+    },
+    {
+     "id": "razorshell",
+     "name": "Razor Shell",
+     "uses": 3
+    },
+    {
+     "id": "skittersmack",
+     "name": "Skitter Smack",
+     "uses": 3
+    },
+    {
+     "id": "beakblast",
+     "name": "Beak Blast",
+     "uses": 2
+    },
+    {
+     "id": "spiritshackle",
+     "name": "Spirit Shackle",
+     "uses": 2
+    },
+    {
+     "id": "brutalswing",
+     "name": "Brutal Swing",
+     "uses": 2
+    },
+    {
+     "id": "guillotine",
+     "name": "Guillotine",
+     "uses": 2
+    },
+    {
+     "id": "powertrip",
+     "name": "Power Trip",
+     "uses": 2
+    },
+    {
+     "id": "ragingfury",
+     "name": "Raging Fury",
+     "uses": 2
+    },
+    {
+     "id": "crosspoison",
+     "name": "Cross Poison",
+     "uses": 1
+    },
+    {
+     "id": "payback",
+     "name": "Payback",
+     "uses": 1
+    }
+   ],
+   "moveUses": 93676,
+   "reactorUses": 483
+  },
+  "specialMove": {
+   "note": "a special move",
+   "abilities": [
+    {
+     "id": "flareboost",
+     "name": "Flare Boost",
+     "uses": 0
+    },
+    {
+     "id": "icescales",
+     "name": "Ice Scales",
+     "uses": 0
+    }
+   ],
+   "items": [
+    {
+     "id": "wiseglasses",
+     "name": "Wise Glasses",
+     "uses": 8
+    }
+   ],
+   "moves": [
+    {
+     "id": "weatherball",
+     "name": "Weather Ball",
+     "uses": 4739
+    },
+    {
+     "id": "heatwave",
+     "name": "Heat Wave",
+     "uses": 4091
+    },
+    {
+     "id": "moonblast",
+     "name": "Moonblast",
+     "uses": 4088
+    },
+    {
+     "id": "matchagotcha",
+     "name": "Matcha Gotcha",
+     "uses": 3422
+    },
+    {
+     "id": "shadowball",
+     "name": "Shadow Ball",
+     "uses": 3332
+    },
+    {
+     "id": "solarbeam",
+     "name": "Solar Beam",
+     "uses": 2501
+    },
+    {
+     "id": "hypervoice",
+     "name": "Hyper Voice",
+     "uses": 2496
+    },
+    {
+     "id": "earthpower",
+     "name": "Earth Power",
+     "uses": 2409
+    },
+    {
+     "id": "hurricane",
+     "name": "Hurricane",
+     "uses": 2275
+    },
+    {
+     "id": "dragonpulse",
+     "name": "Dragon Pulse",
+     "uses": 2048
+    },
+    {
+     "id": "dazzlinggleam",
+     "name": "Dazzling Gleam",
+     "uses": 2023
+    },
+    {
+     "id": "sludgebomb",
+     "name": "Sludge Bomb",
+     "uses": 2005
+    },
+    {
+     "id": "thunderbolt",
+     "name": "Thunderbolt",
+     "uses": 1874
+    },
+    {
+     "id": "flashcannon",
+     "name": "Flash Cannon",
+     "uses": 1806
+    },
+    {
+     "id": "psychic",
+     "name": "Psychic",
+     "uses": 1776
+    },
+    {
+     "id": "electroshot",
+     "name": "Electro Shot",
+     "uses": 1679
+    },
+    {
+     "id": "blizzard",
+     "name": "Blizzard",
+     "uses": 1547
+    },
+    {
+     "id": "makeitrain",
+     "name": "Make It Rain",
+     "uses": 1437
+    },
+    {
+     "id": "dracometeor",
+     "name": "Draco Meteor",
+     "uses": 1206
+    },
+    {
+     "id": "focusblast",
+     "name": "Focus Blast",
+     "uses": 1105
+    },
+    {
+     "id": "zapcannon",
+     "name": "Zap Cannon",
+     "uses": 1077
+    },
+    {
+     "id": "darkpulse",
+     "name": "Dark Pulse",
+     "uses": 1026
+    },
+    {
+     "id": "hyperbeam",
+     "name": "Hyper Beam",
+     "uses": 1026
+    },
+    {
+     "id": "voltswitch",
+     "name": "Volt Switch",
+     "uses": 992
+    },
+    {
+     "id": "icywind",
+     "name": "Icy Wind",
+     "uses": 854
+    },
+    {
+     "id": "gigadrain",
+     "name": "Giga Drain",
+     "uses": 820
+    },
+    {
+     "id": "overheat",
+     "name": "Overheat",
+     "uses": 772
+    },
+    {
+     "id": "freezedry",
+     "name": "Freeze-Dry",
+     "uses": 748
+    },
+    {
+     "id": "lightofruin",
+     "name": "Light of Ruin",
+     "uses": 718
+    },
+    {
+     "id": "hydropump",
+     "name": "Hydro Pump",
+     "uses": 718
+    },
+    {
+     "id": "aurasphere",
+     "name": "Aura Sphere",
+     "uses": 688
+    },
+    {
+     "id": "powergem",
+     "name": "Power Gem",
+     "uses": 687
+    },
+    {
+     "id": "scald",
+     "name": "Scald",
+     "uses": 608
+    },
+    {
+     "id": "eruption",
+     "name": "Eruption",
+     "uses": 571
+    },
+    {
+     "id": "snarl",
+     "name": "Snarl",
+     "uses": 569
+    },
+    {
+     "id": "icebeam",
+     "name": "Ice Beam",
+     "uses": 561
+    },
+    {
+     "id": "flamethrower",
+     "name": "Flamethrower",
+     "uses": 499
+    },
+    {
+     "id": "psyshock",
+     "name": "Psyshock",
+     "uses": 479
+    },
+    {
+     "id": "muddywater",
+     "name": "Muddy Water",
+     "uses": 478
+    },
+    {
+     "id": "twinbeam",
+     "name": "Twin Beam",
+     "uses": 469
+    },
+    {
+     "id": "energyball",
+     "name": "Energy Ball",
+     "uses": 457
+    },
+    {
+     "id": "infestation",
+     "name": "Infestation",
+     "uses": 450
+    },
+    {
+     "id": "drainingkiss",
+     "name": "Draining Kiss",
+     "uses": 445
+    },
+    {
+     "id": "discharge",
+     "name": "Discharge",
+     "uses": 406
+    },
+    {
+     "id": "electroweb",
+     "name": "Electroweb",
+     "uses": 345
+    },
+    {
+     "id": "waterspout",
+     "name": "Water Spout",
+     "uses": 345
+    },
+    {
+     "id": "leafstorm",
+     "name": "Leaf Storm",
+     "uses": 340
+    },
+    {
+     "id": "ancientpower",
+     "name": "Ancient Power",
+     "uses": 326
+    },
+    {
+     "id": "clangingscales",
+     "name": "Clanging Scales",
+     "uses": 312
+    },
+    {
+     "id": "grassknot",
+     "name": "Grass Knot",
+     "uses": 244
+    },
+    {
+     "id": "thunder",
+     "name": "Thunder",
+     "uses": 182
+    },
+    {
+     "id": "finalgambit",
+     "name": "Final Gambit",
+     "uses": 180
+    },
+    {
+     "id": "vacuumwave",
+     "name": "Vacuum Wave",
+     "uses": 143
+    },
+    {
+     "id": "airslash",
+     "name": "Air Slash",
+     "uses": 141
+    },
+    {
+     "id": "sludgewave",
+     "name": "Sludge Wave",
+     "uses": 98
+    },
+    {
+     "id": "psychicnoise",
+     "name": "Psychic Noise",
+     "uses": 96
+    },
+    {
+     "id": "risingvoltage",
+     "name": "Rising Voltage",
+     "uses": 91
+    },
+    {
+     "id": "scorchingsands",
+     "name": "Scorching Sands",
+     "uses": 89
+    },
+    {
+     "id": "alluringvoice",
+     "name": "Alluring Voice",
+     "uses": 86
+    },
+    {
+     "id": "expandingforce",
+     "name": "Expanding Force",
+     "uses": 84
+    },
+    {
+     "id": "pollenpuff",
+     "name": "Pollen Puff",
+     "uses": 77
+    },
+    {
+     "id": "mysticalfire",
+     "name": "Mystical Fire",
+     "uses": 76
+    },
+    {
+     "id": "paraboliccharge",
+     "name": "Parabolic Charge",
+     "uses": 70
+    },
+    {
+     "id": "surf",
+     "name": "Surf",
+     "uses": 69
+    },
+    {
+     "id": "hex",
+     "name": "Hex",
+     "uses": 63
+    },
+    {
+     "id": "luminacrash",
+     "name": "Lumina Crash",
+     "uses": 56
+    },
+    {
+     "id": "acidspray",
+     "name": "Acid Spray",
+     "uses": 54
+    },
+    {
+     "id": "waterpulse",
+     "name": "Water Pulse",
+     "uses": 45
+    },
+    {
+     "id": "bittermalice",
+     "name": "Bitter Malice",
+     "uses": 44
+    },
+    {
+     "id": "fierydance",
+     "name": "Fiery Dance",
+     "uses": 42
+    },
+    {
+     "id": "sheercold",
+     "name": "Sheer Cold",
+     "uses": 41
+    },
+    {
+     "id": "bugbuzz",
+     "name": "Bug Buzz",
+     "uses": 40
+    },
+    {
+     "id": "extrasensory",
+     "name": "Extrasensory",
+     "uses": 39
+    },
+    {
+     "id": "round",
+     "name": "Round",
+     "uses": 36
+    },
+    {
+     "id": "burnup",
+     "name": "Burn Up",
+     "uses": 35
+    },
+    {
+     "id": "chillingwater",
+     "name": "Chilling Water",
+     "uses": 33
+    },
+    {
+     "id": "burningjealousy",
+     "name": "Burning Jealousy",
+     "uses": 32
+    },
+    {
+     "id": "frostbreath",
+     "name": "Frost Breath",
+     "uses": 32
+    },
+    {
+     "id": "armorcannon",
+     "name": "Armor Cannon",
+     "uses": 31
+    },
+    {
+     "id": "strugglebug",
+     "name": "Struggle Bug",
+     "uses": 30
+    },
+    {
+     "id": "ficklebeam",
+     "name": "Fickle Beam",
+     "uses": 28
+    },
+    {
+     "id": "steelbeam",
+     "name": "Steel Beam",
+     "uses": 27
+    },
+    {
+     "id": "fireblast",
+     "name": "Fire Blast",
+     "uses": 26
+    },
+    {
+     "id": "torchsong",
+     "name": "Torch Song",
+     "uses": 26
+    },
+    {
+     "id": "nightshade",
+     "name": "Night Shade",
+     "uses": 22
+    },
+    {
+     "id": "storedpower",
+     "name": "Stored Power",
+     "uses": 17
+    },
+    {
+     "id": "hydrocannon",
+     "name": "Hydro Cannon",
+     "uses": 16
+    },
+    {
+     "id": "watershuriken",
+     "name": "Water Shuriken",
+     "uses": 16
+    },
+    {
+     "id": "infernalparade",
+     "name": "Infernal Parade",
+     "uses": 15
+    },
+    {
+     "id": "whirlpool",
+     "name": "Whirlpool",
+     "uses": 13
+    },
+    {
+     "id": "mirrorcoat",
+     "name": "Mirror Coat",
+     "uses": 12
+    },
+    {
+     "id": "boomburst",
+     "name": "Boomburst",
+     "uses": 11
+    },
+    {
+     "id": "mudshot",
+     "name": "Mud Shot",
+     "uses": 9
+    },
+    {
+     "id": "shellsidearm",
+     "name": "Shell Side Arm",
+     "uses": 9
+    },
+    {
+     "id": "firespin",
+     "name": "Fire Spin",
+     "uses": 8
+    },
+    {
+     "id": "appleacid",
+     "name": "Apple Acid",
+     "uses": 7
+    },
+    {
+     "id": "electroball",
+     "name": "Electro Ball",
+     "uses": 7
+    },
+    {
+     "id": "clearsmog",
+     "name": "Clear Smog",
+     "uses": 6
+    },
+    {
+     "id": "futuresight",
+     "name": "Future Sight",
+     "uses": 6
+    },
+    {
+     "id": "meteorbeam",
+     "name": "Meteor Beam",
+     "uses": 5
+    },
+    {
+     "id": "venoshock",
+     "name": "Venoshock",
+     "uses": 5
+    },
+    {
+     "id": "terrainpulse",
+     "name": "Terrain Pulse",
+     "uses": 4
+    },
+    {
+     "id": "blastburn",
+     "name": "Blast Burn",
+     "uses": 3
+    },
+    {
+     "id": "chargebeam",
+     "name": "Charge Beam",
+     "uses": 3
+    },
+    {
+     "id": "mistyexplosion",
+     "name": "Misty Explosion",
+     "uses": 3
+    },
+    {
+     "id": "sparklingaria",
+     "name": "Sparkling Aria",
+     "uses": 3
+    },
+    {
+     "id": "belch",
+     "name": "Belch",
+     "uses": 1
+    },
+    {
+     "id": "syrupbomb",
+     "name": "Syrup Bomb",
+     "uses": 1
+    },
+    {
+     "id": "eeriespell",
+     "name": "Eerie Spell",
+     "uses": 1
+    },
+    {
+     "id": "lavaplume",
+     "name": "Lava Plume",
+     "uses": 1
+    },
+    {
+     "id": "mudslap",
+     "name": "Mud-Slap",
+     "uses": 1
+    },
+    {
+     "id": "triattack",
+     "name": "Tri Attack",
+     "uses": 1
+    },
+    {
+     "id": "uproar",
+     "name": "Uproar",
+     "uses": 1
+    }
+   ],
+   "moveUses": 68338,
+   "reactorUses": 8
+  },
+  "emptyItemSlot": {
+   "note": "the holder has NO item",
+   "abilities": [],
+   "items": [],
+   "moves": [],
+   "moveUses": 0,
+   "reactorUses": 0
+  },
+  "targetBoosted": {
+   "note": "the target just set up",
+   "abilities": [],
+   "items": [],
+   "moves": [],
+   "moveUses": 0,
+   "reactorUses": 0
+  },
+  "moveType": {
+   "note": "one specific move type",
+   "abilities": [
+    {
+     "id": "blaze",
+     "name": "Blaze",
+     "uses": 2722
+    },
+    {
+     "id": "pixilate",
+     "name": "Pixilate",
+     "uses": 1448
+    },
+    {
+     "id": "lightningrod",
+     "name": "Lightning Rod",
+     "uses": 1302
+    },
+    {
+     "id": "torrent",
+     "name": "Torrent",
+     "uses": 1093
+    },
+    {
+     "id": "overgrow",
+     "name": "Overgrow",
+     "uses": 362
+    },
+    {
+     "id": "flashfire",
+     "name": "Flash Fire",
+     "uses": 357
+    },
+    {
+     "id": "waterbubble",
+     "name": "Water Bubble",
+     "uses": 73
+    },
+    {
+     "id": "thickfat",
+     "name": "Thick Fat",
+     "uses": 71
+    },
+    {
+     "id": "dryskin",
+     "name": "Dry Skin",
+     "uses": 52
+    },
+    {
+     "id": "purifyingsalt",
+     "name": "Purifying Salt",
+     "uses": 35
+    },
+    {
+     "id": "voltabsorb",
+     "name": "Volt Absorb",
+     "uses": 33
+    },
+    {
+     "id": "eartheater",
+     "name": "Earth Eater",
+     "uses": 31
+    },
+    {
+     "id": "justified",
+     "name": "Justified",
+     "uses": 29
+    },
+    {
+     "id": "swarm",
+     "name": "Swarm",
+     "uses": 27
+    },
+    {
+     "id": "sapsipper",
+     "name": "Sap Sipper",
+     "uses": 22
+    },
+    {
+     "id": "sandforce",
+     "name": "Sand Force",
+     "uses": 18
+    },
+    {
+     "id": "waterabsorb",
+     "name": "Water Absorb",
+     "uses": 15
+    },
+    {
+     "id": "motordrive",
+     "name": "Motor Drive",
+     "uses": 13
+    },
+    {
+     "id": "heatproof",
+     "name": "Heatproof",
+     "uses": 12
+    },
+    {
+     "id": "fluffy",
+     "name": "Fluffy",
+     "uses": 3
+    },
+    {
+     "id": "refrigerate",
+     "name": "Refrigerate",
+     "uses": 1
+    },
+    {
+     "id": "steelyspirit",
+     "name": "Steely Spirit",
+     "uses": 1
+    },
+    {
+     "id": "dragonize",
+     "name": "Dragonize",
+     "uses": 0
+    },
+    {
+     "id": "firemane",
+     "name": "Fire Mane",
+     "uses": 0
+    },
+    {
+     "id": "aerilate",
+     "name": "Aerilate",
+     "uses": 0
+    },
+    {
+     "id": "dragonsmaw",
+     "name": "Dragon's Maw",
+     "uses": 0
+    },
+    {
+     "id": "galvanize",
+     "name": "Galvanize",
+     "uses": 0
+    },
+    {
+     "id": "rockypayload",
+     "name": "Rocky Payload",
+     "uses": 0
+    },
+    {
+     "id": "steelworker",
+     "name": "Steelworker",
+     "uses": 0
+    },
+    {
+     "id": "stormdrain",
+     "name": "Storm Drain",
+     "uses": 0
+    },
+    {
+     "id": "thermalexchange",
+     "name": "Thermal Exchange",
+     "uses": 0
+    },
+    {
+     "id": "transistor",
+     "name": "Transistor",
+     "uses": 0
+    },
+    {
+     "id": "watercompaction",
+     "name": "Water Compaction",
+     "uses": 0
+    },
+    {
+     "id": "wellbakedbody",
+     "name": "Well-Baked Body",
+     "uses": 0
+    }
+   ],
+   "items": [
+    {
+     "id": "fairyfeather",
+     "name": "Fairy Feather",
+     "uses": 1521
+    },
+    {
+     "id": "chopleberry",
+     "name": "Chople Berry",
+     "uses": 1441
+    },
+    {
+     "id": "blackglasses",
+     "name": "Black Glasses",
+     "uses": 1332
+    },
+    {
+     "id": "colburberry",
+     "name": "Colbur Berry",
+     "uses": 1256
+    },
+    {
+     "id": "kasibberry",
+     "name": "Kasib Berry",
+     "uses": 1102
+    },
+    {
+     "id": "mysticwater",
+     "name": "Mystic Water",
+     "uses": 873
+    },
+    {
+     "id": "charcoal",
+     "name": "Charcoal",
+     "uses": 694
+    },
+    {
+     "id": "occaberry",
+     "name": "Occa Berry",
+     "uses": 650
+    },
+    {
+     "id": "roseliberry",
+     "name": "Roseli Berry",
+     "uses": 511
+    },
+    {
+     "id": "passhoberry",
+     "name": "Passho Berry",
+     "uses": 487
+    },
+    {
+     "id": "cobaberry",
+     "name": "Coba Berry",
+     "uses": 401
+    },
+    {
+     "id": "nevermeltice",
+     "name": "Never-Melt Ice",
+     "uses": 393
+    },
+    {
+     "id": "sharpbeak",
+     "name": "Sharp Beak",
+     "uses": 302
+    },
+    {
+     "id": "shucaberry",
+     "name": "Shuca Berry",
+     "uses": 266
+    },
+    {
+     "id": "metalcoat",
+     "name": "Metal Coat",
+     "uses": 212
+    },
+    {
+     "id": "dragonfang",
+     "name": "Dragon Fang",
+     "uses": 117
+    },
+    {
+     "id": "habanberry",
+     "name": "Haban Berry",
+     "uses": 112
+    },
+    {
+     "id": "silkscarf",
+     "name": "Silk Scarf",
+     "uses": 102
+    },
+    {
+     "id": "ironball",
+     "name": "Iron Ball",
+     "uses": 85
+    },
+    {
+     "id": "spelltag",
+     "name": "Spell Tag",
+     "uses": 79
+    },
+    {
+     "id": "magnet",
+     "name": "Magnet",
+     "uses": 77
+    },
+    {
+     "id": "softsand",
+     "name": "Soft Sand",
+     "uses": 75
+    },
+    {
+     "id": "babiriberry",
+     "name": "Babiri Berry",
+     "uses": 70
+    },
+    {
+     "id": "miracleseed",
+     "name": "Miracle Seed",
+     "uses": 48
+    },
+    {
+     "id": "yacheberry",
+     "name": "Yache Berry",
+     "uses": 47
+    },
+    {
+     "id": "kebiaberry",
+     "name": "Kebia Berry",
+     "uses": 39
+    },
+    {
+     "id": "blackbelt",
+     "name": "Black Belt",
+     "uses": 36
+    },
+    {
+     "id": "wacanberry",
+     "name": "Wacan Berry",
+     "uses": 36
+    },
+    {
+     "id": "chartiberry",
+     "name": "Charti Berry",
+     "uses": 32
+    },
+    {
+     "id": "twistedspoon",
+     "name": "Twisted Spoon",
+     "uses": 26
+    },
+    {
+     "id": "hardstone",
+     "name": "Hard Stone",
+     "uses": 23
+    },
+    {
+     "id": "rindoberry",
+     "name": "Rindo Berry",
+     "uses": 23
+    },
+    {
+     "id": "payapaberry",
+     "name": "Payapa Berry",
+     "uses": 6
+    },
+    {
+     "id": "poisonbarb",
+     "name": "Poison Barb",
+     "uses": 6
+    },
+    {
+     "id": "silverpowder",
+     "name": "Silver Powder",
+     "uses": 2
+    },
+    {
+     "id": "chilanberry",
+     "name": "Chilan Berry",
+     "uses": 0
+    },
+    {
+     "id": "tangaberry",
+     "name": "Tanga Berry",
+     "uses": 0
+    }
+   ],
+   "moves": [],
+   "moveUses": 0,
+   "reactorUses": 20202
+  }
+ },
  "moves": {
   "appleacid": {
    "name": "Apple Acid",

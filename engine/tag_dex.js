@@ -1540,6 +1540,106 @@ const moves = collect('move', dex.moves.all(), MOVE_TAGS, U.move);
 const items = collect('item', dex.items.all(), ITEM_TAGS, U.item);
 const abils = collect('ability', dex.abilities.all(), ABILITY_TAGS, U.ability);
 
+/* ---- LINKAGE ---------------------------------------------------------------------------------
+ * Will, 2026-07-29: "i want to tie as many of these tags as possible to the move tags like the
+ * unburden and acrobatics... rough skin and rocky helmet... spiky shield... is linkage a good idea"
+ *
+ * It is the best structural idea in this review, and the evidence is that ONE mechanic -- punish a
+ * contact attacker for a fraction of max HP -- had arrived under three different names from three
+ * different taxonomies:
+ *
+ *     Rough Skin    ability   punishesAttacker + contactPunish
+ *     Iron Barbs    ability   punishesAttacker + contactPunish
+ *     Spiky Shield  move      punishesContact
+ *     Rocky Helmet  item      (0 sheets in this format)
+ *
+ * and their damage fractions genuinely differ, 1/8 against 1/6, so the parameter is real. Three
+ * names meant three separate wirings, three places to get it wrong, and no way for the engine to
+ * ask the one question it actually needs to ask.
+ *
+ * THE MODEL. A move EXPOSES properties. Items and abilities SUBSCRIBE to them. The engine asks once
+ * per (move, target) pair -- "this move makes contact; who reacts?" -- and everything subscribed
+ * answers. One dispatch instead of a branch per mechanic, and the 90-odd unread tags become
+ * wirable as a group rather than one at a time.
+ *
+ * The couplings are DERIVED by reading which move property each handler tests, so a new ability in
+ * a future generation joins the right key without anyone editing a list.
+ */
+const KEYS = [
+  { key: 'contact',      test: /checkMoveMakesContact|flags\.contact|flags\["contact"\]/,
+    note: 'the move touches the target' },
+  { key: 'sound',        test: /flags\.sound|flags\["sound"\]/,          note: 'sound-based' },
+  { key: 'punch',        test: /flags\.punch|flags\["punch"\]/,          note: 'a punching move' },
+  { key: 'bullet',       test: /flags\.bullet|flags\["bullet"\]/,        note: 'ballistic' },
+  { key: 'powder',       test: /flags\.powder|flags\["powder"\]/,        note: 'a powder' },
+  { key: 'wind',         test: /flags\.wind|flags\["wind"\]/,            note: 'wind-based' },
+  { key: 'slicing',      test: /flags\.slicing|flags\["slicing"\]/,      note: 'a cutting move' },
+  { key: 'bite',         test: /flags\.bite|flags\["bite"\]/,            note: 'a biting move' },
+  { key: 'heal',         test: /flags\.heal|flags\["heal"\]/,            note: 'a healing move' },
+  { key: 'priorityMove', test: /move\.priority\s*>\s*0/,                 note: 'the move has positive priority' },
+  { key: 'statusMove',   test: /category\s*===?\s*"Status"/,             note: 'a status-category move' },
+  { key: 'physicalMove', test: /category\s*===?\s*"Physical"/,           note: 'a physical move' },
+  { key: 'specialMove',  test: /category\s*===?\s*"Special"/,            note: 'a special move' },
+  { key: 'emptyItemSlot',test: /!\s*\w+\.item|hasItem\(\)\s*===?\s*false/, note: 'the holder has NO item' },
+  { key: 'targetBoosted',test: /statsRaisedThisTurn/,                     note: 'the target just set up' },
+  { key: 'moveType',     test: /move\.type\s*===?\s*"/,                  note: 'one specific move type' },
+];
+
+/* Every handler an ability or item can react through. */
+function handlerText(o) {
+  let out = '';
+  for (const k of Object.keys(o)) if (k.startsWith('on') && typeof o[k] === 'function') out += String(o[k]);
+  return out;
+}
+
+const linkage = {};
+for (const K of KEYS) linkage[K.key] = { note: K.note, abilities: [], items: [], moves: [] };
+for (const [kind, tbl, dexAll] of [['abilities', abils.entries, dex.abilities.all()],
+                                   ['items', items.entries, dex.items.all()]]) {
+  for (const o of dexAll) {
+    if (!o || !o.exists || o.isNonstandard) continue;
+    const id = norm(o.id || o.name);
+    if (!tbl[id]) continue;                       /* only things tagged or actually played */
+    const src = handlerText(o);
+    if (!src) continue;
+    for (const K of KEYS) if (K.test.test(src))
+      linkage[K.key][kind].push({ id, name: o.name, uses: tbl[id].uses || 0 });
+  }
+}
+/* And the MOVE side: which moves actually carry each key, so a subscription has a population. */
+for (const m of dex.moves.all()) {
+  if (!m || !m.exists || m.isNonstandard) continue;
+  const id = norm(m.id);
+  const u = U.move[id] || 0;
+  if (!u) continue;
+  const f = m.flags || {};
+  for (const K of KEYS) {
+    let hit = false;
+    if (['contact','sound','punch','bullet','powder','wind','slicing','bite','heal'].includes(K.key)) hit = !!f[K.key];
+    else if (K.key === 'priorityMove') hit = m.priority > 0;
+    else if (K.key === 'statusMove')   hit = m.category === 'Status';
+    else if (K.key === 'physicalMove') hit = m.category === 'Physical';
+    else if (K.key === 'specialMove')  hit = m.category === 'Special';
+    if (hit) linkage[K.key].moves.push({ id, name: m.name, uses: u });
+  }
+}
+for (const k in linkage) {
+  for (const side of ['abilities','items','moves']) linkage[k][side].sort((a,b) => b.uses - a.uses);
+  linkage[k].moveUses    = linkage[k].moves.reduce((s,x) => s + x.uses, 0);
+  linkage[k].reactorUses = [...linkage[k].abilities, ...linkage[k].items].reduce((s,x) => s + x.uses, 0);
+}
+
+console.log('');
+console.log('LINKAGE -- move properties, and what subscribes to them:');
+console.log('  key             moves carrying it      things that react');
+for (const [k, v] of Object.entries(linkage).sort((a,b) => b[1].reactorUses - a[1].reactorUses)) {
+  const r = v.abilities.length + v.items.length;
+  if (!r) continue;
+  console.log('  ' + k.padEnd(15) + String(v.moves.length).padStart(4) + ' moves / ' +
+    String(v.moveUses).padStart(6) + ' uses   ' + String(r).padStart(3) + ' reactors / ' +
+    String(v.reactorUses).padStart(6) + ' sheets');
+}
+
 const all = [...Object.values(moves.index), ...Object.values(items.index), ...Object.values(abils.index)];
 const totalUses = { move: Object.values(U.move).reduce((a, b) => a + b, 0),
                     item: Object.values(U.item).reduce((a, b) => a + b, 0),
@@ -1676,7 +1776,7 @@ fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
   consumedBy: 'CHECKED by grepping engine/board.js and engine/medicham2-browser.js for the tag probe. '
             + 'A tag whose probe appears in neither is reported NOT READ regardless of intent.',
   sheet_entries: U.entries,
-  tags: all, moves: moves.entries, items: items.entries, abilities: abils.entries,
+  tags: all, linkage, moves: moves.entries, items: items.entries, abilities: abils.entries,
 }, null, 1));
 console.log('\nwrote data/tags.json');
 if (emptyTags.length) {
