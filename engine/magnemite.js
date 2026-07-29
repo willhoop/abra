@@ -59,6 +59,44 @@ function loadWeights(file) {
   return j;
 }
 
+/* HOW LONG DOES IT LAST — read from the dex, not assumed infinite.
+ *
+ * The board has tracked expiry correctly since it was written: startSide and startField store
+ * `turn + duration` and hasSide compares against the current turn. The PLAYER passed 1e9. So in
+ * every game MAG has ever played, Trick Room, Tailwind and the screens were PERMANENT -- they never
+ * expired, deadField reported them as already up forever, and the speed doubling never stopped.
+ *
+ * Same shape as every other bug found on 2026-07-28: the machinery exists and the caller does not
+ * use it. Durations are plain dex data -- Tailwind 4, everything else 5 -- so this is a lookup, and
+ * Light Clay extends the three screens to 8, which is why the holder is checked.
+ *
+ * Falls back to 5 for anything unrecognised, which is the generic field duration and is finite. */
+let _durCache = null;
+function fieldDuration(cond, side, board) {
+  if (!_durCache) {
+    _durCache = {};
+    try {
+      for (const m of dex.moves.all()) {
+        if (!m || !m.exists) continue;
+        const key = B.norm(m.sideCondition || m.pseudoWeather || '');
+        const d = m.condition && m.condition.duration;
+        if (key && d) _durCache[key] = d;
+      }
+    } catch (e) { /* fall through to the default */ }
+  }
+  const base = _durCache[B.norm(cond)] || 5;
+  /* Light Clay: 8 turns instead of 5, and only for the three screens. Checked against the SHEET,
+   * which now actually reaches the player. */
+  if (side && board && /^(reflect|lightscreen|auroraveil)$/.test(B.norm(cond))) {
+    for (const f of board.field()) {
+      if (f.side !== side) continue;
+      const it = board.sheetItem(side, f.mon.species);
+      if (it && B.norm(it) === 'lightclay') return 8;
+    }
+  }
+  return base;
+}
+
 /* Protocol identifiers: "p1a: Nickname" -> side p1, position 0. */
 const SLOT = /^(p[12])([a-c]): (.*)$/;
 const posOf = letter => letter.charCodeAt(0) - 97;
@@ -314,7 +352,7 @@ function makeScoringPlayer(opts = {}) {
       } else if (cmd === '-fieldstart') {
         const mv = dex.moves.get(String(p[1] || '').replace(/^move:\s*/, ''));
         const k = mv && mv.exists ? B.fieldKey(mv) : norm(p[1]);
-        if (k) this.board.startField(k, 1e9);
+        if (k) this.board.startField(k, fieldDuration(k));
       } else if (cmd === '-fieldend') {
         const mv = dex.moves.get(String(p[1] || '').replace(/^move:\s*/, ''));
         const k = mv && mv.exists ? B.fieldKey(mv) : norm(p[1]);
@@ -327,7 +365,7 @@ function makeScoringPlayer(opts = {}) {
         const mv = dex.moves.get(String(p[2] || '').replace(/^move:\s*/, ''));
         const k = mv && mv.exists && mv.sideCondition ? norm(mv.sideCondition) : norm(p[2]);
         if (!k || !this.board.sides[side]) return;
-        if (cmd === '-sidestart') this.board.sides[side].sideConditions.set(k, 1e9);
+        if (cmd === '-sidestart') this.board.startSide(side, k, fieldDuration(k, side, this.board));
         else this.board.sides[side].sideConditions.delete(k);
       } else if (cmd === 'turn') {
         this.board.endTurn();

@@ -24,6 +24,12 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 const M = require(path.join(__dirname, '..', '..', 'CHOMP', 'engine', 'champ-model.js'));
+/* The dex, for the facts the engine owns and CHOMP's model does not carry — currently weight. */
+let DEX = null;
+try {
+  const CS = require(path.join(__dirname, '..', 'engine', 'champions_sim.js'));
+  DEX = CS.sim().Dex.forFormat(CS.FORMAT);
+} catch (e) { console.warn('  no dex available — weights will fall back to whatever was stored'); }
 const OUT = path.join(__dirname, '..', 'data', 'engine-data.js');
 
 // keep whatever move/item/ability priors the previous file carried - those are ABRA's, not the
@@ -44,6 +50,21 @@ for (const [key, m] of Object.entries(M.MONS)) {
     mv: old.mv || [],
     item: old.item || null,
     ab: old.ab || null,
+    /* WEIGHT, in kg. Absent until 2026-07-28, and its absence made four moves UNCOMPUTABLE rather
+     * than merely wrong: Low Kick (1,854 uses) and Grass Knot (242) scale with the target's weight,
+     * Heavy Slam (119) and Heat Crash (5) with the weight RATIO. Their dex basePower is 0, so
+     * board.js returned null and scored them as NON-DAMAGING — invisible, not mis-valued.
+     *
+     * Taken from the dex (species.weighthg, hectograms) rather than from CHOMP's model, because the
+     * dex is the engine's own truth and this is exactly the kind of number that must not be
+     * restated. Falls back to whatever was previously stored so a dex-less run cannot erase it. */
+    wt: (() => {
+      try {
+        const sp = DEX && DEX.species.get(key);
+        if (sp && sp.exists && sp.weighthg) return sp.weighthg / 10;
+      } catch (e) { /* fall through */ }
+      return old.wt != null ? old.wt : null;
+    })(),
   };
   // if there was no stored line, derive a neutral one so nothing breaks
   if (!mons[key].st) {
@@ -77,4 +98,5 @@ fs.writeFileSync(OUT, out);
 console.log(`build_engine_data — ${Object.keys(mons).length} species written`);
 console.log(`  base stats present: ${Object.values(mons).filter(m => m.bs).length}`);
 console.log(`  moves preserved: ${Object.keys(MC.moves).length} | type chart: ${Object.keys(MC.C).length}`);
+console.log(`  weights present: ${Object.values(mons).filter(m => m.wt != null).length}`);
 console.log('  wrapper, mcEff and exports left untouched');
