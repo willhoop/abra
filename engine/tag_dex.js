@@ -1789,12 +1789,25 @@ const ABILITY_TAGS = [
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },
-  { tag: 'weatherSetter', param: 'weather := x on switch-in', probe: 'weatherSetter',
-    why: 'and megaing can COST you it, which is Will\'s reason to decline a mega',
-    of: a => (a.onStart && /setWeather/.test(String(a.onStart))) ? { sets: true } : null },
-  { tag: 'terrainSetter', param: 'terrain := x on switch-in', probe: 'terrainSetter',
+  /* {sets:true} named neither WHICH weather nor which terrain — the boolean-instead-of-parameter
+   * defect, found again when Will listed the real switch-in threats ("weather, type immunities, or
+   * farigaraf blocking prio") and none of the three carried a consumable value. */
+  { tag: 'weatherSetter', param: 'weather := WHICH on switch-in', probe: 'weatherSetter',
+    why: 'and megaing can COST you it, which is Will\'s reason to decline a mega. Also the first '
+       + 'switch-in threat class: a benched Drizzle deletes the sun your Solar Beam click rides on',
+    of: a => {
+      const m = a.onStart && String(a.onStart).match(/setWeather\(\s*["'](\w+)["']/);
+      if (!m) return null;
+      const W2K = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain',
+                    sandstorm: 'sand', hail: 'snow', snowscape: 'snow', snow: 'snow' };
+      return { weather: W2K[m[1]] || m[1] };
+    } },
+  { tag: 'terrainSetter', param: 'terrain := WHICH on switch-in', probe: 'terrainSetter',
     why: 'same shape as weather',
-    of: a => (a.onStart && /setTerrain/.test(String(a.onStart))) ? { sets: true } : null },
+    of: a => {
+      const m = a.onStart && String(a.onStart).match(/setTerrain\(\s*["'](\w+)["']/);
+      return m ? { terrain: m[1].replace(/terrain$/, '') } : null;
+    } },
   { tag: 'speedCond', param: 'speed x2 under a condition', probe: 'onModifySpe',
     why: 'Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order',
     of: a => {
@@ -1826,16 +1839,43 @@ const ABILITY_TAGS = [
        * rather than a hardcode. The Beast Boost half is carried separately by boostsOnKO. */
       if (/^(levitate|eelevate)$/.test(norm(a.name)))
         return { immune: true, type: 'Ground', via: 'not derivable -- no handler' };
-      if (a.onTryHit && /move\.type|type ===/.test(String(a.onTryHit))) return { immune: true, via: 'onTryHit' };
+      /* WHICH type, and what the absorber GAINS — {immune:true} could not price "my Thunderbolt
+       * into their benched Gastrodon is not just zero, it is minus a heal". The gain is the
+       * difference between a wasted click and a fed pivot. */
+      if (a.onTryHit) {
+        const src = String(a.onTryHit);
+        const ty = src.match(/move\.type\s*===\s*"(\w+)"/);
+        if (ty) {
+          const gain = {};
+          const heal = src.match(/heal\([^)]*maxhp\s*\/\s*(\d+)/i);
+          if (heal) gain.heal = '1/' + heal[1];
+          const bo = src.match(/this\.boost\(\s*\{([^}]*)\}/);
+          if (bo) { gain.boosts = {}; for (const part of bo[1].split(',')) {
+            const kv = part.split(':').map(x => x.trim());
+            if (kv.length === 2 && /^-?\d+$/.test(kv[1])) gain.boosts[kv[0].replace(/["']/g, '')] = +kv[1]; } }
+          const vol = src.match(/addVolatile\(\s*["'](\w+)["']/);
+          if (vol) gain.volatile = vol[1];
+          return { immune: true, type: ty[1], via: 'onTryHit',
+                   gain: Object.keys(gain).length ? gain : null };
+        }
+      }
       const TYPES = /Bug|Dark|Dragon|Electric|Fairy|Fighting|Fire|Flying|Ghost|Grass|Ground|Ice|Normal|Poison|Psychic|Rock|Steel|Water/;
-      if (a.onImmunity && TYPES.test(String(a.onImmunity))) return { immune: true, via: 'onImmunity' };
+      if (a.onImmunity) {
+        const m = String(a.onImmunity).match(TYPES);
+        if (m) return { immune: true, type: m[0], via: 'onImmunity' };
+      }
       return null;
     } },
   { tag: 'redirectsType', param: 'draws that type to itself', probe: 'lightningrod',
     why: 'Lightning Rod and Storm Drain redirect AND boost',
     /* onAnyRedirectTarget, not onFoeRedirectTarget -- the probe was simply wrong and the tag matched
      * nothing until the empty-tag check flagged it. */
-    of: a => (a.onAnyRedirectTarget || a.onFoeRedirectTarget) ? { redirect: true } : null },
+    of: a => {
+      const src = String(a.onAnyRedirectTarget || a.onFoeRedirectTarget || '');
+      if (!src) return null;
+      const ty = src.match(/move\.type\s*[!=]==?\s*"(\w+)"/);
+      return { type: ty ? ty[1] : null };
+    } },
   /* SPLIT ON WILL'S RULING, 2026-07-29. One tag was covering two mechanics that imply OPPOSITE
    * decisions, and the difference is whether the effect COMPOUNDS.
    *
@@ -1971,9 +2011,17 @@ const ABILITY_TAGS = [
       return { mult: multiplierIn(src), onType: ty, inWeather: w.length ? w : null,
                onlyWhen: hpGateIn(src), costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
     } },
-  { tag: 'blocksMove', param: 'a whole class of move fails', probe: 'onFoeTryMove',
-    why: 'already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold',
-    of: a => a.onFoeTryMove ? { blocks: true } : null },
+  { tag: 'blocksMove', param: 'WHICH class of move fails', probe: 'onFoeTryMove',
+    why: 'already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold. Will\'s third '
+       + 'switch-in threat: "farigaraf blocking prio" — a Sucker Punch plan dies to the pivot',
+    of: a => {
+      const src = String(a.onFoeTryMove || a.onTryHit || '');
+      if (!a.onFoeTryMove && !(a.onTryHit && /category\s*===\s*"Status"/.test(src))) return null;
+      const pr = src.match(/move\.priority\s*>\s*([\d.]+)/);
+      if (pr) return { what: 'priority', priorityAbove: Math.floor(+pr[1]) };
+      if (/category\s*===\s*"Status"/.test(src)) return { what: 'status moves at the holder' };
+      return { what: 'unknown -- unrecognised handler idiom', via: a.onFoeTryMove ? 'onFoeTryMove' : 'onTryHit' };
+    } },
   { tag: 'invertsBoosts', param: 'stat changes flip sign', probe: 'onChangeBoost',
     why: 'Contrary and Simple, already probed for expectedBoostSign',
     of: a => a.onChangeBoost ? { inverts: true } : null },
