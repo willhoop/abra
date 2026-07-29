@@ -28,6 +28,12 @@ svg{width:100%;height:auto;display:block}
   <span><i style="background:#e8e8ec"></i>retired (ties a coin)</span>
   <span><i style="background:#f1e8fc"></i>planned</span>
   <span><i style="background:#fde4e0"></i>quarantined by rule</span>
+  <span style="margin-left:auto">
+    <button id="modeOpen" onclick="setMode('open')" style="font:inherit;font-weight:800;padding:4px 12px;border:2px solid #22303f;border-radius:8px 0 0 8px;background:#dff5e6;cursor:pointer">OPEN SHEETS (today)</button><button id="modeClosed" onclick="setMode('closed')" style="font:inherit;font-weight:800;padding:4px 12px;border:2px solid #22303f;border-left:0;border-radius:0 8px 8px 0;background:#fff;cursor:pointer">CLOSED SHEETS (later)</button>
+  </span>
+</div>
+<div id="modeNote" style="font-size:12px;font-weight:700;color:#5a6a84;margin:0 2px 8px">
+  Open sheets — the format ALAKAZAM starts in. Hidden information is exactly two things: <b>what's in the back</b> and <b>the exact EV spread</b>. XATU's full evidence-reading stays parked.
 </div>
 <div class="panel">
 <svg viewBox="0 0 1160 1310" xmlns="http://www.w3.org/2000/svg" font-family="Verdana,sans-serif">
@@ -126,12 +132,22 @@ svg{width:100%;height:auto;display:block}
 <text x="34" y="549" class="io">out: battleInit/battleTurn — the same loop, stepped, so a human can drive side A</text>
 <text x="34" y="570" class="st" fill="#1f7a3c">live &amp; measured — 200+ gate checks; every consumer below reads THIS, never its own copy</text>
 
+<g id="xatuBox">
 <rect class="box" x="600" y="464" width="256" height="88" fill="#fff2dc"/>
 <text x="614" y="486" class="t">XATU — opponent belief</text>
-<text x="614" y="503" class="io">in: revealed info during a game</text>
-<text x="614" y="516" class="io">out: beliefs about what's hidden</text>
-<text x="614" y="536" class="st" fill="#8a5a1a">built, not yet feeding rollouts. Open sheets need only</text>
-<text x="614" y="548" class="st" fill="#8a5a1a">bring + EV spread; full XATU waits for closed sheets</text>
+<g id="xatuOpen">
+<text x="614" y="503" class="io">in: the sheet (item/ability/moves/nature all public)</text>
+<text x="614" y="516" class="io">out: only two guesses — the bench, the EV spread</text>
+<text x="614" y="536" class="st" fill="#8a5a1a">mostly PARKED in this mode: nature narrows spreads</text>
+<text x="614" y="548" class="st" fill="#8a5a1a">to 1–2 candidates; SLOWKING covers the bench</text>
+</g>
+<g id="xatuClosed" style="display:none">
+<text x="614" y="503" class="io">in: every reveal — moves shown, damage rolls, speed</text>
+<text x="614" y="516" class="io">order leaks, the Intimidate that didn't happen</text>
+<text x="614" y="536" class="st" fill="#8a5a1a">CENTRAL in this mode: full set-belief, updated live.</text>
+<text x="614" y="548" class="st" fill="#8a5a1a">Will's double-weather surprise theory lives here too</text>
+</g>
+</g>
 
 <rect class="box" x="884" y="464" width="256" height="88" fill="#dff5e6"/>
 <text x="898" y="486" class="t">SLOWKING — preview Nash</text>
@@ -227,4 +243,16 @@ svg{width:100%;height:auto;display:block}
 <text x="20" y="1252" class="lbl">Generated 2026-07-29 during the tag-wiring push. The 600k strength verdict was in flight when this was drawn.</text>
 </svg>
 </div>
+<script>
+function setMode(m){
+  var open=m==='open';
+  document.getElementById('xatuOpen').style.display=open?'':'none';
+  document.getElementById('xatuClosed').style.display=open?'none':'';
+  document.getElementById('modeOpen').style.background=open?'#dff5e6':'#fff';
+  document.getElementById('modeClosed').style.background=open?'#fff':'#f1e8fc';
+  document.getElementById('modeNote').innerHTML=open
+    ?"Open sheets — the format ALAKAZAM starts in. Hidden information is exactly two things: <b>what's in the back</b> and <b>the exact EV spread</b>. XATU's full evidence-reading stays parked."
+    :"Closed sheets — the later campaign. Everything is hidden until revealed, XATU becomes the central input (reading moves, damage rolls and speed leaks as evidence), and <b>surprise has value</b> — which is where the double-weather theory gets its test.";
+}
+</script>
 </div></body></html>
