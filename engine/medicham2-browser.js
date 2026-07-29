@@ -16,6 +16,15 @@
  * degrades to a null lookup if the page did not ship it -- which keeps the site working while
  * making the absence visible through TAGS.missing rather than silently scoring everything at x1. */
 const TAGS = (function(){
+  /* AN A/B SWITCH, so both arms of a head-to-head share one binary. ABRA_TAGS_OFF=1 makes every
+   * lookup return null, which reverts the engine to exactly its pre-wire behaviour -- the honest
+   * control for "did wiring the artifact make the bot stronger". Without this the comparison would
+   * be against a different build, and half this project's null results came from arms that were not
+   * actually comparable. */
+  if (typeof process !== 'undefined' && process.env && process.env.ABRA_TAGS_OFF === '1') {
+    return { off: true, param(){ return null; }, has(){ return false; },
+             reactorsTo(){ return {abilities:[],items:[],moves:[]}; }, hits(){ return {}; } };
+  }
   if (typeof module !== 'undefined' && module.exports && typeof require === 'function') {
     try { return require('./tags.js'); } catch (e) { /* fall through to the browser path */ }
   }

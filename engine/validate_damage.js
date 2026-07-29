@@ -81,6 +81,17 @@ const S=[
  ['Garchomp','Rough Skin','Expert Belt','Adamant','atk','earthquake','Incineroar','Careful',{hp:252,spd:4},W_NONE],       // SE x1.2
  ['Garchomp','Rough Skin','Muscle Band','Adamant','atk','earthquake','Gholdengo','Bold',{hp:252,def:4},W_NONE],           // phys x1.1
  ['Gholdengo','Good as Gold','Wise Glasses','Modest','spa','shadowball','Flutter Mane','Timid',{hp:252},W_NONE],          // spec x1.1
+ /* --- ADDED 2026-07-29, and the reason matters. Will asked how the damage could line up with
+    Showdown if the calc had so many errors. It lined up on everything it was ASKED: the original 31
+    scenarios covered Choice Band, Life Orb, Expert Belt, Muscle Band and Wise Glasses, and not one
+    type-boost item or resist berry. A grep for blackglasses|charcoal in this file returned 0. The
+    case list was written from the same mental model as the calc, so both were blind to the same 18
+    items. These scenarios are the gap, and they FAIL with ABRA_TAGS_OFF=1 by construction. */
+ ['Kingambit','Defiant','Black Glasses','Adamant','atk','suckerpunch','Gholdengo','Bold',{hp:252,def:4},W_NONE],          // Dark x1.2
+ ['Incineroar','Intimidate','Charcoal','Adamant','atk','flareblitz','Amoonguss','Calm',{hp:252,def:4},W_NONE],            // Fire x1.2
+ ['Flutter Mane','Protosynthesis','Fairy Feather','Timid','spa','moonblast','Garchomp','Jolly',{hp:252},W_NONE],          // Fairy x1.2
+ ['Kingambit','Defiant',null,'Adamant','atk','suckerpunch','Gholdengo','Bold',{hp:252,def:4},W_NONE,null,'Colbur Berry'], // SE Dark halved
+ ['Rillaboom','Grassy Surge',null,'Adamant','atk','closecombat','Kingambit','Adamant',{hp:252},W_NONE,null,'Chople Berry'],// SE Fighting halved
 ];
 
 function medStat(res, side, cat){ const st=res[side].stats; return cat==='P'?st.atk:st.spa; }
