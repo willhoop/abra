@@ -93,6 +93,23 @@ const MOVE_TAGS = [
   { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'critRatio',
     why: 'a higher crit stage, which the damage distribution should weight rather than ignore',
     of: m => (m.critRatio && m.critRatio > 1 && !m.willCrit) ? { critRatio: m.critRatio } : null },
+  /* Will: "do we have the terrain and weather attacks like expanding force and weather ball".
+   * Weather Ball is 4,699 uses -- it changes TYPE, POWER and TARGET with the weather, and only the
+   * type is currently handled. Derived from the handlers rather than a move list. */
+  { tag: 'weatherScaled', param: 'type, power or target changes with the weather', probe: 'weatherBall',
+    why: 'Weather Ball (4,699 uses), Hydro Steam. Its type is handled; the power and the target '
+       + 'change are not',
+    of: m => ((m.onModifyType && /weather/i.test(String(m.onModifyType)))
+              || (m.onModifyMove && /weather/i.test(String(m.onModifyMove)))
+              || (m.basePowerCallback && /weather/i.test(String(m.basePowerCallback))))
+             ? { scalesWith: 'weather' } : null },
+  { tag: 'terrainScaled', param: 'power or target changes with the terrain', probe: 'terrainScaled',
+    why: 'Expanding Force becomes a SPREAD move in Psychic Terrain, Rising Voltage doubles in '
+       + 'Electric. Grassy Glide gains priority, which board.js already special-cases',
+    of: m => ((m.onModifyType && /terrain/i.test(String(m.onModifyType)))
+              || (m.onModifyMove && /terrain/i.test(String(m.onModifyMove)))
+              || (m.basePowerCallback && /terrain/i.test(String(m.basePowerCallback))))
+             ? { scalesWith: 'terrain' } : null },
   { tag: 'variablePower', param: 'basePower is computed, not fixed', probe: 'basePowerCallback',
     why: 'Gyro Ball, Low Kick, Grass Knot, Weather Ball, Facade, Acrobatics. A fixed bp reads them wrong in both directions',
     of: m => m.basePowerCallback ? { computed: true } : null },
@@ -290,9 +307,19 @@ const MOVE_TAGS = [
   { tag: 'drain', param: 'heals a fraction of damage dealt', probe: 'drain',
     why: 'changes the value of clicking it into a healthy target',
     of: m => m.drain ? { drain: m.drain } : null },
-  { tag: 'recoil', param: 'costs the user HP', probe: 'recoil',
-    why: 'a cost the score does not currently carry',
-    of: m => (m.recoil || m.mindBlownRecoil || m.struggleRecoil) ? { recoil: m.recoil || true } : null },
+  /* Will: "some recoil moves have more recoil than others we need to modify". The FRACTION is the
+   * parameter, and it ranges widely: Head Smash pays 1/2, Flare Blitz and Wave Crash 33/100, Wild
+   * Charge 1/4. Flare Blitz (4,032) and Wave Crash (4,052) are top-tier moves in this format and the
+   * self-damage is currently free in the score. */
+  { tag: 'recoil', param: 'the user pays a FRACTION of the damage dealt', probe: 'recoil',
+    why: 'Head Smash 1/2, Flare Blitz and Wave Crash 33/100 at ~4,000 uses each, Wild Charge 1/4. '
+       + 'A cost nothing prices',
+    of: m => {
+      if (m.recoil) return { fraction: m.recoil[0] / m.recoil[1] };
+      if (m.mindBlownRecoil) return { fraction: 0.5, of: 'maxhp' };
+      if (m.struggleRecoil) return { fraction: 0.25, of: 'maxhp' };
+      return null;
+    } },
   /* RECONCILED with `drain` on Will's instruction, and split by TARGET as he asked earlier
    * ("restores hp needs a restores MY hp or restores PARTNERS hp"). They do not overlap once
    * separated: drain restores a FRACTION OF DAMAGE DEALT and only exists on an attack, while these
@@ -371,6 +398,15 @@ const ITEM_TAGS = [
   { tag: 'resistBerry', param: 'halves one super-effective hit, then is gone', probe: 'naturalGift',
     why: 'Chople, Colbur, Kasib, Occa. About 6.8% of held items and it turns kills into non-kills',
     of: it => (it.isBerry && it.onSourceModifyDamage) ? { halves: true } : null },
+  /* Will: "lum berry?" -- a different berry class entirely. The resist berries halve a hit; these
+   * delete a status the moment it lands, which makes a status move against the holder a wasted turn.
+   * Derived from the handler rather than named. */
+  { tag: 'curesStatus', param: 'a status is removed the moment it lands', probe: 'lumberry',
+    why: 'Lum (107 uses), Chesto, Rawst. Every status move aimed at the holder is a wasted turn, and '
+       + 'inflictsStatus has no idea',
+    of: it => (it.isBerry && !it.onSourceModifyDamage
+               && /cureStatus|setStatus|status/i.test(String(it.onUpdate || it.onAfterSetStatus || '')))
+              ? { cures: true } : null },
   { tag: 'healsAtHalf', param: 'restores 25% when it drops below half', probe: 'sitrusberry',
     why: 'Sitrus, 10.8% of items. Modelled in the rollout engine only, invisible to MAG',
     of: it => (it.isBerry && it.onUpdate && /sitrus|oran/.test(norm(it.name))) ? { heal: 0.25 } : null },
@@ -395,6 +431,14 @@ const ITEM_TAGS = [
   { tag: 'contactPunish', param: 'hurts anything that makes contact', probe: 'rockyhelmet',
     why: 'a cost of clicking a contact move that is not currently priced',
     of: it => norm(it.name) === 'rockyhelmet' ? { chip: 1 / 6 } : null },
+  /* Will: "or power herb (illegal but future proofing". Right -- it skips the charge turn of ANY
+   * charge move, where the weather skip only covers Electro Shot and the Solar moves. Nonstandard in
+   * this format today, and derived from the handler so it starts working the day it is legal rather
+   * than needing to be remembered. */
+  { tag: 'skipsChargeTurn', param: 'the charge turn is skipped for any charge move', probe: 'powerherb',
+    why: 'Power Herb. Not legal in Reg M-B today; tagged so a format change does not silently leave '
+       + 'a two-turn move scored as two turns',
+    of: it => (it.onChargeMove || /powerherb/.test(norm(it.name))) ? { skipsCharge: true } : null },
   { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'onModifyCritRatio',
     why: 'Scope Lens (Will spotted this one missing). Rare at 0.11% of items, but it sets a parameter '
        + 'the distribution already needs for Flower Trick, so it costs nothing to support. NOTE the '
@@ -431,6 +475,13 @@ const ABILITY_TAGS = [
        + 'Crit damage is x1.5 and Sniper makes it x1.5 again, so x2.25 total -- it was x3 in the old '
        + 'gens when crits themselves were x2, which is where the folklore comes from',
     of: a => (a.onModifyDamage && /crit/i.test(String(a.onModifyDamage))) ? { critMult: 1.5 } : null },
+  /* Will spotted that Cursed Body is neither a contact punisher nor a target benefit: it DISABLES
+   * the move that hit it. That removes an option from MY set for four turns, which is closer to
+   * Encore than to Rough Skin -- and is a cost nothing prices. 833 uses. */
+  { tag: 'disablesAttacker', param: 'the move I just used is removed from MY options', probe: 'cursedbody',
+    why: 'Cursed Body (833 uses). Not damage and not a stat change -- it shrinks my own option set, '
+       + 'the same shape as locksTarget from the receiving end',
+    of: a => (a.onDamagingHit && /disable/i.test(String(a.onDamagingHit))) ? { disables: true } : null },
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },

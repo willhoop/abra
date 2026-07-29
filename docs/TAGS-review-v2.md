@@ -1,49 +1,63 @@
-# Tag assignments — corrected pass
+# Tag review — corrected pass
 
-**90 tags** across moves, items and abilities. Generated from `data/tags.json`.
-Usage from **5,440 open-sheet human games**, 65,280 sheet entries, 260,799 move slots.
+**91 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
 
-## What changed since your first review
+## Every point from your review
 
-| you said | what changed |
+| you said | what I did |
 |---|---|
 | Scope Lens? | added — items had **no** crit tag at all. Also Super Luck, Merciless |
-| Sniper makes crits 3x | added as a third crit parameter. It is **×2.25**, not ×3 — crits became ×1.5 |
-| tag never-miss moves | added `neverMisses` — 34.4% of move slots |
-| easier to say what Protect does NOT block | inverted. Feint, Phantom Force, Future Sight |
-| how do you model Mold Breaker | one boolean gating every defender ability tag |
-| .75 same but differ on both enemies vs my side too | split `spreadFoes` / `spreadAll` |
-| Rock Slide only hits the enemy side | **you were right, I was wrong** — it is allAdjacentFoes |
-| Wide Guard: side condition or protect? | split `oneTurnGuard` / `sideBuff` / `hazard` |
-| hazards are different than reflect | separated — they sit on **their** side and price future switches |
+| max is 1.5 crit | documented — the ratio is a *stage* feeding P(crit); crit damage stays ×1.5 |
+| Sniper makes crits 3x | added as a third crit parameter — but it is **×2.25**. It was ×3 when crits were ×2 |
+| tag never-miss moves | `neverMisses` — 34.4% of move slots |
+| Horn Drill is also OHKO | tagged. The whole OHKO family has **zero** usage in 260,799 slots |
+| how do you model Mold Breaker | one boolean gating every defender-ability tag |
+| do we need the priority table | already correct — it probes onModifyPriority. **Gap: Quash and priority items** |
+| you can use negative prio vs Farig | verified: +3 → 0.984 blocked, 0 and −6 → 0.000 |
+| does Gale Wings check full HP | verified — the probe passes real HP, so the condition evaluates |
+| is Draining Kiss contact | yes. Exactly **4** special contact moves exist, 3 see play |
+| .75 same, differ enemies vs my side too | split `spreadFoes` (9.7%) / `spreadAll` (2.0%) |
+| Rock Slide only hits the enemy side | **you were right, I was wrong.** It is allAdjacentFoes |
+| what is Dazzling | the ability, on Bruxish. Three names for one identical effect |
 | these are just % chance to flinch | `flinches` now carries P(flinch), 10%–100% |
-| King's Rock | added — same parameter from the item side |
-| recoil moves differ | recoil carries its fraction |
+| King&rsquo;s Rock | added — same parameter, from the item side |
+| Wide Guard: side condition or protect | split `oneTurnGuard` / `sideBuff` / `hazard` |
+| hazards are different than Reflect | separated — **their** side, prices future switches |
+| some recoil moves have more than others | now carries the fraction. Head Smash 1/2, Flare Blitz 33/100 |
 | restores MY hp or PARTNER hp | split `healsSelf` / `healsAlly`, reconciled with `drain` |
-| Trick Room needs its own tag | `reversesSpeed`. Wonder Room and Magic Room separated too |
-| accuracy boosting tags — Gravity | added `accuracyMod` |
+| make sure Wide Guard works | **it does not** — rollout engine only. 2,065 uses |
+| Trick Room needs its own tag | `reversesSpeed`. Wonder Room, Magic Room and Gravity separated too |
+| accuracy tags — Gravity | `accuracyMod` |
+| Wonder Room makes items useless? | close — Wonder Room **swaps Def/SpD**; *Magic Room* kills items. Both tagged |
 | charge needs a weather sub-tag | `chargeSkippedByWeather` — Electro Shot in rain, Solar Beam in sun |
+| or Power Herb (future proofing) | `skipsChargeTurn` — nonstandard today, derived so it works the day it is legal |
+| Phantom Force / Meteor Beam not weather | correct — excluded |
 | these are just switch moves not damage | split `pivotDamaging` / `pivotStatus` / `passesState` |
 | is Substitute its own class | yes — added |
 | Coaching would never be used on the enemy | boosts split **by sign**, not by target field |
-| Memento is an Explosion-like move | added `userFaints` |
-| Encore is sorta like choice lock | added `locksTarget` |
-| status section for the Prankster buff | added `statusCategory` — **38.5%** of move slots, unnamed until now |
-| Weather Ball / Expanding Force | added `weatherScaled` / `terrainScaled` |
-| Lum Berry | added `curesStatus` |
-| Cursed Body is neither | added `disablesAttacker` — it shrinks **my** options |
-| no hardcodes | contact, weather/terrain setters, Intimidate, redirection, Sniper now derive from handler source. **18** name-based definitions remain, counted below |
+| Decorate almost never on the foe | same fix — 525 Coaching and 18 Decorate were mistagged as debuffs |
+| you could Decorate a Contrary Staraptor | Mega Staraptor **does** have Contrary. `expectedBoostSign` already handles the inversion |
+| Memento is an Explosion-like move | `userFaints` |
+| Encore is sorta like choice lock | `locksTarget` |
+| status section for the Prankster buff | `statusCategory` — **38.5%** of move slots, unnamed until now |
+| Weather Ball / Expanding Force | `weatherScaled` / `terrainScaled` |
+| do we know what each berry resists | yes — the dex names it. 16 in play, 9.8% of items |
+| Lum Berry? | `curesStatus` — a different class from the resist berries |
+| Cursed Body / Toxic Debris under contact? | different **triggers**. Contact now derived from handler source |
+| is "something happens when hit" enough | yes for the decision, no for the number |
+| Reflect and Light Screen into damage calcs | **they are not.** 5,187 uses, zero effect on damage |
+| no hardcodes | contact, weather/terrain setters, Intimidate, redirection and Sniper now derive from handler source. **18** name-based definitions remain, counted in the tool |
 
-## Two gaps found while answering you
+## The two gaps this surfaced
 
-**Screens do not affect damage.** board.js derives the screen set correctly and feeds it to one
-consumer — a DODUO joint feature that is switched off. Light Screen 2,346 + Reflect 1,988 +
-Aurora Veil 853 = **5,187 uses**, and none of them halve a damage number.
+**Screens do not affect damage.** board.js derives the screen set correctly, then feeds it to
+one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 + Reflect 1,988
++ Aurora Veil 853 = **5,187 uses**, and none of them halve a single damage number.
 
-**Wide Guard works in the rollout engine only** (with a hardcoded 35% heuristic). board.js has
-nothing. **2,065 uses**.
+**Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
+has nothing. **2,065 uses**.
 
-## 41 of 90 tags are read by nothing
+## 42 of 91 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
@@ -87,9 +101,169 @@ nothing. **2,065 uses**.
 | `blocksSecondary` | 0.0% | added effects do not apply to the holder |
 | `preventsStatDrop` | 0.0% | stat drops do not apply |
 | `contactPunish` | 0.0% | hurts anything that makes contact |
+| `skipsChargeTurn` | 0.0% | the charge turn is skipped for any charge move |
 | `preventsSwitch` | 0.0% | the foe cannot leave |
 
 *read? is a grep for the probe string — wrong in both directions. A shortlist to verify, not a verdict.*
+
+---
+
+# STATUS MOVES — you asked to review these
+
+**146 see real play.** All of them get **Prankster +1**, are **blanked by Taunt**,
+and are **illegal under Assault Vest** — three interactions hanging off one property nothing
+had named until now.
+
+| move | uses | prio | other tags |
+|---|---|---|---|
+| Protect | 43,362 | +4 | `priority` `neverMisses` `stalling` |
+| Tailwind | 6,981 |  | `neverMisses` `sideBuff` |
+| Parting Shot | 4,782 |  | `sound` `pivotStatus` |
+| Trick Room | 4,415 | -7 | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` |
+| Rage Powder | 3,851 | +2 | `priority` `powder` `neverMisses` `redirects` |
+| Encore | 2,758 |  | `locksTarget` |
+| Light Screen | 2,346 |  | `neverMisses` `sideBuff` |
+| Wide Guard | 2,065 | +3 | `priority` `neverMisses` `oneTurnGuard` |
+| Helping Hand | 2,027 | +5 | `priority` `neverMisses` |
+| Reflect | 1,988 |  | `neverMisses` `sideBuff` |
+| Nasty Plot | 1,763 |  | `neverMisses` `boostsUser` |
+| Life Dew | 1,683 |  | `neverMisses` `healsAlly` |
+| Roost | 1,353 |  | `neverMisses` `healsSelf` |
+| Swords Dance | 1,195 |  | `neverMisses` `boostsUser` |
+| Calm Mind | 1,163 |  | `neverMisses` `boostsUser` |
+| Detect | 1,162 | +4 | `priority` `neverMisses` `stalling` |
+| Will-O-Wisp | 1,101 |  | `inflictsStatus` |
+| Follow Me | 933 | +2 | `priority` `neverMisses` `redirects` |
+| Taunt | 867 |  | `locksTarget` |
+| Aurora Veil | 853 |  | `neverMisses` `sideBuff` |
+| Sleep Powder | 734 |  | `powder` `inflictsStatus` |
+| Rain Dance | 701 |  | `neverMisses` `ignoresProtect` `setsWeather` |
+| Charm | 691 |  | `lowersTarget` |
+| Bulk Up | 561 |  | `neverMisses` `boostsUser` |
+| Perish Song | 560 |  | `sound` `neverMisses` `ignoresProtect` |
+| Yawn | 536 |  | `neverMisses` |
+| Coaching | 525 |  | `neverMisses` `boostsTarget` |
+| Strength Sap | 518 |  | `healsAlly` |
+| Toxic | 480 |  | `inflictsStatus` |
+| Baneful Bunker | 436 | +4 | `priority` `neverMisses` `stalling` |
+| Disable | 414 |  | `locksTarget` |
+| Spiky Shield | 401 | +4 | `priority` `neverMisses` `stalling` |
+| Sunny Day | 376 |  | `neverMisses` `ignoresProtect` `setsWeather` |
+| Haze | 359 |  | `neverMisses` `ignoresProtect` |
+| Quick Guard | 356 | +3 | `priority` `neverMisses` `oneTurnGuard` |
+| Fake Tears | 345 |  | `lowersTarget` |
+| Dragon Dance | 343 |  | `neverMisses` `boostsUser` |
+| Coil | 301 |  | `neverMisses` `accuracyMod` `boostsUser` |
+| Recover | 300 |  | `neverMisses` `healsSelf` |
+| Thunder Wave | 284 |  | `inflictsStatus` |
+| Roar | 281 | -6 | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` |
+| Hypnosis | 273 |  | `inflictsStatus` |
+| Trick | 266 |  | — |
+| Shell Smash | 248 |  | `neverMisses` `boostsUser` |
+| Leech Seed | 234 |  | — |
+| Substitute | 234 |  | `neverMisses` `substitute` |
+| Scary Face | 208 |  | `lowersTarget` |
+| Clangorous Soul | 189 |  | `sound` `neverMisses` `boostsUser` |
+| Tickle | 177 |  | `lowersTarget` |
+| Imprison | 158 |  | `neverMisses` |
+| Iron Defense | 146 |  | `neverMisses` `boostsUser` |
+| King's Shield | 127 | +4 | `priority` `neverMisses` `stalling` |
+| Quash | 125 |  | — |
+| After You | 104 |  | `neverMisses` `ignoresProtect` |
+| Instruct | 90 |  | `neverMisses` |
+| Soak | 78 |  | — |
+| Ally Switch | 76 | +2 | `priority` `neverMisses` |
+| Belly Drum | 66 |  | `neverMisses` |
+| Baton Pass | 65 |  | `neverMisses` `passesState` |
+| Swagger | 64 |  | `boostsTarget` |
+| Heal Pulse | 62 |  | `neverMisses` `healsAlly` |
+| Stealth Rock | 62 |  | `neverMisses` `hazard` |
+| Curse | 61 |  | `neverMisses` `ignoresProtect` |
+| Quiver Dance | 58 |  | `neverMisses` `boostsUser` |
+| Skill Swap | 56 |  | `neverMisses` |
+| Baby-Doll Eyes | 50 | +1 | `priority` `lowersTarget` |
+| Psychic Terrain | 50 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
+| Psych Up | 46 |  | `neverMisses` `ignoresProtect` |
+| Wish | 46 |  | `neverMisses` `healsSelf` |
+| Rest | 44 |  | `neverMisses` `healsSelf` |
+| No Retreat | 43 |  | `neverMisses` `boostsUser` |
+| Shed Tail | 41 |  | `neverMisses` `passesState` `substitute` |
+| Destiny Bond | 39 |  | `neverMisses` |
+| Transform | 39 |  | `neverMisses` `ignoresProtect` |
+| Gravity | 34 |  | `neverMisses` `ignoresProtect` `accuracyMod` |
+| Slack Off | 34 |  | `neverMisses` `healsSelf` |
+| Synthesis | 33 |  | `neverMisses` `healsSelf` |
+| Memento | 31 |  | `lowersTarget` `userFaints` |
+| Worry Seed | 29 |  | — |
+| Howl | 26 |  | `sound` `neverMisses` `boostsTarget` |
+| Pain Split | 26 |  | `neverMisses` |
+| Moonlight | 21 |  | `neverMisses` `healsSelf` |
+| Stockpile | 21 |  | `neverMisses` |
+| Tidy Up | 21 |  | `neverMisses` |
+| Cotton Spore | 20 |  | `spreadFoes` `powder` `lowersTarget` |
+| Entrainment | 20 |  | — |
+| Glare | 20 |  | `inflictsStatus` |
+| Toxic Spikes | 20 |  | `neverMisses` `hazard` |
+| Decorate | 18 |  | `neverMisses` `ignoresProtect` `boostsTarget` |
+| Shelter | 18 |  | `neverMisses` `boostsUser` |
+| Chilly Reception | 17 |  | `neverMisses` `ignoresProtect` `pivotStatus` `setsWeather` |
+| Sticky Web | 17 |  | `neverMisses` `hazard` |
+| Cosmic Power | 15 |  | `neverMisses` `boostsUser` |
+| Dragon Cheer | 14 |  | `sound` `neverMisses` |
+| Minimize | 14 |  | `neverMisses` `accuracyMod` `boostsUser` |
+| Acid Armor | 13 |  | `neverMisses` `boostsUser` |
+| String Shot | 13 |  | `spreadFoes` `lowersTarget` |
+| Role Play | 12 |  | `neverMisses` `ignoresProtect` |
+| Stun Spore | 12 |  | `powder` `inflictsStatus` |
+| Whirlwind | 12 | -6 | `priority` `neverMisses` `ignoresProtect` `forcesSwitch` |
+| Electric Terrain | 11 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
+| Agility | 10 |  | `neverMisses` `boostsUser` |
+| Eerie Impulse | 10 |  | `lowersTarget` |
+| Sleep Talk | 10 |  | `neverMisses` |
+| Topsy-Turvy | 10 |  | `neverMisses` |
+| Cotton Guard | 9 |  | `neverMisses` `boostsUser` |
+| Simple Beam | 9 |  | — |
+| Feather Dance | 8 |  | `lowersTarget` |
+| Morning Sun | 7 |  | `neverMisses` `healsSelf` |
+| Switcheroo | 7 |  | — |
+| Toxic Thread | 6 |  | `lowersTarget` `inflictsStatus` |
+| Safeguard | 6 |  | `neverMisses` `sideBuff` |
+| Aqua Ring | 5 |  | `neverMisses` |
+| Grassy Terrain | 5 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
+| Magic Powder | 5 |  | `powder` |
+| Mean Look | 5 |  | `neverMisses` `ignoresProtect` |
+| Misty Terrain | 5 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
+| Power Swap | 5 |  | `neverMisses` |
+| Speed Swap | 5 |  | `neverMisses` |
+| Spikes | 5 |  | `neverMisses` `hazard` |
+| Spite | 5 |  | — |
+| Growth | 4 |  | `weatherScaled` `neverMisses` `boostsUser` |
+| Sandstorm | 4 |  | `neverMisses` `ignoresProtect` `setsWeather` |
+| Trick-or-Treat | 4 |  | — |
+| Amnesia | 4 |  | `neverMisses` `boostsUser` |
+| Copycat | 4 |  | `neverMisses` |
+| Defog | 4 |  | `neverMisses` |
+| Focus Energy | 4 |  | `neverMisses` |
+| Healing Wish | 4 |  | `neverMisses` `userFaints` `healsSelf` |
+| Torment | 4 |  | `locksTarget` |
+| Snowscape | 3 |  | `neverMisses` `ignoresProtect` `setsWeather` |
+| Endure | 3 | +4 | `priority` `neverMisses` `stalling` |
+| Gastro Acid | 3 |  | — |
+| Screech | 3 |  | `sound` `lowersTarget` |
+| Spore | 3 |  | `powder` `inflictsStatus` |
+| Confuse Ray | 2 |  | — |
+| Wonder Room | 2 |  | `neverMisses` `ignoresProtect` `swapsDefences` |
+| Corrosive Gas | 1 |  | `spreadAll` |
+| Electrify | 1 |  | `neverMisses` |
+| Aromatic Mist | 1 |  | `neverMisses` `boostsTarget` |
+| Charge | 1 |  | `neverMisses` `boostsUser` |
+| Forest's Curse | 1 |  | — |
+| Magnet Rise | 1 |  | `neverMisses` |
+| Recycle | 1 |  | `neverMisses` |
+| Spicy Extract | 1 |  | `neverMisses` `lowersTarget` |
+| Sweet Scent | 1 |  | `spreadFoes` `accuracyMod` `lowersTarget` |
+
+A dash means the taxonomy says nothing about it beyond being a status move — **13 of them**.
 
 ---
 
@@ -107,7 +281,7 @@ nothing. **2,065 uses**.
 | Thunder | 179 |
 | Growth | 4 |
 
-Total tagged: **5**  ·  share of all move slots: **1.5%**
+Total tagged: **5**  ·  share: **1.5%**
 
 ## `ignoresProtect` — Protect does NOT stop it  **← NOT READ**
 
@@ -142,7 +316,7 @@ Total tagged: **5**  ·  share of all move slots: **1.5%**
 | Snowscape | 3 |
 | Wonder Room | 2 |
 
-Total tagged: **31**  ·  5 legal but unused  ·  share of all move slots: **1.3%**
+Total tagged: **31**  ·  5 legal but unused  ·  share: **1.3%**
 
 ## `pivotStatus` — no damage, an effect, then the user leaves  **← NOT READ**
 
@@ -153,7 +327,7 @@ Total tagged: **31**  ·  5 legal but unused  ·  share of all move slots: **1.3
 | Parting Shot | 4,782 |
 | Chilly Reception | 17 |
 
-Total tagged: **2**  ·  share of all move slots: **0.8%**
+Total tagged: **2**  ·  share: **0.8%**
 
 ## `chargeSkippedByWeather` — the charge turn DISAPPEARS under one weather  **← NOT READ**
 
@@ -165,7 +339,7 @@ Total tagged: **2**  ·  share of all move slots: **0.8%**
 | Electro Shot | 1,667 |
 | Solar Blade | 8 |
 
-Total tagged: **3**  ·  share of all move slots: **0.7%**
+Total tagged: **3**  ·  share: **0.7%**
 
 ## `multiHit` — hits = n (or a distribution)  **← NOT READ**
 
@@ -186,7 +360,7 @@ Total tagged: **3**  ·  share of all move slots: **0.7%**
 | Icicle Spear | 5 |
 | Bone Rush | 4 |
 
-Total tagged: **14**  ·  2 legal but unused  ·  share of all move slots: **0.5%**
+Total tagged: **14**  ·  2 legal but unused  ·  share: **0.5%**
 
 ## `healsSelf` — restores a share of MY max HP, costing the turn  **← NOT READ**
 
@@ -204,7 +378,7 @@ Total tagged: **14**  ·  2 legal but unused  ·  share of all move slots: **0.5
 | Morning Sun | 7 |
 | Healing Wish | 4 |
 
-Total tagged: **11**  ·  2 legal but unused  ·  share of all move slots: **0.3%**
+Total tagged: **11**  ·  2 legal but unused  ·  share: **0.3%**
 
 ## `critRatioUp` — P(crit) raised  **← NOT READ**
 
@@ -225,7 +399,7 @@ Total tagged: **11**  ·  2 legal but unused  ·  share of all move slots: **0.3
 | Crabhammer | 4 |
 | Cross Poison | 1 |
 
-Total tagged: **14**  ·  2 legal but unused  ·  share of all move slots: **0.1%**
+Total tagged: **14**  ·  2 legal but unused  ·  share: **0.1%**
 
 ## `boostsTarget` — positive stat stages on a BODY THAT IS NOT ME  **← NOT READ**
 
@@ -239,7 +413,7 @@ Total tagged: **14**  ·  2 legal but unused  ·  share of all move slots: **0.1
 | Decorate | 18 |
 | Aromatic Mist | 1 |
 
-Total tagged: **6**  ·  1 legal but unused  ·  share of all move slots: **0.1%**
+Total tagged: **6**  ·  1 legal but unused  ·  share: **0.1%**
 
 ## `accuracyMod` — P(hit) is scaled for everyone  **← NOT READ**
 
@@ -252,7 +426,7 @@ Total tagged: **6**  ·  1 legal but unused  ·  share of all move slots: **0.1%
 | Minimize | 14 |
 | Sweet Scent | 1 |
 
-Total tagged: **5**  ·  1 legal but unused  ·  share of all move slots: **0.1%**
+Total tagged: **5**  ·  1 legal but unused  ·  share: **0.1%**
 
 ## `forcesSwitch` — the TARGET is removed from the field  **← NOT READ**
 
@@ -264,7 +438,7 @@ Total tagged: **5**  ·  1 legal but unused  ·  share of all move slots: **0.1%
 | Dragon Tail | 48 |
 | Whirlwind | 12 |
 
-Total tagged: **4**  ·  1 legal but unused  ·  share of all move slots: **0.1%**
+Total tagged: **4**  ·  1 legal but unused  ·  share: **0.1%**
 
 ## `terrainScaled` — power or target changes with the terrain  **← NOT READ**
 
@@ -276,7 +450,7 @@ Total tagged: **4**  ·  1 legal but unused  ·  share of all move slots: **0.1%
 | Expanding Force | 80 |
 | Terrain Pulse | 4 |
 
-Total tagged: **3**  ·  share of all move slots: **0.0%**
+Total tagged: **3**  ·  share: **0.0%**
 
 ## `alwaysCrit` — P(crit) = 1  **← NOT READ**
 
@@ -288,7 +462,7 @@ Total tagged: **3**  ·  share of all move slots: **0.0%**
 | Frost Breath | 32 |
 | Storm Throw | 10 |
 
-Total tagged: **3**  ·  share of all move slots: **0.0%**
+Total tagged: **3**  ·  share: **0.0%**
 
 ## `passesState` — the incoming Pokemon INHERITS something  **← NOT READ**
 
@@ -299,7 +473,7 @@ Total tagged: **3**  ·  share of all move slots: **0.0%**
 | Baton Pass | 65 |
 | Shed Tail | 41 |
 
-Total tagged: **2**  ·  share of all move slots: **0.0%**
+Total tagged: **2**  ·  share: **0.0%**
 
 ## `hazard` — their side is damaged or slowed on switch-in, until removed  **← NOT READ**
 
@@ -312,7 +486,7 @@ Total tagged: **2**  ·  share of all move slots: **0.0%**
 | Sticky Web | 17 |
 | Spikes | 5 |
 
-Total tagged: **4**  ·  share of all move slots: **0.0%**
+Total tagged: **4**  ·  share: **0.0%**
 
 ## `ohko` — removes the target outright  **← NOT READ**
 
@@ -324,7 +498,7 @@ Total tagged: **4**  ·  share of all move slots: **0.0%**
 | Fissure | 24 |
 | Guillotine | 2 |
 
-Total tagged: **4**  ·  1 legal but unused  ·  share of all move slots: **0.0%**
+Total tagged: **4**  ·  1 legal but unused  ·  share: **0.0%**
 
 ## `fixedDamage` — damage is a constant, not a formula  **← NOT READ**
 
@@ -334,7 +508,7 @@ Total tagged: **4**  ·  1 legal but unused  ·  share of all move slots: **0.0%
 |---|---|
 | Night Shade | 22 |
 
-Total tagged: **2**  ·  1 legal but unused  ·  share of all move slots: **0.0%**
+Total tagged: **2**  ·  1 legal but unused  ·  share: **0.0%**
 
 ## `swapsDefences` — Def and SpD are exchanged, field-wide  **← NOT READ**
 
@@ -344,7 +518,7 @@ Total tagged: **2**  ·  1 legal but unused  ·  share of all move slots: **0.0%
 |---|---|
 | Wonder Room | 2 |
 
-Total tagged: **1**  ·  share of all move slots: **0.0%**
+Total tagged: **1**  ·  share: **0.0%**
 
 ## `suppressesItems` — held items stop working, field-wide  **← NOT READ**
 
@@ -352,7 +526,7 @@ Total tagged: **1**  ·  share of all move slots: **0.0%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **1**  ·  1 legal but unused  ·  share of all move slots: **0.0%**
+Total tagged: **1**  ·  1 legal but unused  ·  share: **0.0%**
 
 ## `ignoresAbility` — the defender's ability does not apply  **← NOT READ**
 
@@ -360,7 +534,7 @@ Total tagged: **1**  ·  1 legal but unused  ·  share of all move slots: **0.0%
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all move slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**
 
 ## `statusCategory` — category is Status: Prankster +1, blanked by Taunt, illegal under Assault Vest
 
@@ -410,7 +584,7 @@ Total tagged: **0**  ·  share of all move slots: **0.0%**
 | Thunder Wave | 284 |
 | *…106 more* | |
 
-Total tagged: **175**  ·  29 legal but unused  ·  share of all move slots: **17.7%**
+Total tagged: **175**  ·  29 legal but unused  ·  share: **17.7%**
 
 ## `neverMisses` — P(hit) = 1
 
@@ -460,7 +634,7 @@ Total tagged: **175**  ·  29 legal but unused  ·  share of all move slots: **1
 | After You | 104 |
 | *…68 more* | |
 
-Total tagged: **132**  ·  24 legal but unused  ·  share of all move slots: **15.8%**
+Total tagged: **132**  ·  24 legal but unused  ·  share: **15.8%**
 
 ## `priority` — order = priority
 
@@ -507,7 +681,7 @@ Total tagged: **132**  ·  24 legal but unused  ·  share of all move slots: **1
 | Endure | 3 |
 | Beak Blast | 2 |
 
-Total tagged: **39**  ·  1 legal but unused  ·  share of all move slots: **13.8%**
+Total tagged: **39**  ·  1 legal but unused  ·  share: **13.8%**
 
 ## `contact` — triggers contact punishment on the defender
 
@@ -557,7 +731,7 @@ Total tagged: **39**  ·  1 legal but unused  ·  share of all move slots: **13.
 | Meteor Mash | 315 |
 | *…101 more* | |
 
-Total tagged: **166**  ·  25 legal but unused  ·  share of all move slots: **13.5%**
+Total tagged: **166**  ·  25 legal but unused  ·  share: **13.5%**
 
 ## `stalling` — is a Protect-family move
 
@@ -572,7 +746,7 @@ Total tagged: **166**  ·  25 legal but unused  ·  share of all move slots: **1
 | King's Shield | 127 |
 | Endure | 3 |
 
-Total tagged: **6**  ·  share of all move slots: **8.0%**
+Total tagged: **6**  ·  share: **8.0%**
 
 ## `spreadFoes` — x0.75, hits BOTH ENEMIES, ally is safe
 
@@ -602,7 +776,7 @@ Total tagged: **6**  ·  share of all move slots: **8.0%**
 | String Shot | 13 |
 | Sweet Scent | 1 |
 
-Total tagged: **22**  ·  1 legal but unused  ·  share of all move slots: **4.5%**
+Total tagged: **22**  ·  1 legal but unused  ·  share: **4.5%**
 
 ## `flinches` — P(flinch), 10% to 100%, and only if I move first
 
@@ -628,7 +802,7 @@ Total tagged: **22**  ·  1 legal but unused  ·  share of all move slots: **4.5
 | Mountain Gale | 6 |
 | Thunder Fang | 6 |
 
-Total tagged: **19**  ·  2 legal but unused  ·  share of all move slots: **3.8%**
+Total tagged: **19**  ·  2 legal but unused  ·  share: **3.8%**
 
 ## `sideBuff` — my side gets a multi-turn modifier
 
@@ -642,11 +816,11 @@ Total tagged: **19**  ·  2 legal but unused  ·  share of all move slots: **3.8
 | Aurora Veil | 853 |
 | Safeguard | 6 |
 
-Total tagged: **5**  ·  share of all move slots: **2.1%**
+Total tagged: **5**  ·  share: **2.1%**
 
-## `recoil` — costs the user HP
+## `recoil` — the user pays a FRACTION of the damage dealt
 
-*a cost the score does not currently carry*
+*Head Smash 1/2, Flare Blitz and Wave Crash 33/100 at ~4,000 uses each, Wild Charge 1/4. A cost nothing prices*
 
 | entry | appearances |
 |---|---|
@@ -661,7 +835,7 @@ Total tagged: **5**  ·  share of all move slots: **2.1%**
 | Steel Beam | 27 |
 | Wood Hammer | 24 |
 
-Total tagged: **11**  ·  1 legal but unused  ·  share of all move slots: **2.1%**
+Total tagged: **11**  ·  1 legal but unused  ·  share: **2.1%**
 
 ## `variablePower` — basePower is computed, not fixed
 
@@ -697,7 +871,7 @@ Total tagged: **11**  ·  1 legal but unused  ·  share of all move slots: **2.1
 | Power Trip | 2 |
 | Payback | 1 |
 
-Total tagged: **29**  ·  2 legal but unused  ·  share of all move slots: **1.7%**
+Total tagged: **29**  ·  2 legal but unused  ·  share: **1.7%**
 
 ## `sound` — bypasses Substitute, blocked by Soundproof
 
@@ -725,7 +899,7 @@ Total tagged: **29**  ·  2 legal but unused  ·  share of all move slots: **1.7
 | Eerie Spell | 1 |
 | Uproar | 1 |
 
-Total tagged: **24**  ·  5 legal but unused  ·  share of all move slots: **1.7%**
+Total tagged: **24**  ·  5 legal but unused  ·  share: **1.7%**
 
 ## `boostsUser` — stat stages on self
 
@@ -754,7 +928,7 @@ Total tagged: **24**  ·  5 legal but unused  ·  share of all move slots: **1.7
 | Amnesia | 4 |
 | Charge | 1 |
 
-Total tagged: **22**  ·  2 legal but unused  ·  share of all move slots: **1.1%**
+Total tagged: **22**  ·  2 legal but unused  ·  share: **1.1%**
 
 ## `drain` — heals a fraction of damage dealt
 
@@ -771,7 +945,7 @@ Total tagged: **22**  ·  2 legal but unused  ·  share of all move slots: **1.1
 | Parabolic Charge | 70 |
 | Horn Leech | 6 |
 
-Total tagged: **8**  ·  share of all move slots: **1.0%**
+Total tagged: **8**  ·  share: **1.0%**
 
 ## `spreadAll` — x0.75, hits BOTH ENEMIES AND MY PARTNER
 
@@ -795,7 +969,7 @@ Total tagged: **8**  ·  share of all move slots: **1.0%**
 | Corrosive Gas | 1 |
 | Lava Plume | 1 |
 
-Total tagged: **16**  ·  1 legal but unused  ·  share of all move slots: **0.9%**
+Total tagged: **16**  ·  1 legal but unused  ·  share: **0.9%**
 
 ## `redirects` — takes the turn's single-target attacks
 
@@ -806,7 +980,7 @@ Total tagged: **16**  ·  1 legal but unused  ·  share of all move slots: **0.9
 | Rage Powder | 3,851 |
 | Follow Me | 933 |
 
-Total tagged: **2**  ·  share of all move slots: **0.8%**
+Total tagged: **2**  ·  share: **0.8%**
 
 ## `powder` — fails into Grass types, Overcoat and Safety Goggles
 
@@ -821,7 +995,7 @@ Total tagged: **2**  ·  share of all move slots: **0.8%**
 | Magic Powder | 5 |
 | Spore | 3 |
 
-Total tagged: **7**  ·  1 legal but unused  ·  share of all move slots: **0.8%**
+Total tagged: **7**  ·  1 legal but unused  ·  share: **0.8%**
 
 ## `reversesSpeed` — speed order is inverted for the whole field
 
@@ -831,7 +1005,7 @@ Total tagged: **7**  ·  1 legal but unused  ·  share of all move slots: **0.8%
 |---|---|
 | Trick Room | 4,415 |
 
-Total tagged: **1**  ·  share of all move slots: **0.8%**
+Total tagged: **1**  ·  share: **0.8%**
 
 ## `chargeTurn` — costs a turn before it lands
 
@@ -846,7 +1020,7 @@ Total tagged: **1**  ·  share of all move slots: **0.8%**
 | Meteor Beam | 5 |
 | Dig | 3 |
 
-Total tagged: **10**  ·  4 legal but unused  ·  share of all move slots: **0.8%**
+Total tagged: **10**  ·  4 legal but unused  ·  share: **0.8%**
 
 ## `locksTarget` — their option set collapses to one move, or loses one
 
@@ -859,7 +1033,7 @@ Total tagged: **10**  ·  4 legal but unused  ·  share of all move slots: **0.8
 | Disable | 414 |
 | Torment | 4 |
 
-Total tagged: **4**  ·  share of all move slots: **0.7%**
+Total tagged: **4**  ·  share: **0.7%**
 
 ## `pivotDamaging` — damages, then the user leaves
 
@@ -871,7 +1045,7 @@ Total tagged: **4**  ·  share of all move slots: **0.7%**
 | Volt Switch | 986 |
 | U-turn | 741 |
 
-Total tagged: **3**  ·  share of all move slots: **0.6%**
+Total tagged: **3**  ·  share: **0.6%**
 
 ## `inflictsStatus` — status := x
 
@@ -889,7 +1063,7 @@ Total tagged: **3**  ·  share of all move slots: **0.6%**
 | Toxic Thread | 6 |
 | Spore | 3 |
 
-Total tagged: **11**  ·  2 legal but unused  ·  share of all move slots: **0.5%**
+Total tagged: **11**  ·  2 legal but unused  ·  share: **0.5%**
 
 ## `oneTurnGuard` — blocks a CLASS of move for one turn
 
@@ -900,7 +1074,7 @@ Total tagged: **11**  ·  2 legal but unused  ·  share of all move slots: **0.5
 | Wide Guard | 2,065 |
 | Quick Guard | 356 |
 
-Total tagged: **2**  ·  share of all move slots: **0.4%**
+Total tagged: **2**  ·  share: **0.4%**
 
 ## `healsAlly` — restores my PARTNER max-HP share
 
@@ -912,7 +1086,7 @@ Total tagged: **2**  ·  share of all move slots: **0.4%**
 | Strength Sap | 518 |
 | Heal Pulse | 62 |
 
-Total tagged: **3**  ·  share of all move slots: **0.4%**
+Total tagged: **3**  ·  share: **0.4%**
 
 ## `lowersTarget` — negative stat stages on the foe
 
@@ -935,7 +1109,7 @@ Total tagged: **3**  ·  share of all move slots: **0.4%**
 | Spicy Extract | 1 |
 | Sweet Scent | 1 |
 
-Total tagged: **17**  ·  3 legal but unused  ·  share of all move slots: **0.3%**
+Total tagged: **17**  ·  3 legal but unused  ·  share: **0.3%**
 
 ## `setsWeather` — weather := x
 
@@ -949,7 +1123,7 @@ Total tagged: **17**  ·  3 legal but unused  ·  share of all move slots: **0.3
 | Sandstorm | 4 |
 | Snowscape | 3 |
 
-Total tagged: **5**  ·  share of all move slots: **0.2%**
+Total tagged: **5**  ·  share: **0.2%**
 
 ## `recharge` — costs the turn AFTER it lands
 
@@ -962,7 +1136,7 @@ Total tagged: **5**  ·  share of all move slots: **0.2%**
 | Hydro Cannon | 16 |
 | Blast Burn | 3 |
 
-Total tagged: **6**  ·  2 legal but unused  ·  share of all move slots: **0.2%**
+Total tagged: **6**  ·  2 legal but unused  ·  share: **0.2%**
 
 ## `substitute` — an HP buffer that absorbs hits and blanks status until it breaks
 
@@ -973,7 +1147,7 @@ Total tagged: **6**  ·  2 legal but unused  ·  share of all move slots: **0.2%
 | Substitute | 234 |
 | Shed Tail | 41 |
 
-Total tagged: **2**  ·  share of all move slots: **0.0%**
+Total tagged: **2**  ·  share: **0.0%**
 
 ## `userFaints` — the user dies as the cost
 
@@ -988,7 +1162,7 @@ Total tagged: **2**  ·  share of all move slots: **0.0%**
 | Healing Wish | 4 |
 | Misty Explosion | 3 |
 
-Total tagged: **6**  ·  share of all move slots: **0.0%**
+Total tagged: **6**  ·  share: **0.0%**
 
 ## `setsTerrain` — terrain := x
 
@@ -1001,7 +1175,7 @@ Total tagged: **6**  ·  share of all move slots: **0.0%**
 | Grassy Terrain | 5 |
 | Misty Terrain | 5 |
 
-Total tagged: **4**  ·  share of all move slots: **0.0%**
+Total tagged: **4**  ·  share: **0.0%**
 
 ## `setsRoom` — another pseudo-weather
 
@@ -1009,7 +1183,7 @@ Total tagged: **4**  ·  share of all move slots: **0.0%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **1**  ·  1 legal but unused  ·  share of all move slots: **0.0%**
+Total tagged: **1**  ·  1 legal but unused  ·  share: **0.0%**
 
 ---
 
@@ -1038,7 +1212,7 @@ Total tagged: **1**  ·  1 legal but unused  ·  share of all move slots: **0.0%
 | Rindo Berry | 23 |
 | Payapa Berry | 6 |
 
-Total tagged: **18**  ·  2 legal but unused  ·  share of all item slots: **9.6%**
+Total tagged: **18**  ·  2 legal but unused  ·  share: **9.6%**
 
 ## `damageMultType` — x1.2 on one type  **← NOT READ**
 
@@ -1065,7 +1239,7 @@ Total tagged: **18**  ·  2 legal but unused  ·  share of all item slots: **9.6
 | Poison Barb | 6 |
 | Silver Powder | 2 |
 
-Total tagged: **18**  ·  share of all item slots: **8.7%**
+Total tagged: **18**  ·  share: **8.7%**
 
 ## `extendsScreens` — side conditions last 8 turns not 5  **← NOT READ**
 
@@ -1075,7 +1249,7 @@ Total tagged: **18**  ·  share of all item slots: **8.7%**
 |---|---|
 | Light Clay | 2,007 |
 
-Total tagged: **1**  ·  share of all item slots: **3.0%**
+Total tagged: **1**  ·  share: **3.0%**
 
 ## `restoresStats` — undoes stat drops once  **← NOT READ**
 
@@ -1085,7 +1259,7 @@ Total tagged: **1**  ·  share of all item slots: **3.0%**
 |---|---|
 | White Herb | 1,358 |
 
-Total tagged: **1**  ·  share of all item slots: **2.0%**
+Total tagged: **1**  ·  share: **2.0%**
 
 ## `curesStatus` — a status is removed the moment it lands  **← NOT READ**
 
@@ -1097,7 +1271,7 @@ Total tagged: **1**  ·  share of all item slots: **2.0%**
 | Chesto Berry | 24 |
 | Rawst Berry | 2 |
 
-Total tagged: **6**  ·  3 legal but unused  ·  share of all item slots: **0.2%**
+Total tagged: **6**  ·  3 legal but unused  ·  share: **0.2%**
 
 ## `critRatioUp` — P(crit) raised  **← NOT READ**
 
@@ -1107,7 +1281,7 @@ Total tagged: **6**  ·  3 legal but unused  ·  share of all item slots: **0.2%
 |---|---|
 | Scope Lens | 69 |
 
-Total tagged: **1**  ·  share of all item slots: **0.1%**
+Total tagged: **1**  ·  share: **0.1%**
 
 ## `addsFlinch` — P(flinch) += 10% on moves that do not already flinch  **← NOT READ**
 
@@ -1117,7 +1291,7 @@ Total tagged: **1**  ·  share of all item slots: **0.1%**
 |---|---|
 | King's Rock | 49 |
 
-Total tagged: **1**  ·  share of all item slots: **0.1%**
+Total tagged: **1**  ·  share: **0.1%**
 
 ## `blocksSecondary` — added effects do not apply to the holder  **← NOT READ**
 
@@ -1125,7 +1299,7 @@ Total tagged: **1**  ·  share of all item slots: **0.1%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all item slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**
 
 ## `preventsStatDrop` — stat drops do not apply  **← NOT READ**
 
@@ -1133,7 +1307,7 @@ Total tagged: **0**  ·  share of all item slots: **0.0%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all item slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**
 
 ## `contactPunish` — hurts anything that makes contact  **← NOT READ**
 
@@ -1141,7 +1315,15 @@ Total tagged: **0**  ·  share of all item slots: **0.0%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all item slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**
+
+## `skipsChargeTurn` — the charge turn is skipped for any charge move  **← NOT READ**
+
+*Power Herb. Not legal in Reg M-B today; tagged so a format change does not silently leave a two-turn move scored as two turns*
+
+*Nothing carrying this tag appears on any real team.*
+
+Total tagged: **0**  ·  share: **0.0%**
 
 ## `megaStone` — the holder becomes another species
 
@@ -1191,7 +1373,7 @@ Total tagged: **0**  ·  share of all item slots: **0.0%**
 | Drampanite | 51 |
 | *…35 more* | |
 
-Total tagged: **75**  ·  share of all item slots: **27.2%**
+Total tagged: **75**  ·  share: **27.2%**
 
 ## `survivesFromFull` — a lethal hit from full HP leaves 1
 
@@ -1201,7 +1383,7 @@ Total tagged: **75**  ·  share of all item slots: **27.2%**
 |---|---|
 | Focus Sash | 7,610 |
 
-Total tagged: **1**  ·  share of all item slots: **11.3%**
+Total tagged: **1**  ·  share: **11.3%**
 
 ## `healsAtHalf` — restores 25% when it drops below half
 
@@ -1211,7 +1393,7 @@ Total tagged: **1**  ·  share of all item slots: **11.3%**
 |---|---|
 | Sitrus Berry | 7,043 |
 
-Total tagged: **2**  ·  1 legal but unused  ·  share of all item slots: **10.5%**
+Total tagged: **2**  ·  1 legal but unused  ·  share: **10.5%**
 
 ## `damageMultAll` — x damage on everything
 
@@ -1221,7 +1403,7 @@ Total tagged: **2**  ·  1 legal but unused  ·  share of all item slots: **10.5
 |---|---|
 | Life Orb | 6,223 |
 
-Total tagged: **1**  ·  share of all item slots: **9.3%**
+Total tagged: **1**  ·  share: **9.3%**
 
 ## `passiveHeal` — restores HP every turn
 
@@ -1231,7 +1413,7 @@ Total tagged: **1**  ·  share of all item slots: **9.3%**
 |---|---|
 | Leftovers | 4,289 |
 
-Total tagged: **1**  ·  share of all item slots: **6.4%**
+Total tagged: **1**  ·  share: **6.4%**
 
 ## `choiceLock` — the holder is locked into one move
 
@@ -1241,7 +1423,7 @@ Total tagged: **1**  ·  share of all item slots: **6.4%**
 |---|---|
 | Choice Scarf | 3,907 |
 
-Total tagged: **1**  ·  share of all item slots: **5.8%**
+Total tagged: **1**  ·  share: **5.8%**
 
 ## `speedMult` — speed x1.5
 
@@ -1251,7 +1433,7 @@ Total tagged: **1**  ·  share of all item slots: **5.8%**
 |---|---|
 | Choice Scarf | 3,907 |
 
-Total tagged: **1**  ·  share of all item slots: **5.8%**
+Total tagged: **1**  ·  share: **5.8%**
 
 ## `blocksPowder` — powder moves fail against the holder
 
@@ -1259,7 +1441,7 @@ Total tagged: **1**  ·  share of all item slots: **5.8%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all item slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**
 
 ## `statMult` — raises one stat
 
@@ -1267,7 +1449,7 @@ Total tagged: **0**  ·  share of all item slots: **0.0%**
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all item slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**
 
 ---
 
@@ -1297,7 +1479,7 @@ Total tagged: **0**  ·  share of all item slots: **0.0%**
 | Weak Armor | 9 |
 | Sand Spit | 4 |
 
-Total tagged: **32**  ·  15 legal but unused  ·  share of all ability slots: **15.1%**
+Total tagged: **32**  ·  15 legal but unused  ·  share: **15.1%**
 
 ## `weatherSetter` — weather := x on switch-in  **← NOT READ**
 
@@ -1310,7 +1492,7 @@ Total tagged: **32**  ·  15 legal but unused  ·  share of all ability slots: *
 | Sand Stream | 838 |
 | Drought | 615 |
 
-Total tagged: **8**  ·  4 legal but unused  ·  share of all ability slots: **9.5%**
+Total tagged: **8**  ·  4 legal but unused  ·  share: **9.5%**
 
 ## `contactPunish` — the ATTACKER pays for touching it  **← NOT READ**
 
@@ -1328,7 +1510,7 @@ Total tagged: **8**  ·  4 legal but unused  ·  share of all ability slots: **9
 | Mummy | 16 |
 | Gooey | 10 |
 
-Total tagged: **14**  ·  5 legal but unused  ·  share of all ability slots: **8.8%**
+Total tagged: **14**  ·  5 legal but unused  ·  share: **8.8%**
 
 ## `statusImmune` — a status cannot land  **← NOT READ**
 
@@ -1352,7 +1534,7 @@ Total tagged: **14**  ·  5 legal but unused  ·  share of all ability slots: **
 | Vital Spirit | 3 |
 | Immunity | 1 |
 
-Total tagged: **20**  ·  5 legal but unused  ·  share of all ability slots: **3.2%**
+Total tagged: **20**  ·  5 legal but unused  ·  share: **3.2%**
 
 ## `disablesAttacker` — the move I just used is removed from MY options  **← NOT READ**
 
@@ -1362,7 +1544,7 @@ Total tagged: **20**  ·  5 legal but unused  ·  share of all ability slots: **
 |---|---|
 | Cursed Body | 833 |
 
-Total tagged: **1**  ·  share of all ability slots: **1.7%**
+Total tagged: **1**  ·  share: **1.7%**
 
 ## `survivesFromFull` — a lethal hit from full HP leaves 1  **← NOT READ**
 
@@ -1372,7 +1554,7 @@ Total tagged: **1**  ·  share of all ability slots: **1.7%**
 |---|---|
 | Sturdy | 153 |
 
-Total tagged: **1**  ·  share of all ability slots: **0.3%**
+Total tagged: **1**  ·  share: **0.3%**
 
 ## `ignoresDefenderAbility` — suppress every defender-side ability tag for this move  **← NOT READ**
 
@@ -1382,7 +1564,7 @@ Total tagged: **1**  ·  share of all ability slots: **0.3%**
 |---|---|
 | Mold Breaker | 127 |
 
-Total tagged: **3**  ·  2 legal but unused  ·  share of all ability slots: **0.3%**
+Total tagged: **3**  ·  2 legal but unused  ·  share: **0.3%**
 
 ## `preventsCrit` — P(crit) = 0  **← NOT READ**
 
@@ -1393,7 +1575,7 @@ Total tagged: **3**  ·  2 legal but unused  ·  share of all ability slots: **0
 | Disguise | 62 |
 | Shell Armor | 24 |
 
-Total tagged: **4**  ·  2 legal but unused  ·  share of all ability slots: **0.2%**
+Total tagged: **4**  ·  2 legal but unused  ·  share: **0.2%**
 
 ## `critDamageUp` — the CRIT MULTIPLIER itself, not its probability  **← NOT READ**
 
@@ -1403,7 +1585,7 @@ Total tagged: **4**  ·  2 legal but unused  ·  share of all ability slots: **0
 |---|---|
 | Sniper | 24 |
 
-Total tagged: **1**  ·  share of all ability slots: **0.0%**
+Total tagged: **1**  ·  share: **0.0%**
 
 ## `critRatioUp` — P(crit) raised  **← NOT READ**
 
@@ -1414,7 +1596,7 @@ Total tagged: **1**  ·  share of all ability slots: **0.0%**
 | Merciless | 3 |
 | Super Luck | 3 |
 
-Total tagged: **2**  ·  share of all ability slots: **0.0%**
+Total tagged: **2**  ·  share: **0.0%**
 
 ## `terrainSetter` — terrain := x on switch-in  **← NOT READ**
 
@@ -1424,7 +1606,7 @@ Total tagged: **2**  ·  share of all ability slots: **0.0%**
 |---|---|
 | Psychic Surge | 1 |
 
-Total tagged: **5**  ·  4 legal but unused  ·  share of all ability slots: **0.0%**
+Total tagged: **5**  ·  4 legal but unused  ·  share: **0.0%**
 
 ## `preventsSwitch` — the foe cannot leave  **← NOT READ**
 
@@ -1432,7 +1614,7 @@ Total tagged: **5**  ·  4 legal but unused  ·  share of all ability slots: **0
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **3**  ·  3 legal but unused  ·  share of all ability slots: **0.0%**
+Total tagged: **3**  ·  3 legal but unused  ·  share: **0.0%**
 
 ## `damageBoost` — x>1 damage dealt
 
@@ -1467,7 +1649,7 @@ Total tagged: **3**  ·  3 legal but unused  ·  share of all ability slots: **0
 | Plus | 2 |
 | Refrigerate | 1 |
 
-Total tagged: **44**  ·  18 legal but unused  ·  share of all ability slots: **14.9%**
+Total tagged: **44**  ·  18 legal but unused  ·  share: **14.9%**
 
 ## `onSwitchInDrop` — stat stages on the foe at switch-in
 
@@ -1478,7 +1660,7 @@ Total tagged: **44**  ·  18 legal but unused  ·  share of all ability slots: *
 | Intimidate | 6,536 |
 | Supersweet Syrup | 13 |
 
-Total tagged: **3**  ·  1 legal but unused  ·  share of all ability slots: **13.5%**
+Total tagged: **3**  ·  1 legal but unused  ·  share: **13.5%**
 
 ## `priorityMod` — order shifts for a class of move
 
@@ -1499,7 +1681,7 @@ Total tagged: **3**  ·  1 legal but unused  ·  share of all ability slots: **1
 | Skill Link | 4 |
 | Long Reach | 2 |
 
-Total tagged: **22**  ·  10 legal but unused  ·  share of all ability slots: **12.1%**
+Total tagged: **22**  ·  10 legal but unused  ·  share: **12.1%**
 
 ## `typeImmunity` — damage of one type := 0
 
@@ -1530,7 +1712,7 @@ Total tagged: **22**  ·  10 legal but unused  ·  share of all ability slots: *
 | Motor Drive | 13 |
 | Ice Body | 6 |
 
-Total tagged: **26**  ·  4 legal but unused  ·  share of all ability slots: **10.5%**
+Total tagged: **26**  ·  4 legal but unused  ·  share: **10.5%**
 
 ## `speedCond` — speed x2 under a condition
 
@@ -1545,7 +1727,7 @@ Total tagged: **26**  ·  4 legal but unused  ·  share of all ability slots: **
 | Slush Rush | 4 |
 | Quick Feet | 2 |
 
-Total tagged: **7**  ·  1 legal but unused  ·  share of all ability slots: **4.0%**
+Total tagged: **7**  ·  1 legal but unused  ·  share: **4.0%**
 
 ## `blocksMove` — a whole class of move fails
 
@@ -1556,7 +1738,7 @@ Total tagged: **7**  ·  1 legal but unused  ·  share of all ability slots: **4
 | Armor Tail | 1,682 |
 | Queenly Majesty | 220 |
 
-Total tagged: **3**  ·  1 legal but unused  ·  share of all ability slots: **3.9%**
+Total tagged: **3**  ·  1 legal but unused  ·  share: **3.9%**
 
 ## `damageReduce` — x<1 damage taken
 
@@ -1568,7 +1750,7 @@ Total tagged: **3**  ·  1 legal but unused  ·  share of all ability slots: **3
 | Solid Rock | 166 |
 | Fluffy | 3 |
 
-Total tagged: **9**  ·  6 legal but unused  ·  share of all ability slots: **1.1%**
+Total tagged: **9**  ·  6 legal but unused  ·  share: **1.1%**
 
 ## `formeChange` — the species changes mid-battle
 
@@ -1581,7 +1763,7 @@ Total tagged: **9**  ·  6 legal but unused  ·  share of all ability slots: **1
 | Illusion | 62 |
 | Imposter | 39 |
 
-Total tagged: **7**  ·  3 legal but unused  ·  share of all ability slots: **0.6%**
+Total tagged: **7**  ·  3 legal but unused  ·  share: **0.6%**
 
 ## `invertsBoosts` — stat changes flip sign
 
@@ -1591,7 +1773,7 @@ Total tagged: **7**  ·  3 legal but unused  ·  share of all ability slots: **0
 |---|---|
 | Contrary | 134 |
 
-Total tagged: **3**  ·  2 legal but unused  ·  share of all ability slots: **0.3%**
+Total tagged: **3**  ·  2 legal but unused  ·  share: **0.3%**
 
 ## `redirectsType` — draws that type to itself
 
@@ -1599,4 +1781,4 @@ Total tagged: **3**  ·  2 legal but unused  ·  share of all ability slots: **0
 
 *Nothing carrying this tag appears on any real team.*
 
-Total tagged: **0**  ·  share of all ability slots: **0.0%**
+Total tagged: **0**  ·  share: **0.0%**

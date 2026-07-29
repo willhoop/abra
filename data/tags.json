@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T02:09:03.335Z",
+ "generated": "2026-07-29T02:13:19.829Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -55,6 +55,38 @@
     "Aqua Cutter",
     "Blaze Kick",
     "Cross Chop"
+   ]
+  },
+  {
+   "tag": "weatherScaled",
+   "kind": "move",
+   "param": "type, power or target changes with the weather",
+   "why": "Weather Ball (4,699 uses), Hydro Steam. Its type is handled; the power and the target change are not",
+   "consumedBy": null,
+   "used": false,
+   "n": 5,
+   "uses": 8673,
+   "examples": [
+    "Growth",
+    "Blizzard",
+    "Hurricane",
+    "Thunder",
+    "Weather Ball"
+   ]
+  },
+  {
+   "tag": "terrainScaled",
+   "kind": "move",
+   "param": "power or target changes with the terrain",
+   "why": "Expanding Force becomes a SPREAD move in Psychic Terrain, Rising Voltage doubles in Electric. Grassy Glide gains priority, which board.js already special-cases",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 174,
+   "examples": [
+    "Expanding Force",
+    "Rising Voltage",
+    "Terrain Pulse"
    ]
   },
   {
@@ -624,8 +656,8 @@
   {
    "tag": "recoil",
    "kind": "move",
-   "param": "costs the user HP",
-   "why": "a cost the score does not currently carry",
+   "param": "the user pays a FRACTION of the damage dealt",
+   "why": "Head Smash 1/2, Flare Blitz and Wave Crash 33/100 at ~4,000 uses each, Wild Charge 1/4. A cost nothing prices",
    "consumedBy": "recoil",
    "used": true,
    "n": 11,
@@ -872,6 +904,21 @@
    ]
   },
   {
+   "tag": "curesStatus",
+   "kind": "item",
+   "param": "a status is removed the moment it lands",
+   "why": "Lum (107 uses), Chesto, Rawst. Every status move aimed at the holder is a wasted turn, and inflictsStatus has no idea",
+   "consumedBy": null,
+   "used": false,
+   "n": 6,
+   "uses": 133,
+   "examples": [
+    "Chesto Berry",
+    "Lum Berry",
+    "Rawst Berry"
+   ]
+  },
+  {
    "tag": "healsAtHalf",
    "kind": "item",
    "param": "restores 25% when it drops below half",
@@ -968,6 +1015,17 @@
    "examples": []
   },
   {
+   "tag": "skipsChargeTurn",
+   "kind": "item",
+   "param": "the charge turn is skipped for any charge move",
+   "why": "Power Herb. Not legal in Reg M-B today; tagged so a format change does not silently leave a two-turn move scored as two turns",
+   "consumedBy": null,
+   "used": false,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
    "tag": "critRatioUp",
    "kind": "item",
    "param": "P(crit) raised",
@@ -1055,6 +1113,19 @@
    "uses": 24,
    "examples": [
     "Sniper"
+   ]
+  },
+  {
+   "tag": "disablesAttacker",
+   "kind": "ability",
+   "param": "the move I just used is removed from MY options",
+   "why": "Cursed Body (833 uses). Not damage and not a stat change -- it shrinks my own option set, the same shape as locksTarget from the receiving end",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 833,
+   "examples": [
+    "Cursed Body"
    ]
   },
   {
@@ -1445,6 +1516,7 @@
   "growth": {
    "name": "Growth",
    "tags": [
+    "weatherScaled",
     "neverMisses",
     "boostsUser",
     "statusCategory"
@@ -1898,6 +1970,7 @@
   "blizzard": {
    "name": "Blizzard",
    "tags": [
+    "weatherScaled",
     "spreadFoes"
    ],
    "uses": 1532
@@ -2494,6 +2567,13 @@
    ],
    "uses": 565
   },
+  "expandingforce": {
+   "name": "Expanding Force",
+   "tags": [
+    "terrainScaled"
+   ],
+   "uses": 80
+  },
   "explosion": {
    "name": "Explosion",
    "tags": [
@@ -2949,6 +3029,13 @@
     "drain"
    ],
    "uses": 6
+  },
+  "hurricane": {
+   "name": "Hurricane",
+   "tags": [
+    "weatherScaled"
+   ],
+   "uses": 2259
   },
   "hydrocannon": {
    "name": "Hydro Cannon",
@@ -3775,6 +3862,7 @@
   "risingvoltage": {
    "name": "Rising Voltage",
    "tags": [
+    "terrainScaled",
     "variablePower"
    ],
    "uses": 90
@@ -4441,6 +4529,13 @@
    ],
    "uses": 30
   },
+  "terrainpulse": {
+   "name": "Terrain Pulse",
+   "tags": [
+    "terrainScaled"
+   ],
+   "uses": 4
+  },
   "thief": {
    "name": "Thief",
    "tags": [
@@ -4461,6 +4556,13 @@
     "contact"
    ],
    "uses": 1768
+  },
+  "thunder": {
+   "name": "Thunder",
+   "tags": [
+    "weatherScaled"
+   ],
+   "uses": 179
   },
   "thunderfang": {
    "name": "Thunder Fang",
@@ -4677,6 +4779,13 @@
     "recoil"
    ],
    "uses": 4052
+  },
+  "weatherball": {
+   "name": "Weather Ball",
+   "tags": [
+    "weatherScaled"
+   ],
+   "uses": 4699
   },
   "whirlwind": {
    "name": "Whirlwind",
@@ -5320,6 +5429,13 @@
    ],
    "uses": 1358
   },
+  "aspearberry": {
+   "name": "Aspear Berry",
+   "tags": [
+    "curesStatus"
+   ],
+   "uses": 0
+  },
   "babiriberry": {
    "name": "Babiri Berry",
    "tags": [
@@ -5354,6 +5470,20 @@
     "resistBerry"
    ],
    "uses": 31
+  },
+  "cheriberry": {
+   "name": "Cheri Berry",
+   "tags": [
+    "curesStatus"
+   ],
+   "uses": 0
+  },
+  "chestoberry": {
+   "name": "Chesto Berry",
+   "tags": [
+    "curesStatus"
+   ],
+   "uses": 24
   },
   "chilanberry": {
    "name": "Chilan Berry",
@@ -5468,6 +5598,13 @@
    ],
    "uses": 2007
   },
+  "lumberry": {
+   "name": "Lum Berry",
+   "tags": [
+    "curesStatus"
+   ],
+   "uses": 107
+  },
   "magnet": {
    "name": "Magnet",
    "tags": [
@@ -5531,12 +5668,26 @@
    ],
    "uses": 6
   },
+  "pechaberry": {
+   "name": "Pecha Berry",
+   "tags": [
+    "curesStatus"
+   ],
+   "uses": 0
+  },
   "poisonbarb": {
    "name": "Poison Barb",
    "tags": [
     "damageMultType"
    ],
    "uses": 6
+  },
+  "rawstberry": {
+   "name": "Rawst Berry",
+   "tags": [
+    "curesStatus"
+   ],
+   "uses": 2
   },
   "rindoberry": {
    "name": "Rindo Berry",
@@ -5755,6 +5906,7 @@
   "cursedbody": {
    "name": "Cursed Body",
    "tags": [
+    "disablesAttacker",
     "profitsFromHit"
    ],
    "uses": 833
