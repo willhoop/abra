@@ -1,6 +1,6 @@
 # Tag review — corrected pass
 
-**128 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
+**130 tags.** Usage from **5,440 open-sheet human games** — 65,976 sheet entries, 263,581 move slots.
 
 ## Every point from your review
 
@@ -87,7 +87,7 @@ one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 
 **Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
 has nothing. **2,065 uses**.
 
-## 65 of 128 tags are read by nothing
+## 68 of 130 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
@@ -99,7 +99,7 @@ has nothing. **2,065 uses**.
 | `boostsWhenLowered` | 6.4% | +2 to a stat when any stat is lowered |
 | `contactPunish` | 6.3% | the ATTACKER pays for touching it |
 | `healsAllyOnSwitchIn` | 5.0% | restores the partner on entry |
-| `extendsScreens` | 3.0% | side conditions last 8 turns not 5 |
+| `extendsScreens` | 2.9% | side conditions last 8 turns not 5 |
 | `blocksStatusMoves` | 2.3% | every Status-category move fails against it |
 | `speedOnItemLoss` | 2.1% | speed x2 once its item is gone |
 | `restoresStats` | 2.0% | undoes stat drops once |
@@ -108,8 +108,8 @@ has nothing. **2,065 uses**.
 | `lowersUser` | 1.5% | WHICH of my own stats drop, as the price of the move |
 | `needsUntrackedState` | 1.4% | power depends on state the board does not track |
 | `weatherScaled` | 1.3% | type, power or target changes with the weather |
-| `disablesAttacker` | 1.2% | the move I just used is removed from MY options |
 | `thawsTarget` | 1.2% | unfreezes the target it hits |
+| `disablesAttacker` | 1.2% | the move I just used is removed from MY options |
 | `ignoresProtect` | 1.1% | Protect does NOT stop it |
 | `accuracyMod` | 0.8% | P(hit) is scaled, for or against the holder |
 | `accuracyMod` | 0.8% | P(hit) scaled, often gated on a weather or a category |
@@ -123,12 +123,15 @@ has nothing. **2,065 uses**.
 | `statusImmune` | 0.4% | a status cannot land |
 | `inflictsConfusion` | 0.4% | P(confusion): they hit themselves some of the time |
 | `blocksSoundMoves` | 0.3% | they cannot use sound moves for 2 turns |
+| `ignoresStatStages` | 0.3% | the boost multiplier does not apply, permanently |
+| `clearsScreens` | 0.2% | destroys Reflect, Light Screen and Aurora Veil on their side |
 | `proceduralStatus` | 0.2% | one status from a set, chosen at random in the handler |
 | `survivesFromFull` | 0.2% | a lethal hit from full HP leaves 1 |
+| `ignoresStatStages` | 0.2% | the boost multiplier does not apply |
 | `curesStatus` | 0.2% | a status is removed the moment it lands |
 | `ignoresDefenderAbility` | 0.2% | suppress every defender-side ability tag for this move |
-| `failsWithoutWeather` | 0.1% | the move does NOTHING unless a weather is up |
 | `preventsCrit` | 0.1% | P(crit) = 0 |
+| `failsWithoutWeather` | 0.1% | the move does NOTHING unless a weather is up |
 | `critRatioUp` | 0.1% | P(crit) raised |
 | `critRatioUp` | 0.1% | P(crit) raised |
 | `boostsTarget` | 0.1% | positive stat stages on a BODY THAT IS NOT ME |
@@ -172,278 +175,279 @@ would never appear. This section lists everything above **0.05% of usage** regar
 
 | move | uses | share | tags |
 |---|---|---|---|
-| Protect | 43,362 | 16.63% | `priority` `neverMisses` `stalling` `statusCategory` |
-| Fake Out | 7,846 | 3.01% | `priority` `contact` `flinches` |
-| Tailwind | 6,981 | 2.68% | `neverMisses` `doublesSideSpeed` `statusCategory` |
-| Rock Slide | 6,915 | 2.65% | `spreadFoes` `flinches` |
-| Close Combat | 5,487 | 2.10% | `contact` `lowersUser` |
-| Parting Shot | 4,782 | 1.83% | `sound` `pivotStatus` `boostsProcedural` `lowersTarget` `statusCategory` |
-| Weather Ball | 4,699 | 1.80% | `weatherScaled` |
-| Earthquake | 4,533 | 1.74% | `spreadAll` |
-| Trick Room | 4,415 | 1.69% | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` `statusCategory` |
-| Iron Head | 4,314 | 1.65% | `contact` `flinches` |
-| Wave Crash | 4,052 | 1.55% | `contact` `recoil` |
-| Moonblast | 4,048 | 1.55% | `secondaryStatEffect` |
-| Flare Blitz | 4,032 | 1.55% | `contact` `thawsTarget` `inflictsBurn` `recoil` |
-| Heat Wave | 4,031 | 1.55% | `spreadFoes` `inflictsBurn` |
-| Sucker Punch | 3,909 | 1.50% | `priority` `contact` `needsTargetToAttack` |
-| Dragon Claw | 3,864 | 1.48% | `contact` |
-| Rage Powder | 3,851 | 1.48% | `priority` `powder` `neverMisses` `redirects` `statusCategory` |
-| Matcha Gotcha | 3,392 | 1.30% | `spreadFoes` `thawsTarget` `inflictsBurn` `drain` |
-| Shadow Ball | 3,297 | 1.26% | `secondaryStatEffect` |
-| Aqua Jet | 3,034 | 1.16% | `priority` `contact` |
-| Last Respects | 3,009 | 1.15% | `needsUntrackedState` `variablePower` |
-| Kowtow Cleave | 2,970 | 1.14% | `contact` `neverMissesAttack` |
-| Encore | 2,758 | 1.06% | `statusCategory` `locksTarget` |
-| Solar Beam | 2,477 | 0.95% | `conditionalPower` `chargeTurn` `chargeSkippedByWeather` |
-| Hyper Voice | 2,461 | 0.94% | `spreadFoes` `sound` |
-| Earth Power | 2,374 | 0.91% | `secondaryStatEffect` |
-| Light Screen | 2,346 | 0.90% | `neverMisses` `halvesDamage` `statusCategory` |
-| Brave Bird | 2,279 | 0.87% | `contact` `recoil` |
-| Hurricane | 2,259 | 0.87% | `weatherScaled` `inflictsConfusion` |
-| Stomping Tantrum | 2,122 | 0.81% | `needsUntrackedState` `variablePower` `contact` |
-| Wide Guard | 2,065 | 0.79% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
-| dragonpulse | 2,029 | 0.78% | **— none —** |
-| Helping Hand | 2,027 | 0.78% | `priority` `neverMisses` `statusCategory` |
-| Dazzling Gleam | 1,999 | 0.77% | `spreadFoes` |
-| Reflect | 1,988 | 0.76% | `neverMisses` `halvesDamage` `statusCategory` |
-| Sludge Bomb | 1,982 | 0.76% | `inflictsPoison` |
-| Thunderbolt | 1,858 | 0.71% | `inflictsParalysis` |
-| Low Kick | 1,854 | 0.71% | `needsUntrackedState` `variablePower` `contact` |
-| Flash Cannon | 1,790 | 0.69% | `secondaryStatEffect` |
-| Throat Chop | 1,768 | 0.68% | `blocksSoundMoves` `contact` |
-| Nasty Plot | 1,763 | 0.68% | `neverMisses` `boostsUser` `statusCategory` |
-| Flip Turn | 1,762 | 0.68% | `contact` `pivotDamaging` |
-| Psychic | 1,745 | 0.67% | `secondaryStatEffect` |
-| Dual Wingbeat | 1,724 | 0.66% | `multiHit` `contact` |
-| Life Dew | 1,683 | 0.65% | `neverMisses` `statusCategory` `healsSelf` `healsAlly` |
-| Electro Shot | 1,667 | 0.64% | `chargeTurn` `chargeSkippedByWeather` |
-| Knock Off | 1,640 | 0.63% | `conditionalPower` `contact` |
-| Blizzard | 1,532 | 0.59% | `weatherScaled` `spreadFoes` `inflictsFreeze` |
-| Dire Claw | 1,509 | 0.58% | `contact` `proceduralStatus` |
-| Ice Punch | 1,421 | 0.54% | `contact` `inflictsFreeze` |
-| Make It Rain | 1,420 | 0.54% | `spreadFoes` `lowersUser` |
-| Roost | 1,353 | 0.52% | `neverMisses` `statusCategory` `healsSelf` |
-| Psychic Fangs | 1,352 | 0.52% | `contact` |
-| High Horsepower | 1,286 | 0.49% | `contact` |
-| Darkest Lariat | 1,232 | 0.47% | `contact` |
-| Quick Attack | 1,199 | 0.46% | `priority` `contact` |
-| Draco Meteor | 1,199 | 0.46% | `lowersUser` |
-| Swords Dance | 1,195 | 0.46% | `neverMisses` `boostsUser` `statusCategory` |
-| Calm Mind | 1,163 | 0.45% | `neverMisses` `boostsUser` `statusCategory` |
-| Detect | 1,162 | 0.45% | `priority` `neverMisses` `stalling` `statusCategory` |
-| Spirit Break | 1,115 | 0.43% | `contact` `secondaryStatEffect` |
-| Will-O-Wisp | 1,101 | 0.42% | `statusCategory` `inflictsBurn` `inflictsStatus` |
-| Focus Blast | 1,088 | 0.42% | `secondaryStatEffect` |
-| Zap Cannon | 1,064 | 0.41% | `inflictsParalysis` |
-| Dark Pulse | 1,013 | 0.39% | `flinches` |
-| Hyper Beam | 1,012 | 0.39% | `recharge` |
-| Volt Switch | 986 | 0.38% | `pivotDamaging` |
-| Follow Me | 933 | 0.36% | `priority` `neverMisses` `redirects` `statusCategory` |
-| Play Rough | 911 | 0.35% | `contact` `secondaryStatEffect` |
-| Taunt | 867 | 0.33% | `statusCategory` `forbidsStatusMoves` |
-| Aurora Veil | 853 | 0.33% | `neverMisses` `halvesDamage` `failsWithoutWeather` `statusCategory` |
-| Icy Wind | 845 | 0.32% | `spreadFoes` `secondaryStatEffect` |
-| Giga Drain | 806 | 0.31% | `drain` |
-| Overheat | 771 | 0.30% | `lowersUser` |
-| Poison Jab | 758 | 0.29% | `contact` `inflictsPoison` |
-| U-turn | 741 | 0.28% | `contact` `pivotDamaging` |
-| freezedry | 737 | 0.28% | **— none —** |
-| Sleep Powder | 734 | 0.28% | `powder` `statusCategory` `inflictsSleep` `inflictsStatus` |
-| Light of Ruin | 713 | 0.27% | `recoil` |
-| hydropump | 707 | 0.27% | **— none —** |
-| Drain Punch | 705 | 0.27% | `contact` `drain` |
-| Rain Dance | 701 | 0.27% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
-| Charm | 691 | 0.26% | `lowersTarget` `statusCategory` |
-| powergem | 677 | 0.26% | **— none —** |
-| Aura Sphere | 672 | 0.26% | `neverMissesAttack` |
-| Scald | 601 | 0.23% | `thawsTarget` `inflictsBurn` |
+| Protect | 43,795 | 16.62% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Fake Out | 7,934 | 3.01% | `priority` `contact` `flinches` |
+| Tailwind | 7,052 | 2.68% | `neverMisses` `doublesSideSpeed` `statusCategory` |
+| Rock Slide | 6,980 | 2.65% | `spreadFoes` `flinches` |
+| Close Combat | 5,558 | 2.11% | `contact` `lowersUser` |
+| Parting Shot | 4,827 | 1.83% | `sound` `pivotStatus` `boostsProcedural` `lowersTarget` `statusCategory` |
+| Weather Ball | 4,739 | 1.80% | `weatherScaled` |
+| Earthquake | 4,569 | 1.73% | `spreadAll` |
+| Trick Room | 4,461 | 1.69% | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` `statusCategory` |
+| Iron Head | 4,349 | 1.65% | `contact` `flinches` |
+| Wave Crash | 4,092 | 1.55% | `contact` `recoil` |
+| Heat Wave | 4,091 | 1.55% | `spreadFoes` `inflictsBurn` |
+| Flare Blitz | 4,090 | 1.55% | `contact` `thawsTarget` `inflictsBurn` `recoil` |
+| Moonblast | 4,088 | 1.55% | `secondaryStatEffect` |
+| Sucker Punch | 3,949 | 1.50% | `priority` `contact` `needsTargetToAttack` |
+| Dragon Claw | 3,888 | 1.48% | `contact` |
+| Rage Powder | 3,886 | 1.47% | `priority` `powder` `neverMisses` `redirects` `statusCategory` |
+| Matcha Gotcha | 3,422 | 1.30% | `spreadFoes` `thawsTarget` `inflictsBurn` `drain` |
+| Shadow Ball | 3,332 | 1.26% | `secondaryStatEffect` |
+| Aqua Jet | 3,066 | 1.16% | `priority` `contact` |
+| Last Respects | 3,034 | 1.15% | `needsUntrackedState` `variablePower` |
+| Kowtow Cleave | 3,006 | 1.14% | `contact` `neverMissesAttack` |
+| Encore | 2,786 | 1.06% | `statusCategory` `locksTarget` |
+| Solar Beam | 2,501 | 0.95% | `conditionalPower` `chargeTurn` `chargeSkippedByWeather` |
+| Hyper Voice | 2,496 | 0.95% | `spreadFoes` `sound` |
+| Earth Power | 2,409 | 0.91% | `secondaryStatEffect` |
+| Light Screen | 2,359 | 0.89% | `neverMisses` `halvesDamage` `statusCategory` |
+| Brave Bird | 2,309 | 0.88% | `contact` `recoil` |
+| Hurricane | 2,275 | 0.86% | `weatherScaled` `inflictsConfusion` |
+| Stomping Tantrum | 2,132 | 0.81% | `needsUntrackedState` `variablePower` `contact` |
+| Wide Guard | 2,098 | 0.80% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
+| Helping Hand | 2,051 | 0.78% | `priority` `neverMisses` `statusCategory` |
+| dragonpulse | 2,048 | 0.78% | **— none —** |
+| Dazzling Gleam | 2,023 | 0.77% | `spreadFoes` |
+| Sludge Bomb | 2,005 | 0.76% | `inflictsPoison` |
+| Reflect | 2,000 | 0.76% | `neverMisses` `halvesDamage` `statusCategory` |
+| Low Kick | 1,880 | 0.71% | `needsUntrackedState` `variablePower` `contact` |
+| Thunderbolt | 1,874 | 0.71% | `inflictsParalysis` |
+| Flash Cannon | 1,806 | 0.69% | `secondaryStatEffect` |
+| Nasty Plot | 1,779 | 0.67% | `neverMisses` `boostsUser` `statusCategory` |
+| Throat Chop | 1,778 | 0.67% | `blocksSoundMoves` `contact` |
+| Psychic | 1,776 | 0.67% | `secondaryStatEffect` |
+| Flip Turn | 1,774 | 0.67% | `contact` `pivotDamaging` |
+| Dual Wingbeat | 1,738 | 0.66% | `multiHit` `contact` |
+| Life Dew | 1,694 | 0.64% | `neverMisses` `statusCategory` `healsSelf` `healsAlly` |
+| Electro Shot | 1,679 | 0.64% | `chargeTurn` `chargeSkippedByWeather` |
+| Knock Off | 1,663 | 0.63% | `conditionalPower` `contact` |
+| Blizzard | 1,547 | 0.59% | `weatherScaled` `spreadFoes` `inflictsFreeze` |
+| Dire Claw | 1,520 | 0.58% | `contact` `proceduralStatus` |
+| Make It Rain | 1,437 | 0.55% | `spreadFoes` `lowersUser` |
+| Ice Punch | 1,432 | 0.54% | `contact` `inflictsFreeze` |
+| Roost | 1,363 | 0.52% | `neverMisses` `statusCategory` `healsSelf` |
+| Psychic Fangs | 1,356 | 0.51% | `clearsScreens` `contact` |
+| High Horsepower | 1,294 | 0.49% | `contact` |
+| Darkest Lariat | 1,259 | 0.48% | `ignoresStatStages` `contact` |
+| Swords Dance | 1,216 | 0.46% | `neverMisses` `boostsUser` `statusCategory` |
+| Quick Attack | 1,216 | 0.46% | `priority` `contact` |
+| Draco Meteor | 1,206 | 0.46% | `lowersUser` |
+| Calm Mind | 1,184 | 0.45% | `neverMisses` `boostsUser` `statusCategory` |
+| Detect | 1,179 | 0.45% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Spirit Break | 1,122 | 0.43% | `contact` `secondaryStatEffect` |
+| Will-O-Wisp | 1,112 | 0.42% | `statusCategory` `inflictsBurn` |
+| Focus Blast | 1,105 | 0.42% | `secondaryStatEffect` |
+| Zap Cannon | 1,077 | 0.41% | `inflictsParalysis` |
+| Dark Pulse | 1,026 | 0.39% | `flinches` |
+| Hyper Beam | 1,026 | 0.39% | `recharge` |
+| Volt Switch | 992 | 0.38% | `pivotDamaging` |
+| Follow Me | 944 | 0.36% | `priority` `neverMisses` `redirects` `statusCategory` |
+| Play Rough | 919 | 0.35% | `contact` `secondaryStatEffect` |
+| Taunt | 881 | 0.33% | `statusCategory` `forbidsStatusMoves` |
+| Aurora Veil | 860 | 0.33% | `neverMisses` `halvesDamage` `failsWithoutWeather` `statusCategory` |
+| Icy Wind | 854 | 0.32% | `spreadFoes` `secondaryStatEffect` |
+| Giga Drain | 820 | 0.31% | `drain` |
+| Overheat | 772 | 0.29% | `lowersUser` |
+| Poison Jab | 767 | 0.29% | `contact` `inflictsPoison` |
+| U-turn | 749 | 0.28% | `contact` `pivotDamaging` |
+| freezedry | 748 | 0.28% | **— none —** |
+| Sleep Powder | 742 | 0.28% | `powder` `statusCategory` `inflictsSleep` |
+| Light of Ruin | 718 | 0.27% | `recoil` |
+| hydropump | 718 | 0.27% | **— none —** |
+| Drain Punch | 710 | 0.27% | `contact` `drain` |
+| Rain Dance | 704 | 0.27% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Charm | 700 | 0.27% | `lowersTarget` `statusCategory` |
+| Aura Sphere | 688 | 0.26% | `neverMissesAttack` |
+| powergem | 687 | 0.26% | **— none —** |
+| Scald | 608 | 0.23% | `thawsTarget` `inflictsBurn` |
+| Eruption | 571 | 0.22% | `needsUntrackedState` `variablePower` `spreadFoes` |
+| Bullet Punch | 570 | 0.22% | `priority` `contact` |
+| Foul Play | 569 | 0.22% | `contact` |
 | Snarl | 569 | 0.22% | `spreadFoes` `sound` `secondaryStatEffect` |
-| Bullet Punch | 565 | 0.22% | `priority` `contact` |
-| Eruption | 565 | 0.22% | `needsUntrackedState` `variablePower` `spreadFoes` |
-| Foul Play | 563 | 0.22% | `contact` |
-| Body Press | 562 | 0.22% | `contact` |
-| Bulk Up | 561 | 0.22% | `neverMisses` `boostsUser` `statusCategory` |
-| Perish Song | 560 | 0.21% | `sound` `neverMisses` `ignoresProtect` `statusCategory` `perishClock` |
-| Liquidation | 552 | 0.21% | `contact` `secondaryStatEffect` |
-| Ice Beam | 551 | 0.21% | `inflictsFreeze` |
-| Yawn | 536 | 0.21% | `neverMisses` `statusCategory` `delayedSleep` |
-| Coaching | 525 | 0.20% | `neverMisses` `boostsTarget` `statusCategory` |
-| Strength Sap | 518 | 0.20% | `boostsProcedural` `lowersTarget` `statusCategory` `healsAlly` |
-| Flamethrower | 494 | 0.19% | `inflictsBurn` |
-| Rock Tomb | 486 | 0.19% | `secondaryStatEffect` |
-| Toxic | 480 | 0.18% | `statusCategory` `inflictsToxic` `inflictsStatus` |
-| Muddy Water | 469 | 0.18% | `spreadFoes` `secondaryStatEffect` |
-| Twin Beam | 467 | 0.18% | `multiHit` |
-| psyshock | 466 | 0.18% | **— none —** |
-| Energy Ball | 452 | 0.17% | `secondaryStatEffect` |
-| Extreme Speed | 449 | 0.17% | `priority` `contact` |
-| Baneful Bunker | 436 | 0.17% | `priority` `neverMisses` `stalling` `statusCategory` `inflictsPoison` |
-| Infestation | 434 | 0.17% | `contact` |
-| Super Fang | 434 | 0.17% | `needsUntrackedState` `contact` |
-| Draining Kiss | 434 | 0.17% | `contact` `drain` |
-| Ice Fang | 433 | 0.17% | `contact` `inflictsFreeze` `flinches` |
-| Disable | 414 | 0.16% | `statusCategory` `locksTarget` |
-| Spiky Shield | 401 | 0.15% | `priority` `neverMisses` `stalling` `statusCategory` |
-| Discharge | 400 | 0.15% | `spreadAll` `inflictsParalysis` |
-| Sunny Day | 376 | 0.14% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
-| Rage Fist | 363 | 0.14% | `needsUntrackedState` `variablePower` `contact` |
-| Haze | 359 | 0.14% | `neverMisses` `ignoresProtect` `clearsBoosts` `statusCategory` |
-| Quick Guard | 356 | 0.14% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
-| Ice Shard | 354 | 0.14% | `priority` |
-| Shadow Sneak | 345 | 0.13% | `priority` `contact` |
-| Fake Tears | 345 | 0.13% | `lowersTarget` `statusCategory` |
-| Electroweb | 343 | 0.13% | `spreadFoes` `secondaryStatEffect` |
-| Dragon Dance | 343 | 0.13% | `neverMisses` `boostsUser` `statusCategory` |
-| Water Spout | 342 | 0.13% | `needsUntrackedState` `variablePower` `spreadFoes` |
-| Leaf Storm | 337 | 0.13% | `lowersUser` |
-| Triple Axel | 326 | 0.13% | `multiHit` `variablePower` `contact` |
-| Ancient Power | 323 | 0.12% | `secondaryStatEffect` |
-| Meteor Mash | 315 | 0.12% | `contact` `secondaryStatEffect` |
-| Clanging Scales | 302 | 0.12% | `spreadFoes` `sound` |
-| Coil | 301 | 0.12% | `neverMisses` `accuracyMod` `boostsUser` `statusCategory` |
-| Recover | 300 | 0.12% | `neverMisses` `statusCategory` `healsSelf` |
-| Brick Break | 289 | 0.11% | `contact` |
-| Thunder Wave | 284 | 0.11% | `statusCategory` `inflictsParalysis` `inflictsStatus` |
-| Roar | 281 | 0.11% | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` `statusCategory` |
-| Population Bomb | 276 | 0.11% | `multiHit` `contact` |
-| Hypnosis | 273 | 0.10% | `statusCategory` `inflictsSleep` `inflictsStatus` |
-| Trick | 266 | 0.10% | `statusCategory` |
-| Shell Smash | 248 | 0.10% | `neverMisses` `boostsUser` `lowersUser` `statusCategory` |
-| Grass Knot | 242 | 0.09% | `needsUntrackedState` `variablePower` `contact` |
-| Accelerock | 241 | 0.09% | `priority` `contact` |
-| Leech Seed | 234 | 0.09% | `statusCategory` |
-| Substitute | 234 | 0.09% | `neverMisses` `substitute` `statusCategory` |
-| Gunk Shot | 223 | 0.09% | `inflictsPoison` |
-| Beat Up | 223 | 0.09% | `variablePower` |
-| Feint | 222 | 0.09% | `priority` `ignoresProtect` |
-| Waterfall | 212 | 0.08% | `contact` `flinches` |
+| Bulk Up | 567 | 0.22% | `neverMisses` `boostsUser` `statusCategory` |
+| Body Press | 567 | 0.22% | `contact` |
+| Perish Song | 562 | 0.21% | `sound` `neverMisses` `ignoresProtect` `statusCategory` `perishClock` |
+| Ice Beam | 561 | 0.21% | `inflictsFreeze` |
+| Liquidation | 557 | 0.21% | `contact` `secondaryStatEffect` |
+| Yawn | 542 | 0.21% | `neverMisses` `statusCategory` `delayedSleep` |
+| Coaching | 529 | 0.20% | `neverMisses` `boostsTarget` `statusCategory` |
+| Strength Sap | 519 | 0.20% | `boostsProcedural` `lowersTarget` `statusCategory` `healsAlly` |
+| Flamethrower | 499 | 0.19% | `inflictsBurn` |
+| Toxic | 495 | 0.19% | `statusCategory` `inflictsToxic` |
+| Rock Tomb | 491 | 0.19% | `secondaryStatEffect` |
+| psyshock | 479 | 0.18% | **— none —** |
+| Muddy Water | 478 | 0.18% | `spreadFoes` `secondaryStatEffect` |
+| Twin Beam | 469 | 0.18% | `multiHit` |
+| Energy Ball | 457 | 0.17% | `secondaryStatEffect` |
+| Extreme Speed | 455 | 0.17% | `priority` `contact` |
+| Baneful Bunker | 451 | 0.17% | `priority` `neverMisses` `stalling` `statusCategory` `inflictsPoison` |
+| Infestation | 450 | 0.17% | `contact` |
+| Draining Kiss | 445 | 0.17% | `contact` `drain` |
+| Super Fang | 442 | 0.17% | `needsUntrackedState` `contact` |
+| Ice Fang | 433 | 0.16% | `contact` `inflictsFreeze` `flinches` |
+| Disable | 416 | 0.16% | `statusCategory` `locksTarget` |
+| Spiky Shield | 407 | 0.15% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Discharge | 406 | 0.15% | `spreadAll` `inflictsParalysis` |
+| Sunny Day | 379 | 0.14% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Quick Guard | 366 | 0.14% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
+| Rage Fist | 364 | 0.14% | `needsUntrackedState` `variablePower` `contact` |
+| Haze | 362 | 0.14% | `neverMisses` `ignoresProtect` `clearsBoosts` `statusCategory` |
+| Ice Shard | 361 | 0.14% | `priority` |
+| Shadow Sneak | 348 | 0.13% | `priority` `contact` |
+| Fake Tears | 347 | 0.13% | `lowersTarget` `statusCategory` |
+| Water Spout | 345 | 0.13% | `needsUntrackedState` `variablePower` `spreadFoes` |
+| Electroweb | 345 | 0.13% | `spreadFoes` `secondaryStatEffect` |
+| Dragon Dance | 345 | 0.13% | `neverMisses` `boostsUser` `statusCategory` |
+| Leaf Storm | 340 | 0.13% | `lowersUser` |
+| Triple Axel | 332 | 0.13% | `multiHit` `variablePower` `contact` |
+| Ancient Power | 326 | 0.12% | `secondaryStatEffect` |
+| Meteor Mash | 319 | 0.12% | `contact` `secondaryStatEffect` |
+| Clanging Scales | 312 | 0.12% | `spreadFoes` `sound` |
+| Coil | 306 | 0.12% | `neverMisses` `accuracyMod` `boostsUser` `statusCategory` |
+| Recover | 305 | 0.12% | `neverMisses` `statusCategory` `healsSelf` |
+| Brick Break | 293 | 0.11% | `clearsScreens` `contact` |
+| Thunder Wave | 287 | 0.11% | `statusCategory` `inflictsParalysis` |
+| Roar | 283 | 0.11% | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` `statusCategory` |
+| Hypnosis | 278 | 0.11% | `statusCategory` `inflictsSleep` |
+| Population Bomb | 276 | 0.10% | `multiHit` `contact` |
+| Trick | 268 | 0.10% | `statusCategory` |
+| Shell Smash | 249 | 0.09% | `neverMisses` `boostsUser` `lowersUser` `statusCategory` |
+| Substitute | 247 | 0.09% | `neverMisses` `substitute` `statusCategory` |
+| Accelerock | 244 | 0.09% | `priority` `contact` |
+| Grass Knot | 244 | 0.09% | `needsUntrackedState` `variablePower` `contact` |
+| Leech Seed | 237 | 0.09% | `statusCategory` |
+| Feint | 225 | 0.09% | `priority` `ignoresProtect` |
+| Gunk Shot | 224 | 0.08% | `inflictsPoison` |
+| Beat Up | 223 | 0.08% | `variablePower` |
+| Crunch | 218 | 0.08% | `contact` `secondaryStatEffect` |
+| Waterfall | 215 | 0.08% | `contact` `flinches` |
 | Bitter Blade | 211 | 0.08% | `contact` `drain` |
-| Crunch | 210 | 0.08% | `contact` `secondaryStatEffect` |
 | Scary Face | 208 | 0.08% | `lowersTarget` `statusCategory` |
-| Thunder Punch | 204 | 0.08% | `contact` `inflictsParalysis` |
-| Phantom Force | 201 | 0.08% | `contact` `ignoresProtect` `chargeTurn` |
-| Psycho Cut | 190 | 0.07% | `critRatioUp` |
-| Clangorous Soul | 189 | 0.07% | `sound` `neverMisses` `boostsUser` `statusCategory` |
+| Thunder Punch | 205 | 0.08% | `contact` `inflictsParalysis` |
+| Phantom Force | 205 | 0.08% | `contact` `ignoresProtect` `chargeTurn` |
+| Psycho Cut | 193 | 0.07% | `critRatioUp` |
+| Head Smash | 190 | 0.07% | `contact` `recoil` |
+| Clangorous Soul | 190 | 0.07% | `sound` `neverMisses` `boostsUser` `statusCategory` |
 | Icicle Crash | 184 | 0.07% | `flinches` |
-| Head Smash | 183 | 0.07% | `contact` `recoil` |
+| poltergeist | 183 | 0.07% | **— none —** |
+| Thunder | 182 | 0.07% | `weatherScaled` `inflictsParalysis` |
 | Superpower | 182 | 0.07% | `contact` `lowersUser` |
-| poltergeist | 180 | 0.07% | **— none —** |
-| Thunder | 179 | 0.07% | `weatherScaled` `inflictsParalysis` |
-| Tickle | 177 | 0.07% | `lowersTarget` `statusCategory` |
-| Final Gambit | 176 | 0.07% | `needsUntrackedState` `userFaints` |
-| Double-Edge | 164 | 0.06% | `contact` `recoil` |
-| Imprison | 158 | 0.06% | `neverMisses` `statusCategory` |
-| Iron Defense | 146 | 0.06% | `neverMisses` `boostsUser` `statusCategory` |
+| Final Gambit | 180 | 0.07% | `needsUntrackedState` `userFaints` |
+| Tickle | 179 | 0.07% | `lowersTarget` `statusCategory` |
+| Double-Edge | 166 | 0.06% | `contact` `recoil` |
+| Imprison | 160 | 0.06% | `neverMisses` `statusCategory` |
+| Iron Defense | 149 | 0.06% | `neverMisses` `boostsUser` `statusCategory` |
+| Sacred Sword | 145 | 0.06% | `ignoresStatStages` `contact` |
 | Volt Tackle | 145 | 0.06% | `contact` `inflictsParalysis` `recoil` |
-| Sacred Sword | 144 | 0.06% | `contact` |
-| Air Slash | 135 | 0.05% | `flinches` |
-| Vacuum Wave | 135 | 0.05% | `priority` |
+| Vacuum Wave | 143 | 0.05% | `priority` |
+| Air Slash | 141 | 0.05% | `flinches` |
 
-## ABILITIES — 99 above 0.05% (98.6% of all usage)
+## ABILITIES — 100 above 0.05% (98.7% of all usage)
 
-**22 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
+**21 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
 
 | ability | uses | share | tags |
 |---|---|---|---|
-| Intimidate | 6,536 | 10.01% | `onSwitchInDrop` |
-| Prankster | 4,649 | 7.12% | `priorityMod` |
-| Rough Skin | 3,739 | 5.73% | `profitsFromHit` `contactPunish` |
-| Defiant | 3,564 | 5.46% | `boostsWhenLowered` |
-| Hospitality | 3,405 | 5.22% | `healsAllyOnSwitchIn` |
-| Adaptability | 2,833 | 4.34% | `stabBoost` |
-| Blaze | 2,675 | 4.10% | `damageBoost` |
-| Drizzle | 2,197 | 3.37% | `weatherSetter` |
-| Levitate | 1,768 | 2.71% | `typeImmunity` |
-| Armor Tail | 1,682 | 2.58% | `blocksMove` |
-| Stamina | 1,631 | 2.50% | `profitsFromHit` |
-| Unburden | 1,458 | 2.23% | `speedOnItemLoss` |
-| Flower Veil | 1,449 | 2.22% | `preventsStatDrop` |
-| Good as Gold | 1,433 | 2.20% | `blocksStatusMoves` |
-| Pixilate | 1,426 | 2.18% | `damageBoost` |
-| Clear Body | 1,328 | 2.03% | `preventsStatDrop` |
-| Unnerve | 1,326 | 2.03% | `blocksBerries` |
-| Lightning Rod | 1,288 | 1.97% | `typeImmunity` |
-| Chlorophyll | 1,131 | 1.73% | `speedCond` |
-| Torrent | 1,086 | 1.66% | `damageBoost` |
-| Snow Warning | 943 | 1.44% | `weatherSetter` |
-| Sand Stream | 838 | 1.28% | `weatherSetter` |
-| Cursed Body | 833 | 1.28% | `disablesAttacker` `profitsFromHit` |
-| Competitive | 804 | 1.23% | `boostsWhenLowered` |
-| Drought | 615 | 0.94% | `weatherSetter` |
-| Friend Guard | 614 | 0.94% | `reducesAllyDamage` |
-| Regenerator | 540 | 0.83% | `healsOnSwitchOut` |
-| poisontouch | 519 | 0.80% | **— none —** |
-| Sand Rush | 488 | 0.75% | `speedCond` `weatherChipImmune` |
-| Gale Wings | 480 | 0.74% | `priorityMod` |
-| speedboost | 451 | 0.69% | **— none —** |
-| damp | 433 | 0.66% | **— none —** |
-| Solar Power | 432 | 0.66% | `damageBoost` |
-| Toxic Debris | 411 | 0.63% | `profitsFromHit` |
-| rockhead | 392 | 0.60% | **— none —** |
-| Hyper Cutter | 377 | 0.58% | `preventsStatDrop` |
-| Inner Focus | 369 | 0.57% | `preventsStatDrop` |
-| Overgrow | 360 | 0.55% | `damageBoost` |
-| Flash Fire | 357 | 0.55% | `typeImmunity` |
-| Multiscale | 348 | 0.53% | `damageReduce` |
-| Technician | 339 | 0.52% | `damageBoost` |
-| Swift Swim | 321 | 0.49% | `speedCond` |
-| Static | 276 | 0.42% | `profitsFromHit` `contactPunish` |
-| Oblivious | 274 | 0.42% | `preventsStatDrop` `weatherChipImmune` |
-| Tough Claws | 269 | 0.41% | `damageBoost` |
-| Scrappy | 259 | 0.40% | `preventsStatDrop` `priorityMod` |
+| Intimidate | 6,604 | 10.01% | `onSwitchInDrop` |
+| Prankster | 4,692 | 7.11% | `priorityMod` |
+| Rough Skin | 3,762 | 5.70% | `profitsFromHit` `contactPunish` |
+| Defiant | 3,610 | 5.47% | `boostsWhenLowered` |
+| Hospitality | 3,435 | 5.21% | `healsAllyOnSwitchIn` |
+| Adaptability | 2,855 | 4.33% | `stabBoost` |
+| Blaze | 2,722 | 4.13% | `damageBoost` |
+| Drizzle | 2,213 | 3.35% | `weatherSetter` |
+| Levitate | 1,785 | 2.71% | `typeImmunity` |
+| Armor Tail | 1,699 | 2.58% | `blocksMove` |
+| Stamina | 1,643 | 2.49% | `profitsFromHit` |
+| Unburden | 1,465 | 2.22% | `speedOnItemLoss` |
+| Flower Veil | 1,465 | 2.22% | `preventsStatDrop` |
+| Good as Gold | 1,450 | 2.20% | `blocksStatusMoves` |
+| Pixilate | 1,448 | 2.19% | `damageBoost` |
+| Clear Body | 1,331 | 2.02% | `preventsStatDrop` |
+| Unnerve | 1,329 | 2.01% | `blocksBerries` |
+| Lightning Rod | 1,302 | 1.97% | `typeImmunity` |
+| Chlorophyll | 1,151 | 1.74% | `speedCond` |
+| Torrent | 1,093 | 1.66% | `damageBoost` |
+| Snow Warning | 954 | 1.45% | `weatherSetter` |
+| Sand Stream | 848 | 1.29% | `weatherSetter` |
+| Cursed Body | 837 | 1.27% | `disablesAttacker` `profitsFromHit` |
+| Competitive | 815 | 1.24% | `boostsWhenLowered` |
+| Friend Guard | 623 | 0.94% | `reducesAllyDamage` |
+| Drought | 621 | 0.94% | `weatherSetter` |
+| Regenerator | 555 | 0.84% | `healsOnSwitchOut` |
+| poisontouch | 528 | 0.80% | **— none —** |
+| Sand Rush | 495 | 0.75% | `speedCond` `weatherChipImmune` |
+| Gale Wings | 493 | 0.75% | `priorityMod` |
+| speedboost | 453 | 0.69% | **— none —** |
+| damp | 437 | 0.66% | **— none —** |
+| Solar Power | 432 | 0.65% | `damageBoost` |
+| Toxic Debris | 417 | 0.63% | `profitsFromHit` |
+| rockhead | 399 | 0.60% | **— none —** |
+| Hyper Cutter | 378 | 0.57% | `preventsStatDrop` |
+| Inner Focus | 377 | 0.57% | `preventsStatDrop` |
+| Overgrow | 362 | 0.55% | `damageBoost` |
+| Flash Fire | 357 | 0.54% | `typeImmunity` |
+| Multiscale | 353 | 0.54% | `damageReduce` |
+| Technician | 344 | 0.52% | `damageBoost` |
+| Swift Swim | 325 | 0.49% | `speedCond` |
+| Static | 278 | 0.42% | `profitsFromHit` `contactPunish` |
+| Oblivious | 277 | 0.42% | `preventsStatDrop` `weatherChipImmune` |
+| Tough Claws | 272 | 0.41% | `damageBoost` |
+| Scrappy | 262 | 0.40% | `preventsStatDrop` `priorityMod` |
 | moody | 249 | 0.38% | **— none —** |
-| liquidvoice | 242 | 0.37% | **— none —** |
-| raindish | 239 | 0.37% | **— none —** |
-| Mirror Armor | 221 | 0.34% | `preventsStatDrop` |
-| Queenly Majesty | 220 | 0.34% | `blocksMove` |
-| Snow Cloak | 219 | 0.34% | `accuracyMod` `weatherChipImmune` |
-| Compound Eyes | 208 | 0.32% | `accuracyMod` |
-| soundproof | 202 | 0.31% | **— none —** |
-| unaware | 172 | 0.26% | **— none —** |
-| protean | 167 | 0.26% | **— none —** |
-| Solid Rock | 166 | 0.25% | `damageReduce` |
-| Sharpness | 154 | 0.24% | `damageBoost` |
-| Sturdy | 153 | 0.23% | `survivesFromFull` |
-| Stance Change | 146 | 0.22% | `priorityMod` |
-| Sand Veil | 135 | 0.21% | `accuracyMod` `weatherChipImmune` |
-| Contrary | 134 | 0.21% | `invertsBoosts` |
-| Mold Breaker | 127 | 0.19% | `ignoresDefenderAbility` `priorityMod` |
-| Flame Body | 113 | 0.17% | `profitsFromHit` `contactPunish` |
-| Telepathy | 112 | 0.17% | `blocksStatusMoves` |
-| trace | 111 | 0.17% | **— none —** |
-| Zero to Hero | 105 | 0.16% | `healsOnSwitchOut` `formeChange` |
+| liquidvoice | 243 | 0.37% | **— none —** |
+| raindish | 240 | 0.36% | **— none —** |
+| Mirror Armor | 226 | 0.34% | `preventsStatDrop` |
+| Queenly Majesty | 226 | 0.34% | `blocksMove` |
+| Snow Cloak | 219 | 0.33% | `accuracyMod` `weatherChipImmune` |
+| Compound Eyes | 210 | 0.32% | `accuracyMod` |
+| soundproof | 207 | 0.31% | **— none —** |
+| Unaware | 173 | 0.26% | `ignoresStatStages` |
+| Solid Rock | 170 | 0.26% | `damageReduce` |
+| protean | 167 | 0.25% | **— none —** |
+| Sharpness | 155 | 0.23% | `damageBoost` |
+| Sturdy | 154 | 0.23% | `survivesFromFull` |
+| Stance Change | 149 | 0.23% | `priorityMod` |
+| Sand Veil | 135 | 0.20% | `accuracyMod` `weatherChipImmune` |
+| Contrary | 134 | 0.20% | `invertsBoosts` |
+| Mold Breaker | 130 | 0.20% | `ignoresDefenderAbility` `priorityMod` |
+| Telepathy | 116 | 0.18% | `blocksStatusMoves` |
+| Zero to Hero | 115 | 0.17% | `healsOnSwitchOut` `formeChange` |
+| trace | 114 | 0.17% | **— none —** |
+| Flame Body | 114 | 0.17% | `profitsFromHit` `contactPunish` |
 | Sheer Force | 94 | 0.14% | `damageBoost` `priorityMod` |
-| magicbounce | 89 | 0.14% | **— none —** |
+| magicbounce | 92 | 0.14% | **— none —** |
+| Overcoat | 90 | 0.14% | `weatherChipImmune` |
 | pressure | 85 | 0.13% | **— none —** |
-| Overcoat | 85 | 0.13% | `weatherChipImmune` |
+| Huge Power | 75 | 0.11% | `damageBoost` |
 | Leaf Guard | 75 | 0.11% | `statusImmune` |
-| Huge Power | 72 | 0.11% | `damageBoost` |
+| Water Bubble | 73 | 0.11% | `damageBoost` `statusImmune` |
 | frisk | 72 | 0.11% | **— none —** |
-| Water Bubble | 72 | 0.11% | `damageBoost` `statusImmune` |
-| thickfat | 70 | 0.11% | **— none —** |
-| cloudnine | 68 | 0.10% | **— none —** |
-| Illusion | 62 | 0.09% | `profitsFromHit` `formeChange` |
-| Disguise | 62 | 0.09% | `preventsCrit` `formeChange` |
+| thickfat | 71 | 0.11% | **— none —** |
+| cloudnine | 70 | 0.11% | **— none —** |
+| Disguise | 64 | 0.10% | `preventsCrit` `formeChange` |
+| Limber | 63 | 0.10% | `statusImmune` |
+| Illusion | 63 | 0.10% | `profitsFromHit` `formeChange` |
+| magicguard | 60 | 0.09% | **— none —** |
 | Supreme Overlord | 60 | 0.09% | `damageBoost` |
-| Limber | 59 | 0.09% | `statusImmune` |
-| magicguard | 58 | 0.09% | **— none —** |
-| Infiltrator | 54 | 0.08% | `priorityMod` |
+| Infiltrator | 56 | 0.08% | `priorityMod` |
+| Iron Fist | 55 | 0.08% | `damageBoost` |
 | synchronize | 53 | 0.08% | **— none —** |
-| Iron Fist | 53 | 0.08% | `damageBoost` |
 | Dry Skin | 52 | 0.08% | `typeImmunity` |
 | bulletproof | 52 | 0.08% | **— none —** |
-| Poison Point | 50 | 0.08% | `profitsFromHit` `contactPunish` |
+| Poison Point | 51 | 0.08% | `profitsFromHit` `contactPunish` |
 | Cute Charm | 48 | 0.07% | `profitsFromHit` `contactPunish` |
 | Electromorphosis | 48 | 0.07% | `profitsFromHit` |
+| Magma Armor | 44 | 0.07% | `weatherChipImmune` |
 | Own Tempo | 44 | 0.07% | `preventsStatDrop` |
-| Magma Armor | 43 | 0.07% | `weatherChipImmune` |
 | magician | 41 | 0.06% | **— none —** |
 | Imposter | 39 | 0.06% | `formeChange` |
 | Insomnia | 39 | 0.06% | `statusImmune` |
+| Natural Cure | 38 | 0.06% | `healsOnSwitchOut` |
+| moxie | 37 | 0.06% | **— none —** |
 | symbiosis | 37 | 0.06% | **— none —** |
-| moxie | 36 | 0.06% | **— none —** |
-| Natural Cure | 35 | 0.05% | `healsOnSwitchOut` |
+| Purifying Salt | 35 | 0.05% | `statusImmune` |
 | Volt Absorb | 33 | 0.05% | `typeImmunity` |
 
 ## ITEMS — 95 above 0.05% (98.8% of all usage)
@@ -452,100 +456,100 @@ would never appear. This section lists everything above **0.05% of usage** regar
 
 | item | uses | share | tags |
 |---|---|---|---|
-| Focus Sash | 7,610 | 11.66% | `survivesFromFull` |
-| Sitrus Berry | 7,043 | 10.79% | `healsAtHalf` |
-| Life Orb | 6,223 | 9.53% | `damageMultAll` |
-| Leftovers | 4,289 | 6.57% | `passiveHeal` |
-| Choice Scarf | 3,907 | 5.98% | `choiceLock` `speedMult` |
-| Charizardite Y | 2,200 | 3.37% | `megaStone` |
-| Light Clay | 2,007 | 3.07% | `extendsScreens` |
-| Staraptite | 1,938 | 2.97% | `megaStone` |
-| Fairy Feather | 1,502 | 2.30% | `damageMultType` |
-| Floettite | 1,439 | 2.20% | `megaStone` |
-| Chople Berry | 1,432 | 2.19% | `resistBerry` |
-| White Herb | 1,358 | 2.08% | `restoresStats` |
-| Swampertite | 1,345 | 2.06% | `megaStone` |
-| Black Glasses | 1,319 | 2.02% | `damageMultType` |
-| Colbur Berry | 1,234 | 1.89% | `resistBerry` |
-| Metagrossite | 1,186 | 1.82% | `megaStone` |
-| Kasib Berry | 1,101 | 1.69% | `resistBerry` |
-| Raichunite Y | 1,063 | 1.63% | `megaStone` |
-| Mystic Water | 864 | 1.32% | `damageMultType` |
-| Aerodactylite | 844 | 1.29% | `megaStone` |
-| Delphoxite | 760 | 1.16% | `megaStone` |
-| Charcoal | 689 | 1.06% | `damageMultType` |
-| Mawilite | 677 | 1.04% | `megaStone` |
-| Occa Berry | 635 | 0.97% | `resistBerry` |
-| Tyranitarite | 633 | 0.97% | `megaStone` |
-| Froslassite | 544 | 0.83% | `megaStone` |
-| Roseli Berry | 510 | 0.78% | `resistBerry` |
-| Passho Berry | 484 | 0.74% | `resistBerry` |
+| Focus Sash | 7,693 | 11.66% | `survivesFromFull` |
+| Sitrus Berry | 7,132 | 10.81% | `healsAtHalf` |
+| Life Orb | 6,301 | 9.55% | `damageMultAll` |
+| Leftovers | 4,336 | 6.57% | `passiveHeal` |
+| Choice Scarf | 3,947 | 5.98% | `choiceLock` `speedMult` |
+| Charizardite Y | 2,223 | 3.37% | `megaStone` |
+| Light Clay | 2,016 | 3.06% | `extendsScreens` |
+| Staraptite | 1,956 | 2.96% | `megaStone` |
+| Fairy Feather | 1,521 | 2.31% | `damageMultType` |
+| Floettite | 1,455 | 2.21% | `megaStone` |
+| Chople Berry | 1,441 | 2.18% | `resistBerry` |
+| White Herb | 1,362 | 2.06% | `restoresStats` |
+| Swampertite | 1,351 | 2.05% | `megaStone` |
+| Black Glasses | 1,332 | 2.02% | `damageMultType` |
+| Colbur Berry | 1,256 | 1.90% | `resistBerry` |
+| Metagrossite | 1,189 | 1.80% | `megaStone` |
+| Kasib Berry | 1,102 | 1.67% | `resistBerry` |
+| Raichunite Y | 1,076 | 1.63% | `megaStone` |
+| Mystic Water | 873 | 1.32% | `damageMultType` |
+| Aerodactylite | 847 | 1.28% | `megaStone` |
+| Delphoxite | 782 | 1.19% | `megaStone` |
+| Charcoal | 694 | 1.05% | `damageMultType` |
+| Mawilite | 680 | 1.03% | `megaStone` |
+| Occa Berry | 650 | 0.99% | `resistBerry` |
+| Tyranitarite | 643 | 0.97% | `megaStone` |
+| Froslassite | 548 | 0.83% | `megaStone` |
+| Roseli Berry | 511 | 0.77% | `resistBerry` |
+| Passho Berry | 487 | 0.74% | `resistBerry` |
 | Gengarite | 446 | 0.68% | `megaStone` |
-| mentalherb | 439 | 0.67% | **— none —** |
-| Wide Lens | 411 | 0.63% | `accuracyMod` |
-| Venusaurite | 401 | 0.61% | `megaStone` |
-| Coba Berry | 399 | 0.61% | `resistBerry` |
-| expertbelt | 394 | 0.60% | **— none —** |
-| Never-Melt Ice | 386 | 0.59% | `damageMultType` |
-| Blastoisinite | 351 | 0.54% | `megaStone` |
-| Sharp Beak | 294 | 0.45% | `damageMultType` |
-| Dragoninite | 284 | 0.44% | `megaStone` |
-| Scovillainite | 281 | 0.43% | `megaStone` |
+| mentalherb | 445 | 0.67% | **— none —** |
+| Wide Lens | 414 | 0.63% | `accuracyMod` |
+| Venusaurite | 409 | 0.62% | `megaStone` |
+| Coba Berry | 401 | 0.61% | `resistBerry` |
+| expertbelt | 399 | 0.60% | **— none —** |
+| Never-Melt Ice | 393 | 0.60% | `damageMultType` |
+| Blastoisinite | 357 | 0.54% | `megaStone` |
+| Sharp Beak | 302 | 0.46% | `damageMultType` |
+| Dragoninite | 289 | 0.44% | `megaStone` |
+| Scovillainite | 284 | 0.43% | `megaStone` |
 | Blazikenite | 277 | 0.42% | `megaStone` |
-| Shuca Berry | 262 | 0.40% | `resistBerry` |
-| Eelektrossite | 258 | 0.40% | `megaStone` |
-| Scraftinite | 244 | 0.37% | `megaStone` |
-| Raichunite X | 216 | 0.33% | `megaStone` |
+| Shuca Berry | 266 | 0.40% | `resistBerry` |
+| Eelektrossite | 259 | 0.39% | `megaStone` |
+| Scraftinite | 247 | 0.37% | `megaStone` |
+| Raichunite X | 217 | 0.33% | `megaStone` |
 | Metal Coat | 212 | 0.32% | `damageMultType` |
-| damprock | 200 | 0.31% | **— none —** |
-| Sceptilite | 194 | 0.30% | `megaStone` |
-| Cameruptite | 193 | 0.30% | `megaStone` |
-| Gardevoirite | 190 | 0.29% | `megaStone` |
-| Pyroarite | 188 | 0.29% | `megaStone` |
-| Glimmoranite | 159 | 0.24% | `megaStone` |
+| damprock | 200 | 0.30% | **— none —** |
+| Gardevoirite | 197 | 0.30% | `megaStone` |
+| Cameruptite | 196 | 0.30% | `megaStone` |
+| Sceptilite | 195 | 0.30% | `megaStone` |
+| Pyroarite | 188 | 0.28% | `megaStone` |
+| Glimmoranite | 163 | 0.25% | `megaStone` |
 | Dragalgite | 145 | 0.22% | `megaStone` |
-| Bright Powder | 142 | 0.22% | `accuracyMod` |
-| Meganiumite | 138 | 0.21% | `megaStone` |
-| Kangaskhanite | 131 | 0.20% | `megaStone` |
-| Dragon Fang | 116 | 0.18% | `damageMultType` |
+| Bright Powder | 144 | 0.22% | `accuracyMod` |
+| Meganiumite | 139 | 0.21% | `megaStone` |
+| Kangaskhanite | 133 | 0.20% | `megaStone` |
+| Dragon Fang | 117 | 0.18% | `damageMultType` |
 | Haban Berry | 112 | 0.17% | `resistBerry` |
-| Lum Berry | 107 | 0.16% | `curesStatus` |
-| Silk Scarf | 100 | 0.15% | `damageMultType` |
+| Lum Berry | 108 | 0.16% | `curesStatus` |
+| Silk Scarf | 102 | 0.15% | `damageMultType` |
 | Malamarite | 90 | 0.14% | `megaStone` |
+| ironball | 85 | 0.13% | **— none —** |
 | Garchompite | 85 | 0.13% | `megaStone` |
-| ironball | 81 | 0.12% | **— none —** |
 | Spell Tag | 79 | 0.12% | `damageMultType` |
+| Lopunnite | 78 | 0.12% | `megaStone` |
 | Magnet | 77 | 0.12% | `damageMultType` |
 | Soft Sand | 75 | 0.11% | `damageMultType` |
-| Lopunnite | 74 | 0.11% | `megaStone` |
 | Lucarionite | 72 | 0.11% | `megaStone` |
+| Gyaradosite | 71 | 0.11% | `megaStone` |
 | Babiri Berry | 70 | 0.11% | `resistBerry` |
-| Scope Lens | 69 | 0.11% | `critRatioUp` |
-| Gyaradosite | 69 | 0.11% | `megaStone` |
-| Charizardite X | 64 | 0.10% | `megaStone` |
-| Scizorite | 63 | 0.10% | `megaStone` |
+| Scope Lens | 69 | 0.10% | `critRatioUp` |
+| Scizorite | 65 | 0.10% | `megaStone` |
+| Charizardite X | 65 | 0.10% | `megaStone` |
+| Starminite | 59 | 0.09% | `megaStone` |
 | Greninjite | 59 | 0.09% | `megaStone` |
-| Starminite | 56 | 0.09% | `megaStone` |
+| Clefablite | 54 | 0.08% | `megaStone` |
+| Drampanite | 53 | 0.08% | `megaStone` |
 | Excadrite | 53 | 0.08% | `megaStone` |
-| Clefablite | 53 | 0.08% | `megaStone` |
 | heatrock | 52 | 0.08% | **— none —** |
-| Drampanite | 51 | 0.08% | `megaStone` |
-| Ampharosite | 49 | 0.08% | `megaStone` |
-| King's Rock | 49 | 0.08% | `addsFlinch` |
-| Chandelurite | 48 | 0.07% | `megaStone` |
+| Ampharosite | 50 | 0.08% | `megaStone` |
+| Chandelurite | 50 | 0.08% | `megaStone` |
+| Falinksite | 50 | 0.08% | `megaStone` |
+| King's Rock | 49 | 0.07% | `addsFlinch` |
 | Miracle Seed | 48 | 0.07% | `damageMultType` |
-| muscleband | 47 | 0.07% | **— none —** |
-| Yache Berry | 46 | 0.07% | `resistBerry` |
-| Falinksite | 45 | 0.07% | `megaStone` |
-| Scolipite | 40 | 0.06% | `megaStone` |
+| muscleband | 48 | 0.07% | **— none —** |
+| Yache Berry | 47 | 0.07% | `resistBerry` |
+| Scolipite | 42 | 0.06% | `megaStone` |
 | Quick Claw | 39 | 0.06% | `fractionalPriority` |
-| Kebia Berry | 38 | 0.06% | `resistBerry` |
+| Kebia Berry | 39 | 0.06% | `resistBerry` |
 | Aggronite | 38 | 0.06% | `megaStone` |
 | Beedrillite | 37 | 0.06% | `megaStone` |
 | Crabominite | 37 | 0.06% | `megaStone` |
-| Black Belt | 36 | 0.06% | `damageMultType` |
-| Wacan Berry | 36 | 0.06% | `resistBerry` |
-| Slowbronite | 36 | 0.06% | `megaStone` |
+| Black Belt | 36 | 0.05% | `damageMultType` |
+| Wacan Berry | 36 | 0.05% | `resistBerry` |
+| Slowbronite | 36 | 0.05% | `megaStone` |
 | Sablenite | 33 | 0.05% | `megaStone` |
 
 ---
@@ -558,77 +562,77 @@ had named until now.
 
 | move | uses | prio | other tags |
 |---|---|---|---|
-| Protect | 43,362 | +4 | `priority` `neverMisses` `stalling` |
-| Tailwind | 6,981 |  | `neverMisses` `doublesSideSpeed` |
-| Parting Shot | 4,782 |  | `sound` `pivotStatus` `boostsProcedural` `lowersTarget` |
-| Trick Room | 4,415 | -7 | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` |
-| Rage Powder | 3,851 | +2 | `priority` `powder` `neverMisses` `redirects` |
-| Encore | 2,758 |  | `locksTarget` |
-| Light Screen | 2,346 |  | `neverMisses` `halvesDamage` |
-| Wide Guard | 2,065 | +3 | `priority` `neverMisses` `oneTurnGuard` |
-| Helping Hand | 2,027 | +5 | `priority` `neverMisses` |
-| Reflect | 1,988 |  | `neverMisses` `halvesDamage` |
-| Nasty Plot | 1,763 |  | `neverMisses` `boostsUser` |
-| Life Dew | 1,683 |  | `neverMisses` `healsSelf` `healsAlly` |
-| Roost | 1,353 |  | `neverMisses` `healsSelf` |
-| Swords Dance | 1,195 |  | `neverMisses` `boostsUser` |
-| Calm Mind | 1,163 |  | `neverMisses` `boostsUser` |
-| Detect | 1,162 | +4 | `priority` `neverMisses` `stalling` |
-| Will-O-Wisp | 1,101 |  | `inflictsBurn` `inflictsStatus` |
-| Follow Me | 933 | +2 | `priority` `neverMisses` `redirects` |
-| Taunt | 867 |  | `forbidsStatusMoves` |
-| Aurora Veil | 853 |  | `neverMisses` `halvesDamage` `failsWithoutWeather` |
-| Sleep Powder | 734 |  | `powder` `inflictsSleep` `inflictsStatus` |
-| Rain Dance | 701 |  | `neverMisses` `ignoresProtect` `setsWeather` |
-| Charm | 691 |  | `lowersTarget` |
-| Bulk Up | 561 |  | `neverMisses` `boostsUser` |
-| Perish Song | 560 |  | `sound` `neverMisses` `ignoresProtect` `perishClock` |
-| Yawn | 536 |  | `neverMisses` `delayedSleep` |
-| Coaching | 525 |  | `neverMisses` `boostsTarget` |
-| Strength Sap | 518 |  | `boostsProcedural` `lowersTarget` `healsAlly` |
-| Toxic | 480 |  | `inflictsToxic` `inflictsStatus` |
-| Baneful Bunker | 436 | +4 | `priority` `neverMisses` `stalling` `inflictsPoison` |
-| Disable | 414 |  | `locksTarget` |
-| Spiky Shield | 401 | +4 | `priority` `neverMisses` `stalling` |
-| Sunny Day | 376 |  | `neverMisses` `ignoresProtect` `setsWeather` |
-| Haze | 359 |  | `neverMisses` `ignoresProtect` `clearsBoosts` |
-| Quick Guard | 356 | +3 | `priority` `neverMisses` `oneTurnGuard` |
-| Fake Tears | 345 |  | `lowersTarget` |
-| Dragon Dance | 343 |  | `neverMisses` `boostsUser` |
-| Coil | 301 |  | `neverMisses` `accuracyMod` `boostsUser` |
-| Recover | 300 |  | `neverMisses` `healsSelf` |
-| Thunder Wave | 284 |  | `inflictsParalysis` `inflictsStatus` |
-| Roar | 281 | -6 | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` |
-| Hypnosis | 273 |  | `inflictsSleep` `inflictsStatus` |
-| Trick | 266 |  | — |
-| Shell Smash | 248 |  | `neverMisses` `boostsUser` `lowersUser` |
-| Leech Seed | 234 |  | — |
-| Substitute | 234 |  | `neverMisses` `substitute` |
+| Protect | 43,795 | +4 | `priority` `neverMisses` `stalling` |
+| Tailwind | 7,052 |  | `neverMisses` `doublesSideSpeed` |
+| Parting Shot | 4,827 |  | `sound` `pivotStatus` `boostsProcedural` `lowersTarget` |
+| Trick Room | 4,461 | -7 | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` |
+| Rage Powder | 3,886 | +2 | `priority` `powder` `neverMisses` `redirects` |
+| Encore | 2,786 |  | `locksTarget` |
+| Light Screen | 2,359 |  | `neverMisses` `halvesDamage` |
+| Wide Guard | 2,098 | +3 | `priority` `neverMisses` `oneTurnGuard` |
+| Helping Hand | 2,051 | +5 | `priority` `neverMisses` |
+| Reflect | 2,000 |  | `neverMisses` `halvesDamage` |
+| Nasty Plot | 1,779 |  | `neverMisses` `boostsUser` |
+| Life Dew | 1,694 |  | `neverMisses` `healsSelf` `healsAlly` |
+| Roost | 1,363 |  | `neverMisses` `healsSelf` |
+| Swords Dance | 1,216 |  | `neverMisses` `boostsUser` |
+| Calm Mind | 1,184 |  | `neverMisses` `boostsUser` |
+| Detect | 1,179 | +4 | `priority` `neverMisses` `stalling` |
+| Will-O-Wisp | 1,112 |  | `inflictsBurn` |
+| Follow Me | 944 | +2 | `priority` `neverMisses` `redirects` |
+| Taunt | 881 |  | `forbidsStatusMoves` |
+| Aurora Veil | 860 |  | `neverMisses` `halvesDamage` `failsWithoutWeather` |
+| Sleep Powder | 742 |  | `powder` `inflictsSleep` |
+| Rain Dance | 704 |  | `neverMisses` `ignoresProtect` `setsWeather` |
+| Charm | 700 |  | `lowersTarget` |
+| Bulk Up | 567 |  | `neverMisses` `boostsUser` |
+| Perish Song | 562 |  | `sound` `neverMisses` `ignoresProtect` `perishClock` |
+| Yawn | 542 |  | `neverMisses` `delayedSleep` |
+| Coaching | 529 |  | `neverMisses` `boostsTarget` |
+| Strength Sap | 519 |  | `boostsProcedural` `lowersTarget` `healsAlly` |
+| Toxic | 495 |  | `inflictsToxic` |
+| Baneful Bunker | 451 | +4 | `priority` `neverMisses` `stalling` `inflictsPoison` |
+| Disable | 416 |  | `locksTarget` |
+| Spiky Shield | 407 | +4 | `priority` `neverMisses` `stalling` |
+| Sunny Day | 379 |  | `neverMisses` `ignoresProtect` `setsWeather` |
+| Quick Guard | 366 | +3 | `priority` `neverMisses` `oneTurnGuard` |
+| Haze | 362 |  | `neverMisses` `ignoresProtect` `clearsBoosts` |
+| Fake Tears | 347 |  | `lowersTarget` |
+| Dragon Dance | 345 |  | `neverMisses` `boostsUser` |
+| Coil | 306 |  | `neverMisses` `accuracyMod` `boostsUser` |
+| Recover | 305 |  | `neverMisses` `healsSelf` |
+| Thunder Wave | 287 |  | `inflictsParalysis` |
+| Roar | 283 | -6 | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` |
+| Hypnosis | 278 |  | `inflictsSleep` |
+| Trick | 268 |  | — |
+| Shell Smash | 249 |  | `neverMisses` `boostsUser` `lowersUser` |
+| Substitute | 247 |  | `neverMisses` `substitute` |
+| Leech Seed | 237 |  | — |
 | Scary Face | 208 |  | `lowersTarget` |
-| Clangorous Soul | 189 |  | `sound` `neverMisses` `boostsUser` |
-| Tickle | 177 |  | `lowersTarget` |
-| Imprison | 158 |  | `neverMisses` |
-| Iron Defense | 146 |  | `neverMisses` `boostsUser` |
-| King's Shield | 127 | +4 | `priority` `neverMisses` `stalling` |
-| Quash | 125 |  | — |
-| After You | 104 |  | `neverMisses` `ignoresProtect` |
-| Instruct | 90 |  | `neverMisses` |
+| Clangorous Soul | 190 |  | `sound` `neverMisses` `boostsUser` |
+| Tickle | 179 |  | `lowersTarget` |
+| Imprison | 160 |  | `neverMisses` |
+| Iron Defense | 149 |  | `neverMisses` `boostsUser` |
+| King's Shield | 130 | +4 | `priority` `neverMisses` `stalling` |
+| Quash | 127 |  | — |
+| After You | 107 |  | `neverMisses` `ignoresProtect` |
+| Instruct | 92 |  | `neverMisses` |
 | Soak | 78 |  | — |
-| Ally Switch | 76 | +2 | `priority` `neverMisses` |
-| Belly Drum | 66 |  | `neverMisses` `boostsProcedural` |
+| Ally Switch | 77 | +2 | `priority` `neverMisses` |
+| Belly Drum | 69 |  | `neverMisses` `boostsProcedural` |
 | Baton Pass | 65 |  | `neverMisses` `passesState` |
+| Stealth Rock | 64 |  | `neverMisses` `hazard` |
 | Swagger | 64 |  | `inflictsConfusion` `boostsTarget` |
+| Curse | 62 |  | `neverMisses` `ignoresProtect` |
 | Heal Pulse | 62 |  | `neverMisses` `healsAlly` |
-| Stealth Rock | 62 |  | `neverMisses` `hazard` |
-| Curse | 61 |  | `neverMisses` `ignoresProtect` |
 | Quiver Dance | 58 |  | `neverMisses` `boostsUser` |
 | Skill Swap | 56 |  | `neverMisses` |
+| Psychic Terrain | 52 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
 | Baby-Doll Eyes | 50 | +1 | `priority` `lowersTarget` |
-| Psychic Terrain | 50 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
+| No Retreat | 48 |  | `neverMisses` `boostsUser` |
 | Psych Up | 46 |  | `neverMisses` `ignoresProtect` `boostsProcedural` |
 | Wish | 46 |  | `neverMisses` `healsSelf` |
 | Rest | 44 |  | `neverMisses` `healsSelf` |
-| No Retreat | 43 |  | `neverMisses` `boostsUser` |
 | Shed Tail | 41 |  | `neverMisses` `passesState` `substitute` |
 | Destiny Bond | 39 |  | `neverMisses` |
 | Transform | 39 |  | `neverMisses` `ignoresProtect` |
@@ -637,14 +641,14 @@ had named until now.
 | Synthesis | 33 |  | `neverMisses` `healsSelf` |
 | Memento | 31 |  | `lowersTarget` `userFaints` |
 | Worry Seed | 29 |  | — |
+| Pain Split | 27 |  | `neverMisses` |
 | Howl | 26 |  | `sound` `neverMisses` `boostsTarget` |
-| Pain Split | 26 |  | `neverMisses` |
 | Moonlight | 21 |  | `neverMisses` `healsSelf` |
 | Stockpile | 21 |  | `neverMisses` |
 | Tidy Up | 21 |  | `neverMisses` `boostsProcedural` |
 | Cotton Spore | 20 |  | `spreadFoes` `powder` `lowersTarget` |
 | Entrainment | 20 |  | — |
-| Glare | 20 |  | `inflictsParalysis` `inflictsStatus` |
+| Glare | 20 |  | `inflictsParalysis` |
 | Toxic Spikes | 20 |  | `neverMisses` `hazard` |
 | Decorate | 18 |  | `neverMisses` `ignoresProtect` `boostsTarget` |
 | Shelter | 18 |  | `neverMisses` `boostsUser` |
@@ -656,7 +660,7 @@ had named until now.
 | Acid Armor | 13 |  | `neverMisses` `boostsUser` |
 | String Shot | 13 |  | `spreadFoes` `lowersTarget` |
 | Role Play | 12 |  | `neverMisses` `ignoresProtect` |
-| Stun Spore | 12 |  | `powder` `inflictsParalysis` `inflictsStatus` |
+| Stun Spore | 12 |  | `powder` `inflictsParalysis` |
 | Whirlwind | 12 | -6 | `priority` `neverMisses` `ignoresProtect` `forcesSwitch` |
 | Electric Terrain | 11 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
 | Agility | 10 |  | `neverMisses` `boostsUser` |
@@ -668,15 +672,15 @@ had named until now.
 | Feather Dance | 8 |  | `lowersTarget` |
 | Morning Sun | 7 |  | `neverMisses` `healsSelf` |
 | Switcheroo | 7 |  | — |
-| Toxic Thread | 6 |  | `lowersTarget` `inflictsPoison` `inflictsStatus` |
+| Toxic Thread | 6 |  | `lowersTarget` `inflictsPoison` |
 | Safeguard | 6 |  | `neverMisses` `sideBuff` |
+| Speed Swap | 6 |  | `neverMisses` |
 | Aqua Ring | 5 |  | `neverMisses` |
 | Grassy Terrain | 5 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
 | Magic Powder | 5 |  | `powder` |
 | Mean Look | 5 |  | `neverMisses` `ignoresProtect` |
 | Misty Terrain | 5 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
 | Power Swap | 5 |  | `neverMisses` `boostsProcedural` `lowersTarget` |
-| Speed Swap | 5 |  | `neverMisses` |
 | Spikes | 5 |  | `neverMisses` `hazard` |
 | Spite | 5 |  | — |
 | Growth | 4 |  | `weatherScaled` `neverMisses` `boostsUser` |
@@ -692,7 +696,7 @@ had named until now.
 | Endure | 3 | +4 | `priority` `neverMisses` `stalling` |
 | Gastro Acid | 3 |  | — |
 | Screech | 3 |  | `sound` `lowersTarget` |
-| Spore | 3 |  | `powder` `inflictsSleep` `inflictsStatus` |
+| Spore | 3 |  | `powder` `inflictsSleep` |
 | Confuse Ray | 2 |  | `inflictsConfusion` |
 | Wonder Room | 2 |  | `neverMisses` `ignoresProtect` `swapsDefences` |
 | Corrosive Gas | 1 |  | `spreadAll` |
@@ -717,17 +721,17 @@ A dash means the taxonomy says nothing about it beyond being a status move — *
 
 | entry | appearances | parameter |
 |---|---|---|
-| Close Combat | 5,487 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
-| Make It Rain | 1,420 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
-| Draco Meteor | 1,199 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
-| Overheat | 771 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
-| Leaf Storm | 337 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
-| Shell Smash | 248 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:true |
+| Close Combat | 5,558 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Make It Rain | 1,437 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Draco Meteor | 1,206 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Overheat | 772 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Leaf Storm | 340 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Shell Smash | 249 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:true |
 | Superpower | 182 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
-| Hammer Arm | 106 | readFrom:m.self.boosts,lowersSpeed:true,alsoRaises:false |
+| Hammer Arm | 107 | readFrom:m.self.boosts,lowersSpeed:true,alsoRaises:false |
 | Armor Cannon | 31 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
 | Ice Hammer | 31 | readFrom:m.self.boosts,lowersSpeed:true,alsoRaises:false |
-| Headlong Rush | 26 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Headlong Rush | 28 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
 
 Total tagged: **11**  ·  share: **1.5%**
 
@@ -737,16 +741,16 @@ Total tagged: **11**  ·  share: **1.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Last Respects | 3,009 | needs:fainted count |
-| Stomping Tantrum | 2,122 | needs:last move failed |
-| Low Kick | 1,854 | needs:target weight |
-| Eruption | 565 | needs:user hp |
-| Super Fang | 434 | needs:target hp |
-| Rage Fist | 363 | needs:times hit |
-| Water Spout | 342 | needs:user hp |
-| Grass Knot | 242 | needs:target weight |
-| Final Gambit | 176 | needs:user hp |
-| Heavy Slam | 119 | needs:weight ratio |
+| Last Respects | 3,034 | needs:fainted count |
+| Stomping Tantrum | 2,132 | needs:last move failed |
+| Low Kick | 1,880 | needs:target weight |
+| Eruption | 571 | needs:user hp |
+| Super Fang | 442 | needs:target hp |
+| Rage Fist | 364 | needs:times hit |
+| Water Spout | 345 | needs:user hp |
+| Grass Knot | 244 | needs:target weight |
+| Final Gambit | 180 | needs:user hp |
+| Heavy Slam | 121 | needs:weight ratio |
 | Endeavor | 75 | needs:hp difference |
 | Hard Press | 26 | needs:target hp |
 | Gyro Ball | 24 | needs:speed ratio |
@@ -763,10 +767,10 @@ Total tagged: **18**  ·  1 legal but unused  ·  share: **1.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Weather Ball | 4,699 | scalesWith:weather |
-| Hurricane | 2,259 | scalesWith:weather |
-| Blizzard | 1,532 | scalesWith:weather |
-| Thunder | 179 | scalesWith:weather |
+| Weather Ball | 4,739 | scalesWith:weather |
+| Hurricane | 2,275 | scalesWith:weather |
+| Blizzard | 1,547 | scalesWith:weather |
+| Thunder | 182 | scalesWith:weather |
 | Growth | 4 | scalesWith:weather |
 
 Total tagged: **5**  ·  share: **1.3%**
@@ -777,10 +781,10 @@ Total tagged: **5**  ·  share: **1.3%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Flare Blitz | 4,032 | thaws:true |
-| Matcha Gotcha | 3,392 | thaws:true |
-| Scald | 601 | thaws:true |
-| Scorching Sands | 87 | thaws:true |
+| Flare Blitz | 4,090 | thaws:true |
+| Matcha Gotcha | 3,422 | thaws:true |
+| Scald | 608 | thaws:true |
+| Scorching Sands | 89 | thaws:true |
 | Burn Up | 35 | thaws:true |
 
 Total tagged: **5**  ·  share: **1.2%**
@@ -791,17 +795,17 @@ Total tagged: **5**  ·  share: **1.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Trick Room | 4,415 | ignoresProtect:true |
-| Rain Dance | 701 | ignoresProtect:true |
-| Perish Song | 560 | ignoresProtect:true |
-| Sunny Day | 376 | ignoresProtect:true |
-| Haze | 359 | ignoresProtect:true |
-| Roar | 281 | ignoresProtect:true |
-| Feint | 222 | ignoresProtect:true |
-| Phantom Force | 201 | ignoresProtect:true |
-| After You | 104 | ignoresProtect:true |
-| Curse | 61 | ignoresProtect:true |
-| Psychic Terrain | 50 | ignoresProtect:true |
+| Trick Room | 4,461 | ignoresProtect:true |
+| Rain Dance | 704 | ignoresProtect:true |
+| Perish Song | 562 | ignoresProtect:true |
+| Sunny Day | 379 | ignoresProtect:true |
+| Haze | 362 | ignoresProtect:true |
+| Roar | 283 | ignoresProtect:true |
+| Feint | 225 | ignoresProtect:true |
+| Phantom Force | 205 | ignoresProtect:true |
+| After You | 107 | ignoresProtect:true |
+| Curse | 62 | ignoresProtect:true |
+| Psychic Terrain | 52 | ignoresProtect:true |
 | Psych Up | 46 | ignoresProtect:true |
 | Transform | 39 | ignoresProtect:true |
 | Gravity | 34 | ignoresProtect:true |
@@ -810,7 +814,7 @@ Total tagged: **5**  ·  share: **1.2%**
 | Role Play | 12 | ignoresProtect:true |
 | Whirlwind | 12 | ignoresProtect:true |
 | Electric Terrain | 11 | ignoresProtect:true |
-| Future Sight | 5 | ignoresProtect:true |
+| Future Sight | 6 | ignoresProtect:true |
 | Grassy Terrain | 5 | ignoresProtect:true |
 | Mean Look | 5 | ignoresProtect:true |
 | Misty Terrain | 5 | ignoresProtect:true |
@@ -826,9 +830,9 @@ Total tagged: **31**  ·  5 legal but unused  ·  share: **1.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Parting Shot | 4,782 | procedural:true |
-| Strength Sap | 518 | procedural:true |
-| Belly Drum | 66 | procedural:true |
+| Parting Shot | 4,827 | procedural:true |
+| Strength Sap | 519 | procedural:true |
+| Belly Drum | 69 | procedural:true |
 | Psych Up | 46 | procedural:true |
 | Tidy Up | 21 | procedural:true |
 | Topsy-Turvy | 10 | procedural:true |
@@ -844,7 +848,7 @@ Total tagged: **12**  ·  3 legal but unused  ·  share: **0.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Parting Shot | 4,782 | selfSwitch:true |
+| Parting Shot | 4,827 | selfSwitch:true |
 | Chilly Reception | 17 | selfSwitch:true |
 
 Total tagged: **2**  ·  share: **0.7%**
@@ -855,15 +859,15 @@ Total tagged: **2**  ·  share: **0.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Solar Beam | 2,477 | conditional:true |
-| Knock Off | 1,640 | conditional:true |
-| Expanding Force | 80 | conditional:true |
+| Solar Beam | 2,501 | conditional:true |
+| Knock Off | 1,663 | conditional:true |
+| Expanding Force | 84 | conditional:true |
 | Lash Out | 47 | conditional:true |
 | Facade | 32 | conditional:true |
 | Fickle Beam | 28 | conditional:true |
 | Barb Barrage | 22 | conditional:true |
 | Grav Apple | 9 | conditional:true |
-| Solar Blade | 8 | conditional:true |
+| Solar Blade | 9 | conditional:true |
 | Venoshock | 5 | conditional:true |
 | Misty Explosion | 3 | conditional:true |
 
@@ -875,9 +879,9 @@ Total tagged: **11**  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Solar Beam | 2,477 | skipsIn:sun |
-| Electro Shot | 1,667 | skipsIn:rain |
-| Solar Blade | 8 | skipsIn:sun |
+| Solar Beam | 2,501 | skipsIn:sun |
+| Electro Shot | 1,679 | skipsIn:rain |
+| Solar Blade | 9 | skipsIn:sun |
 
 Total tagged: **3**  ·  share: **0.6%**
 
@@ -887,12 +891,12 @@ Total tagged: **3**  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sucker Punch | 3,909 | needs:target attacking |
+| Sucker Punch | 3,949 | needs:target attacking |
 | Upper Hand | 56 | needs:target attacking |
 | Assurance | 26 | needs:target attacking |
 | Mirror Coat | 12 | needs:target attacking |
+| Avalanche | 7 | needs:target attacking |
 | Counter | 7 | needs:target attacking |
-| Avalanche | 6 | needs:target attacking |
 | Focus Punch | 6 | needs:target attacking |
 | Metal Burst | 4 | needs:target attacking |
 | Payback | 1 | needs:target attacking |
@@ -905,9 +909,9 @@ Total tagged: **9**  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Life Dew | 1,683 | heal:[1,4] |
-| Roost | 1,353 | heal:[1,2] |
-| Recover | 300 | heal:[1,2] |
+| Life Dew | 1,694 | heal:[1,4] |
+| Roost | 1,363 | heal:[1,2] |
+| Recover | 305 | heal:[1,2] |
 | Wish | 46 | heal:true |
 | Rest | 44 | heal:true |
 | Slack Off | 34 | heal:[1,2] |
@@ -924,11 +928,11 @@ Total tagged: **12**  ·  2 legal but unused  ·  share: **0.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Dual Wingbeat | 1,724 | readFrom:m.multihit,distribution:fixed |
-| Twin Beam | 467 | readFrom:m.multihit,distribution:fixed |
-| Triple Axel | 326 | readFrom:m.multihit,distribution:fixed |
+| Dual Wingbeat | 1,738 | readFrom:m.multihit,distribution:fixed |
+| Twin Beam | 469 | readFrom:m.multihit,distribution:fixed |
+| Triple Axel | 332 | readFrom:m.multihit,distribution:fixed |
 | Population Bomb | 276 | readFrom:m.multihit,distribution:fixed |
-| Scale Shot | 123 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Scale Shot | 124 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
 | Dragon Darts | 55 | readFrom:m.multihit,distribution:fixed |
 | Rock Blast | 39 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
 | Bullet Seed | 21 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
@@ -945,7 +949,7 @@ Total tagged: **14**  ·  2 legal but unused  ·  share: **0.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Hurricane | 2,259 | p:0.3 |
+| Hurricane | 2,275 | p:0.3 |
 | Swagger | 64 | p:1 |
 | Water Pulse | 45 | p:0.2 |
 | Dynamic Punch | 6 | p:1 |
@@ -959,9 +963,21 @@ Total tagged: **9**  ·  4 legal but unused  ·  share: **0.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Throat Chop | 1,768 | blocks:sound |
+| Throat Chop | 1,778 | blocks:sound |
 
 Total tagged: **1**  ·  share: **0.3%**
+
+## `clearsScreens` — destroys Reflect, Light Screen and Aurora Veil on their side  **← NOT READ**
+
+*Psychic Fangs (1,352 uses), Brick Break (289), Raging Bull. The answer to 5,187 uses of screens, and it lands as a damaging move rather than costing a turn*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Psychic Fangs | 1,356 | clears:screens |
+| Brick Break | 293 | clears:screens |
+| Raging Bull | 8 | clears:screens |
+
+Total tagged: **3**  ·  share: **0.2%**
 
 ## `proceduralStatus` — one status from a set, chosen at random in the handler  **← NOT READ**
 
@@ -969,8 +985,19 @@ Total tagged: **1**  ·  share: **0.3%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Dire Claw | 1,509 | p:0.3,oneOf:[psn,par,slp],each:0.1 |
+| Dire Claw | 1,520 | p:0.3,oneOf:[psn,par,slp],each:0.1 |
 | Tri Attack | 1 | p:0.2,oneOf:[brn,par,frz],each:0.067 |
+
+Total tagged: **2**  ·  share: **0.2%**
+
+## `ignoresStatStages` — the boost multiplier does not apply  **← NOT READ**
+
+*Darkest Lariat (1,232 uses), Sacred Sword. Setup means nothing into them, so a boosted target is no safer than an unboosted one -- and it is the same switch a crit flips*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Darkest Lariat | 1,259 | ignores:target defensive stages |
+| Sacred Sword | 145 | ignores:target defensive stages |
 
 Total tagged: **2**  ·  share: **0.2%**
 
@@ -980,7 +1007,7 @@ Total tagged: **2**  ·  share: **0.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Aurora Veil | 853 | needsWeather:true |
+| Aurora Veil | 860 | needsWeather:true |
 | Magnet Rise | 1 | needsWeather:true |
 
 Total tagged: **2**  ·  share: **0.1%**
@@ -991,12 +1018,12 @@ Total tagged: **2**  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Psycho Cut | 190 | critRatio:2 |
-| Stone Edge | 110 | critRatio:2 |
-| Leaf Blade | 108 | critRatio:2 |
+| Psycho Cut | 193 | critRatio:2 |
+| Stone Edge | 111 | critRatio:2 |
+| Leaf Blade | 109 | critRatio:2 |
 | Blaze Kick | 87 | critRatio:2 |
-| Shadow Claw | 68 | critRatio:2 |
-| Night Slash | 64 | critRatio:2 |
+| Shadow Claw | 69 | critRatio:2 |
+| Night Slash | 65 | critRatio:2 |
 | Triple Arrows | 49 | critRatio:2 |
 | Aqua Cutter | 27 | critRatio:2 |
 | Drill Run | 17 | critRatio:2 |
@@ -1012,7 +1039,7 @@ Total tagged: **14**  ·  2 legal but unused  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Coaching | 525 | boosts:{atk:1,def:1} |
+| Coaching | 529 | boosts:{atk:1,def:1} |
 | Swagger | 64 | boosts:{atk:2} |
 | Howl | 26 | boosts:{atk:1} |
 | Decorate | 18 | boosts:{atk:2,spa:2} |
@@ -1026,7 +1053,7 @@ Total tagged: **6**  ·  1 legal but unused  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Perish Song | 560 | turns:3 |
+| Perish Song | 562 | turns:3 |
 
 Total tagged: **1**  ·  share: **0.1%**
 
@@ -1036,7 +1063,7 @@ Total tagged: **1**  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Yawn | 536 | delay:1 |
+| Yawn | 542 | delay:1 |
 
 Total tagged: **1**  ·  share: **0.1%**
 
@@ -1046,7 +1073,7 @@ Total tagged: **1**  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Haze | 359 | resets:true |
+| Haze | 362 | resets:true |
 | Clear Smog | 6 | resets:true |
 
 Total tagged: **2**  ·  share: **0.1%**
@@ -1057,7 +1084,7 @@ Total tagged: **2**  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Coil | 301 | accuracy:true |
+| Coil | 306 | accuracy:true |
 | Gravity | 34 | accuracy:true |
 | Minimize | 14 | accuracy:true |
 | Sweet Scent | 1 | accuracy:true |
@@ -1070,8 +1097,8 @@ Total tagged: **5**  ·  1 legal but unused  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Roar | 281 | forceSwitch:true |
-| Dragon Tail | 48 | forceSwitch:true |
+| Roar | 283 | forceSwitch:true |
+| Dragon Tail | 49 | forceSwitch:true |
 | Whirlwind | 12 | forceSwitch:true |
 
 Total tagged: **4**  ·  1 legal but unused  ·  share: **0.1%**
@@ -1082,8 +1109,8 @@ Total tagged: **4**  ·  1 legal but unused  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rising Voltage | 90 | scalesWith:terrain |
-| Expanding Force | 80 | scalesWith:terrain |
+| Rising Voltage | 91 | scalesWith:terrain |
+| Expanding Force | 84 | scalesWith:terrain |
 | Terrain Pulse | 4 | scalesWith:terrain |
 
 Total tagged: **3**  ·  share: **0.0%**
@@ -1117,7 +1144,7 @@ Total tagged: **2**  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Stealth Rock | 62 | hazard:stealthrock |
+| Stealth Rock | 64 | hazard:stealthrock |
 | Toxic Spikes | 20 | hazard:toxicspikes |
 | Sticky Web | 17 | hazard:stickyweb |
 | Spikes | 5 | hazard:spikes |
@@ -1178,46 +1205,46 @@ Total tagged: **0**  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Protect | 43,362 | status:true |
-| Tailwind | 6,981 | status:true |
-| Parting Shot | 4,782 | status:true |
-| Trick Room | 4,415 | status:true |
-| Rage Powder | 3,851 | status:true |
-| Encore | 2,758 | status:true |
-| Light Screen | 2,346 | status:true |
-| Wide Guard | 2,065 | status:true |
-| Helping Hand | 2,027 | status:true |
-| Reflect | 1,988 | status:true |
-| Nasty Plot | 1,763 | status:true |
-| Life Dew | 1,683 | status:true |
-| Roost | 1,353 | status:true |
-| Swords Dance | 1,195 | status:true |
-| Calm Mind | 1,163 | status:true |
-| Detect | 1,162 | status:true |
-| Will-O-Wisp | 1,101 | status:true |
-| Follow Me | 933 | status:true |
-| Taunt | 867 | status:true |
-| Aurora Veil | 853 | status:true |
-| Sleep Powder | 734 | status:true |
-| Rain Dance | 701 | status:true |
-| Charm | 691 | status:true |
-| Bulk Up | 561 | status:true |
-| Perish Song | 560 | status:true |
-| Yawn | 536 | status:true |
-| Coaching | 525 | status:true |
-| Strength Sap | 518 | status:true |
-| Toxic | 480 | status:true |
-| Baneful Bunker | 436 | status:true |
-| Disable | 414 | status:true |
-| Spiky Shield | 401 | status:true |
-| Sunny Day | 376 | status:true |
-| Haze | 359 | status:true |
-| Quick Guard | 356 | status:true |
-| Fake Tears | 345 | status:true |
-| Dragon Dance | 343 | status:true |
-| Coil | 301 | status:true |
-| Recover | 300 | status:true |
-| Thunder Wave | 284 | status:true |
+| Protect | 43,795 | status:true |
+| Tailwind | 7,052 | status:true |
+| Parting Shot | 4,827 | status:true |
+| Trick Room | 4,461 | status:true |
+| Rage Powder | 3,886 | status:true |
+| Encore | 2,786 | status:true |
+| Light Screen | 2,359 | status:true |
+| Wide Guard | 2,098 | status:true |
+| Helping Hand | 2,051 | status:true |
+| Reflect | 2,000 | status:true |
+| Nasty Plot | 1,779 | status:true |
+| Life Dew | 1,694 | status:true |
+| Roost | 1,363 | status:true |
+| Swords Dance | 1,216 | status:true |
+| Calm Mind | 1,184 | status:true |
+| Detect | 1,179 | status:true |
+| Will-O-Wisp | 1,112 | status:true |
+| Follow Me | 944 | status:true |
+| Taunt | 881 | status:true |
+| Aurora Veil | 860 | status:true |
+| Sleep Powder | 742 | status:true |
+| Rain Dance | 704 | status:true |
+| Charm | 700 | status:true |
+| Bulk Up | 567 | status:true |
+| Perish Song | 562 | status:true |
+| Yawn | 542 | status:true |
+| Coaching | 529 | status:true |
+| Strength Sap | 519 | status:true |
+| Toxic | 495 | status:true |
+| Baneful Bunker | 451 | status:true |
+| Disable | 416 | status:true |
+| Spiky Shield | 407 | status:true |
+| Sunny Day | 379 | status:true |
+| Quick Guard | 366 | status:true |
+| Haze | 362 | status:true |
+| Fake Tears | 347 | status:true |
+| Dragon Dance | 345 | status:true |
+| Coil | 306 | status:true |
+| Recover | 305 | status:true |
+| Thunder Wave | 287 | status:true |
 | *…106 more* | | |
 
 Total tagged: **175**  ·  29 legal but unused  ·  share: **14.9%**
@@ -1228,46 +1255,46 @@ Total tagged: **175**  ·  29 legal but unused  ·  share: **14.9%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Protect | 43,362 | pHit:1,note:default for status |
-| Tailwind | 6,981 | pHit:1,note:default for status |
-| Trick Room | 4,415 | pHit:1,note:default for status |
-| Rage Powder | 3,851 | pHit:1,note:default for status |
-| Light Screen | 2,346 | pHit:1,note:default for status |
-| Wide Guard | 2,065 | pHit:1,note:default for status |
-| Helping Hand | 2,027 | pHit:1,note:default for status |
-| Reflect | 1,988 | pHit:1,note:default for status |
-| Nasty Plot | 1,763 | pHit:1,note:default for status |
-| Life Dew | 1,683 | pHit:1,note:default for status |
-| Roost | 1,353 | pHit:1,note:default for status |
-| Swords Dance | 1,195 | pHit:1,note:default for status |
-| Calm Mind | 1,163 | pHit:1,note:default for status |
-| Detect | 1,162 | pHit:1,note:default for status |
-| Follow Me | 933 | pHit:1,note:default for status |
-| Aurora Veil | 853 | pHit:1,note:default for status |
-| Rain Dance | 701 | pHit:1,note:default for status |
-| Bulk Up | 561 | pHit:1,note:default for status |
-| Perish Song | 560 | pHit:1,note:default for status |
-| Yawn | 536 | pHit:1,note:default for status |
-| Coaching | 525 | pHit:1,note:default for status |
-| Baneful Bunker | 436 | pHit:1,note:default for status |
-| Spiky Shield | 401 | pHit:1,note:default for status |
-| Sunny Day | 376 | pHit:1,note:default for status |
-| Haze | 359 | pHit:1,note:default for status |
-| Quick Guard | 356 | pHit:1,note:default for status |
-| Dragon Dance | 343 | pHit:1,note:default for status |
-| Coil | 301 | pHit:1,note:default for status |
-| Recover | 300 | pHit:1,note:default for status |
-| Roar | 281 | pHit:1,note:default for status |
-| Shell Smash | 248 | pHit:1,note:default for status |
-| Substitute | 234 | pHit:1,note:default for status |
-| Clangorous Soul | 189 | pHit:1,note:default for status |
-| Imprison | 158 | pHit:1,note:default for status |
-| Iron Defense | 146 | pHit:1,note:default for status |
-| King's Shield | 127 | pHit:1,note:default for status |
-| After You | 104 | pHit:1,note:default for status |
-| Instruct | 90 | pHit:1,note:default for status |
-| Ally Switch | 76 | pHit:1,note:default for status |
-| Belly Drum | 66 | pHit:1,note:default for status |
+| Protect | 43,795 | pHit:1,note:default for status |
+| Tailwind | 7,052 | pHit:1,note:default for status |
+| Trick Room | 4,461 | pHit:1,note:default for status |
+| Rage Powder | 3,886 | pHit:1,note:default for status |
+| Light Screen | 2,359 | pHit:1,note:default for status |
+| Wide Guard | 2,098 | pHit:1,note:default for status |
+| Helping Hand | 2,051 | pHit:1,note:default for status |
+| Reflect | 2,000 | pHit:1,note:default for status |
+| Nasty Plot | 1,779 | pHit:1,note:default for status |
+| Life Dew | 1,694 | pHit:1,note:default for status |
+| Roost | 1,363 | pHit:1,note:default for status |
+| Swords Dance | 1,216 | pHit:1,note:default for status |
+| Calm Mind | 1,184 | pHit:1,note:default for status |
+| Detect | 1,179 | pHit:1,note:default for status |
+| Follow Me | 944 | pHit:1,note:default for status |
+| Aurora Veil | 860 | pHit:1,note:default for status |
+| Rain Dance | 704 | pHit:1,note:default for status |
+| Bulk Up | 567 | pHit:1,note:default for status |
+| Perish Song | 562 | pHit:1,note:default for status |
+| Yawn | 542 | pHit:1,note:default for status |
+| Coaching | 529 | pHit:1,note:default for status |
+| Baneful Bunker | 451 | pHit:1,note:default for status |
+| Spiky Shield | 407 | pHit:1,note:default for status |
+| Sunny Day | 379 | pHit:1,note:default for status |
+| Quick Guard | 366 | pHit:1,note:default for status |
+| Haze | 362 | pHit:1,note:default for status |
+| Dragon Dance | 345 | pHit:1,note:default for status |
+| Coil | 306 | pHit:1,note:default for status |
+| Recover | 305 | pHit:1,note:default for status |
+| Roar | 283 | pHit:1,note:default for status |
+| Shell Smash | 249 | pHit:1,note:default for status |
+| Substitute | 247 | pHit:1,note:default for status |
+| Clangorous Soul | 190 | pHit:1,note:default for status |
+| Imprison | 160 | pHit:1,note:default for status |
+| Iron Defense | 149 | pHit:1,note:default for status |
+| King's Shield | 130 | pHit:1,note:default for status |
+| After You | 107 | pHit:1,note:default for status |
+| Instruct | 92 | pHit:1,note:default for status |
+| Ally Switch | 77 | pHit:1,note:default for status |
+| Belly Drum | 69 | pHit:1,note:default for status |
 | *…63 more* | | |
 
 Total tagged: **124**  ·  21 legal but unused  ·  share: **12.8%**
@@ -1278,40 +1305,40 @@ Total tagged: **124**  ·  21 legal but unused  ·  share: **12.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Protect | 43,362 | readFrom:m.priority,sign:+ |
-| Fake Out | 7,846 | readFrom:m.priority,sign:+ |
-| Trick Room | 4,415 | readFrom:m.priority,sign:- |
-| Sucker Punch | 3,909 | readFrom:m.priority,sign:+ |
-| Rage Powder | 3,851 | readFrom:m.priority,sign:+ |
-| Aqua Jet | 3,034 | readFrom:m.priority,sign:+ |
-| Wide Guard | 2,065 | readFrom:m.priority,sign:+ |
-| Helping Hand | 2,027 | readFrom:m.priority,sign:+ |
-| Quick Attack | 1,199 | readFrom:m.priority,sign:+ |
-| Detect | 1,162 | readFrom:m.priority,sign:+ |
-| Follow Me | 933 | readFrom:m.priority,sign:+ |
-| Bullet Punch | 565 | readFrom:m.priority,sign:+ |
-| Extreme Speed | 449 | readFrom:m.priority,sign:+ |
-| Baneful Bunker | 436 | readFrom:m.priority,sign:+ |
-| Spiky Shield | 401 | readFrom:m.priority,sign:+ |
-| Quick Guard | 356 | readFrom:m.priority,sign:+ |
-| Ice Shard | 354 | readFrom:m.priority,sign:+ |
-| Shadow Sneak | 345 | readFrom:m.priority,sign:+ |
-| Roar | 281 | readFrom:m.priority,sign:- |
-| Accelerock | 241 | readFrom:m.priority,sign:+ |
-| Feint | 222 | readFrom:m.priority,sign:+ |
-| Vacuum Wave | 135 | readFrom:m.priority,sign:+ |
-| King's Shield | 127 | readFrom:m.priority,sign:+ |
-| Jet Punch | 90 | readFrom:m.priority,sign:+ |
-| Ally Switch | 76 | readFrom:m.priority,sign:+ |
+| Protect | 43,795 | readFrom:m.priority,sign:+ |
+| Fake Out | 7,934 | readFrom:m.priority,sign:+ |
+| Trick Room | 4,461 | readFrom:m.priority,sign:- |
+| Sucker Punch | 3,949 | readFrom:m.priority,sign:+ |
+| Rage Powder | 3,886 | readFrom:m.priority,sign:+ |
+| Aqua Jet | 3,066 | readFrom:m.priority,sign:+ |
+| Wide Guard | 2,098 | readFrom:m.priority,sign:+ |
+| Helping Hand | 2,051 | readFrom:m.priority,sign:+ |
+| Quick Attack | 1,216 | readFrom:m.priority,sign:+ |
+| Detect | 1,179 | readFrom:m.priority,sign:+ |
+| Follow Me | 944 | readFrom:m.priority,sign:+ |
+| Bullet Punch | 570 | readFrom:m.priority,sign:+ |
+| Extreme Speed | 455 | readFrom:m.priority,sign:+ |
+| Baneful Bunker | 451 | readFrom:m.priority,sign:+ |
+| Spiky Shield | 407 | readFrom:m.priority,sign:+ |
+| Quick Guard | 366 | readFrom:m.priority,sign:+ |
+| Ice Shard | 361 | readFrom:m.priority,sign:+ |
+| Shadow Sneak | 348 | readFrom:m.priority,sign:+ |
+| Roar | 283 | readFrom:m.priority,sign:- |
+| Accelerock | 244 | readFrom:m.priority,sign:+ |
+| Feint | 225 | readFrom:m.priority,sign:+ |
+| Vacuum Wave | 143 | readFrom:m.priority,sign:+ |
+| King's Shield | 130 | readFrom:m.priority,sign:+ |
+| Jet Punch | 100 | readFrom:m.priority,sign:+ |
+| Ally Switch | 77 | readFrom:m.priority,sign:+ |
 | Upper Hand | 56 | readFrom:m.priority,sign:+ |
 | Baby-Doll Eyes | 50 | readFrom:m.priority,sign:+ |
-| Dragon Tail | 48 | readFrom:m.priority,sign:- |
-| Mach Punch | 36 | readFrom:m.priority,sign:+ |
+| Dragon Tail | 49 | readFrom:m.priority,sign:- |
+| Mach Punch | 37 | readFrom:m.priority,sign:+ |
 | Water Shuriken | 16 | readFrom:m.priority,sign:+ |
 | Mirror Coat | 12 | readFrom:m.priority,sign:- |
 | Whirlwind | 12 | readFrom:m.priority,sign:- |
+| Avalanche | 7 | readFrom:m.priority,sign:- |
 | Counter | 7 | readFrom:m.priority,sign:- |
-| Avalanche | 6 | readFrom:m.priority,sign:- |
 | Focus Punch | 6 | readFrom:m.priority,sign:- |
 | First Impression | 3 | readFrom:m.priority,sign:+ |
 | Endure | 3 | readFrom:m.priority,sign:+ |
@@ -1325,46 +1352,46 @@ Total tagged: **39**  ·  1 legal but unused  ·  share: **11.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Fake Out | 7,846 | contact:true |
-| Close Combat | 5,487 | contact:true |
-| Iron Head | 4,314 | contact:true |
-| Wave Crash | 4,052 | contact:true |
-| Flare Blitz | 4,032 | contact:true |
-| Sucker Punch | 3,909 | contact:true |
-| Dragon Claw | 3,864 | contact:true |
-| Aqua Jet | 3,034 | contact:true |
-| Kowtow Cleave | 2,970 | contact:true |
-| Brave Bird | 2,279 | contact:true |
-| Stomping Tantrum | 2,122 | contact:true |
-| Low Kick | 1,854 | contact:true |
-| Throat Chop | 1,768 | contact:true |
-| Flip Turn | 1,762 | contact:true |
-| Dual Wingbeat | 1,724 | contact:true |
-| Knock Off | 1,640 | contact:true |
-| Dire Claw | 1,509 | contact:true |
-| Ice Punch | 1,421 | contact:true |
-| Psychic Fangs | 1,352 | contact:true |
-| High Horsepower | 1,286 | contact:true |
-| Darkest Lariat | 1,232 | contact:true |
-| Quick Attack | 1,199 | contact:true |
-| Spirit Break | 1,115 | contact:true |
-| Play Rough | 911 | contact:true |
-| Poison Jab | 758 | contact:true |
-| U-turn | 741 | contact:true |
-| Drain Punch | 705 | contact:true |
-| Bullet Punch | 565 | contact:true |
-| Foul Play | 563 | contact:true |
-| Body Press | 562 | contact:true |
-| Liquidation | 552 | contact:true |
-| Extreme Speed | 449 | contact:true |
-| Draining Kiss | 434 | contact:true |
-| Infestation | 434 | contact:true |
-| Super Fang | 434 | contact:true |
+| Fake Out | 7,934 | contact:true |
+| Close Combat | 5,558 | contact:true |
+| Iron Head | 4,349 | contact:true |
+| Wave Crash | 4,092 | contact:true |
+| Flare Blitz | 4,090 | contact:true |
+| Sucker Punch | 3,949 | contact:true |
+| Dragon Claw | 3,888 | contact:true |
+| Aqua Jet | 3,066 | contact:true |
+| Kowtow Cleave | 3,006 | contact:true |
+| Brave Bird | 2,309 | contact:true |
+| Stomping Tantrum | 2,132 | contact:true |
+| Low Kick | 1,880 | contact:true |
+| Throat Chop | 1,778 | contact:true |
+| Flip Turn | 1,774 | contact:true |
+| Dual Wingbeat | 1,738 | contact:true |
+| Knock Off | 1,663 | contact:true |
+| Dire Claw | 1,520 | contact:true |
+| Ice Punch | 1,432 | contact:true |
+| Psychic Fangs | 1,356 | contact:true |
+| High Horsepower | 1,294 | contact:true |
+| Darkest Lariat | 1,259 | contact:true |
+| Quick Attack | 1,216 | contact:true |
+| Spirit Break | 1,122 | contact:true |
+| Play Rough | 919 | contact:true |
+| Poison Jab | 767 | contact:true |
+| U-turn | 749 | contact:true |
+| Drain Punch | 710 | contact:true |
+| Bullet Punch | 570 | contact:true |
+| Foul Play | 569 | contact:true |
+| Body Press | 567 | contact:true |
+| Liquidation | 557 | contact:true |
+| Extreme Speed | 455 | contact:true |
+| Infestation | 450 | contact:true |
+| Draining Kiss | 445 | contact:true |
+| Super Fang | 442 | contact:true |
 | Ice Fang | 433 | contact:true |
-| Rage Fist | 363 | contact:true |
-| Shadow Sneak | 345 | contact:true |
-| Triple Axel | 326 | contact:true |
-| Meteor Mash | 315 | contact:true |
+| Rage Fist | 364 | contact:true |
+| Shadow Sneak | 348 | contact:true |
+| Triple Axel | 332 | contact:true |
+| Meteor Mash | 319 | contact:true |
 | *…101 more* | | |
 
 Total tagged: **166**  ·  25 legal but unused  ·  share: **11.4%**
@@ -1375,11 +1402,11 @@ Total tagged: **166**  ·  25 legal but unused  ·  share: **11.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Protect | 43,362 | stalling:true |
-| Detect | 1,162 | stalling:true |
-| Baneful Bunker | 436 | stalling:true |
-| Spiky Shield | 401 | stalling:true |
-| King's Shield | 127 | stalling:true |
+| Protect | 43,795 | stalling:true |
+| Detect | 1,179 | stalling:true |
+| Baneful Bunker | 451 | stalling:true |
+| Spiky Shield | 407 | stalling:true |
+| King's Shield | 130 | stalling:true |
 | Endure | 3 | stalling:true |
 
 Total tagged: **6**  ·  share: **6.8%**
@@ -1390,20 +1417,20 @@ Total tagged: **6**  ·  share: **6.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rock Slide | 6,915 | target:allAdjacentFoes,hitsAlly:false |
-| Heat Wave | 4,031 | target:allAdjacentFoes,hitsAlly:false |
-| Matcha Gotcha | 3,392 | target:allAdjacentFoes,hitsAlly:false |
-| Hyper Voice | 2,461 | target:allAdjacentFoes,hitsAlly:false |
-| Dazzling Gleam | 1,999 | target:allAdjacentFoes,hitsAlly:false |
-| Blizzard | 1,532 | target:allAdjacentFoes,hitsAlly:false |
-| Make It Rain | 1,420 | target:allAdjacentFoes,hitsAlly:false |
-| Icy Wind | 845 | target:allAdjacentFoes,hitsAlly:false |
+| Rock Slide | 6,980 | target:allAdjacentFoes,hitsAlly:false |
+| Heat Wave | 4,091 | target:allAdjacentFoes,hitsAlly:false |
+| Matcha Gotcha | 3,422 | target:allAdjacentFoes,hitsAlly:false |
+| Hyper Voice | 2,496 | target:allAdjacentFoes,hitsAlly:false |
+| Dazzling Gleam | 2,023 | target:allAdjacentFoes,hitsAlly:false |
+| Blizzard | 1,547 | target:allAdjacentFoes,hitsAlly:false |
+| Make It Rain | 1,437 | target:allAdjacentFoes,hitsAlly:false |
+| Icy Wind | 854 | target:allAdjacentFoes,hitsAlly:false |
+| Eruption | 571 | target:allAdjacentFoes,hitsAlly:false |
 | Snarl | 569 | target:allAdjacentFoes,hitsAlly:false |
-| Eruption | 565 | target:allAdjacentFoes,hitsAlly:false |
-| Muddy Water | 469 | target:allAdjacentFoes,hitsAlly:false |
-| Electroweb | 343 | target:allAdjacentFoes,hitsAlly:false |
-| Water Spout | 342 | target:allAdjacentFoes,hitsAlly:false |
-| Clanging Scales | 302 | target:allAdjacentFoes,hitsAlly:false |
+| Muddy Water | 478 | target:allAdjacentFoes,hitsAlly:false |
+| Electroweb | 345 | target:allAdjacentFoes,hitsAlly:false |
+| Water Spout | 345 | target:allAdjacentFoes,hitsAlly:false |
+| Clanging Scales | 312 | target:allAdjacentFoes,hitsAlly:false |
 | Breaking Swipe | 70 | target:allAdjacentFoes,hitsAlly:false |
 | Burning Jealousy | 32 | target:allAdjacentFoes,hitsAlly:false |
 | Struggle Bug | 30 | target:allAdjacentFoes,hitsAlly:false |
@@ -1414,32 +1441,32 @@ Total tagged: **6**  ·  share: **6.8%**
 
 Total tagged: **22**  ·  1 legal but unused  ·  share: **3.8%**
 
-## `secondaryStatEffect` — P(stat change) as a side effect of a damaging move
+## `secondaryStatEffect` — P(stat change) as a SECONDARY — blockable by Covert Cloak and Shield Dust
 
 *Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast 10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged*
 
 | entry | appearances | parameter |
 |---|---|---|
-| Moonblast | 4,048 | p:0.1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
-| Shadow Ball | 3,297 | p:0.2,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
-| Earth Power | 2,374 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
-| Flash Cannon | 1,790 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
-| Psychic | 1,745 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
-| Spirit Break | 1,115 | p:1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
-| Focus Blast | 1,088 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
-| Play Rough | 911 | p:0.1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
-| Icy Wind | 845 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
+| Moonblast | 4,088 | p:0.1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
+| Shadow Ball | 3,332 | p:0.2,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
+| Earth Power | 2,409 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
+| Flash Cannon | 1,806 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
+| Psychic | 1,776 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
+| Spirit Break | 1,122 | p:1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
+| Focus Blast | 1,105 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
+| Play Rough | 919 | p:0.1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
+| Icy Wind | 854 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
 | Snarl | 569 | p:1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
-| Liquidation | 552 | p:0.2,boosts:{def:-1},onSelf:false,lowersSpeed:false |
-| Rock Tomb | 486 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
-| Muddy Water | 469 | p:0.3,boosts:{accuracy:-1},onSelf:false,lowersSpeed:false |
-| Energy Ball | 452 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
-| Electroweb | 343 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
-| Ancient Power | 323 | p:0.1,boosts:{atk:1,def:1,spa:1,spd:1,spe:1},onSelf:true,lowersSpeed:false |
-| Meteor Mash | 315 | p:0.2,boosts:{atk:1},onSelf:true,lowersSpeed:false |
-| Crunch | 210 | p:0.2,boosts:{def:-1},onSelf:false,lowersSpeed:false |
-| Trop Kick | 118 | p:1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
-| Mystical Fire | 73 | p:1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
+| Liquidation | 557 | p:0.2,boosts:{def:-1},onSelf:false,lowersSpeed:false |
+| Rock Tomb | 491 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
+| Muddy Water | 478 | p:0.3,boosts:{accuracy:-1},onSelf:false,lowersSpeed:false |
+| Energy Ball | 457 | p:0.1,boosts:{spd:-1},onSelf:false,lowersSpeed:false |
+| Electroweb | 345 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
+| Ancient Power | 326 | p:0.1,boosts:{atk:1,def:1,spa:1,spd:1,spe:1},onSelf:true,lowersSpeed:false |
+| Meteor Mash | 319 | p:0.2,boosts:{atk:1},onSelf:true,lowersSpeed:false |
+| Crunch | 218 | p:0.2,boosts:{def:-1},onSelf:false,lowersSpeed:false |
+| Trop Kick | 121 | p:1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
+| Mystical Fire | 76 | p:1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
 | Breaking Swipe | 70 | p:1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
 | Lumina Crash | 56 | p:1,boosts:{spd:-2},onSelf:false,lowersSpeed:false |
 | Acid Spray | 54 | p:1,boosts:{spd:-2},onSelf:false,lowersSpeed:false |
@@ -1450,7 +1477,7 @@ Total tagged: **22**  ·  1 legal but unused  ·  share: **3.8%**
 | Chilling Water | 33 | p:1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
 | Struggle Bug | 30 | p:1,boosts:{spa:-1},onSelf:false,lowersSpeed:false |
 | Torch Song | 26 | p:1,boosts:{spa:1},onSelf:true,lowersSpeed:false |
-| Trailblaze | 23 | p:1,boosts:{spe:1},onSelf:true,lowersSpeed:false |
+| Trailblaze | 24 | p:1,boosts:{spe:1},onSelf:true,lowersSpeed:false |
 | Aura Wheel | 21 | p:1,boosts:{spe:1},onSelf:true,lowersSpeed:false |
 | Lunge | 18 | p:1,boosts:{atk:-1},onSelf:false,lowersSpeed:false |
 | Bulldoze | 17 | p:1,boosts:{spe:-1},onSelf:false,lowersSpeed:true |
@@ -1470,15 +1497,15 @@ Total tagged: **52**  ·  3 legal but unused  ·  share: **3.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Fake Out | 7,846 | pFlinch:1 |
-| Rock Slide | 6,915 | pFlinch:0.3 |
-| Iron Head | 4,314 | pFlinch:0.2 |
-| Dark Pulse | 1,013 | pFlinch:0.2 |
+| Fake Out | 7,934 | pFlinch:1 |
+| Rock Slide | 6,980 | pFlinch:0.3 |
+| Iron Head | 4,349 | pFlinch:0.2 |
+| Dark Pulse | 1,026 | pFlinch:0.2 |
 | Ice Fang | 433 | pFlinch:0.1 |
-| Waterfall | 212 | pFlinch:0.2 |
+| Waterfall | 215 | pFlinch:0.2 |
 | Icicle Crash | 184 | pFlinch:0.3 |
-| Air Slash | 135 | pFlinch:0.3 |
-| Zen Headbutt | 59 | pFlinch:0.2 |
+| Air Slash | 141 | pFlinch:0.3 |
+| Zen Headbutt | 60 | pFlinch:0.2 |
 | Upper Hand | 56 | pFlinch:1 |
 | Triple Arrows | 49 | pFlinch:0.3 |
 | Extrasensory | 39 | pFlinch:0.1 |
@@ -1496,16 +1523,16 @@ Total tagged: **19**  ·  2 legal but unused  ·  share: **3.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Flare Blitz | 4,032 | p:0.1,via:secondary |
-| Heat Wave | 4,031 | p:0.1,via:secondary |
-| Matcha Gotcha | 3,392 | p:0.2,via:secondary |
-| Will-O-Wisp | 1,101 | p:0.85,via:primary |
-| Scald | 601 | p:0.3,via:secondary |
-| Flamethrower | 494 | p:0.1,via:secondary |
+| Heat Wave | 4,091 | p:0.1,via:secondary |
+| Flare Blitz | 4,090 | p:0.1,via:secondary |
+| Matcha Gotcha | 3,422 | p:0.2,via:secondary |
+| Will-O-Wisp | 1,112 | p:0.85,via:primary |
+| Scald | 608 | p:0.3,via:secondary |
+| Flamethrower | 499 | p:0.1,via:secondary |
+| Scorching Sands | 89 | p:0.3,via:secondary |
 | Blaze Kick | 87 | p:0.1,via:secondary |
-| Scorching Sands | 87 | p:0.3,via:secondary |
-| Fire Punch | 45 | p:0.1,via:secondary |
-| Fire Blast | 25 | p:0.1,via:secondary |
+| Fire Punch | 48 | p:0.1,via:secondary |
+| Fire Blast | 26 | p:0.1,via:secondary |
 | Infernal Parade | 15 | p:0.3,via:secondary |
 | Fire Fang | 9 | p:0.1,via:secondary |
 | Beak Blast | 2 | p:1,via:contact with the shield |
@@ -1519,12 +1546,12 @@ Total tagged: **15**  ·  1 legal but unused  ·  share: **2.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Wave Crash | 4,052 | readFrom:m.recoil |
-| Flare Blitz | 4,032 | readFrom:m.recoil |
-| Brave Bird | 2,279 | readFrom:m.recoil |
-| Light of Ruin | 713 | readFrom:m.recoil |
-| Head Smash | 183 | readFrom:m.recoil |
-| Double-Edge | 164 | readFrom:m.recoil |
+| Wave Crash | 4,092 | readFrom:m.recoil |
+| Flare Blitz | 4,090 | readFrom:m.recoil |
+| Brave Bird | 2,309 | readFrom:m.recoil |
+| Light of Ruin | 718 | readFrom:m.recoil |
+| Head Smash | 190 | readFrom:m.recoil |
+| Double-Edge | 166 | readFrom:m.recoil |
 | Volt Tackle | 145 | readFrom:m.recoil |
 | Wild Charge | 58 | readFrom:m.recoil |
 | Steel Beam | 27 | fraction:0.5,of:maxhp |
@@ -1538,18 +1565,18 @@ Total tagged: **11**  ·  1 legal but unused  ·  share: **1.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Last Respects | 3,009 | computed:true |
-| Stomping Tantrum | 2,122 | computed:true |
-| Low Kick | 1,854 | computed:true |
-| Eruption | 565 | computed:true |
-| Rage Fist | 363 | computed:true |
-| Water Spout | 342 | computed:true |
-| Triple Axel | 326 | computed:true |
-| Grass Knot | 242 | computed:true |
+| Last Respects | 3,034 | computed:true |
+| Stomping Tantrum | 2,132 | computed:true |
+| Low Kick | 1,880 | computed:true |
+| Eruption | 571 | computed:true |
+| Rage Fist | 364 | computed:true |
+| Water Spout | 345 | computed:true |
+| Triple Axel | 332 | computed:true |
+| Grass Knot | 244 | computed:true |
 | Beat Up | 223 | computed:true |
-| Heavy Slam | 119 | computed:true |
+| Heavy Slam | 121 | computed:true |
 | Acrobatics | 92 | computed:true |
-| Rising Voltage | 90 | computed:true |
+| Rising Voltage | 91 | computed:true |
 | Hex | 63 | computed:true |
 | Round | 36 | computed:true |
 | Temper Flare | 30 | computed:true |
@@ -1559,8 +1586,8 @@ Total tagged: **11**  ·  1 legal but unused  ·  share: **1.7%**
 | Stored Power | 17 | computed:true |
 | Water Shuriken | 16 | computed:true |
 | Infernal Parade | 15 | computed:true |
+| Avalanche | 7 | computed:true |
 | Electro Ball | 7 | computed:true |
-| Avalanche | 6 | computed:true |
 | Heat Crash | 5 | computed:true |
 | Reversal | 4 | computed:true |
 | Power Trip | 2 | computed:true |
@@ -1574,14 +1601,14 @@ Total tagged: **29**  ·  2 legal but unused  ·  share: **1.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Parting Shot | 4,782 | sound:true |
-| Hyper Voice | 2,461 | sound:true |
+| Parting Shot | 4,827 | sound:true |
+| Hyper Voice | 2,496 | sound:true |
 | Snarl | 569 | sound:true |
-| Perish Song | 560 | sound:true |
-| Clanging Scales | 302 | sound:true |
-| Roar | 281 | sound:true |
-| Clangorous Soul | 189 | sound:true |
-| Psychic Noise | 95 | sound:true |
+| Perish Song | 562 | sound:true |
+| Clanging Scales | 312 | sound:true |
+| Roar | 283 | sound:true |
+| Clangorous Soul | 190 | sound:true |
+| Psychic Noise | 96 | sound:true |
 | Alluring Voice | 86 | sound:true |
 | Bug Buzz | 40 | sound:true |
 | Round | 36 | sound:true |
@@ -1602,7 +1629,7 @@ Total tagged: **24**  ·  5 legal but unused  ·  share: **1.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Tailwind | 6,981 | speedMult:2 |
+| Tailwind | 7,052 | speedMult:2 |
 
 Total tagged: **1**  ·  share: **1.0%**
 
@@ -1612,12 +1639,12 @@ Total tagged: **1**  ·  share: **1.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Parting Shot | 4,782 | boosts:via onHit,lowersAttack:true |
-| Charm | 691 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
-| Strength Sap | 518 | boosts:via onHit,lowersAttack:true |
-| Fake Tears | 345 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
+| Parting Shot | 4,827 | boosts:via onHit,lowersAttack:true |
+| Charm | 700 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
+| Strength Sap | 519 | boosts:via onHit,lowersAttack:true |
+| Fake Tears | 347 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
 | Scary Face | 208 | readFrom:m.boosts,lowersSpeed:true,lowersAttack:false |
-| Tickle | 177 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
+| Tickle | 179 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
 | Baby-Doll Eyes | 50 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
 | Memento | 31 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
 | Cotton Spore | 20 | readFrom:m.boosts,lowersSpeed:true,lowersAttack:false |
@@ -1639,17 +1666,17 @@ Total tagged: **22**  ·  4 legal but unused  ·  share: **1.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Nasty Plot | 1,763 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
-| Swords Dance | 1,195 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
-| Calm Mind | 1,163 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
-| Bulk Up | 561 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
-| Dragon Dance | 343 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
-| Coil | 301 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
-| Shell Smash | 248 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:true |
-| Clangorous Soul | 189 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
-| Iron Defense | 146 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Nasty Plot | 1,779 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Swords Dance | 1,216 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Calm Mind | 1,184 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Bulk Up | 567 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Dragon Dance | 345 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| Coil | 306 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Shell Smash | 249 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:true |
+| Clangorous Soul | 190 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| Iron Defense | 149 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
 | Quiver Dance | 58 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
-| No Retreat | 43 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| No Retreat | 48 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
 | Shelter | 18 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
 | Cosmic Power | 15 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
 | Minimize | 14 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
@@ -1668,16 +1695,16 @@ Total tagged: **22**  ·  2 legal but unused  ·  share: **0.9%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Matcha Gotcha | 3,392 | drain:[1,2] |
-| Giga Drain | 806 | drain:[1,2] |
-| Drain Punch | 705 | drain:[1,2] |
-| Draining Kiss | 434 | drain:[3,4] |
+| Matcha Gotcha | 3,422 | drain:[1,2] |
+| Giga Drain | 820 | drain:[1,2] |
+| Drain Punch | 710 | drain:[1,2] |
+| Draining Kiss | 445 | drain:[3,4] |
 | Bitter Blade | 211 | drain:[1,2] |
-| Leech Life | 92 | drain:[1,2] |
+| Leech Life | 94 | drain:[1,2] |
 | Parabolic Charge | 70 | drain:[1,2] |
 | Horn Leech | 6 | drain:[1,2] |
 
-Total tagged: **8**  ·  share: **0.8%**
+Total tagged: **8**  ·  share: **0.9%**
 
 ## `spreadAll` — x0.75, hits BOTH ENEMIES AND MY PARTNER
 
@@ -1685,11 +1712,11 @@ Total tagged: **8**  ·  share: **0.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Earthquake | 4,533 | target:allAdjacent,hitsAlly:true |
-| Discharge | 400 | target:allAdjacent,hitsAlly:true |
-| Sludge Wave | 97 | target:allAdjacent,hitsAlly:true |
+| Earthquake | 4,569 | target:allAdjacent,hitsAlly:true |
+| Discharge | 406 | target:allAdjacent,hitsAlly:true |
+| Sludge Wave | 98 | target:allAdjacent,hitsAlly:true |
 | Parabolic Charge | 70 | target:allAdjacent,hitsAlly:true |
-| Surf | 68 | target:allAdjacent,hitsAlly:true |
+| Surf | 69 | target:allAdjacent,hitsAlly:true |
 | Bulldoze | 17 | target:allAdjacent,hitsAlly:true |
 | Petal Blizzard | 12 | target:allAdjacent,hitsAlly:true |
 | Boomburst | 11 | target:allAdjacent,hitsAlly:true |
@@ -1709,9 +1736,9 @@ Total tagged: **16**  ·  1 legal but unused  ·  share: **0.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Light Screen | 2,346 | mult:0.5,category:Special |
-| Reflect | 1,988 | mult:0.5,category:Physical |
-| Aurora Veil | 853 | mult:0.5,category:both |
+| Light Screen | 2,359 | mult:0.5,category:Special |
+| Reflect | 2,000 | mult:0.5,category:Physical |
+| Aurora Veil | 860 | mult:0.5,category:both |
 
 Total tagged: **3**  ·  share: **0.8%**
 
@@ -1721,8 +1748,8 @@ Total tagged: **3**  ·  share: **0.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rage Powder | 3,851 | redirect:true |
-| Follow Me | 933 | redirect:true |
+| Rage Powder | 3,886 | redirect:true |
+| Follow Me | 944 | redirect:true |
 
 Total tagged: **2**  ·  share: **0.7%**
 
@@ -1732,8 +1759,8 @@ Total tagged: **2**  ·  share: **0.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rage Powder | 3,851 | powder:true |
-| Sleep Powder | 734 | powder:true |
+| Rage Powder | 3,886 | powder:true |
+| Sleep Powder | 742 | powder:true |
 | Cotton Spore | 20 | powder:true |
 | Stun Spore | 12 | powder:true |
 | Magic Powder | 5 | powder:true |
@@ -1747,7 +1774,7 @@ Total tagged: **7**  ·  1 legal but unused  ·  share: **0.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Trick Room | 4,415 | reverses:true |
+| Trick Room | 4,461 | reverses:true |
 
 Total tagged: **1**  ·  share: **0.7%**
 
@@ -1757,10 +1784,10 @@ Total tagged: **1**  ·  share: **0.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Solar Beam | 2,477 | charge:true |
-| Electro Shot | 1,667 | charge:true |
-| Phantom Force | 201 | charge:true |
-| Solar Blade | 8 | charge:true |
+| Solar Beam | 2,501 | charge:true |
+| Electro Shot | 1,679 | charge:true |
+| Phantom Force | 205 | charge:true |
+| Solar Blade | 9 | charge:true |
 | Meteor Beam | 5 | charge:true |
 | Dig | 3 | charge:true |
 
@@ -1772,15 +1799,15 @@ Total tagged: **10**  ·  4 legal but unused  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Thunderbolt | 1,858 | p:0.1,via:secondary |
-| Zap Cannon | 1,064 | p:1,via:secondary |
-| Discharge | 400 | p:0.3,via:secondary |
-| Thunder Wave | 284 | p:0.9,via:primary |
-| Thunder Punch | 204 | p:0.1,via:secondary |
-| Thunder | 179 | p:0.3,via:secondary |
+| Thunderbolt | 1,874 | p:0.1,via:secondary |
+| Zap Cannon | 1,077 | p:1,via:secondary |
+| Discharge | 406 | p:0.3,via:secondary |
+| Thunder Wave | 287 | p:0.9,via:primary |
+| Thunder Punch | 205 | p:0.1,via:secondary |
+| Thunder | 182 | p:0.3,via:secondary |
 | Volt Tackle | 145 | p:0.1,via:secondary |
 | Nuzzle | 110 | p:1,via:secondary |
-| Body Slam | 71 | p:0.3,via:secondary |
+| Body Slam | 72 | p:0.3,via:secondary |
 | Glare | 20 | p:1,via:primary |
 | Stun Spore | 12 | p:0.75,via:primary |
 | Thunder Fang | 6 | p:0.1,via:secondary |
@@ -1793,9 +1820,9 @@ Total tagged: **13**  ·  1 legal but unused  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Blizzard | 1,532 | p:0.1,via:secondary |
-| Ice Punch | 1,421 | p:0.1,via:secondary |
-| Ice Beam | 551 | p:0.1,via:secondary |
+| Blizzard | 1,547 | p:0.1,via:secondary |
+| Ice Punch | 1,432 | p:0.1,via:secondary |
+| Ice Beam | 561 | p:0.1,via:secondary |
 | Ice Fang | 433 | p:0.1,via:secondary |
 
 Total tagged: **4**  ·  share: **0.6%**
@@ -1806,8 +1833,8 @@ Total tagged: **4**  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Kowtow Cleave | 2,970 | pHit:1 |
-| Aura Sphere | 672 | pHit:1 |
+| Kowtow Cleave | 3,006 | pHit:1 |
+| Aura Sphere | 688 | pHit:1 |
 | Flower Trick | 124 | pHit:1 |
 | Aerial Ace | 23 | pHit:1 |
 | Clear Smog | 6 | pHit:1 |
@@ -1820,11 +1847,11 @@ Total tagged: **8**  ·  3 legal but unused  ·  share: **0.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sludge Bomb | 1,982 | p:0.3,via:secondary |
-| Poison Jab | 758 | p:0.3,via:secondary |
-| Baneful Bunker | 436 | p:1,via:contact with the shield |
-| Gunk Shot | 223 | p:0.3,via:secondary |
-| Sludge Wave | 97 | p:0.1,via:secondary |
+| Sludge Bomb | 2,005 | p:0.3,via:secondary |
+| Poison Jab | 767 | p:0.3,via:secondary |
+| Baneful Bunker | 451 | p:1,via:contact with the shield |
+| Gunk Shot | 224 | p:0.3,via:secondary |
+| Sludge Wave | 98 | p:0.1,via:secondary |
 | Barb Barrage | 22 | p:0.5,via:secondary |
 | Mortal Spin | 21 | p:1,via:secondary |
 | Shell Side Arm | 9 | p:0.2,via:secondary |
@@ -1839,9 +1866,9 @@ Total tagged: **11**  ·  1 legal but unused  ·  share: **0.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Flip Turn | 1,762 | selfSwitch:true |
-| Volt Switch | 986 | selfSwitch:true |
-| U-turn | 741 | selfSwitch:true |
+| Flip Turn | 1,774 | selfSwitch:true |
+| Volt Switch | 992 | selfSwitch:true |
+| U-turn | 749 | selfSwitch:true |
 
 Total tagged: **3**  ·  share: **0.5%**
 
@@ -1851,29 +1878,11 @@ Total tagged: **3**  ·  share: **0.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Encore | 2,758 | locks:encore |
-| Disable | 414 | locks:disable |
+| Encore | 2,786 | locks:encore |
+| Disable | 416 | locks:disable |
 | Torment | 4 | locks:torment |
 
 Total tagged: **3**  ·  share: **0.5%**
-
-## `inflictsStatus` — status := x (any)
-
-*burn halves physical damage, paralysis halves speed -- both are damage/order parameters*
-
-| entry | appearances | parameter |
-|---|---|---|
-| Will-O-Wisp | 1,101 | status:brn |
-| Sleep Powder | 734 | status:slp |
-| Toxic | 480 | status:tox |
-| Thunder Wave | 284 | status:par |
-| Hypnosis | 273 | status:slp |
-| Glare | 20 | status:par |
-| Stun Spore | 12 | status:par |
-| Toxic Thread | 6 | status:psn |
-| Spore | 3 | status:slp |
-
-Total tagged: **11**  ·  2 legal but unused  ·  share: **0.4%**
 
 ## `oneTurnGuard` — blocks ONE NAMED CLASS of move, for one turn, for my whole side
 
@@ -1881,8 +1890,8 @@ Total tagged: **11**  ·  2 legal but unused  ·  share: **0.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Wide Guard | 2,065 | blocks:spread moves |
-| Quick Guard | 356 | blocks:priority moves |
+| Wide Guard | 2,098 | blocks:spread moves |
+| Quick Guard | 366 | blocks:priority moves |
 
 Total tagged: **2**  ·  share: **0.4%**
 
@@ -1892,8 +1901,8 @@ Total tagged: **2**  ·  share: **0.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Life Dew | 1,683 | heal:[1,4] |
-| Strength Sap | 518 | heal:true |
+| Life Dew | 1,694 | heal:[1,4] |
+| Strength Sap | 519 | heal:true |
 | Heal Pulse | 62 | heal:true |
 
 Total tagged: **3**  ·  share: **0.3%**
@@ -1904,8 +1913,8 @@ Total tagged: **3**  ·  share: **0.3%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rain Dance | 701 | weather:RainDance |
-| Sunny Day | 376 | weather:sunnyday |
+| Rain Dance | 704 | weather:RainDance |
+| Sunny Day | 379 | weather:sunnyday |
 | Chilly Reception | 17 | weather:snowscape |
 | Sandstorm | 4 | weather:Sandstorm |
 | Snowscape | 3 | weather:snowscape |
@@ -1918,7 +1927,7 @@ Total tagged: **5**  ·  share: **0.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Hyper Beam | 1,012 | recharge:true |
+| Hyper Beam | 1,026 | recharge:true |
 | Giga Impact | 20 | recharge:true |
 | Hydro Cannon | 16 | recharge:true |
 | Blast Burn | 3 | recharge:true |
@@ -1931,8 +1940,8 @@ Total tagged: **6**  ·  2 legal but unused  ·  share: **0.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sleep Powder | 734 | p:0.75,via:primary |
-| Hypnosis | 273 | p:0.6,via:primary |
+| Sleep Powder | 742 | p:0.75,via:primary |
+| Hypnosis | 278 | p:0.6,via:primary |
 | Spore | 3 | p:1,via:primary |
 
 Total tagged: **4**  ·  1 legal but unused  ·  share: **0.2%**
@@ -1943,7 +1952,7 @@ Total tagged: **4**  ·  1 legal but unused  ·  share: **0.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Taunt | 867 | forbids:Status |
+| Taunt | 881 | forbids:Status |
 
 Total tagged: **1**  ·  share: **0.1%**
 
@@ -1953,7 +1962,7 @@ Total tagged: **1**  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Toxic | 480 | p:0.9,via:primary |
+| Toxic | 495 | p:0.9,via:primary |
 | Poison Fang | 5 | p:0.5,via:secondary |
 
 Total tagged: **2**  ·  share: **0.1%**
@@ -1964,7 +1973,7 @@ Total tagged: **2**  ·  share: **0.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Substitute | 234 | buffer:0.25 |
+| Substitute | 247 | buffer:0.25 |
 | Shed Tail | 41 | buffer:0.25 |
 
 Total tagged: **2**  ·  share: **0.0%**
@@ -1975,7 +1984,7 @@ Total tagged: **2**  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Final Gambit | 176 | faints:ifHit |
+| Final Gambit | 180 | faints:ifHit |
 | Memento | 31 | faints:ifHit |
 | Explosion | 11 | faints:always |
 | Self-Destruct | 7 | faints:always |
@@ -1990,7 +1999,7 @@ Total tagged: **6**  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Psychic Terrain | 50 | terrain:psychicterrain |
+| Psychic Terrain | 52 | terrain:psychicterrain |
 | Electric Terrain | 11 | terrain:electricterrain |
 | Grassy Terrain | 5 | terrain:grassyterrain |
 | Misty Terrain | 5 | terrain:mistyterrain |
@@ -2025,20 +2034,20 @@ Total tagged: **1**  ·  1 legal but unused  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Chople Berry | 1,432 | halves:true |
-| Colbur Berry | 1,234 | halves:true |
-| Kasib Berry | 1,101 | halves:true |
-| Occa Berry | 635 | halves:true |
-| Roseli Berry | 510 | halves:true |
-| Passho Berry | 484 | halves:true |
-| Coba Berry | 399 | halves:true |
-| Shuca Berry | 262 | halves:true |
+| Chople Berry | 1,441 | halves:true |
+| Colbur Berry | 1,256 | halves:true |
+| Kasib Berry | 1,102 | halves:true |
+| Occa Berry | 650 | halves:true |
+| Roseli Berry | 511 | halves:true |
+| Passho Berry | 487 | halves:true |
+| Coba Berry | 401 | halves:true |
+| Shuca Berry | 266 | halves:true |
 | Haban Berry | 112 | halves:true |
 | Babiri Berry | 70 | halves:true |
-| Yache Berry | 46 | halves:true |
-| Kebia Berry | 38 | halves:true |
+| Yache Berry | 47 | halves:true |
+| Kebia Berry | 39 | halves:true |
 | Wacan Berry | 36 | halves:true |
-| Charti Berry | 31 | halves:true |
+| Charti Berry | 32 | halves:true |
 | Rindo Berry | 23 | halves:true |
 | Payapa Berry | 6 | halves:true |
 
@@ -2050,21 +2059,21 @@ Total tagged: **18**  ·  2 legal but unused  ·  share: **9.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Fairy Feather | 1,502 | mult:1.2 |
-| Black Glasses | 1,319 | mult:1.2 |
-| Mystic Water | 864 | mult:1.2 |
-| Charcoal | 689 | mult:1.2 |
-| Never-Melt Ice | 386 | mult:1.2 |
-| Sharp Beak | 294 | mult:1.2 |
+| Fairy Feather | 1,521 | mult:1.2 |
+| Black Glasses | 1,332 | mult:1.2 |
+| Mystic Water | 873 | mult:1.2 |
+| Charcoal | 694 | mult:1.2 |
+| Never-Melt Ice | 393 | mult:1.2 |
+| Sharp Beak | 302 | mult:1.2 |
 | Metal Coat | 212 | mult:1.2 |
-| Dragon Fang | 116 | mult:1.2 |
-| Silk Scarf | 100 | mult:1.2 |
+| Dragon Fang | 117 | mult:1.2 |
+| Silk Scarf | 102 | mult:1.2 |
 | Spell Tag | 79 | mult:1.2 |
 | Magnet | 77 | mult:1.2 |
 | Soft Sand | 75 | mult:1.2 |
 | Miracle Seed | 48 | mult:1.2 |
 | Black Belt | 36 | mult:1.2 |
-| Twisted Spoon | 24 | mult:1.2 |
+| Twisted Spoon | 26 | mult:1.2 |
 | Hard Stone | 23 | mult:1.2 |
 | Poison Barb | 6 | mult:1.2 |
 | Silver Powder | 2 | mult:1.2 |
@@ -2077,9 +2086,9 @@ Total tagged: **18**  ·  share: **8.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Light Clay | 2,007 | turns:8 |
+| Light Clay | 2,016 | turns:8 |
 
-Total tagged: **1**  ·  share: **3.0%**
+Total tagged: **1**  ·  share: **2.9%**
 
 ## `restoresStats` — undoes stat drops once  **← NOT READ**
 
@@ -2087,7 +2096,7 @@ Total tagged: **1**  ·  share: **3.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| White Herb | 1,358 | restores:true |
+| White Herb | 1,362 | restores:true |
 
 Total tagged: **1**  ·  share: **2.0%**
 
@@ -2097,8 +2106,8 @@ Total tagged: **1**  ·  share: **2.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Wide Lens | 411 | accuracy:true |
-| Bright Powder | 142 | accuracy:true |
+| Wide Lens | 414 | accuracy:true |
+| Bright Powder | 144 | accuracy:true |
 | Zoom Lens | 22 | accuracy:true |
 
 Total tagged: **3**  ·  share: **0.8%**
@@ -2109,7 +2118,7 @@ Total tagged: **3**  ·  share: **0.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Lum Berry | 107 | cures:true |
+| Lum Berry | 108 | cures:true |
 | Chesto Berry | 24 | cures:true |
 | Rawst Berry | 2 | cures:true |
 
@@ -2183,46 +2192,46 @@ Total tagged: **0**  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Charizardite Y | 2,200 | into:{Charizard:Charizard-Mega-Y} |
-| Staraptite | 1,938 | into:{Staraptor:Staraptor-Mega} |
-| Floettite | 1,439 | into:{Floette-Eternal:Floette-Mega} |
-| Swampertite | 1,345 | into:{Swampert:Swampert-Mega} |
-| Metagrossite | 1,186 | into:{Metagross:Metagross-Mega} |
-| Raichunite Y | 1,063 | into:{Raichu:Raichu-Mega-Y} |
-| Aerodactylite | 844 | into:{Aerodactyl:Aerodactyl-Mega} |
-| Delphoxite | 760 | into:{Delphox:Delphox-Mega} |
-| Mawilite | 677 | into:{Mawile:Mawile-Mega} |
-| Tyranitarite | 633 | into:{Tyranitar:Tyranitar-Mega} |
-| Froslassite | 544 | into:{Froslass:Froslass-Mega} |
+| Charizardite Y | 2,223 | into:{Charizard:Charizard-Mega-Y} |
+| Staraptite | 1,956 | into:{Staraptor:Staraptor-Mega} |
+| Floettite | 1,455 | into:{Floette-Eternal:Floette-Mega} |
+| Swampertite | 1,351 | into:{Swampert:Swampert-Mega} |
+| Metagrossite | 1,189 | into:{Metagross:Metagross-Mega} |
+| Raichunite Y | 1,076 | into:{Raichu:Raichu-Mega-Y} |
+| Aerodactylite | 847 | into:{Aerodactyl:Aerodactyl-Mega} |
+| Delphoxite | 782 | into:{Delphox:Delphox-Mega} |
+| Mawilite | 680 | into:{Mawile:Mawile-Mega} |
+| Tyranitarite | 643 | into:{Tyranitar:Tyranitar-Mega} |
+| Froslassite | 548 | into:{Froslass:Froslass-Mega} |
 | Gengarite | 446 | into:{Gengar:Gengar-Mega} |
-| Venusaurite | 401 | into:{Venusaur:Venusaur-Mega} |
-| Blastoisinite | 351 | into:{Blastoise:Blastoise-Mega} |
-| Dragoninite | 284 | into:{Dragonite:Dragonite-Mega} |
-| Scovillainite | 281 | into:{Scovillain:Scovillain-Mega} |
+| Venusaurite | 409 | into:{Venusaur:Venusaur-Mega} |
+| Blastoisinite | 357 | into:{Blastoise:Blastoise-Mega} |
+| Dragoninite | 289 | into:{Dragonite:Dragonite-Mega} |
+| Scovillainite | 284 | into:{Scovillain:Scovillain-Mega} |
 | Blazikenite | 277 | into:{Blaziken:Blaziken-Mega} |
-| Eelektrossite | 258 | into:{Eelektross:Eelektross-Mega} |
-| Scraftinite | 244 | into:{Scrafty:Scrafty-Mega} |
-| Raichunite X | 216 | into:{Raichu:Raichu-Mega-X} |
-| Sceptilite | 194 | into:{Sceptile:Sceptile-Mega} |
-| Cameruptite | 193 | into:{Camerupt:Camerupt-Mega} |
-| Gardevoirite | 190 | into:{Gardevoir:Gardevoir-Mega} |
+| Eelektrossite | 259 | into:{Eelektross:Eelektross-Mega} |
+| Scraftinite | 247 | into:{Scrafty:Scrafty-Mega} |
+| Raichunite X | 217 | into:{Raichu:Raichu-Mega-X} |
+| Gardevoirite | 197 | into:{Gardevoir:Gardevoir-Mega} |
+| Cameruptite | 196 | into:{Camerupt:Camerupt-Mega} |
+| Sceptilite | 195 | into:{Sceptile:Sceptile-Mega} |
 | Pyroarite | 188 | into:{Pyroar:Pyroar-Mega} |
-| Glimmoranite | 159 | into:{Glimmora:Glimmora-Mega} |
+| Glimmoranite | 163 | into:{Glimmora:Glimmora-Mega} |
 | Dragalgite | 145 | into:{Dragalge:Dragalge-Mega} |
-| Meganiumite | 138 | into:{Meganium:Meganium-Mega} |
-| Kangaskhanite | 131 | into:{Kangaskhan:Kangaskhan-Mega} |
+| Meganiumite | 139 | into:{Meganium:Meganium-Mega} |
+| Kangaskhanite | 133 | into:{Kangaskhan:Kangaskhan-Mega} |
 | Malamarite | 90 | into:{Malamar:Malamar-Mega} |
 | Garchompite | 85 | into:{Garchomp:Garchomp-Mega} |
-| Lopunnite | 74 | into:{Lopunny:Lopunny-Mega} |
+| Lopunnite | 78 | into:{Lopunny:Lopunny-Mega} |
 | Lucarionite | 72 | into:{Lucario:Lucario-Mega} |
-| Gyaradosite | 69 | into:{Gyarados:Gyarados-Mega} |
-| Charizardite X | 64 | into:{Charizard:Charizard-Mega-X} |
-| Scizorite | 63 | into:{Scizor:Scizor-Mega} |
+| Gyaradosite | 71 | into:{Gyarados:Gyarados-Mega} |
+| Charizardite X | 65 | into:{Charizard:Charizard-Mega-X} |
+| Scizorite | 65 | into:{Scizor:Scizor-Mega} |
 | Greninjite | 59 | into:{Greninja:Greninja-Mega} |
-| Starminite | 56 | into:{Starmie:Starmie-Mega} |
-| Clefablite | 53 | into:{Clefable:Clefable-Mega} |
+| Starminite | 59 | into:{Starmie:Starmie-Mega} |
+| Clefablite | 54 | into:{Clefable:Clefable-Mega} |
+| Drampanite | 53 | into:{Drampa:Drampa-Mega} |
 | Excadrite | 53 | into:{Excadrill:Excadrill-Mega} |
-| Drampanite | 51 | into:{Drampa:Drampa-Mega} |
 | *…35 more* | | |
 
 Total tagged: **75**  ·  share: **27.0%**
@@ -2233,7 +2242,7 @@ Total tagged: **75**  ·  share: **27.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Focus Sash | 7,610 | survives:true |
+| Focus Sash | 7,693 | survives:true |
 
 Total tagged: **1**  ·  share: **11.2%**
 
@@ -2243,7 +2252,7 @@ Total tagged: **1**  ·  share: **11.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sitrus Berry | 7,043 | heal:0.25 |
+| Sitrus Berry | 7,132 | heal:0.25 |
 
 Total tagged: **2**  ·  1 legal but unused  ·  share: **10.4%**
 
@@ -2253,7 +2262,7 @@ Total tagged: **2**  ·  1 legal but unused  ·  share: **10.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Life Orb | 6,223 | mult:1.3 |
+| Life Orb | 6,301 | mult:1.3 |
 
 Total tagged: **1**  ·  share: **9.2%**
 
@@ -2263,7 +2272,7 @@ Total tagged: **1**  ·  share: **9.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Leftovers | 4,289 | heal:0.0625 |
+| Leftovers | 4,336 | heal:0.0625 |
 
 Total tagged: **1**  ·  share: **6.3%**
 
@@ -2273,7 +2282,7 @@ Total tagged: **1**  ·  share: **6.3%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Choice Scarf | 3,907 | choice:true |
+| Choice Scarf | 3,947 | choice:true |
 
 Total tagged: **1**  ·  share: **5.8%**
 
@@ -2283,7 +2292,7 @@ Total tagged: **1**  ·  share: **5.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Choice Scarf | 3,907 | mult:1.5 |
+| Choice Scarf | 3,947 | mult:1.5 |
 
 Total tagged: **1**  ·  share: **5.8%**
 
@@ -2313,14 +2322,14 @@ Total tagged: **0**  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rough Skin | 3,739 | profits:true |
-| Stamina | 1,631 | profits:true |
-| Cursed Body | 833 | profits:true |
-| Toxic Debris | 411 | profits:true |
-| Static | 276 | profits:true |
-| Flame Body | 113 | profits:true |
-| Illusion | 62 | profits:true |
-| Poison Point | 50 | profits:true |
+| Rough Skin | 3,762 | profits:true |
+| Stamina | 1,643 | profits:true |
+| Cursed Body | 837 | profits:true |
+| Toxic Debris | 417 | profits:true |
+| Static | 278 | profits:true |
+| Flame Body | 114 | profits:true |
+| Illusion | 63 | profits:true |
+| Poison Point | 51 | profits:true |
 | Cute Charm | 48 | profits:true |
 | Electromorphosis | 48 | profits:true |
 | Justified | 29 | profits:true |
@@ -2339,10 +2348,10 @@ Total tagged: **32**  ·  15 legal but unused  ·  share: **10.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Drizzle | 2,197 | sets:true |
-| Snow Warning | 943 | sets:true |
-| Sand Stream | 838 | sets:true |
-| Drought | 615 | sets:true |
+| Drizzle | 2,213 | sets:true |
+| Snow Warning | 954 | sets:true |
+| Sand Stream | 848 | sets:true |
+| Drought | 621 | sets:true |
 
 Total tagged: **8**  ·  4 legal but unused  ·  share: **6.7%**
 
@@ -2352,13 +2361,13 @@ Total tagged: **8**  ·  4 legal but unused  ·  share: **6.7%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Flower Veil | 1,449 | prevents:true |
-| Clear Body | 1,328 | prevents:true |
-| Hyper Cutter | 377 | prevents:true |
-| Inner Focus | 369 | prevents:true |
-| Oblivious | 274 | prevents:true |
-| Scrappy | 259 | prevents:true |
-| Mirror Armor | 221 | prevents:true |
+| Flower Veil | 1,465 | prevents:true |
+| Clear Body | 1,331 | prevents:true |
+| Hyper Cutter | 378 | prevents:true |
+| Inner Focus | 377 | prevents:true |
+| Oblivious | 277 | prevents:true |
+| Scrappy | 262 | prevents:true |
+| Mirror Armor | 226 | prevents:true |
 | Own Tempo | 44 | prevents:true |
 | Illuminate | 27 | prevents:true |
 | Keen Eye | 27 | prevents:true |
@@ -2373,8 +2382,8 @@ Total tagged: **15**  ·  3 legal but unused  ·  share: **6.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Defiant | 3,564 | retaliates:true |
-| Competitive | 804 | retaliates:true |
+| Defiant | 3,610 | retaliates:true |
+| Competitive | 815 | retaliates:true |
 
 Total tagged: **2**  ·  share: **6.4%**
 
@@ -2384,10 +2393,10 @@ Total tagged: **2**  ·  share: **6.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Rough Skin | 3,739 | trigger:contact |
-| Static | 276 | trigger:contact |
-| Flame Body | 113 | trigger:contact |
-| Poison Point | 50 | trigger:contact |
+| Rough Skin | 3,762 | trigger:contact |
+| Static | 278 | trigger:contact |
+| Flame Body | 114 | trigger:contact |
+| Poison Point | 51 | trigger:contact |
 | Cute Charm | 48 | trigger:contact |
 | Wandering Spirit | 21 | trigger:contact |
 | Effect Spore | 20 | trigger:contact |
@@ -2402,7 +2411,7 @@ Total tagged: **14**  ·  5 legal but unused  ·  share: **6.3%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Hospitality | 3,405 | heals:true |
+| Hospitality | 3,435 | heals:true |
 
 Total tagged: **1**  ·  share: **5.0%**
 
@@ -2412,8 +2421,8 @@ Total tagged: **1**  ·  share: **5.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Good as Gold | 1,433 | blocks:Status |
-| Telepathy | 112 | blocks:Status |
+| Good as Gold | 1,450 | blocks:Status |
+| Telepathy | 116 | blocks:Status |
 
 Total tagged: **3**  ·  1 legal but unused  ·  share: **2.3%**
 
@@ -2423,7 +2432,7 @@ Total tagged: **3**  ·  1 legal but unused  ·  share: **2.3%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Unburden | 1,458 | speedMult:2 |
+| Unburden | 1,465 | speedMult:2 |
 
 Total tagged: **2**  ·  1 legal but unused  ·  share: **2.1%**
 
@@ -2433,7 +2442,7 @@ Total tagged: **2**  ·  1 legal but unused  ·  share: **2.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Unnerve | 1,326 | blocks:true |
+| Unnerve | 1,329 | blocks:true |
 
 Total tagged: **3**  ·  2 legal but unused  ·  share: **1.9%**
 
@@ -2443,12 +2452,12 @@ Total tagged: **3**  ·  2 legal but unused  ·  share: **1.9%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sand Rush | 488 | chipImmune:true |
-| Oblivious | 274 | chipImmune:true |
+| Sand Rush | 495 | chipImmune:true |
+| Oblivious | 277 | chipImmune:true |
 | Snow Cloak | 219 | chipImmune:true |
 | Sand Veil | 135 | chipImmune:true |
-| Overcoat | 85 | chipImmune:true |
-| Magma Armor | 43 | chipImmune:true |
+| Overcoat | 90 | chipImmune:true |
+| Magma Armor | 44 | chipImmune:true |
 | Sand Force | 18 | chipImmune:true |
 | Ice Body | 6 | chipImmune:true |
 
@@ -2460,7 +2469,7 @@ Total tagged: **8**  ·  share: **1.9%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Cursed Body | 833 | disables:true |
+| Cursed Body | 837 | disables:true |
 
 Total tagged: **1**  ·  share: **1.2%**
 
@@ -2471,7 +2480,7 @@ Total tagged: **1**  ·  share: **1.2%**
 | entry | appearances | parameter |
 |---|---|---|
 | Snow Cloak | 219 | accuracy:true |
-| Compound Eyes | 208 | accuracy:true |
+| Compound Eyes | 210 | accuracy:true |
 | Sand Veil | 135 | accuracy:true |
 | Hustle | 9 | accuracy:true |
 | Tangled Feet | 2 | accuracy:true |
@@ -2485,14 +2494,24 @@ Total tagged: **6**  ·  1 legal but unused  ·  share: **0.8%**
 | entry | appearances | parameter |
 |---|---|---|
 | Leaf Guard | 75 | immune:true |
-| Water Bubble | 72 | immune:true |
-| Limber | 59 | immune:true |
+| Water Bubble | 73 | immune:true |
+| Limber | 63 | immune:true |
 | Insomnia | 39 | immune:true |
-| Purifying Salt | 32 | immune:true |
+| Purifying Salt | 35 | immune:true |
 | Vital Spirit | 3 | immune:true |
 | Immunity | 1 | immune:true |
 
 Total tagged: **12**  ·  5 legal but unused  ·  share: **0.4%**
+
+## `ignoresStatStages` — the boost multiplier does not apply, permanently  **← NOT READ**
+
+*Unaware, 172 uses. Ignores the opponent stat stages in BOTH directions, so their setup is worthless and so is yours. Same parameter Darkest Lariat sets for one move*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Unaware | 173 | ignores:all opposing stages |
+
+Total tagged: **1**  ·  share: **0.3%**
 
 ## `survivesFromFull` — a lethal hit from full HP leaves 1  **← NOT READ**
 
@@ -2500,7 +2519,7 @@ Total tagged: **12**  ·  5 legal but unused  ·  share: **0.4%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sturdy | 153 | survives:true |
+| Sturdy | 154 | survives:true |
 
 Total tagged: **1**  ·  share: **0.2%**
 
@@ -2510,7 +2529,7 @@ Total tagged: **1**  ·  share: **0.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Mold Breaker | 127 | ignoresDefAbility:true |
+| Mold Breaker | 130 | ignoresDefAbility:true |
 
 Total tagged: **3**  ·  2 legal but unused  ·  share: **0.2%**
 
@@ -2520,8 +2539,8 @@ Total tagged: **3**  ·  2 legal but unused  ·  share: **0.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Disguise | 62 | pCrit:0 |
-| Shell Armor | 24 | pCrit:0 |
+| Disguise | 64 | pCrit:0 |
+| Shell Armor | 25 | pCrit:0 |
 
 Total tagged: **4**  ·  2 legal but unused  ·  share: **0.1%**
 
@@ -2570,22 +2589,22 @@ Total tagged: **3**  ·  3 legal but unused  ·  share: **0.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Blaze | 2,675 | boost:true |
-| Pixilate | 1,426 | boost:true |
-| Torrent | 1,086 | boost:true |
+| Blaze | 2,722 | boost:true |
+| Pixilate | 1,448 | boost:true |
+| Torrent | 1,093 | boost:true |
 | Solar Power | 432 | boost:true |
-| Overgrow | 360 | boost:true |
-| Technician | 339 | boost:true |
-| Tough Claws | 269 | boost:true |
-| Sharpness | 154 | boost:true |
+| Overgrow | 362 | boost:true |
+| Technician | 344 | boost:true |
+| Tough Claws | 272 | boost:true |
+| Sharpness | 155 | boost:true |
 | Sheer Force | 94 | boost:true |
-| Huge Power | 72 | boost:true |
-| Water Bubble | 72 | boost:true |
+| Huge Power | 75 | boost:true |
+| Water Bubble | 73 | boost:true |
 | Supreme Overlord | 60 | boost:true |
-| Iron Fist | 53 | boost:true |
-| Swarm | 26 | boost:true |
+| Iron Fist | 55 | boost:true |
+| Swarm | 27 | boost:true |
+| Reckless | 21 | boost:true |
 | Mega Launcher | 20 | boost:true |
-| Reckless | 19 | boost:true |
 | Sand Force | 18 | boost:true |
 | Rivalry | 13 | boost:true |
 | Guts | 12 | boost:true |
@@ -2605,7 +2624,7 @@ Total tagged: **44**  ·  18 legal but unused  ·  share: **10.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Intimidate | 6,536 | drop:true |
+| Intimidate | 6,604 | drop:true |
 | Supersweet Syrup | 13 | drop:true |
 
 Total tagged: **3**  ·  1 legal but unused  ·  share: **9.6%**
@@ -2616,13 +2635,13 @@ Total tagged: **3**  ·  1 legal but unused  ·  share: **9.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Prankster | 4,649 | priority:true |
-| Gale Wings | 480 | priority:true |
-| Scrappy | 259 | priority:true |
-| Stance Change | 146 | priority:true |
-| Mold Breaker | 127 | priority:true |
+| Prankster | 4,692 | priority:true |
+| Gale Wings | 493 | priority:true |
+| Scrappy | 262 | priority:true |
+| Stance Change | 149 | priority:true |
+| Mold Breaker | 130 | priority:true |
 | Sheer Force | 94 | priority:true |
-| Infiltrator | 54 | priority:true |
+| Infiltrator | 56 | priority:true |
 | Illuminate | 27 | priority:true |
 | Keen Eye | 27 | priority:true |
 | Stalwart | 27 | priority:true |
@@ -2637,8 +2656,8 @@ Total tagged: **22**  ·  10 legal but unused  ·  share: **8.6%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Levitate | 1,768 | immune:true,via:not derivable -- no handler |
-| Lightning Rod | 1,288 | immune:true,via:onTryHit |
+| Levitate | 1,785 | immune:true,via:not derivable -- no handler |
+| Lightning Rod | 1,302 | immune:true,via:onTryHit |
 | Flash Fire | 357 | immune:true,via:onTryHit |
 | Dry Skin | 52 | immune:true,via:onTryHit |
 | Volt Absorb | 33 | immune:true,via:onTryHit |
@@ -2655,9 +2674,9 @@ Total tagged: **11**  ·  2 legal but unused  ·  share: **5.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Adaptability | 2,833 | stab:2 |
+| Adaptability | 2,855 | stab:2 |
 
-Total tagged: **1**  ·  share: **4.2%**
+Total tagged: **1**  ·  share: **4.1%**
 
 ## `speedCond` — speed x2 under a condition
 
@@ -2665,9 +2684,9 @@ Total tagged: **1**  ·  share: **4.2%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Chlorophyll | 1,131 | conditional:true |
-| Sand Rush | 488 | conditional:true |
-| Swift Swim | 321 | conditional:true |
+| Chlorophyll | 1,151 | conditional:true |
+| Sand Rush | 495 | conditional:true |
+| Swift Swim | 325 | conditional:true |
 | Surge Surfer | 8 | conditional:true |
 | Slush Rush | 4 | conditional:true |
 | Quick Feet | 2 | conditional:true |
@@ -2680,8 +2699,8 @@ Total tagged: **7**  ·  1 legal but unused  ·  share: **2.9%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Armor Tail | 1,682 | blocks:true |
-| Queenly Majesty | 220 | blocks:true |
+| Armor Tail | 1,699 | blocks:true |
+| Queenly Majesty | 226 | blocks:true |
 
 Total tagged: **3**  ·  1 legal but unused  ·  share: **2.8%**
 
@@ -2691,9 +2710,9 @@ Total tagged: **3**  ·  1 legal but unused  ·  share: **2.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Regenerator | 540 | heal:0.3333333333333333 |
-| Zero to Hero | 105 | heal:0.3333333333333333 |
-| Natural Cure | 35 | heal:0.3333333333333333 |
+| Regenerator | 555 | heal:0.3333333333333333 |
+| Zero to Hero | 115 | heal:0.3333333333333333 |
+| Natural Cure | 38 | heal:0.3333333333333333 |
 
 Total tagged: **3**  ·  share: **1.0%**
 
@@ -2703,7 +2722,7 @@ Total tagged: **3**  ·  share: **1.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Friend Guard | 614 | mult:0.75 |
+| Friend Guard | 623 | mult:0.75 |
 
 Total tagged: **1**  ·  share: **0.9%**
 
@@ -2713,8 +2732,8 @@ Total tagged: **1**  ·  share: **0.9%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Multiscale | 348 | reduce:true |
-| Solid Rock | 166 | reduce:true |
+| Multiscale | 353 | reduce:true |
+| Solid Rock | 170 | reduce:true |
 | Fluffy | 3 | reduce:true |
 
 Total tagged: **9**  ·  6 legal but unused  ·  share: **0.8%**
@@ -2725,9 +2744,9 @@ Total tagged: **9**  ·  6 legal but unused  ·  share: **0.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Zero to Hero | 105 | changes:true |
-| Disguise | 62 | changes:true |
-| Illusion | 62 | changes:true |
+| Zero to Hero | 115 | changes:true |
+| Disguise | 64 | changes:true |
+| Illusion | 63 | changes:true |
 | Imposter | 39 | changes:true |
 
 Total tagged: **7**  ·  3 legal but unused  ·  share: **0.4%**

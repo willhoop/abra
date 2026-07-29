@@ -178,6 +178,23 @@ const MOVE_TAGS = [
     why: 'Low Kick by weight, Gyro Ball by speed ratio, Grass Knot. dex basePower is 0, so board.js '
        + 'returns null and scores them as NON-DAMAGING -- 1.27% of move slots doing zero',
     of: m => m.basePowerCallback ? { computed: true } : null },
+  /* Will: "darkest lariat we need a tag for things like unaware". Same parameter from both sides --
+   * the boost multiplier stops applying. Darkest Lariat (1,232 uses) and Sacred Sword ignore the
+   * TARGET's defensive stages; Unaware (172 uses) ignores them in both directions permanently. And
+   * it is the parameter a CRIT already uses, since a critical hit ignores the defender's positive
+   * boosts -- so all three feed one switch rather than three special cases. */
+  { tag: 'ignoresStatStages', param: 'the boost multiplier does not apply', probe: 'ignoreDefensive',
+    why: 'Darkest Lariat (1,232 uses), Sacred Sword. Setup means nothing into them, so a boosted '
+       + 'target is no safer than an unboosted one -- and it is the same switch a crit flips',
+    of: m => (m.ignoreDefensive || m.ignoreOffensive)
+             ? { ignores: m.ignoreDefensive ? 'target defensive stages' : 'user negative stages' } : null },
+  /* Will: "psychic fangs and brick break clear screens, veils". The counterplay to halvesDamage,
+   * and Psychic Fangs at 1,352 uses is common enough that a screen is not the guarantee it looks. */
+  { tag: 'clearsScreens', param: 'destroys Reflect, Light Screen and Aurora Veil on their side', probe: 'removeSideCondition',
+    why: 'Psychic Fangs (1,352 uses), Brick Break (289), Raging Bull. The answer to 5,187 uses of '
+       + 'screens, and it lands as a damaging move rather than costing a turn',
+    of: m => (/removeSideCondition/i.test(String(m.onTryHit || '') + String(m.onHit || ''))
+              && /reflect|screen|veil/i.test(String(m.shortDesc || ''))) ? { clears: 'screens' } : null },
   { tag: 'conditionalPower', param: 'fixed power x a multiplier when a condition holds', probe: 'onBasePower',
     why: 'Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if '
        + 'statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine '
@@ -480,7 +497,12 @@ const MOVE_TAGS = [
    *
    * The 100% ones are the point: Icy Wind, Rock Tomb and Electroweb drop Speed on every hit, which
    * is SPEED CONTROL -- a core VGC plan that nothing in the model could see. */
-  { tag: 'secondaryStatEffect', param: 'P(stat change) as a side effect of a damaging move', probe: 'secondaries',
+  /* Will: "spirit break lowers foes stats not secondaryStatEffect, or are we just calling it 100%".
+   * It is declared as a SECONDARY with chance 100, and that is mechanically meaningful rather than
+   * bookkeeping: Covert Cloak and Shield Dust blank SECONDARY effects, so Spirit Break's guaranteed
+   * -1 SpA can be stopped while Charm's -2 Atk (a primary `boosts`) cannot. Same visible effect,
+   * different counterplay -- which is exactly why the distinction is kept. */
+  { tag: 'secondaryStatEffect', param: 'P(stat change) as a SECONDARY — blockable by Covert Cloak and Shield Dust', probe: 'secondaries',
     why: 'Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast '
        + '10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged',
     of: m => {
@@ -642,9 +664,6 @@ const MOVE_TAGS = [
       }
       return null;
     } },
-  { tag: 'inflictsStatus', param: 'status := x (any)', probe: 'statusBites',
-    why: 'burn halves physical damage, paralysis halves speed -- both are damage/order parameters',
-    of: m => m.status ? { status: m.status } : null },
   { tag: 'drain', param: 'heals a fraction of damage dealt', probe: 'drain',
     why: 'changes the value of clicking it into a healthy target',
     of: m => m.drain ? { drain: m.drain } : null },
@@ -885,6 +904,10 @@ const ABILITY_TAGS = [
   { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
     why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',
     of: a => a.onFoeTryEatItem ? { blocks: true } : null },
+  { tag: 'ignoresStatStages', param: 'the boost multiplier does not apply, permanently', probe: 'unaware',
+    why: 'Unaware, 172 uses. Ignores the opponent stat stages in BOTH directions, so their setup is '
+       + 'worthless and so is yours. Same parameter Darkest Lariat sets for one move',
+    of: a => a.onAnyModifyBoost ? { ignores: 'all opposing stages' } : null },
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },
