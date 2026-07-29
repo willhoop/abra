@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T04:15:16.174Z",
+ "generated": "2026-07-29T05:01:49.612Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -109,15 +109,13 @@
    "why": "Last Respects (3,009 uses) needs a fainted COUNT, Low Kick (1,854) needs target WEIGHT which is not in our mon table at all, Rage Fist needs times-hit, Stomping Tantrum needs whether the last move failed. Their dex basePower is 0, so board.js returns null and scores them as non-damaging",
    "consumedBy": null,
    "used": false,
-   "n": 18,
-   "uses": 9471,
+   "n": 4,
+   "uses": 3429,
    "examples": [
     "Rage Fist",
     "Electro Ball",
-    "Endeavor",
-    "Eruption",
-    "Final Gambit",
-    "Grass Knot"
+    "Gyro Ball",
+    "Last Respects"
    ]
   },
   {
@@ -183,6 +181,37 @@
     "Facade",
     "Fickle Beam",
     "Knock Off"
+   ]
+  },
+  {
+   "tag": "swapsStat",
+   "kind": "move",
+   "param": "WHICH stat the damage formula reads, and whose",
+   "why": "Body Press uses my Defense, Psyshock hits their physical Defense, Foul Play uses THEIR Attack including their boosts -- which is why it punishes a setup sweeper",
+   "consumedBy": "overrideOffensiveStat",
+   "used": true,
+   "n": 3,
+   "uses": 1615,
+   "examples": [
+    "Body Press",
+    "Foul Play",
+    "Psyshock"
+   ]
+  },
+  {
+   "tag": "partialTrap",
+   "kind": "move",
+   "param": "target cannot switch for 4-5 turns AND takes 1/8 chip each turn",
+   "why": "Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can legally do, which nothing represents, and the chip is residual damage nothing counts",
+   "consumedBy": null,
+   "used": false,
+   "n": 7,
+   "uses": 492,
+   "examples": [
+    "Fire Spin",
+    "Infestation",
+    "Sand Tomb",
+    "Whirlpool"
    ]
   },
   {
@@ -389,6 +418,21 @@
     "Chilly Reception",
     "Curse",
     "Decorate"
+   ]
+  },
+  {
+   "tag": "punishesContact",
+   "kind": "move",
+   "param": "the attacker pays for touching the shield",
+   "why": "Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with a condition, and it makes clicking a contact move into a likely Protect worse than it looks",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 988,
+   "examples": [
+    "Baneful Bunker",
+    "King's Shield",
+    "Spiky Shield"
    ]
   },
   {
@@ -780,7 +824,7 @@
   {
    "tag": "secondaryStatEffect",
    "kind": "move",
-   "param": "P(stat change) as a SECONDARY — blockable by Covert Cloak and Shield Dust",
+   "param": "P(stat change) GIVEN the move lands — multiply by P(hit); blockable by Covert Cloak and Shield Dust",
    "why": "Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast 10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged",
    "consumedBy": "secondaries",
    "used": true,
@@ -796,7 +840,7 @@
    ]
   },
   {
-   "tag": "boostsProcedural",
+   "tag": "statChangeInCode",
    "kind": "move",
    "param": "stat changes exist but are computed, not declared in a field",
    "why": "Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the dex, so they need a hand-written case or a live probe -- flagged rather than missed",
@@ -1096,8 +1140,8 @@
    "why": "Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices",
    "consumedBy": null,
    "used": false,
-   "n": 12,
-   "uses": 3551,
+   "n": 13,
+   "uses": 4070,
    "examples": [
     "Healing Wish",
     "Life Dew",
@@ -1114,12 +1158,11 @@
    "why": "Heal Pulse, Life Dew, Floral Healing. Already a pair feature in DODUO and nothing in the single-move vector",
    "consumedBy": "healsPartner",
    "used": true,
-   "n": 3,
-   "uses": 2275,
+   "n": 2,
+   "uses": 1756,
    "examples": [
     "Heal Pulse",
-    "Life Dew",
-    "Strength Sap"
+    "Life Dew"
    ]
   },
   {
@@ -2054,6 +2097,7 @@
    "tags": [
     "priority",
     "neverMisses",
+    "punishesContact",
     "stalling",
     "statusCategory",
     "inflictsPoison"
@@ -2067,6 +2111,9 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "punishesContact": {
+     "onContact": true
     },
     "stalling": {
      "stalling": true
@@ -2500,6 +2547,7 @@
    "tags": [
     "priority",
     "neverMisses",
+    "punishesContact",
     "stalling",
     "statusCategory"
    ],
@@ -2512,6 +2560,9 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "punishesContact": {
+     "onContact": true
     },
     "stalling": {
      "stalling": true
@@ -2695,7 +2746,7 @@
    "uses": 364,
    "params": {
     "needsUntrackedState": {
-     "needs": "times hit"
+     "needs": "times hit -- NOT TRACKED"
     },
     "variablePower": {
      "computed": true
@@ -2766,10 +2817,15 @@
   "snaptrap": {
    "name": "Snap Trap",
    "tags": [
+    "partialTrap",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
+    },
     "contact": {
      "contact": true
     }
@@ -2805,6 +2861,7 @@
    "tags": [
     "priority",
     "neverMisses",
+    "punishesContact",
     "stalling",
     "statusCategory"
    ],
@@ -2817,6 +2874,9 @@
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
+    },
+    "punishesContact": {
+     "onContact": true
     },
     "stalling": {
      "stalling": true
@@ -2846,7 +2906,7 @@
    "name": "Stuff Cheeks",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "statusCategory"
    ],
    "uses": 0,
@@ -2855,7 +2915,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "statusCategory": {
@@ -3016,7 +3076,7 @@
    "name": "Acupressure",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "statusCategory"
    ],
    "uses": 0,
@@ -3025,7 +3085,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "statusCategory": {
@@ -3553,7 +3613,7 @@
    "name": "Belly Drum",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "statusCategory"
    ],
    "uses": 69,
@@ -3562,7 +3622,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "statusCategory": {
@@ -3573,10 +3633,15 @@
   "bind": {
    "name": "Bind",
    "tags": [
+    "partialTrap",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
+    },
     "contact": {
      "contact": true
     }
@@ -3729,10 +3794,16 @@
   "bodypress": {
    "name": "Body Press",
    "tags": [
+    "swapsStat",
     "contact"
    ],
    "uses": 567,
    "params": {
+    "swapsStat": {
+     "offensiveStat": "def",
+     "defensiveStat": null,
+     "offensiveFrom": null
+    },
     "contact": {
      "contact": true
     }
@@ -4189,7 +4260,7 @@
    "tags": [
     "neverMissesAttack",
     "clearsBoosts",
-    "boostsProcedural"
+    "statChangeInCode"
    ],
    "uses": 6,
    "params": {
@@ -4199,7 +4270,7 @@
     "clearsBoosts": {
      "resets": true
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     }
    }
@@ -4594,7 +4665,7 @@
    "name": "Defog",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "lowersTarget",
     "statusCategory"
    ],
@@ -4604,7 +4675,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "lowersTarget": {
@@ -5088,7 +5159,7 @@
    "uses": 7,
    "params": {
     "needsUntrackedState": {
-     "needs": "speed ratio"
+     "needs": "speed ratio -- computable, not wired"
     },
     "variablePower": {
      "computed": true
@@ -5141,14 +5212,10 @@
   "endeavor": {
    "name": "Endeavor",
    "tags": [
-    "needsUntrackedState",
     "contact"
    ],
    "uses": 75,
    "params": {
-    "needsUntrackedState": {
-     "needs": "hp difference"
-    },
     "contact": {
      "contact": true
     }
@@ -5218,15 +5285,11 @@
   "eruption": {
    "name": "Eruption",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "spreadFoes"
    ],
    "uses": 571,
    "params": {
-    "needsUntrackedState": {
-     "needs": "user hp"
-    },
     "variablePower": {
      "computed": true
     },
@@ -5436,14 +5499,10 @@
   "finalgambit": {
    "name": "Final Gambit",
    "tags": [
-    "needsUntrackedState",
     "userFaints"
    ],
    "uses": 180,
    "params": {
-    "needsUntrackedState": {
-     "needs": "user hp"
-    },
     "userFaints": {
      "faints": "ifHit"
     }
@@ -5512,6 +5571,19 @@
     }
    }
   },
+  "firespin": {
+   "name": "Fire Spin",
+   "tags": [
+    "partialTrap"
+   ],
+   "uses": 8,
+   "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
+    }
+   }
+  },
   "fissure": {
    "name": "Fissure",
    "tags": [
@@ -5527,15 +5599,11 @@
   "flail": {
    "name": "Flail",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 0,
    "params": {
-    "needsUntrackedState": {
-     "needs": "user hp"
-    },
     "variablePower": {
      "computed": true
     },
@@ -5814,10 +5882,16 @@
   "foulplay": {
    "name": "Foul Play",
    "tags": [
+    "swapsStat",
     "contact"
    ],
    "uses": 569,
    "params": {
+    "swapsStat": {
+     "offensiveStat": null,
+     "defensiveStat": null,
+     "offensiveFrom": "target"
+    },
     "contact": {
      "contact": true
     }
@@ -5920,15 +5994,11 @@
   "grassknot": {
    "name": "Grass Knot",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 244,
    "params": {
-    "needsUntrackedState": {
-     "needs": "target weight"
-    },
     "variablePower": {
      "computed": true
     },
@@ -6020,7 +6090,7 @@
    "name": "Guard Swap",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "lowersTarget",
     "statusCategory"
    ],
@@ -6030,7 +6100,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "lowersTarget": {
@@ -6082,7 +6152,7 @@
    "uses": 24,
    "params": {
     "needsUntrackedState": {
-     "needs": "speed ratio"
+     "needs": "speed ratio -- computable, not wired"
     },
     "variablePower": {
      "computed": true
@@ -6124,15 +6194,11 @@
   "hardpress": {
    "name": "Hard Press",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 26,
    "params": {
-    "needsUntrackedState": {
-     "needs": "target hp"
-    },
     "variablePower": {
      "computed": true
     },
@@ -6282,15 +6348,11 @@
   "heatcrash": {
    "name": "Heat Crash",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 5,
    "params": {
-    "needsUntrackedState": {
-     "needs": "weight ratio"
-    },
     "variablePower": {
      "computed": true
     },
@@ -6326,15 +6388,11 @@
   "heavyslam": {
    "name": "Heavy Slam",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 121,
    "params": {
-    "needsUntrackedState": {
-     "needs": "weight ratio"
-    },
     "variablePower": {
      "computed": true
     },
@@ -6712,10 +6770,15 @@
   "infestation": {
    "name": "Infestation",
    "tags": [
+    "partialTrap",
     "contact"
    ],
    "uses": 450,
    "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
+    },
     "contact": {
      "contact": true
     }
@@ -6897,7 +6960,7 @@
    "uses": 3034,
    "params": {
     "needsUntrackedState": {
-     "needs": "fainted count"
+     "needs": "fainted count -- NOT TRACKED"
     },
     "variablePower": {
      "computed": true
@@ -7081,15 +7144,11 @@
   "lowkick": {
    "name": "Low Kick",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 1880,
    "params": {
-    "needsUntrackedState": {
-     "needs": "target weight"
-    },
     "variablePower": {
      "computed": true
     },
@@ -7816,7 +7875,7 @@
    "tags": [
     "sound",
     "pivotStatus",
-    "boostsProcedural",
+    "statChangeInCode",
     "lowersTarget",
     "statusCategory"
    ],
@@ -7828,7 +7887,7 @@
     "pivotStatus": {
      "selfSwitch": true
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "lowersTarget": {
@@ -8138,7 +8197,7 @@
    "name": "Power Swap",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "lowersTarget",
     "statusCategory"
    ],
@@ -8148,7 +8207,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "lowersTarget": {
@@ -8304,7 +8363,7 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "boostsProcedural",
+    "statChangeInCode",
     "statusCategory"
    ],
    "uses": 46,
@@ -8316,11 +8375,25 @@
     "ignoresProtect": {
      "ignoresProtect": true
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "psyshock": {
+   "name": "Psyshock",
+   "tags": [
+    "swapsStat"
+   ],
+   "uses": 479,
+   "params": {
+    "swapsStat": {
+     "offensiveStat": null,
+     "defensiveStat": "def",
+     "offensiveFrom": null
     }
    }
   },
@@ -8625,15 +8698,11 @@
   "reversal": {
    "name": "Reversal",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 4,
    "params": {
-    "needsUntrackedState": {
-     "needs": "user hp"
-    },
     "variablePower": {
      "computed": true
     },
@@ -8887,6 +8956,19 @@
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "sandtomb": {
+   "name": "Sand Tomb",
+   "tags": [
+    "partialTrap"
+   ],
+   "uses": 21,
+   "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
     }
    }
   },
@@ -9774,15 +9856,11 @@
   "stompingtantrum": {
    "name": "Stomping Tantrum",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 2132,
    "params": {
-    "needsUntrackedState": {
-     "needs": "last move failed"
-    },
     "variablePower": {
      "computed": true
     },
@@ -9824,14 +9902,10 @@
   "storedpower": {
    "name": "Stored Power",
    "tags": [
-    "needsUntrackedState",
     "variablePower"
    ],
    "uses": 17,
    "params": {
-    "needsUntrackedState": {
-     "needs": "user boosts"
-    },
     "variablePower": {
      "computed": true
     }
@@ -9840,14 +9914,14 @@
   "strengthsap": {
    "name": "Strength Sap",
    "tags": [
-    "boostsProcedural",
+    "statChangeInCode",
     "lowersTarget",
     "statusCategory",
-    "healsAlly"
+    "healsSelf"
    ],
    "uses": 519,
    "params": {
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "lowersTarget": {
@@ -9857,8 +9931,9 @@
     "statusCategory": {
      "status": true
     },
-    "healsAlly": {
-     "heal": true
+    "healsSelf": {
+     "heal": true,
+     "note": "heals the user while targeting a foe"
     }
    }
   },
@@ -10031,14 +10106,10 @@
   "superfang": {
    "name": "Super Fang",
    "tags": [
-    "needsUntrackedState",
     "contact"
    ],
    "uses": 442,
    "params": {
-    "needsUntrackedState": {
-     "needs": "target hp"
-    },
     "contact": {
      "contact": true
     }
@@ -10539,7 +10610,7 @@
    "name": "Tidy Up",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "statusCategory"
    ],
    "uses": 21,
@@ -10548,7 +10619,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "statusCategory": {
@@ -10560,7 +10631,7 @@
    "name": "Topsy-Turvy",
    "tags": [
     "neverMisses",
-    "boostsProcedural",
+    "statChangeInCode",
     "statusCategory"
    ],
    "uses": 10,
@@ -10569,7 +10640,7 @@
      "pHit": 1,
      "note": "default for status"
     },
-    "boostsProcedural": {
+    "statChangeInCode": {
      "procedural": true
     },
     "statusCategory": {
@@ -10983,15 +11054,11 @@
   "waterspout": {
    "name": "Water Spout",
    "tags": [
-    "needsUntrackedState",
     "variablePower",
     "spreadFoes"
    ],
    "uses": 345,
    "params": {
-    "needsUntrackedState": {
-     "needs": "user hp"
-    },
     "variablePower": {
      "computed": true
     },
@@ -11032,6 +11099,19 @@
      "classes": [
       "bullet"
      ]
+    }
+   }
+  },
+  "whirlpool": {
+   "name": "Whirlpool",
+   "tags": [
+    "partialTrap"
+   ],
+   "uses": 13,
+   "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
     }
    }
   },
@@ -11207,10 +11287,15 @@
   "wrap": {
    "name": "Wrap",
    "tags": [
+    "partialTrap",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "partialTrap": {
+     "turns": "4-5",
+     "chipPerTurn": 0.125
+    },
     "contact": {
      "contact": true
     }

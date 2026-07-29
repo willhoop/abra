@@ -1,6 +1,6 @@
 # Tag review — corrected pass
 
-**133 tags.** Usage from **5,440 open-sheet human games** — 65,976 sheet entries, 263,581 move slots.
+**136 tags.** Usage from **5,440 open-sheet human games** — 65,976 sheet entries, 263,581 move slots.
 
 ## Every point from your review
 
@@ -87,7 +87,7 @@ one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 
 **Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
 has nothing. **2,065 uses**.
 
-## 70 of 133 tags are read by nothing
+## 72 of 136 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
@@ -106,31 +106,32 @@ has nothing. **2,065 uses**.
 | `blocksBerries` | 1.9% | their berries cannot be eaten |
 | `weatherChipImmune` | 1.8% | takes no sandstorm or snow residual damage |
 | `lowersUser` | 1.4% | WHICH of my own stats drop, as the price of the move |
-| `needsUntrackedState` | 1.3% | power depends on state the board does not track |
 | `weatherScaled` | 1.2% | type, power or target changes with the weather |
 | `disablesAttacker` | 1.2% | the move I just used is removed from MY options |
 | `thawsTarget` | 1.1% | unfreezes the target it hits |
 | `ignoresProtect` | 1.0% | Protect does NOT stop it |
 | `accuracyMod` | 0.8% | P(hit) is scaled, for or against the holder |
 | `accuracyMod` | 0.8% | P(hit) scaled, often gated on a weather or a category |
-| `boostsProcedural` | 0.8% | stat changes exist but are computed, not declared in a field |
+| `statChangeInCode` | 0.8% | stat changes exist but are computed, not declared in a field |
 | `boostsMoveClass` | 0.7% | x1.2-1.5 on moves carrying ONE FLAG |
 | `pivotStatus` | 0.7% | no damage, an effect, then the user leaves |
 | `conditionalPower` | 0.6% | fixed power x a multiplier when a condition holds |
 | `chargeSkippedByWeather` | 0.6% | the charge turn DISAPPEARS under one weather |
+| `healsSelf` | 0.6% | restores a share of MY max HP, costing the turn |
 | `needsTargetToAttack` | 0.6% | FAILS unless the target is attacking this turn |
-| `healsSelf` | 0.5% | restores a share of MY max HP, costing the turn |
+| `needsUntrackedState` | 0.5% | power depends on state the board does not track |
 | `multiHit` | 0.4% | hits = n (or a distribution) |
 | `statusImmune` | 0.4% | a status cannot land |
 | `inflictsConfusion` | 0.3% | P(confusion): they hit themselves some of the time |
-| `ignoresStatStages` | 0.2% | the boost multiplier does not apply, permanently |
 | `blocksSoundMoves` | 0.2% | they cannot use sound moves for 2 turns |
+| `ignoresStatStages` | 0.2% | the boost multiplier does not apply, permanently |
 | `clearsScreens` | 0.2% | destroys Reflect, Light Screen and Aurora Veil on their side |
 | `survivesFromFull` | 0.2% | a lethal hit from full HP leaves 1 |
 | `proceduralStatus` | 0.2% | one status from a set, chosen at random in the handler |
 | `curesStatus` | 0.2% | a status is removed the moment it lands |
 | `ignoresStatStages` | 0.2% | the boost multiplier does not apply |
 | `ignoresDefenderAbility` | 0.2% | suppress every defender-side ability tag for this move |
+| `punishesContact` | 0.1% | the attacker pays for touching the shield |
 | `preventsCrit` | 0.1% | P(crit) = 0 |
 | `failsWithoutWeather` | 0.1% | the move does NOTHING unless a weather is up |
 | `overridesEffectiveness` | 0.1% | the type chart is WRONG for this move |
@@ -140,6 +141,7 @@ has nothing. **2,065 uses**.
 | `perishClock` | 0.1% | everything on the field dies in 3 turns unless it switches |
 | `delayedSleep` | 0.1% | they fall asleep at the end of NEXT turn unless they switch |
 | `addsFlinch` | 0.1% | P(flinch) += 10% on moves that do not already flinch |
+| `partialTrap` | 0.1% | target cannot switch for 4-5 turns AND takes 1/8 chip each turn |
 | `fractionalPriority` | 0.1% | a CHANCE to move first inside the priority bracket |
 | `clearsBoosts` | 0.1% | every stat stage on the field := 0, both sides |
 | `accuracyMod` | 0.0% | P(hit) is scaled for everyone |
@@ -173,7 +175,7 @@ would never appear. This section lists everything above **0.05% of usage** regar
 
 ## MOVES — 167 above 0.05% (97.0% of all usage)
 
-**4 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
+**3 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
 
 | move | uses | share | tags |
 |---|---|---|---|
@@ -182,7 +184,7 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | Tailwind | 7,052 | 2.68% | `moveClass` `neverMisses` `doublesSideSpeed` `statusCategory` |
 | Rock Slide | 6,980 | 2.65% | `spreadFoes` `flinches` |
 | Close Combat | 5,558 | 2.11% | `contact` `lowersUser` |
-| Parting Shot | 4,827 | 1.83% | `sound` `pivotStatus` `boostsProcedural` `lowersTarget` `statusCategory` |
+| Parting Shot | 4,827 | 1.83% | `sound` `pivotStatus` `statChangeInCode` `lowersTarget` `statusCategory` |
 | Weather Ball | 4,739 | 1.80% | `weatherScaled` `moveClass` |
 | Earthquake | 4,569 | 1.73% | `spreadAll` |
 | Trick Room | 4,461 | 1.69% | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` `statusCategory` |
@@ -206,14 +208,14 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | Light Screen | 2,359 | 0.89% | `neverMisses` `halvesDamage` `statusCategory` |
 | Brave Bird | 2,309 | 0.88% | `contact` `recoil` |
 | Hurricane | 2,275 | 0.86% | `weatherScaled` `moveClass` `inflictsConfusion` |
-| Stomping Tantrum | 2,132 | 0.81% | `needsUntrackedState` `variablePower` `contact` |
+| Stomping Tantrum | 2,132 | 0.81% | `variablePower` `contact` |
 | Wide Guard | 2,098 | 0.80% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
 | Helping Hand | 2,051 | 0.78% | `priority` `neverMisses` `statusCategory` |
 | Dragon Pulse | 2,048 | 0.78% | `moveClass` |
 | Dazzling Gleam | 2,023 | 0.77% | `spreadFoes` |
 | Sludge Bomb | 2,005 | 0.76% | `moveClass` `inflictsPoison` |
 | Reflect | 2,000 | 0.76% | `neverMisses` `halvesDamage` `statusCategory` |
-| Low Kick | 1,880 | 0.71% | `needsUntrackedState` `variablePower` `contact` |
+| Low Kick | 1,880 | 0.71% | `variablePower` `contact` |
 | Thunderbolt | 1,874 | 0.71% | `inflictsParalysis` |
 | Flash Cannon | 1,806 | 0.69% | `secondaryStatEffect` |
 | Nasty Plot | 1,779 | 0.67% | `neverMisses` `boostsUser` `statusCategory` |
@@ -263,33 +265,33 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | Aura Sphere | 688 | 0.26% | `moveClass` `neverMissesAttack` |
 | powergem | 687 | 0.26% | **— none —** |
 | Scald | 608 | 0.23% | `thawsTarget` `inflictsBurn` |
-| Eruption | 571 | 0.22% | `needsUntrackedState` `variablePower` `spreadFoes` |
+| Eruption | 571 | 0.22% | `variablePower` `spreadFoes` |
 | Bullet Punch | 570 | 0.22% | `priority` `contact` `moveClass` |
-| Foul Play | 569 | 0.22% | `contact` |
+| Foul Play | 569 | 0.22% | `swapsStat` `contact` |
 | Snarl | 569 | 0.22% | `spreadFoes` `sound` `secondaryStatEffect` |
 | Bulk Up | 567 | 0.22% | `neverMisses` `boostsUser` `statusCategory` |
-| Body Press | 567 | 0.22% | `contact` |
+| Body Press | 567 | 0.22% | `swapsStat` `contact` |
 | Perish Song | 562 | 0.21% | `sound` `neverMisses` `ignoresProtect` `statusCategory` `perishClock` |
 | Ice Beam | 561 | 0.21% | `inflictsFreeze` |
 | Liquidation | 557 | 0.21% | `contact` `secondaryStatEffect` |
 | Yawn | 542 | 0.21% | `neverMisses` `statusCategory` `delayedSleep` |
 | Coaching | 529 | 0.20% | `neverMisses` `boostsTarget` `statusCategory` |
-| Strength Sap | 519 | 0.20% | `boostsProcedural` `lowersTarget` `statusCategory` `healsAlly` |
+| Strength Sap | 519 | 0.20% | `statChangeInCode` `lowersTarget` `statusCategory` `healsSelf` |
 | Flamethrower | 499 | 0.19% | `inflictsBurn` |
 | Toxic | 495 | 0.19% | `statusCategory` `inflictsToxic` |
 | Rock Tomb | 491 | 0.19% | `secondaryStatEffect` |
-| psyshock | 479 | 0.18% | **— none —** |
+| Psyshock | 479 | 0.18% | `swapsStat` |
 | Muddy Water | 478 | 0.18% | `spreadFoes` `secondaryStatEffect` |
 | Twin Beam | 469 | 0.18% | `multiHit` |
 | Energy Ball | 457 | 0.17% | `moveClass` `secondaryStatEffect` |
 | Extreme Speed | 455 | 0.17% | `priority` `contact` |
-| Baneful Bunker | 451 | 0.17% | `priority` `neverMisses` `stalling` `statusCategory` `inflictsPoison` |
-| Infestation | 450 | 0.17% | `contact` |
+| Baneful Bunker | 451 | 0.17% | `priority` `neverMisses` `punishesContact` `stalling` `statusCategory` `inflictsPoison` |
+| Infestation | 450 | 0.17% | `partialTrap` `contact` |
 | Draining Kiss | 445 | 0.17% | `contact` `drain` |
-| Super Fang | 442 | 0.17% | `needsUntrackedState` `contact` |
+| Super Fang | 442 | 0.17% | `contact` |
 | Ice Fang | 433 | 0.16% | `contact` `moveClass` `inflictsFreeze` `flinches` |
 | Disable | 416 | 0.16% | `statusCategory` `locksTarget` |
-| Spiky Shield | 407 | 0.15% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Spiky Shield | 407 | 0.15% | `priority` `neverMisses` `punishesContact` `stalling` `statusCategory` |
 | Discharge | 406 | 0.15% | `spreadAll` `inflictsParalysis` |
 | Sunny Day | 379 | 0.14% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
 | Quick Guard | 366 | 0.14% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
@@ -298,7 +300,7 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | Ice Shard | 361 | 0.14% | `priority` |
 | Shadow Sneak | 348 | 0.13% | `priority` `contact` |
 | Fake Tears | 347 | 0.13% | `lowersTarget` `statusCategory` |
-| Water Spout | 345 | 0.13% | `needsUntrackedState` `variablePower` `spreadFoes` |
+| Water Spout | 345 | 0.13% | `variablePower` `spreadFoes` |
 | Electroweb | 345 | 0.13% | `spreadFoes` `secondaryStatEffect` |
 | Dragon Dance | 345 | 0.13% | `neverMisses` `boostsUser` `statusCategory` |
 | Leaf Storm | 340 | 0.13% | `lowersUser` |
@@ -317,7 +319,7 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | Shell Smash | 249 | 0.09% | `neverMisses` `boostsUser` `lowersUser` `statusCategory` |
 | Substitute | 247 | 0.09% | `neverMisses` `substitute` `statusCategory` |
 | Accelerock | 244 | 0.09% | `priority` `contact` |
-| Grass Knot | 244 | 0.09% | `needsUntrackedState` `variablePower` `contact` |
+| Grass Knot | 244 | 0.09% | `variablePower` `contact` |
 | Leech Seed | 237 | 0.09% | `statusCategory` |
 | Feint | 225 | 0.09% | `priority` `ignoresProtect` |
 | Gunk Shot | 224 | 0.08% | `inflictsPoison` |
@@ -335,7 +337,7 @@ would never appear. This section lists everything above **0.05% of usage** regar
 | poltergeist | 183 | 0.07% | **— none —** |
 | Thunder | 182 | 0.07% | `weatherScaled` `inflictsParalysis` |
 | Superpower | 182 | 0.07% | `contact` `lowersUser` |
-| Final Gambit | 180 | 0.07% | `needsUntrackedState` `userFaints` |
+| Final Gambit | 180 | 0.07% | `userFaints` |
 | Tickle | 179 | 0.07% | `lowersTarget` `statusCategory` |
 | Double-Edge | 166 | 0.06% | `contact` `recoil` |
 | Imprison | 160 | 0.06% | `neverMisses` `statusCategory` |
@@ -566,7 +568,7 @@ had named until now.
 |---|---|---|---|
 | Protect | 43,795 | +4 | `priority` `neverMisses` `stalling` |
 | Tailwind | 7,052 |  | `moveClass` `neverMisses` `doublesSideSpeed` |
-| Parting Shot | 4,827 |  | `sound` `pivotStatus` `boostsProcedural` `lowersTarget` |
+| Parting Shot | 4,827 |  | `sound` `pivotStatus` `statChangeInCode` `lowersTarget` |
 | Trick Room | 4,461 | -7 | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` |
 | Rage Powder | 3,886 | +2 | `priority` `powder` `neverMisses` `redirects` |
 | Encore | 2,786 |  | `locksTarget` |
@@ -591,11 +593,11 @@ had named until now.
 | Perish Song | 562 |  | `sound` `neverMisses` `ignoresProtect` `perishClock` |
 | Yawn | 542 |  | `neverMisses` `delayedSleep` |
 | Coaching | 529 |  | `neverMisses` `boostsTarget` |
-| Strength Sap | 519 |  | `boostsProcedural` `lowersTarget` `healsAlly` |
+| Strength Sap | 519 |  | `statChangeInCode` `lowersTarget` `healsSelf` |
 | Toxic | 495 |  | `inflictsToxic` |
-| Baneful Bunker | 451 | +4 | `priority` `neverMisses` `stalling` `inflictsPoison` |
+| Baneful Bunker | 451 | +4 | `priority` `neverMisses` `punishesContact` `stalling` `inflictsPoison` |
 | Disable | 416 |  | `locksTarget` |
-| Spiky Shield | 407 | +4 | `priority` `neverMisses` `stalling` |
+| Spiky Shield | 407 | +4 | `priority` `neverMisses` `punishesContact` `stalling` |
 | Sunny Day | 379 |  | `neverMisses` `ignoresProtect` `setsWeather` |
 | Quick Guard | 366 | +3 | `priority` `neverMisses` `oneTurnGuard` |
 | Haze | 362 |  | `neverMisses` `ignoresProtect` `clearsBoosts` |
@@ -615,13 +617,13 @@ had named until now.
 | Tickle | 179 |  | `lowersTarget` |
 | Imprison | 160 |  | `neverMisses` |
 | Iron Defense | 149 |  | `neverMisses` `boostsUser` |
-| King's Shield | 130 | +4 | `priority` `neverMisses` `stalling` |
+| King's Shield | 130 | +4 | `priority` `neverMisses` `punishesContact` `stalling` |
 | Quash | 127 |  | — |
 | After You | 107 |  | `neverMisses` `ignoresProtect` |
 | Instruct | 92 |  | `neverMisses` |
 | Soak | 78 |  | — |
 | Ally Switch | 77 | +2 | `priority` `neverMisses` |
-| Belly Drum | 69 |  | `neverMisses` `boostsProcedural` |
+| Belly Drum | 69 |  | `neverMisses` `statChangeInCode` |
 | Baton Pass | 65 |  | `neverMisses` `passesState` |
 | Stealth Rock | 64 |  | `neverMisses` `hazard` |
 | Swagger | 64 |  | `inflictsConfusion` `boostsTarget` |
@@ -632,7 +634,7 @@ had named until now.
 | Psychic Terrain | 52 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
 | Baby-Doll Eyes | 50 | +1 | `priority` `lowersTarget` |
 | No Retreat | 48 |  | `neverMisses` `boostsUser` |
-| Psych Up | 46 |  | `neverMisses` `ignoresProtect` `boostsProcedural` |
+| Psych Up | 46 |  | `neverMisses` `ignoresProtect` `statChangeInCode` |
 | Wish | 46 |  | `neverMisses` `healsSelf` |
 | Rest | 44 |  | `neverMisses` `healsSelf` |
 | Shed Tail | 41 |  | `neverMisses` `passesState` `substitute` |
@@ -647,7 +649,7 @@ had named until now.
 | Howl | 26 |  | `sound` `neverMisses` `boostsTarget` |
 | Moonlight | 21 |  | `neverMisses` `healsSelf` |
 | Stockpile | 21 |  | `neverMisses` |
-| Tidy Up | 21 |  | `neverMisses` `boostsProcedural` |
+| Tidy Up | 21 |  | `neverMisses` `statChangeInCode` |
 | Cotton Spore | 20 |  | `spreadFoes` `powder` `lowersTarget` |
 | Entrainment | 20 |  | — |
 | Glare | 20 |  | `inflictsParalysis` |
@@ -668,7 +670,7 @@ had named until now.
 | Agility | 10 |  | `neverMisses` `boostsUser` |
 | Eerie Impulse | 10 |  | `lowersTarget` |
 | Sleep Talk | 10 |  | `neverMisses` |
-| Topsy-Turvy | 10 |  | `neverMisses` `boostsProcedural` |
+| Topsy-Turvy | 10 |  | `neverMisses` `statChangeInCode` |
 | Cotton Guard | 9 |  | `neverMisses` `boostsUser` |
 | Simple Beam | 9 |  | — |
 | Feather Dance | 8 |  | `lowersTarget` |
@@ -682,7 +684,7 @@ had named until now.
 | Magic Powder | 5 |  | `powder` |
 | Mean Look | 5 |  | `neverMisses` `ignoresProtect` |
 | Misty Terrain | 5 |  | `neverMisses` `ignoresProtect` `setsTerrain` |
-| Power Swap | 5 |  | `neverMisses` `boostsProcedural` `lowersTarget` |
+| Power Swap | 5 |  | `neverMisses` `statChangeInCode` `lowersTarget` |
 | Spikes | 5 |  | `neverMisses` `hazard` |
 | Spite | 5 |  | — |
 | Growth | 4 |  | `weatherScaled` `neverMisses` `boostsUser` |
@@ -690,7 +692,7 @@ had named until now.
 | Trick-or-Treat | 4 |  | — |
 | Amnesia | 4 |  | `neverMisses` `boostsUser` |
 | Copycat | 4 |  | `neverMisses` |
-| Defog | 4 |  | `neverMisses` `boostsProcedural` `lowersTarget` |
+| Defog | 4 |  | `neverMisses` `statChangeInCode` `lowersTarget` |
 | Focus Energy | 4 |  | `neverMisses` |
 | Healing Wish | 4 |  | `neverMisses` `userFaints` `healsSelf` |
 | Torment | 4 |  | `locksTarget` |
@@ -736,32 +738,6 @@ A dash means the taxonomy says nothing about it beyond being a status move — *
 | Headlong Rush | 28 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
 
 Total tagged: **11**  ·  share: **1.4%**
-
-## `needsUntrackedState` — power depends on state the board does not track  **← NOT READ**
-
-*Last Respects (3,009 uses) needs a fainted COUNT, Low Kick (1,854) needs target WEIGHT which is not in our mon table at all, Rage Fist needs times-hit, Stomping Tantrum needs whether the last move failed. Their dex basePower is 0, so board.js returns null and scores them as non-damaging*
-
-| entry | appearances | parameter |
-|---|---|---|
-| Last Respects | 3,034 | needs:fainted count |
-| Stomping Tantrum | 2,132 | needs:last move failed |
-| Low Kick | 1,880 | needs:target weight |
-| Eruption | 571 | needs:user hp |
-| Super Fang | 442 | needs:target hp |
-| Rage Fist | 364 | needs:times hit |
-| Water Spout | 345 | needs:user hp |
-| Grass Knot | 244 | needs:target weight |
-| Final Gambit | 180 | needs:user hp |
-| Heavy Slam | 121 | needs:weight ratio |
-| Endeavor | 75 | needs:hp difference |
-| Hard Press | 26 | needs:target hp |
-| Gyro Ball | 24 | needs:speed ratio |
-| Stored Power | 17 | needs:user boosts |
-| Electro Ball | 7 | needs:speed ratio |
-| Heat Crash | 5 | needs:weight ratio |
-| Reversal | 4 | needs:user hp |
-
-Total tagged: **18**  ·  1 legal but unused  ·  share: **1.3%**
 
 ## `weatherScaled` — type, power or target changes with the weather  **← NOT READ**
 
@@ -826,7 +802,7 @@ Total tagged: **5**  ·  share: **1.1%**
 
 Total tagged: **31**  ·  5 legal but unused  ·  share: **1.0%**
 
-## `boostsProcedural` — stat changes exist but are computed, not declared in a field  **← NOT READ**
+## `statChangeInCode` — stat changes exist but are computed, not declared in a field  **← NOT READ**
 
 *Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the dex, so they need a hand-written case or a live probe -- flagged rather than missed*
 
@@ -887,6 +863,26 @@ Total tagged: **11**  ·  share: **0.6%**
 
 Total tagged: **3**  ·  share: **0.6%**
 
+## `healsSelf` — restores a share of MY max HP, costing the turn  **← NOT READ**
+
+*Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Life Dew | 1,694 | heal:[1,4] |
+| Roost | 1,363 | heal:[1,2] |
+| Strength Sap | 519 | heal:true,note:heals the user while targeting a foe |
+| Recover | 305 | heal:[1,2] |
+| Wish | 46 | heal:true |
+| Rest | 44 | heal:true |
+| Slack Off | 34 | heal:[1,2] |
+| Synthesis | 33 | heal:true |
+| Moonlight | 21 | heal:true |
+| Morning Sun | 7 | heal:true |
+| Healing Wish | 4 | heal:true |
+
+Total tagged: **13**  ·  2 legal but unused  ·  share: **0.6%**
+
 ## `needsTargetToAttack` — FAILS unless the target is attacking this turn  **← NOT READ**
 
 *Sucker Punch (3,909 uses), Upper Hand, Counter, Mirror Coat, Metal Burst, Focus Punch. Their value is a prediction about the opponent, not a property of the board -- which is exactly what sigma_opp is for and nothing connects them*
@@ -905,24 +901,18 @@ Total tagged: **3**  ·  share: **0.6%**
 
 Total tagged: **9**  ·  share: **0.6%**
 
-## `healsSelf` — restores a share of MY max HP, costing the turn  **← NOT READ**
+## `needsUntrackedState` — power depends on state the board does not track  **← NOT READ**
 
-*Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices*
+*Last Respects (3,009 uses) needs a fainted COUNT, Low Kick (1,854) needs target WEIGHT which is not in our mon table at all, Rage Fist needs times-hit, Stomping Tantrum needs whether the last move failed. Their dex basePower is 0, so board.js returns null and scores them as non-damaging*
 
 | entry | appearances | parameter |
 |---|---|---|
-| Life Dew | 1,694 | heal:[1,4] |
-| Roost | 1,363 | heal:[1,2] |
-| Recover | 305 | heal:[1,2] |
-| Wish | 46 | heal:true |
-| Rest | 44 | heal:true |
-| Slack Off | 34 | heal:[1,2] |
-| Synthesis | 33 | heal:true |
-| Moonlight | 21 | heal:true |
-| Morning Sun | 7 | heal:true |
-| Healing Wish | 4 | heal:true |
+| Last Respects | 3,034 | needs:fainted count -- NOT TRACKED |
+| Rage Fist | 364 | needs:times hit -- NOT TRACKED |
+| Gyro Ball | 24 | needs:speed ratio -- computable, not wired |
+| Electro Ball | 7 | needs:speed ratio -- computable, not wired |
 
-Total tagged: **12**  ·  2 legal but unused  ·  share: **0.5%**
+Total tagged: **4**  ·  share: **0.5%**
 
 ## `multiHit` — hits = n (or a distribution)  **← NOT READ**
 
@@ -1003,6 +993,18 @@ Total tagged: **2**  ·  share: **0.2%**
 
 Total tagged: **2**  ·  share: **0.2%**
 
+## `punishesContact` — the attacker pays for touching the shield  **← NOT READ**
+
+*Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with a condition, and it makes clicking a contact move into a likely Protect worse than it looks*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Baneful Bunker | 451 | onContact:true |
+| Spiky Shield | 407 | onContact:true |
+| King's Shield | 130 | onContact:true |
+
+Total tagged: **3**  ·  share: **0.1%**
+
 ## `failsWithoutWeather` — the move does NOTHING unless a weather is up  **← NOT READ**
 
 *Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can currently say so*
@@ -1079,6 +1081,19 @@ Total tagged: **1**  ·  share: **0.1%**
 | Yawn | 542 | delay:1 |
 
 Total tagged: **1**  ·  share: **0.1%**
+
+## `partialTrap` — target cannot switch for 4-5 turns AND takes 1/8 chip each turn  **← NOT READ**
+
+*Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can legally do, which nothing represents, and the chip is residual damage nothing counts*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Infestation | 450 | turns:4-5,chipPerTurn:0.125 |
+| Sand Tomb | 21 | turns:4-5,chipPerTurn:0.125 |
+| Whirlpool | 13 | turns:4-5,chipPerTurn:0.125 |
+| Fire Spin | 8 | turns:4-5,chipPerTurn:0.125 |
+
+Total tagged: **7**  ·  3 legal but unused  ·  share: **0.1%**
 
 ## `clearsBoosts` — every stat stage on the field := 0, both sides  **← NOT READ**
 
@@ -1260,7 +1275,7 @@ Total tagged: **0**  ·  share: **0.0%**
 | Thunder Wave | 287 | status:true |
 | *…106 more* | | |
 
-Total tagged: **175**  ·  29 legal but unused  ·  share: **13.9%**
+Total tagged: **175**  ·  29 legal but unused  ·  share: **14.0%**
 
 ## `neverMisses` — P(hit) = 1 (the default for a self-targeting status move)
 
@@ -1310,7 +1325,7 @@ Total tagged: **175**  ·  29 legal but unused  ·  share: **13.9%**
 | Belly Drum | 69 | pHit:1,note:default for status |
 | *…63 more* | | |
 
-Total tagged: **124**  ·  21 legal but unused  ·  share: **11.9%**
+Total tagged: **124**  ·  21 legal but unused  ·  share: **12.0%**
 
 ## `priority` — order = priority
 
@@ -1357,7 +1372,7 @@ Total tagged: **124**  ·  21 legal but unused  ·  share: **11.9%**
 | Endure | 3 | readFrom:m.priority,sign:+ |
 | Beak Blast | 2 | readFrom:m.priority,sign:- |
 
-Total tagged: **39**  ·  1 legal but unused  ·  share: **10.8%**
+Total tagged: **39**  ·  1 legal but unused  ·  share: **10.9%**
 
 ## `contact` — triggers contact punishment on the defender
 
@@ -1457,7 +1472,7 @@ Total tagged: **166**  ·  25 legal but unused  ·  share: **10.6%**
 | Fire Punch | 48 | classes:[punch] |
 | *…29 more* | | |
 
-Total tagged: **73**  ·  4 legal but unused  ·  share: **6.6%**
+Total tagged: **73**  ·  4 legal but unused  ·  share: **6.7%**
 
 ## `stalling` — is a Protect-family move
 
@@ -1504,7 +1519,7 @@ Total tagged: **6**  ·  share: **6.3%**
 
 Total tagged: **22**  ·  1 legal but unused  ·  share: **3.5%**
 
-## `secondaryStatEffect` — P(stat change) as a SECONDARY — blockable by Covert Cloak and Shield Dust
+## `secondaryStatEffect` — P(stat change) GIVEN the move lands — multiply by P(hit); blockable by Covert Cloak and Shield Dust
 
 *Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast 10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged*
 
@@ -1750,7 +1765,7 @@ Total tagged: **22**  ·  4 legal but unused  ·  share: **1.0%**
 | Amnesia | 4 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
 | Charge | 1 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
 
-Total tagged: **22**  ·  2 legal but unused  ·  share: **0.8%**
+Total tagged: **22**  ·  2 legal but unused  ·  share: **0.9%**
 
 ## `drain` — heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit
 
@@ -1965,10 +1980,21 @@ Total tagged: **2**  ·  share: **0.3%**
 | entry | appearances | parameter |
 |---|---|---|
 | Life Dew | 1,694 | heal:[1,4] |
-| Strength Sap | 519 | heal:true |
 | Heal Pulse | 62 | heal:true |
 
-Total tagged: **3**  ·  share: **0.3%**
+Total tagged: **2**  ·  share: **0.2%**
+
+## `swapsStat` — WHICH stat the damage formula reads, and whose
+
+*Body Press uses my Defense, Psyshock hits their physical Defense, Foul Play uses THEIR Attack including their boosts -- which is why it punishes a setup sweeper*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Foul Play | 569 | offensiveStat:null,defensiveStat:null,offensiveFrom:target |
+| Body Press | 567 | offensiveStat:def,defensiveStat:null,offensiveFrom:null |
+| Psyshock | 479 | offensiveStat:null,defensiveStat:def,offensiveFrom:null |
+
+Total tagged: **3**  ·  share: **0.2%**
 
 ## `setsWeather` — weather := x
 

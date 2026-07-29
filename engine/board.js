@@ -542,6 +542,36 @@ class Board {
     return e.item;
   }
 
+  /* VOLATILES WITH A TURN TIMER, recorded from the protocol.
+   *
+   * Will: "doesnt taunt need a turn timer tag". It does, and the durations are plain dex data --
+   * Taunt 3, Encore 3, Disable 5, Throat Chop 2, Yawn 2, Heal Block 5. The comment on volatileOnFoe
+   * says the STORED corpus cannot see volatiles, which is true and is a real limitation on the FIT.
+   * It is not a limitation on PLAY: the protocol emits |-start|p1a: Toxapex|Encore and |-end|, and
+   * the player was reading neither.
+   *
+   * So Taunting into a Taunt looked identical to the first one, and an Encore with one turn left
+   * looked identical to a fresh one. Stored as an expiry turn, the same shape as the side and field
+   * conditions, so hasVolatile is a comparison rather than a countdown to maintain. */
+  startVolatile(side, letter, name, duration) {
+    const mon = this.slot(side, letter);
+    if (!mon || !name) return;
+    if (!mon.volatiles) mon.volatiles = new Map();
+    mon.volatiles.set(norm(name), this.turn + (duration || 1));
+  }
+
+  endVolatile(side, letter, name) {
+    const mon = this.slot(side, letter);
+    if (mon && mon.volatiles) mon.volatiles.delete(norm(name));
+  }
+
+  hasVolatile(side, letter, name) {
+    const mon = this.slot(side, letter);
+    if (!mon || !mon.volatiles) return false;
+    const until = mon.volatiles.get(norm(name));
+    return until != null && until > this.turn;
+  }
+
   /* Recorded from the protocol: |-item| (gained, e.g. Trick) and |-enditem| (lost or consumed). */
   noteItem(side, species, item) {
     if (!this.itemNow) this.itemNow = { p1: {}, p2: {} };
@@ -880,6 +910,24 @@ function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) 
    * validated implementation stays untouched. */
   const oOff = origMove && origMove.overrideOffensiveStat;
   const oDef = origMove && origMove.overrideDefensiveStat;
+  /* FOUL PLAY USES THEIR ATTACK, NOT MINE (Will, 2026-07-29). overrideOffensivePokemon === 'target'
+   * and nothing in this file had ever read that field, so the damage was computed off the USER's
+   * Attack -- which is backwards for the one move whose entire purpose is borrowing someone else's.
+   * 569 uses, and the mons that carry it are exactly the ones with poor Attack, so the error is
+   * always in the direction of under-reading.
+   *
+   * Handled the same way as the other two overrides: swap the number the validated formula will
+   * read, rather than touching the formula. Boosts come with it -- Foul Play uses their CURRENT
+   * Attack including stages, which is why it punishes a setup sweeper. */
+  const oMon = origMove && origMove.overrideOffensivePokemon;
+  if (oMon === 'target' && def && def.st) {
+    const phys = m.category === 'Physical';
+    const st = { ...att.st };
+    st[phys ? 'at' : 'sa'] = def.st[phys ? 'at' : 'sa'];
+    const boosts = { ...(att.boosts || {}) };
+    if (def.boosts) boosts[phys ? 'at' : 'sa'] = def.boosts[phys ? 'at' : 'sa'] || 0;
+    att = Object.assign(Object.create(Object.getPrototypeOf(att) || Object.prototype), att, { st, boosts });
+  }
   if (oOff || oDef) {
     const K = { atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
     const phys = m.category === 'Physical';

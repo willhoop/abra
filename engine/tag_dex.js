@@ -165,12 +165,22 @@ const MOVE_TAGS = [
        + 'whether the last move failed. Their dex basePower is 0, so board.js returns null and scores '
        + 'them as non-damaging',
     of: m => {
-      const NEED = { lastrespects: 'fainted count', lowkick: 'target weight', grassknot: 'target weight',
-        heavyslam: 'weight ratio', heatcrash: 'weight ratio', gyroball: 'speed ratio',
-        electroball: 'speed ratio', ragefist: 'times hit', stompingtantrum: 'last move failed',
-        reversal: 'user hp', flail: 'user hp', eruption: 'user hp', waterspout: 'user hp',
-        storedpower: 'user boosts', punishment: 'target boosts', hardpress: 'target hp',
-        superfang: 'target hp', endeavor: 'hp difference', finalgambit: 'user hp' };
+      /* CORRECTED, on Will asking whether Super Fang and Strength Sap belong here. They do not --
+       * the board tracks more than the constructor literal suggests: hp, BOOSTS, turnsActive,
+       * lastMove, stalledLastTurn and now moveFailedLastTurn. And two entries were fixed tonight:
+       * WEIGHT is in the mon table (289 species) and LAST-MOVE-FAILED is tracked, so Low Kick,
+       * Grass Knot, Heavy Slam, Heat Crash and Stomping Tantrum all became computable.
+       *
+       * What is genuinely still missing is TWO THINGS:
+       *   fainted count per side   Last Respects, 3,009 uses -- the largest single unlock left
+       *   times hit per mon        Rage Fist, 363
+       * Gyro Ball and Electro Ball need a speed RATIO, which board.js already computes for
+       * movesFirst; it is just not wired to a basePower, so they are listed as wiring rather than
+       * missing state. */
+      const NEED = { lastrespects: 'fainted count -- NOT TRACKED',
+        ragefist: 'times hit -- NOT TRACKED',
+        gyroball: 'speed ratio -- computable, not wired',
+        electroball: 'speed ratio -- computable, not wired' };
       const n = NEED[norm(m.id)];
       return n ? { needs: n } : null;
     } },
@@ -200,6 +210,30 @@ const MOVE_TAGS = [
        + 'statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine '
        + 'uses the base number every time',
     of: m => (m.onBasePower && !m.basePowerCallback) ? { conditional: true } : null },
+  /* Will: "foul play needs special tag for sure to use opponents attack" / "same for body press".
+   * Three moves swap which stat the formula reads, and they are NOT the same swap:
+   *   Body Press  569 uses   my DEFENSE is used as my Attack        (overrideOffensiveStat)
+   *   Psyshock    479        special move hits their PHYSICAL Def   (overrideDefensiveStat)
+   *   Foul Play   569        THEIR Attack is used, not mine         (overrideOffensivePokemon)
+   * The first two were handled; the third was not read anywhere, so Foul Play was computed off the
+   * user's Attack -- backwards for the one move whose purpose is borrowing someone else's, and the
+   * mons that carry it are exactly the ones with poor Attack. */
+  { tag: 'swapsStat', param: 'WHICH stat the damage formula reads, and whose', probe: 'overrideOffensiveStat',
+    why: 'Body Press uses my Defense, Psyshock hits their physical Defense, Foul Play uses THEIR '
+       + 'Attack including their boosts -- which is why it punishes a setup sweeper',
+    of: m => (m.overrideOffensiveStat || m.overrideDefensiveStat || m.overrideOffensivePokemon)
+      ? { offensiveStat: m.overrideOffensiveStat || null,
+          defensiveStat: m.overrideDefensiveStat || null,
+          offensiveFrom: m.overrideOffensivePokemon || null } : null },
+  /* Will: "infestation traps, needs a turn timer" and "and residual damage". Three effects in one
+   * move and the model has none of them: the target cannot switch for 4-5 turns, takes 1/8 each
+   * turn, and the duration is a range rather than a fixed number. Infestation is 450 uses.
+   * The trap half is the one that changes decisions -- a Pokemon that cannot leave is a Pokemon you
+   * can set up on. */
+  { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
+    why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
+       + 'legally do, which nothing represents, and the chip is residual damage nothing counts',
+    of: m => m.volatileStatus === 'partiallytrapped' ? { turns: '4-5', chipPerTurn: 1 / 8 } : null },
   { tag: 'fixedDamage', param: 'damage is a constant, not a formula', probe: 'move.damage',
     why: 'Seismic Toss and Night Shade ignore stats entirely',
     of: m => m.damage ? { damage: m.damage } : null },
@@ -288,6 +322,14 @@ const MOVE_TAGS = [
        + 'target, and it does not',
     of: m => (['normal', 'any', 'adjacentFoe', 'allAdjacentFoes', 'allAdjacent', 'all'].includes(m.target)
               && !(m.flags && m.flags.protect)) ? { ignoresProtect: true } : null },
+  /* Will: "spiky shield does chip damage sorta like rough skin right?" -- yes, the same parameter
+   * with a different gate. Rough Skin punishes contact always; these punish it only while the shield
+   * is up. Read from the move's own condition.onHit, which is where Baneful Bunker's poison lives
+   * too. */
+  { tag: 'punishesContact', param: 'the attacker pays for touching the shield', probe: 'punishesContact',
+    why: 'Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with '
+       + 'a condition, and it makes clicking a contact move into a likely Protect worse than it looks',
+    of: m => (m.stallingMove && m.condition && m.condition.onHit) ? { onContact: true } : null },
   { tag: 'stalling', param: 'is a Protect-family move', probe: 'stallingMove',
     why: 'protectThreatened and deadStall both hang off it',
     of: m => m.stallingMove ? { stalling: true } : null },
@@ -531,7 +573,16 @@ const MOVE_TAGS = [
    * bookkeeping: Covert Cloak and Shield Dust blank SECONDARY effects, so Spirit Break's guaranteed
    * -1 SpA can be stopped while Charm's -2 Atk (a primary `boosts`) cannot. Same visible effect,
    * different counterplay -- which is exactly why the distinction is kept. */
-  { tag: 'secondaryStatEffect', param: 'P(stat change) as a SECONDARY — blockable by Covert Cloak and Shield Dust', probe: 'secondaries',
+  /* CONDITIONAL ON THE HIT — Will: "things like electroweb the secondary cant go without the
+   * primary hitting". Exactly, and this has to be explicit or a consumer will treat the two as
+   * independent. The real chain is:
+   *
+   *     P(effect) = P(not blocked by Protect/immunity) x P(hit) x P(secondary)
+   *
+   * So Electroweb's 100% Speed drop is 0.95 in practice, on a 95%-accurate move, and zero through a
+   * Protect. The `p` recorded here is the LAST term only. Same nesting applies to every status and
+   * flinch secondary -- Fake Out's 100% flinch is 100% GIVEN it lands and given it moves first. */
+  { tag: 'secondaryStatEffect', param: 'P(stat change) GIVEN the move lands — multiply by P(hit); blockable by Covert Cloak and Shield Dust', probe: 'secondaries',
     why: 'Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast '
        + '10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged',
     of: m => {
@@ -545,7 +596,7 @@ const MOVE_TAGS = [
       }
       return null;
     } },
-  { tag: 'boostsProcedural', param: 'stat changes exist but are computed, not declared in a field', probe: 'boostsProcedural',
+  { tag: 'statChangeInCode', param: 'stat changes exist but are computed, not declared in a field', probe: 'statChangeInCode',
     why: 'Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the '
        + 'dex, so they need a hand-written case or a live probe -- flagged rather than missed',
     of: m => (!m.boosts && !(m.self && m.self.boosts)
@@ -734,14 +785,28 @@ const MOVE_TAGS = [
     /* 'allies' INCLUDES THE USER, so Life Dew heals self AND partner and must carry BOTH tags.
      * Will asked for "restores my hp or restores partners hp (OR BOTH)" and my first split was
      * strictly exclusive, which silently dropped the both case. */
-    of: m => ((m.heal || (m.flags && m.flags.heal)) && !m.drain
-              && (m.target === 'self' || m.target === 'allies' || m.target === 'allySide'))
-             ? { heal: m.heal || true } : null },
+    of: m => {
+      if (!(m.heal || (m.flags && m.flags.heal)) || m.drain) return null;
+      /* self, or 'allies' which INCLUDES the user (Life Dew), or a move that heals its user while
+       * aiming at a foe (Strength Sap). */
+      const SELFISH = ['self', 'allies', 'allySide'];
+      const FRIENDLY = ['adjacentAlly', 'adjacentAllyOrSelf', 'any'];
+      if (SELFISH.includes(m.target)) return { heal: m.heal || true };
+      if (!FRIENDLY.includes(m.target)) return { heal: m.heal || true, note: 'heals the user while targeting a foe' };
+      return null;
+    } },
   { tag: 'healsAlly', param: 'restores my PARTNER max-HP share', probe: 'healsPartner',
     why: 'Heal Pulse, Life Dew, Floral Healing. Already a pair feature in DODUO and nothing in the '
        + 'single-move vector',
-    of: m => ((m.heal || (m.flags && m.flags.heal)) && !m.drain && m.target !== 'self')
-             ? { heal: m.heal || true } : null },
+    /* WHO IS HEALED, not what the move TARGETS -- Will: "strength sap is wrong, it heals user".
+     * Right: Strength Sap targets a FOE (target 'normal'), drains their Attack, and heals the USER
+     * by that amount. Reading the target field called that an ally-heal. A move that carries the
+     * heal flag while aiming at an OPPONENT is healing its user, the same shape as drain. */
+    of: m => {
+      if (!(m.heal || (m.flags && m.flags.heal)) || m.drain) return null;
+      const FRIENDLY = ['allies', 'allySide', 'adjacentAlly', 'adjacentAllyOrSelf', 'any'];
+      return FRIENDLY.includes(m.target) ? { heal: m.heal || true } : null;
+    } },
   /* Will: "the charge turns need a weather sub tag or something that says if rain then no charge on
    * electroshot". Exactly right, and the dex declares it -- Showdown stores the skip condition on
    * the move's own condition handler, so it is derivable rather than a list. Electro Shot skips its

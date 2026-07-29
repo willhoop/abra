@@ -59,6 +59,25 @@ function loadWeights(file) {
   return j;
 }
 
+/* How long a per-mon volatile lasts, from the dex condition of the move that creates it. */
+let _volDur = null;
+function volatileDuration(name) {
+  if (!_volDur) {
+    _volDur = {};
+    try {
+      for (const m of dex.moves.all()) {
+        if (!m || !m.exists) continue;
+        const v = B.norm(m.volatileStatus || '');
+        const d = m.condition && m.condition.duration;
+        if (v && d) _volDur[v] = d;
+        const byName = B.norm(m.name);
+        if (d && !_volDur[byName]) _volDur[byName] = d;
+      }
+    } catch (e) { /* default below */ }
+  }
+  return _volDur[B.norm(name)] || 3;
+}
+
 /* HOW LONG DOES IT LAST — read from the dex, not assumed infinite.
  *
  * The board has tracked expiry correctly since it was written: startSide and startField store
@@ -288,6 +307,30 @@ function makeScoringPlayer(opts = {}) {
             });
             this.stats.sheetEntries = (this.stats.sheetEntries || 0) + 1;
           }
+        }
+        return;
+      }
+
+      /* VOLATILES WITH A TIMER. |-start|p1a: Toxapex|Encore and |-end|p1a: Toxapex|Encore.
+       *
+       * Durations come from the dex condition of the move that shares the volatile's name, so Taunt
+       * 3, Encore 3, Disable 5, Throat Chop 2, Yawn 2, Heal Block 5 are looked up rather than typed.
+       * Perish Song is special-cased ONLY in that the protocol ships its own counter in the name --
+       * perish3, perish2, perish1 -- so the number is read straight off the wire. */
+      if (line.startsWith('|-start|') || line.startsWith('|-end|')) {
+        const st = line.startsWith('|-start|');
+        const q = line.slice(st ? 8 : 6).split('|');
+        const who = /^(p[12])([a-c]): /.exec(q[0] || '');
+        if (who && this.board) {
+          const raw = String(q[1] || '').replace(/^move:\s*/i, '').trim();
+          const perish = /^perish(\d)$/i.exec(B.norm(raw));
+          if (st) {
+            this.board.startVolatile(who[1], who[2], perish ? 'perishsong' : raw,
+              perish ? +perish[1] : volatileDuration(raw));
+          } else {
+            this.board.endVolatile(who[1], who[2], perish ? 'perishsong' : raw);
+          }
+          this.stats.volatileEvents = (this.stats.volatileEvents || 0) + 1;
         }
         return;
       }
