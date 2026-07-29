@@ -141,6 +141,38 @@ const MOVE_TAGS = [
    *
    * Knock Off is the nicest case for open sheets: the sheet says whether they hold an item, so the
    * x1.5 is KNOWN before the turn rather than guessed. */
+  /* Will: "throat chop needs to block sound moves that should be easy". It is -- same shape as
+   * Taunt and Disable, an effect that REMOVES OPTIONS from them for two turns, and the sound flag is
+   * already tagged on the moves it blocks. */
+  { tag: 'blocksSoundMoves', param: 'they cannot use sound moves for 2 turns', probe: 'throatchop',
+    why: 'Throat Chop. The sound flag already exists on the moves it blocks, so this is a join rather '
+       + 'than new information',
+    of: m => (m.volatileStatus === 'throatchop' || /throatchop/.test(norm(m.id))) ? { blocks: 'sound' } : null },
+  /* Will's run of questions -- "does last respects have a death counter it can refer to", "does
+   * stomping tantrum have a check last move fail counter", "do all the variable power moves have
+   * respective lookup tables for each pokemon" -- all have the same answer: NO.
+   *
+   * The board tracks eight things per Pokemon: species, base, hp, fainted, status, nature, item,
+   * mega. None of the state these moves need exists, and Low Kick's weight is not even in our mon
+   * table (MC.mons carries t, bs, st, mv, item, ab -- no weight), though the dex has it.
+   *
+   * This tag exists to make the DEPENDENCY visible, since these are the moves whose power cannot be
+   * computed at all rather than merely computed wrongly. */
+  { tag: 'needsUntrackedState', param: 'power depends on state the board does not track', probe: 'needsUntrackedState',
+    why: 'Last Respects (3,009 uses) needs a fainted COUNT, Low Kick (1,854) needs target WEIGHT '
+       + 'which is not in our mon table at all, Rage Fist needs times-hit, Stomping Tantrum needs '
+       + 'whether the last move failed. Their dex basePower is 0, so board.js returns null and scores '
+       + 'them as non-damaging',
+    of: m => {
+      const NEED = { lastrespects: 'fainted count', lowkick: 'target weight', grassknot: 'target weight',
+        heavyslam: 'weight ratio', heatcrash: 'weight ratio', gyroball: 'speed ratio',
+        electroball: 'speed ratio', ragefist: 'times hit', stompingtantrum: 'last move failed',
+        reversal: 'user hp', flail: 'user hp', eruption: 'user hp', waterspout: 'user hp',
+        storedpower: 'user boosts', punishment: 'target boosts', hardpress: 'target hp',
+        superfang: 'target hp', endeavor: 'hp difference', finalgambit: 'user hp' };
+      const n = NEED[norm(m.id)];
+      return n ? { needs: n } : null;
+    } },
   { tag: 'variablePower', param: 'basePower is the calculation itself; dex bp is 0', probe: 'basePowerCallback',
     why: 'Low Kick by weight, Gyro Ball by speed ratio, Grass Knot. dex basePower is 0, so board.js '
        + 'returns null and scores them as NON-DAMAGING -- 1.27% of move slots doing zero',
@@ -176,11 +208,28 @@ const MOVE_TAGS = [
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
     of: m => (m.flags && m.flags.sound) ? { sound: true } : null },
-  { tag: 'neverMisses', param: 'P(hit) = 1', probe: 'accuracy === true',
-    why: 'Aerial Ace, Swift, Flower Trick, Aura Sphere, Magical Leaf. The accuracy feature and the '
-       + 'kill probability both scale by P(hit), so a move that CANNOT miss must not be discounted '
-       + 'like one that can',
-    of: m => m.accuracy === true ? { pHit: 1 } : null },
+  /* SPLIT on Will's point -- "by never misses i was really thinking about the class of ATTACKING
+   * moves like aerial ace". He is right, and the numbers are stark:
+   *
+   *   status moves that cannot miss    103 moves, 85,852 uses, 32.9% of slots -- the DEFAULT for
+   *                                    anything self-targeting. Protect does not roll accuracy
+   *                                    because there is nothing to roll against. Says nothing.
+   *   damaging moves that cannot miss    5 moves,  3,795 uses,  1.5% -- against 156,486 uses of
+   *                                    attacks that CAN miss. THAT is a property.
+   *
+   * Same failure as the original protectBlocked tag: tagging the 33% buries the 1.5%. Note the
+   * PARAMETER is correct in both cases -- P(hit)=1 is true for Protect and the kill distribution
+   * should use it -- so the split is about what is worth REVIEWING, not what is worth computing. */
+  { tag: 'neverMissesAttack', param: 'P(hit) = 1 on a DAMAGING move', probe: 'accuracy === true',
+    why: 'Kowtow Cleave (2,970 uses), Aura Sphere, Flower Trick, Aerial Ace. Never discounted by '
+       + 'accuracy, so the kill is as certain as the roll allows. 1.5% of slots against 156,486 uses '
+       + 'of attacks that can miss',
+    of: m => (m.accuracy === true && m.category !== 'Status') ? { pHit: 1 } : null },
+  { tag: 'neverMisses', param: 'P(hit) = 1 (the default for a self-targeting status move)', probe: 'accuracy === true',
+    why: 'Correct as a PARAMETER and uninformative as a category -- Protect does not roll accuracy '
+       + 'because there is nothing to roll against. Kept so the distribution reads the right P(hit), '
+       + 'flagged so nobody reviews 103 status moves looking for a pattern',
+    of: m => (m.accuracy === true && m.category === 'Status') ? { pHit: 1, note: 'default for status' } : null },
   /* INVERTED, on Will's review: "wouldn't it be easier to say what moves protect doesn't block".
    * Yes -- 389 moves are blocked and the exceptions are a handful, so tagging the majority made a
    * 67% column that says nothing. The EXCEPTIONS are also the actionable set, because a move that
@@ -335,11 +384,45 @@ const MOVE_TAGS = [
    * halves right, and the dex says so outright -- "For 5 turns, damage to allies halved. Snow only."
    * So it is a screen for the damage calculation AND a move that simply FAILS without its weather,
    * which is a different kind of dead move from deadField. */
-  { tag: 'halvesDamage', param: 'incoming damage to my side is roughly halved', probe: 'screens',
-    why: 'Light Screen 2,346, Reflect 1,988, Aurora Veil 853 -- 5,187 uses that currently change NO '
-       + 'damage number anywhere in MAG',
-    of: m => (m.sideCondition && /reflect|lightscreen|auroraveil/.test(norm(m.sideCondition)))
-             ? { mult: 0.5 } : null },
+  /* WHICH CATEGORY, on Will's question -- "does the light screen halve damage tag able to just block
+   * special damage". It could not, and that was wrong: Reflect halves PHYSICAL only, Light Screen
+   * SPECIAL only, and only Aurora Veil covers both. Treating them as one tag would have Reflect
+   * reducing a Moonblast, which it does not. Derived from the dex text so it cannot be mistyped. */
+  { tag: 'halvesDamage', param: 'incoming damage of ONE category is halved for my side', probe: 'screens',
+    why: 'Reflect (1,988) physical only, Light Screen (2,346) special only, Aurora Veil (853) both '
+       + 'and snow-only. 5,187 uses that change NO damage number anywhere in MAG today',
+    of: m => {
+      if (!(m.sideCondition && /reflect|lightscreen|auroraveil/.test(norm(m.sideCondition)))) return null;
+      const d = String(m.shortDesc || m.desc || '');
+      const cat = /physical/i.test(d) ? 'Physical' : /special/i.test(d) ? 'Special' : 'both';
+      return { mult: 0.5, category: cat };
+    } },
+  /* Will: "can we tag sucker as need opponent to attack". Sucker Punch is 3,909 uses and it is a
+   * pure READ -- it fails outright unless they are attacking, which makes it the one move whose
+   * value depends entirely on predicting their choice rather than on the board. Upper Hand, Counter,
+   * Mirror Coat and Metal Burst are the same shape. */
+  { tag: 'needsTargetToAttack', param: 'FAILS unless the target is attacking this turn', probe: 'needsTargetToAttack',
+    why: 'Sucker Punch (3,909 uses), Upper Hand, Counter, Mirror Coat, Metal Burst, Focus Punch. '
+       + 'Their value is a prediction about the opponent, not a property of the board -- which is '
+       + 'exactly what sigma_opp is for and nothing connects them',
+    of: m => (/^(suckerpunch|upperhand|counter|mirrorcoat|metalburst|focuspunch|shelltrap|revenge|avalanche|payback|assurance)$/.test(norm(m.id)))
+             ? { needs: 'target attacking' } : null },
+  /* Will: "add the thaws you out tag and make sure frozen is in there too. all secondary effects". */
+  { tag: 'thawsTarget', param: 'unfreezes the target it hits', probe: 'thawsTarget',
+    why: 'Scald (601 uses), Scorching Sands. Undoes a freeze you may have wanted',
+    of: m => (m.thawsTarget || (m.flags && m.flags.defrost)) ? { thaws: true } : null },
+  { tag: 'inflictsFreeze', param: 'P(freeze): they lose turns until thawed', probe: 'frz',
+    why: '7,441 appearances carry a freeze secondary -- Ice Beam, Blizzard. Rarer than sleep and '
+       + 'harder to remove',
+    of: m => statusOdds(m, 'frz') },
+  { tag: 'inflictsConfusion', param: 'P(confusion): they hit themselves some of the time', probe: 'confusion',
+    why: '4,620 appearances. Not a status -- a volatile that adds a failure chance to every move they '
+       + 'click while it lasts',
+    of: m => {
+      const secs = [...(m.secondaries || []), ...(m.secondary ? [m.secondary] : [])];
+      for (const sec of secs) if (sec && sec.volatileStatus === 'confusion') return { p: (sec.chance || 100) / 100 };
+      return m.volatileStatus === 'confusion' ? { p: 1 } : null;
+    } },
   { tag: 'failsWithoutWeather', param: 'the move does NOTHING unless a weather is up', probe: 'failsWithoutWeather',
     why: 'Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can '
        + 'currently say so',
@@ -363,7 +446,61 @@ const MOVE_TAGS = [
        + 'survival -- three different values reading as one number today',
     of: m => {
       const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
-      return b ? { boosts: b, raisesSpeed: !!b.spe } : null;
+      if (!b || !Object.values(b).some(v => v > 0)) return null;
+      return { boosts: b, raisesSpeed: (b.spe || 0) > 0, alsoLowers: Object.values(b).some(v => v < 0) };
+    } },
+  /* SPLIT BY SIGN on Will's point -- "close combat, superpower, they DECREASE user not boost".
+   * Reading m.self.boosts without checking the sign swept roughly 9,500 uses of pure drawbacks into
+   * a tag that says the opposite: Close Combat 5,487, Make It Rain 1,420, Draco Meteor 1,199,
+   * Overheat 771, Leaf Storm 337, Superpower 182.
+   *
+   * AND THE FEATURE HAS THE SAME HOLE. board.js has movesBoostMe, which is
+   * expectedBoostSign(selfB, ..., +1) -- it returns 1 only when something goes UP, so Close Combat
+   * scores 0 and reads exactly like a move with no self-effect at all. There is no movesLowerMe.
+   * So the most-used drawback attack in the format costs -1 Def and -1 SpD and MAG cannot see it,
+   * which is why this needs a FEATURE and not only a tag. */
+  /* Will: "what about moves like curse, shell smash, scale shot, where it boosts AND lowers".
+   * Shell Smash works -- it carries boostsUser AND lowersUser, each cross-flagged so a consumer
+   * reading one knows the other fired. Curse and Scale Shot do NOT, and the reason is that neither
+   * declares its boosts in a field: Curse computes them in onModifyMove because they differ for
+   * Ghost types, and Scale Shot declares nothing at all in this mod. Tagged from the handler so they
+   * are at least VISIBLE as "this changes stats, procedurally" rather than silently absent. */
+  /* Will: "do we want moonblasts secondary effect of chance to drop spa? probably not incredibly
+   * useful yet but for the future". More useful than that -- 21,748 appearances carry a secondary
+   * stat effect and NONE were tagged, because lowersTarget and boostsUser read only the primary
+   * boosts field. It is also why Moonblast (4,048), Shadow Ball (3,297) and Earth Power (2,374)
+   * showed as untagged in the coverage table and looked like plain attacks. They are not.
+   *
+   * The 100% ones are the point: Icy Wind, Rock Tomb and Electroweb drop Speed on every hit, which
+   * is SPEED CONTROL -- a core VGC plan that nothing in the model could see. */
+  { tag: 'secondaryStatEffect', param: 'P(stat change) as a side effect of a damaging move', probe: 'secondaries',
+    why: 'Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast '
+       + '10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged',
+    of: m => {
+      const secs = [...(m.secondaries || []), ...(m.secondary ? [m.secondary] : [])];
+      for (const sec of secs) {
+        if (!sec) continue;
+        const b = sec.boosts || (sec.self && sec.self.boosts);
+        if (!b) continue;
+        return { p: (sec.chance || 100) / 100, boosts: b, onSelf: !!sec.self,
+                 lowersSpeed: !sec.self && (b.spe || 0) < 0 };
+      }
+      return null;
+    } },
+  { tag: 'boostsProcedural', param: 'stat changes exist but are computed, not declared in a field', probe: 'boostsProcedural',
+    why: 'Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the '
+       + 'dex, so they need a hand-written case or a live probe -- flagged rather than missed',
+    of: m => (!m.boosts && !(m.self && m.self.boosts)
+              && /boost/i.test(String(m.onHit || '') + String(m.onModifyMove || '')))
+             ? { procedural: true } : null },
+  { tag: 'lowersUser', param: 'WHICH of my own stats drop, as the price of the move', probe: 'movesLowerMe',
+    why: 'Close Combat (5,487 uses) pays -1 Def and -1 SpD; Draco Meteor, Overheat and Make It Rain '
+       + 'pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no '
+       + 'self-effect whatsoever',
+    of: m => {
+      const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
+      if (!b || !Object.values(b).some(v => v < 0)) return null;
+      return { boosts: b, lowersSpeed: (b.spe || 0) < 0, alsoRaises: Object.values(b).some(v => v > 0) };
     } },
   /* SPLIT BY THE SIGN OF THE EFFECT, not by the declared target, on Will's review: "coaching would
    * never be used on the enemy" and "decorate would almost never be used on the foe". Both are
@@ -484,8 +621,14 @@ const MOVE_TAGS = [
   { tag: 'recoil', param: 'the user pays a FRACTION of the damage dealt', probe: 'recoil',
     why: 'Head Smash 1/2, Flare Blitz and Wave Crash 33/100 at ~4,000 uses each, Wild Charge 1/4. '
        + 'A cost nothing prices',
+    /* Will: "you can just look up the wave crash recoil percent you dont need it in this tag."
+     * Right, and it is the rule for the whole taxonomy: CARRY the parameter when deriving it took
+     * work (the flinch probability hidden in secondaries, the charge-skip weather read out of a
+     * handler, which class a guard refuses); LOOK IT UP when it is a plain dex field. m.recoil is a
+     * plain field. The fraction stays here only because the review document is generated from this
+     * file and a reader needs to see 1/2 against 33/100 -- consumers should read the dex. */
     of: m => {
-      if (m.recoil) return { fraction: m.recoil[0] / m.recoil[1] };
+      if (m.recoil) return { fraction: m.recoil[0] / m.recoil[1], readFrom: 'dex m.recoil' };
       if (m.mindBlownRecoil) return { fraction: 0.5, of: 'maxhp' };
       if (m.struggleRecoil) return { fraction: 0.25, of: 'maxhp' };
       return null;

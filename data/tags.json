@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T03:23:06.405Z",
+ "generated": "2026-07-29T03:37:18.123Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -87,6 +87,37 @@
     "Expanding Force",
     "Rising Voltage",
     "Terrain Pulse"
+   ]
+  },
+  {
+   "tag": "blocksSoundMoves",
+   "kind": "move",
+   "param": "they cannot use sound moves for 2 turns",
+   "why": "Throat Chop. The sound flag already exists on the moves it blocks, so this is a join rather than new information",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 1768,
+   "examples": [
+    "Throat Chop"
+   ]
+  },
+  {
+   "tag": "needsUntrackedState",
+   "kind": "move",
+   "param": "power depends on state the board does not track",
+   "why": "Last Respects (3,009 uses) needs a fainted COUNT, Low Kick (1,854) needs target WEIGHT which is not in our mon table at all, Rage Fist needs times-hit, Stomping Tantrum needs whether the last move failed. Their dex basePower is 0, so board.js returns null and scores them as non-damaging",
+   "consumedBy": null,
+   "used": false,
+   "n": 18,
+   "uses": 9384,
+   "examples": [
+    "Rage Fist",
+    "Electro Ball",
+    "Endeavor",
+    "Eruption",
+    "Final Gambit",
+    "Grass Knot"
    ]
   },
   {
@@ -247,14 +278,31 @@
    ]
   },
   {
-   "tag": "neverMisses",
+   "tag": "neverMissesAttack",
    "kind": "move",
-   "param": "P(hit) = 1",
-   "why": "Aerial Ace, Swift, Flower Trick, Aura Sphere, Magical Leaf. The accuracy feature and the kill probability both scale by P(hit), so a move that CANNOT miss must not be discounted like one that can",
+   "param": "P(hit) = 1 on a DAMAGING move",
+   "why": "Kowtow Cleave (2,970 uses), Aura Sphere, Flower Trick, Aerial Ace. Never discounted by accuracy, so the kill is as certain as the roll allows. 1.5% of slots against 156,486 uses of attacks that can miss",
    "consumedBy": "accuracy === true",
    "used": true,
-   "n": 132,
-   "uses": 89647,
+   "n": 8,
+   "uses": 3795,
+   "examples": [
+    "Aerial Ace",
+    "Aura Sphere",
+    "Clear Smog",
+    "Flower Trick",
+    "Kowtow Cleave"
+   ]
+  },
+  {
+   "tag": "neverMisses",
+   "kind": "move",
+   "param": "P(hit) = 1 (the default for a self-targeting status move)",
+   "why": "Correct as a PARAMETER and uninformative as a category -- Protect does not roll accuracy because there is nothing to roll against. Kept so the distribution reads the right P(hit), flagged so nobody reviews 103 status moves looking for a pattern",
+   "consumedBy": "accuracy === true",
+   "used": true,
+   "n": 124,
+   "uses": 85852,
    "examples": [
     "Baneful Bunker",
     "Clangorous Soul",
@@ -527,8 +575,8 @@
   {
    "tag": "halvesDamage",
    "kind": "move",
-   "param": "incoming damage to my side is roughly halved",
-   "why": "Light Screen 2,346, Reflect 1,988, Aurora Veil 853 -- 5,187 uses that currently change NO damage number anywhere in MAG",
+   "param": "incoming damage of ONE category is halved for my side",
+   "why": "Reflect (1,988) physical only, Light Screen (2,346) special only, Aurora Veil (853) both and snow-only. 5,187 uses that change NO damage number anywhere in MAG today",
    "consumedBy": "screens",
    "used": true,
    "n": 3,
@@ -537,6 +585,74 @@
     "Aurora Veil",
     "Light Screen",
     "Reflect"
+   ]
+  },
+  {
+   "tag": "needsTargetToAttack",
+   "kind": "move",
+   "param": "FAILS unless the target is attacking this turn",
+   "why": "Sucker Punch (3,909 uses), Upper Hand, Counter, Mirror Coat, Metal Burst, Focus Punch. Their value is a prediction about the opponent, not a property of the board -- which is exactly what sigma_opp is for and nothing connects them",
+   "consumedBy": null,
+   "used": false,
+   "n": 9,
+   "uses": 4027,
+   "examples": [
+    "Assurance",
+    "Avalanche",
+    "Counter",
+    "Focus Punch",
+    "Metal Burst",
+    "Mirror Coat"
+   ]
+  },
+  {
+   "tag": "thawsTarget",
+   "kind": "move",
+   "param": "unfreezes the target it hits",
+   "why": "Scald (601 uses), Scorching Sands. Undoes a freeze you may have wanted",
+   "consumedBy": null,
+   "used": false,
+   "n": 5,
+   "uses": 8147,
+   "examples": [
+    "Burn Up",
+    "Flare Blitz",
+    "Matcha Gotcha",
+    "Scald",
+    "Scorching Sands"
+   ]
+  },
+  {
+   "tag": "inflictsFreeze",
+   "kind": "move",
+   "param": "P(freeze): they lose turns until thawed",
+   "why": "7,441 appearances carry a freeze secondary -- Ice Beam, Blizzard. Rarer than sleep and harder to remove",
+   "consumedBy": "frz",
+   "used": true,
+   "n": 4,
+   "uses": 3937,
+   "examples": [
+    "Blizzard",
+    "Ice Beam",
+    "Ice Fang",
+    "Ice Punch"
+   ]
+  },
+  {
+   "tag": "inflictsConfusion",
+   "kind": "move",
+   "param": "P(confusion): they hit themselves some of the time",
+   "why": "4,620 appearances. Not a status -- a volatile that adds a failure chance to every move they click while it lasts",
+   "consumedBy": null,
+   "used": false,
+   "n": 9,
+   "uses": 2376,
+   "examples": [
+    "Confuse Ray",
+    "Dynamic Punch",
+    "Hurricane",
+    "Swagger",
+    "Water Pulse"
    ]
   },
   {
@@ -589,15 +705,69 @@
    "why": "movesBoostMe is only a sign. +Spe flips the speed order, +Atk changes damage, +Def changes survival -- three different values reading as one number today",
    "consumedBy": "movesBoostMe",
    "used": true,
-   "n": 32,
-   "uses": 15688,
+   "n": 22,
+   "uses": 6098,
    "examples": [
     "Clangorous Soul",
     "Growth",
-    "Make It Rain",
     "Acid Armor",
     "Agility",
-    "Amnesia"
+    "Amnesia",
+    "Bulk Up"
+   ]
+  },
+  {
+   "tag": "secondaryStatEffect",
+   "kind": "move",
+   "param": "P(stat change) as a side effect of a damaging move",
+   "why": "Icy Wind, Rock Tomb and Electroweb drop Speed 100% of the time -- speed control. Moonblast 10% SpA, Spirit Break 100% SpA, Snarl 100%. 21,748 appearances and not one was tagged",
+   "consumedBy": "secondaries",
+   "used": true,
+   "n": 52,
+   "uses": 21748,
+   "examples": [
+    "Apple Acid",
+    "Grav Apple",
+    "Moonblast",
+    "Psyshield Bash",
+    "Trop Kick",
+    "Acid Spray"
+   ]
+  },
+  {
+   "tag": "boostsProcedural",
+   "kind": "move",
+   "param": "stat changes exist but are computed, not declared in a field",
+   "why": "Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the dex, so they need a hand-written case or a live probe -- flagged rather than missed",
+   "consumedBy": null,
+   "used": false,
+   "n": 12,
+   "uses": 5458,
+   "examples": [
+    "Belly Drum",
+    "Clear Smog",
+    "Defog",
+    "Parting Shot",
+    "Power Swap",
+    "Psych Up"
+   ]
+  },
+  {
+   "tag": "lowersUser",
+   "kind": "move",
+   "param": "WHICH of my own stats drop, as the price of the move",
+   "why": "Close Combat (5,487 uses) pays -1 Def and -1 SpD; Draco Meteor, Overheat and Make It Rain pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no self-effect whatsoever",
+   "consumedBy": null,
+   "used": false,
+   "n": 11,
+   "uses": 9838,
+   "examples": [
+    "Make It Rain",
+    "Armor Cannon",
+    "Close Combat",
+    "Draco Meteor",
+    "Hammer Arm",
+    "Headlong Rush"
    ]
   },
   {
@@ -1773,6 +1943,23 @@
   }
  ],
  "moves": {
+  "appleacid": {
+   "name": "Apple Acid",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 7,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
   "banefulbunker": {
    "name": "Baneful Bunker",
    "tags": [
@@ -1788,7 +1975,8 @@
      "priority": 4
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "stalling": {
      "stalling": true
@@ -1834,6 +2022,18 @@
     }
    }
   },
+  "burnup": {
+   "name": "Burn Up",
+   "tags": [
+    "thawsTarget"
+   ],
+   "uses": 35,
+   "params": {
+    "thawsTarget": {
+     "thaws": true
+    }
+   }
+  },
   "clangoroussoul": {
    "name": "Clangorous Soul",
    "tags": [
@@ -1848,7 +2048,8 @@
      "sound": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
@@ -1858,7 +2059,8 @@
       "spd": 1,
       "spe": 1
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -1901,12 +2103,21 @@
   "crushclaw": {
    "name": "Crush Claw",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.5,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -1935,7 +2146,8 @@
      "sound": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -1963,7 +2175,8 @@
    "uses": 1,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -2009,12 +2222,21 @@
   "firelash": {
    "name": "Fire Lash",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -2037,12 +2259,21 @@
   "gravapple": {
    "name": "Grav Apple",
    "tags": [
-    "conditionalPower"
+    "conditionalPower",
+    "secondaryStatEffect"
    ],
    "uses": 9,
    "params": {
     "conditionalPower": {
      "conditional": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -2060,14 +2291,16 @@
      "scalesWith": "weather"
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "atk": 1,
       "spa": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -2088,7 +2321,8 @@
      "sound": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsTarget": {
      "boosts": {
@@ -2147,7 +2381,8 @@
      "priority": 4
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "stalling": {
      "stalling": true
@@ -2165,7 +2400,8 @@
    "uses": 713,
    "params": {
     "recoil": {
-     "fraction": 0.5
+     "fraction": 0.5,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -2173,7 +2409,7 @@
    "name": "Make It Rain",
    "tags": [
     "spreadFoes",
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 1420,
    "params": {
@@ -2181,11 +2417,29 @@
      "target": "allAdjacentFoes",
      "hitsAlly": false
     },
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "spa": -2
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
+    }
+   }
+  },
+  "moonblast": {
+   "name": "Moonblast",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 4048,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spa": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -2198,6 +2452,23 @@
    "params": {
     "flinches": {
      "pFlinch": 0.3
+    }
+   }
+  },
+  "nightdaze": {
+   "name": "Night Daze",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 0,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.4,
+     "boosts": {
+      "accuracy": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -2226,7 +2497,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -2247,7 +2519,8 @@
      "priority": 4
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "stalling": {
      "stalling": true
@@ -2260,23 +2533,36 @@
   "psyshieldbash": {
    "name": "Psyshield Bash",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 8,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "def": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
   "ragefist": {
    "name": "Rage Fist",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 363,
    "params": {
+    "needsUntrackedState": {
+     "needs": "times hit"
+    },
     "variablePower": {
      "computed": true
     },
@@ -2296,7 +2582,8 @@
    "uses": 4,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -2348,7 +2635,8 @@
    "uses": 3,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -2375,7 +2663,8 @@
      "priority": 4
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "stalling": {
      "stalling": true
@@ -2405,12 +2694,17 @@
    "name": "Stuff Cheeks",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "statusCategory": {
      "status": true
@@ -2461,12 +2755,21 @@
   "tropkick": {
    "name": "Trop Kick",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 118,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "atk": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -2496,16 +2799,35 @@
    "uses": 13,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "def": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "acidspray": {
+   "name": "Acid Spray",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 54,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spd": -2
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -2529,12 +2851,17 @@
    "name": "Acupressure",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "statusCategory": {
      "status": true
@@ -2545,14 +2872,14 @@
    "name": "Aerial Ace",
    "tags": [
     "contact",
-    "neverMisses"
+    "neverMissesAttack"
    ],
    "uses": 23,
    "params": {
     "contact": {
      "contact": true
     },
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     }
    }
@@ -2567,7 +2894,8 @@
    "uses": 104,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -2587,13 +2915,15 @@
    "uses": 10,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "spe": 2
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -2654,7 +2984,8 @@
      "priority": 2
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -2671,16 +3002,39 @@
    "uses": 4,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "spd": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "ancientpower": {
+   "name": "Ancient Power",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 323,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "atk": 1,
+      "def": 1,
+      "spa": 1,
+      "spd": 1,
+      "spe": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -2721,7 +3075,8 @@
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -2731,12 +3086,21 @@
   "aquastep": {
    "name": "Aqua Step",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 11,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -2755,16 +3119,17 @@
   "armorcannon": {
    "name": "Armor Cannon",
    "tags": [
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 31,
    "params": {
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "def": -1,
       "spd": -1
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -2778,7 +3143,8 @@
    "uses": 1,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsTarget": {
      "boosts": {
@@ -2794,7 +3160,8 @@
    "name": "Assurance",
    "tags": [
     "variablePower",
-    "contact"
+    "contact",
+    "needsTargetToAttack"
    ],
    "uses": 26,
    "params": {
@@ -2803,6 +3170,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
@@ -2821,12 +3191,29 @@
   "aurasphere": {
    "name": "Aura Sphere",
    "tags": [
-    "neverMisses"
+    "neverMissesAttack"
    ],
    "uses": 672,
    "params": {
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
+    }
+   }
+  },
+  "aurawheel": {
+   "name": "Aura Wheel",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 21,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -2841,10 +3228,12 @@
    "uses": 853,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "halvesDamage": {
-     "mult": 0.5
+     "mult": 0.5,
+     "category": "both"
     },
     "failsWithoutWeather": {
      "needsWeather": true
@@ -2859,7 +3248,8 @@
    "tags": [
     "variablePower",
     "priority",
-    "contact"
+    "contact",
+    "needsTargetToAttack"
    ],
    "uses": 6,
    "params": {
@@ -2871,18 +3261,25 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
   "axekick": {
    "name": "Axe Kick",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsConfusion"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
+    },
+    "inflictsConfusion": {
+     "p": 0.3
     }
    }
   },
@@ -2937,7 +3334,8 @@
    "uses": 65,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "passesState": {
      "passes": true
@@ -2963,12 +3361,17 @@
    "name": "Belly Drum",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "statusCategory"
    ],
    "uses": 66,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "statusCategory": {
      "status": true
@@ -3022,6 +3425,23 @@
     }
    }
   },
+  "bittermalice": {
+   "name": "Bitter Malice",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 44,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "atk": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
   "blastburn": {
    "name": "Blast Burn",
    "tags": [
@@ -3059,7 +3479,8 @@
    "name": "Blizzard",
    "tags": [
     "weatherScaled",
-    "spreadFoes"
+    "spreadFoes",
+    "inflictsFreeze"
    ],
    "uses": 1532,
    "params": {
@@ -3069,6 +3490,10 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "inflictsFreeze": {
+     "p": 0.1,
+     "via": "secondary"
     }
    }
   },
@@ -3082,7 +3507,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -3171,7 +3597,8 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33
+     "fraction": 0.33,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -3179,7 +3606,8 @@
    "name": "Breaking Swipe",
    "tags": [
     "spreadFoes",
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 70,
    "params": {
@@ -3189,6 +3617,14 @@
     },
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "atk": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -3236,12 +3672,21 @@
   "bugbuzz": {
    "name": "Bug Buzz",
    "tags": [
-    "sound"
+    "sound",
+    "secondaryStatEffect"
    ],
    "uses": 40,
    "params": {
     "sound": {
      "sound": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -3255,14 +3700,16 @@
    "uses": 561,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "atk": 1,
       "def": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -3272,13 +3719,22 @@
   "bulldoze": {
    "name": "Bulldoze",
    "tags": [
-    "spreadAll"
+    "spreadAll",
+    "secondaryStatEffect"
    ],
    "uses": 17,
    "params": {
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
     }
    }
   },
@@ -3336,14 +3792,16 @@
    "uses": 1163,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "spa": 1,
       "spd": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -3372,16 +3830,35 @@
    "uses": 1,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "spd": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "chargebeam": {
+   "name": "Charge Beam",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 3,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.7,
+     "boosts": {
+      "spa": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -3405,6 +3882,23 @@
     }
    }
   },
+  "chillingwater": {
+   "name": "Chilling Water",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 33,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "atk": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
   "chillyreception": {
    "name": "Chilly Reception",
    "tags": [
@@ -3417,7 +3911,8 @@
    "uses": 17,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -3473,16 +3968,20 @@
   "clearsmog": {
    "name": "Clear Smog",
    "tags": [
-    "neverMisses",
-    "clearsBoosts"
+    "neverMissesAttack",
+    "clearsBoosts",
+    "boostsProcedural"
    ],
    "uses": 6,
    "params": {
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     },
     "clearsBoosts": {
      "resets": true
+    },
+    "boostsProcedural": {
+     "procedural": true
     }
    }
   },
@@ -3490,19 +3989,20 @@
    "name": "Close Combat",
    "tags": [
     "contact",
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 5487,
    "params": {
     "contact": {
      "contact": true
     },
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "def": -1,
       "spd": -1
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -3516,7 +4016,8 @@
    "uses": 525,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsTarget": {
      "boosts": {
@@ -3540,7 +4041,8 @@
    "uses": 301,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "accuracyMod": {
      "accuracy": true
@@ -3551,7 +4053,8 @@
       "def": 1,
       "accuracy": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -3573,10 +4076,14 @@
   "confuseray": {
    "name": "Confuse Ray",
    "tags": [
+    "inflictsConfusion",
     "statusCategory"
    ],
    "uses": 2,
    "params": {
+    "inflictsConfusion": {
+     "p": 1
+    },
     "statusCategory": {
      "status": true
     }
@@ -3591,7 +4098,8 @@
    "uses": 4,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -3608,14 +4116,16 @@
    "uses": 15,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "def": 1,
       "spd": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -3632,13 +4142,15 @@
    "uses": 9,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "def": 3
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -3678,7 +4190,8 @@
    "name": "Counter",
    "tags": [
     "priority",
-    "contact"
+    "contact",
+    "needsTargetToAttack"
    ],
    "uses": 7,
    "params": {
@@ -3687,6 +4200,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
@@ -3742,12 +4258,21 @@
   "crunch": {
    "name": "Crunch",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 210,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.2,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -3761,7 +4286,8 @@
    "uses": 61,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -3819,7 +4345,8 @@
    "uses": 18,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -3839,13 +4366,18 @@
    "name": "Defog",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "lowersTarget",
     "statusCategory"
    ],
    "uses": 4,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -3865,7 +4397,8 @@
    "uses": 39,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -3886,7 +4419,8 @@
      "priority": 4
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "stalling": {
      "stalling": true
@@ -3974,7 +4508,8 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33
+     "fraction": 0.33,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -4005,7 +4540,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "accuracyMod": {
      "accuracy": true
@@ -4014,7 +4550,8 @@
      "boosts": {
       "evasion": 1
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -4024,15 +4561,16 @@
   "dracometeor": {
    "name": "Draco Meteor",
    "tags": [
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 1199,
    "params": {
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "spa": -2
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -4046,14 +4584,16 @@
    "uses": 343,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "atk": 1,
       "spe": 1
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -4193,12 +4733,33 @@
   "dynamicpunch": {
    "name": "Dynamic Punch",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsConfusion"
    ],
    "uses": 6,
    "params": {
     "contact": {
      "contact": true
+    },
+    "inflictsConfusion": {
+     "p": 1
+    }
+   }
+  },
+  "earthpower": {
+   "name": "Earth Power",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 2374,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -4258,7 +4819,8 @@
    "uses": 11,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -4274,10 +4836,14 @@
   "electroball": {
    "name": "Electro Ball",
    "tags": [
+    "needsUntrackedState",
     "variablePower"
    ],
    "uses": 7,
    "params": {
+    "needsUntrackedState": {
+     "needs": "speed ratio"
+    },
     "variablePower": {
      "computed": true
     }
@@ -4302,23 +4868,36 @@
   "electroweb": {
    "name": "Electroweb",
    "tags": [
-    "spreadFoes"
+    "spreadFoes",
+    "secondaryStatEffect"
    ],
    "uses": 343,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
     }
    }
   },
   "endeavor": {
    "name": "Endeavor",
    "tags": [
+    "needsUntrackedState",
     "contact"
    ],
    "uses": 75,
    "params": {
+    "needsUntrackedState": {
+     "needs": "hp difference"
+    },
     "contact": {
      "contact": true
     }
@@ -4338,13 +4917,31 @@
      "priority": 4
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "stalling": {
      "stalling": true
     },
     "statusCategory": {
      "status": true
+    }
+   }
+  },
+  "energyball": {
+   "name": "Energy Ball",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 452,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -4363,11 +4960,15 @@
   "eruption": {
    "name": "Eruption",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "spreadFoes"
    ],
    "uses": 565,
    "params": {
+    "needsUntrackedState": {
+     "needs": "user hp"
+    },
     "variablePower": {
      "computed": true
     },
@@ -4465,7 +5066,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -4558,13 +5160,34 @@
     }
    }
   },
+  "fierydance": {
+   "name": "Fiery Dance",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 42,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.5,
+     "boosts": {
+      "spa": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
+    }
+   }
+  },
   "finalgambit": {
    "name": "Final Gambit",
    "tags": [
+    "needsUntrackedState",
     "userFaints"
    ],
    "uses": 176,
    "params": {
+    "needsUntrackedState": {
+     "needs": "user hp"
+    },
     "userFaints": {
      "faints": "ifHit"
     }
@@ -4636,11 +5259,15 @@
   "flail": {
    "name": "Flail",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "needsUntrackedState": {
+     "needs": "user hp"
+    },
     "variablePower": {
      "computed": true
     },
@@ -4652,12 +5279,21 @@
   "flamecharge": {
    "name": "Flame Charge",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 8,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -4678,6 +5314,7 @@
    "name": "Flare Blitz",
    "tags": [
     "contact",
+    "thawsTarget",
     "inflictsBurn",
     "recoil"
    ],
@@ -4686,23 +5323,48 @@
     "contact": {
      "contact": true
     },
+    "thawsTarget": {
+     "thaws": true
+    },
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
     },
     "recoil": {
-     "fraction": 0.33
+     "fraction": 0.33,
+     "readFrom": "dex m.recoil"
+    }
+   }
+  },
+  "flashcannon": {
+   "name": "Flash Cannon",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 1790,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
   "flatter": {
    "name": "Flatter",
    "tags": [
+    "inflictsConfusion",
     "boostsTarget",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
+    "inflictsConfusion": {
+     "p": 1
+    },
     "boostsTarget": {
      "boosts": {
       "spa": 1
@@ -4733,14 +5395,14 @@
    "name": "Flower Trick",
    "tags": [
     "alwaysCrit",
-    "neverMisses"
+    "neverMissesAttack"
    ],
    "uses": 124,
    "params": {
     "alwaysCrit": {
      "pCrit": 1
     },
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     }
    }
@@ -4773,6 +5435,23 @@
     }
    }
   },
+  "focusblast": {
+   "name": "Focus Blast",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 1088,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
   "focusenergy": {
    "name": "Focus Energy",
    "tags": [
@@ -4782,7 +5461,8 @@
    "uses": 4,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -4793,7 +5473,8 @@
    "name": "Focus Punch",
    "tags": [
     "priority",
-    "contact"
+    "contact",
+    "needsTargetToAttack"
    ],
    "uses": 6,
    "params": {
@@ -4802,6 +5483,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
@@ -4819,7 +5503,8 @@
      "priority": 2
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "redirects": {
      "redirect": true
@@ -4956,11 +5641,15 @@
   "grassknot": {
    "name": "Grass Knot",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 242,
    "params": {
+    "needsUntrackedState": {
+     "needs": "target weight"
+    },
     "variablePower": {
      "computed": true
     },
@@ -4992,7 +5681,8 @@
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -5016,7 +5706,8 @@
    "uses": 34,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -5038,7 +5729,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5049,13 +5741,18 @@
    "name": "Guard Swap",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "lowersTarget",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -5098,11 +5795,15 @@
   "gyroball": {
    "name": "Gyro Ball",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 24,
    "params": {
+    "needsUntrackedState": {
+     "needs": "speed ratio"
+    },
     "variablePower": {
      "computed": true
     },
@@ -5115,29 +5816,34 @@
    "name": "Hammer Arm",
    "tags": [
     "contact",
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 106,
    "params": {
     "contact": {
      "contact": true
     },
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "spe": -1
      },
-     "raisesSpeed": true
+     "lowersSpeed": true,
+     "alsoRaises": false
     }
    }
   },
   "hardpress": {
    "name": "Hard Press",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 26,
    "params": {
+    "needsUntrackedState": {
+     "needs": "target hp"
+    },
     "variablePower": {
      "computed": true
     },
@@ -5157,7 +5863,8 @@
    "uses": 359,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -5174,19 +5881,20 @@
    "name": "Headlong Rush",
    "tags": [
     "contact",
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 26,
    "params": {
     "contact": {
      "contact": true
     },
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "def": -1,
       "spd": -1
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -5202,7 +5910,8 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.5
+     "fraction": 0.5,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -5219,7 +5928,8 @@
      "sound": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5237,7 +5947,8 @@
    "uses": 4,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "userFaints": {
      "faints": "ifHit"
@@ -5260,7 +5971,8 @@
    "uses": 62,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5273,11 +5985,15 @@
   "heatcrash": {
    "name": "Heat Crash",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 5,
    "params": {
+    "needsUntrackedState": {
+     "needs": "weight ratio"
+    },
     "variablePower": {
      "computed": true
     },
@@ -5307,11 +6023,15 @@
   "heavyslam": {
    "name": "Heavy Slam",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 119,
    "params": {
+    "needsUntrackedState": {
+     "needs": "weight ratio"
+    },
     "variablePower": {
      "computed": true
     },
@@ -5333,7 +6053,8 @@
      "priority": 5
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5414,12 +6135,16 @@
   "hurricane": {
    "name": "Hurricane",
    "tags": [
-    "weatherScaled"
+    "weatherScaled",
+    "inflictsConfusion"
    ],
    "uses": 2259,
    "params": {
     "weatherScaled": {
      "scalesWith": "weather"
+    },
+    "inflictsConfusion": {
+     "p": 0.3
     }
    }
   },
@@ -5485,16 +6210,34 @@
     }
    }
   },
+  "icebeam": {
+   "name": "Ice Beam",
+   "tags": [
+    "inflictsFreeze"
+   ],
+   "uses": 551,
+   "params": {
+    "inflictsFreeze": {
+     "p": 0.1,
+     "via": "secondary"
+    }
+   }
+  },
   "icefang": {
    "name": "Ice Fang",
    "tags": [
     "contact",
+    "inflictsFreeze",
     "flinches"
    ],
    "uses": 433,
    "params": {
     "contact": {
      "contact": true
+    },
+    "inflictsFreeze": {
+     "p": 0.1,
+     "via": "secondary"
     },
     "flinches": {
      "pFlinch": 0.1
@@ -5505,30 +6248,36 @@
    "name": "Ice Hammer",
    "tags": [
     "contact",
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 31,
    "params": {
     "contact": {
      "contact": true
     },
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "spe": -1
      },
-     "raisesSpeed": true
+     "lowersSpeed": true,
+     "alsoRaises": false
     }
    }
   },
   "icepunch": {
    "name": "Ice Punch",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsFreeze"
    ],
    "uses": 1421,
    "params": {
     "contact": {
      "contact": true
+    },
+    "inflictsFreeze": {
+     "p": 0.1,
+     "via": "secondary"
     }
    }
   },
@@ -5586,13 +6335,22 @@
   "icywind": {
    "name": "Icy Wind",
    "tags": [
-    "spreadFoes"
+    "spreadFoes",
+    "secondaryStatEffect"
    ],
    "uses": 845,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
     }
    }
   },
@@ -5605,7 +6363,8 @@
    "uses": 158,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5646,7 +6405,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5662,7 +6422,8 @@
    "uses": 90,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5679,13 +6440,15 @@
    "uses": 146,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "def": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -5695,12 +6458,21 @@
   "irontail": {
    "name": "Iron Tail",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 10,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.3,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -5740,14 +6512,14 @@
    "name": "Kowtow Cleave",
    "tags": [
     "contact",
-    "neverMisses"
+    "neverMissesAttack"
    ],
    "uses": 2970,
    "params": {
     "contact": {
      "contact": true
     },
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     }
    }
@@ -5783,10 +6555,14 @@
   "lastrespects": {
    "name": "Last Respects",
    "tags": [
+    "needsUntrackedState",
     "variablePower"
    ],
    "uses": 3009,
    "params": {
+    "needsUntrackedState": {
+     "needs": "fainted count"
+    },
     "variablePower": {
      "computed": true
     }
@@ -5829,15 +6605,16 @@
   "leafstorm": {
    "name": "Leaf Storm",
    "tags": [
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 337,
    "params": {
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "spa": -2
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -5883,7 +6660,8 @@
    "uses": 1683,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5912,10 +6690,12 @@
    "uses": 2346,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "halvesDamage": {
-     "mult": 0.5
+     "mult": 0.5,
+     "category": "Special"
     },
     "statusCategory": {
      "status": true
@@ -5925,12 +6705,21 @@
   "liquidation": {
    "name": "Liquidation",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 552,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.2,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -5943,7 +6732,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -5953,11 +6743,15 @@
   "lowkick": {
    "name": "Low Kick",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 1854,
    "params": {
+    "needsUntrackedState": {
+     "needs": "target weight"
+    },
     "variablePower": {
      "computed": true
     },
@@ -5969,24 +6763,59 @@
   "lowsweep": {
    "name": "Low Sweep",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 9,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
+    }
+   }
+  },
+  "luminacrash": {
+   "name": "Lumina Crash",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 56,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spd": -2
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
   "lunge": {
    "name": "Lunge",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 18,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "atk": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -6033,7 +6862,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -6055,7 +6885,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -6072,7 +6903,8 @@
    "uses": 1,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "failsWithoutWeather": {
      "needsWeather": true
@@ -6086,6 +6918,7 @@
    "name": "Matcha Gotcha",
    "tags": [
     "spreadFoes",
+    "thawsTarget",
     "inflictsBurn",
     "drain"
    ],
@@ -6094,6 +6927,9 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "thawsTarget": {
+     "thaws": true
     },
     "inflictsBurn": {
      "p": 0.2,
@@ -6117,7 +6953,8 @@
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -6176,6 +7013,18 @@
     }
    }
   },
+  "metalburst": {
+   "name": "Metal Burst",
+   "tags": [
+    "needsTargetToAttack"
+   ],
+   "uses": 4,
+   "params": {
+    "needsTargetToAttack": {
+     "needs": "target attacking"
+    }
+   }
+  },
   "metalsound": {
    "name": "Metal Sound",
    "tags": [
@@ -6215,12 +7064,21 @@
   "meteormash": {
    "name": "Meteor Mash",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 315,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.2,
+     "boosts": {
+      "atk": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -6235,7 +7093,8 @@
    "uses": 14,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "accuracyMod": {
      "accuracy": true
@@ -6244,7 +7103,8 @@
      "boosts": {
       "evasion": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -6254,12 +7114,16 @@
   "mirrorcoat": {
    "name": "Mirror Coat",
    "tags": [
-    "priority"
+    "priority",
+    "needsTargetToAttack"
    ],
    "uses": 12,
    "params": {
     "priority": {
      "priority": -5
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
@@ -6295,7 +7159,8 @@
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -6318,7 +7183,8 @@
    "uses": 21,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -6338,7 +7204,8 @@
    "uses": 7,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -6373,13 +7240,73 @@
   "muddywater": {
    "name": "Muddy Water",
    "tags": [
-    "spreadFoes"
+    "spreadFoes",
+    "secondaryStatEffect"
    ],
    "uses": 469,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "secondaryStatEffect": {
+     "p": 0.3,
+     "boosts": {
+      "accuracy": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
+  "mudshot": {
+   "name": "Mud Shot",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 9,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
+    }
+   }
+  },
+  "mudslap": {
+   "name": "Mud-Slap",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 1,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "accuracy": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
+  "mysticalfire": {
+   "name": "Mystical Fire",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 73,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spa": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -6393,13 +7320,15 @@
    "uses": 1763,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "spa": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -6453,7 +7382,8 @@
    "uses": 43,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
@@ -6463,7 +7393,8 @@
       "spd": 1,
       "spe": 1
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -6502,15 +7433,16 @@
   "overheat": {
    "name": "Overheat",
    "tags": [
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 771,
    "params": {
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "spa": -2
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -6523,7 +7455,8 @@
    "uses": 26,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -6555,6 +7488,7 @@
    "tags": [
     "sound",
     "pivotStatus",
+    "boostsProcedural",
     "lowersTarget",
     "statusCategory"
    ],
@@ -6565,6 +7499,9 @@
     },
     "pivotStatus": {
      "selfSwitch": true
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -6579,7 +7516,8 @@
    "name": "Payback",
    "tags": [
     "variablePower",
-    "contact"
+    "contact",
+    "needsTargetToAttack"
    ],
    "uses": 1,
    "params": {
@@ -6588,6 +7526,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
@@ -6606,7 +7547,8 @@
      "sound": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -6682,12 +7624,21 @@
   "playrough": {
    "name": "Play Rough",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 911,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "atk": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -6781,12 +7732,21 @@
   "pounce": {
    "name": "Pounce",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 8,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
     }
    }
   },
@@ -6811,7 +7771,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -6822,13 +7783,18 @@
    "name": "Power Swap",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "lowersTarget",
     "statusCategory"
    ],
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -6848,7 +7814,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -6880,6 +7847,23 @@
    "params": {
     "contact": {
      "contact": true
+    }
+   }
+  },
+  "psychic": {
+   "name": "Psychic",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 1745,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -6918,7 +7902,8 @@
    "uses": 50,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -6948,15 +7933,20 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
+    "boostsProcedural",
     "statusCategory"
    ],
    "uses": 46,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "statusCategory": {
      "status": true
@@ -7005,7 +7995,8 @@
      "priority": 3
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "oneTurnGuard": {
      "blocks": "priority moves"
@@ -7025,7 +8016,8 @@
    "uses": 58,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
@@ -7033,7 +8025,8 @@
       "spd": 1,
       "spe": 1
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -7058,7 +8051,8 @@
      "powder": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "redirects": {
      "redirect": true
@@ -7091,7 +8085,8 @@
    "uses": 701,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -7107,24 +8102,42 @@
   "rapidspin": {
    "name": "Rapid Spin",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 4,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
   "razorshell": {
    "name": "Razor Shell",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 3,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.5,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -7138,7 +8151,8 @@
    "uses": 300,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7160,7 +8174,8 @@
    "uses": 1,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7177,10 +8192,12 @@
    "uses": 1988,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "halvesDamage": {
-     "mult": 0.5
+     "mult": 0.5,
+     "category": "Physical"
     },
     "statusCategory": {
      "status": true
@@ -7196,7 +8213,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7213,7 +8231,8 @@
    "uses": 44,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7226,11 +8245,15 @@
   "reversal": {
    "name": "Reversal",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 4,
    "params": {
+    "needsUntrackedState": {
+     "needs": "user hp"
+    },
     "variablePower": {
      "computed": true
     },
@@ -7274,7 +8297,8 @@
      "sound": true
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -7312,13 +8336,15 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "spe": 2
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -7339,6 +8365,23 @@
     },
     "flinches": {
      "pFlinch": 0.3
+    }
+   }
+  },
+  "rocktomb": {
+   "name": "Rock Tomb",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 486,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": true
     }
    }
   },
@@ -7364,7 +8407,8 @@
    "uses": 12,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -7384,7 +8428,8 @@
    "uses": 1353,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7435,7 +8480,8 @@
    "uses": 6,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "sideBuff": {
      "sideCondition": "safeguard"
@@ -7448,10 +8494,14 @@
   "scald": {
    "name": "Scald",
    "tags": [
+    "thawsTarget",
     "inflictsBurn"
    ],
    "uses": 601,
    "params": {
+    "thawsTarget": {
+     "thaws": true
+    },
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
@@ -7496,10 +8546,14 @@
   "scorchingsands": {
    "name": "Scorching Sands",
    "tags": [
+    "thawsTarget",
     "inflictsBurn"
    ],
    "uses": 87,
    "params": {
+    "thawsTarget": {
+     "thaws": true
+    },
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
@@ -7563,18 +8617,35 @@
     }
    }
   },
+  "shadowball": {
+   "name": "Shadow Ball",
+   "tags": [
+    "secondaryStatEffect"
+   ],
+   "uses": 3297,
+   "params": {
+    "secondaryStatEffect": {
+     "p": 0.2,
+     "boosts": {
+      "spd": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
+    }
+   }
+  },
   "shadowpunch": {
    "name": "Shadow Punch",
    "tags": [
     "contact",
-    "neverMisses"
+    "neverMissesAttack"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
     },
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     }
    }
@@ -7606,7 +8677,8 @@
    "uses": 41,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "passesState": {
      "passes": true
@@ -7649,12 +8721,14 @@
    "tags": [
     "neverMisses",
     "boostsUser",
+    "lowersUser",
     "statusCategory"
    ],
    "uses": 248,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
@@ -7664,7 +8738,19 @@
       "spa": 2,
       "spe": 2
      },
-     "raisesSpeed": true
+     "raisesSpeed": true,
+     "alsoLowers": true
+    },
+    "lowersUser": {
+     "boosts": {
+      "def": -1,
+      "spd": -1,
+      "atk": 2,
+      "spa": 2,
+      "spe": 2
+     },
+     "lowersSpeed": false,
+     "alsoRaises": true
     },
     "statusCategory": {
      "status": true
@@ -7681,13 +8767,15 @@
    "uses": 18,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "def": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -7740,7 +8828,8 @@
    "uses": 56,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7750,12 +8839,21 @@
   "skittersmack": {
    "name": "Skitter Smack",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 3,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spa": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -7789,7 +8887,8 @@
    "uses": 34,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7836,7 +8935,8 @@
    "uses": 10,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -7878,14 +8978,14 @@
    "name": "Smart Strike",
    "tags": [
     "contact",
-    "neverMisses"
+    "neverMissesAttack"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
     },
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     }
    }
@@ -7894,7 +8994,8 @@
    "name": "Snarl",
    "tags": [
     "spreadFoes",
-    "sound"
+    "sound",
+    "secondaryStatEffect"
    ],
    "uses": 569,
    "params": {
@@ -7904,6 +9005,14 @@
     },
     "sound": {
      "sound": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spa": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -7945,7 +9054,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -8028,7 +9138,8 @@
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -8045,7 +9156,8 @@
    "uses": 1,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "lowersTarget": {
      "boosts": {
@@ -8070,7 +9182,8 @@
    "uses": 5,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "hazard": {
      "hazard": "spikes"
@@ -8083,12 +9196,21 @@
   "spiritbreak": {
    "name": "Spirit Break",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 1115,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spa": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -8151,7 +9273,8 @@
    "uses": 62,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "hazard": {
      "hazard": "stealthrock"
@@ -8189,12 +9312,21 @@
   "steelwing": {
    "name": "Steel Wing",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 9,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 0.1,
+     "boosts": {
+      "def": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -8208,7 +9340,8 @@
    "uses": 17,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "hazard": {
      "hazard": "stickyweb"
@@ -8227,7 +9360,8 @@
    "uses": 21,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -8237,11 +9371,15 @@
   "stompingtantrum": {
    "name": "Stomping Tantrum",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "contact"
    ],
    "uses": 2122,
    "params": {
+    "needsUntrackedState": {
+     "needs": "last move failed"
+    },
     "variablePower": {
      "computed": true
     },
@@ -8277,10 +9415,14 @@
   "storedpower": {
    "name": "Stored Power",
    "tags": [
+    "needsUntrackedState",
     "variablePower"
    ],
    "uses": 17,
    "params": {
+    "needsUntrackedState": {
+     "needs": "user boosts"
+    },
     "variablePower": {
      "computed": true
     }
@@ -8289,12 +9431,16 @@
   "strengthsap": {
    "name": "Strength Sap",
    "tags": [
+    "boostsProcedural",
     "lowersTarget",
     "statusCategory",
     "healsAlly"
    ],
    "uses": 518,
    "params": {
+    "boostsProcedural": {
+     "procedural": true
+    },
     "lowersTarget": {
      "boosts": "via onHit",
      "lowersAttack": true
@@ -8336,7 +9482,7 @@
    "name": "Struggle",
    "tags": [
     "contact",
-    "neverMisses",
+    "neverMissesAttack",
     "recoil"
    ],
    "uses": 0,
@@ -8344,7 +9490,7 @@
     "contact": {
      "contact": true
     },
-    "neverMisses": {
+    "neverMissesAttack": {
      "pHit": 1
     },
     "recoil": {
@@ -8356,13 +9502,22 @@
   "strugglebug": {
    "name": "Struggle Bug",
    "tags": [
-    "spreadFoes"
+    "spreadFoes",
+    "secondaryStatEffect"
    ],
    "uses": 30,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spa": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     }
    }
   },
@@ -8401,7 +9556,8 @@
    "uses": 234,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "substitute": {
      "buffer": 0.25
@@ -8415,7 +9571,8 @@
    "name": "Sucker Punch",
    "tags": [
     "priority",
-    "contact"
+    "contact",
+    "needsTargetToAttack"
    ],
    "uses": 3909,
    "params": {
@@ -8424,6 +9581,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     }
    }
   },
@@ -8438,7 +9598,8 @@
    "uses": 376,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -8466,10 +9627,14 @@
   "superfang": {
    "name": "Super Fang",
    "tags": [
+    "needsUntrackedState",
     "contact"
    ],
    "uses": 434,
    "params": {
+    "needsUntrackedState": {
+     "needs": "target hp"
+    },
     "contact": {
      "contact": true
     }
@@ -8479,19 +9644,20 @@
    "name": "Superpower",
    "tags": [
     "contact",
-    "boostsUser"
+    "lowersUser"
    ],
    "uses": 182,
    "params": {
     "contact": {
      "contact": true
     },
-    "boostsUser": {
+    "lowersUser": {
      "boosts": {
       "atk": -1,
       "def": -1
      },
-     "raisesSpeed": false
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -8511,11 +9677,15 @@
   "swagger": {
    "name": "Swagger",
    "tags": [
+    "inflictsConfusion",
     "boostsTarget",
     "statusCategory"
    ],
    "uses": 64,
    "params": {
+    "inflictsConfusion": {
+     "p": 1
+    },
     "boostsTarget": {
      "boosts": {
       "atk": 2
@@ -8536,7 +9706,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -8549,10 +9720,14 @@
   "sweetkiss": {
    "name": "Sweet Kiss",
    "tags": [
+    "inflictsConfusion",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
+    "inflictsConfusion": {
+     "p": 1
+    },
     "statusCategory": {
      "status": true
     }
@@ -8609,13 +9784,15 @@
    "uses": 1195,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "boostsUser": {
      "boosts": {
       "atk": 2
      },
-     "raisesSpeed": false
+     "raisesSpeed": false,
+     "alsoLowers": false
     },
     "statusCategory": {
      "status": true
@@ -8632,7 +9809,8 @@
    "uses": 33,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -8671,7 +9849,8 @@
    "uses": 6981,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "doublesSideSpeed": {
      "speedMult": 2
@@ -8708,7 +9887,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -8736,7 +9916,8 @@
    "uses": 0,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -8750,6 +9931,7 @@
    "name": "Teeter Dance",
    "tags": [
     "spreadAll",
+    "inflictsConfusion",
     "statusCategory"
    ],
    "uses": 0,
@@ -8757,6 +9939,9 @@
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
+    },
+    "inflictsConfusion": {
+     "p": 1
     },
     "statusCategory": {
      "status": true
@@ -8818,10 +10003,14 @@
   "throatchop": {
    "name": "Throat Chop",
    "tags": [
+    "blocksSoundMoves",
     "contact"
    ],
    "uses": 1768,
    "params": {
+    "blocksSoundMoves": {
+     "blocks": "sound"
+    },
     "contact": {
      "contact": true
     }
@@ -8941,12 +10130,17 @@
    "name": "Tidy Up",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "statusCategory"
    ],
    "uses": 21,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "statusCategory": {
      "status": true
@@ -8957,12 +10151,17 @@
    "name": "Topsy-Turvy",
    "tags": [
     "neverMisses",
+    "boostsProcedural",
     "statusCategory"
    ],
    "uses": 10,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
+    },
+    "boostsProcedural": {
+     "procedural": true
     },
     "statusCategory": {
      "status": true
@@ -8972,12 +10171,21 @@
   "torchsong": {
    "name": "Torch Song",
    "tags": [
-    "sound"
+    "sound",
+    "secondaryStatEffect"
    ],
    "uses": 26,
    "params": {
     "sound": {
      "sound": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spa": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -9028,7 +10236,8 @@
    "uses": 20,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "hazard": {
      "hazard": "toxicspikes"
@@ -9041,12 +10250,21 @@
   "trailblaze": {
    "name": "Trailblaze",
    "tags": [
-    "contact"
+    "contact",
+    "secondaryStatEffect"
    ],
    "uses": 23,
    "params": {
     "contact": {
      "contact": true
+    },
+    "secondaryStatEffect": {
+     "p": 1,
+     "boosts": {
+      "spe": 1
+     },
+     "onSelf": true,
+     "lowersSpeed": false
     }
    }
   },
@@ -9060,7 +10278,8 @@
    "uses": 39,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -9097,7 +10316,8 @@
      "priority": -7
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -9114,12 +10334,21 @@
    "name": "Triple Arrows",
    "tags": [
     "critRatioUp",
+    "secondaryStatEffect",
     "flinches"
    ],
    "uses": 49,
    "params": {
     "critRatioUp": {
      "critRatio": 2
+    },
+    "secondaryStatEffect": {
+     "p": 0.5,
+     "boosts": {
+      "def": -1
+     },
+     "onSelf": false,
+     "lowersSpeed": false
     },
     "flinches": {
      "pFlinch": 0.3
@@ -9163,6 +10392,7 @@
    "tags": [
     "priority",
     "contact",
+    "needsTargetToAttack",
     "flinches"
    ],
    "uses": 56,
@@ -9172,6 +10402,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "needsTargetToAttack": {
+     "needs": "target attacking"
     },
     "flinches": {
      "pFlinch": 1
@@ -9259,7 +10492,8 @@
      "via": "secondary"
     },
     "recoil": {
-     "fraction": 0.33
+     "fraction": 0.33,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -9276,6 +10510,18 @@
     },
     "flinches": {
      "pFlinch": 0.2
+    }
+   }
+  },
+  "waterpulse": {
+   "name": "Water Pulse",
+   "tags": [
+    "inflictsConfusion"
+   ],
+   "uses": 45,
+   "params": {
+    "inflictsConfusion": {
+     "p": 0.2
     }
    }
   },
@@ -9305,11 +10551,15 @@
   "waterspout": {
    "name": "Water Spout",
    "tags": [
+    "needsUntrackedState",
     "variablePower",
     "spreadFoes"
    ],
    "uses": 342,
    "params": {
+    "needsUntrackedState": {
+     "needs": "user hp"
+    },
     "variablePower": {
      "computed": true
     },
@@ -9331,7 +10581,8 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33
+     "fraction": 0.33,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -9362,7 +10613,8 @@
      "priority": -6
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -9389,7 +10641,8 @@
      "priority": 3
     },
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "oneTurnGuard": {
      "blocks": "spread moves"
@@ -9411,7 +10664,8 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.25
+     "fraction": 0.25,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -9446,7 +10700,8 @@
    "uses": 46,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
@@ -9467,7 +10722,8 @@
    "uses": 2,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -9492,7 +10748,8 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33
+     "fraction": 0.33,
+     "readFrom": "dex m.recoil"
     }
    }
   },
@@ -9542,7 +10799,8 @@
    "uses": 536,
    "params": {
     "neverMisses": {
-     "pHit": 1
+     "pHit": 1,
+     "note": "default for status"
     },
     "statusCategory": {
      "status": true
