@@ -89,7 +89,36 @@ const POLICY2 = arg('policy2', '');
  *           distribution is narrowed by the opponent's revealed nature. Testing those in a
  *           closed-sheet game measures them switched off. */
 const PAIRED = process.argv.includes('--paired');
-const FORMAT_ARG = arg('format', '');
+/* OPEN TEAM SHEETS, ON BY DEFAULT, BECAUSE SELF-PLAY COULD NEVER AGREE TO THEM.
+ *
+ * Measured 2026-07-28: ZERO |showteam| events across 1,934 self-play games, and nothing anywhere in
+ * the self-play path ever sent /acceptopenteamsheets. The reason is structural rather than an
+ * oversight -- the `Open Team Sheets` rule in the ladder format asks each side to CLICK a button and
+ * resolves through a chat command that does not exist in the raw simulator stream. So a BattleStream
+ * game in this format can never have open sheets, no matter what the players do.
+ *
+ * That means every self-play measurement this project has made was CLOSED sheet: MACHAMP's champion,
+ * both WOBBUFFET runs, the mechanics head-to-head, the forfeit A/B, DODUO, and PORYGON2's entire
+ * training set. Meanwhile the format Will actually plays is open, and several of MAG's features READ
+ * THE SHEET -- spreadLines narrows the spread distribution on the revealed nature, megaFormeOf
+ * resolves the mega forme from the sheet item, abilityOdds uses the revealed ability. All of them
+ * were falling back to population priors in every training and evaluation game ever run.
+ *
+ * `Force Open Team Sheets` calls showOpenTeamSheets() directly at team preview with no agreement
+ * step, so it works over the stream. It is mutuallyExclusiveWith `Open Team Sheets`, hence the
+ * removal first. The Bo3 format id carries the same rule but drags Best-of-3 in with it, which
+ * changes the structure of the run for unrelated reasons -- this appends the rule instead.
+ *
+ * --closed-sheets restores the old behaviour for the closed-sheet work Will has explicitly deferred
+ * until later. */
+const CLOSED_SHEETS = process.argv.includes('--closed-sheets');
+const OPEN_RULES = '@@@!Open Team Sheets,Force Open Team Sheets';
+const FORMAT_ARG = (() => {
+  const f = arg('format', '');
+  if (CLOSED_SHEETS) return f;
+  const base = f || CS.FORMAT;
+  return base.includes('@@@') ? base : base + OPEN_RULES;
+})();
 /* --thoughts   record MAG's per-decision scores onto each game, so a replay can show WHY it clicked.
  *              Off by default: a million-game training run should not pay for a viewer feature.
  * --randmove p RandomPlayerAI switches only when `prng.random() > this.move`, and `this.move`
