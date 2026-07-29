@@ -41,11 +41,11 @@ async function loadRows() {
     if (!l) continue;
     let g; try { g = JSON.parse(l); } catch (e) { continue; }
     if (!(g && g.selfplay && g.selfplay.winnerPolicy)) continue;
-    rows.push({ six: g.six && { p1: g.six.p1, p2: g.six.p2 },
+    rows.push({ six: g.six && { p1: g.six.p1, p2: g.six.p2 }, openSheet: g.openSheet,
       selfplay: { seed: g.selfplay.seed, winnerPolicy: g.selfplay.winnerPolicy,
         swapped: g.selfplay.swapped, greedy: g.selfplay.greedy, switching: g.selfplay.switching,
         randmove: g.selfplay.randmove, policy: g.selfplay.policy, policy2: g.selfplay.policy2,
-        openSheets: g.selfplay.openSheets, format: g.selfplay.format } });
+        format: g.selfplay.format } });
   }
 }
 
@@ -122,7 +122,15 @@ function describe(g) {
   return {
     a: name(sp.policy),
     b: name(sp.policy2 || sp.policy),
-    fmt: /bo3/.test(String(sp.format || '')) ? 'open team sheets (forced)' : 'closed team sheets',
+    /* READ THE RECORD, not the format string. The old /bo3/ sniff labelled the 600k tag run
+     * "closed team sheets" when every game in it carried openSheet:true — mew.js forces open
+     * sheets by DEFAULT — and that wrong label briefly became a wrong theory about the result
+     * (that the tag knowledge had been measured blindfolded). The record states it plainly;
+     * a report must never re-derive what the data already says. */
+    fmt: g && g.openSheet === true ? 'open team sheets'
+       : g && g.openSheet === false ? 'closed team sheets'
+       : /bo3|Open Team Sheets/.test(String(sp.format || '')) ? 'open team sheets (inferred — record predates the openSheet stamp)'
+       : 'sheet mode not recorded',
   };
 }
 console.log(`PAIRED HEAD-TO-HEAD — ${file}\n`);
