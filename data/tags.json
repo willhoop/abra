@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T06:11:36.077Z",
+ "generated": "2026-07-29T06:21:38.119Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1898,8 +1898,8 @@
   {
    "tag": "preventsStatDrop",
    "kind": "ability",
-   "param": "stat drops simply do not apply",
-   "why": "Clear Body (2.03%), Flower Veil for the ally. Intimidate and every -1 move do nothing, so lowersTarget is worth zero into them",
+   "param": "WHICH stat drops do not apply, and to whom",
+   "why": "Clear Body blocks every stat, Hyper Cutter only Attack, Keen Eye only accuracy. That distinction decides Intimidate, which is 10% of the format: an Attack-blocker stops it and an accuracy-blocker does nothing",
    "consumedBy": null,
    "used": false,
    "n": 15,
@@ -1911,6 +1911,51 @@
     "Hyper Cutter",
     "Illuminate",
     "Inner Focus"
+   ]
+  },
+  {
+   "tag": "ignoresTypeImmunity",
+   "kind": "ability",
+   "param": "a type that normally does ZERO now connects",
+   "why": "Scrappy (262 sheets) lets Normal and Fighting hit Ghost. The engine reads the defensive type chart and scores those moves at zero, which is the largest possible error on a move",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 262,
+   "examples": [
+    "Scrappy"
+   ]
+  },
+  {
+   "tag": "convertsMoveType",
+   "kind": "ability",
+   "param": "rewrites the type of a class of the holder moves, sometimes with a multiplier",
+   "why": "Pixilate (1,448 sheets) turns Normal into Fairy at x1.2; Liquid Voice (243) turns sound into Water at x1.0. Effectiveness computed against the original type is simply the wrong number",
+   "consumedBy": "onModifyType",
+   "used": true,
+   "n": 7,
+   "uses": 1692,
+   "examples": [
+    "Liquid Voice",
+    "Pixilate",
+    "Refrigerate"
+   ]
+  },
+  {
+   "tag": "randomBoostEachTurn",
+   "kind": "ability",
+   "param": "a RANDOM stat +2 and another -1 every turn -- unpredictable by construction",
+   "why": "Moody, 249 sheets. Nothing can be conditioned on it; it belongs in the variance of a forecast, not in a feature. Recorded rather than pretended-away",
+   "consumedBy": null,
+   "used": false,
+   "n": 5,
+   "uses": 284,
+   "examples": [
+    "Healer",
+    "Harvest",
+    "Moody",
+    "Pickup",
+    "Shed Skin"
    ]
   },
   {
@@ -18262,12 +18307,20 @@
   "dragonize": {
    "name": "Dragonize",
    "tags": [
+    "convertsMoveType",
     "damageBoost"
    ],
    "uses": 0,
    "params": {
+    "convertsMoveType": {
+     "converts": "Normal moves",
+     "into": "Dragon",
+     "damageMult": 1.2
+    },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -18279,17 +18332,25 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
   "healer": {
    "name": "Healer",
    "tags": [
-    "untagged"
+    "randomBoostEachTurn"
    ],
    "uses": 20,
-   "params": {}
+   "params": {
+    "randomBoostEachTurn": {
+     "randomStat": true,
+     "up": 2,
+     "down": 1
+    }
+   }
   },
   "naturalcure": {
    "name": "Natural Cure",
@@ -18342,12 +18403,20 @@
   "aerilate": {
    "name": "Aerilate",
    "tags": [
+    "convertsMoveType",
     "damageBoost"
    ],
    "uses": 0,
    "params": {
+    "convertsMoveType": {
+     "converts": "Normal moves",
+     "into": "Flying",
+     "damageMult": 1.2
+    },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -18363,7 +18432,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": "4"
     }
    }
   },
@@ -18375,7 +18446,9 @@
    "uses": 7,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -18475,7 +18548,9 @@
    "uses": 13,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "def",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -18487,7 +18562,9 @@
    "uses": 2722,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": "only below 1/3 HP"
     }
    }
   },
@@ -18515,7 +18592,11 @@
    "uses": 1151,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [
+      "sun",
+      "harsh sun"
+     ],
+     "speedMult": 2
     }
    }
   },
@@ -18527,7 +18608,9 @@
    "uses": 1331,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "all stats",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -18639,7 +18722,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -18675,7 +18760,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 0.5,
+     "inWeather": null,
+     "onlyWhen": "only below 1/2 HP"
     }
    }
   },
@@ -18735,7 +18822,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -18809,7 +18898,12 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": {
+      "status": "sleep",
+      "chance": 1
+     },
+     "fraction": null
     }
    }
   },
@@ -18845,7 +18939,8 @@
    "uses": 0,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.75,
+     "onlyWhen": null
     }
    }
   },
@@ -18861,7 +18956,12 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": {
+      "status": "burn",
+      "chance": 0.3
+     },
+     "fraction": null
     }
    }
   },
@@ -18873,7 +18973,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -18898,7 +19000,9 @@
    "uses": 1465,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "all stats",
+     "onlyGrassTypes": true,
+     "protectsAllies": true
     }
    }
   },
@@ -18910,7 +19014,8 @@
    "uses": 3,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": null,
+     "onlyWhen": null
     }
    }
   },
@@ -18958,7 +19063,9 @@
    "uses": 0,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "all stats",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -18987,12 +19094,20 @@
   "galvanize": {
    "name": "Galvanize",
    "tags": [
+    "convertsMoveType",
     "damageBoost"
    ],
    "uses": 0,
    "params": {
+    "convertsMoveType": {
+     "converts": "Normal moves",
+     "into": "Electric",
+     "damageMult": 1.2
+    },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19028,7 +19143,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -19040,7 +19157,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19064,7 +19183,9 @@
    "uses": 0,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "atk",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19088,7 +19209,9 @@
    "uses": 12,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19104,17 +19227,25 @@
      "sets": true
     },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
   "harvest": {
    "name": "Harvest",
    "tags": [
-    "untagged"
+    "randomBoostEachTurn"
    ],
    "uses": 11,
-   "params": {}
+   "params": {
+    "randomBoostEachTurn": {
+     "randomStat": true,
+     "up": 2,
+     "down": 1
+    }
+   }
   },
   "heatproof": {
    "name": "Heatproof",
@@ -19152,7 +19283,9 @@
    "uses": 75,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 2,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19173,7 +19306,9 @@
    "uses": 9,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     },
     "accuracyMod": {
      "accuracy": true
@@ -19196,7 +19331,9 @@
    "uses": 378,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "atk",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19232,7 +19369,8 @@
    "uses": 0,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.5,
+     "onlyWhen": null
     }
    }
   },
@@ -19244,7 +19382,9 @@
    "uses": 27,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "accuracy",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19312,7 +19452,9 @@
    "uses": 377,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "atk",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19352,7 +19494,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": "8"
     }
    }
   },
@@ -19368,7 +19512,9 @@
      "boostsFlag": "punch"
     },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19392,7 +19538,9 @@
    "uses": 27,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "accuracy",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19466,17 +19614,25 @@
    "uses": 0,
    "params": {
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
   "liquidvoice": {
    "name": "Liquid Voice",
    "tags": [
-    "untagged"
+    "convertsMoveType"
    ],
    "uses": 243,
-   "params": {}
+   "params": {
+    "convertsMoveType": {
+     "converts": "sound moves",
+     "into": "Water",
+     "damageMult": 1
+    }
+   }
   },
   "longreach": {
    "name": "Long Reach",
@@ -19554,7 +19710,9 @@
      "boostsFlag": "pulse"
     },
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19573,12 +19731,19 @@
   "mindseye": {
    "name": "Mind's Eye",
    "tags": [
-    "preventsStatDrop"
+    "preventsStatDrop",
+    "ignoresTypeImmunity"
    ],
    "uses": 0,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "accuracy",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
+    },
+    "ignoresTypeImmunity": {
+     "movesOfType": "Fighting/Normal",
+     "nowHits": "Ghost"
     }
    }
   },
@@ -19590,7 +19755,9 @@
    "uses": 2,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19602,7 +19769,9 @@
    "uses": 226,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "all stats",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19633,10 +19802,16 @@
   "moody": {
    "name": "Moody",
    "tags": [
+    "randomBoostEachTurn",
     "boostsEachTurn"
    ],
    "uses": 249,
    "params": {
+    "randomBoostEachTurn": {
+     "randomStat": true,
+     "up": 2,
+     "down": 1
+    },
     "boostsEachTurn": {
      "perTurn": true
     }
@@ -19671,7 +19846,8 @@
    "uses": 353,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.5,
+     "onlyWhen": "only at full HP"
     }
    }
   },
@@ -19683,7 +19859,9 @@
    "uses": 16,
    "params": {
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -19698,12 +19876,20 @@
   "normalize": {
    "name": "Normalize",
    "tags": [
+    "convertsMoveType",
     "damageBoost"
    ],
    "uses": 0,
    "params": {
+    "convertsMoveType": {
+     "converts": "its moves",
+     "into": "Normal",
+     "damageMult": 1.2
+    },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19716,7 +19902,9 @@
    "uses": 277,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "atk",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     },
     "weatherChipImmune": {
      "chipImmune": true
@@ -19747,7 +19935,12 @@
      "sets": true
     },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": [
+      "sun",
+      "harsh sun"
+     ],
+     "onlyWhen": null
     }
    }
   },
@@ -19771,7 +19964,9 @@
    "uses": 362,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": "only below 1/3 HP"
     }
    }
   },
@@ -19783,7 +19978,9 @@
    "uses": 44,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "atk",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },
@@ -19815,7 +20012,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -19830,20 +20029,34 @@
   "pickup": {
    "name": "Pickup",
    "tags": [
-    "untagged"
+    "randomBoostEachTurn"
    ],
    "uses": 1,
-   "params": {}
+   "params": {
+    "randomBoostEachTurn": {
+     "randomStat": true,
+     "up": 2,
+     "down": 1
+    }
+   }
   },
   "pixilate": {
    "name": "Pixilate",
    "tags": [
+    "convertsMoveType",
     "damageBoost"
    ],
    "uses": 1448,
    "params": {
+    "convertsMoveType": {
+     "converts": "Normal moves",
+     "into": "Fairy",
+     "damageMult": 1.2
+    },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19855,7 +20068,9 @@
    "uses": 2,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -19879,7 +20094,12 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": {
+      "status": "poison",
+      "chance": 0.3
+     },
+     "fraction": null
     }
    }
   },
@@ -19950,7 +20170,8 @@
    "uses": 0,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.75,
+     "onlyWhen": null
     }
    }
   },
@@ -19984,13 +20205,16 @@
    "uses": 0,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.5,
+     "onlyWhen": null
     },
     "boostsMoveClass": {
      "boostsFlag": "sound"
     },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20002,7 +20226,9 @@
    "uses": 9,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 2,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20046,7 +20272,8 @@
    "uses": 2,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [],
+     "speedMult": 1.5
     }
    }
   },
@@ -20078,19 +20305,29 @@
    "uses": 21,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
   "refrigerate": {
    "name": "Refrigerate",
    "tags": [
+    "convertsMoveType",
     "damageBoost"
    ],
    "uses": 1,
    "params": {
+    "convertsMoveType": {
+     "converts": "Normal moves",
+     "into": "Ice",
+     "damageMult": 1.2
+    },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20103,7 +20340,8 @@
    "uses": 0,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.5,
+     "onlyWhen": null
     },
     "invertsBoosts": {
      "inverts": true
@@ -20118,7 +20356,9 @@
    "uses": 13,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.25,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20142,7 +20382,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20158,7 +20400,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": "8"
     }
    }
   },
@@ -20171,7 +20415,11 @@
    "uses": 18,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": [
+      "sand"
+     ],
+     "onlyWhen": null
     },
     "weatherChipImmune": {
      "chipImmune": true
@@ -20187,7 +20435,10 @@
    "uses": 495,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [
+      "sand"
+     ],
+     "speedMult": 2
     },
     "weatherChipImmune": {
      "chipImmune": true
@@ -20262,12 +20513,19 @@
   "scrappy": {
    "name": "Scrappy",
    "tags": [
-    "preventsStatDrop"
+    "preventsStatDrop",
+    "ignoresTypeImmunity"
    ],
    "uses": 262,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "atk",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
+    },
+    "ignoresTypeImmunity": {
+     "movesOfType": "Fighting/Normal",
+     "nowHits": "Ghost"
     }
    }
   },
@@ -20287,7 +20545,8 @@
    "uses": 0,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.5,
+     "onlyWhen": "only at full HP"
     }
    }
   },
@@ -20315,17 +20574,25 @@
      "boostsFlag": "slicing"
     },
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
   "shedskin": {
    "name": "Shed Skin",
    "tags": [
-    "untagged"
+    "randomBoostEachTurn"
    ],
    "uses": 3,
-   "params": {}
+   "params": {
+    "randomBoostEachTurn": {
+     "randomStat": true,
+     "up": 2,
+     "down": 1
+    }
+   }
   },
   "sheerforce": {
    "name": "Sheer Force",
@@ -20335,7 +20602,9 @@
    "uses": 94,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20404,10 +20673,13 @@
    "uses": 0,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [],
+     "speedMult": 0.5
     },
     "damageBoost": {
-     "boost": true
+     "mult": 0.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20419,7 +20691,11 @@
    "uses": 4,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [
+      "hail",
+      "snow"
+     ],
+     "speedMult": 2
     }
    }
   },
@@ -20471,7 +20747,12 @@
    "uses": 432,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": [
+      "sun",
+      "harsh sun"
+     ],
+     "onlyWhen": null
     }
    }
   },
@@ -20483,7 +20764,8 @@
    "uses": 170,
    "params": {
     "damageReduce": {
-     "reduce": true
+     "damageMult": 0.75,
+     "onlyWhen": null
     }
    }
   },
@@ -20515,7 +20797,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 2,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20559,7 +20843,12 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": {
+      "status": "paralysis",
+      "chance": 0.3
+     },
+     "fraction": null
     }
    }
   },
@@ -20591,7 +20880,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20644,7 +20935,9 @@
      "boostsFlag": "bite"
     },
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20692,7 +20985,9 @@
    "uses": 60,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20704,7 +20999,8 @@
    "uses": 8,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [],
+     "speedMult": 2
     }
    }
   },
@@ -20716,7 +21012,9 @@
    "uses": 27,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": "only below 1/3 HP"
     }
    }
   },
@@ -20736,7 +21034,11 @@
    "uses": 325,
    "params": {
     "speedCond": {
-     "conditional": true
+     "inWeather": [
+      "rain",
+      "heavy rain"
+     ],
+     "speedMult": 2
     }
    }
   },
@@ -20780,7 +21082,9 @@
      "compounds": false
     },
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -20792,7 +21096,9 @@
    "uses": 344,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20852,7 +21158,9 @@
    "uses": 1093,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": "only below 1/3 HP"
     }
    }
   },
@@ -20868,7 +21176,9 @@
      "boostsFlag": "contact"
     },
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20880,7 +21190,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 1.5,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -20925,7 +21237,9 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": null,
+     "inWeather": null,
+     "onlyWhen": null
     }
    }
   },
@@ -21024,7 +21338,9 @@
    "uses": 21,
    "params": {
     "contactPunish": {
-     "trigger": "contact"
+     "trigger": "contact",
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -21050,7 +21366,9 @@
    "uses": 73,
    "params": {
     "damageBoost": {
-     "boost": true
+     "mult": 2,
+     "inWeather": null,
+     "onlyWhen": null
     },
     "statusImmune": {
      "immune": true
@@ -21114,7 +21432,9 @@
    "uses": 1,
    "params": {
     "preventsStatDrop": {
-     "prevents": true
+     "blocks": "all stats",
+     "onlyGrassTypes": null,
+     "protectsAllies": null
     }
    }
   },

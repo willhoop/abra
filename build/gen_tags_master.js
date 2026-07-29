@@ -74,6 +74,53 @@ P('');
 P('---');
 P('');
 
+/* ---- MEGA ABILITY SWAPS -----------------------------------------------------------------------
+ * Will: "who tf running damp u aint giving me the mega abilities."
+ *
+ * He was reading Damp at 436 sheets and knew nobody plays Damp -- it is base-forme Swampert, which
+ * megas into Swift Swim. The team sheet publishes the BASE forme's ability, and the ability that
+ * will actually be on the field is the mega's. 28% of sheet entries hold a stone and 90% of those
+ * change ability, so roughly a quarter of every Pokemon in the format is listed under an ability it
+ * will not have. This section exists so the usage tables above are read with that in mind. */
+const ab1 = sp => (sp && sp.abilities) ? Object.values(sp.abilities)[0] : null;
+{
+  let stones = 0, changed = 0;
+  const swap = {};
+  for (const g of games) for (const s of ['p1', 'p2']) for (const e of (g.sheets && g.sheets[s]) || []) {
+    const it = dex.items.get(norm(e.item || ''));
+    if (!it || !it.megaStone) continue;
+    const base = dex.species.get(norm(e.species));
+    const mega = dex.species.get(it.megaStone[base.baseSpecies] || Object.values(it.megaStone)[0]);
+    const a = ab1(mega);
+    if (!a) continue;
+    stones++;
+    if (norm(e.ability) !== norm(a)) {
+      changed++;
+      const k = base.name + '|' + e.ability + '|' + a;
+      swap[k] = (swap[k] || 0) + 1;
+    }
+  }
+  P('# MEGA ABILITIES — the sheet does not say what will be on the field');
+  P('');
+  P('**' + stones.toLocaleString() + '** sheet entries (' + pct(stones) + ') hold a mega stone, and **' +
+    (changed / stones * 100).toFixed(1) + '%** of those change ability on evolution — **' +
+    changed.toLocaleString() + '** entries, about one Pokémon in four.');
+  P('');
+  P('Every ability count in this document is the ability *written on the sheet*. For these, that is');
+  P('not the ability the engine will face. Staraptor is the dangerous one: the sheet says Intimidate');
+  P('and the field says **Contrary**, which inverts every stat change.');
+  P('');
+  P('| species | sheet says | field says | entries |');
+  P('|---|---|---|---:|');
+  for (const [k, c] of Object.entries(swap).sort((a, b) => b[1] - a[1])) {
+    const [sp, from, to] = k.split('|');
+    P('| ' + sp + ' | ' + from + ' | **' + to + '** | ' + c.toLocaleString() + ' |');
+  }
+  P('');
+  P('---');
+  P('');
+}
+
 /* ---- the sections ----------------------------------------------------------------------------
  * ONE ROW PER ENTITY, SORTED BY USAGE -- not grouped by tag. Will: "i need it [like] before where
  * it had the usage based tables for each move and then all the tags for that move... not sorted by

@@ -80,6 +80,51 @@ function usage() {
   return out;
 }
 
+/* PARAMETER EXTRACTION -- because a boolean is not a parameter.
+ *
+ * Will, across several messages: "does swift swim need the rain marker", "solar power needs a
+ * weather variable check", "damage reduce multiscale if at 100", "do we need to specify that clear
+ * body is just a better hyper cutter".
+ *
+ * All the same defect. A whole class of tags was storing `{conditional: true}` or `{boost: true}` --
+ * recording THAT a condition exists without saying what it is. Swift Swim did not name rain,
+ * Multiscale did not say full HP, Clear Body and Hyper Cutter were indistinguishable despite one
+ * blocking every stat and the other only Attack.
+ *
+ * A tag that says "something applies here" cannot be consumed by anything. These read the handler
+ * and return the actual numbers. */
+const WEATHER = { raindance: 'rain', primordialsea: 'heavy rain', sunnyday: 'sun',
+  desolateland: 'harsh sun', sandstorm: 'sand', hail: 'hail', snowscape: 'snow', snow: 'snow' };
+
+function weatherIn(src) {
+  const found = [];
+  for (const k in WEATHER) if (new RegExp('"' + k + '"').test(src)) found.push(WEATHER[k]);
+  return [...new Set(found)];
+}
+function multiplierIn(src) {
+  const m = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+  return m ? +m[1] : null;
+}
+function hpGateIn(src) {
+  if (/hp\s*>=\s*\w+\.maxhp/.test(src)) return 'only at full HP';
+  if (/hp\s*<=\s*\w+\.maxhp\s*\/\s*(\d)/.test(src))
+    return 'only below 1/' + src.match(/maxhp\s*\/\s*(\d)/)[1] + ' HP';
+  return null;
+}
+function statusIn(src) {
+  const st = src.match(/trySetStatus\(\s*"(\w+)"/);
+  const ch = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  if (!st) return null;
+  const NAME = { par: 'paralysis', brn: 'burn', psn: 'poison', tox: 'bad poison', frz: 'freeze', slp: 'sleep' };
+  return { status: NAME[st[1]] || st[1], chance: ch ? +ch[1] / +ch[2] : 1 };
+}
+function statsBlockedIn(src) {
+  /* Clear Body deletes every negative boost; Hyper Cutter names one stat. */
+  if (/for \(i in boost\)|for \(const i in boost\)/.test(src)) return 'all stats';
+  const named = [...src.matchAll(/boost\.(atk|def|spa|spd|spe|accuracy|evasion)/g)].map(m => m[1]);
+  return named.length ? [...new Set(named)].join('/') : null;
+}
+
 /* WHO DOES THE EFFECT LAND ON? -- the derivation behind buffsHolderOnHit / punishesAttacker.
  *
  * Showdown names the recipient in the call itself, so this reads it rather than matching ability
@@ -1299,10 +1344,70 @@ const ABILITY_TAGS = [
     why: 'Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them '
        + 'an attack boost, so the lead interaction inverts',
     of: a => a.onAfterEachBoost ? { retaliates: true } : null },
-  { tag: 'preventsStatDrop', param: 'stat drops simply do not apply', probe: 'onTryBoost',
-    why: 'Clear Body (2.03%), Flower Veil for the ally. Intimidate and every -1 move do nothing, so '
-       + 'lowersTarget is worth zero into them',
-    of: a => (a.onTryBoost || a.onAllyTryBoost) ? { prevents: true } : null },
+  { tag: 'preventsStatDrop', param: 'WHICH stat drops do not apply, and to whom', probe: 'onTryBoost',
+    why: 'Clear Body blocks every stat, Hyper Cutter only Attack, Keen Eye only accuracy. That '
+       + 'distinction decides Intimidate, which is 10% of the format: an Attack-blocker stops it '
+       + 'and an accuracy-blocker does nothing',
+    /* Will: "do we need to specify that clear body is just a better hyper cutter" -- yes, and the
+     * tag returned {prevents:true} for both, which is the same defect as Swift Swim not naming rain.
+     * Also scoped on his other catch, "flower veil is only grass pokemon": Flower Veil is 1,465
+     * sheets and protects only GRASS-TYPE allies, so counting it as a blanket stat-drop immunity
+     * overstated the largest member of the tag. */
+    of: a => {
+      const src = String(a.onTryBoost || '') + String(a.onAllyTryBoost || '');
+      if (!src) return null;
+      return { blocks: statsBlockedIn(src) || 'all stats',
+               onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
+               protectsAllies: !!a.onAllyTryBoost || null };
+    } },
+  /* Will: "scrappy needs the able to hit ghost types with normal and fighting type moves."
+   * Right, and it was carrying preventsStatDrop alone -- the Intimidate half -- while its actual
+   * headline effect was missing. Scrappy erases a full type IMMUNITY, which is the difference
+   * between a move doing nothing and doing full damage, and it is the same mechanic as Mind's Eye
+   * and as the Foresight/Odor Sleuth line. Derived from the ignoreImmunity field so it is not a
+   * name list. */
+  { tag: 'ignoresTypeImmunity', param: 'a type that normally does ZERO now connects', probe: 'ignoreImmunity',
+    why: 'Scrappy (262 sheets) lets Normal and Fighting hit Ghost. The engine reads the defensive '
+       + 'type chart and scores those moves at zero, which is the largest possible error on a move',
+    of: a => {
+      /* It is set INSIDE onModifyMove, not exposed as a field on the ability -- the empty-tag guard
+       * caught the first probe within a minute of it being written. */
+      const src = String(a.onModifyMove || '');
+      const t = [...src.matchAll(/ignoreImmunity\["(\w+)"\]\s*=\s*true/g)].map(m => m[1]);
+      if (!t.length) return null;
+      return { movesOfType: t.join('/'), nowHits: 'Ghost' };
+    } },
+  /* Will: "the pixilates of the world and liquid voice of the world need the turn-a-type-into-
+   * another-type tag, and add maybe a damage boost."
+   *
+   * Both halves, and Pixilate is 1,448 sheets. It rewrites Normal moves to Fairy AND multiplies
+   * them by 1.2 -- so the engine was computing type effectiveness against the WRONG type and
+   * missing a 20% multiplier on top. Liquid Voice (243) converts sound moves to Water with NO
+   * boost, which is why the boost has to be a parameter rather than assumed. */
+  { tag: 'convertsMoveType', param: 'rewrites the type of a class of the holder moves, sometimes with a multiplier', probe: 'onModifyType',
+    why: 'Pixilate (1,448 sheets) turns Normal into Fairy at x1.2; Liquid Voice (243) turns sound '
+       + 'into Water at x1.0. Effectiveness computed against the original type is simply the wrong number',
+    of: a => {
+      const src = String(a.onModifyType || '');
+      if (!src) return null;
+      const to = (src.match(/move\.type\s*=\s*"(\w+)"/) || [])[1];
+      if (!to) return null;
+      const bp = String(a.onBasePower || '');
+      const raw = (bp.match(/chainModify\(\[?\s*([\d.]+)/) || [])[1];
+      const mult = raw ? (+raw > 100 ? +(raw / 4096).toFixed(2) : +raw) : 1;
+      const from = /flags\.sound|flags\["sound"\]/.test(src) ? 'sound moves'
+                 : /type\s*===?\s*"Normal"/.test(src) ? 'Normal moves' : 'its moves';
+      return { converts: from, into: to, damageMult: mult };
+    } },
+  /* Will: "moody idk what to do." Neither do I, and that is the honest entry. It moves a RANDOM
+   * stat +2 and another -1 every turn, so there is no state to read and no decision to condition
+   * on -- the only correct treatment is to widen the variance of every forecast involving it, which
+   * belongs in the risk lever rather than here. 249 sheets. Tagged so it is not silently missing. */
+  { tag: 'randomBoostEachTurn', param: 'a RANDOM stat +2 and another -1 every turn -- unpredictable by construction', probe: 'randomBoostEachTurn',
+    why: 'Moody, 249 sheets. Nothing can be conditioned on it; it belongs in the variance of a '
+       + 'forecast, not in a feature. Recorded rather than pretended-away',
+    of: a => (a.onResidual && /randomChance|sample\(|this\.random/.test(String(a.onResidual)))
+             ? { randomStat: true, up: 2, down: 1 } : null },
   { tag: 'blocksStatusMoves', param: 'every Status-category move fails against it', probe: 'goodasgold',
     why: 'Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% '
        + 'of move slots that are status',
@@ -1339,7 +1444,11 @@ const ABILITY_TAGS = [
     of: a => (a.onStart && /setTerrain/.test(String(a.onStart))) ? { sets: true } : null },
   { tag: 'speedCond', param: 'speed x2 under a condition', probe: 'onModifySpe',
     why: 'Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order',
-    of: a => a.onModifySpe ? { conditional: true } : null },
+    of: a => {
+      if (!a.onModifySpe) return null;
+      const src = String(a.onModifySpe);
+      return { inWeather: weatherIn(src), speedMult: multiplierIn(src) };
+    } },
   /* TIGHTENED. `onImmunity` also covers immunity to WEATHER CHIP -- which is why Sand Veil (135
    * uses) and Snow Cloak (219) were being reported as type-immunity abilities when they are evasion
    * abilities. A type immunity is an onTryHit that inspects move.type. Found by Will asking about
@@ -1397,11 +1506,19 @@ const ABILITY_TAGS = [
   { tag: 'contactPunish', param: 'the ATTACKER pays for touching it', probe: 'roughskin',
     why: 'Rough Skin (3,739), Static, Flame Body, Poison Point, Cute Charm, Effect Spore, Mummy, '
        + 'Gooey. Derived by reading the handler for checkMoveMakesContact',
-    of: a => (a.onDamagingHit && /checkMoveMakesContact|flags\.contact/.test(String(a.onDamagingHit)))
-             ? { trigger: 'contact' } : null },
+    of: a => {
+      const src = String(a.onDamagingHit || '');
+      if (!/checkMoveMakesContact|flags\.contact/.test(src)) return null;
+      /* Will: "static spreads status" -- it does, and the tag said only 'contact'. */
+      return { trigger: 'contact', inflicts: statusIn(src), fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/)||[])[1] || null };
+    } },
   { tag: 'damageReduce', param: 'x<1 damage taken', probe: 'multiscale',
     why: 'Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them',
-    of: a => a.onSourceModifyDamage ? { reduce: true } : null },
+    of: a => {
+      if (!a.onSourceModifyDamage) return null;
+      const src = String(a.onSourceModifyDamage);
+      return { damageMult: multiplierIn(src), onlyWhen: hpGateIn(src) };
+    } },
   { tag: 'boostsMoveClass', param: 'x1.2-1.5 on moves carrying ONE FLAG', probe: 'boostsMoveClass',
     why: 'Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega '
        + 'Launcher (pulse), Strong Jaw (bite). The join partner of moveClass -- the ability names '
@@ -1419,7 +1536,12 @@ const ABILITY_TAGS = [
     } },
   { tag: 'damageBoost', param: 'x>1 damage dealt', probe: 'technician',
     why: 'Adaptability, Technician, Tinted Lens, Sheer Force, Iron Fist, Strong Jaw',
-    of: a => (a.onBasePower || a.onModifyAtk || a.onModifySpA) ? { boost: true } : null },
+    of: a => {
+      const src = String(a.onBasePower || '') + String(a.onModifyAtk || '') + String(a.onModifySpA || '');
+      if (!src) return null;
+      const w = weatherIn(src);
+      return { mult: multiplierIn(src), inWeather: w.length ? w : null, onlyWhen: hpGateIn(src) };
+    } },
   { tag: 'blocksMove', param: 'a whole class of move fails', probe: 'onFoeTryMove',
     why: 'already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold',
     of: a => a.onFoeTryMove ? { blocks: true } : null },

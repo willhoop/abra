@@ -26,6 +26,165 @@ Gooey) carrying both.
 
 ---
 
+# MEGA ABILITIES — the sheet does not say what will be on the field
+
+**18,475** sheet entries (28.0%) hold a mega stone, and **90.3%** of those change ability on evolution — **16,684** entries, about one Pokémon in four.
+
+Every ability count in this document is the ability *written on the sheet*. For these, that is
+not the ability the engine will face. Staraptor is the dangerous one: the sheet says Intimidate
+and the field says **Contrary**, which inverts every stat change.
+
+| species | sheet says | field says | entries |
+|---|---|---|---:|
+| Staraptor | Intimidate | **Contrary** | 1,945 |
+| Charizard | Blaze | **Drought** | 1,824 |
+| Floette-Eternal | FlowerVeil | **Fairy Aura** | 1,419 |
+| Metagross | ClearBody | **Tough Claws** | 1,187 |
+| Raichu | LightningRod | **No Guard** | 929 |
+| Swampert | Torrent | **Swift Swim** | 921 |
+| Delphox | Blaze | **Levitate** | 742 |
+| Aerodactyl | Unnerve | **Tough Claws** | 667 |
+| Gengar | CursedBody | **Shadow Tag** | 446 |
+| Swampert | Damp | **Swift Swim** | 430 |
+| Charizard | SolarPower | **Drought** | 399 |
+| Mawile | Intimidate | **Huge Power** | 380 |
+| Froslass | CursedBody | **Snow Warning** | 369 |
+| Venusaur | Chlorophyll | **Thick Fat** | 322 |
+| Mawile | HyperCutter | **Huge Power** | 299 |
+| Eelektross | Levitate | **Eelevate** | 259 |
+| Scovillain | Moody | **Spicy Spray** | 238 |
+| Blastoise | RainDish | **Mega Launcher** | 227 |
+| Froslass | SnowCloak | **Snow Warning** | 179 |
+| Aerodactyl | RockHead | **Tough Claws** | 177 |
+| Pyroar | Unnerve | **Fire Mane** | 173 |
+| Sceptile | Overgrow | **Lightning Rod** | 172 |
+| Raichu | LightningRod | **Electric Surge** | 160 |
+| Glimmora | ToxicDebris | **Adaptability** | 159 |
+| Camerupt | SolidRock | **Sheer Force** | 150 |
+| Raichu | Static | **No Guard** | 147 |
+| Blastoise | Torrent | **Mega Launcher** | 130 |
+| Kangaskhan | Scrappy | **Parental Bond** | 108 |
+| Gardevoir | Trace | **Pixilate** | 106 |
+| Dragalge | Adaptability | **Regenerator** | 105 |
+| Venusaur | Overgrow | **Thick Fat** | 87 |
+| Meganium | LeafGuard | **Mega Sol** | 74 |
+| Gyarados | Intimidate | **Mold Breaker** | 71 |
+| Meganium | Overgrow | **Mega Sol** | 65 |
+| Charizard | Blaze | **Tough Claws** | 62 |
+| Raichu | Static | **Electric Surge** | 57 |
+| Garchomp | RoughSkin | **Sand Force** | 55 |
+| Lucario | InnerFocus | **Adaptability** | 53 |
+| Gardevoir | Telepathy | **Pixilate** | 51 |
+| Ampharos | Static | **Mold Breaker** | 50 |
+| Lopunny | Limber | **Scrappy** | 50 |
+| Camerupt | MagmaArmor | **Sheer Force** | 44 |
+| Scovillain | Chlorophyll | **Spicy Spray** | 42 |
+| Chandelure | FlashFire | **Infiltrator** | 42 |
+| Dragonite | InnerFocus | **Multiscale** | 41 |
+| Dragalge | PoisonPoint | **Regenerator** | 40 |
+| Delphox | Magician | **Levitate** | 40 |
+| Clefable | Unaware | **Magic Bounce** | 40 |
+| Gardevoir | Synchronize | **Pixilate** | 39 |
+| Scolipede | SpeedBoost | **Shell Armor** | 36 |
+| Floette-Eternal | Symbiosis | **Fairy Aura** | 36 |
+| Sableye | Prankster | **Magic Bounce** | 32 |
+| Aggron | Sturdy | **Filter** | 31 |
+| Garchomp | SandVeil | **Sand Force** | 30 |
+| Crabominable | HyperCutter | **Iron Fist** | 29 |
+| Starmie | NaturalCure | **Huge Power** | 29 |
+| Lopunny | CuteCharm | **Scrappy** | 28 |
+| Excadrill | SandRush | **Piercing Drill** | 27 |
+| Manectric | LightningRod | **Intimidate** | 25 |
+| Starmie | Illuminate | **Huge Power** | 24 |
+| Drampa | CloudNine | **Berserk** | 23 |
+| Sceptile | Unburden | **Lightning Rod** | 23 |
+| Beedrill | Sniper | **Adaptability** | 23 |
+| Slowbro | Oblivious | **Shell Armor** | 23 |
+| Altaria | CloudNine | **Pixilate** | 19 |
+| Excadrill | SandForce | **Piercing Drill** | 17 |
+| Steelix | Sturdy | **Sand Force** | 15 |
+| Hawlucha | MoldBreaker | **No Guard** | 15 |
+| Golurk | IronFist | **Unseen Fist** | 15 |
+| Beedrill | Swarm | **Adaptability** | 14 |
+| Kangaskhan | EarlyBird | **Parental Bond** | 13 |
+| Houndoom | FlashFire | **Solar Power** | 13 |
+| Pidgeot | BigPecks | **No Guard** | 13 |
+| Pyroar | Rivalry | **Fire Mane** | 13 |
+| Hawlucha | Limber | **No Guard** | 12 |
+| Pinsir | HyperCutter | **Aerilate** | 12 |
+| Banette | Insomnia | **Prankster** | 12 |
+| Kangaskhan | InnerFocus | **Parental Bond** | 12 |
+| Lucario | Steadfast | **Adaptability** | 12 |
+| Slowbro | Regenerator | **Shell Armor** | 11 |
+| Skarmory | Sturdy | **Stalwart** | 11 |
+| Clefable | MagicGuard | **Magic Bounce** | 11 |
+| Golurk | NoGuard | **Unseen Fist** | 11 |
+| Staraptor | Reckless | **Contrary** | 11 |
+| Gallade | Justified | **Inner Focus** | 9 |
+| Meowstic-F | Competitive | **Trace** | 9 |
+| Heracross | Moxie | **Skill Link** | 9 |
+| Blaziken | Blaze | **Speed Boost** | 9 |
+| Excadrill | MoldBreaker | **Piercing Drill** | 9 |
+| Victreebel | Chlorophyll | **Innards Out** | 7 |
+| Heracross | Guts | **Skill Link** | 7 |
+| Skarmory | KeenEye | **Stalwart** | 6 |
+| Steelix | SheerForce | **Sand Force** | 6 |
+| Absol | Justified | **Magic Bounce** | 6 |
+| Lucario | Justified | **Adaptability** | 6 |
+| Alakazam | InnerFocus | **Trace** | 6 |
+| Banette | Frisk | **Prankster** | 6 |
+| Meowstic | Prankster | **Trace** | 6 |
+| Feraligatr | Torrent | **Dragonize** | 6 |
+| Aggron | HeavyMetal | **Filter** | 6 |
+| Scolipede | PoisonPoint | **Shell Armor** | 6 |
+| Audino | Regenerator | **Healer** | 5 |
+| Emboar | Reckless | **Mold Breaker** | 5 |
+| Feraligatr | SheerForce | **Dragonize** | 5 |
+| Emboar | Blaze | **Mold Breaker** | 5 |
+| Heracross | Swarm | **Skill Link** | 5 |
+| Alakazam | MagicGuard | **Trace** | 4 |
+| Sharpedo | SpeedBoost | **Strong Jaw** | 4 |
+| Starmie | Analytic | **Huge Power** | 4 |
+| Scovillain | Insomnia | **Spicy Spray** | 4 |
+| Glimmora | Corrosion | **Adaptability** | 4 |
+| Absol | Pressure | **Magic Bounce** | 4 |
+| Greninja | Torrent | **Protean** | 4 |
+| Altaria | NaturalCure | **Pixilate** | 4 |
+| Banette | CursedBody | **Prankster** | 4 |
+| Scrafty | Moxie | **Intimidate** | 3 |
+| Aerodactyl | Pressure | **Tough Claws** | 3 |
+| Charizard | SolarPower | **Tough Claws** | 3 |
+| Gallade | Steadfast | **Inner Focus** | 3 |
+| Clefable | CuteCharm | **Magic Bounce** | 3 |
+| Pidgeot | TangledFeet | **No Guard** | 2 |
+| Pidgeot | KeenEye | **No Guard** | 2 |
+| Hawlucha | Unburden | **No Guard** | 2 |
+| Medicham | Telepathy | **Pure Power** | 2 |
+| Camerupt | AngerPoint | **Sheer Force** | 2 |
+| Metagross | LightMetal | **Tough Claws** | 2 |
+| Pyroar | Moxie | **Fire Mane** | 2 |
+| Staraptor | Intimidate | **Huge Power** | 2 |
+| Slowbro | OwnTempo | **Shell Armor** | 2 |
+| Steelix | RockHead | **Sand Force** | 2 |
+| Manectric | Static | **Intimidate** | 1 |
+| Sharpedo | RoughSkin | **Strong Jaw** | 1 |
+| Absol | SuperLuck | **Magic Bounce** | 1 |
+| Houndoom | EarlyBird | **Solar Power** | 1 |
+| Aggron | RockHead | **Filter** | 1 |
+| Mawile | SheerForce | **Huge Power** | 1 |
+| Skarmory | WeakArmor | **Stalwart** | 1 |
+| Gallade | Sharpness | **Inner Focus** | 1 |
+| Tyranitar | Unnerve | **Sand Stream** | 1 |
+| Sableye | KeenEye | **Magic Bounce** | 1 |
+| Crabominable | AngerPoint | **Iron Fist** | 1 |
+| Barbaracle | Sniper | **Tough Claws** | 1 |
+| Malamar | Infiltrator | **Contrary** | 1 |
+| Chesnaught | Overgrow | **Bulletproof** | 1 |
+| Glalie | Moody | **Refrigerate** | 1 |
+| Scrafty | ShedSkin | **Intimidate** | 1 |
+
+---
+
 # MOVES — every move, in usage order
 
 This is the review list. Read down it and check that each move's tags describe what it does.
@@ -499,7 +658,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Flower Veil | 1,465 | 2.2% | `preventsStatDrop` |
 | Unburden | 1,465 | 2.2% | `speedOnItemLoss` |
 | Good as Gold | 1,450 | 2.2% | `blocksStatusMoves` |
-| Pixilate | 1,448 | 2.2% | `damageBoost` |
+| Pixilate | 1,448 | 2.2% | `convertsMoveType` `damageBoost` |
 | Clear Body | 1,331 | 2.0% | `preventsStatDrop` |
 | Unnerve | 1,329 | 2.0% | `blocksBerries` |
 | Lightning Rod | 1,302 | 2.0% | `typeImmunity` `redirectsType` |
@@ -530,9 +689,9 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Static | 278 | 0.4% | `punishesAttacker` `contactPunish` |
 | Oblivious | 277 | 0.4% | `preventsStatDrop` `weatherChipImmune` |
 | Tough Claws | 272 | 0.4% | `boostsMoveClass` `damageBoost` |
-| Scrappy | 262 | 0.4% | `preventsStatDrop` |
-| Moody | 249 | 0.4% | `boostsEachTurn` |
-| Liquid Voice | 243 | 0.4% | `untagged` |
+| Scrappy | 262 | 0.4% | `preventsStatDrop` `ignoresTypeImmunity` |
+| Moody | 249 | 0.4% | `randomBoostEachTurn` `boostsEachTurn` |
+| Liquid Voice | 243 | 0.4% | `convertsMoveType` |
 | Rain Dish | 240 | 0.4% | `untagged` |
 | Mirror Armor | 226 | 0.3% | `preventsStatDrop` |
 | Queenly Majesty | 226 | 0.3% | `blocksMove` |
@@ -603,7 +762,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Marvel Scale | 21 | 0.0% | `untagged` |
 | Reckless | 21 | 0.0% | `damageBoost` |
 | Wandering Spirit | 21 | 0.0% | `contactPunish` |
-| Healer | 20 | 0.0% | `untagged` |
+| Healer | 20 | 0.0% | `randomBoostEachTurn` |
 | Aroma Veil | 20 | 0.0% | `untagged` |
 | Effect Spore | 20 | 0.0% | `punishesAttacker` `contactPunish` |
 | Mega Launcher | 20 | 0.0% | `boostsMoveClass` `damageBoost` |
@@ -620,7 +779,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Guts | 12 | 0.0% | `damageBoost` |
 | Heatproof | 12 | 0.0% | `untagged` |
 | Corrosion | 11 | 0.0% | `untagged` |
-| Harvest | 11 | 0.0% | `untagged` |
+| Harvest | 11 | 0.0% | `randomBoostEachTurn` |
 | Gooey | 10 | 0.0% | `punishesAttacker` `contactPunish` |
 | Hustle | 9 | 0.0% | `damageBoost` `accuracyMod` |
 | Pure Power | 9 | 0.0% | `damageBoost` |
@@ -641,7 +800,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Fluffy | 3 | 0.0% | `damageReduce` |
 | Merciless | 3 | 0.0% | `critRatioUp` |
 | Opportunist | 3 | 0.0% | `boostsEachTurn` |
-| Shed Skin | 3 | 0.0% | `untagged` |
+| Shed Skin | 3 | 0.0% | `randomBoostEachTurn` |
 | Super Luck | 3 | 0.0% | `critRatioUp` |
 | Vital Spirit | 3 | 0.0% | `statusImmune` |
 | Forecast | 2 | 0.0% | `untagged` |
@@ -657,9 +816,9 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Cheek Pouch | 1 | 0.0% | `untagged` |
 | Hydration | 1 | 0.0% | `untagged` |
 | Immunity | 1 | 0.0% | `statusImmune` |
-| Pickup | 1 | 0.0% | `untagged` |
+| Pickup | 1 | 0.0% | `randomBoostEachTurn` |
 | Psychic Surge | 1 | 0.0% | `terrainSetter` |
-| Refrigerate | 1 | 0.0% | `damageBoost` |
+| Refrigerate | 1 | 0.0% | `convertsMoveType` `damageBoost` |
 | Shield Dust | 1 | 0.0% | `untagged` |
 | Steely Spirit | 1 | 0.0% | `untagged` |
 | White Smoke | 1 | 0.0% | `preventsStatDrop` |
@@ -2698,7 +2857,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 ### `preventsStatDrop` — 6.7%, 15 abilities — **NOT READ**
 
-*stat drops simply do not apply*
+*WHICH stat drops do not apply, and to whom*
 
 | abilitie | on sheets | share |
 |---|---:|---:|
@@ -2778,13 +2937,27 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Adaptability | 2,855 | 4.3% |
 
-### `untagged` — 3.3%, 52 abilities — **NOT READ**
+### `speedCond` — 3.0%, 7 abilities
+
+*speed x2 under a condition*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Chlorophyll | 1,151 | 1.7% |
+| Sand Rush | 495 | 0.8% |
+| Swift Swim | 325 | 0.5% |
+| Surge Surfer | 8 | 0.0% |
+| Slush Rush | 4 | 0.0% |
+| Quick Feet | 2 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `untagged` — 2.9%, 47 abilities — **NOT READ**
 
 *?*
 
 | abilitie | on sheets | share |
 |---|---:|---:|
-| Liquid Voice | 243 | 0.4% |
 | Rain Dish | 240 | 0.4% |
 | Soundproof | 207 | 0.3% |
 | Protean | 167 | 0.3% |
@@ -2810,21 +2983,18 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Steadfast | 23 | 0.0% |
 | No Guard | 22 | 0.0% |
 | Marvel Scale | 21 | 0.0% |
-| Healer | 20 | 0.0% |
 | Aroma Veil | 20 | 0.0% |
 | Early Bird | 14 | 0.0% |
 | Quick Draw | 13 | 0.0% |
 | Sweet Veil | 13 | 0.0% |
 | Heatproof | 12 | 0.0% |
 | Corrosion | 11 | 0.0% |
-| Harvest | 11 | 0.0% |
 | Cud Chew | 8 | 0.0% |
 | Heavy Metal | 6 | 0.0% |
 | Poison Heal | 5 | 0.0% |
 | Gluttony | 4 | 0.0% |
 | Skill Link | 4 | 0.0% |
 | Curious Medicine | 3 | 0.0% |
-| Shed Skin | 3 | 0.0% |
 | Forecast | 2 | 0.0% |
 | Forewarn | 2 | 0.0% |
 | Fur Coat | 2 | 0.0% |
@@ -2833,24 +3003,8 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Anticipation | 1 | 0.0% |
 | Cheek Pouch | 1 | 0.0% |
 | Hydration | 1 | 0.0% |
-| Pickup | 1 | 0.0% |
 | Shield Dust | 1 | 0.0% |
 | Steely Spirit | 1 | 0.0% |
-
-### `speedCond` — 3.0%, 7 abilities
-
-*speed x2 under a condition*
-
-| abilitie | on sheets | share |
-|---|---:|---:|
-| Chlorophyll | 1,151 | 1.7% |
-| Sand Rush | 495 | 0.8% |
-| Swift Swim | 325 | 0.5% |
-| Surge Surfer | 8 | 0.0% |
-| Slush Rush | 4 | 0.0% |
-| Quick Feet | 2 | 0.0% |
-
-*1 more carry this tag but appear on no sheet in the corpus.*
 
 ### `blocksMove` — 2.9%, 3 abilities
 
@@ -2876,6 +3030,18 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Anger Point | 7 | 0.0% |
 
 *7 more carry this tag but appear on no sheet in the corpus.*
+
+### `convertsMoveType` — 2.6%, 7 abilities
+
+*rewrites the type of a class of the holder moves, sometimes with a multiplier*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Pixilate | 1,448 | 2.2% |
+| Liquid Voice | 243 | 0.4% |
+| Refrigerate | 1 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
 
 ### `blocksStatusMoves` — 2.4%, 3 abilities — **NOT READ**
 
@@ -3051,6 +3217,18 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *5 more carry this tag but appear on no sheet in the corpus.*
 
+### `randomBoostEachTurn` — 0.4%, 5 abilities — **NOT READ**
+
+*a RANDOM stat +2 and another -1 every turn -- unpredictable by construction*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Moody | 249 | 0.4% |
+| Healer | 20 | 0.0% |
+| Harvest | 11 | 0.0% |
+| Shed Skin | 3 | 0.0% |
+| Pickup | 1 | 0.0% |
+
 ### `formeChange` — 0.4%, 7 abilities
 
 *the species changes mid-battle*
@@ -3063,6 +3241,16 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Imposter | 39 | 0.1% |
 
 *3 more carry this tag but appear on no sheet in the corpus.*
+
+### `ignoresTypeImmunity` — 0.4%, 2 abilities — **NOT READ**
+
+*a type that normally does ZERO now connects*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Scrappy | 262 | 0.4% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
 
 ### `ignoresStatStages` — 0.3%, 1 abilities — **NOT READ**
 
@@ -3484,15 +3672,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 158 |
-| — move / ability / item | 94 / 41 / 19 |
+| tags total | 161 |
+| — move / ability / item | 94 / 44 / 19 |
 | moves tagged | 500 |
 | abilities tagged | 248 |
 | items tagged | 146 |
-| **tags read by nothing** | **94** |
+| **tags read by nothing** | **96** |
 | tags that match no member at all | 7 |
 
-**94 of 158 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**96 of 161 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
