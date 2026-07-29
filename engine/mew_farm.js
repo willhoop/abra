@@ -186,7 +186,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
   });
 }));
 
-Promise.all(workers).then(() => {
+Promise.all(workers).then(async () => {
   const elapsed = (Date.now() - started) / 1000;
   if (!KEEP) {
     /* Merge, deduping by id. Disjoint seeds make collisions impossible in principle; the check is
@@ -194,9 +194,14 @@ Promise.all(workers).then(() => {
     const seen = new Set();
     const out = fs.createWriteStream(OUT, { flags: 'w' });
     let kept = 0, dupes = 0;
+    /* STREAMED. readFileSync died at the finish line of the 600k run: Node caps one string at
+     * ~536MB and each of six shards was 660MB+. The whole run survived only because the shards
+     * did; the merge must never be the step that can lose a night's compute. */
+    const readline = require('readline');
     for (const s of shards) {
       if (!fs.existsSync(s)) continue;
-      for (const line of fs.readFileSync(s, 'utf8').split('\n')) {
+      const rl = readline.createInterface({ input: fs.createReadStream(s), crlfDelay: Infinity });
+      for await (const line of rl) {
         const t = line.trim(); if (!t) continue;
         let id;
         try { id = JSON.parse(t).id; } catch { continue; }

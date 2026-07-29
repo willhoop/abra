@@ -30,10 +30,27 @@
 const fs = require('fs');
 
 const file = process.argv[2] || 'data/games.h2h-ots.jsonl';
-const rows = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map(l => {
-  try { return JSON.parse(l); } catch (e) { return null; }
-}).filter(g => g && g.selfplay && g.selfplay.winnerPolicy);
+/* STREAMED, and slimmed as it streams. readFileSync died on the 600k run: Node caps one string at
+ * ~536MB and the merged file is 5.6GB. Only the fields the pairing reads are kept per game --
+ * holding 600k full game objects would trade the string limit for an OOM. */
+const rows = [];
+async function loadRows() {
+  const readline = require('readline');
+  const rl = readline.createInterface({ input: fs.createReadStream(file), crlfDelay: Infinity });
+  for await (const l of rl) {
+    if (!l) continue;
+    let g; try { g = JSON.parse(l); } catch (e) { continue; }
+    if (!(g && g.selfplay && g.selfplay.winnerPolicy)) continue;
+    rows.push({ six: g.six && { p1: g.six.p1, p2: g.six.p2 },
+      selfplay: { seed: g.selfplay.seed, winnerPolicy: g.selfplay.winnerPolicy,
+        swapped: g.selfplay.swapped, greedy: g.selfplay.greedy, switching: g.selfplay.switching,
+        randmove: g.selfplay.randmove, policy: g.selfplay.policy, policy2: g.selfplay.policy2,
+        openSheets: g.selfplay.openSheets, format: g.selfplay.format } });
+  }
+}
 
+loadRows().then(main);
+function main(){
 /* A pair is one seed. Anything that did not come back as an exact two is dropped and counted --
  * a half-pair cannot be read either way, and silently keeping it would reintroduce the team bias
  * the design exists to remove. */
@@ -131,3 +148,4 @@ if (c - hw > 0.5) console.log('\n  -> the new model is better, and the interval 
 else if (c + hw < 0.5) console.log('\n  -> the new model is WORSE, and the interval clears 50%.');
 else console.log(`\n  -> cannot be told apart from a coin. At ${decisive.toLocaleString()} decisive pairs this can ` +
                  `resolve an edge of about ${(100 * hw).toFixed(1)} points; anything smaller is invisible here.`);
+}
