@@ -195,6 +195,86 @@ console.log('\nwires 4+5 — buffsHolderOnHit / punishesAttacker  (THE BELLIBOLT
   }
 }
 
+/* ---- WIRE 6: punishesAttacker COMPLETE — trigger, inflicts, boosts, faint gate --------------- */
+console.log('\nwire 6 — punishesAttacker complete');
+{
+  /* One controlled 1v1: the attacker's move is fixed, the holder's move is chosen to be IMMUNE
+   * against the attacker (Ground into a Flying body, Electric into a Ground body), so every HP
+   * point and boost stage the attacker loses is the punishment and nothing else. rng is a constant,
+   * which pins the damage roll, the crit roll and the status roll. */
+  const one = (attacker, atkMove, holderAbility, holderMove, rngVal, holderHP) => {
+    const a = M.buildMon(attacker, {}); const h = M.buildMon('incineroar', {});
+    if (!a || !h) return null;
+    a.moves = [atkMove]; a.item = '';
+    h.moves = [holderMove]; h.item = ''; h.ability = holderAbility;
+    h.st = Object.assign({}, h.st, { hp: holderHP }); h.curHP = holderHP;
+    /* The behaviour clone samples what the SPECIES really clicks, ignoring me.moves -- correct in
+     * play, fatal in a controlled experiment. Silence the priors for these two species so the only
+     * moves in the battle are the two this test chose, then put them back. */
+    const saved = {}; for (const n of [a.name, h.name]) { saved[n] = MC.priors[n]; MC.priors[n] = null; }
+    try { M.battle([a], [h], {}, () => rngVal); }
+    finally { for (const n in saved) MC.priors[n] = saved[n]; }
+    return a;
+  };
+
+  /* Aftermath: the artifact must declare the faint gate the handler states, and the engine must
+   * obey it — the first wire chipped 25% on EVERY contact hit into an Aftermath body. */
+  const pAM = TAGS.param('ability', 'aftermath', 'punishesAttacker');
+  ok(pAM && pAM.trigger === 'contact' && pAM.onFaintOnly === true,
+    'Aftermath declares contact + onFaintOnly (was: fraction with no trigger at all)');
+  const surv = one('corviknight', 'ironhead', 'aftermath', 'earthquake', 0.5, 99999);
+  ok(surv && surv.curHP === surv.st.hp,
+    `contact into a SURVIVING Aftermath body costs nothing (HP ${surv && surv.curHP}/${surv && surv.st.hp})`);
+  const kill = one('corviknight', 'ironhead', 'aftermath', 'earthquake', 0.5, 1);
+  const toll = kill && (kill.st.hp - kill.curHP);
+  ok(kill && toll === Math.floor(kill.st.hp / +pAM.fraction),
+    `KILLING it costs 1/${pAM && pAM.fraction} of max HP (paid ${toll})`);
+
+  /* Effect Spore: the old artifact said "sleep, chance 1". The handler is one random(100) split
+   * 11/10/9 — the entries must be there, and the total must be the real 30% proc rate. */
+  const pES = TAGS.param('ability', 'effectspore', 'punishesAttacker');
+  const tot = pES && pES.inflicts ? pES.inflicts.reduce((s, i) => s + i.chance, 0) : 0;
+  ok(pES && pES.inflicts && pES.inflicts.length === 3 && Math.abs(tot - 0.30) < 1e-9,
+    `Effect Spore carries ${pES && pES.inflicts && pES.inflicts.length} statuses totalling ${(tot * 100).toFixed(0)}% (was: 100% sleep)`);
+  /* rng 0.15 lands in the paralysis band (0.11–0.21) and never wakes/full-paras out of it. */
+  const es = one('garchomp', 'ironhead', 'effectspore', 'thunderbolt', 0.15, 99999);
+  ok(es && es.status === 'par', `the 0.15 roll paralyses the attacker (band 2 of the split), got '${es && es.status}'`);
+
+  /* Static at 30%: a 0.1 roll procs, and the artifact — not the engine — names paralysis. */
+  const st = one('corviknight', 'ironhead', 'static', 'earthquake', 0.1, 99999);
+  ok(st && st.status === 'par', `Static's 30% paralysis reaches a contact attacker, got '${st && st.status}'`);
+
+  /* Gooey: 20 turns of contact into an immortal Gooey body must clamp speed at -6, read from the
+   * artifact's own {spe:-1}. Before this wire Gooey carried NO parameter and did nothing. */
+  const pGO = TAGS.param('ability', 'gooey', 'punishesAttacker');
+  ok(pGO && pGO.boosts && pGO.boosts.spe === -1, 'Gooey carries {spe:-1} read from its own handler');
+  const go = one('corviknight', 'ironhead', 'gooey', 'earthquake', 0.5, 99999);
+  ok(go && go.boosts.sp === -6, `20 turns of contact drags the attacker to -6 speed (got ${go && go.boosts.sp})`);
+
+  /* Spicy Spray: the hardcode it replaces burned only PHYSICAL attackers; the handler burns any
+   * damaging hit. A special, non-contact move must now come back burned. */
+  const sp = one('garchomp', 'dragonpulse', 'spicyspray', 'thunderbolt', 0.5, 99999);
+  ok(sp && sp.status === 'brn', `a SPECIAL non-contact hit is burned back (got '${sp && sp.status}')`);
+
+  /* Toxic Debris and the volatile inflicters: the artifact carries the full parameter, the engine
+   * has no side-condition or volatile state to land them on. has() proves the carry. */
+  const pTD = TAGS.param('ability', 'toxicdebris', 'punishesAttacker');
+  ok(pTD && pTD.trigger === 'physical' && pTD.hazard === 'toxicspikes' && pTD.maxLayers === 2,
+    'Toxic Debris declares physical-trigger toxicspikes, 2 layers (unconsumed: no side-condition state)');
+  const pCB = TAGS.param('ability', 'cursedbody', 'punishesAttacker');
+  ok(pCB && pCB.inflictsVolatile && pCB.inflictsVolatile.volatile === 'disable' && pCB.inflictsVolatile.chance === 0.3,
+    'Cursed Body declares disable at 30% (unconsumed: no volatile state)');
+
+  /* Gulp Missile must be SKIPPED: the punishment exists only in Surf/Dive formes this engine does
+   * not model. A base-forme Cramorant that punishes would be a new wrong number. */
+  const pGM = TAGS.param('ability', 'gulpmissile', 'punishesAttacker');
+  ok(pGM && Array.isArray(pGM.requiresForme) && pGM.requiresForme.length === 2,
+    'Gulp Missile carries its forme gate, so the engine skips it whole');
+  const gm = one('corviknight', 'ironhead', 'gulpmissile', 'earthquake', 0.5, 99999);
+  ok(gm && gm.curHP === gm.st.hp && gm.status === '',
+    'a base-forme Gulp Missile body punishes nobody');
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

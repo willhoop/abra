@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T07:38:32.392Z",
+ "generated": "2026-07-29T08:23:07.547Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1034,8 +1034,8 @@
    "kind": "move",
    "param": "their side is damaged or slowed on switch-in, until removed",
    "why": "Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their future switches, which is a decision MAG does not model at all",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "hazard",
+   "used": true,
    "n": 4,
    "uses": 106,
    "examples": [
@@ -18784,11 +18784,21 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
-     "inflicts": {
-      "status": "burn",
-      "chance": 1
-     },
-     "fraction": null
+     "trigger": "anyHit",
+     "onFaintOnly": null,
+     "requiresForme": null,
+     "inflicts": [
+      {
+       "status": "burn",
+       "chance": 1
+      }
+     ],
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     }
    }
   },
@@ -18844,8 +18854,16 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": true,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": "4"
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": "4",
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19158,8 +19176,19 @@
     },
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "anyHit",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": {
+      "volatile": "disable",
+      "chance": 0.3
+     },
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     }
    }
   },
@@ -19173,8 +19202,19 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": {
+      "volatile": "attract",
+      "chance": 0.3
+     },
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19369,18 +19409,46 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
-     "inflicts": {
-      "status": "sleep",
-      "chance": 1
-     },
-     "fraction": null
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
+     "inflicts": [
+      {
+       "status": "sleep",
+       "chance": 0.11
+      },
+      {
+       "status": "paralysis",
+       "chance": 0.1
+      },
+      {
+       "status": "poison",
+       "chance": 0.09
+      }
+     ],
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
-     "inflicts": {
-      "status": "sleep",
-      "chance": 1
-     },
+     "inflicts": [
+      {
+       "status": "sleep",
+       "chance": 0.11
+      },
+      {
+       "status": "paralysis",
+       "chance": 0.1
+      },
+      {
+       "status": "poison",
+       "chance": 0.09
+      }
+     ],
      "fraction": null
     }
    }
@@ -19448,18 +19516,30 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
-     "inflicts": {
-      "status": "burn",
-      "chance": 0.3
-     },
-     "fraction": null
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
+     "inflicts": [
+      {
+       "status": "burn",
+       "chance": 0.3
+      }
+     ],
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
-     "inflicts": {
-      "status": "burn",
-      "chance": 0.3
-     },
+     "inflicts": [
+      {
+       "status": "burn",
+       "chance": 0.3
+      }
+     ],
      "fraction": null
     }
    }
@@ -19644,8 +19724,18 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": null,
+     "boosts": {
+      "spe": -1
+     },
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19705,11 +19795,26 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
-     "inflicts": {
-      "status": "paralysis",
-      "chance": 1
+     "trigger": "anyHit",
+     "onFaintOnly": null,
+     "requiresForme": [
+      "cramorantgulping",
+      "cramorantgorging"
+     ],
+     "inflicts": [
+      {
+       "status": "paralysis",
+       "chance": 1
+      }
+     ],
+     "inflictsVolatile": null,
+     "boosts": {
+      "def": -1
      },
-     "fraction": "4"
+     "fraction": "4",
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     }
    }
   },
@@ -20032,8 +20137,16 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": "8"
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": "8",
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -20619,8 +20732,19 @@
     },
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": {
+      "volatile": "perishsong",
+      "chance": 1
+     },
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -20707,18 +20831,30 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
-     "inflicts": {
-      "status": "poison",
-      "chance": 0.3
-     },
-     "fraction": null
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
+     "inflicts": [
+      {
+       "status": "poison",
+       "chance": 0.3
+      }
+     ],
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
-     "inflicts": {
-      "status": "poison",
-      "chance": 0.3
-     },
+     "inflicts": [
+      {
+       "status": "poison",
+       "chance": 0.3
+      }
+     ],
      "fraction": null
     }
    }
@@ -21045,8 +21181,16 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": "8"
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": "8",
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -21105,8 +21249,16 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "anyHit",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": "sandstorm"
     }
    }
   },
@@ -21550,18 +21702,30 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
-     "inflicts": {
-      "status": "paralysis",
-      "chance": 0.3
-     },
-     "fraction": null
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
+     "inflicts": [
+      {
+       "status": "paralysis",
+       "chance": 0.3
+      }
+     ],
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
-     "inflicts": {
-      "status": "paralysis",
-      "chance": 0.3
-     },
+     "inflicts": [
+      {
+       "status": "paralysis",
+       "chance": 0.3
+      }
+     ],
      "fraction": null
     }
    }
@@ -21812,8 +21976,18 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "contact",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": null,
+     "boosts": {
+      "spe": -1
+     },
+     "fraction": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -21972,8 +22146,16 @@
    "params": {
     "punishesAttacker": {
      "compounds": false,
+     "trigger": "physical",
+     "onFaintOnly": null,
+     "requiresForme": null,
      "inflicts": null,
-     "fraction": null
+     "inflictsVolatile": null,
+     "boosts": null,
+     "fraction": null,
+     "hazard": "toxicspikes",
+     "maxLayers": 2,
+     "setsWeather": null
     }
    }
   },

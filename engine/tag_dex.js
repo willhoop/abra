@@ -114,11 +114,25 @@ function hpGateIn(src) {
   return null;
 }
 function statusIn(src) {
-  const st = src.match(/trySetStatus\(\s*"(\w+)"/);
-  const ch = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
-  if (!st) return null;
+  /* A LIST, because a handler can inflict more than one status. Effect Spore is a single
+   * this.random(100) split three ways -- 11% sleep, 10% paralysis, 9% poison -- and the first
+   * version of this function matched the first trySetStatus, found no randomChance, and recorded
+   * "sleep, chance 1". A 100%-sleep Effect Spore is not a smaller error than no tag at all; it is
+   * a larger one. The list entries are EXCLUSIVE branches of one roll, so their chances sum to the
+   * total proc rate and a consumer must roll once against the cumulative, not once per entry. */
   const NAME = { par: 'paralysis', brn: 'burn', psn: 'poison', tox: 'bad poison', frz: 'freeze', slp: 'sleep' };
-  return { status: NAME[st[1]] || st[1], chance: ch ? +ch[1] / +ch[2] : 1 };
+  const den = +((src.match(/this\.random\(\s*(\d+)\s*\)/) || [])[1] || 0);
+  const rc = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  const out = [];
+  let prev = 0, pending = null;
+  for (const tok of src.matchAll(/<\s*(\d+)\s*\)|trySetStatus\(\s*"(\w+)"/g)) {
+    if (tok[1] != null) { pending = +tok[1]; continue; }
+    let chance = 1;
+    if (den && pending != null) { chance = (pending - prev) / den; prev = pending; pending = null; }
+    else if (rc) chance = +rc[1] / +rc[2];
+    out.push({ status: NAME[tok[2]] || tok[2], chance: +chance.toFixed(4) });
+  }
+  return out.length ? out : null;
 }
 function statsBlockedIn(src) {
   /* Clear Body deletes every negative boost; Hyper Cutter names one stat. */
@@ -1795,8 +1809,42 @@ const ABILITY_TAGS = [
       /* Will: "spicy spray inflicts burn status." It did not say which status -- same
        * boolean-instead-of-parameter defect as Swift Swim not naming rain. */
       const src = String(a.onDamagingHit || '') + String(a.onHit || '');
-      return { compounds: false, inflicts: statusIn(src),
-               fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null };
+      /* THE TRIGGER IS PART OF THE MECHANIC, and leaving it out produced a live wrong number: the
+       * first wire applied any `fraction` on every contact hit, so Aftermath -- which the handler
+       * gates on `!target.hp`, i.e. the holder DYING -- chipped attackers 25% per hit, and Gulp
+       * Missile -- gated on Cramorant's gulping/gorging formes -- punished from a base-forme body.
+       * Each condition below is read from the handler text, never from the ability's name. */
+      const trigger = /checkMoveMakesContact|flags\.contact/.test(src) ? 'contact'
+                    : /move\.category\s*===\s*"Physical"/.test(src)   ? 'physical'
+                    : /move\.category\s*===\s*"Special"/.test(src)    ? 'special'
+                    : 'anyHit';
+      const formes = (src.match(/\[([^\]]*)\]\.includes\(target\.species\.id\)/) || [])[1];
+      /* Attacker-directed stat drops: this.boost({...}, source). Gooey and Tangling Hair say
+       * { spe: -1 } in the call itself; recording nothing here was the reason they could not be
+       * wired without a name list. */
+      let boosts = null;
+      for (const m of src.matchAll(/this\.boost\(\s*\{([^}]*)\}\s*,\s*source\b/g)) {
+        boosts = boosts || {};
+        for (const part of m[1].split(',')) {
+          const kv = part.split(':').map(x => x.trim());
+          if (kv.length === 2 && /^-?\d+$/.test(kv[1])) boosts[kv[0].replace(/["']/g, '')] = +kv[1];
+        }
+      }
+      const hazard = (src.match(/addSideCondition\(\s*"(\w+)"/) || [])[1] || null;
+      return { compounds: false, trigger,
+               onFaintOnly: /!target\.hp\b/.test(src) || null,
+               requiresForme: formes ? formes.split(',').map(s => s.trim().replace(/["']/g, '')).filter(Boolean) : null,
+               inflicts: statusIn(src),
+               /* Carries its chance for the same reason inflicts does: Cursed Body is a 30% roll,
+                * and "disable" with no number would round to "always" the moment it was consumed. */
+               inflictsVolatile: (m => m ? { volatile: m[1],
+                 chance: (rc => rc ? +rc[1] / +rc[2] : 1)(src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/)) } : null
+               )(src.match(/addVolatile\(\s*["'](\w+)["']/)),
+               boosts,
+               fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null,
+               hazard,
+               maxLayers: hazard ? +((src.match(/layers\s*<\s*(\d+)/) || [])[1] || 0) || null : null,
+               setsWeather: (src.match(/setWeather\(\s*["'](\w+)["']/) || [])[1] || null };
     } },
   /* DERIVED FROM THE HANDLER SOURCE, not from a list of names (Will: "no hardcodes"). Showdown
    * expresses the contact condition two ways -- checkMoveMakesContact() or move.flags.contact -- and

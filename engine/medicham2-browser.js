@@ -81,6 +81,10 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 /* Showdown spells stats atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. A naming convention,
  * not a mechanic, so the map lives here rather than in data/tags.json. */
 const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:null,evasion:null};
+/* Same species of map as SD2ENG: the artifact speaks Showdown's names ("paralysis", "sandstorm"),
+ * this engine speaks its own ('par', 'sand'). Naming conventions, not mechanics, so they live here. */
+const CODE_OF_STATUS={paralysis:'par',burn:'brn',poison:'psn','bad poison':'tox',sleep:'slp',freeze:'frz'};
+const SD2WEATHER={sandstorm:'sand',raindance:'rain',sunnyday:'sun',snowscape:'snow',snow:'snow',hail:'snow'};
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 
 // Mega abilities — sourced from Serebii's Champions data (not guessed). Champions runs BOTH the
@@ -467,15 +471,47 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
          * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
         const _rbHit=TAGS.param('item',tg.item,'resistBerry');
         if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1))tg.item='';
-        /* WIRE 5 -- punishesAttacker. Rough Skin (3,762 sheets) and its family were ABSENT: the
-         * engine had no concept that touching something can cost you. Unlike buffsHolderOnHit this
-         * does NOT compound -- it is a flat toll, so the right play is to keep attacking without
-         * contact rather than to stop. Paid whether or not the target survived the hit, which is
-         * why it sits outside the survivor branch below. Contact comes from the move's own flag. */
+        /* WIRE 5 -- punishesAttacker, all of it. Rough Skin (3,762 sheets) and its family were
+         * ABSENT: the engine had no concept that touching something can cost you. Unlike
+         * buffsHolderOnHit this does NOT compound -- it is a flat toll, so the right play is to
+         * keep attacking without contact rather than to stop. Paid whether or not the target
+         * survived the hit, which is why it sits outside the survivor branch below.
+         *
+         * THE TRIGGER COMES FROM THE TAG, not from an assumption. The first cut of this wire
+         * assumed contact-per-hit for every member, so Aftermath (whose handler fires only when
+         * the HOLDER DIES to contact) chipped attackers 25% on every touch. requiresForme members
+         * are skipped whole: this engine carries no forme state, and a base-forme Cramorant that
+         * never Surfed punishing anyone would be a new wrong number, not a wired mechanic. */
         const _pun=TAGS.param('ability',tg.ability,'punishesAttacker');
-        if(_pun&&_pun.fraction&&mvMakesContact(a.move.id)){
-          m.curHP-=Math.floor(m.st.hp/(+_pun.fraction));
-          if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+        if(_pun&&!_pun.requiresForme){
+          const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id)
+                     :_pun.trigger==='physical'?mv.c==='P'
+                     :_pun.trigger==='special'?mv.c==='S'
+                     :true;
+          if(_trig&&(!_pun.onFaintOnly||dmg>=tg.curHP)){
+            if(_pun.fraction){
+              m.curHP-=Math.floor(m.st.hp/(+_pun.fraction));
+              if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+            }
+            if(_pun.boosts&&m.boosts&&!m.fainted)for(const k in _pun.boosts){
+              const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null)m.boosts[_st]=clamp(m.boosts[_st]+_pun.boosts[k],-6,6);
+            }
+            /* ONE roll against the cumulative, because the artifact's list entries are exclusive
+             * branches of one random(100) -- rolling each independently would understate Effect
+             * Spore's paralysis and poison. applyStatus enforces the immunities and one-at-a-time. */
+            if(_pun.inflicts&&!m.fainted){
+              const _r=rng();let _cum=0;
+              for(const _inf of _pun.inflicts){_cum+=_inf.chance;
+                if(_r<_cum){applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status);break;}}
+            }
+            if(_pun.setsWeather&&!field.weather){
+              const _w=SD2WEATHER[_pun.setsWeather];
+              if(_w){field.weather=_w;field.weatherT=5;}
+            }
+            /* hazard (Toxic Debris) and inflictsVolatile (Cursed Body, Cute Charm, Perish Body)
+             * are carried by the artifact but have nowhere to land: this rollout keeps no side
+             * conditions and no volatiles. Left visibly unconsumed rather than faked. */
+          }
         }
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else {
@@ -525,7 +561,10 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
           if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
             if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true; }
         }
-        if(tg.ability==='spicyspray'&&mv.c==='P'&&!m.status&&!m.fainted)m.status='brn';}   // Spicy Spray: burns the (contact) attacker
+        /* Spicy Spray's burn was an independent hardcode here, gated on PHYSICAL -- the handler
+         * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
+         * above, from the artifact, with the gate the handler actually states (none). */
+      }
       // recoil: frail spammers pay for Brave Bird / Flare Blitz / Wave Crash
       if(RECOIL[a.move.id]&&dealt>0){m.curHP-=Math.floor(dealt*RECOIL[a.move.id]);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
       // self stat changes; Contrary flips drops into boosts (Malamar Superpower/Overheat ramp)

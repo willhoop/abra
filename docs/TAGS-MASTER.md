@@ -2707,7 +2707,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Baton Pass | 65 | 0.1% |
 | Shed Tail | 41 | 0.1% |
 
-### `hazard` — 0.2%, 4 moves — **NOT READ**
+### `hazard` — 0.2%, 4 moves
 
 *their side is damaged or slowed on switch-in, until removed*
 
@@ -3828,10 +3828,10 @@ resource sitting in a volatile, which is why neither was visible before volatile
 | moves tagged | 500 |
 | abilities tagged | 258 |
 | items tagged | 146 |
-| **tags read by nothing** | **108** |
+| **tags read by nothing** | **107** |
 | tags that match no member at all | 7 |
 
-**108 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**107 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
