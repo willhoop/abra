@@ -535,6 +535,30 @@ console.log('\nwire 13 — boostsMoveClass');
   ok(ml !== null && Math.abs(ml - 1.5) < 0.04, `Mega Launcher pulses at x${ml && ml.toFixed(3)}`);
 }
 
+/* ---- WIRE 14: healsAtThreshold — the pinch berry reads its own label ------------------------- */
+console.log('\nwire 14 — healsAtThreshold');
+{
+  const p = TAGS.param('item', 'sitrusberry', 'healsAtThreshold');
+  ok(p && p.triggersBelow === '1/2' && p.restores === '1/4',
+    'Sitrus declares its own threshold and restore (was a name check in the residual loop)');
+  const run = hpFrac => {
+    const a = M.buildMon('garchomp', {}); a.item = ''; a.moves = ['protect'];
+    const h = M.buildMon('incineroar', {}); h.item = 'sitrusberry'; h.moves = ['protect'];
+    h.curHP = Math.floor(h.st.hp * hpFrac);
+    const sA = MC.priors[a.name], sH = MC.priors[h.name];
+    MC.priors[a.name] = null; MC.priors[h.name] = null;
+    const S = M.battleInit([a], [h]);
+    try { M.battleTurn(S, () => 0.9); } finally { MC.priors[a.name] = sA; MC.priors[h.name] = sH; }
+    return h;
+  };
+  const low = run(0.4);
+  ok(low.curHP === Math.floor(low.st.hp * 0.4) + Math.floor(low.st.hp / 4) && low.item === '',
+    `at 40% it eats the berry and heals exactly 1/4 (${low.curHP}/${low.st.hp}, item '${low.item}')`);
+  const high = run(0.8);
+  ok(high.item === 'sitrusberry' && high.curHP === Math.floor(high.st.hp * 0.8),
+    'at 80% the berry stays in the pocket — the threshold is the tag\'s, not a vibe');
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

@@ -984,7 +984,17 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n/16, escalating
         m.curHP-=Math.floor(m.st.hp*Math.min(15,m.toxTurns)/16);}
       if(m.item==='leftovers')m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/16));
-      if(m.item==='sitrusberry'&&m.curHP<=m.st.hp/2){m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/4));m.item='';}
+      /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
+       * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
+       * future pinch berry joins by existing rather than by someone remembering. Oran restores a
+       * FLAT 10 HP, not a fraction -- its param is honestly null and it stays unwired (0 uses). */
+      {const _ht=TAGS.param('item',m.item,'healsAtThreshold');
+       if(_ht&&_ht.restores&&_ht.triggersBelow){
+         const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
+         if(m.curHP<=m.st.hp*_fr(_ht.triggersBelow)){
+           m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_fr(_ht.restores)));m.item='';
+         }
+       }}
       /* WIRE 8 -- the drain lands here, with the residuals. The amount divides the VICTIM's max HP
        * (seeding a tank returns more than seeding a pixie -- that is the tag's per, not a constant)
        * and the same number is handed to the seeder, capped at full. If the seeder is down the chip
