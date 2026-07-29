@@ -1417,11 +1417,36 @@ const ABILITY_TAGS = [
    * put them in the entity table, so nothing tagged them. Fairy Aura is on 1,455 fields and did not
    * exist in this document at all. No Guard is on 1,133 and was untagged despite being one of the
    * largest single effects in the game. */
-  { tag: 'noGuard', param: 'accuracy := 100% for EVERY move, in both directions', probe: 'onAnyAccuracy',
-    why: 'No Guard reaches 1,133 fields. It deletes the accuracy term entirely -- its own Hydro Pump '
-       + 'never misses and neither does anything aimed at it. Every accuracy-weighted score is wrong '
-       + 'in both directions against it',
-    of: a => a.onAnyAccuracy ? { accuracy: 1, bothDirections: true } : null },
+  /* WILL, AND HE IS RIGHT THAT MY TAG WAS WRONG: "no guard can be movenevermiss applied to all
+   * moves right, and the opponents moves as well."
+   *
+   * `neverMisses` already exists as a MOVE property -- 132 moves and 90,596 move-slots carry it
+   * intrinsically. No Guard does not need a bespoke tag; it needs to be expressed as something that
+   * WRITES that property onto every move, in both directions. Writing a one-off tag for it was the
+   * exact duplication linkage exists to stop, committed an hour after building linkage.
+   *
+   * And it extends the model: linkage is BIDIRECTIONAL. Moves expose properties; items and
+   * abilities both SUBSCRIBE to them and WRITE them. Twelve things across two taxonomies write this
+   * one term -- No Guard to certainty, Compound Eyes x1.3, Wide Lens x1.1, Bright Powder x0.9 --
+   * and the damage distribution should ask for the final accuracy once rather than branch per source. */
+  { tag: 'writesAccuracy', param: 'sets or multiplies the accuracy of moves -- the same term neverMisses sets', probe: 'writesAccuracy',
+    why: 'No Guard (1,133 fields) drives it to certainty in BOTH directions, so its own Hydro Pump '
+       + 'never misses and neither does anything aimed at it. Compound Eyes, Wide Lens and Bright '
+       + 'Powder scale the same number. One term, twelve writers, no branch needed',
+    of: o => {
+      const own  = String(o.onModifyAccuracy || '') + String(o.onModifyMove || '');
+      const foe  = String(o.onSourceModifyAccuracy || '');
+      const both = String(o.onAnyAccuracy || '');
+      const src = own + foe + both;
+      if (!/accuracy/i.test(src)) return null;
+      const always = /accuracy\s*=\s*true/.test(src);
+      const m = src.match(/chainModify\(\[?\s*([\d.]+)/);
+      const mult = m ? (+m[1] > 100 ? +(m[1] / 4096).toFixed(2) : +m[1]) : null;
+      const scope = both ? 'every move, both directions'
+                  : (own && foe) ? 'both directions'
+                  : own ? 'its own moves' : 'moves aimed at it';
+      return { setsTo: always ? 1 : null, mult: always ? null : mult, scope };
+    } },
   { tag: 'auraBoost', param: 'multiplies one TYPE for every Pokemon on the field, friend and foe', probe: 'onAnyBasePower',
     why: 'Fairy Aura (1,455 fields) makes every Fairy move 1.33x -- including the foe\'s. A '
        + 'field-wide multiplier that helps both sides is unlike any other boost in the taxonomy',
@@ -1447,7 +1472,13 @@ const ABILITY_TAGS = [
   { tag: 'reflectsStatusMoves', param: 'Status moves aimed at it are BOUNCED back at the user', probe: 'onAllyTryHitSide',
     why: 'Magic Bounce (190 fields). Will-O-Wisp, Taunt and Thunder Wave do not merely fail, they '
        + 'land on whoever threw them -- so the move is not worth zero, it is worth negative',
-    of: a => a.onAllyTryHitSide ? { bounces: 'Status', backAtUser: true } : null },
+    /* Will: "magic bounce reflects all status moves aimed at your side." The handler is
+     * onAllyTryHitSide, which is SIDE-wide -- it covers Spikes, Stealth Rock, Reflect-breakers and
+     * anything aimed at the partner, not only moves targeting the holder. Scoping it to the holder
+     * would have understated it badly. */
+    of: a => a.onAllyTryHitSide
+      ? { bounces: 'Status', backAtUser: true, scope: 'the whole side, including hazards and the partner' }
+      : null },
   { tag: 'hitsTwice', param: 'every damaging move strikes twice, the second at quarter damage', probe: 'onSourceModifySecondaries',
     why: 'Parental Bond (133 fields). Total output is 1.25x, and it breaks Focus Sash and Sturdy '
        + 'on its own -- the first hit leaves 1 HP, the second kills',
@@ -1456,6 +1487,28 @@ const ABILITY_TAGS = [
     why: 'Protean (171 fields). Its STAB and its defensive typing both change mid-turn, so a type '
        + 'chart read at the start of the turn is stale by the time damage is applied',
     of: a => (a.onPrepareHit && /setType/.test(String(a.onPrepareHit))) ? { oncePerSwitchIn: true } : null },
+  /* Will, reading Eelevate on HoopaDex: "here is what elevate is, levitate plus beast boost?"
+   * Exactly that, and it is the linkage argument once more -- a composition of two keys that
+   * already exist, not a new mechanic. It was sitting `untagged` on 259 fields. Beast Boost itself
+   * was not in the table at all, since nothing on a sheet carries it. */
+  { tag: 'boostsOnKO', param: 'highest stat +1 every time it takes something down', probe: 'onSourceAfterFaint',
+    why: 'Beast Boost and Eelevate (259 fields). It compounds across a game and nothing recomputes '
+       + 'the speed order or damage after a kill, so the second kill is priced like the first',
+    of: a => (a.onSourceAfterFaint && /getBestStat|bestStat/.test(String(a.onSourceAfterFaint)))
+             ? { stat: 'highest', stages: 1, trigger: 'on KO' } : null },
+  /* Will: "sheer force removes secondary effects idk." It does, and that is the half that was
+   * missing -- it was tagged damageBoost alone.
+   *
+   * This is the first tag that ZEROES another tag. A Sheer Force user's moves have their secondaries
+   * DELETED in exchange for 1.3x power, so every flinch chance, every burn chance and every stat
+   * drop the taxonomy records for those moves is worth exactly nothing on that Pokemon. Under
+   * linkage it is a writer that sets the secondary-effect probability to zero, which is why the
+   * damage distribution has to read the final value rather than the move's own field. */
+  { tag: 'removesOwnSecondaries', param: 'its moves LOSE every secondary effect, in exchange for x1.3', probe: 'removesOwnSecondaries',
+    why: 'Sheer Force (278 fields). Every flinch, burn and stat-drop chance recorded against its '
+       + 'moves is zero on this Pokemon -- the first tag that invalidates other tags',
+    of: a => (a.onModifyMove && /delete move\.secondaries/.test(String(a.onModifyMove)))
+             ? { secondaryChance: 0, powerMult: 1.3 } : null },
   { tag: 'blocksStatusMoves', param: 'every Status-category move fails against it', probe: 'goodasgold',
     why: 'Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% '
        + 'of move slots that are status',
@@ -1501,6 +1554,10 @@ const ABILITY_TAGS = [
    * uses) and Snow Cloak (219) were being reported as type-immunity abilities when they are evasion
    * abilities. A type immunity is an onTryHit that inspects move.type. Found by Will asking about
    * Sand Veil and Bright Powder. */
+  /* LEVITATE AND EELEVATE ARE IRREDUCIBLE. Neither exposes a handler for its Ground immunity --
+   * the simulator special-cases the ability by name in its own type logic -- so there is nothing to
+   * probe and this is the one place a name check is not a hardcode but the only available truth.
+   * Eelevate is Levitate PLUS Beast Boost (Will spotted it), so it carries both keys. */
   { tag: 'typeImmunity', param: 'damage of one TYPE := 0', probe: 'IMM',
     why: 'Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely',
     of: a => {
@@ -1511,7 +1568,12 @@ const ABILITY_TAGS = [
        * genuinely underivable and is the one honest exception to the no-hardcodes rule here. The
        * damage engine already carries it in its IMM map; this names it so nobody later "fixes" the
        * probe wondering why Ground immunity is missing. */
-      if (/^levitate$/.test(norm(a.name))) return { immune: true, via: 'not derivable -- no handler' };
+      /* Eelevate is Levitate PLUS Beast Boost -- Will spotted it on HoopaDex -- and like Levitate
+       * it exposes NO handler for the Ground immunity, because the simulator special-cases both by
+       * name in its own type logic. This is the one place a name check is the only available truth
+       * rather than a hardcode. The Beast Boost half is carried separately by boostsOnKO. */
+      if (/^(levitate|eelevate)$/.test(norm(a.name)))
+        return { immune: true, type: 'Ground', via: 'not derivable -- no handler' };
       if (a.onTryHit && /move\.type|type ===/.test(String(a.onTryHit))) return { immune: true, via: 'onTryHit' };
       const TYPES = /Bug|Dark|Dragon|Electric|Fairy|Fighting|Fire|Flying|Ghost|Grass|Ground|Ice|Normal|Poison|Psychic|Rock|Steel|Water/;
       if (a.onImmunity && TYPES.test(String(a.onImmunity))) return { immune: true, via: 'onImmunity' };
@@ -1545,7 +1607,14 @@ const ABILITY_TAGS = [
     why: 'Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. '
        + 'Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to '
        + 'price in, not a reason to stop attacking',
-    of: a => effectRecipients(a).attacker ? { compounds: false } : null },
+    of: a => {
+      if (!effectRecipients(a).attacker) return null;
+      /* Will: "spicy spray inflicts burn status." It did not say which status -- same
+       * boolean-instead-of-parameter defect as Swift Swim not naming rain. */
+      const src = String(a.onDamagingHit || '') + String(a.onHit || '');
+      return { compounds: false, inflicts: statusIn(src),
+               fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null };
+    } },
   /* DERIVED FROM THE HANDLER SOURCE, not from a list of names (Will: "no hardcodes"). Showdown
    * expresses the contact condition two ways -- checkMoveMakesContact() or move.flags.contact -- and
    * reading the function text catches both. It also separates the TRIGGER, which Will spotted was
@@ -1588,7 +1657,14 @@ const ABILITY_TAGS = [
       const src = String(a.onBasePower || '') + String(a.onModifyAtk || '') + String(a.onModifySpA || '');
       if (!src) return null;
       const w = weatherIn(src);
-      return { mult: multiplierIn(src), inWeather: w.length ? w : null, onlyWhen: hpGateIn(src) };
+      /* Will: "solar power takes damage in the sun i think too." It does -- 1/8 max HP every turn
+       * the sun is up, in onWeather. The boost was recorded and the COST was not, so the ability
+       * read as free. A conditional buff with a per-turn price is a different decision from a
+       * conditional buff. */
+      const wx = String(a.onWeather || '');
+      const chip = /this\.damage/.test(wx) ? (wx.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] : null;
+      return { mult: multiplierIn(src), inWeather: w.length ? w : null, onlyWhen: hpGateIn(src),
+               costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
     } },
   { tag: 'blocksMove', param: 'a whole class of move fails', probe: 'onFoeTryMove',
     why: 'already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold',
@@ -1644,9 +1720,17 @@ const ABILITY_TAGS = [
     why: 'Rock Head. Turns the recoil tag from a cost into nothing, so a Head Smash carrier is '
        + 'priced wrongly in both directions if only one of the two tags is read',
     of: a => (a.onDamage && /recoil/i.test(String(a.onDamage))) ? { recoil: 0 } : null },
-  { tag: 'preventsSwitch', param: 'the foe cannot leave', probe: 'onFoeTrapPokemon',
-    why: 'Shadow Tag, Arena Trap, Magnet Pull. Already used by the playstyle classifier',
-    of: a => a.onFoeTrapPokemon ? { traps: true } : null },
+  /* Will: "shadow tag is like trapping and infestation." Same mechanic -- the target cannot switch
+   * -- arriving from an ability (Shadow Tag, 446 fields) and from a move (Infestation, Whirlpool).
+   * They differ in duration and in whether they also chip, so those are the parameters rather than
+   * a reason for separate tags. The consequence is identical and it is large: a trapped Pokemon has
+   * its switch option DELETED, which changes the opponent's whole action set. */
+  { tag: 'preventsSwitch', param: 'the target cannot switch out -- its escape option is deleted', probe: 'onFoeTrapPokemon',
+    why: 'Shadow Tag reaches 446 fields and is on ZERO sheets. Nothing prunes switching from the '
+       + 'opponent action set, so every reply distribution still contains a move that cannot be made',
+    of: a => a.onFoeTrapPokemon
+      ? { source: 'ability', turns: null, chips: false, scope: /adjacent/i.test(String(a.onFoeTrapPokemon)) ? 'adjacent foes' : 'all foes' }
+      : null },
   { tag: 'onSwitchInDrop', param: 'stat stages on the foe at switch-in', probe: 'intimidate',
     why: 'Intimidate. Beaten by Clear Amulet and by White Herb, neither of which is checked',
     of: a => (a.onStart && /boost/i.test(String(a.onStart)) && /foe|adjacentFoes|activePokemon/.test(String(a.onStart)))

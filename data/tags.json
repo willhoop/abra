@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T06:43:19.545Z",
+ "generated": "2026-07-29T06:53:37.504Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1959,16 +1959,21 @@
    ]
   },
   {
-   "tag": "noGuard",
+   "tag": "writesAccuracy",
    "kind": "ability",
-   "param": "accuracy := 100% for EVERY move, in both directions",
-   "why": "No Guard reaches 1,133 fields. It deletes the accuracy term entirely -- its own Hydro Pump never misses and neither does anything aimed at it. Every accuracy-weighted score is wrong in both directions against it",
+   "param": "sets or multiplies the accuracy of moves -- the same term neverMisses sets",
+   "why": "No Guard (1,133 fields) drives it to certainty in BOTH directions, so its own Hydro Pump never misses and neither does anything aimed at it. Compound Eyes, Wide Lens and Bright Powder scale the same number. One term, twelve writers, no branch needed",
    "consumedBy": null,
    "used": false,
-   "n": 1,
-   "uses": 22,
+   "n": 8,
+   "uses": 601,
    "examples": [
-    "No Guard"
+    "Compound Eyes",
+    "Hustle",
+    "No Guard",
+    "Sand Veil",
+    "Skill Link",
+    "Snow Cloak"
    ]
   },
   {
@@ -2035,6 +2040,30 @@
    "uses": 167,
    "examples": [
     "Protean"
+   ]
+  },
+  {
+   "tag": "boostsOnKO",
+   "kind": "ability",
+   "param": "highest stat +1 every time it takes something down",
+   "why": "Beast Boost and Eelevate (259 fields). It compounds across a game and nothing recomputes the speed order or damage after a kill, so the second kill is priced like the first",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "removesOwnSecondaries",
+   "kind": "ability",
+   "param": "its moves LOSE every secondary effect, in exchange for x1.3",
+   "why": "Sheer Force (278 fields). Every flinch, burn and stat-drop chance recorded against its moves is zero on this Pokemon -- the first tag that invalidates other tags",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 94,
+   "examples": [
+    "Sheer Force"
    ]
   },
   {
@@ -2199,7 +2228,7 @@
    "why": "Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely",
    "consumedBy": "IMM",
    "used": true,
-   "n": 11,
+   "n": 12,
    "uses": 3610,
    "examples": [
     "Dry Skin",
@@ -2424,8 +2453,8 @@
   {
    "tag": "preventsSwitch",
    "kind": "ability",
-   "param": "the foe cannot leave",
-   "why": "Shadow Tag, Arena Trap, Magnet Pull. Already used by the playstyle classifier",
+   "param": "the target cannot switch out -- its escape option is deleted",
+   "why": "Shadow Tag reaches 446 fields and is on ZERO sheets. Nothing prunes switching from the opponent action set, so every reply distribution still contains a move that cannot be made",
    "consumedBy": null,
    "used": false,
    "n": 3,
@@ -18424,17 +18453,30 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
   "eelevate": {
    "name": "Eelevate",
    "tags": [
-    "untagged"
+    "boostsOnKO",
+    "typeImmunity"
    ],
    "uses": 0,
-   "params": {}
+   "params": {
+    "boostsOnKO": {
+     "stat": "highest",
+     "stages": 1,
+     "trigger": "on KO"
+    },
+    "typeImmunity": {
+     "immune": true,
+     "type": "Ground",
+     "via": "not derivable -- no handler"
+    }
+   }
   },
   "firemane": {
    "name": "Fire Mane",
@@ -18446,7 +18488,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -18512,7 +18555,12 @@
    "uses": 0,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": {
+      "status": "burn",
+      "chance": 1
+     },
+     "fraction": null
     }
    }
   },
@@ -18552,7 +18600,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -18565,7 +18614,9 @@
    "uses": 0,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": "4"
     },
     "contactPunish": {
      "trigger": "contact",
@@ -18584,7 +18635,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -18616,7 +18668,10 @@
    "uses": 0,
    "params": {
     "preventsSwitch": {
-     "traps": true
+     "source": "ability",
+     "turns": null,
+     "chips": false,
+     "scope": "adjacent foes"
     }
    }
   },
@@ -18676,6 +18731,20 @@
     }
    }
   },
+  "beastboost": {
+   "name": "Beast Boost",
+   "tags": [
+    "boostsOnKO"
+   ],
+   "uses": 0,
+   "params": {
+    "boostsOnKO": {
+     "stat": "highest",
+     "stages": 1,
+     "trigger": "on KO"
+    }
+   }
+  },
   "bigpecks": {
    "name": "Big Pecks",
    "tags": [
@@ -18700,7 +18769,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": "only below 1/3 HP"
+     "onlyWhen": "only below 1/3 HP",
+     "costsPerTurn": null
     }
    }
   },
@@ -18785,10 +18855,16 @@
   "compoundeyes": {
    "name": "Compound Eyes",
    "tags": [
+    "writesAccuracy",
     "accuracyMod"
    ],
    "uses": 210,
    "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": 1.3,
+     "scope": "moves aimed at it"
+    },
     "accuracyMod": {
      "accuracy": true
     }
@@ -18842,7 +18918,9 @@
      "disables": true
     },
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -18855,7 +18933,9 @@
    "uses": 48,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -18912,7 +18992,8 @@
     "damageBoost": {
      "mult": 0.5,
      "inWeather": null,
-     "onlyWhen": "only below 1/2 HP"
+     "onlyWhen": "only below 1/2 HP",
+     "costsPerTurn": null
     }
    }
   },
@@ -18974,7 +19055,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19045,7 +19127,12 @@
    "uses": 20,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": {
+      "status": "sleep",
+      "chance": 1
+     },
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19117,7 +19204,12 @@
    "uses": 114,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": {
+      "status": "burn",
+      "chance": 0.3
+     },
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19139,7 +19231,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19271,7 +19364,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19304,7 +19398,9 @@
    "uses": 10,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19323,7 +19419,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19361,7 +19458,12 @@
    "uses": 0,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": {
+      "status": "paralysis",
+      "chance": 1
+     },
+     "fraction": "4"
     }
    }
   },
@@ -19375,7 +19477,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19393,7 +19496,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19456,7 +19560,8 @@
     "damageBoost": {
      "mult": 2,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19471,15 +19576,22 @@
   "hustle": {
    "name": "Hustle",
    "tags": [
+    "writesAccuracy",
     "damageBoost",
     "accuracyMod"
    ],
    "uses": 9,
    "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": 0.8,
+     "scope": "moves aimed at it"
+    },
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     },
     "accuracyMod": {
      "accuracy": true
@@ -19662,7 +19774,9 @@
    "uses": 0,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": "8"
     },
     "contactPunish": {
      "trigger": "contact",
@@ -19685,7 +19799,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19736,6 +19851,7 @@
    "params": {
     "typeImmunity": {
      "immune": true,
+     "type": "Ground",
      "via": "not derivable -- no handler"
     }
    }
@@ -19834,7 +19950,8 @@
    "params": {
     "reflectsStatusMoves": {
      "bounces": "Status",
-     "backAtUser": true
+     "backAtUser": true,
+     "scope": "the whole side, including hazards and the partner"
     }
    }
   },
@@ -19874,7 +19991,10 @@
    "uses": 0,
    "params": {
     "preventsSwitch": {
-     "traps": true
+     "source": "ability",
+     "turns": null,
+     "chips": false,
+     "scope": "adjacent foes"
     }
    }
   },
@@ -19900,7 +20020,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -19945,7 +20066,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20056,13 +20178,14 @@
   "noguard": {
    "name": "No Guard",
    "tags": [
-    "noGuard"
+    "writesAccuracy"
    ],
    "uses": 22,
    "params": {
-    "noGuard": {
-     "accuracy": 1,
-     "bothDirections": true
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": null,
+     "scope": "every move, both directions"
     }
    }
   },
@@ -20082,7 +20205,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20133,7 +20257,8 @@
       "sun",
       "harsh sun"
      ],
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20159,7 +20284,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": "only below 1/3 HP"
+     "onlyWhen": "only below 1/3 HP",
+     "costsPerTurn": null
     }
    }
   },
@@ -20215,7 +20341,9 @@
      "compounds": true
     },
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -20262,7 +20390,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20276,7 +20405,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20297,7 +20427,12 @@
    "uses": 51,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": {
+      "status": "poison",
+      "chance": 0.3
+     },
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -20424,7 +20559,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20438,7 +20574,8 @@
     "damageBoost": {
      "mult": 2,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20524,7 +20661,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20544,7 +20682,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20575,7 +20714,8 @@
     "damageBoost": {
      "mult": 1.25,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20601,7 +20741,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20614,7 +20755,9 @@
    "uses": 3762,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": "8"
     },
     "contactPunish": {
      "trigger": "contact",
@@ -20636,7 +20779,8 @@
      "inWeather": [
       "sand"
      ],
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     },
     "weatherChipImmune": {
      "chipImmune": true
@@ -20670,7 +20814,9 @@
    "uses": 4,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -20689,11 +20835,17 @@
   "sandveil": {
    "name": "Sand Veil",
    "tags": [
+    "writesAccuracy",
     "accuracyMod",
     "weatherChipImmune"
    ],
    "uses": 135,
    "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": 0.8,
+     "scope": "its own moves"
+    },
     "accuracyMod": {
      "accuracy": true
     },
@@ -20712,7 +20864,8 @@
    "params": {
     "reflectsStatusMoves": {
      "bounces": "Status",
-     "backAtUser": true
+     "backAtUser": true,
+     "scope": "the whole side, including hazards and the partner"
     },
     "typeImmunity": {
      "immune": true,
@@ -20780,7 +20933,10 @@
    "uses": 0,
    "params": {
     "preventsSwitch": {
-     "traps": true
+     "source": "ability",
+     "turns": null,
+     "chips": false,
+     "scope": "adjacent foes"
     }
    }
   },
@@ -20798,7 +20954,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20819,14 +20976,20 @@
   "sheerforce": {
    "name": "Sheer Force",
    "tags": [
+    "removesOwnSecondaries",
     "damageBoost"
    ],
    "uses": 94,
    "params": {
+    "removesOwnSecondaries": {
+     "secondaryChance": 0,
+     "powerMult": 1.3
+    },
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20881,10 +21044,16 @@
   "skilllink": {
    "name": "Skill Link",
    "tags": [
-    "untagged"
+    "writesAccuracy"
    ],
    "uses": 4,
-   "params": {}
+   "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": null,
+     "scope": "its own moves"
+    }
+   }
   },
   "slowstart": {
    "name": "Slow Start",
@@ -20901,7 +21070,8 @@
     "damageBoost": {
      "mult": 0.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -20936,11 +21106,17 @@
   "snowcloak": {
    "name": "Snow Cloak",
    "tags": [
+    "writesAccuracy",
     "accuracyMod",
     "weatherChipImmune"
    ],
    "uses": 219,
    "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": 0.8,
+     "scope": "its own moves"
+    },
     "accuracyMod": {
      "accuracy": true
     },
@@ -20974,7 +21150,8 @@
       "sun",
       "harsh sun"
      ],
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": "1/8 max HP"
     }
    }
   },
@@ -21000,7 +21177,8 @@
    "params": {
     "reflectsStatusMoves": {
      "bounces": "Status",
-     "backAtUser": true
+     "backAtUser": true,
+     "scope": "the whole side, including hazards and the partner"
     }
    }
   },
@@ -21026,7 +21204,8 @@
     "damageBoost": {
      "mult": 2,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21067,7 +21246,12 @@
    "uses": 278,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": {
+      "status": "paralysis",
+      "chance": 0.3
+     },
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -21109,7 +21293,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21164,7 +21349,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21214,7 +21400,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21241,7 +21428,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": "only below 1/3 HP"
+     "onlyWhen": "only below 1/3 HP",
+     "costsPerTurn": null
     }
    }
   },
@@ -21288,10 +21476,16 @@
   "tangledfeet": {
    "name": "Tangled Feet",
    "tags": [
+    "writesAccuracy",
     "accuracyMod"
    ],
    "uses": 2,
    "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": 0.5,
+     "scope": "its own moves"
+    },
     "accuracyMod": {
      "accuracy": true
     }
@@ -21306,7 +21500,9 @@
    "uses": 0,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     },
     "contactPunish": {
      "trigger": "contact",
@@ -21325,7 +21521,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21395,7 +21592,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": "only below 1/3 HP"
+     "onlyWhen": "only below 1/3 HP",
+     "costsPerTurn": null
     }
    }
   },
@@ -21413,7 +21611,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21427,7 +21626,8 @@
     "damageBoost": {
      "mult": 1.5,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21452,7 +21652,9 @@
    "uses": 417,
    "params": {
     "punishesAttacker": {
-     "compounds": false
+     "compounds": false,
+     "inflicts": null,
+     "fraction": null
     }
    }
   },
@@ -21474,7 +21676,8 @@
     "damageBoost": {
      "mult": null,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     }
    }
   },
@@ -21610,7 +21813,8 @@
     "damageBoost": {
      "mult": 2,
      "inWeather": null,
-     "onlyWhen": null
+     "onlyWhen": null,
+     "costsPerTurn": null
     },
     "statusImmune": {
      "immune": true
@@ -21707,10 +21911,16 @@
   "wonderskin": {
    "name": "Wonder Skin",
    "tags": [
+    "writesAccuracy",
     "accuracyMod"
    ],
    "uses": 0,
    "params": {
+    "writesAccuracy": {
+     "setsTo": null,
+     "mult": null,
+     "scope": "its own moves"
+    },
     "accuracyMod": {
      "accuracy": true
     }

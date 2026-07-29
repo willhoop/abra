@@ -187,7 +187,7 @@ which is exactly the hole this section exists to close.
 | Pixilate | **1,667** | 1,448 | `convertsMoveType` `damageBoost` |
 | Snow Warning | **1,502** | 954 | `weatherSetter` |
 | Fairy Aura | **1,455** | 0 | `auraBoost` |
-| No Guard | **1,133** | 22 | `noGuard` |
+| No Guard | **1,133** | 22 | `writesAccuracy` |
 | Sand Stream | **849** | 848 | `weatherSetter` |
 | Huge Power | **814** | 75 | `damageBoost` |
 | Regenerator | **684** | 555 | `healsOnSwitchOut` |
@@ -196,8 +196,8 @@ which is exactly the hole this section exists to close.
 | Multiscale | **394** | 353 | `damageReduce` |
 | Mega Launcher | **377** | 20 | `boostsMoveClass` `damageBoost` |
 | Spicy Spray | **284** | 0 | `punishesAttacker` |
-| Sheer Force | **278** | 94 | `damageBoost` |
-| Eelevate | **259** | 0 | `untagged` |
+| Sheer Force | **278** | 94 | `removesOwnSecondaries` `damageBoost` |
+| Eelevate | **259** | 0 | `boostsOnKO` `typeImmunity` |
 | Mold Breaker | **237** | 130 | `ignoresDefenderAbility` |
 | Electric Surge | **217** | 0 | `terrainSetter` |
 | Magic Bounce | **190** | 92 | `reflectsStatusMoves` |
@@ -215,7 +215,7 @@ which is exactly the hole this section exists to close.
 | Stalwart | **45** | 27 | `untagged` |
 | Filter | **38** | 0 | `damageReduce` |
 | Unseen Fist | **26** | 0 | `untagged` |
-| Skill Link | **25** | 4 | `untagged` |
+| Skill Link | **25** | 4 | `writesAccuracy` |
 | Healer | **25** | 20 | `randomBoostEachTurn` |
 | Aerilate | **12** | 0 | `convertsMoveType` `damageBoost` |
 | Dragonize | **11** | 0 | `convertsMoveType` `damageBoost` |
@@ -740,8 +740,8 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Rain Dish | 240 | 0.4% | `untagged` |
 | Mirror Armor | 226 | 0.3% | `preventsStatDrop` |
 | Queenly Majesty | 226 | 0.3% | `blocksMove` |
-| Snow Cloak | 219 | 0.3% | `accuracyMod` `weatherChipImmune` |
-| Compound Eyes | 210 | 0.3% | `accuracyMod` |
+| Snow Cloak | 219 | 0.3% | `writesAccuracy` `accuracyMod` `weatherChipImmune` |
+| Compound Eyes | 210 | 0.3% | `writesAccuracy` `accuracyMod` |
 | Soundproof | 207 | 0.3% | `reflectsStatusMoves` |
 | Unaware | 173 | 0.3% | `ignoresStatStages` |
 | Solid Rock | 170 | 0.3% | `damageReduce` |
@@ -749,14 +749,14 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Sharpness | 155 | 0.2% | `boostsMoveClass` `damageBoost` |
 | Sturdy | 154 | 0.2% | `survivesFromFull` |
 | Stance Change | 149 | 0.2% | `untagged` |
-| Sand Veil | 135 | 0.2% | `accuracyMod` `weatherChipImmune` |
+| Sand Veil | 135 | 0.2% | `writesAccuracy` `accuracyMod` `weatherChipImmune` |
 | Contrary | 134 | 0.2% | `invertsBoosts` |
 | Mold Breaker | 130 | 0.2% | `ignoresDefenderAbility` |
 | Telepathy | 116 | 0.2% | `blocksStatusMoves` |
 | Zero to Hero | 115 | 0.2% | `healsOnSwitchOut` `formeChange` |
 | Flame Body | 114 | 0.2% | `punishesAttacker` `contactPunish` |
 | Trace | 114 | 0.2% | `untagged` |
-| Sheer Force | 94 | 0.1% | `damageBoost` |
+| Sheer Force | 94 | 0.1% | `removesOwnSecondaries` `damageBoost` |
 | Magic Bounce | 92 | 0.1% | `reflectsStatusMoves` |
 | Overcoat | 90 | 0.1% | `weatherChipImmune` |
 | Pressure | 85 | 0.1% | `untagged` |
@@ -802,7 +802,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Sniper | 24 | 0.0% | `critDamageUp` |
 | Hunger Switch | 23 | 0.0% | `untagged` |
 | Steadfast | 23 | 0.0% | `untagged` |
-| No Guard | 22 | 0.0% | `noGuard` |
+| No Guard | 22 | 0.0% | `writesAccuracy` |
 | Sap Sipper | 22 | 0.0% | `reflectsStatusMoves` `typeImmunity` |
 | Marvel Scale | 21 | 0.0% | `untagged` |
 | Reckless | 21 | 0.0% | `damageBoost` |
@@ -826,7 +826,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Corrosion | 11 | 0.0% | `untagged` |
 | Harvest | 11 | 0.0% | `randomBoostEachTurn` |
 | Gooey | 10 | 0.0% | `punishesAttacker` `contactPunish` |
-| Hustle | 9 | 0.0% | `damageBoost` `accuracyMod` |
+| Hustle | 9 | 0.0% | `writesAccuracy` `damageBoost` `accuracyMod` |
 | Pure Power | 9 | 0.0% | `damageBoost` |
 | Weak Armor | 9 | 0.0% | `buffsHolderOnHit` |
 | Cud Chew | 8 | 0.0% | `untagged` |
@@ -839,7 +839,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Strong Jaw | 5 | 0.0% | `boostsMoveClass` `damageBoost` |
 | Gluttony | 4 | 0.0% | `untagged` |
 | Sand Spit | 4 | 0.0% | `punishesAttacker` |
-| Skill Link | 4 | 0.0% | `untagged` |
+| Skill Link | 4 | 0.0% | `writesAccuracy` |
 | Slush Rush | 4 | 0.0% | `speedCond` |
 | Curious Medicine | 3 | 0.0% | `untagged` |
 | Fluffy | 3 | 0.0% | `damageReduce` |
@@ -856,7 +856,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Minus | 2 | 0.0% | `damageBoost` |
 | Plus | 2 | 0.0% | `damageBoost` |
 | Quick Feet | 2 | 0.0% | `speedCond` |
-| Tangled Feet | 2 | 0.0% | `accuracyMod` |
+| Tangled Feet | 2 | 0.0% | `writesAccuracy` `accuracyMod` |
 | Anticipation | 1 | 0.0% | `untagged` |
 | Cheek Pouch | 1 | 0.0% | `untagged` |
 | Hydration | 1 | 0.0% | `untagged` |
@@ -2948,7 +2948,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *5 more carry this tag but appear on no sheet in the corpus.*
 
-### `typeImmunity` — 5.5%, 11 abilities
+### `typeImmunity` — 5.5%, 12 abilities
 
 *damage of one TYPE := 0*
 
@@ -2964,7 +2964,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Water Absorb | 15 | 0.0% |
 | Motor Drive | 13 | 0.0% |
 
-*2 more carry this tag but appear on no sheet in the corpus.*
+*3 more carry this tag but appear on no sheet in the corpus.*
 
 ### `healsAllyOnSwitchIn` — 5.2%, 1 abilities — **NOT READ**
 
@@ -3055,7 +3055,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
-### `untagged` — 2.1%, 45 abilities — **NOT READ**
+### `untagged` — 2.1%, 43 abilities — **NOT READ**
 
 *?*
 
@@ -3090,7 +3090,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Heavy Metal | 6 | 0.0% |
 | Poison Heal | 5 | 0.0% |
 | Gluttony | 4 | 0.0% |
-| Skill Link | 4 | 0.0% |
 | Curious Medicine | 3 | 0.0% |
 | Forecast | 2 | 0.0% |
 | Forewarn | 2 | 0.0% |
@@ -3103,7 +3102,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Shield Dust | 1 | 0.0% |
 | Steely Spirit | 1 | 0.0% |
 
-*4 more carry this tag but appear on no sheet in the corpus.*
+*3 more carry this tag but appear on no sheet in the corpus.*
 
 ### `blocksBerries` — 2.0%, 3 abilities — **NOT READ**
 
@@ -3175,6 +3174,22 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | abilitie | on sheets | share |
 |---|---:|---:|
 | Friend Guard | 623 | 0.9% |
+
+### `writesAccuracy` — 0.9%, 8 abilities — **NOT READ**
+
+*sets or multiplies the accuracy of moves -- the same term neverMisses sets*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Snow Cloak | 219 | 0.3% |
+| Compound Eyes | 210 | 0.3% |
+| Sand Veil | 135 | 0.2% |
+| No Guard | 22 | 0.0% |
+| Hustle | 9 | 0.0% |
+| Skill Link | 4 | 0.0% |
+| Tangled Feet | 2 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
 
 ### `accuracyMod` — 0.9%, 6 abilities — **NOT READ**
 
@@ -3360,6 +3375,14 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *2 more carry this tag but appear on no sheet in the corpus.*
 
+### `removesOwnSecondaries` — 0.1%, 1 abilities — **NOT READ**
+
+*its moves LOSE every secondary effect, in exchange for x1.3*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Sheer Force | 94 | 0.1% |
+
 ### `preventsCrit` — 0.1%, 4 abilities — **NOT READ**
 
 *P(crit) = 0*
@@ -3378,14 +3401,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | abilitie | on sheets | share |
 |---|---:|---:|
 | Sniper | 24 | 0.0% |
-
-### `noGuard` — 0.0%, 1 abilities — **NOT READ**
-
-*accuracy := 100% for EVERY move, in both directions*
-
-| abilitie | on sheets | share |
-|---|---:|---:|
-| No Guard | 22 | 0.0% |
 
 ### `critRatioUp` — 0.0%, 2 abilities — **NOT READ**
 
@@ -3406,9 +3421,15 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *4 more carry this tag but appear on no sheet in the corpus.*
 
+### `boostsOnKO` — 0.0%, 2 abilities — **NOT READ**
+
+*highest stat +1 every time it takes something down*
+
+*Legal in the format, never brought.*
+
 ### `preventsSwitch` — 0.0%, 3 abilities — **NOT READ**
 
-*the foe cannot leave*
+*the target cannot switch out -- its escape option is deleted*
 
 *Legal in the format, never brought.*
 
@@ -3764,15 +3785,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 167 |
-| — move / ability / item | 94 / 50 / 19 |
+| tags total | 169 |
+| — move / ability / item | 94 / 52 / 19 |
 | moves tagged | 500 |
-| abilities tagged | 256 |
+| abilities tagged | 257 |
 | items tagged | 146 |
-| **tags read by nothing** | **102** |
+| **tags read by nothing** | **104** |
 | tags that match no member at all | 7 |
 
-**102 of 167 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**104 of 169 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
