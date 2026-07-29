@@ -263,6 +263,14 @@ function moveAccuracy(id,field){
   }
   return ACC[id]||100;
 }
+/* the type a move actually HAS under the current sky — one authority for the damage calc, the
+ * absorb check in the battle loop, and the fragility pricer, so sand Weather Ball is a Rock move
+ * to all three or to none */
+function effMoveType(mv,moveId,field){
+  const w=moveId&&TAGS.param('move',moveId,'weatherScaled');
+  if(w&&w.byWeather&&field&&field.weather){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}
+  return mv?mv.t:'';
+}
 function dmgRange(att,def,mv,field,spread){
   if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
   stampMoveIds();
@@ -326,8 +334,12 @@ function dmgRange(att,def,mv,field,spread){
   if(att.ability==='technician'&&mvBP<=60)base=Math.floor(base*1.5);
   const eff=mcEff(mvT,def.types); if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
-  const IMM={waterabsorb:'Water',stormdrain:'Water',dryskin:'Water',voltabsorb:'Electric',lightningrod:'Electric',motordrive:'Electric',flashfire:'Fire',wellbakedbody:'Fire',sapsipper:'Grass',levitate:'Ground',eartheater:'Ground',eelevate:'Ground'};
-  if(IMM[def.ability]===mvT)return{min:0,max:0,eff:0};
+  /* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the
+   * TYPE (checked against the weather-effective type computed above, so sand Weather Ball sails
+   * past Volt Absorb) and the GAIN, which the old table never knew existed -- the battle loop
+   * feeds the absorber below. Levitate/Eelevate ride the artifact's one documented name-exception. */
+  const _imm=TAGS.param('ability',def.ability,'typeImmunity');
+  if(_imm&&_imm.type===mvT)return{min:0,max:0,eff:0};
   const stab=att.types.includes(mvT)?(att.ability==='adaptability'?2:1.5):1;
   const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
   /* WIRE 1 of N -- damageMultAll, from data/tags.json instead of a hardcoded name.
@@ -517,10 +529,7 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
       consider(flipped.max/base.max,b.name,'flips the sky to '+ws.weather);
     }
     const im=TAGS.param('ability',b.ability,'typeImmunity');
-    const mvType=(()=>{  // the type the click has UNDER the current sky, not its label
-      const w=TAGS.param('move',moveId,'weatherScaled');
-      return (w&&w.byWeather&&field.weather&&w.byWeather[field.weather]&&w.byWeather[field.weather].type)||mv.t;
-    })();
+    const mvType=effMoveType(mv,moveId,field);  // the type the click has UNDER the current sky
     if(im&&im.type===mvType)
       consider(0,b.name,'absorbs '+mvType+' entirely',im.gain?{feedsIt:im.gain}:null);
     else if(mcEff(mvType,b.types)===0)
@@ -809,6 +818,23 @@ function battleTurn(S,rng,actsForA,actsForB){
       let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)
+        /* WIRE 11 -- the absorb GAIN. dmgRange already prices the hit at zero; HERE the absorber
+         * collects what its handler grants -- Volt Absorb heals 1/4, Storm Drain banks +1 SpA,
+         * Well-Baked Body +2 Def -- all from the artifact's gain param. The old 12-name table knew
+         * none of this: an absorbed hit was merely zero, never a gift. Flash Fire's volatile has no
+         * state to land on -- carried, unconsumed, stated. The whole hit ends here: no secondaries,
+         * no punishment, no berry, exactly as onTryHit returning null ends it in the real engine. */
+        const _ab=TAGS.param('ability',tg.ability,'typeImmunity');
+        if(_ab&&_ab.type===effMoveType(mv,a.move.id,field)){
+          if(_ab.gain&&!tg.fainted){
+            const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
+            if(_h)tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
+            if(_ab.gain.boosts&&tg.boosts)for(const k in _ab.gain.boosts){
+              const _s=SD2ENG[k];if(_s&&tg.boosts[_s]!=null)tg.boosts[_s]=clamp(tg.boosts[_s]+_ab.gain.boosts[k],-6,6);
+            }
+          }
+          continue;
+        }
         const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
         if(tg.protect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%

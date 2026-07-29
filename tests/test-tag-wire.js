@@ -426,6 +426,54 @@ console.log('\nwire 10 — entry effects on faint replacements');
   ok(wet > dry * 1.4, `rain is worth x${(wet / dry).toFixed(2)} on Hydro Pump — the stake the old bug forfeited`);
 }
 
+/* ---- WIRE 11: typeImmunity — the absorb is zero damage AND a gift ---------------------------- */
+console.log('\nwire 11 — typeImmunity');
+{
+  const db = require(path.join(ROOT, 'data', 'tags.json'));
+  const members = Object.keys(db.abilities).filter(k => (db.abilities[k].tags || []).includes('typeImmunity'));
+  ok(members.length === 12, `${members.length} absorb/immunity abilities, matching the 12-name table this wire deletes`);
+  ok(members.every(k => db.abilities[k].params.typeImmunity.type),
+    'every member names its TYPE (was {immune:true} — a boolean in param\'s clothing)');
+
+  const F = { terrain: '', weather: '', twA: 0, twB: 0 };
+  const att = M.buildMon('pelipper', {});
+  const va = M.buildMon('garchomp', {}); va.ability = 'voltabsorb';
+  ok(M.dmgRange(M.buildMon('pikachu', {}) || att, va, MC.moves.thunderbolt || MC.moves.discharge, F, false).max === 0,
+    'an Electric hit into Volt Absorb prices at zero, from the tag');
+  ok(M.dmgRange(att, va, MC.moves.hydropump, F, false).max > 0,
+    'a Water hit into the same body lands — the immunity is per-TYPE, not per-name');
+
+  /* the gain, in a real battle: a 1-HP Volt Absorb body eats a forced Discharge and HEALS 1/4 */
+  /* Both tests strip ITEMS (a dataset Sitrus healed on top of the absorb and got blamed on the
+   * wire) and roll 0.5 (0.9 made 80-accuracy Hydro Pump MISS — the engine was right both times). */
+  const A = [M.buildMon('pikachu', {})].filter(Boolean);
+  const holder = M.buildMon('garchomp', {}); holder.ability = 'voltabsorb'; holder.item = '';
+  if (A.length && holder && MC.moves.thunderbolt) {
+    A[0].item = '';
+    const S = M.battleInit(A, [holder]);
+    holder.curHP = 1;
+    const saved = MC.priors[A[0].name]; MC.priors[A[0].name] = null;
+    const savedH = MC.priors[holder.name]; MC.priors[holder.name] = null;
+    A[0].moves = ['thunderbolt']; holder.moves = ['protect'];
+    try { M.battleTurn(S, () => 0.5, new Map([[S.actA[0], M.playerAction(S.actA[0], 'thunderbolt', holder, S.field)]])); }
+    finally { MC.priors[A[0].name] = saved; MC.priors[holder.name] = savedH; }
+    ok(holder.curHP === 1 + Math.floor(holder.st.hp / 4),
+      `the absorbed hit HEALS the absorber 1/4 (1 -> ${holder.curHP}) — the old table priced this gift at nothing`);
+  }
+
+  /* Storm Drain banks +1 SpA instead */
+  const sd = M.buildMon('garchomp', {}); sd.ability = 'stormdrain'; sd.item = '';
+  const pel = M.buildMon('pelipper', {}); pel.item = '';
+  const S2 = M.battleInit([pel], [sd]);
+  const savedP = MC.priors.pelipper; MC.priors.pelipper = null;
+  const savedG = MC.priors[sd.name]; MC.priors[sd.name] = null;
+  S2.actA[0].moves = ['hydropump']; sd.moves = ['protect'];
+  try { M.battleTurn(S2, () => 0.5, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'hydropump', sd, S2.field)]])); }
+  finally { MC.priors.pelipper = savedP; MC.priors[sd.name] = savedG; }
+  ok(sd.boosts.sa === 1 && sd.curHP === sd.st.hp,
+    `Storm Drain banks +1 SpA off the absorbed Hydro Pump (sa ${sd.boosts.sa}, untouched HP)`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

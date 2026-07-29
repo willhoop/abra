@@ -5,8 +5,8 @@
      The battle screen mimics the Pokémon Showdown client: painted field with platform ellipses,
      YOUR mons as back sprites, white statbar bubbles with HP bars, the log panel on the right,
      grey-gradient move buttons, and the sequential "What will X do?" flow that plays the turn the
-     moment the last choice lands. Ten floors; the guardians get smarter as you climb; the roof is
-     ALAKAZAM playing every price this project computes, showing its Future Sight read of you.
+     moment the last choice lands. THREE floors — the evolution line itself: ABRA half asleep, KADABRA
+     with the full scorer, ALAKAZAM with priced clicks and its Future Sight read of you.
      All resolution is the rollout engine itself, stepped: battleInit/battleTurn/playerAction. -->
 <style>
 :root{--chrome:#e3e8f0;--frame:#8ea0b8;--ink:#222;--dim:#667;--log:#fff;--btn1:#f8f8f8;--btn2:#dcdee2;
@@ -123,7 +123,7 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
   <img src="https://play.pokemonshowdown.com/sprites/ani/alakazam-mega.gif"
        onerror="this.onerror=null;this.src='https://play.pokemonshowdown.com/sprites/ani/alakazam.gif'" alt="Alakazam">
   <div><h1>ALAKAZAM'S BATTLE TOWER</h1>
-  <div class="sub">Ten floors of guardians, each smarter than the last. On the roof: ALAKAZAM, playing every price ABRA can compute — and reading your next click out loud.</div></div>
+  <div class="sub">Three guardians — the evolution line itself. ABRA is half asleep. KADABRA is awake. On the roof: ALAKAZAM, playing every price ABRA can compute — and reading your next click out loud.</div></div>
 </div>
 
 <div class="layout">
@@ -188,6 +188,7 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
 </div></div></div>
 
 <script src="../data/engine-data.js"></script>
+<script src="../data/abra-meta.js"></script>
 <script src="../data/move-effects.js"></script>
 <script src="../data/abra-tags.js"></script>
 <script src="../engine/medicham2-browser.js"></script>
@@ -204,19 +205,35 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp
 function sRng(seed){var s=(seed*2654435761+12345)>>>0;
   return function(){s=(Math.imul(s,1103515245)+12345)>>>0;return (s&0x7fffffff)/0x80000000;};}
 
-/* ---- floors ---- */
-var FLOORS=[];
-(function(){
-  for(var f=1;f<=9;f++){
-    var r=sRng(9000+f*77),six=[],pool=NAMES.slice();
-    while(six.length<4){var k=pool.splice(Math.floor(r()*pool.length),1)[0];
-      if(/-mega/.test(k)&&six.some(function(x){return /-mega/.test(x);}))continue;six.push(k);}
-    FLOORS.push({n:f,team:six,brain:f<=3?'wild':(f<=6?'clone':'scorer'),
-      label:f<=3?'clicks at random':(f<=6?'plays the ladder priors':'plays the full scorer')});
+/* ---- THREE floors: the evolution line itself (Will: "we dont need ten, maybe like 3 —
+ * ABRA, KADABRA, ALAKAZAM"). Guardian teams come from the MEASURED meta, not a uniform draw
+ * over all 289 (which made Stunfisk a floor boss): data/abra-meta.js ranks species by team rate
+ * over 5,368 competitive teams. ABRA fields real second-tier mons and clicks half-asleep;
+ * KADABRA fields the meta and plays the full scorer; ALAKAZAM leads its own mega over the top
+ * of the format, priced clicks and Future Sight on. */
+var THREATS=((window.ABRA_META&&window.ABRA_META.threats)||[]).filter(function(t){return MC.mons[t.sp];});
+function drawTeam(seed,lo,hi){
+  var r=sRng(seed),pool=THREATS.slice(lo,hi).map(function(t){return t.sp;}),out=[];
+  while(out.length<4&&pool.length){
+    var k=pool.splice(Math.floor(r()*pool.length),1)[0];
+    if(/-mega/.test(k)&&out.some(function(x){return /-mega/.test(x);}))continue;
+    out.push(k);
   }
-  FLOORS.push({n:10,team:['alakazam-mega','kingambit','incineroar','garchomp'],brain:'alakazam',
-    label:'the priced scorer + Future Sight'});
-})();
+  var fill=NAMES.slice();
+  while(out.length<4)out.push(fill[Math.floor(sRng(seed+7)()*fill.length)]);
+  return out;
+}
+var FLOORS=[
+  {n:1,guardian:'abra',title:'ABRA',brain:'wild',
+   label:'half asleep — it clicks at random',team:drawTeam(41,15,60)},
+  {n:2,guardian:'kadabra',title:'KADABRA',brain:'scorer',
+   label:'awake — it plays the full scorer',team:drawTeam(42,3,25)},
+  {n:3,guardian:'alakazam',title:'ALAKAZAM',brain:'alakazam',
+   label:'evolved — priced clicks, and it reads you',
+   team:(function(){var t=['alakazam-mega'];
+     for(var i=0;i<THREATS.length&&t.length<4;i++){var sp=THREATS[i].sp;if(!/-mega/.test(sp))t.push(sp);}
+     return t;})()}
+];
 
 var state={floor:1,best:+(localStorage.getItem('towerBest')||0),
   myFour:['incineroar','garchomp','kingambit','whimsicott'],
@@ -226,8 +243,8 @@ var state={floor:1,best:+(localStorage.getItem('towerBest')||0),
 function rail(){
   var h='';
   for(var i=FLOORS.length-1;i>=0;i--){var F=FLOORS[i];
-    h+='<div class="floor'+(F.n===10?' boss':'')+(F.n===state.floor?' now':'')+(F.n<state.floor?' beat':'')+'">'+
-      img(ICON(F.team[0]),F.team[0])+'<div>F'+F.n+' · '+(F.n===10?'ALAKAZAM':esc(F.team[0]))+'</div></div>';
+    h+='<div class="floor'+(F.n===3?' boss':'')+(F.n===state.floor?' now':'')+(F.n<state.floor?' beat':'')+'">'+
+      img(ICON(F.guardian),F.guardian)+'<div>F'+F.n+' · '+esc(F.title)+'</div></div>';
   }
   document.getElementById('towerRail').innerHTML=h;
   document.getElementById('streakNow').textContent=state.floor-1;
@@ -303,9 +320,9 @@ function startFloor(){
   document.getElementById('pResult').classList.add('hide');
   document.getElementById('pBattle').classList.remove('hide');
   document.getElementById('scene').classList.toggle('boss',F.brain==='alakazam');
-  document.getElementById('roomBar').textContent='Battle Tower — Floor '+F.n+(F.n===10?' · THE ROOF':'')+' · the guardian '+F.label;
+  document.getElementById('roomBar').textContent='Battle Tower — Floor '+F.n+' · '+F.title+' · '+F.label;
   document.getElementById('log').innerHTML='';
-  say('<h4>Floor '+F.n+(F.n===10?' — THE ROOF':'')+'</h4>');
+  say('<h4>Floor '+F.n+' — '+esc(F.title)+(F.n===3?' · THE ROOF':'')+'</h4>');
   state.S.actB.forEach(function(m){if(m)say('The guardian sent out <span class="fb mv">'+esc(m.name)+'</span>!');});
   state.S.actA.forEach(function(m){if(m)say('Go! <span class="yb mv">'+esc(m.name)+'</span>!');});
   if(F.brain==='alakazam')say('<span class="wx">ALAKAZAM opens its third eye…</span>');
@@ -494,15 +511,15 @@ function finish(r){
   document.getElementById('pBattle').classList.add('hide');
   document.getElementById('pResult').classList.remove('hide');
   if(r===1){
-    if(state.floor===10){
-      state.best=Math.max(state.best,10);localStorage.setItem('towerBest',state.best);rail();
+    if(state.floor===3){
+      state.best=Math.max(state.best,3);localStorage.setItem('towerBest',state.best);rail();
       box.innerHTML='<h2 style="color:var(--psy2)">◈ YOU BEAT ALAKAZAM ◈</h2>'+img(FRONT('alakazam-mega'),'alakazam-mega','style="width:96px;height:96px;image-rendering:pixelated"')+
         '<p><b>The Tower is cleared.</b> The boss played every price this engine can compute — and you outplayed it.</p>'+
         '<button class="sbtn big" onclick="location.reload()">Climb again</button>';return;
     }
     state.floor++;state.best=Math.max(state.best,state.floor-1);localStorage.setItem('towerBest',state.best);rail();
     box.innerHTML='<h2 style="color:var(--you)">Floor cleared!</h2><p>Your team is healed. '+
-      (state.floor===10?'<b style="color:var(--psy2)">ALAKAZAM waits on the roof.</b>':'The next guardian is waiting.')+'</p>'+
+      (state.floor===3?'<b style="color:var(--psy2)">ALAKAZAM waits on the roof.</b>':'KADABRA is awake upstairs.')+'</p>'+
       '<button class="sbtn big" id="btnNext">Next floor →</button>';
     document.getElementById('btnNext').onclick=startFloor;
   } else {
