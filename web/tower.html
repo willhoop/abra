@@ -130,6 +130,7 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
 <div>
   <div class="rail"><h3>The Tower</h3><div id="towerRail"></div></div>
   <div class="streak">STREAK<br><b id="streakNow">0</b><br><span style="font-weight:normal;color:#778">best <span id="streakBest">0</span></span></div>
+  <div class="streak" id="bossRecord" title="One game proves nothing — this is your running series."></div>
 </div>
 <div>
 
@@ -230,8 +231,11 @@ var FLOORS=[
    label:'awake — it plays the full scorer',team:drawTeam(42,3,25)},
   {n:3,guardian:'alakazam',title:'ALAKAZAM',brain:'alakazam',
    label:'evolved — priced clicks, and it reads you',
-   team:(function(){var t=['alakazam-mega'];
-     for(var i=0;i<THREATS.length&&t.length<4;i++){var sp=THREATS[i].sp;if(!/-mega/.test(sp))t.push(sp);}
+   /* the guardian is ALAKAZAM the MIND, not the mon (Will) — it simply fields the top of the
+    * measured meta, one mega at most, exactly as the format's best players do */
+   team:(function(){var t=[];
+     for(var i=0;i<THREATS.length&&t.length<4;i++){var sp=THREATS[i].sp;
+       if(/-mega/.test(sp)&&t.some(function(x){return /-mega/.test(x);}))continue;t.push(sp);}
      return t;})()}
 ];
 
@@ -502,6 +506,23 @@ function refreshDataRow(){
   document.getElementById('btnDownload').textContent='Download my games ('+n+')';
   document.getElementById('btnDownload').disabled=!n;
   document.getElementById('btnWipe').disabled=!n;
+  bossRecord();
+}
+/* WHO IS BETTER, YOU OR ALAKAZAM? One game proves nothing (Will: "you need to play alakazam like
+ * a hundred times to determine who is better"). This is the running series against the BOSS floor
+ * only, from your local games, with a plain-words note on what the sample can actually resolve:
+ * at n games, a real gap smaller than about 100/sqrt(n) points is invisible. 25 games sees ~20
+ * points; 100 games ~10; the same honesty rule as every measurement in this project. */
+function bossRecord(){
+  var el=document.getElementById('bossRecord');if(!el)return;
+  var rows;try{rows=JSON.parse(localStorage.getItem('towerGames')||'[]');}catch(e){rows=[];}
+  var g=rows.filter(function(r){return r.brain==='alakazam';});
+  var w=g.filter(function(r){return r.result==='win';}).length,n=g.length;
+  if(!n){el.innerHTML='VS ALAKAZAM<br><b>no games yet</b><br><span style="font-weight:normal;color:#778">the series starts on the roof</span>';return;}
+  var res=Math.round(100/Math.sqrt(n));
+  el.innerHTML='VS ALAKAZAM<br><b>'+w+'–'+(n-w)+'</b> ('+Math.round(100*w/n)+'%)<br>'+
+    '<span style="font-weight:normal;color:#778">'+n+' game'+(n===1?'':'s')+' can only see a ~'+res+'-point gap'+
+    (n<100?' — keep playing':'')+'</span>';
 }
 
 function finish(r){
