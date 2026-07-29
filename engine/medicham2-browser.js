@@ -152,8 +152,45 @@ function mvMakesContact(id){
   return (_contactCache[k]=TAGS.has('move',k,'contact'));
 }
 
+/* The compact move table stores no id on the move object, and dmgRange's signature is shared with
+ * every caller, so the id is stamped ONTO the table once -- derived from the table's own key, which
+ * is the id. Lazy because in the browser this module can load before window.MC does. */
+let _mvIdsStamped=false;
+function stampMoveIds(){
+  if(_mvIdsStamped)return;
+  const T=(typeof MC!=='undefined'&&MC&&MC.moves)?MC.moves:null; if(!T)return;
+  for(const k in T)if(T[k]&&typeof T[k]==='object')T[k].id=k;
+  _mvIdsStamped=true;
+}
+/* WIRE 7 -- weatherScaled, accuracy half. Thunder and Hurricane are 100-acc in rain and 50 in sun,
+ * Blizzard is 100 in snow; the ACC table alone said 70/70/70 in every sky. The artifact names the
+ * weather and the number; this helper is the single accuracy authority for both the battle loop's
+ * to-hit roll and chooseAction's expected-value scoring. */
+function moveAccuracy(id,field){
+  stampMoveIds();
+  const _ws=TAGS.param('move',id,'weatherScaled');
+  if(_ws&&_ws.byWeather&&field&&field.weather){
+    const w=_ws.byWeather[field.weather];
+    if(w&&w.accuracy!=null)return w.accuracy;
+  }
+  return ACC[id]||100;
+}
 function dmgRange(att,def,mv,field,spread){
   if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
+  stampMoveIds();
+  /* WIRE 7 -- weatherScaled, damage half. Weather Ball was Normal 50 BP in every sky; in sand it is
+   * a 100 BP Rock move, which is a different move. Solar Beam sheds half its power in rain, sand and
+   * snow. The type and power overrides happen HERE, before STAB, effectiveness, the rain/sun x1.5,
+   * items and absorb abilities, so every downstream read sees the move the weather actually makes.
+   * chargeSkip is carried by the artifact but has no state to land on: this engine plays every move
+   * in one turn, so Solar Beam is (wrongly, pre-existing) never charged anywhere -- stated, not fixed
+   * by pretending. Pure: mv is never mutated, the overrides live in locals. */
+  let mvT=mv.t,mvBP=mv.bp;
+  const _ws=mv.id&&TAGS.param('move',mv.id,'weatherScaled');
+  if(_ws&&_ws.byWeather&&field&&field.weather){
+    const w=_ws.byWeather[field.weather];
+    if(w){if(w.type)mvT=w.type;if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}
+  }
   const phys=mv.c==='P';
   let A=phys?att.st.at:att.st.sa,D=phys?def.st.df:def.st.sd;
   A=Math.floor(A*boostMul(phys?att.boosts.at:att.boosts.sa));
@@ -187,16 +224,16 @@ function dmgRange(att,def,mv,field,spread){
   if(!phys&&att.ability==='beadsofruin')D=Math.floor(D*0.75);
   if(phys&&def.ability==='tabletsofruin')A=Math.floor(A*0.75);
   if(!phys&&def.ability==='vesselofruin')A=Math.floor(A*0.75);
-  let base=Math.floor(Math.floor(22*mv.bp*A/D)/50)+2;
+  let base=Math.floor(Math.floor(22*mvBP*A/D)/50)+2;
   if(spread)base=Math.floor(base*0.75);
-  if(field.weather==='rain'){if(mv.t==='Water')base=Math.floor(base*1.5);if(mv.t==='Fire')base=Math.floor(base*0.5);}
-  if(field.weather==='sun'){if(mv.t==='Fire')base=Math.floor(base*1.5);if(mv.t==='Water')base=Math.floor(base*0.5);}
-  if(att.ability==='technician'&&mv.bp<=60)base=Math.floor(base*1.5);
-  const eff=mcEff(mv.t,def.types); if(eff===0)return{min:0,max:0,eff:0};
+  if(field.weather==='rain'){if(mvT==='Water')base=Math.floor(base*1.5);if(mvT==='Fire')base=Math.floor(base*0.5);}
+  if(field.weather==='sun'){if(mvT==='Fire')base=Math.floor(base*1.5);if(mvT==='Water')base=Math.floor(base*0.5);}
+  if(att.ability==='technician'&&mvBP<=60)base=Math.floor(base*1.5);
+  const eff=mcEff(mvT,def.types); if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
   const IMM={waterabsorb:'Water',stormdrain:'Water',dryskin:'Water',voltabsorb:'Electric',lightningrod:'Electric',motordrive:'Electric',flashfire:'Fire',wellbakedbody:'Fire',sapsipper:'Grass',levitate:'Ground',eartheater:'Ground',eelevate:'Ground'};
-  if(IMM[def.ability]===mv.t)return{min:0,max:0,eff:0};
-  const stab=att.types.includes(mv.t)?(att.ability==='adaptability'?2:1.5):1;
+  if(IMM[def.ability]===mvT)return{min:0,max:0,eff:0};
+  const stab=att.types.includes(mvT)?(att.ability==='adaptability'?2:1.5):1;
   const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
   /* WIRE 1 of N -- damageMultAll, from data/tags.json instead of a hardcoded name.
    * Was `att.item==='lifeorb'?1.3:1`, which is why the tag showed as "read": the string appeared.
@@ -210,17 +247,17 @@ function dmgRange(att,def,mv,field,spread){
   if(att.ability==='neuroforce'&&eff>1)mod*=1.25;
   if(att.ability==='tintedlens'&&eff<1)mod*=2;
   if((def.ability==='multiscale'||def.ability==='shadowshield')&&(def.curHP==null||def.st==null||def.curHP>=def.st.hp))mod*=0.5;
-  if(def.ability==='thickfat'&&(mv.t==='Fire'||mv.t==='Ice'))mod*=0.5;
-  if(def.ability==='heatproof'&&mv.t==='Fire')mod*=0.5;
-  if(def.ability==='purifyingsalt'&&mv.t==='Ghost')mod*=0.5;
-  if(att.ability==='waterbubble'&&mv.t==='Water')mod*=2;
-  if(def.ability==='waterbubble'&&mv.t==='Fire')mod*=0.5;
+  if(def.ability==='thickfat'&&(mvT==='Fire'||mvT==='Ice'))mod*=0.5;
+  if(def.ability==='heatproof'&&mvT==='Fire')mod*=0.5;
+  if(def.ability==='purifyingsalt'&&mvT==='Ghost')mod*=0.5;
+  if(att.ability==='waterbubble'&&mvT==='Water')mod*=2;
+  if(def.ability==='waterbubble'&&mvT==='Fire')mod*=0.5;
   /* WIRE 2 of N -- damageMultType. This is a REAL GAIN, not a refactor: the eighteen type-boost
    * items on sheets (Black Glasses 1,332, Fairy Feather 1,521, Mystic Water 873, Charcoal 694 …
    * 5,918 uses) were entirely ABSENT from this calc. Every one of them was worth x1.0 here.
    * The tag names both the type and the factor, read from each item's own handler. */
   const _ty=TAGS.param('item',att.item,'damageMultType');
-  if(_ty&&_ty.onType===mv.t&&_ty.mult)mod*=_ty.mult;
+  if(_ty&&_ty.onType===mvT&&_ty.mult)mod*=_ty.mult;
   /* Expert Belt is its own tag because it is conditional on the MATCHUP, not the type. */
   const _se=TAGS.param('item',att.item,'boostsSuperEffective');
   if(_se&&eff>1)mod*=(_se.mult||1.2);
@@ -235,7 +272,7 @@ function dmgRange(att,def,mv,field,spread){
    * Chilan is the exception the tag already separates: it halves Normal with no effectiveness
    * requirement, so the condition comes from requiresSuperEffective rather than being assumed. */
   const _rb=TAGS.param('item',def.item,'resistBerry');
-  if(_rb&&_rb.onType===mv.t&&(!_rb.requiresSuperEffective||eff>1))mod*=(_rb.mult||0.5);
+  if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1))mod*=(_rb.mult||0.5);
   if(att.item==='muscleband'&&phys)mod*=1.1;
   if(att.item==='wiseglasses'&&!phys)mod*=1.1;
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
@@ -246,7 +283,7 @@ const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttack
 // Malamar's Superpower/Overheat RAISE the stat instead of dropping it — the classic Contrary combo.
 const SELFDROP={closecombat:{df:-1,sd:-1},superpower:{at:-1,df:-1},overheat:{sa:-2},leafstorm:{sa:-2},dracometeor:{sa:-2},fleurcannon:{sa:-2},psychoboost:{sa:-2},makeitrain:{sa:-1},armorcannon:{df:-1,sd:-1},dragonascent:{df:-1,sd:-1},vcreate:{df:-1,sd:-1,sp:-1}};
 function bestMoveVs(att,def,field){ let best=null,bs=-1;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=att.ability==='noguard'?1:(ACC[id]||100)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=att.ability==='noguard'?1:moveAccuracy(id,field)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
     // value = expected damage discounted by accuracy AND by recoil self-damage (frail spammers shouldn't look free)
     const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);
     if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
@@ -274,9 +311,9 @@ function chooseAction(me,foes,ally,field,side,rng){
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
-  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=me.ability==='noguard'?1:(ACC[b.id]||100)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
+  for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=me.ability==='noguard'?1:moveAccuracy(b.id,field)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
   // a KO is only "guaranteed" if the move is accurate too — no relying on a 70% nuke
-  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&((ACC[bestAtk.id]||100)>=100||me.ability==='noguard');
+  const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&(moveAccuracy(bestAtk.id,field)>=100||me.ability==='noguard');
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
   const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
@@ -454,7 +491,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
       if(a.kind!=='attack')continue;
       const mv=a.move.mv;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
-      if((ACC[a.move.id]||100)<100&&rng()*100>(ACC[a.move.id]||100))continue;
+      const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
       if(!targets.length)targets=live(foes).slice(0,1);
@@ -605,5 +642,5 @@ root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MED
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,
-  moveFx,movePriority,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
+  moveFx,movePriority,moveAccuracy,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);

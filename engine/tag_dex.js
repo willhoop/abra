@@ -216,15 +216,67 @@ const MOVE_TAGS = [
     why: 'a higher crit stage, which the damage distribution should weight rather than ignore',
     of: m => (m.critRatio && m.critRatio > 1 && !m.willCrit) ? { critRatio: m.critRatio } : null },
   /* Will: "do we have the terrain and weather attacks like expanding force and weather ball".
-   * Weather Ball is 4,699 uses -- it changes TYPE, POWER and TARGET with the weather, and only the
-   * type is currently handled. Derived from the handlers rather than a move list. */
-  { tag: 'weatherScaled', param: 'type, power or target changes with the weather', probe: 'weatherBall',
-    why: 'Weather Ball (4,699 uses), Hydro Steam. Its type is handled; the power and the target '
-       + 'change are not',
-    of: m => ((m.onModifyType && /weather/i.test(String(m.onModifyType)))
-              || (m.onModifyMove && /weather/i.test(String(m.onModifyMove)))
-              || (m.basePowerCallback && /weather/i.test(String(m.basePowerCallback))))
-             ? { scalesWith: 'weather' } : null },
+   * Weather Ball is 4,699 uses -- it changes TYPE, POWER and TARGET with the weather.
+   *
+   * THE OLD PARAM WAS {scalesWith:'weather'} -- a boolean wearing a param's clothes. It named
+   * neither WHICH weather nor WHAT changes, so nothing could ever consume it, and the membership
+   * itself was wrong: Solar Beam's halving lives in onBasePower and its charge skip in onTryMove,
+   * neither of which the old probe read, so the move the handoff names was not even a member.
+   * byWeather is keyed sun/rain/sand/snow and each entry says exactly what that weather does:
+   * type, bpMult, accuracy, boosts, healFraction, chargeSkip -- all read from four handler idioms
+   * (the effectiveWeather switch, the includes() gate, isWeather(), and the weakWeathers array),
+   * never from a move list. */
+  { tag: 'weatherScaled', param: 'byWeather: WHICH weather changes WHAT (type / power / accuracy / boosts / heal / charge)', probe: 'weatherBall',
+    why: 'Weather Ball (4,699), Thunder, Hurricane, Blizzard, Solar Beam (2,477), Growth, and the '
+       + 'weather heals. The engine cannot price "it depends on the weather"; it can price x2 in sand',
+    of: m => {
+      const W2K = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain',
+                    sandstorm: 'sand', hail: 'snow', snowscape: 'snow' };
+      const by = {};
+      const put = (ws, k, v) => { for (const w of ws) { const key = W2K[w]; if (key) (by[key] = by[key] || {})[k] = v; } };
+      const fxInBody = (body, ws) => {
+        let mm;
+        if ((mm = body.match(/move\.type\s*=\s*"(\w+)"/)))            put(ws, 'type', mm[1]);
+        if ((mm = body.match(/move\.accuracy\s*=\s*(true|\d+)/)))     put(ws, 'accuracy', mm[1] === 'true' ? 100 : +mm[1]);
+        if ((mm = body.match(/move\.basePower\s*\*=\s*([\d.]+)/)))    put(ws, 'bpMult', +mm[1]);
+        if ((mm = body.match(/factor\s*=\s*(0?\.\d+|[\d.]+)/)))       put(ws, 'healFraction', +mm[1]);
+        if ((mm = body.match(/move\.boosts\s*=\s*\{([^}]*)\}/))) {
+          const b = {};
+          for (const part of mm[1].split(',')) { const kv = part.split(':').map(s => s.trim()); if (kv.length === 2 && /^-?\d+$/.test(kv[1])) b[kv[0].replace(/["']/g, '')] = +kv[1]; }
+          put(ws, 'boosts', b);
+        }
+      };
+      const weathersIn = s => [...s.matchAll(/"(\w+)"/g)].map(x => x[1]).filter(w => W2K[w]);
+      /* idiom 1: switch (…effectiveWeather()) { case "w": case "w": <body> break; } */
+      for (const h of ['onModifyType', 'onModifyMove', 'onHit']) {
+        const src = String(m[h] || '');
+        if (!/effectiveWeather/.test(src)) continue;
+        for (const sw of src.matchAll(/((?:case\s*"\w+":\s*)+)([^]*?)(?:break\b|$)/g))
+          fxInBody(sw[2], weathersIn(sw[1]));
+        /* idiom 2: ["w","w"].includes(…effectiveWeather…) { <body> }  (Growth) */
+        for (const inc of src.matchAll(/\[((?:\s*"\w+"\s*,?)+)\]\s*\.includes\([^)]*effectiveWeather[^)]*\)\s*\)?\s*\{?([^]{0,220})/g))
+          fxInBody(inc[2], weathersIn(inc[1]));
+      }
+      /* idiom 3: this.field.isWeather(["w","w"]) <stmt> (Blizzard) -- or a bare "w" (Shore Up) */
+      for (const h of ['onModifyMove', 'onModifyType', 'onHit']) {
+        for (const iw of String(m[h] || '').matchAll(/isWeather\(\s*(\[(?:\s*"\w+"\s*,?)+\]|"\w+")\s*\)\s*\)?\s*\{?([^]{0,120})/g))
+          fxInBody(iw[2], weathersIn(iw[1]));
+      }
+      /* idiom 4: const weakWeathers = ["w",…] … chainModify(N)  (Solar Beam / Blade halving) */
+      for (const h of ['onBasePower', 'basePowerCallback']) {
+        const src = String(m[h] || '');
+        if (!/effectiveWeather/.test(src)) continue;
+        const arr = src.match(/\[((?:\s*"\w+"\s*,?\s*)+)\]/), cm = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+        if (arr && cm) put(weathersIn(arr[1]), 'bpMult', +cm[1]);
+      }
+      /* the charge skip: a charge move whose onTryMove fires immediately in the named weathers */
+      if (m.flags && m.flags.charge) {
+        const src = String(m.onTryMove || '');
+        const inc = src.match(/\[((?:\s*"\w+"\s*,?)+)\]\s*\.includes\([^)]*effectiveWeather/);
+        if (inc && /attrLastMove\("\[still\]"\)/.test(src)) put(weathersIn(inc[1]), 'chargeSkip', true);
+      }
+      return Object.keys(by).length ? { byWeather: by } : null;
+    } },
   { tag: 'terrainScaled', param: 'power or target changes with the terrain', probe: 'terrainScaled',
     why: 'Expanding Force becomes a SPREAD move in Psychic Terrain, Rising Voltage doubles in '
        + 'Electric. Grassy Glide gains priority, which board.js already special-cases',

@@ -262,7 +262,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Last Respects | 3,034 | 4.6% | `needsUntrackedState` `variablePower` |
 | Kowtow Cleave | 3,006 | 4.6% | `contact` `moveClass` `neverMissesAttack` |
 | Encore | 2,786 | 4.2% | `sealsMoves` `statusCategory` `locksTarget` |
-| Solar Beam | 2,501 | 3.8% | `conditionalPower` `chargeTurn` `chargeSkippedByWeather` |
+| Solar Beam | 2,501 | 3.8% | `weatherScaled` `conditionalPower` `chargeTurn` `chargeSkippedByWeather` |
 | Hyper Voice | 2,496 | 3.8% | `spreadFoes` `sound` |
 | Earth Power | 2,409 | 3.7% | `secondaryStatEffect` |
 | Light Screen | 2,359 | 3.6% | `neverMisses` `halvesDamage` `statusCategory` |
@@ -284,7 +284,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Flip Turn | 1,774 | 2.7% | `contact` `pivotDamaging` |
 | Dual Wingbeat | 1,738 | 2.6% | `multiHit` `contact` |
 | Life Dew | 1,694 | 2.6% | `neverMisses` `statusCategory` `healsSelf` `healsAlly` |
-| Electro Shot | 1,679 | 2.5% | `chargeTurn` `chargeSkippedByWeather` |
+| Electro Shot | 1,679 | 2.5% | `weatherScaled` `chargeTurn` `chargeSkippedByWeather` |
 | Knock Off | 1,663 | 2.5% | `conditionalPower` `readsTargetItem` `takesTargetItem` `contact` |
 | Blizzard | 1,547 | 2.3% | `weatherScaled` `spreadFoes` `moveClass` `inflictsFreeze` |
 | Dire Claw | 1,520 | 2.3% | `contact` `moveClass` `proceduralStatus` |
@@ -489,7 +489,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Slack Off | 34 | 0.1% | `neverMisses` `statusCategory` `healsSelf` |
 | Ceaseless Edge | 33 | 0.1% | `contact` `moveClass` |
 | Chilling Water | 33 | 0.1% | `secondaryStatEffect` |
-| Synthesis | 33 | 0.1% | `neverMisses` `statusCategory` `healsSelf` |
+| Synthesis | 33 | 0.1% | `weatherScaled` `neverMisses` `statusCategory` `healsSelf` |
 | Burning Jealousy | 32 | 0.0% | `punishesBoostedTarget` `spreadFoes` |
 | Facade | 32 | 0.0% | `conditionalPower` `contact` |
 | Frost Breath | 32 | 0.0% | `alwaysCrit` |
@@ -522,7 +522,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Night Shade | 22 | 0.0% | `fixedDamage` `fixedDamage` |
 | Aura Wheel | 21 | 0.0% | `secondaryStatEffect` |
 | Bullet Seed | 21 | 0.0% | `multiHit` `moveClass` |
-| Moonlight | 21 | 0.0% | `neverMisses` `statusCategory` `healsSelf` |
+| Moonlight | 21 | 0.0% | `weatherScaled` `neverMisses` `statusCategory` `healsSelf` |
 | Mortal Spin | 21 | 0.0% | `spreadFoes` `contact` `inflictsPoison` |
 | Sand Tomb | 21 | 0.0% | `partialTrap` |
 | Stockpile | 21 | 0.0% | `neverMisses` `statusCategory` |
@@ -579,7 +579,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Mud Shot | 9 | 0.0% | `secondaryStatEffect` |
 | Shell Side Arm | 9 | 0.0% | `dualPurpose` `inflictsPoison` |
 | Simple Beam | 9 | 0.0% | `statusCategory` |
-| Solar Blade | 9 | 0.0% | `conditionalPower` `contact` `moveClass` `chargeTurn` `chargeSkippedByWeather` |
+| Solar Blade | 9 | 0.0% | `weatherScaled` `conditionalPower` `contact` `moveClass` `chargeTurn` `chargeSkippedByWeather` |
 | Steel Wing | 9 | 0.0% | `contact` `secondaryStatEffect` |
 | Psyshield Bash | 8 | 0.0% | `contact` `secondaryStatEffect` |
 | Feather Dance | 8 | 0.0% | `lowersTarget` `statusCategory` |
@@ -592,7 +592,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Avalanche | 7 | 0.0% | `variablePower` `priority` `contact` `needsTargetToAttack` |
 | Counter | 7 | 0.0% | `fixedDamage` `priority` `contact` `needsTargetToAttack` |
 | Electro Ball | 7 | 0.0% | `needsUntrackedState` `variablePower` `moveClass` |
-| Morning Sun | 7 | 0.0% | `neverMisses` `statusCategory` `healsSelf` |
+| Morning Sun | 7 | 0.0% | `weatherScaled` `neverMisses` `statusCategory` `healsSelf` |
 | Self-Destruct | 7 | 0.0% | `spreadAll` `userFaints` |
 | Switcheroo | 7 | 0.0% | `takesTargetItem` `statusCategory` |
 | Thief | 7 | 0.0% | `takesTargetItem` `contact` |
@@ -1727,6 +1727,24 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
+### `weatherScaled` — 19.7%, 11 moves — **NOT READ**
+
+*byWeather: WHICH weather changes WHAT (type / power / accuracy / boosts / heal / charge)*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Weather Ball | 4,739 | 7.2% |
+| Solar Beam | 2,501 | 3.8% |
+| Hurricane | 2,275 | 3.4% |
+| Electro Shot | 1,679 | 2.5% |
+| Blizzard | 1,547 | 2.3% |
+| Thunder | 182 | 0.3% |
+| Synthesis | 33 | 0.1% |
+| Moonlight | 21 | 0.0% |
+| Solar Blade | 9 | 0.0% |
+| Morning Sun | 7 | 0.0% |
+| Growth | 4 | 0.0% |
+
 ### `recoil` — 17.9%, 11 moves
 
 *the user pays a FRACTION of the damage dealt*
@@ -1829,18 +1847,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Uproar | 1 | 0.0% |
 
 *5 more carry this tag but appear on no sheet in the corpus.*
-
-### `weatherScaled` — 13.3%, 5 moves — **NOT READ**
-
-*type, power or target changes with the weather*
-
-| move | on sheets | share |
-|---|---:|---:|
-| Weather Ball | 4,739 | 7.2% |
-| Hurricane | 2,275 | 3.4% |
-| Blizzard | 1,547 | 2.3% |
-| Thunder | 182 | 0.3% |
-| Growth | 4 | 0.0% |
 
 ### `thawsTarget` — 12.5%, 5 moves — **NOT READ**
 

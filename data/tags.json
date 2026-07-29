@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T08:23:07.547Z",
+ "generated": "2026-07-29T08:35:56.263Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -60,18 +60,19 @@
   {
    "tag": "weatherScaled",
    "kind": "move",
-   "param": "type, power or target changes with the weather",
-   "why": "Weather Ball (4,699 uses), Hydro Steam. Its type is handled; the power and the target change are not",
+   "param": "byWeather: WHICH weather changes WHAT (type / power / accuracy / boosts / heal / charge)",
+   "why": "Weather Ball (4,699), Thunder, Hurricane, Blizzard, Solar Beam (2,477), Growth, and the weather heals. The engine cannot price \"it depends on the weather\"; it can price x2 in sand",
    "consumedBy": null,
    "used": false,
-   "n": 5,
-   "uses": 8747,
+   "n": 11,
+   "uses": 12997,
    "examples": [
     "Growth",
     "Blizzard",
+    "Electro Shot",
     "Hurricane",
-    "Thunder",
-    "Weather Ball"
+    "Moonlight",
+    "Morning Sun"
    ]
   },
   {
@@ -7404,7 +7405,14 @@
    "uses": 4,
    "params": {
     "weatherScaled": {
-     "scalesWith": "weather"
+     "byWeather": {
+      "sun": {
+       "boosts": {
+        "atk": 2,
+        "spa": 2
+       }
+      }
+     }
     },
     "neverMisses": {
      "pHit": 1,
@@ -8738,7 +8746,11 @@
    "uses": 1547,
    "params": {
     "weatherScaled": {
-     "scalesWith": "weather"
+     "byWeather": {
+      "snow": {
+       "accuracy": 100
+      }
+     }
     },
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -10197,11 +10209,19 @@
   "electroshot": {
    "name": "Electro Shot",
    "tags": [
+    "weatherScaled",
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
    "uses": 1679,
    "params": {
+    "weatherScaled": {
+     "byWeather": {
+      "rain": {
+       "chargeSkip": true
+      }
+     }
+    },
     "chargeTurn": {
      "charge": true
     },
@@ -11596,7 +11616,14 @@
    "uses": 2275,
    "params": {
     "weatherScaled": {
-     "scalesWith": "weather"
+     "byWeather": {
+      "rain": {
+       "accuracy": 100
+      },
+      "sun": {
+       "accuracy": 50
+      }
+     }
     },
     "moveClass": {
      "classes": [
@@ -12731,12 +12758,29 @@
   "moonlight": {
    "name": "Moonlight",
    "tags": [
+    "weatherScaled",
     "neverMisses",
     "statusCategory",
     "healsSelf"
    ],
    "uses": 21,
    "params": {
+    "weatherScaled": {
+     "byWeather": {
+      "sun": {
+       "healFraction": 0.667
+      },
+      "rain": {
+       "healFraction": 0.25
+      },
+      "sand": {
+       "healFraction": 0.25
+      },
+      "snow": {
+       "healFraction": 0.25
+      }
+     }
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -12752,12 +12796,29 @@
   "morningsun": {
    "name": "Morning Sun",
    "tags": [
+    "weatherScaled",
     "neverMisses",
     "statusCategory",
     "healsSelf"
    ],
    "uses": 7,
    "params": {
+    "weatherScaled": {
+     "byWeather": {
+      "sun": {
+       "healFraction": 0.667
+      },
+      "rain": {
+       "healFraction": 0.25
+      },
+      "sand": {
+       "healFraction": 0.25
+      },
+      "snow": {
+       "healFraction": 0.25
+      }
+     }
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -14798,12 +14859,29 @@
   "solarbeam": {
    "name": "Solar Beam",
    "tags": [
+    "weatherScaled",
     "conditionalPower",
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
    "uses": 2501,
    "params": {
+    "weatherScaled": {
+     "byWeather": {
+      "rain": {
+       "bpMult": 0.5
+      },
+      "sand": {
+       "bpMult": 0.5
+      },
+      "snow": {
+       "bpMult": 0.5
+      },
+      "sun": {
+       "chargeSkip": true
+      }
+     }
+    },
     "conditionalPower": {
      "conditional": true
     },
@@ -14818,6 +14896,7 @@
   "solarblade": {
    "name": "Solar Blade",
    "tags": [
+    "weatherScaled",
     "conditionalPower",
     "contact",
     "moveClass",
@@ -14826,6 +14905,22 @@
    ],
    "uses": 9,
    "params": {
+    "weatherScaled": {
+     "byWeather": {
+      "rain": {
+       "bpMult": 0.5
+      },
+      "sand": {
+       "bpMult": 0.5
+      },
+      "snow": {
+       "bpMult": 0.5
+      },
+      "sun": {
+       "chargeSkip": true
+      }
+     }
+    },
     "conditionalPower": {
      "conditional": true
     },
@@ -15528,12 +15623,29 @@
   "synthesis": {
    "name": "Synthesis",
    "tags": [
+    "weatherScaled",
     "neverMisses",
     "statusCategory",
     "healsSelf"
    ],
    "uses": 33,
    "params": {
+    "weatherScaled": {
+     "byWeather": {
+      "sun": {
+       "healFraction": 0.667
+      },
+      "rain": {
+       "healFraction": 0.25
+      },
+      "sand": {
+       "healFraction": 0.25
+      },
+      "snow": {
+       "healFraction": 0.25
+      }
+     }
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -15772,7 +15884,14 @@
    "uses": 182,
    "params": {
     "weatherScaled": {
-     "scalesWith": "weather"
+     "byWeather": {
+      "rain": {
+       "accuracy": 100
+      },
+      "sun": {
+       "accuracy": 50
+      }
+     }
     },
     "inflictsParalysis": {
      "p": 0.3,
@@ -16377,7 +16496,24 @@
    "uses": 4739,
    "params": {
     "weatherScaled": {
-     "scalesWith": "weather"
+     "byWeather": {
+      "sun": {
+       "type": "Fire",
+       "bpMult": 2
+      },
+      "rain": {
+       "type": "Water",
+       "bpMult": 2
+      },
+      "sand": {
+       "type": "Rock",
+       "bpMult": 2
+      },
+      "snow": {
+       "type": "Ice",
+       "bpMult": 2
+      }
+     }
     },
     "moveClass": {
      "classes": [

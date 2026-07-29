@@ -275,6 +275,55 @@ console.log('\nwire 6 — punishesAttacker complete');
     'a base-forme Gulp Missile body punishes nobody');
 }
 
+/* ---- WIRE 7: weatherScaled — the weather changes the move ------------------------------------ */
+console.log('\nwire 7 — weatherScaled');
+{
+  const db = require(path.join(ROOT, 'data', 'tags.json'));
+  const members = Object.keys(db.moves).filter(k => (db.moves[k].tags || []).includes('weatherScaled'));
+  ok(members.length >= 10 && members.includes('solarbeam'),
+    `${members.length} weather-scaled moves, and Solar Beam is finally a member (the old probe missed onBasePower)`);
+
+  const inWeather = (moveId, weather) => {
+    const a = M.buildMon('garchomp', {}); const d = M.buildMon('incineroar', {});
+    const r = M.dmgRange(a, d, MC.moves[moveId], { terrain: '', weather, twA: 0, twB: 0 }, false);
+    return r;
+  };
+
+  /* Weather Ball in sand must BE a Rock move at double power — the artifact names both. The type
+   * override is visible in eff itself: Normal into Fire/Dark is x1, Rock into Fire/Dark is x2. */
+  const wb = TAGS.param('move', 'weatherball', 'weatherScaled');
+  const clear = inWeather('weatherball', '');
+  const sand = inWeather('weatherball', 'sand');
+  ok(wb && wb.byWeather && wb.byWeather.sand && wb.byWeather.sand.type === 'Rock' && wb.byWeather.sand.bpMult === 2,
+    'artifact: sand makes Weather Ball a Rock move at x2 power');
+  ok(clear.eff === 1 && sand.eff === 2,
+    `the type override reaches effectiveness (clear x${clear.eff}, sand x${sand.eff} into Fire/Dark)`);
+  ok(sand.max > clear.max * 3,
+    `sand Weather Ball hits ${(sand.max / clear.max).toFixed(1)}x the clear-sky number (type + power together)`);
+
+  /* Solar Beam sheds half its power in rain — and rain ALSO does not halve it twice over: the
+   * artifact's 0.5 is the whole rain penalty for a Grass move (rain halves Fire, not Grass). */
+  const sb = TAGS.param('move', 'solarbeam', 'weatherScaled');
+  const sbClear = inWeather('solarbeam', ''), sbRain = inWeather('solarbeam', 'rain');
+  const sbRatio = sbRain.max / sbClear.max;
+  ok(sb && sb.byWeather && sb.byWeather.rain && sb.byWeather.rain.bpMult === 0.5,
+    'artifact: rain halves Solar Beam');
+  ok(Math.abs(sbRatio - 0.5) < 0.03, `rain Solar Beam lands at x${sbRatio.toFixed(3)} of clear-sky`);
+  ok(sb.byWeather.sun && sb.byWeather.sun.chargeSkip === true,
+    'the sun charge-skip is carried (unconsumed: this engine has no charge state)');
+
+  /* Thunder: 70 in clear skies, TRUE in rain, 50 in sun. The number must come from the artifact
+   * through moveAccuracy, which both the to-hit roll and the move scorer read. */
+  const th = TAGS.param('move', 'thunder', 'weatherScaled');
+  ok(th && th.byWeather.rain && th.byWeather.rain.accuracy === 100 && th.byWeather.sun && th.byWeather.sun.accuracy === 50,
+    'artifact: Thunder is 100 in rain, 50 in sun');
+  const accs = [M.moveAccuracy('thunder', { weather: '' }), M.moveAccuracy('thunder', { weather: 'rain' }), M.moveAccuracy('thunder', { weather: 'sun' })];
+  ok(accs[0] === 70 && accs[1] === 100 && accs[2] === 50,
+    `moveAccuracy says ${accs.join('/')} for clear/rain/sun (was 70 in every sky)`);
+  const bl = M.moveAccuracy('blizzard', { weather: 'snow' });
+  ok(bl === 100, `Blizzard is ${bl} in snow (was 70)`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
