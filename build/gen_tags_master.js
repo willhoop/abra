@@ -91,25 +91,24 @@ function section(kind, table, usage, title, blurb) {
   P('`read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**');
   P('means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.');
   P('');
+  /* ONE COMPACT BLOCK PER TAG, NOT A TABLE. Will: "this is the worst spaced pdf ive ever seen."
+   * He was right and the cause was structural, not stylistic -- 132 tables each carrying
+   * page-break-inside:avoid, so every table that did not fit the remaining space punched a hole to
+   * the next page. Members now run inline, which is both denser and easier to scan. */
   for (const r of rows) {
     const i = tagInfo[r.tag] || {};
     const shown = r.mem.filter(x => x[1] > 0);
-    P('### `' + r.tag + '` — ' + pct(r.tot) + ', ' + r.mem.length + ' ' + kind + ' — ' +
-      (i.used ? 'read' : '**NOT READ**'));
-    P('');
-    P('**Sets:** ' + (i.param || '?') + '  ');
-    if (i.why) P('**Why it matters:** ' + i.why);
-    P('');
+    P('**`' + r.tag + '`** · ' + pct(r.tot) + ' · ' + r.mem.length + ' ' + kind +
+      (i.used ? '' : ' · **NOT READ**') + '  ');
+    P('*' + (i.param || '?') + '*  ');
     if (shown.length) {
-      P('| ' + kind.replace(/s$/, '') + ' | entries | share |');
-      P('|---|---:|---:|');
-      for (const [id, c] of shown.slice(0, 16)) {
+      const list = shown.slice(0, 14).map(([id, c]) => {
         const o = kind === 'moves' ? dex.moves.get(id) : kind === 'items' ? dex.items.get(id) : dex.abilities.get(id);
-        P('| ' + ((o && o.name) || id) + ' | ' + c.toLocaleString() + ' | ' + pct(c) + ' |');
-      }
-      if (shown.length > 16) P('| *…and ' + (shown.length - 16) + ' more below this cut* | | |');
+        return ((o && o.name) || id) + ' ' + c.toLocaleString();
+      }).join(' · ');
+      P(list + (shown.length > 14 ? ' · *+' + (shown.length - 14) + ' more*' : ''));
     } else {
-      P('*Nothing with this tag appears on a single sheet — legal in the format, never brought.*');
+      P('*Legal in the format, never brought.*');
     }
     P('');
   }

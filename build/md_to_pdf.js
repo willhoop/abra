@@ -90,13 +90,13 @@ function render(md) {
 
 const title = path.basename(IN, '.md');
 const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
-@page { size: A4; margin: 18mm 16mm; }
+@page { size: A4; margin: 14mm 13mm; }
 body { font: 10.5pt/1.5 Georgia,"Times New Roman",serif; color:#15181f; max-width:none; }
 h1 { font-size:20pt; border-bottom:2px solid #15181f; padding-bottom:5px; margin:0 0 14px; page-break-after:avoid; }
-h2 { font-size:14.5pt; margin:22px 0 7px; border-bottom:1px solid #b9c0cc; padding-bottom:3px; page-break-after:avoid; }
+h2 { font-size:14.5pt; margin:16px 0 6px; border-bottom:1px solid #b9c0cc; padding-bottom:3px; page-break-after:avoid; }
 h3 { font-size:12pt; margin:16px 0 5px; page-break-after:avoid; }
 h4 { font-size:10.5pt; margin:12px 0 4px; page-break-after:avoid; }
-p { margin:0 0 8px; text-align:justify; }
+p { margin:0 0 7px; text-align:left; orphans:3; widows:3; }
 table { border-collapse:collapse; width:100%; margin:10px 0; font-size:9pt; page-break-inside:avoid; }
 th,td { border:1px solid #c3c9d4; padding:5px 7px; text-align:left; vertical-align:top; }
 th { background:#eef1f6; font-weight:700; }
@@ -106,7 +106,7 @@ pre { background:#f5f6fa; border:1px solid #d5dae3; border-left:3px solid #6b768
 pre code { background:none; padding:0; font-size:8.6pt; }
 blockquote { margin:9px 0; padding:2px 0 2px 13px; border-left:3px solid #b9c0cc; color:#3d4553; font-style:italic; }
 ul,ol { margin:0 0 9px; padding-left:22px; } li { margin:2px 0; }
-hr { border:0; border-top:1px solid #c3c9d4; margin:18px 0; }
+hr { border:0; border-top:1px solid #c3c9d4; margin:14px 0; }
 a { color:#1a4f9c; text-decoration:none; }
 strong { color:#000; }
 </style></head><body>
