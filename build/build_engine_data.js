@@ -74,9 +74,29 @@ for (const [key, m] of Object.entries(M.MONS)) {
   }
 }
 
+/* MOVES: keep the stored t/c/bp (champ-model's own compact table) but ENRICH from the dex with the
+ * self-cost facts the rollout previously kept as hand-typed name lists (Will: every click needs a
+ * cost, priced into decisions — a cost table someone typed is a cost table someone forgot to type):
+ *   rc    recoil as [numerator, denominator] of damage dealt — m.recoil is a plain dex field,
+ *         exactly the case Will ruled "look it up, don't restate it in a tag"
+ *   self  the move's own stat drops, from m.self.boosts (Superpower, Overheat, Close Combat) */
+const moves = {};
+for (const [key, mv] of Object.entries(prior.moves || {})) {
+  moves[key] = mv;
+  try {
+    const d = DEX && DEX.moves.get(key);
+    if (d && d.exists) {
+      if (d.recoil) mv.rc = d.recoil;
+      else if (mv.rc) delete mv.rc;
+      if (d.self && d.self.boosts) mv.self = d.self.boosts;
+      else if (mv.self) delete mv.self;
+    }
+  } catch (e) { /* keep whatever was stored */ }
+}
+
 const MC = {
   mons,
-  moves: prior.moves || {},
+  moves,
   C: M.C,
   priors: prior.priors || {},
 };

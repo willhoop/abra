@@ -278,15 +278,130 @@ function dmgRange(att,def,mv,field,spread){
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
   return {min:roll(85),max:roll(100),eff};
 }
-const RECOIL={bravebird:1/3,flareblitz:1/3,wavecrash:1/3,doubleedge:1/3,volttackle:1/3,woodhammer:1/3,headsmash:1/2,lightofruin:1/2,wildcharge:1/4,takedown:1/4,submission:1/4,headcharge:1/4};
-// move-specific self stat changes (negative = drop). Contrary REVERSES the sign, so e.g.
-// Malamar's Superpower/Overheat RAISE the stat instead of dropping it — the classic Contrary combo.
-const SELFDROP={closecombat:{df:-1,sd:-1},superpower:{at:-1,df:-1},overheat:{sa:-2},leafstorm:{sa:-2},dracometeor:{sa:-2},fleurcannon:{sa:-2},psychoboost:{sa:-2},makeitrain:{sa:-1},armorcannon:{df:-1,sd:-1},dragonascent:{df:-1,sd:-1},vcreate:{df:-1,sd:-1,sp:-1}};
-function bestMoveVs(att,def,field){ let best=null,bs=-1;
+/* Recoil and self stat drops now ride ON THE MOVE TABLE (mv.rc = [num,den] of damage dealt,
+ * mv.self = the drop in Showdown stat names), generated into data/engine-data.js from the dex by
+ * build/build_engine_data.js. The RECOIL and SELFDROP name tables that lived here priced 12 and 11
+ * moves respectively — the format's dex says 9 and 10, so the hand tables carried entries for moves
+ * not even in the pool while staying silent on any future addition. Look it up, never restate it. */
+const recoilOf=mv=>(mv&&mv.rc)?mv.rc[0]/mv.rc[1]:0;
+
+/* ---- THE PRICING-RISK ENGINE (Will: "what is the cost/risk of clicking this move" ... "that
+ * actually get priced into decisions"). Lives HERE, not in a helper module, because the scorer
+ * below consumes it and exposure.js already requires this file — a copy in each place is how the
+ * price and the simulation drift apart. exposure.js re-exports these for its own callers.
+ *
+ * Channels, unit-clean, weights deliberately NOT mixed here (board.js features + fit_policy own
+ * the real weights; `total` is a default view for the rollout heuristic and UIs):
+ *   selfHPFrac        fraction of own max HP (Rough Skin 1/8, burn/poison chip over the horizon)
+ *   outputHalvedFrac  share of own damage output lost (burn x physical share; GUTS INVERTS — a
+ *                     statused Guts body is +50%, so the channel goes NEGATIVE: seek the proc)
+ *   actionsLostFrac   share of remaining actions lost (full-para 12.5%, sleep 1.667, freeze 1.3125
+ *                     — the battle loop's own Champions numbers above)
+ *   stagesLost        negative stat stages taken (Gooey -1 speed a touch)
+ *   speedFlipsFrac    share of foes whose move ORDER flips at paralysed speed, via effSpeed;
+ *                     Trick Room inverts the sign, scaled by its remaining turns vs the horizon
+ * HORIZON measured, not guessed: median self-play game is 9 turns (29,256 games, 2026-07-29),
+ * so a mid-game click sees ~5 more. */
+const EXPOSURE_HORIZON=5;
+const SLEEP_TURNS_LOST=1+2/3, FREEZE_TURNS_LOST=0.75+0.75*0.75, FULL_PARA=0.125;
+function physicalShare(att){
+  let p=0,n=0;
+  for(const id of (att.moves||[])){const mv=MC.moves[id];if(!mv||!mv.bp)continue;n++;if(mv.c==='P')p++;}
+  return n?p/n:0.5;
+}
+function statusCostOf(att,status,H){
+  const out={selfHPFrac:0,outputHalvedFrac:0,actionsLostFrac:0};
+  const guts=att.ability==='guts';
+  if(guts)out.outputHalvedFrac=-0.5*physicalShare(att);       // dmgRange's own x1.5-when-statused
+  if(status==='burn'){if(!guts)out.outputHalvedFrac=physicalShare(att);out.selfHPFrac=H/16;}
+  else if(status==='poison')out.selfHPFrac=H/8;
+  else if(status==='bad poison'){let s=0;for(let n2=1;n2<=H;n2++)s+=Math.min(15,n2)/16;out.selfHPFrac=s;}
+  else if(status==='paralysis')out.actionsLostFrac=FULL_PARA; // speed half priced via flips below
+  else if(status==='sleep')out.actionsLostFrac=Math.min(H,SLEEP_TURNS_LOST)/H;
+  else if(status==='freeze')out.actionsLostFrac=Math.min(H,FREEZE_TURNS_LOST)/H;
+  return out;
+}
+function speedFlipShare(att,foes,field,side,H){
+  if(!foes||!foes.length)return 0;
+  field=field||{terrain:'',weather:'',twA:0,twB:0,tr:0};
+  const mySide=side||'A',foeSide=mySide==='A'?'B':'A';
+  const para=Object.assign({},att,{status:'par'});
+  const now=effSpeed(att,field,mySide),then=effSpeed(para,field,mySide);
+  let flips=0,n=0;
+  for(const f of foes){
+    if(!f||f.fainted)continue;n++;
+    const fs=effSpeed(f,field,foeSide);
+    let firstNow=now>fs,firstThen=then>fs;
+    if(field.tr>0){firstNow=!firstNow;firstThen=!firstThen;}
+    if(firstNow&&!firstThen)flips+=1;
+    else if(!firstNow&&firstThen)flips-=(field.tr>0?Math.min(field.tr,H)/H:1);
+  }
+  return n?flips/n:0;
+}
+function expectedHitsOf(moveId){
+  const p=TAGS.param('move',moveId,'multiHit');
+  if(!p)return 1;
+  return (p.distribution&&p.distribution.indexOf('2:35')===0)?3.1:2;
+}
+function punishExposure(att,tgt,moveId,opts){
+  opts=opts||{};
+  if(!att||!tgt||!moveId)return null;
+  const pun=TAGS.param('ability',tgt.ability,'punishesAttacker');
+  if(!pun||pun.requiresForme)return null;
+  const mv=MC.moves[moveId];
+  if(!mv||!mv.bp)return null;
+  const trig=pun.trigger==='contact'?TAGS.has('move',moveId,'contact')
+           :pun.trigger==='physical'?mv.c==='P'
+           :pun.trigger==='special'?mv.c==='S':true;
+  if(!trig)return null;
+  const H=opts.horizon||EXPOSURE_HORIZON;
+  const hits=expectedHitsOf(moveId);
+  const out={selfHPFrac:0,outputHalvedFrac:0,actionsLostFrac:0,stagesLost:0,speedFlipsFrac:0,parts:[]};
+  let pApply=1;
+  if(pun.onFaintOnly){
+    const dr=dmgRange(att,tgt,mv,opts.field||{terrain:'',weather:'',twA:0,twB:0},false);
+    pApply=dr.min>=tgt.curHP?1:(dr.max>=tgt.curHP?0.5:0);
+    if(!pApply)return null;
+  }
+  if(pun.fraction){
+    const f=hits*pApply/(+pun.fraction);
+    out.selfHPFrac+=f;
+    out.parts.push({what:'1/'+pun.fraction+' max HP per hit',p:pApply,cost:+f.toFixed(4)});
+  }
+  if(pun.boosts)for(const k in pun.boosts)if(pun.boosts[k]<0){
+    const st=hits*pApply*-pun.boosts[k];
+    out.stagesLost+=st;
+    out.parts.push({what:k+' '+pun.boosts[k]+' per hit',p:pApply,cost:+st.toFixed(4)});
+  }
+  if(pun.inflicts)for(const inf of pun.inflicts){
+    if(!canTakeStatus(att,CODE_OF_STATUS[inf.status]||inf.status))continue;
+    const pProc=(1-Math.pow(1-inf.chance,hits))*pApply;
+    const c=statusCostOf(att,inf.status,H);
+    out.selfHPFrac+=pProc*c.selfHPFrac;
+    out.outputHalvedFrac+=pProc*c.outputHalvedFrac;
+    out.actionsLostFrac+=pProc*c.actionsLostFrac;
+    if(inf.status==='paralysis'&&opts.foes)
+      out.speedFlipsFrac+=pProc*speedFlipShare(att,opts.foes,opts.field,opts.side,H);
+    out.parts.push({what:inf.status+' '+(100*inf.chance)+'%',p:+pProc.toFixed(4),
+      cost:+(pProc*(c.selfHPFrac+c.outputHalvedFrac+c.actionsLostFrac)).toFixed(4)});
+  }
+  if(!out.parts.length)return null;
+  out.total=+(out.selfHPFrac+out.outputHalvedFrac+out.actionsLostFrac
+            +0.125*out.stagesLost+0.25*out.speedFlipsFrac).toFixed(4);
+  return out;
+}
+function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
   for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=att.ability==='noguard'?1:moveAccuracy(id,field)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
-    // value = expected damage discounted by accuracy AND by recoil self-damage (frail spammers shouldn't look free)
-    const sc=((d.min+d.max)/2)*acc*(RECOIL[id]?0.85:1);
-    if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc};}}
+    /* value = expected damage MINUS the priced cost of the click (Will: "that actually get priced
+     * into decisions"). The old line multiplied recoil moves by a flat 0.85 — a fudge that charged
+     * Brave Bird and Head Smash identically and charged Rough Skin nothing. Both costs are now in
+     * HP on the same scale as the damage: recoil as the dex fraction of what lands, the punisher
+     * price as its exposure total times own max HP (the 1-own-HP = 1-enemy-HP exchange is this
+     * heuristic's one modeling choice — the fitted policy learns its own weights instead). */
+    const exp=((d.min+d.max)/2)*acc;
+    const x=punishExposure(att,def,id,{field});
+    const sc=exp-recoilOf(mv)*exp-(x?x.total*att.st.hp*acc:0);
+    if(sc>bs){bs=sc;best={id,mv,spread:SPREAD.has(id),d,acc,cost:x?+(x.total*att.st.hp).toFixed(1):0};}}
   return best;
 }
 // pick the best target (max damage) for a SPECIFIC move
@@ -617,11 +732,13 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
          * above, from the artifact, with the gate the handler actually states (none). */
       }
-      // recoil: frail spammers pay for Brave Bird / Flare Blitz / Wave Crash
-      if(RECOIL[a.move.id]&&dealt>0){m.curHP-=Math.floor(dealt*RECOIL[a.move.id]);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
-      // self stat changes; Contrary flips drops into boosts (Malamar Superpower/Overheat ramp)
-      const sdrop=SELFDROP[a.move.id];
-      if(sdrop){const sgn=m.ability==='contrary'?-1:1;for(const k in sdrop)m.boosts[k]=clamp(m.boosts[k]+sdrop[k]*sgn,-6,6);}
+      // recoil, from the move table's dex-generated fraction (was a 12-name hand table)
+      const _rcF=recoilOf(a.move.mv);
+      if(_rcF&&dealt>0){m.curHP-=Math.floor(dealt*_rcF);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
+      const sdrop=a.move.mv.self;
+      if(sdrop){const sgn=m.ability==='contrary'?-1:1;
+        for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null)m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);}}
       if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     }
     /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the
@@ -714,8 +831,10 @@ root.futureSight=futureSight;
 /* the tag lookup, exported so exposure.js prices risk off the SAME adapter the wires read —
  * a second adapter over window.ABRA_TAGS would be a place for the two to disagree */
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
+root.punishExposure=punishExposure;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
+  punishExposure,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,
   moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);

@@ -127,6 +127,42 @@ console.log('EXPOSURE — the price of the click, reconstructed by hand\n');
   ok(x === null, 'forme-gated members price at zero, exactly as the rollout skips them');
 }
 
+/* THE POINT OF ALL OF IT: the price changes the click. Same attacker, same moves, same target —
+ * only the attacker's max HP moves, which scales the punisher price without touching the damage
+ * dealt. At real HP the contact nuke wins; at a max HP that makes 1/8-per-touch enormous, the
+ * scorer must walk around the Rough Skin. */
+{
+  const tgt = mon('incineroar', 'roughskin');
+  const F = { terrain: '', weather: '', twA: 0, twB: 0 };
+  /* First finding of the priced scorer, kept as the test: Iron Head beats Air Slash by only ~6 HP
+   * into this target, and the Rough Skin toll is ~22 — so at REAL HP the right click is already
+   * the non-contact one, and the scorer now says so. Brave Bird's margin survives both its recoil
+   * and the toll, so it wins at real HP; inflate max HP (which scales the toll, not the damage)
+   * and the same scorer walks around the Rough Skin. */
+  const att = mon('corviknight');
+  att.moves = ['bravebird', 'airslash'];
+  const cheap = M.bestMoveVs(att, tgt, F);
+  ok(cheap && cheap.id === 'bravebird' && cheap.cost > 0,
+    `at real HP Brave Bird still wins WITH recoil and the toll priced (cost ${cheap && cheap.cost} HP)`);
+  att.st = Object.assign({}, att.st, { hp: 20000 });
+  const dear = M.bestMoveVs(att, tgt, F);
+  ok(dear && dear.id === 'airslash',
+    `when the same touch costs 2,500 HP the scorer walks around the Rough Skin (picked ${dear && dear.id})`);
+  att.st = Object.assign({}, att.st, { hp: 175 });
+  const ih = mon('corviknight'); ih.moves = ['ironhead', 'airslash'];
+  const close = M.bestMoveVs(ih, tgt, F);
+  ok(close && close.id === 'airslash',
+    'and the 6-HP Iron Head edge is correctly NOT worth a 22-HP toll — the price flips a real margin');
+}
+
+/* the cost data itself now rides the generated move table — no name lists left to go stale */
+{
+  ok(JSON.stringify(MC.moves.bravebird.rc) === '[33,100]' && JSON.stringify(MC.moves.headsmash.rc) === '[1,2]',
+    'recoil fractions are dex-generated fields on the move table (Brave Bird 33/100, Head Smash 1/2)');
+  ok(MC.moves.superpower.self && MC.moves.superpower.self.atk === -1 && MC.moves.overheat.self.spa === -2,
+    'self stat drops likewise (Superpower -1/-1, Overheat -2 SpA) — the hand tables are deleted');
+}
+
 console.log('');
 if (fail) { console.log(`${fail} price(s) disagree with the artifact.`); process.exit(1); }
 console.log(`${pass} checks passed. The price and the simulation read one artifact.`);
