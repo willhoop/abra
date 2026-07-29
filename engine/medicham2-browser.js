@@ -140,7 +140,7 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
     else { st=meg; }
   }
   return {name,types,st,item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
-    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null}; }
 
 /* Does this move make contact? Read from the move's own flag via the tag artifact, which is the
  * `contact` linkage key -- 141 moves and 77,226 move-slots. No name list. */
@@ -480,7 +480,22 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
         const t=a.target; if(!t||t.fainted||t.protect) continue;
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
-        if(!st) continue;                                       // not a status-inflicting move; no effect
+        /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
+         * discarded the click as "no effect" -- 8th-most-clicked status move, a no-op. The tag says
+         * everything the wire needs: effect drain, 1/8 of the TARGET's max HP, healed to the user,
+         * blocked by Grass -- the immunity comes from the move's own onTryImmunity, not a name here.
+         * Curse/Salt Cure (effect 'damage') and the self-heals stay unconsumed until the engine can
+         * host them honestly; a tag consumed HALF-right is how the 20-mechanic batch went wrong. */
+        if(!st){
+          const _pt=TAGS.param('move',a.mv,'perTurnHP');
+          if(_pt&&_pt.effect==='drain'&&_pt.on==='target'&&_pt.per&&!t._seededBy
+             &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
+             &&!pranksterBlocked(m,t,a.mv)){
+            const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
+            if(rng()*100<=acc) t._seededBy={by:m,per:_pt.per};
+          }
+          continue;                                             // no major status to apply
+        }
         if(powderBlocked(t,a.mv)) continue;                     // Grass / Overcoat / Safety Goggles
         if(pranksterBlocked(m,t,a.mv)) continue;                // Prankster does not touch Dark types
         const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
@@ -621,6 +636,18 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
         m.curHP-=Math.floor(m.st.hp*Math.min(15,m.toxTurns)/16);}
       if(m.item==='leftovers')m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/16));
       if(m.item==='sitrusberry'&&m.curHP<=m.st.hp/2){m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/4));m.item='';}
+      /* WIRE 8 -- the drain lands here, with the residuals. The amount divides the VICTIM's max HP
+       * (seeding a tank returns more than seeding a pixie -- that is the tag's per, not a constant)
+       * and the same number is handed to the seeder, capped at full. If the seeder is down the chip
+       * continues and the heal is simply lost -- close to the real slot rule without slot state. */
+      if(m._seededBy&&m.curHP>0){
+        /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
+         * victim still had, and handing the seeder more than that would mint HP from nothing. */
+        const _d=Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
+        m.curHP-=_d;
+        const _s=m._seededBy.by;
+        if(_s&&!_s.fainted&&_s.curHP>0)_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);
+      }
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;

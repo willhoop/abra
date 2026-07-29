@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T08:35:56.263Z",
+ "generated": "2026-07-29T08:43:55.212Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1431,8 +1431,8 @@
    "kind": "move",
    "param": "the charge turn DISAPPEARS under one weather",
    "why": "Electro Shot in rain, Solar Beam and Solar Blade in sun. Same move, no downside, and the weather that does it is usually one the user set themselves",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "chargeSkip",
+   "used": true,
    "n": 3,
    "uses": 4189,
    "examples": [
@@ -7715,9 +7715,19 @@
    "uses": 26,
    "params": {
     "perTurnHP": {
-     "fraction": null,
-     "ofWhoseMaxHP": "itself",
-     "direction": "created for the holder"
+     "effect": "damage",
+     "per": 16,
+     "perIfType": {
+      "types": [
+       "Water",
+       "Steel"
+      ],
+      "per": 8
+     },
+     "on": "target",
+     "to": null,
+     "immuneType": null,
+     "fraction": "1/16"
     }
    }
   },
@@ -8307,9 +8317,13 @@
    "uses": 5,
    "params": {
     "perTurnHP": {
-     "fraction": "1/16",
-     "ofWhoseMaxHP": "itself",
-     "direction": "created for the holder"
+     "effect": "heal",
+     "per": 16,
+     "perIfType": null,
+     "on": "holder",
+     "to": null,
+     "immuneType": null,
+     "fraction": "1/16"
     },
     "neverMisses": {
      "pHit": 1,
@@ -9603,9 +9617,13 @@
    "uses": 62,
    "params": {
     "perTurnHP": {
-     "fraction": "1/4",
-     "ofWhoseMaxHP": "itself",
-     "direction": "created for the holder"
+     "effect": "damage",
+     "per": 4,
+     "perIfType": null,
+     "on": "target",
+     "to": null,
+     "immuneType": null,
+     "fraction": "1/4"
     },
     "neverMisses": {
      "pHit": 1,
@@ -11118,9 +11136,13 @@
    "uses": 5,
    "params": {
     "perTurnHP": {
-     "fraction": "1/16",
-     "ofWhoseMaxHP": "itself",
-     "direction": "created for the holder"
+     "effect": "heal",
+     "per": 16,
+     "perIfType": null,
+     "on": "field",
+     "to": null,
+     "immuneType": null,
+     "fraction": "1/16"
     },
     "neverMisses": {
      "pHit": 1,
@@ -11929,9 +11951,13 @@
    "uses": 0,
    "params": {
     "perTurnHP": {
-     "fraction": "1/16",
-     "ofWhoseMaxHP": "itself",
-     "direction": "created for the holder"
+     "effect": "heal",
+     "per": 16,
+     "perIfType": null,
+     "on": "holder",
+     "to": null,
+     "immuneType": null,
+     "fraction": "1/16"
     },
     "neverMisses": {
      "pHit": 1,
@@ -12207,9 +12233,13 @@
    "uses": 237,
    "params": {
     "perTurnHP": {
-     "fraction": "1/8",
-     "ofWhoseMaxHP": "the TARGET",
-     "direction": "moved from the target to the user"
+     "effect": "drain",
+     "per": 8,
+     "perIfType": null,
+     "on": "target",
+     "to": "user",
+     "immuneType": "Grass",
+     "fraction": "1/8"
     },
     "statusCategory": {
      "status": true

@@ -2101,7 +2101,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
-### `chargeSkippedByWeather` — 6.3%, 3 moves — **NOT READ**
+### `chargeSkippedByWeather` — 6.3%, 3 moves
 
 *the charge turn DISAPPEARS under one weather*
 
@@ -3834,10 +3834,10 @@ resource sitting in a volatile, which is why neither was visible before volatile
 | moves tagged | 500 |
 | abilities tagged | 258 |
 | items tagged | 146 |
-| **tags read by nothing** | **107** |
+| **tags read by nothing** | **106** |
 | tags that match no member at all | 7 |
 
-**107 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**106 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.

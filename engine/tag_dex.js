@@ -677,11 +677,29 @@ const MOVE_TAGS = [
        * bulk, so seeding a Snorlax returns far more than seeding a Whimsicott. A tag that says only
        * "heals per turn" cannot tell those apart, and the damage race it feeds gets the wrong answer.
        * (baseMaxhp carries a capital M, so the fraction match must be case-insensitive.) */
+      /* THE OLD PARAM WAS PROSE, AND WRONG PROSE. "created for the holder" was emitted for any
+       * member without a heal-drain pair, which labelled Curse and Salt Cure -- pure DAMAGE
+       * conditions -- as if they healed 1/4 and 1/8 a turn. A consumer would have healed the
+       * victim. effect is derived from which calls the handler actually makes:
+       *   heal only            -> heal   (Aqua Ring, Ingrain, Grassy Terrain)
+       *   damage only          -> damage (Curse, Salt Cure)
+       *   damage AND heal      -> drain  (Leech Seed: taken from the seeded, given to the seeder)
+       * `per` is the denominator a consumer divides max HP by; `on` says whose HP (from the move's
+       * own target field); Salt Cure's type-doubled bite and Leech Seed's Grass immunity are read
+       * from the ternary and the onTryImmunity in the source, not assumed. */
+      const dmg = /this\.damage\(/.test(src), heal = /this\.heal\(/.test(src);
+      if (!dmg && !heal) return null;
+      const effect = dmg && heal ? 'drain' : dmg ? 'damage' : 'heal';
       const frac = (src.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
-      const drains = /this\.damage\(/.test(src) && /this\.heal\(/.test(src);
-      return { fraction: frac ? '1/' + frac : null,
-               ofWhoseMaxHP: drains ? 'the TARGET' : 'itself',
-               direction: drains ? 'moved from the target to the user' : 'created for the holder' };
+      const tern = src.match(/maxhp\s*\/\s*\(\s*\w+\.hasType\(\s*\[([^\]]*)\]\s*\)\s*\?\s*(\d+)\s*:\s*(\d+)\s*\)/i);
+      const imm = (String(m.onTryImmunity || '').match(/!\s*target\.hasType\(\s*"(\w+)"\s*\)/) || [])[1] || null;
+      return { effect,
+               per: tern ? +tern[3] : (frac ? +frac : null),
+               perIfType: tern ? { types: [...tern[1].matchAll(/"(\w+)"/g)].map(x => x[1]), per: +tern[2] } : null,
+               on: m.target === 'self' ? 'holder' : (m.target === 'all' ? 'field' : 'target'),
+               to: effect === 'drain' ? 'user' : null,
+               immuneType: imm,
+               fraction: frac ? '1/' + frac : (tern ? '1/' + tern[3] : null) };
     } },
   { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '

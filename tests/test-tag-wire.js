@@ -324,6 +324,48 @@ console.log('\nwire 7 — weatherScaled');
   ok(bl === 100, `Blizzard is ${bl} in snow (was 70)`);
 }
 
+/* ---- WIRE 8: perTurnHP — Leech Seed's drain exists ------------------------------------------- */
+console.log('\nwire 8 — perTurnHP');
+{
+  /* The artifact first: effect must be structured, not prose. The old param labelled Curse -- pure
+   * damage -- as "created for the holder", which a consumer would have read as a 1/4-a-turn HEAL. */
+  const pLS = TAGS.param('move', 'leechseed', 'perTurnHP');
+  ok(pLS && pLS.effect === 'drain' && pLS.per === 8 && pLS.to === 'user' && pLS.immuneType === 'Grass',
+    'Leech Seed: drain, 1/8 of the target, to the user, blocked by Grass — all from the handler');
+  const pCU = TAGS.param('move', 'curse', 'perTurnHP');
+  ok(pCU && pCU.effect === 'damage',
+    `Curse is effect '${pCU && pCU.effect}' (the old artifact called it a heal for the holder)`);
+
+  /* One controlled battle: the seeder ONLY clicks Leech Seed (forced through its priors, which is
+   * the only path that clicks status moves), the victim cannot hurt it (Ground move into a Flying
+   * body). Every HP point that moves is the seed. */
+  const seedBattle = victimName => {
+    const s = M.buildMon('corviknight', {}); const v = M.buildMon(victimName, {});
+    if (!s || !v) return null;
+    s.moves = ['leechseed']; s.item = '';
+    v.moves = ['earthquake']; v.item = '';
+    v.st = Object.assign({}, v.st, { hp: 99999 }); v.curHP = 99999;
+    /* The seeder starts at 1 HP with a max too high to cap: whatever it ends with, minus the 1,
+     * is exactly what the seed handed over. Conservation IS the amount check. */
+    s.st = Object.assign({}, s.st, { hp: 200000 }); s.curHP = 1;
+    const saved = { [s.name]: MC.priors[s.name], [v.name]: MC.priors[v.name] };
+    MC.priors[s.name] = [['leechseed', 1, 'status']];
+    MC.priors[v.name] = null;
+    try { M.battle([s], [v], {}, () => 0.5); }
+    finally { for (const n in saved) MC.priors[n] = saved[n]; }
+    return { s, v };
+  };
+  const sb = seedBattle('garchomp');
+  const lost = sb && (99999 - sb.v.curHP), gained = sb && (sb.s.curHP - 1);
+  ok(sb && sb.v.fainted && lost === 99999,
+    'the seed alone kills a victim that was never hit by an attack — the click was a no-op before');
+  ok(sb && gained === lost,
+    `every drained point reaches the seeder: victim -${lost}, seeder +${gained} (drain, not just chip)`);
+  const gb = seedBattle('whimsicott');
+  ok(gb && gb.v.curHP === 99999,
+    `a ${pLS.immuneType}-type victim is immune, from the move's own onTryImmunity (${gb && (99999 - gb.v.curHP)} lost)`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
