@@ -671,6 +671,43 @@ const ABILITY_TAGS = [
     why: 'Cursed Body (833 uses). Not damage and not a stat change -- it shrinks my own option set, '
        + 'the same shape as locksTarget from the receiving end',
     of: a => (a.onDamagingHit && /disable/i.test(String(a.onDamagingHit))) ? { disables: true } : null },
+  /* FOUND BY THE COVERAGE CHECK Will asked for -- listing everything above 0.05% usage regardless of
+   * whether it carries a tag exposed twelve common abilities the probes had missed entirely, because
+   * each uses a handler nothing was looking at. Adaptability at 4.34% is a straight damage
+   * multiplier and had no tag at all. */
+  { tag: 'stabBoost', param: 'STAB becomes x2 instead of x1.5', probe: 'adaptability',
+    why: 'Adaptability, 4.34% of abilities. A flat 33% damage increase on same-type moves and nothing '
+       + 'was reading it',
+    of: a => a.onModifySTAB ? { stab: 2 } : null },
+  { tag: 'boostsWhenLowered', param: '+2 to a stat when any stat is lowered', probe: 'onAfterEachBoost',
+    why: 'Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them '
+       + 'an attack boost, so the lead interaction inverts',
+    of: a => a.onAfterEachBoost ? { retaliates: true } : null },
+  { tag: 'preventsStatDrop', param: 'stat drops simply do not apply', probe: 'onTryBoost',
+    why: 'Clear Body (2.03%), Flower Veil for the ally. Intimidate and every -1 move do nothing, so '
+       + 'lowersTarget is worth zero into them',
+    of: a => (a.onTryBoost || a.onAllyTryBoost) ? { prevents: true } : null },
+  { tag: 'blocksStatusMoves', param: 'every Status-category move fails against it', probe: 'goodasgold',
+    why: 'Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% '
+       + 'of move slots that are status',
+    of: a => (a.onTryHit && /category === .Status|Status/.test(String(a.onTryHit))) ? { blocks: 'Status' } : null },
+  { tag: 'speedOnItemLoss', param: 'speed x2 once its item is gone', probe: 'unburden',
+    why: 'Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order '
+       + 'mid-battle and the item tracking now makes observable',
+    of: a => (a.onAfterUseItem || a.onTakeItem) ? { speedMult: 2 } : null },
+  { tag: 'healsAllyOnSwitchIn', param: 'restores the partner on entry', probe: 'hospitality',
+    why: 'Hospitality, 5.22% of abilities and the third most common in the format',
+    of: a => (a.onStart && /heal/i.test(String(a.onStart))) ? { heals: true } : null },
+  { tag: 'reducesAllyDamage', param: 'my PARTNER takes x0.75', probe: 'friendguard',
+    why: 'Friend Guard. Changes every damage number aimed at the partner and nothing applies it',
+    of: a => a.onAnyModifyDamage ? { mult: 0.75 } : null },
+  { tag: 'healsOnSwitchOut', param: 'restores a third of max HP by leaving', probe: 'regenerator',
+    why: 'Regenerator. Makes switching a HEAL, which is the strongest argument for pivoting that the '
+       + 'switch features cannot see',
+    of: a => a.onSwitchOut ? { heal: 1 / 3 } : null },
+  { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
+    why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',
+    of: a => a.onFoeTryEatItem ? { blocks: true } : null },
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },

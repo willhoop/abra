@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T03:15:51.786Z",
+ "generated": "2026-07-29T03:23:06.405Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1345,6 +1345,132 @@
    "uses": 833,
    "examples": [
     "Cursed Body"
+   ]
+  },
+  {
+   "tag": "stabBoost",
+   "kind": "ability",
+   "param": "STAB becomes x2 instead of x1.5",
+   "why": "Adaptability, 4.34% of abilities. A flat 33% damage increase on same-type moves and nothing was reading it",
+   "consumedBy": "adaptability",
+   "used": true,
+   "n": 1,
+   "uses": 2833,
+   "examples": [
+    "Adaptability"
+   ]
+  },
+  {
+   "tag": "boostsWhenLowered",
+   "kind": "ability",
+   "param": "+2 to a stat when any stat is lowered",
+   "why": "Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them an attack boost, so the lead interaction inverts",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 4368,
+   "examples": [
+    "Competitive",
+    "Defiant"
+   ]
+  },
+  {
+   "tag": "preventsStatDrop",
+   "kind": "ability",
+   "param": "stat drops simply do not apply",
+   "why": "Clear Body (2.03%), Flower Veil for the ally. Intimidate and every -1 move do nothing, so lowersTarget is worth zero into them",
+   "consumedBy": null,
+   "used": false,
+   "n": 15,
+   "uses": 4389,
+   "examples": [
+    "Big Pecks",
+    "Clear Body",
+    "Flower Veil",
+    "Hyper Cutter",
+    "Illuminate",
+    "Inner Focus"
+   ]
+  },
+  {
+   "tag": "blocksStatusMoves",
+   "kind": "ability",
+   "param": "every Status-category move fails against it",
+   "why": "Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% of move slots that are status",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 1545,
+   "examples": [
+    "Good as Gold",
+    "Telepathy"
+   ]
+  },
+  {
+   "tag": "speedOnItemLoss",
+   "kind": "ability",
+   "param": "speed x2 once its item is gone",
+   "why": "Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order mid-battle and the item tracking now makes observable",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 1458,
+   "examples": [
+    "Unburden"
+   ]
+  },
+  {
+   "tag": "healsAllyOnSwitchIn",
+   "kind": "ability",
+   "param": "restores the partner on entry",
+   "why": "Hospitality, 5.22% of abilities and the third most common in the format",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 3405,
+   "examples": [
+    "Hospitality"
+   ]
+  },
+  {
+   "tag": "reducesAllyDamage",
+   "kind": "ability",
+   "param": "my PARTNER takes x0.75",
+   "why": "Friend Guard. Changes every damage number aimed at the partner and nothing applies it",
+   "consumedBy": "friendguard",
+   "used": true,
+   "n": 1,
+   "uses": 614,
+   "examples": [
+    "Friend Guard"
+   ]
+  },
+  {
+   "tag": "healsOnSwitchOut",
+   "kind": "ability",
+   "param": "restores a third of max HP by leaving",
+   "why": "Regenerator. Makes switching a HEAL, which is the strongest argument for pivoting that the switch features cannot see",
+   "consumedBy": "regenerator",
+   "used": true,
+   "n": 3,
+   "uses": 680,
+   "examples": [
+    "Natural Cure",
+    "Regenerator",
+    "Zero to Hero"
+   ]
+  },
+  {
+   "tag": "blocksBerries",
+   "kind": "ability",
+   "param": "their berries cannot be eaten",
+   "why": "Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 1326,
+   "examples": [
+    "Unnerve"
    ]
   },
   {
@@ -11226,6 +11352,30 @@
     }
    }
   },
+  "naturalcure": {
+   "name": "Natural Cure",
+   "tags": [
+    "healsOnSwitchOut"
+   ],
+   "uses": 35,
+   "params": {
+    "healsOnSwitchOut": {
+     "heal": 0.3333333333333333
+    }
+   }
+  },
+  "regenerator": {
+   "name": "Regenerator",
+   "tags": [
+    "healsOnSwitchOut"
+   ],
+   "uses": 540,
+   "params": {
+    "healsOnSwitchOut": {
+     "heal": 0.3333333333333333
+    }
+   }
+  },
   "spicyspray": {
    "name": "Spicy Spray",
    "tags": [
@@ -11235,6 +11385,18 @@
    "params": {
     "profitsFromHit": {
      "profits": true
+    }
+   }
+  },
+  "adaptability": {
+   "name": "Adaptability",
+   "tags": [
+    "stabBoost"
+   ],
+   "uses": 2833,
+   "params": {
+    "stabBoost": {
+     "stab": 2
     }
    }
   },
@@ -11302,6 +11464,30 @@
     }
    }
   },
+  "asoneglastrier": {
+   "name": "As One (Glastrier)",
+   "tags": [
+    "blocksBerries"
+   ],
+   "uses": 0,
+   "params": {
+    "blocksBerries": {
+     "blocks": true
+    }
+   }
+  },
+  "asonespectrier": {
+   "name": "As One (Spectrier)",
+   "tags": [
+    "blocksBerries"
+   ],
+   "uses": 0,
+   "params": {
+    "blocksBerries": {
+     "blocks": true
+    }
+   }
+  },
   "battlearmor": {
    "name": "Battle Armor",
    "tags": [
@@ -11323,6 +11509,18 @@
    "params": {
     "priorityMod": {
      "priority": true
+    }
+   }
+  },
+  "bigpecks": {
+   "name": "Big Pecks",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 13,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
     }
    }
   },
@@ -11350,6 +11548,18 @@
     }
    }
   },
+  "clearbody": {
+   "name": "Clear Body",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 1328,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    }
+   }
+  },
   "comatose": {
    "name": "Comatose",
    "tags": [
@@ -11359,6 +11569,18 @@
    "params": {
     "statusImmune": {
      "immune": true
+    }
+   }
+  },
+  "competitive": {
+   "name": "Competitive",
+   "tags": [
+    "boostsWhenLowered"
+   ],
+   "uses": 804,
+   "params": {
+    "boostsWhenLowered": {
+     "retaliates": true
     }
    }
   },
@@ -11451,6 +11673,18 @@
    "params": {
     "damageBoost": {
      "boost": true
+    }
+   }
+  },
+  "defiant": {
+   "name": "Defiant",
+   "tags": [
+    "boostsWhenLowered"
+   ],
+   "uses": 3564,
+   "params": {
+    "boostsWhenLowered": {
+     "retaliates": true
     }
    }
   },
@@ -11645,6 +11879,18 @@
     }
    }
   },
+  "flowerveil": {
+   "name": "Flower Veil",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 1449,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    }
+   }
+  },
   "fluffy": {
    "name": "Fluffy",
    "tags": [
@@ -11654,6 +11900,30 @@
    "params": {
     "damageReduce": {
      "reduce": true
+    }
+   }
+  },
+  "friendguard": {
+   "name": "Friend Guard",
+   "tags": [
+    "reducesAllyDamage"
+   ],
+   "uses": 614,
+   "params": {
+    "reducesAllyDamage": {
+     "mult": 0.75
+    }
+   }
+  },
+  "fullmetalbody": {
+   "name": "Full Metal Body",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 0,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
     }
    }
   },
@@ -11678,6 +11948,18 @@
    "params": {
     "damageBoost": {
      "boost": true
+    }
+   }
+  },
+  "goodasgold": {
+   "name": "Good as Gold",
+   "tags": [
+    "blocksStatusMoves"
+   ],
+   "uses": 1433,
+   "params": {
+    "blocksStatusMoves": {
+     "blocks": "Status"
     }
    }
   },
@@ -11725,6 +12007,18 @@
     }
    }
   },
+  "guarddog": {
+   "name": "Guard Dog",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 0,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    }
+   }
+  },
   "gulpmissile": {
    "name": "Gulp Missile",
    "tags": [
@@ -11765,6 +12059,18 @@
     }
    }
   },
+  "hospitality": {
+   "name": "Hospitality",
+   "tags": [
+    "healsAllyOnSwitchIn"
+   ],
+   "uses": 3405,
+   "params": {
+    "healsAllyOnSwitchIn": {
+     "heals": true
+    }
+   }
+  },
   "hugepower": {
    "name": "Huge Power",
    "tags": [
@@ -11790,6 +12096,18 @@
     },
     "accuracyMod": {
      "accuracy": true
+    }
+   }
+  },
+  "hypercutter": {
+   "name": "Hyper Cutter",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 377,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
     }
    }
   },
@@ -11832,10 +12150,14 @@
   "illuminate": {
    "name": "Illuminate",
    "tags": [
+    "preventsStatDrop",
     "priorityMod"
    ],
    "uses": 27,
    "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    },
     "priorityMod": {
      "priority": true
     }
@@ -11902,6 +12224,18 @@
    "params": {
     "profitsFromHit": {
      "profits": true
+    }
+   }
+  },
+  "innerfocus": {
+   "name": "Inner Focus",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 369,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
     }
    }
   },
@@ -11972,10 +12306,14 @@
   "keeneye": {
    "name": "Keen Eye",
    "tags": [
+    "preventsStatDrop",
     "priorityMod"
    ],
    "uses": 27,
    "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    },
     "priorityMod": {
      "priority": true
     }
@@ -12110,10 +12448,14 @@
   "mindseye": {
    "name": "Mind's Eye",
    "tags": [
+    "preventsStatDrop",
     "priorityMod"
    ],
    "uses": 0,
    "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    },
     "priorityMod": {
      "priority": true
     }
@@ -12128,6 +12470,18 @@
    "params": {
     "damageBoost": {
      "boost": true
+    }
+   }
+  },
+  "mirrorarmor": {
+   "name": "Mirror Armor",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 221,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
     }
    }
   },
@@ -12227,10 +12581,14 @@
   "oblivious": {
    "name": "Oblivious",
    "tags": [
+    "preventsStatDrop",
     "weatherChipImmune"
    ],
    "uses": 274,
    "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    },
     "weatherChipImmune": {
      "chipImmune": true
     }
@@ -12273,6 +12631,18 @@
    "params": {
     "damageBoost": {
      "boost": true
+    }
+   }
+  },
+  "owntempo": {
+   "name": "Own Tempo",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 44,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
     }
    }
   },
@@ -12672,10 +13042,14 @@
   "scrappy": {
    "name": "Scrappy",
    "tags": [
+    "preventsStatDrop",
     "priorityMod"
    ],
    "uses": 259,
    "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    },
     "priorityMod": {
      "priority": true
     }
@@ -13001,6 +13375,18 @@
     }
    }
   },
+  "stickyhold": {
+   "name": "Sticky Hold",
+   "tags": [
+    "speedOnItemLoss"
+   ],
+   "uses": 0,
+   "params": {
+    "speedOnItemLoss": {
+     "speedMult": 2
+    }
+   }
+  },
   "stormdrain": {
    "name": "Storm Drain",
    "tags": [
@@ -13150,6 +13536,18 @@
     }
    }
   },
+  "telepathy": {
+   "name": "Telepathy",
+   "tags": [
+    "blocksStatusMoves"
+   ],
+   "uses": 112,
+   "params": {
+    "blocksStatusMoves": {
+     "blocks": "Status"
+    }
+   }
+  },
   "teravolt": {
    "name": "Teravolt",
    "tags": [
@@ -13267,6 +13665,30 @@
     },
     "priorityMod": {
      "priority": true
+    }
+   }
+  },
+  "unburden": {
+   "name": "Unburden",
+   "tags": [
+    "speedOnItemLoss"
+   ],
+   "uses": 1458,
+   "params": {
+    "speedOnItemLoss": {
+     "speedMult": 2
+    }
+   }
+  },
+  "unnerve": {
+   "name": "Unnerve",
+   "tags": [
+    "blocksBerries"
+   ],
+   "uses": 1326,
+   "params": {
+    "blocksBerries": {
+     "blocks": true
     }
    }
   },
@@ -13389,6 +13811,18 @@
     }
    }
   },
+  "whitesmoke": {
+   "name": "White Smoke",
+   "tags": [
+    "preventsStatDrop"
+   ],
+   "uses": 1,
+   "params": {
+    "preventsStatDrop": {
+     "prevents": true
+    }
+   }
+  },
   "windpower": {
    "name": "Wind Power",
    "tags": [
@@ -13398,6 +13832,18 @@
    "params": {
     "profitsFromHit": {
      "profits": true
+    }
+   }
+  },
+  "wonderguard": {
+   "name": "Wonder Guard",
+   "tags": [
+    "blocksStatusMoves"
+   ],
+   "uses": 0,
+   "params": {
+    "blocksStatusMoves": {
+     "blocks": "Status"
     }
    }
   },
@@ -13416,10 +13862,14 @@
   "zerotohero": {
    "name": "Zero to Hero",
    "tags": [
+    "healsOnSwitchOut",
     "formeChange"
    ],
    "uses": 105,
    "params": {
+    "healsOnSwitchOut": {
+     "heal": 0.3333333333333333
+    },
     "formeChange": {
      "changes": true
     }

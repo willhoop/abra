@@ -1,6 +1,6 @@
 # Tag review — corrected pass
 
-**108 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
+**117 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
 
 ## Every point from your review
 
@@ -87,34 +87,40 @@ one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 
 **Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
 has nothing. **2,065 uses**.
 
-## 51 of 108 tags are read by nothing
+## 57 of 117 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
-| `profitsFromHit` | 15.4% | the target gains something for being hit |
-| `weatherSetter` | 9.7% | weather := x on switch-in |
+| `profitsFromHit` | 10.7% | the target gains something for being hit |
 | `resistBerry` | 9.5% | halves one super-effective hit, then is gone |
-| `contactPunish` | 9.0% | the ATTACKER pays for touching it |
 | `damageMultType` | 8.6% | x1.2 on one type |
+| `weatherSetter` | 6.7% | weather := x on switch-in |
+| `preventsStatDrop` | 6.4% | stat drops simply do not apply |
+| `boostsWhenLowered` | 6.4% | +2 to a stat when any stat is lowered |
+| `contactPunish` | 6.3% | the ATTACKER pays for touching it |
+| `healsAllyOnSwitchIn` | 5.0% | restores the partner on entry |
 | `extendsScreens` | 3.0% | side conditions last 8 turns not 5 |
-| `weatherChipImmune` | 2.7% | takes no sandstorm or snow residual damage |
+| `blocksStatusMoves` | 2.3% | every Status-category move fails against it |
+| `speedOnItemLoss` | 2.1% | speed x2 once its item is gone |
 | `restoresStats` | 2.0% | undoes stat drops once |
-| `disablesAttacker` | 1.8% | the move I just used is removed from MY options |
+| `blocksBerries` | 1.9% | their berries cannot be eaten |
+| `weatherChipImmune` | 1.9% | takes no sandstorm or snow residual damage |
 | `weatherScaled` | 1.4% | type, power or target changes with the weather |
 | `ignoresProtect` | 1.2% | Protect does NOT stop it |
-| `accuracyMod` | 1.2% | P(hit) scaled, often gated on a weather or a category |
+| `disablesAttacker` | 1.2% | the move I just used is removed from MY options |
 | `accuracyMod` | 0.8% | P(hit) is scaled, for or against the holder |
+| `accuracyMod` | 0.8% | P(hit) scaled, often gated on a weather or a category |
 | `pivotStatus` | 0.8% | no damage, an effect, then the user leaves |
 | `conditionalPower` | 0.7% | fixed power x a multiplier when a condition holds |
 | `chargeSkippedByWeather` | 0.7% | the charge turn DISAPPEARS under one weather |
-| `statusImmune` | 0.6% | a status cannot land |
 | `healsSelf` | 0.6% | restores a share of MY max HP, costing the turn |
 | `multiHit` | 0.5% | hits = n (or a distribution) |
-| `survivesFromFull` | 0.3% | a lethal hit from full HP leaves 1 |
-| `ignoresDefenderAbility` | 0.3% | suppress every defender-side ability tag for this move |
+| `statusImmune` | 0.4% | a status cannot land |
+| `survivesFromFull` | 0.2% | a lethal hit from full HP leaves 1 |
 | `curesStatus` | 0.2% | a status is removed the moment it lands |
-| `preventsCrit` | 0.2% | P(crit) = 0 |
+| `ignoresDefenderAbility` | 0.2% | suppress every defender-side ability tag for this move |
 | `failsWithoutWeather` | 0.1% | the move does NOTHING unless a weather is up |
+| `preventsCrit` | 0.1% | P(crit) = 0 |
 | `critRatioUp` | 0.1% | P(crit) raised |
 | `boostsTarget` | 0.1% | positive stat stages on a BODY THAT IS NOT ME |
 | `critRatioUp` | 0.1% | P(crit) raised |
@@ -125,13 +131,13 @@ has nothing. **2,065 uses**.
 | `fractionalPriority` | 0.1% | a CHANCE to move first inside the priority bracket |
 | `accuracyMod` | 0.1% | P(hit) is scaled for everyone |
 | `forcesSwitch` | 0.1% | the TARGET is removed from the field |
-| `critDamageUp` | 0.1% | the CRIT MULTIPLIER itself, not its probability |
+| `critDamageUp` | 0.0% | the CRIT MULTIPLIER itself, not its probability |
 | `terrainScaled` | 0.0% | power or target changes with the terrain |
 | `alwaysCrit` | 0.0% | P(crit) = 1 |
 | `passesState` | 0.0% | the incoming Pokemon INHERITS something |
 | `hazard` | 0.0% | their side is damaged or slowed on switch-in, until removed |
-| `critRatioUp` | 0.0% | P(crit) raised |
 | `ohko` | 0.0% | removes the target outright |
+| `critRatioUp` | 0.0% | P(crit) raised |
 | `fixedDamage` | 0.0% | damage is a constant, not a formula |
 | `terrainSetter` | 0.0% | terrain := x on switch-in |
 | `swapsDefences` | 0.0% | Def and SpD are exchanged, field-wide |
@@ -144,6 +150,395 @@ has nothing. **2,065 uses**.
 | `preventsSwitch` | 0.0% | the foe cannot leave |
 
 *read? is a grep for the probe string — wrong in both directions. A shortlist to verify, not a verdict.*
+
+---
+
+# COVERAGE — nothing common is missing from this document
+
+The per-tag sections further down only list things that **have** a tag. Anything untagged
+would never appear. This section lists everything above **0.05% of usage** regardless, so a gap is visible rather than absent.
+
+## MOVES — 167 above 0.05% (97.0% of all usage)
+
+**16 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
+
+| move | uses | share | tags |
+|---|---|---|---|
+| Protect | 43,362 | 16.63% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Fake Out | 7,846 | 3.01% | `priority` `contact` `flinches` |
+| Tailwind | 6,981 | 2.68% | `neverMisses` `doublesSideSpeed` `statusCategory` |
+| Rock Slide | 6,915 | 2.65% | `spreadFoes` `flinches` |
+| Close Combat | 5,487 | 2.10% | `contact` `boostsUser` |
+| Parting Shot | 4,782 | 1.83% | `sound` `pivotStatus` `lowersTarget` `statusCategory` |
+| Weather Ball | 4,699 | 1.80% | `weatherScaled` |
+| Earthquake | 4,533 | 1.74% | `spreadAll` |
+| Trick Room | 4,415 | 1.69% | `priority` `neverMisses` `ignoresProtect` `reversesSpeed` `statusCategory` |
+| Iron Head | 4,314 | 1.65% | `contact` `flinches` |
+| Wave Crash | 4,052 | 1.55% | `contact` `recoil` |
+| moonblast | 4,048 | 1.55% | **— none —** |
+| Flare Blitz | 4,032 | 1.55% | `contact` `inflictsBurn` `recoil` |
+| Heat Wave | 4,031 | 1.55% | `spreadFoes` `inflictsBurn` |
+| Sucker Punch | 3,909 | 1.50% | `priority` `contact` |
+| Dragon Claw | 3,864 | 1.48% | `contact` |
+| Rage Powder | 3,851 | 1.48% | `priority` `powder` `neverMisses` `redirects` `statusCategory` |
+| Matcha Gotcha | 3,392 | 1.30% | `spreadFoes` `inflictsBurn` `drain` |
+| shadowball | 3,297 | 1.26% | **— none —** |
+| Aqua Jet | 3,034 | 1.16% | `priority` `contact` |
+| Last Respects | 3,009 | 1.15% | `variablePower` |
+| Kowtow Cleave | 2,970 | 1.14% | `contact` `neverMisses` |
+| Encore | 2,758 | 1.06% | `statusCategory` `locksTarget` |
+| Solar Beam | 2,477 | 0.95% | `conditionalPower` `chargeTurn` `chargeSkippedByWeather` |
+| Hyper Voice | 2,461 | 0.94% | `spreadFoes` `sound` |
+| earthpower | 2,374 | 0.91% | **— none —** |
+| Light Screen | 2,346 | 0.90% | `neverMisses` `halvesDamage` `statusCategory` |
+| Brave Bird | 2,279 | 0.87% | `contact` `recoil` |
+| Hurricane | 2,259 | 0.87% | `weatherScaled` |
+| Stomping Tantrum | 2,122 | 0.81% | `variablePower` `contact` |
+| Wide Guard | 2,065 | 0.79% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
+| dragonpulse | 2,029 | 0.78% | **— none —** |
+| Helping Hand | 2,027 | 0.78% | `priority` `neverMisses` `statusCategory` |
+| Dazzling Gleam | 1,999 | 0.77% | `spreadFoes` |
+| Reflect | 1,988 | 0.76% | `neverMisses` `halvesDamage` `statusCategory` |
+| Sludge Bomb | 1,982 | 0.76% | `inflictsPoison` |
+| Thunderbolt | 1,858 | 0.71% | `inflictsParalysis` |
+| Low Kick | 1,854 | 0.71% | `variablePower` `contact` |
+| flashcannon | 1,790 | 0.69% | **— none —** |
+| Throat Chop | 1,768 | 0.68% | `contact` |
+| Nasty Plot | 1,763 | 0.68% | `neverMisses` `boostsUser` `statusCategory` |
+| Flip Turn | 1,762 | 0.68% | `contact` `pivotDamaging` |
+| psychic | 1,745 | 0.67% | **— none —** |
+| Dual Wingbeat | 1,724 | 0.66% | `multiHit` `contact` |
+| Life Dew | 1,683 | 0.65% | `neverMisses` `statusCategory` `healsSelf` `healsAlly` |
+| Electro Shot | 1,667 | 0.64% | `chargeTurn` `chargeSkippedByWeather` |
+| Knock Off | 1,640 | 0.63% | `conditionalPower` `contact` |
+| Blizzard | 1,532 | 0.59% | `weatherScaled` `spreadFoes` |
+| Dire Claw | 1,509 | 0.58% | `contact` |
+| Ice Punch | 1,421 | 0.54% | `contact` |
+| Make It Rain | 1,420 | 0.54% | `spreadFoes` `boostsUser` |
+| Roost | 1,353 | 0.52% | `neverMisses` `statusCategory` `healsSelf` |
+| Psychic Fangs | 1,352 | 0.52% | `contact` |
+| High Horsepower | 1,286 | 0.49% | `contact` |
+| Darkest Lariat | 1,232 | 0.47% | `contact` |
+| Quick Attack | 1,199 | 0.46% | `priority` `contact` |
+| Draco Meteor | 1,199 | 0.46% | `boostsUser` |
+| Swords Dance | 1,195 | 0.46% | `neverMisses` `boostsUser` `statusCategory` |
+| Calm Mind | 1,163 | 0.45% | `neverMisses` `boostsUser` `statusCategory` |
+| Detect | 1,162 | 0.45% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Spirit Break | 1,115 | 0.43% | `contact` |
+| Will-O-Wisp | 1,101 | 0.42% | `statusCategory` `inflictsBurn` `inflictsStatus` |
+| focusblast | 1,088 | 0.42% | **— none —** |
+| Zap Cannon | 1,064 | 0.41% | `inflictsParalysis` |
+| Dark Pulse | 1,013 | 0.39% | `flinches` |
+| Hyper Beam | 1,012 | 0.39% | `recharge` |
+| Volt Switch | 986 | 0.38% | `pivotDamaging` |
+| Follow Me | 933 | 0.36% | `priority` `neverMisses` `redirects` `statusCategory` |
+| Play Rough | 911 | 0.35% | `contact` |
+| Taunt | 867 | 0.33% | `statusCategory` `forbidsStatusMoves` |
+| Aurora Veil | 853 | 0.33% | `neverMisses` `halvesDamage` `failsWithoutWeather` `statusCategory` |
+| Icy Wind | 845 | 0.32% | `spreadFoes` |
+| Giga Drain | 806 | 0.31% | `drain` |
+| Overheat | 771 | 0.30% | `boostsUser` |
+| Poison Jab | 758 | 0.29% | `contact` `inflictsPoison` |
+| U-turn | 741 | 0.28% | `contact` `pivotDamaging` |
+| freezedry | 737 | 0.28% | **— none —** |
+| Sleep Powder | 734 | 0.28% | `powder` `statusCategory` `inflictsSleep` `inflictsStatus` |
+| Light of Ruin | 713 | 0.27% | `recoil` |
+| hydropump | 707 | 0.27% | **— none —** |
+| Drain Punch | 705 | 0.27% | `contact` `drain` |
+| Rain Dance | 701 | 0.27% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Charm | 691 | 0.26% | `lowersTarget` `statusCategory` |
+| powergem | 677 | 0.26% | **— none —** |
+| Aura Sphere | 672 | 0.26% | `neverMisses` |
+| Scald | 601 | 0.23% | `inflictsBurn` |
+| Snarl | 569 | 0.22% | `spreadFoes` `sound` |
+| Bullet Punch | 565 | 0.22% | `priority` `contact` |
+| Eruption | 565 | 0.22% | `variablePower` `spreadFoes` |
+| Foul Play | 563 | 0.22% | `contact` |
+| Body Press | 562 | 0.22% | `contact` |
+| Bulk Up | 561 | 0.22% | `neverMisses` `boostsUser` `statusCategory` |
+| Perish Song | 560 | 0.21% | `sound` `neverMisses` `ignoresProtect` `statusCategory` `perishClock` |
+| Liquidation | 552 | 0.21% | `contact` |
+| icebeam | 551 | 0.21% | **— none —** |
+| Yawn | 536 | 0.21% | `neverMisses` `statusCategory` `delayedSleep` |
+| Coaching | 525 | 0.20% | `neverMisses` `boostsTarget` `statusCategory` |
+| Strength Sap | 518 | 0.20% | `lowersTarget` `statusCategory` `healsAlly` |
+| Flamethrower | 494 | 0.19% | `inflictsBurn` |
+| rocktomb | 486 | 0.19% | **— none —** |
+| Toxic | 480 | 0.18% | `statusCategory` `inflictsToxic` `inflictsStatus` |
+| Muddy Water | 469 | 0.18% | `spreadFoes` |
+| Twin Beam | 467 | 0.18% | `multiHit` |
+| psyshock | 466 | 0.18% | **— none —** |
+| energyball | 452 | 0.17% | **— none —** |
+| Extreme Speed | 449 | 0.17% | `priority` `contact` |
+| Baneful Bunker | 436 | 0.17% | `priority` `neverMisses` `stalling` `statusCategory` `inflictsPoison` |
+| Infestation | 434 | 0.17% | `contact` |
+| Super Fang | 434 | 0.17% | `contact` |
+| Draining Kiss | 434 | 0.17% | `contact` `drain` |
+| Ice Fang | 433 | 0.17% | `contact` `flinches` |
+| Disable | 414 | 0.16% | `statusCategory` `locksTarget` |
+| Spiky Shield | 401 | 0.15% | `priority` `neverMisses` `stalling` `statusCategory` |
+| Discharge | 400 | 0.15% | `spreadAll` `inflictsParalysis` |
+| Sunny Day | 376 | 0.14% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
+| Rage Fist | 363 | 0.14% | `variablePower` `contact` |
+| Haze | 359 | 0.14% | `neverMisses` `ignoresProtect` `clearsBoosts` `statusCategory` |
+| Quick Guard | 356 | 0.14% | `priority` `neverMisses` `oneTurnGuard` `statusCategory` |
+| Ice Shard | 354 | 0.14% | `priority` |
+| Shadow Sneak | 345 | 0.13% | `priority` `contact` |
+| Fake Tears | 345 | 0.13% | `lowersTarget` `statusCategory` |
+| Electroweb | 343 | 0.13% | `spreadFoes` |
+| Dragon Dance | 343 | 0.13% | `neverMisses` `boostsUser` `statusCategory` |
+| Water Spout | 342 | 0.13% | `variablePower` `spreadFoes` |
+| Leaf Storm | 337 | 0.13% | `boostsUser` |
+| Triple Axel | 326 | 0.13% | `multiHit` `variablePower` `contact` |
+| ancientpower | 323 | 0.12% | **— none —** |
+| Meteor Mash | 315 | 0.12% | `contact` |
+| Clanging Scales | 302 | 0.12% | `spreadFoes` `sound` |
+| Coil | 301 | 0.12% | `neverMisses` `accuracyMod` `boostsUser` `statusCategory` |
+| Recover | 300 | 0.12% | `neverMisses` `statusCategory` `healsSelf` |
+| Brick Break | 289 | 0.11% | `contact` |
+| Thunder Wave | 284 | 0.11% | `statusCategory` `inflictsParalysis` `inflictsStatus` |
+| Roar | 281 | 0.11% | `priority` `sound` `neverMisses` `ignoresProtect` `forcesSwitch` `statusCategory` |
+| Population Bomb | 276 | 0.11% | `multiHit` `contact` |
+| Hypnosis | 273 | 0.10% | `statusCategory` `inflictsSleep` `inflictsStatus` |
+| Trick | 266 | 0.10% | `statusCategory` |
+| Shell Smash | 248 | 0.10% | `neverMisses` `boostsUser` `statusCategory` |
+| Grass Knot | 242 | 0.09% | `variablePower` `contact` |
+| Accelerock | 241 | 0.09% | `priority` `contact` |
+| Leech Seed | 234 | 0.09% | `statusCategory` |
+| Substitute | 234 | 0.09% | `neverMisses` `substitute` `statusCategory` |
+| Gunk Shot | 223 | 0.09% | `inflictsPoison` |
+| Beat Up | 223 | 0.09% | `variablePower` |
+| Feint | 222 | 0.09% | `priority` `ignoresProtect` |
+| Waterfall | 212 | 0.08% | `contact` `flinches` |
+| Bitter Blade | 211 | 0.08% | `contact` `drain` |
+| Crunch | 210 | 0.08% | `contact` |
+| Scary Face | 208 | 0.08% | `lowersTarget` `statusCategory` |
+| Thunder Punch | 204 | 0.08% | `contact` `inflictsParalysis` |
+| Phantom Force | 201 | 0.08% | `contact` `ignoresProtect` `chargeTurn` |
+| Psycho Cut | 190 | 0.07% | `critRatioUp` |
+| Clangorous Soul | 189 | 0.07% | `sound` `neverMisses` `boostsUser` `statusCategory` |
+| Icicle Crash | 184 | 0.07% | `flinches` |
+| Head Smash | 183 | 0.07% | `contact` `recoil` |
+| Superpower | 182 | 0.07% | `contact` `boostsUser` |
+| poltergeist | 180 | 0.07% | **— none —** |
+| Thunder | 179 | 0.07% | `weatherScaled` `inflictsParalysis` |
+| Tickle | 177 | 0.07% | `lowersTarget` `statusCategory` |
+| Final Gambit | 176 | 0.07% | `userFaints` |
+| Double-Edge | 164 | 0.06% | `contact` `recoil` |
+| Imprison | 158 | 0.06% | `neverMisses` `statusCategory` |
+| Iron Defense | 146 | 0.06% | `neverMisses` `boostsUser` `statusCategory` |
+| Volt Tackle | 145 | 0.06% | `contact` `inflictsParalysis` `recoil` |
+| Sacred Sword | 144 | 0.06% | `contact` |
+| Air Slash | 135 | 0.05% | `flinches` |
+| Vacuum Wave | 135 | 0.05% | `priority` |
+
+## ABILITIES — 99 above 0.05% (98.6% of all usage)
+
+**22 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
+
+| ability | uses | share | tags |
+|---|---|---|---|
+| Intimidate | 6,536 | 10.01% | `onSwitchInDrop` |
+| Prankster | 4,649 | 7.12% | `priorityMod` |
+| Rough Skin | 3,739 | 5.73% | `profitsFromHit` `contactPunish` |
+| Defiant | 3,564 | 5.46% | `boostsWhenLowered` |
+| Hospitality | 3,405 | 5.22% | `healsAllyOnSwitchIn` |
+| Adaptability | 2,833 | 4.34% | `stabBoost` |
+| Blaze | 2,675 | 4.10% | `damageBoost` |
+| Drizzle | 2,197 | 3.37% | `weatherSetter` |
+| Levitate | 1,768 | 2.71% | `typeImmunity` |
+| Armor Tail | 1,682 | 2.58% | `blocksMove` |
+| Stamina | 1,631 | 2.50% | `profitsFromHit` |
+| Unburden | 1,458 | 2.23% | `speedOnItemLoss` |
+| Flower Veil | 1,449 | 2.22% | `preventsStatDrop` |
+| Good as Gold | 1,433 | 2.20% | `blocksStatusMoves` |
+| Pixilate | 1,426 | 2.18% | `damageBoost` |
+| Clear Body | 1,328 | 2.03% | `preventsStatDrop` |
+| Unnerve | 1,326 | 2.03% | `blocksBerries` |
+| Lightning Rod | 1,288 | 1.97% | `typeImmunity` |
+| Chlorophyll | 1,131 | 1.73% | `speedCond` |
+| Torrent | 1,086 | 1.66% | `damageBoost` |
+| Snow Warning | 943 | 1.44% | `weatherSetter` |
+| Sand Stream | 838 | 1.28% | `weatherSetter` |
+| Cursed Body | 833 | 1.28% | `disablesAttacker` `profitsFromHit` |
+| Competitive | 804 | 1.23% | `boostsWhenLowered` |
+| Drought | 615 | 0.94% | `weatherSetter` |
+| Friend Guard | 614 | 0.94% | `reducesAllyDamage` |
+| Regenerator | 540 | 0.83% | `healsOnSwitchOut` |
+| poisontouch | 519 | 0.80% | **— none —** |
+| Sand Rush | 488 | 0.75% | `speedCond` `weatherChipImmune` |
+| Gale Wings | 480 | 0.74% | `priorityMod` |
+| speedboost | 451 | 0.69% | **— none —** |
+| damp | 433 | 0.66% | **— none —** |
+| Solar Power | 432 | 0.66% | `damageBoost` |
+| Toxic Debris | 411 | 0.63% | `profitsFromHit` |
+| rockhead | 392 | 0.60% | **— none —** |
+| Hyper Cutter | 377 | 0.58% | `preventsStatDrop` |
+| Inner Focus | 369 | 0.57% | `preventsStatDrop` |
+| Overgrow | 360 | 0.55% | `damageBoost` |
+| Flash Fire | 357 | 0.55% | `typeImmunity` |
+| Multiscale | 348 | 0.53% | `damageReduce` |
+| Technician | 339 | 0.52% | `damageBoost` |
+| Swift Swim | 321 | 0.49% | `speedCond` |
+| Static | 276 | 0.42% | `profitsFromHit` `contactPunish` |
+| Oblivious | 274 | 0.42% | `preventsStatDrop` `weatherChipImmune` |
+| Tough Claws | 269 | 0.41% | `damageBoost` |
+| Scrappy | 259 | 0.40% | `preventsStatDrop` `priorityMod` |
+| moody | 249 | 0.38% | **— none —** |
+| liquidvoice | 242 | 0.37% | **— none —** |
+| raindish | 239 | 0.37% | **— none —** |
+| Mirror Armor | 221 | 0.34% | `preventsStatDrop` |
+| Queenly Majesty | 220 | 0.34% | `blocksMove` |
+| Snow Cloak | 219 | 0.34% | `accuracyMod` `weatherChipImmune` |
+| Compound Eyes | 208 | 0.32% | `accuracyMod` |
+| soundproof | 202 | 0.31% | **— none —** |
+| unaware | 172 | 0.26% | **— none —** |
+| protean | 167 | 0.26% | **— none —** |
+| Solid Rock | 166 | 0.25% | `damageReduce` |
+| Sharpness | 154 | 0.24% | `damageBoost` |
+| Sturdy | 153 | 0.23% | `survivesFromFull` |
+| Stance Change | 146 | 0.22% | `priorityMod` |
+| Sand Veil | 135 | 0.21% | `accuracyMod` `weatherChipImmune` |
+| Contrary | 134 | 0.21% | `invertsBoosts` |
+| Mold Breaker | 127 | 0.19% | `ignoresDefenderAbility` `priorityMod` |
+| Flame Body | 113 | 0.17% | `profitsFromHit` `contactPunish` |
+| Telepathy | 112 | 0.17% | `blocksStatusMoves` |
+| trace | 111 | 0.17% | **— none —** |
+| Zero to Hero | 105 | 0.16% | `healsOnSwitchOut` `formeChange` |
+| Sheer Force | 94 | 0.14% | `damageBoost` `priorityMod` |
+| magicbounce | 89 | 0.14% | **— none —** |
+| pressure | 85 | 0.13% | **— none —** |
+| Overcoat | 85 | 0.13% | `weatherChipImmune` |
+| Leaf Guard | 75 | 0.11% | `statusImmune` |
+| Huge Power | 72 | 0.11% | `damageBoost` |
+| frisk | 72 | 0.11% | **— none —** |
+| Water Bubble | 72 | 0.11% | `damageBoost` `statusImmune` |
+| thickfat | 70 | 0.11% | **— none —** |
+| cloudnine | 68 | 0.10% | **— none —** |
+| Illusion | 62 | 0.09% | `profitsFromHit` `formeChange` |
+| Disguise | 62 | 0.09% | `preventsCrit` `formeChange` |
+| Supreme Overlord | 60 | 0.09% | `damageBoost` |
+| Limber | 59 | 0.09% | `statusImmune` |
+| magicguard | 58 | 0.09% | **— none —** |
+| Infiltrator | 54 | 0.08% | `priorityMod` |
+| synchronize | 53 | 0.08% | **— none —** |
+| Iron Fist | 53 | 0.08% | `damageBoost` |
+| Dry Skin | 52 | 0.08% | `typeImmunity` |
+| bulletproof | 52 | 0.08% | **— none —** |
+| Poison Point | 50 | 0.08% | `profitsFromHit` `contactPunish` |
+| Cute Charm | 48 | 0.07% | `profitsFromHit` `contactPunish` |
+| Electromorphosis | 48 | 0.07% | `profitsFromHit` |
+| Own Tempo | 44 | 0.07% | `preventsStatDrop` |
+| Magma Armor | 43 | 0.07% | `weatherChipImmune` |
+| magician | 41 | 0.06% | **— none —** |
+| Imposter | 39 | 0.06% | `formeChange` |
+| Insomnia | 39 | 0.06% | `statusImmune` |
+| symbiosis | 37 | 0.06% | **— none —** |
+| moxie | 36 | 0.06% | **— none —** |
+| Natural Cure | 35 | 0.05% | `healsOnSwitchOut` |
+| Volt Absorb | 33 | 0.05% | `typeImmunity` |
+
+## ITEMS — 95 above 0.05% (98.8% of all usage)
+
+**6 of these carry NO tag at all.** For a plain attacking move that is correct — there is nothing unusual to say. For anything else it is a gap.
+
+| item | uses | share | tags |
+|---|---|---|---|
+| Focus Sash | 7,610 | 11.66% | `survivesFromFull` |
+| Sitrus Berry | 7,043 | 10.79% | `healsAtHalf` |
+| Life Orb | 6,223 | 9.53% | `damageMultAll` |
+| Leftovers | 4,289 | 6.57% | `passiveHeal` |
+| Choice Scarf | 3,907 | 5.98% | `choiceLock` `speedMult` |
+| Charizardite Y | 2,200 | 3.37% | `megaStone` |
+| Light Clay | 2,007 | 3.07% | `extendsScreens` |
+| Staraptite | 1,938 | 2.97% | `megaStone` |
+| Fairy Feather | 1,502 | 2.30% | `damageMultType` |
+| Floettite | 1,439 | 2.20% | `megaStone` |
+| Chople Berry | 1,432 | 2.19% | `resistBerry` |
+| White Herb | 1,358 | 2.08% | `restoresStats` |
+| Swampertite | 1,345 | 2.06% | `megaStone` |
+| Black Glasses | 1,319 | 2.02% | `damageMultType` |
+| Colbur Berry | 1,234 | 1.89% | `resistBerry` |
+| Metagrossite | 1,186 | 1.82% | `megaStone` |
+| Kasib Berry | 1,101 | 1.69% | `resistBerry` |
+| Raichunite Y | 1,063 | 1.63% | `megaStone` |
+| Mystic Water | 864 | 1.32% | `damageMultType` |
+| Aerodactylite | 844 | 1.29% | `megaStone` |
+| Delphoxite | 760 | 1.16% | `megaStone` |
+| Charcoal | 689 | 1.06% | `damageMultType` |
+| Mawilite | 677 | 1.04% | `megaStone` |
+| Occa Berry | 635 | 0.97% | `resistBerry` |
+| Tyranitarite | 633 | 0.97% | `megaStone` |
+| Froslassite | 544 | 0.83% | `megaStone` |
+| Roseli Berry | 510 | 0.78% | `resistBerry` |
+| Passho Berry | 484 | 0.74% | `resistBerry` |
+| Gengarite | 446 | 0.68% | `megaStone` |
+| mentalherb | 439 | 0.67% | **— none —** |
+| Wide Lens | 411 | 0.63% | `accuracyMod` |
+| Venusaurite | 401 | 0.61% | `megaStone` |
+| Coba Berry | 399 | 0.61% | `resistBerry` |
+| expertbelt | 394 | 0.60% | **— none —** |
+| Never-Melt Ice | 386 | 0.59% | `damageMultType` |
+| Blastoisinite | 351 | 0.54% | `megaStone` |
+| Sharp Beak | 294 | 0.45% | `damageMultType` |
+| Dragoninite | 284 | 0.44% | `megaStone` |
+| Scovillainite | 281 | 0.43% | `megaStone` |
+| Blazikenite | 277 | 0.42% | `megaStone` |
+| Shuca Berry | 262 | 0.40% | `resistBerry` |
+| Eelektrossite | 258 | 0.40% | `megaStone` |
+| Scraftinite | 244 | 0.37% | `megaStone` |
+| Raichunite X | 216 | 0.33% | `megaStone` |
+| Metal Coat | 212 | 0.32% | `damageMultType` |
+| damprock | 200 | 0.31% | **— none —** |
+| Sceptilite | 194 | 0.30% | `megaStone` |
+| Cameruptite | 193 | 0.30% | `megaStone` |
+| Gardevoirite | 190 | 0.29% | `megaStone` |
+| Pyroarite | 188 | 0.29% | `megaStone` |
+| Glimmoranite | 159 | 0.24% | `megaStone` |
+| Dragalgite | 145 | 0.22% | `megaStone` |
+| Bright Powder | 142 | 0.22% | `accuracyMod` |
+| Meganiumite | 138 | 0.21% | `megaStone` |
+| Kangaskhanite | 131 | 0.20% | `megaStone` |
+| Dragon Fang | 116 | 0.18% | `damageMultType` |
+| Haban Berry | 112 | 0.17% | `resistBerry` |
+| Lum Berry | 107 | 0.16% | `curesStatus` |
+| Silk Scarf | 100 | 0.15% | `damageMultType` |
+| Malamarite | 90 | 0.14% | `megaStone` |
+| Garchompite | 85 | 0.13% | `megaStone` |
+| ironball | 81 | 0.12% | **— none —** |
+| Spell Tag | 79 | 0.12% | `damageMultType` |
+| Magnet | 77 | 0.12% | `damageMultType` |
+| Soft Sand | 75 | 0.11% | `damageMultType` |
+| Lopunnite | 74 | 0.11% | `megaStone` |
+| Lucarionite | 72 | 0.11% | `megaStone` |
+| Babiri Berry | 70 | 0.11% | `resistBerry` |
+| Scope Lens | 69 | 0.11% | `critRatioUp` |
+| Gyaradosite | 69 | 0.11% | `megaStone` |
+| Charizardite X | 64 | 0.10% | `megaStone` |
+| Scizorite | 63 | 0.10% | `megaStone` |
+| Greninjite | 59 | 0.09% | `megaStone` |
+| Starminite | 56 | 0.09% | `megaStone` |
+| Excadrite | 53 | 0.08% | `megaStone` |
+| Clefablite | 53 | 0.08% | `megaStone` |
+| heatrock | 52 | 0.08% | **— none —** |
+| Drampanite | 51 | 0.08% | `megaStone` |
+| Ampharosite | 49 | 0.08% | `megaStone` |
+| King's Rock | 49 | 0.08% | `addsFlinch` |
+| Chandelurite | 48 | 0.07% | `megaStone` |
+| Miracle Seed | 48 | 0.07% | `damageMultType` |
+| muscleband | 47 | 0.07% | **— none —** |
+| Yache Berry | 46 | 0.07% | `resistBerry` |
+| Falinksite | 45 | 0.07% | `megaStone` |
+| Scolipite | 40 | 0.06% | `megaStone` |
+| Quick Claw | 39 | 0.06% | `fractionalPriority` |
+| Kebia Berry | 38 | 0.06% | `resistBerry` |
+| Aggronite | 38 | 0.06% | `megaStone` |
+| Beedrillite | 37 | 0.06% | `megaStone` |
+| Crabominite | 37 | 0.06% | `megaStone` |
+| Black Belt | 36 | 0.06% | `damageMultType` |
+| Wacan Berry | 36 | 0.06% | `resistBerry` |
+| Slowbronite | 36 | 0.06% | `megaStone` |
+| Sablenite | 33 | 0.05% | `megaStone` |
 
 ---
 
@@ -1730,7 +2125,7 @@ Total tagged: **0**  ·  share: **0.0%**
 | Weak Armor | 9 | profits:true |
 | Sand Spit | 4 | profits:true |
 
-Total tagged: **32**  ·  15 legal but unused  ·  share: **15.4%**
+Total tagged: **32**  ·  15 legal but unused  ·  share: **10.7%**
 
 ## `weatherSetter` — weather := x on switch-in  **← NOT READ**
 
@@ -1743,7 +2138,39 @@ Total tagged: **32**  ·  15 legal but unused  ·  share: **15.4%**
 | Sand Stream | 838 | sets:true |
 | Drought | 615 | sets:true |
 
-Total tagged: **8**  ·  4 legal but unused  ·  share: **9.7%**
+Total tagged: **8**  ·  4 legal but unused  ·  share: **6.7%**
+
+## `preventsStatDrop` — stat drops simply do not apply  **← NOT READ**
+
+*Clear Body (2.03%), Flower Veil for the ally. Intimidate and every -1 move do nothing, so lowersTarget is worth zero into them*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Flower Veil | 1,449 | prevents:true |
+| Clear Body | 1,328 | prevents:true |
+| Hyper Cutter | 377 | prevents:true |
+| Inner Focus | 369 | prevents:true |
+| Oblivious | 274 | prevents:true |
+| Scrappy | 259 | prevents:true |
+| Mirror Armor | 221 | prevents:true |
+| Own Tempo | 44 | prevents:true |
+| Illuminate | 27 | prevents:true |
+| Keen Eye | 27 | prevents:true |
+| Big Pecks | 13 | prevents:true |
+| White Smoke | 1 | prevents:true |
+
+Total tagged: **15**  ·  3 legal but unused  ·  share: **6.4%**
+
+## `boostsWhenLowered` — +2 to a stat when any stat is lowered  **← NOT READ**
+
+*Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them an attack boost, so the lead interaction inverts*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Defiant | 3,564 | retaliates:true |
+| Competitive | 804 | retaliates:true |
+
+Total tagged: **2**  ·  share: **6.4%**
 
 ## `contactPunish` — the ATTACKER pays for touching it  **← NOT READ**
 
@@ -1761,7 +2188,48 @@ Total tagged: **8**  ·  4 legal but unused  ·  share: **9.7%**
 | Mummy | 16 | trigger:contact |
 | Gooey | 10 | trigger:contact |
 
-Total tagged: **14**  ·  5 legal but unused  ·  share: **9.0%**
+Total tagged: **14**  ·  5 legal but unused  ·  share: **6.3%**
+
+## `healsAllyOnSwitchIn` — restores the partner on entry  **← NOT READ**
+
+*Hospitality, 5.22% of abilities and the third most common in the format*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Hospitality | 3,405 | heals:true |
+
+Total tagged: **1**  ·  share: **5.0%**
+
+## `blocksStatusMoves` — every Status-category move fails against it  **← NOT READ**
+
+*Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% of move slots that are status*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Good as Gold | 1,433 | blocks:Status |
+| Telepathy | 112 | blocks:Status |
+
+Total tagged: **3**  ·  1 legal but unused  ·  share: **2.3%**
+
+## `speedOnItemLoss` — speed x2 once its item is gone  **← NOT READ**
+
+*Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order mid-battle and the item tracking now makes observable*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Unburden | 1,458 | speedMult:2 |
+
+Total tagged: **2**  ·  1 legal but unused  ·  share: **2.1%**
+
+## `blocksBerries` — their berries cannot be eaten  **← NOT READ**
+
+*Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Unnerve | 1,326 | blocks:true |
+
+Total tagged: **3**  ·  2 legal but unused  ·  share: **1.9%**
 
 ## `weatherChipImmune` — takes no sandstorm or snow residual damage  **← NOT READ**
 
@@ -1778,7 +2246,7 @@ Total tagged: **14**  ·  5 legal but unused  ·  share: **9.0%**
 | Sand Force | 18 | chipImmune:true |
 | Ice Body | 6 | chipImmune:true |
 
-Total tagged: **8**  ·  share: **2.7%**
+Total tagged: **8**  ·  share: **1.9%**
 
 ## `disablesAttacker` — the move I just used is removed from MY options  **← NOT READ**
 
@@ -1788,7 +2256,7 @@ Total tagged: **8**  ·  share: **2.7%**
 |---|---|---|
 | Cursed Body | 833 | disables:true |
 
-Total tagged: **1**  ·  share: **1.8%**
+Total tagged: **1**  ·  share: **1.2%**
 
 ## `accuracyMod` — P(hit) scaled, often gated on a weather or a category  **← NOT READ**
 
@@ -1802,7 +2270,7 @@ Total tagged: **1**  ·  share: **1.8%**
 | Hustle | 9 | accuracy:true |
 | Tangled Feet | 2 | accuracy:true |
 
-Total tagged: **6**  ·  1 legal but unused  ·  share: **1.2%**
+Total tagged: **6**  ·  1 legal but unused  ·  share: **0.8%**
 
 ## `statusImmune` — a status cannot land  **← NOT READ**
 
@@ -1818,7 +2286,7 @@ Total tagged: **6**  ·  1 legal but unused  ·  share: **1.2%**
 | Vital Spirit | 3 | immune:true |
 | Immunity | 1 | immune:true |
 
-Total tagged: **12**  ·  5 legal but unused  ·  share: **0.6%**
+Total tagged: **12**  ·  5 legal but unused  ·  share: **0.4%**
 
 ## `survivesFromFull` — a lethal hit from full HP leaves 1  **← NOT READ**
 
@@ -1828,7 +2296,7 @@ Total tagged: **12**  ·  5 legal but unused  ·  share: **0.6%**
 |---|---|---|
 | Sturdy | 153 | survives:true |
 
-Total tagged: **1**  ·  share: **0.3%**
+Total tagged: **1**  ·  share: **0.2%**
 
 ## `ignoresDefenderAbility` — suppress every defender-side ability tag for this move  **← NOT READ**
 
@@ -1838,7 +2306,7 @@ Total tagged: **1**  ·  share: **0.3%**
 |---|---|---|
 | Mold Breaker | 127 | ignoresDefAbility:true |
 
-Total tagged: **3**  ·  2 legal but unused  ·  share: **0.3%**
+Total tagged: **3**  ·  2 legal but unused  ·  share: **0.2%**
 
 ## `preventsCrit` — P(crit) = 0  **← NOT READ**
 
@@ -1849,7 +2317,7 @@ Total tagged: **3**  ·  2 legal but unused  ·  share: **0.3%**
 | Disguise | 62 | pCrit:0 |
 | Shell Armor | 24 | pCrit:0 |
 
-Total tagged: **4**  ·  2 legal but unused  ·  share: **0.2%**
+Total tagged: **4**  ·  2 legal but unused  ·  share: **0.1%**
 
 ## `critDamageUp` — the CRIT MULTIPLIER itself, not its probability  **← NOT READ**
 
@@ -1859,7 +2327,7 @@ Total tagged: **4**  ·  2 legal but unused  ·  share: **0.2%**
 |---|---|---|
 | Sniper | 24 | critMult:1.5 |
 
-Total tagged: **1**  ·  share: **0.1%**
+Total tagged: **1**  ·  share: **0.0%**
 
 ## `critRatioUp` — P(crit) raised  **← NOT READ**
 
@@ -1923,7 +2391,7 @@ Total tagged: **3**  ·  3 legal but unused  ·  share: **0.0%**
 | Plus | 2 | boost:true |
 | Refrigerate | 1 | boost:true |
 
-Total tagged: **44**  ·  18 legal but unused  ·  share: **15.2%**
+Total tagged: **44**  ·  18 legal but unused  ·  share: **10.6%**
 
 ## `onSwitchInDrop` — stat stages on the foe at switch-in
 
@@ -1934,7 +2402,7 @@ Total tagged: **44**  ·  18 legal but unused  ·  share: **15.2%**
 | Intimidate | 6,536 | drop:true |
 | Supersweet Syrup | 13 | drop:true |
 
-Total tagged: **3**  ·  1 legal but unused  ·  share: **13.8%**
+Total tagged: **3**  ·  1 legal but unused  ·  share: **9.6%**
 
 ## `priorityMod` — order shifts for a class of move
 
@@ -1955,7 +2423,7 @@ Total tagged: **3**  ·  1 legal but unused  ·  share: **13.8%**
 | Skill Link | 4 | priority:true |
 | Long Reach | 2 | priority:true |
 
-Total tagged: **22**  ·  10 legal but unused  ·  share: **12.4%**
+Total tagged: **22**  ·  10 legal but unused  ·  share: **8.6%**
 
 ## `typeImmunity` — damage of one TYPE := 0
 
@@ -1973,7 +2441,17 @@ Total tagged: **22**  ·  10 legal but unused  ·  share: **12.4%**
 | Water Absorb | 15 | immune:true,via:onTryHit |
 | Motor Drive | 13 | immune:true,via:onTryHit |
 
-Total tagged: **11**  ·  2 legal but unused  ·  share: **7.5%**
+Total tagged: **11**  ·  2 legal but unused  ·  share: **5.2%**
+
+## `stabBoost` — STAB becomes x2 instead of x1.5
+
+*Adaptability, 4.34% of abilities. A flat 33% damage increase on same-type moves and nothing was reading it*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Adaptability | 2,833 | stab:2 |
+
+Total tagged: **1**  ·  share: **4.2%**
 
 ## `speedCond` — speed x2 under a condition
 
@@ -1988,7 +2466,7 @@ Total tagged: **11**  ·  2 legal but unused  ·  share: **7.5%**
 | Slush Rush | 4 | conditional:true |
 | Quick Feet | 2 | conditional:true |
 
-Total tagged: **7**  ·  1 legal but unused  ·  share: **4.1%**
+Total tagged: **7**  ·  1 legal but unused  ·  share: **2.9%**
 
 ## `blocksMove` — a whole class of move fails
 
@@ -1999,7 +2477,29 @@ Total tagged: **7**  ·  1 legal but unused  ·  share: **4.1%**
 | Armor Tail | 1,682 | blocks:true |
 | Queenly Majesty | 220 | blocks:true |
 
-Total tagged: **3**  ·  1 legal but unused  ·  share: **4.0%**
+Total tagged: **3**  ·  1 legal but unused  ·  share: **2.8%**
+
+## `healsOnSwitchOut` — restores a third of max HP by leaving
+
+*Regenerator. Makes switching a HEAL, which is the strongest argument for pivoting that the switch features cannot see*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Regenerator | 540 | heal:0.3333333333333333 |
+| Zero to Hero | 105 | heal:0.3333333333333333 |
+| Natural Cure | 35 | heal:0.3333333333333333 |
+
+Total tagged: **3**  ·  share: **1.0%**
+
+## `reducesAllyDamage` — my PARTNER takes x0.75
+
+*Friend Guard. Changes every damage number aimed at the partner and nothing applies it*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Friend Guard | 614 | mult:0.75 |
+
+Total tagged: **1**  ·  share: **0.9%**
 
 ## `damageReduce` — x<1 damage taken
 
@@ -2011,7 +2511,7 @@ Total tagged: **3**  ·  1 legal but unused  ·  share: **4.0%**
 | Solid Rock | 166 | reduce:true |
 | Fluffy | 3 | reduce:true |
 
-Total tagged: **9**  ·  6 legal but unused  ·  share: **1.1%**
+Total tagged: **9**  ·  6 legal but unused  ·  share: **0.8%**
 
 ## `formeChange` — the species changes mid-battle
 
@@ -2024,7 +2524,7 @@ Total tagged: **9**  ·  6 legal but unused  ·  share: **1.1%**
 | Illusion | 62 | changes:true |
 | Imposter | 39 | changes:true |
 
-Total tagged: **7**  ·  3 legal but unused  ·  share: **0.6%**
+Total tagged: **7**  ·  3 legal but unused  ·  share: **0.4%**
 
 ## `invertsBoosts` — stat changes flip sign
 
@@ -2034,7 +2534,7 @@ Total tagged: **7**  ·  3 legal but unused  ·  share: **0.6%**
 |---|---|---|
 | Contrary | 134 | inverts:true |
 
-Total tagged: **3**  ·  2 legal but unused  ·  share: **0.3%**
+Total tagged: **3**  ·  2 legal but unused  ·  share: **0.2%**
 
 ## `redirectsType` — draws that type to itself
 
