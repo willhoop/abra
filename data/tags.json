@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T17:49:09.136Z",
+ "generated": "2026-07-29T17:56:05.408Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -22,6 +22,19 @@
     "Dual Wingbeat",
     "Icicle Spear",
     "Pin Missile"
+   ]
+  },
+  {
+   "tag": "powerFromFallen",
+   "kind": "move",
+   "param": "BP = base + per x fallen allies, read LIVE",
+   "why": "Last Respects sits in the pool at a flat 50 — the 50-per-death half was invisible. The taxonomy already knew: it carries needsUntrackedState because no death counter existed",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 3138,
+   "examples": [
+    "Last Respects"
    ]
   },
   {
@@ -2397,6 +2410,19 @@
     "Sharpness",
     "Strong Jaw",
     "Tough Claws"
+   ]
+  },
+  {
+   "tag": "boostsFromFallen",
+   "kind": "ability",
+   "param": "x(1 + per x fallen) damage, fallen SNAPSHOT at switch-in",
+   "why": "Supreme Overlord, 64 uses (most Kingambit run Defiant, per Will). Small today; the death counter it shares with Last Respects is the part that had to exist",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 64,
+   "examples": [
+    "Supreme Overlord"
    ]
   },
   {
@@ -12141,11 +12167,17 @@
   "lastrespects": {
    "name": "Last Respects",
    "tags": [
+    "powerFromFallen",
     "needsUntrackedState",
     "variablePower"
    ],
    "uses": 3138,
    "params": {
+    "powerFromFallen": {
+     "base": 50,
+     "perFallen": 50,
+     "counts": "live"
+    },
     "needsUntrackedState": {
      "needs": "fainted count -- NOT TRACKED"
     },
@@ -22076,10 +22108,16 @@
   "supremeoverlord": {
    "name": "Supreme Overlord",
    "tags": [
+    "boostsFromFallen",
     "damageBoost"
    ],
    "uses": 64,
    "params": {
+    "boostsFromFallen": {
+     "perFallen": 0.1,
+     "max": 5,
+     "countedAt": "switch-in"
+    },
     "damageBoost": {
      "mult": null,
      "onType": null,

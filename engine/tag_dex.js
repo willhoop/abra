@@ -209,6 +209,20 @@ const MOVE_TAGS = [
     why: 'total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill',
     of: m => m.multihit ? { readFrom: 'm.multihit',
       distribution: Array.isArray(m.multihit) ? '2:35 3:35 4:15 5:15' : 'fixed' } : null },
+  /* Will, 2026-07-29: "most gambit use defiant but the supreme overlord needs a count of the dead
+   * like last respects ... and i think that only works on first switchin, then the status is tuck".
+   * Both right, and both read from the handlers: Last Respects is 50 + 50 x side.totalFainted read
+   * LIVE at each use; Supreme Overlord snapshots min(totalFainted, 5) at switch-in into its own
+   * effectState and never updates while out. Same counter, opposite freshness — a tag that did not
+   * say which would have Kingambit's boost climbing mid-stay. */
+  { tag: 'powerFromFallen', param: 'BP = base + per x fallen allies, read LIVE', probe: 'lastrespects',
+    why: 'Last Respects sits in the pool at a flat 50 — the 50-per-death half was invisible. The '
+       + 'taxonomy already knew: it carries needsUntrackedState because no death counter existed',
+    of: m => {
+      const src = String(m.basePowerCallback || '');
+      const p = src.match(/return\s*(\d+)\s*\+\s*(\d+)\s*\*\s*\w+\.side\.totalFainted/);
+      return p ? { base: +p[1], perFallen: +p[2], counts: 'live' } : null;
+    } },
   { tag: 'alwaysCrit', param: 'P(crit) = 1', probe: 'willCrit',
     why: 'x1.5 and ignores the defender\'s positive defensive boosts',
     of: m => m.willCrit ? { pCrit: 1 } : null },
@@ -1991,6 +2005,21 @@ const ABILITY_TAGS = [
             || src.includes(`flags["${f}"]`)) return { boostsFlag: f };
       }
       return null;
+    } },
+  /* The counterpart of powerFromFallen on the ability side — see that tag for Will's ruling on the
+   * two freshness rules. perFallen is derived from the handler's own powMod table (4506/4096 - 1),
+   * the cap from its Math.min, and countedAt says the number FREEZES at switch-in. */
+  { tag: 'boostsFromFallen', param: 'x(1 + per x fallen) damage, fallen SNAPSHOT at switch-in', probe: 'supremeoverlord',
+    why: 'Supreme Overlord, 64 uses (most Kingambit run Defiant, per Will). Small today; the death '
+       + 'counter it shares with Last Respects is the part that had to exist',
+    of: a => {
+      const st = String(a.onStart || '');
+      if (!/totalFainted/.test(st)) return null;
+      const pm = String(a.onBasePower || '').match(/\[\s*(\d+)\s*,\s*(\d+)/);
+      const cap = st.match(/Math\.min\([^,]*,\s*(\d+)\s*\)/);
+      if (!pm) return null;
+      return { perFallen: +(((+pm[2]) / (+pm[1])) - 1).toFixed(2),
+               max: cap ? +cap[1] : 5, countedAt: 'switch-in' };
     } },
   { tag: 'damageBoost', param: 'x>1 damage dealt', probe: 'technician',
     why: 'Adaptability, Technician, Tinted Lens, Sheer Force, Iron Fist, Strong Jaw',

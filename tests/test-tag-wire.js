@@ -366,6 +366,35 @@ console.log('\nwire 8 — perTurnHP');
     `a ${pLS.immuneType}-type victim is immune, from the move's own onTryImmunity (${gb && (99999 - gb.v.curHP)} lost)`);
 }
 
+/* ---- WIRE 9: the death counter — Last Respects live, Supreme Overlord frozen ----------------- */
+console.log('\nwire 9 — powerFromFallen / boostsFromFallen');
+{
+  const pLR = TAGS.param('move', 'lastrespects', 'powerFromFallen');
+  ok(pLR && pLR.base === 50 && pLR.perFallen === 50 && pLR.counts === 'live',
+    'Last Respects: 50 + 50 per death, read LIVE — was a flat 50 in the pool');
+  const pSO = TAGS.param('ability', 'supremeoverlord', 'boostsFromFallen');
+  ok(pSO && pSO.perFallen === 0.1 && pSO.max === 5 && pSO.countedAt === 'switch-in',
+    'Supreme Overlord: +10% per fallen, max 5, SNAPSHOT at entry (Will: "then the status is tuck")');
+
+  const F = { terrain: '', weather: '', twA: 0, twB: 0 };
+  const att = M.buildMon('kingambit', {}), d0 = M.buildMon('garchomp', {});
+  att.moves = ['lastrespects'];
+  const fresh = M.dmgRange(att, d0, MC.moves.lastrespects, F, false).max;
+  att._sf = { fainted: 3 };
+  const grieving = M.dmgRange(att, d0, MC.moves.lastrespects, F, false).max;
+  /* BP goes 50 -> 200 (x4) but damage is floor(floor(22*BP*A/D)/50)+2 — the +2 and the floors pull
+   * the damage ratio a little under the BP ratio, so the bound is 3.5-4, not 4 exactly. */
+  ok(grieving / fresh > 3.5 && grieving / fresh <= 4,
+    `three dead allies make Last Respects x${(grieving / fresh).toFixed(2)} damage (BP 50 -> 200)`);
+
+  att._sf = null; att.ability = 'supremeoverlord';
+  const solo = M.dmgRange(att, d0, MC.moves.ironhead, F, false).max;
+  att._fallenStuck = 5;
+  const lord = M.dmgRange(att, d0, MC.moves.ironhead, F, false).max;
+  ok(lord / solo > 1.42 && lord / solo < 1.58,
+    `five fallen freeze Supreme Overlord at x${(lord / solo).toFixed(2)} (handler says x1.5)`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

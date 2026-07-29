@@ -140,7 +140,13 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
     else { st=meg; }
   }
   return {name,types,st,item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
-    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null}; }
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
+    /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
+     * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
+     * each use. _fallenStuck is the SNAPSHOT taken when this mon entered — Supreme Overlord's
+     * number, frozen for the stay exactly as its handler freezes effectState.fallen ("that only
+     * works on first switchin, then the status is tuck" — confirmed against the source). */
+    _sf:null,_fallenStuck:0}; }
 
 /* Does this move make contact? Read from the move's own flag via the tag artifact, which is the
  * `contact` linkage key -- 141 moves and 77,226 move-slots. No name list. */
@@ -191,6 +197,11 @@ function dmgRange(att,def,mv,field,spread){
     const w=_ws.byWeather[field.weather];
     if(w){if(w.type)mvT=w.type;if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}
   }
+  /* WIRE 9 -- the death counter, both freshness rules (Will's split). Last Respects reads the
+   * side's LIVE count at each use; Supreme Overlord multiplies by the snapshot FROZEN at this
+   * attacker's entry. Both zero when no counter is attached (site calls, unit tests). */
+  const _pf=mv.id&&TAGS.param('move',mv.id,'powerFromFallen');
+  if(_pf&&att._sf&&att._sf.fainted)mvBP=_pf.base+_pf.perFallen*Math.min(att._sf.fainted,5);
   const phys=mv.c==='P';
   let A=phys?att.st.at:att.st.sa,D=phys?def.st.df:def.st.sd;
   A=Math.floor(A*boostMul(phys?att.boosts.at:att.boosts.sa));
@@ -226,6 +237,8 @@ function dmgRange(att,def,mv,field,spread){
   if(!phys&&def.ability==='vesselofruin')A=Math.floor(A*0.75);
   let base=Math.floor(Math.floor(22*mvBP*A/D)/50)+2;
   if(spread)base=Math.floor(base*0.75);
+  const _bf=TAGS.param('ability',att.ability,'boostsFromFallen');
+  if(_bf&&att._fallenStuck)base=Math.floor(base*(1+_bf.perFallen*Math.min(att._fallenStuck,_bf.max)));
   if(field.weather==='rain'){if(mvT==='Water')base=Math.floor(base*1.5);if(mvT==='Fire')base=Math.floor(base*0.5);}
   if(field.weather==='sun'){if(mvT==='Fire')base=Math.floor(base*1.5);if(mvT==='Water')base=Math.floor(base*0.5);}
   if(att.ability==='technician'&&mvBP<=60)base=Math.floor(base*1.5);
@@ -550,6 +563,9 @@ function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;
 
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
   const field={weather:null,weatherT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false};
+  /* one shared death counter per side, handed to every mon by reference */
+  const sfA={fainted:0},sfB={fainted:0};
+  teamA.forEach(m=>{if(m)m._sf=sfA;});teamB.forEach(m=>{if(m)m._sf=sfB;});
   const setW=ms=>{for(const m of ms){if(m.ability==='drizzle'){field.weather='rain';field.weatherT=5;}else if(m.ability==='drought'){field.weather='sun';field.weatherT=5;}else if(m.ability==='sandstream'){field.weather='sand';field.weatherT=5;}else if(m.ability==='snowwarning'){field.weather='snow';field.weatherT=5;}}};
   const actA=[teamA[0],teamA[1]].filter(Boolean),actB=[teamB[0],teamB[1]].filter(Boolean);
   const benchA=teamA.slice(2),benchB=teamB.slice(2);
@@ -769,8 +785,14 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
-    const refill=(act,bench,foes)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in uses the same Intimidate rules */
-    refill(actA,benchA,actB);refill(actB,benchB,actA);
+    /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
+     * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
+     * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every
+     * turn — no hand-maintained tally to drift. */
+    sfA.fainted=[...actA,...benchA].filter(x=>x&&x.fainted).length;
+    sfB.fainted=[...actB,...benchB].filter(x=>x&&x.fainted).length;
+    const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;nx._fallenStuck=sf.fainted;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in uses the same Intimidate rules */
+    refill(actA,benchA,actB,sfA);refill(actB,benchB,actA,sfB);
   }
   const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
   if(aA!==bA)return aA>bA?1:0;
