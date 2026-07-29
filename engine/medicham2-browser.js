@@ -905,7 +905,24 @@ function futureSight(myNames,foeNames,opts){
     return {name:f.name,clicks,fromPriors,threats};
   });
   const pWin=winProb2(myNames,foeNames,opts.rollouts||200,ov);
-  return {foes:foesOut,pWin,
+  /* MY CLICKS, PRICED (Will: "for every implementation i sorta want a 'what is the cost/risk' of
+   * clicking this move"). For each of my mons, every damaging click gets: damage into each foe,
+   * the punisher price of touching that foe (punishExposure), and worst-case retention against
+   * their BENCH (clickFragility) with the threat named. All the same reads the scorer makes. */
+  const bench=(opts.foeBench||[]).map(n=>buildMon(n,ov)).filter(Boolean);
+  const mineOut=mine.map(m=>({name:m.name,clicks:(m.moves||[]).map(id=>{
+    const mv=MC.moves[id];
+    if(!mv||!mv.bp)return {move:id,kind:'status'};
+    const into=foes.map(f=>{
+      const d=dmgRange(m,f,mv,field,false);
+      const x=punishExposure(m,f,id,{field,foes});
+      return {vs:f.name,minPct:Math.round(100*d.min/f.st.hp),maxPct:Math.round(100*d.max/f.st.hp),
+              cost:x?x.total:0};
+    });
+    const frag=bench.length?clickFragility(m,id,foes[0],bench,field):null;
+    return {move:id,into,fragility:frag&&frag.fragile?frag:null};
+  })}));
+  return {foes:foesOut,mine:mineOut,pWin,
     priorsCoverage:foesOut.filter(f=>f.fromPriors).length+'/'+foesOut.length};
 }
 root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MEDI_SPREAD=SPREAD;

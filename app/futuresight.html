@@ -60,6 +60,7 @@ the tag-wired damage engine says what it costs, and the rollout engine says who 
 <div class="controls">
   <span class="lbl">You</span><select id="y0"></select><select id="y1"></select>
   <span class="lbl">Foe</span><select id="f0"></select><select id="f1"></select>
+  <span class="lbl">Their back</span><select id="b0"></select><select id="b1"></select>
   <span class="lbl">Sky</span>
   <select id="wx"><option value="">clear</option><option value="sun">sun</option><option value="rain">rain</option>
     <option value="sand">sand</option><option value="snow">snow</option></select>
@@ -72,6 +73,7 @@ the tag-wired damage engine says what it costs, and the rollout engine says who 
   <div class="bar"><i id="pwBar" style="width:50%"></i></div>
   <div class="foot" id="pwNote">pick two of yours and two of theirs, then Foresee.</div>
 </div>
+<div class="grid" id="minePanels"></div>
 <div class="grid" id="foePanels"></div>
 
 <div class="foot">Weather flows through every number: in sand, Weather Ball here IS a 100 BP Rock move.
@@ -88,6 +90,7 @@ A foe with no ladder priors shows a flat guess and says so. pWin is <span id="nR
 var names=Object.keys(MC.mons).sort();
 function fill(sel,pick){var s=document.getElementById(sel);names.forEach(function(n){var o=document.createElement('option');o.value=o.textContent=n;s.appendChild(o);});s.value=pick;}
 fill('y0','incineroar');fill('y1','garchomp');fill('f0','kingambit');fill('f1','whimsicott');
+fill('b0','pelipper');fill('b1','corviknight');
 
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
@@ -95,6 +98,24 @@ function render(fs){
   document.getElementById('pw').innerHTML=fs.pWin==null?'—':(100*fs.pWin).toFixed(0)+'%<small> chance you win this 2v2+</small>';
   document.getElementById('pwBar').style.width=(fs.pWin==null?50:100*fs.pWin)+'%';
   document.getElementById('pwNote').textContent='priors coverage '+fs.priorsCoverage+' foes';
+  var mh=document.getElementById('minePanels');mh.innerHTML='';
+  (fs.mine||[]).forEach(function(me){
+    var el=document.createElement('div');el.className='card you';
+    var h='<h3>'+esc(me.name)+' — your clicks, priced</h3>'+
+      '<table><tr><th>click</th><th>into</th><th>damage</th><th>touch cost</th><th>bench risk</th></tr>';
+    me.clicks.forEach(function(c){
+      if(c.kind==='status'){h+='<tr><td><b>'+esc(c.move)+'</b></td><td colspan=4 style="color:var(--dim)">status move</td></tr>';return;}
+      c.into.forEach(function(i,ix){
+        h+='<tr>'+(ix===0?'<td rowspan='+c.into.length+'><b>'+esc(c.move)+'</b></td>':'')+
+           '<td>'+esc(i.vs)+'</td><td>'+i.minPct+'–'+i.maxPct+'%</td>'+
+           '<td>'+(i.cost?('<span class="warn">'+(100*i.cost).toFixed(0)+'% of you</span>'):'—')+'</td>'+
+           (ix===0?('<td rowspan='+c.into.length+'>'+(c.fragility?('<span class="warn">keeps '+(100*c.fragility.retention).toFixed(0)+'% if '+esc(c.fragility.cause)+' '+esc(c.fragility.how)+'</span>'):'—')+'</td>'):'')+
+           '</tr>';
+      });
+    });
+    h+='</table>';
+    el.innerHTML=h;mh.appendChild(el);
+  });
   var host=document.getElementById('foePanels');host.innerHTML='';
   fs.foes.forEach(function(f){
     var el=document.createElement('div');el.className='card foe';
@@ -121,7 +142,8 @@ document.getElementById('go').onclick=function(){
       var fs=window.futureSight(
         [document.getElementById('y0').value,document.getElementById('y1').value],
         [document.getElementById('f0').value,document.getElementById('f1').value],
-        {weather:document.getElementById('wx').value,rollouts:200});
+        {weather:document.getElementById('wx').value,rollouts:200,
+         foeBench:[document.getElementById('b0').value,document.getElementById('b1').value]});
       if(fs)render(fs);
     }finally{btn.disabled=false;btn.textContent='Foresee';}
   },30);

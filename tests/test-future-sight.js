@@ -69,6 +69,22 @@ console.log('FUTURE SIGHT — the forecast reads what it claims to read\n');
   }
 }
 
+/* my clicks, priced: damage, punisher cost, and bench fragility in one read */
+{
+  const fs = M.futureSight(['venusaur', 'incineroar'], ['garchomp', 'whimsicott'],
+    { weather: 'sun', rollouts: 5, foeBench: ['pelipper', 'kingambit'] });
+  ok(fs && Array.isArray(fs.mine) && fs.mine.length === 2, 'the forecast now prices MY side too');
+  const ven = fs && fs.mine[0];
+  const shock = ven && ven.clicks.find(c => c.move === 'venoshock');
+  ok(shock && shock.fragility && shock.fragility.retention === 0 && shock.fragility.cause === 'kingambit',
+    'Venoshock is flagged dead against their benched Steel — chart immunity, no ability needed');
+  const inc = fs && fs.mine[1];
+  const touchy = inc && inc.clicks.find(c => c.into && c.into.some(i => i.vs === 'garchomp' && i.cost > 0));
+  ok(!!touchy, `Incineroar's contact clicks into Rough Skin Garchomp carry their price (${touchy && touchy.move})`);
+  const round = ven && ven.clicks.find(c => c.move === 'round');
+  ok(round && !round.fragility, 'a Normal spread with no bench threat carries no fragility flag');
+}
+
 /* pWin: a mirror is a coin, a 4-on-1 is not */
 {
   const six = ['incineroar', 'garchomp', 'corviknight', 'kingambit'];
