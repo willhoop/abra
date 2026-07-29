@@ -175,7 +175,7 @@ const WEIGHTS1 = arg('weights', '');
  * without touching the shipped one. */
 /* Per-decision probability of taking an available form change. See the block at the Player
  * construction for why this is not the same thing as the mega rate. */
-const MEGA_P = parseFloat(arg('mega', '0.85'));
+const MEGA_P = parseFloat(arg('mega', '1'));
 const OUT = path.resolve(arg('out', OUT_DEFAULT));
 /* RAW LOGS ARE THE POINT, AND THIS FILE USED TO THROW THEM AWAY.
  * ------------------------------------------------------------------------------------------------

@@ -40,7 +40,7 @@ const SWITCHING = process.argv.includes('--switching');
  * so the bot you challenge is the bot that was trained and measured. NOTE this is a coin flip in
  * the BASE player, not a decision: no feature in board.js scores mega TIMING, so MAG megas at
  * random rather than choosing when. Making it a real choice is a separate piece of work. */
-const MEGA_P = parseFloat(arg('mega', '0.85'));
+const MEGA_P = parseFloat(arg('mega', '1'));
 const WHY = process.argv.includes('--why');
 /* --weights <file>  play a different fitted vector. The one worth trying is
  * data/policy-weights-nopop.json, refitted with "how often people click this" removed entirely --

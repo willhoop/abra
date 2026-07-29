@@ -107,7 +107,19 @@ function makeScoringPlayer(opts = {}) {
        *
        * So the roll is made HERE, per slot, against that slot's own flag. `this.mega` is forced to
        * 0 on the parent so it can never also append a suffix and produce "move 1 1 mega mega". */
-      this.megaP = Math.max(0, Math.min(1, +(options && options.mega) || 0));
+      /* THE PROBABILITY IS A PLACEHOLDER AND IT IS THE WRONG SHAPE.
+       *
+       * 0.85 was inherited from Showdown's RandomPlayerAI, where a coin flip exists so a RANDOM bot
+       * sometimes megas. Nothing about it is a decision, and Will's objection is the right one:
+       * declining a mega should have a REASON. His two are weather -- mega evolution changes the
+       * ability, so whether to take it depends on what weather is up and who set it -- and setup,
+       * where you delay so the stat change lands on the turn it matters. Both are properties of the
+       * BOARD, and a fixed probability cannot express either.
+       *
+       * Defaulted to 1 until mega is a scored candidate rather than a roll, because in this format
+       * declining is almost never right and 0.85 was throwing away one mega in seven for nothing. */
+      this.megaP = options && options.mega != null
+        ? Math.max(0, Math.min(1, +options.mega || 0)) : 0;
       this.mega = 0;
       this.joint = false; this.wj = null;
       this.jointZero = !!(options && options.jointZero);
