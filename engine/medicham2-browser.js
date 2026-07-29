@@ -665,9 +665,54 @@ function winProb2(nA,nB,N,ov){
   if(!A0.length||!B0.length)return null;
   let w=0;for(let i=0;i<N;i++){w+=battle(A0.map(n=>buildMon(n,ov)),B0.map(n=>buildMon(n,ov)),ov);}return w/N;
 }
+/* ALAKAZAM'S FUTURE SIGHT — the user-facing prediction read. Will asked for this by name
+ * (2026-07-26): a shipped feature that predicts. It predicts three things, none of them invented:
+ *
+ *   clicks    what each opposing species is likely to CLICK, straight from the behaviour-clone
+ *             priors (data/move-priors.json) — the same distribution chooseAction samples, so the
+ *             forecast and the bot cannot disagree. When a species has no priors the fallback is
+ *             uniform over its set and SAYS SO: ADR-001 attempt 3 fell back silently and reported a
+ *             32-point finding that measured nothing.
+ *   threats   for every my-mon x their-mon pair, the best move they have into it and the damage as
+ *             a share of max HP, from the same dmgRange the rollouts use — tags, weather and all.
+ *   pWin      winProb2 over N rollouts of the full doubles engine.
+ *
+ * A PURE READ: builds its own mons, mutates nothing, safe to call from a UI on every change. */
+function futureSight(myNames,foeNames,opts){
+  opts=opts||{};
+  const field={terrain:opts.terrain||'',weather:opts.weather||'',twA:0,twB:0};
+  const ov=opts.items||{};
+  const mine=(myNames||[]).map(n=>buildMon(n,ov)).filter(Boolean);
+  const foes=(foeNames||[]).map(n=>buildMon(n,ov)).filter(Boolean);
+  if(!mine.length||!foes.length)return null;
+  const foesOut=foes.map(f=>{
+    const pr=MC.priors&&MC.priors[f.name];
+    let clicks,fromPriors=true;
+    if(pr&&pr.length){
+      const tot=pr.reduce((s,q)=>s+q[1],0)||1;
+      clicks=pr.map(q=>({move:q[0],p:q[1]/tot,kind:q[2]||'attack'}));
+    }else{
+      fromPriors=false;
+      clicks=(f.moves||[]).map(id=>({move:id,p:1/(f.moves.length||1),kind:'unknown'}));
+    }
+    const threats=mine.map(m=>{
+      const b=bestMoveVs(f,m,field);
+      if(!b)return {into:m.name,move:null,minPct:0,maxPct:0,ko:'no'};
+      return {into:m.name,move:b.id,
+        minPct:Math.round(100*b.d.min/m.st.hp),
+        maxPct:Math.round(100*b.d.max/m.st.hp),
+        ko:b.d.min>=m.curHP?'guaranteed':(b.d.max>=m.curHP?'possible':'no')};
+    });
+    return {name:f.name,clicks,fromPriors,threats};
+  });
+  const pWin=winProb2(myNames,foeNames,opts.rollouts||200,ov);
+  return {foes:foesOut,pWin,
+    priorsCoverage:foesOut.filter(f=>f.fromPriors).length+'/'+foesOut.length};
+}
 root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MEDI_SPREAD=SPREAD;
+root.futureSight=futureSight;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
-if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,
+if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   moveFx,movePriority,moveAccuracy,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);
