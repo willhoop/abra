@@ -1770,7 +1770,22 @@ const ABILITY_TAGS = [
     why: 'Stamina (1,643) turns every physical hit into +1 Def; Justified, Electromorphosis and Weak '
        + 'Armor bank a resource. Hitting it again is worse than hitting it the first time -- exactly '
        + 'the Bellibolt/Archaludon turn, where a resisted spread move fed a free boost',
-    of: a => effectRecipients(a).holder ? { compounds: true } : null },
+    of: a => {
+      if (!effectRecipients(a).holder) return null;
+      /* CARRY THE ACTUAL BOOST, not just `compounds: true`. The first wire of this tag had to fall
+       * back on `ability==='stamina'?'df':...` inside the engine -- a name hardcode, which is the
+       * thing this project keeps banning. The handler states it plainly: this.boost({ def: 1 }).
+       * Volatile gains (Electromorphosis banking Charge) have no stat and say so. */
+      const src = String(a.onDamagingHit || '') + String(a.onHit || '');
+      const boosts = {};
+      const m = src.match(/this\.boost\(\s*\{([^}]*)\}/);
+      if (m) for (const part of m[1].split(',')) {
+        const kv = part.split(':').map(x => x.trim());
+        if (kv.length === 2 && /^-?\d+$/.test(kv[1])) boosts[kv[0].replace(/["']/g, '')] = +kv[1];
+      }
+      const vol = (src.match(/addVolatile\(\s*["'](\w+)["']/) || [])[1] || null;
+      return { compounds: true, boosts: Object.keys(boosts).length ? boosts : null, gainsVolatile: vol };
+    } },
   { tag: 'punishesAttacker', param: 'the ATTACKER pays a flat toll, which does NOT compound', probe: 'punishesAttacker',
     why: 'Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. '
        + 'Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to '

@@ -149,6 +149,52 @@ console.log('\nwire 3 — resistBerry');
   ok(d.item === 'colburberry', 'calling dmgRange five times does NOT consume the berry');
 }
 
+/* ---- WIRES 4+5: buffsHolderOnHit and punishesAttacker, one `contact` dispatch ---------------- */
+console.log('\nwires 4+5 — buffsHolderOnHit / punishesAttacker  (THE BELLIBOLT TURN)');
+{
+  const b = TAGS.param('ability', 'stamina', 'buffsHolderOnHit');
+  ok(b && b.boosts && b.boosts.def === 1,
+    `Stamina's boost is derived from its handler: ${JSON.stringify(b && b.boosts)}`);
+  const j = TAGS.param('ability', 'justified', 'buffsHolderOnHit');
+  ok(j && j.boosts && j.boosts.atk === 1,
+    `Justified is a DIFFERENT stat, proving the wire reads the tag: ${JSON.stringify(j && j.boosts)}`);
+
+  const p = TAGS.param('ability', 'roughskin', 'punishesAttacker');
+  ok(p && +p.fraction === 8, `Rough Skin charges 1/${p && p.fraction} of the attacker's max HP`);
+
+  /* Contact must come from the move's own flag, not a list. Both directions. */
+  ok(TAGS.has('move', 'knockoff', 'contact') && !TAGS.has('move', 'earthquake', 'contact'),
+    'contact is read per-move from the artifact (Knock Off yes, Earthquake no)');
+
+  /* The two tags must be DISJOINT in what they imply: one compounds, one does not. If a single
+   * ability carried both flags with the same meaning the split Will asked for would be pointless. */
+  ok(b.compounds === true && p.compounds === false,
+    'the split holds: buffsHolderOnHit compounds, punishesAttacker does not');
+
+  /* END TO END, and this is the check that actually matters. Everything above reads the artifact;
+   * none of it proves the battle loop executes the wire. The same gap let the first version of this
+   * file pass while calling no engine code at all.
+   *
+   * Mudsdale carries Stamina and is the Pokemon from Will's own losing turn. Play real battles and
+   * assert its Defense stage rises at least once -- a boost NOBODY CLICKED, which is precisely what
+   * the bot could not previously see. */
+  if (MC.mons.mudsdale && typeof M.battle === 'function') {
+    let sawBoost = false, ran = 0;
+    for (let seed = 0; seed < 40 && !sawBoost; seed++) {
+      let s = seed * 2654435761 + 12345;
+      const rng = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+      const mk = names => names.map(n => M.buildMon(n, {})).filter(Boolean);
+      const A = mk(['mudsdale', 'incineroar', 'garchomp', 'gholdengo']);
+      const B = mk(['kingambit', 'incineroar', 'garchomp', 'whimsicott']);
+      if (A.length < 2 || B.length < 2) break;
+      ran++;
+      try { M.battle(A, B, {}, rng); } catch (e) { break; }
+      if (A[0] && A[0].boosts && A[0].boosts.df > 0) sawBoost = true;
+    }
+    ok(sawBoost, `Stamina raised Mudsdale's Defense in a real battle without anyone clicking a boost (${ran} games)`);
+  }
+}
+
 console.log('');
 if (fail) {
   console.log(`${fail} wire(s) are dead — the tag exists, the run is clean, and the number did not move.`);

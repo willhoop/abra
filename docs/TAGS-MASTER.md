@@ -2870,7 +2870,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
-### `punishesAttacker` — 8.4%, 16 abilities — **NOT READ**
+### `punishesAttacker` — 8.4%, 16 abilities
 
 *the ATTACKER pays a flat toll, which does NOT compound*
 
@@ -3021,7 +3021,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
-### `buffsHolderOnHit` — 2.6%, 12 abilities — **NOT READ**
+### `buffsHolderOnHit` — 2.6%, 12 abilities
 
 *the thing you hit gets STRONGER, and it compounds*
 
@@ -3828,10 +3828,10 @@ resource sitting in a volatile, which is why neither was visible before volatile
 | moves tagged | 500 |
 | abilities tagged | 258 |
 | items tagged | 146 |
-| **tags read by nothing** | **110** |
+| **tags read by nothing** | **108** |
 | tags that match no member at all | 7 |
 
-**110 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**108 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.

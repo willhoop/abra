@@ -58,6 +58,9 @@ const ACC = {hydropump:80,hurricane:70,fireblast:85,focusblast:70,thunder:70,bli
 const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','banefulbunker','burningbulwark','silktrap','maxguard']);
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* Showdown spells stats atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. A naming convention,
+ * not a mechanic, so the map lives here rather than in data/tags.json. */
+const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:null,evasion:null};
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 
 // Mega abilities — sourced from Serebii's Champions data (not guessed). Champions runs BOTH the
@@ -114,6 +117,16 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
   }
   return {name,types,st,item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false}; }
+
+/* Does this move make contact? Read from the move's own flag via the tag artifact, which is the
+ * `contact` linkage key -- 141 moves and 77,226 move-slots. No name list. */
+const _contactCache=Object.create(null);
+function mvMakesContact(id){
+  if(!id) return false;
+  const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(k in _contactCache) return _contactCache[k];
+  return (_contactCache[k]=TAGS.has('move',k,'contact'));
+}
 
 function dmgRange(att,def,mv,field,spread){
   if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
@@ -434,8 +447,40 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
          * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
         const _rbHit=TAGS.param('item',tg.item,'resistBerry');
         if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1))tg.item='';
+        /* WIRE 5 -- punishesAttacker. Rough Skin (3,762 sheets) and its family were ABSENT: the
+         * engine had no concept that touching something can cost you. Unlike buffsHolderOnHit this
+         * does NOT compound -- it is a flat toll, so the right play is to keep attacking without
+         * contact rather than to stop. Paid whether or not the target survived the hit, which is
+         * why it sits outside the survivor branch below. Contact comes from the move's own flag. */
+        const _pun=TAGS.param('ability',tg.ability,'punishesAttacker');
+        if(_pun&&_pun.fraction&&mvMakesContact(a.move.id)){
+          m.curHP-=Math.floor(m.st.hp/(+_pun.fraction));
+          if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+        }
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else {
+          /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`
+           * linkage key. Both were entirely absent from this engine.
+           *
+           * THIS IS WILL'S BELLIBOLT TURN. Discharge into Archaludon was resisted AND handed it a
+           * free Stamina boost, and the bot could not see either half: it had no notion that hitting
+           * something can make it STRONGER. buffsHolderOnHit compounds -- every hit makes the next
+           * worse -- while punishesAttacker is a flat toll you can pay. Opposite decisions, which is
+           * exactly why Will had them split into two tags.
+           *
+           * The order matters: the buff lands on a target that survived (checked above), and the
+           * attacker toll is paid whether or not the target survived, so it sits outside this else.
+           * Contact is read from the move's own flag via the linkage key rather than a name list. */
+          const _buff=TAGS.param('ability',tg.ability,'buffsHolderOnHit');
+          if(_buff&&_buff.boosts&&tg.boosts){
+            /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
+             * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
+             * a naming convention, not a mechanic, so it lives here rather than in the artifact. */
+            for(const k in _buff.boosts){
+              const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
+              tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
+            }
+          }
           /* SECONDARY EFFECTS, from the shared rulebook. Rolled once per connecting hit, after
            * damage, and only on a target still standing. Previously ONLY Fake Out could flinch and
            * no attacking move could ever inflict a status, so Rock Slide, Iron Head, Scald, Nuzzle

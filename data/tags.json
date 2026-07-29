@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T07:30:37.624Z",
+ "generated": "2026-07-29T07:38:32.392Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2318,8 +2318,8 @@
    "kind": "ability",
    "param": "the thing you hit gets STRONGER, and it compounds",
    "why": "Stamina (1,643) turns every physical hit into +1 Def; Justified, Electromorphosis and Weak Armor bank a resource. Hitting it again is worse than hitting it the first time -- exactly the Bellibolt/Archaludon turn, where a resisted spread move fed a free boost",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "buffsHolderOnHit",
+   "used": true,
    "n": 12,
    "uses": 1736,
    "examples": [
@@ -2335,8 +2335,8 @@
    "kind": "ability",
    "param": "the ATTACKER pays a flat toll, which does NOT compound",
    "why": "Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to price in, not a reason to stop attacking",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "punishesAttacker",
+   "used": true,
    "n": 16,
    "uses": 5541,
    "examples": [
@@ -18878,7 +18878,11 @@
    "uses": 7,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "atk": 12
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -19401,7 +19405,9 @@
    "uses": 48,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": null,
+     "gainsVolatile": "charge"
     }
    }
   },
@@ -19972,7 +19978,9 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": null,
+     "gainsVolatile": null
     }
    }
   },
@@ -20062,7 +20070,11 @@
    "uses": 29,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "atk": 1
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -20601,7 +20613,9 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": null,
+     "gainsVolatile": "perishsong"
     },
     "punishesAttacker": {
      "compounds": false,
@@ -20914,7 +20928,11 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "spe": 1
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -21506,7 +21524,11 @@
    "uses": 1643,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "def": 1
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -21560,7 +21582,11 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "spe": 6
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -21845,7 +21871,11 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "atk": 1
+     },
+     "gainsVolatile": null
     },
     "statusImmune": {
      "immune": true
@@ -22120,7 +22150,11 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "def": 2
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -22144,7 +22178,12 @@
    "uses": 9,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": {
+      "def": -1,
+      "spe": 2
+     },
+     "gainsVolatile": null
     }
    }
   },
@@ -22183,7 +22222,9 @@
    "uses": 0,
    "params": {
     "buffsHolderOnHit": {
-     "compounds": true
+     "compounds": true,
+     "boosts": null,
+     "gainsVolatile": "charge"
     }
    }
   },
