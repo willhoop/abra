@@ -561,12 +561,25 @@ function applyIntimidate(f){
 function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;return true;}
 
+/* ON-ENTRY FIELD EFFECTS, from the artifact instead of a four-name list. Called for the leads AND
+ * for every faint replacement — the gap Will's Solar Beam/Pelipper question exposed: refill()
+ * applied only Intimidate, so a mid-game Drizzle entrant set no rain in any rollout, ever. The
+ * entrant's weather OVERRIDES what stands, exactly as the real setWeather does. Terrain now exists
+ * on the field for the same reason (Psychic Surge blocks priority the way Armor Tail does; Grassy
+ * Glide's +1 already reads field.terrain and could never see one). */
+function applyEntryEffects(m,field){
+  if(!m)return;
+  const w=TAGS.param('ability',m.ability,'weatherSetter');
+  if(w&&w.weather){field.weather=w.weather;field.weatherT=5;}
+  const t=TAGS.param('ability',m.ability,'terrainSetter');
+  if(t&&t.terrain){field.terrain=t.terrain;field.terrainT=5;}
+}
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
-  const field={weather:null,weatherT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false};
+  const field={weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false};
   /* one shared death counter per side, handed to every mon by reference */
   const sfA={fainted:0},sfB={fainted:0};
   teamA.forEach(m=>{if(m)m._sf=sfA;});teamB.forEach(m=>{if(m)m._sf=sfB;});
-  const setW=ms=>{for(const m of ms){if(m.ability==='drizzle'){field.weather='rain';field.weatherT=5;}else if(m.ability==='drought'){field.weather='sun';field.weatherT=5;}else if(m.ability==='sandstream'){field.weather='sand';field.weatherT=5;}else if(m.ability==='snowwarning'){field.weather='snow';field.weatherT=5;}}};
+  const setW=ms=>{for(const m of ms)applyEntryEffects(m,field);};
   const actA=[teamA[0],teamA[1]].filter(Boolean),actB=[teamB[0],teamB[1]].filter(Boolean);
   const benchA=teamA.slice(2),benchB=teamB.slice(2);
   setW(actA.concat(actB));
@@ -782,7 +795,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
         if(_s&&!_s.fainted&&_s.curHP>0)_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);
       }
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
-    if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
+    if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;if(field.terrainT>0&&--field.terrainT<=0)field.terrain='';
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
@@ -791,7 +804,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
      * turn — no hand-maintained tally to drift. */
     sfA.fainted=[...actA,...benchA].filter(x=>x&&x.fainted).length;
     sfB.fainted=[...actB,...benchB].filter(x=>x&&x.fainted).length;
-    const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;nx._fallenStuck=sf.fainted;act[i]=nx;if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in uses the same Intimidate rules */
+    const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;nx._fallenStuck=sf.fainted;act[i]=nx;applyEntryEffects(nx,field);if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in: entry effects (weather/terrain) AND Intimidate */
     refill(actA,benchA,actB,sfA);refill(actB,benchB,actA,sfB);
   }
   const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
@@ -858,5 +871,5 @@ root.punishExposure=punishExposure;
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   punishExposure,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,
-  moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
+  moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);

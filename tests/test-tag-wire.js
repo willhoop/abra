@@ -395,6 +395,35 @@ console.log('\nwire 9 — powerFromFallen / boostsFromFallen');
     `five fallen freeze Supreme Overlord at x${(lord / solo).toFixed(2)} (handler says x1.5)`);
 }
 
+/* ---- WIRE 10: on-entry field effects reach REPLACEMENTS -------------------------------------- */
+console.log('\nwire 10 — entry effects on faint replacements');
+{
+  /* The bug Will's Solar Beam question exposed: a mid-game Drizzle entrant set no rain in any
+   * rollout, because refill() applied only Intimidate. The helper is unit-tested directly, and the
+   * setter members come from the artifact, not the old four-name list. */
+  const f = { weather: null, weatherT: 0, terrain: '', terrainT: 0 };
+  const pel = M.buildMon('pelipper', {});
+  ok(pel && pel.ability === 'drizzle', `Pelipper carries Drizzle in the dataset (${pel && pel.ability})`);
+  M.applyEntryEffects(pel, f);
+  ok(f.weather === 'rain' && f.weatherT === 5, `a Drizzle entrant sets rain for 5 turns (got ${f.weather}/${f.weatherT})`);
+  const tk = M.buildMon('torkoal', {});
+  if (tk && tk.ability === 'drought') {
+    M.applyEntryEffects(tk, f);
+    ok(f.weather === 'sun', 'a Drought entrant OVERRIDES standing rain, as the real setWeather does');
+  }
+  const surge = Object.keys(MC.mons).map(n => M.buildMon(n, {})).find(m0 => m0 && /surge$/.test(m0.ability || ''));
+  if (surge) {
+    M.applyEntryEffects(surge, f);
+    ok(!!f.terrain && f.terrainT === 5, `${surge.name}'s ${surge.ability} sets ${f.terrain} terrain — terrain now exists on the field`);
+  }
+  /* and the battle loop actually calls it for replacements: kill the lead in front of a benched
+   * Pelipper and the rain must be visible in the game — a Water move's damage says whether it was. */
+  const sfld = { weather: null, weatherT: 0, terrain: '', terrainT: 0, twA: 0, twB: 0 };
+  const dry = M.dmgRange(M.buildMon('pelipper', {}), M.buildMon('garchomp', {}), MC.moves.hydropump, sfld, false).max;
+  const wet = M.dmgRange(M.buildMon('pelipper', {}), M.buildMon('garchomp', {}), MC.moves.hydropump, Object.assign({}, sfld, { weather: 'rain' }), false).max;
+  ok(wet > dry * 1.4, `rain is worth x${(wet / dry).toFixed(2)} on Hydro Pump — the stake the old bug forfeited`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
