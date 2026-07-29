@@ -90,6 +90,25 @@ function makeScoringPlayer(opts = {}) {
        * of a PAIR. Loaded only when asked for, and refused outright if its feature list disagrees
        * with board.js -- a stale pair vector would score the wrong columns and the bot would look
        * merely worse rather than broken. */
+      /* MEGA EVOLUTION, TAKEN OVER FROM THE BASE CLASS BECAUSE THE BASE CLASS GETS IT WRONG.
+       *
+       * random-player-ai.ts accumulates the flag ACROSS SLOTS:
+       *     canMegaEvo = canMegaEvo && active.canMegaEvo
+       * inside a map over request.active, and only then computes
+       *     change = (canMegaEvo || ...) && this.prng.random() < this.mega
+       *
+       * In doubles that means one Pokemon without a mega stone permanently kills the flag for the
+       * WHOLE SIDE. A team carries one stone, so whether the bot can mega at all comes down to
+       * whether the stone happens to be in the LEFT slot. Confirmed live from a real battle:
+       * `slot0:canMegaEvo=undefined slot1:canMegaEvo=true` and not one choice carrying a mega
+       * suffix. It also explains why self-play megaed 2,174 times across 1,934 games -- roughly
+       * half, which is how often the mega body leads on the left -- while Will saw it fail on
+       * Swampert, Starmie and Pyroar in a row.
+       *
+       * So the roll is made HERE, per slot, against that slot's own flag. `this.mega` is forced to
+       * 0 on the parent so it can never also append a suffix and produce "move 1 1 mega mega". */
+      this.megaP = Math.max(0, Math.min(1, +(options && options.mega) || 0));
+      this.mega = 0;
       this.joint = false; this.wj = null;
       this.jointZero = !!(options && options.jointZero);
       this.jointK = +(options && options.jointK) || 6;
@@ -485,6 +504,17 @@ function makeScoringPlayer(opts = {}) {
       return candsA[pa].choice;
     }
 
+    /* Append ` mega` when THIS slot can mega and the roll passes. Switches are left alone: a mega
+     * suffix on a switch choice is not a legal thing to send. */
+    _withMega(choice, active) {
+      if (!this.megaP || !active || !active.canMegaEvo) return choice;
+      const c = String(choice);
+      if (!/^move /.test(c) || / (mega|terastallize|dynamax|zmove|ultra)$/.test(c)) return choice;
+      if (this.prng.random() >= this.megaP) return choice;
+      this.stats.megaChosen = (this.stats.megaChosen || 0) + 1;
+      return c + ' mega';
+    }
+
     /* ---- THE DECISION ------------------------------------------------------------------------ */
     chooseMove(active, moves) {
       const species = this.speciesFor(active);
@@ -608,7 +638,7 @@ function makeScoringPlayer(opts = {}) {
         });
       }
       if (cands[j].targetMon && doubles) this.stats.aimed++;
-      return cands[j].choice;
+      return this._withMega(cands[j].choice, active);
     }
   }
 
