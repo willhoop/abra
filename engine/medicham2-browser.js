@@ -403,6 +403,53 @@ function punishExposure(att,tgt,moveId,opts){
             +0.125*out.stagesLost+0.25*out.speedFlipsFrac).toFixed(4);
   return out;
 }
+/* CLICK FRAGILITY — Will's Solar Beam scenario as a number: "the risk of me clicking solar beam
+ * but them switching in pelipper mid beam". A click's value can depend on a precondition the
+ * OPPONENT can delete with a switch that resolves before moves. Three threat classes, his list
+ * verbatim ("weather, type immunities, or farigaraf blocking prio"), all read from the artifact:
+ *
+ *   weather flip     their benched setter replaces the sky; the click is re-valued under the new
+ *                    weather through the same dmgRange (Weather Ball's type, Solar Beam's half,
+ *                    rain/sun on Water/Fire — all of it moves together)
+ *   type immunity    the pivot absorbs the click to zero AND may gain from it (heal 1/4, +1 SpA,
+ *                    +2 Def, the Flash Fire volatile) — worse than zero, and the gain says so
+ *   priority block   Armor Tail-class: a positive-priority click fails outright into the pivot
+ *
+ * Returns worst-case retention (0..1) of the click's damage and WHO causes it. Worst-case is the
+ * right default for a risk the opponent controls — the same reason a 70-acc nuke is never a
+ * "guaranteed" KO here. What they WOULD click is a behavior question the ladder will answer;
+ * nothing here pretends to know it. Pure read. */
+function clickFragility(att,moveId,tgt,benchFoes,field){
+  const mv=MC.moves[moveId];
+  if(!mv||!mv.bp||!benchFoes||!benchFoes.length)return null;
+  field=field||{terrain:'',weather:'',twA:0,twB:0};
+  const base=dmgRange(att,tgt,mv,field,false);
+  if(!base.max)return null;
+  let worst={retention:1,cause:null,how:null};
+  const consider=(ret,cause,how,extra)=>{if(ret<worst.retention)worst={retention:+ret.toFixed(3),cause,how,extra:extra||null};};
+  for(const b of benchFoes){
+    if(!b||b.fainted)continue;
+    const ws=TAGS.param('ability',b.ability,'weatherSetter');
+    if(ws&&ws.weather&&ws.weather!==field.weather){
+      const flipped=dmgRange(att,tgt,mv,Object.assign({},field,{weather:ws.weather}),false);
+      consider(flipped.max/base.max,b.name,'flips the sky to '+ws.weather);
+    }
+    const im=TAGS.param('ability',b.ability,'typeImmunity');
+    const mvType=(()=>{  // the type the click has UNDER the current sky, not its label
+      const w=TAGS.param('move',moveId,'weatherScaled');
+      return (w&&w.byWeather&&field.weather&&w.byWeather[field.weather]&&w.byWeather[field.weather].type)||mv.t;
+    })();
+    if(im&&im.type===mvType)
+      consider(0,b.name,'absorbs '+mvType+' entirely',im.gain?{feedsIt:im.gain}:null);
+    else if(mcEff(mvType,b.types)===0)
+      consider(0,b.name,'type-immune to '+mvType+' (chart)');
+    const bl=TAGS.param('ability',b.ability,'blocksMove');
+    if(bl&&bl.what==='priority'&&movePriority(moveId,field)>(bl.priorityAbove||0))
+      consider(0,b.name,'blocks priority outright');
+  }
+  return {retention:worst.retention,cause:worst.cause,how:worst.how,extra:worst.extra,
+    fragile:worst.retention<0.75};
+}
 function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
   for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=att.ability==='noguard'?1:moveAccuracy(id,field)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
     /* value = expected damage MINUS the priced cost of the click (Will: "that actually get priced
@@ -866,10 +913,10 @@ root.futureSight=futureSight;
 /* the tag lookup, exported so exposure.js prices risk off the SAME adapter the wires read —
  * a second adapter over window.ABRA_TAGS would be a place for the two to disagree */
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
-root.punishExposure=punishExposure;
+root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
-  punishExposure,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,
+  punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,
   moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);
