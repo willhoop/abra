@@ -60,6 +60,54 @@ connected to CHOMP** — CHOMP is only the pick-4/lead-2 engine; ABRA is the met
 plus rating and bot tags. All filtering/analysis runs on the store. Changing how we segment games
 is a re-filter, never a re-pull. Never design an analysis that forces re-fetching replays.
 
+## The failure mode this project actually has (2026-07-28)
+
+Every serious bug found on 2026-07-28 had ONE shape: **a capability was absent, and everything
+reported success.** No exception, no failed test, no discarded game.
+
+- the player had never read a team sheet — `setSheet()` existed, six offline scripts called it,
+  `magnemite.js` never did
+- self-play had never used open team sheets — 0 `|showteam|` in 1,934 games, and structurally
+  impossible in the ladder format
+- mega evolution never fired on the server, and in self-play only from the LEFT slot
+- the joint layer fell back on 100% of eligible turns
+- PORYGON2 and DODUO were fitted, saved, quoted in documents, and never once in a live decision
+
+**These are invisible to every automated check.** A head-to-head, an exploitability search and a
+prediction score all compare two bots that SHARE the blind spot, so a missing capability cancels
+out exactly. Only a human looking at the screen found them.
+
+### The rules that follow
+
+**A capability that cannot prove it ran is assumed broken.** Every capability emits a counter, the
+run prints it, and a zero is called out. `tests/test-wiring.js` plays real games and FAILS if a
+counter is zero. Not "is the code there", not "did it parse", not "did the run finish" — all of
+those were true every time.
+
+**Non-zero is not always a strong enough bar.** Mega passed "at least one happened" while running
+at 56% of sides against the correct 85%, because the base class could only mega from the left slot.
+Where a domain rule exists, it becomes a RATE floor: Will's "a game without a mega should be rare"
+is now a test threshold.
+
+**Replacing a hedge with a certainty is only an improvement if you also track what invalidates the
+certainty.** The Focus Sash drag was a 78.6% population prior. Trusting the open sheet made it a
+hard 1.0 — better on average, and CATASTROPHIC after a Knock Off, because nothing tracked that the
+item was gone. A probability is wrong more often and fails more gracefully. If you sharpen an
+estimate, you inherit responsibility for every event that stales it.
+
+**Correct the diagnosis, not just the bug.** The Focus Sash example above is real but was NOT the
+worst case, and Will caught that too: Knock Off DEALS DAMAGE, so the target is no longer at full HP
+and the Sash drag never applied anyway. The genuine cost of an untracked Knock Off is that the
+damage and speed calculations keep applying an Assault Vest, Choice Scarf or Life Orb that is gone —
+and those apply at ANY hp. A fix aimed at the wrong mechanism is still a bug.
+
+**Prefer OBSERVED over DECLARED.** The sheet says what they started with. Knock Off (1,640 uses),
+Trick, consumed berries and used Sashes all make it a lie mid-battle.
+
+**Fitting environment and playing environment must match.** MAG's weights were fitted WITH the
+sheet visible and the bot played WITHOUT it. MACHAMP's champion was trained under broken mega. Same
+error, twice: trained under one set of capabilities, deployed under another.
+
 ## Where things are
 - `engine/durable-ingest.js` — the pull+store (source of truth for the schema; `extract()` exported).
 - `engine/analyze.js` — views + writes the model CHOMP reads.

@@ -1,6 +1,6 @@
 # Tag review — corrected pass
 
-**107 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
+**108 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
 
 ## Every point from your review
 
@@ -57,7 +57,7 @@ one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 
 **Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
 has nothing. **2,065 uses**.
 
-## 50 of 107 tags are read by nothing
+## 51 of 108 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
@@ -75,6 +75,7 @@ has nothing. **2,065 uses**.
 | `accuracyMod` | 1.2% | P(hit) scaled, often gated on a weather or a category |
 | `accuracyMod` | 0.8% | P(hit) is scaled, for or against the holder |
 | `pivotStatus` | 0.8% | no damage, an effect, then the user leaves |
+| `conditionalPower` | 0.7% | fixed power x a multiplier when a condition holds |
 | `chargeSkippedByWeather` | 0.7% | the charge turn DISAPPEARS under one weather |
 | `statusImmune` | 0.6% | a status cannot land |
 | `healsSelf` | 0.6% | restores a share of MY max HP, costing the turn |
@@ -336,6 +337,26 @@ Total tagged: **31**  ·  5 legal but unused  ·  share: **1.2%**
 | Chilly Reception | 17 | selfSwitch:true |
 
 Total tagged: **2**  ·  share: **0.8%**
+
+## `conditionalPower` — fixed power x a multiplier when a condition holds  **← NOT READ**
+
+*Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine uses the base number every time*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Solar Beam | 2,477 | conditional:true |
+| Knock Off | 1,640 | conditional:true |
+| Expanding Force | 80 | conditional:true |
+| Lash Out | 47 | conditional:true |
+| Facade | 32 | conditional:true |
+| Fickle Beam | 28 | conditional:true |
+| Barb Barrage | 22 | conditional:true |
+| Grav Apple | 9 | conditional:true |
+| Solar Blade | 8 | conditional:true |
+| Venoshock | 5 | conditional:true |
+| Misty Explosion | 3 | conditional:true |
+
+Total tagged: **11**  ·  share: **0.7%**
 
 ## `chargeSkippedByWeather` — the charge turn DISAPPEARS under one weather  **← NOT READ**
 
@@ -635,7 +656,7 @@ Total tagged: **0**  ·  share: **0.0%**
 | Thunder Wave | 284 | status:true |
 | *…106 more* | | |
 
-Total tagged: **175**  ·  29 legal but unused  ·  share: **16.5%**
+Total tagged: **175**  ·  29 legal but unused  ·  share: **16.4%**
 
 ## `neverMisses` — P(hit) = 1
 
@@ -685,7 +706,7 @@ Total tagged: **175**  ·  29 legal but unused  ·  share: **16.5%**
 | After You | 104 | pHit:1 |
 | *…68 more* | | |
 
-Total tagged: **132**  ·  24 legal but unused  ·  share: **14.7%**
+Total tagged: **132**  ·  24 legal but unused  ·  share: **14.6%**
 
 ## `priority` — order = priority
 
@@ -732,7 +753,7 @@ Total tagged: **132**  ·  24 legal but unused  ·  share: **14.7%**
 | Endure | 3 | priority:4 |
 | Beak Blast | 2 | priority:-3 |
 
-Total tagged: **39**  ·  1 legal but unused  ·  share: **12.8%**
+Total tagged: **39**  ·  1 legal but unused  ·  share: **12.7%**
 
 ## `contact` — triggers contact punishment on the defender
 
@@ -782,7 +803,7 @@ Total tagged: **39**  ·  1 legal but unused  ·  share: **12.8%**
 | Meteor Mash | 315 | contact:true |
 | *…101 more* | | |
 
-Total tagged: **166**  ·  25 legal but unused  ·  share: **12.5%**
+Total tagged: **166**  ·  25 legal but unused  ·  share: **12.4%**
 
 ## `stalling` — is a Protect-family move
 
@@ -797,7 +818,7 @@ Total tagged: **166**  ·  25 legal but unused  ·  share: **12.5%**
 | King's Shield | 127 | stalling:true |
 | Endure | 3 | stalling:true |
 
-Total tagged: **6**  ·  share: **7.5%**
+Total tagged: **6**  ·  share: **7.4%**
 
 ## `spreadFoes` — x0.75, hits BOTH ENEMIES, ally is safe
 
@@ -827,7 +848,7 @@ Total tagged: **6**  ·  share: **7.5%**
 | String Shot | 13 | target:allAdjacentFoes,hitsAlly:false |
 | Sweet Scent | 1 | target:allAdjacentFoes,hitsAlly:false |
 
-Total tagged: **22**  ·  1 legal but unused  ·  share: **4.2%**
+Total tagged: **22**  ·  1 legal but unused  ·  share: **4.1%**
 
 ## `flinches` — P(flinch), 10% to 100%, and only if I move first
 
@@ -936,9 +957,9 @@ Total tagged: **15**  ·  1 legal but unused  ·  share: **2.3%**
 
 Total tagged: **11**  ·  1 legal but unused  ·  share: **1.9%**
 
-## `variablePower` — basePower is computed, not fixed
+## `variablePower` — basePower is the calculation itself; dex bp is 0
 
-*Gyro Ball, Low Kick, Grass Knot, Weather Ball, Facade, Acrobatics. A fixed bp reads them wrong in both directions*
+*Low Kick by weight, Gyro Ball by speed ratio, Grass Knot. dex basePower is 0, so board.js returns null and scores them as NON-DAMAGING -- 1.27% of move slots doing zero*
 
 | entry | appearances | parameter |
 |---|---|---|
@@ -998,7 +1019,7 @@ Total tagged: **29**  ·  2 legal but unused  ·  share: **1.6%**
 | Eerie Spell | 1 | sound:true |
 | Uproar | 1 | sound:true |
 
-Total tagged: **24**  ·  5 legal but unused  ·  share: **1.6%**
+Total tagged: **24**  ·  5 legal but unused  ·  share: **1.5%**
 
 ## `doublesSideSpeed` — my whole side moves at x2 speed for the duration
 
@@ -1088,7 +1109,7 @@ Total tagged: **16**  ·  1 legal but unused  ·  share: **0.9%**
 | Reflect | 1,988 | mult:0.5 |
 | Aurora Veil | 853 | mult:0.5 |
 
-Total tagged: **3**  ·  share: **0.9%**
+Total tagged: **3**  ·  share: **0.8%**
 
 ## `redirects` — takes the turn's single-target attacks
 

@@ -126,9 +126,30 @@ const MOVE_TAGS = [
               || (m.onModifyMove && /terrain/i.test(String(m.onModifyMove)))
               || (m.basePowerCallback && /terrain/i.test(String(m.basePowerCallback))))
              ? { scalesWith: 'terrain' } : null },
-  { tag: 'variablePower', param: 'basePower is computed, not fixed', probe: 'basePowerCallback',
-    why: 'Gyro Ball, Low Kick, Grass Knot, Weather Ball, Facade, Acrobatics. A fixed bp reads them wrong in both directions',
+  /* TWO MECHANISMS, and the probe only knew one. Will: "knock off does 1.5x if they are holding an
+   * item -- so a variable move". Right, and it uses onBasePower rather than basePowerCallback, so it
+   * was tagged only as `contact`. 4,351 appearances were missed by that single gap, led by Solar
+   * Beam (2,477) and Knock Off (1,640).
+   *
+   * The two differ in kind and both matter:
+   *   basePowerCallback   the power IS the calculation -- Low Kick by weight, Gyro Ball by speed
+   *                       ratio. dex basePower is 0 and board.js returns null, scoring them as
+   *                       non-damaging entirely.
+   *   onBasePower         a fixed power with a CONDITIONAL multiplier -- Knock Off x1.5 if they hold
+   *                       an item, Facade x2 if statused, Venoshock x2 if poisoned, Expanding Force
+   *                       x1.5 on Psychic Terrain.
+   *
+   * Knock Off is the nicest case for open sheets: the sheet says whether they hold an item, so the
+   * x1.5 is KNOWN before the turn rather than guessed. */
+  { tag: 'variablePower', param: 'basePower is the calculation itself; dex bp is 0', probe: 'basePowerCallback',
+    why: 'Low Kick by weight, Gyro Ball by speed ratio, Grass Knot. dex basePower is 0, so board.js '
+       + 'returns null and scores them as NON-DAMAGING -- 1.27% of move slots doing zero',
     of: m => m.basePowerCallback ? { computed: true } : null },
+  { tag: 'conditionalPower', param: 'fixed power x a multiplier when a condition holds', probe: 'onBasePower',
+    why: 'Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if '
+       + 'statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine '
+       + 'uses the base number every time',
+    of: m => (m.onBasePower && !m.basePowerCallback) ? { conditional: true } : null },
   { tag: 'fixedDamage', param: 'damage is a constant, not a formula', probe: 'move.damage',
     why: 'Seismic Toss and Night Shade ignore stats entirely',
     of: m => m.damage ? { damage: m.damage } : null },

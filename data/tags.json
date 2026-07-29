@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T02:46:26.101Z",
+ "generated": "2026-07-29T03:15:51.786Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -92,8 +92,8 @@
   {
    "tag": "variablePower",
    "kind": "move",
-   "param": "basePower is computed, not fixed",
-   "why": "Gyro Ball, Low Kick, Grass Knot, Weather Ball, Facade, Acrobatics. A fixed bp reads them wrong in both directions",
+   "param": "basePower is the calculation itself; dex bp is 0",
+   "why": "Low Kick by weight, Gyro Ball by speed ratio, Grass Knot. dex basePower is 0, so board.js returns null and scores them as NON-DAMAGING -- 1.27% of move slots doing zero",
    "consumedBy": "basePowerCallback",
    "used": true,
    "n": 29,
@@ -105,6 +105,24 @@
     "Assurance",
     "Avalanche",
     "Beat Up"
+   ]
+  },
+  {
+   "tag": "conditionalPower",
+   "kind": "move",
+   "param": "fixed power x a multiplier when a condition holds",
+   "why": "Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine uses the base number every time",
+   "consumedBy": null,
+   "used": false,
+   "n": 11,
+   "uses": 4351,
+   "examples": [
+    "Grav Apple",
+    "Barb Barrage",
+    "Expanding Force",
+    "Facade",
+    "Fickle Beam",
+    "Knock Off"
    ]
   },
   {
@@ -1890,6 +1908,18 @@
     }
    }
   },
+  "gravapple": {
+   "name": "Grav Apple",
+   "tags": [
+    "conditionalPower"
+   ],
+   "uses": 9,
+   "params": {
+    "conditionalPower": {
+     "conditional": true
+    }
+   }
+  },
   "growth": {
    "name": "Growth",
    "tags": [
@@ -2757,10 +2787,14 @@
   "barbbarrage": {
    "name": "Barb Barrage",
    "tags": [
+    "conditionalPower",
     "inflictsPoison"
    ],
    "uses": 22,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "inflictsPoison": {
      "p": 0.5,
      "via": "secondary"
@@ -4220,12 +4254,16 @@
   "expandingforce": {
    "name": "Expanding Force",
    "tags": [
-    "terrainScaled"
+    "terrainScaled",
+    "conditionalPower"
    ],
    "uses": 80,
    "params": {
     "terrainScaled": {
      "scalesWith": "terrain"
+    },
+    "conditionalPower": {
+     "conditional": true
     }
    }
   },
@@ -4277,10 +4315,14 @@
   "facade": {
    "name": "Facade",
    "tags": [
+    "conditionalPower",
     "contact"
    ],
    "uses": 32,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "contact": {
      "contact": true
     }
@@ -4375,6 +4417,18 @@
    "params": {
     "contact": {
      "contact": true
+    }
+   }
+  },
+  "ficklebeam": {
+   "name": "Fickle Beam",
+   "tags": [
+    "conditionalPower"
+   ],
+   "uses": 28,
+   "params": {
+    "conditionalPower": {
+     "conditional": true
     }
    }
   },
@@ -5543,10 +5597,14 @@
   "knockoff": {
    "name": "Knock Off",
    "tags": [
+    "conditionalPower",
     "contact"
    ],
    "uses": 1640,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "contact": {
      "contact": true
     }
@@ -5571,10 +5629,14 @@
   "lashout": {
    "name": "Lash Out",
    "tags": [
+    "conditionalPower",
     "contact"
    ],
    "uses": 47,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "contact": {
      "contact": true
     }
@@ -6078,11 +6140,15 @@
   "mistyexplosion": {
    "name": "Misty Explosion",
    "tags": [
+    "conditionalPower",
     "spreadAll",
     "userFaints"
    ],
    "uses": 3,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
@@ -7769,11 +7835,15 @@
   "solarbeam": {
    "name": "Solar Beam",
    "tags": [
+    "conditionalPower",
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
    "uses": 2477,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "chargeTurn": {
      "charge": true
     },
@@ -7785,12 +7855,16 @@
   "solarblade": {
    "name": "Solar Blade",
    "tags": [
+    "conditionalPower",
     "contact",
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
    "uses": 8,
    "params": {
+    "conditionalPower": {
+     "conditional": true
+    },
     "contact": {
      "contact": true
     },
@@ -9015,6 +9089,18 @@
    "params": {
     "priority": {
      "priority": 1
+    }
+   }
+  },
+  "venoshock": {
+   "name": "Venoshock",
+   "tags": [
+    "conditionalPower"
+   ],
+   "uses": 5,
+   "params": {
+    "conditionalPower": {
+     "conditional": true
     }
    }
   },
