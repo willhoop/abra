@@ -114,9 +114,22 @@ const MOVE_TAGS = [
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
     of: m => (m.flags && m.flags.sound) ? { sound: true } : null },
-  { tag: 'protectBlocked', param: 'Protect stops it', probe: "flags && m.flags.protect",
-    why: 'the protect family is priced against this, and a move that ignores Protect must not be',
-    of: m => (m.flags && m.flags.protect) ? { protectable: true } : null },
+  { tag: 'neverMisses', param: 'P(hit) = 1', probe: 'accuracy === true',
+    why: 'Aerial Ace, Swift, Flower Trick, Aura Sphere, Magical Leaf. The accuracy feature and the '
+       + 'kill probability both scale by P(hit), so a move that CANNOT miss must not be discounted '
+       + 'like one that can',
+    of: m => m.accuracy === true ? { pHit: 1 } : null },
+  /* INVERTED, on Will's review: "wouldn't it be easier to say what moves protect doesn't block".
+   * Yes -- 389 moves are blocked and the exceptions are a handful, so tagging the majority made a
+   * 67% column that says nothing. The EXCEPTIONS are also the actionable set, because a move that
+   * ignores Protect is currently mispriced as if Protect stops it. Restricted to foe-targeting moves,
+   * since Protect is simply irrelevant to a self-target or a side condition. Real users: Feint (222),
+   * Phantom Force (201), Future Sight (5). */
+  { tag: 'ignoresProtect', param: 'Protect does NOT stop it', probe: 'ignoresProtect',
+    why: 'Feint, Phantom Force, Future Sight. tgtMayProtect discounts these as if a Protect saves the '
+       + 'target, and it does not',
+    of: m => (['normal', 'any', 'adjacentFoe', 'allAdjacentFoes', 'allAdjacent', 'all'].includes(m.target)
+              && !(m.flags && m.flags.protect)) ? { ignoresProtect: true } : null },
   { tag: 'stalling', param: 'is a Protect-family move', probe: 'stallingMove',
     why: 'protectThreatened and deadStall both hang off it',
     of: m => m.stallingMove ? { stalling: true } : null },
@@ -240,6 +253,20 @@ const ABILITY_TAGS = [
   { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'onModifyCritRatio',
     why: 'Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick',
     of: a => a.onModifyCritRatio ? { critRatio: 2 } : null },
+  /* Will: "MOLD BREAKER IS PROBABLY HARD TO MODEL HOW DO YOU PLAN ON DOING THAT". As a special
+   * case it would be a branch everywhere a defender ability is consulted. As a PARAMETER it is one
+   * boolean on the attacker that gates a class this file has already enumerated: typeImmunity,
+   * damageReduce, blocksMove, preventsCrit and survivesFromFull(Sturdy) all stop applying. No
+   * per-ability logic, and it stays correct when a new ability lands. 127 uses, so it is real. */
+  { tag: 'ignoresDefenderAbility', param: 'suppress every defender-side ability tag for this move', probe: 'breaksProtect',
+    why: 'Mold Breaker, Turboblaze, Teravolt. Gates typeImmunity, damageReduce, blocksMove, preventsCrit and Sturdy in one flag',
+    of: a => (a.breaksProtect || /moldbreaker|turboblaze|teravolt/.test(norm(a.name))) ? { ignoresDefAbility: true } : null },
+  { tag: 'critDamageUp', param: 'the CRIT MULTIPLIER itself, not its probability', probe: 'sniper',
+    why: 'Sniper (Will raised it). Three separate crit parameters exist and the taxonomy had only two: '
+       + 'probability (Scope Lens, Flower Trick), prevention (Shell Armor) and now the multiplier. '
+       + 'Crit damage is x1.5 and Sniper makes it x1.5 again, so x2.25 total -- it was x3 in the old '
+       + 'gens when crits themselves were x2, which is where the folklore comes from',
+    of: a => /sniper/.test(norm(a.name)) ? { critMult: 1.5 } : null },
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },
