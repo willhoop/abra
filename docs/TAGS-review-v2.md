@@ -47,6 +47,36 @@
 | is "something happens when hit" enough | yes for the decision, no for the number |
 | Reflect and Light Screen into damage calcs | **they are not.** 5,187 uses, zero effect on damage |
 | no hardcodes | contact, weather/terrain setters, Intimidate, redirection and Sniper now derive from handler source. **18** name-based definitions remain, counted in the tool |
+| Tailwind should be its own category | `doublesSideSpeed` — 6,981 uses, and it sets speed order, not damage |
+| Aurora Veil with the screens, fails without snow | `halvesDamage` + `failsWithoutWeather` |
+| should each major status have its own tag | yes — burn / paralysis / sleep / poison split. Each sets a different parameter |
+| Matcha Gotcha and Flare Blitz get one too | right — status now read from **secondaries**, not just the primary |
+| Toxic is different from normal poison | split. Flat 1/8 vs **escalating n/16** — a different clock |
+| Yawn inflicts drowsy | `delayedSleep` — a volatile, not a status. Forces a switch |
+| Perish Song needs its own | `perishClock` — ignores HP, typing, items, abilities |
+| Baneful Bunker spreads poison | I had missed it — the poison is in `condition.onHit`. Also catches Spiky Shield chip |
+| Strength Sap lowers their Attack too | declared in `onHit`, not `boosts` — now read |
+| lowersTarget needs the stat and direction | carries it now, mirroring `boostsUser` |
+| Taunt doesn&rsquo;t lock, it prevents status | `forbidsStatusMoves` — the Assault Vest restriction, applied to them |
+| Disable is like Cursed Body but for non-attacks | both present — `locksTarget` and `disablesAttacker` |
+| Haze clears all stat changes | `clearsBoosts` — 359 uses, and it wipes **yours** too |
+| explain oneTurnGuard for Quick Guard | the parameter now names the class: Wide Guard blanks **spread**, Quick Guard blanks **priority** |
+| shouldn&rsquo;t Coil get the defense and attack tags | it already did — the **doc** was hiding parameter values. Now shown |
+| does the engine know what boostsUser boosts | **it did not.** `movesBoostMe` is only a sign, so Dragon Dance and Swords Dance read identically |
+| Quick Claw and Bright Powder | added — `fractionalPriority` and `accuracyMod`, both derived |
+| Sand Veil and Bright Powder | found a **mistag** — Sand Veil and Snow Cloak were labelled typeImmunity. They are evasion abilities |
+| how do accuracy/evasion stages work | a **different table** — [1, 4/3, 5/3, 2, …] not [1, 1.5, 2, …]. And nothing applies them |
+| Life Dew heals self 25% too | you asked for "or BOTH" originally and my split was exclusive. Fixed — 1,683 uses |
+| should all the weathers have their own tag | no — what a weather does belongs to the weather, and that table is in the damage engine |
+| we need to code in Trick too | item changes now tracked. **Knock Off is 1,640 uses** and the board saw none of it |
+| Knock Off breaks Sash from damage anyway | **you were right** — the Sash drag needs full HP. The real cost is a stale Assault Vest or Choice Scarf |
+| Knock Off is 1.5x on a held item — a variable move | it uses `onBasePower`, which my probe missed. That gap alone missed **4,351 appearances** |
+| almost all Whimsicott are Focus Sash | measured: **78.0%** in our corpus, and the Smogon prior says 78.6%. Which argues against max-bulk as a default |
+| what if we just assume max bulk | `ABRA_BULK=max` toggle. Measured gap is ~6% median — about one damage roll |
+| will we leave too many kills on the table | on average no. But Whimsicott +25%, Mega Beedrill +31% — the bimodal ones |
+| do we need all 16 rolls | yes, and it is easiest. Exactly correct, no floor() inversion edge cases, and free |
+| is that gonna butcher calc time | no — damage is **0.03%** of a self-play run. 2.18M calls/sec |
+| we don&rsquo;t know EVs so these are guesses | yes — but a weighted distribution of ~6 spreads per species, narrowed by the revealed nature |
 
 ## The two gaps this surfaced
 
