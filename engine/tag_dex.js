@@ -83,6 +83,16 @@ function usage() {
 /* ---- THE TAXONOMY ---------------------------------------------------------------------------
  * Each tag: what parameter it sets, how it is derived, and the probe that proves something reads it.
  * `param` is deliberately phrased as a value a distribution can consume, not as an instruction. */
+/* P(this move applies that status), covering BOTH the dedicated status move and the secondary
+ * effect on a damaging one -- Will: "so matcha gotcha and flare blitz get one as well as will o". */
+function statusOdds(m, st) {
+  if (m.status === st) return { p: (m.accuracy === true ? 1 : (m.accuracy || 100) / 100), via: 'primary' };
+  let p = null;
+  for (const sec of (m.secondaries || [])) if (sec && sec.status === st) p = (sec.chance || 100) / 100;
+  if (m.secondary && m.secondary.status === st) p = (m.secondary.chance || 100) / 100;
+  return p === null ? null : { p, via: 'secondary' };
+}
+
 const MOVE_TAGS = [
   { tag: 'multiHit', param: 'hits = n (or a distribution)', probe: 'multihit',
     why: 'total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill',
@@ -195,8 +205,17 @@ const MOVE_TAGS = [
   { tag: 'setsWeather', param: 'weather := x', probe: 'setWeather',
     why: 'and whether that weather HELPS is the thing nothing currently asks (task #19)',
     of: m => m.weather ? { weather: m.weather } : null },
-  { tag: 'setsTerrain', param: 'terrain := x', probe: 'terrain',
-    why: 'same as weather: redundancy is detected, benefit is not',
+  /* Will: "do we have what each weather and terrain does? like no sleeping on electric and no
+   * priority on psychic". Confirmed from the dex, and the SECOND effect is the one that matters:
+   *   Electric  +Electric power, GROUNDED CANNOT SLEEP
+   *   Psychic   +Psychic power, GROUNDED ARE PRIORITY-SAFE
+   *   Grassy    +Grass power, +1/16 max HP each turn
+   *   Misty     no status at all, -Dragon power
+   * Psychic Terrain is field-wide priority blocking -- the same effect as Armor Tail, which board.js
+   * DOES model via onFoeTryMove -- and nothing checks the terrain for it. Fake Out is 7,846 uses. */
+  { tag: 'setsTerrain', param: 'terrain := x, with a second effect beyond the type boost', probe: 'terrain',
+    why: 'Psychic Terrain blanks priority field-wide (Fake Out is 7,846 uses and nothing checks), '
+       + 'Electric blocks sleep, Misty blocks all status, Grassy heals 1/16 a turn',
     of: m => m.terrain ? { terrain: m.terrain } : null },
   /* TRICK ROOM GETS ITS OWN TAG on Will's review -- "gravity and wonder room are different and
    * rare". Right: Trick Room REVERSES THE SPEED ORDER of the entire field for five turns, which is
@@ -248,19 +267,49 @@ const MOVE_TAGS = [
        + 'Wide Guard alone is 2,065 uses',
     of: m => (m.sideCondition && /^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id)))
              ? { blocksClass: norm(m.id) } : null },
-  { tag: 'sideBuff', param: 'my side gets a multi-turn modifier', probe: 'sideCondition',
-    why: 'Tailwind doubles speed for five turns, screens halve damage. Tailwind is 6,981 uses and the '
-       + 'speed half already feeds movesFirst',
+  /* TAILWIND GETS ITS OWN CATEGORY on Will's review -- "tailwind should really be its own category
+   * because its so dominant". 6,981 uses, the most-used side condition in the format, and it sets a
+   * completely different PARAMETER from the screens it was grouped with: speed order for the whole
+   * team, which is what most of the kill features hang off. Screens change damage. One tag could not
+   * mean both. */
+  { tag: 'doublesSideSpeed', param: 'my whole side moves at x2 speed for the duration', probe: 'speedSide',
+    why: 'Tailwind, 6,981 uses. Flips who moves first across every matchup on the field at once, and '
+       + 'board.js already derives the speed multiplier -- it just is not scored as a CHOICE',
+    of: m => (m.sideCondition && /tailwind/.test(norm(m.sideCondition))) ? { speedMult: 2 } : null },
+  /* Will: "aurora veil in with reflect and light screen damage calc, fails if no snow up". Both
+   * halves right, and the dex says so outright -- "For 5 turns, damage to allies halved. Snow only."
+   * So it is a screen for the damage calculation AND a move that simply FAILS without its weather,
+   * which is a different kind of dead move from deadField. */
+  { tag: 'halvesDamage', param: 'incoming damage to my side is roughly halved', probe: 'screens',
+    why: 'Light Screen 2,346, Reflect 1,988, Aurora Veil 853 -- 5,187 uses that currently change NO '
+       + 'damage number anywhere in MAG',
+    of: m => (m.sideCondition && /reflect|lightscreen|auroraveil/.test(norm(m.sideCondition)))
+             ? { mult: 0.5 } : null },
+  { tag: 'failsWithoutWeather', param: 'the move does NOTHING unless a weather is up', probe: 'failsWithoutWeather',
+    why: 'Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can '
+       + 'currently say so',
+    of: m => (m.onTry && /weather/i.test(String(m.onTry))) ? { needsWeather: true } : null },
+  { tag: 'sideBuff', param: 'another multi-turn modifier on my side', probe: 'sideCondition',
+    why: 'Safeguard, Mist -- what is left once Tailwind and the screens are split out',
     of: m => (m.sideCondition && m.target === 'allySide'
-              && !/^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id)))
+              && !/^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id))
+              && !/tailwind|reflect|lightscreen|auroraveil/.test(norm(m.sideCondition)))
              ? { sideCondition: m.sideCondition } : null },
   { tag: 'hazard', param: 'their side is damaged or slowed on switch-in, until removed', probe: 'hazard',
     why: 'Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their '
        + 'future switches, which is a decision MAG does not model at all',
     of: m => (m.sideCondition && m.target === 'foeSide') ? { hazard: m.sideCondition } : null },
-  { tag: 'boostsUser', param: 'stat stages on self', probe: 'boosts',
-    why: 'the setup family, derived rather than listed',
-    of: m => (m.boosts && (m.target === 'self' || m.target === 'adjacentAllyOrSelf')) ? { boosts: m.boosts } : null },
+  /* Will: "does the engine know what the boostsUser actually boosts". IT DOES NOT. board.js has
+   * movesBoostMe, which is a SIGN (+1/0/-1) from expectedBoostSign -- so Swords Dance (+2 Atk),
+   * Calm Mind (+1 SpA/SpD) and Dragon Dance (+1 Atk/+1 SPE) all read identically, even though only
+   * the last one changes who moves first. The stat is carried here so a feature can finally use it. */
+  { tag: 'boostsUser', param: 'WHICH stat stages, on self, not just that there are some', probe: 'movesBoostMe',
+    why: 'movesBoostMe is only a sign. +Spe flips the speed order, +Atk changes damage, +Def changes '
+       + 'survival -- three different values reading as one number today',
+    of: m => {
+      const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
+      return b ? { boosts: b, raisesSpeed: !!b.spe } : null;
+    } },
   /* SPLIT BY THE SIGN OF THE EFFECT, not by the declared target, on Will's review: "coaching would
    * never be used on the enemy" and "decorate would almost never be used on the foe". Both are
    * declared target 'normal' or 'adjacentAlly', which the GAME allows to be aimed either way -- so
@@ -297,11 +346,46 @@ const MOVE_TAGS = [
   /* Will: "encore is sorta similar to choice lock". Exactly -- choiceLock is an ITEM you carry,
    * this is the same restriction APPLIED TO THEM. Both collapse the opponent's option set to one
    * move, which is the strongest thing you can know about their next turn. */
-  { tag: 'locksTarget', param: 'their option set collapses to one move, or loses one', probe: 'locking',
-    why: 'Encore locks them into their last move, Disable removes it, Taunt deletes every status '
-       + 'option. stallIntoEncore already prices the Encore case from the RECEIVING end',
-    of: m => (/^(encore|disable|torment|taunt)$/.test(norm(m.id))) ? { locks: norm(m.id) } : null },
-  { tag: 'inflictsStatus', param: 'status := x', probe: 'statusBites',
+  /* TAUNT SPLIT OUT on Will's review -- "taunt doesnt lock target it prevents status moves sorta
+   * like the non existent assault vest does". Right, and they are different shapes:
+   *   locksTarget       Encore pins them to ONE move, Disable removes one, Torment blocks repeats.
+   *                     The option set shrinks to a specific thing.
+   *   forbidsStatus     Taunt deletes an entire CATEGORY -- every Protect, every setup move, every
+   *                     Tailwind. That is the same restriction Assault Vest puts on its own holder,
+   *                     which is why statusCategory is the parameter both of them read.
+   * Assault Vest sees no play in this format, so Taunt is the only thing exercising it. */
+  { tag: 'locksTarget', param: 'their option set collapses to one specific move, or loses one', probe: 'locking',
+    why: 'Encore pins them to their last move, Disable removes it, Torment blocks the repeat. '
+       + 'stallIntoEncore already prices the Encore case from the RECEIVING end',
+    of: m => (/^(encore|disable|torment)$/.test(norm(m.id))) ? { locks: norm(m.id) } : null },
+  { tag: 'forbidsStatusMoves', param: 'the whole Status CATEGORY becomes unclickable for them', probe: 'taunt',
+    why: 'Taunt. Deletes every Protect, setup move and Tailwind at once -- 38.5% of their move slots '
+       + 'by share. Same restriction Assault Vest applies to its own holder',
+    of: m => (m.volatileStatus === 'taunt' || /^taunt$/.test(norm(m.id))) ? { forbids: 'Status' } : null },
+  /* SPLIT PER STATUS on Will's review -- "should each major status like burn have its own tag".
+   * Yes, because each sets a DIFFERENT parameter, and the rollout engine already treats them apart
+   * while the tag lumped them:
+   *   burn        x0.5 physical damage, plus 1/16 chip
+   *   paralysis   x0.5 speed, plus 12.5% full-para (Champions-specific -- the usual figure is 25%)
+   *   sleep       turns lost outright
+   *   poison      chip only, 1/8 or escalating
+   * And Will's second point: burn arrives BOTH from a dedicated status move (Will-O-Wisp) and from a
+   * damaging move's SECONDARY (Flare Blitz 10%, Matcha Gotcha 20%). Both carry the probability. */
+  { tag: 'inflictsBurn', param: 'P(burn): x0.5 physical damage on them, plus chip', probe: 'brn',
+    why: 'Will-O-Wisp as the move, Flare Blitz and Matcha Gotcha as a secondary. Halving their '
+       + 'physical output is a damage parameter, not a status footnote',
+    of: m => statusOdds(m, 'brn') },
+  { tag: 'inflictsParalysis', param: 'P(paralysis): x0.5 their speed, plus 12.5% lost turns', probe: 'par',
+    why: 'Changes who moves first, which most kill features hang off. Champions uses 12.5% full-para, '
+       + 'not the 25% everywhere else',
+    of: m => statusOdds(m, 'par') },
+  { tag: 'inflictsSleep', param: 'P(sleep): they lose turns outright', probe: 'slp',
+    why: 'The most valuable status in the game and the one Electric Terrain blanks',
+    of: m => statusOdds(m, 'slp') },
+  { tag: 'inflictsPoison', param: 'P(poison): chip, 1/8 or escalating', probe: 'psn',
+    why: 'Pure chip, so it prices a long game rather than this turn',
+    of: m => statusOdds(m, 'psn') || statusOdds(m, 'tox') },
+  { tag: 'inflictsStatus', param: 'status := x (any)', probe: 'statusBites',
     why: 'burn halves physical damage, paralysis halves speed -- both are damage/order parameters',
     of: m => m.status ? { status: m.status } : null },
   { tag: 'drain', param: 'heals a fraction of damage dealt', probe: 'drain',
@@ -326,7 +410,11 @@ const MOVE_TAGS = [
    * restore a fixed share of max HP and cost the whole turn. A move is never both. */
   { tag: 'healsSelf', param: 'restores a share of MY max HP, costing the turn', probe: 'healsSelf',
     why: 'Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices',
-    of: m => ((m.heal || (m.flags && m.flags.heal)) && !m.drain && m.target === 'self')
+    /* 'allies' INCLUDES THE USER, so Life Dew heals self AND partner and must carry BOTH tags.
+     * Will asked for "restores my hp or restores partners hp (OR BOTH)" and my first split was
+     * strictly exclusive, which silently dropped the both case. */
+    of: m => ((m.heal || (m.flags && m.flags.heal)) && !m.drain
+              && (m.target === 'self' || m.target === 'allies' || m.target === 'allySide'))
              ? { heal: m.heal || true } : null },
   { tag: 'healsAlly', param: 'restores my PARTNER max-HP share', probe: 'healsPartner',
     why: 'Heal Pulse, Life Dew, Floral Healing. Already a pair feature in DODUO and nothing in the '
@@ -346,10 +434,14 @@ const MOVE_TAGS = [
        + 'weather that does it is usually one the user set themselves',
     of: m => {
       if (!(m.flags && m.flags.charge)) return null;
-      const id = norm(m.id);
-      if (/electroshot/.test(id)) return { skipsIn: 'raindance' };
-      if (/solarbeam|solarblade/.test(id)) return { skipsIn: 'sunnyday' };
-      return null;
+      /* DERIVED: Showdown expresses the skip inside onTryMove, which checks the field weather and
+       * returns early. Reading the handler catches Electro Shot (rain), Solar Beam and Solar Blade
+       * (sun) without naming any of them, and will catch whatever is added next. */
+      const src = String(m.onTryMove || '');
+      if (!/weather/i.test(src)) return null;
+      const sun = /sunnyday|desolateland|SUNNY/i.test(src);
+      const rain = /raindance|primordialsea|RAIN/i.test(src);
+      return { skipsIn: sun ? 'sun' : (rain ? 'rain' : 'a weather') };
     } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
@@ -446,9 +538,20 @@ const ITEM_TAGS = [
        + 'changes it -- do not read critRatio: 2 as double damage',
     of: it => it.onModifyCritRatio ? { critRatio: 2 } : null },
   { tag: 'addsFlinch', param: 'P(flinch) += 10% on moves that do not already flinch', probe: 'kingsrock',
-    why: 'Kings Rock (Will raised it). 49 uses. Sets the same parameter the flinch tag does, from the '
-       + 'item side, which is exactly what a parameter taxonomy is for',
-    of: it => /^(kingsrock|razorfang)$/.test(norm(it.name)) ? { pFlinch: 0.1 } : null },
+    why: "King's Rock and Razor Fang. Sets the same parameter the move-side flinch tag does, which is "
+       + 'exactly what a parameter taxonomy is for. Derived from an onModifyMove that mentions flinch, '
+       + 'not from the names',
+    of: it => (it.onModifyMove && /flinch/i.test(String(it.onModifyMove))) ? { pFlinch: 0.1 } : null },
+  /* Will: "quick claw and bright powder". Both set parameters the kill distribution already needs --
+   * one perturbs the ORDER, the other P(hit) -- and both are derivable from their handlers. */
+  { tag: 'fractionalPriority', param: 'a CHANCE to move first inside the priority bracket', probe: 'onFractionalPriority',
+    why: 'Quick Claw, 20% of turns. Speed order is what most kill features hang off, and this makes it '
+       + 'probabilistic rather than determined',
+    of: it => it.onFractionalPriority ? { chance: 0.2 } : null },
+  { tag: 'accuracyMod', param: 'P(hit) is scaled, for or against the holder', probe: 'onModifyAccuracy',
+    why: 'Bright Powder makes attacks against the holder 0.9x; Wide Lens (411 uses) makes the holder 1.1x. '
+       + 'Feeds the same P(hit) the kill distribution consumes',
+    of: it => (it.onModifyAccuracy || it.onSourceModifyAccuracy) ? { accuracy: true } : null },
   { tag: 'statMult', param: 'raises one stat', probe: 'assaultvest',
     why: 'Band, Specs, Assault Vest, Eviolite',
     of: it => /^(choiceband|choicespecs|assaultvest|eviolite)$/.test(norm(it.name)) ? { mult: 1.5 } : null },

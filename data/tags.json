@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T02:13:19.829Z",
+ "generated": "2026-07-29T02:26:43.648Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -388,8 +388,8 @@
   {
    "tag": "setsTerrain",
    "kind": "move",
-   "param": "terrain := x",
-   "why": "same as weather: redundancy is detected, benefit is not",
+   "param": "terrain := x, with a second effect beyond the type boost",
+   "why": "Psychic Terrain blanks priority field-wide (Fake Out is 7,846 uses and nothing checks), Electric blocks sleep, Misty blocks all status, Grassy heals 1/16 a turn",
    "consumedBy": "terrain",
    "used": true,
    "n": 4,
@@ -480,20 +480,58 @@
    ]
   },
   {
-   "tag": "sideBuff",
+   "tag": "doublesSideSpeed",
    "kind": "move",
-   "param": "my side gets a multi-turn modifier",
-   "why": "Tailwind doubles speed for five turns, screens halve damage. Tailwind is 6,981 uses and the speed half already feeds movesFirst",
-   "consumedBy": "sideCondition",
+   "param": "my whole side moves at x2 speed for the duration",
+   "why": "Tailwind, 6,981 uses. Flips who moves first across every matchup on the field at once, and board.js already derives the speed multiplier -- it just is not scored as a CHOICE",
+   "consumedBy": "speedSide",
    "used": true,
-   "n": 5,
-   "uses": 12174,
+   "n": 1,
+   "uses": 6981,
+   "examples": [
+    "Tailwind"
+   ]
+  },
+  {
+   "tag": "halvesDamage",
+   "kind": "move",
+   "param": "incoming damage to my side is roughly halved",
+   "why": "Light Screen 2,346, Reflect 1,988, Aurora Veil 853 -- 5,187 uses that currently change NO damage number anywhere in MAG",
+   "consumedBy": "screens",
+   "used": true,
+   "n": 3,
+   "uses": 5187,
    "examples": [
     "Aurora Veil",
     "Light Screen",
-    "Reflect",
-    "Safeguard",
-    "Tailwind"
+    "Reflect"
+   ]
+  },
+  {
+   "tag": "failsWithoutWeather",
+   "kind": "move",
+   "param": "the move does NOTHING unless a weather is up",
+   "why": "Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can currently say so",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 854,
+   "examples": [
+    "Aurora Veil",
+    "Magnet Rise"
+   ]
+  },
+  {
+   "tag": "sideBuff",
+   "kind": "move",
+   "param": "another multi-turn modifier on my side",
+   "why": "Safeguard, Mist -- what is left once Tailwind and the screens are split out",
+   "consumedBy": "sideCondition",
+   "used": true,
+   "n": 1,
+   "uses": 6,
+   "examples": [
+    "Safeguard"
    ]
   },
   {
@@ -515,19 +553,19 @@
   {
    "tag": "boostsUser",
    "kind": "move",
-   "param": "stat stages on self",
-   "why": "the setup family, derived rather than listed",
-   "consumedBy": "boosts",
+   "param": "WHICH stat stages, on self, not just that there are some",
+   "why": "movesBoostMe is only a sign. +Spe flips the speed order, +Atk changes damage, +Def changes survival -- three different values reading as one number today",
+   "consumedBy": "movesBoostMe",
    "used": true,
-   "n": 22,
-   "uses": 6098,
+   "n": 32,
+   "uses": 15688,
    "examples": [
     "Clangorous Soul",
     "Growth",
+    "Make It Rain",
     "Acid Armor",
     "Agility",
-    "Amnesia",
-    "Bulk Up"
+    "Amnesia"
    ]
   },
   {
@@ -604,23 +642,104 @@
   {
    "tag": "locksTarget",
    "kind": "move",
-   "param": "their option set collapses to one move, or loses one",
-   "why": "Encore locks them into their last move, Disable removes it, Taunt deletes every status option. stallIntoEncore already prices the Encore case from the RECEIVING end",
+   "param": "their option set collapses to one specific move, or loses one",
+   "why": "Encore pins them to their last move, Disable removes it, Torment blocks the repeat. stallIntoEncore already prices the Encore case from the RECEIVING end",
    "consumedBy": "locking",
    "used": true,
-   "n": 4,
-   "uses": 4043,
+   "n": 3,
+   "uses": 3176,
    "examples": [
     "Encore",
     "Disable",
-    "Taunt",
     "Torment"
+   ]
+  },
+  {
+   "tag": "forbidsStatusMoves",
+   "kind": "move",
+   "param": "the whole Status CATEGORY becomes unclickable for them",
+   "why": "Taunt. Deletes every Protect, setup move and Tailwind at once -- 38.5% of their move slots by share. Same restriction Assault Vest applies to its own holder",
+   "consumedBy": "taunt",
+   "used": true,
+   "n": 1,
+   "uses": 867,
+   "examples": [
+    "Taunt"
+   ]
+  },
+  {
+   "tag": "inflictsBurn",
+   "kind": "move",
+   "param": "P(burn): x0.5 physical damage on them, plus chip",
+   "why": "Will-O-Wisp as the move, Flare Blitz and Matcha Gotcha as a secondary. Halving their physical output is a damage parameter, not a status footnote",
+   "consumedBy": "brn",
+   "used": true,
+   "n": 14,
+   "uses": 13920,
+   "examples": [
+    "Infernal Parade",
+    "Blaze Kick",
+    "Fire Blast",
+    "Fire Fang",
+    "Fire Punch",
+    "Flamethrower"
+   ]
+  },
+  {
+   "tag": "inflictsParalysis",
+   "kind": "move",
+   "param": "P(paralysis): x0.5 their speed, plus 12.5% lost turns",
+   "why": "Changes who moves first, which most kill features hang off. Champions uses 12.5% full-para, not the 25% everywhere else",
+   "consumedBy": "par",
+   "used": true,
+   "n": 13,
+   "uses": 4353,
+   "examples": [
+    "Body Slam",
+    "Discharge",
+    "Glare",
+    "Nuzzle",
+    "Stun Spore",
+    "Thunder"
+   ]
+  },
+  {
+   "tag": "inflictsSleep",
+   "kind": "move",
+   "param": "P(sleep): they lose turns outright",
+   "why": "The most valuable status in the game and the one Electric Terrain blanks",
+   "consumedBy": "slp",
+   "used": true,
+   "n": 4,
+   "uses": 1010,
+   "examples": [
+    "Hypnosis",
+    "Sleep Powder",
+    "Spore"
+   ]
+  },
+  {
+   "tag": "inflictsPoison",
+   "kind": "move",
+   "param": "P(poison): chip, 1/8 or escalating",
+   "why": "Pure chip, so it prices a long game rather than this turn",
+   "consumedBy": "psn",
+   "used": true,
+   "n": 12,
+   "uses": 3604,
+   "examples": [
+    "Toxic Thread",
+    "Barb Barrage",
+    "Cross Poison",
+    "Gunk Shot",
+    "Mortal Spin",
+    "Poison Fang"
    ]
   },
   {
    "tag": "inflictsStatus",
    "kind": "move",
-   "param": "status := x",
+   "param": "status := x (any)",
    "why": "burn halves physical damage, paralysis halves speed -- both are damage/order parameters",
    "consumedBy": "statusBites",
    "used": true,
@@ -678,15 +797,15 @@
    "why": "Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices",
    "consumedBy": null,
    "used": false,
-   "n": 11,
-   "uses": 1842,
+   "n": 12,
+   "uses": 3525,
    "examples": [
     "Healing Wish",
+    "Life Dew",
     "Moonlight",
     "Morning Sun",
     "Recover",
-    "Rest",
-    "Roost"
+    "Rest"
    ]
   },
   {
@@ -1042,13 +1161,41 @@
    "tag": "addsFlinch",
    "kind": "item",
    "param": "P(flinch) += 10% on moves that do not already flinch",
-   "why": "Kings Rock (Will raised it). 49 uses. Sets the same parameter the flinch tag does, from the item side, which is exactly what a parameter taxonomy is for",
+   "why": "King's Rock and Razor Fang. Sets the same parameter the move-side flinch tag does, which is exactly what a parameter taxonomy is for. Derived from an onModifyMove that mentions flinch, not from the names",
    "consumedBy": null,
    "used": false,
    "n": 1,
    "uses": 49,
    "examples": [
     "King's Rock"
+   ]
+  },
+  {
+   "tag": "fractionalPriority",
+   "kind": "item",
+   "param": "a CHANCE to move first inside the priority bracket",
+   "why": "Quick Claw, 20% of turns. Speed order is what most kill features hang off, and this makes it probabilistic rather than determined",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 39,
+   "examples": [
+    "Quick Claw"
+   ]
+  },
+  {
+   "tag": "accuracyMod",
+   "kind": "item",
+   "param": "P(hit) is scaled, for or against the holder",
+   "why": "Bright Powder makes attacks against the holder 0.9x; Wide Lens (411 uses) makes the holder 1.1x. Feeds the same P(hit) the kill distribution consumes",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 575,
+   "examples": [
+    "Bright Powder",
+    "Wide Lens",
+    "Zoom Lens"
    ]
   },
   {
@@ -1536,7 +1683,8 @@
   "infernalparade": {
    "name": "Infernal Parade",
    "tags": [
-    "variablePower"
+    "variablePower",
+    "inflictsBurn"
    ],
    "uses": 15
   },
@@ -1568,7 +1716,8 @@
   "makeitrain": {
    "name": "Make It Rain",
    "tags": [
-    "spreadFoes"
+    "spreadFoes",
+    "boostsUser"
    ],
    "uses": 1420
   },
@@ -1686,6 +1835,7 @@
    "tags": [
     "lowersTarget",
     "statusCategory",
+    "inflictsPoison",
     "inflictsStatus"
    ],
    "uses": 6
@@ -1840,6 +1990,13 @@
    ],
    "uses": 13
   },
+  "armorcannon": {
+   "name": "Armor Cannon",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 31
+  },
   "aromaticmist": {
    "name": "Aromatic Mist",
    "tags": [
@@ -1875,7 +2032,8 @@
    "name": "Aurora Veil",
    "tags": [
     "neverMisses",
-    "sideBuff",
+    "halvesDamage",
+    "failsWithoutWeather",
     "statusCategory"
    ],
    "uses": 853
@@ -1904,6 +2062,13 @@
     "statusCategory"
    ],
    "uses": 50
+  },
+  "barbbarrage": {
+   "name": "Barb Barrage",
+   "tags": [
+    "inflictsPoison"
+   ],
+   "uses": 22
   },
   "batonpass": {
    "name": "Baton Pass",
@@ -1963,7 +2128,8 @@
    "name": "Blaze Kick",
    "tags": [
     "critRatioUp",
-    "contact"
+    "contact",
+    "inflictsBurn"
    ],
    "uses": 87
   },
@@ -1994,7 +2160,8 @@
   "bodyslam": {
    "name": "Body Slam",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsParalysis"
    ],
    "uses": 71
   },
@@ -2010,6 +2177,7 @@
    "name": "Bounce",
    "tags": [
     "contact",
+    "inflictsParalysis",
     "chargeTurn"
    ],
    "uses": 0
@@ -2168,7 +2336,8 @@
   "closecombat": {
    "name": "Close Combat",
    "tags": [
-    "contact"
+    "contact",
+    "boostsUser"
    ],
    "uses": 5487
   },
@@ -2268,7 +2437,8 @@
    "name": "Cross Poison",
    "tags": [
     "critRatioUp",
-    "contact"
+    "contact",
+    "inflictsPoison"
    ],
    "uses": 1
   },
@@ -2364,7 +2534,8 @@
   "discharge": {
    "name": "Discharge",
    "tags": [
-    "spreadAll"
+    "spreadAll",
+    "inflictsParalysis"
    ],
    "uses": 400
   },
@@ -2401,6 +2572,13 @@
     "statusCategory"
    ],
    "uses": 0
+  },
+  "dracometeor": {
+   "name": "Draco Meteor",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 1199
   },
   "dragondance": {
    "name": "Dragon Dance",
@@ -2652,10 +2830,18 @@
    ],
    "uses": 176
   },
+  "fireblast": {
+   "name": "Fire Blast",
+   "tags": [
+    "inflictsBurn"
+   ],
+   "uses": 25
+  },
   "firefang": {
    "name": "Fire Fang",
    "tags": [
     "contact",
+    "inflictsBurn",
     "flinches"
    ],
    "uses": 9
@@ -2663,7 +2849,8 @@
   "firepunch": {
    "name": "Fire Punch",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsBurn"
    ],
    "uses": 45
   },
@@ -2689,10 +2876,18 @@
    ],
    "uses": 8
   },
+  "flamethrower": {
+   "name": "Flamethrower",
+   "tags": [
+    "inflictsBurn"
+   ],
+   "uses": 494
+  },
   "flareblitz": {
    "name": "Flare Blitz",
    "tags": [
     "contact",
+    "inflictsBurn",
     "recoil"
    ],
    "uses": 4032
@@ -2823,6 +3018,7 @@
    "name": "Glare",
    "tags": [
     "statusCategory",
+    "inflictsParalysis",
     "inflictsStatus"
    ],
    "uses": 20
@@ -2886,6 +3082,13 @@
    ],
    "uses": 2
   },
+  "gunkshot": {
+   "name": "Gunk Shot",
+   "tags": [
+    "inflictsPoison"
+   ],
+   "uses": 223
+  },
   "gyroball": {
    "name": "Gyro Ball",
    "tags": [
@@ -2897,7 +3100,8 @@
   "hammerarm": {
    "name": "Hammer Arm",
    "tags": [
-    "contact"
+    "contact",
+    "boostsUser"
    ],
    "uses": 106
   },
@@ -2921,7 +3125,8 @@
   "headlongrush": {
    "name": "Headlong Rush",
    "tags": [
-    "contact"
+    "contact",
+    "boostsUser"
    ],
    "uses": 26
   },
@@ -2972,7 +3177,8 @@
   "heatwave": {
    "name": "Heat Wave",
    "tags": [
-    "spreadFoes"
+    "spreadFoes",
+    "inflictsBurn"
    ],
    "uses": 4031
   },
@@ -3063,6 +3269,7 @@
    "name": "Hypnosis",
    "tags": [
     "statusCategory",
+    "inflictsSleep",
     "inflictsStatus"
    ],
    "uses": 273
@@ -3078,7 +3285,8 @@
   "icehammer": {
    "name": "Ice Hammer",
    "tags": [
-    "contact"
+    "contact",
+    "boostsUser"
    ],
    "uses": 31
   },
@@ -3131,6 +3339,13 @@
     "statusCategory"
    ],
    "uses": 158
+  },
+  "inferno": {
+   "name": "Inferno",
+   "tags": [
+    "inflictsBurn"
+   ],
+   "uses": 0
   },
   "infestation": {
    "name": "Infestation",
@@ -3218,7 +3433,8 @@
   "lavaplume": {
    "name": "Lava Plume",
    "tags": [
-    "spreadAll"
+    "spreadAll",
+    "inflictsBurn"
    ],
    "uses": 1
   },
@@ -3229,6 +3445,13 @@
     "contact"
    ],
    "uses": 108
+  },
+  "leafstorm": {
+   "name": "Leaf Storm",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 337
   },
   "leechlife": {
    "name": "Leech Life",
@@ -3250,6 +3473,7 @@
    "tags": [
     "neverMisses",
     "statusCategory",
+    "healsSelf",
     "healsAlly"
    ],
    "uses": 1683
@@ -3258,7 +3482,7 @@
    "name": "Light Screen",
    "tags": [
     "neverMisses",
-    "sideBuff",
+    "halvesDamage",
     "statusCategory"
    ],
    "uses": 2346
@@ -3338,6 +3562,7 @@
    "name": "Magnet Rise",
    "tags": [
     "neverMisses",
+    "failsWithoutWeather",
     "statusCategory"
    ],
    "uses": 1
@@ -3346,6 +3571,7 @@
    "name": "Matcha Gotcha",
    "tags": [
     "spreadFoes",
+    "inflictsBurn",
     "drain"
    ],
    "uses": 3392
@@ -3462,7 +3688,8 @@
    "name": "Mortal Spin",
    "tags": [
     "spreadFoes",
-    "contact"
+    "contact",
+    "inflictsPoison"
    ],
    "uses": 21
   },
@@ -3510,7 +3737,8 @@
   "nuzzle": {
    "name": "Nuzzle",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsParalysis"
    ],
    "uses": 110
   },
@@ -3520,6 +3748,13 @@
     "contact"
    ],
    "uses": 35
+  },
+  "overheat": {
+   "name": "Overheat",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 771
   },
   "painsplit": {
    "name": "Pain Split",
@@ -3611,14 +3846,16 @@
   "poisonfang": {
    "name": "Poison Fang",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsPoison"
    ],
    "uses": 5
   },
   "poisonjab": {
    "name": "Poison Jab",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsPoison"
    ],
    "uses": 758
   },
@@ -3627,6 +3864,7 @@
    "tags": [
     "powder",
     "statusCategory",
+    "inflictsPoison",
     "inflictsStatus"
    ],
    "uses": 0
@@ -3829,7 +4067,7 @@
    "name": "Reflect",
    "tags": [
     "neverMisses",
-    "sideBuff",
+    "halvesDamage",
     "statusCategory"
    ],
    "uses": 1988
@@ -3952,6 +4190,13 @@
    ],
    "uses": 6
   },
+  "scald": {
+   "name": "Scald",
+   "tags": [
+    "inflictsBurn"
+   ],
+   "uses": 601
+  },
   "scaleshot": {
    "name": "Scale Shot",
    "tags": [
@@ -3966,6 +4211,13 @@
     "statusCategory"
    ],
    "uses": 208
+  },
+  "scorchingsands": {
+   "name": "Scorching Sands",
+   "tags": [
+    "inflictsBurn"
+   ],
+   "uses": 87
   },
   "screech": {
    "name": "Screech",
@@ -4025,6 +4277,13 @@
    ],
    "uses": 41
   },
+  "shellsidearm": {
+   "name": "Shell Side Arm",
+   "tags": [
+    "inflictsPoison"
+   ],
+   "uses": 9
+  },
   "shellsmash": {
    "name": "Shell Smash",
    "tags": [
@@ -4055,6 +4314,7 @@
    "tags": [
     "sound",
     "statusCategory",
+    "inflictsSleep",
     "inflictsStatus"
    ],
    "uses": 0
@@ -4097,6 +4357,7 @@
    "tags": [
     "powder",
     "statusCategory",
+    "inflictsSleep",
     "inflictsStatus"
    ],
    "uses": 734
@@ -4109,10 +4370,18 @@
    ],
    "uses": 10
   },
+  "sludgebomb": {
+   "name": "Sludge Bomb",
+   "tags": [
+    "inflictsPoison"
+   ],
+   "uses": 1982
+  },
   "sludgewave": {
    "name": "Sludge Wave",
    "tags": [
-    "spreadAll"
+    "spreadAll",
+    "inflictsPoison"
    ],
    "uses": 97
   },
@@ -4233,6 +4502,7 @@
    "tags": [
     "powder",
     "statusCategory",
+    "inflictsSleep",
     "inflictsStatus"
    ],
    "uses": 3
@@ -4351,6 +4621,7 @@
    "tags": [
     "powder",
     "statusCategory",
+    "inflictsParalysis",
     "inflictsStatus"
    ],
    "uses": 12
@@ -4399,7 +4670,8 @@
   "superpower": {
    "name": "Superpower",
    "tags": [
-    "contact"
+    "contact",
+    "boostsUser"
    ],
    "uses": 182
   },
@@ -4481,7 +4753,7 @@
    "name": "Tailwind",
    "tags": [
     "neverMisses",
-    "sideBuff",
+    "doublesSideSpeed",
     "statusCategory"
    ],
    "uses": 6981
@@ -4490,7 +4762,7 @@
    "name": "Taunt",
    "tags": [
     "statusCategory",
-    "locksTarget"
+    "forbidsStatusMoves"
    ],
    "uses": 867
   },
@@ -4560,14 +4832,23 @@
   "thunder": {
    "name": "Thunder",
    "tags": [
-    "weatherScaled"
+    "weatherScaled",
+    "inflictsParalysis"
    ],
    "uses": 179
+  },
+  "thunderbolt": {
+   "name": "Thunderbolt",
+   "tags": [
+    "inflictsParalysis"
+   ],
+   "uses": 1858
   },
   "thunderfang": {
    "name": "Thunder Fang",
    "tags": [
     "contact",
+    "inflictsParalysis",
     "flinches"
    ],
    "uses": 6
@@ -4575,7 +4856,8 @@
   "thunderpunch": {
    "name": "Thunder Punch",
    "tags": [
-    "contact"
+    "contact",
+    "inflictsParalysis"
    ],
    "uses": 204
   },
@@ -4583,6 +4865,7 @@
    "name": "Thunder Wave",
    "tags": [
     "statusCategory",
+    "inflictsParalysis",
     "inflictsStatus"
    ],
    "uses": 284
@@ -4630,6 +4913,7 @@
    "name": "Toxic",
    "tags": [
     "statusCategory",
+    "inflictsPoison",
     "inflictsStatus"
    ],
    "uses": 480
@@ -4743,6 +5027,7 @@
    "name": "Volt Tackle",
    "tags": [
     "contact",
+    "inflictsParalysis",
     "recoil"
    ],
    "uses": 145
@@ -4820,6 +5105,7 @@
    "name": "Will-O-Wisp",
    "tags": [
     "statusCategory",
+    "inflictsBurn",
     "inflictsStatus"
    ],
    "uses": 1101
@@ -4879,6 +5165,13 @@
     "statusCategory"
    ],
    "uses": 536
+  },
+  "zapcannon": {
+   "name": "Zap Cannon",
+   "tags": [
+    "inflictsParalysis"
+   ],
+   "uses": 1064
   },
   "zenheadbutt": {
    "name": "Zen Headbutt",
@@ -5457,6 +5750,13 @@
    ],
    "uses": 1319
   },
+  "brightpowder": {
+   "name": "Bright Powder",
+   "tags": [
+    "accuracyMod"
+   ],
+   "uses": 142
+  },
   "charcoal": {
    "name": "Charcoal",
    "tags": [
@@ -5682,6 +5982,13 @@
    ],
    "uses": 6
   },
+  "quickclaw": {
+   "name": "Quick Claw",
+   "tags": [
+    "fractionalPriority"
+   ],
+   "uses": 39
+  },
   "rawstberry": {
    "name": "Rawst Berry",
    "tags": [
@@ -5773,12 +6080,26 @@
    ],
    "uses": 36
   },
+  "widelens": {
+   "name": "Wide Lens",
+   "tags": [
+    "accuracyMod"
+   ],
+   "uses": 411
+  },
   "yacheberry": {
    "name": "Yache Berry",
    "tags": [
     "resistBerry"
    ],
    "uses": 46
+  },
+  "zoomlens": {
+   "name": "Zoom Lens",
+   "tags": [
+    "accuracyMod"
+   ],
+   "uses": 22
   }
  },
  "abilities": {
