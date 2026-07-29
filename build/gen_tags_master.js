@@ -113,11 +113,41 @@ const ab1 = sp => (sp && sp.abilities) ? Object.values(sp.abilities)[0] : null;
   P('not the ability the engine will face. Staraptor is the dangerous one: the sheet says Intimidate');
   P('and the field says **Contrary**, which inverts every stat change.');
   P('');
-  P('| species | sheet says | field says | entries |');
-  P('|---|---|---|---:|');
-  for (const [k, c] of Object.entries(swap).sort((a, b) => b[1] - a[1])) {
-    const [sp, from, to] = k.split('|');
-    P('| ' + sp + ' | ' + from + ' | **' + to + '** | ' + c.toLocaleString() + ' |');
+  /* PER ABILITY, NOT PER SPECIES. Will: "i dont care about this, show it me ability by ability."
+   * He is right -- the species list is a long tail of ones and twos and says nothing actionable.
+   * What matters is: for each ability, how far is the count in this document from the count that
+   * will actually be on the field. That is the number every table above is wrong by. */
+  const onSheet = {}, onField = {};
+  for (const g of games) for (const s of ['p1', 'p2']) for (const e of (g.sheets && g.sheets[s]) || []) {
+    if (!e.ability) continue;
+    const sheetAb = norm(e.ability);
+    onSheet[sheetAb] = (onSheet[sheetAb] || 0) + 1;
+    const it = dex.items.get(norm(e.item || ''));
+    let fieldAb = sheetAb;
+    if (it && it.megaStone) {
+      const base = dex.species.get(norm(e.species));
+      const mega = dex.species.get(it.megaStone[base.baseSpecies] || Object.values(it.megaStone)[0]);
+      const a = ab1(mega);
+      if (a) fieldAb = norm(a);
+    }
+    onField[fieldAb] = (onField[fieldAb] || 0) + 1;
+  }
+  const names = new Set([...Object.keys(onSheet), ...Object.keys(onField)]);
+  const drift = [...names].map(id => {
+    const sh = onSheet[id] || 0, fl = onField[id] || 0;
+    const o = dex.abilities.get(id);
+    return { name: (o && o.name) || id, sh, fl, d: fl - sh };
+  }).filter(r => r.d !== 0).sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+
+  P('Every ability count in this document is what the **sheet** says. Below is how far each one is');
+  P('from what will be on the **field** once megas evolve. A positive number means the ability is');
+  P('more common than this document claims; a negative means less.');
+  P('');
+  P('| ability | counted here | actually on field | off by |');
+  P('|---|---:|---:|---:|');
+  for (const r of drift) {
+    P('| ' + r.name + ' | ' + r.sh.toLocaleString() + ' | **' + r.fl.toLocaleString() + '** | ' +
+      (r.d > 0 ? '+' : '') + r.d.toLocaleString() + ' |');
   }
   P('');
   P('---');

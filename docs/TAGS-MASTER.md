@@ -33,154 +33,129 @@ Every ability count in this document is the ability *written on the sheet*. For 
 not the ability the engine will face. Staraptor is the dangerous one: the sheet says Intimidate
 and the field says **Contrary**, which inverts every stat change.
 
-| species | sheet says | field says | entries |
-|---|---|---|---:|
-| Staraptor | Intimidate | **Contrary** | 1,945 |
-| Charizard | Blaze | **Drought** | 1,824 |
-| Floette-Eternal | FlowerVeil | **Fairy Aura** | 1,419 |
-| Metagross | ClearBody | **Tough Claws** | 1,187 |
-| Raichu | LightningRod | **No Guard** | 929 |
-| Swampert | Torrent | **Swift Swim** | 921 |
-| Delphox | Blaze | **Levitate** | 742 |
-| Aerodactyl | Unnerve | **Tough Claws** | 667 |
-| Gengar | CursedBody | **Shadow Tag** | 446 |
-| Swampert | Damp | **Swift Swim** | 430 |
-| Charizard | SolarPower | **Drought** | 399 |
-| Mawile | Intimidate | **Huge Power** | 380 |
-| Froslass | CursedBody | **Snow Warning** | 369 |
-| Venusaur | Chlorophyll | **Thick Fat** | 322 |
-| Mawile | HyperCutter | **Huge Power** | 299 |
-| Eelektross | Levitate | **Eelevate** | 259 |
-| Scovillain | Moody | **Spicy Spray** | 238 |
-| Blastoise | RainDish | **Mega Launcher** | 227 |
-| Froslass | SnowCloak | **Snow Warning** | 179 |
-| Aerodactyl | RockHead | **Tough Claws** | 177 |
-| Pyroar | Unnerve | **Fire Mane** | 173 |
-| Sceptile | Overgrow | **Lightning Rod** | 172 |
-| Raichu | LightningRod | **Electric Surge** | 160 |
-| Glimmora | ToxicDebris | **Adaptability** | 159 |
-| Camerupt | SolidRock | **Sheer Force** | 150 |
-| Raichu | Static | **No Guard** | 147 |
-| Blastoise | Torrent | **Mega Launcher** | 130 |
-| Kangaskhan | Scrappy | **Parental Bond** | 108 |
-| Gardevoir | Trace | **Pixilate** | 106 |
-| Dragalge | Adaptability | **Regenerator** | 105 |
-| Venusaur | Overgrow | **Thick Fat** | 87 |
-| Meganium | LeafGuard | **Mega Sol** | 74 |
-| Gyarados | Intimidate | **Mold Breaker** | 71 |
-| Meganium | Overgrow | **Mega Sol** | 65 |
-| Charizard | Blaze | **Tough Claws** | 62 |
-| Raichu | Static | **Electric Surge** | 57 |
-| Garchomp | RoughSkin | **Sand Force** | 55 |
-| Lucario | InnerFocus | **Adaptability** | 53 |
-| Gardevoir | Telepathy | **Pixilate** | 51 |
-| Ampharos | Static | **Mold Breaker** | 50 |
-| Lopunny | Limber | **Scrappy** | 50 |
-| Camerupt | MagmaArmor | **Sheer Force** | 44 |
-| Scovillain | Chlorophyll | **Spicy Spray** | 42 |
-| Chandelure | FlashFire | **Infiltrator** | 42 |
-| Dragonite | InnerFocus | **Multiscale** | 41 |
-| Dragalge | PoisonPoint | **Regenerator** | 40 |
-| Delphox | Magician | **Levitate** | 40 |
-| Clefable | Unaware | **Magic Bounce** | 40 |
-| Gardevoir | Synchronize | **Pixilate** | 39 |
-| Scolipede | SpeedBoost | **Shell Armor** | 36 |
-| Floette-Eternal | Symbiosis | **Fairy Aura** | 36 |
-| Sableye | Prankster | **Magic Bounce** | 32 |
-| Aggron | Sturdy | **Filter** | 31 |
-| Garchomp | SandVeil | **Sand Force** | 30 |
-| Crabominable | HyperCutter | **Iron Fist** | 29 |
-| Starmie | NaturalCure | **Huge Power** | 29 |
-| Lopunny | CuteCharm | **Scrappy** | 28 |
-| Excadrill | SandRush | **Piercing Drill** | 27 |
-| Manectric | LightningRod | **Intimidate** | 25 |
-| Starmie | Illuminate | **Huge Power** | 24 |
-| Drampa | CloudNine | **Berserk** | 23 |
-| Sceptile | Unburden | **Lightning Rod** | 23 |
-| Beedrill | Sniper | **Adaptability** | 23 |
-| Slowbro | Oblivious | **Shell Armor** | 23 |
-| Altaria | CloudNine | **Pixilate** | 19 |
-| Excadrill | SandForce | **Piercing Drill** | 17 |
-| Steelix | Sturdy | **Sand Force** | 15 |
-| Hawlucha | MoldBreaker | **No Guard** | 15 |
-| Golurk | IronFist | **Unseen Fist** | 15 |
-| Beedrill | Swarm | **Adaptability** | 14 |
-| Kangaskhan | EarlyBird | **Parental Bond** | 13 |
-| Houndoom | FlashFire | **Solar Power** | 13 |
-| Pidgeot | BigPecks | **No Guard** | 13 |
-| Pyroar | Rivalry | **Fire Mane** | 13 |
-| Hawlucha | Limber | **No Guard** | 12 |
-| Pinsir | HyperCutter | **Aerilate** | 12 |
-| Banette | Insomnia | **Prankster** | 12 |
-| Kangaskhan | InnerFocus | **Parental Bond** | 12 |
-| Lucario | Steadfast | **Adaptability** | 12 |
-| Slowbro | Regenerator | **Shell Armor** | 11 |
-| Skarmory | Sturdy | **Stalwart** | 11 |
-| Clefable | MagicGuard | **Magic Bounce** | 11 |
-| Golurk | NoGuard | **Unseen Fist** | 11 |
-| Staraptor | Reckless | **Contrary** | 11 |
-| Gallade | Justified | **Inner Focus** | 9 |
-| Meowstic-F | Competitive | **Trace** | 9 |
-| Heracross | Moxie | **Skill Link** | 9 |
-| Blaziken | Blaze | **Speed Boost** | 9 |
-| Excadrill | MoldBreaker | **Piercing Drill** | 9 |
-| Victreebel | Chlorophyll | **Innards Out** | 7 |
-| Heracross | Guts | **Skill Link** | 7 |
-| Skarmory | KeenEye | **Stalwart** | 6 |
-| Steelix | SheerForce | **Sand Force** | 6 |
-| Absol | Justified | **Magic Bounce** | 6 |
-| Lucario | Justified | **Adaptability** | 6 |
-| Alakazam | InnerFocus | **Trace** | 6 |
-| Banette | Frisk | **Prankster** | 6 |
-| Meowstic | Prankster | **Trace** | 6 |
-| Feraligatr | Torrent | **Dragonize** | 6 |
-| Aggron | HeavyMetal | **Filter** | 6 |
-| Scolipede | PoisonPoint | **Shell Armor** | 6 |
-| Audino | Regenerator | **Healer** | 5 |
-| Emboar | Reckless | **Mold Breaker** | 5 |
-| Feraligatr | SheerForce | **Dragonize** | 5 |
-| Emboar | Blaze | **Mold Breaker** | 5 |
-| Heracross | Swarm | **Skill Link** | 5 |
-| Alakazam | MagicGuard | **Trace** | 4 |
-| Sharpedo | SpeedBoost | **Strong Jaw** | 4 |
-| Starmie | Analytic | **Huge Power** | 4 |
-| Scovillain | Insomnia | **Spicy Spray** | 4 |
-| Glimmora | Corrosion | **Adaptability** | 4 |
-| Absol | Pressure | **Magic Bounce** | 4 |
-| Greninja | Torrent | **Protean** | 4 |
-| Altaria | NaturalCure | **Pixilate** | 4 |
-| Banette | CursedBody | **Prankster** | 4 |
-| Scrafty | Moxie | **Intimidate** | 3 |
-| Aerodactyl | Pressure | **Tough Claws** | 3 |
-| Charizard | SolarPower | **Tough Claws** | 3 |
-| Gallade | Steadfast | **Inner Focus** | 3 |
-| Clefable | CuteCharm | **Magic Bounce** | 3 |
-| Pidgeot | TangledFeet | **No Guard** | 2 |
-| Pidgeot | KeenEye | **No Guard** | 2 |
-| Hawlucha | Unburden | **No Guard** | 2 |
-| Medicham | Telepathy | **Pure Power** | 2 |
-| Camerupt | AngerPoint | **Sheer Force** | 2 |
-| Metagross | LightMetal | **Tough Claws** | 2 |
-| Pyroar | Moxie | **Fire Mane** | 2 |
-| Staraptor | Intimidate | **Huge Power** | 2 |
-| Slowbro | OwnTempo | **Shell Armor** | 2 |
-| Steelix | RockHead | **Sand Force** | 2 |
-| Manectric | Static | **Intimidate** | 1 |
-| Sharpedo | RoughSkin | **Strong Jaw** | 1 |
-| Absol | SuperLuck | **Magic Bounce** | 1 |
-| Houndoom | EarlyBird | **Solar Power** | 1 |
-| Aggron | RockHead | **Filter** | 1 |
-| Mawile | SheerForce | **Huge Power** | 1 |
-| Skarmory | WeakArmor | **Stalwart** | 1 |
-| Gallade | Sharpness | **Inner Focus** | 1 |
-| Tyranitar | Unnerve | **Sand Stream** | 1 |
-| Sableye | KeenEye | **Magic Bounce** | 1 |
-| Crabominable | AngerPoint | **Iron Fist** | 1 |
-| Barbaracle | Sniper | **Tough Claws** | 1 |
-| Malamar | Infiltrator | **Contrary** | 1 |
-| Chesnaught | Overgrow | **Bulletproof** | 1 |
-| Glalie | Moody | **Refrigerate** | 1 |
-| Scrafty | ShedSkin | **Intimidate** | 1 |
+Every ability count in this document is what the **sheet** says. Below is how far each one is
+from what will be on the **field** once megas evolve. A positive number means the ability is
+more common than this document claims; a negative means less.
+
+| ability | counted here | actually on field | off by |
+|---|---:|---:|---:|
+| Blaze | 2,722 | **80** | -2,642 |
+| Intimidate | 6,604 | **4,236** | -2,368 |
+| Drought | 621 | **2,844** | +2,223 |
+| Tough Claws | 272 | **2,374** | +2,102 |
+| Contrary | 134 | **2,091** | +1,957 |
+| Fairy Aura | 0 | **1,455** | +1,455 |
+| Flower Veil | 1,465 | **46** | -1,419 |
+| Swift Swim | 325 | **1,676** | +1,351 |
+| Clear Body | 1,331 | **144** | -1,187 |
+| No Guard | 22 | **1,133** | +1,111 |
+| Torrent | 1,093 | **32** | -1,061 |
+| Lightning Rod | 1,302 | **383** | -919 |
+| Unnerve | 1,329 | **488** | -841 |
+| Cursed Body | 837 | **18** | -819 |
+| Huge Power | 75 | **814** | +739 |
+| Snow Warning | 954 | **1,502** | +548 |
+| Levitate | 1,785 | **2,308** | +523 |
+| Shadow Tag | 0 | **446** | +446 |
+| Damp | 437 | **7** | -430 |
+| Thick Fat | 71 | **480** | +409 |
+| Solar Power | 432 | **44** | -388 |
+| Chlorophyll | 1,151 | **780** | -371 |
+| Mega Launcher | 20 | **377** | +357 |
+| Hyper Cutter | 378 | **38** | -340 |
+| Overgrow | 362 | **37** | -325 |
+| Spicy Spray | 0 | **284** | +284 |
+| Eelevate | 0 | **259** | +259 |
+| Static | 278 | **23** | -255 |
+| Moody | 249 | **10** | -239 |
+| Rain Dish | 240 | **13** | -227 |
+| Pixilate | 1,448 | **1,667** | +219 |
+| Electric Surge | 0 | **217** | +217 |
+| Fire Mane | 0 | **188** | +188 |
+| Sheer Force | 94 | **278** | +184 |
+| Rock Head | 399 | **219** | -180 |
+| Snow Cloak | 219 | **40** | -179 |
+| Adaptability | 2,855 | **3,021** | +166 |
+| Toxic Debris | 417 | **258** | -159 |
+| Solid Rock | 170 | **20** | -150 |
+| Mega Sol | 0 | **139** | +139 |
+| Parental Bond | 0 | **133** | +133 |
+| Regenerator | 555 | **684** | +129 |
+| Mold Breaker | 130 | **237** | +107 |
+| Inner Focus | 377 | **278** | -99 |
+| Magic Bounce | 92 | **190** | +98 |
+| Sand Force | 18 | **109** | +91 |
+| Trace | 114 | **33** | -81 |
+| Shell Armor | 25 | **103** | +78 |
+| Leaf Guard | 75 | **1** | -74 |
+| Limber | 63 | **1** | -62 |
+| Sturdy | 154 | **97** | -57 |
+| Rough Skin | 3,762 | **3,706** | -56 |
+| Flash Fire | 357 | **302** | -55 |
+| Telepathy | 116 | **63** | -53 |
+| Piercing Drill | 0 | **53** | +53 |
+| Poison Point | 51 | **5** | -46 |
+| Magma Armor | 44 | **0** | -44 |
+| Cloud Nine | 70 | **28** | -42 |
+| Multiscale | 353 | **394** | +41 |
+| Infiltrator | 56 | **97** | +41 |
+| Unaware | 173 | **133** | -40 |
+| Magician | 41 | **1** | -40 |
+| Synchronize | 53 | **14** | -39 |
+| Filter | 0 | **38** | +38 |
+| Symbiosis | 37 | **1** | -36 |
+| Natural Cure | 38 | **5** | -33 |
+| Speed Boost | 453 | **422** | -31 |
+| Cute Charm | 48 | **17** | -31 |
+| Scrappy | 262 | **232** | -30 |
+| Sand Veil | 135 | **105** | -30 |
+| Sand Rush | 495 | **468** | -27 |
+| Unseen Fist | 0 | **26** | +26 |
+| Unburden | 1,465 | **1,440** | -25 |
+| Illuminate | 27 | **3** | -24 |
+| Sniper | 24 | **0** | -24 |
+| Oblivious | 277 | **254** | -23 |
+| Berserk | 32 | **55** | +23 |
+| Justified | 29 | **8** | -21 |
+| Skill Link | 4 | **25** | +21 |
+| Swarm | 27 | **8** | -19 |
+| Stalwart | 27 | **45** | +18 |
+| Prankster | 4,692 | **4,676** | -16 |
+| Reckless | 21 | **5** | -16 |
+| Insomnia | 39 | **23** | -16 |
+| Steadfast | 23 | **8** | -15 |
+| Iron Fist | 55 | **70** | +15 |
+| Magic Guard | 60 | **45** | -15 |
+| Moxie | 37 | **23** | -14 |
+| Early Bird | 14 | **0** | -14 |
+| Big Pecks | 13 | **0** | -13 |
+| Rivalry | 13 | **0** | -13 |
+| Aerilate | 0 | **12** | +12 |
+| Dragonize | 0 | **11** | +11 |
+| Competitive | 815 | **806** | -9 |
+| Keen Eye | 27 | **18** | -9 |
+| Pressure | 85 | **78** | -7 |
+| Guts | 12 | **5** | -7 |
+| Innards Out | 0 | **7** | +7 |
+| Frisk | 72 | **66** | -6 |
+| Heavy Metal | 6 | **0** | -6 |
+| Healer | 20 | **25** | +5 |
+| Strong Jaw | 5 | **10** | +5 |
+| Corrosion | 11 | **7** | -4 |
+| Protean | 167 | **171** | +4 |
+| Analytic | 7 | **3** | -4 |
+| Anger Point | 7 | **4** | -3 |
+| Own Tempo | 44 | **42** | -2 |
+| Tangled Feet | 2 | **0** | -2 |
+| Pure Power | 9 | **11** | +2 |
+| Light Metal | 2 | **0** | -2 |
+| Sharpness | 155 | **154** | -1 |
+| Sand Stream | 848 | **849** | +1 |
+| Bulletproof | 52 | **53** | +1 |
+| Super Luck | 3 | **2** | -1 |
+| Weak Armor | 9 | **8** | -1 |
+| Shed Skin | 3 | **2** | -1 |
+| Refrigerate | 1 | **2** | +1 |
 
 ---
 
