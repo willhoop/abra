@@ -222,6 +222,12 @@ const ITEM_TAGS = [
   { tag: 'contactPunish', param: 'hurts anything that makes contact', probe: 'rockyhelmet',
     why: 'a cost of clicking a contact move that is not currently priced',
     of: it => norm(it.name) === 'rockyhelmet' ? { chip: 1 / 6 } : null },
+  { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'onModifyCritRatio',
+    why: 'Scope Lens (Will spotted this one missing). Rare at 0.11% of items, but it sets a parameter '
+       + 'the distribution already needs for Flower Trick, so it costs nothing to support. NOTE the '
+       + 'ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here '
+       + 'changes it -- do not read critRatio: 2 as double damage',
+    of: it => it.onModifyCritRatio ? { critRatio: 2 } : null },
   { tag: 'statMult', param: 'raises one stat', probe: 'assaultvest',
     why: 'Band, Specs, Assault Vest, Eviolite',
     of: it => /^(choiceband|choicespecs|assaultvest|eviolite)$/.test(norm(it.name)) ? { mult: 1.5 } : null },
@@ -231,6 +237,9 @@ const ABILITY_TAGS = [
   { tag: 'survivesFromFull', param: 'a lethal hit from full HP leaves 1', probe: 'sturdy',
     why: 'Sturdy. Identical to Focus Sash and NOT modelled anywhere -- verified 0 mentions',
     of: a => norm(a.name) === 'sturdy' ? { survives: true } : null },
+  { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'onModifyCritRatio',
+    why: 'Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick',
+    of: a => a.onModifyCritRatio ? { critRatio: 2 } : null },
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },

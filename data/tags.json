@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T01:36:12.321Z",
+ "generated": "2026-07-29T01:43:30.425Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -716,6 +716,19 @@
    "examples": []
   },
   {
+   "tag": "critRatioUp",
+   "kind": "item",
+   "param": "P(crit) raised",
+   "why": "Scope Lens (Will spotted this one missing). Rare at 0.11% of items, but it sets a parameter the distribution already needs for Flower Trick, so it costs nothing to support. NOTE the ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here changes it -- do not read critRatio: 2 as double damage",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 69,
+   "examples": [
+    "Scope Lens"
+   ]
+  },
+  {
    "tag": "statMult",
    "kind": "item",
    "param": "raises one stat",
@@ -737,6 +750,20 @@
    "uses": 153,
    "examples": [
     "Sturdy"
+   ]
+  },
+  {
+   "tag": "critRatioUp",
+   "kind": "ability",
+   "param": "P(crit) raised",
+   "why": "Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 6,
+   "examples": [
+    "Merciless",
+    "Super Luck"
    ]
   },
   {
@@ -5508,6 +5535,13 @@
    ],
    "uses": 510
   },
+  "scopelens": {
+   "name": "Scope Lens",
+   "tags": [
+    "critRatioUp"
+   ],
+   "uses": 69
+  },
   "sharpbeak": {
    "name": "Sharp Beak",
    "tags": [
@@ -6073,6 +6107,13 @@
    ],
    "uses": 20
   },
+  "merciless": {
+   "name": "Merciless",
+   "tags": [
+    "critRatioUp"
+   ],
+   "uses": 3
+  },
   "mindseye": {
    "name": "Mind's Eye",
    "tags": [
@@ -6588,6 +6629,13 @@
     "typeImmunity"
    ],
    "uses": 153
+  },
+  "superluck": {
+   "name": "Super Luck",
+   "tags": [
+    "critRatioUp"
+   ],
+   "uses": 3
   },
   "supremeoverlord": {
    "name": "Supreme Overlord",
