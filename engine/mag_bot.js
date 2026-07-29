@@ -277,6 +277,7 @@ function handle(room, line) {
       /* BattlePlayer writes bare choices like "move 1 1"; a room wants them as /choose. */
       const c = String(choice).trim();
       if (!c) return;
+      if (/mega/.test(c)) console.log(`${room}: CHOOSING MEGA -> ${c}`);
       send(`${room}|/choose ${c}`);
     });
     const Player = makeScoringPlayer();
@@ -320,6 +321,21 @@ function handle(room, line) {
     console.log(`${room}: agreeing to open team sheets`);
   }
   if (line.startsWith('|showteam|')) console.log(`${room}: OPEN SHEETS ARE UP — sets are visible`);
+  /* MEGA DIAGNOSTIC. Will reported twice that the bot never mega evolves, while self-play megas
+   * 2,174 times in 1,934 games -- so the engine is fine and something on THIS path is not. Passing
+   * the `mega` option was necessary and turned out not to be sufficient, and guessing between the
+   * two remaining explanations is exactly the habit that has cost this project a day at a time.
+   * So: log what the request actually declares, and log every choice that carries a mega suffix.
+   * If canMegaEvo never appears, the request is the problem; if it appears and no choice follows,
+   * the suffix is being lost between chooseMove and /choose. */
+  if (line.startsWith('|request|')) {
+    try {
+      const rq = JSON.parse(line.slice(9));
+      const act = rq.active || [];
+      const flags = act.map((a, i) => `slot${i}:canMegaEvo=${a && a.canMegaEvo}`).join(' ');
+      if (flags) console.log(`${room}: REQUEST ${flags}`);
+    } catch (e) {}
+  }
   st.stream.push(line);
 
   {

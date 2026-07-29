@@ -1,0 +1,26 @@
+{
+ "generated": "2026-07-29T00:14:30.795Z",
+ "by": "engine/double_protect.js",
+ "what": "How often BOTH active Pokemon on a side use a protect-family move on the same turn, bot versus clean human games. Prompted by Will observing a turn-1 double Protect while playing MACHAMPSW. This is the joint-decision failure in its purest form: each slot independently concludes it is threatened and neither can see the partner reaching the same conclusion.",
+ "counted": "protect, detect, spiky shield, baneful bunker, burning bulwark, silk trap, obstruct, king's shield, max guard, wide guard, quick guard",
+ "bot": {
+  "turns": 54214,
+  "both": 568,
+  "t1turns": 6598,
+  "t1both": 74,
+  "single": 7500
+ },
+ "human": {
+  "turns": 0,
+  "both": 0,
+  "t1turns": 0,
+  "t1both": 0,
+  "single": 0
+ },
+ "human_games": 0,
+ "files": [
+  "C:/Users/willj/AppData/Local/Temp/claude/C--Users-willj-Downloads/074ae08e-ed04-4c56-8c9c-f90ba8e0cf9b/scratchpad/ab-joint2.raw-logs.jsonl",
+  "C:/Users/willj/AppData/Local/Temp/claude/C--Users-willj-Downloads/074ae08e-ed04-4c56-8c9c-f90ba8e0cf9b/scratchpad/ab-forfeits.raw-logs.jsonl"
+ ],
+ "caveat": "A high rate is not automatically wrong -- against two threatened slots a double protect can be correct. The comparison against humans is what carries the claim, not the rate."
+}
