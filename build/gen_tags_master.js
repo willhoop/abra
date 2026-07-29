@@ -102,11 +102,16 @@ function section(kind, table, usage, title, blurb) {
       (i.used ? '' : ' · **NOT READ**') + '  ');
     P('*' + (i.param || '?') + '*  ');
     if (shown.length) {
-      const list = shown.slice(0, 14).map(([id, c]) => {
+      /* EXHAUSTIVE, deliberately. Will: "i dont [want] tables that long, but without an exhaustive
+       * list we might miss something." Both are satisfiable -- the length was never the member
+       * count, it was the table markup around it. Every member that appears on a real sheet is
+       * here; a truncated list is how a mis-tagged move stays hidden. */
+      P(shown.map(([id, c]) => {
         const o = kind === 'moves' ? dex.moves.get(id) : kind === 'items' ? dex.items.get(id) : dex.abilities.get(id);
         return ((o && o.name) || id) + ' ' + c.toLocaleString();
-      }).join(' · ');
-      P(list + (shown.length > 14 ? ' · *+' + (shown.length - 14) + ' more*' : ''));
+      }).join(' · '));
+      const never = r.mem.length - shown.length;
+      if (never) P('*' + never + ' more carry this tag but appear on no sheet.*');
     } else {
       P('*Legal in the format, never brought.*');
     }
