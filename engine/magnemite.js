@@ -314,6 +314,22 @@ function makeScoringPlayer(opts = {}) {
         return;
       }
 
+      /* DID THE MOVE FAIL — tracked from the protocol, for Stomping Tantrum (2,122 uses, computed
+       * at 75 every time when it doubles to 150 after a failure).
+       *
+       * The events do NOT name the attacker. |-immune|p2b: Tinkaton names the Pokemon that was
+       * immune, and |-fail|p2a: Sableye|tox names the one the status could not land on -- in both
+       * cases the move that FAILED belongs to whoever moved. So the source of the preceding |move|
+       * line is remembered and the failure is attributed to it. */
+      {
+        const mv = /^\|move\|(p[12])([a-c]): /.exec(line);
+        if (mv) this._lastMover = { side: mv[1], letter: mv[2] };
+        else if (/^\|(-fail|-miss|-immune|-notarget|-block)\|/.test(line) && this._lastMover && this.board) {
+          const src = this.board.slot(this._lastMover.side, this._lastMover.letter);
+          if (src) { src.moveFailedThisTurn = true; this.stats.moveFails = (this.stats.moveFails || 0) + 1; }
+        }
+      }
+
       const p = line.slice(1).split('|');
       const cmd = p[0];
       const who = (s) => { const m = SLOT.exec(s || ''); return m ? { side: m[1], letter: m[2] } : null; };

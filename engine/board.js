@@ -620,6 +620,8 @@ class Board {
       turnsActive: 0,
       lastMove: '',
       stalledLastTurn: false,
+      moveFailedThisTurn: false,
+      moveFailedLastTurn: false,
     };
   }
 
@@ -637,6 +639,12 @@ class Board {
       mon.turnsActive++;
       mon.stalledLastTurn = !!mon.stalledThisTurn;
       mon.stalledThisTurn = false;
+      /* DID MY LAST MOVE FAIL. Stomping Tantrum doubles from 75 to 150 when it did, and nothing
+       * recorded it -- so the move was computed at 75 every time, on 2,122 uses. Rolled here beside
+       * the stall flag because it is the same shape: a fact about the PREVIOUS turn that only means
+       * anything on this one. */
+      mon.moveFailedLastTurn = !!mon.moveFailedThisTurn;
+      mon.moveFailedThisTurn = false;
       mon.lastMove = mon.moveThisTurn || '';
       mon.moveThisTurn = '';
     }
