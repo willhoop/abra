@@ -9,6 +9,33 @@
 (function(root){
 'use strict';
 // ---- curated metadata the compact move table lacks (only fields we can't derive) ----
+/* THE TAG ARTIFACT is the source of truth for mechanics; see engine/tags.js.
+ *
+ * This file runs in BOTH node and the browser, so a bare require() would throw on the live site.
+ * Under node it loads the module; in the browser it expects window.ABRA_TAGS (the same JSON) and
+ * degrades to a null lookup if the page did not ship it -- which keeps the site working while
+ * making the absence visible through TAGS.missing rather than silently scoring everything at x1. */
+const TAGS = (function(){
+  if (typeof module !== 'undefined' && module.exports && typeof require === 'function') {
+    try { return require('./tags.js'); } catch (e) { /* fall through to the browser path */ }
+  }
+  const db = (typeof window !== 'undefined' && window.ABRA_TAGS) || null;
+  const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const T = { move:'moves', item:'items', ability:'abilities' };
+  return {
+    missing: !db,
+    param(kind, id, tag){
+      if(!db) return null;
+      const rec = (db[T[kind]]||{})[norm(id)];
+      if(!rec || !rec.tags || !rec.tags.includes(tag)) return null;
+      return (rec.params && rec.params[tag]) || {};
+    },
+    has(kind,id,tag){ return !!this.param(kind,id,tag); },
+    reactorsTo(k){ return (db && db.linkage && db.linkage[k]) || {abilities:[],items:[],moves:[]}; },
+    hits(){ return {}; }
+  };
+})();
+
 const SPREAD = new Set(['earthquake','rockslide','heatwave','blizzard','muddywater','dazzlinggleam','hypervoice','makeitrain','glaciate','icywind','snarl','bulldoze','discharge','lavaplume','eruption','waterspout','surf','electroweb','strugglebug','sludgewave','mistyexplosion','explosion','selfdestruct','breakingswipe','petalblizzard','glaciallance','astralbarrage','originpulse','precipiceblades','landswrath','diamondstorm','sparklingaria','swift','pollenpuff']);
 /* PRIORITY. Every move sits in a bracket from +5 (Helping Hand) down to -7 (Trick Room), and the
  * bracket is decided BEFORE speed. This was a hand-typed table of 18 positive-priority moves, and
@@ -134,7 +161,12 @@ function dmgRange(att,def,mv,field,spread){
   if(IMM[def.ability]===mv.t)return{min:0,max:0,eff:0};
   const stab=att.types.includes(mv.t)?(att.ability==='adaptability'?2:1.5):1;
   const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
-  const lo=att.item==='lifeorb'?1.3:1;
+  /* WIRE 1 of N -- damageMultAll, from data/tags.json instead of a hardcoded name.
+   * Was `att.item==='lifeorb'?1.3:1`, which is why the tag showed as "read": the string appeared.
+   * The tag carries the same 1.3 AND the 1/10 max HP it charges per attack, which this calc still
+   * does not apply -- recorded here rather than silently dropped, and owed a wire of its own. */
+  const _all=TAGS.param('item',att.item,'damageMultAll');
+  const lo=(_all&&_all.mult)||1;
   // final-modifier chain (validated vs @smogon/calc)
   let mod=1;
   if((def.ability==='filter'||def.ability==='solidrock'||def.ability==='prismarmor')&&eff>1)mod*=0.75;
@@ -146,7 +178,15 @@ function dmgRange(att,def,mv,field,spread){
   if(def.ability==='purifyingsalt'&&mv.t==='Ghost')mod*=0.5;
   if(att.ability==='waterbubble'&&mv.t==='Water')mod*=2;
   if(def.ability==='waterbubble'&&mv.t==='Fire')mod*=0.5;
-  if(att.item==='expertbelt'&&eff>1)mod*=1.2;
+  /* WIRE 2 of N -- damageMultType. This is a REAL GAIN, not a refactor: the eighteen type-boost
+   * items on sheets (Black Glasses 1,332, Fairy Feather 1,521, Mystic Water 873, Charcoal 694 …
+   * 5,918 uses) were entirely ABSENT from this calc. Every one of them was worth x1.0 here.
+   * The tag names both the type and the factor, read from each item's own handler. */
+  const _ty=TAGS.param('item',att.item,'damageMultType');
+  if(_ty&&_ty.onType===mv.t&&_ty.mult)mod*=_ty.mult;
+  /* Expert Belt is its own tag because it is conditional on the MATCHUP, not the type. */
+  const _se=TAGS.param('item',att.item,'boostsSuperEffective');
+  if(_se&&eff>1)mod*=(_se.mult||1.2);
   if(att.item==='muscleband'&&phys)mod*=1.1;
   if(att.item==='wiseglasses'&&!phys)mod*=1.1;
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
