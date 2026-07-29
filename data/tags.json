@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T02:31:36.767Z",
+ "generated": "2026-07-29T02:46:26.101Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1393,19 +1393,19 @@
   {
    "tag": "typeImmunity",
    "kind": "ability",
-   "param": "damage of one type := 0",
+   "param": "damage of one TYPE := 0",
    "why": "Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely",
    "consumedBy": "IMM",
    "used": true,
-   "n": 26,
-   "uses": 5120,
+   "n": 11,
+   "uses": 3579,
    "examples": [
-    "Bulletproof",
     "Dry Skin",
     "Earth Eater",
     "Flash Fire",
-    "Good as Gold",
-    "Ice Body"
+    "Levitate",
+    "Lightning Rod",
+    "Motor Drive"
    ]
   },
   {
@@ -1578,18 +1578,53 @@
    "tag": "statusImmune",
    "kind": "ability",
    "param": "a status cannot land",
-   "why": "Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor",
+   "why": "Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- onImmunity also means weather-chip immunity and was over-capturing",
    "consumedBy": null,
    "used": false,
-   "n": 20,
-   "uses": 1549,
+   "n": 12,
+   "uses": 281,
    "examples": [
-    "Ice Body",
     "Immunity",
     "Insomnia",
     "Leaf Guard",
     "Limber",
-    "Magma Armor"
+    "Purifying Salt",
+    "Vital Spirit"
+   ]
+  },
+  {
+   "tag": "accuracyMod",
+   "kind": "ability",
+   "param": "P(hit) scaled, often gated on a weather or a category",
+   "why": "Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs",
+   "consumedBy": null,
+   "used": false,
+   "n": 6,
+   "uses": 573,
+   "examples": [
+    "Compound Eyes",
+    "Hustle",
+    "Sand Veil",
+    "Snow Cloak",
+    "Tangled Feet"
+   ]
+  },
+  {
+   "tag": "weatherChipImmune",
+   "kind": "ability",
+   "param": "takes no sandstorm or snow residual damage",
+   "why": "What onImmunity actually means for Sand Veil, Snow Cloak, Overcoat and Magic Guard -- and what typeImmunity was wrongly reporting until Will asked",
+   "consumedBy": null,
+   "used": false,
+   "n": 8,
+   "uses": 1268,
+   "examples": [
+    "Ice Body",
+    "Magma Armor",
+    "Oblivious",
+    "Overcoat",
+    "Sand Force",
+    "Sand Rush"
    ]
   }
  ],
@@ -11217,18 +11252,6 @@
     }
    }
   },
-  "bulletproof": {
-   "name": "Bulletproof",
-   "tags": [
-    "typeImmunity"
-   ],
-   "uses": 52,
-   "params": {
-    "typeImmunity": {
-     "immune": true
-    }
-   }
-  },
   "chlorophyll": {
    "name": "Chlorophyll",
    "tags": [
@@ -11250,6 +11273,18 @@
    "params": {
     "statusImmune": {
      "immune": true
+    }
+   }
+  },
+  "compoundeyes": {
+   "name": "Compound Eyes",
+   "tags": [
+    "accuracyMod"
+   ],
+   "uses": 208,
+   "params": {
+    "accuracyMod": {
+     "accuracy": true
     }
    }
   },
@@ -11413,7 +11448,8 @@
    "uses": 52,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -11425,7 +11461,8 @@
    "uses": 31,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -11517,7 +11554,8 @@
    "uses": 357,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -11554,18 +11592,6 @@
    "params": {
     "damageBoost": {
      "boost": true
-    }
-   }
-  },
-  "goodasgold": {
-   "name": "Good as Gold",
-   "tags": [
-    "typeImmunity"
-   ],
-   "uses": 1433,
-   "params": {
-    "typeImmunity": {
-     "immune": true
     }
    }
   },
@@ -11668,28 +11694,28 @@
   "hustle": {
    "name": "Hustle",
    "tags": [
-    "damageBoost"
+    "damageBoost",
+    "accuracyMod"
    ],
    "uses": 9,
    "params": {
     "damageBoost": {
      "boost": true
+    },
+    "accuracyMod": {
+     "accuracy": true
     }
    }
   },
   "icebody": {
    "name": "Ice Body",
    "tags": [
-    "typeImmunity",
-    "statusImmune"
+    "weatherChipImmune"
    ],
    "uses": 6,
    "params": {
-    "typeImmunity": {
-     "immune": true
-    },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -11881,6 +11907,19 @@
     }
    }
   },
+  "levitate": {
+   "name": "Levitate",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 1768,
+   "params": {
+    "typeImmunity": {
+     "immune": true,
+     "via": "not derivable -- no handler"
+    }
+   }
+  },
   "lightningrod": {
    "name": "Lightning Rod",
    "tags": [
@@ -11889,7 +11928,8 @@
    "uses": 1288,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -11933,31 +11973,15 @@
     }
    }
   },
-  "magicbounce": {
-   "name": "Magic Bounce",
-   "tags": [
-    "typeImmunity"
-   ],
-   "uses": 89,
-   "params": {
-    "typeImmunity": {
-     "immune": true
-    }
-   }
-  },
   "magmaarmor": {
    "name": "Magma Armor",
    "tags": [
-    "typeImmunity",
-    "statusImmune"
+    "weatherChipImmune"
    ],
    "uses": 43,
    "params": {
-    "typeImmunity": {
-     "immune": true
-    },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12057,7 +12081,8 @@
    "uses": 13,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -12116,16 +12141,12 @@
   "oblivious": {
    "name": "Oblivious",
    "tags": [
-    "typeImmunity",
-    "statusImmune"
+    "weatherChipImmune"
    ],
    "uses": 274,
    "params": {
-    "typeImmunity": {
-     "immune": true
-    },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12148,16 +12169,12 @@
   "overcoat": {
    "name": "Overcoat",
    "tags": [
-    "typeImmunity",
-    "statusImmune"
+    "weatherChipImmune"
    ],
    "uses": 85,
    "params": {
-    "typeImmunity": {
-     "immune": true
-    },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12472,20 +12489,16 @@
   "sandforce": {
    "name": "Sand Force",
    "tags": [
-    "typeImmunity",
     "damageBoost",
-    "statusImmune"
+    "weatherChipImmune"
    ],
    "uses": 18,
    "params": {
-    "typeImmunity": {
-     "immune": true
-    },
     "damageBoost": {
      "boost": true
     },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12493,19 +12506,15 @@
    "name": "Sand Rush",
    "tags": [
     "speedCond",
-    "typeImmunity",
-    "statusImmune"
+    "weatherChipImmune"
    ],
    "uses": 488,
    "params": {
     "speedCond": {
      "conditional": true
     },
-    "typeImmunity": {
-     "immune": true
-    },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12536,16 +12545,16 @@
   "sandveil": {
    "name": "Sand Veil",
    "tags": [
-    "typeImmunity",
-    "statusImmune"
+    "accuracyMod",
+    "weatherChipImmune"
    ],
    "uses": 135,
    "params": {
-    "typeImmunity": {
-     "immune": true
+    "accuracyMod": {
+     "accuracy": true
     },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12557,7 +12566,8 @@
    "uses": 22,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -12756,16 +12766,16 @@
   "snowcloak": {
    "name": "Snow Cloak",
    "tags": [
-    "typeImmunity",
-    "statusImmune"
+    "accuracyMod",
+    "weatherChipImmune"
    ],
    "uses": 219,
    "params": {
-    "typeImmunity": {
-     "immune": true
+    "accuracyMod": {
+     "accuracy": true
     },
-    "statusImmune": {
-     "immune": true
+    "weatherChipImmune": {
+     "chipImmune": true
     }
    }
   },
@@ -12802,18 +12812,6 @@
    "params": {
     "damageReduce": {
      "reduce": true
-    }
-   }
-  },
-  "soundproof": {
-   "name": "Soundproof",
-   "tags": [
-    "typeImmunity"
-   ],
-   "uses": 202,
-   "params": {
-    "typeImmunity": {
-     "immune": true
     }
    }
   },
@@ -12925,7 +12923,8 @@
    "uses": 0,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -12944,16 +12943,12 @@
   "sturdy": {
    "name": "Sturdy",
    "tags": [
-    "survivesFromFull",
-    "typeImmunity"
+    "survivesFromFull"
    ],
    "uses": 153,
    "params": {
     "survivesFromFull": {
      "survives": true
-    },
-    "typeImmunity": {
-     "immune": true
     }
    }
   },
@@ -13029,6 +13024,18 @@
     }
    }
   },
+  "tangledfeet": {
+   "name": "Tangled Feet",
+   "tags": [
+    "accuracyMod"
+   ],
+   "uses": 2,
+   "params": {
+    "accuracyMod": {
+     "accuracy": true
+    }
+   }
+  },
   "tanglinghair": {
    "name": "Tangling Hair",
    "tags": [
@@ -13054,18 +13061,6 @@
    "params": {
     "damageBoost": {
      "boost": true
-    }
-   }
-  },
-  "telepathy": {
-   "name": "Telepathy",
-   "tags": [
-    "typeImmunity"
-   ],
-   "uses": 112,
-   "params": {
-    "typeImmunity": {
-     "immune": true
     }
    }
   },
@@ -13209,7 +13204,8 @@
    "uses": 33,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -13237,7 +13233,8 @@
    "uses": 15,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -13301,7 +13298,8 @@
    "uses": 0,
    "params": {
     "typeImmunity": {
-     "immune": true
+     "immune": true,
+     "via": "onTryHit"
     }
    }
   },
@@ -13317,27 +13315,15 @@
     }
    }
   },
-  "windrider": {
-   "name": "Wind Rider",
+  "wonderskin": {
+   "name": "Wonder Skin",
    "tags": [
-    "typeImmunity"
+    "accuracyMod"
    ],
    "uses": 0,
    "params": {
-    "typeImmunity": {
-     "immune": true
-    }
-   }
-  },
-  "wonderguard": {
-   "name": "Wonder Guard",
-   "tags": [
-    "typeImmunity"
-   ],
-   "uses": 0,
-   "params": {
-    "typeImmunity": {
-     "immune": true
+    "accuracyMod": {
+     "accuracy": true
     }
    }
   },

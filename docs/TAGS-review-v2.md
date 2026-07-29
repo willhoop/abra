@@ -1,6 +1,6 @@
 # Tag review — corrected pass
 
-**105 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
+**107 tags.** Usage from **5,440 open-sheet human games** — 65,280 sheet entries, 260,799 move slots.
 
 ## Every point from your review
 
@@ -57,24 +57,26 @@ one consumer — a DODUO joint feature that is switched off. Light Screen 2,346 
 **Wide Guard exists only in the rollout engine**, behind a hardcoded 35% heuristic. board.js
 has nothing. **2,065 uses**.
 
-## 48 of 105 tags are read by nothing
+## 50 of 107 tags are read by nothing
 
 | tag | usage | sets |
 |---|---|---|
-| `profitsFromHit` | 15.1% | the target gains something for being hit |
+| `profitsFromHit` | 15.4% | the target gains something for being hit |
+| `weatherSetter` | 9.7% | weather := x on switch-in |
 | `resistBerry` | 9.5% | halves one super-effective hit, then is gone |
-| `weatherSetter` | 9.5% | weather := x on switch-in |
-| `contactPunish` | 8.8% | the ATTACKER pays for touching it |
+| `contactPunish` | 9.0% | the ATTACKER pays for touching it |
 | `damageMultType` | 8.6% | x1.2 on one type |
-| `statusImmune` | 3.2% | a status cannot land |
 | `extendsScreens` | 3.0% | side conditions last 8 turns not 5 |
+| `weatherChipImmune` | 2.7% | takes no sandstorm or snow residual damage |
 | `restoresStats` | 2.0% | undoes stat drops once |
-| `disablesAttacker` | 1.7% | the move I just used is removed from MY options |
+| `disablesAttacker` | 1.8% | the move I just used is removed from MY options |
 | `weatherScaled` | 1.4% | type, power or target changes with the weather |
 | `ignoresProtect` | 1.2% | Protect does NOT stop it |
+| `accuracyMod` | 1.2% | P(hit) scaled, often gated on a weather or a category |
 | `accuracyMod` | 0.8% | P(hit) is scaled, for or against the holder |
 | `pivotStatus` | 0.8% | no damage, an effect, then the user leaves |
 | `chargeSkippedByWeather` | 0.7% | the charge turn DISAPPEARS under one weather |
+| `statusImmune` | 0.6% | a status cannot land |
 | `healsSelf` | 0.6% | restores a share of MY max HP, costing the turn |
 | `multiHit` | 0.5% | hits = n (or a distribution) |
 | `survivesFromFull` | 0.3% | a lethal hit from full HP leaves 1 |
@@ -92,7 +94,7 @@ has nothing. **2,065 uses**.
 | `fractionalPriority` | 0.1% | a CHANCE to move first inside the priority bracket |
 | `accuracyMod` | 0.1% | P(hit) is scaled for everyone |
 | `forcesSwitch` | 0.1% | the TARGET is removed from the field |
-| `critDamageUp` | 0.0% | the CRIT MULTIPLIER itself, not its probability |
+| `critDamageUp` | 0.1% | the CRIT MULTIPLIER itself, not its probability |
 | `terrainScaled` | 0.0% | power or target changes with the terrain |
 | `alwaysCrit` | 0.0% | P(crit) = 1 |
 | `passesState` | 0.0% | the incoming Pokemon INHERITS something |
@@ -1677,7 +1679,7 @@ Total tagged: **0**  ·  share: **0.0%**
 | Weak Armor | 9 | profits:true |
 | Sand Spit | 4 | profits:true |
 
-Total tagged: **32**  ·  15 legal but unused  ·  share: **15.1%**
+Total tagged: **32**  ·  15 legal but unused  ·  share: **15.4%**
 
 ## `weatherSetter` — weather := x on switch-in  **← NOT READ**
 
@@ -1690,7 +1692,7 @@ Total tagged: **32**  ·  15 legal but unused  ·  share: **15.1%**
 | Sand Stream | 838 | sets:true |
 | Drought | 615 | sets:true |
 
-Total tagged: **8**  ·  4 legal but unused  ·  share: **9.5%**
+Total tagged: **8**  ·  4 legal but unused  ·  share: **9.7%**
 
 ## `contactPunish` — the ATTACKER pays for touching it  **← NOT READ**
 
@@ -1708,31 +1710,24 @@ Total tagged: **8**  ·  4 legal but unused  ·  share: **9.5%**
 | Mummy | 16 | trigger:contact |
 | Gooey | 10 | trigger:contact |
 
-Total tagged: **14**  ·  5 legal but unused  ·  share: **8.8%**
+Total tagged: **14**  ·  5 legal but unused  ·  share: **9.0%**
 
-## `statusImmune` — a status cannot land  **← NOT READ**
+## `weatherChipImmune` — takes no sandstorm or snow residual damage  **← NOT READ**
 
-*Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor*
+*What onImmunity actually means for Sand Veil, Snow Cloak, Overcoat and Magic Guard -- and what typeImmunity was wrongly reporting until Will asked*
 
 | entry | appearances | parameter |
 |---|---|---|
-| Sand Rush | 488 | immune:true |
-| Oblivious | 274 | immune:true |
-| Snow Cloak | 219 | immune:true |
-| Sand Veil | 135 | immune:true |
-| Overcoat | 85 | immune:true |
-| Leaf Guard | 75 | immune:true |
-| Water Bubble | 72 | immune:true |
-| Limber | 59 | immune:true |
-| Magma Armor | 43 | immune:true |
-| Insomnia | 39 | immune:true |
-| Purifying Salt | 32 | immune:true |
-| Sand Force | 18 | immune:true |
-| Ice Body | 6 | immune:true |
-| Vital Spirit | 3 | immune:true |
-| Immunity | 1 | immune:true |
+| Sand Rush | 488 | chipImmune:true |
+| Oblivious | 274 | chipImmune:true |
+| Snow Cloak | 219 | chipImmune:true |
+| Sand Veil | 135 | chipImmune:true |
+| Overcoat | 85 | chipImmune:true |
+| Magma Armor | 43 | chipImmune:true |
+| Sand Force | 18 | chipImmune:true |
+| Ice Body | 6 | chipImmune:true |
 
-Total tagged: **20**  ·  5 legal but unused  ·  share: **3.2%**
+Total tagged: **8**  ·  share: **2.7%**
 
 ## `disablesAttacker` — the move I just used is removed from MY options  **← NOT READ**
 
@@ -1742,7 +1737,37 @@ Total tagged: **20**  ·  5 legal but unused  ·  share: **3.2%**
 |---|---|---|
 | Cursed Body | 833 | disables:true |
 
-Total tagged: **1**  ·  share: **1.7%**
+Total tagged: **1**  ·  share: **1.8%**
+
+## `accuracyMod` — P(hit) scaled, often gated on a weather or a category  **← NOT READ**
+
+*Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Snow Cloak | 219 | accuracy:true |
+| Compound Eyes | 208 | accuracy:true |
+| Sand Veil | 135 | accuracy:true |
+| Hustle | 9 | accuracy:true |
+| Tangled Feet | 2 | accuracy:true |
+
+Total tagged: **6**  ·  1 legal but unused  ·  share: **1.2%**
+
+## `statusImmune` — a status cannot land  **← NOT READ**
+
+*Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- onImmunity also means weather-chip immunity and was over-capturing*
+
+| entry | appearances | parameter |
+|---|---|---|
+| Leaf Guard | 75 | immune:true |
+| Water Bubble | 72 | immune:true |
+| Limber | 59 | immune:true |
+| Insomnia | 39 | immune:true |
+| Purifying Salt | 32 | immune:true |
+| Vital Spirit | 3 | immune:true |
+| Immunity | 1 | immune:true |
+
+Total tagged: **12**  ·  5 legal but unused  ·  share: **0.6%**
 
 ## `survivesFromFull` — a lethal hit from full HP leaves 1  **← NOT READ**
 
@@ -1783,7 +1808,7 @@ Total tagged: **4**  ·  2 legal but unused  ·  share: **0.2%**
 |---|---|---|
 | Sniper | 24 | critMult:1.5 |
 
-Total tagged: **1**  ·  share: **0.0%**
+Total tagged: **1**  ·  share: **0.1%**
 
 ## `critRatioUp` — P(crit) raised  **← NOT READ**
 
@@ -1847,7 +1872,7 @@ Total tagged: **3**  ·  3 legal but unused  ·  share: **0.0%**
 | Plus | 2 | boost:true |
 | Refrigerate | 1 | boost:true |
 
-Total tagged: **44**  ·  18 legal but unused  ·  share: **14.9%**
+Total tagged: **44**  ·  18 legal but unused  ·  share: **15.2%**
 
 ## `onSwitchInDrop` — stat stages on the foe at switch-in
 
@@ -1858,7 +1883,7 @@ Total tagged: **44**  ·  18 legal but unused  ·  share: **14.9%**
 | Intimidate | 6,536 | drop:true |
 | Supersweet Syrup | 13 | drop:true |
 
-Total tagged: **3**  ·  1 legal but unused  ·  share: **13.5%**
+Total tagged: **3**  ·  1 legal but unused  ·  share: **13.8%**
 
 ## `priorityMod` — order shifts for a class of move
 
@@ -1879,38 +1904,25 @@ Total tagged: **3**  ·  1 legal but unused  ·  share: **13.5%**
 | Skill Link | 4 | priority:true |
 | Long Reach | 2 | priority:true |
 
-Total tagged: **22**  ·  10 legal but unused  ·  share: **12.1%**
+Total tagged: **22**  ·  10 legal but unused  ·  share: **12.4%**
 
-## `typeImmunity` — damage of one type := 0
+## `typeImmunity` — damage of one TYPE := 0
 
 *Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely*
 
 | entry | appearances | parameter |
 |---|---|---|
-| Good as Gold | 1,433 | immune:true |
-| Lightning Rod | 1,288 | immune:true |
-| Sand Rush | 488 | immune:true |
-| Flash Fire | 357 | immune:true |
-| Oblivious | 274 | immune:true |
-| Snow Cloak | 219 | immune:true |
-| Soundproof | 202 | immune:true |
-| Sturdy | 153 | immune:true |
-| Sand Veil | 135 | immune:true |
-| Telepathy | 112 | immune:true |
-| Magic Bounce | 89 | immune:true |
-| Overcoat | 85 | immune:true |
-| Bulletproof | 52 | immune:true |
-| Dry Skin | 52 | immune:true |
-| Magma Armor | 43 | immune:true |
-| Volt Absorb | 33 | immune:true |
-| Earth Eater | 31 | immune:true |
-| Sap Sipper | 22 | immune:true |
-| Sand Force | 18 | immune:true |
-| Water Absorb | 15 | immune:true |
-| Motor Drive | 13 | immune:true |
-| Ice Body | 6 | immune:true |
+| Levitate | 1,768 | immune:true,via:not derivable -- no handler |
+| Lightning Rod | 1,288 | immune:true,via:onTryHit |
+| Flash Fire | 357 | immune:true,via:onTryHit |
+| Dry Skin | 52 | immune:true,via:onTryHit |
+| Volt Absorb | 33 | immune:true,via:onTryHit |
+| Earth Eater | 31 | immune:true,via:onTryHit |
+| Sap Sipper | 22 | immune:true,via:onTryHit |
+| Water Absorb | 15 | immune:true,via:onTryHit |
+| Motor Drive | 13 | immune:true,via:onTryHit |
 
-Total tagged: **26**  ·  4 legal but unused  ·  share: **10.5%**
+Total tagged: **11**  ·  2 legal but unused  ·  share: **7.5%**
 
 ## `speedCond` — speed x2 under a condition
 
@@ -1925,7 +1937,7 @@ Total tagged: **26**  ·  4 legal but unused  ·  share: **10.5%**
 | Slush Rush | 4 | conditional:true |
 | Quick Feet | 2 | conditional:true |
 
-Total tagged: **7**  ·  1 legal but unused  ·  share: **4.0%**
+Total tagged: **7**  ·  1 legal but unused  ·  share: **4.1%**
 
 ## `blocksMove` — a whole class of move fails
 
@@ -1936,7 +1948,7 @@ Total tagged: **7**  ·  1 legal but unused  ·  share: **4.0%**
 | Armor Tail | 1,682 | blocks:true |
 | Queenly Majesty | 220 | blocks:true |
 
-Total tagged: **3**  ·  1 legal but unused  ·  share: **3.9%**
+Total tagged: **3**  ·  1 legal but unused  ·  share: **4.0%**
 
 ## `damageReduce` — x<1 damage taken
 

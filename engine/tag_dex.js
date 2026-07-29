@@ -662,9 +662,26 @@ const ABILITY_TAGS = [
   { tag: 'speedCond', param: 'speed x2 under a condition', probe: 'onModifySpe',
     why: 'Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order',
     of: a => a.onModifySpe ? { conditional: true } : null },
-  { tag: 'typeImmunity', param: 'damage of one type := 0', probe: 'IMM',
+  /* TIGHTENED. `onImmunity` also covers immunity to WEATHER CHIP -- which is why Sand Veil (135
+   * uses) and Snow Cloak (219) were being reported as type-immunity abilities when they are evasion
+   * abilities. A type immunity is an onTryHit that inspects move.type. Found by Will asking about
+   * Sand Veil and Bright Powder. */
+  { tag: 'typeImmunity', param: 'damage of one TYPE := 0', probe: 'IMM',
     why: 'Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely',
-    of: a => (a.onTryHit || a.onImmunity) ? { immune: true } : null },
+    of: a => {
+      /* Two implementations, and excluding the second dropped LEVITATE. onTryHit inspects move.type
+       * (Water Absorb, Flash Fire); onImmunity is handed a TYPE NAME directly (Levitate -> 'Ground').
+       * The distinction from weather-chip immunity is whether that argument is a type at all. */
+      /* LEVITATE HAS NO HANDLERS AT ALL -- it lives in the sim's type-effectiveness logic, so it is
+       * genuinely underivable and is the one honest exception to the no-hardcodes rule here. The
+       * damage engine already carries it in its IMM map; this names it so nobody later "fixes" the
+       * probe wondering why Ground immunity is missing. */
+      if (/^levitate$/.test(norm(a.name))) return { immune: true, via: 'not derivable -- no handler' };
+      if (a.onTryHit && /move\.type|type ===/.test(String(a.onTryHit))) return { immune: true, via: 'onTryHit' };
+      const TYPES = /Bug|Dark|Dragon|Electric|Fairy|Fighting|Fire|Flying|Ghost|Grass|Ground|Ice|Normal|Poison|Psychic|Rock|Steel|Water/;
+      if (a.onImmunity && TYPES.test(String(a.onImmunity))) return { immune: true, via: 'onImmunity' };
+      return null;
+    } },
   { tag: 'redirectsType', param: 'draws that type to itself', probe: 'lightningrod',
     why: 'Lightning Rod and Storm Drain redirect AND boost',
     of: a => a.onFoeRedirectTarget ? { redirect: true } : null },
@@ -707,8 +724,26 @@ const ABILITY_TAGS = [
     why: 'Zero to Hero (needs a switch), Illusion, Imposter, Disguise',
     of: a => /zerotohero|illusion|imposter|disguise|schooling|shieldsdown|powerconstruct/.test(norm(a.name)) ? { changes: true } : null },
   { tag: 'statusImmune', param: 'a status cannot land', probe: 'statusImmune',
-    why: 'Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor',
-    of: a => (a.onSetStatus || a.onImmunity) ? { immune: true } : null },
+    why: 'Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- '
+       + 'onImmunity also means weather-chip immunity and was over-capturing',
+    of: a => a.onSetStatus ? { immune: true } : null },
+  /* Will: "and things like sand veil and bright powder". accuracyMod existed for moves and items and
+   * NOT for abilities, which is where the conditional ones live. A third mechanism feeding the same
+   * P(hit): stages use one table, items are flat multipliers, and these are flat multipliers GATED
+   * ON A CONDITION -- Sand Veil only in sand, Snow Cloak only in snow, Hustle only on physical. */
+  { tag: 'accuracyMod', param: 'P(hit) scaled, often gated on a weather or a category', probe: 'onModifyAccuracy',
+    why: 'Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, '
+       + 'Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs',
+    of: a => (a.onModifyAccuracy || a.onSourceModifyAccuracy || a.onAccuracy || a.onSourceAccuracy)
+             ? { accuracy: true } : null },
+  { tag: 'weatherChipImmune', param: 'takes no sandstorm or snow residual damage', probe: 'onImmunity',
+    why: 'What onImmunity actually means for Sand Veil, Snow Cloak, Overcoat and Magic Guard -- and '
+       + 'what typeImmunity was wrongly reporting until Will asked',
+    of: a => {
+      if (!a.onImmunity) return null;
+      const TYPES = /Bug|Dark|Dragon|Electric|Fairy|Fighting|Fire|Flying|Ghost|Grass|Ground|Ice|Normal|Poison|Psychic|Rock|Steel|Water/;
+      return TYPES.test(String(a.onImmunity)) ? null : { chipImmune: true };
+    } },
 ];
 
 /* ---- BUILD ----------------------------------------------------------------------------------- */
