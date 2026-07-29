@@ -602,6 +602,16 @@ function setPurePriors(v){ PURE_PRIORS = !!v; }
 function chooseAction(me,foes,ally,field,side,rng){
   // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
+  /* WIRE 18 -- choiceLock. A Scarf holder (4,159 sheets) clicked a move and is LOCKED into it:
+   * no priors sampling, no heuristics, no re-aiming to a status move -- the one move, best legal
+   * target, exactly the constraint the item's tag declares. Freed only by leaving the field,
+   * which in this rollout means fainting. Scarf mons re-picked freely every turn before this,
+   * which quietly overstated every Scarf team the bot ever simulated. */
+  if(me._lock){
+    const chosen=targetForMove(me,me._lock,live,field);
+    if(chosen)return{kind:'attack',move:chosen,target:chosen.target};
+    return{kind:'struggle'};
+  }
   // strongest option + is a KO available?
   let bestAtk=null,bestKO=-1,tgt=null;
   for(const f of live){const b=bestMoveVs(me,f,field);if(!b)continue;const acc=me.ability==='noguard'?1:moveAccuracy(b.id,field)/100;const ko=(b.d.min>=f.curHP?1:(b.d.max>=f.curHP?0.5:0))*acc;const sc=ko*1e4+b.d.max*acc;if(sc>bestKO){bestKO=sc;bestAtk=b;tgt=f;}}
@@ -836,6 +846,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       if(a.kind!=='attack')continue;
       const mv=a.move.mv;
+      /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
+      if(!m._lock&&TAGS.has('item',m.item,'choiceLock'))m._lock=a.move.id;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
       const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
       const foes=it.side==='A'?actB:actA;
@@ -934,6 +946,11 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_sv.consumesItem)tg.item='';
           }
         }
+        /* WIRE 17 -- thaw on hit: a damaging Fire-type move thaws a frozen target (the game's own
+         * rule since Gen VI), and the artifact's thawsTarget carries the non-Fire exceptions the
+         * flag exists for -- Scald, Matcha Gotcha. Cleared BEFORE the damage lands so the thawed
+         * target acts normally next turn. */
+        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget')))tg.status='';
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else {
           /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`

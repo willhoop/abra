@@ -620,6 +620,42 @@ console.log('\nwire 16 — secondary stat drops');
   ok(cb.boosts.sp === 0, 'Clear Body refuses the drop — the shared gate holds');
 }
 
+/* ---- WIRES 17+18: thaw on hit, and the Choice lock actually locks ---------------------------- */
+console.log('\nwires 17+18 — thawsTarget / choiceLock');
+{
+  ok(TAGS.has('move', 'scald', 'thawsTarget') && !TAGS.has('move', 'ironhead', 'thawsTarget'),
+    'Scald carries the thaw flag, Iron Head does not');
+  /* frozen target eats a Fire hit and is no longer frozen */
+  const a = M.buildMon('incineroar', {}); a.item = ''; a.moves = ['flareblitz'];
+  const d = M.buildMon('garchomp', {}); d.item = ''; d.moves = ['protect'];
+  d.status = 'frz'; d.st = Object.assign({}, d.st, { hp: 9999 }); d.curHP = 9999;
+  const sA = MC.priors[a.name], sD = MC.priors[d.name];
+  MC.priors[a.name] = null; MC.priors[d.name] = null;
+  const S = M.battleInit([a], [d]);
+  try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], 'flareblitz', d, S.field)]])); }
+  finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
+  ok(d.status === '' && d.curHP < 9999, `a Fire hit thaws the frozen target (status '${d.status}', took damage)`);
+
+  /* the Scarf lock: after turn 1 the holder's chooseAction returns ONLY the locked move */
+  ok(TAGS.has('item', 'choicescarf', 'choiceLock'), 'Choice Scarf carries choiceLock (4,159 sheets)');
+  const c = M.buildMon('garchomp', {}); c.item = 'choicescarf'; c.moves = ['earthquake', 'ironhead', 'protect'];
+  const foe = M.buildMon('corviknight', {}); foe.item = ''; foe.moves = ['roost'];
+  foe.st = Object.assign({}, foe.st, { hp: 99999 }); foe.curHP = 99999;
+  const sC = MC.priors[c.name], sF = MC.priors[foe.name];
+  MC.priors[c.name] = null; MC.priors[foe.name] = null;
+  const S2 = M.battleInit([c], [foe]);
+  try {
+    M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'ironhead', foe, S2.field)]]));
+    ok(c._lock === 'ironhead', `the lock engaged on the committed move (${c._lock})`);
+    /* now let the ENGINE choose for it: with EQ immune vs corviknight it would love to re-pick —
+     * the lock must hold it to Iron Head */
+    const hp1 = foe.curHP;
+    M.battleTurn(S2, () => 0.9);
+    ok(foe.curHP < hp1, 'turn 2, engine-chosen: the locked Iron Head fired again (damage landed)');
+    ok(c._lock === 'ironhead', 'and the lock is still ironhead — no quiet re-picking');
+  } finally { MC.priors[c.name] = sC; MC.priors[foe.name] = sF; }
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
