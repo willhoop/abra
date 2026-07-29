@@ -223,6 +223,35 @@ const MOVE_TAGS = [
   { tag: 'powder', param: 'fails into Grass types, Overcoat and Safety Goggles', probe: 'powder',
     why: 'this is how Rage Powder is beaten, and redirection is scored as if it always works',
     of: m => (m.flags && m.flags.powder) ? { powder: true } : null },
+  /* Will: "will all the abilities that boost certain classes of moves need tags? like aura sphere
+   * for the mega blastoise one? or slicing moves for sharpness?"
+   *
+   * No -- one JOIN, not a tag per ability. The ability names a FLAG and the move carries it, so
+   * boostsMoveClass records which flag and this records that the move has it. Five abilities in play
+   * do this (Tough Claws/contact, Sharpness/slicing, Iron Fist/punch, Mega Launcher/pulse, Strong
+   * Jaw/bite) and the flags carry real weight on their own: contact 77,226 uses, wind 15,847,
+   * bullet 13,644, slicing 9,772, sound 9,582.
+   *
+   * The flags also matter WITHOUT an ability -- wind moves are drawn by Wind Rider, bullet moves are
+   * blocked by Bulletproof, sound goes through Substitute. */
+  { tag: 'moveClass', param: 'the flags that abilities and immunities key on', probe: 'flags',
+    why: 'contact 77,226 uses, wind 15,847, bullet 13,644, slicing 9,772. Boosted by Tough Claws, '
+       + 'Sharpness, Iron Fist, Mega Launcher, Strong Jaw -- and blocked by Bulletproof, Wind Rider, '
+       + 'Soundproof',
+    of: m => {
+      const F = ['punch', 'bite', 'slicing', 'pulse', 'bullet', 'wind'];
+      const on = F.filter(f => m.flags && m.flags[f]);
+      return on.length ? { classes: on } : null;
+    } },
+  /* Will: "does freeze dry need like tag saying im super effective against water, or will it tell
+   * us that". It will NOT tell us -- mcEff is a static type chart and Freeze-Dry overrides
+   * effectiveness in an onEffectiveness handler. Our chart returns x0.5 for Ice into Water; the
+   * truth for this move is x2. A FOUR-FOLD error on 748 uses, in the direction that makes MAG
+   * decline a kill it actually has. */
+  { tag: 'overridesEffectiveness', param: 'the type chart is WRONG for this move', probe: 'onEffectiveness',
+    why: 'Freeze-Dry, 748 uses: x2 into Water where the chart says x0.5. A 4x error, and mcEff is a '
+       + 'static lookup that cannot see the handler',
+    of: m => m.onEffectiveness ? { overrides: true } : null },
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
     of: m => (m.flags && m.flags.sound) ? { sound: true } : null },
@@ -952,7 +981,9 @@ const ABILITY_TAGS = [
     } },
   { tag: 'redirectsType', param: 'draws that type to itself', probe: 'lightningrod',
     why: 'Lightning Rod and Storm Drain redirect AND boost',
-    of: a => a.onFoeRedirectTarget ? { redirect: true } : null },
+    /* onAnyRedirectTarget, not onFoeRedirectTarget -- the probe was simply wrong and the tag matched
+     * nothing until the empty-tag check flagged it. */
+    of: a => (a.onAnyRedirectTarget || a.onFoeRedirectTarget) ? { redirect: true } : null },
   { tag: 'profitsFromHit', param: 'the target gains something for being hit', probe: 'onDamagingHit',
     why: 'Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will\'s Bellibolt case',
     of: a => a.onDamagingHit ? { profits: true } : null },
@@ -969,6 +1000,21 @@ const ABILITY_TAGS = [
   { tag: 'damageReduce', param: 'x<1 damage taken', probe: 'multiscale',
     why: 'Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them',
     of: a => a.onSourceModifyDamage ? { reduce: true } : null },
+  { tag: 'boostsMoveClass', param: 'x1.2-1.5 on moves carrying ONE FLAG', probe: 'boostsMoveClass',
+    why: 'Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega '
+       + 'Launcher (pulse), Strong Jaw (bite). The join partner of moveClass -- the ability names '
+       + 'the flag, the move carries it, and no per-ability case is needed',
+    of: a => {
+      const src = String(a.onBasePower || '') + String(a.onModifyAtk || '') + String(a.onModifySpA || '');
+      if (!src) return null;
+      for (const f of ['punch', 'bite', 'slicing', 'pulse', 'sound', 'bullet', 'wind', 'contact']) {
+        /* Showdown writes move.flags["slicing"] with DOUBLE quotes -- checking only the dot and
+         * single-quote forms matched nothing, which the empty-tag check above caught immediately. */
+        if (src.includes(`flags.${f}`) || src.includes(`flags['${f}']`)
+            || src.includes(`flags["${f}"]`)) return { boostsFlag: f };
+      }
+      return null;
+    } },
   { tag: 'damageBoost', param: 'x>1 damage dealt', probe: 'technician',
     why: 'Adaptability, Technician, Tinted Lens, Sheer Force, Iron Fist, Strong Jaw',
     of: a => (a.onBasePower || a.onModifyAtk || a.onModifySpA) ? { boost: true } : null },
@@ -1085,6 +1131,45 @@ for (const r of unread.slice(0, 12)) {
   console.log(`    ${r.tag.padEnd(20)} ${share.toFixed(1).padStart(5)}%  ${r.param}`);
 }
 
+/* A TAG THAT MATCHES NOTHING IS A BUG, NOT A QUIET ROW IN A REPORT.
+ *
+ * Will: "how do we fix it so this doesn't happen going forward". clearsScreens was pasted into
+ * ABILITY_TAGS instead of MOVE_TAGS, so every ability was handed to a predicate expecting a move,
+ * every call returned null, and the tag matched ZERO entries -- silently. It was found only because
+ * Will's screenshot showed Psychic Fangs tagged `contact` and nothing else.
+ *
+ * Same failure as everything else found on 2026-07-28: the code exists, the capability does not,
+ * nothing objects. So the same rule applies -- a tag must prove it matched something.
+ *
+ * Zero members means one of three things and all are defects:
+ *   the tag is in the wrong list   (a move predicate handed abilities)
+ *   the probe is broken            (a field or handler name that does not exist)
+ *   nothing in the format has it   (legitimate, but then delete it or justify it)
+ *
+ * EXPECTED_EMPTY is deliberately a list of NAMES rather than a flag: adding to it is a decision
+ * someone has to write down. */
+/* JUSTIFIED EMPTIES. Each of these was checked against the dex and is empty for a REASON, written
+ * down here so the next person does not re-investigate:
+ *
+ *   The item tags below are all isNonstandard 'Past' in this format -- Covert Cloak, Safety
+ *   Goggles, Clear Amulet, Rocky Helmet, Assault Vest, Choice Band and Eviolite are simply not
+ *   legal in Reg M-B, and the tagger skips nonstandard entries. The tags stay because the format
+ *   changes and they will start matching the day those items return.
+ *
+ *   ignoresAbility: zero moves in this format carry the flag (Sunsteel Strike, Moongeist Beam and
+ *   Photon Geyser are all out), so the ABILITY version (Mold Breaker) carries the whole mechanic.
+ */
+const EXPECTED_EMPTY = new Set([
+  'blocksSecondary', 'blocksPowder', 'preventsStatDrop', 'contactPunish',
+  'skipsChargeTurn', 'statMult', 'ignoresAbility',
+]);
+const emptyTags = all.filter(r => r.n === 0 && !EXPECTED_EMPTY.has(r.tag));
+if (emptyTags.length) {
+  console.log('');
+  console.log(`  ${emptyTags.length} TAG(S) MATCHED NOTHING -- a bug, not an empty category:`);
+  for (const r of emptyTags) console.log(`    ${r.tag}  (${r.kind})  -- wrong list, broken probe, or delete it`);
+}
+
 fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
   generated: new Date().toISOString(),
   by: 'engine/tag_dex.js',
@@ -1102,3 +1187,8 @@ fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
   tags: all, moves: moves.entries, items: items.entries, abilities: abils.entries,
 }, null, 1));
 console.log('\nwrote data/tags.json');
+if (emptyTags.length) {
+  console.error(`
+tag_dex: ${emptyTags.length} tag(s) matched nothing. Fix the predicate or add to EXPECTED_EMPTY.`);
+  process.exit(1);
+}

@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T04:06:48.362Z",
+ "generated": "2026-07-29T04:15:16.174Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -286,6 +286,38 @@
     "Sleep Powder",
     "Spore",
     "Stun Spore"
+   ]
+  },
+  {
+   "tag": "moveClass",
+   "kind": "move",
+   "param": "the flags that abilities and immunities key on",
+   "why": "contact 77,226 uses, wind 15,847, bullet 13,644, slicing 9,772. Boosted by Tough Claws, Sharpness, Iron Fist, Mega Launcher, Strong Jaw -- and blocked by Bulletproof, Wind Rider, Soundproof",
+   "consumedBy": "flags",
+   "used": true,
+   "n": 73,
+   "uses": 48460,
+   "examples": [
+    "Beak Blast",
+    "Dire Claw",
+    "Dragon Claw",
+    "Night Slash",
+    "Rage Fist",
+    "Sandstorm"
+   ]
+  },
+  {
+   "tag": "overridesEffectiveness",
+   "kind": "move",
+   "param": "the type chart is WRONG for this move",
+   "why": "Freeze-Dry, 748 uses: x2 into Water where the chart says x0.5. A 4x error, and mcEff is a static lookup that cannot see the handler",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 751,
+   "examples": [
+    "Freeze-Dry",
+    "Flying Press"
    ]
   },
   {
@@ -1767,9 +1799,11 @@
    "why": "Lightning Rod and Storm Drain redirect AND boost",
    "consumedBy": "lightningrod",
    "used": true,
-   "n": 0,
-   "uses": 0,
-   "examples": []
+   "n": 2,
+   "uses": 1302,
+   "examples": [
+    "Lightning Rod"
+   ]
   },
   {
    "tag": "profitsFromHit",
@@ -1820,6 +1854,23 @@
     "Fluffy",
     "Multiscale",
     "Solid Rock"
+   ]
+  },
+  {
+   "tag": "boostsMoveClass",
+   "kind": "ability",
+   "param": "x1.2-1.5 on moves carrying ONE FLAG",
+   "why": "Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega Launcher (pulse), Strong Jaw (bite). The join partner of moveClass -- the ability names the flag, the move carries it, and no per-ability case is needed",
+   "consumedBy": null,
+   "used": false,
+   "n": 6,
+   "uses": 507,
+   "examples": [
+    "Iron Fist",
+    "Mega Launcher",
+    "Sharpness",
+    "Strong Jaw",
+    "Tough Claws"
    ]
   },
   {
@@ -2033,6 +2084,7 @@
    "name": "Beak Blast",
    "tags": [
     "priority",
+    "moveClass",
     "inflictsBurn"
    ],
    "uses": 2,
@@ -2040,6 +2092,11 @@
     "priority": {
      "readFrom": "m.priority",
      "sign": "-"
+    },
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
     },
     "inflictsBurn": {
      "p": 1,
@@ -2136,12 +2193,18 @@
    "name": "Crush Claw",
    "tags": [
     "contact",
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "secondaryStatEffect": {
      "p": 0.5,
@@ -2157,12 +2220,18 @@
    "name": "Dire Claw",
    "tags": [
     "contact",
+    "moveClass",
     "proceduralStatus"
    ],
    "uses": 1520,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "proceduralStatus": {
      "p": 0.3,
@@ -2199,12 +2268,18 @@
   "dragonclaw": {
    "name": "Dragon Claw",
    "tags": [
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 3888,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -2297,6 +2372,18 @@
     },
     "contact": {
      "contact": true
+    }
+   }
+  },
+  "freezedry": {
+   "name": "Freeze-Dry",
+   "tags": [
+    "overridesEffectiveness"
+   ],
+   "uses": 748,
+   "params": {
+    "overridesEffectiveness": {
+     "overrides": true
     }
    }
   },
@@ -2515,7 +2602,8 @@
    "name": "Night Slash",
    "tags": [
     "critRatioUp",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 65,
    "params": {
@@ -2524,6 +2612,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -2596,7 +2689,8 @@
    "tags": [
     "needsUntrackedState",
     "variablePower",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 364,
    "params": {
@@ -2608,12 +2702,18 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     }
    }
   },
   "sandstorm": {
    "name": "Sandstorm",
    "tags": [
+    "moveClass",
     "neverMisses",
     "ignoresProtect",
     "setsWeather",
@@ -2621,6 +2721,11 @@
    ],
    "uses": 4,
    "params": {
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -2640,7 +2745,8 @@
    "name": "Shadow Claw",
    "tags": [
     "critRatioUp",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 69,
    "params": {
@@ -2649,6 +2755,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -2752,6 +2863,20 @@
     }
    }
   },
+  "syrupbomb": {
+   "name": "Syrup Bomb",
+   "tags": [
+    "moveClass"
+   ],
+   "uses": 1,
+   "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    }
+   }
+  },
   "toxicthread": {
    "name": "Toxic Thread",
    "tags": [
@@ -2851,10 +2976,16 @@
   "acidspray": {
    "name": "Acid Spray",
    "tags": [
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 54,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "secondaryStatEffect": {
      "p": 1,
      "boosts": {
@@ -2906,12 +3037,18 @@
    "name": "Aerial Ace",
    "tags": [
     "contact",
+    "moveClass",
     "neverMissesAttack"
    ],
    "uses": 23,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "neverMissesAttack": {
      "pHit": 1
@@ -2966,7 +3103,8 @@
    "name": "Air Cutter",
    "tags": [
     "critRatioUp",
-    "spreadFoes"
+    "spreadFoes",
+    "moveClass"
    ],
    "uses": 0,
    "params": {
@@ -2976,16 +3114,28 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "moveClass": {
+     "classes": [
+      "slicing",
+      "wind"
+     ]
     }
    }
   },
   "airslash": {
    "name": "Air Slash",
    "tags": [
+    "moveClass",
     "flinches"
    ],
    "uses": 141,
    "params": {
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
+    },
     "flinches": {
      "pFlinch": 0.3
     }
@@ -3072,12 +3222,18 @@
   "aquacutter": {
    "name": "Aqua Cutter",
    "tags": [
-    "critRatioUp"
+    "critRatioUp",
+    "moveClass"
    ],
    "uses": 27,
    "params": {
     "critRatioUp": {
      "critRatio": 2
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -3220,10 +3376,17 @@
   "aurasphere": {
    "name": "Aura Sphere",
    "tags": [
+    "moveClass",
     "neverMissesAttack"
    ],
    "uses": 688,
    "params": {
+    "moveClass": {
+     "classes": [
+      "pulse",
+      "bullet"
+     ]
+    },
     "neverMissesAttack": {
      "pHit": 1
     }
@@ -3423,12 +3586,18 @@
    "name": "Bite",
    "tags": [
     "contact",
+    "moveClass",
     "flinches"
    ],
    "uses": 22,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     },
     "flinches": {
      "pFlinch": 0.3
@@ -3439,12 +3608,18 @@
    "name": "Bitter Blade",
    "tags": [
     "contact",
+    "moveClass",
     "drain"
    ],
    "uses": 211,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "drain": {
      "readFrom": "m.drain",
@@ -3507,6 +3682,7 @@
    "tags": [
     "weatherScaled",
     "spreadFoes",
+    "moveClass",
     "inflictsFreeze"
    ],
    "uses": 1547,
@@ -3517,6 +3693,11 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
     },
     "inflictsFreeze": {
      "p": 0.1,
@@ -3769,7 +3950,8 @@
    "name": "Bullet Punch",
    "tags": [
     "priority",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 570,
    "params": {
@@ -3779,19 +3961,30 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     }
    }
   },
   "bulletseed": {
    "name": "Bullet Seed",
    "tags": [
-    "multiHit"
+    "multiHit",
+    "moveClass"
    ],
    "uses": 21,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
      "distribution": "2:35 3:35 4:15 5:15"
+    },
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
     }
    }
   },
@@ -3834,12 +4027,18 @@
   "ceaselessedge": {
    "name": "Ceaseless Edge",
    "tags": [
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 33,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -4246,6 +4445,7 @@
    "tags": [
     "critRatioUp",
     "contact",
+    "moveClass",
     "inflictsPoison"
    ],
    "uses": 1,
@@ -4255,6 +4455,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "inflictsPoison": {
      "p": 0.1,
@@ -4266,12 +4471,18 @@
    "name": "Crunch",
    "tags": [
     "contact",
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 218,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     },
     "secondaryStatEffect": {
      "p": 0.2,
@@ -4323,10 +4534,16 @@
   "darkpulse": {
    "name": "Dark Pulse",
    "tags": [
+    "moveClass",
     "flinches"
    ],
    "uses": 1026,
    "params": {
+    "moveClass": {
+     "classes": [
+      "pulse"
+     ]
+    },
     "flinches": {
      "pFlinch": 0.2
     }
@@ -4618,6 +4835,20 @@
     }
    }
   },
+  "dragonpulse": {
+   "name": "Dragon Pulse",
+   "tags": [
+    "moveClass"
+   ],
+   "uses": 2048,
+   "params": {
+    "moveClass": {
+     "classes": [
+      "pulse"
+     ]
+    }
+   }
+  },
   "dragonrush": {
    "name": "Dragon Rush",
    "tags": [
@@ -4676,12 +4907,18 @@
    "name": "Drain Punch",
    "tags": [
     "contact",
+    "moveClass",
     "drain"
    ],
    "uses": 710,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "drain": {
      "readFrom": "m.drain",
@@ -4738,12 +4975,18 @@
    "name": "Dynamic Punch",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsConfusion"
    ],
    "uses": 6,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "inflictsConfusion": {
      "p": 1
@@ -4839,7 +5082,8 @@
    "name": "Electro Ball",
    "tags": [
     "needsUntrackedState",
-    "variablePower"
+    "variablePower",
+    "moveClass"
    ],
    "uses": 7,
    "params": {
@@ -4848,6 +5092,11 @@
     },
     "variablePower": {
      "computed": true
+    },
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
     }
    }
   },
@@ -4934,10 +5183,16 @@
   "energyball": {
    "name": "Energy Ball",
    "tags": [
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 457,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "secondaryStatEffect": {
      "p": 0.1,
      "boosts": {
@@ -5211,6 +5466,7 @@
    "name": "Fire Fang",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsBurn",
     "flinches"
    ],
@@ -5218,6 +5474,11 @@
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     },
     "inflictsBurn": {
      "p": 0.1,
@@ -5232,12 +5493,18 @@
    "name": "Fire Punch",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsBurn"
    ],
    "uses": 48,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "inflictsBurn": {
      "p": 0.1,
@@ -5426,22 +5693,32 @@
   "flyingpress": {
    "name": "Flying Press",
    "tags": [
-    "contact"
+    "contact",
+    "overridesEffectiveness"
    ],
    "uses": 3,
    "params": {
     "contact": {
      "contact": true
+    },
+    "overridesEffectiveness": {
+     "overrides": true
     }
    }
   },
   "focusblast": {
    "name": "Focus Blast",
    "tags": [
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 1105,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "secondaryStatEffect": {
      "p": 0.1,
      "boosts": {
@@ -5474,6 +5751,7 @@
    "tags": [
     "priority",
     "contact",
+    "moveClass",
     "needsTargetToAttack"
    ],
    "uses": 6,
@@ -5484,6 +5762,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "needsTargetToAttack": {
      "needs": "target attacking"
@@ -5793,7 +6076,8 @@
    "tags": [
     "needsUntrackedState",
     "variablePower",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 24,
    "params": {
@@ -5805,6 +6089,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
     }
    }
   },
@@ -5812,12 +6101,18 @@
    "name": "Hammer Arm",
    "tags": [
     "contact",
+    "moveClass",
     "lowersUser"
    ],
    "uses": 107,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
@@ -5875,12 +6170,18 @@
    "name": "Headlong Rush",
    "tags": [
     "contact",
+    "moveClass",
     "lowersUser"
    ],
    "uses": 28,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
@@ -5954,12 +6255,18 @@
   "healpulse": {
    "name": "Heal Pulse",
    "tags": [
+    "moveClass",
     "neverMisses",
     "statusCategory",
     "healsAlly"
    ],
    "uses": 62,
    "params": {
+    "moveClass": {
+     "classes": [
+      "pulse"
+     ]
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -5996,6 +6303,7 @@
    "name": "Heat Wave",
    "tags": [
     "spreadFoes",
+    "moveClass",
     "inflictsBurn"
    ],
    "uses": 4091,
@@ -6003,6 +6311,11 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
     },
     "inflictsBurn": {
      "p": 0.1,
@@ -6125,12 +6438,18 @@
    "name": "Hurricane",
    "tags": [
     "weatherScaled",
+    "moveClass",
     "inflictsConfusion"
    ],
    "uses": 2275,
    "params": {
     "weatherScaled": {
      "scalesWith": "weather"
+    },
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
     },
     "inflictsConfusion": {
      "p": 0.3
@@ -6212,6 +6531,7 @@
    "name": "Ice Fang",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsFreeze",
     "flinches"
    ],
@@ -6219,6 +6539,11 @@
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     },
     "inflictsFreeze": {
      "p": 0.1,
@@ -6233,12 +6558,18 @@
    "name": "Ice Hammer",
    "tags": [
     "contact",
+    "moveClass",
     "lowersUser"
    ],
    "uses": 31,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "lowersUser": {
      "readFrom": "m.self.boosts",
@@ -6251,12 +6582,18 @@
    "name": "Ice Punch",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsFreeze"
    ],
    "uses": 1432,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "inflictsFreeze": {
      "p": 0.1,
@@ -6318,6 +6655,7 @@
    "name": "Icy Wind",
    "tags": [
     "spreadFoes",
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 854,
@@ -6325,6 +6663,11 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
     },
     "secondaryStatEffect": {
      "p": 1,
@@ -6460,7 +6803,8 @@
    "name": "Jet Punch",
    "tags": [
     "priority",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 100,
    "params": {
@@ -6470,6 +6814,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     }
    }
   },
@@ -6493,12 +6842,18 @@
    "name": "Kowtow Cleave",
    "tags": [
     "contact",
+    "moveClass",
     "neverMissesAttack"
    ],
    "uses": 3006,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "neverMissesAttack": {
      "pHit": 1
@@ -6571,7 +6926,8 @@
    "name": "Leaf Blade",
    "tags": [
     "critRatioUp",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 109,
    "params": {
@@ -6580,6 +6936,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -6800,7 +7161,8 @@
    "name": "Mach Punch",
    "tags": [
     "priority",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 37,
    "params": {
@@ -6810,6 +7172,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     }
    }
   },
@@ -7036,12 +7403,18 @@
    "name": "Meteor Mash",
    "tags": [
     "contact",
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 319,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "secondaryStatEffect": {
      "p": 0.2,
@@ -7519,13 +7892,19 @@
   "petalblizzard": {
    "name": "Petal Blizzard",
    "tags": [
-    "spreadAll"
+    "spreadAll",
+    "moveClass"
    ],
    "uses": 12,
    "params": {
     "spreadAll": {
      "target": "allAdjacent",
      "hitsAlly": true
+    },
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
     }
    }
   },
@@ -7611,12 +7990,18 @@
    "name": "Poison Fang",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsToxic"
    ],
    "uses": 5,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     },
     "inflictsToxic": {
      "p": 0.5,
@@ -7662,11 +8047,26 @@
     }
    }
   },
+  "pollenpuff": {
+   "name": "Pollen Puff",
+   "tags": [
+    "moveClass"
+   ],
+   "uses": 77,
+   "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    }
+   }
+  },
   "populationbomb": {
    "name": "Population Bomb",
    "tags": [
     "multiHit",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 276,
    "params": {
@@ -7676,6 +8076,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -7821,7 +8226,8 @@
    "name": "Psychic Fangs",
    "tags": [
     "clearsScreens",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 1356,
    "params": {
@@ -7830,6 +8236,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     }
    }
   },
@@ -7873,12 +8284,18 @@
   "psychocut": {
    "name": "Psycho Cut",
    "tags": [
-    "critRatioUp"
+    "critRatioUp",
+    "moveClass"
    ],
    "uses": 193,
    "params": {
     "critRatioUp": {
      "critRatio": 2
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -8081,12 +8498,18 @@
    "name": "Razor Shell",
    "tags": [
     "contact",
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 3,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "secondaryStatEffect": {
      "p": 0.5,
@@ -8272,13 +8695,19 @@
   "rockblast": {
    "name": "Rock Blast",
    "tags": [
-    "multiHit"
+    "multiHit",
+    "moveClass"
    ],
    "uses": 39,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
      "distribution": "2:35 3:35 4:15 5:15"
+    },
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
     }
    }
   },
@@ -8342,10 +8771,16 @@
   "rockwrecker": {
    "name": "Rock Wrecker",
    "tags": [
+    "moveClass",
     "recharge"
    ],
    "uses": 0,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "recharge": {
      "recharge": true
     }
@@ -8416,7 +8851,8 @@
    "name": "Sacred Sword",
    "tags": [
     "ignoresStatStages",
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 145,
    "params": {
@@ -8425,6 +8861,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -8536,6 +8977,20 @@
     }
    }
   },
+  "seedbomb": {
+   "name": "Seed Bomb",
+   "tags": [
+    "moveClass"
+   ],
+   "uses": 16,
+   "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    }
+   }
+  },
   "seismictoss": {
    "name": "Seismic Toss",
    "tags": [
@@ -8572,10 +9027,16 @@
   "shadowball": {
    "name": "Shadow Ball",
    "tags": [
+    "moveClass",
     "secondaryStatEffect"
    ],
    "uses": 3332,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "secondaryStatEffect": {
      "p": 0.2,
      "boosts": {
@@ -8590,12 +9051,18 @@
    "name": "Shadow Punch",
    "tags": [
     "contact",
+    "moveClass",
     "neverMissesAttack"
    ],
    "uses": 0,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "neverMissesAttack": {
      "pHit": 1
@@ -8877,10 +9344,16 @@
   "sludgebomb": {
    "name": "Sludge Bomb",
    "tags": [
+    "moveClass",
     "inflictsPoison"
    ],
    "uses": 2005,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "inflictsPoison": {
      "p": 0.3,
      "via": "secondary"
@@ -9024,6 +9497,7 @@
    "tags": [
     "conditionalPower",
     "contact",
+    "moveClass",
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
@@ -9034,6 +9508,11 @@
     },
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     },
     "chargeTurn": {
      "charge": true
@@ -9315,12 +9794,18 @@
   "stoneaxe": {
    "name": "Stone Axe",
    "tags": [
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 24,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -9752,12 +10237,18 @@
   "tailwind": {
    "name": "Tailwind",
    "tags": [
+    "moveClass",
     "neverMisses",
     "doublesSideSpeed",
     "statusCategory"
    ],
    "uses": 7052,
    "params": {
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -9874,12 +10365,18 @@
   "terrainpulse": {
    "name": "Terrain Pulse",
    "tags": [
-    "terrainScaled"
+    "terrainScaled",
+    "moveClass"
    ],
    "uses": 4,
    "params": {
     "terrainScaled": {
      "scalesWith": "terrain"
+    },
+    "moveClass": {
+     "classes": [
+      "pulse"
+     ]
     }
    }
   },
@@ -9957,6 +10454,7 @@
    "name": "Thunder Fang",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsParalysis",
     "flinches"
    ],
@@ -9964,6 +10462,11 @@
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "bite"
+     ]
     },
     "inflictsParalysis": {
      "p": 0.1,
@@ -9978,12 +10481,18 @@
    "name": "Thunder Punch",
    "tags": [
     "contact",
+    "moveClass",
     "inflictsParalysis"
    ],
    "uses": 205,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "punch"
+     ]
     },
     "inflictsParalysis": {
      "p": 0.1,
@@ -10434,10 +10943,16 @@
   "waterpulse": {
    "name": "Water Pulse",
    "tags": [
+    "moveClass",
     "inflictsConfusion"
    ],
    "uses": 45,
    "params": {
+    "moveClass": {
+     "classes": [
+      "pulse"
+     ]
+    },
     "inflictsConfusion": {
      "p": 0.2
     }
@@ -10505,12 +11020,18 @@
   "weatherball": {
    "name": "Weather Ball",
    "tags": [
-    "weatherScaled"
+    "weatherScaled",
+    "moveClass"
    ],
    "uses": 4739,
    "params": {
     "weatherScaled": {
      "scalesWith": "weather"
+    },
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
     }
    }
   },
@@ -10518,6 +11039,7 @@
    "name": "Whirlwind",
    "tags": [
     "priority",
+    "moveClass",
     "neverMisses",
     "ignoresProtect",
     "forcesSwitch",
@@ -10528,6 +11050,11 @@
     "priority": {
      "readFrom": "m.priority",
      "sign": "-"
+    },
+    "moveClass": {
+     "classes": [
+      "wind"
+     ]
     },
     "neverMisses": {
      "pHit": 1,
@@ -10692,12 +11219,18 @@
   "xscissor": {
    "name": "X-Scissor",
    "tags": [
-    "contact"
+    "contact",
+    "moveClass"
    ],
    "uses": 29,
    "params": {
     "contact": {
      "contact": true
+    },
+    "moveClass": {
+     "classes": [
+      "slicing"
+     ]
     }
    }
   },
@@ -10725,10 +11258,16 @@
   "zapcannon": {
    "name": "Zap Cannon",
    "tags": [
+    "moveClass",
     "inflictsParalysis"
    ],
    "uses": 1077,
    "params": {
+    "moveClass": {
+     "classes": [
+      "bullet"
+     ]
+    },
     "inflictsParalysis": {
      "p": 1,
      "via": "secondary"
@@ -13452,10 +13991,14 @@
   "ironfist": {
    "name": "Iron Fist",
    "tags": [
+    "boostsMoveClass",
     "damageBoost"
    ],
    "uses": 55,
    "params": {
+    "boostsMoveClass": {
+     "boostsFlag": "punch"
+    },
     "damageBoost": {
      "boost": true
     }
@@ -13517,13 +14060,17 @@
   "lightningrod": {
    "name": "Lightning Rod",
    "tags": [
-    "typeImmunity"
+    "typeImmunity",
+    "redirectsType"
    ],
    "uses": 1302,
    "params": {
     "typeImmunity": {
      "immune": true,
      "via": "onTryHit"
+    },
+    "redirectsType": {
+     "redirect": true
     }
    }
   },
@@ -13594,10 +14141,14 @@
   "megalauncher": {
    "name": "Mega Launcher",
    "tags": [
+    "boostsMoveClass",
     "damageBoost"
    ],
    "uses": 20,
    "params": {
+    "boostsMoveClass": {
+     "boostsFlag": "pulse"
+    },
     "damageBoost": {
      "boost": true
     }
@@ -13960,12 +14511,16 @@
    "name": "Punk Rock",
    "tags": [
     "damageReduce",
+    "boostsMoveClass",
     "damageBoost"
    ],
    "uses": 0,
    "params": {
     "damageReduce": {
      "reduce": true
+    },
+    "boostsMoveClass": {
+     "boostsFlag": "sound"
     },
     "damageBoost": {
      "boost": true
@@ -14276,10 +14831,14 @@
   "sharpness": {
    "name": "Sharpness",
    "tags": [
+    "boostsMoveClass",
     "damageBoost"
    ],
    "uses": 155,
    "params": {
+    "boostsMoveClass": {
+     "boostsFlag": "slicing"
+    },
     "damageBoost": {
      "boost": true
     }
@@ -14560,23 +15119,31 @@
   "stormdrain": {
    "name": "Storm Drain",
    "tags": [
-    "typeImmunity"
+    "typeImmunity",
+    "redirectsType"
    ],
    "uses": 0,
    "params": {
     "typeImmunity": {
      "immune": true,
      "via": "onTryHit"
+    },
+    "redirectsType": {
+     "redirect": true
     }
    }
   },
   "strongjaw": {
    "name": "Strong Jaw",
    "tags": [
+    "boostsMoveClass",
     "damageBoost"
    ],
    "uses": 5,
    "params": {
+    "boostsMoveClass": {
+     "boostsFlag": "bite"
+    },
     "damageBoost": {
      "boost": true
     }
@@ -14765,10 +15332,14 @@
   "toughclaws": {
    "name": "Tough Claws",
    "tags": [
+    "boostsMoveClass",
     "damageBoost"
    ],
    "uses": 272,
    "params": {
+    "boostsMoveClass": {
+     "boostsFlag": "contact"
+    },
     "damageBoost": {
      "boost": true
     }
