@@ -74,7 +74,46 @@ P('');
 P('---');
 P('');
 
-/* ---- the sections ---------------------------------------------------------------------------- */
+/* ---- the sections ----------------------------------------------------------------------------
+ * ONE ROW PER ENTITY, SORTED BY USAGE -- not grouped by tag. Will: "i need it [like] before where
+ * it had the usage based tables for each move and then all the tags for that move... not sorted by
+ * tags."
+ *
+ * That is the right shape for the job. Grouping by tag answers "who has this tag", which is useful
+ * once you already suspect a tag is wrong. Reviewing means reading down the moves people actually
+ * click and asking whether each one's tags describe it -- and a move with a MISSING tag is
+ * invisible in a tag-grouped view, because it simply never appears in the group it should be in.
+ * That is exactly how Clanging Scales and Super Fang stayed hidden.
+ *
+ * The tag-grouped view is kept afterwards as a cross-reference, since it is the faster way to audit
+ * a single suspicious category once one is identified. */
+function entityTable(kind, table, usage, title, blurb) {
+  const rows = Object.entries(table)
+    .map(([id, rec]) => ({ id, rec, u: usage[id] || 0 }))
+    .filter(r => r.u > 0)
+    .sort((a, b) => b.u - a.u);
+
+  P('# ' + title);
+  P('');
+  P(blurb);
+  P('');
+  const one = kind === 'abilities' ? 'ability' : kind.replace(/s$/, '');
+  P('Every ' + one + ' that appears on a real sheet, in usage order, with the tags it carries.');
+  P('`untagged` is deliberate — it means the thing genuinely has no mechanic, like Hydro Pump.');
+  P('');
+  P('| ' + one + ' | on sheets | share | tags |');
+  P('|---|---:|---:|---|');
+  for (const r of rows) {
+    const o = kind === 'moves' ? dex.moves.get(r.id) : kind === 'items' ? dex.items.get(r.id) : dex.abilities.get(r.id);
+    const tags = (r.rec.tags || []).length ? r.rec.tags.map(t => '`' + t + '`').join(' ') : '`untagged`';
+    P('| ' + ((o && o.name) || r.id) + ' | ' + r.u.toLocaleString() + ' | ' + pct(r.u) + ' | ' + tags + ' |');
+  }
+  P('');
+  P('---');
+  P('');
+  return rows.length;
+}
+
 function section(kind, table, usage, title, blurb) {
   const byTag = {};
   for (const [id, rec] of Object.entries(table))
@@ -129,11 +168,24 @@ function section(kind, table, usage, title, blurb) {
   return rows.length;
 }
 
-const nM = section('moves', T.moves, U.move, 'MOVES',
+const eM = entityTable('moves', T.moves, U.move, 'MOVES — every move, in usage order',
+  'This is the review list. Read down it and check that each move\'s tags describe what it does.');
+const eA = entityTable('abilities', T.abilities, U.ability, 'ABILITIES — every ability, in usage order',
+  'Same shape as the moves list.');
+const eI = entityTable('items', T.items, U.item, 'ITEMS — every item, in usage order',
+  'Same shape as the moves list.');
+
+P('# CROSS-REFERENCE — the same data grouped by tag');
+P('');
+P('Kept because once a tag looks wrong, this is the fast way to see everything it caught. It is not');
+P('the review list: a move with a MISSING tag cannot appear here, since it is absent from the very');
+P('group it belongs in. That is how Clanging Scales and Super Fang stayed hidden.');
+P('');
+const nM = section('moves', T.moves, U.move, 'Moves by tag',
   'Every move tag with its members, ordered by how much of the format it covers.');
-const nA = section('abilities', T.abilities, U.ability, 'ABILITIES',
+const nA = section('abilities', T.abilities, U.ability, 'Abilities by tag',
   'Every ability tag with its members, ordered by how much of the format it covers.');
-const nI = section('items', T.items, U.item, 'ITEMS',
+const nI = section('items', T.items, U.item, 'Items by tag',
   'Every item tag with its members, ordered by how much of the format it covers.');
 
 /* ---- review log ------------------------------------------------------------------------------ */
