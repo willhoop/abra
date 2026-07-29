@@ -621,24 +621,41 @@ function applyEntryEffects(m,field){
   const t=TAGS.param('ability',m.ability,'terrainSetter');
   if(t&&t.terrain){field.terrain=t.terrain;field.terrainT=5;}
 }
-function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
-  const field={weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false};
-  /* one shared death counter per side, handed to every mon by reference */
-  const sfA={fainted:0},sfB={fainted:0};
-  teamA.forEach(m=>{if(m)m._sf=sfA;});teamB.forEach(m=>{if(m)m._sf=sfB;});
-  const setW=ms=>{for(const m of ms)applyEntryEffects(m,field);};
-  const actA=[teamA[0],teamA[1]].filter(Boolean),actB=[teamB[0],teamB[1]].filter(Boolean);
-  const benchA=teamA.slice(2),benchB=teamB.slice(2);
-  setW(actA.concat(actB));
+/* THE STEP-WISE BATTLE API (the Battle Tower's spine). battle() was a sealed 20-turn loop, which is
+ * right for a rollout and useless for a PLAYER — the Tower needs the same engine to stop each turn
+ * and take side A's actions from a human. So the loop body moved verbatim into battleTurn():
+ * identical code path, identical rng call order, and battle() is reimplemented on top of it — the
+ * gate tests hold because nothing about a rollout changed. actsForA is a Map(mon -> action) built
+ * by playerAction(); absent, side A plays itself exactly as before. */
+const _live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
+function battleInit(teamA,teamB){
+  const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
+    /* one shared death counter per side, handed to every mon by reference */
+    sfA:{fainted:0},sfB:{fainted:0},
+    actA:[teamA[0],teamA[1]].filter(Boolean),actB:[teamB[0],teamB[1]].filter(Boolean),
+    benchA:teamA.slice(2),benchB:teamB.slice(2),turn:0};
+  teamA.forEach(m=>{if(m)m._sf=S.sfA;});teamB.forEach(m=>{if(m)m._sf=S.sfB;});
+  for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field);
   const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
-  intim(actA,actB);intim(actB,actA);
-  const live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
-  const alive=(a,b)=>live(a).length+live(b).length>0;
-  for(let turn=0;turn<20;turn++){
-    if(!alive(actA,benchA)||!alive(actB,benchB))break;
+  intim(S.actA,S.actB);intim(S.actB,S.actA);
+  return S;
+}
+function battleOver(S){
+  return S.turn>=20||_live(S.actA).length+_live(S.benchA).length===0||_live(S.actB).length+_live(S.benchB).length===0;
+}
+function battleTurn(S,rng,actsForA,actsForB){
+  rng=rng||Math.random;
+  if(battleOver(S))return S;
+  const field=S.field,actA=S.actA,actB=S.actB,benchA=S.benchA,benchB=S.benchB,sfA=S.sfA,sfB=S.sfB;
+  const live=_live;
+  {
     [...actA,...actB].forEach(m=>{if(m)m.protect=false;});field.wgA=false;field.wgB=false;
     const acts=[];
-    const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;acts.push({mon,side,a:chooseAction(mon,foes,ally,field,side,rng)});};
+    /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
+     * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
+    const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;
+      const forced=(side==='A'?actsForA&&actsForA.get(mon):actsForB&&actsForB.get(mon));
+      acts.push({mon,side,a:forced||chooseAction(mon,foes,ally,field,side,rng)});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
     for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
     /* Bracket first, then speed. Protect-likes are +4 and Wide Guard is +3 in the real game; a status
@@ -854,10 +871,40 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
     const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;nx._fallenStuck=sf.fainted;act[i]=nx;applyEntryEffects(nx,field);if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in: entry effects (weather/terrain) AND Intimidate */
     refill(actA,benchA,actB,sfA);refill(actB,benchB,actA,sfB);
   }
-  const aA=live(actA).length+live(benchA).length,bA=live(actB).length+live(benchB).length;
+  S.turn++;
+  return S;
+}
+/* winner readout, shared by the sealed rollout and the Tower's end screen:
+ * 1 = side A, 0 = side B, 0.5 = dead-even HP tie at the 20-turn horizon */
+function battleResult(S){
+  const aA=_live(S.actA).length+_live(S.benchA).length,bA=_live(S.actB).length+_live(S.benchB).length;
   if(aA!==bA)return aA>bA?1:0;
   const hp=(a,b)=>[...a,...b].reduce((s,m)=>s+(m?Math.max(0,m.curHP)/m.st.hp:0),0);
-  const ha=hp(actA,benchA),hb=hp(actB,benchB);return ha>hb?1:(ha<hb?0:0.5);
+  const ha=hp(S.actA,S.benchA),hb=hp(S.actB,S.benchB);return ha>hb?1:(ha<hb?0:0.5);
+}
+function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
+  const S=battleInit(teamA,teamB);
+  while(!battleOver(S))battleTurn(S,rng);
+  return battleResult(S);
+}
+/* Build ONE turn action from a player's click, in exactly the shape chooseAction emits — the page
+ * must never hand-roll these, or the Tower and the rollout would resolve moves differently.
+ * Unmodelled status clicks return kind 'pass' (a no-op turn): honest, and the Tower says so in
+ * the log rather than pretending the engine played a move it cannot represent. */
+function playerAction(me,moveId,target,field){
+  const id=String(moveId||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(PROTECTMOVES.has(id))return {kind:'protect'};
+  if(id==='wideguard')return {kind:'wideguard'};
+  if(id==='tailwind')return {kind:'tail'};
+  const mv=MC.moves[id];
+  if(mv&&mv.bp&&target){
+    const spread=SPREAD.has(id);
+    return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:moveAccuracy(id,field)/100},target};
+  }
+  const fx=moveFx(id);
+  if(fx&&fx.status)return {kind:'status',mv:id,target};
+  if(fx&&fx.boosts&&!fx.target)return {kind:'setup'};
+  return {kind:'pass'};
 }
 function winProb2(nA,nB,N,ov){
   const A0=nA.slice(0,4).filter(n=>MC.mons[n]),B0=nB.slice(0,4).filter(n=>MC.mons[n]);
@@ -931,9 +978,10 @@ root.futureSight=futureSight;
  * a second adapter over window.ABRA_TAGS would be a place for the two to disagree */
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
+root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
-  punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,
+  punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,
   moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALAKAZAM'S BATTLE TOWER</title>
+<!-- ALAKAZAM'S BATTLE TOWER — Will's brief: "a battle tower type design where ultimately you fight
+     the final boss that is alakazam", in ABRA World's own visual language.
+     Ten floors. Floors 1-3 click at random, 4-6 play the behaviour-clone priors, 7-9 play the full
+     scorer, and floor 10 is ALAKAZAM: the full PRICED scorer, and every turn it SHOWS you its
+     Future Sight read of what you'll click — the machinery from the old standalone page, now a
+     boss mechanic instead of a form. One engine resolves everything: battleInit/battleTurn are the
+     rollout's own loop, stepped. The move buttons carry live damage AND price (touch cost, bench
+     risk) because a Tower that hides the costs would be teaching the opposite of ABRA's point. -->
+<style>
+:root{--bg1:#dff0ff;--bg2:#f8f4e8;--line:#22303f;--panel:#fff;--ink:#1a2233;--dim:#5a6a84;
+  --you:#1f8a4c;--foe:#cf3a2a;--psy:#7b3fd4;--psy2:#4a2482;--gold:#e8a53a;--elec:#ffd23f;--elec2:#c9a417}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;
+  background:linear-gradient(180deg,var(--bg1) 0%,#eef4fb 55%,var(--bg2) 100%);min-height:100vh;padding:14px}
+.wrap{max-width:1150px;margin:0 auto}
+.head{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.head img{width:72px;height:72px;image-rendering:pixelated}
+.head h1{font-size:30px;margin:0;letter-spacing:2px;font-weight:900;color:var(--psy2);text-shadow:2px 2px 0 #d8c6f5}
+.head .sub{font-size:13px;color:var(--dim);font-weight:700;max-width:560px}
+.layout{display:grid;grid-template-columns:190px 1fr;gap:14px}
+@media(max-width:820px){.layout{grid-template-columns:1fr}}
+/* ---- the tower itself ---- */
+.tower{background:linear-gradient(180deg,#efe6ff,#dcd0f2);border:3px solid var(--line);border-radius:18px 18px 8px 8px;
+  padding:10px 8px;position:relative;box-shadow:0 6px 0 rgba(34,48,63,.25)}
+.tower::before{content:"";position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  border-left:22px solid transparent;border-right:22px solid transparent;border-bottom:16px solid var(--psy2)}
+.floor{display:flex;align-items:center;gap:7px;background:var(--panel);border:2.5px solid #cfd8e6;border-radius:11px;
+  padding:5px 7px;margin:6px 0;font-weight:800;font-size:12px;color:var(--dim);position:relative}
+.floor img{width:34px;height:34px;image-rendering:pixelated}
+.floor .fno{font-size:10px;letter-spacing:.6px}
+.floor.now{border-color:var(--gold);box-shadow:0 0 0 3px #ffe9bd;color:var(--ink);transform:scale(1.04)}
+.floor.beat{border-color:var(--you);opacity:.75}
+.floor.beat::after{content:"✔";position:absolute;right:7px;color:var(--you);font-size:15px}
+.floor.boss{background:linear-gradient(135deg,#f3e8ff,#e2ccff);border-color:var(--psy);color:var(--psy2)}
+.floor.boss.now{box-shadow:0 0 14px var(--psy)}
+.streak{background:var(--panel);border:3px solid var(--line);border-radius:13px;padding:8px 10px;margin-top:10px;
+  text-align:center;font-weight:900}
+.streak b{color:var(--psy);font-size:19px}
+/* ---- panels (ABRA World voice) ---- */
+.panel{background:var(--panel);border:3px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;
+  box-shadow:0 5px 0 rgba(34,48,63,.18)}
+.panel h2{margin:0 0 8px;font-size:16px;letter-spacing:.4px}
+.bbtn{border:3px solid var(--line);background:var(--elec);color:var(--ink);font-size:16px;font-weight:900;
+  padding:9px 20px;border-radius:14px;box-shadow:0 5px 0 var(--elec2);cursor:pointer}
+.bbtn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--elec2)}
+.bbtn.psy{background:var(--psy);color:#fff;box-shadow:0 5px 0 var(--psy2)}
+.bbtn:disabled{opacity:.45;cursor:default;transform:none}
+select{background:#fff;border:2.5px solid #cfd8e6;border-radius:10px;padding:7px;font-size:14px;font-weight:700;color:var(--ink)}
+.chip{display:inline-block;border-radius:7px;padding:2px 9px;font-size:11px;font-weight:900;margin:2px 3px 0 0}
+.chip.ok{background:#dff5e6;color:#1f7a3c;border:2px solid #9ad4ac}
+.chip.warn{background:#fff2dc;color:#8a5a1a;border:2px solid #ecca90}
+.chip.bad{background:#fde4e0;color:#9a2b2b;border:2px solid #eba8a0}
+/* ---- team select ---- */
+.pickrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.pick{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pick img{width:64px;height:64px;image-rendering:pixelated}
+/* ---- battlefield ---- */
+.arena{background:linear-gradient(180deg,#cfe8ff 0%,#e8f4d8 78%,#d8c9a8 100%);border:3px solid var(--line);
+  border-radius:16px;padding:12px;position:relative;overflow:hidden}
+.skybanner{position:absolute;top:8px;right:10px;font-weight:900;font-size:12px;color:#3a5372;
+  background:rgba(255,255,255,.85);border:2px solid #cfd8e6;border-radius:9px;padding:3px 9px}
+.row{display:flex;gap:14px;justify-content:center;align-items:flex-end;min-height:118px}
+.slot{text-align:center;width:150px;position:relative}
+.slot img{width:84px;height:84px;image-rendering:pixelated;cursor:default}
+.slot.targetable img{cursor:crosshair;filter:drop-shadow(0 0 8px #ff5a3c)}
+.slot.targetable .nm{color:var(--foe)}
+.slot .nm{font-weight:900;font-size:12.5px}
+.slot .st{font-size:10px;font-weight:800;color:var(--dim)}
+.hpbar{height:10px;border:2px solid var(--line);border-radius:6px;background:#fff;overflow:hidden;margin:3px 0}
+.hpbar i{display:block;height:100%;background:linear-gradient(90deg,#35c47a,#1f8a4c);transition:width .5s}
+.hpbar.low i{background:linear-gradient(90deg,#ffb63a,#e8781a)}
+.hpbar.crit i{background:linear-gradient(90deg,#ff7a6a,#cf3a2a)}
+.faint{filter:grayscale(1) brightness(.7);opacity:.5}
+.benchrow{display:flex;gap:4px;justify-content:center;margin-top:2px}
+.benchrow img{width:26px;height:26px;image-rendering:pixelated;opacity:.85}
+.benchrow img.gone{filter:grayscale(1);opacity:.3}
+/* ---- move picker ---- */
+.orders{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:820px){.orders{grid-template-columns:1fr}}
+.order{background:#f6f8fb;border:2.5px solid #cfd8e6;border-radius:13px;padding:9px}
+.order h4{margin:0 0 6px;font-size:13px}
+.order h4 .picked{color:var(--psy);font-weight:900}
+.mv{display:block;width:100%;text-align:left;background:#fff;border:2.5px solid #cfd8e6;border-radius:10px;
+  padding:6px 9px;margin:4px 0;font-weight:800;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.mv:hover{border-color:var(--psy)}
+.mv.sel{border-color:var(--psy);box-shadow:0 0 0 2px #e2ccff}
+.mv .meta{float:right;font-weight:800;color:var(--dim);font-size:11px}
+.mv .risk{display:block;font-size:10.5px;font-weight:800;color:#8a5a1a}
+/* ---- log & boss sight ---- */
+.log{background:#101826;color:#cfe0f5;border:3px solid var(--line);border-radius:13px;padding:9px 12px;
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;max-height:190px;overflow-y:auto}
+.log .yb{color:#6be08a}.log .fb{color:#ff9a8a}.log .wx{color:#8ad0ff}.log .ko{color:#ffd23f;font-weight:700}
+.sight{background:linear-gradient(135deg,#f3e8ff,#e6d4ff);border:3px solid var(--psy);border-radius:13px;padding:10px 12px}
+.sight h3{margin:0 0 6px;color:var(--psy2);font-size:13px;letter-spacing:.5px}
+.sight .g{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin:2px 0}
+.sight .bar{flex:1;height:8px;background:#fff;border-radius:5px;overflow:hidden;border:1.5px solid #c9aef0}
+.sight .bar i{display:block;height:100%;background:var(--psy)}
+.hide{display:none}
+.bigresult{text-align:center;padding:22px 10px}
+.bigresult h2{font-size:26px;margin:0 0 6px}
+</style></head><body><div class="wrap">
+
+<div class="head">
+  <img id="hSprite" src="https://play.pokemonshowdown.com/sprites/ani/alakazam-mega.gif" alt="Alakazam"
+       onerror="this.onerror=null;this.src='https://play.pokemonshowdown.com/sprites/ani/alakazam.gif'">
+  <div><h1>ALAKAZAM'S BATTLE TOWER</h1>
+  <div class="sub">Ten floors. The guardians get smarter as you climb — random clickers at the base, the behaviour-clone
+  in the middle, the full scorer near the top. On the roof waits <b>ALAKAZAM</b>, playing every price this project can
+  compute — and showing you its <b>Future Sight</b> read of your next click while it does.</div></div>
+</div>
+
+<div class="layout">
+<div>
+  <div class="tower" id="towerRail"></div>
+  <div class="streak">STREAK<br><b id="streakNow">0</b><div style="font-size:10.5px;color:var(--dim)">best <span id="streakBest">0</span></div></div>
+</div>
+<div>
+
+  <!-- ===== TEAM SELECT ===== -->
+  <div class="panel" id="pSelect">
+    <h2>Choose your four</h2>
+    <p style="font-weight:600;color:var(--dim);margin:4px 0 6px">Real Champions dataset builds — the same 289 the engine simulates. First two lead.</p>
+    <div class="pickrow" id="pickRow"></div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+      <button class="bbtn" id="btnRandom">Surprise me</button>
+      <button class="bbtn psy" id="btnClimb">CLIMB →</button>
+    </div>
+  </div>
+
+  <!-- ===== BATTLE ===== -->
+  <div class="hide" id="pBattle">
+    <div class="panel" style="padding:10px">
+      <div class="arena">
+        <div class="skybanner" id="skyBanner">clear skies</div>
+        <div class="row" id="rowFoe"></div>
+        <div class="benchrow" id="benchFoe"></div>
+        <div style="height:8px"></div>
+        <div class="benchrow" id="benchYou"></div>
+        <div class="row" id="rowYou"></div>
+      </div>
+      <div class="orders" id="orders"></div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        <button class="bbtn psy" id="btnGo" disabled>PLAY TURN</button>
+        <span id="orderHint" style="font-weight:800;color:var(--dim);font-size:12.5px"></span>
+      </div>
+    </div>
+    <div class="panel hide" id="pSight"><div class="sight" id="sightBox"></div></div>
+    <div class="panel" style="padding:10px"><div class="log" id="log"></div></div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div class="panel hide" id="pResult"><div class="bigresult" id="resultBox"></div></div>
+
+  <div class="panel" style="background:#f6f8fb">
+    <h2>What's real here</h2>
+    <p style="font-weight:600;color:var(--dim);margin:0">Every number is the engine's own: damage from the tag-wired calc
+    (median 0% / worst 3% vs the Smogon calculator), move prices from the exposure engine, the boss's forecast from real
+    ladder priors. What the engine can't represent, the Tower says so instead of faking — an unmodelled status click
+    passes the turn and the log tells you. No switching yet: that policy ships when it <i>measures</i> stronger.</p>
+  </div>
+
+</div></div></div>
+
+<script src="../data/engine-data.js"></script>
+<script src="../data/move-effects.js"></script>
+<script src="../data/abra-tags.js"></script>
+<script src="../engine/medicham2-browser.js"></script>
+<script>
+(function(){
+'use strict';
+var NAMES=Object.keys(MC.mons).sort();
+var spr=function(n){return 'https://play.pokemonshowdown.com/sprites/ani/'+n+'.gif';};
+var sprFix="this.onerror=function(){this.src='https://play.pokemonshowdown.com/sprites/ani/substitute.gif'};this.src='https://play.pokemonshowdown.com/sprites/gen5/'+this.dataset.b+'.png'";
+function img(n,cls){return '<img '+(cls?'class="'+cls+'" ':'')+'src="'+spr(n)+'" data-b="'+n+'" onerror="'+sprFix+'" alt="'+n+'">';}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* seeded rng so the tower is THE tower — same guardians every climb */
+function sRng(seed){var s=(seed*2654435761+12345)>>>0;
+  return function(){s=(Math.imul(s,1103515245)+12345)>>>0;return (s&0x7fffffff)/0x80000000;};}
+
+/* ---- floors: guardians drawn deterministically from the dataset; the roof is ALAKAZAM ---- */
+var FLOORS=[];
+(function(){
+  for(var f=1;f<=9;f++){
+    var r=sRng(9000+f*77), six=[], pool=NAMES.slice();
+    while(six.length<4){var k=pool.splice(Math.floor(r()*pool.length),1)[0];
+      if(/-mega/.test(k)&&six.some(function(x){return /-mega/.test(x);}))continue;   // one mega per team, like the real rule
+      six.push(k);}
+    FLOORS.push({n:f,team:six,brain:f<=3?'wild':(f<=6?'clone':'scorer'),
+      label:f<=3?'clicks at random':(f<=6?'plays the ladder priors':'plays the full scorer')});
+  }
+  FLOORS.push({n:10,team:['alakazam-mega','kingambit','incineroar','garchomp'],brain:'alakazam',
+    label:'the priced scorer + Future Sight'});
+})();
+
+var state={floor:1,best:+(localStorage.getItem('towerBest')||0),myFour:['incineroar','garchomp','kingambit','whimsicott'],
+  S:null,orders:{},pendingMove:null,turnRng:null};
+
+function rail(){
+  var h='';
+  for(var i=FLOORS.length-1;i>=0;i--){var F=FLOORS[i];
+    var cls='floor'+(F.n===10?' boss':'')+(F.n===state.floor?' now':'')+(F.n<state.floor?' beat':'');
+    h+='<div class="'+cls+'">'+img(F.team[0])+'<div><div class="fno">FLOOR '+F.n+'</div>'+(F.n===10?'ALAKAZAM':esc(F.team[0]))+'</div></div>';
+  }
+  document.getElementById('towerRail').innerHTML=h;
+  document.getElementById('streakNow').textContent=state.floor-1;
+  document.getElementById('streakBest').textContent=state.best;
+}
+
+/* ---- team select ---- */
+function renderPick(){
+  var h='';
+  state.myFour.forEach(function(n,i){
+    h+='<div class="pick">'+img(n)+'<select data-i="'+i+'">'+NAMES.map(function(k){return '<option'+(k===n?' selected':'')+'>'+k+'</option>';}).join('')+'</select></div>';
+  });
+  var row=document.getElementById('pickRow');row.innerHTML=h;
+  row.querySelectorAll('select').forEach(function(s){s.onchange=function(){state.myFour[+s.dataset.i]=s.value;renderPick();};});
+}
+document.getElementById('btnRandom').onclick=function(){
+  var r=sRng(Date.now()&0xffff),pool=NAMES.slice(),out=[];
+  while(out.length<4){var k=pool.splice(Math.floor(r()*pool.length),1)[0];
+    if(/-mega/.test(k)&&out.some(function(x){return /-mega/.test(x);}))continue;out.push(k);}
+  state.myFour=out;renderPick();
+};
+
+/* ---- battle flow ---- */
+function team(names){return names.map(function(n){return buildMon(n,{});}).filter(Boolean);}
+function startFloor(){
+  var F=FLOORS[state.floor-1];
+  state.S=battleInit(team(state.myFour),team(F.team));
+  state.turnRng=Math.random;
+  state.orders={};state.pendingMove=null;
+  document.getElementById('pSelect').classList.add('hide');
+  document.getElementById('pResult').classList.add('hide');
+  document.getElementById('pBattle').classList.remove('hide');
+  document.getElementById('pSight').classList.toggle('hide',F.brain!=='alakazam');
+  document.getElementById('log').innerHTML='';
+  say('<span class="wx">— FLOOR '+F.n+(F.n===10?' · THE ROOF —':' —')+'</span> the guardian '+F.label+'.');
+  if(F.brain==='alakazam')say('<span class="wx">ALAKAZAM opens its third eye.</span>');
+  paint();
+}
+document.getElementById('btnClimb').onclick=function(){state.floor=1;rail();startFloor();};
+
+function hpCls(m){var f=m.curHP/m.st.hp;return f<.25?'hpbar crit':(f<.55?'hpbar low':'hpbar');}
+function slotHtml(m,side,idx){
+  if(!m)return '<div class="slot"></div>';
+  var st=m.status?('<span class="chip '+(side==='you'?'warn':'ok')+'">'+m.status+'</span>'):'';
+  return '<div class="slot'+(m.fainted?' faint':'')+'" data-side="'+side+'" data-i="'+idx+'">'+img(m.name)+
+    '<div class="nm">'+esc(m.name)+'</div><div class="hpbar '+hpCls(m).split(' ')[1]+'"><i style="width:'+(100*Math.max(0,m.curHP)/m.st.hp)+'%"></i></div>'+
+    '<div class="st">'+Math.max(0,m.curHP)+'/'+m.st.hp+' '+st+'</div></div>';
+}
+function paint(){
+  var S=state.S;
+  document.getElementById('rowFoe').innerHTML=S.actB.map(function(m,i){return slotHtml(m,'foe',i);}).join('');
+  document.getElementById('rowYou').innerHTML=S.actA.map(function(m,i){return slotHtml(m,'you',i);}).join('');
+  document.getElementById('benchFoe').innerHTML=S.benchB.map(function(m){return m?img(m.name,m.fainted?'gone':''):'';}).join('');
+  document.getElementById('benchYou').innerHTML=S.benchA.map(function(m){return m?img(m.name,m.fainted?'gone':''):'';}).join('');
+  var f=S.field;
+  document.getElementById('skyBanner').textContent=(f.weather?f.weather+' · '+f.weatherT:'clear skies')+(f.terrain?' · '+f.terrain+' terrain':'');
+  renderOrders();
+  if(FLOORS[state.floor-1].brain==='alakazam')renderSight();
+}
+
+/* move buttons: live damage + PRICE on every option — Future Sight folded into the fight */
+function renderOrders(){
+  var S=state.S,h='';
+  S.actA.forEach(function(m,i){
+    if(!m||m.fainted)return;
+    var ord=state.orders[i];
+    h+='<div class="order"><h4>'+esc(m.name)+' — '+(ord?('<span class="picked">'+esc(ord.label)+'</span>'):'pick a move')+'</h4>';
+    (m.moves||[]).forEach(function(id){
+      var mv=MC.moves[id],meta='',risk='';
+      if(mv&&mv.bp){
+        var foes=S.actB.filter(function(x){return x&&!x.fainted;});
+        var best=foes.map(function(fo){var d=dmgRange(m,fo,mv,S.field,false);return Math.round(100*d.max/fo.st.hp);});
+        meta=best.length?('up to '+Math.max.apply(null,best)+'%'):'';
+        var x=foes.length?punishExposure(m,foes[0],id,{field:S.field,foes:foes}):null;
+        var fr=S.benchB&&S.benchB.filter(function(b){return b&&!b.fainted;}).length&&foes.length
+          ?clickFragility(m,id,foes[0],S.benchB.filter(function(b){return b&&!b.fainted;}),S.field):null;
+        if(x&&x.total>0.05)risk+='touch cost '+(100*x.total).toFixed(0)+'% · ';
+        if(x&&x.total<-0.02)risk+='proc HELPS you · ';
+        if(fr&&fr.fragile)risk+='bench: keeps '+(100*fr.retention).toFixed(0)+'% if '+esc(fr.cause);
+      }
+      h+='<button class="mv'+(ord&&ord.moveId===id?' sel':'')+'" data-slot="'+i+'" data-mv="'+id+'"><span class="meta">'+meta+'</span>'+esc(id)+(risk?'<span class="risk">⚠ '+risk+'</span>':'')+'</button>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('orders').innerHTML=h;
+  document.getElementById('orders').querySelectorAll('.mv').forEach(function(b){b.onclick=function(){pickMove(+b.dataset.slot,b.dataset.mv);};});
+  updateGo();
+}
+function pickMove(slot,id){
+  var S=state.S,me=S.actA[slot],mv=MC.moves[id];
+  var foes=S.actB.filter(function(x){return x&&!x.fainted;});
+  if(mv&&mv.bp&&!MEDI_SPREAD.has(id)&&foes.length>1){
+    state.pendingMove={slot:slot,id:id};
+    hint('Now click the target for '+id+'.');
+    document.getElementById('rowFoe').querySelectorAll('.slot').forEach(function(el){
+      var fo=S.actB[+el.dataset.i];
+      if(fo&&!fo.fainted){el.classList.add('targetable');el.onclick=function(){setOrder(slot,id,fo);};}
+    });
+  } else {
+    setOrder(slot,id,foes[0]||null);
+  }
+}
+function setOrder(slot,id,target){
+  var S=state.S,me=S.actA[slot];
+  var a=playerAction(me,id,target,S.field);
+  var label=id+(target&&MC.moves[id]&&MC.moves[id].bp&&!MEDI_SPREAD.has(id)?' → '+target.name:'');
+  if(a&&a.kind==='pass')label=id+' (engine can\'t model it — turn passes)';
+  state.orders[slot]={action:a,label:label,moveId:id};
+  state.pendingMove=null;hint('');
+  document.getElementById('rowFoe').querySelectorAll('.slot').forEach(function(el){el.classList.remove('targetable');el.onclick=null;});
+  renderOrders();
+}
+function hint(t){document.getElementById('orderHint').textContent=t;}
+function updateGo(){
+  var S=state.S,need=0,have=0;
+  S.actA.forEach(function(m,i){if(m&&!m.fainted){need++;if(state.orders[i])have++;}});
+  document.getElementById('btnGo').disabled=have<need;
+}
+
+/* boss mechanic: ALAKAZAM shows its read of YOU — the behaviour-clone priors on your actives */
+function renderSight(){
+  var S=state.S,h='<h3>◈ ALAKAZAM\'S FUTURE SIGHT — it reads you</h3>';
+  S.actA.forEach(function(m){
+    if(!m||m.fainted)return;
+    var pr=MC.priors[m.name];
+    if(!pr||!pr.length){h+='<div class="g">'+esc(m.name)+': no ladder priors — it cannot read this one</div>';return;}
+    var tot=pr.reduce(function(s,q){return s+q[1];},0)||1;
+    h+='<div class="g" style="margin-top:5px"><b>'+esc(m.name)+'</b></div>';
+    pr.slice(0,3).forEach(function(q){
+      h+='<div class="g"><span style="width:110px">'+esc(q[0])+'</span><span class="bar"><i style="width:'+(100*q[1]/tot)+'%"></i></span><span>'+(100*q[1]/tot).toFixed(0)+'%</span></div>';
+    });
+  });
+  document.getElementById('sightBox').innerHTML=h;
+}
+
+/* ---- resolve a turn: snapshot, step, narrate the diff ---- */
+function snap(S){return [].concat(S.actA,S.benchA,S.actB,S.benchB).filter(Boolean).map(function(m){
+  return {m:m,hp:m.curHP,st:m.status,f:m.fainted};});}
+function say(html){var l=document.getElementById('log');l.innerHTML+='<div>'+html+'</div>';l.scrollTop=l.scrollHeight;}
+document.getElementById('btnGo').onclick=function(){
+  var S=state.S,F=FLOORS[state.floor-1];
+  var acts=new Map();
+  S.actA.forEach(function(m,i){if(m&&!m.fainted&&state.orders[i])acts.set(m,state.orders[i].action);});
+  /* the guardian's brain, per floor band */
+  var actsB=null;
+  if(F.brain==='wild'){
+    actsB=new Map();
+    S.actB.forEach(function(m){
+      if(!m||m.fainted)return;
+      var dmgMoves=(m.moves||[]).filter(function(id){var v=MC.moves[id];return v&&v.bp;});
+      if(!dmgMoves.length)return;
+      var id=dmgMoves[Math.floor(Math.random()*dmgMoves.length)];
+      var foes=S.actA.filter(function(x){return x&&!x.fainted;});
+      actsB.set(m,playerAction(m,id,foes[Math.floor(Math.random()*foes.length)]||null,S.field));
+    });
+  }
+  if(typeof setPurePriors==='function')setPurePriors(F.brain==='clone');
+  var wasWx=S.field.weather,before=snap(S);
+  S.actA.forEach(function(m,i){if(m&&state.orders[i])say('<span class="yb">'+esc(m.name)+'</span> — '+esc(state.orders[i].label));});
+  battleTurn(S,state.turnRng,acts,actsB);
+  if(typeof setPurePriors==='function')setPurePriors(false);
+  before.forEach(function(b){
+    var d=b.hp-b.m.curHP;
+    var who=(S.actA.indexOf(b.m)>=0||S.benchA.indexOf(b.m)>=0)?'yb':'fb';
+    if(b.m.fainted&&!b.f)say('<span class="ko">'+esc(b.m.name)+' fainted!</span>');
+    else if(d>0)say('<span class="'+who+'">'+esc(b.m.name)+'</span> took '+d+'.');
+    else if(d<0)say('<span class="'+who+'">'+esc(b.m.name)+'</span> recovered '+(-d)+'.');
+    if(b.m.status&&b.m.status!==b.st)say('<span class="'+who+'">'+esc(b.m.name)+'</span> is now <b>'+b.m.status+'</b>.');
+  });
+  if(S.field.weather!==wasWx)say('<span class="wx">The sky changed: '+(S.field.weather||'clear')+'.</span>');
+  state.orders={};
+  if(battleOver(S)){finish(battleResult(S));return;}
+  paint();
+};
+
+function finish(r){
+  var box=document.getElementById('resultBox');
+  document.getElementById('pBattle').classList.add('hide');
+  document.getElementById('pResult').classList.remove('hide');
+  if(r===1){
+    if(state.floor===10){
+      box.innerHTML='<h2 style="color:var(--psy2)">◈ YOU BEAT ALAKAZAM ◈</h2>'+img('alakazam-mega')+
+        '<p style="font-weight:700">The Tower is cleared. The boss played every price this engine can compute — and you out-played it.</p>'+
+        '<button class="bbtn psy" onclick="location.reload()">Climb again</button>';
+      state.best=Math.max(state.best,10);localStorage.setItem('towerBest',state.best);rail();return;
+    }
+    state.floor++;state.best=Math.max(state.best,state.floor-1);localStorage.setItem('towerBest',state.best);rail();
+    box.innerHTML='<h2 style="color:var(--you)">FLOOR CLEARED!</h2><p style="font-weight:700">Your team is healed. The next guardian is '+
+      (state.floor===10?'<b style="color:var(--psy2)">ALAKAZAM</b>':'waiting')+'.</p>'+
+      '<button class="bbtn psy" id="btnNext">Next floor →</button>';
+    document.getElementById('btnNext').onclick=startFloor;
+  } else {
+    box.innerHTML='<h2 style="color:var(--foe)">'+(r===0.5?'DEAD EVEN — the Tower counts it a fall.':'YOU FELL.')+'</h2>'+
+      '<p style="font-weight:700">Streak: '+(state.floor-1)+' floor'+(state.floor===2?'':'s')+'. The Tower resets.</p>'+
+      '<button class="bbtn" id="btnRetry">Back to the doors</button>';
+    state.floor=1;rail();
+    document.getElementById('btnRetry').onclick=function(){
+      document.getElementById('pResult').classList.add('hide');
+      document.getElementById('pSelect').classList.remove('hide');
+    };
+  }
+}
+
+rail();renderPick();
+})();
+</script>
+</body></html>
