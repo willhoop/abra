@@ -169,9 +169,64 @@ right-hand column below is close to what the engine actually faces.
 | Shed Skin | 3 | 2 | -1 |
 | Refrigerate | 1 | 2 | +1 |
 
-Two entries deserve singling out: **Fairy Aura** and **Shadow Tag** are on *zero* sheets and
-appear nowhere else in this document, yet reach the field on 1,455 and 446 of them. Shadow Tag
-prevents switching, and the engine has no entry for it at all.
+## The mega abilities, with their tags — for review
+
+These reach the field only after evolution, so they carry little or no sheet usage and are
+**absent from the ability tables below**. `untagged` here means genuinely no mechanic;
+*not in the tag table* means the ability never appeared on a sheet, so nothing tagged it —
+which is exactly the hole this section exists to close.
+
+| ability | reaches the field | on sheets | tags |
+|---|---:|---:|---|
+| Adaptability | **3,021** | 2,855 | `stabBoost` |
+| Drought | **2,844** | 621 | `weatherSetter` |
+| Tough Claws | **2,374** | 272 | `boostsMoveClass` `damageBoost` |
+| Levitate | **2,308** | 1,785 | `typeImmunity` |
+| Contrary | **2,091** | 134 | `invertsBoosts` |
+| Swift Swim | **1,676** | 325 | `speedCond` |
+| Pixilate | **1,667** | 1,448 | `convertsMoveType` `damageBoost` |
+| Snow Warning | **1,502** | 954 | `weatherSetter` |
+| Fairy Aura | **1,455** | 0 | `auraBoost` |
+| No Guard | **1,133** | 22 | `noGuard` |
+| Sand Stream | **849** | 848 | `weatherSetter` |
+| Huge Power | **814** | 75 | `damageBoost` |
+| Regenerator | **684** | 555 | `healsOnSwitchOut` |
+| Thick Fat | **480** | 71 | `halvesTypeDamage` |
+| Shadow Tag | **446** | 0 | `preventsSwitch` |
+| Multiscale | **394** | 353 | `damageReduce` |
+| Mega Launcher | **377** | 20 | `boostsMoveClass` `damageBoost` |
+| Spicy Spray | **284** | 0 | `punishesAttacker` |
+| Sheer Force | **278** | 94 | `damageBoost` |
+| Eelevate | **259** | 0 | `untagged` |
+| Mold Breaker | **237** | 130 | `ignoresDefenderAbility` |
+| Electric Surge | **217** | 0 | `terrainSetter` |
+| Magic Bounce | **190** | 92 | `reflectsStatusMoves` |
+| Fire Mane | **188** | 0 | `damageBoost` |
+| Protean | **171** | 167 | `typeBecomesMoveType` |
+| Mega Sol | **139** | 0 | `untagged` |
+| Parental Bond | **133** | 0 | `hitsTwice` |
+| Sand Force | **109** | 18 | `damageBoost` `weatherChipImmune` |
+| Shell Armor | **103** | 25 | `preventsCrit` |
+| Infiltrator | **97** | 56 | `untagged` |
+| Iron Fist | **70** | 55 | `boostsMoveClass` `damageBoost` |
+| Berserk | **55** | 32 | `untagged` |
+| Piercing Drill | **53** | 0 | `untagged` |
+| Bulletproof | **53** | 52 | `untagged` |
+| Stalwart | **45** | 27 | `untagged` |
+| Filter | **38** | 0 | `damageReduce` |
+| Unseen Fist | **26** | 0 | `untagged` |
+| Skill Link | **25** | 4 | `untagged` |
+| Healer | **25** | 20 | `randomBoostEachTurn` |
+| Aerilate | **12** | 0 | `convertsMoveType` `damageBoost` |
+| Dragonize | **11** | 0 | `convertsMoveType` `damageBoost` |
+| Pure Power | **11** | 9 | `damageBoost` |
+| Strong Jaw | **10** | 5 | `boostsMoveClass` `damageBoost` |
+| Innards Out | **7** | 0 | `buffsHolderOnHit` |
+| Refrigerate | **2** | 1 | `convertsMoveType` `damageBoost` |
+
+**Shadow Tag** is the one to look at first: 446 fields, zero sheets, and it prevents switching
+outright. **Fairy Aura** is the largest at 1,455. **Contrary** at 2,091 inverts every stat
+change, which turns a debuff into a buff and makes Intimidate a gift.
 
 ---
 
@@ -687,10 +742,10 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Queenly Majesty | 226 | 0.3% | `blocksMove` |
 | Snow Cloak | 219 | 0.3% | `accuracyMod` `weatherChipImmune` |
 | Compound Eyes | 210 | 0.3% | `accuracyMod` |
-| Soundproof | 207 | 0.3% | `untagged` |
+| Soundproof | 207 | 0.3% | `reflectsStatusMoves` |
 | Unaware | 173 | 0.3% | `ignoresStatStages` |
 | Solid Rock | 170 | 0.3% | `damageReduce` |
-| Protean | 167 | 0.3% | `untagged` |
+| Protean | 167 | 0.3% | `typeBecomesMoveType` |
 | Sharpness | 155 | 0.2% | `boostsMoveClass` `damageBoost` |
 | Sturdy | 154 | 0.2% | `survivesFromFull` |
 | Stance Change | 149 | 0.2% | `untagged` |
@@ -702,14 +757,14 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Flame Body | 114 | 0.2% | `punishesAttacker` `contactPunish` |
 | Trace | 114 | 0.2% | `untagged` |
 | Sheer Force | 94 | 0.1% | `damageBoost` |
-| Magic Bounce | 92 | 0.1% | `untagged` |
+| Magic Bounce | 92 | 0.1% | `reflectsStatusMoves` |
 | Overcoat | 90 | 0.1% | `weatherChipImmune` |
 | Pressure | 85 | 0.1% | `untagged` |
 | Huge Power | 75 | 0.1% | `damageBoost` |
 | Leaf Guard | 75 | 0.1% | `statusImmune` |
-| Water Bubble | 73 | 0.1% | `damageBoost` `statusImmune` |
+| Water Bubble | 73 | 0.1% | `halvesTypeDamage` `damageBoost` `statusImmune` |
 | Frisk | 72 | 0.1% | `untagged` |
-| Thick Fat | 71 | 0.1% | `untagged` |
+| Thick Fat | 71 | 0.1% | `halvesTypeDamage` |
 | Cloud Nine | 70 | 0.1% | `untagged` |
 | Disguise | 64 | 0.1% | `preventsCrit` `formeChange` |
 | Illusion | 63 | 0.1% | `formeChange` |
@@ -732,7 +787,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Natural Cure | 38 | 0.1% | `healsOnSwitchOut` |
 | Moxie | 37 | 0.1% | `untagged` |
 | Symbiosis | 37 | 0.1% | `untagged` |
-| Purifying Salt | 35 | 0.1% | `statusImmune` |
+| Purifying Salt | 35 | 0.1% | `halvesTypeDamage` `statusImmune` |
 | Volt Absorb | 33 | 0.1% | `typeImmunity` |
 | Berserk | 32 | 0.0% | `untagged` |
 | Earth Eater | 31 | 0.0% | `typeImmunity` |
@@ -747,8 +802,8 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Sniper | 24 | 0.0% | `critDamageUp` |
 | Hunger Switch | 23 | 0.0% | `untagged` |
 | Steadfast | 23 | 0.0% | `untagged` |
-| No Guard | 22 | 0.0% | `untagged` |
-| Sap Sipper | 22 | 0.0% | `typeImmunity` |
+| No Guard | 22 | 0.0% | `noGuard` |
+| Sap Sipper | 22 | 0.0% | `reflectsStatusMoves` `typeImmunity` |
 | Marvel Scale | 21 | 0.0% | `untagged` |
 | Reckless | 21 | 0.0% | `damageBoost` |
 | Wandering Spirit | 21 | 0.0% | `contactPunish` |
@@ -767,7 +822,7 @@ Every ability that appears on a real sheet, in usage order, with the tags it car
 | Supersweet Syrup | 13 | 0.0% | `onSwitchInDrop` |
 | Sweet Veil | 13 | 0.0% | `untagged` |
 | Guts | 12 | 0.0% | `damageBoost` |
-| Heatproof | 12 | 0.0% | `untagged` |
+| Heatproof | 12 | 0.0% | `halvesTypeDamage` |
 | Corrosion | 11 | 0.0% | `untagged` |
 | Harvest | 11 | 0.0% | `randomBoostEachTurn` |
 | Gooey | 10 | 0.0% | `punishesAttacker` `contactPunish` |
@@ -2942,60 +2997,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
-### `untagged` — 2.9%, 47 abilities — **NOT READ**
-
-*?*
-
-| abilitie | on sheets | share |
-|---|---:|---:|
-| Rain Dish | 240 | 0.4% |
-| Soundproof | 207 | 0.3% |
-| Protean | 167 | 0.3% |
-| Stance Change | 149 | 0.2% |
-| Trace | 114 | 0.2% |
-| Magic Bounce | 92 | 0.1% |
-| Pressure | 85 | 0.1% |
-| Frisk | 72 | 0.1% |
-| Thick Fat | 71 | 0.1% |
-| Cloud Nine | 70 | 0.1% |
-| Magic Guard | 60 | 0.1% |
-| Infiltrator | 56 | 0.1% |
-| Synchronize | 53 | 0.1% |
-| Bulletproof | 52 | 0.1% |
-| Magician | 41 | 0.1% |
-| Moxie | 37 | 0.1% |
-| Symbiosis | 37 | 0.1% |
-| Berserk | 32 | 0.0% |
-| Pickpocket | 28 | 0.0% |
-| Stalwart | 27 | 0.0% |
-| Screen Cleaner | 24 | 0.0% |
-| Hunger Switch | 23 | 0.0% |
-| Steadfast | 23 | 0.0% |
-| No Guard | 22 | 0.0% |
-| Marvel Scale | 21 | 0.0% |
-| Aroma Veil | 20 | 0.0% |
-| Early Bird | 14 | 0.0% |
-| Quick Draw | 13 | 0.0% |
-| Sweet Veil | 13 | 0.0% |
-| Heatproof | 12 | 0.0% |
-| Corrosion | 11 | 0.0% |
-| Cud Chew | 8 | 0.0% |
-| Heavy Metal | 6 | 0.0% |
-| Poison Heal | 5 | 0.0% |
-| Gluttony | 4 | 0.0% |
-| Skill Link | 4 | 0.0% |
-| Curious Medicine | 3 | 0.0% |
-| Forecast | 2 | 0.0% |
-| Forewarn | 2 | 0.0% |
-| Fur Coat | 2 | 0.0% |
-| Light Metal | 2 | 0.0% |
-| Long Reach | 2 | 0.0% |
-| Anticipation | 1 | 0.0% |
-| Cheek Pouch | 1 | 0.0% |
-| Hydration | 1 | 0.0% |
-| Shield Dust | 1 | 0.0% |
-| Steely Spirit | 1 | 0.0% |
-
 ### `blocksMove` — 2.9%, 3 abilities
 
 *a whole class of move fails*
@@ -3053,6 +3054,56 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Unburden | 1,465 | 2.2% |
 
 *1 more carry this tag but appear on no sheet in the corpus.*
+
+### `untagged` — 2.1%, 45 abilities — **NOT READ**
+
+*?*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Rain Dish | 240 | 0.4% |
+| Stance Change | 149 | 0.2% |
+| Trace | 114 | 0.2% |
+| Pressure | 85 | 0.1% |
+| Frisk | 72 | 0.1% |
+| Cloud Nine | 70 | 0.1% |
+| Magic Guard | 60 | 0.1% |
+| Infiltrator | 56 | 0.1% |
+| Synchronize | 53 | 0.1% |
+| Bulletproof | 52 | 0.1% |
+| Magician | 41 | 0.1% |
+| Moxie | 37 | 0.1% |
+| Symbiosis | 37 | 0.1% |
+| Berserk | 32 | 0.0% |
+| Pickpocket | 28 | 0.0% |
+| Stalwart | 27 | 0.0% |
+| Screen Cleaner | 24 | 0.0% |
+| Hunger Switch | 23 | 0.0% |
+| Steadfast | 23 | 0.0% |
+| Marvel Scale | 21 | 0.0% |
+| Aroma Veil | 20 | 0.0% |
+| Early Bird | 14 | 0.0% |
+| Quick Draw | 13 | 0.0% |
+| Sweet Veil | 13 | 0.0% |
+| Corrosion | 11 | 0.0% |
+| Cud Chew | 8 | 0.0% |
+| Heavy Metal | 6 | 0.0% |
+| Poison Heal | 5 | 0.0% |
+| Gluttony | 4 | 0.0% |
+| Skill Link | 4 | 0.0% |
+| Curious Medicine | 3 | 0.0% |
+| Forecast | 2 | 0.0% |
+| Forewarn | 2 | 0.0% |
+| Fur Coat | 2 | 0.0% |
+| Light Metal | 2 | 0.0% |
+| Long Reach | 2 | 0.0% |
+| Anticipation | 1 | 0.0% |
+| Cheek Pouch | 1 | 0.0% |
+| Hydration | 1 | 0.0% |
+| Shield Dust | 1 | 0.0% |
+| Steely Spirit | 1 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
 
 ### `blocksBerries` — 2.0%, 3 abilities — **NOT READ**
 
@@ -3191,6 +3242,16 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Rock Head | 399 | 0.6% |
 
+### `reflectsStatusMoves` — 0.5%, 3 abilities — **NOT READ**
+
+*Status moves aimed at it are BOUNCED back at the user*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Soundproof | 207 | 0.3% |
+| Magic Bounce | 92 | 0.1% |
+| Sap Sipper | 22 | 0.0% |
+
 ### `statusImmune` — 0.4%, 12 abilities — **NOT READ**
 
 *a status cannot land*
@@ -3242,6 +3303,17 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
+### `halvesTypeDamage` — 0.3%, 4 abilities — **NOT READ**
+
+*incoming damage of specific types uses a HALVED attacking stat*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Water Bubble | 73 | 0.1% |
+| Thick Fat | 71 | 0.1% |
+| Purifying Salt | 35 | 0.1% |
+| Heatproof | 12 | 0.0% |
+
 ### `ignoresStatStages` — 0.3%, 1 abilities — **NOT READ**
 
 *the boost multiplier does not apply, permanently*
@@ -3249,6 +3321,16 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | abilitie | on sheets | share |
 |---|---:|---:|
 | Unaware | 173 | 0.3% |
+
+### `typeBecomesMoveType` — 0.3%, 2 abilities — **NOT READ**
+
+*the user retypes to whatever it just used, once per switch-in*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Protean | 167 | 0.3% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
 
 ### `survivesFromFull` — 0.2%, 1 abilities — **NOT READ**
 
@@ -3297,6 +3379,14 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Sniper | 24 | 0.0% |
 
+### `noGuard` — 0.0%, 1 abilities — **NOT READ**
+
+*accuracy := 100% for EVERY move, in both directions*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| No Guard | 22 | 0.0% |
+
 ### `critRatioUp` — 0.0%, 2 abilities — **NOT READ**
 
 *P(crit) raised*
@@ -3319,6 +3409,18 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 ### `preventsSwitch` — 0.0%, 3 abilities — **NOT READ**
 
 *the foe cannot leave*
+
+*Legal in the format, never brought.*
+
+### `auraBoost` — 0.0%, 2 abilities — **NOT READ**
+
+*multiplies one TYPE for every Pokemon on the field, friend and foe*
+
+*Legal in the format, never brought.*
+
+### `hitsTwice` — 0.0%, 1 abilities — **NOT READ**
+
+*every damaging move strikes twice, the second at quarter damage*
 
 *Legal in the format, never brought.*
 
@@ -3662,15 +3764,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 161 |
-| — move / ability / item | 94 / 44 / 19 |
+| tags total | 167 |
+| — move / ability / item | 94 / 50 / 19 |
 | moves tagged | 500 |
-| abilities tagged | 248 |
+| abilities tagged | 256 |
 | items tagged | 146 |
-| **tags read by nothing** | **96** |
+| **tags read by nothing** | **102** |
 | tags that match no member at all | 7 |
 
-**96 of 161 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**102 of 167 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.

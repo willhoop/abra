@@ -193,9 +193,38 @@ const ab1 = sp => (sp && sp.abilities) ? Object.values(sp.abilities)[0] : null;
       (r.d > 0 ? '+' : '') + r.d.toLocaleString() + ' |');
   }
   P('');
-  P('Two entries deserve singling out: **Fairy Aura** and **Shadow Tag** are on *zero* sheets and');
-  P('appear nowhere else in this document, yet reach the field on 1,455 and 446 of them. Shadow Tag');
-  P('prevents switching, and the engine has no entry for it at all.');
+  /* THE REVIEW LIST FOR MEGA ABILITIES. Will: "u still didnt send the mega abilities in their
+   * highlighted and what all their tags are."
+   *
+   * Right, and the reason is structural: every ability table in this document is built from SHEET
+   * usage, so an ability that reaches the field only through evolution has zero rows and never
+   * appears. Fairy Aura and Shadow Tag are on 1,455 and 446 fields and are invisible in a document
+   * about which abilities matter. This section is the same review shape as the others -- one row per
+   * ability, ordered by how much of the field it covers, with its full tag list -- for the abilities
+   * that only exist after a mega evolves. */
+  const megaAbilities = drift.filter(r => r.d > 0)
+    .map(r => ({ ...r, id: norm(r.name) }))
+    .sort((a, b) => b.fl - a.fl);
+  P('## The mega abilities, with their tags — for review');
+  P('');
+  P('These reach the field only after evolution, so they carry little or no sheet usage and are');
+  P('**absent from the ability tables below**. `untagged` here means genuinely no mechanic;');
+  P('*not in the tag table* means the ability never appeared on a sheet, so nothing tagged it —');
+  P('which is exactly the hole this section exists to close.');
+  P('');
+  P('| ability | reaches the field | on sheets | tags |');
+  P('|---|---:|---:|---|');
+  for (const r of megaAbilities) {
+    const rec = T.abilities[r.id];
+    const tags = rec && (rec.tags || []).length
+      ? rec.tags.map(t => '`' + t + '`').join(' ')
+      : (rec ? '`untagged`' : '**— not in the tag table —**');
+    P('| ' + r.name + ' | **' + r.fl.toLocaleString() + '** | ' + r.sh.toLocaleString() + ' | ' + tags + ' |');
+  }
+  P('');
+  P('**Shadow Tag** is the one to look at first: 446 fields, zero sheets, and it prevents switching');
+  P('outright. **Fairy Aura** is the largest at 1,455. **Contrary** at 2,091 inverts every stat');
+  P('change, which turns a debuff into a buff and makes Intimidate a gift.');
   P('');
   P('---');
   P('');

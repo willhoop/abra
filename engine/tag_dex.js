@@ -63,10 +63,12 @@ const DMG = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
 const readsIt = probe => (BOARD.includes(probe) || DMG.includes(probe));
 
 /* ---- USAGE, so the report is ordered by what actually turns up ------------------------------- */
+let F_GAMES = null;                 /* kept so the mega-reachable sweep can reuse the same corpus */
 function usage() {
   const out = { move: {}, item: {}, ability: {}, entries: 0 };
   let F; try { F = require('./fit_policy.js'); } catch (e) { return out; }
   let games; try { games = F.loadCorpus().games; } catch (e) { return out; }
+  F_GAMES = games;
   for (const g of games) {
     for (const side of ['p1', 'p2']) {
       for (const e of (g.sheets && g.sheets[side]) || []) {
@@ -1408,6 +1410,52 @@ const ABILITY_TAGS = [
        + 'forecast, not in a feature. Recorded rather than pretended-away',
     of: a => (a.onResidual && /randomChance|sample\(|this\.random/.test(String(a.onResidual)))
              ? { randomStat: true, up: 2, down: 1 } : null },
+  /* THE MEGA-ONLY ABILITIES. Will: "u still didnt send the mega abilities in their highlighted and
+   * what all their tags are."
+   *
+   * These reach the field only through evolution, so they have zero sheet usage, so nothing ever
+   * put them in the entity table, so nothing tagged them. Fairy Aura is on 1,455 fields and did not
+   * exist in this document at all. No Guard is on 1,133 and was untagged despite being one of the
+   * largest single effects in the game. */
+  { tag: 'noGuard', param: 'accuracy := 100% for EVERY move, in both directions', probe: 'onAnyAccuracy',
+    why: 'No Guard reaches 1,133 fields. It deletes the accuracy term entirely -- its own Hydro Pump '
+       + 'never misses and neither does anything aimed at it. Every accuracy-weighted score is wrong '
+       + 'in both directions against it',
+    of: a => a.onAnyAccuracy ? { accuracy: 1, bothDirections: true } : null },
+  { tag: 'auraBoost', param: 'multiplies one TYPE for every Pokemon on the field, friend and foe', probe: 'onAnyBasePower',
+    why: 'Fairy Aura (1,455 fields) makes every Fairy move 1.33x -- including the foe\'s. A '
+       + 'field-wide multiplier that helps both sides is unlike any other boost in the taxonomy',
+    of: a => {
+      /* Showdown writes the guard as an EARLY RETURN -- `move.type !== "Fairy"` -- so a probe
+       * looking for `===` matched nothing. Third time tonight a handler said the opposite of the
+       * shape the reader expected; the empty-tag guard caught it again. */
+      const src = String(a.onAnyBasePower || '');
+      const t = (src.match(/move\.type\s*!==?\s*"(\w+)"/) || src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1];
+      if (!t) return null;
+      const m = src.match(/chainModify\(\[?\s*(\d+)/);
+      return { type: t, mult: m ? +(m[1] / 4096).toFixed(2) : 1.33, appliesToEveryone: true };
+    } },
+  { tag: 'halvesTypeDamage', param: 'incoming damage of specific types uses a HALVED attacking stat', probe: 'onSourceModifyAtk',
+    why: 'Thick Fat (480 fields) halves Fire and Ice. It is not a resistance and does not show in '
+       + 'the type chart, so the defensive calculation misses it entirely',
+    of: a => {
+      const src = String(a.onSourceModifyAtk || '') + String(a.onSourceModifySpA || '');
+      const t = [...src.matchAll(/move\.type\s*===?\s*"(\w+)"/g)].map(m => m[1]);
+      if (!t.length) return null;
+      return { types: [...new Set(t)], attackerStatMult: 0.5 };
+    } },
+  { tag: 'reflectsStatusMoves', param: 'Status moves aimed at it are BOUNCED back at the user', probe: 'onAllyTryHitSide',
+    why: 'Magic Bounce (190 fields). Will-O-Wisp, Taunt and Thunder Wave do not merely fail, they '
+       + 'land on whoever threw them -- so the move is not worth zero, it is worth negative',
+    of: a => a.onAllyTryHitSide ? { bounces: 'Status', backAtUser: true } : null },
+  { tag: 'hitsTwice', param: 'every damaging move strikes twice, the second at quarter damage', probe: 'onSourceModifySecondaries',
+    why: 'Parental Bond (133 fields). Total output is 1.25x, and it breaks Focus Sash and Sturdy '
+       + 'on its own -- the first hit leaves 1 HP, the second kills',
+    of: a => (a.onPrepareHit && a.onSourceModifySecondaries) ? { hits: 2, secondHitMult: 0.25 } : null },
+  { tag: 'typeBecomesMoveType', param: 'the user retypes to whatever it just used, once per switch-in', probe: 'onPrepareHit',
+    why: 'Protean (171 fields). Its STAB and its defensive typing both change mid-turn, so a type '
+       + 'chart read at the start of the turn is stale by the time damage is applied',
+    of: a => (a.onPrepareHit && /setType/.test(String(a.onPrepareHit))) ? { oncePerSwitchIn: true } : null },
   { tag: 'blocksStatusMoves', param: 'every Status-category move fails against it', probe: 'goodasgold',
     why: 'Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% '
        + 'of move slots that are status',
@@ -1631,6 +1679,22 @@ const ABILITY_TAGS = [
 
 /* ---- BUILD ----------------------------------------------------------------------------------- */
 const U = usage();
+/* Abilities that only ever appear AFTER a mega evolves have zero sheet usage, so the usage gate
+ * excluded them, so nothing tagged them, so they were invisible in a document about which abilities
+ * matter. Fairy Aura is on 1,455 fields and was not in this file at all. This admits anything a
+ * stone on a real sheet can turn into. */
+const REACHABLE = new Set();
+try {
+  for (const g of (F_GAMES || [])) for (const side of ['p1', 'p2'])
+    for (const e of (g.sheets && g.sheets[side]) || []) {
+      const it = dex.items.get(norm(e.item || ''));
+      if (!it || !it.megaStone) continue;
+      const base = dex.species.get(norm(e.species));
+      const mega = dex.species.get(it.megaStone[base.baseSpecies] || Object.values(it.megaStone)[0]);
+      if (mega && mega.abilities) for (const ab of Object.values(mega.abilities)) REACHABLE.add(norm(ab));
+    }
+} catch (e) { /* corpus unavailable -- fall back to usage-only, same as before */ }
+
 function collect(kind, all, tags, usageMap) {
   const entries = {}, index = {};
   for (const t of tags) index[t.tag] = { tag: t.tag, kind, param: t.param, why: t.why,
@@ -1652,7 +1716,7 @@ function collect(kind, all, tags, usageMap) {
      * that looks for untagged members iterated a set which by construction contained none. It ran
      * clean on every build and could not have failed. That is the exact shape of bug this file was
      * written to catch, sitting inside the guard written for Will's placeholder rule. */
-    if (hit.length || (usageMap[id] || 0) > 0)
+    if (hit.length || (usageMap[id] || 0) > 0 || REACHABLE.has(id))
       entries[id] = { name: o.name, tags: hit, uses: usageMap[id] || 0, params };
   }
   return { entries, index };

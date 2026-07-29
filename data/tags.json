@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T06:29:51.747Z",
+ "generated": "2026-07-29T06:43:19.545Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1959,6 +1959,85 @@
    ]
   },
   {
+   "tag": "noGuard",
+   "kind": "ability",
+   "param": "accuracy := 100% for EVERY move, in both directions",
+   "why": "No Guard reaches 1,133 fields. It deletes the accuracy term entirely -- its own Hydro Pump never misses and neither does anything aimed at it. Every accuracy-weighted score is wrong in both directions against it",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 22,
+   "examples": [
+    "No Guard"
+   ]
+  },
+  {
+   "tag": "auraBoost",
+   "kind": "ability",
+   "param": "multiplies one TYPE for every Pokemon on the field, friend and foe",
+   "why": "Fairy Aura (1,455 fields) makes every Fairy move 1.33x -- including the foe's. A field-wide multiplier that helps both sides is unlike any other boost in the taxonomy",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "halvesTypeDamage",
+   "kind": "ability",
+   "param": "incoming damage of specific types uses a HALVED attacking stat",
+   "why": "Thick Fat (480 fields) halves Fire and Ice. It is not a resistance and does not show in the type chart, so the defensive calculation misses it entirely",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 191,
+   "examples": [
+    "Heatproof",
+    "Purifying Salt",
+    "Thick Fat",
+    "Water Bubble"
+   ]
+  },
+  {
+   "tag": "reflectsStatusMoves",
+   "kind": "ability",
+   "param": "Status moves aimed at it are BOUNCED back at the user",
+   "why": "Magic Bounce (190 fields). Will-O-Wisp, Taunt and Thunder Wave do not merely fail, they land on whoever threw them -- so the move is not worth zero, it is worth negative",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 321,
+   "examples": [
+    "Magic Bounce",
+    "Sap Sipper",
+    "Soundproof"
+   ]
+  },
+  {
+   "tag": "hitsTwice",
+   "kind": "ability",
+   "param": "every damaging move strikes twice, the second at quarter damage",
+   "why": "Parental Bond (133 fields). Total output is 1.25x, and it breaks Focus Sash and Sturdy on its own -- the first hit leaves 1 HP, the second kills",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "typeBecomesMoveType",
+   "kind": "ability",
+   "param": "the user retypes to whatever it just used, once per switch-in",
+   "why": "Protean (171 fields). Its STAB and its defensive typing both change mid-turn, so a type chart read at the start of the turn is stale by the time damage is applied",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 167,
+   "examples": [
+    "Protean"
+   ]
+  },
+  {
    "tag": "blocksStatusMoves",
    "kind": "ability",
    "param": "every Status-category move fails against it",
@@ -2510,6 +2589,16 @@
      "id": "longreach",
      "name": "Long Reach",
      "uses": 2
+    },
+    {
+     "id": "piercingdrill",
+     "name": "Piercing Drill",
+     "uses": 0
+    },
+    {
+     "id": "unseenfist",
+     "name": "Unseen Fist",
+     "uses": 0
     },
     {
      "id": "aftermath",
@@ -4125,6 +4214,21 @@
      "id": "anticipation",
      "name": "Anticipation",
      "uses": 1
+    },
+    {
+     "id": "darkaura",
+     "name": "Dark Aura",
+     "uses": 0
+    },
+    {
+     "id": "fairyaura",
+     "name": "Fairy Aura",
+     "uses": 0
+    },
+    {
+     "id": "parentalbond",
+     "name": "Parental Bond",
+     "uses": 0
     },
     {
      "id": "wonderguard",
@@ -18324,6 +18428,14 @@
     }
    }
   },
+  "eelevate": {
+   "name": "Eelevate",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 0,
+   "params": {}
+  },
   "firemane": {
    "name": "Fire Mane",
    "tags": [
@@ -18352,6 +18464,14 @@
     }
    }
   },
+  "megasol": {
+   "name": "Mega Sol",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 0,
+   "params": {}
+  },
   "naturalcure": {
    "name": "Natural Cure",
    "tags": [
@@ -18363,6 +18483,14 @@
      "heal": 0.3333333333333333
     }
    }
+  },
+  "piercingdrill": {
+   "name": "Piercing Drill",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 0,
+   "params": {}
   },
   "regenerator": {
    "name": "Regenerator",
@@ -18387,6 +18515,14 @@
      "compounds": false
     }
    }
+  },
+  "unseenfist": {
+   "name": "Unseen Fist",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 0,
+   "params": {}
   },
   "adaptability": {
    "name": "Adaptability",
@@ -18740,6 +18876,20 @@
     }
    }
   },
+  "darkaura": {
+   "name": "Dark Aura",
+   "tags": [
+    "auraBoost"
+   ],
+   "uses": 0,
+   "params": {
+    "auraBoost": {
+     "type": "Dark",
+     "mult": 1.33,
+     "appliesToEveryone": true
+    }
+   }
+  },
   "dazzling": {
    "name": "Dazzling",
    "tags": [
@@ -18928,6 +19078,20 @@
    "params": {
     "buffsHolderOnHit": {
      "compounds": true
+    }
+   }
+  },
+  "fairyaura": {
+   "name": "Fairy Aura",
+   "tags": [
+    "auraBoost"
+   ],
+   "uses": 0,
+   "params": {
+    "auraBoost": {
+     "type": "Fairy",
+     "mult": 1.33,
+     "appliesToEveryone": true
     }
    }
   },
@@ -19250,10 +19414,17 @@
   "heatproof": {
    "name": "Heatproof",
    "tags": [
-    "untagged"
+    "halvesTypeDamage"
    ],
    "uses": 12,
-   "params": {}
+   "params": {
+    "halvesTypeDamage": {
+     "types": [
+      "Fire"
+     ],
+     "attackerStatMult": 0.5
+    }
+   }
   },
   "heavymetal": {
    "name": "Heavy Metal",
@@ -19569,6 +19740,18 @@
     }
    }
   },
+  "libero": {
+   "name": "Libero",
+   "tags": [
+    "typeBecomesMoveType"
+   ],
+   "uses": 0,
+   "params": {
+    "typeBecomesMoveType": {
+     "oncePerSwitchIn": true
+    }
+   }
+  },
   "lightmetal": {
    "name": "Light Metal",
    "tags": [
@@ -19645,10 +19828,15 @@
   "magicbounce": {
    "name": "Magic Bounce",
    "tags": [
-    "untagged"
+    "reflectsStatusMoves"
    ],
    "uses": 92,
-   "params": {}
+   "params": {
+    "reflectsStatusMoves": {
+     "bounces": "Status",
+     "backAtUser": true
+    }
+   }
   },
   "magicguard": {
    "name": "Magic Guard",
@@ -19868,10 +20056,15 @@
   "noguard": {
    "name": "No Guard",
    "tags": [
-    "untagged"
+    "noGuard"
    ],
    "uses": 22,
-   "params": {}
+   "params": {
+    "noGuard": {
+     "accuracy": 1,
+     "bothDirections": true
+    }
+   }
   },
   "normalize": {
    "name": "Normalize",
@@ -19981,6 +20174,19 @@
      "blocks": "atk",
      "onlyGrassTypes": null,
      "protectsAllies": null
+    }
+   }
+  },
+  "parentalbond": {
+   "name": "Parental Bond",
+   "tags": [
+    "hitsTwice"
+   ],
+   "uses": 0,
+   "params": {
+    "hitsTwice": {
+     "hits": 2,
+     "secondHitMult": 0.25
     }
    }
   },
@@ -20178,10 +20384,14 @@
   "protean": {
    "name": "Protean",
    "tags": [
-    "untagged"
+    "typeBecomesMoveType"
    ],
    "uses": 167,
-   "params": {}
+   "params": {
+    "typeBecomesMoveType": {
+     "oncePerSwitchIn": true
+    }
+   }
   },
   "psychicsurge": {
    "name": "Psychic Surge",
@@ -20235,10 +20445,17 @@
   "purifyingsalt": {
    "name": "Purifying Salt",
    "tags": [
+    "halvesTypeDamage",
     "statusImmune"
    ],
    "uses": 35,
    "params": {
+    "halvesTypeDamage": {
+     "types": [
+      "Ghost"
+     ],
+     "attackerStatMult": 0.5
+    },
     "statusImmune": {
      "immune": true
     }
@@ -20488,10 +20705,15 @@
   "sapsipper": {
    "name": "Sap Sipper",
    "tags": [
+    "reflectsStatusMoves",
     "typeImmunity"
    ],
    "uses": 22,
    "params": {
+    "reflectsStatusMoves": {
+     "bounces": "Status",
+     "backAtUser": true
+    },
     "typeImmunity": {
      "immune": true,
      "via": "onTryHit"
@@ -20772,10 +20994,15 @@
   "soundproof": {
    "name": "Soundproof",
    "tags": [
-    "untagged"
+    "reflectsStatusMoves"
    ],
    "uses": 207,
-   "params": {}
+   "params": {
+    "reflectsStatusMoves": {
+     "bounces": "Status",
+     "backAtUser": true
+    }
+   }
   },
   "speedboost": {
    "name": "Speed Boost",
@@ -21145,10 +21372,18 @@
   "thickfat": {
    "name": "Thick Fat",
    "tags": [
-    "untagged"
+    "halvesTypeDamage"
    ],
    "uses": 71,
-   "params": {}
+   "params": {
+    "halvesTypeDamage": {
+     "types": [
+      "Ice",
+      "Fire"
+     ],
+     "attackerStatMult": 0.5
+    }
+   }
   },
   "torrent": {
    "name": "Torrent",
@@ -21360,11 +21595,18 @@
   "waterbubble": {
    "name": "Water Bubble",
    "tags": [
+    "halvesTypeDamage",
     "damageBoost",
     "statusImmune"
    ],
    "uses": 73,
    "params": {
+    "halvesTypeDamage": {
+     "types": [
+      "Fire"
+     ],
+     "attackerStatMult": 0.5
+    },
     "damageBoost": {
      "mult": 2,
      "inWeather": null,
