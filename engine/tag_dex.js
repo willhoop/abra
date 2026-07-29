@@ -1315,9 +1315,23 @@ const ITEM_TAGS = [
        + 'is the right one to hit, not just how hard',
     of: i => (i.onModifyDamage && /typeMod|Effectiveness/i.test(String(i.onModifyDamage)))
              ? { mult: 1.2, onlyIfSuperEffective: true } : null },
-  { tag: 'resistBerry', param: 'halves one super-effective hit, then is gone', probe: 'naturalGift',
-    why: 'Chople, Colbur, Kasib, Occa. About 6.8% of held items and it turns kills into non-kills',
-    of: it => (it.isBerry && it.onSourceModifyDamage) ? { halves: true } : null },
+  /* WAS {halves:true} AND NOTHING ELSE, which is unusable: the consumer needs to know WHICH type is
+   * halved and whether the hit must be super effective. Both are in the handler --
+   * `move.type === "Fighting" && typeMod > 0` -- so the type comes from there, and Chilan is
+   * correctly separated because it halves NORMAL moves with no effectiveness condition at all.
+   * Same boolean-instead-of-parameter defect as Swift Swim not naming rain. */
+  { tag: 'resistBerry', param: 'halves ONE hit of a named type, then is gone', probe: 'naturalGift',
+    why: 'Chople, Colbur, Kasib and 13 more -- 6,479 holders, and the damage calc had nothing for '
+       + 'any of them. It is the single biggest source of a kill that is not a kill',
+    of: it => {
+      if (!it.isBerry || !it.onSourceModifyDamage) return null;
+      const src = String(it.onSourceModifyDamage);
+      const t = (src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1];
+      if (!t) return null;
+      return { onType: t, mult: 0.5, oneShot: true,
+               /* Chilan halves Normal unconditionally; every other berry needs a super-effective hit */
+               requiresSuperEffective: /typeMod\s*>\s*0/.test(src) };
+    } },
   /* Will: "lum berry?" -- a different berry class entirely. The resist berries halve a hit; these
    * delete a status the moment it lands, which makes a status move against the holder a wasted turn.
    * Derived from the handler rather than named. */

@@ -20,58 +20,58 @@ That leaves **65** distinct items across **47,395** holders.
 | Choice Scarf | 3,947 | 8.3% | `choiceLock` `speedMult` | choice:true mult:1.5 |
 | Light Clay | 2,016 | 4.3% | `extendsDuration` | extends:[Aurora Veil, Light Screen, Reflect], toTurns:8, insteadOf:5 |
 | Fairy Feather | 1,521 | 3.2% | `damageMultType` | onType:Fairy, mult:1.2 |
-| Chople Berry | 1,441 | 3.0% | `resistBerry` | halves:true |
+| Chople Berry | 1,441 | 3.0% | `resistBerry` | onType:Fighting, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | White Herb | 1,362 | 2.9% | `restoresStats` | restores:true |
 | Black Glasses | 1,332 | 2.8% | `damageMultType` | onType:Dark, mult:1.2 |
-| Colbur Berry | 1,256 | 2.7% | `resistBerry` | halves:true |
-| Kasib Berry | 1,102 | 2.3% | `resistBerry` | halves:true |
+| Colbur Berry | 1,256 | 2.7% | `resistBerry` | onType:Dark, mult:0.5, oneShot:true, requiresSuperEffective:true |
+| Kasib Berry | 1,102 | 2.3% | `resistBerry` | onType:Ghost, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Mystic Water | 873 | 1.8% | `damageMultType` | onType:Water, mult:1.2 |
 | Charcoal | 694 | 1.5% | `damageMultType` | onType:Fire, mult:1.2 |
-| Occa Berry | 650 | 1.4% | `resistBerry` | halves:true |
-| Roseli Berry | 511 | 1.1% | `resistBerry` | halves:true |
-| Passho Berry | 487 | 1.0% | `resistBerry` | halves:true |
+| Occa Berry | 650 | 1.4% | `resistBerry` | onType:Fire, mult:0.5, oneShot:true, requiresSuperEffective:true |
+| Roseli Berry | 511 | 1.1% | `resistBerry` | onType:Fairy, mult:0.5, oneShot:true, requiresSuperEffective:true |
+| Passho Berry | 487 | 1.0% | `resistBerry` | onType:Water, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Mental Herb | 445 | 0.9% | `curesVolatile` | oneShot:true |
 | Wide Lens | 414 | 0.9% | `accuracyMod` | accuracy:true |
-| Coba Berry | 401 | 0.8% | `resistBerry` | halves:true |
+| Coba Berry | 401 | 0.8% | `resistBerry` | onType:Flying, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Expert Belt | 399 | 0.8% | `boostsSuperEffective` | mult:1.2, onlyIfSuperEffective:true |
 | Never-Melt Ice | 393 | 0.8% | `damageMultType` | onType:Ice, mult:1.2 |
 | Sharp Beak | 302 | 0.6% | `damageMultType` | onType:Flying, mult:1.2 |
-| Shuca Berry | 266 | 0.6% | `resistBerry` | halves:true |
+| Shuca Berry | 266 | 0.6% | `resistBerry` | onType:Ground, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Metal Coat | 212 | 0.4% | `damageMultType` | onType:Steel, mult:1.2 |
 | Damp Rock | 200 | 0.4% | `extendsDuration` | extends:[raindance], toTurns:8, insteadOf:5 |
 | Bright Powder | 144 | 0.3% | `accuracyMod` | accuracy:true |
 | Dragon Fang | 117 | 0.2% | `damageMultType` | onType:Dragon, mult:1.2 |
-| Haban Berry | 112 | 0.2% | `resistBerry` | halves:true |
+| Haban Berry | 112 | 0.2% | `resistBerry` | onType:Dragon, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Lum Berry | 108 | 0.2% | `curesStatus` | cures:true |
 | Silk Scarf | 102 | 0.2% | `damageMultType` | onType:Normal, mult:1.2 |
 | Iron Ball | 85 | 0.2% | `untagged` |  |
 | Spell Tag | 79 | 0.2% | `damageMultType` | onType:Ghost, mult:1.2 |
 | Magnet | 77 | 0.2% | `damageMultType` | onType:Electric, mult:1.2 |
 | Soft Sand | 75 | 0.2% | `damageMultType` | onType:Ground, mult:1.2 |
-| Babiri Berry | 70 | 0.1% | `resistBerry` | halves:true |
+| Babiri Berry | 70 | 0.1% | `resistBerry` | onType:Steel, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Scope Lens | 69 | 0.1% | `critRatioUp` | critRatio:2 |
 | Heat Rock | 52 | 0.1% | `extendsDuration` | extends:[sunnyday], toTurns:8, insteadOf:5 |
 | King's Rock | 49 | 0.1% | `addsFlinch` | pFlinch:0.1 |
 | Miracle Seed | 48 | 0.1% | `damageMultType` | onType:Grass, mult:1.2 |
 | Muscle Band | 48 | 0.1% | `untagged` |  |
-| Yache Berry | 47 | 0.1% | `resistBerry` | halves:true |
-| Kebia Berry | 39 | 0.1% | `resistBerry` | halves:true |
+| Yache Berry | 47 | 0.1% | `resistBerry` | onType:Ice, mult:0.5, oneShot:true, requiresSuperEffective:true |
+| Kebia Berry | 39 | 0.1% | `resistBerry` | onType:Poison, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Quick Claw | 39 | 0.1% | `fractionalPriority` | chance:0.2 |
 | Black Belt | 36 | 0.1% | `damageMultType` | onType:Fighting, mult:1.2 |
-| Wacan Berry | 36 | 0.1% | `resistBerry` | halves:true |
-| Charti Berry | 32 | 0.1% | `resistBerry` | halves:true |
+| Wacan Berry | 36 | 0.1% | `resistBerry` | onType:Electric, mult:0.5, oneShot:true, requiresSuperEffective:true |
+| Charti Berry | 32 | 0.1% | `resistBerry` | onType:Rock, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Big Root | 29 | 0.1% | `untagged` |  |
 | Twisted Spoon | 26 | 0.1% | `damageMultType` | onType:Psychic, mult:1.2 |
 | Chesto Berry | 24 | 0.1% | `curesStatus` | cures:true |
 | Hard Stone | 23 | 0.0% | `damageMultType` | onType:Rock, mult:1.2 |
 | Light Ball | 23 | 0.0% | `untagged` |  |
-| Rindo Berry | 23 | 0.0% | `resistBerry` | halves:true |
+| Rindo Berry | 23 | 0.0% | `resistBerry` | onType:Grass, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Shell Bell | 22 | 0.0% | `untagged` |  |
 | Zoom Lens | 22 | 0.0% | `accuracyMod` | accuracy:true |
 | Metronome | 13 | 0.0% | `untagged` |  |
 | Wise Glasses | 8 | 0.0% | `untagged` |  |
 | Icy Rock | 6 | 0.0% | `extendsDuration` | extends:[snowscape, hail], toTurns:8, insteadOf:5 |
-| Payapa Berry | 6 | 0.0% | `resistBerry` | halves:true |
+| Payapa Berry | 6 | 0.0% | `resistBerry` | onType:Psychic, mult:0.5, oneShot:true, requiresSuperEffective:true |
 | Poison Barb | 6 | 0.0% | `damageMultType` | onType:Poison, mult:1.2 |
 | Smooth Rock | 6 | 0.0% | `extendsDuration` | extends:[sandstorm], toTurns:8, insteadOf:5 |
 | Focus Band | 3 | 0.0% | `untagged` |  |

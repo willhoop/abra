@@ -187,6 +187,18 @@ function dmgRange(att,def,mv,field,spread){
   /* Expert Belt is its own tag because it is conditional on the MATCHUP, not the type. */
   const _se=TAGS.param('item',att.item,'boostsSuperEffective');
   if(_se&&eff>1)mod*=(_se.mult||1.2);
+  /* WIRE 3 of N -- resistBerry, on the DEFENDER. 6,479 holders and this calc had nothing for any of
+   * them, which makes it the biggest single source of a kill that is not a kill.
+   *
+   * Will asked whether reading it here procs it. It does not, and the distinction matters: dmgRange
+   * is a PURE read -- it never assigns to att or def -- and it is called dozens of times per turn
+   * while scoring hypothetical moves. A mutation here would eat the berry during attacks that never
+   * happen. The halve belongs here; the CONSUMPTION happens once, where real damage is applied.
+   *
+   * Chilan is the exception the tag already separates: it halves Normal with no effectiveness
+   * requirement, so the condition comes from requiresSuperEffective rather than being assumed. */
+  const _rb=TAGS.param('item',def.item,'resistBerry');
+  if(_rb&&_rb.onType===mv.t&&(!_rb.requiresSuperEffective||eff>1))mod*=(_rb.mult||0.5);
   if(att.item==='muscleband'&&phys)mod*=1.1;
   if(att.item==='wiseglasses'&&!phys)mod*=1.1;
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
@@ -417,6 +429,11 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
         if(tg.protect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
         dealt+=Math.min(dmg,tg.curHP);
+        /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
+         * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
+         * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
+        const _rbHit=TAGS.param('item',tg.item,'resistBerry');
+        if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1))tg.item='';
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else {
           /* SECONDARY EFFECTS, from the shared rulebook. Rolled once per connecting hit, after

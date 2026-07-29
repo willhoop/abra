@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T07:15:14.512Z",
+ "generated": "2026-07-29T07:30:37.624Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1617,8 +1617,8 @@
   {
    "tag": "resistBerry",
    "kind": "item",
-   "param": "halves one super-effective hit, then is gone",
-   "why": "Chople, Colbur, Kasib, Occa. About 6.8% of held items and it turns kills into non-kills",
+   "param": "halves ONE hit of a named type, then is gone",
+   "why": "Chople, Colbur, Kasib and 13 more -- 6,479 holders, and the damage calc had nothing for any of them. It is the single biggest source of a kill that is not a kill",
    "consumedBy": null,
    "used": false,
    "n": 18,
@@ -17753,7 +17753,10 @@
    "uses": 70,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Steel",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -17824,7 +17827,10 @@
    "uses": 32,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Rock",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -17860,7 +17866,10 @@
    "uses": 0,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Normal",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": false
     }
    }
   },
@@ -17888,7 +17897,10 @@
    "uses": 1441,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Fighting",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -17900,7 +17912,10 @@
    "uses": 401,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Flying",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -17912,7 +17927,10 @@
    "uses": 1256,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Dark",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -17999,7 +18017,10 @@
    "uses": 112,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Dragon",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18065,7 +18086,10 @@
    "uses": 1102,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Ghost",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18077,7 +18101,10 @@
    "uses": 39,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Poison",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18265,7 +18292,10 @@
    "uses": 650,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Fire",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18291,7 +18321,10 @@
    "uses": 487,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Water",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18303,7 +18336,10 @@
    "uses": 6,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Psychic",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18364,7 +18400,10 @@
    "uses": 23,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Grass",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18376,7 +18415,10 @@
    "uses": 511,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Fairy",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18421,7 +18463,10 @@
    "uses": 266,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Ground",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18502,7 +18547,10 @@
    "uses": 0,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Bug",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18527,7 +18575,10 @@
    "uses": 36,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Electric",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },
@@ -18559,7 +18610,10 @@
    "uses": 47,
    "params": {
     "resistBerry": {
-     "halves": true
+     "onType": "Ice",
+     "mult": 0.5,
+     "oneShot": true,
+     "requiresSuperEffective": true
     }
    }
   },

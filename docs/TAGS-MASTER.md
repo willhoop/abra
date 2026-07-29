@@ -3594,7 +3594,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 ### `resistBerry` — 9.8%, 18 items — **NOT READ**
 
-*halves one super-effective hit, then is gone*
+*halves ONE hit of a named type, then is gone*
 
 | item | on sheets | share |
 |---|---:|---:|

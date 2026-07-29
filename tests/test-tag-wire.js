@@ -63,8 +63,10 @@ console.log('wire 1 — damageMultAll');
     if (r == null) ok(false, 'could not build the Garchomp/Incineroar pair');
     else ok(Math.abs(r - p.mult) < 0.03,
       `Life Orb moves damage by x${r.toFixed(3)}, artifact declares x${p.mult}`);
-    /* The cost is in the tag and NOT yet applied anywhere -- stated so it cannot be forgotten. */
-    console.log(`        note: the tag also declares ${p.costsPerAttack}, which nothing applies yet`);
+    /* The cost IS applied, as a hardcode in the battle loop (`m.curHP-=Math.floor(m.st.hp*0.1)`),
+     * not from the tag. So the behaviour is right and the wire is half done -- worth stating
+     * precisely rather than claiming the cost is missing, which is what I said first. */
+    console.log(`        note: ${p.costsPerAttack} is applied in the battle loop as a hardcode, not from this tag`);
   }
 }
 
@@ -98,6 +100,53 @@ console.log('\nwire 2 — damageMultType');
     if (r != null) ok(Math.abs(r - c.mult) < 0.03,
       `Charcoal on a ${c.onType} move: x${r.toFixed(3)}, artifact declares x${c.mult}`);
   }
+}
+
+/* ---- WIRE 3: resistBerry (6,479 holders, previously ABSENT) ---------------------------------- */
+console.log('\nwire 3 — resistBerry');
+{
+  const db = require(path.join(ROOT, 'data', 'tags.json'));
+  const members = Object.entries(db.items).filter(([, r]) => (r.tags || []).includes('resistBerry'));
+  ok(members.length >= 15, `${members.length} resist berries, each carrying its own type`);
+
+  /* Defender-side, so the ratio is measured by giving the DEFENDER the berry. */
+  function defRatio(attacker, defender, moveId, item) {
+    const a = M.buildMon(attacker, { [attacker]: '' });
+    const dBare = M.buildMon(defender, { [defender]: '' });
+    const dHeld = M.buildMon(defender, { [defender]: item });
+    const mv = MC.moves[moveId];
+    if (!a || !dBare || !dHeld || !mv) return null;
+    const x = M.dmgRange(a, dBare, mv, FIELD, false);
+    const y = M.dmgRange(a, dHeld, mv, FIELD, false);
+    if (!x || !x.max) return null;
+    return { ratio: y.max / x.max, eff: x.eff };
+  }
+
+  /* Colbur halves DARK, so the pair needs a DARK-WEAK defender. The first attempt used Knock Off
+   * into Incineroar, which is Dark into Dark and RESISTS at 0.5x -- the test refused to pass on it
+   * rather than quietly reporting a wire as dead, which is the behaviour worth keeping. Gholdengo
+   * is Steel/Ghost and takes Dark at 2x. */
+  const p = TAGS.param('item', 'colburberry', 'resistBerry');
+  if (!p) ok(false, 'Colbur Berry carries resistBerry');
+  else {
+    const r = defRatio('incineroar', 'gholdengo', 'crunch', 'colburberry');
+    if (!r) ok(false, 'could not build the pair for Colbur');
+    else if (r.eff <= 1) ok(false, `the test move is not super effective (eff ${r.eff}) — pick another pair`);
+    else ok(Math.abs(r.ratio - p.mult) < 0.03,
+      `Colbur halves a super-effective ${p.onType} hit: x${r.ratio.toFixed(3)}, artifact declares x${p.mult}`);
+
+    /* And it must NOT touch a move of another type — a wire that halved everything would pass above. */
+    const off = defRatio('incineroar', 'gholdengo', 'flareblitz', 'colburberry');
+    if (off) ok(Math.abs(off.ratio - 1) < 0.03,
+      `Colbur leaves a non-${p.onType} move alone (x${off.ratio.toFixed(3)})`);
+  }
+
+  /* PURITY: scoring a move must not eat the berry. dmgRange runs on hypothetical moves dozens of
+   * times a turn, and a mutation there would consume it during attacks that never happen. */
+  const d = M.buildMon('gholdengo', { gholdengo: 'colburberry' });
+  const a2 = M.buildMon('incineroar', { incineroar: '' });
+  for (let i = 0; i < 5; i++) M.dmgRange(a2, d, MC.moves.crunch, FIELD, false);
+  ok(d.item === 'colburberry', 'calling dmgRange five times does NOT consume the berry');
 }
 
 console.log('');
