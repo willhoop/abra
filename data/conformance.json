@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-28T19:04:25.508Z",
+ "generated": "2026-07-29T18:32:20.044Z",
  "by": "engine/conformance.js",
- "files": 164,
+ "files": 178,
  "findings": [
   {
    "std": "convention",
@@ -25,6 +25,12 @@
    "std": "S12",
    "file": "engine/corpus_shift.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/double_protect.js",
+   "what": "names 2 Pokemon thing(s) in code: move:protect, move:detect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -77,6 +83,12 @@
   },
   {
    "std": "S12",
+   "file": "engine/magnemite.js",
+   "what": "names 3 Pokemon thing(s) in code: move:reflect, move:lightscreen, move:auroraveil",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
    "file": "engine/mechanics_coverage.js",
    "what": "names 1 Pokemon thing(s) in code: ability:prankster",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
@@ -125,6 +137,12 @@
   },
   {
    "std": "S12",
+   "file": "engine/tag_dex.js",
+   "what": "names 18 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
    "file": "engine/validate_damage.js",
    "what": "names 1 Pokemon thing(s) in code: move:earthquake",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
@@ -152,6 +170,12 @@
    "file": "build/compress-stores.js",
    "what": "no opening comment",
    "why": "every file states why it exists"
+  },
+  {
+   "std": "S12",
+   "file": "build/gen_items_doc.js",
+   "what": "names 1 Pokemon thing(s) in code: item:lifeorb",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
    "std": "convention",
@@ -209,6 +233,18 @@
   },
   {
    "std": "S13",
+   "file": "data/exploitability-machamp.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/exploitability-mag.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/jolteon-weights.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -230,6 +266,12 @@
    "file": "data/meta-nash.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/policy-weights-machamp.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

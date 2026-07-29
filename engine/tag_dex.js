@@ -104,8 +104,13 @@ function weatherIn(src) {
   return [...new Set(found)];
 }
 function multiplierIn(src) {
+  /* Showdown writes x1.3 two ways: chainModify(1.3) and chainModify([5325, 4096]) -- the exact
+   * 4096ths form. Only the first was read, so every ability using the exact form (Tough Claws,
+   * Sharpness, Strong Jaw...) carried no multiplier at all. */
   const m = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
-  return m ? +m[1] : null;
+  if (m) return +m[1];
+  const a = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
+  return a ? +(((+a[1]) / (+a[2])).toFixed(3)) : null;
 }
 function hpGateIn(src) {
   if (/hp\s*>=\s*\w+\.maxhp/.test(src)) return 'only at full HP';
@@ -2018,7 +2023,11 @@ const ABILITY_TAGS = [
         /* Showdown writes move.flags["slicing"] with DOUBLE quotes -- checking only the dot and
          * single-quote forms matched nothing, which the empty-tag check above caught immediately. */
         if (src.includes(`flags.${f}`) || src.includes(`flags['${f}']`)
-            || src.includes(`flags["${f}"]`)) return { boostsFlag: f };
+            || src.includes(`flags["${f}"]`))
+          /* HOW MUCH, not just which flag. {boostsFlag:'contact'} without the x1.3 was the
+           * boolean defect in miniature -- nothing could consume it. The handler states the
+           * number in exact 4096ths and multiplierIn now reads that form. */
+          return { boostsFlag: f, mult: multiplierIn(src) };
       }
       return null;
     } },

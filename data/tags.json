@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T21:43:06.034Z",
+ "generated": "2026-07-29T21:53:33.381Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -18871,7 +18871,7 @@
      "damageMult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -19038,7 +19038,7 @@
      "damageMult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -19082,7 +19082,7 @@
    "uses": 7,
    "params": {
     "damageBoost": {
-     "mult": null,
+     "mult": 1.3,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -19902,7 +19902,7 @@
      "damageMult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -20066,7 +20066,7 @@
      "terrain": "electric"
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.333,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -20384,10 +20384,11 @@
    "uses": 58,
    "params": {
     "boostsMoveClass": {
-     "boostsFlag": "punch"
+     "boostsFlag": "punch",
+     "mult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -20620,7 +20621,8 @@
    "uses": 20,
    "params": {
     "boostsMoveClass": {
-     "boostsFlag": "pulse"
+     "boostsFlag": "pulse",
+     "mult": 1.5
     },
     "damageBoost": {
      "mult": 1.5,
@@ -20816,7 +20818,7 @@
      "damageMult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -20866,7 +20868,7 @@
      "weather": "sun"
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.333,
      "onType": null,
      "inWeather": [
       "sun",
@@ -21021,7 +21023,7 @@
      "damageMult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -21201,10 +21203,11 @@
      "onlyWhen": null
     },
     "boostsMoveClass": {
-     "boostsFlag": "sound"
+     "boostsFlag": "sound",
+     "mult": 1.3
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.3,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -21313,7 +21316,7 @@
    "uses": 28,
    "params": {
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -21335,7 +21338,7 @@
      "damageMult": 1.2
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.2,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -21441,7 +21444,7 @@
    "uses": 18,
    "params": {
     "damageBoost": {
-     "mult": null,
+     "mult": 1.3,
      "onType": "Rock",
      "inWeather": [
       "sand"
@@ -21630,7 +21633,8 @@
    "uses": 162,
    "params": {
     "boostsMoveClass": {
-     "boostsFlag": "slicing"
+     "boostsFlag": "slicing",
+     "mult": 1.5
     },
     "damageBoost": {
      "mult": 1.5,
@@ -21668,7 +21672,7 @@
      "powerMult": 1.3
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.3,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -22061,7 +22065,8 @@
    "uses": 5,
    "params": {
     "boostsMoveClass": {
-     "boostsFlag": "bite"
+     "boostsFlag": "bite",
+     "mult": 1.5
     },
     "damageBoost": {
      "mult": 1.5,
@@ -22351,10 +22356,11 @@
    "uses": 283,
    "params": {
     "boostsMoveClass": {
-     "boostsFlag": "contact"
+     "boostsFlag": "contact",
+     "mult": 1.3
     },
     "damageBoost": {
-     "mult": null,
+     "mult": 1.3,
      "onType": null,
      "inWeather": null,
      "onlyWhen": null,
@@ -22429,7 +22435,7 @@
    "uses": 0,
    "params": {
     "damageBoost": {
-     "mult": null,
+     "mult": 1.3,
      "onType": "Electric",
      "inWeather": null,
      "onlyWhen": null,

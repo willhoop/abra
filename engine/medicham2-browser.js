@@ -332,6 +332,18 @@ function dmgRange(att,def,mv,field,spread){
   if(field.weather==='rain'){if(mvT==='Water')base=Math.floor(base*1.5);if(mvT==='Fire')base=Math.floor(base*0.5);}
   if(field.weather==='sun'){if(mvT==='Fire')base=Math.floor(base*1.5);if(mvT==='Water')base=Math.floor(base*0.5);}
   if(att.ability==='technician'&&mvBP<=60)base=Math.floor(base*1.5);
+  /* WIRE 13 -- boostsMoveClass x moveClass, the join the artifact was built for: the ability names
+   * a FLAG and its multiplier (Tough Claws contact x1.3, Sharpness slicing x1.5, Mega Launcher
+   * pulse x1.5 -- half the meta megas carry one), the move carries the flag, and no per-ability
+   * case exists anywhere. Contact and sound ride their own tags; the rest live in moveClass. */
+  const _bc=TAGS.param('ability',att.ability,'boostsMoveClass');
+  if(_bc&&_bc.mult&&mv.id){
+    const _f=_bc.boostsFlag;
+    const _has=_f==='contact'?mvMakesContact(mv.id)
+             :_f==='sound'?TAGS.has('move',mv.id,'sound')
+             :(()=>{const c=TAGS.param('move',mv.id,'moveClass');return !!(c&&c.classes&&c.classes.indexOf(_f)>=0);})();
+    if(_has)base=Math.floor(base*_bc.mult);
+  }
   const eff=mcEff(mvT,def.types); if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
   /* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the

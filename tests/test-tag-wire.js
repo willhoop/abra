@@ -506,6 +506,35 @@ console.log('\nwire 12 — survivesFromFull');
     'Sturdy survives the same way and is not consumed');
 }
 
+/* ---- WIRE 13: boostsMoveClass × moveClass — the flag join ------------------------------------ */
+console.log('\nwire 13 — boostsMoveClass');
+{
+  const db = require(path.join(ROOT, 'data', 'tags.json'));
+  const members = Object.entries(db.abilities).filter(([, r]) => (r.tags || []).includes('boostsMoveClass'));
+  ok(members.length >= 6 && members.every(([, r]) => r.params.boostsMoveClass.mult > 1),
+    `${members.length} class-boost abilities, every one carrying its real multiplier (was flag-only)`);
+
+  const F = { terrain: '', weather: '', twA: 0, twB: 0 };
+  const ratioWithAbility = (ab, moveId) => {
+    const a1 = M.buildMon('garchomp', {}); a1.ability = ab; a1.item = '';
+    const a0 = M.buildMon('garchomp', {}); a0.ability = 'pressure'; a0.item = '';
+    const d = M.buildMon('incineroar', {}); d.item = '';
+    const mv = MC.moves[moveId];
+    if (!mv) return null;
+    return M.dmgRange(a1, d, mv, F, false).max / M.dmgRange(a0, d, mv, F, false).max;
+  };
+  const tc = ratioWithAbility('toughclaws', 'ironhead');       // contact
+  const tcRanged = ratioWithAbility('toughclaws', 'earthquake'); // no contact
+  ok(tc !== null && Math.abs(tc - db.abilities.toughclaws.params.boostsMoveClass.mult) < 0.04,
+    `Tough Claws moves a contact move by x${tc && tc.toFixed(3)} — the artifact's own ${db.abilities.toughclaws.params.boostsMoveClass.mult}`);
+  ok(tcRanged !== null && Math.abs(tcRanged - 1) < 1e-9,
+    'and leaves Earthquake alone — the flag comes from the move, not the ability\'s hopes');
+  const sj = ratioWithAbility('strongjaw', 'crunch');           // bite
+  ok(sj !== null && Math.abs(sj - 1.5) < 0.04, `Strong Jaw bites at x${sj && sj.toFixed(3)}`);
+  const ml = ratioWithAbility('megalauncher', 'dragonpulse');   // pulse
+  ok(ml !== null && Math.abs(ml - 1.5) < 0.04, `Mega Launcher pulses at x${ml && ml.toFixed(3)}`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
