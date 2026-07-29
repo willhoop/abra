@@ -24,6 +24,7 @@ const TAGS = (function(){
   if (typeof process !== 'undefined' && process.env) {
     const OFF_STUB = { off: true, param(){ return null; }, has(){ return false; },
                        reactorsTo(){ return {abilities:[],items:[],moves:[]}; }, hits(){ return {}; } };
+    OFF_STUB.withTag=function(){return [];};
     if (process.env.ABRA_TAGS_OFF === '1') return OFF_STUB;
     /* ABRA_TAGS_OFF_TREE=<path> turns tags off ONLY for the copy of this file living under <path>.
      * The global switch above cannot arm a paired head-to-head: both arms battle inside ONE process
@@ -44,6 +45,10 @@ const TAGS = (function(){
   const T = { move:'moves', item:'items', ability:'abilities' };
   return {
     missing: !db,
+    withTag(kind, tag){
+      const t=db&&db[T[kind]]; if(!t) return [];
+      return Object.keys(t).filter(id=>(t[id].tags||[]).includes(tag));
+    },
     param(kind, id, tag){
       if(!db) return null;
       const rec = (db[T[kind]]||{})[norm(id)];
@@ -56,7 +61,17 @@ const TAGS = (function(){
   };
 })();
 
-const SPREAD = new Set(['earthquake','rockslide','heatwave','blizzard','muddywater','dazzlinggleam','hypervoice','makeitrain','glaciate','icywind','snarl','bulldoze','discharge','lavaplume','eruption','waterspout','surf','electroweb','strugglebug','sludgewave','mistyexplosion','explosion','selfdestruct','breakingswipe','petalblizzard','glaciallance','astralbarrage','originpulse','precipiceblades','landswrath','diamondstorm','sparklingaria','swift','pollenpuff']);
+/* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
+ * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
+ * shipped. With tags on, membership comes from the artifact's two spread tags -- and the split
+ * matters: spreadFoes is ally-safe (Heat Wave), spreadAll HITS YOUR PARTNER (Earthquake, Discharge,
+ * Surf -- "the one that killed its own Archaludon"), which the old set flattened into one shape
+ * and the battle loop then ignored: no rollout Earthquake has ever hit its own ally. */
+const SPREAD_LEGACY = new Set(['earthquake','rockslide','heatwave','blizzard','muddywater','dazzlinggleam','hypervoice','makeitrain','glaciate','icywind','snarl','bulldoze','discharge','lavaplume','eruption','waterspout','surf','electroweb','strugglebug','sludgewave','mistyexplosion','explosion','selfdestruct','breakingswipe','petalblizzard','glaciallance','astralbarrage','originpulse','precipiceblades','landswrath','diamondstorm','sparklingaria','swift','pollenpuff']);
+const HITS_ALLY = new Set(TAGS.withTag ? TAGS.withTag('move', 'spreadAll') : []);
+const SPREAD = (TAGS.off || TAGS.missing || !TAGS.withTag)
+  ? SPREAD_LEGACY
+  : new Set([...TAGS.withTag('move', 'spreadFoes'), ...HITS_ALLY]);
 /* PRIORITY. Every move sits in a bracket from +5 (Helping Hand) down to -7 (Trick Room), and the
  * bracket is decided BEFORE speed. This was a hand-typed table of 18 positive-priority moves, and
  * everything absent from it resolved at 0 - so all 14 negative-priority moves went at normal speed.
@@ -826,7 +841,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
       if(!targets.length)targets=live(foes).slice(0,1);
+      /* spreadAll hits the PARTNER too -- Earthquake beside your own Archaludon costs it the same
+       * 0.75x packet the enemies eat. Membership from the artifact; the ally is appended AFTER the
+       * Wide Guard check below because Wide Guard protects a SIDE, and the attacker's own side
+       * never raised it against its own quake. */
+      const _allyHit=a.move.spread&&HITS_ALLY.has(a.move.id)
+        ?(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0):null;
       if(a.move.spread&&((it.side==='A'&&field.wgB)||(it.side==='B'&&field.wgA)))targets=[];   // Wide Guard blocks spread
+      if(_allyHit)targets=targets.concat([_allyHit]);
       let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)

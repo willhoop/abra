@@ -79,4 +79,15 @@ function reactorsTo(key) {
 function hits() { return Object.assign(Object.create(null), COUNT); }
 function resetHits() { for (const k of Object.keys(COUNT)) delete COUNT[k]; }
 
-module.exports = { tagsFor, param, has, reactorsTo, hits, resetHits, norm };
+/* Enumerate every id of one kind carrying a tag — the consumer for derived SETS (the spread table
+ * in medicham2 builds from this instead of a 34-name list). Counted like every other read. */
+function withTag(kind, tag) {
+  const db = load();
+  const K = { move: 'moves', item: 'items', ability: 'abilities' };
+  const T = db && db[K[kind]];
+  if (!T) return [];
+  COUNT[tag] = (COUNT[tag] || 0) + 1;
+  return Object.keys(T).filter(id => (T[id].tags || []).includes(tag));
+}
+
+module.exports = { tagsFor, param, has, reactorsTo, hits, resetHits, norm, withTag };

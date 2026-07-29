@@ -559,6 +559,44 @@ console.log('\nwire 14 — healsAtThreshold');
     'at 80% the berry stays in the pocket — the threshold is the tag\'s, not a vibe');
 }
 
+/* ---- WIRE 15: the spread table is derived, and Earthquake finally hits its own partner ------- */
+console.log('\nwire 15 — spreadFoes / spreadAll');
+{
+  const db = require(path.join(ROOT, 'data', 'tags.json'));
+  const foesOnly = Object.keys(db.moves).filter(k => (db.moves[k].tags || []).includes('spreadFoes'));
+  const hitsAlly = Object.keys(db.moves).filter(k => (db.moves[k].tags || []).includes('spreadAll'));
+  ok(foesOnly.includes('heatwave') && !foesOnly.includes('earthquake'),
+    `spreadFoes (${foesOnly.length}) is the ally-safe family — Heat Wave in, Earthquake out`);
+  ok(hitsAlly.includes('earthquake') && hitsAlly.includes('discharge'),
+    `spreadAll (${hitsAlly.length}) hits the partner — Earthquake and Discharge where they belong`);
+
+  /* one controlled 2v2: my Garchomp quakes; my own partner must eat it, the ally-safe Heat Wave
+   * must not, and a partner that PROTECTED stays safe. rng 0.9: no crits, no procs. */
+  const quake2 = (moveId, allyMove) => {
+    const me = M.buildMon('garchomp', {}); me.item = ''; me.moves = [moveId];
+    const ally = M.buildMon('kingambit', {}); ally.item = ''; ally.moves = [allyMove || 'ironhead', 'protect'];
+    const f1 = M.buildMon('corviknight', {}); f1.item = ''; f1.moves = ['roost'];
+    const f2 = M.buildMon('whimsicott', {}); f2.item = ''; f2.moves = ['protect'];
+    [me, ally, f1, f2].forEach(x => { const s = MC.priors[x.name]; MC.priors[x.name] = null; x._sp = s; });
+    const S = M.battleInit([me, ally], [f1, f2]);
+    const acts = new Map([[S.actA[0], M.playerAction(S.actA[0], moveId, S.actB[0], S.field)],
+                          [S.actA[1], M.playerAction(S.actA[1], allyMove || 'ironhead',
+                            allyMove === 'protect' ? null : S.actB[1], S.field)]]);
+    try { M.battleTurn(S, () => 0.9, acts); }
+    finally { [me, ally, f1, f2].forEach(x => { MC.priors[x.name] = x._sp; delete x._sp; }); }
+    return ally;
+  };
+  const allyEQ = quake2('earthquake');
+  ok(allyEQ.curHP < allyEQ.st.hp,
+    `Earthquake hits its own partner (kingambit ${allyEQ.curHP}/${allyEQ.st.hp}) — no rollout quake ever did before`);
+  const allyHW = quake2('heatwave');
+  ok(allyHW.curHP === allyHW.st.hp,
+    'Heat Wave leaves the partner untouched — the ally-safe family stays safe');
+  const allyProt = quake2('earthquake', 'protect');
+  ok(allyProt.curHP === allyProt.st.hp,
+    'and a partner that Protected eats nothing — the quake respects Protect like any hit');
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
