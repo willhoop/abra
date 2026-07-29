@@ -140,6 +140,10 @@ const SWITCHING = process.argv.includes('--switching');
 const GREEDY = process.argv.includes('--greedy');
 /* --joint / --joint2  turn the PAIR model on, per arm. Per arm rather than globally because the
  * whole point is an A/B: coordinated choice versus independent choice, same weights otherwise. */
+/* --blind / --blind2  make that ARM ignore the open team sheet. The control for measuring what
+ * the sheet is worth: identical weights, identical open-sheet games, one side reads it. */
+const BLIND_A = process.argv.includes('--blind');
+const BLIND_B = process.argv.includes('--blind2');
 const JOINT_A = process.argv.includes('--joint');
 const JOINT_B = process.argv.includes('--joint2');
 /* --joint-zero / --joint-zero2  THE CONTROL. Runs the whole pair path -- same top-K cap, same
@@ -447,6 +451,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * this in the object literal above would have pinned the joint layer to p1 no matter which arm was
    * supposed to have it, so half the games would have tested the wrong thing and the A/B would have
    * come back at a plausible-looking 50%. */
+  if (BLIND_A) { (swapped ? optB : optA).ignoreSheet = true; }
+  if (BLIND_B) { (swapped ? optA : optB).ignoreSheet = true; }
   if (JOINT_A) { (swapped ? optB : optA).joint = true; }
   if (JOINT_B) { (swapped ? optA : optB).joint = true; }
   if (JOINTZ_A) { (swapped ? optB : optA).jointZero = true; }
@@ -681,6 +687,7 @@ async function main() {
       rec.selfplay.greedy = !!GREEDY;
       rec.selfplay.switching = !!SWITCHING;
       rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
+      rec.selfplay.blind = !!BLIND_A; rec.selfplay.blind2 = !!BLIND_B;
       rec.selfplay.jointZero = !!JOINTZ_A; rec.selfplay.jointZero2 = !!JOINTZ_B;
       /* The weight files too — a run of "policy score" says nothing about WHICH fit played it, and the
        * popularity-on and popularity-off arms of a 2x2 are distinguished by nothing else. */
@@ -706,7 +713,7 @@ async function main() {
          * flag and nothing else) stamped every record armsIdentical:true, i.e. it claimed the A/B was
          * a mirror match when it was the actual experiment. */
         if (POLICY === POLICY2 && WEIGHTS1 === WEIGHTS2 && JOINT_A === JOINT_B
-            && JOINTZ_A === JOINTZ_B) rec.selfplay.armsIdentical = true;
+            && JOINTZ_A === JOINTZ_B && BLIND_A === BLIND_B) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the

@@ -121,6 +121,7 @@ function makeScoringPlayer(opts = {}) {
       this.megaP = options && options.mega != null
         ? Math.max(0, Math.min(1, +options.mega || 0)) : 0;
       this.mega = 0;
+      this.ignoreSheet = !!(options && options.ignoreSheet);
       this.joint = false; this.wj = null;
       this.jointZero = !!(options && options.jointZero);
       this.jointK = +(options && options.jointK) || 6;
@@ -229,6 +230,12 @@ function makeScoringPlayer(opts = {}) {
        * Field order matches engine/durable-ingest.js exactly, deliberately -- two parsers for one
        * protocol line is how they drift. */
       if (line.startsWith('|showteam|')) {
+        /* ignoreSheet is the CONTROL ARM for "is the open team sheet worth anything".
+         * Same weights, same open-sheet game, one player reads the sheet and the other refuses to.
+         * That isolates the value of the information itself, which comparing an open-sheet run
+         * against a closed-sheet run cannot do -- those are different populations of games and
+         * their win rates are not comparable. */
+        if (this.ignoreSheet) return;
         const m = /^\|showteam\|(p[12])\|(.*)$/.exec(line);
         if (m && this.board) {
           for (const entry of m[2].split(']')) {
