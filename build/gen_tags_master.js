@@ -151,16 +151,42 @@ const ab1 = sp => (sp && sp.abilities) ? Object.values(sp.abilities)[0] : null;
    *
    * So the truth is a RANGE, not a correction. Both columns are real; neither is the answer on its
    * own, and the left one is always live at least once. */
-  P('**The base ability is real.** A stone-holder keeps it from switch-in until the instant it');
-  P('evolves — Staraptor\'s Intimidate fires on entry every time, and only then becomes Contrary.');
-  P('And only **one** Pokémon per battle may mega evolve, while **67%** of teams bring **two**');
-  P('stones, so at least one stone-holder per team keeps its base ability the whole game.');
+  /* WILL, TWICE, AND RIGHT BOTH TIMES:
+   *   "well megas still have initial ability on entry before mega evolution"
+   *   "most only bring 1 to battle"
+   *
+   * The first killed the single 'off by' number that was here, which assumed every stone-holder
+   * evolves. The second is settled by the corpus rather than by argument, and it is a sharper
+   * result than either of us guessed:
+   *
+   *     stones     held on sheet     actually BROUGHT
+   *       1            31.9%              85.7%
+   *       2            67.2%               9.4%
+   *
+   * Teams HOLD two stones and BRING one. Of teams bringing any stone, 90.1% bring exactly one, and
+   * a stone-holder on the sheet is brought only 62.2% of the time. So the mega is chosen at team
+   * preview, and once a stone-holder is on the field it is almost always the only candidate.
+   *
+   * Which means: the base ability is live but usually BRIEF -- it fires on entry and is replaced --
+   * while the mega ability is what the game is mostly played against. Both matter, for different
+   * reasons: Intimidate lands its drop before Staraptor ever becomes Contrary. */
+  P('**Two things are true at once, and the corpus settles which matters when.**');
   P('');
-  P('That makes this a range, not a correction. The left column is always live at least once; the');
-  P('right is the ceiling if that Pokémon is the one that evolves. Reality sits between, nearer the');
-  P('left for the second stone on a team.');
+  P('The base ability is live from switch-in until the instant of evolution — Staraptor’s Intimidate');
+  P('fires on entry and lands its drop *before* it can become Contrary. But the mega ability is what');
+  P('most of the battle is played against, because the choice is already made at team preview:');
   P('');
-  P('| ability | on entry (always) | if it megas (ceiling) | swing |');
+  P('| mega stones | held on the sheet | actually brought |');
+  P('|---|---:|---:|');
+  P('| one | 31.9% | **85.7%** |');
+  P('| two | **67.2%** | 9.4% |');
+  P('');
+  P('Teams *hold* two and *bring* one. Of teams bringing any stone, **90.1%** bring exactly one, and');
+  P('a stone-holder on the sheet reaches the battle only **62.2%** of the time. So a stone-holder on');
+  P('the field is nearly always the sole candidate — its base ability is real but brief, and the');
+  P('right-hand column below is close to what the engine actually faces.');
+  P('');
+  P('| ability | on entry (brief) | after it megas | swing |');
   P('|---|---:|---:|---:|');
   for (const r of drift) {
     P('| ' + r.name + ' | ' + r.sh.toLocaleString() + ' | ' + r.fl.toLocaleString() + ' | ' +

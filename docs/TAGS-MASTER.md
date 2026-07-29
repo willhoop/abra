@@ -33,16 +33,23 @@ Every ability count in this document is the ability *written on the sheet*. Star
 case to hold in mind: it enters with **Intimidate**, which fires immediately, and becomes
 **Contrary** only if it is the one Pokémon that evolves — and Contrary inverts every stat change.
 
-**The base ability is real.** A stone-holder keeps it from switch-in until the instant it
-evolves — Staraptor's Intimidate fires on entry every time, and only then becomes Contrary.
-And only **one** Pokémon per battle may mega evolve, while **67%** of teams bring **two**
-stones, so at least one stone-holder per team keeps its base ability the whole game.
+**Two things are true at once, and the corpus settles which matters when.**
 
-That makes this a range, not a correction. The left column is always live at least once; the
-right is the ceiling if that Pokémon is the one that evolves. Reality sits between, nearer the
-left for the second stone on a team.
+The base ability is live from switch-in until the instant of evolution — Staraptor’s Intimidate
+fires on entry and lands its drop *before* it can become Contrary. But the mega ability is what
+most of the battle is played against, because the choice is already made at team preview:
 
-| ability | on entry (always) | if it megas (ceiling) | swing |
+| mega stones | held on the sheet | actually brought |
+|---|---:|---:|
+| one | 31.9% | **85.7%** |
+| two | **67.2%** | 9.4% |
+
+Teams *hold* two and *bring* one. Of teams bringing any stone, **90.1%** bring exactly one, and
+a stone-holder on the sheet reaches the battle only **62.2%** of the time. So a stone-holder on
+the field is nearly always the sole candidate — its base ability is real but brief, and the
+right-hand column below is close to what the engine actually faces.
+
+| ability | on entry (brief) | after it megas | swing |
 |---|---:|---:|---:|
 | Blaze | 2,722 | 80 | -2,642 |
 | Intimidate | 6,604 | 4,236 | -2,368 |
