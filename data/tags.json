@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T05:01:49.612Z",
+ "generated": "2026-07-29T05:14:50.083Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -199,6 +199,67 @@
    ]
   },
   {
+   "tag": "costsUserHP",
+   "kind": "move",
+   "param": "pay a share of max HP, and FAIL outright below that threshold",
+   "why": "Substitute (247 uses) 1/4, Clangorous Soul (190) 1/3, Shed Tail (41) 1/2. The cost is unpriced and the failure condition is unchecked -- and you can have the HP when you choose and not when you act",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 478,
+   "examples": [
+    "Clangorous Soul",
+    "Shed Tail",
+    "Substitute"
+   ]
+  },
+  {
+   "tag": "multiAccuracy",
+   "kind": "move",
+   "param": "each hit rolls accuracy SEPARATELY, so expected hits < hit count",
+   "why": "Triple Axel lands all 3 only 73% of the time at 90% each; Population Bomb all 10 just 35%. Applying accuracy once to the whole move overstates both",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 608,
+   "examples": [
+    "Population Bomb",
+    "Triple Axel"
+   ]
+  },
+  {
+   "tag": "readsTargetItem",
+   "kind": "move",
+   "param": "damage or success depends on what the TARGET is holding",
+   "why": "Knock Off (1,663 uses) is 1.5x into an item and Poltergeist (183) fails without one. Both were scored at flat base power against an item slot the engine never passed in",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 1846,
+   "examples": [
+    "Knock Off",
+    "Poltergeist"
+   ]
+  },
+  {
+   "tag": "fixedDamage",
+   "kind": "move",
+   "param": "damage is a constant, not a formula",
+   "why": "Seismic Toss and Night Shade ignore stats entirely",
+   "consumedBy": null,
+   "used": false,
+   "n": 15,
+   "uses": 831,
+   "examples": [
+    "Counter",
+    "Endeavor",
+    "Final Gambit",
+    "Fissure",
+    "Guillotine",
+    "Metal Burst"
+   ]
+  },
+  {
    "tag": "partialTrap",
    "kind": "move",
    "param": "target cannot switch for 4-5 turns AND takes 1/8 chip each turn",
@@ -212,19 +273,6 @@
     "Infestation",
     "Sand Tomb",
     "Whirlpool"
-   ]
-  },
-  {
-   "tag": "fixedDamage",
-   "kind": "move",
-   "param": "damage is a constant, not a formula",
-   "why": "Seismic Toss and Night Shade ignore stats entirely",
-   "consumedBy": null,
-   "used": false,
-   "n": 2,
-   "uses": 22,
-   "examples": [
-    "Night Shade"
    ]
   },
   {
@@ -810,8 +858,8 @@
    "why": "movesBoostMe is only a sign. +Spe flips the speed order, +Atk changes damage, +Def changes survival -- three different values reading as one number today",
    "consumedBy": "movesBoostMe",
    "used": true,
-   "n": 22,
-   "uses": 6179,
+   "n": 23,
+   "uses": 6303,
    "examples": [
     "Clangorous Soul",
     "Growth",
@@ -864,15 +912,15 @@
    "why": "Close Combat (5,487 uses) pays -1 Def and -1 SpD; Draco Meteor, Overheat and Make It Rain pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no self-effect whatsoever",
    "consumedBy": null,
    "used": false,
-   "n": 11,
-   "uses": 9941,
+   "n": 13,
+   "uses": 10377,
    "examples": [
     "Make It Rain",
     "Armor Cannon",
+    "Clanging Scales",
     "Close Combat",
     "Draco Meteor",
-    "Hammer Arm",
-    "Headlong Rush"
+    "Hammer Arm"
    ]
   },
   {
@@ -2179,6 +2227,7 @@
   "clangoroussoul": {
    "name": "Clangorous Soul",
    "tags": [
+    "costsUserHP",
     "sound",
     "neverMisses",
     "boostsUser",
@@ -2186,6 +2235,10 @@
    ],
    "uses": 190,
    "params": {
+    "costsUserHP": {
+     "costsFraction": 0.3333333333333333,
+     "failsBelow": 0.3333333333333333
+    },
     "sound": {
      "sound": true
     },
@@ -4242,7 +4295,8 @@
    "name": "Clanging Scales",
    "tags": [
     "spreadFoes",
-    "sound"
+    "sound",
+    "lowersUser"
    ],
    "uses": 312,
    "params": {
@@ -4252,6 +4306,11 @@
     },
     "sound": {
      "sound": true
+    },
+    "lowersUser": {
+     "readFrom": "m.self.boosts",
+     "lowersSpeed": false,
+     "alsoRaises": false
     }
    }
   },
@@ -4347,10 +4406,16 @@
   "comeuppance": {
    "name": "Comeuppance",
    "tags": [
+    "fixedDamage",
     "contact"
    ],
    "uses": 0,
    "params": {
+    "fixedDamage": {
+     "source": "callback",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "contact": {
      "contact": true
     }
@@ -4465,12 +4530,18 @@
   "counter": {
    "name": "Counter",
    "tags": [
+    "fixedDamage",
     "priority",
     "contact",
     "needsTargetToAttack"
    ],
    "uses": 7,
    "params": {
+    "fixedDamage": {
+     "source": "counterDamageTaken",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "priority": {
      "readFrom": "m.priority",
      "sign": "-"
@@ -5212,10 +5283,16 @@
   "endeavor": {
    "name": "Endeavor",
    "tags": [
+    "fixedDamage",
     "contact"
    ],
    "uses": 75,
    "params": {
+    "fixedDamage": {
+     "source": "targetDownToMine",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "contact": {
      "contact": true
     }
@@ -5499,10 +5576,16 @@
   "finalgambit": {
    "name": "Final Gambit",
    "tags": [
+    "fixedDamage",
     "userFaints"
    ],
    "uses": 180,
    "params": {
+    "fixedDamage": {
+     "source": "myRemainingHP",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "userFaints": {
      "faints": "ifHit"
     }
@@ -5587,10 +5670,16 @@
   "fissure": {
    "name": "Fissure",
    "tags": [
+    "fixedDamage",
     "ohko"
    ],
    "uses": 24,
    "params": {
+    "fixedDamage": {
+     "source": "ohko",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "ohko": {
      "ohko": true
     }
@@ -6115,11 +6204,17 @@
   "guillotine": {
    "name": "Guillotine",
    "tags": [
+    "fixedDamage",
     "contact",
     "ohko"
    ],
    "uses": 2,
    "params": {
+    "fixedDamage": {
+     "source": "ohko",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "contact": {
      "contact": true
     },
@@ -6462,11 +6557,17 @@
   "horndrill": {
    "name": "Horn Drill",
    "tags": [
+    "fixedDamage",
     "contact",
     "ohko"
    ],
    "uses": 0,
    "params": {
+    "fixedDamage": {
+     "source": "ohko",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "contact": {
      "contact": true
     },
@@ -6889,12 +6990,17 @@
    "name": "Knock Off",
    "tags": [
     "conditionalPower",
+    "readsTargetItem",
     "contact"
    ],
    "uses": 1663,
    "params": {
     "conditionalPower": {
      "conditional": true
+    },
+    "readsTargetItem": {
+     "failsIfNone": false,
+     "mult": 1.5
     },
     "contact": {
      "contact": true
@@ -7415,10 +7521,16 @@
   "metalburst": {
    "name": "Metal Burst",
    "tags": [
+    "fixedDamage",
     "needsTargetToAttack"
    ],
    "uses": 4,
    "params": {
+    "fixedDamage": {
+     "source": "callback",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "needsTargetToAttack": {
      "needs": "target attacking"
     }
@@ -7515,11 +7627,17 @@
   "mirrorcoat": {
    "name": "Mirror Coat",
    "tags": [
+    "fixedDamage",
     "priority",
     "needsTargetToAttack"
    ],
    "uses": 12,
    "params": {
+    "fixedDamage": {
+     "source": "counterDamageTaken",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "priority": {
      "readFrom": "m.priority",
      "sign": "-"
@@ -7738,6 +7856,7 @@
   "nightshade": {
    "name": "Night Shade",
    "tags": [
+    "fixedDamage",
     "fixedDamage"
    ],
    "uses": 22,
@@ -8120,10 +8239,24 @@
     }
    }
   },
+  "poltergeist": {
+   "name": "Poltergeist",
+   "tags": [
+    "readsTargetItem"
+   ],
+   "uses": 183,
+   "params": {
+    "readsTargetItem": {
+     "failsIfNone": true,
+     "mult": null
+    }
+   }
+  },
   "populationbomb": {
    "name": "Population Bomb",
    "tags": [
     "multiHit",
+    "multiAccuracy",
     "contact",
     "moveClass"
    ],
@@ -8132,6 +8265,9 @@
     "multiHit": {
      "readFrom": "m.multihit",
      "distribution": "fixed"
+    },
+    "multiAccuracy": {
+     "perHit": true
     },
     "contact": {
      "contact": true
@@ -8992,13 +9128,25 @@
   "scaleshot": {
    "name": "Scale Shot",
    "tags": [
-    "multiHit"
+    "multiHit",
+    "boostsUser",
+    "lowersUser"
    ],
    "uses": 124,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
      "distribution": "2:35 3:35 4:15 5:15"
+    },
+    "boostsUser": {
+     "readFrom": "m.self.boosts",
+     "raisesSpeed": true,
+     "alsoLowers": true
+    },
+    "lowersUser": {
+     "readFrom": "m.self.boosts",
+     "lowersSpeed": false,
+     "alsoRaises": true
     }
    }
   },
@@ -9076,6 +9224,7 @@
   "seismictoss": {
    "name": "Seismic Toss",
    "tags": [
+    "fixedDamage",
     "fixedDamage",
     "contact"
    ],
@@ -9171,6 +9320,7 @@
   "shedtail": {
    "name": "Shed Tail",
    "tags": [
+    "costsUserHP",
     "neverMisses",
     "passesState",
     "substitute",
@@ -9178,6 +9328,10 @@
    ],
    "uses": 41,
    "params": {
+    "costsUserHP": {
+     "costsFraction": 0.5,
+     "failsBelow": 0.5
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -9196,10 +9350,16 @@
   "sheercold": {
    "name": "Sheer Cold",
    "tags": [
+    "fixedDamage",
     "ohko"
    ],
    "uses": 41,
    "params": {
+    "fixedDamage": {
+     "source": "ohko",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "ohko": {
      "ohko": true
     }
@@ -10027,12 +10187,17 @@
   "substitute": {
    "name": "Substitute",
    "tags": [
+    "costsUserHP",
     "neverMisses",
     "substitute",
     "statusCategory"
    ],
    "uses": 247,
    "params": {
+    "costsUserHP": {
+     "costsFraction": 0.25,
+     "failsBelow": 0.25
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -10106,10 +10271,16 @@
   "superfang": {
    "name": "Super Fang",
    "tags": [
+    "fixedDamage",
     "contact"
    ],
    "uses": 442,
    "params": {
+    "fixedDamage": {
+     "source": "halfTargetCurrentHP",
+     "flat": null,
+     "ignoresStatsAndSTAB": true
+    },
     "contact": {
      "contact": true
     }
@@ -10855,6 +11026,7 @@
    "tags": [
     "multiHit",
     "variablePower",
+    "multiAccuracy",
     "contact"
    ],
    "uses": 332,
@@ -10865,6 +11037,9 @@
     },
     "variablePower": {
      "computed": true
+    },
+    "multiAccuracy": {
+     "perHit": true
     },
     "contact": {
      "contact": true

@@ -230,6 +230,87 @@ const MOVE_TAGS = [
    * turn, and the duration is a range rather than a fixed number. Infestation is 450 uses.
    * The trap half is the one that changes decisions -- a Pokemon that cannot leave is a Pokemon you
    * can set up on. */
+  /* Will: "clangorous soul, substitute, shed tail, etc all need a fail if user will not have enough
+   * hp when it acts flag" and "to take into account the loss of hp when creating it. is it worth it".
+   *
+   * Both halves matter and neither is modelled. These moves FAIL outright below a threshold --
+   * Substitute needs more than 1/4, Clangorous Soul more than 1/3, Shed Tail more than 1/2 -- and
+   * the cost is paid whether or not the thing you bought is worth it.
+   *
+   * The FAIL half also inherits the simultaneity problem: you may have the HP when you choose and
+   * not when you act, because their attack resolves first. Same shape as the Bellibolt case. */
+  { tag: 'costsUserHP', param: 'pay a share of max HP, and FAIL outright below that threshold', probe: 'costsUserHP',
+    why: 'Substitute (247 uses) 1/4, Clangorous Soul (190) 1/3, Shed Tail (41) 1/2. The cost is '
+       + 'unpriced and the failure condition is unchecked -- and you can have the HP when you choose '
+       + 'and not when you act',
+    of: m => {
+      const src = String(m.onTry || '') + String(m.onTryHit || '') + String(m.onHit || '');
+      if (!/maxhp/i.test(src)) return null;
+      const frac = /clangoroussoul/.test(norm(m.id)) ? 1 / 3
+                 : /shedtail/.test(norm(m.id)) ? 1 / 2
+                 : /substitute/.test(norm(m.id)) ? 1 / 4 : null;
+      return frac ? { costsFraction: frac, failsBelow: frac } : null;
+    } },
+  /* Will asked whether Triple Axel's ascending power is recorded. The escalation is in the move's
+   * basePowerCallback, so it IS derivable -- but the thing that actually changes the maths is
+   * multiaccuracy: each hit rolls SEPARATELY. Triple Axel at 90% lands all three only 73% of the
+   * time and Population Bomb all ten 35% of the time, while Dual Wingbeat rolls once for the whole
+   * move. Expected hits is therefore NOT the hit count, and the kill distribution has to convolve
+   * accuracy per hit rather than applying it once. */
+  { tag: 'multiAccuracy', param: 'each hit rolls accuracy SEPARATELY, so expected hits < hit count', probe: 'multiaccuracy',
+    why: 'Triple Axel lands all 3 only 73% of the time at 90% each; Population Bomb all 10 just 35%. '
+       + 'Applying accuracy once to the whole move overstates both',
+    of: m => m.multiaccuracy ? { perHit: true } : null },
+  /* Will found the whole CLASS: "welcome to the wide world of attacking a user with an item".
+   * Two moves read the TARGET's item and nothing in the engine passed it to them. board.js now
+   * tracks observed items, so this is finally computable.
+   *
+   * Poltergeist FAILS outright with no item -- and in this format that is nearly unconditional,
+   * because 106 of 65,976 sheet entries hold nothing at all. Knock Off is the bigger one at 1,663
+   * uses: 1.5x damage when the target has an item, which is almost always.
+   *
+   * Will asked whether mega stones dodge this. They do not -- a stone is an item and Poltergeist
+   * reads it. What stones resist is REMOVAL: onTakeItem returns false, so Knock Off and Trick fail
+   * to take them, and only for the matching species. */
+  { tag: 'readsTargetItem', param: 'damage or success depends on what the TARGET is holding', probe: 'readsTargetItem',
+    why: 'Knock Off (1,663 uses) is 1.5x into an item and Poltergeist (183) fails without one. '
+       + 'Both were scored at flat base power against an item slot the engine never passed in',
+    of: m => {
+      const src = String(m.onTry || '') + String(m.basePowerCallback || '') + String(m.onBasePower || '');
+      if (!/target\.item|target\.getItem/.test(src)) return null;
+      return { failsIfNone: /onTry/.test(String(m.onTry || '')) ? true : false,
+               mult: /1\.5|hasItem/.test(src) ? 1.5 : null };
+    } },
+  /* THE WORST CLASS IN THE SET, and it turned up only because Will asked "do you think im missing
+   * any moves". Every one of these has basePower 0 and computes its damage in a callback, so the
+   * engine does not merely misprice them -- it reads them as dealing NOTHING.
+   *
+   *   Super Fang     442 uses   half the target's CURRENT hp
+   *   Final Gambit   180        the user's remaining hp, and the user faints
+   *   Endeavor        75        brings the target down to the user's hp
+   *   Sheer Cold/Fissure/Guillotine  67 combined, a flat kill at ~30% accuracy
+   *   Night Shade     22        damage equal to level
+   *
+   * None of them scale with Attack, none care about the defender's Defense, and STAB and type
+   * effectiveness do not apply to the fixed ones -- only immunity does. So they cannot go through
+   * the normal damage path at all; the distribution has to special-case the SOURCE of the number
+   * while still convolving accuracy over it. */
+  { tag: 'fixedDamage', param: 'damage comes from a callback, NOT from base power -- these read as 0 today', probe: 'fixedDamage',
+    why: 'Super Fang (442 uses), Final Gambit (180) and Endeavor (75) all have basePower 0. The '
+       + 'engine scores them as harmless, which is the most wrong a move can be scored',
+    of: m => {
+      if (!m.damageCallback && !m.damage && !m.ohko) return null;
+      const src = String(m.damageCallback || '');
+      const kind = m.ohko ? 'ohko'
+                 : m.damage === 'level' ? 'level'
+                 : /getUndynamaxedHP\(\) - pokemon\.hp/.test(src) ? 'targetDownToMine'
+                 : /pokemon\.hp;\s*pokemon\.faint/.test(src) ? 'myRemainingHP'
+                 : /clampIntRange\(target\.getUndynamaxedHP\(\) \/ 2/.test(src) ? 'halfTargetCurrentHP'
+                 : /volatiles/.test(src) ? 'counterDamageTaken'
+                 : typeof m.damage === 'number' ? 'flat' : 'callback';
+      return { source: kind, flat: typeof m.damage === 'number' ? m.damage : null,
+               ignoresStatsAndSTAB: true };
+    } },
   { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
        + 'legally do, which nothing represents, and the chip is residual damage nothing counts',
@@ -534,7 +615,12 @@ const MOVE_TAGS = [
     why: 'movesBoostMe is only a sign. +Spe flips the speed order, +Atk changes damage, +Def changes '
        + 'survival -- three different values reading as one number today',
     of: m => {
-      const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
+      /* THREE fields carry self stat changes and the probes read only two. Will spotted the third
+       * by asking whether Clanging Scales was right: `selfBoost.boosts` (Clanging Scales), against
+       * `self.boosts` (Close Combat) and `secondaries[].self.boosts` (Ancient Power). Clanging
+       * Scales is a 110 BP spread move that drops the user's Defense, and the drawback was invisible. */
+      const b = (m.self && m.self.boosts) || (m.selfBoost && m.selfBoost.boosts)
+        || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
       if (!b || !Object.values(b).some(v => v > 0)) return null;
       /* Will: "so we dont need to say -1 -1 for cc lowerUser". Right, and it is the rule for the
        * whole taxonomy now: a tag says WHICH parameter a move sets; the VALUE is looked up when it
@@ -607,7 +693,12 @@ const MOVE_TAGS = [
        + 'pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no '
        + 'self-effect whatsoever',
     of: m => {
-      const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
+      /* THREE fields carry self stat changes and the probes read only two. Will spotted the third
+       * by asking whether Clanging Scales was right: `selfBoost.boosts` (Clanging Scales), against
+       * `self.boosts` (Close Combat) and `secondaries[].self.boosts` (Ancient Power). Clanging
+       * Scales is a 110 BP spread move that drops the user's Defense, and the drawback was invisible. */
+      const b = (m.self && m.self.boosts) || (m.selfBoost && m.selfBoost.boosts)
+        || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
       if (!b || !Object.values(b).some(v => v < 0)) return null;
       return { readFrom: 'm.self.boosts', lowersSpeed: (b.spe || 0) < 0,
                alsoRaises: Object.values(b).some(v => v > 0) };
@@ -1228,6 +1319,45 @@ const EXPECTED_EMPTY = new Set([
   'blocksSecondary', 'blocksPowder', 'preventsStatDrop', 'contactPunish',
   'skipsChargeTurn', 'statMult', 'ignoresAbility',
 ]);
+/* WILL'S RULE, 2026-07-29: "if a pokemon doesnt have a recognized move or ability, lets just give
+ * it a nothing placeholder... im not trying to plan for watchog man... just have it flag it if it
+ * becomes a problem."
+ *
+ * The right call. Chasing 100% tag coverage means writing machinery for moves nobody clicks, and
+ * the tail is enormous. But SILENTLY untagged is exactly the failure this project keeps having --
+ * something is absent, everything runs clean, and only a human notices.
+ *
+ * So: untagged is an EXPLICIT tag ('untagged'), never an empty list, and the threshold is usage,
+ * not principle. Anything above USAGE_FLOOR that we never tagged gets printed for review. Watchog
+ * never crosses it; a genuinely missed common move does. */
+const UNTAGGED_FLOOR = 0.005;   /* 0.5% of games -- below this it is not worth engine surface */
+function flagUntagged(kind, table, usage, total) {
+  const bad = [];
+  for (const [id, rec] of Object.entries(table)) {
+    if (rec.tags && rec.tags.length) continue;
+    rec.tags = ['untagged'];                       /* explicit placeholder, never an empty list */
+    const share = (usage[id] || 0) / Math.max(1, total);
+    if (share >= UNTAGGED_FLOOR) bad.push([id, share]);
+  }
+  bad.sort((x, y) => y[1] - x[1]);
+  if (bad.length) {
+    console.log(`
+  ** ${bad.length} ${kind} above ${(UNTAGGED_FLOOR * 100).toFixed(1)}% usage have NO tag **`);
+    for (const [id, sh] of bad.slice(0, 20)) console.log(`     ${id.padEnd(22)} ${(sh * 100).toFixed(2)}%`);
+  } else {
+    console.log(`  every ${kind} above ${(UNTAGGED_FLOOR * 100).toFixed(1)}% usage carries at least one tag.`);
+  }
+  return bad.length;
+}
+
+console.log('');
+console.log('COVERAGE -- what carries no tag at all, weighted by whether anyone actually uses it:');
+let nUntagged = 0;
+const NG = Math.max(1, U.entries);
+nUntagged += flagUntagged('move(s)',     moves.entries, U.move,    NG);
+nUntagged += flagUntagged('ability/ies', abils.entries, U.ability, NG);
+nUntagged += flagUntagged('item(s)',     items.entries, U.item,    NG);
+
 const emptyTags = all.filter(r => r.n === 0 && !EXPECTED_EMPTY.has(r.tag));
 if (emptyTags.length) {
   console.log('');
