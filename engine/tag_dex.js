@@ -90,6 +90,12 @@ function statusOdds(m, st) {
   let p = null;
   for (const sec of (m.secondaries || [])) if (sec && sec.status === st) p = (sec.chance || 100) / 100;
   if (m.secondary && m.secondary.status === st) p = (m.secondary.chance || 100) / 100;
+  /* AND FROM A PROTECT-FAMILY CONDITION. Will: "baneful bunker spreads poison". Its poison lives in
+   * the move's own condition.onHit, not in status or secondaries, so reading only those missed it --
+   * and Spiky Shield's chip damage is in exactly the same place. */
+  if (p === null && m.condition && m.condition.onHit && new RegExp(st, 'i').test(String(m.condition.onHit))) {
+    p = 1; return { p, via: 'contact with the shield' };
+  }
   return p === null ? null : { p, via: 'secondary' };
 }
 
@@ -262,11 +268,39 @@ const MOVE_TAGS = [
    *   hazards          laid on the OPPONENT's side, persist until removed, and do nothing this turn:
    *                    they punish SWITCHING, which is a different decision entirely.
    * The dex distinguishes them: target === 'foeSide' is a hazard, and the guards last one turn. */
-  { tag: 'oneTurnGuard', param: 'blocks a CLASS of move for one turn', probe: 'wideguard',
-    why: 'Wide Guard blanks every spread move, Quick Guard every priority move. Neither is scored, and '
-       + 'Wide Guard alone is 2,065 uses',
-    of: m => (m.sideCondition && /^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id)))
-             ? { blocksClass: norm(m.id) } : null },
+  /* THE PARAMETER NAMES THE CLASS, on Will's question about Quick Guard. Both moves were reading as
+   * the same tag with the same description, which tells a model nothing -- they block completely
+   * different things and are answers to completely different threats:
+   *   Wide Guard    every SPREAD move. 2,065 uses. Blanks Rock Slide, Heat Wave, Earthquake.
+   *   Quick Guard   every PRIORITY move. 356 uses. Blanks Fake Out (7,846 uses), Extreme Speed,
+   *                 Aqua Jet -- and is the reason a Fake Out lead is not free.
+   *   Crafty Shield only STATUS moves, and does NOT protect from damage.
+   *   Mat Block     only DAMAGING moves, and only on the user's first turn out.
+   * Derived from the condition rather than the name where possible: the handler states what it
+   * refuses. */
+  { tag: 'oneTurnGuard', param: 'blocks ONE NAMED CLASS of move, for one turn, for my whole side', probe: 'wideguard',
+    why: 'Wide Guard blanks spread (2,065 uses), Quick Guard blanks priority (356) -- including Fake '
+       + 'Out at 7,846 uses. Different threats, and nothing scores either',
+    of: m => {
+      if (!(m.sideCondition && /^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id)))) return null;
+      const src = String((m.condition && m.condition.onTryHit) || '');
+      const cls = /priority/i.test(src) ? 'priority moves'
+                : /allAdjacent|spread/i.test(src) ? 'spread moves'
+                : /Status/.test(src) ? 'status moves'
+                : /Status/.test(src) === false && /matblock/.test(norm(m.id)) ? 'damaging moves'
+                : 'a class stated in its handler';
+      return { blocks: cls };
+    } },
+  /* Will: "haze clears all stat changes, idk how to tag". It is its own thing -- a RESET. Every stat
+   * stage on the field goes to zero, both sides, ignoring Protect and Substitute. Nothing else in
+   * the format undoes setup, and 359 uses means it is a real answer to it. The parameter is simply
+   * "all boosts := 0", which is a state change no damage or kill feature can express. */
+  { tag: 'clearsBoosts', param: 'every stat stage on the field := 0, both sides', probe: 'clearsBoosts',
+    why: 'Haze, 359 uses. The only answer to setup in the format, and it hits YOUR boosts too -- so '
+       + 'whether to click it depends on who is ahead on stages, which nothing computes',
+    of: m => (/^(haze|clearsmog)$/.test(norm(m.id))
+              || (m.onHitField && /clearBoost/i.test(String(m.onHitField)))
+              || (m.onHit && /clearBoost/i.test(String(m.onHit)))) ? { resets: true } : null },
   /* TAILWIND GETS ITS OWN CATEGORY on Will's review -- "tailwind should really be its own category
    * because its so dominant". 6,981 uses, the most-used side condition in the format, and it sets a
    * completely different PARAMETER from the screens it was grouped with: speed order for the whole
@@ -321,11 +355,22 @@ const MOVE_TAGS = [
     of: m => (m.boosts && m.target !== 'self'
               && Object.values(m.boosts).some(v => v > 0)
               && !Object.values(m.boosts).some(v => v < 0)) ? { boosts: m.boosts } : null },
-  { tag: 'lowersTarget', param: 'negative stat stages on the foe', probe: 'movesLowerFoe',
-    why: 'Charm, Fake Tears, Scary Face, Tickle. Intimidate-shaped, and what Clear Amulet and White '
-       + 'Herb answer',
-    of: m => (m.boosts && m.target !== 'self'
-              && Object.values(m.boosts).some(v => v < 0)) ? { boosts: m.boosts } : null },
+  /* CARRIES THE STAT, on Will's review -- "the lowers target status moves need the stat and
+   * direction much like the positive self boost ones". Same fix as boostsUser: -1 Speed flips the
+   * speed order, -1 Attack halves their physical damage, -1 Accuracy is a different thing again, and
+   * a single "lowers something" number cannot separate them. Strength Sap is why it also has to read
+   * m.self.boosts and the drain -- it HEALS and lowers their Attack in one click. */
+  { tag: 'lowersTarget', param: 'WHICH stat stages come off the foe, not just that some do', probe: 'movesLowerFoe',
+    why: 'Charm, Fake Tears, Scary Face, Tickle, Strength Sap. -1 Spe flips the order, -1 Atk halves '
+       + 'their physical output. What Clear Amulet and White Herb answer',
+    of: m => {
+      const b = (m.boosts && m.target !== 'self' && Object.values(m.boosts).some(v => v < 0)) ? m.boosts : null;
+      if (b) return { boosts: b, lowersSpeed: (b.spe || 0) < 0, lowersAttack: (b.atk || 0) < 0 };
+      /* Strength Sap declares its Attack drop inside onHit rather than in boosts. */
+      if (m.onHit && /boost/i.test(String(m.onHit)) && /atk|spa|spe|def|spd/i.test(String(m.onHit))
+          && m.target !== 'self') return { boosts: 'via onHit', lowersAttack: /atk/i.test(String(m.onHit)) };
+      return null;
+    } },
   /* Will: "memento is an explosion like move, is that a tag we can add". Yes, and the dex declares
    * it -- selfdestruct is 'always' (Explosion, Self-Destruct, Misty Explosion) or 'ifHit' (Memento,
    * Final Gambit, Healing Wish). Spending your own body is a cost no feature represents, and it is
@@ -382,9 +427,29 @@ const MOVE_TAGS = [
   { tag: 'inflictsSleep', param: 'P(sleep): they lose turns outright', probe: 'slp',
     why: 'The most valuable status in the game and the one Electric Terrain blanks',
     of: m => statusOdds(m, 'slp') },
-  { tag: 'inflictsPoison', param: 'P(poison): chip, 1/8 or escalating', probe: 'psn',
-    why: 'Pure chip, so it prices a long game rather than this turn',
-    of: m => statusOdds(m, 'psn') || statusOdds(m, 'tox') },
+  /* SPLIT on Will's review -- "toxic status is different than just normal poison status". Right, and
+   * the difference compounds: regular poison is a flat 1/8 a turn, badly poisoned is n/16 ESCALATING,
+   * so by turn six it is doing more than triple. A long game against Toxic is a different game. */
+  { tag: 'inflictsPoison', param: 'P(poison): flat 1/8 chip a turn', probe: 'psn',
+    why: 'Poison Jab (758 uses), Baneful Bunker on contact. Prices the long game, not this turn',
+    of: m => statusOdds(m, 'psn') },
+  { tag: 'inflictsToxic', param: 'P(badly poisoned): n/16 ESCALATING, not a flat 1/8', probe: 'tox',
+    why: 'Toxic, 480 uses. By turn six it is doing more than triple what regular poison does, so it '
+       + 'is a different clock entirely',
+    of: m => statusOdds(m, 'tox') },
+  /* Will: "yawn inflicts the drowzy status i think". Yes -- a VOLATILE, not a status. It puts them
+   * to sleep at the END OF NEXT TURN, which is a threat rather than an effect: they get a turn to
+   * switch out or to act, and the model has no way to represent a delayed consequence. */
+  { tag: 'delayedSleep', param: 'they fall asleep at the end of NEXT turn unless they switch', probe: 'yawn',
+    why: 'Yawn, 536 uses. Not a status this turn -- a threat that forces a switch, which is the whole '
+       + 'point of clicking it',
+    of: m => m.volatileStatus === 'yawn' ? { delay: 1 } : null },
+  /* Will: "perish song needs its own probably". It does -- it is the only effect in the format that
+   * ignores HP, typing, items and abilities entirely and kills on a three-turn timer. 560 uses. */
+  { tag: 'perishClock', param: 'everything on the field dies in 3 turns unless it switches', probe: 'perishsong',
+    why: 'Perish Song, 560 uses. Ignores HP, typing, items and abilities. No damage feature can see '
+       + 'it and no kill calculation applies',
+    of: m => /perishsong/.test(norm(m.id)) ? { turns: 3 } : null },
   { tag: 'inflictsStatus', param: 'status := x (any)', probe: 'statusBites',
     why: 'burn halves physical damage, paralysis halves speed -- both are damage/order parameters',
     of: m => m.status ? { status: m.status } : null },
@@ -655,16 +720,16 @@ function collect(kind, all, tags, usageMap) {
   for (const o of all) {
     if (!o || !o.exists || o.isNonstandard) continue;
     const id = norm(o.id || o.name);
-    const hit = [];
+    const hit = [], params = {};
     for (const t of tags) {
       let v = null; try { v = t.of(o); } catch (e) { v = null; }
       if (!v) continue;
-      hit.push(t.tag);
+      hit.push(t.tag); params[t.tag] = v;
       const ix = index[t.tag];
       ix.n++; ix.uses += (usageMap[id] || 0);
       if (ix.examples.length < 6 && (usageMap[id] || 0) > 0) ix.examples.push(o.name);
     }
-    if (hit.length) entries[id] = { name: o.name, tags: hit, uses: usageMap[id] || 0 };
+    if (hit.length) entries[id] = { name: o.name, tags: hit, uses: usageMap[id] || 0, params };
   }
   return { entries, index };
 }
