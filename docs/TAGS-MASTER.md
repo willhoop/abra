@@ -27,135 +27,144 @@ derivation says otherwise. Weak Armor only ever touches itself and Gooey only th
 
 # MEGA ABILITIES — the sheet does not say what will be on the field
 
-**18,475** sheet entries (28.0%) hold a mega stone, and **90.3%** of those change ability on evolution — **16,684** entries, about one Pokémon in four.
+**18,475** sheet entries (28.0%) hold a mega stone, and **90.3%** of those would change ability on evolution — **16,684** entries, about one Pokémon in four.
 
-Every ability count in this document is the ability *written on the sheet*. For these, that is
-not the ability the engine will face. Staraptor is the dangerous one: the sheet says Intimidate
-and the field says **Contrary**, which inverts every stat change.
+Every ability count in this document is the ability *written on the sheet*. Staraptor is the
+case to hold in mind: it enters with **Intimidate**, which fires immediately, and becomes
+**Contrary** only if it is the one Pokémon that evolves — and Contrary inverts every stat change.
 
-Every ability count in this document is what the **sheet** says. Below is how far each one is
-from what will be on the **field** once megas evolve. A positive number means the ability is
-more common than this document claims; a negative means less.
+**The base ability is real.** A stone-holder keeps it from switch-in until the instant it
+evolves — Staraptor's Intimidate fires on entry every time, and only then becomes Contrary.
+And only **one** Pokémon per battle may mega evolve, while **67%** of teams bring **two**
+stones, so at least one stone-holder per team keeps its base ability the whole game.
 
-| ability | counted here | actually on field | off by |
+That makes this a range, not a correction. The left column is always live at least once; the
+right is the ceiling if that Pokémon is the one that evolves. Reality sits between, nearer the
+left for the second stone on a team.
+
+| ability | on entry (always) | if it megas (ceiling) | swing |
 |---|---:|---:|---:|
-| Blaze | 2,722 | **80** | -2,642 |
-| Intimidate | 6,604 | **4,236** | -2,368 |
-| Drought | 621 | **2,844** | +2,223 |
-| Tough Claws | 272 | **2,374** | +2,102 |
-| Contrary | 134 | **2,091** | +1,957 |
-| Fairy Aura | 0 | **1,455** | +1,455 |
-| Flower Veil | 1,465 | **46** | -1,419 |
-| Swift Swim | 325 | **1,676** | +1,351 |
-| Clear Body | 1,331 | **144** | -1,187 |
-| No Guard | 22 | **1,133** | +1,111 |
-| Torrent | 1,093 | **32** | -1,061 |
-| Lightning Rod | 1,302 | **383** | -919 |
-| Unnerve | 1,329 | **488** | -841 |
-| Cursed Body | 837 | **18** | -819 |
-| Huge Power | 75 | **814** | +739 |
-| Snow Warning | 954 | **1,502** | +548 |
-| Levitate | 1,785 | **2,308** | +523 |
-| Shadow Tag | 0 | **446** | +446 |
-| Damp | 437 | **7** | -430 |
-| Thick Fat | 71 | **480** | +409 |
-| Solar Power | 432 | **44** | -388 |
-| Chlorophyll | 1,151 | **780** | -371 |
-| Mega Launcher | 20 | **377** | +357 |
-| Hyper Cutter | 378 | **38** | -340 |
-| Overgrow | 362 | **37** | -325 |
-| Spicy Spray | 0 | **284** | +284 |
-| Eelevate | 0 | **259** | +259 |
-| Static | 278 | **23** | -255 |
-| Moody | 249 | **10** | -239 |
-| Rain Dish | 240 | **13** | -227 |
-| Pixilate | 1,448 | **1,667** | +219 |
-| Electric Surge | 0 | **217** | +217 |
-| Fire Mane | 0 | **188** | +188 |
-| Sheer Force | 94 | **278** | +184 |
-| Rock Head | 399 | **219** | -180 |
-| Snow Cloak | 219 | **40** | -179 |
-| Adaptability | 2,855 | **3,021** | +166 |
-| Toxic Debris | 417 | **258** | -159 |
-| Solid Rock | 170 | **20** | -150 |
-| Mega Sol | 0 | **139** | +139 |
-| Parental Bond | 0 | **133** | +133 |
-| Regenerator | 555 | **684** | +129 |
-| Mold Breaker | 130 | **237** | +107 |
-| Inner Focus | 377 | **278** | -99 |
-| Magic Bounce | 92 | **190** | +98 |
-| Sand Force | 18 | **109** | +91 |
-| Trace | 114 | **33** | -81 |
-| Shell Armor | 25 | **103** | +78 |
-| Leaf Guard | 75 | **1** | -74 |
-| Limber | 63 | **1** | -62 |
-| Sturdy | 154 | **97** | -57 |
-| Rough Skin | 3,762 | **3,706** | -56 |
-| Flash Fire | 357 | **302** | -55 |
-| Telepathy | 116 | **63** | -53 |
-| Piercing Drill | 0 | **53** | +53 |
-| Poison Point | 51 | **5** | -46 |
-| Magma Armor | 44 | **0** | -44 |
-| Cloud Nine | 70 | **28** | -42 |
-| Multiscale | 353 | **394** | +41 |
-| Infiltrator | 56 | **97** | +41 |
-| Unaware | 173 | **133** | -40 |
-| Magician | 41 | **1** | -40 |
-| Synchronize | 53 | **14** | -39 |
-| Filter | 0 | **38** | +38 |
-| Symbiosis | 37 | **1** | -36 |
-| Natural Cure | 38 | **5** | -33 |
-| Speed Boost | 453 | **422** | -31 |
-| Cute Charm | 48 | **17** | -31 |
-| Scrappy | 262 | **232** | -30 |
-| Sand Veil | 135 | **105** | -30 |
-| Sand Rush | 495 | **468** | -27 |
-| Unseen Fist | 0 | **26** | +26 |
-| Unburden | 1,465 | **1,440** | -25 |
-| Illuminate | 27 | **3** | -24 |
-| Sniper | 24 | **0** | -24 |
-| Oblivious | 277 | **254** | -23 |
-| Berserk | 32 | **55** | +23 |
-| Justified | 29 | **8** | -21 |
-| Skill Link | 4 | **25** | +21 |
-| Swarm | 27 | **8** | -19 |
-| Stalwart | 27 | **45** | +18 |
-| Prankster | 4,692 | **4,676** | -16 |
-| Reckless | 21 | **5** | -16 |
-| Insomnia | 39 | **23** | -16 |
-| Steadfast | 23 | **8** | -15 |
-| Iron Fist | 55 | **70** | +15 |
-| Magic Guard | 60 | **45** | -15 |
-| Moxie | 37 | **23** | -14 |
-| Early Bird | 14 | **0** | -14 |
-| Big Pecks | 13 | **0** | -13 |
-| Rivalry | 13 | **0** | -13 |
-| Aerilate | 0 | **12** | +12 |
-| Dragonize | 0 | **11** | +11 |
-| Competitive | 815 | **806** | -9 |
-| Keen Eye | 27 | **18** | -9 |
-| Pressure | 85 | **78** | -7 |
-| Guts | 12 | **5** | -7 |
-| Innards Out | 0 | **7** | +7 |
-| Frisk | 72 | **66** | -6 |
-| Heavy Metal | 6 | **0** | -6 |
-| Healer | 20 | **25** | +5 |
-| Strong Jaw | 5 | **10** | +5 |
-| Corrosion | 11 | **7** | -4 |
-| Protean | 167 | **171** | +4 |
-| Analytic | 7 | **3** | -4 |
-| Anger Point | 7 | **4** | -3 |
-| Own Tempo | 44 | **42** | -2 |
-| Tangled Feet | 2 | **0** | -2 |
-| Pure Power | 9 | **11** | +2 |
-| Light Metal | 2 | **0** | -2 |
-| Sharpness | 155 | **154** | -1 |
-| Sand Stream | 848 | **849** | +1 |
-| Bulletproof | 52 | **53** | +1 |
-| Super Luck | 3 | **2** | -1 |
-| Weak Armor | 9 | **8** | -1 |
-| Shed Skin | 3 | **2** | -1 |
-| Refrigerate | 1 | **2** | +1 |
+| Blaze | 2,722 | 80 | -2,642 |
+| Intimidate | 6,604 | 4,236 | -2,368 |
+| Drought | 621 | 2,844 | +2,223 |
+| Tough Claws | 272 | 2,374 | +2,102 |
+| Contrary | 134 | 2,091 | +1,957 |
+| Fairy Aura | 0 | 1,455 | +1,455 |
+| Flower Veil | 1,465 | 46 | -1,419 |
+| Swift Swim | 325 | 1,676 | +1,351 |
+| Clear Body | 1,331 | 144 | -1,187 |
+| No Guard | 22 | 1,133 | +1,111 |
+| Torrent | 1,093 | 32 | -1,061 |
+| Lightning Rod | 1,302 | 383 | -919 |
+| Unnerve | 1,329 | 488 | -841 |
+| Cursed Body | 837 | 18 | -819 |
+| Huge Power | 75 | 814 | +739 |
+| Snow Warning | 954 | 1,502 | +548 |
+| Levitate | 1,785 | 2,308 | +523 |
+| Shadow Tag | 0 | 446 | +446 |
+| Damp | 437 | 7 | -430 |
+| Thick Fat | 71 | 480 | +409 |
+| Solar Power | 432 | 44 | -388 |
+| Chlorophyll | 1,151 | 780 | -371 |
+| Mega Launcher | 20 | 377 | +357 |
+| Hyper Cutter | 378 | 38 | -340 |
+| Overgrow | 362 | 37 | -325 |
+| Spicy Spray | 0 | 284 | +284 |
+| Eelevate | 0 | 259 | +259 |
+| Static | 278 | 23 | -255 |
+| Moody | 249 | 10 | -239 |
+| Rain Dish | 240 | 13 | -227 |
+| Pixilate | 1,448 | 1,667 | +219 |
+| Electric Surge | 0 | 217 | +217 |
+| Fire Mane | 0 | 188 | +188 |
+| Sheer Force | 94 | 278 | +184 |
+| Rock Head | 399 | 219 | -180 |
+| Snow Cloak | 219 | 40 | -179 |
+| Adaptability | 2,855 | 3,021 | +166 |
+| Toxic Debris | 417 | 258 | -159 |
+| Solid Rock | 170 | 20 | -150 |
+| Mega Sol | 0 | 139 | +139 |
+| Parental Bond | 0 | 133 | +133 |
+| Regenerator | 555 | 684 | +129 |
+| Mold Breaker | 130 | 237 | +107 |
+| Inner Focus | 377 | 278 | -99 |
+| Magic Bounce | 92 | 190 | +98 |
+| Sand Force | 18 | 109 | +91 |
+| Trace | 114 | 33 | -81 |
+| Shell Armor | 25 | 103 | +78 |
+| Leaf Guard | 75 | 1 | -74 |
+| Limber | 63 | 1 | -62 |
+| Sturdy | 154 | 97 | -57 |
+| Rough Skin | 3,762 | 3,706 | -56 |
+| Flash Fire | 357 | 302 | -55 |
+| Telepathy | 116 | 63 | -53 |
+| Piercing Drill | 0 | 53 | +53 |
+| Poison Point | 51 | 5 | -46 |
+| Magma Armor | 44 | 0 | -44 |
+| Cloud Nine | 70 | 28 | -42 |
+| Multiscale | 353 | 394 | +41 |
+| Infiltrator | 56 | 97 | +41 |
+| Unaware | 173 | 133 | -40 |
+| Magician | 41 | 1 | -40 |
+| Synchronize | 53 | 14 | -39 |
+| Filter | 0 | 38 | +38 |
+| Symbiosis | 37 | 1 | -36 |
+| Natural Cure | 38 | 5 | -33 |
+| Speed Boost | 453 | 422 | -31 |
+| Cute Charm | 48 | 17 | -31 |
+| Scrappy | 262 | 232 | -30 |
+| Sand Veil | 135 | 105 | -30 |
+| Sand Rush | 495 | 468 | -27 |
+| Unseen Fist | 0 | 26 | +26 |
+| Unburden | 1,465 | 1,440 | -25 |
+| Illuminate | 27 | 3 | -24 |
+| Sniper | 24 | 0 | -24 |
+| Oblivious | 277 | 254 | -23 |
+| Berserk | 32 | 55 | +23 |
+| Justified | 29 | 8 | -21 |
+| Skill Link | 4 | 25 | +21 |
+| Swarm | 27 | 8 | -19 |
+| Stalwart | 27 | 45 | +18 |
+| Prankster | 4,692 | 4,676 | -16 |
+| Reckless | 21 | 5 | -16 |
+| Insomnia | 39 | 23 | -16 |
+| Steadfast | 23 | 8 | -15 |
+| Iron Fist | 55 | 70 | +15 |
+| Magic Guard | 60 | 45 | -15 |
+| Moxie | 37 | 23 | -14 |
+| Early Bird | 14 | 0 | -14 |
+| Big Pecks | 13 | 0 | -13 |
+| Rivalry | 13 | 0 | -13 |
+| Aerilate | 0 | 12 | +12 |
+| Dragonize | 0 | 11 | +11 |
+| Competitive | 815 | 806 | -9 |
+| Keen Eye | 27 | 18 | -9 |
+| Pressure | 85 | 78 | -7 |
+| Guts | 12 | 5 | -7 |
+| Innards Out | 0 | 7 | +7 |
+| Frisk | 72 | 66 | -6 |
+| Heavy Metal | 6 | 0 | -6 |
+| Healer | 20 | 25 | +5 |
+| Strong Jaw | 5 | 10 | +5 |
+| Corrosion | 11 | 7 | -4 |
+| Protean | 167 | 171 | +4 |
+| Analytic | 7 | 3 | -4 |
+| Anger Point | 7 | 4 | -3 |
+| Own Tempo | 44 | 42 | -2 |
+| Tangled Feet | 2 | 0 | -2 |
+| Pure Power | 9 | 11 | +2 |
+| Light Metal | 2 | 0 | -2 |
+| Sharpness | 155 | 154 | -1 |
+| Sand Stream | 848 | 849 | +1 |
+| Bulletproof | 52 | 53 | +1 |
+| Super Luck | 3 | 2 | -1 |
+| Weak Armor | 9 | 8 | -1 |
+| Shed Skin | 3 | 2 | -1 |
+| Refrigerate | 1 | 2 | +1 |
+
+Two entries deserve singling out: **Fairy Aura** and **Shadow Tag** are on *zero* sheets and
+appear nowhere else in this document, yet reach the field on 1,455 and 446 of them. Shadow Tag
+prevents switching, and the engine has no entry for it at all.
 
 ---
 

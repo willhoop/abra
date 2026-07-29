@@ -106,12 +106,12 @@ const ab1 = sp => (sp && sp.abilities) ? Object.values(sp.abilities)[0] : null;
   P('# MEGA ABILITIES — the sheet does not say what will be on the field');
   P('');
   P('**' + stones.toLocaleString() + '** sheet entries (' + pct(stones) + ') hold a mega stone, and **' +
-    (changed / stones * 100).toFixed(1) + '%** of those change ability on evolution — **' +
+    (changed / stones * 100).toFixed(1) + '%** of those would change ability on evolution — **' +
     changed.toLocaleString() + '** entries, about one Pokémon in four.');
   P('');
-  P('Every ability count in this document is the ability *written on the sheet*. For these, that is');
-  P('not the ability the engine will face. Staraptor is the dangerous one: the sheet says Intimidate');
-  P('and the field says **Contrary**, which inverts every stat change.');
+  P('Every ability count in this document is the ability *written on the sheet*. Staraptor is the');
+  P('case to hold in mind: it enters with **Intimidate**, which fires immediately, and becomes');
+  P('**Contrary** only if it is the one Pokémon that evolves — and Contrary inverts every stat change.');
   P('');
   /* PER ABILITY, NOT PER SPECIES. Will: "i dont care about this, show it me ability by ability."
    * He is right -- the species list is a long tail of ones and twos and says nothing actionable.
@@ -139,16 +139,37 @@ const ab1 = sp => (sp && sp.abilities) ? Object.values(sp.abilities)[0] : null;
     return { name: (o && o.name) || id, sh, fl, d: fl - sh };
   }).filter(r => r.d !== 0).sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
 
-  P('Every ability count in this document is what the **sheet** says. Below is how far each one is');
-  P('from what will be on the **field** once megas evolve. A positive number means the ability is');
-  P('more common than this document claims; a negative means less.');
+  /* WILL'S CORRECTION: "well megas still have initial ability on entry before mega evolution."
+   *
+   * This kills the single "off by" number that was here before, which assumed every stone-holder
+   * evolves. Two facts make that wrong:
+   *
+   *   1. The base ability is LIVE from switch-in until the moment of evolution. Staraptor's
+   *      Intimidate fires on entry every single time, and only then can it become Contrary.
+   *   2. Only ONE Pokemon per battle may mega evolve -- and 67% of teams bring TWO stones. So at
+   *      least one stone-holder per team keeps its base ability for the whole game.
+   *
+   * So the truth is a RANGE, not a correction. Both columns are real; neither is the answer on its
+   * own, and the left one is always live at least once. */
+  P('**The base ability is real.** A stone-holder keeps it from switch-in until the instant it');
+  P('evolves — Staraptor\'s Intimidate fires on entry every time, and only then becomes Contrary.');
+  P('And only **one** Pokémon per battle may mega evolve, while **67%** of teams bring **two**');
+  P('stones, so at least one stone-holder per team keeps its base ability the whole game.');
   P('');
-  P('| ability | counted here | actually on field | off by |');
+  P('That makes this a range, not a correction. The left column is always live at least once; the');
+  P('right is the ceiling if that Pokémon is the one that evolves. Reality sits between, nearer the');
+  P('left for the second stone on a team.');
+  P('');
+  P('| ability | on entry (always) | if it megas (ceiling) | swing |');
   P('|---|---:|---:|---:|');
   for (const r of drift) {
-    P('| ' + r.name + ' | ' + r.sh.toLocaleString() + ' | **' + r.fl.toLocaleString() + '** | ' +
+    P('| ' + r.name + ' | ' + r.sh.toLocaleString() + ' | ' + r.fl.toLocaleString() + ' | ' +
       (r.d > 0 ? '+' : '') + r.d.toLocaleString() + ' |');
   }
+  P('');
+  P('Two entries deserve singling out: **Fairy Aura** and **Shadow Tag** are on *zero* sheets and');
+  P('appear nowhere else in this document, yet reach the field on 1,455 and 446 of them. Shadow Tag');
+  P('prevents switching, and the engine has no entry for it at all.');
   P('');
   P('---');
   P('');
