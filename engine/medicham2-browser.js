@@ -148,6 +148,88 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
      * works on first switchin, then the status is tuck" — confirmed against the source). */
     _sf:null,_fallenStuck:0}; }
 
+/* ---- POKEPASTE IMPORT (Will: "can i pokepaste a team?") --------------------------------------
+ * Mirrors CHOMP/engine/champ-model.js parsePaste + its VALIDATED stat math, and
+ * tests/test-paste.js pins the two implementations together against Will's own myteam.txt so they
+ * cannot drift apart. The math that matters and would have been silently wrong from memory:
+ * Champions EVs are FLAT stat points added on top (statL50 adds +sp inside the nature multiply,
+ * hpL50 adds +sp after) — NOT the mainline EV/4 formula. Nature is the standard 10% chart. */
+const PASTE_NAT={adamant:['at','sa'],jolly:['sp','sa'],modest:['sa','at'],timid:['sp','at'],
+  bold:['df','at'],calm:['sd','at'],careful:['sd','sa'],impish:['df','sa'],relaxed:['df','sp'],
+  sassy:['sd','sp'],quiet:['sa','sp'],brave:['at','sp'],naive:['sp','sd'],hasty:['sp','df'],
+  lonely:['at','df'],mild:['sa','df'],rash:['sa','sd'],gentle:['sd','df'],naughty:['at','sd'],lax:['df','sd']};
+function parsePaste(text){
+  const sets=[];
+  for(const block of String(text||'').split(/\n\s*\n/)){
+    const lines=block.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!lines.length)continue;
+    let head=lines[0]; if(/^(===|\[)/.test(head))continue;
+    const at=head.split(' @ ');
+    const item=at.length>1?at[1].trim():null;
+    let species=at[0].trim();
+    const par=species.match(/\(([^)]+)\)\s*$/);
+    if(par&&!['M','F'].includes(par[1]))species=par[1];
+    species=species.replace(/\s*\((M|F)\)\s*$/,'').trim();
+    const set={species,item,ability:null,nature:null,sp:{hp:0,at:0,df:0,sa:0,sd:0,sp:0},moves:[]};
+    for(let i=1;i<lines.length;i++){
+      const L=lines[i];
+      if(/^Ability:/i.test(L))set.ability=L.split(':')[1].trim();
+      else if(/Nature/i.test(L))set.nature=L.replace(/Nature/i,'').trim();
+      else if(/^EVs:/i.test(L)){L.split(':')[1].split('/').forEach(p=>{
+        const m2=p.trim().match(/(\d+)\s*(\w+)/);
+        if(m2){const k={hp:'hp',atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'}[m2[2].toLowerCase()];if(k)set.sp[k]=+m2[1];}});}
+      else if(/^-\s/.test(L))set.moves.push(L.replace(/^-\s*/,'').split('/')[0].trim());
+    }
+    if(set.species)sets.push(set);
+  }
+  return sets;
+}
+/* species name -> MC.mons key: lowercase, spaces to hyphens (the table's own convention),
+ * -mega suffix stripped because the STONE decides the forme, exactly as buildMon does */
+function pasteKey(name){
+  let n=String(name||'').toLowerCase().trim().replace(/[’'.]/g,'').replace(/\s+/g,'-');
+  n=n.replace(/-mega(-[xy])?$/,'');
+  if(MC.mons[n])return n;
+  const flat=n.replace(/-/g,'');
+  for(const k in MC.mons)if(k.replace(/-/g,'')===flat)return k;
+  return null;
+}
+function buildMonFromSet(set){
+  let key=pasteKey(set.species);
+  if(!key)return null;
+  const item=String(set.item||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  /* THE STONE DECIDES THE FORME, and in THIS table megas are their own species entries with real
+   * base stats — so "Gengar @ Gengarite" must resolve to gengar-mega's bs, or the import builds a
+   * mega with base stats (caught by the champ-model contract test: SpA 182 where truth is 222). */
+  if(/ite(x|y)?$/.test(item)&&!/-mega/.test(key)){
+    const suffix=/itex$/.test(item)?'-mega-x':(/itey$/.test(item)?'-mega-y':'-mega');
+    if(MC.mons[key+suffix])key=key+suffix;
+  }
+  const m=MC.mons[key];
+  if(!m||!m.bs)return null;
+  const bs=m.bs;
+  const types=m.t.slice();
+  const nat=PASTE_NAT[String(set.nature||'').toLowerCase()]||[];
+  const mul=st2=>nat[0]===st2?1.1:(nat[1]===st2?0.9:1);
+  const S=(b,sp2,st2)=>Math.floor((Math.floor((2*b+31)*50/100)+5+(+sp2||0))*mul(st2));
+  const st={hp:Math.floor((2*bs.hp+31)*50/100)+50+10+(+set.sp.hp||0),
+    at:S(bs.atk,set.sp.at,'at'),df:S(bs.def,set.sp.df,'df'),
+    sa:S(bs.spa,set.sp.sa,'sa'),sd:S(bs.spd,set.sp.sd,'sd'),sp:S(bs.spe,set.sp.sp,'sp')};
+  const norm2=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const declaredAb=norm2(set.ability);
+  /* Keep every move the engine can DO anything with: damaging (move table), protect-class, or a
+   * rulebook status move. Protect and Perish Song were being dropped by a damaging-only filter —
+   * a pasted team without its Protects is a different team. Truly invisible moves are recorded on
+   * droppedMoves so a UI can disclose them instead of silently thinning the set. */
+  const ids=set.moves.map(norm2);
+  const usable=ids.filter(id=>MC.moves[id]||PROTECTMOVES.has(id)||id==='wideguard'||id==='tailwind'||moveFx(id));
+  return {name:key,types,st,item,
+    ability:declaredAb||megaAbility(key,item,m.ab||''),baseAbility:m.ab||'',
+    moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
+    curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,
+    tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,_sf:null,_fallenStuck:0};
+}
+
 /* Does this move make contact? Read from the move's own flag via the tag artifact, which is the
  * `contact` linkage key -- 141 moves and 77,226 move-slots. No name list. */
 const _contactCache=Object.create(null);
@@ -979,9 +1061,10 @@ root.futureSight=futureSight;
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
+root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
-  punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,
+  punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
   moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);
