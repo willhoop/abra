@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T07:06:15.083Z",
+ "generated": "2026-07-29T07:15:14.512Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1720,16 +1720,20 @@
    ]
   },
   {
-   "tag": "extendsScreens",
+   "tag": "extendsDuration",
    "kind": "item",
-   "param": "side conditions last 8 turns not 5",
-   "why": "3.1% of items",
+   "param": "holding it makes a field or side effect last N turns instead of 5",
+   "why": "Light Clay (2,016 sheets) turns 5 turns of screens into 8, and Damp Rock does the same for rain. Three extra turns of a x0.5 or of a speed-doubling weather decides games",
    "consumedBy": null,
    "used": false,
-   "n": 1,
-   "uses": 2016,
+   "n": 5,
+   "uses": 2280,
    "examples": [
-    "Light Clay"
+    "Damp Rock",
+    "Heat Rock",
+    "Icy Rock",
+    "Light Clay",
+    "Smooth Rock"
    ]
   },
   {
@@ -7704,7 +7708,8 @@
    "params": {
     "perTurnHP": {
      "fraction": null,
-     "movesHPBetweenSides": false
+     "ofWhoseMaxHP": "itself",
+     "direction": "created for the holder"
     }
    }
   },
@@ -8294,8 +8299,9 @@
    "uses": 5,
    "params": {
     "perTurnHP": {
-     "fraction": null,
-     "movesHPBetweenSides": false
+     "fraction": "1/16",
+     "ofWhoseMaxHP": "itself",
+     "direction": "created for the holder"
     },
     "neverMisses": {
      "pHit": 1,
@@ -9585,8 +9591,9 @@
    "uses": 62,
    "params": {
     "perTurnHP": {
-     "fraction": null,
-     "movesHPBetweenSides": false
+     "fraction": "1/4",
+     "ofWhoseMaxHP": "itself",
+     "direction": "created for the holder"
     },
     "neverMisses": {
      "pHit": 1,
@@ -11091,8 +11098,9 @@
    "uses": 5,
    "params": {
     "perTurnHP": {
-     "fraction": null,
-     "movesHPBetweenSides": false
+     "fraction": "1/16",
+     "ofWhoseMaxHP": "itself",
+     "direction": "created for the holder"
     },
     "neverMisses": {
      "pHit": 1,
@@ -11894,8 +11902,9 @@
    "uses": 0,
    "params": {
     "perTurnHP": {
-     "fraction": null,
-     "movesHPBetweenSides": false
+     "fraction": "1/16",
+     "ofWhoseMaxHP": "itself",
+     "direction": "created for the holder"
     },
     "neverMisses": {
      "pHit": 1,
@@ -12171,8 +12180,9 @@
    "uses": 237,
    "params": {
     "perTurnHP": {
-     "fraction": null,
-     "movesHPBetweenSides": true
+     "fraction": "1/8",
+     "ofWhoseMaxHP": "the TARGET",
+     "direction": "moved from the target to the user"
     },
     "statusCategory": {
      "status": true
@@ -17909,10 +17919,18 @@
   "damprock": {
    "name": "Damp Rock",
    "tags": [
-    "untagged"
+    "extendsDuration"
    ],
    "uses": 200,
-   "params": {}
+   "params": {
+    "extendsDuration": {
+     "extends": [
+      "raindance"
+     ],
+     "toTurns": 8,
+     "insteadOf": 5
+    }
+   }
   },
   "dragonfang": {
    "name": "Dragon Fang",
@@ -18001,18 +18019,35 @@
   "heatrock": {
    "name": "Heat Rock",
    "tags": [
-    "untagged"
+    "extendsDuration"
    ],
    "uses": 52,
-   "params": {}
+   "params": {
+    "extendsDuration": {
+     "extends": [
+      "sunnyday"
+     ],
+     "toTurns": 8,
+     "insteadOf": 5
+    }
+   }
   },
   "icyrock": {
    "name": "Icy Rock",
    "tags": [
-    "untagged"
+    "extendsDuration"
    ],
    "uses": 6,
-   "params": {}
+   "params": {
+    "extendsDuration": {
+     "extends": [
+      "snowscape",
+      "hail"
+     ],
+     "toTurns": 8,
+     "insteadOf": 5
+    }
+   }
   },
   "ironball": {
    "name": "Iron Ball",
@@ -18102,12 +18137,18 @@
   "lightclay": {
    "name": "Light Clay",
    "tags": [
-    "extendsScreens"
+    "extendsDuration"
    ],
    "uses": 2016,
    "params": {
-    "extendsScreens": {
-     "turns": 8
+    "extendsDuration": {
+     "extends": [
+      "Aurora Veil",
+      "Light Screen",
+      "Reflect"
+     ],
+     "toTurns": 8,
+     "insteadOf": 5
     }
    }
   },
@@ -18427,10 +18468,18 @@
   "smoothrock": {
    "name": "Smooth Rock",
    "tags": [
-    "untagged"
+    "extendsDuration"
    ],
    "uses": 6,
-   "params": {}
+   "params": {
+    "extendsDuration": {
+     "extends": [
+      "sandstorm"
+     ],
+     "toTurns": 8,
+     "insteadOf": 5
+    }
+   }
   },
   "softsand": {
    "name": "Soft Sand",

@@ -18,7 +18,7 @@ That leaves **65** distinct items across **47,395** holders.
 | Life Orb | 6,301 | 13.3% | `damageMultAll` | mult:1.3, costsPerAttack:1/10 max HP |
 | Leftovers | 4,336 | 9.1% | `passiveHeal` | heal:0.0625 |
 | Choice Scarf | 3,947 | 8.3% | `choiceLock` `speedMult` | choice:true mult:1.5 |
-| Light Clay | 2,016 | 4.3% | `extendsScreens` | turns:8 |
+| Light Clay | 2,016 | 4.3% | `extendsDuration` | extends:[Aurora Veil, Light Screen, Reflect], toTurns:8, insteadOf:5 |
 | Fairy Feather | 1,521 | 3.2% | `damageMultType` | onType:Fairy, mult:1.2 |
 | Chople Berry | 1,441 | 3.0% | `resistBerry` | halves:true |
 | White Herb | 1,362 | 2.9% | `restoresStats` | restores:true |
@@ -38,7 +38,7 @@ That leaves **65** distinct items across **47,395** holders.
 | Sharp Beak | 302 | 0.6% | `damageMultType` | onType:Flying, mult:1.2 |
 | Shuca Berry | 266 | 0.6% | `resistBerry` | halves:true |
 | Metal Coat | 212 | 0.4% | `damageMultType` | onType:Steel, mult:1.2 |
-| Damp Rock | 200 | 0.4% | `untagged` |  |
+| Damp Rock | 200 | 0.4% | `extendsDuration` | extends:[raindance], toTurns:8, insteadOf:5 |
 | Bright Powder | 144 | 0.3% | `accuracyMod` | accuracy:true |
 | Dragon Fang | 117 | 0.2% | `damageMultType` | onType:Dragon, mult:1.2 |
 | Haban Berry | 112 | 0.2% | `resistBerry` | halves:true |
@@ -50,7 +50,7 @@ That leaves **65** distinct items across **47,395** holders.
 | Soft Sand | 75 | 0.2% | `damageMultType` | onType:Ground, mult:1.2 |
 | Babiri Berry | 70 | 0.1% | `resistBerry` | halves:true |
 | Scope Lens | 69 | 0.1% | `critRatioUp` | critRatio:2 |
-| Heat Rock | 52 | 0.1% | `untagged` |  |
+| Heat Rock | 52 | 0.1% | `extendsDuration` | extends:[sunnyday], toTurns:8, insteadOf:5 |
 | King's Rock | 49 | 0.1% | `addsFlinch` | pFlinch:0.1 |
 | Miracle Seed | 48 | 0.1% | `damageMultType` | onType:Grass, mult:1.2 |
 | Muscle Band | 48 | 0.1% | `untagged` |  |
@@ -70,10 +70,10 @@ That leaves **65** distinct items across **47,395** holders.
 | Zoom Lens | 22 | 0.0% | `accuracyMod` | accuracy:true |
 | Metronome | 13 | 0.0% | `untagged` |  |
 | Wise Glasses | 8 | 0.0% | `untagged` |  |
-| Icy Rock | 6 | 0.0% | `untagged` |  |
+| Icy Rock | 6 | 0.0% | `extendsDuration` | extends:[snowscape, hail], toTurns:8, insteadOf:5 |
 | Payapa Berry | 6 | 0.0% | `resistBerry` | halves:true |
 | Poison Barb | 6 | 0.0% | `damageMultType` | onType:Poison, mult:1.2 |
-| Smooth Rock | 6 | 0.0% | `untagged` |  |
+| Smooth Rock | 6 | 0.0% | `extendsDuration` | extends:[sandstorm], toTurns:8, insteadOf:5 |
 | Focus Band | 3 | 0.0% | `untagged` |  |
 | Rawst Berry | 2 | 0.0% | `curesStatus` | cures:true |
 | Silver Powder | 2 | 0.0% | `damageMultType` | onType:Bug, mult:1.2 |

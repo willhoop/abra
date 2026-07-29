@@ -149,6 +149,28 @@ function effectRecipients(a) {
   return out;
 }
 
+/* WHAT EXTENDS WHAT -- built by inverting the durationCallback references, per Will on Damp Rock.
+ * The item carries no field naming its effect; each CONDITION names the item instead. */
+const EXTENDERS = {};
+{
+  const note = (src, label) => {
+    if (!/hasItem/.test(src)) return;
+    const it = (src.match(/hasItem\(\s*["'](\w+)["']\s*\)/) || [])[1];
+    const turns = +(src.match(/return\s+(\d+)/) || [])[1];
+    if (!it || !turns) return;
+    const e = EXTENDERS[it] || (EXTENDERS[it] = { what: [], turns });
+    if (!e.what.includes(label)) e.what.push(label);
+  };
+  for (const m of dex.moves.all()) {
+    if (!m || !m.exists) continue;
+    note(String((m.condition || {}).durationCallback || ''), m.name);
+  }
+  for (const id of ['raindance', 'sunnyday', 'sandstorm', 'snowscape', 'snow', 'hail']) {
+    let c; try { c = dex.conditions.get(id); } catch (e) { continue; }
+    if (c && c.exists) note(String(c.durationCallback || ''), id);
+  }
+}
+
 /* ---- THE TAXONOMY ---------------------------------------------------------------------------
  * Each tag: what parameter it sets, how it is derived, and the probe that proves something reads it.
  * `param` is deliberately phrased as a value a distribution can consume, not as an instruction. */
@@ -579,9 +601,21 @@ const MOVE_TAGS = [
       const c = m.condition || {};
       const src = String(c.onResidual || '') + String(m.onResidual || '');
       if (!/damage|heal|drain/i.test(src)) return null;
-      const frac = (src.match(/maxhp\s*\/\s*(\d+)|Math\.round\([^)]*\/\s*(\d+)/) || []).slice(1).find(Boolean);
+      /* Will: "idk if leftovers and leech heal the same amount." They do not, and they differ in
+       * TWO ways -- which is exactly what this tag was flattening when it returned a bare fraction:
+       *
+       *   Leftovers    pokemon.baseMaxhp / 16   1/16 of the HOLDER's max HP
+       *   Leech Seed   pokemon.baseMaxhp / 8    1/8 of the TARGET's max HP, healed to the seeder
+       *
+       * Double the amount, but the base is the important half: Leech Seed scales with the victim's
+       * bulk, so seeding a Snorlax returns far more than seeding a Whimsicott. A tag that says only
+       * "heals per turn" cannot tell those apart, and the damage race it feeds gets the wrong answer.
+       * (baseMaxhp carries a capital M, so the fraction match must be case-insensitive.) */
+      const frac = (src.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
+      const drains = /this\.damage\(/.test(src) && /this\.heal\(/.test(src);
       return { fraction: frac ? '1/' + frac : null,
-               movesHPBetweenSides: /damage\(/.test(src) && /heal|drain/i.test(src) };
+               ofWhoseMaxHP: drains ? 'the TARGET' : 'itself',
+               direction: drains ? 'moved from the target to the user' : 'created for the holder' };
     } },
   { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
@@ -1328,9 +1362,22 @@ const ITEM_TAGS = [
   { tag: 'restoresStats', param: 'undoes stat drops once', probe: 'whiteherb',
     why: '2.1% of items, and it changes what a drop is worth',
     of: it => norm(it.name) === 'whiteherb' ? { restores: true } : null },
-  { tag: 'extendsScreens', param: 'side conditions last 8 turns not 5', probe: 'lightclay',
-    why: '3.1% of items',
-    of: it => norm(it.name) === 'lightclay' ? { turns: 8 } : null },
+  /* Will: "damp rock is like light clay for setting the weather. same with the other weather
+   * extenders." One mechanic -- hold this, your field effect lasts 8 turns instead of 5 -- and only
+   * Light Clay had a tag. Damp Rock (200 sheets), Heat Rock (52), Smooth Rock and Icy Rock were all
+   * UNTAGGED.
+   *
+   * Derived by INVERTING the reference. There is no field on the item saying what it extends; the
+   * relationship lives on the other side, in each condition's durationCallback checking
+   * hasItem("damprock"). So this scans every move condition and weather condition for those checks
+   * and builds the mapping from them -- no names typed, and anything added later joins on its own. */
+  { tag: 'extendsDuration', param: 'holding it makes a field or side effect last N turns instead of 5', probe: 'extendsDuration',
+    why: 'Light Clay (2,016 sheets) turns 5 turns of screens into 8, and Damp Rock does the same '
+       + 'for rain. Three extra turns of a x0.5 or of a speed-doubling weather decides games',
+    of: it => {
+      const ext = EXTENDERS[norm(it.id || it.name)];
+      return ext ? { extends: ext.what, toTurns: ext.turns, insteadOf: 5 } : null;
+    } },
   { tag: 'contactPunish', param: 'hurts anything that makes contact', probe: 'rockyhelmet',
     why: 'a cost of clicking a contact move that is not currently priced',
     of: it => norm(it.name) === 'rockyhelmet' ? { chip: 1 / 6 } : null },

@@ -885,7 +885,7 @@ Every item that appears on a real sheet, in usage order, with the tags it carrie
 | Leftovers | 4,336 | 6.6% | `passiveHeal` |
 | Choice Scarf | 3,947 | 6.0% | `choiceLock` `speedMult` |
 | Charizardite Y | 2,223 | 3.4% | `megaStone` |
-| Light Clay | 2,016 | 3.1% | `extendsScreens` |
+| Light Clay | 2,016 | 3.1% | `extendsDuration` |
 | Staraptite | 1,956 | 3.0% | `megaStone` |
 | Fairy Feather | 1,521 | 2.3% | `damageMultType` |
 | Floettite | 1,455 | 2.2% | `megaStone` |
@@ -924,7 +924,7 @@ Every item that appears on a real sheet, in usage order, with the tags it carrie
 | Scraftinite | 247 | 0.4% | `megaStone` |
 | Raichunite X | 217 | 0.3% | `megaStone` |
 | Metal Coat | 212 | 0.3% | `damageMultType` |
-| Damp Rock | 200 | 0.3% | `untagged` |
+| Damp Rock | 200 | 0.3% | `extendsDuration` |
 | Gardevoirite | 197 | 0.3% | `megaStone` |
 | Cameruptite | 196 | 0.3% | `megaStone` |
 | Sceptilite | 195 | 0.3% | `megaStone` |
@@ -956,7 +956,7 @@ Every item that appears on a real sheet, in usage order, with the tags it carrie
 | Clefablite | 54 | 0.1% | `megaStone` |
 | Drampanite | 53 | 0.1% | `megaStone` |
 | Excadrite | 53 | 0.1% | `megaStone` |
-| Heat Rock | 52 | 0.1% | `untagged` |
+| Heat Rock | 52 | 0.1% | `extendsDuration` |
 | Ampharosite | 50 | 0.1% | `megaStone` |
 | Chandelurite | 50 | 0.1% | `megaStone` |
 | Falinksite | 50 | 0.1% | `megaStone` |
@@ -1008,10 +1008,10 @@ Every item that appears on a real sheet, in usage order, with the tags it carrie
 | Wise Glasses | 8 | 0.0% | `untagged` |
 | Audinite | 7 | 0.0% | `megaStone` |
 | Victreebelite | 7 | 0.0% | `megaStone` |
-| Icy Rock | 6 | 0.0% | `untagged` |
+| Icy Rock | 6 | 0.0% | `extendsDuration` |
 | Payapa Berry | 6 | 0.0% | `resistBerry` |
 | Poison Barb | 6 | 0.0% | `damageMultType` |
-| Smooth Rock | 6 | 0.0% | `untagged` |
+| Smooth Rock | 6 | 0.0% | `extendsDuration` |
 | Sharpedonite | 5 | 0.0% | `megaStone` |
 | Focus Band | 3 | 0.0% | `untagged` |
 | Rawst Berry | 2 | 0.0% | `curesStatus` |
@@ -3674,13 +3674,17 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Choice Scarf | 3,947 | 6.0% |
 
-### `extendsScreens` — 3.1%, 1 items — **NOT READ**
+### `extendsDuration` — 3.5%, 5 items — **NOT READ**
 
-*side conditions last 8 turns not 5*
+*holding it makes a field or side effect last N turns instead of 5*
 
 | item | on sheets | share |
 |---|---:|---:|
 | Light Clay | 2,016 | 3.1% |
+| Damp Rock | 200 | 0.3% |
+| Heat Rock | 52 | 0.1% |
+| Icy Rock | 6 | 0.0% |
+| Smooth Rock | 6 | 0.0% |
 
 ### `restoresStats` — 2.1%, 1 items — **NOT READ**
 
@@ -3700,26 +3704,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Bright Powder | 144 | 0.2% |
 | Zoom Lens | 22 | 0.0% |
 
-### `untagged` — 0.8%, 13 items — **NOT READ**
-
-*?*
-
-| item | on sheets | share |
-|---|---:|---:|
-| Damp Rock | 200 | 0.3% |
-| Iron Ball | 85 | 0.1% |
-| Heat Rock | 52 | 0.1% |
-| Muscle Band | 48 | 0.1% |
-| Big Root | 29 | 0.0% |
-| Light Ball | 23 | 0.0% |
-| Shell Bell | 22 | 0.0% |
-| Metronome | 13 | 0.0% |
-| Wise Glasses | 8 | 0.0% |
-| Icy Rock | 6 | 0.0% |
-| Smooth Rock | 6 | 0.0% |
-| Focus Band | 3 | 0.0% |
-| Leppa Berry | 1 | 0.0% |
-
 ### `curesVolatile` — 0.7%, 1 items — **NOT READ**
 
 *clears Taunt/Encore/Disable/Attract the moment one lands, then is gone*
@@ -3735,6 +3719,22 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | item | on sheets | share |
 |---|---:|---:|
 | Expert Belt | 399 | 0.6% |
+
+### `untagged` — 0.4%, 9 items — **NOT READ**
+
+*?*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Iron Ball | 85 | 0.1% |
+| Muscle Band | 48 | 0.1% |
+| Big Root | 29 | 0.0% |
+| Light Ball | 23 | 0.0% |
+| Shell Bell | 22 | 0.0% |
+| Metronome | 13 | 0.0% |
+| Wise Glasses | 8 | 0.0% |
+| Focus Band | 3 | 0.0% |
+| Leppa Berry | 1 | 0.0% |
 
 ### `curesStatus` — 0.2%, 6 items — **NOT READ**
 
