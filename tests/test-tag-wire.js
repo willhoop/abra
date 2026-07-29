@@ -181,8 +181,10 @@ console.log('\nwires 4+5 — buffsHolderOnHit / punishesAttacker  (THE BELLIBOLT
   if (MC.mons.mudsdale && typeof M.battle === 'function') {
     let sawBoost = false, ran = 0;
     for (let seed = 0; seed < 40 && !sawBoost; seed++) {
-      let s = seed * 2654435761 + 12345;
-      const rng = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+      /* Math.imul, not naked multiplication — the float LCG idiom loses low bits past 2^53 and is
+       * exactly what tests/test-prng.js bans; it caught this file using it. */
+      let s = (seed * 2654435761 + 12345) >>> 0;
+      const rng = () => (((s = (Math.imul(s, 1103515245) + 12345) >>> 0) & 0x7fffffff) / 0x80000000);
       const mk = names => names.map(n => M.buildMon(n, {})).filter(Boolean);
       const A = mk(['mudsdale', 'incineroar', 'garchomp', 'gholdengo']);
       const B = mk(['kingambit', 'incineroar', 'garchomp', 'whimsicott']);
