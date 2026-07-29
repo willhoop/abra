@@ -52,24 +52,27 @@ P('');
 P('This replaces the five separate review documents that had accumulated. There is one now.');
 P('');
 
-/* ---- the standing question ------------------------------------------------------------------- */
-P('## Open question — yours to rule on');
+/* ---- decisions Will has already made ----------------------------------------------------------
+ * This block used to hold an open question about splitting profitsFromHit. Will answered it -- "DO
+ * IT" -- and it was implemented the same pass, but the question stayed hardcoded here and the
+ * document went on asking him to rule on it every single rebuild. Decisions belong in a log, not in
+ * a standing prompt, or the doc nags about things that are already done. */
+P('## Decisions already made');
 P('');
-P('**`profitsFromHit` is doing two different jobs and should be split.**');
+P('**`profitsFromHit` is split — done.** It was covering two mechanics that imply *opposite*');
+P('decisions, and the difference is whether the effect compounds.');
 P('');
-P('It covers 32 abilities and 11.2% of sheet entries, and inside it are two mechanics that imply');
-P('*opposite* decisions:');
-P('');
-P('| | what happens | compounds? | what the bot should do |');
+P('| tag | what happens | compounds? | what the bot should do |');
 P('|---|---|---|---|');
-P('| **Holder gets stronger** | Stamina +1 Def, Justified +1 Atk, Electromorphosis gains Charge, Weak Armor +2 Spe | **Yes** — every hit makes the next worse | stop hitting it, or kill it this turn |');
-P('| **Attacker gets hurt** | Rough Skin chip, Static / Flame Body / Poison Point status, Gooey −1 Spe, Cursed Body disable | No — a flat toll each time | keep hitting it, just not with contact |');
+P('| `buffsHolderOnHit` | Stamina +1 Def, Justified +1 Atk, Electromorphosis banks Charge | **Yes** — every hit makes the next worse | stop hitting it, or kill it this turn |');
+P('| `punishesAttacker` | Rough Skin chip, Static / Flame Body / Poison Point status, Cursed Body disable | No — a flat toll each time | keep hitting it, just not with contact |');
 P('');
-P('This is your Bellibolt turn exactly. Discharge into Archaludon was resisted **and** handed it a');
-P('free Stamina boost — the first row. A Rough Skin body would have been the second row and the right');
-P('play would have been different. Rough Skin is 3,762 entries and Stamina 1,643, so both halves are');
-P('common. Proposal: `buffsHolderOnHit` and `punishesAttacker`, with the few that do both (Weak Armor,');
-P('Gooey) carrying both.');
+P('This is the Bellibolt turn: Discharge into Archaludon was resisted **and** fed it a free Stamina');
+P('boost — the first row. Against a Rough Skin body the same click is fine.');
+P('');
+P('One correction to what was proposed. Weak Armor and Gooey were predicted to carry both tags; the');
+P('derivation says otherwise. Weak Armor only ever touches itself and Gooey only the attacker, so');
+P('**nothing that anyone actually brings carries both** — Perish Body does, and it is on zero sheets.');
 P('');
 P('---');
 P('');

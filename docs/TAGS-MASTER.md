@@ -6,23 +6,22 @@ this file — regenerate it. Every count is measured at generation time over the
 
 This replaces the five separate review documents that had accumulated. There is one now.
 
-## Open question — yours to rule on
+## Decisions already made
 
-**`profitsFromHit` is doing two different jobs and should be split.**
+**`profitsFromHit` is split — done.** It was covering two mechanics that imply *opposite*
+decisions, and the difference is whether the effect compounds.
 
-It covers 32 abilities and 11.2% of sheet entries, and inside it are two mechanics that imply
-*opposite* decisions:
-
-| | what happens | compounds? | what the bot should do |
+| tag | what happens | compounds? | what the bot should do |
 |---|---|---|---|
-| **Holder gets stronger** | Stamina +1 Def, Justified +1 Atk, Electromorphosis gains Charge, Weak Armor +2 Spe | **Yes** — every hit makes the next worse | stop hitting it, or kill it this turn |
-| **Attacker gets hurt** | Rough Skin chip, Static / Flame Body / Poison Point status, Gooey −1 Spe, Cursed Body disable | No — a flat toll each time | keep hitting it, just not with contact |
+| `buffsHolderOnHit` | Stamina +1 Def, Justified +1 Atk, Electromorphosis banks Charge | **Yes** — every hit makes the next worse | stop hitting it, or kill it this turn |
+| `punishesAttacker` | Rough Skin chip, Static / Flame Body / Poison Point status, Cursed Body disable | No — a flat toll each time | keep hitting it, just not with contact |
 
-This is your Bellibolt turn exactly. Discharge into Archaludon was resisted **and** handed it a
-free Stamina boost — the first row. A Rough Skin body would have been the second row and the right
-play would have been different. Rough Skin is 3,762 entries and Stamina 1,643, so both halves are
-common. Proposal: `buffsHolderOnHit` and `punishesAttacker`, with the few that do both (Weak Armor,
-Gooey) carrying both.
+This is the Bellibolt turn: Discharge into Archaludon was resisted **and** fed it a free Stamina
+boost — the first row. Against a Rough Skin body the same click is fine.
+
+One correction to what was proposed. Weak Armor and Gooey were predicted to carry both tags; the
+derivation says otherwise. Weak Armor only ever touches itself and Gooey only the attacker, so
+**nothing that anyone actually brings carries both** — Perish Body does, and it is on zero sheets.
 
 ---
 
