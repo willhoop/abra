@@ -702,6 +702,26 @@ function dmgMon(mon, D) {
  * over the ones we have. Their top six only cover about 19% of Incineroar sets, so this is a better
  * estimate and still not the truth; what it buys is a probability instead of a false certainty. */
 let _spreads = null;
+/* BULK ASSUMPTION, A TOGGLE RATHER THAN A DECISION (Will, 2026-07-28).
+ *
+ *   ABRA_BULK=weighted   every plausible EV spread, weighted by how often people run it (default)
+ *   ABRA_BULK=max        collapse to the BULKIEST plausible spread and assume that
+ *
+ * The case for max: the two mistakes are not symmetric. Calling a kill that does not land costs
+ * the turn AND the position -- you commit, they survive at 3%, your partner's move was aimed at a
+ * corpse that is not one. Missing a kill you could have had is merely wasteful. So erring bulky errs
+ * safely.
+ *
+ * The case against: MEASURED, the bulkiest plausible spread is a median 5.8% physically and 6.3%
+ * specially above the usage-weighted average over 283 species -- about one damage roll. But it is
+ * not evenly spread. Mega Beedrill is +31% physical, Liepard +29% special, Whimsicott +25%, because
+ * those have genuinely bimodal spreads and people run both. Assume max bulk against a Whimsicott and
+ * you decline kills on the offensive set all day.
+ *
+ * Which is why this is a FLAG and not an argument: the head-to-head decides. Nothing about this
+ * project's history suggests either of us should be trusted to reason it out instead. */
+const BULK_MODE = (process.env.ABRA_BULK || 'weighted').toLowerCase();
+
 function spreadLines(species, dex, nature) {
   if (_spreads === null) {
     _spreads = {};
@@ -755,6 +775,22 @@ function spreadLines(species, dex, nature) {
       if (K[nat.minus]) line[K[nat.minus]] = Math.floor(line[K[nat.minus]] * 0.9);
     }
     out.push({ p: (+r.pct || 0) / total, st: line });
+  }
+  /* THE TOGGLE APPLIES HERE, at the one point every consumer goes through -- so nothing downstream
+   * needs to know which mode is on and the two cannot drift apart.
+   *
+   * `max` keeps the single bulkiest line and gives it all the weight. Bulk is scored as
+   * hp x def + hp x spd so a set that is bulky on one side only does not win on the strength of the
+   * side that is not being attacked. The result is still a one-element `lines` array with p summing
+   * to 1, which is exactly what every caller already handles. */
+  if (BULK_MODE === 'max' && out.length > 1) {
+    let best = out[0], bestScore = -1;
+    for (const o of out) {
+      const st = o.st; if (!st) continue;
+      const score = st.hp * st.df + st.hp * st.sd;
+      if (score > bestScore) { bestScore = score; best = o; }
+    }
+    return [{ p: 1, st: best.st, bulkMode: 'max' }];
   }
   return out;
 }
