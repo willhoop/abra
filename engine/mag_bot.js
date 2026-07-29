@@ -36,6 +36,11 @@ const NAME = arg('name', 'MAG');
 const SERVER = arg('server', 'ws://localhost:8000/showdown/websocket');
 const GREEDY = process.argv.includes('--greedy');
 const SWITCHING = process.argv.includes('--switching');
+/* --mega p  probability of taking a mega evolution when one is available. Matches mew.js's default
+ * so the bot you challenge is the bot that was trained and measured. NOTE this is a coin flip in
+ * the BASE player, not a decision: no feature in board.js scores mega TIMING, so MAG megas at
+ * random rather than choosing when. Making it a real choice is a separate piece of work. */
+const MEGA_P = parseFloat(arg('mega', '0.85'));
 const WHY = process.argv.includes('--why');
 /* --weights <file>  play a different fitted vector. The one worth trying is
  * data/policy-weights-nopop.json, refitted with "how often people click this" removed entirely --
@@ -275,7 +280,23 @@ function handle(room, line) {
       send(`${room}|/choose ${c}`);
     });
     const Player = makeScoringPlayer();
+    /* MEGA EVOLUTION WAS NEVER PASSED, SO THE BOT ON THE SERVER COULD NOT MEGA EVOLVE.
+     *
+     * Found by Will in his first session actually playing it: "its not mega evolving swampert".
+     *
+     * The base player appends ` mega` to whatever chooseMove returns, but only when
+     * `prng.random() < this.mega`, and `this.mega = options.mega || 0`. mew.js passes 0.85. This
+     * file passed nothing, so it resolved to 0 and the bot declined every mega for its entire
+     * existence.
+     *
+     * That makes this a TRAIN/PLAY MISMATCH, not just a missing feature. MACHAMP's champion earned
+     * its 57.3% as a bot that megas 85% of the time it can; the bot on the Showdown server was a
+     * different and strictly weaker policy, and every human impression formed here was of that
+     * weaker bot. 27.5% of sheet entries in this format carry a mega item.
+     *
+     * Default matches mew.js so the thing you play is the thing that was measured. */
     const bot = new Player(stream, { greedy: GREEDY, switching: SWITCHING, keepThoughts: WHY,
+                                     mega: MEGA_P,
                                      weightsFile: WEIGHTS || undefined });
     bot.start();
     rooms.set(room, { stream, bot, shown: 0 });
