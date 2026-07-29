@@ -91,27 +91,34 @@ function section(kind, table, usage, title, blurb) {
   P('`read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**');
   P('means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.');
   P('');
-  /* ONE COMPACT BLOCK PER TAG, NOT A TABLE. Will: "this is the worst spaced pdf ive ever seen."
-   * He was right and the cause was structural, not stylistic -- 132 tables each carrying
-   * page-break-inside:avoid, so every table that did not fit the remaining space punched a hole to
-   * the next page. Members now run inline, which is both denser and easier to scan. */
+  /* TABLES, RESTORED. Will tried the inline version and called it: "no go back to the usage based
+   * tables that was needed apparently this sucks." He is right that a scannable usage column is
+   * what makes a review possible at all.
+   *
+   * The original spacing complaint was never caused by tables as such -- it was
+   * page-break-inside:avoid on all 132 of them, so any table too tall for the remaining space
+   * jumped wholesale to the next page and left the rest of the current one blank. Tables now break
+   * across pages freely and the holes go away without giving up the columns. */
   for (const r of rows) {
     const i = tagInfo[r.tag] || {};
     const shown = r.mem.filter(x => x[1] > 0);
-    P('**`' + r.tag + '`** · ' + pct(r.tot) + ' · ' + r.mem.length + ' ' + kind +
-      (i.used ? '' : ' · **NOT READ**') + '  ');
-    P('*' + (i.param || '?') + '*  ');
+    P('### `' + r.tag + '` — ' + pct(r.tot) + ', ' + r.mem.length + ' ' + kind +
+      (i.used ? '' : ' — **NOT READ**'));
+    P('');
+    P('*' + (i.param || '?') + '*');
+    P('');
     if (shown.length) {
-      /* EXHAUSTIVE, deliberately. Will: "i dont [want] tables that long, but without an exhaustive
-       * list we might miss something." Both are satisfiable -- the length was never the member
-       * count, it was the table markup around it. Every member that appears on a real sheet is
-       * here; a truncated list is how a mis-tagged move stays hidden. */
-      P(shown.map(([id, c]) => {
+      /* EXHAUSTIVE. Will: "i dont [want] tables that long, but without an exhaustive list we might
+       * miss something." A truncated list is precisely how a mis-tagged move stays hidden. */
+      P('| ' + kind.replace(/s$/, '') + ' | on sheets | share |');
+      P('|---|---:|---:|');
+      for (const [id, c] of shown) {
         const o = kind === 'moves' ? dex.moves.get(id) : kind === 'items' ? dex.items.get(id) : dex.abilities.get(id);
-        return ((o && o.name) || id) + ' ' + c.toLocaleString();
-      }).join(' · '));
+        P('| ' + ((o && o.name) || id) + ' | ' + c.toLocaleString() + ' | ' + pct(c) + ' |');
+      }
       const never = r.mem.length - shown.length;
-      if (never) P('*' + never + ' more carry this tag but appear on no sheet.*');
+      if (never) P('');
+      if (never) P('*' + never + ' more carry this tag but appear on no sheet in the corpus.*');
     } else {
       P('*Legal in the format, never brought.*');
     }

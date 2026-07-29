@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T05:29:16.583Z",
+ "generated": "2026-07-29T05:39:07.105Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1395,6 +1395,32 @@
    ]
   },
   {
+   "tag": "curesVolatile",
+   "kind": "item",
+   "param": "clears Taunt/Encore/Disable/Attract the moment one lands, then is gone",
+   "why": "Mental Herb. It silently undoes the whole point of a Taunt or an Encore, so any value the bot assigns to landing one is wrong against a holder",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 445,
+   "examples": [
+    "Mental Herb"
+   ]
+  },
+  {
+   "tag": "boostsSuperEffective",
+   "kind": "item",
+   "param": "x1.2 damage, but only on a super-effective hit",
+   "why": "Expert Belt. Conditional on the type matchup rather than flat, so it changes WHICH target is the right one to hit, not just how hard",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 399,
+   "examples": [
+    "Expert Belt"
+   ]
+  },
+  {
    "tag": "resistBerry",
    "kind": "item",
    "param": "halves one super-effective hit, then is gone",
@@ -2029,19 +2055,69 @@
   {
    "tag": "priorityMod",
    "kind": "ability",
-   "param": "order shifts for a class of move",
-   "why": "Prankster, Gale Wings, Triage. stallIntoEncore already depends on it",
+   "param": "moves of one class shift by N in the turn order",
+   "why": "Prankster (4,692) gives every Status move +1, which decides who moves first on the turn a Tailwind or a Fake Out lands. Gale Wings needs FULL HP, so it is a condition, not a constant",
    "consumedBy": "onModifyPriority",
    "used": true,
-   "n": 22,
-   "uses": 5963,
+   "n": 3,
+   "uses": 5185,
    "examples": [
     "Gale Wings",
-    "Illuminate",
-    "Infiltrator",
-    "Keen Eye",
-    "Long Reach",
-    "Mold Breaker"
+    "Prankster"
+   ]
+  },
+  {
+   "tag": "poisonsOnMyContact",
+   "kind": "ability",
+   "param": "MY contact moves carry a chance to poison",
+   "why": "Poison Touch. The mirror image of punishesAttacker -- this fires when the holder ATTACKS, so it is a reason to pick a contact move rather than a reason to avoid one",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 528,
+   "examples": [
+    "Poison Touch"
+   ]
+  },
+  {
+   "tag": "boostsEachTurn",
+   "kind": "ability",
+   "param": "a stat rises every turn it stays in, with no action spent",
+   "why": "Speed Boost. Compounds silently -- it outruns things it could not outrun two turns ago, and nothing recomputes the speed order for a boost nobody clicked",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 705,
+   "examples": [
+    "Moody",
+    "Opportunist",
+    "Speed Boost"
+   ]
+  },
+  {
+   "tag": "blocksExplosion",
+   "kind": "ability",
+   "param": "self-destructing moves simply fail while it is on the field",
+   "why": "Damp. It reaches across the whole field, not just its own side, so it invalidates an opposing Explosion the bot would otherwise score as a big hit",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 437,
+   "examples": [
+    "Damp"
+   ]
+  },
+  {
+   "tag": "noRecoil",
+   "kind": "ability",
+   "param": "recoil damage is zero",
+   "why": "Rock Head. Turns the recoil tag from a cost into nothing, so a Head Smash carrier is priced wrongly in both directions if only one of the two tags is read",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 399,
+   "examples": [
+    "Rock Head"
    ]
   },
   {
@@ -2215,6 +2291,14 @@
      "via": "contact with the shield"
     }
    }
+  },
+  "belch": {
+   "name": "Belch",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
   },
   "bonerush": {
    "name": "Bone Rush",
@@ -2831,6 +2915,14 @@
     }
    }
   },
+  "saltcure": {
+   "name": "Salt Cure",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 26,
+   "params": {}
+  },
   "sandstorm": {
    "name": "Sandstorm",
    "tags": [
@@ -2955,6 +3047,14 @@
      "status": true
     }
    }
+  },
+  "spiritshackle": {
+   "name": "Spirit Shackle",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 2,
+   "params": {}
   },
   "stormthrow": {
    "name": "Storm Throw",
@@ -5816,6 +5916,14 @@
     }
    }
   },
+  "fling": {
+   "name": "Fling",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 13,
+   "params": {}
+  },
   "flipturn": {
    "name": "Flip Turn",
    "tags": [
@@ -6079,6 +6187,14 @@
      "recharge": true
     }
    }
+  },
+  "gigatonhammer": {
+   "name": "Gigaton Hammer",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 123,
+   "params": {}
   },
   "glare": {
    "name": "Glare",
@@ -6643,6 +6759,14 @@
      "recharge": true
     }
    }
+  },
+  "hydropump": {
+   "name": "Hydro Pump",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 718,
+   "params": {}
   },
   "hyperbeam": {
    "name": "Hyper Beam",
@@ -8329,6 +8453,14 @@
     }
    }
   },
+  "powergem": {
+   "name": "Power Gem",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 687,
+   "params": {}
+  },
   "powersplit": {
    "name": "Power Split",
    "tags": [
@@ -8673,6 +8805,14 @@
      "contact": true
     }
    }
+  },
+  "ragingfury": {
+   "name": "Raging Fury",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 2,
+   "params": {}
   },
   "raindance": {
    "name": "Rain Dance",
@@ -9636,6 +9776,14 @@
      "via": "secondary"
     }
    }
+  },
+  "smackdown": {
+   "name": "Smack Down",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 8,
+   "params": {}
   },
   "smartstrike": {
    "name": "Smart Strike",
@@ -12668,6 +12816,14 @@
     }
    }
   },
+  "bigroot": {
+   "name": "Big Root",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 29,
+   "params": {}
+  },
   "blackbelt": {
    "name": "Black Belt",
    "tags": [
@@ -12816,6 +12972,14 @@
     }
    }
   },
+  "damprock": {
+   "name": "Damp Rock",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 200,
+   "params": {}
+  },
   "dragonfang": {
    "name": "Dragon Fang",
    "tags": [
@@ -12825,6 +12989,19 @@
    "params": {
     "damageMultType": {
      "mult": 1.2
+    }
+   }
+  },
+  "expertbelt": {
+   "name": "Expert Belt",
+   "tags": [
+    "boostsSuperEffective"
+   ],
+   "uses": 399,
+   "params": {
+    "boostsSuperEffective": {
+     "mult": 1.2,
+     "onlyIfSuperEffective": true
     }
    }
   },
@@ -12839,6 +13016,14 @@
      "mult": 1.2
     }
    }
+  },
+  "focusband": {
+   "name": "Focus Band",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 3,
+   "params": {}
   },
   "focussash": {
    "name": "Focus Sash",
@@ -12875,6 +13060,30 @@
      "mult": 1.2
     }
    }
+  },
+  "heatrock": {
+   "name": "Heat Rock",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 52,
+   "params": {}
+  },
+  "icyrock": {
+   "name": "Icy Rock",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 6,
+   "params": {}
+  },
+  "ironball": {
+   "name": "Iron Ball",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 85,
+   "params": {}
   },
   "kasibberry": {
    "name": "Kasib Berry",
@@ -12924,6 +13133,14 @@
     }
    }
   },
+  "leppaberry": {
+   "name": "Leppa Berry",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
+  },
   "lifeorb": {
    "name": "Life Orb",
    "tags": [
@@ -12935,6 +13152,14 @@
      "mult": 1.3
     }
    }
+  },
+  "lightball": {
+   "name": "Light Ball",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 23,
+   "params": {}
   },
   "lightclay": {
    "name": "Light Clay",
@@ -12972,6 +13197,18 @@
     }
    }
   },
+  "mentalherb": {
+   "name": "Mental Herb",
+   "tags": [
+    "curesVolatile"
+   ],
+   "uses": 445,
+   "params": {
+    "curesVolatile": {
+     "oneShot": true
+    }
+   }
+  },
   "metalcoat": {
    "name": "Metal Coat",
    "tags": [
@@ -12984,6 +13221,14 @@
     }
    }
   },
+  "metronome": {
+   "name": "Metronome",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 13,
+   "params": {}
+  },
   "miracleseed": {
    "name": "Miracle Seed",
    "tags": [
@@ -12995,6 +13240,14 @@
      "mult": 1.2
     }
    }
+  },
+  "muscleband": {
+   "name": "Muscle Band",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 48,
+   "params": {}
   },
   "mysticwater": {
    "name": "Mystic Water",
@@ -13164,6 +13417,14 @@
     }
    }
   },
+  "shellbell": {
+   "name": "Shell Bell",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 22,
+   "params": {}
+  },
   "shucaberry": {
    "name": "Shuca Berry",
    "tags": [
@@ -13211,6 +13472,14 @@
      "heal": 0.25
     }
    }
+  },
+  "smoothrock": {
+   "name": "Smooth Rock",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 6,
+   "params": {}
   },
   "softsand": {
    "name": "Soft Sand",
@@ -13272,6 +13541,14 @@
     }
    }
   },
+  "wiseglasses": {
+   "name": "Wise Glasses",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 8,
+   "params": {}
+  },
   "yacheberry": {
    "name": "Yache Berry",
    "tags": [
@@ -13298,6 +13575,14 @@
   }
  },
  "abilities": {
+  "berserk": {
+   "name": "Berserk",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 32,
+   "params": {}
+  },
   "disguise": {
    "name": "Disguise",
    "tags": [
@@ -13337,6 +13622,14 @@
      "boost": true
     }
    }
+  },
+  "healer": {
+   "name": "Healer",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 20,
+   "params": {}
   },
   "naturalcure": {
    "name": "Natural Cure",
@@ -13438,6 +13731,14 @@
     }
    }
   },
+  "anticipation": {
+   "name": "Anticipation",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
+  },
   "arenatrap": {
    "name": "Arena Trap",
    "tags": [
@@ -13461,6 +13762,14 @@
      "blocks": true
     }
    }
+  },
+  "aromaveil": {
+   "name": "Aroma Veil",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 20,
+   "params": {}
   },
   "asoneglastrier": {
    "name": "As One (Glastrier)",
@@ -13498,18 +13807,6 @@
     }
    }
   },
-  "battlebond": {
-   "name": "Battle Bond",
-   "tags": [
-    "priorityMod"
-   ],
-   "uses": 0,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
-  },
   "bigpecks": {
    "name": "Big Pecks",
    "tags": [
@@ -13534,6 +13831,22 @@
     }
    }
   },
+  "bulletproof": {
+   "name": "Bulletproof",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 52,
+   "params": {}
+  },
+  "cheekpouch": {
+   "name": "Cheek Pouch",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
+  },
   "chlorophyll": {
    "name": "Chlorophyll",
    "tags": [
@@ -13557,6 +13870,14 @@
      "prevents": true
     }
    }
+  },
+  "cloudnine": {
+   "name": "Cloud Nine",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 70,
+   "params": {}
   },
   "comatose": {
    "name": "Comatose",
@@ -13606,6 +13927,30 @@
     }
    }
   },
+  "corrosion": {
+   "name": "Corrosion",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 11,
+   "params": {}
+  },
+  "cudchew": {
+   "name": "Cud Chew",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 8,
+   "params": {}
+  },
+  "curiousmedicine": {
+   "name": "Curious Medicine",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 3,
+   "params": {}
+  },
   "cursedbody": {
    "name": "Cursed Body",
    "tags": [
@@ -13635,6 +13980,18 @@
     },
     "contactPunish": {
      "trigger": "contact"
+    }
+   }
+  },
+  "damp": {
+   "name": "Damp",
+   "tags": [
+    "blocksExplosion"
+   ],
+   "uses": 437,
+   "params": {
+    "blocksExplosion": {
+     "blocksSelfDestruct": true
     }
    }
   },
@@ -13758,6 +14115,14 @@
      "via": "onTryHit"
     }
    }
+  },
+  "earlybird": {
+   "name": "Early Bird",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 14,
+   "params": {}
   },
   "eartheater": {
    "name": "Earth Eater",
@@ -13889,6 +14254,22 @@
     }
    }
   },
+  "forecast": {
+   "name": "Forecast",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 2,
+   "params": {}
+  },
+  "forewarn": {
+   "name": "Forewarn",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 2,
+   "params": {}
+  },
   "friendguard": {
    "name": "Friend Guard",
    "tags": [
@@ -13900,6 +14281,14 @@
      "mult": 0.75
     }
    }
+  },
+  "frisk": {
+   "name": "Frisk",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 72,
+   "params": {}
   },
   "fullmetalbody": {
    "name": "Full Metal Body",
@@ -13913,6 +14302,14 @@
     }
    }
   },
+  "furcoat": {
+   "name": "Fur Coat",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 2,
+   "params": {}
+  },
   "galewings": {
    "name": "Gale Wings",
    "tags": [
@@ -13921,7 +14318,9 @@
    "uses": 493,
    "params": {
     "priorityMod": {
-     "priority": true
+     "movesOfClass": "flying",
+     "shift": 1,
+     "condition": "only at full HP"
     }
    }
   },
@@ -13936,6 +14335,14 @@
      "boost": true
     }
    }
+  },
+  "gluttony": {
+   "name": "Gluttony",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 4,
+   "params": {}
   },
   "goodasgold": {
    "name": "Good as Gold",
@@ -13968,16 +14375,12 @@
   "gorillatactics": {
    "name": "Gorilla Tactics",
    "tags": [
-    "damageBoost",
-    "priorityMod"
+    "damageBoost"
    ],
    "uses": 0,
    "params": {
     "damageBoost": {
      "boost": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
@@ -14045,6 +14448,30 @@
     }
    }
   },
+  "harvest": {
+   "name": "Harvest",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 11,
+   "params": {}
+  },
+  "heatproof": {
+   "name": "Heatproof",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 12,
+   "params": {}
+  },
+  "heavymetal": {
+   "name": "Heavy Metal",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 6,
+   "params": {}
+  },
   "hospitality": {
    "name": "Hospitality",
    "tags": [
@@ -14069,6 +14496,14 @@
     }
    }
   },
+  "hungerswitch": {
+   "name": "Hunger Switch",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 23,
+   "params": {}
+  },
   "hustle": {
    "name": "Hustle",
    "tags": [
@@ -14084,6 +14519,14 @@
      "accuracy": true
     }
    }
+  },
+  "hydration": {
+   "name": "Hydration",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
   },
   "hypercutter": {
    "name": "Hyper Cutter",
@@ -14136,16 +14579,12 @@
   "illuminate": {
    "name": "Illuminate",
    "tags": [
-    "preventsStatDrop",
-    "priorityMod"
+    "preventsStatDrop"
    ],
    "uses": 27,
    "params": {
     "preventsStatDrop": {
      "prevents": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
@@ -14188,14 +14627,10 @@
   "infiltrator": {
    "name": "Infiltrator",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
    "uses": 56,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "params": {}
   },
   "innardsout": {
    "name": "Innards Out",
@@ -14292,16 +14727,12 @@
   "keeneye": {
    "name": "Keen Eye",
    "tags": [
-    "preventsStatDrop",
-    "priorityMod"
+    "preventsStatDrop"
    ],
    "uses": 27,
    "params": {
     "preventsStatDrop": {
      "prevents": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
@@ -14329,6 +14760,14 @@
      "via": "not derivable -- no handler"
     }
    }
+  },
+  "lightmetal": {
+   "name": "Light Metal",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 2,
+   "params": {}
   },
   "lightningrod": {
    "name": "Lightning Rod",
@@ -14371,17 +14810,45 @@
     }
    }
   },
+  "liquidvoice": {
+   "name": "Liquid Voice",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 243,
+   "params": {}
+  },
   "longreach": {
    "name": "Long Reach",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
    "uses": 2,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "params": {}
+  },
+  "magicbounce": {
+   "name": "Magic Bounce",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 92,
+   "params": {}
+  },
+  "magicguard": {
+   "name": "Magic Guard",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 60,
+   "params": {}
+  },
+  "magician": {
+   "name": "Magician",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 41,
+   "params": {}
   },
   "magmaarmor": {
    "name": "Magma Armor",
@@ -14406,6 +14873,14 @@
      "traps": true
     }
    }
+  },
+  "marvelscale": {
+   "name": "Marvel Scale",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 21,
+   "params": {}
   },
   "megalauncher": {
    "name": "Mega Launcher",
@@ -14438,16 +14913,12 @@
   "mindseye": {
    "name": "Mind's Eye",
    "tags": [
-    "preventsStatDrop",
-    "priorityMod"
+    "preventsStatDrop"
    ],
    "uses": 0,
    "params": {
     "preventsStatDrop": {
      "prevents": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
@@ -14490,16 +14961,24 @@
   "moldbreaker": {
    "name": "Mold Breaker",
    "tags": [
-    "ignoresDefenderAbility",
-    "priorityMod"
+    "ignoresDefenderAbility"
    ],
    "uses": 130,
    "params": {
     "ignoresDefenderAbility": {
      "ignoresDefAbility": true
-    },
-    "priorityMod": {
-     "priority": true
+    }
+   }
+  },
+  "moody": {
+   "name": "Moody",
+   "tags": [
+    "boostsEachTurn"
+   ],
+   "uses": 249,
+   "params": {
+    "boostsEachTurn": {
+     "perTurn": true
     }
    }
   },
@@ -14515,6 +14994,14 @@
      "via": "onTryHit"
     }
    }
+  },
+  "moxie": {
+   "name": "Moxie",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 37,
+   "params": {}
   },
   "multiscale": {
    "name": "Multiscale",
@@ -14540,17 +15027,13 @@
     }
    }
   },
-  "myceliummight": {
-   "name": "Mycelium Might",
+  "noguard": {
+   "name": "No Guard",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
-   "uses": 0,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "uses": 22,
+   "params": {}
   },
   "normalize": {
    "name": "Normalize",
@@ -14577,6 +15060,18 @@
     },
     "weatherChipImmune": {
      "chipImmune": true
+    }
+   }
+  },
+  "opportunist": {
+   "name": "Opportunist",
+   "tags": [
+    "boostsEachTurn"
+   ],
+   "uses": 3,
+   "params": {
+    "boostsEachTurn": {
+     "perTurn": true
     }
    }
   },
@@ -14664,6 +15159,22 @@
     }
    }
   },
+  "pickpocket": {
+   "name": "Pickpocket",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 28,
+   "params": {}
+  },
+  "pickup": {
+   "name": "Pickup",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
+  },
   "pixilate": {
    "name": "Pixilate",
    "tags": [
@@ -14688,6 +15199,14 @@
     }
    }
   },
+  "poisonheal": {
+   "name": "Poison Heal",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 5,
+   "params": {}
+  },
   "poisonpoint": {
    "name": "Poison Point",
    "tags": [
@@ -14701,6 +15220,19 @@
     },
     "contactPunish": {
      "trigger": "contact"
+    }
+   }
+  },
+  "poisontouch": {
+   "name": "Poison Touch",
+   "tags": [
+    "poisonsOnMyContact"
+   ],
+   "uses": 528,
+   "params": {
+    "poisonsOnMyContact": {
+     "p": 0.3,
+     "needsContact": true
     }
    }
   },
@@ -14724,9 +15256,19 @@
    "uses": 4692,
    "params": {
     "priorityMod": {
-     "priority": true
+     "movesOfClass": "status",
+     "shift": 1,
+     "condition": null
     }
    }
+  },
+  "pressure": {
+   "name": "Pressure",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 85,
+   "params": {}
   },
   "primordialsea": {
    "name": "Primordial Sea",
@@ -14752,17 +15294,13 @@
     }
    }
   },
-  "propellertail": {
-   "name": "Propeller Tail",
+  "protean": {
+   "name": "Protean",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
-   "uses": 0,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "uses": 167,
+   "params": {}
   },
   "psychicsurge": {
    "name": "Psychic Surge",
@@ -14832,6 +15370,14 @@
     }
    }
   },
+  "quickdraw": {
+   "name": "Quick Draw",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 13,
+   "params": {}
+  },
   "quickfeet": {
    "name": "Quick Feet",
    "tags": [
@@ -14843,6 +15389,14 @@
      "conditional": true
     }
    }
+  },
+  "raindish": {
+   "name": "Rain Dish",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 240,
+   "params": {}
   },
   "rattled": {
    "name": "Rattled",
@@ -14905,6 +15459,18 @@
    "params": {
     "damageBoost": {
      "boost": true
+    }
+   }
+  },
+  "rockhead": {
+   "name": "Rock Head",
+   "tags": [
+    "noRecoil"
+   ],
+   "uses": 399,
+   "params": {
+    "noRecoil": {
+     "recoil": 0
     }
    }
   },
@@ -15036,30 +15602,22 @@
   "scrappy": {
    "name": "Scrappy",
    "tags": [
-    "preventsStatDrop",
-    "priorityMod"
+    "preventsStatDrop"
    ],
    "uses": 262,
    "params": {
     "preventsStatDrop": {
      "prevents": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
-  "serenegrace": {
-   "name": "Serene Grace",
+  "screencleaner": {
+   "name": "Screen Cleaner",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
-   "uses": 0,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "uses": 24,
+   "params": {}
   },
   "shadowshield": {
    "name": "Shadow Shield",
@@ -15101,19 +15659,23 @@
     }
    }
   },
+  "shedskin": {
+   "name": "Shed Skin",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 3,
+   "params": {}
+  },
   "sheerforce": {
    "name": "Sheer Force",
    "tags": [
-    "damageBoost",
-    "priorityMod"
+    "damageBoost"
    ],
    "uses": 94,
    "params": {
     "damageBoost": {
      "boost": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
@@ -15128,6 +15690,14 @@
      "pCrit": 0
     }
    }
+  },
+  "shielddust": {
+   "name": "Shield Dust",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 1,
+   "params": {}
   },
   "shieldsdown": {
    "name": "Shields Down",
@@ -15160,14 +15730,10 @@
   "skilllink": {
    "name": "Skill Link",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
    "uses": 4,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "params": {}
   },
   "slowstart": {
    "name": "Slow Start",
@@ -15261,6 +15827,26 @@
     }
    }
   },
+  "soundproof": {
+   "name": "Soundproof",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 207,
+   "params": {}
+  },
+  "speedboost": {
+   "name": "Speed Boost",
+   "tags": [
+    "boostsEachTurn"
+   ],
+   "uses": 453,
+   "params": {
+    "boostsEachTurn": {
+     "perTurn": true
+    }
+   }
+  },
   "stakeout": {
    "name": "Stakeout",
    "tags": [
@@ -15276,14 +15862,10 @@
   "stalwart": {
    "name": "Stalwart",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
    "uses": 27,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "params": {}
   },
   "stamina": {
    "name": "Stamina",
@@ -15300,14 +15882,10 @@
   "stancechange": {
    "name": "Stance Change",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
    "uses": 149,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "params": {}
   },
   "static": {
    "name": "Static",
@@ -15324,6 +15902,14 @@
      "trigger": "contact"
     }
    }
+  },
+  "steadfast": {
+   "name": "Steadfast",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 23,
+   "params": {}
   },
   "steamengine": {
    "name": "Steam Engine",
@@ -15349,17 +15935,13 @@
     }
    }
   },
-  "stench": {
-   "name": "Stench",
+  "steelyspirit": {
+   "name": "Steely Spirit",
    "tags": [
-    "priorityMod"
+    "untagged"
    ],
-   "uses": 0,
-   "params": {
-    "priorityMod": {
-     "priority": true
-    }
-   }
+   "uses": 1,
+   "params": {}
   },
   "stickyhold": {
    "name": "Sticky Hold",
@@ -15478,6 +16060,14 @@
     }
    }
   },
+  "sweetveil": {
+   "name": "Sweet Veil",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 13,
+   "params": {}
+  },
   "swiftswim": {
    "name": "Swift Swim",
    "tags": [
@@ -15489,6 +16079,22 @@
      "conditional": true
     }
    }
+  },
+  "symbiosis": {
+   "name": "Symbiosis",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 37,
+   "params": {}
+  },
+  "synchronize": {
+   "name": "Synchronize",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 53,
+   "params": {}
   },
   "tangledfeet": {
    "name": "Tangled Feet",
@@ -15545,16 +16151,12 @@
   "teravolt": {
    "name": "Teravolt",
    "tags": [
-    "ignoresDefenderAbility",
-    "priorityMod"
+    "ignoresDefenderAbility"
    ],
    "uses": 0,
    "params": {
     "ignoresDefenderAbility": {
      "ignoresDefAbility": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },
@@ -15573,6 +16175,14 @@
      "immune": true
     }
    }
+  },
+  "thickfat": {
+   "name": "Thick Fat",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 71,
+   "params": {}
   },
   "torrent": {
    "name": "Torrent",
@@ -15614,6 +16224,19 @@
     }
    }
   },
+  "toxicchain": {
+   "name": "Toxic Chain",
+   "tags": [
+    "poisonsOnMyContact"
+   ],
+   "uses": 0,
+   "params": {
+    "poisonsOnMyContact": {
+     "p": 0.3,
+     "needsContact": true
+    }
+   }
+  },
   "toxicdebris": {
    "name": "Toxic Debris",
    "tags": [
@@ -15625,6 +16248,14 @@
      "compounds": false
     }
    }
+  },
+  "trace": {
+   "name": "Trace",
+   "tags": [
+    "untagged"
+   ],
+   "uses": 114,
+   "params": {}
   },
   "transistor": {
    "name": "Transistor",
@@ -15646,23 +16277,21 @@
    "uses": 0,
    "params": {
     "priorityMod": {
-     "priority": true
+     "movesOfClass": "all",
+     "shift": 3,
+     "condition": null
     }
    }
   },
   "turboblaze": {
    "name": "Turboblaze",
    "tags": [
-    "ignoresDefenderAbility",
-    "priorityMod"
+    "ignoresDefenderAbility"
    ],
    "uses": 0,
    "params": {
     "ignoresDefenderAbility": {
      "ignoresDefAbility": true
-    },
-    "priorityMod": {
-     "priority": true
     }
    }
   },

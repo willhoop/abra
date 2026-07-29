@@ -94,11 +94,13 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(titl
 body { font: 10.5pt/1.5 Georgia,"Times New Roman",serif; color:#15181f; max-width:none; }
 h1 { font-size:20pt; border-bottom:2px solid #15181f; padding-bottom:5px; margin:0 0 14px; page-break-after:avoid; }
 h2 { font-size:14.5pt; margin:16px 0 6px; border-bottom:1px solid #b9c0cc; padding-bottom:3px; page-break-after:avoid; }
-h3 { font-size:12pt; margin:16px 0 5px; page-break-after:avoid; }
+h3 { font-size:11pt; margin:11px 0 4px; page-break-after:avoid; }
 h4 { font-size:10.5pt; margin:12px 0 4px; page-break-after:avoid; }
 p { margin:0 0 7px; text-align:left; orphans:3; widows:3; }
-table { border-collapse:collapse; width:100%; margin:10px 0; font-size:9pt; page-break-inside:avoid; }
-th,td { border:1px solid #c3c9d4; padding:5px 7px; text-align:left; vertical-align:top; }
+table { border-collapse:collapse; width:100%; margin:8px 0; font-size:8.6pt; }
+table, tr, td, th { page-break-inside:auto; }
+thead { display:table-header-group; }
+th,td { border:1px solid #c3c9d4; padding:2px 6px; text-align:left; vertical-align:top; }
 th { background:#eef1f6; font-weight:700; }
 code { font:9pt/1.4 "Consolas","Courier New",monospace; background:#f0f2f6; padding:1px 4px; border-radius:3px; }
 pre { background:#f5f6fa; border:1px solid #d5dae3; border-left:3px solid #6b7688; padding:9px 11px;

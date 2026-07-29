@@ -986,6 +986,16 @@ const ITEM_TAGS = [
   { tag: 'damageMultType', param: 'x1.2 on one type', probe: 'onBasePower',
     why: 'Charcoal, Black Glasses, Mystic Water, Fairy Feather. About 6.7% of held items and a pure calculation error',
     of: it => it.onBasePower && it.onBasePower.length >= 0 && /plate|gem$|charcoal|blackglasses|mysticwater|fairyfeather|magnet|nevermeltice|sharpbeak|silkscarf|silverpowder|softsand|spelltag|twistedspoon|hardstone|metalcoat|miracleseed|poisonbarb|blackbelt|dragonfang|oddincense|rockincense|roseincense|seaincense|waveincense/.test(norm(it.name)) ? { mult: 1.2 } : null },
+  { tag: 'curesVolatile', param: 'clears Taunt/Encore/Disable/Attract the moment one lands, then is gone', probe: 'onUpdate',
+    why: 'Mental Herb. It silently undoes the whole point of a Taunt or an Encore, so any value the '
+       + 'bot assigns to landing one is wrong against a holder',
+    of: i => (i.onUpdate && /taunt|encore|disable|attract|healblock|torment/i.test(String(i.onUpdate)))
+             ? { oneShot: true } : null },
+  { tag: 'boostsSuperEffective', param: 'x1.2 damage, but only on a super-effective hit', probe: 'onModifyDamage',
+    why: 'Expert Belt. Conditional on the type matchup rather than flat, so it changes WHICH target '
+       + 'is the right one to hit, not just how hard',
+    of: i => (i.onModifyDamage && /typeMod|Effectiveness/i.test(String(i.onModifyDamage)))
+             ? { mult: 1.2, onlyIfSuperEffective: true } : null },
   { tag: 'resistBerry', param: 'halves one super-effective hit, then is gone', probe: 'naturalGift',
     why: 'Chople, Colbur, Kasib, Occa. About 6.8% of held items and it turns kills into non-kills',
     of: it => (it.isBerry && it.onSourceModifyDamage) ? { halves: true } : null },
@@ -1223,9 +1233,54 @@ const ABILITY_TAGS = [
   { tag: 'invertsBoosts', param: 'stat changes flip sign', probe: 'onChangeBoost',
     why: 'Contrary and Simple, already probed for expectedBoostSign',
     of: a => a.onChangeBoost ? { inverts: true } : null },
-  { tag: 'priorityMod', param: 'order shifts for a class of move', probe: 'onModifyPriority',
-    why: 'Prankster, Gale Wings, Triage. stallIntoEncore already depends on it',
-    of: a => (a.onModifyPriority || a.onModifyMove) ? { priority: true } : null },
+  /* Will, 2026-07-29: "why would you give me the prankster +1 presented like that... even that
+   * category is unneeded right? just have a prankster ability tag influence all category status."
+   *
+   * He was reading a list where Prankster sat next to Scrappy, Infiltrator, Skill Link and Long
+   * Reach -- none of which touch turn order. The cause was `|| a.onModifyMove`, a catch-all for any
+   * ability that rewrites a move at all.
+   *
+   * The subtler half: Scrappy, Stalwart and Stance Change DO have `onModifyMovePriority`, and that
+   * is not move priority. It is Showdown's internal sort key for which handler runs first inside a
+   * single event. Same shape as selfBoost, Poltergeist's target.item and Super Fang's basePower 0 --
+   * a field that exists, reads cleanly, and means something other than its name suggests.
+   *
+   * So this now reads onModifyPriority alone, and carries WHICH class of move moves and BY HOW
+   * MUCH, which is the form the turn-order calculation can actually consume. */
+  { tag: 'priorityMod', param: 'moves of one class shift by N in the turn order', probe: 'onModifyPriority',
+    why: 'Prankster (4,692) gives every Status move +1, which decides who moves first on the turn '
+       + 'a Tailwind or a Fake Out lands. Gale Wings needs FULL HP, so it is a condition, not a constant',
+    of: a => {
+      if (!a.onModifyPriority) return null;
+      const src = String(a.onModifyPriority);
+      const shift = (src.match(/priority\s*([+-])\s*(\d+)/) || [])
+        .slice(1).reduce((_, __, i, m) => (m[0] === '-' ? -1 : 1) * +m[1], null);
+      const cls = /category\s*===?\s*"Status"/.test(src) ? 'status'
+                : /type\s*===?\s*"Flying"/.test(src) ? 'flying'
+                : /flags\.heal|move\.flags\["heal"\]/.test(src) ? 'healing'
+                : 'all';
+      const cond = /hp\s*===?\s*[\w.]*maxhp/.test(src) ? 'only at full HP' : null;
+      return { movesOfClass: cls, shift, condition: cond };
+    } },
+  /* SURFACED BY THE REPAIRED UNTAGGED GUARD. Once the entity table stopped holding only tagged
+   * things, six real mechanics fell out immediately -- all of them above Will's 0.5% floor and all
+   * of them invisible for as long as the check had been passing. */
+  { tag: 'poisonsOnMyContact', param: 'MY contact moves carry a chance to poison', probe: 'onSourceDamagingHit',
+    why: 'Poison Touch. The mirror image of punishesAttacker -- this fires when the holder ATTACKS, '
+       + 'so it is a reason to pick a contact move rather than a reason to avoid one',
+    of: a => a.onSourceDamagingHit ? { p: 0.3, needsContact: true } : null },
+  { tag: 'boostsEachTurn', param: 'a stat rises every turn it stays in, with no action spent', probe: 'boostsEachTurn',
+    why: 'Speed Boost. Compounds silently -- it outruns things it could not outrun two turns ago, '
+       + 'and nothing recomputes the speed order for a boost nobody clicked',
+    of: a => (a.onResidual && /boost/i.test(String(a.onResidual))) ? { perTurn: true } : null },
+  { tag: 'blocksExplosion', param: 'self-destructing moves simply fail while it is on the field', probe: 'onAnyTryMove',
+    why: 'Damp. It reaches across the whole field, not just its own side, so it invalidates an '
+       + 'opposing Explosion the bot would otherwise score as a big hit',
+    of: a => a.onAnyTryMove ? { blocksSelfDestruct: true } : null },
+  { tag: 'noRecoil', param: 'recoil damage is zero', probe: 'noRecoil',
+    why: 'Rock Head. Turns the recoil tag from a cost into nothing, so a Head Smash carrier is '
+       + 'priced wrongly in both directions if only one of the two tags is read',
+    of: a => (a.onDamage && /recoil/i.test(String(a.onDamage))) ? { recoil: 0 } : null },
   { tag: 'preventsSwitch', param: 'the foe cannot leave', probe: 'onFoeTrapPokemon',
     why: 'Shadow Tag, Arena Trap, Magnet Pull. Already used by the playstyle classifier',
     of: a => a.onFoeTrapPokemon ? { traps: true } : null },
@@ -1277,7 +1332,13 @@ function collect(kind, all, tags, usageMap) {
       ix.n++; ix.uses += (usageMap[id] || 0);
       if (ix.examples.length < 6 && (usageMap[id] || 0) > 0) ix.examples.push(o.name);
     }
-    if (hit.length) entries[id] = { name: o.name, tags: hit, uses: usageMap[id] || 0, params };
+    /* ANYTHING TAGGED, PLUS ANYTHING ACTUALLY PLAYED. The second half is what makes the untagged
+     * check mean something: it previously stored only entities with at least one tag, so the guard
+     * that looks for untagged members iterated a set which by construction contained none. It ran
+     * clean on every build and could not have failed. That is the exact shape of bug this file was
+     * written to catch, sitting inside the guard written for Will's placeholder rule. */
+    if (hit.length || (usageMap[id] || 0) > 0)
+      entries[id] = { name: o.name, tags: hit, uses: usageMap[id] || 0, params };
   }
   return { entries, index };
 }

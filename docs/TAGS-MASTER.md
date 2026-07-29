@@ -33,362 +33,1662 @@ Every move tag with its members, ordered by how much of the format it covers.
 `read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**
 means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.
 
-**`statusCategory`** · 153.9% · 175 moves  
-*category is Status: Prankster +1, blanked by Taunt, illegal under Assault Vest*  
-Protect 43,795 · Tailwind 7,052 · Parting Shot 4,827 · Trick Room 4,461 · Rage Powder 3,886 · Encore 2,786 · Light Screen 2,359 · Wide Guard 2,098 · Helping Hand 2,051 · Reflect 2,000 · Nasty Plot 1,779 · Life Dew 1,694 · Roost 1,363 · Swords Dance 1,216 · Calm Mind 1,184 · Detect 1,179 · Will-O-Wisp 1,112 · Follow Me 944 · Taunt 881 · Aurora Veil 860 · Sleep Powder 742 · Rain Dance 704 · Charm 700 · Bulk Up 567 · Perish Song 562 · Yawn 542 · Coaching 529 · Strength Sap 519 · Toxic 495 · Baneful Bunker 451 · Disable 416 · Spiky Shield 407 · Sunny Day 379 · Quick Guard 366 · Haze 362 · Fake Tears 347 · Dragon Dance 345 · Coil 306 · Recover 305 · Thunder Wave 287 · Roar 283 · Hypnosis 278 · Trick 268 · Shell Smash 249 · Substitute 247 · Leech Seed 237 · Scary Face 208 · Clangorous Soul 190 · Tickle 179 · Imprison 160 · Iron Defense 149 · King's Shield 130 · Quash 127 · After You 107 · Instruct 92 · Soak 78 · Ally Switch 77 · Belly Drum 69 · Baton Pass 65 · Stealth Rock 64 · Swagger 64 · Curse 62 · Heal Pulse 62 · Quiver Dance 58 · Skill Swap 56 · Psychic Terrain 52 · Baby-Doll Eyes 50 · No Retreat 48 · Psych Up 46 · Wish 46 · Rest 44 · Shed Tail 41 · Destiny Bond 39 · Transform 39 · Gravity 34 · Slack Off 34 · Synthesis 33 · Memento 31 · Worry Seed 29 · Pain Split 27 · Howl 26 · Moonlight 21 · Stockpile 21 · Tidy Up 21 · Cotton Spore 20 · Entrainment 20 · Glare 20 · Toxic Spikes 20 · Decorate 18 · Shelter 18 · Chilly Reception 17 · Sticky Web 17 · Cosmic Power 15 · Dragon Cheer 14 · Minimize 14 · Acid Armor 13 · String Shot 13 · Role Play 12 · Stun Spore 12 · Whirlwind 12 · Electric Terrain 11 · Agility 10 · Eerie Impulse 10 · Sleep Talk 10 · Topsy-Turvy 10 · Cotton Guard 9 · Simple Beam 9 · Feather Dance 8 · Morning Sun 7 · Switcheroo 7 · Toxic Thread 6 · Safeguard 6 · Speed Swap 6 · Aqua Ring 5 · Grassy Terrain 5 · Magic Powder 5 · Mean Look 5 · Misty Terrain 5 · Power Swap 5 · Spikes 5 · Spite 5 · Growth 4 · Sandstorm 4 · Trick-or-Treat 4 · Amnesia 4 · Copycat 4 · Defog 4 · Focus Energy 4 · Healing Wish 4 · Torment 4 · Snowscape 3 · Endure 3 · Gastro Acid 3 · Screech 3 · Spore 3 · Confuse Ray 2 · Wonder Room 2 · Corrosive Gas 1 · Electrify 1 · Aromatic Mist 1 · Charge 1 · Forest's Curse 1 · Magnet Rise 1 · Recycle 1 · Spicy Extract 1 · Sweet Scent 1
-*29 more carry this tag but appear on no sheet.*
-
-**`neverMisses`** · 131.5% · 124 moves  
-*P(hit) = 1 (the default for a self-targeting status move)*  
-Protect 43,795 · Tailwind 7,052 · Trick Room 4,461 · Rage Powder 3,886 · Light Screen 2,359 · Wide Guard 2,098 · Helping Hand 2,051 · Reflect 2,000 · Nasty Plot 1,779 · Life Dew 1,694 · Roost 1,363 · Swords Dance 1,216 · Calm Mind 1,184 · Detect 1,179 · Follow Me 944 · Aurora Veil 860 · Rain Dance 704 · Bulk Up 567 · Perish Song 562 · Yawn 542 · Coaching 529 · Baneful Bunker 451 · Spiky Shield 407 · Sunny Day 379 · Quick Guard 366 · Haze 362 · Dragon Dance 345 · Coil 306 · Recover 305 · Roar 283 · Shell Smash 249 · Substitute 247 · Clangorous Soul 190 · Imprison 160 · Iron Defense 149 · King's Shield 130 · After You 107 · Instruct 92 · Ally Switch 77 · Belly Drum 69 · Baton Pass 65 · Stealth Rock 64 · Curse 62 · Heal Pulse 62 · Quiver Dance 58 · Skill Swap 56 · Psychic Terrain 52 · No Retreat 48 · Psych Up 46 · Wish 46 · Rest 44 · Shed Tail 41 · Destiny Bond 39 · Transform 39 · Gravity 34 · Slack Off 34 · Synthesis 33 · Pain Split 27 · Howl 26 · Moonlight 21 · Stockpile 21 · Tidy Up 21 · Toxic Spikes 20 · Decorate 18 · Shelter 18 · Chilly Reception 17 · Sticky Web 17 · Cosmic Power 15 · Dragon Cheer 14 · Minimize 14 · Acid Armor 13 · Role Play 12 · Whirlwind 12 · Electric Terrain 11 · Agility 10 · Sleep Talk 10 · Topsy-Turvy 10 · Cotton Guard 9 · Morning Sun 7 · Safeguard 6 · Speed Swap 6 · Aqua Ring 5 · Grassy Terrain 5 · Mean Look 5 · Misty Terrain 5 · Power Swap 5 · Spikes 5 · Growth 4 · Sandstorm 4 · Amnesia 4 · Copycat 4 · Defog 4 · Focus Energy 4 · Healing Wish 4 · Snowscape 3 · Endure 3 · Wonder Room 2 · Electrify 1 · Aromatic Mist 1 · Charge 1 · Magnet Rise 1 · Recycle 1 · Spicy Extract 1
-*21 more carry this tag but appear on no sheet.*
-
-**`priority`** · 119.7% · 39 moves  
-*order = priority*  
-Protect 43,795 · Fake Out 7,934 · Trick Room 4,461 · Sucker Punch 3,949 · Rage Powder 3,886 · Aqua Jet 3,066 · Wide Guard 2,098 · Helping Hand 2,051 · Quick Attack 1,216 · Detect 1,179 · Follow Me 944 · Bullet Punch 570 · Extreme Speed 455 · Baneful Bunker 451 · Spiky Shield 407 · Quick Guard 366 · Ice Shard 361 · Shadow Sneak 348 · Roar 283 · Accelerock 244 · Feint 225 · Vacuum Wave 143 · King's Shield 130 · Jet Punch 100 · Ally Switch 77 · Upper Hand 56 · Baby-Doll Eyes 50 · Dragon Tail 49 · Mach Punch 37 · Water Shuriken 16 · Mirror Coat 12 · Whirlwind 12 · Avalanche 7 · Counter 7 · Focus Punch 6 · First Impression 3 · Endure 3 · Beak Blast 2
-*1 more carry this tag but appear on no sheet.*
-
-**`contact`** · 117.1% · 166 moves  
-*triggers contact punishment on the defender*  
-Fake Out 7,934 · Close Combat 5,558 · Iron Head 4,349 · Wave Crash 4,092 · Flare Blitz 4,090 · Sucker Punch 3,949 · Dragon Claw 3,888 · Aqua Jet 3,066 · Kowtow Cleave 3,006 · Brave Bird 2,309 · Stomping Tantrum 2,132 · Low Kick 1,880 · Throat Chop 1,778 · Flip Turn 1,774 · Dual Wingbeat 1,738 · Knock Off 1,663 · Dire Claw 1,520 · Ice Punch 1,432 · Psychic Fangs 1,356 · High Horsepower 1,294 · Darkest Lariat 1,259 · Quick Attack 1,216 · Spirit Break 1,122 · Play Rough 919 · Poison Jab 767 · U-turn 749 · Drain Punch 710 · Bullet Punch 570 · Foul Play 569 · Body Press 567 · Liquidation 557 · Extreme Speed 455 · Infestation 450 · Draining Kiss 445 · Super Fang 442 · Ice Fang 433 · Rage Fist 364 · Shadow Sneak 348 · Triple Axel 332 · Meteor Mash 319 · Brick Break 293 · Population Bomb 276 · Accelerock 244 · Grass Knot 244 · Crunch 218 · Waterfall 215 · Bitter Blade 211 · Phantom Force 205 · Thunder Punch 205 · Head Smash 190 · Superpower 182 · Double-Edge 166 · Sacred Sword 145 · Volt Tackle 145 · Power Whip 122 · Trop Kick 121 · Heavy Slam 121 · Nuzzle 110 · Leaf Blade 109 · Hammer Arm 107 · Bug Bite 105 · Jet Punch 100 · Leech Life 94 · Acrobatics 92 · Blaze Kick 87 · High Jump Kick 84 · Endeavor 75 · Body Slam 72 · Breaking Swipe 70 · Last Resort 70 · Shadow Claw 69 · Night Slash 65 · Zen Headbutt 60 · Wild Charge 58 · Upper Hand 56 · Supercell Slam 50 · Dragon Tail 49 · Fire Punch 48 · Lash Out 47 · Ice Spinner 44 · Mach Punch 37 · Outrage 35 · Ceaseless Edge 33 · Facade 32 · Ice Hammer 31 · Temper Flare 30 · X-Scissor 29 · Headlong Rush 28 · Assurance 26 · Hard Press 26 · Gyro Ball 24 · Stone Axe 24 · Trailblaze 24 · Wood Hammer 24 · Aerial Ace 23 · Bite 22 · Mortal Spin 21 · Giga Impact 20 · Megahorn 20 · Lunge 18 · Drill Run 17 · Dragon Rush 16 · Fell Stinger 15 · Aqua Tail 13 · Aqua Step 11 · Storm Throw 10 · Cross Chop 10 · Iron Tail 10 · Fire Fang 9 · Low Sweep 9 · Solar Blade 9 · Steel Wing 9 · Psyshield Bash 8 · Flame Charge 8 · Pounce 8 · Raging Bull 8 · Avalanche 7 · Counter 7 · Thief 7 · Dynamic Punch 6 · Focus Punch 6 · Horn Leech 6 · Thunder Fang 6 · Drill Peck 5 · Heat Crash 5 · Poison Fang 5 · Steel Roller 5 · Crabhammer 4 · Mega Kick 4 · Rapid Spin 4 · Reversal 4 · First Impression 3 · Dig 3 · Flying Press 3 · Razor Shell 3 · Skitter Smack 3 · Brutal Swing 2 · Guillotine 2 · Power Trip 2 · Cross Poison 1 · Payback 1
-*25 more carry this tag but appear on no sheet.*
-
-**`moveClass`** · 73.5% · 73 moves  
-*the flags that abilities and immunities key on*  
-Tailwind 7,052 · Weather Ball 4,739 · Heat Wave 4,091 · Dragon Claw 3,888 · Shadow Ball 3,332 · Kowtow Cleave 3,006 · Hurricane 2,275 · Dragon Pulse 2,048 · Sludge Bomb 2,005 · Blizzard 1,547 · Dire Claw 1,520 · Ice Punch 1,432 · Psychic Fangs 1,356 · Focus Blast 1,105 · Zap Cannon 1,077 · Dark Pulse 1,026 · Icy Wind 854 · Drain Punch 710 · Aura Sphere 688 · Bullet Punch 570 · Energy Ball 457 · Ice Fang 433 · Rage Fist 364 · Meteor Mash 319 · Population Bomb 276 · Crunch 218 · Bitter Blade 211 · Thunder Punch 205 · Psycho Cut 193 · Sacred Sword 145 · Air Slash 141 · Leaf Blade 109 · Hammer Arm 107 · Jet Punch 100 · Pollen Puff 77 · Shadow Claw 69 · Night Slash 65 · Heal Pulse 62 · Acid Spray 54 · Fire Punch 48 · Water Pulse 45 · Rock Blast 39 · Mach Punch 37 · Ceaseless Edge 33 · Ice Hammer 31 · X-Scissor 29 · Headlong Rush 28 · Aqua Cutter 27 · Gyro Ball 24 · Stone Axe 24 · Aerial Ace 23 · Bite 22 · Bullet Seed 21 · Seed Bomb 16 · Petal Blizzard 12 · Whirlwind 12 · Fire Fang 9 · Solar Blade 9 · Electro Ball 7 · Dynamic Punch 6 · Focus Punch 6 · Thunder Fang 6 · Poison Fang 5 · Sandstorm 4 · Terrain Pulse 4 · Razor Shell 3 · Beak Blast 2 · Syrup Bomb 1 · Cross Poison 1
-*4 more carry this tag but appear on no sheet.*
-
-**`stalling`** · 69.7% · 6 moves  
-*is a Protect-family move*  
-Protect 43,795 · Detect 1,179 · Baneful Bunker 451 · Spiky Shield 407 · King's Shield 130 · Endure 3
-
-**`spreadFoes`** · 38.9% · 22 moves  
-*x0.75, hits BOTH ENEMIES, ally is safe*  
-Rock Slide 6,980 · Heat Wave 4,091 · Matcha Gotcha 3,422 · Hyper Voice 2,496 · Dazzling Gleam 2,023 · Blizzard 1,547 · Make It Rain 1,437 · Icy Wind 854 · Eruption 571 · Snarl 569 · Muddy Water 478 · Electroweb 345 · Water Spout 345 · Clanging Scales 312 · Breaking Swipe 70 · Burning Jealousy 32 · Struggle Bug 30 · Mortal Spin 21 · Cotton Spore 20 · String Shot 13 · Sweet Scent 1
-*1 more carry this tag but appear on no sheet.*
-
-**`secondaryStatEffect`** · 33.3% · 52 moves  
-*P(stat change) GIVEN the move lands — multiply by P(hit); blockable by Covert Cloak and Shield Dust*  
-Moonblast 4,088 · Shadow Ball 3,332 · Earth Power 2,409 · Flash Cannon 1,806 · Psychic 1,776 · Spirit Break 1,122 · Focus Blast 1,105 · Play Rough 919 · Icy Wind 854 · Snarl 569 · Liquidation 557 · Rock Tomb 491 · Muddy Water 478 · Energy Ball 457 · Electroweb 345 · Ancient Power 326 · Meteor Mash 319 · Crunch 218 · Trop Kick 121 · Mystical Fire 76 · Breaking Swipe 70 · Lumina Crash 56 · Acid Spray 54 · Triple Arrows 49 · Bitter Malice 44 · Fiery Dance 42 · Bug Buzz 40 · Chilling Water 33 · Struggle Bug 30 · Torch Song 26 · Trailblaze 24 · Aura Wheel 21 · Lunge 18 · Bulldoze 17 · Aqua Step 11 · Iron Tail 10 · Grav Apple 9 · Low Sweep 9 · Mud Shot 9 · Steel Wing 9 · Psyshield Bash 8 · Flame Charge 8 · Pounce 8 · Apple Acid 7 · Rapid Spin 4 · Charge Beam 3 · Razor Shell 3 · Skitter Smack 3 · Mud-Slap 1
-*3 more carry this tag but appear on no sheet.*
-
-**`flinches`** · 32.6% · 19 moves  
-*P(flinch), 10% to 100%, and only if I move first*  
-Fake Out 7,934 · Rock Slide 6,980 · Iron Head 4,349 · Dark Pulse 1,026 · Ice Fang 433 · Waterfall 215 · Icicle Crash 184 · Air Slash 141 · Zen Headbutt 60 · Upper Hand 56 · Triple Arrows 49 · Extrasensory 39 · Bite 22 · Dragon Rush 16 · Fire Fang 9 · Mountain Gale 6 · Thunder Fang 6
-*2 more carry this tag but appear on no sheet.*
-
-**`inflictsBurn`** · 21.4% · 15 moves  
-*P(burn): x0.5 physical damage on them, plus chip*  
-Heat Wave 4,091 · Flare Blitz 4,090 · Matcha Gotcha 3,422 · Will-O-Wisp 1,112 · Scald 608 · Flamethrower 499 · Scorching Sands 89 · Blaze Kick 87 · Fire Punch 48 · Fire Blast 26 · Infernal Parade 15 · Fire Fang 9 · Beak Blast 2 · Lava Plume 1
-*1 more carry this tag but appear on no sheet.*
-
-**`recoil`** · 17.9% · 11 moves  
-*the user pays a FRACTION of the damage dealt*  
-Wave Crash 4,092 · Flare Blitz 4,090 · Brave Bird 2,309 · Light of Ruin 718 · Head Smash 190 · Double-Edge 166 · Volt Tackle 145 · Wild Charge 58 · Steel Beam 27 · Wood Hammer 24
-*1 more carry this tag but appear on no sheet.*
-
-**`lowersUser`** · 15.7% · 13 moves · **NOT READ**  
-*WHICH of my own stats drop, as the price of the move*  
-Close Combat 5,558 · Make It Rain 1,437 · Draco Meteor 1,206 · Overheat 772 · Leaf Storm 340 · Clanging Scales 312 · Shell Smash 249 · Superpower 182 · Scale Shot 124 · Hammer Arm 107 · Armor Cannon 31 · Ice Hammer 31 · Headlong Rush 28
-
-**`variablePower`** · 14.7% · 29 moves  
-*basePower is the calculation itself; dex bp is 0*  
-Last Respects 3,034 · Stomping Tantrum 2,132 · Low Kick 1,880 · Eruption 571 · Rage Fist 364 · Water Spout 345 · Triple Axel 332 · Grass Knot 244 · Beat Up 223 · Heavy Slam 121 · Acrobatics 92 · Rising Voltage 91 · Hex 63 · Round 36 · Temper Flare 30 · Assurance 26 · Hard Press 26 · Gyro Ball 24 · Stored Power 17 · Water Shuriken 16 · Infernal Parade 15 · Avalanche 7 · Electro Ball 7 · Heat Crash 5 · Reversal 4 · Power Trip 2 · Payback 1
-*2 more carry this tag but appear on no sheet.*
-
-**`sound`** · 14.5% · 24 moves  
-*bypasses Substitute, blocked by Soundproof*  
-Parting Shot 4,827 · Hyper Voice 2,496 · Snarl 569 · Perish Song 562 · Clanging Scales 312 · Roar 283 · Clangorous Soul 190 · Psychic Noise 96 · Alluring Voice 86 · Bug Buzz 40 · Round 36 · Howl 26 · Torch Song 26 · Dragon Cheer 14 · Boomburst 11 · Screech 3 · Sparkling Aria 3 · Eerie Spell 1 · Uproar 1
-*5 more carry this tag but appear on no sheet.*
-
-**`weatherScaled`** · 13.3% · 5 moves · **NOT READ**  
-*type, power or target changes with the weather*  
-Weather Ball 4,739 · Hurricane 2,275 · Blizzard 1,547 · Thunder 182 · Growth 4
-
-**`thawsTarget`** · 12.5% · 5 moves · **NOT READ**  
-*unfreezes the target it hits*  
-Flare Blitz 4,090 · Matcha Gotcha 3,422 · Scald 608 · Scorching Sands 89 · Burn Up 35
-
-**`ignoresProtect`** · 11.6% · 31 moves · **NOT READ**  
-*Protect does NOT stop it*  
-Trick Room 4,461 · Rain Dance 704 · Perish Song 562 · Sunny Day 379 · Haze 362 · Roar 283 · Feint 225 · Phantom Force 205 · After You 107 · Curse 62 · Psychic Terrain 52 · Psych Up 46 · Transform 39 · Gravity 34 · Decorate 18 · Chilly Reception 17 · Role Play 12 · Whirlwind 12 · Electric Terrain 11 · Future Sight 6 · Grassy Terrain 5 · Mean Look 5 · Misty Terrain 5 · Sandstorm 4 · Snowscape 3 · Wonder Room 2
-*5 more carry this tag but appear on no sheet.*
-
-**`doublesSideSpeed`** · 10.7% · 1 moves  
-*my whole side moves at x2 speed for the duration*  
-Tailwind 7,052
-
-**`lowersTarget`** · 10.5% · 22 moves  
-*WHICH stat stages come off the foe, not just that some do*  
-Parting Shot 4,827 · Charm 700 · Strength Sap 519 · Fake Tears 347 · Scary Face 208 · Tickle 179 · Baby-Doll Eyes 50 · Memento 31 · Cotton Spore 20 · String Shot 13 · Eerie Impulse 10 · Feather Dance 8 · Toxic Thread 6 · Power Swap 5 · Defog 4 · Screech 3 · Spicy Extract 1 · Sweet Scent 1
-*4 more carry this tag but appear on no sheet.*
-
-**`boostsUser`** · 9.6% · 23 moves  
-*WHICH stat stages, on self, not just that there are some*  
-Nasty Plot 1,779 · Swords Dance 1,216 · Calm Mind 1,184 · Bulk Up 567 · Dragon Dance 345 · Coil 306 · Shell Smash 249 · Clangorous Soul 190 · Iron Defense 149 · Scale Shot 124 · Quiver Dance 58 · No Retreat 48 · Shelter 18 · Cosmic Power 15 · Minimize 14 · Acid Armor 13 · Agility 10 · Cotton Guard 9 · Growth 4 · Amnesia 4 · Charge 1
-*2 more carry this tag but appear on no sheet.*
-
-**`drain`** · 8.8% · 8 moves  
-*heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit*  
-Matcha Gotcha 3,422 · Giga Drain 820 · Drain Punch 710 · Draining Kiss 445 · Bitter Blade 211 · Leech Life 94 · Parabolic Charge 70 · Horn Leech 6
-
-**`statChangeInCode`** · 8.3% · 12 moves · **NOT READ**  
-*stat changes exist but are computed, not declared in a field*  
-Parting Shot 4,827 · Strength Sap 519 · Belly Drum 69 · Psych Up 46 · Tidy Up 21 · Topsy-Turvy 10 · Clear Smog 6 · Power Swap 5 · Defog 4
-*3 more carry this tag but appear on no sheet.*
-
-**`spreadAll`** · 8.0% · 16 moves  
-*x0.75, hits BOTH ENEMIES AND MY PARTNER*  
-Earthquake 4,569 · Discharge 406 · Sludge Wave 98 · Parabolic Charge 70 · Surf 69 · Bulldoze 17 · Petal Blizzard 12 · Boomburst 11 · Explosion 11 · Self-Destruct 7 · Misty Explosion 3 · Sparkling Aria 3 · Brutal Swing 2 · Corrosive Gas 1 · Lava Plume 1
-*1 more carry this tag but appear on no sheet.*
-
-**`halvesDamage`** · 7.9% · 3 moves  
-*incoming damage of ONE category is halved for my side*  
-Light Screen 2,359 · Reflect 2,000 · Aurora Veil 860
-
-**`pivotStatus`** · 7.3% · 2 moves · **NOT READ**  
-*no damage, an effect, then the user leaves*  
-Parting Shot 4,827 · Chilly Reception 17
-
-**`redirects`** · 7.3% · 2 moves  
-*takes the turn's single-target attacks*  
-Rage Powder 3,886 · Follow Me 944
-
-**`powder`** · 7.1% · 7 moves  
-*fails into Grass types, Overcoat and Safety Goggles*  
-Rage Powder 3,886 · Sleep Powder 742 · Cotton Spore 20 · Stun Spore 12 · Magic Powder 5 · Spore 3
-*1 more carry this tag but appear on no sheet.*
-
-**`reversesSpeed`** · 6.8% · 1 moves  
-*speed order is inverted for the whole field*  
-Trick Room 4,461
-
-**`conditionalPower`** · 6.7% · 11 moves · **NOT READ**  
-*fixed power x a multiplier when a condition holds*  
-Solar Beam 2,501 · Knock Off 1,663 · Expanding Force 84 · Lash Out 47 · Facade 32 · Fickle Beam 28 · Barb Barrage 22 · Grav Apple 9 · Solar Blade 9 · Venoshock 5 · Misty Explosion 3
-
-**`chargeTurn`** · 6.7% · 10 moves  
-*costs a turn before it lands*  
-Solar Beam 2,501 · Electro Shot 1,679 · Phantom Force 205 · Solar Blade 9 · Meteor Beam 5 · Dig 3
-*4 more carry this tag but appear on no sheet.*
-
-**`inflictsParalysis`** · 6.7% · 13 moves  
-*P(paralysis): x0.5 their speed, plus 12.5% lost turns*  
-Thunderbolt 1,874 · Zap Cannon 1,077 · Discharge 406 · Thunder Wave 287 · Thunder Punch 205 · Thunder 182 · Volt Tackle 145 · Nuzzle 110 · Body Slam 72 · Glare 20 · Stun Spore 12 · Thunder Fang 6
-*1 more carry this tag but appear on no sheet.*
-
-**`chargeSkippedByWeather`** · 6.3% · 3 moves · **NOT READ**  
-*the charge turn DISAPPEARS under one weather*  
-Solar Beam 2,501 · Electro Shot 1,679 · Solar Blade 9
-
-**`healsSelf`** · 6.2% · 13 moves · **NOT READ**  
-*restores a share of MY max HP, costing the turn*  
-Life Dew 1,694 · Roost 1,363 · Strength Sap 519 · Recover 305 · Wish 46 · Rest 44 · Slack Off 34 · Synthesis 33 · Moonlight 21 · Morning Sun 7 · Healing Wish 4
-*2 more carry this tag but appear on no sheet.*
-
-**`needsTargetToAttack`** · 6.2% · 9 moves · **NOT READ**  
-*FAILS unless the target is attacking this turn*  
-Sucker Punch 3,949 · Upper Hand 56 · Assurance 26 · Mirror Coat 12 · Avalanche 7 · Counter 7 · Focus Punch 6 · Metal Burst 4 · Payback 1
-
-**`inflictsFreeze`** · 6.0% · 4 moves  
-*P(freeze): they lose turns until thawed*  
-Blizzard 1,547 · Ice Punch 1,432 · Ice Beam 561 · Ice Fang 433
-
-**`neverMissesAttack`** · 5.8% · 8 moves  
-*P(hit) = 1 on a DAMAGING move*  
-Kowtow Cleave 3,006 · Aura Sphere 688 · Flower Trick 124 · Aerial Ace 23 · Clear Smog 6
-*3 more carry this tag but appear on no sheet.*
-
-**`inflictsPoison`** · 5.5% · 11 moves  
-*P(poison): flat 1/8 chip a turn*  
-Sludge Bomb 2,005 · Poison Jab 767 · Baneful Bunker 451 · Gunk Shot 224 · Sludge Wave 98 · Barb Barrage 22 · Mortal Spin 21 · Shell Side Arm 9 · Toxic Thread 6 · Cross Poison 1
-*1 more carry this tag but appear on no sheet.*
-
-**`pivotDamaging`** · 5.3% · 3 moves  
-*damages, then the user leaves*  
-Flip Turn 1,774 · Volt Switch 992 · U-turn 749
-
-**`needsUntrackedState`** · 5.2% · 4 moves · **NOT READ**  
-*power depends on state the board does not track*  
-Last Respects 3,034 · Rage Fist 364 · Gyro Ball 24 · Electro Ball 7
-
-**`locksTarget`** · 4.9% · 3 moves  
-*their option set collapses to one specific move, or loses one*  
-Encore 2,786 · Disable 416 · Torment 4
-
-**`multiHit`** · 4.7% · 14 moves · **NOT READ**  
-*hits = n (or a distribution)*  
-Dual Wingbeat 1,738 · Twin Beam 469 · Triple Axel 332 · Population Bomb 276 · Scale Shot 124 · Dragon Darts 55 · Rock Blast 39 · Bullet Seed 21 · Pin Missile 17 · Water Shuriken 16 · Icicle Spear 5 · Bone Rush 4
-*2 more carry this tag but appear on no sheet.*
-
-**`oneTurnGuard`** · 3.7% · 2 moves  
-*blocks ONE NAMED CLASS of move, for one turn, for my whole side*  
-Wide Guard 2,098 · Quick Guard 366
-
-**`inflictsConfusion`** · 3.6% · 9 moves · **NOT READ**  
-*P(confusion): they hit themselves some of the time*  
-Hurricane 2,275 · Swagger 64 · Water Pulse 45 · Dynamic Punch 6 · Confuse Ray 2
-*4 more carry this tag but appear on no sheet.*
-
-**`readsTargetItem`** · 2.8% · 2 moves · **NOT READ**  
-*damage or success depends on what the TARGET is holding*  
-Knock Off 1,663 · Poltergeist 183
-
-**`blocksSoundMoves`** · 2.7% · 1 moves · **NOT READ**  
-*they cannot use sound moves for 2 turns*  
-Throat Chop 1,778
-
-**`healsAlly`** · 2.7% · 2 moves  
-*restores my PARTNER max-HP share*  
-Life Dew 1,694 · Heal Pulse 62
-
-**`clearsScreens`** · 2.5% · 3 moves · **NOT READ**  
-*destroys Reflect, Light Screen and Aurora Veil on their side*  
-Psychic Fangs 1,356 · Brick Break 293 · Raging Bull 8
-
-**`swapsStat`** · 2.4% · 3 moves  
-*WHICH stat the damage formula reads, and whose*  
-Foul Play 569 · Body Press 567 · Psyshock 479
-
-**`proceduralStatus`** · 2.3% · 2 moves · **NOT READ**  
-*one status from a set, chosen at random in the handler*  
-Dire Claw 1,520 · Tri Attack 1
-
-**`ignoresStatStages`** · 2.1% · 2 moves · **NOT READ**  
-*the boost multiplier does not apply, permanently*  
-Darkest Lariat 1,259 · Sacred Sword 145
-
-**`setsWeather`** · 1.7% · 5 moves  
-*weather := x*  
-Rain Dance 704 · Sunny Day 379 · Chilly Reception 17 · Sandstorm 4 · Snowscape 3
-
-**`recharge`** · 1.6% · 6 moves  
-*costs the turn AFTER it lands*  
-Hyper Beam 1,026 · Giga Impact 20 · Hydro Cannon 16 · Blast Burn 3
-*2 more carry this tag but appear on no sheet.*
-
-**`inflictsSleep`** · 1.6% · 4 moves  
-*P(sleep): they lose turns outright*  
-Sleep Powder 742 · Hypnosis 278 · Spore 3
-*1 more carry this tag but appear on no sheet.*
-
-**`punishesContact`** · 1.5% · 3 moves · **NOT READ**  
-*the attacker pays for touching the shield*  
-Baneful Bunker 451 · Spiky Shield 407 · King's Shield 130
-
-**`forbidsStatusMoves`** · 1.3% · 1 moves  
-*the whole Status CATEGORY becomes unclickable for them*  
-Taunt 881
-
-**`failsWithoutWeather`** · 1.3% · 2 moves · **NOT READ**  
-*the move does NOTHING unless a weather is up*  
-Aurora Veil 860 · Magnet Rise 1
-
-**`fixedDamage`** · 1.3% · 15 moves · **NOT READ**  
-*damage is a constant, not a formula*  
-Super Fang 442 · Final Gambit 180 · Endeavor 75 · Sheer Cold 41 · Fissure 24 · Night Shade 22 · Night Shade 22 · Mirror Coat 12 · Counter 7 · Metal Burst 4 · Guillotine 2
-*4 more carry this tag but appear on no sheet.*
-
-**`overridesEffectiveness`** · 1.1% · 2 moves · **NOT READ**  
-*the type chart is WRONG for this move*  
-Freeze-Dry 748 · Flying Press 3
-
-**`critRatioUp`** · 1.1% · 14 moves · **NOT READ**  
-*P(crit) raised*  
-Psycho Cut 193 · Stone Edge 111 · Leaf Blade 109 · Blaze Kick 87 · Shadow Claw 69 · Night Slash 65 · Triple Arrows 49 · Aqua Cutter 27 · Drill Run 17 · Cross Chop 10 · Crabhammer 4 · Cross Poison 1
-*2 more carry this tag but appear on no sheet.*
-
-**`boostsTarget`** · 1.0% · 6 moves · **NOT READ**  
-*positive stat stages on a BODY THAT IS NOT ME*  
-Coaching 529 · Swagger 64 · Howl 26 · Decorate 18 · Aromatic Mist 1
-*1 more carry this tag but appear on no sheet.*
-
-**`multiAccuracy`** · 0.9% · 2 moves · **NOT READ**  
-*each hit rolls accuracy SEPARATELY, so expected hits < hit count*  
-Triple Axel 332 · Population Bomb 276
-
-**`perishClock`** · 0.9% · 1 moves · **NOT READ**  
-*everything on the field dies in 3 turns unless it switches*  
-Perish Song 562
-
-**`delayedSleep`** · 0.8% · 1 moves · **NOT READ**  
-*they fall asleep at the end of NEXT turn unless they switch*  
-Yawn 542
-
-**`inflictsToxic`** · 0.8% · 2 moves  
-*P(badly poisoned): n/16 ESCALATING, not a flat 1/8*  
-Toxic 495 · Poison Fang 5
-
-**`partialTrap`** · 0.7% · 7 moves · **NOT READ**  
-*target cannot switch for 4-5 turns AND takes 1/8 chip each turn*  
-Infestation 450 · Sand Tomb 21 · Whirlpool 13 · Fire Spin 8
-*3 more carry this tag but appear on no sheet.*
-
-**`costsUserHP`** · 0.7% · 3 moves · **NOT READ**  
-*pay a share of max HP, and FAIL outright below that threshold*  
-Substitute 247 · Clangorous Soul 190 · Shed Tail 41
-
-**`clearsBoosts`** · 0.6% · 2 moves · **NOT READ**  
-*every stat stage on the field := 0, both sides*  
-Haze 362 · Clear Smog 6
-
-**`accuracyMod`** · 0.5% · 5 moves · **NOT READ**  
-*P(hit) scaled, often gated on a weather or a category*  
-Coil 306 · Gravity 34 · Minimize 14 · Sweet Scent 1
-*1 more carry this tag but appear on no sheet.*
-
-**`forcesSwitch`** · 0.5% · 4 moves · **NOT READ**  
-*the TARGET is removed from the field*  
-Roar 283 · Dragon Tail 49 · Whirlwind 12
-*1 more carry this tag but appear on no sheet.*
-
-**`substitute`** · 0.4% · 2 moves  
-*an HP buffer that absorbs hits and blanks status until it breaks*  
-Substitute 247 · Shed Tail 41
-
-**`userFaints`** · 0.4% · 6 moves  
-*the user dies as the cost*  
-Final Gambit 180 · Memento 31 · Explosion 11 · Self-Destruct 7 · Healing Wish 4 · Misty Explosion 3
-
-**`terrainScaled`** · 0.3% · 3 moves · **NOT READ**  
-*power or target changes with the terrain*  
-Rising Voltage 91 · Expanding Force 84 · Terrain Pulse 4
-
-**`alwaysCrit`** · 0.3% · 3 moves · **NOT READ**  
-*P(crit) = 1*  
-Flower Trick 124 · Frost Breath 32 · Storm Throw 10
-
-**`passesState`** · 0.2% · 2 moves · **NOT READ**  
-*the incoming Pokemon INHERITS something*  
-Baton Pass 65 · Shed Tail 41
-
-**`hazard`** · 0.2% · 4 moves · **NOT READ**  
-*their side is damaged or slowed on switch-in, until removed*  
-Stealth Rock 64 · Toxic Spikes 20 · Sticky Web 17 · Spikes 5
-
-**`setsTerrain`** · 0.1% · 4 moves  
-*terrain := x, with a second effect beyond the type boost*  
-Psychic Terrain 52 · Electric Terrain 11 · Grassy Terrain 5 · Misty Terrain 5
-
-**`ohko`** · 0.1% · 4 moves · **NOT READ**  
-*removes the target outright*  
-Sheer Cold 41 · Fissure 24 · Guillotine 2
-*1 more carry this tag but appear on no sheet.*
-
-**`sideBuff`** · 0.0% · 1 moves  
-*another multi-turn modifier on my side*  
-Safeguard 6
-
-**`swapsDefences`** · 0.0% · 1 moves · **NOT READ**  
-*Def and SpD are exchanged, field-wide*  
-Wonder Room 2
-
-**`setsRoom`** · 0.0% · 1 moves  
-*another pseudo-weather*  
+### `statusCategory` — 153.9%, 175 moves
+
+*category is Status: Prankster +1, blanked by Taunt, illegal under Assault Vest*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Protect | 43,795 | 66.4% |
+| Tailwind | 7,052 | 10.7% |
+| Parting Shot | 4,827 | 7.3% |
+| Trick Room | 4,461 | 6.8% |
+| Rage Powder | 3,886 | 5.9% |
+| Encore | 2,786 | 4.2% |
+| Light Screen | 2,359 | 3.6% |
+| Wide Guard | 2,098 | 3.2% |
+| Helping Hand | 2,051 | 3.1% |
+| Reflect | 2,000 | 3.0% |
+| Nasty Plot | 1,779 | 2.7% |
+| Life Dew | 1,694 | 2.6% |
+| Roost | 1,363 | 2.1% |
+| Swords Dance | 1,216 | 1.8% |
+| Calm Mind | 1,184 | 1.8% |
+| Detect | 1,179 | 1.8% |
+| Will-O-Wisp | 1,112 | 1.7% |
+| Follow Me | 944 | 1.4% |
+| Taunt | 881 | 1.3% |
+| Aurora Veil | 860 | 1.3% |
+| Sleep Powder | 742 | 1.1% |
+| Rain Dance | 704 | 1.1% |
+| Charm | 700 | 1.1% |
+| Bulk Up | 567 | 0.9% |
+| Perish Song | 562 | 0.9% |
+| Yawn | 542 | 0.8% |
+| Coaching | 529 | 0.8% |
+| Strength Sap | 519 | 0.8% |
+| Toxic | 495 | 0.8% |
+| Baneful Bunker | 451 | 0.7% |
+| Disable | 416 | 0.6% |
+| Spiky Shield | 407 | 0.6% |
+| Sunny Day | 379 | 0.6% |
+| Quick Guard | 366 | 0.6% |
+| Haze | 362 | 0.5% |
+| Fake Tears | 347 | 0.5% |
+| Dragon Dance | 345 | 0.5% |
+| Coil | 306 | 0.5% |
+| Recover | 305 | 0.5% |
+| Thunder Wave | 287 | 0.4% |
+| Roar | 283 | 0.4% |
+| Hypnosis | 278 | 0.4% |
+| Trick | 268 | 0.4% |
+| Shell Smash | 249 | 0.4% |
+| Substitute | 247 | 0.4% |
+| Leech Seed | 237 | 0.4% |
+| Scary Face | 208 | 0.3% |
+| Clangorous Soul | 190 | 0.3% |
+| Tickle | 179 | 0.3% |
+| Imprison | 160 | 0.2% |
+| Iron Defense | 149 | 0.2% |
+| King's Shield | 130 | 0.2% |
+| Quash | 127 | 0.2% |
+| After You | 107 | 0.2% |
+| Instruct | 92 | 0.1% |
+| Soak | 78 | 0.1% |
+| Ally Switch | 77 | 0.1% |
+| Belly Drum | 69 | 0.1% |
+| Baton Pass | 65 | 0.1% |
+| Stealth Rock | 64 | 0.1% |
+| Swagger | 64 | 0.1% |
+| Curse | 62 | 0.1% |
+| Heal Pulse | 62 | 0.1% |
+| Quiver Dance | 58 | 0.1% |
+| Skill Swap | 56 | 0.1% |
+| Psychic Terrain | 52 | 0.1% |
+| Baby-Doll Eyes | 50 | 0.1% |
+| No Retreat | 48 | 0.1% |
+| Psych Up | 46 | 0.1% |
+| Wish | 46 | 0.1% |
+| Rest | 44 | 0.1% |
+| Shed Tail | 41 | 0.1% |
+| Destiny Bond | 39 | 0.1% |
+| Transform | 39 | 0.1% |
+| Gravity | 34 | 0.1% |
+| Slack Off | 34 | 0.1% |
+| Synthesis | 33 | 0.1% |
+| Memento | 31 | 0.0% |
+| Worry Seed | 29 | 0.0% |
+| Pain Split | 27 | 0.0% |
+| Howl | 26 | 0.0% |
+| Moonlight | 21 | 0.0% |
+| Stockpile | 21 | 0.0% |
+| Tidy Up | 21 | 0.0% |
+| Cotton Spore | 20 | 0.0% |
+| Entrainment | 20 | 0.0% |
+| Glare | 20 | 0.0% |
+| Toxic Spikes | 20 | 0.0% |
+| Decorate | 18 | 0.0% |
+| Shelter | 18 | 0.0% |
+| Chilly Reception | 17 | 0.0% |
+| Sticky Web | 17 | 0.0% |
+| Cosmic Power | 15 | 0.0% |
+| Dragon Cheer | 14 | 0.0% |
+| Minimize | 14 | 0.0% |
+| Acid Armor | 13 | 0.0% |
+| String Shot | 13 | 0.0% |
+| Role Play | 12 | 0.0% |
+| Stun Spore | 12 | 0.0% |
+| Whirlwind | 12 | 0.0% |
+| Electric Terrain | 11 | 0.0% |
+| Agility | 10 | 0.0% |
+| Eerie Impulse | 10 | 0.0% |
+| Sleep Talk | 10 | 0.0% |
+| Topsy-Turvy | 10 | 0.0% |
+| Cotton Guard | 9 | 0.0% |
+| Simple Beam | 9 | 0.0% |
+| Feather Dance | 8 | 0.0% |
+| Morning Sun | 7 | 0.0% |
+| Switcheroo | 7 | 0.0% |
+| Toxic Thread | 6 | 0.0% |
+| Safeguard | 6 | 0.0% |
+| Speed Swap | 6 | 0.0% |
+| Aqua Ring | 5 | 0.0% |
+| Grassy Terrain | 5 | 0.0% |
+| Magic Powder | 5 | 0.0% |
+| Mean Look | 5 | 0.0% |
+| Misty Terrain | 5 | 0.0% |
+| Power Swap | 5 | 0.0% |
+| Spikes | 5 | 0.0% |
+| Spite | 5 | 0.0% |
+| Growth | 4 | 0.0% |
+| Sandstorm | 4 | 0.0% |
+| Trick-or-Treat | 4 | 0.0% |
+| Amnesia | 4 | 0.0% |
+| Copycat | 4 | 0.0% |
+| Defog | 4 | 0.0% |
+| Focus Energy | 4 | 0.0% |
+| Healing Wish | 4 | 0.0% |
+| Torment | 4 | 0.0% |
+| Snowscape | 3 | 0.0% |
+| Endure | 3 | 0.0% |
+| Gastro Acid | 3 | 0.0% |
+| Screech | 3 | 0.0% |
+| Spore | 3 | 0.0% |
+| Confuse Ray | 2 | 0.0% |
+| Wonder Room | 2 | 0.0% |
+| Corrosive Gas | 1 | 0.0% |
+| Electrify | 1 | 0.0% |
+| Aromatic Mist | 1 | 0.0% |
+| Charge | 1 | 0.0% |
+| Forest's Curse | 1 | 0.0% |
+| Magnet Rise | 1 | 0.0% |
+| Recycle | 1 | 0.0% |
+| Spicy Extract | 1 | 0.0% |
+| Sweet Scent | 1 | 0.0% |
+
+*29 more carry this tag but appear on no sheet in the corpus.*
+
+### `neverMisses` — 131.5%, 124 moves
+
+*P(hit) = 1 (the default for a self-targeting status move)*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Protect | 43,795 | 66.4% |
+| Tailwind | 7,052 | 10.7% |
+| Trick Room | 4,461 | 6.8% |
+| Rage Powder | 3,886 | 5.9% |
+| Light Screen | 2,359 | 3.6% |
+| Wide Guard | 2,098 | 3.2% |
+| Helping Hand | 2,051 | 3.1% |
+| Reflect | 2,000 | 3.0% |
+| Nasty Plot | 1,779 | 2.7% |
+| Life Dew | 1,694 | 2.6% |
+| Roost | 1,363 | 2.1% |
+| Swords Dance | 1,216 | 1.8% |
+| Calm Mind | 1,184 | 1.8% |
+| Detect | 1,179 | 1.8% |
+| Follow Me | 944 | 1.4% |
+| Aurora Veil | 860 | 1.3% |
+| Rain Dance | 704 | 1.1% |
+| Bulk Up | 567 | 0.9% |
+| Perish Song | 562 | 0.9% |
+| Yawn | 542 | 0.8% |
+| Coaching | 529 | 0.8% |
+| Baneful Bunker | 451 | 0.7% |
+| Spiky Shield | 407 | 0.6% |
+| Sunny Day | 379 | 0.6% |
+| Quick Guard | 366 | 0.6% |
+| Haze | 362 | 0.5% |
+| Dragon Dance | 345 | 0.5% |
+| Coil | 306 | 0.5% |
+| Recover | 305 | 0.5% |
+| Roar | 283 | 0.4% |
+| Shell Smash | 249 | 0.4% |
+| Substitute | 247 | 0.4% |
+| Clangorous Soul | 190 | 0.3% |
+| Imprison | 160 | 0.2% |
+| Iron Defense | 149 | 0.2% |
+| King's Shield | 130 | 0.2% |
+| After You | 107 | 0.2% |
+| Instruct | 92 | 0.1% |
+| Ally Switch | 77 | 0.1% |
+| Belly Drum | 69 | 0.1% |
+| Baton Pass | 65 | 0.1% |
+| Stealth Rock | 64 | 0.1% |
+| Curse | 62 | 0.1% |
+| Heal Pulse | 62 | 0.1% |
+| Quiver Dance | 58 | 0.1% |
+| Skill Swap | 56 | 0.1% |
+| Psychic Terrain | 52 | 0.1% |
+| No Retreat | 48 | 0.1% |
+| Psych Up | 46 | 0.1% |
+| Wish | 46 | 0.1% |
+| Rest | 44 | 0.1% |
+| Shed Tail | 41 | 0.1% |
+| Destiny Bond | 39 | 0.1% |
+| Transform | 39 | 0.1% |
+| Gravity | 34 | 0.1% |
+| Slack Off | 34 | 0.1% |
+| Synthesis | 33 | 0.1% |
+| Pain Split | 27 | 0.0% |
+| Howl | 26 | 0.0% |
+| Moonlight | 21 | 0.0% |
+| Stockpile | 21 | 0.0% |
+| Tidy Up | 21 | 0.0% |
+| Toxic Spikes | 20 | 0.0% |
+| Decorate | 18 | 0.0% |
+| Shelter | 18 | 0.0% |
+| Chilly Reception | 17 | 0.0% |
+| Sticky Web | 17 | 0.0% |
+| Cosmic Power | 15 | 0.0% |
+| Dragon Cheer | 14 | 0.0% |
+| Minimize | 14 | 0.0% |
+| Acid Armor | 13 | 0.0% |
+| Role Play | 12 | 0.0% |
+| Whirlwind | 12 | 0.0% |
+| Electric Terrain | 11 | 0.0% |
+| Agility | 10 | 0.0% |
+| Sleep Talk | 10 | 0.0% |
+| Topsy-Turvy | 10 | 0.0% |
+| Cotton Guard | 9 | 0.0% |
+| Morning Sun | 7 | 0.0% |
+| Safeguard | 6 | 0.0% |
+| Speed Swap | 6 | 0.0% |
+| Aqua Ring | 5 | 0.0% |
+| Grassy Terrain | 5 | 0.0% |
+| Mean Look | 5 | 0.0% |
+| Misty Terrain | 5 | 0.0% |
+| Power Swap | 5 | 0.0% |
+| Spikes | 5 | 0.0% |
+| Growth | 4 | 0.0% |
+| Sandstorm | 4 | 0.0% |
+| Amnesia | 4 | 0.0% |
+| Copycat | 4 | 0.0% |
+| Defog | 4 | 0.0% |
+| Focus Energy | 4 | 0.0% |
+| Healing Wish | 4 | 0.0% |
+| Snowscape | 3 | 0.0% |
+| Endure | 3 | 0.0% |
+| Wonder Room | 2 | 0.0% |
+| Electrify | 1 | 0.0% |
+| Aromatic Mist | 1 | 0.0% |
+| Charge | 1 | 0.0% |
+| Magnet Rise | 1 | 0.0% |
+| Recycle | 1 | 0.0% |
+| Spicy Extract | 1 | 0.0% |
+
+*21 more carry this tag but appear on no sheet in the corpus.*
+
+### `priority` — 119.7%, 39 moves
+
+*order = priority*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Protect | 43,795 | 66.4% |
+| Fake Out | 7,934 | 12.0% |
+| Trick Room | 4,461 | 6.8% |
+| Sucker Punch | 3,949 | 6.0% |
+| Rage Powder | 3,886 | 5.9% |
+| Aqua Jet | 3,066 | 4.6% |
+| Wide Guard | 2,098 | 3.2% |
+| Helping Hand | 2,051 | 3.1% |
+| Quick Attack | 1,216 | 1.8% |
+| Detect | 1,179 | 1.8% |
+| Follow Me | 944 | 1.4% |
+| Bullet Punch | 570 | 0.9% |
+| Extreme Speed | 455 | 0.7% |
+| Baneful Bunker | 451 | 0.7% |
+| Spiky Shield | 407 | 0.6% |
+| Quick Guard | 366 | 0.6% |
+| Ice Shard | 361 | 0.5% |
+| Shadow Sneak | 348 | 0.5% |
+| Roar | 283 | 0.4% |
+| Accelerock | 244 | 0.4% |
+| Feint | 225 | 0.3% |
+| Vacuum Wave | 143 | 0.2% |
+| King's Shield | 130 | 0.2% |
+| Jet Punch | 100 | 0.2% |
+| Ally Switch | 77 | 0.1% |
+| Upper Hand | 56 | 0.1% |
+| Baby-Doll Eyes | 50 | 0.1% |
+| Dragon Tail | 49 | 0.1% |
+| Mach Punch | 37 | 0.1% |
+| Water Shuriken | 16 | 0.0% |
+| Mirror Coat | 12 | 0.0% |
+| Whirlwind | 12 | 0.0% |
+| Avalanche | 7 | 0.0% |
+| Counter | 7 | 0.0% |
+| Focus Punch | 6 | 0.0% |
+| First Impression | 3 | 0.0% |
+| Endure | 3 | 0.0% |
+| Beak Blast | 2 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `contact` — 117.1%, 166 moves
+
+*triggers contact punishment on the defender*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Fake Out | 7,934 | 12.0% |
+| Close Combat | 5,558 | 8.4% |
+| Iron Head | 4,349 | 6.6% |
+| Wave Crash | 4,092 | 6.2% |
+| Flare Blitz | 4,090 | 6.2% |
+| Sucker Punch | 3,949 | 6.0% |
+| Dragon Claw | 3,888 | 5.9% |
+| Aqua Jet | 3,066 | 4.6% |
+| Kowtow Cleave | 3,006 | 4.6% |
+| Brave Bird | 2,309 | 3.5% |
+| Stomping Tantrum | 2,132 | 3.2% |
+| Low Kick | 1,880 | 2.8% |
+| Throat Chop | 1,778 | 2.7% |
+| Flip Turn | 1,774 | 2.7% |
+| Dual Wingbeat | 1,738 | 2.6% |
+| Knock Off | 1,663 | 2.5% |
+| Dire Claw | 1,520 | 2.3% |
+| Ice Punch | 1,432 | 2.2% |
+| Psychic Fangs | 1,356 | 2.1% |
+| High Horsepower | 1,294 | 2.0% |
+| Darkest Lariat | 1,259 | 1.9% |
+| Quick Attack | 1,216 | 1.8% |
+| Spirit Break | 1,122 | 1.7% |
+| Play Rough | 919 | 1.4% |
+| Poison Jab | 767 | 1.2% |
+| U-turn | 749 | 1.1% |
+| Drain Punch | 710 | 1.1% |
+| Bullet Punch | 570 | 0.9% |
+| Foul Play | 569 | 0.9% |
+| Body Press | 567 | 0.9% |
+| Liquidation | 557 | 0.8% |
+| Extreme Speed | 455 | 0.7% |
+| Infestation | 450 | 0.7% |
+| Draining Kiss | 445 | 0.7% |
+| Super Fang | 442 | 0.7% |
+| Ice Fang | 433 | 0.7% |
+| Rage Fist | 364 | 0.6% |
+| Shadow Sneak | 348 | 0.5% |
+| Triple Axel | 332 | 0.5% |
+| Meteor Mash | 319 | 0.5% |
+| Brick Break | 293 | 0.4% |
+| Population Bomb | 276 | 0.4% |
+| Accelerock | 244 | 0.4% |
+| Grass Knot | 244 | 0.4% |
+| Crunch | 218 | 0.3% |
+| Waterfall | 215 | 0.3% |
+| Bitter Blade | 211 | 0.3% |
+| Phantom Force | 205 | 0.3% |
+| Thunder Punch | 205 | 0.3% |
+| Head Smash | 190 | 0.3% |
+| Superpower | 182 | 0.3% |
+| Double-Edge | 166 | 0.3% |
+| Sacred Sword | 145 | 0.2% |
+| Volt Tackle | 145 | 0.2% |
+| Power Whip | 122 | 0.2% |
+| Trop Kick | 121 | 0.2% |
+| Heavy Slam | 121 | 0.2% |
+| Nuzzle | 110 | 0.2% |
+| Leaf Blade | 109 | 0.2% |
+| Hammer Arm | 107 | 0.2% |
+| Bug Bite | 105 | 0.2% |
+| Jet Punch | 100 | 0.2% |
+| Leech Life | 94 | 0.1% |
+| Acrobatics | 92 | 0.1% |
+| Blaze Kick | 87 | 0.1% |
+| High Jump Kick | 84 | 0.1% |
+| Endeavor | 75 | 0.1% |
+| Body Slam | 72 | 0.1% |
+| Breaking Swipe | 70 | 0.1% |
+| Last Resort | 70 | 0.1% |
+| Shadow Claw | 69 | 0.1% |
+| Night Slash | 65 | 0.1% |
+| Zen Headbutt | 60 | 0.1% |
+| Wild Charge | 58 | 0.1% |
+| Upper Hand | 56 | 0.1% |
+| Supercell Slam | 50 | 0.1% |
+| Dragon Tail | 49 | 0.1% |
+| Fire Punch | 48 | 0.1% |
+| Lash Out | 47 | 0.1% |
+| Ice Spinner | 44 | 0.1% |
+| Mach Punch | 37 | 0.1% |
+| Outrage | 35 | 0.1% |
+| Ceaseless Edge | 33 | 0.1% |
+| Facade | 32 | 0.0% |
+| Ice Hammer | 31 | 0.0% |
+| Temper Flare | 30 | 0.0% |
+| X-Scissor | 29 | 0.0% |
+| Headlong Rush | 28 | 0.0% |
+| Assurance | 26 | 0.0% |
+| Hard Press | 26 | 0.0% |
+| Gyro Ball | 24 | 0.0% |
+| Stone Axe | 24 | 0.0% |
+| Trailblaze | 24 | 0.0% |
+| Wood Hammer | 24 | 0.0% |
+| Aerial Ace | 23 | 0.0% |
+| Bite | 22 | 0.0% |
+| Mortal Spin | 21 | 0.0% |
+| Giga Impact | 20 | 0.0% |
+| Megahorn | 20 | 0.0% |
+| Lunge | 18 | 0.0% |
+| Drill Run | 17 | 0.0% |
+| Dragon Rush | 16 | 0.0% |
+| Fell Stinger | 15 | 0.0% |
+| Aqua Tail | 13 | 0.0% |
+| Aqua Step | 11 | 0.0% |
+| Storm Throw | 10 | 0.0% |
+| Cross Chop | 10 | 0.0% |
+| Iron Tail | 10 | 0.0% |
+| Fire Fang | 9 | 0.0% |
+| Low Sweep | 9 | 0.0% |
+| Solar Blade | 9 | 0.0% |
+| Steel Wing | 9 | 0.0% |
+| Psyshield Bash | 8 | 0.0% |
+| Flame Charge | 8 | 0.0% |
+| Pounce | 8 | 0.0% |
+| Raging Bull | 8 | 0.0% |
+| Avalanche | 7 | 0.0% |
+| Counter | 7 | 0.0% |
+| Thief | 7 | 0.0% |
+| Dynamic Punch | 6 | 0.0% |
+| Focus Punch | 6 | 0.0% |
+| Horn Leech | 6 | 0.0% |
+| Thunder Fang | 6 | 0.0% |
+| Drill Peck | 5 | 0.0% |
+| Heat Crash | 5 | 0.0% |
+| Poison Fang | 5 | 0.0% |
+| Steel Roller | 5 | 0.0% |
+| Crabhammer | 4 | 0.0% |
+| Mega Kick | 4 | 0.0% |
+| Rapid Spin | 4 | 0.0% |
+| Reversal | 4 | 0.0% |
+| First Impression | 3 | 0.0% |
+| Dig | 3 | 0.0% |
+| Flying Press | 3 | 0.0% |
+| Razor Shell | 3 | 0.0% |
+| Skitter Smack | 3 | 0.0% |
+| Brutal Swing | 2 | 0.0% |
+| Guillotine | 2 | 0.0% |
+| Power Trip | 2 | 0.0% |
+| Cross Poison | 1 | 0.0% |
+| Payback | 1 | 0.0% |
+
+*25 more carry this tag but appear on no sheet in the corpus.*
+
+### `moveClass` — 73.5%, 73 moves
+
+*the flags that abilities and immunities key on*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Tailwind | 7,052 | 10.7% |
+| Weather Ball | 4,739 | 7.2% |
+| Heat Wave | 4,091 | 6.2% |
+| Dragon Claw | 3,888 | 5.9% |
+| Shadow Ball | 3,332 | 5.1% |
+| Kowtow Cleave | 3,006 | 4.6% |
+| Hurricane | 2,275 | 3.4% |
+| Dragon Pulse | 2,048 | 3.1% |
+| Sludge Bomb | 2,005 | 3.0% |
+| Blizzard | 1,547 | 2.3% |
+| Dire Claw | 1,520 | 2.3% |
+| Ice Punch | 1,432 | 2.2% |
+| Psychic Fangs | 1,356 | 2.1% |
+| Focus Blast | 1,105 | 1.7% |
+| Zap Cannon | 1,077 | 1.6% |
+| Dark Pulse | 1,026 | 1.6% |
+| Icy Wind | 854 | 1.3% |
+| Drain Punch | 710 | 1.1% |
+| Aura Sphere | 688 | 1.0% |
+| Bullet Punch | 570 | 0.9% |
+| Energy Ball | 457 | 0.7% |
+| Ice Fang | 433 | 0.7% |
+| Rage Fist | 364 | 0.6% |
+| Meteor Mash | 319 | 0.5% |
+| Population Bomb | 276 | 0.4% |
+| Crunch | 218 | 0.3% |
+| Bitter Blade | 211 | 0.3% |
+| Thunder Punch | 205 | 0.3% |
+| Psycho Cut | 193 | 0.3% |
+| Sacred Sword | 145 | 0.2% |
+| Air Slash | 141 | 0.2% |
+| Leaf Blade | 109 | 0.2% |
+| Hammer Arm | 107 | 0.2% |
+| Jet Punch | 100 | 0.2% |
+| Pollen Puff | 77 | 0.1% |
+| Shadow Claw | 69 | 0.1% |
+| Night Slash | 65 | 0.1% |
+| Heal Pulse | 62 | 0.1% |
+| Acid Spray | 54 | 0.1% |
+| Fire Punch | 48 | 0.1% |
+| Water Pulse | 45 | 0.1% |
+| Rock Blast | 39 | 0.1% |
+| Mach Punch | 37 | 0.1% |
+| Ceaseless Edge | 33 | 0.1% |
+| Ice Hammer | 31 | 0.0% |
+| X-Scissor | 29 | 0.0% |
+| Headlong Rush | 28 | 0.0% |
+| Aqua Cutter | 27 | 0.0% |
+| Gyro Ball | 24 | 0.0% |
+| Stone Axe | 24 | 0.0% |
+| Aerial Ace | 23 | 0.0% |
+| Bite | 22 | 0.0% |
+| Bullet Seed | 21 | 0.0% |
+| Seed Bomb | 16 | 0.0% |
+| Petal Blizzard | 12 | 0.0% |
+| Whirlwind | 12 | 0.0% |
+| Fire Fang | 9 | 0.0% |
+| Solar Blade | 9 | 0.0% |
+| Electro Ball | 7 | 0.0% |
+| Dynamic Punch | 6 | 0.0% |
+| Focus Punch | 6 | 0.0% |
+| Thunder Fang | 6 | 0.0% |
+| Poison Fang | 5 | 0.0% |
+| Sandstorm | 4 | 0.0% |
+| Terrain Pulse | 4 | 0.0% |
+| Razor Shell | 3 | 0.0% |
+| Beak Blast | 2 | 0.0% |
+| Syrup Bomb | 1 | 0.0% |
+| Cross Poison | 1 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
+
+### `stalling` — 69.7%, 6 moves
+
+*is a Protect-family move*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Protect | 43,795 | 66.4% |
+| Detect | 1,179 | 1.8% |
+| Baneful Bunker | 451 | 0.7% |
+| Spiky Shield | 407 | 0.6% |
+| King's Shield | 130 | 0.2% |
+| Endure | 3 | 0.0% |
+
+### `spreadFoes` — 38.9%, 22 moves
+
+*x0.75, hits BOTH ENEMIES, ally is safe*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Rock Slide | 6,980 | 10.6% |
+| Heat Wave | 4,091 | 6.2% |
+| Matcha Gotcha | 3,422 | 5.2% |
+| Hyper Voice | 2,496 | 3.8% |
+| Dazzling Gleam | 2,023 | 3.1% |
+| Blizzard | 1,547 | 2.3% |
+| Make It Rain | 1,437 | 2.2% |
+| Icy Wind | 854 | 1.3% |
+| Eruption | 571 | 0.9% |
+| Snarl | 569 | 0.9% |
+| Muddy Water | 478 | 0.7% |
+| Electroweb | 345 | 0.5% |
+| Water Spout | 345 | 0.5% |
+| Clanging Scales | 312 | 0.5% |
+| Breaking Swipe | 70 | 0.1% |
+| Burning Jealousy | 32 | 0.0% |
+| Struggle Bug | 30 | 0.0% |
+| Mortal Spin | 21 | 0.0% |
+| Cotton Spore | 20 | 0.0% |
+| String Shot | 13 | 0.0% |
+| Sweet Scent | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `secondaryStatEffect` — 33.3%, 52 moves
+
+*P(stat change) GIVEN the move lands — multiply by P(hit); blockable by Covert Cloak and Shield Dust*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Moonblast | 4,088 | 6.2% |
+| Shadow Ball | 3,332 | 5.1% |
+| Earth Power | 2,409 | 3.7% |
+| Flash Cannon | 1,806 | 2.7% |
+| Psychic | 1,776 | 2.7% |
+| Spirit Break | 1,122 | 1.7% |
+| Focus Blast | 1,105 | 1.7% |
+| Play Rough | 919 | 1.4% |
+| Icy Wind | 854 | 1.3% |
+| Snarl | 569 | 0.9% |
+| Liquidation | 557 | 0.8% |
+| Rock Tomb | 491 | 0.7% |
+| Muddy Water | 478 | 0.7% |
+| Energy Ball | 457 | 0.7% |
+| Electroweb | 345 | 0.5% |
+| Ancient Power | 326 | 0.5% |
+| Meteor Mash | 319 | 0.5% |
+| Crunch | 218 | 0.3% |
+| Trop Kick | 121 | 0.2% |
+| Mystical Fire | 76 | 0.1% |
+| Breaking Swipe | 70 | 0.1% |
+| Lumina Crash | 56 | 0.1% |
+| Acid Spray | 54 | 0.1% |
+| Triple Arrows | 49 | 0.1% |
+| Bitter Malice | 44 | 0.1% |
+| Fiery Dance | 42 | 0.1% |
+| Bug Buzz | 40 | 0.1% |
+| Chilling Water | 33 | 0.1% |
+| Struggle Bug | 30 | 0.0% |
+| Torch Song | 26 | 0.0% |
+| Trailblaze | 24 | 0.0% |
+| Aura Wheel | 21 | 0.0% |
+| Lunge | 18 | 0.0% |
+| Bulldoze | 17 | 0.0% |
+| Aqua Step | 11 | 0.0% |
+| Iron Tail | 10 | 0.0% |
+| Grav Apple | 9 | 0.0% |
+| Low Sweep | 9 | 0.0% |
+| Mud Shot | 9 | 0.0% |
+| Steel Wing | 9 | 0.0% |
+| Psyshield Bash | 8 | 0.0% |
+| Flame Charge | 8 | 0.0% |
+| Pounce | 8 | 0.0% |
+| Apple Acid | 7 | 0.0% |
+| Rapid Spin | 4 | 0.0% |
+| Charge Beam | 3 | 0.0% |
+| Razor Shell | 3 | 0.0% |
+| Skitter Smack | 3 | 0.0% |
+| Mud-Slap | 1 | 0.0% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
+### `flinches` — 32.6%, 19 moves
+
+*P(flinch), 10% to 100%, and only if I move first*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Fake Out | 7,934 | 12.0% |
+| Rock Slide | 6,980 | 10.6% |
+| Iron Head | 4,349 | 6.6% |
+| Dark Pulse | 1,026 | 1.6% |
+| Ice Fang | 433 | 0.7% |
+| Waterfall | 215 | 0.3% |
+| Icicle Crash | 184 | 0.3% |
+| Air Slash | 141 | 0.2% |
+| Zen Headbutt | 60 | 0.1% |
+| Upper Hand | 56 | 0.1% |
+| Triple Arrows | 49 | 0.1% |
+| Extrasensory | 39 | 0.1% |
+| Bite | 22 | 0.0% |
+| Dragon Rush | 16 | 0.0% |
+| Fire Fang | 9 | 0.0% |
+| Mountain Gale | 6 | 0.0% |
+| Thunder Fang | 6 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `inflictsBurn` — 21.4%, 15 moves
+
+*P(burn): x0.5 physical damage on them, plus chip*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Heat Wave | 4,091 | 6.2% |
+| Flare Blitz | 4,090 | 6.2% |
+| Matcha Gotcha | 3,422 | 5.2% |
+| Will-O-Wisp | 1,112 | 1.7% |
+| Scald | 608 | 0.9% |
+| Flamethrower | 499 | 0.8% |
+| Scorching Sands | 89 | 0.1% |
+| Blaze Kick | 87 | 0.1% |
+| Fire Punch | 48 | 0.1% |
+| Fire Blast | 26 | 0.0% |
+| Infernal Parade | 15 | 0.0% |
+| Fire Fang | 9 | 0.0% |
+| Beak Blast | 2 | 0.0% |
+| Lava Plume | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `recoil` — 17.9%, 11 moves
+
+*the user pays a FRACTION of the damage dealt*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Wave Crash | 4,092 | 6.2% |
+| Flare Blitz | 4,090 | 6.2% |
+| Brave Bird | 2,309 | 3.5% |
+| Light of Ruin | 718 | 1.1% |
+| Head Smash | 190 | 0.3% |
+| Double-Edge | 166 | 0.3% |
+| Volt Tackle | 145 | 0.2% |
+| Wild Charge | 58 | 0.1% |
+| Steel Beam | 27 | 0.0% |
+| Wood Hammer | 24 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `lowersUser` — 15.7%, 13 moves — **NOT READ**
+
+*WHICH of my own stats drop, as the price of the move*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Close Combat | 5,558 | 8.4% |
+| Make It Rain | 1,437 | 2.2% |
+| Draco Meteor | 1,206 | 1.8% |
+| Overheat | 772 | 1.2% |
+| Leaf Storm | 340 | 0.5% |
+| Clanging Scales | 312 | 0.5% |
+| Shell Smash | 249 | 0.4% |
+| Superpower | 182 | 0.3% |
+| Scale Shot | 124 | 0.2% |
+| Hammer Arm | 107 | 0.2% |
+| Armor Cannon | 31 | 0.0% |
+| Ice Hammer | 31 | 0.0% |
+| Headlong Rush | 28 | 0.0% |
+
+### `variablePower` — 14.7%, 29 moves
+
+*basePower is the calculation itself; dex bp is 0*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Last Respects | 3,034 | 4.6% |
+| Stomping Tantrum | 2,132 | 3.2% |
+| Low Kick | 1,880 | 2.8% |
+| Eruption | 571 | 0.9% |
+| Rage Fist | 364 | 0.6% |
+| Water Spout | 345 | 0.5% |
+| Triple Axel | 332 | 0.5% |
+| Grass Knot | 244 | 0.4% |
+| Beat Up | 223 | 0.3% |
+| Heavy Slam | 121 | 0.2% |
+| Acrobatics | 92 | 0.1% |
+| Rising Voltage | 91 | 0.1% |
+| Hex | 63 | 0.1% |
+| Round | 36 | 0.1% |
+| Temper Flare | 30 | 0.0% |
+| Assurance | 26 | 0.0% |
+| Hard Press | 26 | 0.0% |
+| Gyro Ball | 24 | 0.0% |
+| Stored Power | 17 | 0.0% |
+| Water Shuriken | 16 | 0.0% |
+| Infernal Parade | 15 | 0.0% |
+| Avalanche | 7 | 0.0% |
+| Electro Ball | 7 | 0.0% |
+| Heat Crash | 5 | 0.0% |
+| Reversal | 4 | 0.0% |
+| Power Trip | 2 | 0.0% |
+| Payback | 1 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `sound` — 14.5%, 24 moves
+
+*bypasses Substitute, blocked by Soundproof*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Parting Shot | 4,827 | 7.3% |
+| Hyper Voice | 2,496 | 3.8% |
+| Snarl | 569 | 0.9% |
+| Perish Song | 562 | 0.9% |
+| Clanging Scales | 312 | 0.5% |
+| Roar | 283 | 0.4% |
+| Clangorous Soul | 190 | 0.3% |
+| Psychic Noise | 96 | 0.1% |
+| Alluring Voice | 86 | 0.1% |
+| Bug Buzz | 40 | 0.1% |
+| Round | 36 | 0.1% |
+| Howl | 26 | 0.0% |
+| Torch Song | 26 | 0.0% |
+| Dragon Cheer | 14 | 0.0% |
+| Boomburst | 11 | 0.0% |
+| Screech | 3 | 0.0% |
+| Sparkling Aria | 3 | 0.0% |
+| Eerie Spell | 1 | 0.0% |
+| Uproar | 1 | 0.0% |
+
+*5 more carry this tag but appear on no sheet in the corpus.*
+
+### `weatherScaled` — 13.3%, 5 moves — **NOT READ**
+
+*type, power or target changes with the weather*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Weather Ball | 4,739 | 7.2% |
+| Hurricane | 2,275 | 3.4% |
+| Blizzard | 1,547 | 2.3% |
+| Thunder | 182 | 0.3% |
+| Growth | 4 | 0.0% |
+
+### `thawsTarget` — 12.5%, 5 moves — **NOT READ**
+
+*unfreezes the target it hits*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Flare Blitz | 4,090 | 6.2% |
+| Matcha Gotcha | 3,422 | 5.2% |
+| Scald | 608 | 0.9% |
+| Scorching Sands | 89 | 0.1% |
+| Burn Up | 35 | 0.1% |
+
+### `ignoresProtect` — 11.6%, 31 moves — **NOT READ**
+
+*Protect does NOT stop it*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Trick Room | 4,461 | 6.8% |
+| Rain Dance | 704 | 1.1% |
+| Perish Song | 562 | 0.9% |
+| Sunny Day | 379 | 0.6% |
+| Haze | 362 | 0.5% |
+| Roar | 283 | 0.4% |
+| Feint | 225 | 0.3% |
+| Phantom Force | 205 | 0.3% |
+| After You | 107 | 0.2% |
+| Curse | 62 | 0.1% |
+| Psychic Terrain | 52 | 0.1% |
+| Psych Up | 46 | 0.1% |
+| Transform | 39 | 0.1% |
+| Gravity | 34 | 0.1% |
+| Decorate | 18 | 0.0% |
+| Chilly Reception | 17 | 0.0% |
+| Role Play | 12 | 0.0% |
+| Whirlwind | 12 | 0.0% |
+| Electric Terrain | 11 | 0.0% |
+| Future Sight | 6 | 0.0% |
+| Grassy Terrain | 5 | 0.0% |
+| Mean Look | 5 | 0.0% |
+| Misty Terrain | 5 | 0.0% |
+| Sandstorm | 4 | 0.0% |
+| Snowscape | 3 | 0.0% |
+| Wonder Room | 2 | 0.0% |
+
+*5 more carry this tag but appear on no sheet in the corpus.*
+
+### `doublesSideSpeed` — 10.7%, 1 moves
+
+*my whole side moves at x2 speed for the duration*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Tailwind | 7,052 | 10.7% |
+
+### `lowersTarget` — 10.5%, 22 moves
+
+*WHICH stat stages come off the foe, not just that some do*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Parting Shot | 4,827 | 7.3% |
+| Charm | 700 | 1.1% |
+| Strength Sap | 519 | 0.8% |
+| Fake Tears | 347 | 0.5% |
+| Scary Face | 208 | 0.3% |
+| Tickle | 179 | 0.3% |
+| Baby-Doll Eyes | 50 | 0.1% |
+| Memento | 31 | 0.0% |
+| Cotton Spore | 20 | 0.0% |
+| String Shot | 13 | 0.0% |
+| Eerie Impulse | 10 | 0.0% |
+| Feather Dance | 8 | 0.0% |
+| Toxic Thread | 6 | 0.0% |
+| Power Swap | 5 | 0.0% |
+| Defog | 4 | 0.0% |
+| Screech | 3 | 0.0% |
+| Spicy Extract | 1 | 0.0% |
+| Sweet Scent | 1 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
+
+### `boostsUser` — 9.6%, 23 moves
+
+*WHICH stat stages, on self, not just that there are some*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Nasty Plot | 1,779 | 2.7% |
+| Swords Dance | 1,216 | 1.8% |
+| Calm Mind | 1,184 | 1.8% |
+| Bulk Up | 567 | 0.9% |
+| Dragon Dance | 345 | 0.5% |
+| Coil | 306 | 0.5% |
+| Shell Smash | 249 | 0.4% |
+| Clangorous Soul | 190 | 0.3% |
+| Iron Defense | 149 | 0.2% |
+| Scale Shot | 124 | 0.2% |
+| Quiver Dance | 58 | 0.1% |
+| No Retreat | 48 | 0.1% |
+| Shelter | 18 | 0.0% |
+| Cosmic Power | 15 | 0.0% |
+| Minimize | 14 | 0.0% |
+| Acid Armor | 13 | 0.0% |
+| Agility | 10 | 0.0% |
+| Cotton Guard | 9 | 0.0% |
+| Growth | 4 | 0.0% |
+| Amnesia | 4 | 0.0% |
+| Charge | 1 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `drain` — 8.8%, 8 moves
+
+*heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Matcha Gotcha | 3,422 | 5.2% |
+| Giga Drain | 820 | 1.2% |
+| Drain Punch | 710 | 1.1% |
+| Draining Kiss | 445 | 0.7% |
+| Bitter Blade | 211 | 0.3% |
+| Leech Life | 94 | 0.1% |
+| Parabolic Charge | 70 | 0.1% |
+| Horn Leech | 6 | 0.0% |
+
+### `statChangeInCode` — 8.3%, 12 moves — **NOT READ**
+
+*stat changes exist but are computed, not declared in a field*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Parting Shot | 4,827 | 7.3% |
+| Strength Sap | 519 | 0.8% |
+| Belly Drum | 69 | 0.1% |
+| Psych Up | 46 | 0.1% |
+| Tidy Up | 21 | 0.0% |
+| Topsy-Turvy | 10 | 0.0% |
+| Clear Smog | 6 | 0.0% |
+| Power Swap | 5 | 0.0% |
+| Defog | 4 | 0.0% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
+### `spreadAll` — 8.0%, 16 moves
+
+*x0.75, hits BOTH ENEMIES AND MY PARTNER*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Earthquake | 4,569 | 6.9% |
+| Discharge | 406 | 0.6% |
+| Sludge Wave | 98 | 0.1% |
+| Parabolic Charge | 70 | 0.1% |
+| Surf | 69 | 0.1% |
+| Bulldoze | 17 | 0.0% |
+| Petal Blizzard | 12 | 0.0% |
+| Boomburst | 11 | 0.0% |
+| Explosion | 11 | 0.0% |
+| Self-Destruct | 7 | 0.0% |
+| Misty Explosion | 3 | 0.0% |
+| Sparkling Aria | 3 | 0.0% |
+| Brutal Swing | 2 | 0.0% |
+| Corrosive Gas | 1 | 0.0% |
+| Lava Plume | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `halvesDamage` — 7.9%, 3 moves
+
+*incoming damage of ONE category is halved for my side*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Light Screen | 2,359 | 3.6% |
+| Reflect | 2,000 | 3.0% |
+| Aurora Veil | 860 | 1.3% |
+
+### `pivotStatus` — 7.3%, 2 moves — **NOT READ**
+
+*no damage, an effect, then the user leaves*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Parting Shot | 4,827 | 7.3% |
+| Chilly Reception | 17 | 0.0% |
+
+### `redirects` — 7.3%, 2 moves
+
+*takes the turn's single-target attacks*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Rage Powder | 3,886 | 5.9% |
+| Follow Me | 944 | 1.4% |
+
+### `powder` — 7.1%, 7 moves
+
+*fails into Grass types, Overcoat and Safety Goggles*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Rage Powder | 3,886 | 5.9% |
+| Sleep Powder | 742 | 1.1% |
+| Cotton Spore | 20 | 0.0% |
+| Stun Spore | 12 | 0.0% |
+| Magic Powder | 5 | 0.0% |
+| Spore | 3 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `reversesSpeed` — 6.8%, 1 moves
+
+*speed order is inverted for the whole field*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Trick Room | 4,461 | 6.8% |
+
+### `conditionalPower` — 6.7%, 11 moves — **NOT READ**
+
+*fixed power x a multiplier when a condition holds*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Solar Beam | 2,501 | 3.8% |
+| Knock Off | 1,663 | 2.5% |
+| Expanding Force | 84 | 0.1% |
+| Lash Out | 47 | 0.1% |
+| Facade | 32 | 0.0% |
+| Fickle Beam | 28 | 0.0% |
+| Barb Barrage | 22 | 0.0% |
+| Grav Apple | 9 | 0.0% |
+| Solar Blade | 9 | 0.0% |
+| Venoshock | 5 | 0.0% |
+| Misty Explosion | 3 | 0.0% |
+
+### `chargeTurn` — 6.7%, 10 moves
+
+*costs a turn before it lands*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Solar Beam | 2,501 | 3.8% |
+| Electro Shot | 1,679 | 2.5% |
+| Phantom Force | 205 | 0.3% |
+| Solar Blade | 9 | 0.0% |
+| Meteor Beam | 5 | 0.0% |
+| Dig | 3 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
+
+### `inflictsParalysis` — 6.7%, 13 moves
+
+*P(paralysis): x0.5 their speed, plus 12.5% lost turns*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Thunderbolt | 1,874 | 2.8% |
+| Zap Cannon | 1,077 | 1.6% |
+| Discharge | 406 | 0.6% |
+| Thunder Wave | 287 | 0.4% |
+| Thunder Punch | 205 | 0.3% |
+| Thunder | 182 | 0.3% |
+| Volt Tackle | 145 | 0.2% |
+| Nuzzle | 110 | 0.2% |
+| Body Slam | 72 | 0.1% |
+| Glare | 20 | 0.0% |
+| Stun Spore | 12 | 0.0% |
+| Thunder Fang | 6 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `chargeSkippedByWeather` — 6.3%, 3 moves — **NOT READ**
+
+*the charge turn DISAPPEARS under one weather*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Solar Beam | 2,501 | 3.8% |
+| Electro Shot | 1,679 | 2.5% |
+| Solar Blade | 9 | 0.0% |
+
+### `healsSelf` — 6.2%, 13 moves — **NOT READ**
+
+*restores a share of MY max HP, costing the turn*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Life Dew | 1,694 | 2.6% |
+| Roost | 1,363 | 2.1% |
+| Strength Sap | 519 | 0.8% |
+| Recover | 305 | 0.5% |
+| Wish | 46 | 0.1% |
+| Rest | 44 | 0.1% |
+| Slack Off | 34 | 0.1% |
+| Synthesis | 33 | 0.1% |
+| Moonlight | 21 | 0.0% |
+| Morning Sun | 7 | 0.0% |
+| Healing Wish | 4 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `needsTargetToAttack` — 6.2%, 9 moves — **NOT READ**
+
+*FAILS unless the target is attacking this turn*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Sucker Punch | 3,949 | 6.0% |
+| Upper Hand | 56 | 0.1% |
+| Assurance | 26 | 0.0% |
+| Mirror Coat | 12 | 0.0% |
+| Avalanche | 7 | 0.0% |
+| Counter | 7 | 0.0% |
+| Focus Punch | 6 | 0.0% |
+| Metal Burst | 4 | 0.0% |
+| Payback | 1 | 0.0% |
+
+### `inflictsFreeze` — 6.0%, 4 moves
+
+*P(freeze): they lose turns until thawed*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Blizzard | 1,547 | 2.3% |
+| Ice Punch | 1,432 | 2.2% |
+| Ice Beam | 561 | 0.9% |
+| Ice Fang | 433 | 0.7% |
+
+### `neverMissesAttack` — 5.8%, 8 moves
+
+*P(hit) = 1 on a DAMAGING move*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Kowtow Cleave | 3,006 | 4.6% |
+| Aura Sphere | 688 | 1.0% |
+| Flower Trick | 124 | 0.2% |
+| Aerial Ace | 23 | 0.0% |
+| Clear Smog | 6 | 0.0% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
+### `inflictsPoison` — 5.5%, 11 moves
+
+*P(poison): flat 1/8 chip a turn*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Sludge Bomb | 2,005 | 3.0% |
+| Poison Jab | 767 | 1.2% |
+| Baneful Bunker | 451 | 0.7% |
+| Gunk Shot | 224 | 0.3% |
+| Sludge Wave | 98 | 0.1% |
+| Barb Barrage | 22 | 0.0% |
+| Mortal Spin | 21 | 0.0% |
+| Shell Side Arm | 9 | 0.0% |
+| Toxic Thread | 6 | 0.0% |
+| Cross Poison | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `pivotDamaging` — 5.3%, 3 moves
+
+*damages, then the user leaves*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Flip Turn | 1,774 | 2.7% |
+| Volt Switch | 992 | 1.5% |
+| U-turn | 749 | 1.1% |
+
+### `needsUntrackedState` — 5.2%, 4 moves — **NOT READ**
+
+*power depends on state the board does not track*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Last Respects | 3,034 | 4.6% |
+| Rage Fist | 364 | 0.6% |
+| Gyro Ball | 24 | 0.0% |
+| Electro Ball | 7 | 0.0% |
+
+### `locksTarget` — 4.9%, 3 moves
+
+*their option set collapses to one specific move, or loses one*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Encore | 2,786 | 4.2% |
+| Disable | 416 | 0.6% |
+| Torment | 4 | 0.0% |
+
+### `multiHit` — 4.7%, 14 moves — **NOT READ**
+
+*hits = n (or a distribution)*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Dual Wingbeat | 1,738 | 2.6% |
+| Twin Beam | 469 | 0.7% |
+| Triple Axel | 332 | 0.5% |
+| Population Bomb | 276 | 0.4% |
+| Scale Shot | 124 | 0.2% |
+| Dragon Darts | 55 | 0.1% |
+| Rock Blast | 39 | 0.1% |
+| Bullet Seed | 21 | 0.0% |
+| Pin Missile | 17 | 0.0% |
+| Water Shuriken | 16 | 0.0% |
+| Icicle Spear | 5 | 0.0% |
+| Bone Rush | 4 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `oneTurnGuard` — 3.7%, 2 moves
+
+*blocks ONE NAMED CLASS of move, for one turn, for my whole side*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Wide Guard | 2,098 | 3.2% |
+| Quick Guard | 366 | 0.6% |
+
+### `inflictsConfusion` — 3.6%, 9 moves — **NOT READ**
+
+*P(confusion): they hit themselves some of the time*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Hurricane | 2,275 | 3.4% |
+| Swagger | 64 | 0.1% |
+| Water Pulse | 45 | 0.1% |
+| Dynamic Punch | 6 | 0.0% |
+| Confuse Ray | 2 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
+
+### `readsTargetItem` — 2.8%, 2 moves — **NOT READ**
+
+*damage or success depends on what the TARGET is holding*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Knock Off | 1,663 | 2.5% |
+| Poltergeist | 183 | 0.3% |
+
+### `blocksSoundMoves` — 2.7%, 1 moves — **NOT READ**
+
+*they cannot use sound moves for 2 turns*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Throat Chop | 1,778 | 2.7% |
+
+### `healsAlly` — 2.7%, 2 moves
+
+*restores my PARTNER max-HP share*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Life Dew | 1,694 | 2.6% |
+| Heal Pulse | 62 | 0.1% |
+
+### `clearsScreens` — 2.5%, 3 moves — **NOT READ**
+
+*destroys Reflect, Light Screen and Aurora Veil on their side*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Psychic Fangs | 1,356 | 2.1% |
+| Brick Break | 293 | 0.4% |
+| Raging Bull | 8 | 0.0% |
+
+### `swapsStat` — 2.4%, 3 moves
+
+*WHICH stat the damage formula reads, and whose*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Foul Play | 569 | 0.9% |
+| Body Press | 567 | 0.9% |
+| Psyshock | 479 | 0.7% |
+
+### `untagged` — 2.4%, 9 moves — **NOT READ**
+
+*?*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Hydro Pump | 718 | 1.1% |
+| Power Gem | 687 | 1.0% |
+| Gigaton Hammer | 123 | 0.2% |
+| Salt Cure | 26 | 0.0% |
+| Fling | 13 | 0.0% |
+| Smack Down | 8 | 0.0% |
+| Spirit Shackle | 2 | 0.0% |
+| Raging Fury | 2 | 0.0% |
+| Belch | 1 | 0.0% |
+
+### `proceduralStatus` — 2.3%, 2 moves — **NOT READ**
+
+*one status from a set, chosen at random in the handler*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Dire Claw | 1,520 | 2.3% |
+| Tri Attack | 1 | 0.0% |
+
+### `ignoresStatStages` — 2.1%, 2 moves — **NOT READ**
+
+*the boost multiplier does not apply, permanently*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Darkest Lariat | 1,259 | 1.9% |
+| Sacred Sword | 145 | 0.2% |
+
+### `setsWeather` — 1.7%, 5 moves
+
+*weather := x*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Rain Dance | 704 | 1.1% |
+| Sunny Day | 379 | 0.6% |
+| Chilly Reception | 17 | 0.0% |
+| Sandstorm | 4 | 0.0% |
+| Snowscape | 3 | 0.0% |
+
+### `recharge` — 1.6%, 6 moves
+
+*costs the turn AFTER it lands*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Hyper Beam | 1,026 | 1.6% |
+| Giga Impact | 20 | 0.0% |
+| Hydro Cannon | 16 | 0.0% |
+| Blast Burn | 3 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `inflictsSleep` — 1.6%, 4 moves
+
+*P(sleep): they lose turns outright*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Sleep Powder | 742 | 1.1% |
+| Hypnosis | 278 | 0.4% |
+| Spore | 3 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `punishesContact` — 1.5%, 3 moves — **NOT READ**
+
+*the attacker pays for touching the shield*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Baneful Bunker | 451 | 0.7% |
+| Spiky Shield | 407 | 0.6% |
+| King's Shield | 130 | 0.2% |
+
+### `forbidsStatusMoves` — 1.3%, 1 moves
+
+*the whole Status CATEGORY becomes unclickable for them*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Taunt | 881 | 1.3% |
+
+### `failsWithoutWeather` — 1.3%, 2 moves — **NOT READ**
+
+*the move does NOTHING unless a weather is up*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Aurora Veil | 860 | 1.3% |
+| Magnet Rise | 1 | 0.0% |
+
+### `fixedDamage` — 1.3%, 15 moves — **NOT READ**
+
+*damage is a constant, not a formula*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Super Fang | 442 | 0.7% |
+| Final Gambit | 180 | 0.3% |
+| Endeavor | 75 | 0.1% |
+| Sheer Cold | 41 | 0.1% |
+| Fissure | 24 | 0.0% |
+| Night Shade | 22 | 0.0% |
+| Night Shade | 22 | 0.0% |
+| Mirror Coat | 12 | 0.0% |
+| Counter | 7 | 0.0% |
+| Metal Burst | 4 | 0.0% |
+| Guillotine | 2 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
+
+### `overridesEffectiveness` — 1.1%, 2 moves — **NOT READ**
+
+*the type chart is WRONG for this move*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Freeze-Dry | 748 | 1.1% |
+| Flying Press | 3 | 0.0% |
+
+### `critRatioUp` — 1.1%, 14 moves — **NOT READ**
+
+*P(crit) raised*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Psycho Cut | 193 | 0.3% |
+| Stone Edge | 111 | 0.2% |
+| Leaf Blade | 109 | 0.2% |
+| Blaze Kick | 87 | 0.1% |
+| Shadow Claw | 69 | 0.1% |
+| Night Slash | 65 | 0.1% |
+| Triple Arrows | 49 | 0.1% |
+| Aqua Cutter | 27 | 0.0% |
+| Drill Run | 17 | 0.0% |
+| Cross Chop | 10 | 0.0% |
+| Crabhammer | 4 | 0.0% |
+| Cross Poison | 1 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `boostsTarget` — 1.0%, 6 moves — **NOT READ**
+
+*positive stat stages on a BODY THAT IS NOT ME*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Coaching | 529 | 0.8% |
+| Swagger | 64 | 0.1% |
+| Howl | 26 | 0.0% |
+| Decorate | 18 | 0.0% |
+| Aromatic Mist | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `multiAccuracy` — 0.9%, 2 moves — **NOT READ**
+
+*each hit rolls accuracy SEPARATELY, so expected hits < hit count*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Triple Axel | 332 | 0.5% |
+| Population Bomb | 276 | 0.4% |
+
+### `perishClock` — 0.9%, 1 moves — **NOT READ**
+
+*everything on the field dies in 3 turns unless it switches*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Perish Song | 562 | 0.9% |
+
+### `delayedSleep` — 0.8%, 1 moves — **NOT READ**
+
+*they fall asleep at the end of NEXT turn unless they switch*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Yawn | 542 | 0.8% |
+
+### `inflictsToxic` — 0.8%, 2 moves
+
+*P(badly poisoned): n/16 ESCALATING, not a flat 1/8*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Toxic | 495 | 0.8% |
+| Poison Fang | 5 | 0.0% |
+
+### `partialTrap` — 0.7%, 7 moves — **NOT READ**
+
+*target cannot switch for 4-5 turns AND takes 1/8 chip each turn*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Infestation | 450 | 0.7% |
+| Sand Tomb | 21 | 0.0% |
+| Whirlpool | 13 | 0.0% |
+| Fire Spin | 8 | 0.0% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
+### `costsUserHP` — 0.7%, 3 moves — **NOT READ**
+
+*pay a share of max HP, and FAIL outright below that threshold*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Substitute | 247 | 0.4% |
+| Clangorous Soul | 190 | 0.3% |
+| Shed Tail | 41 | 0.1% |
+
+### `clearsBoosts` — 0.6%, 2 moves — **NOT READ**
+
+*every stat stage on the field := 0, both sides*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Haze | 362 | 0.5% |
+| Clear Smog | 6 | 0.0% |
+
+### `accuracyMod` — 0.5%, 5 moves — **NOT READ**
+
+*P(hit) scaled, often gated on a weather or a category*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Coil | 306 | 0.5% |
+| Gravity | 34 | 0.1% |
+| Minimize | 14 | 0.0% |
+| Sweet Scent | 1 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `forcesSwitch` — 0.5%, 4 moves — **NOT READ**
+
+*the TARGET is removed from the field*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Roar | 283 | 0.4% |
+| Dragon Tail | 49 | 0.1% |
+| Whirlwind | 12 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `substitute` — 0.4%, 2 moves
+
+*an HP buffer that absorbs hits and blanks status until it breaks*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Substitute | 247 | 0.4% |
+| Shed Tail | 41 | 0.1% |
+
+### `userFaints` — 0.4%, 6 moves
+
+*the user dies as the cost*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Final Gambit | 180 | 0.3% |
+| Memento | 31 | 0.0% |
+| Explosion | 11 | 0.0% |
+| Self-Destruct | 7 | 0.0% |
+| Healing Wish | 4 | 0.0% |
+| Misty Explosion | 3 | 0.0% |
+
+### `terrainScaled` — 0.3%, 3 moves — **NOT READ**
+
+*power or target changes with the terrain*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Rising Voltage | 91 | 0.1% |
+| Expanding Force | 84 | 0.1% |
+| Terrain Pulse | 4 | 0.0% |
+
+### `alwaysCrit` — 0.3%, 3 moves — **NOT READ**
+
+*P(crit) = 1*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Flower Trick | 124 | 0.2% |
+| Frost Breath | 32 | 0.0% |
+| Storm Throw | 10 | 0.0% |
+
+### `passesState` — 0.2%, 2 moves — **NOT READ**
+
+*the incoming Pokemon INHERITS something*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Baton Pass | 65 | 0.1% |
+| Shed Tail | 41 | 0.1% |
+
+### `hazard` — 0.2%, 4 moves — **NOT READ**
+
+*their side is damaged or slowed on switch-in, until removed*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Stealth Rock | 64 | 0.1% |
+| Toxic Spikes | 20 | 0.0% |
+| Sticky Web | 17 | 0.0% |
+| Spikes | 5 | 0.0% |
+
+### `setsTerrain` — 0.1%, 4 moves
+
+*terrain := x, with a second effect beyond the type boost*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Psychic Terrain | 52 | 0.1% |
+| Electric Terrain | 11 | 0.0% |
+| Grassy Terrain | 5 | 0.0% |
+| Misty Terrain | 5 | 0.0% |
+
+### `ohko` — 0.1%, 4 moves — **NOT READ**
+
+*removes the target outright*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Sheer Cold | 41 | 0.1% |
+| Fissure | 24 | 0.0% |
+| Guillotine | 2 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `sideBuff` — 0.0%, 1 moves
+
+*another multi-turn modifier on my side*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Safeguard | 6 | 0.0% |
+
+### `swapsDefences` — 0.0%, 1 moves — **NOT READ**
+
+*Def and SpD are exchanged, field-wide*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Wonder Room | 2 | 0.0% |
+
+### `setsRoom` — 0.0%, 1 moves
+
+*another pseudo-weather*
+
 *Legal in the format, never brought.*
 
-**`suppressesItems`** · 0.0% · 1 moves · **NOT READ**  
-*held items stop working, field-wide*  
+### `suppressesItems` — 0.0%, 1 moves — **NOT READ**
+
+*held items stop working, field-wide*
+
 *Legal in the format, never brought.*
 
 ---
@@ -400,172 +1700,541 @@ Every ability tag with its members, ordered by how much of the format it covers.
 `read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**
 means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.
 
-**`damageBoost`** · 11.1% · 44 abilities  
-*x>1 damage dealt*  
-Blaze 2,722 · Pixilate 1,448 · Torrent 1,093 · Solar Power 432 · Overgrow 362 · Technician 344 · Tough Claws 272 · Sharpness 155 · Sheer Force 94 · Huge Power 75 · Water Bubble 73 · Supreme Overlord 60 · Iron Fist 55 · Swarm 27 · Reckless 21 · Mega Launcher 20 · Sand Force 18 · Rivalry 13 · Guts 12 · Hustle 9 · Pure Power 9 · Analytic 7 · Strong Jaw 5 · Minus 2 · Plus 2 · Refrigerate 1
-*18 more carry this tag but appear on no sheet.*
+### `damageBoost` — 11.1%, 44 abilities
 
-**`onSwitchInDrop`** · 10.0% · 3 abilities  
-*stat stages on the foe at switch-in*  
-Intimidate 6,604 · Supersweet Syrup 13
-*1 more carry this tag but appear on no sheet.*
+*x>1 damage dealt*
 
-**`priorityMod`** · 9.0% · 22 abilities  
-*order shifts for a class of move*  
-Prankster 4,692 · Gale Wings 493 · Scrappy 262 · Stance Change 149 · Mold Breaker 130 · Sheer Force 94 · Infiltrator 56 · Illuminate 27 · Keen Eye 27 · Stalwart 27 · Skill Link 4 · Long Reach 2
-*10 more carry this tag but appear on no sheet.*
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Blaze | 2,722 | 4.1% |
+| Pixilate | 1,448 | 2.2% |
+| Torrent | 1,093 | 1.7% |
+| Solar Power | 432 | 0.7% |
+| Overgrow | 362 | 0.5% |
+| Technician | 344 | 0.5% |
+| Tough Claws | 272 | 0.4% |
+| Sharpness | 155 | 0.2% |
+| Sheer Force | 94 | 0.1% |
+| Huge Power | 75 | 0.1% |
+| Water Bubble | 73 | 0.1% |
+| Supreme Overlord | 60 | 0.1% |
+| Iron Fist | 55 | 0.1% |
+| Swarm | 27 | 0.0% |
+| Reckless | 21 | 0.0% |
+| Mega Launcher | 20 | 0.0% |
+| Sand Force | 18 | 0.0% |
+| Rivalry | 13 | 0.0% |
+| Guts | 12 | 0.0% |
+| Hustle | 9 | 0.0% |
+| Pure Power | 9 | 0.0% |
+| Analytic | 7 | 0.0% |
+| Strong Jaw | 5 | 0.0% |
+| Minus | 2 | 0.0% |
+| Plus | 2 | 0.0% |
+| Refrigerate | 1 | 0.0% |
 
-**`punishesAttacker`** · 8.4% · 16 abilities · **NOT READ**  
-*the ATTACKER pays a flat toll, which does NOT compound*  
-Rough Skin 3,762 · Cursed Body 837 · Toxic Debris 417 · Static 278 · Flame Body 114 · Poison Point 51 · Cute Charm 48 · Effect Spore 20 · Gooey 10 · Sand Spit 4
-*6 more carry this tag but appear on no sheet.*
+*18 more carry this tag but appear on no sheet in the corpus.*
 
-**`weatherSetter`** · 7.0% · 8 abilities · **NOT READ**  
-*weather := x on switch-in*  
-Drizzle 2,213 · Snow Warning 954 · Sand Stream 848 · Drought 621
-*4 more carry this tag but appear on no sheet.*
+### `onSwitchInDrop` — 10.0%, 3 abilities
 
-**`preventsStatDrop`** · 6.7% · 15 abilities · **NOT READ**  
-*stat drops simply do not apply*  
-Flower Veil 1,465 · Clear Body 1,331 · Hyper Cutter 378 · Inner Focus 377 · Oblivious 277 · Scrappy 262 · Mirror Armor 226 · Own Tempo 44 · Illuminate 27 · Keen Eye 27 · Big Pecks 13 · White Smoke 1
-*3 more carry this tag but appear on no sheet.*
+*stat stages on the foe at switch-in*
 
-**`boostsWhenLowered`** · 6.7% · 2 abilities · **NOT READ**  
-*+2 to a stat when any stat is lowered*  
-Defiant 3,610 · Competitive 815
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Intimidate | 6,604 | 10.0% |
+| Supersweet Syrup | 13 | 0.0% |
 
-**`contactPunish`** · 6.5% · 14 abilities · **NOT READ**  
-*the ATTACKER pays for touching it*  
-Rough Skin 3,762 · Static 278 · Flame Body 114 · Poison Point 51 · Cute Charm 48 · Wandering Spirit 21 · Effect Spore 20 · Mummy 16 · Gooey 10
-*5 more carry this tag but appear on no sheet.*
+*1 more carry this tag but appear on no sheet in the corpus.*
 
-**`typeImmunity`** · 5.5% · 11 abilities  
-*damage of one TYPE := 0*  
-Levitate 1,785 · Lightning Rod 1,302 · Flash Fire 357 · Dry Skin 52 · Volt Absorb 33 · Earth Eater 31 · Sap Sipper 22 · Water Absorb 15 · Motor Drive 13
-*2 more carry this tag but appear on no sheet.*
+### `punishesAttacker` — 8.4%, 16 abilities — **NOT READ**
 
-**`healsAllyOnSwitchIn`** · 5.2% · 1 abilities · **NOT READ**  
-*restores the partner on entry*  
-Hospitality 3,435
+*the ATTACKER pays a flat toll, which does NOT compound*
 
-**`stabBoost`** · 4.3% · 1 abilities  
-*STAB becomes x2 instead of x1.5*  
-Adaptability 2,855
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Rough Skin | 3,762 | 5.7% |
+| Cursed Body | 837 | 1.3% |
+| Toxic Debris | 417 | 0.6% |
+| Static | 278 | 0.4% |
+| Flame Body | 114 | 0.2% |
+| Poison Point | 51 | 0.1% |
+| Cute Charm | 48 | 0.1% |
+| Effect Spore | 20 | 0.0% |
+| Gooey | 10 | 0.0% |
+| Sand Spit | 4 | 0.0% |
 
-**`speedCond`** · 3.0% · 7 abilities  
-*speed x2 under a condition*  
-Chlorophyll 1,151 · Sand Rush 495 · Swift Swim 325 · Surge Surfer 8 · Slush Rush 4 · Quick Feet 2
-*1 more carry this tag but appear on no sheet.*
+*6 more carry this tag but appear on no sheet in the corpus.*
 
-**`blocksMove`** · 2.9% · 3 abilities  
-*a whole class of move fails*  
-Armor Tail 1,699 · Queenly Majesty 226
-*1 more carry this tag but appear on no sheet.*
+### `priorityMod` — 7.9%, 3 abilities
 
-**`buffsHolderOnHit`** · 2.6% · 12 abilities · **NOT READ**  
-*the thing you hit gets STRONGER, and it compounds*  
-Stamina 1,643 · Electromorphosis 48 · Justified 29 · Weak Armor 9 · Anger Point 7
-*7 more carry this tag but appear on no sheet.*
+*moves of one class shift by N in the turn order*
 
-**`blocksStatusMoves`** · 2.4% · 3 abilities · **NOT READ**  
-*every Status-category move fails against it*  
-Good as Gold 1,450 · Telepathy 116
-*1 more carry this tag but appear on no sheet.*
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Prankster | 4,692 | 7.1% |
+| Gale Wings | 493 | 0.7% |
 
-**`speedOnItemLoss`** · 2.2% · 2 abilities · **NOT READ**  
-*speed x2 once its item is gone*  
-Unburden 1,465
-*1 more carry this tag but appear on no sheet.*
+*1 more carry this tag but appear on no sheet in the corpus.*
 
-**`blocksBerries`** · 2.0% · 3 abilities · **NOT READ**  
-*their berries cannot be eaten*  
-Unnerve 1,329
-*2 more carry this tag but appear on no sheet.*
+### `weatherSetter` — 7.0%, 8 abilities — **NOT READ**
 
-**`redirectsType`** · 2.0% · 2 abilities  
-*draws that type to itself*  
-Lightning Rod 1,302
-*1 more carry this tag but appear on no sheet.*
+*weather := x on switch-in*
 
-**`weatherChipImmune`** · 1.9% · 8 abilities · **NOT READ**  
-*takes no sandstorm or snow residual damage*  
-Sand Rush 495 · Oblivious 277 · Snow Cloak 219 · Sand Veil 135 · Overcoat 90 · Magma Armor 44 · Sand Force 18 · Ice Body 6
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Drizzle | 2,213 | 3.4% |
+| Snow Warning | 954 | 1.4% |
+| Sand Stream | 848 | 1.3% |
+| Drought | 621 | 0.9% |
 
-**`disablesAttacker`** · 1.3% · 1 abilities · **NOT READ**  
-*the move I just used is removed from MY options*  
-Cursed Body 837
+*4 more carry this tag but appear on no sheet in the corpus.*
 
-**`healsOnSwitchOut`** · 1.1% · 3 abilities  
-*restores a third of max HP by leaving*  
-Regenerator 555 · Zero to Hero 115 · Natural Cure 38
+### `preventsStatDrop` — 6.7%, 15 abilities — **NOT READ**
 
-**`reducesAllyDamage`** · 0.9% · 1 abilities  
-*my PARTNER takes x0.75*  
-Friend Guard 623
+*stat drops simply do not apply*
 
-**`accuracyMod`** · 0.9% · 6 abilities · **NOT READ**  
-*P(hit) scaled, often gated on a weather or a category*  
-Snow Cloak 219 · Compound Eyes 210 · Sand Veil 135 · Hustle 9 · Tangled Feet 2
-*1 more carry this tag but appear on no sheet.*
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Flower Veil | 1,465 | 2.2% |
+| Clear Body | 1,331 | 2.0% |
+| Hyper Cutter | 378 | 0.6% |
+| Inner Focus | 377 | 0.6% |
+| Oblivious | 277 | 0.4% |
+| Scrappy | 262 | 0.4% |
+| Mirror Armor | 226 | 0.3% |
+| Own Tempo | 44 | 0.1% |
+| Illuminate | 27 | 0.0% |
+| Keen Eye | 27 | 0.0% |
+| Big Pecks | 13 | 0.0% |
+| White Smoke | 1 | 0.0% |
 
-**`damageReduce`** · 0.8% · 9 abilities  
-*x<1 damage taken*  
-Multiscale 353 · Solid Rock 170 · Fluffy 3
-*6 more carry this tag but appear on no sheet.*
+*3 more carry this tag but appear on no sheet in the corpus.*
 
-**`boostsMoveClass`** · 0.8% · 6 abilities · **NOT READ**  
-*x1.2-1.5 on moves carrying ONE FLAG*  
-Tough Claws 272 · Sharpness 155 · Iron Fist 55 · Mega Launcher 20 · Strong Jaw 5
-*1 more carry this tag but appear on no sheet.*
+### `boostsWhenLowered` — 6.7%, 2 abilities — **NOT READ**
 
-**`statusImmune`** · 0.4% · 12 abilities · **NOT READ**  
-*a status cannot land*  
-Leaf Guard 75 · Water Bubble 73 · Limber 63 · Insomnia 39 · Purifying Salt 35 · Vital Spirit 3 · Immunity 1
-*5 more carry this tag but appear on no sheet.*
+*+2 to a stat when any stat is lowered*
 
-**`formeChange`** · 0.4% · 7 abilities  
-*the species changes mid-battle*  
-Zero to Hero 115 · Disguise 64 · Illusion 63 · Imposter 39
-*3 more carry this tag but appear on no sheet.*
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Defiant | 3,610 | 5.5% |
+| Competitive | 815 | 1.2% |
 
-**`ignoresStatStages`** · 0.3% · 1 abilities · **NOT READ**  
-*the boost multiplier does not apply, permanently*  
-Unaware 173
+### `contactPunish` — 6.5%, 14 abilities — **NOT READ**
 
-**`survivesFromFull`** · 0.2% · 1 abilities · **NOT READ**  
-*a lethal hit from full HP leaves 1*  
-Sturdy 154
+*the ATTACKER pays for touching it*
 
-**`invertsBoosts`** · 0.2% · 3 abilities  
-*stat changes flip sign*  
-Contrary 134
-*2 more carry this tag but appear on no sheet.*
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Rough Skin | 3,762 | 5.7% |
+| Static | 278 | 0.4% |
+| Flame Body | 114 | 0.2% |
+| Poison Point | 51 | 0.1% |
+| Cute Charm | 48 | 0.1% |
+| Wandering Spirit | 21 | 0.0% |
+| Effect Spore | 20 | 0.0% |
+| Mummy | 16 | 0.0% |
+| Gooey | 10 | 0.0% |
 
-**`ignoresDefenderAbility`** · 0.2% · 3 abilities · **NOT READ**  
-*suppress every defender-side ability tag for this move*  
-Mold Breaker 130
-*2 more carry this tag but appear on no sheet.*
+*5 more carry this tag but appear on no sheet in the corpus.*
 
-**`preventsCrit`** · 0.1% · 4 abilities · **NOT READ**  
-*P(crit) = 0*  
-Disguise 64 · Shell Armor 25
-*2 more carry this tag but appear on no sheet.*
+### `typeImmunity` — 5.5%, 11 abilities
 
-**`critDamageUp`** · 0.0% · 1 abilities · **NOT READ**  
-*the CRIT MULTIPLIER itself, not its probability*  
-Sniper 24
+*damage of one TYPE := 0*
 
-**`critRatioUp`** · 0.0% · 2 abilities · **NOT READ**  
-*P(crit) raised*  
-Merciless 3 · Super Luck 3
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Levitate | 1,785 | 2.7% |
+| Lightning Rod | 1,302 | 2.0% |
+| Flash Fire | 357 | 0.5% |
+| Dry Skin | 52 | 0.1% |
+| Volt Absorb | 33 | 0.1% |
+| Earth Eater | 31 | 0.0% |
+| Sap Sipper | 22 | 0.0% |
+| Water Absorb | 15 | 0.0% |
+| Motor Drive | 13 | 0.0% |
 
-**`terrainSetter`** · 0.0% · 5 abilities · **NOT READ**  
-*terrain := x on switch-in*  
-Psychic Surge 1
-*4 more carry this tag but appear on no sheet.*
+*2 more carry this tag but appear on no sheet in the corpus.*
 
-**`preventsSwitch`** · 0.0% · 3 abilities · **NOT READ**  
-*the foe cannot leave*  
+### `healsAllyOnSwitchIn` — 5.2%, 1 abilities — **NOT READ**
+
+*restores the partner on entry*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Hospitality | 3,435 | 5.2% |
+
+### `stabBoost` — 4.3%, 1 abilities
+
+*STAB becomes x2 instead of x1.5*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Adaptability | 2,855 | 4.3% |
+
+### `untagged` — 3.3%, 52 abilities — **NOT READ**
+
+*?*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Liquid Voice | 243 | 0.4% |
+| Rain Dish | 240 | 0.4% |
+| Soundproof | 207 | 0.3% |
+| Protean | 167 | 0.3% |
+| Stance Change | 149 | 0.2% |
+| Trace | 114 | 0.2% |
+| Magic Bounce | 92 | 0.1% |
+| Pressure | 85 | 0.1% |
+| Frisk | 72 | 0.1% |
+| Thick Fat | 71 | 0.1% |
+| Cloud Nine | 70 | 0.1% |
+| Magic Guard | 60 | 0.1% |
+| Infiltrator | 56 | 0.1% |
+| Synchronize | 53 | 0.1% |
+| Bulletproof | 52 | 0.1% |
+| Magician | 41 | 0.1% |
+| Moxie | 37 | 0.1% |
+| Symbiosis | 37 | 0.1% |
+| Berserk | 32 | 0.0% |
+| Pickpocket | 28 | 0.0% |
+| Stalwart | 27 | 0.0% |
+| Screen Cleaner | 24 | 0.0% |
+| Hunger Switch | 23 | 0.0% |
+| Steadfast | 23 | 0.0% |
+| No Guard | 22 | 0.0% |
+| Marvel Scale | 21 | 0.0% |
+| Healer | 20 | 0.0% |
+| Aroma Veil | 20 | 0.0% |
+| Early Bird | 14 | 0.0% |
+| Quick Draw | 13 | 0.0% |
+| Sweet Veil | 13 | 0.0% |
+| Heatproof | 12 | 0.0% |
+| Corrosion | 11 | 0.0% |
+| Harvest | 11 | 0.0% |
+| Cud Chew | 8 | 0.0% |
+| Heavy Metal | 6 | 0.0% |
+| Poison Heal | 5 | 0.0% |
+| Gluttony | 4 | 0.0% |
+| Skill Link | 4 | 0.0% |
+| Curious Medicine | 3 | 0.0% |
+| Shed Skin | 3 | 0.0% |
+| Forecast | 2 | 0.0% |
+| Forewarn | 2 | 0.0% |
+| Fur Coat | 2 | 0.0% |
+| Light Metal | 2 | 0.0% |
+| Long Reach | 2 | 0.0% |
+| Anticipation | 1 | 0.0% |
+| Cheek Pouch | 1 | 0.0% |
+| Hydration | 1 | 0.0% |
+| Pickup | 1 | 0.0% |
+| Shield Dust | 1 | 0.0% |
+| Steely Spirit | 1 | 0.0% |
+
+### `speedCond` — 3.0%, 7 abilities
+
+*speed x2 under a condition*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Chlorophyll | 1,151 | 1.7% |
+| Sand Rush | 495 | 0.8% |
+| Swift Swim | 325 | 0.5% |
+| Surge Surfer | 8 | 0.0% |
+| Slush Rush | 4 | 0.0% |
+| Quick Feet | 2 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `blocksMove` — 2.9%, 3 abilities
+
+*a whole class of move fails*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Armor Tail | 1,699 | 2.6% |
+| Queenly Majesty | 226 | 0.3% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `buffsHolderOnHit` — 2.6%, 12 abilities — **NOT READ**
+
+*the thing you hit gets STRONGER, and it compounds*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Stamina | 1,643 | 2.5% |
+| Electromorphosis | 48 | 0.1% |
+| Justified | 29 | 0.0% |
+| Weak Armor | 9 | 0.0% |
+| Anger Point | 7 | 0.0% |
+
+*7 more carry this tag but appear on no sheet in the corpus.*
+
+### `blocksStatusMoves` — 2.4%, 3 abilities — **NOT READ**
+
+*every Status-category move fails against it*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Good as Gold | 1,450 | 2.2% |
+| Telepathy | 116 | 0.2% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `speedOnItemLoss` — 2.2%, 2 abilities — **NOT READ**
+
+*speed x2 once its item is gone*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Unburden | 1,465 | 2.2% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `blocksBerries` — 2.0%, 3 abilities — **NOT READ**
+
+*their berries cannot be eaten*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Unnerve | 1,329 | 2.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `redirectsType` — 2.0%, 2 abilities
+
+*draws that type to itself*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Lightning Rod | 1,302 | 2.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `weatherChipImmune` — 1.9%, 8 abilities — **NOT READ**
+
+*takes no sandstorm or snow residual damage*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Sand Rush | 495 | 0.8% |
+| Oblivious | 277 | 0.4% |
+| Snow Cloak | 219 | 0.3% |
+| Sand Veil | 135 | 0.2% |
+| Overcoat | 90 | 0.1% |
+| Magma Armor | 44 | 0.1% |
+| Sand Force | 18 | 0.0% |
+| Ice Body | 6 | 0.0% |
+
+### `disablesAttacker` — 1.3%, 1 abilities — **NOT READ**
+
+*the move I just used is removed from MY options*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Cursed Body | 837 | 1.3% |
+
+### `healsOnSwitchOut` — 1.1%, 3 abilities
+
+*restores a third of max HP by leaving*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Regenerator | 555 | 0.8% |
+| Zero to Hero | 115 | 0.2% |
+| Natural Cure | 38 | 0.1% |
+
+### `boostsEachTurn` — 1.1%, 3 abilities — **NOT READ**
+
+*a stat rises every turn it stays in, with no action spent*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Speed Boost | 453 | 0.7% |
+| Moody | 249 | 0.4% |
+| Opportunist | 3 | 0.0% |
+
+### `reducesAllyDamage` — 0.9%, 1 abilities
+
+*my PARTNER takes x0.75*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Friend Guard | 623 | 0.9% |
+
+### `accuracyMod` — 0.9%, 6 abilities — **NOT READ**
+
+*P(hit) scaled, often gated on a weather or a category*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Snow Cloak | 219 | 0.3% |
+| Compound Eyes | 210 | 0.3% |
+| Sand Veil | 135 | 0.2% |
+| Hustle | 9 | 0.0% |
+| Tangled Feet | 2 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `poisonsOnMyContact` — 0.8%, 2 abilities — **NOT READ**
+
+*MY contact moves carry a chance to poison*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Poison Touch | 528 | 0.8% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `damageReduce` — 0.8%, 9 abilities
+
+*x<1 damage taken*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Multiscale | 353 | 0.5% |
+| Solid Rock | 170 | 0.3% |
+| Fluffy | 3 | 0.0% |
+
+*6 more carry this tag but appear on no sheet in the corpus.*
+
+### `boostsMoveClass` — 0.8%, 6 abilities — **NOT READ**
+
+*x1.2-1.5 on moves carrying ONE FLAG*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Tough Claws | 272 | 0.4% |
+| Sharpness | 155 | 0.2% |
+| Iron Fist | 55 | 0.1% |
+| Mega Launcher | 20 | 0.0% |
+| Strong Jaw | 5 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `blocksExplosion` — 0.7%, 1 abilities — **NOT READ**
+
+*self-destructing moves simply fail while it is on the field*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Damp | 437 | 0.7% |
+
+### `noRecoil` — 0.6%, 1 abilities — **NOT READ**
+
+*recoil damage is zero*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Rock Head | 399 | 0.6% |
+
+### `statusImmune` — 0.4%, 12 abilities — **NOT READ**
+
+*a status cannot land*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Leaf Guard | 75 | 0.1% |
+| Water Bubble | 73 | 0.1% |
+| Limber | 63 | 0.1% |
+| Insomnia | 39 | 0.1% |
+| Purifying Salt | 35 | 0.1% |
+| Vital Spirit | 3 | 0.0% |
+| Immunity | 1 | 0.0% |
+
+*5 more carry this tag but appear on no sheet in the corpus.*
+
+### `formeChange` — 0.4%, 7 abilities
+
+*the species changes mid-battle*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Zero to Hero | 115 | 0.2% |
+| Disguise | 64 | 0.1% |
+| Illusion | 63 | 0.1% |
+| Imposter | 39 | 0.1% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
+### `ignoresStatStages` — 0.3%, 1 abilities — **NOT READ**
+
+*the boost multiplier does not apply, permanently*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Unaware | 173 | 0.3% |
+
+### `survivesFromFull` — 0.2%, 1 abilities — **NOT READ**
+
+*a lethal hit from full HP leaves 1*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Sturdy | 154 | 0.2% |
+
+### `invertsBoosts` — 0.2%, 3 abilities
+
+*stat changes flip sign*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Contrary | 134 | 0.2% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `ignoresDefenderAbility` — 0.2%, 3 abilities — **NOT READ**
+
+*suppress every defender-side ability tag for this move*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Mold Breaker | 130 | 0.2% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `preventsCrit` — 0.1%, 4 abilities — **NOT READ**
+
+*P(crit) = 0*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Disguise | 64 | 0.1% |
+| Shell Armor | 25 | 0.0% |
+
+*2 more carry this tag but appear on no sheet in the corpus.*
+
+### `critDamageUp` — 0.0%, 1 abilities — **NOT READ**
+
+*the CRIT MULTIPLIER itself, not its probability*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Sniper | 24 | 0.0% |
+
+### `critRatioUp` — 0.0%, 2 abilities — **NOT READ**
+
+*P(crit) raised*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Merciless | 3 | 0.0% |
+| Super Luck | 3 | 0.0% |
+
+### `terrainSetter` — 0.0%, 5 abilities — **NOT READ**
+
+*terrain := x on switch-in*
+
+| abilitie | on sheets | share |
+|---|---:|---:|
+| Psychic Surge | 1 | 0.0% |
+
+*4 more carry this tag but appear on no sheet in the corpus.*
+
+### `preventsSwitch` — 0.0%, 3 abilities — **NOT READ**
+
+*the foe cannot leave*
+
 *Legal in the format, never brought.*
 
 ---
@@ -577,72 +2246,285 @@ Every item tag with its members, ordered by how much of the format it covers.
 `read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**
 means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.
 
-**`megaStone`** · 28.0% · 75 items  
-*the holder becomes another species*  
-Charizardite Y 2,223 · Staraptite 1,956 · Floettite 1,455 · Swampertite 1,351 · Metagrossite 1,189 · Raichunite Y 1,076 · Aerodactylite 847 · Delphoxite 782 · Mawilite 680 · Tyranitarite 643 · Froslassite 548 · Gengarite 446 · Venusaurite 409 · Blastoisinite 357 · Dragoninite 289 · Scovillainite 284 · Blazikenite 277 · Eelektrossite 259 · Scraftinite 247 · Raichunite X 217 · Gardevoirite 197 · Cameruptite 196 · Sceptilite 195 · Pyroarite 188 · Glimmoranite 163 · Dragalgite 145 · Meganiumite 139 · Kangaskhanite 133 · Malamarite 90 · Garchompite 85 · Lopunnite 78 · Lucarionite 72 · Gyaradosite 71 · Charizardite X 65 · Scizorite 65 · Greninjite 59 · Starminite 59 · Clefablite 54 · Drampanite 53 · Excadrite 53 · Ampharosite 50 · Chandelurite 50 · Falinksite 50 · Scolipite 42 · Aggronite 38 · Beedrillite 37 · Crabominite 37 · Slowbronite 36 · Sablenite 33 · Hawluchanite 29 · Barbaracite 28 · Golurkite 26 · Manectite 26 · Abomasite 25 · Chesnaughtite 24 · Altarianite 23 · Steelixite 23 · Banettite 22 · Heracronite 21 · Skarmorite 18 · Pidgeotite 17 · Meowsticite 15 · Houndoominite 14 · Galladite 13 · Pinsirite 12 · Absolite 11 · Feraligite 11 · Alakazite 10 · Emboarite 10 · Medichamite 8 · Audinite 7 · Victreebelite 7 · Sharpedonite 5 · Chimechite 1 · Glalitite 1
+### `megaStone` — 28.0%, 75 items
 
-**`survivesFromFull`** · 11.7% · 1 items · **NOT READ**  
-*a lethal hit from full HP leaves 1*  
-Focus Sash 7,693
+*the holder becomes another species*
 
-**`healsAtHalf`** · 10.8% · 2 items  
-*restores 25% when it drops below half*  
-Sitrus Berry 7,132
-*1 more carry this tag but appear on no sheet.*
+| item | on sheets | share |
+|---|---:|---:|
+| Charizardite Y | 2,223 | 3.4% |
+| Staraptite | 1,956 | 3.0% |
+| Floettite | 1,455 | 2.2% |
+| Swampertite | 1,351 | 2.0% |
+| Metagrossite | 1,189 | 1.8% |
+| Raichunite Y | 1,076 | 1.6% |
+| Aerodactylite | 847 | 1.3% |
+| Delphoxite | 782 | 1.2% |
+| Mawilite | 680 | 1.0% |
+| Tyranitarite | 643 | 1.0% |
+| Froslassite | 548 | 0.8% |
+| Gengarite | 446 | 0.7% |
+| Venusaurite | 409 | 0.6% |
+| Blastoisinite | 357 | 0.5% |
+| Dragoninite | 289 | 0.4% |
+| Scovillainite | 284 | 0.4% |
+| Blazikenite | 277 | 0.4% |
+| Eelektrossite | 259 | 0.4% |
+| Scraftinite | 247 | 0.4% |
+| Raichunite X | 217 | 0.3% |
+| Gardevoirite | 197 | 0.3% |
+| Cameruptite | 196 | 0.3% |
+| Sceptilite | 195 | 0.3% |
+| Pyroarite | 188 | 0.3% |
+| Glimmoranite | 163 | 0.2% |
+| Dragalgite | 145 | 0.2% |
+| Meganiumite | 139 | 0.2% |
+| Kangaskhanite | 133 | 0.2% |
+| Malamarite | 90 | 0.1% |
+| Garchompite | 85 | 0.1% |
+| Lopunnite | 78 | 0.1% |
+| Lucarionite | 72 | 0.1% |
+| Gyaradosite | 71 | 0.1% |
+| Charizardite X | 65 | 0.1% |
+| Scizorite | 65 | 0.1% |
+| Greninjite | 59 | 0.1% |
+| Starminite | 59 | 0.1% |
+| Clefablite | 54 | 0.1% |
+| Drampanite | 53 | 0.1% |
+| Excadrite | 53 | 0.1% |
+| Ampharosite | 50 | 0.1% |
+| Chandelurite | 50 | 0.1% |
+| Falinksite | 50 | 0.1% |
+| Scolipite | 42 | 0.1% |
+| Aggronite | 38 | 0.1% |
+| Beedrillite | 37 | 0.1% |
+| Crabominite | 37 | 0.1% |
+| Slowbronite | 36 | 0.1% |
+| Sablenite | 33 | 0.1% |
+| Hawluchanite | 29 | 0.0% |
+| Barbaracite | 28 | 0.0% |
+| Golurkite | 26 | 0.0% |
+| Manectite | 26 | 0.0% |
+| Abomasite | 25 | 0.0% |
+| Chesnaughtite | 24 | 0.0% |
+| Altarianite | 23 | 0.0% |
+| Steelixite | 23 | 0.0% |
+| Banettite | 22 | 0.0% |
+| Heracronite | 21 | 0.0% |
+| Skarmorite | 18 | 0.0% |
+| Pidgeotite | 17 | 0.0% |
+| Meowsticite | 15 | 0.0% |
+| Houndoominite | 14 | 0.0% |
+| Galladite | 13 | 0.0% |
+| Pinsirite | 12 | 0.0% |
+| Absolite | 11 | 0.0% |
+| Feraligite | 11 | 0.0% |
+| Alakazite | 10 | 0.0% |
+| Emboarite | 10 | 0.0% |
+| Medichamite | 8 | 0.0% |
+| Audinite | 7 | 0.0% |
+| Victreebelite | 7 | 0.0% |
+| Sharpedonite | 5 | 0.0% |
+| Chimechite | 1 | 0.0% |
+| Glalitite | 1 | 0.0% |
 
-**`resistBerry`** · 9.8% · 18 items · **NOT READ**  
-*halves one super-effective hit, then is gone*  
-Chople Berry 1,441 · Colbur Berry 1,256 · Kasib Berry 1,102 · Occa Berry 650 · Roseli Berry 511 · Passho Berry 487 · Coba Berry 401 · Shuca Berry 266 · Haban Berry 112 · Babiri Berry 70 · Yache Berry 47 · Kebia Berry 39 · Wacan Berry 36 · Charti Berry 32 · Rindo Berry 23 · Payapa Berry 6
-*2 more carry this tag but appear on no sheet.*
+### `survivesFromFull` — 11.7%, 1 items — **NOT READ**
 
-**`damageMultAll`** · 9.6% · 1 items  
-*x damage on everything*  
-Life Orb 6,301
+*a lethal hit from full HP leaves 1*
 
-**`damageMultType`** · 9.0% · 18 items · **NOT READ**  
-*x1.2 on one type*  
-Fairy Feather 1,521 · Black Glasses 1,332 · Mystic Water 873 · Charcoal 694 · Never-Melt Ice 393 · Sharp Beak 302 · Metal Coat 212 · Dragon Fang 117 · Silk Scarf 102 · Spell Tag 79 · Magnet 77 · Soft Sand 75 · Miracle Seed 48 · Black Belt 36 · Twisted Spoon 26 · Hard Stone 23 · Poison Barb 6 · Silver Powder 2
+| item | on sheets | share |
+|---|---:|---:|
+| Focus Sash | 7,693 | 11.7% |
 
-**`passiveHeal`** · 6.6% · 1 items  
-*restores HP every turn*  
-Leftovers 4,336
+### `healsAtHalf` — 10.8%, 2 items
 
-**`choiceLock`** · 6.0% · 1 items  
-*the holder is locked into one move*  
-Choice Scarf 3,947
+*restores 25% when it drops below half*
 
-**`speedMult`** · 6.0% · 1 items  
-*speed x1.5*  
-Choice Scarf 3,947
+| item | on sheets | share |
+|---|---:|---:|
+| Sitrus Berry | 7,132 | 10.8% |
 
-**`extendsScreens`** · 3.1% · 1 items · **NOT READ**  
-*side conditions last 8 turns not 5*  
-Light Clay 2,016
+*1 more carry this tag but appear on no sheet in the corpus.*
 
-**`restoresStats`** · 2.1% · 1 items · **NOT READ**  
-*undoes stat drops once*  
-White Herb 1,362
+### `resistBerry` — 9.8%, 18 items — **NOT READ**
 
-**`accuracyMod`** · 0.9% · 3 items · **NOT READ**  
-*P(hit) scaled, often gated on a weather or a category*  
-Wide Lens 414 · Bright Powder 144 · Zoom Lens 22
+*halves one super-effective hit, then is gone*
 
-**`curesStatus`** · 0.2% · 6 items · **NOT READ**  
-*a status is removed the moment it lands*  
-Lum Berry 108 · Chesto Berry 24 · Rawst Berry 2
-*3 more carry this tag but appear on no sheet.*
+| item | on sheets | share |
+|---|---:|---:|
+| Chople Berry | 1,441 | 2.2% |
+| Colbur Berry | 1,256 | 1.9% |
+| Kasib Berry | 1,102 | 1.7% |
+| Occa Berry | 650 | 1.0% |
+| Roseli Berry | 511 | 0.8% |
+| Passho Berry | 487 | 0.7% |
+| Coba Berry | 401 | 0.6% |
+| Shuca Berry | 266 | 0.4% |
+| Haban Berry | 112 | 0.2% |
+| Babiri Berry | 70 | 0.1% |
+| Yache Berry | 47 | 0.1% |
+| Kebia Berry | 39 | 0.1% |
+| Wacan Berry | 36 | 0.1% |
+| Charti Berry | 32 | 0.0% |
+| Rindo Berry | 23 | 0.0% |
+| Payapa Berry | 6 | 0.0% |
 
-**`critRatioUp`** · 0.1% · 1 items · **NOT READ**  
-*P(crit) raised*  
-Scope Lens 69
+*2 more carry this tag but appear on no sheet in the corpus.*
 
-**`addsFlinch`** · 0.1% · 1 items · **NOT READ**  
-*P(flinch) += 10% on moves that do not already flinch*  
-King's Rock 49
+### `damageMultAll` — 9.6%, 1 items
 
-**`fractionalPriority`** · 0.1% · 1 items · **NOT READ**  
-*a CHANCE to move first inside the priority bracket*  
-Quick Claw 39
+*x damage on everything*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Life Orb | 6,301 | 9.6% |
+
+### `damageMultType` — 9.0%, 18 items — **NOT READ**
+
+*x1.2 on one type*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Fairy Feather | 1,521 | 2.3% |
+| Black Glasses | 1,332 | 2.0% |
+| Mystic Water | 873 | 1.3% |
+| Charcoal | 694 | 1.1% |
+| Never-Melt Ice | 393 | 0.6% |
+| Sharp Beak | 302 | 0.5% |
+| Metal Coat | 212 | 0.3% |
+| Dragon Fang | 117 | 0.2% |
+| Silk Scarf | 102 | 0.2% |
+| Spell Tag | 79 | 0.1% |
+| Magnet | 77 | 0.1% |
+| Soft Sand | 75 | 0.1% |
+| Miracle Seed | 48 | 0.1% |
+| Black Belt | 36 | 0.1% |
+| Twisted Spoon | 26 | 0.0% |
+| Hard Stone | 23 | 0.0% |
+| Poison Barb | 6 | 0.0% |
+| Silver Powder | 2 | 0.0% |
+
+### `passiveHeal` — 6.6%, 1 items
+
+*restores HP every turn*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Leftovers | 4,336 | 6.6% |
+
+### `choiceLock` — 6.0%, 1 items
+
+*the holder is locked into one move*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Choice Scarf | 3,947 | 6.0% |
+
+### `speedMult` — 6.0%, 1 items
+
+*speed x1.5*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Choice Scarf | 3,947 | 6.0% |
+
+### `extendsScreens` — 3.1%, 1 items — **NOT READ**
+
+*side conditions last 8 turns not 5*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Light Clay | 2,016 | 3.1% |
+
+### `restoresStats` — 2.1%, 1 items — **NOT READ**
+
+*undoes stat drops once*
+
+| item | on sheets | share |
+|---|---:|---:|
+| White Herb | 1,362 | 2.1% |
+
+### `accuracyMod` — 0.9%, 3 items — **NOT READ**
+
+*P(hit) scaled, often gated on a weather or a category*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Wide Lens | 414 | 0.6% |
+| Bright Powder | 144 | 0.2% |
+| Zoom Lens | 22 | 0.0% |
+
+### `untagged` — 0.8%, 13 items — **NOT READ**
+
+*?*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Damp Rock | 200 | 0.3% |
+| Iron Ball | 85 | 0.1% |
+| Heat Rock | 52 | 0.1% |
+| Muscle Band | 48 | 0.1% |
+| Big Root | 29 | 0.0% |
+| Light Ball | 23 | 0.0% |
+| Shell Bell | 22 | 0.0% |
+| Metronome | 13 | 0.0% |
+| Wise Glasses | 8 | 0.0% |
+| Icy Rock | 6 | 0.0% |
+| Smooth Rock | 6 | 0.0% |
+| Focus Band | 3 | 0.0% |
+| Leppa Berry | 1 | 0.0% |
+
+### `curesVolatile` — 0.7%, 1 items — **NOT READ**
+
+*clears Taunt/Encore/Disable/Attract the moment one lands, then is gone*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Mental Herb | 445 | 0.7% |
+
+### `boostsSuperEffective` — 0.6%, 1 items — **NOT READ**
+
+*x1.2 damage, but only on a super-effective hit*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Expert Belt | 399 | 0.6% |
+
+### `curesStatus` — 0.2%, 6 items — **NOT READ**
+
+*a status is removed the moment it lands*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Lum Berry | 108 | 0.2% |
+| Chesto Berry | 24 | 0.0% |
+| Rawst Berry | 2 | 0.0% |
+
+*3 more carry this tag but appear on no sheet in the corpus.*
+
+### `critRatioUp` — 0.1%, 1 items — **NOT READ**
+
+*P(crit) raised*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Scope Lens | 69 | 0.1% |
+
+### `addsFlinch` — 0.1%, 1 items — **NOT READ**
+
+*P(flinch) += 10% on moves that do not already flinch*
+
+| item | on sheets | share |
+|---|---:|---:|
+| King's Rock | 49 | 0.1% |
+
+### `fractionalPriority` — 0.1%, 1 items — **NOT READ**
+
+*a CHANCE to move first inside the priority bracket*
+
+| item | on sheets | share |
+|---|---:|---:|
+| Quick Claw | 39 | 0.1% |
 
 ---
 
@@ -695,15 +2577,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 140 |
-| — move / ability / item | 81 / 36 / 16 |
-| moves tagged | 491 |
-| abilities tagged | 199 |
-| items tagged | 131 |
-| **tags read by nothing** | **76** |
+| tags total | 146 |
+| — move / ability / item | 82 / 41 / 19 |
+| moves tagged | 500 |
+| abilities tagged | 248 |
+| items tagged | 146 |
+| **tags read by nothing** | **82** |
 | tags that match no member at all | 7 |
 
-**76 of 140 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**82 of 146 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
