@@ -1223,31 +1223,6 @@ Every ability tag with its members, ordered by how much of the format it covers.
 `read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**
 means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.
 
-### `profitsFromHit` — 11.2%, 32 abilities — **NOT READ**
-
-**Sets:** the target gains something for being hit  
-**Why it matters:** Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will's Bellibolt case
-
-| abilitie | entries | share |
-|---|---:|---:|
-| Rough Skin | 3,762 | 5.7% |
-| Stamina | 1,643 | 2.5% |
-| Cursed Body | 837 | 1.3% |
-| Toxic Debris | 417 | 0.6% |
-| Static | 278 | 0.4% |
-| Flame Body | 114 | 0.2% |
-| Illusion | 63 | 0.1% |
-| Poison Point | 51 | 0.1% |
-| Cute Charm | 48 | 0.1% |
-| Electromorphosis | 48 | 0.1% |
-| Justified | 29 | 0.0% |
-| Wandering Spirit | 21 | 0.0% |
-| Effect Spore | 20 | 0.0% |
-| Mummy | 16 | 0.0% |
-| Gooey | 10 | 0.0% |
-| Weak Armor | 9 | 0.0% |
-| *…and 1 more below this cut* | | |
-
 ### `damageBoost` — 11.1%, 44 abilities — read
 
 **Sets:** x>1 damage dealt  
@@ -1302,6 +1277,24 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Stalwart | 27 | 0.0% |
 | Skill Link | 4 | 0.0% |
 | Long Reach | 2 | 0.0% |
+
+### `punishesAttacker` — 8.4%, 16 abilities — **NOT READ**
+
+**Sets:** the ATTACKER pays a flat toll, which does NOT compound  
+**Why it matters:** Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to price in, not a reason to stop attacking
+
+| abilitie | entries | share |
+|---|---:|---:|
+| Rough Skin | 3,762 | 5.7% |
+| Cursed Body | 837 | 1.3% |
+| Toxic Debris | 417 | 0.6% |
+| Static | 278 | 0.4% |
+| Flame Body | 114 | 0.2% |
+| Poison Point | 51 | 0.1% |
+| Cute Charm | 48 | 0.1% |
+| Effect Spore | 20 | 0.0% |
+| Gooey | 10 | 0.0% |
+| Sand Spit | 4 | 0.0% |
 
 ### `weatherSetter` — 7.0%, 8 abilities — **NOT READ**
 
@@ -1420,6 +1413,19 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Armor Tail | 1,699 | 2.6% |
 | Queenly Majesty | 226 | 0.3% |
+
+### `buffsHolderOnHit` — 2.6%, 12 abilities — **NOT READ**
+
+**Sets:** the thing you hit gets STRONGER, and it compounds  
+**Why it matters:** Stamina (1,643) turns every physical hit into +1 Def; Justified, Electromorphosis and Weak Armor bank a resource. Hitting it again is worse than hitting it the first time -- exactly the Bellibolt/Archaludon turn, where a resisted spread move fed a free boost
+
+| abilitie | entries | share |
+|---|---:|---:|
+| Stamina | 1,643 | 2.5% |
+| Electromorphosis | 48 | 0.1% |
+| Justified | 29 | 0.0% |
+| Weak Armor | 9 | 0.0% |
+| Anger Point | 7 | 0.0% |
 
 ### `blocksStatusMoves` — 2.4%, 3 abilities — **NOT READ**
 
@@ -1903,15 +1909,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 139 |
-| — move / ability / item | 81 / 35 / 16 |
+| tags total | 140 |
+| — move / ability / item | 81 / 36 / 16 |
 | moves tagged | 491 |
-| abilities tagged | 200 |
+| abilities tagged | 199 |
 | items tagged | 131 |
-| **tags read by nothing** | **75** |
+| **tags read by nothing** | **76** |
 | tags that match no member at all | 7 |
 
-**75 of 139 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**76 of 140 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.

@@ -80,6 +80,28 @@ function usage() {
   return out;
 }
 
+/* WHO DOES THE EFFECT LAND ON? -- the derivation behind buffsHolderOnHit / punishesAttacker.
+ *
+ * Showdown names the recipient in the call itself, so this reads it rather than matching ability
+ * names. The one rule worth knowing: `this.boost({...})` with NO second argument defaults to the
+ * ABILITY HOLDER, which is how Stamina and Justified are written -- an earlier regex demanded an
+ * explicit `target` and therefore missed the single most common member of its own category.
+ *
+ * Field-level responses (Toxic Debris laying spikes, Sand Spit setting weather) count as punishing
+ * the attacker: they are a cost imposed for having attacked, and they do not compound on the holder.
+ */
+function effectRecipients(a) {
+  const src = String(a.onDamagingHit || '') + String(a.onHit || '');
+  const out = { holder: false, attacker: false };
+  if (!src) return out;
+  const mark = who => { if (!who || who === 'target') out.holder = true; else if (who === 'source') out.attacker = true; };
+  for (const m of src.matchAll(/this\.boost\(\s*\{[^}]*\}\s*(?:,\s*([A-Za-z_$][\w$]*))?/g)) mark(m[1]);
+  for (const m of src.matchAll(/this\.(?:damage|heal)\([^,)]*(?:,\s*([A-Za-z_$][\w$]*))?/g)) mark(m[1]);
+  for (const m of src.matchAll(/\b(target|source)\.(?:addVolatile|trySetStatus|setStatus)\(/g)) mark(m[1]);
+  if (/sideCondition|setWeather/.test(src)) out.attacker = true;
+  return out;
+}
+
 /* ---- THE TAXONOMY ---------------------------------------------------------------------------
  * Each tag: what parameter it sets, how it is derived, and the probe that proves something reads it.
  * `param` is deliberately phrased as a value a distribution can consume, not as an instruction. */
@@ -1140,9 +1162,30 @@ const ABILITY_TAGS = [
     /* onAnyRedirectTarget, not onFoeRedirectTarget -- the probe was simply wrong and the tag matched
      * nothing until the empty-tag check flagged it. */
     of: a => (a.onAnyRedirectTarget || a.onFoeRedirectTarget) ? { redirect: true } : null },
-  { tag: 'profitsFromHit', param: 'the target gains something for being hit', probe: 'onDamagingHit',
-    why: 'Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will\'s Bellibolt case',
-    of: a => a.onDamagingHit ? { profits: true } : null },
+  /* SPLIT ON WILL'S RULING, 2026-07-29. One tag was covering two mechanics that imply OPPOSITE
+   * decisions, and the difference is whether the effect COMPOUNDS.
+   *
+   *   buffsHolderOnHit  Stamina +1 Def, Justified +1 Atk, Electromorphosis banks Charge. Every hit
+   *                     makes the next one worse, so the answer is stop attacking or kill it now.
+   *   punishesAttacker  Rough Skin chip, Static/Flame Body status, Gooey -1 Spe. A flat toll each
+   *                     time, avoidable by not making contact, and it never accumulates.
+   *
+   * This is Will's Bellibolt turn. Discharge into Archaludon was resisted AND handed it a free
+   * Stamina boost -- the first kind. Against a Rough Skin body the same click is fine. One tag
+   * could not tell those apart, so the bot could not either.
+   *
+   * Derived by asking whether the handler buffs the thing that GOT hit, or hurts the SOURCE. Weak
+   * Armor and Gooey legitimately do both and carry both tags. */
+  { tag: 'buffsHolderOnHit', param: 'the thing you hit gets STRONGER, and it compounds', probe: 'buffsHolderOnHit',
+    why: 'Stamina (1,643) turns every physical hit into +1 Def; Justified, Electromorphosis and Weak '
+       + 'Armor bank a resource. Hitting it again is worse than hitting it the first time -- exactly '
+       + 'the Bellibolt/Archaludon turn, where a resisted spread move fed a free boost',
+    of: a => effectRecipients(a).holder ? { compounds: true } : null },
+  { tag: 'punishesAttacker', param: 'the ATTACKER pays a flat toll, which does NOT compound', probe: 'punishesAttacker',
+    why: 'Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. '
+       + 'Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to '
+       + 'price in, not a reason to stop attacking',
+    of: a => effectRecipients(a).attacker ? { compounds: false } : null },
   /* DERIVED FROM THE HANDLER SOURCE, not from a list of names (Will: "no hardcodes"). Showdown
    * expresses the contact condition two ways -- checkMoveMakesContact() or move.flags.contact -- and
    * reading the function text catches both. It also separates the TRIGGER, which Will spotted was

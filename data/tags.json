@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T05:14:50.083Z",
+ "generated": "2026-07-29T05:29:16.583Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1897,21 +1897,38 @@
    ]
   },
   {
-   "tag": "profitsFromHit",
+   "tag": "buffsHolderOnHit",
    "kind": "ability",
-   "param": "the target gains something for being hit",
-   "why": "Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will's Bellibolt case",
+   "param": "the thing you hit gets STRONGER, and it compounds",
+   "why": "Stamina (1,643) turns every physical hit into +1 Def; Justified, Electromorphosis and Weak Armor bank a resource. Hitting it again is worse than hitting it the first time -- exactly the Bellibolt/Archaludon turn, where a resisted spread move fed a free boost",
    "consumedBy": null,
    "used": false,
-   "n": 32,
-   "uses": 7370,
+   "n": 12,
+   "uses": 1736,
+   "examples": [
+    "Anger Point",
+    "Electromorphosis",
+    "Justified",
+    "Stamina",
+    "Weak Armor"
+   ]
+  },
+  {
+   "tag": "punishesAttacker",
+   "kind": "ability",
+   "param": "the ATTACKER pays a flat toll, which does NOT compound",
+   "why": "Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. Unlike a holder buff this never accumulates, so the move stays correct -- it is a cost to price in, not a reason to stop attacking",
+   "consumedBy": null,
+   "used": false,
+   "n": 16,
+   "uses": 5541,
    "examples": [
     "Cursed Body",
     "Cute Charm",
     "Effect Spore",
-    "Electromorphosis",
     "Flame Body",
-    "Gooey"
+    "Gooey",
+    "Poison Point"
    ]
   },
   {
@@ -13348,12 +13365,12 @@
   "spicyspray": {
    "name": "Spicy Spray",
    "tags": [
-    "profitsFromHit"
+    "punishesAttacker"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     }
    }
   },
@@ -13384,13 +13401,13 @@
   "aftermath": {
    "name": "Aftermath",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -13406,6 +13423,18 @@
    "params": {
     "damageBoost": {
      "boost": true
+    }
+   }
+  },
+  "angerpoint": {
+   "name": "Anger Point",
+   "tags": [
+    "buffsHolderOnHit"
+   ],
+   "uses": 7,
+   "params": {
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -13577,44 +13606,32 @@
     }
    }
   },
-  "cottondown": {
-   "name": "Cotton Down",
-   "tags": [
-    "profitsFromHit"
-   ],
-   "uses": 0,
-   "params": {
-    "profitsFromHit": {
-     "profits": true
-    }
-   }
-  },
   "cursedbody": {
    "name": "Cursed Body",
    "tags": [
     "disablesAttacker",
-    "profitsFromHit"
+    "punishesAttacker"
    ],
    "uses": 837,
    "params": {
     "disablesAttacker": {
      "disables": true
     },
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     }
    }
   },
   "cutecharm": {
    "name": "Cute Charm",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 48,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -13758,13 +13775,13 @@
   "effectspore": {
    "name": "Effect Spore",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 20,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -13786,12 +13803,12 @@
   "electromorphosis": {
    "name": "Electromorphosis",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 48,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -13810,13 +13827,13 @@
   "flamebody": {
    "name": "Flame Body",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 114,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -13935,13 +13952,13 @@
   "gooey": {
    "name": "Gooey",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 10,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -13991,12 +14008,12 @@
   "gulpmissile": {
    "name": "Gulp Missile",
    "tags": [
-    "profitsFromHit"
+    "punishesAttacker"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     }
    }
   },
@@ -14135,14 +14152,10 @@
   "illusion": {
    "name": "Illusion",
    "tags": [
-    "profitsFromHit",
     "formeChange"
    ],
    "uses": 63,
    "params": {
-    "profitsFromHit": {
-     "profits": true
-    },
     "formeChange": {
      "changes": true
     }
@@ -14187,12 +14200,12 @@
   "innardsout": {
    "name": "Innards Out",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -14235,13 +14248,13 @@
   "ironbarbs": {
    "name": "Iron Barbs",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -14267,12 +14280,12 @@
   "justified": {
    "name": "Justified",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 29,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -14349,14 +14362,10 @@
   "lingeringaroma": {
    "name": "Lingering Aroma",
    "tags": [
-    "profitsFromHit",
     "contactPunish"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
-    },
     "contactPunish": {
      "trigger": "contact"
     }
@@ -14522,14 +14531,10 @@
   "mummy": {
    "name": "Mummy",
    "tags": [
-    "profitsFromHit",
     "contactPunish"
    ],
    "uses": 16,
    "params": {
-    "profitsFromHit": {
-     "profits": true
-    },
     "contactPunish": {
      "trigger": "contact"
     }
@@ -14642,13 +14647,17 @@
   "perishbody": {
    "name": "Perish Body",
    "tags": [
-    "profitsFromHit",
+    "buffsHolderOnHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
+    },
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -14682,13 +14691,13 @@
   "poisonpoint": {
    "name": "Poison Point",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 51,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -14838,12 +14847,12 @@
   "rattled": {
    "name": "Rattled",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -14914,13 +14923,13 @@
   "roughskin": {
    "name": "Rough Skin",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 3762,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -14962,12 +14971,12 @@
   "sandspit": {
    "name": "Sand Spit",
    "tags": [
-    "profitsFromHit"
+    "punishesAttacker"
    ],
    "uses": 4,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     }
    }
   },
@@ -15037,18 +15046,6 @@
     },
     "priorityMod": {
      "priority": true
-    }
-   }
-  },
-  "seedsower": {
-   "name": "Seed Sower",
-   "tags": [
-    "profitsFromHit"
-   ],
-   "uses": 0,
-   "params": {
-    "profitsFromHit": {
-     "profits": true
     }
    }
   },
@@ -15291,12 +15288,12 @@
   "stamina": {
    "name": "Stamina",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 1643,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -15315,13 +15312,13 @@
   "static": {
    "name": "Static",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 278,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -15331,12 +15328,12 @@
   "steamengine": {
    "name": "Steam Engine",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -15508,13 +15505,13 @@
   "tanglinghair": {
    "name": "Tangling Hair",
    "tags": [
-    "profitsFromHit",
+    "punishesAttacker",
     "contactPunish"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     },
     "contactPunish": {
      "trigger": "contact"
@@ -15564,13 +15561,13 @@
   "thermalexchange": {
    "name": "Thermal Exchange",
    "tags": [
-    "profitsFromHit",
+    "buffsHolderOnHit",
     "statusImmune"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     },
     "statusImmune": {
      "immune": true
@@ -15620,12 +15617,12 @@
   "toxicdebris": {
    "name": "Toxic Debris",
    "tags": [
-    "profitsFromHit"
+    "punishesAttacker"
    ],
    "uses": 417,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "punishesAttacker": {
+     "compounds": false
     }
    }
   },
@@ -15733,14 +15730,10 @@
   "wanderingspirit": {
    "name": "Wandering Spirit",
    "tags": [
-    "profitsFromHit",
     "contactPunish"
    ],
    "uses": 21,
    "params": {
-    "profitsFromHit": {
-     "profits": true
-    },
     "contactPunish": {
      "trigger": "contact"
     }
@@ -15778,12 +15771,12 @@
   "watercompaction": {
    "name": "Water Compaction",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -15802,12 +15795,12 @@
   "weakarmor": {
    "name": "Weak Armor",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 9,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
@@ -15839,12 +15832,12 @@
   "windpower": {
    "name": "Wind Power",
    "tags": [
-    "profitsFromHit"
+    "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
-    "profitsFromHit": {
-     "profits": true
+    "buffsHolderOnHit": {
+     "compounds": true
     }
    }
   },
