@@ -197,6 +197,44 @@ function makeScoringPlayer(opts = {}) {
 
     track(line) {
       if (!line.startsWith('|')) return;
+
+      /* OPEN TEAM SHEETS, READ BY THE PLAYER FOR THE FIRST TIME.
+       *
+       * board.js has had setSheet() since it was written, and six files called it -- fit_policy,
+       * fit_joint, branch_recall, feature_coverage, ko_calibration, surprise. Every one of them is
+       * an OFFLINE script replaying stored games. The PLAYER never called it once.
+       *
+       * So the weights were FITTED with the sheet visible and the bot PLAYED without it: nature
+       * never narrowed the spread distribution, the item was never known, and megaFormeOf could not
+       * resolve a mega forme it had no stone for. In a format built on open sheets the bot was
+       * reading population priors off a screen that was showing it the answer.
+       *
+       * In Champions specifically the sheet publishes the NATURE (sim/battle.ts:3192 special-cases
+       * `format.mod.startsWith('champions')`), which is the single most useful field here: it does
+       * not give the EV spread, but it tells you the direction of the investment, and speed order is
+       * what most of MAG's damage and kill features hang off. IVs are not a variable in this format.
+       *
+       * Field order matches engine/durable-ingest.js exactly, deliberately -- two parsers for one
+       * protocol line is how they drift. */
+      if (line.startsWith('|showteam|')) {
+        const m = /^\|showteam\|(p[12])\|(.*)$/.exec(line);
+        if (m && this.board) {
+          for (const entry of m[2].split(']')) {
+            const f = entry.split('|');
+            const sp = B.norm(f[0] || '');
+            if (!sp) continue;
+            this.board.setSheet(m[1], sp, {
+              nature: (f[5] || '') || '',
+              item: (f[2] || '') || '',
+              ability: (f[3] || '') || '',
+              moves: (f[4] || '').split(',').filter(Boolean),
+            });
+            this.stats.sheetEntries = (this.stats.sheetEntries || 0) + 1;
+          }
+        }
+        return;
+      }
+
       const p = line.slice(1).split('|');
       const cmd = p[0];
       const who = (s) => { const m = SLOT.exec(s || ''); return m ? { side: m[1], letter: m[2] } : null; };

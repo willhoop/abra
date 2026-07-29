@@ -59,6 +59,7 @@ const path = require('path');
 const { extract } = require('./durable-ingest.js');
 const CS = require('./champions_sim.js');
 
+const NL = String.fromCharCode(10);
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const LADDER = D('data', 'games.ladder.jsonl');
@@ -534,7 +535,8 @@ async function main() {
    * of being counted into `failed` alongside ordinary battle failures and never printed. */
   const seenErr = new Set();
   const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0,
-                scored: 0, scoreFellBack: 0, aimed: 0, jointDecided: 0, jointFellBack: 0, jointUsed: 0 };
+                scored: 0, scoreFellBack: 0, aimed: 0, jointDecided: 0, jointFellBack: 0, jointUsed: 0,
+                sheetEntries: 0, megaChosen: 0 };
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
    * ------------------------------------------------------------------------------------------
@@ -652,6 +654,7 @@ async function main() {
         POL.previewSampled += s.previewSampled || 0; POL.previewDefault += s.previewDefault || 0;
         POL.scored += s.scored || 0; POL.scoreFellBack += s.scoreFellBack || 0; POL.aimed += s.aimed || 0;
         POL.jointDecided += s.jointDecided || 0; POL.jointFellBack += s.jointFellBack || 0; POL.jointUsed += s.jointUsed || 0;
+        POL.sheetEntries += s.sheetEntries || 0; POL.megaChosen += s.megaChosen || 0;
       }
       const rec = extract(`selfplay-${SEED0}-${i}`, startedAt, log);
       if (!rec || (rec.six.p1 || []).length < 4 || (rec.six.p2 || []).length < 4) { failed++; continue; }
@@ -736,6 +739,18 @@ async function main() {
        * player is indistinguishable in the win rate from a pair model that simply does not help, and
        * the second conclusion would be wrong and would stick. So the counters are printed whenever
        * the layer is requested, and a zero is called out rather than left to be noticed. */
+      /* EVERY CAPABILITY REPORTS WHETHER IT ACTUALLY RAN. This is the rule that catches the class
+       * of bug that has cost this project the most: something is wired, everything reports success,
+       * and the capability is simply not there. The joint layer fell back on 100% of eligible turns
+       * while looking clean; the player never read a team sheet at all; mega evolution was declined
+       * for the bot's entire existence. None of it errored. */
+      if (!CLOSED_SHEETS) {
+        process.stderr.write('  open team sheets: ' + POL.sheetEntries.toLocaleString() + ' sheet entries read by the PLAYER' + NL);
+        if (POL.sheetEntries === 0) {
+          process.stderr.write('  WARNING: open sheets are forced on and the player read ZERO entries - it is playing blind.' + NL);
+        }
+      }
+      process.stderr.write('  mega evolution: ' + POL.megaChosen.toLocaleString() + ' taken' + NL);
       if (JOINT_A || JOINT_B || JOINTZ_A || JOINTZ_B) {
         const jt = POL.jointDecided + POL.jointFellBack;
         process.stderr.write(`  joint layer: ${POL.jointDecided.toLocaleString()} turns decided as a PAIR` +
