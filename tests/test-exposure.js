@@ -47,10 +47,13 @@ console.log('EXPOSURE — the price of the click, reconstructed by hand\n');
   const x2 = X.punishExposure(att, mon('incineroar', 'flamebody'), 'ironhead');
   ok(!x2 || (x2.outputHalvedFrac === 0 && x2.selfHPFrac === 0),
     'an already-statused attacker cannot be burned again: price zero');
+  /* Will's catch: Guts is not "immune", it PROFITS — x1.5 attack while statused (dmgRange's own
+   * rule), so the output channel must go NEGATIVE: a proc on a Guts body is something to seek. */
   const guts = mon('garchomp', 'guts');
   const x3 = X.punishExposure(guts, mon('incineroar', 'flamebody'), 'ironhead');
-  ok(x3 && x3.outputHalvedFrac === 0 && x3.selfHPFrac > 0,
-    'Guts keeps the chip but prices the halving at zero — same as dmgRange');
+  const p3 = TAGS.param('ability', 'flamebody', 'punishesAttacker').inflicts[0].chance;
+  ok(x3 && Math.abs(x3.outputHalvedFrac - (p3 * -0.5 * X.physicalShare(guts))) < 1e-9 && x3.selfHPFrac > 0,
+    `Guts prices the proc as a GAIN: output ${x3 && x3.outputHalvedFrac.toFixed(3)} (negative = seek it), chip still charged`);
   const x4 = X.punishExposure(mon('garchomp'), mon('incineroar', 'flamebody'), 'earthquake');
   ok(x4 === null, 'a NON-contact click into Flame Body costs nothing (trigger from the tag)');
 }
@@ -90,6 +93,32 @@ console.log('EXPOSURE — the price of the click, reconstructed by hand\n');
   const x = X.punishExposure(mon('corviknight'), mon('incineroar', 'gooey'), 'ironhead');
   ok(x && x.stagesLost === 1 && x.selfHPFrac === 0,
     `Gooey prices as 1 speed stage per touch, no HP (${x && x.stagesLost})`);
+}
+
+/* the para speed cost: priced only where an order actually flips, TR inverts it */
+{
+  const F = { terrain: '', weather: '', twA: 0, twB: 0, tr: 0 };
+  const att = mon('garchomp'), tgt = mon('incineroar', 'static');
+  /* a foe whose speed sits between att's half and full speed — the flip case, found not assumed */
+  const half = M.effSpeed(Object.assign({}, att, { status: 'par' }), F, 'A');
+  const full = M.effSpeed(att, F, 'A');
+  const between = Object.keys(MC.mons).map(n => mon(n)).find(m0 => {
+    const s = M.effSpeed(m0, F, 'B'); return s > half && s < full;
+  });
+  ok(!!between, `found a foe between half and full speed (${between && between.name}) — the flip case exists`);
+  if (between) {
+    const x = X.punishExposure(att, tgt, 'ironhead', { foes: [between], field: F });
+    const p = TAGS.param('ability', 'static', 'punishesAttacker').inflicts[0].chance;
+    ok(x && Math.abs(x.speedFlipsFrac - p * 1) < 1e-9,
+      `losing the order to it prices at chance x 1 flip (${x && x.speedFlipsFrac.toFixed(3)})`);
+    const slower = Object.keys(MC.mons).map(n => mon(n)).find(m0 => M.effSpeed(m0, F, 'B') < half);
+    const x2 = X.punishExposure(att, tgt, 'ironhead', { foes: [slower], field: F });
+    ok(x2 && x2.speedFlipsFrac === 0,
+      'a foe you outspeed even at half speed prices the half at zero — it flips nothing');
+    const xTR = X.punishExposure(att, tgt, 'ironhead', { foes: [between], field: Object.assign({}, F, { tr: 3 }) });
+    ok(xTR && xTR.speedFlipsFrac < 0,
+      `under Trick Room the same flip is a GAIN (${xTR && xTR.speedFlipsFrac.toFixed(3)}) — slower moves first`);
+  }
 }
 
 /* Gulp Missile: forme-gated, skipped whole — same as the wire */

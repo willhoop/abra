@@ -713,9 +713,9 @@ root.winProb2=winProb2; root.dmgRange=dmgRange; root.buildMon=buildMon; root.MED
 root.futureSight=futureSight;
 /* the tag lookup, exported so exposure.js prices risk off the SAME adapter the wires read —
  * a second adapter over window.ABRA_TAGS would be a place for the two to disagree */
-root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus;
+root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
-  moveFx,movePriority,moveAccuracy,canTakeStatus,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
+  moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);

@@ -68,11 +68,17 @@ function physicalShare(att){
 }
 
 function statusCost(att, status, H){
-  /* Returns {selfHPFrac, outputHalvedFrac, actionsLostFrac} of ONE landed status. */
+  /* Returns {selfHPFrac, outputHalvedFrac, actionsLostFrac} of ONE landed status.
+   *
+   * GUTS INVERTS THE SIGN, it does not just zero it (Will's catch, 2026-07-29): dmgRange gives a
+   * statused Guts attacker x1.5 attack, and skips burn's halving. So ANY major status on a Guts
+   * body is +50% physical output — a Flame Body proc on it is something to SEEK, and the price
+   * says so by going negative. The chip and the lost turns still charge full price. */
   var out = { selfHPFrac:0, outputHalvedFrac:0, actionsLostFrac:0 };
+  var guts = att.ability==='guts';
+  if(guts) out.outputHalvedFrac = -0.5 * physicalShare(att);
   if(status==='burn'){
-    /* Guts turns the halving off (dmgRange applies burn=0.5 only when ability!=='guts'). */
-    if(att.ability!=='guts') out.outputHalvedFrac = physicalShare(att);
+    if(!guts) out.outputHalvedFrac = physicalShare(att);   // the x0.5, as a share of output
     out.selfHPFrac = H/16;
   } else if(status==='poison'){
     out.selfHPFrac = H/8;
@@ -81,12 +87,42 @@ function statusCost(att, status, H){
     out.selfHPFrac = s;
   } else if(status==='paralysis'){
     out.actionsLostFrac = FULL_PARA;               // per remaining turn, already a rate
+    /* the speed half is priced separately in punishExposure — it needs the FOES to know which
+     * orders flip, and a rate cannot say that */
   } else if(status==='sleep'){
     out.actionsLostFrac = Math.min(H, SLEEP_TURNS_LOST)/H;
   } else if(status==='freeze'){
     out.actionsLostFrac = Math.min(H, FREEZE_TURNS_LOST)/H;
   }
   return out;
+}
+
+/* THE PARA SPEED COST (Will: "para speed cost"). Halved speed only matters where it FLIPS a
+ * move-order relationship: if you outsped a foe and at half speed you no longer do, you now eat
+ * its hit before acting — for the rest of the game, because paralysis does not wear off. If you
+ * were already slower, the half is free. Counted with the engine's OWN effSpeed (boosts, Scarf,
+ * Tailwind, weather abilities), so the price and the turn order cannot disagree.
+ *
+ * TRICK ROOM INVERTS THE SIGN: under it the slower mon acts first, so a flip that pushes you
+ * earlier is a GAIN — weighted by how much Trick Room is left against the horizon, because the
+ * paralysis outlives the room. Returns the share of foes whose order flips, positive = bad. */
+function speedFlipShare(att, foes, field, side, M, H){
+  if(!foes || !foes.length || !M || !M.effSpeed) return 0;
+  field = field || {terrain:'',weather:'',twA:0,twB:0,tr:0};
+  var mySide = side || 'A', foeSide = mySide==='A' ? 'B' : 'A';
+  var para = Object.assign({}, att, { status:'par' });
+  var now = M.effSpeed(att, field, mySide), then = M.effSpeed(para, field, mySide);
+  var flips = 0, n = 0;
+  for(var i=0;i<foes.length;i++){
+    var f = foes[i]; if(!f || f.fainted) continue;
+    n++;
+    var fs = M.effSpeed(f, field, foeSide);
+    var firstNow = now > fs, firstThen = then > fs;
+    if(field.tr > 0){ firstNow = !firstNow; firstThen = !firstThen; }
+    if(firstNow && !firstThen) flips += 1;                                    // lost the order
+    else if(!firstNow && firstThen) flips -= (field.tr>0 ? Math.min(field.tr,H)/H : 1);  // gained it
+  }
+  return n ? flips/n : 0;
 }
 
 function expectedHits(moveId, TAGS){
@@ -123,7 +159,7 @@ function punishExposure(att, tgt, moveId, opts){
 
   var H = opts.horizon || DEFAULT_HORIZON;
   var hits = expectedHits(moveId, TAGS);
-  var out = { selfHPFrac:0, outputHalvedFrac:0, actionsLostFrac:0, stagesLost:0, parts:[] };
+  var out = { selfHPFrac:0, outputHalvedFrac:0, actionsLostFrac:0, stagesLost:0, speedFlipsFrac:0, parts:[] };
 
   /* Aftermath-shaped members fire only if this click kills — weight by the same crude kill
    * probability chooseAction uses (min-roll kills: 1, max-roll kills: 0.5, else 0). */
@@ -158,6 +194,8 @@ function punishExposure(att, tgt, moveId, opts){
       out.selfHPFrac += pProc * c.selfHPFrac;
       out.outputHalvedFrac += pProc * c.outputHalvedFrac;
       out.actionsLostFrac += pProc * c.actionsLostFrac;
+      if(inf.status==='paralysis' && opts.foes)
+        out.speedFlipsFrac += pProc * speedFlipShare(att, opts.foes, opts.field, opts.side, M, H);
       out.parts.push({what:inf.status+' '+(100*inf.chance)+'%', p:+pProc.toFixed(4),
         cost:+(pProc*(c.selfHPFrac+c.outputHalvedFrac+c.actionsLostFrac)).toFixed(4)});
     }
@@ -165,11 +203,12 @@ function punishExposure(att, tgt, moveId, opts){
 
   if(!out.parts.length) return null;
   /* default view only — the real weights are fit_policy's to learn */
-  out.total = +(out.selfHPFrac + out.outputHalvedFrac + out.actionsLostFrac + 0.125*out.stagesLost).toFixed(4);
+  out.total = +(out.selfHPFrac + out.outputHalvedFrac + out.actionsLostFrac
+              + 0.125*out.stagesLost + 0.25*out.speedFlipsFrac).toFixed(4);
   return out;
 }
 
 root.punishExposure = punishExposure;
 if (typeof module !== 'undefined' && module.exports)
-  module.exports = { punishExposure, statusCost, physicalShare, DEFAULT_HORIZON };
+  module.exports = { punishExposure, statusCost, physicalShare, speedFlipShare, DEFAULT_HORIZON };
 })(typeof window !== 'undefined' ? window : globalThis);
