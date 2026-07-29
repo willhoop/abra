@@ -195,6 +195,36 @@ console.log('\nwires 4+5 — buffsHolderOnHit / punishesAttacker  (THE BELLIBOLT
   }
 }
 
+/* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
+console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
+{
+  /* The paired head-to-head puts both arms in ONE process, so the control arm cannot use the
+   * process-wide ABRA_TAGS_OFF. The tree-scoped variant must (a) kill the wires for the tree it
+   * names, (b) leave every other tree alone, and (c) not treat ../ABRA as a prefix of ../ABRA-old.
+   * Each case is a child process because the switch is read once, at module load. */
+  const { execFileSync } = require('child_process');
+  const probe = `
+    require(${JSON.stringify(path.join(ROOT, 'data', 'engine-data.js'))});
+    const M = require(${JSON.stringify(path.join(ROOT, 'engine', 'medicham2-browser.js'))});
+    const a = M.buildMon('garchomp', { garchomp: 'lifeorb' });
+    const b = M.buildMon('garchomp', { garchomp: '' });
+    const d = M.buildMon('incineroar', { incineroar: '' });
+    const mv = MC.moves['earthquake'];
+    const F = { terrain: '', weather: '', twA: 0, twB: 0 };
+    console.log(M.dmgRange(a, d, mv, F, false).max / M.dmgRange(b, d, mv, F, false).max);`;
+  const ratioWith = tree => +execFileSync(process.execPath, ['-e', probe], {
+    env: Object.assign({}, process.env, tree ? { ABRA_TAGS_OFF_TREE: tree } : {}), encoding: 'utf8'
+  }).trim();
+  const on = ratioWith(null);
+  const off = ratioWith(ROOT);
+  const other = ratioWith(ROOT + '-some-other-checkout');
+  const prefix = ratioWith(ROOT.slice(0, -1));      // "…/ABR" must NOT switch off "…/ABRA"
+  ok(on > 1.2, `without the env var Life Orb boosts damage (x${on.toFixed(3)})`);
+  ok(off === 1, `naming THIS tree turns its tags off (x${off.toFixed(3)})`);
+  ok(other === on, `naming a different tree leaves this one alone (x${other.toFixed(3)})`);
+  ok(prefix === on, `a bare string prefix of the tree path does not match (x${prefix.toFixed(3)})`);
+}
+
 console.log('');
 if (fail) {
   console.log(`${fail} wire(s) are dead — the tag exists, the run is clean, and the number did not move.`);

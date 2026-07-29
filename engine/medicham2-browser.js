@@ -21,9 +21,20 @@ const TAGS = (function(){
    * control for "did wiring the artifact make the bot stronger". Without this the comparison would
    * be against a different build, and half this project's null results came from arms that were not
    * actually comparable. */
-  if (typeof process !== 'undefined' && process.env && process.env.ABRA_TAGS_OFF === '1') {
-    return { off: true, param(){ return null; }, has(){ return false; },
-             reactorsTo(){ return {abilities:[],items:[],moves:[]}; }, hits(){ return {}; } };
+  if (typeof process !== 'undefined' && process.env) {
+    const OFF_STUB = { off: true, param(){ return null; }, has(){ return false; },
+                       reactorsTo(){ return {abilities:[],items:[],moves:[]}; }, hits(){ return {}; } };
+    if (process.env.ABRA_TAGS_OFF === '1') return OFF_STUB;
+    /* ABRA_TAGS_OFF_TREE=<path> turns tags off ONLY for the copy of this file living under <path>.
+     * The global switch above cannot arm a paired head-to-head: both arms battle inside ONE process
+     * (mew.js --policy score --policy2 score@<worktree>), so a process-wide env var flips both arms
+     * together. Scoping the switch to a directory lets a worktree of the SAME commit be the control
+     * arm — identical code, identical tracked data, the artifact lookup is the only difference.
+     * The trailing-slash compare stops ../ABRA from matching ../ABRA-old (a real prefix hazard). */
+    if (process.env.ABRA_TAGS_OFF_TREE && typeof __dirname === 'string') {
+      const norm = s => String(s).replace(/\\/g,'/').replace(/\/+$/,'').toLowerCase() + '/';
+      if (norm(__dirname).startsWith(norm(process.env.ABRA_TAGS_OFF_TREE))) return OFF_STUB;
+    }
   }
   if (typeof module !== 'undefined' && module.exports && typeof require === 'function') {
     try { return require('./tags.js'); } catch (e) { /* fall through to the browser path */ }
