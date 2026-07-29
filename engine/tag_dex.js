@@ -333,6 +333,56 @@ const MOVE_TAGS = [
       return { source: kind, flat: typeof m.damage === 'number' ? m.damage : null,
                ignoresStatsAndSTAB: true };
     } },
+  /* Will: "gigaton hammer -- is it not a contact move? you cant click it twice in a row."
+   * Both halves right, and it was sitting UNTAGGED at 123 uses and 160 base power.
+   *
+   * The lockout is flags.cantusetwice -- a plain FLAG, not a condition, which is why the sweep for
+   * onDisableMove missed it entirely. It is also the only move in the format carrying that flag.
+   *
+   * And it is NOT contact, so Rough Skin, Rocky Helmet and Static do not punish it. For a 160 BP
+   * Steel move that is a real edge the engine was blind to in both directions.
+   *
+   * The Encore question Will raised is genuinely nasty: Gigaton Hammer does NOT carry failencore,
+   * so Encore can lock a Pokemon into it -- and then cantusetwice forbids selecting it next turn.
+   * The code implies every move ends up disabled and the Pokemon Struggles. That is an inference
+   * from reading two handlers, NOT something measured, and it is flagged here as needing a live
+   * test rather than stated as fact. */
+  { tag: 'cantUseTwice', param: 'cannot be selected the turn after it is used', probe: 'cantusetwice',
+    why: 'Gigaton Hammer, 160 BP and the only move in the format with the flag. Also NOT a contact '
+       + 'move, so contact punishment does not apply to it',
+    of: m => (m.flags && m.flags.cantusetwice) ? { lockoutTurns: 1, failsEncore: !!(m.flags||{}).failencore } : null },
+  /* A SEPARATE AXIS FROM PRIORITY. Will: "quash needs a priority modifier tag." It is a reorder, but
+   * not a priority one -- Quash has priority 0 and rewrites the target's slot in the action queue
+   * directly (action.order = 201, i.e. dead last). After You does the mirror, promoting the target
+   * to act next. Neither shows up in any priority calculation, so a turn-order model built purely
+   * on priority and speed gets both of them wrong. */
+  { tag: 'reordersTurn', param: 'moves a TARGET to the front or back of this turn, without touching priority', probe: 'reordersTurn',
+    why: 'Quash (127 uses) forces the target to act last and After You (107) makes it act next. '
+       + 'Both have priority 0, so nothing in a speed-and-priority turn order can see them',
+    of: m => {
+      const src = String(m.onHit || '');
+      if (/action\.order\s*=/.test(src)) return { sends: 'last' };
+      if (/prioritizeAction/.test(src)) return { sends: 'next' };
+      return null;
+    } },
+  { tag: 'instructsTarget', param: 'the target immediately repeats its last move, out of turn', probe: 'instructsTarget',
+    why: 'Instruct (92 uses) gives an ally a second attack in one turn. Scored as a status move '
+       + 'doing nothing, when it is often the largest damage action available',
+    of: m => /instruct/.test(norm(m.id)) ? { extraAction: true } : null },
+  /* THE MOVE-SEALING FAMILY, one mechanic with different parameters. Will: "imprison still needs a
+   * tag." Imprison is the odd one and worth stating: it has NO duration, lasting as long as the
+   * user stays in; it hits BOTH foes; and its blocked set is defined by the USER's own moveset
+   * rather than by the target's behaviour. */
+  { tag: 'sealsMoves', param: 'which of the TARGET moves are unselectable, and for how many turns', probe: 'sealsMoves',
+    why: 'Encore (2,786), Taunt (881), Disable (416), Imprison (160). Nothing prunes a sealed move '
+       + 'from the opponent action set, so every reply distribution includes moves that cannot be picked',
+    of: m => {
+      const c = m.condition || {};
+      if (!c.onDisableMove && !c.onFoeDisableMove) return null;
+      return { turns: c.duration || null,               /* null = lasts while the user is in */
+               scope: c.onFoeDisableMove ? 'both foes' : 'one target',
+               fromUsersOwnMoves: !!c.onFoeDisableMove };
+    } },
   { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
        + 'legally do, which nothing represents, and the chip is residual damage nothing counts',

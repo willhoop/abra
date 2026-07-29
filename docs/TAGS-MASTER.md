@@ -57,7 +57,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Aqua Jet | 3,066 | 4.6% | `priority` `contact` |
 | Last Respects | 3,034 | 4.6% | `needsUntrackedState` `variablePower` |
 | Kowtow Cleave | 3,006 | 4.6% | `contact` `moveClass` `neverMissesAttack` |
-| Encore | 2,786 | 4.2% | `statusCategory` `locksTarget` |
+| Encore | 2,786 | 4.2% | `sealsMoves` `statusCategory` `locksTarget` |
 | Solar Beam | 2,501 | 3.8% | `conditionalPower` `chargeTurn` `chargeSkippedByWeather` |
 | Hyper Voice | 2,496 | 3.8% | `spreadFoes` `sound` |
 | Earth Power | 2,409 | 3.7% | `secondaryStatEffect` |
@@ -75,7 +75,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Thunderbolt | 1,874 | 2.8% | `inflictsParalysis` |
 | Flash Cannon | 1,806 | 2.7% | `secondaryStatEffect` |
 | Nasty Plot | 1,779 | 2.7% | `neverMisses` `boostsUser` `statusCategory` |
-| Throat Chop | 1,778 | 2.7% | `blocksSoundMoves` `contact` |
+| Throat Chop | 1,778 | 2.7% | `blocksSoundMoves` `sealsMoves` `contact` |
 | Psychic | 1,776 | 2.7% | `secondaryStatEffect` |
 | Flip Turn | 1,774 | 2.7% | `contact` `pivotDamaging` |
 | Dual Wingbeat | 1,738 | 2.6% | `multiHit` `contact` |
@@ -104,7 +104,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Volt Switch | 992 | 1.5% | `pivotDamaging` |
 | Follow Me | 944 | 1.4% | `priority` `neverMisses` `redirects` `statusCategory` |
 | Play Rough | 919 | 1.4% | `contact` `secondaryStatEffect` |
-| Taunt | 881 | 1.3% | `statusCategory` `forbidsStatusMoves` |
+| Taunt | 881 | 1.3% | `sealsMoves` `statusCategory` `forbidsStatusMoves` |
 | Aurora Veil | 860 | 1.3% | `neverMisses` `halvesDamage` `failsWithoutWeather` `statusCategory` |
 | Icy Wind | 854 | 1.3% | `spreadFoes` `moveClass` `secondaryStatEffect` |
 | Giga Drain | 820 | 1.2% | `drain` |
@@ -146,7 +146,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Draining Kiss | 445 | 0.7% | `contact` `drain` |
 | Super Fang | 442 | 0.7% | `fixedDamage` `contact` |
 | Ice Fang | 433 | 0.7% | `contact` `moveClass` `inflictsFreeze` `flinches` |
-| Disable | 416 | 0.6% | `statusCategory` `locksTarget` |
+| Disable | 416 | 0.6% | `sealsMoves` `statusCategory` `locksTarget` |
 | Spiky Shield | 407 | 0.6% | `priority` `neverMisses` `punishesContact` `stalling` `statusCategory` |
 | Discharge | 406 | 0.6% | `spreadAll` `inflictsParalysis` |
 | Sunny Day | 379 | 0.6% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
@@ -196,24 +196,24 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Final Gambit | 180 | 0.3% | `fixedDamage` `userFaints` |
 | Tickle | 179 | 0.3% | `lowersTarget` `statusCategory` |
 | Double-Edge | 166 | 0.3% | `contact` `recoil` |
-| Imprison | 160 | 0.2% | `neverMisses` `statusCategory` |
+| Imprison | 160 | 0.2% | `sealsMoves` `neverMisses` `statusCategory` |
 | Iron Defense | 149 | 0.2% | `neverMisses` `boostsUser` `statusCategory` |
 | Sacred Sword | 145 | 0.2% | `ignoresStatStages` `contact` `moveClass` |
 | Volt Tackle | 145 | 0.2% | `contact` `inflictsParalysis` `recoil` |
 | Vacuum Wave | 143 | 0.2% | `priority` |
 | Air Slash | 141 | 0.2% | `moveClass` `flinches` |
 | King's Shield | 130 | 0.2% | `priority` `neverMisses` `punishesContact` `stalling` `statusCategory` |
-| Quash | 127 | 0.2% | `statusCategory` |
+| Quash | 127 | 0.2% | `reordersTurn` `statusCategory` |
 | Flower Trick | 124 | 0.2% | `alwaysCrit` `neverMissesAttack` |
 | Scale Shot | 124 | 0.2% | `multiHit` `boostsUser` `lowersUser` |
-| Gigaton Hammer | 123 | 0.2% | `untagged` |
+| Gigaton Hammer | 123 | 0.2% | `cantUseTwice` |
 | Power Whip | 122 | 0.2% | `contact` |
 | Trop Kick | 121 | 0.2% | `contact` `secondaryStatEffect` |
 | Heavy Slam | 121 | 0.2% | `variablePower` `contact` |
 | Stone Edge | 111 | 0.2% | `critRatioUp` |
 | Nuzzle | 110 | 0.2% | `contact` `inflictsParalysis` |
 | Leaf Blade | 109 | 0.2% | `critRatioUp` `contact` `moveClass` |
-| After You | 107 | 0.2% | `neverMisses` `ignoresProtect` `statusCategory` |
+| After You | 107 | 0.2% | `reordersTurn` `neverMisses` `ignoresProtect` `statusCategory` |
 | Hammer Arm | 107 | 0.2% | `contact` `moveClass` `lowersUser` |
 | Bug Bite | 105 | 0.2% | `contact` |
 | Jet Punch | 100 | 0.2% | `priority` `contact` `moveClass` |
@@ -221,7 +221,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Psychic Noise | 96 | 0.1% | `sound` |
 | Leech Life | 94 | 0.1% | `contact` `drain` |
 | Acrobatics | 92 | 0.1% | `variablePower` `contact` |
-| Instruct | 92 | 0.1% | `neverMisses` `statusCategory` |
+| Instruct | 92 | 0.1% | `reordersTurn` `instructsTarget` `neverMisses` `statusCategory` |
 | Rising Voltage | 91 | 0.1% | `terrainScaled` `variablePower` |
 | Scorching Sands | 89 | 0.1% | `thawsTarget` `inflictsBurn` |
 | Blaze Kick | 87 | 0.1% | `critRatioUp` `contact` `inflictsBurn` |
@@ -281,7 +281,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Round | 36 | 0.1% | `variablePower` `sound` |
 | Burn Up | 35 | 0.1% | `thawsTarget` |
 | Outrage | 35 | 0.1% | `contact` |
-| Gravity | 34 | 0.1% | `neverMisses` `ignoresProtect` `accuracyMod` `statusCategory` |
+| Gravity | 34 | 0.1% | `sealsMoves` `neverMisses` `ignoresProtect` `accuracyMod` `statusCategory` |
 | Slack Off | 34 | 0.1% | `neverMisses` `statusCategory` `healsSelf` |
 | Ceaseless Edge | 33 | 0.1% | `contact` `moveClass` |
 | Chilling Water | 33 | 0.1% | `secondaryStatEffect` |
@@ -432,7 +432,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Rapid Spin | 4 | 0.0% | `contact` `secondaryStatEffect` |
 | Reversal | 4 | 0.0% | `variablePower` `contact` |
 | Terrain Pulse | 4 | 0.0% | `terrainScaled` `moveClass` |
-| Torment | 4 | 0.0% | `statusCategory` `locksTarget` |
+| Torment | 4 | 0.0% | `sealsMoves` `statusCategory` `locksTarget` |
 | First Impression | 3 | 0.0% | `priority` `contact` |
 | Snowscape | 3 | 0.0% | `neverMisses` `ignoresProtect` `setsWeather` `statusCategory` |
 | Blast Burn | 3 | 0.0% | `recharge` |
@@ -1750,6 +1750,20 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *2 more carry this tag but appear on no sheet in the corpus.*
 
+### `sealsMoves` — 9.2%, 7 moves — **NOT READ**
+
+*which of the TARGET moves are unselectable, and for how many turns*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Encore | 2,786 | 4.2% |
+| Throat Chop | 1,778 | 2.7% |
+| Taunt | 881 | 1.3% |
+| Disable | 416 | 0.6% |
+| Imprison | 160 | 0.2% |
+| Gravity | 34 | 0.1% |
+| Torment | 4 | 0.0% |
+
 ### `drain` — 8.8%, 8 moves
 
 *heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit*
@@ -2123,22 +2137,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Body Press | 567 | 0.9% |
 | Psyshock | 479 | 0.7% |
 
-### `untagged` — 2.4%, 9 moves — **NOT READ**
-
-*?*
-
-| move | on sheets | share |
-|---|---:|---:|
-| Hydro Pump | 718 | 1.1% |
-| Power Gem | 687 | 1.0% |
-| Gigaton Hammer | 123 | 0.2% |
-| Salt Cure | 26 | 0.0% |
-| Fling | 13 | 0.0% |
-| Smack Down | 8 | 0.0% |
-| Spirit Shackle | 2 | 0.0% |
-| Raging Fury | 2 | 0.0% |
-| Belch | 1 | 0.0% |
-
 ### `proceduralStatus` — 2.3%, 2 moves — **NOT READ**
 
 *one status from a set, chosen at random in the handler*
@@ -2147,6 +2145,21 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Dire Claw | 1,520 | 2.3% |
 | Tri Attack | 1 | 0.0% |
+
+### `untagged` — 2.2%, 8 moves — **NOT READ**
+
+*?*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Hydro Pump | 718 | 1.1% |
+| Power Gem | 687 | 1.0% |
+| Salt Cure | 26 | 0.0% |
+| Fling | 13 | 0.0% |
+| Smack Down | 8 | 0.0% |
+| Spirit Shackle | 2 | 0.0% |
+| Raging Fury | 2 | 0.0% |
+| Belch | 1 | 0.0% |
 
 ### `ignoresStatStages` — 2.1%, 2 moves — **NOT READ**
 
@@ -2376,6 +2389,16 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
+### `reordersTurn` — 0.5%, 3 moves — **NOT READ**
+
+*moves a TARGET to the front or back of this turn, without touching priority*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Quash | 127 | 0.2% |
+| After You | 107 | 0.2% |
+| Instruct | 92 | 0.1% |
+
 ### `substitute` — 0.4%, 2 moves
 
 *an HP buffer that absorbs hits and blanks status until it breaks*
@@ -2418,6 +2441,14 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Frost Breath | 32 | 0.0% |
 | Storm Throw | 10 | 0.0% |
 
+### `cantUseTwice` — 0.2%, 1 moves — **NOT READ**
+
+*cannot be selected the turn after it is used*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Gigaton Hammer | 123 | 0.2% |
+
 ### `passesState` — 0.2%, 2 moves — **NOT READ**
 
 *the incoming Pokemon INHERITS something*
@@ -2437,6 +2468,14 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Toxic Spikes | 20 | 0.0% |
 | Sticky Web | 17 | 0.0% |
 | Spikes | 5 | 0.0% |
+
+### `instructsTarget` — 0.1%, 1 moves — **NOT READ**
+
+*the target immediately repeats its last move, out of turn*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Instruct | 92 | 0.1% |
 
 ### `setsTerrain` — 0.1%, 4 moves
 
@@ -3375,15 +3414,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 146 |
-| — move / ability / item | 82 / 41 / 19 |
+| tags total | 150 |
+| — move / ability / item | 86 / 41 / 19 |
 | moves tagged | 500 |
 | abilities tagged | 248 |
 | items tagged | 146 |
-| **tags read by nothing** | **82** |
+| **tags read by nothing** | **86** |
 | tags that match no member at all | 7 |
 
-**82 of 146 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**86 of 150 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.

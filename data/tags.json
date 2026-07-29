@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T05:39:07.105Z",
+ "generated": "2026-07-29T05:56:55.911Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -257,6 +257,65 @@
     "Fissure",
     "Guillotine",
     "Metal Burst"
+   ]
+  },
+  {
+   "tag": "cantUseTwice",
+   "kind": "move",
+   "param": "cannot be selected the turn after it is used",
+   "why": "Gigaton Hammer, 160 BP and the only move in the format with the flag. Also NOT a contact move, so contact punishment does not apply to it",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 123,
+   "examples": [
+    "Gigaton Hammer"
+   ]
+  },
+  {
+   "tag": "reordersTurn",
+   "kind": "move",
+   "param": "moves a TARGET to the front or back of this turn, without touching priority",
+   "why": "Quash (127 uses) forces the target to act last and After You (107) makes it act next. Both have priority 0, so nothing in a speed-and-priority turn order can see them",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 326,
+   "examples": [
+    "After You",
+    "Instruct",
+    "Quash"
+   ]
+  },
+  {
+   "tag": "instructsTarget",
+   "kind": "move",
+   "param": "the target immediately repeats its last move, out of turn",
+   "why": "Instruct (92 uses) gives an ally a second attack in one turn. Scored as a status move doing nothing, when it is often the largest damage action available",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 92,
+   "examples": [
+    "Instruct"
+   ]
+  },
+  {
+   "tag": "sealsMoves",
+   "kind": "move",
+   "param": "which of the TARGET moves are unselectable, and for how many turns",
+   "why": "Encore (2,786), Taunt (881), Disable (416), Imprison (160). Nothing prunes a sealed move from the opponent action set, so every reply distribution includes moves that cannot be picked",
+   "consumedBy": null,
+   "used": false,
+   "n": 7,
+   "uses": 6059,
+   "examples": [
+    "Encore",
+    "Disable",
+    "Gravity",
+    "Imprison",
+    "Taunt",
+    "Throat Chop"
    ]
   },
   {
@@ -2504,11 +2563,17 @@
   "encore": {
    "name": "Encore",
    "tags": [
+    "sealsMoves",
     "statusCategory",
     "locksTarget"
    ],
    "uses": 2786,
    "params": {
+    "sealsMoves": {
+     "turns": 3,
+     "scope": "one target",
+     "fromUsersOwnMoves": false
+    },
     "statusCategory": {
      "status": true
     },
@@ -3288,12 +3353,16 @@
   "afteryou": {
    "name": "After You",
    "tags": [
+    "reordersTurn",
     "neverMisses",
     "ignoresProtect",
     "statusCategory"
    ],
    "uses": 107,
    "params": {
+    "reordersTurn": {
+     "sends": "next"
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -4937,11 +5006,17 @@
   "disable": {
    "name": "Disable",
    "tags": [
+    "sealsMoves",
     "statusCategory",
     "locksTarget"
    ],
    "uses": 416,
    "params": {
+    "sealsMoves": {
+     "turns": 5,
+     "scope": "one target",
+     "fromUsersOwnMoves": false
+    },
     "statusCategory": {
      "status": true
     },
@@ -6191,10 +6266,15 @@
   "gigatonhammer": {
    "name": "Gigaton Hammer",
    "tags": [
-    "untagged"
+    "cantUseTwice"
    ],
    "uses": 123,
-   "params": {}
+   "params": {
+    "cantUseTwice": {
+     "lockoutTurns": 1,
+     "failsEncore": false
+    }
+   }
   },
   "glare": {
    "name": "Glare",
@@ -6269,6 +6349,7 @@
   "gravity": {
    "name": "Gravity",
    "tags": [
+    "sealsMoves",
     "neverMisses",
     "ignoresProtect",
     "accuracyMod",
@@ -6276,6 +6357,11 @@
    ],
    "uses": 34,
    "params": {
+    "sealsMoves": {
+     "turns": 5,
+     "scope": "one target",
+     "fromUsersOwnMoves": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -6982,11 +7068,17 @@
   "imprison": {
    "name": "Imprison",
    "tags": [
+    "sealsMoves",
     "neverMisses",
     "statusCategory"
    ],
    "uses": 160,
    "params": {
+    "sealsMoves": {
+     "turns": null,
+     "scope": "both foes",
+     "fromUsersOwnMoves": true
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -7046,11 +7138,19 @@
   "instruct": {
    "name": "Instruct",
    "tags": [
+    "reordersTurn",
+    "instructsTarget",
     "neverMisses",
     "statusCategory"
    ],
    "uses": 92,
    "params": {
+    "reordersTurn": {
+     "sends": "next"
+    },
+    "instructsTarget": {
+     "extraAction": true
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -8685,10 +8785,14 @@
   "quash": {
    "name": "Quash",
    "tags": [
+    "reordersTurn",
     "statusCategory"
    ],
    "uses": 127,
    "params": {
+    "reordersTurn": {
+     "sends": "last"
+    },
     "statusCategory": {
      "status": true
     }
@@ -10671,11 +10775,17 @@
   "taunt": {
    "name": "Taunt",
    "tags": [
+    "sealsMoves",
     "statusCategory",
     "forbidsStatusMoves"
    ],
    "uses": 881,
    "params": {
+    "sealsMoves": {
+     "turns": 3,
+     "scope": "one target",
+     "fromUsersOwnMoves": false
+    },
     "statusCategory": {
      "status": true
     },
@@ -10815,12 +10925,18 @@
    "name": "Throat Chop",
    "tags": [
     "blocksSoundMoves",
+    "sealsMoves",
     "contact"
    ],
    "uses": 1778,
    "params": {
     "blocksSoundMoves": {
      "blocks": "sound"
+    },
+    "sealsMoves": {
+     "turns": 2,
+     "scope": "one target",
+     "fromUsersOwnMoves": false
     },
     "contact": {
      "contact": true
@@ -11008,11 +11124,17 @@
   "torment": {
    "name": "Torment",
    "tags": [
+    "sealsMoves",
     "statusCategory",
     "locksTarget"
    ],
    "uses": 4,
    "params": {
+    "sealsMoves": {
+     "turns": null,
+     "scope": "one target",
+     "fromUsersOwnMoves": false
+    },
     "statusCategory": {
      "status": true
     },
