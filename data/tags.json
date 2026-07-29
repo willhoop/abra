@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T04:04:09.697Z",
+ "generated": "2026-07-29T04:06:48.362Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1024,8 +1024,8 @@
   {
    "tag": "drain",
    "kind": "move",
-   "param": "heals a fraction of damage dealt",
-   "why": "changes the value of clicking it into a healthy target",
+   "param": "heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit",
+   "why": "Matcha Gotcha (3,422 uses), Giga Drain, Drain Punch all 1/2; Draining Kiss 3/4. Clicking one into a resisted target heals almost nothing, which no feature currently expresses",
    "consumedBy": "drain",
    "used": true,
    "n": 8,
@@ -3447,10 +3447,8 @@
      "contact": true
     },
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },
@@ -4669,10 +4667,8 @@
      "contact": true
     },
     "drain": {
-     "drain": [
-      3,
-      4
-     ]
+     "readFrom": "m.drain",
+     "unusual": true
     }
    }
   },
@@ -4688,10 +4684,8 @@
      "contact": true
     },
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },
@@ -5602,10 +5596,8 @@
    "uses": 820,
    "params": {
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },
@@ -6124,10 +6116,8 @@
      "contact": true
     },
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },
@@ -6619,10 +6609,8 @@
      "contact": true
     },
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },
@@ -6926,10 +6914,8 @@
      "via": "secondary"
     },
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },
@@ -7447,10 +7433,8 @@
      "hitsAlly": true
     },
     "drain": {
-     "drain": [
-      1,
-      2
-     ]
+     "readFrom": "m.drain",
+     "unusual": false
     }
    }
   },

@@ -1689,20 +1689,20 @@ Total tagged: **22**  ·  4 legal but unused  ·  share: **1.0%**
 
 Total tagged: **22**  ·  2 legal but unused  ·  share: **0.9%**
 
-## `drain` — heals a fraction of damage dealt
+## `drain` — heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit
 
-*changes the value of clicking it into a healthy target*
+*Matcha Gotcha (3,422 uses), Giga Drain, Drain Punch all 1/2; Draining Kiss 3/4. Clicking one into a resisted target heals almost nothing, which no feature currently expresses*
 
 | entry | appearances | parameter |
 |---|---|---|
-| Matcha Gotcha | 3,422 | drain:[1,2] |
-| Giga Drain | 820 | drain:[1,2] |
-| Drain Punch | 710 | drain:[1,2] |
-| Draining Kiss | 445 | drain:[3,4] |
-| Bitter Blade | 211 | drain:[1,2] |
-| Leech Life | 94 | drain:[1,2] |
-| Parabolic Charge | 70 | drain:[1,2] |
-| Horn Leech | 6 | drain:[1,2] |
+| Matcha Gotcha | 3,422 | readFrom:m.drain,unusual:false |
+| Giga Drain | 820 | readFrom:m.drain,unusual:false |
+| Drain Punch | 710 | readFrom:m.drain,unusual:false |
+| Draining Kiss | 445 | readFrom:m.drain,unusual:true |
+| Bitter Blade | 211 | readFrom:m.drain,unusual:false |
+| Leech Life | 94 | readFrom:m.drain,unusual:false |
+| Parabolic Charge | 70 | readFrom:m.drain,unusual:false |
+| Horn Leech | 6 | readFrom:m.drain,unusual:false |
 
 Total tagged: **8**  ·  share: **0.9%**
 

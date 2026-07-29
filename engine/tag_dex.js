@@ -664,9 +664,19 @@ const MOVE_TAGS = [
       }
       return null;
     } },
-  { tag: 'drain', param: 'heals a fraction of damage dealt', probe: 'drain',
-    why: 'changes the value of clicking it into a healthy target',
-    of: m => m.drain ? { drain: m.drain } : null },
+  /* Will: "do the drain moves need the variable how much they drain ... like some are 1/2?".
+   * Measured: almost all are 1/2 and DRAINING KISS IS 3/4 (445 uses) -- same shape as recoil, mostly
+   * uniform with one outlier that matters. And by the rule he set on recoil, m.drain is a plain dex
+   * field, so this points at it rather than copying it. It was still copying; fixed for consistency.
+   *
+   * Worth noting what makes drain different from healsSelf: this restores a share of the DAMAGE
+   * DEALT, so its value scales with how hard the hit lands -- clicking it into a resisted target
+   * heals almost nothing. healsSelf restores a share of max HP and costs the whole turn. A move is
+   * never both. */
+  { tag: 'drain', param: 'heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit', probe: 'drain',
+    why: 'Matcha Gotcha (3,422 uses), Giga Drain, Drain Punch all 1/2; Draining Kiss 3/4. Clicking '
+       + 'one into a resisted target heals almost nothing, which no feature currently expresses',
+    of: m => m.drain ? { readFrom: 'm.drain', unusual: (m.drain[0] / m.drain[1]) !== 0.5 } : null },
   /* Will: "some recoil moves have more recoil than others we need to modify". The FRACTION is the
    * parameter, and it ranges widely: Head Smash pays 1/2, Flare Blitz and Wave Crash 33/100, Wild
    * Charge 1/4. Flare Blitz (4,032) and Wave Crash (4,052) are top-tier moves in this format and the
