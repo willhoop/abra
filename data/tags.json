@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T06:56:33.340Z",
+ "generated": "2026-07-29T07:06:15.083Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -434,6 +434,23 @@
    "examples": [
     "Pollen Puff",
     "Shell Side Arm"
+   ]
+  },
+  {
+   "tag": "perTurnHP",
+   "kind": "move",
+   "param": "HP changes every turn with no action spent, and in which direction",
+   "why": "Leftovers is +1/16 a turn (4,336 sheets) and Leech Seed is -1/8 from the target to the user. Both silently change who wins a damage race that the bot computes as static",
+   "consumedBy": null,
+   "used": false,
+   "n": 6,
+   "uses": 335,
+   "examples": [
+    "Salt Cure",
+    "Aqua Ring",
+    "Curse",
+    "Grassy Terrain",
+    "Leech Seed"
    ]
   },
   {
@@ -1543,10 +1560,10 @@
   {
    "tag": "damageMultAll",
    "kind": "item",
-   "param": "x damage on everything",
-   "why": "Life Orb 1.3, at a cost this does not model",
-   "consumedBy": "lifeorb",
-   "used": true,
+   "param": "x damage on everything, and what it charges for it",
+   "why": "Life Orb is x1.3 (6,301 sheets) and costs 1/10 max HP per attack. Scored as a free multiplier it makes the holder look like it wins races it actually loses",
+   "consumedBy": null,
+   "used": false,
    "n": 1,
    "uses": 6301,
    "examples": [
@@ -1556,8 +1573,8 @@
   {
    "tag": "damageMultType",
    "kind": "item",
-   "param": "x1.2 on one type",
-   "why": "Charcoal, Black Glasses, Mystic Water, Fairy Feather. About 6.7% of held items and a pure calculation error",
+   "param": "multiplies one TYPE, with the type and factor read from the handler",
+   "why": "Black Glasses, Mystic Water, Charcoal, Fairy Feather and the rest -- about 6.7% of held items, and a pure calculation error when missed",
    "consumedBy": null,
    "used": false,
    "n": 18,
@@ -1631,12 +1648,12 @@
    ]
   },
   {
-   "tag": "healsAtHalf",
+   "tag": "healsAtThreshold",
    "kind": "item",
-   "param": "restores 25% when it drops below half",
-   "why": "Sitrus, 10.8% of items. Modelled in the rollout engine only, invisible to MAG",
-   "consumedBy": "sitrusberry",
-   "used": true,
+   "param": "fires when HP drops below a fraction, and restores a DIFFERENT fraction",
+   "why": "Sitrus (7,132 sheets) triggers at 1/2 and heals 1/4 -- two different numbers that the kill calculation needs separately. A target at 55% is not in range of what looks lethal",
+   "consumedBy": null,
+   "used": false,
    "n": 2,
    "uses": 7132,
    "examples": [
@@ -7681,10 +7698,15 @@
   "saltcure": {
    "name": "Salt Cure",
    "tags": [
-    "untagged"
+    "perTurnHP"
    ],
    "uses": 26,
-   "params": {}
+   "params": {
+    "perTurnHP": {
+     "fraction": null,
+     "movesHPBetweenSides": false
+    }
+   }
   },
   "sandstorm": {
    "name": "Sandstorm",
@@ -8265,11 +8287,16 @@
   "aquaring": {
    "name": "Aqua Ring",
    "tags": [
+    "perTurnHP",
     "neverMisses",
     "statusCategory"
    ],
    "uses": 5,
    "params": {
+    "perTurnHP": {
+     "fraction": null,
+     "movesHPBetweenSides": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -9550,12 +9577,17 @@
   "curse": {
    "name": "Curse",
    "tags": [
+    "perTurnHP",
     "neverMisses",
     "ignoresProtect",
     "statusCategory"
    ],
    "uses": 62,
    "params": {
+    "perTurnHP": {
+     "fraction": null,
+     "movesHPBetweenSides": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -11051,12 +11083,17 @@
   "grassyterrain": {
    "name": "Grassy Terrain",
    "tags": [
+    "perTurnHP",
     "neverMisses",
     "setsTerrain",
     "statusCategory"
    ],
    "uses": 5,
    "params": {
+    "perTurnHP": {
+     "fraction": null,
+     "movesHPBetweenSides": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -11850,11 +11887,16 @@
   "ingrain": {
    "name": "Ingrain",
    "tags": [
+    "perTurnHP",
     "neverMisses",
     "statusCategory"
    ],
    "uses": 0,
    "params": {
+    "perTurnHP": {
+     "fraction": null,
+     "movesHPBetweenSides": false
+    },
     "neverMisses": {
      "pHit": 1,
      "note": "default for status"
@@ -12123,10 +12165,15 @@
   "leechseed": {
    "name": "Leech Seed",
    "tags": [
+    "perTurnHP",
     "statusCategory"
    ],
    "uses": 237,
    "params": {
+    "perTurnHP": {
+     "fraction": null,
+     "movesHPBetweenSides": true
+    },
     "statusCategory": {
      "status": true
     }
@@ -17561,6 +17608,7 @@
    "uses": 79,
    "params": {
     "damageMultType": {
+     "onType": "Ghost",
      "mult": 1.2
     }
    }
@@ -17715,6 +17763,7 @@
    "uses": 36,
    "params": {
     "damageMultType": {
+     "onType": "Fighting",
      "mult": 1.2
     }
    }
@@ -17727,6 +17776,7 @@
    "uses": 1332,
    "params": {
     "damageMultType": {
+     "onType": "Dark",
      "mult": 1.2
     }
    }
@@ -17751,6 +17801,7 @@
    "uses": 694,
    "params": {
     "damageMultType": {
+     "onType": "Fire",
      "mult": 1.2
     }
    }
@@ -17871,6 +17922,7 @@
    "uses": 117,
    "params": {
     "damageMultType": {
+     "onType": "Dragon",
      "mult": 1.2
     }
    }
@@ -17896,6 +17948,7 @@
    "uses": 1521,
    "params": {
     "damageMultType": {
+     "onType": "Fairy",
      "mult": 1.2
     }
    }
@@ -17940,6 +17993,7 @@
    "uses": 23,
    "params": {
     "damageMultType": {
+     "onType": "Rock",
      "mult": 1.2
     }
    }
@@ -18032,7 +18086,8 @@
    "uses": 6301,
    "params": {
     "damageMultAll": {
-     "mult": 1.3
+     "mult": 1.3,
+     "costsPerAttack": "1/10 max HP"
     }
    }
   },
@@ -18076,6 +18131,7 @@
    "uses": 77,
    "params": {
     "damageMultType": {
+     "onType": "Electric",
      "mult": 1.2
     }
    }
@@ -18100,6 +18156,7 @@
    "uses": 212,
    "params": {
     "damageMultType": {
+     "onType": "Steel",
      "mult": 1.2
     }
    }
@@ -18120,6 +18177,7 @@
    "uses": 48,
    "params": {
     "damageMultType": {
+     "onType": "Grass",
      "mult": 1.2
     }
    }
@@ -18140,6 +18198,7 @@
    "uses": 873,
    "params": {
     "damageMultType": {
+     "onType": "Water",
      "mult": 1.2
     }
    }
@@ -18152,6 +18211,7 @@
    "uses": 393,
    "params": {
     "damageMultType": {
+     "onType": "Ice",
      "mult": 1.2
     }
    }
@@ -18171,12 +18231,14 @@
   "oranberry": {
    "name": "Oran Berry",
    "tags": [
-    "healsAtHalf"
+    "healsAtThreshold"
    ],
    "uses": 0,
    "params": {
-    "healsAtHalf": {
-     "heal": 0.25
+    "healsAtThreshold": {
+     "triggersBelow": "1/2",
+     "restores": null,
+     "confusesIfWrongNature": null
     }
    }
   },
@@ -18224,6 +18286,7 @@
    "uses": 6,
    "params": {
     "damageMultType": {
+     "onType": "Poison",
      "mult": 1.2
     }
    }
@@ -18296,6 +18359,7 @@
    "uses": 302,
    "params": {
     "damageMultType": {
+     "onType": "Flying",
      "mult": 1.2
     }
    }
@@ -18328,6 +18392,7 @@
    "uses": 102,
    "params": {
     "damageMultType": {
+     "onType": "Normal",
      "mult": 1.2
     }
    }
@@ -18340,6 +18405,7 @@
    "uses": 2,
    "params": {
     "damageMultType": {
+     "onType": "Bug",
      "mult": 1.2
     }
    }
@@ -18347,12 +18413,14 @@
   "sitrusberry": {
    "name": "Sitrus Berry",
    "tags": [
-    "healsAtHalf"
+    "healsAtThreshold"
    ],
    "uses": 7132,
    "params": {
-    "healsAtHalf": {
-     "heal": 0.25
+    "healsAtThreshold": {
+     "triggersBelow": "1/2",
+     "restores": "1/4",
+     "confusesIfWrongNature": null
     }
    }
   },
@@ -18372,6 +18440,7 @@
    "uses": 75,
    "params": {
     "damageMultType": {
+     "onType": "Ground",
      "mult": 1.2
     }
    }
@@ -18396,6 +18465,7 @@
    "uses": 26,
    "params": {
     "damageMultType": {
+     "onType": "Psychic",
      "mult": 1.2
     }
    }

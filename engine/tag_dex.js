@@ -568,6 +568,21 @@ const MOVE_TAGS = [
       return { atFoe: m.basePower ? m.basePower + ' BP attack' : 'effect',
                atAlly: /this\.heal/.test(src) ? 'heals the ally' : 'different effect' };
     } },
+  /* Will: "leftovers is like a leech seed." Same key -- HP changing every turn with no action spent
+   * -- arriving from an item and from a move. Leftovers is +1/16 to the holder; Leech Seed is -1/8
+   * from the target AND +1/8 to the user, so it moves HP between sides rather than creating it.
+   * Leech Seed carried only `statusCategory`, so the drain was not recorded anywhere. */
+  { tag: 'perTurnHP', param: 'HP changes every turn with no action spent, and in which direction', probe: 'perTurnHP',
+    why: 'Leftovers is +1/16 a turn (4,336 sheets) and Leech Seed is -1/8 from the target to the '
+       + 'user. Both silently change who wins a damage race that the bot computes as static',
+    of: m => {
+      const c = m.condition || {};
+      const src = String(c.onResidual || '') + String(m.onResidual || '');
+      if (!/damage|heal|drain/i.test(src)) return null;
+      const frac = (src.match(/maxhp\s*\/\s*(\d+)|Math\.round\([^)]*\/\s*(\d+)/) || []).slice(1).find(Boolean);
+      return { fraction: frac ? '1/' + frac : null,
+               movesHPBetweenSides: /damage\(/.test(src) && /heal|drain/i.test(src) };
+    } },
   { tag: 'partialTrap', param: 'target cannot switch for 4-5 turns AND takes 1/8 chip each turn', probe: 'partiallytrapped',
     why: 'Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can '
        + 'legally do, which nothing represents, and the chip is residual damage nothing counts',
@@ -1220,12 +1235,42 @@ const ITEM_TAGS = [
   { tag: 'speedMult', param: 'speed x1.5', probe: 'choicescarf',
     why: 'order, which most kill features hang off',
     of: it => norm(it.name) === 'choicescarf' ? { mult: 1.5 } : null },
-  { tag: 'damageMultAll', param: 'x damage on everything', probe: 'lifeorb',
-    why: 'Life Orb 1.3, at a cost this does not model',
-    of: it => /^(lifeorb)$/.test(norm(it.name)) ? { mult: 1.3 } : null },
-  { tag: 'damageMultType', param: 'x1.2 on one type', probe: 'onBasePower',
-    why: 'Charcoal, Black Glasses, Mystic Water, Fairy Feather. About 6.7% of held items and a pure calculation error',
-    of: it => it.onBasePower && it.onBasePower.length >= 0 && /plate|gem$|charcoal|blackglasses|mysticwater|fairyfeather|magnet|nevermeltice|sharpbeak|silkscarf|silverpowder|softsand|spelltag|twistedspoon|hardstone|metalcoat|miracleseed|poisonbarb|blackbelt|dragonfang|oddincense|rockincense|roseincense|seaincense|waveincense/.test(norm(it.name)) ? { mult: 1.2 } : null },
+  /* Will: "life orb is a damage boost?" It is -- and it also costs 1/10 max HP on EVERY attack,
+   * which this tag's own `why` admitted it did not model while recording the multiplier as though
+   * the item were free. Two things were wrong: the cost was missing, and membership was a name
+   * hardcode (`/^(lifeorb)$/`) rather than a derivation, against the project's no-hardcodes rule.
+   * Both now come from the handlers. Same omission as Solar Power's sun chip: a multiplier with a
+   * recurring price is a different decision from a multiplier. */
+  { tag: 'damageMultAll', param: 'x damage on everything, and what it charges for it', probe: 'onModifyDamage',
+    why: 'Life Orb is x1.3 (6,301 sheets) and costs 1/10 max HP per attack. Scored as a free '
+       + 'multiplier it makes the holder look like it wins races it actually loses',
+    of: it => {
+      const md = String(it.onModifyDamage || '');
+      if (!md || /typeMod|Effectiveness/i.test(md)) return null;
+      const m = md.match(/chainModify\(\[?\s*(\d+)/);
+      const mult = m ? +(m[1] / 4096).toFixed(2) : null;
+      const c = String(it.onAfterMoveSecondarySelf || '');
+      const cost = (c.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
+      if (!mult) return null;
+      return { mult, costsPerAttack: cost ? '1/' + cost + ' max HP' : null };
+    } },
+  /* WAS A 24-NAME REGEX. Will: "NO HARDCODE." He is right and this was the worst offender left --
+   * charcoal|blackglasses|mysticwater|fairyfeather|magnet|nevermeltice|sharpbeak|... listing every
+   * type-boost item by hand, which silently omits any it forgot and any added later.
+   *
+   * It is entirely derivable: every one of them is an onBasePower that tests `move.type === "X"`
+   * and returns chainModify([4915, 4096]). The handler names both the type and the multiplier, so
+   * nothing needs to be typed -- and the multiplier comes out as the true 1.2 rather than assumed. */
+  { tag: 'damageMultType', param: 'multiplies one TYPE, with the type and factor read from the handler', probe: 'onBasePower',
+    why: 'Black Glasses, Mystic Water, Charcoal, Fairy Feather and the rest -- about 6.7% of held '
+       + 'items, and a pure calculation error when missed',
+    of: it => {
+      const src = String(it.onBasePower || '');
+      const t = (src.match(/move\.type\s*===?\s*"(\w+)"/) || [])[1];
+      if (!t) return null;
+      const m = src.match(/chainModify\(\[?\s*(\d+)/);
+      return { onType: t, mult: m ? +(m[1] / 4096).toFixed(2) : null };
+    } },
   { tag: 'curesVolatile', param: 'clears Taunt/Encore/Disable/Attract the moment one lands, then is gone', probe: 'onUpdate',
     why: 'Mental Herb. It silently undoes the whole point of a Taunt or an Encore, so any value the '
        + 'bot assigns to landing one is wrong against a holder',
@@ -1248,9 +1293,26 @@ const ITEM_TAGS = [
     of: it => (it.isBerry && !it.onSourceModifyDamage
                && /cureStatus|setStatus|status/i.test(String(it.onUpdate || it.onAfterSetStatus || '')))
               ? { cures: true } : null },
-  { tag: 'healsAtHalf', param: 'restores 25% when it drops below half', probe: 'sitrusberry',
-    why: 'Sitrus, 10.8% of items. Modelled in the rollout engine only, invisible to MAG',
-    of: it => (it.isBerry && it.onUpdate && /sitrus|oran/.test(norm(it.name))) ? { heal: 0.25 } : null },
+  /* Will: "all berries proc at half i thought, sitrus just heals 1/4 hp right."
+   * Half right, and my tag was worse than the question. `healsAtHalf` named the TRIGGER and never
+   * the AMOUNT, so it could not price the berry at all -- and the trigger is not universal: Sitrus
+   * fires at 1/2 and heals 1/4, while Figy fires at 1/4 and heals 1/3 and was UNTAGGED. Same
+   * boolean-instead-of-parameter defect as Swift Swim not naming rain. */
+  { tag: 'healsAtThreshold', param: 'fires when HP drops below a fraction, and restores a DIFFERENT fraction', probe: 'healsAtThreshold',
+    why: 'Sitrus (7,132 sheets) triggers at 1/2 and heals 1/4 -- two different numbers that the '
+       + 'kill calculation needs separately. A target at 55% is not in range of what looks lethal',
+    of: i => {
+      const upd = String(i.onUpdate || ''), eat = String(i.onEat || '');
+      if (!/eatItem|onEat/.test(upd + String(i.onEat ? 'onEat' : ''))) if (!i.onEat) return null;
+      /* baseMaxhp carries a CAPITAL M, so a case-sensitive /maxhp/ matched the trigger (which uses
+       * pokemon.maxhp) and never the heal (which uses baseMaxhp). The tag reported a threshold with
+       * no amount and looked merely incomplete rather than broken. */
+      const trig = (upd.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
+      const heal = (eat.match(/maxhp\s*\/\s*(\d+)/i) || [])[1];
+      if (!trig && !heal) return null;
+      return { triggersBelow: trig ? '1/' + trig : null, restores: heal ? '1/' + heal : null,
+               confusesIfWrongNature: /confus/i.test(eat) || null };
+    } },
   { tag: 'passiveHeal', param: 'restores HP every turn', probe: 'leftovers',
     why: 'changes how many turns a kill takes',
     of: it => norm(it.name) === 'leftovers' ? { heal: 1 / 16 } : null },

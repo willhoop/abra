@@ -380,7 +380,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Substitute | 247 | 0.4% | `costsUserHP` `neverMisses` `substitute` `statusCategory` |
 | Accelerock | 244 | 0.4% | `priority` `contact` |
 | Grass Knot | 244 | 0.4% | `variablePower` `weightBased` `contact` |
-| Leech Seed | 237 | 0.4% | `statusCategory` |
+| Leech Seed | 237 | 0.4% | `perTurnHP` `statusCategory` |
 | Feint | 225 | 0.3% | `priority` `ignoresProtect` |
 | Gunk Shot | 224 | 0.3% | `inflictsPoison` |
 | Beat Up | 223 | 0.3% | `variablePower` |
@@ -449,7 +449,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Stealth Rock | 64 | 0.1% | `neverMisses` `hazard` `statusCategory` |
 | Swagger | 64 | 0.1% | `inflictsConfusion` `boostsTarget` `statusCategory` |
 | Hex | 63 | 0.1% | `variablePower` |
-| Curse | 62 | 0.1% | `neverMisses` `ignoresProtect` `statusCategory` |
+| Curse | 62 | 0.1% | `perTurnHP` `neverMisses` `ignoresProtect` `statusCategory` |
 | Heal Pulse | 62 | 0.1% | `moveClass` `neverMisses` `statusCategory` `healsAlly` |
 | Zen Headbutt | 60 | 0.1% | `contact` `flinches` |
 | Quiver Dance | 58 | 0.1% | `neverMisses` `boostsUser` `statusCategory` |
@@ -506,7 +506,7 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Pain Split | 27 | 0.0% | `neverMisses` `statusCategory` |
 | Steel Beam | 27 | 0.0% | `recoil` |
 | Howl | 26 | 0.0% | `sound` `neverMisses` `boostsTarget` `statusCategory` |
-| Salt Cure | 26 | 0.0% | `untagged` |
+| Salt Cure | 26 | 0.0% | `perTurnHP` |
 | Assurance | 26 | 0.0% | `variablePower` `contact` `needsTargetToAttack` |
 | Fire Blast | 26 | 0.0% | `inflictsBurn` |
 | Hard Press | 26 | 0.0% | `variablePower` `contact` |
@@ -606,9 +606,9 @@ Every move that appears on a real sheet, in usage order, with the tags it carrie
 | Safeguard | 6 | 0.0% | `neverMisses` `sideBuff` `statusCategory` |
 | Speed Swap | 6 | 0.0% | `neverMisses` `statusCategory` |
 | Thunder Fang | 6 | 0.0% | `contact` `moveClass` `inflictsParalysis` `flinches` |
-| Aqua Ring | 5 | 0.0% | `neverMisses` `statusCategory` |
+| Aqua Ring | 5 | 0.0% | `perTurnHP` `neverMisses` `statusCategory` |
 | Drill Peck | 5 | 0.0% | `contact` |
-| Grassy Terrain | 5 | 0.0% | `neverMisses` `setsTerrain` `statusCategory` |
+| Grassy Terrain | 5 | 0.0% | `perTurnHP` `neverMisses` `setsTerrain` `statusCategory` |
 | Heat Crash | 5 | 0.0% | `variablePower` `weightBased` `contact` |
 | Icicle Spear | 5 | 0.0% | `multiHit` |
 | Magic Powder | 5 | 0.0% | `changesTargetType` `powder` `statusCategory` |
@@ -880,7 +880,7 @@ Every item that appears on a real sheet, in usage order, with the tags it carrie
 | item | on sheets | share | tags |
 |---|---:|---:|---|
 | Focus Sash | 7,693 | 11.7% | `survivesFromFull` |
-| Sitrus Berry | 7,132 | 10.8% | `healsAtHalf` |
+| Sitrus Berry | 7,132 | 10.8% | `healsAtThreshold` |
 | Life Orb | 6,301 | 9.6% | `damageMultAll` |
 | Leftovers | 4,336 | 6.6% | `passiveHeal` |
 | Choice Scarf | 3,947 | 6.0% | `choiceLock` `speedMult` |
@@ -2341,7 +2341,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Dire Claw | 1,520 | 2.3% |
 | Tri Attack | 1 | 0.0% |
 
-### `untagged` — 2.2%, 8 moves — **NOT READ**
+### `untagged` — 2.2%, 7 moves — **NOT READ**
 
 *?*
 
@@ -2349,7 +2349,6 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Hydro Pump | 718 | 1.1% |
 | Power Gem | 687 | 1.0% |
-| Salt Cure | 26 | 0.0% |
 | Fling | 13 | 0.0% |
 | Smack Down | 8 | 0.0% |
 | Spirit Shackle | 2 | 0.0% |
@@ -2602,6 +2601,20 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Roar | 283 | 0.4% |
 | Dragon Tail | 49 | 0.1% |
 | Whirlwind | 12 | 0.0% |
+
+*1 more carry this tag but appear on no sheet in the corpus.*
+
+### `perTurnHP` — 0.5%, 6 moves — **NOT READ**
+
+*HP changes every turn with no action spent, and in which direction*
+
+| move | on sheets | share |
+|---|---:|---:|
+| Leech Seed | 237 | 0.4% |
+| Curse | 62 | 0.1% |
+| Salt Cure | 26 | 0.0% |
+| Aqua Ring | 5 | 0.0% |
+| Grassy Terrain | 5 | 0.0% |
 
 *1 more carry this tag but appear on no sheet in the corpus.*
 
@@ -3569,9 +3582,9 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Focus Sash | 7,693 | 11.7% |
 
-### `healsAtHalf` — 10.8%, 2 items
+### `healsAtThreshold` — 10.8%, 2 items — **NOT READ**
 
-*restores 25% when it drops below half*
+*fires when HP drops below a fraction, and restores a DIFFERENT fraction*
 
 | item | on sheets | share |
 |---|---:|---:|
@@ -3604,9 +3617,9 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *2 more carry this tag but appear on no sheet in the corpus.*
 
-### `damageMultAll` — 9.6%, 1 items
+### `damageMultAll` — 9.6%, 1 items — **NOT READ**
 
-*x damage on everything*
+*x damage on everything, and what it charges for it*
 
 | item | on sheets | share |
 |---|---:|---:|
@@ -3614,7 +3627,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 ### `damageMultType` — 9.0%, 18 items — **NOT READ**
 
-*x1.2 on one type*
+*multiplies one TYPE, with the type and factor read from the handler*
 
 | item | on sheets | share |
 |---|---:|---:|
@@ -3810,15 +3823,15 @@ resource sitting in a volatile, which is why neither was visible before volatile
 
 | | count |
 |---|---:|
-| tags total | 172 |
-| — move / ability / item | 94 / 55 / 19 |
+| tags total | 173 |
+| — move / ability / item | 95 / 55 / 19 |
 | moves tagged | 500 |
 | abilities tagged | 258 |
 | items tagged | 146 |
-| **tags read by nothing** | **107** |
+| **tags read by nothing** | **110** |
 | tags that match no member at all | 7 |
 
-**107 of 172 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**110 of 173 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
