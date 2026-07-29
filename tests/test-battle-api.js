@@ -78,6 +78,10 @@ console.log('BATTLE API — one engine, sealed or stepped\n');
     'Protect held: flag up all turn, no damage taken (it clears at the START of the next turn)');
   const pa = M.playerAction(me, 'notarealmove', null, S.field);
   ok(pa && pa.kind === 'pass', 'an unmodelled click builds an honest pass, not a fake move');
+  /* the turn record for observers (the Tower's LOCAL game log — Will's games stay his) */
+  ok(Array.isArray(S.lastActs) && S.lastActs.length >= 2 &&
+     S.lastActs.every(a => a.side && a.name && a.kind),
+    `battleTurn records what both sides clicked (${S.lastActs && S.lastActs.length} actions)`);
 }
 
 console.log('');

@@ -739,6 +739,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       const forced=(side==='A'?actsForA&&actsForA.get(mon):actsForB&&actsForB.get(mon));
       acts.push({mon,side,a:forced||chooseAction(mon,foes,ally,field,side,rng)});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
+    /* what was actually clicked this turn, both sides, for observers (the Tower's local game
+     * record). A summary, not the live objects -- nothing outside can mutate the turn. */
+    S.lastActs=acts.map(it=>({side:it.side,name:it.mon.name,kind:it.a.kind,
+      move:(it.a.move&&it.a.move.id)||it.a.mv||null,
+      target:(it.a.target&&it.a.target.name)||null}));
     for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
     /* Bracket first, then speed. Protect-likes are +4 and Wide Guard is +3 in the real game; a status
      * move sits in its own move's bracket (Thunder Wave 0, Trick Room -7), not a blanket 0. */

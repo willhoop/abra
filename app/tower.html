@@ -143,6 +143,11 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
       <button class="sbtn" id="btnMyTeam">Load my team</button>
       <button class="sbtn big" id="btnClimb">Enter the Tower</button>
     </div>
+    <div class="ctlrow">
+      <button class="sbtn" id="btnDownload">Download my games (0)</button>
+      <button class="sbtn" id="btnWipe">Wipe them</button>
+      <span class="note" style="margin:0">Your games stay in THIS browser, stamped <b>tower-human</b> — nothing uploads, nothing trains on them. Download for later analysis whenever you want.</span>
+    </div>
     <div id="pasteBox" class="hide" style="margin-top:8px">
       <textarea id="pasteText" style="width:100%;height:110px;font:11px ui-monospace,Consolas,monospace;border:1px solid var(--btnline);border-radius:6px;padding:6px"
         placeholder="Paste a Showdown / PokePaste export here — Champions EVs (flat points) and nature are applied with the engine's own validated math."></textarea>
@@ -421,6 +426,10 @@ function playTurn(){
   document.getElementById('controls').innerHTML='<div class="whatwill">…</div>';
   var acts=new Map();
   S.actA.forEach(function(m,i){if(m&&!m.fainted&&state.orders[i])acts.set(m,state.orders[i].action);});
+  /* the local game record: player's picks as made, both sides' resolved clicks after the turn */
+  if(!state.gameRec)state.gameRec={at:new Date().toISOString(),floor:F.n,brain:F.brain,
+    you:state.S.actA.concat(state.S.benchA).filter(Boolean).map(function(m){return m.name;}),
+    foe:F.team.slice(),turns:[]};
   var actsB=null;
   if(F.brain==='wild'){
     actsB=new Map();
@@ -448,12 +457,39 @@ function playTurn(){
     if(b.m.status&&b.m.status!==b.st)say('<span class="'+who+'">'+esc(b.m.name)+'</span> was <b>'+({brn:'burned',psn:'poisoned',tox:'badly poisoned',par:'paralyzed',slp:'put to sleep',frz:'frozen'}[b.m.status]||b.m.status)+'</b>!');
   });
   if(S.field.weather!==wasWx)say('<span class="wx">'+(S.field.weather?('The weather became '+S.field.weather+'!'):'The skies cleared.')+'</span>');
+  state.gameRec.turns.push({n:S.turn,acts:S.lastActs||[]});
   state.orders={};
   if(battleOver(S)){finish(battleResult(S));return;}
   paint();nextOrder();
 }
 
+/* ---- YOUR games are YOURS (Will: "make my data completely separate, i don't want to train too
+ * much off me and my flaws"). Records live in THIS BROWSER's localStorage under their own key,
+ * stamped source:"tower-human". Nothing uploads them, nothing in the repo reads them, no training
+ * pipeline can see them -- they leave this machine only if you press Download, and even then the
+ * source stamp keeps them filterable forever (the same Garbodor rule that guards the ladder store). */
+function saveGame(result){
+  if(!state.gameRec)return;
+  state.gameRec.result=result;state.gameRec.source='tower-human';
+  try{
+    var arr=JSON.parse(localStorage.getItem('towerGames')||'[]');
+    arr.push(state.gameRec);
+    while(arr.length>500)arr.shift();
+    localStorage.setItem('towerGames',JSON.stringify(arr));
+  }catch(e){}
+  state.gameRec=null;
+}
+function gameCount(){try{return JSON.parse(localStorage.getItem('towerGames')||'[]').length;}catch(e){return 0;}}
+function refreshDataRow(){
+  var n=gameCount();
+  document.getElementById('btnDownload').textContent='Download my games ('+n+')';
+  document.getElementById('btnDownload').disabled=!n;
+  document.getElementById('btnWipe').disabled=!n;
+}
+
 function finish(r){
+  saveGame(r===1?'win':(r===0.5?'tie':'loss'));
+  refreshDataRow();
   var box=document.getElementById('resultBox');
   document.getElementById('pBattle').classList.add('hide');
   document.getElementById('pResult').classList.remove('hide');
@@ -481,7 +517,20 @@ function finish(r){
   }
 }
 
-rail();renderPick();
+document.getElementById('btnDownload').onclick=function(){
+  var rows;
+  try{rows=JSON.parse(localStorage.getItem('towerGames')||'[]');}catch(e){rows=[];}
+  if(!rows.length)return;
+  var jsonl=rows.map(function(r){return JSON.stringify(r);}).join('\n')+'\n';
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([jsonl],{type:'application/x-ndjson'}));
+  a.download='games.tower-human.jsonl';
+  a.click();URL.revokeObjectURL(a.href);
+};
+document.getElementById('btnWipe').onclick=function(){
+  localStorage.removeItem('towerGames');refreshDataRow();
+};
+rail();renderPick();refreshDataRow();
 })();
 </script>
 </body></html>
