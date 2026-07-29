@@ -474,6 +474,38 @@ console.log('\nwire 11 — typeImmunity');
     `Storm Drain banks +1 SpA off the absorbed Hydro Pump (sa ${sd.boosts.sa}, untouched HP)`);
 }
 
+/* ---- WIRE 12: survivesFromFull — the kill that is not a kill --------------------------------- */
+console.log('\nwire 12 — survivesFromFull');
+{
+  const pSA = TAGS.param('item', 'focussash', 'survivesFromFull');
+  ok(pSA && pSA.leavesHP === 1 && pSA.onlyFromFullHP === true && pSA.movesOnly === true && pSA.consumesItem === true,
+    'Focus Sash: full-HP gate, Move-only, leaves 1, SPENT — all from the handler (was a name check)');
+  const pST = TAGS.param('ability', 'sturdy', 'survivesFromFull');
+  ok(pST && pST.leavesHP === 1 && pST.consumesItem === false,
+    'Sturdy: the same idiom minus the consumption');
+
+  /* a lethal forced hit into a FULL-HP sash body leaves exactly 1 and eats the sash */
+  const battle1 = (hp, item, ability) => {
+    const a = M.buildMon('garchomp', {}); a.item = ''; a.moves = ['earthquake'];
+    const h = M.buildMon('pikachu', {}); h.item = item; if (ability) h.ability = ability;
+    h.moves = ['protect']; h.st = Object.assign({}, h.st, {}); h.curHP = hp == null ? h.st.hp : hp;
+    const sA = MC.priors[a.name], sH = MC.priors[h.name];
+    MC.priors[a.name] = null; MC.priors[h.name] = null;
+    const S = M.battleInit([a], [h]);
+    try { M.battleTurn(S, () => 0.5, new Map([[S.actA[0], M.playerAction(S.actA[0], 'earthquake', h, S.field)]])); }
+    finally { MC.priors[a.name] = sA; MC.priors[h.name] = sH; }
+    return h;
+  };
+  const sash = battle1(null, 'focussash', null);
+  ok(sash.curHP === 1 && !sash.fainted && sash.item === '',
+    `full-HP sash body survives the lethal hit at exactly 1, sash spent (HP ${sash.curHP}, item '${sash.item}')`);
+  const chipped = battle1(Math.floor(M.buildMon('pikachu', {}).st.hp * 0.9), 'focussash', null);
+  ok(chipped.fainted, 'the SAME hit kills at 90% HP — the full-HP gate is real');
+  const sturdy = battle1(null, '', 'sturdy');
+  ok(sturdy.curHP === 1 && !sturdy.fainted && sturdy.ability === 'sturdy',
+    'Sturdy survives the same way and is not consumed');
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

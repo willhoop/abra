@@ -251,6 +251,14 @@ const FEATURES = [
    * dominated by Whimsicott -- 469,820, base Speed 116, Prankster on 100% of sets, and the fourth
    * most common Pokemon in the store. */
   'stallIntoEncore', // I am about to Protect and something across from me can Encore me for it
+  /* ---- THE PRICE OF THE CLICK (Will: "what is the cost/risk of clicking this move ... that
+   * actually get priced into decisions"). Both numbers come from the exposure/fragility engines in
+   * medicham2-browser.js, reading the OPEN SHEET: the target's declared ability prices its Rough
+   * Skin toll or Flame Body burn risk (Guts flips the sign — a proc it WANTS reads negative), and
+   * the bench's declared setters/absorbers price what happens to a committed click if they pivot.
+   * The fit decides what each is worth in real clicks; today they are computed and ignored. */
+  'clickCost',       // expected self-cost of this click into that body (fraction-of-self units)
+  'benchRisk',       // 1 - worst-case value retention if their bench answers this click
   'priorLogP',       // it is a popular move
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
@@ -622,6 +630,12 @@ class Board {
        * item since setSheet was written and nothing read it, so Choice Scarf -- 6.52% of every item
        * in this format, and a flat +50% Speed -- was invisible to the one feature it most affects. */
       item: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).item || ''),
+      /* THE ABILITY, same rule as the item (Will: "actually be able to interpret those open team
+       * sheets"). The sheet declares it for all six, and every tag wire the damage engine grew --
+       * Rough Skin's toll, Volt Absorb's immunity-and-heal, Flame Body's burn risk -- keys on the
+       * DEFENDER'S ability. Empty on a closed-sheet game, and consumers fall back to Smogon's
+       * per-species odds exactly as abilityBlock always has. */
+      ability: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).ability || ''),
       /* The forme it will actually be, if the sheet's item is its own mega stone. Filled in by
        * effSpecies, because megaFormeOf needs the dex and the Board deliberately does not hold one.
        * `megaFor` records which species the answer was computed for, so a mid-battle transformation
@@ -742,6 +756,14 @@ function dmgMon(mon, D) {
     const v = mon.boosts && mon.boosts[proto];
     if (v) b.boosts[mine] = Math.max(-6, Math.min(6, v));
   }
+  /* THE SHEET WINS OVER THE DATASET GUESS. buildMon fills item and ability from the usage data's
+   * assumed build; on open sheets the tracker KNOWS both (Will: "actually be able to interpret
+   * those open team sheets"). Every tag wire in dmgRange keys on these — a declared Colbur Berry
+   * or Volt Absorb must price as itself, not as whatever the average build carries. '' from the
+   * sheet means genuinely none and also wins; only a mon with NO sheet keeps the guess. */
+  const hasSheet = !!mon.nature;   // a sheet always declares a nature, so nature ⇒ sheet was read
+  if (hasSheet) b.item = mon.item || '';   // '' from a sheet means genuinely itemless, and wins
+  if (mon.ability) b.ability = mon.ability;
   return b;
 }
 
@@ -940,7 +962,10 @@ function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) 
       def = Object.assign(Object.create(Object.getPrototypeOf(def) || Object.prototype), def, { st });
     }
   }
-  const mv = { t: mType, bp: m.basePower || 0, c: m.category === 'Physical' ? 'P' : 'S' };
+  /* THE ID RIDES ALONG. dmgRange's tag wires key on mv.id — Weather Ball's type-and-power flip,
+   * Last Respects' death count — and a synthesized {t,bp,c} without it silently priced all of
+   * them at their label values in every MAG damage read. */
+  const mv = { t: mType, bp: m.basePower || 0, c: m.category === 'Physical' ? 'P' : 'S', id: norm(m.id || m.name) };
   if (!mv.bp) return null;
   /* THIS PASSED AN EMPTY FIELD, and the board knew the weather the whole time. Sun multiplies Fire
    * by 1.5 and rain multiplies Water by 1.5, so every damage number under weather was wrong -- on a
@@ -2062,6 +2087,38 @@ function featuresFor(cand, user, board, side, dex, priorP) {
           set('dmgFrac', fracSum / n2);
           set('killsThreat', killsThreatening);
           set('koFirst', killsFirst);
+        }
+      }
+      /* ---- THE PRICE OF THE CLICK, as features the fit can weigh ------------------------------
+       * Same engines the rollout scorer already subtracts (punishExposure, clickFragility), read
+       * against the SHEET-declared ability and bench. Zero when the damage engine is unavailable,
+       * and counted as such — a silently-zero price is indistinguishable from "touching Rough Skin
+       * is free", the exact blindness this pair exists to remove. */
+      if (t) {
+        const D2 = damageEngine();
+        if (!D2) { dmgFailures.unavailable++; }
+        else if (typeof D2.punishExposure === 'function') {
+          const a2 = dmgMon(user, D2), d2 = dmgMon(t, D2);
+          if (a2 && d2) {
+            const mvId = norm(m.id || m.name);
+            const fld = { weather: (board && WEATHER_KIND[board.weather]) || '', terrain: '' };
+            const xp = D2.punishExposure(a2, d2, mvId, { field: fld });
+            if (xp) set('clickCost', xp.total);
+            const foeSide2 = side === 'p1' ? 'p2' : 'p1';
+            const benchMons = (board.bench(foeSide2) || []).map(sp => {
+              const key2 = MC.mons[norm(sp)] ? norm(sp) : (MC.mons[baseSpecies(sp)] ? baseSpecies(sp) : null);
+              if (!key2) return null;
+              const b2 = D2.buildMon(key2);
+              if (!b2) return null;
+              const sh = board.sheet && board.sheet[foeSide2] && board.sheet[foeSide2][baseSpecies(sp)];
+              if (sh) { b2.item = norm(sh.item || ''); if (sh.ability) b2.ability = norm(sh.ability); }
+              return b2;
+            }).filter(Boolean);
+            if (benchMons.length) {
+              const fr = D2.clickFragility(a2, mvId, d2, benchMons, fld);
+              if (fr && fr.fragile) set('benchRisk', 1 - fr.retention);
+            }
+          }
         }
       }
       /* stallingMove is the dex's own flag for the Protect family, so Baneful Bunker, Spiky Shield

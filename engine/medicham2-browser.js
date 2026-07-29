@@ -886,6 +886,20 @@ function battleTurn(S,rng,actsForA,actsForB){
              * conditions and no volatiles. Left visibly unconsumed rather than faked. */
           }
         }
+        /* WIRE 12 -- survivesFromFull. Focus Sash is the most-held item in the format (8,078
+         * sheets) and Sturdy its ability twin, and neither existed here: every lethal hit into a
+         * full-HP sash body was a kill that is not a kill. The gates come from the handler via the
+         * tag -- full HP only, a MOVE only (burn chip still kills), survive at exactly 1 -- and the
+         * sash is SPENT in the act while Sturdy is not, which the artifact's consumesItem states.
+         * This engine rolls multi-hit as one packet, so a sash here also eats Bullet Seed -- the
+         * one divergence from the real rule, stated rather than hidden. */
+        if(dmg>=tg.curHP&&tg.curHP===tg.st.hp){
+          const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');
+          if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)){
+            dmg=tg.curHP-(_sv.leavesHP||1);
+            if(_sv.consumesItem)tg.item='';
+          }
+        }
         tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
         else {
           /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`

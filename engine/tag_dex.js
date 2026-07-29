@@ -1358,9 +1358,18 @@ const ITEM_TAGS = [
   { tag: 'megaStone', param: 'the holder becomes another species', probe: 'megaStone',
     why: 'different stats, typing and ability from turn one',
     of: it => it.megaStone ? { into: it.megaStone } : null },
-  { tag: 'survivesFromFull', param: 'a lethal hit from full HP leaves 1', probe: 'survivesFromFull',
+  { tag: 'survivesFromFull', param: 'a lethal MOVE from full HP leaves 1; the sash is spent doing it', probe: 'survivesFromFull',
     why: 'Focus Sash, the most-held item in the format. Broken by multi-hit moves and by any prior chip',
-    of: it => norm(it.name) === 'focussash' ? { survives: true } : null },
+    /* Was a name check — the exact defect this file exists to kill. The handler states everything:
+     * the full-HP gate, the Move-only gate (sash does not stop burn chip), the survive-at-1, and
+     * useItem() marks the one-shot. Sturdy matches the same idiom minus the consumption. */
+    of: it => {
+      const src = String(it.onDamage || '');
+      if (!/hp\s*===\s*\w+\.maxhp/.test(src) || !/damage\s*>=\s*\w+\.hp/.test(src) || !/hp\s*-\s*1/.test(src)) return null;
+      return { leavesHP: 1, onlyFromFullHP: true,
+               movesOnly: /effectType\s*===\s*"Move"/.test(src),
+               consumesItem: /useItem\(\)/.test(src) };
+    } },
   { tag: 'choiceLock', param: 'the holder is locked into one move', probe: 'locking',
     why: 'the single strongest thing an open sheet tells you about what they can do next turn',
     of: it => (it.isChoice) ? { choice: true } : null },
@@ -1528,9 +1537,16 @@ const ITEM_TAGS = [
 ];
 
 const ABILITY_TAGS = [
-  { tag: 'survivesFromFull', param: 'a lethal hit from full HP leaves 1', probe: 'sturdy',
-    why: 'Sturdy. Identical to Focus Sash and NOT modelled anywhere -- verified 0 mentions',
-    of: a => norm(a.name) === 'sturdy' ? { survives: true } : null },
+  { tag: 'survivesFromFull', param: 'a lethal MOVE from full HP leaves 1', probe: 'sturdy',
+    why: 'Sturdy. Identical to Focus Sash minus the consumption -- and was a name check, same as '
+       + 'the sash: both now read the onDamage idiom itself',
+    of: a => {
+      const src = String(a.onDamage || '');
+      if (!/hp\s*===\s*\w+\.maxhp/.test(src) || !/damage\s*>=\s*\w+\.hp/.test(src) || !/hp\s*-\s*1/.test(src)) return null;
+      return { leavesHP: 1, onlyFromFullHP: true,
+               movesOnly: /effectType\s*===\s*"Move"/.test(src),
+               consumesItem: /useItem\(\)/.test(src) };
+    } },
   { tag: 'critRatioUp', param: 'P(crit) raised', probe: 'onModifyCritRatio',
     why: 'Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick',
     of: a => a.onModifyCritRatio ? { critRatio: 2 } : null },
