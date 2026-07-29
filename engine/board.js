@@ -517,6 +517,16 @@ class Board {
     return out;
   }
 
+  /* What the SHEET said this Pokemon is holding, or null when no sheet published one. Null and ''
+   * are different answers: null means "no sheet", '' means "the sheet says no item". Callers must
+   * fall back to population statistics only on null, or a closed-sheet game and a genuinely itemless
+   * Pokemon become the same thing. */
+  sheetItem(side, species) {
+    const e = this.sheet && this.sheet[side] && this.sheet[side][baseSpecies(species)];
+    if (!e || e.item === undefined || e.item === null) return null;
+    return e.item;
+  }
+
   setSheet(side, species, info) {
     if (!species || !info) return;
     this.sheet[side][baseSpecies(species)] = info;
@@ -1884,7 +1894,24 @@ function featuresFor(cand, user, board, side, dex, priorP) {
             /* Only from FULL health: a Sash is already gone once the holder has taken a hit, so it
              * cannot save a target that is visibly damaged. This is why the drag is conditioned on
              * hp rather than applied flat. */
-            if (left >= 1) sashDrag += (SASH[norm(h.species)] || SASH[baseSpecies(h.species)] || 0);
+            /* THE SHEET OUTRANKS THE POPULATION, and this is the single clearest case of it.
+             *
+             * SASH[species] is "what fraction of this species holds a Focus Sash", from the usage
+             * file. Focus Sash is the most-held item in the format at 11.7% of sheet entries, so
+             * every kill was being discounted by roughly a tenth on a coin-flip basis -- against a
+             * holder MAG called kills that cannot happen, and against everything else it under-rated
+             * its own kills by the same margin.
+             *
+             * In an open-sheet game the answer is not a probability. The sheet names the item before
+             * turn one. Known holder -> the drag is 1 and the kill from full health is off; known
+             * non-holder -> 0 and the kill stands. The population figure is the fallback for a
+             * closed-sheet game, which is what it was always for. */
+            if (left >= 1) {
+              const declared = board && board.sheetItem && board.sheetItem(h.side, h.species);
+              sashDrag += declared !== null && declared !== undefined
+                ? (norm(declared) === GAME_RULES.survivesFromFull ? 1 : 0)
+                : (SASH[norm(h.species)] || SASH[baseSpecies(h.species)] || 0);
+            }
             protDrag += protectOdds(h.species);
             /* Removing the thing that was going to remove me is a different act from removing
              * something harmless, and no combination of the existing features can say so. */

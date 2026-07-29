@@ -1,0 +1,6798 @@
+{
+ "generated": "2026-07-29T01:36:12.321Z",
+ "by": "engine/tag_dex.js",
+ "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
+ "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
+ "consumedBy": "CHECKED by grepping engine/board.js and engine/medicham2-browser.js for the tag probe. A tag whose probe appears in neither is reported NOT READ regardless of intent.",
+ "sheet_entries": 65280,
+ "tags": [
+  {
+   "tag": "multiHit",
+   "kind": "move",
+   "param": "hits = n (or a distribution)",
+   "why": "total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill",
+   "consumedBy": null,
+   "used": false,
+   "n": 14,
+   "uses": 3073,
+   "examples": [
+    "Bone Rush",
+    "Bullet Seed",
+    "Dragon Darts",
+    "Dual Wingbeat",
+    "Icicle Spear",
+    "Pin Missile"
+   ]
+  },
+  {
+   "tag": "alwaysCrit",
+   "kind": "move",
+   "param": "P(crit) = 1",
+   "why": "x1.5 and ignores the defender's positive defensive boosts",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 166,
+   "examples": [
+    "Storm Throw",
+    "Flower Trick",
+    "Frost Breath"
+   ]
+  },
+  {
+   "tag": "critRatioUp",
+   "kind": "move",
+   "param": "P(crit) raised",
+   "why": "a higher crit stage, which the damage distribution should weight rather than ignore",
+   "consumedBy": null,
+   "used": false,
+   "n": 14,
+   "uses": 735,
+   "examples": [
+    "Crabhammer",
+    "Night Slash",
+    "Shadow Claw",
+    "Aqua Cutter",
+    "Blaze Kick",
+    "Cross Chop"
+   ]
+  },
+  {
+   "tag": "variablePower",
+   "kind": "move",
+   "param": "basePower is computed, not fixed",
+   "why": "Gyro Ball, Low Kick, Grass Knot, Weather Ball, Facade, Acrobatics. A fixed bp reads them wrong in both directions",
+   "consumedBy": "basePowerCallback",
+   "used": true,
+   "n": 29,
+   "uses": 9625,
+   "examples": [
+    "Infernal Parade",
+    "Rage Fist",
+    "Acrobatics",
+    "Assurance",
+    "Avalanche",
+    "Beat Up"
+   ]
+  },
+  {
+   "tag": "fixedDamage",
+   "kind": "move",
+   "param": "damage is a constant, not a formula",
+   "why": "Seismic Toss and Night Shade ignore stats entirely",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 22,
+   "examples": [
+    "Night Shade"
+   ]
+  },
+  {
+   "tag": "spread",
+   "kind": "move",
+   "param": "x0.75 and it also hits my ally",
+   "why": "the ally half is what allyHit is for, and the 0.75 is a damage parameter",
+   "consumedBy": "allAdjacentFoes",
+   "used": true,
+   "n": 38,
+   "uses": 30608,
+   "examples": [
+    "Corrosive Gas",
+    "Make It Rain",
+    "Blizzard",
+    "Boomburst",
+    "Breaking Swipe",
+    "Brutal Swing"
+   ]
+  },
+  {
+   "tag": "priority",
+   "kind": "move",
+   "param": "order = priority",
+   "why": "who moves first, before speed is consulted at all",
+   "consumedBy": "effectivePriority",
+   "used": true,
+   "n": 39,
+   "uses": 78138,
+   "examples": [
+    "Baneful Bunker",
+    "Beak Blast",
+    "Fake Out",
+    "First Impression",
+    "King's Shield",
+    "Protect"
+   ]
+  },
+  {
+   "tag": "contact",
+   "kind": "move",
+   "param": "triggers contact punishment on the defender",
+   "why": "Rocky Helmet, Rough Skin, Iron Barbs, Static, Flame Body all cost you for touching",
+   "consumedBy": "contact",
+   "used": true,
+   "n": 166,
+   "uses": 76407,
+   "examples": [
+    "Crabhammer",
+    "Dire Claw",
+    "Dragon Claw",
+    "Fake Out",
+    "First Impression",
+    "Iron Head"
+   ]
+  },
+  {
+   "tag": "powder",
+   "kind": "move",
+   "param": "fails into Grass types, Overcoat and Safety Goggles",
+   "why": "this is how Rage Powder is beaten, and redirection is scored as if it always works",
+   "consumedBy": "powder",
+   "used": true,
+   "n": 7,
+   "uses": 4625,
+   "examples": [
+    "Cotton Spore",
+    "Magic Powder",
+    "Rage Powder",
+    "Sleep Powder",
+    "Spore",
+    "Stun Spore"
+   ]
+  },
+  {
+   "tag": "sound",
+   "kind": "move",
+   "param": "bypasses Substitute, blocked by Soundproof",
+   "why": "also the trigger for Throat Spray",
+   "consumedBy": "flags.sound",
+   "used": true,
+   "n": 24,
+   "uses": 9486,
+   "examples": [
+    "Clangorous Soul",
+    "Dragon Cheer",
+    "Howl",
+    "Alluring Voice",
+    "Boomburst",
+    "Bug Buzz"
+   ]
+  },
+  {
+   "tag": "protectBlocked",
+   "kind": "move",
+   "param": "Protect stops it",
+   "why": "the protect family is priced against this, and a move that ignores Protect must not be",
+   "consumedBy": null,
+   "used": false,
+   "n": 389,
+   "uses": 175315,
+   "examples": [
+    "Apple Acid",
+    "Beak Blast",
+    "Belch",
+    "Bone Rush",
+    "Burn Up",
+    "Corrosive Gas"
+   ]
+  },
+  {
+   "tag": "stalling",
+   "kind": "move",
+   "param": "is a Protect-family move",
+   "why": "protectThreatened and deadStall both hang off it",
+   "consumedBy": "stallingMove",
+   "used": true,
+   "n": 6,
+   "uses": 45491,
+   "examples": [
+    "Baneful Bunker",
+    "King's Shield",
+    "Protect",
+    "Spiky Shield",
+    "Detect",
+    "Endure"
+   ]
+  },
+  {
+   "tag": "redirects",
+   "kind": "move",
+   "param": "takes the turn's single-target attacks",
+   "why": "Follow Me and Rage Powder. A pair feature in DODUO and nothing in the single-move vector",
+   "consumedBy": "redirect",
+   "used": true,
+   "n": 2,
+   "uses": 4784,
+   "examples": [
+    "Follow Me",
+    "Rage Powder"
+   ]
+  },
+  {
+   "tag": "selfSwitch",
+   "kind": "move",
+   "param": "the user leaves after damaging",
+   "why": "U-turn, Volt Switch, Flip Turn. Momentum, and the switch features cannot see it",
+   "consumedBy": "selfSwitch",
+   "used": true,
+   "n": 7,
+   "uses": 8394,
+   "examples": [
+    "Baton Pass",
+    "Chilly Reception",
+    "Flip Turn",
+    "Parting Shot",
+    "Shed Tail",
+    "U-turn"
+   ]
+  },
+  {
+   "tag": "forcesSwitch",
+   "kind": "move",
+   "param": "the TARGET is removed from the field",
+   "why": "Whirlwind, Dragon Tail, Roar. Undoes setup and changes who is in front of you",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 341,
+   "examples": [
+    "Dragon Tail",
+    "Roar",
+    "Whirlwind"
+   ]
+  },
+  {
+   "tag": "setsWeather",
+   "kind": "move",
+   "param": "weather := x",
+   "why": "and whether that weather HELPS is the thing nothing currently asks (task #19)",
+   "consumedBy": "setWeather",
+   "used": true,
+   "n": 5,
+   "uses": 1101,
+   "examples": [
+    "Sandstorm",
+    "Snowscape",
+    "Chilly Reception",
+    "Rain Dance",
+    "Sunny Day"
+   ]
+  },
+  {
+   "tag": "setsTerrain",
+   "kind": "move",
+   "param": "terrain := x",
+   "why": "same as weather: redundancy is detected, benefit is not",
+   "consumedBy": "terrain",
+   "used": true,
+   "n": 4,
+   "uses": 71,
+   "examples": [
+    "Electric Terrain",
+    "Grassy Terrain",
+    "Misty Terrain",
+    "Psychic Terrain"
+   ]
+  },
+  {
+   "tag": "setsRoom",
+   "kind": "move",
+   "param": "a pseudo-weather that reverses or reorders",
+   "why": "Trick Room. It set this FOR Will and then lost to it",
+   "consumedBy": "pseudoWeather",
+   "used": true,
+   "n": 5,
+   "uses": 4451,
+   "examples": [
+    "Gravity",
+    "Trick Room",
+    "Wonder Room"
+   ]
+  },
+  {
+   "tag": "setsScreen",
+   "kind": "move",
+   "param": "a side condition",
+   "why": "Reflect, Light Screen, Tailwind, Safeguard -- halved damage or doubled speed for five turns",
+   "consumedBy": "sideCondition",
+   "used": true,
+   "n": 11,
+   "uses": 14699,
+   "examples": [
+    "Aurora Veil",
+    "Light Screen",
+    "Quick Guard",
+    "Reflect",
+    "Safeguard",
+    "Spikes"
+   ]
+  },
+  {
+   "tag": "boostsUser",
+   "kind": "move",
+   "param": "stat stages on self",
+   "why": "the setup family, derived rather than listed",
+   "consumedBy": "boosts",
+   "used": true,
+   "n": 22,
+   "uses": 6098,
+   "examples": [
+    "Clangorous Soul",
+    "Growth",
+    "Acid Armor",
+    "Agility",
+    "Amnesia",
+    "Bulk Up"
+   ]
+  },
+  {
+   "tag": "lowersTarget",
+   "kind": "move",
+   "param": "stat stages on the foe",
+   "why": "Intimidate-shaped effects from a move; also what Clear Amulet and White Herb answer",
+   "consumedBy": "movesLowerFoe",
+   "used": true,
+   "n": 23,
+   "uses": 2198,
+   "examples": [
+    "Howl",
+    "Toxic Thread",
+    "Aromatic Mist",
+    "Baby-Doll Eyes",
+    "Charm",
+    "Coaching"
+   ]
+  },
+  {
+   "tag": "inflictsStatus",
+   "kind": "move",
+   "param": "status := x",
+   "why": "burn halves physical damage, paralysis halves speed -- both are damage/order parameters",
+   "consumedBy": "statusBites",
+   "used": true,
+   "n": 11,
+   "uses": 2913,
+   "examples": [
+    "Toxic Thread",
+    "Glare",
+    "Hypnosis",
+    "Sleep Powder",
+    "Spore",
+    "Stun Spore"
+   ]
+  },
+  {
+   "tag": "drain",
+   "kind": "move",
+   "param": "heals a fraction of damage dealt",
+   "why": "changes the value of clicking it into a healthy target",
+   "consumedBy": "drain",
+   "used": true,
+   "n": 8,
+   "uses": 5716,
+   "examples": [
+    "Bitter Blade",
+    "Draining Kiss",
+    "Drain Punch",
+    "Giga Drain",
+    "Horn Leech",
+    "Leech Life"
+   ]
+  },
+  {
+   "tag": "recoil",
+   "kind": "move",
+   "param": "costs the user HP",
+   "why": "a cost the score does not currently carry",
+   "consumedBy": "recoil",
+   "used": true,
+   "n": 11,
+   "uses": 11677,
+   "examples": [
+    "Light of Ruin",
+    "Brave Bird",
+    "Double-Edge",
+    "Flare Blitz",
+    "Head Smash",
+    "Steel Beam"
+   ]
+  },
+  {
+   "tag": "heals",
+   "kind": "move",
+   "param": "restores HP",
+   "why": "and healing an ALLY is a pair feature that exists in DODUO",
+   "consumedBy": "healsPartner",
+   "used": true,
+   "n": 22,
+   "uses": 9821,
+   "examples": [
+    "Bitter Blade",
+    "Draining Kiss",
+    "Drain Punch",
+    "Giga Drain",
+    "Healing Wish",
+    "Heal Pulse"
+   ]
+  },
+  {
+   "tag": "chargeTurn",
+   "kind": "move",
+   "param": "costs a turn before it lands",
+   "why": "and the request omits the target field on the locked turn, which already broke the player once",
+   "consumedBy": "chargeTurn",
+   "used": true,
+   "n": 10,
+   "uses": 4361,
+   "examples": [
+    "Dig",
+    "Electro Shot",
+    "Meteor Beam",
+    "Phantom Force",
+    "Solar Beam",
+    "Solar Blade"
+   ]
+  },
+  {
+   "tag": "recharge",
+   "kind": "move",
+   "param": "costs the turn AFTER it lands",
+   "why": "Hyper Beam. A free turn for the opponent",
+   "consumedBy": "rechargeTurn",
+   "used": true,
+   "n": 6,
+   "uses": 1051,
+   "examples": [
+    "Blast Burn",
+    "Giga Impact",
+    "Hydro Cannon",
+    "Hyper Beam"
+   ]
+  },
+  {
+   "tag": "flinches",
+   "kind": "move",
+   "param": "P(flinch) on a faster hit",
+   "why": "Fake Out. Blocked by Covert Cloak and by Inner Focus, neither of which is checked",
+   "consumedBy": "flinch",
+   "used": true,
+   "n": 19,
+   "uses": 21314,
+   "examples": [
+    "Fake Out",
+    "Iron Head",
+    "Mountain Gale",
+    "Air Slash",
+    "Bite",
+    "Dark Pulse"
+   ]
+  },
+  {
+   "tag": "ignoresAbility",
+   "kind": "move",
+   "param": "the defender's ability does not apply",
+   "why": "Mold Breaker-style moves walk through Levitate and the damage-reducing abilities",
+   "consumedBy": null,
+   "used": false,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "ohko",
+   "kind": "move",
+   "param": "removes the target outright",
+   "why": "a different kill calculation entirely",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 67,
+   "examples": [
+    "Fissure",
+    "Guillotine",
+    "Sheer Cold"
+   ]
+  },
+  {
+   "tag": "megaStone",
+   "kind": "item",
+   "param": "the holder becomes another species",
+   "why": "different stats, typing and ability from turn one",
+   "consumedBy": "megaStone",
+   "used": true,
+   "n": 75,
+   "uses": 18278,
+   "examples": [
+    "Abomasite",
+    "Absolite",
+    "Aerodactylite",
+    "Aggronite",
+    "Alakazite",
+    "Altarianite"
+   ]
+  },
+  {
+   "tag": "survivesFromFull",
+   "kind": "item",
+   "param": "a lethal hit from full HP leaves 1",
+   "why": "Focus Sash, the most-held item in the format. Broken by multi-hit moves and by any prior chip",
+   "consumedBy": "survivesFromFull",
+   "used": true,
+   "n": 1,
+   "uses": 7610,
+   "examples": [
+    "Focus Sash"
+   ]
+  },
+  {
+   "tag": "choiceLock",
+   "kind": "item",
+   "param": "the holder is locked into one move",
+   "why": "the single strongest thing an open sheet tells you about what they can do next turn",
+   "consumedBy": "locking",
+   "used": true,
+   "n": 1,
+   "uses": 3907,
+   "examples": [
+    "Choice Scarf"
+   ]
+  },
+  {
+   "tag": "speedMult",
+   "kind": "item",
+   "param": "speed x1.5",
+   "why": "order, which most kill features hang off",
+   "consumedBy": "choicescarf",
+   "used": true,
+   "n": 1,
+   "uses": 3907,
+   "examples": [
+    "Choice Scarf"
+   ]
+  },
+  {
+   "tag": "damageMultAll",
+   "kind": "item",
+   "param": "x damage on everything",
+   "why": "Life Orb 1.3, at a cost this does not model",
+   "consumedBy": "lifeorb",
+   "used": true,
+   "n": 1,
+   "uses": 6223,
+   "examples": [
+    "Life Orb"
+   ]
+  },
+  {
+   "tag": "damageMultType",
+   "kind": "item",
+   "param": "x1.2 on one type",
+   "why": "Charcoal, Black Glasses, Mystic Water, Fairy Feather. About 6.7% of held items and a pure calculation error",
+   "consumedBy": null,
+   "used": false,
+   "n": 18,
+   "uses": 5852,
+   "examples": [
+    "Spell Tag",
+    "Black Belt",
+    "Black Glasses",
+    "Charcoal",
+    "Dragon Fang",
+    "Fairy Feather"
+   ]
+  },
+  {
+   "tag": "resistBerry",
+   "kind": "item",
+   "param": "halves one super-effective hit, then is gone",
+   "why": "Chople, Colbur, Kasib, Occa. About 6.8% of held items and it turns kills into non-kills",
+   "consumedBy": null,
+   "used": false,
+   "n": 18,
+   "uses": 6419,
+   "examples": [
+    "Babiri Berry",
+    "Charti Berry",
+    "Chople Berry",
+    "Coba Berry",
+    "Colbur Berry",
+    "Haban Berry"
+   ]
+  },
+  {
+   "tag": "healsAtHalf",
+   "kind": "item",
+   "param": "restores 25% when it drops below half",
+   "why": "Sitrus, 10.8% of items. Modelled in the rollout engine only, invisible to MAG",
+   "consumedBy": "sitrusberry",
+   "used": true,
+   "n": 2,
+   "uses": 7043,
+   "examples": [
+    "Sitrus Berry"
+   ]
+  },
+  {
+   "tag": "passiveHeal",
+   "kind": "item",
+   "param": "restores HP every turn",
+   "why": "changes how many turns a kill takes",
+   "consumedBy": "leftovers",
+   "used": true,
+   "n": 1,
+   "uses": 4289,
+   "examples": [
+    "Leftovers"
+   ]
+  },
+  {
+   "tag": "blocksSecondary",
+   "kind": "item",
+   "param": "added effects do not apply to the holder",
+   "why": "Covert Cloak. Fake Out does not flinch through it, and nothing checks",
+   "consumedBy": null,
+   "used": false,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "blocksPowder",
+   "kind": "item",
+   "param": "powder moves fail against the holder",
+   "why": "Safety Goggles beats Rage Powder redirection outright",
+   "consumedBy": "safetygoggles",
+   "used": true,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "preventsStatDrop",
+   "kind": "item",
+   "param": "stat drops do not apply",
+   "why": "Clear Amulet turns Intimidate into nothing",
+   "consumedBy": null,
+   "used": false,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "restoresStats",
+   "kind": "item",
+   "param": "undoes stat drops once",
+   "why": "2.1% of items, and it changes what a drop is worth",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 1358,
+   "examples": [
+    "White Herb"
+   ]
+  },
+  {
+   "tag": "extendsScreens",
+   "kind": "item",
+   "param": "side conditions last 8 turns not 5",
+   "why": "3.1% of items",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 2007,
+   "examples": [
+    "Light Clay"
+   ]
+  },
+  {
+   "tag": "contactPunish",
+   "kind": "item",
+   "param": "hurts anything that makes contact",
+   "why": "a cost of clicking a contact move that is not currently priced",
+   "consumedBy": null,
+   "used": false,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "statMult",
+   "kind": "item",
+   "param": "raises one stat",
+   "why": "Band, Specs, Assault Vest, Eviolite",
+   "consumedBy": "assaultvest",
+   "used": true,
+   "n": 0,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "survivesFromFull",
+   "kind": "ability",
+   "param": "a lethal hit from full HP leaves 1",
+   "why": "Sturdy. Identical to Focus Sash and NOT modelled anywhere -- verified 0 mentions",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 153,
+   "examples": [
+    "Sturdy"
+   ]
+  },
+  {
+   "tag": "preventsCrit",
+   "kind": "ability",
+   "param": "P(crit) = 0",
+   "why": "Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 86,
+   "examples": [
+    "Disguise",
+    "Shell Armor"
+   ]
+  },
+  {
+   "tag": "weatherSetter",
+   "kind": "ability",
+   "param": "weather := x on switch-in",
+   "why": "and megaing can COST you it, which is Will's reason to decline a mega",
+   "consumedBy": null,
+   "used": false,
+   "n": 5,
+   "uses": 4593,
+   "examples": [
+    "Drizzle",
+    "Drought",
+    "Sand Stream",
+    "Snow Warning"
+   ]
+  },
+  {
+   "tag": "terrainSetter",
+   "kind": "ability",
+   "param": "terrain := x on switch-in",
+   "why": "same shape as weather",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 1,
+   "examples": [
+    "Psychic Surge"
+   ]
+  },
+  {
+   "tag": "speedCond",
+   "kind": "ability",
+   "param": "speed x2 under a condition",
+   "why": "Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order",
+   "consumedBy": "onModifySpe",
+   "used": true,
+   "n": 7,
+   "uses": 1954,
+   "examples": [
+    "Chlorophyll",
+    "Quick Feet",
+    "Sand Rush",
+    "Slush Rush",
+    "Surge Surfer",
+    "Swift Swim"
+   ]
+  },
+  {
+   "tag": "typeImmunity",
+   "kind": "ability",
+   "param": "damage of one type := 0",
+   "why": "Levitate, Water Absorb, Flash Fire, Sap Sipper. Clicking into one wastes the turn entirely",
+   "consumedBy": "IMM",
+   "used": true,
+   "n": 26,
+   "uses": 5120,
+   "examples": [
+    "Bulletproof",
+    "Dry Skin",
+    "Earth Eater",
+    "Flash Fire",
+    "Good as Gold",
+    "Ice Body"
+   ]
+  },
+  {
+   "tag": "redirectsType",
+   "kind": "ability",
+   "param": "draws that type to itself",
+   "why": "Lightning Rod and Storm Drain redirect AND boost",
+   "consumedBy": "lightningrod",
+   "used": true,
+   "n": 2,
+   "uses": 1288,
+   "examples": [
+    "Lightning Rod"
+   ]
+  },
+  {
+   "tag": "profitsFromHit",
+   "kind": "ability",
+   "param": "the target gains something for being hit",
+   "why": "Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will's Bellibolt case",
+   "consumedBy": null,
+   "used": false,
+   "n": 32,
+   "uses": 7320,
+   "examples": [
+    "Cursed Body",
+    "Cute Charm",
+    "Effect Spore",
+    "Electromorphosis",
+    "Flame Body",
+    "Gooey"
+   ]
+  },
+  {
+   "tag": "contactPunish",
+   "kind": "ability",
+   "param": "hurts or afflicts anything making contact",
+   "why": "Rough Skin, Iron Barbs, Static, Flame Body, Effect Spore",
+   "consumedBy": null,
+   "used": false,
+   "n": 7,
+   "uses": 4246,
+   "examples": [
+    "Cute Charm",
+    "Effect Spore",
+    "Flame Body",
+    "Poison Point",
+    "Rough Skin",
+    "Static"
+   ]
+  },
+  {
+   "tag": "damageReduce",
+   "kind": "ability",
+   "param": "x<1 damage taken",
+   "why": "Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them",
+   "consumedBy": "multiscale",
+   "used": true,
+   "n": 9,
+   "uses": 517,
+   "examples": [
+    "Fluffy",
+    "Multiscale",
+    "Solid Rock"
+   ]
+  },
+  {
+   "tag": "damageBoost",
+   "kind": "ability",
+   "param": "x>1 damage dealt",
+   "why": "Adaptability, Technician, Tinted Lens, Sheer Force, Iron Fist, Strong Jaw",
+   "consumedBy": "technician",
+   "used": true,
+   "n": 44,
+   "uses": 7235,
+   "examples": [
+    "Analytic",
+    "Blaze",
+    "Guts",
+    "Huge Power",
+    "Hustle",
+    "Iron Fist"
+   ]
+  },
+  {
+   "tag": "blocksMove",
+   "kind": "ability",
+   "param": "a whole class of move fails",
+   "why": "already derived for allySideBlockProb -- Dazzling, Armor Tail, Good as Gold",
+   "consumedBy": "onFoeTryMove",
+   "used": true,
+   "n": 3,
+   "uses": 1902,
+   "examples": [
+    "Armor Tail",
+    "Queenly Majesty"
+   ]
+  },
+  {
+   "tag": "invertsBoosts",
+   "kind": "ability",
+   "param": "stat changes flip sign",
+   "why": "Contrary and Simple, already probed for expectedBoostSign",
+   "consumedBy": "onChangeBoost",
+   "used": true,
+   "n": 3,
+   "uses": 134,
+   "examples": [
+    "Contrary"
+   ]
+  },
+  {
+   "tag": "priorityMod",
+   "kind": "ability",
+   "param": "order shifts for a class of move",
+   "why": "Prankster, Gale Wings, Triage. stallIntoEncore already depends on it",
+   "consumedBy": "onModifyPriority",
+   "used": true,
+   "n": 22,
+   "uses": 5896,
+   "examples": [
+    "Gale Wings",
+    "Illuminate",
+    "Infiltrator",
+    "Keen Eye",
+    "Long Reach",
+    "Mold Breaker"
+   ]
+  },
+  {
+   "tag": "preventsSwitch",
+   "kind": "ability",
+   "param": "the foe cannot leave",
+   "why": "Shadow Tag, Arena Trap, Magnet Pull. Already used by the playstyle classifier",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "onSwitchInDrop",
+   "kind": "ability",
+   "param": "stat stages on the foe at switch-in",
+   "why": "Intimidate. Beaten by Clear Amulet and by White Herb, neither of which is checked",
+   "consumedBy": "intimidate",
+   "used": true,
+   "n": 1,
+   "uses": 6536,
+   "examples": [
+    "Intimidate"
+   ]
+  },
+  {
+   "tag": "formeChange",
+   "kind": "ability",
+   "param": "the species changes mid-battle",
+   "why": "Zero to Hero (needs a switch), Illusion, Imposter, Disguise",
+   "consumedBy": "megaFormeOf",
+   "used": true,
+   "n": 7,
+   "uses": 268,
+   "examples": [
+    "Disguise",
+    "Illusion",
+    "Imposter",
+    "Zero to Hero"
+   ]
+  },
+  {
+   "tag": "statusImmune",
+   "kind": "ability",
+   "param": "a status cannot land",
+   "why": "Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor",
+   "consumedBy": null,
+   "used": false,
+   "n": 20,
+   "uses": 1549,
+   "examples": [
+    "Ice Body",
+    "Immunity",
+    "Insomnia",
+    "Leaf Guard",
+    "Limber",
+    "Magma Armor"
+   ]
+  }
+ ],
+ "moves": {
+  "appleacid": {
+   "name": "Apple Acid",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 7
+  },
+  "banefulbunker": {
+   "name": "Baneful Bunker",
+   "tags": [
+    "priority",
+    "stalling"
+   ],
+   "uses": 436
+  },
+  "beakblast": {
+   "name": "Beak Blast",
+   "tags": [
+    "priority",
+    "protectBlocked"
+   ],
+   "uses": 2
+  },
+  "belch": {
+   "name": "Belch",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "bonerush": {
+   "name": "Bone Rush",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "burnup": {
+   "name": "Burn Up",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 35
+  },
+  "clangoroussoul": {
+   "name": "Clangorous Soul",
+   "tags": [
+    "sound",
+    "boostsUser"
+   ],
+   "uses": 189
+  },
+  "corrosivegas": {
+   "name": "Corrosive Gas",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "crabhammer": {
+   "name": "Crabhammer",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "crushclaw": {
+   "name": "Crush Claw",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "direclaw": {
+   "name": "Dire Claw",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1509
+  },
+  "dragoncheer": {
+   "name": "Dragon Cheer",
+   "tags": [
+    "sound"
+   ],
+   "uses": 14
+  },
+  "dragonclaw": {
+   "name": "Dragon Claw",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3864
+  },
+  "electrify": {
+   "name": "Electrify",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "encore": {
+   "name": "Encore",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2758
+  },
+  "fakeout": {
+   "name": "Fake Out",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 7846
+  },
+  "firelash": {
+   "name": "Fire Lash",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "firstimpression": {
+   "name": "First Impression",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "freezedry": {
+   "name": "Freeze-Dry",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 737
+  },
+  "gravapple": {
+   "name": "Grav Apple",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 9
+  },
+  "growth": {
+   "name": "Growth",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 4
+  },
+  "howl": {
+   "name": "Howl",
+   "tags": [
+    "sound",
+    "lowersTarget"
+   ],
+   "uses": 26
+  },
+  "infernalparade": {
+   "name": "Infernal Parade",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 15
+  },
+  "ironhead": {
+   "name": "Iron Head",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 4314
+  },
+  "kingsshield": {
+   "name": "King's Shield",
+   "tags": [
+    "priority",
+    "stalling"
+   ],
+   "uses": 127
+  },
+  "lightofruin": {
+   "name": "Light of Ruin",
+   "tags": [
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 713
+  },
+  "makeitrain": {
+   "name": "Make It Rain",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 1420
+  },
+  "moonblast": {
+   "name": "Moonblast",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4048
+  },
+  "mountaingale": {
+   "name": "Mountain Gale",
+   "tags": [
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 6
+  },
+  "nightdaze": {
+   "name": "Night Daze",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "nightslash": {
+   "name": "Night Slash",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 64
+  },
+  "protect": {
+   "name": "Protect",
+   "tags": [
+    "priority",
+    "stalling"
+   ],
+   "uses": 43362
+  },
+  "psyshieldbash": {
+   "name": "Psyshield Bash",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 8
+  },
+  "ragefist": {
+   "name": "Rage Fist",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 363
+  },
+  "saltcure": {
+   "name": "Salt Cure",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 23
+  },
+  "sandstorm": {
+   "name": "Sandstorm",
+   "tags": [
+    "setsWeather"
+   ],
+   "uses": 4
+  },
+  "shadowclaw": {
+   "name": "Shadow Claw",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 68
+  },
+  "snaptrap": {
+   "name": "Snap Trap",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "snowscape": {
+   "name": "Snowscape",
+   "tags": [
+    "setsWeather"
+   ],
+   "uses": 3
+  },
+  "spikyshield": {
+   "name": "Spiky Shield",
+   "tags": [
+    "priority",
+    "stalling"
+   ],
+   "uses": 401
+  },
+  "spiritshackle": {
+   "name": "Spirit Shackle",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2
+  },
+  "stormthrow": {
+   "name": "Storm Throw",
+   "tags": [
+    "alwaysCrit",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 10
+  },
+  "syrupbomb": {
+   "name": "Syrup Bomb",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "toxicthread": {
+   "name": "Toxic Thread",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget",
+    "inflictsStatus"
+   ],
+   "uses": 6
+  },
+  "trickortreat": {
+   "name": "Trick-or-Treat",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "tropkick": {
+   "name": "Trop Kick",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 118
+  },
+  "accelerock": {
+   "name": "Accelerock",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 241
+  },
+  "acidarmor": {
+   "name": "Acid Armor",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 13
+  },
+  "acidspray": {
+   "name": "Acid Spray",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 54
+  },
+  "acrobatics": {
+   "name": "Acrobatics",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 92
+  },
+  "aerialace": {
+   "name": "Aerial Ace",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 23
+  },
+  "agility": {
+   "name": "Agility",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 10
+  },
+  "aircutter": {
+   "name": "Air Cutter",
+   "tags": [
+    "critRatioUp",
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "airslash": {
+   "name": "Air Slash",
+   "tags": [
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 135
+  },
+  "alluringvoice": {
+   "name": "Alluring Voice",
+   "tags": [
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 86
+  },
+  "allyswitch": {
+   "name": "Ally Switch",
+   "tags": [
+    "priority"
+   ],
+   "uses": 76
+  },
+  "amnesia": {
+   "name": "Amnesia",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 4
+  },
+  "ancientpower": {
+   "name": "Ancient Power",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 323
+  },
+  "aquacutter": {
+   "name": "Aqua Cutter",
+   "tags": [
+    "critRatioUp",
+    "protectBlocked"
+   ],
+   "uses": 27
+  },
+  "aquajet": {
+   "name": "Aqua Jet",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3034
+  },
+  "aquastep": {
+   "name": "Aqua Step",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 11
+  },
+  "aquatail": {
+   "name": "Aqua Tail",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 13
+  },
+  "armorcannon": {
+   "name": "Armor Cannon",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 31
+  },
+  "aromaticmist": {
+   "name": "Aromatic Mist",
+   "tags": [
+    "lowersTarget"
+   ],
+   "uses": 1
+  },
+  "assurance": {
+   "name": "Assurance",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 26
+  },
+  "attract": {
+   "name": "Attract",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "aurasphere": {
+   "name": "Aura Sphere",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 672
+  },
+  "aurawheel": {
+   "name": "Aura Wheel",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 21
+  },
+  "auroraveil": {
+   "name": "Aurora Veil",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 853
+  },
+  "avalanche": {
+   "name": "Avalanche",
+   "tags": [
+    "variablePower",
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 6
+  },
+  "axekick": {
+   "name": "Axe Kick",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "babydolleyes": {
+   "name": "Baby-Doll Eyes",
+   "tags": [
+    "priority",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 50
+  },
+  "barbbarrage": {
+   "name": "Barb Barrage",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 22
+  },
+  "batonpass": {
+   "name": "Baton Pass",
+   "tags": [
+    "selfSwitch"
+   ],
+   "uses": 65
+  },
+  "beatup": {
+   "name": "Beat Up",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 223
+  },
+  "bind": {
+   "name": "Bind",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "bite": {
+   "name": "Bite",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 22
+  },
+  "bitterblade": {
+   "name": "Bitter Blade",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 211
+  },
+  "bittermalice": {
+   "name": "Bitter Malice",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 44
+  },
+  "blastburn": {
+   "name": "Blast Burn",
+   "tags": [
+    "protectBlocked",
+    "recharge"
+   ],
+   "uses": 3
+  },
+  "blazekick": {
+   "name": "Blaze Kick",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 87
+  },
+  "blizzard": {
+   "name": "Blizzard",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 1532
+  },
+  "bodypress": {
+   "name": "Body Press",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 562
+  },
+  "bodyslam": {
+   "name": "Body Slam",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 71
+  },
+  "boomburst": {
+   "name": "Boomburst",
+   "tags": [
+    "spread",
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 11
+  },
+  "bounce": {
+   "name": "Bounce",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 0
+  },
+  "bravebird": {
+   "name": "Brave Bird",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 2279
+  },
+  "breakingswipe": {
+   "name": "Breaking Swipe",
+   "tags": [
+    "spread",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 70
+  },
+  "brickbreak": {
+   "name": "Brick Break",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 289
+  },
+  "brutalswing": {
+   "name": "Brutal Swing",
+   "tags": [
+    "spread",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 2
+  },
+  "bugbite": {
+   "name": "Bug Bite",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 101
+  },
+  "bugbuzz": {
+   "name": "Bug Buzz",
+   "tags": [
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 40
+  },
+  "bulkup": {
+   "name": "Bulk Up",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 561
+  },
+  "bulldoze": {
+   "name": "Bulldoze",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 17
+  },
+  "bulletpunch": {
+   "name": "Bullet Punch",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 565
+  },
+  "bulletseed": {
+   "name": "Bullet Seed",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 21
+  },
+  "burningjealousy": {
+   "name": "Burning Jealousy",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 32
+  },
+  "calmmind": {
+   "name": "Calm Mind",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 1163
+  },
+  "ceaselessedge": {
+   "name": "Ceaseless Edge",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 33
+  },
+  "charge": {
+   "name": "Charge",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 1
+  },
+  "chargebeam": {
+   "name": "Charge Beam",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "charm": {
+   "name": "Charm",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 691
+  },
+  "chillingwater": {
+   "name": "Chilling Water",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 33
+  },
+  "chillyreception": {
+   "name": "Chilly Reception",
+   "tags": [
+    "selfSwitch",
+    "setsWeather"
+   ],
+   "uses": 17
+  },
+  "circlethrow": {
+   "name": "Circle Throw",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked",
+    "forcesSwitch"
+   ],
+   "uses": 0
+  },
+  "clangingscales": {
+   "name": "Clanging Scales",
+   "tags": [
+    "spread",
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 302
+  },
+  "clearsmog": {
+   "name": "Clear Smog",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 6
+  },
+  "closecombat": {
+   "name": "Close Combat",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 5487
+  },
+  "coaching": {
+   "name": "Coaching",
+   "tags": [
+    "lowersTarget"
+   ],
+   "uses": 525
+  },
+  "coil": {
+   "name": "Coil",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 301
+  },
+  "comeuppance": {
+   "name": "Comeuppance",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "confuseray": {
+   "name": "Confuse Ray",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2
+  },
+  "cosmicpower": {
+   "name": "Cosmic Power",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 15
+  },
+  "cottonguard": {
+   "name": "Cotton Guard",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 9
+  },
+  "cottonspore": {
+   "name": "Cotton Spore",
+   "tags": [
+    "spread",
+    "powder",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 20
+  },
+  "counter": {
+   "name": "Counter",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 7
+  },
+  "covet": {
+   "name": "Covet",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "crosschop": {
+   "name": "Cross Chop",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 10
+  },
+  "crosspoison": {
+   "name": "Cross Poison",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "crunch": {
+   "name": "Crunch",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 210
+  },
+  "darkestlariat": {
+   "name": "Darkest Lariat",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1232
+  },
+  "darkpulse": {
+   "name": "Dark Pulse",
+   "tags": [
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 1013
+  },
+  "dazzlinggleam": {
+   "name": "Dazzling Gleam",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 1999
+  },
+  "decorate": {
+   "name": "Decorate",
+   "tags": [
+    "lowersTarget"
+   ],
+   "uses": 18
+  },
+  "defog": {
+   "name": "Defog",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "detect": {
+   "name": "Detect",
+   "tags": [
+    "priority",
+    "stalling"
+   ],
+   "uses": 1162
+  },
+  "dig": {
+   "name": "Dig",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 3
+  },
+  "disable": {
+   "name": "Disable",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 414
+  },
+  "discharge": {
+   "name": "Discharge",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 400
+  },
+  "dive": {
+   "name": "Dive",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 0
+  },
+  "doubleedge": {
+   "name": "Double-Edge",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 164
+  },
+  "doublehit": {
+   "name": "Double Hit",
+   "tags": [
+    "multiHit",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "doubleteam": {
+   "name": "Double Team",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 0
+  },
+  "dracometeor": {
+   "name": "Draco Meteor",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1199
+  },
+  "dragondance": {
+   "name": "Dragon Dance",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 343
+  },
+  "dragondarts": {
+   "name": "Dragon Darts",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 55
+  },
+  "dragonpulse": {
+   "name": "Dragon Pulse",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2029
+  },
+  "dragonrush": {
+   "name": "Dragon Rush",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 16
+  },
+  "dragontail": {
+   "name": "Dragon Tail",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked",
+    "forcesSwitch"
+   ],
+   "uses": 48
+  },
+  "drainingkiss": {
+   "name": "Draining Kiss",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 434
+  },
+  "drainpunch": {
+   "name": "Drain Punch",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 705
+  },
+  "drillpeck": {
+   "name": "Drill Peck",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "drillrun": {
+   "name": "Drill Run",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 17
+  },
+  "dualwingbeat": {
+   "name": "Dual Wingbeat",
+   "tags": [
+    "multiHit",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1724
+  },
+  "dynamicpunch": {
+   "name": "Dynamic Punch",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 6
+  },
+  "earthpower": {
+   "name": "Earth Power",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2374
+  },
+  "earthquake": {
+   "name": "Earthquake",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 4533
+  },
+  "eerieimpulse": {
+   "name": "Eerie Impulse",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 10
+  },
+  "eeriespell": {
+   "name": "Eerie Spell",
+   "tags": [
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "electricterrain": {
+   "name": "Electric Terrain",
+   "tags": [
+    "setsTerrain"
+   ],
+   "uses": 11
+  },
+  "electroball": {
+   "name": "Electro Ball",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 7
+  },
+  "electroshot": {
+   "name": "Electro Shot",
+   "tags": [
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 1667
+  },
+  "electroweb": {
+   "name": "Electroweb",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 343
+  },
+  "endeavor": {
+   "name": "Endeavor",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 75
+  },
+  "endure": {
+   "name": "Endure",
+   "tags": [
+    "priority",
+    "stalling"
+   ],
+   "uses": 3
+  },
+  "energyball": {
+   "name": "Energy Ball",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 452
+  },
+  "entrainment": {
+   "name": "Entrainment",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 20
+  },
+  "eruption": {
+   "name": "Eruption",
+   "tags": [
+    "variablePower",
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 565
+  },
+  "expandingforce": {
+   "name": "Expanding Force",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 80
+  },
+  "explosion": {
+   "name": "Explosion",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 11
+  },
+  "extrasensory": {
+   "name": "Extrasensory",
+   "tags": [
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 39
+  },
+  "extremespeed": {
+   "name": "Extreme Speed",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 449
+  },
+  "facade": {
+   "name": "Facade",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 32
+  },
+  "fairylock": {
+   "name": "Fairy Lock",
+   "tags": [
+    "setsRoom"
+   ],
+   "uses": 0
+  },
+  "faketears": {
+   "name": "Fake Tears",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 345
+  },
+  "featherdance": {
+   "name": "Feather Dance",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 8
+  },
+  "feint": {
+   "name": "Feint",
+   "tags": [
+    "priority"
+   ],
+   "uses": 222
+  },
+  "fellstinger": {
+   "name": "Fell Stinger",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 15
+  },
+  "ficklebeam": {
+   "name": "Fickle Beam",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 28
+  },
+  "fierydance": {
+   "name": "Fiery Dance",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 42
+  },
+  "finalgambit": {
+   "name": "Final Gambit",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 176
+  },
+  "fireblast": {
+   "name": "Fire Blast",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 25
+  },
+  "firefang": {
+   "name": "Fire Fang",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 9
+  },
+  "firepunch": {
+   "name": "Fire Punch",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 45
+  },
+  "firespin": {
+   "name": "Fire Spin",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 8
+  },
+  "fissure": {
+   "name": "Fissure",
+   "tags": [
+    "protectBlocked",
+    "ohko"
+   ],
+   "uses": 24
+  },
+  "flail": {
+   "name": "Flail",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "flamecharge": {
+   "name": "Flame Charge",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 8
+  },
+  "flamethrower": {
+   "name": "Flamethrower",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 494
+  },
+  "flareblitz": {
+   "name": "Flare Blitz",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 4032
+  },
+  "flashcannon": {
+   "name": "Flash Cannon",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1790
+  },
+  "flatter": {
+   "name": "Flatter",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 0
+  },
+  "fling": {
+   "name": "Fling",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 12
+  },
+  "flipturn": {
+   "name": "Flip Turn",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "selfSwitch"
+   ],
+   "uses": 1762
+  },
+  "flowertrick": {
+   "name": "Flower Trick",
+   "tags": [
+    "alwaysCrit",
+    "protectBlocked"
+   ],
+   "uses": 124
+  },
+  "fly": {
+   "name": "Fly",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 0
+  },
+  "flyingpress": {
+   "name": "Flying Press",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "focusblast": {
+   "name": "Focus Blast",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1088
+  },
+  "focuspunch": {
+   "name": "Focus Punch",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 6
+  },
+  "followme": {
+   "name": "Follow Me",
+   "tags": [
+    "priority",
+    "redirects"
+   ],
+   "uses": 933
+  },
+  "forestscurse": {
+   "name": "Forest's Curse",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "foulplay": {
+   "name": "Foul Play",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 563
+  },
+  "frenzyplant": {
+   "name": "Frenzy Plant",
+   "tags": [
+    "protectBlocked",
+    "recharge"
+   ],
+   "uses": 0
+  },
+  "frostbreath": {
+   "name": "Frost Breath",
+   "tags": [
+    "alwaysCrit",
+    "protectBlocked"
+   ],
+   "uses": 32
+  },
+  "gastroacid": {
+   "name": "Gastro Acid",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "gigadrain": {
+   "name": "Giga Drain",
+   "tags": [
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 806
+  },
+  "gigaimpact": {
+   "name": "Giga Impact",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recharge"
+   ],
+   "uses": 20
+  },
+  "gigatonhammer": {
+   "name": "Gigaton Hammer",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 121
+  },
+  "glare": {
+   "name": "Glare",
+   "tags": [
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 20
+  },
+  "grassknot": {
+   "name": "Grass Knot",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 242
+  },
+  "grassyglide": {
+   "name": "Grassy Glide",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "grassyterrain": {
+   "name": "Grassy Terrain",
+   "tags": [
+    "setsTerrain"
+   ],
+   "uses": 5
+  },
+  "gravity": {
+   "name": "Gravity",
+   "tags": [
+    "setsRoom"
+   ],
+   "uses": 34
+  },
+  "guardsplit": {
+   "name": "Guard Split",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "guardswap": {
+   "name": "Guard Swap",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "guillotine": {
+   "name": "Guillotine",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "ohko"
+   ],
+   "uses": 2
+  },
+  "gunkshot": {
+   "name": "Gunk Shot",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 223
+  },
+  "gyroball": {
+   "name": "Gyro Ball",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 24
+  },
+  "hammerarm": {
+   "name": "Hammer Arm",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 106
+  },
+  "hardpress": {
+   "name": "Hard Press",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 26
+  },
+  "headlongrush": {
+   "name": "Headlong Rush",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 26
+  },
+  "headsmash": {
+   "name": "Head Smash",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 183
+  },
+  "healbell": {
+   "name": "Heal Bell",
+   "tags": [
+    "sound"
+   ],
+   "uses": 0
+  },
+  "healingwish": {
+   "name": "Healing Wish",
+   "tags": [
+    "heals"
+   ],
+   "uses": 4
+  },
+  "healpulse": {
+   "name": "Heal Pulse",
+   "tags": [
+    "protectBlocked",
+    "heals"
+   ],
+   "uses": 62
+  },
+  "heatcrash": {
+   "name": "Heat Crash",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "heatwave": {
+   "name": "Heat Wave",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 4031
+  },
+  "heavyslam": {
+   "name": "Heavy Slam",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 119
+  },
+  "helpinghand": {
+   "name": "Helping Hand",
+   "tags": [
+    "priority"
+   ],
+   "uses": 2027
+  },
+  "hex": {
+   "name": "Hex",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 63
+  },
+  "highhorsepower": {
+   "name": "High Horsepower",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1286
+  },
+  "highjumpkick": {
+   "name": "High Jump Kick",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 84
+  },
+  "horndrill": {
+   "name": "Horn Drill",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "ohko"
+   ],
+   "uses": 0
+  },
+  "hornleech": {
+   "name": "Horn Leech",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 6
+  },
+  "hurricane": {
+   "name": "Hurricane",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2259
+  },
+  "hydrocannon": {
+   "name": "Hydro Cannon",
+   "tags": [
+    "protectBlocked",
+    "recharge"
+   ],
+   "uses": 16
+  },
+  "hydropump": {
+   "name": "Hydro Pump",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 707
+  },
+  "hyperbeam": {
+   "name": "Hyper Beam",
+   "tags": [
+    "protectBlocked",
+    "recharge"
+   ],
+   "uses": 1012
+  },
+  "hypervoice": {
+   "name": "Hyper Voice",
+   "tags": [
+    "spread",
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 2461
+  },
+  "hypnosis": {
+   "name": "Hypnosis",
+   "tags": [
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 273
+  },
+  "icebeam": {
+   "name": "Ice Beam",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 551
+  },
+  "icefang": {
+   "name": "Ice Fang",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 433
+  },
+  "icehammer": {
+   "name": "Ice Hammer",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 31
+  },
+  "icepunch": {
+   "name": "Ice Punch",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1421
+  },
+  "iceshard": {
+   "name": "Ice Shard",
+   "tags": [
+    "priority",
+    "protectBlocked"
+   ],
+   "uses": 354
+  },
+  "icespinner": {
+   "name": "Ice Spinner",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 44
+  },
+  "iciclecrash": {
+   "name": "Icicle Crash",
+   "tags": [
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 184
+  },
+  "iciclespear": {
+   "name": "Icicle Spear",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "icywind": {
+   "name": "Icy Wind",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 845
+  },
+  "inferno": {
+   "name": "Inferno",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "infestation": {
+   "name": "Infestation",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 434
+  },
+  "instruct": {
+   "name": "Instruct",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 90
+  },
+  "irondefense": {
+   "name": "Iron Defense",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 146
+  },
+  "irontail": {
+   "name": "Iron Tail",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 10
+  },
+  "jetpunch": {
+   "name": "Jet Punch",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 90
+  },
+  "knockoff": {
+   "name": "Knock Off",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1640
+  },
+  "kowtowcleave": {
+   "name": "Kowtow Cleave",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 2970
+  },
+  "lashout": {
+   "name": "Lash Out",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 47
+  },
+  "lastresort": {
+   "name": "Last Resort",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 69
+  },
+  "lastrespects": {
+   "name": "Last Respects",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 3009
+  },
+  "lavaplume": {
+   "name": "Lava Plume",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "leafblade": {
+   "name": "Leaf Blade",
+   "tags": [
+    "critRatioUp",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 108
+  },
+  "leafstorm": {
+   "name": "Leaf Storm",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 337
+  },
+  "leechlife": {
+   "name": "Leech Life",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 92
+  },
+  "leechseed": {
+   "name": "Leech Seed",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 234
+  },
+  "lifedew": {
+   "name": "Life Dew",
+   "tags": [
+    "heals"
+   ],
+   "uses": 1683
+  },
+  "lightscreen": {
+   "name": "Light Screen",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 2346
+  },
+  "liquidation": {
+   "name": "Liquidation",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 552
+  },
+  "lockon": {
+   "name": "Lock-On",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "lowkick": {
+   "name": "Low Kick",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1854
+  },
+  "lowsweep": {
+   "name": "Low Sweep",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 9
+  },
+  "luminacrash": {
+   "name": "Lumina Crash",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 56
+  },
+  "lunge": {
+   "name": "Lunge",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 18
+  },
+  "machpunch": {
+   "name": "Mach Punch",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 36
+  },
+  "magicpowder": {
+   "name": "Magic Powder",
+   "tags": [
+    "powder",
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "magicroom": {
+   "name": "Magic Room",
+   "tags": [
+    "setsRoom"
+   ],
+   "uses": 0
+  },
+  "matchagotcha": {
+   "name": "Matcha Gotcha",
+   "tags": [
+    "spread",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 3392
+  },
+  "megahorn": {
+   "name": "Megahorn",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 19
+  },
+  "megakick": {
+   "name": "Mega Kick",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "memento": {
+   "name": "Memento",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 31
+  },
+  "metalburst": {
+   "name": "Metal Burst",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "metalsound": {
+   "name": "Metal Sound",
+   "tags": [
+    "sound",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 0
+  },
+  "meteorbeam": {
+   "name": "Meteor Beam",
+   "tags": [
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 5
+  },
+  "meteormash": {
+   "name": "Meteor Mash",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 315
+  },
+  "minimize": {
+   "name": "Minimize",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 14
+  },
+  "mirrorcoat": {
+   "name": "Mirror Coat",
+   "tags": [
+    "priority",
+    "protectBlocked"
+   ],
+   "uses": 12
+  },
+  "mistyexplosion": {
+   "name": "Misty Explosion",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "mistyterrain": {
+   "name": "Misty Terrain",
+   "tags": [
+    "setsTerrain"
+   ],
+   "uses": 5
+  },
+  "moonlight": {
+   "name": "Moonlight",
+   "tags": [
+    "heals"
+   ],
+   "uses": 21
+  },
+  "morningsun": {
+   "name": "Morning Sun",
+   "tags": [
+    "heals"
+   ],
+   "uses": 7
+  },
+  "mortalspin": {
+   "name": "Mortal Spin",
+   "tags": [
+    "spread",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 21
+  },
+  "muddywater": {
+   "name": "Muddy Water",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 469
+  },
+  "mudshot": {
+   "name": "Mud Shot",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 9
+  },
+  "mudslap": {
+   "name": "Mud-Slap",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "mysticalfire": {
+   "name": "Mystical Fire",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 73
+  },
+  "nastyplot": {
+   "name": "Nasty Plot",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 1763
+  },
+  "nightshade": {
+   "name": "Night Shade",
+   "tags": [
+    "fixedDamage",
+    "protectBlocked"
+   ],
+   "uses": 22
+  },
+  "nobleroar": {
+   "name": "Noble Roar",
+   "tags": [
+    "sound",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 0
+  },
+  "noretreat": {
+   "name": "No Retreat",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 43
+  },
+  "nuzzle": {
+   "name": "Nuzzle",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 110
+  },
+  "outrage": {
+   "name": "Outrage",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 35
+  },
+  "overheat": {
+   "name": "Overheat",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 771
+  },
+  "painsplit": {
+   "name": "Pain Split",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 26
+  },
+  "paraboliccharge": {
+   "name": "Parabolic Charge",
+   "tags": [
+    "spread",
+    "protectBlocked",
+    "drain",
+    "heals"
+   ],
+   "uses": 70
+  },
+  "partingshot": {
+   "name": "Parting Shot",
+   "tags": [
+    "sound",
+    "protectBlocked",
+    "selfSwitch"
+   ],
+   "uses": 4782
+  },
+  "payback": {
+   "name": "Payback",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "perishsong": {
+   "name": "Perish Song",
+   "tags": [
+    "sound"
+   ],
+   "uses": 560
+  },
+  "petalblizzard": {
+   "name": "Petal Blizzard",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 12
+  },
+  "petaldance": {
+   "name": "Petal Dance",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "phantomforce": {
+   "name": "Phantom Force",
+   "tags": [
+    "contact",
+    "chargeTurn"
+   ],
+   "uses": 201
+  },
+  "pinmissile": {
+   "name": "Pin Missile",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 17
+  },
+  "playrough": {
+   "name": "Play Rough",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 911
+  },
+  "pluck": {
+   "name": "Pluck",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "poisonfang": {
+   "name": "Poison Fang",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "poisonjab": {
+   "name": "Poison Jab",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 758
+  },
+  "poisonpowder": {
+   "name": "Poison Powder",
+   "tags": [
+    "powder",
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 0
+  },
+  "pollenpuff": {
+   "name": "Pollen Puff",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 75
+  },
+  "poltergeist": {
+   "name": "Poltergeist",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 180
+  },
+  "populationbomb": {
+   "name": "Population Bomb",
+   "tags": [
+    "multiHit",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 276
+  },
+  "pounce": {
+   "name": "Pounce",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 8
+  },
+  "pound": {
+   "name": "Pound",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "powergem": {
+   "name": "Power Gem",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 677
+  },
+  "powersplit": {
+   "name": "Power Split",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "powerswap": {
+   "name": "Power Swap",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "powertrip": {
+   "name": "Power Trip",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 2
+  },
+  "powerwhip": {
+   "name": "Power Whip",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 119
+  },
+  "psychic": {
+   "name": "Psychic",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1745
+  },
+  "psychicfangs": {
+   "name": "Psychic Fangs",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1352
+  },
+  "psychicnoise": {
+   "name": "Psychic Noise",
+   "tags": [
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 95
+  },
+  "psychicterrain": {
+   "name": "Psychic Terrain",
+   "tags": [
+    "setsTerrain"
+   ],
+   "uses": 50
+  },
+  "psychocut": {
+   "name": "Psycho Cut",
+   "tags": [
+    "critRatioUp",
+    "protectBlocked"
+   ],
+   "uses": 190
+  },
+  "psyshock": {
+   "name": "Psyshock",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 466
+  },
+  "quash": {
+   "name": "Quash",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 125
+  },
+  "quickattack": {
+   "name": "Quick Attack",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1199
+  },
+  "quickguard": {
+   "name": "Quick Guard",
+   "tags": [
+    "priority",
+    "setsScreen"
+   ],
+   "uses": 356
+  },
+  "quiverdance": {
+   "name": "Quiver Dance",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 58
+  },
+  "ragepowder": {
+   "name": "Rage Powder",
+   "tags": [
+    "priority",
+    "powder",
+    "redirects"
+   ],
+   "uses": 3851
+  },
+  "ragingbull": {
+   "name": "Raging Bull",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 8
+  },
+  "ragingfury": {
+   "name": "Raging Fury",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 2
+  },
+  "raindance": {
+   "name": "Rain Dance",
+   "tags": [
+    "setsWeather"
+   ],
+   "uses": 701
+  },
+  "rapidspin": {
+   "name": "Rapid Spin",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "razorshell": {
+   "name": "Razor Shell",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "recover": {
+   "name": "Recover",
+   "tags": [
+    "heals"
+   ],
+   "uses": 300
+  },
+  "reflect": {
+   "name": "Reflect",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 1988
+  },
+  "reflecttype": {
+   "name": "Reflect Type",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "rest": {
+   "name": "Rest",
+   "tags": [
+    "heals"
+   ],
+   "uses": 44
+  },
+  "reversal": {
+   "name": "Reversal",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "risingvoltage": {
+   "name": "Rising Voltage",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 90
+  },
+  "roar": {
+   "name": "Roar",
+   "tags": [
+    "priority",
+    "sound",
+    "forcesSwitch"
+   ],
+   "uses": 281
+  },
+  "rockblast": {
+   "name": "Rock Blast",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 39
+  },
+  "rockpolish": {
+   "name": "Rock Polish",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 0
+  },
+  "rockslide": {
+   "name": "Rock Slide",
+   "tags": [
+    "spread",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 6915
+  },
+  "rocktomb": {
+   "name": "Rock Tomb",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 486
+  },
+  "rockwrecker": {
+   "name": "Rock Wrecker",
+   "tags": [
+    "protectBlocked",
+    "recharge"
+   ],
+   "uses": 0
+  },
+  "roost": {
+   "name": "Roost",
+   "tags": [
+    "heals"
+   ],
+   "uses": 1353
+  },
+  "round": {
+   "name": "Round",
+   "tags": [
+    "variablePower",
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 36
+  },
+  "sacredsword": {
+   "name": "Sacred Sword",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 144
+  },
+  "safeguard": {
+   "name": "Safeguard",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 6
+  },
+  "sandtomb": {
+   "name": "Sand Tomb",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 21
+  },
+  "scald": {
+   "name": "Scald",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 601
+  },
+  "scaleshot": {
+   "name": "Scale Shot",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 123
+  },
+  "scaryface": {
+   "name": "Scary Face",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 208
+  },
+  "scorchingsands": {
+   "name": "Scorching Sands",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 87
+  },
+  "screech": {
+   "name": "Screech",
+   "tags": [
+    "sound",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 3
+  },
+  "seedbomb": {
+   "name": "Seed Bomb",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 15
+  },
+  "seismictoss": {
+   "name": "Seismic Toss",
+   "tags": [
+    "fixedDamage",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "selfdestruct": {
+   "name": "Self-Destruct",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 7
+  },
+  "shadowball": {
+   "name": "Shadow Ball",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 3297
+  },
+  "shadowpunch": {
+   "name": "Shadow Punch",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "shadowsneak": {
+   "name": "Shadow Sneak",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 345
+  },
+  "shedtail": {
+   "name": "Shed Tail",
+   "tags": [
+    "selfSwitch"
+   ],
+   "uses": 41
+  },
+  "sheercold": {
+   "name": "Sheer Cold",
+   "tags": [
+    "protectBlocked",
+    "ohko"
+   ],
+   "uses": 41
+  },
+  "shellsidearm": {
+   "name": "Shell Side Arm",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 9
+  },
+  "shellsmash": {
+   "name": "Shell Smash",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 248
+  },
+  "shelter": {
+   "name": "Shelter",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 18
+  },
+  "simplebeam": {
+   "name": "Simple Beam",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 9
+  },
+  "sing": {
+   "name": "Sing",
+   "tags": [
+    "sound",
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 0
+  },
+  "skillswap": {
+   "name": "Skill Swap",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 56
+  },
+  "skittersmack": {
+   "name": "Skitter Smack",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "skyattack": {
+   "name": "Sky Attack",
+   "tags": [
+    "critRatioUp",
+    "protectBlocked",
+    "chargeTurn",
+    "flinches"
+   ],
+   "uses": 0
+  },
+  "slackoff": {
+   "name": "Slack Off",
+   "tags": [
+    "heals"
+   ],
+   "uses": 34
+  },
+  "sleeppowder": {
+   "name": "Sleep Powder",
+   "tags": [
+    "powder",
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 734
+  },
+  "sludgebomb": {
+   "name": "Sludge Bomb",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1982
+  },
+  "sludgewave": {
+   "name": "Sludge Wave",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 97
+  },
+  "smackdown": {
+   "name": "Smack Down",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 8
+  },
+  "smartstrike": {
+   "name": "Smart Strike",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "snarl": {
+   "name": "Snarl",
+   "tags": [
+    "spread",
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 569
+  },
+  "snore": {
+   "name": "Snore",
+   "tags": [
+    "sound",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 0
+  },
+  "soak": {
+   "name": "Soak",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 78
+  },
+  "softboiled": {
+   "name": "Soft-Boiled",
+   "tags": [
+    "heals"
+   ],
+   "uses": 0
+  },
+  "solarbeam": {
+   "name": "Solar Beam",
+   "tags": [
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 2477
+  },
+  "solarblade": {
+   "name": "Solar Blade",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "chargeTurn"
+   ],
+   "uses": 8
+  },
+  "sparklingaria": {
+   "name": "Sparkling Aria",
+   "tags": [
+    "spread",
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 3
+  },
+  "speedswap": {
+   "name": "Speed Swap",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "spicyextract": {
+   "name": "Spicy Extract",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 1
+  },
+  "spikes": {
+   "name": "Spikes",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 5
+  },
+  "spiritbreak": {
+   "name": "Spirit Break",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1115
+  },
+  "spite": {
+   "name": "Spite",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "spitup": {
+   "name": "Spit Up",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "spore": {
+   "name": "Spore",
+   "tags": [
+    "powder",
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 3
+  },
+  "stealthrock": {
+   "name": "Stealth Rock",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 62
+  },
+  "steelbeam": {
+   "name": "Steel Beam",
+   "tags": [
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 27
+  },
+  "steelroller": {
+   "name": "Steel Roller",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "steelwing": {
+   "name": "Steel Wing",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 9
+  },
+  "stickyweb": {
+   "name": "Sticky Web",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 17
+  },
+  "stompingtantrum": {
+   "name": "Stomping Tantrum",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 2122
+  },
+  "stoneaxe": {
+   "name": "Stone Axe",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 23
+  },
+  "stoneedge": {
+   "name": "Stone Edge",
+   "tags": [
+    "critRatioUp",
+    "protectBlocked"
+   ],
+   "uses": 110
+  },
+  "storedpower": {
+   "name": "Stored Power",
+   "tags": [
+    "variablePower",
+    "protectBlocked"
+   ],
+   "uses": 17
+  },
+  "strengthsap": {
+   "name": "Strength Sap",
+   "tags": [
+    "protectBlocked",
+    "heals"
+   ],
+   "uses": 518
+  },
+  "stringshot": {
+   "name": "String Shot",
+   "tags": [
+    "spread",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 13
+  },
+  "struggle": {
+   "name": "Struggle",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 0
+  },
+  "strugglebug": {
+   "name": "Struggle Bug",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 30
+  },
+  "stunspore": {
+   "name": "Stun Spore",
+   "tags": [
+    "powder",
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 12
+  },
+  "suckerpunch": {
+   "name": "Sucker Punch",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 3909
+  },
+  "sunnyday": {
+   "name": "Sunny Day",
+   "tags": [
+    "setsWeather"
+   ],
+   "uses": 376
+  },
+  "supercellslam": {
+   "name": "Supercell Slam",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 50
+  },
+  "superfang": {
+   "name": "Super Fang",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 434
+  },
+  "superpower": {
+   "name": "Superpower",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 182
+  },
+  "surf": {
+   "name": "Surf",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 68
+  },
+  "swagger": {
+   "name": "Swagger",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 64
+  },
+  "swallow": {
+   "name": "Swallow",
+   "tags": [
+    "heals"
+   ],
+   "uses": 0
+  },
+  "sweetkiss": {
+   "name": "Sweet Kiss",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "sweetscent": {
+   "name": "Sweet Scent",
+   "tags": [
+    "spread",
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 1
+  },
+  "switcheroo": {
+   "name": "Switcheroo",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 7
+  },
+  "swordsdance": {
+   "name": "Swords Dance",
+   "tags": [
+    "boostsUser"
+   ],
+   "uses": 1195
+  },
+  "synthesis": {
+   "name": "Synthesis",
+   "tags": [
+    "heals"
+   ],
+   "uses": 33
+  },
+  "tailslap": {
+   "name": "Tail Slap",
+   "tags": [
+    "multiHit",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "tailwind": {
+   "name": "Tailwind",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 6981
+  },
+  "taunt": {
+   "name": "Taunt",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 867
+  },
+  "tearfullook": {
+   "name": "Tearful Look",
+   "tags": [
+    "lowersTarget"
+   ],
+   "uses": 0
+  },
+  "teeterdance": {
+   "name": "Teeter Dance",
+   "tags": [
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "temperflare": {
+   "name": "Temper Flare",
+   "tags": [
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 30
+  },
+  "terrainpulse": {
+   "name": "Terrain Pulse",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "thief": {
+   "name": "Thief",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 7
+  },
+  "thrash": {
+   "name": "Thrash",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "throatchop": {
+   "name": "Throat Chop",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 1768
+  },
+  "thunder": {
+   "name": "Thunder",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 179
+  },
+  "thunderbolt": {
+   "name": "Thunderbolt",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1858
+  },
+  "thunderfang": {
+   "name": "Thunder Fang",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 6
+  },
+  "thunderpunch": {
+   "name": "Thunder Punch",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 204
+  },
+  "thunderwave": {
+   "name": "Thunder Wave",
+   "tags": [
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 284
+  },
+  "tickle": {
+   "name": "Tickle",
+   "tags": [
+    "protectBlocked",
+    "lowersTarget"
+   ],
+   "uses": 177
+  },
+  "topsyturvy": {
+   "name": "Topsy-Turvy",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 10
+  },
+  "torchsong": {
+   "name": "Torch Song",
+   "tags": [
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 26
+  },
+  "torment": {
+   "name": "Torment",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4
+  },
+  "toxic": {
+   "name": "Toxic",
+   "tags": [
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 480
+  },
+  "toxicspikes": {
+   "name": "Toxic Spikes",
+   "tags": [
+    "setsScreen"
+   ],
+   "uses": 20
+  },
+  "trailblaze": {
+   "name": "Trailblaze",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 23
+  },
+  "triattack": {
+   "name": "Tri Attack",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "trick": {
+   "name": "Trick",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 266
+  },
+  "trickroom": {
+   "name": "Trick Room",
+   "tags": [
+    "priority",
+    "setsRoom"
+   ],
+   "uses": 4415
+  },
+  "triplearrows": {
+   "name": "Triple Arrows",
+   "tags": [
+    "critRatioUp",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 49
+  },
+  "tripleaxel": {
+   "name": "Triple Axel",
+   "tags": [
+    "multiHit",
+    "variablePower",
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 326
+  },
+  "twinbeam": {
+   "name": "Twin Beam",
+   "tags": [
+    "multiHit",
+    "protectBlocked"
+   ],
+   "uses": 467
+  },
+  "upperhand": {
+   "name": "Upper Hand",
+   "tags": [
+    "priority",
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 56
+  },
+  "uproar": {
+   "name": "Uproar",
+   "tags": [
+    "sound",
+    "protectBlocked"
+   ],
+   "uses": 1
+  },
+  "uturn": {
+   "name": "U-turn",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "selfSwitch"
+   ],
+   "uses": 741
+  },
+  "vacuumwave": {
+   "name": "Vacuum Wave",
+   "tags": [
+    "priority",
+    "protectBlocked"
+   ],
+   "uses": 135
+  },
+  "venoshock": {
+   "name": "Venoshock",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 5
+  },
+  "voltswitch": {
+   "name": "Volt Switch",
+   "tags": [
+    "protectBlocked",
+    "selfSwitch"
+   ],
+   "uses": 986
+  },
+  "volttackle": {
+   "name": "Volt Tackle",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 145
+  },
+  "waterfall": {
+   "name": "Waterfall",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 212
+  },
+  "waterpulse": {
+   "name": "Water Pulse",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 45
+  },
+  "watershuriken": {
+   "name": "Water Shuriken",
+   "tags": [
+    "multiHit",
+    "variablePower",
+    "priority",
+    "protectBlocked"
+   ],
+   "uses": 16
+  },
+  "waterspout": {
+   "name": "Water Spout",
+   "tags": [
+    "variablePower",
+    "spread",
+    "protectBlocked"
+   ],
+   "uses": 342
+  },
+  "wavecrash": {
+   "name": "Wave Crash",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 4052
+  },
+  "weatherball": {
+   "name": "Weather Ball",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 4699
+  },
+  "whirlpool": {
+   "name": "Whirlpool",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 13
+  },
+  "whirlwind": {
+   "name": "Whirlwind",
+   "tags": [
+    "priority",
+    "forcesSwitch"
+   ],
+   "uses": 12
+  },
+  "wideguard": {
+   "name": "Wide Guard",
+   "tags": [
+    "priority",
+    "setsScreen"
+   ],
+   "uses": 2065
+  },
+  "wildcharge": {
+   "name": "Wild Charge",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 58
+  },
+  "willowisp": {
+   "name": "Will-O-Wisp",
+   "tags": [
+    "protectBlocked",
+    "inflictsStatus"
+   ],
+   "uses": 1101
+  },
+  "wish": {
+   "name": "Wish",
+   "tags": [
+    "heals"
+   ],
+   "uses": 46
+  },
+  "wonderroom": {
+   "name": "Wonder Room",
+   "tags": [
+    "setsRoom"
+   ],
+   "uses": 2
+  },
+  "woodhammer": {
+   "name": "Wood Hammer",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "recoil"
+   ],
+   "uses": 24
+  },
+  "worryseed": {
+   "name": "Worry Seed",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 29
+  },
+  "wrap": {
+   "name": "Wrap",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 0
+  },
+  "xscissor": {
+   "name": "X-Scissor",
+   "tags": [
+    "contact",
+    "protectBlocked"
+   ],
+   "uses": 28
+  },
+  "yawn": {
+   "name": "Yawn",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 536
+  },
+  "zapcannon": {
+   "name": "Zap Cannon",
+   "tags": [
+    "protectBlocked"
+   ],
+   "uses": 1064
+  },
+  "zenheadbutt": {
+   "name": "Zen Headbutt",
+   "tags": [
+    "contact",
+    "protectBlocked",
+    "flinches"
+   ],
+   "uses": 59
+  }
+ },
+ "items": {
+  "abomasite": {
+   "name": "Abomasite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 25
+  },
+  "absolite": {
+   "name": "Absolite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 11
+  },
+  "aerodactylite": {
+   "name": "Aerodactylite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 844
+  },
+  "aggronite": {
+   "name": "Aggronite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 38
+  },
+  "alakazite": {
+   "name": "Alakazite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 8
+  },
+  "altarianite": {
+   "name": "Altarianite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 23
+  },
+  "ampharosite": {
+   "name": "Ampharosite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 49
+  },
+  "audinite": {
+   "name": "Audinite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 7
+  },
+  "banettite": {
+   "name": "Banettite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 22
+  },
+  "barbaracite": {
+   "name": "Barbaracite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 28
+  },
+  "beedrillite": {
+   "name": "Beedrillite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 37
+  },
+  "blastoisinite": {
+   "name": "Blastoisinite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 351
+  },
+  "blazikenite": {
+   "name": "Blazikenite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 277
+  },
+  "cameruptite": {
+   "name": "Cameruptite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 193
+  },
+  "chandelurite": {
+   "name": "Chandelurite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 48
+  },
+  "charizarditex": {
+   "name": "Charizardite X",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 64
+  },
+  "charizarditey": {
+   "name": "Charizardite Y",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 2200
+  },
+  "chesnaughtite": {
+   "name": "Chesnaughtite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 24
+  },
+  "chimechite": {
+   "name": "Chimechite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1
+  },
+  "clefablite": {
+   "name": "Clefablite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 53
+  },
+  "crabominite": {
+   "name": "Crabominite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 37
+  },
+  "delphoxite": {
+   "name": "Delphoxite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 760
+  },
+  "dragalgite": {
+   "name": "Dragalgite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 145
+  },
+  "dragoninite": {
+   "name": "Dragoninite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 284
+  },
+  "drampanite": {
+   "name": "Drampanite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 51
+  },
+  "eelektrossite": {
+   "name": "Eelektrossite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 258
+  },
+  "emboarite": {
+   "name": "Emboarite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 8
+  },
+  "excadrite": {
+   "name": "Excadrite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 53
+  },
+  "falinksite": {
+   "name": "Falinksite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 45
+  },
+  "feraligite": {
+   "name": "Feraligite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 11
+  },
+  "floettite": {
+   "name": "Floettite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1439
+  },
+  "froslassite": {
+   "name": "Froslassite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 544
+  },
+  "galladite": {
+   "name": "Galladite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 13
+  },
+  "garchompite": {
+   "name": "Garchompite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 85
+  },
+  "gardevoirite": {
+   "name": "Gardevoirite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 190
+  },
+  "gengarite": {
+   "name": "Gengarite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 446
+  },
+  "glalitite": {
+   "name": "Glalitite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1
+  },
+  "glimmoranite": {
+   "name": "Glimmoranite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 159
+  },
+  "golurkite": {
+   "name": "Golurkite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 24
+  },
+  "greninjite": {
+   "name": "Greninjite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 59
+  },
+  "gyaradosite": {
+   "name": "Gyaradosite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 69
+  },
+  "hawluchanite": {
+   "name": "Hawluchanite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 29
+  },
+  "heracronite": {
+   "name": "Heracronite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 21
+  },
+  "houndoominite": {
+   "name": "Houndoominite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 14
+  },
+  "kangaskhanite": {
+   "name": "Kangaskhanite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 131
+  },
+  "lopunnite": {
+   "name": "Lopunnite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 74
+  },
+  "lucarionite": {
+   "name": "Lucarionite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 72
+  },
+  "malamarite": {
+   "name": "Malamarite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 90
+  },
+  "manectite": {
+   "name": "Manectite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 26
+  },
+  "mawilite": {
+   "name": "Mawilite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 677
+  },
+  "medichamite": {
+   "name": "Medichamite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 8
+  },
+  "meganiumite": {
+   "name": "Meganiumite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 138
+  },
+  "meowsticite": {
+   "name": "Meowsticite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 15
+  },
+  "metagrossite": {
+   "name": "Metagrossite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1186
+  },
+  "pidgeotite": {
+   "name": "Pidgeotite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 17
+  },
+  "pinsirite": {
+   "name": "Pinsirite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 12
+  },
+  "pyroarite": {
+   "name": "Pyroarite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 188
+  },
+  "raichunitex": {
+   "name": "Raichunite X",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 216
+  },
+  "raichunitey": {
+   "name": "Raichunite Y",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1063
+  },
+  "sablenite": {
+   "name": "Sablenite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 33
+  },
+  "sceptilite": {
+   "name": "Sceptilite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 194
+  },
+  "scizorite": {
+   "name": "Scizorite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 63
+  },
+  "scolipite": {
+   "name": "Scolipite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 40
+  },
+  "scovillainite": {
+   "name": "Scovillainite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 281
+  },
+  "scraftinite": {
+   "name": "Scraftinite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 244
+  },
+  "sharpedonite": {
+   "name": "Sharpedonite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 5
+  },
+  "skarmorite": {
+   "name": "Skarmorite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 18
+  },
+  "slowbronite": {
+   "name": "Slowbronite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 36
+  },
+  "spelltag": {
+   "name": "Spell Tag",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 79
+  },
+  "staraptite": {
+   "name": "Staraptite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1938
+  },
+  "starminite": {
+   "name": "Starminite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 56
+  },
+  "steelixite": {
+   "name": "Steelixite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 23
+  },
+  "swampertite": {
+   "name": "Swampertite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 1345
+  },
+  "tyranitarite": {
+   "name": "Tyranitarite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 633
+  },
+  "venusaurite": {
+   "name": "Venusaurite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 401
+  },
+  "victreebelite": {
+   "name": "Victreebelite",
+   "tags": [
+    "megaStone"
+   ],
+   "uses": 7
+  },
+  "whiteherb": {
+   "name": "White Herb",
+   "tags": [
+    "restoresStats"
+   ],
+   "uses": 1358
+  },
+  "babiriberry": {
+   "name": "Babiri Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 70
+  },
+  "blackbelt": {
+   "name": "Black Belt",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 36
+  },
+  "blackglasses": {
+   "name": "Black Glasses",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 1319
+  },
+  "charcoal": {
+   "name": "Charcoal",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 689
+  },
+  "chartiberry": {
+   "name": "Charti Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 31
+  },
+  "chilanberry": {
+   "name": "Chilan Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 0
+  },
+  "choicescarf": {
+   "name": "Choice Scarf",
+   "tags": [
+    "choiceLock",
+    "speedMult"
+   ],
+   "uses": 3907
+  },
+  "chopleberry": {
+   "name": "Chople Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 1432
+  },
+  "cobaberry": {
+   "name": "Coba Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 399
+  },
+  "colburberry": {
+   "name": "Colbur Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 1234
+  },
+  "dragonfang": {
+   "name": "Dragon Fang",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 116
+  },
+  "fairyfeather": {
+   "name": "Fairy Feather",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 1502
+  },
+  "focussash": {
+   "name": "Focus Sash",
+   "tags": [
+    "survivesFromFull"
+   ],
+   "uses": 7610
+  },
+  "habanberry": {
+   "name": "Haban Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 112
+  },
+  "hardstone": {
+   "name": "Hard Stone",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 23
+  },
+  "kasibberry": {
+   "name": "Kasib Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 1101
+  },
+  "kebiaberry": {
+   "name": "Kebia Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 38
+  },
+  "leftovers": {
+   "name": "Leftovers",
+   "tags": [
+    "passiveHeal"
+   ],
+   "uses": 4289
+  },
+  "lifeorb": {
+   "name": "Life Orb",
+   "tags": [
+    "damageMultAll"
+   ],
+   "uses": 6223
+  },
+  "lightclay": {
+   "name": "Light Clay",
+   "tags": [
+    "extendsScreens"
+   ],
+   "uses": 2007
+  },
+  "magnet": {
+   "name": "Magnet",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 77
+  },
+  "metalcoat": {
+   "name": "Metal Coat",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 212
+  },
+  "miracleseed": {
+   "name": "Miracle Seed",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 48
+  },
+  "mysticwater": {
+   "name": "Mystic Water",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 864
+  },
+  "nevermeltice": {
+   "name": "Never-Melt Ice",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 386
+  },
+  "occaberry": {
+   "name": "Occa Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 635
+  },
+  "oranberry": {
+   "name": "Oran Berry",
+   "tags": [
+    "healsAtHalf"
+   ],
+   "uses": 0
+  },
+  "passhoberry": {
+   "name": "Passho Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 484
+  },
+  "payapaberry": {
+   "name": "Payapa Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 6
+  },
+  "poisonbarb": {
+   "name": "Poison Barb",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 6
+  },
+  "rindoberry": {
+   "name": "Rindo Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 23
+  },
+  "roseliberry": {
+   "name": "Roseli Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 510
+  },
+  "sharpbeak": {
+   "name": "Sharp Beak",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 294
+  },
+  "shucaberry": {
+   "name": "Shuca Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 262
+  },
+  "silkscarf": {
+   "name": "Silk Scarf",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 100
+  },
+  "silverpowder": {
+   "name": "Silver Powder",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 2
+  },
+  "sitrusberry": {
+   "name": "Sitrus Berry",
+   "tags": [
+    "healsAtHalf"
+   ],
+   "uses": 7043
+  },
+  "softsand": {
+   "name": "Soft Sand",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 75
+  },
+  "tangaberry": {
+   "name": "Tanga Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 0
+  },
+  "twistedspoon": {
+   "name": "Twisted Spoon",
+   "tags": [
+    "damageMultType"
+   ],
+   "uses": 24
+  },
+  "wacanberry": {
+   "name": "Wacan Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 36
+  },
+  "yacheberry": {
+   "name": "Yache Berry",
+   "tags": [
+    "resistBerry"
+   ],
+   "uses": 46
+  }
+ },
+ "abilities": {
+  "disguise": {
+   "name": "Disguise",
+   "tags": [
+    "preventsCrit",
+    "formeChange"
+   ],
+   "uses": 62
+  },
+  "dragonize": {
+   "name": "Dragonize",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "firemane": {
+   "name": "Fire Mane",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "spicyspray": {
+   "name": "Spicy Spray",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "aerilate": {
+   "name": "Aerilate",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "aftermath": {
+   "name": "Aftermath",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "analytic": {
+   "name": "Analytic",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 7
+  },
+  "arenatrap": {
+   "name": "Arena Trap",
+   "tags": [
+    "preventsSwitch"
+   ],
+   "uses": 0
+  },
+  "armortail": {
+   "name": "Armor Tail",
+   "tags": [
+    "blocksMove"
+   ],
+   "uses": 1682
+  },
+  "battlearmor": {
+   "name": "Battle Armor",
+   "tags": [
+    "preventsCrit"
+   ],
+   "uses": 0
+  },
+  "battlebond": {
+   "name": "Battle Bond",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "blaze": {
+   "name": "Blaze",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 2675
+  },
+  "bulletproof": {
+   "name": "Bulletproof",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 52
+  },
+  "chlorophyll": {
+   "name": "Chlorophyll",
+   "tags": [
+    "speedCond"
+   ],
+   "uses": 1131
+  },
+  "comatose": {
+   "name": "Comatose",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 0
+  },
+  "contrary": {
+   "name": "Contrary",
+   "tags": [
+    "invertsBoosts"
+   ],
+   "uses": 134
+  },
+  "cottondown": {
+   "name": "Cotton Down",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "cursedbody": {
+   "name": "Cursed Body",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 833
+  },
+  "cutecharm": {
+   "name": "Cute Charm",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 48
+  },
+  "dazzling": {
+   "name": "Dazzling",
+   "tags": [
+    "blocksMove"
+   ],
+   "uses": 0
+  },
+  "defeatist": {
+   "name": "Defeatist",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "dragonsmaw": {
+   "name": "Dragon's Maw",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "drizzle": {
+   "name": "Drizzle",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 2197
+  },
+  "drought": {
+   "name": "Drought",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 615
+  },
+  "dryskin": {
+   "name": "Dry Skin",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 52
+  },
+  "eartheater": {
+   "name": "Earth Eater",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 31
+  },
+  "effectspore": {
+   "name": "Effect Spore",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 20
+  },
+  "electricsurge": {
+   "name": "Electric Surge",
+   "tags": [
+    "terrainSetter"
+   ],
+   "uses": 0
+  },
+  "electromorphosis": {
+   "name": "Electromorphosis",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 48
+  },
+  "filter": {
+   "name": "Filter",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 0
+  },
+  "flamebody": {
+   "name": "Flame Body",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 113
+  },
+  "flareboost": {
+   "name": "Flare Boost",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "flashfire": {
+   "name": "Flash Fire",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 357
+  },
+  "fluffy": {
+   "name": "Fluffy",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 3
+  },
+  "galewings": {
+   "name": "Gale Wings",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 480
+  },
+  "galvanize": {
+   "name": "Galvanize",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "goodasgold": {
+   "name": "Good as Gold",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 1433
+  },
+  "gooey": {
+   "name": "Gooey",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 10
+  },
+  "gorillatactics": {
+   "name": "Gorilla Tactics",
+   "tags": [
+    "damageBoost",
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "grassysurge": {
+   "name": "Grassy Surge",
+   "tags": [
+    "terrainSetter"
+   ],
+   "uses": 0
+  },
+  "gulpmissile": {
+   "name": "Gulp Missile",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "guts": {
+   "name": "Guts",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 12
+  },
+  "hadronengine": {
+   "name": "Hadron Engine",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "hugepower": {
+   "name": "Huge Power",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 72
+  },
+  "hustle": {
+   "name": "Hustle",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 9
+  },
+  "icebody": {
+   "name": "Ice Body",
+   "tags": [
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 6
+  },
+  "iceface": {
+   "name": "Ice Face",
+   "tags": [
+    "preventsCrit"
+   ],
+   "uses": 0
+  },
+  "icescales": {
+   "name": "Ice Scales",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 0
+  },
+  "illuminate": {
+   "name": "Illuminate",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 27
+  },
+  "illusion": {
+   "name": "Illusion",
+   "tags": [
+    "profitsFromHit",
+    "formeChange"
+   ],
+   "uses": 62
+  },
+  "immunity": {
+   "name": "Immunity",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 1
+  },
+  "imposter": {
+   "name": "Imposter",
+   "tags": [
+    "formeChange"
+   ],
+   "uses": 39
+  },
+  "infiltrator": {
+   "name": "Infiltrator",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 54
+  },
+  "innardsout": {
+   "name": "Innards Out",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "insomnia": {
+   "name": "Insomnia",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 39
+  },
+  "intimidate": {
+   "name": "Intimidate",
+   "tags": [
+    "onSwitchInDrop"
+   ],
+   "uses": 6536
+  },
+  "ironbarbs": {
+   "name": "Iron Barbs",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 0
+  },
+  "ironfist": {
+   "name": "Iron Fist",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 53
+  },
+  "justified": {
+   "name": "Justified",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 29
+  },
+  "keeneye": {
+   "name": "Keen Eye",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 27
+  },
+  "leafguard": {
+   "name": "Leaf Guard",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 75
+  },
+  "lightningrod": {
+   "name": "Lightning Rod",
+   "tags": [
+    "typeImmunity",
+    "redirectsType"
+   ],
+   "uses": 1288
+  },
+  "limber": {
+   "name": "Limber",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 59
+  },
+  "lingeringaroma": {
+   "name": "Lingering Aroma",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "longreach": {
+   "name": "Long Reach",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 2
+  },
+  "magicbounce": {
+   "name": "Magic Bounce",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 89
+  },
+  "magmaarmor": {
+   "name": "Magma Armor",
+   "tags": [
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 43
+  },
+  "magnetpull": {
+   "name": "Magnet Pull",
+   "tags": [
+    "preventsSwitch"
+   ],
+   "uses": 0
+  },
+  "megalauncher": {
+   "name": "Mega Launcher",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 20
+  },
+  "mindseye": {
+   "name": "Mind's Eye",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "minus": {
+   "name": "Minus",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 2
+  },
+  "mistysurge": {
+   "name": "Misty Surge",
+   "tags": [
+    "terrainSetter"
+   ],
+   "uses": 0
+  },
+  "moldbreaker": {
+   "name": "Mold Breaker",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 127
+  },
+  "motordrive": {
+   "name": "Motor Drive",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 13
+  },
+  "multiscale": {
+   "name": "Multiscale",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 348
+  },
+  "mummy": {
+   "name": "Mummy",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 16
+  },
+  "myceliummight": {
+   "name": "Mycelium Might",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "normalize": {
+   "name": "Normalize",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "oblivious": {
+   "name": "Oblivious",
+   "tags": [
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 274
+  },
+  "orichalcumpulse": {
+   "name": "Orichalcum Pulse",
+   "tags": [
+    "weatherSetter",
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "overcoat": {
+   "name": "Overcoat",
+   "tags": [
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 85
+  },
+  "overgrow": {
+   "name": "Overgrow",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 360
+  },
+  "pastelveil": {
+   "name": "Pastel Veil",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 0
+  },
+  "perishbody": {
+   "name": "Perish Body",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "pixilate": {
+   "name": "Pixilate",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 1426
+  },
+  "plus": {
+   "name": "Plus",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 2
+  },
+  "poisonpoint": {
+   "name": "Poison Point",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 50
+  },
+  "powerconstruct": {
+   "name": "Power Construct",
+   "tags": [
+    "formeChange"
+   ],
+   "uses": 0
+  },
+  "prankster": {
+   "name": "Prankster",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 4649
+  },
+  "prismarmor": {
+   "name": "Prism Armor",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 0
+  },
+  "propellertail": {
+   "name": "Propeller Tail",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "psychicsurge": {
+   "name": "Psychic Surge",
+   "tags": [
+    "terrainSetter"
+   ],
+   "uses": 1
+  },
+  "punkrock": {
+   "name": "Punk Rock",
+   "tags": [
+    "damageReduce",
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "purepower": {
+   "name": "Pure Power",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 9
+  },
+  "purifyingsalt": {
+   "name": "Purifying Salt",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 32
+  },
+  "queenlymajesty": {
+   "name": "Queenly Majesty",
+   "tags": [
+    "blocksMove"
+   ],
+   "uses": 220
+  },
+  "quickfeet": {
+   "name": "Quick Feet",
+   "tags": [
+    "speedCond"
+   ],
+   "uses": 2
+  },
+  "rattled": {
+   "name": "Rattled",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "reckless": {
+   "name": "Reckless",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 19
+  },
+  "refrigerate": {
+   "name": "Refrigerate",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 1
+  },
+  "ripen": {
+   "name": "Ripen",
+   "tags": [
+    "damageReduce",
+    "invertsBoosts"
+   ],
+   "uses": 0
+  },
+  "rivalry": {
+   "name": "Rivalry",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 13
+  },
+  "rockypayload": {
+   "name": "Rocky Payload",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "roughskin": {
+   "name": "Rough Skin",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 3739
+  },
+  "sandforce": {
+   "name": "Sand Force",
+   "tags": [
+    "typeImmunity",
+    "damageBoost",
+    "statusImmune"
+   ],
+   "uses": 18
+  },
+  "sandrush": {
+   "name": "Sand Rush",
+   "tags": [
+    "speedCond",
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 488
+  },
+  "sandspit": {
+   "name": "Sand Spit",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 4
+  },
+  "sandstream": {
+   "name": "Sand Stream",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 838
+  },
+  "sandveil": {
+   "name": "Sand Veil",
+   "tags": [
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 135
+  },
+  "sapsipper": {
+   "name": "Sap Sipper",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 22
+  },
+  "schooling": {
+   "name": "Schooling",
+   "tags": [
+    "formeChange"
+   ],
+   "uses": 0
+  },
+  "scrappy": {
+   "name": "Scrappy",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 259
+  },
+  "seedsower": {
+   "name": "Seed Sower",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "serenegrace": {
+   "name": "Serene Grace",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "shadowshield": {
+   "name": "Shadow Shield",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 0
+  },
+  "shadowtag": {
+   "name": "Shadow Tag",
+   "tags": [
+    "preventsSwitch"
+   ],
+   "uses": 0
+  },
+  "sharpness": {
+   "name": "Sharpness",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 154
+  },
+  "sheerforce": {
+   "name": "Sheer Force",
+   "tags": [
+    "damageBoost",
+    "priorityMod"
+   ],
+   "uses": 94
+  },
+  "shellarmor": {
+   "name": "Shell Armor",
+   "tags": [
+    "preventsCrit"
+   ],
+   "uses": 24
+  },
+  "shieldsdown": {
+   "name": "Shields Down",
+   "tags": [
+    "formeChange",
+    "statusImmune"
+   ],
+   "uses": 0
+  },
+  "simple": {
+   "name": "Simple",
+   "tags": [
+    "invertsBoosts"
+   ],
+   "uses": 0
+  },
+  "skilllink": {
+   "name": "Skill Link",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 4
+  },
+  "slowstart": {
+   "name": "Slow Start",
+   "tags": [
+    "speedCond",
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "slushrush": {
+   "name": "Slush Rush",
+   "tags": [
+    "speedCond"
+   ],
+   "uses": 4
+  },
+  "snowcloak": {
+   "name": "Snow Cloak",
+   "tags": [
+    "typeImmunity",
+    "statusImmune"
+   ],
+   "uses": 219
+  },
+  "snowwarning": {
+   "name": "Snow Warning",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 943
+  },
+  "solarpower": {
+   "name": "Solar Power",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 432
+  },
+  "solidrock": {
+   "name": "Solid Rock",
+   "tags": [
+    "damageReduce"
+   ],
+   "uses": 166
+  },
+  "soundproof": {
+   "name": "Soundproof",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 202
+  },
+  "stakeout": {
+   "name": "Stakeout",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "stalwart": {
+   "name": "Stalwart",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 27
+  },
+  "stamina": {
+   "name": "Stamina",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 1631
+  },
+  "stancechange": {
+   "name": "Stance Change",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 146
+  },
+  "static": {
+   "name": "Static",
+   "tags": [
+    "profitsFromHit",
+    "contactPunish"
+   ],
+   "uses": 276
+  },
+  "steamengine": {
+   "name": "Steam Engine",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "steelworker": {
+   "name": "Steelworker",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "stench": {
+   "name": "Stench",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "stormdrain": {
+   "name": "Storm Drain",
+   "tags": [
+    "typeImmunity",
+    "redirectsType"
+   ],
+   "uses": 0
+  },
+  "strongjaw": {
+   "name": "Strong Jaw",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 5
+  },
+  "sturdy": {
+   "name": "Sturdy",
+   "tags": [
+    "survivesFromFull",
+    "typeImmunity"
+   ],
+   "uses": 153
+  },
+  "supremeoverlord": {
+   "name": "Supreme Overlord",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 60
+  },
+  "surgesurfer": {
+   "name": "Surge Surfer",
+   "tags": [
+    "speedCond"
+   ],
+   "uses": 8
+  },
+  "swarm": {
+   "name": "Swarm",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 26
+  },
+  "swiftswim": {
+   "name": "Swift Swim",
+   "tags": [
+    "speedCond"
+   ],
+   "uses": 321
+  },
+  "tanglinghair": {
+   "name": "Tangling Hair",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "technician": {
+   "name": "Technician",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 339
+  },
+  "telepathy": {
+   "name": "Telepathy",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 112
+  },
+  "teravolt": {
+   "name": "Teravolt",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "thermalexchange": {
+   "name": "Thermal Exchange",
+   "tags": [
+    "profitsFromHit",
+    "statusImmune"
+   ],
+   "uses": 0
+  },
+  "torrent": {
+   "name": "Torrent",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 1086
+  },
+  "toughclaws": {
+   "name": "Tough Claws",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 269
+  },
+  "toxicboost": {
+   "name": "Toxic Boost",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "toxicdebris": {
+   "name": "Toxic Debris",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 411
+  },
+  "transistor": {
+   "name": "Transistor",
+   "tags": [
+    "damageBoost"
+   ],
+   "uses": 0
+  },
+  "triage": {
+   "name": "Triage",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "turboblaze": {
+   "name": "Turboblaze",
+   "tags": [
+    "priorityMod"
+   ],
+   "uses": 0
+  },
+  "vitalspirit": {
+   "name": "Vital Spirit",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 3
+  },
+  "voltabsorb": {
+   "name": "Volt Absorb",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 33
+  },
+  "wanderingspirit": {
+   "name": "Wandering Spirit",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 21
+  },
+  "waterabsorb": {
+   "name": "Water Absorb",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 15
+  },
+  "waterbubble": {
+   "name": "Water Bubble",
+   "tags": [
+    "damageBoost",
+    "statusImmune"
+   ],
+   "uses": 72
+  },
+  "watercompaction": {
+   "name": "Water Compaction",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "waterveil": {
+   "name": "Water Veil",
+   "tags": [
+    "statusImmune"
+   ],
+   "uses": 0
+  },
+  "weakarmor": {
+   "name": "Weak Armor",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 9
+  },
+  "wellbakedbody": {
+   "name": "Well-Baked Body",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 0
+  },
+  "windpower": {
+   "name": "Wind Power",
+   "tags": [
+    "profitsFromHit"
+   ],
+   "uses": 0
+  },
+  "windrider": {
+   "name": "Wind Rider",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 0
+  },
+  "wonderguard": {
+   "name": "Wonder Guard",
+   "tags": [
+    "typeImmunity"
+   ],
+   "uses": 0
+  },
+  "zerotohero": {
+   "name": "Zero to Hero",
+   "tags": [
+    "formeChange"
+   ],
+   "uses": 105
+  }
+ }
+}
