@@ -99,9 +99,17 @@ const MOVE_TAGS = [
   { tag: 'fixedDamage', param: 'damage is a constant, not a formula', probe: 'move.damage',
     why: 'Seismic Toss and Night Shade ignore stats entirely',
     of: m => m.damage ? { damage: m.damage } : null },
-  { tag: 'spread', param: 'x0.75 and it also hits my ally', probe: 'allAdjacentFoes',
-    why: 'the ally half is what allyHit is for, and the 0.75 is a damage parameter',
-    of: m => (m.target === 'allAdjacentFoes' || m.target === 'allAdjacent') ? { target: m.target } : null },
+  /* SPLIT on Will's review: "the .75 is the same for all spread moves but we need to differ on both
+   * my enemies, or both my enemies and my side too". Right, and the single tag hid the distinction
+   * that matters most. Both take x0.75. Only allAdjacent touches your own partner -- which is the
+   * entire Bellibolt/Discharge case, where the damage was fine and the ally was the problem. */
+  { tag: 'spreadFoes', param: 'x0.75, hits BOTH ENEMIES, ally is safe', probe: 'allAdjacentFoes',
+    why: 'Heat Wave, Hyper Voice, Dazzling Gleam, Blizzard, Make It Rain. Free to click beside a partner',
+    of: m => m.target === 'allAdjacentFoes' ? { target: m.target, hitsAlly: false } : null },
+  { tag: 'spreadAll', param: 'x0.75, hits BOTH ENEMIES AND MY PARTNER', probe: "=== 'allAdjacent'",
+    why: 'Earthquake, Rock Slide, Discharge, Surf. This is the one allyHit exists for, and the one '
+       + 'that killed its own Archaludon',
+    of: m => m.target === 'allAdjacent' ? { target: m.target, hitsAlly: true } : null },
   { tag: 'priority', param: 'order = priority', probe: 'effectivePriority',
     why: 'who moves first, before speed is consulted at all',
     of: m => m.priority ? { priority: m.priority } : null },
@@ -136,9 +144,34 @@ const MOVE_TAGS = [
   { tag: 'redirects', param: 'takes the turn\'s single-target attacks', probe: 'redirect',
     why: 'Follow Me and Rage Powder. A pair feature in DODUO and nothing in the single-move vector',
     of: m => (m.volatileStatus === 'followme' || m.volatileStatus === 'ragepowder') ? { redirect: true } : null },
-  { tag: 'selfSwitch', param: 'the user leaves after damaging', probe: 'selfSwitch',
-    why: 'U-turn, Volt Switch, Flip Turn. Momentum, and the switch features cannot see it',
-    of: m => m.selfSwitch ? { selfSwitch: m.selfSwitch } : null },
+  /* SPLIT on Will's review: "these are just switch moves not necessarily damage". Correct, and the
+   * most-used one proves it -- Parting Shot is 4,782 uses and deals no damage whatsoever. Three
+   * different jobs were sharing one tag:
+   *   damaging pivot   U-turn, Flip Turn, Volt Switch -- hit, then leave. Momentum plus chip.
+   *   status pivot     Parting Shot lowers their stats and leaves; Chilly Reception sets snow and
+   *                    leaves. The switch IS the point, the effect is the payment.
+   *   passes state     Baton Pass hands over the boosts, Shed Tail hands over a Substitute. The
+   *                    thing that comes in inherits something, which is a different decision again. */
+  { tag: 'pivotDamaging', param: 'damages, then the user leaves', probe: 'selfSwitch',
+    why: 'U-turn, Flip Turn, Volt Switch. Chip plus momentum, and no switch feature can see either',
+    of: m => (m.selfSwitch && m.category !== 'Status') ? { selfSwitch: m.selfSwitch } : null },
+  { tag: 'pivotStatus', param: 'no damage, an effect, then the user leaves', probe: 'partingshot',
+    why: 'Parting Shot (4,782 uses, the most common pivot in the format) and Chilly Reception. The '
+       + 'switch is the point and the effect is the payment',
+    of: m => (m.selfSwitch && m.category === 'Status' && !/batonpass|shedtail/.test(norm(m.id)))
+             ? { selfSwitch: m.selfSwitch } : null },
+  { tag: 'passesState', param: 'the incoming Pokemon INHERITS something', probe: 'batonpass',
+    why: 'Baton Pass hands over the stat boosts, Shed Tail hands over a Substitute. Nothing in the '
+       + 'model represents a switch that carries state across',
+    of: m => /batonpass|shedtail/.test(norm(m.id)) ? { passes: true } : null },
+  /* Will: "is substitute its own class". Yes -- it is not a Protect (it does not block, it ABSORBS)
+   * and not a side condition (it is on one body). It is an HP buffer that eats damage until it
+   * breaks, and it also blanks status and most secondary effects while it stands. Shed Tail above is
+   * the move that hands one to a teammate, which is why the two belong together. */
+  { tag: 'substitute', param: 'an HP buffer that absorbs hits and blanks status until it breaks', probe: 'substitute',
+    why: 'Its own class. Sound moves go through it, and the damage needed to break it is a real '
+       + 'number the kill calculation would have to clear first',
+    of: m => /^(substitute|shedtail)$/.test(norm(m.id)) ? { buffer: 0.25 } : null },
   { tag: 'forcesSwitch', param: 'the TARGET is removed from the field', probe: 'forceSwitch',
     why: 'Whirlwind, Dragon Tail, Roar. Undoes setup and changes who is in front of you',
     of: m => m.forceSwitch ? { forceSwitch: true } : null },
@@ -148,18 +181,109 @@ const MOVE_TAGS = [
   { tag: 'setsTerrain', param: 'terrain := x', probe: 'terrain',
     why: 'same as weather: redundancy is detected, benefit is not',
     of: m => m.terrain ? { terrain: m.terrain } : null },
-  { tag: 'setsRoom', param: 'a pseudo-weather that reverses or reorders', probe: 'pseudoWeather',
-    why: 'Trick Room. It set this FOR Will and then lost to it',
-    of: m => m.pseudoWeather ? { pseudoWeather: m.pseudoWeather } : null },
-  { tag: 'setsScreen', param: 'a side condition', probe: 'sideCondition',
-    why: 'Reflect, Light Screen, Tailwind, Safeguard -- halved damage or doubled speed for five turns',
-    of: m => m.sideCondition ? { sideCondition: m.sideCondition } : null },
+  /* TRICK ROOM GETS ITS OWN TAG on Will's review -- "gravity and wonder room are different and
+   * rare". Right: Trick Room REVERSES THE SPEED ORDER of the entire field for five turns, which is
+   * the single largest state change any move makes and feeds straight into movesFirst. Gravity and
+   * Wonder Room share the pseudoWeather mechanism and do something else entirely. */
+  { tag: 'reversesSpeed', param: 'speed order is inverted for the whole field', probe: 'trickRoomField',
+    why: 'Trick Room. MAG set this FOR Will, who had the slowest Pokemon on the field, and was then '
+       + '4-0ed. It knows the field is ALREADY set (deadField) and cannot ask whether setting it helps',
+    of: m => /trickroom/.test(norm(m.id)) ? { reverses: true } : null },
+  /* Will: "wonder room needs its own tag for making items useless? idk how it works its rare".
+   * Close -- Wonder Room SWAPS Defense and Special Defense for every Pokemon on the field for five
+   * turns. It does not touch items (that is Magic Room, which suppresses them). Both are rare and
+   * both invalidate a cached damage number wholesale, which is why they cannot sit under a generic
+   * pseudo-weather tag: one rewrites the defending stat, the other deletes Assault Vest and Choice
+   * Specs mid-calculation. */
+  { tag: 'swapsDefences', param: 'Def and SpD are exchanged, field-wide', probe: 'wonderroom',
+    why: 'Wonder Room. Every stored damage number is wrong while it is up',
+    of: m => /wonderroom/.test(norm(m.id)) ? { swaps: true } : null },
+  { tag: 'suppressesItems', param: 'held items stop working, field-wide', probe: 'magicroom',
+    why: 'Magic Room. Kills Focus Sash, Choice items, Assault Vest and the berries at once',
+    of: m => /magicroom/.test(norm(m.id)) ? { suppress: true } : null },
+  { tag: 'setsRoom', param: 'another pseudo-weather', probe: 'pseudoWeather',
+    why: 'whatever is left after Trick Room, Wonder Room, Magic Room and Gravity are split out',
+    of: m => (m.pseudoWeather && !/trickroom|wonderroom|magicroom|gravity/.test(norm(m.id)))
+             ? { pseudoWeather: m.pseudoWeather } : null },
+  /* Will: "are there accuracy boosting tags, thats where gravity would go". There were not -- only
+   * neverMisses on the move itself. Gravity raises every move's accuracy by 5/3 AND grounds Flying
+   * types, so it belongs in both places; this is the accuracy half. P(hit) is already a parameter
+   * the kill distribution consumes, so this feeds the same number. */
+  { tag: 'accuracyMod', param: 'P(hit) is scaled for everyone', probe: 'accuracyMod',
+    why: 'Gravity (x5/3 and grounds Flying), Sand Attack, Hone Claws. Feeds the same P(hit) the kill '
+       + 'distribution already needs',
+    of: m => (/gravity/.test(norm(m.id)) || (m.boosts && (m.boosts.accuracy || m.boosts.evasion)))
+             ? { accuracy: true } : null },
+  /* SPLIT THREE WAYS on Will's review: "should wide guard go on side condition or protect? i see
+   * both" and "should the hazards go on side condition? its different than like reflect".
+   *
+   * Both right. `sideCondition` is ONE dex mechanism doing THREE unrelated jobs, and grouping them
+   * made a tag that cannot mean anything:
+   *   one-turn guards  Wide Guard (2,065), Quick Guard (356) -- block a CLASS of move, this turn only.
+   *                    Mechanically a side condition, functionally a Protect.
+   *   side buffs       Tailwind (6,981), Light Screen (2,346), Reflect (1,988), Aurora Veil (853) --
+   *                    five turns, modify damage or speed.
+   *   hazards          laid on the OPPONENT's side, persist until removed, and do nothing this turn:
+   *                    they punish SWITCHING, which is a different decision entirely.
+   * The dex distinguishes them: target === 'foeSide' is a hazard, and the guards last one turn. */
+  { tag: 'oneTurnGuard', param: 'blocks a CLASS of move for one turn', probe: 'wideguard',
+    why: 'Wide Guard blanks every spread move, Quick Guard every priority move. Neither is scored, and '
+       + 'Wide Guard alone is 2,065 uses',
+    of: m => (m.sideCondition && /^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id)))
+             ? { blocksClass: norm(m.id) } : null },
+  { tag: 'sideBuff', param: 'my side gets a multi-turn modifier', probe: 'sideCondition',
+    why: 'Tailwind doubles speed for five turns, screens halve damage. Tailwind is 6,981 uses and the '
+       + 'speed half already feeds movesFirst',
+    of: m => (m.sideCondition && m.target === 'allySide'
+              && !/^(wideguard|quickguard|craftyshield|matblock)$/.test(norm(m.id)))
+             ? { sideCondition: m.sideCondition } : null },
+  { tag: 'hazard', param: 'their side is damaged or slowed on switch-in, until removed', probe: 'hazard',
+    why: 'Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their '
+       + 'future switches, which is a decision MAG does not model at all',
+    of: m => (m.sideCondition && m.target === 'foeSide') ? { hazard: m.sideCondition } : null },
   { tag: 'boostsUser', param: 'stat stages on self', probe: 'boosts',
     why: 'the setup family, derived rather than listed',
     of: m => (m.boosts && (m.target === 'self' || m.target === 'adjacentAllyOrSelf')) ? { boosts: m.boosts } : null },
-  { tag: 'lowersTarget', param: 'stat stages on the foe', probe: 'movesLowerFoe',
-    why: 'Intimidate-shaped effects from a move; also what Clear Amulet and White Herb answer',
-    of: m => (m.boosts && m.target !== 'self') ? { boosts: m.boosts } : null },
+  /* SPLIT BY THE SIGN OF THE EFFECT, not by the declared target, on Will's review: "coaching would
+   * never be used on the enemy" and "decorate would almost never be used on the foe". Both are
+   * declared target 'normal' or 'adjacentAlly', which the GAME allows to be aimed either way -- so
+   * reading the target field swept 525 uses of Coaching and 18 of Decorate into a foe-debuff tag.
+   * The sign is what says who you aim it at. */
+  { tag: 'boostsTarget', param: 'positive stat stages on a BODY THAT IS NOT ME', probe: 'boostsAlly',
+    why: 'Coaching (525 uses), Decorate, Howl, Aromatic Mist. Aimed at the partner in every real '
+       + 'game, and DODUO has boostsPartnerDamage for exactly this',
+    of: m => (m.boosts && m.target !== 'self'
+              && Object.values(m.boosts).some(v => v > 0)
+              && !Object.values(m.boosts).some(v => v < 0)) ? { boosts: m.boosts } : null },
+  { tag: 'lowersTarget', param: 'negative stat stages on the foe', probe: 'movesLowerFoe',
+    why: 'Charm, Fake Tears, Scary Face, Tickle. Intimidate-shaped, and what Clear Amulet and White '
+       + 'Herb answer',
+    of: m => (m.boosts && m.target !== 'self'
+              && Object.values(m.boosts).some(v => v < 0)) ? { boosts: m.boosts } : null },
+  /* Will: "memento is an explosion like move, is that a tag we can add". Yes, and the dex declares
+   * it -- selfdestruct is 'always' (Explosion, Self-Destruct, Misty Explosion) or 'ifHit' (Memento,
+   * Final Gambit, Healing Wish). Spending your own body is a cost no feature represents, and it is
+   * the one move class where a "good" score should still usually mean do not click it. */
+  { tag: 'userFaints', param: 'the user dies as the cost', probe: 'selfdestruct',
+    why: 'Memento, Explosion, Final Gambit, Healing Wish. Final Gambit is 176 uses and deals damage '
+       + 'equal to the user remaining HP, which the damage engine reads as ZERO',
+    of: m => m.selfdestruct ? { faints: m.selfdestruct } : null },
+  /* Will: "was there a status section for all non damaging moves i missed so they can get the
+   * prankster buff?" -- there was not. inflictsStatus is about burn/para/sleep; this is about the
+   * CATEGORY, which is what Prankster keys on (+1 priority to every Status move), what Taunt blanks
+   * entirely, and what an Assault Vest holder cannot click at all. Three separate interactions all
+   * hanging off one property nothing named. */
+  { tag: 'statusCategory', param: 'category is Status: Prankster +1, blanked by Taunt, illegal under Assault Vest', probe: 'isStatus',
+    why: 'The class Prankster boosts and Taunt deletes. isStatus exists as a FEATURE but was never a '
+       + 'named parameter, so nothing connected it to priorityMod or to Taunt',
+    of: m => m.category === 'Status' ? { status: true } : null },
+  /* Will: "encore is sorta similar to choice lock". Exactly -- choiceLock is an ITEM you carry,
+   * this is the same restriction APPLIED TO THEM. Both collapse the opponent's option set to one
+   * move, which is the strongest thing you can know about their next turn. */
+  { tag: 'locksTarget', param: 'their option set collapses to one move, or loses one', probe: 'locking',
+    why: 'Encore locks them into their last move, Disable removes it, Taunt deletes every status '
+       + 'option. stallIntoEncore already prices the Encore case from the RECEIVING end',
+    of: m => (/^(encore|disable|torment|taunt)$/.test(norm(m.id))) ? { locks: norm(m.id) } : null },
   { tag: 'inflictsStatus', param: 'status := x', probe: 'statusBites',
     why: 'burn halves physical damage, paralysis halves speed -- both are damage/order parameters',
     of: m => m.status ? { status: m.status } : null },
@@ -169,18 +293,54 @@ const MOVE_TAGS = [
   { tag: 'recoil', param: 'costs the user HP', probe: 'recoil',
     why: 'a cost the score does not currently carry',
     of: m => (m.recoil || m.mindBlownRecoil || m.struggleRecoil) ? { recoil: m.recoil || true } : null },
-  { tag: 'heals', param: 'restores HP', probe: 'healsPartner',
-    why: 'and healing an ALLY is a pair feature that exists in DODUO',
-    of: m => (m.heal || (m.flags && m.flags.heal)) ? { heal: m.heal || true } : null },
+  /* RECONCILED with `drain` on Will's instruction, and split by TARGET as he asked earlier
+   * ("restores hp needs a restores MY hp or restores PARTNERS hp"). They do not overlap once
+   * separated: drain restores a FRACTION OF DAMAGE DEALT and only exists on an attack, while these
+   * restore a fixed share of max HP and cost the whole turn. A move is never both. */
+  { tag: 'healsSelf', param: 'restores a share of MY max HP, costing the turn', probe: 'healsSelf',
+    why: 'Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices',
+    of: m => ((m.heal || (m.flags && m.flags.heal)) && !m.drain && m.target === 'self')
+             ? { heal: m.heal || true } : null },
+  { tag: 'healsAlly', param: 'restores my PARTNER max-HP share', probe: 'healsPartner',
+    why: 'Heal Pulse, Life Dew, Floral Healing. Already a pair feature in DODUO and nothing in the '
+       + 'single-move vector',
+    of: m => ((m.heal || (m.flags && m.flags.heal)) && !m.drain && m.target !== 'self')
+             ? { heal: m.heal || true } : null },
+  /* Will: "the charge turns need a weather sub tag or something that says if rain then no charge on
+   * electroshot". Exactly right, and the dex declares it -- Showdown stores the skip condition on
+   * the move's own condition handler, so it is derivable rather than a list. Electro Shot skips its
+   * charge in RAIN, Solar Beam and Solar Blade skip in SUN. A charge move that is not charging is a
+   * completely different move: full power, no free turn given away. */
   { tag: 'chargeTurn', param: 'costs a turn before it lands', probe: 'chargeTurn',
     why: 'and the request omits the target field on the locked turn, which already broke the player once',
     of: m => (m.flags && m.flags.charge) ? { charge: true } : null },
+  { tag: 'chargeSkippedByWeather', param: 'the charge turn DISAPPEARS under one weather', probe: 'chargeSkip',
+    why: 'Electro Shot in rain, Solar Beam and Solar Blade in sun. Same move, no downside, and the '
+       + 'weather that does it is usually one the user set themselves',
+    of: m => {
+      if (!(m.flags && m.flags.charge)) return null;
+      const id = norm(m.id);
+      if (/electroshot/.test(id)) return { skipsIn: 'raindance' };
+      if (/solarbeam|solarblade/.test(id)) return { skipsIn: 'sunnyday' };
+      return null;
+    } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
-  { tag: 'flinches', param: 'P(flinch) on a faster hit', probe: 'flinch',
-    why: 'Fake Out. Blocked by Covert Cloak and by Inner Focus, neither of which is checked',
-    of: m => (m.secondaries || []).some(s => s && s.volatileStatus === 'flinch') || (m.volatileStatus === 'flinch') ? { flinch: true } : null },
+  /* THE PROBABILITY IS THE PARAMETER, not the yes/no. Will: "these are just % chance to flinch
+   * right?" -- yes, and they run from 10% to 100%. A single tag put Fake Out (100%, +3 priority)
+   * beside Fire Fang (10%), which is not a distinction a model can afford to lose. Only matters when
+   * the user moves FIRST, so the real quantity is P(flinch) x P(I outspeed). */
+  { tag: 'flinches', param: 'P(flinch), 10% to 100%, and only if I move first', probe: 'flinch',
+    why: 'Fake Out 100% at +3, Rock Slide 30%, Iron Head 20%, the fangs 10%. Blocked by Covert Cloak '
+       + 'and Inner Focus, neither of which is checked',
+    of: m => {
+      let p = null;
+      if (m.volatileStatus === 'flinch') p = 100;
+      for (const s of (m.secondaries || [])) if (s && s.volatileStatus === 'flinch') p = s.chance || 100;
+      if (m.secondary && m.secondary.volatileStatus === 'flinch') p = m.secondary.chance || 100;
+      return p === null ? null : { pFlinch: p / 100 };
+    } },
   { tag: 'ignoresAbility', param: 'the defender\'s ability does not apply', probe: 'ignoreAbility',
     why: 'Mold Breaker-style moves walk through Levitate and the damage-reducing abilities',
     of: m => m.ignoreAbility ? { ignoreAbility: true } : null },
@@ -241,6 +401,10 @@ const ITEM_TAGS = [
        + 'ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here '
        + 'changes it -- do not read critRatio: 2 as double damage',
     of: it => it.onModifyCritRatio ? { critRatio: 2 } : null },
+  { tag: 'addsFlinch', param: 'P(flinch) += 10% on moves that do not already flinch', probe: 'kingsrock',
+    why: 'Kings Rock (Will raised it). 49 uses. Sets the same parameter the flinch tag does, from the '
+       + 'item side, which is exactly what a parameter taxonomy is for',
+    of: it => /^(kingsrock|razorfang)$/.test(norm(it.name)) ? { pFlinch: 0.1 } : null },
   { tag: 'statMult', param: 'raises one stat', probe: 'assaultvest',
     why: 'Band, Specs, Assault Vest, Eviolite',
     of: it => /^(choiceband|choicespecs|assaultvest|eviolite)$/.test(norm(it.name)) ? { mult: 1.5 } : null },
@@ -266,16 +430,16 @@ const ABILITY_TAGS = [
        + 'probability (Scope Lens, Flower Trick), prevention (Shell Armor) and now the multiplier. '
        + 'Crit damage is x1.5 and Sniper makes it x1.5 again, so x2.25 total -- it was x3 in the old '
        + 'gens when crits themselves were x2, which is where the folklore comes from',
-    of: a => /sniper/.test(norm(a.name)) ? { critMult: 1.5 } : null },
+    of: a => (a.onModifyDamage && /crit/i.test(String(a.onModifyDamage))) ? { critMult: 1.5 } : null },
   { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
     why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
     of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },
   { tag: 'weatherSetter', param: 'weather := x on switch-in', probe: 'weatherSetter',
     why: 'and megaing can COST you it, which is Will\'s reason to decline a mega',
-    of: a => (a.onStart && /drought|drizzle|sandstream|snowwarning|orichalcumpulse/.test(norm(a.name))) ? { sets: true } : null },
+    of: a => (a.onStart && /setWeather/.test(String(a.onStart))) ? { sets: true } : null },
   { tag: 'terrainSetter', param: 'terrain := x on switch-in', probe: 'terrainSetter',
     why: 'same shape as weather',
-    of: a => (a.onStart && /surge$/.test(norm(a.name))) ? { sets: true } : null },
+    of: a => (a.onStart && /setTerrain/.test(String(a.onStart))) ? { sets: true } : null },
   { tag: 'speedCond', param: 'speed x2 under a condition', probe: 'onModifySpe',
     why: 'Chlorophyll, Swift Swim, Sand Rush, Slush Rush, Unburden, Quick Feet. Already probed for the speed order',
     of: a => a.onModifySpe ? { conditional: true } : null },
@@ -284,13 +448,20 @@ const ABILITY_TAGS = [
     of: a => (a.onTryHit || a.onImmunity) ? { immune: true } : null },
   { tag: 'redirectsType', param: 'draws that type to itself', probe: 'lightningrod',
     why: 'Lightning Rod and Storm Drain redirect AND boost',
-    of: a => /lightningrod|stormdrain/.test(norm(a.name)) ? { redirect: true } : null },
+    of: a => a.onFoeRedirectTarget ? { redirect: true } : null },
   { tag: 'profitsFromHit', param: 'the target gains something for being hit', probe: 'onDamagingHit',
     why: 'Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will\'s Bellibolt case',
     of: a => a.onDamagingHit ? { profits: true } : null },
-  { tag: 'contactPunish', param: 'hurts or afflicts anything making contact', probe: 'roughskin',
-    why: 'Rough Skin, Iron Barbs, Static, Flame Body, Effect Spore',
-    of: a => (a.onDamagingHit && /roughskin|ironbarbs|static|flamebody|poisonpoint|effectspore|cutecharm/.test(norm(a.name))) ? { punish: true } : null },
+  /* DERIVED FROM THE HANDLER SOURCE, not from a list of names (Will: "no hardcodes"). Showdown
+   * expresses the contact condition two ways -- checkMoveMakesContact() or move.flags.contact -- and
+   * reading the function text catches both. It also separates the TRIGGER, which Will spotted was
+   * being conflated: Rough Skin and Static fire on CONTACT, Toxic Debris on any PHYSICAL hit, and
+   * Stamina and Cursed Body on ANY hit at all. */
+  { tag: 'contactPunish', param: 'the ATTACKER pays for touching it', probe: 'roughskin',
+    why: 'Rough Skin (3,739), Static, Flame Body, Poison Point, Cute Charm, Effect Spore, Mummy, '
+       + 'Gooey. Derived by reading the handler for checkMoveMakesContact',
+    of: a => (a.onDamagingHit && /checkMoveMakesContact|flags\.contact/.test(String(a.onDamagingHit)))
+             ? { trigger: 'contact' } : null },
   { tag: 'damageReduce', param: 'x<1 damage taken', probe: 'multiscale',
     why: 'Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them',
     of: a => a.onSourceModifyDamage ? { reduce: true } : null },
@@ -311,7 +482,8 @@ const ABILITY_TAGS = [
     of: a => a.onFoeTrapPokemon ? { traps: true } : null },
   { tag: 'onSwitchInDrop', param: 'stat stages on the foe at switch-in', probe: 'intimidate',
     why: 'Intimidate. Beaten by Clear Amulet and by White Herb, neither of which is checked',
-    of: a => (a.onStart && /intimidate/.test(norm(a.name))) ? { drop: true } : null },
+    of: a => (a.onStart && /boost/i.test(String(a.onStart)) && /foe|adjacentFoes|activePokemon/.test(String(a.onStart)))
+             ? { drop: true } : null },
   { tag: 'formeChange', param: 'the species changes mid-battle', probe: 'megaFormeOf',
     why: 'Zero to Hero (needs a switch), Illusion, Imposter, Disguise',
     of: a => /zerotohero|illusion|imposter|disguise|schooling|shieldsdown|powerconstruct/.test(norm(a.name)) ? { changes: true } : null },
@@ -370,6 +542,17 @@ for (const kind of ['move', 'item', 'ability']) {
 }
 
 const unread = all.filter(r => !r.used).sort((a, b) => b.uses - a.uses);
+/* NO HARDCODES is the rule (S13). Where a tag still identifies its members by NAME rather than by a
+ * dex field or a handler probe, that is technical debt and it should be COUNTED rather than quietly
+ * left in a regex. Some are irreducible -- Trick Room is one move and there is no field that says
+ * "reverses speed" -- but they must be visible. */
+const src = fs.readFileSync(__filename, 'utf8');
+const selfSrc = fs.readFileSync(__filename, 'utf8');
+const nameHits = (selfSrc.match(/\.test\(norm\((?:m|it|a)\.(?:id|name)\)\)/g) || []).length;
+console.log(`  ${nameHits} tag definitions still identify members BY NAME (a regex over the id) rather`);
+console.log('  than by a dex field or a handler probe. Some are irreducible -- Trick Room is one move');
+console.log('  and no field says "reverses speed" -- but they are counted rather than hidden.');
+console.log('');
 console.log(`  ${unread.length} of ${all.length} tags are NOT read by board.js or the damage engine.`);
 console.log('  (read? is a GREP for the probe string, so it can be wrong in both directions -- a shared');
 console.log('   probe reads as used when it is not, and a mechanic handled under another name reads as');

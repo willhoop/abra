@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T01:48:26.066Z",
+ "generated": "2026-07-29T02:09:03.335Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -89,21 +89,39 @@
    ]
   },
   {
-   "tag": "spread",
+   "tag": "spreadFoes",
    "kind": "move",
-   "param": "x0.75 and it also hits my ally",
-   "why": "the ally half is what allyHit is for, and the 0.75 is a damage parameter",
+   "param": "x0.75, hits BOTH ENEMIES, ally is safe",
+   "why": "Heat Wave, Hyper Voice, Dazzling Gleam, Blizzard, Make It Rain. Free to click beside a partner",
    "consumedBy": "allAdjacentFoes",
    "used": true,
-   "n": 38,
-   "uses": 30608,
+   "n": 22,
+   "uses": 25372,
    "examples": [
-    "Corrosive Gas",
     "Make It Rain",
     "Blizzard",
-    "Boomburst",
     "Breaking Swipe",
-    "Brutal Swing"
+    "Burning Jealousy",
+    "Clanging Scales",
+    "Cotton Spore"
+   ]
+  },
+  {
+   "tag": "spreadAll",
+   "kind": "move",
+   "param": "x0.75, hits BOTH ENEMIES AND MY PARTNER",
+   "why": "Earthquake, Rock Slide, Discharge, Surf. This is the one allyHit exists for, and the one that killed its own Archaludon",
+   "consumedBy": "=== 'allAdjacent'",
+   "used": true,
+   "n": 16,
+   "uses": 5236,
+   "examples": [
+    "Corrosive Gas",
+    "Boomburst",
+    "Brutal Swing",
+    "Bulldoze",
+    "Discharge",
+    "Earthquake"
    ]
   },
   {
@@ -247,21 +265,60 @@
    ]
   },
   {
-   "tag": "selfSwitch",
+   "tag": "pivotDamaging",
    "kind": "move",
-   "param": "the user leaves after damaging",
-   "why": "U-turn, Volt Switch, Flip Turn. Momentum, and the switch features cannot see it",
+   "param": "damages, then the user leaves",
+   "why": "U-turn, Flip Turn, Volt Switch. Chip plus momentum, and no switch feature can see either",
    "consumedBy": "selfSwitch",
    "used": true,
-   "n": 7,
-   "uses": 8394,
+   "n": 3,
+   "uses": 3489,
+   "examples": [
+    "Flip Turn",
+    "U-turn",
+    "Volt Switch"
+   ]
+  },
+  {
+   "tag": "pivotStatus",
+   "kind": "move",
+   "param": "no damage, an effect, then the user leaves",
+   "why": "Parting Shot (4,782 uses, the most common pivot in the format) and Chilly Reception. The switch is the point and the effect is the payment",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 4799,
+   "examples": [
+    "Chilly Reception",
+    "Parting Shot"
+   ]
+  },
+  {
+   "tag": "passesState",
+   "kind": "move",
+   "param": "the incoming Pokemon INHERITS something",
+   "why": "Baton Pass hands over the stat boosts, Shed Tail hands over a Substitute. Nothing in the model represents a switch that carries state across",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 106,
    "examples": [
     "Baton Pass",
-    "Chilly Reception",
-    "Flip Turn",
-    "Parting Shot",
+    "Shed Tail"
+   ]
+  },
+  {
+   "tag": "substitute",
+   "kind": "move",
+   "param": "an HP buffer that absorbs hits and blanks status until it breaks",
+   "why": "Its own class. Sound moves go through it, and the damage needed to break it is a real number the kill calculation would have to clear first",
+   "consumedBy": "substitute",
+   "used": true,
+   "n": 2,
+   "uses": 275,
+   "examples": [
     "Shed Tail",
-    "U-turn"
+    "Substitute"
    ]
   },
   {
@@ -313,36 +370,114 @@
    ]
   },
   {
-   "tag": "setsRoom",
+   "tag": "reversesSpeed",
    "kind": "move",
-   "param": "a pseudo-weather that reverses or reorders",
-   "why": "Trick Room. It set this FOR Will and then lost to it",
-   "consumedBy": "pseudoWeather",
+   "param": "speed order is inverted for the whole field",
+   "why": "Trick Room. MAG set this FOR Will, who had the slowest Pokemon on the field, and was then 4-0ed. It knows the field is ALREADY set (deadField) and cannot ask whether setting it helps",
+   "consumedBy": "trickRoomField",
    "used": true,
-   "n": 5,
-   "uses": 4451,
+   "n": 1,
+   "uses": 4415,
    "examples": [
-    "Gravity",
-    "Trick Room",
+    "Trick Room"
+   ]
+  },
+  {
+   "tag": "swapsDefences",
+   "kind": "move",
+   "param": "Def and SpD are exchanged, field-wide",
+   "why": "Wonder Room. Every stored damage number is wrong while it is up",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 2,
+   "examples": [
     "Wonder Room"
    ]
   },
   {
-   "tag": "setsScreen",
+   "tag": "suppressesItems",
    "kind": "move",
-   "param": "a side condition",
-   "why": "Reflect, Light Screen, Tailwind, Safeguard -- halved damage or doubled speed for five turns",
+   "param": "held items stop working, field-wide",
+   "why": "Magic Room. Kills Focus Sash, Choice items, Assault Vest and the berries at once",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "setsRoom",
+   "kind": "move",
+   "param": "another pseudo-weather",
+   "why": "whatever is left after Trick Room, Wonder Room, Magic Room and Gravity are split out",
+   "consumedBy": "pseudoWeather",
+   "used": true,
+   "n": 1,
+   "uses": 0,
+   "examples": []
+  },
+  {
+   "tag": "accuracyMod",
+   "kind": "move",
+   "param": "P(hit) is scaled for everyone",
+   "why": "Gravity (x5/3 and grounds Flying), Sand Attack, Hone Claws. Feeds the same P(hit) the kill distribution already needs",
+   "consumedBy": null,
+   "used": false,
+   "n": 5,
+   "uses": 350,
+   "examples": [
+    "Coil",
+    "Gravity",
+    "Minimize",
+    "Sweet Scent"
+   ]
+  },
+  {
+   "tag": "oneTurnGuard",
+   "kind": "move",
+   "param": "blocks a CLASS of move for one turn",
+   "why": "Wide Guard blanks every spread move, Quick Guard every priority move. Neither is scored, and Wide Guard alone is 2,065 uses",
+   "consumedBy": "wideguard",
+   "used": true,
+   "n": 2,
+   "uses": 2421,
+   "examples": [
+    "Quick Guard",
+    "Wide Guard"
+   ]
+  },
+  {
+   "tag": "sideBuff",
+   "kind": "move",
+   "param": "my side gets a multi-turn modifier",
+   "why": "Tailwind doubles speed for five turns, screens halve damage. Tailwind is 6,981 uses and the speed half already feeds movesFirst",
    "consumedBy": "sideCondition",
    "used": true,
-   "n": 11,
-   "uses": 14699,
+   "n": 5,
+   "uses": 12174,
    "examples": [
     "Aurora Veil",
     "Light Screen",
-    "Quick Guard",
     "Reflect",
     "Safeguard",
-    "Spikes"
+    "Tailwind"
+   ]
+  },
+  {
+   "tag": "hazard",
+   "kind": "move",
+   "param": "their side is damaged or slowed on switch-in, until removed",
+   "why": "Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their future switches, which is a decision MAG does not model at all",
+   "consumedBy": null,
+   "used": false,
+   "n": 4,
+   "uses": 104,
+   "examples": [
+    "Spikes",
+    "Stealth Rock",
+    "Sticky Web",
+    "Toxic Spikes"
    ]
   },
   {
@@ -364,21 +499,90 @@
    ]
   },
   {
-   "tag": "lowersTarget",
+   "tag": "boostsTarget",
    "kind": "move",
-   "param": "stat stages on the foe",
-   "why": "Intimidate-shaped effects from a move; also what Clear Amulet and White Herb answer",
-   "consumedBy": "movesLowerFoe",
-   "used": true,
-   "n": 23,
-   "uses": 2198,
+   "param": "positive stat stages on a BODY THAT IS NOT ME",
+   "why": "Coaching (525 uses), Decorate, Howl, Aromatic Mist. Aimed at the partner in every real game, and DODUO has boostsPartnerDamage for exactly this",
+   "consumedBy": null,
+   "used": false,
+   "n": 6,
+   "uses": 634,
    "examples": [
     "Howl",
-    "Toxic Thread",
     "Aromatic Mist",
+    "Coaching",
+    "Decorate",
+    "Swagger"
+   ]
+  },
+  {
+   "tag": "lowersTarget",
+   "kind": "move",
+   "param": "negative stat stages on the foe",
+   "why": "Charm, Fake Tears, Scary Face, Tickle. Intimidate-shaped, and what Clear Amulet and White Herb answer",
+   "consumedBy": "movesLowerFoe",
+   "used": true,
+   "n": 17,
+   "uses": 1564,
+   "examples": [
+    "Toxic Thread",
     "Baby-Doll Eyes",
     "Charm",
-    "Coaching"
+    "Cotton Spore",
+    "Eerie Impulse",
+    "Fake Tears"
+   ]
+  },
+  {
+   "tag": "userFaints",
+   "kind": "move",
+   "param": "the user dies as the cost",
+   "why": "Memento, Explosion, Final Gambit, Healing Wish. Final Gambit is 176 uses and deals damage equal to the user remaining HP, which the damage engine reads as ZERO",
+   "consumedBy": "selfdestruct",
+   "used": true,
+   "n": 6,
+   "uses": 232,
+   "examples": [
+    "Explosion",
+    "Final Gambit",
+    "Healing Wish",
+    "Memento",
+    "Misty Explosion",
+    "Self-Destruct"
+   ]
+  },
+  {
+   "tag": "statusCategory",
+   "kind": "move",
+   "param": "category is Status: Prankster +1, blanked by Taunt, illegal under Assault Vest",
+   "why": "The class Prankster boosts and Taunt deletes. isStatus exists as a FEATURE but was never a named parameter, so nothing connected it to priorityMod or to Taunt",
+   "consumedBy": "isStatus",
+   "used": true,
+   "n": 175,
+   "uses": 100518,
+   "examples": [
+    "Baneful Bunker",
+    "Clangorous Soul",
+    "Corrosive Gas",
+    "Dragon Cheer",
+    "Electrify",
+    "Encore"
+   ]
+  },
+  {
+   "tag": "locksTarget",
+   "kind": "move",
+   "param": "their option set collapses to one move, or loses one",
+   "why": "Encore locks them into their last move, Disable removes it, Taunt deletes every status option. stallIntoEncore already prices the Encore case from the RECEIVING end",
+   "consumedBy": "locking",
+   "used": true,
+   "n": 4,
+   "uses": 4043,
+   "examples": [
+    "Encore",
+    "Disable",
+    "Taunt",
+    "Torment"
    ]
   },
   {
@@ -436,21 +640,36 @@
    ]
   },
   {
-   "tag": "heals",
+   "tag": "healsSelf",
    "kind": "move",
-   "param": "restores HP",
-   "why": "and healing an ALLY is a pair feature that exists in DODUO",
+   "param": "restores a share of MY max HP, costing the turn",
+   "why": "Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices",
+   "consumedBy": null,
+   "used": false,
+   "n": 11,
+   "uses": 1842,
+   "examples": [
+    "Healing Wish",
+    "Moonlight",
+    "Morning Sun",
+    "Recover",
+    "Rest",
+    "Roost"
+   ]
+  },
+  {
+   "tag": "healsAlly",
+   "kind": "move",
+   "param": "restores my PARTNER max-HP share",
+   "why": "Heal Pulse, Life Dew, Floral Healing. Already a pair feature in DODUO and nothing in the single-move vector",
    "consumedBy": "healsPartner",
    "used": true,
-   "n": 22,
-   "uses": 9821,
+   "n": 3,
+   "uses": 2263,
    "examples": [
-    "Bitter Blade",
-    "Draining Kiss",
-    "Drain Punch",
-    "Giga Drain",
-    "Healing Wish",
-    "Heal Pulse"
+    "Heal Pulse",
+    "Life Dew",
+    "Strength Sap"
    ]
   },
   {
@@ -467,6 +686,21 @@
     "Electro Shot",
     "Meteor Beam",
     "Phantom Force",
+    "Solar Beam",
+    "Solar Blade"
+   ]
+  },
+  {
+   "tag": "chargeSkippedByWeather",
+   "kind": "move",
+   "param": "the charge turn DISAPPEARS under one weather",
+   "why": "Electro Shot in rain, Solar Beam and Solar Blade in sun. Same move, no downside, and the weather that does it is usually one the user set themselves",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 4152,
+   "examples": [
+    "Electro Shot",
     "Solar Beam",
     "Solar Blade"
    ]
@@ -490,8 +724,8 @@
   {
    "tag": "flinches",
    "kind": "move",
-   "param": "P(flinch) on a faster hit",
-   "why": "Fake Out. Blocked by Covert Cloak and by Inner Focus, neither of which is checked",
+   "param": "P(flinch), 10% to 100%, and only if I move first",
+   "why": "Fake Out 100% at +3, Rock Slide 30%, Iron Head 20%, the fangs 10%. Blocked by Covert Cloak and Inner Focus, neither of which is checked",
    "consumedBy": "flinch",
    "used": true,
    "n": 19,
@@ -747,6 +981,19 @@
    ]
   },
   {
+   "tag": "addsFlinch",
+   "kind": "item",
+   "param": "P(flinch) += 10% on moves that do not already flinch",
+   "why": "Kings Rock (Will raised it). 49 uses. Sets the same parameter the flinch tag does, from the item side, which is exactly what a parameter taxonomy is for",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 49,
+   "examples": [
+    "King's Rock"
+   ]
+  },
+  {
    "tag": "statMult",
    "kind": "item",
    "param": "raises one stat",
@@ -831,7 +1078,7 @@
    "why": "and megaing can COST you it, which is Will's reason to decline a mega",
    "consumedBy": null,
    "used": false,
-   "n": 5,
+   "n": 8,
    "uses": 4593,
    "examples": [
     "Drizzle",
@@ -847,7 +1094,7 @@
    "why": "same shape as weather",
    "consumedBy": null,
    "used": false,
-   "n": 4,
+   "n": 5,
    "uses": 1,
    "examples": [
     "Psychic Surge"
@@ -896,11 +1143,9 @@
    "why": "Lightning Rod and Storm Drain redirect AND boost",
    "consumedBy": "lightningrod",
    "used": true,
-   "n": 2,
-   "uses": 1288,
-   "examples": [
-    "Lightning Rod"
-   ]
+   "n": 0,
+   "uses": 0,
+   "examples": []
   },
   {
    "tag": "profitsFromHit",
@@ -923,19 +1168,19 @@
   {
    "tag": "contactPunish",
    "kind": "ability",
-   "param": "hurts or afflicts anything making contact",
-   "why": "Rough Skin, Iron Barbs, Static, Flame Body, Effect Spore",
+   "param": "the ATTACKER pays for touching it",
+   "why": "Rough Skin (3,739), Static, Flame Body, Poison Point, Cute Charm, Effect Spore, Mummy, Gooey. Derived by reading the handler for checkMoveMakesContact",
    "consumedBy": null,
    "used": false,
-   "n": 7,
-   "uses": 4246,
+   "n": 14,
+   "uses": 4293,
    "examples": [
     "Cute Charm",
     "Effect Spore",
     "Flame Body",
-    "Poison Point",
-    "Rough Skin",
-    "Static"
+    "Gooey",
+    "Mummy",
+    "Poison Point"
    ]
   },
   {
@@ -1034,10 +1279,11 @@
    "why": "Intimidate. Beaten by Clear Amulet and by White Herb, neither of which is checked",
    "consumedBy": "intimidate",
    "used": true,
-   "n": 1,
-   "uses": 6536,
+   "n": 3,
+   "uses": 6549,
    "examples": [
-    "Intimidate"
+    "Intimidate",
+    "Supersweet Syrup"
    ]
   },
   {
@@ -1081,7 +1327,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "stalling"
+    "stalling",
+    "statusCategory"
    ],
    "uses": 436
   },
@@ -1104,14 +1351,16 @@
    "tags": [
     "sound",
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 189
   },
   "corrosivegas": {
    "name": "Corrosive Gas",
    "tags": [
-    "spread"
+    "spreadAll",
+    "statusCategory"
    ],
    "uses": 1
   },
@@ -1141,7 +1390,8 @@
    "name": "Dragon Cheer",
    "tags": [
     "sound",
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 14
   },
@@ -1155,9 +1405,18 @@
   "electrify": {
    "name": "Electrify",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 1
+  },
+  "encore": {
+   "name": "Encore",
+   "tags": [
+    "statusCategory",
+    "locksTarget"
+   ],
+   "uses": 2758
   },
   "fakeout": {
    "name": "Fake Out",
@@ -1187,7 +1446,8 @@
    "name": "Growth",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 4
   },
@@ -1196,7 +1456,8 @@
    "tags": [
     "sound",
     "neverMisses",
-    "lowersTarget"
+    "boostsTarget",
+    "statusCategory"
    ],
    "uses": 26
   },
@@ -1220,7 +1481,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "stalling"
+    "stalling",
+    "statusCategory"
    ],
    "uses": 127
   },
@@ -1234,7 +1496,7 @@
   "makeitrain": {
    "name": "Make It Rain",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 1420
   },
@@ -1256,7 +1518,8 @@
   "powershift": {
    "name": "Power Shift",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -1265,7 +1528,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "stalling"
+    "stalling",
+    "statusCategory"
    ],
    "uses": 43362
   },
@@ -1289,7 +1553,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsWeather"
+    "setsWeather",
+    "statusCategory"
    ],
    "uses": 4
   },
@@ -1313,7 +1578,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsWeather"
+    "setsWeather",
+    "statusCategory"
    ],
    "uses": 3
   },
@@ -1322,7 +1588,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "stalling"
+    "stalling",
+    "statusCategory"
    ],
    "uses": 401
   },
@@ -1337,7 +1604,8 @@
   "stuffcheeks": {
    "name": "Stuff Cheeks",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -1345,9 +1613,17 @@
    "name": "Toxic Thread",
    "tags": [
     "lowersTarget",
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 6
+  },
+  "trickortreat": {
+   "name": "Trick-or-Treat",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 4
   },
   "tropkick": {
    "name": "Trop Kick",
@@ -1368,7 +1644,8 @@
    "name": "Acid Armor",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 13
   },
@@ -1383,7 +1660,8 @@
   "acupressure": {
    "name": "Acupressure",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -1399,7 +1677,8 @@
    "name": "After You",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 104
   },
@@ -1407,7 +1686,8 @@
    "name": "Agility",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 10
   },
@@ -1415,7 +1695,7 @@
    "name": "Air Cutter",
    "tags": [
     "critRatioUp",
-    "spread"
+    "spreadFoes"
    ],
    "uses": 0
   },
@@ -1437,7 +1717,8 @@
    "name": "Ally Switch",
    "tags": [
     "priority",
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 76
   },
@@ -1445,7 +1726,8 @@
    "name": "Amnesia",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 4
   },
@@ -1467,7 +1749,8 @@
   "aquaring": {
    "name": "Aqua Ring",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -1489,7 +1772,8 @@
    "name": "Aromatic Mist",
    "tags": [
     "neverMisses",
-    "lowersTarget"
+    "boostsTarget",
+    "statusCategory"
    ],
    "uses": 1
   },
@@ -1500,6 +1784,13 @@
     "contact"
    ],
    "uses": 26
+  },
+  "attract": {
+   "name": "Attract",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 0
   },
   "aurasphere": {
    "name": "Aura Sphere",
@@ -1512,7 +1803,8 @@
    "name": "Aurora Veil",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "sideBuff",
+    "statusCategory"
    ],
    "uses": 853
   },
@@ -1536,7 +1828,8 @@
    "name": "Baby-Doll Eyes",
    "tags": [
     "priority",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 50
   },
@@ -1544,7 +1837,8 @@
    "name": "Baton Pass",
    "tags": [
     "neverMisses",
-    "selfSwitch"
+    "passesState",
+    "statusCategory"
    ],
    "uses": 65
   },
@@ -1558,7 +1852,8 @@
   "bellydrum": {
    "name": "Belly Drum",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 66
   },
@@ -1581,8 +1876,7 @@
    "name": "Bitter Blade",
    "tags": [
     "contact",
-    "drain",
-    "heals"
+    "drain"
    ],
    "uses": 211
   },
@@ -1604,7 +1898,7 @@
   "blizzard": {
    "name": "Blizzard",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 1532
   },
@@ -1612,7 +1906,8 @@
    "name": "Block",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -1633,7 +1928,7 @@
   "boomburst": {
    "name": "Boomburst",
    "tags": [
-    "spread",
+    "spreadAll",
     "sound"
    ],
    "uses": 11
@@ -1657,7 +1952,7 @@
   "breakingswipe": {
    "name": "Breaking Swipe",
    "tags": [
-    "spread",
+    "spreadFoes",
     "contact"
    ],
    "uses": 70
@@ -1672,7 +1967,7 @@
   "brutalswing": {
    "name": "Brutal Swing",
    "tags": [
-    "spread",
+    "spreadAll",
     "contact"
    ],
    "uses": 2
@@ -1695,14 +1990,15 @@
    "name": "Bulk Up",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 561
   },
   "bulldoze": {
    "name": "Bulldoze",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 17
   },
@@ -1724,7 +2020,7 @@
   "burningjealousy": {
    "name": "Burning Jealousy",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 32
   },
@@ -1732,7 +2028,8 @@
    "name": "Calm Mind",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 1163
   },
@@ -1747,14 +2044,16 @@
    "name": "Charge",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 1
   },
   "charm": {
    "name": "Charm",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 691
   },
@@ -1763,8 +2062,9 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "selfSwitch",
-    "setsWeather"
+    "pivotStatus",
+    "setsWeather",
+    "statusCategory"
    ],
    "uses": 17
   },
@@ -1780,7 +2080,7 @@
   "clangingscales": {
    "name": "Clanging Scales",
    "tags": [
-    "spread",
+    "spreadFoes",
     "sound"
    ],
    "uses": 302
@@ -1803,7 +2103,8 @@
    "name": "Coaching",
    "tags": [
     "neverMisses",
-    "lowersTarget"
+    "boostsTarget",
+    "statusCategory"
    ],
    "uses": 525
   },
@@ -1811,7 +2112,9 @@
    "name": "Coil",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "accuracyMod",
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 301
   },
@@ -1822,10 +2125,18 @@
    ],
    "uses": 0
   },
+  "confuseray": {
+   "name": "Confuse Ray",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 2
+  },
   "copycat": {
    "name": "Copycat",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 4
   },
@@ -1833,7 +2144,8 @@
    "name": "Cosmic Power",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 15
   },
@@ -1841,16 +2153,18 @@
    "name": "Cotton Guard",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 9
   },
   "cottonspore": {
    "name": "Cotton Spore",
    "tags": [
-    "spread",
+    "spreadFoes",
     "powder",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 20
   },
@@ -1896,7 +2210,8 @@
    "name": "Curse",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 61
   },
@@ -1917,7 +2232,7 @@
   "dazzlinggleam": {
    "name": "Dazzling Gleam",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 1999
   },
@@ -1926,21 +2241,24 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "lowersTarget"
+    "boostsTarget",
+    "statusCategory"
    ],
    "uses": 18
   },
   "defog": {
    "name": "Defog",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 4
   },
   "destinybond": {
    "name": "Destiny Bond",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 39
   },
@@ -1949,7 +2267,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "stalling"
+    "stalling",
+    "statusCategory"
    ],
    "uses": 1162
   },
@@ -1961,10 +2280,18 @@
    ],
    "uses": 3
   },
+  "disable": {
+   "name": "Disable",
+   "tags": [
+    "statusCategory",
+    "locksTarget"
+   ],
+   "uses": 414
+  },
   "discharge": {
    "name": "Discharge",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 400
   },
@@ -1996,7 +2323,9 @@
    "name": "Double Team",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "accuracyMod",
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -2004,7 +2333,8 @@
    "name": "Dragon Dance",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 343
   },
@@ -2036,8 +2366,7 @@
    "name": "Draining Kiss",
    "tags": [
     "contact",
-    "drain",
-    "heals"
+    "drain"
    ],
    "uses": 434
   },
@@ -2045,8 +2374,7 @@
    "name": "Drain Punch",
    "tags": [
     "contact",
-    "drain",
-    "heals"
+    "drain"
    ],
    "uses": 705
   },
@@ -2083,14 +2411,15 @@
   "earthquake": {
    "name": "Earthquake",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 4533
   },
   "eerieimpulse": {
    "name": "Eerie Impulse",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 10
   },
@@ -2106,7 +2435,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsTerrain"
+    "setsTerrain",
+    "statusCategory"
    ],
    "uses": 11
   },
@@ -2120,14 +2450,15 @@
   "electroshot": {
    "name": "Electro Shot",
    "tags": [
-    "chargeTurn"
+    "chargeTurn",
+    "chargeSkippedByWeather"
    ],
    "uses": 1667
   },
   "electroweb": {
    "name": "Electroweb",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 343
   },
@@ -2143,22 +2474,31 @@
    "tags": [
     "priority",
     "neverMisses",
-    "stalling"
+    "stalling",
+    "statusCategory"
    ],
    "uses": 3
+  },
+  "entrainment": {
+   "name": "Entrainment",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 20
   },
   "eruption": {
    "name": "Eruption",
    "tags": [
     "variablePower",
-    "spread"
+    "spreadFoes"
    ],
    "uses": 565
   },
   "explosion": {
    "name": "Explosion",
    "tags": [
-    "spread"
+    "spreadAll",
+    "userFaints"
    ],
    "uses": 11
   },
@@ -2189,21 +2529,24 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsRoom"
+    "setsRoom",
+    "statusCategory"
    ],
    "uses": 0
   },
   "faketears": {
    "name": "Fake Tears",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 345
   },
   "featherdance": {
    "name": "Feather Dance",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 8
   },
@@ -2221,6 +2564,13 @@
     "contact"
    ],
    "uses": 15
+  },
+  "finalgambit": {
+   "name": "Final Gambit",
+   "tags": [
+    "userFaints"
+   ],
+   "uses": 176
   },
   "firefang": {
    "name": "Fire Fang",
@@ -2270,7 +2620,8 @@
   "flatter": {
    "name": "Flatter",
    "tags": [
-    "lowersTarget"
+    "boostsTarget",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -2278,7 +2629,7 @@
    "name": "Flip Turn",
    "tags": [
     "contact",
-    "selfSwitch"
+    "pivotDamaging"
    ],
    "uses": 1762
   },
@@ -2308,7 +2659,8 @@
   "focusenergy": {
    "name": "Focus Energy",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 4
   },
@@ -2325,9 +2677,17 @@
    "tags": [
     "priority",
     "neverMisses",
-    "redirects"
+    "redirects",
+    "statusCategory"
    ],
    "uses": 933
+  },
+  "forestscurse": {
+   "name": "Forest's Curse",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 1
   },
   "foulplay": {
    "name": "Foul Play",
@@ -2357,11 +2717,17 @@
    ],
    "uses": 5
   },
+  "gastroacid": {
+   "name": "Gastro Acid",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 3
+  },
   "gigadrain": {
    "name": "Giga Drain",
    "tags": [
-    "drain",
-    "heals"
+    "drain"
    ],
    "uses": 806
   },
@@ -2376,6 +2742,7 @@
   "glare": {
    "name": "Glare",
    "tags": [
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 20
@@ -2400,7 +2767,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsTerrain"
+    "setsTerrain",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -2409,21 +2777,24 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsRoom"
+    "accuracyMod",
+    "statusCategory"
    ],
    "uses": 34
   },
   "guardsplit": {
    "name": "Guard Split",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
   "guardswap": {
    "name": "Guard Swap",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -2462,7 +2833,8 @@
    "name": "Haze",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 359
   },
@@ -2485,7 +2857,8 @@
    "name": "Heal Bell",
    "tags": [
     "sound",
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -2493,7 +2866,9 @@
    "name": "Healing Wish",
    "tags": [
     "neverMisses",
-    "heals"
+    "userFaints",
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 4
   },
@@ -2501,7 +2876,8 @@
    "name": "Heal Pulse",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsAlly"
    ],
    "uses": 62
   },
@@ -2516,7 +2892,7 @@
   "heatwave": {
    "name": "Heat Wave",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 4031
   },
@@ -2532,7 +2908,8 @@
    "name": "Helping Hand",
    "tags": [
     "priority",
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 2027
   },
@@ -2569,8 +2946,7 @@
    "name": "Horn Leech",
    "tags": [
     "contact",
-    "drain",
-    "heals"
+    "drain"
    ],
    "uses": 6
   },
@@ -2591,7 +2967,7 @@
   "hypervoice": {
    "name": "Hyper Voice",
    "tags": [
-    "spread",
+    "spreadFoes",
     "sound"
    ],
    "uses": 2461
@@ -2599,6 +2975,7 @@
   "hypnosis": {
    "name": "Hypnosis",
    "tags": [
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 273
@@ -2656,14 +3033,15 @@
   "icywind": {
    "name": "Icy Wind",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 845
   },
   "imprison": {
    "name": "Imprison",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 158
   },
@@ -2677,14 +3055,16 @@
   "ingrain": {
    "name": "Ingrain",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
   "instruct": {
    "name": "Instruct",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 90
   },
@@ -2692,7 +3072,8 @@
    "name": "Iron Defense",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 146
   },
@@ -2750,7 +3131,7 @@
   "lavaplume": {
    "name": "Lava Plume",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 1
   },
@@ -2766,16 +3147,23 @@
    "name": "Leech Life",
    "tags": [
     "contact",
-    "drain",
-    "heals"
+    "drain"
    ],
    "uses": 92
+  },
+  "leechseed": {
+   "name": "Leech Seed",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 234
   },
   "lifedew": {
    "name": "Life Dew",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsAlly"
    ],
    "uses": 1683
   },
@@ -2783,7 +3171,8 @@
    "name": "Light Screen",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "sideBuff",
+    "statusCategory"
    ],
    "uses": 2346
   },
@@ -2797,7 +3186,8 @@
   "lockon": {
    "name": "Lock-On",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -2834,7 +3224,8 @@
   "magicpowder": {
    "name": "Magic Powder",
    "tags": [
-    "powder"
+    "powder",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -2843,30 +3234,32 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsRoom"
+    "suppressesItems",
+    "statusCategory"
    ],
    "uses": 0
   },
   "magneticflux": {
    "name": "Magnetic Flux",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
   "magnetrise": {
    "name": "Magnet Rise",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 1
   },
   "matchagotcha": {
    "name": "Matcha Gotcha",
    "tags": [
-    "spread",
-    "drain",
-    "heals"
+    "spreadFoes",
+    "drain"
    ],
    "uses": 3392
   },
@@ -2874,7 +3267,8 @@
    "name": "Mean Look",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -2895,7 +3289,9 @@
   "memento": {
    "name": "Memento",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "userFaints",
+    "statusCategory"
    ],
    "uses": 31
   },
@@ -2903,7 +3299,8 @@
    "name": "Metal Sound",
    "tags": [
     "sound",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -2925,7 +3322,9 @@
    "name": "Minimize",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "accuracyMod",
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 14
   },
@@ -2939,7 +3338,8 @@
   "mistyexplosion": {
    "name": "Misty Explosion",
    "tags": [
-    "spread"
+    "spreadAll",
+    "userFaints"
    ],
    "uses": 3
   },
@@ -2948,7 +3348,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsTerrain"
+    "setsTerrain",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -2956,7 +3357,8 @@
    "name": "Moonlight",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 21
   },
@@ -2964,14 +3366,15 @@
    "name": "Morning Sun",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 7
   },
   "mortalspin": {
    "name": "Mortal Spin",
    "tags": [
-    "spread",
+    "spreadFoes",
     "contact"
    ],
    "uses": 21
@@ -2979,7 +3382,7 @@
   "muddywater": {
    "name": "Muddy Water",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 469
   },
@@ -2987,7 +3390,8 @@
    "name": "Nasty Plot",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 1763
   },
@@ -3002,7 +3406,8 @@
    "name": "Noble Roar",
    "tags": [
     "sound",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -3010,7 +3415,8 @@
    "name": "No Retreat",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 43
   },
@@ -3031,16 +3437,16 @@
   "painsplit": {
    "name": "Pain Split",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 26
   },
   "paraboliccharge": {
    "name": "Parabolic Charge",
    "tags": [
-    "spread",
-    "drain",
-    "heals"
+    "spreadAll",
+    "drain"
    ],
    "uses": 70
   },
@@ -3048,7 +3454,8 @@
    "name": "Parting Shot",
    "tags": [
     "sound",
-    "selfSwitch"
+    "pivotStatus",
+    "statusCategory"
    ],
    "uses": 4782
   },
@@ -3065,14 +3472,15 @@
    "tags": [
     "sound",
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 560
   },
   "petalblizzard": {
    "name": "Petal Blizzard",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 12
   },
@@ -3131,6 +3539,7 @@
    "name": "Poison Powder",
    "tags": [
     "powder",
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 0
@@ -3160,21 +3569,24 @@
   "powersplit": {
    "name": "Power Split",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
   "powerswap": {
    "name": "Power Swap",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 5
   },
   "powertrick": {
    "name": "Power Trick",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -3212,7 +3624,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsTerrain"
+    "setsTerrain",
+    "statusCategory"
    ],
    "uses": 50
   },
@@ -3227,9 +3640,17 @@
    "name": "Psych Up",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 46
+  },
+  "quash": {
+   "name": "Quash",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 125
   },
   "quickattack": {
    "name": "Quick Attack",
@@ -3244,7 +3665,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "setsScreen"
+    "oneTurnGuard",
+    "statusCategory"
    ],
    "uses": 356
   },
@@ -3252,7 +3674,8 @@
    "name": "Quiver Dance",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 58
   },
@@ -3262,7 +3685,8 @@
     "priority",
     "powder",
     "neverMisses",
-    "redirects"
+    "redirects",
+    "statusCategory"
    ],
    "uses": 3851
   },
@@ -3278,7 +3702,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsWeather"
+    "setsWeather",
+    "statusCategory"
    ],
    "uses": 701
   },
@@ -3300,14 +3725,16 @@
    "name": "Recover",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 300
   },
   "recycle": {
    "name": "Recycle",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 1
   },
@@ -3315,14 +3742,16 @@
    "name": "Reflect",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "sideBuff",
+    "statusCategory"
    ],
    "uses": 1988
   },
   "reflecttype": {
    "name": "Reflect Type",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -3330,7 +3759,8 @@
    "name": "Rest",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 44
   },
@@ -3356,7 +3786,8 @@
     "sound",
     "neverMisses",
     "ignoresProtect",
-    "forcesSwitch"
+    "forcesSwitch",
+    "statusCategory"
    ],
    "uses": 281
   },
@@ -3371,14 +3802,15 @@
    "name": "Rock Polish",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 0
   },
   "rockslide": {
    "name": "Rock Slide",
    "tags": [
-    "spread",
+    "spreadFoes",
     "flinches"
    ],
    "uses": 6915
@@ -3394,7 +3826,8 @@
    "name": "Role Play",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 12
   },
@@ -3402,7 +3835,8 @@
    "name": "Roost",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 1353
   },
@@ -3425,7 +3859,8 @@
    "name": "Safeguard",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "sideBuff",
+    "statusCategory"
    ],
    "uses": 6
   },
@@ -3439,7 +3874,8 @@
   "scaryface": {
    "name": "Scary Face",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 208
   },
@@ -3447,7 +3883,8 @@
    "name": "Screech",
    "tags": [
     "sound",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 3
   },
@@ -3462,7 +3899,8 @@
   "selfdestruct": {
    "name": "Self-Destruct",
    "tags": [
-    "spread"
+    "spreadAll",
+    "userFaints"
    ],
    "uses": 7
   },
@@ -3486,7 +3924,9 @@
    "name": "Shed Tail",
    "tags": [
     "neverMisses",
-    "selfSwitch"
+    "passesState",
+    "substitute",
+    "statusCategory"
    ],
    "uses": 41
   },
@@ -3501,7 +3941,8 @@
    "name": "Shell Smash",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 248
   },
@@ -3509,14 +3950,23 @@
    "name": "Shelter",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 18
+  },
+  "simplebeam": {
+   "name": "Simple Beam",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 9
   },
   "sing": {
    "name": "Sing",
    "tags": [
     "sound",
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 0
@@ -3524,7 +3974,8 @@
   "skillswap": {
    "name": "Skill Swap",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 56
   },
@@ -3548,7 +3999,8 @@
    "name": "Slack Off",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 34
   },
@@ -3556,6 +4008,7 @@
    "name": "Sleep Powder",
    "tags": [
     "powder",
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 734
@@ -3563,14 +4016,15 @@
   "sleeptalk": {
    "name": "Sleep Talk",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 10
   },
   "sludgewave": {
    "name": "Sludge Wave",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 97
   },
@@ -3585,7 +4039,7 @@
   "snarl": {
    "name": "Snarl",
    "tags": [
-    "spread",
+    "spreadFoes",
     "sound"
    ],
    "uses": 569
@@ -3598,18 +4052,27 @@
    ],
    "uses": 0
   },
+  "soak": {
+   "name": "Soak",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 78
+  },
   "softboiled": {
    "name": "Soft-Boiled",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 0
   },
   "solarbeam": {
    "name": "Solar Beam",
    "tags": [
-    "chargeTurn"
+    "chargeTurn",
+    "chargeSkippedByWeather"
    ],
    "uses": 2477
   },
@@ -3617,14 +4080,15 @@
    "name": "Solar Blade",
    "tags": [
     "contact",
-    "chargeTurn"
+    "chargeTurn",
+    "chargeSkippedByWeather"
    ],
    "uses": 8
   },
   "sparklingaria": {
    "name": "Sparkling Aria",
    "tags": [
-    "spread",
+    "spreadAll",
     "sound"
    ],
    "uses": 3
@@ -3632,7 +4096,8 @@
   "speedswap": {
    "name": "Speed Swap",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -3640,7 +4105,8 @@
    "name": "Spicy Extract",
    "tags": [
     "neverMisses",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 1
   },
@@ -3648,7 +4114,8 @@
    "name": "Spikes",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "hazard",
+    "statusCategory"
    ],
    "uses": 5
   },
@@ -3658,6 +4125,13 @@
     "contact"
    ],
    "uses": 1115
+  },
+  "spite": {
+   "name": "Spite",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 5
   },
   "spitup": {
    "name": "Spit Up",
@@ -3670,6 +4144,7 @@
    "name": "Spore",
    "tags": [
     "powder",
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 3
@@ -3678,7 +4153,8 @@
    "name": "Stealth Rock",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "hazard",
+    "statusCategory"
    ],
    "uses": 62
   },
@@ -3707,14 +4183,16 @@
    "name": "Sticky Web",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "hazard",
+    "statusCategory"
    ],
    "uses": 17
   },
   "stockpile": {
    "name": "Stockpile",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 21
   },
@@ -3750,15 +4228,17 @@
   "strengthsap": {
    "name": "Strength Sap",
    "tags": [
-    "heals"
+    "statusCategory",
+    "healsAlly"
    ],
    "uses": 518
   },
   "stringshot": {
    "name": "String Shot",
    "tags": [
-    "spread",
-    "lowersTarget"
+    "spreadFoes",
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 13
   },
@@ -3774,7 +4254,7 @@
   "strugglebug": {
    "name": "Struggle Bug",
    "tags": [
-    "spread"
+    "spreadFoes"
    ],
    "uses": 30
   },
@@ -3782,6 +4262,7 @@
    "name": "Stun Spore",
    "tags": [
     "powder",
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 12
@@ -3789,7 +4270,9 @@
   "substitute": {
    "name": "Substitute",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "substitute",
+    "statusCategory"
    ],
    "uses": 234
   },
@@ -3806,7 +4289,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsWeather"
+    "setsWeather",
+    "statusCategory"
    ],
    "uses": 376
   },
@@ -3834,14 +4318,15 @@
   "surf": {
    "name": "Surf",
    "tags": [
-    "spread"
+    "spreadAll"
    ],
    "uses": 68
   },
   "swagger": {
    "name": "Swagger",
    "tags": [
-    "lowersTarget"
+    "boostsTarget",
+    "statusCategory"
    ],
    "uses": 64
   },
@@ -3849,23 +4334,41 @@
    "name": "Swallow",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
+   ],
+   "uses": 0
+  },
+  "sweetkiss": {
+   "name": "Sweet Kiss",
+   "tags": [
+    "statusCategory"
    ],
    "uses": 0
   },
   "sweetscent": {
    "name": "Sweet Scent",
    "tags": [
-    "spread",
-    "lowersTarget"
+    "spreadFoes",
+    "accuracyMod",
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 1
+  },
+  "switcheroo": {
+   "name": "Switcheroo",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 7
   },
   "swordsdance": {
    "name": "Swords Dance",
    "tags": [
     "neverMisses",
-    "boostsUser"
+    "boostsUser",
+    "statusCategory"
    ],
    "uses": 1195
   },
@@ -3873,7 +4376,8 @@
    "name": "Synthesis",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 33
   },
@@ -3889,16 +4393,26 @@
    "name": "Tailwind",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "sideBuff",
+    "statusCategory"
    ],
    "uses": 6981
+  },
+  "taunt": {
+   "name": "Taunt",
+   "tags": [
+    "statusCategory",
+    "locksTarget"
+   ],
+   "uses": 867
   },
   "tearfullook": {
    "name": "Tearful Look",
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -3906,14 +4420,16 @@
    "name": "Teatime",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 0
   },
   "teeterdance": {
    "name": "Teeter Dance",
    "tags": [
-    "spread"
+    "spreadAll",
+    "statusCategory"
    ],
    "uses": 0
   },
@@ -3964,6 +4480,7 @@
   "thunderwave": {
    "name": "Thunder Wave",
    "tags": [
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 284
@@ -3971,21 +4488,24 @@
   "tickle": {
    "name": "Tickle",
    "tags": [
-    "lowersTarget"
+    "lowersTarget",
+    "statusCategory"
    ],
    "uses": 177
   },
   "tidyup": {
    "name": "Tidy Up",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 21
   },
   "topsyturvy": {
    "name": "Topsy-Turvy",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 10
   },
@@ -3996,9 +4516,18 @@
    ],
    "uses": 26
   },
+  "torment": {
+   "name": "Torment",
+   "tags": [
+    "statusCategory",
+    "locksTarget"
+   ],
+   "uses": 4
+  },
   "toxic": {
    "name": "Toxic",
    "tags": [
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 480
@@ -4007,7 +4536,8 @@
    "name": "Toxic Spikes",
    "tags": [
     "neverMisses",
-    "setsScreen"
+    "hazard",
+    "statusCategory"
    ],
    "uses": 20
   },
@@ -4022,9 +4552,17 @@
    "name": "Transform",
    "tags": [
     "neverMisses",
-    "ignoresProtect"
+    "ignoresProtect",
+    "statusCategory"
    ],
    "uses": 39
+  },
+  "trick": {
+   "name": "Trick",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 266
   },
   "trickroom": {
    "name": "Trick Room",
@@ -4032,7 +4570,8 @@
     "priority",
     "neverMisses",
     "ignoresProtect",
-    "setsRoom"
+    "reversesSpeed",
+    "statusCategory"
    ],
    "uses": 4415
   },
@@ -4080,7 +4619,7 @@
    "name": "U-turn",
    "tags": [
     "contact",
-    "selfSwitch"
+    "pivotDamaging"
    ],
    "uses": 741
   },
@@ -4094,7 +4633,7 @@
   "voltswitch": {
    "name": "Volt Switch",
    "tags": [
-    "selfSwitch"
+    "pivotDamaging"
    ],
    "uses": 986
   },
@@ -4127,7 +4666,7 @@
    "name": "Water Spout",
    "tags": [
     "variablePower",
-    "spread"
+    "spreadFoes"
    ],
    "uses": 342
   },
@@ -4145,7 +4684,8 @@
     "priority",
     "neverMisses",
     "ignoresProtect",
-    "forcesSwitch"
+    "forcesSwitch",
+    "statusCategory"
    ],
    "uses": 12
   },
@@ -4154,7 +4694,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "setsScreen"
+    "oneTurnGuard",
+    "statusCategory"
    ],
    "uses": 2065
   },
@@ -4169,6 +4710,7 @@
   "willowisp": {
    "name": "Will-O-Wisp",
    "tags": [
+    "statusCategory",
     "inflictsStatus"
    ],
    "uses": 1101
@@ -4177,7 +4719,8 @@
    "name": "Wish",
    "tags": [
     "neverMisses",
-    "heals"
+    "statusCategory",
+    "healsSelf"
    ],
    "uses": 46
   },
@@ -4186,7 +4729,8 @@
    "tags": [
     "neverMisses",
     "ignoresProtect",
-    "setsRoom"
+    "swapsDefences",
+    "statusCategory"
    ],
    "uses": 2
   },
@@ -4197,6 +4741,13 @@
     "recoil"
    ],
    "uses": 24
+  },
+  "worryseed": {
+   "name": "Worry Seed",
+   "tags": [
+    "statusCategory"
+   ],
+   "uses": 29
   },
   "wrap": {
    "name": "Wrap",
@@ -4215,7 +4766,8 @@
   "yawn": {
    "name": "Yawn",
    "tags": [
-    "neverMisses"
+    "neverMisses",
+    "statusCategory"
    ],
    "uses": 536
   },
@@ -4888,6 +5440,13 @@
    ],
    "uses": 38
   },
+  "kingsrock": {
+   "name": "King's Rock",
+   "tags": [
+    "addsFlinch"
+   ],
+   "uses": 49
+  },
   "leftovers": {
    "name": "Leftovers",
    "tags": [
@@ -5111,7 +5670,8 @@
   "aftermath": {
    "name": "Aftermath",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 0
   },
@@ -5218,6 +5778,27 @@
    "name": "Defeatist",
    "tags": [
     "damageBoost"
+   ],
+   "uses": 0
+  },
+  "deltastream": {
+   "name": "Delta Stream",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 0
+  },
+  "desolateland": {
+   "name": "Desolate Land",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 0
+  },
+  "download": {
+   "name": "Download",
+   "tags": [
+    "onSwitchInDrop"
    ],
    "uses": 0
   },
@@ -5338,7 +5919,8 @@
   "gooey": {
    "name": "Gooey",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 10
   },
@@ -5374,6 +5956,7 @@
   "hadronengine": {
    "name": "Hadron Engine",
    "tags": [
+    "terrainSetter",
     "damageBoost"
    ],
    "uses": 0
@@ -5510,8 +6093,7 @@
   "lightningrod": {
    "name": "Lightning Rod",
    "tags": [
-    "typeImmunity",
-    "redirectsType"
+    "typeImmunity"
    ],
    "uses": 1288
   },
@@ -5525,7 +6107,8 @@
   "lingeringaroma": {
    "name": "Lingering Aroma",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 0
   },
@@ -5618,7 +6201,8 @@
   "mummy": {
    "name": "Mummy",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 16
   },
@@ -5677,7 +6261,8 @@
   "perishbody": {
    "name": "Perish Body",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 0
   },
@@ -5716,6 +6301,13 @@
     "priorityMod"
    ],
    "uses": 4649
+  },
+  "primordialsea": {
+   "name": "Primordial Sea",
+   "tags": [
+    "weatherSetter"
+   ],
+   "uses": 0
   },
   "prismarmor": {
    "name": "Prism Armor",
@@ -6076,8 +6668,7 @@
   "stormdrain": {
    "name": "Storm Drain",
    "tags": [
-    "typeImmunity",
-    "redirectsType"
+    "typeImmunity"
    ],
    "uses": 0
   },
@@ -6102,6 +6693,13 @@
     "critRatioUp"
    ],
    "uses": 3
+  },
+  "supersweetsyrup": {
+   "name": "Supersweet Syrup",
+   "tags": [
+    "onSwitchInDrop"
+   ],
+   "uses": 13
   },
   "supremeoverlord": {
    "name": "Supreme Overlord",
@@ -6134,7 +6732,8 @@
   "tanglinghair": {
    "name": "Tangling Hair",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 0
   },
@@ -6235,7 +6834,8 @@
   "wanderingspirit": {
    "name": "Wandering Spirit",
    "tags": [
-    "profitsFromHit"
+    "profitsFromHit",
+    "contactPunish"
    ],
    "uses": 21
   },
