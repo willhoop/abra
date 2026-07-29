@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-29T03:37:18.123Z",
+ "generated": "2026-07-29T03:44:14.739Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1972,7 +1972,8 @@
    "uses": 436,
    "params": {
     "priority": {
-     "priority": 4
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -1999,7 +2000,8 @@
    "uses": 2,
    "params": {
     "priority": {
-     "priority": -3
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "inflictsBurn": {
      "p": 1,
@@ -2015,10 +2017,8 @@
    "uses": 4,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     }
    }
   },
@@ -2052,13 +2052,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 1,
-      "def": 1,
-      "spa": 1,
-      "spd": 1,
-      "spe": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -2209,7 +2203,8 @@
    "uses": 7846,
    "params": {
     "priority": {
-     "priority": 3
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -2249,7 +2244,8 @@
    "uses": 3,
    "params": {
     "priority": {
-     "priority": 2
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -2295,10 +2291,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 1,
-      "spa": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -2378,7 +2371,8 @@
    "uses": 127,
    "params": {
     "priority": {
-     "priority": 4
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -2400,8 +2394,7 @@
    "uses": 713,
    "params": {
     "recoil": {
-     "fraction": 0.5,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -2418,9 +2411,7 @@
      "hitsAlly": false
     },
     "lowersUser": {
-     "boosts": {
-      "spa": -2
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -2516,7 +2507,8 @@
    "uses": 43362,
    "params": {
     "priority": {
-     "priority": 4
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -2660,7 +2652,8 @@
    "uses": 401,
    "params": {
     "priority": {
-     "priority": 4
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -2722,9 +2715,7 @@
    "uses": 6,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "spe": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": true,
      "lowersAttack": false
     },
@@ -2782,7 +2773,8 @@
    "uses": 241,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -2803,9 +2795,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "def": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -2919,9 +2909,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spe": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -2981,7 +2969,8 @@
    "uses": 76,
    "params": {
     "priority": {
-     "priority": 2
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -3006,9 +2995,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spd": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -3059,7 +3046,8 @@
    "uses": 3034,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -3124,10 +3112,7 @@
    "uses": 31,
    "params": {
     "lowersUser": {
-     "boosts": {
-      "def": -1,
-      "spd": -1
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -3257,7 +3242,8 @@
      "computed": true
     },
     "priority": {
-     "priority": -4
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "contact": {
      "contact": true
@@ -3293,12 +3279,11 @@
    "uses": 50,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "lowersTarget": {
-     "boosts": {
-      "atk": -1
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -3597,8 +3582,7 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -3704,10 +3688,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 1,
-      "def": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -3747,7 +3728,8 @@
    "uses": 565,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -3762,10 +3744,8 @@
    "uses": 21,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     }
    }
   },
@@ -3796,10 +3776,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spa": 1,
-      "spd": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -3834,9 +3811,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spd": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -3871,9 +3846,7 @@
    "uses": 691,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "atk": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -3938,7 +3911,8 @@
    "uses": 0,
    "params": {
     "priority": {
-     "priority": -6
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "contact": {
      "contact": true
@@ -3997,10 +3971,7 @@
      "contact": true
     },
     "lowersUser": {
-     "boosts": {
-      "def": -1,
-      "spd": -1
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -4048,11 +4019,7 @@
      "accuracy": true
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 1,
-      "def": 1,
-      "accuracy": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -4120,10 +4087,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "def": 1,
-      "spd": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -4146,9 +4110,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "def": 3
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -4175,9 +4137,7 @@
      "powder": true
     },
     "lowersTarget": {
-     "boosts": {
-      "spe": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": true,
      "lowersAttack": false
     },
@@ -4196,7 +4156,8 @@
    "uses": 7,
    "params": {
     "priority": {
-     "priority": -5
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "contact": {
      "contact": true
@@ -4416,7 +4377,8 @@
    "uses": 1162,
    "params": {
     "priority": {
-     "priority": 4
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -4508,8 +4470,7 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -4522,7 +4483,8 @@
    "uses": 0,
    "params": {
     "multiHit": {
-     "hits": 2
+     "readFrom": "m.multihit",
+     "distribution": "fixed"
     },
     "contact": {
      "contact": true
@@ -4547,9 +4509,7 @@
      "accuracy": true
     },
     "boostsUser": {
-     "boosts": {
-      "evasion": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -4566,9 +4526,7 @@
    "uses": 1199,
    "params": {
     "lowersUser": {
-     "boosts": {
-      "spa": -2
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -4588,10 +4546,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 1,
-      "spe": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -4608,7 +4563,8 @@
    "uses": 55,
    "params": {
     "multiHit": {
-     "hits": 2
+     "readFrom": "m.multihit",
+     "distribution": "fixed"
     }
    }
   },
@@ -4638,7 +4594,8 @@
    "uses": 48,
    "params": {
     "priority": {
-     "priority": -6
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "contact": {
      "contact": true
@@ -4723,7 +4680,8 @@
    "uses": 1724,
    "params": {
     "multiHit": {
-     "hits": 2
+     "readFrom": "m.multihit",
+     "distribution": "fixed"
     },
     "contact": {
      "contact": true
@@ -4785,9 +4743,7 @@
    "uses": 10,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "spa": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": false
     },
@@ -4914,7 +4870,8 @@
    "uses": 3,
    "params": {
     "priority": {
-     "priority": 4
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -5032,7 +4989,8 @@
    "uses": 449,
    "params": {
     "priority": {
-     "priority": 2
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -5089,9 +5047,7 @@
    "uses": 345,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "spd": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": false
     },
@@ -5109,9 +5065,7 @@
    "uses": 8,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "atk": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -5129,7 +5083,8 @@
    "uses": 222,
    "params": {
     "priority": {
-     "priority": 2
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "ignoresProtect": {
      "ignoresProtect": true
@@ -5331,8 +5286,7 @@
      "via": "secondary"
     },
     "recoil": {
-     "fraction": 0.33,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -5479,7 +5433,8 @@
    "uses": 6,
    "params": {
     "priority": {
-     "priority": -3
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "contact": {
      "contact": true
@@ -5500,7 +5455,8 @@
    "uses": 933,
    "params": {
     "priority": {
-     "priority": 2
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -5824,9 +5780,7 @@
      "contact": true
     },
     "lowersUser": {
-     "boosts": {
-      "spe": -1
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": true,
      "alsoRaises": false
     }
@@ -5889,10 +5843,7 @@
      "contact": true
     },
     "lowersUser": {
-     "boosts": {
-      "def": -1,
-      "spd": -1
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -5910,8 +5861,7 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.5,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -6050,7 +6000,8 @@
    "uses": 2027,
    "params": {
     "priority": {
-     "priority": 5
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -6256,9 +6207,7 @@
      "contact": true
     },
     "lowersUser": {
-     "boosts": {
-      "spe": -1
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": true,
      "alsoRaises": false
     }
@@ -6289,7 +6238,8 @@
    "uses": 354,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     }
    }
   },
@@ -6325,10 +6275,8 @@
    "uses": 5,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     }
    }
   },
@@ -6444,9 +6392,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "def": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -6485,7 +6431,8 @@
    "uses": 90,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -6610,9 +6557,7 @@
    "uses": 337,
    "params": {
     "lowersUser": {
-     "boosts": {
-      "spa": -2
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -6828,7 +6773,8 @@
    "uses": 36,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -6998,10 +6944,7 @@
    "uses": 31,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "atk": -2,
-      "spa": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -7038,9 +6981,7 @@
      "sound": true
     },
     "lowersTarget": {
-     "boosts": {
-      "spd": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": false
     },
@@ -7100,9 +7041,7 @@
      "accuracy": true
     },
     "boostsUser": {
-     "boosts": {
-      "evasion": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -7120,7 +7059,8 @@
    "uses": 12,
    "params": {
     "priority": {
-     "priority": -5
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "needsTargetToAttack": {
      "needs": "target attacking"
@@ -7324,9 +7264,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spa": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -7360,10 +7298,7 @@
      "sound": true
     },
     "lowersTarget": {
-     "boosts": {
-      "atk": -1,
-      "spa": -1
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -7386,13 +7321,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 1,
-      "def": 1,
-      "spa": 1,
-      "spd": 1,
-      "spe": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -7438,9 +7367,7 @@
    "uses": 771,
    "params": {
     "lowersUser": {
-     "boosts": {
-      "spa": -2
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -7614,10 +7541,8 @@
    "uses": 17,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     }
    }
   },
@@ -7722,7 +7647,8 @@
    "uses": 276,
    "params": {
     "multiHit": {
-     "hits": 10
+     "readFrom": "m.multihit",
+     "distribution": "fixed"
     },
     "contact": {
      "contact": true
@@ -7974,7 +7900,8 @@
    "uses": 1199,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -7992,7 +7919,8 @@
    "uses": 356,
    "params": {
     "priority": {
-     "priority": 3
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -8020,11 +7948,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spa": 1,
-      "spd": 1,
-      "spe": 1
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -8045,7 +7969,8 @@
    "uses": 3851,
    "params": {
     "priority": {
-     "priority": 2
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "powder": {
      "powder": true
@@ -8291,7 +8216,8 @@
    "uses": 281,
    "params": {
     "priority": {
-     "priority": -6
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "sound": {
      "sound": true
@@ -8319,10 +8245,8 @@
    "uses": 39,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     }
    }
   },
@@ -8340,9 +8264,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "spe": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": false
     },
@@ -8516,10 +8438,8 @@
    "uses": 123,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     }
    }
   },
@@ -8532,9 +8452,7 @@
    "uses": 208,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "spe": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": true,
      "lowersAttack": false
     },
@@ -8573,9 +8491,7 @@
      "sound": true
     },
     "lowersTarget": {
-     "boosts": {
-      "def": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": false
     },
@@ -8659,7 +8575,8 @@
    "uses": 345,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -8731,24 +8648,12 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "def": -1,
-      "spd": -1,
-      "atk": 2,
-      "spa": 2,
-      "spe": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": true,
      "alsoLowers": true
     },
     "lowersUser": {
-     "boosts": {
-      "def": -1,
-      "spd": -1,
-      "atk": 2,
-      "spa": 2,
-      "spe": 2
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": true
     },
@@ -8771,9 +8676,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "def": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -9160,10 +9063,7 @@
      "note": "default for status"
     },
     "lowersTarget": {
-     "boosts": {
-      "atk": 2,
-      "def": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": false
     },
@@ -9467,9 +9367,7 @@
      "hitsAlly": false
     },
     "lowersTarget": {
-     "boosts": {
-      "spe": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": true,
      "lowersAttack": false
     },
@@ -9577,7 +9475,8 @@
    "uses": 3909,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -9652,10 +9551,7 @@
      "contact": true
     },
     "lowersUser": {
-     "boosts": {
-      "atk": -1,
-      "def": -1
-     },
+     "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
     }
@@ -9751,9 +9647,7 @@
      "accuracy": true
     },
     "lowersTarget": {
-     "boosts": {
-      "evasion": -2
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": false
     },
@@ -9788,9 +9682,7 @@
      "note": "default for status"
     },
     "boostsUser": {
-     "boosts": {
-      "atk": 2
-     },
+     "readFrom": "m.self.boosts",
      "raisesSpeed": false,
      "alsoLowers": false
     },
@@ -9829,10 +9721,8 @@
    "uses": 0,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     },
     "contact": {
      "contact": true
@@ -9894,10 +9784,7 @@
      "ignoresProtect": true
     },
     "lowersTarget": {
-     "boosts": {
-      "atk": -1,
-      "spa": -1
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -10114,10 +10001,7 @@
    "uses": 177,
    "params": {
     "lowersTarget": {
-     "boosts": {
-      "atk": -1,
-      "def": -1
-     },
+     "readFrom": "m.boosts",
      "lowersSpeed": false,
      "lowersAttack": true
     },
@@ -10313,7 +10197,8 @@
    "uses": 4415,
    "params": {
     "priority": {
-     "priority": -7
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "neverMisses": {
      "pHit": 1,
@@ -10365,7 +10250,8 @@
    "uses": 326,
    "params": {
     "multiHit": {
-     "hits": 3
+     "readFrom": "m.multihit",
+     "distribution": "fixed"
     },
     "variablePower": {
      "computed": true
@@ -10383,7 +10269,8 @@
    "uses": 467,
    "params": {
     "multiHit": {
-     "hits": 2
+     "readFrom": "m.multihit",
+     "distribution": "fixed"
     }
    }
   },
@@ -10398,7 +10285,8 @@
    "uses": 56,
    "params": {
     "priority": {
-     "priority": 3
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "contact": {
      "contact": true
@@ -10447,7 +10335,8 @@
    "uses": 135,
    "params": {
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     }
    }
   },
@@ -10492,8 +10381,7 @@
      "via": "secondary"
     },
     "recoil": {
-     "fraction": 0.33,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -10535,16 +10423,15 @@
    "uses": 16,
    "params": {
     "multiHit": {
-     "hits": [
-      2,
-      5
-     ]
+     "readFrom": "m.multihit",
+     "distribution": "2:35 3:35 4:15 5:15"
     },
     "variablePower": {
      "computed": true
     },
     "priority": {
-     "priority": 1
+     "readFrom": "m.priority",
+     "sign": "+"
     }
    }
   },
@@ -10581,8 +10468,7 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -10610,7 +10496,8 @@
    "uses": 12,
    "params": {
     "priority": {
-     "priority": -6
+     "readFrom": "m.priority",
+     "sign": "-"
     },
     "neverMisses": {
      "pHit": 1,
@@ -10638,7 +10525,8 @@
    "uses": 2065,
    "params": {
     "priority": {
-     "priority": 3
+     "readFrom": "m.priority",
+     "sign": "+"
     },
     "neverMisses": {
      "pHit": 1,
@@ -10664,8 +10552,7 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.25,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },
@@ -10748,8 +10635,7 @@
      "contact": true
     },
     "recoil": {
-     "fraction": 0.33,
-     "readFrom": "dex m.recoil"
+     "readFrom": "m.recoil"
     }
    }
   },

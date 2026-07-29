@@ -102,7 +102,8 @@ function statusOdds(m, st) {
 const MOVE_TAGS = [
   { tag: 'multiHit', param: 'hits = n (or a distribution)', probe: 'multihit',
     why: 'total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill',
-    of: m => m.multihit ? { hits: m.multihit } : null },
+    of: m => m.multihit ? { readFrom: 'm.multihit',
+      distribution: Array.isArray(m.multihit) ? '2:35 3:35 4:15 5:15' : 'fixed' } : null },
   { tag: 'alwaysCrit', param: 'P(crit) = 1', probe: 'willCrit',
     why: 'x1.5 and ignores the defender\'s positive defensive boosts',
     of: m => m.willCrit ? { pCrit: 1 } : null },
@@ -198,7 +199,7 @@ const MOVE_TAGS = [
     of: m => m.target === 'allAdjacent' ? { target: m.target, hitsAlly: true } : null },
   { tag: 'priority', param: 'order = priority', probe: 'effectivePriority',
     why: 'who moves first, before speed is consulted at all',
-    of: m => m.priority ? { priority: m.priority } : null },
+    of: m => m.priority ? { readFrom: 'm.priority', sign: m.priority > 0 ? '+' : '-' } : null },
   { tag: 'contact', param: 'triggers contact punishment on the defender', probe: 'contact',
     why: 'Rocky Helmet, Rough Skin, Iron Barbs, Static, Flame Body all cost you for touching',
     of: m => (m.flags && m.flags.contact) ? { contact: true } : null },
@@ -447,7 +448,13 @@ const MOVE_TAGS = [
     of: m => {
       const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
       if (!b || !Object.values(b).some(v => v > 0)) return null;
-      return { boosts: b, raisesSpeed: (b.spe || 0) > 0, alsoLowers: Object.values(b).some(v => v < 0) };
+      /* Will: "so we dont need to say -1 -1 for cc lowerUser". Right, and it is the rule for the
+       * whole taxonomy now: a tag says WHICH parameter a move sets; the VALUE is looked up when it
+       * is a plain dex field. Copying it here would duplicate the dex and let the two drift.
+       * raisesSpeed and alsoLowers are kept because they are DERIVED -- a consumer reading this tag
+       * needs to know the speed case and the mixed case without re-deriving them. */
+      return { readFrom: 'm.self.boosts', raisesSpeed: (b.spe || 0) > 0,
+               alsoLowers: Object.values(b).some(v => v < 0) };
     } },
   /* SPLIT BY SIGN on Will's point -- "close combat, superpower, they DECREASE user not boost".
    * Reading m.self.boosts without checking the sign swept roughly 9,500 uses of pure drawbacks into
@@ -500,7 +507,8 @@ const MOVE_TAGS = [
     of: m => {
       const b = (m.self && m.self.boosts) || ((m.target === 'self' || m.target === 'adjacentAllyOrSelf') ? m.boosts : null);
       if (!b || !Object.values(b).some(v => v < 0)) return null;
-      return { boosts: b, lowersSpeed: (b.spe || 0) < 0, alsoRaises: Object.values(b).some(v => v > 0) };
+      return { readFrom: 'm.self.boosts', lowersSpeed: (b.spe || 0) < 0,
+               alsoRaises: Object.values(b).some(v => v > 0) };
     } },
   /* SPLIT BY THE SIGN OF THE EFFECT, not by the declared target, on Will's review: "coaching would
    * never be used on the enemy" and "decorate would almost never be used on the foe". Both are
@@ -523,7 +531,7 @@ const MOVE_TAGS = [
        + 'their physical output. What Clear Amulet and White Herb answer',
     of: m => {
       const b = (m.boosts && m.target !== 'self' && Object.values(m.boosts).some(v => v < 0)) ? m.boosts : null;
-      if (b) return { boosts: b, lowersSpeed: (b.spe || 0) < 0, lowersAttack: (b.atk || 0) < 0 };
+      if (b) return { readFrom: 'm.boosts', lowersSpeed: (b.spe || 0) < 0, lowersAttack: (b.atk || 0) < 0 };
       /* Strength Sap declares its Attack drop inside onHit rather than in boosts. */
       if (m.onHit && /boost/i.test(String(m.onHit)) && /atk|spa|spe|def|spd/i.test(String(m.onHit))
           && m.target !== 'self') return { boosts: 'via onHit', lowersAttack: /atk/i.test(String(m.onHit)) };
@@ -628,7 +636,7 @@ const MOVE_TAGS = [
      * plain field. The fraction stays here only because the review document is generated from this
      * file and a reader needs to see 1/2 against 33/100 -- consumers should read the dex. */
     of: m => {
-      if (m.recoil) return { fraction: m.recoil[0] / m.recoil[1], readFrom: 'dex m.recoil' };
+      if (m.recoil) return { readFrom: 'm.recoil' };
       if (m.mindBlownRecoil) return { fraction: 0.5, of: 'maxhp' };
       if (m.struggleRecoil) return { fraction: 0.25, of: 'maxhp' };
       return null;

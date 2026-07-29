@@ -716,17 +716,17 @@ A dash means the taxonomy says nothing about it beyond being a status move — *
 
 | entry | appearances | parameter |
 |---|---|---|
-| Close Combat | 5,487 | boosts:{def:-1,spd:-1},lowersSpeed:false,alsoRaises:false |
-| Make It Rain | 1,420 | boosts:{spa:-2},lowersSpeed:false,alsoRaises:false |
-| Draco Meteor | 1,199 | boosts:{spa:-2},lowersSpeed:false,alsoRaises:false |
-| Overheat | 771 | boosts:{spa:-2},lowersSpeed:false,alsoRaises:false |
-| Leaf Storm | 337 | boosts:{spa:-2},lowersSpeed:false,alsoRaises:false |
-| Shell Smash | 248 | boosts:{def:-1,spd:-1,atk:2,spa:2,spe:2},lowersSpeed:false,alsoRaises:true |
-| Superpower | 182 | boosts:{atk:-1,def:-1},lowersSpeed:false,alsoRaises:false |
-| Hammer Arm | 106 | boosts:{spe:-1},lowersSpeed:true,alsoRaises:false |
-| Armor Cannon | 31 | boosts:{def:-1,spd:-1},lowersSpeed:false,alsoRaises:false |
-| Ice Hammer | 31 | boosts:{spe:-1},lowersSpeed:true,alsoRaises:false |
-| Headlong Rush | 26 | boosts:{def:-1,spd:-1},lowersSpeed:false,alsoRaises:false |
+| Close Combat | 5,487 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Make It Rain | 1,420 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Draco Meteor | 1,199 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Overheat | 771 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Leaf Storm | 337 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Shell Smash | 248 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:true |
+| Superpower | 182 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Hammer Arm | 106 | readFrom:m.self.boosts,lowersSpeed:true,alsoRaises:false |
+| Armor Cannon | 31 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
+| Ice Hammer | 31 | readFrom:m.self.boosts,lowersSpeed:true,alsoRaises:false |
+| Headlong Rush | 26 | readFrom:m.self.boosts,lowersSpeed:false,alsoRaises:false |
 
 Total tagged: **11**  ·  share: **1.5%**
 
@@ -923,18 +923,18 @@ Total tagged: **12**  ·  2 legal but unused  ·  share: **0.5%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Dual Wingbeat | 1,724 | hits:2 |
-| Twin Beam | 467 | hits:2 |
-| Triple Axel | 326 | hits:3 |
-| Population Bomb | 276 | hits:10 |
-| Scale Shot | 123 | hits:[2,5] |
-| Dragon Darts | 55 | hits:2 |
-| Rock Blast | 39 | hits:[2,5] |
-| Bullet Seed | 21 | hits:[2,5] |
-| Pin Missile | 17 | hits:[2,5] |
-| Water Shuriken | 16 | hits:[2,5] |
-| Icicle Spear | 5 | hits:[2,5] |
-| Bone Rush | 4 | hits:[2,5] |
+| Dual Wingbeat | 1,724 | readFrom:m.multihit,distribution:fixed |
+| Twin Beam | 467 | readFrom:m.multihit,distribution:fixed |
+| Triple Axel | 326 | readFrom:m.multihit,distribution:fixed |
+| Population Bomb | 276 | readFrom:m.multihit,distribution:fixed |
+| Scale Shot | 123 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Dragon Darts | 55 | readFrom:m.multihit,distribution:fixed |
+| Rock Blast | 39 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Bullet Seed | 21 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Pin Missile | 17 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Water Shuriken | 16 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Icicle Spear | 5 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
+| Bone Rush | 4 | readFrom:m.multihit,distribution:2:35 3:35 4:15 5:15 |
 
 Total tagged: **14**  ·  2 legal but unused  ·  share: **0.5%**
 
@@ -1266,44 +1266,44 @@ Total tagged: **124**  ·  21 legal but unused  ·  share: **12.8%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Protect | 43,362 | priority:4 |
-| Fake Out | 7,846 | priority:3 |
-| Trick Room | 4,415 | priority:-7 |
-| Sucker Punch | 3,909 | priority:1 |
-| Rage Powder | 3,851 | priority:2 |
-| Aqua Jet | 3,034 | priority:1 |
-| Wide Guard | 2,065 | priority:3 |
-| Helping Hand | 2,027 | priority:5 |
-| Quick Attack | 1,199 | priority:1 |
-| Detect | 1,162 | priority:4 |
-| Follow Me | 933 | priority:2 |
-| Bullet Punch | 565 | priority:1 |
-| Extreme Speed | 449 | priority:2 |
-| Baneful Bunker | 436 | priority:4 |
-| Spiky Shield | 401 | priority:4 |
-| Quick Guard | 356 | priority:3 |
-| Ice Shard | 354 | priority:1 |
-| Shadow Sneak | 345 | priority:1 |
-| Roar | 281 | priority:-6 |
-| Accelerock | 241 | priority:1 |
-| Feint | 222 | priority:2 |
-| Vacuum Wave | 135 | priority:1 |
-| King's Shield | 127 | priority:4 |
-| Jet Punch | 90 | priority:1 |
-| Ally Switch | 76 | priority:2 |
-| Upper Hand | 56 | priority:3 |
-| Baby-Doll Eyes | 50 | priority:1 |
-| Dragon Tail | 48 | priority:-6 |
-| Mach Punch | 36 | priority:1 |
-| Water Shuriken | 16 | priority:1 |
-| Mirror Coat | 12 | priority:-5 |
-| Whirlwind | 12 | priority:-6 |
-| Counter | 7 | priority:-5 |
-| Avalanche | 6 | priority:-4 |
-| Focus Punch | 6 | priority:-3 |
-| First Impression | 3 | priority:2 |
-| Endure | 3 | priority:4 |
-| Beak Blast | 2 | priority:-3 |
+| Protect | 43,362 | readFrom:m.priority,sign:+ |
+| Fake Out | 7,846 | readFrom:m.priority,sign:+ |
+| Trick Room | 4,415 | readFrom:m.priority,sign:- |
+| Sucker Punch | 3,909 | readFrom:m.priority,sign:+ |
+| Rage Powder | 3,851 | readFrom:m.priority,sign:+ |
+| Aqua Jet | 3,034 | readFrom:m.priority,sign:+ |
+| Wide Guard | 2,065 | readFrom:m.priority,sign:+ |
+| Helping Hand | 2,027 | readFrom:m.priority,sign:+ |
+| Quick Attack | 1,199 | readFrom:m.priority,sign:+ |
+| Detect | 1,162 | readFrom:m.priority,sign:+ |
+| Follow Me | 933 | readFrom:m.priority,sign:+ |
+| Bullet Punch | 565 | readFrom:m.priority,sign:+ |
+| Extreme Speed | 449 | readFrom:m.priority,sign:+ |
+| Baneful Bunker | 436 | readFrom:m.priority,sign:+ |
+| Spiky Shield | 401 | readFrom:m.priority,sign:+ |
+| Quick Guard | 356 | readFrom:m.priority,sign:+ |
+| Ice Shard | 354 | readFrom:m.priority,sign:+ |
+| Shadow Sneak | 345 | readFrom:m.priority,sign:+ |
+| Roar | 281 | readFrom:m.priority,sign:- |
+| Accelerock | 241 | readFrom:m.priority,sign:+ |
+| Feint | 222 | readFrom:m.priority,sign:+ |
+| Vacuum Wave | 135 | readFrom:m.priority,sign:+ |
+| King's Shield | 127 | readFrom:m.priority,sign:+ |
+| Jet Punch | 90 | readFrom:m.priority,sign:+ |
+| Ally Switch | 76 | readFrom:m.priority,sign:+ |
+| Upper Hand | 56 | readFrom:m.priority,sign:+ |
+| Baby-Doll Eyes | 50 | readFrom:m.priority,sign:+ |
+| Dragon Tail | 48 | readFrom:m.priority,sign:- |
+| Mach Punch | 36 | readFrom:m.priority,sign:+ |
+| Water Shuriken | 16 | readFrom:m.priority,sign:+ |
+| Mirror Coat | 12 | readFrom:m.priority,sign:- |
+| Whirlwind | 12 | readFrom:m.priority,sign:- |
+| Counter | 7 | readFrom:m.priority,sign:- |
+| Avalanche | 6 | readFrom:m.priority,sign:- |
+| Focus Punch | 6 | readFrom:m.priority,sign:- |
+| First Impression | 3 | readFrom:m.priority,sign:+ |
+| Endure | 3 | readFrom:m.priority,sign:+ |
+| Beak Blast | 2 | readFrom:m.priority,sign:- |
 
 Total tagged: **39**  ·  1 legal but unused  ·  share: **11.6%**
 
@@ -1507,16 +1507,16 @@ Total tagged: **15**  ·  1 legal but unused  ·  share: **2.1%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Wave Crash | 4,052 | fraction:0.33,readFrom:dex m.recoil |
-| Flare Blitz | 4,032 | fraction:0.33,readFrom:dex m.recoil |
-| Brave Bird | 2,279 | fraction:0.33,readFrom:dex m.recoil |
-| Light of Ruin | 713 | fraction:0.5,readFrom:dex m.recoil |
-| Head Smash | 183 | fraction:0.5,readFrom:dex m.recoil |
-| Double-Edge | 164 | fraction:0.33,readFrom:dex m.recoil |
-| Volt Tackle | 145 | fraction:0.33,readFrom:dex m.recoil |
-| Wild Charge | 58 | fraction:0.25,readFrom:dex m.recoil |
+| Wave Crash | 4,052 | readFrom:m.recoil |
+| Flare Blitz | 4,032 | readFrom:m.recoil |
+| Brave Bird | 2,279 | readFrom:m.recoil |
+| Light of Ruin | 713 | readFrom:m.recoil |
+| Head Smash | 183 | readFrom:m.recoil |
+| Double-Edge | 164 | readFrom:m.recoil |
+| Volt Tackle | 145 | readFrom:m.recoil |
+| Wild Charge | 58 | readFrom:m.recoil |
 | Steel Beam | 27 | fraction:0.5,of:maxhp |
-| Wood Hammer | 24 | fraction:0.33,readFrom:dex m.recoil |
+| Wood Hammer | 24 | readFrom:m.recoil |
 
 Total tagged: **11**  ·  1 legal but unused  ·  share: **1.7%**
 
@@ -1601,23 +1601,23 @@ Total tagged: **1**  ·  share: **1.0%**
 | entry | appearances | parameter |
 |---|---|---|
 | Parting Shot | 4,782 | boosts:via onHit,lowersAttack:true |
-| Charm | 691 | boosts:{atk:-2},lowersSpeed:false,lowersAttack:true |
+| Charm | 691 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
 | Strength Sap | 518 | boosts:via onHit,lowersAttack:true |
-| Fake Tears | 345 | boosts:{spd:-2},lowersSpeed:false,lowersAttack:false |
-| Scary Face | 208 | boosts:{spe:-2},lowersSpeed:true,lowersAttack:false |
-| Tickle | 177 | boosts:{atk:-1,def:-1},lowersSpeed:false,lowersAttack:true |
-| Baby-Doll Eyes | 50 | boosts:{atk:-1},lowersSpeed:false,lowersAttack:true |
-| Memento | 31 | boosts:{atk:-2,spa:-2},lowersSpeed:false,lowersAttack:true |
-| Cotton Spore | 20 | boosts:{spe:-2},lowersSpeed:true,lowersAttack:false |
-| String Shot | 13 | boosts:{spe:-2},lowersSpeed:true,lowersAttack:false |
-| Eerie Impulse | 10 | boosts:{spa:-2},lowersSpeed:false,lowersAttack:false |
-| Feather Dance | 8 | boosts:{atk:-2},lowersSpeed:false,lowersAttack:true |
-| Toxic Thread | 6 | boosts:{spe:-2},lowersSpeed:true,lowersAttack:false |
+| Fake Tears | 345 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
+| Scary Face | 208 | readFrom:m.boosts,lowersSpeed:true,lowersAttack:false |
+| Tickle | 177 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
+| Baby-Doll Eyes | 50 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
+| Memento | 31 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
+| Cotton Spore | 20 | readFrom:m.boosts,lowersSpeed:true,lowersAttack:false |
+| String Shot | 13 | readFrom:m.boosts,lowersSpeed:true,lowersAttack:false |
+| Eerie Impulse | 10 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
+| Feather Dance | 8 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:true |
+| Toxic Thread | 6 | readFrom:m.boosts,lowersSpeed:true,lowersAttack:false |
 | Power Swap | 5 | boosts:via onHit,lowersAttack:true |
 | Defog | 4 | boosts:via onHit,lowersAttack:false |
-| Screech | 3 | boosts:{def:-2},lowersSpeed:false,lowersAttack:false |
-| Spicy Extract | 1 | boosts:{atk:2,def:-2},lowersSpeed:false,lowersAttack:false |
-| Sweet Scent | 1 | boosts:{evasion:-2},lowersSpeed:false,lowersAttack:false |
+| Screech | 3 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
+| Spicy Extract | 1 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
+| Sweet Scent | 1 | readFrom:m.boosts,lowersSpeed:false,lowersAttack:false |
 
 Total tagged: **22**  ·  4 legal but unused  ·  share: **1.0%**
 
@@ -1627,26 +1627,26 @@ Total tagged: **22**  ·  4 legal but unused  ·  share: **1.0%**
 
 | entry | appearances | parameter |
 |---|---|---|
-| Nasty Plot | 1,763 | boosts:{spa:2},raisesSpeed:false,alsoLowers:false |
-| Swords Dance | 1,195 | boosts:{atk:2},raisesSpeed:false,alsoLowers:false |
-| Calm Mind | 1,163 | boosts:{spa:1,spd:1},raisesSpeed:false,alsoLowers:false |
-| Bulk Up | 561 | boosts:{atk:1,def:1},raisesSpeed:false,alsoLowers:false |
-| Dragon Dance | 343 | boosts:{atk:1,spe:1},raisesSpeed:true,alsoLowers:false |
-| Coil | 301 | boosts:{atk:1,def:1,accuracy:1},raisesSpeed:false,alsoLowers:false |
-| Shell Smash | 248 | boosts:{def:-1,spd:-1,atk:2,spa:2,spe:2},raisesSpeed:true,alsoLowers:true |
-| Clangorous Soul | 189 | boosts:{atk:1,def:1,spa:1,spd:1,spe:1},raisesSpeed:true,alsoLowers:false |
-| Iron Defense | 146 | boosts:{def:2},raisesSpeed:false,alsoLowers:false |
-| Quiver Dance | 58 | boosts:{spa:1,spd:1,spe:1},raisesSpeed:true,alsoLowers:false |
-| No Retreat | 43 | boosts:{atk:1,def:1,spa:1,spd:1,spe:1},raisesSpeed:true,alsoLowers:false |
-| Shelter | 18 | boosts:{def:2},raisesSpeed:false,alsoLowers:false |
-| Cosmic Power | 15 | boosts:{def:1,spd:1},raisesSpeed:false,alsoLowers:false |
-| Minimize | 14 | boosts:{evasion:2},raisesSpeed:false,alsoLowers:false |
-| Acid Armor | 13 | boosts:{def:2},raisesSpeed:false,alsoLowers:false |
-| Agility | 10 | boosts:{spe:2},raisesSpeed:true,alsoLowers:false |
-| Cotton Guard | 9 | boosts:{def:3},raisesSpeed:false,alsoLowers:false |
-| Growth | 4 | boosts:{atk:1,spa:1},raisesSpeed:false,alsoLowers:false |
-| Amnesia | 4 | boosts:{spd:2},raisesSpeed:false,alsoLowers:false |
-| Charge | 1 | boosts:{spd:1},raisesSpeed:false,alsoLowers:false |
+| Nasty Plot | 1,763 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Swords Dance | 1,195 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Calm Mind | 1,163 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Bulk Up | 561 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Dragon Dance | 343 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| Coil | 301 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Shell Smash | 248 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:true |
+| Clangorous Soul | 189 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| Iron Defense | 146 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Quiver Dance | 58 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| No Retreat | 43 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| Shelter | 18 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Cosmic Power | 15 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Minimize | 14 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Acid Armor | 13 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Agility | 10 | readFrom:m.self.boosts,raisesSpeed:true,alsoLowers:false |
+| Cotton Guard | 9 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Growth | 4 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Amnesia | 4 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
+| Charge | 1 | readFrom:m.self.boosts,raisesSpeed:false,alsoLowers:false |
 
 Total tagged: **22**  ·  2 legal but unused  ·  share: **0.9%**
 
