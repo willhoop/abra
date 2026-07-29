@@ -95,7 +95,7 @@ function section(kind, table, usage, title, blurb) {
     const i = tagInfo[r.tag] || {};
     const shown = r.mem.filter(x => x[1] > 0);
     P('### `' + r.tag + '` — ' + pct(r.tot) + ', ' + r.mem.length + ' ' + kind + ' — ' +
-      (i.n === 0 ? '**NOT READ**' : 'read'));
+      (i.used ? 'read' : '**NOT READ**'));
     P('');
     P('**Sets:** ' + (i.param || '?') + '  ');
     if (i.why) P('**Why it matters:** ' + i.why);
@@ -171,7 +171,7 @@ P('resource sitting in a volatile, which is why neither was visible before volat
 P('');
 
 /* ---- status --------------------------------------------------------------------------------- */
-const unread = T.tags.filter(t => t.n === 0).length;
+const unread = T.tags.filter(t => !t.used).length;
 P('---');
 P('');
 P('# Where this stands');
@@ -184,6 +184,7 @@ P('| moves tagged | ' + Object.keys(T.moves).length + ' |');
 P('| abilities tagged | ' + Object.keys(T.abilities).length + ' |');
 P('| items tagged | ' + Object.keys(T.items).length + ' |');
 P('| **tags read by nothing** | **' + unread + '** |');
+P('| tags that match no member at all | ' + T.tags.filter(t => t.n === 0).length + ' |');
 P('');
 P('**' + unread + ' of ' + T.tags.length + ' tags are read by nothing yet.** The taxonomy is ahead of the consumer,');
 P('deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository');

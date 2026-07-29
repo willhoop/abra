@@ -287,7 +287,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Steel Beam | 27 | 0.0% |
 | Wood Hammer | 24 | 0.0% |
 
-### `lowersUser` — 15.7%, 13 moves — read
+### `lowersUser` — 15.7%, 13 moves — **NOT READ**
 
 **Sets:** WHICH of my own stats drop, as the price of the move  
 **Why it matters:** Close Combat (5,487 uses) pays -1 Def and -1 SpD; Draco Meteor, Overheat and Make It Rain pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no self-effect whatsoever
@@ -358,7 +358,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Screech | 3 | 0.0% |
 | *…and 3 more below this cut* | | |
 
-### `weatherScaled` — 13.3%, 5 moves — read
+### `weatherScaled` — 13.3%, 5 moves — **NOT READ**
 
 **Sets:** type, power or target changes with the weather  
 **Why it matters:** Weather Ball (4,699 uses), Hydro Steam. Its type is handled; the power and the target change are not
@@ -371,7 +371,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Thunder | 182 | 0.3% |
 | Growth | 4 | 0.0% |
 
-### `thawsTarget` — 12.5%, 5 moves — read
+### `thawsTarget` — 12.5%, 5 moves — **NOT READ**
 
 **Sets:** unfreezes the target it hits  
 **Why it matters:** Scald (601 uses), Scorching Sands. Undoes a freeze you may have wanted
@@ -384,7 +384,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Scorching Sands | 89 | 0.1% |
 | Burn Up | 35 | 0.1% |
 
-### `ignoresProtect` — 11.6%, 31 moves — read
+### `ignoresProtect` — 11.6%, 31 moves — **NOT READ**
 
 **Sets:** Protect does NOT stop it  
 **Why it matters:** Feint, Phantom Force, Future Sight. tgtMayProtect discounts these as if a Protect saves the target, and it does not
@@ -484,7 +484,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Parabolic Charge | 70 | 0.1% |
 | Horn Leech | 6 | 0.0% |
 
-### `statChangeInCode` — 8.3%, 12 moves — read
+### `statChangeInCode` — 8.3%, 12 moves — **NOT READ**
 
 **Sets:** stat changes exist but are computed, not declared in a field  
 **Why it matters:** Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the dex, so they need a hand-written case or a live probe -- flagged rather than missed
@@ -535,7 +535,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Reflect | 2,000 | 3.0% |
 | Aurora Veil | 860 | 1.3% |
 
-### `pivotStatus` — 7.3%, 2 moves — read
+### `pivotStatus` — 7.3%, 2 moves — **NOT READ**
 
 **Sets:** no damage, an effect, then the user leaves  
 **Why it matters:** Parting Shot (4,782 uses, the most common pivot in the format) and Chilly Reception. The switch is the point and the effect is the payment
@@ -578,7 +578,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Trick Room | 4,461 | 6.8% |
 
-### `conditionalPower` — 6.7%, 11 moves — read
+### `conditionalPower` — 6.7%, 11 moves — **NOT READ**
 
 **Sets:** fixed power x a multiplier when a condition holds  
 **Why it matters:** Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine uses the base number every time
@@ -631,7 +631,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Stun Spore | 12 | 0.0% |
 | Thunder Fang | 6 | 0.0% |
 
-### `chargeSkippedByWeather` — 6.3%, 3 moves — read
+### `chargeSkippedByWeather` — 6.3%, 3 moves — **NOT READ**
 
 **Sets:** the charge turn DISAPPEARS under one weather  
 **Why it matters:** Electro Shot in rain, Solar Beam and Solar Blade in sun. Same move, no downside, and the weather that does it is usually one the user set themselves
@@ -642,7 +642,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Electro Shot | 1,679 | 2.5% |
 | Solar Blade | 9 | 0.0% |
 
-### `healsSelf` — 6.2%, 13 moves — read
+### `healsSelf` — 6.2%, 13 moves — **NOT READ**
 
 **Sets:** restores a share of MY max HP, costing the turn  
 **Why it matters:** Wish, Rest, Slack Off, Synthesis, Moonlight. Trades tempo for bulk, which nothing prices
@@ -661,7 +661,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Morning Sun | 7 | 0.0% |
 | Healing Wish | 4 | 0.0% |
 
-### `needsTargetToAttack` — 6.2%, 9 moves — read
+### `needsTargetToAttack` — 6.2%, 9 moves — **NOT READ**
 
 **Sets:** FAILS unless the target is attacking this turn  
 **Why it matters:** Sucker Punch (3,909 uses), Upper Hand, Counter, Mirror Coat, Metal Burst, Focus Punch. Their value is a prediction about the opponent, not a property of the board -- which is exactly what sigma_opp is for and nothing connects them
@@ -732,7 +732,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Volt Switch | 992 | 1.5% |
 | U-turn | 749 | 1.1% |
 
-### `needsUntrackedState` — 5.2%, 4 moves — read
+### `needsUntrackedState` — 5.2%, 4 moves — **NOT READ**
 
 **Sets:** power depends on state the board does not track  
 **Why it matters:** Last Respects (3,009 uses) needs a fainted COUNT, Low Kick (1,854) needs target WEIGHT which is not in our mon table at all, Rage Fist needs times-hit, Stomping Tantrum needs whether the last move failed. Their dex basePower is 0, so board.js returns null and scores them as non-damaging
@@ -755,7 +755,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Disable | 416 | 0.6% |
 | Torment | 4 | 0.0% |
 
-### `multiHit` — 4.7%, 14 moves — read
+### `multiHit` — 4.7%, 14 moves — **NOT READ**
 
 **Sets:** hits = n (or a distribution)  
 **Why it matters:** total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill
@@ -785,7 +785,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Wide Guard | 2,098 | 3.2% |
 | Quick Guard | 366 | 0.6% |
 
-### `inflictsConfusion` — 3.6%, 9 moves — read
+### `inflictsConfusion` — 3.6%, 9 moves — **NOT READ**
 
 **Sets:** P(confusion): they hit themselves some of the time  
 **Why it matters:** 4,620 appearances. Not a status -- a volatile that adds a failure chance to every move they click while it lasts
@@ -798,7 +798,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Dynamic Punch | 6 | 0.0% |
 | Confuse Ray | 2 | 0.0% |
 
-### `readsTargetItem` — 2.8%, 2 moves — read
+### `readsTargetItem` — 2.8%, 2 moves — **NOT READ**
 
 **Sets:** damage or success depends on what the TARGET is holding  
 **Why it matters:** Knock Off (1,663 uses) is 1.5x into an item and Poltergeist (183) fails without one. Both were scored at flat base power against an item slot the engine never passed in
@@ -808,7 +808,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Knock Off | 1,663 | 2.5% |
 | Poltergeist | 183 | 0.3% |
 
-### `blocksSoundMoves` — 2.7%, 1 moves — read
+### `blocksSoundMoves` — 2.7%, 1 moves — **NOT READ**
 
 **Sets:** they cannot use sound moves for 2 turns  
 **Why it matters:** Throat Chop. The sound flag already exists on the moves it blocks, so this is a join rather than new information
@@ -827,7 +827,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Life Dew | 1,694 | 2.6% |
 | Heal Pulse | 62 | 0.1% |
 
-### `clearsScreens` — 2.5%, 3 moves — read
+### `clearsScreens` — 2.5%, 3 moves — **NOT READ**
 
 **Sets:** destroys Reflect, Light Screen and Aurora Veil on their side  
 **Why it matters:** Psychic Fangs (1,352 uses), Brick Break (289), Raging Bull. The answer to 5,187 uses of screens, and it lands as a damaging move rather than costing a turn
@@ -849,7 +849,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Body Press | 567 | 0.9% |
 | Psyshock | 479 | 0.7% |
 
-### `proceduralStatus` — 2.3%, 2 moves — read
+### `proceduralStatus` — 2.3%, 2 moves — **NOT READ**
 
 **Sets:** one status from a set, chosen at random in the handler  
 **Why it matters:** Dire Claw (1,509 uses) rolls poison / paralysis / sleep at 10% each; Tri Attack rolls burn / paralysis / freeze. The secondary declares a chance and no status, so every status probe misses them
@@ -859,7 +859,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Dire Claw | 1,520 | 2.3% |
 | Tri Attack | 1 | 0.0% |
 
-### `ignoresStatStages` — 2.1%, 2 moves — read
+### `ignoresStatStages` — 2.1%, 2 moves — **NOT READ**
 
 **Sets:** the boost multiplier does not apply, permanently  
 **Why it matters:** Unaware, 172 uses. Ignores the opponent stat stages in BOTH directions, so their setup is worthless and so is yours. Same parameter Darkest Lariat sets for one move
@@ -905,7 +905,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Hypnosis | 278 | 0.4% |
 | Spore | 3 | 0.0% |
 
-### `punishesContact` — 1.5%, 3 moves — read
+### `punishesContact` — 1.5%, 3 moves — **NOT READ**
 
 **Sets:** the attacker pays for touching the shield  
 **Why it matters:** Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with a condition, and it makes clicking a contact move into a likely Protect worse than it looks
@@ -925,7 +925,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Taunt | 881 | 1.3% |
 
-### `failsWithoutWeather` — 1.3%, 2 moves — read
+### `failsWithoutWeather` — 1.3%, 2 moves — **NOT READ**
 
 **Sets:** the move does NOTHING unless a weather is up  
 **Why it matters:** Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can currently say so
@@ -935,7 +935,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Aurora Veil | 860 | 1.3% |
 | Magnet Rise | 1 | 0.0% |
 
-### `fixedDamage` — 1.3%, 15 moves — read
+### `fixedDamage` — 1.3%, 15 moves — **NOT READ**
 
 **Sets:** damage is a constant, not a formula  
 **Why it matters:** Seismic Toss and Night Shade ignore stats entirely
@@ -954,7 +954,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Metal Burst | 4 | 0.0% |
 | Guillotine | 2 | 0.0% |
 
-### `overridesEffectiveness` — 1.1%, 2 moves — read
+### `overridesEffectiveness` — 1.1%, 2 moves — **NOT READ**
 
 **Sets:** the type chart is WRONG for this move  
 **Why it matters:** Freeze-Dry, 748 uses: x2 into Water where the chart says x0.5. A 4x error, and mcEff is a static lookup that cannot see the handler
@@ -964,7 +964,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Freeze-Dry | 748 | 1.1% |
 | Flying Press | 3 | 0.0% |
 
-### `critRatioUp` — 1.1%, 14 moves — read
+### `critRatioUp` — 1.1%, 14 moves — **NOT READ**
 
 **Sets:** P(crit) raised  
 **Why it matters:** Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick
@@ -984,7 +984,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Crabhammer | 4 | 0.0% |
 | Cross Poison | 1 | 0.0% |
 
-### `boostsTarget` — 1.0%, 6 moves — read
+### `boostsTarget` — 1.0%, 6 moves — **NOT READ**
 
 **Sets:** positive stat stages on a BODY THAT IS NOT ME  
 **Why it matters:** Coaching (525 uses), Decorate, Howl, Aromatic Mist. Aimed at the partner in every real game, and DODUO has boostsPartnerDamage for exactly this
@@ -997,7 +997,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Decorate | 18 | 0.0% |
 | Aromatic Mist | 1 | 0.0% |
 
-### `multiAccuracy` — 0.9%, 2 moves — read
+### `multiAccuracy` — 0.9%, 2 moves — **NOT READ**
 
 **Sets:** each hit rolls accuracy SEPARATELY, so expected hits < hit count  
 **Why it matters:** Triple Axel lands all 3 only 73% of the time at 90% each; Population Bomb all 10 just 35%. Applying accuracy once to the whole move overstates both
@@ -1007,7 +1007,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Triple Axel | 332 | 0.5% |
 | Population Bomb | 276 | 0.4% |
 
-### `perishClock` — 0.9%, 1 moves — read
+### `perishClock` — 0.9%, 1 moves — **NOT READ**
 
 **Sets:** everything on the field dies in 3 turns unless it switches  
 **Why it matters:** Perish Song, 560 uses. Ignores HP, typing, items and abilities. No damage feature can see it and no kill calculation applies
@@ -1016,7 +1016,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Perish Song | 562 | 0.9% |
 
-### `delayedSleep` — 0.8%, 1 moves — read
+### `delayedSleep` — 0.8%, 1 moves — **NOT READ**
 
 **Sets:** they fall asleep at the end of NEXT turn unless they switch  
 **Why it matters:** Yawn, 536 uses. Not a status this turn -- a threat that forces a switch, which is the whole point of clicking it
@@ -1035,7 +1035,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Toxic | 495 | 0.8% |
 | Poison Fang | 5 | 0.0% |
 
-### `partialTrap` — 0.7%, 7 moves — read
+### `partialTrap` — 0.7%, 7 moves — **NOT READ**
 
 **Sets:** target cannot switch for 4-5 turns AND takes 1/8 chip each turn  
 **Why it matters:** Infestation (450 uses), Fire Spin, Sand Tomb, Whirlpool. Trapping changes what they can legally do, which nothing represents, and the chip is residual damage nothing counts
@@ -1047,7 +1047,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Whirlpool | 13 | 0.0% |
 | Fire Spin | 8 | 0.0% |
 
-### `costsUserHP` — 0.7%, 3 moves — read
+### `costsUserHP` — 0.7%, 3 moves — **NOT READ**
 
 **Sets:** pay a share of max HP, and FAIL outright below that threshold  
 **Why it matters:** Substitute (247 uses) 1/4, Clangorous Soul (190) 1/3, Shed Tail (41) 1/2. The cost is unpriced and the failure condition is unchecked -- and you can have the HP when you choose and not when you act
@@ -1058,7 +1058,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Clangorous Soul | 190 | 0.3% |
 | Shed Tail | 41 | 0.1% |
 
-### `clearsBoosts` — 0.6%, 2 moves — read
+### `clearsBoosts` — 0.6%, 2 moves — **NOT READ**
 
 **Sets:** every stat stage on the field := 0, both sides  
 **Why it matters:** Haze, 359 uses. The only answer to setup in the format, and it hits YOUR boosts too -- so whether to click it depends on who is ahead on stages, which nothing computes
@@ -1068,7 +1068,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Haze | 362 | 0.5% |
 | Clear Smog | 6 | 0.0% |
 
-### `accuracyMod` — 0.5%, 5 moves — read
+### `accuracyMod` — 0.5%, 5 moves — **NOT READ**
 
 **Sets:** P(hit) scaled, often gated on a weather or a category  
 **Why it matters:** Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs
@@ -1080,7 +1080,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Minimize | 14 | 0.0% |
 | Sweet Scent | 1 | 0.0% |
 
-### `forcesSwitch` — 0.5%, 4 moves — read
+### `forcesSwitch` — 0.5%, 4 moves — **NOT READ**
 
 **Sets:** the TARGET is removed from the field  
 **Why it matters:** Whirlwind, Dragon Tail, Roar. Undoes setup and changes who is in front of you
@@ -1115,7 +1115,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Healing Wish | 4 | 0.0% |
 | Misty Explosion | 3 | 0.0% |
 
-### `terrainScaled` — 0.3%, 3 moves — read
+### `terrainScaled` — 0.3%, 3 moves — **NOT READ**
 
 **Sets:** power or target changes with the terrain  
 **Why it matters:** Expanding Force becomes a SPREAD move in Psychic Terrain, Rising Voltage doubles in Electric. Grassy Glide gains priority, which board.js already special-cases
@@ -1126,7 +1126,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Expanding Force | 84 | 0.1% |
 | Terrain Pulse | 4 | 0.0% |
 
-### `alwaysCrit` — 0.3%, 3 moves — read
+### `alwaysCrit` — 0.3%, 3 moves — **NOT READ**
 
 **Sets:** P(crit) = 1  
 **Why it matters:** x1.5 and ignores the defender's positive defensive boosts
@@ -1137,7 +1137,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Frost Breath | 32 | 0.0% |
 | Storm Throw | 10 | 0.0% |
 
-### `passesState` — 0.2%, 2 moves — read
+### `passesState` — 0.2%, 2 moves — **NOT READ**
 
 **Sets:** the incoming Pokemon INHERITS something  
 **Why it matters:** Baton Pass hands over the stat boosts, Shed Tail hands over a Substitute. Nothing in the model represents a switch that carries state across
@@ -1147,7 +1147,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Baton Pass | 65 | 0.1% |
 | Shed Tail | 41 | 0.1% |
 
-### `hazard` — 0.2%, 4 moves — read
+### `hazard` — 0.2%, 4 moves — **NOT READ**
 
 **Sets:** their side is damaged or slowed on switch-in, until removed  
 **Why it matters:** Stealth Rock, Spikes, Toxic Spikes, Sticky Web. Does nothing THIS turn -- it prices their future switches, which is a decision MAG does not model at all
@@ -1171,7 +1171,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Grassy Terrain | 5 | 0.0% |
 | Misty Terrain | 5 | 0.0% |
 
-### `ohko` — 0.1%, 4 moves — read
+### `ohko` — 0.1%, 4 moves — **NOT READ**
 
 **Sets:** removes the target outright  
 **Why it matters:** a different kill calculation entirely
@@ -1191,7 +1191,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Safeguard | 6 | 0.0% |
 
-### `swapsDefences` — 0.0%, 1 moves — read
+### `swapsDefences` — 0.0%, 1 moves — **NOT READ**
 
 **Sets:** Def and SpD are exchanged, field-wide  
 **Why it matters:** Wonder Room. Every stored damage number is wrong while it is up
@@ -1207,7 +1207,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 
 *Nothing with this tag appears on a single sheet — legal in the format, never brought.*
 
-### `suppressesItems` — 0.0%, 1 moves — read
+### `suppressesItems` — 0.0%, 1 moves — **NOT READ**
 
 **Sets:** held items stop working, field-wide  
 **Why it matters:** Magic Room. Kills Focus Sash, Choice items, Assault Vest and the berries at once
@@ -1223,7 +1223,7 @@ Every ability tag with its members, ordered by how much of the format it covers.
 `read` means a probe string for the tag appears in `board.js` or the damage engine. **NOT READ**
 means the tag is correct and nothing consumes it yet — a wiring backlog, not an error.
 
-### `profitsFromHit` — 11.2%, 32 abilities — read
+### `profitsFromHit` — 11.2%, 32 abilities — **NOT READ**
 
 **Sets:** the target gains something for being hit  
 **Why it matters:** Stamina, Weak Armour, Berserk, Anger Shell, Justified, Rattled. Task #18 -- Will's Bellibolt case
@@ -1303,7 +1303,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Skill Link | 4 | 0.0% |
 | Long Reach | 2 | 0.0% |
 
-### `weatherSetter` — 7.0%, 8 abilities — read
+### `weatherSetter` — 7.0%, 8 abilities — **NOT READ**
 
 **Sets:** weather := x on switch-in  
 **Why it matters:** and megaing can COST you it, which is Will's reason to decline a mega
@@ -1315,7 +1315,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Sand Stream | 848 | 1.3% |
 | Drought | 621 | 0.9% |
 
-### `preventsStatDrop` — 6.7%, 15 abilities — read
+### `preventsStatDrop` — 6.7%, 15 abilities — **NOT READ**
 
 **Sets:** stat drops simply do not apply  
 **Why it matters:** Clear Body (2.03%), Flower Veil for the ally. Intimidate and every -1 move do nothing, so lowersTarget is worth zero into them
@@ -1335,7 +1335,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Big Pecks | 13 | 0.0% |
 | White Smoke | 1 | 0.0% |
 
-### `boostsWhenLowered` — 6.7%, 2 abilities — read
+### `boostsWhenLowered` — 6.7%, 2 abilities — **NOT READ**
 
 **Sets:** +2 to a stat when any stat is lowered  
 **Why it matters:** Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them an attack boost, so the lead interaction inverts
@@ -1345,7 +1345,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Defiant | 3,610 | 5.5% |
 | Competitive | 815 | 1.2% |
 
-### `contactPunish` — 6.5%, 14 abilities — read
+### `contactPunish` — 6.5%, 14 abilities — **NOT READ**
 
 **Sets:** the ATTACKER pays for touching it  
 **Why it matters:** Rough Skin (3,739), Static, Flame Body, Poison Point, Cute Charm, Effect Spore, Mummy, Gooey. Derived by reading the handler for checkMoveMakesContact
@@ -1379,7 +1379,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Water Absorb | 15 | 0.0% |
 | Motor Drive | 13 | 0.0% |
 
-### `healsAllyOnSwitchIn` — 5.2%, 1 abilities — read
+### `healsAllyOnSwitchIn` — 5.2%, 1 abilities — **NOT READ**
 
 **Sets:** restores the partner on entry  
 **Why it matters:** Hospitality, 5.22% of abilities and the third most common in the format
@@ -1421,7 +1421,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Armor Tail | 1,699 | 2.6% |
 | Queenly Majesty | 226 | 0.3% |
 
-### `blocksStatusMoves` — 2.4%, 3 abilities — read
+### `blocksStatusMoves` — 2.4%, 3 abilities — **NOT READ**
 
 **Sets:** every Status-category move fails against it  
 **Why it matters:** Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% of move slots that are status
@@ -1431,7 +1431,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Good as Gold | 1,450 | 2.2% |
 | Telepathy | 116 | 0.2% |
 
-### `speedOnItemLoss` — 2.2%, 2 abilities — read
+### `speedOnItemLoss` — 2.2%, 2 abilities — **NOT READ**
 
 **Sets:** speed x2 once its item is gone  
 **Why it matters:** Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order mid-battle and the item tracking now makes observable
@@ -1440,7 +1440,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Unburden | 1,465 | 2.2% |
 
-### `blocksBerries` — 2.0%, 3 abilities — read
+### `blocksBerries` — 2.0%, 3 abilities — **NOT READ**
 
 **Sets:** their berries cannot be eaten  
 **Why it matters:** Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side
@@ -1458,7 +1458,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Lightning Rod | 1,302 | 2.0% |
 
-### `weatherChipImmune` — 1.9%, 8 abilities — read
+### `weatherChipImmune` — 1.9%, 8 abilities — **NOT READ**
 
 **Sets:** takes no sandstorm or snow residual damage  
 **Why it matters:** What onImmunity actually means for Sand Veil, Snow Cloak, Overcoat and Magic Guard -- and what typeImmunity was wrongly reporting until Will asked
@@ -1474,7 +1474,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Sand Force | 18 | 0.0% |
 | Ice Body | 6 | 0.0% |
 
-### `disablesAttacker` — 1.3%, 1 abilities — read
+### `disablesAttacker` — 1.3%, 1 abilities — **NOT READ**
 
 **Sets:** the move I just used is removed from MY options  
 **Why it matters:** Cursed Body (833 uses). Not damage and not a stat change -- it shrinks my own option set, the same shape as locksTarget from the receiving end
@@ -1503,7 +1503,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Friend Guard | 623 | 0.9% |
 
-### `accuracyMod` — 0.9%, 6 abilities — read
+### `accuracyMod` — 0.9%, 6 abilities — **NOT READ**
 
 **Sets:** P(hit) scaled, often gated on a weather or a category  
 **Why it matters:** Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs
@@ -1527,7 +1527,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Solid Rock | 170 | 0.3% |
 | Fluffy | 3 | 0.0% |
 
-### `boostsMoveClass` — 0.8%, 6 abilities — read
+### `boostsMoveClass` — 0.8%, 6 abilities — **NOT READ**
 
 **Sets:** x1.2-1.5 on moves carrying ONE FLAG  
 **Why it matters:** Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega Launcher (pulse), Strong Jaw (bite). The join partner of moveClass -- the ability names the flag, the move carries it, and no per-ability case is needed
@@ -1540,7 +1540,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Mega Launcher | 20 | 0.0% |
 | Strong Jaw | 5 | 0.0% |
 
-### `statusImmune` — 0.4%, 12 abilities — read
+### `statusImmune` — 0.4%, 12 abilities — **NOT READ**
 
 **Sets:** a status cannot land  
 **Why it matters:** Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- onImmunity also means weather-chip immunity and was over-capturing
@@ -1567,7 +1567,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Illusion | 63 | 0.1% |
 | Imposter | 39 | 0.1% |
 
-### `ignoresStatStages` — 0.3%, 1 abilities — read
+### `ignoresStatStages` — 0.3%, 1 abilities — **NOT READ**
 
 **Sets:** the boost multiplier does not apply, permanently  
 **Why it matters:** Unaware, 172 uses. Ignores the opponent stat stages in BOTH directions, so their setup is worthless and so is yours. Same parameter Darkest Lariat sets for one move
@@ -1576,7 +1576,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Unaware | 173 | 0.3% |
 
-### `survivesFromFull` — 0.2%, 1 abilities — read
+### `survivesFromFull` — 0.2%, 1 abilities — **NOT READ**
 
 **Sets:** a lethal hit from full HP leaves 1  
 **Why it matters:** Sturdy. Identical to Focus Sash and NOT modelled anywhere -- verified 0 mentions
@@ -1594,7 +1594,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Contrary | 134 | 0.2% |
 
-### `ignoresDefenderAbility` — 0.2%, 3 abilities — read
+### `ignoresDefenderAbility` — 0.2%, 3 abilities — **NOT READ**
 
 **Sets:** suppress every defender-side ability tag for this move  
 **Why it matters:** Mold Breaker, Turboblaze, Teravolt. Gates typeImmunity, damageReduce, blocksMove, preventsCrit and Sturdy in one flag
@@ -1603,7 +1603,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Mold Breaker | 130 | 0.2% |
 
-### `preventsCrit` — 0.1%, 4 abilities — read
+### `preventsCrit` — 0.1%, 4 abilities — **NOT READ**
 
 **Sets:** P(crit) = 0  
 **Why it matters:** Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit
@@ -1613,7 +1613,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Disguise | 64 | 0.1% |
 | Shell Armor | 25 | 0.0% |
 
-### `critDamageUp` — 0.0%, 1 abilities — read
+### `critDamageUp` — 0.0%, 1 abilities — **NOT READ**
 
 **Sets:** the CRIT MULTIPLIER itself, not its probability  
 **Why it matters:** Sniper (Will raised it). Three separate crit parameters exist and the taxonomy had only two: probability (Scope Lens, Flower Trick), prevention (Shell Armor) and now the multiplier. Crit damage is x1.5 and Sniper makes it x1.5 again, so x2.25 total -- it was x3 in the old gens when crits themselves were x2, which is where the folklore comes from
@@ -1622,7 +1622,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Sniper | 24 | 0.0% |
 
-### `critRatioUp` — 0.0%, 2 abilities — read
+### `critRatioUp` — 0.0%, 2 abilities — **NOT READ**
 
 **Sets:** P(crit) raised  
 **Why it matters:** Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick
@@ -1632,7 +1632,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Merciless | 3 | 0.0% |
 | Super Luck | 3 | 0.0% |
 
-### `terrainSetter` — 0.0%, 5 abilities — read
+### `terrainSetter` — 0.0%, 5 abilities — **NOT READ**
 
 **Sets:** terrain := x on switch-in  
 **Why it matters:** same shape as weather
@@ -1641,7 +1641,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Psychic Surge | 1 | 0.0% |
 
-### `preventsSwitch` — 0.0%, 3 abilities — read
+### `preventsSwitch` — 0.0%, 3 abilities — **NOT READ**
 
 **Sets:** the foe cannot leave  
 **Why it matters:** Shadow Tag, Arena Trap, Magnet Pull. Already used by the playstyle classifier
@@ -1682,7 +1682,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Scovillainite | 284 | 0.4% |
 | *…and 59 more below this cut* | | |
 
-### `survivesFromFull` — 11.7%, 1 items — read
+### `survivesFromFull` — 11.7%, 1 items — **NOT READ**
 
 **Sets:** a lethal hit from full HP leaves 1  
 **Why it matters:** Sturdy. Identical to Focus Sash and NOT modelled anywhere -- verified 0 mentions
@@ -1700,7 +1700,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Sitrus Berry | 7,132 | 10.8% |
 
-### `resistBerry` — 9.8%, 18 items — read
+### `resistBerry` — 9.8%, 18 items — **NOT READ**
 
 **Sets:** halves one super-effective hit, then is gone  
 **Why it matters:** Chople, Colbur, Kasib, Occa. About 6.8% of held items and it turns kills into non-kills
@@ -1733,7 +1733,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Life Orb | 6,301 | 9.6% |
 
-### `damageMultType` — 9.0%, 18 items — read
+### `damageMultType` — 9.0%, 18 items — **NOT READ**
 
 **Sets:** x1.2 on one type  
 **Why it matters:** Charcoal, Black Glasses, Mystic Water, Fairy Feather. About 6.7% of held items and a pure calculation error
@@ -1785,7 +1785,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Choice Scarf | 3,947 | 6.0% |
 
-### `extendsScreens` — 3.1%, 1 items — read
+### `extendsScreens` — 3.1%, 1 items — **NOT READ**
 
 **Sets:** side conditions last 8 turns not 5  
 **Why it matters:** 3.1% of items
@@ -1794,7 +1794,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Light Clay | 2,016 | 3.1% |
 
-### `restoresStats` — 2.1%, 1 items — read
+### `restoresStats` — 2.1%, 1 items — **NOT READ**
 
 **Sets:** undoes stat drops once  
 **Why it matters:** 2.1% of items, and it changes what a drop is worth
@@ -1803,7 +1803,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | White Herb | 1,362 | 2.1% |
 
-### `accuracyMod` — 0.9%, 3 items — read
+### `accuracyMod` — 0.9%, 3 items — **NOT READ**
 
 **Sets:** P(hit) scaled, often gated on a weather or a category  
 **Why it matters:** Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs
@@ -1814,7 +1814,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Bright Powder | 144 | 0.2% |
 | Zoom Lens | 22 | 0.0% |
 
-### `curesStatus` — 0.2%, 6 items — read
+### `curesStatus` — 0.2%, 6 items — **NOT READ**
 
 **Sets:** a status is removed the moment it lands  
 **Why it matters:** Lum (107 uses), Chesto, Rawst. Every status move aimed at the holder is a wasted turn, and inflictsStatus has no idea
@@ -1825,7 +1825,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 | Chesto Berry | 24 | 0.0% |
 | Rawst Berry | 2 | 0.0% |
 
-### `critRatioUp` — 0.1%, 1 items — read
+### `critRatioUp` — 0.1%, 1 items — **NOT READ**
 
 **Sets:** P(crit) raised  
 **Why it matters:** Super Luck and Merciless. Same parameter as Scope Lens and Flower Trick
@@ -1834,7 +1834,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | Scope Lens | 69 | 0.1% |
 
-### `addsFlinch` — 0.1%, 1 items — read
+### `addsFlinch` — 0.1%, 1 items — **NOT READ**
 
 **Sets:** P(flinch) += 10% on moves that do not already flinch  
 **Why it matters:** King's Rock and Razor Fang. Sets the same parameter the move-side flinch tag does, which is exactly what a parameter taxonomy is for. Derived from an onModifyMove that mentions flinch, not from the names
@@ -1843,7 +1843,7 @@ means the tag is correct and nothing consumes it yet — a wiring backlog, not a
 |---|---:|---:|
 | King's Rock | 49 | 0.1% |
 
-### `fractionalPriority` — 0.1%, 1 items — read
+### `fractionalPriority` — 0.1%, 1 items — **NOT READ**
 
 **Sets:** a CHANCE to move first inside the priority bracket  
 **Why it matters:** Quick Claw, 20% of turns. Speed order is what most kill features hang off, and this makes it probabilistic rather than determined
@@ -1908,9 +1908,10 @@ resource sitting in a volatile, which is why neither was visible before volatile
 | moves tagged | 491 |
 | abilities tagged | 200 |
 | items tagged | 131 |
-| **tags read by nothing** | **7** |
+| **tags read by nothing** | **75** |
+| tags that match no member at all | 7 |
 
-**7 of 139 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
+**75 of 139 tags are read by nothing yet.** The taxonomy is ahead of the consumer,
 deliberately — you are reviewing before it gets wired. But that gap *is* the risk: this repository
 has a history of models fitted, saved, quoted, and never once used in a live decision. A tag that
 nothing reads is that same failure wearing a new hat.
