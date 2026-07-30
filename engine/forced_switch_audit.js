@@ -41,6 +41,7 @@ const ROOT = path.join(__dirname, '..');
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const B = require(path.join(ROOT, 'engine', 'board.js'));
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
+const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
 const FP = require(path.join(ROOT, 'engine', 'fit_policy.js'));
 const norm = B.norm, base = B.baseSpecies;
 
@@ -98,7 +99,14 @@ const tally = {
   fasterPicked: 0, fasterTotal: 0,
   koFastPicked: 0, koFastTotal: 0,
   bulkierPicked: 0,
+  magAgrees: 0, magTotal: 0,
 };
+/* The shipped vector, and the dex featuresFor needs. Absent weights are not fatal: every other
+ * question in this file still answers, and the MAG line reports as unavailable rather than as 50%. */
+let W = null;
+try { W = require(path.join(ROOT, 'engine', 'magnemite.js')).loadWeights().weights; }
+catch (e) { process.stderr.write(`  (no usable weights, skipping the MAG-agreement line: ${String(e.message).split('\n')[0]})\n`); }
+const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const RAW = ['games.bo3.raw-logs.jsonl', 'games.ladder.raw-logs.jsonl'];
 
 async function scan(file) {
@@ -181,6 +189,48 @@ async function scan(file) {
       if (a.faster !== b.faster) { tally.fasterTotal++; if (pick.faster) tally.fasterPicked++; }
       if (a.koFast !== b.koFast) { tally.koFastTotal++; if (pick.koFast) tally.koFastPicked++; }
       if (a.bulk !== b.bulk && pick.bulk === Math.max(a.bulk, b.bulk)) tally.bulkierPicked++;
+
+      /* ---- AND THE ONE THAT ACTUALLY MATTERS: does MAG's OWN scorer agree with the human? ------
+       * Everything above asks whether a single hand-named property explains the pick. This asks the
+       * shipped weight vector the same question the bot asks at the table, through the same
+       * featuresFor path _scoreForcedPick uses, with forced:true so the entry hit is absent.
+       *
+       * A Board is built rather than replayed: p2's actives, my party, and the sheets. That is the
+       * same construction tests/test-switch-features.js validates, so it is not a second replay of
+       * the corpus -- there is no turn ordering here to get wrong, only a position. */
+      if (W) {
+        const bd = new B.Board();
+        bd.turn = 3;
+        const fAct = {};
+        ['a', 'b'].forEach((L, i) => {
+          const sp = active[foeSide][L];
+          if (sp && !dead[foeSide].has(sp)) {
+            const sh = sheets[foeSide + '|' + sp] || {};
+            fAct[L] = { species: sp, hp: 1, boosts: {}, status: '', fainted: false,
+              nature: sh.nature || '', item: norm(sh.item || ''), ability: norm(sh.ability || '') };
+          }
+        });
+        bd.sides[foeSide].active = fAct;
+        bd.sides[side].active = {};
+        bd.party[side] = opts.slice();
+        for (const sp of opts) {
+          const sh = sheets[side + '|' + sp];
+          if (sh) bd.setSheet(side, sp, { nature: sh.nature || '', item: sh.item || '', ability: sh.ability || '', moves: sh.moves || [] });
+        }
+        let bestSp = null, bestScore = -Infinity, scoredBoth = 0;
+        for (const sp of opts) {
+          const x = B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp, forced: true },
+            null, bd, side, dex, B.PRIOR_FLOOR);
+          if (!x) continue;
+          let s = 0; for (let k = 0; k < W.length; k++) s += W[k] * x[k];
+          scoredBoth++;
+          if (s > bestScore) { bestScore = s; bestSp = sp; }
+        }
+        if (scoredBoth === 2 && bestSp) {
+          tally.magTotal++;
+          if (bestSp === chosen) tally.magAgrees++;
+        }
+      }
     }
   }
 }
@@ -208,6 +258,9 @@ function wilson(k, n) {
   console.log(`  picked the FASTER one                          ${pct(tally.fasterPicked, tally.fasterTotal)}  ${wilson(tally.fasterPicked, tally.fasterTotal)}   n=${tally.fasterTotal}`);
   console.log(`  picked the one with a FAST KO                  ${pct(tally.koFastPicked, tally.koFastTotal)}  ${wilson(tally.koFastPicked, tally.koFastTotal)}   n=${tally.koFastTotal}`);
   console.log(`  picked the BULKIER one                         ${pct(tally.bulkierPicked, tally.twoWay)}  ${wilson(tally.bulkierPicked, tally.twoWay)}   n=${tally.twoWay}`);
+  console.log('\n  AND THE ONE THAT MATTERS — MAG\'s own shipped scorer, same featuresFor path it uses at\n' +
+    '  the table, forced:true so no entry hit. 50% here means the lever is a coin flip in a coat.\n');
+  console.log(`  MAG's argmax agreed with the human              ${pct(tally.magAgrees, tally.magTotal)}  ${wilson(tally.magAgrees, tally.magTotal)}   n=${tally.magTotal}`);
   console.log('\n  An interval containing 50 means humans are NOT using that property to choose, and a\n' +
     '  weight MAG carries for it is not learnable from this corpus however confident it looks.');
 })();
