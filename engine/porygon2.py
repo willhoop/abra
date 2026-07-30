@@ -58,8 +58,25 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 HUMAN_RAW = os.path.join(ROOT, "data", "games.ladder.raw-logs.jsonl")
-SELF_RAW = os.path.join(ROOT, "data", "games.selfplay.porygon2.raw-logs.jsonl")
-OUT = os.path.join(ROOT, "data", "porygon2.json")
+# THE TRAINING CORPUS IS AN ARGUMENT NOW, and the reason is a measured one.
+#
+# The original corpus (data/games.selfplay.porygon2.raw-logs.jsonl) was generated on CLOSED team
+# sheets by a SAMPLING policy -- mew.js's own header names "PORYGON2's entire training set" in its
+# list of everything measured before open sheets existed. Verified on the file: openSheet false,
+# greedy false. So the positions it learned from came from a bot that could not read the sheet and
+# deliberately clicked its worse option some of the time.
+#
+# That matters more than corpus SIZE, which is already known not to help: data/porygon2-curve.json
+# measures accuracy 62.81% at 9,171 positions and 62.62% at 73,368 -- eight times the data for
+# nothing. If this model is to move at all it will be because the positions are different in kind,
+# not because there are more of them. Hence an override rather than a bigger default.
+#
+#   PORYGON2_SELF=data/games.h2h-sw.raw-logs.jsonl python engine/porygon2.py
+SELF_RAW = os.environ.get("PORYGON2_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon2.raw-logs.jsonl")
+if not os.path.isabs(SELF_RAW):
+    SELF_RAW = os.path.join(ROOT, SELF_RAW)
+OUT_ENV = os.environ.get("PORYGON2_OUT")
+OUT = (OUT_ENV if OUT_ENV and os.path.isabs(OUT_ENV) else (os.path.join(ROOT, OUT_ENV) if OUT_ENV else os.path.join(ROOT, "data", "porygon2.json")))
 np.random.seed(0)
 
 # Species types, Speed and the type chart, exported from data/engine-data.js so this file does not
