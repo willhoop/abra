@@ -43,6 +43,11 @@ async function loadRows() {
     if (!(g && g.selfplay && g.selfplay.winnerPolicy)) continue;
     rows.push({ six: g.six && { p1: g.six.p1, p2: g.six.p2 }, openSheet: g.openSheet,
       selfplay: { seed: g.selfplay.seed, winnerPolicy: g.selfplay.winnerPolicy,
+        /* THE ARM, which is the only unambiguous answer when both arms share a policy name.
+         * See the attribution note below for what reading winnerPolicy alone cost. */
+        winnerArm: g.selfplay.winnerArm,
+        forcedSwitch: g.selfplay.forcedSwitch, forcedSwitch2: g.selfplay.forcedSwitch2,
+        joint: g.selfplay.joint, joint2: g.selfplay.joint2,
         swapped: g.selfplay.swapped, greedy: g.selfplay.greedy, switching: g.selfplay.switching,
         randmove: g.selfplay.randmove, policy: g.selfplay.policy, policy2: g.selfplay.policy2,
         format: g.selfplay.format } });
@@ -62,6 +67,40 @@ for (const g of rows) {
 }
 
 const NEW = 'score';
+/* ATTRIBUTE BY ARM, NOT BY POLICY NAME — and reading the name alone produced a 100.0% result.
+ *
+ * `winnerPolicy === 'score'` works only when the two arms have DIFFERENT policy names, which is true
+ * of every tags-on/off and engine-vs-engine run this file was written for. It is false for the most
+ * important experiment shape there is: the SAME engine on both sides with one flag changed, which is
+ * the only design that isolates a single lever from everything else.
+ *
+ * Run on `--policy score --policy2 score --forced-switch` (116,956 games), every game's winnerPolicy
+ * was 'score', so every pair scored 2-0 to NEW and this file reported:
+ *
+ *     NEW won both directions   58478   100.0%
+ *     DECISIVE PAIRS: 58,478 (100.0%)   NEW took 100.0%  95% CI [100.0, 100.0]
+ *     -> the new model is better, and the interval clears 50%
+ *
+ * A confident, specific, catastrophically wrong answer — the worst failure mode available, and the
+ * same one mew.js records being bitten by when a flag-only A/B stamped armsIdentical:true.
+ *
+ * mew.js has always stamped `winnerArm` (1 or 2), resolved through `swapped` at write time, so the
+ * answer was on the record all along and this file read the wrong field. Prefer it always; fall back
+ * to the policy name only for older records that predate it. And REFUSE outright when the arms are
+ * indistinguishable and there is no winnerArm — a run that cannot be attributed must not be given a
+ * number, because a number is what gets believed. */
+const usesArm = rows.some(g => g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2);
+const sameName = rows.length && rows.every(g => (g.selfplay.policy2 || g.selfplay.policy) === g.selfplay.policy);
+if (sameName && !usesArm) {
+  console.error('\nREFUSING TO REPORT: both arms carry the policy name ' +
+    `"${rows[0].selfplay.policy}" and no record carries winnerArm, so a win cannot be attributed to\n` +
+    'an arm. Reading winnerPolicy here would score every pair 2-0 to NEW and report 100.0%.\n' +
+    'Re-run with a build that stamps selfplay.winnerArm (mew.js does).');
+  process.exit(2);
+}
+const wonNew = g => (g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2)
+  ? (g.selfplay.winnerArm === 1 ? 1 : 0)
+  : (g.selfplay.winnerPolicy === NEW ? 1 : 0);
 let both = 0, split = 0, neither = 0, halves = 0, mismatchedTeams = 0;
 let rawNew = 0, rawOld = 0;
 for (const [, gs] of bySeed) {
@@ -71,7 +110,7 @@ for (const [, gs] of bySeed) {
                    JSON.stringify((g.six && g.six.p2 || []).slice().sort());
   if (six(gs[0]) !== six(gs[1])) { mismatchedTeams++; continue; }
   if (gs[0].selfplay.swapped === gs[1].selfplay.swapped) { mismatchedTeams++; continue; }
-  const w = gs.map(g => g.selfplay.winnerPolicy === NEW ? 1 : 0);
+  const w = gs.map(wonNew);
   rawNew += w[0] + w[1]; rawOld += 2 - w[0] - w[1];
   const s = w[0] + w[1];
   if (s === 2) both++; else if (s === 1) split++; else neither++;
