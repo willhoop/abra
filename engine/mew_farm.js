@@ -176,12 +176,35 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
     ...extra,
   ], { env: process.env, stdio: ['ignore', 'ignore', 'pipe'] });
 
+  /* 4000, NOT 400, AND PRINTED ON SUCCESS TOO — because a farmed run threw away the only evidence
+   * that its own experiment was switched on.
+   *
+   * mew.js ends its stderr with the capability accounting this project relies on: what share of
+   * decisions were scored, how many fell back to the prior sampler, whether the joint layer ran,
+   * whether the forced-replacement lever fired. In a FARMED run none of it survived: the tail was
+   * capped at 400 characters and only printed when a worker exited nonzero, so a successful run
+   * discarded every one of those lines.
+   *
+   * The cost is not hypothetical. A 116,964-game paired measurement of the forced-replacement lever
+   * completed on 2026-07-30 and its own log could not show the lever had been on -- the flag was
+   * verifiable only from a separate 40-game direct run and from the flag stamped on the records,
+   * neither of which proves the code path executed during the measurement. That is precisely the
+   * failure "EVERY CAPABILITY REPORTS WHETHER IT ACTUALLY RAN" exists to prevent, reappearing one
+   * layer up: the capability reported honestly and the farm ate the report.
+   *
+   * 4000 characters holds mew.js's whole summary block. Printed per worker and labelled, so six
+   * workers add about sixty lines at the end of a run and a lever that fired on five of six is
+   * visible rather than averaged away. */
   let tail = '';
-  child.stderr.on('data', d => { tail = (tail + d.toString()).slice(-400); });
+  child.stderr.on('data', d => { tail = (tail + d.toString()).slice(-4000); });
   child.on('close', (code) => {
     if (code === 0) done++; else { failed++; console.error(`  worker ${i} exited ${code}: ${tail.trim().split('\n').pop()}`); }
     const secs = (Date.now() - started) / 1000;
     console.error(`  [${done + failed}/${PROCS}] worker ${i} finished (${secs.toFixed(0)}s elapsed)`);
+    /* The accounting lines only -- not the per-25-game progress spam, which is six workers' worth of
+     * noise and says nothing about whether anything ran. Matched on the summary's own labels. */
+    const acct = tail.split('\n').filter(l => /policy=|aiming:|forced replacements|joint|team preview|open team sheets|mega evolution|fell back/i.test(l));
+    for (const l of acct) console.error(`    w${i}| ${l.trim()}`);
     resolve();
   });
 }));
