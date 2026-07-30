@@ -48,7 +48,13 @@ async function loadRows() {
         winnerArm: g.selfplay.winnerArm,
         forcedSwitch: g.selfplay.forcedSwitch, forcedSwitch2: g.selfplay.forcedSwitch2,
         joint: g.selfplay.joint, joint2: g.selfplay.joint2,
+        /* ARM B's FLAGS TOO. Slimming kept only greedy/switching, so describe() read undefined for
+         * arm B and labelled a both-greedy run's second arm "takes a WEIGHTED ROLL". The numbers were
+         * unaffected (attribution goes through winnerArm) but the header described an experiment that
+         * did not happen. Fixing the labeller in the previous commit was not enough while the row it
+         * reads from still dropped the fields. */
         swapped: g.selfplay.swapped, greedy: g.selfplay.greedy, switching: g.selfplay.switching,
+        greedy2: g.selfplay.greedy2, switching2: g.selfplay.switching2,
         randmove: g.selfplay.randmove, policy: g.selfplay.policy, policy2: g.selfplay.policy2,
         format: g.selfplay.format } });
   }
