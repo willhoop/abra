@@ -155,6 +155,22 @@ function makeScoringPlayer(opts = {}) {
       this.stats.forcedScored = 0;
       this.stats.forcedFellBack = 0;
       this.greedy = !!(options && options.greedy);
+      /* LEARNING MODE. Accumulates the policy gradient of its own decisions so a caller who knows
+       * the outcome can turn a game into a weight update. See the block in chooseMove.
+       *
+       * REFUSED TOGETHER WITH GREEDY, loudly, rather than quietly producing a meaningless number:
+       * REINFORCE differentiates a softmax, and an argmax policy has no gradient to follow and no
+       * exploration to justify one. A run that silently trained on argmax decisions would produce a
+       * weight vector, a learning curve, and nothing real underneath -- which is the single failure
+       * mode this repository has paid for most often. */
+      this.learn = !!(options && options.learn);
+      if (this.learn && this.greedy) {
+        throw new Error('learn and greedy are mutually exclusive: a policy gradient needs a sampling policy, ' +
+                        'and an argmax has no gradient to follow. Drop --greedy from the training run.');
+      }
+      this.stats.learnGrad = this.learn ? new Array(this.w.length).fill(0) : null;
+      this.stats.learnDecisions = 0;
+      this.stats.learnSide = null;
       /* THE JOINT LAYER, OPT-IN. data/policy-weights-joint.json holds FEATURES.length single weights
        * followed by JOINT_FEATURES.length pair weights, fitted by engine/fit_joint.js on the choice
        * of a PAIR. Loaded only when asked for, and refused outright if its feature list disagrees
@@ -809,12 +825,22 @@ function makeScoringPlayer(opts = {}) {
       const riskOn = this.risk && (this.risk.skillGap || this.risk.strength);
       const pWin = riskOn ? V.winProb(this.board, me) : 0.5;
 
-      const scores = cands.map(c => {
+      /* THE FEATURE VECTORS, KEPT ONLY WHEN SOMETHING IS LEARNING FROM THEM.
+       *
+       * `x` lived for one line and was thrown away, which is right for playing and impossible for
+       * improving: a policy-gradient step is a function of the vectors of every option that was on
+       * the table, not just of the one that got clicked. Held in an array parallel to `cands` so the
+       * chosen index still indexes it -- the thoughts record below sorts its copy by score and is
+       * therefore useless for this, which is why it is not reused. Allocated only under `learn`, so
+       * a million-game measuring run pays nothing. */
+      const vecs = this.learn ? new Array(cands.length).fill(null) : null;
+      const scores = cands.map((c, ci) => {
         /* A switch has no move, and that is not the same thing as an unparseable move -- the first
          * version returned -Infinity for both and made every switch unpickable. */
         if (!c.move && !c.switchTo) return -Infinity;
         const x = B.featuresFor(c, user, this.board, me, dex,
           c.switchTo ? B.PRIOR_FLOOR : this.priorFor(user.species, c.move.id));
+        if (vecs) vecs[ci] = x;
         let s = 0; for (let k = 0; k < this.w.length; k++) s += this.w[k] * x[k];
         /* An underdog should take the swingy line and a favourite should decline it. This is a
          * CORRECTION, not a free improvement -- see the header of engine/variance.js. It is exactly
@@ -851,6 +877,33 @@ function makeScoringPlayer(opts = {}) {
         while (j < exp.length - 1 && (r -= exp[j]) > 0) j++;
       }
       this.stats.scored++;
+
+      /* ---- THE POLICY-GRADIENT STEP, ACCUMULATED HERE AND SCORED LATER --------------------------
+       *
+       * For a conditional logit the gradient of the log-probability of the option actually chosen is
+       *
+       *     d/dw log P(j)  =  x_j  -  SUM_k p_k x_k
+       *
+       * the chosen option's features minus the features the policy EXPECTED to click. It is zero
+       * when the policy already puts all its mass on j, and it points away from whatever it nearly
+       * clicked instead. Summed over a game and multiplied by the outcome, that is REINFORCE.
+       *
+       * THE OUTCOME IS NOT APPLIED HERE, deliberately: this class does not know who won, and giving
+       * it a way to find out would mean it reads the result of a game it is still playing. mew.js
+       * owns the winner and multiplies this accumulator by +1 or -1 at game end.
+       *
+       * ONLY UNDER SAMPLING. The gradient above is the derivative of a softmax; an argmax has no
+       * useful one, and a greedy player would accumulate a bias with no exploration behind it. The
+       * constructor refuses `learn` together with `greedy` rather than silently producing numbers
+       * that look like a gradient and are not one.
+       *
+       * Cost is one pass over candidates x features -- about ten by fifty-three -- per decision. */
+      if (this.learn && vecs && vecs[j]) {
+        accumulateLogitGrad(this.stats.learnGrad, vecs, exp.map(e => e / total), j, this.w.length);
+        this.stats.learnDecisions++;
+        this.stats.learnSide = me;
+      }
+
       /* Claim the switch so this turn's other slot cannot pick the same body. */
       if (cands[j].switchTo) {
         const n = parseInt(String(cands[j].choice).split(' ')[1], 10);
@@ -887,6 +940,27 @@ function makeScoringPlayer(opts = {}) {
   return ScoringPlayerAI;
 }
 
+/* THE POLICY GRADIENT OF ONE DECISION, pulled out of chooseMove so it can be tested against
+ * finite differences. For a conditional logit
+ *
+ *     d/dw log P(j)  =  x_j  -  SUM_k p_k x_k
+ *
+ * — the chosen option's features minus the features the policy expected to click. Wrong versions of
+ * this do not crash: they produce a smooth, plausible learning curve over garbage, which is why it
+ * is exported and pinned numerically in tests/test-policy-gradient.js rather than left inline and
+ * trusted. Accumulates into `g` so a game's decisions sum without allocating per decision. */
+function accumulateLogitGrad(g, vecs, probs, j, nW) {
+  if (!g || !vecs || !vecs[j]) return g;
+  for (let k = 0; k < nW; k++) {
+    let expect = 0;
+    for (let q = 0; q < vecs.length; q++) {
+      if (vecs[q]) expect += probs[q] * vecs[q][k];
+    }
+    g[k] += vecs[j][k] - expect;
+  }
+  return g;
+}
+
 /* "142/226" or "50/100 par" or "0 fnt" -> fraction. Returns the previous value on anything it does
  * not understand, so a parse miss holds state rather than inventing a full-health target. */
 function hpFrac(s, prev) {
@@ -897,4 +971,4 @@ function hpFrac(s, prev) {
   return +m[2] ? Math.max(0, Math.min(1, +m[1] / +m[2])) : prev;
 }
 
-module.exports = { makeScoringPlayer, loadWeights, hpFrac };
+module.exports = { makeScoringPlayer, loadWeights, hpFrac, accumulateLogitGrad };

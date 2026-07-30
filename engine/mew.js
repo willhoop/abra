@@ -151,6 +151,17 @@ const SWITCHING_B = process.argv.includes('--switching2');
  *                  Like the risk option, it follows the POLICY and not the slot. */
 const FORCED_A = process.argv.includes('--forced-switch');
 const FORCED_B = process.argv.includes('--forced-switch2');
+/* --learn  accumulate the policy gradient of BOTH sides and write it beside the games, so a caller
+ *          can turn a run of self-play into a weight update. See engine/train_policy.js.
+ *
+ *          BOTH SIDES ON PURPOSE. In symmetric self-play exactly one side wins, so summing the two
+ *          gradients with returns +1 and -1 subtracts a perfectly matched baseline: the features
+ *          common to winning and losing play cancel, and what survives is the difference between
+ *          them. That is the cheapest variance reduction available here and it is free.
+ *
+ *          Incompatible with --greedy, which magnemite refuses outright rather than producing a
+ *          number that looks like a gradient and is not one. */
+const LEARN = process.argv.includes('--learn');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 const GREEDY_A = process.argv.includes('--greedy');
@@ -457,8 +468,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   /* switching/greedy are NO LONGER copied into both arms. `--switching` and `--greedy` arm policy A,
    * `--switching2` and `--greedy2` arm policy B, assigned below through `swapped` so the lever
    * follows the POLICY and not the slot. Passing both flags reproduces the old global behaviour. */
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE };
-  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, learn: LEARN };
+  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, learn: LEARN };
   /* THE RISK OPTION FOLLOWS THE POLICY, NOT THE SLOT -- the same rule weightsFile uses two lines
    * below. A first version pinned it to optA and therefore always to p1, which happened not to
    * matter for the falsifier (both sides ran the same policy class, so `swapped` changed nothing)
@@ -569,6 +580,10 @@ async function main() {
   const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0,
                 scored: 0, scoreFellBack: 0, aimed: 0, forcedScored: 0, forcedFellBack: 0, jointDecided: 0, jointFellBack: 0, jointUsed: 0,
                 sheetEntries: 0, megaChosen: 0 };
+  /* The run-level policy gradient. Sized from the shipped weight vector so a stale length is a
+   * loud failure at load rather than a silent truncation here. */
+  const GRAD = LEARN ? new Array(require('./magnemite.js').loadWeights(WEIGHTS1).weights.length).fill(0) : [];
+  let GRAD_GAMES = 0, GRAD_SIDES = 0, GRAD_DECISIONS = 0;
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
    * ------------------------------------------------------------------------------------------
@@ -717,6 +732,27 @@ async function main() {
       rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
       rec.selfplay.blind = !!BLIND_A; rec.selfplay.blind2 = !!BLIND_B;
       rec.selfplay.jointZero = !!JOINTZ_A; rec.selfplay.jointZero2 = !!JOINTZ_B;
+      rec.selfplay.learn = !!LEARN;
+
+      /* ---- TURN THE FINISHED GAME INTO A SIGNED GRADIENT ------------------------------------
+       * The players accumulated the gradient of their own decisions without knowing the result --
+       * they are still playing when those decisions happen. Here the result is known, so each
+       * side's accumulator gets its sign: the winner's decisions are pushed toward, the loser's
+       * away. Computed from rec.winner rather than from anything the player saw.
+       *
+       * Independent of POLICY2 on purpose: a training run is normally one policy against itself,
+       * where the p1won test below is never reached. */
+      if (LEARN) {
+        const p1w = !!(rec.winner && rec.p1 && rec.winner === rec.p1.name);
+        for (const s of (res.stats || [])) {
+          if (!s.learnGrad || !s.learnSide) continue;
+          const G = ((s.learnSide === 'p1') === p1w) ? 1 : -1;
+          for (let k = 0; k < s.learnGrad.length && k < GRAD.length; k++) GRAD[k] += G * s.learnGrad[k];
+          GRAD_DECISIONS += s.learnDecisions || 0;
+          GRAD_SIDES++;
+        }
+        GRAD_GAMES++;
+      }
       /* The weight files too — a run of "policy score" says nothing about WHICH fit played it, and the
        * popularity-on and popularity-off arms of a 2x2 are distinguished by nothing else. */
       if (WEIGHTS1) rec.selfplay.weights = WEIGHTS1;
@@ -760,6 +796,26 @@ async function main() {
   await Promise.all(Array.from({ length: Math.max(1, CONC) }, worker));
   flush(true);      // durable before the summary claims a count
   process.stderr.write(`MEW done: ${written} games -> ${path.relative(ROOT, OUT)} (${failed} discarded)\n`);
+
+  /* THE GRADIENT GOES BESIDE THE GAMES IT CAME FROM, under the same basename, so a farm worker's
+   * contribution is findable from its shard and a training step can never accidentally sum the
+   * gradients of two different runs. Counts travel with it because the trainer must divide by the
+   * number of GAMES rather than by the number of files -- workers do not finish equal amounts. */
+  if (LEARN) {
+    const gradOut = OUT.replace(/\.jsonl$/, '') + '.grad.json';
+    fs.writeFileSync(gradOut, JSON.stringify({
+      generated: new Date().toISOString(),
+      by: 'engine/mew.js --learn',
+      weights: WEIGHTS1 || null,
+      seed: SEED0, games: GRAD_GAMES, sides: GRAD_SIDES, decisions: GRAD_DECISIONS,
+      grad: GRAD,
+    }));
+    process.stderr.write(`  gradient: ${GRAD_GAMES.toLocaleString()} games, ${GRAD_DECISIONS.toLocaleString()} decisions ` +
+      `-> ${path.relative(ROOT, gradOut)}\n`);
+    if (!GRAD_DECISIONS) {
+      process.stderr.write('  WARNING: zero decisions contributed a gradient — nothing was learned from this run.\n');
+    }
+  }
   /* REPORT THE POLICY'S OWN ACCOUNTING. A prior sampler that degrades to uniform random produces
    * games that look fine and measure nothing — ADR-001 attempt 3 reported itself as a prior sampler
    * while falling through to random on 100% of decisions, and the 32.2-point "finding" it produced
