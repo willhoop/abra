@@ -154,7 +154,7 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
                    sa:meg.sa+(m.st.sa-base.sa), sd:meg.sd+(m.st.sd-base.sd), sp:meg.sp+(m.st.sp-base.sp) }; }
     else { st=meg; }
   }
-  return {name,types,st,item,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
+  return {name,types,st,item,wt:m.wt||null,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
@@ -238,7 +238,7 @@ function buildMonFromSet(set){
    * droppedMoves so a UI can disclose them instead of silently thinning the set. */
   const ids=set.moves.map(norm2);
   const usable=ids.filter(id=>MC.moves[id]||PROTECTMOVES.has(id)||id==='wideguard'||id==='tailwind'||moveFx(id));
-  return {name:key,types,st,item,
+  return {name:key,types,st,item,wt:m.wt||null,
     ability:declaredAb||megaAbility(key,item,m.ab||''),baseAbility:m.ab||'',
     moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,
@@ -286,9 +286,21 @@ function effMoveType(mv,moveId,field){
   if(w&&w.byWeather&&field&&field.weather){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}
   return mv?mv.t:'';
 }
-function dmgRange(att,def,mv,field,spread){
-  if(!mv||!mv.bp)return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
+/* WIRE 21 -- variablePower: does this move have power AT ALL, and what is it right now?
+ * Low Kick and Grass Knot carry bp 0 in the table (the power IS the calculation), so the old
+ * `!mv.bp` gate scored them as non-damaging everywhere -- 1.27% of move slots doing zero. The
+ * absolute kinds (weight brackets) grant power through the gate; the conditional kinds multiply
+ * a real base. */
+function hasPower(mv){
+  if(!mv)return false;
+  if(mv.bp)return true;
   stampMoveIds();
+  const v=mv.id&&TAGS.param('move',mv.id,'variablePower');
+  return !!(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'));
+}
+function dmgRange(att,def,mv,field,spread){
+  stampMoveIds();
+  if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
   /* WIRE 7 -- weatherScaled, damage half. Weather Ball was Normal 50 BP in every sky; in sand it is
    * a 100 BP Rock move, which is a different move. Solar Beam sheds half its power in rain, sand and
    * snow. The type and power overrides happen HERE, before STAB, effectiveness, the rain/sun x1.5,
@@ -307,6 +319,18 @@ function dmgRange(att,def,mv,field,spread){
    * attacker's entry. Both zero when no counter is attached (site calls, unit tests). */
   const _pf=mv.id&&TAGS.param('move',mv.id,'powerFromFallen');
   if(_pf&&att._sf&&att._sf.fainted)mvBP=_pf.base+_pf.perFallen*Math.min(att._sf.fainted,5);
+  /* WIRE 21, the power itself: weight brackets (kg, from the handler's own table), user-HP scaling
+   * (a hurt Eruption is a weak Eruption), doubled-vs-status (Hex), doubled-itemless (Acrobatics),
+   * and Knock Off's x1.5 when the target actually holds something -- sheet-known on open sheets. */
+  const _vp=mv.id&&TAGS.param('move',mv.id,'variablePower');
+  if(_vp&&_vp.kind){
+    if(_vp.kind==='targetWeightKg'&&def.wt){for(const _b of _vp.brackets){if(def.wt>=_b[0]){mvBP=_b[1];break;}}}
+    else if(_vp.kind==='weightRatio'&&att.wt&&def.wt){const _r=att.wt/def.wt;for(const _b of _vp.brackets){if(_r>=_b[0]){mvBP=_b[1];break;}}}
+    else if(_vp.kind==='userHPFrac'&&att.st&&att.curHP!=null)mvBP=Math.max(1,Math.floor(mvBP*att.curHP/att.st.hp));
+    else if(_vp.kind==='targetStatused'&&def.status)mvBP=mvBP*_vp.mult;
+    else if(_vp.kind==='userNoItem'&&!att.item)mvBP=mvBP*_vp.mult;
+    else if(_vp.kind==='targetHasItem'&&def.item)mvBP=mvBP*_vp.mult;
+  }
   const phys=mv.c==='P';
   let A=phys?att.st.at:att.st.sa,D=phys?def.st.df:def.st.sd;
   A=Math.floor(A*boostMul(phys?att.boosts.at:att.boosts.sa));
@@ -569,7 +593,7 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
     fragile:worst.retention<0.75};
 }
 function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!hasPower(mv))continue;
     /* LEGALITY AT PICK TIME, not just at execution: the loop already refuses a turn-2 Fake Out,
      * but nothing stopped the bot CLICKING one -- a silent no-op turn, sampled constantly off
      * Incineroar's priors. Found by Will asking whether Fake Out was modeled at all. */
@@ -588,7 +612,7 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
   return best;
 }
 // pick the best target (max damage) for a SPECIFIC move
-function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)return null;
+function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!hasPower(mv))return null;
   if(id==='fakeout'&&me._turnsOut>0)return null;   // same pick-time legality as bestMoveVs
   let bt=null,bs=-1; for(const f of live){const d=dmgRange(me,f,mv,field,SPREAD.has(id));const sc=(d.min>=f.curHP?1e6:0)+d.max;if(sc>bs){bs=sc;bt={id,mv,spread:SPREAD.has(id),d,target:f};}}
   return bt; }
@@ -1134,7 +1158,7 @@ function playerAction(me,moveId,target,field){
   if(id==='wideguard')return {kind:'wideguard'};
   if(id==='tailwind')return {kind:'tail'};
   const mv=MC.moves[id];
-  if(mv&&mv.bp&&target){
+  if(mv&&hasPower(mv)&&target){
     const spread=SPREAD.has(id);
     return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:moveAccuracy(id,field)/100},target};
   }

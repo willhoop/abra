@@ -360,10 +360,32 @@ const MOVE_TAGS = [
       const n = NEED[norm(m.id)];
       return n ? { needs: n } : null;
     } },
-  { tag: 'variablePower', param: 'basePower is the calculation itself; dex bp is 0', probe: 'basePowerCallback',
+  { tag: 'variablePower', param: 'basePower is a CALCULATION, and the tag now says WHICH one', probe: 'basePowerCallback',
     why: 'Low Kick by weight, Gyro Ball by speed ratio, Grass Knot. dex basePower is 0, so board.js '
        + 'returns null and scores them as NON-DAMAGING -- 1.27% of move slots doing zero',
-    of: m => m.basePowerCallback ? { computed: true } : null },
+    /* {computed:true} was the boolean defect on 10,142 uses: it said the power moves and never on
+     * what. Six idioms read from the handlers themselves; anything else stays computed:true with
+     * a note, so the honest remainder is visible instead of dressed up. Weights in the handlers
+     * are HECTOGRAMS (2e3 = 200kg) -- divided here so consumers speak kg like MC.mons.wt. */
+    of: m => {
+      const src = String(m.basePowerCallback || '');
+      const obp = String(m.onBasePower || '');
+      if (/const targetWeight = target\.getWeight\(\)/.test(src) && !/pokemonWeight/.test(src)) {
+        const br = [...src.matchAll(/targetWeight >= ([\d.e]+)\)\s*\{\s*bp = (\d+)/g)].map(x => [+x[1] / 10, +x[2]]);
+        const last = src.match(/else\s*\{\s*bp = (\d+)/);
+        if (br.length) return { kind: 'targetWeightKg', brackets: br.concat(last ? [[0, +last[1]]] : []) };
+      }
+      if (/pokemonWeight >= targetWeight \* \d/.test(src)) {
+        const br = [...src.matchAll(/targetWeight \* (\d)\)\s*\{\s*bp = (\d+)/g)].map(x => [+x[1], +x[2]]);
+        const last = src.match(/else\s*\{\s*bp = (\d+)/);
+        if (br.length) return { kind: 'weightRatio', brackets: br.concat(last ? [[0, +last[1]]] : []) };
+      }
+      if (/move\.basePower \* pokemon\.hp \/ pokemon\.maxhp/.test(src)) return { kind: 'userHPFrac' };
+      if (/target\.status/.test(src) && /basePower \* 2/.test(src)) return { kind: 'targetStatused', mult: 2 };
+      if (/!pokemon\.item/.test(src) && /basePower \* 2/.test(src)) return { kind: 'userNoItem', mult: 2 };
+      if (/target\.getItem\(\)/.test(obp) && /chainModify\(1\.5\)/.test(obp)) return { kind: 'targetHasItem', mult: 1.5 };
+      return src ? { computed: true, note: 'idiom not yet derivable' } : null;
+    } },
   /* Will: "darkest lariat we need a tag for things like unaware". Same parameter from both sides --
    * the boost multiplier stops applying. Darkest Lariat (1,232 uses) and Sacred Sword ignore the
    * TARGET's defensive stages; Unaware (172 uses) ignores them in both directions permanently. And

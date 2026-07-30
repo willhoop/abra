@@ -719,6 +719,41 @@ console.log('\nfake out — legal to click only when legal to land');
   } finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
 }
 
+/* ---- WIRE 21: variablePower — the power IS the calculation, and now the tag says which -------- */
+console.log('\nwire 21 — variablePower');
+{
+  const db = require(path.join(ROOT, 'data', 'tags.json'));
+  const p = db.moves.lowkick.params.variablePower;
+  ok(p && p.kind === 'targetWeightKg' && p.brackets[0][0] === 200 && p.brackets[0][1] === 120,
+    'Low Kick carries the handler\'s own weight table in kg (was {computed:true} on 2,055 uses)');
+  ok(!!MC.moves.lowkick,
+    'and Low Kick EXISTS in the move table now — it was absent entirely, not weak (backfilled from the artifact+dex)');
+
+  const F = { terrain: '', weather: '', twA: 0, twB: 0 };
+  const att = M.buildMon('garchomp', {}); att.item = '';
+  const heavy = M.buildMon('hippowdon', {}); heavy.item = '';
+  const light = M.buildMon('whimsicott', {}); light.item = '';
+  const lkH = M.dmgRange(att, heavy, MC.moves.lowkick, F, false).max;
+  const lkL = M.dmgRange(att, light, MC.moves.lowkick, F, false).max;
+  ok(lkH > lkL * 4, `Low Kick: ${lkH} into 300kg, ${lkL} into 6.6kg — weight is the power`);
+
+  const tor = M.buildMon('incineroar', {}); tor.item = '';
+  const full = M.dmgRange(tor, light, MC.moves.eruption, F, false).max;
+  tor.curHP = Math.floor(tor.st.hp * 0.1);
+  const hurt = M.dmgRange(tor, light, MC.moves.eruption, F, false).max;
+  ok(full > hurt * 8, `a hurt Eruption is a weak Eruption (${full} at full, ${hurt} at 10%)`);
+
+  const burned = M.buildMon('incineroar', {}); burned.status = 'brn';
+  const clean = M.buildMon('incineroar', {});
+  const hexR = M.dmgRange(att, burned, MC.moves.hex, F, false).max / M.dmgRange(att, clean, MC.moves.hex, F, false).max;
+  ok(Math.abs(hexR - 2) < 0.05, `Hex doubles on a statused target (x${hexR.toFixed(2)})`);
+
+  const held = M.buildMon('incineroar', {}); held.item = 'sitrusberry';
+  const bare = M.buildMon('incineroar', {}); bare.item = '';
+  const koR = M.dmgRange(att, held, MC.moves.knockoff, F, false).max / M.dmgRange(att, bare, MC.moves.knockoff, F, false).max;
+  ok(koR > 1.4 && koR < 1.55, `Knock Off is x${koR.toFixed(2)} only when they actually hold something — sheet-known`);
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

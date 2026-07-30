@@ -93,6 +93,24 @@ for (const [key, mv] of Object.entries(prior.moves || {})) {
     }
   } catch (e) { /* keep whatever was stored */ }
 }
+/* MOVES THE TABLE NEVER HAD. champ-model's compact table skipped every bp-0 callback move, so Low
+ * Kick (2,055 sheet uses) and Grass Knot were UNLOOKUPABLE -- not weak, absent. Any move the tag
+ * artifact knows (i.e. the format actually plays) and the table lacks is added from the dex, so a
+ * used move can never again be missing by construction. */
+try {
+  const tagMoves = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'tags.json'), 'utf8')).moves || {};
+  let added = 0;
+  for (const key of Object.keys(tagMoves)) {
+    if (moves[key]) continue;
+    const d = DEX && DEX.moves.get(key);
+    if (!d || !d.exists) continue;
+    moves[key] = { t: d.type, c: d.category === 'Physical' ? 'P' : 'S', bp: d.basePower || 0 };
+    if (d.recoil) moves[key].rc = d.recoil;
+    if (d.self && d.self.boosts) moves[key].self = d.self.boosts;
+    added++;
+  }
+  if (added) console.log(`  moves added from the artifact+dex (were unlookupable): ${added}`);
+} catch (e) { console.warn('  could not backfill artifact moves:', e.message); }
 
 const MC = {
   mons,
