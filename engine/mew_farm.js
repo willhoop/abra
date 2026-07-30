@@ -165,7 +165,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
     const v = arg(k, '');
     if (v) extra.push('--' + k, v);
   }
-  for (const f of ['paired', 'switching', 'forced-switch', 'greedy', 'thoughts']) if (process.argv.includes('--' + f)) extra.push('--' + f);
+  for (const f of ['paired', 'switching', 'forced-switch', 'forced-switch2', 'greedy', 'thoughts']) if (process.argv.includes('--' + f)) extra.push('--' + f);
   const child = spawn(process.execPath, [
     D('engine', 'mew.js'),
     '--n', String(per),
