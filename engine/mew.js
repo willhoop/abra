@@ -135,6 +135,13 @@ const RANDMOVE = parseFloat(arg('randmove', '1'));
 /* --switching  let MAG choose to switch. Measured as a 10-point LOSS against a random opponent, so
  *              it is off until the switch policy is worth more than not switching. */
 const SWITCHING = process.argv.includes('--switching');
+/* --forced-switch  score the POST-KO replacement instead of taking the inherited uniform die.
+ *                  A DIFFERENT lever from --switching and not subject to its ten-point verdict:
+ *                  the turn is already gone with the Pokemon that fainted and passing is not a
+ *                  legal choice, so there is no "stay in" option for a switch policy to lose to.
+ *                  Measured on 6,000 games: 1.91 replacements per game across both sides have two
+ *                  live options, 1.63 have exactly one. */
+const FORCED_SWITCH = process.argv.includes('--forced-switch');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 const GREEDY = process.argv.includes('--greedy');
@@ -437,8 +444,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * "swapped" on both halves. The caller states it explicitly there. */
   const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
-  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, forcedSwitch: FORCED_SWITCH, greedy: GREEDY };
+  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, forcedSwitch: FORCED_SWITCH, greedy: GREEDY };
   /* THE RISK OPTION FOLLOWS THE POLICY, NOT THE SLOT -- the same rule weightsFile uses two lines
    * below. A first version pinned it to optA and therefore always to p1, which happened not to
    * matter for the falsifier (both sides ran the same policy class, so `swapped` changed nothing)
@@ -541,7 +548,7 @@ async function main() {
    * of being counted into `failed` alongside ordinary battle failures and never printed. */
   const seenErr = new Set();
   const POL = { sampled: 0, fellBack: 0, noPrior: 0, invalidTeam: 0, previewSampled: 0, previewDefault: 0,
-                scored: 0, scoreFellBack: 0, aimed: 0, jointDecided: 0, jointFellBack: 0, jointUsed: 0,
+                scored: 0, scoreFellBack: 0, aimed: 0, forcedScored: 0, forcedFellBack: 0, jointDecided: 0, jointFellBack: 0, jointUsed: 0,
                 sheetEntries: 0, megaChosen: 0 };
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
@@ -659,6 +666,7 @@ async function main() {
         POL.sampled += s.sampled; POL.fellBack += s.fellBack; POL.noPrior += s.noPrior;
         POL.previewSampled += s.previewSampled || 0; POL.previewDefault += s.previewDefault || 0;
         POL.scored += s.scored || 0; POL.scoreFellBack += s.scoreFellBack || 0; POL.aimed += s.aimed || 0;
+        POL.forcedScored += s.forcedScored || 0; POL.forcedFellBack += s.forcedFellBack || 0;
         POL.jointDecided += s.jointDecided || 0; POL.jointFellBack += s.jointFellBack || 0; POL.jointUsed += s.jointUsed || 0;
         POL.sheetEntries += s.sheetEntries || 0; POL.megaChosen += s.megaChosen || 0;
       }
@@ -686,6 +694,7 @@ async function main() {
        * rate. Anything that changes what the bot DOES belongs on the record. */
       rec.selfplay.greedy = !!GREEDY;
       rec.selfplay.switching = !!SWITCHING;
+      rec.selfplay.forcedSwitch = !!FORCED_SWITCH;
       rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
       rec.selfplay.blind = !!BLIND_A; rec.selfplay.blind2 = !!BLIND_B;
       rec.selfplay.jointZero = !!JOINTZ_A; rec.selfplay.jointZero2 = !!JOINTZ_B;
@@ -742,6 +751,21 @@ async function main() {
         `(${POL.scoreFellBack.toLocaleString()} fell back to the prior sampler)\n`);
       process.stderr.write(`  aiming: ${POL.aimed.toLocaleString()} decisions chose WHICH foe to hit ` +
         `(the prior policy leaves that to a coin flip)\n`);
+      /* FORCED REPLACEMENTS, REPORTED WHENEVER THE LEVER IS ASKED FOR, and a zero called out rather
+       * than left to be noticed. This lever is unusually easy to wire and have do nothing: forced
+       * replacements never pass through chooseMove, so a candidate-building change looks correct,
+       * runs clean, and changes not one decision. A silent zero here would read in the win rate as
+       * "scoring the replacement does not help", which is a wrong conclusion that would stick. */
+      if (FORCED_SWITCH) {
+        const fs2 = POL.forcedScored + POL.forcedFellBack;
+        if (!fs2) {
+          process.stderr.write('  forced replacements: ZERO reached the scorer — the lever did NOT fire\n');
+        } else {
+          process.stderr.write(`  forced replacements: ${POL.forcedScored.toLocaleString()} scored, ` +
+            `${POL.forcedFellBack.toLocaleString()} fell back to the die ` +
+            `(${(100 * POL.forcedScored / fs2).toFixed(1)}% decided; the rest had one option or an unreadable bench)\n`);
+        }
+      }
       /* THE JOINT LAYER MUST PROVE IT RAN. Asking for --joint and silently getting the independent
        * player is indistinguishable in the win rate from a pair model that simply does not help, and
        * the second conclusion would be wrong and would stick. So the counters are printed whenever

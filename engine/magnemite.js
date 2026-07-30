@@ -141,6 +141,19 @@ function makeScoringPlayer(opts = {}) {
       /* Opt-in: the viewer wants it, a training run does not. */
       this.keepThoughts = !!(options && options.keepThoughts);
       this.allowSwitch = !!(options && options.switching);
+      /* FORCED REPLACEMENTS ARE A SEPARATE LEVER FROM VOLUNTARY SWITCHING, and they have to be,
+       * because they are not the same decision. `switching` asks "is leaving worth a turn?" and
+       * measured as a ten-point LOSS. A forced replacement asks only "which one comes in?" — the
+       * turn is already gone with the Pokemon that fainted, and passing is not a legal choice. So
+       * the 81.9% bar does not apply here and this lever cannot reintroduce that loss.
+       *
+       * Off by default anyway, because the weights it scores with are the SAME ones the switching
+       * verdict called noise (switchSurvives1 +0.055, switchFaster -0.112, switchSurvives2's
+       * interval containing zero). Ordering two replacements by noisy weights may be no better than
+       * the die it replaces. Measure before defaulting it on. */
+      this.scoreForced = !!(options && options.forcedSwitch);
+      this.stats.forcedScored = 0;
+      this.stats.forcedFellBack = 0;
       this.greedy = !!(options && options.greedy);
       /* THE JOINT LAYER, OPT-IN. data/policy-weights-joint.json holds FEATURES.length single weights
        * followed by JOINT_FEATURES.length pair weights, fitted by engine/fit_joint.js on the choice
@@ -247,9 +260,59 @@ function makeScoringPlayer(opts = {}) {
     chooseSwitch(active, switches) {
       if (this._claimReq !== this._req) { this._claimReq = this._req; this._claimed = new Set(); }
       const free = (switches || []).filter(sw => !this._claimed.has(sw.slot));
-      const pick = super.chooseSwitch(active, free.length ? free : switches);
+      const pool = free.length ? free : (switches || []);
+      const scored = this._scoreForcedPick(pool);
+      const pick = scored == null ? super.chooseSwitch(active, pool) : scored;
       this._claimed.add(pick);
       return pick;
+    }
+
+    /* WHICH POKEMON COMES IN AFTER A KO — the decision this class never made.
+     *
+     * `_candsFor` builds switch candidates only when `!this._req.forceSwitch`, and Showdown's
+     * receiveRequest routes a forced replacement straight to chooseSwitch without ever calling
+     * chooseMove. So every post-KO replacement MAG has ever made came from the inherited
+     *     protected chooseSwitch(...) { return this.prng.sample(switches).slot; }
+     * which is a uniform die. Measured on 6,000 self-play games: 3.55 forced replacements per game
+     * across both sides, of which 1.91 had two live options to choose between and 1.63 had exactly
+     * one (bring 4, two active, so the bench is at most two deep). About one real decision per side
+     * per game, decided by coin flip, and it decides what stands on the field for the rest of it.
+     *
+     * The features are the ones switchFeatures already computes — how much of the incoming mon the
+     * hardest enemy attack takes, whether it takes half of it, and whether it outruns the fastest
+     * thing across from it. Nothing new is asserted here and no refit is needed, for a reason worth
+     * stating: post-KO EVERY candidate is a switch, so the flat `isSwitch` intercept that carries
+     * the average cost of a turn is identical across the choice set and cancels out of the argmax
+     * exactly as it cancels out of a softmax. The turn-cost bias baked into that weight cannot
+     * distort a decision in which there is nothing to compare a switch against.
+     *
+     * Returns null — deliberately, not a slot — whenever it cannot honestly claim to have decided:
+     * lever off, no weights, fewer than two live options, or a species that would not resolve. The
+     * caller then falls back to the inherited die, and stats.forcedFellBack says how often. */
+    _scoreForcedPick(pool) {
+      if (!this.scoreForced || !this.w || !this.board) return null;
+      if (!Array.isArray(pool) || pool.length < 2) return null;
+      const me = this.me || 'p1';
+      let bestSlot = null, bestScore = -Infinity, n = 0;
+      for (const sw of pool) {
+        const p = sw && sw.pokemon;
+        if (!p) continue;
+        const sp = B.norm(String(p.details || p.ident || '').split(',')[0].replace(/^p[12][a-z]?:\s*/, ''));
+        if (!sp) continue;
+        /* `user` is null on purpose. switchFeatures passes it to incomingThreat, which reads it ONLY
+         * to key the cache; the damage it computes is the enemy actives' best hit on the mon coming
+         * IN. The Pokemon that just fainted is not part of that question. */
+        const x = B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp },
+          null, this.board, me, dex, B.PRIOR_FLOOR);
+        if (!x) continue;
+        let s = 0;
+        for (let k = 0; k < this.w.length; k++) s += this.w[k] * x[k];
+        n++;
+        if (s > bestScore) { bestScore = s; bestSlot = sw.slot; }
+      }
+      if (bestSlot == null || n < 2) { this.stats.forcedFellBack++; return null; }
+      this.stats.forcedScored++;
+      return bestSlot;
     }
 
     priorFor(species, moveId) {
