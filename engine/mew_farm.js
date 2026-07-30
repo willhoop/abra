@@ -221,9 +221,12 @@ Promise.all(workers).then(async () => {
     const rawShards = shards.map(s => s.replace(/\.jsonl$/, '') + '.raw-logs.jsonl');
     const rawOut = fs.createWriteStream(RAW_OUT, { flags: 'w' });
     let rawKept = 0;
+    /* STREAMED — the same 536MB string cap that bit the games merge bit THIS loop one run later
+     * (the fix landed one merge site short; raw-log shards are the bigger files). */
     for (const s of rawShards) {
       if (!fs.existsSync(s)) continue;
-      for (const line of fs.readFileSync(s, 'utf8').split('\n')) {
+      const rl2 = readline.createInterface({ input: fs.createReadStream(s), crlfDelay: Infinity });
+      for await (const line of rl2) {
         const t = line.trim(); if (!t) continue;
         let id;
         try { id = JSON.parse(t).id; } catch { continue; }
