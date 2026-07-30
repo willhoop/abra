@@ -569,7 +569,12 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
     fragile:worst.retention<0.75};
 }
 function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
-  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;const acc=att.ability==='noguard'?1:moveAccuracy(id,field)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
+  for(const id of att.moves){const mv=MC.moves[id];if(!mv||!mv.bp)continue;
+    /* LEGALITY AT PICK TIME, not just at execution: the loop already refuses a turn-2 Fake Out,
+     * but nothing stopped the bot CLICKING one -- a silent no-op turn, sampled constantly off
+     * Incineroar's priors. Found by Will asking whether Fake Out was modeled at all. */
+    if(id==='fakeout'&&att._turnsOut>0)continue;
+    const acc=att.ability==='noguard'?1:moveAccuracy(id,field)/100;const d=dmgRange(att,def,mv,field,SPREAD.has(id));
     /* value = expected damage MINUS the priced cost of the click (Will: "that actually get priced
      * into decisions"). The old line multiplied recoil moves by a flat 0.85 — a fudge that charged
      * Brave Bird and Head Smash identically and charged Rough Skin nothing. Both costs are now in
@@ -584,6 +589,7 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
 }
 // pick the best target (max damage) for a SPECIFIC move
 function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!mv.bp)return null;
+  if(id==='fakeout'&&me._turnsOut>0)return null;   // same pick-time legality as bestMoveVs
   let bt=null,bs=-1; for(const f of live){const d=dmgRange(me,f,mv,field,SPREAD.has(id));const sc=(d.min>=f.curHP?1e6:0)+d.max;if(sc>bs){bs=sc;bt={id,mv,spread:SPREAD.has(id),d,target:f};}}
   return bt; }
 // MEDICHAM policy = behaviour cloning: sample what a real ladder player would click, but always

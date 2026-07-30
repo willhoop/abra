@@ -696,6 +696,26 @@ console.log('\nwires 19+20 — setup boosts / Encore');
   } finally { MC.priors[a2.name] = sA2; MC.priors[v2.name] = sV2; }
 }
 
+/* ---- Fake Out legality reaches PICK time ----------------------------------------------------- */
+console.log('\nfake out — legal to click only when legal to land');
+{
+  const a = M.buildMon('incineroar', {}); a.item = ''; a.moves = ['fakeout', 'flareblitz'];
+  const d = M.buildMon('corviknight', {}); d.item = ''; d.moves = ['roost'];
+  d.st = Object.assign({}, d.st, { hp: 99999 }); d.curHP = 99999;
+  const sA = MC.priors[a.name], sD = MC.priors[d.name];
+  MC.priors[a.name] = null; MC.priors[d.name] = null;
+  const S = M.battleInit([a], [d]);
+  try {
+    M.battleTurn(S, () => 0.9);                    // engine-chosen: turn 1, Fake Out is legal
+    const t1 = (S.lastActs || []).find(x => x.side === 'A');
+    ok(t1 && t1.move === 'fakeout', `turn 1 the engine clicks Fake Out (${t1 && t1.move}) — legal and +3 priority`);
+    M.battleTurn(S, () => 0.9);                    // turn 2: it must NOT click the illegal Fake Out
+    const t2 = (S.lastActs || []).find(x => x.side === 'A');
+    ok(t2 && t2.move === 'flareblitz',
+      `turn 2 it picks a legal move instead (${t2 && t2.move}) — no more silently donated turns`);
+  } finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {
