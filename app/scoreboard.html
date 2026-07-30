@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THE SCOREBOARD — watch MAG think</title>
+<!-- Will: "a really fun one that provides a window into how it all works and how the ai scores each
+     choice". Every number on this page was computed by the REAL engine in node and shipped in
+     data/scoreboard.js. The page does no scoring of its own — deliberately. app/index.html carries a
+     partial re-implementation of the scorer that assigns 21 of 53 features, so its numbers are not
+     the bot's numbers; the fix is not to finish a second engine but to stop having one. -->
+<style>
+:root{--line:#22303f;--ink:#1a2233;--dim:#5a6a84;--pos:#1f7a3c;--neg:#b03030;--pick:#f6c95b}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#f4f6fb,#e7ebf3);color:var(--ink);
+  font-family:-apple-system,'Segoe UI',Roboto,sans-serif;padding:16px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:24px;letter-spacing:2px;margin:0 0 2px}
+.sub{color:var(--dim);font-size:13px;font-weight:600;margin-bottom:12px;max-width:900px;line-height:1.5}
+.panel{background:#fff;border:3px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 5px 0 rgba(34,48,63,.15);margin-bottom:14px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+button,select{font:inherit;font-weight:700;padding:6px 12px;border:2px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}
+button:hover{background:#eef3ff}
+button:disabled{opacity:.35;cursor:default}
+.tag{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+.grid{display:grid;grid-template-columns:minmax(340px,1fr) minmax(320px,1fr);gap:14px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.field{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.mon{border:2px solid var(--line);border-radius:10px;padding:5px 9px;font-size:12px;font-weight:700;background:#f7f9ff}
+.mon.act{background:#fff6d8;border-color:#c9a227}
+.opt{border:2px solid var(--line);border-radius:11px;padding:8px 10px;margin-bottom:7px;cursor:pointer;background:#fbfcff}
+.opt:hover{background:#eef3ff}
+.opt.sel{background:#eaf3ff;box-shadow:inset 0 0 0 2px #3b6fd4}
+.opt.won{border-color:#c9a227;background:#fffbee}
+.opt h4{margin:0 0 4px;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bar{height:9px;border-radius:5px;background:#e6eaf3;position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;display:block}
+.meta{font-size:11px;color:var(--dim);font-weight:700;margin-top:3px}
+.why{margin-top:4px}
+.wrow{display:grid;grid-template-columns:1fr 62px 96px;gap:8px;align-items:center;font-size:12px;padding:2px 0}
+.wrow b{font-weight:700}
+.wbar{height:8px;background:#eef1f7;border-radius:4px;position:relative}
+.wbar i{position:absolute;top:0;bottom:0;display:block;border-radius:4px}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
+.note{font-size:12px;color:var(--dim);font-weight:600;line-height:1.5}
+.kbd{border:1.5px solid var(--line);border-bottom-width:3px;border-radius:5px;padding:0 5px;font-size:11px;font-weight:800;background:#fff}
+</style></head><body><div class="wrap">
+
+<h1>THE SCOREBOARD</h1>
+<div class="sub">Every turn, MAG gives each option it could click a <b>score</b>, then plays the highest one.
+The score is just a sum: each of 53 measured things about the board contributes a little push toward or away
+from that option. This page shows the whole sum, for every option, in real games. Nothing here is
+recomputed in your browser — the engine did the arithmetic and this page only draws it.</div>
+
+<div class="panel">
+  <div class="row">
+    <span class="tag">Game</span><select id="game"></select>
+    <span class="tag">Decision</span>
+    <button id="prev">&larr;</button><span id="pos" style="font-weight:800;min-width:96px;text-align:center"></span><button id="next">&rarr;</button>
+    <span class="note" style="margin-left:auto">use <span class="kbd">&larr;</span> <span class="kbd">&rarr;</span></span>
+  </div>
+  <div id="ctx" style="margin-top:10px"></div>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <div class="tag">What it could do &mdash; click any option to see why</div>
+    <div id="opts" style="margin-top:8px"></div>
+  </div>
+  <div class="panel">
+    <div class="tag">Why that score</div>
+    <div id="detail" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="tag">How to read this</div>
+  <p class="note">A <b>green</b> bar is a reason to click the option; <b>red</b> is a reason not to. Each bar is one
+  measured fact multiplied by how much that fact was found to matter, so the bars literally add up to the score.
+  The gold-bordered option is the one MAG played. The percentage is what its score implies against the
+  alternatives &mdash; on this page the bot is in <b>best-move</b> mode, so it always takes the top one, and the
+  percentage tells you how close the call was.</p>
+  <p class="note" id="prov"></p>
+</div>
+
+<script src="../data/scoreboard.js"></script>
+<script>
+(function(){
+  var SB = window.SCOREBOARD;
+  var gEl=document.getElementById('game'), posEl=document.getElementById('pos'),
+      ctxEl=document.getElementById('ctx'), optsEl=document.getElementById('opts'),
+      detEl=document.getElementById('detail');
+  if(!SB || !SB.games || !SB.games.length){
+    ctxEl.innerHTML='<b>data/scoreboard.js did not load.</b> Rebuild it with '+
+      '<code>node build/build_scoreboard.js</code>.'; return;
+  }
+  var gi=0, di=0, si=0;
+
+  SB.games.forEach(function(g,i){
+    var o=document.createElement('option');
+    o.value=i; o.textContent=(i+1)+' — '+g.turns+' turns, '+g.decisions.length+' decisions';
+    gEl.appendChild(o);
+  });
+
+  var esc=function(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});};
+  var cap=function(s){return String(s||'').replace(/(^|-)([a-z])/g,function(m,a,b){return a+b.toUpperCase();});};
+
+  function render(){
+    var g=SB.games[gi], d=g.decisions[di];
+    posEl.textContent=(di+1)+' / '+g.decisions.length;
+    document.getElementById('prev').disabled = di===0;
+    document.getElementById('next').disabled = di===g.decisions.length-1;
+
+    var mine = d.side==='p1' ? g.broughtP1 : g.broughtP2;
+    var theirs = d.side==='p1' ? g.broughtP2 : g.broughtP1;
+    ctxEl.innerHTML =
+      '<div style="font-weight:800;font-size:15px">Turn '+d.turn+' — <span style="color:#3b6fd4">'+esc(cap(d.mon))+
+      '</span> is choosing <span class="note">('+esc(d.side)+esc(d.slot)+')</span></div>'+
+      '<div class="tag" style="margin-top:8px">its side</div><div class="field">'+
+        mine.map(function(m){return '<span class="mon'+(m===d.mon?' act':'')+'">'+esc(cap(m))+'</span>';}).join('')+'</div>'+
+      '<div class="tag" style="margin-top:8px">across the field</div><div class="field">'+
+        theirs.map(function(m){return '<span class="mon">'+esc(cap(m))+'</span>';}).join('')+'</div>';
+
+    var maxAbs=1;
+    d.opts.forEach(function(o){ maxAbs=Math.max(maxAbs, Math.abs(o.s)); });
+
+    optsEl.innerHTML = d.opts.map(function(o,i){
+      var w = Math.min(50, 50*Math.abs(o.s)/maxAbs);
+      var left = o.s>=0 ? 50 : 50-w;
+      return '<div class="opt'+(i===si?' sel':'')+(o.chosen?' won':'')+'" data-i="'+i+'">'+
+        '<h4><span>'+esc(o.mv)+(o.tgt?' <span class="note">&rarr; '+esc(cap(o.tgt))+'</span>':'')+'</span>'+
+        '<span class="num">'+o.s.toFixed(2)+'</span></h4>'+
+        '<div class="bar"><i style="left:'+left+'%;width:'+w+'%;background:'+(o.s>=0?'var(--pos)':'var(--neg)')+'"></i></div>'+
+        '<div class="meta">'+Math.round(o.p*100)+'% of the weight'+(o.chosen?' &nbsp;·&nbsp; <b style="color:#a5820a">MAG PLAYED THIS</b>':'')+'</div>'+
+      '</div>';
+    }).join('');
+
+    Array.prototype.forEach.call(optsEl.querySelectorAll('.opt'), function(el){
+      el.onclick=function(){ si=+el.getAttribute('data-i'); render(); };
+    });
+
+    var o=d.opts[si]||d.opts[0];
+    var why=(o.why||[]);
+    var m2=1; why.forEach(function(r){ m2=Math.max(m2,Math.abs(r[1])); });
+    var sum=0; why.forEach(function(r){ sum+=r[1]; });
+    detEl.innerHTML =
+      '<div style="font-weight:800;font-size:15px;margin-bottom:2px">'+esc(o.mv)+(o.tgt?' &rarr; '+esc(cap(o.tgt)):'')+'</div>'+
+      '<div class="note" style="margin-bottom:8px">'+why.length+' things pushed on this score.</div>'+
+      '<div class="why">'+ why.map(function(r){
+        var name=SB.labels[r[0]]||r[0], v=r[1];
+        var w=Math.min(50,50*Math.abs(v)/m2), left = v>=0?50:50-w;
+        return '<div class="wrow"><span>'+esc(name)+'</span>'+
+          '<span class="num" style="color:'+(v>=0?'var(--pos)':'var(--neg)')+'">'+(v>=0?'+':'')+v.toFixed(2)+'</span>'+
+          '<span class="wbar"><i style="left:'+left+'%;width:'+w+'%;background:'+(v>=0?'var(--pos)':'var(--neg)')+'"></i></span></div>';
+      }).join('') + '</div>'+
+      '<div class="note" style="margin-top:10px;border-top:2px solid #e6eaf3;padding-top:8px">'+
+        'these add up to <b>'+sum.toFixed(2)+'</b>, which is the score above'+
+        (Math.abs(sum-o.s)>0.02?' <b style="color:var(--neg)">(and it does not match — that is a bug worth reporting)</b>':'')+'.</div>';
+  }
+
+  gEl.onchange=function(){ gi=+gEl.value; di=0; si=0; render(); };
+  document.getElementById('prev').onclick=function(){ if(di>0){di--; si=0; render();} };
+  document.getElementById('next').onclick=function(){ if(di<SB.games[gi].decisions.length-1){di++; si=0; render();} };
+  document.onkeydown=function(e){
+    if(e.key==='ArrowLeft'){ if(di>0){di--; si=0; render();} }
+    if(e.key==='ArrowRight'){ if(di<SB.games[gi].decisions.length-1){di++; si=0; render();} }
+  };
+  document.getElementById('prov').textContent =
+    'Built ' + String(SB.generated).slice(0,10) + ' by ' + SB.by + ' — ' + SB.games.length + ' real self-play games, ' +
+    SB.games.reduce(function(a,g){return a+g.decisions.length;},0) + ' decisions, decision rule: ' + SB.decisionRule + '. ' + SB.note;
+  render();
+})();
+</script>
+</div></body></html>

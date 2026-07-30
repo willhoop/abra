@@ -162,6 +162,10 @@ const FORCED_B = process.argv.includes('--forced-switch2');
  *          Incompatible with --greedy, which magnemite refuses outright rather than producing a
  *          number that looks like a gradient and is not one. */
 const LEARN = process.argv.includes('--learn');
+/* --explain  keep the per-feature breakdown of every option's score on each record, so a viewer can
+ *            show WHY the bot clicked rather than only what it clicked. Implies --thoughts. Writes a
+ *            lot per game, so it is for building a demo set, never for a measuring run. */
+const EXPLAIN = process.argv.includes('--explain');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 const GREEDY_A = process.argv.includes('--greedy');
@@ -468,8 +472,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   /* switching/greedy are NO LONGER copied into both arms. `--switching` and `--greedy` arm policy A,
    * `--switching2` and `--greedy2` arm policy B, assigned below through `swapped` so the lever
    * follows the POLICY and not the slot. Passing both flags reproduces the old global behaviour. */
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, learn: LEARN };
-  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, learn: LEARN };
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS || EXPLAIN, explain: EXPLAIN, move: RANDMOVE, learn: LEARN };
+  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS || EXPLAIN, explain: EXPLAIN, move: RANDMOVE, learn: LEARN };
   /* THE RISK OPTION FOLLOWS THE POLICY, NOT THE SLOT -- the same rule weightsFile uses two lines
    * below. A first version pinned it to optA and therefore always to p1, which happened not to
    * matter for the falsifier (both sides ran the same policy class, so `swapped` changed nothing)
@@ -733,6 +737,16 @@ async function main() {
       rec.selfplay.blind = !!BLIND_A; rec.selfplay.blind2 = !!BLIND_B;
       rec.selfplay.jointZero = !!JOINTZ_A; rec.selfplay.jointZero2 = !!JOINTZ_B;
       rec.selfplay.learn = !!LEARN;
+      /* THE REASONING, ACTUALLY WRITTEN DOWN. --thoughts has always collected per-decision scores
+       * into the player's stats and then dropped them on the floor when the game ended, so the flag
+       * whose whole purpose is "a replay can show WHY it clicked" produced nothing a replay could
+       * read. Persisted now, tagged by side, and only when asked for. */
+      if (THOUGHTS || EXPLAIN) {
+        rec.thoughts = [];
+        for (const st2 of (res.stats || [])) {
+          for (const t of (st2.thoughts || [])) rec.thoughts.push(t);
+        }
+      }
 
       /* ---- TURN THE FINISHED GAME INTO A SIGNED GRADIENT ------------------------------------
        * The players accumulated the gradient of their own decisions without knowing the result --

@@ -164,6 +164,11 @@ function makeScoringPlayer(opts = {}) {
        * weight vector, a learning curve, and nothing real underneath -- which is the single failure
        * mode this repository has paid for most often. */
       this.learn = !!(options && options.learn);
+      /* EXPLAIN. Keeps the per-feature breakdown of every option's score on the thoughts record, so
+       * a viewer can show WHY rather than only WHAT. Separate from `learn` because the vectors are
+       * needed for both and wanted by neither's consumer: a training run throws the breakdown away
+       * and a viewer has no use for a gradient. */
+      this.explain = !!(options && options.explain);
       if (this.learn && this.greedy) {
         throw new Error('learn and greedy are mutually exclusive: a policy gradient needs a sampling policy, ' +
                         'and an argmax has no gradient to follow. Drop --greedy from the training run.');
@@ -833,7 +838,7 @@ function makeScoringPlayer(opts = {}) {
        * chosen index still indexes it -- the thoughts record below sorts its copy by score and is
        * therefore useless for this, which is why it is not reused. Allocated only under `learn`, so
        * a million-game measuring run pays nothing. */
-      const vecs = this.learn ? new Array(cands.length).fill(null) : null;
+      const vecs = (this.learn || this.explain) ? new Array(cands.length).fill(null) : null;
       const scores = cands.map((c, ci) => {
         /* A switch has no move, and that is not the same thing as an unparseable move -- the first
          * version returned -Infinity for both and made every switch unpickable. */
@@ -919,17 +924,39 @@ function makeScoringPlayer(opts = {}) {
        * a million-game run does not pay for a feature only the viewer uses. */
       if (this.keepThoughts) {
         const pct = exp.map(e => e / total);
-        const opts = cands.map((c, i) => ({
-          mv: c.move ? c.move.name : (c.switchTo ? 'switch: ' + c.switchTo : '?'),
-          tgt: c.targetMon ? c.targetMon.species : null,
-          s: Math.round(scores[i] * 1000) / 1000,
-          p: Math.round(pct[i] * 1000) / 1000,
-        })).sort((a, b) => b.s - a.s);
+        /* `chose` USED TO INDEX THE WRONG ARRAY. It stored j, an index into `cands`, next to `opts`
+         * which is SORTED BY SCORE and then truncated to eight -- so on any decision where the
+         * clicked option was not already in position j of the sorted list, a reader following
+         * `chose` was shown a different move than the bot played, silently. The flag exists so a
+         * replay can show WHY it clicked; pointing at the wrong option is worse than showing
+         * nothing. Each option now carries its own `chosen` mark, which survives sorting. */
+        const opts = cands.map((c, i) => {
+          const o = {
+            mv: c.move ? c.move.name : (c.switchTo ? 'switch: ' + c.switchTo : '?'),
+            tgt: c.targetMon ? c.targetMon.species : null,
+            s: Math.round(scores[i] * 1000) / 1000,
+            p: Math.round(pct[i] * 1000) / 1000,
+            chosen: i === j,
+          };
+          /* WHERE THE SCORE CAME FROM, feature by feature: w_k * x_k, which sums to the score.
+           * This is the whole point of keeping a LINEAR policy -- the reason for a choice is
+           * readable, and until now nothing read it. Only under `explain`, because it is 53 numbers
+           * per option per decision and a training run has no use for them. */
+          if (vecs && vecs[i]) {
+            const contrib = [];
+            for (let k = 0; k < this.w.length; k++) {
+              const c2 = this.w[k] * vecs[i][k];
+              if (Math.abs(c2) > 1e-9) contrib.push([k, Math.round(c2 * 1000) / 1000]);
+            }
+            o.why = contrib;
+          }
+          return o;
+        }).sort((a, b) => b.s - a.s);
         this.stats.thoughts.push({
           /* `info` belongs to the per-move loop above and is long out of scope here -- the slot we
            * want is this active position, which `i` already identifies. */
           turn: this.board.turn, side: me, slot: String.fromCharCode(97 + Math.max(0, i)),
-          mon: user.species, chose: j, opts: opts.slice(0, 8),
+          mon: user.species, opts: this.explain ? opts : opts.slice(0, 8),
         });
       }
       if (cands[j].targetMon && doubles) this.stats.aimed++;
