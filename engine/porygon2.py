@@ -423,6 +423,19 @@ def main():
         print("PORYGON2: no clean id set — aborting."); return
 
     Xs, Ys, gs = load(SELF_RAW)
+    # A TRAINING CAP, because k-NN's cost is |test| x |train| and the corpus outgrew the method.
+    #
+    # Pointed at a modern 116,832-game run this loaded 2,331,924 positions and numpy asked for a
+    # 34.7 GiB distance matrix. The old corpus was 73,368 positions, so nothing here was ever sized
+    # for it. The fix is not a bigger machine: data/porygon2-curve.json measures 62.81% accuracy at
+    # 9,171 positions against 62.62% at 73,368, so positions past the first ~10k buy NOTHING and
+    # 2.3M of them is pure waste. Subsampled uniformly (not truncated) so the draw stays
+    # representative of the whole run rather than of its first few thousand games.
+    _cap = int(os.environ.get("PORYGON2_MAXTRAIN") or 120000)
+    if _cap and len(Xs) > _cap:
+        _idx = np.random.RandomState(0).choice(len(Xs), _cap, replace=False)
+        Xs, Ys = Xs[_idx], Ys[_idx]
+        print("  training positions capped at %s of %s (PORYGON2_MAXTRAIN)" % (f"{_cap:,}", f"{len(_idx):,}"))
     if gs == 0:
         print("PORYGON2: no self-play corpus at %s" % os.path.relpath(SELF_RAW, ROOT))
         print("  generate it:  SHOWDOWN_PATH=... node engine/mew.js --n 4000 --policy score --conc 4 \\")
