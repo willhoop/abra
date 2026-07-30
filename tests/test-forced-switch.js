@@ -120,6 +120,61 @@ ok(pick.call(junk, [{ slot: 2, pokemon: null }, { slot: 3, pokemon: null }]) ===
 ok(junk.stats.forcedFellBack === 1, 'an attempt that could not decide IS counted as a fallback',
   `fellBack=${junk.stats.forcedFellBack}`);
 
+/* ---- 4. THE `forced` FLAG ACTUALLY REACHES switchFeatures ------------------------------------
+ * This is the wiring check, and it is the one most worth having. _scoreForcedPick passes
+ * `forced: true` so switchFeatures knows there is no entry hit to survive; if that flag were
+ * dropped, everything above would still pass -- the argmax would still be an argmax, the stats
+ * would still count, the smoke run would still report replacements scored -- and every post-KO
+ * decision would silently be priced as though the replacement walks into a free hit nobody throws.
+ * "Something is wired, everything reports success, and it changes not one decision" is the failure
+ * this repository has paid for most often.
+ *
+ * So: find a board where the forced and voluntary answers genuinely DIFFER, then assert the picker
+ * returns the forced one. Searched, not named, and it fails loudly if no such board exists -- if
+ * the flag can never change an answer then it is not worth passing and that is worth knowing. */
+const speOf = n => (MC.mons[n].st || {}).sp || 0;
+const dotW = x => { let s = 0; for (let k = 0; k < w.length; k++) s += w[k] * x[k]; return s; };
+function boardFor(foe, a2, b2) {
+  const bd = new B.Board();
+  bd.turn = 3;
+  bd.sides.p2.active = { a: { species: foe, hp: 1, boosts: {}, status: '', fainted: false, nature: '' } };
+  bd.sides.p1.active = {};
+  bd.party.p1 = [a2, b2];
+  bd.party.p2 = [foe];
+  return bd;
+}
+let flagCase = null;
+const pool30 = names.slice(0, 30);
+outer:
+for (const foe of pool30) {
+  for (const c1 of pool30) {
+    for (const c2 of pool30) {
+      if (c1 === c2) continue;
+      const bd = boardFor(foe, c1, c2);
+      const f = sp => B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp, forced: true }, null, bd, 'p1', dex, B.PRIOR_FLOOR);
+      const v = sp => B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp, forced: false }, null, bd, 'p1', dex, B.PRIOR_FLOOR);
+      const forcedWinner = dotW(f(c1)) >= dotW(f(c2)) ? c1 : c2;
+      const volunWinner = dotW(v(c1)) >= dotW(v(c2)) ? c1 : c2;
+      if (forcedWinner !== volunWinner) { flagCase = { foe, c1, c2, forcedWinner, volunWinner, bd }; break outer; }
+    }
+  }
+}
+if (!flagCase) {
+  ok(false, 'the `forced` flag can change which replacement wins', 'no such board found in the search space');
+} else {
+  const { foe, c1, c2, forcedWinner, volunWinner, bd } = flagCase;
+  console.log(`  case: vs ${foe} — forced prefers ${forcedWinner}, voluntary prefers ${volunWinner}`);
+  const wired = { scoreForced: true, w, board: bd, me: 'p1', stats: { forcedScored: 0, forcedFellBack: 0 } };
+  const gotSlot = pick.call(wired, [
+    { slot: 2, pokemon: { details: `${c1}, L50, F`, condition: '100/100' } },
+    { slot: 3, pokemon: { details: `${c2}, L50, F`, condition: '100/100' } },
+  ]);
+  const gotSp = gotSlot === 2 ? c1 : c2;
+  ok(gotSp === forcedWinner,
+    '_scoreForcedPick returns the FORCED answer, so the flag is really being passed',
+    `expected ${forcedWinner}, got ${gotSp}${gotSp === volunWinner ? '  <- it returned the VOLUNTARY answer: the flag is being dropped' : ''}`);
+}
+
 /* ---- the damage engine must have been live for any of the above to mean anything ----------- */
 ok(B.dmgFailures.unavailable === 0,
   'the damage engine was live', `unavailable=${B.dmgFailures.unavailable}`);
