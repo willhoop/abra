@@ -228,6 +228,49 @@ const FEATURES = [
   'switchSurvives1', // the replacement lives through the hardest thing aimed at me
   'switchSurvives2', // it lives through that twice
   'switchFaster',    // the replacement outruns the thing that was threatening me
+  /* ---- WHAT THE REPLACEMENT THREATENS — the offensive half, and it did not exist -------------
+   * Will, naming Run and Bun's switch-in AI from the other side: "do i see a fast ko / do i see
+   * slow ko / will it outspeed me and ko me".
+   *
+   * The three features above are ALL DEFENSIVE. A switch-in was judged purely on what it eats and
+   * whether it is fast, and `switchFaster` is a bare speed comparison with no notion of whether
+   * being fast buys anything -- outrunning something you cannot hurt is worth nothing, and the
+   * model had no way to tell those apart. Meanwhile the MOVE path has a whole kill vocabulary
+   * (koTarget, koFirst, killsThreat, diesBeforeMoving) that the switch path was never given. This
+   * is that vocabulary, for the mon coming in.
+   *
+   * Run and Bun's rulebook is worth its SHAPE and not its numbers, exactly as the note on the
+   * survival pair says: it conjoins speed with lethality rather than scoring them apart. What
+   * stays fitted here is what each conjunction is worth.
+   *
+   * SCORED AGAINST EACH FOE SEPARATELY, then averaged (Will: "score that for both pokemon against
+   * both other mons"). This is doubles and there are two Pokemon across from you; the existing
+   * switch features collapse both into a single max, so a replacement that walls one foe and dies
+   * to the other reads identically to one that handles both. These are the FRACTION of live foes
+   * in each bucket, which is the convention eff4/eff2 already use at the top of this list for
+   * exactly the same reason.
+   *
+   * THE CONJUNCTION IS INSIDE THESE THREE, and it has to be. The note on switchSurvives1/2 cites
+   * Run and Bun's rule -- come in only if the replacement is faster and not one-shot, OR slower and
+   * not two-shot -- and then declines to supply it, on the grounds that the conjunction is "a
+   * judgement, so it is left to the fit; the two halves are supplied as facts."
+   *
+   * THAT REASONING IS WRONG, and this file already knows why. A linear score cannot build a
+   * conjunction out of two main effects: it is the identical argument statusBites was created for
+   * ("a linear score cannot form 'burn AND physical' out of two main effects, so it had no way to
+   * express the difference"). No weighting of survives1, survives2 and switchFaster can express
+   * "faster and not one-shot, OR slower and not two-shot", because the survival REQUIREMENT changes
+   * with the speed. So the fit was never able to find Run and Bun's shape, whatever its weights
+   * said. Each bucket below therefore carries survival AND speed AND lethality together (Will: "the
+   * defensive pair should consider the defense and offensive of the pokemon that is switching in").
+   *
+   * A REFERENCE LEVEL, for the same reason eff4/eff2 have one. As fractions of the live foes these
+   * would sum to 1 and be perfectly collinear, which is a fit's worst input. The omitted fourth
+   * bucket -- survives what it must eat but has no kill, the pure pivot come-in -- is the reference
+   * level, exactly as "a neutral hit" is for effectiveness. */
+  'switchKOFast',    // it survives what it must eat, moves FIRST, and removes a foe
+  'switchKOSlow',    // it survives what it must eat, moves second, and still removes a foe
+  'switchDiesFirst', // it does NOT survive what it must eat: it never gets to act at all
   /* ---- WHAT THE CROWD DOES ---------------------------------------------------------------------
    * The only feature here that is not a fact about the game. It is what the previous bot ran on by
    * itself, kept as one term among 25 rather than as the whole model, so its pull can be measured
@@ -2309,12 +2352,44 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
   const D = damageEngine();
   if (!D) { dmgFailures.unavailable++; return x; }
 
-  /* The replacement arrives at full health, so what matters is whether the hardest incoming attack
-   * takes all of it, or half of it. Measured against the same spread distribution everything else
-   * now uses, so a bulky switch-in is not judged on a stat line nobody runs. */
-  const incoming = { species: cand.switchTo, hp: 1, boosts: {}, fainted: false };
+  /* THE REPLACEMENT ARRIVES AS WHAT THE SHEET SAYS IT IS, and until now it arrived as a blank.
+   *
+   * This object used to be `{species, hp, boosts, fainted}` and nothing else -- no nature, no item,
+   * no ability -- while switchIn (line ~611) copies all three onto every Pokemon that actually comes
+   * out. So the fix celebrated in switchIn's own comment, "the sheet has carried an item since
+   * setSheet was written and nothing read it, so Choice Scarf -- 6.52% of every item in this format,
+   * and a flat +50% Speed -- was invisible to the one feature it most affects", never reached the
+   * path that CHOOSES the switch. It landed on the mon after it arrived and not on the candidate
+   * being weighed, which is the only place the choice is made.
+   *
+   * Two features were wrong as a result, in opposite ways:
+   *
+   *   switchFaster    compared MY blank against a foe built with its nature, its item and its
+   *                   ability (see the loop below, which has always passed all three). A Choice
+   *                   Scarf switch-in read at two thirds of its real speed; a Swift Swim or
+   *                   Chlorophyll mon coming in under its own weather read at HALF.
+   *   switchSurvives  asked the damage engine how hard the hardest attack hits a Pokemon with NO
+   *                   ability, and every tag wire the engine grew keys on the DEFENDER'S ability.
+   *                   A Volt Absorb switch-in was priced as eating an Electric move it is immune to
+   *                   and heals from; Flash Fire the same for Fire.
+   *
+   * Observed beats declared for the item, the rule sheetItem exists to enforce: a Pokemon whose Sash
+   * was knocked off must not be re-credited with it on the way back in. null from sheetItem means
+   * "no sheet" and '' means "the sheet says no item", and those must not collapse into each other.
+   *
+   * KNOWN GAP, STATED: status is left empty. Paralysis survives a switch, so a paralysed Pokemon on
+   * the bench really is half speed, but the board tracks status only for Pokemon on the FIELD -- so
+   * there is nothing honest to read here yet. It is a missing input, not a modelling choice. */
+  const sheetE = (board.sheet && board.sheet[side] && board.sheet[side][baseSpecies(cand.switchTo)]) || {};
+  const obsItem = typeof board.sheetItem === 'function' ? board.sheetItem(side, cand.switchTo) : null;
+  const inNature = sheetE.nature || '';
+  const incoming = { species: cand.switchTo, hp: 1, boosts: {}, fainted: false, status: '',
+    nature: inNature,
+    item: norm(obsItem == null ? (sheetE.item || '') : obsItem),
+    ability: norm(sheetE.ability || ''),
+    mega: '', megaFor: null };
   const inMon = dmgMon(incoming, D);
-  const { worst } = incomingThreat(board, side, user, inMon, D);
+  const { worst, threat } = incomingThreat(board, side, user, inMon, D);
   if (inMon) {
     set('switchSurvives1', worst < 1 ? 1 : 0);
     set('switchSurvives2', worst < 0.5 ? 1 : 0);
@@ -2322,19 +2397,86 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
 
   /* Faster than the biggest threat on the field. Investment-aware speeds, adjusted for Tailwind and
    * reversed under Trick Room, exactly as movesFirst does -- one definition of the queue, not two.
-   * The incoming mon's own item and status are not applied: it is on the bench, so its status is not
-   * tracked and its item is only known if the sheet published one. speedMult (side conditions) does
-   * apply, because those belong to the side and are already in effect when it lands. */
-  const mySpe = expectedSpe(cand.switchTo, dex, '') * speedMult(board, side, dex);
+   *
+   * MY OWN NATURE, ITEM AND ABILITY NOW APPLY, and their absence was the asymmetry that made this
+   * comparison unfair to my own side. The foe below has always been built with all three; the mon
+   * coming IN was built with none, so a Choice Scarf replacement read at two thirds of its speed
+   * and a Swift Swim or Chlorophyll one under its own weather read at HALF. See the note on the
+   * `incoming` object above for why the sheet is allowed to supply them. */
+  const mySpe = expectedSpe(cand.switchTo, dex, inNature) * speedMult(board, side, dex) *
+                monSpeedMult(incoming, board, dex);
   const foeSide = side === 'p1' ? 'p2' : 'p1';
-  let fastest = 0;
+  const slowFirst = board.hasField(GAME_RULES.trickRoomField);
+
+  /* HOW MANY HITS THE REPLACEMENT EATS BEFORE IT ACTS. One rule, and every case falls out of it:
+   *
+   *     hits = (voluntary ? 1 : 0) + (slower ? 1 : 0)
+   *
+   *   forced   + faster   0 hits   the slot is empty and it moves first: it just acts
+   *   forced   + slower   1 hit    no entry hit, but the foe moves before it does
+   *   voluntary+ faster   1 hit    it eats the free hit coming in, THEN moves first
+   *                                (Will: "a mon that can switch in, take a hit, and then get a
+   *                                 fast ko should score highly" -- this is that case, and the
+   *                                 first draft of switchKOFast never checked survival at all)
+   *   voluntary+ slower   2 hits   the entry hit and another before it acts. Exactly Run and Bun's
+   *                                "slower and not two-shot" (Will: "a slow mon that cant take the
+   *                                 switch in hit and another hit is a no switch in")
+   *
+   * The voluntary term is the turn cost showing up a second time, in the survival requirement
+   * rather than in the score. It is read off the candidate rather than assumed -- `forced` is set
+   * by the post-KO path and absent on the voluntary one -- because assuming an entry hit that is
+   * never thrown would reject perfectly good replacements after a KO. */
+  const entryHits = cand.forced ? 0 : 1;
+
+  let fastest = 0, liveFoes = 0, koFast = 0, koSlow = 0, diesFirst = 0;
   for (const f of board.field()) {
     if (f.side === side || !f.mon || f.mon.fainted) continue;
     const s2 = expectedSpe(effSpecies(f.mon, dex), dex, f.mon.nature) *
                speedMult(board, foeSide, dex) * monSpeedMult(f.mon, board, dex);
     if (s2 > fastest) fastest = s2;
+    liveFoes++;
+
+    /* Per foe, not collapsed into a max (Will: "score that for both pokemon against both other
+     * mons"). A replacement that walls one and dies to the other is a different thing from one that
+     * handles both, and a single max cannot tell them apart. */
+    const iMoveFirst = slowFirst ? mySpe < s2 : mySpe > s2;
+    const itsDmg = (threat && threat.get(f.mon)) || 0;
+
+    /* What I do to IT. The mirror of incomingThreat's inner loop, same engine, same convention:
+     * mean fraction of the defender's max HP. A foe already chipped is killable by less, so the
+     * bar is its CURRENT hp rather than a flat 1. */
+    let myBest = 0;
+    const fm = dmgMon(f.mon, D);
+    if (inMon && fm) {
+      for (const id of (inMon.moves || [])) {
+        const mv = MC.moves[id];
+        if (!mv || !mv.bp) continue;
+        const r = dmgFractions(D, inMon, fm,
+          { basePower: mv.bp, category: mv.c === 'P' ? 'Physical' : 'Special' }, mv.t, false, board);
+        if (r && r.mean > myBest) myBest = r.mean;
+      }
+    }
+    const foeHP = typeof f.mon.hp === 'number' ? f.mon.hp : 1;
+    const iKill = myBest > 0 && myBest >= foeHP;
+
+    /* THE BUCKETS ARE MUTUALLY EXCLUSIVE, and making them so is Will's point that the offensive
+     * read must account for defence. A first draft credited a "slow KO" to a replacement the foe
+     * kills before it ever moves -- both a KO and a death for the same foe, which is not a thing
+     * that can happen. Survival is now the gate on both kill buckets, and it is the SAME survival
+     * question in all four cases: does it live through the hits it eats before it acts. */
+    const hits = entryHits + (iMoveFirst ? 0 : 1);
+    const livesToAct = hits === 0 || itsDmg * hits < 1;
+    if (!livesToAct) diesFirst++;
+    else if (iKill && iMoveFirst) koFast++;
+    else if (iKill) koSlow++;
+    /* else: it survives and has no kill -- the pivot come-in, which is the REFERENCE LEVEL and is
+     * deliberately not its own feature. See the note on the feature list. */
   }
-  const slowFirst = board.hasField(GAME_RULES.trickRoomField);
+  if (liveFoes) {
+    set('switchKOFast', koFast / liveFoes);
+    set('switchKOSlow', koSlow / liveFoes);
+    set('switchDiesFirst', diesFirst / liveFoes);
+  }
   set('switchFaster', (slowFirst ? mySpe < fastest : mySpe > fastest) ? 1 : 0);
   return x;
 }

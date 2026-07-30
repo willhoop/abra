@@ -302,7 +302,10 @@ function makeScoringPlayer(opts = {}) {
         /* `user` is null on purpose. switchFeatures passes it to incomingThreat, which reads it ONLY
          * to key the cache; the damage it computes is the enemy actives' best hit on the mon coming
          * IN. The Pokemon that just fainted is not part of that question. */
-        const x = B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp },
+        /* `forced: true` is what tells switchFeatures there is no entry hit to survive -- the slot
+         * is empty because something fainted out of it. Omitting it would price every post-KO
+         * replacement as though it were walking into a free hit that nobody throws. */
+        const x = B.featuresFor({ raw: null, move: null, targetMon: null, switchTo: sp, forced: true },
           null, this.board, me, dex, B.PRIOR_FLOOR);
         if (!x) continue;
         let s = 0;
