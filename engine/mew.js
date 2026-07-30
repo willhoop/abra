@@ -134,7 +134,10 @@ const THOUGHTS = process.argv.includes('--thoughts');
 const RANDMOVE = parseFloat(arg('randmove', '1'));
 /* --switching  let MAG choose to switch. Measured as a 10-point LOSS against a random opponent, so
  *              it is off until the switch policy is worth more than not switching. */
+/* PER ARM, for the same reason --forced-switch is: the only design that isolates one lever is the
+ * same engine on both sides with that lever changed, and a global flag cannot express it. */
 const SWITCHING = process.argv.includes('--switching');
+const SWITCHING_B = process.argv.includes('--switching2');
 /* --forced-switch / --forced-switch2  score the POST-KO replacement instead of taking the inherited
  *                  uniform die, PER ARM. A different lever from --switching and not subject to its
  *                  ten-point verdict: the turn is already gone with the Pokemon that fainted and
@@ -150,7 +153,8 @@ const FORCED_A = process.argv.includes('--forced-switch');
 const FORCED_B = process.argv.includes('--forced-switch2');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
-const GREEDY = process.argv.includes('--greedy');
+const GREEDY_A = process.argv.includes('--greedy');
+const GREEDY_B = process.argv.includes('--greedy2');
 /* --joint / --joint2  turn the PAIR model on, per arm. Per arm rather than globally because the
  * whole point is an A/B: coordinated choice versus independent choice, same weights otherwise. */
 /* --blind / --blind2  make that ARM ignore the open team sheet. The control for measuring what
@@ -450,8 +454,11 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * "swapped" on both halves. The caller states it explicitly there. */
   const swapped = forceSwap == null ? !!(POLICY2 && (seed % 2 === 1)) : !!(POLICY2 && forceSwap);
   const PlayerB = POLICY2 ? pickPolicy(POLICY2) : Player;
-  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
-  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE, switching: SWITCHING, greedy: GREEDY };
+  /* switching/greedy are NO LONGER copied into both arms. `--switching` and `--greedy` arm policy A,
+   * `--switching2` and `--greedy2` arm policy B, assigned below through `swapped` so the lever
+   * follows the POLICY and not the slot. Passing both flags reproduces the old global behaviour. */
+  const optA = { seed: pseed(1), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE };
+  const optB = { seed: pseed(2), mega: MEGA_P, keepThoughts: THOUGHTS, move: RANDMOVE };
   /* THE RISK OPTION FOLLOWS THE POLICY, NOT THE SLOT -- the same rule weightsFile uses two lines
    * below. A first version pinned it to optA and therefore always to p1, which happened not to
    * matter for the falsifier (both sides ran the same policy class, so `swapped` changed nothing)
@@ -472,6 +479,10 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   if (JOINTZ_B) { (swapped ? optA : optB).jointZero = true; }
   if (FORCED_A) { (swapped ? optB : optA).forcedSwitch = true; }
   if (FORCED_B) { (swapped ? optA : optB).forcedSwitch = true; }
+  if (SWITCHING) { (swapped ? optB : optA).switching = true; }
+  if (SWITCHING_B) { (swapped ? optA : optB).switching = true; }
+  if (GREEDY_A) { (swapped ? optB : optA).greedy = true; }
+  if (GREEDY_B) { (swapped ? optA : optB).greedy = true; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
   const p1 = new PA(streams.p1, optA);
   const p2 = new PB(streams.p2, optB);
@@ -700,8 +711,8 @@ async function main() {
       /* The DECISION RULE is not the policy name, and leaving it out mislabelled a run: a greedy
        * MAG and a sampling MAG both record policy "score" while differing by nine points of win
        * rate. Anything that changes what the bot DOES belongs on the record. */
-      rec.selfplay.greedy = !!GREEDY;
-      rec.selfplay.switching = !!SWITCHING;
+      rec.selfplay.greedy = !!GREEDY_A; rec.selfplay.greedy2 = !!GREEDY_B;
+      rec.selfplay.switching = !!SWITCHING; rec.selfplay.switching2 = !!SWITCHING_B;
       rec.selfplay.forcedSwitch = !!FORCED_A; rec.selfplay.forcedSwitch2 = !!FORCED_B;
       rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
       rec.selfplay.blind = !!BLIND_A; rec.selfplay.blind2 = !!BLIND_B;
@@ -734,7 +745,9 @@ async function main() {
             /* The forced-replacement lever is a flag-only difference, which is exactly the shape
              * that fooled this check once already: a lever-on-vs-off run is THE experiment for it,
              * and stamping those records armsIdentical would claim a mirror match. */
-            && FORCED_A === FORCED_B) rec.selfplay.armsIdentical = true;
+            && FORCED_A === FORCED_B
+            /* Same reasoning for the other two flag-only levers, now that they are per arm. */
+            && SWITCHING === SWITCHING_B && GREEDY_A === GREEDY_B) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the
