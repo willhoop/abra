@@ -656,6 +656,46 @@ console.log('\nwires 17+18 — thawsTarget / choiceLock');
   } finally { MC.priors[c.name] = sC; MC.priors[foe.name] = sF; }
 }
 
+/* ---- WIRES 19+20: real setup boosts, and Encore rides the lock ------------------------------- */
+console.log('\nwires 19+20 — setup boosts / Encore');
+{
+  const duel = (mySetup, ability) => {
+    const a = M.buildMon('garchomp', {}); a.item = ''; a.moves = [mySetup]; if (ability) a.ability = ability;
+    const d = M.buildMon('corviknight', {}); d.item = ''; d.moves = ['roost'];
+    const sA = MC.priors[a.name], sD = MC.priors[d.name];
+    MC.priors[a.name] = null; MC.priors[d.name] = null;
+    const S = M.battleInit([a], [d]);
+    try { M.battleTurn(S, () => 0.9, new Map([[S.actA[0], M.playerAction(S.actA[0], mySetup, null, S.field)]])); }
+    finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
+    return a;
+  };
+  const sd = duel('swordsdance');
+  ok(sd.boosts.at === 2 && sd.boosts.sa === 0 && sd.boosts.sp === 0,
+    `Swords Dance is +2 Attack and NOTHING else (${sd.boosts.at}/${sd.boosts.sa}/${sd.boosts.sp}) — was a generic +1/+1/+1`);
+  const idf = duel('irondefense');
+  ok(idf.boosts.df === 2 && idf.boosts.at === 0,
+    `Iron Defense is +2 Defense (${idf.boosts.df}) — the old guess gave it zero Defense and three wrong stats`);
+  const con = duel('swordsdance', 'contrary');
+  ok(con.boosts.at === -2, `Contrary flips it to -2 (${con.boosts.at})`);
+
+  /* Encore: pin the foe to its last move for the tag's own 3 turns */
+  const pE = TAGS.param('move', 'encore', 'sealsMoves');
+  ok(pE && +pE.turns === 3, 'Encore declares its 3 turns in the artifact');
+  const a2 = M.buildMon('whimsicott', {}); a2.item = ''; a2.moves = ['encore'];
+  const v2 = M.buildMon('garchomp', {}); v2.item = ''; v2.moves = ['ironhead', 'earthquake'];
+  const sA2 = MC.priors[a2.name], sV2 = MC.priors[v2.name];
+  MC.priors[a2.name] = null; MC.priors[v2.name] = null;
+  const S2 = M.battleInit([a2], [v2]);
+  a2.st = Object.assign({}, a2.st, { hp: 99999 }); a2.curHP = 99999;
+  try {
+    M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'encore', v2, S2.field)]]));
+    ok(!v2._lock, 'turn 1: a foe with NO last move cannot be Encored — the click honestly does nothing');
+    M.battleTurn(S2, () => 0.9, new Map([[S2.actA[0], M.playerAction(S2.actA[0], 'encore', v2, S2.field)]]));
+    ok(v2._lock === v2._lastMove && v2._lockT === 3,
+      `turn 2: Encore pins the foe to its last move (${v2._lock}) for ${v2._lockT} turns`);
+  } finally { MC.priors[a2.name] = sA2; MC.priors[v2.name] = sV2; }
+}
+
 /* ---- the A/B switch: ABRA_TAGS_OFF_TREE ------------------------------------------------------ */
 console.log('\nA/B switch — ABRA_TAGS_OFF_TREE scopes tags-off to one checkout');
 {

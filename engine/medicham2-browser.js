@@ -633,7 +633,7 @@ function chooseAction(me,foes,ally,field,side,rng){
   if(pr){ let r=rng(),pick=null; for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
     if(pick){
       if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2)return{kind:'protect'};
-      if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup'};
+      if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup',mv:pick.mv};
       if(pick.kind==='speed'&&((side==='A'?field.twA:field.twB)<=0))return{kind:'tail'};
       // carry the MOVE through, not just the intent: which status lands depends on which move it is
       if(pick.kind==='status'&&live.some(f=>!f.status))return{kind:'status',mv:pick.mv,target:live.find(f=>!f.status)};
@@ -790,7 +790,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     S.lastActs=acts.map(it=>({side:it.side,name:it.mon.name,kind:it.a.kind,
       move:(it.a.move&&it.a.move.id)||it.a.mv||null,
       target:(it.a.target&&it.a.target.name)||null}));
-    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
+    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;it.mon._lastMove='protect';}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
     /* Bracket first, then speed. Protect-likes are +4 and Wide Guard is +3 in the real game; a status
      * move sits in its own move's bracket (Thunder Wave 0, Trick Room -7), not a blanket 0. */
     const prio=it=>{
@@ -812,7 +812,23 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25)m.status='';else continue;}   // Champions: 25%/attempt, guaranteed thaw turn 3
       if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;if(m.slpTurns>=3||(m.slpTurns===2&&rng()<1/3))m.status='';else continue;}   // Champions: 33% wake turn 2, 100% turn 3
       const a=it.a;
-      if(a.kind==='setup'){m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);continue;}
+      /* WIRE 19 -- REAL setup boosts. This applied a generic +1 to Attack, SpA AND Speed for every
+       * setup click, so Swords Dance was one-third right, Iron Defense entirely wrong, and Dragon
+       * Dance half right. The rulebook states each move's actual boosts (targetBoostsAlways); the
+       * generic guess remains only as the fallback for a move the rulebook lacks. Contrary flips
+       * the sign here exactly as it does for self-drops. */
+      if(a.kind==='setup'){
+        const _fx=a.mv&&moveFx(a.mv);
+        const _bo=_fx&&_fx.targetBoostsAlways;
+        m._lastMove=a.mv||m._lastMove;
+        if(_bo){
+          const _sg=m.ability==='contrary'?-1:1;
+          for(const k in _bo){const _s2=SD2ENG[k];if(_s2&&m.boosts[_s2]!=null)m.boosts[_s2]=clamp(m.boosts[_s2]+_bo[k]*_sg,-6,6);}
+        } else {
+          m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);
+        }
+        continue;
+      }
       if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
       /* A status move inflicts the status THAT MOVE inflicts, at THAT MOVE's accuracy. This line used
        * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
@@ -835,8 +851,21 @@ function battleTurn(S,rng,actsForA,actsForB){
             const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
             if(rng()*100<=acc) t._seededBy={by:m,per:_pt.per};
           }
+          /* WIRE 20 -- Encore, riding the Scarf's lock. sealsMoves declares the turns (3); the
+           * target is pinned to its LAST acted move for that long. Locked into Protect it fails
+           * consecutively (tookProtectTurns already rules that) -- Will's stallIntoEncore scenario,
+           * finally real in the rollouts instead of only in the feature that fears it. Needs a
+           * last move to seal: a fresh switch-in has none, and the click honestly does nothing. */
+          const _sm=TAGS.param('move',a.mv,'sealsMoves');
+          if(_sm&&_sm.turns&&t._lastMove&&!pranksterBlocked(m,t,a.mv)){
+            /* +1 because the end-of-turn tick fires on the application turn too — without it the
+             * tag's 3 turns would force only 2 clicks */
+            t._lock=t._lastMove;t._lockT=+_sm.turns+1;
+          }
+          m._lastMove=a.mv;
           continue;                                             // no major status to apply
         }
+        m._lastMove=a.mv;
         if(powderBlocked(t,a.mv)) continue;                     // Grass / Overcoat / Safety Goggles
         if(pranksterBlocked(m,t,a.mv)) continue;                // Prankster does not touch Dark types
         const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
@@ -847,7 +876,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind!=='attack')continue;
       const mv=a.move.mv;
       /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
-      if(!m._lock&&TAGS.has('item',m.item,'choiceLock'))m._lock=a.move.id;
+      if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
       const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
       const foes=it.side==='A'?actB:actA;
@@ -1063,7 +1092,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;if(field.terrainT>0&&--field.terrainT<=0)field.terrain='';
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
-    [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;});
+    [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
      * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every
@@ -1105,7 +1134,8 @@ function playerAction(me,moveId,target,field){
   }
   const fx=moveFx(id);
   if(fx&&fx.status)return {kind:'status',mv:id,target};
-  if(fx&&fx.boosts&&!fx.target)return {kind:'setup'};
+  if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
+  if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
   return {kind:'pass'};
 }
 function winProb2(nA,nB,N,ov){
