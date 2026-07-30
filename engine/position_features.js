@@ -139,51 +139,20 @@ function bestHit(att, def, field, refusedAbove) {
   return { frac: best / left, id: bestId, killId, killPrio };
 }
 
-/* DOES THAT SIDE REFUSE PRIORITY? Will: "farig and tsareena blocking prio, same with psychic
- * terrain, is that all coded in". It was not — anywhere. The artifact has carried the answer since
- * tag_dex was written: armortail, queenlymajesty and dazzling are all tagged `blocksMove` with
- * params {what:'priority', priorityAbove:0}, and NOTHING in this repository read that tag. Psychic
- * Terrain's priority block was not modelled at all; board.js knows that terrain only as a damage
- * boost. So a slow Sucker Punch into a Farigiraf counted as removing it first, which is the exact
- * opposite of what happens.
+/* PRIORITY BLOCKING COMES FROM THE ENGINE, not from a copy here.
  *
- * DERIVED, NOT NAMED. The ability list comes from withTag('ability','blocksMove') filtered on
- * what === 'priority', and the threshold from the tag's own priorityAbove, so a future ability with
- * the same shape is picked up without editing this file. Neither the names nor the number 0 are
- * written here.
- *
- * A BLOCKED MOVE DOES NOT LOSE THE SPEED TIE — IT FAILS. So the caller drops such moves from the
- * kill set entirely rather than reordering them, which is why this returns the threshold rather than
- * a boolean: the rule is "priority strictly above N is refused".
- */
-let _prioBlockers = null;
-function priorityBlockers() {
-  if (_prioBlockers) return _prioBlockers;
-  _prioBlockers = new Map();
-  try {
-    for (const id of TAGS.withTag('ability', 'blocksMove')) {
-      const p = TAGS.param('ability', id, 'blocksMove');
-      if (p && p.what === 'priority') _prioBlockers.set(id, typeof p.priorityAbove === 'number' ? p.priorityAbove : 0);
-    }
-  } catch (e) { /* an artifact-less run simply blocks nothing */ }
-  return _prioBlockers;
-}
-/* The lowest priority this side refuses, or Infinity if it refuses nothing. Abilities of this family
- * protect the WHOLE SIDE in doubles, so either active having one covers its partner. */
+ * This file briefly carried its own derivation of the blocksMove tag, which made three
+ * implementations of the same rule in one repository (clickFragility had one, the battle loop had
+ * none, this had a third). medicham2 now owns it next to movePriority and effSpeed, where the rest
+ * of the move-order rules already live, and everything calls that. */
 function priorityRefusedAbove(board, side, field) {
-  const blockers = priorityBlockers();
-  let bar = Infinity;
-  for (const f of board.field()) {
-    if (f.side !== side || !f.mon || f.mon.fainted) continue;
-    const e = (board.sheet && board.sheet[side] && board.sheet[side][B.baseSpecies(f.mon.species)]) || {};
-    const ab = B.norm(f.mon.ability || e.ability || '');
-    if (ab && blockers.has(ab)) bar = Math.min(bar, blockers.get(ab));
-  }
-  /* Psychic Terrain refuses priority against grounded targets on the ground. Grounded-ness is not
-   * tracked here, so this applies it unconditionally and says so: the common case is a grounded
-   * target, and the alternative — ignoring the terrain entirely — is wrong far more often. */
-  if (field && B.norm(field.terrain || '') === 'psychicterrain') bar = Math.min(bar, 0);
-  return bar;
+  const defenders = board.field()
+    .filter(f => f.side === side && f.mon && !f.mon.fainted)
+    .map(f => {
+      const e = (board.sheet && board.sheet[side] && board.sheet[side][B.baseSpecies(f.mon.species)]) || {};
+      return { ability: B.norm(f.mon.ability || e.ability || ''), fainted: false };
+    });
+  return M.priorityRefusedAbove(defenders, field);
 }
 
 /* WHO ACTUALLY MOVES FIRST — priority bracket, THEN speed. Will: "effective speed needs to consider

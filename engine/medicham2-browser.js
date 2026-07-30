@@ -89,6 +89,48 @@ function movePriority(id, field){
   const fx=moveFx(key);
   return (fx&&typeof fx.priority==='number')?fx.priority:0;
 }
+/* WHO REFUSES PRIORITY, in one place, because four consumers were each answering it differently.
+ *
+ * Will: "farig and tsareena blocking prio, same with psychic terrain, is that all coded in" -- and
+ * the honest answer was that data/tags.json has carried armortail, queenlymajesty and dazzling
+ * tagged blocksMove {what:'priority', priorityAbove:0} since tag_dex was written, while the only
+ * thing that ever read it was clickFragility's bench check. The battle loop below sorted priority
+ * moves to the front and let them connect; board.js's move-order features never heard of them; and
+ * Psychic Terrain's block was not modelled anywhere at all.
+ *
+ * Returns the highest priority that still RESOLVES against this side -- so `Infinity` means nothing
+ * is refused, and 0 means anything above +0 fails. A blocked move does not lose the speed tie, it
+ * FAILS, which is why callers drop it rather than reorder it.
+ *
+ * DERIVED, NOT NAMED: the ability set and the threshold both come out of the artifact, so an ability
+ * added later with the same tag shape is picked up without editing this file. */
+let _prioBar=null;
+function priorityBlockAbilities(){
+  if(_prioBar) return _prioBar;
+  _prioBar=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('ability','blocksMove'):[])){
+      const p=TAGS.param('ability',id,'blocksMove');
+      if(p&&p.what==='priority') _prioBar.set(id, typeof p.priorityAbove==='number'?p.priorityAbove:0);
+    }
+  }catch(e){}
+  return _prioBar;
+}
+function priorityRefusedAbove(defenders, field){
+  const bar=priorityBlockAbilities();
+  let out=Infinity;
+  for(const d of (defenders||[])){
+    if(!d||d.fainted) continue;
+    const ab=String(d.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(ab&&bar.has(ab)) out=Math.min(out,bar.get(ab));
+  }
+  /* Psychic Terrain refuses priority against grounded targets. Grounded-ness is not tracked in this
+   * engine, so this applies it unconditionally and says so: the common case is a grounded target and
+   * ignoring the terrain entirely is wrong far more often than this is. */
+  if(field&&String(field.terrain||'').toLowerCase().replace(/[^a-z0-9]/g,'')==='psychicterrain') out=Math.min(out,0);
+  return out;
+}
+
 const ACC = {hydropump:80,hurricane:70,fireblast:85,focusblast:70,thunder:70,blizzard:70,stoneedge:80,megahorn:85,gunkshot:80,iciclecrash:90,playrough:90,dynamicpunch:50,zapcannon:50,highjumpkick:90,drillrun:95,crosschop:80,sleeppowder:75,willowisp:85,thunderwave:90,hypnosis:60,irontail:75,dragonrush:75,inferno:50,fissure:30,sheercold:30,rockslide:90,airslash:95,gigaimpact:90,overheat:90,leafstorm:90,powerwhip:85,meteorbeam:90,muddywater:85,darkvoid:50,sing:55};
 const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','banefulbunker','burningbulwark','silktrap','maxguard']);
 
@@ -585,8 +627,7 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
       consider(0,b.name,'absorbs '+mvType+' entirely',im.gain?{feedsIt:im.gain}:null);
     else if(mcEff(mvType,b.types)===0)
       consider(0,b.name,'type-immune to '+mvType+' (chart)');
-    const bl=TAGS.param('ability',b.ability,'blocksMove');
-    if(bl&&bl.what==='priority'&&movePriority(moveId,field)>(bl.priorityAbove||0))
+    if(movePriority(moveId,field)>priorityRefusedAbove([b],field))
       consider(0,b.name,'blocks priority outright');
   }
   return {retention:worst.retention,cause:worst.cause,how:worst.how,extra:worst.extra,
@@ -908,6 +949,14 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
       if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
+      /* BLOCKED PRIORITY FAILS OUTRIGHT. The sort above puts a priority move at the front of the
+       * turn and, until now, let it connect regardless of Armor Tail, Queenly Majesty, Dazzling or
+       * Psychic Terrain -- so every rollout and every self-play game had Sucker Punch beating a
+       * Farigiraf. Checked against the side actually being aimed at. */
+      {
+        const _foes=it.side==='A'?actB:actA;
+        if(movePriority(a.move.id,field)>priorityRefusedAbove(_foes,field)) continue;
+      }
       const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
@@ -1246,5 +1295,5 @@ root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet;
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
-  moveFx,movePriority,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
+  moveFx,movePriority,priorityRefusedAbove,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
 })(typeof window!=='undefined'?window:globalThis);
