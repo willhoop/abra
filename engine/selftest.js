@@ -405,7 +405,20 @@ check('every raw reader of the ladder store declares why', () => {
       /* Idioms that cannot be satisfied by naming a local function: they name quality.js's own surface. */
       const otherFilterIdiom = /isClean|clean=True|cleanIds|_cleanIds|\.reasons\(/.test(src);
       const borrowsTheRealLoader = /load_games|loadGames/.test(src) && !definesOwnLoader;
-      const filters = importsQuality || otherFilterIdiom || borrowsTheRealLoader;
+      /* fit_policy's loadCorpus IS a clean entry point, and not recognising it made this check report
+       * a correctly-filtered file as an offender. It applies Q.config(), Q.reasons() and the
+       * behavioural bot set, requires openSheet and sheets, and dedupes by replay id -- strictly more
+       * screening than the bare `.reasons(` idiom already accepted above. A false POSITIVE here is
+       * the opposite of what this check is for, exactly as the note on reasons() argues: it would push
+       * correctly-filtered files into declaring RAW-STORE-OK, which would be a false statement about
+       * the data they actually read.
+       *
+       * STRUCTURAL, for the same reason borrowsTheRealLoader is: naming a function must not be enough,
+       * or a file could define its own loadCorpus that reads the store unfiltered and pass the check
+       * by having chosen the name. Found by engine/forced_switch_audit.js tripping it on 2026-07-30. */
+      const definesOwnCorpus = /(^|\n)[ \t]*(?:function[ \t]+loadCorpus[ \t]*\(|const[ \t]+loadCorpus[ \t]*=|def[ \t]+load_corpus[ \t]*\()/.test(src);
+      const borrowsTheCleanCorpus = /loadCorpus|load_corpus/.test(src) && !definesOwnCorpus;
+      const filters = importsQuality || otherFilterIdiom || borrowsTheRealLoader || borrowsTheCleanCorpus;
       const declares = /RAW-STORE-OK/.test(src);
       /* MENTIONING THE PATH IS NOT READING IT.
        *
