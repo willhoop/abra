@@ -242,7 +242,11 @@ var FLOORS=[
 var state={floor:1,best:+(localStorage.getItem('towerBest')||0),
   myFour:['incineroar','garchomp','kingambit','whimsicott'],
   mySets:null,setsOn:[],   /* parsed paste sets + which four are selected */
+  /* BO7 PER FLOOR (Will): first to 4 takes the floor, and you may re-pick your four between
+   * games -- counter-picking against a known six is the real preview skill, played by hand. */
+  series:{w:0,l:0,n:1},inSeries:false,
   S:null,orders:{},slotQueue:[],curSlot:null};
+var BO=7,NEED=Math.ceil(BO/2);
 
 function rail(){
   var h='';
@@ -324,7 +328,7 @@ function startFloor(){
   document.getElementById('pResult').classList.add('hide');
   document.getElementById('pBattle').classList.remove('hide');
   document.getElementById('scene').classList.toggle('boss',F.brain==='alakazam');
-  document.getElementById('roomBar').textContent='Battle Tower — Floor '+F.n+' · '+F.title+' · '+F.label;
+  document.getElementById('roomBar').textContent='Battle Tower — Floor '+F.n+' · '+F.title+' · Bo'+BO+' game '+state.series.n+' ('+state.series.w+'–'+state.series.l+') · '+F.label;
   document.getElementById('log').innerHTML='';
   say('<h4>Floor '+F.n+' — '+esc(F.title)+(F.n===3?' · THE ROOF':'')+'</h4>');
   state.S.actB.forEach(function(m){if(m)say('The guardian sent out <span class="fb mv">'+esc(m.name)+'</span>!');});
@@ -332,7 +336,10 @@ function startFloor(){
   if(F.brain==='alakazam')say('<span class="wx">ALAKAZAM opens its third eye…</span>');
   paint();nextOrder();
 }
-document.getElementById('btnClimb').onclick=function(){state.floor=1;rail();startFloor();};
+document.getElementById('btnClimb').onclick=function(){
+  if(state.inSeries){startFloor();return;}                    // mid-series team change: same floor, same score
+  state.floor=1;state.series={w:0,l:0,n:1};rail();startFloor();
+};
 
 /* ---- painting the scene ---- */
 function hpCls(m){var f=m.curHP/m.st.hp;return f<.22?'hp r':(f<.5?'hp y':'hp');}
@@ -448,7 +455,7 @@ function playTurn(){
   var acts=new Map();
   S.actA.forEach(function(m,i){if(m&&!m.fainted&&state.orders[i])acts.set(m,state.orders[i].action);});
   /* the local game record: player's picks as made, both sides' resolved clicks after the turn */
-  if(!state.gameRec)state.gameRec={at:new Date().toISOString(),floor:F.n,brain:F.brain,
+  if(!state.gameRec)state.gameRec={at:new Date().toISOString(),floor:F.n,brain:F.brain,seriesGame:state.series.n,seriesScore:state.series.w+'-'+state.series.l,
     you:state.S.actA.concat(state.S.benchA).filter(Boolean).map(function(m){return m.name;}),
     foe:F.team.slice(),turns:[]};
   var actsB=null;
@@ -528,24 +535,50 @@ function bossRecord(){
 function finish(r){
   saveGame(r===1?'win':(r===0.5?'tie':'loss'));
   refreshDataRow();
+  var F=FLOORS[state.floor-1];
+  if(r===1)state.series.w++;else state.series.l++;   // the Tower counts a tie as a loss, as before
   var box=document.getElementById('resultBox');
   document.getElementById('pBattle').classList.add('hide');
   document.getElementById('pResult').classList.remove('hide');
-  if(r===1){
+
+  /* ---- mid-series: show the score, offer a re-pick, play on -------------------------------- */
+  if(state.series.w<NEED&&state.series.l<NEED){
+    state.series.n++;state.inSeries=true;
+    box.innerHTML='<h2 style="color:'+(r===1?'var(--you)':'var(--foe)')+'">'+(r===1?'Game won.':'Game lost.')+'</h2>'+
+      '<p style="font-size:15px"><b>Series vs '+esc(F.title)+': '+state.series.w+'–'+state.series.l+'</b> · first to '+NEED+' · game '+state.series.n+' next</p>'+
+      '<p style="color:#556;font-size:12px">Their six is known — re-pick your four if game '+(state.series.n-1)+' taught you something.</p>'+
+      '<button class="sbtn big" id="btnNextGame">Game '+state.series.n+' →</button> '+
+      '<button class="sbtn" id="btnRepick">Change my four first</button>';
+    document.getElementById('btnNextGame').onclick=startFloor;
+    document.getElementById('btnRepick').onclick=function(){
+      document.getElementById('pResult').classList.add('hide');
+      document.getElementById('pSelect').classList.remove('hide');
+      document.getElementById('btnClimb').textContent='Continue the series — Game '+state.series.n+' →';
+      renderPick();
+    };
+    return;
+  }
+
+  /* ---- series decided ----------------------------------------------------------------------- */
+  var tookFloor=state.series.w>=NEED;
+  var score=state.series.w+'–'+state.series.l;
+  state.inSeries=false;state.series={w:0,l:0,n:1};
+  document.getElementById('btnClimb').textContent='Enter the Tower';
+  if(tookFloor){
     if(state.floor===3){
       state.best=Math.max(state.best,3);localStorage.setItem('towerBest',state.best);rail();
-      box.innerHTML='<h2 style="color:var(--psy2)">◈ YOU BEAT ALAKAZAM ◈</h2>'+img(FRONT('alakazam-mega'),'alakazam-mega','style="width:96px;height:96px;image-rendering:pixelated"')+
-        '<p><b>The Tower is cleared.</b> The boss played every price this engine can compute — and you outplayed it.</p>'+
+      box.innerHTML='<h2 style="color:var(--psy2)">◈ YOU BEAT ALAKAZAM '+score+' ◈</h2>'+img(FRONT('alakazam-mega'),'alakazam-mega','style="width:96px;height:96px;image-rendering:pixelated"')+
+        '<p><b>The Tower is cleared — a full series, not a lucky game.</b></p>'+
         '<button class="sbtn big" onclick="location.reload()">Climb again</button>';return;
     }
     state.floor++;state.best=Math.max(state.best,state.floor-1);localStorage.setItem('towerBest',state.best);rail();
-    box.innerHTML='<h2 style="color:var(--you)">Floor cleared!</h2><p>Your team is healed. '+
+    box.innerHTML='<h2 style="color:var(--you)">Floor taken, '+score+'!</h2><p>Your team is healed. '+
       (state.floor===3?'<b style="color:var(--psy2)">ALAKAZAM waits on the roof.</b>':'KADABRA is awake upstairs.')+'</p>'+
       '<button class="sbtn big" id="btnNext">Next floor →</button>';
     document.getElementById('btnNext').onclick=startFloor;
   } else {
-    box.innerHTML='<h2 style="color:var(--foe)">'+(r===0.5?'Dead even — the Tower counts it a fall.':'You fell.')+'</h2>'+
-      '<p>Streak: <b>'+(state.floor-1)+'</b> floor'+(state.floor===2?'':'s')+'.</p>'+
+    box.innerHTML='<h2 style="color:var(--foe)">The series is lost, '+score+'.</h2>'+
+      '<p>Streak: <b>'+(state.floor-1)+'</b> floor'+(state.floor===2?'':'s')+'. The Tower resets.</p>'+
       '<button class="sbtn" id="btnRetry">Back to the doors</button>';
     state.floor=1;rail();
     document.getElementById('btnRetry').onclick=function(){
