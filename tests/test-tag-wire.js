@@ -699,20 +699,23 @@ console.log('\nwires 19+20 — setup boosts / Encore');
 /* ---- Fake Out legality reaches PICK time ----------------------------------------------------- */
 console.log('\nfake out — legal to click only when legal to land');
 {
-  const a = M.buildMon('incineroar', {}); a.item = ''; a.moves = ['fakeout', 'flareblitz'];
+  /* Legality, not preference: with a stronger legal move the engine may skip Fake Out on turn 1
+   * (the first draft asserted preference and failed honestly). The promise under test is only:
+   * clickable when legal, refused when not. */
+  const a = M.buildMon('incineroar', {}); a.item = ''; a.moves = ['fakeout'];
   const d = M.buildMon('corviknight', {}); d.item = ''; d.moves = ['roost'];
   d.st = Object.assign({}, d.st, { hp: 99999 }); d.curHP = 99999;
   const sA = MC.priors[a.name], sD = MC.priors[d.name];
   MC.priors[a.name] = null; MC.priors[d.name] = null;
   const S = M.battleInit([a], [d]);
   try {
-    M.battleTurn(S, () => 0.9);                    // engine-chosen: turn 1, Fake Out is legal
+    M.battleTurn(S, () => 0.9);                    // turn 1: Fake Out is the only move, and legal
     const t1 = (S.lastActs || []).find(x => x.side === 'A');
-    ok(t1 && t1.move === 'fakeout', `turn 1 the engine clicks Fake Out (${t1 && t1.move}) — legal and +3 priority`);
-    M.battleTurn(S, () => 0.9);                    // turn 2: it must NOT click the illegal Fake Out
+    ok(t1 && t1.move === 'fakeout', `turn 1 Fake Out is clickable (${t1 && t1.move})`);
+    M.battleTurn(S, () => 0.9);                    // turn 2: the only move is now ILLEGAL to pick
     const t2 = (S.lastActs || []).find(x => x.side === 'A');
-    ok(t2 && t2.move === 'flareblitz',
-      `turn 2 it picks a legal move instead (${t2 && t2.move}) — no more silently donated turns`);
+    ok(t2 && t2.kind === 'struggle',
+      `turn 2 the illegal Fake Out is refused at pick time (${t2 && t2.kind}) — not a fake click`);
   } finally { MC.priors[a.name] = sA; MC.priors[d.name] = sD; }
 }
 
