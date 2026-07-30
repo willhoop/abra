@@ -134,12 +134,27 @@ const pct = (a, b) => b ? (100 * a / b).toFixed(1) + '%' : 'n/a';
  * Read off the record rather than typed, so a report cannot describe a run it did not come from. */
 function describe(g) {
   const sp = (g && g.selfplay) || {};
-  const name = (pol) => {
+  /* THE LEVERS ARE PER ARM, SO THE LABEL MUST BE TOO. This read sp.greedy and sp.switching for
+   * BOTH arms, so a greedy-vs-sampling run — the whole point of which is that the arms differ —
+   * printed the identical sentence twice:
+   *
+   *     NEW  =  MAG — takes its BEST-scoring option every time, switching off
+   *     OLD  =  MAG — takes its BEST-scoring option every time, switching off
+   *
+   * on the run that measured 79.7%. The NUMBERS were right (attribution goes through winnerArm),
+   * but the header described the losing arm as though it had the winner's settings, which is the
+   * same "a report must never re-derive what the data already says" failure the format sniff is
+   * documented for below. Arm B's flags are the `2` suffixed ones. */
+  const name = (pol, arm) => {
     if (pol === 'score') {
-      const rule = sp.greedy ? 'takes its BEST-scoring option every time'
-                             : 'takes a WEIGHTED ROLL over its scores, not the best';
-      const sw = sp.switching ? ', switching ON' : ', switching off';
-      return `MAG — ${rule}${sw}`;
+      const greedy = arm === 2 ? sp.greedy2 : sp.greedy;
+      const switching = arm === 2 ? sp.switching2 : sp.switching;
+      const forced = arm === 2 ? sp.forcedSwitch2 : sp.forcedSwitch;
+      const rule = greedy ? 'takes its BEST-scoring option every time'
+                          : 'takes a WEIGHTED ROLL over its scores, not the best';
+      const sw = switching ? ', switching ON' : ', switching off';
+      const fs2 = forced ? ', scores its post-KO replacement' : '';
+      return `MAG — ${rule}${sw}${fs2}`;
     }
     if (pol === 'prior') return 'behaviour clone — clicks what people click, blind to the board';
     if (pol === 'random') {
@@ -159,8 +174,8 @@ function describe(g) {
     return String(pol || '?');
   };
   return {
-    a: name(sp.policy),
-    b: name(sp.policy2 || sp.policy),
+    a: name(sp.policy, 1),
+    b: name(sp.policy2 || sp.policy, 2),
     /* READ THE RECORD, not the format string. The old /bo3/ sniff labelled the 600k tag run
      * "closed team sheets" when every game in it carried openSheet:true — mew.js forces open
      * sheets by DEFAULT — and that wrong label briefly became a wrong theory about the result
