@@ -32,9 +32,16 @@ proper score, a confidence interval, and an honest baseline.
    model on preview species appeared to beat a coin (0.6875 vs 0.6931), a result **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games — where
    roles and raw sheets do not. Leaders Basculegion / Kingambit / Sylveon; effect sizes small, ridge-shrunk.
 9. **Roles can be discovered, not declared.** NMF of the team×role matrix recovers six interpretable
-   archetypes (recon-err 0.53) — Intimidate+Fake-Out control, physical offense, special offense+sustain,
+   archetypes — Intimidate+Fake-Out control, physical offense, special offense+sustain,
    bulky wall+screens+redirection, Tailwind+Encore, priority — with each team a *blend*, never one label.
-   Move-level NMF is coarser (offensive cores dominate). Rank/weighting selection by topic coherence is next.
+   Move-level NMF is coarser (offensive cores dominate).
+   **The number six is not defended, and this claim must not be published without that caveat.** The
+   project's own criterion (`engine/nmf_rank.py`, bootstrap factor stability, cf. Brunet et al. 2004)
+   selects **rank 4**; rank 6 scores **−0.107 excess over null**, meaning its factors are *less*
+   reproducible across resamples than factors fitted to shuffled data. Reconstruction error 0.53 was
+   cited here as the justification and has been withdrawn: `nmf_rank.py` states that it cannot select
+   a rank, because it falls monotonically with rank by construction. "Topic coherence is next" was
+   also removed — the 2026-07-31 defence ruled that *next* is not a justification.
 
 10. **The field really does tech for the metagame — measured.** Rare "tech" move slots carry
     **+0.0386** more meta-weighted type coverage than a species' standard kit (95% CI
