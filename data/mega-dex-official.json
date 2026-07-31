@@ -10839,5 +10839,6 @@
    },
    "in_our_store": false
   }
- }
+ },
+ "not_store_derived": "Showdown's own dex, harvested per forme. Ground truth FROM the simulator, not a measurement OVER our games."
 }

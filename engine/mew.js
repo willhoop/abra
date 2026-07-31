@@ -169,6 +169,12 @@ const EXPLAIN = process.argv.includes('--explain');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 const GREEDY_A = process.argv.includes('--greedy');
+/* --opponent-model / --opponent-model2  arm the expectation-based threat estimate, PER ARM, for the
+ * same reason --greedy and --switching are per arm: the decisive experiment is one build against
+ * itself with a single lever moved, and half this project's null results came from arms that were
+ * not actually comparable. */
+const OPPMODEL_A = process.argv.includes('--opponent-model');
+const OPPMODEL_B = process.argv.includes('--opponent-model2');
 const GREEDY_B = process.argv.includes('--greedy2');
 /* --joint / --joint2  turn the PAIR model on, per arm. Per arm rather than globally because the
  * whole point is an A/B: coordinated choice versus independent choice, same weights otherwise. */
@@ -497,6 +503,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   if (SWITCHING) { (swapped ? optB : optA).switching = true; }
   if (SWITCHING_B) { (swapped ? optA : optB).switching = true; }
   if (GREEDY_A) { (swapped ? optB : optA).greedy = true; }
+  if (OPPMODEL_A) { const o = swapped ? optB : optA; o.opponentModel = true; o.weightsFile = WEIGHTS1 || null; }
+  if (OPPMODEL_B) { const o = swapped ? optA : optB; o.opponentModel = true; o.weightsFile = WEIGHTS2 || null; }
   if (GREEDY_B) { (swapped ? optA : optB).greedy = true; }
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
   const p1 = new PA(streams.p1, optA);
@@ -736,6 +744,7 @@ async function main() {
        * MAG and a sampling MAG both record policy "score" while differing by nine points of win
        * rate. Anything that changes what the bot DOES belongs on the record. */
       rec.selfplay.greedy = !!GREEDY_A; rec.selfplay.greedy2 = !!GREEDY_B;
+      rec.selfplay.opponentModel = !!OPPMODEL_A; rec.selfplay.opponentModel2 = !!OPPMODEL_B;
       rec.selfplay.switching = !!SWITCHING; rec.selfplay.switching2 = !!SWITCHING_B;
       rec.selfplay.forcedSwitch = !!FORCED_A; rec.selfplay.forcedSwitch2 = !!FORCED_B;
       rec.selfplay.joint = !!JOINT_A; rec.selfplay.joint2 = !!JOINT_B;
@@ -802,7 +811,8 @@ async function main() {
              * and stamping those records armsIdentical would claim a mirror match. */
             && FORCED_A === FORCED_B
             /* Same reasoning for the other two flag-only levers, now that they are per arm. */
-            && SWITCHING === SWITCHING_B && GREEDY_A === GREEDY_B) rec.selfplay.armsIdentical = true;
+            && SWITCHING === SWITCHING_B && GREEDY_A === GREEDY_B
+            && OPPMODEL_A === OPPMODEL_B) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the

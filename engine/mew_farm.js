@@ -165,7 +165,35 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
     const v = arg(k, '');
     if (v) extra.push('--' + k, v);
   }
-  for (const f of ['paired', 'switching', 'switching2', 'forced-switch', 'forced-switch2', 'greedy', 'greedy2', 'learn', 'thoughts']) if (process.argv.includes('--' + f)) extra.push('--' + f);
+  const BOOL_FLAGS = ['paired', 'switching', 'switching2', 'forced-switch', 'forced-switch2',
+    'greedy', 'greedy2', 'learn', 'thoughts', 'opponent-model', 'opponent-model2',
+    'joint', 'joint2', 'joint-zero', 'joint-zero2', 'blind', 'blind2'];
+  for (const f of BOOL_FLAGS) if (process.argv.includes('--' + f)) extra.push('--' + f);
+
+  /* AN UNKNOWN FLAG IS A HARD ERROR, because the alternative is what happened on 2026-07-31: the
+   * list above is hand-typed, `--opponent-model` was not on it, and the farm SILENTLY DROPPED it.
+   * The run completed, reported 38 games, and produced two arms that were secretly identical -- an
+   * experiment that would have measured nothing and looked like a null.
+   *
+   * That is this repository's most expensive recurring failure (a lever believed on, silently off),
+   * and a hand-maintained list is a promise to remember the next flag. This cannot derive the list --
+   * mew.js parses argv ad hoc rather than declaring options -- so it does the next best thing and
+   * refuses to run rather than dropping something the caller asked for. */
+  const KNOWN_VALUE = ['policy2', 'format', 'weights', 'weights2', 'randmove', 'n', 'procs', 'conc',
+    'seed', 'out', 'policy'];
+  const unknown = [];
+  for (let i = 2; i < process.argv.length; i++) {
+    const a = process.argv[i];
+    if (!a.startsWith('--')) continue;
+    const name = a.slice(2);
+    if (BOOL_FLAGS.includes(name) || KNOWN_VALUE.includes(name) || name === 'keep-shards') continue;
+    unknown.push(a);
+  }
+  if (unknown.length) {
+    console.error(`mew_farm: unrecognised flag(s) ${unknown.join(' ')} — refusing rather than silently`);
+    console.error('dropping them. If mew.js accepts it, add it to BOOL_FLAGS or KNOWN_VALUE here.');
+    process.exit(2);
+  }
   const child = spawn(process.execPath, [
     D('engine', 'mew.js'),
     '--n', String(per),

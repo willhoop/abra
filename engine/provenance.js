@@ -116,7 +116,20 @@ function deriveGraph() {
      * ladder's clean total called it unsafe for declaring 2,723 — a false alarm. That annotation was
      * hand-written in the first version of this file and lost when the graph became derived, which
      * is the exact regression deriving it was supposed to prevent. */
-    const corpus = /games\.(ots|bo3)\.jsonl/.test(writers[0].src) ? 'opensheet' : 'ladder';
+    /* FOLLOW ONE LEVEL OF require, because a generator may DELEGATE its corpus loading. fit_joint.js
+     * names neither games.ots.jsonl nor games.bo3.jsonl anywhere -- it calls fit_policy.js, which
+     * does. So the regex read fit_joint's own source, found nothing, defaulted to 'ladder', and
+     * judged policy-weights-joint.json's 6,517 open-sheet games against the 5,129 clean LADDER
+     * total: "cannot have been filtered". A false alarm on an artifact regenerated the same day.
+     *
+     * That is the identical failure this block's own comment already records for
+     * policy-weights.json, recurring one require deeper. Deriving the graph fixed the hand-written
+     * version; it did not make the derivation transitive. */
+    const localReqs = [...writers[0].src.matchAll(/require\(\s*'\.\/([A-Za-z0-9_.-]+?)(?:\.js)?'/g)].map(m => m[1]);
+    const withDeps = writers[0].src + localReqs.map(r => {
+      try { return fs.readFileSync(D('engine', r + '.js'), 'utf8'); } catch (e) { return ''; }
+    }).join('\n');
+    const corpus = /games\.(ots|bo3)\.jsonl/.test(withDeps) ? 'opensheet' : 'ladder';
     out.push({ file, by, from, corpus });
   }
   return out;
@@ -163,7 +176,21 @@ for (const a of ARTIFACTS) {
   const notes = [];
   let bad = false, warn = false;
 
-  if (FILTER_MT && mt < FILTER_MT) {
+  /* THE FILTER ONLY GOVERNS ARTIFACTS DERIVED FROM THE GAME STORE, and treating every artifact as
+   * store-derived was a false-positive class found on 2026-07-31, the day this check was finally
+   * wired as a gate. It flagged `regulations.json` (a format definition), `mega-dex-official.json`
+   * (Showdown dex data) and `smogon-priors.json` (Smogon's public usage stats) as "computed under
+   * different rules about what counts" — none of which is computed from our games at all, so the
+   * quality filter has no bearing on any of them.
+   *
+   * That matters more than the three names: a gate that cries wolf gets ignored, which is precisely
+   * how the unwired-check problem this file exists to solve came about. An artifact declares
+   * `not_store_derived` with a REASON, in the artifact itself, exactly as the RAW-STORE-OK
+   * convention works for source files — visible to a consumer, not buried in this checker. */
+  const notStore = j && (j.not_store_derived || (j.provenance && j.provenance.not_store_derived));
+  if (notStore) {
+    notes.push(`not store-derived: ${typeof notStore === 'string' ? notStore : 'declared'}`);
+  } else if (FILTER_MT && mt < FILTER_MT) {
     notes.push('OLDER THAN THE QUALITY FILTER — computed under different rules about what counts');
     bad = true;
   }

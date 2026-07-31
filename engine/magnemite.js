@@ -155,6 +155,20 @@ function makeScoringPlayer(opts = {}) {
       this.stats.forcedScored = 0;
       this.stats.forcedFellBack = 0;
       this.greedy = !!(options && options.greedy);
+      /* THE OPPONENT MODEL, per ARM rather than per process. board.js holds it in a module-level
+       * global, and a paired head-to-head runs BOTH arms inside one process -- so a global flag
+       * would give whichever arm set it last, and the A/B would be comparing an arm against itself.
+       * It is therefore applied around THIS player's own decision and cleared afterwards, which is
+       * sound because decisions within a process are sequential. Any future concurrency here breaks
+       * that assumption and must move the model into a parameter instead of a global. */
+      this.oppModelW = null;
+      if (options && options.opponentModel) {
+        const OW = loadWeights(options.weightsFile || null);
+        if ((OW.features || []).join(',') !== B.FEATURES.join(',')) {
+          throw new Error('magnemite: opponent model requested but the weights do not match board.js — refit');
+        }
+        this.oppModelW = OW.weights;
+      }
       /* LEARNING MODE. Accumulates the policy gradient of its own decisions so a caller who knows
        * the outcome can turn a game into a weight update. See the block in chooseMove.
        *
@@ -780,6 +794,16 @@ function makeScoringPlayer(opts = {}) {
 
     /* ---- THE DECISION ------------------------------------------------------------------------ */
     chooseMove(active, moves) {
+      if (!this.oppModelW) return this._chooseMoveInner(active, moves);
+      /* Set, decide, clear -- in a finally, so a throw mid-decision cannot leave the model armed for
+       * the OTHER arm's next turn. That failure would be silent and would corrupt the comparison
+       * rather than crash it. */
+      B.setOpponentModel(this.oppModelW);
+      try { return this._chooseMoveInner(active, moves); }
+      finally { B.setOpponentModel(null); }
+    }
+
+    _chooseMoveInner(active, moves) {
       const species = this.speciesFor(active);
       /* The species under test keeps its uniform pilot — build_lab needs equal airtime per arm and
        * that requirement is unchanged by this class. See prior_player.js for why. */

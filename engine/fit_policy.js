@@ -55,8 +55,39 @@ const D = (...p) => path.join(ROOT, ...p);
 const OUT = process.env.OUT_WEIGHTS ? require('path').resolve(process.env.OUT_WEIGHTS) : D('data', 'policy-weights.json');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 
+/* ---- THE OPPONENT MODEL, opt-in (--opponent-model) --------------------------------------------
+ *
+ * board.js's incomingThreat normally takes a MAX -- the foe's hardest available hit -- and nine
+ * features are built on it. With the opponent model on, that max becomes an EXPECTATION weighted by
+ * P(their action), scored with the same weights on the other side of the field. Measured on a real
+ * board, the foe's lead clicks a damaging move 52.9% of the time while MAG assumes 100%, so the
+ * survive/die half of the vector is priced against a worst case the opponent declines to inflict
+ * roughly half the time.
+ *
+ * THE BOOTSTRAP, and it is a real assumption rather than a detail. Modelling the opponent needs
+ * weights; fitting weights needs the features the model changes. That circle is broken the way
+ * fictitious play breaks it: model the opponent with the CURRENT shipped weights, refit against
+ * that, and stop. One round, not iterated to a fixed point -- iterating would be the more principled
+ * thing and it is not done here, so this is a first-order correction and is reported as one.
+ *
+ * The opponent is therefore assumed to play like the current MAG. A human who always clicks Protect
+ * is mispredicted, and on a CLOSED-sheet corpus this would be indefensible; on open sheets we know
+ * their four moves, which is what makes it legitimate at all. */
+const OPP_MODEL = process.argv.includes('--opponent-model');
+
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
+
+if (OPP_MODEL) {
+  const seed = JSON.parse(require('fs').readFileSync(D('data', 'policy-weights.json'), 'utf8'));
+  const sw = seed[seed.shipped || 'weights'] || seed.weights;
+  if ((seed.features || []).join(',') !== B.FEATURES.join(',')) {
+    console.error('REFUSING: the seed weights were fitted against a different feature list than board.js exposes.');
+    process.exit(1);
+  }
+  B.setOpponentModel(sw);
+  console.log(`  opponent model  ON  (seeded from data/policy-weights.json, ${sw.length} weights, one round)`);
+}
 const norm = B.norm, base = B.baseSpecies;
 
 /* ---------------------------------------------------------------------------------------------
