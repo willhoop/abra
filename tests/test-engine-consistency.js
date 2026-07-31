@@ -42,24 +42,23 @@ const names = Object.keys(MC.mons);
 function mkBoard(mine, theirs, sheetMine, sheetTheirs, foeHp) {
   const b = new B.Board();
   b.turn = 4;
-  b.sides.p2.active = { a: { species: theirs, hp: (typeof foeHp === 'number' ? foeHp : 1), boosts: {}, status: '', fainted: false,
-    nature: (sheetTheirs && sheetTheirs.nature) || '', item: '', ability: '' } };
-  b.sides.p1.active = {};
   b.party.p1 = [mine];
   b.party.p2 = [theirs];
+  /* SHEETS FIRST, THEN switchIn — the production order, and the whole point. switchIn is what copies
+   * the declared nature, item, ability and moves onto an active Pokemon. A test that assigns
+   * b.sides.p2.active directly bypasses it and then reports the engine as broken for not seeing data
+   * the test never delivered, which is exactly what the first version of this file did. */
   if (sheetMine) b.setSheet('p1', mine, sheetMine);
   if (sheetTheirs) b.setSheet('p2', theirs, sheetTheirs);
+  b.switchIn('p2', 'a', theirs);
+  if (typeof foeHp === 'number') b.sides.p2.active.a.hp = foeHp;
   return b;
 }
-/* THE SAME POSITION WITH MY POKEMON ON THE FIELD. board.js's switch features want it on the BENCH
- * (it is deciding what to bring in); position_features wants it ACTIVE (it is valuing a position
- * that already exists). Using the bench board for both made every position feature read 0-vs-0,
- * because with no actives there are no matchups to score -- a third harness fault masquerading as
- * engine debt on this file's first run. */
+/* The same position with my Pokemon on the field too: board.js's switch features want it on the
+ * BENCH (deciding what to bring in), position_features wants it ACTIVE (valuing what is there). */
 function mkActive(mine, theirs, sheetMine, sheetTheirs, foeHp) {
   const b = mkBoard(mine, theirs, sheetMine, sheetTheirs, foeHp);
-  b.sides.p1.active = { a: { species: mine, hp: 1, boosts: {}, status: '', fainted: false,
-    nature: (sheetMine && sheetMine.nature) || '', item: '', ability: (sheetMine && sheetMine.ability) || '' } };
+  b.switchIn('p1', 'a', mine);
   return b;
 }
 const switchFeat = (board, sp) => B.featuresFor(
@@ -144,11 +143,31 @@ console.log('\n== 3. the sheet\'s MOVES — the one that bit twice on 2026-07-30
    * it, a 120 BP set and a 40 BP set are the same switch-in — which is the identical defect that was
    * found and fixed in position_features on the same day. */
   const iSurv = B.FEATURE_INDEX.switchSurvives1;
-  const bBig = switchFeat(mkBoard(theirs, mine, { nature: 'serious', item: '', ability: '', moves: ['protect'] }, shBig), theirs);
-  const bSmall = switchFeat(mkBoard(theirs, mine, { nature: 'serious', item: '', ability: '', moves: ['protect'] }, shSmall), theirs);
-  ok(bBig.some((v, i) => v !== bSmall[i]),
-    'board.js: the FOE\'s declared moveset changes what a switch-in is walking into',
-    bBig.some((v, i) => v !== bSmall[i]) ? '' : 'IDENTICAL — the sheet\'s moves are not reaching switchFeatures');
+  /* THE SWITCH-IN MUST BE FRAIL ENOUGH FOR THE DIFFERENCE TO CROSS A THRESHOLD. switchSurvives1 is
+   * binary (worst < 1), so a 120 BP move and a 40 BP move read identically against something that
+   * survives both — the vector is coarse by design and a test has to respect that. Using the
+   * frailest species in the table so the strong move actually removes it and the weak one does not. */
+  const frail = names.slice().sort((a, c) => {
+    const st = n => MC.mons[n].st; return st(a).hp * (st(a).df + st(a).sd) - st(c).hp * (st(c).df + st(c).sd);
+  })[0];
+  /* SEARCH FOR A PAIR THAT CROSSES THE THRESHOLD rather than assuming one does. Measured: Double
+   * Edge (120 BP off a 91 Atk) and Acid Spray (40 BP off a 167 SpA) BOTH land between half and all
+   * of Pikachu, so both read survives1=1 survives2=0 -- the check was failing on the feature's
+   * coarseness, not on any wiring. A binary feature must be tested where it is sharp. */
+  const vecFor = (mv) => switchFeat(mkBoard(frail, mine,
+    { nature: 'serious', item: '', ability: '', moves: ['protect'] },
+    { nature: 'serious', item: '', ability: '', moves: [mv] }), frail);
+  let pair = '';
+  outer3:
+  for (const a of strong.slice(0, 30)) {
+    const va = vecFor(a);
+    for (const b2 of weak.slice(0, 30)) {
+      const vb = vecFor(b2);
+      if (va.some((v, i) => v !== vb[i])) { pair = a + ' vs ' + b2; break outer3; }
+    }
+  }
+  ok(!!pair, 'board.js: the FOE declared moveset changes what a switch-in is walking into',
+    pair || 'IDENTICAL across every pair tried - the sheet moves are not reaching switchFeatures');
 }
 
 /* ================= 4. PRIORITY BLOCKING, EVERYWHERE THAT ORDERS MOVES ====================== */
@@ -168,12 +187,21 @@ console.log('\n== 4. priority blocking ==');
   const held = P.positionFeatures(mkActive(mine, theirs, sh, { nature: 'serious', item: '', ability: blockers[0], moves: ['protect'] }, 0.08), 'p1', dex)[ki];
   ok(free !== held, 'position_features respects it', `${free.toFixed(2)} -> ${held.toFixed(2)}`);
 
-  /* board.js orders moves too (movesFirst, priority, switchFaster) and has no notion of these. */
-  const bFree = switchFeat(mkBoard(mine, theirs, sh, { nature: 'serious', item: '', ability: '', moves: ['protect'] }, 0.08), mine);
-  const bHeld = switchFeat(mkBoard(mine, theirs, sh, { nature: 'serious', item: '', ability: blockers[0], moves: ['protect'] }, 0.08), mine);
-  ok(bFree.some((v, i) => v !== bHeld[i]),
-    'board.js respects it',
-    bFree.some((v, i) => v !== bHeld[i]) ? '' : 'IDENTICAL — board.js orders moves with no notion of priority blocking');
+  /* board.js's priority lives on the MOVE path. A switch candidate carries no move and therefore no
+   * priority at all, so asking switchFeatures about it was the wrong question and would have failed
+   * forever however correct the engine was. */
+  const bd = ab => mkActive(mine, theirs,
+    { nature: 'serious', item: '', ability: '', moves: [prio[0]] },
+    { nature: 'serious', item: '', ability: ab, moves: ['protect'] }, 0.5);
+  const iPri = B.FEATURE_INDEX.priority;
+  const val = (board) => {
+    const foe = board.slot('p2', 'a'), user = board.slot('p1', 'a');
+    const cand = { raw: null, move: dex.moves.get(prio[0]), targetMon: foe, spread: null, allies: [], foes: [foe] };
+    return B.featuresFor(cand, user, board, 'p1', dex, 0.05)[iPri];
+  };
+  const v0 = val(bd('')), v1 = val(bd(blockers[0]));
+  ok(v0 > 0 && v1 === 0, 'board.js: a refused priority move scores no priority',
+    `${v0.toFixed(2)} -> ${v1.toFixed(2)}`);
 }
 
 console.log(`\n${fails ? `ENGINE CONSISTENCY: ${fails} FAILED — a fact is not reaching every engine that needs it`

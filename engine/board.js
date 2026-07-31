@@ -679,6 +679,10 @@ class Board {
        * DEFENDER'S ability. Empty on a closed-sheet game, and consumers fall back to Smogon's
        * per-species odds exactly as abilityBlock always has. */
       ability: norm((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).ability || ''),
+      /* THE MOVES, the fourth thing the sheet declares and the only one this did not copy. Without
+       * it every consumer that builds a damage mon from a board active fell back to the dataset's
+       * representative set -- see the note in dmgMon. */
+      moves: ((this.sheet[side] && this.sheet[side][baseSpecies(species)] || {}).moves || []).map(norm),
       /* The forme it will actually be, if the sheet's item is its own mega stone. Filled in by
        * effSpecies, because megaFormeOf needs the dex and the Board deliberately does not hold one.
        * `megaFor` records which species the answer was computed for, so a mid-battle transformation
@@ -807,6 +811,17 @@ function dmgMon(mon, D) {
   const hasSheet = !!mon.nature;   // a sheet always declares a nature, so nature ⇒ sheet was read
   if (hasSheet) b.item = mon.item || '';   // '' from a sheet means genuinely itemless, and wins
   if (mon.ability) b.ability = mon.ability;
+  /* AND THE MOVES, which this did not take -- so every damage estimate in board.js was computed
+   * against the dataset's representative four rather than the four actually declared. The foe's
+   * threat to a switch-in (incomingThreat) is built through here, so on open sheets MAG priced what
+   * it was walking into using an average opponent while the real one was on the table.
+   *
+   * Third instance of one bug on 2026-07-30: the sheet reaching one consumer and not the next.
+   * Caught by tests/test-engine-consistency.js rather than by somebody noticing. */
+  if (Array.isArray(mon.moves) && mon.moves.length) {
+    const mv = mon.moves.map(norm).filter(id => MC.moves[id]);
+    if (mv.length) b.moves = mv;
+  }
   return b;
 }
 
@@ -1862,6 +1877,33 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       }
     }
   }
+  /* PRIORITY THAT WILL BE REFUSED IS NOT PRIORITY. Armor Tail, Queenly Majesty, Dazzling and
+   * Psychic Terrain do not make a priority move go second -- they make it FAIL. Exactly the shape of
+   * the Prankster-into-Dark case above, where the boost is subtracted because it is not granted.
+   *
+   * board.js had no notion of any of this: it scored a Sucker Punch into a Farigiraf as cutting the
+   * queue, in every game MAG has ever played. Found by tests/test-engine-consistency.js, which
+   * exists because the artifact had the fact and only one consumer read it.
+   *
+   * THE RULE IS NOT RESTATED HERE. medicham2 owns priorityRefusedAbove next to movePriority and
+   * effSpeed; this asks it. Guarded on `t` so it applies only to moves aimed at the opponent -- these
+   * abilities protect their side from incoming priority and do nothing to a self-targeted Protect,
+   * which sits at +4 and must keep it. */
+  if (effPri > 0 && t) {
+    const D2 = damageEngine();
+    if (D2 && typeof D2.priorityRefusedAbove === 'function') {
+      const foeSide = side === 'p1' ? 'p2' : 'p1';
+      const defenders = board.field()
+        .filter(f => f.side === foeSide && f.mon && !f.mon.fainted)
+        .map(f => {
+          const e = (board.sheet && board.sheet[foeSide] && board.sheet[foeSide][baseSpecies(f.mon.species)]) || {};
+          return { ability: norm(f.mon.ability || e.ability || ''), fainted: false };
+        });
+      const terrain = ['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain']
+        .find(k => board.hasField(k)) || '';
+      if (effPri > D2.priorityRefusedAbove(defenders, { terrain })) effPri = 0;
+    }
+  }
   set('priority', Math.max(-1, Math.min(1, effPri / 3)));
   /* SET HERE, NOT ONLY IN THE STAT BLOCK. That block needs a TARGET to compare speeds against, so
    * every targetless move -- Tailwind, Protect, Trick Room, every screen -- was silently scoring
@@ -2387,6 +2429,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
     nature: inNature,
     item: norm(obsItem == null ? (sheetE.item || '') : obsItem),
     ability: norm(sheetE.ability || ''),
+    moves: (sheetE.moves || []).map(norm),
     mega: '', megaFor: null };
   const inMon = dmgMon(incoming, D);
   const { worst, threat } = incomingThreat(board, side, user, inMon, D);
@@ -2484,4 +2527,9 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
 /* dmgFailures is exported so a caller can ASSERT the damage features were live. A run in which the
  * damage engine failed to load produces a full, plausible-looking feature vector with four zeros in
  * it, and nothing about the output would say so. */
-module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine };
+/* megaFormeOf is EXPORTED so nothing else has to work out what a stone does. medicham2's own
+ * megaForme() reads window.MEGA_FORMES, which does not exist in node — it returns null on every
+ * server-side call, so buildMon never applies a mega and every consumer that asked it for a
+ * stone-holder's stats got the BASE FORM. This one reads the dex's megaStone property and refuses a
+ * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
+module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf };
