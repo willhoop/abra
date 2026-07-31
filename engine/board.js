@@ -1134,8 +1134,180 @@ const GAME_RULES = {
  * keyed by mon OBJECTS, so a collision does not return a wrong number, it returns a map whose keys
  * are from someone else's battle and every lookup silently misses. Caught because `killsThreat` read
  * zero in a scenario built specifically to make it fire. */
+/* ---------------------------------------------------------------------------------------------
+ * WHAT A POKEMON DOES THE MOMENT IT ARRIVES
+ *
+ * Intimidate drops the foe's Attack, Drizzle sets rain, Drought sets sun — all on switch-in, before
+ * anything else happens. The switch path priced NONE of it: measured over 40,001 switch-in matchups,
+ * declaring `intimidate`, `drizzle` or `drought` on the incoming Pokemon changed the feature vector
+ * in exactly ZERO of them, while the control (`levitate`, a known-wired immunity) moved 2,754. So
+ * MAG weighed bringing Incineroar in against the foe's FULL Attack, and weighed bringing a rain
+ * setter in with the Water damage it is about to enable left out of the estimate.
+ *
+ * That is the same shape as every other bug this file has grown a comment for: the fact was in the
+ * dex, it reached the mon after it landed, and it never reached the path that CHOOSES.
+ *
+ * DERIVED, NOT LISTED. Showdown implements these as `onStart`, so the handler is CALLED against a
+ * recording stub and asked what it does — the same technique mechanics_coverage.js uses for its
+ * probes. Nothing here names Intimidate or any weather. A regulation that introduces a new entry
+ * ability is picked up with no edit, and an ability whose onStart does something this does not model
+ * throws, is caught, and returns null — which is exactly today's behaviour, so the failure direction
+ * is "no worse than before" rather than "silently wrong".
+ *
+ * KNOWN GAP, STATED: terrain is recorded and NOT consumed, because dmgFractions builds its field
+ * with `terrain: ''` unconditionally — terrain does not reach the damage formula at all yet, for
+ * moves or for abilities. Recording it here is what makes that gap visible instead of invisible.
+ * ------------------------------------------------------------------------------------------- */
+const _entryCache = new Map();
+function entryEffects(abilityId, dex) {
+  const id = norm(abilityId || '');
+  if (!id) return null;
+  if (_entryCache.has(id)) return _entryCache.get(id);
+  let out = null;
+  const A = dex && dex.abilities && dex.abilities.get(id);
+  if (A && A.exists && typeof A.onStart === 'function') {
+    /* The DISPLAY name, because Inner Focus, Own Tempo, Scrappy and Guard Dog all test
+     * `effect.name === 'Intimidate'` — they block that one drop and no other. Carried from the dex
+     * so the string is the dex's, not one typed here. */
+    const rec = { name: A.name || id, weather: '', terrain: '', foeBoosts: null, selfBoosts: null };
+    /* HP IS LOAD-BEARING ON THESE STUBS and its absence fails silently. Mirror Armor guards its
+     * reflection with `if (source.hp)` — Showdown's way of asking "is the thing that caused this
+     * still alive" — so a stub without it does not throw, it quietly returns "no reflection", which
+     * is a plausible-looking wrong answer. Anything the handlers read must be present rather than
+     * merely non-crashing. */
+    const FOE = { hp: 100, maxhp: 100, volatiles: {}, side: {}, hasItem: () => false, hasAbility: () => false };
+    const SELF = {
+      hp: 100, maxhp: 100, species: { id, name: id }, item: '', volatiles: {}, side: {},
+      hasItem: () => false, hasAbility: () => false,
+      adjacentFoes: () => [FOE], adjacentAllies: () => [], foes: () => [FOE], allies: () => [],
+    };
+    const put = (slot, table) => {
+      if (!table) return;
+      const t = rec[slot] || (rec[slot] = {});
+      for (const [k, v] of Object.entries(table)) t[k] = (t[k] || 0) + v;
+    };
+    const ctx = {
+      add: () => {}, hint: () => {}, effectState: {}, dex,
+      /* Showdown's signature is boost(table, target, source). Intimidate passes the FOE as target;
+       * Intrepid Sword and Download pass the user. Which slot it lands in is read off that argument
+       * rather than assumed, so both shapes are handled by the same three lines. */
+      boost: (table, target) => put(target === SELF || target == null ? 'selfBoosts' : 'foeBoosts', table),
+      field: {
+        setWeather: w => { rec.weather = norm(w); return true; },
+        setTerrain: t => { rec.terrain = norm(t); return true; },
+        isWeather: () => false, isTerrain: () => false, getPseudoWeather: () => null,
+      },
+    };
+    try {
+      A.onStart.call(ctx, SELF);
+      if (rec.weather || rec.terrain || rec.foeBoosts || rec.selfBoosts) out = rec;
+    } catch (e) { out = null; }
+  }
+  _entryCache.set(id, out);
+  return out;
+}
+
+/* The same board seen with the weather the arriving Pokemon is about to set. The prototype is
+ * carried over because callers use `hasField` and `field()` on it, and a plain spread of a class
+ * instance would drop both. Returns the board itself when there is nothing to change, so the
+ * common case allocates nothing. */
+function boardUnderEntry(board, entry) {
+  if (!board || !entry || !entry.weather || norm(board.weather) === entry.weather) return board;
+  return Object.assign(Object.create(Object.getPrototypeOf(board) || Object.prototype), board,
+    { weather: entry.weather });
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * AND WHAT THE TARGET DOES ABOUT IT (Will: "does it also proc defiant and competitive when it
+ * switches in")
+ *
+ * It does, and modelling the drop WITHOUT modelling the answer to it would have been worse than
+ * modelling neither. Intimidate into Kingambit is not a free -1 Attack, it is a +2 Attack for them —
+ * so a switch-in scorer that knew only the drop would have rated the single most punishing
+ * Intimidate matchup in this format as the most attractive one, and been confidently backwards
+ * exactly where the cost is highest.
+ *
+ * A stat drop in Showdown is not an assignment, it is a three-stage pipeline on the TARGET's
+ * ability, and every stage changes the answer:
+ *
+ *   onChangeBoost      Contrary inverts the drop (it becomes +1), Simple doubles it
+ *   onTryBoost         Clear Body / White Smoke / Full Metal Body delete it outright;
+ *                      Inner Focus / Own Tempo / Scrappy block it BY EFFECT NAME, so they stop
+ *                      Intimidate and nothing else; Guard Dog converts it to +1 Attack;
+ *                      Mirror Armor bounces it back at the Pokemon that just arrived
+ *   onAfterEachBoost   Defiant answers any drop with +2 Attack, Competitive with +2 Sp. Atk
+ *
+ * All three are run here, in Showdown's order, against the same recording stub — so the list above
+ * is a description of what the dex contains rather than a set of cases this file handles. Nothing is
+ * named in the code. `effectName` is carried because four of these abilities test it, and passing
+ * the wrong one would silently turn a targeted block into a general one.
+ *
+ * Open team sheets are what make this usable: the foe's ability is declared, so this is reading
+ * public information rather than guessing. Where it is unknown the pipeline simply does not run and
+ * the drop applies plain, which is the old behaviour.
+ * ------------------------------------------------------------------------------------------- */
+function resolveDrop(table, targetMon, dex, effectName) {
+  const out = { applied: {}, targetGains: null, reflected: null };
+  for (const [k, v] of Object.entries(table || {})) out.applied[k] = v;
+
+  const A = dex && dex.abilities && dex.abilities.get(norm(targetMon && targetMon.ability || ''));
+  if (!A || !A.exists) return out;
+
+  const put = (slot, tbl) => {
+    if (!tbl) return;
+    const t = out[slot] || (out[slot] = {});
+    for (const [k, v] of Object.entries(tbl)) t[k] = (t[k] || 0) + v;
+  };
+  /* Both stubs carry hp for the reason given on entryEffects' stubs: Mirror Armor tests `source.hp`
+   * before reflecting, and a missing field there returns a wrong answer rather than an error. */
+  const TARGET = {
+    hp: 100, maxhp: 100,
+    boosts: Object.assign({ atk: 0, def: 0, spa: 0, spd: 0, spe: 0, accuracy: 0, evasion: 0 },
+      targetMon.boosts || {}),
+    volatiles: {}, side: {}, isAlly: () => false,
+    hasItem: () => false, hasAbility: () => false, toString: () => 'target',
+  };
+  const SOURCE = { hp: 100, maxhp: 100, volatiles: {}, side: {}, isAlly: () => false, toString: () => 'source' };
+  const ctx = {
+    add: () => {}, hint: () => {}, effectState: {}, dex,
+    /* Reflected drops (Mirror Armor) go to whoever arrived; retaliation (Defiant, Guard Dog) stays
+     * on the target. Read off the argument, never assumed. */
+    boost: (tbl, tgt) => put(tgt === SOURCE ? 'reflected' : 'targetGains', tbl),
+  };
+  const effect = { name: effectName || '', id: norm(effectName || ''), secondaries: null };
+
+  try {
+    if (typeof A.onChangeBoost === 'function') A.onChangeBoost.call(ctx, out.applied, TARGET, SOURCE, effect);
+    if (typeof A.onTryBoost === 'function') A.onTryBoost.call(ctx, out.applied, TARGET, SOURCE, effect);
+    /* onAfterEachBoost fires only if something actually landed — a Clear Body that deleted the whole
+     * table must not also trigger the Defiant-shaped answer to it. */
+    if (Object.keys(out.applied).length && typeof A.onAfterEachBoost === 'function') {
+      A.onAfterEachBoost.call(ctx, out.applied, TARGET, SOURCE, effect);
+    }
+  } catch (e) { /* an ability whose handler this stub cannot satisfy applies the drop plain */ }
+  return out;
+}
+
+/* A copy of a Pokemon with the arriving mon's entry drop applied, AFTER its own ability has had its
+ * say. Copied, never mutated: these are live board objects and an Intimidate priced for one
+ * candidate must not follow the board into the next one. Returns the net change to the ARRIVING
+ * Pokemon too, since Mirror Armor sends the drop straight back. */
+function monUnderEntry(mon, entry, dex) {
+  if (!mon || !entry || !entry.foeBoosts) return { mon, reflected: null };
+  const r = resolveDrop(entry.foeBoosts, mon, dex, entry.name);
+  const boosts = Object.assign({}, mon.boosts || {});
+  const add = tbl => {
+    for (const [k, v] of Object.entries(tbl || {})) {
+      boosts[k] = Math.max(-6, Math.min(6, (boosts[k] || 0) + v));
+    }
+  };
+  add(r.applied);
+  add(r.targetGains);
+  return { mon: Object.assign({}, mon, { boosts }), reflected: r.reflected };
+}
+
 const _threatCache = new WeakMap();
-function incomingThreat(board, side, user, att, D) {
+function incomingThreat(board, side, user, att, D, entry) {
   /* THE DEFENDER IS PART OF THE KEY, and leaving it out is what made every switch feature useless.
    * This answers "how hard is the hardest thing aimed at THIS Pokemon", and switch candidates ask it
    * about the mon coming IN while `user` stays the one currently out. Keyed on `user` alone, every
@@ -1143,24 +1315,37 @@ function incomingThreat(board, side, user, att, D) {
    * bulk is nothing alike, both read survives1=1 survives2=0. Identical features cannot discriminate,
    * so the fit correctly reported a null, and the null was mine rather than the game's. */
   const who = att ? `${att.name || ''}|${att.st && att.st.hp}|${att.st && att.st.df}|${att.st && att.st.sd}` : '-';
-  const key = `${side}|${who}|${user && user.hp}|${board.turn}|` +
+  /* THE ENTRY EFFECT IS PART OF THE KEY. Two candidates alike in bulk but differing in whether they
+   * bring an Intimidate or a weather are asking genuinely different questions of this function, and
+   * leaving the effect out of the key would hand the second one the first one's answer — the same
+   * defect the note above records for the defender. */
+  const ent = entry ? `${entry.weather}|${JSON.stringify(entry.foeBoosts || 0)}` : '-';
+  const key = `${side}|${who}|${ent}|${user && user.hp}|${board.turn}|` +
     board.field().map(f => `${f.side}${f.letter}${f.mon.species}${f.mon.hp}`).join(',');
   const hit = _threatCache.get(board);
   if (hit && hit.key === key) return hit.val;
   const threat = new Map();
   let worst = 0;
   if (att) {
+    /* The weather the arriving Pokemon sets is up before it is hit, so the hit is priced under it. */
+    const wxBoard = boardUnderEntry(board, entry);
     for (const f of board.field()) {
       if (f.side === side || !f.mon || f.mon.fainted) continue;
-      const fm = dmgMon(f.mon, D);
+      /* The foe as it will be AFTER the switch-in lands — its Attack dropped by an Intimidate, or
+       * raised by its own answer to one. `entry.dex` carries the dex because this function is not
+       * given one and the pipeline needs it to read the foe's ability. */
+      const dropped = monUnderEntry(f.mon, entry, entry && entry.dex);
+      const fm = dmgMon(dropped.mon, D);
       if (!fm) continue;
       let best = 0;
       for (const id of (fm.moves || [])) {
         const fmv = MC.moves[id];
         if (!fmv || !fmv.bp) continue;
-        const r = dmgFractions(D, fm, att, { basePower: fmv.bp, category: fmv.c === 'P' ? 'Physical' : 'Special' }, fmv.t, false, board);
+        const r = dmgFractions(D, fm, att, { basePower: fmv.bp, category: fmv.c === 'P' ? 'Physical' : 'Special' }, fmv.t, false, wxBoard);
         if (r && r.mean > best) best = r.mean;
       }
+      /* Keyed on the ORIGINAL mon object: callers look this up with what is on the board, not with
+       * the copy made above. */
       threat.set(f.mon, best);
       if (best > worst) worst = best;
     }
@@ -2431,8 +2616,34 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
     ability: norm(sheetE.ability || ''),
     moves: (sheetE.moves || []).map(norm),
     mega: '', megaFor: null };
+  /* WHAT IT BRINGS WITH IT. Derived from the declared ability (see entryEffects): the Attack drop,
+   * the weather, and any self-boost it arrives with. Null for the overwhelming majority of Pokemon,
+   * in which case every line below is a no-op and the old numbers stand unchanged. */
+  const entry = entryEffects(incoming.ability, dex);
+  if (entry) {
+    entry.dex = dex;
+    if (entry.selfBoosts) {
+      for (const [k, v] of Object.entries(entry.selfBoosts)) {
+        incoming.boosts[k] = Math.max(-6, Math.min(6, (incoming.boosts[k] || 0) + v));
+      }
+    }
+    /* Mirror Armor sends the drop straight back at whatever just arrived, so the arriving mon can be
+     * the one that ends up weaker. Taken from the first live foe that reflects it. */
+    for (const f of board.field()) {
+      if (f.side === side || !f.mon || f.mon.fainted) continue;
+      const back = monUnderEntry(f.mon, entry, dex).reflected;
+      if (back) {
+        for (const [k, v] of Object.entries(back)) {
+          incoming.boosts[k] = Math.max(-6, Math.min(6, (incoming.boosts[k] || 0) + v));
+        }
+        break;
+      }
+    }
+  }
+  const wxBoard = boardUnderEntry(board, entry);
+
   const inMon = dmgMon(incoming, D);
-  const { worst, threat } = incomingThreat(board, side, user, inMon, D);
+  const { worst, threat } = incomingThreat(board, side, user, inMon, D, entry);
   if (inMon) {
     set('switchSurvives1', worst < 1 ? 1 : 0);
     set('switchSurvives2', worst < 0.5 ? 1 : 0);
@@ -2446,8 +2657,11 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
    * coming IN was built with none, so a Choice Scarf replacement read at two thirds of its speed
    * and a Swift Swim or Chlorophyll one under its own weather read at HALF. See the note on the
    * `incoming` object above for why the sheet is allowed to supply them. */
+  /* Under the weather it is about to set, not the one it is leaving: a Swift Swim or Chlorophyll
+   * Pokemon arriving alongside its own weather is at DOUBLE speed, and the comparison below is the
+   * one that decides whether it gets to act at all. */
   const mySpe = expectedSpe(cand.switchTo, dex, inNature) * speedMult(board, side, dex) *
-                monSpeedMult(incoming, board, dex);
+                monSpeedMult(incoming, wxBoard, dex);
   const foeSide = side === 'p1' ? 'p2' : 'p1';
   const slowFirst = board.hasField(GAME_RULES.trickRoomField);
 
@@ -2474,8 +2688,11 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
   let fastest = 0, liveFoes = 0, koFast = 0, koSlow = 0, diesFirst = 0;
   for (const f of board.field()) {
     if (f.side === side || !f.mon || f.mon.fainted) continue;
+    /* THE FOE GETS THE SAME WEATHER, and it can be the one that benefits — bringing sun in against a
+     * Chlorophyll Pokemon doubles ITS speed, not mine. Priced with the same board as my own speed
+     * above so the comparison is between two mons standing in the same weather. */
     const s2 = expectedSpe(effSpecies(f.mon, dex), dex, f.mon.nature) *
-               speedMult(board, foeSide, dex) * monSpeedMult(f.mon, board, dex);
+               speedMult(board, foeSide, dex) * monSpeedMult(f.mon, wxBoard, dex);
     if (s2 > fastest) fastest = s2;
     liveFoes++;
 
@@ -2489,13 +2706,16 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
      * mean fraction of the defender's max HP. A foe already chipped is killable by less, so the
      * bar is its CURRENT hp rather than a flat 1. */
     let myBest = 0;
-    const fm = dmgMon(f.mon, D);
+    /* The foe as the entry effect leaves it — a Defiant that just went to +2 is not more resistant,
+     * but a Contrary or Simple one has had its DEFENCES moved, and the drop pipeline is the only
+     * place that knows it. Same object the threat loop priced, so both directions agree. */
+    const fm = dmgMon(monUnderEntry(f.mon, entry, dex).mon, D);
     if (inMon && fm) {
       for (const id of (inMon.moves || [])) {
         const mv = MC.moves[id];
         if (!mv || !mv.bp) continue;
         const r = dmgFractions(D, inMon, fm,
-          { basePower: mv.bp, category: mv.c === 'P' ? 'Physical' : 'Special' }, mv.t, false, board);
+          { basePower: mv.bp, category: mv.c === 'P' ? 'Physical' : 'Special' }, mv.t, false, wxBoard);
         if (r && r.mean > myBest) myBest = r.mean;
       }
     }
@@ -2532,4 +2752,4 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * server-side call, so buildMon never applies a mega and every consumer that asked it for a
  * stone-holder's stats got the BASE FORM. This one reads the dex's megaStone property and refuses a
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
-module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf };
+module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop };
