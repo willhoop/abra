@@ -602,7 +602,65 @@ def build():
                        "all_roles": dexfull[mon]}
                  for mon in sorted(dex, key=lambda m: -species_games[m]) if dex[mon]},
     )
+    # ---- CAPABILITY, from Smogon usage, with mega formes folded into their base --------------
+    # WHY THIS EXISTS, and why it is SEPARATE from `roles` above.
+    #
+    # Everything above is p(role | this species appears), measured over the replay store. That is the
+    # right shape for "how is this species usually played" and it is left untouched. It is the WRONG
+    # shape for two questions team building actually asks, and both failed measurably:
+    #
+    #   1. MEGA ABILITIES ARE NEVER SEEN. Team preview shows the BASE forme -- checked: 58,920
+    #      team-preview names in the clean store contain ZERO mega formes (the only /mega/ match is
+    #      Meganium). So a role living on the mega is unobservable. `raichu` carried redirection,
+    #      fakeout and spec_attacker but NOT terrain_electric, even though Raichu-Mega-X is the only
+    #      Electric Surge in this format -- a fact this file's own comment above already records.
+    #   2. SPECIES THE REPLAY STORE BARELY HAS. `charizard` and `swampert` were absent from the tag
+    #      table ENTIRELY, while Smogon has Charizard-Mega-Y at 258,306 and Swampert-Mega at 319,208
+    #      usage. Charizard-Mega-Y runs Drought + Weather Ball + Solar Beam -- a textbook sun core
+    #      the role vocabulary could not see at all.
+    #
+    # Smogon's table carries mega formes as first-class rows WITH their abilities, over the whole
+    # ladder rather than this file's few thousand replays. Folded onto the BASE name, because that is
+    # what a team is built from and what team preview shows.
+    #
+    # PRESENCE, NOT RATE. This asks "can this species do X", so a listed ability counts even at a low
+    # percentage: Smogon records the mega rows' ability slot unreliably (Raichu-Mega-X reads
+    # "No Ability 81%, Electric Surge 19%"), and a frequency filter would discard the very capability
+    # being looked for. Kept in its own key so nothing above is contaminated by a different kind of
+    # evidence -- `roles` stays a measured distribution, `capability` is a reachability set.
+    capability, cap_src = defaultdict(set), {}
+    try:
+        _pri = json.load(open(D("data", "smogon-priors.json"), encoding="utf-8")).get("species") or {}
+        _mega = json.load(open(D("data", "mega-dex-official.json"), encoding="utf-8")).get("forms") or {}
+        _nrm = lambda s: "".join(c for c in (s or "").lower() if c.isalnum())
+        # mega row -> base species, read off the dex rather than by stripping the name
+        base_of = {_nrm(k): _nrm(f.get("base_species") or k) for k, f in _mega.items()}
+        for key, v in _pri.items():
+            if not (v and v.get("raw", 0) > 0):
+                continue
+            moves = [m.get("move") for m in (v.get("moves") or []) if m.get("move")]
+            abils = [a.get("ability") for a in (v.get("abilities") or []) if a.get("ability")]
+            tgt = base_of.get(_nrm(key), _nrm(key))
+            for ab in (abils or [None]):
+                for r in signal_roles(moves, ab, None):
+                    capability[tgt].add(r)
+                    cap_src.setdefault(tgt, {}).setdefault(r, key)
+    except Exception as _e:
+        _sys.stderr.write(f"  capability layer skipped: {_e}\n")
+
+    dex_out["capability_note"] = (
+        "'capability' is a REACHABILITY SET from Smogon usage, not a rate: can this species play this "
+        "role at all. Mega formes are folded onto the base name because team preview shows the base "
+        "-- 0 of 58,920 clean team-preview names is a mega forme, so mega abilities are unobservable "
+        "from replays. Use 'roles' for how a species is usually played; use 'capability' for what a "
+        "team could do. 'capability_from' names the Smogon row each role came from.")
+    dex_out["capability"] = {m: sorted(rs) for m, rs in sorted(capability.items()) if rs}
+    dex_out["capability_from"] = {m: cap_src[m] for m in sorted(cap_src) if cap_src[m]}
+
     json.dump(dex_out, open(D("data","pokemon-roles.json"),"w"), indent=1)
+    _sys.stderr.write(
+        f"  capability layer: {len(dex_out['capability'])} species reachable "
+        f"({len(dex)} tagged from replays)\n")
 
     mm_out = dict(generated=dex_out["generated"], n_games=n_games,
                   roles={r: ROLE_SIGNALS[r]["label"] for r in ROLES},
