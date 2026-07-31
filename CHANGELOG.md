@@ -10,6 +10,83 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.30.0] — 2026-07-31
+
+### Every fix and recommendation from the three reviews
+
+**`validate_damage_sim` was red, and the engine was never wrong.** ADR-001 step 3 blocked on 2 of 36
+scenarios where the simulator's maximum damage was exactly **double** the calculator's with matching
+minima. Diagnosed: the harness probes damage twice (`lo = dmgAt(15)`, `hi = dmgAt(0)`) against the
+**same defender**, and a resist berry (Colbur, Chople) applies through `onSourceModifyDamage` and
+**consumes itself**. The first probe ate the berry and came back correctly halved; the second ran
+against a defender holding nothing. The reported range was `[halved_min, unhalved_max]` — a min/max
+ratio of 0.42 where sixteen damage rolls can only give ~0.85. Same class as the crit leak the file
+already documents: per-call state on a reused object.
+
+```
+before   within-5%  97%   worst 100%   FAIL
+after    within-5% 100%   worst   2%   PASS — the wiring is sound
+```
+
+### Multiplicity correction — `engine/weight_multiplicity.js` (new)
+
+The thesis defence: 56 features are reported with individual 95% intervals and **~2.8 clear zero by
+chance**; no correction existed anywhere. Now measured, family named as the whole shipped vector:
+
+| test | survives |
+|---|---|
+| uncorrected | 53 |
+| Benjamini–Hochberg (FDR) | **53** — nothing lost |
+| Bonferroni (FWER) | 49 |
+
+The four that only Bonferroni drops: `killsThreat`, `priority`, `switchDiesFirst`, `switchSurvives2`.
+Never significant: `allyHit`, `volatileOnFoe`, `tgtDefenseStage`.
+
+### NMF rank — the disclosure the defence required
+
+`SUMMARY.md` advertised *"6 clean archetypes (recon-err 0.53)"*. Reconstruction error **cannot select
+a rank** — `nmf_rank.py`'s own caveat says so. The criterion it does use (bootstrap factor stability,
+Brunet et al. 2004) selects **rank 4**, and **rank 6 scores −0.107 excess over null**: less
+reproducible than factors fitted to shuffled data. Row now reads ⚠️ **Rank not defensible**.
+
+### 48.1% reconciled against 55.9%
+
+Both stand as measurements of **different configurations** — 55.9% on 53 features with switching off,
+48.1% [46.5, 49.8] on 56 with switching on, over 9,728 paired games. Neither generalises to "self-play
+helps". Three candidate causes named and untested.
+
+### The bring phrasing the filter mandates
+
+`require_full_bring` conditions on game length: measured, the games it keeps are **1.71× longer**
+(7.4 vs 4.3 mean turns, 19,589 kept / 8,713 dropped). Every bring statistic is *"the bring, among
+games long enough to show it"*. Now stated in `SUMMARY.md` and the white paper, as
+`quality-filter.json` has always required.
+
+### Gates wired
+
+- **`validate_damage.js`** — the golden master against `@smogon/calc`, previously **not in the
+  suite**. The coverage assertion missed it because it detects checks by *output format*; widened to
+  recognise a gate by behaviour, then narrowed after the first version matched 36 files.
+- **`validate_damage_sim.js`** — found by that widening.
+- **`provenance.js --strict`** — both the systems audit and the engineering review found it
+  independently: correct, complete, wired to nothing. **It is red at 31 artifacts.** The fix is to
+  regenerate them, not to remove it from the list.
+
+### Also
+
+- `@smogon/calc` pinned to exactly **0.11.0** — it is the ground truth of the damage golden master and
+  was a caret range.
+- The simulator pin is now **verified**, not asserted: `actualCommit()` reads HEAD, `verify()` reports
+  `commit_matches` as true/false/**null-for-unknown**, and `mew.js` stamps the **real** commit —
+  it previously stamped the constant, so a checkout at any other commit still produced records
+  claiming `20ad99ff`.
+- Paralysis (×0.5) and Tailwind (×2) now checked in `test-engine-consistency.js`. `CLAUDE.md` names
+  three multipliers that must be one definition; only Scarf was guarded.
+- The suite's only literal tautology (`ok(true, …)`) replaced with a real assertion, and a silent
+  fallback in `position_features.js` that reverted a documented bug is now counted.
+
+---
+
 ## [3.29.0] — 2026-07-31
 
 ### Three features from the tag artifact, and all three are large

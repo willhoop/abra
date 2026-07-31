@@ -112,6 +112,28 @@ console.log('== 1. the sheet\'s ITEM ==');
   const m2 = M.buildMon(mine); m2.item = 'choicescarf';
   const r = M.effSpeed(m2, NEUTRAL, 'A') / Math.max(1, M.effSpeed(m1, NEUTRAL, 'A'));
   ok(Math.abs(r - 1.5) < 0.01, 'medicham2 effSpeed applies Choice Scarf as exactly x1.5', `x${r.toFixed(3)}`);
+
+  /* THE OTHER TWO MULTIPLIERS, which nothing checked until the 2026-07-31 systems audit.
+   *
+   * CLAUDE.md names three facts that must be one definition: "Scarf x1.5, paralysis x0.5, Tailwind
+   * x2". board.js DERIVES all three by calling the dex's own onModifySpe handlers and types no
+   * number; medicham2-browser.js HARDCODES all three, because it runs in the browser where the dex
+   * is not available. That duplication is not removable, so it needs a check — and the check covered
+   * only Scarf, leaving two thirds of the stated rule unguarded.
+   *
+   * These assert the CONSTANT medicham2 uses, which is the half that can drift silently. board.js's
+   * half is guarded by the switchFaster check above: it cannot type a wrong number because it types
+   * no number. tag_dex.js:1209 already records Champions diverging from the default full-paralysis
+   * rate, so this format demonstrably does move. */
+  const parMon = M.buildMon(mine); parMon.status = 'par';
+  const wellMon = M.buildMon(mine); wellMon.status = '';
+  const rPar = M.effSpeed(parMon, NEUTRAL, 'A') / Math.max(1, M.effSpeed(wellMon, NEUTRAL, 'A'));
+  ok(Math.abs(rPar - 0.5) < 0.01, 'medicham2 effSpeed applies paralysis as exactly x0.5', `x${rPar.toFixed(3)}`);
+
+  const twOn = M.buildMon(mine), twOff = M.buildMon(mine);
+  const rTw = M.effSpeed(twOn, { twA: 4, twB: 0, tr: 0 }, 'A') /
+              Math.max(1, M.effSpeed(twOff, NEUTRAL, 'A'));
+  ok(Math.abs(rTw - 2.0) < 0.01, 'medicham2 effSpeed applies Tailwind as exactly x2', `x${rTw.toFixed(3)}`);
 }
 
 /* ================= 2. A DECLARED ABILITY MUST REACH EVERY ENGINE =========================== */

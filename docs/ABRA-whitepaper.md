@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.29.0 · Last updated 2026-07-31**
+**Version 3.30.0 · Last updated 2026-07-31**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -117,6 +117,9 @@ yet empirically supported. This negative is a guardrail: it stops optimising a b
 carries no held-out winning signal . Report `data/chomp-ev.json`; test
 `tests/test-chomp-ev.js`.
 
+**A phrasing the filter itself mandates.** `require_full_bring` conditions on game length: measured 2026-07-31, the games it keeps are **1.71x longer** on average (7.4 vs 4.3 mean turns; 19,589 kept vs 8,713 dropped). Every bring statistic in this project is therefore *"the bring, **among games long enough to show it**"*, which is not the same as "the bring". `data/quality-filter.json` states this at the point of filtering and requires it to be said downstream; this is that.
+
+
 ### 4.5 SLOWKING — team-preview Nash and the playstyle cycle (suggestive)
 `engine/slowking_preview.py` solves a matchup matrix to a mixed-strategy equilibrium and grades it by
 **exploitability** (the worst-case win-edge a best pure counter extracts; lower is better; Nash ≈ 0),
@@ -200,6 +203,8 @@ cores beat which" and for quantifying how cyclic the meta really is.
    overdispersion check across teams (~1.00, against 1.169 for a known real effect) rules out the
    obvious confound, so the nulls are genuine. Adding knowledge to an imitation-fitted policy has
    stopped paying.
+
+> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (consistent with the older 10-point switching loss), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
 
    The cleanest demonstration is the pair-scoring layer (DODUO), which is **built, wired, controlled
    and measured, and loses at 42.0%** [39.9, 44.3] over 1,934 seed-paired games against its own

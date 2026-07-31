@@ -61,8 +61,16 @@ const testFiles = fs.readdirSync(D('tests'))
  * dropped within-5% agreement to 94% (needs >=95) with a worst case of 25% (needs <=8), and
  * validate_damage caught it while the full suite stayed green. It exits 2 when @smogon/calc is
  * absent, which this runner treats as SKIP, so listing it is safe on a machine without the dep. */
+/* provenance.js runs with --strict, which exits 1 when any artifact is UNSAFE TO QUOTE. Both the
+ * 2026-07-31 systems audit and the engineering review found the same thing independently: the tool
+ * was correct, complete, and wired to nothing, so 31 artifacts computed under superseded filter rules
+ * sat unflagged while the roadmap called them "the blocker on everything in section 3".
+ *
+ * Two independent reviews finding the same unwired gate is the signal. It is wired now. If this is
+ * red, the fix is to REGENERATE the artifacts it names — not to remove it from this list. */
 const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_audit.js',
-  'engine/validate_damage.js', 'engine/validate_damage_sim.js', 'engine/validate_selfplay.js'];
+  'engine/validate_damage.js', 'engine/validate_damage_sim.js', 'engine/provenance.js',
+  'engine/validate_selfplay.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
@@ -108,7 +116,11 @@ function plan(rel) {
   const needsSim = /champions_sim|SHOWDOWN_PATH/.test(src);
   if (needsSim && !HAS_SIM) return { skip: 'needs the Showdown simulator; SHOWDOWN_PATH is not set' };
   if (rel.endsWith('.py') && !PY) return { skip: 'no working python 3 interpreter found' };
-  return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel)] };
+  /* Per-check extra arguments. provenance.js reports by default and only GATES with --strict, so the
+   * runner must ask for the strict behaviour or it would list unsafe artifacts and exit 0 — a gate
+   * that reads as a pass, which is the failure this file exists to prevent. */
+  const EXTRA = { 'engine/provenance.js': ['--strict'] };
+  return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 
 if (LIST_ONLY) {

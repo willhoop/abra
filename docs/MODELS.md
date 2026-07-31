@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.29.0 · Last updated 2026-07-31.**
+**Version 3.30.0 · Last updated 2026-07-31.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -138,6 +138,8 @@ measured 55.9%. Re-running MACHAMP on the current vector is roadmap item 4. Keep
 it honest: every promoted champion plays EVERY previous generation, because this metagame is cyclic
 and "gen 5 beats gen 4" is not progress.
 **Code:** `engine/ladder.js` → `data/ladder.json`. Companion: `engine/brood.js` (how many candidates a generation can actually tell apart).
+
+> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (consistent with the older 10-point switching loss), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
 
 ## WOBBUFFET — the counter that finds MAG's leak (named 2026-07-28)
 **Job:** how readable is MAG? Build the bot whose only purpose is to beat it, and see how badly it wins.

@@ -110,8 +110,29 @@ function simDamage(sc, calcStats) {
    *
    * A fresh active move per call also matters: moveHitData caches the crit decision per target slot
    * on the move object, so a reused move leaks the first call's outcome into the second. */
+  /* THE ITEM MUST BE RESTORED BETWEEN PROBES, and not doing so was a real bug in THIS HARNESS —
+   * not in the engine it was accusing.
+   *
+   * A resist berry (Colbur halves a super-effective Dark hit, Chople a Fighting one) applies through
+   * onSourceModifyDamage and CONSUMES ITSELF in the process. So `lo = dmgAt(15)` ate the berry and
+   * came back correctly halved, and `hi = dmgAt(0)` then ran against a defender holding nothing and
+   * came back at full damage. The reported range was [halved_min, unhalved_max]:
+   *
+   *     Rillaboom closecombat -> Kingambit @Chople   calc 126-150   sim 126-300
+   *     the same matchup with no berry               calc 252-300   sim 252-300   (agreed)
+   *
+   * That produced a min/max ratio of 0.42 where sixteen damage rolls can only ever give ~0.85 — the
+   * tell that the two ends of the range were not measuring the same thing. It read as "we are driving
+   * the simulator wrong" on 2 of 36 scenarios and blocked ADR-001 step 3.
+   *
+   * The same class as the crit leak the note above records: per-call state on a reused object. A
+   * fresh active move was already created each call; the DEFENDER was not reset, and the berry lives
+   * on the defender. */
   const orig = battle.random.bind(battle);
+  const tgtItem = tgt.item, tgtItemState = tgt.itemState;
   const dmgAt = (rollValue) => {
+    tgt.item = tgtItem;
+    tgt.itemState = Object.assign({}, tgtItemState || {});
     battle.random = (n) => (n === 16 ? rollValue : 1);
     const m = battle.dex.getActiveMove(moveName);
     m.willCrit = false;

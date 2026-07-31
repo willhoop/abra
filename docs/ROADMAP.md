@@ -206,6 +206,8 @@ nulls; two changes to the OBJECTIVE produced two large wins** (greedy +12 points
 pairs; self-play 55.9%). The objective is the binding constraint, and DODUO has only ever been fitted
 to the losing one.
 
+> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (consistent with the older 10-point switching loss), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
+
 *The gap is small and exact.* `train_policy.js` has no joint support, and `magnemite.js`'s learning
 gradient is sized to `this.w` (53 singles) while the joint vector is `this.wj` (53 + 21 = 74). The
 pair softmax is the same conditional logit and `accumulateLogitGrad(g, vecs, probs, j, nW)` is
