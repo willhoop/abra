@@ -80,6 +80,29 @@ const SEED0 = parseInt(arg('seed', String((Math.floor(Date.now() / 60000) * 997)
  * Both arms carry the layer: mew.js refuses --learn with it on one side, because the run gradient
  * sums both sides and index k would be a different feature in each. */
 const JOINT = process.argv.includes('--joint');
+/* --joint-only  FREEZE THE 56 SINGLES AND SPEND THE WHOLE STEP ON THE 18 PAIR TERMS.
+ *
+ * WHY THIS EXISTS, measured 2026-07-31. The first joint run (10 iterations, 48,691 games) moved the
+ * pair block by 0.390 against its own length of 8.248 -- 4.7% -- while the singles moved 21.7%.
+ * `spreadFreeBesideAlly`, the single weight ROADMAP item 1 names as the whole problem, went from
+ * -4.986 to -4.687. It is still -4.7. The run did not touch the thing it existed to fix.
+ *
+ * The cause is the trust region, and it is structural rather than a tuning accident. The step is
+ * `scale = TRUST * ||w|| / ||grad||` applied to ONE 74-length vector, so the two blocks share a
+ * budget in proportion to their gradient mass. A single feature like dmgFrac is present in nearly
+ * every choice set; a pair feature like spreadFreeBesideAlly needs a free spread move AND an ally
+ * beside it. The singles therefore dominate ||grad|| and the pair block is starved by construction.
+ * More iterations do not fix this -- they scale both blocks equally.
+ *
+ * Zeroing the singles' gradient makes ||grad|| the PAIR gradient alone, so the whole trust-region
+ * step goes to the block being tested. It also makes the head-to-head exact: the singles are
+ * bit-identical between the arms because they were never written, so the only thing that differs is
+ * the 18 coordination weights. That is the experiment ROADMAP item 1 actually asks for. */
+const JOINT_ONLY = process.argv.includes('--joint-only');
+if (JOINT_ONLY && !JOINT) {
+  console.error('REFUSING: --joint-only without --joint. There is no pair block to train on its own.');
+  process.exit(1);
+}
 const BASE = path.resolve(arg('from', D('data', JOINT ? 'policy-weights-joint.json' : 'policy-weights.json')));
 const OUTDIR = path.resolve(arg('outdir', D('data', 'train')));
 const WORK = path.resolve(arg('work', D('data', '.train-games.jsonl')));
@@ -186,6 +209,10 @@ console.log(`  from            ${path.relative(ROOT, BASE)}  (${w.length} weight
 console.log(`  iterations      ${ITERS} x ${GAMES.toLocaleString()} games  (${(ITERS * GAMES).toLocaleString()} total)`);
 console.log(`  trust region    ${TRUST}  (fraction of ||w|| moved per step)`);
 console.log(`  anchor to clone ${ANCHOR || 'off'}`);
+if (JOINT_ONLY) {
+  console.log(`  SINGLES FROZEN  only the ${NJ} pair terms move; the ${NF} singles are bit-identical throughout,`);
+  console.log(`                  so the head-to-head differs in the coordination block and nothing else`);
+}
 console.log(`  checkpoints     ${path.relative(ROOT, OUTDIR)}\n`);
 
 const curFile = path.join(OUTDIR, 'current.json');
@@ -249,6 +276,10 @@ for (let it = 1; it <= ITERS; it++) {
     process.exit(1);
   }
 
+  /* THE FREEZE, applied to the GRADIENT rather than to the update, so that ||grad|| below is the
+   * pair gradient and the trust region sizes the step to the block actually being moved. Zeroing
+   * after the scale was computed would have left the same starved step with a tidier printout. */
+  if (JOINT_ONLY) for (let k = 0; k < NF; k++) grad[k] = 0;
   const gn = norm(grad), wn = norm(w);
   if (!(gn > 0)) { console.error(`iteration ${it}: zero gradient. Stopping.`); process.exit(1); }
   const scale = (TRUST * wn) / gn;
@@ -281,6 +312,22 @@ fs.writeFileSync(path.join(OUTDIR, 'history.json'), JSON.stringify({ base: path.
 const NAMES = JOINT ? B.FEATURES.concat(B.JOINT_FEATURES) : B.FEATURES;
 const delta = w.map((x, k) => ({ f: NAMES[k] || `#${k}`, from: wBC[k], to: x, d: x - wBC[k] }))
   .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+if (JOINT_ONLY) {
+  /* Print ALL 18, not a top-12 slice. The block is small enough to read whole, and a slice is how a
+   * block that barely moved gets reported as "the biggest changes were..." -- which is true and
+   * useless. The norms below are the number that says whether the run did anything. */
+  const NFq = NF;
+  const pn = (v) => Math.sqrt(v.reduce((a, x) => a + x * x, 0));
+  const from = wBC.slice(NFq), to = w.slice(NFq);
+  console.log(`\n  ALL ${NJ} PAIR TERMS (fitted to resemble -> trained to win)`);
+  B.JOINT_FEATURES.map((f, i) => ({ f, a: from[i], b: to[i], d: to[i] - from[i] }))
+    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d))
+    .forEach(r => console.log(`    ${r.d >= 0 ? '+' : ''}${r.d.toFixed(3)}   ${r.f.padEnd(26)} ${r.a.toFixed(3)} -> ${r.b.toFixed(3)}`
+      + (r.a * r.b < 0 ? '   SIGN FLIP' : '')));
+  console.log(`\n    pair block moved ${pn(to.map((x, i) => x - from[i])).toFixed(3)} against its own length ${pn(from).toFixed(3)}`
+    + ` (${(100 * pn(to.map((x, i) => x - from[i])) / pn(from)).toFixed(1)}%)`);
+  console.log(`    singles moved    ${pn(w.slice(0, NFq).map((x, i) => x - wBC[i])).toFixed(3)}  <- must be 0.000, they were frozen`);
+}
 console.log(`\n  BIGGEST WEIGHT CHANGES (self-play vs the human clone)`);
 for (const r of delta.slice(0, 12)) {
   console.log(`    ${r.d >= 0 ? '+' : ''}${r.d.toFixed(3)}   ${r.f.padEnd(20)} ${r.from.toFixed(3)} -> ${r.to.toFixed(3)}`);
