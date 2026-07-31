@@ -253,13 +253,32 @@ function priorityRefusedAbove(board, side, field) {
  * effSpeed carries Choice Scarf, Tailwind, paralysis, the weather Speed abilities and stat stages;
  * movePriority carries the terrain-conditional cases like Grassy Glide. Both come from the engine
  * rather than being restated here, so there is one definition of the queue in this project. */
+/* DEGRADATION COUNTERS. Zero is the expected value of every field here; a non-zero one means some
+ * consumer silently got a worse answer than this module promises. Read it, do not just trust it. */
+const STATS = { speedFallbacks: 0, lastSpeedError: null };
+
 function movesFirst(att, attMoveId, attSideTag, def, defMoveId, defSideTag, field, trickRoom) {
   const pa = attMoveId ? M.movePriority(attMoveId, field) : 0;
   const pd = defMoveId ? M.movePriority(defMoveId, field) : 0;
   if (pa !== pd) return pa > pd;
+  /* THE FALLBACK IS NOW COUNTED, because it reverts to the exact bug the comment above records as
+   * fixed. If effSpeed throws, these catches quietly substitute RAW `st.sp` — no Choice Scarf, no
+   * Tailwind, no paralysis, no weather Speed ability. That is "compared raw st.sp while its own
+   * comment claimed to use effective speed", reintroduced silently on any exception.
+   *
+   * And it CAN throw. Measured 2026-07-31: effSpeed raises on a missing `field`, on a null mon, and
+   * on a mon built without `boosts` — all reachable from a caller that assembles a Pokemon by hand
+   * rather than through M.buildMon.
+   *
+   * This project's idiom everywhere else is to COUNT a degradation rather than absorb it
+   * (`stats.jointFellBack` in magnemite.js; the worker capability accounting in mew_farm.js). A
+   * fallback indistinguishable from success is how the original bug survived. Exported as STATS so a
+   * caller or a test can assert it stayed at zero. */
   let sa = 0, sd = 0;
-  try { sa = M.effSpeed(att, field, attSideTag); } catch (e) { sa = (att && att.st && att.st.sp) || 0; }
-  try { sd = M.effSpeed(def, field, defSideTag); } catch (e) { sd = (def && def.st && def.st.sp) || 0; }
+  try { sa = M.effSpeed(att, field, attSideTag); }
+  catch (e) { STATS.speedFallbacks++; STATS.lastSpeedError = e.message; sa = (att && att.st && att.st.sp) || 0; }
+  try { sd = M.effSpeed(def, field, defSideTag); }
+  catch (e) { STATS.speedFallbacks++; STATS.lastSpeedError = e.message; sd = (def && def.st && def.st.sp) || 0; }
   return trickRoom ? sa < sd : sa > sd;
 }
 
@@ -409,4 +428,4 @@ function positionFeatures(board, side, dex) {
   return x;
 }
 
-module.exports = { POSITION_FEATURES, POSITION_INDEX, positionFeatures };
+module.exports = { POSITION_FEATURES, POSITION_INDEX, positionFeatures, STATS };

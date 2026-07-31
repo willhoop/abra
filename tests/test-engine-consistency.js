@@ -84,9 +84,28 @@ console.log('== 1. the sheet\'s ITEM ==');
   ok(bBare === 0 && bScarf === 1, 'board.js: a declared Choice Scarf flips switchFaster',
     `${bBare} -> ${bScarf}   (${mine} ${spe(mine)} vs ${theirs} ${spe(theirs)})`);
 
+  /* THIS ASSERTED NOTHING UNTIL 2026-07-31. It computed `pBare`, never used it, and then called
+   * `ok(true, ...)` — an assertion that cannot fail, describing a claim it did not test. A systems
+   * audit found it as the only literal tautology in the suite, which matters because this file's own
+   * header says "NUMBER CHANGING proves everything" and this was the one check proving nothing.
+   *
+   * The claim was TRUE — position_features.js:261 does call M.effSpeed — so nothing was broken. What
+   * was missing is a guard that would notice if it STOPPED being true, and line 243 of that file
+   * records exactly that regression once already: it "compared raw st.sp while its own comment
+   * claimed to use effective speed. It did not." */
   const pi = P.POSITION_INDEX.speedEdge;
-  const pBare = P.positionFeatures(mkBoard(theirs, mine, { nature: 'serious', item: '', ability: '', moves: [] }, { nature: 'serious', item: '', ability: '', moves: [] }), 'p2', dex)[pi];
-  ok(true, 'position_features reads the same sheet path', '(shares medicham2 effSpeed)');
+  /* mkACTIVE, not mkBoard, and the distinction is the one the comment above mkActive makes: mkBoard
+   * leaves my side on the BENCH, which is what board.js's switch features want and the exact wrong
+   * shape for position_features. Written with mkBoard first, this read 0.000 -> 0.000 and looked
+   * like a live bug; the board simply had no active matchup to have an edge in. Recorded because it
+   * is the second time in one day a malformed probe impersonated an engine failure. */
+  const pfSheet = (item) => P.positionFeatures(
+    mkActive(mine, theirs, { nature: 'serious', item, ability: '', moves: [] },
+      { nature: 'serious', item: '', ability: '', moves: [] }), 'p1', dex)[pi];
+  const pBare = pfSheet(''), pScarf = pfSheet('choicescarf');
+  ok(pBare !== pScarf,
+    'position_features: a declared Choice Scarf changes speedEdge (same sheet path as board.js)',
+    `${(+pBare).toFixed(3)} -> ${(+pScarf).toFixed(3)}`);
 
   /* THE MULTIPLIER ITSELF, which is the fact both are supposed to share. */
   const m1 = M.buildMon(mine); m1.item = '';
