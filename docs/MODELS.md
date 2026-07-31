@@ -34,6 +34,24 @@ variance, and precisely what WOBBUFFET searches for.
 **I retired this earlier and was wrong.** The retirement rested on the double-target rate — MAG 24.6%
 against humans 23.2%. That metric touches **2 of the 18 features**. Judging a team-coordination model
 by a targeting statistic is judging a ninth of it.
+**TRAINABLE FOR WINNING SINCE 2026-07-31** (`ce5367c`). Every number below this line was fitted to
+predict a human click, including all 18 pair terms — the objective this project has measured as the
+binding constraint twice. `train_policy.js --joint` now moves the pair block by whether the game was
+**won**. The gradient of the pair softmax is the concatenation `[xa + xb, jf]`: the two single
+vectors summed (both are scored by the same single block `wS = wj.slice(0, 56)`), then the 18 pair
+terms. Vector length **74 = 56 + 18**.
+
+Wiring notes that matter to anyone touching it: `--joint` is **per arm**, so a training run needs
+`--joint --joint2` and `mew.js` refuses `--learn` without the pair; each iteration's checkpoint
+reaches the players through `--joint-weights`, because magnemite otherwise re-reads the frozen
+`data/policy-weights-joint.json` and the pair terms never move; `preflight.js` reports `joint (pair
+terms)` as its own block, so a dead coordination layer reads as one cause rather than 18.
+
+*Status: wired and gated, **not yet measured for winning**. Do not quote a win rate for trained
+DODUO — none exists.* First evidence it moves at all: two iterations at 40 games each put
+`bothSameTarget` **+0.164** (third-largest change in the whole vector), `overkill` **+0.120**,
+`focusFireKills` **+0.094** — self-play wants focus fire more than the human fit did.
+
 **Refitted at 48 features 2026-07-28** — 5,250 clean games, 18,740 usable joint turns, 15,345 train /
 3,395 held out:
 

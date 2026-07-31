@@ -111,6 +111,19 @@ if (JOINT) {
 const wBC = baseJson.weights.slice();
 let w = wBC.slice();
 
+/* THE SINGLES MIRROR, DEFINED BEFORE THE GATE because the gate has to run the configuration the
+ * real run will run. magnemite's `this.w` is 56 long even in joint mode -- the pair path scores with
+ * wj.slice(0, 56), but forced-switch and team-preview read this.w -- so --weights must receive 56
+ * entries and the 74-length vector reaches the players through --joint-weights. Handing BASE (74) to
+ * --weights killed all five preflight workers on 2026-07-31. */
+const singlesFile = path.join(OUTDIR, 'current-singles.json');
+const writeSingles = (weights) => fs.writeFileSync(singlesFile, JSON.stringify({
+  generated: new Date().toISOString(), by: 'engine/train_policy.js (--joint singles mirror)',
+  note: 'first 56 entries of the joint checkpoint. Not a fit, not a measurement, do not cite.',
+  features: B.FEATURES, weights: weights.slice(0, NF),
+}, null, 1));
+if (JOINT) writeSingles(wBC);
+
 /* ---- PREFLIGHT: refuse to spend hours training a block that cannot move ----------------------
  *
  * Two runs of this file, 144,000 games each, finished before anyone noticed the SWITCH WEIGHTS WERE
@@ -137,7 +150,11 @@ if (JOINT && !FARM_FLAGS.includes('--joint2')) FARM_FLAGS.push('--joint2');
 if (process.argv.includes('--joint-zero') && !FARM_FLAGS.includes('--joint-zero2')) FARM_FLAGS.push('--joint-zero2');
 if (!process.argv.includes('--skip-preflight')) {
   const pf = spawnSync(process.execPath, [D('engine', 'preflight.js'), '--n', '24',
-    '--weights', BASE, ...FARM_FLAGS], { env: process.env, encoding: 'utf8', maxBuffer: 1 << 26 });
+    '--weights', JOINT ? singlesFile : BASE,
+    /* THE GATE MUST BE CHECKED UNDER THE FILES THE RUN WILL USE, for the same reason it is checked
+     * under the run's FLAGS: a gate that certifies a different configuration is theatre. */
+    ...(JOINT ? ['--joint-weights', BASE, '--joint-weights2', BASE] : []),
+    ...FARM_FLAGS], { env: process.env, encoding: 'utf8', maxBuffer: 1 << 26 });
   if (pf.status !== 0) {
     process.stdout.write(pf.stdout || '');
     console.error('\nREFUSING TO START: preflight found a feature block that receives no gradient.');
@@ -177,12 +194,6 @@ const curFile = path.join(OUTDIR, 'current.json');
  * SHIPPED singles while the joint vector moved would put this run's own decisions out of sync with
  * the gradient it is accumulating by iteration 2. So the first 56 entries of the checkpoint are
  * mirrored out each iteration and passed as --weights. */
-const singlesFile = path.join(OUTDIR, 'current-singles.json');
-const writeSingles = (weights) => fs.writeFileSync(singlesFile, JSON.stringify({
-  generated: new Date().toISOString(), by: 'engine/train_policy.js (--joint singles mirror)',
-  note: 'first 56 entries of the joint checkpoint. Not a fit, not a measurement, do not cite.',
-  features: B.FEATURES, weights: weights.slice(0, NF),
-}, null, 1));
 writeWeights(curFile, w, { iter: 0, note: 'copy of the starting clone' });
 if (JOINT) writeSingles(w);
 

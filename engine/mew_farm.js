@@ -294,6 +294,20 @@ Promise.all(workers).then(async () => {
       const rate = kept / Math.max(1, elapsed);
       console.error(`\nMEW FARM done: ${kept.toLocaleString()} games in ${(elapsed / 60).toFixed(1)} min ` +
                     `(${rate.toFixed(0)}/sec, ${failed} workers failed, ${dupes} duplicate ids dropped)`);
+  /* AN ALL-DEAD RUN EXITED 0. The failure count was printed and then thrown away, so a farm whose
+   * workers every one crashed on startup was indistinguishable, to any caller checking the exit
+   * code, from a farm that ran cleanly and wrote nothing. train_policy.js's preflight gate hit
+   * exactly this on 2026-07-31: it passed a 74-length joint vector as --weights, all five workers
+   * refused it, the farm reported success, and the gate diagnosed "NOTHING WAS LEARNED" -- which
+   * points at the FEATURES rather than at the flag, and is the diagnosis that costs the hours.
+   *
+   * Partial failure stays a warning rather than an error: a run may legitimately lose a worker and
+   * still be worth its games, and the count above says so. Zero games is never legitimate. */
+  if (failed >= PROCS || !kept) {
+    console.error(`\nmew_farm: ${failed} of ${PROCS} workers failed and ${kept} games were written.`);
+    console.error('Exiting non-zero. A caller must not be able to mistake this for a completed run.');
+    process.exitCode = 1;
+  }
       console.error(`  -> ${path.relative(ROOT, OUT)}`);
       console.error(`  -> ${path.relative(ROOT, RAW_OUT)}  (${rawKept.toLocaleString()} raw logs)`);
       if (rawKept !== kept) {

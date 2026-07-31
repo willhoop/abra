@@ -208,10 +208,45 @@ to the losing one.
 
 > **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (consistent with the older 10-point switching loss), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
 
-*The gap is small and exact.* `train_policy.js` has no joint support, and `magnemite.js`'s learning
-gradient is sized to `this.w` (53 singles) while the joint vector is `this.wj` (53 + 21 = 74). The
-pair softmax is the same conditional logit and `accumulateLogitGrad(g, vecs, probs, j, nW)` is
-already generic — this is wiring, not a new model.
+> **THE WIRING IS DONE, 2026-07-31 (commit `ce5367c`).** It was wiring, as this item predicted, and
+> the arithmetic in the sentence below was wrong in its parts while right in its total: the vector is
+> **56 singles + 18 pair terms = 74**, not 53 + 21.
+>
+> The pair softmax is `P(q) = exp(s_q)/Σ exp(s_k)` with `s_q = wS·xa + wS·xb + wJ·jf`, so the feature
+> vector attached to pair *q* is the concatenation `[xa + xb, jf]` — the two single vectors **summed**,
+> because both are scored by the same single block. `accumulateLogitGrad` was already generic over
+> length, so no new mathematics was needed.
+>
+> **Four separate faults would each have produced a plausible and wrong learning curve**, and every
+> one was caught by a check rather than by reading the code:
+>
+> | fault | what it would have looked like |
+> |---|---|
+> | `mew.js` sized the run gradient from the **single** weight file and summed with `k < GRAD.length` | 74 truncated to 56 — every pair weight silently dropped, curve printed as normal |
+> | `magnemite.js` allocated `learnGrad` ~50 lines **before** `this.wj` loaded, so `this.joint` was still false | every joint player returns 56 entries; caught by the above on the first 6-game probe |
+> | `magnemite.js` read the joint vector from a **hardcoded** path | every iteration replays the frozen shipped fit; pair terms never move; flat curve reads as convergence |
+> | `preflight.js` indexed only `B.FEATURES` | the gate certifies a joint run **without checking the block that run exists to train** |
+>
+> `--joint` on one arm is the A/B experiment, not a training configuration. `mew.js` now refuses
+> `--learn` with the layer on one side (the run gradient sums both sides, and index *k* is a different
+> feature in each); `train_policy.js` adds the mirror flag rather than leaving it to be remembered.
+>
+> **Measured:** preflight at 24 games with `--joint --joint2 --switching --switching2` — every block
+> live, pair block 15 of 18 live, |gradient| 9.12. Two real iterations at 40 games each move the pair
+> terms on their own merit: `bothSameTarget` **+0.164** (third-largest change in the whole 74-vector),
+> `overkill` **+0.120**, `focusFireKills` **+0.094**. Suite 40 passed / 2 failed, the same two known
+> failures.
+>
+> **Nothing about winning has been measured.** What remains is the run itself and its gate:
+>
+> ```
+> node engine/train_policy.js --joint --switching --switching2 --procs 6 --iters <N> --games <G>
+> ```
+>
+> then the head-to-head the trainer now prints, in which **both arms run the pair path with identical
+> singles and only the 18 pair weights differ** — so it measures *trained to win* against *fitted to
+> resemble*, and nothing else. The previous printout passed a 74-length file to `--weights`, which
+> would have been rejected outright or, worse, run an experiment whose arms differed in the wrong block.
 
 *A trap already paid for once:* `fit_joint` fits its single block and its pair block TOGETHER, and 23
 of 48 features carry opposite signs between that fit and the shipped one. Mixing the two vectors lost
