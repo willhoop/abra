@@ -161,7 +161,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
    * happened on the first 20,000-game comparison. Forwarded rather than re-declared, so a flag added
    * to mew.js is farmable without touching this file. */
   const extra = [];
-  for (const k of ['policy2', 'format', 'weights', 'weights2', 'randmove']) {
+  for (const k of ['policy2', 'format', 'weights', 'weights2', 'randmove', 'joint-weights', 'joint-weights2']) {
     const v = arg(k, '');
     if (v) extra.push('--' + k, v);
   }
@@ -180,7 +180,7 @@ const workers = Array.from({ length: PROCS }, (_, i) => new Promise((resolve) =>
    * mew.js parses argv ad hoc rather than declaring options -- so it does the next best thing and
    * refuses to run rather than dropping something the caller asked for. */
   const KNOWN_VALUE = ['policy2', 'format', 'weights', 'weights2', 'randmove', 'n', 'procs', 'conc',
-    'seed', 'out', 'policy'];
+    'seed', 'out', 'policy', 'joint-weights', 'joint-weights2'];
   const unknown = [];
   for (let i = 2; i < process.argv.length; i++) {
     const a = process.argv[i];

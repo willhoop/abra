@@ -187,7 +187,11 @@ function makeScoringPlayer(opts = {}) {
         throw new Error('learn and greedy are mutually exclusive: a policy gradient needs a sampling policy, ' +
                         'and an argmax has no gradient to follow. Drop --greedy from the training run.');
       }
-      this.stats.learnGrad = this.learn ? new Array(this.w.length).fill(0) : null;
+      /* SIZED TO THE VECTOR ACTUALLY BEING TRAINED. This was `this.w.length` (56 singles), so when
+       * the joint layer was on the gradient had no room for the 21 pair weights and DODUO could
+       * never be trained -- the exact gap docs/ROADMAP.md names as item 1. `this.wj` is set below,
+       * so the allocation is deferred until after it. */
+      this.stats.learnGrad = null;
       this.stats.learnDecisions = 0;
       this.stats.learnSide = null;
       /* THE JOINT LAYER, OPT-IN. data/policy-weights-joint.json holds FEATURES.length single weights
@@ -232,17 +236,29 @@ function makeScoringPlayer(opts = {}) {
       this.jointK = +(options && options.jointK) || 6;
       if (options && (options.joint || options.jointZero)) {
         try {
-          const JW = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'policy-weights-joint.json'), 'utf8'));
+          /* The path is an OPTION, not a constant, because self-play has to point each iteration at
+           * its own checkpoint. Hardcoding it meant every iteration of a joint training run would
+           * have replayed the same frozen vector and produced a flat curve that looked like
+           * convergence. Defaults to the shipped fit so every existing caller is unchanged. */
+          const jwFile = (options && options.jointWeightsFile)
+            || path.join(__dirname, '..', 'data', 'policy-weights-joint.json');
+          const JW = JSON.parse(fs.readFileSync(jwFile, 'utf8'));
           const okS = (JW.features || []).join(',') === B.FEATURES.join(',');
           const okJ = (JW.jointFeatures || []).join(',') === B.JOINT_FEATURES.join(',');
           if (!okS || !okJ) throw new Error('joint weights do not match board.js — refit engine/fit_joint.js');
           if ((JW.weights || []).length !== B.FEATURES.length + B.JOINT_FEATURES.length) throw new Error('joint weight vector is the wrong length');
-          this.wj = JW.weights; this.joint = true;
+          this.wj = JW.weights; this.joint = true; this.jointWeightsFile = jwFile;
         } catch (e) {
           /* Loud. Asking for the joint layer and silently not getting it is the failure this project
            * has already been bitten by twice. */
           throw new Error(`magnemite: joint layer requested but unavailable — ${e.message}`);
         }
+      }
+      /* ALLOCATED HERE, AFTER `this.wj` IS KNOWN -- not beside `this.learn` above, where `this.joint`
+       * is still false and every joint player would have handed back a 56-length gradient with its
+       * 18 pair entries missing. Caught by mew.js's length check on the first six-game probe. */
+      if (this.learn) {
+        this.stats.learnGrad = new Array(this.joint && this.wj ? this.wj.length : this.w.length).fill(0);
       }
       /* RISK PREFERENCE, and it must be asked for. `{ skillGap, strength }` -- skillGap is what you
        * believe about the opponent in win-probability points, strength is how hard to tilt. Absent or
@@ -763,6 +779,38 @@ function makeScoringPlayer(opts = {}) {
       let q = 0;
       if (this.greedy) { let best = -Infinity; for (let z = 0; z < ps.length; z++) if (ps[z] > best) { best = ps[z]; q = z; } }
       else { let r = this.prng.random() * total; while (q < exp.length - 1 && (r -= exp[q]) > 0) q++; }
+
+      /* ---- THE PAIR GRADIENT, which is what makes DODUO trainable -------------------------------
+       * The pair softmax is P(q) = exp(s_q)/sum_k exp(s_k) with s_q = wS.xa + wS.xb + wJ.jf, so the
+       * feature vector attached to pair q is the CONCATENATION [xa + xb, jf]: the two single vectors
+       * SUMMED, because both are scored by the same single block wS, followed by the pair terms.
+       *
+       * accumulateLogitGrad is already generic over vector length, so the same conditional-logit
+       * gradient that trains the 56 singles trains all 77 with no new mathematics. That is the whole
+       * of roadmap item 1 -- it was wiring, as the roadmap said.
+       *
+       * Only reached when sampling: learn and greedy are refused together above. */
+      if (this.learn && this.stats.learnGrad) {
+        const NFq = B.FEATURES.length, NJ = B.JOINT_FEATURES.length;
+        const phis = new Array(pairs.length);
+        for (let z = 0; z < pairs.length; z++) {
+          const [za, zb] = pairs[z];
+          const v = new Array(NFq + NJ).fill(0);
+          const xa = A.xs[za], xb = Bc.xs[zb];
+          if (!xa || !xb) { phis[z] = null; continue; }
+          for (let k = 0; k < NFq; k++) v[k] = xa[k] + xb[k];
+          const jfz = B.jointFeaturesFor(candsA[za], builtB.cands[zb], xa, xb);
+          for (let k = 0; k < NJ; k++) v[NFq + k] = jfz[k];
+          phis[z] = v;
+        }
+        if (phis[q]) {
+          accumulateLogitGrad(this.stats.learnGrad, phis, exp.map(e => e / total), q,
+            this.stats.learnGrad.length);
+          this.stats.learnDecisions++;
+          this.stats.learnSide = this.me || 'p1';
+          this.stats.jointLearned = (this.stats.jointLearned || 0) + 1;
+        }
+      }
 
       const [pa, pb] = pairs[q];
       this.stats.scored += 2;

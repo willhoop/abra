@@ -69,7 +69,18 @@ const PROCS = parseInt(arg('procs', '6'), 10);
 const TRUST = parseFloat(arg('trust', '0.02'));
 const ANCHOR = parseFloat(arg('anchor', '0'));
 const SEED0 = parseInt(arg('seed', String((Math.floor(Date.now() / 60000) * 997) % (2 ** 27))), 10);
-const BASE = path.resolve(arg('from', D('data', 'policy-weights.json')));
+/* --joint  TRAIN THE COORDINATION LAYER FOR WINNING.
+ *
+ * Every weight this repository ships was fitted to PREDICT A HUMAN CLICK, including the 18 pair
+ * terms in data/policy-weights-joint.json. That is a resemblance objective, and the one pattern that
+ * has held across every experiment here is that changing what MAG OPTIMISES pays while changing how
+ * it models the game does not. This flag points self-play at the 74-length vector so the pair terms
+ * are moved by whether the game was WON rather than by whether a person would have clicked it.
+ *
+ * Both arms carry the layer: mew.js refuses --learn with it on one side, because the run gradient
+ * sums both sides and index k would be a different feature in each. */
+const JOINT = process.argv.includes('--joint');
+const BASE = path.resolve(arg('from', D('data', JOINT ? 'policy-weights-joint.json' : 'policy-weights.json')));
 const OUTDIR = path.resolve(arg('outdir', D('data', 'train')));
 const WORK = path.resolve(arg('work', D('data', '.train-games.jsonl')));
 
@@ -81,6 +92,21 @@ const baseJson = JSON.parse(fs.readFileSync(BASE, 'utf8'));
 if ((baseJson.features || []).join(',') !== B.FEATURES.join(',')) {
   console.error('REFUSING: the starting weights were fitted against a different feature list than board.js exposes.');
   process.exit(1);
+}
+/* In joint mode the pair list is checked too, and the LENGTH against both. A 56-length file passed
+ * to --joint would otherwise train the singles and leave the pair terms wherever fit_joint left
+ * them, while every line this prints said "joint". */
+const NF = B.FEATURES.length, NJ = B.JOINT_FEATURES.length;
+if (JOINT) {
+  if ((baseJson.jointFeatures || []).join(',') !== B.JOINT_FEATURES.join(',')) {
+    console.error('REFUSING: --joint, but the starting file carries a different pair-feature list than board.js.');
+    console.error('Re-run engine/fit_joint.js against the current board.');
+    process.exit(1);
+  }
+  if (baseJson.weights.length !== NF + NJ) {
+    console.error(`REFUSING: --joint needs a ${NF + NJ}-length vector; ${path.relative(ROOT, BASE)} has ${baseJson.weights.length}.`);
+    process.exit(1);
+  }
 }
 const wBC = baseJson.weights.slice();
 let w = wBC.slice();
@@ -104,6 +130,11 @@ let w = wBC.slice();
  * instead of an accident. `--skip-preflight` overrides it. */
 const FARM_FLAGS = ['--switching', '--switching2', '--greedy', '--greedy2', '--forced-switch',
   '--forced-switch2', '--joint', '--joint-zero'].filter(f => process.argv.includes(f));
+/* THE SECOND ARM IS ADDED FOR YOU. --joint is per-arm: alone it turns the layer on for one side,
+ * which is the A/B experiment, not a training configuration. Self-play trains ONE vector played by
+ * both sides, so the mirror flag is implied rather than left to be remembered. */
+if (JOINT && !FARM_FLAGS.includes('--joint2')) FARM_FLAGS.push('--joint2');
+if (process.argv.includes('--joint-zero') && !FARM_FLAGS.includes('--joint-zero2')) FARM_FLAGS.push('--joint-zero2');
 if (!process.argv.includes('--skip-preflight')) {
   const pf = spawnSync(process.execPath, [D('engine', 'preflight.js'), '--n', '24',
     '--weights', BASE, ...FARM_FLAGS], { env: process.env, encoding: 'utf8', maxBuffer: 1 << 26 });
@@ -122,6 +153,8 @@ const writeWeights = (file, weights, meta) => {
     generated: new Date().toISOString(),
     by: 'engine/train_policy.js',
     features: B.FEATURES,
+    /* Carried so the next reader can check the pair block the same way magnemite does. */
+    jointFeatures: JOINT ? B.JOINT_FEATURES : baseJson.jointFeatures,
     weights,
     trainedFrom: path.relative(ROOT, BASE),
     training: meta,
@@ -132,14 +165,26 @@ const writeWeights = (file, weights, meta) => {
 };
 
 console.log(`SELF-PLAY POLICY IMPROVEMENT`);
-console.log(`  from            ${path.relative(ROOT, BASE)}  (${w.length} weights)`);
+console.log(`  from            ${path.relative(ROOT, BASE)}  (${w.length} weights${JOINT ? `: ${NF} singles + ${NJ} pair terms` : ''})`);
 console.log(`  iterations      ${ITERS} x ${GAMES.toLocaleString()} games  (${(ITERS * GAMES).toLocaleString()} total)`);
 console.log(`  trust region    ${TRUST}  (fraction of ||w|| moved per step)`);
 console.log(`  anchor to clone ${ANCHOR || 'off'}`);
 console.log(`  checkpoints     ${path.relative(ROOT, OUTDIR)}\n`);
 
 const curFile = path.join(OUTDIR, 'current.json');
+/* MAGNEMITE STILL CARRIES A 56-LENGTH `this.w` IN JOINT MODE. The pair path scores with
+ * wj.slice(0, 56), but the forced-switch and team-preview paths read this.w. Handing it the stale
+ * SHIPPED singles while the joint vector moved would put this run's own decisions out of sync with
+ * the gradient it is accumulating by iteration 2. So the first 56 entries of the checkpoint are
+ * mirrored out each iteration and passed as --weights. */
+const singlesFile = path.join(OUTDIR, 'current-singles.json');
+const writeSingles = (weights) => fs.writeFileSync(singlesFile, JSON.stringify({
+  generated: new Date().toISOString(), by: 'engine/train_policy.js (--joint singles mirror)',
+  note: 'first 56 entries of the joint checkpoint. Not a fit, not a measurement, do not cite.',
+  features: B.FEATURES, weights: weights.slice(0, NF),
+}, null, 1));
 writeWeights(curFile, w, { iter: 0, note: 'copy of the starting clone' });
+if (JOINT) writeSingles(w);
 
 const hist = [];
 for (let it = 1; it <= ITERS; it++) {
@@ -154,8 +199,12 @@ for (let it = 1; it <= ITERS; it++) {
   const t0 = Date.now();
   const r = spawnSync(process.execPath, [
     D('engine', 'mew_farm.js'), '--n', String(GAMES), '--procs', String(PROCS),
-    '--policy', 'score', '--weights', curFile, '--learn', '--keep-shards',
+    '--policy', 'score', '--weights', JOINT ? singlesFile : curFile, '--learn', '--keep-shards',
     '--seed', String(seed), '--out', WORK,
+    /* BOTH ARMS READ THIS ITERATION'S CHECKPOINT. Without it magnemite re-reads its hardcoded
+     * data/policy-weights-joint.json every iteration: the pair terms would never move, and the flat
+     * curve that produced would read as convergence. */
+    ...(JOINT ? ['--joint-weights', curFile, '--joint-weights2', curFile] : []),
     /* THE SAME FLAGS THE PREFLIGHT WAS CHECKED UNDER. Passing a different set here than the gate
      * verified would make the gate theatre — it would certify a configuration this run does not
      * use, which is a more convincing version of the bug it exists to catch. */
@@ -174,7 +223,13 @@ for (let it = 1; it <= ITERS; it++) {
   for (const f of fs.readdirSync(shardDir)) {
     if (!/\.grad\.json$/.test(f)) continue;
     const g = JSON.parse(fs.readFileSync(path.join(shardDir, f), 'utf8'));
-    if (!Array.isArray(g.grad) || g.grad.length !== w.length) continue;
+    if (!Array.isArray(g.grad) || g.grad.length !== w.length) {
+      /* Loud. Silently skipping every shard reported "no gradient came back", which points at the
+       * farm rather than at the length -- the wrong diagnosis is what costs the hours. */
+      console.error(`iteration ${it}: shard ${f} carries a ${(g.grad || []).length}-length gradient, `
+        + `expected ${w.length}. That is a wiring mismatch, not a data problem.`);
+      process.exit(1);
+    }
     for (let k = 0; k < w.length; k++) grad[k] += g.grad[k];
     games += g.games || 0; decisions += g.decisions || 0; files++;
   }
@@ -199,6 +254,7 @@ for (let it = 1; it <= ITERS; it++) {
   let s2 = 0; for (let k = 0; k < w.length; k++) s2 += (w[k] - before[k]) ** 2;
 
   writeWeights(curFile, w, { iter: it, games, decisions, driftFromClone: drift });
+  if (JOINT) writeSingles(w);
   writeWeights(path.join(OUTDIR, `iter-${String(it).padStart(3, '0')}.json`), w, { iter: it, games, decisions, driftFromClone: drift });
   hist.push({ iter: it, games, decisions, gradNorm: gn, step: Math.sqrt(s2), drift });
 
@@ -211,7 +267,8 @@ fs.writeFileSync(path.join(OUTDIR, 'history.json'), JSON.stringify({ base: path.
 
 /* WHAT MOVED. The point of a linear policy is that this is readable, so print it rather than making
  * somebody diff two JSON files. */
-const delta = w.map((x, k) => ({ f: B.FEATURES[k], from: wBC[k], to: x, d: x - wBC[k] }))
+const NAMES = JOINT ? B.FEATURES.concat(B.JOINT_FEATURES) : B.FEATURES;
+const delta = w.map((x, k) => ({ f: NAMES[k] || `#${k}`, from: wBC[k], to: x, d: x - wBC[k] }))
   .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
 console.log(`\n  BIGGEST WEIGHT CHANGES (self-play vs the human clone)`);
 for (const r of delta.slice(0, 12)) {
@@ -219,7 +276,24 @@ for (const r of delta.slice(0, 12)) {
 }
 console.log(`\n  -> ${path.relative(ROOT, curFile)}`);
 console.log(`\n  NOTHING HAS BEEN MEASURED YET. Gate it against the clone it came from:`);
-console.log(`     node engine/mew_farm.js --n 120000 --procs 6 --paired --policy score --policy2 score \\`);
-console.log(`       --weights ${path.relative(ROOT, curFile)} --weights2 ${path.relative(ROOT, BASE)} \\`);
-console.log(`       --greedy --greedy2 --seed <fresh> --out data/games.h2h-trained.jsonl`);
-console.log(`     node engine/paired_h2h.js data/games.h2h-trained.jsonl`);
+if (JOINT) {
+  /* THE JOINT ARM IS GATED THROUGH --joint-weights, NOT --weights. Handing a 74-length checkpoint to
+   * --weights would be rejected by magnemite's length check, and -- worse -- handing the 56-length
+   * MIRROR to --weights while leaving --joint-weights at the shipped default would run a head-to-head
+   * whose two arms differed in their singles and shared their pair terms. That is a real experiment
+   * measuring the wrong lever, and it would have looked completely normal. */
+  console.log(`     node engine/mew_farm.js --n 200000 --procs 6 --paired --policy score --policy2 score \\`);
+  console.log(`       --weights ${path.relative(ROOT, singlesFile)} --weights2 ${path.relative(ROOT, singlesFile)} \\`);
+  console.log(`       --joint --joint2 \\`);
+  console.log(`       --joint-weights ${path.relative(ROOT, curFile)} --joint-weights2 ${path.relative(ROOT, BASE)} \\`);
+  console.log(`       --greedy --greedy2 --seed <fresh> --out data/games.h2h-joint-trained.jsonl`);
+  console.log(`     node engine/paired_h2h.js data/games.h2h-joint-trained.jsonl`);
+  console.log(`\n  BOTH ARMS RUN THE PAIR PATH; ONLY THE 18 PAIR WEIGHTS DIFFER. Same top-K cap, same`);
+  console.log(`  softmax over pairs, same singles on both sides -- so what is being measured is`);
+  console.log(`  "pair terms trained to WIN" against "pair terms fitted to RESEMBLE", and nothing else.`);
+} else {
+  console.log(`     node engine/mew_farm.js --n 120000 --procs 6 --paired --policy score --policy2 score \\`);
+  console.log(`       --weights ${path.relative(ROOT, curFile)} --weights2 ${path.relative(ROOT, BASE)} \\`);
+  console.log(`       --greedy --greedy2 --seed <fresh> --out data/games.h2h-trained.jsonl`);
+  console.log(`     node engine/paired_h2h.js data/games.h2h-trained.jsonl`);
+}

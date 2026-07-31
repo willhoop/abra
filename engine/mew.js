@@ -182,6 +182,12 @@ const GREEDY_B = process.argv.includes('--greedy2');
  * the sheet is worth: identical weights, identical open-sheet games, one side reads it. */
 const BLIND_A = process.argv.includes('--blind');
 const BLIND_B = process.argv.includes('--blind2');
+/* --joint-weights / --joint-weights2  WHICH joint vector each arm carries. Needed because self-play
+ * writes a new 77-length checkpoint every iteration, and without this magnemite would re-read the
+ * frozen shipped fit each time -- a flat curve that reads as convergence. Routed by `swapped` with
+ * the rest. */
+const JOINTW_A = (() => { const i = process.argv.indexOf('--joint-weights'); return i >= 0 ? process.argv[i + 1] : ''; })();
+const JOINTW_B = (() => { const i = process.argv.indexOf('--joint-weights2'); return i >= 0 ? process.argv[i + 1] : ''; })();
 const JOINT_A = process.argv.includes('--joint');
 const JOINT_B = process.argv.includes('--joint2');
 /* --joint-zero / --joint-zero2  THE CONTROL. Runs the whole pair path -- same top-K cap, same
@@ -498,6 +504,8 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   if (JOINT_B) { (swapped ? optA : optB).joint = true; }
   if (JOINTZ_A) { (swapped ? optB : optA).jointZero = true; }
   if (JOINTZ_B) { (swapped ? optA : optB).jointZero = true; }
+  if (JOINTW_A) { (swapped ? optB : optA).jointWeightsFile = path.resolve(JOINTW_A); }
+  if (JOINTW_B) { (swapped ? optA : optB).jointWeightsFile = path.resolve(JOINTW_B); }
   if (FORCED_A) { (swapped ? optB : optA).forcedSwitch = true; }
   if (FORCED_B) { (swapped ? optA : optB).forcedSwitch = true; }
   if (SWITCHING) { (swapped ? optB : optA).switching = true; }
@@ -594,7 +602,29 @@ async function main() {
                 sheetEntries: 0, megaChosen: 0 };
   /* The run-level policy gradient. Sized from the shipped weight vector so a stale length is a
    * loud failure at load rather than a silent truncation here. */
-  const GRAD = LEARN ? new Array(require('./magnemite.js').loadWeights(WEIGHTS1).weights.length).fill(0) : [];
+  /* SIZED TO THE VECTOR THE PLAYERS ACTUALLY CARRY. When the joint layer is on, magnemite scores and
+   * differentiates 56 singles + 21 pair weights; sizing this from the SINGLE file gave 56, and the
+   * sum below clipped at `k < GRAD.length` -- so every pair weight would have been silently dropped
+   * and the run would still have printed a learning curve. That is precisely the class of failure
+   * (a number that looks like a gradient and is not one) the --learn comment above warns about, so
+   * it gets the length right here and refuses a mismatch below rather than truncating. */
+  /* SYMMETRY IS REQUIRED WHEN LEARNING, and asymmetry is a legitimate thing to ask for otherwise.
+   * `--joint` alone is the A/B arm: one side coordinates, one does not, which is exactly the
+   * experiment the flag was built for. But --learn sums BOTH sides into ONE run-level vector, and a
+   * 56-length gradient from the independent side has no meaning in a 74-length accumulator -- entry
+   * k is a different feature in each. So a training run must turn the layer on for both arms.
+   * Refused here with the fix named, rather than at the summing site with a length. */
+  const JOINT_A_ON = JOINT_A || JOINTZ_A, JOINT_B_ON = JOINT_B || JOINTZ_B;
+  if (LEARN && (JOINT_A_ON !== JOINT_B_ON)) {
+    console.error('mew: --learn with the joint layer on only one arm. The run gradient sums both sides,');
+    console.error('and the two vectors are different lengths and different features. Pass the pair:');
+    console.error('  --joint --joint2      (or --joint-zero --joint-zero2 for the control arm)');
+    process.exit(2);
+  }
+  const JOINT_ANY = JOINT_A_ON || JOINT_B_ON;
+  const GRAD = LEARN ? new Array(
+    require('./magnemite.js').loadWeights(WEIGHTS1).weights.length
+    + (JOINT_ANY ? require('./board.js').JOINT_FEATURES.length : 0)).fill(0) : [];
   let GRAD_GAMES = 0, GRAD_SIDES = 0, GRAD_DECISIONS = 0;
 
   /* MATCHUP COVERAGE IS ENUMERATED, NOT SAMPLED.
@@ -775,7 +805,13 @@ async function main() {
         for (const s of (res.stats || [])) {
           if (!s.learnGrad || !s.learnSide) continue;
           const G = ((s.learnSide === 'p1') === p1w) ? 1 : -1;
-          for (let k = 0; k < s.learnGrad.length && k < GRAD.length; k++) GRAD[k] += G * s.learnGrad[k];
+          /* LOUD on a length mismatch. Truncating here is how a joint run would quietly train only
+           * its single block; padding is how a stale weight file would quietly train nothing. */
+          if (s.learnGrad.length !== GRAD.length) {
+            throw new Error(`mew: a player returned a ${s.learnGrad.length}-length gradient but the run `
+              + `accumulator is ${GRAD.length}. Refusing to sum a truncated gradient.`);
+          }
+          for (let k = 0; k < GRAD.length; k++) GRAD[k] += G * s.learnGrad[k];
           GRAD_DECISIONS += s.learnDecisions || 0;
           GRAD_SIDES++;
         }

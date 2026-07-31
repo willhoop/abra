@@ -55,7 +55,13 @@ for (let i = 0; i < argv.length; i++) {
  * A "block" is a group of features that share a precondition, so they live or die together. If the
  * switch path is off, every switch feature is dead at once — reporting 8 separate zeros hides that
  * it is ONE cause. The grouping is by name prefix, taken from board.js's own list. */
-const F = B.FEATURES;
+/* THE FEATURE LIST FOLLOWS THE FLAGS. A --joint run trains 56 singles AND 18 pair weights, and this
+ * file indexed only B.FEATURES -- so the gate would have run a joint training configuration, checked
+ * the singles, and said nothing at all about the block that run exists to train. A gate that
+ * certifies a configuration without checking its point is worse than no gate: it is the same
+ * "lever believed on, silently off" failure with a green tick on top. */
+const JOINT_ON = passthrough.some(f => /^--joint(-zero)?2?$/.test(f));
+const F = JOINT_ON ? B.FEATURES.concat(B.JOINT_FEATURES) : B.FEATURES;
 const BLOCKS = {
   'switching': F.filter(f => /^switch|^isSwitch$|^benchRisk$/.test(f)),
   'damage / KO': F.filter(f => /^ko|^dmgFrac$|^killIsRoll$|^killsThreat$/.test(f)),
@@ -67,6 +73,12 @@ const BLOCKS = {
 };
 /* Anything not claimed above still gets checked — silence about a feature is how this happened. */
 const claimed = new Set(Object.values(BLOCKS).flat());
+/* The pair block is named separately so a dead coordination layer reads as ONE cause, which is what
+ * it would be -- the joint path falling back to independent choice kills all 18 together. */
+if (JOINT_ON) {
+  BLOCKS['joint (pair terms)'] = B.JOINT_FEATURES.slice();
+  for (const j of B.JOINT_FEATURES) claimed.add(j);
+}
 BLOCKS['other'] = F.filter(f => !claimed.has(f));
 
 const OUT = D('data', '.preflight.jsonl');
