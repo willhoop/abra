@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.28.0 · Last updated 2026-07-30.**
+**Version 3.29.0 · Last updated 2026-07-31.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -437,6 +437,36 @@ stub — no ability or weather is named in `board.js`.
 **Most of the win was aiming.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in doubles aiming is most of what "super effective" means.
 **It samples, it does not take the best move** — a greedy bot sails past 23.4% super-effective and is *less* human. Same argument as DEFENSE §2.
 **Two findings worth keeping.** The behaviour clone alone is a *worse* probabilistic model of human choice than choosing uniformly at random, and the fit weights it at only +0.25 — it is far too confident about the popular move. And the largest learned effects are not damage terms at all, they are the "this move is already dead" terms at −2.3. Reading the board is mostly about **not clicking moves that cannot work**.
+**56 FEATURES AS OF 3.29.0, and the three added are large.** `data/tags.json` derives 96 move tags
+with their parameters and `engine/tags.js` exists to load them; board.js read NONE of them, and 72 of
+the 96 reached no consumer at all. The symptom Will spotted: MAG scored **Tailwind and Protect
+identically at −1.54**, because the only things firing on a Tailwind click were `accuracy`,
+`isStatus` and `priorLogP`. There was no speed-control feature in the 53.
+
+| feature | fires when | weight |
+|---|---|---|
+| `speedSwing` | it flips speed order IN MY FAVOUR; zero when already faster | **+0.983** [0.933, 1.032] |
+| `screenValue` | it halves incoming damage AND something hits hard, graded by CATEGORY | **+1.128** [1.031, 1.225] |
+| `healValue` | it heals me AND I am hurt; zero at full HP | **+2.220** [2.004, 2.436] |
+
+Written as CONDITIONS rather than flags, and that is why they fired where 3.28.0's four additions
+measured null: a bare "this is Tailwind" cannot help a one-ply scorer, because the payoff is on later
+turns. What one ply CAN see is whether the condition making it worth doing is true now.
+
+**CHOICE LOCK (3.29.0).** `fit_policy.js` handed `candidates()` all four sheet moves with no legality
+filter, so a choice-locked human appeared to have ~9 options when they had 4 — a WRONG DENOMINATOR
+in the conditional logit, on 6.52% of items. Live play was never affected (the request marks the rest
+`disabled`). After the refit, six of eight switch features clear zero, and **switches now win the
+argmax**: greedy play went from 222 switch events per 60 games (all forced post-KO) to 239, where
+before the refit `--switching` changed nothing at all.
+
+**THE OPPONENT MODEL — job 2 of ALAKAZAM, off by default (3.29.0).** `incomingThreat` took a MAX, the
+foe's hardest available hit, and nine features are built on it. Measured: the foe's lead clicks a
+damaging move **52.9%** of the time and MAG assumed 100% AND assumed it was the nastiest. Now an
+expectation weighted by P(their action), from the same weights — `candidates` and `featuresFor`
+already take `side`. Across 44 boards `protectThreatened` fell 84%, `diesBeforeMoving` 78%. **The bot
+stops panicking.** Needs a refit before shipping, since nine features now mean something different.
+
 **Honest status / what it does NOT do — REWRITTEN 2026-07-30, because two of the four claims here had
 become false and were being quoted as current.** It DOES now decide switches (voluntary switches
 score through `switchFeatures`; the post-KO replacement is scored rather than rolled) and it DOES run

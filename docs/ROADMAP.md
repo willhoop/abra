@@ -175,6 +175,22 @@ was touched. **CLAUDE.md requires the docs to move in the same pass as the code.
 
 ---
 
+## 2.7 Closed 2026-07-31
+
+- **"Choice lock in the candidate set"** (was item 2) — DONE. The logit denominator no longer
+  contains moves the human could not click. After the refit, six of eight switch features clear
+  zero, and **switches now win the argmax** where `--switching` previously changed nothing.
+- **The tag artifact reaches the feature vector** — `speedSwing` +0.983, `screenValue` +1.128,
+  `healValue` +2.220, all clearing zero by wide margins. 53 → 56 features. This is the first
+  feature addition since 3.28.0's four nulls to measure as real, and the difference is that these
+  are CONDITIONS on mechanics with no prior representation rather than restatements.
+- **ALAKAZAM job 2 (guess what they will do)** — built, off by default, needs a refit. The max in
+  `incomingThreat` is now an expectation over P(their action).
+- **A gate against wasted runs** — `engine/preflight.js`, 24 games, refuses a training run whose
+  feature blocks receive no gradient. Two 1.5-hour runs were lost to exactly that before it existed.
+
+---
+
 ## 3. NEXT — in order, with the reason each is next
 
 **1. DODUO trained for WINNING, not for resemblance.** *The most precise open question in the

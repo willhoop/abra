@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.28.0 · 2026-07-30 · Will Hooper**
+**Version 3.29.0 · 2026-07-31 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)

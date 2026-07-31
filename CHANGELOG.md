@@ -10,6 +10,109 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.29.0] — 2026-07-31
+
+### Three features from the tag artifact, and all three are large
+
+`data/tags.json` derives **96 move tags with their parameters**, and `engine/tags.js` exists to load
+them — its own header says *"172 tags were a specification, not a component ... built, saved, quoted,
+never used."* `board.js` read **none** of them; **72 of the 96 reached no consumer at all**.
+
+Will spotted it from the symptom: *"DOES MAG STILL NOT VALUE TAILWIND?"* It did not, and could not.
+Tailwind's tag is `doublesSideSpeed {speedMult: 2}` over 7,676 clicks, and MAG scored **Tailwind and
+Protect identically at −1.54**, because the only features firing were `accuracy`, `isStatus` and
+`priorLogP`. There was no speed-control feature in the 53.
+
+Written as **conditions, not flags** — the design point. A bare "this move is Tailwind" cannot help a
+one-ply scorer, because the payoff is on later turns and this turn shows only a turn spent doing no
+damage. What one ply *can* see is whether the condition that makes it worth doing is true now:
+
+| feature | fires when | measured weight |
+|---|---|---|
+| `speedSwing` | it flips speed order **in my favour** — zero when I'm already faster | **+0.983** [0.933, 1.032] |
+| `screenValue` | it halves incoming damage AND something is hitting hard, graded by **category** | **+1.128** [1.031, 1.225] |
+| `healValue` | it heals me AND I'm hurt enough for it not to be wasted; zero at full HP | **+2.220** [2.004, 2.436] |
+
+Every interval clears zero by a wide margin and `healValue` is among the largest weights in the
+model. Fit: logL/decision **−1.7380**, top-1 **31.1%**, in-sample −1.7402 against held-out −1.7380.
+Against the current bot: **+0.9192 logL/decision, +7.9 points of top-1**.
+
+**This breaks the four-null pattern of 3.28.0**, and the reason is worth keeping: those four were
+knowledge already implied by other features. These three are mechanics with *no representation at
+all*.
+
+### Choice lock — a wrong denominator, not a scoring error
+
+Will: *"LIKE CHOICE MONS ONLY GET SWITCH OR ATTACK AFTER SELECTION THATS EASY."* Live play was never
+wrong — `magnemite.js` takes candidates from the request, which marks the rest `disabled`. **Fitting
+was**: `fit_policy.js` handed `candidates()` all four sheet moves with no legality filter, so a
+choice-locked human appeared to have ~9 options when they had 4. A conditional logit divides by the
+sum over the choice set, so five alternatives that were never available inflated the denominator.
+**6.52% of items in this format.**
+
+Turn one needs no turn counter: `switchIn` starts every arrival with `lastMove: ''`, so that field
+already means "has this moved since it arrived."
+
+**After the refit** (6,517 games, 156,118 decisions), six of eight switch features have intervals
+clearing zero — `switchKOSlow` +0.238 [0.142, 0.333], `switchSurvives1` +0.186 [0.149, 0.223].
+`magnemite.js` describes the previous ones as *"fitted out of noise, acted on 4.43 times a game."*
+They are now measured. And crucially: **switches now win the argmax** — greedy play went from 222
+switch events per 60 games (all forced post-KO) to 239, where before the refit `--switching` changed
+*nothing*.
+
+### Job 2 of ALAKAZAM: the opponent model
+
+`incomingThreat` took a **max** — the foe's hardest available hit — and nine features are built on
+it. Measured on a real board, the foe's lead clicks a damaging move **52.9%** of the time and MAG
+assumed 100%, *and* assumed it was the nastiest. It needed no new model: `candidates` and
+`featuresFor` already take `side`, so the same weights score the other side of the field.
+
+The max is now an expectation weighted by `P(their action)`. Across 44 boards: `protectThreatened`
+fell 84%, `diesBeforeMoving` 78%, `switchDiesFirst` 88%. **The bot stops panicking.**
+
+**Off by default**, which makes it an A/B by construction. Recursion is bounded at one level by
+design. **A refit is required before it ships**, because nine features now mean something different.
+
+### The preflight gate — 24 games instead of 144,000
+
+Two 1.5-hour training runs completed before anyone compared the outputs. The **switch weights were
+bit-identical to the behaviour clone in both** — zero change, every decimal, over 288,000 games.
+Cause: `train_policy.js` spawned the farm without `--switching`, and `mew.js` makes it opt-in, so
+MAG could not switch in a single training game and that block's gradient was exactly zero.
+
+`engine/preflight.js` runs 24 games and reports which feature **blocks** received no gradient.
+Verified both directions, because a test that always fails is useless: without `--switching`, 0 live
+/ 8 dead / |grad| 0.00; with it, 7 live / 1 dead / |grad| 10.73. **14 seconds against 1.5 hours.**
+Registered as a gate — `train_policy.js` refuses to start and passes the farm the same flags the
+preflight verified.
+
+### `engine/type_coverage.js` — best coverage against this meta
+
+Usage-weighted. **Offence:** Ground + Ice + Electric + Steel covers **85.7%** of the meta
+super-effectively, verified exhaustively over all 3,060 four-type combinations. **Defence:** Fire
+9.7% of incoming power, Fighting 8.6%; best typings Ghost/Steel 39.9%, Ghost/Water 31.4%,
+Ghost/Grass 29.9% — all typings people actually run. **The split:** physical 52.0% / special 48.0%
+incoming, but **65.8% of the meta is bulkier physically** — so defend against physical and attack
+specially.
+
+A bug caught by disbelieving a number: counting move *slots* made Fake Out (40 BP, most-used damaging
+move at 1,918,410 weight) count the same as Hyper Beam, putting Normal top of "what hurts me" while
+Normal is super-effective against nothing. Base-power weighting moved Normal 12.0% → 8.1%.
+
+### A bug the 3.28.0 mega repair shipped
+
+`merge_mega_into_engine.js` wrote `st` (level-50) and never `bs` (base stats). The 48 existing formes
+kept theirs through `Object.assign`; the **19 it added had none** — and `buildMon` opens with
+`if(!m||!m.bs) return null`, so those formes **could not be built by the damage engine at all.** The
+commit that fixed that class of bug introduced another instance of it.
+
+Found by accident: a new CHOMP script vendoring ABRA's dex counted 289 species where ABRA reports
+308. `engine/artifact_audit.js` missed it because `bs` was not in its field list — the one field the
+repair forgot was the one field nothing looked at. Now checked, with the list commented as the
+audit's entire field of view.
+
+---
+
 ## [3.28.0] — 2026-07-30
 
 ### The finding that should govern what gets built next
