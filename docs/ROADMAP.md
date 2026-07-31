@@ -300,6 +300,39 @@ to the losing one.
 > plays. After training it is −4.8. Whatever moved the other three did not move this one, and that is
 > unexplained.
 >
+> **WHY IT DID NOT MOVE — ANSWERED 2026-07-31 (Will).** Not cancellation and not a dead feature: the
+> gradient was **positive in all 12 iterations, never once negative**, so the evidence is unanimous
+> that −4.99 is too negative. It is ~13x smaller per round than `bothSameTarget` because the feature
+> UNDER-FIRES, and the reason is a detector that is too narrow:
+>
+> ```js
+> const freeSpread = (c, x) => c && c.move && c.spread && c.spread.length > 1 && F(x, 'allyHit') === 0;
+> ```
+>
+> `allyHit` is a SINGLE-SLOT feature computed from the partner's TYPE and ABILITY — Levitate, Flash
+> Fire, Volt Absorb, Earth Eater, or resisting the type. **A partner who clicks PROTECT is spared
+> exactly as completely as a Flying partner, and the feature cannot see it**, because Protect is not a
+> property of the partner; it is a choice the partner makes that turn.
+>
+> That is structural, and it is the whole argument for the pair layer: `spreadFreeBesideAlly` RECEIVES
+> both candidates and reads the `allyHit` of its own slot only. The partner's Protect is already in
+> hand and is never consulted.
+>
+> **Measured cost:** Earthquake is on **69 of 308 species (22.4%)**, by far the commonest spread move,
+> and it is `allAdjacent` — so today it qualifies only when the partner is immune. 40 species (13.0%)
+> carry an `allAdjacentFoes` move that spares the ally automatically; 83 (26.9%) carry an
+> `allAdjacent` move that does not. The commonest real line in VGC — Earthquake plus partner Protect —
+> is in the second group and is invisible.
+>
+> **FIX, QUEUED (board.js was in use by the head-to-head, per the no-edit-during-a-run rule):** extend
+> `freeSpread` to treat the partner candidate as sparing the ally when it is a protect-family move.
+> `PROTECTMOVES` and `tgtMayProtect` already exist, so nothing is typed in. **Also check Wide Guard**,
+> which blocks spread moves aimed at its own side and may be the same case or its opposite — untested.
+>
+> **This weakens the interpretation of the head-to-head now running.** Both arms share the same
+> detector, so the comparison is still fair, but neither arm can express the coordination pattern the
+> feature is named for.
+>
 > **Nothing about winning has been measured.** 200,000 paired games are in flight. What remains:
 >
 > ```
