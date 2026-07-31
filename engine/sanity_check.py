@@ -86,7 +86,20 @@ print("== 5. cross-consistency (three places agree) ==")
 wp = open(D("docs","ABRA-whitepaper.md"), encoding="utf-8").read()
 sm = open(D("docs","SUMMARY.md"), encoding="utf-8").read()
 if pory:
-    ok("0.567" in wp and "0.567" in sm, "PORY 0.567 appears in white paper AND summary")
+    # THE CHECK COMPARED THE DOCS AGAINST A TYPED LITERAL, so it certified agreement on a number the
+    # code had stopped producing — and would have FAILED if somebody corrected the docs. `pory` is
+    # loaded at line 30 and was never used in the comparison. Measured 2026-07-31: the docs said
+    # 0.567 while data/pory-eval.json said 0.6321, and this line kept the stale value in place.
+    #
+    # Deriving the expected string from the artifact means the docs and the code cannot drift apart
+    # without this failing, which is the whole point of a cross-consistency check.
+    _pl = pory.get("log_loss", {}).get("pory")
+    _ps = f"{_pl}" if _pl is not None else None
+    if _ps is None:
+        ok(False, "data/pory-eval.json carries no log_loss.pory to check the docs against")
+    else:
+        ok(_ps in wp and _ps in sm,
+           f"PORY log-loss {_ps} (from data/pory-eval.json) appears in white paper AND summary")
 # Sun count: playstyle matrix vs site mixture presence
 if psm:
     # A COUNT WAS ASSERTED WHERE A DIRECTION WAS MEANT. The threshold was a typed 1000; Sun stood at

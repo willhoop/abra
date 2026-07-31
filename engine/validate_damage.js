@@ -129,13 +129,36 @@ function run(){
  for(const r of rows){ if(r.err){console.log(r.sc.padEnd(52), 'ERROR', r.err); continue;}
    console.log(r.sc.padEnd(52), r.calc.padEnd(12), r.med.padEnd(12), r.dMin.padStart(5), r.dMax.padStart(5)); }
  const all=errsMin.concat(errsMax);
+ const errored=rows.filter(r=>r.err).length;
  console.log('\n=== AGGREGATE (|% error| vs @smogon/calc, stats aligned) ===');
- console.log(`scenarios: ${errsMin.length} | median abs err: ${med(all).toFixed(1)}% | within 2%: ${within(all,2).toFixed(0)}% | within 5%: ${within(all,5).toFixed(0)}% | within 10%: ${within(all,10).toFixed(0)}%`);
- console.log(`worst: ${Math.max(...all).toFixed(0)}%`);
- // fail CI on regression
+ console.log(`scenarios: ${errsMin.length} compared, ${errored} errored | median abs err: ${med(all).toFixed(1)}% | within 2%: ${within(all,2).toFixed(0)}% | within 5%: ${within(all,5).toFixed(0)}% | within 10%: ${within(all,10).toFixed(0)}%`);
+ console.log(`worst: ${all.length?Math.max(...all).toFixed(0):'n/a'}%`);
+
+ /* THIS GATE PRINTED "PASS" AND EXITED 0 WHEN EVERY SCENARIO FAILED.
+  *
+  * The catch above pushes an error row and `continue`s, so an erroring scenario never reaches
+  * errsMin/errsMax — it is dropped from the numerator AND the denominator. With all 36 erroring,
+  * `all` is empty, so within(all,5) is 100*0/0 = NaN and Math.max(...[]) is -Infinity. The old
+  * condition was `if (w5 < 95 || worst > 8)`, and NaN < 95 is false while -Infinity > 8 is false,
+  * so it did not fire: the file printed PASS and returned 0. Verified by execution, 2026-07-31.
+  *
+  * That is the golden master on the number every other result in this project depends on, and CI
+  * runs it as a bare gate step (.github/workflows/tests.yml) with @smogon/calc installed UNPINNED —
+  * so one upstream rename of `calculate` or `range()` makes all 36 throw and the gate reports
+  * success. The sibling engine/validate_damage_sim.js already counts `errored` and exits 1; this
+  * file never did.
+  *
+  * THREE CONDITIONS, ALL REQUIRED. Coverage first: a comparison that did not happen cannot pass. */
+ if(errored){ console.error(`REFUSING: ${errored} of ${S.length} scenarios could not be compared at all (@smogon/calc threw).`);
+   console.error('A scenario that never ran is not a scenario that agreed. Fix the calc call or pin the dependency.');
+   process.exit(1); }
+ if(errsMin.length!==S.length){ console.error(`REFUSING: only ${errsMin.length} of ${S.length} scenarios produced a comparison.`);
+   process.exit(1); }
+ if(!all.length){ console.error('REFUSING: no error measurements at all — there is nothing here to pass.'); process.exit(1); }
+
  const w5=within(all,5), worst=Math.max(...all);
- if(w5<95||worst>8){ console.error(`REGRESSION: within-5% ${w5.toFixed(0)}% (need >=95), worst ${worst.toFixed(0)}% (need <=8)`); process.exit(1); }
- console.log('PASS: MEDICHAM damage within tolerance of @smogon/calc');
+ if(!(w5>=95)||!(worst<=8)){ console.error(`REGRESSION: within-5% ${w5.toFixed(0)}% (need >=95), worst ${worst.toFixed(0)}% (need <=8)`); process.exit(1); }
+ console.log(`PASS: MEDICHAM damage within tolerance of @smogon/calc (${errsMin.length}/${S.length} scenarios compared)`);
 }
 /* S1 - the scenario table has ONE home. engine/validate_damage_sim.js runs the same 31 scenarios
  * through the OFFICIAL Champions engine, and a second copy of this table would be free to drift from
