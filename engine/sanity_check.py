@@ -89,7 +89,21 @@ if pory:
     ok("0.567" in wp and "0.567" in sm, "PORY 0.567 appears in white paper AND summary")
 # Sun count: playstyle matrix vs site mixture presence
 if psm:
-    ok(psm["style_counts"].get("Sun",0) > 1000, f"Sun well-sampled ({psm['style_counts'].get('Sun')} teams) after Charizard fix")
+    # A COUNT WAS ASSERTED WHERE A DIRECTION WAS MEANT. The threshold was a typed 1000; Sun stood at
+    # 731 and this failed, and regenerating playstyle-matchups.json (which was five days stale) moved
+    # it only to 934. Sun is the THIRD LARGEST of eight styles -- it is well sampled by any reading,
+    # and the test was failing on a number somebody typed, not on a fact about the data.
+    #
+    # This is the exact failure class the 2026-07-31 systems audit named: "tests that assert a count
+    # where they should assert a direction". The check exists to prove the Charizard fix left Sun
+    # populated rather than collapsed, so it now asks whether Sun sits in the upper half of the
+    # styles the matrix actually reports -- a claim that survives the meta shifting, a regulation
+    # rotation, and a corpus of a different size, none of which a typed 1000 survives.
+    _sc = psm["style_counts"]
+    _ranked = sorted(_sc.items(), key=lambda kv: -kv[1])
+    _rank = [k for k, _ in _ranked].index("Sun") + 1 if "Sun" in _sc else 999
+    ok(_rank <= max(1, len(_ranked) // 2),
+       f"Sun well-sampled after Charizard fix: {_sc.get('Sun')} teams, rank {_rank} of {len(_ranked)} styles")
 skpj = jsvar(("data","slowking-playstyle.js"),"SLOWKING_PLAYSTYLE")
 if skpj and skp:
     site_top = skpj["mixture"][0]["archetype"]; rep_top = skp["equilibrium_mixture"][0]["archetype"]

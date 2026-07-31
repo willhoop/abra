@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-31T20:56:50.560Z",
+ "generated": "2026-07-31T21:12:45.343Z",
  "by": "engine/conformance.js",
- "files": 205,
+ "files": 206,
  "findings": [
   {
    "std": "convention",
@@ -288,12 +288,6 @@
   {
    "std": "S13",
    "file": "data/live.js",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/meta-nash.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

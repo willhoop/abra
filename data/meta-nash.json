@@ -1,4 +1,8 @@
 {
+ "generated": "2026-07-23",
+ "generated_source": "git: first and only commit touching this file, 917e28b. NOT a generator stamp.",
+ "provenance": "UNKNOWN GENERATOR. No script in engine/, build/, tools/ or scripts/ writes this file — it is only READ, by engine/sanity_check.py and app/index.html. The date above is the git add date, which bounds when it entered the repository and says nothing about which games produced it. Writing today's date here would have fabricated a provenance nobody can reproduce, which is the failure this project guards against; the honest record is that its origin is unrecorded.",
+ "must_not_be_quoted": "This is DITTO's archetype equilibrium and DITTO is parked. Do not publish a number from this file until a generator exists and has been run.",
  "names": [
   "Rain",
   "Sun",
@@ -11,11 +15,11 @@
  ],
  "weights": [
   0.3712,
-  0.0,
-  0.0,
-  0.0,
-  0.0,
-  0.0,
+  0,
+  0,
+  0,
+  0,
+  0,
   0.447,
   0.1818
  ],
