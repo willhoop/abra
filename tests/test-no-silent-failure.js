@@ -131,6 +131,32 @@ const SPEAKS = [
 ];
 const isSilent = (body) => !SPEAKS.some(re => re.test(body));
 
+/* ---- NOT ALL SILENCE IS EQUAL, and treating it as such is how a guard becomes noise ------------
+ *
+ * `catch (e) { continue; }` while parsing a ragged JSONL line is CORRECT silence: nothing failed,
+ * the data was torn, and forcing it to shout would train everyone to ignore this check.
+ *
+ * The catches that have actually cost this project something share one shape: the body MANUFACTURES
+ * A VALUE that something downstream then trusts.
+ *
+ *   magnemite.js   cached an empty duration table   -> every duration became the fallback 3
+ *   ditto.js       returned null from the referee   -> sorted, and a team was recommended anyway
+ *   sprt.js        returned an empty array          -> read as "the run produced no games"
+ *   board.js       (not a catch, same shape)        -> a dropped key made a live feature constant
+ *
+ * So: a silent catch that RETURNS a value, or ASSIGNS to something, or writes into a map/array, is
+ * manufacturing an answer. One that only skips, continues, or breaks is not. The first group is
+ * where every real defect has been; the second is mostly legitimate.
+ *
+ * Approximated without a parser, deliberately conservatively — `=` catches assignment but also `==`
+ * and `=>`, so those are excluded explicitly rather than being allowed to inflate the count. */
+const MANUFACTURES = [
+  /\breturn\b(?!\s*;)/,             // returns an actual value (bare `return;` is just an exit)
+  /[^=!<>]=(?!=|>)/,                 // an assignment, excluding ==, ===, !=, <=, >=, =>
+  /\.set\s*\(/, /\.push\s*\(/,      // written into a map or list
+];
+const manufactures = (body) => MANUFACTURES.some(re => re.test(body));
+
 const hash = (s) => crypto.createHash('sha1').update(s.replace(/\s+/g, ' ').trim()).digest('hex').slice(0, 12);
 
 /* ---- scan --------------------------------------------------------------------------------------- */
@@ -147,7 +173,9 @@ for (const dir of DIRS) {
     for (const c of catches(src)) {
       total++;
       if (!isSilent(c.bodyStripped)) continue;
-      silent.push({ file: rel, line: c.line, hash: hash(c.bodyRaw) });
+      silent.push({ file: rel, line: c.line, hash: hash(c.bodyRaw),
+                    manufactures: manufactures(c.bodyStripped),
+                    body: c.bodyRaw.replace(/\s+/g, ' ').trim().slice(0, 70) });
     }
   }
 }
@@ -173,6 +201,18 @@ if (UPDATE) {
     })(),
   }, null, 1));
   console.log(`baselined ${silent.length} silent catch blocks across ${scanned} files -> ${path.relative(ROOT, BASELINE)}`);
+  process.exit(0);
+}
+
+if (process.argv.includes('--dangerous')) {
+  const d = silent.filter(s => s.manufactures);
+  console.log(`SILENT CATCHES THAT MANUFACTURE A VALUE — ${d.length} of ${silent.length}\n`);
+  const byFile = {};
+  for (const s of d) (byFile[s.file] = byFile[s.file] || []).push(s);
+  for (const [f, list] of Object.entries(byFile).sort((a, b) => b[1].length - a[1].length)) {
+    console.log(`  ${f}  (${list.length})`);
+    for (const s of list) console.log(`      :${String(s.line).padEnd(5)} ${s.body}`);
+  }
   process.exit(0);
 }
 
@@ -206,7 +246,10 @@ const gone = Object.entries(known)
 console.log('SILENT FAILURE RATCHET — a catch block may not discard the reason\n');
 console.log(`  files scanned            ${scanned}`);
 console.log(`  catch blocks             ${total}`);
+const danger = silent.filter(s => s.manufactures);
 console.log(`  silent (say nothing)     ${silent.length}   of ${total}  (${(100 * silent.length / Math.max(1, total)).toFixed(0)}%)`);
+console.log(`    of those, MANUFACTURE  ${danger.length}   <- these hand a made-up value downstream`);
+console.log(`    merely skip/continue   ${silent.length - danger.length}   <- usually legitimate`);
 console.log(`  baselined                ${knownTotal}`);
 console.log(`  FIXED since the baseline ${gone.length}`);
 console.log(`  NEW since the baseline   ${fresh.length}`);
