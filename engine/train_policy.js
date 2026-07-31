@@ -85,6 +85,37 @@ if ((baseJson.features || []).join(',') !== B.FEATURES.join(',')) {
 const wBC = baseJson.weights.slice();
 let w = wBC.slice();
 
+/* ---- PREFLIGHT: refuse to spend hours training a block that cannot move ----------------------
+ *
+ * Two runs of this file, 144,000 games each, finished before anyone noticed the SWITCH WEIGHTS WERE
+ * BIT-IDENTICAL to the behaviour clone in both. The cause is the spawn below: it does not pass
+ * `--switching`, and mew.js makes switching opt-in, so MAG could not switch in a single training
+ * game. Switch candidates never entered a choice set, that block's gradient was exactly zero, and a
+ * session's worth of switch work -- post-KO replacement scoring, entry effects, the mega moveset
+ * repair -- was never exercised. The head-to-head queued off the back of it would have returned a
+ * null and invited the conclusion that the engine fixes do not help.
+ *
+ * A zero gradient is not a weak signal. It is proof the feature never varied inside any choice set,
+ * so more games cannot fix it and the run is waste. Twenty-four games settle it in ~15 seconds.
+ *
+ * This does NOT silently switch anything on. Whether switching belongs in training is an open
+ * question -- mew.js records it as a measured 10-point loss, on a measurement that predates the
+ * post-KO scorer, the entry effects and the mega repair. The gate forces an explicit decision
+ * instead of an accident. `--skip-preflight` overrides it. */
+const FARM_FLAGS = ['--switching', '--switching2', '--greedy', '--greedy2', '--forced-switch',
+  '--forced-switch2', '--joint', '--joint-zero'].filter(f => process.argv.includes(f));
+if (!process.argv.includes('--skip-preflight')) {
+  const pf = spawnSync(process.execPath, [D('engine', 'preflight.js'), '--n', '24',
+    '--weights', BASE, ...FARM_FLAGS], { env: process.env, encoding: 'utf8', maxBuffer: 1 << 26 });
+  if (pf.status !== 0) {
+    process.stdout.write(pf.stdout || '');
+    console.error('\nREFUSING TO START: preflight found a feature block that receives no gradient.');
+    console.error('Training would run for hours and leave those weights exactly where they started.');
+    console.error('Fix the flag, or pass --skip-preflight if you genuinely mean to train without it.');
+    process.exit(1);
+  }
+}
+
 const norm = (v) => Math.sqrt(v.reduce((a, x) => a + x * x, 0));
 const writeWeights = (file, weights, meta) => {
   fs.writeFileSync(file, JSON.stringify(Object.assign({}, baseJson, {
@@ -125,6 +156,10 @@ for (let it = 1; it <= ITERS; it++) {
     D('engine', 'mew_farm.js'), '--n', String(GAMES), '--procs', String(PROCS),
     '--policy', 'score', '--weights', curFile, '--learn', '--keep-shards',
     '--seed', String(seed), '--out', WORK,
+    /* THE SAME FLAGS THE PREFLIGHT WAS CHECKED UNDER. Passing a different set here than the gate
+     * verified would make the gate theatre — it would certify a configuration this run does not
+     * use, which is a more convincing version of the bug it exists to catch. */
+    ...FARM_FLAGS,
   ], { env: process.env, encoding: 'utf8', maxBuffer: 1 << 28 });
   if (r.status !== 0) {
     console.error(`iteration ${it}: farm exited ${r.status}`);
