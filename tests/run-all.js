@@ -45,7 +45,14 @@ const testFiles = fs.readdirSync(D('tests'))
 /* validate_selfplay.js is included even though the corpus it gates is gitignored: it exits 2 when the
  * store is absent, and exit 2 is treated as SKIP below. That keeps it visible in every run instead of
  * being a gate nobody remembers, which is what it was. */
-const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/validate_selfplay.js'];
+/* artifact_audit.js is a gate rather than a report because the hole it found was invisible for as
+ * long as nobody ran it: data/engine-data.js carried `ab: null`, `mv: []` and `item: null` on every
+ * mega forme — 26.0% of this format's usage — while data/mega-dex-official.json held all of it and a
+ * builder existed to apply it. Nothing compared the derived artifact to its source, so a build step
+ * that had been silently undone stayed undone. Running it every time is the whole point (Will:
+ * "arent we making sure all fixes get applied to every applicaiton? how was this not caught?"). */
+const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_audit.js',
+  'engine/validate_selfplay.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up

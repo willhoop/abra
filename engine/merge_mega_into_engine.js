@@ -30,9 +30,41 @@ const MC = JSON.parse(m[1]);
 const mega = JSON.parse(fs.readFileSync(D('mega-dex-official.json'), 'utf8'));
 
 const before = Object.keys(MC.mons).length;
+
+/* THE TWO FILES DO NOT AGREE ON HOW TO SPELL A KEY, and this script used the source's spelling
+ * directly. mega-dex-official.json keys `venusaurmega`; engine-data.js keys `venusaur-mega`. NONE of
+ * the 67 forms this script writes matched — 0 exact, 48 matching only after normalising — so every
+ * `MC.mons[key]` lookup below missed. The branch meant to UPDATE an existing entry could only ever
+ * ADD a parallel one under the other spelling, and once a later regeneration rewrote the MC table
+ * wholesale the real entries were left as the table had them: `ab: null`, `mv: []`, `item: null` on
+ * all 57 megas.
+ *
+ * That is 21.1% of this format's usage carrying no ability at all — no Contrary on Staraptor-Mega
+ * (the most-used mega here at 428,748), no Drought on Charizard-Mega-Y, no Swift Swim on
+ * Swampert-Mega, no Huge Power on Mawile-Mega, no Electric Surge on Raichu-Mega-X.
+ *
+ * Found by engine/artifact_audit.js, which exists because Will asked how this was not caught
+ * (2026-07-30). The answer: nothing in this project compared a derived artifact against the source
+ * it was derived from, so a build step could be silently undone and every consumer kept reading the
+ * null.
+ *
+ * Resolved by NORMALISING BOTH SIDES and preferring an entry that already exists, so this script can
+ * never again create a second entry for a Pokemon the table already has. A form with no existing
+ * entry falls back to the ARTIFACT's convention (display name, lowercased, runs of non-alphanumerics
+ * collapsed to one hyphen) rather than to the source's. */
+const nrm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const byNorm = new Map(Object.keys(MC.mons).map(k => [nrm(k), k]));
+const artifactKey = (srcKey, f) => byNorm.get(nrm(srcKey)) ||
+  (f.name || srcKey).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 let added = 0, updated = 0, skipped = 0;
-for (const [key, f] of Object.entries(mega.forms)) {
-  if (!f.in_our_store) { skipped++; continue; }        // only carry what actually shows up
+for (const [srcKey, f] of Object.entries(mega.forms)) {
+  const key = artifactKey(srcKey, f);
+  /* "Only carry what actually shows up" — but an entry the table ALREADY HAS shows up by definition,
+   * whatever this source's stale `in_our_store` flag says. Eight formes were being skipped while
+   * sitting in engine-data.js with a null ability, Heracross-Mega among them at 7,072 usage. The
+   * guard is meant to stop the dex growing, not to stop an existing entry being completed. */
+  if (!f.in_our_store && !MC.mons[key]) { skipped++; continue; }
   // ONLY touch mega/primal formes. The existing non-mega entries were built elsewhere and are what
   // the damage validation runs against; rewriting their stats with this file's approximate spread
   // would be an unrequested behaviour change.
@@ -40,7 +72,18 @@ for (const [key, f] of Object.entries(mega.forms)) {
   const entry = {
     t: f.types,
     st: f.lvl50,
-    mv: (MC.mons[key] && MC.mons[key].mv) || [],
+    /* MOVES COME FROM THE BASE SPECIES when the mega has none of its own, because mega evolution
+     * changes stats, typing and ability — it does NOT change the moveset. Every mega was built with
+     * `mv: []` and the consequence was not cosmetic: buildMon returns a Pokemon with no moves, so
+     * incomingThreat's inner loop finds no attack, scores `best = 0`, and reports the mega as
+     * threatening NOTHING. switchSurvives1/2 read "survives" against all 75 of them and
+     * switchDiesFirst could never fire — on 26.0% of this format's usage, in the same switch logic
+     * this session had just finished fixing.
+     *
+     * Resolved through the SAME normalising lookup as the key itself, so a base species spelled
+     * differently in the two files still resolves. */
+    mv: (MC.mons[key] && MC.mons[key].mv || []).length ? MC.mons[key].mv
+      : ((MC.mons[byNorm.get(nrm(f.base_species))] || {}).mv || []),
     item: f.required_item || (MC.mons[key] && MC.mons[key].item) || null,
     ab: f.ability,
     base: f.base_species ? f.base_species.toLowerCase().replace(/[^a-z0-9]/g, '') : null,
