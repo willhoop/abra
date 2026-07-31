@@ -349,7 +349,39 @@ to the losing one.
 > detector, so the comparison is still fair, but neither arm can express the coordination pattern the
 > feature is named for.
 >
-> **Nothing about winning has been measured.** 200,000 paired games are in flight. What remains:
+> **MEASURED 2026-07-31. IT LOST.** 194,514 paired games, 97,257 complete pairs.
+>
+> | | |
+> |---|---|
+> | decisive pairs | **26,405** (27.1% of all pairs) |
+> | NEW (trained to win) takes | **45.7%**, 95% CI **[45.1, 46.3]** |
+> | verdict | **worse, and the interval clears 50** |
+>
+> Training the 18 coordination weights on the game result made the policy WORSE than the same
+> weights fitted to imitate a human click. The three sign flips that looked like a coherent story
+> about focus fire do not pay.
+>
+> **The likely reason is in the same table: 72.9% of pairs were 1-1 splits**, i.e. the TEAM decided
+> the game and not the policy. That contamination is in the TRAINING gradient too, so REINFORCE on
+> win/loss was mostly fitting a team lottery. The objective was right; the ESTIMATOR of it was not.
+> Three fixes follow, and none of them is "go back to imitation":
+>   1. **Pair the TRAINING runs** as the tests already are, so team luck cancels out of the gradient.
+>   2. **Score decisions against a win-probability baseline** (PORY) rather than the final result, so
+>      a move is credited with what it changed instead of what happened six turns later.
+>   3. **Train against a pool, not only against self** — a self-play policy beats its training
+>      partner, and this one had never faced the imitation policy until the head-to-head it lost.
+>      That is VGC-Bench's own finding, already recorded in docs/COMPETITORS.md.
+>
+> **CAVEAT, AND IT IS LARGE.** The whole-repo review found `engine/fit_policy.js:170` computes the
+> reweighting factors from ONE store and applies them across all three, so the shipped weight vector
+> was fitted against the wrong population. Both arms here share those singles, so this comparison is
+> internally fair — but every ABSOLUTE number in this project is provisional until that refit.
+>
+> **`engine/sprt.js` reached this verdict after 3,516 games instead of 194,514 — 98.2% of the run
+> saved.** `--verify` confirms it agrees with `paired_h2h.js` exactly (12,073 and 14,332 on both
+> readers). A 136-minute run becomes about two and a half minutes.
+>
+> What remains:
 >
 > ```
 > node engine/train_policy.js --joint --switching --switching2 --procs 6 --iters <N> --games <G>

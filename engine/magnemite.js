@@ -59,21 +59,45 @@ function loadWeights(file) {
   return j;
 }
 
-/* How long a per-mon volatile lasts, from the dex condition of the move that creates it. */
-let _volDur = null;
+/* How long a per-mon volatile lasts, from the dex condition of the move that creates it.
+ *
+ * THIS HAS NEVER WORKED. `dex` is declared inside makeScoringPlayer (line ~127), not at module
+ * scope, so `dex.moves.all()` threw ReferenceError on the first call. The bare catch discarded it,
+ * `_volDur = {}` had ALREADY been assigned, and the empty table was cached permanently — the guard
+ * `if (!_volDur)` never fires again, so it never retried. Every duration this bot has ever used is
+ * the fallback 3, in every scored game ever played. Whole-repo review, 2026-07-31.
+ *
+ * Resolved lazily HERE, from the same expression makeScoringPlayer uses, so there is one source and
+ * no load-order dependency. The catch now records the failure instead of hiding it: a table that
+ * could not be built must not be cached as if it were empty-and-correct. */
+let _volDur = null, _volDurFailed = null;
 function volatileDuration(name) {
   if (!_volDur) {
-    _volDur = {};
+    const built = {};
     try {
+      const CS = require('./champions_sim.js');
+      const dex = CS.sim().Dex.forFormat(CS.FORMAT);
       for (const m of dex.moves.all()) {
         if (!m || !m.exists) continue;
         const v = B.norm(m.volatileStatus || '');
         const d = m.condition && m.condition.duration;
-        if (v && d) _volDur[v] = d;
+        if (v && d) built[v] = d;
         const byName = B.norm(m.name);
-        if (d && !_volDur[byName]) _volDur[byName] = d;
+        if (d && !built[byName]) built[byName] = d;
       }
-    } catch (e) { /* default below */ }
+      if (!Object.keys(built).length) throw new Error('the dex produced no move durations at all');
+      _volDur = built;
+    } catch (e) {
+      /* LOUD, ONCE. Silence here is what cost every duration in the project's history. Not thrown,
+       * because a duration is a refinement and a live battle should not die for one — but it is
+       * reported, and it is NOT cached, so the next call tries again. */
+      if (!_volDurFailed) {
+        _volDurFailed = e;
+        console.error(`magnemite: volatileDuration could not read the dex (${e.message}). `
+          + 'Every duration will fall back to 3 until this is fixed.');
+      }
+      return 3;
+    }
   }
   return _volDur[B.norm(name)] || 3;
 }

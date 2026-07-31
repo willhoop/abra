@@ -1686,7 +1686,13 @@ function monSpeedMult(mon, board, dex) {
 
 let _blocks = null, _abil = null, _sash = null;
 function abilityTables() {
-  if (_blocks !== null) return { blocks: _blocks, abil: _abil };
+  /* THE CACHED RETURN DROPPED `sash`, so this function handed back the full table exactly ONCE and
+   * an incomplete one every call after — and the very next line memoises, so in practice callers
+   * always got the incomplete one. SASH was therefore permanently empty and the Focus Sash discount
+   * below has never applied in any game this engine has played. The comment at the SASH site claims
+   * kills "were being discounted by roughly a tenth" and that it was fixed; the code never did it.
+   * Whole-repo review, 2026-07-31. */
+  if (_blocks !== null) return { blocks: _blocks, abil: _abil, sash: _sash };
   const fs2 = require('fs'), p2 = require('path');
   const rd = f => { try { return JSON.parse(fs2.readFileSync(p2.join(__dirname, '..', 'data', f), 'utf8')); } catch (e) { return null; } };
   const b = rd('ability-blocks.json');
@@ -2554,7 +2560,14 @@ function featuresFor(cand, user, board, side, dex, priorP) {
              * non-holder -> 0 and the kill stands. The population figure is the fallback for a
              * closed-sheet game, which is what it was always for. */
             if (left >= 1) {
-              const declared = board && board.sheetItem && board.sheetItem(h.side, h.species);
+              /* `h` IS A MON, NOT A FIELD ENTRY, AND HAS NO `.side`. This read was always undefined,
+               * so the open-sheet branch below never ran and every game fell through to the
+               * population fallback — in a format where the sheet names the item before turn one.
+               * Line 2519 already proves the point: it resolves the side by SEARCHING the field,
+               * because you cannot get it from the mon. Same lookup, done here. */
+              const hEntry = board && board.field && board.field().find(z => z.mon === h);
+              const declared = hEntry && board.sheetItem
+                ? board.sheetItem(hEntry.side, h.species) : undefined;
               sashDrag += declared !== null && declared !== undefined
                 ? (norm(declared) === GAME_RULES.survivesFromFull ? 1 : 0)
                 : (SASH[norm(h.species)] || SASH[baseSpecies(h.species)] || 0);

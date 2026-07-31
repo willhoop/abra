@@ -89,69 +89,109 @@ const LLR_LOSS = Math.log((1 - P1) / (1 - P0));
  * trust — `--verify` runs paired_h2h.js on the same corpus and refuses to report unless the two
  * agree on both/split/neither exactly. Unify by exporting the pairing from paired_h2h.js when that
  * file is next touched; until then a divergence fails a command rather than drifting silently. */
-function readRows(file) {
-  const rows = [];
-  let txt; try { txt = fs.readFileSync(file, 'utf8'); } catch (e) { return rows; }
-  for (const line of txt.split('\n')) {
-    const s = line.trim(); if (!s) continue;
-    let g; try { g = JSON.parse(s); } catch (e) { continue; }
-    if (g && g.selfplay) rows.push(g);
-  }
-  return rows;
+/* STREAMED, BECAUSE THE STORE IS BIGGER THAN A JAVASCRIPT STRING.
+ *
+ * The first version of this function did `readFileSync(file, 'utf8').split('\n')` inside a bare
+ * catch that returned an empty array. On the finished 194,514-game head-to-head — 1.59 GB — V8 threw
+ * ERR_STRING_TOO_LONG (the cap is 0x1fffffe8 characters, ~512 MB), the catch swallowed it, and this
+ * tool reported "no records read" as though the run had produced nothing.
+ *
+ * That is precisely the silent-fallback habit the 2026-07-31 whole-repo review named as the single
+ * highest-yield thing to fix, committed here hours after it was written up. Worse, the trap was
+ * already documented in build/build_mew_bundle.js, which streams for exactly this reason and says so.
+ *
+ * So: read in chunks and keep the tail between them, and let a read error THROW. A tool that cannot
+ * read its input must say that, not report zero. */
+function lineStream(file, onRow) {
+  const CHUNK = 1 << 22;                                  // 4 MB
+  const buf = Buffer.allocUnsafe(CHUNK);
+  let fd;
+  try { fd = fs.openSync(file, 'r'); }
+  catch (e) { throw new Error(`sprt: cannot open ${file} — ${e.message}`); }
+  let tail = '';
+  try {
+    for (;;) {
+      const n = fs.readSync(fd, buf, 0, CHUNK, null);
+      if (!n) break;
+      const lines = (tail + buf.toString('utf8', 0, n)).split('\n');
+      tail = lines.pop();                                 // possibly a partial line; carry it
+      for (const line of lines) {
+        const t = line.trim(); if (!t) continue;
+        let g; try { g = JSON.parse(t); } catch (e) { continue; }   // a torn line is not a read failure
+        if (g && g.selfplay) onRow(g);
+      }
+    }
+    const t = tail.trim();
+    if (t) { try { const g = JSON.parse(t); if (g && g.selfplay) onRow(g); } catch (e) { /* truncated */ } }
+  } finally { try { fs.closeSync(fd); } catch (e) { /* already closed */ } }
 }
 
-function collect(target) {
-  const rows = [];
+function filesFor(target) {
   const st = (() => { try { return fs.statSync(target); } catch (e) { return null; } })();
   if (st && st.isDirectory()) {
-    for (const f of fs.readdirSync(target)) {
-      if (!/\.jsonl$/.test(f) || /raw-logs/.test(f)) continue;
-      rows.push(...readRows(path.join(target, f)));
-    }
-  } else {
-    rows.push(...readRows(target));
+    return fs.readdirSync(target)
+      .filter(f => /\.jsonl$/.test(f) && !/raw-logs/.test(f))
+      .map(f => path.join(target, f));
   }
-  return rows;
+  return [target];
 }
 
-/* Returns the decisive pairs IN SEED ORDER, each 1 (new arm took both) or 0 (old arm took both).
- * Seed order matters: SPRT reads evidence as it ARRIVES, so shuffling would misreport where a real
- * run would have stopped. Seeds are assigned in blocks per worker and ascend within a block. */
-function decisiveSequence(rows) {
-  const bySeed = new Map();
-  for (const g of rows) {
-    const k = String(g.selfplay.seed);
-    if (!bySeed.has(k)) bySeed.set(k, []);
-    bySeed.get(k).push(g);
-  }
-  const usesArm = rows.some(g => g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2);
+/* ONE STREAMING PASS, HOLDING ONLY THE PAIRS STILL WAITING FOR THEIR SECOND HALF.
+ *
+ * The first version read every record into an array and then grouped. On the finished head-to-head
+ * that is 194,514 full game objects and Node died with "JavaScript heap out of memory" — after the
+ * previous version had already died on ERR_STRING_TOO_LONG. Both failures are the same mistake:
+ * treating a 1.6 GB append-only store as something you can hold.
+ *
+ * A paired run writes both halves of a seed close together, so the pending map stays small; and only
+ * four fields per record are kept, not the record. Memory is bounded by unmatched seeds in flight
+ * rather than by corpus size, so this reads a 200,000-game store the same as a 200-game one. */
+function decisiveSequence(target) {
   const NEW = 'score';
-  const sameName = rows.length && rows.every(g => (g.selfplay.policy2 || g.selfplay.policy) === g.selfplay.policy);
-  if (sameName && !usesArm) {
-    console.error('\nREFUSING TO REPORT: both arms carry the same policy name and no record carries');
-    console.error('winnerArm, so a win cannot be attributed to an arm. Same refusal as paired_h2h.js.');
-    process.exit(2);
-  }
+  const pending = new Map();
+  const seq = [], atRow = [];
+  let both = 0, split = 0, neither = 0, halves = 0, mismatched = 0, rows = 0;
+  let sawArm = false, sawDistinctNames = false, firstPolicy = null;
+
+  const sixKey = g => JSON.stringify((g.six && g.six.p1 || []).slice().sort())
+                    + JSON.stringify((g.six && g.six.p2 || []).slice().sort());
   const wonNew = g => (g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2)
     ? (g.selfplay.winnerArm === 1 ? 1 : 0)
     : (g.selfplay.winnerPolicy === NEW ? 1 : 0);
 
-  const seeds = [...bySeed.keys()].sort((a, b) => Number(a) - Number(b));
-  const seq = [];
-  let both = 0, split = 0, neither = 0, halves = 0, mismatched = 0;
-  for (const k of seeds) {
-    const gs = bySeed.get(k);
-    if (gs.length !== 2) { halves += gs.length; continue; }
-    const six = g => JSON.stringify((g.six && g.six.p1 || []).slice().sort()) +
-                     JSON.stringify((g.six && g.six.p2 || []).slice().sort());
-    if (six(gs[0]) !== six(gs[1])) { mismatched++; continue; }
-    if (gs[0].selfplay.swapped === gs[1].selfplay.swapped) { mismatched++; continue; }
-    const s = gs.map(wonNew).reduce((a, b) => a + b, 0);
-    if (s === 2) { both++; seq.push(1); }
-    else if (s === 1) { split++; }
-    else { neither++; seq.push(0); }
+  const onRow = (g) => {
+    rows++;
+    if (g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2) sawArm = true;
+    if (firstPolicy === null) firstPolicy = g.selfplay.policy;
+    if ((g.selfplay.policy2 || g.selfplay.policy) !== g.selfplay.policy) sawDistinctNames = true;
+
+    const k = String(g.selfplay.seed);
+    const rec = { six: sixKey(g), swapped: g.selfplay.swapped, won: wonNew(g) };
+    const prev = pending.get(k);
+    if (!prev) { pending.set(k, rec); return; }
+    pending.delete(k);
+    /* Both halves must genuinely be the same matchup played from opposite sides, or the pairing is
+     * a fiction — the same two checks paired_h2h.js applies. */
+    if (prev.six !== rec.six || prev.swapped === rec.swapped) { mismatched++; return; }
+    const sum = prev.won + rec.won;
+    /* ROWS-SO-FAR IS RECORDED WITH EACH DECISIVE PAIR. Without it the saving was computed against
+     * the TOTAL games read, which reported "saved 2.7%" for a run that was decided after 487 of
+     * 26,405 decisive pairs — under 2% of the corpus. The whole claim of this file is how early it
+     * stops, so reporting that number wrongly makes the tool look worthless when it is not. */
+    if (sum === 2) { both++; seq.push(1); atRow.push(rows); }
+    else if (sum === 1) { split++; }
+    else { neither++; seq.push(0); atRow.push(rows); }
+  };
+
+  for (const f of filesFor(target)) lineStream(f, onRow);
+  halves = pending.size;
+
+  if (!sawDistinctNames && !sawArm && rows) {
+    console.error('\nREFUSING TO REPORT: both arms carry the same policy name and no record carries');
+    console.error('winnerArm, so a win cannot be attributed to an arm. Same refusal as paired_h2h.js.');
+    process.exit(2);
   }
-  return { seq, both, split, neither, halves, mismatched, pairs: both + split + neither };
+  return { seq, atRow, both, split, neither, halves, mismatched, rows, pairs: both + split + neither };
 }
 
 /* ---- the test itself -------------------------------------------------------------------------- */
@@ -196,9 +236,12 @@ function report(c, r, gamesSeen) {
     console.log(`      Roughly ${Math.ceil(need)} more decisive pairs going NEW's way would cross the upper bound;`);
     console.log(`      the truth may also sit between H0 and H1, where SPRT is slowest by design.`);
   }
-  if (MAXGAMES && r.verdict !== 'continue' && gamesSeen) {
-    const saved = MAXGAMES - gamesSeen;
-    if (saved > 0) console.log(`\n  would have saved ${saved.toLocaleString()} of ${MAXGAMES.toLocaleString()} games (${pct(saved, MAXGAMES)})`);
+  if (r.verdict !== 'continue' && c.atRow && c.atRow[r.at - 1] != null) {
+    const at = c.atRow[r.at - 1];
+    const total = MAXGAMES || gamesSeen;
+    const saved = total - at;
+    console.log(`\n  decided ${at.toLocaleString()} games in, out of ${total.toLocaleString()}`);
+    if (saved > 0) console.log(`  would have saved ${saved.toLocaleString()} games (${pct(saved, total)} of the run)`);
   }
 }
 
@@ -208,8 +251,12 @@ function verifyAgainstPairedH2h(file, c) {
     { encoding: 'utf8', maxBuffer: 1 << 26 });
   const out = String(r.stdout || '');
   const grab = re => { const m = out.match(re); return m ? parseInt(m[1].replace(/,/g, ''), 10) : null; };
-  const theirBoth = grab(/2-0[^\n]*?([\d,]+)/);
-  const theirNeither = grab(/0-2[^\n]*?([\d,]+)/);
+  /* MATCH WHAT IT ACTUALLY PRINTS. The first version grepped for "2-0" and "0-2", which appear
+   * nowhere in paired_h2h.js's output — it writes "NEW won both directions". So --verify reported
+   * "could not parse, cross-check SKIPPED", which is honest and useless: the one guard against these
+   * two readers diverging never actually ran. */
+  const theirBoth = grab(/NEW won both directions\s+([\d,]+)/);
+  const theirNeither = grab(/OLD won both directions\s+([\d,]+)/);
   if (theirBoth == null || theirNeither == null) {
     console.log('\n  --verify: could not parse paired_h2h.js output; cross-check SKIPPED, not passed.');
     return;
@@ -225,11 +272,10 @@ function verifyAgainstPairedH2h(file, c) {
 
 /* ---- main ------------------------------------------------------------------------------------- */
 if (!WATCH) {
-  const rows = collect(TARGET);
-  if (!rows.length) { console.error(`no records read from ${TARGET}`); process.exit(2); }
-  const c = decisiveSequence(rows);
+  const c = decisiveSequence(TARGET);
+  if (!c.rows) { console.error(`no records read from ${TARGET}`); process.exit(2); }
   const r = runSprt(c.seq);
-  report(c, r, rows.length);
+  report(c, r, c.rows);
   if (VERIFY) verifyAgainstPairedH2h(TARGET, c);
   process.exit(r.verdict === 'continue' ? 3 : 0);
 } else {
@@ -239,14 +285,13 @@ if (!WATCH) {
   const every = parseInt(flag('every', '60'), 10) * 1000;
   console.log(`watching ${TARGET} every ${every / 1000}s — Ctrl-C to stop watching (the run is untouched)`);
   const tick = () => {
-    const rows = collect(TARGET);
-    const c = decisiveSequence(rows);
+    const c = decisiveSequence(TARGET);
     const r = runSprt(c.seq);
     const stamp = new Date().toISOString().slice(11, 19);
     const p = c.both + c.neither ? (100 * c.both / (c.both + c.neither)).toFixed(1) : '  - ';
-    console.log(`  ${stamp}  ${String(rows.length).padStart(7)} games  ${String(c.both + c.neither).padStart(6)} decisive  ${p}%  LLR ${r.llr.toFixed(2)}  ${r.verdict}`);
+    console.log(`  ${stamp}  ${String(c.rows).padStart(7)} games  ${String(c.both + c.neither).padStart(6)} decisive  ${p}%  LLR ${r.llr.toFixed(2)}  ${r.verdict}`);
     if (r.verdict !== 'continue') {
-      report(c, r, rows.length);
+      report(c, r, c.rows);
       console.log('\n  The run is still going. Stop it yourself if you agree with the verdict.');
       process.exit(0);
     }

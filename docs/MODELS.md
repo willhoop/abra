@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.30.0 · Last updated 2026-07-31.**
+**Version 3.31.0 · Last updated 2026-07-31.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 

@@ -23,6 +23,11 @@
  *   SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/champions_sim.js
  */
 'use strict';
+/* fs WAS USED AND NEVER IMPORTED. The read of data/regulations.json below therefore threw on every
+ * call, and the hardcoded format literal in the catch is the only path that has ever run. It happens
+ * to be correct today; it becomes wrong the moment Reg M-B rotates, which is precisely what this
+ * file's header says it exists to prevent. Whole-repo review, 2026-07-31. */
+const fs = require('fs');
 const path = require('path');
 
 /* THE FORMAT ID LIVES IN ONE PLACE (S12) AND THIS IS NOT IT.
