@@ -293,6 +293,26 @@ const FEATURES = [
    * Not a corner case. Encore is 5.34% of this format's usage and 3.77% of it is PRANKSTER Encore,
    * dominated by Whimsicott -- 469,820, base Speed 116, Prankster on 100% of sets, and the fourth
    * most common Pokemon in the store. */
+  /* ---- WHAT THE TAG ARTIFACT KNEW AND NOTHING READ ---------------------------------------------
+   * data/tags.json derives 96 move tags with their parameters. engine/tags.js exists to load them
+   * and says so in its own header: "172 tags were a specification, not a component ... built, saved,
+   * quoted, never used." board.js read NONE of them. Of the 96, 72 reached no consumer at all.
+   *
+   * These three are the genuinely unrepresented mechanics with real usage, and each is written as a
+   * CONDITION rather than a flag. A bare "this move is Tailwind" cannot help a one-ply scorer: the
+   * payoff is on later turns and this turn only shows a turn spent doing no damage. What one ply CAN
+   * see is whether the condition that makes it worth doing is true right now. That is the same shape
+   * as deadWeather and stallIntoEncore, which do fire, and the opposite of the four feature
+   * additions that measured null on 2026-07-30.
+   *
+   * Measured usage, from the artifact: Tailwind 7,676 clicks, Trick Room 4,871, screens 5,551,
+   * self-heal 4,420. */
+  'speedSwing',      // this move flips the speed order IN MY FAVOUR -- Tailwind or Trick Room while
+                     // I am the slower one, or a Speed drop that would overtake the foe. Zero when
+                     // I am already faster, because then it is a wasted turn rather than a plan.
+  'screenValue',     // it halves incoming damage AND something across from me is actually hitting
+                     // hard enough for that to matter
+  'healValue',       // it heals me AND I am hurt enough for the healing not to be wasted
   'stallIntoEncore', // I am about to Protect and something across from me can Encore me for it
   /* ---- THE PRICE OF THE CLICK (Will: "what is the cost/risk of clicking this move ... that
    * actually get priced into decisions"). Both numbers come from the exposure/fragility engines in
@@ -1365,6 +1385,40 @@ function foeActionDistribution(board, foeSide, mon, dex) {
   finally { _inFoeModel = false; }
 }
 
+/* THE TAG LOADER. engine/tags.js is the one reader of data/tags.json and carries the ABRA_TAGS_OFF
+ * switch, so an A/B can turn every tag lookup into null and get exactly the pre-wire behaviour. */
+let _TAGS = null;
+function tagsMod() {
+  if (_TAGS !== null) return _TAGS;
+  try { _TAGS = require('./tags.js'); } catch (e) { _TAGS = false; }
+  return _TAGS;
+}
+const tagHas = (id, tag) => { const T = tagsMod(); try { return !!(T && T.has('move', id, tag)); } catch (e) { return false; } };
+const tagParam = (id, tag) => { const T = tagsMod(); try { return (T && T.param('move', id, tag)) || null; } catch (e) { return null; } };
+
+/* WHAT SHARE OF THE INCOMING DAMAGE IS PHYSICAL (or Special). A screen that halves Physical is
+ * worth nothing against two special attackers, and the previous version of screenValue could not
+ * tell the difference -- it credited the full incoming threat whatever the category. Returns a
+ * share in [0,1] over the foes' best move of each kind, so it grades rather than flags. */
+function categoryShareOfThreat(board, side, dex, category) {
+  try {
+    const D = damageEngine(); if (!D) return 1;
+    let want = 0, all = 0;
+    for (const f of board.field()) {
+      if (f.side === side || !f.mon || f.mon.fainted) continue;
+      const fm = dmgMon(f.mon, D); if (!fm) continue;
+      for (const id of (fm.moves || [])) {
+        const mv = MC.moves[id]; if (!mv || !mv.bp) continue;
+        const isPhys = mv.c === 'P';
+        const w = mv.bp;
+        all += w;
+        if ((category === 'Physical') === isPhys) want += w;
+      }
+    }
+    return all ? want / all : 1;
+  } catch (e) { return 1; }
+}
+
 const _threatCache = new WeakMap();
 /* `dex` IS ITS OWN PARAMETER, and threading it through `entry` was a bug I shipped and the test
  * caught. The opponent model needs a dex to build the foe's candidates, and the first version read
@@ -2198,6 +2252,89 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   /* Above zero means the queue is cut outright; a fraction is the chance this species runs the
    * ability that grants it. The speed comparison in the stat block can only raise this. */
   set('movesFirst', Math.max(0, Math.min(1, effPri > 0 ? Math.min(1, effPri) : 0)));
+
+  /* ---- SPEED CONTROL, SCREENS AND HEALING, from the tag artifact --------------------------------
+   * Computed HERE, in the targetless section, for the reason the note above gives: Tailwind, Trick
+   * Room and every screen have no target, so anything placed in the stat block below never sees
+   * them. That is exactly how movesFirst read Whimsicott's Tailwind as going last.
+   *
+   * Each is a CONDITION, not a flag. `speedSwing` is zero when I am already faster -- Trick Room
+   * while winning the speed race is a wasted turn, and a feature that fired on both would be asking
+   * the fit to learn "sometimes good" from a constant. */
+  {
+    const mvId = norm(m.id || '');
+    const foeSide2 = side === 'p1' ? 'p2' : 'p1';
+    /* Am I currently the slower one? Same definition switchFeatures uses -- expectedSpe scaled by
+     * the side's Tailwind and the mon's own ability, reversed under Trick Room -- rather than a
+     * second speed model. */
+    const trNow = board.hasField(GAME_RULES.trickRoomField);
+    let amSlower = null;
+    try {
+      const mySpe2 = expectedSpe(effSpecies(user, dex), dex, user && user.nature) *
+        speedMult(board, side, dex) * monSpeedMult(user, board, dex);
+      let fastest2 = 0;
+      for (const f of board.field()) {
+        if (f.side === side || !f.mon || f.mon.fainted) continue;
+        const s2 = expectedSpe(effSpecies(f.mon, dex), dex, f.mon.nature) *
+          speedMult(board, foeSide2, dex) * monSpeedMult(f.mon, board, dex);
+        if (s2 > fastest2) fastest2 = s2;
+      }
+      if (fastest2 > 0) amSlower = trNow ? (mySpe2 > fastest2) : (mySpe2 < fastest2);
+    } catch (e) { amSlower = null; }
+
+    if (amSlower === true) {
+      /* Tailwind doubles MY side. Trick Room inverts the whole field, which helps only while I am
+       * the slower one -- and `deadField` already handles "it is up, so this would undo it". */
+      if (tagHas(mvId, 'doublesSideSpeed') || tagHas(mvId, 'reversesSpeed')) set('speedSwing', 1);
+      /* A Speed drop on the foe is the third route to the same thing. Read off the tag's own
+       * parameter, so a move that lowers Speed by two counts the same as one that lowers it by one
+       * only in the sense that both can flip the order -- the fit prices how much that is worth. */
+      else {
+        const sec = tagParam(mvId, 'secondaryStatEffect');
+        if (sec && sec.lowersSpeed && sec.p) set('speedSwing', Math.max(0, Math.min(1, sec.p)));
+      }
+    }
+
+    /* A screen is worth something only against something that is actually hitting hard. `worst` is
+     * the incoming threat as a fraction of my HP, so this grades rather than flags: a screen up
+     * against a foe that cannot dent me is a wasted turn. */
+    if (tagHas(mvId, 'halvesDamage')) {
+      try {
+        const D3 = damageEngine();
+        if (D3) {
+          const att3 = dmgMon(user, D3);
+          const { worst: w3 } = incomingThreat(board, side, user, att3, D3, null, dex);
+          /* A SCREEN HALVES ONE CATEGORY, and the tag says which: Reflect is
+           * {mult:0.5, category:'Physical'}, Light Screen Special, Aurora Veil both. Crediting a
+           * Reflect for the damage of a special attacker would value it against exactly the thing
+           * it does not stop. `mult` is read too, so a future screen with a different fraction
+           * needs no edit. */
+          const hd = tagParam(mvId, 'halvesDamage') || {};
+          const cat = hd.category || null;
+          const share = cat ? categoryShareOfThreat(board, side, dex, cat) : 1;
+          const stopped = 1 - (typeof hd.mult === 'number' ? hd.mult : 0.5);
+          set('screenValue', Math.max(0, Math.min(1, (w3 || 0) * share * (stopped / 0.5))));
+        }
+      } catch (e) { /* no damage engine: leave it at zero rather than guess */ }
+    }
+
+    /* Healing is worth what it restores, capped by the room there is to restore it into. At full HP
+     * this is zero, which is the whole point -- the move is legal and pointless. */
+    if (tagHas(mvId, 'healsSelf')) {
+      const hp3 = typeof (user && user.hp) === 'number' ? user.hp : 1;
+      const missing = Math.max(0, 1 - hp3);
+      /* THE ARTIFACT'S OWN SHAPE, read rather than guessed. tags.json stores this as
+       * `heal: [numerator, denominator]` -- Recover is [1,2], Roost [1,2], Shore Up [1,2] or [2,3]
+       * in sand. My first version looked for a `fraction` key that does not exist and fell back to a
+       * flat 0.5, which is right for Recover BY COINCIDENCE and wrong for everything whose fraction
+       * differs. Guessing a param name is the same defect as guessing an encoding. */
+      const hs = tagParam(mvId, 'healsSelf');
+      const frac = (hs && Array.isArray(hs.heal) && hs.heal.length === 2 && hs.heal[1])
+        ? (hs.heal[0] / hs.heal[1])
+        : (hs && typeof hs.fraction === 'number' ? hs.fraction : 0.5);
+      set('healValue', Math.max(0, Math.min(1, Math.min(frac, missing))));
+    }
+  }
 
   /* Scaled by the 6-stage maximum the game itself allows, so the number is a share of the range
    * rather than a raw count and nothing here is a constant chosen by me. */
