@@ -24,6 +24,16 @@ const S=require('./sets.js');
  *
  * `winProb2` takes SPECIES NAMES rather than pre-built teams, so the set-building below is now the
  * engine's job rather than this file's. v2 lives in engine/graveyard/. */
+/* THE SPECIES TABLE, WITHOUT WHICH THE REFEREE CANNOT RUN AT ALL.
+ *
+ * medicham2-browser.js reads a global `MC` (data/engine-data.js) for every species it builds, and
+ * ditto.js never required it. So EVERY winProb2 call threw `MC is not defined`, the try/catch below
+ * turned each throw into a null, and MEDICHAM reported "n/a" for every candidate — for however long
+ * this has been true. The run still printed a FINAL TEAM and the words "MEDICHAM decides".
+ *
+ * That is the whole grounded-rollout check — the thing that exists to catch JOLTEON Goodharting its
+ * own surrogate — silently absent, in the one file whose output is a team recommendation. */
+require('../data/engine-data.js');
 const { winProb2 } = require('./medicham2-browser.js');
 const idn=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const D=__dirname;
@@ -97,13 +107,21 @@ function medichamRank(candidates, foes, N=150){
   /* Names straight through: winProb2 builds its own doubles teams, so the S.team6 round-trip that
    * v2 required is gone. The length guard stays — a four-slot bring with fewer than two buildable
    * Pokemon is not a matchup, and it must read as "no answer" rather than as a win rate. */
-  return candidates.map(six=>{ const A=six.slice(0,4);
+  /* THE FIRST FAILURE IS KEPT AND REPORTED. `catch(e){ return null }` discarded the reason on every
+   * call, so a missing require and a genuinely unbuildable matchup were indistinguishable — both
+   * read as a tasteful "n/a". A referee that cannot run must say why, once, loudly. */
+  let failures = 0, firstError = null;
+  const out = candidates.map(six=>{ const A=six.slice(0,4);
     const ps=foes.map(f=>{ const B=f.slice(0,4);
       if(S.team6(A).length<2 || S.team6(B).length<2) return null;
-      try{ return winProb2(A,B,N); }catch(e){ return null; }
+      try{ return winProb2(A,B,N); }
+      catch(e){ failures++; if(!firstError) firstError = e; return null; }
     }).filter(x=>x!=null);
     return { six, med: ps.length?mean(ps):null, jolt:score(six) };
   }).sort((a,b)=>(b.med??-1)-(a.med??-1));
+  out.refereeFailures = failures;
+  out.refereeError = firstError;
+  return out;
 }
 
 if(require.main===module){
@@ -135,8 +153,31 @@ if(require.main===module){
   console.log(`\nMEDICHAM finalist re-rank (grounded rollouts on ${cands.length} candidate teams):`);
   const ranked=medichamRank(cands, sample);
   for(const r of ranked) console.log(`    MEDICHAM ${r.med==null?'n/a':(r.med*100).toFixed(1)+'%'}  |  JOLTEON ${(r.jolt*100).toFixed(1)}%   ${r.six.join(', ')}`);
-  const win=ranked[0];
+  /* REFUSE RATHER THAN RECOMMEND. When every `med` is null the sort comparator above is
+   * (-1) - (-1) = 0 for every pair, so it is a NO-OP and ranked[0] is simply whichever candidate was
+   * inserted first — the seed. This file then printed that team under the heading "MEDICHAM decides"
+   * and the line "trust MEDICHAM where they disagree", with MEDICHAM having said nothing.
+   *
+   * Observed on 2026-07-31: it recommended the 62.1% team over the 76.3% one, by insertion order,
+   * while claiming to be arbitrating between them. A tool whose entire output is a team must not
+   * emit one when the check that validates it did not run. */
+  if(ranked.refereeFailures){
+    console.error(`\n  MEDICHAM FAILED ON ${ranked.refereeFailures} MATCHUPS.`);
+    console.error(`  first error: ${ranked.refereeError && ranked.refereeError.message}`);
+  }
+  const judged = ranked.filter(r=>r.med!=null);
+  if(!judged.length){
+    console.error(`\nREFUSING TO RECOMMEND A TEAM.`);
+    console.error(`MEDICHAM judged 0 of ${ranked.length} finalists, so nothing here has been checked against`);
+    console.error(`grounded rollouts — only against JOLTEON, which is the surrogate MEDICHAM exists to`);
+    console.error(`police. Picking the top row would mean picking by insertion order and calling it a`);
+    console.error(`verdict. Fix the referee and re-run.`);
+    process.exit(1);
+  }
+  const win=judged[0];
   console.log(`\nCHOSEN (JOLTEON proposes, MEDICHAM decides):\n  ${win.six.join(', ')}`);
-  console.log(`  MEDICHAM ${win.med==null?'n/a':(win.med*100).toFixed(1)+'%'} vs JOLTEON ${(win.jolt*100).toFixed(1)}% — trust MEDICHAM where they disagree.`);
+  console.log(`  MEDICHAM ${(win.med*100).toFixed(1)}% vs JOLTEON ${(win.jolt*100).toFixed(1)}% — trust MEDICHAM where they disagree.`);
+  if(judged.length < ranked.length)
+    console.log(`  (${ranked.length - judged.length} finalist(s) unjudged and therefore not eligible)`);
 }
 module.exports={ pwin, score, loadMeta, prep, optimise, medichamRank };
