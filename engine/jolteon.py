@@ -42,11 +42,59 @@ SPD, FIRE = load_dynamics()
 def team_speed(team):   return sum(SPD.get(s, 0.5)  for s in team) / max(1, len(team))
 def team_fire(team):    return sum(FIRE.get(s, 0.5) for s in team) / max(1, len(team))
 
+def _source_games(path, humans_only):
+    """The games JOLTEON learns from.
+
+    THE CLEAN FILTER, WHICH THIS DID NOT HAVE. This read the durable store line by line and rejected
+    only accounts that ANNOUNCE themselves as bots -- the exact filter quality.py measures as
+    inadequate, and the store is roughly 87% bots, forfeits and stubs (the Garbodor rule). So the
+    Bradley-Terry strengths below, and therefore DITTO which consumes them, were fitted largely on
+    games no human played. engine/selftest.js has flagged this file for that since the check existed.
+
+    quality.load_games(clean=True) is the same gate every honest human statistic in this project uses.
+    Set JOLTEON_RAW=1 to reproduce the old behaviour for comparison -- kept so the difference can be
+    MEASURED rather than asserted, which is how the two are reported side by side below.
+    """
+    self_src = os.environ.get('JOLTEON_SELF')
+    if self_src:
+        # SELF-PLAY, which is the right corpus for this particular question (Will: "cant we use self
+        # play training data").
+        #
+        # JOLTEON asks "does team A beat team B". Self-play answers exactly that, at ~117,000 games a
+        # run against 3,267 clean human open-sheet games -- thirty times the corpus from ONE run, on
+        # real teams drawn from the clean pool, with matchups ENUMERATED rather than sampled so the
+        # coverage of team pairs is uniform. Every game is open-sheet and none of it can be bot
+        # contamination, because it is deliberately all bot.
+        #
+        # THE CAVEAT, WHICH IS REAL: it learns which team wins WHEN MAG PLAYS BOTH SIDES. That is a
+        # fact about teams under one policy, not about human ladder outcomes, and the two can differ
+        # -- a team that punishes human error may look ordinary against a bot that does not make it.
+        # For feeding DITTO, which optimises teams to be played well, that is arguably the signal you
+        # want. For predicting a human ladder game it is not. Stated rather than hidden.
+        if not os.path.isabs(self_src):
+            self_src = os.path.join(HERE, '..', self_src)
+        out = []
+        for line in open(self_src, encoding='utf-8'):
+            if line.strip():
+                try: out.append(json.loads(line))
+                except Exception: pass
+        return out, 'SELF-PLAY (%s)' % os.path.basename(self_src)
+    if os.environ.get('JOLTEON_RAW'):
+        out=[]
+        for line in open(path, encoding='utf-8'):
+            if line.strip():
+                try: out.append(json.loads(line))
+                except Exception: pass
+        return out, 'RAW store (bot-flag filter only)'
+    sys.path.insert(0, HERE)
+    import quality
+    return quality.load_games(clean=True), 'CLEAN corpus (quality.py)'
+
+
 def load(path, humans_only=True):
     rows=[]; seen=set()
-    for line in open(path, encoding='utf-8'):
-        if not line.strip(): continue
-        g=json.loads(line)
+    games, _src = _source_games(path, humans_only)
+    for g in games:
         gid=g.get('id')
         if gid in seen: continue          # dedup by replay id — a game we already
         seen.add(gid)                      # scraped is never counted twice, even if
