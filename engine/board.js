@@ -2537,6 +2537,46 @@ function candidates(moves, user, board, side, dex) {
   const foeSide = side === 'p1' ? 'p2' : 'p1';
   const foes = board.field().filter(f => f.side === foeSide);
   const allies = board.field().filter(f => f.side === side && f.mon !== user);
+
+  /* ---- CHOICE LOCK (Will, 2026-07-31: "LIKE CHOICE MONS ONLY GET SWITCH OR ATTACK AFTER
+   * SELECTION THATS EASY") --------------------------------------------------------------------
+   *
+   * A Pokemon holding a Choice item may only repeat the move it last used. LIVE PLAY was never
+   * wrong about this -- magnemite.js takes its candidates from the REQUEST, which is authoritative
+   * about legality and marks the other three `disabled`. FITTING was: engine/fit_policy.js hands
+   * this function all four sheet moves with no legality filter, so a choice-locked human appeared
+   * to have had ~9 options when they really had 4.
+   *
+   * That is not a scoring error, it is a WRONG DENOMINATOR. A conditional logit divides by the sum
+   * over the choice set, so five alternatives that were never available were inflating it -- making
+   * the human's actual click look more deliberate than it was and handing probability mass to moves
+   * they could not legally pick. Choice items are 6.52% of this format.
+   *
+   * TURN ONE IS FREE and needs no turn counter, which is the neat part. `switchIn` starts every
+   * arrival with `lastMove: ''` and `endTurn` only fills it once the mon has actually moved, so
+   * `lastMove` already means "has this thing moved since it arrived". Switch out and back in and it
+   * is empty again -- correct by construction.
+   *
+   * DERIVED, NOT LISTED: the dex flags choiceband, choicespecs and choicescarf with `isChoice`, so
+   * nothing is named here and a future item is picked up with no edit. Protect goes with the rest,
+   * because a locked Pokemon cannot click it either.
+   *
+   * Switches are added further down and are deliberately NOT filtered: leaving is always legal, and
+   * being locked into a bad move is one of the strongest reasons to do it. */
+  const lockedTo = (() => {
+    const last = norm(user && user.lastMove || '');
+    if (!last) return null;                       // just arrived, or has not moved yet
+    const it = dex && dex.items && dex.items.get(norm(user.item || ''));
+    return (it && it.exists && it.isChoice) ? last : null;
+  })();
+  if (lockedTo) {
+    const kept = moves.filter(mv => norm(mv) === lockedTo);
+    /* Only narrow when the locked move is actually in the list. If it is missing -- a sheet that
+     * disagrees with the log, a move learned mid-battle -- narrowing to nothing would delete the
+     * decision entirely, which is worse than scoring one option too many. */
+    if (kept.length) moves = kept;
+  }
+
   const out = [];
   for (const mv of moves) {
     const m = dex.moves.get(mv);

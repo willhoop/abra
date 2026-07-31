@@ -72,7 +72,12 @@ const keys = Object.keys(mons);
 const isMega = k => /-(mega|primal)(-|$)/i.test(k);
 const cohorts = { mega: keys.filter(isMega), other: keys.filter(k => !isMega(k)) };
 
-const FIELDS = ['ab', 'mv', 'item', 't', 'st', 'wt'];
+/* `bs` is here because it was NOT, and that omission shipped a bug. The 2026-07-30 mega repair wrote
+ * `st` (the level-50 line) and forgot `bs` (base stats) on the 19 entries it newly added; buildMon
+ * opens with `if(!m||!m.bs) return null`, so those formes could not be built by the damage engine at
+ * all. This list is the audit's entire field of view — anything missing from it is invisible, which
+ * is the failure mode the audit exists to prevent, so it is kept deliberately wide. */
+const FIELDS = ['ab', 'mv', 'item', 't', 'st', 'bs', 'wt'];
 const empty = (v) => v == null || (Array.isArray(v) && !v.length) ||
   (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length);
 

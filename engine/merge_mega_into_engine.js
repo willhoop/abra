@@ -71,6 +71,17 @@ for (const [srcKey, f] of Object.entries(mega.forms)) {
   if (!/mega|primal/i.test(f.forme || '')) { skipped++; continue; }
   const entry = {
     t: f.types,
+    /* BASE STATS, and their absence was a real bug shipped on 2026-07-30. This object wrote `st`
+     * (the level-50 line) and not `bs`. The 48 formes that already existed kept their `bs` through
+     * the Object.assign below, but the 19 this script ADDED had none at all -- and
+     * medicham2-browser.js's buildMon opens with `if(!m||!m.bs) return null`, so those 19 could not
+     * be built by the damage engine AT ALL. The same shape as the hole this script exists to close,
+     * reintroduced by the fix for it, and caught only when CHOMP's dex refresh counted 289 where
+     * ABRA reported 308.
+     *
+     * It is also why engine/artifact_audit.js now checks `bs`: the cohort check covered ab, mv,
+     * item, t, st and wt, so the one field the repair forgot was the one field nothing looked at. */
+    bs: f.base_stats,
     st: f.lvl50,
     /* MOVES COME FROM THE BASE SPECIES when the mega has none of its own, because mega evolution
      * changes stats, typing and ability — it does NOT change the moveset. Every mega was built with
