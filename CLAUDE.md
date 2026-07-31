@@ -135,6 +135,35 @@ Tailwind x2 — are the fact, and must be one function that both call.
 Enforced by `tests/test-engine-consistency.js`, which asserts the FACTS agree across engines and
 deliberately says nothing about whether their features match.
 
+**A DERIVED ARTIFACT IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE.** (Will, 2026-07-30:
+*"bro arent we making sure all fixes get applied to every applicaiton? how was this not caught? i
+want a thorough audit"*)
+
+The rule above covers a fact reaching every MODEL. It does not cover a fact reaching the ARTIFACT
+that carries it, and that is a separate hole. `data/mega-dex-official.json` held an ability for all
+340 formes, `engine/merge_mega_into_engine.js` existed to apply them, and `data/engine-data.js`
+still had `ab: null`, `mv: []` and `item: null` on every mega — 26.0% of this format's usage. The
+builder keyed `venusaurmega` while the artifact keyed `venusaur-mega`, so zero of its 67 writes ever
+matched, and a later wholesale regeneration left the nulls in place. Nothing noticed, because
+nothing compared the two files. The empty `mv` was the expensive half: `buildMon` returned a Pokemon
+with no moves, so every mega scored as threatening NOTHING.
+
+So: a generated file needs a check that its SOURCE's values are actually in it. Three things that
+check must do, learned from getting each wrong first:
+  - judge a builder only on the rows it actually WRITES. Averaging over rows it skips will clear the
+    builder that is broken;
+  - ask whether the ARTIFACT has two keys that normalise alike, not whether the two files spell keys
+    the same. Spellings differ legitimately; duplicates never do. A check that keeps firing after
+    the fix gets ignored, which is how the hole survived;
+  - treat "newer than its source" as no evidence at all. `engine-data.js` was newer than the merge
+    script and had still lost its output.
+
+A gap that is a JUDGEMENT gets declared with its reason, like `RAW-STORE-OK` — Ditto keeps a null
+ability because the dex's slot 0 says Limber and every Ditto that matters runs Imposter.
+
+Enforced by `engine/artifact_audit.js`, registered as a GATE in `tests/run-all.js`, because this was
+invisible for exactly as long as nobody ran it.
+
 **Fitting environment and playing environment must match.** MAG's weights were fitted WITH the
 sheet visible and the bot played WITHOUT it. MACHAMP's champion was trained under broken mega. Same
 error, twice: trained under one set of capabilities, deployed under another.
