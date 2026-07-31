@@ -78,3 +78,11 @@ data/games.pair*.jsonl
 # self-play here on 2026-07-27 -- and one of those files is over GitHub's 100 MB hard limit, so the
 # push would have been rejected after the commit was already made.
 data/quarantine/
+
+# Head-to-head game output, whatever it is called. The exact-prefix rule `data/games.h2h*.jsonl`
+# missed `data/games.overnight-h2h.jsonl` — the same near-miss the comment at line 25 records for
+# games.selfplay.new.jsonl, which put a 987 MB file in the history. A 2026-07-31 audit found 23.7 GB
+# of this output in data/. Match the SUBSTRING, not the prefix.
+data/games.*h2h*.jsonl
+data/games.*h2h*.raw-logs.jsonl
+data/.*.jsonl
