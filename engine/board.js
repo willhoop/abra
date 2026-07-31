@@ -1306,8 +1306,74 @@ function monUnderEntry(mon, entry, dex) {
   return { mon: Object.assign({}, mon, { boosts }), reflected: r.reflected };
 }
 
+/* ---------------------------------------------------------------------------------------------
+ * THE OPPONENT MODEL — "they will click their hardest hit" is an assumption, and a wrong one
+ *
+ * incomingThreat takes a MAX: the biggest number any foe move produces. Nine features are built on
+ * it (diesBeforeMoving, koFirst, killsThreat, switchSurvives1/2, switchDiesFirst, benchRisk,
+ * protectThreatened, tgtMayProtect), so the whole survive/die half of the vector is priced against a
+ * worst case. Measured on one mid-game board: the foe's lead clicks a damaging move 52.9% of the
+ * time, and MAG assumes 100% AND assumes it is the hardest of them.
+ *
+ * This is job 2 of the four ALAKAZAM needs (narrow / GUESS WHAT THEY WILL DO / evaluate / solve),
+ * and it needs no new model: `candidates` and `featuresFor` already take `side`, so the same weights
+ * score the other side of the field. What it needs is the weights, which board.js deliberately does
+ * not hold — hence an explicit opt-in rather than a hidden default.
+ *
+ * OFF BY DEFAULT, which makes it an A/B by construction. Left off, every number below is exactly
+ * what it was. The comparison is then between two builds that differ in one flag, which is the
+ * control this project keeps needing (see ABRA_TAGS_OFF, and the note in mew.js about arms that were
+ * not actually comparable).
+ *
+ * RECURSION IS BOUNDED AT ONE LEVEL. Scoring the foe's options calls featuresFor, which calls this
+ * function again. `_inFoeModel` makes the inner call fall back to the max, so the foe is modelled as
+ * a worst-case-assuming player while WE model them properly. That is a real modelling choice and not
+ * merely a guard: it is the standard one level of recursion, and going deeper is job 4's problem.
+ * ------------------------------------------------------------------------------------------- */
+let _foeW = null;              // null = the opponent model is OFF
+let _inFoeModel = false;       // true while scoring the foe, to stop infinite recursion
+function setOpponentModel(weights) {
+  _foeW = (weights && weights.length) ? weights.slice() : null;
+  return !!_foeW;
+}
+function opponentModelOn() { return !!_foeW && !_inFoeModel; }
+
+/* P(each action) for one foe Pokemon, from the same weights and the same softmax MAG uses on its
+ * own options. Returns null when the model is off or the foe's options cannot be built. */
+function foeActionDistribution(board, foeSide, mon, dex) {
+  if (!opponentModelOn() || !dex || !mon || !mon.moves || !mon.moves.length) return null;
+  _inFoeModel = true;
+  try {
+    const cands = candidates(mon.moves, mon, board, foeSide, dex);
+    if (!cands.length) return null;
+    const out = [];
+    for (const c of cands) {
+      let x = null;
+      try { x = featuresFor(c, mon, board, foeSide, dex, PRIOR_FLOOR); } catch (e) { continue; }
+      if (!x) continue;
+      let s = 0;
+      for (let i = 0; i < _foeW.length && i < x.length; i++) s += _foeW[i] * x[i];
+      out.push({ cand: c, score: s });
+    }
+    if (!out.length) return null;
+    const mx = Math.max(...out.map(o => o.score));
+    let tot = 0;
+    for (const o of out) { o.p = Math.exp(o.score - mx); tot += o.p; }
+    for (const o of out) o.p /= tot;
+    return out;
+  } catch (e) { return null; }
+  finally { _inFoeModel = false; }
+}
+
 const _threatCache = new WeakMap();
-function incomingThreat(board, side, user, att, D, entry) {
+/* `dex` IS ITS OWN PARAMETER, and threading it through `entry` was a bug I shipped and the test
+ * caught. The opponent model needs a dex to build the foe's candidates, and the first version read
+ * it off `entry.dex` -- but `entry` is null for every candidate whose switch-in has no arrival
+ * ability, which is almost all of them. So foeActionDistribution returned null immediately and the
+ * model never engaged: identical feature vectors on and off, and a 0ms 'recursion' test that was
+ * really measuring nothing happening. Wired but inert, which is the exact defect this session has
+ * spent the day removing. */
+function incomingThreat(board, side, user, att, D, entry, dex) {
   /* THE DEFENDER IS PART OF THE KEY, and leaving it out is what made every switch feature useless.
    * This answers "how hard is the hardest thing aimed at THIS Pokemon", and switch candidates ask it
    * about the mon coming IN while `user` stays the one currently out. Keyed on `user` alone, every
@@ -1320,7 +1386,12 @@ function incomingThreat(board, side, user, att, D, entry) {
    * leaving the effect out of the key would hand the second one the first one's answer — the same
    * defect the note above records for the defender. */
   const ent = entry ? `${entry.weather}|${JSON.stringify(entry.foeBoosts || 0)}` : '-';
-  const key = `${side}|${who}|${ent}|${user && user.hp}|${board.turn}|` +
+  /* THE OPPONENT MODEL IS PART OF THE KEY. Without it, a value computed with the model off is
+   * handed back to a caller running with it on -- the A/B would compare an arm against a cached
+   * copy of the other arm, which is precisely the 'arms that were not actually comparable' failure
+   * this project has already been bitten by. */
+  const omKey = opponentModelOn() ? 'om' : '-';
+  const key = `${side}|${who}|${ent}|${omKey}|${user && user.hp}|${board.turn}|` +
     board.field().map(f => `${f.side}${f.letter}${f.mon.species}${f.mon.hp}`).join(',');
   const hit = _threatCache.get(board);
   if (hit && hit.key === key) return hit.val;
@@ -1338,16 +1409,46 @@ function incomingThreat(board, side, user, att, D, entry) {
       const fm = dmgMon(dropped.mon, D);
       if (!fm) continue;
       let best = 0;
+      const perMove = new Map();
       for (const id of (fm.moves || [])) {
         const fmv = MC.moves[id];
         if (!fmv || !fmv.bp) continue;
         const r = dmgFractions(D, fm, att, { basePower: fmv.bp, category: fmv.c === 'P' ? 'Physical' : 'Special' }, fmv.t, false, wxBoard);
         if (r && r.mean > best) best = r.mean;
+        if (r) perMove.set(id, r.mean);
       }
+
+      /* WHAT WE EXPECT TO TAKE, rather than the worst thing available.
+       *
+       * `best` above is the max — it assumes this Pokemon always clicks its hardest hit. With the
+       * opponent model on, the same weights that score OUR options score THEIRS, and the damage is
+       * weighted by how likely each click actually is. A move they will not pick stops setting the
+       * bar; a Protect or a switch contributes ZERO damage rather than being ignored.
+       *
+       * The max is kept as a floor on nothing and simply replaced, but note what is NOT done here:
+       * this is a MEAN. For "do I survive" a percentile is arguably the right statistic — dying 30%
+       * of the time is not the same as taking 30% damage — and that choice is deliberately left
+       * visible rather than buried, because switching it changes what nine features mean. */
+      let use = best;
+      if (opponentModelOn()) {
+        const dist = foeActionDistribution(board, f.side, f.mon, dex || (entry && entry.dex));
+        if (dist && dist.length) {
+          let exp = 0;
+          for (const o of dist) {
+            const mvId = o.cand && o.cand.move && norm(o.cand.move.id || '');
+            /* A switch or a status move does no damage to us this turn. Counting it as zero is the
+             * whole point: it is the half of their option space the max pretends does not exist. */
+            const dmg = (mvId && perMove.has(mvId)) ? perMove.get(mvId) : 0;
+            exp += o.p * dmg;
+          }
+          use = exp;
+        }
+      }
+
       /* Keyed on the ORIGINAL mon object: callers look this up with what is on the board, not with
        * the copy made above. */
-      threat.set(f.mon, best);
-      if (best > worst) worst = best;
+      threat.set(f.mon, use);
+      if (use > worst) worst = use;
     }
   }
   const val = { threat, worst };
@@ -2253,7 +2354,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     else {
       const att = dmgMon(user, D);
       const myLeft = Math.max(0, typeof user.hp === 'number' ? user.hp : 1);
-      const { threat, worst } = incomingThreat(board, side, user, att, D);
+      const { threat, worst } = incomingThreat(board, side, user, att, D, null, dex);
       const threatened = att && worst >= myLeft ? 1 : 0;
 
       const hits = cand.spread && cand.spread.length ? cand.spread : (t ? [t] : []);
@@ -2683,7 +2784,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
   const wxBoard = boardUnderEntry(board, entry);
 
   const inMon = dmgMon(incoming, D);
-  const { worst, threat } = incomingThreat(board, side, user, inMon, D, entry);
+  const { worst, threat } = incomingThreat(board, side, user, inMon, D, entry, dex);
   if (inMon) {
     set('switchSurvives1', worst < 1 ? 1 : 0);
     set('switchSurvives2', worst < 0.5 ? 1 : 0);
@@ -2792,4 +2893,4 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * server-side call, so buildMon never applies a mega and every consumer that asked it for a
  * stone-holder's stats got the BASE FORM. This one reads the dex's megaStone property and refuses a
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
-module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop };
+module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution };
