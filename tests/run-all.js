@@ -51,14 +51,34 @@ const testFiles = fs.readdirSync(D('tests'))
  * builder existed to apply it. Nothing compared the derived artifact to its source, so a build step
  * that had been silently undone stayed undone. Running it every time is the whole point (Will:
  * "arent we making sure all fixes get applied to every applicaiton? how was this not caught?"). */
+/* validate_damage.js is the GOLDEN MASTER against @smogon/calc — the guard on the number every other
+ * result depends on. It was NOT in this list, and the coverage assertion below did not notice,
+ * because that assertion detects a check by its OUTPUT FORMAT and this file reports an aggregate
+ * table plus `process.exit(1)` rather than "N passed, N failed". So the meta-check written to stop
+ * unrun checks was itself fooled, by the most important check in the repository.
+ *
+ * Proven during the 2026-07-31 engineering review by mutation: neutering Sword of Ruin (0.75 -> 1.00)
+ * dropped within-5% agreement to 94% (needs >=95) with a worst case of 25% (needs <=8), and
+ * validate_damage caught it while the full suite stayed green. It exits 2 when @smogon/calc is
+ * absent, which this runner treats as SKIP, so listing it is safe on a machine without the dep. */
 const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_audit.js',
-  'engine/validate_selfplay.js'];
+  'engine/validate_damage.js', 'engine/validate_damage_sim.js', 'engine/validate_selfplay.js'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up
  * that is neither a listed gate nor in tests/, this runner fails rather than quietly ignoring it. */
+/* WIDENED 2026-07-31. This detected a check purely by its reporting idiom, so a file that gates by
+ * exit code without printing "N passed, N failed" was invisible — which is exactly how
+ * validate_damage.js, the damage golden master, sat outside the suite unnoticed. A check is now also
+ * anything that calls process.exit with a non-zero literal, which is what a gate DOES rather than
+ * what it PRINTS. Behaviour is the honest signal; formatting is not. */
 const looksLikeACheck = src => /\d+ passed, \$\{?F?\}? ?failed|passed, .*failed/.test(src) ||
-  /console\.log\('  ok   '/.test(src);
+  /console\.log\('  ok   '/.test(src) ||
+  /* A GATE, detected by what it DOES rather than how it prints: it exits non-zero AND announces a
+   * regression. `process.exit(1)` alone is far too broad -- 36 engine files exit(1) on ordinary
+   * error handling, and widening to that made this assertion cry wolf, which is the same defect it
+   * exists to prevent. Both clauses are required. */
+  (/process\.exit\(\s*1\s*\)/.test(src) && /REGRESSION|FAIL:|FAIL/.test(src));
 const unrun = fs.readdirSync(D('engine'))
   .filter(f => f.endsWith('.js'))
   .filter(f => !GATES.includes('engine/' + f))

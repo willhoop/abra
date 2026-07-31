@@ -713,7 +713,12 @@ async function main() {
       /* Provenance on every record. A self-play game that ever loses its label becomes
        * indistinguishable from a real one, and that is unrecoverable. */
       rec.source = 'selfplay';
-      rec.selfplay = { engine_commit: CS.PINNED_COMMIT, format: FORMAT_ARG || CS.FORMAT, policy: POLICY, seed };
+      /* THE ACTUAL COMMIT, not the pinned constant. This recorded CS.PINNED_COMMIT — what the project
+       * INTENDS to run — so a checkout at any other commit still produced games stamped 20ad99ff. The
+       * one field that says which engine generated a corpus was unfalsifiable by construction.
+       * `engine_pinned` is kept alongside so a mismatch is visible in the data rather than inferred. */
+      rec.selfplay = { engine_commit: CS.actualCommit() || CS.PINNED_COMMIT,
+        engine_pinned: CS.PINNED_COMMIT, format: FORMAT_ARG || CS.FORMAT, policy: POLICY, seed };
       /* WRITTEN UNCONDITIONALLY, INCLUDING THE DEFAULTS.
        *
        * These three were written only when they differed from their default: `if (RANDMOVE !== 1)`,

@@ -86,6 +86,29 @@ function sim() {
 
 /* Confirm the mod is present and is the format our data actually came from. Called before any batch
  * job, because silently running a DIFFERENT format would produce numbers that look fine and are not. */
+/* THE PIN WAS DECLARED AND NEVER CHECKED, which made it a comment rather than a pin.
+ *
+ * PINNED_COMMIT names the Showdown commit this project is validated against. Nothing compared it to
+ * the checkout that actually loads, and worse, mew.js stamped `engine_commit: CS.PINNED_COMMIT` into
+ * EVERY self-play record — the CONSTANT, not the running code. So a checkout at any other commit
+ * would still have produced games labelled 20ad99ff, and the provenance field that exists to say
+ * which engine generated a corpus would have been lying by construction, silently, forever.
+ *
+ * Read from git rather than from a file the checkout could also be wrong about. Returns null when
+ * git or the checkout is unavailable, and null is reported as UNKNOWN rather than as a match —
+ * an unverifiable pin must never read as a verified one. */
+let _actualCommit;
+function actualCommit() {
+  if (_actualCommit !== undefined) return _actualCommit;
+  _actualCommit = null;
+  try {
+    const out = require('child_process')
+      .execFileSync('git', ['-C', showdownPath(), 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    _actualCommit = (out || '').trim() || null;
+  } catch (e) { _actualCommit = null; }
+  return _actualCommit;
+}
+
 function verify() {
   const { Dex } = sim();
   const fmt = Dex.formats.get(FORMAT);
@@ -97,6 +120,10 @@ function verify() {
     mod: ok ? fmt.mod : null,
     pinned_commit: PINNED_COMMIT,
     pinned_date: PINNED_DATE,
+    actual_commit: actualCommit(),
+    /* true / false / null-for-unknown. A consumer that treats null as true is making the same
+     * mistake this field was added to expose. */
+    commit_matches: actualCommit() ? (actualCommit() === PINNED_COMMIT) : null,
     champions_formats: Dex.formats.all().filter(f => /champions/i.test(f.id)).length,
   };
 }
@@ -330,7 +357,7 @@ async function winProb(speciesA, speciesB, N, setsBySpecies) {
            filled: A.filled.concat(B.filled) };
 }
 
-module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, verify, packTeam, battle, winProb, sim };
+module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim };
 
 if (require.main === module) {
   const v = verify();
