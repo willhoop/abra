@@ -104,6 +104,37 @@ and those apply at ANY hp. A fix aimed at the wrong mechanism is still a bug.
 **Prefer OBSERVED over DECLARED.** The sheet says what they started with. Knock Off (1,640 uses),
 Trick, consumed berries and used Sashes all make it a lie mid-battle.
 
+**FEATURES ARE PER-MODEL. FACTS ARE GLOBAL.** (Will, 2026-07-30: *"does every model need our
+features to flow through them? would it ever make sense for each model to have their own
+features?"*)
+
+The models answer differently-shaped questions and must NOT share a feature vector. MAG scores an
+ACTION — what happens if I click this. A value function scores a POSITION with no action attached.
+SLOWKING scores a BRING, four of mine against six of theirs. DITTO scores a TEAM with no opponent
+at all. Feeding action-features to a position model is a category error, so
+`engine/position_features.js` having its own 15 is correct rather than duplication.
+
+What they must NEVER each own is a FACT about the game: how much damage this does, who moves first,
+whether that ability refuses this move, what the sheet declared. One implementation, everyone calls
+it. Two files that both decide Choice Scarf multiplies Speed by 1.5 will disagree eventually, and
+the disagreement will be invisible because both keep working.
+
+Every integrity bug found on 2026-07-30 was this rule broken — a fact living inside feature code and
+diverging:
+  - priority blocking sat in the artifact and was read by `clickFragility` and by nothing else, so
+    Sucker Punch beat a Farigiraf in every rollout and every self-play game ever run;
+  - the sheet's ITEM and ABILITY reached `switchIn` and not `switchFeatures`;
+  - the sheet's MOVES reached `dmgMon` and not `position_features`, so every Pokemon was valued on
+    the dataset's average moveset instead of the one it declared.
+
+A legitimate exception, so the rule is not misread: `board.js` computes EXPECTED speed across
+unknown spreads while `medicham2` computes EXACT speed for a built mon. Those are different
+questions and both deserve to exist. The MULTIPLIERS underneath them — Scarf x1.5, paralysis x0.5,
+Tailwind x2 — are the fact, and must be one function that both call.
+
+Enforced by `tests/test-engine-consistency.js`, which asserts the FACTS agree across engines and
+deliberately says nothing about whether their features match.
+
 **Fitting environment and playing environment must match.** MAG's weights were fitted WITH the
 sheet visible and the bot played WITHOUT it. MACHAMP's champion was trained under broken mega. Same
 error, twice: trained under one set of capabilities, deployed under another.
