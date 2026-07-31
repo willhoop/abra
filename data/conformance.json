@@ -1,7 +1,7 @@
 {
- "generated": "2026-07-29T18:32:20.044Z",
+ "generated": "2026-07-31T20:56:50.560Z",
  "by": "engine/conformance.js",
- "files": 178,
+ "files": 205,
  "findings": [
   {
    "std": "convention",
@@ -53,6 +53,12 @@
   },
   {
    "std": "S12",
+   "file": "engine/graveyard/medicham-v2-singles.js",
+   "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
    "file": "engine/h2h_stats.js",
    "what": "names 3 Pokemon thing(s) in code: move:protect, move:detect, move:endure",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
@@ -95,14 +101,8 @@
   },
   {
    "std": "S12",
-   "file": "engine/medicham.js",
-   "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
-  },
-  {
-   "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 18 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:ragepowder, ...",
+   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -115,6 +115,18 @@
    "std": "S12",
    "file": "engine/playstyle.js",
    "what": "names 1 Pokemon thing(s) in code: move:tailwind",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/position_features.js",
+   "what": "names 5 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:reflect, move:lightscreen, move:auroraveil",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
+  },
+  {
+   "std": "S12",
+   "file": "engine/preflight.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -138,7 +150,7 @@
   {
    "std": "S12",
    "file": "engine/tag_dex.js",
-   "what": "names 18 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
+   "what": "names 17 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -184,12 +196,6 @@
    "why": "headers explain the failure the file prevents"
   },
   {
-   "std": "convention",
-   "file": "tests/test-medicham.js",
-   "what": "header is one line",
-   "why": "headers explain the failure the file prevents"
-  },
-  {
    "std": "S8",
    "file": "tests/test-prng.js",
    "what": "CHI_LIMIT = 27.877 with no stated derivation",
@@ -197,7 +203,19 @@
   },
   {
    "std": "convention",
+   "file": "web/futuresight.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
    "file": "web/index.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "web/models.html",
    "what": "no opening comment",
    "why": "every file states why it exists"
   },
@@ -210,6 +228,18 @@
   {
    "std": "convention",
    "file": "web/replay.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "web/scoreboard.html",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
+  },
+  {
+   "std": "convention",
+   "file": "web/tower.html",
    "what": "no opening comment",
    "why": "every file states why it exists"
   },
@@ -281,6 +311,12 @@
   },
   {
    "std": "S13",
+   "file": "data/policy-weights-oppmodel.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/pory-nn.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -299,9 +335,21 @@
   },
   {
    "std": "S13",
+   "file": "data/porygon2-open.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/porygon2-species.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/scoreboard.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

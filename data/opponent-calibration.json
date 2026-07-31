@@ -1,96 +1,96 @@
 {
- "generated": "2026-07-28T18:10:21.546Z",
+ "generated": "2026-07-31T20:25:27.224Z",
  "by": "engine/opponent_calibration.js",
  "what": "Calibration of MAG's softmax as a distribution over the opponent's options. The metric that matters if MAG is SAMPLED rather than cut to a shortlist — a hard top-k has a recall ceiling no value function can recover from, sampling has none, and the EV sum needs correct frequencies rather than a correct ranking.",
  "shipped_vector": "reweighted_to_closed",
- "held_out_decisions": 24186,
+ "held_out_decisions": 32760,
  "uniform": {
   "ece": 0,
-  "brier": 0.1164
+  "brier": 0.11739
  },
  "mag": {
-  "ece": 0.00414,
-  "brier": 0.1086,
+  "ece": 0.00378,
+  "brier": 0.10879,
   "bins": [
    {
     "bin": "0.0-0.1",
-    "n": 77936,
-    "predicted": 0.0603,
-    "observed": 0.0595,
+    "n": 107535,
+    "predicted": 0.0598,
+    "observed": 0.059,
     "gap": -0.0008
    },
    {
     "bin": "0.1-0.2",
-    "n": 64190,
-    "predicted": 0.1416,
-    "observed": 0.1431,
-    "gap": 0.0015
+    "n": 80578,
+    "predicted": 0.1414,
+    "observed": 0.1447,
+    "gap": 0.0032
    },
    {
     "bin": "0.2-0.3",
-    "n": 24175,
-    "predicted": 0.242,
-    "observed": 0.2532,
-    "gap": 0.0112
+    "n": 31398,
+    "predicted": 0.2434,
+    "observed": 0.2494,
+    "gap": 0.006
    },
    {
     "bin": "0.3-0.4",
-    "n": 8273,
-    "predicted": 0.3405,
-    "observed": 0.3229,
-    "gap": -0.0176
+    "n": 12304,
+    "predicted": 0.3415,
+    "observed": 0.3288,
+    "gap": -0.0128
    },
    {
     "bin": "0.4-0.5",
-    "n": 2529,
-    "predicted": 0.4401,
-    "observed": 0.399,
-    "gap": -0.0411
+    "n": 4208,
+    "predicted": 0.4412,
+    "observed": 0.4197,
+    "gap": -0.0215
    },
    {
     "bin": "0.5-0.6",
-    "n": 781,
-    "predicted": 0.5411,
-    "observed": 0.4968,
-    "gap": -0.0443
+    "n": 1414,
+    "predicted": 0.5409,
+    "observed": 0.4915,
+    "gap": -0.0494
    },
    {
     "bin": "0.6-0.7",
-    "n": 234,
-    "predicted": 0.6361,
-    "observed": 0.5726,
-    "gap": -0.0635
+    "n": 476,
+    "predicted": 0.6398,
+    "observed": 0.5609,
+    "gap": -0.0789
    },
    {
     "bin": "0.7-0.8",
-    "n": 52,
-    "predicted": 0.7355,
-    "observed": 0.6154,
-    "gap": -0.1201
+    "n": 159,
+    "predicted": 0.7397,
+    "observed": 0.6981,
+    "gap": -0.0416
    },
    {
     "bin": "0.8-0.9",
-    "n": 3,
-    "predicted": 0.8618,
-    "observed": 1,
-    "gap": 0.1382
+    "n": 47,
+    "predicted": 0.8435,
+    "observed": 0.7872,
+    "gap": -0.0562
    },
    {
     "bin": "0.9-1.0",
-    "n": 2,
-    "predicted": 0.9199,
-    "observed": 1,
-    "gap": 0.0801
+    "n": 9,
+    "predicted": 0.9266,
+    "observed": 0.8889,
+    "gap": -0.0377
    }
   ]
  },
  "mag_temperature_scaled": {
   "temperature": 1,
-  "ece": 0.00414,
-  "brier": 0.1086
+  "ece": 0.00378,
+  "brier": 0.10879
  },
  "usable_as_sampler": true,
- "sharper_than_uniform_brier": 0.0078,
+ "sharper_than_uniform_brier": 0.0086,
  "read_this_way": "Uniform scores ECE 0.0000 by construction — 1/n over n candidates is right on average and carries no information. ECE alone therefore cannot rank these. The pair to read is ECE NEAR uniform and Brier BELOW it: calibrated and sharp.",
  "caveat": "The temperature is selected ON the held-out set (Guo et al. 2017 fit T on a validation split), so the scaled figure is a best case and a fresh split would be slightly worse. A conditional logit is trained to maximise the likelihood of the observed choice, which is close to a calibration objective, so good calibration here is partly by construction — the informative comparison is against uniform, not against zero."
 }

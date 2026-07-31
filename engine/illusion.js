@@ -99,8 +99,30 @@ async function main() {
   }
 
   const top = o => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, v]) => ({ name: k, n: v }));
+  /* THE RAW-STORE DECLARATION TRAVELS WITH THE ARTIFACT, not just with this file.
+   *
+   * This generator reads games.ladder.jsonl unfiltered and says why on its first line. That was
+   * enough for engine/selftest.js, which checks SOURCE files -- but engine/provenance.js checks
+   * ARTIFACTS, and it deliberately requires the declaration to be in the JSON where a consumer
+   * sees it rather than "buried in a generator nobody opens". So illusion.json reported 29,117
+   * games against 5,269 clean ones and was marked UNSAFE TO QUOTE: a true finding about the file,
+   * caused by a justification that existed but never travelled.
+   *
+   * READ FROM THIS FILE'S OWN HEADER rather than retyped. Two copies of a justification is how one
+   * of them goes stale, and the S13 rule is that anything derivable from an artifact is generated,
+   * never typed. Editing the comment on line 1 now updates the JSON automatically. */
+  const rawStoreOk = (() => {
+    const first = fs.readFileSync(__filename, 'utf8').split('\n')[0];
+    const m = first.match(/RAW-STORE-OK:\s*(.+?)\s*$/);
+    if (!m) throw new Error('illusion.js: the RAW-STORE-OK declaration has gone from line 1. '
+      + 'This generator reads the unfiltered ladder; it may not ship an artifact without saying why.');
+    return m[1];
+  })();
+
   const out = {
     generated: new Date().toISOString().slice(0, 10),
+    /* Why a count far above the clean-game ceiling is correct HERE and nowhere else. */
+    raw_store_ok: rawStoreOk,
     n_games: games.length,
     team_sides_with_a_zoroark: teamsWithZ,
     detections: detections.length,

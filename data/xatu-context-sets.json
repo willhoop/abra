@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-28",
+ "generated": "2026-07-31",
  "note": "Four most likely moves per species GIVEN the team it is on, for decision models that would otherwise use a flat population prior. Only contexts with at least 8 observations and a moveset that actually differs from the default are listed - if the context changes nothing, it is not recorded.",
  "context_features": [
   "weather_rain",
@@ -11,7 +11,7 @@
   "redirection"
  ],
  "min_cell": 8,
- "n_species_with_context_specific_sets": 97,
+ "n_species_with_context_specific_sets": 155,
  "sets": {
   "gengarmega": {
    "default": [
@@ -23,32 +23,62 @@
    "ctx": {
     "speed_tailwind": [
      "Protect",
-     "Shadow Ball",
      "Perish Song",
+     "Shadow Ball",
      "Sludge Bomb"
     ],
-    "weather_rain": [
-     "Perish Song",
-     "Protect",
-     "Sludge Bomb",
-     "Shadow Ball"
-    ],
     "weather_rain|speed_trickroom|redirection": [
-     "Shadow Ball",
      "Perish Song",
+     "Shadow Ball",
      "Protect",
      "Sludge Bomb"
     ],
     "speed_trickroom|redirection": [
      "Perish Song",
+     "Protect",
+     "Shadow Ball",
+     "Icy Wind"
+    ],
+    "weather_rain|redirection": [
+     "Perish Song",
      "Shadow Ball",
      "Protect",
-     "Icy Wind"
+     "Sludge Bomb"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Shadow Ball",
+     "Protect",
+     "Perish Song",
+     "Sludge Bomb"
+    ],
+    "speed_trickroom": [
+     "Shadow Ball",
+     "Perish Song",
+     "Protect",
+     "Sludge Bomb"
     ],
     "speed_trickroom|speed_tailwind": [
      "Protect",
-     "Shadow Ball",
      "Perish Song",
+     "Shadow Ball",
+     "Sludge Bomb"
+    ],
+    "weather_snow|speed_tailwind|redirection": [
+     "Shadow Ball",
+     "Protect",
+     "Perish Song",
+     "Substitute"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Protect",
+     "Perish Song",
+     "Shadow Ball",
+     "Sludge Bomb"
+    ],
+    "weather_snow": [
+     "Protect",
+     "Perish Song",
+     "Shadow Ball",
      "Sludge Bomb"
     ]
    }
@@ -58,32 +88,32 @@
     "Fake Out",
     "Close Combat",
     "Dire Claw",
-    "Poison Jab"
+    "Coaching"
    ],
    "ctx": {
     "speed_tailwind": [
      "Fake Out",
      "Close Combat",
      "Dire Claw",
-     "Coaching"
+     "Poison Jab"
+    ],
+    "weather_rain|speed_tailwind|redirection": [
+     "Fake Out",
+     "Close Combat",
+     "Dire Claw",
+     "Gunk Shot"
     ],
     "speed_trickroom|redirection": [
      "Fake Out",
-     "Poison Jab",
      "Close Combat",
+     "Poison Jab",
      "Dire Claw"
     ],
     "redirection": [
      "Fake Out",
      "Close Combat",
      "Dire Claw",
-     "Protect"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Fake Out",
-     "Close Combat",
-     "Dire Claw",
-     "Coaching"
+     "Gunk Shot"
     ],
     "weather_sand|speed_tailwind": [
      "Fake Out",
@@ -93,8 +123,8 @@
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Fake Out",
-     "Close Combat",
      "Dire Claw",
+     "Close Combat",
      "Coaching"
     ],
     "weather_rain|speed_tailwind": [
@@ -103,23 +133,41 @@
      "Dire Claw",
      "Feint"
     ],
-    "none": [
+    "speed_trickroom": [
+     "Fake Out",
+     "Close Combat",
+     "Coaching",
+     "Dire Claw"
+    ],
+    "weather_rain|weather_sun|speed_trickroom": [
+     "Fake Out",
+     "Close Combat",
+     "Poison Jab",
+     "Dire Claw"
+    ],
+    "weather_snow|speed_trickroom": [
      "Fake Out",
      "Close Combat",
      "Dire Claw",
-     "Coaching"
+     "Fling"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Fake Out",
+     "Close Combat",
+     "Dire Claw",
+     "Rock Slide"
     ],
     "speed_tailwind|redirection": [
      "Fake Out",
      "Close Combat",
      "Protect",
-     "Dire Claw"
+     "Coaching"
     ],
-    "speed_trickroom|speed_tailwind": [
+    "weather_snow|speed_trickroom|redirection": [
      "Fake Out",
      "Close Combat",
-     "Dire Claw",
-     "Rock Slide"
+     "Poison Jab",
+     "Dire Claw"
     ]
    }
   },
@@ -131,12 +179,6 @@
     "Dragon Pulse"
    ],
    "ctx": {
-    "weather_rain|speed_tailwind": [
-     "Electro Shot",
-     "Protect",
-     "Dragon Pulse",
-     "Flash Cannon"
-    ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Electro Shot",
      "Protect",
@@ -150,22 +192,34 @@
      "Flash Cannon"
     ],
     "weather_rain": [
+     "Protect",
+     "Electro Shot",
+     "Flash Cannon",
+     "Dragon Pulse"
+    ],
+    "weather_rain|speed_tailwind|redirection": [
      "Electro Shot",
      "Protect",
-     "Flash Cannon",
-     "Draco Meteor"
+     "Dragon Pulse",
+     "Flash Cannon"
+    ],
+    "weather_rain|speed_trickroom": [
+     "Electro Shot",
+     "Protect",
+     "Dragon Pulse",
+     "Aura Sphere"
     ]
    }
   },
   "pelipper": {
    "default": [
     "Tailwind",
-    "Weather Ball",
     "Hurricane",
+    "Weather Ball",
     "Wide Guard"
    ],
    "ctx": {
-    "speed_tailwind|redirection": [
+    "speed_tailwind": [
      "Hurricane",
      "Tailwind",
      "Weather Ball",
@@ -173,27 +227,39 @@
     ],
     "speed_trickroom|redirection": [
      "Hurricane",
+     "Tailwind",
+     "Weather Ball",
+     "Wide Guard"
+    ],
+    "speed_trickroom": [
+     "Hurricane",
      "Weather Ball",
      "Tailwind",
      "Wide Guard"
     ],
-    "speed_trickroom": [
-     "Weather Ball",
-     "Tailwind",
+    "speed_tailwind|redirection": [
      "Hurricane",
-     "Protect"
+     "Tailwind",
+     "Weather Ball",
+     "Wide Guard"
     ],
     "weather_rain": [
      "Tailwind",
-     "Weather Ball",
      "Hurricane",
+     "Weather Ball",
      "Protect"
     ],
-    "speed_tailwind": [
+    "weather_rain|speed_trickroom": [
+     "Tailwind",
      "Weather Ball",
      "Hurricane",
+     "Wide Guard"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Hurricane",
+     "Weather Ball",
      "Tailwind",
-     "Protect"
+     "Wide Guard"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Hurricane",
@@ -201,17 +267,45 @@
      "Weather Ball",
      "Wide Guard"
     ],
-    "redirection": [
-     "Hurricane",
-     "Tailwind",
+    "weather_rain|speed_tailwind": [
      "Weather Ball",
-     "Protect"
+     "Tailwind",
+     "Hurricane",
+     "Wide Guard"
+    ],
+    "redirection": [
+     "Weather Ball",
+     "Tailwind",
+     "Hurricane",
+     "Wide Guard"
     ],
     "weather_rain|speed_trickroom|redirection": [
      "Tailwind",
-     "Weather Ball",
      "Hurricane",
+     "Weather Ball",
      "Muddy Water"
+    ]
+   }
+  },
+  "altaria": {
+   "default": [
+    "Tailwind",
+    "Fire Spin",
+    "Will-O-Wisp",
+    "Protect"
+   ],
+   "ctx": {
+    "none": [
+     "Fire Spin",
+     "Perish Song",
+     "Tailwind",
+     "Will-O-Wisp"
+    ],
+    "speed_tailwind": [
+     "Will-O-Wisp",
+     "Brave Bird",
+     "Tailwind",
+     "Protect"
     ]
    }
   },
@@ -223,40 +317,76 @@
     "Aqua Jet"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Last Respects",
+    "weather_sun|speed_tailwind": [
      "Wave Crash",
-     "Aqua Jet",
+     "Last Respects",
+     "Protect",
      "Flip Turn"
     ],
-    "speed_tailwind|redirection": [
+    "weather_snow": [
+     "Wave Crash",
+     "Last Respects",
+     "Flip Turn",
+     "Aqua Jet"
+    ],
+    "none": [
+     "Wave Crash",
+     "Last Respects",
+     "Flip Turn",
+     "Aqua Jet"
+    ],
+    "redirection": [
      "Last Respects",
      "Wave Crash",
      "Protect",
-     "Flip Turn"
+     "Aqua Jet"
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Wave Crash",
      "Last Respects",
-     "Protect",
-     "Flip Turn"
+     "Flip Turn",
+     "Protect"
     ],
-    "none": [
+    "speed_trickroom": [
+     "Last Respects",
+     "Wave Crash",
+     "Flip Turn",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Flip Turn",
+     "Last Respects",
+     "Wave Crash",
+     "Protect"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Wave Crash",
      "Last Respects",
      "Flip Turn",
-     "Wave Crash",
      "Aqua Jet"
+    ],
+    "weather_sun|speed_trickroom|speed_tailwind": [
+     "Last Respects",
+     "Wave Crash",
+     "Flip Turn",
+     "Protect"
     ],
     "weather_snow|speed_tailwind": [
      "Last Respects",
+     "Wave Crash",
      "Flip Turn",
-     "Protect",
-     "Wave Crash"
+     "Protect"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Last Respects",
+     "Wave Crash",
+     "Liquidation",
+     "Aqua Jet"
     ],
     "weather_snow|speed_trickroom": [
      "Wave Crash",
-     "Flip Turn",
      "Last Respects",
+     "Flip Turn",
      "Aqua Jet"
     ],
     "speed_trickroom|speed_tailwind": [
@@ -265,17 +395,11 @@
      "Flip Turn",
      "Protect"
     ],
-    "weather_snow|speed_tailwind|redirection": [
-     "Last Respects",
-     "Wave Crash",
-     "Protect",
-     "Aqua Jet"
-    ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Last Respects",
-     "Flip Turn",
      "Wave Crash",
-     "Aqua Jet"
+     "Flip Turn",
+     "Protect"
     ]
    }
   },
@@ -293,6 +417,12 @@
      "Iron Head",
      "Protect"
     ],
+    "speed_trickroom|speed_tailwind": [
+     "Kowtow Cleave",
+     "Sucker Punch",
+     "Iron Head",
+     "Swords Dance"
+    ],
     "weather_snow": [
      "Protect",
      "Kowtow Cleave",
@@ -301,75 +431,57 @@
     ],
     "speed_trickroom|redirection": [
      "Kowtow Cleave",
+     "Swords Dance",
      "Sucker Punch",
-     "Protect",
-     "Swords Dance"
+     "Protect"
     ],
     "speed_tailwind|redirection": [
      "Kowtow Cleave",
-     "Protect",
+     "Iron Head",
      "Sucker Punch",
-     "Iron Head"
+     "Protect"
     ],
     "none": [
      "Kowtow Cleave",
-     "Protect",
-     "Sucker Punch",
-     "Iron Head"
-    ],
-    "weather_rain|speed_tailwind|redirection": [
-     "Kowtow Cleave",
      "Sucker Punch",
      "Protect",
      "Swords Dance"
-    ],
-    "weather_snow|speed_tailwind": [
-     "Kowtow Cleave",
-     "Protect",
-     "Sucker Punch",
-     "Iron Head"
-    ],
-    "weather_rain|speed_tailwind": [
-     "Kowtow Cleave",
-     "Protect",
-     "Sucker Punch",
-     "Iron Head"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Kowtow Cleave",
+     "Sucker Punch",
+     "Protect",
+     "Swords Dance"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Kowtow Cleave",
      "Protect",
      "Sucker Punch",
      "Swords Dance"
     ],
-    "speed_trickroom|speed_tailwind": [
+    "redirection": [
      "Kowtow Cleave",
      "Sucker Punch",
-     "Iron Head",
-     "Low Kick"
+     "Swords Dance",
+     "Protect"
     ],
     "weather_snow|speed_trickroom|speed_tailwind": [
      "Kowtow Cleave",
+     "Iron Head",
      "Protect",
-     "Sucker Punch",
-     "Iron Head"
+     "Sucker Punch"
     ],
     "weather_sun|speed_trickroom": [
-     "Sucker Punch",
      "Kowtow Cleave",
+     "Sucker Punch",
      "Protect",
-     "Iron Head"
-    ],
-    "weather_snow|speed_tailwind|redirection": [
-     "Kowtow Cleave",
-     "Sucker Punch",
-     "Iron Head",
      "Low Kick"
     ],
-    "redirection": [
+    "weather_sand|speed_trickroom|redirection": [
      "Kowtow Cleave",
      "Protect",
-     "Swords Dance",
-     "Sucker Punch"
+     "Sucker Punch",
+     "Iron Head"
     ]
    }
   },
@@ -377,21 +489,27 @@
    "default": [
     "Earthquake",
     "Wave Crash",
-    "Ice Punch",
-    "Protect"
+    "Protect",
+    "Ice Punch"
    ],
    "ctx": {
     "weather_rain|speed_tailwind": [
      "Wave Crash",
      "Earthquake",
      "Protect",
-     "High Horsepower"
+     "Ice Punch"
     ],
     "weather_rain|speed_trickroom|speed_tailwind": [
      "Wave Crash",
      "Ice Punch",
      "Earthquake",
-     "Protect"
+     "High Horsepower"
+    ],
+    "weather_rain|speed_tailwind|redirection": [
+     "Wave Crash",
+     "Earthquake",
+     "Protect",
+     "Ice Punch"
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Earthquake",
@@ -399,37 +517,223 @@
      "Protect",
      "High Horsepower"
     ],
-    "weather_rain|speed_tailwind|redirection": [
-     "Earthquake",
+    "weather_rain": [
      "Ice Punch",
      "Wave Crash",
+     "Earthquake",
      "Protect"
+    ]
+   }
+  },
+  "grimmsnarl": {
+   "default": [
+    "Light Screen",
+    "Reflect",
+    "Fake Out",
+    "Parting Shot"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Light Screen",
+     "Reflect",
+     "Fake Out",
+     "Spirit Break"
+    ],
+    "speed_trickroom|redirection": [
+     "Reflect",
+     "Light Screen",
+     "Parting Shot",
+     "Fake Out"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Light Screen",
+     "Fake Out",
+     "Spirit Break",
+     "Reflect"
+    ],
+    "speed_tailwind|redirection": [
+     "Light Screen",
+     "Fake Out",
+     "Reflect",
+     "Taunt"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Light Screen",
+     "Reflect",
+     "Parting Shot",
+     "Foul Play"
+    ],
+    "weather_rain|speed_trickroom|redirection": [
+     "Fake Out",
+     "Light Screen",
+     "Reflect",
+     "Sucker Punch"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Reflect",
+     "Light Screen",
+     "Fake Out",
+     "Spirit Break"
+    ],
+    "speed_trickroom": [
+     "Light Screen",
+     "Reflect",
+     "Fake Out",
+     "Spirit Break"
     ],
     "weather_rain": [
-     "Earthquake",
-     "Ice Punch",
-     "Wave Crash",
-     "Low Kick"
+     "Light Screen",
+     "Fake Out",
+     "Reflect",
+     "Parting Shot"
     ],
-    "weather_rain|redirection": [
-     "Earthquake",
-     "Wave Crash",
+    "weather_rain|speed_tailwind|redirection": [
+     "Light Screen",
+     "Reflect",
+     "Play Rough",
+     "Parting Shot"
+    ]
+   }
+  },
+  "venusaur": {
+   "default": [
+    "Sleep Powder",
+    "Protect",
+    "Sludge Bomb",
+    "Earth Power"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Sleep Powder",
+     "Sludge Bomb",
      "Protect",
-     "Ice Punch"
+     "Earth Power"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Sleep Powder",
+     "Sludge Bomb",
+     "Protect",
+     "Earth Power"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Solar Beam",
+     "Protect",
+     "Earth Power",
+     "Sleep Powder"
+    ],
+    "none": [
+     "Earth Power",
+     "Protect",
+     "Sludge Bomb",
+     "Sleep Powder"
+    ],
+    "weather_rain|weather_sun|speed_tailwind": [
+     "Energy Ball",
+     "Sleep Powder",
+     "Sludge Bomb",
+     "Protect"
+    ],
+    "speed_trickroom|redirection": [
+     "Protect",
+     "Earth Power",
+     "Sleep Powder",
+     "Sludge Bomb"
+    ]
+   }
+  },
+  "charizardmegay": {
+   "default": [
+    "Heat Wave",
+    "Weather Ball",
+    "Protect",
+    "Solar Beam"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Heat Wave",
+     "Weather Ball",
+     "Solar Beam",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Heat Wave",
+     "Protect",
+     "Weather Ball",
+     "Solar Beam"
+    ],
+    "none": [
+     "Heat Wave",
+     "Protect",
+     "Weather Ball",
+     "Ancient Power"
+    ],
+    "speed_tailwind|redirection": [
+     "Heat Wave",
+     "Protect",
+     "Solar Beam",
+     "Weather Ball"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Weather Ball",
+     "Solar Beam",
+     "Protect"
+    ],
+    "speed_trickroom": [
+     "Heat Wave",
+     "Weather Ball",
+     "Solar Beam",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Heat Wave",
+     "Solar Beam",
+     "Protect",
+     "Weather Ball"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Heat Wave",
+     "Weather Ball",
+     "Solar Beam",
+     "Protect"
     ]
    }
   },
   "blazikenmega": {
    "default": [
-    "Protect",
-    "Flare Blitz",
     "Rock Slide",
+    "Flare Blitz",
+    "Protect",
     "Close Combat"
    ],
    "ctx": {
-    "weather_snow": [
+    "speed_tailwind": [
+     "Flare Blitz",
+     "Protect",
+     "Rock Slide",
+     "Close Combat"
+    ],
+    "weather_sun|speed_tailwind": [
+     "Protect",
+     "Rock Slide",
+     "Flare Blitz",
+     "Close Combat"
+    ],
+    "none": [
      "Detect",
      "Rock Slide",
+     "Flare Blitz",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Rock Slide",
+     "Flare Blitz",
+     "Protect",
+     "Detect"
+    ],
+    "weather_snow": [
+     "Rock Slide",
+     "Detect",
      "Flare Blitz",
      "Close Combat"
     ],
@@ -449,17 +753,23 @@
     "Bullet Punch"
    ],
    "ctx": {
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Psychic Fangs",
+     "Iron Head",
+     "Bullet Punch",
+     "Protect"
+    ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Iron Head",
      "Psychic Fangs",
      "Bullet Punch",
-     "Protect"
+     "Ice Punch"
     ],
     "none": [
      "Psychic Fangs",
-     "Bullet Punch",
-     "Meteor Mash",
-     "Iron Head"
+     "Stomping Tantrum",
+     "Iron Head",
+     "Bullet Punch"
     ],
     "speed_tailwind|redirection": [
      "Psychic Fangs",
@@ -468,44 +778,102 @@
      "Stomping Tantrum"
     ],
     "speed_tailwind": [
-     "Iron Head",
-     "Protect",
      "Psychic Fangs",
+     "Protect",
+     "Iron Head",
      "Bullet Punch"
     ],
     "weather_rain|speed_trickroom|speed_tailwind": [
      "Psychic Fangs",
      "Iron Head",
-     "Protect",
-     "Thunder Punch"
+     "Thunder Punch",
+     "Protect"
     ],
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+    "speed_trickroom|speed_tailwind": [
+     "Iron Head",
+     "Psychic Fangs",
+     "Protect",
+     "Bullet Punch"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Iron Head",
+     "Psychic Fangs",
+     "Protect",
+     "Meteor Mash"
+    ],
+    "weather_snow|speed_trickroom|redirection": [
      "Psychic Fangs",
      "Iron Head",
-     "Bullet Punch",
-     "Meteor Mash"
+     "Brick Break",
+     "Bullet Punch"
+    ]
+   }
+  },
+  "scrafty": {
+   "default": [
+    "Fake Out",
+    "Knock Off",
+    "Close Combat",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Fake Out",
+     "Close Combat",
+     "Knock Off",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Knock Off",
+     "Protect",
+     "Roar"
+    ],
+    "speed_trickroom": [
+     "Fake Out",
+     "Knock Off",
+     "Drain Punch",
+     "Bitter Malice"
     ]
    }
   },
   "toxapex": {
    "default": [
-    "Infestation",
     "Toxic",
+    "Infestation",
     "Baneful Bunker",
     "Wide Guard"
    ],
    "ctx": {
-    "speed_trickroom|redirection": [
+    "speed_tailwind": [
      "Infestation",
-     "Baneful Bunker",
      "Toxic",
+     "Baneful Bunker",
      "Wide Guard"
     ],
-    "none": [
+    "speed_trickroom|speed_tailwind|redirection": [
      "Infestation",
      "Toxic",
      "Wide Guard",
      "Baneful Bunker"
+    ],
+    "none": [
+     "Toxic",
+     "Infestation",
+     "Wide Guard",
+     "Baneful Bunker"
+    ],
+    "speed_trickroom|redirection": [
+     "Infestation",
+     "Toxic",
+     "Baneful Bunker",
+     "Wide Guard"
+    ],
+    "speed_trickroom": [
+     "Toxic",
+     "Baneful Bunker",
+     "Infestation",
+     "Wide Guard"
     ]
    }
   },
@@ -517,17 +885,23 @@
     "Extreme Speed"
    ],
    "ctx": {
+    "none": [
+     "Tailwind",
+     "Protect",
+     "Scale Shot",
+     "Dragon Claw"
+    ],
     "redirection": [
      "Tailwind",
+     "Extreme Speed",
      "Protect",
-     "Dragon Claw",
-     "Iron Head"
+     "Dragon Claw"
     ],
     "speed_tailwind": [
-     "Protect",
      "Dragon Claw",
-     "Tailwind",
-     "Extreme Speed"
+     "Extreme Speed",
+     "Protect",
+     "Scale Shot"
     ]
    }
   },
@@ -536,66 +910,54 @@
     "Fake Out",
     "Psychic Terrain",
     "Reflect",
-    "Quick Guard"
+    "Skill Swap"
    ],
    "ctx": {
     "none": [
      "Fake Out",
      "Psychic Terrain",
      "Trick Room",
-     "Sunny Day"
+     "Reflect"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Psychic Terrain",
      "Fake Out",
      "Quick Guard",
-     "Rain Dance"
+     "Reflect"
     ],
     "speed_tailwind": [
      "Fake Out",
      "Psychic Terrain",
-     "Quick Guard",
-     "Helping Hand"
-    ],
-    "speed_trickroom|speed_tailwind": [
-     "Fake Out",
      "Reflect",
-     "Rain Dance",
      "Quick Guard"
+    ],
+    "weather_rain|speed_trickroom": [
+     "Fake Out",
+     "Skill Swap",
+     "Psychic Terrain",
+     "Reflect"
+    ],
+    "speed_trickroom|redirection": [
+     "Fake Out",
+     "Sunny Day",
+     "Reflect",
+     "Skill Swap"
     ]
    }
   },
-  "charizardmegay": {
+  "charizardmegax": {
    "default": [
-    "Heat Wave",
-    "Weather Ball",
-    "Protect",
-    "Solar Beam"
+    "Dragon Dance",
+    "Flare Blitz",
+    "Dragon Claw",
+    "Flame Charge"
    ],
    "ctx": {
-    "none": [
-     "Heat Wave",
-     "Weather Ball",
-     "Protect",
-     "Ancient Power"
-    ],
-    "speed_tailwind": [
-     "Heat Wave",
-     "Weather Ball",
-     "Solar Beam",
+    "speed_trickroom|redirection": [
+     "Dragon Dance",
+     "Flare Blitz",
+     "Dragon Claw",
      "Protect"
-    ],
-    "speed_tailwind|redirection": [
-     "Heat Wave",
-     "Protect",
-     "Solar Beam",
-     "Weather Ball"
-    ],
-    "speed_trickroom": [
-     "Heat Wave",
-     "Protect",
-     "Weather Ball",
-     "Solar Beam"
     ]
    }
   },
@@ -609,27 +971,27 @@
    "ctx": {
     "weather_rain|speed_tailwind": [
      "Fake Out",
-     "Darkest Lariat",
      "Flare Blitz",
-     "Protect"
+     "Darkest Lariat",
+     "Parting Shot"
     ],
     "speed_tailwind": [
-     "Fake Out",
-     "Flare Blitz",
-     "Throat Chop",
-     "Darkest Lariat"
-    ],
-    "none": [
      "Fake Out",
      "Parting Shot",
      "Flare Blitz",
      "Throat Chop"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Fake Out",
+     "Parting Shot",
+     "Darkest Lariat",
+     "Flare Blitz"
     ],
     "weather_rain|speed_trickroom|redirection": [
      "Fake Out",
      "Parting Shot",
-     "Flare Blitz",
-     "Throat Chop"
+     "Throat Chop",
+     "Flare Blitz"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Fake Out",
@@ -639,103 +1001,99 @@
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Fake Out",
-     "Parting Shot",
-     "Throat Chop",
-     "Flare Blitz"
-    ],
-    "weather_sun|speed_trickroom": [
-     "Fake Out",
      "Flare Blitz",
-     "Darkest Lariat",
+     "Throat Chop",
      "Parting Shot"
     ],
     "speed_trickroom|speed_tailwind": [
      "Fake Out",
-     "Darkest Lariat",
      "Flare Blitz",
+     "Parting Shot",
+     "Darkest Lariat"
+    ],
+    "none": [
+     "Fake Out",
+     "Parting Shot",
+     "Flare Blitz",
+     "Throat Chop"
+    ],
+    "weather_snow|speed_trickroom|speed_tailwind|redirection": [
+     "Fake Out",
+     "Flare Blitz",
+     "Throat Chop",
      "Parting Shot"
+    ],
+    "weather_rain|redirection": [
+     "Fake Out",
+     "Parting Shot",
+     "Throat Chop",
+     "Flare Blitz"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Parting Shot",
+     "Flare Blitz",
+     "Throat Chop"
     ],
     "weather_snow|speed_trickroom|redirection": [
      "Fake Out",
      "Parting Shot",
      "Flare Blitz",
-     "Throat Chop"
-    ],
-    "redirection": [
-     "Fake Out",
-     "Parting Shot",
-     "Flare Blitz",
-     "Throat Chop"
-    ],
-    "speed_trickroom": [
-     "Fake Out",
-     "Flare Blitz",
-     "Darkest Lariat",
-     "Parting Shot"
+     "Darkest Lariat"
     ],
     "weather_rain|speed_tailwind|redirection": [
      "Fake Out",
      "Throat Chop",
      "Parting Shot",
-     "Darkest Lariat"
+     "Protect"
     ],
-    "weather_snow|speed_tailwind": [
+    "weather_sun|speed_tailwind": [
      "Fake Out",
      "Flare Blitz",
      "Throat Chop",
-     "Protect"
+     "Parting Shot"
+    ],
+    "redirection": [
+     "Fake Out",
+     "Flare Blitz",
+     "Parting Shot",
+     "Darkest Lariat"
+    ],
+    "weather_snow": [
+     "Fake Out",
+     "Parting Shot",
+     "Protect",
+     "Throat Chop"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Fake Out",
+     "Flare Blitz",
+     "Throat Chop",
+     "Parting Shot"
+    ],
+    "weather_rain": [
+     "Fake Out",
+     "Parting Shot",
+     "Darkest Lariat",
+     "Throat Chop"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Fake Out",
+     "Flare Blitz",
+     "Throat Chop",
+     "Parting Shot"
     ],
     "weather_sun|speed_trickroom|redirection": [
      "Fake Out",
      "Throat Chop",
-     "Parting Shot",
-     "Flare Blitz"
-    ],
-    "weather_snow|speed_trickroom": [
-     "Fake Out",
      "Flare Blitz",
-     "Darkest Lariat",
-     "Will-O-Wisp"
+     "Parting Shot"
     ],
-    "weather_snow": [
+    "weather_snow|speed_tailwind|redirection": [
      "Fake Out",
-     "Protect",
      "Parting Shot",
+     "Throat Chop",
      "Flare Blitz"
-    ]
-   }
-  },
-  "venusaur": {
-   "default": [
-    "Sleep Powder",
-    "Protect",
-    "Sludge Bomb",
-    "Earth Power"
-   ],
-   "ctx": {
-    "weather_rain|speed_tailwind": [
-     "Sleep Powder",
-     "Protect",
-     "Earth Power",
-     "Sludge Bomb"
-    ],
-    "none": [
-     "Earth Power",
-     "Sludge Bomb",
-     "Protect",
-     "Sleep Powder"
-    ],
-    "speed_tailwind": [
-     "Sleep Powder",
-     "Protect",
-     "Energy Ball",
-     "Sludge Bomb"
-    ],
-    "weather_rain|weather_sun|speed_tailwind": [
-     "Energy Ball",
-     "Sleep Powder",
-     "Sludge Bomb",
-     "Protect"
     ]
    }
   },
@@ -747,23 +1105,23 @@
     "Dragon Claw"
    ],
    "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Earthquake",
+     "Rock Slide",
+     "Stomping Tantrum",
+     "Protect"
+    ],
+    "speed_trickroom|redirection": [
+     "Rock Slide",
+     "Earthquake",
+     "Protect",
+     "Dragon Claw"
+    ],
     "none": [
      "Rock Slide",
      "Earthquake",
-     "Protect",
-     "Stomping Tantrum"
-    ],
-    "speed_tailwind|redirection": [
-     "Earthquake",
-     "Protect",
-     "Rock Slide",
-     "Dragon Claw"
-    ],
-    "weather_rain|speed_tailwind": [
-     "Earthquake",
      "Stomping Tantrum",
-     "Protect",
-     "Rock Slide"
+     "Protect"
     ],
     "speed_tailwind": [
      "Earthquake",
@@ -773,85 +1131,63 @@
     ],
     "weather_sand|speed_tailwind": [
      "Earthquake",
-     "Rock Slide",
      "Swords Dance",
-     "Dragon Claw"
+     "Protect",
+     "Rock Slide"
     ],
-    "speed_trickroom|speed_tailwind": [
+    "speed_tailwind|redirection": [
      "Earthquake",
      "Rock Slide",
-     "Stomping Tantrum",
+     "Dragon Claw",
+     "Protect"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Rock Slide",
+     "Earthquake",
+     "Protect",
      "Dragon Claw"
     ],
     "weather_sand|speed_trickroom|speed_tailwind|redirection": [
      "Protect",
      "Earthquake",
-     "Stomping Tantrum",
-     "Rock Slide"
+     "Rock Slide",
+     "Stomping Tantrum"
+    ],
+    "weather_sand|speed_trickroom|speed_tailwind": [
+     "Earthquake",
+     "Protect",
+     "Rock Slide",
+     "Dragon Claw"
     ],
     "speed_trickroom": [
-     "Earthquake",
-     "Dragon Claw",
-     "Rock Slide",
-     "Protect"
-    ],
-    "speed_trickroom|redirection": [
      "Earthquake",
      "Rock Slide",
      "Protect",
      "Stomping Tantrum"
     ],
-    "redirection": [
-     "Stomping Tantrum",
-     "Earthquake",
+    "weather_snow|speed_trickroom|speed_tailwind": [
+     "Dragon Claw",
      "Rock Slide",
+     "Earthquake",
+     "Protect"
+    ],
+    "redirection": [
+     "Rock Slide",
+     "Earthquake",
+     "Protect",
      "Dragon Claw"
     ],
-    "weather_rain|weather_sun|speed_tailwind": [
+    "weather_rain|speed_trickroom|speed_tailwind": [
      "Earthquake",
      "Rock Slide",
-     "Dragon Claw",
-     "Protect"
-    ]
-   }
-  },
-  "grimmsnarl": {
-   "default": [
-    "Light Screen",
-    "Reflect",
-    "Fake Out",
-    "Parting Shot"
-   ],
-   "ctx": {
-    "speed_trickroom|redirection": [
-     "Reflect",
-     "Light Screen",
-     "Parting Shot",
-     "Spirit Break"
+     "Stomping Tantrum",
+     "Dragon Claw"
     ],
-    "weather_rain|speed_tailwind": [
-     "Light Screen",
-     "Reflect",
-     "Parting Shot",
-     "Spirit Break"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Light Screen",
-     "Reflect",
-     "Fake Out",
-     "Spirit Break"
-    ],
-    "speed_tailwind|redirection": [
-     "Light Screen",
-     "Reflect",
-     "Fake Out",
-     "Taunt"
-    ],
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
-     "Light Screen",
-     "Reflect",
-     "Parting Shot",
-     "Foul Play"
+    "weather_snow": [
+     "Rock Slide",
+     "Earthquake",
+     "Protect",
+     "Stomping Tantrum"
     ]
    }
   },
@@ -866,8 +1202,48 @@
     "none": [
      "Tailwind",
      "Rock Slide",
-     "Taunt",
+     "Wide Guard",
      "Protect"
+    ],
+    "redirection": [
+     "Tailwind",
+     "Rock Slide",
+     "Protect",
+     "Taunt"
+    ],
+    "weather_rain": [
+     "Tailwind",
+     "Rock Slide",
+     "Dual Wingbeat",
+     "Protect"
+    ],
+    "speed_tailwind": [
+     "Tailwind",
+     "Rock Slide",
+     "Wide Guard",
+     "Protect"
+    ],
+    "speed_trickroom|redirection": [
+     "Tailwind",
+     "Rock Slide",
+     "Dual Wingbeat",
+     "Protect"
+    ]
+   }
+  },
+  "ariados": {
+   "default": [
+    "Rage Powder",
+    "Knock Off",
+    "First Impression",
+    "String Shot"
+   ],
+   "ctx": {
+    "weather_sand|speed_trickroom": [
+     "Rage Powder",
+     "Knock Off",
+     "Disable",
+     "First Impression"
     ]
    }
   },
@@ -875,41 +1251,77 @@
    "default": [
     "Hyper Voice",
     "Hyper Beam",
-    "Protect",
-    "Detect"
+    "Detect",
+    "Protect"
    ],
    "ctx": {
+    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
+     "Hyper Voice",
+     "Yawn",
+     "Protect",
+     "Quick Attack"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Hyper Voice",
+     "Protect",
+     "Detect",
+     "Calm Mind"
+    ],
+    "speed_tailwind": [
+     "Hyper Voice",
+     "Hyper Beam",
+     "Detect",
+     "Yawn"
+    ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Hyper Voice",
      "Calm Mind",
      "Hyper Beam",
-     "Mystical Fire"
+     "Protect"
     ],
     "speed_tailwind|redirection": [
      "Hyper Voice",
      "Protect",
      "Detect",
-     "Yawn"
+     "Quick Attack"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Hyper Voice",
+     "Detect",
+     "Hyper Beam",
+     "Protect"
     ],
     "speed_trickroom|speed_tailwind": [
      "Hyper Voice",
+     "Detect",
      "Hyper Beam",
+     "Protect"
+    ],
+    "speed_trickroom|redirection": [
+     "Hyper Voice",
+     "Calm Mind",
+     "Protect",
+     "Hyper Beam"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Hyper Voice",
+     "Quick Attack",
      "Detect",
      "Protect"
     ],
-    "speed_trickroom": [
+    "weather_sun|speed_trickroom": [
      "Hyper Voice",
-     "Hyper Beam",
      "Detect",
-     "Protect"
+     "Hyper Beam",
+     "Yawn"
     ]
    }
   },
   "gholdengo": {
    "default": [
     "Nasty Plot",
-    "Make It Rain",
     "Shadow Ball",
+    "Make It Rain",
     "Protect"
    ],
    "ctx": {
@@ -927,21 +1339,57 @@
     ],
     "weather_rain|speed_tailwind": [
      "Make It Rain",
+     "Nasty Plot",
      "Protect",
-     "Shadow Ball",
-     "Nasty Plot"
+     "Shadow Ball"
     ],
     "speed_tailwind|redirection": [
      "Make It Rain",
+     "Shadow Ball",
      "Power Gem",
+     "Protect"
+    ],
+    "speed_trickroom|redirection": [
+     "Shadow Ball",
      "Nasty Plot",
-     "Shadow Ball"
+     "Make It Rain",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Protect",
+     "Shadow Ball",
+     "Make It Rain",
+     "Nasty Plot"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Make It Rain",
+     "Nasty Plot",
+     "Shadow Ball",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Shadow Ball",
+     "Nasty Plot",
+     "Make It Rain",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Nasty Plot",
+     "Make It Rain",
+     "Shadow Ball",
+     "Protect"
     ],
     "none": [
      "Make It Rain",
      "Nasty Plot",
      "Shadow Ball",
      "Protect"
+    ],
+    "speed_trickroom": [
+     "Protect",
+     "Nasty Plot",
+     "Make It Rain",
+     "Shadow Ball"
     ]
    }
   },
@@ -949,16 +1397,10 @@
    "default": [
     "Rock Slide",
     "Protect",
-    "Earthquake",
-    "Iron Head"
+    "Iron Head",
+    "Earthquake"
    ],
    "ctx": {
-    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
-     "Rock Slide",
-     "Protect",
-     "Iron Head",
-     "Earthquake"
-    ],
     "weather_sand|speed_tailwind": [
      "Earthquake",
      "Rock Slide",
@@ -967,22 +1409,28 @@
     ],
     "weather_sand|speed_trickroom|speed_tailwind": [
      "Iron Head",
-     "Rock Slide",
-     "Earthquake",
-     "Protect"
-    ],
-    "weather_sand|speed_trickroom|redirection": [
-     "Rock Slide",
-     "Earthquake",
      "Protect",
-     "High Horsepower"
+     "Rock Slide",
+     "Earthquake"
+    ],
+    "weather_sand|speed_tailwind|redirection": [
+     "Rock Slide",
+     "Iron Head",
+     "Protect",
+     "Earthquake"
+    ],
+    "weather_sand|speed_trickroom": [
+     "Rock Slide",
+     "Earthquake",
+     "Iron Head",
+     "Protect"
     ]
    }
   },
   "tyranitar": {
    "default": [
-    "Protect",
     "Rock Slide",
+    "Protect",
     "Knock Off",
     "Dragon Dance"
    ],
@@ -1005,15 +1453,9 @@
      "Rock Slide",
      "Low Kick"
     ],
-    "speed_trickroom|speed_tailwind": [
-     "Rock Slide",
-     "Knock Off",
-     "Protect",
-     "Dragon Dance"
-    ],
     "speed_tailwind|redirection": [
-     "Protect",
      "Rock Slide",
+     "Protect",
      "Dragon Dance",
      "Knock Off"
     ],
@@ -1022,6 +1464,18 @@
      "Protect",
      "Knock Off",
      "Earthquake"
+    ],
+    "redirection": [
+     "Rock Slide",
+     "Protect",
+     "Knock Off",
+     "Low Kick"
+    ],
+    "weather_rain|weather_sun|redirection": [
+     "Knock Off",
+     "Rock Slide",
+     "Protect",
+     "Ice Punch"
     ]
    }
   },
@@ -1030,72 +1484,114 @@
     "Rock Slide",
     "Tailwind",
     "Dual Wingbeat",
-    "Ice Fang"
+    "Protect"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Rock Slide",
-     "Tailwind",
-     "Wide Guard",
-     "Dual Wingbeat"
-    ],
     "speed_trickroom|speed_tailwind": [
-     "Tailwind",
      "Rock Slide",
-     "Ice Fang",
-     "Dual Wingbeat"
+     "Tailwind",
+     "Dual Wingbeat",
+     "Ice Fang"
+    ],
+    "speed_tailwind|redirection": [
+     "Rock Slide",
+     "Tailwind",
+     "Dual Wingbeat",
+     "Wide Guard"
     ]
    }
   },
   "milotic": {
    "default": [
     "Scald",
-    "Coil",
     "Icy Wind",
-    "Muddy Water"
+    "Coil",
+    "Protect"
    ],
    "ctx": {
     "weather_sand|speed_trickroom|speed_tailwind|redirection": [
      "Scald",
      "Icy Wind",
-     "Ice Beam",
+     "Protect",
      "Haze"
     ],
     "weather_rain|speed_tailwind": [
      "Scald",
      "Coil",
-     "Icy Wind",
-     "Ice Beam"
-    ],
-    "none": [
-     "Scald",
-     "Coil",
-     "Recover",
-     "Muddy Water"
-    ],
-    "speed_tailwind|redirection": [
-     "Scald",
-     "Icy Wind",
-     "Coil",
-     "Muddy Water"
-    ],
-    "speed_trickroom|redirection": [
-     "Coil",
-     "Scald",
-     "Muddy Water",
+     "Protect",
      "Icy Wind"
     ],
-    "speed_tailwind": [
+    "none": [
+     "Coil",
      "Scald",
-     "Icy Wind",
      "Muddy Water",
-     "Coil"
+     "Ice Beam"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Coil",
      "Scald",
-     "Muddy Water",
+     "Icy Wind",
+     "Muddy Water"
+    ],
+    "speed_tailwind|redirection": [
+     "Icy Wind",
+     "Scald",
+     "Coil",
+     "Ice Beam"
+    ],
+    "speed_trickroom|redirection": [
+     "Coil",
+     "Scald",
+     "Protect",
+     "Icy Wind"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Scald",
+     "Icy Wind",
+     "Coil",
+     "Ice Beam"
+    ],
+    "speed_tailwind": [
+     "Scald",
+     "Icy Wind",
+     "Coil",
+     "Muddy Water"
+    ],
+    "weather_snow": [
+     "Scald",
+     "Coil",
+     "Icy Wind",
      "Protect"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Scald",
+     "Icy Wind",
+     "Ice Beam",
+     "Coil"
+    ],
+    "speed_trickroom": [
+     "Scald",
+     "Coil",
+     "Icy Wind",
+     "Muddy Water"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Icy Wind",
+     "Scald",
+     "Coil",
+     "Ice Beam"
+    ],
+    "weather_snow|speed_trickroom|redirection": [
+     "Coil",
+     "Scald",
+     "Icy Wind",
+     "Shadow Ball"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Scald",
+     "Coil",
+     "Icy Wind",
+     "Muddy Water"
     ]
    }
   },
@@ -1109,20 +1605,14 @@
    "ctx": {
     "speed_tailwind|redirection": [
      "Blizzard",
-     "Freeze-Dry",
-     "Aurora Veil",
-     "Protect"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Blizzard",
      "Aurora Veil",
      "Freeze-Dry",
      "Moonblast"
     ],
-    "speed_tailwind": [
-     "Aurora Veil",
+    "speed_trickroom|speed_tailwind|redirection": [
      "Blizzard",
-     "Freeze-Dry",
+     "Aurora Veil",
+     "Protect",
      "Moonblast"
     ],
     "none": [
@@ -1135,69 +1625,13 @@
      "Aurora Veil",
      "Blizzard",
      "Freeze-Dry",
-     "Encore"
-    ]
-   }
-  },
-  "blastoisemega": {
-   "default": [
-    "Water Spout",
-    "Fake Out",
-    "Shell Smash",
-    "Dark Pulse"
-   ],
-   "ctx": {
-    "speed_trickroom|redirection": [
-     "Shell Smash",
-     "Water Spout",
-     "Dark Pulse",
-     "Fake Out"
+     "Icy Wind"
     ],
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
-     "Water Spout",
-     "Shell Smash",
-     "Dark Pulse",
-     "Fake Out"
-    ],
-    "weather_rain|speed_tailwind": [
-     "Dark Pulse",
-     "Water Spout",
-     "Protect",
-     "Fake Out"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Water Spout",
-     "Fake Out",
-     "Dark Pulse",
-     "Water Pulse"
-    ],
-    "weather_snow|speed_trickroom|speed_tailwind": [
-     "Fake Out",
-     "Water Spout",
-     "Dark Pulse",
-     "Shell Smash"
-    ]
-   }
-  },
-  "palafin": {
-   "default": [
-    "Flip Turn",
-    "Wave Crash",
-    "Shadow Ball",
-    "Zen Headbutt"
-   ],
-   "ctx": {
-    "speed_tailwind": [
-     "Flip Turn",
-     "Shadow Ball",
-     "Wave Crash",
-     "Protect"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Flip Turn",
-     "Wave Crash",
-     "Protect",
-     "Zen Headbutt"
+    "redirection": [
+     "Blizzard",
+     "Aurora Veil",
+     "Freeze-Dry",
+     "Moonblast"
     ]
    }
   },
@@ -1213,13 +1647,13 @@
      "Tailwind",
      "Moonblast",
      "Charm",
-     "Protect"
+     "Light Screen"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Tailwind",
-     "Charm",
      "Moonblast",
-     "Light Screen"
+     "Charm",
+     "Taunt"
     ],
     "weather_rain|weather_sun|speed_trickroom|redirection": [
      "Tailwind",
@@ -1227,47 +1661,155 @@
      "Moonblast",
      "Taunt"
     ],
-    "speed_trickroom": [
+    "redirection": [
      "Tailwind",
-     "Protect",
-     "Light Screen",
-     "Moonblast"
-    ],
-    "weather_rain|speed_tailwind|redirection": [
-     "Tailwind",
-     "Encore",
      "Moonblast",
+     "Trick Room",
      "Protect"
     ],
-    "weather_snow": [
-     "Tailwind",
-     "Protect",
-     "Moonblast",
-     "Encore"
-    ],
-    "speed_trickroom|speed_tailwind": [
-     "Tailwind",
-     "Moonblast",
-     "Fake Tears",
-     "Encore"
-    ],
     "weather_rain|speed_tailwind": [
-     "Tailwind",
-     "Moonblast",
-     "Taunt",
-     "Energy Ball"
-    ],
-    "speed_tailwind|redirection": [
      "Tailwind",
      "Moonblast",
      "Encore",
      "Charm"
     ],
-    "weather_sand": [
+    "weather_rain|speed_tailwind|redirection": [
      "Tailwind",
      "Moonblast",
      "Protect",
+     "Fake Tears"
+    ],
+    "weather_sand": [
+     "Tailwind",
+     "Moonblast",
+     "Taunt",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Tailwind",
+     "Charm",
+     "Moonblast",
+     "Encore"
+    ],
+    "weather_sun": [
+     "Tailwind",
+     "Moonblast",
+     "Protect",
+     "Worry Seed"
+    ],
+    "speed_tailwind|redirection": [
+     "Tailwind",
+     "Moonblast",
+     "Encore",
+     "Protect"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Tailwind",
+     "Moonblast",
+     "Charm",
      "Taunt"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Tailwind",
+     "Moonblast",
+     "Sunny Day",
+     "Energy Ball"
+    ]
+   }
+  },
+  "blastoisemega": {
+   "default": [
+    "Water Spout",
+    "Shell Smash",
+    "Fake Out",
+    "Dark Pulse"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Shell Smash",
+     "Water Spout",
+     "Dark Pulse",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Shell Smash",
+     "Water Spout",
+     "Dark Pulse",
+     "Fake Out"
+    ],
+    "speed_trickroom": [
+     "Fake Out",
+     "Water Spout",
+     "Shell Smash",
+     "Ice Beam"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Fake Out",
+     "Water Spout",
+     "Shell Smash",
+     "Protect"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Dark Pulse",
+     "Water Spout",
+     "Protect",
+     "Shell Smash"
+    ],
+    "weather_snow|speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Water Spout",
+     "Dark Pulse",
+     "Shell Smash"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Water Spout",
+     "Fake Out",
+     "Shell Smash",
+     "Protect"
+    ]
+   }
+  },
+  "floetteeternal": {
+   "default": [
+    "Protect",
+    "Dazzling Gleam",
+    "Calm Mind",
+    "Moonblast"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Protect",
+     "Dazzling Gleam",
+     "Moonblast",
+     "Light of Ruin"
+    ],
+    "none": [
+     "Protect",
+     "Calm Mind",
+     "Dazzling Gleam",
+     "Moonblast"
+    ]
+   }
+  },
+  "palafin": {
+   "default": [
+    "Flip Turn",
+    "Close Combat",
+    "Wave Crash",
+    "Jet Punch"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Flip Turn",
+     "Close Combat",
+     "Liquidation",
+     "Shadow Ball"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Flip Turn",
+     "Close Combat",
+     "Protect",
+     "Wave Crash"
     ]
    }
   },
@@ -1279,16 +1821,46 @@
     "Protect"
    ],
    "ctx": {
+    "speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Protect",
+     "Trick Room"
+    ],
     "none": [
      "Matcha Gotcha",
      "Rage Powder",
      "Protect",
      "Trick Room"
     ],
-    "speed_tailwind": [
+    "speed_trickroom|speed_tailwind": [
      "Matcha Gotcha",
      "Rage Powder",
      "Protect",
+     "Shadow Ball"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Rage Powder",
+     "Matcha Gotcha",
+     "Life Dew",
+     "Trick Room"
+    ],
+    "speed_trickroom": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Trick Room",
+     "Life Dew"
+    ],
+    "weather_sand": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Shadow Ball",
+     "Trick Room"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Rage Powder",
+     "Protect",
+     "Matcha Gotcha",
      "Trick Room"
     ]
    }
@@ -1298,420 +1870,162 @@
     "Jet Punch",
     "Wave Crash",
     "Protect",
-    "Ice Punch"
+    "Flip Turn"
    ],
    "ctx": {
+    "speed_tailwind": [
+     "Wave Crash",
+     "Jet Punch",
+     "Close Combat",
+     "Flip Turn"
+    ],
     "weather_rain|speed_tailwind": [
      "Jet Punch",
      "Wave Crash",
      "Close Combat",
-     "Ice Punch"
+     "Flip Turn"
     ],
-    "speed_trickroom|speed_tailwind|redirection": [
+    "weather_snow|speed_trickroom|redirection": [
      "Jet Punch",
      "Wave Crash",
-     "Flip Turn",
-     "Aqua Jet"
+     "Protect",
+     "Psych Up"
     ]
    }
   },
-  "sinistcha": {
+  "farigiraf": {
    "default": [
-    "Rage Powder",
-    "Matcha Gotcha",
     "Trick Room",
-    "Protect"
+    "Psychic",
+    "Helping Hand",
+    "Thunderbolt"
    ],
    "ctx": {
-    "weather_rain": [
-     "Rage Powder",
-     "Matcha Gotcha",
-     "Protect",
-     "Trick Room"
+    "speed_tailwind": [
+     "Trick Room",
+     "Psychic",
+     "Thunderbolt",
+     "Helping Hand"
     ],
-    "speed_tailwind|redirection": [
-     "Matcha Gotcha",
-     "Shadow Ball",
-     "Rage Powder",
-     "Trick Room"
-    ],
-    "weather_sand|speed_tailwind": [
-     "Matcha Gotcha",
-     "Rage Powder",
+    "weather_sun|speed_trickroom": [
+     "Trick Room",
      "Protect",
-     "Trick Room"
+     "Twin Beam",
+     "Hyper Voice"
     ],
     "weather_rain|speed_tailwind": [
-     "Rage Powder",
-     "Matcha Gotcha",
      "Trick Room",
-     "Shadow Ball"
+     "Thunderbolt",
+     "Psychic",
+     "Twin Beam"
     ],
-    "speed_trickroom": [
-     "Matcha Gotcha",
-     "Rage Powder",
+    "weather_sun": [
      "Trick Room",
-     "Shadow Ball"
+     "Thunderbolt",
+     "Helping Hand",
+     "Protect"
     ],
-    "speed_tailwind": [
-     "Matcha Gotcha",
-     "Rage Powder",
+    "weather_sun|speed_trickroom|redirection": [
      "Trick Room",
-     "Life Dew"
-    ],
-    "weather_rain|speed_tailwind|redirection": [
-     "Rage Powder",
-     "Matcha Gotcha",
-     "Trick Room",
-     "Life Dew"
-    ],
-    "weather_snow": [
-     "Rage Powder",
-     "Matcha Gotcha",
-     "Trick Room",
-     "Life Dew"
-    ]
-   }
-  },
-  "aegislashblade": {
-   "default": [
-    "Shadow Sneak",
-    "Poltergeist",
-    "Shadow Ball",
-    "Iron Head"
-   ],
-   "ctx": {
-    "speed_tailwind": [
-     "Shadow Sneak",
-     "Shadow Ball",
-     "Iron Head",
-     "Close Combat"
-    ]
-   }
-  },
-  "sableye": {
-   "default": [
-    "Fake Out",
-    "Will-O-Wisp",
-    "Rain Dance",
-    "Light Screen"
-   ],
-   "ctx": {
-    "none": [
-     "Fake Out",
-     "Rain Dance",
-     "Light Screen",
-     "Swagger"
-    ],
-    "weather_rain|speed_tailwind": [
-     "Fake Out",
-     "Will-O-Wisp",
-     "Light Screen",
-     "Rain Dance"
-    ],
-    "speed_trickroom|redirection": [
-     "Fake Out",
-     "Will-O-Wisp",
-     "Light Screen",
-     "Foul Play"
-    ],
-    "speed_tailwind": [
-     "Fake Out",
-     "Will-O-Wisp",
-     "Reflect",
-     "Knock Off"
-    ],
-    "speed_trickroom": [
-     "Fake Out",
-     "Rain Dance",
-     "Will-O-Wisp",
+     "Psychic",
+     "Protect",
      "Foul Play"
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
-     "Rain Dance",
-     "Fake Out",
-     "Light Screen",
-     "Reflect"
-    ],
-    "redirection": [
-     "Fake Out",
-     "Will-O-Wisp",
-     "Gravity",
-     "Rain Dance"
-    ]
-   }
-  },
-  "politoed": {
-   "default": [
-    "Weather Ball",
-    "Protect",
-    "Muddy Water",
-    "Perish Song"
-   ],
-   "ctx": {
-    "speed_tailwind|redirection": [
-     "Muddy Water",
-     "Protect",
-     "Weather Ball",
-     "Ice Beam"
-    ],
-    "none": [
-     "Weather Ball",
-     "Protect",
-     "Muddy Water",
-     "Hypnosis"
-    ],
-    "redirection": [
-     "Weather Ball",
-     "Protect",
-     "Perish Song",
-     "Ice Beam"
-    ],
-    "speed_tailwind": [
-     "Weather Ball",
-     "Protect",
-     "Perish Song",
-     "Encore"
-    ]
-   }
-  },
-  "venusaurmega": {
-   "default": [
-    "Earth Power",
-    "Sludge Bomb",
-    "Leech Seed",
-    "Giga Drain"
-   ],
-   "ctx": {
-    "weather_sand|speed_tailwind": [
-     "Earth Power",
-     "Sleep Powder",
-     "Sludge Bomb",
-     "Giga Drain"
-    ],
-    "weather_rain|speed_tailwind": [
-     "Earth Power",
-     "Sludge Bomb",
-     "Sleep Powder",
-     "Protect"
-    ]
-   }
-  },
-  "kangaskhan": {
-   "default": [
-    "Fake Out",
-    "Double-Edge",
-    "Hammer Arm",
-    "Drain Punch"
-   ],
-   "ctx": {
-    "speed_trickroom": [
-     "Fake Out",
-     "Double-Edge",
-     "Hammer Arm",
-     "Brick Break"
-    ],
-    "speed_tailwind": [
-     "Fake Out",
+     "Trick Room",
      "Helping Hand",
-     "Drain Punch",
-     "Low Kick"
+     "Psychic",
+     "Hyper Voice"
     ],
-    "weather_sun|speed_trickroom": [
-     "Fake Out",
-     "Hammer Arm",
-     "Double-Edge",
-     "Brick Break"
-    ]
-   }
-  },
-  "raichumegay": {
-   "default": [
-    "Fake Out",
-    "Zap Cannon",
-    "Focus Blast",
-    "Protect"
-   ],
-   "ctx": {
-    "speed_trickroom|redirection": [
-     "Fake Out",
-     "Focus Blast",
-     "Zap Cannon",
-     "Protect"
-    ],
-    "weather_snow|speed_tailwind|redirection": [
-     "Zap Cannon",
-     "Fake Out",
-     "Focus Blast",
-     "Protect"
-    ],
-    "weather_rain|speed_tailwind|redirection": [
-     "Fake Out",
-     "Zap Cannon",
-     "Protect",
-     "Focus Blast"
+    "weather_sun|speed_tailwind": [
+     "Trick Room",
+     "Psychic",
+     "Helping Hand",
+     "Twin Beam"
     ],
     "speed_tailwind|redirection": [
-     "Fake Out",
-     "Zap Cannon",
-     "Focus Blast",
-     "Dazzling Gleam"
-    ],
-    "weather_snow|speed_trickroom|redirection": [
-     "Zap Cannon",
-     "Fake Out",
-     "Focus Blast",
+     "Trick Room",
+     "Psychic",
+     "Helping Hand",
      "Protect"
-    ]
-   }
-  },
-  "froslassmega": {
-   "default": [
-    "Blizzard",
-    "Aurora Veil",
-    "Shadow Ball",
-    "Protect"
-   ],
-   "ctx": {
-    "speed_tailwind": [
-     "Blizzard",
-     "Aurora Veil",
-     "Protect",
-     "Shadow Ball"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Blizzard",
-     "Protect",
-     "Aurora Veil",
-     "Shadow Ball"
-    ]
-   }
-  },
-  "corviknight": {
-   "default": [
-    "Tailwind",
-    "Bulk Up",
-    "Iron Defense",
-    "Brave Bird"
-   ],
-   "ctx": {
-    "weather_sand|speed_trickroom|redirection": [
-     "Tailwind",
-     "Brave Bird",
-     "Iron Head",
-     "Taunt"
-    ]
-   }
-  },
-  "tyranitarmega": {
-   "default": [
-    "Rock Slide",
-    "Knock Off",
-    "Protect",
-    "Dragon Dance"
-   ],
-   "ctx": {
-    "weather_sand|speed_tailwind": [
-     "Rock Slide",
-     "Knock Off",
-     "Dragon Dance",
-     "Crunch"
-    ],
-    "weather_sand|speed_trickroom|speed_tailwind": [
-     "Rock Slide",
-     "Knock Off",
-     "Protect",
-     "Ice Punch"
-    ],
-    "weather_sand|speed_trickroom|redirection": [
-     "Rock Slide",
-     "Knock Off",
-     "Dragon Dance",
-     "Protect"
-    ]
-   }
-  },
-  "annihilape": {
-   "default": [
-    "Bulk Up",
-    "Rage Fist",
-    "Protect",
-    "Phantom Force"
-   ],
-   "ctx": {
-    "speed_trickroom|redirection": [
-     "Bulk Up",
-     "Rage Fist",
-     "Drain Punch",
-     "Protect"
-    ],
-    "none": [
-     "Phantom Force",
-     "Close Combat",
-     "Protect",
-     "Bulk Up"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Rage Fist",
-     "Protect",
-     "Bulk Up",
-     "Close Combat"
-    ],
-    "speed_tailwind": [
-     "Bulk Up",
-     "Phantom Force",
-     "Rage Fist",
-     "Protect"
-    ]
-   }
-  },
-  "talonflame": {
-   "default": [
-    "Tailwind",
-    "Dual Wingbeat",
-    "Protect",
-    "Quick Guard"
-   ],
-   "ctx": {
-    "weather_rain|speed_tailwind": [
-     "Tailwind",
-     "Protect",
-     "Quick Guard",
-     "Dual Wingbeat"
     ],
     "speed_trickroom|redirection": [
-     "Tailwind",
-     "Quick Guard",
-     "Brave Bird",
-     "Dual Wingbeat"
+     "Trick Room",
+     "Psychic",
+     "Hyper Voice",
+     "Helping Hand"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Trick Room",
+     "Thunderbolt",
+     "Psychic",
+     "Protect"
+    ],
+    "speed_trickroom": [
+     "Trick Room",
+     "Protect",
+     "Psychic",
+     "Helping Hand"
     ],
     "redirection": [
-     "Tailwind",
-     "Quick Guard",
+     "Trick Room",
+     "Hyper Voice",
+     "Psychic",
+     "Helping Hand"
+    ],
+    "none": [
+     "Trick Room",
+     "Psychic",
+     "Hyper Voice",
+     "Helping Hand"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Trick Room",
+     "Psychic",
      "Protect",
-     "Brave Bird"
-    ]
-   }
-  },
-  "kommoo": {
-   "default": [
-    "Clanging Scales",
-    "Clangorous Soul",
-    "Protect",
-    "Aura Sphere"
-   ],
-   "ctx": {
-    "speed_tailwind|redirection": [
-     "Clanging Scales",
-     "Aura Sphere",
-     "Clangorous Soul",
-     "Draco Meteor"
+     "Twin Beam"
+    ],
+    "weather_sun|speed_trickroom|speed_tailwind|redirection": [
+     "Trick Room",
+     "Protect",
+     "Psychic",
+     "Helping Hand"
+    ],
+    "weather_rain|speed_trickroom|redirection": [
+     "Trick Room",
+     "Twin Beam",
+     "Protect",
+     "Psychic"
     ],
     "weather_snow|speed_tailwind": [
-     "Clanging Scales",
-     "Protect",
-     "Clangorous Soul",
-     "Vacuum Wave"
+     "Trick Room",
+     "Helping Hand",
+     "Hyper Voice",
+     "Psychic"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Trick Room",
+     "Twin Beam",
+     "Hyper Voice",
+     "Psychic"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Trick Room",
+     "Psychic",
+     "Twin Beam",
+     "Helping Hand"
+    ],
+    "weather_snow": [
+     "Trick Room",
+     "Twin Beam",
+     "Helping Hand",
+     "Psychic"
+    ],
+    "weather_sand": [
+     "Trick Room",
+     "Thunderbolt",
+     "Psychic",
+     "Struggle"
     ]
    }
   },
@@ -1729,23 +2043,11 @@
      "Protect",
      "Calm Mind"
     ],
-    "redirection": [
-     "Dazzling Gleam",
-     "Moonblast",
-     "Calm Mind",
-     "Protect"
-    ],
     "speed_tailwind": [
      "Dazzling Gleam",
      "Moonblast",
      "Light of Ruin",
      "Protect"
-    ],
-    "speed_tailwind|redirection": [
-     "Moonblast",
-     "Dazzling Gleam",
-     "Calm Mind",
-     "Light of Ruin"
     ],
     "speed_trickroom|speed_tailwind|redirection": [
      "Dazzling Gleam",
@@ -1753,133 +2055,319 @@
      "Protect",
      "Moonblast"
     ],
+    "speed_tailwind|redirection": [
+     "Dazzling Gleam",
+     "Moonblast",
+     "Light of Ruin",
+     "Calm Mind"
+    ],
     "speed_trickroom|redirection": [
      "Calm Mind",
      "Dazzling Gleam",
      "Moonblast",
-     "Draining Kiss"
-    ]
-   }
-  },
-  "hydreigon": {
-   "default": [
-    "Dark Pulse",
-    "Draco Meteor",
-    "Earth Power",
-    "Snarl"
-   ],
-   "ctx": {
-    "none": [
-     "Dark Pulse",
-     "Draco Meteor",
-     "Snarl",
-     "Tailwind"
-    ],
-    "speed_tailwind": [
-     "Dark Pulse",
-     "Draco Meteor",
-     "Tailwind",
-     "Earth Power"
-    ],
-    "speed_trickroom|speed_tailwind": [
-     "Dark Pulse",
-     "Draco Meteor",
-     "Heat Wave",
      "Protect"
     ],
-    "speed_tailwind|redirection": [
-     "Dark Pulse",
-     "Draco Meteor",
-     "Heat Wave",
-     "Earth Power"
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Calm Mind",
+     "Dazzling Gleam",
+     "Protect",
+     "Moonblast"
+    ],
+    "speed_trickroom": [
+     "Dazzling Gleam",
+     "Calm Mind",
+     "Protect",
+     "Moonblast"
     ]
    }
   },
-  "arcaninehisui": {
+  "ceruledge": {
    "default": [
-    "Flare Blitz",
-    "Rock Slide",
-    "Head Smash",
+    "Bitter Blade",
+    "Bulk Up",
+    "Shadow Sneak",
     "Protect"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Flare Blitz",
-     "Head Smash",
+    "weather_snow|speed_tailwind": [
+     "Bitter Blade",
+     "Bulk Up",
      "Protect",
-     "Rock Slide"
-    ]
-   }
-  },
-  "staraptormega": {
-   "default": [
-    "Close Combat",
-    "Brave Bird",
-    "Protect",
-    "Dual Wingbeat"
-   ],
-   "ctx": {
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Close Combat",
-     "Dual Wingbeat",
-     "Protect",
-     "Brave Bird"
-    ],
-    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
-     "Close Combat",
-     "Brave Bird",
-     "Tailwind",
-     "Protect"
+     "Shadow Sneak"
     ],
     "speed_trickroom|speed_tailwind": [
-     "Close Combat",
+     "Bulk Up",
+     "Bitter Blade",
      "Protect",
-     "Brave Bird",
-     "Dual Wingbeat"
+     "Shadow Sneak"
+    ],
+    "speed_tailwind": [
+     "Bitter Blade",
+     "Bulk Up",
+     "Protect",
+     "Shadow Sneak"
     ],
     "speed_tailwind|redirection": [
-     "Close Combat",
-     "Brave Bird",
-     "Dual Wingbeat",
+     "Bulk Up",
+     "Bitter Blade",
+     "Protect",
+     "Shadow Sneak"
+    ],
+    "weather_sun|speed_trickroom|speed_tailwind": [
+     "Bitter Blade",
+     "Shadow Sneak",
+     "Bulk Up",
      "Protect"
+    ],
+    "speed_trickroom": [
+     "Bulk Up",
+     "Bitter Blade",
+     "Shadow Sneak",
+     "Poltergeist"
+    ],
+    "weather_snow|speed_trickroom|redirection": [
+     "Bulk Up",
+     "Bitter Blade",
+     "Shadow Sneak",
+     "Poltergeist"
     ]
    }
   },
-  "tinkaton": {
+  "sinistcha": {
+   "default": [
+    "Rage Powder",
+    "Matcha Gotcha",
+    "Trick Room",
+    "Protect"
+   ],
+   "ctx": {
+    "weather_rain": [
+     "Rage Powder",
+     "Matcha Gotcha",
+     "Protect",
+     "Trick Room"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Protect",
+     "Shadow Ball"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Trick Room",
+     "Shadow Ball"
+    ],
+    "speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Protect",
+     "Shadow Ball"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Trick Room",
+     "Shadow Ball"
+    ],
+    "speed_tailwind|redirection": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Life Dew",
+     "Trick Room"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Trick Room",
+     "Protect"
+    ],
+    "speed_trickroom": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Trick Room",
+     "Life Dew"
+    ],
+    "weather_sand|speed_trickroom": [
+     "Rage Powder",
+     "Matcha Gotcha",
+     "Trick Room",
+     "Shadow Ball"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Rage Powder",
+     "Matcha Gotcha",
+     "Life Dew",
+     "Trick Room"
+    ],
+    "weather_snow|speed_trickroom": [
+     "Matcha Gotcha",
+     "Trick Room",
+     "Rage Powder",
+     "Shadow Ball"
+    ],
+    "weather_sand": [
+     "Rage Powder",
+     "Protect",
+     "Matcha Gotcha",
+     "Trick Room"
+    ],
+    "redirection": [
+     "Rage Powder",
+     "Matcha Gotcha",
+     "Protect",
+     "Trick Room"
+    ],
+    "weather_snow": [
+     "Rage Powder",
+     "Matcha Gotcha",
+     "Life Dew",
+     "Protect"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Matcha Gotcha",
+     "Rage Powder",
+     "Protect",
+     "Shadow Ball"
+    ]
+   }
+  },
+  "aegislashblade": {
+   "default": [
+    "Poltergeist",
+    "Shadow Sneak",
+    "Shadow Ball",
+    "Iron Head"
+   ],
+   "ctx": {
+    "speed_trickroom": [
+     "Shadow Sneak",
+     "Shadow Ball",
+     "Poltergeist",
+     "Close Combat"
+    ],
+    "speed_trickroom|redirection": [
+     "Shadow Ball",
+     "Poltergeist",
+     "Close Combat",
+     "Shadow Sneak"
+    ],
+    "speed_tailwind": [
+     "Shadow Sneak",
+     "Iron Head",
+     "Shadow Ball",
+     "Flash Cannon"
+    ],
+    "speed_tailwind|redirection": [
+     "Poltergeist",
+     "Shadow Sneak",
+     "Iron Head",
+     "Shadow Ball"
+    ]
+   }
+  },
+  "sableye": {
    "default": [
     "Fake Out",
-    "Gigaton Hammer",
-    "Play Rough",
-    "Night Daze"
+    "Will-O-Wisp",
+    "Rain Dance",
+    "Light Screen"
+   ],
+   "ctx": {
+    "none": [
+     "Fake Out",
+     "Rain Dance",
+     "Light Screen",
+     "Gravity"
+    ],
+    "speed_tailwind|redirection": [
+     "Fake Out",
+     "Gravity",
+     "Foul Play",
+     "Rain Dance"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Fake Out",
+     "Rain Dance",
+     "Light Screen",
+     "Will-O-Wisp"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Rain Dance",
+     "Light Screen",
+     "Fake Out",
+     "Reflect"
+    ],
+    "speed_tailwind": [
+     "Fake Out",
+     "Encore",
+     "Will-O-Wisp",
+     "Reflect"
+    ],
+    "redirection": [
+     "Gravity",
+     "Fake Out",
+     "Will-O-Wisp",
+     "Foul Play"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Fake Out",
+     "Will-O-Wisp",
+     "Light Screen",
+     "Encore"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Will-O-Wisp",
+     "Foul Play",
+     "Rain Dance"
+    ],
+    "weather_snow|speed_trickroom|redirection": [
+     "Fake Out",
+     "Light Screen",
+     "Reflect",
+     "Encore"
+    ]
+   }
+  },
+  "politoed": {
+   "default": [
+    "Weather Ball",
+    "Protect",
+    "Perish Song",
+    "Muddy Water"
    ],
    "ctx": {
     "speed_tailwind": [
-     "Fake Out",
-     "Bulldoze",
-     "Play Rough",
-     "Gigaton Hammer"
+     "Weather Ball",
+     "Muddy Water",
+     "Protect",
+     "Perish Song"
     ],
-    "speed_tailwind|redirection": [
-     "Fake Out",
-     "Play Rough",
-     "Gigaton Hammer",
-     "Light Screen"
-    ]
-   }
-  },
-  "weavile": {
-   "default": [
-    "Fake Out",
-    "Triple Axel",
-    "Knock Off",
-    "Feint"
-   ],
-   "ctx": {
-    "speed_trickroom|redirection": [
-     "Fake Out",
-     "Knock Off",
-     "Triple Axel",
-     "Feint"
+    "none": [
+     "Weather Ball",
+     "Perish Song",
+     "Protect",
+     "Helping Hand"
+    ],
+    "redirection": [
+     "Weather Ball",
+     "Protect",
+     "Perish Song",
+     "Ice Beam"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Protect",
+     "Weather Ball",
+     "Icy Wind",
+     "Ice Beam"
+    ],
+    "speed_trickroom": [
+     "Weather Ball",
+     "Perish Song",
+     "Muddy Water",
+     "Protect"
     ]
    }
   },
@@ -1909,6 +2397,12 @@
      "Helping Hand",
      "Weather Ball"
     ],
+    "speed_trickroom|speed_tailwind": [
+     "Protect",
+     "Heat Wave",
+     "Weather Ball",
+     "Air Slash"
+    ],
     "speed_trickroom": [
      "Protect",
      "Heat Wave",
@@ -1917,369 +2411,305 @@
     ]
    }
   },
-  "ceruledge": {
+  "gardevoirmega": {
    "default": [
-    "Bitter Blade",
-    "Bulk Up",
+    "Hyper Voice",
     "Protect",
-    "Shadow Sneak"
-   ],
-   "ctx": {
-    "speed_trickroom|redirection": [
-     "Bitter Blade",
-     "Bulk Up",
-     "Shadow Sneak",
-     "Protect"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Bulk Up",
-     "Bitter Blade",
-     "Shadow Sneak",
-     "Poltergeist"
-    ],
-    "speed_tailwind|redirection": [
-     "Bulk Up",
-     "Bitter Blade",
-     "Protect",
-     "Shadow Sneak"
-    ]
-   }
-  },
-  "rotomwash": {
-   "default": [
-    "Hydro Pump",
-    "Thunderbolt",
-    "Will-O-Wisp",
-    "Volt Switch"
-   ],
-   "ctx": {
-    "speed_tailwind|redirection": [
-     "Hydro Pump",
-     "Will-O-Wisp",
-     "Thunderbolt",
-     "Volt Switch"
-    ],
-    "weather_sand|speed_tailwind": [
-     "Thunderbolt",
-     "Hydro Pump",
-     "Volt Switch",
-     "Will-O-Wisp"
-    ],
-    "speed_trickroom": [
-     "Thunderbolt",
-     "Will-O-Wisp",
-     "Hydro Pump",
-     "Volt Switch"
-    ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Thunderbolt",
-     "Hydro Pump",
-     "Will-O-Wisp",
-     "Volt Switch"
-    ],
-    "speed_tailwind": [
-     "Hydro Pump",
-     "Will-O-Wisp",
-     "Thunderbolt",
-     "Trick"
-    ]
-   }
-  },
-  "clefable": {
-   "default": [
-    "Follow Me",
-    "Moonblast",
-    "Helping Hand",
+    "Trick Room",
     "Calm Mind"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Follow Me",
-     "Moonblast",
-     "Protect",
-     "Helping Hand"
-    ]
-   }
-  },
-  "glimmoramega": {
-   "default": [
-    "Power Gem",
-    "Earth Power",
-    "Sludge Bomb",
-    "Spiky Shield"
-   ],
-   "ctx": {
-    "speed_tailwind": [
-     "Earth Power",
-     "Power Gem",
-     "Sludge Bomb",
-     "Spiky Shield"
-    ],
-    "weather_snow|speed_tailwind": [
-     "Earth Power",
-     "Power Gem",
-     "Sludge Bomb",
-     "Spiky Shield"
-    ]
-   }
-  },
-  "mawilemega": {
-   "default": [
-    "Play Rough",
-    "Sucker Punch",
-    "Iron Head",
-    "Protect"
-   ],
-   "ctx": {
-    "weather_sun|speed_trickroom|redirection": [
-     "Play Rough",
-     "Sucker Punch",
-     "Protect",
-     "Rock Slide"
-    ],
     "speed_trickroom|redirection": [
-     "Play Rough",
-     "Iron Head",
-     "Swords Dance",
-     "Sucker Punch"
-    ],
-    "speed_trickroom|speed_tailwind": [
-     "Play Rough",
-     "Sucker Punch",
-     "Protect",
-     "Rock Slide"
-    ],
-    "weather_sun|speed_trickroom": [
-     "Play Rough",
-     "Sucker Punch",
-     "Swords Dance",
-     "Iron Head"
-    ],
-    "weather_sun|speed_trickroom|speed_tailwind": [
-     "Play Rough",
-     "Protect",
-     "Iron Head",
-     "Sucker Punch"
-    ]
-   }
-  },
-  "farigiraf": {
-   "default": [
-    "Trick Room",
-    "Psychic",
-    "Helping Hand",
-    "Protect"
-   ],
-   "ctx": {
-    "weather_rain|speed_tailwind": [
-     "Trick Room",
-     "Psychic",
-     "Thunderbolt",
-     "Rain Dance"
-    ],
-    "weather_sun": [
-     "Trick Room",
-     "Thunderbolt",
-     "Protect",
-     "Psychic Terrain"
-    ],
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
-     "Trick Room",
-     "Helping Hand",
      "Hyper Voice",
-     "Psychic"
-    ],
-    "weather_sun|speed_tailwind": [
      "Trick Room",
-     "Psychic",
-     "Twin Beam",
+     "Calm Mind",
      "Protect"
     ],
-    "speed_trickroom|redirection": [
-     "Trick Room",
-     "Helping Hand",
+    "speed_tailwind|redirection": [
      "Hyper Voice",
-     "Psychic"
+     "Protect",
+     "Psyshock",
+     "Thunderbolt"
     ],
-    "none": [
-     "Trick Room",
-     "Helping Hand",
-     "Psychic",
-     "Hyper Voice"
+    "weather_rain|weather_sun|speed_trickroom|speed_tailwind|redirection": [
+     "Hyper Voice",
+     "Expanding Force",
+     "Protect",
+     "Trick Room"
     ],
-    "redirection": [
+    "speed_tailwind": [
+     "Hyper Voice",
+     "Protect",
      "Trick Room",
-     "Helping Hand",
+     "Round"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Hyper Voice",
+     "Calm Mind",
      "Protect",
      "Psychic"
     ],
     "speed_trickroom": [
-     "Trick Room",
-     "Psychic",
      "Hyper Voice",
-     "Helping Hand"
-    ],
-    "speed_tailwind": [
-     "Trick Room",
-     "Psychic",
-     "Thunderbolt",
-     "Helping Hand"
-    ],
-    "weather_sun|speed_trickroom|redirection": [
-     "Trick Room",
-     "Psychic",
+     "Psyshock",
      "Protect",
-     "Hyper Voice"
-    ],
-    "weather_snow|speed_tailwind": [
-     "Trick Room",
-     "Helping Hand",
-     "Hyper Voice",
-     "Psychic"
+     "Trick Room"
+    ]
+   }
+  },
+  "venusaurmega": {
+   "default": [
+    "Earth Power",
+    "Sludge Bomb",
+    "Giga Drain",
+    "Leech Seed"
+   ],
+   "ctx": {
+    "weather_snow": [
+     "Sludge Bomb",
+     "Giga Drain",
+     "Earth Power",
+     "Protect"
     ],
     "weather_sand|speed_tailwind": [
-     "Trick Room",
+     "Sleep Powder",
+     "Earth Power",
+     "Sludge Bomb",
+     "Giga Drain"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Earth Power",
+     "Sludge Bomb",
+     "Giga Drain",
+     "Sleep Powder"
+    ],
+    "speed_tailwind": [
+     "Giga Drain",
+     "Earth Power",
+     "Sludge Bomb",
+     "Leech Seed"
+    ],
+    "none": [
+     "Earth Power",
+     "Giga Drain",
+     "Sludge Bomb",
+     "Sludge Wave"
+    ]
+   }
+  },
+  "kangaskhan": {
+   "default": [
+    "Fake Out",
+    "Double-Edge",
+    "Last Resort",
+    "Hammer Arm"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
      "Protect",
-     "Imprison",
-     "Psychic"
+     "Double-Edge",
+     "Hammer Arm"
+    ],
+    "speed_trickroom": [
+     "Fake Out",
+     "Double-Edge",
+     "Hammer Arm",
+     "Brick Break"
+    ],
+    "speed_tailwind": [
+     "Fake Out",
+     "Low Kick",
+     "Drain Punch",
+     "Helping Hand"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Fake Out",
+     "Hammer Arm",
+     "Low Kick",
+     "Last Resort"
+    ],
+    "speed_tailwind|redirection": [
+     "Fake Out",
+     "Double-Edge",
+     "Circle Throw",
+     "Hammer Arm"
+    ]
+   }
+  },
+  "blaziken": {
+   "default": [
+    "Protect",
+    "Detect",
+    "Swords Dance",
+    "Close Combat"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Protect",
+     "Detect",
+     "Rock Slide",
+     "Close Combat"
+    ],
+    "speed_trickroom": [
+     "Protect",
+     "Coaching",
+     "Detect",
+     "Swords Dance"
     ],
     "weather_snow": [
-     "Trick Room",
-     "Twin Beam",
-     "Helping Hand",
-     "Psychic"
-    ]
-   }
-  },
-  "glimmora": {
-   "default": [
-    "Power Gem",
-    "Spiky Shield",
-    "Sludge Bomb",
-    "Earth Power"
-   ],
-   "ctx": {
-    "speed_tailwind|redirection": [
-     "Power Gem",
-     "Mortal Spin",
-     "Earth Power",
-     "Spiky Shield"
-    ],
-    "speed_trickroom|speed_tailwind": [
-     "Spiky Shield",
-     "Power Gem",
-     "Spikes",
-     "Earth Power"
-    ]
-   }
-  },
-  "swampert": {
-   "default": [
-    "Protect",
-    "Wave Crash",
-    "Earthquake",
-    "Waterfall"
-   ],
-   "ctx": {
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Detect",
      "Protect",
-     "Wave Crash",
-     "Liquidation",
-     "Earthquake"
+     "Flare Blitz",
+     "Night Slash"
+    ],
+    "speed_trickroom|redirection": [
+     "Protect",
+     "Heat Wave",
+     "Detect",
+     "Temper Flare"
     ]
    }
   },
-  "staraptor": {
+  "raichumegay": {
    "default": [
-    "Final Gambit",
+    "Zap Cannon",
+    "Fake Out",
+    "Focus Blast",
+    "Protect"
+   ],
+   "ctx": {
+    "none": [
+     "Fake Out",
+     "Zap Cannon",
+     "Focus Blast",
+     "Protect"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Fake Out",
+     "Zap Cannon",
+     "Focus Blast",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Zap Cannon",
+     "Fake Out",
+     "Focus Blast",
+     "Dazzling Gleam"
+    ]
+   }
+  },
+  "froslassmega": {
+   "default": [
+    "Blizzard",
+    "Aurora Veil",
+    "Shadow Ball",
+    "Protect"
+   ],
+   "ctx": {
+    "redirection": [
+     "Aurora Veil",
+     "Blizzard",
+     "Shadow Ball",
+     "Protect"
+    ],
+    "speed_tailwind": [
+     "Blizzard",
+     "Aurora Veil",
+     "Protect",
+     "Shadow Ball"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Blizzard",
+     "Protect",
+     "Shadow Ball",
+     "Aurora Veil"
+    ],
+    "speed_tailwind|redirection": [
+     "Blizzard",
+     "Shadow Ball",
+     "Aurora Veil",
+     "Protect"
+    ],
+    "weather_snow": [
+     "Blizzard",
+     "Aurora Veil",
+     "Protect",
+     "Shadow Ball"
+    ]
+   }
+  },
+  "corviknight": {
+   "default": [
+    "Tailwind",
     "Brave Bird",
-    "Protect",
-    "Tailwind"
+    "Iron Defense",
+    "Bulk Up"
    ],
    "ctx": {
     "weather_sand|speed_trickroom|redirection": [
      "Tailwind",
      "Brave Bird",
-     "Protect",
-     "Final Gambit"
+     "Iron Head",
+     "Taunt"
     ],
-    "speed_tailwind": [
-     "Final Gambit",
+    "weather_rain": [
+     "Iron Defense",
+     "Tailwind",
      "Protect",
+     "Roost"
+    ],
+    "weather_sand": [
+     "Tailwind",
+     "Iron Head",
      "Brave Bird",
-     "Close Combat"
+     "Iron Defense"
     ],
-    "weather_sun|speed_trickroom": [
-     "Final Gambit",
+    "speed_tailwind": [
+     "Bulk Up",
      "Brave Bird",
-     "Close Combat",
-     "Dual Wingbeat"
+     "Tailwind",
+     "Body Press"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Tailwind",
+     "Iron Defense",
+     "Iron Head",
+     "Bulk Up"
+    ],
+    "none": [
+     "Tailwind",
+     "Brave Bird",
+     "Iron Defense",
+     "Iron Head"
+    ],
+    "speed_trickroom": [
+     "Tailwind",
+     "Brave Bird",
+     "Taunt",
+     "Iron Defense"
     ]
    }
   },
-  "delphoxmega": {
+  "gallade": {
    "default": [
-    "Heat Wave",
-    "Protect",
-    "Nasty Plot",
-    "Psychic"
+    "Sacred Sword",
+    "Psycho Cut",
+    "Trick Room",
+    "Leaf Blade"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Heat Wave",
-     "Protect",
-     "Psychic",
-     "Nasty Plot"
-    ],
-    "speed_trickroom|redirection": [
-     "Heat Wave",
-     "Nasty Plot",
-     "Protect",
-     "Psychic"
-    ],
     "speed_trickroom|speed_tailwind|redirection": [
-     "Heat Wave",
-     "Psychic",
-     "Protect",
-     "Nasty Plot"
-    ]
-   }
-  },
-  "lycanrocdusk": {
-   "default": [
-    "Accelerock",
-    "Rock Slide",
-    "Close Combat",
-    "Protect"
-   ],
-   "ctx": {
-    "weather_snow": [
-     "Rock Slide",
-     "Close Combat",
-     "Accelerock",
-     "Protect"
-    ]
-   }
-  },
-  "mamoswine": {
-   "default": [
-    "High Horsepower",
-    "Earthquake",
-    "Ice Shard",
-    "Protect"
-   ],
-   "ctx": {
-    "speed_tailwind": [
-     "High Horsepower",
-     "Earthquake",
-     "Protect",
-     "Ice Shard"
+     "Sacred Sword",
+     "Trick Room",
+     "Leaf Blade",
+     "Psycho Cut"
     ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Ice Shard",
-     "High Horsepower",
-     "Earthquake",
-     "Protect"
+    "speed_tailwind": [
+     "Sacred Sword",
+     "Psycho Cut",
+     "Leaf Blade",
+     "Trick Room"
     ]
    }
   },
@@ -2295,19 +2725,25 @@
      "Eruption",
      "Protect",
      "Weather Ball",
-     "Helping Hand"
+     "Heat Wave"
     ],
     "speed_trickroom|redirection": [
      "Eruption",
      "Protect",
      "Weather Ball",
-     "Earth Power"
+     "Heat Wave"
     ],
     "speed_tailwind": [
-     "Eruption",
      "Heat Wave",
      "Protect",
+     "Eruption",
      "Yawn"
+    ],
+    "weather_snow|speed_trickroom": [
+     "Eruption",
+     "Earth Power",
+     "Heat Wave",
+     "Protect"
     ],
     "weather_rain|weather_sun|speed_tailwind": [
      "Heat Wave",
@@ -2317,25 +2753,927 @@
     ]
    }
   },
-  "gardevoirmega": {
+  "cofagrigus": {
    "default": [
-    "Hyper Voice",
-    "Protect",
     "Trick Room",
-    "Psyshock"
+    "Body Press",
+    "Iron Defense",
+    "Shadow Ball"
+   ],
+   "ctx": {
+    "speed_trickroom": [
+     "Trick Room",
+     "Body Press",
+     "Ally Switch",
+     "Iron Defense"
+    ]
+   }
+  },
+  "mawilemega": {
+   "default": [
+    "Play Rough",
+    "Sucker Punch",
+    "Iron Head",
+    "Protect"
+   ],
+   "ctx": {
+    "weather_sun|speed_trickroom|redirection": [
+     "Play Rough",
+     "Sucker Punch",
+     "Protect",
+     "Iron Head"
+    ],
+    "speed_trickroom|redirection": [
+     "Play Rough",
+     "Iron Head",
+     "Sucker Punch",
+     "Swords Dance"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Play Rough",
+     "Iron Head",
+     "Protect",
+     "Swords Dance"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Play Rough",
+     "Sucker Punch",
+     "Protect",
+     "Rock Slide"
+    ],
+    "weather_sun|speed_trickroom|speed_tailwind": [
+     "Play Rough",
+     "Swords Dance",
+     "Sucker Punch",
+     "Iron Head"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Play Rough",
+     "Swords Dance",
+     "Iron Head",
+     "Protect"
+    ],
+    "weather_sun|speed_trickroom|speed_tailwind|redirection": [
+     "Play Rough",
+     "Sucker Punch",
+     "Protect",
+     "Iron Head"
+    ]
+   }
+  },
+  "tyranitarmega": {
+   "default": [
+    "Rock Slide",
+    "Knock Off",
+    "Protect",
+    "Dragon Dance"
+   ],
+   "ctx": {
+    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
+     "Rock Slide",
+     "Knock Off",
+     "Protect",
+     "High Horsepower"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Rock Slide",
+     "Knock Off",
+     "Dragon Dance",
+     "Crunch"
+    ],
+    "weather_sand|speed_trickroom|speed_tailwind": [
+     "Rock Slide",
+     "Knock Off",
+     "Protect",
+     "Iron Defense"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Rock Slide",
+     "Knock Off",
+     "Dragon Dance",
+     "Crunch"
+    ],
+    "weather_sand|speed_tailwind|redirection": [
+     "Rock Slide",
+     "Knock Off",
+     "Dragon Dance",
+     "Protect"
+    ],
+    "weather_sand|speed_trickroom": [
+     "Rock Slide",
+     "Knock Off",
+     "Protect",
+     "Superpower"
+    ]
+   }
+  },
+  "annihilape": {
+   "default": [
+    "Bulk Up",
+    "Rage Fist",
+    "Phantom Force",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Bulk Up",
+     "Rage Fist",
+     "Drain Punch",
+     "Phantom Force"
+    ],
+    "none": [
+     "Phantom Force",
+     "Close Combat",
+     "Protect",
+     "Rock Tomb"
+    ],
+    "speed_tailwind|redirection": [
+     "Bulk Up",
+     "Rage Fist",
+     "Protect",
+     "Phantom Force"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Bulk Up",
+     "Protect",
+     "Drain Punch",
+     "Substitute"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Rage Fist",
+     "Protect",
+     "Bulk Up",
+     "Phantom Force"
+    ],
+    "speed_tailwind": [
+     "Bulk Up",
+     "Close Combat",
+     "Protect",
+     "Phantom Force"
+    ],
+    "weather_rain|speed_tailwind|redirection": [
+     "Rage Fist",
+     "Protect",
+     "Bulk Up",
+     "Phantom Force"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Rage Fist",
+     "Close Combat",
+     "Bulk Up",
+     "Phantom Force"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Drain Punch",
+     "Rage Fist",
+     "Phantom Force",
+     "Close Combat"
+    ],
+    "speed_trickroom": [
+     "Rage Fist",
+     "Bulk Up",
+     "Phantom Force",
+     "Close Combat"
+    ]
+   }
+  },
+  "talonflame": {
+   "default": [
+    "Tailwind",
+    "Dual Wingbeat",
+    "Protect",
+    "Quick Guard"
+   ],
+   "ctx": {
+    "weather_sand": [
+     "Tailwind",
+     "Protect",
+     "Dual Wingbeat",
+     "Flare Blitz"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Tailwind",
+     "Protect",
+     "Quick Guard",
+     "Dual Wingbeat"
+    ],
+    "speed_trickroom|redirection": [
+     "Tailwind",
+     "Quick Guard",
+     "Brave Bird",
+     "Dual Wingbeat"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Tailwind",
+     "Dual Wingbeat",
+     "Protect",
+     "Flare Blitz"
+    ],
+    "redirection": [
+     "Tailwind",
+     "Protect",
+     "Quick Guard",
+     "Brave Bird"
+    ],
+    "speed_trickroom": [
+     "Tailwind",
+     "Flare Blitz",
+     "Brave Bird",
+     "Dual Wingbeat"
+    ],
+    "weather_sun": [
+     "Tailwind",
+     "Protect",
+     "Flare Blitz",
+     "Brave Bird"
+    ],
+    "weather_sand|speed_trickroom": [
+     "Tailwind",
+     "Protect",
+     "Taunt",
+     "Flare Blitz"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Tailwind",
+     "Protect",
+     "Quick Guard",
+     "Dual Wingbeat"
+    ],
+    "weather_snow": [
+     "Tailwind",
+     "Dual Wingbeat",
+     "Will-O-Wisp",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Tailwind",
+     "Will-O-Wisp",
+     "Dual Wingbeat",
+     "Protect"
+    ]
+   }
+  },
+  "kommoo": {
+   "default": [
+    "Clangorous Soul",
+    "Clanging Scales",
+    "Protect",
+    "Aura Sphere"
    ],
    "ctx": {
     "speed_tailwind|redirection": [
-     "Hyper Voice",
+     "Aura Sphere",
      "Protect",
-     "Psyshock",
-     "Thunderbolt"
+     "Clanging Scales",
+     "Clangorous Soul"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Clanging Scales",
+     "Protect",
+     "Aura Sphere",
+     "Vacuum Wave"
     ],
     "speed_tailwind": [
-     "Hyper Voice",
-     "Round",
      "Protect",
-     "Trick Room"
+     "Clanging Scales",
+     "Clangorous Soul",
+     "Aura Sphere"
+    ],
+    "speed_trickroom": [
+     "Clanging Scales",
+     "Clangorous Soul",
+     "Protect",
+     "Aura Sphere"
+    ],
+    "speed_trickroom|redirection": [
+     "Clanging Scales",
+     "Clangorous Soul",
+     "Protect",
+     "Aura Sphere"
+    ],
+    "weather_snow|speed_trickroom|redirection": [
+     "Clangorous Soul",
+     "Aura Sphere",
+     "Clanging Scales",
+     "Protect"
+    ],
+    "weather_snow|speed_tailwind|redirection": [
+     "Clangorous Soul",
+     "Protect",
+     "Clanging Scales",
+     "Aura Sphere"
+    ]
+   }
+  },
+  "hydreigon": {
+   "default": [
+    "Dark Pulse",
+    "Draco Meteor",
+    "Snarl",
+    "Earth Power"
+   ],
+   "ctx": {
+    "none": [
+     "Dark Pulse",
+     "Draco Meteor",
+     "Snarl",
+     "Tailwind"
+    ],
+    "speed_tailwind": [
+     "Dark Pulse",
+     "Draco Meteor",
+     "Earth Power",
+     "Snarl"
+    ],
+    "speed_trickroom|redirection": [
+     "Draco Meteor",
+     "Dark Pulse",
+     "Snarl",
+     "Earth Power"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Dark Pulse",
+     "Draco Meteor",
+     "Protect",
+     "Snarl"
+    ],
+    "weather_snow": [
+     "Tailwind",
+     "Dark Pulse",
+     "Draco Meteor",
+     "Snarl"
+    ],
+    "speed_tailwind|redirection": [
+     "Dark Pulse",
+     "Draco Meteor",
+     "Heat Wave",
+     "Snarl"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Dark Pulse",
+     "Draco Meteor",
+     "Earth Power",
+     "Flamethrower"
+    ]
+   }
+  },
+  "liepard": {
+   "default": [
+    "Fake Out",
+    "Thunder Wave",
+    "Knock Off",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Thunder Wave",
+     "Yawn",
+     "Snarl"
+    ],
+    "none": [
+     "Fake Out",
+     "Knock Off",
+     "Crunch",
+     "Taunt"
+    ]
+   }
+  },
+  "arcaninehisui": {
+   "default": [
+    "Flare Blitz",
+    "Head Smash",
+    "Rock Slide",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Flare Blitz",
+     "Head Smash",
+     "Protect",
+     "Extreme Speed"
+    ]
+   }
+  },
+  "staraptormega": {
+   "default": [
+    "Close Combat",
+    "Brave Bird",
+    "Protect",
+    "Tailwind"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Close Combat",
+     "Brave Bird",
+     "Protect",
+     "Dual Wingbeat"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Close Combat",
+     "Protect",
+     "Brave Bird",
+     "Dual Wingbeat"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Close Combat",
+     "Protect",
+     "Brave Bird",
+     "Dual Wingbeat"
+    ],
+    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
+     "Close Combat",
+     "Brave Bird",
+     "Tailwind",
+     "Protect"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Close Combat",
+     "Protect",
+     "Brave Bird",
+     "Dual Wingbeat"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Close Combat",
+     "Protect",
+     "Brave Bird",
+     "Tailwind"
+    ]
+   }
+  },
+  "tinkaton": {
+   "default": [
+    "Fake Out",
+    "Gigaton Hammer",
+    "Play Rough",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Fake Out",
+     "Gigaton Hammer",
+     "Play Rough",
+     "Light Screen"
+    ],
+    "speed_tailwind|redirection": [
+     "Fake Out",
+     "Gigaton Hammer",
+     "Play Rough",
+     "Ice Hammer"
+    ],
+    "weather_rain": [
+     "Fake Out",
+     "Gigaton Hammer",
+     "Play Rough",
+     "Ice Hammer"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Fake Out",
+     "Gigaton Hammer",
+     "Helping Hand",
+     "Play Rough"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Gigaton Hammer",
+     "Play Rough",
+     "Ice Hammer"
+    ],
+    "weather_rain|speed_trickroom|redirection": [
+     "Fake Out",
+     "Gigaton Hammer",
+     "Protect",
+     "Play Rough"
+    ]
+   }
+  },
+  "gliscor": {
+   "default": [
+    "High Horsepower",
+    "Tailwind",
+    "Dual Wingbeat",
+    "Protect"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Earthquake",
+     "Dual Wingbeat",
+     "Tailwind",
+     "High Horsepower"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "High Horsepower",
+     "Dual Wingbeat",
+     "Protect",
+     "Swords Dance"
+    ]
+   }
+  },
+  "staraptor": {
+   "default": [
+    "Protect",
+    "Final Gambit",
+    "Brave Bird",
+    "Tailwind"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Final Gambit",
+     "Protect",
+     "Close Combat",
+     "Brave Bird"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Tailwind",
+     "Protect",
+     "Brave Bird",
+     "Close Combat"
+    ],
+    "speed_tailwind": [
+     "Protect",
+     "Final Gambit",
+     "Close Combat",
+     "Brave Bird"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Final Gambit",
+     "Protect",
+     "Close Combat",
+     "Brave Bird"
+    ],
+    "weather_snow|speed_trickroom": [
+     "Final Gambit",
+     "Brave Bird",
+     "U-turn",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Protect",
+     "Final Gambit",
+     "Brave Bird",
+     "Close Combat"
+    ],
+    "speed_trickroom": [
+     "Final Gambit",
+     "Protect",
+     "Tailwind",
+     "Close Combat"
+    ]
+   }
+  },
+  "weavile": {
+   "default": [
+    "Fake Out",
+    "Knock Off",
+    "Triple Axel",
+    "Ice Spinner"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Fake Out",
+     "Knock Off",
+     "Triple Axel",
+     "Feint"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Fake Out",
+     "Knock Off",
+     "Triple Axel",
+     "Ice Shard"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Knock Off",
+     "Fake Out",
+     "Ice Spinner",
+     "Protect"
+    ]
+   }
+  },
+  "rotomwash": {
+   "default": [
+    "Will-O-Wisp",
+    "Thunderbolt",
+    "Hydro Pump",
+    "Volt Switch"
+   ],
+   "ctx": {
+    "weather_sand|speed_tailwind": [
+     "Thunderbolt",
+     "Hydro Pump",
+     "Will-O-Wisp",
+     "Volt Switch"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Hydro Pump",
+     "Thunderbolt",
+     "Will-O-Wisp",
+     "Volt Switch"
+    ],
+    "none": [
+     "Hydro Pump",
+     "Will-O-Wisp",
+     "Thunderbolt",
+     "Volt Switch"
+    ],
+    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
+     "Will-O-Wisp",
+     "Hydro Pump",
+     "Thunderbolt",
+     "Volt Switch"
+    ],
+    "speed_tailwind|redirection": [
+     "Hydro Pump",
+     "Will-O-Wisp",
+     "Volt Switch",
+     "Thunderbolt"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Thunderbolt",
+     "Hydro Pump",
+     "Will-O-Wisp",
+     "Volt Switch"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Hydro Pump",
+     "Volt Switch",
+     "Thunderbolt",
+     "Will-O-Wisp"
+    ],
+    "speed_trickroom|redirection": [
+     "Will-O-Wisp",
+     "Thunderbolt",
+     "Volt Switch",
+     "Hydro Pump"
+    ],
+    "speed_trickroom": [
+     "Will-O-Wisp",
+     "Thunderbolt",
+     "Volt Switch",
+     "Hydro Pump"
+    ],
+    "weather_sand|speed_trickroom|redirection": [
+     "Will-O-Wisp",
+     "Volt Switch",
+     "Hydro Pump",
+     "Thunderbolt"
+    ]
+   }
+  },
+  "clefable": {
+   "default": [
+    "Follow Me",
+    "Moonblast",
+    "Protect",
+    "Helping Hand"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Follow Me",
+     "Moonblast",
+     "Calm Mind",
+     "Dazzling Gleam"
+    ],
+    "speed_trickroom|redirection": [
+     "Follow Me",
+     "Moonblast",
+     "Life Dew",
+     "Gravity"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Follow Me",
+     "Moonblast",
+     "Helping Hand",
+     "Life Dew"
+    ],
+    "none": [
+     "Follow Me",
+     "Moonblast",
+     "Protect",
+     "Safeguard"
+    ]
+   }
+  },
+  "glimmoramega": {
+   "default": [
+    "Power Gem",
+    "Earth Power",
+    "Sludge Bomb",
+    "Spiky Shield"
+   ],
+   "ctx": {
+    "weather_snow|speed_tailwind": [
+     "Earth Power",
+     "Power Gem",
+     "Sludge Bomb",
+     "Spiky Shield"
+    ],
+    "speed_tailwind|redirection": [
+     "Earth Power",
+     "Power Gem",
+     "Sludge Bomb",
+     "Spiky Shield"
+    ]
+   }
+  },
+  "drampamega": {
+   "default": [
+    "Hyper Voice",
+    "Earth Power",
+    "Protect",
+    "Dragon Pulse"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Earth Power",
+     "Hyper Voice",
+     "Protect",
+     "Dragon Pulse"
+    ]
+   }
+  },
+  "glimmora": {
+   "default": [
+    "Spiky Shield",
+    "Power Gem",
+    "Sludge Bomb",
+    "Earth Power"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Power Gem",
+     "Sludge Bomb",
+     "Spiky Shield",
+     "Earth Power"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Sludge Bomb",
+     "Power Gem",
+     "Earth Power",
+     "Spiky Shield"
+    ],
+    "weather_snow|speed_tailwind": [
+     "Sludge Bomb",
+     "Spiky Shield",
+     "Earth Power",
+     "Power Gem"
+    ],
+    "speed_trickroom|redirection": [
+     "Spiky Shield",
+     "Earth Power",
+     "Mortal Spin",
+     "Sludge Bomb"
+    ],
+    "speed_tailwind|redirection": [
+     "Spiky Shield",
+     "Power Gem",
+     "Earth Power",
+     "Mortal Spin"
+    ],
+    "none": [
+     "Power Gem",
+     "Sludge Bomb",
+     "Spiky Shield",
+     "Light Screen"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Spiky Shield",
+     "Earth Power",
+     "Spikes",
+     "Power Gem"
+    ]
+   }
+  },
+  "swampert": {
+   "default": [
+    "Protect",
+    "High Horsepower",
+    "Wave Crash",
+    "Earthquake"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Protect",
+     "Wave Crash",
+     "Earthquake",
+     "High Horsepower"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Protect",
+     "High Horsepower",
+     "Earthquake",
+     "Earth Power"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Protect",
+     "High Horsepower",
+     "Earthquake",
+     "Wave Crash"
+    ]
+   }
+  },
+  "ditto": {
+   "default": [
+    "Transform",
+    "Rising Voltage",
+    "Heat Wave",
+    "Encore"
+   ],
+   "ctx": {
+    "weather_rain": [
+     "Rising Voltage",
+     "Moonblast",
+     "Ancient Power",
+     "Aqua Jet"
+    ]
+   }
+  },
+  "delphoxmega": {
+   "default": [
+    "Heat Wave",
+    "Protect",
+    "Nasty Plot",
+    "Psychic"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Nasty Plot",
+     "Heat Wave",
+     "Protect",
+     "Psychic"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Heat Wave",
+     "Psychic",
+     "Nasty Plot",
+     "Protect"
+    ],
+    "speed_tailwind": [
+     "Heat Wave",
+     "Protect",
+     "Psychic",
+     "Substitute"
+    ],
+    "none": [
+     "Heat Wave",
+     "Protect",
+     "Nasty Plot",
+     "Psyshock"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Protect",
+     "Psychic",
+     "Nasty Plot"
+    ]
+   }
+  },
+  "lycanrocdusk": {
+   "default": [
+    "Accelerock",
+    "Rock Slide",
+    "Close Combat",
+    "Protect"
+   ],
+   "ctx": {
+    "redirection": [
+     "Rock Slide",
+     "Accelerock",
+     "Close Combat",
+     "Protect"
+    ],
+    "weather_snow": [
+     "Accelerock",
+     "Close Combat",
+     "Rock Slide",
+     "Protect"
+    ]
+   }
+  },
+  "mamoswine": {
+   "default": [
+    "High Horsepower",
+    "Earthquake",
+    "Protect",
+    "Ice Shard"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Ice Shard",
+     "High Horsepower",
+     "Protect",
+     "Earthquake"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Earthquake",
+     "High Horsepower",
+     "Icicle Crash",
+     "Protect"
+    ],
+    "none": [
+     "High Horsepower",
+     "Ice Shard",
+     "Protect",
+     "Earthquake"
     ]
    }
   },
@@ -2344,7 +3682,7 @@
     "Fake Out",
     "Protect",
     "Volt Switch",
-    "Thunderbolt"
+    "Encore"
    ],
    "ctx": {
     "weather_rain|speed_tailwind": [
@@ -2353,45 +3691,85 @@
      "Volt Tackle",
      "Knock Off"
     ],
-    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+    "speed_trickroom|speed_tailwind|redirection": [
      "Fake Out",
-     "Volt Switch",
      "Protect",
-     "Encore"
+     "Encore",
+     "Thunderbolt"
+    ],
+    "speed_trickroom|redirection": [
+     "Fake Out",
+     "Protect",
+     "Zap Cannon",
+     "Volt Switch"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Protect",
+     "Volt Switch",
+     "Thunderbolt"
     ],
     "speed_tailwind": [
      "Fake Out",
      "Protect",
-     "Thunderbolt",
-     "Electroweb"
+     "Electroweb",
+     "Eerie Impulse"
+    ]
+   }
+  },
+  "jolteon": {
+   "default": [
+    "Discharge",
+    "Rising Voltage",
+    "Protect",
+    "Detect"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Discharge",
+     "Rising Voltage",
+     "Electroweb",
+     "Protect"
     ],
-    "speed_trickroom|speed_tailwind|redirection": [
-     "Fake Out",
-     "Protect",
-     "Thunderbolt",
-     "Zap Cannon"
+    "speed_tailwind": [
+     "Discharge",
+     "Electroweb",
+     "Detect",
+     "Thunderbolt"
     ]
    }
   },
   "dragonitemega": {
    "default": [
+    "Dragon Pulse",
     "Tailwind",
     "Hurricane",
-    "Dragon Pulse",
     "Thunderbolt"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Thunderbolt",
-     "Dragon Pulse",
-     "Heat Wave",
-     "Tailwind"
-    ],
     "weather_rain|speed_tailwind": [
      "Hurricane",
-     "Tailwind",
      "Dragon Pulse",
+     "Protect",
+     "Thunderbolt"
+    ],
+    "speed_tailwind|redirection": [
+     "Air Slash",
+     "Dragon Pulse",
+     "Draco Meteor",
+     "Tailwind"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Hurricane",
+     "Protect",
+     "Thunderbolt",
      "Draco Meteor"
+    ],
+    "speed_tailwind": [
+     "Dragon Pulse",
+     "Thunderbolt",
+     "Protect",
+     "Hurricane"
     ]
    }
   },
@@ -2403,19 +3781,13 @@
     "Calm Mind"
    ],
    "ctx": {
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Hyper Voice",
+     "Calm Mind",
+     "Moonblast",
+     "Protect"
+    ],
     "speed_trickroom|speed_tailwind": [
-     "Hyper Voice",
-     "Moonblast",
-     "Energy Ball",
-     "Perish Song"
-    ],
-    "speed_tailwind": [
-     "Hyper Voice",
-     "Moonblast",
-     "Protect",
-     "Dazzling Gleam"
-    ],
-    "speed_trickroom|redirection": [
      "Hyper Voice",
      "Moonblast",
      "Protect",
@@ -2424,14 +3796,60 @@
     "speed_tailwind|redirection": [
      "Hyper Voice",
      "Moonblast",
-     "Perish Song",
-     "Dazzling Gleam"
+     "Protect",
+     "Perish Song"
+    ],
+    "speed_trickroom|redirection": [
+     "Hyper Voice",
+     "Moonblast",
+     "Calm Mind",
+     "Protect"
     ],
     "weather_rain|speed_tailwind": [
      "Hyper Voice",
      "Protect",
      "Moonblast",
      "Calm Mind"
+    ]
+   }
+  },
+  "overqwil": {
+   "default": [
+    "Minimize",
+    "Protect",
+    "Throat Chop",
+    "Stockpile"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Throat Chop",
+     "Minimize",
+     "Protect",
+     "Crunch"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Minimize",
+     "Stockpile",
+     "Throat Chop",
+     "Protect"
+    ],
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Minimize",
+     "Poison Jab",
+     "Throat Chop",
+     "Crunch"
+    ],
+    "weather_rain|weather_sun|speed_trickroom": [
+     "Minimize",
+     "Stockpile",
+     "Throat Chop",
+     "Protect"
+    ],
+    "weather_rain|weather_sun|speed_trickroom|redirection": [
+     "Minimize",
+     "Protect",
+     "Stockpile",
+     "Crunch"
     ]
    }
   },
@@ -2447,29 +3865,41 @@
      "Tailwind",
      "Protect",
      "Draco Meteor",
-     "Air Slash"
+     "Hurricane"
     ]
    }
   },
   "garchompmega": {
    "default": [
     "Earth Power",
+    "Earthquake",
     "Stomping Tantrum",
-    "Rock Slide",
-    "Earthquake"
+    "Protect"
    ],
    "ctx": {
     "weather_sand|speed_tailwind": [
      "Earth Power",
      "Dragon Claw",
      "Stomping Tantrum",
-     "Rock Slide"
+     "Power Gem"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Stomping Tantrum",
+     "Protect",
+     "Earth Power",
+     "Dragon Claw"
+    ],
+    "weather_sand|speed_trickroom|speed_tailwind|redirection": [
+     "Earth Power",
+     "Earthquake",
+     "Power Gem",
+     "Draco Meteor"
     ],
     "speed_tailwind": [
      "Draco Meteor",
      "Earthquake",
-     "Rock Slide",
-     "Earth Power"
+     "Earth Power",
+     "Rock Slide"
     ]
    }
   },
@@ -2478,14 +3908,66 @@
     "Triple Axel",
     "Trop Kick",
     "Power Whip",
-    "Taunt"
+    "Protect"
    ],
    "ctx": {
-    "none": [
-     "Power Whip",
-     "Trop Kick",
+    "speed_trickroom|speed_tailwind": [
      "Triple Axel",
-     "Taunt"
+     "Trop Kick",
+     "Protect",
+     "U-turn"
+    ],
+    "speed_tailwind": [
+     "Triple Axel",
+     "Trop Kick",
+     "Taunt",
+     "Protect"
+    ],
+    "weather_sun|speed_tailwind": [
+     "Triple Axel",
+     "Power Whip",
+     "Protect",
+     "Trop Kick"
+    ],
+    "speed_tailwind|redirection": [
+     "Triple Axel",
+     "Power Whip",
+     "Protect",
+     "Trop Kick"
+    ],
+    "none": [
+     "Trop Kick",
+     "Power Whip",
+     "Taunt",
+     "Triple Axel"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Protect",
+     "U-turn",
+     "Power Whip",
+     "Trop Kick"
+    ]
+   }
+  },
+  "snorlax": {
+   "default": [
+    "Stockpile",
+    "Curse",
+    "Rock Slide",
+    "Fissure"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Curse",
+     "Rock Slide",
+     "Stockpile",
+     "Body Slam"
+    ],
+    "speed_tailwind": [
+     "Yawn",
+     "Heavy Slam",
+     "Rock Slide",
+     "Curse"
     ]
    }
   },
@@ -2497,15 +3979,39 @@
     "Super Fang"
    ],
    "ctx": {
-    "speed_trickroom|redirection": [
+    "speed_tailwind": [
+     "Population Bomb",
      "Super Fang",
      "Follow Me",
-     "Population Bomb",
      "Protect"
     ],
     "weather_rain|speed_tailwind": [
      "Population Bomb",
      "Protect",
+     "Follow Me",
+     "Beat Up"
+    ],
+    "speed_trickroom|redirection": [
+     "Population Bomb",
+     "Super Fang",
+     "Follow Me",
+     "Protect"
+    ],
+    "weather_rain": [
+     "Population Bomb",
+     "Protect",
+     "Super Fang",
+     "Follow Me"
+    ],
+    "none": [
+     "Population Bomb",
+     "Protect",
+     "Follow Me",
+     "Super Fang"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Population Bomb",
+     "Taunt",
      "Follow Me",
      "Super Fang"
     ]
@@ -2514,16 +4020,16 @@
   "gardevoir": {
    "default": [
     "Protect",
+    "Moonblast",
     "Dazzling Gleam",
-    "Trick Room",
-    "Shadow Ball"
+    "Trick Room"
    ],
    "ctx": {
     "speed_tailwind": [
      "Protect",
+     "Psychic",
      "Shadow Ball",
-     "Skill Swap",
-     "Energy Ball"
+     "Moonblast"
     ]
    }
   },
@@ -2531,15 +4037,97 @@
    "default": [
     "Sleep Powder",
     "Protect",
-    "Energy Ball",
+    "Sludge Bomb",
     "After You"
    ],
    "ctx": {
+    "weather_sun|speed_trickroom|speed_tailwind": [
+     "Sleep Powder",
+     "Protect",
+     "Sludge Bomb",
+     "Solar Beam"
+    ],
     "weather_sun|speed_trickroom": [
      "Sleep Powder",
      "After You",
      "Protect",
      "Sludge Bomb"
+    ]
+   }
+  },
+  "mrrime": {
+   "default": [
+    "Fake Out",
+    "Role Play",
+    "Protect",
+    "Trick Room"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Fake Out",
+     "Role Play",
+     "Protect",
+     "Sheer Cold"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Fake Out",
+     "Freeze-Dry",
+     "Protect",
+     "Sheer Cold"
+    ]
+   }
+  },
+  "mudsdale": {
+   "default": [
+    "High Horsepower",
+    "Rock Slide",
+    "Earthquake",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "High Horsepower",
+     "Rock Slide",
+     "Protect",
+     "Heavy Slam"
+    ],
+    "weather_snow|speed_trickroom|speed_tailwind": [
+     "High Horsepower",
+     "Rock Slide",
+     "Low Kick",
+     "Heavy Slam"
+    ]
+   }
+  },
+  "drampa": {
+   "default": [
+    "Protect",
+    "Hyper Voice",
+    "Earth Power",
+    "Draco Meteor"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Hyper Voice",
+     "Earth Power",
+     "Protect",
+     "Draco Meteor"
+    ]
+   }
+  },
+  "pyroarmega": {
+   "default": [
+    "Heat Wave",
+    "Overheat",
+    "Hyper Voice",
+    "Protect"
+   ],
+   "ctx": {
+    "weather_sun|speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Overheat",
+     "Solar Beam",
+     "Snarl"
     ]
    }
   },
@@ -2551,11 +4139,29 @@
     "U-turn"
    ],
    "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Flower Trick",
+     "Knock Off",
+     "U-turn",
+     "Triple Axel"
+    ],
     "speed_tailwind": [
+     "Triple Axel",
+     "Flower Trick",
+     "Sucker Punch",
+     "Knock Off"
+    ],
+    "speed_trickroom|speed_tailwind": [
      "Flower Trick",
      "Triple Axel",
-     "Protect",
-     "Knock Off"
+     "Knock Off",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Flower Trick",
+     "Triple Axel",
+     "Knock Off",
+     "Play Rough"
     ]
    }
   },
@@ -2563,21 +4169,37 @@
    "default": [
     "Discharge",
     "Thunderbolt",
-    "Protect",
+    "Flamethrower",
     "Coil"
    ],
    "ctx": {
-    "speed_tailwind": [
-     "Thunderbolt",
-     "Discharge",
-     "Protect",
-     "Coil"
-    ],
     "speed_trickroom": [
      "Discharge",
+     "Muddy Water",
      "Thunderbolt",
-     "Giga Drain",
-     "Flamethrower"
+     "Giga Drain"
+    ]
+   }
+  },
+  "araquanid": {
+   "default": [
+    "Liquidation",
+    "Wide Guard",
+    "Leech Life",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Liquidation",
+     "Wide Guard",
+     "Hydro Pump",
+     "Leech Life"
+    ],
+    "speed_trickroom": [
+     "Liquidation",
+     "Protect",
+     "Wide Guard",
+     "Leech Life"
     ]
    }
   },
@@ -2586,14 +4208,36 @@
     "Fake Out",
     "Knock Off",
     "Drain Punch",
-    "Rock Slide"
+    "Dragon Dance"
    ],
    "ctx": {
+    "weather_sun|speed_trickroom": [
+     "Fake Out",
+     "Knock Off",
+     "Rock Slide",
+     "Drain Punch"
+    ],
     "speed_trickroom|redirection": [
      "Fake Out",
      "Knock Off",
-     "Close Combat",
-     "Throat Chop"
+     "Drain Punch",
+     "Close Combat"
+    ]
+   }
+  },
+  "salazzle": {
+   "default": [
+    "Fake Out",
+    "Dragon Cheer",
+    "Toxic",
+    "Sludge Bomb"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Fake Out",
+     "Dragon Cheer",
+     "Acid Spray",
+     "Toxic"
     ]
    }
   },
@@ -2605,11 +4249,29 @@
     "Overheat"
    ],
    "ctx": {
+    "speed_tailwind|redirection": [
+     "Leech Seed",
+     "Rage Powder",
+     "Overheat",
+     "Protect"
+    ],
     "redirection": [
      "Rage Powder",
      "Leech Seed",
      "Overheat",
+     "Giga Drain"
+    ],
+    "speed_trickroom|redirection": [
+     "Rage Powder",
+     "Leech Seed",
+     "Protect",
      "Flamethrower"
+    ],
+    "weather_rain|speed_tailwind|redirection": [
+     "Leech Seed",
+     "Protect",
+     "Rage Powder",
+     "Giga Drain"
     ]
    }
   },
@@ -2622,9 +4284,31 @@
    ],
    "ctx": {
     "weather_rain|speed_tailwind": [
+     "Solar Beam",
+     "Weather Ball",
+     "Dazzling Gleam",
+     "Protect"
+    ],
+    "speed_tailwind": [
+     "Dazzling Gleam",
      "Weather Ball",
      "Solar Beam",
-     "Dazzling Gleam",
+     "Protect"
+    ]
+   }
+  },
+  "typhlosionhisui": {
+   "default": [
+    "Eruption",
+    "Shadow Ball",
+    "Heat Wave",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Eruption",
+     "Heat Wave",
+     "Shadow Ball",
      "Protect"
     ]
    }
@@ -2634,7 +4318,7 @@
     "Protect",
     "Meteor Mash",
     "Bullet Punch",
-    "Iron Head"
+    "Psychic Fangs"
    ],
    "ctx": {
     "speed_trickroom|speed_tailwind|redirection": [
@@ -2642,28 +4326,248 @@
      "Meteor Mash",
      "Psychic Fangs",
      "Bullet Punch"
+    ],
+    "speed_tailwind": [
+     "Protect",
+     "Meteor Mash",
+     "Bullet Punch",
+     "Iron Head"
+    ]
+   }
+  },
+  "malamar": {
+   "default": [
+    "Trick Room",
+    "Superpower",
+    "Protect",
+    "Skill Swap"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Trick Room",
+     "Superpower",
+     "Protect",
+     "Knock Off"
     ]
    }
   },
   "cameruptmega": {
    "default": [
-    "Earth Power",
     "Heat Wave",
+    "Earth Power",
     "Eruption",
     "Protect"
    ],
    "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Earth Power",
+     "Heat Wave",
+     "Protect",
+     "Eruption"
+    ],
     "speed_trickroom": [
      "Earth Power",
      "Heat Wave",
-     "Ancient Power",
-     "Eruption"
+     "Protect",
+     "Ancient Power"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Earth Power",
+     "Eruption",
+     "Heat Wave",
+     "Protect"
     ],
     "weather_snow|speed_trickroom|speed_tailwind": [
      "Heat Wave",
      "Earth Power",
      "Ancient Power",
-     "Eruption"
+     "Protect"
+    ],
+    "weather_sun|speed_trickroom": [
+     "Earth Power",
+     "Eruption",
+     "Heat Wave",
+     "Protect"
+    ]
+   }
+  },
+  "oranguru": {
+   "default": [
+    "Trick Room",
+    "Psychic",
+    "Instruct",
+    "Protect"
+   ],
+   "ctx": {
+    "weather_sun|speed_trickroom|redirection": [
+     "Trick Room",
+     "Instruct",
+     "Protect",
+     "Psychic"
+    ],
+    "speed_trickroom|redirection": [
+     "Trick Room",
+     "Psychic",
+     "Protect",
+     "Hyper Voice"
+    ],
+    "weather_sun": [
+     "Trick Room",
+     "Instruct",
+     "Hyper Voice",
+     "Psychic"
+    ]
+   }
+  },
+  "gyaradosmega": {
+   "default": [
+    "Dragon Dance",
+    "Waterfall",
+    "Crunch",
+    "Lash Out"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Waterfall",
+     "Dragon Dance",
+     "Crunch",
+     "Lash Out"
+    ]
+   }
+  },
+  "starmiemega": {
+   "default": [
+    "Liquidation",
+    "Ice Spinner",
+    "Zen Headbutt",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_trickroom": [
+     "Liquidation",
+     "Zen Headbutt",
+     "Protect",
+     "Ice Spinner"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Liquidation",
+     "Zen Headbutt",
+     "Ice Spinner",
+     "Self-Destruct"
+    ]
+   }
+  },
+  "scizor": {
+   "default": [
+    "Bullet Punch",
+    "Swords Dance",
+    "Protect",
+    "Bug Bite"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Swords Dance",
+     "Bullet Punch",
+     "Protect",
+     "Bug Bite"
+    ],
+    "weather_sand|speed_tailwind": [
+     "Swords Dance",
+     "Bullet Punch",
+     "Protect",
+     "Bug Bite"
+    ],
+    "speed_trickroom": [
+     "Bullet Punch",
+     "Bug Bite",
+     "Swords Dance",
+     "Protect"
+    ]
+   }
+  },
+  "aegislash": {
+   "default": [
+    "King's Shield",
+    "Wide Guard",
+    "Swords Dance"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "King's Shield",
+     "Swords Dance",
+     "Wide Guard"
+    ]
+   }
+  },
+  "samurotthisui": {
+   "default": [
+    "Ceaseless Edge",
+    "Aqua Cutter",
+    "Night Slash",
+    "Sacred Sword"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Ceaseless Edge",
+     "Night Slash",
+     "Protect",
+     "Sacred Sword"
+    ]
+   }
+  },
+  "dragapult": {
+   "default": [
+    "Phantom Force",
+    "Dragon Darts",
+    "Protect",
+    "Shadow Ball"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Phantom Force",
+     "Light Screen",
+     "Will-O-Wisp",
+     "Draco Meteor"
+    ],
+    "speed_tailwind": [
+     "Protect",
+     "Dragon Darts",
+     "Phantom Force",
+     "Shadow Ball"
+    ],
+    "none": [
+     "Phantom Force",
+     "Will-O-Wisp",
+     "Shadow Ball",
+     "U-turn"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Phantom Force",
+     "Protect",
+     "Dragon Dance",
+     "U-turn"
+    ]
+   }
+  },
+  "malamarmega": {
+   "default": [
+    "Superpower",
+    "Psych Up",
+    "Knock Off",
+    "Trick Room"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Superpower",
+     "Psych Up",
+     "Knock Off",
+     "Throat Chop"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Superpower",
+     "Knock Off",
+     "Trick Room",
+     "Psych Up"
     ]
    }
   },
@@ -2671,28 +4575,34 @@
    "default": [
     "Blizzard",
     "Freeze-Dry",
-    "Aurora Veil",
-    "Protect"
+    "Protect",
+    "Aurora Veil"
    ],
    "ctx": {
-    "speed_trickroom": [
+    "speed_tailwind": [
      "Blizzard",
      "Freeze-Dry",
      "Aurora Veil",
-     "Ally Switch"
+     "Protect"
     ],
     "speed_trickroom|speed_tailwind": [
      "Blizzard",
      "Freeze-Dry",
      "Protect",
      "Ice Shard"
+    ],
+    "speed_trickroom": [
+     "Blizzard",
+     "Freeze-Dry",
+     "Aurora Veil",
+     "Protect"
     ]
    }
   },
   "krookodile": {
    "default": [
-    "Rock Slide",
     "Earthquake",
+    "Rock Slide",
     "Knock Off",
     "Protect"
    ],
@@ -2700,14 +4610,144 @@
     "speed_trickroom|speed_tailwind|redirection": [
      "Earthquake",
      "Rock Slide",
-     "Knock Off",
-     "Crunch"
+     "High Horsepower",
+     "Close Combat"
     ],
     "speed_tailwind": [
      "Rock Slide",
-     "Knock Off",
      "Earthquake",
+     "Knock Off",
      "Protect"
+    ]
+   }
+  },
+  "umbreon": {
+   "default": [
+    "Snarl",
+    "Foul Play",
+    "Psych Up",
+    "Taunt"
+   ],
+   "ctx": {
+    "speed_trickroom": [
+     "Snarl",
+     "Foul Play",
+     "Yawn",
+     "Psych Up"
+    ]
+   }
+  },
+  "taurospaldeaaqua": {
+   "default": [
+    "Close Combat",
+    "Raging Bull",
+    "Wave Crash",
+    "Earthquake"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Close Combat",
+     "Raging Bull",
+     "Aqua Jet",
+     "Earthquake"
+    ]
+   }
+  },
+  "volcarona": {
+   "default": [
+    "Quiver Dance",
+    "Rage Powder",
+    "Protect",
+    "Tailwind"
+   ],
+   "ctx": {
+    "none": [
+     "Quiver Dance",
+     "Tailwind",
+     "Protect",
+     "Heat Wave"
+    ],
+    "speed_tailwind": [
+     "Quiver Dance",
+     "Bug Buzz",
+     "Rage Powder",
+     "Protect"
+    ],
+    "weather_snow": [
+     "Rage Powder",
+     "Protect",
+     "Quiver Dance",
+     "Flamethrower"
+    ],
+    "speed_trickroom": [
+     "Rage Powder",
+     "Protect",
+     "Quiver Dance",
+     "Fiery Dance"
+    ]
+   }
+  },
+  "arcanine": {
+   "default": [
+    "Flare Blitz",
+    "Protect",
+    "Snarl",
+    "Close Combat"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Flare Blitz",
+     "Protect",
+     "Scorching Sands",
+     "Burn Up"
+    ]
+   }
+  },
+  "empoleon": {
+   "default": [
+    "Flash Cannon",
+    "Ice Beam",
+    "Protect",
+    "Surf"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Flash Cannon",
+     "Icy Wind",
+     "Ice Beam",
+     "Protect"
+    ]
+   }
+  },
+  "mimikyu": {
+   "default": [
+    "Trick Room",
+    "Play Rough",
+    "Swords Dance",
+    "Will-O-Wisp"
+   ],
+   "ctx": {
+    "speed_trickroom": [
+     "Trick Room",
+     "Play Rough",
+     "Swords Dance",
+     "Dazzling Gleam"
+    ]
+   }
+  },
+  "mimikyubusted": {
+   "default": [
+    "Trick Room",
+    "Play Rough",
+    "Shadow Sneak",
+    "Shadow Claw"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Trick Room",
+     "Play Rough",
+     "Shadow Sneak",
+     "Safeguard"
     ]
    }
   },
@@ -2716,9 +4756,15 @@
     "Fake Out",
     "Protect",
     "Shell Smash",
-    "Water Spout"
+    "Flip Turn"
    ],
    "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Protect",
+     "Flip Turn",
+     "Dark Pulse"
+    ],
     "speed_trickroom|redirection": [
      "Protect",
      "Fake Out",
@@ -2727,15 +4773,31 @@
     ],
     "weather_rain|speed_trickroom|speed_tailwind|redirection": [
      "Shell Smash",
-     "Fake Out",
      "Protect",
+     "Fake Out",
      "Water Spout"
     ],
     "speed_trickroom": [
      "Fake Out",
-     "Shell Smash",
      "Protect",
-     "Wave Crash"
+     "Shell Smash",
+     "Earthquake"
+    ]
+   }
+  },
+  "froslass": {
+   "default": [
+    "Protect",
+    "Frost Breath",
+    "Blizzard",
+    "Shadow Ball"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Protect",
+     "Blizzard",
+     "Shadow Ball",
+     "Nasty Plot"
     ]
    }
   },
@@ -2753,43 +4815,155 @@
      "Population Bomb",
      "Super Fang"
     ],
+    "speed_trickroom|redirection": [
+     "Follow Me",
+     "Population Bomb",
+     "Protect",
+     "Tidy Up"
+    ],
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Population Bomb",
+     "Follow Me",
+     "Protect",
+     "Feint"
+    ],
     "none": [
      "Population Bomb",
      "Follow Me",
      "Super Fang",
+     "Encore"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Population Bomb",
+     "Follow Me",
+     "Protect",
+     "Taunt"
+    ]
+   }
+  },
+  "victreebelmega": {
+   "default": [
+    "Sludge Bomb",
+    "Giga Drain",
+    "Poison Jab",
+    "Sludge Wave"
+   ],
+   "ctx": {
+    "weather_rain|speed_tailwind": [
+     "Sludge Bomb",
+     "Giga Drain",
+     "Poison Jab",
      "Protect"
     ]
    }
   },
   "gyarados": {
    "default": [
-    "Waterfall",
     "Dragon Dance",
-    "Taunt",
-    "Protect"
+    "Waterfall",
+    "Protect",
+    "Taunt"
    ],
    "ctx": {
-    "none": [
+    "speed_tailwind": [
+     "Waterfall",
      "Dragon Dance",
      "Taunt",
+     "Protect"
+    ],
+    "none": [
+     "Dragon Dance",
      "Waterfall",
+     "Taunt",
      "Thunder Wave"
     ]
    }
   },
-  "scizor": {
+  "kangaskhanmega": {
    "default": [
-    "Bullet Punch",
-    "Protect",
-    "Bug Bite",
-    "Swords Dance"
+    "Fake Out",
+    "Double-Edge",
+    "Sucker Punch",
+    "Hammer Arm"
    ],
    "ctx": {
+    "weather_sun|speed_trickroom": [
+     "Fake Out",
+     "Hammer Arm",
+     "Double-Edge",
+     "Sucker Punch"
+    ],
     "speed_trickroom": [
-     "Bullet Punch",
-     "Bug Bite",
+     "Fake Out",
+     "Double-Edge",
+     "Brick Break",
+     "Hammer Arm"
+    ],
+    "speed_tailwind": [
+     "Fake Out",
+     "Sucker Punch",
+     "Double-Edge",
+     "Drain Punch"
+    ]
+   }
+  },
+  "raichumegax": {
+   "default": [
+    "Fake Out",
+    "Volt Tackle",
+    "Rising Voltage",
+    "Volt Switch"
+   ],
+   "ctx": {
+    "weather_rain|speed_trickroom|speed_tailwind|redirection": [
+     "Fake Out",
+     "Volt Switch",
+     "Volt Tackle",
+     "Rising Voltage"
+    ]
+   }
+  },
+  "decidueyehisui": {
+   "default": [
+    "Triple Arrows",
+    "Protect",
+    "Leaf Blade",
+    "Close Combat"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Triple Arrows",
+     "Leaf Blade",
      "Protect",
-     "Trailblaze"
+     "Close Combat"
+    ]
+   }
+  },
+  "armarouge": {
+   "default": [
+    "Armor Cannon",
+    "Protect",
+    "Expanding Force",
+    "Trick Room"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind|redirection": [
+     "Trick Room",
+     "Protect",
+     "Armor Cannon",
+     "Expanding Force"
+    ],
+    "speed_tailwind": [
+     "Armor Cannon",
+     "Protect",
+     "Wide Guard",
+     "Psyshock"
+    ],
+    "speed_trickroom|redirection": [
+     "Expanding Force",
+     "Armor Cannon",
+     "Protect",
+     "Calm Mind"
     ]
    }
   },
@@ -2798,46 +4972,80 @@
     "Protect",
     "Rage Powder",
     "Overheat",
-    "Will-O-Wisp"
+    "Leech Seed"
    ],
    "ctx": {
-    "none": [
+    "speed_tailwind": [
      "Protect",
+     "Spicy Extract",
      "Rage Powder",
-     "Leech Seed",
-     "Giga Drain"
+     "Overheat"
     ]
    }
   },
-  "volcarona": {
+  "basculegionf": {
    "default": [
-    "Quiver Dance",
-    "Tailwind",
-    "Protect",
-    "Heat Wave"
+    "Muddy Water",
+    "Shadow Ball",
+    "Hydro Pump",
+    "Wave Crash"
    ],
    "ctx": {
-    "speed_trickroom": [
-     "Quiver Dance",
-     "Protect",
-     "Rage Powder",
-     "Safeguard"
+    "weather_rain|speed_tailwind": [
+     "Shadow Ball",
+     "Hydro Pump",
+     "Muddy Water",
+     "Flip Turn"
+    ]
+   }
+  },
+  "goodrahisui": {
+   "default": [
+    "Shelter",
+    "Protect",
+    "Heavy Slam",
+    "Life Dew"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Dragon Tail",
+     "Heavy Slam",
+     "Shelter",
+     "Life Dew"
     ]
    }
   },
   "rotomheat": {
    "default": [
+    "Overheat",
     "Thunderbolt",
     "Volt Switch",
-    "Overheat",
     "Discharge"
    ],
    "ctx": {
-    "none": [
+    "speed_trickroom|speed_tailwind": [
      "Thunderbolt",
      "Overheat",
      "Volt Switch",
      "Will-O-Wisp"
+    ],
+    "speed_tailwind": [
+     "Discharge",
+     "Thunderbolt",
+     "Volt Switch",
+     "Overheat"
+    ],
+    "weather_sun|speed_tailwind": [
+     "Volt Switch",
+     "Trick",
+     "Overheat",
+     "Thunderbolt"
+    ],
+    "none": [
+     "Overheat",
+     "Thunderbolt",
+     "Discharge",
+     "Trick"
     ]
    }
   },
@@ -2846,23 +5054,45 @@
     "Earth Power",
     "Dragon Pulse",
     "Energy Ball",
-    "Detect"
+    "Protect"
    ],
    "ctx": {
+    "none": [
+     "Earth Power",
+     "Leaf Storm",
+     "Protect",
+     "Giga Drain"
+    ],
     "speed_tailwind": [
      "Dragon Pulse",
      "Earth Power",
-     "Energy Ball",
-     "Detect"
+     "Detect",
+     "Energy Ball"
+    ]
+   }
+  },
+  "lucariomega": {
+   "default": [
+    "Close Combat",
+    "Aura Sphere",
+    "Meteor Mash",
+    "Protect"
+   ],
+   "ctx": {
+    "weather_rain|speed_trickroom|speed_tailwind": [
+     "Aura Sphere",
+     "Thunder Punch",
+     "Meteor Mash",
+     "Close Combat"
     ]
    }
   },
   "espathra": {
    "default": [
-    "Calm Mind",
     "Protect",
     "Lumina Crash",
-    "Dazzling Gleam"
+    "Calm Mind",
+    "Hypnosis"
    ],
    "ctx": {
     "speed_tailwind": [
@@ -2878,32 +5108,118 @@
     "Last Respects",
     "Will-O-Wisp",
     "Protect",
-    "Play Rough"
+    "Howl"
    ],
    "ctx": {
-    "weather_sand|speed_tailwind": [
-     "Last Respects",
-     "Will-O-Wisp",
-     "Protect",
-     "Disable"
-    ],
     "weather_rain|weather_sun|weather_sand|redirection": [
      "Last Respects",
      "Protect",
      "Will-O-Wisp",
-     "Play Rough"
+     "Howl"
+    ]
+   }
+  },
+  "infernape": {
+   "default": [
+    "Fake Out",
+    "Flare Blitz",
+    "Close Combat",
+    "Fire Punch"
+   ],
+   "ctx": {
+    "speed_tailwind|redirection": [
+     "Fake Out",
+     "Feint",
+     "Rock Slide",
+     "Flare Blitz"
+    ]
+   }
+  },
+  "heliolisk": {
+   "default": [
+    "Thunderbolt",
+    "Volt Switch",
+    "Electroweb",
+    "Shed Tail"
+   ],
+   "ctx": {
+    "none": [
+     "Dark Pulse",
+     "Thunderbolt",
+     "Glare",
+     "Weather Ball"
+    ],
+    "weather_rain|speed_tailwind": [
+     "Hyper Voice",
+     "Shed Tail",
+     "Glare",
+     "Electroweb"
+    ],
+    "speed_tailwind": [
+     "Thunderbolt",
+     "Volt Switch",
+     "Shed Tail",
+     "Protect"
+    ]
+   }
+  },
+  "delphox": {
+   "default": [
+    "Protect",
+    "Heat Wave",
+    "Psyshock",
+    "Expanding Force"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Protect",
+     "Heat Wave",
+     "Trick Room",
+     "Nasty Plot"
+    ]
+   }
+  },
+  "vivillonfancy": {
+   "default": [
+    "Sleep Powder",
+    "Hurricane",
+    "Protect",
+    "Rage Powder"
+   ],
+   "ctx": {
+    "weather_rain": [
+     "Sleep Powder",
+     "Protect",
+     "Hurricane",
+     "Rage Powder"
+    ]
+   }
+  },
+  "greninjamega": {
+   "default": [
+    "Blizzard",
+    "Dark Pulse",
+    "Hydro Pump",
+    "Extrasensory"
+   ],
+   "ctx": {
+    "weather_snow|speed_tailwind": [
+     "Blizzard",
+     "Dark Pulse",
+     "Water Shuriken",
+     "Hydro Pump"
     ]
    }
   },
   "excadrillmega": {
    "default": [
     "Rock Slide",
-    "High Horsepower",
+    "Iron Head",
     "Horn Drill",
-    "Iron Head"
+    "Earthquake"
    ],
    "ctx": {
-    "weather_snow|speed_tailwind|redirection": [
+    "weather_snow|speed_tailwind": [
      "Rock Slide",
      "Iron Head",
      "High Horsepower",
@@ -2911,19 +5227,85 @@
     ]
    }
   },
-  "empoleon": {
+  "ninetales": {
    "default": [
-    "Flash Cannon",
+    "Heat Wave",
+    "Protect",
+    "Overheat",
+    "Hypnosis"
+   ],
+   "ctx": {
+    "none": [
+     "Heat Wave",
+     "Protect",
+     "Snarl",
+     "Flamethrower"
+    ]
+   }
+  },
+  "houndoommega": {
+   "default": [
+    "Heat Wave",
+    "Dark Pulse",
+    "Solar Beam",
+    "Overheat"
+   ],
+   "ctx": {
+    "weather_sun|speed_tailwind": [
+     "Heat Wave",
+     "Solar Beam",
+     "Dark Pulse",
+     "Hyper Voice"
+    ]
+   }
+  },
+  "chandelure": {
+   "default": [
+    "Trick Room",
+    "Shadow Ball",
+    "Heat Wave",
+    "Protect"
+   ],
+   "ctx": {
+    "speed_trickroom": [
+     "Trick Room",
+     "Heat Wave",
+     "Shadow Ball",
+     "Protect"
+    ],
+    "speed_tailwind": [
+     "Shadow Ball",
+     "Trick Room",
+     "Heat Wave",
+     "Protect"
+    ],
+    "speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Shadow Ball",
+     "Trick Room",
+     "Protect"
+    ],
+    "weather_snow|speed_trickroom|speed_tailwind": [
+     "Protect",
+     "Heat Wave",
+     "Trick Room",
+     "Shadow Ball"
+    ]
+   }
+  },
+  "vaporeon": {
+   "default": [
     "Ice Beam",
-    "Surf",
-    "Icy Wind"
+    "Scald",
+    "Muddy Water",
+    "Yawn"
    ],
    "ctx": {
     "speed_tailwind": [
-     "Flash Cannon",
-     "Icy Wind",
+     "Muddy Water",
+     "Yawn",
      "Ice Beam",
-     "Surf"
+     "Icy Wind"
     ]
    }
   },
@@ -2935,41 +5317,141 @@
     "Rage Powder"
    ],
    "ctx": {
-    "weather_rain": [
+    "speed_trickroom|redirection": [
+     "Sleep Powder",
+     "Rage Powder",
+     "Protect",
+     "Tailwind"
+    ],
+    "speed_tailwind|redirection": [
      "Sleep Powder",
      "Protect",
      "Tailwind",
-     "Hurricane"
+     "Giga Drain"
     ]
    }
   },
-  "mudsdale": {
+  "runerigus": {
    "default": [
-    "High Horsepower",
-    "Rock Slide",
-    "Earthquake",
-    "Heavy Slam"
+    "Will-O-Wisp",
+    "Trick Room",
+    "Body Press",
+    "Ally Switch"
    ],
    "ctx": {
-    "weather_snow|speed_trickroom": [
-     "High Horsepower",
-     "Low Kick",
-     "Rock Slide",
-     "Heavy Slam"
+    "speed_trickroom|redirection": [
+     "Will-O-Wisp",
+     "Trick Room",
+     "Ally Switch",
+     "Protect"
     ]
    }
   },
-  "vivillonmarine": {
+  "chandeluremega": {
    "default": [
-    "Sleep Powder",
-    "Hurricane",
-    "Protect"
+    "Heat Wave",
+    "Shadow Ball",
+    "Hex",
+    "Energy Ball"
    ],
    "ctx": {
-    "weather_rain": [
-     "Sleep Powder",
+    "speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Shadow Ball",
+     "Energy Ball",
+     "Trick Room"
+    ],
+    "weather_snow|speed_trickroom|speed_tailwind": [
+     "Heat Wave",
+     "Shadow Ball",
      "Protect",
-     "Hurricane"
+     "Hex"
+    ]
+   }
+  },
+  "feraligatr": {
+   "default": [
+    "Liquidation",
+    "Aqua Jet",
+    "Protect",
+    "Dragon Dance"
+   ],
+   "ctx": {
+    "speed_trickroom|redirection": [
+     "Liquidation",
+     "Aqua Jet",
+     "Swords Dance",
+     "Agility"
+    ]
+   }
+  },
+  "rotomfrost": {
+   "default": [
+    "Thunderbolt",
+    "Blizzard",
+    "Trick",
+    "Volt Switch"
+   ],
+   "ctx": {
+    "weather_snow|speed_tailwind": [
+     "Thunderbolt",
+     "Blizzard",
+     "Volt Switch",
+     "Trick"
+    ],
+    "weather_snow": [
+     "Thunderbolt",
+     "Volt Switch",
+     "Trick",
+     "Electroweb"
+    ]
+   }
+  },
+  "toxicroak": {
+   "default": [
+    "Fake Out",
+    "Poison Jab",
+    "Close Combat",
+    "Coaching"
+   ],
+   "ctx": {
+    "speed_trickroom|speed_tailwind": [
+     "Fake Out",
+     "Poison Jab",
+     "Close Combat",
+     "Protect"
+    ]
+   }
+  },
+  "orthworm": {
+   "default": [
+    "Shed Tail",
+    "Body Press",
+    "Heavy Slam",
+    "Iron Defense"
+   ],
+   "ctx": {
+    "speed_tailwind": [
+     "Shed Tail",
+     "Heavy Slam",
+     "Body Press",
+     "Earthquake"
+    ]
+   }
+  },
+  "forretress": {
+   "default": [
+    "Body Press",
+    "Gravity",
+    "Rock Blast",
+    "Rain Dance"
+   ],
+   "ctx": {
+    "weather_sand|speed_trickroom": [
+     "Body Press",
+     "Gravity",
+     "Rock Blast",
+     "Pin Missile"
     ]
    }
   }

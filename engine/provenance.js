@@ -165,6 +165,39 @@ function declaredGames(j) {
   return null;
 }
 
+/* Does ONE generator write both of these files? Derived by scanning the generator directories for a
+ * line that both names the file and writes it. Returns the script path, or null.
+ *
+ * Deliberately line-scoped: a script that merely READS one and WRITES the other is a real
+ * dependency and must keep failing. Only a script whose write-lines cover both files makes the two
+ * co-generated, and ordering between co-generated files carries no information. */
+const WRITE_RE = /writeFileSync|createWriteStream|json\.dump|open\s*\([^)]*['"][wa]/;
+const coGenCache = new Map();
+function coGenerated(fileA, fileB) {
+  const key = fileA + '\u0000' + fileB;
+  if (coGenCache.has(key)) return coGenCache.get(key);
+  let hit = null;
+  for (const dir of ['engine', 'build', 'tools', 'scripts']) {
+    let entries = [];
+    try { entries = fs.readdirSync(D(dir)); } catch (e) { continue; }
+    for (const f of entries) {
+      if (!/\.(js|py)$/.test(f)) continue;
+      let src; try { src = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) { continue; }
+      if (!src.includes(fileA) || !src.includes(fileB)) continue;
+      let a = false, b = false;
+      for (const ln of src.split('\n')) {
+        if (!WRITE_RE.test(ln)) continue;
+        if (ln.includes(fileA)) a = true;
+        if (ln.includes(fileB)) b = true;
+      }
+      if (a && b) { hit = `${dir}/${f}`; break; }
+    }
+    if (hit) break;
+  }
+  coGenCache.set(key, hit);
+  return hit;
+}
+
 const rows = [];
 for (const a of ARTIFACTS) {
   const p = D('data', a.file);
@@ -196,7 +229,24 @@ for (const a of ARTIFACTS) {
   }
   for (const dep of a.from) {
     const dm = mtime(dep);
-    if (dm && mt < dm) { notes.push(`older than its input ${dep}`); warn = true; }
+    if (dm && mt < dm) {
+      /* SIBLINGS ARE NOT INPUTS. A generator that writes two artifacts in sequence leaves the
+       * first permanently "older than" the second, and no amount of regeneration can satisfy the
+       * complaint, because re-running reproduces the ordering exactly.
+       *
+       * This is the same false-positive class as `not_store_derived`, and it matters for the same
+       * reason: a gate that cries wolf is a gate that gets ignored, which is how the unwired-check
+       * problem this file exists to solve arose in the first place.
+       *
+       * WHO WRITES WHAT IS DERIVED FROM THE SOURCE, not typed here. A list of sibling pairs would
+       * be hand-maintained state that goes stale the first time a generator is split -- so this
+       * scans the generators for the two filenames and asks whether one script writes both. */
+      if (coGenerated(a.file, dep)) {
+        notes.push(`co-generated with ${dep} by ${coGenerated(a.file, dep)} — ordering within one run is not staleness`);
+      } else {
+        notes.push(`older than its input ${dep}`); warn = true;
+      }
+    }
   }
   /* An artifact may READ the raw store if it says why, the same convention engine/selftest.js
    * enforces on source files. The declaration must be in the artifact itself so a consumer sees it,

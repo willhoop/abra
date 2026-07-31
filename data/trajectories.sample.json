@@ -7,8 +7,30 @@
   {
    "turn": 1,
    "state": {
-    "p1": [],
-    "p2": [],
+    "p1": [
+     {
+      "sp": "kingambit",
+      "hp": 100,
+      "st": null
+     },
+     {
+      "sp": "incineroar",
+      "hp": 100,
+      "st": null
+     }
+    ],
+    "p2": [
+     {
+      "sp": "charizard",
+      "hp": 100,
+      "st": null
+     },
+     {
+      "sp": "sylveon",
+      "hp": 100,
+      "st": null
+     }
+    ],
     "field": {
      "weather": null,
      "tr": false,
@@ -33,7 +55,7 @@
       "type": "move",
       "mon": "incineroar",
       "mv": "flareblitz",
-      "tgt": "charizard",
+      "tgt": "charizardmegay",
       "dmg": 53
      },
      {
@@ -46,7 +68,7 @@
      {
       "slot": "p2a",
       "type": "move",
-      "mon": "charizard",
+      "mon": "charizardmegay",
       "mv": "heatwave",
       "tgt": "incineroar",
       "dmg": 99
@@ -62,12 +84,62 @@
     ]
    },
    "obs_p1": {
-    "own": [],
-    "foe": []
+    "own": [
+     {
+      "sp": "kingambit",
+      "hp": 100,
+      "st": null
+     },
+     {
+      "sp": "incineroar",
+      "hp": 100,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "charizard",
+      "hp": 100,
+      "seen": []
+     },
+     {
+      "sp": "sylveon",
+      "hp": 100,
+      "seen": [
+       "hypervoice"
+      ]
+     }
+    ]
    },
    "obs_p2": {
-    "own": [],
-    "foe": []
+    "own": [
+     {
+      "sp": "charizard",
+      "hp": 100,
+      "st": null
+     },
+     {
+      "sp": "sylveon",
+      "hp": 100,
+      "st": null
+     }
+    ],
+    "foe": [
+     {
+      "sp": "kingambit",
+      "hp": 100,
+      "seen": [
+       "ironhead"
+      ]
+     },
+     {
+      "sp": "incineroar",
+      "hp": 100,
+      "seen": [
+       "flareblitz"
+      ]
+     }
+    ]
    }
   },
   {
@@ -87,7 +159,7 @@
     ],
     "p2": [
      {
-      "sp": "charizard",
+      "sp": "charizardmegay",
       "hp": 47,
       "st": null
      },
@@ -134,7 +206,7 @@
      {
       "slot": "p2a",
       "type": "move",
-      "mon": "charizard",
+      "mon": "charizardmegay",
       "mv": "heatwave",
       "tgt": "incineroar",
       "dmg": 17
@@ -161,7 +233,7 @@
     ],
     "foe": [
      {
-      "sp": "charizard",
+      "sp": "charizardmegay",
       "hp": 47,
       "seen": [
        "heatwave"
@@ -181,7 +253,7 @@
    "obs_p2": {
     "own": [
      {
-      "sp": "charizard",
+      "sp": "charizardmegay",
       "hp": 47,
       "st": null
      },
@@ -228,7 +300,7 @@
     ],
     "p2": [
      {
-      "sp": "charizard",
+      "sp": "charizardmegay",
       "hp": 47,
       "st": null
      },
@@ -254,7 +326,7 @@
       "type": "move",
       "mon": "garchomp",
       "mv": "dragonclaw",
-      "tgt": "charizard",
+      "tgt": "charizardmegay",
       "dmg": 47
      },
      {
@@ -297,7 +369,7 @@
     ],
     "foe": [
      {
-      "sp": "charizard",
+      "sp": "charizardmegay",
       "hp": 47,
       "seen": [
        "heatwave"
@@ -315,7 +387,7 @@
    "obs_p2": {
     "own": [
      {
-      "sp": "charizard",
+      "sp": "charizardmegay",
       "hp": 47,
       "st": null
      },

@@ -73,13 +73,21 @@ MIN_SHARE = 0.03            # drop micro-clusters (<3% of ladder) as noise
 RNG = 42
 
 def load_teams():
+    # Returns (teams, n_games). The game count is carried out separately because the two numbers
+    # are NOT interchangeable: every game contributes up to TWO team sides, so `len(teams)` is about
+    # double the number of games. Reporting the team count under the name "n_games" made
+    # data/archetypes.json declare 10,538 games against a clean ladder of 5,269 -- which
+    # engine/provenance.js correctly flagged as "cannot have been filtered". The data was always
+    # clean (this reads _abra_load_games, the filtered loader); it was the LABEL that was wrong.
     teams = []
+    n_games = 0
     for g in _abra_load_games():
+            n_games += 1
             for p in ("p1", "p2"):
                 six = (g.get("six") or {}).get(p)
                 if six and len(six) >= 4:
                     teams.append([s.lower() for s in six])
-    return teams
+    return teams, n_games
 
 def kmeans(X, k, iters=60, seed=RNG):
     rng = np.random.default_rng(seed)
@@ -134,7 +142,7 @@ def name_cluster(top_species):
     return "-".join(top_species[:2]).title()
 
 def main():
-    teams = load_teams()
+    teams, n_games = load_teams()
     species = sorted({s for t in teams for s in t})
     sidx = {s: i for i, s in enumerate(species)}
     X = np.zeros((len(teams), len(species)), dtype=float)
@@ -191,7 +199,13 @@ def main():
 
     out = {
         "generated": "auto from data/games.ladder.jsonl",
-        "n_games": total,
+        # THE UNIT IS NAMED. n_team_sides is what the clustering ran on; n_games is how many games
+        # those sides came from. Roughly 2x, and conflating them made this artifact unquotable.
+        "n_team_sides": total,
+        "n_games": n_games,
+        "unit_note": ("The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the "
+                      "sample size for every share and silhouette below; n_games is the number of "
+                      "clean games they were drawn from."),
         "k_selected": k,
         "silhouette": round(sil, 3),
         "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. "

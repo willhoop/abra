@@ -1,11 +1,11 @@
 {
- "generated": "2026-07-24",
+ "generated": "2026-07-31",
  "source": "https://play.pokemonshowdown.com/data/pokedex.json",
  "note": "\"certain\" = the species has exactly ONE possible ability, so it is known from team preview alone with no observation. Otherwise the log must reveal which one is running. Silent abilities (Swift Swim, No Guard, Adaptability) never announce themselves, so without this file they were invisible to role tagging.",
- "n_species": 307,
- "n_certain": 94,
- "n_multi_ability": 213,
- "n_not_in_dex": 25,
+ "n_species": 335,
+ "n_certain": 109,
+ "n_multi_ability": 226,
+ "n_not_in_dex": 31,
  "species": {
   "aerodactyl": {
    "abilities": [
@@ -66,6 +66,12 @@
     "Mold Breaker"
    ],
    "certain": null
+  },
+  "charizardmegay": {
+   "abilities": [
+    "Drought"
+   ],
+   "certain": "Drought"
   },
   "grimmsnarl": {
    "abilities": [
@@ -139,6 +145,12 @@
    ],
    "certain": "Shadow Tag"
   },
+  "swampertmega": {
+   "abilities": [
+    "Swift Swim"
+   ],
+   "certain": "Swift Swim"
+  },
   "gholdengo": {
    "abilities": [
     "Good as Gold"
@@ -205,18 +217,18 @@
    ],
    "certain": null
   },
+  "tyranitarmega": {
+   "abilities": [
+    "Sand Stream"
+   ],
+   "certain": "Sand Stream"
+  },
   "floetteeternal": {
    "abilities": [
     "Flower Veil",
     "Symbiosis"
    ],
    "certain": null
-  },
-  "charizardmegay": {
-   "abilities": [
-    "Drought"
-   ],
-   "certain": "Drought"
   },
   "staraptor": {
    "abilities": [
@@ -260,6 +272,18 @@
    ],
    "certain": null
   },
+  "staraptormega": {
+   "abilities": [
+    "Contrary"
+   ],
+   "certain": "Contrary"
+  },
+  "blastoisemega": {
+   "abilities": [
+    "Mega Launcher"
+   ],
+   "certain": "Mega Launcher"
+  },
   "lopunny": {
    "abilities": [
     "Cute Charm",
@@ -290,6 +314,12 @@
     "Iron Fist"
    ],
    "certain": null
+  },
+  "gardevoirmega": {
+   "abilities": [
+    "Pixilate"
+   ],
+   "certain": "Pixilate"
   },
   "typhlosionhisui": {
    "abilities": [
@@ -329,6 +359,12 @@
    ],
    "certain": null
   },
+  "delphoxmega": {
+   "abilities": [
+    "Levitate"
+   ],
+   "certain": "Levitate"
+  },
   "beedrill": {
    "abilities": [
     "Swarm",
@@ -342,6 +378,18 @@
     "Liquid Voice"
    ],
    "certain": null
+  },
+  "floettemega": {
+   "abilities": [
+    "Fairy Aura"
+   ],
+   "certain": "Fairy Aura"
+  },
+  "beedrillmega": {
+   "abilities": [
+    "Adaptability"
+   ],
+   "certain": "Adaptability"
   },
   "dragonite": {
    "abilities": [
@@ -384,6 +432,12 @@
     "Pickpocket"
    ],
    "certain": null
+  },
+  "dragonitemega": {
+   "abilities": [
+    "Multiscale"
+   ],
+   "certain": "Multiscale"
   },
   "mamoswine": {
    "abilities": [
@@ -446,6 +500,18 @@
    ],
    "certain": null
   },
+  "scraftymega": {
+   "abilities": [
+    "Intimidate"
+   ],
+   "certain": "Intimidate"
+  },
+  "greninjamega": {
+   "abilities": [
+    "Protean"
+   ],
+   "certain": "Protean"
+  },
   "politoed": {
    "abilities": [
     "Water Absorb",
@@ -477,6 +543,12 @@
    ],
    "certain": null
   },
+  "scizormega": {
+   "abilities": [
+    "Technician"
+   ],
+   "certain": "Technician"
+  },
   "camerupt": {
    "abilities": [
     "Magma Armor",
@@ -504,6 +576,12 @@
     "Drought"
    ],
    "certain": null
+  },
+  "mimikyubusted": {
+   "abilities": [
+    "Disguise"
+   ],
+   "certain": "Disguise"
   },
   "cameruptmega": {
    "abilities": [
@@ -535,6 +613,12 @@
    ],
    "certain": null
   },
+  "glaliemega": {
+   "abilities": [
+    "Refrigerate"
+   ],
+   "certain": "Refrigerate"
+  },
   "ariados": {
    "abilities": [
     "Swarm",
@@ -565,6 +649,18 @@
     "Speed Boost"
    ],
    "certain": null
+  },
+  "blazikenmega": {
+   "abilities": [
+    "Speed Boost"
+   ],
+   "certain": "Speed Boost"
+  },
+  "metagrossmega": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
   },
   "rampardos": {
    "abilities": [
@@ -635,6 +731,12 @@
    ],
    "certain": null
   },
+  "malamarmega": {
+   "abilities": [
+    "Contrary"
+   ],
+   "certain": "Contrary"
+  },
   "espeon": {
    "abilities": [
     "Synchronize",
@@ -657,6 +759,12 @@
    ],
    "certain": null
   },
+  "charizardmegax": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
+  },
   "meowscarada": {
    "abilities": [
     "Overgrow",
@@ -672,12 +780,6 @@
    ],
    "certain": null
   },
-  "beedrillmega": {
-   "abilities": [
-    "Adaptability"
-   ],
-   "certain": "Adaptability"
-  },
   "beartic": {
    "abilities": [
     "Snow Cloak",
@@ -685,6 +787,12 @@
     "Swift Swim"
    ],
    "certain": null
+  },
+  "raichumegay": {
+   "abilities": [
+    "No Guard"
+   ],
+   "certain": "No Guard"
   },
   "kangaskhan": {
    "abilities": [
@@ -717,6 +825,12 @@
    ],
    "certain": null
   },
+  "falinksmega": {
+   "abilities": [
+    "Defiant"
+   ],
+   "certain": "Defiant"
+  },
   "meowstic": {
    "abilities": [
     "Keen Eye",
@@ -731,11 +845,11 @@
    ],
    "certain": "Stance Change"
   },
-  "charizardmegax": {
+  "chesnaughtmega": {
    "abilities": [
-    "Tough Claws"
+    "Bulletproof"
    ],
-   "certain": "Tough Claws"
+   "certain": "Bulletproof"
   },
   "clefable": {
    "abilities": [
@@ -744,6 +858,12 @@
     "Unaware"
    ],
    "certain": null
+  },
+  "aerodactylmega": {
+   "abilities": [
+    "Tough Claws"
+   ],
+   "certain": "Tough Claws"
   },
   "gyarados": {
    "abilities": [
@@ -805,12 +925,6 @@
    ],
    "certain": null
   },
-  "floettemega": {
-   "abilities": [
-    "Fairy Aura"
-   ],
-   "certain": "Fairy Aura"
-  },
   "arcaninehisui": {
    "abilities": [
     "Intimidate",
@@ -830,6 +944,12 @@
     "Thick Fat"
    ],
    "certain": "Thick Fat"
+  },
+  "garchompmega": {
+   "abilities": [
+    "Sand Force"
+   ],
+   "certain": "Sand Force"
   },
   "drampa": {
    "abilities": [
@@ -888,6 +1008,12 @@
    ],
    "certain": null
   },
+  "froslassmega": {
+   "abilities": [
+    "Snow Warning"
+   ],
+   "certain": "Snow Warning"
+  },
   "flapple": {
    "abilities": [
     "Ripen",
@@ -919,6 +1045,12 @@
    ],
    "certain": null
   },
+  "ampharosmega": {
+   "abilities": [
+    "Mold Breaker"
+   ],
+   "certain": "Mold Breaker"
+  },
   "sharpedo": {
    "abilities": [
     "Rough Skin",
@@ -934,11 +1066,11 @@
    ],
    "certain": null
   },
-  "blastoisemega": {
+  "meganiummega": {
    "abilities": [
-    "Mega Launcher"
+    "Mega Sol"
    ],
-   "certain": "Mega Launcher"
+   "certain": "Mega Sol"
   },
   "golurk": {
    "abilities": [
@@ -970,6 +1102,12 @@
    ],
    "certain": null
   },
+  "golurkmega": {
+   "abilities": [
+    "Unseen Fist"
+   ],
+   "certain": "Unseen Fist"
+  },
   "aggron": {
    "abilities": [
     "Sturdy",
@@ -984,6 +1122,12 @@
     "Unaware"
    ],
    "certain": null
+  },
+  "aggronmega": {
+   "abilities": [
+    "Filter"
+   ],
+   "certain": "Filter"
   },
   "rotomwash": {
    "abilities": [
@@ -1025,11 +1169,11 @@
    ],
    "certain": "Levitate"
   },
-  "delphoxmega": {
+  "audinomega": {
    "abilities": [
-    "Levitate"
+    "Healer"
    ],
-   "certain": "Levitate"
+   "certain": "Healer"
   },
   "espathra": {
    "abilities": [
@@ -1061,6 +1205,18 @@
    ],
    "certain": null
   },
+  "mawilemega": {
+   "abilities": [
+    "Huge Power"
+   ],
+   "certain": "Huge Power"
+  },
+  "pyroarmega": {
+   "abilities": [
+    "Fire Mane"
+   ],
+   "certain": "Fire Mane"
+  },
   "crabominable": {
    "abilities": [
     "Hyper Cutter",
@@ -1089,23 +1245,11 @@
    ],
    "certain": "Zero to Hero"
   },
-  "mawilemega": {
-   "abilities": [
-    "Huge Power"
-   ],
-   "certain": "Huge Power"
-  },
   "rotommow": {
    "abilities": [
     "Levitate"
    ],
    "certain": "Levitate"
-  },
-  "froslassmega": {
-   "abilities": [
-    "Snow Warning"
-   ],
-   "certain": "Snow Warning"
   },
   "hydrapple": {
    "abilities": [
@@ -1130,23 +1274,29 @@
    ],
    "certain": null
   },
-  "dragonitemega": {
+  "scovillainmega": {
    "abilities": [
-    "Multiscale"
+    "Spicy Spray"
    ],
-   "certain": "Multiscale"
+   "certain": "Spicy Spray"
+  },
+  "lucariomega": {
+   "abilities": [
+    "Adaptability"
+   ],
+   "certain": "Adaptability"
+  },
+  "aegislashblade": {
+   "abilities": [
+    "Stance Change"
+   ],
+   "certain": "Stance Change"
   },
   "lycanrocdusk": {
    "abilities": [
     "Tough Claws"
    ],
    "certain": "Tough Claws"
-  },
-  "raichumegay": {
-   "abilities": [
-    "No Guard"
-   ],
-   "certain": "No Guard"
   },
   "pinsir": {
    "abilities": [
@@ -1155,6 +1305,12 @@
     "Moxie"
    ],
    "certain": null
+  },
+  "pinsirmega": {
+   "abilities": [
+    "Aerilate"
+   ],
+   "certain": "Aerilate"
   },
   "serperior": {
    "abilities": [
@@ -1169,11 +1325,11 @@
    ],
    "certain": "Wandering Spirit"
   },
-  "tyranitarmega": {
+  "gyaradosmega": {
    "abilities": [
-    "Sand Stream"
+    "Mold Breaker"
    ],
-   "certain": "Sand Stream"
+   "certain": "Mold Breaker"
   },
   "vileplume": {
    "abilities": [
@@ -1182,11 +1338,11 @@
    ],
    "certain": null
   },
-  "swampertmega": {
+  "drampamega": {
    "abilities": [
-    "Swift Swim"
+    "Berserk"
    ],
-   "certain": "Swift Swim"
+   "certain": "Berserk"
   },
   "gliscor": {
    "abilities": [
@@ -1227,18 +1383,18 @@
    ],
    "certain": null
   },
-  "blazikenmega": {
-   "abilities": [
-    "Speed Boost"
-   ],
-   "certain": "Speed Boost"
-  },
   "sceptile": {
    "abilities": [
     "Overgrow",
     "Unburden"
    ],
    "certain": null
+  },
+  "sceptilemega": {
+   "abilities": [
+    "Lightning Rod"
+   ],
+   "certain": "Lightning Rod"
   },
   "ditto": {
    "abilities": [
@@ -1255,11 +1411,17 @@
    ],
    "certain": null
   },
-  "pyroarmega": {
+  "gallademega": {
    "abilities": [
-    "Fire Mane"
+    "Inner Focus"
    ],
-   "certain": "Fire Mane"
+   "certain": "Inner Focus"
+  },
+  "altariamega": {
+   "abilities": [
+    "Pixilate"
+   ],
+   "certain": "Pixilate"
   },
   "liepard": {
    "abilities": [
@@ -1268,6 +1430,12 @@
     "Prankster"
    ],
    "certain": null
+  },
+  "skarmorymega": {
+   "abilities": [
+    "Stalwart"
+   ],
+   "certain": "Stalwart"
   },
   "scolipede": {
    "abilities": [
@@ -1293,6 +1461,12 @@
    ],
    "certain": null
   },
+  "eelektrossmega": {
+   "abilities": [
+    "Eelevate"
+   ],
+   "certain": "Eelevate"
+  },
   "kleavor": {
    "abilities": [
     "Swarm",
@@ -1308,6 +1482,12 @@
     "Gooey"
    ],
    "certain": null
+  },
+  "alakazammega": {
+   "abilities": [
+    "Trace"
+   ],
+   "certain": "Trace"
   },
   "reuniclus": {
    "abilities": [
@@ -1361,6 +1541,12 @@
    ],
    "certain": null
   },
+  "starmiemega": {
+   "abilities": [
+    "Huge Power"
+   ],
+   "certain": "Huge Power"
+  },
   "heracross": {
    "abilities": [
     "Swarm",
@@ -1406,11 +1592,11 @@
    ],
    "certain": null
   },
-  "scraftymega": {
+  "chimechomega": {
    "abilities": [
-    "Intimidate"
+    "Levitate"
    ],
-   "certain": "Intimidate"
+   "certain": "Levitate"
   },
   "slowbrogalar": {
    "abilities": [
@@ -1419,6 +1605,12 @@
     "Regenerator"
    ],
    "certain": null
+  },
+  "glimmoramega": {
+   "abilities": [
+    "Adaptability"
+   ],
+   "certain": "Adaptability"
   },
   "emboar": {
    "abilities": [
@@ -1455,11 +1647,29 @@
    ],
    "certain": null
   },
-  "aerodactylmega": {
+  "barbaraclemega": {
    "abilities": [
     "Tough Claws"
    ],
    "certain": "Tough Claws"
+  },
+  "crabominablemega": {
+   "abilities": [
+    "Iron Fist"
+   ],
+   "certain": "Iron Fist"
+  },
+  "hawluchamega": {
+   "abilities": [
+    "No Guard"
+   ],
+   "certain": "No Guard"
+  },
+  "kangaskhanmega": {
+   "abilities": [
+    "Parental Bond"
+   ],
+   "certain": "Parental Bond"
   },
   "houndoom": {
    "abilities": [
@@ -1482,18 +1692,18 @@
    ],
    "certain": null
   },
-  "metagrossmega": {
-   "abilities": [
-    "Tough Claws"
-   ],
-   "certain": "Tough Claws"
-  },
   "abomasnow": {
    "abilities": [
     "Snow Warning",
     "Soundproof"
    ],
    "certain": null
+  },
+  "abomasnowmega": {
+   "abilities": [
+    "Snow Warning"
+   ],
+   "certain": "Snow Warning"
   },
   "dragalge": {
    "abilities": [
@@ -1510,6 +1720,12 @@
    ],
    "certain": null
   },
+  "sableyemega": {
+   "abilities": [
+    "Magic Bounce"
+   ],
+   "certain": "Magic Bounce"
+  },
   "steelix": {
    "abilities": [
     "Rock Head",
@@ -1517,6 +1733,12 @@
     "Sheer Force"
    ],
    "certain": null
+  },
+  "steelixmega": {
+   "abilities": [
+    "Sand Force"
+   ],
+   "certain": "Sand Force"
   },
   "basculegionf": {
    "abilities": [
@@ -1550,6 +1772,12 @@
    ],
    "certain": null
   },
+  "victreebelmega": {
+   "abilities": [
+    "Innards Out"
+   ],
+   "certain": "Innards Out"
+  },
   "dragalgemega": {
    "abilities": [
     "Regenerator"
@@ -1564,17 +1792,17 @@
    ],
    "certain": null
   },
+  "slowbromega": {
+   "abilities": [
+    "Shell Armor"
+   ],
+   "certain": "Shell Armor"
+  },
   "lopunnymega": {
    "abilities": [
     "Scrappy"
    ],
    "certain": "Scrappy"
-  },
-  "garchompmega": {
-   "abilities": [
-    "Sand Force"
-   ],
-   "certain": "Sand Force"
   },
   "infernape": {
    "abilities": [
@@ -1583,13 +1811,31 @@
    ],
    "certain": null
   },
-  "hawluchamega": {
+  "medichammega": {
    "abilities": [
-    "No Guard"
+    "Pure Power"
    ],
-   "certain": "No Guard"
+   "certain": "Pure Power"
+  },
+  "banettemega": {
+   "abilities": [
+    "Prankster"
+   ],
+   "certain": "Prankster"
+  },
+  "chandeluremega": {
+   "abilities": [
+    "Infiltrator"
+   ],
+   "certain": "Infiltrator"
   },
   "castform": {
+   "abilities": [
+    "Forecast"
+   ],
+   "certain": "Forecast"
+  },
+  "castformsnowy": {
    "abilities": [
     "Forecast"
    ],
@@ -1602,12 +1848,6 @@
     "Inner Focus"
    ],
    "certain": null
-  },
-  "staraptormega": {
-   "abilities": [
-    "Contrary"
-   ],
-   "certain": "Contrary"
   },
   "pidgeot": {
    "abilities": [
@@ -1632,12 +1872,24 @@
    ],
    "certain": null
   },
+  "heracrossmega": {
+   "abilities": [
+    "Skill Link"
+   ],
+   "certain": "Skill Link"
+  },
   "salazzle": {
    "abilities": [
     "Corrosion",
     "Oblivious"
    ],
    "certain": null
+  },
+  "clefablemega": {
+   "abilities": [
+    "Magic Bounce"
+   ],
+   "certain": "Magic Bounce"
   },
   "umbreon": {
    "abilities": [
@@ -1652,18 +1904,6 @@
     "Guts"
    ],
    "certain": null
-  },
-  "alakazammega": {
-   "abilities": [
-    "Trace"
-   ],
-   "certain": "Trace"
-  },
-  "altariamega": {
-   "abilities": [
-    "Pixilate"
-   ],
-   "certain": "Pixilate"
   },
   "gourgeistsuper": {
    "abilities": [
@@ -1687,17 +1927,11 @@
    ],
    "certain": null
   },
-  "scovillainmega": {
+  "feraligatrmega": {
    "abilities": [
-    "Spicy Spray"
+    "Dragonize"
    ],
-   "certain": "Spicy Spray"
-  },
-  "mimikyubusted": {
-   "abilities": [
-    "Disguise"
-   ],
-   "certain": "Disguise"
+   "certain": "Dragonize"
   },
   "zoroark": {
    "abilities": [
@@ -1712,17 +1946,23 @@
    ],
    "certain": null
   },
+  "sharpedomega": {
+   "abilities": [
+    "Strong Jaw"
+   ],
+   "certain": "Strong Jaw"
+  },
   "manectricmega": {
    "abilities": [
     "Intimidate"
    ],
    "certain": "Intimidate"
   },
-  "steelixmega": {
+  "scolipedemega": {
    "abilities": [
-    "Sand Force"
+    "Shell Armor"
    ],
-   "certain": "Sand Force"
+   "certain": "Shell Armor"
   },
   "pikachu": {
    "abilities": [
@@ -1730,12 +1970,6 @@
     "Lightning Rod"
    ],
    "certain": null
-  },
-  "lucariomega": {
-   "abilities": [
-    "Adaptability"
-   ],
-   "certain": "Adaptability"
   },
   "samurott": {
    "abilities": [
@@ -1759,18 +1993,6 @@
    ],
    "certain": null
   },
-  "chandeluremega": {
-   "abilities": [
-    "Infiltrator"
-   ],
-   "certain": "Infiltrator"
-  },
-  "glimmoramega": {
-   "abilities": [
-    "Adaptability"
-   ],
-   "certain": "Adaptability"
-  },
   "meowsticmmega": {
    "abilities": [
     "Trace"
@@ -1782,12 +2004,6 @@
     "Mimicry"
    ],
    "certain": "Mimicry"
-  },
-  "meganiummega": {
-   "abilities": [
-    "Mega Sol"
-   ],
-   "certain": "Mega Sol"
   },
   "machamp": {
    "abilities": [
@@ -1804,11 +2020,11 @@
    ],
    "certain": null
   },
-  "sceptilemega": {
+  "pidgeotmega": {
    "abilities": [
-    "Lightning Rod"
+    "No Guard"
    ],
-   "certain": "Lightning Rod"
+   "certain": "No Guard"
   },
   "simisear": {
    "abilities": [
@@ -1817,35 +2033,17 @@
    ],
    "certain": null
   },
-  "banettemega": {
-   "abilities": [
-    "Prankster"
-   ],
-   "certain": "Prankster"
-  },
-  "kangaskhanmega": {
-   "abilities": [
-    "Parental Bond"
-   ],
-   "certain": "Parental Bond"
-  },
-  "gardevoirmega": {
-   "abilities": [
-    "Pixilate"
-   ],
-   "certain": "Pixilate"
-  },
   "excadrillmega": {
    "abilities": [
     "Piercing Drill"
    ],
    "certain": "Piercing Drill"
   },
-  "gyaradosmega": {
+  "absolmega": {
    "abilities": [
-    "Mold Breaker"
+    "Magic Bounce"
    ],
-   "certain": "Mold Breaker"
+   "certain": "Magic Bounce"
   },
   "lycanrocmidnight": {
    "abilities": [
@@ -1953,18 +2151,6 @@
    ],
    "certain": "Fur Coat"
   },
-  "greninjamega": {
-   "abilities": [
-    "Protean"
-   ],
-   "certain": "Protean"
-  },
-  "starmiemega": {
-   "abilities": [
-    "Huge Power"
-   ],
-   "certain": "Huge Power"
-  },
   "slurpuff": {
    "abilities": [
     "Sweet Veil",
@@ -1972,23 +2158,11 @@
    ],
    "certain": null
   },
-  "medichammega": {
+  "morpekohangry": {
    "abilities": [
-    "Pure Power"
+    "Hunger Switch"
    ],
-   "certain": "Pure Power"
-  },
-  "chesnaughtmega": {
-   "abilities": [
-    "Bulletproof"
-   ],
-   "certain": "Bulletproof"
-  },
-  "gallademega": {
-   "abilities": [
-    "Inner Focus"
-   ],
-   "certain": "Inner Focus"
+   "certain": "Hunger Switch"
   },
   "luxray": {
    "abilities": [
@@ -2005,12 +2179,6 @@
    ],
    "certain": null
   },
-  "ampharosmega": {
-   "abilities": [
-    "Mold Breaker"
-   ],
-   "certain": "Mold Breaker"
-  },
   "taurospaldeablaze": {
    "abilities": [
     "Intimidate",
@@ -2019,17 +2187,11 @@
    ],
    "certain": null
   },
-  "sharpedomega": {
+  "meowsticfmega": {
    "abilities": [
-    "Strong Jaw"
+    "Trace"
    ],
-   "certain": "Strong Jaw"
-  },
-  "aggronmega": {
-   "abilities": [
-    "Filter"
-   ],
-   "certain": "Filter"
+   "certain": "Trace"
   },
   "rotomfan": {
    "abilities": [
@@ -2068,24 +2230,6 @@
    ],
    "certain": null
   },
-  "eelektrossmega": {
-   "abilities": [
-    "Eelevate"
-   ],
-   "certain": "Eelevate"
-  },
-  "pinsirmega": {
-   "abilities": [
-    "Aerilate"
-   ],
-   "certain": "Aerilate"
-  },
-  "drampamega": {
-   "abilities": [
-    "Berserk"
-   ],
-   "certain": "Berserk"
-  },
   "gourgeist": {
    "abilities": [
     "Pickup",
@@ -2101,47 +2245,17 @@
    ],
    "certain": null
   },
-  "clefablemega": {
+  "castformrainy": {
    "abilities": [
-    "Magic Bounce"
+    "Forecast"
    ],
-   "certain": "Magic Bounce"
+   "certain": "Forecast"
   },
-  "malamarmega": {
+  "castformsunny": {
    "abilities": [
-    "Contrary"
+    "Forecast"
    ],
-   "certain": "Contrary"
-  },
-  "golurkmega": {
-   "abilities": [
-    "Unseen Fist"
-   ],
-   "certain": "Unseen Fist"
-  },
-  "audinomega": {
-   "abilities": [
-    "Healer"
-   ],
-   "certain": "Healer"
-  },
-  "scizormega": {
-   "abilities": [
-    "Technician"
-   ],
-   "certain": "Technician"
-  },
-  "scolipedemega": {
-   "abilities": [
-    "Shell Armor"
-   ],
-   "certain": "Shell Armor"
-  },
-  "chimechomega": {
-   "abilities": [
-    "Levitate"
-   ],
-   "certain": "Levitate"
+   "certain": "Forecast"
   },
   "arbok": {
    "abilities": [
@@ -2151,41 +2265,119 @@
    ],
    "certain": null
   },
-  "pidgeotmega": {
-   "abilities": [
-    "No Guard"
-   ],
-   "certain": "No Guard"
-  },
-  "crabominablemega": {
-   "abilities": [
-    "Iron Fist"
-   ],
-   "certain": "Iron Fist"
-  },
-  "meowsticfmega": {
-   "abilities": [
-    "Trace"
-   ],
-   "certain": "Trace"
-  },
-  "abomasnowmega": {
-   "abilities": [
-    "Snow Warning"
-   ],
-   "certain": "Snow Warning"
-  },
-  "slowbromega": {
-   "abilities": [
-    "Shell Armor"
-   ],
-   "certain": "Shell Armor"
-  },
   "rotom": {
    "abilities": [
     "Levitate"
    ],
    "certain": "Levitate"
+  },
+  "gourgeistsmall": {
+   "abilities": [
+    "Pickup",
+    "Frisk",
+    "Insomnia"
+   ],
+   "certain": null
+  },
+  "gourgeistlarge": {
+   "abilities": [
+    "Pickup",
+    "Frisk",
+    "Insomnia"
+   ],
+   "certain": null
+  },
+  "indeedee": {
+   "abilities": [
+    "Inner Focus",
+    "Synchronize",
+    "Psychic Surge"
+   ],
+   "certain": null
+  },
+  "amoonguss": {
+   "abilities": [
+    "Effect Spore",
+    "Regenerator"
+   ],
+   "certain": null
+  },
+  "perrserker": {
+   "abilities": [
+    "Battle Armor",
+    "Tough Claws",
+    "Steely Spirit"
+   ],
+   "certain": null
+  },
+  "smeargle": {
+   "abilities": [
+    "Own Tempo",
+    "Technician",
+    "Moody"
+   ],
+   "certain": null
+  },
+  "persianalola": {
+   "abilities": [
+    "Fur Coat",
+    "Technician",
+    "Rattled"
+   ],
+   "certain": null
+  },
+  "salamence": {
+   "abilities": [
+    "Intimidate",
+    "Moxie"
+   ],
+   "certain": null
+  },
+  "riolu": {
+   "abilities": [
+    "Steadfast",
+    "Inner Focus",
+    "Prankster"
+   ],
+   "certain": null
+  },
+  "watchog": {
+   "abilities": [
+    "Illuminate",
+    "Keen Eye",
+    "Analytic"
+   ],
+   "certain": null
+  },
+  "indeedeef": {
+   "abilities": [
+    "Own Tempo",
+    "Synchronize",
+    "Psychic Surge"
+   ],
+   "certain": null
+  },
+  "hariyama": {
+   "abilities": [
+    "Thick Fat",
+    "Guts",
+    "Sheer Force"
+   ],
+   "certain": null
+  },
+  "jirachi": {
+   "abilities": [
+    "Serene Grace"
+   ],
+   "certain": "Serene Grace"
+  },
+  "sigilyph": {
+   "abilities": [
+    "Wonder Skin",
+    "Magic Guard",
+    "Tinted Lens"
+   ],
+   "certain": null
   }
  }
 }

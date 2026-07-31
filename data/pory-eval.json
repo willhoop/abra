@@ -1,97 +1,97 @@
 {
   "generated": "engine/pory.py \u2014 mid-game win-prob value net from real replays",
-  "n_games": 1421,
-  "n_states": 23926,
-  "train_states": 19136,
-  "test_states": 4790,
+  "n_games": 3942,
+  "n_states": 65862,
+  "train_states": 52868,
+  "test_states": 12994,
   "log_loss": {
-    "pory": 0.6739,
+    "pory": 0.6321,
     "pory_ci95": [
-      0.6264,
-      0.7321
+      0.6144,
+      0.6496
     ],
     "coin": 0.6931,
-    "material_heuristic": 0.6793
+    "material_heuristic": 0.6608
   },
   "brier": {
-    "pory": 0.238,
+    "pory": 0.2221,
     "coin": 0.25
   },
-  "accuracy": 0.5873,
-  "ece": 0.054,
+  "accuracy": 0.6215,
+  "ece": 0.0175,
   "reliability": [
     [
-      0.066,
-      0.348,
-      69
+      0.073,
+      0.015,
+      136
     ],
     [
-      0.152,
-      0.189,
-      222
+      0.157,
+      0.146,
+      576
     ],
     [
-      0.254,
-      0.344,
-      425
+      0.256,
+      0.306,
+      1191
     ],
     [
-      0.353,
-      0.421,
-      613
+      0.354,
+      0.362,
+      1575
     ],
     [
       0.451,
-      0.48,
-      729
+      0.465,
+      2005
     ],
     [
-      0.526,
-      0.51,
-      1403
+      0.524,
+      0.517,
+      4033
     ],
     [
-      0.647,
-      0.579,
-      613
+      0.646,
+      0.638,
+      1575
     ],
     [
-      0.746,
-      0.656,
-      425
+      0.744,
+      0.694,
+      1191
     ],
     [
-      0.848,
-      0.811,
-      222
+      0.843,
+      0.854,
+      576
     ],
     [
-      0.934,
-      0.652,
-      69
+      0.927,
+      0.985,
+      136
     ]
   ],
   "weights": [
     -0.0,
-    0.68122,
-    0.44773,
-    0.30035,
-    -0.30035,
+    0.64828,
+    0.42635,
+    0.28287,
+    -0.28287,
     -0.0
   ],
   "feat_mean": [
     0.0,
     0.0,
-    2.9757,
-    2.9757,
-    0.53158
+    3.02905,
+    3.02905,
+    0.54145
   ],
   "feat_std": [
-    0.92219,
-    0.31207,
-    1.04582,
-    1.04582,
-    0.42108
+    0.90001,
+    0.30249,
+    1.03132,
+    1.03132,
+    0.46133
   ],
   "features": [
     "bias",
@@ -101,5 +101,5 @@
     "foe_alive",
     "turn/10"
   ],
-  "verdict": "PORY beats coin AND the material heuristic on held-out log-loss \u2014 a real, calibrated value net."
+  "verdict": "PORY beats coin AND the material heuristic on held-out log-loss, interval clear of both - a real, calibrated value net."
 }

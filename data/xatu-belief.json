@@ -1,33 +1,33 @@
 {
- "generated": "2026-07-24",
- "n_games": 7315,
- "n_train": 5801,
- "n_test": 1514,
- "n_move_events": 28521,
- "move_vocabulary": 429,
- "repeat_boost_learned": 1.264,
- "p_next_move_is_a_repeat": 0.5583,
+ "generated": "2026-07-30",
+ "n_games": 4910,
+ "n_train": 3919,
+ "n_test": 991,
+ "n_move_events": 24236,
+ "move_vocabulary": 433,
+ "repeat_boost_learned": 1.2,
+ "p_next_move_is_a_repeat": 0.5455,
  "cross_entropy": {
-  "uniform": 6.0615,
-  "usage_prior": 1.8625,
-  "belief": 1.824
+  "uniform": 6.0707,
+  "usage_prior": 2.0329,
+  "belief": 1.9889
  },
  "top1_accuracy": {
-  "usage_prior": 0.3481,
-  "belief": 0.3569
+  "usage_prior": 0.3039,
+  "belief": 0.3123
  },
  "where_the_gain_comes_from": {
-  "events_with_all_four_moves_known": 682,
-  "share_of_events": 0.0239,
-  "usage_prior_ce_on_those": 2.2188,
-  "belief_ce_on_those": 1.6951,
+  "events_with_all_four_moves_known": 930,
+  "share_of_events": 0.0384,
+  "usage_prior_ce_on_those": 2.3428,
+  "belief_ce_on_those": 1.7874,
   "note": "Once four moves are revealed the move set is CLOSED. The usage prior keeps assigning probability to moves that are now impossible; the belief state does not. This is where a usage table is not merely imprecise but wrong."
  },
  "improvement_over_prior": {
-  "mean_log_loss_reduction": 0.0282,
+  "mean_log_loss_reduction": 0.0324,
   "ci95_clustered_by_game": [
-   0.024,
-   0.0313
+   0.028,
+   0.0364
   ],
   "significant": true,
   "reading": "Positive means the belief state predicts the opponent's next move better than the usage prior. Clustered by game because events within one game are not independent. If the interval includes zero, the gain is not established."

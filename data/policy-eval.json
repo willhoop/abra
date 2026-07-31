@@ -1,43 +1,43 @@
 {
   "generated": "engine/eval_policy.py \u2014 behaviour-clone move priors vs held-out human clicks",
-  "n_games": 7547,
-  "train_games": 6037,
-  "test_games": 1510,
-  "test_clicks_scored": 28918,
-  "test_clicks_skipped_thin_prior": 427,
+  "n_games": 3903,
+  "train_games": 3122,
+  "test_games": 781,
+  "test_clicks_scored": 18537,
+  "test_clicks_skipped_thin_prior": 321,
   "min_train_clicks_per_species": 25,
   "species_only_clone": {
-    "top1_accuracy": 0.3061,
+    "top1_accuracy": 0.2979,
     "top1_ci95": [
-      0.3008,
-      0.3114
+      0.2914,
+      0.3045
     ],
-    "top3_accuracy": 0.6796,
+    "top3_accuracy": 0.6564,
     "top3_ci95": [
-      0.6742,
-      0.685
+      0.6495,
+      0.6632
     ],
-    "cross_entropy_nats": 2.3945,
+    "cross_entropy_nats": 2.6353,
     "ce_ci95": [
-      2.379,
-      2.4101
+      2.6165,
+      2.654
     ]
   },
   "phase_conditioned_clone": {
-    "top1_accuracy": 0.3334,
+    "top1_accuracy": 0.3139,
     "top1_ci95": [
-      0.328,
-      0.3389
+      0.3072,
+      0.3206
     ],
-    "cross_entropy_nats": 2.7143,
+    "cross_entropy_nats": 3.0508,
     "ce_ci95": [
-      2.6983,
-      2.7304
+      3.0317,
+      3.0699
     ]
   },
   "baselines": {
-    "global_move_freq_ce": 4.6983,
-    "uniform_moveset_ce": 3.0528
+    "global_move_freq_ce": 4.7346,
+    "uniform_moveset_ce": 3.0286
   },
   "notes": "Conservative lower bound on the full policy: the state-conditioned KO-take/Protect overrides can only raise human-match on the turns they fire. Phase = early(turns<=2)/mid/late.",
   "verdict": "phase-conditioning did not help; species-only prior retained"
