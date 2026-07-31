@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.21.0 · 2026-07-26 · Will Hooper**
+**Version 3.28.0 · 2026-07-30 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -96,15 +96,35 @@ Saying what we *can't* prove, as plainly as what we can, is the whole point.
 
 ## Slide 7 — What's next
 
-- **Teach it when to switch.** The scoring bot chooses its attacks well now, but it still decides
-  when to swap Pokémon at random — and swapping is a big part of how the game is really played. It's
-  the same machinery, pointed at one more decision.
-- **Re-run the build experiments.** Every "this build is better" result on record was measured
-  against the *old*, blind opponent. They all need re-measuring before they can be trusted.
+**The one lesson that changed the plan.** We spent a day teaching the bot more about Pokémon — four
+separate things it didn't know before. All four made no difference at all. Then we changed *what it
+was trying to do*, twice, and both times it got a lot better.
+
+Teaching it more facts had stopped helping. Changing its goal was what worked.
+
+The reason is simple. The bot was trained to **copy what humans click**. That is a different goal
+from **winning**. It even shows up in the numbers: the model rates "use a spread move that hits both
+of them and doesn't hurt my own partner" as a *bad* idea — not because it is bad, but because humans
+rarely click it. A bot told to avoid its own best plays will avoid them.
+
+- **Teach the two Pokémon to act as a team.** We already built this once. It plays worse, and now we
+  know why: it was taught to *resemble* people rather than to *win*. Retraining it on the right goal
+  is the single most promising thing on the list.
+- **Fix a small unfairness in the training data.** When a Pokémon is locked into one move, we were
+  still showing the bot all four as if it had a choice. It affects about 1 in 15 items.
+- **Find out how readable it is.** A rival bot built only to beat ours won 63% of the time. That was
+  measured a long time ago and never repeated. A bot can get better on average while staying just as
+  easy to read — those are different questions, and only one of them has been checked lately.
+- **Then, looking ahead.** Right now the bot only thinks about *this* turn. Looking one turn further
+  is a real project, but it's now measured rather than guessed: there are only **72** sensible
+  combinations to consider each turn, not the trillions people assume.
 - **ALAKAZAM** — the in-battle coach. A light version runs in your browser; a version that could beat
-  top humans needs a rented cloud computer and months of the AI playing itself to learn.
-- **A million games.** Real games trickle in ~18k/week; the AI playing itself can generate millions
-  fast, which is what the coach needs to get truly strong.
+  top humans needs a rented cloud computer and months of the AI playing itself.
+
+**Something we got wrong, kept here on purpose.** For two days nobody updated these documents while
+the code kept changing. The next person to read them — which was us — then described several models
+completely incorrectly, including calling one "not built yet" when it had been built, tested, and
+measured. Documents that lag the work don't just go quiet; they actively mislead.
 
 ---
 

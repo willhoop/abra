@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.21.0 · Last updated 2026-07-26**
+**Version 3.28.0 · Last updated 2026-07-30**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -141,15 +141,16 @@ pattern, not a settled fact**; it will sharpen as the store grows. Where matchup
 train mean/std; `P(win) = σ(w·z + b)`. Graded by held-out **log-loss** `−(y·ln p + (1−y)·ln(1−p))` and
 **Brier** `(p−y)²`; the coin scores `ln 2 = 0.6931` and `0.25` respectively.
 
-**Discrete choice — the scoring bot's policy (v3.21.0).** A player facing a turn chooses one of the
+**Discrete choice — the scoring bot's policy (v3.28.0).** A player facing a turn chooses one of the
 legal (move, target) pairs. Writing `x_j` for the attributes of alternative `j` — type effectiveness
 against that specific target, base power, whether the move is already dead on the board, and the
 behaviour clone's `P(move | species)` — the conditional logit model (McFadden 1974) is
 
 `P(pick j) = exp(w·x_j) / Σ_k exp(w·x_k)`,
 
-with `w` estimated by maximising `Σ_i [ w·x_{i,chosen} − ln Σ_k exp(w·x_{i,k}) ]` over 48,538 real
-human decisions from 2,240 clean open-sheet games. The weights are **estimated, never written
+with `w` estimated by maximising `Σ_i [ w·x_{i,chosen} − ln Σ_k exp(w·x_{i,k}) ]` over **146,910** real
+human decisions from **6,091** clean open-sheet games (117,824 train / 29,086 held out), with a
+feature vector that has grown from 12 to **53**. The weights are **estimated, never written
 down**, and the realism report is never consulted during fitting — it is held back as the
 out-of-sample check, because a diagnostic stops being evidence once it becomes the objective.
 
@@ -188,13 +189,36 @@ cores beat which" and for quantifying how cyclic the meta really is.
 2. **Revealed sets are partial** (a mon that never attacked reveals no moves); belief is a lower bound.
 3. **Small samples in the meta layer.** Playstyle and core matchups are thin; those results are
    suggestive until the store grows.
-4. **Policy is the residual GIGO — reduced in 3.21.0, not removed.** The damage is validated; the
-   *policy* was behaviour-cloned and board-blind. The scoring bot (§5) roughly halved both gaps that
-   measured that blindness — super-effective moves 9.7% → 14.9% against a human 21.4%, moves that
-   outright failed 9.7% → 6.3% against 2.5% — but it is **one ply**: no damage calculation, no model
-   of the opponent's move, no search, and the **switch decision is still uniform random** (8.38
-   switches per game against a real 10.67). Every `build_lab` win rate on record was measured against
-   the older board-blind pilot and none has been re-run, so all of them remain provisional.
+4. **Policy is the residual GIGO — and in 3.28.0 the binding constraint is the OBJECTIVE, not the
+   knowledge.** The damage is validated. The policy now runs a real damage calculation and does
+   decide switches — both were listed here as missing and both became false, and they are corrected
+   rather than quietly dropped. What remains: **one ply**, no model of the opponent's move, no search.
+
+   The sharper limitation is measured. Over 2026-07-30, **four separate feature additions produced
+   four nulls**, while **two changes to the objective produced two large wins** — greedy action
+   selection at +12 points (79.7% of decisive pairs) and self-play policy improvement at 55.9%. An
+   overdispersion check across teams (~1.00, against 1.169 for a known real effect) rules out the
+   obvious confound, so the nulls are genuine. Adding knowledge to an imitation-fitted policy has
+   stopped paying.
+
+   The cleanest demonstration is the pair-scoring layer (DODUO), which is **built, wired, controlled
+   and measured, and loses at 42.0%** [39.9, 44.3] over 1,934 seed-paired games against its own
+   zeroed control. Its fit prices "use a spread move beside my own ally that does not hurt it" at
+   **−5.054** — a statement that humans rarely click it, not that it is bad. Refitting those weights
+   for *winning* rather than *resemblance* is untested and is the project's top open question.
+
+   A separate class of defect, worth naming because it is not a modelling disagreement: a fact
+   reaching one consumer and not the next. Priority blocking lived in the tag artifact and never
+   reached the simulator, so **Sucker Punch beat a Farigiraf in every rollout ever run**. A
+   switch-in's own ability never reached the code that chooses the switch — over 40,001 matchups,
+   declaring Intimidate, Drizzle or Drought moved the feature vector in **zero** of them against a
+   control's 2,754. And every mega forme carried a null ability, an empty moveset and no item, so
+   **26.0% of the format's usage scored as threatening nothing**. All fixed; a gate
+   (`engine/artifact_audit.js`) now compares derived artifacts against their sources, because nothing
+   had.
+
+   Every `build_lab` win rate on record was measured against the older board-blind pilot and none has
+   been re-run, so all of them remain provisional.
 5. **Champions rule specifics** (sleep/paralysis edge cases) are flagged, not yet fully modelled.
 
 ## 7. The road to ALAKAZAM

@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.21.0 · 2026-07-26 · Will Hooper**
+**Version 3.28.0 · 2026-07-30 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -20,6 +20,32 @@ coin. So ABRA does not sell outcome prediction. It supports *decisions* and grad
 proper score, a confidence interval, and an honest baseline. Wins are reported as wins; two honest
 negatives are reported as negatives.
 
+## The finding that shapes what gets built next (2026-07-30)
+
+**Four experiments added knowledge to the model. All four measured a null. Two experiments changed
+what the model is optimising for. Both were large wins.**
+
+| change | kind | result |
+|---|---|---|
+| take the best move instead of sampling it | objective | **+12 points, 79.7% of decisive pairs** |
+| self-play policy improvement over the clone | objective | **55.9%** |
+| four separate feature additions | knowledge | four nulls |
+
+The nulls survived the obvious check: an overdispersion test across teams reads ~1.00, against 1.169
+for a known real effect, so they are genuine rather than a real effect hidden by team variety.
+
+**The constraint is the objective, not the knowledge.** This is why the next item is retraining a
+model that already exists (DODUO, the pair-scoring layer, which lost at 42.0% fitted to *resemble
+humans* and has never been fitted to *win*), rather than adding more features to MAG.
+
+**A second, blunter lesson from the same day.** Every integrity bug found had one shape: a fact
+reached one consumer and not the next. Priority blocking was in the artifact but not the simulator,
+so Sucker Punch beat a Farigiraf in every game ever simulated. A switch-in's own ability never
+reached the code that chooses the switch — measured over 40,001 matchups, declaring Intimidate,
+Drizzle or Drought changed nothing at all. And every mega forme carried no ability, no moves and no
+item, so **26% of the format scored as threatening nothing**. None of these were modelling
+disagreements. They were plumbing.
+
 ## The components at a glance
 
 | Model | What it is | Status | Headline result |
@@ -34,7 +60,7 @@ negatives are reported as negatives.
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
-| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | ✅ **Built (3.21.0)** | Conditional logit fitted to **48,538 real human clicks** from 2,240 clean open-sheet games. Held out by game: top-1 **33.6%** against the behaviour clone's 27.1%. Out of sample it roughly halved both gaps it was built for — super-effective **9.7% → 14.9%** (real 21.4%), failed moves **9.7% → 6.3%** (real 2.5%). Does **not** decide switches; no damage calc; one ply |
+| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **53 features**, fitted to **146,910 real human clicks** from 6,091 clean open-sheet games. Held out by game: top-1 **33.6%** against the behaviour clone's 27.1%. It now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=20** across 1,051 cells (vs old single-label n=11–18) — the 7,971 once published was retracted in 2.7.0; preview roles tie a coin (honest null) |

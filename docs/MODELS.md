@@ -1,8 +1,22 @@
 # ABRA — the model family (living reference)
 
-**Version 3.21.0 · Last updated 2026-07-26.**
+**Version 3.28.0 · Last updated 2026-07-30.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
+
+> **How this file went wrong, recorded because it caused real damage.** Between 2026-07-28 and
+> 2026-07-30 it was not updated while ~40 commits landed, and a session then mischaracterised the
+> whole model family from it: **DODUO** described as unbuilt when it had been built, wired,
+> controlled and measured at 42.0%; **MEDICHAM** audited in its superseded v2 file, with that file's
+> limitations reported as ABRA's; top-K pruning "proposed" that `engine/fit_joint.js` already
+> implemented. Two rules came out of it — read the *implementation* and check which file a consumer
+> actually `require`s, and never report a red test as a "known failure" (`CLAUDE.md`).
+
+**Which files actually play a game:** `engine/mew.js` loads `engine/magnemite.js` (MAG), and
+`engine/board.js` loads `engine/medicham2-browser.js` for damage. That is the entire live path.
+Everything else on this page is off it — which does **not** mean dead, only that "is this live" must
+be answered by grepping for consumers rather than by file date. Superseded implementations live in
+`engine/graveyard/` and are not to be fixed, cited, or audited as current.
 
 Guiding principle: **garbage in, garbage out.** The browser engine's **damage math is now validated** against the Smogon damage calculator (within 5% on 100% of tested scenarios — see MEDICHAM below). The remaining GIGO caveats are the rollout *policy* and format-specific data (Champions rule changes, some Mega/ability specifics) — stated per-model.
 
@@ -73,6 +87,39 @@ runs, the coordination question is open, not closed.
 **The coordination features are not refuted either — the imitation fit of them is.** Refitting
 the 18 pair weights for WINNING rather than for resemblance (MACHAMP over the joint vector) is
 the untested version of this idea.
+
+**UPDATED 2026-07-30 — this is now roadmap item 1, and the gap is exact.** The evidence for it got
+much stronger: four knowledge additions produced four nulls that day while two objective changes
+produced two large wins (see MAGNEMITE). DODUO has only ever been fitted to the losing objective.
+The remaining work is wiring, not a new model:
+
+- `engine/train_policy.js` has **no joint support** at all.
+- `magnemite.js`'s learning gradient is sized to `this.w` (53 single weights), while the joint vector
+  is `this.wj` (53 + **21** pair weights — the list grew from 18). So self-play training cannot reach
+  the coordination weights.
+- The pair softmax is the same conditional logit, and `accumulateLogitGrad(g, vecs, probs, j, nW)` is
+  already generic over vector length.
+
+**Do choice-lock first.** `fit_policy.js` hands `candidates()` all four sheet moves with no legality
+filter, so a choice-locked human appears to have had ~9 options when they had 4 — the logit
+denominator contains actions that were never available, on **6.52%** of items. Both DODUO arms
+inherit that error today.
+
+**A trap already paid for once:** `fit_joint` fits its single block and its pair block TOGETHER, and
+23 of 48 features carry opposite signs between that fit and the shipped one. Mixing the two vectors
+lost **31.2%** on decisive pairs and would have been reported as "coordination does not help."
+
+**Already implemented, do not rebuild it:** top-K capping by single-move score, keeping the human's
+chosen pair regardless of rank so the fit cannot manufacture agreement, and reporting how often the
+chosen pair falls outside K. `--joint-zero` is a true control (whole pair path, coordination weights
+zeroed) and `stats.jointFellBack` counts degradation.
+
+**Measured cost of the pair path, on a real mid-game board (2026-07-30):** 9 × 8 = **72 joint
+actions** per side. Only **28 of 72** have a non-zero joint vector — the other 44 score exactly as the
+sum of two singles already computed. With two Pokémon the coordination graph is a single edge, so
+the MARL factorisation machinery (QMIX, QPLEX, Max-Plus) is unnecessary; what that literature does
+contribute is the reason independent scoring fails, since a monotonic factorisation cannot represent
+"Protect while my partner removes the threat."
 **Code:** `engine/fit_joint.js` → `data/policy-weights-joint.json`; played via `--joint` in
 `engine/mew.js`.
 
@@ -83,6 +130,13 @@ the untested version of this idea.
 **Honest status:** **half-run and stale.** The 2026-07-26 run completed **2 of 6 generations on a 17-FEATURE vector and recorded no verdict**. The vector is now 48. Re-running it is the single largest untested lever in the project.
 **Guards worth keeping:** every promoted champion is played against EVERY previous generation, not just the one it displaced — this metagame is cyclic, so "gen 5 beats gen 4" does not establish progress, and a cycle would otherwise look like improvement forever.
 **Limit, stated:** it searches the weight vector, not a policy space. It cannot learn anything the feature set cannot see, and after 2026-07-28 we know the feature set is the binding constraint for a static model.
+**KEPT, 2026-07-30** (Will, reversing an earlier call to graveyard it). The **artifact** is stale —
+`data/policy-weights-machamp.json` is a **48-feature** vector against today's 53, trained under the
+broken mega handling — but the **method is alive and has a successor**: `engine/train_policy.js`
+implements the same win-objective idea by policy gradient over self-play, and is the thing that
+measured 55.9%. Re-running MACHAMP on the current vector is roadmap item 4. Keep the guard that made
+it honest: every promoted champion plays EVERY previous generation, because this metagame is cyclic
+and "gen 5 beats gen 4" is not progress.
 **Code:** `engine/ladder.js` → `data/ladder.json`. Companion: `engine/brood.js` (how many candidates a generation can actually tell apart).
 
 ## WOBBUFFET — the counter that finds MAG's leak (named 2026-07-28)
@@ -91,6 +145,12 @@ the untested version of this idea.
 **Honest status:** **stale, and its result is the most important number in the repo.** On the 17-feature vector a counter found in forty minutes beat MAG **63.2%** [56.6, 69.3], with a mirror control at 47.5%. That challenger was not a counter in the rock-paper-scissors sense — it was simply a better player, drawn from the same features and optimised for wins instead of resemblance. Two feature-generations old.
 **Read it with MACHAMP:** MACHAMP raises the bar, WOBBUFFET measures how easily the bar is cleared. Together they are the win-objective loop; separately neither means much.
 **Caveat on the metric itself (2026-07-28):** exploitability grades "can a prepared opponent read us", which assumes an adversary that studies you over many games. A tournament opponent has never seen you play. It is a real number and it is not the same as "do we win", which has never been measured against a human at all.
+**BACK ON THE ACTIVE LIST, 2026-07-30** (Will: *"ADD WOBBUFFET BACK TO THE LIST"*). Now **three**
+feature-generations stale (17 → 53), and it is roadmap item 3 because it is the only measurement here
+that is not bots grading bots on average — it grades *readability*. A policy can improve on average
+and stay exactly as exploitable; those are different numbers and only one of them has been moving.
+`engine/exploit.js --target <weights.json>` can now be pointed at DODUO, which is the only way to
+test the exploitability argument the 42.0% result explicitly does **not** settle.
 **Code:** `engine/exploit.js` → `data/exploitability.json`.
 
 ## JOLTEON — Joint Odds, Ladder-Trained Expected-Outcome Network
@@ -98,7 +158,19 @@ the untested version of this idea.
 **Method:** Bradley-Terry-style logistic — sum of learned per-species strengths + speed/firepower edges + a team-vs-team type-coverage term, through a sigmoid. Rarity-aware L2 shrinkage; recency-weighted.
 **Honest status:** **demoted to a fast prior, not an oracle.** Held-out backtest (`eval_harness.py`): accuracy ~55% (at the format's skill ceiling) but **log-loss ties a coin** (0.699 vs 0.693) and only matches player-Elo. Overconfident (temperature ≈ 6 to calibrate). The team sheet simply doesn't determine the winner much in a non-transitive, high-variance format — that's a real finding, not just a weak model.
 **Code:** `engine/jolteon.py` (train), `pwin()` in `web/index.html` (deployed).
-**Open: nothing. Recommend retirement.** Every preview-level model in this project now sits at the same coin-flip ceiling — JOLTEON, preview roles, CHOMP-EV, and as of 3.2.0 WAR. The 2026-07-25 finding that the 55% skill ceiling was itself bot-contaminated (52.4% clean, CI includes 50) makes the ceiling lower than JOLTEON was built against, not higher. A low-rank non-transitive term would not change that. It survives only as a candidate shortlister for DITTO; it should make no win-probability claim anywhere.
+**RETIREMENT WITHDRAWN 2026-07-30 — it was retrained and it works.** The old verdict below was
+reached on a model trained through the raw ladder store, where `jolteon.py` defined its own
+`load_games()` and read a population that is ~87% bots, forfeits and stubs. Retrained on **self-play**
+(`JOLTEON_SELF`; `JOLTEON_RAW=1` restores the old behaviour), it moved from worse-than-a-coin to
+genuinely predictive. It is a real input to DITTO again rather than a candidate for deletion.
+
+**But it is ADDITIVE, and that is DITTO's binding problem** — 258 species weights plus 2 extras
+(speed, damage), with no pairwise term. Measured 2026-07-30: the additive species block can move the
+score by ~6.3 while speed and damage together move it by at most ~0.4, so hill-climbing it converges
+on the six highest-weighted species. **It cannot represent that Pelipper + Archaludon is worth more
+than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, one level up. See DITTO.
+
+**The old verdict, kept because a prior conclusion is never silently rewritten.** Every preview-level model in this project sat at the same coin-flip ceiling — JOLTEON, preview roles, CHOMP-EV, and as of 3.2.0 WAR. The 2026-07-25 finding that the 55% skill ceiling was itself bot-contaminated (52.4% clean, CI includes 50) makes the ceiling lower than JOLTEON was built against, not higher. A low-rank non-transitive term would not change that. It survives only as a candidate shortlister for DITTO; it should make no win-probability claim anywhere.
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 **Job:** grounded win rate by actually playing the matchup out.
@@ -106,6 +178,17 @@ the untested version of this idea.
 **Win% backtest — the hard finding + the twist (2026-07-23):** on 600+ held-out real games, MEDICHAM's raw P(win) **does not beat a coin** (log-loss 1.2 vs 0.69) and picks the actual winner only **~44% of decisive calls — below chance**. Below-chance is not "no signal": it means the win% is **systematically inverted** (the policy backs the fast/offensive team; that team loses more — the Staraptor bias, quantified). Held-out Platt recalibration comes out with a **negative slope** and just edges the coin (0.6897 vs 0.6931) — real but *tiny*, because even **player-Elo ≈ coin (0.687)** here: Champions is near-unpredictable at the game level from sheets alone. **Consequences:** (1) the win% is a matchup heuristic, not a game predictor; (2) **DITTO was optimising a backwards signal** — building teams the biased engine loves (confirmed) — so its objective must be de-biased/flipped before "best team" means anything; (3) the durable value is the **validated damage** (exact against the Smogon damage calculator → CHOMP/ORB), which is genuinely not a coin. Harness: `engine/backtest_winrate.js`, report `data/winrate-backtest.json`.
 **Policy validation (2026-07-23):** the behaviour-clone (the policy's backbone) predicts held-out human moves at **top-1 35.9% (CI 35.2–36.5), top-3 71.6%**, cross-entropy 2.27 nats — beating the species-agnostic baseline (4.54) and uniform-over-moveset (2.91), so the priors carry real signal, but human move choice has genuine entropy (the clone is a *modest* predictor). A phase-conditioning improvement was tried and did **not** beat the proper score, so it wasn't shipped. This is a conservative lower bound on the full policy (the KO-take/Protect overrides only raise agreement on those turns). Harness: `engine/eval_policy.py`, report `data/policy-eval.json`. **So MEDICHAM's win rate is `P(win | realistic cloned play)`, now with the clone's fidelity measured — not `P(win)` ground-truthed.**
 **Honest status:** big improvement over the old 1v1 chain (which gave 0%/100%). Mirror 0.50, healthy spread, 400 rollouts in ~30ms, results carry a 95% CI on the site. **The damage math is now VALIDATED** against the Smogon damage calculator (MIT ground truth): with stats aligned, MEDICHAM matches the calc to the integer on 18/22 meta scenarios; after adding the Ruin quartet + Solar Power + Guts, it's **within 5% on 100% of scenarios, median error 0%** (worst 3% = 16-roll rounding). See `engine/validate_damage.js` and `data/damage-validation.json`. The remaining caveat is the *policy* (behaviour-cloned; over-credits speed control), not the damage numbers.
+**THERE IS ONLY ONE MEDICHAM NOW (2026-07-30).** Will: *"LETS JUST CALL THE FUNCTIONAL MEDICHAM
+MEDICHAM, NO NEED FOR V3, FOLD OLD DEAD VERSIONS INTO A GRAVEYARD."* `engine/medicham.js` was the
+**v2** singles rollout — 1v1 in a doubles format, a hardcoded 14-move priority list, unseeded
+`Math.random`, no team sheets, no megas. It is now `engine/graveyard/medicham-v2-singles.js` and
+**must not be read, fixed, or cited as MEDICHAM's state**; a session audited it by mistake and
+reported its limitations as ABRA's. Its two consumers were repointed at the doubles engine
+(`engine/ditto.js`, `tests/test-medicham.js`, the latter now guarding the live engine's three
+invariants — mirror symmetry 0.538, range, antisymmetry).
+
+**What MAG borrows from it:** only `buildMon` and `dmgRange`. MAG never runs the rollout — so
+describing MEDICHAM as "MAG's damage calculator" is describing the borrowed half, not the model.
 **Code:** `engine/medicham2-browser.js`; `mcWinProb`/`mcWinProbI` in the site delegate to it (now Laplace-smoothed so a rollout can never read 0%/100%). Abilities patched from a curated meta map; move names + items from real ladder sets.
 **Open:** **Champions rule changes vs Gen 9 (sleep, paralysis, specific moves) are NOT yet modelled — pending the exact format rules** (flagged rather than guessed). Also: DAgger/improve the rollout policy; Protosynthesis/Quark Drive stat boosts; Mega stat/type swaps (abilities are done, stats aren't). Validation harness: `engine/validate_damage.js`, report `data/damage-validation.json`.
 
@@ -115,7 +198,37 @@ the untested version of this idea.
 **Two modes (as of 2026-07-23):** *Refine my team* (keep your core, only the highest-impact swaps that clear +5%) and *Build a perfect team* (full hill-climb). Both score against **all data-derived archetypes** (see below) with a weight floor so every threat counts, show an all-archetype matchup bar chart, and use accuracy-weighted, recoil-aware MEDICHAM as the objective.
 **Honest status:** optimises the **now-validated** MEDICHAM damage engine (was JOLTEON≈coin, which produced junk). The remaining caveat is the rollout *policy*, not the damage. Win-rate bars are Laplace-smoothed (never 0%/100%).
 **Code:** `runDitto(mode)` in `web/index.html`; archetypes from `engine/archetypes.py`; equilibrium math `engine/slowking/nash.py`.
-**Open:** true *iterated* double-oracle (grow the population, best-respond, repeat); harden the move-picking policy further.
+
+**STATUS 2026-07-30 — PARKED, WITH A NAMED FIRST STEP.** Will: *"I WOULD LIKE TO IMPLEMENT DITTO AT
+SOME POINT."* Nothing currently `require`s `engine/ditto.js`, which reads as dead; it is not. It is a
+goal with known defects, and it was rebuilt-in-part this session:
+
+**Fixed.** Its referee was v2's `winProb` — a **1v1 sequential-singles** rollout being used to judge
+four-Pokemon doubles teams. The "grounded rollout" meant to catch JOLTEON Goodharting itself had no
+spread damage, no redirection, no Protect and no positioning. Repointed at `winProb2`, the doubles
+engine; verified running (`medichamRank` returns 0.517 rather than null).
+
+**Still broken, and the rebuild Will approved:**
+1. **The objective is ~94% "add up six numbers."** It hill-climbs JOLTEON, which is additive (see
+   above), so it converges on the top-6 by weight. **No synergy is representable** — no weather core,
+   no redirection-plus-setup, no Trick Room pairing.
+2. **The screen decides what the referee ever sees.** The coarse-to-fine design is sound — JOLTEON
+   screens thousands, MEDICHAM re-ranks finalists — but MEDICHAM only evaluates what JOLTEON
+   proposed. Fixing the referee buys little while the screen cannot *propose* a synergy team.
+3. **`coverage()` does not measure coverage.** It reports "win rate vs teams that run Basculegion",
+   but that is the same additive score filtered by which teams contain it. It cannot detect whether
+   you have an **answer** — only how strong the teams that run it happen to be. The threat penalty is
+   built on top of that.
+4. **Unseeded `Math.random()`** in `loadMeta`'s shuffle, so the gauntlet and therefore the chosen
+   team differ every run.
+5. **It scores the six, not the four you bring.** `mean(six.map(spd))` averages all six; VGC is the
+   bring.
+
+**The planned fix:** pairwise terms over **roles**, not species — 258 species is ~33,000 pairs, far
+too many to fit on ~6,000 games, while `roles.py` tags 344 species into 52 roles. Same shape as
+DODUO's pair block, and subject to the same warning: fitted for resemblance it will lose.
+**Prerequisite done 2026-07-30:** the role vocabulary could not see megas at all, which is fatal here
+because the weather and terrain cores *are* megas. See ROLES.
 
 ## KADABRA — Key Analysis of Decisions, Advice & Better Replay Annotation
 **Job:** coach a real replay — take you to the turns that mattered.
@@ -170,6 +283,48 @@ the untested version of this idea.
 **Job:** describe every team by the set of functional roles it reveals, instead of forcing one archetype label.
 **Method:** 26 roles (speed control, weather, terrain, disruption, status/debuff, priority, prankster, setup, healing, screens, walls, pivot, trapping, perish, ally-support, item-disruption, physical/special attacker). Each **species earns a role from data** — credited once it is observed doing it (≥2 times). Multi-effect moves carry several *factual* roles (Matcha Gotcha = attack+heal+status; Body Press = wall+attack; Knock Off = attack+item-strip; Fake Out = tempo, not attacker). Role *presence* is binary and data-justified; graded strength is **not** hand-set — it is the learned output of the NMF (see below). Team role vectors are built from the **team-preview six** (leak-free). Outputs a **role-pair matchup matrix** with Wilson CIs.
 **Honest status / result:** the role-pair matrix **pools the data** — median cell **n=20** across 1,051 cells (2026-07-25, clean games) vs the old single-label archetype cells of n=11–18. Pooling still wins, but only just — and the 7,971 published in v2.6.0 was retracted in 2.7.0 as an over-tagging artifact. But predicting the winner from **preview roles ties a coin** (held-out log-loss 0.694 vs 0.693) — consistent with the sheet-level null. The value is descriptive + attribution, not prediction. Per-role logistic coefficients give **win-credit per role**; KO-credit per species comes from the turn log.
+**CAPABILITY LAYER, added 2026-07-30 — because team preview never shows a mega.** Will:
+*"ROLES ARTIFACTS IS ALSO VERY OLD" / "WE HAVE SMOGON DATA."* The artifact held 280 tagged species
+and **zero mega formes**, while megas are 26.0% of this format's usage. The failure split cleanly:
+`tyranitar` weather_sand 95.2%, `pelipper` weather_rain 97.9% and `torkoal` weather_sun 94.4% all
+worked, because those abilities sit on the base forme; `raichu` had no `terrain_electric` despite
+Raichu-Mega-X being the format's only Electric Surge, and `charizard` and `swampert` were **absent
+entirely**.
+
+**It was not a bug in this file.** Checked against the store directly: of **58,920** team-preview
+species names in clean games, **zero** are mega formes (the only `/mega/` match is Meganium). That is
+correct Pokémon behaviour — preview shows the base and the mega is revealed only on evolution — so no
+amount of regenerating could produce them.
+
+**Fix:** a `capability` block derived from `data/smogon-priors.json`, which carries mega formes as
+first-class rows *with* their abilities, over the whole ladder instead of a few thousand replays.
+Mega rows are folded onto the BASE name, read from `mega-dex-official.json`'s `base_species` rather
+than by stripping the name, because teams are built from base names.
+
+**Kept separate on purpose.** `roles` remains p(role | species appears), measured with Wilson bounds;
+`capability` is a **reachability set** — can this species play this role at all. Merging a presence
+flag into a measured distribution would have quietly corrupted it. Presence, not rate, is load-bearing
+here: Smogon records the mega rows' ability slot unreliably (Raichu-Mega-X reads "No Ability 81%,
+Electric Surge 19%"), so a frequency filter would discard the exact capability sought.
+
+    charizard -> weather_sun, abuser_sun    from charizardmegay (Drought + Weather Ball + Solar Beam)
+    raichu    -> terrain_electric           from raichumegax
+    swampert  -> abuser_rain                from swampertmega
+
+**Noise checked rather than assumed:** 17 species reach `weather_sun`, which looked loose until
+verified — Whimsicott runs Sunny Day at **16.2%**, Liepard 12.3%, Sableye 6.8%, Klefki 5.2% (Prankster
+sun is a real archetype), while Torkoal and Charizard-Mega-Y show *no* Sunny Day because they set it
+by ability. Both routes captured, neither invented.
+
+**Regenerated on 4,910 clean games** (was 2,653), **344 species tagged** (was 280), 200 with a
+capability set, 1,101 matchup cells, median n=69. **The null holds:** held-out log-loss
+`roles=0.6933` against a coin's `0.6931`, CI (0.6880, 0.6981), accuracy 0.508 — role-level winner
+prediction still ties a coin on 1.85× the data. The capability layer is team-building **vocabulary**,
+not prediction, and does not change that.
+
+**Known downstream staleness:** `xatu-context-sets.json` and CHOMP-EV are built on this artifact and
+`roles` moved with the larger corpus. Regenerate in dependency order (roles → context → CHOMP-EV)
+before quoting either.
 **Code:** `engine/roles.py` → `data/pokemon-roles.json`, `data/role-matchups.json`, `data/roles-eval.json`. Tests: `tests/test-roles.py` (19).
 
 ## WAR — Wins Above Replacement (added 2026-07-24)
@@ -252,7 +407,29 @@ not be quoted as evidence that species choice predicts outcomes.
 ## MAGNEMITE (MAG) — Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates (added 2026-07-26)
 **Job:** decide a move by looking at the other side of the field, instead of by how popular the move is.
 **Why:** the behaviour clone answers only *what does this species usually click?* Two gaps followed and no prior-tuning could close them — super-effective moves at 9.7% against a real 21.4%, moves that outright failed at 9.7% against 2.5%. It also made every `build_lab` number a measurement of what beats **bad** play.
-**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into 12 features; `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **2,240 clean open-sheet games and 48,538 decisions**; `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
+**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **53 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **6,091 clean open-sheet games and 146,910 decisions** (117,824 train / 29,086 held out); `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
+
+**Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
+taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and
+self-play policy improvement (`engine/train_policy.js`, REINFORCE with a trust region) wins **55.9%**.
+Over the same period **four separate feature additions produced four measured nulls**, and an
+overdispersion check across teams (~1.00, against 1.169 for a known real effect) says those nulls are
+genuine rather than a real effect hidden by team heterogeneity. **The objective is the binding
+constraint, not the knowledge** — which is why DODUO's next test is a retrain rather than more
+features.
+
+**Facts that reached one consumer and not the next (all fixed 2026-07-30).** Every integrity bug found
+that day had one shape. Priority blocking sat in the tag artifact read by `clickFragility` alone, so
+**Sucker Punch beat a Farigiraf in every rollout ever run**. The sheet's item and ability reached
+`switchIn` but not `switchFeatures`, the path that actually chooses the switch. A switch-in's own
+ability never reached the estimate at all: over 40,001 matchups, declaring `intimidate`, `drizzle` or
+`drought` moved the vector in **0** of them against a `levitate` control's 2,754 — so MAG weighed
+bringing Incineroar in against the foe's full Attack. Now 9,227 / 3,463 / 3,438. Modelling the drop
+alone would have been *worse than modelling neither* (Intimidate into Kingambit is +2 Attack for
+them), so the whole three-stage drop pipeline runs: Contrary inverts, Clear Body deletes, Inner
+Focus/Own Tempo/Scrappy block Intimidate by name, Guard Dog converts to +1, Mirror Armor reflects,
+Defiant and Competitive retaliate. All derived by calling the dex's own handlers against a recording
+stub — no ability or weather is named in `board.js`.
 **Nothing in it is asserted.** Every "this move cannot work now" test reads a dex **data field** — `move.status`, `move.sideCondition`, `move.pseudoWeather`, `move.weather`, `move.stallingMove` — against tracked state. No move is named anywhere in `board.js`, so a new regulation needs no edit (S13). The weights are estimated, never typed, and the realism report is never consulted during fitting — it is held back as the out-of-sample check, because it stops being evidence the moment it becomes the objective.
 **Why open team sheets:** a choice model needs the **choice set**. A normal replay reveals only moves that were *used*, so alternatives reconstructed from revelation are biased by revelation itself. Open sheets publish all four moves of all six up front.
 **Fit, held out by GAME** (decisions inside a game are correlated, so splitting by decision leaks): logL/decision **−1.6006**, top-1 **33.6%** — against the behaviour clone alone at −1.9302 / 27.1% and uniform at −1.7627 / 24.1%. In-sample −1.5997, so it is not memorising; weights identical at 200/300/500 iterations.
@@ -260,7 +437,13 @@ not be quoted as evidence that species choice predicts outcomes.
 **Most of the win was aiming.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in doubles aiming is most of what "super effective" means.
 **It samples, it does not take the best move** — a greedy bot sails past 23.4% super-effective and is *less* human. Same argument as DEFENSE §2.
 **Two findings worth keeping.** The behaviour clone alone is a *worse* probabilistic model of human choice than choosing uniformly at random, and the fit weights it at only +0.25 — it is far too confident about the popular move. And the largest learned effects are not damage terms at all, they are the "this move is already dead" terms at −2.3. Reading the board is mostly about **not clicking moves that cannot work**.
-**Honest status / what it does NOT do:** it does not decide **switches** (inherited unchanged — 8.38 per game against a real 10.67, now the largest behavioural gap); it runs **no damage calculation**, with base power and type effectiveness standing in for one; it has **no model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and ~11% of clicks could not be matched to a candidate and were dropped — mostly redirection (Follow Me, Rage Powder), where the protocol records the target that was *hit*, not the one chosen. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
+**Honest status / what it does NOT do — REWRITTEN 2026-07-30, because two of the four claims here had
+become false and were being quoted as current.** It DOES now decide switches (voluntary switches
+score through `switchFeatures`; the post-KO replacement is scored rather than rolled) and it DOES run
+a real damage calculation (`board.js` calls the damage engine throughout — `koTarget`, `killIsRoll`,
+`diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
+model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
+search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and ~11% of clicks could not be matched to a candidate and were dropped — mostly redirection (Follow Me, Rage Powder), where the protocol records the target that was *hit*, not the one chosen. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
 **Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. 58,085 usable decisions.
 **Covariate shift, corrected automatically:** open-sheet TEAMS differ from closed-sheet teams by 551.9 points of total absolute species difference (`engine/corpus_shift.js`), while measured behaviour given a board differs by at most 1.49. Every refit re-estimates on a sample reweighted to the closed-sheet species mix and reports the shift **in standard errors**. Five weights move materially — `priorLogP` 10.8 SE, `bp` 6.2 SE (sign flips) — so the **reweighted vector ships**, since MEW draws its teams from the ladder store. Board-reading weights (`eff`, `immune`, `deadStatus`) do not move.
 **Code:** `engine/board.js`, `engine/fit_policy.js`, `engine/magnemite.js`, `engine/corpus_shift.js` → `data/policy-weights.json` (both weight vectors, standard errors, and which shipped). Six assertions in `engine/selftest.js` under "board reading".

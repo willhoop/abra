@@ -138,20 +138,20 @@ does, because the simulator applies them for free.
 | `lightclay` | 3.24% | **nothing** |
 | `staraptite` | 2.72% | mega forme |
 | `whiteherb` | 2.24% | **nothing** |
-| `chopleberry` | 2.07% | *berry — not modelled* |
+| `chopleberry` | 2.07% | damage |
 | `swampertite` | 2.02% | mega forme |
-| `fairyfeather` | 1.95% | **nothing** |
+| `fairyfeather` | 1.95% | damage |
 | `metagrossite` | 1.94% | mega forme |
-| `colburberry` | 1.85% | *berry — not modelled* |
+| `colburberry` | 1.85% | damage |
 | `kasibberry` | 1.77% | *berry — not modelled* |
 | `raichunitey` | 1.73% | mega forme |
 | `charizarditey` | 1.64% | mega forme |
-| `charcoal` | 1.53% | **nothing** |
+| `charcoal` | 1.53% | damage |
 | `floettite` | 1.52% | mega forme |
 | `mawilite` | 1.38% | mega forme |
-| `roseliberry` | 1.34% | *berry — not modelled* |
-| `mysticwater` | 1.31% | **nothing** |
-| `blackglasses` | 1.30% | **nothing** |
+| `roseliberry` | 1.34% | damage |
+| `mysticwater` | 1.31% | damage |
+| `blackglasses` | 1.30% | damage |
 | `mentalherb` | 0.99% | **nothing** |
 | `sceptilite` | 0.81% | mega forme |
 | `widelens` | 0.80% | **nothing** |

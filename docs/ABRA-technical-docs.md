@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.21.0 · Last updated 2026-07-26**
+**Version 3.28.0 · Last updated 2026-07-30**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -191,6 +191,43 @@ A GitHub Action (`.github/workflows/ingest.yml`) runs the pull hourly and commit
 separate tests workflow runs the test suite and the damage validation on every push and pull request.
 
 ## 4. Explanation
+
+### 4.-1 Why additivity is the recurring failure (added 3.28.0)
+
+The same defect has now appeared at three levels of this project, and it is worth stating once
+because the fix has the same shape every time.
+
+**A sum of independent terms cannot express a conjunction.** If a score is `w1*a + w2*b`, there is no
+setting of `w1` and `w2` that makes "a AND b together" worth more than the parts. Not *scored badly*
+— **not representable**.
+
+Where it bites:
+
+| level | the thing that cannot be said | consequence |
+|---|---|---|
+| **one Pokémon** (PORY, §4.0) | "material lead matters on turn 3, not turn 25" | the neural net exists for this |
+| **two Pokémon** (MAG → DODUO) | "Protect with A while B removes the thing killing A" | independent per-slot choice; MAG aims both attacks at one foe ~50% of the time where humans do 23.4% |
+| **six Pokémon** (JOLTEON → DITTO) | "Pelipper + Archaludon is worth more than the sum" | measured: the additive species block moves the score by ~6.3 while the two non-additive terms move it by ~0.4, so hill-climbing converges on the top-6 by weight |
+
+**The literature agrees and names the boundary.** Cooperative multi-agent value factorisation (QMIX,
+Rashid et al. 2018) constrains the joint value to be *monotonic* in each agent's utility, and QPLEX
+and Weighted QMIX exist precisely because that constraint cannot represent non-monotonic
+coordination. Our case is the non-monotonic one.
+
+**But the expensive machinery does not apply here.** That literature is about avoiding enumeration
+when agents are many. With **two** Pokémon the coordination graph is a single edge, so Variable
+Elimination degenerates to enumerating the joint actions and Max-Plus message passing is unnecessary.
+Measured on a real mid-game board: **9 × 8 = 72** joint actions per side, of which only **28** have a
+non-zero interaction term — the other 44 score exactly as the sum of two singles already computed.
+
+**And the fix is not "add the interaction term", it is "fit it for the right thing."** DODUO's pair
+block exists and is fitted; it loses at 42.0% because it was fitted to *resemble human pairs* rather
+than to *win*. Expressiveness was necessary and not sufficient.
+
+**Practical rule.** Before adding a feature, ask whether the thing you want to say is a conjunction.
+If it is, no weight on an individual term will ever say it — and if the model already has the
+interaction term, check what objective it was fitted to before concluding the idea failed.
+
 
 ### 4.0 What a neural network is here, and why it is not automatically an upgrade
 
