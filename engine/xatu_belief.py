@@ -50,12 +50,16 @@ MAX_MOVES = 4          # the constraint the usage prior cannot express
 ALPHA = 0.5            # Laplace smoothing on the prior
 
 def load_games():
-    with open(STORE, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line: continue
-            try: yield json.loads(line)
-            except Exception: continue
+    """CLEAN ONLY. XATU is a belief about what a HUMAN OPPONENT is holding — which item, which
+    ability, which spread. Learned over the unfiltered store, roughly 87% of which is bots, forfeits
+    and stubs (the Garbodor rule), the prior it builds is a belief about bot teams and the name on it
+    is a lie. This is the one model in the project where training-set contamination is not a loss of
+    accuracy but a change of subject."""
+    import sys, os as _os
+    sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    import quality
+    for g in quality.load_games(clean=True):
+        yield g
 
 def split(gid):
     h = 0

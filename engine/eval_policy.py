@@ -48,14 +48,35 @@ def clicks_from_log(log):
                     out.append((sp, mv, phase(turn)))
     return out
 
+def _clean_ids():
+    """The ids quality.py accepts, so the raw LOGS can be filtered by the same gate the records are.
+
+    This file exists to validate MEDICHAM's move policy against HELD-OUT HUMAN PLAY, and it was
+    reading every protocol log in the store — ~87% of which belongs to bots, forfeits and stubs. A
+    policy graded on how well it predicts a bot's clicks is not being graded on the thing this file
+    claims to measure. The logs carry the same replay id as the records, so the clean set transfers."""
+    import sys, os as _os
+    sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    import quality
+    return {g.get("id") for g in quality.load_games(clean=True) if g.get("id")}
+
+
 def load():
     games = []
+    ok_ids = _clean_ids()
+    kept = dropped = 0
     for line in open(RAW, encoding="utf-8"):
         line = line.strip()
         if not line: continue
         try: r = json.loads(line)
         except: continue
-        if r.get("log"): games.append(clicks_from_log(r["log"]))
+        if ok_ids and r.get("id") not in ok_ids:
+            dropped += 1
+            continue
+        if r.get("log"):
+            kept += 1
+            games.append(clicks_from_log(r["log"]))
+    print("clean filter: kept %d logs, dropped %d that quality.py rejects" % (kept, dropped))
     return games
 
 def main():

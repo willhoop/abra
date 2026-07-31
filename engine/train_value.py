@@ -57,17 +57,43 @@ def trajectory(g):
         yield feats, y
 
 def load_games(paths):
-    seen = set(); games = []
+    """Training games for the value net.
+
+    THE LADDER STORE IS FILTERED, THE SELF-PLAY STORE IS NOT, and the asymmetry is deliberate. This
+    defined its own loader and screened on `g['p1'].get('bot')` — the announce-yourself flag, which
+    quality.py measures as inadequate: six unflagged high-volume accounts appear in 52.2% of the
+    games that check calls clean. On a store the Garbodor rule puts at ~87% bots, forfeits and stubs,
+    a value net trained through that filter learns what a bot's position is worth.
+
+    engine/selftest.js names this file specifically as one of three that defined a local `load_games`
+    and thereby satisfied the raw-store check by choosing a function name. That is now false: the
+    clean id set comes from quality.py.
+
+    Self-play games are passed through untouched. They are generated rather than scraped, so they are
+    clean by construction, and quality.py's rules — rating, uploader, forfeit shape — would reject
+    them for lacking fields they were never going to have. PORYGON2's flat learning curve says the
+    value net wants BETTER positions rather than more of them, and self-play is where those are.
+    """
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import quality as _quality
+    clean_ids = {g.get('id') for g in _quality.load_games(clean=True) if g.get('id')}
+    seen = set(); games = []; dropped = 0
     for p in paths:
         if not os.path.exists(p): continue
+        is_ladder = 'selfplay' not in os.path.basename(p)
         for line in open(p, encoding='utf-8'):
             if not line.strip(): continue
             g = json.loads(line); gid = g.get('id')
             if gid in seen or not g.get('winner'): continue
             seen.add(gid)
-            if g['p1'].get('bot') or g['p2'].get('bot'): continue
+            if is_ladder and gid not in clean_ids:
+                dropped += 1
+                continue
             if not (g.get('turns')): continue
             games.append(g)
+    if dropped:
+        print("  clean filter: dropped %d ladder games quality.py rejects" % dropped)
     games.sort(key=lambda g: g.get('date', ''))
     return games
 

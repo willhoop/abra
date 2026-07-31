@@ -16,11 +16,15 @@ const monCache={};
 const mon=k=>{ if(k in monCache) return monCache[k]; return monCache[k]=S.buildOne(k); };
 const team6=six=>six.map(mon).filter(Boolean);
 
-// load humans-only finished games with full sixes, temporal order
+/* CLEAN ONLY. This calibrates CHOMP's exact-damage matchup score against REAL OUTCOMES, and a
+ * calibration curve fitted over a store that is ~87% bots, forfeits and stubs (the Garbodor rule)
+ * describes how well CHOMP predicts a bot. "humans-only" below meant the announce-yourself bot flag,
+ * which quality.js measures as inadequate: six unflagged high-volume accounts appear in 52.2% of the
+ * games that exact check called clean. */
+const Q=require('./quality.js');
 let rows=[];
 const seen=new Set();
-for(const line of fs.readFileSync(STORE,'utf8').split('\n')){
-  if(!line.trim())continue; let g; try{g=JSON.parse(line);}catch(e){continue;}
+for(const g of Q.loadGames()){
   if(seen.has(g.id))continue; seen.add(g.id);
   if(!g.winner||g.p1.bot||g.p2.bot)continue;
   const a=g.six.p1.map(idn), b=g.six.p2.map(idn);

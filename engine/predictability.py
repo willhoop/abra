@@ -17,15 +17,19 @@ STORE=os.path.join(HERE,'../data/games.ladder.jsonl')
 idn=lambda s:''.join(c for c in (s or '').lower() if c.isalnum())
 
 def load():
-    seen=set(); G=[]
-    for line in open(STORE,encoding='utf-8'):
-        if not line.strip(): continue
-        g=json.loads(line); gid=g.get('id')
-        if gid in seen: continue
-        seen.add(gid)
-        if not g.get('winner'): continue
-        G.append(g)
-    return G
+    """THE CLEAN CORPUS, because every question in this file is about PEOPLE.
+
+    This read the durable store unfiltered, and roughly 87% of it is bots, forfeits and stubs (the
+    Garbodor rule). Question 1 asks how often the higher-RATED PLAYER wins; question 3 asks how often
+    the better SIDE wins. Neither means anything measured over games no human played — a bot ladder
+    account has a rating that predicts nothing about human skill, and a forfeit at turn 1 is not a
+    game anybody lost on merit. The conclusions were not slightly noisy, they were about a different
+    population than the one they named.
+    """
+    import sys
+    sys.path.insert(0, HERE)
+    import quality
+    return [g for g in quality.load_games(clean=True) if g.get('winner')]
 
 G=load()
 print(f"games in store: {len(G)}\n")

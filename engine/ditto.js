@@ -34,9 +34,17 @@ function pwin(a,b){ const fa=feat(a),fb=feat(b);
 
 // ---- meta gauntlet: real high-ladder human teams from the store ----
 function loadMeta(minRating=1300, cap=400){
+  /* THE GAUNTLET MUST BE HUMAN TEAMS, and `pl.bot` alone does not deliver them: that flag catches
+   * only accounts which ANNOUNCE themselves. quality.js measures what it misses — six unflagged
+   * high-volume accounts appearing in 52.2% of the games this exact check called clean, one of them
+   * playing 459 games with a single team.
+   *
+   * It matters more here than almost anywhere else, because DITTO OPTIMISES AGAINST this gauntlet. A
+   * contaminated one means tuning teams to beat a script's squad, which is precisely the failure that
+   * produced a meta-usage.json describing one bot's team. */
+  const Q=require('./quality.js');
   const seen=new Set(), teams=[];
-  for(const line of fs.readFileSync(path.join(D,'../data/games.ladder.jsonl'),'utf8').split('\n')){
-    if(!line.trim())continue; let g; try{g=JSON.parse(line);}catch(e){continue;}
+  for(const g of Q.loadGames()){
     for(const side of ['p1','p2']){ const pl=g[side]; if(!pl||pl.bot||(pl.rating||0)<minRating)continue;
       const six=[...new Set(g.six[side].map(idn))].sort(); if(six.length<6)continue;
       const key=six.join(','); if(seen.has(key))continue; seen.add(key); teams.push(six); }

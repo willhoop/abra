@@ -55,17 +55,33 @@ def main():
 
     # 2. build the training union (dedup by id)
     print("\n[2] building training union (ladder + self-play)...")
-    seen, n = set(), 0
+    # THE LADDER HALF OF THE UNION MUST BE CLEAN. Self-play is clean by construction — it is
+    # generated, not scraped — but the ladder store is ~87% bots, forfeits and stubs (the Garbodor
+    # rule), and this union is a TRAINING SET. Copying it in wholesale trains the value net on games
+    # no human played and then calls the result a model of the metagame.
+    #
+    # Only the ladder side is filtered; the self-play side is passed through untouched, because
+    # quality.py's rules are about scraped replays and would reject generated games for having no
+    # rating or uploader.
+    import sys as _sys
+    _sys.path.insert(0, HERE)
+    import quality as _quality
+    clean_ids = {g.get('id') for g in _quality.load_games(clean=True) if g.get('id')}
+    seen, n, dropped = set(), 0, 0
     with open(UNION, 'w', encoding='utf-8') as out:
         for src in (LADDER, SELF):
             if not os.path.exists(src): continue
+            is_ladder = (src == LADDER)
             for line in open(src, encoding='utf-8'):
                 if not line.strip(): continue
                 try: gid = json.loads(line).get('id')
                 except Exception: continue
                 if gid in seen: continue
+                if is_ladder and gid not in clean_ids:
+                    dropped += 1
+                    continue
                 seen.add(gid); out.write(line); n += 1
-    print(f"  union: {n} games -> {os.path.relpath(UNION, ROOT)}")
+    print(f"  union: {n} games -> {os.path.relpath(UNION, ROOT)}  ({dropped} ladder games dropped by quality.py)")
 
     # 3. retrain the value net on the union
     print("\n[3] retraining the learned value net on the union...")

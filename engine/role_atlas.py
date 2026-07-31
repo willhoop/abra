@@ -20,6 +20,17 @@ for m in R.PHYS: mv2r[m].add("phys_attacker")
 for m in R.SPEC: mv2r[m].add("spec_attacker")
 for m, rs in R.ROLE_OVERRIDE.items(): mv2r[m] = set(rs)      # override table is authoritative
 
+# RAW-STORE-OK. This reads the durable store UNFILTERED, deliberately, and the reason is that the
+# question here is COVERAGE rather than behaviour: the atlas exists so the tagger in engine/roles.py
+# can never drift from what actually appears in games, and a move that only ever shows up in a game
+# quality.py rejects is still a move the tagger must have an opinion about. Filtering to clean games
+# would shrink the catalogue, which is the one thing this file must not do.
+#
+# THE CONSEQUENCE, STATED RATHER THAN LEFT TO BE ASSUMED: the counts below are OCCURRENCES IN THE RAW
+# STORE, and roughly 87% of that store is bots, forfeits and stubs (the Garbodor rule). They are
+# evidence that a move is played by SOMETHING, not a measurement of what humans play. Any claim about
+# human usage must come from quality.load_games(clean=True) instead — see engine/tag_exposure.js,
+# which asks the human-usage version of this question and says so.
 use_mv, use_ab = Counter(), Counter()
 for line in open(D("data","games.ladder.jsonl"), encoding="utf-8"):
     line = line.strip()

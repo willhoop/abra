@@ -418,7 +418,15 @@ check('every raw reader of the ladder store declares why', () => {
        * by having chosen the name. Found by engine/forced_switch_audit.js tripping it on 2026-07-30. */
       const definesOwnCorpus = /(^|\n)[ \t]*(?:function[ \t]+loadCorpus[ \t]*\(|const[ \t]+loadCorpus[ \t]*=|def[ \t]+load_corpus[ \t]*\()/.test(src);
       const borrowsTheCleanCorpus = /loadCorpus|load_corpus/.test(src) && !definesOwnCorpus;
-      const filters = importsQuality || otherFilterIdiom || borrowsTheRealLoader || borrowsTheCleanCorpus;
+      /* eval_harness.load_with_ratings is a third clean entry point, and not recognising it reported
+       * engine/calibrate.py as an offender while it was correctly filtered. It calls
+       * store.load_games(clean=...) — the behavioural bot detector included — and returns rows with
+       * ratings attached. Same structural guard as the two above: naming a function you defined
+       * yourself must not buy a pass. */
+      const definesOwnRatings = /def\s+load_with_ratings\s*\(/.test(src);
+      const borrowsRatingsLoader = /load_with_ratings/.test(src) && !definesOwnRatings;
+      const filters = importsQuality || otherFilterIdiom || borrowsTheRealLoader
+                      || borrowsTheCleanCorpus || borrowsRatingsLoader;
       const declares = /RAW-STORE-OK/.test(src);
       /* MENTIONING THE PATH IS NOT READING IT.
        *

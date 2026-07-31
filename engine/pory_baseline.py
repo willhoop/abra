@@ -66,6 +66,18 @@ def rows():
     if not os.path.exists(RAW):
         print(f"raw archive missing at {RAW}")
         return out
+    # CLEAN ONLY. This file asks whether PORY is a finding or arithmetic — it is the honest baseline
+    # that decides whether a value model beats counting Pokemon. Measured over the unfiltered archive,
+    # ~87% of which is bots, forfeits and stubs (the Garbodor rule), BOTH the model and the baseline
+    # are scored on games no human played, and the comparison that is supposed to keep this project
+    # honest is itself measuring the wrong population.
+    #
+    # The protocol logs carry the same replay id as the records, so the clean set transfers directly.
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import quality as _quality
+    clean_ids = {g.get("id") for g in _quality.load_games(clean=True) if g.get("id")}
+    dropped = 0
     import io
     with io.open(RAW, encoding="utf-8") as fh:
         for line in fh:
@@ -75,6 +87,9 @@ def rows():
             try:
                 rec = json.loads(line)
             except Exception:
+                continue
+            if clean_ids and rec.get("id") not in clean_ids:
+                dropped += 1
                 continue
             log = rec.get("log") or ""
             if "|win|" not in log:
