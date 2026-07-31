@@ -326,8 +326,24 @@ to the losing one.
 >
 > **FIX, QUEUED (board.js was in use by the head-to-head, per the no-edit-during-a-run rule):** extend
 > `freeSpread` to treat the partner candidate as sparing the ally when it is a protect-family move.
-> `PROTECTMOVES` and `tgtMayProtect` already exist, so nothing is typed in. **Also check Wide Guard**,
-> which blocks spread moves aimed at its own side and may be the same case or its opposite — untested.
+> `PROTECTMOVES` and `tgtMayProtect` already exist, so nothing is typed in.
+>
+> **WIDE GUARD: RESOLVED, and it is BOTH cases depending on whose side it is on.** On MY side it
+> spares my partner from my own spread move exactly as Protect does. On the FOE side it blocks my
+> spread move outright, which is an anti-synergy and belongs in the dead-move tests, not here.
+>
+> **THE FULL SET IS DERIVED, NOT TYPED** — probe each candidate move's volatile/side condition by
+> calling its real `onTryHit` against the actual spread move, the same technique `entryEffects` and
+> `speedStub` already use. Measured 2026-07-31:
+>
+> | spares the ally (10) | excluded, and why |
+> |---|---|
+> | Protect, Detect, Spiky Shield, Baneful Bunker, Burning Bulwark, Silk Trap, King's Shield, Obstruct, Wide Guard, Mat Block | **Quick Guard** — priority only; **Crafty Shield** — status only; **Endure** — no `onTryHit` at all, it prevents FAINTING, not damage |
+>
+> Three flag-based shortcuts were tried and are all WRONG, recorded so they are not retried:
+> `stallingMove` admits **Endure**; the presence of `onTryHit` admits **Quick Guard and Crafty
+> Shield**; `target === 'allySide'` admits both of those and misses every self-targeting Protect.
+> Only running the handler against the move separates them.
 >
 > **This weakens the interpretation of the head-to-head now running.** Both arms share the same
 > detector, so the comparison is still fair, but neither arm can express the coordination pattern the
