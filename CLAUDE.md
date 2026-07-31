@@ -178,6 +178,32 @@ error, twice: trained under one set of capabilities, deployed under another.
 ABRA produces `meta-usage.json`; CHOMP reads it to infer real leads/sets. When ABRA improves, CHOMP
 gets smarter without a plugin change.
 
+## "KNOWN FAILURE" IS A BANNED PHRASE
+
+A red test is never a status. It is either **fixed in the session that saw it red**, or **waived by
+Will, by name, out loud**. There is no third state, and reporting one is what this rule exists to
+stop.
+
+*(Will, 2026-07-30: "HOW WAS CLAUDE.MD JUST BEING IGNORED")*
+
+The rule below — living docs move in the same pass as the code — was written, was given a guard
+(`tests/test-docs-current.js`, built 2026-07-25), and was broken anyway for two consecutive days
+across ~40 commits. **The guard was not missed. It was red on every run and reported as "one of the
+two known failures."** Naming it *known* is what made it acceptable; each report made the next one
+easier. The docs then fell four days behind the code, and the next session mischaracterised the whole
+model family because of it — DODUO called unbuilt when it had been built, wired, controlled and
+measured at 42.0%; MEDICHAM audited in its graveyard version; pruning "proposed" that
+`fit_joint.js` already implemented.
+
+This is the same lesson as `engine/artifact_audit.js`: **a check nobody acts on is not a check.** A
+new gate was registered on 2026-07-30 to prevent silent regression while an existing gate sat red
+beside it.
+
+No pre-commit hook enforces this, deliberately. The failure was normalisation, not invisibility, and
+a blocking hook would collide with the auto-commit timer described at the top of this file — the
+exact hazard that section exists to prevent. The enforcement is this sentence: **say the test is red
+and what you are doing about it, or fix it. Never file it.**
+
 ## Living docs — update these EVERY change (do not let them drift)
 Any change to a model, a result, or the site updates ALL of the following in the **same pass**, each
 with its matching PDF where applicable, plus a CHANGELOG entry and a version bump:

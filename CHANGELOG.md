@@ -10,6 +10,140 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.28.0] — 2026-07-30
+
+### The finding that should govern what gets built next
+
+Four experiments added KNOWLEDGE to the feature vector. All four measured a null. Two experiments
+changed how the policy is USED. Both were large wins:
+
+| change | kind | result |
+|---|---|---|
+| taking the best move instead of sampling it | how it is used | **+12 points raw, 79.7% of decisive pairs** |
+| self-play policy improvement over the clone | how it is used | **55.9%** |
+| four separate feature additions | knowledge | four nulls |
+
+The nulls were tested for the obvious confound and survived it: an overdispersion check across teams
+gives ~1.00 where a known real effect gives 1.169, so the nulls are genuine rather than a real effect
+hidden by team heterogeneity.
+
+**The constraint is the OBJECTIVE, not the KNOWLEDGE.** Search is a change to how the policy is used,
+which is the category that has actually paid, and it is now the ranked next build.
+
+### A class of bug: the fact reached one consumer and not the next
+
+Every integrity bug found on 2026-07-30 was one shape — a fact living in the artifact, correctly read
+by one file, and never reaching the file that makes the decision.
+
+- **Priority blocking.** Armor Tail, Queenly Majesty, Dazzling and Psychic Terrain sat in the tag
+  artifact, read by `clickFragility` and by nothing else. **Sucker Punch beat a Farigiraf in every
+  rollout and every self-play game ever run.** A blocked move FAILS; it does not go second.
+- **The sheet's ITEM and ABILITY** reached `switchIn` and not `switchFeatures` — the path that
+  chooses the switch. A Choice Scarf switch-in read at two thirds of its speed.
+- **The sheet's MOVES** reached `dmgMon` and not `position_features`, so every Pokemon was valued on
+  the dataset's average moveset rather than the one it declared.
+- **Mega formes** were never applied under node at all.
+
+### Switch-in abilities reach the path that CHOOSES
+
+Measured before fixing, over 40,001 switch-in matchups, changing ONLY the declared sheet ability:
+
+| declared | matchups where the vector moved |
+|---|---|
+| `levitate` (control, known-wired) | 2,754 |
+| `intimidate` | **0** |
+| `drizzle` | **0** |
+| `drought` | **0** |
+
+MAG weighed bringing Incineroar in against the foe's FULL Attack, and weighed a rain setter with the
+Water damage it is about to enable left out.
+
+Modelling the drop alone would have been **worse than modelling neither** (Will: *"does it also proc
+defiant and competitive when it switches in"*) — Intimidate into Kingambit is not a free -1 Attack,
+it is +2 Attack for them. A stat drop is a three-stage pipeline on the TARGET's ability and all three
+now run: `onChangeBoost` (Contrary inverts, Simple doubles), `onTryBoost` (Clear Body deletes; Inner
+Focus / Own Tempo / Scrappy block Intimidate BY NAME; Guard Dog converts to +1; Mirror Armor reflects
+it back), `onAfterEachBoost` (Defiant +2 Atk, Competitive +2 SpA).
+
+Derived by calling the dex's own handlers against a recording stub. No ability and no weather is
+named in `board.js`. **After: intimidate 9,227 of 40,001, drizzle 3,463, drought 3,438.**
+
+### Every mega had no ability, no moves and no item — 26.0% of the format
+
+`data/mega-dex-official.json` carried an ability for all 340 formes and `merge_mega_into_engine.js`
+existed to apply them, while `data/engine-data.js` had `ab: null`, `mv: []`, `item: null` on all 57
+mega entries. The two files disagreed on how to spell a key (`venusaurmega` vs `venusaur-mega`), so
+**zero of the builder's 67 writes ever matched**, and a later wholesale regeneration left the nulls.
+
+**The empty `mv` was the expensive half.** `buildMon` returned a Pokemon with no moves, so
+`incomingThreat` found no attack, scored `best = 0`, and reported **every mega as threatening
+NOTHING** — `switchSurvives` read "survives" against all of them and `switchDiesFirst` could never
+fire. No Contrary on Staraptor-Mega (428,748 usage), no Drought on Charizard-Mega-Y, no Swift Swim on
+Swampert-Mega, no Huge Power on Mawile-Mega.
+
+289 → 308 species, 75 mega formes complete, 0 duplicate keys.
+
+### Post-KO replacement, and Run and Bun's conjunction
+
+Replacement after a KO was a coin flip. It is now scored, per foe rather than collapsed into a max
+(Will: *"score that for both pokemon against both other mons"*), with one rule covering every case:
+
+    hits = (voluntary ? 1 : 0) + (slower ? 1 : 0)
+
+So the SAME slow candidate reads as dying when the switch is voluntary and as surviving when it is a
+forced replacement. Three new features — `switchKOFast`, `switchKOSlow`, `switchDiesFirst` — are
+mutually exclusive per foe, with "survives and has no kill" left as the reference level.
+
+### Clean-data discipline: 11 raw-store violations → 0
+
+Not one problem. One was a **false positive** (`calibrate.py` reaches the store through a third clean
+entry point the checker did not know); one is a **legitimate raw read** (`role_atlas.py` builds a
+COVERAGE catalogue, where filtering shrinks the thing that must not shrink, now declared
+`RAW-STORE-OK`); nine were genuine.
+
+`predictability.py`'s answer moved materially once cleaned: at a 100–200 rating gap the higher-rated
+player wins **53.8%** where Elo predicts 65.9%. In `flywheel.py` and `train_value.py` only the LADDER
+half is filtered — self-play is clean by construction and quality.py would reject it for lacking
+fields it was never going to have.
+
+### JOLTEON: from worse-than-a-coin to predictive
+
+Retrained on self-play rather than the contaminated ladder store. DITTO consumes its weights.
+
+### Two rules added to CLAUDE.md
+
+- **FEATURES ARE PER-MODEL. FACTS ARE GLOBAL.** The models answer differently-shaped questions and
+  must not share a feature vector; they must never each own a FACT about the game. Enforced by
+  `tests/test-engine-consistency.js`.
+- **A DERIVED ARTIFACT IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE.** The mega hole was
+  invisible for as long as nobody ran a check. Enforced by `engine/artifact_audit.js`, registered as
+  a gate.
+
+### Measurement tools that were themselves wrong
+
+- **`paired_h2h` attributed wins by POLICY NAME** and reported **100.0%** on a valid experiment. Now
+  attributed by `winnerArm`; it refuses (exit 2) when the arms are indistinguishable, and labels each
+  arm with its own flags.
+- **`mew_farm` ate the workers' capability accounting**, which meant a 117k-game measurement could
+  not prove the lever under test was even on.
+- **`artifact_audit.js` shipped with two false positives of its own**, both fixed before landing: it
+  first cleared the broken builder by averaging over rows that builder skips, then cried wolf forever
+  after the fix by comparing raw key spellings instead of asking whether the artifact holds
+  duplicates.
+
+### Also
+
+- `engine/position_features.js` — 16 features for what a POSITION is worth, with the damage engine
+  finally pointed at it.
+- `engine/train_policy.js` — the self-play improvement loop, closing the clone→farm→refit cycle.
+- `app/scoreboard.html` + `build/build_scoreboard.js` — scores computed in node by the real engine and
+  shipped as data, so the page renders a decision as an argument rather than a number.
+- PORYGON2 retrained on open-sheet greedy self-play: **a clean null** (63.8% vs 63.6%). The
+  closed-sheet-training-set hypothesis is refuted, stated plainly.
+- `PORYGON2_MAXTRAIN` (default 120,000, uniform subsample) after an OOM that asked for 34.7 GiB.
+
+---
+
 ## [3.27.0] — 2026-07-28
 
 ### The GARBODOR guard had a false negative, and a CHOMP input was built on the raw store

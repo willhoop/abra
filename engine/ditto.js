@@ -14,7 +14,17 @@
  */
 const fs=require('fs'), path=require('path');
 const S=require('./sets.js');
-const { winProb } = require('./medicham.js');
+/* THE REFEREE IS THE DOUBLES ENGINE NOW, and it was the weak half of DITTO all along.
+ *
+ * This called v2's `winProb` — a 1v1 sequential-singles rollout, in a DOUBLES format. So the
+ * "grounded rollout" that was supposed to catch JOLTEON Goodharting itself was judging four-Pokemon
+ * teams as a chain of one-on-ones, with no spread damage, no redirection, no Protect and no
+ * positioning. v3's own header gives the reason it replaced v2: the old engine "was a 1v1 OHKO
+ * chain, which collapses to speed-deterministic 0/100 results."
+ *
+ * `winProb2` takes SPECIES NAMES rather than pre-built teams, so the set-building below is now the
+ * engine's job rather than this file's. v2 lives in engine/graveyard/. */
+const { winProb2 } = require('./medicham2-browser.js');
 const idn=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const D=__dirname;
 
@@ -84,8 +94,14 @@ function optimise(seed,pool,passes=3){ let team=seed.slice(), best=objective(tea
 
 // ---- MEDICHAM finalist re-rank (native, coarse-to-fine) ----
 function medichamRank(candidates, foes, N=150){
-  return candidates.map(six=>{ const A=S.team6(six.slice(0,4));
-    const ps=foes.map(f=>{ const B=S.team6(f.slice(0,4)); return (A.length>=2&&B.length>=2)?winProb(A,B,N):null; }).filter(x=>x!=null);
+  /* Names straight through: winProb2 builds its own doubles teams, so the S.team6 round-trip that
+   * v2 required is gone. The length guard stays — a four-slot bring with fewer than two buildable
+   * Pokemon is not a matchup, and it must read as "no answer" rather than as a win rate. */
+  return candidates.map(six=>{ const A=six.slice(0,4);
+    const ps=foes.map(f=>{ const B=f.slice(0,4);
+      if(S.team6(A).length<2 || S.team6(B).length<2) return null;
+      try{ return winProb2(A,B,N); }catch(e){ return null; }
+    }).filter(x=>x!=null);
     return { six, med: ps.length?mean(ps):null, jolt:score(six) };
   }).sort((a,b)=>(b.med??-1)-(a.med??-1));
 }

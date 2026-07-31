@@ -150,35 +150,117 @@ an unknown team, which is the defining difficulty of the closed-sheet ladder.
 
 ---
 
+## 2.6 Closed since this list was written (2026-07-29 → 30)
+
+Items 3, 4 and 5 below have shipped. Recorded rather than deleted, because a roadmap that quietly
+drops its own entries cannot be audited.
+
+- **"Give MAG a damage calculation, and a KO check both ways"** — DONE. `board.js` calls the real
+  damage engine throughout; `koTarget`, `killIsRoll`, `diesBeforeMoving` and the switch-survival
+  features all read it.
+- **"Score both Pokémon together"** — BUILT AND MEASURED, and it **lost**: 42.0% [39.9, 44.3] over
+  1,934 paired games, 28.4% of decisive pairs, against its own zeroed control. The imitation fit is
+  refuted; the idea is not. Now item 1 below.
+- **"Switching"** — no longer a coin flip. Voluntary switches score through `switchFeatures`, the
+  post-KO replacement is scored rather than rolled, and `entryHits = forced ? 0 : 1` separates the
+  two cases.
+
+**A process failure that caused real damage, recorded so it is not repeated.** On 2026-07-30 the
+model family was repeatedly mischaracterised in conversation — DODUO described as unbuilt when it had
+been built, wired, controlled and measured; MEDICHAM audited in its graveyard version; top-K pruning
+"proposed" when `fit_joint.js` already had it. Cause: two full days and ~40 commits of work existed
+in NO document. `MODELS.md` was last written 2026-07-28; every other living doc 2026-07-26. The only
+reason DODUO's verdict was findable at all is that its experiment happened on the one day `MODELS.md`
+was touched. **CLAUDE.md requires the docs to move in the same pass as the code. They did not.**
+
+---
+
 ## 3. NEXT — in order, with the reason each is next
 
-**1. Regenerate the 28 unsafe artifacts.** Nothing built on them can be trusted, so this precedes
-everything. Mechanical, not clever.
+**1. DODUO trained for WINNING, not for resemblance.** *The most precise open question in the
+project.* DODUO is fully built: `fit_joint.js` fits the pair block, `magnemite.js` plays it
+(`--joint`), `--joint-zero` is a true control running the whole pair path with only the coordination
+weights zeroed, top-K is capped, and fallbacks are counted in `stats.jointFellBack`. It lost at
+42.0%, and the fit itself says why — it prices `spreadFreeBesideAlly` at **−5.054**, which means
+*humans rarely click this*, not *this is bad*. A bot told to avoid a free spread move beside its own
+ally by −5 will decline its best plays.
 
-**2. Finish the conformance burn-down.** 13 artifacts that do not say they are generated, 13 files
-missing the header convention, one undeclared constant, one dead-code decision.
+2026-07-30 established the pattern that makes this item one: **four knowledge additions produced four
+nulls; two changes to the OBJECTIVE produced two large wins** (greedy +12 points / 79.7% of decisive
+pairs; self-play 55.9%). The objective is the binding constraint, and DODUO has only ever been fitted
+to the losing one.
 
-**3. Give MAG a damage calculation, and a KO check both ways.** The strongest evidence for this is
-already in hand: the winning counter-policy raised "finish something hurt" from +0.34 to +2.75 — it
-was straining toward a KO signal through the only crude proxy available. *Will this kill it* and
-*will I be killed* are facts, and facts are free.
+*The gap is small and exact.* `train_policy.js` has no joint support, and `magnemite.js`'s learning
+gradient is sized to `this.w` (53 singles) while the joint vector is `this.wj` (53 + 21 = 74). The
+pair softmax is the same conditional logit and `accumulateLogitGrad(g, vecs, probs, j, nW)` is
+already generic — this is wiring, not a new model.
 
-**4. Score both Pokémon together.** Measured prize: humans aim both attacks at the same foe 23.4% of
-the time where independent choice gives ~50%, and MAG is at the 50% end. Follow Me is followed by a
-partner attack 97% of the time and MAG cannot represent that at all.
+*A trap already paid for once:* `fit_joint` fits its single block and its pair block TOGETHER, and 23
+of 48 features carry opposite signs between that fit and the shipped one. Mixing the two vectors lost
+31.2% on decisive pairs and would have been reported as "coordination does not help."
 
-**5. Switching.** Still a coin flip; 8.4 per game against a human 10.7.
+**2. Choice lock in the candidate set.** Exact, free, and a FITTING BUG rather than only a prune.
+Live play is safe — Showdown's request marks the other moves `disabled` — but `fit_policy.js` hands
+`candidates()` all four sheet moves with no legality filter, so a choice-locked human appears to have
+had 9 options when they had 4, and the conditional logit's denominator contains five actions that
+were never available. **6.52% of items in this format.** The dex flags `choiceband`, `choicespecs`
+and `choicescarf` with `isChoice`, so nothing is typed in; the board already tracks `item` and
+`lastMove`, and a fresh switch-in has `lastMove: ''`, so "not locked on the turn it arrives" falls
+out with no turn counter. **Do this BEFORE re-measuring DODUO**, or the denominator is wrong in both
+arms.
 
-**6. Branch scoring with a mixed strategy.** Enumerate the plausible turns, play each out in the real
-engine, evaluate, and solve for a *mixture* rather than always taking the best. A deterministic
-policy is exploitable by construction — that is measured, not theoretical. SLOWKING's regret
-matching already does this mathematics at team preview; nobody has pointed it at a turn.
+**3. Re-run WOBBUFFET against the current vector.** *(Will, 2026-07-30: put this back on the list.)*
+Its result is still the most important number in the repo and it is three feature-generations stale:
+a counter found in forty minutes beat MAG **63.2%** [56.6, 69.3] on the 17-feature vector, mirror
+control 47.5%. That challenger was not rock-paper-scissors — it was a better player drawn from the
+same features and optimised for wins rather than resemblance, which is item 1's lesson in another
+form. `engine/exploit.js --target <weights.json>` can now be pointed at DODUO, so the EXPLOITABILITY
+argument for coordination — the one the 42.0% result explicitly does not settle — can finally be
+tested instead of argued.
 
-**7. Retrain PORY on clean data.** Branch scoring needs a position evaluator, and that is the job.
-Until then the honest evaluator is counting what is alive and how healthy.
+**4. MACHAMP, re-run on the current vector.** *(Will, 2026-07-30: keep it.)* Half-run and stale: the
+2026-07-26 run completed 2 of 6 generations on a **17-feature** vector and recorded no verdict; the
+vector is now 53. Its METHOD is alive — champion/challenger promotion behind a Wilson interval is the
+same win-objective idea `train_policy.js` now implements by policy gradient. Keep the guard that made
+it honest: every promoted champion plays EVERY previous generation, because this metagame is cyclic
+and "gen 5 beats gen 4" is not progress.
 
-**8. Measure exploitability again, against the mixed-strategy version.** This is the test that says
-whether the project has moved from *plays okay* onto the branch that can approach *solved*.
+**5. Branch scoring with a mixed strategy** — the research is done, so this is no longer vague.
+Measured on a real mid-game board: **9 × 8 = 72 joint actions per side, 72 × 72 = 5,184 matrix
+cells.** The 10¹² figure from VGC-Bench is the game TREE, not one turn.
+
+- Only **28 of 72** pairs have a non-zero joint vector. The other **44 are free** — their score is
+  exactly the sum of two singles already computed.
+- With two Pokémon the coordination graph is a SINGLE EDGE, so Variable Elimination reduces to
+  enumerating the 72 pairs and Max-Plus is unnecessary. The MARL factorisation literature (QMIX,
+  QPLEX, Weighted QMIX) exists to avoid enumeration at many agents, which is not our problem.
+- What that literature DOES tell us: QMIX's monotonicity constraint cannot represent non-monotonic
+  coordination — exactly "Protect while my partner removes the threat." Independent per-slot scoring
+  cannot express it either. Not "scores it badly": cannot express it.
+- Pruning order matters. Structural prunes (choice lock, spread moves with no target, immunities) are
+  exact and happen BEFORE scoring. Score-based top-K is circular for the 72 and only pays for the
+  5,184.
+- Pokémon is SIMULTANEOUS-move, so the answer at a node is a mixed strategy, not an argmax. Minimax
+  is the wrong algorithm; this is poker-shaped. SLOWKING's regret matching already does this
+  mathematics at team preview and nobody has pointed it at a turn.
+
+**6. A leaf evaluator, so depth > 1 is affordable.** `position_features.js` (16 features) plus PORY
+retrained on clean data. Without it every node rolls to the end; with it, depth 2 is 625 cheap
+evaluations.
+
+**7. Retire the second scorer in `app/index.html`.** It assigns **21 of 53 features**; 32 are never
+written and silently read 0, and 7 of the 21 disagree with the engine outright. This is the "facts are
+global" rule broken inside the UI. `app/scoreboard.html` already does it correctly by rendering
+engine-computed values. The real fix is to ship the actual engine to the browser —
+`medicham2-browser.js` already runs in both, and `board.js` has no top-level requires; the only
+blocker is one `process.env` read at module scope.
+
+**8. Bring the five living docs current, and keep them current.** Whitepaper, deck, technical docs,
+SUMMARY and MODELS are at 3.21.0 against a CHANGELOG at 3.28.0. Not a version bump — see the process
+failure recorded in 2.6.
+
+**9. Measure exploitability again, against the mixed-strategy version.** The test that says whether
+the project has moved from *plays okay* onto the branch that can approach *solved*.
 
 **9. External validation.** Our bots grading each other cannot establish competence. The two real
 scoreboards are the Bo3 open-sheet ladder — where the hidden-information problem does not exist and
