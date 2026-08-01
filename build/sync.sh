@@ -64,11 +64,31 @@ for attempt in 1 2 3 4 5; do
     git status | grep -q "rebase in progress" || break
     conf="$(git diff --name-only --diff-filter=U)"
     if [ -n "$conf" ]; then
+      # ONLY AN APPEND-ONLY STORE MAY BE AUTO-RESOLVED, and only it may be staged.
+      #
+      # `git add "$f"` used to sit OUTSIDE this case, so every conflicted file was staged while only
+      # *.jsonl had its markers stripped. A conflicted data/live.js — loaded by every page on the
+      # site — would be committed and pushed with '<<<<<<<' still in it. Whole-repo review,
+      # 2026-07-31.
+      #
+      # Union-merging by dropping the marker lines is correct for games.*.jsonl because the store is
+      # append-only and de-duplicated afterwards: both sides' records are wanted. It is wrong for
+      # everything else, where the two sides are competing versions of the same thing and only a
+      # human knows which. So anything else stops the rebase rather than being guessed at.
       for f in $conf; do
         case "$f" in
-          *.jsonl) grep -v '^<<<<<<<\|^=======\|^>>>>>>>' "$f" > "$f.tmp" && mv "$f.tmp" "$f" ;;
+          *.jsonl)
+            grep -v '^<<<<<<<\|^=======\|^>>>>>>>' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+            git add "$f"
+            ;;
+          *)
+            echo "  CONFLICT in a file that is NOT an append-only store: $f"
+            echo "  Auto-resolving it would stage conflict markers into a file the site loads."
+            echo "  Aborting the rebase; nothing has been staged or pushed. Resolve by hand."
+            git rebase --abort >/dev/null 2>&1
+            exit 1
+            ;;
         esac
-        git add "$f"
       done
     fi
     GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || GIT_EDITOR=true git rebase --skip >/dev/null 2>&1

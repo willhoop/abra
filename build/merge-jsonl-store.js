@@ -37,22 +37,63 @@ const fs = require('fs');
 
 const [O, A, Bp, P] = process.argv.slice(2);
 
+/* AN UNREADABLE FILE IS NOT AN EMPTY FILE, and conflating them is how this script could destroy the
+ * store. The old version was `catch (e) { return m; }` with m empty — so a permissions error, a
+ * transient lock, or a wrong path made OUR side look like zero records, the union became THEIRS
+ * alone, and the local store was silently replaced. It then exited 0.
+ *
+ * ENOENT is the one legitimate case (a first run, or a store that does not exist on this machine).
+ * Everything else throws. Whole-repo review, 2026-07-31. */
 function read(path) {
   const m = new Map();
   let text;
-  try { text = fs.readFileSync(path, 'utf8'); } catch (e) { return m; }
+  try { text = fs.readFileSync(path, 'utf8'); }
+  catch (e) {
+    if (e && e.code === 'ENOENT') return { map: m, existed: false, lines: 0 };
+    throw new Error(`merge-jsonl-store: cannot read ${path} (${e.code || e.message}). ` +
+      'Refusing to treat an unreadable store as an empty one.');
+  }
+  let lines = 0;
   for (const line of text.split('\n')) {
     if (!line.trim()) continue;
+    lines++;
     let g;
     try { g = JSON.parse(line); } catch (e) { continue; }
     if (!g || !g.id) continue;
     const prev = m.get(g.id);
     if (!prev || line.length > prev.length) m.set(g.id, line);
   }
-  return m;
+  return { map: m, existed: true, lines };
 }
 
-const ours = read(A), theirs = read(Bp);
+const oursR = read(A), theirsR = read(Bp);
+const ours = oursR.map, theirs = theirsR.map;
+
+/* THE REAL GUARD, because the old one could not fire. It compared the union against its own inputs:
+ * `out` starts as a copy of `ours` and only ever grows, so `out.size < ours.size` is impossible and
+ * `out.size < theirs.size` is impossible too — every id in theirs is added when missing. The check
+ * labelled "the one thing this must never do" was a tautology and had never once protected anything.
+ *
+ * What can actually go wrong is PARSING: a file with content whose records all fail to parse yields
+ * an empty map, and an empty map merges away silently. So the comparison is against the raw line
+ * count on disk, which is the only number the parser cannot manufacture. */
+for (const [label, r, file] of [['ours', oursR, A], ['theirs', theirsR, Bp]]) {
+  if (!r.existed) continue;
+  if (r.lines > 0 && r.map.size === 0) {
+    process.stderr.write(`merge-jsonl-store: REFUSING — ${file} has ${r.lines} non-empty lines but ` +
+      `produced 0 usable records (${label}). Every line failed to parse or carried no id; merging ` +
+      'would drop all of them. Resolve by hand.\n');
+    process.exit(1);
+  }
+  /* A large parse loss is not proof of corruption, but it is never normal, and the store is
+   * append-only so it cannot legitimately shrink. Half is a wide margin around duplicate ids. */
+  if (r.lines > 100 && r.map.size < r.lines * 0.5) {
+    process.stderr.write(`merge-jsonl-store: REFUSING — ${file} has ${r.lines} lines but only ` +
+      `${r.map.size} usable records (${label}). More than half were unparseable or id-less.\n`);
+    process.exit(1);
+  }
+}
+
 const out = new Map(ours);
 let added = 0, upgraded = 0;
 for (const [id, line] of theirs) {
@@ -65,9 +106,12 @@ for (const [id, line] of theirs) {
  * parse dropped records and writing the result would destroy history. Fail instead and leave git to
  * raise the conflict the ordinary way — a stopped merge is recoverable, a quietly truncated store
  * is not. */
+/* Kept as an assertion of the invariant rather than as a guard: it cannot fire given the loop above,
+ * and saying so is better than implying a protection that does not exist. If it ever DOES fire, the
+ * merge logic itself has changed and that is worth stopping for. */
 if (out.size < ours.size || out.size < theirs.size) {
-  process.stderr.write(`merge-jsonl-store: REFUSING ${P || A} — union ${out.size} is smaller than ` +
-    `ours ${ours.size} / theirs ${theirs.size}. Resolve by hand.\n`);
+  process.stderr.write(`merge-jsonl-store: INVARIANT BROKEN — union ${out.size} is smaller than ` +
+    `ours ${ours.size} / theirs ${theirs.size}. The merge loop no longer only grows the set.\n`);
   process.exit(1);
 }
 
