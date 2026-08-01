@@ -1,0 +1,17 @@
+{
+  "note": "Name-keyed lookup tables whose keys are NOT all flat-lowercase, and therefore CAN be missed by a caller that normalises. Each names the one function allowed to read it. Generated-empty is not the goal: the goal is that every entry here is deliberate. A table with flat-lowercase keys needs no entry, because norm() cannot miss it. See docs/ARTIFACT-ACCESS-RULES.md and tests/test-artifact-keys.js.",
+  "accessors": {
+    "engine-data.js:MC.mons": {
+      "accessor": "engine/mc_key.js",
+      "why": "Keys formes with a hyphen (rotom-wash, slowking-galar) while the project's norm() strips punctuation. 101 of 308 entries were unreachable for weeks, covering 8.17% of observed metagame usage, and it failed silently because a missing key reads as 'never seen this Pokemon'. tests/test-mc-key.js bans hand-rolled lookups into it."
+    },
+    "porygon2-species.json:mons": {
+      "accessor": "engine/porygon2.py",
+      "why": "Same hyphenated forme keys as MC.mons, so the same mismatch is possible in principle. It has exactly ONE consumer, which also GENERATES the file, so its keys and its lookups cannot diverge today. Listed rather than ignored because a second consumer is precisely the moment this becomes the MC.mons bug again — and at that point this entry is the warning."
+    },
+    "scoreboard.json:labels": {
+      "accessor": "app/index.html",
+      "why": "Capitalised keys, but they are DISPLAY LABELS rendered to the page, not identifiers anything looks up by a derived name. Recorded so the detector stays green honestly rather than by narrowing its rule."
+    }
+  }
+}

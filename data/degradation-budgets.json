@@ -1,0 +1,26 @@
+{
+  "note": "Ceilings on how often each degradation path may fire. Measured, never chosen. A budget may only be TIGHTENED — loosening one is a decision that must be argued for here, not edited quietly. See tests/test-degradation-budgets.js.",
+  "workload": "first 120 clean open-sheet corpus games, scored as fit_policy scores them",
+  "budgets": {
+    "board.dmgMon.unknownSpecies": {
+      "max_rate": 0.0842,
+      "measured_at": "335/3980 over 120 corpus games",
+      "what": "candidate scorings where the damage engine could not identify a Pokemon, so every damage-derived feature silently read zero",
+      "target": 0.001,
+      "target_note": "A CEILING IS NOT AN ACCEPTABLE STATE. 8.42% is what the code does today, recorded so it cannot get worse. Of the 7 species still unresolvable on real sheets, 67 of 69 occurrences are COSMETIC formes -- Sinistcha-Masterpiece, Maushold-Four, four Vivillon patterns -- which have identical base stats AND identical types to their base species, so falling back to the base is provably harmless for damage. Gourgeist-Super (stats differ) and any regional forme (stats and types differ) must NOT fall back. That rule is derivable from the dex and is the specified next fix; it should bring this under 0.1%."
+    },
+    "board.dmgMon.engineUnavailable": {
+      "max_rate": 0,
+      "measured_at": "0/3980 over 120 corpus games",
+      "what": "candidate scorings with no damage engine at all",
+      "target": null
+    },
+    "sheet.speciesUnresolvable": {
+      "max_rate": 0.0209,
+      "measured_at": "30/1440 over 120 corpus games",
+      "what": "Pokemon on real open team sheets that mcKey cannot resolve to a damage-engine entry",
+      "target": 0.001,
+      "target_note": "Same cosmetic-forme fix as above."
+    }
+  }
+}
