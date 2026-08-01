@@ -70,7 +70,14 @@ const testFiles = fs.readdirSync(D('tests'))
  * red, the fix is to REGENERATE the artifacts it names — not to remove it from this list. */
 const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_audit.js',
   'engine/validate_damage.js', 'engine/validate_damage_sim.js', 'engine/provenance.js',
-  'engine/validate_selfplay.js'];
+  'engine/validate_selfplay.js',
+  /* engine/sanity_check.py — 96 assertions, called MANDATORY in the handoff docs, and it was in no
+   * suite. The runner has always been able to execute .py (it resolves an interpreter and skips
+   * cleanly when none exists); this list simply never named it, so the cross-consistency checks that
+   * tie the docs to the artifacts ran only when somebody typed the command by hand. That is how a
+   * published PORY log-loss of 0.567 survived while the artifact said 0.6321. Whole-repo review,
+   * 2026-07-31. */
+  'engine/sanity_check.py'];
 
 /* COVERAGE ASSERTION. Any file in engine/ that reports its own pass/fail summary is a check, and a
  * check that nothing runs is worse than no check — it reads as coverage in a review. If one turns up

@@ -107,10 +107,44 @@ if (!m) { console.error('cannot find the MC object in data/engine-data.js'); pro
 const MC = JSON.parse(m[1]);
 
 let updated = 0, kept = 0, noData = 0;
-const changes = [];
+const changes = [], abilityFixed = [];
+const MEGA_FORMS = (() => { try { return require(D('data', 'mega-dex-official.json')).forms || {}; } catch (e) { return {}; } })();
 for (const [name, mon] of Object.entries(MC.mons)) {
   const s = SETS.species[norm(name)];
-  if (!s || !s.sets || !s.sets.length || s.n < 10) { noData++; kept++; continue; }
+  if (!s || !s.sets || !s.sets.length || s.n < 10) {
+    noData++; kept++;
+    /* TOO FEW SHEETS TO DERIVE A SET, BUT NOT A LICENCE TO KEEP AN IMPOSSIBLE ONE.
+     *
+     * These 116 species have under 10 sightings, so there is no distribution to sample and their
+     * moves are left alone. Their ABILITY is different: it does not need observation to be checked,
+     * because the dex says which abilities a species can have at all. 36 of them carried one that no
+     * forme of theirs can possess — arbok, garbodor, castform and simisear all "pressure", inherited
+     * from the foreign dataset. Keeping a known-impossible value because the better value is
+     * unobserved is the inheritance habit in miniature.
+     *
+     * So: if the stored ability is illegal, fall back to the species' PRIMARY ability from the dex.
+     * That is derived and legal, and it is marked assumed so nobody mistakes it for observed. */
+    const sp0 = DEX.species.get(name);
+    if (sp0 && sp0.exists && mon.ab) {
+      const legal = new Set(Object.values(sp0.abilities || {}).map(a => norm(a)));
+      for (const k of Object.keys(MEGA_FORMS)) {
+        if (!k.startsWith(norm(name)) || !/mega/.test(k)) continue;
+        const f = MEGA_FORMS[k];
+        if (f && f.ability) legal.add(norm(f.ability));
+        for (const a of Object.values((f && f.all_abilities) || {})) legal.add(norm(a));
+      }
+      if (legal.size && !legal.has(norm(mon.ab))) {
+        const primary = norm(sp0.abilities && sp0.abilities['0']);
+        if (primary) {
+          abilityFixed.push(`${name}: ${mon.ab} -> ${primary}`);
+          mon.ab = primary;
+          mon.set_source = { observed: [], assumed: ['ab', 'mv', 'item', 'sp'],
+                             note: 'under 10 sheets; ability replaced with the dex primary because the stored one was impossible' };
+        }
+      }
+    }
+    continue;
+  }
   const top = s.sets[0];
   const before = { mv: mon.mv, item: mon.item, ab: mon.ab };
   mon.mv = (top.moves || []).map(x => norm(x));
@@ -154,6 +188,8 @@ console.log(`  species in engine-data   ${Object.keys(MC.mons).length}`);
 console.log(`  rebuilt from real sheets ${updated}`);
 console.log(`  left alone (<10 sheets)  ${noData}`);
 console.log(`  materially changed       ${changes.length}`);
+console.log(`  illegal abilities fixed  ${abilityFixed.length}  (dex primary, for species too rare to derive a set)`);
+for (const a of abilityFixed.slice(0, 6)) console.log(`      ${a}`);
 console.log('\n  examples:');
 for (const c of changes.slice(0, 8)) {
   console.log(`\n    ${c.name}  (${c.n} sheets)`);
