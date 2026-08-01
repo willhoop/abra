@@ -151,7 +151,30 @@ const priorFor = (species, moveId) => {
  * Reweighting can quietly destroy a sample by concentrating it on a handful of rows, so the
  * effective sample size (Kish, (sum w)^2 / sum w^2) is reported rather than assumed harmless.
  * ------------------------------------------------------------------------------------------- */
-function speciesShares() {
+/* THE REWEIGHTING DESCRIBED A DIFFERENT POPULATION FROM THE ONE IT REWEIGHTED.
+ *
+ * The open side was read from data/games.ots.jsonl alone, but loadCorpus() below feeds the fit from
+ * THREE stores — games.bo3.jsonl, games.ots.jsonl and games.ladder.jsonl — keeping the clean
+ * open-sheet games of each. Measured 2026-07-31:
+ *
+ *     games.bo3.jsonl      3,807 clean open-sheet   54.7% of the corpus
+ *     games.ots.jsonl      2,891                    41.5%   <- the ONLY source of the ratio
+ *     games.ladder.jsonl     268                     3.8%
+ *     total                6,966
+ *
+ * So 58.5% of the rows being reweighted contributed nothing to the number doing the reweighting,
+ * and bo3 — our own scrape, which the comment at loadCorpus calls "the same population as the closed
+ * store" and which should therefore sit near weight 1 — was corrected by species shares measured on
+ * a different collection entirely. data/policy-weights.json records shipped:
+ * "reweighted_to_closed", so this is the vector magnemite.js loads at runtime.
+ *
+ * The fix is to take the open side FROM THE CORPUS, so the thing being described and the thing being
+ * corrected are the same set of games by construction rather than by coincidence. Whole-repo review,
+ * 2026-07-31.
+ *
+ * @param {Array} corpus  the games loadCorpus() accepted — pass it rather than re-reading, both to
+ *                        guarantee they match and because re-reading three stores is not free. */
+function speciesShares(corpus) {
   const cfg = Q.config();
   const count = (games) => {
     const c = {}; let n = 0;
@@ -163,14 +186,17 @@ function speciesShares() {
     }
     return { c, n };
   };
-  const openG = [], closedG = [];
+  const closedG = [];
   /* The same behavioural bot set loadCorpus uses. Screening the covariate-shift comparison with a
    * weaker filter than the fit itself would make the two sides incomparable. */
   const bots = Q.behaviouralBots(Q.readStore());
-  for (const l of fs.readFileSync(D('data', 'games.ots.jsonl'), 'utf8').split('\n')) {
-    if (!l.trim()) continue; let g; try { g = JSON.parse(l); } catch (e) { continue; }
-    if (!Q.reasons(g, cfg, bots).length) openG.push(g);
+  /* THE OPEN SIDE IS THE CORPUS ITSELF. Refusing a missing corpus rather than silently falling back
+   * to one store: a fallback here is how the original defect would come back unnoticed. */
+  if (!Array.isArray(corpus) || !corpus.length) {
+    throw new Error('speciesShares(corpus): the covariate-shift correction must be measured on the '
+      + 'games the fit actually uses. Pass loadCorpus().games.');
   }
+  const openG = corpus;
   for (const g of Q.loadGames()) if (!g.openSheet) closedG.push(g);
   const O = count(openG), C = count(closedG);
   const ratio = {};
@@ -679,7 +705,7 @@ function main() {
    * If they barely move, the composition shift does not bias the policy; if they move a lot, these
    * weights describe a metagame the bot does not play in. Automatic, so it is re-checked on every
    * refit rather than argued about once. */
-  const SH = speciesShares();
+  const SH = speciesShares(games);
   let iwSum = 0, iwN = 0;
   for (const r of rows) { r.iw = SH.ratio[r.sp] != null ? SH.ratio[r.sp] : 1; iwSum += r.iw; iwN++; }
   const iwMean = iwSum / Math.max(1, iwN);

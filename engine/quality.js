@@ -49,9 +49,49 @@ function readStoreText(p) {
   return fs.readFileSync(f, 'utf8');
 }
 
+/* MEASURED 2026-07-31: a single mew.js worker called loadGames() FIVE TIMES, re-reading and
+ * re-parsing the same file each time — 46,075 game objects parsed to produce data that was already
+ * in memory. In a CPU profile of a joint run, `readStore` was 60.9% of all sampled time while
+ * Showdown's actual battle engine was 4.1%. The simulator is not the slow part; loading our own
+ * data is.
+ *
+ * It matters most for TRAINING rather than for one long run. A 200,000-game head-to-head pays this
+ * once per worker and amortises it over 40,000 games; `train_policy.js` respawns fresh workers
+ * EVERY ITERATION, so a 12-iteration run at 5 procs pays it 60 times over.
+ *
+ * INVALIDATED ON THE FILE'S IDENTITY, not on its name. The store is APPEND-ONLY and a collection
+ * run can extend it while a long process holds it open, so caching on path alone would serve a
+ * silently short corpus — the exact class of quiet wrongness this repository keeps paying for.
+ * mtime AND size together catch an append; either alone can miss one.
+ *
+ * ABRA_NO_STORE_CACHE=1 disables it, so a suspected caching bug can be ruled in or out in one run
+ * rather than by reasoning. */
+const _storeCache = new Map();          // resolved path -> { key, games }
+let _storeGen = 0;                      // bumped on every real parse; keys the derived caches below
+
+let _statWarned = false;
+function _storeKey(f) {
+  try { const st = fs.statSync(f); return st.mtimeMs + ':' + st.size; }
+  catch (e) {
+    /* CANNOT VALIDATE MEANS CANNOT CACHE. Returning a constant like 'missing' would make two
+     * different unvalidatable states share a key, so a stale corpus would be served as fresh the
+     * moment a stat failed transiently -- a lock, or a partial write during an append to this
+     * append-only store. A unique value can never match a stored key, so the read simply happens
+     * again, which is the safe direction. Reported once so a persistent stat failure is visible
+     * rather than showing up as unexplained slowness. */
+    if (!_statWarned) { _statWarned = true; console.error(`quality: cannot stat ${f} (${e.message}); store caching disabled for it`); }
+    return 'unvalidatable:' + process.hrtime.bigint().toString();
+  }
+}
+
 /* Deduplicate by id, first occurrence wins - the same order-preserving rule as dedupe_store.py, so
  * an un-deduped file on disk cannot silently change a result. */
 function readStore(p) {
+  const f = storePath(p);
+  const key = _storeKey(f);
+  const hit = _storeCache.get(f);
+  if (hit && hit.key === key && !process.env.ABRA_NO_STORE_CACHE) return hit.games.slice();
+
   const seen = new Set(), out = [];
   for (const line of readStoreText(p).split('\n')) {
     const s = line.trim();
@@ -61,13 +101,34 @@ function readStore(p) {
     seen.add(g.id);
     out.push(g);
   }
-  return out;
+  if (!process.env.ABRA_NO_STORE_CACHE) { _storeCache.set(f, { key, games: out }); _storeGen++; }
+  /* A COPY OF THE LIST, never the cached array itself. Callers sort, splice and filter what they are
+   * handed; one of them doing so to the cache would silently change every later reader's corpus.
+   * The game OBJECTS are shared — a caller that mutates a game in place would still leak across
+   * callers, which no current caller does, and which ABRA_NO_STORE_CACHE exists to test. */
+  return out.slice();
 }
 
 /* Accounts that BEHAVE like bots regardless of their name. The decisive signal is team invariance:
  * an account playing hundreds of games without ever changing a slot is running a script. Computed
  * once over the whole store, because it is a property of an ACCOUNT and not of a game. */
+/* Also memoised, for the same reason and with the same escape hatch: it is a pure function of the
+ * store and the config, it rescans all 29,117 games per call, and loadGames calls it on every one of
+ * those five invocations. Keyed on the store generation AND the game count, so a caller passing a
+ * DIFFERENT corpus (loadGames({path: ...})) cannot be served another corpus's bot set — that
+ * confusion already produced one published figure computed on the wrong store, recorded in
+ * loadGames above. */
+const _botsCache = new Map();
 function behaviouralBots(games, cfg) {
+  cfg = cfg || config();
+  const _ck = _storeGen + ':' + (games ? games.length : -1);
+  const _hit = _botsCache.get(_ck);
+  if (_hit && !process.env.ABRA_NO_STORE_CACHE) return _hit;
+  const _out = _behaviouralBotsUncached(games, cfg);
+  if (!process.env.ABRA_NO_STORE_CACHE) _botsCache.set(_ck, _out);
+  return _out;
+}
+function _behaviouralBotsUncached(games, cfg) {
   cfg = cfg || config();
   const r = cfg.rules.exclude_behavioural_bots;
   if (!r || !r.on) return new Set();
