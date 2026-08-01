@@ -139,8 +139,56 @@ const RULES = {
     };
   },
 
-  /* MEW is infrastructure: it is built once it has produced a validated corpus. */
+  /* MEW is infrastructure: it is built once it has produced a validated corpus.
+   *
+   * IT LOOKED FOR ONE HARDCODED FILENAME AND CALLED ITSELF UNBUILT WHEN IT WAS ABSENT. On
+   * 2026-07-31 MEW generated 194,514 games for the DODUO head-to-head, and the site still said "not
+   * built yet" — because data/games.selfplay.jsonl specifically does not exist, while
+   * games.selfplay.open.jsonl, games.selfplay.porygon2.jsonl and fifteen games.h2h-*.jsonl corpora
+   * all do. exists() returned false, the rule returned null, and the declared fallback 'roadmap'
+   * was published as fact.
+   *
+   * Same habit as the four silent failures the whole-repo review found: a lookup misses, and a
+   * plausible default is substituted. Here the default was a claim ON THE PUBLIC SITE that a working
+   * engine did not exist.
+   *
+   * Now it counts every self-play corpus present, so a rename or a new run cannot make MEW vanish. */
   mew() {
+    const corpora = (() => {
+      try {
+        return fs.readdirSync(D('data'))
+          .filter(f => /^games\.(selfplay|h2h)[^/]*\.jsonl$/.test(f) && !/raw-logs/.test(f))
+          .map(f => 'data/' + f);
+      } catch (e) { return []; }
+    })();
+    if (!corpora.length) return null;
+    /* Largest corpus, not the sum: "MEW has produced a corpus of N games" is the claim, and summing
+     * unrelated runs would inflate it into a number no single artifact supports. */
+    let best = null, bestN = 0;
+    for (const rel of corpora) {
+      let n = 0;
+      try {
+        const fd = fs.openSync(D(rel), 'r');
+        const buf = Buffer.alloc(1 << 20); let carry = '';
+        for (;;) {
+          const r = fs.readSync(fd, buf, 0, buf.length, null); if (r <= 0) break;
+          const lines = (carry + buf.toString('utf8', 0, r)).split('\n'); carry = lines.pop();
+          n += lines.filter(l => l.trim()).length;
+        }
+        if (carry.trim()) n++;
+        fs.closeSync(fd);
+      } catch (e) { continue; }
+      if (n > bestN) { bestN = n; best = rel; }
+    }
+    if (!best) return null;
+    return {
+      status: bestN > 1000 ? 'built' : 'dev',
+      metric: `${bestN.toLocaleString()} self-play games generated on the official engine`,
+      why: `${best}: record count (largest of ${corpora.length} corpora)`,
+    };
+  },
+
+  _mew_old() {
     if (!exists('data/games.selfplay.jsonl')) return null;
     let n = 0;
     try {
