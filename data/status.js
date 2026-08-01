@@ -84,8 +84,8 @@ window.ABRA_STATUS = {
    "id": "pory",
    "name": "PORY",
    "tier": "value",
-   "status": "null",
-   "metric": "no better than counting Pokemon (gain 0.0049)",
+   "status": "win",
+   "metric": "beats counting Pokemon by 0.015 (richer board features)",
    "detail": "live win chance",
    "inputs": [
     "store"
@@ -296,15 +296,15 @@ window.ABRA_STATUS = {
    "id": "jolteon",
    "name": "JOLT",
    "tier": "retired",
-   "status": "retired",
-   "metric": "win% from sheets",
+   "status": "null",
+   "metric": "log-loss 0.7035 vs a coin's 0.6931 — worse than a coin. MODELS.md says a self-play retrain fixed this; no artifact measures that version.",
    "detail": "win% from sheets",
    "inputs": [
     "store"
    ],
    "sees": [],
-   "derived": false,
-   "evidence": null
+   "derived": true,
+   "evidence": "data/eval-report.json: logloss.jolteon vs logloss.coin"
   },
   {
    "id": "medi_win",

@@ -210,6 +210,38 @@ const RULES = {
     };
   },
 
+  /* JOLTEON, and the reason it needs a rule at all (Will, 2026-08-01: "if jolteon is good now lets
+   * add it and all others like alakazam back to the town out of the pc").
+   *
+   * It sat at 'retired' as a DECLARED fallback — nobody had measured it, so the site was publishing a
+   * typed verdict, which is the same hand-maintained-claim failure the whole status system exists to
+   * prevent. And docs/MODELS.md carries a direct contradiction of that verdict:
+   *
+   *   "RETIREMENT WITHDRAWN 2026-07-30 — it was retrained and it works. ... Retrained on self-play
+   *    it moved from worse-than-a-coin to genuinely predictive."
+   *
+   * The artifact disagrees. data/eval-report.json measures logloss.jolteon = 0.7035 against a coin's
+   * 0.6931 — WORSE than a coin, lower being better. That report measures the raw-store-trained model;
+   * the self-play retrain the doc describes has NO artifact anywhere.
+   *
+   * So the honest position is neither "retired" nor "it works": what is measured is worse than a
+   * coin, and the improvement is claimed but unmeasured. The rule reports the measurement and names
+   * the gap, rather than picking whichever the reader would prefer. */
+  jolteon() {
+    const j = readJSON('data/eval-report.json');
+    const ll = j && j.logloss;
+    if (!ll || ll.jolteon == null || ll.coin == null) return null;
+    const beats = ll.jolteon < ll.coin;
+    return {
+      status: beats ? 'built' : 'null',
+      metric: beats
+        ? `log-loss ${ll.jolteon.toFixed(4)} vs a coin's ${ll.coin.toFixed(4)}`
+        : `log-loss ${ll.jolteon.toFixed(4)} vs a coin's ${ll.coin.toFixed(4)} — worse than a coin. `
+          + 'MODELS.md says a self-play retrain fixed this; no artifact measures that version.',
+      why: 'data/eval-report.json: logloss.jolteon vs logloss.coin',
+    };
+  },
+
   /* MEW is infrastructure: it is built once it has produced a validated corpus.
    *
    * IT LOOKED FOR ONE HARDCODED FILENAME AND CALLED ITSELF UNBUILT WHEN IT WAS ABSENT. On
