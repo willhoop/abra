@@ -415,7 +415,19 @@ const out = {
   },
   verdict: (chompLL < coinLL && bootLL(pChomp, ys_te)[1] < coinLL && signCI[0] > 0.5)
     ? 'CHOMP\'s recommended brings beat humans\' actual brings on held-out games — significant on both the sign test and held-out log-loss vs coin.'
-    : 'NULL at the format ceiling: CHOMP\'s bring ranking does NOT beat a coin, an Elo baseline, or a usage prior on held-out games (log-loss ' + chompLL + ' vs coin ' + coinLL + ', CIs overlap), and winners are only marginally more CHOMP-aligned than losers (' + round(st.p, 3) + ', CI includes 0.5). CHOMP\'s exact damage stays VALIDATED and useful as a calculator/EV display, but "CHOMP\'s brings beat humans\' brings" is NOT empirically supported yet — the bring decision sits at the same near-coin ceiling as pre-game win prediction. Honest negative; it guards against optimizing a bring metric that carries no held-out winning signal (the DITTO/Goodhart trap).',
+    /* THE SIGN-TEST CLAUSE IS DERIVED, BECAUSE IT WAS TYPED AND THE ARTIFACT CONTRADICTED ITSELF.
+     *
+     * This branch used to state flatly "CI includes 0.5" whatever the CI was, and on 2026-08-01
+     * data/chomp-ev.json shipped with headline_beat_test saying `ci95 [0.5016, 0.5265]` and its own
+     * verdict calling that same interval "CI includes 0.5". 0.5016 > 0.5. Two sentences in one file,
+     * about one number, disagreeing — in the artifact that is the sole record of this project's
+     * most-cited null result.
+     *
+     * The branch is still correct to fire: the null is decided by the HELD-OUT LOG-LOSS against a
+     * coin, and a sign test that barely clears 0.5 on 5,320 games does not overturn it. But the
+     * clause describing the interval has to read the interval. S13: if it can be derived, generate
+     * it. */
+    : 'NULL at the format ceiling: CHOMP\'s bring ranking does NOT beat a coin, an Elo baseline, or a usage prior on held-out games (log-loss ' + chompLL + ' vs coin ' + coinLL + ', CIs overlap), and winners are ' + (signCI[0] > 0.5 ? 'only marginally more CHOMP-aligned than losers (' + round(st.p, 3) + ', sign-test CI [' + round(signCI[0], 4) + ', ' + round(signCI[1], 4) + '] clears 0.5 but by a margin far too small to overturn the log-loss result)' : 'not reliably more CHOMP-aligned than losers (' + round(st.p, 3) + ', sign-test CI [' + round(signCI[0], 4) + ', ' + round(signCI[1], 4) + '] includes 0.5)') + '. CHOMP\'s exact damage stays VALIDATED and useful as a calculator/EV display, but "CHOMP\'s brings beat humans\' brings" is NOT empirically supported yet — the bring decision sits at the same near-coin ceiling as pre-game win prediction. Honest negative; it guards against optimizing a bring metric that carries no held-out winning signal (the DITTO/Goodhart trap).',
   interpretation: [
     'CHOMP\'s top pick matches the human bring only ' + round(out_top1_all * 100, 1) + '% of the time (chance 6.7%), overlap ' + round((out_ov_w + out_ov_l) / 2, 3) + ' (chance 0.667) — its pure damage-coverage 4 rarely equals what humans actually bring.',
     'No rating-tier gradient: strong players (>1400) are not more CHOMP-aligned than weak ones, so CHOMP is not capturing what good players know about bringing.',
