@@ -137,6 +137,21 @@ assertRate(base, 'mega evolution', 1.0, 'mega happens about as often as the form
 
 const joint = runCapture(['--policy2', 'score', '--joint']);
 assertUsed(joint, 'joint layer', 'the pair model decides both slots together');
+/* EVERY CAPABILITY IS RE-CHECKED UNDER --joint, BECAUSE THE JOINT PATH IS A SECOND CODE PATH.
+ *
+ * This file measured the mega rate on the DEFAULT run only, and asked of the joint run merely that
+ * the joint layer had run at all. The broken cell was the intersection, and no assertion stood in
+ * it: _decidePair returned candsA[pa].choice directly, bypassing _withMega, which had exactly one
+ * call site. So `joint: true` silently disabled mega evolution, and Will found it in the client on
+ * 2026-08-01 -- "now it never emgaed" -- as the FOURTH occurrence of a mega defect in this project.
+ *
+ * A capability verified in one configuration is verified in one configuration. The joint path
+ * decides both slots and returns through different code, so it re-earns every claim rather than
+ * inheriting it. */
+assertRate(joint, 'mega evolution', 1.0, 'mega still happens when the JOINT layer decides',
+  'The joint path returns through _decidePair, which is not the path _withMega was called from.');
+assertUsed(joint, 'aiming', 'it still chooses WHICH foe to hit when the pair decides');
+assertUsed(joint, 'open team sheets', 'it still reads the open team sheet when the pair decides');
 
 console.log('');
 try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) {}

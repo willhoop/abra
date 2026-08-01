@@ -152,6 +152,26 @@ function makeScoringPlayer(opts = {}) {
 
   class ScoringPlayerAI extends PriorPlayerAI {
     constructor(playerStream, options = {}, debug = false) {
+      /* makeScoringPlayer(opts) TOOK AN ARGUMENT AND THREW IT AWAY, WHICH IS HOW MAG PLAYED ITS FIRST
+       * REAL GAME WITH EVERY LEVER OFF.
+       *
+       * The factory signature is makeScoringPlayer(opts = {}), and `opts` appeared NOWHERE in the
+       * body -- the class reads its own second constructor argument instead. So this, in
+       * showdown_bot.js, silently configured nothing at all:
+       *
+       *     const Player = makeScoringPlayer({ greedy: true, switching: true });
+       *     new Player(stream);        // options = {} -> greedy false, allowSwitch false
+       *
+       * Will played it on 2026-08-01 and beat it: "it was doing okay ... and it eq its own blastoise".
+       * That is exactly what a SAMPLING policy looks like. greedy=false means the move is drawn from
+       * the softmax rather than taken as the argmax -- the single biggest measured lever in the
+       * project -- so a bad move only needs to be improbable, not impossible, to get played.
+       *
+       * Two call styles now exist in the codebase (mew/mag_bot/play pass options to the constructor;
+       * showdown_bot passed them to the factory) and BOTH were reasonable readings of the signature.
+       * Merging is the fix: an option can no longer be dropped on the floor for choosing a valid
+       * spelling of the same intent. Explicit constructor options still win. */
+      options = Object.assign({}, opts, options);
       super(playerStream, options, debug);
       const W = options.weights || loadWeights(options.weightsFile);
       this.w = W.weights;
@@ -251,8 +271,14 @@ function makeScoringPlayer(opts = {}) {
        *
        * Defaulted to 1 until mega is a scored candidate rather than a roll, because in this format
        * declining is almost never right and 0.85 was throwing away one mega in seven for nothing. */
+      /* THE DEFAULT SAID 0 WHILE THE COMMENT ABOVE SAID 1, so MAG could never mega evolve at all.
+       * Will played it in the real client on 2026-08-01 and reported "no mega evolution tho" -- with
+       * a Blastoise holding Blastoisinite, which is a mega the packer had deliberately given it.
+       * showdown_bot.js constructs the player as makeScoringPlayer({greedy, switching}) and passes no
+       * `mega` option, so the else branch fired every time and line 859's `if (!this.megaP)` returned
+       * the choice unsuffixed forever. A comment stating the intended value is not the value. */
       this.megaP = options && options.mega != null
-        ? Math.max(0, Math.min(1, +options.mega || 0)) : 0;
+        ? Math.max(0, Math.min(1, +options.mega || 0)) : 1;
       this.mega = 0;
       this.ignoreSheet = !!(options && options.ignoreSheet);
       this.joint = false; this.wj = null;
@@ -850,7 +876,18 @@ function makeScoringPlayer(opts = {}) {
         if (n > 0) this._claimed.add(n);
       }
       if (candsA[pa].targetMon) this.stats.aimed++;
-      return candsA[pa].choice;
+      /* THE JOINT PATH RETURNED WITHOUT THE MEGA SUFFIX, SO TURNING COORDINATION ON TURNED MEGA OFF.
+       *
+       * `_withMega` had exactly ONE call site (the independent path), and this early return bypassed
+       * it. The two levers therefore could not both be on: bot7, with joint off, mega evolved a
+       * Gyarados; every build after `joint: true` was added on 2026-08-01 never mega evolved again,
+       * which Will reported as "now it never emgaed". Measured at the time: 94% of generated teams
+       * carry a stone, so the teams were not the explanation.
+       *
+       * Only one slot can hold a stone -- showdown_bot's team builder permits a single mega stone,
+       * and Item Clause bars a duplicate -- so exactly one of the two slots can have canMegaEvo set,
+       * and there is no risk of both halves of the pair claiming the battle's one mega. */
+      return this._withMega(candsA[pa].choice, active);
     }
 
     /* Append ` mega` when THIS slot can mega and the roll passes. Switches are left alone: a mega
@@ -890,7 +927,11 @@ function makeScoringPlayer(opts = {}) {
       if (this._jointReq === this._req && this._jointPick && this._jointPick[i] != null) {
         const pick = this._jointPick[i]; this._jointPick[i] = null;
         this.stats.jointUsed = (this.stats.jointUsed || 0) + 1;
-        return pick;
+        /* The partner's half of the pair, parked on the other slot's call, needs the same suffix for
+         * the same reason -- and `active` here is genuinely this slot's, because Showdown calls
+         * chooseMove once per active slot. Only one slot can hold a stone, so this and the sibling
+         * call in _decidePair cannot both fire. */
+        return this._withMega(pick, active);
       }
 
       const built = this._candsFor(active, moves, i);

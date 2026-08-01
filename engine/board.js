@@ -2783,6 +2783,23 @@ function featuresFor(cand, user, board, side, dex, priorP) {
        * moves, so the feature was mostly measuring "this is a good move". Real teams are built so the
        * partner RESISTS the spread move it sits next to, and that case is not a cost at all. Firing
        * only when the ally takes neutral damage or worse separates the two. */
+      /* TYPE IMMUNITY IS NOT IN getEffectiveness, AND THAT SILENTLY BROKE THE FEATURE BELOW.
+       * getEffectiveness returns the type-chart EXPONENT: +1 weak, -1 resist, 0 neutral -- and also
+       * 0 for immune, because immunity lives in getImmunity. Measured against the Champions dex:
+       *
+       *     Ground vs Flying   getEffectiveness  0   getImmunity false  (immune)
+       *     Ground vs Water    getEffectiveness  0   getImmunity true   (hit)
+       *     Electric vs Ground getEffectiveness  0   getImmunity false  (immune)
+       *
+       * Identical scores, opposite truths. So `>= 0` set allyHit on a Flying partner standing beside
+       * Earthquake -- and spreadFreeBesideAlly requires allyHit === 0, meaning the flagship case named
+       * in its own comment ("EARTHQUAKE BESIDE A FLYING PARTNER", board.js:489) could never fire once.
+       * This is the answer to Will's question of why that feature never moved.
+       *
+       * Note the inconsistency it created: the ABILITY route to the same immunity, Levitate at the
+       * abilityBlockProb line above, DID work and continued past. Type immunity and ability immunity
+       * are the same fact about the board, and only one of them was being read. */
+      if (!dex.getImmunity(mType, aTypes)) continue;
       if (dex.getEffectiveness(mType, aTypes) >= 0) { set('allyHit', 1); break; }
     }
   }

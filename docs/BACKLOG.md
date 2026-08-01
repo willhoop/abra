@@ -288,3 +288,33 @@ Ordered by what blocks what.
 - **The forme audit is done for the families we have seen** (mega naming, Sinistcha, Maushold,
   Vivillon, Floette-Eternal). It should be re-run whenever a new regulation adds formes, because the
   failure is silent: a name that matches nothing produces an empty moveset, not an error.
+
+---
+
+## LIVE PLAY, 2026-08-01 — open items
+
+Full write-up with measurements: `docs/FINDINGS-2026-08-01-live-play.md`.
+
+One evening of Will playing MAG in the real Showdown client surfaced nine defects. Seven are fixed.
+These four are not, and three of them need a refit.
+
+- **A REFIT IS OWED, AND IT BLOCKS THE OTHER THREE.** `board.js:2786` changed feature *semantics*
+  without changing the feature *list*: `allyHit` could not see type immunity, so a Flying partner
+  beside Earthquake read as hit and `spreadFreeBesideAlly` could never fire. Every shipped weight was
+  fitted against the old meaning. `board.js` is required by 40 files; the vector is read by 24.
+- **Nothing detects a semantics change under an unchanged feature name.** `magnemite.js:297` compares
+  joined feature names and `:299` compares vector length; both pass when a feature quietly starts
+  meaning something else. Proposed guard: a stored hash of each feature's values over a fixed fixture
+  board, checked at load.
+- **MAG cannot see that it is Choice-locked.** No feature among the 56 represents holding an unwanted
+  Choice item. Encore made it switch; a Trick'd Scarf did not. Needs a feature and a refit.
+- **No pair feature for "both slots set the same side condition."** Two Light Screens on one turn.
+  `deadSide` (−2.879, the most negative weight in the vector) cannot help, because it asks whether
+  the condition is *already up*. Needs `bothSameSideCondition` and a refit.
+- **No support floor on sampled sets** (team generation, not the model). 3,949 of 10,504 distinct
+  sets were seen exactly once — 37.6%. The bot's team builder should sample within
+  `species_sets.cover(sp, 0.80)`. Deliberately NOT global: DITTO's gauntlet must keep the full tail.
+
+Unmeasured change shipped knowingly: the bot now runs with `joint: true`. No H2H has compared
+joint-on against joint-off for a greedy player. It was enabled because it is the only mechanism that
+can express slot coordination, not because it is measured better.

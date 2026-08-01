@@ -1,6 +1,6 @@
 # ABRA — roadmap
 
-**2026-07-26**
+**2026-08-01**
 
 The bar for the completed list is one thing: **would I defend this sentence for twenty hours against
 someone trying to break it.** Anything that fails that test is in section 2 or section 3, however
@@ -232,7 +232,57 @@ was touched. **CLAUDE.md requires the docs to move in the same pass as the code.
 
 ---
 
+## 2.9 Closed 2026-08-01 (live play against a human)
+
+Will played MAG in the real Showdown client for the first time — six games. **Eleven defects in about
+two hours**, more than the 47 test files had surfaced. Full evidence:
+`docs/FINDINGS-2026-08-01-live-play.md`. Handoff: `docs/HANDOFF-2026-08-01.md`.
+
+- **The bot was not delivering the model to the board.** `makeScoringPlayer(opts)` accepted an options
+  object and never used it — the class reads its own second constructor argument — so
+  `{greedy: true, switching: true}` configured nothing. MAG played its first real games *sampling* its
+  moves instead of taking its best one. Fixed by merging factory options into constructor options.
+- **`joint: true` silently disabled mega evolution.** `_withMega` had exactly one call site and the
+  joint path returned around it. Both joint paths now go through it, and `test-wiring.js` re-asserts
+  mega, aiming and open sheets **under `--joint`** — the broken cell was the intersection of two
+  capabilities each tested alone. Fourth mega defect in this project.
+- **Voluntary switching was reverted to off.** The bot had requested it since its first version,
+  against `mew.js:135`'s measured verdict of a **10-point loss**. It only took effect once the options
+  bug was fixed — an unmeasured change against a measured result.
+- **Item Clause repair could never succeed.** It resampled while telling the sampler the answer had to
+  be the colliding item, so the "rare" no-item fallback fired every time.
+- Open team sheets are now accepted; failed team draws redraw instead of rejecting the challenge.
+
+**Nothing about MAG's playing strength was established.** MAG went 1–2 in the three games where the
+policy was actually driving. Six games is not evidence in either direction.
+
+---
+
 ## 3. NEXT — in order, with the reason each is next
+
+**0. REFIT — and it may rewrite item 1 below.** `board.js` changed a feature's *meaning* under an
+unchanged *name*, so every shipped weight was fitted against the old definition. `board.js` is
+required by 40 files; the vector is read by 24. Nothing in the project detects this:
+`magnemite.js:297` compares feature names and `:299` compares vector length, and both pass when
+semantics drift. A guard — a stored hash of each feature's values over a fixed fixture board — is the
+cheapest high-leverage item on this list, and the only one that prevents a repeat rather than fixing
+an instance.
+
+**Why this comes before item 1, and may dissolve it.** Item 1 rests on `spreadFreeBesideAlly` being
+priced at −5.054, read as *"humans rarely click this, not this is bad."* That feature fires only when
+`allyHit === 0`, and `allyHit` used `getEffectiveness >= 0`, which **returns 0 for an immunity**. So
+the feature's coverage was inverted at its most important case:
+
+| ally beside a spread move | did `spreadFreeBesideAlly` fire? | is it actually free? |
+| --- | --- | --- |
+| Flying partner + Earthquake | **no** | **yes — fully immune** |
+| Levitate partner + Earthquake | yes (ability path) | yes |
+| merely *resisting* partner | yes | no — it still takes damage |
+
+The clearest free-spread case in VGC never fired once, while a case that costs real HP did. A weight
+fitted on that is a weight fitted on the wrong question, and **−5.054 may be an artifact rather than
+a preference.** Stated as a hypothesis; the refit is the test. If it survives the refit, item 1 stands
+exactly as written.
 
 **1. DODUO trained for WINNING, not for resemblance.** *The most precise open question in the
 project.* DODUO is fully built: `fit_joint.js` fits the pair block, `magnemite.js` plays it

@@ -216,9 +216,21 @@ function packTeam(species, setsBySpecies) {
     let item = f.item || '';
     if (item && usedItems.has(item)) {
       const baseSeed = (setsBySpecies && setsBySpecies.__seed) || 1;
+      /* THE RESAMPLE HAD TO DROP THE ITEM IT WAS RESAMPLING, OR IT COULD NEVER MOVE.
+       *
+       * `known` still carried the COLLIDING item, and fillSet honours what it is told is known -- so
+       * all six reseeds returned that same item, `alt` stayed empty, and the fallback the comment
+       * above calls rare ("only if several draws all collide") fired every single time. The retry
+       * loop could not possibly succeed; it was six identical draws wearing different seeds.
+       *
+       * Will saw the result in the client on 2026-08-01 -- "grimmsnarl doesnt have an item???" -- on
+       * a Grimmsnarl whose modal item is Light Clay, in a game where his own Gholdengo then Tricked
+       * a Light Clay off MAG's Klefki. The itemless-corpus bias this block was written to PREVENT is
+       * exactly what it was producing. */
+      const knownNoItem = Object.assign({}, known); delete knownNoItem.item;
       let alt = '';
       for (let k = 1; k <= 6 && !alt; k++) {
-        const g = SP.fillSet(name, known, baseSeed + k * 7919);
+        const g = SP.fillSet(name, knownNoItem, baseSeed + k * 7919);
         if (g.item && !usedItems.has(g.item)) alt = g.item;
       }
       filled.push(`${name}: ITEM CLAUSE ${item} already used -> ${alt || 'none'}`);
