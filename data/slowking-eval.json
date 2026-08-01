@@ -1,70 +1,78 @@
 {
   "generated": "engine/slowking_preview.py \u2014 team-preview Nash over GURU's real matchup matrix",
   "source_matrix": "data/guru-matchups.json",
-  "n_games": 1124,
-  "n_archetypes": 5,
+  "n_games": 5265,
+  "n_archetypes": 12,
   "equilibrium_mixture": [
     {
-      "archetype": "Other",
-      "weight": 0.9999
+      "archetype": "Gengar-Incineroar",
+      "weight": 0.6602
+    },
+    {
+      "archetype": "Charizard-Garchomp",
+      "weight": 0.2182
+    },
+    {
+      "archetype": "Pelipper-Archaludon",
+      "weight": 0.121
     }
   ],
   "game_value": -0.0,
   "top_nontransitive_cycle": {
     "cycle": [
-      "Garchomp-Incineroar",
-      "Sand",
-      "Rain"
+      "Charizard-Garchomp",
+      "Kingambit-Garchomp",
+      "Incineroar-Whimsicott"
     ],
-    "min_edge": 0.037,
+    "min_edge": 0.095,
     "legs": [
       {
-        "from": "Garchomp-Incineroar",
-        "to": "Sand",
-        "n": 141,
-        "win_pct": 55.3,
-        "clears_50": false,
-        "well_sampled": true
-      },
-      {
-        "from": "Sand",
-        "to": "Rain",
-        "n": 41,
-        "win_pct": 53.7,
+        "from": "Charizard-Garchomp",
+        "to": "Kingambit-Garchomp",
+        "n": 49,
+        "win_pct": 63.3,
         "clears_50": false,
         "well_sampled": false
       },
       {
-        "from": "Rain",
-        "to": "Garchomp-Incineroar",
-        "n": 191,
-        "win_pct": 56.5,
+        "from": "Kingambit-Garchomp",
+        "to": "Incineroar-Whimsicott",
+        "n": 37,
+        "win_pct": 59.5,
         "clears_50": false,
-        "well_sampled": true
+        "well_sampled": false
+      },
+      {
+        "from": "Incineroar-Whimsicott",
+        "to": "Charizard-Garchomp",
+        "n": 15,
+        "win_pct": 60.0,
+        "clears_50": false,
+        "well_sampled": false
       }
     ],
     "min_games_required": 50,
-    "candidate_triples_searched": 60,
+    "candidate_triples_searched": 1320,
     "supported": false,
-    "note": "supported=true requires every leg to clear 50% and rest on >=50 games. This is the strongest of 60 candidate triples, so an unsupported cycle is what noise looks like, not weak evidence of structure."
+    "note": "supported=true requires every leg to clear 50% and rest on >=50 games. This is the strongest of 1320 candidate triples, so an unsupported cycle is what noise looks like, not weak evidence of structure."
   },
   "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE meta (a clear top dog). Where a rock-paper-scissors cycle exists \u2014 the min_edge above is positive \u2014 every deck has a counter, so the unexploitable play is a MIXED strategy (this equilibrium), not one deck. Stall, Trick Room, perish-trap and setup are exactly such counter-classes; how visible the cycle is depends on archetype granularity (see notes).",
   "exploitability": {
     "what": "Worst-case win-edge a best pure counter extracts (win-fraction units; lower is better; Nash ~ 0).",
-    "nash": 0.0,
+    "nash": 0.0001,
     "nash_ci95": [
-      0.0,
-      0.002
+      0.0001,
+      0.0031
     ],
-    "greedy_single_deck": -0.0,
-    "uniform": 0.0342,
-    "greedy_minus_nash": -0.0,
+    "greedy_single_deck": 0.041,
+    "uniform": 0.0761,
+    "greedy_minus_nash": 0.0409,
     "greedy_minus_nash_ci95": [
       -0.0001,
-      0.1001
+      0.1735
     ]
   },
-  "verdict": "No material exploitability gap between Nash and greedy \u2014 this meta is close to transitive at this granularity (a dominant deck), so mixing buys little here. Honest, and worth stating.",
+  "verdict": "SLOWKING's equilibrium is substantially less exploitable, though sparse matchups keep the 95% CI lower bound near 0 (-0.0001) than picking the single best deck: greedy 0.041 vs Nash 0.0001, gap 0.0409 (CI [-0.0001, 0.1735]). The meta is non-transitive here (rock-paper-scissors), so a MIXED strategy is the right preview object \u2014 the fix for the greedy best-response that inverted old MEDICHAM/DITTO.",
   "what_this_does_NOT_prove": [
     "NOT a game-winner predictor: exploitability grades the preview DECISION, not who wins a match (GURU's own predictive_test shows per-game prediction ties a coin here).",
     "Archetype-level, not set-level: the matrix is 13 discovered archetypes, not exact teams/sets; a belief over the opponent's real six (XATU) is the documented next refinement.",

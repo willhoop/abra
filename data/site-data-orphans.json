@@ -1,0 +1,14 @@
+{
+ "generated": "2026-08-01",
+ "by": "tests/test-site-data-fresh.js --update",
+ "note": "GENERATED. Files the site loads that no script writes. Each is permanently stale — it cannot be brought up to date by anyone. Shrink this list; never hand-edit it.",
+ "orphans": {
+  "data/move-effects.js": "served by tower.html",
+  "data/scoreboard.js": "served by scoreboard.html",
+  "data/slowking-playstyle.js": "served by index.html",
+  "data/policy-weights.json": "read by build/build_status.js; no generator",
+  "data/pory-nn.json": "read by build/build_status.js; no generator",
+  "data/chomp-ev.json": "read by build/build_status.js; no generator",
+  "data/damage-validation.json": "read by build/build_status.js; no generator"
+ }
+}
