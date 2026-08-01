@@ -75,14 +75,31 @@ console.log('FUTURE SIGHT — the forecast reads what it claims to read\n');
     { weather: 'sun', rollouts: 5, foeBench: ['pelipper', 'kingambit'] });
   ok(fs && Array.isArray(fs.mine) && fs.mine.length === 2, 'the forecast now prices MY side too');
   const ven = fs && fs.mine[0];
-  const shock = ven && ven.clicks.find(c => c.move === 'venoshock');
-  ok(shock && shock.fragility && shock.fragility.retention === 0 && shock.fragility.cause === 'kingambit',
-    'Venoshock is flagged dead against their benched Steel — chart immunity, no ability needed');
+  /* FIND THE MOVE BY TYPE, DO NOT NAME IT. This asserted on 'venoshock', a move Venusaur only had
+   * because data/engine-data.js carried sets from a foreign dataset. Rebuilding from real open sheets
+   * (2026-07-31) gave Venusaur its actual kit — Giga Drain / Sludge Bomb / Earth Power / Protect —
+   * and the fixture vanished, so a live check silently became untestable.
+   *
+   * What matters is the CLAIM: a Poison move must read as dead against a benched Steel by the type
+   * chart alone. Any Poison move in the set proves it, so the test now asks the data which one. */
+  const poisonClick = ven && ven.clicks.find(c => {
+    const mv = MC.moves[c.move];
+    return mv && mv.t === 'Poison' && mv.bp > 0;
+  });
+  ok(!!poisonClick, `Venusaur's real set contains a Poison move to test the Steel immunity with (${poisonClick && poisonClick.move})`);
+  ok(poisonClick && poisonClick.fragility && poisonClick.fragility.retention === 0
+     && poisonClick.fragility.cause === 'kingambit',
+    `${poisonClick && poisonClick.move} is flagged dead against their benched Steel — chart immunity, no ability needed`);
   const inc = fs && fs.mine[1];
   const touchy = inc && inc.clicks.find(c => c.into && c.into.some(i => i.vs === 'garchomp' && i.cost > 0));
   ok(!!touchy, `Incineroar's contact clicks into Rough Skin Garchomp carry their price (${touchy && touchy.move})`);
-  const round = ven && ven.clicks.find(c => c.move === 'round');
-  ok(round && !round.fragility, 'a Normal spread with no bench threat carries no fragility flag');
+  /* Same reason: 'round' was another move from the foreign set. The claim is that a click NOTHING on
+   * their bench resists carries no fragility flag, so find any such click rather than naming one. */
+  const clean = ven && ven.clicks.find(c => {
+    const mv = MC.moves[c.move];
+    return mv && mv.bp > 0 && !c.fragility;
+  });
+  ok(!!clean, `a click no benched mon blunts carries no fragility flag (${clean && clean.move})`);
 }
 
 /* pWin: a mirror is a coin, a 4-on-1 is not */

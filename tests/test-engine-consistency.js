@@ -72,10 +72,27 @@ console.log('== 1. the sheet\'s ITEM ==');
 {
   /* A pair where the Scarf decides the speed comparison, so the fact is visible in the answer. */
   const spe = n => (MC.mons[n].st || {}).sp || 0;
+  /* THE PAIR IS VERIFIED AGAINST board.js, NOT ASSUMED FROM THE TABLE. Selecting on MC.mons stat
+   * lines and then asserting what board.js computes was a category error: board.js scores EXPECTED
+   * speed across unknown spreads, a different quantity from the stored line. It agreed only while
+   * those lines were inherited; rebuilding them from real open sheets (2026-07-31) broke the
+   * coincidence and this read "1 -> 1" — the bare case already counted as faster, so the scarf had
+   * nothing to flip and the check could not see the bug it exists for.
+   *
+   * The candidate is now probed first: keep looking until board.js itself agrees the bare case is
+   * the SLOW one. `theirs`/`mine` are reused by the ability check below, so this fixes both. */
+  const SHEET = { nature: 'serious', item: '', ability: '', moves: [] };
   let mine = null, theirs = null;
-  for (const a of names) { for (const t of names) {
-    if (spe(t) > spe(a) && spe(t) < spe(a) * 1.5) { mine = a; theirs = t; break; }
-  } if (mine) break; }
+  outer:
+  for (const a of names) {
+    for (const t of names) {
+      if (!(spe(t) > spe(a) && spe(t) < spe(a) * 1.5)) continue;
+      const probe = mkBoard(a, t, SHEET, SHEET);
+      if (switchFeat(probe, a)[B.FEATURE_INDEX.switchFaster] !== 0) continue;
+      mine = a; theirs = t; break outer;
+    }
+  }
+  if (!mine) { ok(false, 'board.js: found a pair whose SCARF decides the speed tie', 'no pair in the table reads as slower-when-bare'); }
 
   const bare = mkBoard(mine, theirs, { nature: 'serious', item: '', ability: '', moves: [] }, { nature: 'serious', item: '', ability: '', moves: [] });
   const scarf = mkBoard(mine, theirs, { nature: 'serious', item: 'choicescarf', ability: '', moves: [] }, { nature: 'serious', item: '', ability: '', moves: [] });
@@ -149,15 +166,28 @@ console.log('\n== 2. the sheet\'s ABILITY ==');
   const byType = t => Object.keys(MC.moves).filter(id => MC.moves[id] && MC.moves[id].bp >= 80 && MC.moves[id].t === t);
   const pairs = [['levitate', 'Ground'], ['voltabsorb', 'Electric'], ['flashfire', 'Fire'],
                  ['waterabsorb', 'Water'], ['thickfat', 'Ice']];
+  /* THIS CHECK SEARCHES FOR ITS OWN CASE rather than borrowing the scarf check's species. It used
+   * `mine`/`theirs` from section 1, so it was hostage to a pair chosen for an unrelated reason — and
+   * when rebuilding the sets from real sheets moved that pair (to a Venusaur whose typing already
+   * blunts the tested move), every ability read as changing nothing and the check reported the
+   * WIRING as broken when only the fixture had moved.
+   *
+   * What it must prove is that a DECLARED ability reaches board.js's switch-in vector at all. That is
+   * a property of the engine, so any species demonstrating it is sufficient — and failing only when
+   * NO species can demonstrate it is the honest bar. */
   let changed = null;
+  search:
   for (const [ab, type] of pairs) {
     const mv = byType(type)[0];
     if (!mv) continue;
     const foeSheet = { nature: 'serious', item: '', ability: '', moves: [mv] };
-    const base = mkBoard(mine, theirs, { nature: 'serious', item: '', ability: '', moves: [] }, foeSheet);
-    const withAb = mkBoard(mine, theirs, { nature: 'serious', item: '', ability: ab, moves: [] }, foeSheet);
-    const x0 = switchFeat(base, mine), x1 = switchFeat(withAb, mine);
-    if (x0.some((v, i) => v !== x1[i])) { changed = ab + ' vs ' + mv; break; }
+    for (const cand of names.slice(0, 40)) {
+      if (cand === theirs) continue;
+      const base = mkBoard(cand, theirs, { nature: 'serious', item: '', ability: '', moves: [] }, foeSheet);
+      const withAb = mkBoard(cand, theirs, { nature: 'serious', item: '', ability: ab, moves: [] }, foeSheet);
+      const x0 = switchFeat(base, cand), x1 = switchFeat(withAb, cand);
+      if (x0.some((v, i) => v !== x1[i])) { changed = `${ab} vs ${mv} on ${cand}`; break search; }
+    }
   }
   ok(!!changed, 'board.js: a declared ability changes the switch-in vector', changed ? `via ${changed}` : 'NO ability changed anything');
 }

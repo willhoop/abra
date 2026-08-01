@@ -182,7 +182,13 @@ function l50(bs,sp){ const S=(b,v)=>Math.floor((Math.floor((2*b+31)*50/100)+5+(+
   return { hp:Math.floor((2*bs.hp+31)*50/100)+50+10, at:S(bs.atk,sp&&sp.at), df:S(bs.def,sp&&sp.df),
            sa:S(bs.spa,sp&&sp.sa), sd:S(bs.spd,sp&&sp.sd), sp:S(bs.spe,sp&&sp.sp) }; }
 function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
-  const item=(ov&&ov[name])||m.item||'';
+  /* AN EXPLICIT EMPTY STRING MEANS NO ITEM, and `||` could not express that: buildMon(n,{n:''})
+   * fell through to the table item, so an item-less mon was unbuildable. Every with-item/without-item
+   * ratio was therefore item vs THE TABLE'S ITEM, not item vs nothing -- it only looked right while
+   * the table happened to store something inert. The moment real sheets put Life Orb on Garchomp,
+   * tests/test-tag-wire.js measured Life Orb against Life Orb and got x1.000. Caught 2026-07-31 when
+   * the sets were rebuilt from open sheets. */
+  const item=(ov&&ov[name]!=null)?ov[name]:(m.item||'');
   const mf=megaForme(item);
   const types = mf&&mf.t&&mf.t.length ? mf.t.slice() : m.t.slice();
   /* Swap ONLY the base stats, keeping whatever SP investment this dataset already baked into m.st.

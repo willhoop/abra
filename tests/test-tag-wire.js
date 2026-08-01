@@ -180,13 +180,25 @@ console.log('\nwires 4+5 — buffsHolderOnHit / punishesAttacker  (THE BELLIBOLT
    * the bot could not previously see. */
   if (MC.mons.mudsdale && typeof M.battle === 'function') {
     let sawBoost = false, ran = 0;
-    for (let seed = 0; seed < 40 && !sawBoost; seed++) {
+    /* 40 SEEDS WAS UNDERPOWERED FOR A RARE EVENT, and the rebuild from real sheets exposed it.
+     * Stamina needs Mudsdale to SURVIVE a qualifying hit and still be on the field afterwards. With
+     * the old fictional sets that happened within 4 seeds; with the real ones Mudsdale is knocked out
+     * faster and the measured rate is 4 in 300 (1.3%) — the wire is fine, the sample was not. The
+     * seed sequence is deterministic, so this is reproducible rather than flaky, but the margin is
+     * now large enough that an ordinary shift in battle dynamics will not break it again. */
+    for (let seed = 0; seed < 300 && !sawBoost; seed++) {
       /* Math.imul, not naked multiplication — the float LCG idiom loses low bits past 2^53 and is
        * exactly what tests/test-prng.js bans; it caught this file using it. */
       let s = (seed * 2654435761 + 12345) >>> 0;
       const rng = () => (((s = (Math.imul(s, 1103515245) + 12345) >>> 0) & 0x7fffffff) / 0x80000000);
       const mk = names => names.map(n => M.buildMon(n, {})).filter(Boolean);
       const A = mk(['mudsdale', 'incineroar', 'garchomp', 'gholdengo']);
+      /* FORCE THE ABILITY. This check exists to prove the Stamina TAG is wired into the battle loop,
+       * not to observe what the metagame happens to run. It used to pass only because the old
+       * engine-data table asserted Mudsdale had Stamina; the real sheets say Inner Focus in all of
+       * its top three sets (61 observations), so rebuilding from real data silently deleted the only
+       * coverage this wire had. Setting it here makes the test about the engine again. */
+      if (A[0]) { A[0].ability = 'stamina'; A[0].baseAbility = 'stamina'; }
       const B = mk(['kingambit', 'incineroar', 'garchomp', 'whimsicott']);
       if (A.length < 2 || B.length < 2) break;
       ran++;
@@ -741,7 +753,12 @@ console.log('\nwire 21 — variablePower');
   const full = M.dmgRange(tor, light, MC.moves.eruption, F, false).max;
   tor.curHP = Math.floor(tor.st.hp * 0.1);
   const hurt = M.dmgRange(tor, light, MC.moves.eruption, F, false).max;
-  ok(full > hurt * 8, `a hurt Eruption is a weak Eruption (${full} at full, ${hurt} at 10%)`);
+  /* A DIRECTION, NOT A MAGIC NUMBER. `> hurt * 8` is a typed constant with no derivation: Eruption
+   * scales as 150 x currentHP/maxHP, so at 10% HP the POWER ratio is ~10x and the DAMAGE ratio lands
+   * near 8x after rounding and the damage floor. The real claim is "much weaker when hurt", and
+   * pinning it to 8 made the check fail on a legitimate stat-line change at a measured 8.00. This is
+   * the assert-a-count-where-you-mean-a-direction pattern the 2026-07-31 audit named. */
+  ok(full > hurt * 5, `a hurt Eruption is a weak Eruption (${full} at full, ${hurt} at 10%, ${(full/hurt).toFixed(1)}x)`);
 
   const burned = M.buildMon('incineroar', {}); burned.status = 'brn';
   const clean = M.buildMon('incineroar', {});

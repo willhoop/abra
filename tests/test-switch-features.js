@@ -68,14 +68,28 @@ console.log('SWITCH-IN FEATURES — SHEET, CONJUNCTION, PER-FOE\n');
  * Wanted: a bench mon whose bare speed loses to the foe but whose scarfed speed wins. That is the
  * only configuration in which the bug is visible at all -- if it outruns the foe either way, or
  * neither way, the missing 1.5x changes nothing and the test would pass while broken. */
+/* THE PAIR IS VERIFIED, NOT ASSUMED. Selecting on MC.mons speed and then asserting what board.js
+ * computes was a category error: board.js scores EXPECTED speed over unknown spreads, which is a
+ * different quantity from the table's stat line. It happened to agree while the table carried
+ * inherited stat lines; rebuilding those from real sheets (2026-07-31) broke the coincidence and the
+ * test failed with "1 -> 1" — the bare case already read as faster.
+ *
+ * So the candidate is now CHECKED against board.js itself before being used: keep searching until a
+ * pair is found that board.js genuinely reads as slower-when-bare. That is the only configuration in
+ * which the missing 1.5x is visible, and now the test proves it holds rather than hoping. */
 let scarfCase = null;
+outer:
 for (const me of names) {
   const s = spe(me); if (!s) continue;
   for (const foe of names) {
     const f = spe(foe);
-    if (f > s && f < s * 1.5) { scarfCase = { me, foe, s, f }; break; }
+    if (!(f > s && f < s * 1.5)) continue;
+    const probe = mkBoard([foe], [me], {});
+    const xb = featOf(probe, me, true);
+    if (xb[I('switchFaster')] !== 0) continue;      // board.js disagrees that this is the slow case
+    scarfCase = { me, foe, s, f };
+    break outer;
   }
-  if (scarfCase) break;
 }
 if (!scarfCase) { ok(false, 'found a mon whose SCARF decides the speed tie', 'no such pair in the table'); }
 else {
