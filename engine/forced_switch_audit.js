@@ -56,8 +56,11 @@ process.stderr.write(`  ${games.length.toLocaleString()} clean games, ${byId.siz
  * nature are the declared ones rather than the dataset's assumed build. */
 function buildFromSheet(sheetEntry) {
   if (!sheetEntry || !sheetEntry.species) return null;
-  const key = MC.mons[norm(sheetEntry.species)] ? norm(sheetEntry.species) : base(sheetEntry.species);
-  if (!MC.mons[key]) return null;
+  /* THE ONE RESOLVER, asked of board.js rather than re-derived here. MC.mons keys formes with a
+   * hyphen and norm() strips hyphens, so `MC.mons[norm(species)]` misses all 101 forme entries --
+   * 8% of real usage -- and this line silently returned null for every one of them. */
+  const key = B.mcKeyFor(sheetEntry.species);
+  if (!key) return null;
   const m = M.buildMon(key);
   if (!m) return null;
   if (sheetEntry.item) m.item = norm(sheetEntry.item);

@@ -1,0 +1,21 @@
+{
+  "note": "Files still doing their own species -> MC.mons lookup. New entries are a FAILURE; this list may only shrink. See engine/mc_key.js.",
+  "allowed": {
+    "engine/artifact_audit.js": 1,
+    "engine/medicham2-browser.js": 5,
+    "engine/merge_mega_into_engine.js": 12,
+    "engine/position_features.js": 2,
+    "engine/type_coverage.js": 1,
+    "build/rebuild_sets_from_sheets.js": 1,
+    "tests/test-engine-consistency.js": 3,
+    "tests/test-entry-effects.js": 4,
+    "tests/test-exposure.js": 2,
+    "tests/test-forced-switch.js": 4,
+    "tests/test-mega-timing.js": 7,
+    "tests/test-opponent-model.js": 5,
+    "tests/test-priority-block.js": 1,
+    "tests/test-rollout-effects.js": 2,
+    "tests/test-switch-features.js": 2,
+    "tests/test-tag-wire.js": 1
+  }
+}

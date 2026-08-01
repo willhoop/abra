@@ -839,14 +839,10 @@ function damageEngine() {
  * That last point is the one that mattered: the near-miss alternative was to fall back to the BASE
  * species, which would have handed Slowking-Galar's Poison/Psychic body Slowking's Water/Psychic
  * stats and been worse than returning nothing. */
-let _mcIndex = null;
-function mcKeyFor(species) {
-  if (!_mcIndex) {
-    _mcIndex = new Map();
-    for (const k of Object.keys(MC.mons)) { const n = norm(k); if (!_mcIndex.has(n)) _mcIndex.set(n, k); }
-  }
-  return _mcIndex.get(norm(species)) || _mcIndex.get(baseSpecies(species)) || null;
-}
+/* DELEGATED, NOT IMPLEMENTED HERE. This was a fourth private copy of the same index -- see the
+ * header of engine/mc_key.js for the other three and why sharing the ARTIFACT was never enough.
+ * Re-exported below so the 40 files that already require board.js do not each grow a new import. */
+const mcKeyFor = require('./mc_key.js').mcKey;
 
 /* A tracked mon -> the shape the damage formula expects. Returns null when the species is not in the
  * table, which is a real condition (a forme the usage data has never seen) and not an error. */

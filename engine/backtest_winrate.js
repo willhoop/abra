@@ -5,6 +5,7 @@
 const fs=require('fs'), path=require('path');
 require(path.join(__dirname,'..','data','engine-data.js'));      // sets globalThis.MC, mcEff
 const {winProb2}=require(path.join(__dirname,'medicham2-browser.js'));
+const {mcKey}=require(path.join(__dirname,'mc_key.js'));   // the ONE species -> MC.mons resolver
 const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const N=+(process.env.N||40), MAXG=+(process.env.MAXG||350);
 
@@ -19,8 +20,14 @@ const split=Math.floor(clean.length*0.8);
 const held=clean.slice(split);                                   // temporal held-out fifth
 let rows=[];
 for(const g of held){
-  const br=g.brought||{}; const p1=(br.p1||g.six?.p1||[]).map(norm).filter(n=>MC.mons[n]);
-  const p2=(br.p2||g.six?.p2||[]).map(norm).filter(n=>MC.mons[n]);
+  /* mcKey, NOT norm. `.map(norm).filter(n => MC.mons[n])` reads like a harmless "keep the ones the
+   * engine knows about" filter, and was silently deleting every FORME from every team: MC.mons keys
+   * them with a hyphen and norm strips it, so Rotom-Wash, Ninetales-Alola and Floette-Eternal were
+   * dropped from the held-out games. 8.17% of real usage, removed from the test that decides whether
+   * MEDICHAM predicts anything at all. See engine/mc_key.js. */
+  const br=g.brought||{};
+  const p1=(br.p1||g.six?.p1||[]).map(mcKey).filter(Boolean);
+  const p2=(br.p2||g.six?.p2||[]).map(mcKey).filter(Boolean);
   if(p1.length<3||p2.length<3) continue;
   const w=g.winner; if(!w) continue;
   const y = (w===g.p1?.name)?1:((w===g.p2?.name)?0:null); if(y===null) continue;
