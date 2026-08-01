@@ -147,7 +147,17 @@ function filesFor(target) {
  * four fields per record are kept, not the record. Memory is bounded by unmatched seeds in flight
  * rather than by corpus size, so this reads a 200,000-game store the same as a 200-game one. */
 function decisiveSequence(target) {
-  const NEW = 'score';
+  /* THE NAME FALLBACK WAS THE PART THAT DISAGREED WITH ITSELF, and it was hardcoded to 'score'.
+   *
+   * winnerPolicy holds a NAME: mew.js:830 writes POLICY when arm 1 won and POLICY2 when arm 2 did.
+   * So "arm 1 won" is `winnerPolicy === policy`, read off the record. Hardcoding 'score' instead
+   * meant that in the canonical `--policy prior --policy2 score` run this branch called arm 2 the new
+   * arm while the arm branch above called arm 1 the new arm -- the same file answering opposite ways
+   * depending on which branch a record took, with nothing comparing them.
+   *
+   * Only reachable for records written before mew.js stamped winnerArm, so this is a correctness fix
+   * on a legacy path rather than something that moves a current number. */
+  const newName = g => g.selfplay.policy;
   const pending = new Map();
   const seq = [], atRow = [];
   let both = 0, split = 0, neither = 0, halves = 0, mismatched = 0, rows = 0;
@@ -156,29 +166,24 @@ function decisiveSequence(target) {
 
   const sixKey = g => JSON.stringify((g.six && g.six.p1 || []).slice().sort())
                     + JSON.stringify((g.six && g.six.p2 || []).slice().sort());
-  /* THE CHALLENGER IS ARM 2, AND THIS FILE USED TO SAY ARM 1 — A SILENT SIGN FLIP.
+  /* ARM 1 IS THE CHALLENGER. The whole project runs it that way and the labels here say so.
    *
-   * mew.js:837 stamps `winnerArm = 1` for the `--weights`/`--policy` arm and `2` for the
-   * `--weights2`/`--policy2` arm, and mew.js:215 documents arm 2 as the challenger: "the challenger
-   * is MAG's own machinery with different numbers". This function read `winnerArm === 1` as the new
-   * arm, which is the incumbent.
+   * mew.js:837 stamps winnerArm = 1 for the `--policy`/`--weights`/`--greedy` arm and 2 for the `2`
+   * suffixed one. paired_h2h.js:183 builds its NEW label from arm 1 and prints it as NEW, and the run
+   * that measured greedy at 79.7% put `--greedy` on arm 1. So NEW = arm 1, consistently, and this
+   * line agrees with the file that established the unit.
    *
-   * It also contradicted ITSELF. The name-based fallback on the next line treats whichever arm is
-   * called 'score' as new, and in the canonical `--policy prior --policy2 score` run that is arm 2.
-   * So the same file answered opposite ways depending on which branch a record took, and nothing
-   * ever compared them.
+   * A CORRECTION, recorded because it was nearly shipped. On 2026-08-01 this was changed to read
+   * `winnerArm === 2` as new, on the strength of mew.js:215 calling --weights2 "the challenger". That
+   * comment is about the EXPLOITABILITY search, where WOBBUFFET hunts for a vector that beats a fixed
+   * MAG, and not about the standard A/B. Making the change would have inverted sprt against
+   * paired_h2h and against every run already analysed. Reverted the same day.
    *
-   * MEASURED, 2026-08-01. A refit-vs-shipped run with the challenger in --weights2, as documented:
-   * this file reported "NEW takes 33.3% ==> NOT an improvement worth shipping" while
-   * winnerWeights -- the unambiguous field, recorded for exactly this reason -- had the challenger
-   * winning 9,783 games to 7,567. The verdict was reported with its sign inverted, in the tool that
-   * gates every ship decision.
-   *
-   * The label is printed with the weight file it refers to now (see report()), so a reader can see
-   * which vector "NEW" means instead of having to know a convention. */
+   * WHAT IS ACTUALLY INCONSISTENT is the name-based fallback below, not the arm path -- see the note
+   * on NEW_NAME. */
   const wonNew = g => (g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2)
-    ? (g.selfplay.winnerArm === 2 ? 1 : 0)
-    : (g.selfplay.winnerPolicy === NEW ? 1 : 0);
+    ? (g.selfplay.winnerArm === 1 ? 1 : 0)
+    : (g.selfplay.winnerPolicy === newName(g) ? 1 : 0);
 
   const onRow = (g) => {
     rows++;
@@ -186,8 +191,8 @@ function decisiveSequence(target) {
     if (firstPolicy === null) firstPolicy = g.selfplay.policy;
     /* What OLD and NEW actually are, taken from the run itself so the report can name them rather
      * than leaving the reader to know which flag went where. */
-    if (!arms.old) arms.old = g.selfplay.weights || g.selfplay.policy || null;
-    if (!arms.new) arms.new = g.selfplay.weights2 || g.selfplay.policy2 || null;
+    if (!arms.new) arms.new = g.selfplay.weights || g.selfplay.policy || null;
+    if (!arms.old) arms.old = g.selfplay.weights2 || g.selfplay.policy2 || g.selfplay.policy || null;
     if ((g.selfplay.policy2 || g.selfplay.policy) !== g.selfplay.policy) sawDistinctNames = true;
 
     const k = String(g.selfplay.seed);
@@ -243,8 +248,8 @@ function report(c, r, gamesSeen) {
    * file each label refers to makes a swapped run visible in the output rather than plausible. */
   const short = f => (f ? String(f).split(/[\\/]/).pop() : '(the default vector)');
   const a = (c.arms || {});
-  console.log(`  NEW  =  arm 2, --weights2/--policy2   ${short(a.new)}`);
-  console.log(`  OLD  =  arm 1, --weights/--policy     ${short(a.old)}\n`);
+  console.log(`  NEW  =  arm 1, --policy/--weights/--greedy    ${short(a.new)}`);
+  console.log(`  OLD  =  arm 2, --policy2/--weights2/--greedy2 ${short(a.old)}\n`);
   console.log(`  games read        ${gamesSeen.toLocaleString()}`);
   console.log(`  pairs             ${c.pairs.toLocaleString()}`);
   console.log(`  2-0 to NEW        ${String(c.both).padStart(7)}   ${pct(c.both, c.pairs)}`);

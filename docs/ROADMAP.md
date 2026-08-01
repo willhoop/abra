@@ -321,19 +321,33 @@ exactly as written.
 > Every "one slot sets up, the partner benefits" term was negative and is now positive. Held out, the
 > joint layer takes top-1 from 9.7% to 11.5%.
 >
-> **And it wins.** Refit+fix against the shipped vector, seed-paired, greedy and joint on both arms:
-> **66.7% of decisive pairs** (17,350 games, SPRT decided after 78 decisive pairs) and **65.9%** on an
-> independent disjoint seed block (1,934 games, decided after 69). Both far past the 55% ship
-> threshold.
+> **And it wins.** Refit+fix against the shipped vector, seed-paired, greedy and joint on both arms,
+> on three disjoint seed blocks:
+>
+> | run | games | decisive pairs to the refit | SPRT decided at |
+> |---|---|---|---|
+> | first | 17,350 | 66.7% | 78 decisive pairs |
+> | replication | 1,934 | 65.9% | 69 |
+> | challenger in arm 1, as convention | 1,932 | **70.9%** [66.0, 75.4] | 71 |
+>
+> The third is the one to quote: `sprt.js` and `paired_h2h.js` were run over it independently and
+> agree to the decimal. All three are far past the 55% ship threshold, and every one was decided
+> inside ~420 games — the fixed 200,000-game run this started as was 99.8% waste.
 >
 > **Item 1's stated premise is void.** It reads −5.054 as evidence that the imitation objective prices
 > good play badly. That number was a fitter defect. Item 1 may still be worth doing — the objective
 > argument has independent support from greedy — but **this is no longer evidence for it**, and
 > DODUO's 42.0% was measured with the contaminated vector and no longer describes the current one.
 >
-> A caution earned the same day: the first reading of this H2H was reported **with its sign inverted**,
-> because `sprt.js` treated arm 1 as the challenger while `mew.js` documents arm 2. Fixed, tested, and
-> the report now names the weight file behind each label.
+> **A correction about the analysers, recorded because it was nearly shipped as a fix.** The first
+> reading of this H2H looked inverted, and `sprt.js` was changed to treat arm 2 as the challenger on
+> the strength of `mew.js:215` calling `--weights2` "the challenger". That comment is about the
+> EXPLOITABILITY search, not the standard A/B. **Arm 1 is the challenger** — `paired_h2h.js:183` builds
+> its NEW label from arm 1, and the run that measured greedy at 79.7% put `--greedy` on arm 1. The
+> change was reverted; making it would have put the two analysers at odds and inverted every run
+> already analysed. What WAS wrong is narrower: sprt's name-based fallback hardcoded `'score'` as the
+> new arm, so on `--policy prior --policy2 score` it disagreed with its own arm-based path. Fixed, and
+> `tests/test-sprt-arm-sign.js` now asserts the two analysers use the same rule so they cannot drift.
 
 **1. DODUO trained for WINNING, not for resemblance.** *The most precise open question in the
 project.* DODUO is fully built: `fit_joint.js` fits the pair block, `magnemite.js` plays it

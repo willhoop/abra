@@ -1,21 +1,22 @@
 /* test-sprt-arm-sign.js — SPRT must not report a verdict with its sign inverted.
  *
- * WHY THIS EXISTS. `engine/sprt.js` is the tool that gates every ship decision in this project, and
- * on 2026-08-01 it reported one backwards.
+ * WHY THIS EXISTS. `engine/sprt.js` is the tool that gates every ship decision in this project. On
+ * 2026-08-01 its sign was CHANGED on a bad reading and nearly shipped, which is the same hazard as
+ * the sign being wrong and is what this test now prevents.
  *
- * `mew.js:837` stamps `winnerArm = 1` for the `--weights`/`--policy` arm and `2` for
- * `--weights2`/`--policy2`, and `mew.js:215` documents arm 2 as the challenger: "the challenger is
- * MAG's own machinery with different numbers". sprt.js read `winnerArm === 1` as the new arm — the
- * incumbent. It also disagreed with ITSELF: the name-based fallback treats whichever arm is called
- * 'score' as new, which in the canonical `--policy prior --policy2 score` run is arm 2. The same
- * file answered opposite ways depending on which branch a record took.
+ * THE CONVENTION, established by the file that defined the unit: **arm 1 is the challenger.**
+ * `mew.js:837` stamps `winnerArm = 1` for the `--policy`/`--weights`/`--greedy` arm and `2` for the
+ * `2`-suffixed one. `paired_h2h.js:183` builds its NEW label from arm 1 and prints it as NEW, and the
+ * run that measured greedy at 79.7% put `--greedy` on arm 1. So NEW = arm 1.
  *
- * Live consequence, measured: a refit-vs-shipped run printed "NEW takes 33.3% ==> NOT an improvement
- * worth shipping" while the challenger had actually won 9,783 games to 7,567.
+ * The near-miss: `mew.js:215` calls `--weights2` "the challenger", which is true of the
+ * EXPLOITABILITY search (WOBBUFFET hunting a vector that beats a fixed MAG) and not of the standard
+ * A/B. Reading it as a global convention and flipping sprt would have put it at odds with
+ * paired_h2h.js and inverted every run already analysed.
  *
  * A wrong NUMBER gets argued with. A wrong SIGN gets acted on, and it ships the worse arm. So the
- * test is built the way the defect demands: construct a run whose winner is known by construction,
- * and assert the verdict points at it.
+ * test constructs runs whose winner is known by construction and asserts the verdict points at it —
+ * in BOTH directions, because a file with the sign flipped passes one and fails the other.
  */
 'use strict';
 const fs = require('fs');
@@ -30,26 +31,29 @@ console.log('SPRT ARM SIGN — the verdict must point at the arm that actually w
 const TMP = path.join(require('os').tmpdir(), 'abra-sprt-sign-' + process.pid);
 fs.mkdirSync(TMP, { recursive: true });
 
-/* Build a paired run in which a chosen arm wins a chosen share of DECISIVE pairs.
+const ARM1 = 'NEW-challenger.json';     // --weights,  arm 1, the one SPRT calls NEW
+const ARM2 = 'OLD-baseline.json';       // --weights2, arm 2, the incumbent
+
+/* Build a paired run in which a chosen arm wins every DECISIVE pair.
  *
- * A decisive pair is one arm winning both halves of the same matchup from both sides. So for each
- * pair we emit two records with the same seed and the same six, opposite `swapped`, both won by the
- * same arm. `winnerWeights` is filled the way mew.js fills it, because that is the field a reader
- * checks when they distrust the label. */
-function writeRun(file, { winner, pairs }) {
+ * A decisive pair is one arm winning both halves of the same matchup from both sides, so each pair
+ * is two records with the same seed and six, opposite `swapped`, won by the same arm. winnerWeights
+ * is filled the way mew.js fills it, because that is the field a reader checks when the label is in
+ * doubt — and the one that settled this question. */
+function writeRun(file, winner) {
   const lines = [];
   const six = { p1: ['Garchomp', 'Gyarados', 'Incineroar', 'Whimsicott', 'Torkoal', 'Grimmsnarl'],
                 p2: ['Venusaur', 'Charizard', 'Blastoise', 'Clefable', 'Alakazam', 'Machamp'] };
-  for (let i = 0; i < pairs; i++) {
+  for (let i = 0; i < 200; i++) {
     for (const swapped of [false, true]) {
       lines.push(JSON.stringify({
         id: `g${i}-${swapped ? 'b' : 'a'}`, six,
         selfplay: {
           seed: 1000 + i, swapped,
           policy: 'score', policy2: 'score',
-          weights: 'OLD-incumbent.json', weights2: 'NEW-challenger.json',
+          weights: ARM1, weights2: ARM2,
           winnerArm: winner,
-          winnerWeights: winner === 1 ? 'OLD-incumbent.json' : 'NEW-challenger.json',
+          winnerWeights: winner === 1 ? ARM1 : ARM2,
         },
       }));
     }
@@ -60,41 +64,54 @@ function writeRun(file, { winner, pairs }) {
 const run = (file) => spawnSync(process.execPath, [path.join(ROOT, 'engine', 'sprt.js'), file],
   { encoding: 'utf8' }).stdout || '';
 
-/* ---- 1. THE CHALLENGER (arm 2) WINS EVERYTHING ------------------------------------------------ */
-const fChallenger = path.join(TMP, 'challenger-wins.jsonl');
-writeRun(fChallenger, { winner: 2, pairs: 200 });
-const outC = run(fChallenger);
+/* ---- 1. ARM 1 — the challenger — WINS EVERYTHING ---------------------------------------------- */
+const fArm1 = path.join(TMP, 'arm1-wins.jsonl');
+writeRun(fArm1, 1);
+const out1 = run(fArm1);
 
-ok(/the NEW arm is better/.test(outC),
-  'when arm 2 (--weights2, the documented challenger) wins every pair, the verdict says NEW is better');
-ok(/NEW takes 100\.0% of them/.test(outC), '...and it takes 100% of decisive pairs, not 0%');
-ok(!/NOT an improvement/.test(outC), '...and is not reported as a null');
+ok(/the NEW arm is better/.test(out1),
+  'when arm 1 (--policy/--weights, the challenger) wins every pair, the verdict says NEW is better');
+ok(/NEW takes 100\.0% of them/.test(out1), '...and it takes 100% of decisive pairs, not 0%');
+ok(!/NOT an improvement/.test(out1), '...and is not reported as a null');
 
-/* ---- 2. THE INCUMBENT (arm 1) WINS EVERYTHING — the mirror image ------------------------------ */
-const fIncumbent = path.join(TMP, 'incumbent-wins.jsonl');
-writeRun(fIncumbent, { winner: 1, pairs: 200 });
-const outI = run(fIncumbent);
+/* ---- 2. ARM 2 — the incumbent — WINS EVERYTHING, the mirror image ----------------------------- */
+const fArm2 = path.join(TMP, 'arm2-wins.jsonl');
+writeRun(fArm2, 2);
+const out2 = run(fArm2);
 
-ok(/NOT an improvement worth shipping/.test(outI),
-  'when arm 1 wins every pair, the challenger is correctly reported as no improvement');
-ok(/NEW takes 0\.0% of them/.test(outI), '...and takes 0% of decisive pairs');
+ok(/NOT an improvement worth shipping/.test(out2),
+  'when arm 2 wins every pair, the challenger is correctly reported as no improvement');
+ok(/NEW takes 0\.0% of them/.test(out2), '...and takes 0% of decisive pairs');
 
-/* The two runs are exact mirrors, so a file that gets the sign wrong passes one and fails the other.
- * Asserting both is what makes this a sign test rather than a smoke test. */
-ok(/the NEW arm is better/.test(outC) && /NOT an improvement/.test(outI),
+/* This pair of assertions is what makes it a SIGN test rather than a smoke test: the two runs are
+ * exact mirrors, so a file reading the sign backwards passes one and fails the other. */
+ok(/the NEW arm is better/.test(out1) && /NOT an improvement/.test(out2),
   'the two mirrored runs give opposite verdicts — the sign is actually being read');
 
-/* ---- 3. THE LABELS MUST NAME THE FILES -------------------------------------------------------- */
-/* The original defect was invisible because the report said "NEW" and left which-is-which to a
- * convention. Naming the file makes a swapped run visible in the output. */
-ok(/NEW\s*=\s*arm 2.*NEW-challenger\.json/.test(outC),
-  'the report names the weight file NEW refers to');
-ok(/OLD\s*=\s*arm 1.*OLD-incumbent\.json/.test(outC),
-  'the report names the weight file OLD refers to');
+/* ---- 3. AGREEMENT WITH paired_h2h.js ---------------------------------------------------------- */
+/* The two analysers must not disagree about which arm is which. paired_h2h.js is the file that
+ * established the decisive-pair unit, so it is the reference, and this asserts sprt matches the line
+ * it uses rather than trusting that both were read correctly. */
+const ph = fs.readFileSync(path.join(ROOT, 'engine', 'paired_h2h.js'), 'utf8');
+const sp = fs.readFileSync(path.join(ROOT, 'engine', 'sprt.js'), 'utf8');
+const armRule = src => (/winnerArm === 1 \? 1 : 0/.test(src) ? 'arm1=NEW'
+                     : /winnerArm === 2 \? 1 : 0/.test(src) ? 'arm2=NEW' : 'unrecognised');
+ok(armRule(ph) === 'arm1=NEW', `paired_h2h.js treats arm 1 as NEW (${armRule(ph)})`);
+ok(armRule(sp) === armRule(ph),
+  `sprt.js uses the SAME rule as paired_h2h.js (sprt ${armRule(sp)}, paired_h2h ${armRule(ph)})`);
 
-/* ---- 4. AGREEMENT WITH THE UNAMBIGUOUS FIELD -------------------------------------------------- */
-/* winnerWeights exists precisely because a policy NAME goes blind when both arms share one. The
- * verdict must agree with it; if they ever disagree, winnerWeights is right and the label is not. */
+/* ---- 4. THE LABELS MUST NAME THE FILES -------------------------------------------------------- */
+/* What made this hard to see was a report that said "NEW" and left which-is-which to a convention
+ * the reader had to already know. Naming the file makes a run set up the other way round visible in
+ * the output instead of plausible. */
+ok(/NEW\s*=\s*arm 1[^\n]*NEW-challenger\.json/.test(out1),
+  'the report names the weight file NEW refers to, and says which arm it is');
+ok(/OLD\s*=\s*arm 2[^\n]*OLD-baseline\.json/.test(out1),
+  'the report names the weight file OLD refers to, and says which arm it is');
+
+/* ---- 5. AGREEMENT WITH THE UNAMBIGUOUS FIELD -------------------------------------------------- */
+/* winnerWeights exists because a policy NAME goes blind when both arms share one. If the label and
+ * winnerWeights ever disagree, winnerWeights is right. */
 const winnerWeightsSays = (file) => {
   const t = {};
   for (const l of fs.readFileSync(file, 'utf8').split('\n')) {
@@ -104,9 +121,9 @@ const winnerWeightsSays = (file) => {
   }
   return Object.entries(t).sort((a, b) => b[1] - a[1])[0][0];
 };
-ok(winnerWeightsSays(fChallenger) === 'NEW-challenger.json' && /the NEW arm is better/.test(outC),
+ok(winnerWeightsSays(fArm1) === ARM1 && /the NEW arm is better/.test(out1),
   'the verdict agrees with winnerWeights, the field that cannot be ambiguous');
-ok(winnerWeightsSays(fIncumbent) === 'OLD-incumbent.json' && /NOT an improvement/.test(outI),
+ok(winnerWeightsSays(fArm2) === ARM2 && /NOT an improvement/.test(out2),
   '...in both directions');
 
 try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) { console.error('  (temp cleanup failed: ' + e.message + ')'); }
