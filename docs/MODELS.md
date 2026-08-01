@@ -95,6 +95,25 @@ own ally by −5 will decline its best plays. Predicting a human pair (14.5% top
 and winning are different objectives, and this is the cleanest separation of the two the project
 has measured.
 
+> **WITHDRAWN 2026-08-01. All three of those numbers were a fitter defect, not a preference.**
+> `fit_joint.js` required the candidate's target to match the human's recorded target, and a spread
+> candidate is built with `targetMon: null` because Earthquake is not aimed — so **no spread click
+> could ever match**. Spread moves are 14.94% of all human move clicks and 1,393 of 1,397 were
+> discarded; the fit ran on 24,997 of 82,483 joint turns, and the missing 70% was precisely the turns
+> these three features describe. Refitted on 63,305 turns, all three change sign:
+> `spreadFreeBesideAlly` −4.986 → **+0.863**, `terrainSetupHelpsPartner` −4.125 → **+2.005**,
+> `screenWhileThreatened` −2.982 → **+0.110**.
+>
+> The corrected vector then **beat the shipped one at 66.7% and 65.9% of decisive pairs** on two
+> disjoint seed blocks. So the paragraph above has it backwards for these three: the imitation fit was
+> not expressing a human preference against good play, it was never shown the plays.
+>
+> **The broader claim is untouched and still stands on its own evidence.** Imitation and winning ARE
+> different objectives — greedy action selection is worth about 12 points, and the resemble-vs-win
+> table further down shows real sign flips in `overkill`, `focusFireKills` and `partnerCoversMe`.
+> What is retired is *these three features as the illustration of it*, and DODUO's 42.0%, which was
+> measured on the contaminated vector and does not describe the current one.
+
 **What this does NOT settle.** Will's argument was about EXPLOITABILITY — that a bot choosing
 each slot independently can be set positions it fails every time. That is a claim about the
 worst case against a prepared opponent, not about the average, and a policy can be worse on

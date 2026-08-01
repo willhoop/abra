@@ -284,6 +284,57 @@ fitted on that is a weight fitted on the wrong question, and **−5.054 may be a
 a preference.** Stated as a hypothesis; the refit is the test. If it survives the refit, item 1 stands
 exactly as written.
 
+> ### RESOLVED 2026-08-01 — it WAS an artifact, and of something else entirely
+>
+> **The immunity hypothesis above is refuted, and the conclusion it was reaching for is confirmed by
+> a different cause.** Both fits were re-run.
+>
+> **The refit alone changed almost nothing.** `allyHit` moved from −0.0187 to −0.0126 (unweighted
+> −0.0937 → −0.0875) — about **0.2 standard errors**, i.e. noise. Measured rather than argued: the
+> immunity fix changes **0.198% of candidates**, and `allyHit` fires on only 0.63% of them to begin
+> with. So the honest reading of `allyHit` is the plain one — **humans do not avoid hitting their own
+> partner much** — and it should be reported that way rather than re-explained.
+>
+> **What produced −4.986 was the FITTER, not the feature.** `fit_joint.js` matched a human's click by
+> requiring the candidate's target to match, and `board.js` builds a spread candidate with
+> `targetMon: null` because Earthquake is not aimed. **No spread click could ever match.** Measured
+> over 400 corpus games: spread moves are **14.94% of all human move clicks**, 99.71% carry a recorded
+> target, and **1,393 of 1,397 failed to match**. Because a joint turn needs both slots, the loss
+> compounded — the fit discarded **57,486 of 82,483 joint turns** and estimated 74 weights from 30% of
+> the data. The discarded 70% was not random: it was exactly the turns containing a spread move.
+>
+> `spreadFreeBesideAlly` therefore fired on 8.0% of the enumerated alternatives and **0 of 1,461 pairs
+> a human actually chose**, and a conditional logit reads "always available, never chosen" as a large
+> negative. `fit_policy.js:432` had this right all along, so the **56-feature vector was never
+> affected**.
+>
+> Corrected, on 63,305 usable turns, **nine of eighteen pair weights flip sign**:
+>
+> | pair term | old | refit + matcher fix |
+> |---|---|---|
+> | `spreadFreeBesideAlly` | −4.986 | **+0.863** |
+> | `terrainSetupHelpsPartner` | −4.125 | **+2.005** |
+> | `screenWhileThreatened` | −2.982 | **+0.110** |
+> | `speedSetupHelpsPartner` | −1.595 | **+0.540** |
+> | `weatherSetupHelpsPartner` | −0.549 | **+1.292** |
+>
+> Every "one slot sets up, the partner benefits" term was negative and is now positive. Held out, the
+> joint layer takes top-1 from 9.7% to 11.5%.
+>
+> **And it wins.** Refit+fix against the shipped vector, seed-paired, greedy and joint on both arms:
+> **66.7% of decisive pairs** (17,350 games, SPRT decided after 78 decisive pairs) and **65.9%** on an
+> independent disjoint seed block (1,934 games, decided after 69). Both far past the 55% ship
+> threshold.
+>
+> **Item 1's stated premise is void.** It reads −5.054 as evidence that the imitation objective prices
+> good play badly. That number was a fitter defect. Item 1 may still be worth doing — the objective
+> argument has independent support from greedy — but **this is no longer evidence for it**, and
+> DODUO's 42.0% was measured with the contaminated vector and no longer describes the current one.
+>
+> A caution earned the same day: the first reading of this H2H was reported **with its sign inverted**,
+> because `sprt.js` treated arm 1 as the challenger while `mew.js` documents arm 2. Fixed, tested, and
+> the report now names the weight file behind each label.
+
 **1. DODUO trained for WINNING, not for resemblance.** *The most precise open question in the
 project.* DODUO is fully built: `fit_joint.js` fits the pair block, `magnemite.js` plays it
 (`--joint`), `--joint-zero` is a true control running the whole pair path with only the coordination

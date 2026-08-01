@@ -214,6 +214,17 @@ cores beat which" and for quantifying how cyclic the meta really is.
    **−5.054** — a statement that humans rarely click it, not that it is bad. Refitting those weights
    for *winning* rather than *resemblance* is untested and is the project's top open question.
 
+   > **CORRECTED 2026-08-01, and this paragraph should no longer be cited as it stands.** The −5.054
+   > was not a statement about human preference. `fit_joint.js` matched a human's click by requiring
+   > the candidate's target to match, and a spread move is built with no target because it is not
+   > aimed — so **no spread click could ever match**. Spread moves are 14.94% of all human move clicks
+   > and 99.7% of them were thrown away; the fit used 24,997 of 82,483 joint turns, and the discarded
+   > 70% was exactly the turns containing the play the feature describes. Refitted, the weight is
+   > **+0.863**, and the corrected vector beats the shipped one at **66.7%** and **65.9%** of decisive
+   > pairs on two disjoint seed blocks. DODUO's 42.0% was measured on the contaminated vector and does
+   > not describe the current one. The imitation-versus-winning argument stands on its other evidence —
+   > greedy action selection is worth about 12 points — but not on this example.
+
    A separate class of defect, worth naming because it is not a modelling disagreement: a fact
    reaching one consumer and not the next. Priority blocking lived in the tag artifact and never
    reached the simulator, so **Sucker Punch beat a Farigiraf in every rollout ever run**. A
