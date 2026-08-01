@@ -109,11 +109,20 @@ const SCENARIOS = [
     state: {},
   },
 
+  /* ROTOM-WASH IS HERE FOR ITS HYPHEN, not for its typing.
+   *
+   * The damage engine's mon cache keys formes with a hyphen -- `rotom-wash`, `slowking-galar` -- and
+   * board.js looked them up through norm(), which strips hyphens. 101 of 308 cache entries were
+   * unreachable, covering 8.17% of all observed metagame usage, and every damage-derived feature
+   * silently read zero for them. The first version of this fixture used only hyphen-free species, so
+   * the guard could not have caught it: a whole code path was outside the boards it checks.
+   *
+   * A fixture only guards what it exercises, so it now carries at least one hyphenated forme. */
   {
     label: 'dead-moves-and-status',
     p1: [
-      { species: 'Whimsicott', item: 'Focus Sash', ability: 'Prankster', nature: 'Timid',
-        moves: ['Tailwind', 'Encore', 'Moonblast', 'Helping Hand'] },
+      { species: 'Rotom-Wash', item: 'Sitrus Berry', ability: 'Levitate', nature: 'Modest',
+        moves: ['Hydro Pump', 'Thunderbolt', 'Will-O-Wisp', 'Protect'] },
       { species: 'Clefable', item: 'Leftovers', ability: 'Unaware', nature: 'Bold',
         moves: ['Follow Me', 'Life Dew', 'Icy Wind', 'Moonblast'] },
     ],
@@ -274,8 +283,12 @@ function needPlayable(sp, dex, name) {
     throw new Error(`feature_fixture: "${name}" is not legal in ${require('./champions_sim.js').FORMAT} `
       + `(tier ${s.tier}, isNonstandard ${s.isNonstandard}). A board that cannot occur is not a fixture.`);
   }
+  /* Asked through board.js's own resolver rather than by re-deriving the key here. The first version
+   * of this check re-implemented `MC.mons[norm(name)]`, which is precisely the lookup that was broken
+   * -- so it agreed with the bug and would have rejected every hyphenated forme as "not in the cache"
+   * when the entry was there all along. A guard that re-derives what it is guarding tests nothing. */
   const MC = globalThis.MC;
-  if (MC && MC.mons && !MC.mons[B.norm(name)] && !MC.mons[B.baseSpecies(name)]) {
+  if (MC && MC.mons && !B.mcKeyFor(name)) {
     throw new Error(`feature_fixture: "${name}" is legal but is NOT in the damage engine's mon cache `
       + `(MC.mons), so every damage-derived feature reads zero on it and the fixture would claim `
       + `coverage it does not have. Pick a species that is in the cache.`);

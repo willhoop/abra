@@ -820,11 +820,39 @@ function damageEngine() {
   return _dmg;
 }
 
+/* THE CACHE KEYS FORMES WITH A HYPHEN AND norm() STRIPS HYPHENS, SO A THIRD OF THE TABLE WAS
+ * UNREACHABLE.
+ *
+ * MC.mons stores `rotom-wash`, `slowking-galar`, `ninetales-alola`. norm() is
+ * `.replace(/[^a-z0-9]/g,'')`, so it asks for `rotomwash` and misses, and baseSpecies() only strips a
+ * trailing `mega`, so the fallback asks the same wrong question. Measured 2026-08-01: **101 of 308
+ * cache entries could never be found**, covering **8.17% of all observed metagame usage** -- Rotom-Wash,
+ * Ninetales-Alola, Sinistcha-Masterpiece, Maushold-Four, five Hisuian formes. For every one of them
+ * dmgMon returned null and every damage-derived feature read zero: no kill, no threat, no dmgFrac, no
+ * clickCost, no benchRisk. Silently, on a species Will's own opponents bring.
+ *
+ * Resolved through a normalised INDEX built once from the table's own keys, rather than by guessing
+ * the punctuation back. Nothing is named here and no key format is assumed: whatever the builder
+ * emits, this finds it. Verified to have zero collisions -- 308 keys, 308 distinct normalised forms --
+ * so the mapping is one-to-one and cannot silently pick the wrong forme.
+ *
+ * That last point is the one that mattered: the near-miss alternative was to fall back to the BASE
+ * species, which would have handed Slowking-Galar's Poison/Psychic body Slowking's Water/Psychic
+ * stats and been worse than returning nothing. */
+let _mcIndex = null;
+function mcKeyFor(species) {
+  if (!_mcIndex) {
+    _mcIndex = new Map();
+    for (const k of Object.keys(MC.mons)) { const n = norm(k); if (!_mcIndex.has(n)) _mcIndex.set(n, k); }
+  }
+  return _mcIndex.get(norm(species)) || _mcIndex.get(baseSpecies(species)) || null;
+}
+
 /* A tracked mon -> the shape the damage formula expects. Returns null when the species is not in the
  * table, which is a real condition (a forme the usage data has never seen) and not an error. */
 function dmgMon(mon, D) {
   if (!mon) return null;
-  const key = MC.mons[norm(mon.species)] ? norm(mon.species) : (MC.mons[baseSpecies(mon.species)] ? baseSpecies(mon.species) : null);
+  const key = mcKeyFor(mon.species);
   if (!key) { dmgFailures.unknownSpecies++; return null; }
   const b = D.buildMon(key);
   if (!b) { dmgFailures.unknownSpecies++; return null; }
@@ -2679,7 +2707,9 @@ function featuresFor(cand, user, board, side, dex, priorP) {
             if (xp) set('clickCost', xp.total);
             const foeSide2 = side === 'p1' ? 'p2' : 'p1';
             const benchMons = (board.bench(foeSide2) || []).map(sp => {
-              const key2 = MC.mons[norm(sp)] ? norm(sp) : (MC.mons[baseSpecies(sp)] ? baseSpecies(sp) : null);
+              /* Same normalised index as dmgMon — the second copy of the broken lookup lived here,
+               * so benchRisk was blind to exactly the same 101 formes. */
+              const key2 = mcKeyFor(sp);
               if (!key2) return null;
               const b2 = D2.buildMon(key2);
               if (!b2) return null;
@@ -3114,6 +3144,6 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;
