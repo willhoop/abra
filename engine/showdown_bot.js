@@ -122,20 +122,39 @@ function packTeam(seed) {
   return r.packed;
 }
 
-/* ---- websocket plumbing ------------------------------------------------------------------------ */
-const ws = new WebSocket(SERVER);
+/* ---- websocket plumbing ------------------------------------------------------------------------
+ *
+ * THE SOCKET IS OPENED ONLY WHEN THIS FILE IS RUN, NOT WHEN IT IS REQUIRED.
+ *
+ * It used to connect at module load, which made the whole file untestable: `require`ing it dialled a
+ * server. So the ordering logic below -- which is protocol ordering, the exact thing that produced
+ * the team-preview race -- could only ever be checked by playing a game by hand and reading a log,
+ * which is how the race survived in the first place.
+ *
+ * `send` is swappable for the same reason: a test drives handle() with recorded protocol lines and
+ * reads back what MAG would have sent, in order. */
+const IS_MAIN = require.main === module;
+const ws = IS_MAIN ? new WebSocket(SERVER) : null;
+let sink = (msg) => { ws.send(msg); };
 const players = new Map();          // roomid -> { player, rqid }
 const otsSent = new Set();          // rooms where open team sheets have already been accepted
+
+/* HOW LONG TO HOLD THE BRING WAITING FOR THE OPPONENT'S SHEET.
+ *
+ * Team preview has its own clock on the server and running it out forfeits, so this cannot wait
+ * forever. 5s is a starting value, not a derived one: the sheets were observed arriving in the same
+ * protocol burst as the request -- microseconds later, not seconds -- so this is a safety net for
+ * the case where they never come at all, and any value comfortably under the preview timer would do.
+ * It is a parameter (--sheet-wait) and is stated as one. */
+const SHEET_WAIT_MS = +arg('sheet-wait', '5000');
+const teamPreviewHeld = new Map();  // roomid -> { line, timer }
+const bringStats = { held: 0, releasedOnSheet: 0, releasedOnTimeout: 0, notHeld: 0 };
 let joined = false;
 
-const send = (msg) => { ws.send(msg); if (process.env.ABRA_BOT_DEBUG) console.log('>> ' + msg); };
+const send = (msg) => { sink(msg); if (process.env.ABRA_BOT_DEBUG) console.log('>> ' + msg); };
 
-ws.addEventListener('open', () => console.log(`connected to ${SERVER}`));
-ws.addEventListener('error', (e) => { console.error('websocket error:', e.message || e); process.exit(1); });
-ws.addEventListener('close', () => { console.error('socket closed'); process.exit(1); });
-
-ws.addEventListener('message', (ev) => {
-  const data = String(ev.data || '');
+function feed(data) {
+  data = String(data || '');
   let room = '';
   let body = data;
   if (data.startsWith('>')) {
@@ -144,7 +163,19 @@ ws.addEventListener('message', (ev) => {
     body = nl < 0 ? '' : data.slice(nl + 1);
   }
   for (const line of body.split('\n')) handle(room, line);
-});
+}
+
+if (IS_MAIN) {
+  ws.addEventListener('open', () => console.log(`connected to ${SERVER}`));
+  ws.addEventListener('error', (e) => { console.error('websocket error:', e.message || e); process.exit(1); });
+  ws.addEventListener('close', () => { console.error('socket closed'); process.exit(1); });
+  ws.addEventListener('message', (ev) => feed(ev.data));
+} else {
+  module.exports = {
+    feed, handle, players, otsSent, teamPreviewHeld, bringStats, SHEET_WAIT_MS,
+    setSink: (fn) => { sink = fn; },
+  };
+}
 
 function handle(room, line) {
   if (!line.startsWith('|')) return;
@@ -286,16 +317,107 @@ function handle(room, line) {
   }
 
   if (cmd === 'request') {
-    try { const r = JSON.parse(parts.slice(2).join('|')); entry.rqid = r && r.rqid != null ? r.rqid : ''; }
-    catch (e) { console.error('  (unparseable request)'); }
+    try {
+      const r = JSON.parse(parts.slice(2).join('|'));
+      entry.rqid = r && r.rqid != null ? r.rqid : '';
+      /* WHICH SIDE MAG IS, READ HERE RATHER THAN ASKED OF THE PLAYER.
+       *
+       * magnemite.js:655 sets this.me from the FIRST REQUEST it receives -- and the first request is
+       * the team-preview one, which is exactly the line being held below. Asking the player would
+       * therefore always get null, sheetSeenForFoe would never be able to name the foe, and every
+       * bring would sit out the full timeout and then go blind: the original bug, slower. */
+      if (!entry.mySide && r && r.side && r.side.id) entry.mySide = r.side.id;
+    } catch (e) { console.error('  (unparseable request)'); }
   }
+
+  /* ---- THE TEAM-PREVIEW RACE ------------------------------------------------------------------
+   *
+   * Will: "like how does it choose its pokemon before team sheet selection". Measured off the live
+   * protocol log of battle 26, in this order:
+   *
+   *     |teampreview
+   *     acceptopenteamsheets
+   *     /choose team 4251        <- MAG commits its four
+   *     showteam|p1              <- the opponent's sheet arrives
+   *     showteam|p2
+   *
+   * So MAG agreed to open team sheets, and then answered before reading one. The information landed
+   * after the decision it was supposed to inform. Nothing was broken in a way that errors -- the bot
+   * simply chose in the dark and the sheet turned up a moment later.
+   *
+   * The fix is to hold the team-preview REQUEST rather than to hurry the sheets: the request is what
+   * makes the player answer, so not delivering it yet is the whole mechanism. Everything else,
+   * |showteam| included, is forwarded as it arrives, so by the time the request is released the
+   * player's board already has the opponent's sets.
+   *
+   * WHAT THIS DOES AND DOES NOT BUY. It makes the sheet AVAILABLE at the moment of the decision. It
+   * does not make the decision use it: prior_player.js chooseTeamPreview(team) still takes only its
+   * own team and samples per-species marginals, so today MAG will read the sheet and ignore it. This
+   * is a precondition for an opponent-aware bring, not the bring itself, and it is worth having on
+   * its own because the same sheets feed the in-battle model.
+   *
+   * THE FALLBACK IS COUNTED, not silent. A bring chosen without the sheet is a different decision
+   * from one chosen with it, and a run where that happened every time must not be indistinguishable
+   * from a run where it never did. */
   if (cmd === 'win' || cmd === 'tie') {
     console.log(`  battle over: ${line.slice(1)}`);
+    /* A room that ends mid-hold must not leave a timer pointing at a deleted player. */
+    const h = teamPreviewHeld.get(room);
+    if (h) { clearTimeout(h.timer); teamPreviewHeld.delete(room); }
     players.delete(room);
     send(`${room}|/leave`);
     return;
   }
 
+  if (cmd === 'request' && /"teamPreview"\s*:\s*true/.test(line) && otsSent.has(room)
+      && !teamPreviewHeld.has(room) && !sheetSeenForFoe(room, entry)) {
+    const timer = setTimeout(() => {
+      const h = teamPreviewHeld.get(room);
+      if (!h) return;
+      teamPreviewHeld.delete(room);
+      bringStats.releasedOnTimeout++;
+      console.log(`  WAITED ${SHEET_WAIT_MS}ms AND NO OPPONENT SHEET ARRIVED — bringing blind in ${room} `
+        + `(${bringStats.releasedOnTimeout} of ${bringStats.held} held brings so far)`);
+      deliver(room, h.line);
+    }, SHEET_WAIT_MS);
+    if (timer.unref) timer.unref();
+    teamPreviewHeld.set(room, { line, timer });
+    bringStats.held++;
+    console.log(`  holding the bring in ${room} until the opponent's sheet arrives`);
+    return;                                    // deliberately NOT delivered yet
+  }
+
+  try { entry.player.receiveLine(line); }
+  catch (e) { console.error(`  player error in ${room}: ${e.message}`); }
+
+  /* Released here, AFTER the |showteam| line above has reached the player, so the board it decides
+   * against actually contains the sets. Releasing before would reproduce the original bug with extra
+   * steps. */
+  if (cmd === 'showteam' && teamPreviewHeld.has(room) && sheetSeenForFoe(room, entry)) {
+    const h = teamPreviewHeld.get(room);
+    teamPreviewHeld.delete(room);
+    clearTimeout(h.timer);
+    bringStats.releasedOnSheet++;
+    console.log(`  opponent sheet seen — releasing the bring in ${room}`);
+    deliver(room, h.line);
+  }
+  return;
+}
+
+/* Has the FOE's sheet landed? The player tracks sheets on its board, so this asks the board rather
+ * than keeping a second copy of the same fact in this file. MAG's own side is whichever one the
+ * request said it was; before that is known, nothing can be judged and the answer is no. */
+function sheetSeenForFoe(room, entry) {
+  const p = entry && entry.player;
+  if (!entry || !entry.mySide || !p || !p.board || !p.board.sheet) return false;
+  const foe = entry.mySide === 'p1' ? 'p2' : 'p1';
+  return Object.keys(p.board.sheet[foe] || {}).length > 0;
+}
+
+function deliver(room, line) {
+  const entry = players.get(room);
+  if (!entry) return;
   try { entry.player.receiveLine(line); }
   catch (e) { console.error(`  player error in ${room}: ${e.message}`); }
 }
+

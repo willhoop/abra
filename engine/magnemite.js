@@ -99,8 +99,15 @@ function checkSemantics(j, file, blocks) {
   if (!verdict) return;
   const msg = `FEATURE SEMANTICS — ${path.basename(file)}\n  ${verdict}`;
   if (process.env.ABRA_STRICT_SEMANTICS) throw new Error(msg);
+  /* ONCE PER FILE, NOT ONCE PER PLAYER. loadWeights runs in the constructor, so a 200,000-game H2H
+   * would print this 400,000 times — and a warning that scrolls a log is one nobody reads, which is
+   * the same way the guard would have died as a throw. Keyed by file so a run comparing two vectors
+   * still hears about both. */
+  if (_semanticsWarned.has(file)) return;
+  _semanticsWarned.add(file);
   console.error(`\nWARNING: ${msg}\n`);
 }
+const _semanticsWarned = new Set();
 
 /* How long a per-mon volatile lasts, from the dex condition of the move that creates it.
  *
