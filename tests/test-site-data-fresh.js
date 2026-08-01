@@ -79,15 +79,22 @@ const GEN_DIRS = ['build', 'engine', 'tools', 'scripts'];
  * matched and three generated files were reported as orphans. A false orphan is the worse error
  * here: it tells you a working generator does not exist. */
 const WRITE = /(writeFileSync|createWriteStream|json\.dump|to_json|\bopen\b[\s\S]{0,120}?['"][wa]['"])/;
+let scanIncomplete = false;
 function generatorFor(rel) {
   const base = path.basename(rel);
   for (const dir of GEN_DIRS) {
     let entries = [];
-    try { entries = fs.readdirSync(D(dir)); } catch (e) { continue; }
+    /* A DIRECTORY WE CANNOT READ PRODUCES A FALSE ORPHAN, which this file already calls the worse
+     * error — it reports that a working generator does not exist. Silence here would have
+     * reintroduced exactly that, in the guard written to prevent it. Reported, and the scan is
+     * marked incomplete so a miss cannot masquerade as a clean result. */
+    try { entries = fs.readdirSync(D(dir)); }
+    catch (e) { if (e.code !== 'ENOENT') { console.error(`  (cannot scan ${dir}/: ${e.message})`); scanIncomplete = true; } continue; }
     for (const f of entries) {
       if (!/\.(js|py|sh)$/.test(f)) continue;
       let src;
-      try { src = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) { continue; }
+      try { src = fs.readFileSync(D(dir, f), 'utf8'); }
+      catch (e) { console.error(`  (cannot read ${dir}/${f}: ${e.message})`); scanIncomplete = true; continue; }
       if (!src.includes(base)) continue;
       for (const ln of src.split('\n')) {
         if (ln.includes(base) && WRITE.test(ln)) return `${dir}/${f}`;
@@ -99,7 +106,14 @@ function generatorFor(rel) {
 
 /* ---- baseline of known orphans ------------------------------------------------------------------ */
 let base = { orphans: {} };
-try { base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); } catch (e) { /* first run */ }
+let baselineMissing = false;
+try { base = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); }
+catch (e) {
+  /* No baseline means every orphan reads as NEW and the check fails loudly, which is the safe
+   * direction — but say why, so the first run is not mistaken for a regression. */
+  baselineMissing = true;
+  console.error(`  (no orphan baseline yet: ${e.code === 'ENOENT' ? 'first run' : e.message})`);
+}
 
 const stale = [], orphans = [], fresh = [];
 for (const [rel, pages] of [...loaded.entries()].sort()) {
@@ -164,6 +178,11 @@ if (UPDATE) {
   console.log(`\n  baselined ${orphans.length} orphan(s) -> ${path.relative(ROOT, BASELINE)}`);
   process.exit(0);
 }
+
+/* AN INCOMPLETE SCAN MUST NOT PASS AS A CLEAN ONE. If any generator directory or file could not be
+ * read, every orphan verdict below is unreliable in the dangerous direction. */
+ok(!scanIncomplete, 'the generator scan read every file it needed',
+  'some generator files were unreadable — orphan verdicts below may be false');
 
 const known = new Set(Object.keys(base.orphans || {}));
 const allOrphans = orphans.concat(orphanInputs.map(o => ({ ...o, pages: ['(status input)'] })));
