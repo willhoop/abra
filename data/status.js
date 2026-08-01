@@ -19,6 +19,7 @@ window.ABRA_STATUS = {
     "hypno",
     "roles",
     "magnemite",
+    "sets",
     "jolteon"
    ],
    "derived": false,
@@ -134,7 +135,9 @@ window.ABRA_STATUS = {
    "inputs": [
     "medicham"
    ],
-   "sees": [],
+   "sees": [
+    "sprt"
+   ],
    "derived": true,
    "evidence": "data/games.h2h-tags2.jsonl: record count (largest of 18 corpora)"
   },
@@ -142,8 +145,8 @@ window.ABRA_STATUS = {
    "id": "chomp",
    "name": "CHOMP",
    "tier": "preview",
-   "status": "null",
-   "metric": "does not beat a coin on held-out brings (0.6925 vs 0.6931, intervals overlap)",
+   "status": "built",
+   "metric": "winners bring more CHOMP-aligned fours than losers — 51.4% CI [50.2, 52.6], clear of 50. Its probability is NOT better calibrated than a coin (0.6924 vs 0.6931).",
    "detail": "picks your four",
    "inputs": [
     "medicham",
@@ -151,7 +154,7 @@ window.ABRA_STATUS = {
    ],
    "sees": [],
    "derived": true,
-   "evidence": "data/chomp-ev.json: proper_score_logloss vs coin, with CI"
+   "evidence": "data/chomp-ev.json: headline_beat_test (direction) and proper_score_logloss (calibration)"
   },
   {
    "id": "slowking",
@@ -225,7 +228,9 @@ window.ABRA_STATUS = {
    "inputs": [
     "store"
    ],
-   "sees": [],
+   "sees": [
+    "doduo"
+   ],
    "derived": true,
    "evidence": "data/policy-weights.json: boardAware vs behaviourCloneOnly, held out by game"
   },
@@ -244,6 +249,48 @@ window.ABRA_STATUS = {
    "sees": [],
    "derived": false,
    "evidence": null
+  },
+  {
+   "id": "doduo",
+   "name": "DODUO",
+   "tier": "battle",
+   "status": "null",
+   "metric": "trained to WIN and lost to the same weights fitted to imitate: 45.7% of decisive pairs [45.1, 46.3]",
+   "detail": "scores the PAIR of choices",
+   "inputs": [
+    "magnemite"
+   ],
+   "sees": [],
+   "derived": true,
+   "evidence": "data/games.h2h-joint-trained.jsonl: 194,514 paired games via engine/paired_h2h.js"
+  },
+  {
+   "id": "sets",
+   "name": "SETS",
+   "tier": "meta",
+   "status": "built",
+   "metric": "81,144 real sheets, 246 species (198 with 10+ sightings)",
+   "detail": "what people actually run",
+   "inputs": [
+    "store"
+   ],
+   "sees": [],
+   "derived": true,
+   "evidence": "data/species-sets.json: derived from the open-sheet corpora"
+  },
+  {
+   "id": "sprt",
+   "name": "SPRT",
+   "tier": "collect",
+   "status": "validated",
+   "metric": "reached the same verdict after 3,516 of 194,514 games — 98.2% of the run saved",
+   "detail": "stops a test once it is decided",
+   "inputs": [
+    "mew"
+   ],
+   "sees": [],
+   "derived": true,
+   "evidence": "engine/sprt.js --verify agrees with engine/paired_h2h.js (12,073 / 14,332 on both)"
   },
   {
    "id": "jolteon",

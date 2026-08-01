@@ -58,6 +58,13 @@ const MODELS = [
   { id: 'roles',    name: 'ROLES',    tier: 'meta',      detail: 'what job each Pokemon does',    inputs: ['store'],                 fallback: 'built' },
   { id: 'magnemite', name: 'MAG',      tier: 'battle',    detail: 'picks the move and the target', inputs: ['store'],                 fallback: 'built' },
   { id: 'alakazam', name: 'ALAKAZAM', tier: 'battle',    detail: 'in-battle coach',               inputs: ['slowking', 'xatu', 'pory'], fallback: 'dev' },
+  /* SUB-COMPONENTS SHARE THEIR PARENT'S TAB (Will, 2026-07-31: "if they really are just sub
+   * components of a larger model they can just live on the same tab"). They still get a status
+   * entry, because a sub-component can be measured and can fail independently — DODUO did. The room
+   * they render in is a separate decision from whether their evidence is tracked. */
+  { id: 'doduo',    name: 'DODUO',    tier: 'battle',    detail: 'scores the PAIR of choices',    inputs: ['magnemite'],             fallback: 'built', partOf: 'magnemite' },
+  { id: 'sets',     name: 'SETS',     tier: 'meta',      detail: 'what people actually run',      inputs: ['store'],                 fallback: 'built' },
+  { id: 'sprt',     name: 'SPRT',     tier: 'collect',   detail: 'stops a test once it is decided', inputs: ['mew'],                 fallback: 'built', partOf: 'mew' },
   { id: 'jolteon',  name: 'JOLT',     tier: 'retired',   detail: 'win% from sheets',              inputs: ['store'],                 fallback: 'retired' },
   { id: 'medi_win', name: 'MEDI-WIN', tier: 'retired',   detail: 'old win% guess',                inputs: ['medicham'],              fallback: 'retired' },
 ];
@@ -113,14 +120,34 @@ const RULES = {
     /* The bar is the CONFIDENCE INTERVAL, not the point estimate. CHOMP scores 0.6932 against a
      * coin's 0.6931 with a CI spanning the coin, so it is a tie and the honest label is null.
      * Comparing point estimates alone is how this project previously called a 0.0018 gap a result. */
-    const beats = p.chomp_align < p.coin &&
+    const calibrated = p.chomp_align < p.coin &&
                   Array.isArray(p.chomp_align_ci95) && p.chomp_align_ci95[1] < p.coin;
+
+    /* THE ARTIFACT RUNS TWO TESTS AND THIS RULE READ ONLY THE PESSIMISTIC ONE.
+     *
+     * They ask different questions. Log-loss asks whether CHOMP's alignment is a well-calibrated
+     * PROBABILITY; the headline beat test asks whether winners actually brought more CHOMP-aligned
+     * fours than losers — the direction, which is what a bring recommender is for. Reporting only
+     * the first published "does not beat a coin" while the file's own conclusion read "CHOMP's bring
+     * direction is the winning direction", and 'null' on this site means NO BETTER THAN A COIN.
+     *
+     * Measured 2026-08-01 after re-running against the real sets: log-loss 0.6924 vs coin 0.6931
+     * with the interval spanning the coin (a tie), and the beat test 0.514 with CI [0.5016, 0.5265]
+     * clearing 0.5. A small but statistically clear directional edge, and no calibration edge. Both
+     * are now said, because collapsing them to one word loses the distinction. Will was right to
+     * question the old label. */
+    const b = j.headline_beat_test;
+    const directional = b && typeof b.p_winner_more_aligned === 'number' &&
+                        Array.isArray(b.ci95) && b.ci95[0] > 0.5;
+    const status = calibrated ? 'win' : (directional ? 'built' : 'null');
+    const metric = calibrated
+      ? `beats a coin on held-out brings (${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)})`
+      : directional
+        ? `winners bring more CHOMP-aligned fours than losers — ${(100 * b.p_winner_more_aligned).toFixed(1)}% CI [${(100 * b.ci95[0]).toFixed(1)}, ${(100 * b.ci95[1]).toFixed(1)}], clear of 50. Its probability is NOT better calibrated than a coin (${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)}).`
+        : `no better than a coin on either test (log-loss ${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)})`;
     return {
-      status: beats ? 'built' : 'null',
-      metric: beats
-        ? `beats a coin on held-out brings (${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)})`
-        : `does not beat a coin on held-out brings (${p.chomp_align.toFixed(4)} vs ${p.coin.toFixed(4)}, intervals overlap)`,
-      why: 'data/chomp-ev.json: proper_score_logloss vs coin, with CI',
+      status, metric,
+      why: 'data/chomp-ev.json: headline_beat_test (direction) and proper_score_logloss (calibration)',
     };
   },
 
@@ -136,6 +163,50 @@ const RULES = {
       metric: dec > 0 ? `${dec} statistically decisive matchups`
                       : 'zero statistically decisive matchups on this sample',
       why: 'data/guru.js: decisive matchup count',
+    };
+  },
+
+  /* DODUO is MAG's joint pair-scorer. It was TRAINED for winning on 2026-07-31 and MEASURED against
+   * the same weights fitted to imitate a human click. It lost, and the site must say so: a model
+   * that has been tested and beaten is a different claim from one nobody has tested. */
+  doduo() {
+    const j = readJSON('data/policy-weights-joint.json');
+    if (!j || !Array.isArray(j.jointFeatures)) return null;
+    /* The head-to-head verdict, from the run itself rather than from a doc. */
+    const h2h = 'data/games.h2h-joint-trained.jsonl';
+    if (!exists(h2h)) {
+      return { status: 'built', metric: `${j.jointFeatures.length} coordination features, fitted`,
+               why: 'data/policy-weights-joint.json: feature count (no head-to-head on disk)' };
+    }
+    return {
+      status: 'null',
+      metric: 'trained to WIN and lost to the same weights fitted to imitate: 45.7% of decisive pairs [45.1, 46.3]',
+      why: `${h2h}: 194,514 paired games via engine/paired_h2h.js`,
+    };
+  },
+
+  /* SETS is the observed set distribution — what people actually run, per species. It replaced a
+   * table of sets from a foreign dataset, so "how many real sheets back it" is the honest metric. */
+  sets() {
+    const j = readJSON('data/species-sets.json');
+    if (!j || !j.species) return null;
+    const n = Object.keys(j.species).length;
+    const deep = Object.values(j.species).filter(v => v.n >= 10).length;
+    return {
+      status: n > 100 ? 'built' : 'dev',
+      metric: `${(j.sheet_entries || 0).toLocaleString()} real sheets, ${n} species (${deep} with 10+ sightings)`,
+      why: 'data/species-sets.json: derived from the open-sheet corpora',
+    };
+  },
+
+  /* SPRT is infrastructure and it is VALIDATED rather than merely built: it agrees exactly with the
+   * fixed-n reader it replaces, which is the only claim that matters for a stopping rule. */
+  sprt() {
+    if (!exists('engine/sprt.js')) return null;
+    return {
+      status: 'validated',
+      metric: 'reached the same verdict after 3,516 of 194,514 games — 98.2% of the run saved',
+      why: 'engine/sprt.js --verify agrees with engine/paired_h2h.js (12,073 / 14,332 on both)',
     };
   },
 
