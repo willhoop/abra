@@ -75,10 +75,23 @@ ok(moved.includes('spreadFreeBesideAlly'),
 
 /* ---- 2. SPECIFICITY — it must not cry wolf --------------------------------------------------- */
 
-/* Only the features that read type immunity may move. If this list grows, either board.js gained a
- * new consumer of getImmunity — in which case update the list and say why — or the fixture has
- * become sensitive to something it should not be. */
-const EXPECTED = ['allyHit', 'immune', 'spreadFreeBesideAlly'];
+/* THE RULE, not a list of whatever happened to move: only a feature computed DOWNSTREAM of a
+ * `dex.getImmunity` call may change when getImmunity is stubbed. There are two such call sites.
+ *
+ *   board.js:2493  the effectiveness bucket. `if (!getImmunity) immuneCount++; else { ...eff4/eff2/
+ *                  effHalf/effQuarter }` — so all four buckets AND `immune` are downstream of it.
+ *                  Stubbing immunity away pushes an immune target into whichever bucket
+ *                  getEffectiveness puts it in, which is the whole defect in miniature.
+ *   board.js:2798  the ally-damage loop, feeding `allyHit` and through it `spreadFreeBesideAlly`.
+ *
+ * `effHalf` was missing from an earlier version of this list and the test failed when Rotom-Wash
+ * joined the fixture. That was the LIST being wrong, not the code: effHalf sits in the else-branch
+ * of the immunity check and always did. Checked before widening, because quietly enlarging a
+ * specificity allowlist until it stops failing is how a guard becomes decoration.
+ *
+ * Not every one of these will move on every fixture — only the ones whose boards actually contain
+ * an immunity. The assertion is that nothing OUTSIDE this set moves. */
+const EXPECTED = ['eff4', 'eff2', 'effHalf', 'effQuarter', 'immune', 'allyHit', 'spreadFreeBesideAlly'];
 const unexpected = moved.filter(f => !EXPECTED.includes(f));
 ok(unexpected.length === 0,
   `nothing else moves (unexpected: ${unexpected.join(', ') || 'none'})`);
