@@ -795,7 +795,24 @@ let _dmg = null;                 // null = not tried, false = unavailable
 const dmgFailures = { unavailable: 0, unknownSpecies: 0 };
 function damageEngine() {
   if (_dmg !== null) return _dmg;
+  /* GLOBALS FIRST, require SECOND. medicham2-browser.js already publishes dmgRange/buildMon onto the
+   * global object — it runs on the Battle Tower today — and data/engine-data.js publishes MC. In a
+   * browser both are loaded by <script src> before this file, so no require is needed or possible.
+   *
+   * The old body was require-only inside a bare catch, so in a browser it set _dmg = false and every
+   * damage-derived feature silently read as unavailable. That is the same shape as the four silent
+   * failures the 2026-07-31 review found, and it is why the page could never use this scorer. */
   try {
+    /* require FIRST where it exists. medicham2-browser.js also publishes dmgRange/buildMon onto
+     * globalThis, so a globals-first order fired IN NODE and handed back a stripped two-property
+     * object instead of the module — tests/test-engine-consistency.js caught it immediately
+     * ("a refused priority move scores no priority"). The global path is for the browser, where
+     * require does not exist at all; node must keep taking the path it always took. */
+    if (typeof require !== 'function') {
+      const g = (typeof globalThis !== 'undefined') ? globalThis : {};
+      _dmg = (g.MC && g.dmgRange && g.buildMon) ? g : false;
+      return _dmg;
+    }
     require(require('path').join(__dirname, '..', 'data', 'engine-data.js'));   // sets globalThis.MC, mcEff
     const M = require('./medicham2-browser.js');
     _dmg = (M && typeof M.dmgRange === 'function' && typeof M.buildMon === 'function' && globalThis.MC) ? M : false;
@@ -880,14 +897,43 @@ let _spreads = null;
  *
  * Which is why this is a FLAG and not an argument: the head-to-head decides. Nothing about this
  * project's history suggests either of us should be trusted to reason it out instead. */
-const BULK_MODE = (process.env.ABRA_BULK || 'weighted').toLowerCase();
+/* ---- DATA ACCESS THAT WORKS IN BOTH PLACES ---------------------------------------------------
+ *
+ * board.js is the ONE scorer, and app/index.html has never been able to use it: it reads five JSON
+ * files through fs and touches process.env at module scope, so it cannot load in a browser. The page
+ * therefore carries its own reimplementation, which assigns 21 of 56 features and disagrees with the
+ * engine on 8 of them across 9 fixtures — the last failing test in the suite, and the reason a
+ * reader of the site sees numbers the bot did not compute.
+ *
+ * docs/ROADMAP.md item 6 says "the only blocker is one process.env read at module scope". That is
+ * wrong, and being wrong is probably why it never got done: there are FIVE fs reads and THREE
+ * requires. Corrected 2026-08-01.
+ *
+ * The fix is not a bundler. Each read prefers a global that a build step can pre-inject, and falls
+ * back to fs when there is none — so in node the global is absent, the fs path runs exactly as
+ * before, and behaviour is bit-identical. Nothing about the node engine changes. */
+const HAS_PROCESS = typeof process !== 'undefined' && process && process.env;
+const BROWSER_DATA = () => (typeof globalThis !== 'undefined' && globalThis.__ABRA_BOARD_DATA) || null;
+
+/* Read data/<name> as JSON. Global first (browser), fs second (node). Returns null if neither
+ * works, which every caller below already handles — they predate this and fall back on their own. */
+function loadData(name) {
+  const g = BROWSER_DATA();
+  if (g && Object.prototype.hasOwnProperty.call(g, name)) return g[name];
+  if (typeof require !== 'function') return null;
+  try {
+    const fsx = require('fs'), px = require('path');
+    return JSON.parse(fsx.readFileSync(px.join(__dirname, '..', 'data', name), 'utf8'));
+  } catch (e) { return null; }
+}
+
+const BULK_MODE = (HAS_PROCESS && process.env.ABRA_BULK ? process.env.ABRA_BULK : 'weighted').toLowerCase();
 
 function spreadLines(species, dex, nature) {
   if (_spreads === null) {
     _spreads = {};
     try {
-      const fs4 = require('fs'), p4 = require('path');
-      const j = JSON.parse(fs4.readFileSync(p4.join(__dirname, '..', 'data', 'smogon-priors.json'), 'utf8'));
+      const j = loadData('smogon-priors.json') || {};
       for (const [k, v] of Object.entries(j.species || {})) {
         const rows = (v.spreads || []).filter(s => s && Array.isArray(s.sp));
         if (rows.length) _spreads[norm(k)] = rows;
@@ -1390,7 +1436,16 @@ function foeActionDistribution(board, foeSide, mon, dex) {
 let _TAGS = null;
 function tagsMod() {
   if (_TAGS !== null) return _TAGS;
-  try { _TAGS = require('./tags.js'); } catch (e) { _TAGS = false; }
+  /* THE TAG MODULE CARRIES THE THREE LARGEST POSITIVE WEIGHTS in the shipped vector — healValue
+   * +2.644, screenValue +1.208, speedSwing +1.063. A require-only load means that in a browser
+   * _TAGS latches false and all three silently read 0, which would make the page disagree with the
+   * engine on exactly the features that matter most while looking like it worked. */
+  try {
+    /* Same order, same reason: the module is authoritative wherever it can be loaded. */
+    if (typeof require === 'function') { _TAGS = require('./tags.js'); return _TAGS; }
+    const g = (typeof globalThis !== 'undefined') ? globalThis : {};
+    _TAGS = (g.ABRA_TAGS && typeof g.ABRA_TAGS.has === 'function') ? g.ABRA_TAGS : false;
+  } catch (e) { _TAGS = false; }
   return _TAGS;
 }
 const tagHas = (id, tag) => { const T = tagsMod(); try { return !!(T && T.has('move', id, tag)); } catch (e) { return false; } };
@@ -1529,8 +1584,7 @@ function movePriorOdds(species, moveId) {
   if (_mvP === null) {
     _mvP = {};
     try {
-      const fs5 = require('fs'), p5 = require('path');
-      const j = JSON.parse(fs5.readFileSync(p5.join(__dirname, '..', 'data', 'move-priors.json'), 'utf8'));
+      const j = loadData('move-priors.json') || {};
       for (const [sp, v] of Object.entries(j.species || {})) {
         const row = {};
         for (const mv of v.moves || []) if (mv && mv.mv) row[norm(mv.mv)] = +mv.p || 0;
@@ -1547,8 +1601,7 @@ function protectOdds(species) {
   if (_protP === null) {
     _protP = {};
     try {
-      const fs3 = require('fs'), p3 = require('path');
-      const j = JSON.parse(fs3.readFileSync(p3.join(__dirname, '..', 'data', 'move-priors.json'), 'utf8'));
+      const j = loadData('move-priors.json') || {};
       for (const [sp, v] of Object.entries(j.species || {})) {
         for (const mv of v.moves || []) {
           /* stallingMove is the flag, not the name -- but move-priors stores names, so the family is
@@ -1693,8 +1746,7 @@ function abilityTables() {
    * kills "were being discounted by roughly a tenth" and that it was fixed; the code never did it.
    * Whole-repo review, 2026-07-31. */
   if (_blocks !== null) return { blocks: _blocks, abil: _abil, sash: _sash };
-  const fs2 = require('fs'), p2 = require('path');
-  const rd = f => { try { return JSON.parse(fs2.readFileSync(p2.join(__dirname, '..', 'data', f), 'utf8')); } catch (e) { return null; } };
+  const rd = f => loadData(f);
   const b = rd('ability-blocks.json');
   _blocks = (b && b.abilities) || {};
   const sp = rd('smogon-priors.json');
@@ -3043,4 +3095,8 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * server-side call, so buildMon never applies a mega and every consumer that asked it for a
  * stone-holder's stats got the BASE FORM. This one reads the dex's megaStone property and refuses a
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
-module.exports = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution };
+/* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
+ * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
+const _EXPORTS = { FEATURES, FEATURE_INDEX, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
+if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
+if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;
