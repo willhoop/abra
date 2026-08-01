@@ -152,17 +152,42 @@ function decisiveSequence(target) {
   const seq = [], atRow = [];
   let both = 0, split = 0, neither = 0, halves = 0, mismatched = 0, rows = 0;
   let sawArm = false, sawDistinctNames = false, firstPolicy = null;
+  const arms = { old: null, new: null };
 
   const sixKey = g => JSON.stringify((g.six && g.six.p1 || []).slice().sort())
                     + JSON.stringify((g.six && g.six.p2 || []).slice().sort());
+  /* THE CHALLENGER IS ARM 2, AND THIS FILE USED TO SAY ARM 1 — A SILENT SIGN FLIP.
+   *
+   * mew.js:837 stamps `winnerArm = 1` for the `--weights`/`--policy` arm and `2` for the
+   * `--weights2`/`--policy2` arm, and mew.js:215 documents arm 2 as the challenger: "the challenger
+   * is MAG's own machinery with different numbers". This function read `winnerArm === 1` as the new
+   * arm, which is the incumbent.
+   *
+   * It also contradicted ITSELF. The name-based fallback on the next line treats whichever arm is
+   * called 'score' as new, and in the canonical `--policy prior --policy2 score` run that is arm 2.
+   * So the same file answered opposite ways depending on which branch a record took, and nothing
+   * ever compared them.
+   *
+   * MEASURED, 2026-08-01. A refit-vs-shipped run with the challenger in --weights2, as documented:
+   * this file reported "NEW takes 33.3% ==> NOT an improvement worth shipping" while
+   * winnerWeights -- the unambiguous field, recorded for exactly this reason -- had the challenger
+   * winning 9,783 games to 7,567. The verdict was reported with its sign inverted, in the tool that
+   * gates every ship decision.
+   *
+   * The label is printed with the weight file it refers to now (see report()), so a reader can see
+   * which vector "NEW" means instead of having to know a convention. */
   const wonNew = g => (g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2)
-    ? (g.selfplay.winnerArm === 1 ? 1 : 0)
+    ? (g.selfplay.winnerArm === 2 ? 1 : 0)
     : (g.selfplay.winnerPolicy === NEW ? 1 : 0);
 
   const onRow = (g) => {
     rows++;
     if (g.selfplay.winnerArm === 1 || g.selfplay.winnerArm === 2) sawArm = true;
     if (firstPolicy === null) firstPolicy = g.selfplay.policy;
+    /* What OLD and NEW actually are, taken from the run itself so the report can name them rather
+     * than leaving the reader to know which flag went where. */
+    if (!arms.old) arms.old = g.selfplay.weights || g.selfplay.policy || null;
+    if (!arms.new) arms.new = g.selfplay.weights2 || g.selfplay.policy2 || null;
     if ((g.selfplay.policy2 || g.selfplay.policy) !== g.selfplay.policy) sawDistinctNames = true;
 
     const k = String(g.selfplay.seed);
@@ -191,7 +216,7 @@ function decisiveSequence(target) {
     console.error('winnerArm, so a win cannot be attributed to an arm. Same refusal as paired_h2h.js.');
     process.exit(2);
   }
-  return { seq, atRow, both, split, neither, halves, mismatched, rows, pairs: both + split + neither };
+  return { seq, atRow, both, split, neither, halves, mismatched, rows, arms, pairs: both + split + neither };
 }
 
 /* ---- the test itself -------------------------------------------------------------------------- */
@@ -213,6 +238,13 @@ function report(c, r, gamesSeen) {
   console.log(`  H0  p = ${P0.toFixed(3)}   not worth shipping`);
   console.log(`  H1  p = ${P1.toFixed(3)}   worth shipping`);
   console.log(`  alpha ${ALPHA}   beta ${BETA}   bounds  accept-H1 >= ${A_BOUND.toFixed(2)}   accept-H0 <= ${B_BOUND.toFixed(2)}\n`);
+  /* NAME THE ARMS. This report said NEW and OLD and left which-is-which to a convention the caller
+   * had to know -- and the convention was wrong here for as long as winnerArm existed. Printing the
+   * file each label refers to makes a swapped run visible in the output rather than plausible. */
+  const short = f => (f ? String(f).split(/[\\/]/).pop() : '(the default vector)');
+  const a = (c.arms || {});
+  console.log(`  NEW  =  arm 2, --weights2/--policy2   ${short(a.new)}`);
+  console.log(`  OLD  =  arm 1, --weights/--policy     ${short(a.old)}\n`);
   console.log(`  games read        ${gamesSeen.toLocaleString()}`);
   console.log(`  pairs             ${c.pairs.toLocaleString()}`);
   console.log(`  2-0 to NEW        ${String(c.both).padStart(7)}   ${pct(c.both, c.pairs)}`);
