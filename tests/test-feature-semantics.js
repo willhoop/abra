@@ -1,0 +1,117 @@
+/* test-feature-semantics.js — the guard must catch a feature changing MEANING under a stable name.
+ *
+ * WHY THIS TEST EXISTS. On 2026-08-01 `board.js` changed what `allyHit` means without changing what
+ * it is called: it began asking `getImmunity` before `getEffectiveness`, because getEffectiveness
+ * returns 0 for immune AND for neutral, so a Flying partner standing beside Earthquake had been
+ * reading as HIT. Every shipped weight had been fitted against the old definition.
+ *
+ * Nothing in the project failed. `magnemite.js:297` compares the joined feature NAMES and `:299`
+ * compares the vector LENGTH, and both of those pass when a feature quietly starts meaning something
+ * else — while 24 files read the vector it invalidates.
+ *
+ * `engine/feature_fixture.js` closes that gap by hashing each feature's values over a frozen set of
+ * boards. The three checks below are deliberately different in kind, because a guard that is merely
+ * PRESENT is what the project keeps getting bitten by:
+ *
+ *   1. SENSITIVITY — reproduce the exact 2026-08-01 change and assert the hashes MOVE. A guard that
+ *      cannot detect the defect it was written for is decoration. This is the check that matters.
+ *   2. SPECIFICITY — assert it moves ONLY the features that change, so the failure names the right
+ *      thing instead of saying "something is different".
+ *   3. COVERAGE — assert no feature is identically zero across the whole fixture. A zero column
+ *      hashes the same as every other zero column, so those features are named in the vector and
+ *      guarded by nothing. The first draft of the fixture had 32 of 74 in that state.
+ *
+ * Plus determinism, since a hash that changes on its own would train everyone to ignore it.
+ */
+'use strict';
+const path = require('path');
+const ROOT = path.join(__dirname, '..');
+let P = 0, F = 0;
+const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; console.log('  FAIL ' + m); } };
+
+console.log('FEATURE SEMANTICS GUARD — a feature must not change meaning under its own name\n');
+
+if (!process.env.SHOWDOWN_PATH) {
+  console.log('  FAIL SHOWDOWN_PATH is not set, so the Champions dex cannot be loaded');
+  console.log('\nFEATURE SEMANTICS TESTS: 0 passed, 1 failed');
+  process.exit(1);
+}
+
+const B = require(path.join(ROOT, 'engine', 'board.js'));
+const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
+const FF = require(path.join(ROOT, 'engine', 'feature_fixture.js'));
+const dex = CS.sim().Dex.forFormat(CS.FORMAT);
+
+/* ---- 0. the fixture builds at all ------------------------------------------------------------ */
+const cols = FF.columns(dex);
+ok(cols.nSlots > 0 && cols.nCands > 0 && cols.nPairs > 0,
+  `the fixture builds: ${cols.nSlots} slots, ${cols.nCands} candidates, ${cols.nPairs} pairs`);
+
+/* ---- 1. SENSITIVITY — does it catch the change it was written for? --------------------------- */
+
+/* board.js takes `dex` as an argument, so the OLD semantics are reproduced exactly by wrapping it so
+ * getImmunity always returns true — which makes the new line `if (!dex.getImmunity(...)) continue;`
+ * never continue. Nothing else about the dex is touched, so any hash that moves is attributable to
+ * that one call. */
+const dexOld = new Proxy(dex, {
+  get(t, k) {
+    if (k === 'getImmunity') return () => true;
+    const v = t[k];
+    return typeof v === 'function' ? v.bind(t) : v;
+  },
+});
+
+const now = FF.hashes(dex);
+const old = FF.hashes(dexOld);
+
+const moved = [];
+for (const blk of ['features', 'jointFeatures']) {
+  for (const f of Object.keys(now[blk])) if (now[blk][f] !== old[blk][f]) moved.push(f);
+}
+ok(moved.length > 0, `the 2026-08-01 allyHit change moves at least one hash (moved: ${moved.join(', ') || 'NONE'})`);
+ok(moved.includes('allyHit'), 'allyHit itself is detected');
+ok(moved.includes('spreadFreeBesideAlly'),
+  'spreadFreeBesideAlly is detected — the joint feature the change actually enabled');
+
+/* ---- 2. SPECIFICITY — it must not cry wolf --------------------------------------------------- */
+
+/* Only the features that read type immunity may move. If this list grows, either board.js gained a
+ * new consumer of getImmunity — in which case update the list and say why — or the fixture has
+ * become sensitive to something it should not be. */
+const EXPECTED = ['allyHit', 'immune', 'spreadFreeBesideAlly'];
+const unexpected = moved.filter(f => !EXPECTED.includes(f));
+ok(unexpected.length === 0,
+  `nothing else moves (unexpected: ${unexpected.join(', ') || 'none'})`);
+
+/* ---- 3. COVERAGE — a zero column guards nothing ---------------------------------------------- */
+
+const dead = [];
+for (const f of B.FEATURES) if (cols.marg[f].every(v => +v === 0)) dead.push(f);
+for (const f of B.JOINT_FEATURES) if (cols.joint[f].every(v => +v === 0)) dead.push(f);
+ok(dead.length === 0,
+  `every one of the ${B.FEATURES.length + B.JOINT_FEATURES.length} features fires somewhere on the `
+  + `fixture (silent: ${dead.join(', ') || 'none'})`);
+
+/* ---- 4. DETERMINISM -------------------------------------------------------------------------- */
+
+const again = FF.hashes(dex);
+const stable = ['features', 'jointFeatures'].every(blk =>
+  Object.keys(now[blk]).every(f => now[blk][f] === again[blk][f]));
+ok(stable, 'hashing the same code twice gives the same answer');
+
+/* ---- 5. THE CHECKER ITSELF ------------------------------------------------------------------- */
+
+ok(FF.verify(now, dex, { blocks: ['features', 'jointFeatures'] }) === null,
+  'verify() accepts hashes that match');
+ok(typeof FF.verify(old, dex, { blocks: ['features', 'jointFeatures'] }) === 'string',
+  'verify() REJECTS hashes taken under the old semantics');
+ok(typeof FF.verify(null, dex, { blocks: ['features'] }) === 'string',
+  'verify() rejects a weight file carrying no hashes at all, rather than passing it silently');
+
+/* The message has to name the feature, or the failure is no more useful than the length check that
+ * already existed. */
+const msg = FF.verify(old, dex, { blocks: ['features', 'jointFeatures'] });
+ok(/allyHit/.test(msg), 'the rejection message names the feature that moved');
+
+console.log(`\nFEATURE SEMANTICS TESTS: ${P} passed, ${F} failed`);
+process.exit(F ? 1 : 0);

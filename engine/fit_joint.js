@@ -63,7 +63,7 @@ const { games } = FP.loadCorpus();
 console.log(`JOINT FIT — ${games.length.toLocaleString()} clean open-sheet games, top-${TOPK} per slot\n`);
 
 const rows = [];
-const tally = { turns: 0, kept: 0, oneSlot: 0, unmatched: 0, chosenOutsideK: 0 };
+const tally = { turns: 0, kept: 0, oneSlot: 0, unmatched: 0, ambiguous: 0, chosenOutsideK: 0 };
 
 for (const g of games) {
   const board = new B.Board();
@@ -114,12 +114,50 @@ for (const g of games) {
         const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
           c.switchTo ? B.PRIOR_FLOOR : FP.priorFor(user.species, c.move.id)));
         const want = acted[L];
-        const chosen = want.kind === 'switch'
-          ? cands.findIndex(c => c.switchTo === want.to)
-          : cands.findIndex(c => c.move && norm(c.move.id) === norm((dex.moves.get(want.mv) && dex.moves.get(want.mv).id) || want.mv) &&
-              (want.tgt ? (c.targetMon && base(c.targetMon.species) === base(want.tgt)) : true));
-        return { cands, feats, chosen, scores: feats.map(score1) };
+        /* A SPREAD CLICK HAS NO TARGET TO MATCH, AND REQUIRING ONE THREW AWAY EVERY ONE OF THEM.
+         *
+         * board.js builds a spread candidate with `targetMon: null` and `spread: [...]`, because
+         * Earthquake is not aimed. The store still records a `tgt` for it -- one of the Pokemon it
+         * hit -- so the old condition `want.tgt ? (c.targetMon && ...) : true` demanded a targetMon
+         * that a spread candidate structurally does not have, and no spread click could ever match.
+         *
+         * MEASURED, 2026-08-01, over the first 400 corpus games: spread moves are 14.94% of all human
+         * move clicks, 99.71% of them carry a recorded target, and 1,393 of 1,397 failed to match.
+         * 1,384 of those match once the requirement is dropped. Because a joint turn needs BOTH slots
+         * to match, the loss compounded: the fit reported 57,486 of 82,483 joint turns unmatched and
+         * was estimating 74 weights from 30% of the data.
+         *
+         * The damage is not merely a smaller sample, it is a BIASED one. The turns discarded are
+         * exactly the turns containing a spread move -- which is what spreadFreeBesideAlly is about.
+         * The feature fired on 8.0% of the enumerated alternatives and 0 of 1,461 chosen pairs, and a
+         * conditional logit reads "never chosen, often available" as a large negative. That is where
+         * the shipped -4.9863 came from: the matcher, not the humans.
+         *
+         * engine/fit_policy.js:432 already had this right -- `if (!c.targetMon) { matches.push(i); }`
+         * -- so the marginal 56-vector was never affected. This is the same shape as the other
+         * defects found on 2026-08-01: the knowledge existed in the repository and the second caller
+         * did not apply it. Written the same way here, including fit_policy's ambiguity rule, so the
+         * two matchers agree rather than merely both being present. */
+        let chosen = -1, ambiguous = false;
+        if (want.kind === 'switch') {
+          chosen = cands.findIndex(c => c.switchTo === want.to);
+        } else {
+          const mvId = norm((dex.moves.get(want.mv) && dex.moves.get(want.mv).id) || want.mv);
+          const hits = [];
+          for (let i = 0; i < cands.length; i++) {
+            const c = cands[i];
+            if (!c.move || norm(c.move.id) !== mvId) continue;
+            if (!c.targetMon) { hits.push(i); continue; }        // spread, or self-targeting
+            if (want.tgt && base(c.targetMon.species) === base(want.tgt)) hits.push(i);
+          }
+          /* A stored target is a SPECIES, so a mirror match is genuinely ambiguous. fit_policy counts
+           * and drops those rather than guessing, and so does this. */
+          if (hits.length === 1) chosen = hits[0];
+          else if (hits.length > 1) ambiguous = true;
+        }
+        return { cands, feats, chosen, ambiguous, scores: feats.map(score1) };
       });
+      if (slots[0] && slots[1] && (slots[0].ambiguous || slots[1].ambiguous)) { tally.ambiguous++; continue; }
       if (!slots[0] || !slots[1] || slots[0].chosen < 0 || slots[1].chosen < 0) { tally.unmatched++; continue; }
 
       /* Top-K by single-move score, with the chosen candidate forced in. */
@@ -192,7 +230,8 @@ for (const g of games) {
 }
 
 console.log(`  joint turns seen ${tally.turns.toLocaleString()} -> ${tally.kept.toLocaleString()} usable`);
-console.log(`  dropped: ${tally.oneSlot.toLocaleString()} had only one slot acting, ${tally.unmatched.toLocaleString()} could not be matched`);
+console.log(`  dropped: ${tally.oneSlot.toLocaleString()} had only one slot acting, ${tally.unmatched.toLocaleString()} could not be matched, `
+  + `${tally.ambiguous.toLocaleString()} target ambiguous (mirror)`);
 console.log(`  the chosen pair fell outside the top ${TOPK} on at least one slot: ` +
             `${tally.chosenOutsideK.toLocaleString()} (${(100 * tally.chosenOutsideK / Math.max(1, tally.kept)).toFixed(1)}%)`);
 
@@ -274,12 +313,25 @@ console.log('\nWHAT THE PAIR TERMS ARE WORTH\n');
 const jw = B.JOINT_FEATURES.map((f, i) => [f, best.w[NF + i]]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 for (const [f, v] of jw) console.log(`  ${f.padEnd(20)} ${(v >= 0 ? '+' : '') + v.toFixed(3)}`);
 
+/* What each feature MEANT when these weights were fitted — see engine/feature_fixture.js. The
+ * feature list is recorded above and checked on load, but a list check cannot see a feature quietly
+ * changing meaning under an unchanged name, which is exactly what happened on 2026-08-01. */
+let featureHashes = null;
+try {
+  featureHashes = require('./feature_fixture.js').hashes(dex);
+} catch (e) {
+  console.error(`\n  WARNING: could not compute feature-semantics hashes (${e.message}). These weights`);
+  console.error('  will load, but nothing will detect a feature changing meaning under its own name.');
+}
+
 fs.writeFileSync(D('data', 'policy-weights-joint.json'), JSON.stringify({
   generated: new Date().toISOString().slice(0, 10),
   source: 'engine/fit_joint.js',
   features: B.FEATURES, jointFeatures: B.JOINT_FEATURES,
   weights: best.w, lambda: best.lam, topK: TOPK,
   corpus: { games: games.length, pairs: rows.length, heldOut: H.length },
+  matching: { turnsSeen: tally.turns, kept: tally.kept, unmatched: tally.unmatched, ambiguous: tally.ambiguous },
+  featureHashes,
   caveat: 'Predicts which PAIR a human clicked. Not evidence that the pair wins more games.',
 }, null, 1) + '\n');
 console.log('\n  -> data/policy-weights-joint.json');

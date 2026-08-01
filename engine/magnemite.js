@@ -40,6 +40,12 @@ const { makePriorPlayer, norm } = require('./prior_player.js');
 
 const WEIGHTS_FILE = path.join(__dirname, '..', 'data', 'policy-weights.json');
 
+/* The dex fields that mean a move does something BESIDES apply its volatile — so re-applying it to a
+ * target that already has that volatile is not a total failure and the candidate must be kept. Used
+ * by _dropDeadVolatiles; the reasoning is there. Field names, not move names. */
+const VOLATILE_SIDE_EFFECTS = ['boosts', 'status', 'heal', 'sideCondition', 'weather', 'terrain',
+  'pseudoWeather', 'slotCondition', 'forceSwitch', 'selfSwitch', 'drain', 'recoil'];
+
 /* The weight file records the feature list it was fitted against, and a mismatch is fatal.
  *
  * This is the whole reason FEATURES is exported from board.js rather than written down twice. If a
@@ -56,7 +62,44 @@ function loadWeights(file) {
   if (!Array.isArray(j.weights) || j.weights.length !== B.FEATURES.length) {
     throw new Error('policy-weights.json has no usable weight vector — refit with engine/fit_policy.js');
   }
+  checkSemantics(j, file || WEIGHTS_FILE, ['features']);
   return j;
+}
+
+/* ---- THE THIRD GUARD: did a feature change MEANING under an unchanged NAME? --------------------
+ *
+ * The two checks above compare the feature LIST and the vector LENGTH. On 2026-08-01 both passed
+ * while board.js changed what `allyHit` means -- it began reading type immunity, which it never had
+ * -- and every weight in the file had been fitted against the old definition. Nothing objected. The
+ * bot ran, produced games, and was wrong in a way no test was written for; 24 files read that vector.
+ *
+ * engine/feature_fixture.js evaluates every feature on a frozen set of boards and hashes each
+ * feature's column, so a changed meaning fails HERE, at load, naming the feature -- rather than
+ * silently producing numbers fitted against a different quantity.
+ *
+ * WHY THIS IS A WARNING AND NOT A THROW, stated rather than buried. A mismatch has two causes and
+ * only one of them is a defect: board.js code changed (refit), or a derived table board.js reads was
+ * re-ingested (restamp). Will re-ingests data routinely, so a throw would stop a live battle for a
+ * data refresh and would be disabled within a week -- and a guard that gets disabled protects
+ * nothing. It is loud, repeated per file, and says exactly what to run. `ABRA_STRICT_SEMANTICS=1`
+ * makes it fatal, which is what tests/run-all.js and any fit should use. */
+function checkSemantics(j, file, blocks) {
+  let verdict;
+  try {
+    const CS = require('./champions_sim.js');
+    verdict = require('./feature_fixture.js')
+      .verify(j.featureHashes, CS.sim().Dex.forFormat(CS.FORMAT), { blocks });
+  } catch (e) {
+    /* THE CHECKER FAILING IS NOT THE CHECK PASSING, and it is a different fault from a real mismatch:
+     * one means the weights are stale, the other means nothing is watching them. Reported on its own
+     * line so the two cannot be confused, and still escalated below so it cannot be walked past. */
+    console.error(`FEATURE SEMANTICS: the check could not run at all — ${e.stack || e.message}`);
+    verdict = `the semantics check could not run (${e.message}). This is NOT a statement that these weights are fine.`;
+  }
+  if (!verdict) return;
+  const msg = `FEATURE SEMANTICS — ${path.basename(file)}\n  ${verdict}`;
+  if (process.env.ABRA_STRICT_SEMANTICS) throw new Error(msg);
+  console.error(`\nWARNING: ${msg}\n`);
 }
 
 /* How long a per-mon volatile lasts, from the dex condition of the move that creates it.
@@ -297,6 +340,9 @@ function makeScoringPlayer(opts = {}) {
           const okJ = (JW.jointFeatures || []).join(',') === B.JOINT_FEATURES.join(',');
           if (!okS || !okJ) throw new Error('joint weights do not match board.js — refit engine/fit_joint.js');
           if ((JW.weights || []).length !== B.FEATURES.length + B.JOINT_FEATURES.length) throw new Error('joint weight vector is the wrong length');
+          /* Both blocks: the joint file embeds the 56 marginal weights as well as the 18 pair ones,
+           * so a marginal feature changing meaning invalidates this file exactly as it does the other. */
+          checkSemantics(JW, jwFile, ['features', 'jointFeatures']);
           this.wj = JW.weights; this.joint = true; this.jointWeightsFile = jwFile;
         } catch (e) {
           /* Loud. Asking for the joint layer and silently not getting it is the failure this project
@@ -712,7 +758,77 @@ function makeScoringPlayer(opts = {}) {
         });
       }
 
-      return cands.length ? { cands, user, doubles } : null;
+      return this._dropDeadVolatiles(cands, user, doubles);
+    }
+
+    /* ---- A MOVE WHOSE ONLY EFFECT IS A VOLATILE THE TARGET ALREADY HAS --------------------------
+     *
+     * Will, live, 2026-08-01: MAG's Whimsicott used Encore three times in one game and one of them
+     * failed outright. board.js:624 already recorded the same defect in its Taunt form -- "So Taunting
+     * into a Taunt looked identical to the first one."
+     *
+     * WHY THIS IS A RULE AND NOT A FITTED FEATURE, which is a deliberate departure from how the other
+     * six dead-move cases were built. Every one of those -- deadStatus, deadSide, deadField,
+     * deadWeather, deadStall, deadNoLastMove -- carries a learned weight. This one cannot:
+     * board.js:620 states plainly that the STORED CORPUS CANNOT SEE VOLATILES, so there is no signal
+     * in the human replays from which a weight could be estimated. Adding a 57th feature here would
+     * be an unidentifiable parameter fitted to data that does not contain the answer.
+     *
+     * And a weight would be the wrong shape anyway. Re-applying a live volatile does not TEND to be
+     * worse. It fails, every time, by the rules. That is a constraint, not a preference.
+     *
+     * WHICH MOVES, DERIVED RATHER THAN LISTED. Only a Status move aimed at somebody else whose ONLY
+     * effect is the volatile. The three exclusions all matter and none of them names a move:
+     *
+     *   - `category !== 'Status'`  Thousand Arrows carries volatileStatus `smackdown` and is a
+     *     120 BP spread attack. The volatile failing costs nothing; the damage still lands.
+     *   - SELF_TARGETS            Protect's volatile is on itself, and clicking Protect twice is a
+     *     real decision with real odds, not a failure.
+     *   - any other effect field  Tar Shot, Swagger and Flatter also change stats, so they still do
+     *     something when the volatile is already there.
+     *
+     * Against the Champions dex this resolves to 13 moves -- Encore, Taunt, Disable, Torment, Yawn,
+     * Attract, Leech Seed, Confuse Ray, Sweet Kiss, Teeter Dance, Curse, Electrify, Gastro Acid --
+     * and it will pick up a fourteenth with no edit here.
+     *
+     * KNOWN EDGE, STATED: Curse is two different moves depending on the user's type, and only the
+     * Ghost version targets a foe. The dex entry this reads is the Ghost one, so a non-Ghost Curse
+     * user standing opposite an already-cursed foe would have a self-boost wrongly dropped. It needs
+     * a Ghost to have landed Curse on that exact target first, and the alternative is naming the move.
+     *
+     * SELF-LIMITING BY CONSTRUCTION: hasVolatile only answers true for volatiles actually recorded
+     * from |-start|, so this can never fire on something the player has not seen happen.
+     *
+     * NEVER EMPTIES THE LIST. If every candidate is dead the original list is returned unchanged and
+     * the event is counted -- a player with nothing to choose from is a worse failure than a wasted
+     * turn, and a silent one. */
+    _dropDeadVolatiles(cands, user, doubles) {
+      if (!cands.length) return null;
+      const where = new Map();
+      for (const f of this.board.field()) where.set(f.mon, f);
+
+      const dead = c => {
+        const mv = c.move;
+        if (!mv || !mv.volatileStatus || mv.category !== 'Status') return false;
+        if (B.SELF_TARGETS.has(mv.target)) return false;
+        if (VOLATILE_SIDE_EFFECTS.some(k => mv[k])) return false;
+        const targets = (c.spread && c.spread.length) ? c.spread : (c.targetMon ? [c.targetMon] : []);
+        if (!targets.length) return false;
+        /* A spread volatile is only dead if EVERY mon it would reach already has it. */
+        return targets.every(m => {
+          const w = where.get(m);
+          return w && this.board.hasVolatile(w.side, w.letter, mv.volatileStatus);
+        });
+      };
+
+      const live = cands.filter(c => !dead(c));
+      if (live.length === cands.length) return { cands, user, doubles };
+      if (!live.length) {
+        this.stats.deadVolatileAllDead = (this.stats.deadVolatileAllDead || 0) + 1;
+        return { cands, user, doubles };
+      }
+      this.stats.deadVolatileDropped = (this.stats.deadVolatileDropped || 0) + (cands.length - live.length);
+      return { cands: live, user, doubles };
     }
 
     /* Score one slot's candidate list. Returns the raw feature vectors alongside the scores, because

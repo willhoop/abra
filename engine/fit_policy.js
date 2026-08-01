@@ -824,6 +824,20 @@ function main() {
   };
   out.covariateShift.reweighted_max_weight_change = { feature: whichMove, delta: maxMove };
   out.covariateShift.effective_sample_size = { ess: Math.round(ess), of: train.length };
+  /* WHAT EACH FEATURE MEANT WHEN THESE WEIGHTS WERE FITTED.
+   *
+   * The feature LIST is already recorded above and magnemite.js refuses a mismatch. That guard
+   * passed on 2026-08-01 while allyHit quietly changed meaning under an unchanged name, and every
+   * weight in this file had been fitted against the old definition. Recording a hash of each
+   * feature's values over a frozen fixture board makes that failure loud instead of silent.
+   * engine/feature_fixture.js explains the fixture and its limits. */
+  try {
+    out.featureHashes = require('./feature_fixture.js').hashes(dex);
+  } catch (e) {
+    console.error(`\n  WARNING: could not compute feature-semantics hashes (${e.message}).`);
+    console.error('  These weights will load, but nothing will detect a feature changing meaning under');
+    console.error('  its own name. Fix engine/feature_fixture.js and restamp with --stamp.');
+  }
   fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
   console.log(`\n  -> ${path.relative(ROOT, OUT)}`);
 }
