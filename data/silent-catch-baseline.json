@@ -2,7 +2,7 @@
  "generated": "2026-08-01",
  "by": "tests/test-no-silent-failure.js --update",
  "note": "GENERATED. Silent catch blocks that existed when the ratchet was set. Never hand-edit: re-run with --update after FIXING some, so this number only ever goes down.",
- "count": 234,
+ "count": 233,
  "entries": {
   "build/archive-regulation.js#5e5b18a0339d": 1,
   "build/build_ability_blocks.js#8ed85277ffd4": 1,
@@ -23,7 +23,6 @@
   "build/medicham-embed.js#728e57450a91": 1,
   "build/medicham-embed.js#da39a3ee5e6b": 1,
   "build/merge-jsonl-store.js#8adf98dba67d": 1,
-  "build/merge-jsonl-store.js#bb8ea5eae841": 1,
   "build/rebuild_sets_from_sheets.js#2d0359dcc931": 1,
   "build/sync_orientation.js#8adf98dba67d": 1,
   "build/triggers.js#29e156935b7c": 1,

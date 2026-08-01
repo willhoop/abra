@@ -159,8 +159,16 @@ const RULES = {
         return fs.readdirSync(D('data'))
           .filter(f => /^games\.(selfplay|h2h)[^/]*\.jsonl$/.test(f) && !/raw-logs/.test(f))
           .map(f => 'data/' + f);
-      } catch (e) { return []; }
+      } catch (e) {
+        /* A DIRECTORY THAT CANNOT BE READ IS NOT A DIRECTORY WITH NO CORPORA, and conflating them
+         * recreates the exact defect this rule was rewritten to fix — one level up. An empty list
+         * returns null, the declared fallback 'roadmap' wins, and the site publishes "not built yet"
+         * about a working engine. Caught by tests/test-no-silent-failure.js minutes after the fix. */
+        console.error(`build_status: cannot list data/ (${e.message}); MEW status cannot be derived`);
+        return null;
+      }
     })();
+    if (corpora === null) return null;
     if (!corpora.length) return null;
     /* Largest corpus, not the sum: "MEW has produced a corpus of N games" is the claim, and summing
      * unrelated runs would inflate it into a number no single artifact supports. */
@@ -177,7 +185,13 @@ const RULES = {
         }
         if (carry.trim()) n++;
         fs.closeSync(fd);
-      } catch (e) { continue; }
+      } catch (e) {
+        /* One unreadable corpus among several is survivable — another may still answer the question —
+         * but it is reported, because a silent skip is how "the largest corpus" quietly becomes the
+         * largest READABLE one without anybody knowing the difference. */
+        console.error(`build_status: skipping ${rel} (${e.message})`);
+        continue;
+      }
       if (n > bestN) { bestN = n; best = rel; }
     }
     if (!best) return null;
