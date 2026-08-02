@@ -1427,7 +1427,52 @@ window.MAPON=window.MAPON||{retired:false};   // retired hidden by default; togg
    they land. roomTown() renders it directly. */
 function mapPanel(){ const S=window.STATUS;
   if(!S){ return `<div class="panel"><h2>The map</h2><p style="font-weight:600;color:#3a5372">Map data not loaded — run <code>node build/build_status.js</code>.</p></div>`; }
-  const NW=132,NH=46; const byName={},byId={}; S.models.forEach(m=>{byName[m.name.toUpperCase()]=m.id; byId[m.id]=m;});
+/* EVERY BOX GETS THE SAME AMOUNT OF TEXT, because they did not and it was unreadable.
+ *
+ * The node subtitle is the model's `metric` string straight out of data/status.js, and those range
+ * from 12 characters ("builds teams") to 146 ("roles"). An SVG <text> does not wrap, so the long ones
+ * ran straight out of a 132px box, across their neighbours and off the right edge of the diagram —
+ * MEW's ran under the panel border, CHOMP's was clipped at both ends, GURU's and XATU's overlapped
+ * each other. The map became less readable the more a model had to say about itself.
+ *
+ * So the label is fitted to the box rather than the box hoped to fit the label: wrapped on word
+ * boundaries to at most two lines and truncated with an ellipsis. Nothing is lost — the full string
+ * is still the <title> tooltip and still fills the hover strip above the diagram, which is where a
+ * sentence that long belongs.
+ *
+ * AND IT SHOWS `detail`, NOT `metric`, WHICH IS THE REAL FIX. Every model carries both: `detail` is
+ * its ROLE ("picks your four", "builds teams", "damage maths") and `metric` is its measured FINDING
+ * ("no better than a coin on either test (log-loss 0.6921 vs 0.6931)"). The map was drawing `metric`,
+ * so a model WITH a result showed an essay while a model without one showed its role — which is why
+ * ALAKAZAM looked unlike CHOMP. It was never a styling difference: it was two different KINDS of
+ * sentence sharing one slot. `detail` means the same thing for all of them and runs 12–28 characters.
+ * The finding stays in the <title> tooltip and the hover strip, where a full sentence belongs.
+ *
+ * Sized from the actual font, not guessed: Arial at 9.5px averages ~0.5em per character, so ~25
+ * characters fit across 124px of usable width. */
+const MAP_LINE_CHARS = 25, MAP_MAX_LINES = 2;
+function mapLabelLines(s){
+  const words = String(s || '').trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  for (const w of words){
+    const next = cur ? cur + ' ' + w : w;
+    if (next.length <= MAP_LINE_CHARS){ cur = next; continue; }
+    if (cur) lines.push(cur);
+    cur = w;
+    if (lines.length === MAP_MAX_LINES) break;
+  }
+  if (cur && lines.length < MAP_MAX_LINES) lines.push(cur);
+  /* A word longer than a whole line would still overflow, so every line is hard-capped too. */
+  const capped = lines.slice(0, MAP_MAX_LINES).map(l => l.length > MAP_LINE_CHARS ? l.slice(0, MAP_LINE_CHARS - 1) + '…' : l);
+  const usedAll = capped.join(' ').replace(/…$/, '').length >= String(s || '').trim().length;
+  if (!usedAll && capped.length) {
+    const last = capped[capped.length - 1];
+    capped[capped.length - 1] = (last.length > MAP_LINE_CHARS - 1 ? last.slice(0, MAP_LINE_CHARS - 1) : last) + '…';
+  }
+  return capped;
+}
+  const NW=132,NH=56; const byName={},byId={}; S.models.forEach(m=>{byName[m.name.toUpperCase()]=m.id; byId[m.id]=m;});
   const lay=id=>MAPLAYER[id]||'collect', vis=id=>window.MAPON[lay(id)]!==false;
   const edges=[]; S.models.forEach(m=>{(m.inputs||[]).forEach(inp=>{const f=MAPPOS[inp]?inp:byName[(inp||'').toUpperCase()]; if(f&&MAPPOS[f]&&MAPPOS[m.id])edges.push([f,m.id]);});});
   const outs={},ins={}; edges.forEach(([f,t])=>{(outs[f]=outs[f]||[]).push(byId[t].name);(ins[t]=ins[t]||[]).push(byId[f].name);});
@@ -1486,7 +1531,7 @@ function mapPanel(){ const S=window.STATUS;
     svg+=`<g class="node" data-id="${m.id}" data-layer="${L}" data-brief="${(m.name+(m.full?' ('+m.full+')':'')+' — '+m.detail).replace(/"/g,'&quot;')}" data-nm="${m.name}" data-plain="${(m.detail||'').replace(/"/g,'&quot;')}" onmouseover="mapHi('${m.id}')" onmouseout="mapHi('')" onclick="if(window.ROOMS&&ROOMS['${m.id}'])go('${m.id}')" style="cursor:pointer${vis(m.id)?'':';display:none'}"><title>${tip}</title>`+
       `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="${bg}" stroke="${br}" data-br="${br}" stroke-width="2.5" ${dash}/>`+
       `<text x="${x+NW/2}" y="${y+19}" text-anchor="middle" font-size="13" font-weight="800" fill="#12324f">${m.name}</text>`+
-      `<text x="${x+NW/2}" y="${y+35}" text-anchor="middle" font-size="9.5" fill="#5a6472">${m.metric}</text></g>`; });
+      mapLabelLines(m.detail||m.metric).map((ln,i)=>`<text x="${x+NW/2}" y="${y+34+i*11}" text-anchor="middle" font-size="9.5" fill="#5a6472">${ln.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text>`).join("")+`</g>`; });
   svg+=`</svg>`;
   const btns=LAYERS.map(([id,label,br])=>{const on=window.MAPON[id]!==false; return `<button onclick="mapToggle('${id}')" data-layer-btn="${id}" data-br="${br}" style="border:2px solid ${br};background:${on?br:'#fff'};color:${on?'#fff':br};font-weight:800;font-size:12px;padding:5px 11px;border-radius:99px;margin:3px;cursor:pointer">${label}</button>`;}).join('');
   return `<div class="panel"><h2>The map — how the town wires together</h2><p style="font-weight:600;color:#3a5372">Each box shows its <b>current</b> number (from <code>build-status.js</code>). <b>Layers are what a model does</b> — toggle them to focus (retired starts hidden). <b>Hover a box</b> to light up its inputs and outputs. The decision tools output to <b>you, the player</b>.</p>
