@@ -70,6 +70,44 @@ ok(collisions.length === 0, `no two keys flatten to the same string (${collision
 
 ok(mcKey('Definitely Not A Pokemon') === null, 'an unknown species resolves to null rather than to something plausible');
 
+/* ---- 1b. COSMETIC FORMES ---------------------------------------------------------------------
+ *
+ * A forme that is not in the table may fall back to its base ONLY when base stats AND types are
+ * identical -- then the damage formula computes the same number and the substitution is exact.
+ * Getting this wrong in the permissive direction is worse than the original bug: it hands the engine
+ * a body that is not the one on the field, and unlike a miss it does not count itself.
+ *
+ * Both directions are asserted, and the discriminator is checked against the DEX rather than against
+ * a list of names, so a new forme is judged by the same rule with no edit here. */
+const CS = require(D('engine', 'champions_sim.js'));
+const dex = CS.sim().Dex.forFormat(CS.FORMAT);
+
+const formes = dex.species.all().filter(s => s.exists && s.baseSpecies && s.baseSpecies !== s.name);
+let sameBodyOK = 0, differentBodyLeaked = [];
+for (const s of formes) {
+  const b = dex.species.get(s.baseSpecies);
+  if (!b || !b.exists || !mcKey(b.name)) continue;
+  const sameBody = s.types.join('|') === b.types.join('|')
+    && JSON.stringify(s.baseStats) === JSON.stringify(b.baseStats);
+  const resolved = mcKey(s.name);
+  const ownEntry = keys.some(k => k === flatOf(s.name));
+  if (ownEntry) continue;                              // it has its own row; the fallback is not involved
+  if (sameBody) { if (resolved === mcKey(b.name)) sameBodyOK++; }
+  else if (resolved && resolved === mcKey(b.name)) differentBodyLeaked.push(s.name);
+}
+function flatOf(n) { return String(n).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+ok(sameBodyOK > 0, `formes with an identical body DO fall back to their base (${sameBodyOK} of them)`);
+ok(differentBodyLeaked.length === 0,
+  'no forme with different stats or types is ever substituted for its base '
+  + `(leaked: ${differentBodyLeaked.slice(0, 5).join(', ') || 'none'})`);
+
+/* The three worked examples from the day this was written, stated explicitly because they are the
+ * ones that actually appeared on real sheets. */
+ok(mcKey('Vivillon-Pokeball') === mcKey('Vivillon'), 'Vivillon-Pokeball resolves to Vivillon — identical body');
+ok(mcKey('Gourgeist-Super') === null, 'Gourgeist-Super does NOT — same types, different stats');
+ok(mcKey('Slowking-Galar') === 'slowking-galar', 'Slowking-Galar keeps its OWN entry, not Slowking');
+
 /* ---- 2. THE BAN ------------------------------------------------------------------------------- */
 
 /* A hand-rolled lookup is: indexing MC.mons (or a `mons` alias) with anything other than a literal,

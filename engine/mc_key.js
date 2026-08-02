@@ -57,6 +57,54 @@
     return m;
   }
 
+  /* ---- COSMETIC FORMES ------------------------------------------------------------------------
+   *
+   * Vivillon-Pokeball, Maushold-Four and Sinistcha-Masterpiece are on real open team sheets and are
+   * not in the table. They are the same Pokemon as their base for every purpose the damage formula
+   * has: IDENTICAL base stats and IDENTICAL types. Falling back to the base is not an approximation,
+   * it computes the same number.
+   *
+   * THE DISCRIMINATOR IS DERIVED, AND IT MATTERS THAT IT IS EXACT. Slowking-Galar is Poison/Psychic
+   * where Slowking is Water/Psychic; Rotom-Wash and Ninetales-Alola likewise differ in both stats and
+   * types; Gourgeist-Super shares Gourgeist's types but not its stats. Falling those back would hand
+   * the damage engine the wrong body, which is far worse than returning null -- null at least counts
+   * itself in dmgFailures. So the rule is the strictest one available:
+   *
+   *     fall back to the base species ONLY when base stats AND types are identical.
+   *
+   * `cosmeticFormes` is not populated in the Champions mod, so it cannot be asked directly; the stats
+   * and types are, and they are the property that actually licenses the substitution.
+   *
+   * NODE ONLY, BY DESIGN. This needs the dex, which the browser copy of the engine does not have.
+   * The require is guarded and cached, so a browser caller keeps exactly today's behaviour and a node
+   * caller needs no new argument -- dmgMon has no dex in scope and should not have to grow one. */
+  let alias = null;
+  function cosmeticAliases() {
+    if (alias) return alias;
+    alias = new Map();
+    try {
+      if (typeof require !== 'function') return alias;
+      const CS = require('./champions_sim.js');
+      const dex = CS.sim().Dex.forFormat(CS.FORMAT);
+      for (const s of dex.species.all()) {
+        if (!s.exists || !s.baseSpecies || s.baseSpecies === s.name) continue;
+        const b = dex.species.get(s.baseSpecies);
+        if (!b || !b.exists) continue;
+        if (s.types.join('|') !== b.types.join('|')) continue;
+        if (JSON.stringify(s.baseStats) !== JSON.stringify(b.baseStats)) continue;
+        alias.set(flat(s.name), flat(b.name));
+      }
+    } catch (e) {
+      /* Reported, not swallowed: without the dex this silently reverts to the old behaviour, and a
+       * silent revert to a known-worse path is the failure mode this whole file exists to end. */
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('mc_key: cosmetic-forme aliases unavailable (' + e.message + '); '
+          + 'forme names not in the table will resolve to null as before.');
+      }
+    }
+    return alias;
+  }
+
   function mcKey(name) {
     /* Rebuilt if the table object itself was replaced -- merge_mega_into_engine.js mutates MC.mons,
      * and a cached index over a stale object is exactly the kind of quiet wrongness this file is
@@ -64,14 +112,25 @@
     if (!index || builtFrom !== (root.MC && root.MC.mons)) index = build();
     if (!index) return null;
     const f = flat(name);
-    /* Exact first. Megas are their OWN entries in this table (`gengar-mega` has real base stats), so
-     * stripping the suffix is a fallback for a caller that passed a mega name the table does not
-     * carry -- never a shortcut past a real entry. */
-    return index.get(f) || index.get(f.replace(/mega[xy]?$/, '')) || null;
+    /* Exact only. Megas are their OWN entries here (`gengar-mega` carries real mega base stats), so a
+     * mega that IS in the table is found on this line.
+     *
+     * THE BLANKET `mega` STRIP THAT USED TO SIT HERE WAS UNSOUND, and tests/test-mc-key.js found it
+     * the day the same-body rule was written. `f.replace(/mega[xy]?$/,'')` answered Victreebel for
+     * Victreebel-Mega, Skarmory for Skarmory-Mega and so on -- handing the damage engine the
+     * UNEVOLVED body for a mega, which is the exact error the cosmetic rule below refuses to make.
+     * It was inherited from board.js's original `baseSpecies` fallback and predates this file.
+     *
+     * A mega the table does not carry now resolves to null, which is honest and counts itself in
+     * dmgFailures, instead of silently computing with the wrong stats. */
+    const direct = index.get(f);
+    if (direct) return direct;
+    const cos = cosmeticAliases().get(f);
+    return (cos && index.get(cos)) || null;
   }
 
   /* For tests that swap the table underneath. */
-  mcKey.reset = () => { index = null; builtFrom = null; };
+  mcKey.reset = () => { index = null; builtFrom = null; alias = null; };
 
   const api = { mcKey, flat };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
