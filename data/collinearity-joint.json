@@ -1,0 +1,345 @@
+{
+ "generated": "2026-08-02T03:48:10.656Z",
+ "by": "engine/collinearity_joint.js",
+ "what": "Each PAIR feature fitted alone, and again beside the two-moves-decided-separately score, versus its weight in the full 74-weight fit — with a model-free lift and a VIF. The pair block had never been audited; nine of its eighteen weights changed sign on 2026-08-01.",
+ "weights_file": "data\\policy-weights-joint.json",
+ "topK": 6,
+ "corpus": {
+  "games": 7454,
+  "ofTotal": 7454,
+  "train": 53050,
+  "held_out": 13186,
+  "alternatives": 2285235
+ },
+ "matching": {
+  "turns": 86242,
+  "kept": 66236,
+  "oneSlot": 33082,
+  "unmatched": 19995,
+  "ambiguous": 11,
+  "chosenOutsideK": 7180
+ },
+ "features": {
+  "bothSameTarget": {
+   "alone": -0.5437,
+   "besideSum": -0.5074,
+   "inFit": -0.1504,
+   "humanLift": 0.642,
+   "decisionsWithContrast": 11963,
+   "vif": 2.21,
+   "mostCorrelatedWith": "overkill",
+   "r": 0.53,
+   "verdict": "absorbed"
+  },
+  "overkill": {
+   "alone": -0.7302,
+   "besideSum": -0.9736,
+   "inFit": -0.7114,
+   "humanLift": 0.563,
+   "decisionsWithContrast": 6801,
+   "vif": 1.66,
+   "mostCorrelatedWith": "bothSameTarget",
+   "r": 0.53,
+   "verdict": null
+  },
+  "focusFireKills": {
+   "alone": -0.1002,
+   "besideSum": -0.2036,
+   "inFit": 0.1273,
+   "humanLift": 0.952,
+   "decisionsWithContrast": 7234,
+   "vif": 1.53,
+   "mostCorrelatedWith": "bothSameTarget",
+   "r": 0.474,
+   "verdict": null
+  },
+  "partnerCoversMe": {
+   "alone": 0.0867,
+   "besideSum": -0.3063,
+   "inFit": -0.2766,
+   "humanLift": 1.123,
+   "decisionsWithContrast": 2863,
+   "vif": 1.04,
+   "mostCorrelatedWith": "overkill",
+   "r": 0.109,
+   "verdict": null
+  },
+  "redirectThenAttack": {
+   "alone": 0.0966,
+   "besideSum": -0.2084,
+   "inFit": -0.4053,
+   "humanLift": 1.091,
+   "decisionsWithContrast": 12016,
+   "vif": 1.16,
+   "mostCorrelatedWith": "flinchThenSetup",
+   "r": 0.206,
+   "verdict": null
+  },
+  "bothStatus": {
+   "alone": 0.3992,
+   "besideSum": 0.1765,
+   "inFit": -0.0525,
+   "humanLift": 1.39,
+   "decisionsWithContrast": 10661,
+   "vif": 1.12,
+   "mostCorrelatedWith": "redirectThenSetup",
+   "r": 0.197,
+   "verdict": "SIGN FLIPS"
+  },
+  "bothSwitch": {
+   "alone": -1.7409,
+   "besideSum": -1.0649,
+   "inFit": -1.2671,
+   "humanLift": 0.175,
+   "decisionsWithContrast": 8950,
+   "vif": 1.04,
+   "mostCorrelatedWith": "redirectThenAttack",
+   "r": -0.088,
+   "verdict": null
+  },
+  "boostsPartnerDamage": {
+   "alone": 0.7913,
+   "besideSum": 0.663,
+   "inFit": 0.7908,
+   "humanLift": 1.879,
+   "decisionsWithContrast": 1085,
+   "vif": 1.11,
+   "mostCorrelatedWith": "boostMayConvertKill",
+   "r": 0.261,
+   "verdict": null
+  },
+  "boostMayConvertKill": {
+   "alone": 1.7656,
+   "besideSum": 1.0643,
+   "inFit": 0.39,
+   "humanLift": 4.68,
+   "decisionsWithContrast": 229,
+   "vif": 1.07,
+   "mostCorrelatedWith": "boostsPartnerDamage",
+   "r": 0.261,
+   "verdict": null
+  },
+  "speedSetupHelpsPartner": {
+   "alone": 0.6884,
+   "besideSum": 0.3681,
+   "inFit": 0.512,
+   "humanLift": 1.713,
+   "decisionsWithContrast": 2587,
+   "vif": 1.01,
+   "mostCorrelatedWith": "bothStatus",
+   "r": 0.075,
+   "verdict": null
+  },
+  "weatherSetupHelpsPartner": {
+   "alone": 1.0548,
+   "besideSum": 1.283,
+   "inFit": 1.2742,
+   "humanLift": 3.299,
+   "decisionsWithContrast": 105,
+   "vif": 1,
+   "mostCorrelatedWith": "redirectThenAttack",
+   "r": -0.008,
+   "verdict": null
+  },
+  "healsPartner": {
+   "alone": -0.1127,
+   "besideSum": -0.0705,
+   "inFit": 0.1145,
+   "humanLift": 0.913,
+   "decisionsWithContrast": 545,
+   "vif": 1.01,
+   "mostCorrelatedWith": "bothStatus",
+   "r": 0.072,
+   "verdict": null
+  },
+  "redirectThenSetup": {
+   "alone": 0.3279,
+   "besideSum": -0.0395,
+   "inFit": 0.0993,
+   "humanLift": 1.575,
+   "decisionsWithContrast": 2242,
+   "vif": 1.05,
+   "mostCorrelatedWith": "bothStatus",
+   "r": 0.197,
+   "verdict": null
+  },
+  "doubleKO": {
+   "alone": 1.1602,
+   "besideSum": 0.6241,
+   "inFit": 0.4664,
+   "humanLift": 2.615,
+   "decisionsWithContrast": 1237,
+   "vif": 1.01,
+   "mostCorrelatedWith": "partnerCoversMe",
+   "r": 0.077,
+   "verdict": null
+  },
+  "flinchThenSetup": {
+   "alone": 0.1674,
+   "besideSum": 0.0233,
+   "inFit": -0.0217,
+   "humanLift": 1.16,
+   "decisionsWithContrast": 6032,
+   "vif": 1.06,
+   "mostCorrelatedWith": "redirectThenAttack",
+   "r": 0.206,
+   "verdict": "SIGN FLIPS"
+  },
+  "terrainSetupHelpsPartner": {
+   "alone": 0.5377,
+   "besideSum": 0.9071,
+   "inFit": 1.7445,
+   "humanLift": 6.846,
+   "decisionsWithContrast": 10,
+   "vif": 1,
+   "mostCorrelatedWith": "speedSetupHelpsPartner",
+   "r": 0.004,
+   "verdict": null
+  },
+  "screenWhileThreatened": {
+   "alone": 0.5945,
+   "besideSum": 0.2291,
+   "inFit": 0.0402,
+   "humanLift": 1.868,
+   "decisionsWithContrast": 792,
+   "vif": 1.02,
+   "mostCorrelatedWith": "bothStatus",
+   "r": 0.12,
+   "verdict": "absorbed"
+  },
+  "spreadFreeBesideAlly": {
+   "alone": 0.9709,
+   "besideSum": 0.6466,
+   "inFit": 0.8591,
+   "humanLift": 1.961,
+   "decisionsWithContrast": 7459,
+   "vif": 1.06,
+   "mostCorrelatedWith": "bothSameTarget",
+   "r": -0.139,
+   "verdict": null
+  }
+ },
+ "fireRate": {
+  "bothSameTarget": 0.14354,
+  "overkill": 0.04492,
+  "focusFireKills": 0.03629,
+  "partnerCoversMe": 0.031,
+  "redirectThenAttack": 0.14452,
+  "bothStatus": 0.07572,
+  "bothSwitch": 0.04419,
+  "boostsPartnerDamage": 0.00812,
+  "boostMayConvertKill": 0.00056,
+  "speedSetupHelpsPartner": 0.01465,
+  "weatherSetupHelpsPartner": 0.00043,
+  "healsPartner": 0.00574,
+  "redirectThenSetup": 0.00732,
+  "doubleKO": 0.0055,
+  "flinchThenSetup": 0.03873,
+  "terrainSetupHelpsPartner": 0.00004,
+  "screenWhileThreatened": 0.00618,
+  "spreadFreeBesideAlly": 0.10334
+ },
+ "topCorrelations": [
+  {
+   "a": "bothSameTarget",
+   "b": "overkill",
+   "r": 0.5297
+  },
+  {
+   "a": "bothSameTarget",
+   "b": "focusFireKills",
+   "r": 0.474
+  },
+  {
+   "a": "boostsPartnerDamage",
+   "b": "boostMayConvertKill",
+   "r": 0.2612
+  },
+  {
+   "a": "redirectThenAttack",
+   "b": "flinchThenSetup",
+   "r": 0.2057
+  },
+  {
+   "a": "bothStatus",
+   "b": "redirectThenSetup",
+   "r": 0.1969
+  },
+  {
+   "a": "redirectThenAttack",
+   "b": "boostsPartnerDamage",
+   "r": 0.1781
+  },
+  {
+   "a": "bothSameTarget",
+   "b": "redirectThenAttack",
+   "r": -0.1683
+  },
+  {
+   "a": "bothSameTarget",
+   "b": "spreadFreeBesideAlly",
+   "r": -0.139
+  },
+  {
+   "a": "bothStatus",
+   "b": "screenWhileThreatened",
+   "r": 0.1203
+  },
+  {
+   "a": "redirectThenAttack",
+   "b": "bothStatus",
+   "r": -0.1176
+  },
+  {
+   "a": "overkill",
+   "b": "partnerCoversMe",
+   "r": 0.1091
+  },
+  {
+   "a": "bothSameTarget",
+   "b": "bothStatus",
+   "r": -0.0975
+  },
+  {
+   "a": "bothStatus",
+   "b": "spreadFreeBesideAlly",
+   "r": -0.0969
+  },
+  {
+   "a": "partnerCoversMe",
+   "b": "redirectThenAttack",
+   "r": 0.0951
+  },
+  {
+   "a": "flinchThenSetup",
+   "b": "spreadFreeBesideAlly",
+   "r": 0.0927
+  },
+  {
+   "a": "overkill",
+   "b": "redirectThenAttack",
+   "r": -0.0891
+  },
+  {
+   "a": "redirectThenAttack",
+   "b": "bothSwitch",
+   "r": -0.0884
+  },
+  {
+   "a": "bothSameTarget",
+   "b": "bothSwitch",
+   "r": -0.088
+  },
+  {
+   "a": "focusFireKills",
+   "b": "redirectThenAttack",
+   "r": -0.0798
+  },
+  {
+   "a": "partnerCoversMe",
+   "b": "doubleKO",
+   "r": 0.0772
+  }
+ ],
+ "caveat": "Collinear coefficients can be individually meaningless while the MODEL is well calibrated, because the correlated block still carries the right total. This is not evidence the pair model predicts badly. It is evidence about which single pair weights can be quoted."
+}

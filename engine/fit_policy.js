@@ -49,6 +49,9 @@ const path = require('path');
 const CS = require('./champions_sim.js');
 const Q = require('./quality.js');
 const B = require('./board.js');
+/* One reader for "whose moveset is this, and which candidate did they press". See its header and
+ * docs/ARTIFACT-ACCESS-RULES.md R1/R6. */
+const CM = require('./click_match.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -342,11 +345,17 @@ function decisionsFor(g, tally) {
   const out = [];
   const board = new B.Board();
 
-  const sheet = {};
+  /* WHOSE MOVESET IS THIS. Keyed by SIDE as well as species, and folded through the dex's own
+   * formes, by engine/click_match.js — because `sheet[base(species)]` carries no side and Species
+   * Clause is per PLAYER, so in a mirror one player's set silently overwrote the other's. Measured
+   * 2026-08-02 by engine/redirect_audit.js: 58.63% of corpus games carry a species on both sheets,
+   * 8.02% of all slots were scored against the opponent's four moves, and 62.16% of those MATCHED
+   * ANYWAY and were fitted against the wrong choice set. That is a wrong DENOMINATOR — the same
+   * defect the choice-lock note in board.js describes — and nothing counted it. */
+  const SI = CM.sheetIndex(g, dex);
   for (const side of ['p1', 'p2']) {
     for (const m of g.sheets[side] || []) {
       if (m && m.species) {
-        sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
         /* The sheet's nature reaches the board, so the damage estimate is computed against the
          * spreads consistent with it rather than all of them. Public information on this ladder. */
         board.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
@@ -390,7 +399,10 @@ function decisionsFor(g, tally) {
       else if (e.t === 's' && e.s && forcedSlot.has(e.s)) forcedSlot.add(e.s + '|used');
     }
 
-    for (const e of ev) {
+    /* INDEXED, because resolving a recorded target needs to know which switches had already
+     * happened when this event went off. */
+    for (let evIx = 0; evIx < ev.length; evIx++) {
+      const e = ev[evIx];
       if (e.t === 's' && e.s && !forcedSlot.has(e.s)) {
         /* A voluntary switch, scored against the same candidate list the moves are scored against --
          * the whole point is that "bring Torkoal in" competes with "click Earthquake" rather than
@@ -399,12 +411,11 @@ function decisionsFor(g, tally) {
         const side = e.s.slice(0, 2), letter = e.s.slice(2);
         const user = board.slot(side, letter);
         if (!user || user.fainted) { tally.noUser++; continue; }
-        const sh = sheet[base(user.species)];
+        const sh = SI.get(side, user.species);
         if (!sh) { tally.noSheet++; continue; }
         const cands = B.candidates(sh.moves, user, board, side, dex);
         if (cands.length < 2) { tally.trivial++; continue; }
-        const want = base(e.mon);
-        const idx = cands.findIndex(c => c.switchTo && c.switchTo === want);
+        const idx = CM.matchClick(cands, { kind: 'switch', to: base(e.mon) }, dex).chosen;
         if (idx < 0) { tally.unmatched++; continue; }
         const feats = featsFor(cands, user, board, side);
         out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx });
@@ -416,27 +427,29 @@ function decisionsFor(g, tally) {
       const side = e.s.slice(0, 2), letter = e.s.slice(2);
       const user = board.slot(side, letter);
       if (!user || user.fainted) { tally.noUser++; continue; }
-      const sh = sheet[base(e.mon)];
+      const sh = SI.get(side, e.mon);
       if (!sh) { tally.noSheet++; continue; }
 
       const cands = B.candidates(sh.moves, user, board, side, dex);
       if (cands.length < 2) { tally.trivial++; continue; }
 
-      /* Which candidate did they actually pick? A stored target is a SPECIES name, not a slot, so a
-       * mirror match is genuinely ambiguous; those are counted and dropped rather than guessed. */
-      const mvId = norm(dex.moves.get(e.mv) && dex.moves.get(e.mv).id || e.mv);
-      const matches = [];
-      for (let i = 0; i < cands.length; i++) {
-        const c = cands[i];
-        if (!c.move || norm(c.move.id) !== mvId) continue;
-        if (!c.targetMon) { matches.push(i); continue; }
-        if (e.tgt && base(c.targetMon.species) === base(e.tgt)) matches.push(i);
-      }
-      if (!matches.length) { tally.unmatched++; continue; }
-      if (matches.length > 1) { tally.ambiguous++; continue; }
+      /* Which candidate did they actually pick? engine/click_match.js, so this file and
+       * engine/joint_rows.js cannot drift apart again — they did on 2026-08-01, and the copy that
+       * had not learned the spread rule threw away 70% of the pair fit's data.
+       *
+       * THE TARGET IS RESOLVED BACK THROUGH THE TURN'S OWN SWITCHES. A human aims at a SLOT; the
+       * store records the SPECIES that was standing in it after the turn resolved, and switches
+       * resolve before moves. Measured 2026-08-02: that single mismatch is 44.37% of every failed
+       * match, far and away the largest cause, and it is why "23% of clicks are unmatchable, mostly
+       * redirection" was wrong — redirection is 1.60% of it. */
+      const foe = side === 'p1' ? 'p2' : 'p1';
+      const want = { kind: 'move', mv: e.mv, tgt: e.tgt || null };
+      const m = CM.matchClick(cands, want, dex, CM.targetAtDecision(ev, evIx, foe, e.tgt, board));
+      if (m.ambiguous) { tally.ambiguous++; continue; }
+      if (m.chosen < 0) { tally.unmatched++; continue; }
 
       const feats = featsFor(cands, user, board, side);
-      out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: matches[0] });
+      out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: m.chosen });
       tally.kept++;
     }
 
@@ -851,7 +864,14 @@ function main() {
     console.error('  These weights will load, but nothing will detect a feature changing meaning under');
     console.error('  its own name. Fix engine/feature_fixture.js and restamp with --stamp.');
   }
-  fs.writeFileSync(OUT, JSON.stringify(out, null, 1));
+  /* THE DEFAULT PATH IS WRITTEN ON ITS OWN LINE — see the note in engine/fit_joint.js. Routing every
+   * write through `OUT` made this file's generator invisible to tests/test-site-data-fresh.js, and
+   * data/policy-weights.json has been carried in data/site-data-orphans.json as "no generator" ever
+   * since OUT_WEIGHTS was added. The shipped model file having no discoverable way to rebuild it is
+   * exactly the condition that guard exists to report. */
+  const payload = JSON.stringify(out, null, 1);
+  if (process.env.OUT_WEIGHTS) fs.writeFileSync(OUT, payload);
+  else fs.writeFileSync(D('data', 'policy-weights.json'), payload);
   console.log(`\n  -> ${path.relative(ROOT, OUT)}`);
 }
 

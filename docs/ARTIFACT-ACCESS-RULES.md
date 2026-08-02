@@ -157,6 +157,60 @@ therefore asserts every key in the live table resolves, rather than spot-checkin
   `forced_switch_audit.js`, `type_coverage.js`.
 - **`tests/test-mc-key.js`** — the fitness function, ratcheted against `data/mc-key-baseline.json`.
 
+## 4b. What was applied on 2026-08-02 — the second artifact, found by these rules
+
+§5 below predicted that the next application of R1 would be another artifact. It was, one day later,
+and it was found by looking for the SHAPE rather than by hitting the bug: seven files replaying the
+store, each writing its own
+
+```js
+sheet[base(m.species)] = { side, moves: ... };   // ...and never reading `side` again
+```
+
+`engine/fit_policy.js`, `engine/fit_joint.js`, `engine/branch_recall.js`, `engine/feature_coverage.js`,
+`engine/ko_calibration.js`, `engine/surprise.js`, `tests/test-degradation-budgets.js`.
+
+Species Clause limits one of each Pokémon **per player**, not per battle, so a species-only key
+collapses the two team sheets in a mirror. Measured by `engine/redirect_audit.js` over 7,454
+open-sheet games:
+
+| | |
+| --- | --- |
+| games with a species on BOTH sheets | **58.63%** |
+| slots scored against the OTHER side's four moves | **8.02%** |
+| ...of those, **matched anyway and fitted against the wrong choice set** | **62.16%** |
+
+The silent half is the damaging one. A slot that fails to match gets counted and dropped; a slot that
+matches against the opponent's moveset is a **wrong denominator** in a conditional logit — the same
+defect `board.js`'s choice-lock note describes — and nothing counted it at all.
+
+- **`engine/click_match.js`** — one reader for "whose moveset is this, and which candidate did they
+  press". Side-keyed, forme-folded through the dex's own `baseSpecies`, and it resolves a recorded
+  target back through the turn's own switches.
+- **`engine/joint_rows.js`** — the pair-decision replay loop, extracted from `fit_joint.js` so that
+  asking a question about the pair fit does not mean writing a fourth copy of it. Verified against the
+  shipped artifact's own tally: 86,242 turns seen, 66,236 kept, 19,995 unmatched, 11 ambiguous.
+- **`tests/test-click-match.js`** — the fitness function. Every behavioural assertion is built from a
+  measured defect and *also* asserts the old lookup fails, so it cannot pass both before and after.
+
+Two more defects fell out of the same measurement, both of the same family — a lookup that answers
+"never seen it" when the truth is "you asked wrongly":
+
+- **A human targets a SLOT; the store records a SPECIES.** Switches resolve before moves, so the
+  protocol writes down the mon that *arrived* while the human was choosing against the one that
+  *left*. 44.37% of every failed match, the single largest cause.
+- **In-battle forme changes have no sheet entry.** `floette` 3,627, then `aegislashblade`,
+  `palafinhero`, `mimikyubusted`, `morpekohangry`. 19.65% of failures. The forme problem again, in a
+  third table.
+
+Net, on the same replay scored twice: usable joint turns **76.80% → 94.52%**, drop **23.18% → 5.47%**.
+
+**And it corrected a diagnosis that three documents were quoting.** `MODELS.md`, `DEFENSE.md` and
+`fit_policy.js`'s own caveat all said the unmatched clicks were "mostly redirection". Redirection is
+**1.60%** of them. The protocol never records a move's *chosen* target, only its resolved one, so
+redirection cannot make a click unmatchable — it can only make the label wrong, which it does to
+1.55% of clicks. **A cause nobody measured had been repeated until it read as established.**
+
 ## 5. Honest limits
 
 - **R1 is enforced by regex, not by a type system.** A caller determined to get around it can. The
@@ -164,6 +218,10 @@ therefore asserts every key in the live table resolves, rather than spot-checkin
   lookups are "fine" is how the next one gets through.
 - **This document does not fix the 16 baselined files.** Most are tests indexing with keys they
   themselves just produced, which is harmless. They are recorded so the number can only go down.
-- **The same audit has not been done for other artifacts.** `MC.moves` happens to be collision-free
-  and hyphen-free today, so it has no equivalent bug — but nothing checks that it stays that way, and
-  no other artifact has been swept. That is the obvious next application of R1.
+- **`MC.moves` still has not been swept.** It happens to be collision-free and hyphen-free today, so
+  it has no equivalent bug — but nothing checks that it stays that way. `tests/test-artifact-keys.js`
+  is the general detector; it flags a table only once the keys are actually unsafe, which is later
+  than finding it by shape.
+- **Redirection mislabels 1.55% of clicks and this does not fix it.** The chosen target was never
+  written down, by anyone, at any point — it is not recoverable from the store, only from a re-ingest
+  that does not exist. Stated rather than papered over.

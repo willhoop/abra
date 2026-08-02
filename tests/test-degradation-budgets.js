@@ -61,6 +61,7 @@ if (!process.env.SHOWDOWN_PATH) {
 const B = require(D('engine', 'board.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 const FP = require(D('engine', 'fit_policy.js'));
+const CM = require(D('engine', 'click_match.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const norm = B.norm, base = B.baseSpecies;
 B.damageEngine();
@@ -76,13 +77,14 @@ function measure() {
   let candidates = 0, sheetMons = 0, unresolvable = 0;
 
   for (const g of games.slice(0, GAMES)) {
-    const bd = new B.Board(); const sheet = {};
+    /* Side-keyed and forme-folded — see engine/click_match.js. A species-only key collapsed both
+     * players' sets in a mirror, and 58.63% of corpus games have one. */
+    const bd = new B.Board(); const SI = CM.sheetIndex(g, dex);
     for (const side of ['p1', 'p2']) {
       for (const m of (g.sheets && g.sheets[side]) || []) {
         if (!m || !m.species) continue;
         sheetMons++;
         if (!B.mcKeyFor(m.species)) unresolvable++;
-        sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
         bd.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
       }
       bd.setParty(side, ((g.brought || {})[side] || []));
@@ -93,7 +95,7 @@ function measure() {
     for (const side of ['p1', 'p2']) {
       for (const L of ['a', 'b']) {
         const u = bd.slot(side, L); if (!u) continue;
-        const sh = sheet[base(u.species)]; if (!sh) continue;
+        const sh = SI.get(side, u.species); if (!sh) continue;
         const cs = B.candidates(sh.moves, u, bd, side, dex);
         for (const c of cs) { candidates++; B.featuresFor(c, u, bd, side, dex, 0.25); }
       }

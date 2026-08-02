@@ -30,6 +30,7 @@ const path = require('path');
 const CS = require('./champions_sim.js');
 const B = require('./board.js');
 const FP = require('./fit_policy.js');
+const CM = require('./click_match.js');
 
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
@@ -53,11 +54,12 @@ const why = { protect: 0, redirect: 0, screen: 0, intimidate: 0 };
 
 for (const g of games) {
   const boardOf = new B.Board();
-  const sheet = {};
+  /* Side-keyed and forme-folded — see engine/click_match.js. A species-only key collapsed both
+   * players' sets in a mirror, and 58.63% of corpus games have one. */
+  const SI = CM.sheetIndex(g, dex);
   for (const side of ['p1', 'p2']) {
     for (const m of (g.sheets && g.sheets[side]) || []) {
       if (m && m.species) {
-        sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
         /* The sheet's nature reaches the board, so the damage estimate is computed against the
          * spreads consistent with it rather than all of them. Public information on this ladder. */
         boardOf.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
@@ -79,7 +81,7 @@ for (const g of games) {
       if (e.t !== 'm' || !e.s || !e.mon || !e.mv || !e.tgt) continue;
       const side = e.s.slice(0, 2), letter = e.s.slice(2);
       const user = boardOf.slot(side, letter);
-      const sh = sheet[base(e.mon)];
+      const sh = SI.get(side, e.mon);
       if (!user || user.fainted || !sh) continue;
 
       const cands = B.candidates(sh.moves, user, boardOf, side, dex);

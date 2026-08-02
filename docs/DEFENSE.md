@@ -338,9 +338,23 @@ rather than *derived* will eventually return the answer you assumed. Here it hid
    `board.js` can represent it**: `immune` is computed from TYPES only. Ability-based immunity
    generally (Levitate, Flash Fire, Storm Drain, Sap Sipper) is the same hole and is the bigger half
    of it. Blocked-action rate does fall with rating, 4.66% under 1100 to 3.43% above 1400.
-3. **~11% of clicks could not be matched** to a candidate and were dropped, the largest single cause
-   being redirection (Follow Me, Rage Powder), where the protocol records the target that was *hit*
-   rather than the one that was chosen.
+3. **Clicks that could not be matched to a candidate were dropped — and this document named the
+   wrong cause for months.** It said the largest single cause was redirection (Follow Me, Rage
+   Powder). **Measured 2026-08-02, `engine/redirect_audit.js`, 7,454 games: redirection is 1.60% of
+   it.** The claim had never been measured; it was repeated across three documents and the fitter's
+   own comments until it read as established.
+
+   Redirection *cannot* make a click unmatchable. The protocol emits no `-activate` line for a
+   redirect and prints only the move's **resolved** target, so the redirector is a perfectly legal
+   candidate: the matcher finds it and accepts the click — with the wrong label. That is a real
+   defect and a small one, **1.55% of all clicks**, and it is unrecoverable from the store, because
+   the chosen target was never written down by anyone at any point.
+
+   The real causes, by share of failures: the foe **switched in on the same turn** 44.4% — a human
+   aims at a SLOT, the store records a SPECIES, and switches resolve before moves; an **in-battle
+   forme change** with no sheet entry 19.7%; **no target recorded at all** 13.7%; and a **mirror
+   collapsing the two team sheets** 16.4%. All four are addressed in `engine/click_match.js`, which
+   moved the slot-level match rate from **87.2% to 97.2%** on the same replays scored twice.
 
 ---
 

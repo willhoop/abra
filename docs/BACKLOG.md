@@ -263,9 +263,16 @@ Ordered by what blocks what.
    - it is **one ply**. No search.
 
    Two honest caveats. The weights are fitted on open-sheet games, where both players see everything
-   and hedge less than on the closed ladder. And ~11% of clicks in the corpus could not be matched to
-   a candidate and were dropped; the largest single cause is redirection (Follow Me, Rage Powder),
-   where the protocol records the *actual* target rather than the chosen one.
+   and hedge less than on the closed ladder. And some clicks could not be matched to a candidate and
+   were dropped — **2.94% as of 2026-08-02**, down from roughly four times that.
+
+   This entry used to say the largest cause was redirection (Follow Me, Rage Powder). **It is 1.60%**
+   (`engine/redirect_audit.js`). Nobody had measured it; three documents cited each other until it
+   read as settled. The real causes were a foe **switching in on the same turn** (44.4% — a human
+   aims at a slot, the store records a species, and switches resolve first), an **in-battle forme
+   change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%).
+   All are fixed in `engine/click_match.js`. Redirection's real cost is a MISLABELLED target on 1.55%
+   of clicks, which the store cannot fix because the chosen target was never recorded.
 
 3a. **Switching — now the largest behavioural gap.** 8.38 switches per game against a real 10.67, and
    the decision is still `RandomPlayerAI`'s. It is also where the residual mega gap was traced to

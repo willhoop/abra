@@ -1,0 +1,1072 @@
+{
+ "generated": "2026-08-02",
+ "source": "engine/redirect_audit.js",
+ "corpus": {
+  "games": 7454,
+  "ofTotal": 7454
+ },
+ "redirectors": {
+  "moves": [
+   "followme",
+   "ragepowder"
+  ],
+  "abilities": {
+   "lightningrod": "electric",
+   "stormdrain": "water"
+  }
+ },
+ "joint": {
+  "turns": 86242,
+  "kept": 66236,
+  "oneSlot": 33082,
+  "unmatched": 19995,
+  "ambiguous": 11
+ },
+ "why": {
+  "noUser": 0,
+  "noSheet": 4311,
+  "noCands": 0,
+  "moveNotEnumerated": 2846,
+  "targetMismatch": 14783,
+  "switchNotFound": 75,
+  "matched": 150453,
+  "ambiguous": 16
+ },
+ "fixedJoint": {
+  "turns": 86242,
+  "kept": 81515,
+  "unmatched": 4715,
+  "ambiguous": 12
+ },
+ "fixedWhy": {
+  "matched": 167687,
+  "ambiguous": 19,
+  "moveNotEnumerated": 345,
+  "targetMismatch": 4356,
+  "switchNotFound": 77,
+  "noSheet": 0
+ },
+ "detail": {
+  "target:foeSwitchedInThisTurn": 9735,
+  "target:noTargetRecorded": 2995,
+  "move:notOnSheet": 285,
+  "move:mirrorSheetFromOtherSide": 2519,
+  "noSheet:speciesUnknown": 4311,
+  "target:recordedTargetIsOwnSide": 829,
+  "target:targetNotOnFieldAtAll": 140,
+  "move:onSheetButNotOffered": 42,
+  "target:mirrorSheetFromOtherSide": 1082,
+  "target:onFieldButNotOffered": 2
+ },
+ "mirrorGames": {
+  "games": 4370,
+  "species": {
+   "kingambit": 741,
+   "charizard": 407,
+   "dragonite": 36,
+   "farigiraf": 199,
+   "staraptor": 265,
+   "froslass": 21,
+   "aerodactyl": 83,
+   "garchomp": 951,
+   "basculegion": 507,
+   "incineroar": 726,
+   "blaziken": 10,
+   "sinistcha": 472,
+   "pelipper": 190,
+   "milotic": 63,
+   "grimmsnarl": 166,
+   "venusaur": 110,
+   "archaludon": 155,
+   "sylveon": 134,
+   "whimsicott": 373,
+   "sneasler": 254,
+   "gallade": 1,
+   "toxapex": 31,
+   "floetteeternal": 159,
+   "torkoal": 12,
+   "raichu": 115,
+   "gholdengo": 123,
+   "sableye": 18,
+   "primarina": 4,
+   "blastoise": 21,
+   "swampert": 108,
+   "tyranitar": 58,
+   "delphox": 56,
+   "corviknight": 8,
+   "ninetalesalola": 35,
+   "annihilape": 23,
+   "camerupt": 4,
+   "kangaskhan": 8,
+   "talonflame": 13,
+   "excadrill": 18,
+   "rotomwash": 31,
+   "politoed": 7,
+   "ceruledge": 1,
+   "vanilluxe": 3,
+   "mamoswine": 7,
+   "gengar": 18,
+   "scrafty": 17,
+   "metagross": 95,
+   "mawile": 27,
+   "meowstic": 4,
+   "zoroark": 5,
+   "scovillain": 10,
+   "glimmora": 31,
+   "lycanrocdusk": 5,
+   "kommoo": 11,
+   "sinistchamasterpiece": 19,
+   "eelektross": 6,
+   "arcaninehisui": 6,
+   "ampharos": 2,
+   "hydreigon": 22,
+   "gardevoir": 1,
+   "mausholdfour": 7,
+   "clefable": 4,
+   "greninja": 2,
+   "noivern": 2,
+   "volcarona": 3,
+   "samurotthisui": 1,
+   "heliolisk": 1,
+   "simisear": 1,
+   "toucannon": 1,
+   "runerigus": 1,
+   "scizor": 3,
+   "maushold": 8,
+   "rotomheat": 3,
+   "pyroar": 6,
+   "ninetales": 2,
+   "sceptile": 4,
+   "meowscarada": 2,
+   "typhlosionhisui": 3,
+   "malamar": 2,
+   "raichualola": 1,
+   "meganium": 2,
+   "amoonguss": 1,
+   "dragapult": 1
+  }
+ },
+ "wrongSheet": {
+  "slots": 13825,
+  "matched": 8594,
+  "failed": 3601
+ },
+ "unknownSpecies": {
+  "floette": 3627,
+  "aegislashblade": 244,
+  "palafinhero": 229,
+  "mimikyubusted": 159,
+  "morpekohangry": 40,
+  "meowsticm": 10,
+  "castformrainy": 2
+ },
+ "unmatchedCtx": {
+  "total": 19995,
+  "redirectUp": 319,
+  "noRedirect": 19676
+ },
+ "clicks": {
+  "total": 179095,
+  "redirectableTotal": 102546,
+  "moveRedirectUp": 3230,
+  "moveRedirectHitIt": 2771,
+  "moveRedirectAmbiguous": 2768,
+  "abilityDrawer": 53,
+  "abilityAmbiguous": 48
+ },
+ "soakers": {
+  "sinistcha": 1894,
+  "maushold": 341,
+  "sinistchamasterpiece": 298,
+  "scovillain": 245,
+  "mausholdfour": 211,
+  "clefable": 108,
+  "volcarona": 39,
+  "vivillon": 25,
+  "ariados": 9,
+  "vivillontundra": 6
+ },
+ "samples": [
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653922694",
+   "turn": 2,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Flamethrower",
+   "recordedTarget": "pelipper",
+   "sheetMoves": [
+    "dragonpulse",
+    "flamethrower",
+    "tailwind",
+    "protect"
+   ],
+   "onField": [
+    "p1a:dragonite",
+    "p1b:sneasler",
+    "p2a:archaludon",
+    "p2b:victreebel"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653922694",
+   "turn": 2,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Close Combat",
+   "recordedTarget": "pelipper",
+   "sheetMoves": [
+    "gunkshot",
+    "closecombat",
+    "fakeout",
+    "protect"
+   ],
+   "onField": [
+    "p1a:dragonite",
+    "p1b:sneasler",
+    "p2a:archaludon",
+    "p2b:victreebel"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653922694",
+   "turn": 5,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Electro Shot",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "electroshot",
+    "dragonpulse",
+    "flashcannon",
+    "protect"
+   ],
+   "onField": [
+    "p1a:primarina",
+    "p1b:sneasler",
+    "p2a:archaludon",
+    "p2b:victreebel"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653922694",
+   "turn": 6,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "kowtowcleave",
+    "suckerpunch",
+    "swordsdance",
+    "protect"
+   ],
+   "onField": [
+    "p1a:kingambit",
+    "p1b:sneasler",
+    "p2a:archaludon",
+    "p2b:victreebel"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653921294",
+   "turn": 1,
+   "side": "p2",
+   "slot": "b",
+   "reason": "moveNotEnumerated",
+   "move": "U-turn",
+   "recordedTarget": "farigiraf",
+   "sheetMoves": [
+    "calmmind",
+    "moonblast",
+    "dazzlinggleam",
+    "protect"
+   ],
+   "onField": [
+    "p1a:farigiraf",
+    "p1b:gallade",
+    "p2a:hawlucha",
+    "p2b:floetteeternal"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653921294",
+   "turn": 7,
+   "side": "p1",
+   "slot": "b",
+   "reason": "moveNotEnumerated",
+   "move": "Iron Head",
+   "recordedTarget": "floetteeternal",
+   "sheetMoves": [
+    "suckerpunch",
+    "kowtowcleave",
+    "lowkick",
+    "protect"
+   ],
+   "onField": [
+    "p1a:farigiraf",
+    "p1b:kingambit",
+    "p2a:hawlucha",
+    "p2b:floetteeternal"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653917910",
+   "turn": 2,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Dragon Pulse",
+   "recordedTarget": "whimsicott",
+   "sheetMoves": [
+    "dragonpulse",
+    "flamethrower",
+    "tailwind",
+    "protect"
+   ],
+   "onField": [
+    "p1a:dragonite",
+    "p1b:sneasler",
+    "p2a:kingambit",
+    "p2b:garchomp"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653917910",
+   "turn": 6,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Solar Beam",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "heatwave",
+    "weatherball",
+    "solarbeam",
+    "protect"
+   ],
+   "onField": [
+    "p1a:lycanrocdusk",
+    "p1b:sneasler",
+    "p2a:charizard",
+    "p2b:garchomp"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653916923",
+   "turn": 4,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Spirit Break",
+   "recordedTarget": "mamoswine",
+   "sheetMoves": [
+    "reflect",
+    "lightscreen",
+    "spiritbreak",
+    "fakeout"
+   ],
+   "onField": [
+    "p1a:ampharos",
+    "p1b:grimmsnarl",
+    "p2a:toxicroak",
+    "p2b:sableye"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653918144",
+   "turn": 2,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Gunk Shot",
+   "recordedTarget": "kingambit",
+   "sheetMoves": [
+    "fakeout",
+    "closecombat",
+    "brickbreak",
+    "gunkshot"
+   ],
+   "onField": [
+    "p1a:sneasler",
+    "p1b:pelipper",
+    "p2a:charizard",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653918144",
+   "turn": 4,
+   "side": "p1",
+   "slot": "a",
+   "reason": "moveNotEnumerated",
+   "move": "Ancient Power",
+   "recordedTarget": "charizardmegay",
+   "sheetMoves": [
+    "solarbeam",
+    "weatherball",
+    "heatwave",
+    "protect"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:staraptor",
+    "p2a:charizard",
+    "p2b:kingambit"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653918144",
+   "turn": 4,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Brick Break",
+   "recordedTarget": "sylveon",
+   "sheetMoves": [
+    "protect",
+    "brickbreak",
+    "closecombat",
+    "uturn"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:staraptor",
+    "p2a:charizard",
+    "p2b:kingambit"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653918144",
+   "turn": 5,
+   "side": "p1",
+   "slot": "a",
+   "reason": "moveNotEnumerated",
+   "move": "Ancient Power",
+   "recordedTarget": "kingambit",
+   "sheetMoves": [
+    "solarbeam",
+    "weatherball",
+    "heatwave",
+    "protect"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:staraptor",
+    "p2a:charizard",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653916677",
+   "turn": 2,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Brick Break",
+   "recordedTarget": "sylveon",
+   "sheetMoves": [
+    "fakeout",
+    "closecombat",
+    "brickbreak",
+    "gunkshot"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:sneasler",
+    "p2a:incineroar",
+    "p2b:kingambit"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653916677",
+   "turn": 4,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Gunk Shot",
+   "recordedTarget": "incineroar",
+   "sheetMoves": [
+    "fakeout",
+    "closecombat",
+    "brickbreak",
+    "gunkshot"
+   ],
+   "onField": [
+    "p1a:pelipper",
+    "p1b:sneasler",
+    "p2a:charizard",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653916677",
+   "turn": 7,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Kowtow Cleave",
+   "recordedTarget": "sneasler",
+   "sheetMoves": [
+    "ironhead",
+    "lowkick",
+    "kowtowcleave",
+    "suckerpunch"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:basculegion",
+    "p2a:kingambit",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653915332",
+   "turn": 3,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Gunk Shot",
+   "recordedTarget": "incineroar",
+   "sheetMoves": [
+    "fakeout",
+    "closecombat",
+    "brickbreak",
+    "gunkshot"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:sneasler",
+    "p2a:charizard",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653915332",
+   "turn": 4,
+   "side": "p2",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Fake Out",
+   "recordedTarget": "charizard",
+   "sheetMoves": [
+    "partingshot",
+    "flareblitz",
+    "fakeout",
+    "darkestlariat"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:sneasler",
+    "p2a:charizard",
+    "p2b:incineroar"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653915332",
+   "turn": 6,
+   "side": "p1",
+   "slot": "b",
+   "reason": "moveNotEnumerated",
+   "move": "Ancient Power",
+   "recordedTarget": "charizardmegay",
+   "sheetMoves": [
+    "solarbeam",
+    "weatherball",
+    "heatwave",
+    "protect"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:charizard",
+    "p2a:charizard",
+    "p2b:incineroar"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653911278",
+   "turn": 4,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "kowtowcleave",
+    "ironhead",
+    "suckerpunch",
+    "protect"
+   ],
+   "onField": [
+    "p1a:metagross",
+    "p1b:aerodactyl",
+    "p2a:kingambit",
+    "p2b:toxapex"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653911278",
+   "turn": 6,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "kowtowcleave",
+    "ironhead",
+    "suckerpunch",
+    "protect"
+   ],
+   "onField": [
+    "p1a:tyranitar",
+    "p1b:aerodactyl",
+    "p2a:kingambit",
+    "p2b:blaziken"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653911278",
+   "turn": 7,
+   "side": "p2",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Close Combat",
+   "recordedTarget": "metagrossmega",
+   "sheetMoves": [
+    "closecombat",
+    "flareblitz",
+    "rockslide",
+    "protect"
+   ],
+   "onField": [
+    "p1a:tyranitar",
+    "p1b:aerodactyl",
+    "p2a:toxapex",
+    "p2b:blaziken"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653908560",
+   "turn": 3,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Psychic Fangs",
+   "recordedTarget": "kingambit",
+   "sheetMoves": [
+    "ironhead",
+    "psychicfangs",
+    "thunderpunch",
+    "protect"
+   ],
+   "onField": [
+    "p1a:metagross",
+    "p1b:tyranitar",
+    "p2a:toxapex",
+    "p2b:blaziken"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653908560",
+   "turn": 4,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Psychic Fangs",
+   "recordedTarget": "sneasler",
+   "sheetMoves": [
+    "ironhead",
+    "psychicfangs",
+    "thunderpunch",
+    "protect"
+   ],
+   "onField": [
+    "p1a:metagross",
+    "p1b:tyranitar",
+    "p2a:toxapex",
+    "p2b:kingambit"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653908560",
+   "turn": 6,
+   "side": "p1",
+   "slot": "a",
+   "reason": "moveNotEnumerated",
+   "move": "Last Respects",
+   "recordedTarget": "blazikenmega",
+   "sheetMoves": [
+    "ironhead",
+    "psychicfangs",
+    "thunderpunch",
+    "protect"
+   ],
+   "onField": [
+    "p1a:metagross",
+    "p1b:houndstone",
+    "p2a:blaziken",
+    "p2b:kingambit"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900724",
+   "turn": 2,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "suckerpunch",
+    "kowtowcleave",
+    "ironhead",
+    "protect"
+   ],
+   "onField": [
+    "p1a:basculegion",
+    "p1b:pelipper",
+    "p2a:kingambit",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900724",
+   "turn": 3,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "suckerpunch",
+    "kowtowcleave",
+    "ironhead",
+    "protect"
+   ],
+   "onField": [
+    "p1a:basculegion",
+    "p1b:pelipper",
+    "p2a:kingambit",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900724",
+   "turn": 4,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Electro Shot",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "flashcannon",
+    "dracometeor",
+    "protect",
+    "electroshot"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:pelipper",
+    "p2a:kingambit",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900724",
+   "turn": 4,
+   "side": "p2",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "suckerpunch",
+    "kowtowcleave",
+    "ironhead",
+    "protect"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:pelipper",
+    "p2a:kingambit",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900724",
+   "turn": 5,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Electro Shot",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "flashcannon",
+    "dracometeor",
+    "protect",
+    "electroshot"
+   ],
+   "onField": [
+    "p1a:archaludon",
+    "p1b:pelipper",
+    "p2a:kingambit",
+    "p2b:sylveon"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653901785",
+   "turn": 1,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Beat Up",
+   "recordedTarget": "gallade",
+   "sheetMoves": [
+    "followme",
+    "superfang",
+    "protect",
+    "beatup"
+   ],
+   "onField": [
+    "p1a:gallade",
+    "p1b:mausholdfour",
+    "p2a:sneasler",
+    "p2b:farigiraf"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653903816",
+   "turn": 1,
+   "side": "p2",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Psychic",
+   "recordedTarget": "archaludon",
+   "sheetMoves": [
+    "psychic",
+    "thunderbolt",
+    "roar",
+    "protect"
+   ],
+   "onField": [
+    "p1a:gengar",
+    "p1b:incineroar",
+    "p2a:whimsicott",
+    "p2b:farigiraf"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653903816",
+   "turn": 5,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Darkest Lariat",
+   "recordedTarget": "whimsicott",
+   "sheetMoves": [
+    "fakeout",
+    "darkestlariat",
+    "partingshot",
+    "protect"
+   ],
+   "onField": [
+    "p1a:gengar",
+    "p1b:incineroar",
+    "p2a:tyranitar",
+    "p2b:gardevoir"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900124",
+   "turn": 1,
+   "side": "p2",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Fake Out",
+   "recordedTarget": "incineroar",
+   "sheetMoves": [
+    "gunkshot",
+    "closecombat",
+    "fakeout",
+    "protect"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:sableye",
+    "p2a:dragonite",
+    "p2b:sneasler"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900124",
+   "turn": 6,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Solar Beam",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "heatwave",
+    "ancientpower",
+    "protect",
+    "solarbeam"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:sableye",
+    "p2a:primarina",
+    "p2b:dragonite"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900124",
+   "turn": 7,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Encore",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "thunderwave",
+    "disable",
+    "encore",
+    "raindance"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:sableye",
+    "p2a:primarina",
+    "p2b:dragonite"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653900124",
+   "turn": 9,
+   "side": "p1",
+   "slot": "a",
+   "reason": "targetMismatch",
+   "move": "Solar Beam",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "heatwave",
+    "ancientpower",
+    "protect",
+    "solarbeam"
+   ],
+   "onField": [
+    "p1a:charizard",
+    "p1b:garchomp",
+    "p2a:dragonite",
+    "p2b:primarina"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653898139",
+   "turn": 6,
+   "side": "p2",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Sucker Punch",
+   "recordedTarget": null,
+   "sheetMoves": [
+    "kowtowcleave",
+    "suckerpunch",
+    "swordsdance",
+    "protect"
+   ],
+   "onField": [
+    "p1a:venusaur",
+    "p1b:milotic",
+    "p2a:sneasler",
+    "p2b:kingambit"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653891963",
+   "turn": 3,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Instruct",
+   "recordedTarget": "drampamega",
+   "sheetMoves": [
+    "trickroom",
+    "instruct",
+    "psychicnoise",
+    "protect"
+   ],
+   "onField": [
+    "p1a:drampa",
+    "p1b:oranguru",
+    "p2a:scrafty",
+    "p2b:charizard"
+   ],
+   "redirectUp": null
+  },
+  {
+   "game": "gen9championsvgc2026regmbbo3-2653891963",
+   "turn": 5,
+   "side": "p1",
+   "slot": "b",
+   "reason": "targetMismatch",
+   "move": "Instruct",
+   "recordedTarget": "drampamega",
+   "sheetMoves": [
+    "trickroom",
+    "instruct",
+    "psychicnoise",
+    "protect"
+   ],
+   "onField": [
+    "p1a:drampa",
+    "p1b:oranguru",
+    "p2a:scrafty",
+    "p2b:charizard"
+   ],
+   "redirectUp": null
+  }
+ ],
+ "caveat": "The protocol records the RESOLVED target of a move and never the chosen one. Redirection therefore cannot make a click unmatchable — the redirector is a legal candidate — it can only make the matched label wrong. Both numbers are reported separately above."
+}

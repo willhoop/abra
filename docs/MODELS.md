@@ -52,18 +52,33 @@ DODUO — none exists.* First evidence it moves at all: two iterations at 40 gam
 `bothSameTarget` **+0.164** (third-largest change in the whole vector), `overkill` **+0.120**,
 `focusFireKills` **+0.094** — self-play wants focus fire more than the human fit did.
 
-**Refitted at 48 features 2026-07-28** — 5,250 clean games, 18,740 usable joint turns, 15,345 train /
-3,395 held out:
+**Refitted 2026-08-02 on `engine/click_match.js`** — 7,454 clean games, **81,515 usable joint turns**
+(66,236 before; 24,997 before the spread-matcher fix), 66,520 train / 14,995 held out:
 
 | predicting which PAIR a human clicked | log-lik | top-1 |
 |---|---|---|
-| two moves decided separately (what MAG did) | −3.6374 | 5.9% |
-| refitted, joint terms forced to zero | −3.1643 | 12.0% |
-| with the joint terms | −2.9890 | **14.5%** |
+| two moves decided separately (what MAG does) | −3.3425 | 10.1% |
+| refitted, joint terms forced to zero | −3.3318 | 9.4% |
+| with the joint terms | −3.2447 | **12.2%** |
 
-Read the middle row before the last. **Over half the gain is just refitting the single-move weights
-on pair data**; only the final 2.5 points belong to the coordination terms themselves. And all of
-this predicts a human click — it is not evidence the pair wins more games.
+Read the middle row before the last: refitting the single-move weights on pair data buys nothing on
+its own here, and **the whole gain belongs to the coordination terms**. (At 48 features on 2026-07-28
+the split was the other way round — over half the gain was the refit — so this reads differently now
+that the matcher is not discarding a quarter of the turns.) All of it predicts a human click; it is
+not evidence the pair wins more games.
+
+**Stability, and it is the answer to a question that was open:** the 2026-08-01 refit flipped **nine
+of eighteen** pair signs, which looked like an unstable block. Handed a further 15,279 turns, this
+refit flips **none of 74** weights and moves the vector 12.0% in L2. `engine/collinearity_joint.js`
+says why: the highest VIF in the pair block is **2.2** and no other exceeds 1.7, so there is no
+credit-splitting to destabilise it. The nine flips were the matcher fix changing what the data said,
+not noise.
+
+**What the audit did find** is the opposite failure — three weights fitted on almost nothing:
+`terrainSetupHelpsPartner` carries the block's **largest** coefficient (+1.605) and fires on 0.00% of
+enumerated alternatives; `weatherSetupHelpsPartner` 0.04%; `boostMayConvertKill` 0.06%.
+`data/collinearity-joint.json` records the fire rate beside every weight, because in a table of
+coefficients a barely-observed one looks identical to a well-supported one.
 **Now wired into `magnemite.js` for the first time** (`--joint`, off by default). It had never once
 been in the loop, so the project had never tested whether coordinated choice helps; retiring it would
 have closed a question that was never opened.
@@ -512,8 +527,8 @@ score through `switchFeatures`; the post-KO replacement is scored rather than ro
 a real damage calculation (`board.js` calls the damage engine throughout — `koTarget`, `killIsRoll`,
 `diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
 model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
-search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and ~11% of clicks could not be matched to a candidate and were dropped — mostly redirection (Follow Me, Rage Powder), where the protocol records the target that was *hit*, not the one chosen. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
-**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. 58,085 usable decisions.
+search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and **2.94%** of clicks could not be matched to a candidate and were dropped (`data/policy-weights.json` records it). This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is **1.60%** of the unmatched, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate is now a quarter of what it was. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target on 1.55% of clicks, unrecoverable because the protocol records only a move's resolved target and never its chosen one. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
+**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. **196,803 usable decisions** from 7,454 games (2026-08-02; 176,981 before `engine/click_match.js`).
 **Covariate shift, corrected automatically:** open-sheet TEAMS differ from closed-sheet teams by 551.9 points of total absolute species difference (`engine/corpus_shift.js`), while measured behaviour given a board differs by at most 1.49. Every refit re-estimates on a sample reweighted to the closed-sheet species mix and reports the shift **in standard errors**. Five weights move materially — `priorLogP` 10.8 SE, `bp` 6.2 SE (sign flips) — so the **reweighted vector ships**, since MEW draws its teams from the ladder store. Board-reading weights (`eff`, `immune`, `deadStatus`) do not move.
 **Code:** `engine/board.js`, `engine/fit_policy.js`, `engine/magnemite.js`, `engine/corpus_shift.js` → `data/policy-weights.json` (both weight vectors, standard errors, and which shipped). Six assertions in `engine/selftest.js` under "board reading".
 

@@ -10,6 +10,113 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [Unreleased] — 2026-08-02
+
+### The 23% drop was never redirection, and measuring first is the only reason we know
+
+Three documents, the roadmap and `fit_policy.js`'s own caveat all said the clicks the fit could not
+match were "mostly redirection (Follow Me, Rage Powder)". Nobody had measured it.
+`engine/redirect_audit.js` (new) did, over 7,454 games and 86,242 two-slot turns:
+
+| | |
+| --- | --- |
+| joint turns dropped as unmatched | 19,995 (**23.18%**) — reproduces the shipped fit exactly |
+| ...with a redirector up for them | **319 (1.60%)** |
+
+Redirection *cannot* make a click unmatchable. The protocol emits no `-activate` line for a redirect
+and prints only a move's **resolved** target, so the redirector is a legal candidate: the matcher
+finds it and accepts the click **with the wrong label**. That is real, small (**1.55%** of all
+clicks), and unrecoverable — the chosen target was never written down by anyone.
+
+**The roadmap item proposing a `board.js` change for this is void**, and so is its second argument:
+`engine/collinearity_joint.js` (new) shows `redirectThenAttack`'s −0.405 is not split credit
+(VIF **1.2**), and humans pick that pair only **1.09x** the base rate among the same alternatives.
+
+### What the drop actually was — three defects, one shape
+
+`engine/click_match.js` (new) is now the single reader of "whose moveset is this, and which candidate
+did they press", replacing the same three lines in seven files. By share of failures:
+
+- **44.4% — the foe switched in that same turn.** Switches resolve before moves, so the protocol
+  records the mon that *arrived* while the human was choosing against the one that *left*. A human
+  aims at a SLOT; the store records a SPECIES.
+- **19.7% — an in-battle forme change with no sheet entry.** `floette` 3,627, then `aegislashblade`,
+  `palafinhero`, `mimikyubusted`, `morpekohangry`. The forme problem, in a third table.
+- **16.4% — a mirror collapsed the two team sheets.** Species Clause is per PLAYER, so
+  `sheet[base(species)]` overwrote one player's set with the other's. **58.63%** of corpus games carry
+  a species on both sheets, **8.02%** of all slots were scored against the opponent's four moves, and
+  **62.16% of those matched anyway and were fitted against the wrong choice set** — a wrong
+  denominator that nothing counted.
+
+Same replays scored twice: usable joint turns **76.80% → 94.52%**; slot match rate **87.2% → 97.2%**.
+
+### Both vectors refitted and shipped, the marginal one SPRT-gated
+
+- **Marginal:** 176,981 → **196,803** usable decisions (+11.2%); unmatched clicks **2.94%**.
+  Head-to-head against the incumbent, both arms greedy, arm 1 the challenger: **58.4% of 238 decisive
+  pairs**, DECIDED at 219 by `engine/sprt.js`, with `paired_h2h.js` agreeing 139/139 and 99/99.
+  Stopped at 2,750 games of 20,000 — **17,250 saved**.
+- **Joint:** 66,236 → **81,515** usable turns. **Zero sign flips across all 74 weights**, 12.0% L2
+  movement, held-out pair top-1 12.2%. Shipped on correctness: it is opt-in (`--joint`) and not on the
+  default play path, so no machine time was spent on its H2H.
+- `RANKER_WEIGHTS` / `OUT_JOINT` let a candidate pair vector be fitted against a candidate marginal
+  one without overwriting either incumbent, and the joint artifact now **records which ranker built
+  it** — the top-K cap is taken by the single-move score, so that pairing was previously implicit.
+
+### Guards
+
+- **`tests/test-click-match.js`** — 23 assertions, each built from a measured defect, and each also
+  asserting the OLD lookup fails. A test that passes before and after proves nothing.
+- **`tests/test-degradation-budgets.js` did the other half of its job.** Built last session to record
+  rates, it tonight *refused to pass* when two new counters appeared without ceilings. Ratcheted:
+  `fit_joint.turnsDropped` **23.2% → 5.49%**, plus `fit_policy.unmatchedClicks` 2.95% and
+  `fit_policy.decisionsDropped` 3.30%.
+- **`tests/test-site-data-fresh.js` caught a regression as it was introduced.** Routing `fit_joint`'s
+  write through an `OUT` variable hid its generator from the provenance scan, which pairs a filename
+  with a write call on ONE line. It reported the new orphan at once — and that exposed the same blind
+  spot on `data/policy-weights.json`, baselined as "no generator" ever since `OUT_WEIGHTS` was added
+  to `fit_policy.js`. **The shipped model file had no discoverable way to rebuild it.** Both fixed,
+  orphan list 7 → 6. The scan was not loosened.
+
+### `engine/joint_rows.js` — the replay loop lives in one place
+
+Extracted from `fit_joint.js` so that asking a question about the pair fit does not mean writing a
+fourth copy of it. Verified against the shipped artifact's own tally: 86,242 seen, 66,236 kept,
+19,995 unmatched, 11 ambiguous. It needs `--max-old-space-size=4096` — the corrected matcher's extra
+rows walk Node's default 2GB heap into an OOM that looks like a crash rather than a limit, now
+recorded in the header.
+
+### `build/omnibus.py` no longer reports success when it produced nothing
+
+It printed `FAILED` and exited **0**. It now exits 1, prints to stderr, and names the headless-Chrome
+command that works. WeasyPrint's `libgobject` breakage is unchanged — that is an environment problem;
+a build step lying about it was a code one.
+
+### Corrections to the record
+
+- **"Total variation distance 54.8%, every top species under-represented" does not reproduce.**
+  `realism_report.js` on the current self-play store (MAG vs MAG, both greedy) gives a **3.0-point**
+  mean absolute gap over the top 12, with **four of twelve over-represented**. The metric behind 54.8%
+  could not be found in the repository. The deduplicated team pool is a *documented deliberate choice*
+  (`mew.js:270-301`), not an oversight.
+- **The large realism gaps are mechanical**, in the category that report labels "fix these": Protect is
+  **23.2%** of MAG's moves against a human's **13.8%**; games run 12.28 turns against 8.13; moves
+  outright fail 5.6% against 2.5%.
+- **Greedy, not the missing opponent model, causes the conditional-move failures.** Sucker Punch:
+  greedy 47.9% failure, **sampling 33.2%**, human **33.9%** — at identical usage. Baneful Bunker
+  37.3% → **17.6%** against human 17.5%. Greedy takes the argmax every time, so a condition-dependent
+  move gets clicked in all the spots where it whiffs. **This corrects a claim made earlier in the same
+  session** that the 48% figure priced the absent opponent model; it does not. Protect is the mixed
+  case — greedy explains about half the excess (219.7 → 165.5 per 1,000 moves), the rest is the
+  weights, still 1.44x human.
+- **`partial_bring` deletes a third of the self-play corpus, and it is a MAG symptom.** Dropped games
+  average 8.55 turns and 2.86 switch events against kept games' 12.28 and 4.25: MAG under-switches, so
+  fewer of its team are revealed, so the filter bins the game — biased toward short decisive ones. It
+  also inflates the metric it is read from: across all self-play games the mean is **10.98** turns,
+  not 12.28.
+
+---
+
 ## [3.31.0] — 2026-07-31
 
 **The first tagged release.** Both the engineering review and the systems audit noted that nothing

@@ -163,4 +163,16 @@ if __name__=='__main__':
             path=to_pdf(html, out)
             print(f"omnibus PDF  -> {path}  ({os.path.getsize(path)//1024} KB)")
         except Exception as e:
-            print(f"omnibus PDF FAILED ({type(e).__name__}: {e}) - use the HTML and print to PDF.")
+            # A BUILD STEP THAT PRINTS "FAILED" AND EXITS 0 IS ITS OWN BUG, and this one did it for
+            # weeks: every caller and every wrapper read success while no PDF existed. Same shape as
+            # every other defect this project has paid for -- the failure was detected, said out
+            # loud, and nothing acted on it.
+            #
+            # OMNIBUS_NO_PDF=1 is the supported way to say you did not want a PDF, and it is checked
+            # above, so reaching here means one was asked for and not produced. The HTML is written
+            # either way, so a caller that wants to carry on still can -- it just has to say so.
+            print(f"omnibus PDF FAILED ({type(e).__name__}: {e})", file=sys.stderr)
+            print(f"  the HTML at {html_out} is complete and self-contained; headless Chrome renders it:\n"
+                  f"  chrome --headless --disable-gpu --print-to-pdf={out} {html_out}\n"
+                  f"  or set OMNIBUS_NO_PDF=1 if you genuinely only wanted the HTML.", file=sys.stderr)
+            sys.exit(1)

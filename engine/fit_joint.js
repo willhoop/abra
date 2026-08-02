@@ -31,6 +31,18 @@
  * The weights land in their OWN file. engine/magnemite.js refuses to load a vector whose feature
  * list does not match, and overwriting the single-move weights with a longer vector would break the
  * player rather than upgrade it.
+ *
+ * IT NEEDS MORE HEAP THAN NODE GIVES YOU BY DEFAULT.
+ * --------------------------------------------------
+ * Every kept turn holds ~40 alternatives of 74 numbers until the fit is done, and on 2026-08-02 the
+ * corrected matcher raised the kept count from 66,236 to 81,515 -- 23% more rows -- which walked the
+ * run straight into Node's ~2GB default and killed it with "Ineffective mark-compacts near heap
+ * limit". Nothing was wrong with the fit; it simply had more data than the runtime would hold.
+ *
+ *   SHOWDOWN_PATH=... node --max-old-space-size=4096 engine/fit_joint.js
+ *
+ * Recorded here rather than left as folklore, because the failure looks like a crash rather than
+ * like a limit, and the next person to grow the corpus will hit it again.
  */
 'use strict';
 const fs = require('fs');
@@ -38,196 +50,33 @@ const path = require('path');
 const CS = require('./champions_sim.js');
 const B = require('./board.js');
 const FP = require('./fit_policy.js');
+/* The replay-to-pair-decisions loop lives in ONE place now; engine/collinearity_joint.js asks the
+ * same question of the same rows rather than growing a second copy. See that file's header and
+ * docs/ARTIFACT-ACCESS-RULES.md R1. */
+const JR = require('./joint_rows.js');
 
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
-const norm = B.norm, base = B.baseSpecies;
 const D = (...p) => path.join(__dirname, '..', ...p);
 
 const TOPK = +(process.env.TOPK || 6);
 const NF = B.FEATURES.length, NJ = B.JOINT_FEATURES.length, NW = NF + NJ;
+/* OUT_JOINT / RANKER_WEIGHTS let a CANDIDATE pair vector be fitted against a CANDIDATE marginal one
+ * without overwriting either incumbent, so both arms of a head-to-head exist at once and each file
+ * records which ranker it was built on. */
+const OUT = process.env.OUT_JOINT ? path.resolve(process.env.OUT_JOINT) : D('data', 'policy-weights-joint.json');
 
 if (!B.damageEngine()) { console.error('damage engine unavailable — refusing to fit'); process.exit(1); }
 
-/* The single-move weights are the ranker for the cap. Using the fitted vector rather than an
- * arbitrary heuristic keeps the narrowing consistent with what MAG already believes. */
-const W1 = JSON.parse(fs.readFileSync(D('data', 'policy-weights.json'), 'utf8'));
-if ((W1.features || []).join(',') !== B.FEATURES.join(',')) {
-  console.error('data/policy-weights.json was fitted against a different feature list — run fit_policy first');
-  process.exit(1);
-}
-const w1 = W1.weights;
-const score1 = x => { let s = 0; for (let k = 0; k < NF; k++) s += w1[k] * x[k]; return s; };
+let w1;
+try { w1 = JR.loadRanker(); } catch (e) { console.error(e.message); process.exit(1); }
 
 const { games } = FP.loadCorpus();
-console.log(`JOINT FIT — ${games.length.toLocaleString()} clean open-sheet games, top-${TOPK} per slot\n`);
+console.log(`JOINT FIT — ${games.length.toLocaleString()} clean open-sheet games, top-${TOPK} per slot`);
+console.log(`  ranker: ${path.relative(D('.'), JR.rankerPath())}   ->  ${path.relative(D('.'), OUT)}\n`);
 
-const rows = [];
-const tally = { turns: 0, kept: 0, oneSlot: 0, unmatched: 0, ambiguous: 0, chosenOutsideK: 0 };
+const { rows, tally } = JR.build(games, dex, { topK: TOPK, w1 });
 
-for (const g of games) {
-  const board = new B.Board();
-  const sheet = {};
-  for (const side of ['p1', 'p2']) {
-    for (const m of (g.sheets && g.sheets[side]) || []) {
-      if (m && m.species) {
-        sheet[base(m.species)] = { side, moves: (m.moves || []).map(norm) };
-        board.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
-      }
-    }
-    board.setParty(side, ((g.brought || {})[side] || []));
-    const lead = (g.lead || {})[side] || [];
-    if (lead[0]) board.switchIn(side, 'a', lead[0]);
-    if (lead[1]) board.switchIn(side, 'b', lead[1]);
-  }
-
-  for (const t of g.turns || []) {
-    const ev = t.ev || [];
-    for (const e of ev) if (e.t === 'mega' && e.s) { const mn = board.slot(e.s.slice(0, 2), e.s.slice(2)); if (mn) mn.species = norm(e.mon); }
-
-    /* What each side actually did with BOTH slots this turn, before anything resolves. */
-    for (const side of ['p1', 'p2']) {
-      /* A SWITCH IS ONE OF THE TWO THINGS A SLOT CAN DO, and looking only for move events threw away
-       * every turn where one Pokemon switched -- which is a large share of them, and precisely the
-       * turns where the two decisions are most likely to be related. A slot whose occupant fainted
-       * earlier in the turn is being REPLACED, not choosing, and is excluded. */
-      const acted = {};
-      const fainted = new Set();
-      for (const e of ev) {
-        if (e.t === 'f' && e.s) fainted.add(e.s);
-        if (!e.s || e.s.slice(0, 2) !== side) continue;
-        const L = e.s.slice(2);
-        if (acted[L]) continue;
-        if (e.t === 'm' && e.mv) acted[L] = { kind: 'move', mv: e.mv, tgt: e.tgt || null };
-        else if (e.t === 's' && !fainted.has(e.s)) acted[L] = { kind: 'switch', to: base(e.mon) };
-      }
-      if (!acted.a || !acted.b) { tally.oneSlot++; continue; }
-      tally.turns++;
-
-      const slots = ['a', 'b'].map(L => {
-        const user = board.slot(side, L);
-        if (!user || user.fainted) return null;
-        const sh = sheet[base(user.species)];
-        if (!sh) return null;
-        const cands = B.candidates(sh.moves, user, board, side, dex);
-        if (!cands.length) return null;
-        const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
-          c.switchTo ? B.PRIOR_FLOOR : FP.priorFor(user.species, c.move.id)));
-        const want = acted[L];
-        /* A SPREAD CLICK HAS NO TARGET TO MATCH, AND REQUIRING ONE THREW AWAY EVERY ONE OF THEM.
-         *
-         * board.js builds a spread candidate with `targetMon: null` and `spread: [...]`, because
-         * Earthquake is not aimed. The store still records a `tgt` for it -- one of the Pokemon it
-         * hit -- so the old condition `want.tgt ? (c.targetMon && ...) : true` demanded a targetMon
-         * that a spread candidate structurally does not have, and no spread click could ever match.
-         *
-         * MEASURED, 2026-08-01, over the first 400 corpus games: spread moves are 14.94% of all human
-         * move clicks, 99.71% of them carry a recorded target, and 1,393 of 1,397 failed to match.
-         * 1,384 of those match once the requirement is dropped. Because a joint turn needs BOTH slots
-         * to match, the loss compounded: the fit reported 57,486 of 82,483 joint turns unmatched and
-         * was estimating 74 weights from 30% of the data.
-         *
-         * The damage is not merely a smaller sample, it is a BIASED one. The turns discarded are
-         * exactly the turns containing a spread move -- which is what spreadFreeBesideAlly is about.
-         * The feature fired on 8.0% of the enumerated alternatives and 0 of 1,461 chosen pairs, and a
-         * conditional logit reads "never chosen, often available" as a large negative. That is where
-         * the shipped -4.9863 came from: the matcher, not the humans.
-         *
-         * engine/fit_policy.js:432 already had this right -- `if (!c.targetMon) { matches.push(i); }`
-         * -- so the marginal 56-vector was never affected. This is the same shape as the other
-         * defects found on 2026-08-01: the knowledge existed in the repository and the second caller
-         * did not apply it. Written the same way here, including fit_policy's ambiguity rule, so the
-         * two matchers agree rather than merely both being present. */
-        let chosen = -1, ambiguous = false;
-        if (want.kind === 'switch') {
-          chosen = cands.findIndex(c => c.switchTo === want.to);
-        } else {
-          const mvId = norm((dex.moves.get(want.mv) && dex.moves.get(want.mv).id) || want.mv);
-          const hits = [];
-          for (let i = 0; i < cands.length; i++) {
-            const c = cands[i];
-            if (!c.move || norm(c.move.id) !== mvId) continue;
-            if (!c.targetMon) { hits.push(i); continue; }        // spread, or self-targeting
-            if (want.tgt && base(c.targetMon.species) === base(want.tgt)) hits.push(i);
-          }
-          /* A stored target is a SPECIES, so a mirror match is genuinely ambiguous. fit_policy counts
-           * and drops those rather than guessing, and so does this. */
-          if (hits.length === 1) chosen = hits[0];
-          else if (hits.length > 1) ambiguous = true;
-        }
-        return { cands, feats, chosen, ambiguous, scores: feats.map(score1) };
-      });
-      if (slots[0] && slots[1] && (slots[0].ambiguous || slots[1].ambiguous)) { tally.ambiguous++; continue; }
-      if (!slots[0] || !slots[1] || slots[0].chosen < 0 || slots[1].chosen < 0) { tally.unmatched++; continue; }
-
-      /* Top-K by single-move score, with the chosen candidate forced in. */
-      const pick = s => {
-        const order = s.scores.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).slice(0, TOPK).map(p => p[1]);
-        if (!order.includes(s.chosen)) { order.push(s.chosen); return { order, outside: true }; }
-        return { order, outside: false };
-      };
-      const pa = pick(slots[0]), pb = pick(slots[1]);
-      if (pa.outside || pb.outside) tally.chosenOutsideK++;
-
-      const alts = [];
-      let chosenPair = -1;
-      for (const ia of pa.order) for (const ib of pb.order) {
-        const xa = slots[0].feats[ia], xb = slots[1].feats[ib];
-        const j = B.jointFeaturesFor(slots[0].cands[ia], slots[1].cands[ib], xa, xb);
-        const v = new Array(NW);
-        for (let k = 0; k < NF; k++) v[k] = xa[k] + xb[k];
-        for (let k = 0; k < NJ; k++) v[NF + k] = j[k];
-        if (ia === slots[0].chosen && ib === slots[1].chosen) chosenPair = alts.length;
-        alts.push(v);
-      }
-      if (chosenPair < 0 || alts.length < 2) { tally.unmatched++; continue; }
-      rows.push({ game: g.id || '', alts, chosen: chosenPair });
-      tally.kept++;
-    }
-
-    /* ---- resolve, exactly as fit_policy does ------------------------------------------------ */
-    for (const e of ev) {
-      const side = e.s ? e.s.slice(0, 2) : null, letter = e.s ? e.s.slice(2) : null;
-      if (e.t === 's' && side) board.switchIn(side, letter, e.mon);
-      else if (e.t === 'm' && side) {
-        const user = board.slot(side, letter);
-        const mv = dex.moves.get(e.mv);
-        if (user && mv && mv.exists) {
-          const already = (mv.sideCondition && board.hasSide(side, mv.sideCondition)) ||
-                          (B.fieldKey(mv) && board.hasField(B.fieldKey(mv)));
-          B.noteMove(board, side, user, mv, !already);
-        }
-        if (e.tgt && (e.tgthp != null || e.dmg)) {
-          const foe = side === 'p1' ? 'p2' : 'p1';
-          let hit = false;
-          for (const s of [foe, side]) { for (const L of ['a', 'b']) {
-            const m2 = board.slot(s, L);
-            if (m2 && base(m2.species) === base(e.tgt) && !m2.fainted) {
-              m2.hp = e.tgthp != null ? Math.max(0, e.tgthp / 100) : Math.max(0, m2.hp - e.dmg / 100);
-              hit = true; break;
-            } } if (hit) break; }
-        }
-      }
-      else if (e.t === 'x' && side) { const m2 = board.slot(side, letter); if (m2) m2.status = norm(e.st); }
-      else if (e.t === 'hp' && side) { const m2 = board.slot(side, letter); if (m2 && e.hp != null) m2.hp = Math.max(0, e.hp / 100); }
-      else if (e.t === 'b' && side) { const m2 = board.slot(side, letter); if (m2 && e.b) m2.boosts = { ...e.b }; }
-      else if (e.t === 'f' && side) { board.faint(side, letter); }
-      else if (e.t === 'w' && e.field) { board.setWeather(e.field); }
-      else if (e.t === 'fs' && e.field) {
-        const mv = dex.moves.get(e.field);
-        const k = mv && mv.exists ? B.fieldKey(mv) : norm(e.field);
-        if (k) board.startField(k, mv && mv.condition && mv.condition.duration);
-      }
-    }
-    /* endTurn(), NOT turn++. The counter is the visible half; endTurn also rolls
-     * stalledThisTurn -> stalledLastTurn, advances turnsActive and moves moveThisTurn into
-     * lastMove. Incrementing the number by hand leaves deadStall permanently 0 and every
-     * Fake Out permanently legal -- silently, in a replay that otherwise looks correct.
-     * engine/fit_policy.js and engine/magnemite.js always called endTurn; every analysis file
-     * written on 2026-07-26 did not, and engine/feature_coverage.js is what caught it. */
-    board.endTurn();
-  }
-}
 
 console.log(`  joint turns seen ${tally.turns.toLocaleString()} -> ${tally.kept.toLocaleString()} usable`);
 console.log(`  dropped: ${tally.oneSlot.toLocaleString()} had only one slot acting, ${tally.unmatched.toLocaleString()} could not be matched, `
@@ -324,14 +173,33 @@ try {
   console.error('  will load, but nothing will detect a feature changing meaning under its own name.');
 }
 
-fs.writeFileSync(D('data', 'policy-weights-joint.json'), JSON.stringify({
+const payload = JSON.stringify({
   generated: new Date().toISOString().slice(0, 10),
   source: 'engine/fit_joint.js',
+  /* WHICH MARGINAL VECTOR RANKED THE CANDIDATES. The top-K cap is taken by the single-move score, so
+   * a pair vector is only meaningful beside the marginal vector it was narrowed with. Recorded
+   * rather than assumed, because two of each now exist. */
+  ranker: path.relative(D('.'), JR.rankerPath()),
   features: B.FEATURES, jointFeatures: B.JOINT_FEATURES,
   weights: best.w, lambda: best.lam, topK: TOPK,
   corpus: { games: games.length, pairs: rows.length, heldOut: H.length },
   matching: { turnsSeen: tally.turns, kept: tally.kept, unmatched: tally.unmatched, ambiguous: tally.ambiguous },
   featureHashes,
   caveat: 'Predicts which PAIR a human clicked. Not evidence that the pair wins more games.',
-}, null, 1) + '\n');
-console.log('\n  -> data/policy-weights-joint.json');
+}, null, 1) + '\n';
+
+/* THE DEFAULT PATH IS WRITTEN ON ITS OWN LINE, NOT HIDDEN BEHIND A VARIABLE.
+ *
+ * tests/test-site-data-fresh.js decides whether an artifact can be regenerated at all by pairing its
+ * filename with a write call ON ONE LINE, and a file with no discoverable generator is permanently
+ * stale for everyone -- which is the worse error that guard exists to catch. Routing the write
+ * through `OUT` hid this file's generator and the guard immediately reported it as a new orphan.
+ *
+ * It was right, and it had caught the same thing before: data/policy-weights.json has sat in
+ * data/site-data-orphans.json as "no generator" ever since OUT_WEIGHTS was added to fit_policy.js
+ * for exactly this reason. The line-level rule is not over-strict -- it is what stops a file that
+ * merely MENTIONS an artifact being credited with producing it. So the fix is to make the default
+ * visible, not to loosen the scan. */
+if (process.env.OUT_JOINT) fs.writeFileSync(OUT, payload);
+else fs.writeFileSync(D('data', 'policy-weights-joint.json'), payload);
+console.log(`\n  -> ${path.relative(D('.'), OUT)}`);

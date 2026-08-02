@@ -4,13 +4,13 @@
   "budgets": {
     "board.dmgMon.unknownSpecies": {
       "max_rate": 0,
-      "measured_at": "0/3980 over 120 corpus games",
+      "measured_at": "0/3975 over 120 corpus games",
       "what": "candidate scorings where the damage engine could not identify a Pokemon, so every damage-derived feature silently read zero",
       "target": null
     },
     "board.dmgMon.engineUnavailable": {
       "max_rate": 0,
-      "measured_at": "0/3980 over 120 corpus games",
+      "measured_at": "0/3975 over 120 corpus games",
       "what": "candidate scorings with no damage engine at all",
       "target": null
     },
@@ -20,9 +20,21 @@
       "what": "Pokemon on real open team sheets that mcKey cannot resolve to a damage-engine entry",
       "target": null
     },
+    "fit_policy.unmatchedClicks": {
+      "max_rate": 0.0295,
+      "measured_at": "5986/203503 over 120 corpus games",
+      "what": "human clicks the move fit could not match to a candidate, so the decision was dropped from training",
+      "target": null
+    },
+    "fit_policy.decisionsDropped": {
+      "max_rate": 0.033,
+      "measured_at": "6700/203503 over 120 corpus games",
+      "what": "decisions discarded for any reason before fitting",
+      "target": null
+    },
     "fit_joint.turnsDropped": {
-      "max_rate": 0.232,
-      "measured_at": "20006/86242 over 120 corpus games",
+      "max_rate": 0.0549,
+      "measured_at": "4727/86242 over 120 corpus games",
       "what": "joint turns the pair fit could not use — the defect that had it fitting 74 weights on 30% of the data",
       "target": null
     },
