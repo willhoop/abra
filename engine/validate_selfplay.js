@@ -140,12 +140,14 @@ function storeShape() {
    * separately because a bias there means the HARNESS is unfair, while a bias only in non-mirrors
    * means the pairing is. Those are different bugs and the split names which one. */
   let mirN = 0, mirP1 = 0, nonN = 0, nonP1 = 0;
+  let armSample = null;                       // the per-arm lever config, read off the store itself
   eachLine(STORE, (line) => {
     const t = line.trim(); if (!t) return;
     let g; try { g = JSON.parse(t); } catch { return; }
     n++;
     if (ids.has(g.id)) dupes++; else ids.add(g.id);
     if (g.source !== 'selfplay') unlabelled++;
+    if (!armSample && g.selfplay) armSample = g.selfplay;
     {
       const nm = [(g.p1 || {}).name, (g.p2 || {}).name];
       if (g.winner && nm.includes(g.winner)) {
@@ -167,9 +169,38 @@ function storeShape() {
   });
   ok(n > 0, `${n.toLocaleString()} self-play games present`);
   ok(dupes === 0, `no duplicate ids (${dupes})`);
+  /* ARE THE TWO SIDES EVEN THE SAME PLAYER? ASK BEFORE BLAMING THE PAIRING.
+   *
+   * On 2026-08-01 this check failed at 62% p1 and its message said "the pairing puts one side of the
+   * matchup list on p1". That message was wrong, and being wrong in a specific and plausible way it
+   * cost four corpus regenerations chasing a defect in code that was behaving correctly.
+   *
+   * The real cause: the corpus was generated with `--policy score --greedy --joint`, and those flags
+   * arm policy A ONLY -- `--greedy2` and `--joint2` arm B. So p1 was greedy with the pair layer and
+   * p2 was sampling from the softmax without it. Greedy alone is worth about 12 points.
+   *
+   * mew.js already records every lever PER ARM in each record, so the store knows. A side-balance
+   * failure should say WHICH explanation it is, because an asymmetric run is not a broken harness --
+   * it is an A/B, and 62% is the right answer to a different question. */
+  const LEVERS = ['greedy', 'joint', 'jointZero', 'switching', 'forcedSwitch', 'opponentModel', 'blind'];
+  const asym = [];
+  {
+    const sp = armSample || {};
+    for (const L of LEVERS) if (!!sp[L] !== !!sp[L + '2']) asym.push(`${L}=${!!sp[L]} but ${L}2=${!!sp[L + '2']}`);
+    if ((sp.weights || null) !== (sp.weights2 || null) && (sp.weights || sp.weights2)) {
+      asym.push(`weights differ (${sp.weights || 'default'} vs ${sp.weights2 || 'default'})`);
+    }
+  }
+  ok(asym.length === 0, asym.length
+    ? `THE TWO SIDES ARE DIFFERENT PLAYERS — ${asym.join('; ')}. That makes this an A/B, not a `
+      + 'symmetric corpus, so any side imbalance below is EXPECTED rather than a harness defect. '
+      + 'For a symmetric store arm BOTH sides: --greedy --greedy2 --joint --joint2.'
+    : 'both sides are the same player (every per-arm lever matches), so a side imbalance below would be a real defect');
+
+  const whyAsym = asym.length ? `the two arms are configured differently — ${asym.join('; ')}` : null;
   for (const [lbl, k, N, why] of [
-    ['non-mirror', nonP1, nonN, 'the pairing puts one side of the matchup list on p1'],
-    ['mirror', mirP1, mirN, 'the harness itself favours a side'],
+    ['non-mirror', nonP1, nonN, whyAsym || 'the pairing puts one side of the matchup list on p1'],
+    ['mirror', mirP1, mirN, whyAsym || 'the harness itself favours a side'],
   ]) {
     /* A MINIMUM SAMPLE BEFORE THIS IS ALLOWED TO FAIL.
      *
