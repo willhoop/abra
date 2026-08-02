@@ -884,7 +884,7 @@ const mcKeyFor = (typeof require === 'function')
 
 /* A tracked mon -> the shape the damage formula expects. Returns null when the species is not in the
  * table, which is a real condition (a forme the usage data has never seen) and not an error. */
-function dmgMon(mon, D) {
+function dmgMon(mon, D, dex) {
   if (!mon) return null;
   /* A DECLARED MISS — and the declaration is what makes it VISIBLE rather than merely survivable.
    *
@@ -925,7 +925,20 @@ function dmgMon(mon, D) {
    * sheet means genuinely none and also wins; only a mon with NO sheet keeps the guess. */
   const hasSheet = !!mon.nature;   // a sheet always declares a nature, so nature ⇒ sheet was read
   if (hasSheet) b.item = mon.item || '';   // '' from a sheet means genuinely itemless, and wins
-  if (mon.ability) b.ability = mon.ability;
+  /* THE EFFECTIVE ability, not the sheet's -- AND ONLY WHEN A DEX IS IN SCOPE TO RESOLVE IT.
+   *
+   * buildMon already returns the MEGA row's own ability: buildMon('mawile-mega') carries "Huge
+   * Power". This line then overwrote it with the sheet's "Intimidate", because a team sheet lists
+   * the PRE-mega ability. The table had it right and this clobbered it, so every damage estimate
+   * for a mega whose ability changes was computed with the wrong one -- and Huge Power doubles
+   * Attack. See effective().
+   *
+   * `dex` is optional and NO TERNARY IS NEEDED for it: effective() already returns the raw sheet
+   * ability when it has no dex to resolve with, so effAbility(mon, undefined) is exactly the old
+   * behaviour. Writing the fallback out by hand here re-introduced the very raw read this change
+   * exists to remove, and tests/test-effective-identity.js caught it on the next run. */
+  const _ab = effAbility(mon, dex);
+  if (_ab) b.ability = _ab;
   /* AND THE MOVES, which this did not take -- so every damage estimate in board.js was computed
    * against the dataset's representative four rather than the four actually declared. The foe's
    * threat to a switch-in (incomingThreat) is built through here, so on open sheets MAG priced what
@@ -1416,7 +1429,9 @@ function resolveDrop(table, targetMon, dex, effectName) {
   const out = { applied: {}, targetGains: null, reflected: null };
   for (const [k, v] of Object.entries(table || {})) out.applied[k] = v;
 
-  const A = dex && dex.abilities && dex.abilities.get(norm(targetMon && targetMon.ability || ''));
+  /* THE TARGET'S EFFECTIVE ability. A mega that gains Clear Body or Defiant on evolving was
+   * resolved against its pre-mega ability here, so the drop applied when the game refuses it. */
+  const A = dex && dex.abilities && dex.abilities.get(effAbility(targetMon, dex));
   if (!A || !A.exists) return out;
 
   const put = (slot, tbl) => {
@@ -1561,7 +1576,7 @@ function categoryShareOfThreat(board, side, dex, category) {
     let want = 0, all = 0;
     for (const f of board.field()) {
       if (f.side === side || !f.mon || f.mon.fainted) continue;
-      const fm = dmgMon(f.mon, D); if (!fm) continue;
+      const fm = dmgMon(f.mon, D, dex); if (!fm) continue;
       for (const id of (fm.moves || [])) {
         const mv = MC.moves[id]; if (!mv || !mv.bp) continue;
         const isPhys = mv.c === 'P';
@@ -1615,7 +1630,7 @@ function incomingThreat(board, side, user, att, D, entry, dex) {
        * raised by its own answer to one. `entry.dex` carries the dex because this function is not
        * given one and the pipeline needs it to read the foe's ability. */
       const dropped = monUnderEntry(f.mon, entry, entry && entry.dex);
-      const fm = dmgMon(dropped.mon, D);
+      const fm = dmgMon(dropped.mon, D, dex);
       if (!fm) continue;
       let best = 0;
       const perMove = new Map();
@@ -2030,6 +2045,96 @@ function effSpecies(mon, dex) {
   return mon.mega || mon.species;
 }
 
+/* WHICH ABILITY IS THIS POKEMON ACTUALLY USING RIGHT NOW.
+ *
+ * THE RECURRENCE THIS ENDS, stated as a shape. effSpecies() above answers "who is this, really" for
+ * the SPECIES, and has since megas were understood. Nothing ever answered it for the ABILITY, so
+ * `mon.ability` stayed the SHEET's ability forever -- and a team sheet lists the PRE-mega ability,
+ * because that is what the Pokemon has before it evolves. Mega Gengar's sheet says Cursed Body; the
+ * thing standing on the field has Shadow Tag. Mega Blaziken's sheet says Blaze; the thing on the
+ * field has Speed Boost, which is the entire reason it Protects.
+ *
+ * Measured 2026-08-02: this is the FOURTH distinct table the forme problem has appeared in, after
+ * MC.mons, the team-sheet index and the damage rows. And it had grown three separate resolvers that
+ * were different in KIND:
+ *
+ *   board.js abilityOdds()        derives it from the dex -- correct, but only for the ODDS table
+ *   medicham2-browser megaAbility() a HAND-WRITTEN map of 50-odd species, plus literal
+ *                                 `if(name==='charizard')` branches for the X/Y stones
+ *   a live board mon              nothing at all: mon.ability is the sheet's, forever
+ *
+ * Fowler's name for the fix is SELF ENCAPSULATE FIELD: stop reading the raw field, including from
+ * inside the module that owns it, and route every read through one accessor that can compute. The
+ * raw `.ability` is the primitive-obsession smell that ARTIFACT-ACCESS-RULES 2.1 already describes
+ * for species names -- a string carrying a domain concept that has rules, where nothing stops you
+ * handing the wrong one over.
+ *
+ * NOTHING IS NAMED HERE. A mega's ability is not a matter of usage odds, it is a fact the dex
+ * states: `sp.isMega` and the forme's own `abilities` table. So this derives what the hand-written
+ * map lists, and tests/test-effective-identity.js proves the two agree species-for-species before
+ * the map is allowed to go.
+ *
+ * The base ability is returned unchanged for everything that is not mega-evolved, which is the
+ * overwhelming majority of calls and the reason this is safe to route everything through. */
+/* IT IS NEVER ONE FIELD. THAT IS THE WHOLE LESSON.
+ *
+ * Mega evolution does not change the ability and leave everything else alone. It changes the
+ * SPECIES, the ABILITY, the TYPES (Charizard-Mega-X becomes Fire/Dragon and stops being weak to
+ * Rock), the BASE STATS, and the WEIGHT that Low Kick and Grass Knot read. Fixing them one at a
+ * time is how this problem has come back four times: each fix resolved the field that had just bitten
+ * someone and left the others reading the pre-evolution values, so the next consumer hit the next
+ * field and it looked like a new bug.
+ *
+ * So there is ONE resolver for the whole identity, and the single-field accessors below are thin
+ * wrappers over it. A caller that wants two fields gets a consistent pair by construction -- it
+ * cannot get the mega's ability alongside the base forme's types, which is exactly the mixed state
+ * that made these so hard to see.
+ *
+ * Everything is read off the dex. No species, stone, ability or type is named in this file. */
+function effective(mon, dex) {
+  const raw = {
+    species: norm(mon && mon.species || ''),
+    ability: norm(mon && mon.ability || ''),
+    types: null, baseStats: null, weight: null, mega: false,
+  };
+  if (!mon) return raw;
+  const base = dex && dex.species.get(raw.species);
+  if (base && base.exists) {
+    raw.types = (base.types || []).slice();
+    raw.baseStats = Object.assign({}, base.baseStats || {});
+    raw.weight = base.weighthg != null ? base.weighthg : (base.weightkg != null ? base.weightkg * 10 : null);
+  }
+  if (!dex) return raw;
+  const sp = effSpecies(mon, dex);
+  if (!sp || norm(sp) === raw.species) return raw;          // not transformed: the sheet is right
+  const s = dex.species.get(sp);
+  if (!s || !s.exists) return raw;
+  const out = {
+    species: norm(s.name),
+    ability: raw.ability,
+    types: (s.types || []).slice(),
+    baseStats: Object.assign({}, s.baseStats || {}),
+    weight: s.weighthg != null ? s.weighthg : (s.weightkg != null ? s.weightkg * 10 : raw.weight),
+    mega: !!s.isMega,
+  };
+  /* THE ABILITY IS A FACT, NOT AN ODDS QUESTION, for a mega forme -- the dex states it outright, and
+   * abilityOdds() below already relies on the same distinction for the same reason. A forme with
+   * more than one listed ability is genuinely ambiguous, so the sheet's value is the honest answer
+   * rather than a guess between them. */
+  if (s.isMega) {
+    const fixed = Object.values(s.abilities || {}).map(a => norm(a)).filter(Boolean);
+    if (fixed.length === 1) out.ability = fixed[0];
+  }
+  return out;
+}
+
+/* The single-field accessors. Thin on purpose: the resolution lives in exactly one place, and these
+ * exist so a caller reading one field does not have to know that four others moved with it. */
+function effAbility(mon, dex) { return effective(mon, dex).ability; }
+function effTypes(mon, dex) { return effective(mon, dex).types; }
+function effStats(mon, dex) { return effective(mon, dex).baseStats; }
+function effWeight(mon, dex) { return effective(mon, dex).weight; }
+
 /* THE ABILITY ODDS FOR A SPECIES — and for a MEGA they are not odds at all.
  *
  * Everywhere else in this file "which ability does it have" is a population question answered by
@@ -2395,7 +2500,9 @@ function featuresFor(cand, user, board, side, dex, priorP) {
         .filter(f => f.side === foeSide && f.mon && !f.mon.fainted)
         .map(f => {
           const e = (board.sheet && board.sheet[foeSide] && board.sheet[foeSide][baseSpecies(f.mon.species)]) || {};
-          return { ability: norm(f.mon.ability || e.ability || ''), fainted: false };
+          /* Effective first: a mega that gains a priority-blocking ability (Dazzling, Armor Tail,
+           * Queenly Majesty) only has it AFTER evolving, and the sheet cannot say so. */
+          return { ability: effAbility(f.mon, dex) || norm(e.ability || ''), fainted: false };
         });
       const terrain = ['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain']
         .find(k => board.hasField(k)) || '';
@@ -2460,7 +2567,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
       try {
         const D3 = damageEngine();
         if (D3) {
-          const att3 = dmgMon(user, D3);
+          const att3 = dmgMon(user, D3, dex);
           const { worst: w3 } = incomingThreat(board, side, user, att3, D3, null, dex);
           /* A SCREEN HALVES ONE CATEGORY, and the tag says which: Reflect is
            * {mult:0.5, category:'Physical'}, Light Screen Special, Aurora Veil both. Crediting a
@@ -2647,7 +2754,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
     const D = damageEngine();
     if (!D) dmgFailures.unavailable++;
     else {
-      const att = dmgMon(user, D);
+      const att = dmgMon(user, D, dex);
       const myLeft = Math.max(0, typeof user.hp === 'number' ? user.hp : 1);
       const { threat, worst } = incomingThreat(board, side, user, att, D, null, dex);
       const threatened = att && worst >= myLeft ? 1 : 0;
@@ -2659,7 +2766,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
         let kos = 0, killShare = 0, fracSum = 0, n2 = 0, killsThreatening = 0, killsFirst = 0, sashDrag = 0, protDrag = 0, protAll = 0;
         const SASH = abilityTables().sash || {};
         for (const h of hits) {
-          const dm = dmgMon(h, D);
+          const dm = dmgMon(h, D, dex);
           if (!dm) continue;
           const isSpread = !!(cand.spread && cand.spread.length > 1);
           /* PER TARGET, because that is what these moves depend on: Low Kick and Grass Knot scale
@@ -2788,7 +2895,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
         const D2 = damageEngine();
         if (!D2) { dmgFailures.unavailable++; }
         else if (typeof D2.punishExposure === 'function') {
-          const a2 = dmgMon(user, D2), d2 = dmgMon(t, D2);
+          const a2 = dmgMon(user, D2, dex), d2 = dmgMon(t, D2, dex);
           if (a2 && d2) {
             const mvId = norm(m.id || m.name);
             const fld = { weather: (board && WEATHER_KIND[board.weather]) || '', terrain: '' };
@@ -3127,7 +3234,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
   }
   const wxBoard = boardUnderEntry(board, entry);
 
-  const inMon = dmgMon(incoming, D);
+  const inMon = dmgMon(incoming, D, dex);
   const { worst, threat } = incomingThreat(board, side, user, inMon, D, entry, dex);
   if (inMon) {
     set('switchSurvives1', worst < 1 ? 1 : 0);
@@ -3194,7 +3301,7 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
     /* The foe as the entry effect leaves it — a Defiant that just went to +2 is not more resistant,
      * but a Contrary or Simple one has had its DEFENCES moved, and the drop pipeline is the only
      * place that knows it. Same object the threat loop priced, so both directions agree. */
-    const fm = dmgMon(monUnderEntry(f.mon, entry, dex).mon, D);
+    const fm = dmgMon(monUnderEntry(f.mon, entry, dex).mon, D, dex);
     if (inMon && fm) {
       for (const id of (inMon.moves || [])) {
         const mv = MC.moves[id];
@@ -3239,6 +3346,6 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;
