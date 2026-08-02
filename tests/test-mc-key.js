@@ -43,20 +43,24 @@ console.log('MC KEY — one resolver for species -> MC.mons, and no hand-rolled 
 require(D('data', 'engine-data.js'));
 const { mcKey } = require(D('engine', 'mc_key.js'));
 
+/* This file SWEEPS the dex asking about names that may legitimately be absent — that is its job. Each
+ * such call declares it, so the strict default stays strict everywhere else. */
+const PROBE = { mayMiss: 'test sweeps the dex for names that may be absent' };
+
 const keys = Object.keys(globalThis.MC.mons);
 const hyphenated = keys.filter(k => k.includes('-'));
 ok(hyphenated.length > 0, `the table really does key formes with a hyphen (${hyphenated.length} of ${keys.length})`);
 
 /* Every key must resolve FROM ITS OWN NAME. If this fails the index is not covering the table. */
-const unreachable = keys.filter(k => mcKey(k) !== k);
+const unreachable = keys.filter(k => mcKey(k, PROBE) !== k);
 ok(unreachable.length === 0,
   `every one of the ${keys.length} table keys resolves to itself (${unreachable.slice(0, 3).join(', ') || 'none unreachable'})`);
 
 /* ...and from the punctuated form a human or a sheet would write. */
 const spaced = k => k.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-const viaPretty = hyphenated.filter(k => mcKey(spaced(k)) !== k);
+const viaPretty = hyphenated.filter(k => mcKey(spaced(k), PROBE) !== k);
 ok(viaPretty.length === 0,
-  `every forme also resolves from its spaced form, e.g. "${spaced(hyphenated[0])}" -> ${mcKey(spaced(hyphenated[0]))}`);
+  `every forme also resolves from its spaced form, e.g. "${spaced(hyphenated[0])}" -> ${mcKey(spaced(hyphenated[0]), PROBE)}`);
 
 /* COLLISIONS WOULD BE WORSE THAN MISSES. Two keys flattening to the same string would make the
  * resolver silently return the wrong forme -- Slowking-Galar's body with Slowking's stats. */
@@ -68,7 +72,22 @@ for (const k of keys) {
 }
 ok(collisions.length === 0, `no two keys flatten to the same string (${collisions.slice(0, 3).join('; ') || 'none'})`);
 
-ok(mcKey('Definitely Not A Pokemon') === null, 'an unknown species resolves to null rather than to something plausible');
+/* ---- 1c. THE CONTRACT ITSELF ------------------------------------------------------------------
+ *
+ * Until 2026-08-02 the assertion here was `mcKey('Definitely Not A Pokemon') === null` — the OLD
+ * contract, in which "not in the data" and "you asked the wrong question" are the SAME value and no
+ * caller can tell them apart. That is the shape of every expensive bug this project has had, so the
+ * default is now to THROW and a caller that genuinely expects a miss must declare it, with a reason.
+ * See engine/lookup.js.
+ *
+ * Both halves are asserted, because a contract with only one half tested is one that can be half
+ * removed without anything failing. */
+let threw = false;
+try { mcKey('Definitely Not A Pokemon'); } catch (e) { threw = (e.name === 'LookupMiss'); }
+ok(threw, 'an UNDECLARED miss throws, instead of returning a null the caller cannot distinguish');
+ok(mcKey('Definitely Not A Pokemon', PROBE) === null,
+  'a DECLARED miss returns null — the caller has written down that it expects one');
+ok(mcKey('Rotom-Wash') === 'rotom-wash', 'a real species still resolves, with no ceremony at all');
 
 /* ---- 1b. COSMETIC FORMES ---------------------------------------------------------------------
  *
@@ -86,14 +105,14 @@ const formes = dex.species.all().filter(s => s.exists && s.baseSpecies && s.base
 let sameBodyOK = 0, differentBodyLeaked = [];
 for (const s of formes) {
   const b = dex.species.get(s.baseSpecies);
-  if (!b || !b.exists || !mcKey(b.name)) continue;
+  if (!b || !b.exists || !mcKey(b.name, PROBE)) continue;
   const sameBody = s.types.join('|') === b.types.join('|')
     && JSON.stringify(s.baseStats) === JSON.stringify(b.baseStats);
-  const resolved = mcKey(s.name);
+  const resolved = mcKey(s.name, PROBE);
   const ownEntry = keys.some(k => k === flatOf(s.name));
   if (ownEntry) continue;                              // it has its own row; the fallback is not involved
-  if (sameBody) { if (resolved === mcKey(b.name)) sameBodyOK++; }
-  else if (resolved && resolved === mcKey(b.name)) differentBodyLeaked.push(s.name);
+  if (sameBody) { if (resolved === mcKey(b.name, PROBE)) sameBodyOK++; }
+  else if (resolved && resolved === mcKey(b.name, PROBE)) differentBodyLeaked.push(s.name);
 }
 function flatOf(n) { return String(n).toLowerCase().replace(/[^a-z0-9]/g, ''); }
 
@@ -104,9 +123,9 @@ ok(differentBodyLeaked.length === 0,
 
 /* The three worked examples from the day this was written, stated explicitly because they are the
  * ones that actually appeared on real sheets. */
-ok(mcKey('Vivillon-Pokeball') === mcKey('Vivillon'), 'Vivillon-Pokeball resolves to Vivillon — identical body');
-ok(mcKey('Gourgeist-Super') === null, 'Gourgeist-Super does NOT — same types, different stats');
-ok(mcKey('Slowking-Galar') === 'slowking-galar', 'Slowking-Galar keeps its OWN entry, not Slowking');
+ok(mcKey('Vivillon-Pokeball', PROBE) === mcKey('Vivillon', PROBE), 'Vivillon-Pokeball resolves to Vivillon — identical body');
+ok(mcKey('Gourgeist-Super', PROBE) === null, 'Gourgeist-Super does NOT — same types, different stats');
+ok(mcKey('Slowking-Galar', PROBE) === 'slowking-galar', 'Slowking-Galar keeps its OWN entry, not Slowking');
 
 /* ---- 2. THE BAN ------------------------------------------------------------------------------- */
 

@@ -855,7 +855,23 @@ const mcKeyFor = (typeof require === 'function')
  * table, which is a real condition (a forme the usage data has never seen) and not an error. */
 function dmgMon(mon, D) {
   if (!mon) return null;
-  const key = mcKeyFor(mon.species);
+  /* A DECLARED MISS — and the declaration is what makes it VISIBLE rather than merely survivable.
+   *
+   * MC.mons carries the species the usage data has seen. An IN-BATTLE forme change produces one it
+   * has not: `aegislashblade`, `palafinhero`, `mimikyubusted`, `morpekohangry`. Their stats differ
+   * from the base forme — that is the whole point of the forme — so the cosmetic fallback correctly
+   * refuses to substitute, and there genuinely is no body to compute with.
+   *
+   * The miss is legitimate. THE ZERO IT PRODUCES IS NOT: every damage-derived feature reads 0 for
+   * that Pokemon — no kill odds, no threat, no risk. dmgFailures.unknownSpecies counts it and
+   * data/degradation-budgets.json caps it, which is the right arrangement — except the cap was
+   * measured on 120 CORPUS games, a workload where this never fires. It fires in SELF-PLAY, on the
+   * live bot, and nothing said so until engine/lookup.js made the miss speak. R7 again: a guard only
+   * guards what it exercises.
+   *
+   * Left as a recorded modelling gap, not closed: these formes need their own MC.mons rows, and that
+   * needs usage data that does not exist yet. */
+  const key = mcKeyFor(mon.species, { mayMiss: 'in-battle forme with no usage entry (Aegislash-Blade, Palafin-Hero)' });
   if (!key) { dmgFailures.unknownSpecies++; return null; }
   const b = D.buildMon(key);
   if (!b) { dmgFailures.unknownSpecies++; return null; }
@@ -946,17 +962,39 @@ let _spreads = null;
 const HAS_PROCESS = typeof process !== 'undefined' && process && process.env;
 const BROWSER_DATA = () => (typeof globalThis !== 'undefined' && globalThis.__ABRA_BOARD_DATA) || null;
 
-/* Read data/<name> as JSON. Global first (browser), fs second (node). Returns null if neither
- * works, which every caller below already handles — they predate this and fall back on their own. */
-function loadData(name) {
+/* Read data/<name> as JSON. Global first (browser), fs second (node).
+ *
+ * A MISSING FILE NOW THROWS. It used to return null, "which every caller below already handles" —
+ * and that sentence was the bug: each caller handled it by falling back to an empty table and
+ * carrying on, so a bundle that forgot a file produced a full, plausible feature vector with a
+ * silent hole in it. build/build_board_browser.js's own header warns about exactly this ("this
+ * bundle silently starves it — the reads fall back to null and the features degrade quietly").
+ *
+ * The three callers that legitimately tolerate absence say so with a reason. See engine/lookup.js. */
+const _LOOKUP = (typeof require === 'function') ? require('./lookup.js')
+              : (typeof globalThis !== 'undefined' && globalThis.ABRA_LOOKUP) || null;
+function loadData(name, opts) {
   const g = BROWSER_DATA();
   if (g && Object.prototype.hasOwnProperty.call(g, name)) return g[name];
-  if (typeof require !== 'function') return null;
-  try {
-    const fsx = require('fs'), px = require('path');
-    return JSON.parse(fsx.readFileSync(px.join(__dirname, '..', 'data', name), 'utf8'));
-  } catch (e) { return null; }
+  let v = null, why = '';
+  if (typeof require === 'function') {
+    try {
+      const fsx = require('fs'), px = require('path');
+      v = JSON.parse(fsx.readFileSync(px.join(__dirname, '..', 'data', name), 'utf8'));
+    } catch (e) { why = e.code === 'ENOENT' ? 'the file is not there' : e.message; }
+  } else {
+    why = 'no require, and __ABRA_BOARD_DATA does not carry it — the page must bundle it';
+  }
+  if (v !== null && v !== undefined) return v;
+  return _LOOKUP ? _LOOKUP.resolve(null, 'data/' + name, name, opts, why) : null;
 }
+
+/* A DECLARED MISS MUST NOT BE EATEN BY A CATCH THAT MEANT SOMETHING ELSE. The three prior-loading
+ * blocks below wrap their parsing in try/catch to survive a malformed file — a real concern, and
+ * unrelated to a file being ABSENT. Without this, loadData's throw lands in those catches and the
+ * strict contract is defeated one line after it is stated, which is precisely the class of quiet
+ * defeat engine/lookup.js exists to end. */
+const rethrowMiss = (e) => { if (_LOOKUP && e instanceof _LOOKUP.LookupMiss) throw e; };
 
 const BULK_MODE = (HAS_PROCESS && process.env.ABRA_BULK ? process.env.ABRA_BULK : 'weighted').toLowerCase();
 
@@ -969,7 +1007,7 @@ function spreadLines(species, dex, nature) {
         const rows = (v.spreads || []).filter(s => s && Array.isArray(s.sp));
         if (rows.length) _spreads[norm(k)] = rows;
       }
-    } catch (e) { /* no priors: the caller falls back to the single stored line */ }
+    } catch (e) { rethrowMiss(e); /* a MALFORMED file: fall back to the single stored line */ }
   }
   let rows = _spreads[norm(species)] || _spreads[baseSpecies(species)];
   if (!rows || !rows.length) return null;
@@ -1621,7 +1659,7 @@ function movePriorOdds(species, moveId) {
         for (const mv of v.moves || []) if (mv && mv.mv) row[norm(mv.mv)] = +mv.p || 0;
         _mvP[norm(sp)] = row;
       }
-    } catch (e) { /* absent priors leave every species at 0, which is the old behaviour */ }
+    } catch (e) { rethrowMiss(e); /* a MALFORMED file leaves every species at 0 */ }
   }
   const r = _mvP[norm(species)] || _mvP[baseSpecies(species)];
   return r ? (r[norm(moveId)] || 0) : 0;
@@ -1644,7 +1682,7 @@ function protectOdds(species) {
           if (STALL && STALL.has(norm(mv.mv))) _protP[norm(sp)] = (_protP[norm(sp)] || 0) + (+mv.p || 0);
         }
       }
-    } catch (e) { /* absent priors leave every species at 0, which is the old behaviour */ }
+    } catch (e) { rethrowMiss(e); /* a MALFORMED file leaves every species at 0 */ }
   }
   return _protP[norm(species)] || _protP[baseSpecies(species)] || 0;
 }

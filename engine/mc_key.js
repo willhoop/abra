@@ -118,12 +118,22 @@
     return alias;
   }
 
-  function mcKey(name) {
+  /* A MISS MUST BE DECLARED. See engine/lookup.js for why this is the shape of every expensive bug
+   * this project has had. `mcKey(sp)` throws if the species is not in the table; a caller that
+   * genuinely expects misses passes `{ mayMiss: '<why>' }` and the reason is greppable.
+   *
+   * Loaded the same dual way as everything else here, so the browser keeps working; without the
+   * module the old permissive behaviour stands rather than the file failing to load. */
+  const LK = (typeof require === 'function') ? require('./lookup.js')
+           : (root && root.ABRA_LOOKUP) || null;
+  const miss = (v, key, opts, hint) => LK ? LK.resolve(v, 'MC.mons', key, opts, hint) : (v || null);
+
+  function mcKey(name, opts) {
     /* Rebuilt if the table object itself was replaced -- merge_mega_into_engine.js mutates MC.mons,
      * and a cached index over a stale object is exactly the kind of quiet wrongness this file is
      * meant to end. */
     if (!index || builtFrom !== (root.MC && root.MC.mons)) index = build();
-    if (!index) return null;
+    if (!index) return miss(null, name, opts, 'MC.mons is not loaded at all');
     const f = flat(name);
     /* Exact only. Megas are their OWN entries here (`gengar-mega` carries real mega base stats), so a
      * mega that IS in the table is found on this line.
@@ -139,7 +149,8 @@
     const direct = index.get(f);
     if (direct) return direct;
     const cos = cosmeticAliases().get(f);
-    return (cos && index.get(cos)) || null;
+    return miss((cos && index.get(cos)) || null, name, opts,
+      'the table keys formes with a hyphen; the cosmetic-forme fallback also found nothing');
   }
 
   /* For tests that swap the table underneath. */

@@ -1,67 +1,43 @@
 {
- "generated": "2026-07-24",
+ "generated": "2026-08-02",
  "source": "https://play.pokemonshowdown.com/data/pokedex.json (the data the Showdown server runs this format on)",
  "stat_convention": "lvl50 = level 50, 31 IVs, 252 EVs in the better attacking stat and in Speed, boosting nature on that attacker. This APPROXIMATES a real set - it is not the opponent's actual spread, which closed sheets never reveal.",
  "cross_check": {
-  "agreed_with_replay_logs": 16,
+  "agreed_with_replay_logs": 15,
   "conflicts": [
    {
-    "form": "staraptormega",
-    "from_logs": "Insomnia",
-    "from_showdown": "Contrary",
+    "form": "meowsticmmega",
+    "from_logs": "Lightning Rod",
+    "from_showdown": "Trace",
     "obs": 1
    },
    {
-    "form": "blastoisemega",
-    "from_logs": "Water Bubble",
-    "from_showdown": "Mega Launcher",
+    "form": "swampertmega",
+    "from_logs": "Plus",
+    "from_showdown": "Swift Swim",
     "obs": 1
-   },
-   {
-    "form": "malamarmega",
-    "from_logs": "Stamina",
-    "from_showdown": "Contrary",
-    "obs": 1
-   },
-   {
-    "form": "dragonitemega",
-    "from_logs": "Intimidate",
-    "from_showdown": "Multiscale",
-    "obs": 1
-   },
-   {
-    "form": "garchompmega",
-    "from_logs": "Speed Boost",
-    "from_showdown": "Sand Force",
-    "obs": 6
-   },
-   {
-    "form": "falinksmega",
-    "from_logs": "Simple",
-    "from_showdown": "Defiant",
-    "obs": 2
    },
    {
     "form": "alakazammega",
-    "from_logs": "Intimidate",
-    "from_showdown": "Trace",
-    "obs": 4
-   },
-   {
-    "form": "meowsticmmega",
-    "from_logs": "Prankster",
+    "from_logs": "Sharpness",
     "from_showdown": "Trace",
     "obs": 1
    },
    {
-    "form": "meowsticfmega",
-    "from_logs": "Damp",
-    "from_showdown": "Trace",
+    "form": "starmiemega",
+    "from_logs": "Unnerve",
+    "from_showdown": "Huge Power",
+    "obs": 1
+   },
+   {
+    "form": "slowbromega",
+    "from_logs": "Simple",
+    "from_showdown": "Shell Armor",
     "obs": 1
    }
   ]
  },
- "n_forms": 340,
+ "n_forms": 359,
  "forms": {
   "venusaur": {
    "name": "Venusaur",
@@ -751,6 +727,38 @@
    },
    "in_our_store": true
   },
+  "persianalola": {
+   "name": "Persian-Alola",
+   "base_species": "Persian",
+   "forme": "Alola",
+   "types": [
+    "Dark"
+   ],
+   "ability": "Fur Coat",
+   "all_abilities": {
+    "0": "Fur Coat",
+    "1": "Technician",
+    "H": "Rattled"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 65,
+    "atk": 60,
+    "def": 60,
+    "spa": 75,
+    "spd": 65,
+    "spe": 115
+   },
+   "lvl50": {
+    "hp": 140,
+    "at": 80,
+    "df": 80,
+    "sa": 139,
+    "sd": 85,
+    "sp": 167
+   },
+   "in_our_store": true
+  },
   "arcanine": {
    "name": "Arcanine",
    "base_species": "Arcanine",
@@ -971,7 +979,7 @@
     "sd": 115,
     "sp": 122
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "slowbro": {
    "name": "Slowbro",
@@ -2043,7 +2051,7 @@
     "sd": 113,
     "sp": 130
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "ariados": {
    "name": "Ariados",
@@ -2588,7 +2596,7 @@
     "sd": 125,
     "sp": 127
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "skarmory": {
    "name": "Skarmory",
@@ -2652,7 +2660,7 @@
     "sd": 120,
     "sp": 162
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "houndoom": {
    "name": "Houndoom",
@@ -2715,6 +2723,38 @@
     "sa": 211,
     "sd": 110,
     "sp": 167
+   },
+   "in_our_store": true
+  },
+  "smeargle": {
+   "name": "Smeargle",
+   "base_species": "Smeargle",
+   "forme": null,
+   "types": [
+    "Normal"
+   ],
+   "ability": "Own Tempo",
+   "all_abilities": {
+    "0": "Own Tempo",
+    "1": "Technician",
+    "H": "Moody"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 55,
+    "atk": 20,
+    "def": 35,
+    "spa": 20,
+    "spd": 45,
+    "spe": 75
+   },
+   "lvl50": {
+    "hp": 130,
+    "at": 79,
+    "df": 55,
+    "sa": 40,
+    "sd": 65,
+    "sp": 127
    },
    "in_our_store": true
   },
@@ -3066,6 +3106,38 @@
    },
    "in_our_store": true
   },
+  "hariyama": {
+   "name": "Hariyama",
+   "base_species": "Hariyama",
+   "forme": null,
+   "types": [
+    "Fighting"
+   ],
+   "ability": "Thick Fat",
+   "all_abilities": {
+    "0": "Thick Fat",
+    "1": "Guts",
+    "H": "Sheer Force"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 144,
+    "atk": 120,
+    "def": 60,
+    "spa": 40,
+    "spd": 60,
+    "spe": 50
+   },
+   "lvl50": {
+    "hp": 219,
+    "at": 189,
+    "df": 80,
+    "sa": 60,
+    "sd": 80,
+    "sp": 102
+   },
+   "in_our_store": true
+  },
   "sableye": {
    "name": "Sableye",
    "base_species": "Sableye",
@@ -3128,7 +3200,7 @@
     "sd": 135,
     "sp": 72
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "mawile": {
    "name": "Mawile",
@@ -3666,6 +3738,96 @@
    },
    "in_our_store": true
   },
+  "castformsunny": {
+   "name": "Castform-Sunny",
+   "base_species": "Castform",
+   "forme": "Sunny",
+   "types": [
+    "Fire"
+   ],
+   "ability": "Forecast",
+   "all_abilities": {
+    "0": "Forecast"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 70,
+    "atk": 70,
+    "def": 70,
+    "spa": 70,
+    "spd": 70,
+    "spe": 70
+   },
+   "lvl50": {
+    "hp": 145,
+    "at": 134,
+    "df": 90,
+    "sa": 90,
+    "sd": 90,
+    "sp": 122
+   },
+   "in_our_store": true
+  },
+  "castformrainy": {
+   "name": "Castform-Rainy",
+   "base_species": "Castform",
+   "forme": "Rainy",
+   "types": [
+    "Water"
+   ],
+   "ability": "Forecast",
+   "all_abilities": {
+    "0": "Forecast"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 70,
+    "atk": 70,
+    "def": 70,
+    "spa": 70,
+    "spd": 70,
+    "spe": 70
+   },
+   "lvl50": {
+    "hp": 145,
+    "at": 134,
+    "df": 90,
+    "sa": 90,
+    "sd": 90,
+    "sp": 122
+   },
+   "in_our_store": true
+  },
+  "castformsnowy": {
+   "name": "Castform-Snowy",
+   "base_species": "Castform",
+   "forme": "Snowy",
+   "types": [
+    "Ice"
+   ],
+   "ability": "Forecast",
+   "all_abilities": {
+    "0": "Forecast"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 70,
+    "atk": 70,
+    "def": 70,
+    "spa": 70,
+    "spd": 70,
+    "spe": 70
+   },
+   "lvl50": {
+    "hp": 145,
+    "at": 134,
+    "df": 90,
+    "sa": 90,
+    "sd": 90,
+    "sp": 122
+   },
+   "in_our_store": true
+  },
   "banette": {
    "name": "Banette",
    "base_species": "Banette",
@@ -3849,7 +4011,7 @@
     "sd": 80,
     "sp": 167
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "absolmegaz": {
    "name": "Absol-Mega-Z",
@@ -3942,7 +4104,39 @@
     "sd": 100,
     "sp": 152
    },
-   "in_our_store": false
+   "in_our_store": true
+  },
+  "salamence": {
+   "name": "Salamence",
+   "base_species": "Salamence",
+   "forme": null,
+   "types": [
+    "Dragon",
+    "Flying"
+   ],
+   "ability": "Intimidate",
+   "all_abilities": {
+    "0": "Intimidate",
+    "H": "Moxie"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 95,
+    "atk": 135,
+    "def": 80,
+    "spa": 110,
+    "spd": 80,
+    "spe": 100
+   },
+   "lvl50": {
+    "hp": 170,
+    "at": 205,
+    "df": 100,
+    "sa": 130,
+    "sd": 100,
+    "sp": 152
+   },
+   "in_our_store": true
   },
   "salamencemega": {
    "name": "Salamence-Mega",
@@ -4191,6 +4385,37 @@
     "sp": 167
    },
    "in_our_store": false
+  },
+  "jirachi": {
+   "name": "Jirachi",
+   "base_species": "Jirachi",
+   "forme": null,
+   "types": [
+    "Steel",
+    "Psychic"
+   ],
+   "ability": "Serene Grace",
+   "all_abilities": {
+    "0": "Serene Grace"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 100,
+    "atk": 100,
+    "def": 100,
+    "spa": 100,
+    "spd": 100,
+    "spe": 100
+   },
+   "lvl50": {
+    "hp": 175,
+    "at": 167,
+    "df": 120,
+    "sa": 120,
+    "sd": 120,
+    "sp": 152
+   },
+   "in_our_store": true
   },
   "torterra": {
    "name": "Torterra",
@@ -4666,6 +4891,38 @@
     "sp": 203
    },
    "in_our_store": false
+  },
+  "riolu": {
+   "name": "Riolu",
+   "base_species": "Riolu",
+   "forme": null,
+   "types": [
+    "Fighting"
+   ],
+   "ability": "Steadfast",
+   "all_abilities": {
+    "0": "Steadfast",
+    "1": "Inner Focus",
+    "H": "Prankster"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 40,
+    "atk": 70,
+    "def": 40,
+    "spa": 35,
+    "spd": 40,
+    "spe": 60
+   },
+   "lvl50": {
+    "hp": 115,
+    "at": 134,
+    "df": 60,
+    "sa": 55,
+    "sd": 60,
+    "sp": 112
+   },
+   "in_our_store": true
   },
   "lucario": {
    "name": "Lucario",
@@ -5614,6 +5871,38 @@
    },
    "in_our_store": true
   },
+  "watchog": {
+   "name": "Watchog",
+   "base_species": "Watchog",
+   "forme": null,
+   "types": [
+    "Normal"
+   ],
+   "ability": "Illuminate",
+   "all_abilities": {
+    "0": "Illuminate",
+    "1": "Keen Eye",
+    "H": "Analytic"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 60,
+    "atk": 85,
+    "def": 69,
+    "spa": 60,
+    "spd": 69,
+    "spe": 77
+   },
+   "lvl50": {
+    "hp": 135,
+    "at": 150,
+    "df": 89,
+    "sa": 80,
+    "sd": 89,
+    "sp": 129
+   },
+   "in_our_store": true
+  },
   "liepard": {
    "name": "Liepard",
    "base_species": "Liepard",
@@ -6124,6 +6413,39 @@
    },
    "in_our_store": true
   },
+  "sigilyph": {
+   "name": "Sigilyph",
+   "base_species": "Sigilyph",
+   "forme": null,
+   "types": [
+    "Psychic",
+    "Flying"
+   ],
+   "ability": "Wonder Skin",
+   "all_abilities": {
+    "0": "Wonder Skin",
+    "1": "Magic Guard",
+    "H": "Tinted Lens"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 72,
+    "atk": 58,
+    "def": 80,
+    "spa": 103,
+    "spd": 80,
+    "spe": 97
+   },
+   "lvl50": {
+    "hp": 147,
+    "at": 78,
+    "df": 100,
+    "sa": 170,
+    "sd": 100,
+    "sp": 149
+   },
+   "in_our_store": true
+  },
   "cofagrigus": {
    "name": "Cofagrigus",
    "base_species": "Cofagrigus",
@@ -6340,6 +6662,38 @@
     "sa": 95,
     "sd": 80,
     "sp": 155
+   },
+   "in_our_store": true
+  },
+  "amoonguss": {
+   "name": "Amoonguss",
+   "base_species": "Amoonguss",
+   "forme": null,
+   "types": [
+    "Grass",
+    "Poison"
+   ],
+   "ability": "Effect Spore",
+   "all_abilities": {
+    "0": "Effect Spore",
+    "H": "Regenerator"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 114,
+    "atk": 85,
+    "def": 70,
+    "spa": 85,
+    "spd": 80,
+    "spe": 30
+   },
+   "lvl50": {
+    "hp": 189,
+    "at": 150,
+    "df": 90,
+    "sa": 105,
+    "sd": 100,
+    "sp": 82
    },
    "in_our_store": true
   },
@@ -7418,6 +7772,37 @@
    },
    "in_our_store": true
   },
+  "aegislashblade": {
+   "name": "Aegislash-Blade",
+   "base_species": "Aegislash",
+   "forme": "Blade",
+   "types": [
+    "Steel",
+    "Ghost"
+   ],
+   "ability": "Stance Change",
+   "all_abilities": {
+    "0": "Stance Change"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 60,
+    "atk": 140,
+    "def": 50,
+    "spa": 140,
+    "spd": 50,
+    "spe": 60
+   },
+   "lvl50": {
+    "hp": 135,
+    "at": 211,
+    "df": 70,
+    "sa": 160,
+    "sd": 70,
+    "sp": 112
+   },
+   "in_our_store": true
+  },
   "aromatisse": {
    "name": "Aromatisse",
    "base_species": "Aromatisse",
@@ -7606,7 +7991,7 @@
     "sd": 126,
     "sp": 140
    },
-   "in_our_store": false
+   "in_our_store": true
   },
   "dragalge": {
    "name": "Dragalge",
@@ -8087,6 +8472,72 @@
     "sa": 78,
     "sd": 95,
     "sp": 136
+   },
+   "in_our_store": true
+  },
+  "gourgeistsmall": {
+   "name": "Gourgeist-Small",
+   "base_species": "Gourgeist",
+   "forme": "Small",
+   "types": [
+    "Ghost",
+    "Grass"
+   ],
+   "ability": "Pickup",
+   "all_abilities": {
+    "0": "Pickup",
+    "1": "Frisk",
+    "H": "Insomnia"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 55,
+    "atk": 85,
+    "def": 122,
+    "spa": 58,
+    "spd": 75,
+    "spe": 99
+   },
+   "lvl50": {
+    "hp": 130,
+    "at": 150,
+    "df": 142,
+    "sa": 78,
+    "sd": 95,
+    "sp": 151
+   },
+   "in_our_store": true
+  },
+  "gourgeistlarge": {
+   "name": "Gourgeist-Large",
+   "base_species": "Gourgeist",
+   "forme": "Large",
+   "types": [
+    "Ghost",
+    "Grass"
+   ],
+   "ability": "Pickup",
+   "all_abilities": {
+    "0": "Pickup",
+    "1": "Frisk",
+    "H": "Insomnia"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 75,
+    "atk": 95,
+    "def": 122,
+    "spa": 58,
+    "spd": 75,
+    "spe": 69
+   },
+   "lvl50": {
+    "hp": 150,
+    "at": 161,
+    "df": 142,
+    "sa": 78,
+    "sd": 95,
+    "sp": 121
    },
    "in_our_store": true
   },
@@ -9368,6 +9819,38 @@
    },
    "in_our_store": true
   },
+  "perrserker": {
+   "name": "Perrserker",
+   "base_species": "Perrserker",
+   "forme": null,
+   "types": [
+    "Steel"
+   ],
+   "ability": "Battle Armor",
+   "all_abilities": {
+    "0": "Battle Armor",
+    "1": "Tough Claws",
+    "H": "Steely Spirit"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 70,
+    "atk": 110,
+    "def": 100,
+    "spa": 50,
+    "spd": 60,
+    "spe": 50
+   },
+   "lvl50": {
+    "hp": 145,
+    "at": 178,
+    "df": 120,
+    "sa": 70,
+    "sd": 80,
+    "sp": 102
+   },
+   "in_our_store": true
+  },
   "mrrime": {
    "name": "Mr. Rime",
    "base_species": "Mr. Rime",
@@ -9522,12 +10005,109 @@
     "sd": 85,
     "sp": 152
    },
-   "in_our_store": false
+   "in_our_store": true
+  },
+  "indeedee": {
+   "name": "Indeedee",
+   "base_species": "Indeedee",
+   "forme": null,
+   "types": [
+    "Psychic",
+    "Normal"
+   ],
+   "ability": "Inner Focus",
+   "all_abilities": {
+    "0": "Inner Focus",
+    "1": "Synchronize",
+    "H": "Psychic Surge"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 60,
+    "atk": 65,
+    "def": 55,
+    "spa": 105,
+    "spd": 95,
+    "spe": 95
+   },
+   "lvl50": {
+    "hp": 135,
+    "at": 85,
+    "df": 75,
+    "sa": 172,
+    "sd": 115,
+    "sp": 147
+   },
+   "in_our_store": true
+  },
+  "indeedeef": {
+   "name": "Indeedee-F",
+   "base_species": "Indeedee",
+   "forme": "F",
+   "types": [
+    "Psychic",
+    "Normal"
+   ],
+   "ability": "Own Tempo",
+   "all_abilities": {
+    "0": "Own Tempo",
+    "1": "Synchronize",
+    "H": "Psychic Surge"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 70,
+    "atk": 55,
+    "def": 65,
+    "spa": 95,
+    "spd": 105,
+    "spe": 85
+   },
+   "lvl50": {
+    "hp": 145,
+    "at": 75,
+    "df": 85,
+    "sa": 161,
+    "sd": 125,
+    "sp": 137
+   },
+   "in_our_store": true
   },
   "morpeko": {
    "name": "Morpeko",
    "base_species": "Morpeko",
    "forme": null,
+   "types": [
+    "Electric",
+    "Dark"
+   ],
+   "ability": "Hunger Switch",
+   "all_abilities": {
+    "0": "Hunger Switch"
+   },
+   "required_item": null,
+   "base_stats": {
+    "hp": 58,
+    "atk": 95,
+    "def": 58,
+    "spa": 70,
+    "spd": 58,
+    "spe": 97
+   },
+   "lvl50": {
+    "hp": 133,
+    "at": 161,
+    "df": 78,
+    "sa": 90,
+    "sd": 78,
+    "sp": 149
+   },
+   "in_our_store": true
+  },
+  "morpekohangry": {
+   "name": "Morpeko-Hangry",
+   "base_species": "Morpeko",
+   "forme": "Hangry",
    "types": [
     "Electric",
     "Dark"
@@ -10839,6 +11419,5 @@
    },
    "in_our_store": false
   }
- },
- "not_store_derived": "Showdown's own dex, harvested per forme. Ground truth FROM the simulator, not a measurement OVER our games."
+ }
 }

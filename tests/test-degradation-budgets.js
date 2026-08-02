@@ -71,6 +71,20 @@ B.damageEngine();
  * board would not be the rate that matters. Fixed count so the number is comparable run to run. */
 const GAMES = 120;
 
+/* THE WORKLOAD DECIDES WHAT THE BUDGET CAN SEE, and this one could not see the live bot.
+ *
+ * `board.dmgMon.unknownSpecies` sat at a measured 0.00% and a ceiling of 0.00% — correct for this
+ * workload and wrong about the world. 120 REPLAYED corpus games never contain an in-battle forme
+ * change in a scored position, so the counter never fired. In SELF-PLAY it does: Aegislash-Blade and
+ * Palafin-Hero have no MC.mons row (their stats differ from the base forme, so the cosmetic fallback
+ * correctly refuses), and every damage-derived feature reads zero for them. Found 2026-08-02 only
+ * because engine/lookup.js made the miss throw instead of returning null.
+ *
+ * R7, for the third time in two days: a guard only guards what it exercises. A ceiling measured on a
+ * workload that cannot trigger the degradation is a ceiling that certifies nothing. So the sweep now
+ * also scores POSITIONS FROM THE SELF-PLAY STORE, where the live bot's own formes appear. */
+const SELFPLAY_GAMES = 60;
+
 function measure() {
   for (const k in B.dmgFailures) B.dmgFailures[k] = 0;
   const { games } = FP.loadCorpus();
@@ -100,6 +114,55 @@ function measure() {
         for (const c of cs) { candidates++; B.featuresFor(c, u, bd, side, dex, 0.25); }
       }
     }
+  }
+
+  /* ---- AND THE SAME SWEEP OVER SELF-PLAY, where the live bot's own formes appear ---------------
+   * Replayed human games and self-play games exercise DIFFERENT species: a corpus game carries the
+   * sheet's base forme, a self-play game carries whatever the bot flipped into mid-battle. Scoring
+   * only the first left `unknownSpecies` permanently at zero while it was firing in every real game
+   * the bot played. Absent store: skipped LOUDLY, because a silently skipped half of the workload is
+   * the same defect one level up. */
+  const SP = D('data', 'games.selfplay.jsonl');
+  if (!fs.existsSync(SP)) {
+    console.error(`  NOTE: ${path.relative(ROOT, SP)} absent — the self-play half of this workload did not run.`);
+  } else {
+    let n = 0, spBad = 0;
+    for (const line of fs.readFileSync(SP, 'utf8').split('\n')) {
+      if (!line.trim() || n >= SELFPLAY_GAMES) break;
+      /* A store this guard cannot parse is a store it is not measuring, so the skip is COUNTED and
+       * said out loud. Silently skipping lines would shrink the denominator and flatter every rate
+       * in the table — a guard quietly measuring less than it claims. */
+      let g; try { g = JSON.parse(line); } catch (e) { spBad++; continue; }
+      n++;
+      const bd = new B.Board();
+      for (const side of ['p1', 'p2']) {
+        bd.setParty(side, ((g.brought || {})[side] || []));
+        const lead = (g.lead || {})[side] || [];
+        if (lead[0]) bd.switchIn(side, 'a', lead[0]);
+        if (lead[1]) bd.switchIn(side, 'b', lead[1]);
+      }
+      /* Walk the turns so IN-BATTLE FORME CHANGES actually land on the board — the whole point. A
+       * self-play game scored only at its lead is the corpus workload again under another name. */
+      for (const t of (g.turns || [])) {
+        for (const e of (t.ev || [])) {
+          if (e.t === 's' && e.s) bd.switchIn(e.s.slice(0, 2), e.s.slice(2), e.mon);
+          else if ((e.t === 'mega' || e.t === 'forme') && e.s) {
+            const m = bd.slot(e.s.slice(0, 2), e.s.slice(2)); if (m && e.mon) m.species = B.norm(e.mon);
+          }
+        }
+        for (const side of ['p1', 'p2']) {
+          for (const L of ['a', 'b']) {
+            const u = bd.slot(side, L); if (!u || u.fainted) continue;
+            const moves = (u.moves && u.moves.length) ? u.moves : ['tackle'];
+            for (const c of B.candidates(moves, u, bd, side, dex)) {
+              candidates++; B.featuresFor(c, u, bd, side, dex, 0.25);
+            }
+          }
+        }
+        bd.endTurn();
+      }
+    }
+    if (spBad) console.error(`  NOTE: ${spBad} unparseable line(s) in the self-play store were skipped by this sweep.`);
   }
 
   return {
