@@ -6,8 +6,7 @@
       "max_rate": 0,
       "measured_at": "0/3980 over 120 corpus games",
       "what": "candidate scorings where the damage engine could not identify a Pokemon, so every damage-derived feature silently read zero",
-      "target": 0,
-      "target_note": "Reached 2026-08-01 by the cosmetic-forme fallback in engine/mc_key.js: 27.64% -> 8.42% -> 0.00% on this workload. The ceiling is now the target, so any regression fails immediately."
+      "target": null
     },
     "board.dmgMon.engineUnavailable": {
       "max_rate": 0,
@@ -19,8 +18,19 @@
       "max_rate": 0,
       "measured_at": "0/1440 over 120 corpus games",
       "what": "Pokemon on real open team sheets that mcKey cannot resolve to a damage-engine entry",
-      "target": 0,
-      "target_note": "Reached 2026-08-01 by the cosmetic-forme fallback in engine/mc_key.js: 27.64% -> 8.42% -> 0.00% on this workload. The ceiling is now the target, so any regression fails immediately."
+      "target": null
+    },
+    "fit_joint.turnsDropped": {
+      "max_rate": 0.232,
+      "measured_at": "20006/86242 over 120 corpus games",
+      "what": "joint turns the pair fit could not use — the defect that had it fitting 74 weights on 30% of the data",
+      "target": null
+    },
+    "chomp_ev.unbuildableGames": {
+      "max_rate": 0.0195,
+      "measured_at": "109/5618 over 120 corpus games",
+      "what": "human games CHOMP could not build a board for, so they left the evaluation set",
+      "target": null
     }
   }
 }

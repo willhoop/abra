@@ -110,13 +110,67 @@ function measure() {
   };
 }
 
-const now = measure();
+const now = Object.assign(measure(), artifactRates());
 const rate = m => (m.of ? m.hits / m.of : 0);
 const pct = x => (100 * x).toFixed(2) + '%';
 
 if (process.argv.includes('--measure')) {
-  for (const [k, m] of Object.entries(now)) console.log(`  ${k.padEnd(36)} ${String(m.hits).padStart(6)} / ${String(m.of).padStart(6)}  ${pct(rate(m))}`);
+  for (const [k, m] of Object.entries(now)) {
+    if (m.pending) { console.log(`  ${k.padEnd(36)}   (not recorded yet — ${m.what})`); continue; }
+    console.log(`  ${k.padEnd(36)} ${String(m.hits).padStart(6)} / ${String(m.of).padStart(6)}  ${pct(rate(m))}`);
+  }
   process.exit(0);
+}
+
+/* ---- DROP RATES THE FITTERS RECORDED ABOUT THEMSELVES ------------------------------------------
+ *
+ * The workload above measures board.js live. The FITTERS cannot be re-run in a test -- they take
+ * half an hour each -- so their rates are read from the artifact each one writes. That is not a
+ * compromise: the fit is the only thing that can honestly report what the fit saw, and a number
+ * recorded beside the weights it produced cannot drift away from them.
+ *
+ * This is the check that was missing. fit_joint.js discarded 57,486 of 82,483 joint turns for weeks
+ * and PRINTED that number in every run; nothing compared it to anything, so nobody read it. */
+const unreadable = [];
+function artifactRates() {
+  const out = {};
+  /* An artifact that will not parse is not "no degradation here" — it is a rate this guard cannot
+   * see, which is the exact blind spot the file exists to close. Reported, and counted so a later
+   * assertion can fail on it rather than the absence reading as a pass. */
+  const read = (f) => {
+    try { return JSON.parse(fs.readFileSync(D('data', f), 'utf8')); }
+    catch (e) {
+      unreadable.push(`${f} (${e.message.slice(0, 50)})`);
+      console.error(`  (could not read data/${f}: ${e.message})`);
+      return null;
+    }
+  };
+
+  const pw = read('policy-weights.json');
+  if (pw && pw.matching && pw.matching.seen) {
+    const m = pw.matching;
+    out['fit_policy.unmatchedClicks'] = { hits: m.unmatched, of: m.seen,
+      what: 'human clicks the move fit could not match to a candidate, so the decision was dropped from training' };
+    out['fit_policy.decisionsDropped'] = { hits: m.seen - m.kept, of: m.seen,
+      what: 'decisions discarded for any reason before fitting' };
+  } else if (pw) {
+    out['fit_policy.unmatchedClicks'] = { pending: true,
+      what: 'policy-weights.json predates the `matching` block — it will populate on the next fit' };
+  }
+
+  const jw = read('policy-weights-joint.json');
+  if (jw && jw.matching && jw.matching.turnsSeen) {
+    const m = jw.matching;
+    out['fit_joint.turnsDropped'] = { hits: m.turnsSeen - m.kept, of: m.turnsSeen,
+      what: 'joint turns the pair fit could not use — the defect that had it fitting 74 weights on 30% of the data' };
+  }
+
+  const ce = read('chomp-ev.json');
+  if (ce && ce.n_human_games) {
+    out['chomp_ev.unbuildableGames'] = { hits: ce.n_skipped_unbuildable || 0, of: ce.n_human_games,
+      what: 'human games CHOMP could not build a board for, so they left the evaluation set' };
+  }
+  return out;
 }
 
 const FILE = D('data', 'degradation-budgets.json');
@@ -124,6 +178,7 @@ if (process.argv.includes('--ratchet')) {
   const prev = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, 'utf8')) : { budgets: {} };
   const budgets = {};
   for (const [k, m] of Object.entries(now)) {
+    if (m.pending) continue;
     const measured = Math.ceil(rate(m) * 10000) / 10000;
     const old = prev.budgets && prev.budgets[k] ? prev.budgets[k].max_rate : Infinity;
     budgets[k] = {
@@ -152,10 +207,14 @@ const budgets = JSON.parse(fs.readFileSync(FILE, 'utf8')).budgets || {};
 
 /* A counter with no budget is the state this whole file exists to end, so an unbudgeted counter is
  * itself a failure rather than something to skip quietly. */
-const unbudgeted = Object.keys(now).filter(k => !budgets[k]);
+ok(unreadable.length === 0,
+  `every artifact this guard reads parsed (${unreadable.join(', ') || 'all readable'})`);
+
+const unbudgeted = Object.keys(now).filter(k => !budgets[k] && !now[k].pending);
 ok(unbudgeted.length === 0, `every degradation counter has a declared ceiling (${unbudgeted.join(', ') || 'all declared'})`);
 
 for (const [k, m] of Object.entries(now)) {
+  if (m.pending) { console.log(`  ----  ${k}: not recorded yet — ${m.what}`); continue; }
   const b = budgets[k];
   if (!b) continue;
   const r = rate(m);

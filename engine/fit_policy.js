@@ -802,6 +802,19 @@ function main() {
     spread,
     lambda: best.lambda,
     corpus: { games: games.length, decisions: rows.length, train: train.length, test: test.length },
+    /* HOW MUCH OF THE CORPUS THIS FIT ACTUALLY SAW, recorded rather than only printed.
+     *
+     * The run prints "194,711 seen -> 170,142 usable" and the breakdown, and then the number scrolls
+     * past. `corpus.decisions` keeps only the USABLE count, so nothing downstream could compute a
+     * drop RATE from the artifact -- which is exactly how fit_joint.js ran on 30% of its data for
+     * weeks with the loss visible in its own output every single time.
+     *
+     * Recorded here so tests/test-degradation-budgets.js can hold it to a ceiling. Same shape as the
+     * `matching` block fit_joint.js writes. */
+    matching: {
+      seen: tally.seen, kept: tally.kept, noUser: tally.noUser, noSheet: tally.noSheet,
+      trivial: tally.trivial, unmatched: tally.unmatched, ambiguous: tally.ambiguous,
+    },
     heldOut: {
       uniform: base0, behaviourCloneOnly: baseBot, boardAware: best.te,
       gain_logL: gain, gain_top1_points: accGain,
