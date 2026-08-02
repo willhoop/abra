@@ -83,9 +83,22 @@
     if (alias) return alias;
     alias = new Map();
     try {
-      if (typeof require !== 'function') return alias;
-      const CS = require('./champions_sim.js');
-      const dex = CS.sim().Dex.forFormat(CS.FORMAT);
+      /* THE BROWSER GETS THESE ALIASES TOO, and until 2026-08-02 it silently did not.
+       *
+       * This line was `if (typeof require !== 'function') return alias;` — an empty map returned
+       * without a word, directly above a catch block that had been deliberately made LOUD for the
+       * very same failure. The cost was measured, not argued: with board.js running in a page,
+       * `sinistchamasterpiece` resolved to null instead of `sinistcha`, so dmgMon returned nothing
+       * and every damage-derived feature for that Pokemon read zero while node had them all.
+       * Sinistcha is on 5.3% of teams in this format.
+       *
+       * data/board-data.js now publishes __ABRA_DEX carrying types, baseStats and baseSpecies —
+       * exactly what the discriminator needs. Same rule, same data, both runtimes. */
+      const CS = (typeof require === 'function') ? require('./champions_sim.js') : null;
+      const dex = CS ? CS.sim().Dex.forFormat(CS.FORMAT) : (root && root.__ABRA_DEX);
+      if (!dex || !dex.species || typeof dex.species.all !== 'function') {
+        throw new Error('no dex available — in a browser, load data/board-data.js before this file');
+      }
       for (const s of dex.species.all()) {
         if (!s.exists || !s.baseSpecies || s.baseSpecies === s.name) continue;
         const b = dex.species.get(s.baseSpecies);

@@ -78,12 +78,20 @@ const load = (rel) => {
 /* data/move-effects.js is loaded because medicham2-browser.js REFUSES to compute damage without it
  * ("MOVE_EFFECTS not loaded"), and a browser board with a dead damage engine would agree with node
  * on the cheap features and read zero on every expensive one. The page already ships it. */
-/* data/abra-tags.js then engine/tags.js, in that order: the data file publishes ABRA_TAGS as a raw
- * table and tags.js replaces it with the ACCESSOR over that table. board.js tests ABRA_TAGS for a
- * `.has` method, so with only the data loaded it latches "no tags" and healValue, screenValue and
- * speedSwing — three of the largest positive weights in the vector — silently read zero. */
-const loadErrors = ['data/engine-data.js', 'data/move-effects.js', 'engine/medicham2-browser.js',
-                    'engine/mc_key.js', 'data/abra-tags.js', 'engine/tags.js',
+/* THE ORDER IS LOAD-BEARING, and it is the order app/index.html will need.
+ *
+ * Two consumers want the tags in two DIFFERENT shapes, and each grabs what it finds at the moment it
+ * loads:
+ *   - engine/medicham2-browser.js builds its own adapter over the RAW table at module load. Loaded
+ *     before data/abra-tags.js it captures nothing and reports `ABRA_TAG_LOOKUP.missing = true` —
+ *     measured, and it is why the damage-derived features disagreed.
+ *   - engine/board.js wants the ACCESSOR and tests ABRA_TAGS for a `.has` method.
+ *
+ * So: raw table, then medicham2 (which snapshots the raw table), then engine/tags.js (which replaces
+ * the global with the accessor over that same data), then board.js. Getting this wrong degrades
+ * silently in both directions, which is exactly the failure this file exists to catch. */
+const loadErrors = ['data/engine-data.js', 'data/move-effects.js', 'data/abra-tags.js',
+                    'engine/medicham2-browser.js', 'engine/mc_key.js', 'engine/tags.js',
                     'data/board-data.js', 'engine/board.js'].map(load).filter(Boolean);
 ok(loadErrors.length === 0, `board.js and its data load with no require in scope (${loadErrors[0] || 'clean'})`);
 if (loadErrors.length) { console.log(`\nBOARD BROWSER TESTS: ${P} passed, ${F + 1} failed`); process.exit(1); }

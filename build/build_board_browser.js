@@ -144,11 +144,21 @@ for (const m of dex.moves.all()) {
   for (const k of ['sideCondition', 'status', 'volatileStatus', 'weather']) if (m[k]) condIds.add(norm(m[k]));
 }
 
-/* LEGAL IN THIS FORMAT ONLY. The full dex is 1,517 species and 938 moves and bundles to 1.1 MB,
- * against a page that is already 273 KB. Anything `isNonstandard` (Past, CAP, Unobtainable) cannot
- * appear in a Champions VGC battle, so carrying it means shipping half a megabyte to score positions
- * that cannot occur. Filtered by the DEX'S OWN flag rather than by a species list, so a regulation
- * change is picked up with no edit here. */
+/* THE REDUCTION IS ONLY SAFE WHERE IT CHANGES NOTHING, AND FOR MOVES IT DID NOT.
+ *
+ * The full dex bundles to 1.1 MB against a page already at 273 KB, so dropping anything
+ * `isNonstandard` (Past, CAP, Unobtainable) looks free: it cannot appear in a Champions battle.
+ *
+ * MEASURED, AND IT IS NOT FREE FOR MOVES. board.js does not only look a move UP, it DERIVES sets by
+ * sweeping the whole table — `derived()` walks dex.moves.all() to build the stalling, screen and
+ * speed-side sets. Filtering the table changed what it derived: STALL fell from 11 moves to 6,
+ * losing burningbulwark, matblock, maxguard, obstruct and silktrap, so `tgtMayProtect` scored every
+ * Pokemon carrying one of them as a target that never blocks.
+ *
+ * tests/test-board-browser.js caught it, which is the entire reason to have written it. MOVES now
+ * ship WHOLE. Species, abilities and items are only ever asked for BY NAME — nothing sweeps them —
+ * so the filter is behaviour-preserving there, and the test is what establishes that rather than an
+ * argument about what "cannot appear". */
 const legal = e => e && e.exists && !e.isNonstandard;
 /* THE TYPE CHART, because board.js calls dex.getImmunity / dex.getEffectiveness — methods on the DEX
  * ITSELF, not on an entry. Missing them cost 7 features their value in the browser (diesBeforeMoving,
@@ -163,7 +173,7 @@ const dexBundle = {
   abilities: pack('abilities', dex.abilities.all().filter(legal)),
   items: pack('items', dex.items.all().filter(legal)),
   natures: pack('natures', dex.natures.all()),
-  moves: pack('moves', dex.moves.all().filter(legal)),
+  moves: pack('moves', dex.moves.all()),        // WHOLE — board.js sweeps this table to derive sets
   conditions: pack('conditions', [...condIds].map(id => dex.conditions.get(id)).filter(c => c && c.exists)),
 };
 
