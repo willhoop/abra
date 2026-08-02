@@ -465,7 +465,11 @@ const out = {
     'Format ceiling: even player-Elo ties a coin in this format, so a near-coin proper score is expected and is not evidence CHOMP\'s damage math is wrong (that is separately VALIDATED vs @smogon/calc).'
   ]
 };
-fs.writeFileSync(OUT, JSON.stringify(out, null, 2));
+/* The path is named on the WRITE line. tests/test-site-data-fresh.js pairs a filename with a
+ * write call on ONE line to decide whether anything can regenerate a file, and writing through a
+ * variable made this generator invisible -- the artifact was carried as a permanent orphan, "no
+ * generator exists", which that guard itself calls the worse of its two possible errors. */
+fs.writeFileSync(OUT, JSON.stringify(out, null, 2));   // data/chomp-ev.json
 process.stderr.write(`\nCHOMP-EV: ${data.length} eval games (train ${tr.length} / test ${te.length}), skipped ${skipped}\n`);
 process.stderr.write(`  BEAT test: P(winner more CHOMP-aligned)=${out.headline_beat_test.p_winner_more_aligned} CI ${JSON.stringify(signCI)} (baseline 0.5)\n`);
 process.stderr.write(`  log-loss: CHOMP-align ${chompLL} CI ${JSON.stringify(out.proper_score_logloss.chomp_align_ci95)} | coin ${coinLL} | Elo ${out.proper_score_logloss.elo_rating} | usage ${out.proper_score_logloss.usage_prior}\n`);

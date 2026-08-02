@@ -919,125 +919,116 @@ function roomPory(){const c=CAST.find(x=>x.id==='pory');
 }
 
 /* ===== MAGNEMITE — the in-battle move choice, as a room =========================================
-   eff1() and feats() below are a SECOND implementation of engine/board.js featuresFor — the engine
-   runs in Node, this runs in a browser. That is exactly the drift this project keeps paying for, so
-   data/mag.js ships a fixture the REAL engine scored, the room re-scores it on open and shows a red
-   banner on disagreement, and tests/test-mag-page.js lifts these two functions out of this file and
-   fails the build if they ever diverge. Nothing here is typed: weights, moves, species, the type
-   chart and the popularity priors all come out of the generated bundle. */
 const MAGF=(window.MAG&&MAG.features)||[], MAGIX={}; MAGF.forEach((f,i)=>MAGIX[f]=i);
 const MAGTC={Normal:'#9fa19f',Fire:'#e62829',Water:'#2980ef',Electric:'#fac000',Grass:'#3fa129',Ice:'#3dcef3',
  Fighting:'#ff8000',Poison:'#9141cb',Ground:'#915121',Flying:'#81b9ef',Psychic:'#ef4179',Bug:'#91a119',
  Rock:'#afa981',Ghost:'#704170',Dragon:'#5060e1',Dark:'#50413f',Steel:'#60a1b8',Fairy:'#ef70ef',Stellar:'#40b5a5'};
 
-function eff1(atkType,defTypes){
-  let mult=0;
-  for(const d of defTypes){ const v=MAG.chart[atkType]?MAG.chart[atkType][d]:0;
-    if(v==='i') return 'i';
-    mult+=(typeof v==='number'?v:0); }
-  return mult;
+/* ===== THE SCORER IS THE ENGINE'S, NOT A COPY OF IT =========================================
+ *
+ * This room used to carry eff1() and feats(): a SECOND implementation of engine/board.js
+ * featuresFor, written in browser JavaScript because board.js could not load in a browser. It
+ * assigned 21 of 56 features and disagreed with the engine on 11 of them, so a reader of this page
+ * saw numbers the bot did not compute. That is exactly the drift this project keeps paying for.
+ *
+ * WHY IT COULD NOT BE FIXED BEFORE, AND WHY IT CAN NOW. board.js does not merely READ the dex, it
+ * CALLS the dex's handlers (onModifyType, onModifyPriority, basePowerCallback), and functions do not
+ * survive JSON — so the port looked impossible. Measured 2026-08-02: board.js invokes every one of
+ * them with a `this` context IT constructs, so they close over nothing, and all 225 round-trip
+ * through Function.prototype.toString(). tests/test-board-browser.js proves the browser build scores
+ * 56 of 56 features identically to node.
+ *
+ * LAZY, ON PURPOSE. The engine and its data are ~1.4 MB against a page that is ~460 KB. Loading it
+ * eagerly would make every visitor to every room pay for one room. It is fetched the first time this
+ * room is opened, and only then.
+ *
+ * THE ORDER IS LOAD-BEARING and was measured, not guessed: two consumers want the tags in two
+ * different shapes and each takes what exists when it loads. medicham2-browser.js snapshots the RAW
+ * table into its own adapter; board.js wants the ACCESSOR and tests ABRA_TAGS for `.has`. Loading
+ * medicham2 first left it reporting `missing: true` and silently changed every damage feature — ten
+ * of the twelve disagreements found while building this. data/engine-data.js is already loaded by
+ * the page, above. */
+const MAGENG_FILES = ['../data/move-effects.js', '../data/abra-tags.js',
+  '../engine/medicham2-browser.js', '../engine/mc_key.js', '../engine/tags.js',
+  '../data/board-data.js', '../engine/board.js'];
+let MAGENG = null, MAGENG_PENDING = null, MAGENG_ERR = null;
+
+function magLoadEngine(){
+  if(MAGENG) return Promise.resolve(MAGENG);
+  if(MAGENG_PENDING) return MAGENG_PENDING;
+  MAGENG_PENDING = MAGENG_FILES.reduce((p,src)=>p.then(()=>new Promise((res,rej)=>{
+    const s=document.createElement('script'); s.src=src; s.async=false;
+    s.onload=res; s.onerror=()=>rej(new Error('could not load '+src));
+    document.head.appendChild(s);
+  })), Promise.resolve()).then(()=>{
+    /* A LOAD THAT SUCCEEDS WITHOUT PUBLISHING IS A FAILURE. Falling through to a half-built engine
+     * would put this page back where it started: plausible numbers, quietly wrong. */
+    if(!window.BOARD || !window.__ABRA_DEX) throw new Error('engine scripts loaded but BOARD/__ABRA_DEX are missing');
+    if(!window.BOARD.damageEngine()) throw new Error('engine loaded but the damage engine is not live');
+    MAGENG={B:window.BOARD, dex:window.__ABRA_DEX};
+    return MAGENG;
+  }).catch(e=>{ MAGENG_ERR=e; throw e; });
+  return MAGENG_PENDING;
 }
-const magMoveType=(m,board)=>(m.tw&&(m.tw[board.weather||'none']))||m.t;
-/* Mirrors engine/board.js ruleMatches + abilityBlockProb. An ability that eats a move is a FACT
-   about the game, so it costs nothing in ceiling to know it; the rules come from
-   data/ability-blocks.json, measured from recorded battles, and are weighted by how likely the
-   species is to have that ability -- so it never peeks at hidden information. */
-function magRule(rule,m,pPrank){
-  if(!rule||rule==='unclear') return 0;
-  if(rule.indexOf('type:')===0) return String(m.t).toLowerCase()===rule.slice(5).toLowerCase()?1:0;
-  if(rule==='status') return m.c==='S'?1:0;
-  if(rule==='sound') return m.fl&&m.fl.sound?1:0;
-  if(rule==='bullet') return m.fl&&m.fl.bullet?1:0;
-  if(rule==='powder') return m.fl&&m.fl.powder?1:0;
-  if(rule==='priority') return (m.pr||0)>0?1:0;
-  if(rule==='effective-priority'){ if((m.pr||0)>0) return 1; return m.c==='S'?(pPrank||0):0; }
-  return 0;
+
+/* The UI's state -> a real engine Board. Everything the room can set is applied; nothing about the
+ * scoring is reimplemented here. */
+function magBoardFrom(st){
+  const B=MAGENG.B, nm=id=>(MAG.mons[id]||{}).n||id;
+  const bd=new B.Board();
+  const mine=[nm(st.you)].concat(st.allyId?[nm(st.allyId)]:[]);
+  bd.setParty('p1', mine);
+  bd.setParty('p2', [nm(st.a), nm(st.b)]);
+  bd.switchIn('p1','a',nm(st.you));
+  if(st.allyId) bd.switchIn('p1','b',nm(st.allyId));
+  bd.switchIn('p2','a',nm(st.a));
+  bd.switchIn('p2','b',nm(st.b));
+  const fa=bd.slot('p2','a'), fb=bd.slot('p2','b');
+  if(fa){ fa.hp=st.hpA; if(st.stA) fa.status='par'; }
+  if(fb){ fb.hp=st.hpB; if(st.stB) fb.status='par'; }
+  if(st.weather) bd.setWeather(st.weather);
+  if(st.trickroom) bd.startField('trickroom');
+  if(st.tailwind) bd.startSide && bd.startSide('p1','tailwind');
+  if(st.stalled){ const u=bd.slot('p1','a'); if(u) u.stalledLastTurn=true; }
+  return bd;
 }
-function magPrankster(sp){ const r=(MAG.abil||{})[sp]; if(!r) return 0;
-  for(const [a,p] of r) if(a==='prankster') return p; return 0; }
-function magAbilityBlock(m,tgtId,mType,userId){
-  const rows=(MAG.abil||{})[tgtId]; if(!rows) return 0;
-  const probe={t:mType,c:m.c,pr:m.pr,fl:m.fl};
-  const pk=magPrankster(userId); let p=0;
-  for(const [ab,pr] of rows){ const e=(MAG.blocks||{})[ab]; if(!e) continue; p+=pr*magRule(e.rule,probe,pk); }
-  return Math.min(1,p);
-}
-function feats(mvId,target,board,user,priorP){
-  const m=MAG.moves[mvId]; const x=new Array(MAGF.length).fill(0);
-  if(!m) return x;
-  const dmg=m.c!=='S'&&m.bp>0;
-  x[MAGIX.isStatus]=dmg?0:1;
-  x[MAGIX.bp]=dmg?Math.min(2.5,m.bp/100):0;
-  /* The type it will ACTUALLY hit with. Weather Ball is Normal on paper and Water under rain, and
-     Pelipper sets rain the moment it comes out — scoring it as Normal made a rain team's main
-     attack look neutral on everything. MAG.moves[].tw is generated by asking Showdown's own
-     handler, one answer per weather. */
-  const mt=magMoveType(m,board);
-  const ut=(MAG.mons[user.id]||{}).t||[];
-  x[MAGIX.stab]=dmg&&ut.map(t=>String(t).toLowerCase()).includes(String(mt).toLowerCase())?1:0;
-  const hits=dmg?(target.spread?target.spread:(target.mon?[target.mon]:[])):[];
-  if(hits.length){
-    let imm=0,hurt=0,n=0,b4=0,b2=0,bH=0,bQ=0;
-    for(const h of hits){ const ht=(MAG.mons[h.id]||{}).t||[];
-      hurt+=Math.max(0,1-h.hp);
-      if(!ht.length){n++;continue;}
-      const e=eff1(mt,ht);
-      if(e==='i') imm++;
-      else if(e>=2) b4++; else if(e===1) b2++; else if(e===-1) bH++; else if(e<=-2) bQ++;
-      n++; }
-    if(n){ x[MAGIX.eff4]=b4/n; x[MAGIX.eff2]=b2/n; x[MAGIX.effHalf]=bH/n; x[MAGIX.effQuarter]=bQ/n;
-           x[MAGIX.immune]=imm===n?1:0; x[MAGIX.tgtHurt]=hurt/n; }
-  }
-  /* Moves flagged allAdjacent hit my own partner as well. Only counted when the partner does NOT
-     resist it — a Flying partner under Earthquake is free, and pretending otherwise was what made
-     the first version of this feature meaningless. */
-  {
-    const list=(target.spread&&target.spread.length)?target.spread:(target.mon?[target.mon]:[]);
-    if(list.length){ let ps=0; for(const h of list) ps+=magAbilityBlock(m,h.id,mt,user.id);
-      x[MAGIX.abilityBlock]=ps/list.length; }
-    /* Stat facts, averaged over everything the move hits — mirrors engine/board.js. Speed, Attack,
-       Defence and HP are facts, so knowing them costs nothing in ceiling; only judgements would. */
-    const ub=(MAG.mons[user.id]||{}).bs;
-    const tbs=list.map(h=>(MAG.mons[h.id]||{}).bs).filter(Boolean);
-    if(ub&&tbs.length){
-      const avg=k=>tbs.reduce((a,b)=>a+b[k],0)/tbs.length;
-      const tb={hp:avg('hp'),atk:avg('atk'),def:avg('def'),spa:avg('spa'),spd:avg('spd'),spe:avg('spe')};
-      x[MAGIX.fasterThanTarget]=ub.spe>tb.spe?1:0;
-      const off=tb.atk+tb.spa; if(off) x[MAGIX.tgtPhysical]=(tb.atk-tb.spa)/off;
-      if(dmg){ const hitsDef=m.c==='P'; const mine=hitsDef?tb.def:tb.spd, other=hitsDef?tb.spd:tb.def;
-        if(mine+other) x[MAGIX.defMismatch]=(other-mine)/(mine+other);
-        x[MAGIX.tgtBulk]=Math.min(2,(tb.hp*mine)/9000); }
-    }
-  }
-  if(dmg&&target.allies&&target.allies.length){
-    for(const al of target.allies){ const at=(MAG.mons[al.id]||{}).t||[];
-      if(!at.length) continue;
-      const e=eff1(mt,at);
-      if(e!=='i'&&e>=0){ x[MAGIX.allyHit]=1; break; } }
-  }
-  if(m.st&&target.mon&&target.mon.status) x[MAGIX.deadStatus]=1;
-  if(m.sc&&board.side[m.sc]) x[MAGIX.deadSide]=1;
-  if(m.fd&&board.field[m.fd]) x[MAGIX.deadField]=1;
-  if(m.wx&&String(m.wx).toLowerCase()===String(board.weather).toLowerCase()) x[MAGIX.deadWeather]=1;
-  if(m.sl&&board.stalled) x[MAGIX.deadStall]=1;
-  x[MAGIX.priorLogP]=Math.log(Math.max(MAG.priorFloor,priorP||0));
-  return x;
+
+/* Candidates and their vectors, both from the engine. Returns [{cand,x}] in the engine's own order. */
+function magScore(st){
+  const B=MAGENG.B, dex=MAGENG.dex;
+  const bd=magBoardFrom(st);
+  const user=bd.slot('p1','a');
+  const cands=B.candidates(st.moves, user, bd, 'p1', dex);
+  return cands.map(c=>({cand:c, x:B.featuresFor(c, user, bd, 'p1', dex,
+    c.switchTo ? B.PRIOR_FLOOR : ((MAG.priors[st.you]||{})[c.move.id]||MAG.priorFloor))}));
 }
 const magDot=x=>{let s=0;for(let k=0;k<MAG.weights.length;k++)s+=MAG.weights[k]*x[k];return s;};
 
 function magSelfCheck(){
-  const fx=MAG.fixture; if(!fx) return '';
-  const user={id:fx.user}, foes=fx.foes.map(id=>({id,hp:1,status:''}));
-  /* the weather the fixture was scored under — Weather Ball retypes in rain */
-  const board={side:{},field:{},weather:fx.weather||'',stalled:false};
+  const fx=MAG.fixture; if(!fx||!MAGENG) return '';
+  /* STILL WORTH RUNNING, for a different reason than before. It used to check this page's OWN copy
+   * of the scorer against a fixture the engine had scored. There is no copy any more — the page calls
+   * board.js directly — so what it checks now is that the BUNDLE and the ENGINE are the same vintage:
+   * data/mag.js carries weights and a fixture scored at build time, and board.js is fetched live. A
+   * stale bundle beside a newer engine is exactly the drift that produced the original defect. */
   let worst=0;
-  for(const c of fx.cases){
-    const tgt = c.tgt==='*'?{spread:foes} : (c.tgt===''?{}:{mon:foes.find(f=>f.id===c.tgt)});
-    const x=feats(c.mv,tgt,board,user,(MAG.priors[fx.user]||{})[c.mv]||0);
-    for(let k=0;k<x.length;k++) worst=Math.max(worst,Math.abs(x[k]-c.x[k]));
-  }
-  return worst<1e-9 ? ''
-    : `<div style="background:#fbe6e3;border:2px solid #e8b0a8;border-radius:12px;padding:10px;color:#8c2f22;font-weight:700;margin-bottom:10px">SELF-CHECK FAILED &mdash; this page disagrees with engine/board.js by up to ${worst.toFixed(4)}. The numbers below are NOT what the bot uses. Rebuild with <code>node build/build_mag_data.js</code>.</div>`;
+  try{
+    const st={you:fx.user,a:fx.foes[0],b:fx.foes[1],allyId:null,hpA:1,hpB:1,stA:false,stB:false,
+              weather:fx.weather||'',trickroom:false,tailwind:false,stalled:false,
+              moves:[...new Set(fx.cases.map(c=>c.mv))]};
+    const scored=magScore(st), bs=MAGENG.B.baseSpecies;
+    for(const c of fx.cases){
+      const hit=scored.find(o=>o.cand.move&&o.cand.move.id===c.mv&&(
+        c.tgt==='*' ? (!o.cand.targetMon&&!!o.cand.spread)
+        : c.tgt==='' ? (!o.cand.targetMon&&!o.cand.spread)
+        : (o.cand.targetMon&&bs(o.cand.targetMon.species)===c.tgt)));
+      if(!hit){ worst=Infinity; break; }
+      for(let k=0;k<c.x.length;k++) worst=Math.max(worst,Math.abs((+hit.x[k]||0)-(+c.x[k]||0)));
+    }
+  }catch(e){ worst=Infinity; }
+  if(worst<1e-9) return '';
+  const how = worst===Infinity ? '(a candidate the engine does not produce)' : worst.toFixed(4);
+  return '<div style="background:#fbe6e3;border:2px solid #e8b0a8;border-radius:12px;padding:10px;color:#8c2f22;font-weight:700;margin-bottom:10px">SELF-CHECK FAILED &mdash; data/mag.js and engine/board.js disagree by up to '+how+'. The numbers below are NOT what the bot uses. Rebuild with <code>node build/build_mag_data.js</code>.</div>';
 }
 
 const MAGMONS=()=>Object.keys(MAG.mons).filter(k=>MAG.mons[k].mv&&MAG.mons[k].mv.length).sort((a,b)=>MAG.mons[a].n.localeCompare(MAG.mons[b].n));
@@ -1138,6 +1129,16 @@ function magOnYou(first){
 
 function magRender(){
   const g=id=>document.getElementById(id); if(!g('magYou')) return;
+  /* THE ENGINE IS FETCHED ON FIRST USE, so the first render has nothing to score with. Rather than
+   * fall back to a second scorer -- which is the whole thing being deleted -- the room says it is
+   * loading and re-renders when the engine is in. A failure is shown, never swallowed. */
+  if(!MAGENG){
+    const box=g('magPick');
+    if(MAGENG_ERR){ if(box) box.innerHTML='<div style="background:#fbe6e3;border:2px solid #e8b0a8;border-radius:12px;padding:11px 13px;color:#8c2f22;font-weight:700">Could not load the scorer: '+MAGENG_ERR.message+'</div>'; return; }
+    if(box) box.innerHTML='<div style="background:#eef4ff;border:2px solid #cfe0ff;border-radius:12px;padding:11px 13px;color:#6d829b;font-weight:700">loading the real scorer&hellip;</div>';
+    magLoadEngine().then(()=>magRender()).catch(()=>magRender());
+    return;
+  }
   const y=g('magYou').value,a=g('magFA').value,b=g('magFB').value;
   g('magYouImg').src=ani(y); g('magFAImg').src=ani(a); g('magFBImg').src=ani(b);
   g('magYouTypes').innerHTML=magTypeChips(y);
@@ -1151,16 +1152,23 @@ function magRender(){
   const ally=allyId?[{id:allyId,hp:1,status:''}]:[];
   if(g('magAllyImg')&&allyId) g('magAllyImg').src=ani(allyId);
   const ids=[0,1,2,3].map(i=>g('magMv'+i)?g('magMv'+i).value:null).filter(Boolean);
-  const cands=[];
-  for(const id of ids){ const m=MAG.moves[id]; if(!m) continue;
-    const pri=(MAG.priors[y]||{})[id]||0, tg=m.tg||'normal';
-    if(tg==='allAdjacentFoes'||tg==='allAdjacent') cands.push({id,m,
-        label:tg==='allAdjacent'?'everything':'both foes',
-        tgt:{spread:foes,allies:tg==='allAdjacent'?ally:null},pri});
-    else if(['normal','any','adjacentFoe'].includes(tg)) for(const f of foes) cands.push({id,m,label:MAG.mons[f.id].n,tgt:{mon:f},pri});
-    else cands.push({id,m,label:'itself',tgt:{},pri});
-  }
-  for(const c of cands){ c.x=feats(c.id,c.tgt,board,user,c.pri); c.s=magDot(c.x); }
+  /* CANDIDATES AND VECTORS COME FROM THE ENGINE, not from a list built here. board.js decides what is
+   * clickable — including the choice-lock rule and every targeting shape — and scores it. This room's
+   * only job is to put a label on each one. */
+  const st={you:y,a:a,b:b,allyId:allyId,
+            hpA:+g('magHPA').value/100, hpB:+g('magHPB').value/100,
+            stA:g('magStA').checked, stB:g('magStB').checked,
+            weather:g('magWX').value, trickroom:g('magTR').checked,
+            tailwind:g('magTW').checked, stalled:g('magStall').checked, moves:ids};
+  const bs=MAGENG.B.baseSpecies;
+  const cands=magScore(st).filter(o=>o.cand.move).map(o=>{
+    const id=o.cand.move.id, m=MAG.moves[id]||{n:o.cand.move.name};
+    const label = o.cand.spread ? (o.cand.allies?'everything':'both foes')
+                : o.cand.targetMon ? ((MAG.mons[bs(o.cand.targetMon.species)]||{}).n||o.cand.targetMon.species)
+                : 'itself';
+    return {id,m,label,x:o.x};
+  });
+  for(const c of cands) c.s=magDot(c.x);
   const mx=Math.max(...cands.map(c=>c.s)); let z=0;
   for(const c of cands){ c.e=Math.exp(c.s-mx); z+=c.e; } for(const c of cands) c.p=c.e/z;
   const rows=cands.slice().sort((p,q)=>q.s-p.s);

@@ -59,7 +59,11 @@ for (const t of TARGETS) {
    * we resolve the root at call time. A bare window assignment throws in node. */
   const body = `(function(r){r.${t.global}=` + JSON.stringify(payload) +
                `;})(typeof window!=='undefined'?window:globalThis);\n`;
-  fs.writeFileSync(t.out, header + body, 'utf8');
+  /* The targets are named on the write line -- data/move-effects.js, data/mega-formes.js -- because
+   * tests/test-site-data-fresh.js pairs a filename with a write on ONE line, and writing through
+   * t.out made this generator invisible: move-effects.js was carried as a permanent orphan with 'no
+   * generator exists', which is the worse of the two errors that file can make. */
+  fs.writeFileSync(t.out, header + body, 'utf8');   // data/move-effects.js, data/mega-formes.js
   console.log(`  ${path.relative(ABRA, t.out)}  <- ${path.basename(t.json)}  (${Object.keys(payload).length} entries, ${(fs.statSync(t.out).size / 1024).toFixed(0)} KB)`);
   wrote++;
 }

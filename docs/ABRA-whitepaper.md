@@ -95,7 +95,7 @@ uniform-over-moveset (2.91). A modest but real signal; human move choice has gen
 
 ### 4.3 PORY — mid-game win probability (RETRACTED as a value net; it is material arithmetic)
 The pivot's proof. `engine/pory.py` reconstructs per-turn board state (mons alive out of four, mean
-active HP, turn) and fits a logistic value net. Held-out, clustered by game: **log-loss 0.6301** 95% CI [0.6123, 0.6478] vs coin
+active HP, turn) and fits a logistic value net. Held-out, clustered by game: **log-loss 0.6298** 95% CI [0.6125, 0.6456] vs coin
 0.693**, beating a material-sign heuristic, **calibrated to ECE 1.6%**, CI **[0.548, 0.583]**. The
 *live board is predictable even though the pre-game sheets are not* — the thesis, demonstrated. PORY is
 wired into KADABRA as a per-turn "you're at X%". Output: `data/pory.js`; report `data/pory-eval.json`.

@@ -47,11 +47,24 @@ check_eval(sp, "species")
 pf = os.path.join(ROOT, "data", "slowking-playstyle-eval.json")
 if os.path.exists(pf):
     ex_pf = check_eval(pf, "playstyle")
-    # Honest finding: at the playstyle level the POINT gap is materially positive (a directional cycle),
-    # but on small per-matchup samples the 95% CI is wide and can cross 0 — so we check the point gap,
-    # NOT statistical significance, and the site copy calls it "suggestive, not settled".
-    ok(ex_pf["greedy_minus_nash"] > 0.05,
-       "[playstyle] greedy-vs-Nash point gap is materially positive (directional cycle; CIs wide on small n)")
+    # THIS USED TO ASSERT A FACT ABOUT THE METAGAME, NOT ABOUT THE CODE.
+    #
+    # It required greedy_minus_nash > 0.05 — the 2026-07 finding that a directional cycle existed at
+    # playstyle granularity. Regenerated on 2026-08-02 data the gap is 0.026, and the artifact's own
+    # verdict now reads "close to transitive at this granularity". The artifact is self-consistent
+    # and right; the threshold was a past measurement frozen into an assertion, and it failed the
+    # moment the data behind it was refreshed.
+    #
+    # A test that fails whenever the metagame moves is one people learn to switch off, and this
+    # project already knows what that costs. So what is checked now is the INVARIANT: the verdict
+    # sentence must agree with the number beside it, in BOTH directions. That still catches the real
+    # defect — a claim the data has stopped supporting — while letting the finding itself change,
+    # which findings about a live metagame are supposed to do.
+    gap = ex_pf["greedy_minus_nash"]
+    verdict = json.load(open(pf)).get("verdict", "")
+    claims_gap = "No material exploitability gap" not in verdict
+    ok((gap > 0.05) == claims_gap,
+       "[playstyle] the verdict agrees with the measured gap (%.4f)" % gap)
 
 if fails:
     print(f"\ntest-slowking: {fails} FAILED"); sys.exit(1)

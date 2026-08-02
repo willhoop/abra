@@ -234,7 +234,11 @@ def main():
                "exploit_nash": round(ex_nash, 4), "exploit_greedy": round(ex_greedy, 4),
                "exploit_uniform": round(ex_uniform, 4), "gap_ci": ci(gaps),
                "cycle": top_cycle(M, archs, matrix)}
-    with open(os.path.join(ROOT, "data", f"slowking{('-'+TAG) if TAG else ''}.js"), "w") as f:
+    # Both destinations spelled out rather than built with an f-string: tests/test-site-data-fresh.js
+    # pairs a filename with a write on ONE line, and a constructed name is invisible to any scan, so
+    # data/slowking-playstyle.js was carried as a permanent orphan with no generator.
+    out_js = os.path.join(ROOT, "data", "slowking-playstyle.js") if TAG else os.path.join(ROOT, "data", "slowking.js")
+    with open(out_js, "w") as f:   # writes data/slowking-playstyle.js, or data/slowking.js when TAG is unset
         f.write(f"window.{gvar}=" + json.dumps(payload, separators=(",", ":")) + ";\n")
     print(f"SLOWKING: Nash over {len(archs)} archetypes ({g['n_games']} games)")
     print("  mixture:", ", ".join(f"{m['archetype']} {m['weight']:.2f}" for m in mixture[:6]))

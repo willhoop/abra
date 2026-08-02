@@ -1,28 +1,20 @@
 {
   "generated": "engine/slowking_preview.py \u2014 team-preview Nash over GURU's real matchup matrix",
   "source_matrix": "data/guru-matchups.json",
-  "n_games": 2114,
+  "n_games": 2860,
   "n_archetypes": 8,
   "equilibrium_mixture": [
     {
       "archetype": "Rain",
-      "weight": 0.4599
+      "weight": 0.8079
     },
     {
       "archetype": "Setup",
-      "weight": 0.3475
+      "weight": 0.1657
     },
     {
       "archetype": "FakeOutBalance",
-      "weight": 0.1417
-    },
-    {
-      "archetype": "Sand",
-      "weight": 0.0323
-    },
-    {
-      "archetype": "Sun",
-      "weight": 0.0183
+      "weight": 0.0255
     }
   ],
   "game_value": -0.0,
@@ -32,29 +24,29 @@
       "Sand",
       "TrickRoom"
     ],
-    "min_edge": 0.0625,
+    "min_edge": 0.05,
     "legs": [
       {
         "from": "TailwindOffense",
         "to": "Sand",
-        "n": 32,
-        "win_pct": 56.3,
+        "n": 40,
+        "win_pct": 55.0,
         "clears_50": false,
         "well_sampled": false
       },
       {
         "from": "Sand",
         "to": "TrickRoom",
-        "n": 3,
-        "win_pct": 66.7,
+        "n": 5,
+        "win_pct": 60.0,
         "clears_50": false,
         "well_sampled": false
       },
       {
         "from": "TrickRoom",
         "to": "TailwindOffense",
-        "n": 101,
-        "win_pct": 64.4,
+        "n": 140,
+        "win_pct": 65.7,
         "clears_50": true,
         "well_sampled": true
       }
@@ -67,20 +59,20 @@
   "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE meta (a clear top dog). Where a rock-paper-scissors cycle exists \u2014 the min_edge above is positive \u2014 every deck has a counter, so the unexploitable play is a MIXED strategy (this equilibrium), not one deck. Stall, Trick Room, perish-trap and setup are exactly such counter-classes; how visible the cycle is depends on archetype granularity (see notes).",
   "exploitability": {
     "what": "Worst-case win-edge a best pure counter extracts (win-fraction units; lower is better; Nash ~ 0).",
-    "nash": 0.0003,
+    "nash": 0.0,
     "nash_ci95": [
-      0.0006,
-      0.0033
+      0.0001,
+      0.0021
     ],
-    "greedy_single_deck": 0.389,
-    "uniform": 0.0418,
-    "greedy_minus_nash": 0.3887,
+    "greedy_single_deck": 0.026,
+    "uniform": 0.0338,
+    "greedy_minus_nash": 0.026,
     "greedy_minus_nash_ci95": [
-      0.0244,
-      0.3777
+      -0.0001,
+      0.1498
     ]
   },
-  "verdict": "SLOWKING's equilibrium is provably less exploitable (95% CI clears 0) than picking the single best deck: greedy 0.389 vs Nash 0.0003, gap 0.3887 (CI [0.0244, 0.3777]). The meta is non-transitive here (rock-paper-scissors), so a MIXED strategy is the right preview object \u2014 the fix for the greedy best-response that inverted old MEDICHAM/DITTO.",
+  "verdict": "No material exploitability gap between Nash and greedy \u2014 this meta is close to transitive at this granularity (a dominant deck), so mixing buys little here. Honest, and worth stating.",
   "what_this_does_NOT_prove": [
     "NOT a game-winner predictor: exploitability grades the preview DECISION, not who wins a match (GURU's own predictive_test shows per-game prediction ties a coin here).",
     "Archetype-level, not set-level: the matrix is 13 discovered archetypes, not exact teams/sets; a belief over the opponent's real six (XATU) is the documented next refinement.",

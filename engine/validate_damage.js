@@ -159,6 +159,43 @@ function run(){
  const w5=within(all,5), worst=Math.max(...all);
  if(!(w5>=95)||!(worst<=8)){ console.error(`REGRESSION: within-5% ${w5.toFixed(0)}% (need >=95), worst ${worst.toFixed(0)}% (need <=8)`); process.exit(1); }
  console.log(`PASS: MEDICHAM damage within tolerance of @smogon/calc (${errsMin.length}/${S.length} scenarios compared)`);
+
+ /* THE ARTIFACT IS NOW WRITTEN HERE, BECAUSE IT WAS BEING TYPED.
+  *
+  * data/damage-validation.json declared `"generated": "engine/validate_damage.js vs @smogon/calc"`
+  * and THIS FILE HAS NEVER WRITTEN A BYTE — neither validate_damage.js nor validate_damage_sim.js
+  * contained a single write. It was hand-maintained state wearing a generated artifact's clothes,
+  * feeding engine/build-status.js and through it the site's status page.
+  *
+  * Its numbers happened to be right. Its PROSE was not: the verdict read "100% of 31 tested
+  * scenarios" while the table had grown to 36. Somebody updated the counts and not the sentence,
+  * which is precisely what a typed artifact does — half of it goes stale and nothing says so.
+  * (S13: if it can be derived, generate it; never type it.)
+  *
+  * Every field below is derived from the run that just happened, including the verdict sentence. */
+ const out = {
+   generated: new Date().toISOString().slice(0, 10),
+   by: 'engine/validate_damage.js',
+   source: 'engine/validate_damage.js compared against @smogon/calc (MIT), stats aligned to isolate the damage math',
+   gen: 9,
+   level: 50,
+   scenarios: S.length,
+   compared: errsMin.length,
+   result: {
+     median_abs_err_pct: +med(all).toFixed(2),
+     within_2pct: +within(all, 2).toFixed(0),
+     within_5pct: +w5.toFixed(0),
+     worst_pct: +worst.toFixed(0),
+     note: 'the worst case is 16-roll quantisation rounding, not a formula error',
+   },
+   verdict: `MEDICHAM matches @smogon/calc within 5% on ${within(all, 5).toFixed(0)}% of ${errsMin.length} compared scenarios `
+          + `(worst ${worst.toFixed(0)}%), at level ${50} in gen ${9}.`,
+   caveat: 'Agreement with @smogon/calc is agreement on the DAMAGE FORMULA only. It says nothing '
+         + 'about move selection, about the accuracy model, or about mechanics neither implements.',
+ };
+ require('fs').writeFileSync(require('path').join(__dirname, '..', 'data', 'damage-validation.json'),
+   JSON.stringify(out, null, 1) + '\n');
+ console.log('  -> data/damage-validation.json');
 }
 /* S1 - the scenario table has ONE home. engine/validate_damage_sim.js runs the same 31 scenarios
  * through the OFFICIAL Champions engine, and a second copy of this table would be free to drift from

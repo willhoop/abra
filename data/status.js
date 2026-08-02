@@ -139,7 +139,7 @@ window.ABRA_STATUS = {
     "sprt"
    ],
    "derived": true,
-   "evidence": "data/games.h2h-tags2.jsonl: record count (largest of 19 corpora)"
+   "evidence": "data/games.h2h-tags2.jsonl: record count (largest of 22 corpora)"
   },
   {
    "id": "chomp",
@@ -269,7 +269,7 @@ window.ABRA_STATUS = {
    "name": "SETS",
    "tier": "meta",
    "status": "built",
-   "metric": "81,144 real sheets, 246 species (198 with 10+ sightings)",
+   "metric": "85,992 real sheets, 247 species (202 with 10+ sightings)",
    "detail": "what people actually run",
    "inputs": [
     "store"
@@ -297,7 +297,7 @@ window.ABRA_STATUS = {
    "name": "JOLT",
    "tier": "retired",
    "status": "null",
-   "metric": "log-loss 0.7035 vs a coin's 0.6931 — worse than a coin. MODELS.md says a self-play retrain fixed this; no artifact measures that version.",
+   "metric": "log-loss 0.7013 vs a coin's 0.6931 — worse than a coin. MODELS.md says a self-play retrain fixed this; no artifact measures that version.",
    "detail": "win% from sheets",
    "inputs": [
     "store"

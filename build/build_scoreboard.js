@@ -115,7 +115,12 @@ const payload = {
  * straight off disk as well as served, and fetch() of a local JSON file is blocked by the file://
  * origin rules -- the page would work for a deployed visitor and be blank for Will double-clicking
  * it. Every other data file here (mag.js, live.js, xatu.js) is a script for the same reason. */
-fs.writeFileSync(OUT, 'window.SCOREBOARD = ' + JSON.stringify(payload) + ';' + String.fromCharCode(10));
+/* THE PATH IS NAMED ON THE WRITE LINE. tests/test-site-data-fresh.js pairs a filename with a write
+ * call on ONE line to decide whether anything can regenerate a file, and writing through OUT hid this
+ * generator: data/scoreboard.js was listed as a permanent orphan -- 'no generator exists' -- and
+ * baselined as unfixable. That verdict is the one the freshness file itself calls the WORSE error,
+ * because it tells a reader not to bother. Same defect and same fix as fit_policy.js. */
+fs.writeFileSync(D('data', 'scoreboard.js'), 'window.SCOREBOARD = ' + JSON.stringify(payload) + ';' + String.fromCharCode(10));
 try { fs.unlinkSync(TMP); fs.unlinkSync(TMP.replace(/\.jsonl$/, '') + '.raw-logs.jsonl'); } catch (e) {}
 
 const nd = games.reduce((a, g) => a + g.decisions.length, 0);

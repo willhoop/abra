@@ -1,56 +1,18 @@
 {
- "generated": "engine/validate_damage.js vs @smogon/calc (MIT), stats aligned to isolate the damage math",
+ "generated": "2026-08-02",
+ "by": "engine/validate_damage.js",
+ "source": "engine/validate_damage.js compared against @smogon/calc (MIT), stats aligned to isolate the damage math",
  "gen": 9,
  "level": 50,
  "scenarios": 36,
+ "compared": 36,
  "result": {
   "median_abs_err_pct": 0,
   "within_2pct": 97,
   "within_5pct": 100,
   "worst_pct": 3,
-  "note": "worst 3% is 16-roll quantization rounding, not a formula error"
+  "note": "the worst case is 16-roll quantisation rounding, not a formula error"
  },
- "mechanics_validated": [
-  "core formula (STAB, type, spread, weather)",
-  "Choice Band/Specs",
-  "Assault Vest",
-  "Life Orb",
-  "Ruin quartet (Sword/Beads/Tablets/Vessel)",
-  "Solar Power",
-  "Guts",
-  "Orichalcum Pulse",
-  "Hadron Engine",
-  "Adaptability",
-  "Technician",
-  "Tinted Lens",
-  "Filter/Solid Rock/Prism Armor",
-  "Multiscale",
-  "Thick Fat",
-  "Heatproof",
-  "Purifying Salt",
-  "Water Bubble",
-  "type-immunity abilities (Levitate/Flash Fire/etc.)",
-  "Expert Belt",
-  "Muscle Band",
-  "Wise Glasses",
-  "type-boost items (Black Glasses / Charcoal / Fairy Feather, 18 derived)",
-  "resist berries (Colbur / Chople, 16 derived, super-effective only)"
- ],
- "live_reads_in_ORB_dock": [
-  "real stats+item (your side)",
-  "boosts on both actives (Intimidate/setup)",
-  "weather",
-  "terrain",
-  "Helping Hand",
-  "spread",
-  "Reflect/Light Screen"
- ],
- "verdict": "ORB is a validated Smogon-grade substitute: matches @smogon/calc within 5% on 100% of 31 tested scenarios, and auto-fills from the live battle.",
- "before_tag_wiring": {
-  "within_2pct": 75,
-  "within_5pct": 78,
-  "worst_pct": 100,
-  "note": "measured with ABRA_TAGS_OFF=1 on 2026-07-29. The 100% cases are resist berries: a super-effective hit into a Colbur or Chople holder was scored at DOUBLE the real damage. Type-boost items were 16-17% under. Expert Belt also shows an error in this column only because the toggle disables the converted wire; it worked as a hardcode before."
- },
- "coverage_caveat": "A scenario validates a SCENARIO, not a mechanic. The original 31 cases matched within 5% on 100% of them while 18 type-boost items and 16 resist berries were absent from the engine entirely, because the case list was written from the same mental model as the calc. Both were blind to the same items."
+ "verdict": "MEDICHAM matches @smogon/calc within 5% on 100% of 36 compared scenarios (worst 3%), at level 50 in gen 9.",
+ "caveat": "Agreement with @smogon/calc is agreement on the DAMAGE FORMULA only. It says nothing about move selection, about the accuracy model, or about mechanics neither implements."
 }

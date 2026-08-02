@@ -525,7 +525,7 @@ def main():
         "n_states": n_states, "n_games": int(n_games),
         "split": {"train": int(tr.sum()), "val": int(va.sum()), "test": int(te.sum())},
         "arms": rows,
-    }, open(OUT, "w"), indent=1)
+    }, open(OUT, "w"), indent=1)   # data/pory-nn.json
     print(f"\nwrote {os.path.relpath(OUT, ROOT)}")
 
 
