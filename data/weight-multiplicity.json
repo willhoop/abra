@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-31",
+ "generated": "2026-08-02",
  "by": "engine/weight_multiplicity.js",
  "source": "data/policy-weights.json",
  "shipped_block": "reweighted_to_closed",
@@ -8,514 +8,514 @@
  "n_features": 56,
  "expected_false_positives_uncorrected": 2.8,
  "survives": {
-  "uncorrected": 53,
+  "uncorrected": 52,
   "bonferroni": 49,
-  "benjamini_hochberg": 53
+  "benjamini_hochberg": 52
  },
  "bonferroni_threshold": 0.0008928571428571429,
  "lost_to_correction": [],
  "rows": [
   {
    "feature": "eff4",
-   "estimate": 1.2669,
-   "se": 0.0285,
-   "z": 44.48,
+   "estimate": 1.1767,
+   "se": 0.0252,
+   "z": 46.77,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "eff2",
-   "estimate": 0.8878,
-   "se": 0.012,
-   "z": 73.85,
+   "estimate": 0.8589,
+   "se": 0.0114,
+   "z": 75.03,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "effHalf",
-   "estimate": -0.8497,
-   "se": 0.0136,
-   "z": 62.27,
+   "estimate": -0.7452,
+   "se": 0.0129,
+   "z": 57.87,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "effQuarter",
-   "estimate": -0.9702,
-   "se": 0.0534,
-   "z": 18.17,
+   "estimate": -0.8854,
+   "se": 0.048,
+   "z": 18.45,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "abilityBlock",
-   "estimate": -2.1825,
-   "se": 0.0798,
-   "z": 27.34,
+   "estimate": -2.0774,
+   "se": 0.0697,
+   "z": 29.81,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "immune",
-   "estimate": -2.0351,
-   "se": 0.0476,
-   "z": 42.76,
+   "estimate": -1.9282,
+   "se": 0.0427,
+   "z": 45.15,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
-   "feature": "accuracy",
-   "estimate": -1.1455,
-   "se": 0.0612,
-   "z": 18.72,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "chargeTurn",
-   "estimate": -1.2278,
-   "se": 0.0511,
-   "z": 24.03,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "pivots",
-   "estimate": -0.2052,
-   "se": 0.0228,
-   "z": 9,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "isStatus",
-   "estimate": 0.4044,
-   "se": 0.0304,
-   "z": 13.31,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "tgtHurt",
-   "estimate": 0.2627,
-   "se": 0.0195,
-   "z": 13.44,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "deadStatus",
-   "estimate": -1.4415,
-   "se": 0.0937,
-   "z": 15.38,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "deadSide",
-   "estimate": -2.7879,
-   "se": 0.0881,
-   "z": 31.66,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "deadField",
-   "estimate": -1.5251,
-   "se": 0.095,
-   "z": 16.06,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "deadStall",
-   "estimate": -1.2794,
-   "se": 0.0341,
-   "z": 37.47,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "pranksterFailsDark",
-   "estimate": -1.8917,
-   "se": 0.145,
-   "z": 13.05,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "deadNoLastMove",
-   "estimate": -2.8506,
-   "se": 0.1592,
-   "z": 17.91,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "movesFirst",
-   "estimate": 0.1275,
-   "se": 0.0136,
-   "z": 9.4,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "tgtPhysical",
-   "estimate": -0.2323,
-   "se": 0.0197,
-   "z": 11.8,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "koTarget",
-   "estimate": -0.2027,
-   "se": 0.0235,
-   "z": 8.63,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "tgtMayProtect",
-   "estimate": 0.5855,
-   "se": 0.06,
-   "z": 9.76,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "killIsRoll",
-   "estimate": 0.8399,
-   "se": 0.0203,
-   "z": 41.28,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "protectThreatened",
-   "estimate": 0.239,
-   "se": 0.017,
-   "z": 14.09,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "volatileOnSelf",
-   "estimate": 0.2433,
-   "se": 0.0222,
-   "z": 10.93,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "myOffenseStage",
-   "estimate": 1.6956,
-   "se": 0.083,
-   "z": 20.43,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "movesBoostMe",
-   "estimate": 0.605,
-   "se": 0.0212,
-   "z": 28.58,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "statusBites",
-   "estimate": 0.9486,
-   "se": 0.0987,
-   "z": 9.61,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "diesBeforeMoving",
-   "estimate": -0.487,
-   "se": 0.0166,
-   "z": 29.27,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "switchSurvives1",
-   "estimate": 0.1667,
-   "se": 0.0189,
-   "z": 8.82,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "speedSwing",
-   "estimate": 1.0633,
-   "se": 0.0252,
-   "z": 42.24,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "screenValue",
-   "estimate": 1.2075,
-   "se": 0.0494,
-   "z": 24.43,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "healValue",
-   "estimate": 2.6444,
-   "se": 0.1101,
-   "z": 24.01,
-   "p": 0,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "stallIntoEncore",
-   "estimate": -1.9569,
-   "se": 0.2277,
+   "feature": "bp",
+   "estimate": -0.1697,
+   "se": 0.0198,
    "z": 8.59,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
+   "feature": "accuracy",
+   "estimate": -0.7946,
+   "se": 0.0548,
+   "z": 14.5,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "chargeTurn",
+   "estimate": -0.9023,
+   "se": 0.044,
+   "z": 20.49,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "pivots",
+   "estimate": -0.1781,
+   "se": 0.0201,
+   "z": 8.86,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "isStatus",
+   "estimate": 0.2602,
+   "se": 0.0276,
+   "z": 9.42,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "deadStatus",
+   "estimate": -1.6067,
+   "se": 0.0838,
+   "z": 19.18,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "deadSide",
+   "estimate": -2.9603,
+   "se": 0.0799,
+   "z": 37.05,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "deadField",
+   "estimate": -1.6623,
+   "se": 0.0847,
+   "z": 19.62,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "deadStall",
+   "estimate": -1.2924,
+   "se": 0.0308,
+   "z": 41.94,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "pranksterFailsDark",
+   "estimate": -1.9923,
+   "se": 0.1305,
+   "z": 15.27,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "deadNoLastMove",
+   "estimate": -2.6734,
+   "se": 0.1468,
+   "z": 18.21,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "tgtPhysical",
+   "estimate": -0.1895,
+   "se": 0.0173,
+   "z": 10.93,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "dmgFrac",
+   "estimate": 0.2741,
+   "se": 0.0261,
+   "z": 10.49,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "killIsRoll",
+   "estimate": 0.783,
+   "se": 0.0152,
+   "z": 51.55,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "koFirst",
+   "estimate": 0.1434,
+   "se": 0.0145,
+   "z": 9.87,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "protectThreatened",
+   "estimate": 0.3196,
+   "se": 0.0157,
+   "z": 20.38,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "myOffenseStage",
+   "estimate": 1.2005,
+   "se": 0.072,
+   "z": 16.67,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "movesBoostMe",
+   "estimate": 0.6088,
+   "se": 0.0187,
+   "z": 32.52,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "statusBites",
+   "estimate": 1.0835,
+   "se": 0.0898,
+   "z": 12.06,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "diesBeforeMoving",
+   "estimate": -0.5823,
+   "se": 0.015,
+   "z": 38.79,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "switchSurvives1",
+   "estimate": 0.1932,
+   "se": 0.0193,
+   "z": 10.02,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "switchFaster",
+   "estimate": -0.2022,
+   "se": 0.0215,
+   "z": 9.4,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "speedSwing",
+   "estimate": 0.9577,
+   "se": 0.0229,
+   "z": 41.77,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "screenValue",
+   "estimate": 1.1557,
+   "se": 0.0399,
+   "z": 28.99,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "healValue",
+   "estimate": 2.4282,
+   "se": 0.1032,
+   "z": 23.52,
+   "p": 0,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
    "feature": "benchRisk",
-   "estimate": -0.275,
-   "se": 0.0197,
-   "z": 13.94,
+   "estimate": -0.1552,
+   "se": 0.0156,
+   "z": 9.94,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "priorLogP",
-   "estimate": 0.1547,
-   "se": 0.003,
-   "z": 51.08,
+   "estimate": 0.1543,
+   "se": 0.0028,
+   "z": 55.74,
    "p": 0,
    "bh": true,
    "bonferroni": true
   },
   {
-   "feature": "rechargeTurn",
-   "estimate": -0.5815,
-   "se": 0.0707,
-   "z": 8.23,
-   "p": 2.220446049250313e-16,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "switchFaster",
-   "estimate": -0.165,
-   "se": 0.0218,
-   "z": 7.56,
-   "p": 4.0967229608668276e-14,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "clickCost",
-   "estimate": -1.7034,
-   "se": 0.2335,
-   "z": 7.29,
-   "p": 3.0109248427834245e-13,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "stab",
-   "estimate": 0.0832,
-   "se": 0.0119,
-   "z": 6.99,
-   "p": 2.6730839763899894e-12,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "movesLowerFoe",
-   "estimate": -0.4232,
-   "se": 0.0624,
-   "z": 6.78,
-   "p": 1.1677103728402471e-11,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "tgtBulk",
-   "estimate": 0.1669,
-   "se": 0.0261,
-   "z": 6.39,
-   "p": 1.6437151639792091e-10,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "switchKOSlow",
-   "estimate": 0.3037,
-   "se": 0.0485,
-   "z": 6.26,
-   "p": 3.8596026374904113e-10,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "isSwitch",
-   "estimate": -0.4651,
-   "se": 0.0744,
-   "z": 6.25,
-   "p": 4.180956691968163e-10,
-   "bh": true,
-   "bonferroni": true
-  },
-  {
-   "feature": "defMismatch",
-   "estimate": 0.2492,
-   "se": 0.0414,
-   "z": 6.02,
-   "p": 1.7001623442425284e-9,
+   "feature": "tgtMayProtect",
+   "estimate": 0.4076,
+   "se": 0.0533,
+   "z": 7.65,
+   "p": 2.042810365310288e-14,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "deadWeather",
-   "estimate": -0.905,
-   "se": 0.1504,
-   "z": 6.02,
-   "p": 1.7699084420286226e-9,
+   "estimate": -1.0011,
+   "se": 0.1454,
+   "z": 6.89,
+   "p": 5.804023928135393e-12,
    "bh": true,
    "bonferroni": true
   },
   {
-   "feature": "bp",
-   "estimate": 0.1077,
-   "se": 0.021,
-   "z": 5.13,
-   "p": 2.88020268413014e-7,
+   "feature": "rechargeTurn",
+   "estimate": -0.3931,
+   "se": 0.0633,
+   "z": 6.21,
+   "p": 5.324131135964194e-10,
    "bh": true,
    "bonferroni": true
   },
   {
-   "feature": "switchKOFast",
-   "estimate": 0.1821,
-   "se": 0.0385,
-   "z": 4.73,
-   "p": 0.00000225542707721349,
+   "feature": "volatileOnFoe",
+   "estimate": -0.1514,
+   "se": 0.0248,
+   "z": 6.1,
+   "p": 1.041471353602219e-9,
    "bh": true,
    "bonferroni": true
   },
   {
-   "feature": "koFirst",
-   "estimate": 0.0806,
-   "se": 0.0193,
-   "z": 4.18,
-   "p": 0.000029787672732761727,
+   "feature": "volatileOnSelf",
+   "estimate": 0.1228,
+   "se": 0.0207,
+   "z": 5.93,
+   "p": 3.0254040384036784e-9,
    "bh": true,
    "bonferroni": true
   },
   {
-   "feature": "dmgFrac",
-   "estimate": 0.0876,
-   "se": 0.0224,
-   "z": 3.91,
-   "p": 0.00009176632332308365,
+   "feature": "movesLowerFoe",
+   "estimate": -0.3159,
+   "se": 0.0544,
+   "z": 5.81,
+   "p": 6.301423605137302e-9,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "tgtBulk",
+   "estimate": 0.1238,
+   "se": 0.0229,
+   "z": 5.4,
+   "p": 6.726015022717746e-8,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "stab",
+   "estimate": 0.0553,
+   "se": 0.011,
+   "z": 5.04,
+   "p": 4.579662958859032e-7,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "tgtHurt",
+   "estimate": 0.0966,
+   "se": 0.0194,
+   "z": 4.98,
+   "p": 6.395387487367898e-7,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "priority",
+   "estimate": -0.0749,
+   "se": 0.0168,
+   "z": 4.45,
+   "p": 0.000008430941922377144,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "defMismatch",
+   "estimate": 0.1622,
+   "se": 0.0366,
+   "z": 4.44,
+   "p": 0.000009127699742372819,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "stallIntoEncore",
+   "estimate": -0.848,
+   "se": 0.1953,
+   "z": 4.34,
+   "p": 0.000014091955005790524,
    "bh": true,
    "bonferroni": true
   },
   {
    "feature": "killsThreat",
-   "estimate": -0.0554,
-   "se": 0.0199,
-   "z": 2.79,
-   "p": 0.005239271608544205,
+   "estimate": -0.0566,
+   "se": 0.0145,
+   "z": 3.9,
+   "p": 0.00009502655951754146,
    "bh": true,
-   "bonferroni": false
+   "bonferroni": true
   },
   {
-   "feature": "priority",
-   "estimate": -0.0501,
-   "se": 0.0188,
-   "z": 2.67,
-   "p": 0.007696757235701179,
+   "feature": "isSwitch",
+   "estimate": -0.2755,
+   "se": 0.0712,
+   "z": 3.87,
+   "p": 0.00010978690917351486,
    "bh": true,
-   "bonferroni": false
+   "bonferroni": true
   },
   {
    "feature": "switchDiesFirst",
-   "estimate": 0.0595,
-   "se": 0.0283,
-   "z": 2.11,
-   "p": 0.03528985553297326,
+   "estimate": -0.1327,
+   "se": 0.0349,
+   "z": 3.8,
+   "p": 0.00014602022939491643,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "clickCost",
+   "estimate": -0.2483,
+   "se": 0.0725,
+   "z": 3.43,
+   "p": 0.0006135664729081114,
+   "bh": true,
+   "bonferroni": true
+  },
+  {
+   "feature": "movesFirst",
+   "estimate": 0.0405,
+   "se": 0.0132,
+   "z": 3.07,
+   "p": 0.002144637614021283,
    "bh": true,
    "bonferroni": false
   },
   {
-   "feature": "switchSurvives2",
-   "estimate": -0.0605,
-   "se": 0.03,
-   "z": 2.01,
-   "p": 0.04392441327867125,
+   "feature": "switchKOSlow",
+   "estimate": 0.1024,
+   "se": 0.0413,
+   "z": 2.48,
+   "p": 0.013275917558025263,
    "bh": true,
    "bonferroni": false
   },
   {
    "feature": "allyHit",
-   "estimate": -0.0128,
-   "se": 0.0382,
-   "z": 0.34,
-   "p": 0.7368554420226653,
-   "bh": false,
-   "bonferroni": false
-  },
-  {
-   "feature": "volatileOnFoe",
-   "estimate": 0.0054,
-   "se": 0.0281,
-   "z": 0.19,
-   "p": 0.8475374205670814,
-   "bh": false,
+   "estimate": -0.0823,
+   "se": 0.0353,
+   "z": 2.33,
+   "p": 0.0197765828251113,
+   "bh": true,
    "bonferroni": false
   },
   {
    "feature": "tgtDefenseStage",
-   "estimate": -0.0082,
-   "se": 0.099,
-   "z": 0.08,
-   "p": 0.9337809606764333,
+   "estimate": 0.1321,
+   "se": 0.0867,
+   "z": 1.52,
+   "p": 0.12743704799200117,
+   "bh": false,
+   "bonferroni": false
+  },
+  {
+   "feature": "koTarget",
+   "estimate": 0.014,
+   "se": 0.0182,
+   "z": 0.77,
+   "p": 0.4424800646657465,
+   "bh": false,
+   "bonferroni": false
+  },
+  {
+   "feature": "switchKOFast",
+   "estimate": -0.017,
+   "se": 0.0353,
+   "z": 0.48,
+   "p": 0.6309929842151283,
+   "bh": false,
+   "bonferroni": false
+  },
+  {
+   "feature": "switchSurvives2",
+   "estimate": -0.0036,
+   "se": 0.0289,
+   "z": 0.12,
+   "p": 0.9021216641580339,
    "bh": false,
    "bonferroni": false
   }

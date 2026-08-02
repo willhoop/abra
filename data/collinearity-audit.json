@@ -1,103 +1,103 @@
 {
- "generated": "2026-08-02T02:26:24.413Z",
+ "generated": "2026-08-02T07:34:04.922Z",
  "by": "engine/collinearity_audit.js",
  "what": "Each feature fitted ALONE versus its weight in the full model, beside a model-free lift measuring whether humans actually prefer it. A feature strong alone and near-zero in company has had its credit split among correlated neighbours; its individual weight is not a statement about the game.",
  "weights_file": "data\\policy-weights.json",
  "lambda_in_fit": 0,
  "corpus": {
-  "games": 7454,
-  "train": 142462,
-  "held_out": 35402
+  "games": 7561,
+  "train": 159634,
+  "held_out": 39838
  },
  "features": {
   "koTarget": {
-   "solo": 0.8688,
-   "joint": -0.0379,
-   "lift": 1.445,
-   "verdict": "SIGN FLIPS"
+   "solo": 1.0098,
+   "joint": 0.014,
+   "lift": 1.567,
+   "verdict": "absorbed"
   },
   "koFirst": {
-   "solo": 1.0009,
-   "joint": 0.1404,
-   "lift": 1.837,
+   "solo": 1.0856,
+   "joint": 0.1434,
+   "lift": 1.922,
    "verdict": "absorbed"
   },
   "killsThreat": {
-   "solo": 0.6535,
-   "joint": -0.0634,
-   "lift": 1.54,
+   "solo": 0.7482,
+   "joint": -0.0566,
+   "lift": 1.617,
    "verdict": "SIGN FLIPS"
   },
   "dmgFrac": {
-   "solo": 0.6493,
-   "joint": 0.1517,
-   "lift": 1.356,
-   "verdict": "absorbed"
+   "solo": 0.8033,
+   "joint": 0.2741,
+   "lift": 1.417,
+   "verdict": null
   },
   "killIsRoll": {
-   "solo": 1.2511,
-   "joint": 0.8577,
-   "lift": 2.205,
+   "solo": 1.2468,
+   "joint": 0.783,
+   "lift": 2.204,
    "verdict": null
   },
   "tgtHurt": {
-   "solo": 0.1737,
-   "joint": 0.1527,
-   "lift": 0.999,
+   "solo": 0.3017,
+   "joint": 0.0966,
+   "lift": 1.054,
    "verdict": null
   },
   "bp": {
-   "solo": 0.0615,
-   "joint": -0.0746,
-   "lift": 1.033,
-   "verdict": null
+   "solo": 0.1673,
+   "joint": -0.1697,
+   "lift": 1.075,
+   "verdict": "SIGN FLIPS"
   },
   "tgtMayProtect": {
-   "solo": 0.2939,
-   "joint": 0.3667,
-   "lift": 0.641,
+   "solo": 0.7576,
+   "joint": 0.4076,
+   "lift": 0.77,
    "verdict": null
   },
   "eff4": {
-   "solo": 1.2836,
-   "joint": 1.1435,
-   "lift": 2.291,
+   "solo": 1.4198,
+   "joint": 1.1767,
+   "lift": 2.605,
    "verdict": null
   },
   "eff2": {
-   "solo": 1.0428,
-   "joint": 0.8469,
-   "lift": 1.869,
+   "solo": 1.1427,
+   "joint": 0.8589,
+   "lift": 1.999,
    "verdict": null
   },
   "immune": {
-   "solo": -2.3,
-   "joint": -2.0383,
-   "lift": 0.126,
+   "solo": -2.2465,
+   "joint": -1.9282,
+   "lift": 0.133,
    "verdict": null
   },
   "deadNoLastMove": {
-   "solo": -3.0661,
-   "joint": -2.6927,
-   "lift": 0.046,
+   "solo": -3.0481,
+   "joint": -2.6734,
+   "lift": 0.042,
    "verdict": null
   },
   "isSwitch": {
-   "solo": -0.3508,
-   "joint": -0.191,
-   "lift": 0.761,
+   "solo": -0.4798,
+   "joint": -0.2755,
+   "lift": 0.683,
    "verdict": null
   },
   "movesFirst": {
-   "solo": 0.4525,
-   "joint": 0.0431,
-   "lift": 1.172,
+   "solo": 0.4697,
+   "joint": 0.0405,
+   "lift": 1.178,
    "verdict": "absorbed"
   },
   "myOffenseStage": {
-   "solo": 1.0611,
-   "joint": 1.2722,
-   "lift": 1.202,
+   "solo": 1.1344,
+   "joint": 1.2005,
+   "lift": 1.236,
    "verdict": null
   }
  },
