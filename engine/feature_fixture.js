@@ -123,8 +123,18 @@ const SCENARIOS = [
     p1: [
       { species: 'Rotom-Wash', item: 'Sitrus Berry', ability: 'Levitate', nature: 'Modest',
         moves: ['Hydro Pump', 'Thunderbolt', 'Will-O-Wisp', 'Protect'] },
-      { species: 'Clefable', item: 'Leftovers', ability: 'Unaware', nature: 'Bold',
-        moves: ['Follow Me', 'Life Dew', 'Icy Wind', 'Moonblast'] },
+      /* SINISTCHA-MASTERPIECE IS A COSMETIC FORME, AND THAT IS WHY IT IS HERE.
+       *
+       * It is not in the damage table under its own name; it resolves to `sinistcha` because their
+       * base stats and types are identical (engine/mc_key.js). That resolution is a distinct code
+       * path, and on 2026-08-01 the fixture contained no species that took it -- so when the path was
+       * added, the semantics guard could not see that feature values had changed for it, and said the
+       * weights were fine when they were stale.
+       *
+       * That is R7 in docs/ARTIFACT-ACCESS-RULES.md, learned the hard way twice in one day: a guard
+       * only guards what it exercises. It is on 5.3% of real teams, so this is not a corner. */
+      { species: 'Sinistcha-Masterpiece', item: 'Leftovers', ability: 'Hospitality', nature: 'Bold',
+        moves: ['Shadow Ball', 'Life Dew', 'Protect', 'Giga Drain'] },
     ],
     p2: [
       { species: 'Venusaur', item: 'Rocky Helmet', ability: 'Overgrow', nature: 'Relaxed',
