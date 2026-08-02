@@ -715,7 +715,40 @@ async function main() {
       /* In paired mode the TEAMS stay put and the POLICIES change sides -- that is the whole point.
        * Swapping the teams instead would leave each bot facing a different opponent and cancel
        * nothing, which is exactly what the first version of this did. */
-      const swap = PAIRED ? 0 : (((k * 2654435761) >>> 0) & 1);
+      /* PINNING THE TEAMS ONLY MAKES SENSE WHEN THERE ARE TWO POLICIES TO SWAP.
+       *
+       * `--paired` holds the teams still so the POLICIES can change sides and the teams' difficulty
+       * cancels exactly. That is right for an A/B and wrong for generating a CORPUS with a single
+       * policy: with no --policy2 there is nothing to swap, so pinning does not cancel anything, it
+       * just puts the lower-indexed team on p1 in every game forever.
+       *
+       * Measured 2026-08-01 on a 2,900-game `--paired --policy score` store, which is exactly how a
+       * self-play corpus gets generated: p1 won 63.77% of non-mirror games [62.00, 65.50] while
+       * MIRRORS were fair at 48.0%, so the harness was innocent and the assignment was not. Of 1,791
+       * distinct teams, 545 appeared ONLY on p1 and 1,151 ONLY on p2 -- 95 were ever seen on both.
+       * The matchup enumeration walks unordered pairs (ai <= bi), so p1 always got the lower index,
+       * and the pool is ordered such that those teams are stronger.
+       *
+       * engine/validate_selfplay.js caught it the first time it was ever pointed at a self-play
+       * store, which is the whole argument for that gate existing.
+       *
+       * So: pin only for a real A/B. Otherwise balance the sides, which is what the unpaired path
+       * always did. Still keyed to the enumeration index, so it stays deterministic. */
+      /* AND THE "HASH" WAS NOT ONE. `((k * 2654435761) >>> 0) & 1` multiplies by an ODD constant and
+       * takes the low bit -- and odd*k has the same parity as k, so the whole expression is exactly
+       * `k & 1`. It never mixed anything. `k = (gi * STRIDE + OFF) % TOTAL` is an arithmetic
+       * progression, so its low bit is highly structured; with an even STRIDE it barely alternates.
+       *
+       * Fixing only the PAIRED clause above moved p1 from 63.77% to 59.39% -- better and still
+       * broken, which is what said the diagnosis was incomplete. A murmur3 finalizer actually
+       * avalanches, so the low bit is a fair coin, and it stays a pure function of the enumeration
+       * index so the run is still reproducible. */
+      const mix32 = (x) => {
+        x = Math.imul(x ^ (x >>> 16), 2246822507);
+        x = Math.imul(x ^ (x >>> 13), 3266489909);
+        return (x ^ (x >>> 16)) >>> 0;
+      };
+      const swap = (PAIRED && POLICY2) ? 0 : (mix32(k) & 1);
       const a = teams[swap ? bi : ai], b = teams[swap ? ai : bi];
       let res = null;
       /* A CONFIG ERROR IS NOT A BATTLE FAILURE, and swallowing both into `failed++` makes them
