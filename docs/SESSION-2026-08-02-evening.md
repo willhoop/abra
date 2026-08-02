@@ -217,3 +217,61 @@ invents. Do that first and three of these four die in a minute, with no argument
 4. **`require_full_bring` discards decisive wins** (§3). Stated, not fixed — it is a real selection
    bias on the corpus a value function trains on, and changing it is Will's call.
 5. **Extend the lookup contract to the remaining accessors** — unchanged.
+
+---
+
+## 7. THE THING ALL OF IT WAS, NAMED BY WILL
+
+*"ITS PART OF THE MULTI TURN TAILWIND TYPE ANALYSIS"* — and it is.
+
+Three Protect anomalies were measured separately and treated as separate. They are one thing: **the
+feature vector prices ONE TURN.** Value that accrues over several has nowhere to go.
+
+Measured over 58 species with >= 30 Protect-offering decisions, splitting status moves by whether the
+dex gives them a duration (`sideCondition`, `pseudoWeather`, `weather`, `terrain`, `slotCondition`,
+`condition.duration` — nothing named):
+
+| | |
+| --- | ---: |
+| corr( Protect residual , MULTI-TURN moves on the sheet ) | **-0.343** |
+| corr( Protect residual , INSTANT status moves ) | **+0.066** |
+
+| multi-turn moves on the sheet | mean residual |
+| --- | ---: |
+| 0 (n=36) | +0.8 pts |
+| 1 (n=15) | -1.3 pts |
+| 2 (n=7) | **-4.9 pts** |
+
+The entire effect sits in the duration moves. Follow Me, Fake Out and Taunt carry none of it. And
+isolating the mechanism IMPROVED the correlation — -0.265 across all support moves, **-0.343** across
+multi-turn only — which is what a real mechanism does and a proxy does not.
+
+**Both directions are the same missing quantity:**
+
+| | the multi-turn value | the model |
+| --- | --- | --- |
+| Blaziken Protects | Speed Boost banks +1 Speed for later turns | under-predicts, -18.0 |
+| Gengar Protects | burns Perish turns while Shadow Tag traps | under-predicts, -19.0 |
+| Pelipper / Politoed / Farigiraf do NOT | Tailwind, Trick Room, screens are the better investment | over-predicts, +10 to +12 |
+
+They cancel, which is why the global ratio reads 1.021 and looks calibrated. An aggregate that looks
+right because two real errors point opposite ways is the shape of this entire session.
+
+**Corroboration that was sitting in plain sight.** `terrainSetupHelpsPartner` **+1.606** and
+`weatherSetupHelpsPartner` **+1.311** are the two largest weights in the whole 18-term joint block.
+The pair fit found multi-turn setup value the marginal vector cannot represent, and routed it through
+the only terms available to it. That was filed as "three pair weights are barely observed" and read
+as a curiosity.
+
+`engine/mechanics_coverage.js` already describes the model as *"conditional, one-step-ahead mechanics,
+and a static feature vector describing the board as"* it is now. That sentence was written as a
+description. It is the binding constraint.
+
+**What is ruled out, so it is not re-inherited.** The Protect gap is NOT: priorLogP underweighted
+(corr 0.032 with the residual), a population mismatch in `move-priors.json` (it matches the fit corpus
+to three decimals), Choice-lock (5 of 11,517 decisions), or the mega ability gap — that was fixed
+universally this session and the residuals did not move a decimal place. Each was measured and each
+was wrong, including two I was confident about.
+
+**Do not chase the Protect rate.** It is a symptom of a one-step scorer, and the fix is a feature that
+can hold accrued value, not a Protect term.
