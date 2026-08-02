@@ -182,9 +182,12 @@ contribute is the reason independent scoring fails, since a monotonic factorisat
 **Honest status:** **half-run and stale.** The 2026-07-26 run completed **2 of 6 generations on a 17-FEATURE vector and recorded no verdict**. The vector is now 48. Re-running it is the single largest untested lever in the project.
 **Guards worth keeping:** every promoted champion is played against EVERY previous generation, not just the one it displaced — this metagame is cyclic, so "gen 5 beats gen 4" does not establish progress, and a cycle would otherwise look like improvement forever.
 **Limit, stated:** it searches the weight vector, not a policy space. It cannot learn anything the feature set cannot see, and after 2026-07-28 we know the feature set is the binding constraint for a static model.
-**KEPT, 2026-07-30** (Will, reversing an earlier call to graveyard it). The **artifact** is stale —
-`data/policy-weights-machamp.json` is a **48-feature** vector against today's 53, trained under the
-broken mega handling — but the **method is alive and has a successor**: `engine/train_policy.js`
+**KEPT, 2026-07-30** (Will, reversing an earlier call to graveyard it). The **artifact is gone,
+deleted 2026-08-02** — it was a **48-feature** vector against today's **56**, trained under the broken
+mega handling, with no consumer anywhere in the repository. Recorded here rather than silently
+removed, because a champion vector that no longer matches the feature set cannot be loaded and
+keeping it invited someone to try; `git show 5264585^:data/policy-weights-machamp.json` recovers it.
+The **method is alive and has a successor**: `engine/train_policy.js`
 implements the same win-objective idea by policy gradient over self-play, and is the thing that
 measured 55.9%. Re-running MACHAMP on the current vector is roadmap item 4. Keep the guard that made
 it honest: every promoted champion plays EVERY previous generation, because this metagame is cyclic

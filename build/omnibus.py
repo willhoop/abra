@@ -122,13 +122,67 @@ def to_pdf(html, out):
         _WHTML(string=html, base_url=os.getcwd()).write_pdf(out)
         return out
     except Exception as e:
-        print(f'  weasyprint unavailable ({type(e).__name__}), falling back to LibreOffice')
+        print(f'  weasyprint unavailable ({type(e).__name__}: {e}), trying headless Chrome')
+
+    # HEADLESS CHROME, ADDED 2026-08-02 BECAUSE IT IS WHAT ACTUALLY WORKS HERE.
+    #
+    # WeasyPrint cannot load libgobject-2.0-0 on this machine and has not been able to for weeks, so
+    # every PDF in that time was produced by hand with the command below while the build reported
+    # success and shipped nothing. A documented workaround that a human has to remember is not a
+    # workaround, it is an outage with a note attached.
+    #
+    # Chrome is a better fallback than LibreOffice for this input: it renders the same CSS the HTML
+    # was authored against, including @page, whereas soffice's writer_web filter reflows it. Both
+    # are kept -- Chrome first because it is the one present on developer machines.
+    for exe in _chrome_candidates():
+        with tempfile.TemporaryDirectory() as td:
+            htmlp=os.path.join(td,'omnibus.html'); open(htmlp,'w',encoding='utf-8').write(html)
+            try:
+                subprocess.run([exe,'--headless','--disable-gpu','--no-sandbox',
+                                f'--print-to-pdf={os.path.abspath(out)}',
+                                '--print-to-pdf-no-header',
+                                'file:///'+htmlp.replace('\\','/')],
+                               check=True, capture_output=True, timeout=240)
+            except Exception as e:
+                print(f'  {os.path.basename(exe)} failed ({type(e).__name__}), trying the next renderer')
+                continue
+            # A zero-byte or missing PDF is a FAILURE, not a success with an empty file. Chrome can
+            # exit 0 having written nothing, which is the same lie this function was fixed for.
+            if os.path.exists(out) and os.path.getsize(out) > 1024:
+                print(f'  rendered with {os.path.basename(exe)}')
+                return out
+            print(f'  {os.path.basename(exe)} exited cleanly but produced no usable PDF')
+
     with tempfile.TemporaryDirectory() as td:
         htmlp=os.path.join(td,'omnibus.html'); open(htmlp,'w',encoding='utf-8').write(html)
         subprocess.run(['soffice','--headless','--convert-to',
                         'pdf:writer_web_pdf_Export','--outdir',td,htmlp],
                        check=True, capture_output=True, timeout=240)
         import shutil; shutil.copy(os.path.join(td,'omnibus.pdf'), out)
+    return out
+
+
+def _chrome_candidates():
+    """Chrome or Edge, found rather than hardcoded. OMNIBUS_CHROME overrides; then PATH; then the
+    standard install locations for this platform. Edge is included because it is the same renderer
+    and ships with Windows, so a machine with neither is rare."""
+    import shutil as _sh
+    seen=[]
+    env=os.environ.get('OMNIBUS_CHROME')
+    if env: seen.append(env)
+    for name in ('chrome','google-chrome','chromium','chromium-browser','msedge'):
+        p=_sh.which(name)
+        if p: seen.append(p)
+    for p in (os.path.expandvars(r'%ProgramFiles%\Google\Chrome\Application\chrome.exe'),
+              os.path.expandvars(r'%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe'),
+              os.path.expandvars(r'%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe'),
+              os.path.expandvars(r'%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe'),
+              '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
+              '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'):
+        if os.path.exists(p): seen.append(p)
+    out=[]
+    for p in seen:
+        if p not in out: out.append(p)
     return out
 
 if __name__=='__main__':

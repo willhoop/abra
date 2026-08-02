@@ -33,11 +33,15 @@
  *
  * WHAT IT SCORES WITH, STATED
  * ---------------------------
- * The joint score is the SUM of the two per-slot scores under the shipped 47-feature weights. It is
- * not the fitted joint layer: data/policy-weights-joint.json carries 46 features against board.js's
- * 47, so it predates the current vector and is stale — the same feature-count guard recall_at_k.js
- * applies. An additive score is also exactly what a policy PRIOR supplies to a search, which is the
- * role being tested, so this is the relevant quantity rather than a fallback.
+ * The joint score is the SUM of the two per-slot scores under the shipped weights. It is not the
+ * fitted joint layer — and the REASON is no longer "that layer is stale", which is what this comment
+ * used to say and went on saying after it stopped being true. As of 2026-08-02 the pair vector is
+ * current and matches board.js; `jointLayerStatus()` reads the file and reports whichever holds,
+ * rather than either of us asserting it.
+ *
+ * The real reason is unchanged and better: an additive score is exactly what a policy PRIOR supplies
+ * to a search, which is the role being tested here. That makes it the relevant quantity, not a
+ * fallback for a broken artifact.
  *
  * THE BASELINE IS THE POINT. Recall at k means nothing without the size of the set: "the real joint
  * action is in my top 20 of 51" is nearly free. Every k is reported against a random shortlist of the
@@ -57,6 +61,27 @@ const B = require('./board.js');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const KS = [1, 2, 3, 5, 8, 10, 15, 20];
+
+/* Whether the fitted pair layer currently matches board.js, asked of the file rather than asserted.
+ * This file does not USE the joint layer either way — the point of the sentence is to say why — but
+ * "it is stale" and "it is current, and still not used here" are different statements and only one
+ * of them can be true on any given day. */
+function jointLayerStatus() {
+  const rel = 'data/policy-weights-joint.json';
+  let J;
+  try { J = JSON.parse(fs.readFileSync(D(rel), 'utf8')); }
+  catch (e) { return `The fitted joint layer (${rel}) could not be read (${e.code || e.message}), so it was not used.`; }
+  const want = B.FEATURES.length + B.JOINT_FEATURES.length;
+  const got = (J.weights || []).length;
+  const namesMatch = (J.features || []).join(',') === B.FEATURES.join(',')
+                  && (J.jointFeatures || []).join(',') === B.JOINT_FEATURES.join(',');
+  if (got !== want || !namesMatch) {
+    return `The fitted joint layer (${rel}) is STALE — ${got} weights against board.js's ${want} — and was not used.`;
+  }
+  return `The fitted joint layer (${rel}) is CURRENT at ${got} weights and matches board.js, but was `
+       + 'deliberately not used here: this file measures the shortlist an additive score produces, '
+       + 'which is what a search layer would actually be handed.';
+}
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('set SHOWDOWN_PATH to a built master checkout of pokemon-showdown');
@@ -184,9 +209,13 @@ const out = {
   weights_file: path.relative(ROOT, WFILE),
   shipped_vector: W.shipped,
   n_features: W.features.length,
-  scoring: 'additive: the joint score is the sum of the two per-slot scores. The fitted joint layer ' +
-           '(data/policy-weights-joint.json) is STALE — 46 features against board.js\'s 47 — and was ' +
-           'not used. An additive score is also what a policy prior supplies to a search.',
+  /* DERIVED, NOT TYPED. This carried "STALE — 46 features against board.js's 47" as a literal
+   * string, and went on writing it into every generated artifact long after the joint vector was
+   * refitted — on 2026-08-02 it holds 56 + 18 = 74 and matches board.js exactly. A typed claim about
+   * another artifact is the hand-maintained state the S13 rule bans: it cannot go wrong loudly, only
+   * quietly. It now reads the file and states whichever is true. */
+  scoring: 'additive: the joint score is the sum of the two per-slot scores. ' + jointLayerStatus() +
+           ' An additive score is also what a policy prior supplies to a search.',
   corpus: { games: games.length, decisions: rows.length, held_out: test.length,
             paired_turns: joints.length, single_slot_turns: singles.length },
   mean_joint_actions: Number(meanN.toFixed(2)),

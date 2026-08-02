@@ -23,12 +23,36 @@ const M = require(D('data', 'mag.js')).MAG;
 const doc = M.featDoc || {};
 const se = W.standardErrors || [];
 
+/* THE NO-POPULARITY COLUMN IS PRINTED BESIDE TODAY'S WEIGHTS, SO IT HAS TO BE COMPARABLE.
+ *
+ * This used to be `try { read } catch { np = null }`, which catches a MISSING file and nothing else.
+ * On 2026-08-02 the file it was reading carried **47 features against board.js's 56**, fitted on
+ * 2026-07-27 over 3,340 games and 82,836 decisions — against today's 7,454 and 196,803. Every
+ * feature whose name happened to survive got a number from a different feature set on a different
+ * corpus, printed column-by-column next to the live weight as though the two were the same
+ * experiment. The nine features that did not exist yet showed an em dash, which reads as "not
+ * applicable" rather than "this table is comparing two different models".
+ *
+ * engine/magnemite.js already refuses a vector whose feature list disagrees, for exactly this
+ * reason. A document generator has no business being more permissive than the player: a wrong number
+ * in a published table is read by people who cannot check it. So the mismatch is now LOUD and the
+ * column is dropped rather than filled with a stale one.
+ *
+ * Regenerate with:  DROP=priorLogP OUT_WEIGHTS=data/policy-weights-nopop.json node engine/fit_policy.js */
 let np = {};
 let NPW = null;
 try {
   const NP = JSON.parse(fs.readFileSync(D('data', 'policy-weights-nopop.json'), 'utf8'));
-  NP.features.forEach((f, i) => { np[f] = NP.weights[i]; });
-  NPW = NP;
+  if ((NP.features || []).join(',') !== W.features.join(',')) {
+    console.error(`  no-popularity column DROPPED: data/policy-weights-nopop.json has ` +
+      `${(NP.features || []).length} features against the live vector's ${W.features.length}, ` +
+      `so the two columns are not the same experiment.`);
+    console.error('  refit it:  DROP=priorLogP OUT_WEIGHTS=data/policy-weights-nopop.json node engine/fit_policy.js');
+    np = null;
+  } else {
+    NP.features.forEach((f, i) => { np[f] = NP.weights[i]; });
+    NPW = NP;
+  }
 } catch (e) { np = null; }
 
 const rows = W.features.map((f, i) => ({
