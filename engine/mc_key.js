@@ -156,6 +156,30 @@
   /* For tests that swap the table underneath. */
   mcKey.reset = () => { index = null; builtFrom = null; alias = null; };
 
+  /* ENUMERATION IS A LOOKUP TOO, and leaving it out of this file sent the next caller straight back
+   * to `Object.keys(MC.mons)`.
+   *
+   * engine/feature_fixture.js needed to digest EVERY row of the table, to detect a re-ingest that
+   * the frozen fixture boards cannot see. There was no accessor for "all of it", so the first
+   * version indexed the raw artifact directly -- and tests/test-mc-key.js failed it, correctly,
+   * inside the same run. That test is what R1 is for and it did its job.
+   *
+   * The right answer is not a new exception in the baseline. It is that the accessor was missing a
+   * verb: mcKey answers "what is this one species called in here", mcKey.all answers "what is in
+   * here at all". Both are questions about how MC.mons is keyed, so both belong to the one file
+   * allowed to know. It returns ENTRIES rather than keys, because a caller handed a list of keys
+   * will index the raw table with them and we are exactly back where we started.
+   *
+   * The miss is DECLARED rather than thrown: "the table is not loaded" is a legitimate answer for a
+   * digest to receive, and its caller reports UNAVAILABLE instead of guessing. */
+  mcKey.all = (opts) => {
+    if (!index || builtFrom !== (root.MC && root.MC.mons)) index = build();
+    const mons = root.MC && root.MC.mons;
+    if (!index || !mons) return miss(null, '<all>', opts, 'MC.mons is not loaded at all');
+    /* Sorted, so a digest taken over these is stable across runs and across key insertion order. */
+    return Object.keys(mons).sort().map(k => [k, mons[k]]);
+  };
+
   const api = { mcKey, flat };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) { root.MCKEY = api; root.mcKey = mcKey; }

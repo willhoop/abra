@@ -441,16 +441,74 @@ function columns(dex) {
   return { marg, joint, nCands, nPairs, nSlots: slots.length };
 }
 
+/* ---- THE INPUTS, NOT JUST THE FUNCTION -------------------------------------------------------
+ *
+ * THE GAP THIS CLOSES, found on 2026-08-02 by walking into it.
+ *
+ * Everything above hashes what the features COMPUTE on a frozen set of boards. That catches a change
+ * to board.js -- a feature quietly changing meaning under its own name -- which is what it was built
+ * for and it does that well.
+ *
+ * It cannot catch a change to what the features READ. `build/rebuild_sets_from_sheets.js` rewrote the
+ * sets of eight species (Snorlax's whole moveset, Mawile's ability, Zoroark's four moves) and EVERY
+ * ONE OF THE 74 FEATURE HASHES STAYED IDENTICAL, because none of those eight stand on these boards.
+ * 27.57% of the fit corpus contains one of them. The guard was silent, the weights were stale, and
+ * silence read exactly like agreement.
+ *
+ * That is R7 for the fifth time, and adding those eight species to SCENARIOS would be R7 for the
+ * sixth: the next regeneration touches a different eight. A hand-listed fixture can only ever guard
+ * the species somebody remembered, so the fix cannot be another entry in the list.
+ *
+ * This SWEEPS the artifact instead of naming anything in it -- every set-bearing field of every
+ * species in the table the damage engine actually reads. Nothing is typed, and a species added to the
+ * format is covered the day it appears.
+ *
+ * IT IS A SEPARATE BLOCK BECAUSE IT MEANS A DIFFERENT THING, and the project's own rule turns on that
+ * distinction. A moved FEATURE hash means board.js changed and the weights now describe a different
+ * quantity: refit, never restamp. A moved TABLE hash means a derived table was re-ingested, which may
+ * or may not reach the fit -- the honest answer is to measure how much of the corpus it touches.
+ * Collapsing the two into one verdict makes the louder one unreadable. */
+function tableDigest() {
+  /* THROUGH THE ACCESSOR, NOT THE RAW TABLE (R1). The first version of this read Object.keys(MC.mons)
+   * directly and tests/test-mc-key.js failed it in the same run — so mcKey gained an `all` verb
+   * rather than this file gaining a baseline exemption. See engine/mc_key.js. */
+  let rows = null;
+  try {
+    const MK = require('./mc_key.js');
+    rows = MK.mcKey.all({ mayMiss: 'a digest of a table that is not loaded is UNAVAILABLE, not empty' });
+  } catch (e) {
+    /* Named, not swallowed. "The table check could not run" and "the table did not change" are the
+     * two meanings this repository keeps collapsing into one value, and here that distinction is the
+     * entire point of the function. */
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('feature_fixture: table digest unavailable (' + e.message + '). This is NOT a '
+        + 'statement that the damage table is unchanged.');
+    }
+    return { species: 0, digest: 'UNAVAILABLE' };
+  }
+  if (!rows) return { species: 0, digest: 'UNAVAILABLE' };
+  const parts = [];
+  for (const [n, m0] of rows) {
+    const m = m0 || {};
+    /* Set-bearing fields plus the stats and typing the damage formula multiplies. */
+    parts.push(n + '=' + JSON.stringify([
+      m.mv || [], m.item || null, m.ab || null, m.st || null, m.bs || null, m.ty || null,
+    ]));
+  }
+  return { species: rows.length, digest: h(parts) };
+}
+
 function hashes(dex) {
   const c = columns(dex);
   const features = {}, jointFeatures = {};
   for (const f of B.FEATURES) features[f] = h(c.marg[f]);
   for (const f of B.JOINT_FEATURES) jointFeatures[f] = h(c.joint[f]);
   return {
-    version: 1, round: ROUND,
+    version: 2, round: ROUND,
     scenarios: SCENARIOS.map(s => s.label),
     candidates: c.nCands, pairs: c.nPairs,
     features, jointFeatures,
+    table: tableDigest(),
   };
 }
 
@@ -469,6 +527,19 @@ function verify(stored, dex, opts) {
   if (stored.round !== now.round || (stored.scenarios || []).join(',') !== now.scenarios.join(',')) {
     return `the fixture itself changed (rounding ${stored.round} -> ${now.round}, scenarios `
       + `${(stored.scenarios || []).length} -> ${now.scenarios.length}). Old hashes cannot be compared; restamp after checking board.js.`;
+  }
+  /* THE TABLE CHECK RUNS FIRST AND REPORTS SEPARATELY. A weight file stamped before this block
+   * existed carries no `table`, and that is not a mismatch — it is an older stamp, which must not
+   * be announced as staleness or every pre-existing file cries wolf on the first run. */
+  if (stored.table && stored.table.digest && now.table && now.table.digest !== 'UNAVAILABLE'
+      && stored.table.digest !== now.table.digest) {
+    return 'the DAMAGE TABLE these weights were fitted against has been regenerated '
+      + `(${stored.table.species} species -> ${now.table.species}, digest ${stored.table.digest} -> ${now.table.digest}).\n`
+      + '  The feature hashes below may still match and that is NOT reassurance: the fixture stands on a\n'
+      + '  fixed handful of species, so a set change to any species it does not contain moves nothing here.\n'
+      + '  Measure what it touches before deciding — how many corpus games contain a changed species —\n'
+      + '  then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit,\n'
+      + '  or restamp with: node engine/feature_fixture.js --stamp <file>';
   }
   const moved = [];
   for (const blk of want) {

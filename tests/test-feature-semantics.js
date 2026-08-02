@@ -126,5 +126,38 @@ ok(typeof FF.verify(null, dex, { blocks: ['features'] }) === 'string',
 const msg = FF.verify(old, dex, { blocks: ['features', 'jointFeatures'] });
 ok(/allyHit/.test(msg), 'the rejection message names the feature that moved');
 
+/* ---- 6. THE TABLE DIGEST -- the case the fixture provably CANNOT see ---------------------------
+ *
+ * On 2026-08-02 build/rebuild_sets_from_sheets.js rewrote the sets of eight species and all 74
+ * feature hashes stayed byte-identical, because none of the eight stand on the fixture's boards.
+ * 27.57% of the fit corpus contains one of them. Feature hashes are the wrong instrument for that,
+ * and adding those species to SCENARIOS does not fix it -- the next regeneration touches a
+ * different eight.
+ *
+ * So the case is CONSTRUCTED here rather than described: identical feature hashes, a different table
+ * digest. If verify() ever stops distinguishing those two, this fails. */
+{
+  ok(now.table && typeof now.table.digest === 'string' && now.table.digest !== 'UNAVAILABLE',
+    `hashes() carries a table digest (${(now.table || {}).species} species, ${(now.table || {}).digest})`);
+
+  const sameFeatures = JSON.parse(JSON.stringify(now));
+  sameFeatures.table = { species: (now.table || {}).species, digest: 'deadbeefdead' };
+  const v = FF.verify(sameFeatures, dex, { blocks: ['features', 'jointFeatures'] });
+  ok(typeof v === 'string' && /DAMAGE TABLE/.test(v),
+    'verify() REJECTS a regenerated damage table even when every feature hash still matches');
+  ok(typeof v === 'string' && /NOT reassurance/.test(v),
+    'and says so -- a matching feature hash must not be read as evidence the table is unchanged');
+
+  /* Backward compatibility is part of the contract, not a nicety: a check that cries wolf on every
+   * file stamped before it existed is a check that gets switched off within a week. */
+  const older = JSON.parse(JSON.stringify(now));
+  delete older.table;
+  ok(FF.verify(older, dex, { blocks: ['features', 'jointFeatures'] }) === null,
+    'a weight file stamped BEFORE the table block existed is not reported as stale');
+
+  ok(FF.verify(now, dex, { blocks: ['features', 'jointFeatures'] }) === null,
+    'and the digest stays quiet when the table has not moved');
+}
+
 console.log(`\nFEATURE SEMANTICS TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

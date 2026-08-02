@@ -793,6 +793,37 @@ class Board {
  * ------------------------------------------------------------------------------------------- */
 let _dmg = null;                 // null = not tried, false = unavailable
 const dmgFailures = { unavailable: 0, unknownSpecies: 0 };
+
+/* ---- THE HANDLER PROBES, AND WHY THEY NEEDED A COUNTER RATHER THAN A FIX --------------------
+ *
+ * Seven places below call a REAL Showdown handler -- onModifyMove, onModifyType, onChangeBoost,
+ * onStart, a heal callback, a charge-turn callback -- against a context object this file builds by
+ * hand. The stub cannot implement all of Showdown, so a handler that reaches for something it does
+ * not carry throws, and each site catches that and falls back to the printed value: the move's
+ * declared accuracy, its declared type, an unmodified boost table.
+ *
+ * THAT FALLBACK IS CORRECT. The printed value is the right answer when nothing modified it, and
+ * refusing to score the move at all would be worse. This is not a bug to remove.
+ *
+ * It is a bug to leave UNCOUNTED. If a third of moves throw against the stub then a third of the
+ * accuracy feature is the printed number, every weight fitted on it is fitted on a constant, and
+ * nothing anywhere says so. That is exactly dmgFailures.unknownSpecies, which sat at 6.16% while
+ * reading as a clean zero -- and the only reason it could be driven to 0.00% is that somebody
+ * counted it first.
+ *
+ * Counted PER SITE rather than pooled: they fail for different reasons, and one of them being loud
+ * says nothing about the others. Exported so a budget can cap them the way the damage failures are
+ * capped. */
+const probeFailures = {
+  onModifyMove_accuracy: 0,   // moveAccuracy(): fell back to the PRINTED accuracy
+  onModifyType: 0,            // moveType(): fell back to the move's declared type
+  onChangeBoost: 0,           // fell back to the UNMODIFIED boost table
+  onStart_ability: 0,         // entry-effect probe produced nothing
+  healCallback: 0,            // heal amount unknown
+  chargeTurn: 0,              // assumed the move charges
+  physicalShare: 0,           // assumed an even physical/special split of 1
+};
+
 function damageEngine() {
   if (_dmg !== null) return _dmg;
   /* GLOBALS FIRST, require SECOND. medicham2-browser.js already publishes dmgRange/buildMon onto the
@@ -1336,7 +1367,7 @@ function entryEffects(abilityId, dex) {
     try {
       A.onStart.call(ctx, SELF);
       if (rec.weather || rec.terrain || rec.foeBoosts || rec.selfBoosts) out = rec;
-    } catch (e) { out = null; }
+    } catch (e) { probeFailures.onStart_ability++; out = null; }
   }
   _entryCache.set(id, out);
   return out;
@@ -1540,7 +1571,7 @@ function categoryShareOfThreat(board, side, dex, category) {
       }
     }
     return all ? want / all : 1;
-  } catch (e) { return 1; }
+  } catch (e) { probeFailures.physicalShare++; return 1; }
 }
 
 const _threatCache = new WeakMap();
@@ -1777,7 +1808,7 @@ function monSpeedMult(mon, board, dex) {
   };
   const ask = h => {
     if (typeof h !== 'function') return null;
-    let got; try { got = h.call(ctx, 100, stub); } catch (e) { return null; }
+    let got; try { got = h.call(ctx, 100, stub); } catch (e) { probeFailures.healCallback++; return null; }
     return (typeof got === 'number' && got > 0) ? got / 100 : null;
   };
   /* The item, from the revealed sheet. */
@@ -2046,7 +2077,7 @@ function expectedBoostSign(boosts, species, dex, want) {
     let out = boosts;
     if (A && A.exists && typeof A.onChangeBoost === 'function') {
       const copy = Object.assign({}, boosts);
-      try { A.onChangeBoost.call({}, copy, {}, null, null); out = copy; } catch (e) { out = boosts; }
+      try { A.onChangeBoost.call({}, copy, {}, null, null); out = copy; } catch (e) { probeFailures.onChangeBoost++; out = boosts; }
     }
     p += pr * (Object.values(out).some(v => (want > 0 ? v > 0 : v < 0)) ? 1 : 0);
   }
@@ -2138,7 +2169,7 @@ function moveType(m, board, dex) {
     effectiveWeather: () => norm(board.weather),
   };
   const user = { effectiveWeather: () => norm(board.weather), hasItem: () => false, getItem: () => ({}) };
-  try { m.onModifyType.call({ field, dex }, probe, user); } catch (e) { return m.type; }
+  try { m.onModifyType.call({ field, dex }, probe, user); } catch (e) { probeFailures.onModifyType++; return m.type; }
   return probe.type || m.type;
 }
 
@@ -2240,7 +2271,7 @@ function moveAccuracy(m, board, dex) {
   const probe = { accuracy: m.accuracy, type: m.type, basePower: m.basePower, flags: { ...(m.flags || {}) } };
   const ctx = boardStub(board, dex);
   const stubMon = { effectiveWeather: () => norm(board.weather), hasItem: () => false, getItem: () => ({}), hasAbility: () => false };
-  try { m.onModifyMove.call(ctx, probe, stubMon, stubMon); } catch (e) { return printed; }
+  try { m.onModifyMove.call(ctx, probe, stubMon, stubMon); } catch (e) { probeFailures.onModifyMove_accuracy++; return printed; }
   return (probe.accuracy === true || probe.accuracy == null) ? 1
        : Math.max(0, Math.min(1, probe.accuracy / 100));
 }
@@ -2268,7 +2299,7 @@ function chargeTurns(m, board, dex) {
      * Getting this backwards is silent -- both are falsy. */
     if (r === null) return 1;
     return 0;
-  } catch (e) { return 1; }
+  } catch (e) { probeFailures.chargeTurn++; return 1; }
 }
 
 /* The key a field-setting move is tracked under. Trick Room reports `pseudoWeather`, the terrains
@@ -2634,6 +2665,23 @@ function featuresFor(cand, user, board, side, dex, priorP) {
           /* PER TARGET, because that is what these moves depend on: Low Kick and Grass Knot scale
            * with the target's weight, so the same click is 80 into an Incineroar and 100 into a
            * Kingambit. A single number computed once would be wrong for one of them. */
+          /* THE PRINTED CATEGORY, AND FOR FOUR MOVES THAT IS THE WRONG ONE. Measured 2026-08-02.
+           *
+           * `m.category` is read raw at twelve sites in this file and `onModifyMove` is invoked in
+           * exactly one place (moveAccuracy). Four moves switch category inside that handler --
+           * Shell Side Arm and Photon Geyser by comparing the attacker's stats, Tera Starstorm and
+           * Light That Burns the Sky by their own rules -- so for those the line below picks the
+           * wrong attacking AND defending stat, and the damage estimate is a plausible number
+           * computed against the wrong body. The same shape as Aegislash-Blade.
+           *
+           * SIZED BEFORE BEING CALLED A DEFECT, which is the only reason it is not being fixed here:
+           * 11 of 7,799 corpus games carry one on a sheet -- 0.14%, all of them Shell Side Arm.
+           * Below the level at which a fix is worth the risk of touching the damage path, and
+           * recorded here with its number so it is not rediscovered as an unknown.
+           *
+           * It is watched rather than trusted: probeFailures.onModifyMove_accuracy counts every
+           * throw of that handler (34 in 57,460 candidates), so if a category-switching move becomes
+           * popular the counter moves before the damage does. */
           const mForDmg = { basePower: movePower(m, board, dex, user, h), category: m.category };
           /* OVER THE SPREADS PEOPLE ACTUALLY RUN, not against one guessed stat line. Falls back to
            * the single stored line for a species the usage data has no spreads for. */
@@ -3191,6 +3239,6 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;
