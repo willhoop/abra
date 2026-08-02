@@ -57,7 +57,23 @@ const WFILE = arg('weights', 'data/policy-weights.json');
 const MAXG = +(process.env.MAXG || 600);
 
 const wj = JSON.parse(fs.readFileSync(path.isAbsolute(WFILE) ? WFILE : D(WFILE), 'utf8'));
-const W = wj[wj.shipped || 'weights'] || wj.weights;
+/* `j.weights` IS the shipped vector, and this must read exactly what the PLAYER reads or the whole
+ * comparison is against a model nobody runs. magnemite.js:227 takes `W.weights`; fit_policy.js:825
+ * writes `weights: shipW` after choosing between the variants, and the `shipped` field is a LABEL
+ * saying which one it picked -- "reweighted_to_closed" -- not a key into the file.
+ *
+ * The first version here read `wj[wj.shipped || 'weights'] || wj.weights`, which looks careful and
+ * is not: `wj['reweighted_to_closed']` is undefined for every weight file this project has ever
+ * written, so the expression ALWAYS fell through to the fallback. It happened to land on the right
+ * vector, so it produced correct numbers for the wrong reason and would have gone on doing so until
+ * the day the fallback and the truth diverged. Verified rather than assumed: `weights` and
+ * `weights_reweighted_to_closed` are identical element-for-element in the shipped file. */
+const W = wj.weights;
+if (!Array.isArray(W)) {
+  console.error(`${WFILE} has no \`weights\` array — that is the field magnemite.js loads, so there\n` +
+    'is no vector here to compare against. Refusing to report.');
+  process.exit(1);
+}
 if ((wj.features || []).join(',') !== B.FEATURES.join(',')) {
   console.error(`REFUSING: ${WFILE} was fitted against a different feature list than board.js exposes.\n` +
     'Comparing a model to a corpus it cannot score is worse than not comparing it.');
