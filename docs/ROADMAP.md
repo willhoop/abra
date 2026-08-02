@@ -524,8 +524,9 @@ tested instead of argued.
 2026-07-26 run completed 2 of 6 generations on a **17-feature** vector and recorded no verdict; the
 vector is now 53. Its METHOD is alive — champion/challenger promotion behind a Wilson interval is the
 same win-objective idea `train_policy.js` now implements by policy gradient. Keep the guard that made
-it honest: every promoted champion plays EVERY previous generation, because this metagame is cyclic
-and "gen 5 beats gen 4" is not progress.
+it honest: every promoted champion plays EVERY previous generation, so that "gen 5 beats gen 4" is
+not read as progress by itself. Kept as insurance rather than as evidence — the "this metagame is
+cyclic" justification is withdrawn (2026-08-02); see `docs/MODELS.md` under MACHAMP.
 
 **4. Branch scoring with a mixed strategy** — the research is done, so this is no longer vague.
 Measured on a real mid-game board: **9 × 8 = 72 joint actions per side, 72 × 72 = 5,184 matrix

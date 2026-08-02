@@ -1122,17 +1122,30 @@ function makeScoringPlayer(opts = {}) {
 
       /* this.prng, never Math.random(): the parent seeds it from the battle seed, and a move
        * decision drawn outside that seed makes the whole game unreplayable. */
-      /* GREEDY IS A FLAG, NOT A DEFAULT, AND THE REASON IS THAT NOBODY HAS MEASURED IT.
+      /* GREEDY IS A FLAG, NOT A DEFAULT. It has now BEEN measured, twice, and the two halves of the
+       * old worry here came apart -- one was right and one was not.
        *
        * This class SAMPLES because it is built to reproduce a human distribution -- see the header.
        * That is right for generating a realistic corpus and it is not obviously right for WINNING: a
        * sampler deliberately clicks its worse option some of the time, and against an opponent with
-       * nothing to exploit that is pure loss.
+       * nothing to exploit that is pure loss. Measured: greedy takes 87.7% of 269 decisive pairs,
+       * DECIDED by engine/sprt.js after 38. Greedy wins, and it is not close.
        *
-       * But the argmax of an IMITATION model is not the same thing as a good move. These weights
-       * were fitted to predict clicks, and the ones greedy would lock onto include isStatus +0.50,
-       * protectThreatened +0.49 and accuracy -1.51 -- a greedy bot on that vector may Protect nearly
-       * every turn. Sampling currently smooths that out. Which effect wins is a measurement. */
+       * THE PROTECT WORRY WAS RIGHT, AND IN ONE DIRECTION ONLY. Greedy Protects 215.2 per 1,000
+       * moves against a sampler's 159.9 and a human's 128.5, so the argmax really does lock onto the
+       * Protect features -- "nearly every turn" overstates it, but half again as often as a human is
+       * real. It also converts them worse: 59.0% of greedy's Protects block anything, against 70.6%
+       * for a human.
+       *
+       * THE WEIGHTS NAMED HERE WERE STALE AND THE INFERENCE FROM THEM DOES NOT HOLD. They read
+       * isStatus +0.50, protectThreatened +0.49, accuracy -1.51; after the 2026-08-02 refit they are
+       * +0.26, +0.32 and -0.795. More to the point, engine/protect_calibration.js scores this exact
+       * vector against the human decisions it was fitted on and gets 19.22% predicted against 18.86%
+       * observed -- a ratio of 1.019. The weights reproduce the human Protect rate almost exactly,
+       * so the in-play excess is NOT in them. It is the argmax on one side and distribution shift on
+       * the other: MAG reaches Protect-favourable boards more often than the corpus contains.
+       *
+       * Do not re-derive a behavioural claim from a weight quoted in a comment. Run the tool. */
       let j = 0;
       if (this.greedy) {
         let best = -Infinity;

@@ -185,8 +185,24 @@ if (play) {
   console.log(`\n  IN PLAY — ${PLAY_FILE}`);
   console.log(`    decisions with recorded scores: ${playDecisions.toLocaleString()}`);
   console.log(`    options that were MOVES:        ${play.move.toLocaleString()}`);
-  console.log(`    options that were SWITCHES:     ${play.switch.toLocaleString()}` +
-    (play.switch === 0 ? '   <- THE PLAYER CANNOT SWITCH. Every switch feature is dead in play.' : ''));
+  console.log(`    options that were SWITCHES:     ${play.switch.toLocaleString()}`);
+  /* "NO SWITCHES OBSERVED" AND "NO OBSERVATIONS AT ALL" ARE NOT THE SAME FINDING, and this printed
+   * the first for both. A corpus generated without --thoughts carries no `thoughts` array, so
+   * playDecisions is 0, play.switch is 0, and the report announced "THE PLAYER CANNOT SWITCH" — a
+   * conclusion about the policy drawn from an empty sample. That is the lookup.js disease in another
+   * costume: a miss and a measured zero collapsed into one value, and the caller cannot tell.
+   *
+   * Distinguished here, so the diagnosis is only offered when there was something to diagnose. */
+  if (!playDecisions) {
+    console.log('    NO DECISIONS RECORDED — this corpus carries no `thoughts`, so nothing about the');
+    console.log('    player can be read from it. This is NOT evidence that a feature is dead in play.');
+    console.log('    Regenerate with --thoughts to get this column.');
+  } else if (play.switch === 0) {
+    console.log('    <- THE PLAYER CANNOT SWITCH. Every switch feature is dead in play.');
+    console.log('       Check the corpus stamp for switching/switching2 before reading this as a');
+    console.log('       property of the policy: every self-play corpus on disk before 2026-08-02 was');
+    console.log('       generated with the lever OFF, and an off lever reads identically here.');
+  }
 } else {
   console.log('\n  No play file given. Run with --thoughts and pass the store to check the PLAYER too:');
   console.log('    node engine/mew.js --n 200 --thoughts --policy score --policy2 random --out data/x.jsonl');

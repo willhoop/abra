@@ -112,6 +112,96 @@ function scanDocs() {
   }
 }
 
+/* ---- 1b. A CLAIM MUST NOT OUTLIVE THE ARTIFACT IT RESTS ON -------------------------------------
+ *
+ * The RETRACTED registry above is hand-maintained: someone has to notice a figure died and type it
+ * in. That works for a figure withdrawn by a DECISION, and it is exactly what failed for a figure
+ * withdrawn by the DATA MOVING — nobody retracts anything, the artifact simply regenerates and the
+ * sentence in the document quietly stops being true.
+ *
+ * "Our meta is rock-paper-scissors" is the case in hand. docs/CONFORMANCE-REVIEW-2026-07-26.md
+ * removed it from MODELS.md in July, for the good reason that it had been measured over a corpus
+ * that is 87% bots. It survived, unqualified, in docs/LITERATURE-v2.md.
+ *
+ * So this DERIVES the claim's licence from the shipped artifact instead of from a list:
+ *
+ *   data/slowking-playstyle-eval.json  ->  top_nontransitive_cycle.supported
+ *
+ * The artifact already decides this and states its own rule — every leg must clear 50% on >= 50
+ * games — and records that the reported cycle is the strongest of 336 candidate triples, so an
+ * unsupported one "is what noise looks like, not weak evidence of structure". When the metagame
+ * moves and a real cycle appears, `supported` flips and this goes quiet on its own. Nothing here
+ * needs editing for that to happen, which is the difference between a guard and a number. */
+function nonTransitivityIsSupported() {
+  console.log('\n== 1b. the non-transitivity claim tracks the SLOWKING artifact ==');
+  const F = D('data', 'slowking-playstyle-eval.json');
+  if (!fs.existsSync(F)) { ok(false, 'data/slowking-playstyle-eval.json exists to check claims against'); return; }
+  const d = JSON.parse(fs.readFileSync(F, 'utf8'));
+  const cyc = d.top_nontransitive_cycle || {};
+  const ex = d.exploitability || {};
+  const gapCI = ex.greedy_minus_nash_ci95 || [];
+  console.log(`         artifact says: cycle supported=${cyc.supported}, ` +
+    `greedy-minus-Nash ${ex.greedy_minus_nash} CI ${JSON.stringify(gapCI)}`);
+  if (cyc.supported === true && gapCI.length === 2 && gapCI[0] > 0) {
+    ok(true, 'the artifact supports a cycle — documents may state one');
+    return;
+  }
+
+  /* Only unqualified ASSERTIONS count. A document is free to discuss the hypothesis, report the
+   * measurement, or explain why it was withdrawn — the sentence this catches is the one telling a
+   * reader the metagame IS cyclic with nothing beside it saying the evidence did not hold. */
+  const ASSERTS = /\b(?:our|the|this)\s+meta(?:game)?\s+is\s+(?:a\s+)?(?:rock[- ]paper[- ]scissors|non-?transitive|cyclic)\b/i;
+  const QUALIFIED = /suggestive|not a fact|hint|caveat|unsupported|retract|withdraw|superseded|noise|small sample|does not reproduce|close to transitive|cross(?:es)? 50|JOLTEON/i;
+
+  /* A QUOTED CLAIM IS A CITATION, NOT AN ASSERTION, and the first version of this check could not
+   * tell the difference — it flagged docs/CONFORMANCE-REVIEW-2026-07-26.md and
+   * docs/SYSTEMS-AUDIT-2026-07-31.md, both of which reproduce the sentence precisely in order to
+   * withdraw or audit it. Punishing the two documents that did the right thing is how a check gets
+   * switched off.
+   *
+   * The discriminator is the quotation marks around the match itself, which is exactly the
+   * distinction being drawn: prose asserts, a quotation reports what someone else asserted.
+   *
+   * A quotation WRAPS, so this cannot be decided one line at a time: SYSTEMS-AUDIT-2026-07-31.md
+   * opens the quote on one line and closes it on the next, and a line-local test called the second
+   * half an assertion. Counting quote marks from the start of the paragraph gets it right — an odd
+   * count before the match means the match sits inside an open quotation. */
+  const isQuoted = (lines, i, m) => {
+    let start = i;
+    while (start > 0 && lines[start - 1].trim() !== '') start--;
+    const before = lines.slice(start, i).join('\n') + '\n' + lines[i].slice(0, m.index);
+    const marks = (before.match(/["“”]/g) || []).length;
+    return marks % 2 === 1;
+  };
+  const hits = [];
+  for (const dir of ['docs', '.']) {
+    for (const f of fs.readdirSync(D(dir))) {
+      if (!f.endsWith('.md') || f === 'CHANGELOG.md') continue;
+      const rel = path.join(dir, f), p = D(rel);
+      if (!fs.statSync(p).isFile()) continue;
+      const lines = fs.readFileSync(p, 'utf8').split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const m = ASSERTS.exec(lines[i]);
+        if (!m) continue;
+        if (isQuoted(lines, i, m)) continue;
+        /* A wider window than rule 1's. A retraction is often a paragraph away from the sentence it
+         * retracts, and the two false positives above were both just outside a +5 reach. */
+        const ctx = lines.slice(Math.max(0, i - 8), i + 9).join(' ');
+        if (QUALIFIED.test(ctx)) continue;
+        hits.push(`${rel}:${i + 1}: ${lines[i].trim().slice(0, 88)}`);
+      }
+    }
+  }
+  ok(hits.length === 0,
+    'no document asserts a non-transitive metagame while the artifact records the cycle unsupported' +
+    (hits.length ? ` — ${hits.length} place(s):\n         ` + hits.join('\n         ') : ''));
+  if (hits.length) {
+    console.log('         The shipped artifact rates its own best cycle UNSUPPORTED: it is the strongest of');
+    console.log('         336 candidate triples and its legs rest on as few as 5 games. Either qualify the');
+    console.log('         sentence, or regenerate the artifact and let it license the claim.');
+  }
+}
+
 /* ---- 2. THE LIVING DOCS MUST TRACK THE CHANGELOG ---------------------------------------------
  * CLAUDE.md: "Any change to a model, a result, or the site updates ALL of the following in the SAME
  * pass ... plus a CHANGELOG entry and a version bump." Nothing checked it, so it did not happen. */
@@ -148,6 +238,7 @@ function versions() {
 }
 
 scanDocs();
+nonTransitivityIsSupported();
 versions();
 console.log(`\nDOC CURRENCY TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

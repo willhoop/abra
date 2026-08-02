@@ -99,6 +99,7 @@ function gather(store, logs, limit, keep) {
     turnsTotal: 0, turnsGames: 0,
     moves: 0, immune: 0, resisted: 0, superEff: 0, failed: 0, crit: 0,
     megaGames: 0, switches: 0, protects: 0, logGames: 0, faints: 0,
+    volSwitches: 0, forcedSwitches: 0, logTurns: 0,
   };
   const seen = new Set();
   eachLine(store, (line) => {
@@ -136,6 +137,33 @@ function gather(store, logs, limit, keep) {
     if (keep && !(r.id && seen.has(r.id))) return;
     R.logGames++;
     if (/^\|-mega\|/m.test(r.log)) R.megaGames++;
+    /* SWITCHES PER GAME WAS ONE NUMBER COVERING THREE DIFFERENT EVENTS, and pooling them hid a
+     * lever that was simply off. The line below used to count every |switch| and |drag| together:
+     * the four opening send-outs, the replacements a faint forces, and the voluntary switches that
+     * are the only ones a POLICY chooses. Read that way, every self-play corpus on disk looked
+     * merely low on switching — a modest gap, the sort of thing you file under "the policy is
+     * weaker than a human".
+     *
+     * Measured apart on 2026-08-02, the truth was not a gap at all. Voluntary switches in
+     * games.selfplay, games.selfplay-sampling and games.h2h-greedy-vs-sample: 11,604, 4,696 and
+     * 2,400 — which are EXACTLY 4 x games in all three, i.e. the opening send-outs and nothing
+     * else. Zero, to the individual count, because every one of those corpora was generated with
+     * `switching: false` and the bot's candidate list contained no switches to pick. Humans, on the
+     * same measure: 39,481 genuine voluntary switches, 216.7 per 1,000 turns.
+     *
+     * A voluntary switch resolves at +6 priority, so it is any |switch| BEFORE the turn's first
+     * |move|. Send-outs print before |turn|1 and are excluded by requiring a turn to have started —
+     * which is what makes the three counts land on exactly 4 x games rather than near it. */
+    let started = false, seenMove = false;
+    for (const l of r.log.split('\n')) {
+      /* Turns counted from the LOG, not from the store's turn array, so the numerator and the
+       * denominator of this rate come from the same pass over the same games. */
+      if (l.startsWith('|turn|')) { started = true; seenMove = false; R.logTurns++; }
+      else if (l.startsWith('|move|')) seenMove = true;
+      else if (started && (l.startsWith('|switch|') || l.startsWith('|drag|'))) {
+        if (seenMove) R.forcedSwitches++; else R.volSwitches++;
+      }
+    }
     for (const l of r.log.split('\n')) {
       if (l.startsWith('|move|')) { R.moves++; if (/\|(Protect|Detect|Spiky Shield|Baneful Bunker)\b/.test(l)) R.protects++; }
       else if (l.startsWith('|-immune|')) R.immune++;
@@ -172,6 +200,45 @@ function main() {
     `  — ${real.rejected.toLocaleString()} rejected (bots, forfeits, partial brings, too short)`);
   console.log('  both sides pass engine/quality.js. Bot games are NOT a realism baseline.\n');
 
+  /* WHAT THE CORPUS WAS ACTUALLY GENERATED WITH, read off its own stamp.
+   *
+   * A metric is only evidence about the policy if the policy was ALLOWED to affect it. Every
+   * self-play corpus on disk was made with `switching: false`, so "switches per game" was never
+   * measuring reluctance — the bot had no switch to choose. The gap read as behavioural for as long
+   * as nobody printed the lever beside the number.
+   *
+   * Derived, not listed: each entry names the stamp fields that GOVERN a metric, so a corpus made
+   * with the lever on prints nothing and this stays quiet when it has nothing to say. */
+  const GOVERNS = [
+    { levers: ['switching', 'switching2'], metric: 'VOLUNTARY switches',
+      says: 'the bot had no switch in its candidate list, so a voluntary switch was not merely rare — it was impossible' },
+    { levers: ['forcedSwitch', 'forcedSwitch2'], metric: 'post-KO replacement choice',
+      says: 'replacements were picked by the engine default, not by the policy' },
+    { levers: ['joint', 'joint2'], metric: 'anything about slot coordination',
+      says: 'the pair terms were not applied, so the two slots were decided independently' },
+  ];
+  let stamp = null, badStampLines = 0;
+  eachLine(SELF_STORE, (line) => {
+    const t = line.trim(); if (!t) return;
+    /* Counted, not swallowed: a shard truncated mid-write would otherwise read as a corpus
+     * that simply carries no stamp, which is a different and much more comfortable conclusion. */
+    try { const g = JSON.parse(t); if (g.selfplay) { stamp = g.selfplay; return false; } }
+    catch (e) { badStampLines++; }
+  });
+  if (!stamp) {
+    console.log('  NOTE: this corpus carries no `selfplay` stamp, so which levers were on cannot be');
+    console.log('  established. Treat every behavioural row below as uninterpretable until it can.\n');
+  } else {
+    const off = GOVERNS.filter(g => g.levers.every(k => stamp[k] === false));
+    console.log('  generated with: ' + ['greedy', 'greedy2', 'switching', 'switching2', 'joint', 'joint2']
+      .filter(k => k in stamp).map(k => k + '=' + stamp[k]).join('  '));
+    for (const g of off) {
+      console.log(`  LEVER OFF — "${g.metric}" is NOT a measurement of the policy here:`);
+      console.log(`    ${g.levers.join('/')} were both false, so ${g.says}.`);
+    }
+    console.log();
+  }
+
   const rows = [];
   const add = (name, s, r, unit = '%') => rows.push({ name, s, r, unit, gap: Math.abs(s - r) });
 
@@ -187,6 +254,11 @@ function main() {
    * real figures are 4.3 against 5.7, a modest gap rather than a missing behaviour. A denominator
    * that differs between the two corpora will invent a defect every time. */
   add('switches per game', self.switches / Math.max(1, self.logGames), real.switches / Math.max(1, real.logGames), '');
+  /* Per 1,000 TURNS, because this is a per-decision rate and games differ in length between the two
+   * corpora — the same denominator mistake the switch line already carries a comment about. */
+  const per1kT = (n, R) => (R.logTurns ? 1000 * n / R.logTurns : 0);
+  add('VOLUNTARY switches /1k turns', per1kT(self.volSwitches, self), per1kT(real.volSwitches, real), '');
+  add('forced switches /1k turns', per1kT(self.forcedSwitches, self), per1kT(real.forcedSwitches, real), '');
   add('faints per game', self.faints / Math.max(1, self.logGames), real.faints / Math.max(1, real.logGames), '');
   add('turns per game', self.turnsGames ? self.turnsTotal / self.turnsGames : 0,
       real.turnsGames ? real.turnsTotal / real.turnsGames : 0, ' turns');

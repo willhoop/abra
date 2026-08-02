@@ -341,6 +341,21 @@ function assertDropped(rows) {
     `${rows.length.toLocaleString()} decisions`);
 }
 
+/* WHAT EACH CANDIDATE ACTUALLY WAS, carried alongside its feature row.
+ *
+ * The fit does not need this — it multiplies a matrix. Any question ABOUT the fit does: "how often
+ * does this model predict the Protect family, against how often a human pressed it" cannot be asked
+ * of a feature matrix alone, because nothing in the vector says which row was Protect.
+ *
+ * It is added HERE rather than in a second replay loop, which is the whole of R2 in
+ * docs/ARTIFACT-ACCESS-RULES.md: callers differ by PARAMETER, never by re-implementation. The last
+ * time this repository grew a second copy of the pair-decision replay the two drifted and the copy
+ * that had not learned the spread rule threw away 70% of the pair fit's data. One reader, one extra
+ * field, no second replay. */
+function candIds(cands) {
+  return cands.map(c => (c.switchTo ? 'switch:' + norm(c.switchTo) : (c.move && c.move.id) || ''));
+}
+
 function decisionsFor(g, tally) {
   const out = [];
   const board = new B.Board();
@@ -418,7 +433,7 @@ function decisionsFor(g, tally) {
         const idx = CM.matchClick(cands, { kind: 'switch', to: base(e.mon) }, dex).chosen;
         if (idx < 0) { tally.unmatched++; continue; }
         const feats = featsFor(cands, user, board, side);
-        out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx });
+        out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx, mvs: candIds(cands) });
         tally.kept++;
         continue;
       }
@@ -449,7 +464,7 @@ function decisionsFor(g, tally) {
       if (m.chosen < 0) { tally.unmatched++; continue; }
 
       const feats = featsFor(cands, user, board, side);
-      out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: m.chosen });
+      out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: m.chosen, mvs: candIds(cands) });
       tally.kept++;
     }
 

@@ -1,0 +1,577 @@
+{
+ "generated": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\games.h2h-greedylever.jsonl",
+ "arms": {
+  "arm1": {
+   "label": "arm 1: GREEDY  policy-weights.json",
+   "moves": 63251
+  },
+  "arm2": {
+   "label": "arm 2: sampling  policy-weights.json",
+   "moves": 59816
+  }
+ },
+ "moves": {
+  "suckerpunch": {
+   "name": "Sucker Punch",
+   "family": "willMove",
+   "failDiff": {
+    "point": -0.7058528061052172,
+    "lo": -6.075554130901928,
+    "hi": 4.814055126706801,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 1764,
+    "per1k": 14.05,
+    "failPct": 39.795918367346935,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 1088,
+     "per1k": 17.2,
+     "failPct": 42.00367647058823,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 871,
+     "per1k": 14.56,
+     "failPct": 42.70952927669346,
+     "blockPct": 0
+    }
+   }
+  },
+  "helpinghand": {
+   "name": "Helping Hand",
+   "family": "willMove",
+   "failDiff": {
+    "point": -0.4149377593360996,
+    "lo": -1.092896174863388,
+    "hi": 0,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 1102,
+    "per1k": 8.78,
+    "failPct": 4.3557168784029034,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 563,
+     "per1k": 8.9,
+     "failPct": 0,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 482,
+     "per1k": 8.06,
+     "failPct": 0.4149377593360996,
+     "blockPct": 0
+    }
+   }
+  },
+  "encore": {
+   "name": "Encore",
+   "family": "willMove",
+   "failDiff": {
+    "point": 3.8865546218487403,
+    "lo": -0.5041238554553712,
+    "hi": 8.842406433652954,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 1348,
+    "per1k": 10.74,
+    "failPct": 17.062314540059347,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 238,
+     "per1k": 3.76,
+     "failPct": 9.243697478991596,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 448,
+     "per1k": 7.49,
+     "failPct": 5.357142857142857,
+     "blockPct": 0
+    }
+   }
+  },
+  "instruct": {
+   "name": "Instruct",
+   "family": "willMove",
+   "failDiff": {
+    "point": 1.605814739688979,
+    "lo": -1.6134134767478645,
+    "hi": 4.95518565941101,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 165,
+    "per1k": 1.31,
+    "failPct": 8.484848484848484,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 116,
+     "per1k": 1.83,
+     "failPct": 2.586206896551724,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 102,
+     "per1k": 1.71,
+     "failPct": 0.9803921568627451,
+     "blockPct": 0
+    }
+   }
+  },
+  "taunt": {
+   "name": "Taunt",
+   "family": "willMove",
+   "failDiff": {
+    "point": 0.808997632202052,
+    "lo": -4.864864864864865,
+    "hi": 8.907103825136613,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 457,
+    "per1k": 3.64,
+    "failPct": 0.87527352297593,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 28,
+     "per1k": 0.44,
+     "failPct": 3.5714285714285716,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 181,
+     "per1k": 3.03,
+     "failPct": 2.7624309392265194,
+     "blockPct": 0
+    }
+   }
+  },
+  "disable": {
+   "name": "Disable",
+   "family": "willMove",
+   "failDiff": {
+    "point": 0.5128205128205123,
+    "lo": -8.59375,
+    "hi": 13.247863247863245,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 331,
+    "per1k": 2.64,
+    "failPct": 6.948640483383686,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 30,
+     "per1k": 0.47,
+     "failPct": 6.666666666666667,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 130,
+     "per1k": 2.17,
+     "failPct": 6.153846153846154,
+     "blockPct": 0
+    }
+   }
+  },
+  "quash": {
+   "name": "Quash",
+   "family": "willMove",
+   "failDiff": {
+    "point": -3.2828282828282873,
+    "lo": -41.46825396825397,
+    "hi": 39.16666666666666,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 123,
+    "per1k": 0.98,
+    "failPct": 11.382113821138212,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 18,
+     "per1k": 0.28,
+     "failPct": 44.44444444444444,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 44,
+     "per1k": 0.74,
+     "failPct": 47.72727272727273,
+     "blockPct": 0
+    }
+   }
+  },
+  "afteryou": {
+   "name": "After You",
+   "family": "willMove",
+   "failDiff": {
+    "point": -7.285546415981203,
+    "lo": -33.80952380952382,
+    "hi": 25.490196078431378,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 69,
+    "per1k": 0.55,
+    "failPct": 10.144927536231885,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 23,
+     "per1k": 0.36,
+     "failPct": 52.17391304347826,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 37,
+     "per1k": 0.62,
+     "failPct": 59.45945945945946,
+     "blockPct": 0
+    }
+   }
+  },
+  "round": {
+   "name": "Round",
+   "family": "willMove",
+   "failDiff": {
+    "point": 0,
+    "lo": 0,
+    "hi": 0,
+    "n": 2521,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 51,
+    "per1k": 0.41,
+    "failPct": 0,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 5,
+     "per1k": 0.08,
+     "failPct": 0,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 21,
+     "per1k": 0.35,
+     "failPct": 0,
+     "blockPct": 0
+    }
+   }
+  },
+  "upperhand": {
+   "name": "Upper Hand",
+   "family": "willMove",
+   "failDiff": {
+    "point": 0,
+    "lo": 0,
+    "hi": 0,
+    "n": 3935,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 25,
+    "per1k": 0.2,
+    "failPct": 48,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 9,
+     "per1k": 0.14,
+     "failPct": 100,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 8,
+     "per1k": 0.13,
+     "failPct": 100,
+     "blockPct": 0
+    }
+   }
+  },
+  "protect": {
+   "name": "Protect",
+   "family": "willAct",
+   "failDiff": {
+    "point": -3.768727693764802,
+    "lo": -4.6141386367441095,
+    "hi": -2.927731559053891,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 16140,
+    "per1k": 128.54,
+    "failPct": 4.436183395291202,
+    "blockPct": 70.57620817843866
+   },
+   "arms": {
+    "arm1": {
+     "used": 13611,
+     "per1k": 215.19,
+     "failPct": 6.759238850929395,
+     "blockPct": 58.98905297186099
+    },
+    "arm2": {
+     "used": 9565,
+     "per1k": 159.91,
+     "failPct": 10.527966544694198,
+     "blockPct": 54.8980658651333
+    }
+   }
+  },
+  "wideguard": {
+   "name": "Wide Guard",
+   "family": "willAct",
+   "failDiff": {
+    "point": 7.4049036424175165,
+    "lo": 1.8692173043260811,
+    "hi": 12.507146941109204,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 710,
+    "per1k": 5.65,
+    "failPct": 0.5633802816901409,
+    "blockPct": 44.929577464788736
+   },
+   "arms": {
+    "arm1": {
+     "used": 265,
+     "per1k": 4.19,
+     "failPct": 9.81132075471698,
+     "blockPct": 18.11320754716981
+    },
+    "arm2": {
+     "used": 374,
+     "per1k": 6.25,
+     "failPct": 2.406417112299465,
+     "blockPct": 21.390374331550802
+    }
+   }
+  },
+  "detect": {
+   "name": "Detect",
+   "family": "willAct",
+   "failDiff": {
+    "point": 0.6300473405736556,
+    "lo": -5.5404160771765225,
+    "hi": 6.9605545002627,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 447,
+    "per1k": 3.56,
+    "failPct": 3.8031319910514543,
+    "blockPct": 74.9440715883669
+   },
+   "arms": {
+    "arm1": {
+     "used": 399,
+     "per1k": 6.31,
+     "failPct": 11.278195488721805,
+     "blockPct": 61.40350877192982
+    },
+    "arm2": {
+     "used": 216,
+     "per1k": 3.61,
+     "failPct": 10.648148148148149,
+     "blockPct": 56.94444444444444
+    }
+   }
+  },
+  "banefulbunker": {
+   "name": "Baneful Bunker",
+   "family": "willAct",
+   "failDiff": {
+    "point": -5.6938358165352,
+    "lo": -13.97284608552214,
+    "hi": 3.1978319783197815,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 363,
+    "per1k": 2.89,
+    "failPct": 11.570247933884298,
+    "blockPct": 63.36088154269972
+   },
+   "arms": {
+    "arm1": {
+     "used": 210,
+     "per1k": 3.32,
+     "failPct": 17.61904761904762,
+     "blockPct": 59.523809523809526
+    },
+    "arm2": {
+     "used": 163,
+     "per1k": 2.73,
+     "failPct": 23.312883435582823,
+     "blockPct": 46.012269938650306
+    }
+   }
+  },
+  "spikyshield": {
+   "name": "Spiky Shield",
+   "family": "willAct",
+   "failDiff": {
+    "point": 0.21141649048625755,
+    "lo": -6.204246923835729,
+    "hi": 7.351851851851851,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 328,
+    "per1k": 2.61,
+    "failPct": 4.878048780487805,
+    "blockPct": 63.71951219512195
+   },
+   "arms": {
+    "arm1": {
+     "used": 215,
+     "per1k": 3.4,
+     "failPct": 9.30232558139535,
+     "blockPct": 60.93023255813954
+    },
+    "arm2": {
+     "used": 110,
+     "per1k": 1.84,
+     "failPct": 9.090909090909092,
+     "blockPct": 71.81818181818181
+    }
+   }
+  },
+  "quickguard": {
+   "name": "Quick Guard",
+   "family": "willAct",
+   "failDiff": {
+    "point": 1.0461061604029445,
+    "lo": -5.397849462365591,
+    "hi": 6.6115702479338845,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 137,
+    "per1k": 1.09,
+    "failPct": 0.7299270072992701,
+    "blockPct": 27.00729927007299
+   },
+   "arms": {
+    "arm1": {
+     "used": 89,
+     "per1k": 1.41,
+     "failPct": 4.49438202247191,
+     "blockPct": 4.49438202247191
+    },
+    "arm2": {
+     "used": 87,
+     "per1k": 1.45,
+     "failPct": 3.4482758620689653,
+     "blockPct": 4.597701149425287
+    }
+   }
+  },
+  "kingsshield": {
+   "name": "King's Shield",
+   "family": "willAct",
+   "failDiff": {
+    "point": 4.581757040773432,
+    "lo": -9.259259259259261,
+    "hi": 19.289044289044284,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 95,
+    "per1k": 0.76,
+    "failPct": 7.368421052631579,
+    "blockPct": 58.94736842105263
+   },
+   "arms": {
+    "arm1": {
+     "used": 61,
+     "per1k": 0.96,
+     "failPct": 32.78688524590164,
+     "blockPct": 42.622950819672134
+    },
+    "arm2": {
+     "used": 39,
+     "per1k": 0.65,
+     "failPct": 28.205128205128204,
+     "blockPct": 58.97435897435897
+    }
+   }
+  },
+  "fakeout": {
+   "name": "Fake Out",
+   "family": "selfTurn",
+   "failDiff": {
+    "point": -0.18761726078799248,
+    "lo": -0.5847953216374269,
+    "hi": 0,
+    "n": 4000,
+    "clusters": 3707
+   },
+   "human": {
+    "used": 4380,
+    "per1k": 34.88,
+    "failPct": 1.1415525114155252,
+    "blockPct": 0
+   },
+   "arms": {
+    "arm1": {
+     "used": 435,
+     "per1k": 6.88,
+     "failPct": 0,
+     "blockPct": 0
+    },
+    "arm2": {
+     "used": 533,
+     "per1k": 8.91,
+     "failPct": 0.18761726078799248,
+     "blockPct": 0
+    }
+   }
+  }
+ },
+ "human": {
+  "moves": 125561,
+  "games": 5109
+ }
+}
