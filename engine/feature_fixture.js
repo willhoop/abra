@@ -87,7 +87,30 @@ const SCENARIOS = [
       { species: 'Venusaur', item: 'Rocky Helmet', ability: 'Overgrow', nature: 'Relaxed',
         moves: ['Grassy Terrain', 'Solar Beam', 'Sleep Powder', 'Charm'] },
     ],
-    bench: { p1: ['Whimsicott', 'Torkoal'], p2: ['Grimmsnarl', 'Clefable'] },
+    /* AEGISLASH IS BENCHED HERE, AND THE SCENARIO IS NOT ARBITRARY.
+     *
+     * Rotom-Wash covers the hyphen; Sinistcha-Masterpiece covers the cosmetic fallback. NEITHER
+     * covers a forme whose body genuinely DIFFERS from its base and so needs its own damage-table
+     * row. On 2026-08-02 eight species had no row at all -- five format megas plus Aegislash-Blade,
+     * Palafin-Hero and Gourgeist's sizes -- and every damage-derived feature read zero for them. The
+     * table changed for all eight and EVERY STORED HASH STAYED IDENTICAL, because none of them stood
+     * on these boards. R7 a fourth time: a guard only guards what it exercises.
+     *
+     * GOURGEIST-SUPER RATHER THAN AEGISLASH, and the difference is the whole point. Aegislash-Blade
+     * only exists once Stance Change flips it mid-battle, which a static fixture never does -- so
+     * benching "Aegislash" exercises the Shield row, which was never missing. Gourgeist-Super is a
+     * species you actually BRING, so it reaches the table directly. Verified rather than assumed:
+     * with Aegislash benched, deleting the aegislash-blade row moved ZERO hashes; with
+     * Gourgeist-Super benched, deleting its row makes needPlayable() throw by name, which is a
+     * louder failure than a moved hash and is the outcome wanted.
+     *
+     * Two earlier attempts are recorded because both LOOKED right. Benching it in
+     * dead-moves-and-status was INERT -- benchRisk is identically zero there, so the swap moved no
+     * number and the guard would have looked improved without being improved. Making it ACTIVE
+     * REGRESSED coverage: it displaced the Fire partner Torkoal's sun boosts, and
+     * weatherSetupHelpsPartner then fired nowhere. Both were caught by RUNNING the coverage check,
+     * not by reasoning about it. */
+    bench: { p1: ['Whimsicott', 'Torkoal'], p2: ['Grimmsnarl', 'Gourgeist-Super'] },
     state: {},
   },
 
@@ -142,6 +165,20 @@ const SCENARIOS = [
       { species: 'Garchomp', item: 'Life Orb', ability: 'Rough Skin', nature: 'Jolly',
         moves: ['Earthquake', 'Dragon Claw', 'Swords Dance', 'Protect'] },
     ],
+    /* AEGISLASH AND GOURGEIST-SUPER ARE ON THE BENCH FOR A THIRD DISTINCT REASON, added 2026-08-02.
+     *
+     * Rotom-Wash covers the hyphen. Sinistcha-Masterpiece covers the cosmetic fallback. NEITHER
+     * covers a forme whose body genuinely differs from its base and therefore needs its OWN ROW —
+     * and on 2026-08-02 eight species were found to have no row at all, so every damage-derived
+     * feature read zero for them: five format megas, plus Aegislash-Blade, Palafin-Hero and
+     * Gourgeist's size formes.
+     *
+     * The damage table changed for all eight and EVERY STORED HASH STAYED IDENTICAL, because not one
+     * of them appeared on these boards. The guard reported the weights as current while the function
+     * beneath them had moved. R7 for the fourth time: a guard only guards what it exercises.
+     *
+     * They sit on the BENCH deliberately — benchRisk was among the features reading zero, and the
+     * bench lookup is a second call site that was blind in exactly the same way as dmgMon. */
     bench: { p1: ['Gyarados', 'Incineroar'], p2: ['Incineroar', 'Gyarados'] },
     /* Applied after both sides are on the field, so the dead-move family has something to be dead
      * against: a status already inflicted, a side condition already up, a terrain already down,
@@ -298,7 +335,8 @@ function needPlayable(sp, dex, name) {
    * -- so it agreed with the bug and would have rejected every hyphenated forme as "not in the cache"
    * when the entry was there all along. A guard that re-derives what it is guarding tests nothing. */
   const MC = globalThis.MC;
-  if (MC && MC.mons && !B.mcKeyFor(name)) {
+  /* A DECLARED miss: this check EXISTS to detect absence and then throw its own, better error. */
+  if (MC && MC.mons && !B.mcKeyFor(name, { mayMiss: 'this guard is asking whether the species is absent' })) {
     throw new Error(`feature_fixture: "${name}" is legal but is NOT in the damage engine's mon cache `
       + `(MC.mons), so every damage-derived feature reads zero on it and the fixture would claim `
       + `coverage it does not have. Pick a species that is in the cache.`);

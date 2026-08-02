@@ -2749,8 +2749,14 @@ function featuresFor(cand, user, board, side, dex, priorP) {
             const foeSide2 = side === 'p1' ? 'p2' : 'p1';
             const benchMons = (board.bench(foeSide2) || []).map(sp => {
               /* Same normalised index as dmgMon — the second copy of the broken lookup lived here,
-               * so benchRisk was blind to exactly the same 101 formes. */
-              const key2 = mcKeyFor(sp);
+               * so benchRisk was blind to exactly the same 101 formes.
+               *
+               * DECLARED, for the same reason and with the same cost as dmgMon's: a benched Pokemon
+               * with no MC.mons row contributes nothing to benchRisk, so the feature under-states the
+               * threat sitting behind the active one. `gourgeistsuper` is the common case — same
+               * types as Gourgeist, different stats, so substituting the base would be worse than
+               * returning nothing. Counted through engine/lookup.js rather than assumed. */
+              const key2 = mcKeyFor(sp, { mayMiss: 'benched forme with no usage entry (Gourgeist-Super, Aegislash-Blade)' });
               if (!key2) return null;
               const b2 = D2.buildMon(key2);
               if (!b2) return null;

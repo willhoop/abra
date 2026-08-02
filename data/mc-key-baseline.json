@@ -3,7 +3,7 @@
   "allowed": {
     "engine/artifact_audit.js": 1,
     "engine/medicham2-browser.js": 5,
-    "engine/merge_mega_into_engine.js": 12,
+    "engine/merge_mega_into_engine.js": 14,
     "engine/position_features.js": 2,
     "engine/type_coverage.js": 1,
     "build/rebuild_sets_from_sheets.js": 1,

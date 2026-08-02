@@ -3,15 +3,14 @@
   "workload": "first 120 clean open-sheet corpus games, scored as fit_policy scores them",
   "budgets": {
     "board.dmgMon.unknownSpecies": {
-      "max_rate": 0.0363,
-      "measured_at": "540/14903 over 120 corpus games AND 60 self-play games",
+      "max_rate": 0,
+      "measured_at": "0/14903 over 120 corpus games",
       "what": "candidate scorings where the damage engine could not identify a Pokemon, so every damage-derived feature silently read zero",
-      "LOOSENED_2026_08_02": "From 0.00% to 3.63%, and this is a WORKLOAD correction, not a regression. The old ceiling was measured on 120 REPLAYED corpus games, in which an in-battle forme change never reaches a scored position, so the counter could not fire and 0.00% certified nothing. Adding 60 self-play games — the live bot, its own formes — measured 6.16%. Re-running build_mega_dex.js and merge_mega_into_engine.js added the five format megas that had no row at all (Victreebel, Feraligatr, Skarmory, Barbaracle, Falinks-Mega) and took it to 3.62%. The remainder is Gourgeist-Super, Aegislash-Blade and Palafin-Hero: formes whose stats differ from their base, so the cosmetic fallback correctly refuses to substitute and there is genuinely no body to compute with. TARGET IS ZERO, reached by giving those formes their own MC.mons rows through the same pipeline the megas use.",
-      "target": 0
+      "target": null
     },
     "board.dmgMon.engineUnavailable": {
       "max_rate": 0,
-      "measured_at": "0/3975 over 120 corpus games",
+      "measured_at": "0/14903 over 120 corpus games",
       "what": "candidate scorings with no damage engine at all",
       "target": null
     },
@@ -22,14 +21,14 @@
       "target": null
     },
     "fit_policy.unmatchedClicks": {
-      "max_rate": 0.0295,
-      "measured_at": "5986/203503 over 120 corpus games",
+      "max_rate": 0.0294,
+      "measured_at": "6014/204889 over 120 corpus games",
       "what": "human clicks the move fit could not match to a candidate, so the decision was dropped from training",
       "target": null
     },
     "fit_policy.decisionsDropped": {
-      "max_rate": 0.033,
-      "measured_at": "6700/203503 over 120 corpus games",
+      "max_rate": 0.0329,
+      "measured_at": "6732/204889 over 120 corpus games",
       "what": "decisions discarded for any reason before fitting",
       "target": null
     },

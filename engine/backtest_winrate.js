@@ -26,8 +26,12 @@ for(const g of held){
    * dropped from the held-out games. 8.17% of real usage, removed from the test that decides whether
    * MEDICHAM predicts anything at all. See engine/mc_key.js. */
   const br=g.brought||{};
-  const p1=(br.p1||g.six?.p1||[]).map(mcKey).filter(Boolean);
-  const p2=(br.p2||g.six?.p2||[]).map(mcKey).filter(Boolean);
+  /* DECLARED: this line's JOB is to keep only the mons the damage engine can build, and the .filter
+   * (Boolean) right after it says so. The declaration makes that intent checkable instead of implied,
+   * and engine/lookup.js counts how many are dropped — the number this file exists to worry about. */
+  const MAY = { mayMiss: 'backtest keeps only mons the damage engine has a row for' };
+  const p1=(br.p1||g.six?.p1||[]).map(s => mcKey(s, MAY)).filter(Boolean);
+  const p2=(br.p2||g.six?.p2||[]).map(s => mcKey(s, MAY)).filter(Boolean);
   if(p1.length<3||p2.length<3) continue;
   const w=g.winner; if(!w) continue;
   const y = (w===g.p1?.name)?1:((w===g.p2?.name)?0:null); if(y===null) continue;

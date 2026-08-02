@@ -65,10 +65,32 @@ for (const [srcKey, f] of Object.entries(mega.forms)) {
    * sitting in engine-data.js with a null ability, Heracross-Mega among them at 7,072 usage. The
    * guard is meant to stop the dex growing, not to stop an existing entry being completed. */
   if (!f.in_our_store && !MC.mons[key]) { skipped++; continue; }
-  // ONLY touch mega/primal formes. The existing non-mega entries were built elsewhere and are what
-  // the damage validation runs against; rewriting their stats with this file's approximate spread
-  // would be an unrequested behaviour change.
-  if (!/mega|primal/i.test(f.forme || '')) { skipped++; continue; }
+  /* ONLY touch mega/primal formes — the original rule, and it is RIGHT about updates: the existing
+   * non-mega entries were built elsewhere and are what the damage validation runs against, so
+   * rewriting their stats with this file's approximate spread would be an unrequested behaviour
+   * change. That caution is preserved exactly below: a non-mega forme may be ADDED, never UPDATED.
+   *
+   * WHY ADDING THEM IS NOT OPTIONAL, measured 2026-08-02. A forme with no row at all makes dmgMon
+   * return null, and then EVERY damage-derived feature reads zero for that Pokemon — no kill odds,
+   * no threat, no risk. Over 60 self-play games that was 3.62% of all candidate scorings, and the
+   * offenders are Gourgeist-Super (25), Aegislash-Blade and Palafin-Hero. These are not obscure:
+   * Aegislash-Blade is Aegislash's ATTACKING forme, 140 Atk against Shield's 50, so the bot was
+   * blind to it in exactly the state that matters.
+   *
+   * The cosmetic-forme fallback in engine/mc_key.js deliberately refuses to substitute the base when
+   * the stats differ — correctly, since Shield's body is not Blade's — so the fallback cannot fix
+   * this and a real row is the only answer.
+   *
+   * THE PREDICATE IS NARROW ON PURPOSE: in our store, no existing entry, and a body that actually
+   * differs from the base. A forme whose stats and types match its base needs no row, because the
+   * fallback already handles it exactly. */
+  const isMega = /mega|primal/i.test(f.forme || '');
+  const baseKey = byNorm.get(nrm(f.base_species || ''));
+  const baseRow = baseKey && MC.mons[baseKey];
+  const bodyDiffers = !!(baseRow && f.base_stats &&
+    JSON.stringify(baseRow.bs) !== JSON.stringify(f.base_stats));
+  const addableForme = !isMega && !MC.mons[key] && f.in_our_store && bodyDiffers;
+  if (!isMega && !addableForme) { skipped++; continue; }
   const entry = {
     t: f.types,
     /* BASE STATS, and their absence was a real bug shipped on 2026-07-30. This object wrote `st`

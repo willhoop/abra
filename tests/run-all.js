@@ -152,7 +152,21 @@ for (const rel of all) {
   const p = plan(rel);
   if (p.skip) { skip.push([rel, p.skip]); console.log(`  SKIP  ${rel}  — ${p.skip}`); continue; }
   const started = Date.now();
-  const r = spawnSync(p.cmd, p.args, { cwd: ROOT, encoding: 'utf8', env: process.env });
+  /* ABRA_STRICT_SEMANTICS MAKES A STALE-WEIGHTS WARNING FATAL, AND UNTIL 2026-08-02 NOTHING SET IT.
+   *
+   * engine/magnemite.js implements the flag, and its own comment says it "is what tests/run-all.js
+   * and any fit should use" — but no file in this repository ever set it. So the semantics guard was
+   * a warning everywhere, permanently. Verified by making the fixture genuinely change: it printed
+   * 22 features whose meaning had moved, and then LOADED THE WEIGHTS ANYWAY. A capability that
+   * exists, runs clean and does nothing is this project's single most repeated defect.
+   *
+   * The default stays a warning for LIVE PLAY, and that trade-off is argued where it is made: a
+   * routine re-ingest is a legitimate cause of a mismatch, and a guard that halts a battle for a data
+   * refresh is one that gets switched off within a week. The suite is where it has to bite. */
+  const r = spawnSync(p.cmd, p.args, {
+    cwd: ROOT, encoding: 'utf8',
+    env: Object.assign({}, process.env, { ABRA_STRICT_SEMANTICS: '1' }),
+  });
   const secs = ((Date.now() - started) / 1000).toFixed(1);
   if (r.status === 0) { pass.push(rel); console.log(`  ok    ${rel}  (${secs}s)`); }
   /* EXIT 2 MEANS "I COULD NOT RUN", NOT "I FAILED". A gate whose input is gitignored must be able to

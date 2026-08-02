@@ -59,7 +59,7 @@ function buildFromSheet(sheetEntry) {
   /* THE ONE RESOLVER, asked of board.js rather than re-derived here. MC.mons keys formes with a
    * hyphen and norm() strips hyphens, so `MC.mons[norm(species)]` misses all 101 forme entries --
    * 8% of real usage -- and this line silently returned null for every one of them. */
-  const key = B.mcKeyFor(sheetEntry.species);
+  const key = B.mcKeyFor(sheetEntry.species, { mayMiss: 'audit skips mons the damage engine has no row for' });
   if (!key) return null;
   const m = M.buildMon(key);
   if (!m) return null;

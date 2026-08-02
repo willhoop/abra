@@ -124,7 +124,19 @@ ok(differentBodyLeaked.length === 0,
 /* The three worked examples from the day this was written, stated explicitly because they are the
  * ones that actually appeared on real sheets. */
 ok(mcKey('Vivillon-Pokeball', PROBE) === mcKey('Vivillon', PROBE), 'Vivillon-Pokeball resolves to Vivillon — identical body');
-ok(mcKey('Gourgeist-Super', PROBE) === null, 'Gourgeist-Super does NOT — same types, different stats');
+/* GOURGEIST-SUPER CHANGED SIDES ON 2026-08-02, and the assertion changed with it rather than being
+ * deleted. It used to assert the fallback REFUSES to substitute: same types as Gourgeist, different
+ * stats, so handing the engine the base body would be worse than returning nothing. That was right,
+ * and the consequence was that every damage feature read zero for it -- 25 occurrences in 60
+ * self-play games, the single commonest miss.
+ *
+ * It now has its OWN row, so the correct answer is no longer null: it is gourgeist-super. What must
+ * NOT change is the underlying rule, so that is what is asserted -- it resolves to ITSELF and never
+ * to its base. */
+ok(mcKey('Gourgeist-Super', PROBE) === 'gourgeist-super',
+  'Gourgeist-Super resolves to its OWN row, added 2026-08-02 because its stats differ from Gourgeist');
+ok(mcKey('Gourgeist-Super', PROBE) !== mcKey('Gourgeist', PROBE),
+  '...and is still never substituted BY its base, which is the rule that mattered all along');
 ok(mcKey('Slowking-Galar', PROBE) === 'slowking-galar', 'Slowking-Galar keeps its OWN entry, not Slowking');
 
 /* ---- 2. THE BAN ------------------------------------------------------------------------------- */
