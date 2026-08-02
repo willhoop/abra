@@ -20,13 +20,38 @@
  * did nothing at all.
  */
 'use strict';
-const path = require('path');
+/* WRAPPED IN AN IIFE so the file can be a <script> tag as well as a module. Browser scripts SHARE
+ * one top-level lexical scope, so an unwrapped `const norm` here collides with the identical
+ * declaration in engine/board.js and BOTH files fail to parse — which is exactly what happened the
+ * first time this was loaded in a page. engine/mc_key.js is wrapped for the same reason. */
+(function (root) {
+
+const HAS_REQUIRE = typeof require === 'function';
+const path = HAS_REQUIRE ? require('path') : null;
 
 let DB = null;
 const COUNT = Object.create(null);
 
 function load() {
   if (DB) return DB;
+  /* THE BROWSER PATH, AND IT IS NOT COSMETIC.
+   *
+   * engine/board.js falls back to `globalThis.ABRA_TAGS` when it cannot require this module, and
+   * tests it for a `.has()` method — but data/abra-tags.js publishes ABRA_TAGS as raw DATA, with no
+   * methods on it. So in a browser board.js latched `_TAGS = false` and every tag lookup returned
+   * null. board.js's own comment says what that costs: healValue, screenValue and speedSwing are
+   * among the largest positive weights in the shipped vector, and all three silently read 0.
+   *
+   * Measured 2026-08-02 by tests/test-board-browser.js, which found those three among 14 features
+   * where a browser-hosted board.js disagreed with the engine. Publishing the API here — over the
+   * same data file the page already loads — is what makes the two runtimes the same scorer rather
+   * than two that merely share a name. */
+  if (!HAS_REQUIRE) {
+    const g = (typeof globalThis !== 'undefined') ? globalThis : {};
+    DB = g.ABRA_TAGS || null;
+    if (!DB) throw new Error('engine/tags.js: no data/abra-tags.js loaded — include it before board.js');
+    return DB;
+  }
   try {
     DB = require(path.join(__dirname, '..', 'data', 'tags.json'));
   } catch (e) {
@@ -90,4 +115,16 @@ function withTag(kind, tag) {
   return Object.keys(T).filter(id => (T[id].tags || []).includes(tag));
 }
 
-module.exports = { tagsFor, param, has, reactorsTo, hits, resetHits, norm, withTag };
+/* PUBLISHED BOTH WAYS, like engine/mc_key.js and engine/board.js. In node this is the module; in a
+ * browser it REPLACES globalThis.ABRA_TAGS — the raw data table published by data/abra-tags.js —
+ * with this same API over that data. board.js tests ABRA_TAGS for `.has`, so the object it finds has
+ * to be the accessor, not the artifact. Sharing the artifact was never enough; the ACCESSOR has to
+ * be shared too (docs/ARTIFACT-ACCESS-RULES.md R1). */
+const _API = { tagsFor, param, has, reactorsTo, hits, resetHits, norm, withTag };
+if (typeof module !== 'undefined' && module.exports) module.exports = _API;
+if (!HAS_REQUIRE && typeof globalThis !== 'undefined') {
+  if (globalThis.ABRA_TAGS && !globalThis.ABRA_TAGS.has) DB = globalThis.ABRA_TAGS;   // keep the data
+  globalThis.ABRA_TAGS = _API;
+  globalThis.TAGS = _API;
+}
+})(typeof globalThis !== 'undefined' ? globalThis : this);

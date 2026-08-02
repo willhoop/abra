@@ -842,7 +842,14 @@ function damageEngine() {
 /* DELEGATED, NOT IMPLEMENTED HERE. This was a fourth private copy of the same index -- see the
  * header of engine/mc_key.js for the other three and why sharing the ARTIFACT was never enough.
  * Re-exported below so the 40 files that already require board.js do not each grow a new import. */
-const mcKeyFor = require('./mc_key.js').mcKey;
+/* DUAL-MODE, because this ONE unguarded `require` was what stopped board.js loading in a browser at
+ * all -- and it is the reason app/index.html still carries a second feature scorer that assigns 21 of
+ * 56 features. engine/mc_key.js already publishes itself both ways (`globalThis.mcKey`), so nothing
+ * new is needed here beyond asking for it the way this runtime supports. Node takes the path it
+ * always took. */
+const mcKeyFor = (typeof require === 'function')
+  ? require('./mc_key.js').mcKey
+  : (typeof globalThis !== 'undefined' && globalThis.mcKey);
 
 /* A tracked mon -> the shape the damage formula expects. Returns null when the species is not in the
  * table, which is a real condition (a forme the usage data has never seen) and not an error. */

@@ -11,119 +11,123 @@ this** — and never *what wins*.
 
 `ZERO` marks a weight whose 95% interval contains zero: the data cannot tell it from no effect.
 
+The last column is the same fit with **popularity removed entirely**.
+
+On held-out human decisions the full model picks the option the person actually clicked **32.2%** of the time; without popularity, **31.3%** — **a loss** of 1.0 points. So popularity carries real signal and is not crowding the board facts out. An earlier version of this document asserted the opposite, from a fit whose `DROP=` reached only half the corpus.
+
 
 ## What the move does
 
-| feature | weight | what it means |
-|---|---:|---|
-| `eff4` | +1.186 | it hits a 4x weakness |
-| `eff2` | +0.867 | it hits a 2x weakness |
-| `stab` | +0.059 | it matches my own type |
-| `allyHit` | -0.089 | it also hits my own partner, and my partner is not immune to it |
-| `bp` | -0.157 | it is a powerful move |
-| `effHalf` | -0.752 | it is resisted |
-| `accuracy` | -0.790 | how often it hits, on THIS board (snow makes Blizzard certain) |
-| `effQuarter` | -0.896 | it is resisted twice over |
-| `immune` | -1.942 | it does nothing at all |
-| `abilityBlock` | -2.080 | the target probably has an ability that eats it |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `eff4` | +1.186 | +1.141 | it hits a 4x weakness |
+| `eff2` | +0.867 | +0.841 | it hits a 2x weakness |
+| `stab` | +0.059 | +0.213 | it matches my own type |
+| `allyHit` | -0.089 | -0.138 | it also hits my own partner, and my partner is not immune to it |
+| `bp` | -0.157 | -0.114 | it is a powerful move |
+| `effHalf` | -0.752 | -0.750 | it is resisted |
+| `accuracy` | -0.790 | -0.868 | how often it hits, on THIS board (snow makes Blizzard certain) |
+| `effQuarter` | -0.896 | -0.935 | it is resisted twice over |
+| `immune` | -1.942 | -1.921 | it does nothing at all |
+| `abilityBlock` | -2.080 | -2.063 | the target probably has an ability that eats it |
 
 ## MOVES THAT COST MORE THAN A TURN
 
-| feature | weight | what it means |
-|---|---:|---|
-| `rechargeTurn` | -0.394 | it costs me the turn AFTER this one |
-| `chargeTurn` | -0.901 | it needs a turn to wind up on this board |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `rechargeTurn` | -0.394 | -0.469 | it costs me the turn AFTER this one |
+| `chargeTurn` | -0.901 | -0.840 | it needs a turn to wind up on this board |
 
 ## PIVOTS
 
-| feature | weight | what it means |
-|---|---:|---|
-| `isStatus` | +0.252 | it is a status move |
-| `tgtHurt` | +0.110 | the target is already hurt |
-| `pivots` | -0.175 | it damages and brings me out |
-| `deadWeather` | -1.000 | that weather is already set, so it would fail |
-| `deadStall` | -1.294 | I protected last turn, so it would probably fail |
-| `deadStatus` | -1.602 | the target already has a status, so it would fail |
-| `deadField` | -1.659 | that field effect is already up, so it would fail |
-| `pranksterFailsDark` | -2.021 | my Prankster status move is aimed at a Dark type, so it does nothing |
-| `deadNoLastMove` | -2.710 | it needs the target to have already moved, and the target just switched in |
-| `deadSide` | -2.961 | that side effect is already up, so it would fail |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `isStatus` | +0.252 | +0.264 | it is a status move |
+| `tgtHurt` | +0.110 | +0.105 | the target is already hurt |
+| `pivots` | -0.175 | -0.069 | it damages and brings me out |
+| `deadWeather` | -1.000 | -1.099 | that weather is already set, so it would fail |
+| `deadStall` | -1.294 | -1.273 | I protected last turn, so it would probably fail |
+| `deadStatus` | -1.602 | -1.480 | the target already has a status, so it would fail |
+| `deadField` | -1.659 | -1.292 | that field effect is already up, so it would fail |
+| `pranksterFailsDark` | -2.021 | -1.900 | my Prankster status move is aimed at a Dark type, so it does nothing |
+| `deadNoLastMove` | -2.710 | -2.599 | it needs the target to have already moved, and the target just switched in |
+| `deadSide` | -2.961 | -2.885 | that side effect is already up, so it would fail |
 
 ## WHO MOVES FIRST
 
-| feature | weight | what it means |
-|---|---:|---|
-| `defMismatch` | +0.168 | I hit its softer defence |
-| `tgtBulk` | +0.121 | the target is bulky |
-| `movesFirst` | +0.042 | I move before the target, counting priority, Tailwind and Trick Room |
-| `priority` | -0.074 | this move cuts the queue (Fake Out, Sucker Punch, Extreme Speed) |
-| `tgtPhysical` | -0.183 | the target attacks physically rather than specially (negative = specially) |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `defMismatch` | +0.168 | +0.164 | I hit its softer defence |
+| `tgtBulk` | +0.121 | +0.133 | the target is bulky |
+| `movesFirst` | +0.042 | +0.059 | I move before the target, counting priority, Tailwind and Trick Room |
+| `priority` | -0.074 | +0.079 | this move cuts the queue (Fake Out, Sucker Punch, Extreme Speed) |
+| `tgtPhysical` | -0.183 | -0.176 | the target attacks physically rather than specially (negative = specially) |
 
 ## DOES IT KILL
 
-| feature | weight | what it means |
-|---|---:|---|
-| `killIsRoll` | +0.783 | it kills some spreads and not others: a roll rather than a read |
-| `tgtMayProtect` | +0.384 | how often this target blocks: the biggest reason a sure kill is not one |
-| `protectThreatened` | +0.323 | this move protects, and I am facing a kill |
-| `dmgFrac` | +0.246 | how much of what is left of the target it takes |
-| `koFirst` | +0.142 | it kills, and I move first, so the kill lands before their attack |
-| `koTarget` | +0.017 `ZERO` | the odds this really kills it: the worst roll still does, and the move lands |
-| `killsThreat` | -0.062 | it kills the thing that was about to kill me |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `killIsRoll` | +0.783 | +0.843 | it kills some spreads and not others: a roll rather than a read |
+| `tgtMayProtect` | +0.384 | +0.413 | how often this target blocks: the biggest reason a sure kill is not one |
+| `protectThreatened` | +0.323 | +0.323 | this move protects, and I am facing a kill |
+| `dmgFrac` | +0.246 | +0.245 | how much of what is left of the target it takes |
+| `koFirst` | +0.142 | +0.144 | it kills, and I move first, so the kill lands before their attack |
+| `koTarget` | +0.017 `ZERO` | +0.035 | the odds this really kills it: the worst roll still does, and the move lands |
+| `killsThreat` | -0.062 | -0.062 | it kills the thing that was about to kill me |
 
 ## WHAT A MOVE DOES TO THE OTHER PLAYER'S OPTIONS
 
-| feature | weight | what it means |
-|---|---:|---|
-| `volatileOnSelf` | +0.119 | it puts something on me or my side (Substitute, Follow Me, Rage Powder) |
-| `volatileOnFoe` | -0.151 | it takes an option away from the target (Taunt, Encore, Disable) |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `volatileOnSelf` | +0.119 | +0.132 | it puts something on me or my side (Substitute, Follow Me, Rage Powder) |
+| `volatileOnFoe` | -0.151 | -0.177 | it takes an option away from the target (Taunt, Encore, Disable) |
 
 ## STAT STAGES
 
-| feature | weight | what it means |
-|---|---:|---|
-| `myOffenseStage` | +1.235 | how boosted the stat I am attacking with already is |
-| `movesBoostMe` | +0.603 | this move raises one of my own stats |
-| `tgtDefenseStage` | +0.101 `ZERO` | how boosted the defence I am attacking into already is |
-| `movesLowerFoe` | -0.305 | this move lowers one of the target's stats |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `myOffenseStage` | +1.235 | +1.237 | how boosted the stat I am attacking with already is |
+| `movesBoostMe` | +0.603 | +0.685 | this move raises one of my own stats |
+| `tgtDefenseStage` | +0.101 `ZERO` | +0.138 | how boosted the defence I am attacking into already is |
+| `movesLowerFoe` | -0.305 | -0.694 | this move lowers one of the target's stats |
 
 ## STATUS THAT ACTUALLY BITES
 
-| feature | weight | what it means |
-|---|---:|---|
-| `statusBites` | +1.078 | the status this inflicts hits a stat the target actually relies on |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `statusBites` | +1.078 | +0.777 | the status this inflicts hits a stat the target actually relies on |
 
 ## AM I EVEN GOING TO GET TO DO THIS
 
-| feature | weight | what it means |
-|---|---:|---|
-| `diesBeforeMoving` | -0.587 | I am facing a kill and I do not move first |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `diesBeforeMoving` | -0.587 | -0.592 | I am facing a kill and I do not move first |
 
 ## SWITCHING
 
-| feature | weight | what it means |
-|---|---:|---|
-| `switchSurvives1` | +0.194 | the replacement lives through the hardest thing aimed at me |
-| `switchSurvives2` | -0.007 `ZERO` | it lives through that twice |
-| `switchFaster` | -0.205 | the replacement outruns the thing that was threatening me |
-| `isSwitch` | -0.285 | this candidate is a switch, not a move |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `switchSurvives1` | +0.194 | +0.194 | the replacement lives through the hardest thing aimed at me |
+| `switchSurvives2` | -0.007 `ZERO` | -0.006 | it lives through that twice |
+| `switchFaster` | -0.205 | -0.192 | the replacement outruns the thing that was threatening me |
+| `isSwitch` | -0.285 | -1.002 | this candidate is a switch, not a move |
 
 ## WHAT THE REPLACEMENT THREATENS
 
-| feature | weight | what it means |
-|---|---:|---|
-| `switchKOSlow` | +0.109 | it survives what it must eat, moves second, and still removes a foe |
-| `switchKOFast` | -0.012 `ZERO` | it survives what it must eat, moves FIRST, and removes a foe |
-| `switchDiesFirst` | -0.126 | it does NOT survive what it must eat: it never gets to act at all |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `switchKOSlow` | +0.109 | +0.080 | it survives what it must eat, moves second, and still removes a foe |
+| `switchKOFast` | -0.012 `ZERO` | -0.037 | it survives what it must eat, moves FIRST, and removes a foe |
+| `switchDiesFirst` | -0.126 | -0.140 | it does NOT survive what it must eat: it never gets to act at all |
 
 ## WHAT THE TAG ARTIFACT KNEW AND NOTHING READ
 
-| feature | weight | what it means |
-|---|---:|---|
-| `healValue` | +2.434 | it heals me AND I am hurt enough for the healing not to be wasted |
-| `screenValue` | +1.157 | it halves incoming damage AND something across from me is actually hitting |
-| `speedSwing` | +0.957 | this move flips the speed order IN MY FAVOUR |
-| `priorLogP` | +0.154 | it is a popular move |
-| `benchRisk` | -0.161 | 1 - worst-case value retention if their bench answers this click |
-| `clickCost` | -0.262 | expected self-cost of this click into that body (fraction-of-self units) |
-| `stallIntoEncore` | -0.871 | I am about to Protect and something across from me can Encore me for it |
+| feature | weight | no-popularity | what it means |
+|---|---:|---:|---|
+| `healValue` | +2.434 | +2.409 | it heals me AND I am hurt enough for the healing not to be wasted |
+| `screenValue` | +1.157 | +1.233 | it halves incoming damage AND something across from me is actually hitting |
+| `speedSwing` | +0.957 | +1.165 | this move flips the speed order IN MY FAVOUR |
+| `priorLogP` | +0.154 | +0.000 | it is a popular move |
+| `benchRisk` | -0.161 | -0.145 | 1 - worst-case value retention if their bench answers this click |
+| `clickCost` | -0.262 | -0.267 | expected self-cost of this click into that body (fraction-of-self units) |
+| `stallIntoEncore` | -0.871 | -0.818 | I am about to Protect and something across from me can Encore me for it |

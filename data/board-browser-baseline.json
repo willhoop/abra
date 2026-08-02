@@ -1,0 +1,19 @@
+{
+  "generated": "2026-08-02",
+  "by": "tests/test-board-browser.js --update",
+  "note": "Features where board.js in a browser does not yet match board.js in node. Each is a number app/index.html would display wrongly, which is why the page still carries its own scorer. This list may only SHRINK. Re-baseline only after fixing one.",
+  "known": {
+    "killsThreat": 1,
+    "koFirst": 1,
+    "diesBeforeMoving": 1,
+    "switchSurvives1": 1,
+    "koTarget": 0.93,
+    "dmgFrac": 0.89845,
+    "switchKOFast": 0.5,
+    "switchDiesFirst": 0.5,
+    "killIsRoll": 0.183802,
+    "tgtMayProtect": 0.172,
+    "screenValue": 0.131969,
+    "clickCost": 0.125
+  }
+}
