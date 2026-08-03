@@ -70,7 +70,10 @@ const PASS = (() => {
   if (flag) return flag;
   if (process.env.SHOWDOWN_PASS) return process.env.SHOWDOWN_PASS;
   try {
-    return fs.readFileSync(PASS_FILE, 'utf8').trim();
+    /* A BOM IS INVISIBLE AND BREAKS THE LOGIN. Notepad writes one when it saves as UTF-8, and
+     * .trim() does not remove it -- the assertion request would carry a stray U+FEFF and the
+     * server would simply refuse, with nothing on screen to explain why. */
+    return fs.readFileSync(PASS_FILE, 'utf8').replace(/^﻿/, '').trim();
   } catch (e) {
     /* Absent is the normal case for a local server and must not look like a failure; anything else —
      * a permissions problem, a directory where a file should be — is reported, because a bot that
@@ -368,6 +371,7 @@ function handle(room, line) {
          * Stripped if present rather than assuming either shape. */
         const json = JSON.parse((await res.text()).replace(/^\]/, ''));
         if (!json.assertion) throw new Error(json.actionerror || 'no assertion in the login response');
+        console.log('  login assertion received; sending /trn');
         send(`|/trn ${NAME},0,${json.assertion}`);
       } catch (e) {
         /* Said out loud and NOT retried silently: a wrong password and a network failure both leave
@@ -382,7 +386,14 @@ function handle(room, line) {
    * appears to ignore the challenge, which is the least debuggable failure there is. */
   if (cmd === 'popup') { console.error('SERVER SAYS: ' + line.slice(8).replace(/\|\|/g, '  ')); return; }
 
-  if (cmd === 'updateuser' && String(p[2] || '').replace(/^[ !@#$%^&*]/, '') === NAME) {
+  /* COMPARED THE WAY SHOWDOWN COMPARES NAMES: lowercased, non-alphanumerics dropped. That is the
+   * server's own `toID`, and it matters on a PUBLIC server in a way it never did locally — the site
+   * echoes the name with its REGISTERED capitalisation, so an exact-string match against whatever
+   * was typed on the command line fails whenever the two differ by a letter's case. The symptom is
+   * silent: no login line, no error, and a ten-second timer that then blames a duplicate instance.
+   * Also strips the rank sigil the server prefixes (space, +, %, @, #, &). */
+  const toID = (x) => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (cmd === 'updateuser' && toID(p[2]) === toID(NAME)) {
     loggedIn = true;
     console.log(`logged in as ${NAME} — challenge it from the client`);
     return;
