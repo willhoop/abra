@@ -61,9 +61,21 @@ if os.path.exists(pf):
     # defect — a claim the data has stopped supporting — while letting the finding itself change,
     # which findings about a live metagame are supposed to do.
     gap = ex_pf["greedy_minus_nash"]
-    verdict = json.load(open(pf)).get("verdict", "")
+    _pf = json.load(open(pf))
+    verdict = _pf.get("verdict", "")
     claims_gap = "No material exploitability gap" not in verdict
-    ok((gap > 0.05) == claims_gap,
+    # THE THRESHOLD COMES FROM THE ARTIFACT, not from a copy here. This line said 0.05 while
+    # engine/slowking_preview.py said 0.03, so the two disagreed about what "material" means and
+    # nobody noticed until new games put the gap at 0.0409 -- between them. The generator now
+    # publishes material_gap_threshold and this reads it back, so they cannot drift again.
+    # No fallback: a missing threshold means the artifact predates the fix and must be
+    # regenerated, which is a different problem from a wrong verdict and should not be silently
+    # papered over with a guess.
+    thr = _pf.get("material_gap_threshold")
+    if thr is None:
+        ok(False, "[playstyle] artifact carries material_gap_threshold (regenerate slowking_preview)")
+        thr = float("inf")
+    ok((gap > thr) == claims_gap,
        "[playstyle] the verdict agrees with the measured gap (%.4f)" % gap)
 
 if fails:

@@ -201,6 +201,136 @@ if (stale.length) {
  * check stops being read. The actionable failure is a stale file that COULD be regenerated — those
  * name their generator in the list above and someone can act on them today. */
 const actionable = stale.filter(s2 => !known.has(s2.rel));
+
+/* --list AND --fix, SO THE REPAIR COMES FROM THE SAME DERIVATION AS THE COMPLAINT.
+ *
+ * This check goes red on its own schedule. The ingest adds games, every derived file is instantly
+ * older than its inputs, and half a day later this fails — twice in one session on 2026-08-03, with
+ * nothing wrong except that time passed. That trains a reader to ignore it, and a check nobody reads
+ * is worse than no check at all.
+ *
+ * WIDENING THE TOLERANCE IS THE WRONG FIX. 0.5 days IS the tolerance, and the files were at 0.7, so
+ * the complaint is true: the site really was serving data seventeen hours behind the games. The right
+ * fix is to make regenerating cheap enough to automate.
+ *
+ * `generatorFor` already DERIVES which script writes each file by scanning for the writer, so the
+ * repair list is a property of the repo rather than a table somebody keeps up to date. Emitting the
+ * commands from here means the fix and the complaint cannot disagree — a second list living in a
+ * refresh script is exactly the kind of copy that has gone stale in this project before.
+ *
+ *   node tests/test-site-data-fresh.js --list    print the commands, run nothing
+ *   node tests/test-site-data-fresh.js --fix     run them, in the order listed
+ *
+ * Run --fix after each ingest and this check goes quiet honestly, rather than by being loosened. */
+if (process.argv.includes('--list') || process.argv.includes('--fix')) {
+  const cmds = actionable.filter(a => a.gen).map(a => ({ rel: a.rel, gen: a.gen }));
+  const runner = g => (/\.py$/.test(g) ? 'python' : 'node') + ' ' + g;
+  if (!cmds.length) {
+    console.log('  nothing to regenerate — every site file is newer than the newest game data.');
+    process.exit(0);
+  }
+  if (process.argv.includes('--list')) {
+    console.log('  REGENERATE, in this order:');
+    for (const c of cmds) console.log('    ' + runner(c.gen) + '        # ' + c.rel);
+    process.exit(0);
+  }
+  /* A REFIT IS NOT A REFRESH, AND --fix MUST NOT PERFORM ONE AS A SIDE EFFECT.
+   *
+   * The first version of this ran every generator the check named. One of them was `engine/pory.py`,
+   * which does not rebuild a bundle — it REFITS the model and rewrites data/pory-eval.json. The
+   * published log-loss moved 0.6298 -> 0.6184, the white paper and SUMMARY.md still quoted the old
+   * one, and engine/sanity_check.py failed on the mismatch. It was right to.
+   *
+   * That is the refit cascade this project has rules about, triggered by a FRESHNESS CHECK. Making a
+   * test green must never silently republish a measured number.
+   *
+   * Detected rather than listed: a generator that also writes a `*-eval.json` is publishing measured
+   * numbers that documents quote, so it is a fit and not a bundle. Same WRITE probe the orphan scan
+   * already uses, asked of a different target. Named and skipped, with the command printed so a human
+   * can run it deliberately and then follow the refit checklist in engine/provenance.js. */
+  const PUBLISHES = [];
+  const kept = [];
+  for (const c of cmds) {
+    /* AN UNREADABLE GENERATOR MUST NOT READ AS "SAFE TO RUN". This scan decides whether a generator
+     * refits a model, and an empty source finds no `-eval.json`, so a read failure would silently
+     * promote a refit into the auto-run list — the exact thing this block exists to prevent. Refused
+     * loudly and treated as a publisher, which is the safe direction. */
+    let src = '';
+    try {
+      src = fs.readFileSync(D(c.gen), 'utf8');
+    } catch (e) {
+      console.error(`    cannot read ${c.gen} (${e.message}) — treating it as a refit and SKIPPING.`);
+      PUBLISHES.push({ ...c, evals: ['<unreadable — could not be checked>'] });
+      continue;
+    }
+    const evals = [...new Set([...src.matchAll(/['"]([\w./-]*-eval\.json)['"]/g)].map(m => m[1]))]
+      .filter(t => src.split('\n').some(ln => ln.includes(t) && WRITE.test(ln)));
+    if (evals.length) PUBLISHES.push({ ...c, evals }); else kept.push(c);
+  }
+  if (PUBLISHES.length) {
+    console.log('  SKIPPED — these REFIT a model and republish measured numbers:');
+    for (const c of PUBLISHES) {
+      console.log('    ' + runner(c.gen) + '   writes ' + c.evals.join(', '));
+    }
+    console.log('    Run those deliberately, then follow the refit checklist (engine/provenance.js)');
+    console.log('    and update whatever docs quote the numbers they publish.');
+  }
+  if (!kept.length) {
+    console.log('  nothing left to regenerate automatically.');
+    process.exit(0);
+  }
+  console.log('  REGENERATING ' + kept.length + ' file(s):');
+  const { execFileSync } = require('child_process');
+  let failed = 0, unchanged = 0;
+  for (const c of kept) {
+    process.stdout.write('    ' + c.rel.padEnd(34) + ' ');
+    const before = fs.existsSync(D(c.rel)) ? fs.statSync(D(c.rel)).mtimeMs : 0;
+    try {
+      const out = execFileSync(/\.py$/.test(c.gen) ? 'python' : 'node', [D(c.gen)],
+        { cwd: D('.'), stdio: 'pipe', timeout: 900000, encoding: 'utf8' }) || '';
+      const after = fs.existsSync(D(c.rel)) ? fs.statSync(D(c.rel)).mtimeMs : 0;
+      if (after > before) { console.log('ok'); continue; }
+      /* RAN CLEAN AND WROTE NOTHING, which is NOT success and must not print as `ok`.
+       *
+       * build/rebuild_sets_from_sheets.js is report-only and ends with "Re-run with --write to
+       * update data/engine-data.js" — and the first version of this piped stdio, so the instruction
+       * that says how to fix the very thing being fixed was swallowed and the file reported `ok`
+       * while staying stale forever. A --fix that cannot fix something has to say so in the
+       * generator's own words rather than in mine. */
+      unchanged++;
+      console.log('ran, wrote nothing');
+      const tail = out.trim().split('\n').filter(Boolean).slice(-3);
+      for (const ln of tail) console.log('        | ' + ln.trim());
+      /* THE COMMAND THIS CHECK DERIVES IS THE SCRIPT, NOT THE INVOCATION, and two of them proved it:
+       *
+       *   build/rebuild_sets_from_sheets.js  is REPORT-ONLY without --write, and needs SHOWDOWN_PATH
+       *                                      or it exits with "no dex — refusing to guess".
+       *   engine/slowking_preview.py         writes data/slowking.js by default and only writes
+       *                                      data/slowking-playstyle.js when TAG=playstyle.
+       *
+       * So "the script that writes this file" and "the command that regenerates this file" are not
+       * the same thing, and no scan of the source can close that gap. Flagged here rather than
+       * guessed at, because a --fix that invents flags is worse than one that admits its limit. */
+      console.log('        (this generator needs flags or env this check cannot derive — see above)');
+    } catch (e) {
+      /* A GENERATOR THAT FAILS IS THE WHOLE POINT OF RUNNING THEM, so it is named and counted rather
+       * than swallowed: a --fix that skipped failures quietly would leave the file stale and the next
+       * run would report the same red with no explanation for it. */
+      failed++;
+      console.log('FAILED: ' + String(e.message).split('\n')[0]);
+    }
+  }
+  if (unchanged) {
+    console.log('  ' + unchanged + ' generator(s) ran clean but wrote nothing — read their output above.');
+    console.log('  A report-only generator needs its write flag; an unchanged one means the CONTENT is');
+    console.log('  already current and only the timestamp is behind. Those are different problems and');
+    console.log('  neither is fixed by running the same command again.');
+  }
+  console.log(failed ? '  ' + failed + ' generator(s) failed — those files are still stale.'
+                     : '  done; re-run without --fix to confirm.');
+  process.exit(failed ? 1 : 0);
+}
+
 ok(actionable.length === 0, 'every regenerable file the site loads is newer than the newest game data',
   actionable.map(a => `${a.rel} (${a.days.toFixed(1)}d) -> node ${a.gen}`).join('; '));
 if (stale.length > actionable.length)

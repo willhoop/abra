@@ -18,6 +18,7 @@
     }
   ],
   "game_value": -0.0,
+  "material_gap_threshold": 0.03,
   "top_nontransitive_cycle": {
     "cycle": [
       "Charizard-Garchomp",

@@ -184,7 +184,18 @@ def main():
     ci = lambda v: [round(v[int(0.025 * len(v))], 4), round(v[int(0.975 * len(v))], 4)]
 
     gap = ex_greedy - ex_nash; gci = ci(gaps); lo = gci[0]
-    if gap > 0.03:
+    # THE THRESHOLD IS PUBLISHED, NOT JUST APPLIED.
+    #
+    # It was written here as 0.03 and independently in tests/test-slowking.py as 0.05, so 'is there a
+    # material gap' had two answers. Invisible for as long as the measured gap stayed outside that
+    # window -- and the moment new games put it at 0.0409, the generator wrote 'substantially less
+    # exploitable' and the test called that a lie. Neither was wrong about its own number.
+    #
+    # So the value lives in ONE place and travels in the artifact: the test reads it back instead of
+    # carrying its own copy. A constant duplicated across a producer and its checker is the same
+    # second-source-of-truth this project keeps paying for.
+    MATERIAL_GAP = 0.03
+    if gap > MATERIAL_GAP:
         strength = ("provably less exploitable (95% CI clears 0)" if lo > 0
                     else f"substantially less exploitable, though sparse matchups keep the 95% CI lower bound near 0 ({lo})")
         verdict = (f"SLOWKING's equilibrium is {strength} than picking the single best deck: greedy {round(ex_greedy,4)} "
@@ -203,6 +214,7 @@ def main():
         "source_matrix": "data/guru-matchups.json", "n_games": g["n_games"], "n_archetypes": len(archs),
         "equilibrium_mixture": mixture,
         "game_value": round(float(val), 4),
+        "material_gap_threshold": MATERIAL_GAP,
         "top_nontransitive_cycle": top_cycle(M, archs, matrix),
         "greedy_is_not_always_right": "Greedy (pick the single best deck) is only safe in a TRANSITIVE "
             "meta (a clear top dog). Where a rock-paper-scissors cycle exists — the min_edge above is "
