@@ -415,6 +415,21 @@ function handle(room, line) {
     const m = /^\/challenge\s+(\S+)/.exec(payload);
     if (!m || !from || from === NAME) return;
     const fmt = m[1];
+    /* A WRONG-FORMAT CHALLENGE IS ANSWERED, NOT IGNORED.
+     *
+     * This bot has one team, in one format. A challenge in Random Battle used to be dropped in
+     * silence — and from the client that is indistinguishable from the bot being offline, which is
+     * exactly what Will reported ("everytime i go to challenge magabra it disappears"). Two very
+     * different problems, one symptom, and the silent one sends you looking at the wrong thing.
+     *
+     * So it says so, in a PM the challenger can actually read, and rejects the challenge rather than
+     * leaving it hanging until the client times it out. */
+    if (fmt && fmt !== CS.FORMAT) {
+      console.log(`challenge from ${from} in ${fmt} — REJECTED, this bot only plays ${CS.FORMAT}`);
+      send(`|/reject ${from}`);
+      send(`|/pm ${from}, I only play ${CS.FORMAT} — pick that format and challenge me again.`);
+      return;
+    }
     const team = pickTeam();
     if (!team) { console.error('could not draw a VALID team — not accepting'); return; }
     console.log(`challenge from ${from} (${fmt}) — accepting`);
