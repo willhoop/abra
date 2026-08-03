@@ -1,0 +1,32 @@
+{
+ "generated": "2026-08-03T01:38:35",
+ "by": "engine/lookahead_clock_control.py",
+ "what": "Controls engine/lookahead_bound.py for the fact that its two columns are different time slices of the same games rather than two evaluations of one position.",
+ "horizon": 1,
+ "k": 200,
+ "rows": 71304,
+ "games": 4840,
+ "observed_gain_points": 4.934,
+ "predicted_by_clock_points": 2.647,
+ "excess_points": 2.287,
+ "clock_share": 0.5364,
+ "accuracy_by_turn": {
+  "0": 50.878,
+  "1": 53.926,
+  "2": 56.86,
+  "3": 59.737,
+  "4": 65.814,
+  "5": 68.56,
+  "6": 70.974,
+  "7": 72.596,
+  "8": 73.358,
+  "9": 73.736,
+  "10": 73.127,
+  "11": 69.928,
+  "12": 72.222,
+  "13": 66.379,
+  "14": 67.089,
+  "15": 61.881
+ },
+ "caveat": "The clock forecast substitutes each row's outcome with the mean accuracy at its turn index, which destroys any genuine lookahead signal by construction. So the excess is a floor on the real information, not a point estimate of it."
+}

@@ -70,16 +70,25 @@ OUT = os.path.join(ROOT, "data", "lookahead-bound.json")
 np.random.seed(0)
 
 
+# HOW FAR AHEAD THE ORACLE IS ALLOWED TO SEE. 1 is the original question and the +4.91 on record.
+# 2 asks whether a SECOND turn carries anything the first does not -- the question that decides
+# whether depth-2 is worth its cost, and the cost is brutal: the matrix is a product, so depth 2
+# squares the cell count. Cheap to ask, and a null kills the idea for the price of an afternoon.
+HORIZON = int(os.environ.get("HORIZON", "2"))
+
+
 def paired_human(clean, limit=None):
-    """Per-game state SEQUENCES from the human corpus, kept as (now, next, label) triples.
+    """Per-game state SEQUENCES from the human corpus, kept as (now, t+1..t+HORIZON, label).
 
     P.load flattens every game into one pile, which is right for training and useless here — the
     whole question is about the relationship between consecutive turns, so the sequence has to
     survive. Same parser, same feature vector, different aggregation."""
     fh = P._open(HUMAN_RAW)
     if fh is None:
-        return np.zeros((0, len(P.FEATURES))), np.zeros((0, len(P.FEATURES))), np.zeros(0), 0
-    now, nxt, Y = [], [], []
+        z = np.zeros((0, len(P.FEATURES)))
+        return z, [z for _ in range(HORIZON)], np.zeros(0), 0
+    now, Y = [], []
+    cols = {h: [] for h in range(1, HORIZON + 1)}
     seen, games = set(), 0
     with fh:
         for line in fh:
@@ -101,21 +110,31 @@ def paired_human(clean, limit=None):
             if w is None:
                 continue
             sts = P.parse_states(log)
-            if len(sts) < 2:
+            if len(sts) < HORIZON + 1:
                 continue
             games += 1
             # BOTH SIDES OF EVERY GAME, exactly as P.load does: a position is labelled from the point
             # of view of whoever is to move, so each turn yields two rows and the set is balanced by
             # construction rather than by luck.
+            #
+            # EVERY HORIZON IS SCORED ON THE SAME ROWS. A turn is kept only when t+HORIZON exists, so
+            # going deeper does not quietly change the population: t+2 loses the last turn of every
+            # game, and comparing a t+2 number against a t+1 number measured on a longer set would
+            # attribute the difference to depth when part of it is which turns survived. This is the
+            # same failure that produced the withdrawn 47.9% Sucker Punch claim from two corpora
+            # differing in three ways. Same rows, same labels, one variable.
             for me in ("p1", "p2"):
                 y = 1.0 if w == me else 0.0
-                for i in range(len(sts) - 1):
+                for i in range(len(sts) - HORIZON):
                     now.append(P.vec(sts[i], me))
-                    nxt.append(P.vec(sts[i + 1], me))
+                    for h in range(1, HORIZON + 1):
+                        cols[h].append(P.vec(sts[i + h], me))
                     Y.append(y)
             if limit and games >= limit:
                 break
-    return np.array(now, float), np.array(nxt, float), np.array(Y, float), games
+    return (np.array(now, float),
+            [np.array(cols[h], float) for h in range(1, HORIZON + 1)],
+            np.array(Y, float), games)
 
 
 def main():
@@ -125,13 +144,15 @@ def main():
         print("no self-play training positions at %s" % os.path.relpath(SELF_RAW, ROOT))
         sys.exit(1)
     clean = P.clean_ids()
-    Xn, Xx, Y, gh = paired_human(clean)
+    Xn, Xfut, Y, gh = paired_human(clean)
     if not len(Y):
-        print("no paired human positions — need at least two turns per game")
+        print("no paired human positions — need at least %d turns per game" % (HORIZON + 1))
         sys.exit(1)
 
     print("  train   %s self-play positions from %s games" % (f"{len(Ys):,}", f"{gs:,}"))
-    print("  test    %s aligned (turn t, turn t+1) pairs from %s clean human games\n" % (f"{len(Y):,}", f"{gh:,}"))
+    print("  test    %s aligned (turn t .. t+%d) tuples from %s clean human games"
+          % (f"{len(Y):,}", HORIZON, f"{gh:,}"))
+    print("          every horizon scored on the SAME rows, so depth is the only variable\n")
 
     # Standardised on the TRAINING set only, and the same transform applied to both test columns --
     # scaling each column by its own statistics would make them incomparable, which is the whole point.
@@ -141,10 +162,11 @@ def main():
 
     rows = []
     for k in (50, 200):
-        pn = P.knn_predict(Zs, Ys, (Xn - mu) / sd, k=k)
-        px = P.knn_predict(Zs, Ys, (Xx - mu) / sd, k=k)
-        rows.append(("k=%d  score the CURRENT turn" % k, pn))
-        rows.append(("k=%d  score the NEXT turn (oracle)" % k, px))
+        rows.append(("k=%d  score the CURRENT turn" % k,
+                     P.knn_predict(Zs, Ys, (Xn - mu) / sd, k=k)))
+        for h in range(1, HORIZON + 1):
+            rows.append(("k=%d  score turn t+%d (oracle)" % (k, h),
+                         P.knn_predict(Zs, Ys, (Xfut[h - 1] - mu) / sd, k=k)))
 
     print("  model                              accuracy     Brier    log-loss")
     print("  " + "-" * 64)
@@ -154,18 +176,40 @@ def main():
         res[name] = {"accuracy": round(100 * a, 2), "brier": round(b, 4), "logloss": round(l, 4)}
         print("  %-34s %6.2f%%   %7.4f   %7.4f" % (name, 100 * a, b, l))
 
-    gains = []
-    for k in (50, 200):
-        a0 = res["k=%d  score the CURRENT turn" % k]["accuracy"]
-        a1 = res["k=%d  score the NEXT turn (oracle)" % k]["accuracy"]
-        gains.append(a1 - a0)
-    gain = sum(gains) / len(gains)
+    # Mean gain of each horizon over the CURRENT turn, and — the number this run exists for — what
+    # the MARGINAL turn adds over the one before it. A big t+1 and a flat t+2 says the information is
+    # all in the first step and depth-2 is not worth squaring the matrix for.
+    byh = {}
+    for h in range(1, HORIZON + 1):
+        g = []
+        for k in (50, 200):
+            g.append(res["k=%d  score turn t+%d (oracle)" % (k, h)]["accuracy"]
+                     - res["k=%d  score the CURRENT turn" % k]["accuracy"])
+        byh[h] = sum(g) / len(g)
+    gain = byh[1]
 
     print("\n  HOW TO READ THIS")
     print("  " + "-" * 64)
     print("  The second row of each pair is CHEATING: it is handed the turn that actually happened,")
     print("  which no search can do. It is therefore an UPPER BOUND on what one step of lookahead")
     print("  could ever be worth on top of this value function.")
+    print("")
+    for h in range(1, HORIZON + 1):
+        marginal = byh[h] - (byh[h - 1] if h > 1 else 0.0)
+        print("  seeing turn t+%d:  %+.2f points over the current turn   (%+.2f from this step alone)"
+              % (h, byh[h], marginal))
+    if HORIZON >= 2:
+        step2 = byh[2] - byh[1]
+        print("")
+        print("  THE DEPTH-2 QUESTION. A second turn of search does not add to the matrix, it")
+        print("  MULTIPLIES it — same shortlist, squared cell count. So the second step has to earn")
+        print("  roughly what the first did to be worth the same money, and it earns %+.2f." % step2)
+        if step2 < 0.5 * byh[1]:
+            print("  -> it does not. The information is concentrated in the FIRST step. Build depth 1")
+            print("     properly before spending anything on depth 2.")
+        else:
+            print("  -> it holds up. Depth 2 carries real information, and the open question becomes")
+            print("     whether any affordable search shape can reach it.")
     print("")
     print("  mean oracle gain from seeing one turn further: %+.2f accuracy points" % gain)
     if gain < 1.0:
@@ -183,7 +227,11 @@ def main():
                 "the current one. No search can beat knowing the answer, so this bounds what a "
                 "search could add to this value function.",
         "train": {"source": os.path.relpath(SELF_RAW, ROOT), "games": gs, "positions": int(len(Ys))},
-        "test": {"source": "clean human ladder replays", "games": gh, "pairs": int(len(Y))},
+        "test": {"source": "clean human ladder replays", "games": gh, "pairs": int(len(Y)),
+                 "horizon": HORIZON,
+                 "note": "every horizon scored on identical rows; a turn is kept only when "
+                         "t+HORIZON exists, so depth is the only variable"},
+        "gain_by_horizon": {str(h): round(byh[h], 3) for h in byh},
         "results": res,
         "oracle_gain_accuracy_points": round(gain, 3),
         "caveat": "An upper bound, not an estimate. It uses the realised next turn, which a search "

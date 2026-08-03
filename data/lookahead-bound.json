@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-02T23:47:26",
+ "generated": "2026-08-03T01:28:56",
  "by": "engine/lookahead_bound.py",
  "what": "Upper bound on one-step lookahead: score the turn that ACTUALLY happened instead of the current one. No search can beat knowing the answer, so this bounds what a search could add to this value function.",
  "train": {
@@ -9,31 +9,47 @@
  },
  "test": {
   "source": "clean human ladder replays",
-  "games": 4779,
-  "pairs": 70446
+  "games": 4840,
+  "pairs": 61624,
+  "horizon": 2,
+  "note": "every horizon scored on identical rows; a turn is kept only when t+HORIZON exists, so depth is the only variable"
+ },
+ "gain_by_horizon": {
+  "1": 3.835,
+  "2": 8.97
  },
  "results": {
   "k=50  score the CURRENT turn": {
-   "accuracy": 58.62,
-   "brier": 0.2418,
-   "logloss": 0.6862
+   "accuracy": 56.2,
+   "brier": 0.2524,
+   "logloss": 0.7108
   },
-  "k=50  score the NEXT turn (oracle)": {
-   "accuracy": 63.55,
-   "brier": 0.2198,
-   "logloss": 0.6337
+  "k=50  score turn t+1 (oracle)": {
+   "accuracy": 60.03,
+   "brier": 0.2371,
+   "logloss": 0.6764
+  },
+  "k=50  score turn t+2 (oracle)": {
+   "accuracy": 65.07,
+   "brier": 0.2134,
+   "logloss": 0.6205
   },
   "k=200  score the CURRENT turn": {
-   "accuracy": 59.56,
-   "brier": 0.2353,
-   "logloss": 0.6635
+   "accuracy": 57.08,
+   "brier": 0.2449,
+   "logloss": 0.6853
   },
-  "k=200  score the NEXT turn (oracle)": {
-   "accuracy": 64.46,
-   "brier": 0.215,
-   "logloss": 0.6163
+  "k=200  score turn t+1 (oracle)": {
+   "accuracy": 60.92,
+   "brier": 0.2315,
+   "logloss": 0.6554
+  },
+  "k=200  score turn t+2 (oracle)": {
+   "accuracy": 66.15,
+   "brier": 0.209,
+   "logloss": 0.603
   }
  },
- "oracle_gain_accuracy_points": 4.915,
+ "oracle_gain_accuracy_points": 3.835,
  "caveat": "An upper bound, not an estimate. It uses the realised next turn, which a search cannot; and the classical policy-improvement guarantee for rollout does NOT apply here, because that guarantee needs the true value of a policy and PORY is an arbitrary approximation. A small number here is decisive against building the search; a large one is permission to try, not a promise."
 }
