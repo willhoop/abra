@@ -868,8 +868,13 @@ const _live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
    and the honest first version reuses the existing one rather than inventing a matchup heuristic
    here -- the engine's job is to make the switch possible, and choosing well is the searcher's.
    Stated because "it picks the first healthy body" is a real limitation, not a detail. */
-function bringIn(act,i,bench,foes,sf,field){
-  const nx=_live(bench)[0]; if(!nx) return null;
+function bringIn(act,i,bench,foes,sf,field,wanted){
+  /* WHICH mon, when the caller knows. live(bench)[0] is the right default for a FAINT replacement --
+     nobody chose it -- but a voluntary switch is a choice, and a search that cannot say WHO it is
+     bringing in is not evaluating a switch, it is evaluating "leave". Will: switching is
+     non-negotiable, and "switch to something" is not the decision; "switch to Amoonguss" is. */
+  const nx=(wanted&&bench.indexOf(wanted)>=0&&!wanted.fainted&&wanted.curHP>0)?wanted:_live(bench)[0];
+  if(!nx) return null;
   bench.splice(bench.indexOf(nx),1);
   nx._turnsOut=0; nx._fallenStuck=sf.fainted; act[i]=nx;
   applyEntryEffects(nx,field);
@@ -881,14 +886,14 @@ function bringIn(act,i,bench,foes,sf,field){
    way out because it does not survive a switch in the real game: Protect's consecutive counter, the
    redirection mark and the Leech Seed link all belong to the body's time on the field. Boosts go too.
    Returns the incoming mon, or null when the bench is empty and the switch simply cannot happen. */
-function switchOut(act,i,bench,foes,sf,field){
+function switchOut(act,i,bench,foes,sf,field,wanted){
   const out=act[i]; if(!out||out.fainted) return null;
   if(!_live(bench).length) return null;
   out.protect=false; out.tookProtectTurns=0; out._redirect=null; out._seededBy=null;
   out._lock=null; out._lockT=0; out._flinch=false;
   out.boosts={at:0,df:0,sa:0,sd:0,sp:0};
   bench.push(out);
-  return bringIn(act,i,bench,foes,sf,field);
+  return bringIn(act,i,bench,foes,sf,field,wanted);
 }
 /* `opts.seeded` starts the battle from a position that is ALREADY UNDER WAY, which is what a rollout
    leaf needs. The difference is entry effects: a fresh battle applies weather/terrain reactions and
@@ -1081,7 +1086,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
         const idx=own.indexOf(m);
-        if(idx>=0)switchOut(own,idx,bench,foes,sf,field);
+        /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
+           the old behaviour of taking whoever is first, so nothing that used this before changes. */
+        if(idx>=0)switchOut(own,idx,bench,foes,sf,field,a.to);
         continue;
       }
       /* SCREENS live on the SIDE, and `_sf` is the only per-side object a mon already carries — it is
@@ -1396,7 +1403,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
         const idx=own.indexOf(m);
-        if(idx>=0)switchOut(own,idx,bench,foes,sf,field);
+        /* A PIVOT IS ALSO A CHOICE. U-turn is not 'leave' -- it is 'leave and bring THIS in', and
+           the whole reason the move is played is the body that arrives. `a.pivotTo` carries it when
+           the caller picked one; without it the first healthy bench mon comes in as before. */
+        if(idx>=0)switchOut(own,idx,bench,foes,sf,field,a.pivotTo);
       }
       // recoil, from the move table's dex-generated fraction (was a 12-name hand table)
       const _rcF=recoilOf(a.move.mv);
@@ -1466,8 +1476,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        count, apply entry effects and Intimidate. Extracted to bringIn() at module scope so a faint
        replacement and a U-turn bring a Pokemon in through exactly the same code; two copies is how
        the voluntary path would quietly skip Intimidate. */
-    const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted)bringIn(act,i,bench,foes,sf,field);}};
-    refill(actA,benchA,actB,sfA);refill(actB,benchB,actA,sfB);
+    /* THE POST-KO REPLACEMENT IS A DECISION TOO, and it was a coin flip: whoever happened to be first
+       on the bench walked into whatever just got a kill. In doubles that is frequently the whole game.
+       S.replaceWith lets a caller name the replacement per side; absent, the old behaviour stands. */
+    const refill=(act,bench,foes,sf,side)=>{
+      for(let i=0;i<act.length;i++){
+        if(!act[i]||!act[i].fainted)continue;
+        const want=S.replaceWith&&S.replaceWith[side];
+        const nx=bringIn(act,i,bench,foes,sf,field,want);
+        /* Consumed once. A standing preference would silently apply to every later faint in the game,
+           which is a different and much stronger claim than the caller made. */
+        if(nx&&want&&nx===want&&S.replaceWith)S.replaceWith[side]=null;
+      }
+    };
+    refill(actA,benchA,actB,sfA,'A');refill(actB,benchB,actA,sfB,'B');
   }
   S.turn++;
   return S;
