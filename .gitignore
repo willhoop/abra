@@ -86,3 +86,8 @@ data/quarantine/
 data/games.*h2h*.jsonl
 data/games.*h2h*.raw-logs.jsonl
 data/.*.jsonl
+
+# Live games recorded by engine/mag_bot.js --rollout. These are game RECORDS, not source:
+# they grow without bound while the bot is up, and they are reproducible from the battles
+# themselves. Kept out of the repo for the same reason data/games.*.jsonl is.
+data/live-games/

@@ -44,8 +44,10 @@
  * wrong and the bot playing here would not be the bot that played the 60,000 measured games.
  */
 'use strict';
+const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');
+const D = (...p) => path.join(__dirname, '..', ...p);
 
 const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : d; };
 const NAME = arg('name', 'MAG');
@@ -237,6 +239,8 @@ const rooms = new Map();
 /* A running record across the session. The reason a person plays this bot is to find out how badly
  * they beat it, and a number nobody is keeping is a number nobody will remember. */
 const RECORD = { you: 0, mag: 0, tie: 0 };
+/* Kept vs thrown out, so a night of closed-sheet games cannot read as a night of no games. */
+const SAVED = { kept: 0, skipped: 0 };
 
 /* IF THE NAME IS ALREADY TAKEN, SAY SO. LOUDLY.
  *
@@ -515,6 +519,17 @@ function handle(room, line) {
            * rest fills from the sheet, which is a GUESS about which four they chose and is stated as
            * one rather than presented as knowledge. */
           const foeS = side === 'p1' ? 'p2' : 'p1';
+          /* THE OPPONENT'S FOUR, from the open sheet. Will is running OTS-only, so their team is
+           * public — which is the whole reason this is answerable at all.
+           *
+           * Capping MY side to their revealed count was tried and was worse: it emptied my bench, so
+           * every switch candidate had no body to resolve to and the search ranked options that could
+           * not happen (480 unresolved clicks in one turn). Symmetric ignorance is not better than
+           * asymmetric knowledge when the asymmetry is the thing being searched over.
+           *
+           * Revealed bodies first — those are known to have been brought — then filled from the sheet
+           * to four. The fill is a GUESS about which four of six they chose and is one of the two
+           * things most likely to be wrong about this bot's judgement. */
           if (!(board.party && (board.party[foeS] || []).length)) {
             const seen = ['a', 'b'].map(L => board.slot(foeS, L)).filter(Boolean).map(m => m.species);
             const sheetSp = Object.keys((board.sheet && board.sheet[foeS]) || {});
@@ -640,7 +655,7 @@ function handle(room, line) {
       };
     }
     bot.start();
-    rooms.set(room, { stream, bot, shown: 0 });
+    rooms.set(room, { stream, bot, shown: 0, ots: false, log: [], started: Date.now() });
     console.log(`joined ${room}`);
     /* ACCEPT OPEN TEAM SHEETS -- BUT ONLY DURING TEAM PREVIEW.
      *
@@ -660,7 +675,28 @@ function handle(room, line) {
     send(`${room}|/acceptopenteamsheets`);
     console.log(`${room}: agreeing to open team sheets`);
   }
-  if (line.startsWith('|showteam|')) console.log(`${room}: OPEN SHEETS ARE UP — sets are visible`);
+  if (line.startsWith('|showteam|')) {
+    if (st) st.ots = true;
+    console.log(`${room}: OPEN SHEETS ARE UP — sets are visible`);
+  }
+
+  /* ---- RECORD EVERY OTS GAME, AND ONLY OTS GAMES -------------------------------------------------
+   *
+   * Will: "we are solving open team sheet first ... any games without ots just throw them out", and
+   * "any games with ots lets record so i can watch them back".
+   *
+   * OTS is not a preference here, it is the input. The rollout seeds the opponent's team from the
+   * sheet; without one it is guessing four Pokemon out of a species it has not even seen, and a game
+   * played on that is not evidence about the bot. So a closed-sheet battle is recorded as SKIPPED
+   * rather than silently mixed in with the rest — a corpus that quietly contains both is exactly the
+   * kind that produced the withdrawn Sucker Punch claim.
+   *
+   * The log is the room's own protocol stream, which is what Showdown replays are made of, so it can
+   * be watched back rather than merely read. */
+  if (st) {
+    if (!st.log) st.log = [];
+    st.log.push(line);
+  }
   /* MEGA DIAGNOSTIC. Will reported twice that the bot never mega evolves, while self-play megas
    * 2,174 times in 1,934 games -- so the engine is fine and something on THIS path is not. Passing
    * the `mega` option was necessary and turned out not to be sufficient, and guessing between the
@@ -708,6 +744,40 @@ function handle(room, line) {
     console.log(`RECORD  you ${RECORD.you} — MAG ${RECORD.mag}${RECORD.tie ? ' — ' + RECORD.tie + ' tied' : ''}` +
                 `   (you win ${(100 * RECORD.you / Math.max(1, n)).toFixed(0)}% of ${n})`);
     console.log(`${room} finished: ${line}`);
+
+    /* SAVED IF AND ONLY IF THE SHEETS WERE OPEN. A closed-sheet game is thrown out rather than kept
+     * with a flag, because a directory that quietly contains both is exactly the corpus that produced
+     * the withdrawn 47.9% Sucker Punch claim — two populations, one name. The skip is COUNTED and
+     * printed, so "no games today" and "twelve games, all discarded" cannot look the same. */
+    try {
+      const dir = D('data', 'live-games');
+      if (st.ots) {
+        fs.mkdirSync(dir, { recursive: true });
+        const safe = room.replace(/[^a-z0-9-]/gi, '_');
+        const meta = {
+          room, bot: NAME, rollout: ROLLOUT,
+          rolloutN: ROLLOUT_N, rolloutExplore: ROLLOUT_EXPLORE, rolloutTurns: ROLLOUT_TURNS,
+          greedy: GREEDY, ots: true,
+          started: st.started, ended: Date.now(), result: line.trim(),
+        };
+        fs.writeFileSync(path.join(dir, safe + '.json'),
+          JSON.stringify({ meta, log: st.log || [] }, null, 1) + String.fromCharCode(10));
+        /* The raw protocol too, which is what a Showdown replay IS — paste it into the client's
+         * replay uploader and it plays back as a battle rather than as a wall of text. */
+        fs.writeFileSync(path.join(dir, safe + '.log'), (st.log || []).join(String.fromCharCode(10)) + String.fromCharCode(10));
+        SAVED.kept++;
+        console.log(`  recorded -> data/live-games/${safe}.log  (${(st.log || []).length} lines)`);
+      } else {
+        SAVED.skipped++;
+        console.log('  NOT recorded: this game had no open team sheets, so it is thrown out.');
+      }
+      console.log(`  games kept ${SAVED.kept}, discarded for no OTS ${SAVED.skipped}`);
+    } catch (e) {
+      /* Losing a recording is not worth losing the connection over, but it must not be silent —
+       * a bot that quietly records nothing looks identical to a bot nobody has played. */
+      console.error('  could not write the recording: ' + e.message);
+    }
+
     st.stream.end();
     rooms.delete(room);
     send(`${room}|/leave`);
