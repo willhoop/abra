@@ -6,10 +6,26 @@
  *
  *   --name <n>      what it logs in as (default MAG)
  *   --server <url>  default ws://localhost:8000/showdown/websocket
+ *   --pass <p>      account password, for a PUBLIC server (or set SHOWDOWN_PASS)
  *   --greedy        take the best-scoring move rather than a weighted roll (+9 points, measured)
  *   --switching     let it switch (-10 points, measured, which is why it is off)
  *   --why           print its per-option scores to this terminal as it plays
  *
+ * TO LET FRIENDS PLAY IT, which is the whole point of a bot nobody else can reach:
+ *
+ *   SHOWDOWN_PATH=... SHOWDOWN_PASS=... node engine/mag_bot.js \
+ *     --name <registered-name> --server wss://sim3.psim.us/showdown/websocket --greedy
+ *
+ *   ...then anyone opens play.pokemonshowdown.com and challenges that name in the format below.
+ *
+ * WHY THE PUBLIC SERVER AND NOT A TUNNEL. The format is `gen9championsvgc2026regmb`, which comes
+ * from the `champions` mod — and that mod is in smogon/pokemon-showdown itself, not a local hack, so
+ * the real server has the format. Tunnelling a `--no-security` localhost server would also work and
+ * needs no password, but it hands anyone who finds the URL the ability to claim any name on it.
+ *
+ * A NOTE WORTH HAVING: a bot answering CHALLENGES from people who know it is a bot is ordinary. A bot
+ * on the LADDER is a different thing and is against Showdown's rules on the main server. This file
+ * only accepts challenges — it never searches for a ladder game — and that should stay true.
  * WHY BOTHER, GIVEN engine/play.js ALREADY WORKS
  * ----------------------------------------------
  * play.js is a text interface and judging a bot through one is judging it through a straw. Showdown
@@ -34,6 +50,10 @@ const CS = require('./champions_sim.js');
 const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : d; };
 const NAME = arg('name', 'MAG');
 const SERVER = arg('server', 'ws://localhost:8000/showdown/websocket');
+/* The account password, for a PUBLIC server. Read from the environment by preference so it does not
+ * land in shell history or in a screenshot of this terminal; --pass exists for convenience. */
+const PASS = arg('pass', process.env.SHOWDOWN_PASS || '');
+const LOGIN_URL = arg('login-url', 'https://play.pokemonshowdown.com/api/login');
 const GREEDY = process.argv.includes('--greedy');
 const SWITCHING = process.argv.includes('--switching');
 /* --mega p  probability of taking a mega evolution when one is available. Matches mew.js's default
@@ -190,7 +210,14 @@ const RECORD = { you: 0, mag: 0, tie: 0 };
  * exactly like a broken bot. That cost twenty minutes tonight. A connection that has not acquired
  * its name within five seconds is a failure and now announces itself as one. */
 let loggedIn = false;
-setTimeout(() => {
+/* THE CLOCK STARTS AT CONNECT, NOT AT PROCESS START, and that is the difference between a warning
+ * that means something and one that cries wolf. Loading the team pool and the simulator takes
+ * longer than five seconds on a cold start, so the timer was firing before the socket had finished
+ * handshaking -- printing "another instance already has it" and then, two lines later, "logged in".
+ * A false alarm that names a specific wrong cause is worse than no alarm: it sends you to close a
+ * process that does not exist. Ten seconds because a PUBLIC server adds a login round trip that
+ * localhost does not. */
+const armNameCheck = () => setTimeout(() => {
   if (!loggedIn) {
     console.error(`
   COULD NOT BECOME "${NAME}" — almost certainly another instance already has it.`);
@@ -198,9 +225,9 @@ setTimeout(() => {
     console.error(`      node engine/mag_bot.js --name ${NAME}2
 `);
   }
-}, 5000);
+}, 10000);
 
-ws.onopen = () => console.log(`connected to ${SERVER}`);
+ws.onopen = () => { console.log(`connected to ${SERVER}`); armNameCheck(); };
 ws.onerror = (e) => console.error('socket error:', e && e.message ? e.message : e);
 ws.onclose = () => { console.log('disconnected'); process.exit(0); };
 
@@ -222,9 +249,51 @@ function handle(room, line) {
   const p = line.split('|');
   const cmd = p[1];
 
-  /* --no-security means no auth server round trip: `/trn name,0,` is accepted as-is. That is the
-   * whole reason this works locally and would not against the real site. */
-  if (cmd === 'challstr') { send(`|/trn ${NAME},0,`); return; }
+  /* LOGGING IN, THE LOCAL WAY AND THE REAL WAY.
+   *
+   * `--no-security` accepts `/trn name,0,` as-is with no auth round trip, which is why this worked
+   * locally and would not against the real site. A public server issues a challstr and wants an
+   * ASSERTION, obtained by posting that challstr together with the account password.
+   *
+   * Both paths live here because the difference is one field: with a password we fetch an assertion
+   * first; without one we send the empty third argument exactly as before. The no-password case
+   * against a NON-local server is reported rather than attempted quietly — a bot that connects,
+   * fails to authenticate and then sits ignoring every challenge is the least debuggable failure
+   * there is, which is the same reason the popup handler below exists.
+   *
+   * No new dependency: Node 24 ships a global fetch, and this project pins exactly one dependency on
+   * purpose. */
+  if (cmd === 'challstr') {
+    const challstr = p.slice(2).join('|');
+    if (!PASS) {
+      if (!/^wss?:\/\/(localhost|127\.)/.test(SERVER)) {
+        console.error('  No --pass given and the server is not localhost. A public server will');
+        console.error('  refuse an unauthenticated name — pass --pass <password> or set SHOWDOWN_PASS.');
+      }
+      send(`|/trn ${NAME},0,`);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await fetch(LOGIN_URL, {
+          method: 'POST',
+          body: new URLSearchParams({ name: NAME, pass: PASS, challstr }),
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        /* The login endpoint has historically prefixed its JSON with `]` to defeat naive eval.
+         * Stripped if present rather than assuming either shape. */
+        const json = JSON.parse((await res.text()).replace(/^\]/, ''));
+        if (!json.assertion) throw new Error(json.actionerror || 'no assertion in the login response');
+        send(`|/trn ${NAME},0,${json.assertion}`);
+      } catch (e) {
+        /* Said out loud and NOT retried silently: a wrong password and a network failure both leave
+         * the bot connected and mute, and they need different fixes. */
+        console.error(`  LOGIN FAILED for ${NAME}: ${e.message}`);
+        console.error('  Connected but not authenticated — it will ignore every challenge.');
+      }
+    })();
+    return;
+  }
   /* A rejected team or a bad command comes back as a popup and is otherwise invisible: the bot just
    * appears to ignore the challenge, which is the least debuggable failure there is. */
   if (cmd === 'popup') { console.error('SERVER SAYS: ' + line.slice(8).replace(/\|\|/g, '  ')); return; }
