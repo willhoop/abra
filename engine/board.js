@@ -3433,6 +3433,6 @@ function switchFeatures(cand, user, board, side, dex, priorP) {
  * stone that belongs to another species. One resolver, per CLAUDE.md's facts-are-global rule. */
 /* PUBLISHED BOTH WAYS. In node this is the module; in a browser it is globalThis.BOARD, so the page
  * can call the same featuresFor() the engine calls instead of maintaining a second scorer. */
-const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
+const _EXPORTS = { FEATURES, FEATURE_INDEX, mcKeyFor, JOINT_FEATURES, JOINT_INDEX, jointFeaturesFor, PRIOR_FLOOR, Board, featuresFor, candidates, noteMove, fieldKey, moveType, moveAccuracy, chargeTurns, spreadLines, movePower, abilityBlockProb, norm, baseSpecies, effSpecies, effective, effAbility, effTypes, effStats, effWeight, SELF_TARGETS, dmgFailures, probeFailures, damageEngine, dmgMon, megaFormeOf, entryEffects, resolveDrop, setOpponentModel, foeActionDistribution, loadData };
 if (typeof module !== 'undefined' && module.exports) module.exports = _EXPORTS;
 if (typeof globalThis !== 'undefined') globalThis.BOARD = _EXPORTS;

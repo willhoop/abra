@@ -58,6 +58,16 @@ function loadRanker() {
  *                            `rows` is empty when onRow was supplied. */
 function build(games, dex, opts) {
   const TOPK = opts.topK;
+  /* onBoard(board, game, turnIndex) — an OBSERVER on the replay, called once per turn just before
+   * endTurn(), with the board in the state the players actually faced.
+   *
+   * It exists so a consumer that needs POSITIONS rather than candidate rows does not have to
+   * re-implement this walk. The event application below (hp from tgthp or dmg, status, boosts,
+   * faints, weather, field) is fiddly and already got the Sucker Punch claim wrong once; a second
+   * copy of it in a rollout harness would be a second thing to keep right. Same replay, same board,
+   * one implementation. */
+  const onBoard = opts.onBoard || null;
+  const maxGames = opts.maxGames || 0;
   const onRow = opts.onRow || null;
   const w1 = opts.w1;
   const NF = B.FEATURES.length, NJ = B.JOINT_FEATURES.length, NW = NF + NJ;
@@ -71,7 +81,10 @@ function build(games, dex, opts) {
                    * list — a slot with 3 options cannot truncate at K=3 and is not evidence. */
                   rankHist: [], slotRankHist: [], candCount: [] };
 
+  let _gi = 0;
   for (const g of games) {
+    if (maxGames && _gi >= maxGames) break;
+    _gi++;
     const board = new B.Board();
     /* Side-keyed and forme-folded; see engine/click_match.js. `sheet[base(species)]` collapsed both
      * players' sets in a mirror, and 58.63% of corpus games have one. */
@@ -225,6 +238,7 @@ function build(games, dex, opts) {
        * stalledThisTurn -> stalledLastTurn, advances turnsActive and moves moveThisTurn into
        * lastMove. Incrementing the number by hand leaves deadStall permanently 0 and every
        * Fake Out permanently legal -- silently, in a replay that otherwise looks correct. */
+      if (onBoard) onBoard(board, g, _gi);
       board.endTurn();
     }
   }

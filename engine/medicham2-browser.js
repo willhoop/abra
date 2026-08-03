@@ -890,16 +890,24 @@ function switchOut(act,i,bench,foes,sf,field){
   bench.push(out);
   return bringIn(act,i,bench,foes,sf,field);
 }
-function battleInit(teamA,teamB){
+/* `opts.seeded` starts the battle from a position that is ALREADY UNDER WAY, which is what a rollout
+   leaf needs. The difference is entry effects: a fresh battle applies weather/terrain reactions and
+   Intimidate as the leads arrive, and a mid-game seed must not, because those already happened in the
+   real game. Re-applying Intimidate would drop the foe's Attack a SECOND time on every leaf, in the
+   same direction, on every board with an Incineroar -- a silent, systematic bias exactly where the
+   format is most crowded. */
+function battleInit(teamA,teamB,opts){
   const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
     /* one shared death counter per side, handed to every mon by reference */
     sfA:{fainted:0},sfB:{fainted:0},
     actA:[teamA[0],teamA[1]].filter(Boolean),actB:[teamB[0],teamB[1]].filter(Boolean),
     benchA:teamA.slice(2),benchB:teamB.slice(2),turn:0};
   teamA.forEach(m=>{if(m)m._sf=S.sfA;});teamB.forEach(m=>{if(m)m._sf=S.sfB;});
-  for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field);
-  const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
-  intim(S.actA,S.actB);intim(S.actB,S.actA);
+  if(!(opts&&opts.seeded)){
+    for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field);
+    const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
+    intim(S.actA,S.actB);intim(S.actB,S.actA);
+  }
   return S;
 }
 function battleOver(S){
