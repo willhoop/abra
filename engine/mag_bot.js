@@ -154,8 +154,42 @@ function playerStream(onChoice) {
   };
 }
 
-const teams = realTeams();
-if (teams.length < 2) { console.error('no clean teams — run the ingest first'); process.exit(1); }
+/* OPEN TEAM SHEETS ONLY. NO GUESSING.
+ *
+ * A corpus team carries the moves the REPLAY REVEALED, and a replay reveals almost nothing: across
+ * 41,040 Pokemon slots, 47.0% show zero moves and only 7.8% show all four. Everything else is drawn
+ * from per-species priors -- INDEPENDENTLY, one Pokemon at a time, with nothing checking that the
+ * team still works as a team. That is how Will got handed a Banette/Drampa/Milotic Trick Room team
+ * with no Trick Room on it: Banette's real set had the move, the replay never showed it, and the
+ * redraw gave it Poltergeist and Disable instead. Banette draws Trick Room on 30% of samples;
+ * Drampa and Milotic on 0%.
+ *
+ * OPEN TEAM SHEET GAMES ARE ALREADY SCRAPED FOR EXACTLY THIS REASON and the corpus proves it. The
+ * per-team completeness is bimodal, not a gradient: 73% of teams have NO fully-known Pokemon, and
+ * 3.4% have all six -- 231 teams, of which 230 also have every item and ability. Those are the sheets.
+ * Nothing preferred them; realTeams returned all 6,840 and the picker rolled a die.
+ *
+ * So the live bot plays REAL teams only. 231 complete VGC teams is not a small pool for playing
+ * friends, and every one of them is coherent because a person built it. --any-team restores the old
+ * behaviour rather than deleting it, because self-play may still want the variety.
+ */
+const ALL_TEAMS = realTeams();
+const isComplete = (t) => t.six.length >= 4 && t.six.every((sp) => {
+  const st = (t.sets || {})[sp];
+  return st && st.moves && st.moves.length >= 4 && st.item && st.ability;
+});
+const ANY_TEAM = process.argv.includes('--any-team');
+const teams = ANY_TEAM ? ALL_TEAMS : ALL_TEAMS.filter(isComplete);
+if (!ANY_TEAM) {
+  console.log(`teams: ${teams.length} complete open-sheet teams of ${ALL_TEAMS.length} ` +
+    `(${(100 * teams.length / ALL_TEAMS.length).toFixed(1)}%) — no move is guessed`);
+}
+if (teams.length < 2) {
+  console.error(ANY_TEAM ? 'no clean teams — run the ingest first'
+    : 'no COMPLETE open-sheet teams found. Run with --any-team to fall back to reconstructed sets, '
+      + 'but expect incoherent teams: 47% of corpus Pokemon reveal no moves at all.');
+  process.exit(1);
+}
 /* packTeam reports whether the result passes Showdown's validator, and MEW discards roughly 2% of
  * draws for exactly that reason. Ignoring the flag means offering the server a team it will reject,
  * and a rejected team makes /accept fail SILENTLY — which is indistinguishable from the bot simply
@@ -653,6 +687,15 @@ function handle(room, line) {
        * does not doubt it -- but the cost of it being wrong is a REJECTED CHOICE, which on a
        * live server is a battle that stalls until the timer kills it. A three-line guard against
        * a stalled game is worth more than the invariant is worth defending. */
+      /* WHY A MEGA DID OR DID NOT HAPPEN, said out loud. Three separate mega bugs have now been
+       * found by Will noticing it did not mega -- each time the failure was SILENT, because a
+       * capability that is absent logs nothing. This prints the two facts that decide it. */
+      const megaTrace = function (choice, active, where) {
+        if (!TRACE) return choice;
+        const can = !!(active && active.canMegaEvo);
+        console.log(`    mega[${where}] canMegaEvo=${can} megaP=${this.megaP} choice="${choice}"`);
+        return choice;
+      };
       const megaOnce = function (choice) {
         if (!/ mega$/.test(String(choice))) return choice;
         if (this._megaReq === this._req) return String(choice).replace(/ mega$/, '');
@@ -724,7 +767,7 @@ function handle(room, line) {
           /* The partner's half, decided on the other slot's call. */
           if (this._rolloutReq === req && this._rolloutPick && this._rolloutPick[i] != null) {
             const pick = this._rolloutPick[i]; this._rolloutPick[i] = null;
-            return megaOnce.call(this, this._withMega(pick, active));
+            return megaOnce.call(this, megaTrace.call(this, this._withMega(pick, active), active, 'parked'));
           }
           /* Singles-shaped requests, forced switches and anything with one slot fall through to MAG:
            * the pair logic below assumes two live slots and would otherwise index undefined. */
@@ -1051,7 +1094,7 @@ function handle(room, line) {
            * a team holds one stone, so the pair cannot both claim it; _withMega also leaves
            * switches alone, where a mega suffix is not legal to send. */
           this._rolloutPick[1 - i] = chosen[1 - i].choice;
-          return megaOnce.call(this, this._withMega(chosen[i].choice, active));
+          return megaOnce.call(this, megaTrace.call(this, this._withMega(chosen[i].choice, active), active, 'direct'));
         } catch (e) {
           /* NEVER FORFEIT A LIVE BATTLE OVER A SEARCH BUG. Falling back to MAG is a worse move, not a
            * lost game — and the reason is printed so it is fixable rather than mysterious. */
