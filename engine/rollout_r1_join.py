@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""rollout_r1_join.py — PHASE 2 of R1: score PORYGON3 on the positions the rollout scored.
+"""rollout_r1_join.py — PHASE 2 of R1: score PORYGON2 on the positions the rollout scored.
 
     node engine/rollout_r1.js  (with DUMP=rollout-r1-rows.jsonl)
     python engine/rollout_r1_join.py
 
 WHY THIS FILE EXISTS
 --------------------
-R1's question is "is a rollout a better JUDGE than PORYGON3", and phase 1 cannot answer it. The
+R1's question is "is a rollout a better JUDGE than PORYGON2", and phase 1 cannot answer it. The
 incumbent is a Python k-NN whose feature vector is defined by porygon2.py's own parser, and
 re-implementing that parser in JS to get a comparable number would be a second definition of the
 feature semantics. That is precisely the mistake that made the first MEDICHAM coverage figure wrong
 (15.3% against a real 10.8%) — a hand-written copy of a predicate disagreed with the original
 immediately. So phase 1 exports its rows and this file scores the incumbent on them.
 
-Phase 1's stand-in was `material`, which bounds the question but does not answer it: PORYGON3's claim
+Phase 1's stand-in was `material`, which bounds the question but does not answer it: PORYGON2's claim
 is "+3.42 points over material", and the rollout's lift over material was -1.85 with a CI spanning
 zero. Both are lifts over a proxy. This is the head-to-head.
 
@@ -49,7 +49,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import porygon2 as P
 
-SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon3.raw-logs.jsonl")
+SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon2c.raw-logs.jsonl")
 if not os.path.isabs(SELF_RAW):
     SELF_RAW = os.path.join(ROOT, SELF_RAW)
 ROWS = os.path.join(ROOT, "data", os.environ.get("DUMP", "rollout-r1-rows.jsonl"))
@@ -84,14 +84,14 @@ def main():
     sd[sd == 0] = 1.0
     Zs = (Xs - mu) / sd
 
-    # EVERY RAW STORE, not just the one PORYGON3 happens to evaluate on.
+    # EVERY RAW STORE, not just the one PORYGON2 happens to evaluate on.
     #
     # This was the whole reason the first join returned nothing: P.HUMAN_RAW is
     # games.ladder.raw-logs.jsonl, while fit_policy.loadCorpus() feeds from THREE stores and the
     # first 1,200 games of it are dominated by bo3 (ids `...regmbbo3-` against ladder's `...regmb-`).
     # 1,200 dumped game ids against 29,580 ladder games produced ZERO overlap.
     #
-    # Worth recording beyond this file: PORYGON3's published 63.70% is therefore a LADDER-ONLY figure,
+    # Worth recording beyond this file: PORYGON2's published 63.70% is therefore a LADDER-ONLY figure,
     # while the corpus it is quoted alongside is 54.7% bo3. Comparing a bo3-sampled rollout against it
     # would have been the corpus-mismatch failure in a new costume -- the same shape as the withdrawn
     # 47.9% Sucker Punch claim.
@@ -154,7 +154,7 @@ def main():
                 # measurements of the same quantity under different definitions would still track
                 # each other. Uncorrelated means these are DIFFERENT POSITIONS: alive_diff is
                 # coarse and mostly 0, so it matched by luck, and the head-to-head it admitted was
-                # scoring PORYGON3 on one turn against the rollout on another. That run printed
+                # scoring PORYGON2 on one turn against the rollout on another. That run printed
                 # "R1 PASSES" at +1.82 with a CI clearing zero by 0.11. It was not a result.
                 a_ok = abs(float(v[ai]) - float(row["aliveDiff"])) <= 1e-6
                 h_ok = True
@@ -199,7 +199,7 @@ def main():
     print("    judge                       accuracy     Brier")
     print("  " + "-" * 48)
     for name, p in [("material (porygon2 form)", p_mat),
-                    ("PORYGON3 k=%d" % K, p_pory),
+                    ("PORYGON2 k=%d" % K, p_pory),
                     ("ROLLOUT", p_roll)]:
         print("   %-26s %6.2f%%   %7.4f" % (name, 100 * acc(p), brier(p)))
 
@@ -223,7 +223,7 @@ def main():
     # count what has appeared. That is not reconcilable by choosing a better join key.
     #
     # An earlier configuration of this file printed "R1 PASSES" at +1.82 with a CI clearing zero
-    # by 0.11. It was scoring PORYGON3 on one turn against the rollout on another.
+    # by 0.11. It was scoring PORYGON2 on one turn against the rollout on another.
     if not hp_given_alive or float(np.mean(np.array(hp_given_alive) <= HP_TOL)) < 0.5:
         print("")
         print("  THE JOIN IS UNVALIDATED — DO NOT READ THE TABLE ABOVE AS A HEAD-TO-HEAD.")
@@ -231,10 +231,10 @@ def main():
         print("  turns where any two parsers agree. R1 is NOT ANSWERED by this route.")
         print("  The available evidence stays the material comparison in engine/rollout_r1.js,")
         print("  which is same-corpus and same-positions by construction.")
-    print("\n  VERDICT — rollout vs PORYGON3, head to head")
+    print("\n  VERDICT — rollout vs PORYGON2, head to head")
     print("  " + "-" * 48)
     print("   difference %+.2f points   95%% CI %+.2f to %+.2f" % (diff, diff - half, diff + half))
-    print("   discordant: rollout-only-right %d, PORYGON3-only-right %d, of %d" % (b, c, n))
+    print("   discordant: rollout-only-right %d, PORYGON2-only-right %d, of %d" % (b, c, n))
     if diff - half > 0:
         print("   -> R1 PASSES. The rollout judges better than the model it would replace.")
     elif diff + half < 0:
@@ -247,9 +247,9 @@ def main():
         "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
         "by": "engine/rollout_r1_join.py",
         "joined": len(meta), "dropped_misaligned": misaligned, "k": K,
-        "accuracy": {"material": 100 * acc(p_mat), "porygon3": 100 * acc(p_pory), "rollout": 100 * acc(p_roll)},
-        "brier": {"material": brier(p_mat), "porygon3": brier(p_pory), "rollout": brier(p_roll)},
-        "mcnemar": {"rollout_only_right": b, "porygon3_only_right": c,
+        "accuracy": {"material": 100 * acc(p_mat), "porygon2": 100 * acc(p_pory), "rollout": 100 * acc(p_roll)},
+        "brier": {"material": brier(p_mat), "porygon2": brier(p_pory), "rollout": brier(p_roll)},
+        "mcnemar": {"rollout_only_right": b, "porygon2_only_right": c,
                     "diff_points": diff, "ci_half_width": half},
         "caveat": "Positions are the ones phase 1 sampled, joined by game id and turn index and "
                   "checked with an independently computed alive_diff. Rows whose witness disagreed "

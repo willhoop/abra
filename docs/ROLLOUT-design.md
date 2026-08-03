@@ -9,13 +9,13 @@ calcs we already do"*.
 
 ## 1. The claim, and the number it rests on
 
-Every search in `docs/LOOKAHEAD-design.md` maximises a leaf. That leaf is PORYGON3, and
-`data/porygon3.json` scores it against its own baselines:
+Every search in `docs/LOOKAHEAD-design.md` maximises a leaf. That leaf is PORYGON2, and
+`data/porygon2c.json` scores it against its own baselines:
 
 ```
   coin                50.38%
   material sign       60.28%   <- "who has more bodies and HP"
-  PORYGON3 (k=200)    63.70%
+  PORYGON2 (k=200)    63.70%
 ```
 
 **The entire learned value function is worth 3.4 accuracy points over counting bodies.** A search that
@@ -226,7 +226,7 @@ random legal move instead of the greedy pick:
 ```
 
 **Monotone in every column, and a FULLY RANDOM playout wins.** +3.71 accuracy points over greedy, and
-+3.29 over material — against PORYGON3's published +3.42 over the same baseline.
++3.29 over material — against PORYGON2's published +3.42 over the same baseline.
 
 And N starts behaving: at `explore=1`, more samples buy **calibration** rather than accuracy
 (logloss 1.396 -> 0.885 -> 0.764 at n=10/40/160). That is the right currency for a leaf a search will
@@ -249,14 +249,14 @@ instrument was broken, so it is measured here on many boards rather than one.
 ## 5. Gates
 
 **R1 — PASSED ON THE BASELINE.** 9,201 positions, fully random playout: rollout **68.18%** against
-material's 65.26%, **+2.91 points, 95% CI 1.79 to 4.04**. PORYGON3's published +3.42 over the same
+material's 65.26%, **+2.91 points, 95% CI 1.79 to 4.04**. PORYGON2's published +3.42 over the same
 baseline sits INSIDE that interval, so the rollout is at least its equal and the two are not separated
 by this sample. That is a weaker claim than "beats it" and is stated separately.
 
-The cross-language head-to-head against PORYGON3 itself was built and **withdrawn** — see
+The cross-language head-to-head against PORYGON2 itself was built and **withdrawn** — see
 `engine/rollout_r1_join.py`, which fails its own alignment check and says so.
 
-**R1, as originally specified — the rollout is a better JUDGE than PORYGON3.** No search, no matrix, no equilibrium. Take clean
+**R1, as originally specified — the rollout is a better JUDGE than PORYGON2.** No search, no matrix, no equilibrium. Take clean
 human games with known winners, seed MEDICHAM at each turn, roll out, and ask whether the win rate
 predicts the actual winner better than the k-NN does. Same positions, same labels, and the material
 baseline recomputed on the same sample so the comparison is not against a published number from a

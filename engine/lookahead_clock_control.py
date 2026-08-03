@@ -51,7 +51,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import porygon2 as P
 
-SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon3.raw-logs.jsonl")
+SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon2c.raw-logs.jsonl")
 if not os.path.isabs(SELF_RAW):
     SELF_RAW = os.path.join(ROOT, SELF_RAW)
 OUT = os.path.join(ROOT, "data", "lookahead-clock-control.json")

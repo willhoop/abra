@@ -1,6 +1,6 @@
 /* rollout_leaf.js — judge a position by PLAYING IT OUT, instead of by scoring a snapshot.
  *
- * See docs/ROLLOUT-design.md. The short version: PORYGON3 judges a position at 63.70%, and
+ * See docs/ROLLOUT-design.md. The short version: PORYGON2 judges a position at 63.70%, and
  * "material sign" — literally counting bodies and HP — judges it at 60.28%. The whole learned value
  * function is worth 3.4 points over counting. A search that maximises it is close to a search for
  * "take the most material this turn", which greedy already does.

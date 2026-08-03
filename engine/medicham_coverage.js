@@ -7,7 +7,7 @@
  * Will's question: the project already owns a doubles engine and a rollout — why fork Showdown and
  * score with a k-NN when MEDICHAM can play a position out? It is a good question, and `battleInit`
  * does NOT reset HP, so MEDICHAM can genuinely be seeded from a mid-game board. A rollout to a result
- * is a better leaf than PORYGON3, which data/porygon3.json scores at 63.70% against 60.28% for
+ * is a better leaf than PORYGON2, which data/porygon2c.json scores at 63.70% against 60.28% for
  * "material sign" — the whole learned model is worth 3.4 points over counting bodies.
  *
  * But `playerAction` maps a click to one of {attack, protect, wideguard, tailwind} and returns

@@ -4,7 +4,7 @@
  *
  * THE QUESTION, AND WHY IT COMES BEFORE ANY SEARCH
  * ------------------------------------------------
- * Every search maximises a leaf, and ours is weak: data/porygon3.json scores PORYGON3 at 63.70%
+ * Every search maximises a leaf, and ours is weak: data/porygon2c.json scores PORYGON2 at 63.70%
  * against 60.28% for "material sign" — literally counting bodies and HP. The whole learned value
  * function is worth 3.4 points over counting. That is the best available explanation for why one step
  * of foresight measures small once the clock artifact is removed (+2.29, not +4.91).
@@ -17,12 +17,12 @@
  * ----------------------------------------
  * docs/DATA-LAW.md case 2: this is an ABSOLUTE accuracy claim compared against a published number, so
  * it must run on held-out HUMAN games. Self-play would be doubly circular — the outcomes come from our
- * own bot, and PORYGON3 was fitted on self-play, so a self-play evaluation would flatter the incumbent
+ * own bot, and PORYGON2 was fitted on self-play, so a self-play evaluation would flatter the incumbent
  * as well as the challenger.
  *
  * THE BASELINE IS RECOMPUTED, NOT QUOTED
  * --------------------------------------
- * `material sign` is measured on THESE positions rather than read from porygon3.json. A published
+ * `material sign` is measured on THESE positions rather than read from porygon2c.json. A published
  * number from a different sample is a different question, and comparing against it is how the
  * withdrawn Sucker Punch claim happened. Coin is included for the same reason: an instrument that
  * cannot beat a coin on this sample has not earned the right to be compared to anything.
@@ -88,10 +88,10 @@ function materialP(board, side) {
 /* THE PYTHON BASELINE, COPIED IN FORM SO THE LIFTS ARE COMPARABLE.
  * engine/porygon2.py:530 is `clip(0.5 + 0.15*alive_diff, 0.02, 0.98)` -- GRADED, and a function of
  * BODIES ONLY. The hard bodies-then-HP sign above is a different and stronger baseline, which is why
- * it scored 66.14% here against the 60.28% porygon3.json publishes, and why its Brier looked so much
+ * it scored 66.14% here against the 60.28% porygon2c.json publishes, and why its Brier looked so much
  * worse: a hard 0/1 is punished for every miss.
  *
- * That difference matters for the only comparison that decides R1. PORYGON3's claim is "+3.42 points
+ * That difference matters for the only comparison that decides R1. PORYGON2's claim is "+3.42 points
  * over material"; measuring the rollout's lift over a DIFFERENT material is not the same quantity, and
  * comparing the two would be the corpus-mismatch mistake in a new costume. Both baselines are printed
  * so the reader can see the choice rather than inherit it. */
@@ -134,7 +134,7 @@ function materialPy(board, side) {
   console.log('');
 }
 
-/* DUMP lets phase 2 score PORYGON3 on THESE positions, which is the comparison R1 actually needs and
+/* DUMP lets phase 2 score PORYGON2 on THESE positions, which is the comparison R1 actually needs and
  * cannot make from JS: the incumbent is a Python k-NN and its feature vector is defined by
  * porygon2.py's parser. Re-implementing that parser here to get a like-for-like number would be a
  * second definition of the feature semantics -- the exact mistake that made the first coverage number
@@ -246,7 +246,7 @@ for (const [name, f] of lines) {
     brier(f).toFixed(4).padStart(7) + '   ' + logloss(f).toFixed(4).padStart(7));
 }
 
-/* The number this gate turns on. PORYGON3's 63.70% is a HUMAN-game figure from data/porygon3.json,
+/* The number this gate turns on. PORYGON2's 63.70% is a HUMAN-game figure from data/porygon2c.json,
  * quoted for scale — the like-for-like comparison on this sample is the material row above, because
  * that one was measured here. */
 const NBEST = EXPLORE_LIST.length > 1 ? `${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[EXPLORE_LIST.length - 1]}` : N_LIST[N_LIST.length - 1];
@@ -276,20 +276,20 @@ console.log('  ' + '-'.repeat(66));
 console.log(`  rollout minus material (porygon2 form): ${diff >= 0 ? '+' : ''}${diff.toFixed(2)} points` +
   `  (95% CI ${(diff - half).toFixed(2)} to ${(diff + half).toFixed(2)})`);
 console.log(`  discordant positions: rollout-only-right ${b}, material-only-right ${c}, of ${rows.length}`);
-console.log(`  PORYGON3 is 63.70% on human games (data/porygon3.json) and beats material by 3.42 there.`);
+console.log(`  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.`);
 /* THREE THRESHOLDS, NOT TWO, and the message must match the interval it just printed.
  *
  * The first version tested only "does the lower bound clear 3.42" and otherwise printed "the interval
  * spans zero". At +2.91 [1.79, 4.04] that was a FALSE STATEMENT about the numbers on the line above:
- * the interval does not span zero, it clears it comfortably and merely fails to clear PORYGON3's
+ * the interval does not span zero, it clears it comfortably and merely fails to clear PORYGON2's
  * published lift. A verdict that contradicts its own table is worse than no verdict. */
 const PORY_LIFT = 3.42;
 if (diff - half > PORY_LIFT) {
-  console.log(`  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON3's published +${PORY_LIFT} lift,`);
+  console.log(`  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON2's published +${PORY_LIFT} lift,`);
   console.log('     so the rollout carries more than the learned model adds over the same baseline.');
 } else if (diff - half > 0) {
   console.log('  -> R1 PASSES ON THE BASELINE. The rollout is significantly better than counting');
-  console.log(`     bodies, and PORYGON3's published +${PORY_LIFT} sits INSIDE this interval — so the two`);
+  console.log(`     bodies, and PORYGON2's published +${PORY_LIFT} sits INSIDE this interval — so the two`);
   console.log('     are not separated by this sample, and the rollout is at least its equal here.');
   console.log('     Not the same claim as beating it. Said separately because they are separate.');
 } else if (diff + half < 0) {
@@ -300,13 +300,13 @@ if (diff - half > PORY_LIFT) {
   console.log('     from counting. Not a pass and NOT a failure — raise GAMES until it separates.');
 }
 console.log('\n  NOT A LIKE-FOR-LIKE TEST OF THE REAL QUESTION, said plainly: the incumbent is');
-console.log('  PORYGON3, and PORYGON3 is a Python k-NN that has not been scored on THESE positions.');
+console.log('  PORYGON2, and PORYGON2 is a Python k-NN that has not been scored on THESE positions.');
 console.log('  Material is the honest local stand-in, and Brier/log-loss below flatter the rollout');
 console.log('  against it because a sign function emits hard 0/1 and is punished for it.');
 if (DUMP) {
   fs.writeFileSync(DUMP, dumpRows.map(r => JSON.stringify(r)).join(String.fromCharCode(10)) + String.fromCharCode(10));
   console.log(`  wrote ${dumpRows.length.toLocaleString()} rows to ${path.relative(D('.'), DUMP)}`);
-  console.log('  next: python engine/rollout_r1_join.py — PORYGON3 on these same positions.');
+  console.log('  next: python engine/rollout_r1_join.py — PORYGON2 on these same positions.');
 }
 console.log('\n  Both columns are scored on identical positions with identical labels, per');
 console.log('  docs/DATA-LAW.md case 2. The only thing that differs is which judge was asked.');

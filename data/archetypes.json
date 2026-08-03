@@ -1,147 +1,147 @@
 {
   "generated": "auto from data/games.ladder.jsonl",
-  "n_team_sides": 10864,
-  "n_games": 5432,
+  "n_team_sides": 13258,
+  "n_games": 6629,
   "unit_note": "The clustering runs on TEAM SIDES, up to two per game. n_team_sides is the sample size for every share and silhouette below; n_games is the number of clean games they were drawn from.",
   "k_selected": 12,
-  "silhouette": 0.125,
+  "silhouette": 0.121,
   "note": "Archetypes are DISCOVERED from live ladder teams, not hand-listed. Re-run engine/archetypes.py to refresh as the meta shifts; K (how many distinct archetypes exist) is chosen from the data, so new ones appear and faded ones drop below the 3% floor automatically.",
   "archetypes": [
     {
-      "n": "Sableye-Metagross",
-      "share": 0.221,
+      "n": "Sableye-Talonflame",
+      "share": 0.195,
       "core": [
         "sableye",
-        "metagross",
-        "aerodactyl",
-        "talonflame"
+        "talonflame",
+        "milotic",
+        "aerodactyl"
       ],
       "signature": [],
-      "w_usage": 0.227
+      "w_usage": 0.199
     },
     {
-      "n": "Garchomp-Whimsicott",
-      "share": 0.102,
+      "n": "Whimsicott-Garchomp",
+      "share": 0.097,
       "core": [
-        "garchomp",
         "whimsicott",
-        "tyranitar",
-        "staraptor"
+        "garchomp",
+        "staraptor",
+        "kingambit"
       ],
       "signature": [],
-      "w_usage": 0.105
-    },
-    {
-      "n": "Pelipper-Archaludon",
-      "share": 0.095,
-      "core": [
-        "pelipper",
-        "archaludon",
-        "swampert",
-        "grimmsnarl"
-      ],
-      "signature": [],
-      "w_usage": 0.098
-    },
-    {
-      "n": "Incineroar-Gengar",
-      "share": 0.086,
-      "core": [
-        "incineroar",
-        "gengar",
-        "politoed",
-        "archaludon"
-      ],
-      "signature": [],
-      "w_usage": 0.088
+      "w_usage": 0.099
     },
     {
       "n": "Trick Room",
-      "share": 0.083,
+      "share": 0.091,
       "core": [
         "farigiraf",
         "torkoal",
-        "incineroar",
-        "mawile"
+        "mawile",
+        "incineroar"
       ],
       "signature": [],
-      "w_usage": 0.085
+      "w_usage": 0.093
     },
     {
-      "n": "Whimsicott-Kingambit",
-      "share": 0.083,
+      "n": "Kingambit-Farigiraf",
+      "share": 0.084,
       "core": [
+        "kingambit",
+        "farigiraf",
+        "basculegion",
+        "sneasler"
+      ],
+      "signature": [],
+      "w_usage": 0.086
+    },
+    {
+      "n": "Archaludon-Pelipper",
+      "share": 0.082,
+      "core": [
+        "archaludon",
+        "pelipper",
+        "swampert",
+        "sinistcha"
+      ],
+      "signature": [],
+      "w_usage": 0.084
+    },
+    {
+      "n": "Basculegion-Whimsicott",
+      "share": 0.079,
+      "core": [
+        "basculegion",
         "whimsicott",
-        "kingambit",
-        "basculegion",
-        "garchomp"
+        "garchomp",
+        "kingambit"
       ],
       "signature": [],
-      "w_usage": 0.085
-    },
-    {
-      "n": "Sinistcha-Incineroar",
-      "share": 0.08,
-      "core": [
-        "sinistcha",
-        "incineroar",
-        "raichu",
-        "milotic"
-      ],
-      "signature": [],
-      "w_usage": 0.082
-    },
-    {
-      "n": "Kingambit-Basculegion",
-      "share": 0.064,
-      "core": [
-        "kingambit",
-        "basculegion",
-        "sneasler",
-        "froslass"
-      ],
-      "signature": [],
-      "w_usage": 0.066
+      "w_usage": 0.081
     },
     {
       "n": "Charizard-Garchomp",
-      "share": 0.062,
+      "share": 0.077,
       "core": [
         "charizard",
         "garchomp",
-        "incineroar",
+        "kingambit",
         "sylveon"
       ],
       "signature": [
-        "venusaur"
+        "kingambit"
       ],
-      "w_usage": 0.064
+      "w_usage": 0.079
+    },
+    {
+      "n": "Garchomp-Tyranitar",
+      "share": 0.077,
+      "core": [
+        "garchomp",
+        "tyranitar",
+        "talonflame",
+        "aerodactyl"
+      ],
+      "signature": [
+        "aerodactyl"
+      ],
+      "w_usage": 0.079
+    },
+    {
+      "n": "Incineroar-Gengar",
+      "share": 0.072,
+      "core": [
+        "incineroar",
+        "gengar",
+        "kommoo",
+        "ninetalesalola"
+      ],
+      "signature": [],
+      "w_usage": 0.074
+    },
+    {
+      "n": "Sinistcha-Incineroar",
+      "share": 0.069,
+      "core": [
+        "sinistcha",
+        "incineroar",
+        "sneasler",
+        "delphox"
+      ],
+      "signature": [],
+      "w_usage": 0.071
     },
     {
       "n": "Sand",
-      "share": 0.058,
+      "share": 0.055,
       "core": [
         "tyranitar",
         "excadrill",
         "staraptor",
-        "sinistcha"
+        "milotic"
       ],
       "signature": [],
-      "w_usage": 0.06
-    },
-    {
-      "n": "Farigiraf-Kingambit",
-      "share": 0.038,
-      "core": [
-        "farigiraf",
-        "kingambit",
-        "sylveon",
-        "staraptor"
-      ],
-      "signature": [
-        "camerupt"
-      ],
-      "w_usage": 0.039
+      "w_usage": 0.056
     }
   ]
 }

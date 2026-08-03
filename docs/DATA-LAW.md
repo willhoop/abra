@@ -1,7 +1,7 @@
 # The data law: when self-play is allowed and when only human games will do
 
 **2026-08-03.** Will asked for a rule rather than a habit. Half of it was already written —
-`docs/POKER-TO-POKEMON.md` §141, quoted in `data/porygon3.json`'s own provenance:
+`docs/POKER-TO-POKEMON.md` §141, quoted in `data/porygon2c.json`'s own provenance:
 
 > Held-out human games remain the *calibration* set, scored with proper scoring rules (log-loss,
 > Brier, reliability) — **never the training signal**, to avoid laundering the selection bias back in.
@@ -27,7 +27,7 @@ in public replays, which are a self-selected slice: people save their wins and t
 `POKER-TO-POKEMON.md` §141 is the standing authority and nothing here changes it.
 
 ### 2. MEASURING ABSOLUTE ACCURACY — human games, held out, always
-"Does this predict who wins" must be asked against outcomes we did not generate. PORYGON3's 63.70% is
+"Does this predict who wins" must be asked against outcomes we did not generate. PORYGON2's 63.70% is
 a human-game number for exactly this reason, and any candidate leaf must be scored **on the same
 corpus** or the comparison is between two different questions.
 
@@ -74,13 +74,13 @@ skipped for ending early, because the surviving boards are then biased toward lo
 
 ## Applied to the rollout leaf, since that is what prompted this
 
-`docs/ROLLOUT-design.md` R1 asks: does a MEDICHAM rollout judge a position better than PORYGON3?
+`docs/ROLLOUT-design.md` R1 asks: does a MEDICHAM rollout judge a position better than PORYGON2?
 
 - Case 2 — an absolute accuracy claim compared against a published 63.70%.
-- **Therefore: clean held-out HUMAN games, the same corpus PORYGON3 was scored on.** Self-play would
-  be doubly circular: the outcomes come from our bot, and PORYGON3 was fitted on self-play, so a
+- **Therefore: clean held-out HUMAN games, the same corpus PORYGON2 was scored on.** Self-play would
+  be doubly circular: the outcomes come from our bot, and PORYGON2 was fitted on self-play, so a
   self-play evaluation would flatter the incumbent as well as the challenger.
 - The material-sign baseline is **recomputed on the same sample** rather than quoted from
-  `porygon3.json`, because a published number from a different set is a different question (case 2).
+  `porygon2c.json`, because a published number from a different set is a different question (case 2).
 
 R4 — "does it win games" — is case 4, so self-play, one lever, SPRT.

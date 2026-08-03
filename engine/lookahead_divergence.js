@@ -14,12 +14,12 @@
  *
  * It is committed because the enumeration and the fork side ARE working — 49 legal cells from 9x6
  * proposed options, validated by Showdown itself, 0 throws, 0 inert — and because the MEDICHAM route
- * below may make the PORYGON3 half of it unnecessary.
+ * below may make the PORYGON2 half of it unnecessary.
  *
  * THE ALTERNATIVE THIS MAY BE SUPERSEDED BY. Will's question — "can't it just be all the same calcs
  * we already do" — points at engine/medicham2-browser.js, which already plays doubles positions out.
  * `battleInit` does not reset HP, so it can be seeded mid-game, and a rollout to a result is a better
- * leaf than a snapshot k-NN that data/porygon3.json scores 3.4 points above counting bodies.
+ * leaf than a snapshot k-NN that data/porygon2c.json scores 3.4 points above counting bodies.
  * engine/medicham_coverage.js measures the price: 15.3% of real clicks are moves MEDICHAM turns into
  * a no-op turn. Decide between the two routes before finishing this one.
  *
@@ -37,7 +37,7 @@
  *
  * WHY IT IS WORTH ASKING NOW RATHER THAN AFTER G3
  * -----------------------------------------------
- * data/porygon3.json scores its own leaf: coin 50.38%, "material sign" 60.28%, the fitted k-NN
+ * data/porygon2c.json scores its own leaf: coin 50.38%, "material sign" 60.28%, the fitted k-NN
  * 63.70%. The entire learned value function is worth 3.4 points over counting bodies. A one-step
  * search maximising it is therefore, to within 3.4 points, a search for "which move removes the most
  * material next turn" — which is what a greedy damage policy already does. The two players may be
@@ -65,7 +65,7 @@
  * ATTEMPTING THEM on a fork — Showdown's own choice parser is the source of truth, exactly as
  * champions_sim.js defers to TeamValidator rather than hand-rolling a learnset walk.
  *
- * PHASE 1 WRITES, IT DOES NOT SCORE. The leaf is PORYGON3, a k-NN in Python over 98,776 self-play
+ * PHASE 1 WRITES, IT DOES NOT SCORE. The leaf is PORYGON2, a k-NN in Python over 98,776 self-play
  * positions, and its features are parsed from the protocol log by porygon2.py. Rather than port that
  * parser to JS — a second implementation of the thing that defines the feature semantics — this
  * writes each fork's protocol DELTA and lets phase 2 score it with the parser that already exists.
