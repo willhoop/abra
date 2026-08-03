@@ -642,6 +642,19 @@ function handle(room, line) {
        * Falls back to magnemite on ANY doubt -- an unbuildable body, a species that cannot be read
        * off the request, or a set of candidates the rollout cannot separate. The heuristic is a
        * fitted one and is the right floor; it is being overridden only where there is evidence. */
+      /* ONE MEGA PER REQUEST, ENFORCED HERE.
+       *
+       * magnemite's _withMega has no such guard and states it does not need one: a team holds
+       * one stone, so only one slot ever carries canMegaEvo. That invariant is true and this
+       * does not doubt it -- but the cost of it being wrong is a REJECTED CHOICE, which on a
+       * live server is a battle that stalls until the timer kills it. A three-line guard against
+       * a stalled game is worth more than the invariant is worth defending. */
+      const megaOnce = function (choice) {
+        if (!/ mega$/.test(String(choice))) return choice;
+        if (this._megaReq === this._req) return String(choice).replace(/ mega$/, '');
+        this._megaReq = this._req;
+        return choice;
+      };
       const baseSwitch = bot.chooseSwitch.bind(bot);
       bot.chooseSwitch = function (active, switches) {
         try {
@@ -707,7 +720,7 @@ function handle(room, line) {
           /* The partner's half, decided on the other slot's call. */
           if (this._rolloutReq === req && this._rolloutPick && this._rolloutPick[i] != null) {
             const pick = this._rolloutPick[i]; this._rolloutPick[i] = null;
-            return pick;
+            return megaOnce.call(this, this._withMega(pick, active));
           }
           /* Singles-shaped requests, forced switches and anything with one slot fall through to MAG:
            * the pair logic below assumes two live slots and would otherwise index undefined. */
@@ -951,8 +964,20 @@ function handle(room, line) {
           console.log('    by class: ' + summary);
           this._rolloutReq = req;
           this._rolloutPick = [];
+          /* THROUGH _withMega, WHICH THE ROLLOUT PATH WAS BYPASSING ENTIRELY.
+           *
+           * magnemite appends ` mega` in _withMega and calls it at three sites -- all of them
+           * inside ITS OWN decision paths. This override returns a choice built here and went
+           * through none of them, so the rollout bot could not mega evolve in any game ever
+           * played against it. Will found it live: 'IT DIDNT MEGA ITS KANGA'. Zero CHOOSING MEGA
+           * lines across the whole session log, which is the same silence the mega bug produced
+           * the first two times -- a capability that is absent rather than wrong logs nothing.
+           *
+           * Both halves of the pair go through it. Only one slot ever carries canMegaEvo, because
+           * a team holds one stone, so the pair cannot both claim it; _withMega also leaves
+           * switches alone, where a mega suffix is not legal to send. */
           this._rolloutPick[1 - i] = chosen[1 - i].choice;
-          return chosen[i].choice;
+          return megaOnce.call(this, this._withMega(chosen[i].choice, active));
         } catch (e) {
           /* NEVER FORFEIT A LIVE BATTLE OVER A SEARCH BUG. Falling back to MAG is a worse move, not a
            * lost game — and the reason is printed so it is fixable rather than mysterious. */
