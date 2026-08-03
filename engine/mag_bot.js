@@ -66,6 +66,24 @@ const WHY = process.argv.includes('--why');
  * data/policy-weights-nopop.json, refitted with "how often people click this" removed entirely --
  * which predicts human choices BETTER than the version that has it. */
 const WEIGHTS = arg('weights', '');
+/* --rollout      decide by playing the position out instead of by scoring it. This is the bot that
+ *                SWITCHES; MAG's switching is one flat feature and measured 10 points worse than
+ *                never switching, which is a fact about MAG and not about switching.
+ * --rollout-n    playouts per candidate (default 200; R3 found the search stops flip-flopping
+ *                around 600, and R2 puts a playout at well under a millisecond)
+ */
+const ROLLOUT = process.argv.includes('--rollout');
+const ROLLOUT_N = parseInt(arg('rollout-n', '200'), 10);
+/* --rollout-explore  how random the playout is. 1.0 is the best POSITION judge (R1: 68.18% against
+ *   64.42% for greedy), but judging a position and choosing an ACTION are different jobs: random
+ *   players never punish a wasted turn, so a random playout prices tempo at nearly zero and every
+ *   switch looks free. Exposed so the two can be compared rather than assumed equal. */
+const ROLLOUT_EXPLORE = parseFloat(arg('rollout-explore', '1.0'));
+/* --rollout-turns  how far a playout runs before it is scored. MEDICHAM's default is 20 and
+ *   battleResult scores LIVE BODIES first, so a SEARCH maximising that finds stalling: switch
+ *   back and forth and nothing dies before the horizon. A rollout on its own never noticed
+ *   because it was not choosing. Default raised here so the games actually resolve. */
+const ROLLOUT_TURNS = parseInt(arg('rollout-turns', '60'), 10);
 
 const { realTeams } = require('./mew.js');
 const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
@@ -403,7 +421,14 @@ function handle(room, line) {
      * weaker bot. 27.5% of sheet entries in this format carry a mega item.
      *
      * Default matches mew.js so the thing you play is the thing that was measured. */
-    const bot = new Player(stream, { greedy: GREEDY, switching: SWITCHING, /* ALWAYS ON, not gated behind --why.
+    const bot = new Player(stream, { greedy: GREEDY,
+                                     /* SWITCH CANDIDATES MUST BE ON THE MENU FOR THE SEARCH TO WEIGH
+                                      * THEM. magnemite only builds them when `switching` is set, and
+                                      * it defaults off because MAG's switch SCORING is one flat
+                                      * feature and cost 10 points. Under --rollout that scorer is not
+                                      * what decides, so the reason for the default does not apply:
+                                      * the switch is offered and the playout judges it. */
+                                     switching: SWITCHING || ROLLOUT, /* ALWAYS ON, not gated behind --why.
                                       *
                                       * The comment further down claims "the window is fed whether
                                       * or not --why is on", and it was not: keepThoughts: WHY meant
@@ -417,6 +442,203 @@ function handle(room, line) {
                                      keepThoughts: true,
                                      mega: MEGA_P,
                                      weightsFile: WEIGHTS || undefined });
+    /* ---- THE ROLLOUT SEARCH, WIRED IN AS THE DECISION MAKER -------------------------------------
+     *
+     * `--rollout` replaces MAG's scoring with: for each joint action I could take, play the position
+     * OUT and take the one that wins most. It is wrapped around the player rather than built into
+     * engine/magnemite.js on purpose — magnemite is the policy that played the measured games, and a
+     * bot you can compare against is worth more than one file with two brains in it.
+     *
+     * THE REASON IT EXISTS IS SWITCHING. board.js scores a switch with ONE flat feature, the same
+     * constant whoever is coming in and whatever is about to die, which is why MAG's switching
+     * measured 10 points worse than never switching. A rollout needs no such feature: it brings the
+     * body in and plays the game. Measured on 70 real decisions it takes a switch on a third of the
+     * turns where one is available; MAG takes one essentially never.
+     *
+     * BOTH SLOTS AT ONCE, parked exactly the way _decidePair already does it: Showdown calls
+     * chooseMove once per active slot, so the pair is decided on the first call and the partner's
+     * half is handed back on the second. Deciding them independently would be a different and worse
+     * player — it is a doubles format and the two choices interact. */
+    if (ROLLOUT) {
+      const RL = require('./rollout_leaf.js');
+      /* The real dex, not undefined. dmgMon uses it to resolve the EFFECTIVE ability — a mega's
+       * own ability rather than the sheet's pre-mega one — and Huge Power doubles Attack. */
+      const DEX = CS.sim().Dex.forFormat(CS.FORMAT);
+      const base = bot.chooseMove.bind(bot);
+      bot._rolloutPick = null;
+      bot._rolloutReq = null;
+      bot.chooseMove = function (active, moves) {
+        try {
+          const req = this._req;
+          const acts = (req && req.active) || [];
+          const i = acts.indexOf(active);
+          /* The partner's half, decided on the other slot's call. */
+          if (this._rolloutReq === req && this._rolloutPick && this._rolloutPick[i] != null) {
+            const pick = this._rolloutPick[i]; this._rolloutPick[i] = null;
+            return pick;
+          }
+          /* Singles-shaped requests, forced switches and anything with one slot fall through to MAG:
+           * the pair logic below assumes two live slots and would otherwise index undefined. */
+          if (acts.length < 2 || i < 0 || (req && req.forceSwitch)) return base(active, moves);
+
+          const side = this.me || 'p1';
+          const board = this.board;
+          /* THE BOARD DOES NOT KNOW THE TEAM IN LIVE PLAY, and nothing said so.
+           *
+           * `setParty` is called by fit_policy, joint_rows and the other OFFLINE walkers and by
+           * nothing in magnemite, so `board.bench()` returns [] for the whole battle. MAG never
+           * noticed because it builds switch candidates from the REQUEST instead — two candidate
+           * builders, and only one of them is fed here.
+           *
+           * The seeder reads the board, so every rollout was judging a 2v2 with empty benches: a
+           * switch had no body to bring in, the forced click was skipped, and the slot quietly fell
+           * back to the playout policy. That is why every switch scored the same and the search
+           * took one every turn. Diagnosed from the timing — 1,000 playouts in 10ms is not a fast
+           * rollout, it is a battle that ended before turn 1.
+           *
+           * Filled from the request, which is authoritative about what this side actually brought. */
+          const reqMons = (req.side && req.side.pokemon) || [];
+          if (reqMons.length && !(board.party && (board.party[side] || []).length)) {
+            const species = reqMons
+              .map(m => String(m.details || m.ident || '').split(',')[0].trim())
+              .filter(Boolean);
+            if (species.length) board.setParty(side, species);
+          }
+          /* THE OPPONENT'S SIDE TOO, or the rollout plays my four against their two and reports 100%
+           * for every option — which is exactly what it did, and an argmax over ties is a coin flip
+           * that looked like a decision to switch every turn.
+           *
+           * `showteam` already fills board.sheet with all SIX of their Pokemon (magnemite.js:509) and
+           * never touches the party, so the information was there and unused. Capped at four, because
+           * six would bias the other way just as hard: this is a bring-four format and a 4v6 rollout
+           * is not the game either. Revealed bodies go first — those are known to be brought — and the
+           * rest fills from the sheet, which is a GUESS about which four they chose and is stated as
+           * one rather than presented as knowledge. */
+          const foeS = side === 'p1' ? 'p2' : 'p1';
+          if (!(board.party && (board.party[foeS] || []).length)) {
+            const seen = ['a', 'b'].map(L => board.slot(foeS, L)).filter(Boolean).map(m => m.species);
+            const sheetSp = Object.keys((board.sheet && board.sheet[foeS]) || {});
+            const foeParty = [];
+            for (const sp of seen.concat(sheetSp)) {
+              if (sp && !foeParty.includes(sp) && foeParty.length < 4) foeParty.push(sp);
+            }
+            if (foeParty.length) board.setParty(foeS, foeParty);
+          }
+          const built = ['a', 'b'].map((L, k) => {
+            const a2 = acts[k];
+            const user = board.slot(side, L);
+            if (!user || user.fainted || !a2) return null;
+            const b2 = this._candsFor(k === i ? active : a2, (a2.moves || moves), k);
+            return b2 && b2.cands && b2.cands.length ? b2 : null;
+          });
+          if (!built[0] || !built[1]) return base(active, moves);
+
+          const field = {
+            weather: board.weather || '',
+            terrain: ['electric', 'grassy', 'misty', 'psychic'].find(t => board.hasField(t)) || '',
+            tr: board.hasField('trickroom') ? 5 : 0,
+            twA: board.hasSide(side, 'tailwind') ? 4 : 0,
+            twB: board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
+          };
+          /* THE CANDIDATE SHAPE HERE IS MAGNEMITE'S, NOT BOARD.JS'S, and I used the wrong one.
+           *
+           *   `targetLetter` does not exist on these — that is board.js's `candidates()` shape, used
+           *   by rollout_r3. _candsFor carries `targetMon`, a board mon, so the slot is derived by
+           *   asking which foe slot holds it. Reading the absent field silently aimed every move at
+           *   the first live foe, which collapses "Fake Out the left one" and "Fake Out the right
+           *   one" into one candidate.
+           *
+           *   `move` can be NULL without being a switch: magnemite.js:682 pushes a candidate with
+           *   move:null for anything the dex does not recognise. Its own scorer guards this at line
+           *   860 (`if (!c.move && !c.switchTo)`) and I did not, which threw on every single turn —
+           *   the fallback then played the whole game as MAG while printing one line per decision. */
+          const foeSide = side === 'p1' ? 'p2' : 'p1';
+          const letterOf = (tm) => {
+            if (!tm) return '';
+            for (const L of ['a', 'b']) if (board.slot(foeSide, L) === tm) return L;
+            return '';
+          };
+          const clickOf = (c) => {
+            if (c.switchTo) return { switchTo: c.switchTo };
+            if (!c.move) return null;
+            return { move: c.move.id, targetLetter: letterOf(c.targetMon) };
+          };
+          /* EVERY CANDIDATE, NOT A TOP-K.
+           *
+           * The first version pruned to the best K per slot — except `_candsFor` returns no scores,
+           * so it was taking the first three in array order and calling that the best three. That is
+           * worse than not pruning at all: an arbitrary shortlist that LOOKS principled.
+           *
+           * Enumerating everything also deletes the ceiling engine/truncation_curve.js measured — at
+           * K=3 the pair a human clicked falls outside the window 52% of the time, and a search
+           * cannot recover value from a branch it never enumerated. The corpus median is 8 options a
+           * slot, so ~64 pairs; at ROLLOUT_N=200 that is well inside a Showdown turn timer, and the
+           * elapsed cost is printed every decision so it is visible if a board is unusually wide. */
+          /* ONE-TIME SANITY LINE. A rollout that returns in microseconds has not played anything,
+           * and the win rate it reports is about a battle that ended before turn 1. Printing what the
+           * seeder actually built is the difference between "the search prefers switching" and "the
+           * search is scoring an empty board". */
+          if (!this._rolloutChecked) {
+            this._rolloutChecked = true;
+            const probe = RL.rolloutWinProb(board, side, { n: 3, dex: DEX, explore: 1.0, field, seed: 1 });
+            console.log('  rollout seed check: ' + (probe
+              ? `${probe.built} bodies built, dropped ${JSON.stringify(probe.dropped)}, p=${probe.p}`
+              : 'NULL — a side could not be built at all'));
+            console.log('  my bench: [' + board.bench(side).join(', ') + ']  foe bench: [' +
+              board.bench(side === 'p1' ? 'p2' : 'p1').join(', ') + ']');
+            /* THE ASYMMETRY IS REPORTED, NOT HIDDEN. I know my whole team from the request; the
+             * opponent's bench is only what has been revealed. So the rollout is optimistic by
+             * construction — it plays my four against however many of theirs are known — and that
+             * bias favours anything that survives to a later turn, switching included. Stated here
+             * because a bot that thinks it is ahead switches for the wrong reason. */
+          }
+          const oa = built[0].cands.map((c, idx) => idx);
+          const ob = built[1].cands.map((c, idx) => idx);
+          let bestVal = -1, bestPair = null, _res = 0, _unres = 0;
+          const t0 = Date.now();
+          for (const ia of oa) for (const ib of ob) {
+            const ca2 = built[0].cands[ia], cb2 = built[1].cands[ib];
+            /* TWO SLOTS CANNOT SWITCH TO THE SAME BODY. magnemite guards this at line 931 as a
+             * property of the PAIR, and skipping the guard produced exactly what it prevents:
+             * "switch delphox + switch delphox", an illegal pair the search happily ranked first
+             * because MEDICHAM's bringIn just hands the same Pokemon to whichever slot asks first
+             * and the second slot silently gets nothing. An illegal cell that EVALUATES is worse
+             * than one that throws. */
+            if (ca2.switchTo && cb2.switchTo && ca2.choice === cb2.choice) continue;
+            const ka = clickOf(ca2), kb = clickOf(cb2);
+            /* A candidate this engine cannot express is SKIPPED, not approximated — offering the
+             * search a cell it will silently resolve as something else is worse than a smaller menu. */
+            if (!ka || !kb) continue;
+            const v = RL.rolloutAfterActions(board, side, {
+              n: ROLLOUT_N, dex: DEX, explore: ROLLOUT_EXPLORE, field, maxTurns: ROLLOUT_TURNS,
+              seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib,
+              myClicks: [ka, kb],
+              report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved; },
+            });
+            if (v === null) continue;
+            if (v > bestVal) { bestVal = v; bestPair = [ia, ib]; }
+          }
+          if (!bestPair) return base(active, moves);
+          const ms = Date.now() - t0;
+          const chosen = [built[0].cands[bestPair[0]], built[1].cands[bestPair[1]]];
+          console.log(`  rollout: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
+            `  win ${(100 * bestVal).toFixed(0)}%  (${oa.length * ob.length} opts, ${ms}ms, sw resolved ${_res}/unres ${_unres})`);
+          this._rolloutReq = req;
+          this._rolloutPick = [];
+          this._rolloutPick[1 - i] = chosen[1 - i].choice;
+          return chosen[i].choice;
+        } catch (e) {
+          /* NEVER FORFEIT A LIVE BATTLE OVER A SEARCH BUG. Falling back to MAG is a worse move, not a
+           * lost game — and the reason is printed so it is fixable rather than mysterious. */
+          /* The first stack frame too: 'Cannot read properties of null' names a symptom and not
+           * a site, and the fallback means this can otherwise repeat silently every turn of
+           * every game while the bot quietly plays as MAG. */
+          const at = (String(e.stack || '').split('\n')[1] || '').trim();
+          console.error('  rollout failed, falling back to MAG: ' + e.message + (at ? ' | ' + at : ''));
+          return base(active, moves);
+        }
+      };
+    }
     bot.start();
     rooms.set(room, { stream, bot, shown: 0 });
     console.log(`joined ${room}`);

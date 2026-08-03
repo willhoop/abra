@@ -129,6 +129,7 @@ function rolloutWinProb(board, side, opts) {
     if (!A.length || !Bt.length) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
     S._explore = EXPLORE;
+    if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     S.field.weather = f.weather || '';
     S.field.terrain = f.terrain || '';
     S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
@@ -206,12 +207,14 @@ function rolloutAfterActions(board, side, opts) {
   const clicks = opts.myClicks || [];
   const zero = () => ({ fainted: 0, unbuildable: 0, threw: 0 });
   let forcedThrew = 0, firstForcedError = null, exploreThrew2 = 0, firstExploreError2 = null;
+  let resolved = 0, unresolved = 0;
   let wins = 0, ran = 0;
   for (let i = 0; i < n; i++) {
     const A = buildSide(board, side, dex, zero());
     const Bt = buildSide(board, foe, dex, zero());
     if (!A.length || !Bt.length) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
+    if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     S.field.weather = f.weather || '';
     S.field.terrain = f.terrain || '';
     S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
@@ -241,7 +244,13 @@ function rolloutAfterActions(board, side, opts) {
       if (c.switchTo) {
         const key = B.mcKeyFor(c.switchTo, { mayMiss: 'bench species with no MC row; the switch is then not offered' });
         const body = key && S.benchA.find(x => x && x.name === key && !x.fainted && x.curHP > 0);
-        if (body) forced.set(me, { kind: 'switch', to: body });
+        /* COUNTED, because a forced click that fails to resolve does not error — the slot simply
+         * falls through to chooseAction, and then EVERY unresolvable candidate evaluates to the same
+         * thing. That makes a menu of distinct options collapse into one, and the argmax over the
+         * collapse looks exactly like a decision. If `unresolved` is nonzero the caller is not
+         * ranking what it thinks it is ranking. */
+        if (body) { forced.set(me, { kind: 'switch', to: body }); resolved++; }
+        else unresolved++;
         continue;
       }
       if (!c.move) continue;
@@ -312,6 +321,7 @@ function rolloutAfterActions(board, side, opts) {
     rolloutAfterActions._warnedEx = true;
     console.error(`  rolloutAfterActions: ${exploreThrew2} explore action(s) threw, first: ${firstExploreError2}`);
   }
+  if (opts.report) opts.report({ resolved, unresolved });
   return ran ? wins / ran : null;
 }
 

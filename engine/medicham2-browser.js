@@ -915,8 +915,15 @@ function battleInit(teamA,teamB,opts){
   }
   return S;
 }
+/* THE HORIZON IS A PARAMETER NOW, because a SEARCH can exploit it and a rollout alone cannot.
+   battleResult scores LIVE BODIES first, so inside a fixed 20-turn cap a side that keeps everything
+   alive wins the readout -- and a search maximising that discovers switching back and forth, which
+   loses no Pokemon before the horizon. Observed exactly: the live bot alternated between the same
+   two switch pairs forever and never attacked.
+   S.maxTurns lets a caller buy a horizon long enough that stalling stops paying. The default is
+   unchanged, so every measurement taken before this still means what it meant. */
 function battleOver(S){
-  return S.turn>=20||_live(S.actA).length+_live(S.benchA).length===0||_live(S.actB).length+_live(S.benchB).length===0;
+  return S.turn>=(S.maxTurns||20)||_live(S.actA).length+_live(S.benchA).length===0||_live(S.actB).length+_live(S.benchB).length===0;
 }
 function battleTurn(S,rng,actsForA,actsForB){
   rng=rng||Math.random;
