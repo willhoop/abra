@@ -29,6 +29,7 @@
  * drift from what the engine really does.
  */
 'use strict';
+const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');
 const FP = require('./fit_policy.js');
@@ -47,6 +48,7 @@ try {
    * bundle and the page normally provides them. Same line engine/backtest_winrate.js uses, and it
    * must come FIRST or buildMon throws on `MC.mons`. */
   require('../data/engine-data.js');
+  globalThis.window=globalThis; require('../data/abra-tags.js');
   MEDI = require('./medicham2-browser.js');
 } catch (e) {
   console.error('could not load medicham2-browser.js: ' + e.message);
@@ -172,3 +174,51 @@ for (const t of [90, 95, 97, 98, 99]) {
   console.log('   ' + String(t).padStart(3) + '%  ' +
     (marks[t] ? `implement the top ${marks[t]}` : 'not reachable — the tail is too long'));
 }
+
+/* ---- WHAT THE COVERAGE NUMBER ABOVE IS NOT ------------------------------------------------------
+ *
+ * It counts a click as covered when it maps to a KIND. It does not check that the engine does
+ * everything the move does, and those are different claims. Will asked for exactly this distinction
+ * and the honest answer is that this file cannot compute the second one.
+ *
+ * ATTEMPTED AND WITHDRAWN, recorded so nobody rebuilds it: comparing each move's declared tags
+ * against tags whose name or probe appears in medicham2-browser.js reported 43.5% of clicks as
+ * partially modelled and "honest fidelity 51.1%". That number is WRONG. Its three largest entries
+ * were `stalling` (Protect), `doublesSideSpeed` (Tailwind) and `reversesSpeed` (Trick Room) — all
+ * three demonstrably implemented, the last one verified by test the same day. MEDICHAM implements
+ * mechanics without ever naming the tag, so name-matching scores working code as missing.
+ *
+ * Nor can the artifact answer it: `consumedBy` names a board.js FEATURE (`stallingMove`, `speedSide`,
+ * `trickRoomField`), so `used:true` means MAG has a feature for it, not that the rollout simulates
+ * it. There is no derivable signal here, and a hand-maintained list of "tags MEDICHAM handles" would
+ * be exactly the hand-maintained state this project refuses.
+ *
+ * WHAT CAN BE SAID, because it was checked by reading the engine rather than inferred: MEDICHAM has
+ * NO VOLUNTARY SWITCHING. `refill()` replaces a fainted mon and nothing else moves. So every pivot
+ * move deals its damage and the user stays, and U-turn / Volt Switch / Flip Turn carry base power,
+ * which means they arrive as `attack` and are counted as fully covered above. That share is the one
+ * partial-coverage figure in this file that is verified rather than inferred. */
+const PIVOTS = Object.keys((globalThis.ABRA_TAGS || {}).moves || {})
+  .filter(id => {
+    const t = ((globalThis.ABRA_TAGS.moves[id] || {}).tags) || [];
+    return t.includes('pivotDamaging') || t.includes('pivotStatus');
+  });
+let pivotClicks = 0, pivotAsAttack = 0;
+for (const g of games) {
+  for (const t of g.turns || []) {
+    for (const e of (t.ev || [])) {
+      if (e.t !== 'm' || !e.mv || !PIVOTS.includes(norm(e.mv))) continue;
+      pivotClicks++;
+      if (medichamKind(e.mv) === 'attack') pivotAsAttack++;
+    }
+  }
+}
+console.log('\n\n  VERIFIED PARTIAL COVERAGE — the switch half of pivot moves');
+console.log('  ' + '-'.repeat(66));
+console.log('   pivot moves: ' + PIVOTS.join(', '));
+console.log('   clicks on them            ' + pivotClicks.toLocaleString() +
+  '  (' + (100 * pivotClicks / total).toFixed(2) + '% of all clicks)');
+console.log('   of those, counted ABOVE as fully-modelled attacks   ' + pivotAsAttack.toLocaleString() +
+  '  (' + (100 * pivotAsAttack / total).toFixed(2) + '%)');
+console.log('   MEDICHAM has no voluntary switching, so the user never leaves. The damage is right');
+console.log('   and the momentum — the reason the move is played — is missing entirely.');
