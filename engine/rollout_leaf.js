@@ -226,7 +226,25 @@ function rolloutAfterActions(board, side, opts) {
     const forced = new Map();
     for (let k = 0; k < Math.min(2, clicks.length); k++) {
       const c = clicks[k], me = S.actA[k];
-      if (!me || !c || !c.move) continue;
+      if (!me || !c) continue;
+      /* A SWITCH IS A CANDIDATE LIKE ANY OTHER, and until now the search refused to consider one.
+       *
+       * board.js scores a switch with a single flat `isSwitch` feature — the same constant whoever is
+       * coming in and whatever is about to die — which is why MAG's switching measured 10 points
+       * WORSE than never switching. A rollout needs no such feature: it brings the body in and plays
+       * the game out.
+       *
+       * Resolved BY SPECIES, not by bench index. buildSide drops any Pokemon dmgMon cannot build (an
+       * in-battle forme with no usage row), so the bench array here and board.bench() can differ in
+       * length — and an index that silently slips brings in the wrong Pokemon, which is worse than
+       * refusing. A switch whose target cannot be found is skipped and the slot keeps its own action. */
+      if (c.switchTo) {
+        const key = B.mcKeyFor(c.switchTo, { mayMiss: 'bench species with no MC row; the switch is then not offered' });
+        const body = key && S.benchA.find(x => x && x.name === key && !x.fainted && x.curHP > 0);
+        if (body) forced.set(me, { kind: 'switch', to: body });
+        continue;
+      }
+      if (!c.move) continue;
       const foesLive = S.actB.filter(x => x && !x.fainted && x.curHP > 0);
       if (!foesLive.length) continue;
       /* targetMon is null for a spread move, which takes no target -- passing one anyway would make

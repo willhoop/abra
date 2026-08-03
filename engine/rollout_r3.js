@@ -66,6 +66,7 @@ const NF = B.FEATURES.length;
 const score1 = x => { let s = 0; for (let k = 0; k < NF; k++) s += w1[k] * x[k]; return s; };
 
 let decisions = 0, agreed = 0, skipped = 0, sampled = 0, selfDisagree = 0;
+let withSwitch = 0, choseSwitch = 0;
 const gaps = [];
 
 JR.build(games, dex, {
@@ -110,14 +111,15 @@ JR.build(games, dex, {
     let best2 = null, bestVal2 = -1;
     for (const ia of slots[0].order) for (const ib of slots[1].order) {
       const ca = slots[0].cands[ia], cb = slots[1].cands[ib];
-      /* A SWITCH candidate is skipped rather than approximated: MAG's switch candidates name a
-       * species to bring, and mapping that onto a MEDICHAM bench slot is a second matcher. Counted,
-       * because a silently narrowed menu would make the two players look more alike than they are. */
-      if (ca.switchTo || cb.switchTo) continue;
+      /* SWITCHES ARE ON THE MENU NOW. They were skipped while MEDICHAM could only replace a FAINTED
+       * Pokemon, which made a switch candidate unevaluable rather than unimportant — and skipping
+       * them narrowed the menu silently, which makes the two players look MORE alike than they are.
+       * rolloutAfterActions resolves the species onto a bench body itself. */
+      const clickOf = (c) => (c.switchTo ? { switchTo: c.switchTo }
+                                         : { move: c.move.id, targetLetter: c.targetLetter });
       const val = RL.rolloutAfterActions(board, side, {
         n: N, dex, explore: EXPLORE, field, seed: gi * 7919 + sampled + ia * 31 + ib,
-        myClicks: [{ move: ca.move.id, targetLetter: ca.targetLetter },
-                   { move: cb.move.id, targetLetter: cb.targetLetter }],
+        myClicks: [clickOf(ca), clickOf(cb)],
       });
       if (val === null) continue;
       if (val > bestVal) { bestVal = val; best = [ia, ib]; }
@@ -126,14 +128,18 @@ JR.build(games, dex, {
        * search can see -- only the dice differ. */
       const val2 = RL.rolloutAfterActions(board, side, {
         n: N, dex, explore: EXPLORE, field, seed: 990001 + gi * 7919 + sampled + ia * 31 + ib,
-        myClicks: [{ move: ca.move.id, targetLetter: ca.targetLetter },
-                   { move: cb.move.id, targetLetter: cb.targetLetter }],
+        myClicks: [clickOf(ca), clickOf(cb)],
       });
       if (val2 !== null && val2 > bestVal2) { bestVal2 = val2; best2 = [ia, ib]; }
     }
     if (!best || magVal === null) { skipped++; return; }
 
     decisions++;
+    /* Reported because 'the search switches' is only interesting against how often it COULD.' */
+    const hadSwitch = slots[0].order.some(i => slots[0].cands[i].switchTo) ||
+                      slots[1].order.some(i => slots[1].cands[i].switchTo);
+    if (hadSwitch) withSwitch++;
+    if (slots[0].cands[best[0]].switchTo || slots[1].cands[best[1]].switchTo) choseSwitch++;
     const magPick = [slots[0].order[0], slots[1].order[0]];
     if (best[0] === magPick[0] && best[1] === magPick[1]) agreed++;
     else gaps.push(bestVal - magVal);
@@ -149,6 +155,13 @@ const rate = 100 * (decisions - agreed) / decisions;
 console.log(`  decisions compared  ${decisions.toLocaleString()}   (${skipped.toLocaleString()} skipped)`);
 console.log(`  the search picked MAG's pair on ${agreed.toLocaleString()} of them`);
 console.log(`\n  DIVERGENCE  ${rate.toFixed(1)}%\n`);
+/* "The search switches" means nothing without how often it COULD. A side whose bench is empty offers
+ * no switch at all, and counting those decisions alongside the rest would understate the difference
+ * between a player that considers switching and one that cannot. */
+console.log(`  a switch was on the menu on ${withSwitch} of ${decisions} decisions;` +
+  ` the search took one on ${choseSwitch}`);
+console.log('  MAG takes one essentially never — board.js scores every switch with one flat feature,');
+console.log('  which is why its switching measured 10 points WORSE than never switching.\n');
 if (gaps.length) {
   const s = gaps.slice().sort((a, b) => a - b);
   const med = s[Math.floor(s.length / 2)];
