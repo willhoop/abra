@@ -102,6 +102,8 @@ def main():
     misaligned = 0
     seen = set()
     ai = P.FEATURES.index("alive_diff")
+    hi = P.FEATURES.index("hp_total_diff") if "hp_total_diff" in P.FEATURES else None
+    hp_given_alive = []
     import itertools
     handles = [P._open(x) for x in stores]
     handles = [h for h in handles if h is not None]
@@ -127,9 +129,19 @@ def main():
                 if row is None:
                     continue
                 v = P.vec(st, "p1")
-                # THE WITNESS. Both sides computed p1_alive - p2_alive for what they believe is the
-                # same turn. Disagreement means the indices are not the same turn.
-                if abs(float(v[ai]) - float(row["aliveDiff"])) > 1e-6:
+                # TWO WITNESSES, both recorded before either filters.
+                #
+                # alive_diff is discrete and is 0 on most early turns, so it agrees trivially there
+                # and confirms only that neither side thinks anything has fainted yet. hp_total_diff
+                # is continuous and disagrees loudly when two indices are not the same turn -- but the
+                # two sides may also DEFINE summed HP differently, and that would reject everything
+                # while looking exactly like misalignment. So the agreement rate of the continuous one
+                # is REPORTED and only alive_diff filters, until the HP witness is shown to measure
+                # what it claims. Diagnose before filtering, not after.
+                a_ok = abs(float(v[ai]) - float(row["aliveDiff"])) <= 1e-6
+                if hi is not None and "hpDiff" in row and a_ok:
+                    hp_given_alive.append(abs(float(v[hi]) - float(row["hpDiff"])))
+                if not a_ok:
                     misaligned += 1
                     continue
                 feats.append(v)
@@ -153,6 +165,15 @@ def main():
 
     print("  joined %s positions   (%s dropped by the alignment witness)\n" %
           (f"{len(meta):,}", f"{misaligned:,}"))
+    if hp_given_alive:
+        arr = np.array(hp_given_alive)
+        agree = float(np.mean(arr <= 0.05))
+        print("  HP witness on rows alive_diff accepted: median |diff| %.3f, within 0.05 on %.1f%%"
+              % (float(np.median(arr)), 100 * agree))
+        print("  -> %s" % ("the continuous witness corroborates the join." if agree >= 0.5 else
+              "the two sides disagree on summed HP even where alive_diff matched, so the join is"
+              " looser than alive_diff can see. Treat the table below as provisional."))
+        print("")
     print("    judge                       accuracy     Brier")
     print("  " + "-" * 48)
     for name, p in [("material (porygon2 form)", p_mat),

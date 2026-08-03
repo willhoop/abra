@@ -186,8 +186,21 @@ JR.build(games, dex, {
         for (const L of ['a', 'b']) { const mm = board.slot(sd, L); if (mm && !mm.fainted) k++; }
         return k + board.bench(sd).length;
       };
+      /* A SECOND, CONTINUOUS WITNESS. alive_diff is 0 on most early turns, so it agrees trivially
+       * there and confirms nothing -- it only says "neither of us thinks anything has fainted yet".
+       * Summed HP fraction is continuous and disagrees loudly when two turn indices are not the same
+       * turn. Both are dumped; phase 2 reports how well each agrees BEFORE either is used to filter,
+       * because a witness that rejects everything on a definitional difference and a join that is
+       * genuinely misaligned look identical from the far side. */
+      const hpOf = sd => {
+        let h = 0;
+        for (const L of ['a', 'b']) { const mm = board.slot(sd, L); if (mm && !mm.fainted) h += (typeof mm.hp === 'number' ? mm.hp : 1); }
+        return h + board.bench(sd).length;
+      };
       dumpRows.push({ gid: g.id, turn: board.turn, p: ps[N_LIST[N_LIST.length - 1]],
-                      mpy: materialPy(board, 'p1'), y, aliveDiff: aliveOf('p1') - aliveOf('p2') });
+                      mpy: materialPy(board, 'p1'), y,
+                      aliveDiff: aliveOf('p1') - aliveOf('p2'),
+                      hpDiff: +(hpOf('p1') - hpOf('p2')).toFixed(6) });
     }
   },
 });
