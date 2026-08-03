@@ -194,8 +194,25 @@ require('http').createServer((req, res) => {
   res.end(PAGE);
 }).listen(OVERLAY_PORT, () => console.log(`live odds: http://localhost:${OVERLAY_PORT}`));
 
-const ws = new WebSocket(SERVER);
-const send = (s) => ws.send(s);
+/* THE SOCKET RECONNECTS INSTEAD OF DYING, because "leave it running so my friends can play" was the
+ * whole point and `onclose -> process.exit(0)` made that impossible. Any wifi blip, any server
+ * restart, any laptop lid closing for a second ended the bot permanently -- and it announced that to
+ * an empty terminal at 3am, so the first anyone knew was a friend saying it was offline.
+ *
+ * Backoff doubles from 2s to a 60s ceiling so a server that is genuinely down is not hammered, and
+ * resets on a successful login rather than on a successful CONNECT: a socket that opens and then
+ * fails to authenticate is not a working bot, and treating it as one would spin a tight reconnect
+ * loop against a wrong password.
+ *
+ * Rooms are dropped on disconnect. A battle cannot be resumed from this side -- the server has the
+ * state and the player object does not -- so pretending otherwise would have MAG answering a room it
+ * no longer understands. */
+let ws = null;
+let backoff = 2000;
+let stopping = false;
+const send = (s) => { if (ws && ws.readyState === 1) ws.send(s); };
+
+
 /* Rooms are tracked so two simultaneous challenges do not share a player object — each battle gets
  * its own MAG with its own board, which is the same isolation MEW gets per game. */
 const rooms = new Map();
@@ -227,11 +244,32 @@ const armNameCheck = () => setTimeout(() => {
   }
 }, 10000);
 
-ws.onopen = () => { console.log(`connected to ${SERVER}`); armNameCheck(); };
-ws.onerror = (e) => console.error('socket error:', e && e.message ? e.message : e);
-ws.onclose = () => { console.log('disconnected'); process.exit(0); };
+/* connect() is a FUNCTION and the handlers are attached inside it, rather than the whole file being
+ * wrapped in one. The first attempt wrapped everything from the socket down to here, which put
+ * `handle` outside the scope holding `loggedIn` and crashed on the first line the server sent.
+ * Keeping the module flat and re-attaching per socket is the smaller change and the one that works. */
+function connect() {
+  ws = new WebSocket(SERVER);
+  ws.onopen = () => { console.log(`connected to ${SERVER}`); armNameCheck(); };
+  ws.onerror = (e) => console.error('socket error:', e && e.message ? e.message : e);
+  ws.onmessage = onMessage;
+  ws.onclose = () => {
+    loggedIn = false;
+    rooms.clear();
+    if (stopping) return;
+    const wait = backoff;
+    backoff = Math.min(backoff * 2, 60000);
+    console.log(`disconnected — reconnecting in ${Math.round(wait / 1000)}s`);
+    setTimeout(connect, wait);
+  };
+}
 
-ws.onmessage = (ev) => {
+/* Ctrl-C sets `stopping` BEFORE exiting so the close handler does not schedule a reconnect on the way
+ * out — otherwise quitting the bot prints "reconnecting in 2s" as its last words. */
+process.on('SIGINT', () => { stopping = true; console.log('stopping'); process.exit(0); });
+/* Named, so connect() can re-attach it to each new socket. It used to be assigned once to the one
+ * socket that existed; with reconnection there is a new socket every time. */
+function onMessage(ev) {
   const raw = String(ev.data || '');
   /* A message may be addressed to a room, in which case its first line is ">roomid". */
   let room = '';
@@ -242,7 +280,7 @@ ws.onmessage = (ev) => {
     body = nl < 0 ? '' : raw.slice(nl + 1);
   }
   for (const line of body.split('\n')) handle(room, line);
-};
+}
 
 function handle(room, line) {
   if (!line) return;
@@ -453,3 +491,5 @@ function handle(room, line) {
     send(`${room}|/leave`);
   }
 }
+
+connect();
