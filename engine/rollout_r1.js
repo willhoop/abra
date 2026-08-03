@@ -277,15 +277,27 @@ console.log(`  rollout minus material (porygon2 form): ${diff >= 0 ? '+' : ''}${
   `  (95% CI ${(diff - half).toFixed(2)} to ${(diff + half).toFixed(2)})`);
 console.log(`  discordant positions: rollout-only-right ${b}, material-only-right ${c}, of ${rows.length}`);
 console.log(`  PORYGON3 is 63.70% on human games (data/porygon3.json) and beats material by 3.42 there.`);
-if (diff - half > 3.42) {
-  console.log('  -> R1 PASSES. The rollout carries more than the learned model adds over counting.');
+/* THREE THRESHOLDS, NOT TWO, and the message must match the interval it just printed.
+ *
+ * The first version tested only "does the lower bound clear 3.42" and otherwise printed "the interval
+ * spans zero". At +2.91 [1.79, 4.04] that was a FALSE STATEMENT about the numbers on the line above:
+ * the interval does not span zero, it clears it comfortably and merely fails to clear PORYGON3's
+ * published lift. A verdict that contradicts its own table is worse than no verdict. */
+const PORY_LIFT = 3.42;
+if (diff - half > PORY_LIFT) {
+  console.log(`  -> R1 PASSES OUTRIGHT. The lower bound clears PORYGON3's published +${PORY_LIFT} lift,`);
+  console.log('     so the rollout carries more than the learned model adds over the same baseline.');
+} else if (diff - half > 0) {
+  console.log('  -> R1 PASSES ON THE BASELINE. The rollout is significantly better than counting');
+  console.log(`     bodies, and PORYGON3's published +${PORY_LIFT} sits INSIDE this interval — so the two`);
+  console.log('     are not separated by this sample, and the rollout is at least its equal here.');
+  console.log('     Not the same claim as beating it. Said separately because they are separate.');
 } else if (diff + half < 0) {
   console.log('  -> R1 FAILS. The rollout is measurably WORSE than counting bodies.');
   console.log('     docs/ROLLOUT-design.md 5 says this kills the idea here, cheaply.');
 } else {
   console.log('  -> UNDECIDED. The interval spans zero, so this sample cannot tell the rollout');
-  console.log('     from counting. Not a pass and NOT a failure — raise GAMES until it separates,');
-  console.log('     or accept that the two are close and the rollout is not the win it looked like.');
+  console.log('     from counting. Not a pass and NOT a failure — raise GAMES until it separates.');
 }
 console.log('\n  NOT A LIKE-FOR-LIKE TEST OF THE REAL QUESTION, said plainly: the incumbent is');
 console.log('  PORYGON3, and PORYGON3 is a Python k-NN that has not been scored on THESE positions.');

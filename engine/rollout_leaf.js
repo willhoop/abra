@@ -184,4 +184,89 @@ function rolloutWinProb(board, side, opts) {
            exploreThrew, firstExploreError };
 }
 
-module.exports = { rolloutWinProb, sideTeam, buildSide, wilson };
+/* ONE STEP OF SEARCH: force MY two clicks, let the opponent play its own policy, run exactly one turn,
+ * then roll the rest out. This is the transition R3 needs and it is the same machinery as the leaf --
+ * only the first turn differs, and only on my side.
+ *
+ * The opponent is NOT modelled. It plays chooseAction during the stepped turn, identically for every
+ * candidate, so the ranking across candidates is like-for-like. That makes this a best response to a
+ * fixed opponent rather than an equilibrium: weaker than the design's matrix game, and the right first
+ * cut, because if a best response does not diverge from MAG then a mixture over the same cells will
+ * not either.
+ *
+ * @param myClicks  [{move, target}, {move, target}] for slots a and b, in sideTeam order
+ * @returns         win probability after that pair, or null when the position cannot be built
+ */
+function rolloutAfterActions(board, side, opts) {
+  opts = opts || {};
+  const n = opts.n || 20;
+  const dex = opts.dex;
+  const foe = side === 'p1' ? 'p2' : 'p1';
+  const f = opts.field || {};
+  const clicks = opts.myClicks || [];
+  const zero = () => ({ fainted: 0, unbuildable: 0, threw: 0 });
+  let wins = 0, ran = 0;
+  for (let i = 0; i < n; i++) {
+    const A = buildSide(board, side, dex, zero());
+    const Bt = buildSide(board, foe, dex, zero());
+    if (!A.length || !Bt.length) break;
+    const S = MEDI.battleInit(A, Bt, { seeded: true });
+    S.field.weather = f.weather || '';
+    S.field.terrain = f.terrain || '';
+    S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
+    S.field.twB = side === 'p1' ? (f.twB || 0) : (f.twA || 0);
+    S.field.tr = f.tr || 0;
+    const rng = mulberry((opts.seed || 1) * 1000003 + i);
+
+    /* THE FORCED TURN. The click's target is a board.js mon; MEDICHAM needs one of ITS bodies, and the
+     * two arrays are in the same order by construction (sideTeam puts actives first), so the target is
+     * resolved by SLOT INDEX rather than by name. Resolving by species would pick the wrong body in a
+     * mirror, and 58.63% of corpus games have one. */
+    const forced = new Map();
+    for (let k = 0; k < Math.min(2, clicks.length); k++) {
+      const c = clicks[k], me = S.actA[k];
+      if (!me || !c || !c.move) continue;
+      const foesLive = S.actB.filter(x => x && !x.fainted && x.curHP > 0);
+      if (!foesLive.length) continue;
+      /* targetMon is null for a spread move, which takes no target -- passing one anyway would make
+       * playerAction treat it as aimed. */
+      /* THE SLOT LETTER, which is what a board.js candidate actually carries -- `targetLetter`,
+       * not a `.slot` on the target mon. Reading a field that does not exist would have defaulted
+       * every aimed move to the first live foe, silently collapsing "Fake Out the left one" and
+       * "Fake Out the right one" into the same candidate and understating divergence. */
+      let tgt = foesLive[0];
+      const idx = ['a', 'b'].indexOf(c.targetLetter || '');
+      if (idx >= 0 && S.actB[idx] && !S.actB[idx].fainted && S.actB[idx].curHP > 0) tgt = S.actB[idx];
+      try {
+        const act = MEDI.playerAction(me, c.move, tgt, S.field);
+        if (act) forced.set(me, act);
+      } catch (e) { void e; }
+    }
+    MEDI.battleTurn(S, rng, forced, null);
+
+    /* ...and the rest is an ordinary rollout. */
+    while (!MEDI.battleOver(S)) {
+      let fa = null, fb = null;
+      const EX = typeof opts.explore === 'number' ? opts.explore : 0;
+      if (EX > 0) {
+        const pick = (mon, mine) => {
+          if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= EX) return null;
+          const mvs = mon.moves || [];
+          const foesL = (mine ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
+          if (!mvs.length || !foesL.length) return null;
+          const mv = mvs[Math.floor(rng() * mvs.length) % mvs.length];
+          const tg = foesL[Math.floor(rng() * foesL.length) % foesL.length];
+          try { return MEDI.playerAction(mon, mv, tg, S.field); } catch (e) { void e; return null; }
+        };
+        for (const m of S.actA) { const a = pick(m, true); if (a) (fa = fa || new Map()).set(m, a); }
+        for (const m of S.actB) { const a = pick(m, false); if (a) (fb = fb || new Map()).set(m, a); }
+      }
+      MEDI.battleTurn(S, rng, fa, fb);
+    }
+    wins += MEDI.battleResult(S);
+    ran++;
+  }
+  return ran ? wins / ran : null;
+}
+
+module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson };

@@ -1,0 +1,13 @@
+{
+  "generated": "2026-08-03T08:50:12.251Z",
+  "by": "engine/rollout_r3.js",
+  "games": 40,
+  "decisions": 44,
+  "agreed": 8,
+  "skipped": 13,
+  "divergence_pct": 81.81818181818181,
+  "n": 200,
+  "topK": 3,
+  "explore": 1,
+  "caveat": "Both players rank the SAME candidate set, so this is a disagreement about value and not about the menu. The opponent is not modelled: it plays chooseAction during the stepped turn, identically for every candidate. Switch candidates are excluded and counted."
+}
