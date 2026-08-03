@@ -56,13 +56,25 @@ function sideTeam(board, side, dex) {
 /* A tracked Pokemon -> a MEDICHAM body. Nulls are DROPPED and COUNTED, not substituted: dmgMon
  * returns null for an in-battle forme with no usage row (Aegislash-Blade, Palafin-Hero), and quietly
  * replacing it with the base forme would roll out a different Pokemon than the one on the field. */
-function buildSide(board, side, dex, stats) {
+function buildSide(board, side, dex, stats, protectTurns) {
   const mons = [];
   for (const m of sideTeam(board, side, dex)) {
     if (m && m.fainted) { stats.fainted++; continue; }
     let b = null;
     try { b = B.dmgMon(m, MEDI, dex); } catch (e) { stats.threw++; continue; }
     if (!b) { stats.unbuildable++; continue; }
+    /* PROTECT'S CONSECUTIVE-USE PENALTY SURVIVES INTO THE ROLLOUT.
+     *
+     * MEDICHAM models it correctly -- medicham2-browser:953 succeeds with probability (1/3)^n after n
+     * consecutive uses -- but a rollout builds FRESH bodies on every sample, and a fresh body carries
+     * tookProtectTurns:0. So inside the search Protect always worked, every turn, at no risk: a free
+     * turn of immunity, which the search duly spammed. Will watched it do that ("WAY TOO MUCH
+     * PROTECTIGN") while the engine had the correct rule the entire time.
+     *
+     * `protectTurns` is what the LIVE game has seen this Pokemon do, keyed by species; the caller
+     * tracks it because the board does not. Absent, this is 0 and behaves exactly as before. */
+    const pt = protectTurns && m && protectTurns[m.species];
+    if (pt) b.tookProtectTurns = pt;
     mons.push(b);
   }
   return mons;
@@ -112,7 +124,7 @@ function rolloutWinProb(board, side, opts) {
   const stats = { fainted: 0, unbuildable: 0, threw: 0 };
   let exploreThrew = 0, firstExploreError = null;
 
-  const mine = buildSide(board, side, dex, stats);
+  const mine = buildSide(board, side, dex, stats, opts.protectTurns);
   const theirs = buildSide(board, foe, dex, stats);
   /* A side with nothing standing is not a 0% — the caller asked about a position that does not exist,
    * and returning a confident number for it would be worse than saying so. */
@@ -124,9 +136,30 @@ function rolloutWinProb(board, side, opts) {
     /* Fresh bodies EVERY rollout. MEDICHAM mutates the mons it is handed — HP, status, boosts, the
      * bench arrays — so reusing them would make rollout 2 start from wherever rollout 1 ended. The
      * same aliasing that broke the Showdown fork this morning, one layer up. */
-    const A = buildSide(board, side, dex, { fainted: 0, unbuildable: 0, threw: 0 });
+    const A = buildSide(board, side, dex, { fainted: 0, unbuildable: 0, threw: 0 }, opts.protectTurns);
     const Bt = buildSide(board, foe, dex, { fainted: 0, unbuildable: 0, threw: 0 });
     if (!A.length || !Bt.length) break;
+    /* `bringIn`: EVALUATE A POST-KO REPLACEMENT BY PLAYING IT OUT.
+     *
+     * Showdown routes a forced replacement to chooseSwitch, never through chooseMove, so the live
+     * search never saw the decision at all -- it was made by a one-step heuristic while the rollout
+     * that could actually judge it sat unused. The visible symptom was Will's: the bot brought in
+     * Froslass after a KO and switched it straight back out the next turn, because the two decisions
+     * were being made by two different players who disagree.
+     *
+     * No new machinery is needed to express it. battleInit takes teamA[0] and teamA[1] as the actives
+     * and the rest as bench, and buildSide has ALREADY dropped the fainted mon -- so the surviving
+     * actives sit at the front of A, and "bring in X" is exactly "move X's body to the first free
+     * active index". Resolved by species through mcKeyFor, the same way a switch click resolves,
+     * because a bench index that slips brings in the wrong Pokemon. */
+    if (opts.bringIn) {
+      const key = B.mcKeyFor(opts.bringIn, { mayMiss: 'replacement with no MC row; not offered' });
+      const at = A.findIndex(x => x && x.name === key);
+      /* Unbuildable replacement: say so rather than roll out whoever happened to be at that index. */
+      if (!key || at < 0) return null;
+      const surv = ['a', 'b'].filter(L => { const m = board.slot(side, L); return m && !m.fainted; }).length;
+      if (at !== surv) { const [body] = A.splice(at, 1); A.splice(surv, 0, body); }
+    }
     const S = MEDI.battleInit(A, Bt, { seeded: true });
     S._explore = EXPLORE;
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
@@ -210,7 +243,7 @@ function rolloutAfterActions(board, side, opts) {
   let resolved = 0, unresolved = 0;
   let wins = 0, ran = 0;
   for (let i = 0; i < n; i++) {
-    const A = buildSide(board, side, dex, zero());
+    const A = buildSide(board, side, dex, zero(), opts.protectTurns);
     const Bt = buildSide(board, foe, dex, zero());
     if (!A.length || !Bt.length) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });

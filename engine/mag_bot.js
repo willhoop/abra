@@ -117,6 +117,9 @@ const ROLLOUT_TURNS = parseInt(arg('rollout-turns', '60'), 10);
 
 const { realTeams } = require('./mew.js');
 const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
+/* MEDICHAM's OWN protect set, not a copy of it. A second list here would be a hardcode that drifts
+ * from the engine whose (1/3)^n rule the counter exists to feed. */
+const PROTECT_IDS = require('./medicham2-browser.js').PROTECTMOVES;
 
 /* A stream in the shape BattlePlayer wants, backed by the socket rather than by the simulator.
  *
@@ -266,6 +269,10 @@ const send = (s) => { if (ws && ws.readyState === 1) ws.send(s); };
  * showed his challenges never reached the server at all, so no amount of work on this side could
  * have received them. Challenging outward reduces his side to one Accept button. */
 const CHALLENGE = arg('challenge', '');
+/* Rooms rejoined ONLY to ask for a replay link. They must not be handed to a battle player: the
+ * room handler would build a fresh MAG, replay a finished game into it and have it try to choose
+ * in a battle that is over. */
+const RECOVERING = new Set();
 let lastOffer = 0;
 function offerChallenge(why) {
   if (!CHALLENGE) return;
@@ -433,6 +440,30 @@ function handle(room, line) {
     console.log(`logged in as ${NAME} -- joining lobby; challenge it from the client`);
     /* Given a moment: /utm and /challenge are both rejected until the login has settled server-side. */
     setTimeout(() => offerChallenge('on login'), 2500);
+    /* RECOVER THE REPLAYS FOR GAMES ALREADY PLAYED. /savereplay was wired only after three real
+     * games had been played and lost to the client, but a finished battle room survives on the
+     * server for a while -- so rejoining it and asking is worth one attempt. The room ids are DERIVED
+     * from what was recorded in data/live-games rather than typed, so this needs no maintenance and
+     * cannot name a game that was never recorded. Local-server ids (short) are skipped: those rooms
+     * are gone with the process that hosted them. */
+    setTimeout(() => {
+      let ids = [];
+      try {
+        ids = fs.readdirSync(D('data', 'live-games'))
+          .filter(f => f.endsWith('.log'))
+          .map(f => f.replace(/\.log$/, ''))
+          .filter(f => /-\d{6,}$/.test(f));
+      } catch (e) { return; }
+      let done = [];
+      try { done = fs.readFileSync(D('data', 'live-games', 'replays.txt'), 'utf8').split('\n'); } catch (e) { /* none yet */ }
+      for (const id of ids) {
+        if (done.some(u => u.indexOf(id.replace(/^battle-/, '')) >= 0)) continue;
+        RECOVERING.add(id);
+        send(`|/join ${id}`);
+        send(`${id}|/savereplay`);
+      }
+      if (RECOVERING.size) console.log(`asking the server for ${RECOVERING.size} past replay(s)`);
+    }, 4000);
     return;
   }
 
@@ -506,8 +537,30 @@ function handle(room, line) {
     return;
   }
 
+  /* THE LINK ARRIVES IN A POPUP, NOT IN A QUERYRESPONSE.
+   *
+   * The first version parsed `|queryresponse|savereplay|{...}` -- a shape I wrote from memory, which
+   * never fired once. What the server actually sends is
+   *     |popup||html|<p>Your replay has been uploaded! ...href="https://replay.pokemonshowdown.com/..."
+   * and that was found by PRINTING what the server sent rather than by assuming it. The URL is taken
+   * from the message instead of rebuilt from an id, so a private room's password suffix comes along
+   * with it and the link cannot 404 in a way this code invented. */
+  {
+    const mUrl = /https:\/\/replay\.pokemonshowdown\.com\/[A-Za-z0-9_-]+/.exec(line);
+    if (mUrl && line.indexOf('uploaded') >= 0) {
+      const url = mUrl[0];
+      console.log(`REPLAY  ${url}`);
+      try {
+        let seen = '';
+        try { seen = fs.readFileSync(D('data', 'live-games', 'replays.txt'), 'utf8'); } catch (e) { /* first one */ }
+        if (seen.indexOf(url) < 0) fs.appendFileSync(D('data', 'live-games', 'replays.txt'), url + '\n');
+      } catch (e) { console.error('  could not append replays.txt: ' + e.message); }
+    }
+  }
+
   if (!room.startsWith('battle-')) return;
 
+  if (RECOVERING.has(room)) return;
   if (!rooms.has(room)) {
     const stream = playerStream((choice) => {
       /* BattlePlayer writes bare choices like "move 1 1"; a room wants them as /choose. */
@@ -578,6 +631,74 @@ function handle(room, line) {
       const base = bot.chooseMove.bind(bot);
       bot._rolloutPick = null;
       bot._rolloutReq = null;
+      /* POST-KO REPLACEMENT, JUDGED BY THE SAME SEARCH THAT PLAYS THE REST OF THE GAME.
+       *
+       * Showdown routes a forced replacement to chooseSwitch and never through chooseMove, so this
+       * decision was made by magnemite's one-step `_scoreForcedPick` while the rollout that plays
+       * every other turn never saw it. Two players deciding alternate turns disagree, and Will
+       * watched the disagreement: "IT SWAPPED IN FROSLASS AFTER A KO ONLY TO IMMEDIATELY SWITCH IT
+       * OUT" -- the heuristic brought it in, the search sent it away.
+       *
+       * Falls back to magnemite on ANY doubt -- an unbuildable body, a species that cannot be read
+       * off the request, or a set of candidates the rollout cannot separate. The heuristic is a
+       * fitted one and is the right floor; it is being overridden only where there is evidence. */
+      const baseSwitch = bot.chooseSwitch.bind(bot);
+      bot.chooseSwitch = function (active, switches) {
+        try {
+          if (!ROLLOUT || !this.board || !(switches || []).length) return baseSwitch(active, switches);
+          if ((switches || []).length < 2) return baseSwitch(active, switches);
+          const side = this.me || 'p1';
+          const req = this._req;
+          const reqMons = (req && req.side && req.side.pokemon) || [];
+          const speciesOf = (slot) => {
+            const m = reqMons[slot - 1];
+            return m ? String(m.details || m.ident || '').split(',')[0].trim() : '';
+          };
+          const DEX2 = DEX;
+          const field = {
+            weather: this.board.weather || '', terrain: '',
+            tr: this.board.hasField('trickroom') ? 5 : 0,
+            twA: this.board.hasSide(side, 'tailwind') ? 4 : 0,
+            twB: this.board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
+          };
+          const scored = [];
+          for (const sw of switches) {
+            const sp = speciesOf(sw.slot);
+            if (!sp) continue;
+            const r = RL.rolloutWinProb(this.board, side, {
+              n: ROLLOUT_N * 2, dex: DEX2, explore: ROLLOUT_EXPLORE, field,
+              maxTurns: ROLLOUT_TURNS, seed: (Date.now() & 0xffff) * 6151 + sw.slot,
+              bringIn: sp, protectTurns: this._protectTurns,
+            });
+            if (r && typeof r.p === 'number') scored.push([r.p, sw.slot, sp]);
+          }
+          if (scored.length < 2) return baseSwitch(active, switches);
+          scored.sort((a, b) => b[0] - a[0]);
+          /* The same noise-floor rule the move picker uses: an argmax over estimates that overlap is
+           * a coin flip wearing a search's clothes, and magnemite's ranking is the better tiebreak. */
+          const se = Math.sqrt(Math.max(scored[0][0] * (1 - scored[0][0]), 0.0025) / (ROLLOUT_N * 2));
+          if (scored[0][0] - scored[1][0] < 1.5 * se) {
+            console.log(`  replacement: UNDECIDED — ${scored.map(s => s[2] + ' ' + (100 * s[0]).toFixed(0) + '%').join(', ')}` +
+              `; within a ${(100 * se).toFixed(1)}pt error, deferring to MAG`);
+            return baseSwitch(active, switches);
+          }
+          console.log(`  replacement: ${scored[0][2]} ${(100 * scored[0][0]).toFixed(0)}%` +
+            `  (over ${scored.slice(1).map(s => s[2] + ' ' + (100 * s[0]).toFixed(0) + '%').join(', ')})`);
+          if (this._claimReq !== this._req) { this._claimReq = this._req; this._claimed = new Set(); }
+          /* The double-claim guard magnemite documents at :409 applies here too: both slots can be
+           * asked for a replacement in the same request, and naming one body twice kills the battle. */
+          for (const [, slot] of scored) {
+            if (this._claimed.has(slot)) continue;
+            this._claimed.add(slot);
+            return slot;
+          }
+          return baseSwitch(active, switches);
+        } catch (e) {
+          console.error('  replacement search threw, falling back to MAG: ' + e.message);
+          return baseSwitch(active, switches);
+        }
+      };
+
       bot.chooseMove = function (active, moves) {
         try {
           const req = this._req;
@@ -741,36 +862,85 @@ function handle(room, line) {
           let bestVal = -1, bestPair = null, _res = 0, _unres = 0;
           const byKind = {};
           const t0 = Date.now();
-          for (const ia of oa) for (const ib of ob) {
+          /* SUCCESSIVE HALVING, because an argmax over 60-odd noisy estimates picks the luckiest one
+           * and not the best one.
+           *
+           * At n=120 a win rate near 0.7 carries a standard error around 4 points. Taking the max over
+           * 63 such estimates inflates the winner by roughly two standard errors of pure dice, which
+           * is larger than most real differences between two reasonable clicks. The visible symptom
+           * was the bot clicking RECOVER AT FULL HP — a move MEDICHAM correctly heals 0 with, so it is
+           * a wasted turn that simply drew good rollouts. The heal is clamped; the SEARCH was wrong.
+           *
+           * This is the project's own noise-floor law applied to the live picker: an effect smaller
+           * than the spread is not an effect. Rather than arbitrate ties after the fact, spend the
+           * budget where it decides anything — screen every pair cheaply, then re-test only the
+           * survivors at high n with FRESH seeds, so a lucky first pass has to be lucky twice.
+           *
+           * Cheaper than the flat version it replaces: 63*40 + 8*240 beats 63*120. */
+          const SCREEN_N = Math.max(12, Math.round(ROLLOUT_N / 3));
+          const FINAL_K = 8;
+          const evalPair = (ia, ib, n, salt) => {
             const ca2 = built[0].cands[ia], cb2 = built[1].cands[ib];
-            /* TWO SLOTS CANNOT SWITCH TO THE SAME BODY. magnemite guards this at line 931 as a
-             * property of the PAIR, and skipping the guard produced exactly what it prevents:
-             * "switch delphox + switch delphox", an illegal pair the search happily ranked first
-             * because MEDICHAM's bringIn just hands the same Pokemon to whichever slot asks first
-             * and the second slot silently gets nothing. An illegal cell that EVALUATES is worse
-             * than one that throws. */
-            if (ca2.switchTo && cb2.switchTo && ca2.choice === cb2.choice) continue;
+            if (ca2.switchTo && cb2.switchTo && ca2.choice === cb2.choice) return null;
             const ka = clickOf(ca2), kb = clickOf(cb2);
-            /* A candidate this engine cannot express is SKIPPED, not approximated — offering the
-             * search a cell it will silently resolve as something else is worse than a smaller menu. */
-            if (!ka || !kb) continue;
-            const v = RL.rolloutAfterActions(board, side, {
-              n: ROLLOUT_N, dex: DEX, explore: ROLLOUT_EXPLORE, field, maxTurns: ROLLOUT_TURNS,
-              seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib,
-              myClicks: [ka, kb],
+            if (!ka || !kb) return null;
+            return RL.rolloutAfterActions(board, side, {
+              n, dex: DEX, explore: ROLLOUT_EXPLORE, field, maxTurns: ROLLOUT_TURNS,
+              seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib + salt,
+              myClicks: [ka, kb], protectTurns: this._protectTurns,
               report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved; },
             });
+          };
+          /* Round one: every pair, cheaply. These values decide who advances and nothing else — they
+           * are never reported as the chosen action's worth, precisely because they are the biased ones. */
+          const screened = [];
+          for (const ia of oa) for (const ib of ob) {
+            const v = evalPair(ia, ib, SCREEN_N, 0);
             if (v === null) continue;
-            /* MEAN BY CLASS, live. Offline on real boards this reads mv+mv 31.4%, SW+mv 25.6%,
-             * mv+SW 18.5%, SW+SW 14.8% — the search rates double switching WORST, matching Will's
-             * "double switches are exceedingly rare" and the corpus's 0.67%. The live bot picks
-             * SW+SW nearly every turn, so one of these two boards is not the board I think it is,
-             * and printing the same summary live is the shortest way to find out which. */
+            screened.push([v, ia, ib]);
+          }
+          if (!screened.length) return base(active, moves);
+          screened.sort((a, b) => b[0] - a[0]);
+          const finalists = screened.slice(0, FINAL_K);
+          /* Round two: the survivors only, at the full budget and with a DIFFERENT seed salt, so a
+           * pair that advanced on lucky dice has to roll them again. */
+          for (const [, ia, ib] of finalists) {
+            const v = evalPair(ia, ib, ROLLOUT_N * 2, 104729);
+            if (v === null) continue;
+            const ca2 = built[0].cands[ia], cb2 = built[1].cands[ib];
             const kind = (ca2.switchTo ? 'SW' : 'mv') + '+' + (cb2.switchTo ? 'SW' : 'mv');
             (byKind[kind] = byKind[kind] || []).push(v);
             if (v > bestVal) { bestVal = v; bestPair = [ia, ib]; }
           }
           if (!bestPair) return base(active, moves);
+          /* WHEN THE SEARCH CANNOT TELL THE OPTIONS APART, IT MUST SAY SO RATHER THAN GUESS.
+           *
+           * Live log, a lost position: `protect + protect win 1%` with `by class: mv+mv 0%(35)` --
+           * all thirty-five options scored zero, so the argmax ranked pure dice and dice chose double
+           * Protect. Same shape produced `blizzard + flamethrower` at 1%. The search was not choosing
+           * badly; it had NO SIGNAL and no way to report that, and an argmax always returns something.
+           *
+           * MAG is the better tiebreak there. It is a fitted policy over human games, so in a position
+           * the rollout cannot separate it still plays something a person would play -- which is the
+           * whole reason it is the shipped player. Deviating from it needs evidence, and no spread
+           * between candidates is the absence of evidence.
+           *
+           * Two ways that happens, both handled: the finalists are statistically indistinguishable, or
+           * the position is decided and every line loses anyway. */
+          const fv = [];
+          for (const k of Object.keys(byKind)) for (const v of byKind[k]) fv.push(v);
+          const spread = Math.max(...fv) - Math.min(...fv);
+          const se = Math.sqrt(Math.max(bestVal * (1 - bestVal), 0.0025) / (ROLLOUT_N * 2));
+          if (fv.length > 1 && spread < 1.5 * se) {
+            console.log(`  rollout: UNDECIDED — ${fv.length} finalists span ${(100 * spread).toFixed(1)}pt` +
+              ` against a ${(100 * se).toFixed(1)}pt standard error; deferring to MAG`);
+            return base(active, moves);
+          }
+          if (bestVal < 0.03 || bestVal > 0.97) {
+            console.log(`  rollout: position already decided at ${(100 * bestVal).toFixed(0)}% —` +
+              ' every line scores the same, deferring to MAG');
+            return base(active, moves);
+          }
           const ms = Date.now() - t0;
           const chosen = [built[0].cands[bestPair[0]], built[1].cands[bestPair[1]]];
           console.log(`  rollout: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
@@ -811,6 +981,17 @@ function handle(room, line) {
      * complaint as a fatal error, and exit. See the teampreview branch below. */
   }
   const st = rooms.get(room);
+  /* PUBLISH THE REPLAY, because a game nobody can watch back is not evidence of anything.
+   *
+   * Will: "any games with ots lets record so i can watch them back", then "SEND ME THE REPLAY LINKS
+   * FOR ALL THE GAMES". The bot was already writing the room's protocol stream to data/live-games --
+   * which is what a replay IS -- but a local .log is not a link, and /savereplay was never sent. So
+   * three games were played and none of them were watchable.
+   *
+   * Sent on the win line, which is the point the room is complete and still open. OTS only, for the
+   * same reason the recording is OTS only: a closed-sheet game is thrown out, so publishing it would
+   * put a game that does not count next to the ones that do. */
+  if (line.startsWith('|win|') && st && st.ots) send(`${room}|/savereplay`);
   /* The one moment it is legal to agree. */
   if (line.startsWith('|teampreview')) {
     send(`${room}|/acceptopenteamsheets`);
@@ -819,6 +1000,30 @@ function handle(room, line) {
   if (line.startsWith('|showteam|')) {
     if (st) st.ots = true;
     console.log(`${room}: OPEN SHEETS ARE UP — sets are visible`);
+  }
+
+  /* HOW MANY TIMES IN A ROW THIS POKEMON HAS PROTECTED, read off the battle log.
+   *
+   * MEDICHAM fails a repeated Protect with probability (1/3)^n, but a rollout builds fresh bodies and
+   * a fresh body has protected zero times -- so inside the search Protect never failed and the search
+   * spammed it. rollout_leaf takes this map and seeds `tookProtectTurns` from it.
+   *
+   * Read from `|move|` rather than from what the bot CHOSE, deliberately: a chosen move that never
+   * executes (the user was knocked out first, or flinched, or the picker fell back to MAG) would
+   * desynchronise a choice-side counter from the game, and a counter that drifts is worse than none.
+   * The log says what actually happened. */
+  if (st && st.bot && line.startsWith('|move|')) {
+    const mp = line.split('|');
+    const who = String(mp[2] || '');                       // "p1a: Roaring Moon"
+    const mine = who.startsWith(st.bot.me || 'p1');
+    if (mine) {
+      const species = who.split(':').slice(1).join(':').trim();
+      const id = String(mp[3] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      st.protectTurns = st.protectTurns || {};
+      if (PROTECT_IDS.has(id)) st.protectTurns[species] = (st.protectTurns[species] || 0) + 1;
+      else st.protectTurns[species] = 0;
+      st.bot._protectTurns = st.protectTurns;
+    }
   }
 
   /* ---- RECORD EVERY OTS GAME, AND ONLY OTS GAMES -------------------------------------------------

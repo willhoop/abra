@@ -1673,5 +1673,8 @@ root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet;
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
-  moveFx,movePriority,priorityRefusedAbove,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors};
+  moveFx,movePriority,priorityRefusedAbove,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
+  /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
+   * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
+  PROTECTMOVES};
 })(typeof window!=='undefined'?window:globalThis);
