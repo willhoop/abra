@@ -192,6 +192,44 @@ So the leaf is **bias-limited, not variance-limited**, and this settles two thin
 It also sharpens §3.2's warning into the live question: the playout policy is the suspect, and the
 literature says making it *stronger* is not reliably the fix.
 
+### 4.2.1 The bias was the playout, and the fix is MORE randomness
+
+`chooseAction` is deterministic greedy. Every playout from one position replays the same line, so N
+samples agree with **each other** rather than with reality. The calibration table shows the result —
+the estimator saturates:
+
+```
+  rollout says       n      actually wins
+  0-10%           2,245         26.0%
+  90-100%         2,612         75.9%
+```
+
+53% of all positions land in those two bins, and they are wrong by 22-29 points.
+
+§3.2's warning applied exactly: *heavy rollouts help only when they avoid becoming low-variance*.
+Swept on the same 1,456 positions at n=40, with `explore` the probability that a Pokemon clicks a
+random legal move instead of the greedy pick:
+
+```
+  explore=0      64.42%   Brier 0.2647   logloss 1.7400
+  explore=0.15   64.42%          0.2509           1.4309
+  explore=0.35   65.11%          0.2391           1.0691
+  explore=0.6    65.73%          0.2265           0.9293
+  explore=0.8    66.62%          0.2190           0.9119
+  explore=1.0    68.13%          0.2192           0.8849
+```
+
+**Monotone in every column, and a FULLY RANDOM playout wins.** +3.71 accuracy points over greedy, and
++3.29 over material — against PORYGON3's published +3.42 over the same baseline.
+
+And N starts behaving: at `explore=1`, more samples buy **calibration** rather than accuracy
+(logloss 1.396 -> 0.885 -> 0.764 at n=10/40/160). That is the right currency for a leaf a search will
+average rather than threshold.
+
+The randomness lives in the rollout harness, **not** in `chooseAction` — that is the Tower's policy
+and the live bot's, and randomising it would change shipped behaviour to fix a leaf. `explore=0`
+reproduces the old playout exactly, so every sweep contains its own incumbent.
+
 ### 4.3 Cost, against the budget already established
 
 `data/lookahead-cost.json` puts a Showdown fork at ~4.6 ms. A MEDICHAM turn is far cheaper — no

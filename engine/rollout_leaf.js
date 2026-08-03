@@ -110,6 +110,7 @@ function rolloutWinProb(board, side, opts) {
   const dex = opts.dex;
   const foe = side === 'p1' ? 'p2' : 'p1';
   const stats = { fainted: 0, unbuildable: 0, threw: 0 };
+  let exploreThrew = 0, firstExploreError = null;
 
   const mine = buildSide(board, side, dex, stats);
   const theirs = buildSide(board, foe, dex, stats);
@@ -157,7 +158,18 @@ function rolloutWinProb(board, side, opts) {
           if (!foes.length) return null;
           const mv = mvs[Math.floor(rng() * mvs.length) % mvs.length];
           const tg = foes[Math.floor(rng() * foes.length) % foes.length];
-          try { return MEDI.playerAction(mon, mv, tg, S.field); } catch (e) { void e; return null; }
+          /* A throw here is NOT expected. playerAction is being handed a move off the mon's own
+           * moveset and a live foe, so if it throws, the exploration is generating actions the engine
+           * cannot represent -- and swallowing that would quietly reduce the exploration rate toward
+           * zero and make explore=1 behave like explore=0.5, which is exactly the variable under
+           * test. Counted so it is visible in the return value. */
+          try {
+            return MEDI.playerAction(mon, mv, tg, S.field);
+          } catch (e) {
+            exploreThrew++;
+            if (!firstExploreError) firstExploreError = `${mon.name} ${mv}: ${e.message}`;
+            return null;
+          }
         };
         for (const m of S.actA) { const a = pick(m); if (a) { (fa = fa || new Map()).set(m, a); } }
         for (const m of S.actB) { const a = pick(m); if (a) { (fb = fb || new Map()).set(m, a); } }
@@ -168,7 +180,8 @@ function rolloutWinProb(board, side, opts) {
   }
   const iv = wilson(wins, n);
   return { p: wins / n, wins, n, lo: iv.lo, hi: iv.hi,
-           built: mine.length + theirs.length, dropped: stats };
+           built: mine.length + theirs.length, dropped: stats,
+           exploreThrew, firstExploreError };
 }
 
 module.exports = { rolloutWinProb, sideTeam, buildSide, wilson };
