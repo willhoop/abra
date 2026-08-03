@@ -876,6 +876,9 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(k==='protect')   return 4;
       if(k==='wideguard') return 3;
       if(k==='status')    return movePriority(it.a.mv, field);
+      /* -7 in the real game, and read from the move's own data rather than written here for the same
+       * reason the status branch above does: Trick Room moving LAST is most of what makes it fair. */
+      if(k==='trickroom') return movePriority('trickroom', field);
       return 0;
     };
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
@@ -907,6 +910,33 @@ function battleTurn(S,rng,actsForA,actsForB){
         continue;
       }
       if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
+      /* TRICK ROOM. Every other piece of it was already here — field.tr inverts the speed sort in the
+       * acts.sort above, ticks down at end of turn, and flipSpeedOdds already prices it — and nothing
+       * could ever set it, so a Trick Room click was a no-op turn. 1.18% of real clicks
+       * (engine/medicham_coverage.js) and one of the largest strategic swings in the format.
+       *
+       * IT TOGGLES. Clicking it while it is up ENDS it rather than refreshing it, which is the real
+       * rule and matters here specifically: the counter to Trick Room is a second Trick Room, so a
+       * version that refreshed would make the room permanent once either side started it and would
+       * misprice every Trick Room mirror. Five turns, of which the mover's own is one — the end-of-turn
+       * decrement leaves four behind, matching how twA/twB are set to 4 on the line above. */
+      if(a.kind==='trickroom'){field.tr=field.tr>0?0:5;continue;}
+      /* HEAL. The fraction is the move's own (Roost/Recover 1/2, Life Dew 1/4), and 'allies' spreads
+       * it across the user's side while 'self' does not — Life Dew healing only its user would make
+       * the most-clicked doubles restore look like a worse Recover. Capped at max HP, and a fainted
+       * ally is not resurrected. */
+      if(a.kind==='heal'){
+        const fx=moveFx(a.mv), fr=fx&&fx.heal;
+        if(fr&&fr[1]){
+          /* Max HP is `st.hp` — a mon carries curHP plus its stat block, and there is no maxHP field.
+           * Written as maxHP first, which produced NaN on every heal rather than a wrong number, so
+           * the test caught it; a silently wrong divisor would not have shown up at all. */
+          const amt=x=>{if(x&&x.st)x.curHP=Math.min(x.st.hp,x.curHP+Math.floor(x.st.hp*fr[0]/fr[1]));};
+          if(fx.target==='allies'){for(const x of (it.side==='A'?actA:actB))if(x&&!x.fainted&&x.curHP>0)amt(x);}
+          else amt(m);
+        }
+        continue;
+      }
       /* A status move inflicts the status THAT MOVE inflicts, at THAT MOVE's accuracy. This line used
        * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
        * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
@@ -1212,12 +1242,18 @@ function playerAction(me,moveId,target,field){
   if(PROTECTMOVES.has(id))return {kind:'protect'};
   if(id==='wideguard')return {kind:'wideguard'};
   if(id==='tailwind')return {kind:'tail'};
+  if(id==='trickroom')return {kind:'trickroom'};
   const mv=MC.moves[id];
   if(mv&&hasPower(mv)&&target){
     const spread=SPREAD.has(id);
     return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:moveAccuracy(id,field)/100},target};
   }
   const fx=moveFx(id);
+  /* HEAL, from the rulebook's own `heal` fraction rather than a list of move names — so Roost,
+   * Recover, Life Dew, Soft-Boiled and every other restore arrive together and a new one needs no
+   * code. `target` decides who gets it: 'self' is the user, 'allies' is the whole side (Life Dew).
+   * Checked before the status branch because nothing here carries a major status. */
+  if(fx&&fx.heal)return {kind:'heal',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
