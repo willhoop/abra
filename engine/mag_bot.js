@@ -91,6 +91,7 @@ const SWITCHING = process.argv.includes('--switching');
  * random rather than choosing when. Making it a real choice is a separate piece of work. */
 const MEGA_P = parseFloat(arg('mega', '1'));
 const WHY = process.argv.includes('--why');
+const TRACE = process.argv.includes('--trace');
 /* --weights <file>  play a different fitted vector. The one worth trying is
  * data/policy-weights-nopop.json, refitted with "how often people click this" removed entirely --
  * which predicts human choices BETTER than the version that has it. */
@@ -333,6 +334,15 @@ function onMessage(ev) {
 
 function handle(room, line) {
   if (!line) return;
+  /* --trace prints every non-battle line the server sends. Guessing at why a challenge does not
+   * arrive is how the last hour went; this makes the server's side of it visible. Battle rooms are
+   * excluded because a live battle is thousands of lines and would bury the thing being looked for. */
+  if (TRACE && !room.startsWith('battle-')) {
+    const c = line.split('|')[1] || '';
+    if (!['', 'init', 'title', 'users', 'j', 'l', 'c', 'c:', 'raw', 'html', ':'].includes(c)) {
+      console.log('  << ' + line.slice(0, 220));
+    }
+  }
   const p = line.split('|');
   const cmd = p[1];
 
@@ -395,7 +405,11 @@ function handle(room, line) {
   const toID = (x) => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   if (cmd === 'updateuser' && toID(p[2]) === toID(NAME)) {
     loggedIn = true;
-    console.log(`logged in as ${NAME} — challenge it from the client`);
+    /* JOIN A ROOM. A logged-in account that sits in no room appears in no userlist, and the client's
+     * user popup -- the thing a challenge is sent from -- has nothing anchoring it, so it closes on
+     * its own. Being in a public room is what makes the account reachable by clicking its name. */
+    send('|/join lobby');
+    console.log(`logged in as ${NAME} -- joining lobby; challenge it from the client`);
     return;
   }
 
