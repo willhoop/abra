@@ -854,7 +854,7 @@ function battleTurn(S,rng,actsForA,actsForB){
   const field=S.field,actA=S.actA,actB=S.actB,benchA=S.benchA,benchB=S.benchB,sfA=S.sfA,sfB=S.sfB;
   const live=_live;
   {
-    [...actA,...actB].forEach(m=>{if(m)m.protect=false;});field.wgA=false;field.wgB=false;
+    [...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;}});field.wgA=false;field.wgB=false;
     const acts=[];
     /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
@@ -921,6 +921,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * misprice every Trick Room mirror. Five turns, of which the mover's own is one — the end-of-turn
        * decrement leaves four behind, matching how twA/twB are set to 4 on the line above. */
       if(a.kind==='trickroom'){field.tr=field.tr>0?0:5;continue;}
+      /* The redirector marks ITSELF; the retarget happens at the attacker's targeting step below, so
+       * the ordering falls out for free — priority +2 means the mark is almost always set before any
+       * normal-priority attack looks for it, and a redirector that moves after an attacker correctly
+       * fails to catch it. The volatile name is kept rather than a boolean so the attacker's side can
+       * apply Rage Powder's powder immunity without asking which move set the mark. */
+      if(a.kind==='redirect'){m._redirect=a.mv;m._lastMove=a.mv;continue;}
       /* HEAL. The fraction is the move's own (Roost/Recover 1/2, Life Dew 1/4), and 'allies' spreads
        * it across the user's side while 'self' does not — Life Dew healing only its user would make
        * the most-clicked doubles restore look like a worse Recover. Capped at max HP, and a fainted
@@ -996,6 +1002,19 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
       const foes=it.side==='A'?actB:actA;
       let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
+      /* REDIRECTION APPLIES HERE, and only to SINGLE-TARGET moves aimed at the other side. Spread
+       * moves already hit everything so there is nothing to draw, and the redirector must be a live
+       * FOE of this attacker — a Follow Me on my own side does not pull my partner's attack.
+       *
+       * Rage Powder is a powder move, so a Grass type, Overcoat, or Safety Goggles ignores the draw
+       * and hits what it aimed at; powderBlocked() already knows that and already lists ragepowder,
+       * so the immunity is asked of the same helper Sleep Powder uses rather than restated. Follow Me
+       * is not a powder and draws regardless. Getting this half-right — drawing everything, always —
+       * would silently make every Amoonguss immune matchup wrong in the same direction. */
+      if(!a.move.spread&&targets.length){
+        const drawer=live(foes).find(f=>f&&f._redirect);
+        if(drawer&&drawer!==targets[0]&&!powderBlocked(m,drawer._redirect))targets=[drawer];
+      }
       if(!targets.length)targets=live(foes).slice(0,1);
       /* spreadAll hits the PARTNER too -- Earthquake beside your own Archaludon costs it the same
        * 0.75x packet the enemies eat. Membership from the artifact; the ally is appended AFTER the
@@ -1254,6 +1273,15 @@ function playerAction(me,moveId,target,field){
    * code. `target` decides who gets it: 'self' is the user, 'allies' is the whole side (Life Dew).
    * Checked before the status branch because nothing here carries a major status. */
   if(fx&&fx.heal)return {kind:'heal',mv:id};
+  /* REDIRECTION, FROM THE `redirects` TAG. Will was right that these were already tagged and the
+   * first version of this line was not: it named ragepowder and followme by their volatile, having
+   * looked for the tag under ABRA_TAGS.move — the artifact spells it `moves`, so the search came back
+   * empty and "there is no tag" got written into a comment. Asking the tag instead means any other
+   * redirect move in the set arrives without another edit here, which is the whole point of the tags.
+   *
+   * 1.78% of real clicks, and the most positional mechanic in doubles: it is how a Fake Out or a
+   * Sucker Punch ends up eaten by the wrong body. */
+  if(TAGS.has('move',id,'redirects'))return {kind:'redirect',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
