@@ -260,6 +260,27 @@ let backoff = 2000;
 let stopping = false;
 const send = (s) => { if (ws && ws.readyState === 1) ws.send(s); };
 
+/* --challenge <user>: the bot opens the game instead of waiting to be challenged.
+ *
+ * Waiting requires the challenger's client to hold a popup open, and Will's does not: the trace
+ * showed his challenges never reached the server at all, so no amount of work on this side could
+ * have received them. Challenging outward reduces his side to one Accept button. */
+const CHALLENGE = arg('challenge', '');
+let lastOffer = 0;
+function offerChallenge(why) {
+  if (!CHALLENGE) return;
+  /* Rate-limited because a re-offer is triggered by PMs and by battles ending, and Showdown throttles
+   * a client that repeats a command -- which would get the bot muted rather than connected. */
+  const now = Date.now();
+  if (now - lastOffer < 8000) return;
+  lastOffer = now;
+  const team = pickTeam();
+  if (!team) { console.error('could not draw a VALID team — not challenging'); return; }
+  send(`|/utm ${team}`);
+  send(`|/challenge ${CHALLENGE}, ${CS.FORMAT}`);
+  console.log(`challenged ${CHALLENGE} in ${CS.FORMAT} (${why}) — accept it on your screen`);
+}
+
 
 /* Rooms are tracked so two simultaneous challenges do not share a player object — each battle gets
  * its own MAG with its own board, which is the same isolation MEW gets per game. */
@@ -410,6 +431,8 @@ function handle(room, line) {
      * its own. Being in a public room is what makes the account reachable by clicking its name. */
     send('|/join lobby');
     console.log(`logged in as ${NAME} -- joining lobby; challenge it from the client`);
+    /* Given a moment: /utm and /challenge are both rejected until the login has settled server-side. */
+    setTimeout(() => offerChallenge('on login'), 2500);
     return;
   }
 
@@ -426,7 +449,27 @@ function handle(room, line) {
   if (cmd === 'pm') {
     const from = String(p[2] || '').replace(/^[ !@#$%^&*+ -]/, '').trim();
     const payload = p.slice(4).join('|');
-    const m = /^\/challenge\s+(\S+)/.exec(payload);
+    /* ANY PM RE-ISSUES THE OUTBOUND CHALLENGE.
+     *
+     * The inbound path assumes the challenger can hold the client's user popup open long enough to
+     * pick a format and press a button. On Will's client it closes within a second -- and the trace
+     * proves the challenge never reaches the server at all, so nothing on this side can fix it.
+     *
+     * A PM is not the popup and does not have that problem: his friend request landed fine while
+     * every challenge did not. So a PM of any content re-fires the challenge FROM here, which turns
+     * his side into a single Accept button. */
+    if (CHALLENGE && toID(from) === toID(CHALLENGE) && !/^\//.test(payload)) {
+      offerChallenge('asked over PM');
+      return;
+    }
+    /* THE FORMAT IS THE FIRST PIPE-FIELD, NOT THE WHOLE PAYLOAD.
+     *
+     * A challenge PM arrives as `/challenge FORMAT|FORMAT|||` -- format, then the challenger's team
+     * and options. `\S+` does not stop at a pipe, so it captured the entire blob and the wrong-format
+     * guard then rejected every valid challenge in the format it was written to allow. That guard was
+     * added to make a rejection VISIBLE instead of silent; it made a working path fail loudly instead.
+     * [^|\s]+ stops at the delimiter, which is what the protocol actually uses. */
+    const m = /^\/challenge\s+([^|\s]+)/.exec(payload);
     if (!m || !from || from === NAME) return;
     const fmt = m[1];
     /* A WRONG-FORMAT CHALLENGE IS ANSWERED, NOT IGNORED.
