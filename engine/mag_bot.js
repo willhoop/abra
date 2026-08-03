@@ -563,11 +563,27 @@ function handle(room, line) {
             }
             if (foeParty.length) board.setParty(foeS, foeParty);
           }
+          /* `_movesForSlot` IS THE NORMALISER, and skipping it was the whole bug.
+           *
+           * `_candsFor` expects magnemite's own move shape, with a `.choice` string on each entry.
+           * The RAW request array does not have that, so passing `a2.moves` produced a candidate list
+           * of `{move: null, choice: undefined}` — four dead entries per slot — and the only survivors
+           * were the switches. The search then picked a double switch every turn because THOSE WERE
+           * THE ONLY TWO OPTIONS IT COULD SEE. Not a preference for switching: a menu with nothing
+           * else on it.
+           *
+           * Diagnosed by printing the per-class means live and getting `SW+SW 6%(2)` — two pairs
+           * evaluated out of thirty-six. The arithmetic gave it away before the dump did.
+           *
+           * magnemite's own _decidePair does exactly this at lines 909-912; copied rather than
+           * re-derived, because the shape is its business and this file has now got it wrong once. */
           const built = ['a', 'b'].map((L, k) => {
             const a2 = acts[k];
             const user = board.slot(side, L);
             if (!user || user.fainted || !a2) return null;
-            const b2 = this._candsFor(k === i ? active : a2, (a2.moves || moves), k);
+            const mv2 = (k === i) ? moves : this._movesForSlot(a2, k);
+            if (!mv2 || !mv2.length) return null;
+            const b2 = this._candsFor(a2, mv2, k);
             return b2 && b2.cands && b2.cands.length ? b2 : null;
           });
           if (!built[0] || !built[1]) return base(active, moves);
@@ -631,9 +647,16 @@ function handle(room, line) {
              * bias favours anything that survives to a later turn, switching included. Stated here
              * because a bot that thinks it is ahead switches for the wrong reason. */
           }
+          if (!this._candsDumped) {
+            this._candsDumped = true;
+            for (const k of [0, 1]) console.log("    slot " + k + " cands: " +
+              built[k].cands.map(c => c.switchTo ? ("SW:" + c.switchTo)
+                : (c.move ? c.move.id : "NULLMOVE(" + JSON.stringify(c.choice) + ")")).join(", "));
+          }
           const oa = built[0].cands.map((c, idx) => idx);
           const ob = built[1].cands.map((c, idx) => idx);
           let bestVal = -1, bestPair = null, _res = 0, _unres = 0;
+          const byKind = {};
           const t0 = Date.now();
           for (const ia of oa) for (const ib of ob) {
             const ca2 = built[0].cands[ia], cb2 = built[1].cands[ib];
@@ -655,6 +678,13 @@ function handle(room, line) {
               report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved; },
             });
             if (v === null) continue;
+            /* MEAN BY CLASS, live. Offline on real boards this reads mv+mv 31.4%, SW+mv 25.6%,
+             * mv+SW 18.5%, SW+SW 14.8% — the search rates double switching WORST, matching Will's
+             * "double switches are exceedingly rare" and the corpus's 0.67%. The live bot picks
+             * SW+SW nearly every turn, so one of these two boards is not the board I think it is,
+             * and printing the same summary live is the shortest way to find out which. */
+            const kind = (ca2.switchTo ? 'SW' : 'mv') + '+' + (cb2.switchTo ? 'SW' : 'mv');
+            (byKind[kind] = byKind[kind] || []).push(v);
             if (v > bestVal) { bestVal = v; bestPair = [ia, ib]; }
           }
           if (!bestPair) return base(active, moves);
@@ -662,6 +692,10 @@ function handle(room, line) {
           const chosen = [built[0].cands[bestPair[0]], built[1].cands[bestPair[1]]];
           console.log(`  rollout: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
             `  win ${(100 * bestVal).toFixed(0)}%  (${oa.length * ob.length} opts, ${ms}ms, sw resolved ${_res}/unres ${_unres})`);
+          const summary = Object.keys(byKind).sort().map(k =>
+            k + ' ' + (100 * byKind[k].reduce((a, b) => a + b, 0) / byKind[k].length).toFixed(0) +
+            '%(' + byKind[k].length + ')').join('  ');
+          console.log('    by class: ' + summary);
           this._rolloutReq = req;
           this._rolloutPick = [];
           this._rolloutPick[1 - i] = chosen[1 - i].choice;
