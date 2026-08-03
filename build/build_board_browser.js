@@ -91,7 +91,11 @@ const bundle = {
  * carried; a handler nothing invokes is dead weight in a page that is already 273 KB. */
 const HANDLERS = {
   species: [],
-  abilities: ['onStart', 'onModifyPriority', 'onModifySpe', 'onChangeBoost', 'onTryBoost', 'onAfterEachBoost', 'onFoeTryMove'],
+  /* onResidual carries `passTurnAccrues`: board.js asks whether the user's ability GAINS on a
+   * passed turn (Speed Boost, Moody, Opportunist) by reading the handler's source. Without it the
+   * browser scored that feature as always-zero while node did not, which is exactly the silent
+   * divergence tests/test-board-browser.js exists to refuse. */
+  abilities: ['onStart', 'onModifyPriority', 'onModifySpe', 'onChangeBoost', 'onTryBoost', 'onAfterEachBoost', 'onFoeTryMove', 'onResidual'],
   items: ['onModifySpe'],
   conditions: ['onModifySpe', 'onAnyModifyDamage', 'onAnyModifyDamagePhase1', 'onAnyModifyDamagePhase2'],
   natures: [],
@@ -104,11 +108,15 @@ const FIELDS = {
   species: ['name', 'id', 'exists', 'types', 'baseStats', 'baseSpecies', 'abilities', 'weighthg', 'isMega', 'requiredItem'],
   abilities: ['name', 'id', 'exists'],
   items: ['name', 'id', 'exists', 'isChoice', 'megaStone', 'megaEvolves'],
-  conditions: ['name', 'id', 'exists'],
+  /* `duration` carries `setupTurns` — how many turns a Tailwind, screen, terrain or weather lasts.
+   * It is a plain data field on the CONDITION, not on the move, so the move fields below are not
+   * enough on their own. */
+  conditions: ['name', 'id', 'exists', 'duration'],
   natures: ['name', 'id', 'exists', 'plus', 'minus'],
   moves: ['name', 'id', 'exists', 'type', 'category', 'basePower', 'accuracy', 'priority', 'target',
-          'flags', 'boosts', 'status', 'volatileStatus', 'sideCondition', 'weather', 'terrain',
-          'pseudoWeather', 'self', 'selfSwitch', 'stallingMove', 'isNonstandard', 'multihit', 'drain', 'heal'],
+          'flags', 'boosts', 'status', 'volatileStatus', 'sideCondition', 'slotCondition', 'weather', 'terrain',
+          'pseudoWeather', 'self', 'selfSwitch', 'stallingMove', 'isNonstandard', 'multihit', 'drain', 'heal',
+          'condition'],
 };
 
 const CS = require(D('engine', 'champions_sim.js'));

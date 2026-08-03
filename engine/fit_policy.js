@@ -687,7 +687,13 @@ function main() {
 
   const tally = { seen: 0, kept: 0, noUser: 0, noSheet: 0, trivial: 0, unmatched: 0, ambiguous: 0 };
   let rows = [];
-  for (const g of games) rows = rows.concat(decisionsFor(g, tally));
+  /* WHEN each game was played, kept beside the decisions so a TIME-based holdout is possible at all.
+   * A decision row carries a game id and no date; this loop is the one place both are in scope. */
+  const dateOf = new Map();
+  for (const g of games) {
+    if (g.id) dateOf.set(g.id, String(g.date || ''));
+    rows = rows.concat(decisionsFor(g, tally));
+  }
   console.log(`  decisions  ${tally.seen.toLocaleString()} seen -> ${tally.kept.toLocaleString()} usable`);
   console.log(`             dropped: ${tally.trivial.toLocaleString()} had only one candidate (no information), ` +
               `${tally.noSheet.toLocaleString()} species not on a sheet, ${tally.unmatched.toLocaleString()} click not matched, ` +
@@ -698,9 +704,43 @@ function main() {
   /* HELD OUT BY GAME, NOT BY DECISION. Decisions inside one game share teams, players and board, so
    * splitting by decision leaks the answer across the split and every model looks good. */
   const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
-  const train = rows.filter(r => hash(r.game) % 5 !== 0);
-  const test = rows.filter(r => hash(r.game) % 5 === 0);
-  console.log(`  split      ${train.length.toLocaleString()} train / ${test.length.toLocaleString()} held out (split by GAME)\n`);
+
+  /* A TIME SPLIT, OPTIONAL, AND THE ONLY ONE THAT CAN ANSWER "DOES OLD DATA STILL HELP".
+   *
+   * The random-by-game split below answers "does this generalise to other games from the same
+   * period", which is the right question for feature work and the WRONG one for recency: a June game
+   * in the test set is predicted by June games in the training set, so staleness is invisible by
+   * construction. The metagame moves — Kingambit went 2.87% -> 3.88% of usage between the June and
+   * July Smogon months, Staraptor-Mega -0.96 the other way — so "train on the past, test on the
+   * future" is a different and harder question, and it is the one a recency policy turns on.
+   *
+   *   HOLDOUT_SINCE=2026-08-01   games on or after this date are the TEST set, the rest train
+   *   TRAIN_SINCE=2026-07-01     additionally drop training games older than this
+   *
+   * Two runs differing only in TRAIN_SINCE share the same test set exactly, which is what makes them
+   * comparable. Without that they are two different questions with two different answers — the same
+   * confound that made "greedy fails Sucker Punch 47.9%" wrong. */
+  const HOLDOUT_SINCE = process.env.HOLDOUT_SINCE || '';
+  const TRAIN_SINCE = process.env.TRAIN_SINCE || '';
+  let train, test;
+  if (HOLDOUT_SINCE) {
+    const when = r => String(dateOf.get(r.game) || '').slice(0, 10);
+    test = rows.filter(r => when(r) >= HOLDOUT_SINCE);
+    train = rows.filter(r => { const d = when(r); return d && d < HOLDOUT_SINCE && (!TRAIN_SINCE || d >= TRAIN_SINCE); });
+    const dropped = rows.length - train.length - test.length;
+    console.log('  split      ' + train.length.toLocaleString() + ' train / ' + test.length.toLocaleString() +
+      ' held out (BY TIME: test on/after ' + HOLDOUT_SINCE + (TRAIN_SINCE ? ', train from ' + TRAIN_SINCE : '') + ')');
+    if (dropped) console.log('             ' + dropped.toLocaleString() + ' decision(s) dropped as older than TRAIN_SINCE or undated');
+    if (!test.length || train.length < 500) {
+      console.error('the time split left too little on one side to fit or to score. Refusing.');
+      process.exit(1);
+    }
+    console.log('');
+  } else {
+    train = rows.filter(r => hash(r.game) % 5 !== 0);
+    test = rows.filter(r => hash(r.game) % 5 === 0);
+    console.log(`  split      ${train.length.toLocaleString()} train / ${test.length.toLocaleString()} held out (split by GAME)\n`);
+  }
 
   const nf = B.FEATURES.length;
   const iPrior = B.FEATURE_INDEX.priorLogP;

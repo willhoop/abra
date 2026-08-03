@@ -300,7 +300,18 @@ const SCENARIOS = [
         moves: ['Tailwind', 'Hurricane', 'Weather Ball', 'Wide Guard'] },
     ],
     bench: { p1: ['Incineroar', 'Garchomp'], p2: ['Grimmsnarl', 'Venusaur'] },
-    state: { turn: 3 },
+    /* THE HP IS A THRESHOLD, FOUND BY SWEEPING, NOT A ROUND NUMBER CHOSEN BECAUSE IT LOOKS TIDY.
+     *
+     * `boostMayConvertKill` fires only where a boost flips a NON-kill into a kill, which is a narrow
+     * band by construction. Swept 0.90 down to 0.25 in steps: it fires at 0.50 and NOWHERE ELSE.
+     *
+     * It went silent across the whole fixture when the July Smogon priors landed — the spreads and
+     * item odds moved, the damage estimates moved with them, and a feature that had been covered
+     * stopped being. That is the honest reason this value is here, and it is also the honest warning
+     * about it: a knife-edge board can go silent again the next time the priors move. The test that
+     * demands every feature fire is what will say so, which is the arrangement wanted — the coverage
+     * check is load-bearing, not decoration. */
+    state: { turn: 3, hp: { p2: { a: 0.5, b: 0.5 } } },
   },
 
   /* The leftovers, each of which was identically zero on the boards above: a charge move, a recharge
