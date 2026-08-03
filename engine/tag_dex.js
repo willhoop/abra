@@ -1356,6 +1356,26 @@ const MOVE_TAGS = [
       const rain = /raindance|primordialsea|RAIN/i.test(src);
       return { skipsIn: sun ? 'sun' : (rain ? 'rain' : 'a weather') };
     } },
+  /* THE CHARGE TURN IS NOT THE SAME DEAL FOR ALL TEN CHARGE MOVES.
+   *
+   * Fly, Dig, Dive, Bounce and Phantom Force spend the charge turn OFF THE FIELD and cannot be hit,
+   * which is most of why they are worth giving a turn away for. Electro Shot, Solar Beam, Solar
+   * Blade, Meteor Beam and Sky Attack stand there and take it. Modelling the charge without this
+   * makes those first five strictly WORSE than reality -- the mirror of the bug it is part of
+   * fixing, where an unmodelled charge made all ten strictly better.
+   *
+   * DERIVED, not listed: Showdown puts the untargetability in the move's own condition handler as
+   * `onInvulnerability`, present on exactly those five and on none of the other five. */
+  { tag: 'semiInvulnerable', param: 'the charge turn also takes the user off the field',
+    probe: 'semiInvuln',
+    why: 'Fly and Dig dodge the turn they charge; Solar Beam and Meteor Beam do not, and pricing the '
+       + 'two the same way is what makes a charge move look either free or worthless',
+    /* PRESENT, not truthy. Phantom Force declares `onInvulnerability: false` -- a flat false, which
+     * is the STRONGEST form of it: no move gets through at all, where Fly's handler still lets Gust
+     * and Thunder in. Truthy-testing the property dropped exactly the one move that dodges hardest,
+     * and the tag then covered four of five while looking complete. */
+    of: m => (m.flags && m.flags.charge && m.condition && ('onInvulnerability' in m.condition))
+      ? { untargetable: true } : null },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
