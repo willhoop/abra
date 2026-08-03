@@ -1,0 +1,39 @@
+{
+ "generated": "2026-08-02T23:47:26",
+ "by": "engine/lookahead_bound.py",
+ "what": "Upper bound on one-step lookahead: score the turn that ACTUALLY happened instead of the current one. No search can beat knowing the answer, so this bounds what a search could add to this value function.",
+ "train": {
+  "source": "data\\games.selfplay.porygon3.raw-logs.jsonl",
+  "games": 4866,
+  "positions": 98776
+ },
+ "test": {
+  "source": "clean human ladder replays",
+  "games": 4779,
+  "pairs": 70446
+ },
+ "results": {
+  "k=50  score the CURRENT turn": {
+   "accuracy": 58.62,
+   "brier": 0.2418,
+   "logloss": 0.6862
+  },
+  "k=50  score the NEXT turn (oracle)": {
+   "accuracy": 63.55,
+   "brier": 0.2198,
+   "logloss": 0.6337
+  },
+  "k=200  score the CURRENT turn": {
+   "accuracy": 59.56,
+   "brier": 0.2353,
+   "logloss": 0.6635
+  },
+  "k=200  score the NEXT turn (oracle)": {
+   "accuracy": 64.46,
+   "brier": 0.215,
+   "logloss": 0.6163
+  }
+ },
+ "oracle_gain_accuracy_points": 4.915,
+ "caveat": "An upper bound, not an estimate. It uses the realised next turn, which a search cannot; and the classical policy-improvement guarantee for rollout does NOT apply here, because that guarantee needs the true value of a policy and PORY is an arbitrary approximation. A small number here is decisive against building the search; a large one is permission to try, not a promise."
+}

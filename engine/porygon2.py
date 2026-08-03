@@ -119,6 +119,18 @@ def _best_eff(att_types, def_types):
 # ---------------------------------------------------------------------------------------------
 FEATURES = [
     "alive_diff", "hp_active_diff", "hp_total_diff", "my_alive", "foe_alive", "turn",
+    # ---- THE DISTRIBUTION, NOT THE TOTAL -------------------------------------------------------
+    # docs/PORYZ-spec.md's whole thesis in two numbers, testable without the rebuild it asks for.
+    #
+    # hp_active_diff above is the MEAN of a side's two active slots, so {100, 20} and {60, 60} give
+    # an identical value -- and those are completely different positions. One of them has something
+    # about to die. "Aggregates cannot express *this specific thing is in range*, and being in range
+    # is what a position mostly consists of."
+    #
+    # Same parser, same data, different aggregation. If per-Pokemon structure is really what the
+    # ceiling is made of, the weakest body on the field should carry signal the mean threw away. If
+    # it does not, that is worth knowing BEFORE building a new model on the premise.
+    "hp_min_diff", "hp_min_mine",
     "status_diff", "boost_diff", "tailwind_diff", "screen_diff", "hazard_diff",
     "trickroom", "weather_on", "terrain_on",
     # ---- THE CONVERSION TERMS -----------------------------------------------------------------
@@ -151,6 +163,12 @@ def parse_states(log):
         v = [hp[k] for k in (s + "a", s + "b") if k in hp and hp[k] > 0]
         return sum(v) / len(v) if v else 0.0
 
+    def min_hp(s):
+        """The WEAKEST living active on a side. Empty -> 0.0, which reads as 'nothing left standing'
+        and is the honest value rather than a sentinel."""
+        v = [hp[k] for k in (s + "a", s + "b") if k in hp and hp[k] > 0]
+        return min(v) if v else 0.0
+
     def tot_hp(s):
         v = [hp[k] for k in hp if k.startswith(s)]
         return sum(v) / 4.0 if v else 0.0
@@ -160,6 +178,7 @@ def parse_states(log):
             "turn": turn,
             "alive": {"p1": 4 - faint["p1"], "p2": 4 - faint["p2"]},
             "act": {"p1": act_hp("p1"), "p2": act_hp("p2")},
+            "min": {"p1": min_hp("p1"), "p2": min_hp("p2")},
             "tot": {"p1": tot_hp("p1"), "p2": tot_hp("p2")},
             "status": dict(status), "boost": dict(boost),
             "side": {s: dict(side[s]) for s in ("p1", "p2")},
@@ -238,6 +257,9 @@ def vec(st, me):
         (st["act"][me] - st["act"][you]) / 100.0,
         (st["tot"][me] - st["tot"][you]) / 100.0,
         float(st["alive"][me]), float(st["alive"][you]), st["turn"] / 10.0,
+        # The distribution terms, in the same order as FEATURES declares them.
+        (st["min"][me] - st["min"][you]) / 100.0,
+        st["min"][me] / 100.0,
         float(st["status"][me] - st["status"][you]),
         float(st["boost"][me] - st["boost"][you]),
         float(st["side"][me]["tailwind"] - st["side"][you]["tailwind"]),

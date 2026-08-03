@@ -1,0 +1,67 @@
+{
+ "generated": "2026-08-02T23:24:48",
+ "by": "engine/porygon2.py",
+ "what": "Nearest-neighbour value function. TRAINED on MEW self-play, EVALUATED on held-out clean human games, per docs/POKER-TO-POKEMON.md section 7: self-play is the training signal, human games are the calibration set and never the training signal.",
+ "features": [
+  "alive_diff",
+  "hp_active_diff",
+  "hp_total_diff",
+  "my_alive",
+  "foe_alive",
+  "turn",
+  "status_diff",
+  "boost_diff",
+  "tailwind_diff",
+  "screen_diff",
+  "hazard_diff",
+  "trickroom",
+  "weather_on",
+  "terrain_on",
+  "matchup_edge",
+  "speed_edge",
+  "type_threat"
+ ],
+ "train": {
+  "source": "self-play (mew.js --policy score)",
+  "games": 4866,
+  "positions": 98776
+ },
+ "test": {
+  "source": "clean human ladder replays",
+  "games": 4779,
+  "positions": 12000
+ },
+ "results": {
+  "coin": {
+   "accuracy": 50.38,
+   "brier": 0.25,
+   "logloss": 0.6931
+  },
+  "material sign": {
+   "accuracy": 60.28,
+   "brier": 0.227,
+   "logloss": 0.6441
+  },
+  "plain k=50": {
+   "accuracy": 62.12,
+   "brier": 0.2272,
+   "logloss": 0.651
+  },
+  "plain k=200": {
+   "accuracy": 63.02,
+   "brier": 0.2209,
+   "logloss": 0.6298
+  },
+  "weighted k=50": {
+   "accuracy": 63.12,
+   "brier": 0.2273,
+   "logloss": 0.6557
+  },
+  "weighted k=200": {
+   "accuracy": 63.7,
+   "brier": 0.2209,
+   "logloss": 0.6318
+  }
+ },
+ "caveat": "Self-play positions come from MAG playing itself. If MAG's play is unlike human play the neighbourhoods are unrepresentative and the lookup is confidently wrong; that is why the evaluation set is HUMAN. A large gap between self-play holdout and human holdout would be distribution shift, and the human number is the one to trust."
+}
