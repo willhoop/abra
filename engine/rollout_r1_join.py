@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""rollout_r1_join.py — PHASE 2 of R1: score PORYGON3 on the positions the rollout scored.
+
+    node engine/rollout_r1.js  (with DUMP=rollout-r1-rows.jsonl)
+    python engine/rollout_r1_join.py
+
+WHY THIS FILE EXISTS
+--------------------
+R1's question is "is a rollout a better JUDGE than PORYGON3", and phase 1 cannot answer it. The
+incumbent is a Python k-NN whose feature vector is defined by porygon2.py's own parser, and
+re-implementing that parser in JS to get a comparable number would be a second definition of the
+feature semantics. That is precisely the mistake that made the first MEDICHAM coverage figure wrong
+(15.3% against a real 10.8%) — a hand-written copy of a predicate disagreed with the original
+immediately. So phase 1 exports its rows and this file scores the incumbent on them.
+
+Phase 1's stand-in was `material`, which bounds the question but does not answer it: PORYGON3's claim
+is "+3.42 points over material", and the rollout's lift over material was -1.85 with a CI spanning
+zero. Both are lifts over a proxy. This is the head-to-head.
+
+THE ALIGNMENT IS CHECKED, NOT ASSUMED
+-------------------------------------
+The two sides reach the same battle by different routes: phase 1 walks the INGESTED corpus (games with
+`.turns`), this walks the RAW LOGS through porygon2.parse_states. Games join on id. Turns join on
+index, and THAT is the assumption worth doubting — nothing guarantees the two parsers agree on what
+counts as a turn.
+
+So each row carries `aliveDiff`, computed independently on both sides. If the joins line up, the two
+must agree; where they disagree the turn indices are not the same turn and the row is DROPPED rather
+than scored. A join that silently pairs turn 6 with turn 8 would produce a confident number about
+nothing, and it would look exactly like a result.
+"""
+import os, sys, json, contextlib
+import numpy as np
+
+
+@contextlib.contextmanager
+def contextlib_all(handles):
+    """Close every raw-log handle even if the walk raises. One store was never the design; the
+    corpus is three files and the join has to read whichever ones exist."""
+    try:
+        yield handles
+    finally:
+        for h in handles:
+            try: h.close()
+            except Exception: pass
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+sys.path.insert(0, HERE)
+import porygon2 as P
+
+SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon3.raw-logs.jsonl")
+if not os.path.isabs(SELF_RAW):
+    SELF_RAW = os.path.join(ROOT, SELF_RAW)
+ROWS = os.path.join(ROOT, "data", os.environ.get("DUMP", "rollout-r1-rows.jsonl"))
+K = int(os.environ.get("K", "200"))
+
+
+def main():
+    if not os.path.exists(ROWS):
+        print("no %s — run phase 1 with DUMP=rollout-r1-rows.jsonl first" % os.path.relpath(ROWS, ROOT))
+        sys.exit(2)
+    want = {}
+    with open(ROWS, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            r = json.loads(line)
+            want.setdefault(r["gid"], {})[int(r["turn"])] = r
+    print("ROLLOUT R1, PHASE 2 — the incumbent on the same positions\n")
+    print("  rows from phase 1: %s across %s games" %
+          (f"{sum(len(v) for v in want.values()):,}", f"{len(want):,}"))
+
+    Xs, Ys, gs = P.load(SELF_RAW)
+    if not len(Ys):
+        print("no self-play training positions at %s" % os.path.relpath(SELF_RAW, ROOT))
+        sys.exit(1)
+    mu, sd = Xs.mean(axis=0), Xs.std(axis=0)
+    sd[sd == 0] = 1.0
+    Zs = (Xs - mu) / sd
+
+    # EVERY RAW STORE, not just the one PORYGON3 happens to evaluate on.
+    #
+    # This was the whole reason the first join returned nothing: P.HUMAN_RAW is
+    # games.ladder.raw-logs.jsonl, while fit_policy.loadCorpus() feeds from THREE stores and the
+    # first 1,200 games of it are dominated by bo3 (ids `...regmbbo3-` against ladder's `...regmb-`).
+    # 1,200 dumped game ids against 29,580 ladder games produced ZERO overlap.
+    #
+    # Worth recording beyond this file: PORYGON3's published 63.70% is therefore a LADDER-ONLY figure,
+    # while the corpus it is quoted alongside is 54.7% bo3. Comparing a bo3-sampled rollout against it
+    # would have been the corpus-mismatch failure in a new costume -- the same shape as the withdrawn
+    # 47.9% Sucker Punch claim.
+    stores = [P.HUMAN_RAW]
+    for extra in ("games.bo3.raw-logs.jsonl", "games.ots.raw-logs.jsonl"):
+        q = os.path.join(ROOT, "data", extra)
+        if os.path.exists(q) and q not in stores:
+            stores.append(q)
+    print("  raw stores scanned: %s" % ", ".join(os.path.basename(x) for x in stores))
+
+    feats, meta = [], []
+    misaligned = 0
+    seen = set()
+    ai = P.FEATURES.index("alive_diff")
+    import itertools
+    handles = [P._open(x) for x in stores]
+    handles = [h for h in handles if h is not None]
+    if not handles:
+        print("no raw logs at all")
+        sys.exit(1)
+    with contextlib_all(handles) as _hs:
+        for line in itertools.chain(*_hs):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+            except Exception:
+                continue
+            gid = r.get("id")
+            if gid in seen or gid not in want:
+                continue
+            seen.add(gid)
+            sts = P.parse_states(r.get("log", ""))
+            for i, st in enumerate(sts):
+                row = want[gid].get(i)
+                if row is None:
+                    continue
+                v = P.vec(st, "p1")
+                # THE WITNESS. Both sides computed p1_alive - p2_alive for what they believe is the
+                # same turn. Disagreement means the indices are not the same turn.
+                if abs(float(v[ai]) - float(row["aliveDiff"])) > 1e-6:
+                    misaligned += 1
+                    continue
+                feats.append(v)
+                meta.append(row)
+
+    if not feats:
+        print("\n  NOTHING JOINED. %d rows were rejected by the alignment witness." % misaligned)
+        print("  The two parsers do not index turns the same way, so there is no honest join here.")
+        print("  Reported rather than worked around: a join forced past this check would pair")
+        print("  different turns and produce a confident number about nothing.")
+        sys.exit(3)
+
+    X = np.array(feats, float)
+    p_pory = P.knn_predict(Zs, Ys, (X - mu) / sd, k=K)
+    y = np.array([m["y"] for m in meta], float)
+    p_roll = np.array([m["p"] for m in meta], float)
+    p_mat = np.array([m["mpy"] for m in meta], float)
+
+    def acc(p): return float(np.mean((p >= 0.5) == (y == 1)))
+    def brier(p): return float(np.mean((p - y) ** 2))
+
+    print("  joined %s positions   (%s dropped by the alignment witness)\n" %
+          (f"{len(meta):,}", f"{misaligned:,}"))
+    print("    judge                       accuracy     Brier")
+    print("  " + "-" * 48)
+    for name, p in [("material (porygon2 form)", p_mat),
+                    ("PORYGON3 k=%d" % K, p_pory),
+                    ("ROLLOUT", p_roll)]:
+        print("   %-26s %6.2f%%   %7.4f" % (name, 100 * acc(p), brier(p)))
+
+    # McNemar on the pairing that decides the gate.
+    rr = (p_roll >= 0.5) == (y == 1)
+    pp = (p_pory >= 0.5) == (y == 1)
+    b = int(np.sum(rr & ~pp)); c = int(np.sum(~rr & pp))
+    n = len(y)
+    half = 100 * 1.96 * np.sqrt(b + c) / n if (b + c) else 0.0
+    diff = 100 * (acc(p_roll) - acc(p_pory))
+    print("\n  VERDICT — rollout vs PORYGON3, head to head")
+    print("  " + "-" * 48)
+    print("   difference %+.2f points   95%% CI %+.2f to %+.2f" % (diff, diff - half, diff + half))
+    print("   discordant: rollout-only-right %d, PORYGON3-only-right %d, of %d" % (b, c, n))
+    if diff - half > 0:
+        print("   -> R1 PASSES. The rollout judges better than the model it would replace.")
+    elif diff + half < 0:
+        print("   -> R1 FAILS. The rollout is measurably worse. docs/ROLLOUT-design.md 5 kills it here.")
+    else:
+        print("   -> UNDECIDED. The interval spans zero: this sample cannot separate them.")
+        print("      Not a pass and not a failure. More positions, or accept they are close.")
+
+    json.dump({
+        "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "by": "engine/rollout_r1_join.py",
+        "joined": len(meta), "dropped_misaligned": misaligned, "k": K,
+        "accuracy": {"material": 100 * acc(p_mat), "porygon3": 100 * acc(p_pory), "rollout": 100 * acc(p_roll)},
+        "brier": {"material": brier(p_mat), "porygon3": brier(p_pory), "rollout": brier(p_roll)},
+        "mcnemar": {"rollout_only_right": b, "porygon3_only_right": c,
+                    "diff_points": diff, "ci_half_width": half},
+        "caveat": "Positions are the ones phase 1 sampled, joined by game id and turn index and "
+                  "checked with an independently computed alive_diff. Rows whose witness disagreed "
+                  "were dropped, not forced.",
+    }, open(os.path.join(ROOT, "data", "rollout-r1.json"), "w", encoding="utf-8"), indent=1)
+    print("\nwrote data/rollout-r1.json")
+
+
+if __name__ == "__main__":
+    main()

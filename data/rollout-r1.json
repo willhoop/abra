@@ -1,0 +1,24 @@
+{
+ "generated": "2026-08-03T03:59:38",
+ "by": "engine/rollout_r1_join.py",
+ "joined": 2566,
+ "dropped_misaligned": 1921,
+ "k": 200,
+ "accuracy": {
+  "material": 60.21044427123928,
+  "porygon3": 59.625876851130165,
+  "rollout": 61.45752143413874
+ },
+ "brier": {
+  "material": 0.22763152766952455,
+  "porygon3": 0.22909891821810813,
+  "rollout": 0.2877531907638347
+ },
+ "mcnemar": {
+  "rollout_only_right": 483,
+  "porygon3_only_right": 436,
+  "diff_points": 1.8316445830085737,
+  "ci_half_width": 2.3155660582072697
+ },
+ "caveat": "Positions are the ones phase 1 sampled, joined by game id and turn index and checked with an independently computed alive_diff. Rows whose witness disagreed were dropped, not forced."
+}

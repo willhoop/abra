@@ -168,6 +168,30 @@ points, N=100 gives ±5, N=400 gives ±2.5. The leaf being replaced is 63.7% acc
 whose own noise is ±11 points is not obviously an improvement. **N is a measured parameter, not a
 guess**, and §5 measures accuracy as a function of it.
 
+**MEASURED 2026-08-03, and it contradicts the paragraph above.** `engine/rollout_r1.js` with
+`N_LIST=10,40,160` scores every budget on the SAME 4,487 positions in one replay, so the comparison is
+paired and cannot be confounded with which positions each budget happened to see:
+
+```
+  ROLLOUT n=10     64.03%   Brier 0.2739
+  ROLLOUT n=40     64.68%   Brier 0.2657
+  ROLLOUT n=160    64.48%   Brier 0.2645
+```
+
+**Accuracy is FLAT in N.** Sixteen times the compute moves it by less than half a point, and not
+monotonically. Brier improves a little — that is the variance reduction arriving where it should, in
+the calibration rather than in the verdict — but the gate does not move.
+
+So the leaf is **bias-limited, not variance-limited**, and this settles two things at once:
+
+- **"Run more rollouts" is dead as a lever.** Whatever is wrong is wrong in the engine or in
+  `chooseAction`, and more samples of a biased estimator converge on the bias.
+- **The leaf is cheap.** n=10 is as accurate as n=160, so the per-leaf cost budget in §4.3 is an order
+  of magnitude smaller than assumed. If R1 ever passes, affordability is not the obstacle.
+
+It also sharpens §3.2's warning into the live question: the playout policy is the suspect, and the
+literature says making it *stronger* is not reliably the fix.
+
 ### 4.3 Cost, against the budget already established
 
 `data/lookahead-cost.json` puts a Showdown fork at ~4.6 ms. A MEDICHAM turn is far cheaper — no

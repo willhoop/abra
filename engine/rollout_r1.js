@@ -128,6 +128,19 @@ function materialPy(board, side) {
   console.log('');
 }
 
+/* DUMP lets phase 2 score PORYGON3 on THESE positions, which is the comparison R1 actually needs and
+ * cannot make from JS: the incumbent is a Python k-NN and its feature vector is defined by
+ * porygon2.py's parser. Re-implementing that parser here to get a like-for-like number would be a
+ * second definition of the feature semantics -- the exact mistake that made the first coverage number
+ * wrong. So the rows travel instead.
+ *
+ * `aliveDiff` rides along as an ALIGNMENT WITNESS, not as data: phase 2 recomputes the same quantity
+ * from its own parse and the two must agree, or the join is lining up different turns and every
+ * number after it is fiction. */
+const fs = require('fs');
+const DUMP = process.env.DUMP ? D('data', process.env.DUMP) : null;
+const dumpRows = [];
+
 const rows = [];
 let sampled = 0, nulls = 0, unlabelled = 0;
 const t0 = Date.now();
@@ -167,6 +180,15 @@ JR.build(games, dex, {
       ps[nn] = r.p;
     }
     rows.push({ ps, m: materialP(board, 'p1'), mpy: materialPy(board, 'p1'), y });
+    if (DUMP) {
+      const aliveOf = sd => {
+        let k = 0;
+        for (const L of ['a', 'b']) { const mm = board.slot(sd, L); if (mm && !mm.fainted) k++; }
+        return k + board.bench(sd).length;
+      };
+      dumpRows.push({ gid: g.id, turn: board.turn, p: ps[N_LIST[N_LIST.length - 1]],
+                      mpy: materialPy(board, 'p1'), y, aliveDiff: aliveOf('p1') - aliveOf('p2') });
+    }
   },
 });
 
@@ -241,5 +263,10 @@ console.log('\n  NOT A LIKE-FOR-LIKE TEST OF THE REAL QUESTION, said plainly: th
 console.log('  PORYGON3, and PORYGON3 is a Python k-NN that has not been scored on THESE positions.');
 console.log('  Material is the honest local stand-in, and Brier/log-loss below flatter the rollout');
 console.log('  against it because a sign function emits hard 0/1 and is punished for it.');
+if (DUMP) {
+  fs.writeFileSync(DUMP, dumpRows.map(r => JSON.stringify(r)).join(String.fromCharCode(10)) + String.fromCharCode(10));
+  console.log(`  wrote ${dumpRows.length.toLocaleString()} rows to ${path.relative(D('.'), DUMP)}`);
+  console.log('  next: python engine/rollout_r1_join.py — PORYGON3 on these same positions.');
+}
 console.log('\n  Both columns are scored on identical positions with identical labels, per');
 console.log('  docs/DATA-LAW.md case 2. The only thing that differs is which judge was asked.');

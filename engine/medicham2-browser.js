@@ -1005,6 +1005,35 @@ function battleTurn(S,rng,actsForA,actsForB){
        * misprice every Trick Room mirror. Five turns, of which the mover's own is one — the end-of-turn
        * decrement leaves four behind, matching how twA/twB are set to 4 on the line above. */
       if(a.kind==='trickroom'){field.tr=field.tr>0?0:5;continue;}
+      if(a.kind==='boostally'){
+        const bt=TAGS.param('move',a.mv,'boostsTarget')||{};
+        /* The ALLY is the target for every one of these except the self-targeting ones, and a lone
+           active has no ally, in which case the click honestly does nothing. */
+        const ally=(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);
+        const BK={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
+        if(ally&&bt.boosts)for(const k in bt.boosts){
+          const kk=BK[k]; if(kk)ally.boosts[kk]=clamp((ally.boosts[kk]||0)+bt.boosts[k],-6,6);
+        }
+        m._lastMove=a.mv;continue;
+      }
+      if(a.kind==='perish'){
+        const tn=+(TAGS.param('move',a.mv,'perishClock')||{}).turns||3;
+        /* BOTH SIDES, which is the whole shape of the move: the user's own team is on the same clock,
+           so it is only a win condition if you can outlast it. Not re-applied to a mon that already
+           carries one -- clicking it twice does not reset the timer. */
+        for(const x of [...actA,...actB])if(x&&!x.fainted&&x.curHP>0&&x._perish==null)x._perish=tn;
+        m._lastMove=a.mv;continue;
+      }
+      if(a.kind==='yawn'){
+        const t=a.target;
+        if(t&&!t.fainted&&!t.protect&&!t.status&&t._yawn==null&&!pranksterBlocked(m,t,a.mv))
+          /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
+             delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
+             and turns a telegraphed threat into an instant one. Same correction the sealsMoves wire
+             already carries for Encore. */
+          t._yawn=(+(TAGS.param('move',a.mv,'delayedSleep')||{}).delay||1)+1;
+        m._lastMove=a.mv;continue;
+      }
       /* HELPING HAND marks the PARTNER, not the user. +5 priority means the mark is in place before
          any ordinary attack resolves, so the boost lands on the partner's move this turn -- which is
          the entire move. It is cleared at the top of the next turn beside protect and the redirection
@@ -1401,6 +1430,14 @@ function battleTurn(S,rng,actsForA,actsForB){
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
     /* Screens tick on the SIDE object, beside the field timers above so the two cannot drift. */
     for(const sf of [sfA,sfB]){if(sf){if(sf.scrP>0)sf.scrP--;if(sf.scrS>0)sf.scrS--;}}
+    /* PERISH and YAWN tick here, with the field timers, so every clock in this engine advances in one
+       place. Perish faints at zero -- that is the move. Yawn sleeps at zero, and only if the target is
+       still statusless, because anything that landed in between takes precedence. */
+    for(const x of [...actA,...actB]){
+      if(!x||x.fainted)continue;
+      if(x._perish!=null){x._perish--;if(x._perish<=0){x.fainted=true;x.curHP=0;}}
+      if(x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(!x.status)applyStatus(x,'slp');}}
+    }
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
@@ -1482,6 +1519,16 @@ function playerAction(me,moveId,target,field){
      priority, so the only thing written here is the multiplier -- x1.5, which no artifact this engine
      reads carries. Same call as DOUBLES_SCREEN above: state the constant and say why it is stated. */
   if(fx&&fx.volatile==='helpinghand')return {kind:'helpinghand',mv:id};
+  /* BOOSTS ON AN ALLY. All six boostsTarget moves carry an explicit table -- Coaching {atk:1,def:1},
+     Decorate {atk:2,spa:2}, Howl, Aromatic Mist, Flatter, Swagger -- so the stages come from the
+     artifact and nothing is guessed. Contrast lowersTarget, which says readFrom:"m.boosts" and is
+     therefore NOT implementable from anything this engine can read. */
+  if(TAGS.has('move',id,'boostsTarget'))return {kind:'boostally',mv:id};
+  /* PERISH SONG: a three-turn clock on everything on the field, INCLUDING THE USER'S OWN SIDE. It is
+     a win condition rather than a chip move, and the rollout could not represent it at all. */
+  if(TAGS.has('move',id,'perishClock'))return {kind:'perish',mv:id};
+  /* YAWN sleeps the target after a delay the tag states. */
+  if(TAGS.has('move',id,'delayedSleep'))return {kind:'yawn',mv:id,target};
   if(fx&&fx.weather&&SD2WEATHER[String(fx.weather).toLowerCase().replace(/[^a-z0-9]/g,'')])
     return {kind:'weather',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
