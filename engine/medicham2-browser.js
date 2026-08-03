@@ -863,6 +863,33 @@ function applyEntryEffects(m,field){
  * gate tests hold because nothing about a rollout changed. actsForA is a Map(mon -> action) built
  * by playerAction(); absent, side A plays itself exactly as before. */
 const _live=arr=>arr.filter(m=>m&&!m.fainted&&m.curHP>0);
+/* BRING A BENCHED POKEMON IN. Shared by faint replacement and by voluntary/pivot switching.
+   WHICH mon: live(bench)[0], the same choice refill() has always made. A rollout needs SOME policy
+   and the honest first version reuses the existing one rather than inventing a matchup heuristic
+   here -- the engine's job is to make the switch possible, and choosing well is the searcher's.
+   Stated because "it picks the first healthy body" is a real limitation, not a detail. */
+function bringIn(act,i,bench,foes,sf,field){
+  const nx=_live(bench)[0]; if(!nx) return null;
+  bench.splice(bench.indexOf(nx),1);
+  nx._turnsOut=0; nx._fallenStuck=sf.fainted; act[i]=nx;
+  applyEntryEffects(nx,field);
+  if(nx.ability==='intimidate')for(const f of _live(foes))applyIntimidate(f);
+  return nx;
+}
+/* SWITCH A LIVING MON OUT. The outgoing body goes back to the bench, so it can return later and its
+   damage persists -- that is the whole point of pivoting. Volatile, one-turn state is cleared on the
+   way out because it does not survive a switch in the real game: Protect's consecutive counter, the
+   redirection mark and the Leech Seed link all belong to the body's time on the field. Boosts go too.
+   Returns the incoming mon, or null when the bench is empty and the switch simply cannot happen. */
+function switchOut(act,i,bench,foes,sf,field){
+  const out=act[i]; if(!out||out.fainted) return null;
+  if(!_live(bench).length) return null;
+  out.protect=false; out.tookProtectTurns=0; out._redirect=null; out._seededBy=null;
+  out._lock=null; out._lockT=0; out._flinch=false;
+  out.boosts={at:0,df:0,sa:0,sd:0,sp:0};
+  bench.push(out);
+  return bringIn(act,i,bench,foes,sf,field);
+}
 function battleInit(teamA,teamB){
   const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
     /* one shared death counter per side, handed to every mon by reference */
@@ -890,7 +917,13 @@ function battleTurn(S,rng,actsForA,actsForB){
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
     const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;
       const forced=(side==='A'?actsForA&&actsForA.get(mon):actsForB&&actsForB.get(mon));
-      acts.push({mon,side,a:forced||chooseAction(mon,foes,ally,field,side,rng)});};
+      const _a=forced||chooseAction(mon,foes,ally,field,side,rng);
+      /* WHICH SLOT the click was aimed at, captured now while the board is still the pre-switch one.
+         A move targets a SLOT, not a body: if the intended target switches out, the Pokemon that
+         replaces it takes the hit. Without this the outgoing mon stayed targetable from the bench and
+         a switch neither dodged the attack nor handed it to the replacement -- it hit a Pokemon that
+         was no longer on the field. Only surfaced once voluntary switching existed to expose it. */
+      acts.push({mon,side,a:_a,tgtSlot:_a&&_a.target?foes.indexOf(_a.target):-1});};
     mk(actA[0],'A',actB,actA[1]);mk(actA[1],'A',actB,actA[0]);mk(actB[0],'B',actA,actB[1]);mk(actB[1],'B',actA,actB[0]);
     /* what was actually clicked this turn, both sides, for observers (the Tower's local game
      * record). A summary, not the live objects -- nothing outside can mutate the turn. */
@@ -909,6 +942,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          supposed to be halved before the attacker moves, and that is most of what the ability is for.
          Every kind below is a status move; only 'attack' is not, and it returns above. */
       const pk=isPrankster(it.mon)?1:0;
+      /* A VOLUNTARY SWITCH RESOLVES BEFORE ANY MOVE. Not a priority bracket in the real game -- it
+         is a separate phase that happens first -- but this engine orders everything through one
+         sort, so it sits above Protect's +4. That ordering is the whole reason switching out of a
+         predicted attack works, and getting it wrong would make every switch eat the hit it was
+         meant to dodge. Prankster does not touch it. */
+      if(k==='switch')    return 6;
       if(k==='protect')   return 4+pk;
       if(k==='wideguard') return 3+pk;
       /* Read from each move's own data, which is what makes Trick Room -7 and Rage Powder +2 without
@@ -964,6 +1003,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        * fails to catch it. The volatile name is kept rather than a boolean so the attacker's side can
        * apply Rage Powder's powder immunity without asking which move set the mark. */
       if(a.kind==='redirect'){m._redirect=a.mv;m._lastMove=a.mv;continue;}
+      /* VOLUNTARY SWITCH. The slot is found by identity rather than passed in, because the action
+         was built before the sort and the arrays can have been rewritten by an earlier switch this
+         same turn. A switch with an empty bench does nothing and still costs the turn. */
+      if(a.kind==='switch'){
+        const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
+        const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
+        const idx=own.indexOf(m);
+        if(idx>=0)switchOut(own,idx,bench,foes,sf,field);
+        continue;
+      }
       /* SCREENS live on the SIDE, and `_sf` is the only per-side object a mon already carries — it is
        * handed to every member of the team by reference in battleInit, bench included, so a switch-in
        * walks under a screen that was up before it arrived. Storing this on the mon instead would
@@ -1070,7 +1119,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
       const foes=it.side==='A'?actB:actA;
-      let targets=a.move.spread?live(foes):[a.target].filter(t=>t&&!t.fainted&&t.curHP>0);
+      /* Resolve the aim to whoever is in that slot NOW. `foes` is the live slot array, so an object
+         that is no longer in it has left the field and cannot be hit. */
+      let aim=a.target;
+      if(aim&&!foes.includes(aim))aim=(it.tgtSlot>=0?foes[it.tgtSlot]:null);
+      let targets=a.move.spread?live(foes):[aim].filter(t=>t&&!t.fainted&&t.curHP>0);
       /* REDIRECTION APPLIES HERE, and only to SINGLE-TARGET moves aimed at the other side. Spread
        * moves already hit everything so there is nothing to draw, and the redirector must be a live
        * FOE of this attacker — a Follow Me on my own side does not pull my partner's attack.
@@ -1256,6 +1309,20 @@ function battleTurn(S,rng,actsForA,actsForB){
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
          * above, from the artifact, with the gate the handler actually states (none). */
       }
+      /* THE PIVOT HALF, AFTER THE DAMAGE. U-turn, Volt Switch and Flip Turn carry base power, so
+         they arrived here as ordinary attacks and the user simply stayed -- the chip was modelled
+         and the momentum, which is the reason the move is played, was not. The tag says which moves
+         leave; `pivotDamaging` is the damaging set.
+         AFTER, not before: the attack resolves from the ORIGINAL body, so its damage, its ability
+         and its item are the outgoing mon's. Switching first would fire the move off the replacement.
+         A user that fainted to recoil or to a contact punish does not leave, and an empty bench
+         makes it a plain attack. */
+      if(!m.fainted&&m.curHP>0&&TAGS.has('move',a.move.id,'pivotDamaging')){
+        const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
+        const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
+        const idx=own.indexOf(m);
+        if(idx>=0)switchOut(own,idx,bench,foes,sf,field);
+      }
       // recoil, from the move table's dex-generated fraction (was a 12-name hand table)
       const _rcF=recoilOf(a.move.mv);
       if(_rcF&&dealt>0){m.curHP-=Math.floor(dealt*_rcF);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
@@ -1311,7 +1378,12 @@ function battleTurn(S,rng,actsForA,actsForB){
      * turn — no hand-maintained tally to drift. */
     sfA.fainted=[...actA,...benchA].filter(x=>x&&x.fainted).length;
     sfB.fainted=[...actB,...benchB].filter(x=>x&&x.fainted).length;
-    const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted){const nx=live(bench)[0];if(nx){bench.splice(bench.indexOf(nx),1);nx._turnsOut=0;nx._fallenStuck=sf.fainted;act[i]=nx;applyEntryEffects(nx,field);if(nx.ability==='intimidate')for(const f of live(foes))applyIntimidate(f);}}}};   /* mid-game switch-in: entry effects (weather/terrain) AND Intimidate */
+    /* ONE SWITCH-IN PATH. Will's point: voluntary switching is not new machinery, it is the body
+       refill() already had -- take the mon off the bench, reset its turn counter, stamp the fallen
+       count, apply entry effects and Intimidate. Extracted to bringIn() at module scope so a faint
+       replacement and a U-turn bring a Pokemon in through exactly the same code; two copies is how
+       the voluntary path would quietly skip Intimidate. */
+    const refill=(act,bench,foes,sf)=>{for(let i=0;i<act.length;i++){if(act[i]&&act[i].fainted)bringIn(act,i,bench,foes,sf,field);}};
     refill(actA,benchA,actB,sfA);refill(actB,benchB,actA,sfB);
   }
   S.turn++;
@@ -1364,6 +1436,14 @@ function playerAction(me,moveId,target,field){
    * applies to — Light Screen Special, Reflect Physical, Aurora Veil both. One branch, three moves,
    * and a fourth arrives free. 1.69% of real clicks. */
   if(TAGS.has('move',id,'halvesDamage'))return {kind:'screen',mv:id};
+  /* PARTING SHOT and other STATUS pivots: no damage, the user leaves. 2.12% of real clicks and the
+     single largest unmodelled move in the corpus.
+     WHAT IS NOT DONE, said here rather than discovered: Parting Shot also drops the target's Attack
+     and Special Attack by one. That is `statChangeInCode` -- procedural in the handler -- and NO
+     artifact this engine reads carries the numbers (the lowersTarget param says "via onHit", and
+     MOVE_EFFECTS has no boosts for it). So the switch is modelled and the drop is not. That is a
+     known half, and it is the half that decides where the move is played. */
+  if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
