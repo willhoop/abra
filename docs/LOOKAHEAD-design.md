@@ -179,7 +179,10 @@ Each is a measurement, not an opinion, and each must pass before the next is bui
 
 1. **G1 — the bound is real.** `engine/lookahead_bound.py` reports a mean oracle gain > 1.0 accuracy
    point. **PASSED: +4.91.**
-2. **G2 — the transition is affordable. PARTIAL, and the unresolved half is the important half.**
+2. **G2 — the transition is affordable. RESOLVED 2026-08-03 — §8 supersedes everything in this item.**
+   The `Infinite loop` was found and fixed, the failure rate is 0, and the cost figures below are
+   wrong: they were measuring the bug. Left in place unedited because the reasoning was sound and only
+   the diagnosis was not, and because §8 is only legible against it.
    `engine/lookahead_cost.js`. `Battle.toJSON()/fromJSON()` round-trip a real mid-game state — turn 4
    against turn 4, 139 log lines against 139, 31 KB — and forking plus stepping one turn costs
    **4.6 ms**. Checked rather than trusted: a fork that silently dropped a volatile or a boost would
@@ -237,8 +240,123 @@ and do both through a leaf that is itself only 63-64% accurate and dominated by 
 
 ## 7. What this does not claim
 
+
 It does not claim the search will win. It claims one specific thing, measured: **there is +4.91
 accuracy points of information one turn ahead, and there is +0.03 to +0.11 in the features we have
 been adding to the snapshot.** After a session in which three roadmap items dissolved under
 measurement and two of my own predictions were wrong, that is the only claim I am willing to put
 weight on — and the gates above exist so the next one has to earn the same way.
+
+---
+
+## 8. G2, resolved — 2026-08-03
+
+Supersedes §6 G2 and the cost table in it. Three things were wrong and one of them was the reason the
+other two looked true.
+
+### 8.1 The `Infinite loop` was not the driving, and not `fromJSON`
+
+The hypothesis on record was that a restored battle is not in `requestState === 'move'`, so
+`choose('default')` never advances it. It is not that. The forked battle's `requestState` is `"move"`
+and the turn advances 4 -> 5 on the first fork. The driving was always fine.
+
+`Infinite loop` is not a turn-loop guard. `sim/battle.ts:584` throws it when
+`log.length - sentLogPos > 1000` — a **log length** guard. And in the pinned checkout:
+
+    sim/state.ts:72     state.log = battle.log;            // serialize ALIASES, it does not copy
+    sim/state.ts:153    (battle as any).log = state.log;   // deserialize aliases straight back
+
+`log` is the only key handled this way; every other array goes through `deserializeWithRefs`, which
+allocates fresh, and `hints` / `prng` are explicitly copied. So **every fork restored from one snapshot
+appended to one shared array**, log growth was cumulative across cells, and `sentLogPos` never moved
+because a forked battle has no stream to send to. At ~26 lines per turn that is ~38 forks before the
+guard fires — after which *every* remaining fork throws.
+
+That is why the observed rates were 40/40, 27/40, 30/40, 24/40, 25/40: the failures were a
+**contiguous tail**, not scattered, and the rate tracked lines-per-turn rather than anything about the
+board. The tell was there in the original run — fork 33 threw, not fork 1 — and a rate alone cannot
+show it. `lookahead_cost.js` now reports whether failures are a tail or scattered, because the two
+have completely different causes.
+
+**The consequence that never threw is the worse one.** `state.log = battle.log` aliases the *live*
+battle's log into the snapshot, so stepping a fork wrote simulated events into the log of the real
+game. A search that forks the battle it is playing would have corrupted the record of that game,
+silently.
+
+Fixed in `engine/champions_sim.js` as `CS.snapshot()` / `CS.forkBattle()`, which detach the array at
+each boundary — what `fromJSON` already intends everywhere else. The pinned checkout is not edited
+(ADR-001). The 1000-line guard is deliberately left armed: with per-fork logs a fork accrues one turn
+of lines, so if it fires again it is a real runaway turn.
+
+**Result: 3,200 forks across 16 boards, 0 threw, 0 went nowhere, isolation clean on every board.**
+
+### 8.2 Two silent failure modes in the harness, both of which flattered the cost
+
+Neither throws. Both were counted as successful cells.
+
+- **Boards that never settle.** The drive loops are async and still writing choices when the turn
+  counter reaches its target, so a snapshot could catch the battle between a choice and the turn it
+  triggers. Restored from that moment there is no active request: `choose()` returns **true**, emits
+  log lines, and does not advance. A search would score that cell as a successor when it is the same
+  position. `measureBoard` now waits for `requestState === 'move'` with both sides holding a request,
+  and skips the board otherwise. 9 of 25 boards are skipped — they ended under `default` play — so the
+  measured boards are biased toward games that survive it, which is stated in the artifact.
+- **`turn > baseTurn` is the wrong test for "it advanced."** Two outcomes advance the game without
+  incrementing `turn`: `ended === true` (the turn ran and the battle finished) and
+  `requestState === 'switch'` (something fainted and the engine wants a replacement). The first
+  version of the check counted both as holes — discarding **terminal and post-KO positions
+  specifically**, which are the highest-signal leaves a search has and the ones where the value is
+  known exactly instead of estimated by a 63%-accurate k-NN.
+
+### 8.3 The corrected cost, and the instrument's own noise floor
+
+The "factor of nine, 3.5 to 32.2 ms" in §6 G2 **was the bug**: forks operating on an ever-growing
+shared array, plus boards that simulated nothing being credited as cheap cells.
+
+    5 back-to-back runs, 20 boards x 200 forks each, machine otherwise idle
+      median fork cost   5.75   4.51   3.70   4.78   4.52  ms
+      one run taken while the machine was busy                      12.45  ms
+
+So the cost is **~4.6 ms, spread ±22% run to run**, and ambient load can inflate it ~2.7x. Any verdict
+that turns on the difference between 4 ms and 12 ms is a verdict about machine load. Written to
+`data/lookahead-cost.json` and **read** by `truncation_curve.js` rather than retyped into it — the
+first draft of that file carried `9.68` as a literal and it was stale within the hour.
+
+### 8.4 The truncation curve — `engine/truncation_curve.js`, the §6 "next thing"
+
+One replay answers every K: `joint_rows.js`'s `pick` already sorts every candidate by the single-move
+score, so the chosen candidate's **rank** in that sort is free, and the rate at K is a suffix sum of
+the histogram. Same corpus, same ranker, same matcher. **K=6 reproduces 11.3% exactly**, which is the
+check that the instrument is the same one `fit_joint` used before any new number is read off it.
+
+7,958 games, 86,715 joint turns, 173,430 slot decisions. Median 8 candidates per slot, max 11 — so
+§4.3's "~144 joint actions per side" from an assumed ~12 options overstates the unpruned matrix.
+
+    K    joint miss   per-slot miss   cells   cost @4.6ms   verdict
+    3        52.2%          30.6%        81       0.37 s    affordable
+    4        35.1%          19.4%       256       1.18 s    viable idle, MARGINAL under load
+    5        21.5%          11.4%       625       2.88 s    at budget in the best case
+    6        11.3%           5.9%      1296       5.96 s    out
+
+**K=3 is safely affordable and misses the human's pair on 52.2% of turns.** K=4 halves that to 35.1%
+for ~1.2 s and is the first real choice the budget allows — §6's "must prune to top-3" was decided on
+the inflated cost and is no longer forced.
+
+### 8.5 What this does to G3, and the measurement that should come before it
+
+The cap is real: at the affordable K the search never enumerates the human's pair on a third to a half
+of turns. Note the shape though — **per-slot miss is far lower than joint miss** (K=4: 19.4% vs
+35.1%). The joint rate is high *because the matrix is the cross-product of two independent per-slot
+windows*, so a pair that is second-best on both slots is thrown away even when it is the best pair.
+
+That is a property of how the pruning is built, not of the game. `magnemite.js:_decidePair` and the
+fitted joint vector already score **pairs**, including the interactions the per-slot ranker cannot see
+(Follow Me beside a setup move, spread damage beside a Protect). Taking the **top-M joint actions per
+side by the joint model** instead of the cross-product of two top-K windows costs the same cells for
+M = K² and should cover strictly more, because it is allowed to spend its budget unevenly.
+
+**That is the next measurement, and it is cheaper than G3 and caps it.** It is the same replay again,
+scoring the joint candidates with the joint vector and asking where the human's pair ranks. It also
+reframes the undecided feature H2H a second time: §4.3 argued a better prior is worth more as a pruner
+than as a player, and this is the specific quantity that would show it.
+

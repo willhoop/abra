@@ -77,6 +77,9 @@ function sim() {
        * hand-rolled learnset walk written for this project already produced 40 false positives on
        * cosmetic formes (Sinistcha-Masterpiece does learn Matcha Gotcha). Ask the source of truth. */
       TeamValidator: require(path.join(dist, 'team-validator')).TeamValidator,
+      /* The Battle class itself, for `forkBattle` below. Reached through the loader rather than off
+       * an existing `battle.constructor`, so a fork does not require already holding a battle. */
+      Battle: require(path.join(dist, 'battle')).Battle,
     };
   } catch (e) {
     throw new Error(
@@ -374,7 +377,53 @@ async function winProb(speciesA, speciesB, N, setsBySpecies) {
            filled: A.filled.concat(B.filled) };
 }
 
-module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim };
+/* ---- FORKING A BATTLE, which the one-step search in docs/LOOKAHEAD-design.md is built on ---------
+ *
+ * `Battle.toJSON()/fromJSON()` round-trip correctly EXCEPT for one field, and that exception is why a
+ * quarter to a third of forks in `lookahead_cost.js` threw `Infinite loop`. Upstream, in the pinned
+ * checkout:
+ *
+ *     sim/state.ts:72    state.log = battle.log;          // serialize ALIASES, it does not copy
+ *     sim/state.ts:153   (battle as any).log = state.log; // deserialize aliases straight back
+ *
+ * `log` is the only key treated this way. Every other array goes through `deserializeWithRefs`, which
+ * allocates a fresh array per call, and `hints` / `prng` are explicitly copied. So the round-trip is
+ * sound and the fork is usable — there is exactly one shared mutable object, and it is this one.
+ *
+ * TWO CONSEQUENCES, and the one that never threw is the worse one:
+ *
+ *   THE THROW.   Every fork restored from the same snapshot appends to ONE array, so log growth is
+ *                cumulative across cells. `battle.ts:584` throws `Infinite loop` when
+ *                `log.length - sentLogPos > 1000`, and nothing restores `sentLogPos` because a forked
+ *                battle has no stream to send to. At ~26 lines per turn that is ~38 forks, after
+ *                which EVERY remaining fork throws — the failures are a contiguous tail, which is why
+ *                the observed rate (40/40, 27/40, 30/40, 24/40, 25/40) tracked lines-per-turn rather
+ *                than anything about the board.
+ *   THE SILENT ONE. `state.log = battle.log` means the snapshot aliases the LIVE battle's log too, so
+ *                stepping a fork writes simulated events into the real game's log. That one never
+ *                throws. A search that forks the battle it is still playing would corrupt the record
+ *                of the game it is playing, and nothing would say so.
+ *
+ * Both are fixed by detaching the array at each boundary, which is what `fromJSON` already intends
+ * everywhere else. The 1000-line guard is deliberately LEFT ARMED: with per-fork logs a single fork
+ * accrues one turn of lines, so if it ever fires again that is a real runaway turn and should throw.
+ *
+ * Neither function edits the pinned checkout (ADR-001). */
+function snapshot(battle) {
+  const json = battle.toJSON();
+  json.log = (json.log || []).slice();     // detach the snapshot from the live battle
+  return json;
+}
+
+function forkBattle(json) {
+  const Battle = sim().Battle;
+  const b = Battle.fromJSON(json);
+  b.log = (b.log || []).slice();           // detach this fork from the snapshot and from its siblings
+  return b;
+}
+
+module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
+                   snapshot, forkBattle };
 
 if (require.main === module) {
   const v = verify();

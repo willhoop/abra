@@ -1,0 +1,38 @@
+{
+  "generated": "2026-08-03T04:56:22.419Z",
+  "engine_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "format": "gen9championsvgc2026regmb",
+  "boards": 12,
+  "boardsSkipped": 8,
+  "forksPerBoard": 200,
+  "turnsDriven": 8,
+  "forks": {
+    "advanced": 2400,
+    "threw": 0,
+    "inert": 0,
+    "stepped": 1600,
+    "awaitingSwitch": 200,
+    "ended": 600
+  },
+  "forkCostMs": {
+    "min": 2.445,
+    "median": 4.515000000000001,
+    "p90": 6.6665,
+    "max": 7.38,
+    "perBoard": [
+      2.445,
+      2.5,
+      3.46,
+      3.595,
+      3.615,
+      4.355,
+      4.675,
+      5.8,
+      6.23,
+      6.365,
+      6.7,
+      7.38
+    ]
+  },
+  "caveat": "8 of 20 boards ended or never settled and were excluded; the measured boards are therefore biased toward games that survive default play."
+}

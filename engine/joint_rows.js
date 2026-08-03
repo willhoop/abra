@@ -64,7 +64,12 @@ function build(games, dex, opts) {
   const score1 = x => { let s = 0; for (let k = 0; k < NF; k++) s += w1[k] * x[k]; return s; };
 
   const rows = [];
-  const tally = { turns: 0, kept: 0, oneSlot: 0, unmatched: 0, ambiguous: 0, chosenOutsideK: 0 };
+  const tally = { turns: 0, kept: 0, oneSlot: 0, unmatched: 0, ambiguous: 0, chosenOutsideK: 0,
+                  /* rankHist[r] = turns whose WORSE slot ranked the human's click at r (0-based).
+                   * slotRankHist[r] counts slots, not turns. candCount lets a reader tell a low
+                   * truncation rate caused by a good ranker from one caused by a short candidate
+                   * list — a slot with 3 options cannot truncate at K=3 and is not evidence. */
+                  rankHist: [], slotRankHist: [], candCount: [] };
 
   for (const g of games) {
     const board = new B.Board();
@@ -136,14 +141,34 @@ function build(games, dex, opts) {
         if (slots[0] && slots[1] && (slots[0].ambiguous || slots[1].ambiguous)) { tally.ambiguous++; continue; }
         if (!slots[0] || !slots[1] || slots[0].chosen < 0 || slots[1].chosen < 0) { tally.unmatched++; continue; }
 
-        /* Top-K by single-move score, with the chosen candidate forced in. */
+        /* Top-K by single-move score, with the chosen candidate forced in.
+         *
+         * THE RANK IS KEPT, NOT JUST WHETHER IT CLEARED K. `chosenOutsideK` answers one K — the one
+         * this run happened to be configured with — so deciding between top-3 and top-6 used to mean
+         * replaying the whole corpus once per K. The full sorted order is computed here anyway, so the
+         * chosen candidate's position in it is free, and the truncation rate for EVERY K is a suffix
+         * sum of the histogram. That matters because the search's matrix size is exactly this
+         * trade-off: docs/LOOKAHEAD-design.md 6 G2 has cost ruling out top-6, and a search cannot
+         * recover value from a branch it never enumerated. */
         const pick = s => {
-          const order = s.scores.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).slice(0, TOPK).map(p => p[1]);
-          if (!order.includes(s.chosen)) { order.push(s.chosen); return { order, outside: true }; }
-          return { order, outside: false };
+          const full = s.scores.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(p => p[1]);
+          const rank = full.indexOf(s.chosen);      /* 0-based; the chosen index is always a candidate */
+          const order = full.slice(0, TOPK);
+          if (!order.includes(s.chosen)) { order.push(s.chosen); return { order, outside: true, rank }; }
+          return { order, outside: false, rank };
         };
         const pa = pick(slots[0]), pb = pick(slots[1]);
         if (pa.outside || pb.outside) tally.chosenOutsideK++;
+        /* PER SLOT and JOINT. A pair survives top-K only if BOTH slots do, so the joint rate is driven
+         * by the worse slot and is not the per-slot rate doubled or squared. Recorded separately
+         * because the joint one is what bounds the search and the per-slot one is what a reader
+         * expects when they hear "top-3". */
+        const worst = Math.max(pa.rank, pb.rank);
+        if (worst >= 0) {
+          tally.rankHist[worst] = (tally.rankHist[worst] || 0) + 1;
+          for (const r of [pa.rank, pb.rank]) tally.slotRankHist[r] = (tally.slotRankHist[r] || 0) + 1;
+          tally.candCount.push(slots[0].cands.length, slots[1].cands.length);
+        }
 
         const alts = [];
         let chosenPair = -1;
