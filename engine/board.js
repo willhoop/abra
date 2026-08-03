@@ -323,6 +323,42 @@ const FEATURES = [
   'clickCost',       // expected self-cost of this click into that body (fraction-of-self units)
   'benchRisk',       // 1 - worst-case value retention if their bench answers this click
   'priorLogP',       // it is a popular move
+
+  /* ---- MULTI-TURN VALUE, and why this vector could not see it ---------------------------------
+   *
+   * WILL, 2026-08-02: *"ITS PART OF THE MULTI TURN TAILWIND TYPE ANALYSIS"*. He is right, and it
+   * unified three separately-measured Protect anomalies into one cause.
+   *
+   * Everything above prices ONE TURN. The timing features that exist are all the COST side --
+   * chargeTurn, rechargeTurn, deadStall, deadField, deadSide -- "this click wastes a turn" or "this
+   * effect is already up". Nothing priced the BENEFIT side: how long the thing you are buying lasts,
+   * or whether passing a turn pays you.
+   *
+   * Measured over 58 species with >= 30 Protect-offering decisions, splitting status moves by
+   * whether the dex gives them a duration:
+   *
+   *     corr( Protect residual , MULTI-TURN moves on the sheet )   -0.343
+   *     corr( Protect residual , INSTANT status moves          )   +0.066   <- nothing
+   *     0 / 1 / 2 multi-turn moves on the sheet  ->  +0.8 / -1.3 / -4.9 points
+   *
+   * The whole effect is in the duration moves; Follow Me, Fake Out and Taunt carry none of it. And
+   * both directions are this one quantity: the model UNDER-predicts Protect where a passed turn
+   * accrues (Blaziken -18.0 on Speed Boost, Gengar -19.0 burning Perish turns behind Shadow Tag) and
+   * OVER-predicts it where a better multi-turn investment sits on the same sheet. They cancel, which
+   * is why the aggregate ratio reads 1.021 and looks calibrated.
+   *
+   * NOTHING IS NAMED. `setupTurns` reads the dex's own duration fields; `passTurnAccrues` reads
+   * abilities whose onResidual handler boosts something. Tailwind is not mentioned, and a format
+   * that adds a new field move or a new Speed-Boost-alike is covered the day it ships.
+   *
+   * NOT COLLINEAR WITH WHAT IS THERE. deadField/deadSide say "already up, so this would fail";
+   * setupTurns says "how long it would last if it is not". screenValue prices the DAMAGE a screen
+   * stops and fires only on the halvesDamage family; setupTurns fires on every lasting effect and
+   * carries no damage term. The pair fit already found this signal and had nowhere to put it --
+   * terrainSetupHelpsPartner +1.606 and weatherSetupHelpsPartner +1.311 are the two largest weights
+   * in the entire 18-term joint block. */
+  'setupTurns',      // this click buys an effect that lasts, in turns, normalised
+  'passTurnAccrues', // passing this turn pays me: an ability that gains on residual
 ];
 const FEATURE_INDEX = Object.fromEntries(FEATURES.map((f, i) => [f, i]));
 
@@ -3043,6 +3079,57 @@ function featuresFor(cand, user, board, side, dex, priorP) {
   if (fieldKey(m) && board.hasField(fieldKey(m))) set('deadField', 1);
   if (m.weather && norm(m.weather) === norm(board.weather)) set('deadWeather', 1);
   if (m.stallingMove && user.stalledLastTurn) set('deadStall', 1);
+
+  /* ---- MULTI-TURN VALUE — the BENEFIT side of timing ------------------------------------------
+   * See the FEATURES note. Everything above is the cost side; these two are what a turn BUYS.
+   *
+   * TURNS BEYOND THE ONE YOU SPENT, which is the honest quantity and not the raw duration. Follow Me
+   * has duration 1: it lasts exactly the turn you clicked it, so it accrues nothing and must read 0,
+   * the same as Fake Out's 0. Tailwind's 4 buys three further turns, a screen's 5 buys four. Divided
+   * by 7 because a Light Clay screen reaches 8, the longest this format offers.
+   *
+   * ZERO WHEN IT WOULD FAIL. deadSide/deadField/deadWeather above say "already up"; there is no
+   * multi-turn value in setting a thing that is already set, and leaving it at full value would make
+   * the two features fight over the same click.
+   *
+   * The duration is read from the dex's own condition for whichever channel the move uses. Base
+   * durations only: Light Clay and Damp Rock extend them through an item callback this cannot run,
+   * so a screen under Light Clay is UNDERSTATED here. Stated rather than silently approximated. */
+  {
+    const dur = (mv) => {
+      if (!mv) return 0;
+      const c = mv.condition && mv.condition.duration;
+      if (c) return c;
+      for (const ch of [mv.sideCondition, mv.slotCondition, mv.pseudoWeather, mv.weather, mv.terrain]) {
+        if (!ch) continue;
+        const e = dex.conditions && dex.conditions.get(ch);
+        if (e && e.duration) return e.duration;
+      }
+      return 0;
+    };
+    const alreadyUp = (m.sideCondition && board.hasSide(side, m.sideCondition))
+      || (fieldKey(m) && board.hasField(fieldKey(m)))
+      || (m.weather && norm(m.weather) === norm(board.weather));
+    if (!alreadyUp) {
+      const d = dur(m);
+      if (d > 1) set('setupTurns', Math.max(0, Math.min(1, (d - 1) / 7)));
+    }
+  }
+
+  /* PASSING THIS TURN PAYS ME. Blaziken Protects because Speed Boost banks +1 Speed whatever it
+   * does, so a turn spent behind Protect costs nothing and gains a stage -- measured at -18.0 points
+   * of Protect residual, the largest under-prediction in the corpus.
+   *
+   * Fires on the block family AND on the user's EFFECTIVE ability, which is the whole reason
+   * effAbility exists: Blaziken's sheet says Blaze and the thing on the field has Speed Boost.
+   * Derived from any ability whose onResidual handler boosts something, so Moody and Opportunist
+   * come along without being named. */
+  if (m.stallingMove) {
+    const ab = dex.abilities && dex.abilities.get(effAbility(user, dex));
+    if (ab && ab.exists && typeof ab.onResidual === 'function' && /boost/.test(String(ab.onResidual))) {
+      set('passTurnAccrues', 1);
+    }
+  }
 
   /* Does this move need the target to have already moved? Encore, Disable, Torment and the rest fail
    * outright against something with no last move -- the same shape as deadStatus, keyed on lastMove.

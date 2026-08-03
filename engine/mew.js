@@ -168,6 +168,7 @@ const LEARN = process.argv.includes('--learn');
 const EXPLAIN = process.argv.includes('--explain');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
+let _warnedNoDigest = false;
 const GREEDY_A = process.argv.includes('--greedy');
 /* --opponent-model / --opponent-model2  arm the expectation-based threat estimate, PER ARM, for the
  * same reason --greedy and --switching are per arm: the decisive experiment is one build against
@@ -790,6 +791,38 @@ async function main() {
        * `engine_pinned` is kept alongside so a mismatch is visible in the data rather than inferred. */
       rec.selfplay = { engine_commit: CS.actualCommit() || CS.PINNED_COMMIT,
         engine_pinned: CS.PINNED_COMMIT, format: FORMAT_ARG || CS.FORMAT, policy: POLICY, seed };
+      /* WHICH BOT PLAYED THESE GAMES, which `engine_commit` above does NOT answer.
+       *
+       * engine_commit is the POKEMON-SHOWDOWN checkout -- the simulator. It is the right pin for
+       * reproducing a battle from a seed and the wrong one entirely for "is this corpus still
+       * representative": across 2026-08-02 the simulator never moved while MAG changed enormously,
+       * so a corpus can carry an identical engine_commit and have been played by a different bot.
+       *
+       * That gap has already cost something. data/porygon2.json learned what a good POSITION looks
+       * like from self-play generated 2026-07-28 by a bot with the wrong ability on 25% of Pokemon,
+       * no damage row for eight species, no switching and a sampling rather than greedy decision
+       * rule -- and nothing on disk said so. Will: "if we find more bugs in the self play bot it
+       * happens again and all subsequent models it flows into."
+       *
+       * engine/player_digest.js hashes what actually determines play: the feature semantics, the
+       * pair features, the damage table and the weight vectors. Content, not a commit, so a comment
+       * change leaves it alone and a behaviour change moves it. Stamped here so every downstream
+       * model can record what it trained on and a check can say when that bot stopped existing. */
+      try {
+        rec.selfplay.player = require('./player_digest.js')
+          .digest(CS.sim().Dex.forFormat(CS.FORMAT), WEIGHTS1 || null, JOINTW_A || 'data/policy-weights-joint.json');
+      } catch (e) {
+        /* Recorded as UNAVAILABLE rather than omitted -- a missing field would read as an old corpus
+         * that predates the stamp, which is a different and more forgivable thing than one whose
+         * digest could not be computed -- and said ONCE out loud, because a whole run stamped
+         * UNAVAILABLE is worth knowing about while it is still running. */
+        rec.selfplay.player = { digest: 'UNAVAILABLE', why: e.message };
+        if (!_warnedNoDigest) {
+          _warnedNoDigest = true;
+          console.error(`mew: player digest unavailable (${e.message}); this corpus cannot be `
+            + 'attributed to a bot version. That is NOT a statement that it matches the current one.');
+        }
+      }
       /* WRITTEN UNCONDITIONALLY, INCLUDING THE DEFAULTS.
        *
        * These three were written only when they differed from their default: `if (RANDMOVE !== 1)`,

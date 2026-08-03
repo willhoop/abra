@@ -267,6 +267,42 @@ const SCENARIOS = [
     state: { turn: 4, hp: { p1: { a: 0.3 }, p2: { a: 0.18, b: 0.22 } } },
   },
 
+  /* A PASSED TURN THAT PAYS, added 2026-08-02 with the multi-turn features.
+   *
+   * `passTurnAccrues` fires only where a Protect-family move meets an ability that gains on residual
+   * — Speed Boost, Moody, Opportunist. No board above carried that combination, so the feature was
+   * SILENT on the whole fixture the moment it was written, and tests/test-feature-semantics.js said
+   * so on the first run. A feature with a zero column has no hash protecting it, which is the same
+   * hole that let the forme bug and the missing damage rows through.
+   *
+   * This is a NEW scenario rather than an edit to one above, and deliberately: on 2026-08-02 two
+   * separate attempts to add coverage by MODIFYING an existing board went wrong — one was inert
+   * (benched into a slot where the feature is identically zero) and one REGRESSED coverage
+   * (displaced Torkoal, and weatherSetupHelpsPartner then fired nowhere). Adding a board cannot take
+   * anything away from the boards already there.
+   *
+   * Blaziken carries Speed Boost and Protect, which is Will's own example and the largest single
+   * Protect residual in the corpus at -18.0 points. Torkoal opposite brings Drought and a Trick Room
+   * partner, so `setupTurns` is exercised on weather, on a field move and on a screen across this
+   * board rather than only on one channel. */
+  {
+    label: 'passed-turn-that-pays',
+    p1: [
+      { species: 'Blaziken', item: 'Life Orb', ability: 'Speed Boost', nature: 'Adamant',
+        moves: ['Flare Blitz', 'Close Combat', 'Protect', 'Swords Dance'] },
+      { species: 'Farigiraf', item: 'Electric Seed', ability: 'Armor Tail', nature: 'Relaxed',
+        moves: ['Trick Room', 'Psychic', 'Helping Hand', 'Protect'] },
+    ],
+    p2: [
+      { species: 'Torkoal', item: 'Charcoal', ability: 'Drought', nature: 'Quiet',
+        moves: ['Eruption', 'Heat Wave', 'Sunny Day', 'Protect'] },
+      { species: 'Pelipper', item: 'Focus Sash', ability: 'Drizzle', nature: 'Modest',
+        moves: ['Tailwind', 'Hurricane', 'Weather Ball', 'Wide Guard'] },
+    ],
+    bench: { p1: ['Incineroar', 'Garchomp'], p2: ['Grimmsnarl', 'Venusaur'] },
+    state: { turn: 3 },
+  },
+
   /* The leftovers, each of which was identically zero on the boards above: a charge move, a recharge
    * move, stat stages already on the field, and a target that stalled last turn so Encore has
    * something to punish. The terrain SETTER and the mon whose move it lifts have to be different

@@ -21,8 +21,8 @@ written with unquoted keys. **Those numbers should not be quoted.**
 | | count | usage share |
 |---|---|---|
 | abilities in this format | 192 | 100% |
-| **MAG responds to it** | **35** | **34.47%** |
-| **blind — has dex handlers, no response** | **155** | **59.36%** |
+| **MAG responds to it** | **34** | **34.41%** |
+| **blind — has dex handlers, no response** | **156** | **59.42%** |
 | no handlers (nothing to model) | 2 | 0.04% |
 
 ## Blind spots, ranked by what they cost
@@ -84,7 +84,7 @@ does, because the simulator applies them for free.
 | `spicyspray` | 0.30% | onDamagingHit |
 | `megasol` | 0.27% | onWeatherModifyDamagePriority, onWeatherModifyDamage |
 | `rockhead` | 0.26% | onDamage |
-| *…and 115 more* | | |
+| *…and 116 more* | | |
 
 ## What MAG does respond to
 
@@ -117,11 +117,10 @@ does, because the simulator applies them for free.
 | `solarpower` | 0.11% | damage |
 | `bulletproof` | 0.09% | blocks |
 | `eartheater` | 0.08% | blocks, damage |
-| `purifyingsalt` | 0.06% | blocks |
 | `solidrock` | 0.06% | damage |
 | `sapsipper` | 0.04% | damage |
 | `purepower` | 0.04% | damage |
-| `waterabsorb` | 0.04% | damage |
+| `waterabsorb` | 0.04% | blocks, damage |
 | `heatproof` | 0.03% | damage |
 | `slushrush` | 0.02% | speed |
 | `motordrive` | 0.02% | damage |
