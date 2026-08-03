@@ -919,7 +919,7 @@ function battleTurn(S,rng,actsForA,actsForB){
   const field=S.field,actA=S.actA,actB=S.actB,benchA=S.benchA,benchB=S.benchB,sfA=S.sfA,sfB=S.sfB;
   const live=_live;
   {
-    [...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;}});field.wgA=false;field.wgB=false;
+    [...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;m._helpingHand=false;}});field.wgA=false;field.wgB=false;
     const acts=[];
     /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
@@ -1005,6 +1005,24 @@ function battleTurn(S,rng,actsForA,actsForB){
        * misprice every Trick Room mirror. Five turns, of which the mover's own is one — the end-of-turn
        * decrement leaves four behind, matching how twA/twB are set to 4 on the line above. */
       if(a.kind==='trickroom'){field.tr=field.tr>0?0:5;continue;}
+      /* HELPING HAND marks the PARTNER, not the user. +5 priority means the mark is in place before
+         any ordinary attack resolves, so the boost lands on the partner's move this turn -- which is
+         the entire move. It is cleared at the top of the next turn beside protect and the redirection
+         mark, because it does not persist. */
+      if(a.kind==='helpinghand'){
+        const ally=(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);
+        if(ally)ally._helpingHand=true;
+        m._lastMove=a.mv;continue;
+      }
+      /* Setting the weather REPLACES whatever was up -- that is the whole counter-play, and it is why
+         a Politoed answers a snow team (see the Aurora Veil note below). Five turns; the rock items
+         that extend it carry `extendsDuration` and are not consumed here, so a Damp Rock reads as
+         five. Named as a gap rather than silently rounded. */
+      if(a.kind==='weather'){
+        const w=SD2WEATHER[String((moveFx(a.mv)||{}).weather||'').toLowerCase().replace(/[^a-z0-9]/g,'')];
+        if(w){field.weather=w;field.weatherT=5;}
+        m._lastMove=a.mv;continue;
+      }
       /* The redirector marks ITSELF; the retarget happens at the attacker's targeting step below, so
        * the ordering falls out for free — priority +2 means the mark is almost always set before any
        * normal-priority attack looks for it, and a redirector that moves after an attacker correctly
@@ -1181,7 +1199,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           continue;
         }
-        const d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
+        let d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
+        /* x1.5 on a boosted attack. Applied to the ROLLED range rather than to base power, which is
+           where the real game applies it, and only to damaging moves -- a Helping Hand on a status
+           click does nothing and must stay nothing. */
+        if(m._helpingHand&&d&&(d.min||d.max))d={min:Math.floor(d.min*1.5),max:Math.floor(d.max*1.5),eff:d.eff};
         let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
         if(tg.protect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
         dealt+=Math.min(dmg,tg.curHP);
@@ -1452,6 +1474,16 @@ function playerAction(me,moveId,target,field){
      MOVE_EFFECTS has no boosts for it). So the switch is modelled and the drop is not. That is a
      known half, and it is the half that decides where the move is played. */
   if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id};
+  /* WEATHER, from the rulebook's own `weather` field. SD2WEATHER already maps Showdown's names onto
+     this engine's ('RainDance' -> 'rain'), and it is reused rather than restated so a weather setter
+     and the ability that sets the same weather cannot disagree. Rain and sun are the two largest
+     archetypes in the format, and until now clicking Rain Dance was a no-op turn. */
+  /* HELPING HAND. The rulebook names the volatile and the +5 priority, and movePriority reads the
+     priority, so the only thing written here is the multiplier -- x1.5, which no artifact this engine
+     reads carries. Same call as DOUBLES_SCREEN above: state the constant and say why it is stated. */
+  if(fx&&fx.volatile==='helpinghand')return {kind:'helpinghand',mv:id};
+  if(fx&&fx.weather&&SD2WEATHER[String(fx.weather).toLowerCase().replace(/[^a-z0-9]/g,'')])
+    return {kind:'weather',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path

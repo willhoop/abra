@@ -44,6 +44,13 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 
 const GAMES = parseInt(process.env.GAMES || '150', 10);
 const N = parseInt(process.env.N || '40', 10);
+/* N_LIST scores SEVERAL rollout budgets on the SAME positions in one replay. That pairing is the
+ * whole point: it separates "the rollout is NOISY" from "the rollout is WRONG". A leaf whose accuracy
+ * climbs with N is variance-limited and buying more samples fixes it; a leaf that is flat in N is
+ * bias-limited, and the fault is the engine or its playout policy, which more samples cannot touch.
+ * Running them as separate jobs would confound the answer with which positions each job happened to
+ * sample. */
+const N_LIST = (process.env.N_LIST || String(N)).split(',').map(Number).filter(Boolean);
 /* Every EVERY_TH turn, so a long game does not dominate the sample with near-identical late boards. */
 const EVERY = parseInt(process.env.EVERY || '2', 10);
 
@@ -70,6 +77,27 @@ function materialP(board, side) {
   if (a.alive !== b.alive) return a.alive > b.alive ? 1 : 0;
   if (Math.abs(a.hp - b.hp) > 1e-9) return a.hp > b.hp ? 1 : 0;
   return 0.5;
+}
+
+/* THE PYTHON BASELINE, COPIED IN FORM SO THE LIFTS ARE COMPARABLE.
+ * engine/porygon2.py:530 is `clip(0.5 + 0.15*alive_diff, 0.02, 0.98)` -- GRADED, and a function of
+ * BODIES ONLY. The hard bodies-then-HP sign above is a different and stronger baseline, which is why
+ * it scored 66.14% here against the 60.28% porygon3.json publishes, and why its Brier looked so much
+ * worse: a hard 0/1 is punished for every miss.
+ *
+ * That difference matters for the only comparison that decides R1. PORYGON3's claim is "+3.42 points
+ * over material"; measuring the rollout's lift over a DIFFERENT material is not the same quantity, and
+ * comparing the two would be the corpus-mismatch mistake in a new costume. Both baselines are printed
+ * so the reader can see the choice rather than inherit it. */
+function materialPy(board, side) {
+  const foe = side === 'p1' ? 'p2' : 'p1';
+  const alive = s => {
+    let n = 0;
+    for (const L of ['a', 'b']) { const m = board.slot(s, L); if (m && !m.fainted) n++; }
+    n += board.bench(s).length;
+    return n;
+  };
+  return Math.max(0.02, Math.min(0.98, 0.5 + 0.15 * (alive(side) - alive(foe))));
 }
 
 /* SELF-CHECK BEFORE THE AGGREGATE. A leaf that cannot call a position where one side has four
@@ -130,9 +158,15 @@ JR.build(games, dex, {
       twA: board.hasSide('p1', 'tailwind') ? 4 : 0,
       twB: board.hasSide('p2', 'tailwind') ? 4 : 0,
     };
-    const r = RL.rolloutWinProb(board, 'p1', { n: N, dex, seed: gi * 7919 + sampled, field });
-    if (!r) { nulls++; return; }
-    rows.push({ p: r.p, m: materialP(board, 'p1'), y });
+    const ps = {};
+    for (const nn of N_LIST) {
+      /* The SAME seed across budgets, so the small-N runs are a prefix of the large-N ones rather
+       * than an independent sample. Otherwise the sweep measures seed luck as well as N. */
+      const r = RL.rolloutWinProb(board, 'p1', { n: nn, dex, seed: gi * 7919 + sampled, field });
+      if (!r) { nulls++; return; }
+      ps[nn] = r.p;
+    }
+    rows.push({ ps, m: materialP(board, 'p1'), mpy: materialPy(board, 'p1'), y });
   },
 });
 
@@ -150,9 +184,9 @@ const logloss = f => rows.reduce((s, r) => {
 
 const lines = [
   ['coin', () => 0.5],
-  ['material sign (recomputed here)', r => r.m],
-  [`ROLLOUT, n=${N}`, r => r.p],
-];
+  ['material: bodies then HP (hard)', r => r.m],
+  ['material: porygon2 form (graded)', r => r.mpy],
+].concat(N_LIST.map(nn => [`ROLLOUT, n=${nn}`, r => r.ps[nn]]));
 console.log(`  positions scored ${rows.length.toLocaleString()}  (${nulls} unbuildable, ${unlabelled} unlabelled)  in ${(ms / 1000).toFixed(1)}s` +
   `  -> ${(ms / Math.max(1, rows.length)).toFixed(0)} ms per position\n`);
 console.log('    judge                              accuracy     Brier    log-loss');
@@ -165,7 +199,8 @@ for (const [name, f] of lines) {
 /* The number this gate turns on. PORYGON3's 63.70% is a HUMAN-game figure from data/porygon3.json,
  * quoted for scale — the like-for-like comparison on this sample is the material row above, because
  * that one was measured here. */
-const rAcc = 100 * acc(r => r.p), mAcc = 100 * acc(r => r.m);
+const NBEST = N_LIST[N_LIST.length - 1];
+const rAcc = 100 * acc(r => r.ps[NBEST]), mAcc = 100 * acc(r => r.mpy);
 
 /* McNEMAR, BECAUSE THE TWO JUDGES SEE THE SAME POSITIONS. Comparing two accuracies as if they were
  * independent samples throws away the pairing and overstates the noise; the information is in the
@@ -176,8 +211,8 @@ const rAcc = 100 * acc(r => r.p), mAcc = 100 * acc(r => r.m);
  * cannot tell a difference from nothing will happily report nothing as a difference. */
 let b = 0, c = 0;
 for (const r of rows) {
-  const rr = (r.p >= 0.5) === (r.y === 1);
-  const mm = (r.m >= 0.5) === (r.y === 1);
+  const rr = (r.ps[NBEST] >= 0.5) === (r.y === 1);
+  const mm = (r.mpy >= 0.5) === (r.y === 1);
   if (rr && !mm) b++; else if (!rr && mm) c++;
 }
 const disc = b + c;
@@ -188,7 +223,7 @@ const diff = rAcc - mAcc;
 
 console.log('\n  VERDICT');
 console.log('  ' + '-'.repeat(66));
-console.log(`  rollout minus material: ${diff >= 0 ? '+' : ''}${diff.toFixed(2)} points` +
+console.log(`  rollout minus material (porygon2 form): ${diff >= 0 ? '+' : ''}${diff.toFixed(2)} points` +
   `  (95% CI ${(diff - half).toFixed(2)} to ${(diff + half).toFixed(2)})`);
 console.log(`  discordant positions: rollout-only-right ${b}, material-only-right ${c}, of ${rows.length}`);
 console.log(`  PORYGON3 is 63.70% on human games (data/porygon3.json) and beats material by 3.42 there.`);
