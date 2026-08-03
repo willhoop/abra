@@ -1,0 +1,178 @@
+{
+  "generated": "2026-08-03T23:39:14.376Z",
+  "by": "tests/test-mechanics.js",
+  "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
+  "probed": 24,
+  "live": 18,
+  "missing": 6,
+  "results": [
+    {
+      "kind": "item",
+      "tag": "speedMult",
+      "label": "Choice Scarf raises Speed",
+      "live": true,
+      "detail": "no item 135  ->  scarf 202.5"
+    },
+    {
+      "kind": "item",
+      "tag": "passiveHeal",
+      "label": "Leftovers heals at end of turn",
+      "live": true,
+      "detail": "no item 0 hp  ->  leftovers 10 hp"
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "label": "a mega stone builds the mega body",
+      "live": true,
+      "detail": "built charizard-mega-y"
+    },
+    {
+      "kind": "move",
+      "tag": "neverMisses",
+      "label": "Aerial Ace cannot miss",
+      "live": true,
+      "detail": "accuracy=100"
+    },
+    {
+      "kind": "move",
+      "tag": "stalling",
+      "label": "repeated Protect starts failing",
+      "live": true,
+      "detail": "damage taken per consecutive Protect: 0, 167, 167"
+    },
+    {
+      "kind": "move",
+      "tag": "flinches",
+      "label": "Fake Out stops the foe attacking",
+      "live": true,
+      "detail": "foe dealt 167 without  ->  0 after Fake Out"
+    },
+    {
+      "kind": "move",
+      "tag": "recoil",
+      "label": "Brave Bird hurts its user",
+      "live": true,
+      "detail": "user lost 40 hp to recoil"
+    },
+    {
+      "kind": "move",
+      "tag": "lowersUser",
+      "label": "Close Combat drops the user Def/SpD",
+      "live": true,
+      "detail": "def -1 spd -1"
+    },
+    {
+      "kind": "move",
+      "tag": "boostsUser",
+      "label": "Swords Dance raises Attack",
+      "live": true,
+      "detail": "atk stage 2"
+    },
+    {
+      "kind": "move",
+      "tag": "lowersTarget",
+      "label": "Charm drops the target Attack",
+      "live": false,
+      "detail": "target atk stage after the turn: 0"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsBurn",
+      "label": "Will-O-Wisp burns",
+      "live": true,
+      "detail": "target status after the turn: brn (wanted brn)"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsParalysis",
+      "label": "Thunder Wave paralyses",
+      "live": true,
+      "detail": "target status after the turn: par (wanted par)"
+    },
+    {
+      "kind": "move",
+      "tag": "locksTarget",
+      "label": "Encore locks the target in",
+      "live": false,
+      "detail": "target unchanged after Encore resolved"
+    },
+    {
+      "kind": "move",
+      "tag": "conditionalPower",
+      "label": "Facade doubles when statused",
+      "live": false,
+      "detail": "clean 51  ->  burnt 25"
+    },
+    {
+      "kind": "ability",
+      "tag": "onSwitchInDrop",
+      "label": "Intimidate drops Attack",
+      "live": true,
+      "detail": "atk 0 -> -1"
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "Prankster raises status priority",
+      "live": true,
+      "detail": "isPrankster() present and used in the sort"
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
+      "label": "Aerilate converts and boosts",
+      "live": false,
+      "detail": "none 94  ->  aerilate 94"
+    },
+    {
+      "kind": "ability",
+      "tag": "damageReduce",
+      "label": "Filter cuts super-effective damage",
+      "live": true,
+      "detail": "none 364  ->  filter 273"
+    },
+    {
+      "kind": "ability",
+      "tag": "damageReduce",
+      "label": "Ice Scales halves special damage",
+      "live": false,
+      "detail": "none 31  ->  icescales 31"
+    },
+    {
+      "kind": "ability",
+      "tag": "statusImmune",
+      "label": "Insomnia refuses sleep",
+      "live": true,
+      "detail": "status=none"
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "Clear Body refuses Intimidate",
+      "live": true,
+      "detail": "atk 0 -> 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsWhenLowered",
+      "label": "Defiant raises Attack when dropped",
+      "live": true,
+      "detail": "atk stage 2"
+    },
+    {
+      "kind": "ability",
+      "tag": "contactPunish",
+      "label": "Rough Skin hurts a contact attacker",
+      "live": true,
+      "detail": "attacker lost 0 vs none, 20 vs Rough Skin"
+    },
+    {
+      "kind": "ability",
+      "tag": "formeChange",
+      "label": "Zero to Hero upgrades Palafin",
+      "live": false,
+      "detail": "palafin-hero buildable=true, engine references zerotohero=false"
+    }
+  ]
+}

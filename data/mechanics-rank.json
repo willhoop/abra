@@ -1,0 +1,1275 @@
+{
+  "generated": "2026-08-03T23:36:20.252Z",
+  "by": "tests/mechanics_rank.js",
+  "method": "tag name appearing as a quoted string in medicham2-browser.js or board.js",
+  "caveat": "An UPPER bound on inert tags: a mechanic can be implemented without consulting its tag, and three such were confirmed by probe (Choice Scarf, Fake Out flinch, Filter). Ranking is by corpus `uses` because carrier count is the wrong order to work in.",
+  "total_tags": 172,
+  "inert_tags": 122,
+  "move_uses_total": 1133047,
+  "ranked": [
+    {
+      "kind": "move",
+      "tag": "statusCategory",
+      "carriers": 175,
+      "uses": 153757,
+      "examples": [
+        "banefulbunker",
+        "clangoroussoul",
+        "corrosivegas"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "neverMisses",
+      "carriers": 124,
+      "uses": 131883,
+      "examples": [
+        "banefulbunker",
+        "clangoroussoul",
+        "dragoncheer"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "stalling",
+      "carriers": 6,
+      "uses": 70802,
+      "examples": [
+        "banefulbunker",
+        "kingsshield",
+        "protect"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "flinches",
+      "carriers": 19,
+      "uses": 33264,
+      "examples": [
+        "fakeout",
+        "ironhead",
+        "mountaingale"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "megaStone",
+      "carriers": 75,
+      "uses": 28117,
+      "examples": [
+        "abomasite",
+        "absolite",
+        "aerodactylite"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsBurn",
+      "carriers": 15,
+      "uses": 21821,
+      "examples": [
+        "beakblast",
+        "infernalparade",
+        "blazekick"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "recoil",
+      "carriers": 11,
+      "uses": 17867,
+      "examples": [
+        "lightofruin",
+        "bravebird",
+        "doubleedge"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "lowersUser",
+      "carriers": 13,
+      "uses": 16075,
+      "examples": [
+        "makeitrain",
+        "armorcannon",
+        "clangingscales"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "damageBoost",
+      "carriers": 44,
+      "uses": 11322,
+      "examples": [
+        "dragonize",
+        "firemane",
+        "aerilate"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "boostsUser",
+      "carriers": 23,
+      "uses": 10015,
+      "examples": [
+        "clangoroussoul",
+        "growth",
+        "acidarmor"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "lowersTarget",
+      "carriers": 22,
+      "uses": 9824,
+      "examples": [
+        "toxicthread",
+        "babydolleyes",
+        "charm"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "onSwitchInDrop",
+      "carriers": 3,
+      "uses": 9812,
+      "examples": [
+        "download",
+        "intimidate",
+        "supersweetsyrup"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "carriers": 12,
+      "uses": 7740,
+      "examples": [
+        "stuffcheeks",
+        "acupressure",
+        "bellydrum"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "carriers": 3,
+      "uses": 7569,
+      "examples": [
+        "galewings",
+        "prankster",
+        "triage"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsWhenLowered",
+      "carriers": 2,
+      "uses": 7481,
+      "examples": [
+        "competitive",
+        "defiant"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "conditionalPower",
+      "carriers": 11,
+      "uses": 7037,
+      "examples": [
+        "gravapple",
+        "barbbarrage",
+        "expandingforce"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "carriers": 15,
+      "uses": 6769,
+      "examples": [
+        "bigpecks",
+        "clearbody",
+        "flowerveil"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "needsTargetToAttack",
+      "carriers": 9,
+      "uses": 6508,
+      "examples": [
+        "assurance",
+        "avalanche",
+        "counter"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "neverMissesAttack",
+      "carriers": 8,
+      "uses": 6507,
+      "examples": [
+        "aerialace",
+        "aurasphere",
+        "clearsmog"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "contactPunish",
+      "carriers": 14,
+      "uses": 6450,
+      "examples": [
+        "aftermath",
+        "cutecharm",
+        "effectspore"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "passiveHeal",
+      "carriers": 1,
+      "uses": 6390,
+      "examples": [
+        "leftovers"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsParalysis",
+      "carriers": 13,
+      "uses": 6277,
+      "examples": [
+        "bodyslam",
+        "bounce",
+        "discharge"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsFreeze",
+      "carriers": 4,
+      "uses": 6171,
+      "examples": [
+        "blizzard",
+        "icebeam",
+        "icefang"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsPoison",
+      "carriers": 11,
+      "uses": 5821,
+      "examples": [
+        "banefulbunker",
+        "toxicthread",
+        "barbbarrage"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "speedMult",
+      "carriers": 1,
+      "uses": 5801,
+      "examples": [
+        "choicescarf"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "locksTarget",
+      "carriers": 3,
+      "uses": 5074,
+      "examples": [
+        "encore",
+        "disable",
+        "torment"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "needsUntrackedState",
+      "carriers": 4,
+      "uses": 5007,
+      "examples": [
+        "ragefist",
+        "electroball",
+        "gyroball"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "healsAllyOnSwitchIn",
+      "carriers": 1,
+      "uses": 4943,
+      "examples": [
+        "hospitality"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "stabBoost",
+      "carriers": 1,
+      "uses": 4243,
+      "examples": [
+        "adaptability"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "weightBased",
+      "carriers": 4,
+      "uses": 3889,
+      "examples": [
+        "grassknot",
+        "heatcrash",
+        "heavyslam"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "oneTurnGuard",
+      "carriers": 2,
+      "uses": 3689,
+      "examples": [
+        "quickguard",
+        "wideguard"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "speedCond",
+      "carriers": 7,
+      "uses": 3357,
+      "examples": [
+        "chlorophyll",
+        "quickfeet",
+        "sandrush"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "carriers": 9,
+      "uses": 3300,
+      "examples": [
+        "corrosivegas",
+        "stuffcheeks",
+        "bugbite"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsConfusion",
+      "carriers": 9,
+      "uses": 3237,
+      "examples": [
+        "axekick",
+        "confuseray",
+        "dynamicpunch"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "readsTargetItem",
+      "carriers": 2,
+      "uses": 3013,
+      "examples": [
+        "knockoff",
+        "poltergeist"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "blocksSoundMoves",
+      "carriers": 1,
+      "uses": 2690,
+      "examples": [
+        "throatchop"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "convertsMoveType",
+      "carriers": 7,
+      "uses": 2443,
+      "examples": [
+        "dragonize",
+        "aerilate",
+        "galvanize"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "untagged",
+      "carriers": 7,
+      "uses": 2427,
+      "examples": [
+        "belch",
+        "spiritshackle",
+        "fling"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksStatusMoves",
+      "carriers": 3,
+      "uses": 2383,
+      "examples": [
+        "goodasgold",
+        "telepathy",
+        "wonderguard"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherChipImmune",
+      "carriers": 8,
+      "uses": 2364,
+      "examples": [
+        "icebody",
+        "magmaarmor",
+        "oblivious"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "healsAlly",
+      "carriers": 2,
+      "uses": 2308,
+      "examples": [
+        "healpulse",
+        "lifedew"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "swapsStat",
+      "carriers": 3,
+      "uses": 2275,
+      "examples": [
+        "bodypress",
+        "foulplay",
+        "psyshock"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "proceduralStatus",
+      "carriers": 2,
+      "uses": 2246,
+      "examples": [
+        "direclaw",
+        "triattack"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "speedOnItemLoss",
+      "carriers": 2,
+      "uses": 2154,
+      "examples": [
+        "stickyhold",
+        "unburden"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "untagged",
+      "carriers": 44,
+      "uses": 2081,
+      "examples": [
+        "berserk",
+        "piercingdrill",
+        "unseenfist"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresStatStages",
+      "carriers": 2,
+      "uses": 2043,
+      "examples": [
+        "darkestlariat",
+        "sacredsword"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "restoresStats",
+      "carriers": 1,
+      "uses": 2014,
+      "examples": [
+        "whiteherb"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksBerries",
+      "carriers": 3,
+      "uses": 1918,
+      "examples": [
+        "asoneglastrier",
+        "asonespectrier",
+        "unnerve"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "redirectsType",
+      "carriers": 2,
+      "uses": 1854,
+      "examples": [
+        "lightningrod",
+        "stormdrain"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "punishesContact",
+      "carriers": 3,
+      "uses": 1754,
+      "examples": [
+        "banefulbunker",
+        "kingsshield",
+        "spikyshield"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsSleep",
+      "carriers": 4,
+      "uses": 1721,
+      "examples": [
+        "hypnosis",
+        "sing",
+        "sleeppowder"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresProtect",
+      "carriers": 14,
+      "uses": 1583,
+      "examples": [
+        "afteryou",
+        "block",
+        "curse"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "recharge",
+      "carriers": 6,
+      "uses": 1562,
+      "examples": [
+        "blastburn",
+        "frenzyplant",
+        "gigaimpact"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "setsWeather",
+      "carriers": 5,
+      "uses": 1480,
+      "examples": [
+        "sandstorm",
+        "snowscape",
+        "chillyreception"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "forbidsStatusMoves",
+      "carriers": 1,
+      "uses": 1336,
+      "examples": [
+        "taunt"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "disablesAttacker",
+      "carriers": 1,
+      "uses": 1292,
+      "examples": [
+        "cursedbody"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "overridesEffectiveness",
+      "carriers": 2,
+      "uses": 1247,
+      "examples": [
+        "freezedry",
+        "flyingpress"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsEachTurn",
+      "carriers": 3,
+      "uses": 1122,
+      "examples": [
+        "moody",
+        "opportunist",
+        "speedboost"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "critRatioUp",
+      "carriers": 14,
+      "uses": 1108,
+      "examples": [
+        "crabhammer",
+        "nightslash",
+        "shadowclaw"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "healsOnSwitchOut",
+      "carriers": 3,
+      "uses": 1051,
+      "examples": [
+        "naturalcure",
+        "regenerator",
+        "zerotohero"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "writesAccuracy",
+      "carriers": 8,
+      "uses": 969,
+      "examples": [
+        "compoundeyes",
+        "hustle",
+        "noguard"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "poisonsOnMyContact",
+      "carriers": 2,
+      "uses": 932,
+      "examples": [
+        "poisontouch",
+        "toxicchain"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "costsUserHP",
+      "carriers": 3,
+      "uses": 917,
+      "examples": [
+        "clangoroussoul",
+        "shedtail",
+        "substitute"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "accuracyMod",
+      "carriers": 6,
+      "uses": 912,
+      "examples": [
+        "compoundeyes",
+        "hustle",
+        "sandveil"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "multiAccuracy",
+      "carriers": 2,
+      "uses": 886,
+      "examples": [
+        "populationbomb",
+        "tripleaxel"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "accuracyMod",
+      "carriers": 3,
+      "uses": 872,
+      "examples": [
+        "brightpowder",
+        "widelens",
+        "zoomlens"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "reducesAllyDamage",
+      "carriers": 1,
+      "uses": 855,
+      "examples": [
+        "friendguard"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "immuneToMoveClass",
+      "carriers": 5,
+      "uses": 833,
+      "examples": [
+        "bulletproof",
+        "magicbounce",
+        "overcoat"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsToxic",
+      "carriers": 2,
+      "uses": 774,
+      "examples": [
+        "poisonfang",
+        "toxic"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "partialTrap",
+      "carriers": 7,
+      "uses": 768,
+      "examples": [
+        "snaptrap",
+        "bind",
+        "firespin"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "damageReduce",
+      "carriers": 9,
+      "uses": 731,
+      "examples": [
+        "filter",
+        "fluffy",
+        "icescales"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "noRecoil",
+      "carriers": 1,
+      "uses": 703,
+      "examples": [
+        "rockhead"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "curesVolatile",
+      "carriers": 1,
+      "uses": 660,
+      "examples": [
+        "mentalherb"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "accuracyMod",
+      "carriers": 5,
+      "uses": 580,
+      "examples": [
+        "coil",
+        "doubleteam",
+        "gravity"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "substitute",
+      "carriers": 2,
+      "uses": 578,
+      "examples": [
+        "shedtail",
+        "substitute"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "carriers": 3,
+      "uses": 547,
+      "examples": [
+        "magicbounce",
+        "sapsipper",
+        "soundproof"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "clearsBoosts",
+      "carriers": 2,
+      "uses": 546,
+      "examples": [
+        "clearsmog",
+        "haze"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksExplosion",
+      "carriers": 1,
+      "uses": 543,
+      "examples": [
+        "damp"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "forcesSwitch",
+      "carriers": 4,
+      "uses": 511,
+      "examples": [
+        "circlethrow",
+        "dragontail",
+        "roar"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "formeChange",
+      "carriers": 7,
+      "uses": 503,
+      "examples": [
+        "disguise",
+        "illusion",
+        "imposter"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "randomBoostEachTurn",
+      "carriers": 5,
+      "uses": 480,
+      "examples": [
+        "healer",
+        "harvest",
+        "moody"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresTypeImmunity",
+      "carriers": 2,
+      "uses": 464,
+      "examples": [
+        "mindseye",
+        "scrappy"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "reordersTurn",
+      "carriers": 3,
+      "uses": 458,
+      "examples": [
+        "afteryou",
+        "instruct",
+        "quash"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "statusImmune",
+      "carriers": 12,
+      "uses": 419,
+      "examples": [
+        "comatose",
+        "immunity",
+        "insomnia"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "untagged",
+      "carriers": 9,
+      "uses": 341,
+      "examples": [
+        "bigroot",
+        "focusband",
+        "ironball"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "userFaints",
+      "carriers": 6,
+      "uses": 328,
+      "examples": [
+        "explosion",
+        "finalgambit",
+        "healingwish"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "terrainScaled",
+      "carriers": 3,
+      "uses": 294,
+      "examples": [
+        "expandingforce",
+        "risingvoltage",
+        "terrainpulse"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "halvesTypeDamage",
+      "carriers": 4,
+      "uses": 292,
+      "examples": [
+        "heatproof",
+        "purifyingsalt",
+        "thickfat"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "carriers": 3,
+      "uses": 268,
+      "examples": [
+        "stormthrow",
+        "flowertrick",
+        "frostbreath"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresStatStages",
+      "carriers": 1,
+      "uses": 267,
+      "examples": [
+        "unaware"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "typeBecomesMoveType",
+      "carriers": 2,
+      "uses": 245,
+      "examples": [
+        "libero",
+        "protean"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresDefenderAbility",
+      "carriers": 3,
+      "uses": 210,
+      "examples": [
+        "moldbreaker",
+        "teravolt",
+        "turboblaze"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "curesStatus",
+      "carriers": 6,
+      "uses": 205,
+      "examples": [
+        "aspearberry",
+        "cheriberry",
+        "chestoberry"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "crashOnMiss",
+      "carriers": 3,
+      "uses": 196,
+      "examples": [
+        "axekick",
+        "highjumpkick",
+        "supercellslam"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "blocksHealing",
+      "carriers": 1,
+      "uses": 196,
+      "examples": [
+        "psychicnoise"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "hazard",
+      "carriers": 4,
+      "uses": 193,
+      "examples": [
+        "spikes",
+        "stealthrock",
+        "stickyweb"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "invertsBoosts",
+      "carriers": 3,
+      "uses": 186,
+      "examples": [
+        "contrary",
+        "ripen",
+        "simple"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "cantUseTwice",
+      "carriers": 1,
+      "uses": 185,
+      "examples": [
+        "gigatonhammer"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "punishesBoostedTarget",
+      "carriers": 2,
+      "uses": 181,
+      "examples": [
+        "alluringvoice",
+        "burningjealousy"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "passesState",
+      "carriers": 2,
+      "uses": 162,
+      "examples": [
+        "batonpass",
+        "shedtail"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "instructsTarget",
+      "carriers": 1,
+      "uses": 161,
+      "examples": [
+        "instruct"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "removesOwnSecondaries",
+      "carriers": 1,
+      "uses": 156,
+      "examples": [
+        "sheerforce"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsCrit",
+      "carriers": 4,
+      "uses": 147,
+      "examples": [
+        "disguise",
+        "battlearmor",
+        "iceface"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "readsOwnItem",
+      "carriers": 1,
+      "uses": 139,
+      "examples": [
+        "acrobatics"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "carriers": 4,
+      "uses": 135,
+      "examples": [
+        "electricterrain",
+        "grassyterrain",
+        "mistyterrain"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "carriers": 5,
+      "uses": 131,
+      "examples": [
+        "trickortreat",
+        "forestscurse",
+        "magicpowder"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "dualPurpose",
+      "carriers": 2,
+      "uses": 108,
+      "examples": [
+        "pollenpuff",
+        "shellsidearm"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "ohko",
+      "carriers": 4,
+      "uses": 105,
+      "examples": [
+        "fissure",
+        "guillotine",
+        "horndrill"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "critRatioUp",
+      "carriers": 1,
+      "uses": 103,
+      "examples": [
+        "scopelens"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "fractionalPriority",
+      "carriers": 1,
+      "uses": 71,
+      "examples": [
+        "quickclaw"
+      ]
+    },
+    {
+      "kind": "item",
+      "tag": "addsFlinch",
+      "carriers": 1,
+      "uses": 70,
+      "examples": [
+        "kingsrock"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "critDamageUp",
+      "carriers": 1,
+      "uses": 37,
+      "examples": [
+        "sniper"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "critRatioUp",
+      "carriers": 2,
+      "uses": 15,
+      "examples": [
+        "merciless",
+        "superluck"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "swapsDefences",
+      "carriers": 1,
+      "uses": 11,
+      "examples": [
+        "wonderroom"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "sideBuff",
+      "carriers": 1,
+      "uses": 7,
+      "examples": [
+        "safeguard"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "suppressesItems",
+      "carriers": 1,
+      "uses": 4,
+      "examples": [
+        "magicroom"
+      ]
+    },
+    {
+      "kind": "move",
+      "tag": "setsRoom",
+      "carriers": 1,
+      "uses": 0,
+      "examples": [
+        "fairylock"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsOnKO",
+      "carriers": 2,
+      "uses": 0,
+      "examples": [
+        "eelevate",
+        "beastboost"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "privateWeather",
+      "carriers": 1,
+      "uses": 0,
+      "examples": [
+        "megasol"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsSwitch",
+      "carriers": 3,
+      "uses": 0,
+      "examples": [
+        "arenatrap",
+        "magnetpull",
+        "shadowtag"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "auraBoost",
+      "carriers": 2,
+      "uses": 0,
+      "examples": [
+        "darkaura",
+        "fairyaura"
+      ]
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
+      "carriers": 1,
+      "uses": 0,
+      "examples": [
+        "parentalbond"
+      ]
+    }
+  ]
+}
