@@ -120,6 +120,8 @@ const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
 /* MEDICHAM's OWN protect set, not a copy of it. A second list here would be a hardcode that drifts
  * from the engine whose (1/3)^n rule the counter exists to feed. */
 const PROTECT_IDS = require('./medicham2-browser.js').PROTECTMOVES;
+/* dmgMon, for asking MEDICHAM whether it can actually express a click before offering it. */
+const B = require('./board.js');
 
 /* A stream in the shape BattlePlayer wants, backed by the socket rather than by the simulator.
  *
@@ -870,8 +872,6 @@ function handle(room, line) {
               built[k].cands.map(c => c.switchTo ? ("SW:" + c.switchTo)
                 : (c.move ? c.move.id : "NULLMOVE(" + JSON.stringify(c.choice) + ")")).join(", "));
           }
-          const oa = built[0].cands.map((c, idx) => idx);
-          const ob = built[1].cands.map((c, idx) => idx);
           let bestVal = -1, bestPair = null, _res = 0, _unres = 0;
           const byKind = {};
           const t0 = Date.now();
@@ -890,6 +890,48 @@ function handle(room, line) {
            * survivors at high n with FRESH seeds, so a lucky first pass has to be lucky twice.
            *
            * Cheaper than the flat version it replaces: 63*40 + 8*240 beats 63*120. */
+          /* A MOVE THIS ENGINE CANNOT EXPRESS IS NOT PUT ON THE MENU.
+           *
+           * rollout_leaf states the rule for switches -- "a candidate this engine cannot express is
+           * SKIPPED, not approximated ... offering the search a cell it will silently resolve as
+           * something else is worse than a smaller menu" -- and it was never applied to MOVES.
+           *
+           * MEDICHAM returns kind 'pass' for anything it has no model of: Psych Up, Haze, and the
+           * rest of the 1.5% the coverage report counts. A 'pass' is not neutral, it is a turn spent
+           * doing nothing -- so every such candidate scored identically, and an argmax over a menu
+           * padded with identical do-nothings picks one whenever the real options are close. Will
+           * watched it: "IT JUST PSYCH UP WITH NO BOOSTS TO COPY".
+           *
+           * Dropping them does not make the bot play those moves worse. It cannot play them at all;
+           * this only stops it CHOOSING them blind. If every candidate for a slot is unexpressible
+           * the whole decision falls back to MAG, which does have an opinion about them. */
+          const MEDI = require('./medicham2-browser.js');
+          const _body = (m) => { try { return m ? B.dmgMon(m, MEDI, DEX) : null; } catch (e) { return null; } };
+          const _foeBody = (() => {
+            for (const L of ['a', 'b']) { const f = board.slot(foeSide, L); if (f && !f.fainted) { const b = _body(f); if (b) return b; } }
+            return null;
+          })();
+          const expressible = (c, k) => {
+            if (!c || c.switchTo) return true;                 // switches are resolved by rollout_leaf
+            if (!c.move) return false;
+            const ub = _body(board.slot(side, k === 0 ? 'a' : 'b'));
+            if (!ub || !_foeBody) return true;                 // cannot tell -- keep it rather than guess
+            try {
+              const a = MEDI.playerAction(ub, c.move.id, _foeBody, field);
+              return !!a && a.kind !== 'pass';
+            } catch (e) { return true; }
+          };
+          for (const k of [0, 1]) {
+            const keep = built[k].cands.filter((c) => expressible(c, k));
+            const dropped = built[k].cands.length - keep.length;
+            if (dropped && keep.length) {
+              built[k] = Object.assign({}, built[k], { cands: keep });
+              if (WHY) console.log(`    slot ${k}: dropped ${dropped} candidate(s) MEDICHAM plays as a no-op`);
+            }
+          }
+          /* Built AFTER the filter above, or they would index a menu that no longer exists. */
+          const oa = built[0].cands.map((c, idx) => idx);
+          const ob = built[1].cands.map((c, idx) => idx);
           const SCREEN_N = Math.max(12, Math.round(ROLLOUT_N / 3));
           const FINAL_K = 8;
           const evalPair = (ia, ib, n, salt) => {
