@@ -91,3 +91,6 @@ data/.*.jsonl
 # they grow without bound while the bot is up, and they are reproducible from the battles
 # themselves. Kept out of the repo for the same reason data/games.*.jsonl is.
 data/live-games/
+
+# The Showdown account password for engine/mag_bot.js. One line, never committed.
+data/.showdown-pass

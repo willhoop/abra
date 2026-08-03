@@ -6,7 +6,9 @@
  *
  *   --name <n>      what it logs in as (default MAG)
  *   --server <url>  default ws://localhost:8000/showdown/websocket
- *   --pass <p>      account password, for a PUBLIC server (or set SHOWDOWN_PASS)
+ *   --pass <p>      account password for a PUBLIC server. PREFER data/.showdown-pass (gitignored,
+ *                   one line) or SHOWDOWN_PASS — a password on the command line lands in shell
+ *                   history and in `ps`.
  *   --greedy        take the best-scoring move rather than a weighted roll (+9 points, measured)
  *   --switching     let it switch (-10 points, measured, which is why it is off)
  *   --why           print its per-option scores to this terminal as it plays
@@ -54,7 +56,29 @@ const NAME = arg('name', 'MAG');
 const SERVER = arg('server', 'ws://localhost:8000/showdown/websocket');
 /* The account password, for a PUBLIC server. Read from the environment by preference so it does not
  * land in shell history or in a screenshot of this terminal; --pass exists for convenience. */
-const PASS = arg('pass', process.env.SHOWDOWN_PASS || '');
+/* THE PASSWORD IS READ, NEVER TYPED INTO A COMMAND.
+ *
+ * `--pass <p>` puts it in shell history, in `ps`, and in any screenshot of this terminal. The env var
+ * is better and still ends up in a shell profile. So the preferred route is a FILE the account owner
+ * writes once and nothing else ever echoes: data/.showdown-pass, gitignored, one line.
+ *
+ * Order: --pass, then SHOWDOWN_PASS, then the file. The flag stays for the local `--no-security` case
+ * where the value is not a secret at all. */
+const PASS_FILE = D('data', '.showdown-pass');
+const PASS = (() => {
+  const flag = arg('pass', '');
+  if (flag) return flag;
+  if (process.env.SHOWDOWN_PASS) return process.env.SHOWDOWN_PASS;
+  try {
+    return fs.readFileSync(PASS_FILE, 'utf8').trim();
+  } catch (e) {
+    /* Absent is the normal case for a local server and must not look like a failure; anything else —
+     * a permissions problem, a directory where a file should be — is reported, because a bot that
+     * silently plays unauthenticated then ignores every challenge is the least debuggable failure. */
+    if (e.code !== 'ENOENT') console.error(`  could not read ${PASS_FILE}: ${e.message}`);
+    return '';
+  }
+})();
 const LOGIN_URL = arg('login-url', 'https://play.pokemonshowdown.com/api/login');
 const GREEDY = process.argv.includes('--greedy');
 const SWITCHING = process.argv.includes('--switching');
