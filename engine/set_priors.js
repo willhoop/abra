@@ -497,7 +497,7 @@ function sampleSpread(species, seed) {
 }
 
 /* The public call. Returns what is KNOWN plus what was FILLED, so callers can report the split. */
-function fillSet(species, known, seed) {
+function fillSet(species, known, seed, opts) {
   known = known || {};
   const have = (known.moves || []).slice(0, 4);
   const filled = [];
@@ -626,7 +626,34 @@ function fillSet(species, known, seed) {
   }
 
   const item = known.item || megaItem || sampleDist(itemDist, rGear) || (megaItem === '' ? (smItem || '') : (gear.item || smItem || ''));
-  const ability = known.ability || sampleDist(gear.abilityDist, rGear) || gear.ability || smAbil || '';
+  /* AN ABILITY THE SPECIES CANNOT HAVE IS REMOVED BEFORE THE DRAW, NOT AFTER IT.
+   *
+   * Measured on Basculegion over 400 seeds: Adaptability 73.5%, then Insomnia 8.0%, Simple 3.5%,
+   * Intimidate 3.3%, No Guard 1.5%, Sand Stream 1.3% -- 17.6% of draws are abilities it cannot
+   * legally hold. The distribution is keyed by species NAME across a whole replay, so a
+   * mis-attributed ingest row smears one Pokemon's ability onto another.
+   *
+   * champions_sim.packTeam already catches those and Showdown's validator would catch any it missed,
+   * so nothing illegal reaches a battle -- Will's point, and correct. But the catch happens AFTER the
+   * draw and replaces every illegal ability with slot 0, which quietly moved 17.6% of Basculegion's
+   * mass onto Swift Swim. Filtering first lets sampleDist renormalise over the real observations
+   * instead of dumping the junk on one arbitrary ability.
+   *
+   * THIS IS A MITIGATION AND NOT THE CURE. 17.6% impossible entries mean the ability ingest is
+   * mis-attributing by species name; the same bug can smear a LEGAL ability onto a species that never
+   * runs it, and neither this filter nor the validator can tell that apart from a real observation.
+   * Basculegion's remaining 4% Mold Breaker is exactly that shape.
+   *
+   * The legal list comes from the caller because this module has no dex. Absent, nothing is filtered
+   * and the behaviour is what it was. */
+  let abilityDist = gear.abilityDist;
+  const legalAb = opts && opts.legalAbilities;
+  if (abilityDist && legalAb && legalAb.length) {
+    const ok = new Set(legalAb.map(norm));
+    const kept = Object.fromEntries(Object.entries(abilityDist).filter(([k]) => ok.has(norm(k))));
+    if (Object.keys(kept).length) abilityDist = kept;
+  }
+  const ability = known.ability || sampleDist(abilityDist, rGear) || gear.ability || smAbil || '';
   if (!known.item && (megaItem || smItem || gear.item)) filled.push(`${species}: item`);
   if (!known.ability && (smAbil || gear.ability)) filled.push(`${species}: ability`);
 

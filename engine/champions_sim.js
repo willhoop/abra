@@ -174,7 +174,10 @@ function packTeam(species, setsBySpecies) {
      * wanted (the reason Leela Chess Zero runs self-play at a raised policy temperature). Draws are
      * seeded, so a run reproduces. */
     const SP = require('./set_priors.js');
-    const f = SP.fillSet(name, known, (setsBySpecies && setsBySpecies.__seed) || 1);
+    /* The species' legal abilities, so the sampler can drop impossible draws and renormalise rather
+     * than have them land on slot 0 by the correction below. */
+    const f = SP.fillSet(name, known, (setsBySpecies && setsBySpecies.__seed) || 1,
+      { legalAbilities: sp.abilities ? Object.values(sp.abilities) : null });
     let moves = [];
     for (const mv of f.moves) {
       if (moves.length >= 4) break;
