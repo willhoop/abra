@@ -1,6 +1,7 @@
 # The rollout leaf: judging a position by playing it out
 
-**2026-08-03.** Written after MEDICHAM went from 89.2% to 96.7% click coverage in one session, which
+**2026-08-03, extended overnight into 08-04.** Written after MEDICHAM went from 89.2% to 98.5%
+click coverage in one session, which
 is the only reason this is now buildable. Will's question started it: *"cant it just be all the same
 calcs we already do"*.
 
@@ -48,14 +49,19 @@ that decide games. `engine/medicham_coverage.js` measured it and the session clo
 | redirection (Rage Powder, Follow Me) | +1.78 |
 | screens (Reflect, Light Screen, Aurora Veil) | +1.69 |
 | switching — voluntary, pivot, faint | +2.12 |
-| **now** | **96.7%** |
+| weather setters | +0.26 |
+| Helping Hand | +0.67 |
+| ally boosts, Perish Song, Yawn | +0.52 |
+| Leech Seed (routed), Super Fang | +0.30 |
+| **now** | **98.5%** |
 
 Plus the corrections Will supplied while it was being built: Aurora Veil needs snow; Brick Break,
 Psychic Fangs and Raging Bull break screens; Light Clay extends them; Prankster's +1 (which was
 modelled *nowhere*, so a Prankster screen went up *after* the attack it was meant to blunt).
 
 **Still missing, and stated rather than buried**: Parting Shot's Atk/SpA drop (`statChangeInCode`, and
-no artifact this engine reads carries the numbers), and the 3.3% tail of moves that remain no-ops.
+no artifact this engine reads carries the numbers), the 22 `lowersTarget` moves whose boost table
+lives on the dex object this bundle cannot reach, and the 1.5% tail that remains no-ops.
 
 ---
 
