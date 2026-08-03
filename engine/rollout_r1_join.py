@@ -54,6 +54,10 @@ if not os.path.isabs(SELF_RAW):
     SELF_RAW = os.path.join(ROOT, SELF_RAW)
 ROWS = os.path.join(ROOT, "data", os.environ.get("DUMP", "rollout-r1-rows.jsonl"))
 K = int(os.environ.get("K", "200"))
+# How closely the two sides must agree on summed HP before a row counts as the same turn. 0.05 is
+# half a percent of one Pokemon's bar -- tight enough that an accidental match is unlikely, loose
+# enough to survive rounding on either side.
+HP_TOL = float(os.environ.get("HP_TOL", "0.05"))
 
 
 def main():
@@ -124,8 +128,14 @@ def main():
                 continue
             seen.add(gid)
             sts = P.parse_states(r.get("log", ""))
-            for i, st in enumerate(sts):
-                row = want[gid].get(i)
+            # JOIN ON THE TURN NUMBER, NOT THE LIST INDEX. porygon2 numbers its states 1,2,3...
+            # while phase 1 dumps board.turn and samples every EVERYth turn (0,2,4 or 1,3,5), so
+            # matching index i against a turn number was off by one AND comparing sampled turns
+            # to unsampled ones. That is what the HP witness was detecting: on rows alive_diff
+            # admitted, the two sides' summed HP correlated at 0.118 -- uncorrelated, no offset,
+            # no scale factor. Not a definitional difference: DIFFERENT POSITIONS.
+            for st in sts:
+                row = want[gid].get(int(st.get("turn", -1)))
                 if row is None:
                     continue
                 v = P.vec(st, "p1")
@@ -138,10 +148,22 @@ def main():
                 # while looking exactly like misalignment. So the agreement rate of the continuous one
                 # is REPORTED and only alive_diff filters, until the HP witness is shown to measure
                 # what it claims. Diagnose before filtering, not after.
+                # BOTH WITNESSES FILTER NOW, and the evidence for that is in the commit: on rows
+                # alive_diff accepted, the two sides' summed HP correlated at 0.118 -- essentially
+                # not at all -- with no offset and no scale factor (means 0.002 vs -0.000). Two
+                # measurements of the same quantity under different definitions would still track
+                # each other. Uncorrelated means these are DIFFERENT POSITIONS: alive_diff is
+                # coarse and mostly 0, so it matched by luck, and the head-to-head it admitted was
+                # scoring PORYGON3 on one turn against the rollout on another. That run printed
+                # "R1 PASSES" at +1.82 with a CI clearing zero by 0.11. It was not a result.
                 a_ok = abs(float(v[ai]) - float(row["aliveDiff"])) <= 1e-6
-                if hi is not None and "hpDiff" in row and a_ok:
-                    hp_given_alive.append(abs(float(v[hi]) - float(row["hpDiff"])))
-                if not a_ok:
+                h_ok = True
+                if hi is not None and "hpDiff" in row:
+                    d = abs(float(v[hi]) - float(row["hpDiff"]))
+                    if a_ok:
+                        hp_given_alive.append(d)
+                    h_ok = d <= HP_TOL
+                if not (a_ok and h_ok):
                     misaligned += 1
                     continue
                 feats.append(v)
@@ -188,6 +210,27 @@ def main():
     n = len(y)
     half = 100 * 1.96 * np.sqrt(b + c) / n if (b + c) else 0.0
     diff = 100 * (acc(p_roll) - acc(p_pory))
+    # THE JOIN IS NOT VALIDATED, AND THE TABLE ABOVE MUST NOT BE READ AS A RESULT.
+#
+    # Three keys were tried: list index, then turn number, each with alive_diff and then with a
+    # continuous HP witness. On rows alive_diff admitted, the two sides' summed HP correlates at
+    # 0.118 with no offset and no scale factor, and only ~7% agree within half a percent of one
+    # HP bar. Filtering on both witnesses leaves 230 of 9,201 rows, and those survivors are the
+    # early quiet turns where agreement is trivial -- every judge sits near a coin on them.
+    #
+    # The likeliest cause is definitional rather than positional: this side reads an OPEN-SHEET
+    # board and counts all four brought Pokemon, while porygon2 parses a public log and can only
+    # count what has appeared. That is not reconcilable by choosing a better join key.
+    #
+    # An earlier configuration of this file printed "R1 PASSES" at +1.82 with a CI clearing zero
+    # by 0.11. It was scoring PORYGON3 on one turn against the rollout on another.
+    if not hp_given_alive or float(np.mean(np.array(hp_given_alive) <= HP_TOL)) < 0.5:
+        print("")
+        print("  THE JOIN IS UNVALIDATED — DO NOT READ THE TABLE ABOVE AS A HEAD-TO-HEAD.")
+        print("  The continuous witness rejects it, and the rows that survive are the quiet early")
+        print("  turns where any two parsers agree. R1 is NOT ANSWERED by this route.")
+        print("  The available evidence stays the material comparison in engine/rollout_r1.js,")
+        print("  which is same-corpus and same-positions by construction.")
     print("\n  VERDICT — rollout vs PORYGON3, head to head")
     print("  " + "-" * 48)
     print("   difference %+.2f points   95%% CI %+.2f to %+.2f" % (diff, diff - half, diff + half))
