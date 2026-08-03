@@ -1391,6 +1391,68 @@ const MOVE_TAGS = [
      * and the tag then covered four of five while looking complete. */
     of: m => (m.flags && m.flags.charge && m.condition && ('onInvulnerability' in m.condition))
       ? { untargetable: true } : null },
+  /* ONE SPEC EVERY ENGINE CAN READ, so this never has to be done a mechanic at a time.
+   *
+   * Will's point, and it is the right one: patching MEDICHAM per move means the next engine -- CHOMP,
+   * the site, whatever comes after -- starts from zero again, and the artifact is where the knowledge
+   * belongs. Showdown already states stat changes in ONE uniform shape and it covers 150 of the 954
+   * moves in this format:
+   *     m.boosts        + m.target === 'self'   -> the user
+   *     m.boosts        + any other target      -> whoever the move hits
+   *     m.self.boosts                            -> always the user (Close Combat)
+   *     m.secondary(-ies).boosts + chance        -> chance-based, user if `self` is set
+   * Flattened into { user: [...], target: [...] } so a consumer applies it with one loop and needs no
+   * knowledge of which move it is holding. That is what makes `lowersTarget` (22 moves), `boostsUser`
+   * (23) and `lowersUser` (13) one implementation instead of fifty-eight. */
+  { tag: 'statChange', param: 'every stat change the move makes, and to whom',
+    probe: 'statChange',
+    why: 'Charm, Fake Tears and 20 other target-drops resolved to a no-op turn because nothing '
+       + 'carried WHO the boost lands on; the dex says so uniformly and nobody was reading it',
+    of: m => {
+      const out = {};
+      const add = (who, boosts, chance) => {
+        if (!boosts || !Object.keys(boosts).length) return;
+        (out[who] = out[who] || []).push({ boosts: Object.assign({}, boosts), chance: chance || 100 });
+      };
+      if (m.boosts) add(m.target === 'self' ? 'user' : 'target', m.boosts, 100);
+      if (m.self && m.self.boosts) add('user', m.self.boosts, 100);
+      /* `secondaries` IS `secondary`, not an addition to it. Showdown populates both -- the array
+       * holds the same object the singular field points at -- so concatenating them counted every
+       * secondary TWICE: Bulldoze dropped Speed twice and Ice Beam froze at 10% twice. Prefer the
+       * array when it exists, which is the canonical one. */
+      const secs = ((m.secondaries && m.secondaries.length) ? m.secondaries : [m.secondary]).filter(Boolean);
+      for (const sec of secs) {
+        if (sec.boosts) add(sec.self ? 'user' : 'target', sec.boosts, sec.chance || 100);
+        if (sec.self && sec.self.boosts) add('user', sec.self.boosts, sec.chance || 100);
+      }
+      return Object.keys(out).length ? out : null;
+    } },
+  /* THE SAME TREATMENT FOR STATUS AND VOLATILES, 205 of 954 moves.
+   *
+   * A VOLATILE IS NOT A STATUS and conflating them is what made Encore look modelled: its dex entry
+   * carries volatileStatus 'encore' and no `status`, so an engine that only reads `status` applies
+   * nothing, returns a kind that looks handled, and spends the turn. Both are recorded, separately
+   * and by name, so a consumer can implement the ones it supports and SEE the ones it does not. */
+  { tag: 'statusInflict', param: 'status and volatile conditions the move applies, and to whom',
+    probe: 'statusInflict',
+    why: 'Encore, Taunt, Confuse Ray and Disable all resolve to nothing because volatiles were never '
+       + 'carried anywhere; reading only `status` silently drops the entire class',
+    of: m => {
+      const eff = [];
+      const to = (self) => (self || m.target === 'self') ? 'user' : 'target';
+      if (m.status) eff.push({ status: m.status, chance: 100, to: to(false) });
+      if (m.volatileStatus) eff.push({ volatile: m.volatileStatus, chance: 100, to: to(false) });
+      /* `secondaries` IS `secondary`, not an addition to it. Showdown populates both -- the array
+       * holds the same object the singular field points at -- so concatenating them counted every
+       * secondary TWICE: Bulldoze dropped Speed twice and Ice Beam froze at 10% twice. Prefer the
+       * array when it exists, which is the canonical one. */
+      const secs = ((m.secondaries && m.secondaries.length) ? m.secondaries : [m.secondary]).filter(Boolean);
+      for (const sec of secs) {
+        if (sec.status) eff.push({ status: sec.status, chance: sec.chance || 100, to: to(sec.self) });
+        if (sec.volatileStatus) eff.push({ volatile: sec.volatileStatus, chance: sec.chance || 100, to: to(sec.self) });
+      }
+      return eff.length ? { effects: eff } : null;
+    } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },

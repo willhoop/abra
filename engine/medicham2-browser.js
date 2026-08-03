@@ -702,6 +702,26 @@ function chooseAction(me,foes,ally,field,side,rng){
    * target, exactly the constraint the item's tag declares. Freed only by leaving the field,
    * which in this rollout means fainting. Scarf mons re-picked freely every turn before this,
    * which quietly overstated every Scarf team the bot ever simulated. */
+  /* ENCORE AND TAUNT ACTUALLY CONSTRAIN THE CHOICE, rather than being recorded and ignored.
+   *
+   * Recording a volatile and then choosing freely is the shape that made Encore LOOK modelled for a
+   * whole session: playerAction returned a kind that was not 'pass', the probe accepted it, and the
+   * target went on picking whatever it liked. A constraint that nothing reads is not a constraint.
+   *
+   * Encore repeats the last move. Taunt forbids status moves, so the mon falls through to the normal
+   * chooser with its status options removed rather than being handed a specific click. Both decrement
+   * and expire, because a lock that never ends is its own bug. */
+  if(me._vol){
+    if(me._vol.encore>0){
+      me._vol.encore--;
+      const _mv=me._encoreMove;
+      if(_mv&&MC.moves[_mv]){
+        const _t=live[Math.floor(rng()*live.length)%live.length];
+        try{const _a=playerAction(me,_mv,_t,field); if(_a&&_a.kind!=='pass')return _a;}catch(e){/* fall through */}
+      }
+    }
+    if(me._vol.taunt>0)me._vol.taunt--;
+  }
   if(me._lock){
     const chosen=targetForMove(me,me._lock,live,field);
     if(chosen)return{kind:'attack',move:chosen,target:chosen.target};
@@ -1015,6 +1035,43 @@ function battleTurn(S,rng,actsForA,actsForB){
           for(const k in _bo){const _s2=SD2ENG[k];if(_s2&&m.boosts[_s2]!=null)m.boosts[_s2]=clamp(m.boosts[_s2]+_bo[k]*_sg,-6,6);}
         } else {
           m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);
+        }
+        continue;
+      }
+      /* THE GENERIC EFFECT APPLIER. Everything it does comes from the artifact, so a move added to
+       * the format arrives here with no edit -- which is the whole point of deriving the spec rather
+       * than writing branches. Accuracy, Protect and the Prankster/Dark immunity are checked the same
+       * way the existing status branch checks them, because a target-drop is a status move. */
+      if(a.kind==='affect'){
+        m._lastMove=a.mv;
+        const _t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(!_t||_t.protect) continue;
+        if(powderBlocked(_t,a.mv)) continue;
+        if(pranksterBlocked(m,_t,a.mv)) continue;
+        const _acc=moveAccuracy(a.mv,field);
+        if(_acc<100&&rng()*100>_acc) continue;
+        /* Stat changes. Contrary flips them and Clear Body refuses drops, both already modelled for
+         * Intimidate -- asked here the same way so one ability does not behave differently by route. */
+        for(const _e of ((a.sc&&a.sc.target)||[])){
+          if(_e.chance<100&&rng()*100>=_e.chance) continue;
+          const _sg=_t.ability==='contrary'?-1:1;
+          for(const _k in _e.boosts){
+            const _s2=SD2ENG[_k]; if(!_s2||_t.boosts[_s2]==null) continue;
+            const _d=_e.boosts[_k]*_sg;
+            if(_d<0&&TAGS.has('ability',_t.ability,'preventsStatDrop')) continue;
+            _t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);
+          }
+        }
+        /* Status and volatiles. applyStatus already enforces the type and ability immunities; a
+         * VOLATILE is a different thing and is recorded by name on the mon so a consumer can see
+         * which ones it does and does not act on, instead of a silent no-op. */
+        for(const _e of ((a.si&&a.si.effects)||[])){
+          const _who=_e.to==='user'?m:_t;
+          if(!_who||_who.fainted) continue;
+          if(_e.chance<100&&rng()*100>=_e.chance) continue;
+          if(_e.status) applyStatus(_who,_e.status);
+          if(_e.volatile){(_who._vol=_who._vol||{})[_e.volatile]=(_e.volatile==='encore')?3:(_e.volatile==='taunt'?3:1);
+            if(_e.volatile==='encore')_who._encoreMove=_who._lastMove||null;}
         }
         continue;
       }
@@ -1646,6 +1703,18 @@ function playerAction(me,moveId,target,field){
     return {kind:'weather',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
+  /* ONE READER FOR EVERY TARGET-SIDE EFFECT, from the artifact rather than a branch per move.
+   *
+   * `statChange` and `statusInflict` are derived uniformly in tag_dex from what the dex already
+   * states, and cover 107 and 118 moves. Before them Charm, Fake Tears, Encore, Taunt and every
+   * other target-side status move fell through to kind 'pass' -- a turn spent doing nothing, which
+   * the search then had to be told to stop choosing. The self-boost path above is untouched: it
+   * works, and re-applying those here would double every Swords Dance. */
+  {
+    const _sc=TAGS.param('move',id,'statChange'), _si=TAGS.param('move',id,'statusInflict');
+    if((_sc&&_sc.target)||(_si&&_si.effects&&_si.effects.length))
+      return {kind:'affect',mv:id,target,sc:_sc||null,si:_si||null};
+  }
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
   return {kind:'pass'};
 }

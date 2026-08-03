@@ -178,21 +178,33 @@ statusProbe('inflictsBurn', 'Will-O-Wisp burns', 'incineroar', 'willowisp', 'brn
 statusProbe('inflictsParalysis', 'Thunder Wave paralyses', 'raichu', 'thunderwave', 'par');
 
 probe('move', 'locksTarget', 'Encore locks the target in', () => {
-  /* A VOLATILE IS NOT A STATUS, and checking the CLASSIFICATION rather than the EFFECT gave this a
-   * false LIVE on the first run. Encore's rulebook entry carries `volatile: "encore"` and no
-   * `status`, so playerAction returns kind 'status' -- which looks modelled -- and the status branch
-   * then calls applyStatus with nothing to apply. The move costs its turn and does nothing.
+  /* THE FOURTH VERSION. v1 accepted kind !== 'pass' (Encore returns 'status' and applied nothing).
+   * v2 accepted "some state moved" (the volatile was recorded while the target still chose freely).
+   * v3 was right about what to measure and wrong about how to stage it: it had the foe PROTECT on the
+   * turn it was Encored, and Protect blocks Encore -- correctly -- so the probe measured its own
+   * setup. Whimsicott is also faster than Garchomp, so on that turn the foe had not moved yet and
+   * there was no last move to copy.
    *
-   * A false LIVE is worse than a false MISSING: it hides the gap instead of listing it. So this runs
-   * the turn and asks whether ANY state on the target moved. */
+   * Staged properly now: the foe commits a move on its own turn FIRST, is Encored on the next turn,
+   * and is then left completely free. If Encore is real it repeats. */
   const me = bare('whimsicott'), ally = bare('incineroar');
   const f1 = bare('garchomp'), f2 = bare('garchomp');
   const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-  const snap = JSON.stringify({ st: f1.status, b: f1.boosts, keys: Object.keys(f1).filter(k => /encore|lock|disab/i.test(k)) });
-  const fa = new Map([[me, M.playerAction(me, 'encore', f1, S.field)], [ally, { kind: 'pass' }]]);
-  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-  const after = JSON.stringify({ st: f1.status, b: f1.boosts, keys: Object.keys(f1).filter(k => /encore|lock|disab/i.test(k)) });
-  return { works: snap !== after, detail: after === snap ? 'target unchanged after Encore resolved' : 'target state moved' };
+  /* Turn 1 -- the foe uses Rock Slide, so it HAS a last move. */
+  M.battleTurn(S, rng5,
+    new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'rockslide', me, S.field)], [f2, { kind: 'pass' }]]));
+  const committed = f1._lastMove;
+  /* Turn 2 -- Encore it. */
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'encore', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const locked = !!(f1._vol && f1._vol.encore > 0);
+  /* Turn 3 -- nothing forced. It must repeat. */
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]), null);
+  const repeated = f1._lastMove === committed;
+  return { works: locked && repeated,
+           detail: `committed ${committed}, volatile set=${locked}, free choice next turn was ${f1._lastMove}` };
 });
 
 probe('move', 'conditionalPower', 'Facade doubles when statused', () => {

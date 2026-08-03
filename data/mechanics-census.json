@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-03T23:39:14.376Z",
+  "generated": "2026-08-03T23:48:24.983Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 24,
-  "live": 18,
-  "missing": 6,
+  "live": 20,
+  "missing": 4,
   "results": [
     {
       "kind": "item",
@@ -73,8 +73,8 @@
       "kind": "move",
       "tag": "lowersTarget",
       "label": "Charm drops the target Attack",
-      "live": false,
-      "detail": "target atk stage after the turn: 0"
+      "live": true,
+      "detail": "target atk stage after the turn: -2"
     },
     {
       "kind": "move",
@@ -94,8 +94,8 @@
       "kind": "move",
       "tag": "locksTarget",
       "label": "Encore locks the target in",
-      "live": false,
-      "detail": "target unchanged after Encore resolved"
+      "live": true,
+      "detail": "committed rockslide, volatile set=true, free choice next turn was rockslide"
     },
     {
       "kind": "move",

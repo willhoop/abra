@@ -122,6 +122,8 @@ const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
 const PROTECT_IDS = require('./medicham2-browser.js').PROTECTMOVES;
 /* dmgMon, for asking MEDICHAM whether it can actually express a click before offering it. */
 const B = require('./board.js');
+/* The tag artifact, for asking whether a click can do its one job against THIS target. */
+const TAGSMOD = require('./tags.js');
 
 /* A stream in the shape BattlePlayer wants, backed by the socket rather than by the simulator.
  *
@@ -915,10 +917,40 @@ function handle(room, line) {
             if (!c || c.switchTo) return true;                 // switches are resolved by rollout_leaf
             if (!c.move) return false;
             const ub = _body(board.slot(side, k === 0 ? 'a' : 'b'));
-            if (!ub || !_foeBody) return true;                 // cannot tell -- keep it rather than guess
+            /* The candidate's OWN target, not just the first live foe: a status aimed at the left
+             * Pokemon and one aimed at the right are different clicks and only one may be dead. */
+            const tb = _body(c.targetMon) || _foeBody;
+            if (!ub || !tb) return true;                       // cannot tell -- keep it rather than guess
             try {
-              const a = MEDI.playerAction(ub, c.move.id, _foeBody, field);
-              return !!a && a.kind !== 'pass';
+              const a = MEDI.playerAction(ub, c.move.id, tb, field);
+              if (!a || a.kind === 'pass') return false;
+              /* A CLICK THAT CANNOT DO ITS ONE JOB IS ALSO NOT A CANDIDATE.
+               *
+               * Will-O-Wisp into a Fire type is expressible, resolves cleanly, and burns nothing --
+               * so the previous filter kept it and the search picked it whenever the real options were
+               * close. Will: "IT JUST WILLO WISPED INTO A FIRE TYPE THAT SHOULD BE A BANNED CLICK".
+               *
+               * Asked of the engine rather than asserted here: canTakeStatus already enforces the type
+               * and ability immunities, so this covers Toxic into Steel, sleep into Insomnia and every
+               * other dead status without naming one. Only dropped when EVERY effect the move has is
+               * refused -- a move that also drops a stat or hits is still a real option. */
+              /* READ FROM THE ARTIFACT, NOT FROM THE ACTION. Will-O-Wisp returns kind 'status' from
+               * a branch that predates the generic one, so it never carries the spec on the action --
+               * checking a.si silently skipped exactly the move that prompted this. The tag is on the
+               * MOVE and is true whichever branch classified it. */
+              const _sp = TAGSMOD.param('move', c.move.id, 'statusInflict');
+              const si = _sp && _sp.effects;
+              const _scp = TAGSMOD.param('move', c.move.id, 'statChange');
+              if (si && si.length && !(_scp && _scp.target) && !c.move.basePower) {
+                const anyLands = si.some(e => {
+                  if (e.volatile) return true;                 // volatiles are not status immunities
+                  if (!e.status) return true;
+                  const who = e.to === 'user' ? ub : tb;
+                  try { return MEDI.canTakeStatus(who, e.status); } catch (err) { return true; }
+                });
+                if (!anyLands) return false;
+              }
+              return true;
             } catch (e) { return true; }
           };
           for (const k of [0, 1]) {

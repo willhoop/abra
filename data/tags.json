@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-03T23:11:01.513Z",
+ "generated": "2026-08-03T23:44:23.068Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1472,6 +1472,42 @@
    "examples": [
     "Dig",
     "Phantom Force"
+   ]
+  },
+  {
+   "tag": "statChange",
+   "kind": "move",
+   "param": "every stat change the move makes, and to whom",
+   "why": "Charm, Fake Tears and 20 other target-drops resolved to a no-op turn because nothing carried WHO the boost lands on; the dex says so uniformly and nobody was reading it",
+   "consumedBy": "statChange",
+   "used": true,
+   "n": 107,
+   "uses": 61817,
+   "examples": [
+    "Apple Acid",
+    "Clangorous Soul",
+    "Grav Apple",
+    "Growth",
+    "Howl",
+    "Make It Rain"
+   ]
+  },
+  {
+   "tag": "statusInflict",
+   "kind": "move",
+   "param": "status and volatile conditions the move applies, and to whom",
+   "why": "Encore, Taunt, Confuse Ray and Disable all resolve to nothing because volatiles were never carried anywhere; reading only `status` silently drops the entire class",
+   "consumedBy": null,
+   "used": false,
+   "n": 118,
+   "uses": 168583,
+   "examples": [
+    "Baneful Bunker",
+    "Dragon Cheer",
+    "Electrify",
+    "Encore",
+    "Fake Out",
+    "Infernal Parade"
    ]
   },
   {
@@ -7166,7 +7202,8 @@
   "appleacid": {
    "name": "Apple Acid",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 12,
    "params": {
@@ -7177,6 +7214,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7188,7 +7235,8 @@
     "punishesContact",
     "stalling",
     "statusCategory",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 694,
    "params": {
@@ -7212,6 +7260,15 @@
     "inflictsPoison": {
      "p": 1,
      "via": "contact with the shield"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "banefulbunker",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -7279,7 +7336,8 @@
     "sound",
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 339,
    "params": {
@@ -7301,6 +7359,20 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "def": 1,
+        "spa": 1,
+        "spd": 1,
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7348,7 +7420,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 0,
    "params": {
@@ -7367,6 +7440,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 50
+      }
+     ]
     }
    }
   },
@@ -7403,7 +7486,8 @@
    "tags": [
     "sound",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 19,
    "params": {
@@ -7416,6 +7500,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "dragoncheer",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -7441,7 +7534,8 @@
    "name": "Electrify",
    "tags": [
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 2,
    "params": {
@@ -7451,6 +7545,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "electrify",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -7459,7 +7562,8 @@
    "tags": [
     "sealsMoves",
     "statusCategory",
-    "locksTarget"
+    "locksTarget",
+    "statusInflict"
    ],
    "uses": 4390,
    "params": {
@@ -7473,6 +7577,15 @@
     },
     "locksTarget": {
      "locks": "encore"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "encore",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -7481,6 +7594,7 @@
    "tags": [
     "priority",
     "contact",
+    "statusInflict",
     "flinches"
    ],
    "uses": 12033,
@@ -7492,6 +7606,15 @@
     "contact": {
      "contact": true
     },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 1
     }
@@ -7501,7 +7624,8 @@
    "name": "Fire Lash",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 0,
    "params": {
@@ -7515,6 +7639,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7551,7 +7685,8 @@
    "name": "Grav Apple",
    "tags": [
     "conditionalPower",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 12,
    "params": {
@@ -7565,6 +7700,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7574,7 +7719,8 @@
     "weatherScaled",
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 5,
    "params": {
@@ -7599,6 +7745,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "spa": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7608,7 +7765,8 @@
     "sound",
     "neverMisses",
     "boostsTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 39,
    "params": {
@@ -7626,6 +7784,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7633,7 +7801,8 @@
    "name": "Infernal Parade",
    "tags": [
     "variablePower",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 17,
    "params": {
@@ -7644,6 +7813,15 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -7651,12 +7829,22 @@
    "name": "Iron Head",
    "tags": [
     "contact",
+    "statusInflict",
     "flinches"
    ],
    "uses": 6734,
    "params": {
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.2
@@ -7670,7 +7858,8 @@
     "neverMisses",
     "punishesContact",
     "stalling",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 175,
    "params": {
@@ -7690,6 +7879,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "kingsshield",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -7709,7 +7907,8 @@
    "name": "Make It Rain",
    "tags": [
     "spreadFoes",
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 2192,
    "params": {
@@ -7721,13 +7920,24 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "moonblast": {
    "name": "Moonblast",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 6591,
    "params": {
@@ -7738,16 +7948,36 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
   "mountaingale": {
    "name": "Mountain Gale",
    "tags": [
+    "statusInflict",
     "flinches"
    ],
    "uses": 21,
    "params": {
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 0.3
     }
@@ -7756,7 +7986,8 @@
   "nightdaze": {
    "name": "Night Daze",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 6,
    "params": {
@@ -7767,6 +7998,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "accuracy": -1
+       },
+       "chance": 40
+      }
+     ]
     }
    }
   },
@@ -7796,7 +8037,8 @@
    "name": "Power Shift",
    "tags": [
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -7806,6 +8048,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "powershift",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -7815,7 +8066,8 @@
     "priority",
     "neverMisses",
     "stalling",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 67199,
    "params": {
@@ -7832,6 +8084,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "protect",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -7839,7 +8100,8 @@
    "name": "Psyshield Bash",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 18,
    "params": {
@@ -7853,6 +8115,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -7886,7 +8158,8 @@
   "saltcure": {
    "name": "Salt Cure",
    "tags": [
-    "perTurnHP"
+    "perTurnHP",
+    "statusInflict"
    ],
    "uses": 41,
    "params": {
@@ -7904,6 +8177,15 @@
      "to": null,
      "immuneType": null,
      "fraction": "1/16"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "saltcure",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -7960,7 +8242,8 @@
    "name": "Snap Trap",
    "tags": [
     "partialTrap",
-    "contact"
+    "contact",
+    "statusInflict"
    ],
    "uses": 2,
    "params": {
@@ -7970,6 +8253,15 @@
     },
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8001,7 +8293,8 @@
     "neverMisses",
     "punishesContact",
     "stalling",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 885,
    "params": {
@@ -8021,6 +8314,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "spikyshield",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -8078,13 +8380,23 @@
   "syrupbomb": {
    "name": "Syrup Bomb",
    "tags": [
-    "moveClass"
+    "moveClass",
+    "statusInflict"
    ],
    "uses": 1,
    "params": {
     "moveClass": {
      "classes": [
       "bullet"
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "syrupbomb",
+       "chance": 100,
+       "to": "target"
+      }
      ]
     }
    }
@@ -8094,7 +8406,9 @@
    "tags": [
     "lowersTarget",
     "statusCategory",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statChange",
+    "statusInflict"
    ],
    "uses": 6,
    "params": {
@@ -8109,6 +8423,25 @@
     "inflictsPoison": {
      "p": 1,
      "via": "primary"
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -2
+       },
+       "chance": 100
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8133,7 +8466,8 @@
    "name": "Trop Kick",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 167,
    "params": {
@@ -8147,6 +8481,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8172,7 +8516,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 13,
    "params": {
@@ -8187,6 +8532,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8194,7 +8549,8 @@
    "name": "Acid Spray",
    "tags": [
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 69,
    "params": {
@@ -8210,6 +8566,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8307,7 +8673,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 15,
    "params": {
@@ -8322,6 +8689,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8353,6 +8730,7 @@
    "name": "Air Slash",
    "tags": [
     "moveClass",
+    "statusInflict",
     "flinches"
    ],
    "uses": 214,
@@ -8360,6 +8738,15 @@
     "moveClass": {
      "classes": [
       "slicing"
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
      ]
     },
     "flinches": {
@@ -8410,7 +8797,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 9,
    "params": {
@@ -8425,13 +8813,24 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spd": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "ancientpower": {
    "name": "Ancient Power",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 524,
    "params": {
@@ -8446,6 +8845,20 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "def": 1,
+        "spa": 1,
+        "spd": 1,
+        "spe": 1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -8489,7 +8902,8 @@
    "tags": [
     "perTurnHP",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 5,
    "params": {
@@ -8508,6 +8922,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "aquaring",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -8515,7 +8938,8 @@
    "name": "Aqua Step",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 24,
    "params": {
@@ -8529,6 +8953,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8547,7 +8981,8 @@
   "armorcannon": {
    "name": "Armor Cannon",
    "tags": [
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 37,
    "params": {
@@ -8555,6 +8990,17 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": -1,
+        "spd": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8563,7 +9009,8 @@
    "tags": [
     "neverMisses",
     "boostsTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 2,
    "params": {
@@ -8578,6 +9025,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8605,12 +9062,22 @@
   "attract": {
    "name": "Attract",
    "tags": [
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "attract",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8636,7 +9103,8 @@
   "aurawheel": {
    "name": "Aura Wheel",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 23,
    "params": {
@@ -8647,6 +9115,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8707,7 +9185,8 @@
    "tags": [
     "crashOnMiss",
     "contact",
-    "inflictsConfusion"
+    "inflictsConfusion",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -8719,6 +9198,15 @@
     },
     "inflictsConfusion": {
      "p": 0.3
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8727,7 +9215,8 @@
    "tags": [
     "priority",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 52,
    "params": {
@@ -8742,6 +9231,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8749,7 +9248,8 @@
    "name": "Barb Barrage",
    "tags": [
     "conditionalPower",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 30,
    "params": {
@@ -8759,6 +9259,15 @@
     "inflictsPoison": {
      "p": 0.5,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 50,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8821,7 +9330,8 @@
    "name": "Bind",
    "tags": [
     "partialTrap",
-    "contact"
+    "contact",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -8831,6 +9341,15 @@
     },
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8839,6 +9358,7 @@
    "tags": [
     "contact",
     "moveClass",
+    "statusInflict",
     "flinches"
    ],
    "uses": 25,
@@ -8849,6 +9369,15 @@
     "moveClass": {
      "classes": [
       "bite"
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
      ]
     },
     "flinches": {
@@ -8882,7 +9411,8 @@
   "bittermalice": {
    "name": "Bitter Malice",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 100,
    "params": {
@@ -8893,6 +9423,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -8913,7 +9453,8 @@
    "tags": [
     "critRatioUp",
     "contact",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 128,
    "params": {
@@ -8926,6 +9467,15 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -8935,7 +9485,8 @@
     "weatherScaled",
     "spreadFoes",
     "moveClass",
-    "inflictsFreeze"
+    "inflictsFreeze",
+    "statusInflict"
    ],
    "uses": 2400,
    "params": {
@@ -8958,6 +9509,15 @@
     "inflictsFreeze": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "frz",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -9004,7 +9564,8 @@
    "name": "Body Slam",
    "tags": [
     "contact",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 108,
    "params": {
@@ -9014,6 +9575,15 @@
     "inflictsParalysis": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -9040,7 +9610,8 @@
     "contact",
     "inflictsParalysis",
     "chargeTurn",
-    "semiInvulnerable"
+    "semiInvulnerable",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -9056,6 +9627,15 @@
     },
     "semiInvulnerable": {
      "untargetable": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -9080,7 +9660,8 @@
    "tags": [
     "spreadFoes",
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 81,
    "params": {
@@ -9098,6 +9679,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9156,7 +9747,8 @@
    "name": "Bug Buzz",
    "tags": [
     "sound",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 53,
    "params": {
@@ -9170,6 +9762,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -9178,7 +9780,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 817,
    "params": {
@@ -9193,6 +9796,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "def": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9200,7 +9814,8 @@
    "name": "Bulldoze",
    "tags": [
     "spreadAll",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 34,
    "params": {
@@ -9215,6 +9830,16 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9282,7 +9907,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 1829,
    "params": {
@@ -9297,6 +9923,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": 1,
+        "spd": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9323,7 +9960,9 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange",
+    "statusInflict"
    ],
    "uses": 1,
    "params": {
@@ -9338,13 +9977,33 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spd": 1
+       },
+       "chance": 100
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "charge",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
   "chargebeam": {
    "name": "Charge Beam",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 3,
    "params": {
@@ -9355,6 +10014,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": 1
+       },
+       "chance": 70
+      }
+     ]
     }
    }
   },
@@ -9362,7 +10031,8 @@
    "name": "Charm",
    "tags": [
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 1200,
    "params": {
@@ -9373,13 +10043,24 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "chillingwater": {
    "name": "Chilling Water",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 48,
    "params": {
@@ -9390,6 +10071,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9486,7 +10177,8 @@
    "name": "Close Combat",
    "tags": [
     "contact",
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 8679,
    "params": {
@@ -9497,6 +10189,17 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": -1,
+        "spd": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9505,7 +10208,8 @@
    "tags": [
     "neverMisses",
     "boostsTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 766,
    "params": {
@@ -9521,6 +10225,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": 1,
+        "def": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9530,7 +10245,8 @@
     "neverMisses",
     "accuracyMod",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 487,
    "params": {
@@ -9548,6 +10264,18 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "def": 1,
+        "accuracy": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9573,7 +10301,8 @@
    "name": "Confuse Ray",
    "tags": [
     "inflictsConfusion",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 7,
    "params": {
@@ -9582,6 +10311,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -9607,7 +10345,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 19,
    "params": {
@@ -9622,6 +10361,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 1,
+        "spd": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9630,7 +10380,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 15,
    "params": {
@@ -9645,6 +10396,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 3
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9654,7 +10415,8 @@
     "spreadFoes",
     "powder",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 23,
    "params": {
@@ -9672,6 +10434,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9742,7 +10514,8 @@
     "critRatioUp",
     "contact",
     "moveClass",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 3,
    "params": {
@@ -9760,6 +10533,15 @@
     "inflictsPoison": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -9768,7 +10550,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 330,
    "params": {
@@ -9787,6 +10570,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 20
+      }
+     ]
     }
    }
   },
@@ -9796,7 +10589,8 @@
     "perTurnHP",
     "neverMisses",
     "ignoresProtect",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 103,
    "params": {
@@ -9818,6 +10612,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "curse",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -9841,6 +10644,7 @@
    "name": "Dark Pulse",
    "tags": [
     "moveClass",
+    "statusInflict",
     "flinches"
    ],
    "uses": 1493,
@@ -9848,6 +10652,15 @@
     "moveClass": {
      "classes": [
       "pulse"
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 20,
+       "to": "target"
+      }
      ]
     },
     "flinches": {
@@ -9874,7 +10687,8 @@
     "neverMisses",
     "ignoresProtect",
     "boostsTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 32,
    "params": {
@@ -9893,6 +10707,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": 2,
+        "spa": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -9926,7 +10751,8 @@
    "name": "Destiny Bond",
    "tags": [
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 69,
    "params": {
@@ -9936,6 +10762,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "destinybond",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -9945,7 +10780,8 @@
     "priority",
     "neverMisses",
     "stalling",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 1846,
    "params": {
@@ -9962,6 +10798,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "protect",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -9990,7 +10835,8 @@
    "tags": [
     "sealsMoves",
     "statusCategory",
-    "locksTarget"
+    "locksTarget",
+    "statusInflict"
    ],
    "uses": 679,
    "params": {
@@ -10004,6 +10850,15 @@
     },
     "locksTarget": {
      "locks": "disable"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "disable",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -10011,7 +10866,8 @@
    "name": "Discharge",
    "tags": [
     "spreadAll",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 507,
    "params": {
@@ -10022,6 +10878,15 @@
     "inflictsParalysis": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -10084,7 +10949,8 @@
     "neverMisses",
     "accuracyMod",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 1,
    "params": {
@@ -10102,13 +10968,24 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "evasion": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "dracometeor": {
    "name": "Draco Meteor",
    "tags": [
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 1646,
    "params": {
@@ -10116,6 +10993,16 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -10124,7 +11011,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 562,
    "params": {
@@ -10139,6 +11027,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -10173,12 +11072,22 @@
    "name": "Dragon Rush",
    "tags": [
     "contact",
+    "statusInflict",
     "flinches"
    ],
    "uses": 28,
    "params": {
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.2
@@ -10296,7 +11205,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "inflictsConfusion"
+    "inflictsConfusion",
+    "statusInflict"
    ],
    "uses": 12,
    "params": {
@@ -10310,13 +11220,23 @@
     },
     "inflictsConfusion": {
      "p": 1
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
   "earthpower": {
    "name": "Earth Power",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 4011,
    "params": {
@@ -10327,6 +11247,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -10347,7 +11277,8 @@
    "name": "Eerie Impulse",
    "tags": [
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 17,
    "params": {
@@ -10358,6 +11289,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -10448,7 +11389,8 @@
    "name": "Electroweb",
    "tags": [
     "spreadFoes",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 530,
    "params": {
@@ -10463,6 +11405,16 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -10490,7 +11442,8 @@
     "priority",
     "neverMisses",
     "stalling",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 3,
    "params": {
@@ -10507,6 +11460,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "endure",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -10514,7 +11476,8 @@
    "name": "Energy Ball",
    "tags": [
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 661,
    "params": {
@@ -10530,6 +11493,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -10598,10 +11571,20 @@
   "extrasensory": {
    "name": "Extrasensory",
    "tags": [
+    "statusInflict",
     "flinches"
    ],
    "uses": 49,
    "params": {
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 0.1
     }
@@ -10665,7 +11648,8 @@
    "name": "Fake Tears",
    "tags": [
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 473,
    "params": {
@@ -10676,6 +11660,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -10683,7 +11677,8 @@
    "name": "Feather Dance",
    "tags": [
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 10,
    "params": {
@@ -10694,6 +11689,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -10741,7 +11746,8 @@
   "fierydance": {
    "name": "Fiery Dance",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 57,
    "params": {
@@ -10752,6 +11758,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": 1
+       },
+       "chance": 50
+      }
+     ]
     }
    }
   },
@@ -10776,13 +11792,23 @@
   "fireblast": {
    "name": "Fire Blast",
    "tags": [
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 40,
    "params": {
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -10792,6 +11818,7 @@
     "contact",
     "moveClass",
     "inflictsBurn",
+    "statusInflict",
     "flinches"
    ],
    "uses": 25,
@@ -10808,6 +11835,20 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      },
+      {
+       "volatile": "flinch",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 0.1
     }
@@ -10818,7 +11859,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 72,
    "params": {
@@ -10833,19 +11875,38 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
   "firespin": {
    "name": "Fire Spin",
    "tags": [
-    "partialTrap"
+    "partialTrap",
+    "statusInflict"
    ],
    "uses": 17,
    "params": {
     "partialTrap": {
      "turns": "4-5",
      "chipPerTurn": 0.125
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -10888,7 +11949,8 @@
    "name": "Flame Charge",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 13,
    "params": {
@@ -10902,19 +11964,39 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "flamethrower": {
    "name": "Flamethrower",
    "tags": [
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 726,
    "params": {
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -10924,7 +12006,8 @@
     "contact",
     "thawsTarget",
     "inflictsBurn",
-    "recoil"
+    "recoil",
+    "statusInflict"
    ],
    "uses": 6217,
    "params": {
@@ -10940,13 +12023,23 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
   "flashcannon": {
    "name": "Flash Cannon",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 2441,
    "params": {
@@ -10957,6 +12050,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -10965,7 +12068,9 @@
    "tags": [
     "inflictsConfusion",
     "boostsTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -10979,6 +12084,25 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": 1
+       },
+       "chance": 100
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11062,7 +12186,8 @@
    "name": "Focus Blast",
    "tags": [
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 1703,
    "params": {
@@ -11078,6 +12203,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -11085,7 +12220,8 @@
    "name": "Focus Energy",
    "tags": [
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 5,
    "params": {
@@ -11095,6 +12231,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "focusenergy",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -11131,7 +12276,8 @@
     "priority",
     "neverMisses",
     "redirects",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 1344,
    "params": {
@@ -11148,6 +12294,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "followme",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -11225,12 +12380,22 @@
   "gastroacid": {
    "name": "Gastro Acid",
    "tags": [
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 3,
    "params": {
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "gastroacid",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11280,7 +12445,8 @@
    "name": "Glare",
    "tags": [
     "statusCategory",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 28,
    "params": {
@@ -11290,6 +12456,15 @@
     "inflictsParalysis": {
      "p": 1,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11478,13 +12653,23 @@
   "gunkshot": {
    "name": "Gunk Shot",
    "tags": [
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 331,
    "params": {
     "inflictsPoison": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11520,7 +12705,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 168,
    "params": {
@@ -11536,6 +12722,16 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": true,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -11582,7 +12778,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 46,
    "params": {
@@ -11598,6 +12795,17 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": -1,
+        "spd": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -11738,7 +12946,8 @@
    "tags": [
     "spreadFoes",
     "moveClass",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 6674,
    "params": {
@@ -11754,6 +12963,15 @@
     "inflictsBurn": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11805,7 +13023,8 @@
    "tags": [
     "priority",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 3255,
    "params": {
@@ -11819,6 +13038,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "helpinghand",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11907,7 +13135,8 @@
    "tags": [
     "weatherScaled",
     "moveClass",
-    "inflictsConfusion"
+    "inflictsConfusion",
+    "statusInflict"
    ],
    "uses": 3080,
    "params": {
@@ -11928,6 +13157,15 @@
     },
     "inflictsConfusion": {
      "p": 0.3
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -11984,7 +13222,8 @@
    "name": "Hypnosis",
    "tags": [
     "statusCategory",
-    "inflictsSleep"
+    "inflictsSleep",
+    "statusInflict"
    ],
    "uses": 475,
    "params": {
@@ -11994,19 +13233,38 @@
     "inflictsSleep": {
      "p": 0.6,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "slp",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
   "icebeam": {
    "name": "Ice Beam",
    "tags": [
-    "inflictsFreeze"
+    "inflictsFreeze",
+    "statusInflict"
    ],
    "uses": 1011,
    "params": {
     "inflictsFreeze": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "frz",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12016,6 +13274,7 @@
     "contact",
     "moveClass",
     "inflictsFreeze",
+    "statusInflict",
     "flinches"
    ],
    "uses": 649,
@@ -12032,6 +13291,20 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "frz",
+       "chance": 10,
+       "to": "target"
+      },
+      {
+       "volatile": "flinch",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 0.1
     }
@@ -12042,7 +13315,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 58,
    "params": {
@@ -12058,6 +13332,16 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": true,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12066,7 +13350,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "inflictsFreeze"
+    "inflictsFreeze",
+    "statusInflict"
    ],
    "uses": 2111,
    "params": {
@@ -12081,6 +13366,15 @@
     "inflictsFreeze": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "frz",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12112,10 +13406,20 @@
   "iciclecrash": {
    "name": "Icicle Crash",
    "tags": [
+    "statusInflict",
     "flinches"
    ],
    "uses": 318,
    "params": {
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 0.3
     }
@@ -12139,7 +13443,8 @@
    "tags": [
     "spreadFoes",
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 1525,
    "params": {
@@ -12159,6 +13464,16 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12167,7 +13482,8 @@
    "tags": [
     "sealsMoves",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 235,
    "params": {
@@ -12182,19 +13498,38 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "imprison",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
   "inferno": {
    "name": "Inferno",
    "tags": [
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
     "inflictsBurn": {
      "p": 1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12202,7 +13537,8 @@
    "name": "Infestation",
    "tags": [
     "partialTrap",
-    "contact"
+    "contact",
+    "statusInflict"
    ],
    "uses": 711,
    "params": {
@@ -12212,6 +13548,15 @@
     },
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12220,7 +13565,8 @@
    "tags": [
     "perTurnHP",
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -12239,6 +13585,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "ingrain",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -12272,7 +13627,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 221,
    "params": {
@@ -12287,6 +13643,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12294,7 +13660,8 @@
    "name": "Iron Tail",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 13,
    "params": {
@@ -12308,6 +13675,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 30
+      }
+     ]
     }
    }
   },
@@ -12443,7 +13820,8 @@
    "name": "Lava Plume",
    "tags": [
     "spreadAll",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 5,
    "params": {
@@ -12454,6 +13832,15 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12482,7 +13869,8 @@
   "leafstorm": {
    "name": "Leaf Storm",
    "tags": [
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 580,
    "params": {
@@ -12490,6 +13878,16 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12514,7 +13912,8 @@
    "name": "Leech Seed",
    "tags": [
     "perTurnHP",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 331,
    "params": {
@@ -12529,6 +13928,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "leechseed",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12589,7 +13997,8 @@
    "name": "Liquidation",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 780,
    "params": {
@@ -12603,6 +14012,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 20
+      }
+     ]
     }
    }
   },
@@ -12674,7 +14093,8 @@
    "name": "Low Sweep",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 10,
    "params": {
@@ -12688,13 +14108,24 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "luminacrash": {
    "name": "Lumina Crash",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 80,
    "params": {
@@ -12705,6 +14136,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12712,7 +14153,8 @@
    "name": "Lunge",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 29,
    "params": {
@@ -12726,6 +14168,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12816,7 +14268,8 @@
    "tags": [
     "neverMisses",
     "failsWithoutWeather",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 1,
    "params": {
@@ -12829,6 +14282,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "magnetrise",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -12838,7 +14300,8 @@
     "spreadFoes",
     "thawsTarget",
     "inflictsBurn",
-    "drain"
+    "drain",
+    "statusInflict"
    ],
    "uses": 4913,
    "params": {
@@ -12856,6 +14319,15 @@
     "drain": {
      "readFrom": "m.drain",
      "unusual": false
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -12909,7 +14381,8 @@
    "tags": [
     "lowersTarget",
     "userFaints",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 36,
    "params": {
@@ -12923,6 +14396,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -2,
+        "spa": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12949,7 +14433,8 @@
    "tags": [
     "sound",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 2,
    "params": {
@@ -12963,6 +14448,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -12986,7 +14481,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 371,
    "params": {
@@ -13005,6 +14501,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1
+       },
+       "chance": 20
+      }
+     ]
     }
    }
   },
@@ -13014,7 +14520,9 @@
     "neverMisses",
     "accuracyMod",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange",
+    "statusInflict"
    ],
    "uses": 16,
    "params": {
@@ -13032,6 +14540,25 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "evasion": 2
+       },
+       "chance": 100
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "minimize",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -13181,7 +14708,8 @@
    "tags": [
     "spreadFoes",
     "contact",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 31,
    "params": {
@@ -13195,6 +14723,15 @@
     "inflictsPoison": {
      "p": 1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -13202,7 +14739,8 @@
    "name": "Muddy Water",
    "tags": [
     "spreadFoes",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 711,
    "params": {
@@ -13217,13 +14755,24 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "accuracy": -1
+       },
+       "chance": 30
+      }
+     ]
     }
    }
   },
   "mudshot": {
    "name": "Mud Shot",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 14,
    "params": {
@@ -13234,13 +14783,24 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "mudslap": {
    "name": "Mud-Slap",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 5,
    "params": {
@@ -13251,13 +14811,24 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "accuracy": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
   "mysticalfire": {
    "name": "Mystical Fire",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 106,
    "params": {
@@ -13268,6 +14839,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -13276,7 +14857,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 2896,
    "params": {
@@ -13291,6 +14873,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -13312,7 +14904,8 @@
    "tags": [
     "sound",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 0,
    "params": {
@@ -13326,6 +14919,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1,
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -13334,7 +14938,9 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange",
+    "statusInflict"
    ],
    "uses": 72,
    "params": {
@@ -13349,6 +14955,29 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 1,
+        "def": 1,
+        "spa": 1,
+        "spd": 1,
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "noretreat",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -13356,7 +14985,8 @@
    "name": "Nuzzle",
    "tags": [
     "contact",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 133,
    "params": {
@@ -13366,6 +14996,15 @@
     "inflictsParalysis": {
      "p": 1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -13384,7 +15023,8 @@
   "overheat": {
    "name": "Overheat",
    "tags": [
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 1157,
    "params": {
@@ -13392,6 +15032,16 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -13577,7 +15227,8 @@
    "name": "Play Rough",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 1256,
    "params": {
@@ -13591,6 +15242,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -13617,7 +15278,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "inflictsToxic"
+    "inflictsToxic",
+    "statusInflict"
    ],
    "uses": 5,
    "params": {
@@ -13632,6 +15294,15 @@
     "inflictsToxic": {
      "p": 0.5,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "tox",
+       "chance": 50,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -13639,7 +15310,8 @@
    "name": "Poison Jab",
    "tags": [
     "contact",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 1198,
    "params": {
@@ -13649,6 +15321,15 @@
     "inflictsPoison": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -13657,7 +15338,8 @@
    "tags": [
     "powder",
     "statusCategory",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -13670,6 +15352,15 @@
     "inflictsPoison": {
      "p": 0.75,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -13736,7 +15427,8 @@
    "name": "Pounce",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 12,
    "params": {
@@ -13750,6 +15442,16 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -13820,7 +15522,8 @@
    "name": "Power Trick",
    "tags": [
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -13830,6 +15533,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "powertrick",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -13865,7 +15577,8 @@
   "psychic": {
    "name": "Psychic",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 3085,
    "params": {
@@ -13876,6 +15589,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -13905,7 +15628,8 @@
    "name": "Psychic Noise",
    "tags": [
     "blocksHealing",
-    "sound"
+    "sound",
+    "statusInflict"
    ],
    "uses": 196,
    "params": {
@@ -13914,6 +15638,15 @@
     },
     "sound": {
      "sound": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "healblock",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -14059,7 +15792,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 72,
    "params": {
@@ -14074,6 +15808,18 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": 1,
+        "spd": 1,
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14084,7 +15830,8 @@
     "powder",
     "neverMisses",
     "redirects",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 5813,
    "params": {
@@ -14104,6 +15851,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "ragepowder",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -14156,7 +15912,8 @@
    "name": "Rapid Spin",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 9,
    "params": {
@@ -14170,6 +15927,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14178,7 +15945,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 10,
    "params": {
@@ -14197,6 +15965,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 50
+      }
+     ]
     }
    }
   },
@@ -14398,7 +16176,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 0,
    "params": {
@@ -14413,6 +16192,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14420,6 +16209,7 @@
    "name": "Rock Slide",
    "tags": [
     "spreadFoes",
+    "statusInflict",
     "flinches"
    ],
    "uses": 11119,
@@ -14427,6 +16217,15 @@
     "spreadFoes": {
      "target": "allAdjacentFoes",
      "hitsAlly": false
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.3
@@ -14436,7 +16235,8 @@
   "rocktomb": {
    "name": "Rock Tomb",
    "tags": [
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 682,
    "params": {
@@ -14447,6 +16247,16 @@
      },
      "onSelf": false,
      "lowersSpeed": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14576,13 +16386,23 @@
   "sandtomb": {
    "name": "Sand Tomb",
    "tags": [
-    "partialTrap"
+    "partialTrap",
+    "statusInflict"
    ],
    "uses": 23,
    "params": {
     "partialTrap": {
      "turns": "4-5",
      "chipPerTurn": 0.125
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -14590,7 +16410,8 @@
    "name": "Scald",
    "tags": [
     "thawsTarget",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 1222,
    "params": {
@@ -14600,6 +16421,15 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -14632,7 +16462,8 @@
    "name": "Scary Face",
    "tags": [
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 221,
    "params": {
@@ -14643,6 +16474,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14650,7 +16491,8 @@
    "name": "Scorching Sands",
    "tags": [
     "thawsTarget",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 148,
    "params": {
@@ -14660,6 +16502,15 @@
     "inflictsBurn": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -14668,7 +16519,8 @@
    "tags": [
     "sound",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 4,
    "params": {
@@ -14682,6 +16534,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14737,7 +16599,8 @@
    "name": "Shadow Ball",
    "tags": [
     "moveClass",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 5152,
    "params": {
@@ -14753,6 +16616,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spd": -1
+       },
+       "chance": 20
+      }
+     ]
     }
    }
   },
@@ -14802,7 +16675,8 @@
     "neverMisses",
     "passesState",
     "substitute",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 59,
    "params": {
@@ -14822,6 +16696,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "substitute",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -14847,7 +16730,8 @@
    "name": "Shell Side Arm",
    "tags": [
     "dualPurpose",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 11,
    "params": {
@@ -14858,6 +16742,15 @@
     "inflictsPoison": {
      "p": 0.2,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -14867,7 +16760,8 @@
     "neverMisses",
     "boostsUser",
     "lowersUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 399,
    "params": {
@@ -14887,6 +16781,20 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": -1,
+        "spd": -1,
+        "atk": 2,
+        "spa": 2,
+        "spe": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14895,7 +16803,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 36,
    "params": {
@@ -14910,6 +16819,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14930,7 +16849,8 @@
    "tags": [
     "sound",
     "statusCategory",
-    "inflictsSleep"
+    "inflictsSleep",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -14943,6 +16863,15 @@
     "inflictsSleep": {
      "p": 0.55,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "slp",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -14967,7 +16896,8 @@
    "name": "Skitter Smack",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 3,
    "params": {
@@ -14981,6 +16911,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -14989,6 +16929,7 @@
    "tags": [
     "critRatioUp",
     "chargeTurn",
+    "statusInflict",
     "flinches"
    ],
    "uses": 0,
@@ -14998,6 +16939,15 @@
     },
     "chargeTurn": {
      "charge": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.3
@@ -15033,7 +16983,8 @@
    "tags": [
     "powder",
     "statusCategory",
-    "inflictsSleep"
+    "inflictsSleep",
+    "statusInflict"
    ],
    "uses": 1243,
    "params": {
@@ -15046,6 +16997,15 @@
     "inflictsSleep": {
      "p": 0.75,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "slp",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15070,7 +17030,8 @@
    "name": "Sludge Bomb",
    "tags": [
     "moveClass",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 3401,
    "params": {
@@ -15082,6 +17043,15 @@
     "inflictsPoison": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15089,7 +17059,8 @@
    "name": "Sludge Wave",
    "tags": [
     "spreadAll",
-    "inflictsPoison"
+    "inflictsPoison",
+    "statusInflict"
    ],
    "uses": 116,
    "params": {
@@ -15100,16 +17071,35 @@
     "inflictsPoison": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "psn",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
   "smackdown": {
    "name": "Smack Down",
    "tags": [
-    "untagged"
+    "statusInflict"
    ],
    "uses": 9,
-   "params": {}
+   "params": {
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "smackdown",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
+    }
+   }
   },
   "smartstrike": {
    "name": "Smart Strike",
@@ -15132,7 +17122,8 @@
    "tags": [
     "spreadFoes",
     "sound",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 771,
    "params": {
@@ -15150,6 +17141,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15157,12 +17158,22 @@
    "name": "Snore",
    "tags": [
     "sound",
+    "statusInflict",
     "flinches"
    ],
    "uses": 0,
    "params": {
     "sound": {
      "sound": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.3
@@ -15298,7 +17309,8 @@
    "name": "Sparkling Aria",
    "tags": [
     "spreadAll",
-    "sound"
+    "sound",
+    "statusInflict"
    ],
    "uses": 4,
    "params": {
@@ -15308,6 +17320,15 @@
     },
     "sound": {
      "sound": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "sparklingaria",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15333,7 +17354,8 @@
    "tags": [
     "neverMisses",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 6,
    "params": {
@@ -15348,6 +17370,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": 2,
+        "def": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15376,7 +17409,8 @@
    "name": "Spirit Break",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 1448,
    "params": {
@@ -15390,6 +17424,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15423,7 +17467,8 @@
    "tags": [
     "powder",
     "statusCategory",
-    "inflictsSleep"
+    "inflictsSleep",
+    "statusInflict"
    ],
    "uses": 3,
    "params": {
@@ -15436,6 +17481,15 @@
     "inflictsSleep": {
      "p": 1,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "slp",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15489,7 +17543,8 @@
    "name": "Steel Wing",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 18,
    "params": {
@@ -15503,6 +17558,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "def": 1
+       },
+       "chance": 10
+      }
+     ]
     }
    }
   },
@@ -15531,7 +17596,8 @@
    "name": "Stockpile",
    "tags": [
     "neverMisses",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 39,
    "params": {
@@ -15541,6 +17607,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "stockpile",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -15635,7 +17710,8 @@
    "tags": [
     "spreadFoes",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 16,
    "params": {
@@ -15650,6 +17726,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spe": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15678,7 +17764,8 @@
    "name": "Struggle Bug",
    "tags": [
     "spreadFoes",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 80,
    "params": {
@@ -15693,6 +17780,16 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15701,7 +17798,8 @@
    "tags": [
     "powder",
     "statusCategory",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 21,
    "params": {
@@ -15714,6 +17812,15 @@
     "inflictsParalysis": {
      "p": 0.75,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15723,7 +17830,8 @@
     "costsUserHP",
     "neverMisses",
     "substitute",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 519,
    "params": {
@@ -15740,6 +17848,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "substitute",
+       "chance": 100,
+       "to": "user"
+      }
+     ]
     }
    }
   },
@@ -15823,7 +17940,8 @@
    "name": "Superpower",
    "tags": [
     "contact",
-    "lowersUser"
+    "lowersUser",
+    "statChange"
    ],
    "uses": 367,
    "params": {
@@ -15834,6 +17952,17 @@
      "readFrom": "m.self.boosts",
      "lowersSpeed": false,
      "alsoRaises": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": -1,
+        "def": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15855,7 +17984,9 @@
    "tags": [
     "inflictsConfusion",
     "boostsTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange",
+    "statusInflict"
    ],
    "uses": 68,
    "params": {
@@ -15869,6 +18000,25 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": 2
+       },
+       "chance": 100
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15897,7 +18047,8 @@
    "name": "Sweet Kiss",
    "tags": [
     "inflictsConfusion",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -15906,6 +18057,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -15915,7 +18075,8 @@
     "spreadFoes",
     "accuracyMod",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 1,
    "params": {
@@ -15933,6 +18094,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "evasion": -2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -15959,7 +18130,8 @@
    "tags": [
     "neverMisses",
     "boostsUser",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 2046,
    "params": {
@@ -15974,6 +18146,16 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "atk": 2
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -16064,7 +18246,8 @@
    "tags": [
     "sealsMoves",
     "statusCategory",
-    "forbidsStatusMoves"
+    "forbidsStatusMoves",
+    "statusInflict"
    ],
    "uses": 1336,
    "params": {
@@ -16078,6 +18261,15 @@
     },
     "forbidsStatusMoves": {
      "forbids": "Status"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "taunt",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16087,7 +18279,8 @@
     "neverMisses",
     "ignoresProtect",
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 2,
    "params": {
@@ -16105,6 +18298,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1,
+        "spa": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -16130,7 +18334,8 @@
    "tags": [
     "spreadAll",
     "inflictsConfusion",
-    "statusCategory"
+    "statusCategory",
+    "statusInflict"
    ],
    "uses": 2,
    "params": {
@@ -16143,6 +18348,15 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16237,7 +18451,8 @@
    "name": "Thunder",
    "tags": [
     "weatherScaled",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 238,
    "params": {
@@ -16254,19 +18469,38 @@
     "inflictsParalysis": {
      "p": 0.3,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     }
    }
   },
   "thunderbolt": {
    "name": "Thunderbolt",
    "tags": [
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 2765,
    "params": {
     "inflictsParalysis": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16276,6 +18510,7 @@
     "contact",
     "moveClass",
     "inflictsParalysis",
+    "statusInflict",
     "flinches"
    ],
    "uses": 7,
@@ -16292,6 +18527,20 @@
      "p": 0.1,
      "via": "secondary"
     },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 10,
+       "to": "target"
+      },
+      {
+       "volatile": "flinch",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
+    },
     "flinches": {
      "pFlinch": 0.1
     }
@@ -16302,7 +18551,8 @@
    "tags": [
     "contact",
     "moveClass",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 276,
    "params": {
@@ -16317,6 +18567,15 @@
     "inflictsParalysis": {
      "p": 0.1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16324,7 +18583,8 @@
    "name": "Thunder Wave",
    "tags": [
     "statusCategory",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 369,
    "params": {
@@ -16334,6 +18594,15 @@
     "inflictsParalysis": {
      "p": 0.9,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16341,7 +18610,8 @@
    "name": "Tickle",
    "tags": [
     "lowersTarget",
-    "statusCategory"
+    "statusCategory",
+    "statChange"
    ],
    "uses": 198,
    "params": {
@@ -16352,6 +18622,17 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "atk": -1,
+        "def": -1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -16401,7 +18682,8 @@
    "name": "Torch Song",
    "tags": [
     "sound",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 37,
    "params": {
@@ -16415,6 +18697,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spa": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -16423,7 +18715,8 @@
    "tags": [
     "sealsMoves",
     "statusCategory",
-    "locksTarget"
+    "locksTarget",
+    "statusInflict"
    ],
    "uses": 5,
    "params": {
@@ -16437,6 +18730,15 @@
     },
     "locksTarget": {
      "locks": "torment"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "torment",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16444,7 +18746,8 @@
    "name": "Toxic",
    "tags": [
     "statusCategory",
-    "inflictsToxic"
+    "inflictsToxic",
+    "statusInflict"
    ],
    "uses": 769,
    "params": {
@@ -16454,6 +18757,15 @@
     "inflictsToxic": {
      "p": 0.9,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "tox",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16482,7 +18794,8 @@
    "name": "Trailblaze",
    "tags": [
     "contact",
-    "secondaryStatEffect"
+    "secondaryStatEffect",
+    "statChange"
    ],
    "uses": 40,
    "params": {
@@ -16496,6 +18809,16 @@
      },
      "onSelf": true,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "user": [
+      {
+       "boosts": {
+        "spe": 1
+       },
+       "chance": 100
+      }
+     ]
     }
    }
   },
@@ -16587,6 +18910,8 @@
    "tags": [
     "critRatioUp",
     "secondaryStatEffect",
+    "statChange",
+    "statusInflict",
     "flinches"
    ],
    "uses": 85,
@@ -16601,6 +18926,25 @@
      },
      "onSelf": false,
      "lowersSpeed": false
+    },
+    "statChange": {
+     "target": [
+      {
+       "boosts": {
+        "def": -1
+       },
+       "chance": 50
+      }
+     ]
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 30,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.3
@@ -16652,6 +18996,7 @@
     "priority",
     "contact",
     "needsTargetToAttack",
+    "statusInflict",
     "flinches"
    ],
    "uses": 70,
@@ -16665,6 +19010,15 @@
     },
     "needsTargetToAttack": {
      "needs": "target attacking"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 1
@@ -16741,7 +19095,8 @@
    "tags": [
     "contact",
     "inflictsParalysis",
-    "recoil"
+    "recoil",
+    "statusInflict"
    ],
    "uses": 200,
    "params": {
@@ -16754,6 +19109,15 @@
     },
     "recoil": {
      "readFrom": "m.recoil"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 10,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16761,12 +19125,22 @@
    "name": "Waterfall",
    "tags": [
     "contact",
+    "statusInflict",
     "flinches"
    ],
    "uses": 301,
    "params": {
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.2
@@ -16777,7 +19151,8 @@
    "name": "Water Pulse",
    "tags": [
     "moveClass",
-    "inflictsConfusion"
+    "inflictsConfusion",
+    "statusInflict"
    ],
    "uses": 68,
    "params": {
@@ -16788,6 +19163,15 @@
     },
     "inflictsConfusion": {
      "p": 0.2
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "confusion",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16885,13 +19269,23 @@
   "whirlpool": {
    "name": "Whirlpool",
    "tags": [
-    "partialTrap"
+    "partialTrap",
+    "statusInflict"
    ],
    "uses": 15,
    "params": {
     "partialTrap": {
      "turns": "4-5",
      "chipPerTurn": 0.125
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -16977,7 +19371,8 @@
    "name": "Will-O-Wisp",
    "tags": [
     "statusCategory",
-    "inflictsBurn"
+    "inflictsBurn",
+    "statusInflict"
    ],
    "uses": 1627,
    "params": {
@@ -16987,6 +19382,15 @@
     "inflictsBurn": {
      "p": 0.85,
      "via": "primary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "brn",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -17064,7 +19468,8 @@
    "name": "Wrap",
    "tags": [
     "partialTrap",
-    "contact"
+    "contact",
+    "statusInflict"
    ],
    "uses": 0,
    "params": {
@@ -17074,6 +19479,15 @@
     },
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "partiallytrapped",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -17100,7 +19514,8 @@
    "tags": [
     "neverMisses",
     "statusCategory",
-    "delayedSleep"
+    "delayedSleep",
+    "statusInflict"
    ],
    "uses": 757,
    "params": {
@@ -17113,6 +19528,15 @@
     },
     "delayedSleep": {
      "delay": 1
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "yawn",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -17120,7 +19544,8 @@
    "name": "Zap Cannon",
    "tags": [
     "moveClass",
-    "inflictsParalysis"
+    "inflictsParalysis",
+    "statusInflict"
    ],
    "uses": 1625,
    "params": {
@@ -17132,6 +19557,15 @@
     "inflictsParalysis": {
      "p": 1,
      "via": "secondary"
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "status": "par",
+       "chance": 100,
+       "to": "target"
+      }
+     ]
     }
    }
   },
@@ -17139,12 +19573,22 @@
    "name": "Zen Headbutt",
    "tags": [
     "contact",
+    "statusInflict",
     "flinches"
    ],
    "uses": 93,
    "params": {
     "contact": {
      "contact": true
+    },
+    "statusInflict": {
+     "effects": [
+      {
+       "volatile": "flinch",
+       "chance": 20,
+       "to": "target"
+      }
+     ]
     },
     "flinches": {
      "pFlinch": 0.2
