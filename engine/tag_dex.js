@@ -1341,7 +1341,22 @@ const MOVE_TAGS = [
    * completely different move: full power, no free turn given away. */
   { tag: 'chargeTurn', param: 'costs a turn before it lands', probe: 'chargeTurn',
     why: 'and the request omits the target field on the locked turn, which already broke the player once',
-    of: m => (m.flags && m.flags.charge) ? { charge: true } : null },
+    of: m => {
+      if (!(m.flags && m.flags.charge)) return null;
+      /* THE CHARGE TURN IS NOT ALWAYS EMPTY. Electro Shot and Meteor Beam raise Special Attack as
+       * they wind up, and that boost is most of the reason either is worth a turn. Showdown keeps it
+       * inside onTryMove as a `this.boost({spa: 1}, ...)` call, so it is read out of the handler the
+       * same way the weather skip on the next tag already is -- derived, not named. A move that
+       * grants nothing simply carries no `boosts` key. */
+      const src = String(m.onTryMove || '');
+      const frag = src.match(/boost\(\s*\{([^}]*)\}/);
+      const boosts = {};
+      if (frag) for (const part of frag[1].split(',')) {
+        const kv = part.split(':').map(x => x.trim());
+        if (kv.length === 2 && /^-?\d+$/.test(kv[1])) boosts[kv[0]] = parseInt(kv[1], 10);
+      }
+      return Object.keys(boosts).length ? { charge: true, boosts } : { charge: true };
+    } },
   { tag: 'chargeSkippedByWeather', param: 'the charge turn DISAPPEARS under one weather', probe: 'chargeSkip',
     why: 'Electro Shot in rain, Solar Beam and Solar Blade in sun. Same move, no downside, and the '
        + 'weather that does it is usually one the user set themselves',

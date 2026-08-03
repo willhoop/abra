@@ -890,6 +890,10 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
   const out=act[i]; if(!out||out.fainted) return null;
   if(!_live(bench).length) return null;
   out.protect=false; out.tookProtectTurns=0; out._redirect=null; out._seededBy=null;
+  /* A charge does not survive leaving the field, and neither does the invulnerability. Left set,
+   * a benched mon would come back locked into a move it started two switches ago -- or worse,
+   * come back untargetable. */
+  out._charging=null; out._invuln=false;
   out._lock=null; out._lockT=0; out._flinch=false;
   out.boosts={at:0,df:0,sa:0,sd:0,sp:0};
   bench.push(out);
@@ -937,7 +941,16 @@ function battleTurn(S,rng,actsForA,actsForB){
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
     const mk=(mon,side,foes,ally)=>{if(!mon||mon.fainted||mon.curHP<=0)return;
       const forced=(side==='A'?actsForA&&actsForA.get(mon):actsForB&&actsForB.get(mon));
-      const _a=forced||chooseAction(mon,foes,ally,field,side,rng);
+      /* A CHARGING POKEMON HAS NO CHOICE. The release turn is not a decision in the real game and
+         must not be one here, or the engine would let it wind up Solar Beam and then click
+         something else -- a free stat boost and no turn ever spent. Target is re-aimed at
+         execution, so a stale body is not carried across the turn. */
+      let _a;
+      if(mon._charging&&MC.moves[mon._charging]){
+        const _t=live(foes)[0]||null;
+        _a=playerAction(mon,mon._charging,_t,field);
+        if(!_a||_a.kind!=='attack'){mon._charging=null;mon._invuln=false;_a=forced||chooseAction(mon,foes,ally,field,side,rng);}
+      } else _a=forced||chooseAction(mon,foes,ally,field,side,rng);
       /* WHICH SLOT the click was aimed at, captured now while the board is still the pre-switch one.
          A move targets a SLOT, not a body: if the intended target switches out, the Pokemon that
          replaces it takes the hit. Without this the outgoing mon stayed targetable from the bench and
@@ -1190,6 +1203,43 @@ function battleTurn(S,rng,actsForA,actsForB){
         continue;
       }
       if(a.kind!=='attack')continue;
+      /* THE CHARGE TURN. Ten moves cost a turn before they land and this engine played all of them
+       * in one, so Electro Shot was a free 130 BP nuke in any weather -- Will watched it click one
+       * out of rain. The comment two hundred lines up said so and called it "stated, not fixed".
+       *
+       * Handled HERE, at execution, rather than inside playerAction or chooseAction, because both of
+       * those build actions: a rule placed in one would be missing from the other, which is exactly
+       * how the coverage bug that started this week happened.
+       *
+       * Three states in order. Already charging this move -> it fires now and the user comes back
+       * down. Skippable -> it fires immediately and no turn is spent (Electro Shot in rain, Solar
+       * Beam in sun, or a Power Herb, which is consumed). Otherwise -> spend this turn charging,
+       * take the charge-turn stat boost if the move grants one, and go untargetable if this is one
+       * of the five that leave the field. Every branch reads the artifact; nothing is named here. */
+      if(TAGS.has('move',a.move.id,'chargeTurn')){
+        if(m._charging===a.move.id){
+          m._charging=null; m._invuln=false;                    // release turn: fall through and hit
+        } else {
+          const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');
+          const _herb=m.item==='powerherb';
+          if(!(_sk&&_sk.skipsIn&&field.weather===_sk.skipsIn)&&!_herb){
+            m._charging=a.move.id;
+            m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');
+            /* The charge turn is not always empty: Electro Shot and Meteor Beam raise Special
+             * Attack as they wind up, which is most of why either is worth a turn. The boost comes
+             * from the chargeTurn param, derived from the move's own onTryMove handler, so a new
+             * one arrives with a regenerated artifact and no edit here. */
+            const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;
+            if(_b)for(const _k of Object.keys(_b)){
+              const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;
+              if(m.boosts&&_kk in m.boosts)m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));
+            }
+            m._lastMove=a.move.id;
+            continue;                                           // the turn is spent
+          }
+          if(_herb)m.item='';                                   // Power Herb is consumed
+        }
+      }
       const mv=a.move.mv;
       /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
       if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
@@ -1240,6 +1290,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted)continue;
+        /* OFF THE FIELD. A Pokemon in the charge turn of Fly, Dig, Dive, Bounce or Phantom Force
+         * cannot be hit at all. Without this the charge is pure cost and those five become strictly
+         * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
+        if(tg._invuln)continue;
         if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)
         /* WIRE 11 -- the absorb GAIN. dmgRange already prices the hit at zero; HERE the absorber
          * collects what its handler grants -- Volt Absorb heals 1/4, Storm Drain banks +1 SpA,

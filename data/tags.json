@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-03T23:06:43.813Z",
+ "generated": "2026-08-03T23:11:01.513Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1465,8 +1465,8 @@
    "kind": "move",
    "param": "the charge turn also takes the user off the field",
    "why": "Fly and Dig dodge the turn they charge; Solar Beam and Meteor Beam do not, and pricing the two the same way is what makes a charge move look either free or worthless",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "semiInvuln",
+   "used": true,
    "n": 5,
    "uses": 378,
    "examples": [
@@ -1788,8 +1788,8 @@
    "kind": "item",
    "param": "the charge turn is skipped for any charge move",
    "why": "Power Herb. Not legal in Reg M-B today; tagged so a format change does not silently leave a two-turn move scored as two turns",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "powerherb",
+   "used": true,
    "n": 0,
    "uses": 0,
    "examples": []
@@ -10434,7 +10434,10 @@
      }
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "boosts": {
+      "spa": 1
+     }
     },
     "chargeSkippedByWeather": {
      "skipsIn": "rain"
@@ -12971,7 +12974,10 @@
    "uses": 5,
    "params": {
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "boosts": {
+      "spa": 1
+     }
     }
    }
   },
