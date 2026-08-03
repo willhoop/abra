@@ -205,6 +205,7 @@ function rolloutAfterActions(board, side, opts) {
   const f = opts.field || {};
   const clicks = opts.myClicks || [];
   const zero = () => ({ fainted: 0, unbuildable: 0, threw: 0 });
+  let forcedThrew = 0, firstForcedError = null, exploreThrew2 = 0, firstExploreError2 = null;
   let wins = 0, ran = 0;
   for (let i = 0; i < n; i++) {
     const A = buildSide(board, side, dex, zero());
@@ -237,10 +238,18 @@ function rolloutAfterActions(board, side, opts) {
       let tgt = foesLive[0];
       const idx = ['a', 'b'].indexOf(c.targetLetter || '');
       if (idx >= 0 && S.actB[idx] && !S.actB[idx].fainted && S.actB[idx].curHP > 0) tgt = S.actB[idx];
+      /* A throw here means the CANDIDATE cannot be represented, which is not a detail: the caller is
+       * ranking that candidate against the others, and a click that silently fails to register leaves
+       * the mon on chooseAction instead -- so the cell being scored is not the cell that was asked
+       * for, and it would look like a candidate that happens to score the same as the default.
+       * Counted onto the state so the caller can see it rather than infer it. */
       try {
         const act = MEDI.playerAction(me, c.move, tgt, S.field);
         if (act) forced.set(me, act);
-      } catch (e) { void e; }
+      } catch (e) {
+        forcedThrew++;
+        if (!firstForcedError) firstForcedError = `${c.move}: ${e.message}`;
+      }
     }
     MEDI.battleTurn(S, rng, forced, null);
 
@@ -256,7 +265,16 @@ function rolloutAfterActions(board, side, opts) {
           if (!mvs.length || !foesL.length) return null;
           const mv = mvs[Math.floor(rng() * mvs.length) % mvs.length];
           const tg = foesL[Math.floor(rng() * foesL.length) % foesL.length];
-          try { return MEDI.playerAction(mon, mv, tg, S.field); } catch (e) { void e; return null; }
+          /* Same reasoning as the leaf's own explore block: swallowing this would quietly reduce the
+           * exploration rate and make explore=1 behave like something lower, which is the variable
+           * under test. */
+          try {
+            return MEDI.playerAction(mon, mv, tg, S.field);
+          } catch (e) {
+            exploreThrew2++;
+            if (!firstExploreError2) firstExploreError2 = `${mon.name} ${mv}: ${e.message}`;
+            return null;
+          }
         };
         for (const m of S.actA) { const a = pick(m, true); if (a) (fa = fa || new Map()).set(m, a); }
         for (const m of S.actB) { const a = pick(m, false); if (a) (fb = fb || new Map()).set(m, a); }
@@ -265,6 +283,16 @@ function rolloutAfterActions(board, side, opts) {
     }
     wins += MEDI.battleResult(S);
     ran++;
+  }
+  /* Reported rather than returned quietly: the caller wants a number, and a number produced while
+   * some clicks failed to register is a different number. Loud on the first occurrence only. */
+  if (forcedThrew && !rolloutAfterActions._warned) {
+    rolloutAfterActions._warned = true;
+    console.error(`  rolloutAfterActions: ${forcedThrew} forced click(s) could not be built, first: ${firstForcedError}`);
+  }
+  if (exploreThrew2 && !rolloutAfterActions._warnedEx) {
+    rolloutAfterActions._warnedEx = true;
+    console.error(`  rolloutAfterActions: ${exploreThrew2} explore action(s) threw, first: ${firstExploreError2}`);
   }
   return ran ? wins / ran : null;
 }

@@ -242,7 +242,15 @@ instrument was broken, so it is measured here on many boards rather than one.
 
 ## 5. Gates
 
-**R1 — the rollout is a better JUDGE than PORYGON3.** No search, no matrix, no equilibrium. Take clean
+**R1 — PASSED ON THE BASELINE.** 9,201 positions, fully random playout: rollout **68.18%** against
+material's 65.26%, **+2.91 points, 95% CI 1.79 to 4.04**. PORYGON3's published +3.42 over the same
+baseline sits INSIDE that interval, so the rollout is at least its equal and the two are not separated
+by this sample. That is a weaker claim than "beats it" and is stated separately.
+
+The cross-language head-to-head against PORYGON3 itself was built and **withdrawn** — see
+`engine/rollout_r1_join.py`, which fails its own alignment check and says so.
+
+**R1, as originally specified — the rollout is a better JUDGE than PORYGON3.** No search, no matrix, no equilibrium. Take clean
 human games with known winners, seed MEDICHAM at each turn, roll out, and ask whether the win rate
 predicts the actual winner better than the k-NN does. Same positions, same labels, and the material
 baseline recomputed on the same sample so the comparison is not against a published number from a
@@ -253,11 +261,44 @@ different set.
                                        reason R1 exists before anything else.
     if rollout accuracy >  63.7%   ->  the leaf improves, and every search built on it inherits that.
 
-**R2 — it is affordable.** Cost per leaf across many boards, at the N that R1 says is needed.
+**R2 — it is affordable. PASSED.** `engine/rollout_r2.js`, timed on 200 games of real boards rather
+than one:
 
-**R3 — the pick changes.** `engine/lookahead_divergence.js` already enumerates a side's legal joint
-actions exhaustively. Swap PORYGON3 for the rollout leaf and measure how often the choice differs from
-MAG's. A search that picks the same move cannot win more games than MAG, whatever the theory says.
+```
+  n=10     5.83 ms median   10.62 p90   21.62 max
+  n=40    22.39
+  n=160   89.86
+  K=3, 81 cells   0.47 s median   1.75 s worst   affordable
+  K=4, 256 cells  1.49 s          5.53 s         MARGINAL
+```
+
+**A Showdown fork costs 4.52 ms and buys ONE simulated turn. A rollout leaf costs 5.83 ms and plays
+the position out, up to 20 turns, ten times.** Roughly 200x the simulated turns per millisecond.
+Whatever kills this design, it will not be the cost of the leaf.
+
+**R3 — the pick changes. PASSED, and only because it was made to prove its own noise floor.**
+`engine/rollout_r3.js`. At each real decision, force each of my top-K joint actions, let the opponent
+play its own policy, run one turn, roll the rest out, take the argmax; compare against MAG's own
+ranking of the same candidates.
+
+The first run said **67.4% divergence**, which is a headline. It is not a result:
+
+```
+  N=20    divergence 67.4%   the same search disagreeing with ITSELF  71.7%
+  N=60    divergence 77.3%                                            50.0%
+  N=200   divergence 81.8%                                            45.5%
+  N=200, 185 decisions        72.4%                                   43.8%
+```
+
+An argmax over K² noisy estimates disagrees with anything, so the control is the same search on a
+different seed — where the truth is 0.00 by construction. **At N=20 the floor was HIGHER than the
+divergence.** Without it, "the search picks differently two-thirds of the time" would have been noise
+reported as a finding.
+
+At N=200 the floor falls to ~44% while divergence rises to ~72%, so the gap is real and these are
+different players. **But 44% is not a footnote**: a search that disagrees with itself on nearly half
+its decisions is not yet a stable player, and that will make R4's SPRT noisy. Raising N is the obvious
+lever and it is cheap — R2 says a leaf is 5.83 ms at n=10.
 
 **R4 — it wins.** SPRT against the shipped greedy player, read as it goes.
 
