@@ -105,6 +105,8 @@ function mulberry(seed) {
 function rolloutWinProb(board, side, opts) {
   opts = opts || {};
   const n = opts.n || 40;
+  /* 0 reproduces the deterministic-greedy playout exactly, so the sweep includes the incumbent. */
+  const EXPLORE = typeof opts.explore === 'number' ? opts.explore : 0;
   const dex = opts.dex;
   const foe = side === 'p1' ? 'p2' : 'p1';
   const stats = { fainted: 0, unbuildable: 0, threw: 0 };
@@ -125,13 +127,43 @@ function rolloutWinProb(board, side, opts) {
     const Bt = buildSide(board, foe, dex, { fainted: 0, unbuildable: 0, threw: 0 });
     if (!A.length || !Bt.length) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
+    S._explore = EXPLORE;
     S.field.weather = f.weather || '';
     S.field.terrain = f.terrain || '';
     S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
     S.field.twB = side === 'p1' ? (f.twB || 0) : (f.twA || 0);
     S.field.tr = f.tr || 0;
     const rng = mulberry((opts.seed || 1) * 1000003 + i);
-    while (!MEDI.battleOver(S)) MEDI.battleTurn(S, rng);
+    /* EXPLORE: with probability e, a mon clicks a RANDOM legal move instead of chooseAction's pick.
+     *
+     * This is not a way of playing better. It is the fix the MCTS literature prescribes for exactly
+     * the pathology this leaf shows: chooseAction is deterministic greedy, so every playout from one
+     * position replays the same line and the N samples are near-identical. That is why accuracy is
+     * FLAT in N and why the estimate saturates -- 53% of positions land in the 0-10% or 90-100% bin,
+     * and those bins are wrong by 22-29 points. "Heavy rollouts help only when they avoid becoming
+     * low-variance" (An Analysis of Monte Carlo Tree Search); ours became low-variance.
+     *
+     * Injected HERE and not in chooseAction, deliberately: chooseAction is the Tower's policy and the
+     * live bot's, and randomising it would change shipped behaviour to fix a rollout.
+     */
+    while (!MEDI.battleOver(S)) {
+      let fa = null, fb = null;
+      if (EXPLORE > 0) {
+        const pick = (mon) => {
+          if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= EXPLORE) return null;
+          const mvs = mon.moves || [];
+          if (!mvs.length) return null;
+          const foes = (S.actA.indexOf(mon) >= 0 ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
+          if (!foes.length) return null;
+          const mv = mvs[Math.floor(rng() * mvs.length) % mvs.length];
+          const tg = foes[Math.floor(rng() * foes.length) % foes.length];
+          try { return MEDI.playerAction(mon, mv, tg, S.field); } catch (e) { void e; return null; }
+        };
+        for (const m of S.actA) { const a = pick(m); if (a) { (fa = fa || new Map()).set(m, a); } }
+        for (const m of S.actB) { const a = pick(m); if (a) { (fb = fb || new Map()).set(m, a); } }
+      }
+      MEDI.battleTurn(S, rng, fa, fb);
+    }
     wins += MEDI.battleResult(S);          /* 1 / 0 / 0.5, side A is `side` by construction */
   }
   const iv = wilson(wins, n);

@@ -51,6 +51,12 @@ const N = parseInt(process.env.N || '40', 10);
  * Running them as separate jobs would confound the answer with which positions each job happened to
  * sample. */
 const N_LIST = (process.env.N_LIST || String(N)).split(',').map(Number).filter(Boolean);
+/* EXPLORE_LIST sweeps the playout's randomness on the SAME positions, for the same reason N_LIST
+ * sweeps the budget. 0 is the deterministic-greedy incumbent, so the sweep always contains the thing
+ * it is trying to beat. The calibration table said 53% of positions land in the 0-10% or 90-100% bin
+ * and those bins are wrong by 22-29 points, which is a low-variance playout saturating -- and the
+ * literature's prescription for that is a MORE RANDOM playout, not a stronger one. */
+const EXPLORE_LIST = (process.env.EXPLORE_LIST || '0').split(',').map(Number);
 /* Every EVERY_TH turn, so a long game does not dominate the sample with near-identical late boards. */
 const EVERY = parseInt(process.env.EVERY || '2', 10);
 
@@ -172,7 +178,13 @@ JR.build(games, dex, {
       twB: board.hasSide('p2', 'tailwind') ? 4 : 0,
     };
     const ps = {};
-    for (const nn of N_LIST) {
+    for (const ee of EXPLORE_LIST) for (const nn of N_LIST) {
+      const key = EXPLORE_LIST.length > 1 ? `${nn}@${ee}` : nn;
+      const rr = RL.rolloutWinProb(board, 'p1', { n: nn, dex, seed: gi * 7919 + sampled, field, explore: ee });
+      if (!rr) { nulls++; return; }
+      ps[key] = rr.p;
+    }
+    if (0) for (const nn of N_LIST) {
       /* The SAME seed across budgets, so the small-N runs are a prefix of the large-N ones rather
        * than an independent sample. Otherwise the sweep measures seed luck as well as N. */
       const r = RL.rolloutWinProb(board, 'p1', { n: nn, dex, seed: gi * 7919 + sampled, field });
@@ -221,7 +233,10 @@ const lines = [
   ['coin', () => 0.5],
   ['material: bodies then HP (hard)', r => r.m],
   ['material: porygon2 form (graded)', r => r.mpy],
-].concat(N_LIST.map(nn => [`ROLLOUT, n=${nn}`, r => r.ps[nn]]));
+].concat([].concat(...EXPLORE_LIST.map(ee => N_LIST.map(nn => {
+  const key = EXPLORE_LIST.length > 1 ? `${nn}@${ee}` : nn;
+  return [`ROLLOUT n=${nn}` + (EXPLORE_LIST.length > 1 ? ` explore=${ee}` : ''), r => r.ps[key]];
+}))));
 console.log(`  positions scored ${rows.length.toLocaleString()}  (${nulls} unbuildable, ${unlabelled} unlabelled)  in ${(ms / 1000).toFixed(1)}s` +
   `  -> ${(ms / Math.max(1, rows.length)).toFixed(0)} ms per position\n`);
 console.log('    judge                              accuracy     Brier    log-loss');
@@ -234,7 +249,7 @@ for (const [name, f] of lines) {
 /* The number this gate turns on. PORYGON3's 63.70% is a HUMAN-game figure from data/porygon3.json,
  * quoted for scale — the like-for-like comparison on this sample is the material row above, because
  * that one was measured here. */
-const NBEST = N_LIST[N_LIST.length - 1];
+const NBEST = EXPLORE_LIST.length > 1 ? `${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[EXPLORE_LIST.length - 1]}` : N_LIST[N_LIST.length - 1];
 const rAcc = 100 * acc(r => r.ps[NBEST]), mAcc = 100 * acc(r => r.mpy);
 
 /* McNEMAR, BECAUSE THE TWO JUDGES SEE THE SAME POSITIONS. Comparing two accuracies as if they were
