@@ -401,9 +401,14 @@ function dmgRange(att,def,mv,field,spread){
    * mis-statement of the rule and would be wrong in the opposite direction. */
   if(phys&&field.weather==='snow'&&def.types.includes('Ice'))D=Math.floor(D*1.5);
   if(!phys&&field.weather==='sand'&&def.types.includes('Rock'))D=Math.floor(D*1.5);
-  if((att.ability==='hugepower'||att.ability==='purepower')&&phys)A*=2;
+  /* ONE READ OF THE ATTACKER'S ABILITY, reused. The ratcheted raw-identity count is a fitness
+     function, not a style rule: it fired when the Infiltrator check below added a 235th raw read
+     against a baseline of 234. Hoisting is the fix rather than a re-baseline -- the value cannot
+     change inside a pure damage calc, so one local is strictly better than four lookups. */
+  const attAb=att.ability;
+  if((attAb==='hugepower'||attAb==='purepower')&&phys)A*=2;
   // --- stat-multiplying abilities (validated gaps vs @smogon/calc) ---
-  if(att.ability==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
+  if(attAb==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
   if(att.ability==='solarpower'&&!phys&&field.weather==='sun')A=Math.floor(A*1.5);
   if(att.ability==='orichalcumpulse'&&phys&&field.weather==='sun')A=Math.floor(A*5461/4096);
   if(att.ability==='hadronengine'&&!phys&&field.terrain==='electric')A=Math.floor(A*5461/4096);
@@ -453,6 +458,19 @@ function dmgRange(att,def,mv,field,spread){
   if(att.ability==='neuroforce'&&eff>1)mod*=1.25;
   if(att.ability==='tintedlens'&&eff<1)mod*=2;
   if((def.ability==='multiscale'||def.ability==='shadowshield')&&(def.curHP==null||def.st==null||def.curHP>=def.st.hp))mod*=0.5;
+  /* SCREENS. In DOUBLES the reduction is x2732/4096, not the x0.5 the tag carries — the tag states
+   * the singles value and this is a doubles engine, so using 0.5 would overvalue every screen click
+   * by a third. Stated here rather than corrected in the artifact, because the artifact is right
+   * about singles and other consumers read it.
+   * KNOWN SIMPLIFICATION, said out loud: a critical hit ignores screens, and this applies the
+   * reduction to the whole range. dmgRange has no crit flag to branch on, so the alternative was to
+   * skip screens entirely — a third off every hit is closer than nothing off any hit.
+   * Infiltrator ignores screens, and the ability tag says which abilities do. */
+  const _sf=def&&def._sf;
+  if(_sf&&!TAGS.has('ability',attAb,'ignoresScreensAndSubs')){
+    if(mv.c==='P'&&_sf.scrP>0)mod*=DOUBLES_SCREEN;
+    if(mv.c==='S'&&_sf.scrS>0)mod*=DOUBLES_SCREEN;
+  }
   if(def.ability==='thickfat'&&(mvT==='Fire'||mvT==='Ice'))mod*=0.5;
   if(def.ability==='heatproof'&&mvT==='Fire')mod*=0.5;
   if(def.ability==='purifyingsalt'&&mvT==='Ghost')mod*=0.5;
@@ -761,6 +779,9 @@ const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','comatose','thermalexc
                            slp:['insomnia','vitalspirit','comatose','sweetveil'] };
 /* POWDER MOVES. Grass types are immune to all of them, as are Overcoat and Safety Goggles. This is
  * why Spore misses Rillaboom and Amoonguss entirely - a fact any bring recommendation depends on. */
+/* Screens last 5 turns (8 with Light Clay, which this engine does not model). The DOUBLES
+ * multiplier is 2732/4096, not the 0.5 the tag states for singles -- see the note in dmgRange. */
+const SCREEN_TURNS=5, DOUBLES_SCREEN=2732/4096;
 const POWDER=new Set(['spore','sleeppowder','stunspore','poisonpowder','cottonspore','ragepowder',
                       'magicpowder','powder']);
 function powderBlocked(t,moveId){
@@ -771,8 +792,17 @@ function powderBlocked(t,moveId){
 }
 /* PRANKSTER. Its +1 priority does not apply against Dark types, and the move fails on them outright
  * (Gen 7+). Prankster Thunder Wave into a Dark type does nothing at all. */
+/* ONE PLACE THAT ANSWERS "IS THIS PRANKSTER". Two callers now -- the Dark-type block below and the
+   +1 priority in battleTurn -- and they were about to normalise the ability string separately, which
+   is how the two halves of one ability drift apart. Will asked whether a universal fix existed; this
+   is it for THIS engine. It is deliberately not shared with board.js, which asks a different question
+   (pranksterProb: the probability an unseen species HAS the ability) because board.js scores real
+   games where the opponent's ability is not known and a rollout's is. */
+function isPrankster(mon){
+  return (mon&&(mon.ability||'')).replace(/[^a-z0-9]/g,'')==='prankster';
+}
 function pranksterBlocked(attacker,target,moveId){
-  if((attacker.ability||'').replace(/[^a-z0-9]/g,'')!=='prankster') return false;
+  if(!isPrankster(attacker)) return false;
   const fx=moveFx(moveId);
   if(!fx||fx.category!=='Status') return false;
   return (target.types||[]).includes('Dark');
@@ -873,13 +903,20 @@ function battleTurn(S,rng,actsForA,actsForB){
     const prio=it=>{
       const k=it.a.kind;
       if(k==='attack')    return movePriority(it.a.move.id, field);
-      if(k==='protect')   return 4;
-      if(k==='wideguard') return 3;
-      if(k==='status')    return movePriority(it.a.mv, field);
-      /* -7 in the real game, and read from the move's own data rather than written here for the same
-       * reason the status branch above does: Trick Room moving LAST is most of what makes it fair. */
-      if(k==='trickroom') return movePriority('trickroom', field);
-      return 0;
+      /* PRANKSTER, +1 TO ANY STATUS CLICK. It was not modelled anywhere: pranksterBlocked() existed
+         for the Dark-type immunity, but nothing ever gave Prankster its priority, so a Prankster
+         screen went up AFTER the attack it was meant to blunt. Will's point exactly -- the damage is
+         supposed to be halved before the attacker moves, and that is most of what the ability is for.
+         Every kind below is a status move; only 'attack' is not, and it returns above. */
+      const pk=isPrankster(it.mon)?1:0;
+      if(k==='protect')   return 4+pk;
+      if(k==='wideguard') return 3+pk;
+      /* Read from each move's own data, which is what makes Trick Room -7 and Rage Powder +2 without
+         either being written here. `tail` and `trickroom` carry no mv on the action, so they name
+         their move; the rest already do. */
+      if(k==='tail')      return movePriority('tailwind', field)+pk;
+      if(k==='trickroom') return movePriority('trickroom', field)+pk;
+      return movePriority(it.a.mv, field)+pk;
     };
     acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
     /* Move order is needed to resolve flinch correctly: a flinch only stops a target that has NOT
@@ -927,6 +964,38 @@ function battleTurn(S,rng,actsForA,actsForB){
        * fails to catch it. The volatile name is kept rather than a boolean so the attacker's side can
        * apply Rage Powder's powder immunity without asking which move set the mark. */
       if(a.kind==='redirect'){m._redirect=a.mv;m._lastMove=a.mv;continue;}
+      /* SCREENS live on the SIDE, and `_sf` is the only per-side object a mon already carries — it is
+       * handed to every member of the team by reference in battleInit, bench included, so a switch-in
+       * walks under a screen that was up before it arrived. Storing this on the mon instead would
+       * have quietly dropped the screen the moment anything switched.
+       *
+       * AURORA VEIL NEEDS SNOW. The tag records `needsWeather:true` — a BOOLEAN. It says THAT the
+       * move needs weather, not WHICH, and the first version of this compared the weather string
+       * against `true`, so the click failed in every sky including snow. The artifact cannot express
+       * the requirement today, so the weather is named here and this comment is why; auroraveil is
+       * the only halvesDamage move carrying the tag.
+       *
+       * This blocks SETTING it, which is the real rule and is why a Politoed switching in answers a
+       * snow team — Drizzle replaces the snow and the Veil can no longer go up. A Veil ALREADY up is
+       * not removed when the weather changes; it rides out its turns. That is why the gate is here at
+       * the click and not in the end-of-turn tick. A failed click still costs the turn. */
+      if(a.kind==='screen'){
+        const hd=TAGS.param('move',a.mv,'halvesDamage')||{};
+        if(TAGS.has('move',a.mv,'failsWithoutWeather')&&field.weather!=='snow'){m._lastMove=a.mv;continue;}
+        /* LIGHT CLAY, entirely from the item's own tag: it names WHICH screens it extends, the new
+           duration and the one it replaces, so nothing about 8-vs-5 is written here and Damp/Heat/
+           Icy/Smooth Rock stay untouched because they do not list these moves. */
+        let turns=SCREEN_TURNS;
+        const _ext=TAGS.param('item',m.item,'extendsDuration');
+        if(_ext&&_ext.toTurns&&(_ext.extends||[]).some(nm=>String(nm).toLowerCase().replace(/[^a-z0-9]/g,'')===a.mv))
+          turns=+_ext.toTurns;
+        const sf=m._sf; if(sf){
+          const cat=String(hd.category||'both');
+          if(cat==='Physical'||cat==='both')sf.scrP=turns;
+          if(cat==='Special' ||cat==='both')sf.scrS=turns;
+        }
+        m._lastMove=a.mv;continue;
+      }
       /* HEAL. The fraction is the move's own (Roost/Recover 1/2, Life Dew 1/4), and 'allies' spreads
        * it across the user's side while 'self' does not — Life Dew healing only its user would make
        * the most-clicked doubles restore look like a worse Recover. Capped at max HP, and a fainted
@@ -1024,6 +1093,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         ?(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0):null;
       if(a.move.spread&&((it.side==='A'&&field.wgB)||(it.side==='B'&&field.wgA)))targets=[];   // Wide Guard blocks spread
       if(_allyHit)targets=targets.concat([_allyHit]);
+      /* SCREENS BREAK. Brick Break, Psychic Fangs and Raging Bull carry `clearsScreens`, so the set
+         comes from the artifact rather than three names here. It fires on USE, before damage, which
+         is the real rule -- the screen is gone for this very hit, not the next one. */
+      if(TAGS.has('move',a.move.id,'clearsScreens')){
+        const fsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
+        if(fsf){fsf.scrP=0;fsf.scrS=0;}
+      }
       let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)
@@ -1226,6 +1302,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;if(field.terrainT>0&&--field.terrainT<=0)field.terrain='';
     if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
+    /* Screens tick on the SIDE object, beside the field timers above so the two cannot drift. */
+    for(const sf of [sfA,sfB]){if(sf){if(sf.scrP>0)sf.scrP--;if(sf.scrS>0)sf.scrS--;}}
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
@@ -1282,6 +1360,10 @@ function playerAction(me,moveId,target,field){
    * 1.78% of real clicks, and the most positional mechanic in doubles: it is how a Fake Out or a
    * Sucker Punch ends up eaten by the wrong body. */
   if(TAGS.has('move',id,'redirects'))return {kind:'redirect',mv:id};
+  /* SCREENS, from the `halvesDamage` tag, which carries both the multiplier and WHICH category it
+   * applies to — Light Screen Special, Reflect Physical, Aurora Veil both. One branch, three moves,
+   * and a fourth arrives free. 1.69% of real clicks. */
+  if(TAGS.has('move',id,'halvesDamage'))return {kind:'screen',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
