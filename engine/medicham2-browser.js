@@ -1016,6 +1016,22 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         m._lastMove=a.mv;continue;
       }
+      if(a.kind==='fixeddmg'){
+        const t=a.target;
+        if(t&&!t.fainted&&!t.protect&&t.curHP>0){
+          /* Half the target's CURRENT hp, floored, and never less than 1 -- the move does not fail on
+             a target at 1 HP, it takes it to 0. Type immunity still applies and is asked of mcEff
+             rather than assumed: Super Fang is Normal, so a Ghost takes nothing. */
+          const mv2=MC.moves[a.mv];
+          const eff=mcEff(mv2?mv2.t:'',t.types);
+          if(eff>0){
+            const dmg=Math.max(1,Math.floor(t.curHP/2));
+            t.curHP=Math.max(0,t.curHP-dmg);
+            if(t.curHP<=0){t.fainted=true;if(t._sf)t._sf.fainted++;}
+          }
+        }
+        m._lastMove=a.mv;continue;
+      }
       if(a.kind==='perish'){
         const tn=+(TAGS.param('move',a.mv,'perishClock')||{}).turns||3;
         /* BOTH SIDES, which is the whole shape of the move: the user's own team is on the same clock,
@@ -1524,9 +1540,23 @@ function playerAction(me,moveId,target,field){
      artifact and nothing is guessed. Contrast lowersTarget, which says readFrom:"m.boosts" and is
      therefore NOT implementable from anything this engine can read. */
   if(TAGS.has('move',id,'boostsTarget'))return {kind:'boostally',mv:id};
+  /* LEECH SEED and the rest of the perTurnHP family. The RESOLUTION for this already existed -- the
+     status branch reads the tag, checks the Grass immunity from the move's own onTryImmunity and sets
+     _seededBy -- and playerAction simply never produced an action that could reach it, so the click
+     was a no-op turn. Routing it through the status path is the whole fix. */
+  if(TAGS.has('move',id,'perTurnHP'))return {kind:'status',mv:id,target};
   /* PERISH SONG: a three-turn clock on everything on the field, INCLUDING THE USER'S OWN SIDE. It is
      a win condition rather than a chip move, and the rollout could not represent it at all. */
   if(TAGS.has('move',id,'perishClock'))return {kind:'perish',mv:id};
+  /* FIXED DAMAGE, but only the forms the tag actually specifies. `halfTargetCurrentHP` is Super Fang
+     and Nature's Madness and is fully derivable. The others -- ohko, counterDamageTaken,
+     myRemainingHP, callback -- name a SOURCE this engine cannot evaluate, and are deliberately left
+     as no-ops rather than approximated: a Counter that guesses is worse than a Counter that is
+     visibly missing. */
+  {
+    const _fd=TAGS.param('move',id,'fixedDamage');
+    if(_fd&&_fd.source==='halfTargetCurrentHP')return {kind:'fixeddmg',mv:id,target};
+  }
   /* YAWN sleeps the target after a delay the tag states. */
   if(TAGS.has('move',id,'delayedSleep'))return {kind:'yawn',mv:id,target};
   if(fx&&fx.weather&&SD2WEATHER[String(fx.weather).toLowerCase().replace(/[^a-z0-9]/g,'')])

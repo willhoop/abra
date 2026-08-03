@@ -92,8 +92,21 @@ for (const K of [2, 3, 4, 5, 6]) {
 }
 
 /* THE COMPARISON THAT MATTERS: a rollout leaf against the Showdown fork the other design needs. */
+/* NOT ONE CATCH FOR BOTH. "the fork cost has not been measured yet" is an expected state with a
+ * printed instruction; "it exists and does not parse" is a corrupt artifact. Folding them together
+ * would silently omit the comparison and read as if the run had simply not been done. Third time this
+ * guard has caught the same shape in one session, and it has been right every time. */
 let fork = null;
-try { fork = JSON.parse(fs.readFileSync(D('data', 'lookahead-cost.json'), 'utf8')); } catch (e) { void e; }
+const FORKF = D('data', 'lookahead-cost.json');
+if (fs.existsSync(FORKF)) {
+  try {
+    fork = JSON.parse(fs.readFileSync(FORKF, 'utf8'));
+  } catch (e) {
+    console.error(`  data/lookahead-cost.json exists but could not be read: ${e.message}`);
+    console.error('  Refusing to guess a fork cost — regenerate it with engine/lookahead_cost.js.');
+    process.exit(1);
+  }
+}
 console.log('');
 if (fork) {
   console.log(`  A SHOWDOWN FORK costs ${fork.forkCostMs.median.toFixed(2)} ms median ` +

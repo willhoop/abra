@@ -1,0 +1,24 @@
+{
+  "generated": "2026-08-03T08:22:49.161Z",
+  "by": "engine/rollout_r2.js",
+  "boards": 477,
+  "games": 200,
+  "leafCostMs": {
+    "10": {
+      "median": 5.8269,
+      "p90": 10.618520000000002,
+      "max": 21.6186
+    },
+    "40": {
+      "median": 22.3908,
+      "p90": 38.65946,
+      "max": 57.4262
+    },
+    "160": {
+      "median": 89.8552,
+      "p90": 152.70270000000002,
+      "max": 268.0712
+    }
+  },
+  "note": "n is chosen by R1, which found accuracy flat in N; this file times, it does not judge."
+}
