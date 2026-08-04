@@ -178,12 +178,39 @@ sentence with an outside number attached.
 The Battling Track's supported formats include **Gen9 VGC Regulation I** — a **doubles VGC** format,
 with baselines and datasets published for it.
 
-Every other external result in this file is singles. This one is not. It is the closest public
-benchmark to what ABRA actually plays, and it comes with a live leaderboard, a 4M-trajectory human
-dataset and 30 pre-trained agents. **Champions Reg M-B is not Reg I** — different regulation,
-different legality, our own 66-point SP stat system, one mega per battle, four banned items — so
-nothing transfers as a number. But the *shape* is right, and it is the only place an ABRA component
-could be scored against something other than itself.
+Every other external result in this file is singles. This one is not.
+
+**CORRECTION, 2026-08-04, same day this entry was written.** The first version of this paragraph said
+Reg I "comes with a live leaderboard, a 4M-trajectory human dataset and 30 pre-trained agents."
+**That is wrong, and the error is exactly the kind this file exists to prevent.** Will checked
+`pokeagentchallenge.com/battling.html` directly. The dataset table states that
+`metamon-raw-replays` covers *"All PokéAgent formats **(excl. VGC)**"* — so **Metamon excludes VGC
+entirely**: the 4M parsed trajectories, the 18M self-play pile, the 200K teams and the 30 RL agents
+are all singles. I read "the Battling Track supports Reg I" and "the Battling Track has a 4M
+dataset" and joined two true sentences into a false one.
+
+What actually exists for doubles:
+
+| Asset | Covers VGC? |
+|---|---|
+| `metamon-raw-replays` (2.4M battles, 2014–2026) | **No** — "excl. VGC" |
+| `metamon-parsed-replays` (4M+ trajectories) | **No** |
+| `metamon-parsed-pile` (18M self-play) | **No** |
+| `metamon-teams` (200K+) | **No** |
+| 30 Metamon RL agents | **No** |
+| `pokechamp` (2M battles, 39+ formats, 2024–2025) | **Yes** — "Gen 1–9 OU, VGC, etc." |
+
+So the doubles resource is **one dataset**, not the whole stack, and the RL baselines almost
+certainly do not play doubles at all.
+
+**And Champions Reg M-B is not there in any form.** Only **Regulation I** is named — not M, not B,
+not Champions. Beyond the regulation difference, Champions uses our own **66-point SP** stat system
+with a 32 cap and auto-31 IVs, where standard VGC uses EVs and IVs, so even Reg I *teams* are not
+directly usable here. Battle **logs** are closer, being genuine Gen 9 doubles, but nothing transfers
+as a number.
+
+The point survives in weakened form: `pokechamp`'s VGC slice is still the only place an ABRA
+component could be scored against something other than itself.
 
 That matters because of a limit this project already knows it has: every result here is bots
 grading bots that **share our blind spots**. WOBBUFFET grades readability, R4 grades MILTANK against
@@ -196,7 +223,7 @@ detect — which is the failure mode CLAUDE.md opens with.
 | Item | Division | Status |
 |---|---|---|
 | Leaf quality outranks more search work — the flat curve is the binding constraint | MEASURE + SEARCH | filed 2026-08-04 |
-| Evaluate `metamon` / Gen9 VGC Reg I as an EXTERNAL scoreboard, since every current result is bots grading bots that share our blind spots | MEASURE | filed 2026-08-04 |
+| Evaluate the `pokechamp` dataset's VGC slice as an EXTERNAL scoreboard — every current result is bots grading bots that share our blind spots. NOT metamon: it excludes VGC | MEASURE | filed 2026-08-04, corrected same day |
 | Their pipeline is human demonstrations **plus** self-play at 18M trajectories; MEW has 1,000 gated games | MEASURE | filed 2026-08-04 |
 | Retrieve the actual talk transcript — this entry rests on the paper, not the stream | — | open |
 
