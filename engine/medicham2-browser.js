@@ -1019,6 +1019,20 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
  * where the real game has already said who megaed. This only fixes teams built for SIMULATION. */
 function oneMegaPerSide(team){
   if(!team) return team;
+  /* THE LEAD KEEPS THE MEGA, not "whichever stone sits first in the packed string".
+   *
+   * The first version kept team order, which is arbitrary and has a real cost: Will's point is that
+   * some Pokemon are only worth bringing AS their mega -- base Meganium is role-dead in a way base
+   * Charizard is not -- so reverting the wrong one wastes a slot entirely.
+   *
+   * "Biggest stat gain" was the obvious heuristic and it was MEASURED AND DISCARDED: every Champions
+   * mega is worth about the same on paper (Meganium +104, Charizard +104, Staraptor +101, Tyranitar
+   * +102), so it cannot discriminate. The difference is ability and role, which a stat total does
+   * not see.
+   *
+   * The lead is at least tied to how the game is actually played -- you mega what you brought to the
+   * front. The RIGHT answer is to make it a search decision, since MILTANK already enumerates every
+   * bring and only the two-stone brings would branch; that is written down and not yet built. */
   let seen=false;
   for(let i=0;i<team.length;i++){
     const m=team[i];
