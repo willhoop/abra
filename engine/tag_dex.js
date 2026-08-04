@@ -299,10 +299,32 @@ const MOVE_TAGS = [
   { tag: 'terrainScaled', param: 'power or target changes with the terrain', probe: 'terrainScaled',
     why: 'Expanding Force becomes a SPREAD move in Psychic Terrain, Rising Voltage doubles in '
        + 'Electric. Grassy Glide gains priority, which board.js already special-cases',
-    of: m => ((m.onModifyType && /terrain/i.test(String(m.onModifyType)))
-              || (m.onModifyMove && /terrain/i.test(String(m.onModifyMove)))
-              || (m.basePowerCallback && /terrain/i.test(String(m.basePowerCallback))))
-             ? { scalesWith: 'terrain' } : null },
+    /* THE NUMBER IS READ OUT OF THE HANDLER, not assumed. `{scalesWith:'terrain'}` named the
+     * mechanism and nothing a consumer could use, so the tag sat unconsumed and Expanding Force
+     * (182 uses) and Rising Voltage (114) were priced at their base power in every rollout.
+     *
+     * `onBasePower` was NOT probed before, so Expanding Force, Psyblade and Misty Explosion were only
+     * ever caught by the onModifyType/onModifyMove arms if at all — the same second-mechanism gap the
+     * comment below this one records for Knock Off.
+     *
+     * WHICH TERRAIN comes from Showdown's own `isTerrain("psychicterrain")`, so it arrives in the
+     * BOARD's spelling; medicham2's terrainId translates it and nothing here needs to know that.
+     * The multiplier is either a chainModify or an explicit `basePower * n`. A member where neither
+     * can be read keeps the bare `scalesWith` and stays visibly unwired — Terrain Pulse changes its
+     * TYPE as well as its power and is not a multiplier, so it must not be given one. */
+    of: m => {
+      const srcs = [m.onModifyType, m.onModifyMove, m.basePowerCallback, m.onBasePower].map(x => String(x || ''));
+      if (!srcs.some(s => /terrain/i.test(s))) return null;
+      const out = { scalesWith: 'terrain' };
+      for (const s of srcs) {
+        if (!/terrain/i.test(s)) continue;
+        const t = (s.match(/isTerrain\(\s*["']([a-z]+)["']/) || [])[1];
+        const mult = (s.match(/chainModify\(\[?\s*([\d.]+)/) || [])[1]
+                  || (s.match(/basePower\s*\*\s*([\d.]+)/) || [])[1];
+        if (t && mult) { out.terrain = t; out.mult = +mult; break; }
+      }
+      return out;
+    } },
   /* TWO MECHANISMS, and the probe only knew one. Will: "knock off does 1.5x if they are holding an
    * item -- so a variable move". Right, and it uses onBasePower rather than basePowerCallback, so it
    * was tagged only as `contact`. 4,351 appearances were missed by that single gap, led by Solar
@@ -784,8 +806,14 @@ const MOVE_TAGS = [
     why: 'contact 77,226 uses, wind 15,847, bullet 13,644, slicing 9,772. Boosted by Tough Claws, '
        + 'Sharpness, Iron Fist, Mega Launcher, Strong Jaw -- and blocked by Bulletproof, Wind Rider, '
        + 'Soundproof',
+    /* `reflectable` JOINED THE LIST 2026-08-04, for Magic Bounce. It is a flag exactly like the other
+     * six — Showdown's own name for the class of move a bounce can send back — and the alternative was
+     * a second membership rule living in the consumer, which is invariant 3. Nothing that reads
+     * `moveClass` today is affected: `boostsMoveClass` never names it, and dmgRange's
+     * `immuneToMoveClass` check skips `reflectable` explicitly, because Magic Bounce grants no damage
+     * immunity and treating it as one would be a new wrong number. */
     of: m => {
-      const F = ['punch', 'bite', 'slicing', 'pulse', 'bullet', 'wind'];
+      const F = ['punch', 'bite', 'slicing', 'pulse', 'bullet', 'wind', 'reflectable'];
       const on = F.filter(f => m.flags && m.flags[f]);
       return on.length ? { classes: on } : null;
     } },
@@ -2016,9 +2044,28 @@ const ABILITY_TAGS = [
      * onAllyTryHitSide, which is SIDE-wide -- it covers Spikes, Stealth Rock, Reflect-breakers and
      * anything aimed at the partner, not only moves targeting the holder. Scoping it to the holder
      * would have understated it badly. */
-    of: a => a.onAllyTryHitSide
-      ? { bounces: 'Status', backAtUser: true, scope: 'the whole side, including hazards and the partner' }
-      : null },
+    /* IT OVER-MATCHED, AND PRINTING THE MEMBERSHIP IS WHAT CAUGHT IT (LESSONS §4, for the fifth time
+     * in this file). `onAllyTryHitSide` is the hook for "I react to something aimed at my side" and
+     * says nothing about WHAT the reaction is:
+     *
+     *     OLD matched 3 : magicbounce, sapsipper, soundproof
+     *     NEW matched 1 : magicbounce
+     *
+     * Sap Sipper's handler BOOSTS its own Attack off an ally's Grass move; Soundproof's REFUSES an
+     * ally's sound move. Neither bounces anything, and wiring the tag as it stood would have sent
+     * every Will-O-Wisp aimed at a Soundproof body back at its user — 355 corpus uses, and a bounce
+     * is worse than an immunity because it is a move that lands on YOU.
+     *
+     * The bounce itself is the discriminator: Magic Bounce is the only one that rebuilds the move and
+     * calls `useMove` back at the source, and it gates on the `reflectable` flag, which is Showdown's
+     * own name for the class of move that can be bounced at all. Both are required. */
+    of: a => {
+      const src = String(a.onAllyTryHitSide || '') + String(a.onTryHit || '');
+      if (!a.onAllyTryHitSide) return null;
+      if (!/useMove/.test(src) || !/reflectable/.test(src)) return null;
+      return { bounces: 'Status', backAtUser: true, requiresFlag: 'reflectable',
+               scope: 'the whole side, including hazards and the partner' };
+    } },
   { tag: 'hitsTwice', param: 'every damaging move strikes twice, the second at quarter damage', probe: 'onSourceModifySecondaries',
     why: 'Parental Bond (133 fields). Total output is 1.25x, and it breaks Focus Sash and Sturdy '
        + 'on its own -- the first hit leaves 1 HP, the second kills',
@@ -2488,13 +2535,33 @@ const ABILITY_TAGS = [
        + 'Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs',
     of: a => (a.onModifyAccuracy || a.onSourceModifyAccuracy || a.onAccuracy || a.onSourceAccuracy)
              ? { accuracy: true } : null },
-  { tag: 'weatherChipImmune', param: 'takes no sandstorm or snow residual damage', probe: 'onImmunity',
-    why: 'What onImmunity actually means for Sand Veil, Snow Cloak, Overcoat and Magic Guard -- and '
-       + 'what typeImmunity was wrongly reporting until Will asked',
+  /* IT OVER-MATCHED, AND PRINTING THE MEMBERSHIP IS WHAT CAUGHT IT (LESSONS §4, again).
+   *
+   * `onImmunity` is Showdown's ONE hook for "this body ignores a named source of harm", and the name
+   * is the whole fact. Excluding the type names left every OTHER thing that hook can refuse:
+   *
+   *     OLD matched 8 : icebody magmaarmor oblivious overcoat sandforce sandrush sandveil snowcloak
+   *     NEW matched 6 : icebody overcoat sandforce sandrush sandveil snowcloak
+   *
+   * Magma Armor's handler is `if (type === 'frz')` and Oblivious's is `if (type === 'attract')`.
+   * Neither has anything to do with the weather, and wiring the tag as it stood would have handed a
+   * sandstorm immunity to a Pokemon that takes the chip. Magma Armor is left with NO tag, which is
+   * honest: its real mechanic is freeze immunity through onImmunity rather than onSetStatus, so the
+   * statusImmune derivation next door does not describe it either.
+   *
+   * THE WEATHERS ARE READ OUT OF THE HANDLER, not assumed. Overcoat refuses sandstorm AND hail; Sand
+   * Veil refuses only sandstorm; Ice Body only hail. `hail` is translated to this engine's `snow`
+   * here, at the derivation, so the consumer never sees a second vocabulary. */
+  { tag: 'weatherChipImmune', param: 'takes no residual damage from the named weathers', probe: 'onImmunity',
+    why: 'Sand Veil, Sand Rush, Sand Force, Overcoat (sandstorm); Ice Body, Snow Cloak, Overcoat '
+       + '(hail). The sandstorm residual is 1/16 a turn and this engine did not have it at all',
     of: a => {
       if (!a.onImmunity) return null;
-      const TYPES = /Bug|Dark|Dragon|Electric|Fairy|Fighting|Fire|Flying|Ghost|Grass|Ground|Ice|Normal|Poison|Psychic|Rock|Steel|Water/;
-      return TYPES.test(String(a.onImmunity)) ? null : { chipImmune: true };
+      const src = String(a.onImmunity);
+      const wx = [];
+      if (/['"]sandstorm['"]/.test(src)) wx.push('sand');
+      if (/['"]hail['"]/.test(src)) wx.push('snow');
+      return wx.length ? { chipImmune: true, weathers: wx } : null;
     } },
 ];
 

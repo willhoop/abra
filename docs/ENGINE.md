@@ -12,7 +12,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  108/148 probed mechanics live, 40 missing   (census 2026-08-04 19:40)
+  115/154 probed mechanics live, 39 missing   (census 2026-08-04 19:56)
   missing:
     move    conditionalPower       Facade doubles when statused
     ability damageReduce           Ice Scales halves special damage
@@ -38,7 +38,6 @@ ENGINE — does the simulator do what Pokémon does
     move    critRatioUp            Night Slash is priced above the same move without its crit ratio
     move    clearsBoosts           Haze wipes the boosts off both sides
     move    cantUseTwice           Gigaton Hammer cannot be clicked twice in a row
-    move    terrainScaled          Expanding Force gains power on Psychic Terrain
     ability untagged               Marvel Scale raises Defense while statused
     ability ignoresDefenderAbility Mold Breaker ignores Levitate
     ability ignoresTypeImmunity    Scrappy lets Normal hit a Ghost
@@ -54,13 +53,13 @@ ENGINE — does the simulator do what Pokémon does
     move    reordersTurn           After You lets the partner move next
     item    curesVolatile          Mental Herb frees the holder from Taunt
     move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-04 19:11)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 19:56)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  tag coverage: 137/176 probed, 39 unprobed
+  tag coverage: 143/176 probed, 33 unprobed
 ```
 
-_stamped 2026-08-04 19:43_
+_stamped 2026-08-04 20:04_
 
 <!-- /GENERATED -->
 
@@ -337,11 +336,10 @@ commented out, renamed, or wired to the wrong body.** It is now behavioural and 
 `ability none 0, Hospitality 43 (a quarter is 43)`. **A hollow entry is worse than a missing one,
 because it occupies a slot in a number that may never fall.**
 
-**Two more of the same shape are still LIVE by grep and are named here rather than quietly left:**
-`priorityMod` (*"isPrankster() present and used in the sort"*) and `weatherChipImmune` (*"engine
-references a weather-chip immunity"*). Each needs its own staging and neither is in the healing class.
-Two others — `blocksBerries` and `disablesAttacker` — are the same shape but currently report MISSING,
-so they are honest negatives.
+**Two more of the same shape were still LIVE by grep and were named here rather than quietly left:**
+`priorityMod` and `weatherChipImmune`. **Both were converted on 2026-08-04 — see "THE HOLLOW PROBES"
+below. One was honest and one was hiding a dead wire.** `blocksBerries` and `disablesAttacker` were
+the same shape reporting MISSING; they are behavioural now too, and still MISSING.
 
 ### The census-versus-tag-wire contradiction, and which one lied
 
@@ -400,12 +398,236 @@ real and the event is rare, rather than the probe being broken. It is a latent h
 changes a **feature vector**, which is the refit edge MEASURE owns. `board.js:1190` holds a THIRD copy
 of the same map (`WEATHER_KIND`, sun/rain only), and `board.js` is not ENGINE's to edit.
 
-**Terrain is the same mismatch, unmeasured.** `medicham2:138` tests `'psychicterrain'` while the
-artifact's `terrainSetter` emits `'psychic'`; `miltank.js:482` passes the short words and
-`position_features.js:296` passes the long ones. Two vocabularies, one field, nobody translating.
+**Terrain was the same mismatch and it is now MEASURED AND FIXED — see the next section.**
+
+## PRIORITIES #0's TWIN — THE TERRAIN VOCABULARY. LANDED 2026-08-04, with the exposure measured first.
+
+**The split ran through the middle of this engine, not only at its edge.** Three writers, two
+vocabularies, nobody translating — and medicham2's own readers were on *both* sides of it:
+
+| Reader | wanted | got from the artifact | got from a Board |
+|---|---|---|---|
+| Hadron Engine (`:631`) | `electric` | `electric` ✓ | `electricterrain` ✗ |
+| Grassy Glide (`:97`) | `grassy` | — | `grassyterrain` ✗ |
+| Psychic Terrain priority block (`:144`) | `psychicterrain` | `psychic` ✗ | `psychicterrain` ✓ |
+
+Measured on the shipped engine before anything was touched:
+
+```
+Surf under Hadron Engine   clear 99   'electric' 130   'electricterrain' 99
+movePriority(grassyglide)  'grassy' 1                  'grassyterrain' 0
+priorityRefusedAbove       'psychic' Infinity          'psychicterrain' 0
+```
+
+So **Psychic Surge has never blocked a priority move** (its `terrainSetter` says `psychic`), and a
+board's `electricterrain` has never boosted or hastened anything. Both halves looked live and both
+were dead, in opposite directions.
+
+### Exposure, measured before the fix
+
+- **The store holds exactly four values** over **1,845** field-start terrain events across 52,441
+  games: `Electric Terrain`, `Psychic Terrain`, `Grassy Terrain`, `Misty Terrain`. The translation
+  therefore covers **100%** of what exists, the same way the weather one did.
+- **1.98%** of the 8,759-game fit corpus carries a terrain at all (173 games, 199 events).
+- **863 of 69,623 corpus boards — 1.24%** — carry a terrain by the Board's own key, against **48.1%**
+  for weather. By value: electric 597, psychic 243, grassy 18, misty 5.
+- **0 of those 863** are found by the extractor that actually feeds the leaf. `miltank.js:781` and
+  `rollout_r1.js:175` do `['electric','grassy','misty','psychic'].find(t => board.hasField(t))` — a
+  **THIRD** vocabulary, short words against a Board that stores long ones. **Leaf-side terrain exposure
+  is exactly zero today and stays zero until those files' owners change them.** Filed below.
+
+### Parity, and the honest answer is ZERO with a reason
+
+150 terrain boards + 150 no-terrain controls, `n=40`, seeds fixed per board, the board's own key
+handed in, pre-fix and post-fix engines run over the identical sample:
+
+| | terrain boards | control (no terrain) |
+|---|---|---|
+| paired | 142 | 134 |
+| `rolloutWinProb` different | **0** | **0** |
+
+**Zero everywhere, and this time it is not "the fix did not take" — it is measured inertness with
+three stacked causes**, each of which is a number rather than an argument:
+1. the 37 psychic boards were **already** reaching the one reader written for the board's spelling, so
+   before == after there by construction;
+2. the 101 electric boards can only be read by **Hadron Engine**, which has **0 corpus uses** and
+   exactly one `MC.mons` row (`raichu-mega-x`);
+3. grassy is **18 of 69,623** boards and its only reader is **Grassy Glide, 3 corpus uses**.
+
+The direction that *did* change — the artifact's `psychic` now blocking priority — has **2** corpus
+uses of `psychicsurge`. So the terrain **field** is a tiny lever in this format, and the vocabulary fix
+is worth having because it is correct, not because it moves the number.
+
+**The terrain MOVES are the lever, and they are where the pass paid.** `psychicterrain` is clicked
+114 times, `expandingforce` 182, `risingvoltage` 114 — an order of magnitude more than the abilities.
+Both were wired in the same pass (`setsTerrain`, `terrainScaled`, below) and both go through
+`terrainId`, which is what makes the translation load-bearing rather than decorative.
+
+**Whole-session parity, same 276 boards, session-start engine against now** — this arm has no control
+by construction, because the sandstorm chip and Magic Bounce also landed, so it is decomposed by
+weather instead:
+
+```
+sandstorm  9/22 moved (40.9%)   <- the sandstorm residual
+none       9/118       (7.6%)   <- Magic Bounce, the terrain moves, Expanding Force
+raindance  3/50        (6.0%)
+sunnyday   0/59        (0.0%)   <- the control: nothing this pass touches sun
+snowscape  0/27        (0.0%)   <- and snow is correctly NOT a chip in this generation
+```
+
+Mean |Δ| 4.20 pt on the terrain boards and 7.00 pt on the rest, max 8.8 pt.
+
+**`terrainId()` is `weatherId()`'s sibling and no second map was written.** Same shape, same
+idempotence, same loud unknown (`fails.terrainUnknown`, which names the first value it drops). It is
+exported. Idempotence matters more here than it did for weather because **both** vocabularies genuinely
+arrive — the artifact's on a switch-in and the Board's at the leaf boundary. Probed permanently by
+`boardTerrainLanguage`, which asserts **both sites in both vocabularies**: `clear 99, 'electric' 130,
+as landed 130` and `priorityRefusedAbove: clear Infinity, 'psychic' 0, 'psychicterrain' 0`.
+
+## THE HOLLOW PROBES — one was honest, one was hiding a dead wire
+
+### `weatherChipImmune` was LIVE by grep and THE ENGINE HAD NO WEATHER CHIP AT ALL
+
+The probe read `/icebody|weatherChipImmune|magmaarmor/.test(src)`. It passed on the word
+`magmaarmor`, which appears in this engine **once** — inside the **freeze**-immunity table at
+`:1097`, with nothing whatever to do with weather. So the census carried an immunity as working while
+the damage it is immune to did not exist: burn, poison, Toxic and Leech Seed all ticked at end of
+turn and **sandstorm did not**. Sand Stream is 1,705 sheets and the store holds 6,167 sandstorm events.
+CLAUDE.md's own advice — *"Bring Steels against Tyranitar sand — they take no sandstorm chip"* — was
+describing a mechanic the simulator did not have.
+
+**Landed as WIRE 31**, first in the residual order, which is the real one. Snow is **not** a chip in
+this generation (Snowscape replaced Hail) and the probe asserts that a fourth arm reads zero, so an
+engine that chipped in snow would be a new wrong number rather than a wired mechanic. Reads:
+`sand, Milotic: ability none -10 (a sixteenth is 10), Sand Veil -0; sand, Archaludon (Steel) -0;
+snow, Milotic -0`. **40.9% of sandstorm boards moved** in the parity above.
+
+**The tag over-matched and printing the membership caught it, for the fourth time in this file.**
+`onImmunity` is Showdown's one hook for "I ignore a named source of harm" and the derivation excluded
+only the type names:
+
+```
+OLD matched 8 : icebody magmaarmor oblivious overcoat sandforce sandrush sandveil snowcloak
+NEW matched 6 : icebody overcoat sandforce sandrush sandveil snowcloak
+```
+
+Magma Armor's handler is `if (type === 'frz')`; Oblivious's is `if (type === 'attract')`. Wiring it as
+it stood would have handed a sandstorm immunity to bodies that take the chip. The **weathers are now
+read out of the handler** — Overcoat refuses both, Sand Veil only sand, Ice Body only snow — so the
+consumer names no ability. Magma Armor is left with **no tag**, which is honest: its real mechanic is
+freeze immunity through `onImmunity` rather than `onSetStatus`, so the statusImmune derivation next
+door does not describe it either.
+
+**Magic Guard is deliberately NOT exempted and is COUNTED** (`fails.magicGuardChip`). It blocks
+indirect damage through `onDamage`, carries `untagged` (79 uses), and exempting it by name would type a
+membership list *and* leave the ability half-right, since burn and poison above still chip it.
+
+### `priorityMod` was hollow and the mechanic underneath it is genuinely LIVE
+
+Prankster's `+1` really is applied in `battleTurn`'s sort. Re-staged behaviourally on the case the
+wire's own comment names: a **Grimmsnarl** (base 60) puts up Reflect against a **Weavile** (base 125)
+that is clicking Icicle Crash, so a 0-priority screen goes up after the hit it is meant to blunt.
+`ability none 118, Prankster 78` — x0.667, which is the doubles screen, so the screen landed first.
+
+**`S.lastActs` is NOT the resolution order and the probe says so in a comment.** medicham2 writes it
+from `acts` *before* the sort, so it records what was committed. The first version of this probe
+printed it and got the same name in both arms, which reads exactly like a dead knob.
+
+### A SYSTEMATIC DETECTOR — built, because it was cheap and exact
+
+`tests/test-mechanics.js` now captures each probe's own source and flags any probe that **reads a file
+instead of running the engine**. It is structural, costs nothing, is written to the census as
+`hollow`, and the file **exits 1** if it is non-zero — a different exit from MISSING on purpose, because
+a MISSING mechanic is honest state and a hollow probe is not evidence about the engine at all. All
+five that ever existed would have been caught the day they were written. **It is 0 now.**
+
+**The "both arms agree" version is measured rather than asserted, and the measurement is the reason.**
+`detail` is free-form prose carrying arm values, thresholds (*"a quarter is 43"*), stage counts and
+stat names all as bare digits, so no parser can tell an ARM from an ANNOTATION. The scan prints how
+many LIVE probes have ≥2 numbers that are all equal:
+
+```
+23 over the whole census  ->  6 once restricted to LIVE  ->  3 after fixing what it found
+```
+
+The 6 were not false positives about agreeing arms — they were **one-armed probes**, and three of them
+could not have failed:
+- **`preventsStatDrop`** read `atk 0 -> 0`, which is also what an engine with no Intimidate prints;
+- **`blocksStatusMoves`** read `target atk stage after Charm: 0 (0 = refused)`, same shape;
+- **`chargeTurn`** read `foe took 0 on the charge turn`, which a move dropped to `kind: pass` also
+  prints — it now also plays turn 2 and demands Fly actually **lands**.
+
+The remaining 3 (`lowersUser -1/-1`, `boostsTarget 2/2`, `statusCategory 0 + par`) are genuine
+heuristic noise: each asserts a specific non-default value a no-op engine could not produce.
+
+**Doing it properly is a PROTOCOL change** — probes return `arms: {control, test}` and the file asserts
+`control !== test` — and it has to be applied by hand to all 154 probes, because a probe that kept
+returning only `detail` would opt itself out silently, which is the same hole in a new place. Costed
+here so the next pass decides with the number in front of it.
+
+## Walking the unprobed tags — 2026-08-04, in descending corpus usage
+
+| Tag | Uses | Result |
+|---|---|---|
+| `moveClass` | 76,625 | **LIVE.** Four arms — Iron Fist must boost Mach Punch and must **not** move Flare Blitz, or "boosts everything" passes |
+| `statChange` | 64,869 | **LIVE**, and the SIZE is asserted: Charm is exactly −2, from the param |
+| `sound` | 14,797 | **LIVE.** Soundproof refuses Hyper Voice and still takes Moonblast |
+| `punishesAttacker` | 8,953 | **LIVE.** Rough Skin tolls Waterfall and **not** Surf — the trigger is `contact` and a probe that only tested contact would pass on a wire that punished everything |
+| `reflectsStatusMoves` | 568 | **WAS MISSING — WIRED (WIRE 33).** See below |
+| `setsTerrain` | 141 | **WAS MISSING — WIRED (WIRE 32).** `playerAction` had a branch for the four weather moves and none for the four terrain moves, so Psychic Terrain (114 uses) resolved to `kind: pass`. Probed by outcome — the foe's Ice Shard is blocked — not by reading the field back, which would pass on a string nothing reads |
+| `terrainScaled` | 296 | **WAS MISSING — WIRED (WIRE 34).** Expanding Force 105 → 157 |
+
+**`reflectsStatusMoves` over-matched, and this is the fifth membership print to earn its keep.**
+`onAllyTryHitSide` is the hook for "I react to something aimed at my side" and says nothing about what
+the reaction is:
+
+```
+OLD matched 3 : magicbounce, sapsipper, soundproof
+NEW matched 1 : magicbounce
+```
+
+Sap Sipper **boosts** off an ally's Grass move; Soundproof **refuses** an ally's sound move. Wiring the
+tag as it stood would have sent every Will-O-Wisp aimed at a **Soundproof** body back at its user —
+355 corpus uses — and a bounce is strictly worse than an immunity, because it is a move that lands on
+you. The discriminator is the bounce itself: only Magic Bounce rebuilds the move and calls `useMove`
+back at the source, gated on Showdown's `reflectable` flag.
+
+**`reflectable` was added to the `moveClass` derivation in the same pass**, so the wire is the same
+ability-names-a-flag / move-carries-it JOIN `immuneToMoveClass` already uses rather than a second
+membership rule in the consumer. 60 moves carry it; the tags.json diff was verified to be **exactly**
+that addition and nothing else. Probe reads `atk stages (target/user): ability none -2/0, Magic Bounce
+0/-2`. What is **not** modelled is stated: the tag's `scope` covers the whole side including hazards,
+and this engine keeps neither hazards nor side conditions.
+
+**`terrainScaled` carried no number and that is why nothing read it.** `{scalesWith:'terrain'}` named
+the mechanism and gave a consumer nothing, so Expanding Force (182) and Rising Voltage (114) were
+priced at base power in every rollout. `tag_dex` now pulls **which terrain** out of Showdown's own
+`isTerrain("psychicterrain")` and **the multiplier** out of the `chainModify` or `basePower * n` beside
+it — and it probes `onBasePower` too, which was never probed and is where Expanding Force and Misty
+Explosion live. Membership: `expandingforce 1.5`, `risingvoltage 2`, `mistyexplosion 1.5`, and
+**`terrainpulse` keeps the bare tag with no number on purpose** — it changes TYPE as well as power and
+must not be given a multiplier. Grounded-ness is not tracked (the same caveat
+`priorityRefusedAbove` already carries) and Expanding Force becoming a spread move is not modelled;
+both are stated in the code.
+
+**Every regeneration of `data/tags.json` was verified the way this file requires** — diff excluding
+`uses`, count the entries, read every one. `weatherChipImmune` 8, `reflectsStatusMoves` 3,
+`moveClass` 60, `terrainScaled` 3, all intended. `engine/feature_fixture.js --check` exits **0** after
+each, so **no refit is owed**.
 
 ## Filed, not fixed
 
+- **A THIRD terrain vocabulary sits between the Board and the leaf, and it finds nothing.**
+  `engine/miltank.js:781` and `engine/rollout_r1.js:175` both extract with
+  `['electric','grassy','misty','psychic'].find(t => board.hasField(t))`, while `board.startField`
+  stores `norm(move.terrain)` — the LONG words. Measured: **0 of the 863 terrain-carrying boards** in
+  a 69,623-board walk are found by that extractor, so the leaf is handed `''` on every board that has
+  a terrain. `medicham2` now accepts either vocabulary, so the fix on their side is to pass the key the
+  Board actually holds. `miltank.js` and `rollout_leaf.js` are **SEARCH's**; `rollout_r1.js` is a
+  MEASURE gate. Exposure is small (1.24% of boards) and the fix is one array.
+- **`engine/position_features.js:296` reads the LONG terrain words and `:291` the untranslated
+  weather.** Both change a **feature vector**, which is the refit edge MEASURE owns. `board.js:1190`
+  holds a third copy of the weather map (`WEATHER_KIND`, sun/rain only). Neither file is ENGINE's.
 - **`engine/status.js` prints the differential count without its seed.** The artifact now carries
   `seed`, `requested`, `skipped_multihit` and `skipped_non_finite`; the print reads none of them, so
   "1/400 differential comparisons disagree" still looks unconditional and does not say that 15 rows

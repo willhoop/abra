@@ -50,11 +50,25 @@ const results = [];
  * exactly the number this division is not allowed to soften. So they are counted separately and the
  * count is printed and written to the census. */
 let threw = 0;
+/* A HOLLOW PROBE IS ONE THAT CANNOT FAIL FOR THE REASON IT CLAIMS, and this file shipped three of
+ * them: `healsAllyOnSwitchIn`, `priorityMod` and `weatherChipImmune` all returned LIVE from
+ * `readFileSync(medicham2) + a regex`. The last one was the expensive case — it matched the word
+ * `magmaarmor` in an unrelated FREEZE table and reported a weather-chip immunity as working while the
+ * engine had no weather chip at all. A hollow entry is worse than a missing one, because it occupies
+ * a slot in a number that may never fall.
+ *
+ * THE DETECTOR IS STRUCTURAL, NOT A JUDGEMENT: a probe's own source is captured and any probe that
+ * READS A FILE instead of running the engine is flagged. It is exact, it costs nothing, and it is
+ * asserted at ZERO at the bottom of this file. Every one of the three would have been caught the day
+ * it was written. What it does NOT catch is a two-armed probe whose arms happen to agree — see the
+ * IDENTICAL-ARMS section at the bottom, which is measured rather than asserted, and why. */
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '';
+  const src = String(fn);
+  const hollow = /readFileSync/.test(src);
   try { const r = fn(); works = !!r.works; detail = r.detail; }
   catch (e) { works = false; threw++; detail = 'THREW: ' + e.message.slice(0, 60); }
-  results.push({ kind, tag, label, works, detail });
+  results.push({ kind, tag, label, works, detail, hollow });
 };
 
 /* ---- ITEMS -------------------------------------------------------------------------------------- */
@@ -289,14 +303,39 @@ probe('ability', 'onSwitchInDrop', 'Intimidate drops Attack', () => {
   return { works: foe.boosts.at < before, detail: `atk ${before} -> ${foe.boosts.at}` };
 });
 
-probe('ability', 'priorityMod', 'Prankster raises status priority', () => {
-  const p = bare('whimsicott'), n = bare('whimsicott');
-  p.ability = 'prankster'; n.ability = 'none';
-  /* movePriority is the move's own bracket; the ability bonus is applied in battleTurn's sort, so
-   * this asks the engine's own helper rather than re-deriving the rule here. */
-  const has = typeof M.moveFx === 'function';
-  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-  return { works: has && /isPrankster/.test(src), detail: 'isPrankster() present and used in the sort' };
+/* THIS PROBE WAS HOLLOW — `/isPrankster/.test(src)` — LIVE by SOURCE GREP, not by behaviour. It would
+ * have returned LIVE for a call that was commented out, renamed, or applied to the wrong body, and it
+ * occupied a slot in a number that may never fall. Same shape as `healsAllyOnSwitchIn` before it.
+ *
+ * BEHAVIOURAL, TWO ARMS, AND THE OUTCOME RATHER THAN THE BRACKET. Grimmsnarl (base 60 Speed) is
+ * SLOWER than Weavile (base 125), so a 0-priority Reflect goes up AFTER the hit it is meant to blunt
+ * and does nothing to it. +1 from Prankster is the only thing that can put it in front, and the
+ * receipt is the DAMAGE the user takes on that same turn — halved if the screen landed first.
+ *
+ * The comment at medicham2's own sort names this exact case ("a Prankster screen went up AFTER the
+ * attack it was meant to blunt"), so the probe is staged on the case the wire claims to fix. */
+probe('ability', 'priorityMod', 'Prankster puts a status move in front of a faster foe', () => {
+  const run = (ab) => {
+    /* `board()` and PASS2 are declared further down this file and are in their temporal dead zone
+     * here, so the staging is written out — the same call healsAllyOnSwitchIn already makes. */
+    const me = bare('grimmsnarl'), ally = bare('incineroar');
+    const f1 = bare('weavile'), f2 = bare('garchomp');
+    me.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'reflect', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'iciclecrash', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;
+  };
+  /* S.lastActs IS NOT THE RESOLUTION ORDER and is deliberately not read here: medicham2 writes it
+   * from `acts` BEFORE the sort, so it records what was committed, not who went first. A probe that
+   * printed it would print the same name in both arms and look like a dead knob. The damage is the
+   * receipt. x0.667, not x0.5 — doubles screens. */
+  const off = run('none'), on = run('prankster');
+  return { works: off > 0 && on > 0 && on < off,
+           detail: `Icicle Crash into the Reflect user: ability none ${off}, Prankster ${on} `
+                 + `(the doubles screen is x0.667, so ${off} -> ${Math.floor(off * 2732 / 4096)} is the screen landing first)` };
 });
 
 probe('ability', 'damageBoost', 'Aerilate converts and boosts', () => {
@@ -334,11 +373,13 @@ probe('ability', 'statusImmune', 'Insomnia refuses sleep', () => {
   return { works: m.status !== 'slp', detail: 'status=' + (m.status || 'none') };
 });
 
+/* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. It read
+ * `atk 0 -> 0` and called that a refusal — which is also what an engine with no Intimidate at all
+ * prints. Exactly the shape that made the Disable probe a false LIVE. */
 probe('ability', 'preventsStatDrop', 'Clear Body refuses Intimidate', () => {
-  const m = bare('garchomp'); m.ability = 'clearbody';
-  const before = m.boosts.at;
-  M.applyIntimidate(m);
-  return { works: m.boosts.at === before, detail: `atk ${before} -> ${m.boosts.at}` };
+  const run = (ab) => { const m = bare('garchomp'); m.ability = ab; M.applyIntimidate(m); return m.boosts.at; };
+  const off = run('none'), on = run('clearbody');
+  return { works: off < 0 && on === 0, detail: `atk stage after Intimidate: ability none ${off}, Clear Body ${on}` };
 });
 
 probe('ability', 'boostsWhenLowered', 'Defiant raises Attack when dropped', () => {
@@ -532,20 +573,60 @@ probe('ability', 'speedCond', 'Chlorophyll doubles Speed in sun', () => {
   return { works: sun > dry * 1.8, detail: 'no sun ' + dry + '  ->  sun ' + sun };
 });
 
+/* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. It read
+ * `target atk stage after Charm: 0 (0 = refused)` — and 0 is also what an engine that never applied
+ * Charm at all would print. The control is the same board with the ability off, and it must show the
+ * drop landing, or "refused" is indistinguishable from "never happened". */
 probe('ability', 'blocksStatusMoves', 'Good as Gold refuses a status move', () => {
-  const me = bare('whimsicott'), ally = bare('incineroar');
-  const f1 = bare('gholdengo'), f2 = bare('garchomp');
-  f1.ability = 'goodasgold';
-  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-  const fa = new Map([[me, M.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]);
-  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-  return { works: f1.boosts.at === 0, detail: 'target atk stage after Charm: ' + f1.boosts.at + ' (0 = refused)' };
+  const run = (ab) => {
+    const me = bare('whimsicott'), ally = bare('incineroar');
+    const f1 = bare('gholdengo'), f2 = bare('garchomp');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const fa = new Map([[me, M.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return f1.boosts.at;
+  };
+  const off = run('none'), on = run('goodasgold');
+  return { works: off < 0 && on === 0,
+           detail: 'target atk stage after Charm: ability none ' + off + ', Good as Gold ' + on + ' (0 = refused)' };
 });
 
-probe('ability', 'weatherChipImmune', 'Ice Body ignores weather chip', () => {
-  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-  const has = /icebody|weatherChipImmune|magmaarmor/.test(src);
-  return { works: has, detail: 'engine references a weather-chip immunity: ' + has };
+/* THIS PROBE WAS HOLLOW AND IT WAS MASKING A DEAD WIRE, which is the worse of the two outcomes.
+ *
+ * It read `/icebody|weatherChipImmune|magmaarmor/.test(src)` and passed on the word `magmaarmor` —
+ * which appears in this engine ONCE, inside the FREEZE-immunity table at medicham2:1097, and has
+ * nothing whatever to do with weather. So the census reported an immunity as LIVE while the thing it
+ * is immune TO did not exist: the engine applied burn, poison, Toxic and Leech Seed at end of turn
+ * and NO sandstorm residual at all. Sand is 1,705 Sand Stream sheets and 6,167 sandstorm events.
+ *
+ * THREE ARMS, because two cannot tell an immunity from an absent mechanic. The chip must LAND on a
+ * plain body, be REFUSED by the ability, and be refused by a Rock/Ground/Steel TYPE with no ability
+ * at all — the last is the half CLAUDE.md already states ("Bring Steels against Tyranitar sand").
+ *
+ * SNOW IS NOT A CHIP IN THIS GENERATION. Snowscape replaced Hail and deals no residual damage, so a
+ * fourth arm asserts snow costs the same body nothing; an engine that chipped in snow would be a new
+ * wrong number rather than a wired mechanic. */
+probe('ability', 'weatherChipImmune', 'sandstorm chips, and Sand Veil / a Steel type ignore it', () => {
+  const run = (ab, sp, wx) => {
+    const me = bare(sp), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.ability = ab;
+    me.curHP = Math.floor(me.st.hp / 2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.field.weather = wx;
+    const before = me.curHP;
+    const pass2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, pass2(me, ally), pass2(f1, f2));
+    return { d: before - me.curHP, sixteenth: Math.floor(me.st.hp / 16) };
+  };
+  const plain = run('none', 'milotic', 'sand');
+  const veil = run('sandveil', 'milotic', 'sand');
+  const steel = run('none', 'archaludon', 'sand');
+  const snow = run('none', 'milotic', 'snow');
+  return { works: plain.d === plain.sixteenth && veil.d === 0 && steel.d === 0 && snow.d === 0,
+           detail: `sand, Milotic: ability none -${plain.d} (a sixteenth is ${plain.sixteenth}), `
+                 + `Sand Veil -${veil.d}; sand, Archaludon (Steel) -${steel.d}; snow, Milotic -${snow.d}` };
 });
 
 probe('ability', 'speedOnItemLoss', 'Unburden doubles Speed once the item is gone', () => {
@@ -731,16 +812,57 @@ probe('ability', 'healsAllyOnSwitchIn', 'Hospitality heals the partner on entry'
            detail: `partner hp change: ability none ${off.d}, Hospitality ${on.d} (a quarter is ${on.quarter})` };
 });
 
+/* THE LAST TWO SOURCE-GREP PROBES IN THIS FILE, NOW BEHAVIOURAL. Both reported MISSING, so they were
+ * honest negatives rather than hollow LIVEs — but a probe that passes on a STRING would have flipped
+ * to LIVE the day somebody typed `unnerve` into a comment, and `weatherChipImmune` is exactly how that
+ * ends. The hollow check at the bottom of this file now asserts there are none left. */
 probe('ability', 'blocksBerries', 'Unnerve stops the foe eating a berry', () => {
-  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-  return { works: /unnerve|blocksBerries/.test(src),
-           detail: 'engine references it: ' + /unnerve|blocksBerries/.test(src) };
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    me.ability = ab;
+    /* The berry fires below half, so the holder is put there and the CONTROL must show it eating. */
+    f1.item = 'sitrusberry'; f1.curHP = Math.floor(f1.st.hp / 3);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = f1.curHP;
+    const pass2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, pass2(me, ally), pass2(f1, f2));
+    return { d: f1.curHP - before, item: f1.item };
+  };
+  const off = run('none'), on = run('unnerve');
+  return { works: off.d > 0 && on.d === 0 && on.item === 'sitrusberry',
+           detail: `foe hp change: ability none +${off.d} (berry now ${JSON.stringify(off.item)}), `
+                 + `Unnerve +${on.d} (berry now ${JSON.stringify(on.item)})` };
 });
 
 probe('ability', 'disablesAttacker', 'Cursed Body can disable the move that hit it', () => {
-  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-  return { works: /cursedbody|disablesAttacker/.test(src),
-           detail: 'engine references it: ' + /cursedbody|disablesAttacker/.test(src) };
+  /* THE CONTROL MUST REPEAT, the correction the Disable probe next door already carries. The first
+   * version committed Dragon Claw and the free foe then picked Protect in BOTH arms, so "it did not
+   * repeat" was the chooser's ordering and the probe could not have passed whatever the engine did.
+   * Earthquake is what this body picks when left alone, so the no-ability arm repeats it.
+   *
+   * rng is pinned LOW because Cursed Body is a 30% roll: at rng5 (0.5) a faithful wire correctly does
+   * nothing, and the probe would report a working engine as missing. */
+  const run = (ab) => {
+    const me = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.ability = ab;
+    const rngLow = () => 0.05;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const pass2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+    M.battleTurn(S, rngLow, pass2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    const hit = f1._lastMove;
+    /* The foe is then left COMPLETELY FREE. A forced action bypasses chooseAction and would measure
+     * the caller's obedience — the correction the Encore probe already carries. */
+    M.battleTurn(S, rngLow, pass2(me, ally), new Map([[f2, { kind: 'pass' }]]));
+    const rec = (S.lastActs || []).find(x => x.side === 'B');
+    return { hit, then: rec && (rec.move || rec.kind), sealed: f1._sealed || null };
+  };
+  const off = run('none'), on = run('cursedbody');
+  return { works: off.hit === 'earthquake' && off.then === 'earthquake' && on.then !== 'earthquake',
+           detail: `foe hit with ${off.hit}; next free pick: ability none ${off.then}, `
+                 + `Cursed Body ${on.then} (sealed=${JSON.stringify(on.sealed)})` };
 });
 
 probe('item', 'restoresStats', 'White Herb undoes a stat drop', () => {
@@ -1112,12 +1234,25 @@ probe('move', 'reversesSpeed', 'Trick Room lets the slow user move first', () =>
            detail: 'field.tr=' + on.tr + '; slow user took ' + off.took + ' normally, ' + on.took + ' under Trick Room' };
 });
 
-probe('move', 'chargeTurn', 'Fly deals nothing on the turn it is clicked', () => {
-  const { me, ally, f1, f2, S } = board('staraptor', 'incineroar', 'garchomp', 'garchomp');
-  const before = f1.curHP;
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'fly', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  return { works: (before - f1.curHP) === 0, detail: 'foe took ' + (before - f1.curHP) + ' on the charge turn (must be 0)' };
+/* ONE-ARMED UNTIL 2026-08-04, AND FOUND BY THE IDENTICAL-ARMS SCAN AT THE BOTTOM OF THIS FILE. "the
+ * foe took 0" is also what an engine that could not resolve Fly AT ALL would print — a move dropped
+ * to `kind: pass` reads exactly the same. The control is the SAME body clicking Brave Bird, which
+ * must land, and the second turn is played so the charge is shown to FIRE rather than to vanish. */
+probe('move', 'chargeTurn', 'Fly deals nothing on the turn it is clicked and lands on the next', () => {
+  const run = (mv, turns) => {
+    const { me, ally, f1, f2, S } = board('staraptor', 'incineroar', 'garchomp', 'garchomp');
+    const before = f1.curHP; const out = [];
+    for (let i = 0; i < turns; i++) {
+      const hp = f1.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+      out.push(hp - f1.curHP);
+    }
+    void before; return out;
+  };
+  const bird = run('bravebird', 1), fly = run('fly', 2);
+  return { works: bird[0] > 0 && fly[0] === 0 && fly[1] > 0,
+           detail: `Brave Bird turn 1 dealt ${bird[0]}; Fly dealt ${fly[0]} on the charge turn and ${fly[1]} on the next` };
 });
 
 probe('move', 'chargeSkippedByWeather', 'Solar Beam fires the same turn in sun and not otherwise', () => {
@@ -1539,9 +1674,13 @@ probe('move', 'terrainScaled', 'Expanding Force gains power on Psychic Terrain',
   const att = bare('alakazam'), def = bare('garchomp');
   const mv = MC.moves['expandingforce'];
   if (!mv) return { works: false, detail: 'expandingforce not in MC.moves' };
-  const a = M.dmgRange(att, def, mv, fresh(), false);
-  const b = M.dmgRange(att, def, mv, Object.assign(fresh(), { terrain: 'psychic' }), false);
-  return { works: b.max > a.max, detail: 'no terrain ' + a.max + '  ->  Psychic Terrain ' + b.max };
+  const at = (t) => M.dmgRange(att, def, mv, Object.assign(fresh(), { terrain: t }), false).max;
+  /* BOTH VOCABULARIES, and the WRONG terrain as a third arm. A wire that multiplied under ANY terrain
+   * would pass a two-armed probe and would be wrong on every Electric Terrain board. */
+  const none = at(''), eng = at('psychic'), boardWord = at('psychicterrain'), wrong = at('electric');
+  return { works: eng > none && boardWord === eng && wrong === none,
+           detail: `Expanding Force max: no terrain ${none}, 'psychic' ${eng}, 'psychicterrain' ${boardWord}, `
+                 + `'electric' ${wrong} (must equal no terrain)` };
 });
 
 probe('move', 'swapsStat', 'Foul Play attacks with the TARGET Attack', () => {
@@ -2012,6 +2151,161 @@ probe('move', 'boardWeatherLanguage', "a board's Showdown weather name reaches t
            detail: `applyField('sunnyday') -> ${JSON.stringify(landed)}; Flamethrower max: clear ${none}, 'sun' ${sun}, as landed ${got}` };
 });
 
+/* TERRAIN IS THE SAME TWO-VOCABULARY SPLIT AS THE WEATHER, AND IT IS SPLIT INSIDE THE ENGINE TOO.
+ *
+ * `board.startField` stores `norm(move.terrain)`, so a board carries `electricterrain`. The artifact's
+ * `terrainSetter` carries `electric`. medicham2 then reads BOTH and agrees with NEITHER consistently:
+ * Hadron Engine (:576) and Grassy Glide (:97) test the SHORT word, and Psychic Terrain's priority
+ * block (:144) tests the LONG one. Measured on the shipped engine before the fix:
+ *
+ *     Surf under Hadron Engine     clear 99   'electric' 130   'electricterrain' 99
+ *     priorityRefusedAbove         'psychic' Infinity          'psychicterrain' 0
+ *     movePriority(grassyglide)    'grassy' 1                  'grassyterrain' 0
+ *
+ * So Psychic Surge — which sets `psychic` from the artifact — never blocked a priority move, and a
+ * mid-battle board carrying `electricterrain` never boosted or hastened anything.
+ *
+ * BOTH SITES AND BOTH VOCABULARIES, because fixing one direction and breaking the other reads
+ * identical from a single arm. The engine's own word must beat clear (or the knob is unwired and the
+ * agreement is meaningless), and the board's word must equal the engine's word. */
+probe('move', 'boardTerrainLanguage', "a board's Showdown terrain name reaches the engine", () => {
+  const RL = require(D('engine', 'rollout_leaf.js'));
+  const S = { field: {} };
+  RL.applyField(S, { terrain: 'electricterrain' }, 'p1', true);
+  const landed = S.field.terrain;
+  const att = bare('milotic'), def = bare('garchomp');
+  att.ability = 'hadronengine';
+  const dmg = (t) => M.dmgRange(att, def, MC.moves['surf'], Object.assign(fresh(), { terrain: t }), false).max;
+  const none = dmg(''), eng = dmg('electric'), got = dmg(landed);
+  /* The OTHER site, in the OTHER direction: this one already spoke the board's word and not the
+   * artifact's. Infinity means nothing is refused. */
+  const bar = (t) => M.priorityRefusedAbove([bare('garchomp')], { terrain: t });
+  const pClear = bar(''), pEng = bar('psychic'), pBoard = bar('psychicterrain');
+  return { works: eng > none && got === eng && pClear === Infinity && pEng === 0 && pBoard === 0,
+           detail: `applyField('electricterrain') -> ${JSON.stringify(landed)}; Surf under Hadron Engine: `
+                 + `clear ${none}, 'electric' ${eng}, as landed ${got}; priorityRefusedAbove: `
+                 + `clear ${pClear}, 'psychic' ${pEng}, 'psychicterrain' ${pBoard}` };
+});
+
+/* CLICKING A TERRAIN MOVE. `playerAction` had a branch for the four weather moves and none for the
+ * four terrain moves, so Psychic Terrain resolved to `kind: pass` — a spent turn that changed nothing.
+ * 141 corpus uses, and it is the move half of the same mechanic terrainId was written for: the
+ * artifact's `setsTerrain` param carries the LONG spelling (`psychicterrain`) while `terrainSetter`
+ * on the ability side carries the SHORT one, so this branch is what makes the translation load-bearing
+ * rather than decorative.
+ *
+ * THE OUTCOME IS A BLOCKED PRIORITY MOVE, not the value of a field variable. Reading
+ * `S.field.terrain` back would pass on an engine that stored a string nothing reads — which is the
+ * entire defect this pass exists to fix. The control clicks nothing and must TAKE the Ice Shard. */
+probe('move', 'setsTerrain', 'clicking Psychic Terrain blocks the foe\'s priority move', () => {
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'incineroar', 'weavile', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, click ? M.playerAction(me, 'psychicterrain', null, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const before = me.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'iceshard', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { took: before - me.curHP, terrain: S.field.terrain };
+  };
+  const off = run(false), on = run(true);
+  return { works: off.took > 0 && on.took === 0,
+           detail: `Ice Shard into the user: no click ${off.took} (terrain ${JSON.stringify(off.terrain)}), `
+                 + `after Psychic Terrain ${on.took} (terrain ${JSON.stringify(on.terrain)})` };
+});
+
+/* ---- THE TOP OF THE UNPROBED LIST, worked in descending corpus usage --------------------------- */
+
+/* `moveClass` — 76,625 uses, the largest unprobed tag in the artifact. It is a CLASSIFICATION, so it
+ * can only be seen through a consumer that reacts to it: `boostsMoveClass` (Iron Fist punch x1.2,
+ * Sharpness slicing x1.5, Strong Jaw bite x1.5, Mega Launcher pulse x1.5).
+ *
+ * FOUR ARMS, because two would not separate "Iron Fist does nothing" from "Iron Fist boosts
+ * EVERYTHING", which is the more likely bug in a wire that reads a multiplier and forgets the class.
+ * Same body, same target, same two moves; only the ability moves. */
+probe('move', 'moveClass', 'Iron Fist boosts a punch and leaves a non-punch alone', () => {
+  const def = bare('garchomp');
+  const hit = (ab, mv) => { const a = bare('incineroar'); a.ability = ab;
+    return M.dmgRange(a, def, MC.moves[mv], fresh(), false).max; };
+  const pOff = hit('none', 'machpunch'), pOn = hit('ironfist', 'machpunch');
+  const oOff = hit('none', 'flareblitz'), oOn = hit('ironfist', 'flareblitz');
+  return { works: pOn > pOff && oOn === oOff,
+           detail: `Mach Punch (punch): none ${pOff} -> Iron Fist ${pOn}; `
+                 + `Flare Blitz (not punch): none ${oOff} -> Iron Fist ${oOn} (must not move)` };
+});
+
+/* `statChange` — 64,869 uses, second largest unprobed. The param carries the exact table
+ * (`charm -> {atk: -2}`), so the probe asserts the SIZE and not merely that something happened: a
+ * generic "drop one stage" wire is the failure this file already found in the setup branch, where
+ * every click gave +1 Atk/SpA/Spe and Swords Dance was one-third right. */
+probe('move', 'statChange', 'Charm drops the target Attack by exactly two stages', () => {
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, click ? M.playerAction(me, 'charm', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return f1.boosts.at;
+  };
+  const off = run(false), on = run(true);
+  return { works: off === 0 && on === -2, detail: `foe atk stage: no click ${off}, after Charm ${on} (the param says -2)` };
+});
+
+/* `sound` — 14,797 uses. A FLAG, read through the `immuneToMoveClass` tag; the only way to see it is
+ * an ability that refuses the class. Both moves are aimed at the same body with the same ability
+ * varied, and the NON-sound arm must still land, or "Soundproof blocks everything" would pass. */
+probe('move', 'sound', 'Soundproof refuses a sound move and takes a normal one', () => {
+  const run = (ab, mv) => {
+    const { me, ally, f1, f2, S } = board('sylveon', 'incineroar', 'milotic', 'garchomp');
+    f1.ability = ab;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const sOff = run('none', 'hypervoice'), sOn = run('soundproof', 'hypervoice');
+  const nOff = run('none', 'moonblast'), nOn = run('soundproof', 'moonblast');
+  return { works: sOff > 0 && sOn === 0 && nOff > 0 && nOn > 0,
+           detail: `Hyper Voice (sound): none ${sOff}, Soundproof ${sOn}; `
+                 + `Moonblast (not sound): none ${nOff}, Soundproof ${nOn} (must still land)` };
+});
+
+/* `punishesAttacker` — 8,953 uses. WIRE 5 consumes it and no probe carried its NAME, so the census
+ * said nothing about it. Staged on the ability's own trigger: Rough Skin is `trigger: contact`, so the
+ * special arm must cost the attacker NOTHING — a wire that punished every hit is the likelier bug and
+ * a contact-only probe would pass on it. */
+probe('ability', 'punishesAttacker', 'Rough Skin tolls a contact hit and not a special one', () => {
+  const run = (ab, mv) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'garchomp', 'garchomp');
+    f1.ability = ab;
+    const before = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - me.curHP;
+  };
+  const cOff = run('none', 'waterfall'), cOn = run('roughskin', 'waterfall');
+  const sOff = run('none', 'surf'), sOn = run('roughskin', 'surf');
+  return { works: cOff === 0 && cOn > 0 && sOff === 0 && sOn === 0,
+           detail: `Waterfall (contact): none ${cOff} -> Rough Skin ${cOn}; `
+                 + `Surf (special): none ${sOff} -> Rough Skin ${sOn} (must stay 0)` };
+});
+
+/* `reflectsStatusMoves` — 568 uses (Magic Bounce). The status move must come BACK, not merely fail:
+ * a refusal reads identical on the target and the difference is entirely on the USER, which is why
+ * both bodies' stages are printed. */
+probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends Charm back at its user', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'espathra', 'garchomp');
+    f1.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { target: f1.boosts.at, user: me.boosts.at };
+  };
+  const off = run('none'), on = run('magicbounce');
+  return { works: off.target === -2 && off.user === 0 && on.target === 0 && on.user === -2,
+           detail: `atk stages (target/user): ability none ${off.target}/${off.user}, `
+                 + `Magic Bounce ${on.target}/${on.user}` };
+});
+
 /* THE ABSORBED HIT HEALS THE ABSORBER, and `tests/test-tag-wire.js` has printed "(1 -> 1)" on this
  * wire since before 2026-08-04 -- Volt Absorb took the hit and gained nothing.
  *
@@ -2090,6 +2384,40 @@ if (missing.length) {
   for (const r of missing) console.log('    - ' + r.label + '   (' + r.kind + ' tag `' + r.tag + '`)');
 }
 
+/* ---- THE HOLLOW CHECK, run over the WHOLE census in one pass ------------------------------------ */
+
+const hollow = results.filter(r => r.hollow);
+console.log(`\n  hollow probes (read the engine SOURCE instead of running it): ${hollow.length}`);
+for (const r of hollow) console.log('    !! ' + r.kind + ' `' + r.tag + '` — ' + r.label);
+
+/* THE SECOND DETECTOR IS MEASURED, NOT ASSERTED, AND THE MEASUREMENT IS THE REASON.
+ *
+ * The property worth asserting is "a probe whose two arms produce the SAME number is not testing
+ * anything" — it is the failure that made the Disable probe a false LIVE for as long as it existed.
+ * It cannot be asserted from here, and the cheap heuristic is printed so the cost of the real fix is
+ * a number rather than an opinion: `detail` is free-form prose. It carries arm values, thresholds
+ * ("a quarter is 43"), stage counts and stat names all as bare digits, so no parser can tell an ARM
+ * from an ANNOTATION. The count below is what a digit-scraping version would flag; read it as an
+ * upper bound on noise, not as a list of bugs.
+ *
+ * Doing it properly means a PROTOCOL change: probes return `arms: {control, test}` and this file
+ * asserts `control !== test`. That is a real assertion with no heuristic in it — and it has to be
+ * applied by hand to all 147 probes, because a probe that keeps returning only `detail` would opt
+ * itself out silently, which is the same hole in a new place. Costed here so the next pass can decide
+ * with the number in front of it rather than re-deriving it. */
+const nums = (s) => (String(s).match(/-?\d+(?:\.\d+)?/g) || []);
+/* LIVE ONLY. A MISSING probe printing the same number twice is the mechanic being absent — that is
+ * the probe working, and including those made the list 23 long and unreadable. The suspicious case is
+ * a probe that reports LIVE while its arms agree. */
+const flat = results.filter(r => {
+  if (!r.works) return false;
+  const n = nums(r.detail);
+  return n.length >= 2 && new Set(n).size === 1;
+});
+console.log(`  LIVE probes whose detail carries >=2 numbers and they are ALL equal: ${flat.length}`
+  + '   (a heuristic upper bound on "both arms agree", NOT an assertion — see the comment)');
+for (const r of flat) console.log('    ?  ' + r.kind + ' `' + r.tag + '` — ' + r.detail);
+
 fs.writeFileSync(D('data', 'mechanics-census.json'), JSON.stringify({
   generated: new Date().toISOString(), by: 'tests/test-mechanics.js',
   design: 'Behavioural probes. Each clears its own control explicitly, because the first version '
@@ -2099,8 +2427,19 @@ fs.writeFileSync(D('data', 'mechanics-census.json'), JSON.stringify({
   /* Counted apart from `missing`: a probe that threw has not shown the mechanic ABSENT, only that it
    * could not ask. Both are non-live; only one is evidence about the engine. */
   threw,
-  results: results.map(r => ({ kind: r.kind, tag: r.tag, label: r.label, live: r.works, detail: r.detail })),
+  /* Written to the artifact so a ratchet can hold it at zero without re-running the reasoning. */
+  hollow: hollow.length,
+  results: results.map(r => ({ kind: r.kind, tag: r.tag, label: r.label, live: r.works, detail: r.detail,
+                               hollow: !!r.hollow })),
 }, null, 2) + '\n');
 console.log('\n  wrote data/mechanics-census.json');
-/* Exits 0 deliberately: this is a census, and MISSING is the honest current state of several of
- * these. A ratchet on data/mechanics-census.json is what should fail when `live` goes DOWN. */
+/* Exits 0 for a MISSING mechanic — that is the honest current state of several of these, and a census
+ * that went red and got ignored would be useless. It exits 1 for a HOLLOW one, which is a different
+ * kind of claim: a probe that reads the source is not evidence about the engine at all, and leaving
+ * one in place is how `weatherChipImmune` reported a mechanic live for months while the engine had no
+ * sandstorm residual whatsoever. */
+if (hollow.length) {
+  console.log(`\n  FAILED: ${hollow.length} hollow probe(s). A probe that greps the engine source is `
+    + 'not a probe. Make it behavioural, with a control arm.');
+  process.exitCode = 1;
+}

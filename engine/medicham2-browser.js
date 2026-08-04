@@ -73,7 +73,14 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * faints), Swallow (needs Stockpile), Strength Sap (scales off the TARGET's Attack). The tag says
    * `heal: true`, which is a boolean in a fraction's clothing. Counted so "these do nothing" is a
    * READABLE claim rather than a silent default. */
-  healProcedural: 0, healProceduralFirst: '' };
+  healProcedural: 0, healProceduralFirst: '',
+  /* A Magic Guard body that took the sandstorm residual anyway (WIRE 31). It blocks indirect damage
+   * through `onDamage`, which no derivation in tag_dex reads, so the ability carries `untagged` and
+   * the chip cannot see it. Counted rather than name-checked -- see the comment at WIRE 31. */
+  magicGuardChip: 0,
+  /* A terrain string neither vocabulary recognises (see terrainId). Returning the raw value is what
+   * made the weather bug: truthy, and matching nothing. */
+  terrainUnknown: 0, terrainUnknownFirst: '' };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -99,7 +106,9 @@ function movePriority(id, field){
   if(!id) return 0;
   const key=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
   const c=PRIO_CONDITIONAL[key];
-  if(c) return (field&&field.terrain===c.needsTerrain)?c.prio:0;
+  /* THROUGH terrainId, so a caller may hand this either vocabulary. A raw `===` against the short
+   * word read 0 for every board-sourced `grassyterrain` — see the terrainId header. */
+  if(c) return (field&&terrainId(field.terrain)===c.needsTerrain)?c.prio:0;
   const fx=moveFx(key);
   return (fx&&typeof fx.priority==='number')?fx.priority:0;
 }
@@ -141,7 +150,9 @@ function priorityRefusedAbove(defenders, field){
   /* Psychic Terrain refuses priority against grounded targets. Grounded-ness is not tracked in this
    * engine, so this applies it unconditionally and says so: the common case is a grounded target and
    * ignoring the terrain entirely is wrong far more often than this is. */
-  if(field&&String(field.terrain||'').toLowerCase().replace(/[^a-z0-9]/g,'')==='psychicterrain') out=Math.min(out,0);
+  /* THROUGH terrainId. This line tested `psychicterrain` — the BOARD's spelling — while the artifact's
+   * `psychicsurge` sets `psychic`, so the ability that puts the terrain up could never trigger it. */
+  if(field&&terrainId(field.terrain)==='psychic') out=Math.min(out,0);
   return out;
 }
 
@@ -191,6 +202,79 @@ function weatherId(w){
   if(m)return m;
   MEDFAILS.weatherUnknown++; if(!MEDFAILS.weatherUnknownFirst)MEDFAILS.weatherUnknownFirst=k;
   return '';
+}
+/* TERRAIN HAS THE SAME TWO-VOCABULARY SPLIT AS THE WEATHER, AND UNLIKE THE WEATHER THE SPLIT RAN
+ * THROUGH THE MIDDLE OF THIS FILE.
+ *
+ * Three writers, two vocabularies, nobody translating:
+ *   - `board.startField` stores `norm(move.terrain)`, so a Board carries `electricterrain`;
+ *     `position_features.js:296` reads that spelling back out.
+ *   - the artifact's `terrainSetter` param carries `electric` (Electric Surge, Hadron Engine), and
+ *     that is what :1191 assigns straight into `field.terrain`.
+ *   - `miltank.js:781` and `rollout_r1.js:175` extract with the SHORT words, against a Board that
+ *     stores the LONG ones, so they hand the leaf `''` every time.
+ *
+ * And the READERS in this file disagreed with each other. Measured on the engine as it stood:
+ *
+ *     Surf under Hadron Engine (:576)   clear 99   'electric' 130   'electricterrain' 99
+ *     movePriority(grassyglide) (:97)   'grassy' 1                  'grassyterrain' 0
+ *     priorityRefusedAbove (:144)       'psychic' Infinity          'psychicterrain' 0
+ *
+ * So Psychic Surge, which sets `psychic` from the artifact, has NEVER blocked a priority move, and a
+ * board's `electricterrain` has never boosted or hastened anything. Both halves were live-looking and
+ * both were dead, in opposite directions.
+ *
+ * A SECOND MAP WAS NOT WRITTEN, and this is the sibling of `weatherId` rather than a new idea:
+ * same shape, same idempotence, same loud unknown. Idempotent matters here more than it did for the
+ * weather, because BOTH vocabularies genuinely arrive — the artifact's on a switch-in and the board's
+ * at the leaf boundary — so a caller must be able to pass either and get the same answer.
+ *
+ * EXPOSURE, MEASURED BEFORE THE FIX RATHER THAN ASSUMED. Over 69,623 corpus boards (every board of
+ * all 8,759 clean open-sheet games), 863 carry a terrain by the Board's own key — 1.24%, against
+ * 48.1% for weather — and they are electric 597, psychic 243, grassy 18, misty 5. The store holds
+ * exactly four values over 1,845 field-start events: `Electric Terrain`, `Psychic Terrain`,
+ * `Grassy Terrain`, `Misty Terrain`, so the translation covers 100% of what exists. The SHORT-word
+ * extractor that miltank and rollout_r1 use found 0 of the 863, which is why the leaf-side exposure
+ * is zero and stays zero until an owner of those files changes them — filed in docs/ENGINE.md. */
+const ENG_TERRAIN=new Set(['electric','grassy','misty','psychic']);
+const SD2TERRAIN={electricterrain:'electric',grassyterrain:'grassy',mistyterrain:'misty',psychicterrain:'psychic'};
+function terrainId(t){
+  const k=String(t||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!k)return '';
+  if(ENG_TERRAIN.has(k))return k;
+  const m=SD2TERRAIN[k];
+  if(m)return m;
+  MEDFAILS.terrainUnknown++; if(!MEDFAILS.terrainUnknownFirst)MEDFAILS.terrainUnknownFirst=k;
+  return '';
+}
+/* WIRE 33 -- MAGIC BOUNCE. A bounced status move is not a move that FAILED, it is a move that landed
+ * on the person who threw it, and that is a two-stage difference in the score: Will-O-Wisp aimed at a
+ * Magic Bounce body burns the ATTACKER. The engine had no concept of it -- Charm read -2 on the target
+ * either way (measured: `ability none -2/0, Magic Bounce -2/0`).
+ *
+ * A JOIN BY SHAPE, NOT A NAME. The ability carries `reflectsStatusMoves {requiresFlag:'reflectable'}`
+ * and the move carries `moveClass {classes:[...,'reflectable']}` -- the same ability-names-a-flag /
+ * move-carries-it pattern `immuneToMoveClass` already uses, so a second bouncer arrives with no edit.
+ * `reflectable` was added to the moveClass derivation in the same pass for exactly this; 60 moves
+ * carry it.
+ *
+ * THE DERIVATION OVER-MATCHED FIRST AND THE MEMBERSHIP PRINT IS WHAT CAUGHT IT -- `onAllyTryHitSide`
+ * alone matched magicbounce, sapsipper AND soundproof, and wiring that would have sent a Will-O-Wisp
+ * back at its user off a SOUNDPROOF body (355 uses). See tag_dex's comment.
+ *
+ * WHAT IS NOT MODELLED, stated rather than discovered: the tag's own `scope` says the bounce covers
+ * the whole SIDE including hazards and the partner. This engine keeps no side conditions and no
+ * hazards, and a move aimed at the partner is aimed at a different body, so only the holder's own
+ * bounce is here. A bounce cannot bounce again -- returning the user means the recursion cannot
+ * happen, because a user never reflects its own move. */
+function bounceOff(user,target,moveId){
+  if(!target||target===user||!moveId) return target;
+  const r=TAGS.param('ability',target.ability,'reflectsStatusMoves');
+  if(!r) return target;
+  const c=TAGS.param('move',moveId,'moveClass');
+  const flag=r.requiresFlag||'reflectable';
+  if(!(c&&c.classes&&c.classes.indexOf(flag)>=0)) return target;
+  return user;
 }
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
 /* HEALING IS A CLASS, AND blocksHealing IS ITS COUNTER — one gate, asked in every place HP goes up.
@@ -573,7 +657,7 @@ function dmgRange(att,def,mv,field,spread){
   if(attAb==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
   if(att.ability==='solarpower'&&!phys&&field.weather==='sun')A=Math.floor(A*1.5);
   if(att.ability==='orichalcumpulse'&&phys&&field.weather==='sun')A=Math.floor(A*5461/4096);
-  if(att.ability==='hadronengine'&&!phys&&field.terrain==='electric')A=Math.floor(A*5461/4096);
+  if(att.ability==='hadronengine'&&!phys&&terrainId(field.terrain)==='electric')A=Math.floor(A*5461/4096);
   // Ruin abilities lower everyone-else's stat (field-wide; handled pairwise)
   if(phys&&att.ability==='swordofruin')D=Math.floor(D*0.75);
   if(!phys&&att.ability==='beadsofruin')D=Math.floor(D*0.75);
@@ -585,6 +669,23 @@ function dmgRange(att,def,mv,field,spread){
   if(_bf&&att._fallenStuck)base=Math.floor(base*(1+_bf.perFallen*Math.min(att._fallenStuck,_bf.max)));
   if(field.weather==='rain'){if(mvT==='Water')base=Math.floor(base*1.5);if(mvT==='Fire')base=Math.floor(base*0.5);}
   if(field.weather==='sun'){if(mvT==='Fire')base=Math.floor(base*1.5);if(mvT==='Water')base=Math.floor(base*0.5);}
+  /* WIRE 34 -- terrainScaled. Expanding Force (182 uses) and Rising Voltage (114) were priced at their
+     BASE power in every rollout: the tag said `{scalesWith:'terrain'}` and named neither the terrain
+     nor the number, so nothing could read it. tag_dex now pulls both out of the handler --
+     `isTerrain("psychicterrain")` and the chainModify or `basePower * n` beside it -- so Rising
+     Voltage's DOUBLING and Expanding Force's x1.5 are the artifact's numbers rather than typed here.
+     Sits with the weather multipliers because it is the same kind of field modifier.
+     THE TERRAIN COMES IN THE BOARD'S SPELLING (Showdown's own `isTerrain` string) and the field may be
+     in either -- terrainId is asked on both sides so the comparison is between two normalised words.
+     TWO HALVES ARE NOT MODELLED AND ARE STATED: grounded-ness, which this engine does not track (the
+     same caveat priorityRefusedAbove already carries), and Expanding Force becoming a SPREAD move in
+     Psychic Terrain, which is a targeting change rather than a power one. Terrain Pulse carries the
+     tag with no number on purpose -- it changes TYPE as well as power -- and is left unwired. */
+  {
+    const _ts=TAGS.param('move',mv&&mv.id,'terrainScaled');
+    if(_ts&&_ts.terrain&&_ts.mult&&terrainId(field.terrain)===terrainId(_ts.terrain))
+      base=Math.floor(base*_ts.mult);
+  }
   if(att.ability==='technician'&&mvBP<=60)base=Math.floor(base*1.5);
   /* WIRE 13 -- boostsMoveClass x moveClass, the join the artifact was built for: the ability names
    * a FLAG and its multiplier (Tough Claws contact x1.3, Sharpness slicing x1.5, Mega Launcher
@@ -1187,9 +1288,13 @@ function applyEntryEffects(m,field,ally){
     ally.curHP=Math.min(ally.st.hp,ally.curHP+Math.floor(ally.st.hp/4));
   }
   const w=TAGS.param('ability',m.ability,'weatherSetter');
-  if(w&&w.weather){field.weather=w.weather;field.weatherT=5;}
+  if(w&&w.weather){const _w=weatherId(w.weather);if(_w){field.weather=_w;field.weatherT=5;}}
+  /* NORMALISED ON THE WAY IN AS WELL AS ON THE WAY OUT. `terrainSetter` happens to carry the engine's
+   * own word today, so this is a no-op — and that is exactly the reason to route it: if the artifact
+   * ever spells it the Board's way, the ability keeps working instead of silently setting a string no
+   * reader matches. Same call the readers make, so the two cannot drift. */
   const t=TAGS.param('ability',m.ability,'terrainSetter');
-  if(t&&t.terrain){field.terrain=t.terrain;field.terrainT=5;}
+  if(t&&t.terrain){const _t=terrainId(t.terrain);if(_t){field.terrain=_t;field.terrainT=5;}}
 }
 /* THE STEP-WISE BATTLE API (the Battle Tower's spine). battle() was a sealed 20-turn loop, which is
  * right for a rollout and useless for a PLAYER — the Tower needs the same engine to stop each turn
@@ -1492,7 +1597,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * way the existing status branch checks them, because a target-drop is a status move. */
       if(a.kind==='affect'){
         m._lastMove=a.mv;
-        const _t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        let _t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        _t=bounceOff(m,_t,a.mv);
         if(!_t||_t.protect) continue;
         /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
          * makes it a different Pokemon to the one people build around. The tag is derived from the
@@ -1636,6 +1742,19 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(w){field.weather=w;field.weatherT=5;}
         m._lastMove=a.mv;continue;
       }
+      /* WIRE 32 -- CLICKING A TERRAIN MOVE. The four weather moves had a branch here since WIRE 13 and
+         the four terrain moves had none, so Psychic Terrain fell through playerAction to `kind: pass`:
+         a spent turn that changed nothing, on 141 corpus uses.
+         THROUGH terrainId, and that is the point rather than a formality -- the artifact's
+         `setsTerrain` param carries `psychicterrain` while `terrainSetter` on the ability side carries
+         `psychic`, so writing the param straight in would have stored a word only ONE of this file's
+         three readers matches. Same five turns and the same replacement rule as the weather. */
+      if(a.kind==='terrain'){
+        const _tp=TAGS.param('move',a.mv,'setsTerrain');
+        const _t=terrainId(_tp&&_tp.terrain);
+        if(_t){field.terrain=_t;field.terrainT=5;}
+        m._lastMove=a.mv;continue;
+      }
       /* The redirector marks ITSELF; the retarget happens at the attacker's targeting step below, so
        * the ordering falls out for free — priority +2 means the mark is almost always set before any
        * normal-priority attack looks for it, and a redirector that moves after an attacker correctly
@@ -1708,7 +1827,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * to read `applyStatus(t, ['brn','par','slp'][rng()*3|0])` - a uniformly random pick, so Thunder
        * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
       if(a.kind==='status'){
-        const t=a.target; if(!t||t.fainted||t.protect) continue;
+        const t=bounceOff(m,a.target,a.mv); if(!t||t.fainted||t.protect) continue;
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m) continue;   // Good as Gold
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
@@ -2158,6 +2277,43 @@ function battleTurn(S,rng,actsForA,actsForB){
      * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
     [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
+      /* WIRE 31 -- THE SANDSTORM RESIDUAL, WHICH THIS ENGINE DID NOT HAVE AT ALL.
+       *
+       * FOUND BY CONVERTING A HOLLOW CENSUS PROBE. `weatherChipImmune` read LIVE because the string
+       * `magmaarmor` appears in this file -- once, in the FREEZE-immunity table at :1097, which has
+       * nothing to do with weather. So the census carried an immunity as working while the damage it
+       * is immune to did not exist: burn, poison, Toxic and Leech Seed all ticked here and sand did
+       * not. Sand Stream is 1,705 sheets and the store holds 6,167 sandstorm events.
+       *
+       * FIRST IN THE RESIDUAL ORDER, which is the real one: weather, then the passive heals, then the
+       * seed, then the status chips. It only shows at the margin of a faint, and the margin of a faint
+       * is exactly what a rollout is counting.
+       *
+       * SAND ONLY. Snowscape replaced Hail in this generation and deals NO residual damage, so this
+       * is gated on 'sand' rather than on "there is a weather" -- an engine that chipped in snow would
+       * be a new wrong number rather than a wired mechanic, and the probe asserts snow costs nothing.
+       *
+       * THE 1/16 AND THE THREE TYPES ARE STATED HERE, WITH THE REASON. No artifact this engine reads
+       * carries either: `weatherSetter` names the weather and stops. They are constants of the format
+       * in the same class as DOUBLES_SCREEN, so they are written down rather than faked out of a tag.
+       * The ABILITY side is NOT written down -- it comes from `weatherChipImmune.weathers`, which the
+       * derivation now reads out of each handler, so Overcoat refusing both and Sand Veil refusing
+       * only sand falls out of the artifact.
+       *
+       * MAGIC GUARD IS DELIBERATELY NOT EXEMPTED, AND IT IS COUNTED RATHER THAN SILENT. It blocks all
+       * indirect damage through `onDamage`, not `onImmunity`, so it carries `untagged` in
+       * data/tags.json (79 uses) and this tag cannot see it. Exempting it HERE by name would do two
+       * bad things at once: type a membership list the artifact is supposed to derive, and leave the
+       * ability HALF-right -- burn, poison, Toxic and Leech Seed above already chip a Magic Guard body
+       * and would keep doing so. One policy, and the gap is counted in fails.magicGuardChip. */
+      if(field.weather==='sand'&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){
+        const _wc=TAGS.param('ability',m.ability,'weatherChipImmune');
+        const _im=!!(_wc&&Array.isArray(_wc.weathers)&&_wc.weathers.includes('sand'));
+        if(!_im){
+          if(String(m.ability||'').replace(/[^a-z0-9]/g,'')==='magicguard')MEDFAILS.magicGuardChip++;
+          m.curHP-=Math.floor(m.st.hp/16);
+        }
+      }
       if(m.status==='brn')m.curHP-=Math.floor(m.st.hp/16);
       if(m.status==='psn')m.curHP-=Math.floor(m.st.hp/8);                       // regular poison: a flat 1/8
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n/16, escalating
@@ -2339,6 +2495,14 @@ function playerAction(me,moveId,target,field){
   if(TAGS.has('move',id,'delayedSleep'))return {kind:'yawn',mv:id,target};
   if(fx&&fx.weather&&weatherId(fx.weather))
     return {kind:'weather',mv:id};
+  /* THE TERRAIN MOVES, from the `setsTerrain` tag — the same shape as the weather line above and
+     added beside it for that reason. Gated on terrainId returning something, so a member whose param
+     neither vocabulary recognises resolves to a readable no-op rather than to a field value the rest
+     of this file cannot match. WIRE 32 does the assignment. */
+  {
+    const _tp=TAGS.param('move',id,'setsTerrain');
+    if(_tp&&_tp.terrain&&terrainId(_tp.terrain)) return {kind:'terrain',mv:id};
+  }
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
   /* ONE READER FOR EVERY TARGET-SIDE EFFECT, from the artifact rather than a branch per move.
@@ -2429,7 +2593,7 @@ root.futureSight=futureSight;
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
-root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId;
+root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId; root.terrainId=terrainId;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
@@ -2441,7 +2605,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   /* Exported for the SAME reason as PROTECTMOVES: the boundary that hands this engine a field has to
    * be able to ask THIS engine what its weather words are, rather than keeping a second map that
    * drifts. rollout_leaf.applyField is the caller that needed it and could not reach it. */
-  weatherId,
+  weatherId,terrainId,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS};
 })(typeof window!=='undefined'?window:globalThis);
