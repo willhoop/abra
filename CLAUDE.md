@@ -96,22 +96,49 @@ void. Nothing crashed and nothing reported a failure, which is this project's si
 arriving through a door the rules had not covered.
 
 **The invariant is not "different files". It is that a measurement is a PHOTOGRAPH — nothing in
-frame may move, including files the measuring agent never opens.** ENGINE and MEASURE writing
-disjoint paths concurrently is survivable. Either of them running beside SEARCH is not, because
-SEARCH's number is a claim about the engine and the weights at one instant.
+frame may move, including files the measuring agent never opens.**
 
-So: **writing agents may run concurrently with each other. A measuring agent runs alone**, and the
-tree must be committed and still before it starts. "Committed at `<sha>`" describes HEAD and says
-nothing about the working tree — check the tree.
+**THE FIX IS NOT TO RUN ONE AGENT AT A TIME.** (Will, 2026-08-04: *"we can run multiple agents at
+once that's the whole point"*.) That was the first response to this failure and it is wrong twice:
+it serialises four divisions that were cut apart precisely so they could run at once, and it is
+PROSE — the thing this file says three separate times is a preference rather than a rule.
+
+`docs/DIVISIONS.md` encodes an invalidation ORDER. Treating that order as a scheduling constraint
+throws away the parallelism it exists to make safe.
+
+**A MEASUREMENT DOES NOT READ THE LIVE TREE. IT READS A FROZEN RELEASE.**
+
+```bash
+node engine/engine_release.js cut "why"     # freeze; identical tree -> identical id
+node engine/engine_release.js list          # and how far each has drifted since
+```
+
+```js
+const REL  = require('./engine_release.js').open();
+const MEDI = REL.require('engine/medicham2-browser.js');   // the SNAPSHOT's bytes
+artifact = { ...REL.stamp(), ...result };                  // says exactly what was measured
+```
+
+Twelve files are frozen — the simulator, the board, the leaf, the features, the tags, **and the
+weights**, because "can anything beat MAG" is a claim about one specific vector and the weights are
+what actually moved. It is a **copy, not a checksum**: verifying digests afterwards only tells you
+the run was wasted. `tests/test-engine-release.js` proves it by editing a live file while a release
+is open and asserting the release still serves the old bytes.
+
+Now ENGINE may rewrite the simulator all night while SEARCH measures. **That is the point of the
+divisions, and it only works because the measurement is not reading those bytes.**
 
 **The router owns this, not the agent.** SEARCH could not have known; it was told the engine was
 wrapped, and the census moved 157/165 → 164/171 while it worked. A subagent cannot see what it was
-dispatched alongside.
+dispatched alongside — so the guard belongs at the measurement, not in a dispatch rule someone has
+to remember.
 
-**And the thing that would have caught it did not exist.** `exploit.js` stamps no engine digest and
-no digest of the target vector it reads, so it could not detect that either had changed. That is the
-same hole as `data/engine-release.json` never being cut — see `docs/DIVISIONS.md`'s frozen-engine
-rule, whose cost is no longer hypothetical.
+**And nothing could have caught it.** `exploit.js` stamps no engine digest and no digest of the
+target vector, and `engine/provenance.js` compared MTIMES — so the void artifact, being newer than an
+input it had never read, was marked `ok`. Provenance now compares CONTENT and honours a
+self-declared `void: true`. A stamped release is the first thing in this repo that can be *verified*
+rather than assumed; the count of artifacts still resting on mtime alone is printed on every run and
+is ratcheted downward in `data/provenance-stamp.json`.
 
 **The auto-commit is the real collision risk, not Cowork.** It is an unattended publisher that pushes
 on a timer (confirmed in CHANGELOG 2.8.1 — an earlier diagnosis blaming a `push-all.bat` timer was

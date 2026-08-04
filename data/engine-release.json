@@ -1,0 +1,6 @@
+{
+  "current": "5fc1f711a0e3",
+  "cut": "2026-08-04T22:54:59.393Z",
+  "why": "first frozen release — cut after the interaction matrix and the weather wires, so SEARCH can measure while ENGINE and MEASURE keep working",
+  "note": "Pointer to the newest release under data/releases/. Measurements should open a release explicitly by id when they want to reproduce an old number."
+}

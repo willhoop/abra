@@ -1,0 +1,21 @@
+{
+  "id": "5fc1f711a0e3",
+  "cut": "2026-08-04T22:54:59.393Z",
+  "why": "first frozen release — cut after the interaction matrix and the weather wires, so SEARCH can measure while ENGINE and MEASURE keep working",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "files": {
+    "engine/medicham2-browser.js": "645b93a3878f",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/rollout_leaf.js": "c7aeaf8bf962",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "4ab406486e3c",
+    "engine/champions_sim.js": "084a836be5ef",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "3bc02c068657",
+    "data/tags.json": "d95657abeefc",
+    "data/policy-weights.json": "5a1930e8926a",
+    "data/policy-weights-joint.json": "749953d4b29f",
+    "data/move-priors.json": "a64314db056b"
+  },
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id."
+}
