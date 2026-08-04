@@ -643,9 +643,25 @@ function install(bot, o) {
           for (const k of Object.keys(byKind)) for (const v of byKind[k]) fv.push(v);
           const spread = Math.max(...fv) - Math.min(...fv);
           const se = Math.sqrt(Math.max(bestVal * (1 - bestVal), 0.0025) / (ROLLOUT_N * 2));
-          if (DEFER && fv.length > 1 && spread < 1.5 * se) {
+          /* A WON POSITION COMPRESSES EVERYTHING, so the spread test needs a wider net up there.
+           *
+           * Two failures, same root, opposite directions:
+           *   deferring at >97% threw a game -- the leaf read 100%, stopped thinking, and lost;
+           *   NOT deferring picked ELECTRO SHOT OUT OF RAIN at 100%, because when the position is
+           *   already won a two-turn charge move also wins and the search cannot tell it apart.
+           *
+           * The old rule skipped the search entirely on confidence. This one still SEARCHES -- so a
+           * wrong 100% is not blindly trusted -- and only uses MAG to break a tie among options the
+           * search rates as equivalent. Near the ceiling "equivalent" has to be measured on a looser
+           * scale than one standard error, because at 100% the standard error collapses to nothing
+           * while the real differences do not.
+           *
+           * The genuine fix is calibrating the leaf. This is a mitigation and is labelled as one. */
+          const ceiling = bestVal > 0.95 || bestVal < 0.05;
+          const tieBand = ceiling ? Math.max(1.5 * se, 0.05) : 1.5 * se;
+          if (DEFER && fv.length > 1 && spread < tieBand) {
             console.log(`  MILTANK: UNDECIDED — ${fv.length} finalists span ${(100 * spread).toFixed(1)}pt` +
-              ` against a ${(100 * se).toFixed(1)}pt standard error; deferring to MAG`);
+              ` against a ${(100 * tieBand).toFixed(1)}pt band${ceiling ? ' (near the ceiling)' : ''}; deferring to MAG`);
             return base(active, moves);
           }
           /* NO LONGER DEFERS ON CONFIDENCE, and the reason is a game it threw.
