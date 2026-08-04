@@ -100,8 +100,36 @@ downside-aware selection. Neither starts before the leaf question is settled.
 
 ## Capacity
 
-8 physical / 16 logical cores (Ryzen 7 7735HS), 13.3 GB RAM. **RAM is the ceiling, not cores** —
-measured 4.8–5.1 GB free during this session.
+8 physical / 16 logical cores (Ryzen 7 7735HS). **RAM is the ceiling, not cores.**
+
+**16 GB installed, 13.35 GB usable, and the gap is not recoverable from software.** The Radeon 680M
+reserves ~2.65 GB as a UMA frame buffer in firmware. Only a BIOS change (UMA frame buffer 2 GB →
+512 MB on this ThinkBook 14 G7 ARP) recovers it. Do not spend time looking for a Windows setting;
+there isn't one.
+
+Measured breakdown at 04:17 on 2026-08-04, with four agents live and 3.6 GB free:
+
+| process | count | GB |
+|---|---|---|
+| `claude` — this session **plus every other Claude window** | 20 | 2.88 |
+| `vmmem` | 1 | 1.43 |
+| `node` — one agent's engine run | 1 | 1.34 |
+| `svchost` | 92 | 1.23 |
+| `msedgewebview2` | 11 | 0.42 |
+
+**`vmmem` is CONFIRMED as Virtualization-Based Security, not a leftover VM.** Checked directly:
+`VirtualizationBasedSecurityStatus = 2` (enabled and running) and `SecurityServicesRunning = 2`
+(Hypervisor-Enforced Code Integrity / Memory Integrity), with `HvHost` and `vmcompute` running. WSL
+is **not installed**; Docker and the Android subsystem are **not running**; there are no Hyper-V VMs
+to list. It started with the machine, not with any session.
+
+It was suspected of being a Claude Cowork relic. It is not. **It is a security feature, it is a
+protected process that cannot be killed, and it should not be disabled to buy memory.** Recorded
+because it looks exactly like reclaimable overhead and is not — the next person to go looking for
+1.4 GB will land on it too.
+
+The largest thing actually under our control is `claude` itself. Extra editor windows are not free —
+closing unused ones buys more than any tuning flag.
 
 `mew_farm` runs 12 procs at `--conc 1` (44–46 games/sec). `--conc` must stay at 1: the simulator is
 synchronous and CPU-bound, so in-process concurrency never overlaps real work and only multiplies GC
