@@ -210,6 +210,16 @@ invisible for exactly as long as nobody ran it.
 sheet visible and the bot played WITHOUT it. MACHAMP's champion was trained under broken mega. Same
 error, twice: trained under one set of capabilities, deployed under another.
 
+## Flags vs tags — one vocabulary, written down
+
+**A FLAG is Showdown's** (`move.flags.contact`) — upstream, canonical, boolean, never invented here.
+**A TAG is ours** (`redirects`, `swapsStat`), derived by `engine/tag_dex.js` into `data/tags.json`,
+carrying **params**. Flags feed tags; the engine reads tags. Match on **tag shape, never on a name**,
+so an ability added later is picked up without editing the engine.
+
+The full spec — the interaction model, the five-stage resolution order and why the stage decides
+what failure looks like, and the checklist for adding a mechanic — is [docs/TAGS.md](docs/TAGS.md).
+
 ## Where things are
 - `engine/durable-ingest.js` — the pull+store (source of truth for the schema; `extract()` exported).
 - `engine/analyze.js` — views + writes the model CHOMP reads.
