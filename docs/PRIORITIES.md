@@ -55,6 +55,45 @@ Every rollout, leaf value and H2H ever run inherited all of this.
 neither attacker nor defender. **Possibly not bugs:** `critRatioUp`/`alwaysCrit` — `dmgRange` models
 no crit anywhere, so there is nothing to modify.
 
+### THE REFIT IS AUTHORISED — conditionally, and the condition is the point
+
+**Will, 2026-08-04, verbatim:** *"I give permission to measure to start the refit once everything
+else above it has been cleared."*
+
+Recorded here rather than in a chat log because a conditional permission that outlives the memory of
+its condition becomes an unconditional one. MEASURE **may** start the refit for items 13a/13b/13c.
+MEASURE **may not** start it until every box below is ticked, and MEASURE ticks them itself — nobody
+should have to adjudicate this at 5am.
+
+**Go / no-go, in order. Any NO means stop.**
+
+1. P0 items **1-12 landed**: `node engine/status.js` shows the census at or above **90 live** (it
+   must never go down) and the seeded differential at the canonical seed **20260804** is at or below
+   tonight's **4/400**.
+2. `node tests/run-all.js` is **fully green**. Not "green except". A red test is fixed or waived by
+   Will by name — that rule is not suspended by this permission.
+3. `node engine/artifact_audit.js` and `node engine/provenance.js --strict` both exit 0.
+4. **13c is in the same working tree as 13b.** Landing the `setSheet` fix without the `effective()`
+   fix puts a wrong ability on **81.02% of recorded actions**. If only one of the two is ready, the
+   answer is NO.
+5. `engine/feature_fixture.js --check` has been run and its result **recorded before the refit**, so
+   there is a stated before-state. It will legitimately FAIL after 13b/13c — that is the whole point,
+   the feature function is changing — but the failure has to be the expected one and not a surprise.
+
+**What the refit is NOT gated on, and why — this corrects an assumption I made earlier.** The engine
+fixes in P0 1-12 land in `engine/medicham2-browser.js` and `data/abra-tags.js`. The fit's features
+come from `engine/board.js` via `engine/fit_policy.js`, which is a **separate implementation** — that
+separateness is itself defect #3, but it means a medicham2 fix does **not** by itself invalidate the
+fit. `status.js` already reports this correctly: the refit edge is judged by
+`feature_fixture --check` hashing all 58 columns, not by an engine mtime. So the refit is triggered
+by **13a/13b/13c touching the feature path**, not by the engine release.
+
+The engine release boundary (P0.5, below) still gates every **SEARCH** run and every H2H. Two
+different boundaries, two different reasons; do not collapse them.
+
+**After the refit, in the same pass:** the seven restamps, `node engine/status.js --write`, and every
+number that quoted the old weights. A refit that lands without them is how a version drifts.
+
 ### P0.5 — the release boundary. Do this the moment P0 lands.
 
 **Cut a named, frozen engine release.** Every SEARCH baseline and every MEASURE number currently
