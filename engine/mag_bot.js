@@ -823,13 +823,24 @@ function handle(room, line) {
     }, PREVIEW_WAIT_MS);
     return;
   }
+  st.stream.push(line);
+  /* RELEASED AFTER THE CURRENT LINE, NOT BEFORE IT.
+   *
+   * The release fires on the |showteam| line -- and the first version pushed the held request FIRST,
+   * so the preview request reached the player one line AHEAD of the sheet it had been waiting for.
+   * The hold worked perfectly and achieved nothing:
+   *
+   *     sheets are up -- releasing team preview to MILTANK
+   *     preview: no open sheet for the opponent -- falling back to default order
+   *
+   * The whole point is that the player has parsed the sheet before it is asked to choose, so the
+   * sheet line must go through first. */
   if (st.previewHeld && st.ots) {
     clearTimeout(st.previewTimer);
     const held = st.previewHeld; st.previewHeld = null;
     console.log(`${room}: sheets are up — releasing team preview to MILTANK`);
     st.stream.push(held);
   }
-  st.stream.push(line);
 
   {
     const th = (st.bot.stats && st.bot.stats.thoughts) || [];

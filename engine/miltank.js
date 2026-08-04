@@ -41,7 +41,7 @@ const TAGSMOD = require('./tags.js');
  * mechanics, so in a position the search cannot separate, MAG's prior was fitted on people playing
  * the REAL game and the search is reasoning about a broken one. That argument weakens with every
  * mechanic fixed, which is itself worth measuring. */
-const DEFAULTS = { defer: true, n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
+const DEFAULTS = { defer: true, budgetMs: 20000, n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
                    why: false, trace: false };
 
 /* Install MILTANK onto an already-constructed magnemite player.
@@ -290,7 +290,21 @@ function install(bot, o) {
            *
            * Filled from the request, which is authoritative about what this side actually brought. */
           const reqMons = (req.side && req.side.pokemon) || [];
-          if (reqMons.length && !(board.party && (board.party[side] || []).length)) {
+          /* RE-SEEDED EVERY DECISION, not once per battle.
+           *
+           * The guard used to skip whenever a party was already set, so a party that went stale --
+           * or that the tracker rebuilt empty -- stayed stale for the rest of the game. The rollout
+           * resolves a switch against board.bench(), while the CANDIDATES come from the request, so
+           * an empty bench makes every switch unresolvable while still being offered.
+           *
+           * Seen live and it is not subtle: `bravebird + fakeout win 94% (sw resolved 0/unres 800)`.
+           * Eight hundred switch clicks that resolved to nothing, so every switch candidate collapsed
+           * to the same fallback and the 94% was an argmax over a menu that did not exist. That turn
+           * was in the game MAGABRA threw from 100%.
+           *
+           * The request is authoritative about what this side actually brought and it arrives every
+           * turn, so there is no reason to prefer a remembered answer to the current one. */
+          if (reqMons.length) {
             const species = reqMons
               .map(m => String(m.details || m.ident || '').split(',')[0].trim())
               .filter(Boolean);
@@ -507,6 +521,12 @@ function install(bot, o) {
           /* Built AFTER the filter above, or they would index a menu that no longer exists. */
           const oa = built[0].cands.map((c, idx) => idx);
           const ob = built[1].cands.map((c, idx) => idx);
+          /* A HARD BUDGET. One live decision took 33,589ms -- 56 options at n=120 -- which is close
+           * enough to Showdown's turn timer that a harder position could time out, and a loss on the
+           * clock says nothing about the player. The finalist round stops when the budget is spent
+           * and reports how many it managed, because a silent truncation reads as full coverage. */
+          const BUDGET_MS = opts.budgetMs || 20000;
+          const tStart = Date.now();
           const SCREEN_N = Math.max(12, Math.round(ROLLOUT_N / 3));
           const FINAL_K = 8;
           const evalPair = (ia, ib, n, salt) => {
@@ -534,7 +554,10 @@ function install(bot, o) {
           const finalists = screened.slice(0, FINAL_K);
           /* Round two: the survivors only, at the full budget and with a DIFFERENT seed salt, so a
            * pair that advanced on lucky dice has to roll them again. */
+          let finalsDone = 0;
           for (const [, ia, ib] of finalists) {
+            if (Date.now() - tStart > BUDGET_MS) break;
+            finalsDone++;
             const v = evalPair(ia, ib, ROLLOUT_N * 2, 104729);
             if (v === null) continue;
             const ca2 = built[0].cands[ia], cb2 = built[1].cands[ib];
@@ -566,15 +589,30 @@ function install(bot, o) {
               ` against a ${(100 * se).toFixed(1)}pt standard error; deferring to MAG`);
             return base(active, moves);
           }
-          if (DEFER && (bestVal < 0.03 || bestVal > 0.97)) {
-            console.log(`  MILTANK: position already decided at ${(100 * bestVal).toFixed(0)}% —` +
-              ' every line scores the same, deferring to MAG');
-            return base(active, moves);
-          }
+          /* NO LONGER DEFERS ON CONFIDENCE, and the reason is a game it threw.
+           *
+           * The rule used to hand the turn to MAG whenever the search read the position as already
+           * won or already lost, on the argument that every line scores the same so the choice does
+           * not matter. That argument holds ONLY IF THE EVALUATION IS RIGHT, and it is not:
+           *
+           *     94%  switch gholdengo + heatwave
+           *     100% position already decided -- deferring to MAG
+           *     100% position already decided -- deferring to MAG
+           *     90%  closecombat + weatherball
+           *          |win|willhoop
+           *
+           * So it stopped thinking precisely in the positions where its leaf was most wrong, and
+           * coasted a 100% read into a loss. A miscalibrated evaluation plus a rule that trusts it
+           * is worse than either alone.
+           *
+           * The noise-floor deferral above SURVIVES, because that one is about the SPREAD between
+           * candidates rather than the absolute number -- it says "these options are within one
+           * standard error of each other", which is true whether the leaf is calibrated or not. */
           const ms = Date.now() - t0;
           const chosen = [built[0].cands[bestPair[0]], built[1].cands[bestPair[1]]];
           console.log(`  MILTANK: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
-            `  win ${(100 * bestVal).toFixed(0)}%  (${oa.length * ob.length} opts, ${ms}ms, sw resolved ${_res}/unres ${_unres})`);
+            `  win ${(100 * bestVal).toFixed(0)}%  (${oa.length * ob.length} opts, ${ms}ms, ` +
+            `finals ${finalsDone}/${finalists.length}, sw resolved ${_res}/unres ${_unres})`);
           const summary = Object.keys(byKind).sort().map(k =>
             k + ' ' + (100 * byKind[k].reduce((a, b) => a + b, 0) / byKind[k].length).toFixed(0) +
             '%(' + byKind[k].length + ')').join('  ');
