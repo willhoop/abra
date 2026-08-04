@@ -15,13 +15,63 @@ and ko), featurize it from p1's perspective, and regress the eventual game outco
 
   run:  python engine/train_value.py            [data/games.ladder.jsonl ...]
 """
-import sys, os, json
+import sys, os, json, subprocess
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 idn = lambda s: ''.join(c for c in (s or '').lower() if c.isalnum())
 
+# ---------------------------------------------------------------------------------------------
+# WHICH BODY IS THIS. `idn()` ALONE SILENTLY THREW AWAY A FIFTH OF THE CORPUS.
+#
+# The bring list holds bodies -- `charizard` -- and the event stream holds formes --
+# `charizardmegay`. `idn` normalises punctuation and nothing else, so `side_of` returned None,
+# `trajectory` skipped the event, and the walk carried on with a board that never took the damage.
+# Measured on 4,000 clean games before the fix, and every one of these is a SILENT discard:
+#
+#     faints            4,854 of 22,336   21.7%
+#     damaging events  21,588 of 95,074   22.7%
+#     total damage      20.8%
+#     games with at least one discard      96.5%
+#     97.6% of discarded targets are megas; the top one is Charizard-Mega-Y at 2,390
+#
+# The visible symptom was that 88.9% of clean games ENDED with both sides still holding bodies --
+# a value net trained on trajectories in which almost nobody ever loses their team.
+#
+# THE RESOLVER IS `engine/mc_key.js`, NOT A SECOND COPY OF IT HERE. That file is the one place
+# allowed to know how species names map onto the engine's tables, `tests/test-mc-key.js` ratchets
+# against new hand-rolled lookups, and this project has already paid for four independent versions
+# of these three lines -- two of them wrong. The obvious Python one-liner,
+# `re.sub(r'mega[xy]?$', '', s)`, is one of the wrong ones: it answers `victreebel` for
+# Victreebel-Mega and mangles any species whose name merely ends that way. mc_key reads the `base`
+# field the generator wrote from the dex, so it is a lookup and not a guess.
+#
+# It is shelled ONCE for the whole map rather than per name -- a run walks ~95,000 events -- and it
+# needs no SHOWDOWN_PATH, because `mcKey.bases` reads only `MC.mons`.
+def _base_map():
+    """flat forme id -> flat base body id, from engine/mc_key.js. Fails loudly."""
+    try:
+        out = subprocess.run([os.environ.get("NODE", "node"), os.path.join(HERE, "mc_key.js"), "--bases"],
+                             capture_output=True, text=True, timeout=120)
+    except OSError as e:
+        raise SystemExit("train_value: cannot run node to reach engine/mc_key.js (%s).\n"
+                         "  Without it every mega body is discarded from the walk -- 22.7%% of\n"
+                         "  damaging events -- so this refuses to train rather than train on it." % e)
+    if out.returncode != 0 or not out.stdout.strip():
+        raise SystemExit("train_value: engine/mc_key.js --bases failed (exit %s): %s"
+                         % (out.returncode, (out.stderr or "").strip()[:400]))
+    return json.loads(out.stdout)
+
+_BASE = None
+def body(s):
+    """The BODY a name refers to: Charizard-Mega-Y -> charizard. Identity for anything else."""
+    global _BASE
+    if _BASE is None:
+        _BASE = _base_map()
+    k = idn(s)
+    return _BASE.get(k, k)
+
 def side_of(mon, p1set, p2set, actor_side):
-    m = idn(mon)
+    m = body(mon)
     inp1, inp2 = m in p1set, m in p2set
     if inp1 and not inp2: return 'p1'
     if inp2 and not inp1: return 'p2'
@@ -30,11 +80,15 @@ def side_of(mon, p1set, p2set, actor_side):
 
 def trajectory(g):
     """Yield (features, y) for each mid-game state of game g, p1 perspective."""
-    six1 = set(idn(x) for x in (g.get('brought', {}).get('p1') or g['six']['p1']))
-    six2 = set(idn(x) for x in (g.get('brought', {}).get('p2') or g['six']['p2']))
+    # BOTH SIDES OF THE COMPARISON GO THROUGH THE SAME RESOLVER. Mapping only the event and not the
+    # bring list would leave the mismatch in place whenever a sheet or a `brought` entry carries a
+    # forme -- which it did historically: sanity_check.py records `brought` reaching FIVE entries in
+    # ~4,700 games because mega evolution once appended the forme.
+    six1 = set(body(x) for x in (g.get('brought', {}).get('p1') or g['six']['p1']))
+    six2 = set(body(x) for x in (g.get('brought', {}).get('p2') or g['six']['p2']))
     if not six1 or not six2: return
     hp = {'p1': {m: 100.0 for m in six1}, 'p2': {m: 100.0 for m in six2}}
-    y = 1 if idn(g['winner']) == idn(g['p1']['name']) else 0
+    y = 1 if idn(g['winner']) == idn(g['p1']['name']) else 0   # a PLAYER name; no body involved
     turns = g.get('turns') or []
     T = len(turns)
     for ti, tn in enumerate(turns):
@@ -43,11 +97,12 @@ def trajectory(g):
             if t == 'm':
                 tgt = ev.get('tgt'); dmg = ev.get('dmg') or 0; ko = ev.get('ko')
                 sd = side_of(tgt, six1, six2, actor) if tgt else None
-                if sd and idn(tgt) in hp[sd]:
-                    hp[sd][idn(tgt)] = max(0.0, hp[sd][idn(tgt)] - dmg)
-                    if ko: hp[sd][idn(tgt)] = 0.0
+                b = body(tgt) if tgt else None
+                if sd and b in hp[sd]:
+                    hp[sd][b] = max(0.0, hp[sd][b] - dmg)
+                    if ko: hp[sd][b] = 0.0
             elif t == 'f':
-                mon = idn(ev.get('mon') or ''); sd = actor
+                mon = body(ev.get('mon') or ''); sd = actor
                 if sd in hp and mon in hp[sd]: hp[sd][mon] = 0.0
         # snapshot AFTER this turn (skip the very last, it's ~decided)
         if ti >= T - 1: break

@@ -66,16 +66,34 @@ function deriveGraph() {
   /* A write looks like writeFileSync(...'name.json'...) or open(...,'w') on a joined path; both end
    * up naming the file, so the filename plus a nearby write verb is the signal. */
   const WRITE = /(writeFileSync|to_json|open\s*\(|dump\s*\()/;
-  /* Just look for the literal filename. A quoted-delimiter regex is not worth the escaping here —
-   * the filenames are distinctive enough that a substring match is exact in practice. */
-  const named = (src, file) => src.indexOf(file) >= 0;
+  /* "The filenames are distinctive enough that a substring match is exact in practice" was the
+   * comment here, and it was FALSE for the most-read file in the repository.
+   *
+   *   'ladder.json'  is a substring of  'games.ladder.jsonl'
+   *
+   * So every generator that opens the game store was recorded as naming data/ladder.json. That is
+   * how engine/refresh-site-data.NOARCH.py — which reads games.ladder.jsonl and has never heard of
+   * ladder.json — was credited with GENERATING MACHAMP's hill-climb artifact, whose real writer is
+   * engine/ladder.js (`const OUT = D('data','ladder.json')`, and the on-disk keys are ladder.js's
+   * to the letter). It also hung a phantom `ladder.json` INPUT on every store reader, which shows up
+   * as "older than its input ladder.json" — a staleness note about a dependency that does not exist.
+   *
+   * An occurrence only counts when the name is not the prefix of a longer name. Trailing only:
+   * a leading `games.` or `data/` is a legitimate way to spell the same file, a trailing `l` is not. */
+  const at = (src, file, from) => {
+    for (let i = src.indexOf(file, from); i >= 0; i = src.indexOf(file, i + 1)) {
+      if (!/[A-Za-z0-9_]/.test(src[i + file.length] || '')) return i;
+    }
+    return -1;
+  };
+  const named = (src, file) => at(src, file, 0) >= 0;
   /* The filename within ~120 characters of something that opens a file for reading. */
   const READ = /(readFileSync|require\s*\(|open\s*\(|read_json|load_games|loadGames|json\.load)/;
   function readsNear(src, file) {
-    let i = src.indexOf(file);
+    let i = at(src, file, 0);
     while (i >= 0) {
       if (READ.test(src.slice(Math.max(0, i - 120), i + 40))) return true;
-      i = src.indexOf(file, i + 1);
+      i = at(src, file, i + 1);
     }
     return false;
   }
@@ -91,10 +109,10 @@ function deriveGraph() {
      * mentions it in a report. Attributing an artifact to the wrong generator means fixing the
      * wrong generator. */
     const writesNear = (src) => {
-      let i = src.indexOf(file);
+      let i = at(src, file, 0);
       while (i >= 0) {
         if (WRITE.test(src.slice(Math.max(0, i - 200), i + 60))) return true;
-        i = src.indexOf(file, i + 1);
+        i = at(src, file, i + 1);
       }
       return false;
     };
@@ -121,7 +139,7 @@ function deriveGraph() {
      * never lives on a line that opens with a comment marker. */
     const isComment = ln => /^\s*(\/\/|\/\*|\*|#)/.test(ln);
     const writesOnItsOwnLine = (src) =>
-      src.split('\n').some(ln => !isComment(ln) && ln.includes(file) && LINE_WRITE.test(ln));
+      src.split('\n').some(ln => !isComment(ln) && at(ln, file, 0) >= 0 && LINE_WRITE.test(ln));
     /* ONE LEVEL OF VARIABLE INDIRECTION, which is the dominant Python idiom in engine/:
      *   OUT = os.path.join(ROOT, "data", "guru-matchups.json")
      *   ...
@@ -130,11 +148,37 @@ function deriveGraph() {
      * writer and was absent from this audit entirely — the source file at the centre of the
      * guru.js / guru-matchups.json divergence was the one file the provenance checker could not see.
      * Resolved by finding the identifier the name was assigned to and asking whether THAT is
-     * written. */
+     * written.
+     *
+     * AND THE JAVASCRIPT SPELLING OF THE SAME IDIOM, which this missed for as long as it existed:
+     *   const OUT = process.argv[3] || path.join(__dirname, '../data/move-priors.json');
+     *   ...
+     *   fs.writeFileSync(OUT, JSON.stringify(out));
+     * `const` / `let` / `var` sits where the identifier was expected, so the capture took the
+     * KEYWORD and then failed on the `=`. The consequence was not cosmetic and was not confined to
+     * a label: engine/policy.js scored 0 and lost data/move-priors.json to engine/state_encoder.py,
+     * which only READS it — so the artifact was credited to a generator that touches no games, was
+     * classed not-store-derived, and was exempt from every corpus check in this file. Exactly the
+     * engine/roles.py / engine/build_roles_js.py fault above, in the other language.
+     *
+     * THE INDIRECTION MUST BIND A PATH, NOT A LOADED VALUE — this arm caught its own false positive
+     * the moment the `const` spelling was accepted, which is the reason it is written down rather
+     * than trusted:
+     *   const r = JSON.parse(fs.readFileSync(path.join(ROOT,'data','regulations.json'),'utf8'));
+     *   ...
+     *   fs.writeFileSync(file, r.body);
+     * That is a READ of regulations.json and an unrelated write of something else, and it credited
+     * engine/fetch_smogon_stats.js with generating the format registry. So an assignment whose own
+     * right-hand side is a read verb never establishes a writer, however the identifier is used
+     * later. A one-letter identifier like `r` matching `\br\b` inside any later write is exactly how
+     * loose this arm can get without it. */
+    const ASSIGN_IS_READ = /readFileSync|require\s*\(|JSON\.parse|json\.load|read_json|load_games|loadGames|readdirSync|open\s*\([^)]*['"]r/;
     const writesVia = (src) => {
-      for (const m of src.matchAll(new RegExp(`^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*=[^\\n]*${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gm'))) {
+      const esc = file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![A-Za-z0-9_])';
+      for (const m of src.matchAll(new RegExp(`^\\s*(?:(?:const|let|var)\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*=[^\\n]*${esc}`, 'gm'))) {
+        if (ASSIGN_IS_READ.test(m[0])) continue;
         const ident = m[1];
-        const use = new RegExp(`(writeFileSync|json\\.dump|to_json|open)\\s*\\([^)\\n]*\\b${ident}\\b`);
+        const use = new RegExp(`(writeFileSync|createWriteStream|json\\.dump|to_json|open)\\s*\\([^)\\n]*\\b${ident}\\b`);
         if (use.test(src)) return true;
       }
       return false;

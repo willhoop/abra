@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.35.0] — 2026-08-04
+
+### Eight generators were writing `data/*` artifacts that no ledger had ever heard of
+
+`tests/test-stadium-roster.js`'s third direction — the set of things that actually GENERATE an
+artifact, read from `engine/provenance.js --graph` — was red on five generators and went red on eight
+once the graph itself was fixed. `docs/MODELS.md` gains entries for **META-USAGE** (the model
+`CLAUDE.md` itself calls *"the model CHOMP reads"*, 7,123 clean of 39,792 collected, two views it
+refuses to choose between), **MOVE PRIORS** (295 species, 128,548 recorded clicks, declaring no game
+count so the drift check cannot see it), **PORYGON2** (17 features, 3,898 self-play train games,
+2,274 human test games — and six point estimates with **not one interval**, so *"beats material"* is
+an ordering, not a result), **SPECIES SETS** (247 species, 7,175 open-sheet games, 85,992 sheets),
+**COUNTERS** (1,081 tests across 11 archetypes, 61 clear a nominal 95% z and **ZERO survive
+Benjamini–Hochberg**), **BRING PRIORS**, **CORES** (552 cells, median cell **9 games**, 5.8% decisive
+against the 5% a nominal interval produces by construction) and **DYNAMICS**. `engine/bring_bias.js`
+is declared a non-model with its reason. Where a model has no measured verdict the entry says **NOT
+MEASURED** rather than describing it as working.
+
+The guard was then proved to still bite end-to-end, WEB's way: a throwaway generator writing a
+throwaway artifact was dropped in and check 5 rejected it.
+
+### The provenance graph could not see seven artifacts, and two of them were UNSAFE
+
+Three faults in `engine/provenance.js`'s write detection, each found by chasing the last:
+
+- **`const` broke the path-indirection arm.** `const OUT = process.argv[3] || path.join(…)` put the
+  keyword where an identifier was expected. `data/move-priors.json` — which nine files read — was
+  credited to `engine/state_encoder.py`, which only READS it, instead of `engine/policy.js`, which
+  computes it from the store. `state_encoder.py` opens no game file, so the behaviour clone was
+  classed not-store-derived and **exempt from every corpus check**.
+- **An assignment whose right-hand side is a read is not a writer.** Accepting `const` immediately
+  credited `engine/fetch_smogon_stats.js` with generating `data/regulations.json` off
+  `const r = JSON.parse(fs.readFileSync(…))` and a later unrelated `writeFileSync(file, r.body)`.
+- **`named()` was a substring test.** `ladder.json` is a substring of `games.ladder.jsonl`, so every
+  store reader was recorded as naming it — which credited `engine/refresh-site-data.NOARCH.py` with
+  generating MACHAMP's hill-climb artifact (really `engine/ladder.js`) and hung a phantom
+  `ladder.json` input on every generator that opens the store. `roles.js` inside `pokemon-roles.json`
+  did the same across eight more.
+
+The graph went **84 artifacts → 91, 57 store-derived → 60**. `data/bring-priors.json` was genuinely
+UNSAFE and was regenerated: **n_sides 5,368 → 14,456**, and the format's mega rate had been measured
+on **62 sides** and is now measured on **12,442** (`p_side_megas` 0.9355 → 0.8785).
+`data/exploitability.json` is a false positive of the filter rule but a **true negative anyway** —
+WOBBUFFET's 63.2% on 17 features against the 53 we ship, rendered on two stadium pages — and it is
+deliberately **left red** rather than stamped clean. `provenance.js --strict` exits 1 on it.
+
+### `data/slowking-playstyle.js` was a GURU run wearing the playstyle name, and the default did it
+
+`engine/slowking_preview.py` took its output NAME from `TAG` and its MATRIX from `MATRIX_FILE`, which
+defaulted to `guru-matchups.json`. Regenerated correctly: n_games 5,265 → **2,860**, archetypes 12 →
+**8**, mixture → **Rain 0.81 / Setup 0.17 / FakeOutBalance 0.03**, greedy−Nash 0.0409 → **0.026
+[−0.0001, 0.1498]**, triples 1,320 → **336**, and **the verdict flips** from *"substantially less
+exploitable … non-transitive"* to *"no material exploitability gap … close to transitive."* The GURU
+arm was re-run first and reproduces its own artifact bit-for-bit.
+
+The fix is the default: the generator now **refuses** to write a `TAG`-named artifact from the default
+matrix, a relative `MATRIX_FILE` resolves against the repo rather than the shell's cwd, and
+`source_matrix` is derived instead of being the hardcoded literal `"data/guru-matchups.json"` — which
+would have mis-stamped even a correct run. `engine/sanity_check.py` §5 and `tests/test-docs-current.js`
+§1b were both passing while comparing two copies of the same wrong file; they now read the real one.
+**The site's SLOWKING room still argues the withdrawn thesis and carries two typed literals (*"49, 37
+and 15 games"*, *"1,320 candidate triples"*) that are now wrong — a WEB pass is owed.**
+
+### `engine/train_value.py` silently discarded every forme-changed body
+
+`idn()` normalises punctuation only, so `charizardmegay` never matched the bring list's `charizard`
+and the event was dropped. Measured on 4,000 clean games: **21.7% of faints, 22.7% of damaging
+events, 20.8% of all damage**, at least one discard in **96.5%** of games, **97.6%** of dropped
+targets megas — and **88.9% of clean games ended with both sides still holding bodies.** Fixed by
+giving `engine/mc_key.js` the verb it was missing (`mcKey.base`, `mcKey.bases`) rather than growing a
+fourth hand-rolled resolver; it reads the `base` field already in `MC.mons`, returns a body id rather
+than a table key (`floette-mega`'s base has no row of its own), and needs no `SHOWDOWN_PATH`.
+
+**Dropped events 22.7% → 1.7%; games ending intact 88.9% → 26.3%.** Paired on identical held-out
+states (1,445 games / 10,120 states): log-loss **0.6634 → 0.6520**, paired **−0.0114, 95% CI
+[−0.0183, −0.0041]**; accuracy **59.72% → 61.47%**, paired **+1.75 pts, CI [0.50, 2.94]**; `hpDiff`
+weight **0.169 → 0.377**. **Said plainly: both intervals clear zero and the effect is still inside
+the 1.87-point split-half floor for an UNPAIRED comparison, and 61.4% is below the 66.92% in-sample
+ceiling for this feature class and the live leaf's 67.97%.** A correctness fix, not a capability
+change. A 1.7% residual remains, 1,613 of 1,625 of it Floette, filed to ENGINE as a dex-data gap.
+
 ## [3.34.0] — 2026-08-04
 
 ### The Stadium scored 100% on two guards while being unable to run

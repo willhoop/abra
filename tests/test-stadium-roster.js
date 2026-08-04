@@ -64,6 +64,18 @@ const NOT_A_CABINET = {
   'ILLUSION':                 'a detection rule inside ingest',
   'CHAMPIONS_SIM':            'the official engine we play inside (ADR-001), not ours',
   'SMOGON PRIORS':            'an external population statistic we consume',
+  /* Added 2026-08-04 with the eight ledger entries the third direction demanded. Each of these is a
+   * CENSUS OR A PRIOR over the store -- it states what the format does and is then consumed by
+   * something that decides -- which is the same reason ROLES, WAR, NMF and COUNTERPLAY above have no
+   * cabinet. A cabinet is for a thing that makes a decision. None of these makes one. */
+  'META-USAGE':               'a usage census over the store; the models that read it are the ones that decide',
+  'MOVE PRIORS':              'a measured frequency table, sampled FROM by the rollout rather than deciding anything',
+  'PORYGON2':                 'a value LOOKUP with no measured verdict and no live caller; NOT MEASURED, so there is nothing to exhibit',
+  'SPECIES SETS':             'the observed set distribution — data the builders read, not a decision-maker',
+  'COUNTERS':                 'a report over the field, like COUNTERPLAY; and its headline is a null',
+  'BRING PRIORS':             'a prior the opponent model draws from, consumed rather than deciding',
+  'CORES':                    'a matchup matrix at a grain the corpus cannot support; do not put a cell on a page',
+  'DYNAMICS':                 'observed physics — evidence the engine is checked against, not a rule it follows',
 };
 
 /* ================================================================================================
@@ -158,6 +170,7 @@ const NOT_A_MODEL = {
   'engine/rollout_r3.js':            'GATE R3 — does the search PICK A DIFFERENT MOVE; a behaviour diagnostic of our own search',
   'engine/rollout_explore_sweep.js': 'should --rollout-explore default to 1.0 — a knob sweep over our own search',
   'engine/rollout_r1_join.py':       'phase 2 of GATE R1 — scores PORYGON2 on the positions the rollout scored; an evaluation, and PORYGON2 is the model it evaluates',
+  'engine/bring_bias.js':            'does require_full_bring\'s length-conditioning move any bring rate — a diagnosis of OUR OWN corpus rule, and its answer is no (84 species tested, 12 clear a raw z, 0 survive BH against 4.2 expected). Its sibling engine/bring_priors.js is the model; this measures the filter, and nothing but itself reads data/bring-bias.json',
 };
 
 /* MODELS.md headings look like "## NAME — long description (added ...)". Take the part
@@ -269,11 +282,30 @@ const writes = g => artifacts.filter(a => a.by === g).map(a => a.file);
  * Cabinets are unioned in so this arm says literally what the rule says -- the ledger OR the site.
  * Check 1 already forbids a cabinet that is not a heading, so today it adds nothing; if that ever
  * relaxes, this keeps meaning what its comment says. */
+/* AND `MD.includes(base)` IS A SUBSTRING TEST, WHICH EXCUSED A REAL MODEL. Measured 2026-08-04:
+ * `engine/policy.js` — the behaviour clone that writes data/move-priors.json, which nine files read —
+ * was accounted for by the string `fit_policy.js` appearing in the ledger. A different file, a
+ * different model, and the check said "the ledger names policy.js". It is the same fault
+ * engine/provenance.js was carrying in the other direction on the same day, where `ladder.json`
+ * matched inside `games.ladder.jsonl` and credited the store reader with generating MACHAMP's
+ * hill-climb artifact.
+ *
+ * A filename must be bounded on BOTH sides here, unlike in provenance.js where a leading `data/` or
+ * `games.` is a legitimate spelling of the same file. `fit_policy.js` and `policy.js` are never the
+ * same file. Swept across all generators, this was the only one being excused by a substring — so it
+ * is one entry's worth of drift, and it was the entry that mattered. */
+const nameBounded = (hay, needle) => {
+  for (let i = hay.indexOf(needle); i >= 0; i = hay.indexOf(needle, i + 1)) {
+    const before = hay[i - 1] || '', after = hay[i + needle.length] || '';
+    if (!/[A-Za-z0-9_]/.test(after) && !/[A-Za-z0-9_]/.test(before)) return true;
+  }
+  return false;
+};
 const documented = new Set([...headings, ...cabinets]);
 function accountedFor(g) {
   const base = g.split('/').pop();
   const alt = base.endsWith('.js') ? base.slice(0, -3) + '.py' : base.slice(0, -3) + '.js';
-  if (MD.includes(base) || MD.includes(alt)) return 'the ledger names ' + base;
+  if (nameBounded(MD, base) || nameBounded(MD, alt)) return 'the ledger names ' + base;
   const stem = base.replace(/\.(js|py)$/, '').toUpperCase();
   if (documented.has(stem)) return 'it is ' + stem + "'s generator";
   if (g in NOT_A_MODEL) return 'declared not a model: ' + NOT_A_MODEL[g];
@@ -311,7 +343,7 @@ if (staleNotAModel.length) {
 const redundant = Object.keys(NOT_A_MODEL).filter(g => {
   const base = g.split('/').pop();
   const alt = base.endsWith('.js') ? base.slice(0, -3) + '.py' : base.slice(0, -3) + '.js';
-  return MD.includes(base) || MD.includes(alt);
+  return nameBounded(MD, base) || nameBounded(MD, alt);   // same boundary rule as check 5, one predicate
 });
 if (redundant.length) {
   fail('NOT_A_MODEL entries that docs/MODELS.md now documents — delete the exception, it is no longer ' +

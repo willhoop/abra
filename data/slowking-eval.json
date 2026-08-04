@@ -1,6 +1,7 @@
 {
-  "generated": "engine/slowking_preview.py \u2014 team-preview Nash over GURU's real matchup matrix",
+  "generated": "engine/slowking_preview.py \u2014 team-preview Nash over a real matchup matrix",
   "source_matrix": "data/guru-matchups.json",
+  "tag": null,
   "n_games": 5265,
   "n_archetypes": 12,
   "equilibrium_mixture": [

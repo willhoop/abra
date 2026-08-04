@@ -156,6 +156,63 @@
   /* For tests that swap the table underneath. */
   mcKey.reset = () => { index = null; builtFrom = null; alias = null; };
 
+  /* ---- WHICH BODY IS THIS -------------------------------------------------------------------
+   *
+   * A THIRD VERB, ADDED 2026-08-04 FOR THE SAME REASON `mcKey.all` WAS. `mcKey` answers "what is
+   * this one species called in here". It is the wrong question for a caller holding a BRING LIST:
+   * a bring list names bodies (`charizard`), an event names formes (`charizardmegay`), and the two
+   * never compare equal however carefully they are normalised. `engine/train_value.py` asked the
+   * question with `idn()` on both sides and got False, silently, on 22.7% of every damaging event
+   * in the corpus — 97.6% of the discarded targets were megas. Same shape as `buildMon("Scizor")`
+   * returning null, in a file that had no lookup at all.
+   *
+   * IT IS NOT A STRING STRIP, and that is the whole point of it living here. `f.replace(/mega[xy]?$/,'')`
+   * is the obvious three lines, it is what the previous occupant of this file did, and the comment
+   * in `mcKey` above records why it was removed: it answers Victreebel for Victreebel-Mega and
+   * Meganium for Megani- anything beginning with the letters. The table already carries the answer
+   * — every mega row in `MC.mons` has a `base` field written by the generator from the dex — so
+   * this reads a fact instead of inventing one.
+   *
+   * ZERO NEW DEPENDENCIES, DELIBERATELY. It reads only `MC.mons`, which this file already indexes.
+   * It does NOT reach for the dex the way `cosmeticAliases()` does, so it cannot crash a caller
+   * that has no SHOWDOWN_PATH — the failure mode PRIORITIES #40 records for two other ratchets.
+   *
+   * IT RETURNS A FLAT BODY ID, NOT A TABLE KEY, and the difference is load-bearing rather than
+   * stylistic. `MC.mons` carries `floette-mega` with `base: "floette"` and does NOT carry a
+   * `floette` row at all — 1,613 of the events this verb exists to rescue are Floette-Mega. A
+   * version that resolved the base back through the table returned null for exactly those and
+   * dropped them again, one layer down. The body is a fact about the game; being in our damage
+   * table is a fact about our table, and only the first one answers "which of your four is this".
+   * It still composes — `mcKey` flattens its input, so `mcKey(mcKey.base(x))` is the base's row
+   * when there is one.
+   *
+   * A species already at its base returns its own flat id; a species the table has never seen
+   * returns null, like `mcKey`, so a caller can tell "no forme relationship" from "no idea". */
+  mcKey.base = (name, opts) => {
+    if (!index || builtFrom !== (root.MC && root.MC.mons)) index = build();
+    const k = mcKey(name, opts);
+    if (!k) return null;
+    const row = root.MC && root.MC.mons && root.MC.mons[k];
+    return flat(row && row.base ? row.base : k);
+  };
+
+  /* THE WHOLE MAP AT ONCE, for a caller that cannot call into JavaScript per name.
+   *
+   * `engine/train_value.py` is Python and walks ~95,000 events per run; a subprocess per name is
+   * not a design. It shells this ONCE and gets a flat-forme -> flat-base map. Emitting the map is
+   * still this file answering the question, which is the property that matters — the alternative
+   * was a fourth hand-rolled resolver, in a third language. */
+  mcKey.bases = (opts) => {
+    const all = mcKey.all(opts);
+    if (!all) return null;
+    const out = {};
+    for (const [k, row] of all) {
+      if (!row || !row.base) continue;
+      if (flat(row.base) !== flat(k)) out[flat(k)] = flat(row.base);
+    }
+    return out;
+  };
+
   /* ENUMERATION IS A LOOKUP TOO, and leaving it out of this file sent the next caller straight back
    * to `Object.keys(MC.mons)`.
    *
@@ -183,4 +240,23 @@
   const api = { mcKey, flat };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) { root.MCKEY = api; root.mcKey = mcKey; }
+
+  /* A CLI, so a non-JavaScript caller reaches the SAME resolver instead of writing its own.
+   *
+   *   node engine/mc_key.js --bases      -> {"charizardmegay":"charizard", ...} on stdout
+   *
+   * It loads data/engine-data.js itself, because a caller that has to know how to publish MC before
+   * asking a question about MC is a caller that will get it wrong. Exits non-zero with a message on
+   * stderr if the table will not load: a Python caller must be able to tell "no aliases" from "the
+   * table is missing", and the second one silently returning {} is how the bug this verb fixes went
+   * unnoticed for as long as it did. */
+  if (typeof require === 'function' && typeof module !== 'undefined'
+      && require.main === module && process.argv.includes('--bases')) {
+    try { require('../data/engine-data.js'); } catch (e) {
+      console.error('mc_key --bases: could not load data/engine-data.js: ' + e.message); process.exit(2);
+    }
+    const b = mcKey.bases({ mayMiss: 'CLI dump; a miss is omitted from the map' });
+    if (!b) { console.error('mc_key --bases: MC.mons is not loaded'); process.exit(2); }
+    process.stdout.write(JSON.stringify(b) + '\n');
+  }
 })(typeof globalThis !== 'undefined' ? globalThis : this);

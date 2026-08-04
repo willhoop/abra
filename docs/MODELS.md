@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.34.0 · Last updated 2026-08-04.**
+**Version 3.35.0 · Last updated 2026-08-04.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -469,7 +469,39 @@ hand-check + shipped-artifact invariants), gated in CI.
 **Open:** wire `ChampionsGame` to the real engine; PIMC → outcome-sampling MCCFR / PBS re-solving; train the value net via self-play.
 
 ## The learning core (the flywheel)
-**value net:** `engine/train_value.py` reconstructs per-turn HP state and regresses the outcome → `data/value-net.json`. Beats a coin (log-loss 0.682), calibrated, compressed at the tails (thin data). It's SLOWKING's leaf evaluator.
+**value net:** `engine/train_value.py` reconstructs per-turn HP state and regresses the outcome → `data/value-net.json`. Held-out **log-loss 0.6536**, Brier **0.2306**, accuracy **61.4%** against a coin's 0.6931 and an alive-count heuristic's 0.662, on 10,125 games / 15,544 test states. Calibrated in the middle and compressed at the tails, where the data is thin ([0.8,1.0): predicts 0.85, observes 0.80 on n=225). It's SLOWKING's leaf evaluator. *(The `0.682` this line carried until 2026-08-04 was in no artifact; the committed file said 0.6638.)*
+
+> **THE WALK WAS DISCARDING EVERY FORME-CHANGED BODY, SILENTLY. Fixed 2026-08-04.** `idn()`
+> normalises punctuation and nothing else, so the event stream's `charizardmegay` never matched the
+> bring list's `charizard`, `side_of` returned None and the event was thrown away. Measured on 4,000
+> clean games: **21.7% of faints, 22.7% of damaging events and 20.8% of all damage**, with at least
+> one discard in **96.5%** of games and **97.6%** of the discarded targets megas. The visible symptom
+> was that **88.9% of clean games ENDED with both sides still holding bodies** — the value net was
+> being trained on trajectories in which almost nobody ever loses their team. It is
+> `venusaurmega`/`venusaur-mega` again, in a file that had no lookup at all; the fix routes both
+> sides of the comparison through `engine/mc_key.js`, which gained the verb it was missing
+> (`mcKey.base` / `mcKey.bases`) rather than growing a fourth hand-rolled resolver.
+>
+> **What it moved, paired on identical test states, 1,445 held-out games / 10,120 states:**
+> log-loss **0.6634 → 0.6520**, paired difference **−0.0114, 95% CI [−0.0183, −0.0041]** clustered by
+> game; accuracy **59.72% → 61.47%**, paired **+1.75 pts, CI [0.50, 2.94]**. The mechanism is legible
+> in the weights — `hpDiff` moved **0.169 → 0.377**, because a fifth of all damage had never been
+> applied and the feature was attenuated toward zero.
+>
+> **Say the size honestly: the pairing is what buys this, and it is small.** Twenty split-half cuts
+> of the fixed arm alone spread by a **median 1.87 points** of accuracy (range 0.30–5.37), so the
+> +1.75 effect is INSIDE the floor for an unpaired comparison — two runs on different samples could
+> not tell these value nets apart. And the destination is unchanged: 61.4% is still well under the
+> **66.92%** in-sample ceiling for this feature class and under the live leaf's **67.97%**. A
+> correctness fix worth making on its own terms; not a capability change.
+>
+> **Residual, measured not assumed: 1.7% of damaging events are still dropped**, and 1,613 of the
+> 1,625 are one species. `MC.mons` carries `floette-mega` with `base: "floette"`, the store's bring
+> lists hold `floetteeternal`, and there is no `floette` row — so the chain does not close. The rest
+> are in-battle formes the mega table does not cover (`mimikyubusted` 274, `morpekohangry` 48,
+> `castformsnowy`/`castformrainy` 11). Both are dex-data gaps and are filed, not patched here:
+> reaching for the Showdown dex to close them would make `train_value.py` produce different numbers
+> depending on whether `SHOWDOWN_PATH` is set, which is this project's named failure in a new place.
 **self-play:** `sim/generate-dataset.js` writes engine games into the store schema (unlimited, unbiased data).
 **flywheel:** `engine/flywheel.py` — self-play → retrain → re-evaluate → report the delta. The thing that makes ABRA *learn over time*.
 **live data + auto-refresh (2026-07-23):** `engine/durable-ingest.js` pulls new ladder replays; a **daily scheduled task** runs it, then `engine/refresh-site-data.py` regenerates `data/archetypes.json` (via `engine/archetypes.py` — archetypes *discovered* from the games by k-means, not hand-listed), `data/live.js` (counts + archetypes the site loads live) and `data/kad-replays.js` (offline KADABRA bundle). So the site's numbers and meta **grow on their own**.
@@ -773,6 +805,218 @@ run. Separately, `data/rollout-r3.json`'s caveat claimed switches were excluded;
 them on the menu and left the string alone.
 **Code:** `engine/miltank.js`, `engine/rollout_r4.js`, `engine/sprt.js`, `engine/paired_h2h.js`.
 Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
+
+> **THE EIGHT ENTRIES BELOW WERE ADDED 2026-08-04 BECAUSE A GUARD SAID THEY WERE MISSING, NOT
+> BECAUSE ANYONE REMEMBERED THEM.** `tests/test-stadium-roster.js` grew a third direction — the set
+> of things that actually GENERATE a `data/*` artifact, read out of `engine/provenance.js --graph` —
+> and it went red on generators that appear in neither this ledger nor the Stadium. That is the GURU
+> hole (PRIORITIES #41) reopening in eight more places, and it includes `data/meta-usage.json`, which
+> `CLAUDE.md` itself calls *"the model CHOMP reads"*, and `data/move-priors.json`, which nine files
+> load. Every figure below is read out of the artifact named in its **Code** line. Where a model has
+> **no measured verdict**, it says **NOT MEASURED** rather than describing itself as working.
+
+## META-USAGE — the metagame model CHOMP reads (added to this ledger 2026-08-04)
+**Job:** say what this format actually plays — who is on teams, who gets brought, who leads, who
+wins — so that nothing downstream has to guess a prior. It is the file `CLAUDE.md` names as the
+CHOMP-facing model and the one `engine/mag_bot.js` carries into a live ladder game.
+**Method:** `engine/analyze.js` runs `quality.js loadGames()` over `data/games.ladder.jsonl` and
+tallies per-species `teamRate`, `bringRate`, `leadRate`, `winRate` and `n`. No model is fitted; it is
+a census. It publishes **two views and refuses to pick one**: `competitive` (bot-filtered — 7,123
+clean games, 14,246 sampled teams, 239 species) and `ladder` (everything stored, bots included —
+39,792 games, 52,966 teams, 261 species), with the file's own instruction that *"they answer
+different questions and neither is 'the' metagame."*
+**Corpus:** **7,123 clean of 39,792 collected**, generated **2026-08-04**, `provenance` **ok**. The
+funnel is carried in the artifact: 39,792 → 13,263 after the name-based bot rule → 10,480 after the
+behavioural one → 10,440 forfeits → 9,759 min-turns → **7,123** full-bring.
+**Two facts that have to travel with it.** It was **24.1% behind the corpus until 2026-08-04**, when
+it was regenerated at Will's instruction — `docs/MEASURE.md` §5c had it filed **ASK** rather than
+STOP precisely because it types no figure into any document, and moving the live bot's meta prior is
+not a measurement pass's call to make alone. And it is **not** a refit trigger: `feature_fixture.js`
+excludes it by name and `board.js` never reads it.
+**Honest status:** the numbers are current and the population is declared, which is more than most
+artifacts here manage. What is **NOT MEASURED** is whether acting on them helps — no result in this
+repository compares a decision made with this prior against one made without it.
+**Its own stated limit, quoted rather than paraphrased:** *"Bot detection is name-based plus a
+team-invariance rule. Accounts that play few games or vary their team can still escape it. Describe
+this set as 'no bot detected', not as human."*
+**Code:** `engine/analyze.js` → `data/meta-usage.json`. Read by `engine/mag_bot.js` (the live bot),
+`engine/mew.js`, `engine/kadabra.js`, `engine/ditto.js`, `engine/coach.js`, `engine/chomp_ev.js`,
+CHOMP, the Tower's threat-list bundle, `app/models.html` and `app/tower.html`.
+
+## MOVE PRIORS — the behaviour clone (added to this ledger 2026-08-04)
+**Job:** answer "what does this species actually CLICK", so that a rollout picks Tailwind, Fake Out,
+Spore, Swords Dance and Protect because strong players do, instead of only ever picking max damage.
+**Method:** `engine/policy.js` walks the per-turn event stream of clean ladder games and counts every
+move a species was seen to use. It publishes, per species, the **top 8 moves by P(move | action)**
+tagged with `kind`/`effect`/`boosts` from `moves-meta.js`, plus a separate **top-4 turn-1 lead**
+distribution. Species with fewer than 15 recorded actions are dropped.
+**Corpus:** **295 species, 128,548 recorded clicks** (median 147 per species, range 15–5,438),
+generated **2026-07-31** — the 5,269-clean-game era, so it is roughly **26% behind** the store.
+**IT DECLARES NO GAME COUNT, so the drift check cannot see that**; `provenance.js` reports only
+*"records no game count — nobody can check what it was built from."* Fixing that is a one-line change
+in the generator and it is not made here.
+**THE GENERATOR IN THIS LINE IS NOT THE ONE THE GRAPH USED TO NAME, and that is the reason this entry
+exists.** `engine/provenance.js` credited `data/move-priors.json` to `engine/state_encoder.py`, which
+only **reads** it. The real writer is `engine/policy.js`, and it was invisible because the JavaScript
+spelling of the path-indirection idiom (`const OUT = process.argv[3] || path.join(…)`) put `const`
+where the checker expected an identifier. The cost was not a label: `state_encoder.py` opens no game
+file, so the artifact was classed **not store-derived and was exempt from every corpus check in the
+repository**. Fixed 2026-08-04; the same pass made seven more artifacts visible.
+**Honest status:** it is a measured frequency table and nothing more. **NOT MEASURED:** whether
+sampling from it produces more human-like play than any alternative. Its quantity is also **not** the
+one Smogon publishes — this is **P(move | action)**, Smogon's is **P(move is ON the set)** — and
+`engine/set_priors.js` prefers Smogon's for set inference for exactly that reason.
+**Code:** `engine/policy.js` → `data/move-priors.json`. Read by `engine/board.js`,
+`engine/medicham2-browser.js`, `engine/rollout_leaf.js`, `engine/fit_policy.js`,
+`engine/prior_player.js`, `engine/mew.js`, `engine/set_priors.js`, `engine/smogon_priors.js`, and
+the MAG browser bundle `data/mag.js`.
+
+## PORYGON2 — nearest-neighbour value function (added to this ledger 2026-08-04)
+**Job:** score a POSITION — given a board with no action attached, how likely is this side to win.
+It is the other candidate leaf beside `rolloutWinProb`, and the model `docs/POKER-TO-POKEMON.md` §7
+proposes training on self-play and calibrating on humans.
+**Method:** `engine/porygon2.py` embeds each position in **17 features** — material
+(`alive_diff`, `hp_active_diff`, `hp_total_diff`, `my_alive`, `foe_alive`, `turn`), state
+(`status_diff`, `boost_diff`, `tailwind_diff`, `screen_diff`, `hazard_diff`, `trickroom`,
+`weather_on`, `terrain_on`) and matchup (`matchup_edge`, `speed_edge`, `type_threat`) — and looks up
+the k nearest neighbours. No weights are fitted; it is a lookup.
+**Corpus:** **trained on 3,898 self-play games / 73,368 positions**, **evaluated on 2,274 held-out
+clean HUMAN ladder games / 12,000 positions**. Generated **2026-07-28**, `provenance` **ok**.
+
+| arm | accuracy | Brier | log-loss |
+|---|---|---|---|
+| coin | 50.22% | 0.2500 | 0.6931 |
+| **material sign** — the baseline that matters | 60.22% | 0.2254 | 0.6410 |
+| plain k=200 | 62.61% | 0.2194 | **0.6258** |
+| weighted k=50 | **63.59%** | 0.2239 | 0.6483 |
+
+**Honest status: it beats material by about 2.4 accuracy points and 0.015 of log-loss, and NOT ONE
+OF THOSE NUMBERS HAS AN INTERVAL.** The artifact publishes six point estimates and no CI, no paired
+test and no split-half floor, so *"beats material"* is currently an ordering of six numbers, not a
+result. The smallest split-half floor this project has published is 0.43 points. **NOT MEASURED.**
+Note also that its best accuracy and its best log-loss come from **different arms**, which is what a
+table with no uncertainty on it looks like.
+**Its own stated caveat, quoted:** *"Self-play positions come from MAG playing itself. If MAG's play
+is unlike human play the neighbourhoods are unrepresentative and the lookup is confidently wrong."*
+That is why the evaluation set is human, and it is the right design.
+**And CLAUDE.md's own charge stands against it:** *"PORYGON2 and DODUO were fitted, saved, quoted in
+documents, and never once in a live decision."* It is read by `engine/mew.js` and
+`engine/player_digest.js` and by two GATE scripts; **no live decision calls it.**
+**Code:** `engine/porygon2.py` → `data/porygon2.json`, `data/porygon2-curve.json` (the k-sweep) and
+`data/porygon2-species.json` (types, Speed and the type chart exported from `data/engine-data.js` so
+there is no second copy of the dex). Distinct from PORY (`engine/pory.py`), the logistic value net
+retracted 2026-08-02 — see `docs/MEASURE.md` §5d.
+
+## SPECIES SETS — the sets people actually run (added to this ledger 2026-08-04)
+**Job:** replace the one fictional set per species that `data/engine-data.js` inherited with the
+**joint** sets real players declare, so the Battle Tower, the rollouts and DITTO's referee stop
+building Pokemon nobody plays.
+**Method:** `engine/derive_sets.js` reads the OPEN-SHEET corpora — `games.bo3.jsonl` and
+`games.ots.jsonl`, through `quality.js clean` — and tallies the exact (item, ability, nature, moves)
+tuple as one unit, with counts and shares. **Joint, not marginal, and that is the whole point:**
+Will's case was Sneasler, where Gunk Shot and Dire Claw are each common and few sets carry both, so
+the top-four-by-marginal is a set nobody runs. Measured, Garchomp's top-four marginals are the real
+set only **43.7%** of the time.
+**Corpus:** **247 species over 7,175 open-sheet games and 85,992 sheet entries**, generated
+**2026-08-02**, `provenance` **ok**. The median species has **19 distinct sets** with the most common
+holding **25%**; Garchomp has **4,990 sheets, 311 distinct sets**, top set Life Orb /
+Earthquake / Dragon Claw / Rock Slide / Protect at **33.8%**.
+**Honest status:** this is DECLARED data, not observed — it is what a sheet said at preview, and
+`CLAUDE.md`'s *PREFER OBSERVED OVER DECLARED* applies the moment a Knock Off or a Trick lands. It is
+also an **open-sheet** population, which is not the ladder: only ~1% of ladder games carry a sheet
+(`docs/MEASURE.md` §16a). **NOT MEASURED:** whether building from these sets changes any outcome.
+The distribution is a fact; the improvement is a claim nobody has tested.
+**Code:** `engine/derive_sets.js` → `data/species-sets.json`. Read by `engine/showdown_bot.js`,
+`engine/species_sets.js` and `build/rebuild_sets_from_sheets.js`.
+
+## COUNTERS — what the teams that beat this archetype brought (added to this ledger 2026-08-04)
+**Job:** answer the question a player actually asks. Not *"who wins"* — that is GURU — but *"what
+beats this"*: of the games where somebody beat a Rain team, what did the winner bring that the loser
+did not.
+**Method:** `engine/counters.py` fixes the opposing archetype and compares **P(species brought |
+won)** against **P(species brought | lost)** inside that matchup, with a Wilson interval on each side
+and a two-proportion z on the difference, then a **Benjamini–Hochberg** correction across all tests.
+Pooling on a feature WITHIN a matchup instead of splitting into a cell per pair is the design
+argument, and it is a good one: every game against Rain contributes to every species' count.
+**Corpus:** **11 opposing archetypes, 512–4,467 games each, 1,081 tests**, generated **2026-08-04**,
+thresholds `min_games` 40 / `min_seen` 8.
+**THE HEADLINE IS A NULL, and it has to be said in that order. 61 of 1,081 tests clear a nominal 95%
+z. ZERO survive Benjamini–Hochberg in any of the eleven matchups.** 5% of 1,081 is 54, and 61 were
+found. **There is no species this file can say counters anything.**
+**`data/counters.json` was UNSAFE — older than the quality filter — for NINE DAYS**, meaning it was
+computed under a different definition of which games count, and nothing could see it: the artifact
+was invisible to `engine/provenance.js` until the loader-call fix of 2026-08-03 made it visible, at
+which point it failed immediately and was regenerated (15 s). That is the check working, and it is
+the reason this ledger records the artifact's status and not just its verdict.
+**Its own stated caveat, quoted:** *"brought is what the replay REVEALED and conditions on game
+length; species are correlated so lift is marginal, not causal."*
+**Honest status: computed, correct, and consumed by NOTHING.** No engine, page or bot reads
+`data/counters.json`. Per this project's own rule an unwired model is still a model — consumption is
+evidence about importance, never about whether something needs writing down.
+**Code:** `engine/counters.py` → `data/counters.json`.
+
+## BRING PRIORS — who gets led and who gets brought (added to this ledger 2026-08-04)
+**Job:** give the opponent model a defensible draw. Before a game reveals anything, what is the
+chance this species is on the field at turn 1, and what is the chance it is brought at all.
+**Method:** `engine/bring_priors.js` measures `p_lead` from turn-1 leads and `p_bring` from revealed
+brings over clean games, shrunk toward the pool mean by **10 pseudo-observations** so a species seen
+four times cannot land at 1.00 and dominate every draw. It also measures the format's mega rates off
+the raw protocol logs.
+**Corpus:** **14,456 sides, 277 species**, regenerated **2026-08-04**. Pool means `bring` **66.7%**,
+`lead` **50.0%**.
+**IT WAS UNSAFE — five minutes older than the quality filter — AND NOBODY COULD SEE IT.** The
+artifact was absent from `provenance.js`'s graph entirely until 2026-08-04, for the same
+`const OUT = …` reason as MOVE PRIORS above. Regenerating it moved one figure a long way and it is
+worth recording: the **mega rate was measured on 62 sides and is now measured on 12,442**, and
+`p_side_megas` moved **0.9355 → 0.8785** with `p_mega_is_lead` **0.5345 → 0.5159**. `CLAUDE.md` sets
+a domain RATE floor here — *"a game without a mega should be rare"* — and the floor was being checked
+against a 62-side sample.
+**Honest status:** `p_lead` rests on solid ground; **`p_bring` does not, and the generator says so
+first.** A Pokemon selected but never sent out is invisible to a replay, so `p_bring` is biased down,
+hardest for slow and situational mons in short games. **Treat it as a ranking, not a calibrated
+rate.** **NOT MEASURED:** whether an opponent drawn from these priors is closer to a real opponent
+than a uniform draw.
+**Code:** `engine/bring_priors.js` → `data/bring-priors.json`. Read by `engine/mew.js`,
+`engine/prior_player.js` and `engine/selftest.js`.
+
+## CORES — the two-mon core matchup matrix (added to this ledger 2026-08-04)
+**Job:** GURU's question one level finer. Not *"does archetype A beat archetype B"* but *"does this
+PAIR beat that pair"*, where the pair is the C(4,2) = 6 combinations inside a side's real bring.
+**Method:** `engine/cores.js` enumerates every pair inside each clean side's bring, keeps the most
+common **K = 24** cores, and builds a core × core matrix from real outcomes with **Wilson 95%
+intervals**, deliberately in the same shape as `data/guru-matchups.json` so SLOWKING and the Hodge
+decomposition can consume it unchanged.
+**Corpus:** **5,265 clean games, 24 cores, 552 populated directed cells**, generated **2026-07-31**
+and **27.2% behind** the 7,228 clean ladder games now available. The most common core is
+Archaludon + Pelipper at 528 brings.
+**THE FINER GRAIN IS THE PROBLEM, NOT THE FEATURE. The median cell rests on 9 games** (max 33), and
+**32 of 552 cells** have an interval excluding 50% — **5.8% against the 5% a nominal 95% interval
+produces by construction when nothing is true.** GURU splits 5,265 games into 144 cells and finds
+nothing that survives multiplicity; this splits the same games into 552 and is thinner still. **NOT
+MEASURED, and on this corpus it structurally cannot be:** no multiplicity correction is applied and
+none would leave anything standing.
+**Honest status:** the right shape, computed correctly, on far too little data per cell. It is read
+only by `engine/sanity_check.py`. **Do not quote a cell from it.**
+**Code:** `engine/cores.js` → `data/core-matchups.json` (`CORES` env sets K).
+
+## DYNAMICS — observed speed order and observed damage (added to this ledger 2026-08-04)
+**Job:** two things the usage model cannot see, both measured off the event stream rather than
+assumed. **Who actually moved first**, and **what each move actually took off**.
+**Method:** `engine/dynamics.js` walks the stored turns. For every non-priority, non-Trick-Room
+exchange it records which side resolved first, aggregates to a per-species `firstRate`, and raises a
+`scarfHint` when a species outspeeds what its base stat allows. Separately it records the observed
+damage percentage per (attacker, move) — the real roll distribution, with mean, max and p90.
+**Corpus:** **3,665 games (2,635 of them non-Trick-Room), 240 species with a speed signal, 1,531
+(attacker, move) damage pairs**, generated **2026-07-28**.
+**Honest status: a census, and its two halves are not equally trustworthy.** The damage half is a
+distribution of observed rolls and is as good as its sample. The speed half infers a HIDDEN quantity
+— a spread and an item — from an ordering, and `scarfHint` is a heuristic with **no measured false
+positive rate**: Aegislash is flagged at `firstRate` 0.939 on **n = 33**, which is also consistent
+with Aegislash being paired with Trick Room or with slow opponents. **NOT MEASURED.** The engine's
+own facts about speed live in `engine/board.js` and `engine/medicham2-browser.js` and are NOT taken
+from this file, which is correct — this is evidence, not a rule.
+**Code:** `engine/dynamics.js` → `data/dynamics.json`. Read by `engine/ditto.js`,
+`engine/kadabra.js`, `engine/jolteon.py` and `engine/slowking.py`.
 
 ## CHAMPIONS_SIM — the official engine (ADR-001)
 **Job:** be the rules authority, replacing a hand-written engine that was wrong in eight silent ways.

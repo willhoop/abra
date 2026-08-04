@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.34.0 · Last updated 2026-08-04**
+**Version 3.35.0 · Last updated 2026-08-04**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,

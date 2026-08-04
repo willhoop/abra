@@ -27,6 +27,42 @@ np.random.seed(0)
 GURU = os.environ.get("MATRIX_FILE", os.path.join(ROOT, "data", "guru-matchups.json"))
 TAG = os.environ.get("TAG", "")   # "" -> slowking-eval.json ; "playstyle" -> slowking-playstyle-eval.json
 
+# THE OUTPUT NAME COMES FROM `TAG` AND THE INPUT COMES FROM `MATRIX_FILE`, AND FOR TEN DAYS NOTHING
+# TIED THE TWO TOGETHER.
+#
+# Run as `TAG=playstyle python engine/slowking_preview.py` with MATRIX_FILE unset, this file happily
+# solved the DEFAULT matrix -- GURU's 12 species-pair archetypes over 5,265 games -- and wrote the
+# answer out under the playstyle name. That is what was on disk from 2026-08-03 15:15 until
+# 2026-08-04: data/slowking-playstyle.js carried a payload BYTE-IDENTICAL to data/slowking.js, and
+# data/slowking-playstyle-eval.json was a byte-identical FILE to data/slowking-eval.json. The real
+# playstyle matrix holds 2,860 games over 8 playstyles, and every published figure differed --
+# including the VERDICT, which flipped from "substantially less exploitable ... non-transitive" to
+# "no material exploitability gap ... close to transitive".
+#
+# Nothing could catch it downstream. engine/provenance.js reported the file `ok` and was right to:
+# it was co-generated with data/slowking.js, so the ordering carries no information, and provenance
+# sees ordering and declared counts -- it cannot see that a file's CONTENT came from the wrong input.
+# A checker cannot recover a fact the generator threw away. So the generator refuses.
+#
+# The rule is narrow on purpose: a TAG names a NON-DEFAULT run, so a TAG with the default matrix is
+# the one combination that cannot mean anything. TAG unset + default matrix is the ordinary GURU run
+# and is untouched; TAG set + MATRIX_FILE set is the playstyle run and is untouched.
+if TAG and not os.environ.get("MATRIX_FILE"):
+    sys.exit(
+        f"REFUSING TO WRITE: TAG={TAG!r} names an output (data/slowking-{TAG}.js,\n"
+        f"data/slowking-{TAG}-eval.json) but MATRIX_FILE is unset, so the matrix would be the\n"
+        f"DEFAULT one -- data/guru-matchups.json. That writes a GURU result under the {TAG} name and\n"
+        f"is byte-identical to data/slowking.js; it is exactly the clobber this check exists to stop.\n"
+        f"Set both, e.g.:\n"
+        f"  TAG=playstyle MATRIX_FILE=data/playstyle-matchups.json python engine/slowking_preview.py")
+
+# A RELATIVE MATRIX_FILE MUST RESOLVE AGAINST THE REPO, NOT THE SHELL'S CWD. The command in the docs
+# is `MATRIX_FILE=data/playstyle-matchups.json`, which only opens from the repository root; run from
+# engine/ it raises, and a path that works from one directory and not another is how the wrong matrix
+# gets reached for in the first place.
+if not os.path.isabs(GURU):
+    GURU = os.path.join(ROOT, GURU) if not os.path.exists(GURU) else os.path.abspath(GURU)
+
 
 def build_edge_matrix(matrix, archs, sample=False):
     """Antisymmetric edge matrix M[i,j] = row i's net win-edge vs j, in [-0.5, 0.5].
@@ -210,8 +246,14 @@ def main():
     mixture = [{"archetype": archs[i], "weight": round(float(nash[i]), 4)} for i in order if nash[i] > 1e-3]
 
     out = {
-        "generated": "engine/slowking_preview.py — team-preview Nash over GURU's real matchup matrix",
-        "source_matrix": "data/guru-matchups.json", "n_games": g["n_games"], "n_archetypes": len(archs),
+        "generated": "engine/slowking_preview.py — team-preview Nash over a real matchup matrix",
+        # WAS THE LITERAL "data/guru-matchups.json", WHICH IS THE SECOND HALF OF THE SAME BUG. Even
+        # a correct playstyle run stamped the GURU matrix as its source, so the one field that could
+        # have exposed the clobber was hardcoded to agree with it. Derived now, and `tag` is recorded
+        # beside it so the file says which of the two runs it is.
+        "source_matrix": os.path.relpath(GURU, ROOT).replace("\\", "/"),
+        "tag": TAG or None,
+        "n_games": g["n_games"], "n_archetypes": len(archs),
         "equilibrium_mixture": mixture,
         "game_value": round(float(val), 4),
         "material_gap_threshold": MATERIAL_GAP,
@@ -242,7 +284,9 @@ def main():
     eval_name = f"slowking-{TAG}-eval.json" if TAG else "slowking-eval.json"
     json.dump(out, open(os.path.join(ROOT, "data", eval_name), "w"), indent=2)
     gvar = "SLOWKING_PLAYSTYLE" if TAG else "SLOWKING"
-    payload = {"n_games": g["n_games"], "mixture": mixture,
+    payload = {"n_games": g["n_games"], "n_archetypes": len(archs),
+               "source_matrix": os.path.relpath(GURU, ROOT).replace("\\", "/"),
+               "mixture": mixture,
                "exploit_nash": round(ex_nash, 4), "exploit_greedy": round(ex_greedy, 4),
                "exploit_uniform": round(ex_uniform, 4), "gap_ci": ci(gaps),
                "cycle": top_cycle(M, archs, matrix)}
