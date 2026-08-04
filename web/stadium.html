@@ -404,7 +404,7 @@
         {k:"Decisive-turn walkthrough", v:"Live", n:"Offline capable, raw-log paste fallback."},
         {k:"Prescriptive text quality", v:null, n:"Heuristic prose, not equilibrium-grade."}
       ],
-      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(1.256·alive_diff + 1.544·hp_diff) — the reduction is recorded in <code>docs/MODELS.md</code> and the weights themselves ship in <code>data/pory.js</code> — it ties that two-feature material baseline exactly, and the turn term is structurally pinned to zero. The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
+      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(0.9943·alive_diff + 1.4080·hp_diff) (<code>data/pory-eval.json</code>) — it ties that two-feature material baseline to six decimal places (+0.000021 with PORY WORSE, 95% CI [-0.000013, +0.000056]), and the intercept and turn terms are pinned at exactly zero because emitting both perspectives cancels the gradient on any column identical across the two rows. <s class="wd" title="Retracted 2026-08-04: 1.256/1.544 come from commit 44e0fb0, the last PORY run fitted on the UNFILTERED store with bot games included. The clean filter landed two days later and the coefficients moved to 0.9943/1.4080. The retraction was citing bot-contaminated numbers as its own evidence for ten days.">Quoted here until 2026-08-04 as 1.256/1.544</s> The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
     }
   ];
 
