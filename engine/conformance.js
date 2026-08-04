@@ -102,13 +102,25 @@ function stripComments(src) {
   return src
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .split(NL)
-    .map(line => line.replace(/\/\/.*$/, '').replace(/^\s*#.*$/, ''))
+    /* A URL IS NOT A COMMENT. This stripped from the first // to end of line, so
+     * `https://replay.pokemonshowdown.com/...` deleted the rest of the line -- which is
+     * precisely why engine/mega_harvest.js:39, the ONE file that hardcodes the format id into a
+     * network call, was the one file this guard could not see. Require the // not be preceded
+     * by a colon. */
+    .map(line => line.replace(/(^|[^:])\/\/.*$/, '$1').replace(/^\s*#.*$/, ''))
     .join(NL)
     .replace(/<!--[\s\S]*?-->/g, ' ');
 }
 
 function checkHardcodes(f, srcRaw) {
   const src = stripComments(srcRaw);
+  /* NOTE, 2026-08-04: this tests the RAW source, so merely MENTIONING regulations.json in a
+   * comment exempts the whole file -- a file that reads the config for one thing and hardcodes
+   * for another is invisible. Narrowing it to an actual read takes the count from 2 to 42, and
+   * OPS established that most of those 42 are LEGITIMATE catch-fallbacks in files that do read
+   * the config. So the narrowing is right and lands AFTER the 42 are triaged, not before --
+   * otherwise this becomes a gate that fails on correct code, which gets waived and then
+   * ignored. PRIORITIES #46b. */
   if (/regulations\.json/.test(srcRaw)) return;        // it reads the config; naming a fallback is fine
   for (const c of CONFIG_VALUES) {
     if (src.includes(c.value)) {

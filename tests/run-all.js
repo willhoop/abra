@@ -126,7 +126,16 @@ function plan(rel) {
   /* Per-check extra arguments. provenance.js reports by default and only GATES with --strict, so the
    * runner must ask for the strict behaviour or it would list unsafe artifacts and exit 0 — a gate
    * that reads as a pass, which is the failure this file exists to prevent. */
+  /* conformance.js was registered as a gate and run WITHOUT --strict, so its exit(1) at :301
+   * could never fire. It reported two findings on every run and exited 0 -- a registered gate
+   * that always passes, which is the exact thing this file exists to prevent, sitting in this
+   * file. Found by OPS 2026-08-04. */
   const EXTRA = { 'engine/provenance.js': ['--strict'] };
+  /* conformance.js is a registered gate that runs WITHOUT --strict, so its exit(1) can never
+   * fire -- it reports findings and exits 0. That is a gate that always passes, which is the
+   * thing this file exists to prevent, sitting in this file. It is NOT switched on here yet:
+   * doing so today makes run-all red on 42 findings that are mostly legitimate. Triage first,
+   * then flip it. PRIORITIES #46b. (OPS, 2026-08-04.) */
   return { cmd: rel.endsWith('.py') ? PY : process.execPath, args: [D(rel), ...(EXTRA[rel] || [])] };
 }
 
