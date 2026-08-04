@@ -792,6 +792,36 @@ function handle(room, line) {
       if (flags) console.log(`${room}: REQUEST ${flags}`);
     } catch (e) {}
   }
+  /* HOLD THE TEAM-PREVIEW REQUEST UNTIL THE SHEETS ARRIVE.
+   *
+   * MILTANK picks its bring and lead by playing the matchup out against the OPPONENT'S ACTUAL TEAM,
+   * which is the whole reason that search beats a usage prior. But Showdown asks for the preview
+   * choice BEFORE it sends |showteam| -- two lines earlier, measured live:
+   *
+   *     4603  preview: no open sheet for the opponent -- falling back to default order
+   *     4605  OPEN SHEETS ARE UP -- sets are visible
+   *
+   * So the biggest decision in the game was being answered two lines before the information needed
+   * to answer it existed. The fallback said so out loud, which is the only reason it was caught.
+   *
+   * The request is buffered rather than the player changed: this file owns what enters the stream,
+   * so holding one line needs no cooperation from BattlePlayer. Released the moment a sheet lands,
+   * or after a timeout -- a bot that waits forever for a sheet that never comes is worse than one
+   * that leads badly, and a closed-sheet game must still be played. */
+  if (/^\|request\|/.test(line) && /teamPreview/i.test(line) && !st.ots && !st.previewHeld) {
+    st.previewHeld = line;
+    st.previewTimer = setTimeout(() => {
+      if (st.previewHeld) { const l = st.previewHeld; st.previewHeld = null; st.stream.push(l);
+        console.log(`${room}: no sheet after 6s — answering team preview blind`); }
+    }, 6000);
+    return;
+  }
+  if (st.previewHeld && st.ots) {
+    clearTimeout(st.previewTimer);
+    const held = st.previewHeld; st.previewHeld = null;
+    console.log(`${room}: sheets are up — releasing team preview to MILTANK`);
+    st.stream.push(held);
+  }
   st.stream.push(line);
 
   {
