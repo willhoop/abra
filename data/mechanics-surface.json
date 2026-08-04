@@ -1,0 +1,213 @@
+{
+  "generated": "2026-08-04T02:16:33.465Z",
+  "by": "tests/mechanics_surface.js",
+  "method": "a corpus-used entry counts as handled when ANY tag it carries appears as a quoted string in medicham2-browser.js or board.js",
+  "caveat": "UPPER BOUND on what works. A referenced tag can still be unimplemented (Encore) or implemented by a hardcoded list that misses members (Filter/Ice Scales). tests/test-mechanics.js establishes the lower bound by probing behaviour.",
+  "overall_pct": 82.61240398490536,
+  "by_kind": {
+    "move": {
+      "n": 457,
+      "handledN": 389,
+      "usedTotal": 403219,
+      "handledTotal": 392025,
+      "worst": [
+        {
+          "id": "hyperbeam",
+          "uses": 1544,
+          "tags": "recharge"
+        },
+        {
+          "id": "powergem",
+          "uses": 1336,
+          "tags": "(untagged)"
+        },
+        {
+          "id": "lightofruin",
+          "uses": 1261,
+          "tags": "recoil"
+        },
+        {
+          "id": "freezedry",
+          "uses": 1247,
+          "tags": "overridesEffectiveness"
+        },
+        {
+          "id": "hydropump",
+          "uses": 1062,
+          "tags": "(untagged)"
+        },
+        {
+          "id": "raindance",
+          "uses": 886,
+          "tags": "neverMisses,setsWeather,statusCategory"
+        },
+        {
+          "id": "sunnyday",
+          "uses": 558,
+          "tags": "neverMisses,setsWeather,statusCategory"
+        },
+        {
+          "id": "haze",
+          "uses": 540,
+          "tags": "neverMisses,clearsBoosts,statusCategory"
+        },
+        {
+          "id": "poltergeist",
+          "uses": 266,
+          "tags": "readsTargetItem"
+        },
+        {
+          "id": "flowertrick",
+          "uses": 211,
+          "tags": "alwaysCrit,neverMissesAttack"
+        },
+        {
+          "id": "gigatonhammer",
+          "uses": 186,
+          "tags": "cantUseTwice"
+        },
+        {
+          "id": "expandingforce",
+          "uses": 174,
+          "tags": "terrainScaled,conditionalPower"
+        }
+      ]
+    },
+    "ability": {
+      "n": 183,
+      "handledN": 59,
+      "usedTotal": 100968,
+      "handledTotal": 46064,
+      "worst": [
+        {
+          "id": "intimidate",
+          "uses": 9874,
+          "tags": "onSwitchInDrop"
+        },
+        {
+          "id": "prankster",
+          "uses": 6884,
+          "tags": "priorityMod"
+        },
+        {
+          "id": "defiant",
+          "uses": 5989,
+          "tags": "boostsWhenLowered"
+        },
+        {
+          "id": "blaze",
+          "uses": 4585,
+          "tags": "damageBoost"
+        },
+        {
+          "id": "adaptability",
+          "uses": 4271,
+          "tags": "stabBoost"
+        },
+        {
+          "id": "unnerve",
+          "uses": 1921,
+          "tags": "blocksBerries"
+        },
+        {
+          "id": "chlorophyll",
+          "uses": 1901,
+          "tags": "speedCond"
+        },
+        {
+          "id": "competitive",
+          "uses": 1552,
+          "tags": "boostsWhenLowered"
+        },
+        {
+          "id": "torrent",
+          "uses": 1488,
+          "tags": "damageBoost"
+        },
+        {
+          "id": "sandrush",
+          "uses": 1054,
+          "tags": "speedCond,weatherChipImmune"
+        },
+        {
+          "id": "poisontouch",
+          "uses": 945,
+          "tags": "poisonsOnMyContact"
+        },
+        {
+          "id": "friendguard",
+          "uses": 861,
+          "tags": "reducesAllyDamage"
+        }
+      ]
+    },
+    "item": {
+      "n": 140,
+      "handledN": 44,
+      "usedTotal": 100796,
+      "handledTotal": 61702,
+      "worst": [
+        {
+          "id": "leftovers",
+          "uses": 6416,
+          "tags": "passiveHeal"
+        },
+        {
+          "id": "charizarditey",
+          "uses": 3619,
+          "tags": "megaStone"
+        },
+        {
+          "id": "staraptite",
+          "uses": 3100,
+          "tags": "megaStone"
+        },
+        {
+          "id": "floettite",
+          "uses": 2489,
+          "tags": "megaStone"
+        },
+        {
+          "id": "whiteherb",
+          "uses": 2028,
+          "tags": "restoresStats"
+        },
+        {
+          "id": "swampertite",
+          "uses": 1717,
+          "tags": "megaStone"
+        },
+        {
+          "id": "raichunitey",
+          "uses": 1649,
+          "tags": "megaStone"
+        },
+        {
+          "id": "delphoxite",
+          "uses": 1462,
+          "tags": "megaStone"
+        },
+        {
+          "id": "metagrossite",
+          "uses": 1420,
+          "tags": "megaStone"
+        },
+        {
+          "id": "aerodactylite",
+          "uses": 1272,
+          "tags": "megaStone"
+        },
+        {
+          "id": "tyranitarite",
+          "uses": 1193,
+          "tags": "megaStone"
+        },
+        {
+          "id": "mawilite",
+          "uses": 872,
+          "tags": "megaStone"
+        }
+      ]
+    }
+  }
+}
