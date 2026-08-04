@@ -1,0 +1,65 @@
+{
+  "generated": "2026-08-04T02:24:07.681Z",
+  "by": "tests/test-engine-diff.js",
+  "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
+  "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
+  "compared": 120,
+  "agreed": 114,
+  "disagreed": 6,
+  "worst": [
+    {
+      "att": "barbaracle",
+      "mv": "closecombat",
+      "def": "gyarados",
+      "showdown": "38-45",
+      "medicham": "57-67",
+      "rel": 0.4939759036144578,
+      "uses": 8752
+    },
+    {
+      "att": "eelektross",
+      "mv": "knockoff",
+      "def": "tauros",
+      "showdown": "17-21",
+      "medicham": "27-32",
+      "rel": 0.5526315789473685,
+      "uses": 2763
+    },
+    {
+      "att": "hydrapple",
+      "mv": "gigadrain",
+      "def": "tyranitar",
+      "showdown": "90-108",
+      "medicham": "134-162",
+      "rel": 0.494949494949495,
+      "uses": 1247
+    },
+    {
+      "att": "houndoom",
+      "mv": "snarl",
+      "def": "mimikyu",
+      "showdown": "0-0",
+      "medicham": "45-54",
+      "rel": 49.5,
+      "uses": 776
+    },
+    {
+      "att": "pelipper",
+      "mv": "muddywater",
+      "def": "vaporeon",
+      "showdown": "40-48",
+      "medicham": "0-0",
+      "rel": 1,
+      "uses": 716
+    },
+    {
+      "att": "luxray",
+      "mv": "discharge",
+      "def": "hatterene",
+      "showdown": "30-36",
+      "medicham": "39-46",
+      "rel": 0.2878787878787879,
+      "uses": 507
+    }
+  ]
+}
