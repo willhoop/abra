@@ -54,6 +54,8 @@ function install(bot, o) {
   const PREVIEW_N = opts.previewN, PREVIEW_MS = opts.previewMs;
   const WHY = !!opts.why, TRACE = !!opts.trace;
   const DEFER = opts.defer !== false;
+  /* Optional: told the win probability after a real decision, so a caller can surface it. */
+  const SAY = typeof opts.onSay === 'function' ? opts.onSay : null;
 
       const RL = require('./rollout_leaf.js');
       /* The real dex, not undefined. dmgMon uses it to resolve the EFFECTIVE ability — a mega's
@@ -692,6 +694,7 @@ function install(bot, o) {
             k + ' ' + (100 * byKind[k].reduce((a, b) => a + b, 0) / byKind[k].length).toFixed(0) +
             '%(' + byKind[k].length + ')').join('  ');
           console.log('    by class: ' + summary);
+          if (SAY) { try { SAY(bestVal, chosen); } catch (e) { /* never let a chat line break a turn */ } }
           this._rolloutReq = req;
           this._rolloutPick = [];
           /* THROUGH _withMega, WHICH THE ROLLOUT PATH WAS BYPASSING ENTIRELY.

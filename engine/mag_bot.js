@@ -92,6 +92,25 @@ const SWITCHING = process.argv.includes('--switching');
 const MEGA_P = parseFloat(arg('mega', '1'));
 const WHY = process.argv.includes('--why');
 const TRACE = process.argv.includes('--trace');
+/* --trash  let it talk, grounded in the number it actually computed.
+ *
+ * The joke only works because MILTANK really does hold a win probability every turn, so the line
+ * is a READOUT rather than a taunt written in advance. It quotes itself, and when the number is
+ * bad it says that too -- a bot that only talks when winning is not funny, it is just noise.
+ *
+ * DELIBERATELY MILD. This posts to a public server under Will's registered account, so the lines
+ * are about the POSITION and never about the opponent. Rate-limited to one per few turns because
+ * Showdown throttles a client that repeats itself, and being muted mid-match would be a genuinely
+ * stupid way to lose a game. */
+const TRASH = process.argv.includes('--trash');
+let lastTrash = 0;
+const trash = (room, text) => {
+  if (!TRASH || !room) return;
+  const now = Date.now();
+  if (now - lastTrash < 20000) return;
+  lastTrash = now;
+  send(`${room}|${text}`);
+};
 /* --weights <file>  play a different fitted vector. The one worth trying is
  * data/policy-weights-nopop.json, refitted with "how often people click this" removed entirely --
  * which predicts human choices BETTER than the version that has it. */
@@ -701,6 +720,20 @@ function handle(room, line) {
       require('./miltank.js').install(bot, {
         n: ROLLOUT_N, explore: ROLLOUT_EXPLORE, turns: ROLLOUT_TURNS,
         previewN: PREVIEW_N, previewMs: PREVIEW_MS, why: WHY, trace: TRACE,
+        /* The line is a READOUT of the number MILTANK just computed, which is the only reason it is
+         * funny. Nothing here is about the opponent -- it is a public server and a registered
+         * account, and a bot that insults people is a bot that gets the account locked. */
+        onSay: (p) => {
+          const pct = Math.round(100 * p);
+          let line = null;
+          if (pct >= 95) line = `MILTANK: ${pct}%. i have played this out ${ROLLOUT_N} times and you are not in most of them`;
+          else if (pct >= 80) line = `MILTANK: ${pct}%. comfortable`;
+          else if (pct >= 60) line = `MILTANK: ${pct}%. i like my side of this`;
+          else if (pct >= 40) line = `MILTANK: ${pct}%. genuinely no idea`;
+          else if (pct >= 15) line = `MILTANK: ${pct}%. this is fine`;
+          else line = `MILTANK: ${pct}%. i have made a terrible mistake`;
+          trash(room, line);
+        },
       });
     }
     bot.start();
@@ -730,6 +763,12 @@ function handle(room, line) {
    * same reason the recording is OTS only: a closed-sheet game is thrown out, so publishing it would
    * put a game that does not count next to the ones that do. */
   if (line.startsWith('|win|') && st && st.ots) send(`${room}|/savereplay`);
+  if (line.startsWith('|win|')) {
+    const who = line.slice(5).trim();
+    lastTrash = 0;                                   // the result is always worth one line
+    trash(room, /magabra/i.test(who) ? 'gg. the rollout said so'
+                                     : 'gg. i had you at some point, i promise');
+  }
   /* KEEP PLAYING. An A/B run needs hundreds of games and a bot that challenges once and then waits
    * forever produces one. Re-offered on the win line, rate-limited by offerChallenge itself. */
   if (line.startsWith('|win|') && CHALLENGE) setTimeout(() => offerChallenge('next game'), 1500);
