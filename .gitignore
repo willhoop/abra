@@ -94,3 +94,17 @@ data/live-games/
 
 # The Showdown account password for engine/mag_bot.js. One line, never committed.
 data/.showdown-pass
+
+# R4 experiment output. Regenerable from the seed in every record; NOT a durable store.
+# The two runs a published number rests on are tracked and named as exceptions, so the
+# rule reads the way it behaves rather than leaning on git's already-tracked carve-out.
+data/games.r4*.jsonl
+!data/games.r4-decided.jsonl
+!data/games.r4-baseline.jsonl
+
+# Phase-1 dump for a phase 2 that does not exist (engine/lookahead_divergence.js:5-13).
+# Each row carries a full protocol log plus 49 forked deltas. Nothing cites it.
+data/lookahead-divergence.jsonl
+
+# build/omnibus.py writes <out>.html beside the PDF. Build output, same class as docs/*.print.html.
+/omnibus.html
