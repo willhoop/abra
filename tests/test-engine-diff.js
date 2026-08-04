@@ -95,6 +95,21 @@ const ONTRYHIT_IMMUNE = new Set(Object.keys(tags.abilities || {}).filter(a => {
   const p = tags.abilities[a] && tags.abilities[a].params && tags.abilities[a].params.typeImmunity;
   return !!(p && p.via === 'onTryHit');
 }));
+/* CONTROL FIX 10 -- THE SAME HOLE, ONE TAG OVER, AND IT WAS SCORING A FALSE PASS.
+ *
+ * CONTROL FIX 5 closed `typeImmunity.via === 'onTryHit'` because moveHit does not run the ability's
+ * TryHit. `immuneToMoveClass` answers through exactly the same handler and was not in the set, so
+ * `forretress rockblast -> kommoo` read 5-6 on BOTH sides and was scored AGREE -- Showdown was
+ * wrong for the harness's reason and MEDICHAM was wrong for its own, and the two errors cancelled.
+ * A false agreement is the more expensive kind, because nothing prints.
+ *
+ * LANDED IN THE SAME PASS AS THE ENGINE FIX, never before it. On its own this turns a green row red
+ * with no fix beside it, which is the one thing CLAUDE.md forbids filing. WIRE 22 in
+ * medicham2-browser.js is the other half. */
+const ONTRYHIT_CLASS = new Set(Object.keys(tags.abilities || {}).filter(a => {
+  const p = tags.abilities[a] && tags.abilities[a].params && tags.abilities[a].params.immuneToMoveClass;
+  return !!(p && p.blocksFlag);
+}));
 
 const FILLER = ['Ditto', 'Ditto', 'Ditto'];
 const mkSet = (name, moveName) => ({
@@ -121,6 +136,10 @@ const mkSet = (name, moveName) => ({
 /* A distinct value, so a skip can never be confused with a legitimate null or a legitimate 0. */
 const NOT_FINITE = Symbol('showdown damage was not a finite number');
 const skipped = { n: 0, moves: {} };
+const skippedMulti = { n: 0, moves: {} };
+/* DERIVED, not a list of names, and printed below before it is used. */
+const MULTIHIT = new Set(Object.keys(tags.moves || {}).filter(id =>
+  (tags.moves[id].tags || []).indexOf('multiHit') >= 0));
 
 /* Showdown's damage for ONE hit, with the roll pinned. The traps here are recorded in
  * engine/validate_damage_sim.js and cost that file two debugging rounds: randomChance() bypasses a
@@ -205,7 +224,7 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
   /* Ask the defender's ability its OWN TryHit question, which moveHit below will not. Only for the
    * abilities the artifact says answer it -- everything else pays nothing. A null or false from the
    * handler is the ability saying "this move does not happen to me", which is zero damage. */
-  if (defAbilId && ONTRYHIT_IMMUNE.has(defAbilId)) {
+  if (defAbilId && (ONTRYHIT_IMMUNE.has(defAbilId) || ONTRYHIT_CLASS.has(defAbilId))) {
     const ab = battle.dex.abilities.get(defAbilId);
     if (ab && ab.exists && typeof ab.onTryHit === 'function') {
       let r;
@@ -250,6 +269,8 @@ console.log('  ' + [...ONTRYHIT_IMMUNE].sort().map(a =>
     return p && p.via !== 'onTryHit';
   });
   console.log('  NOT matched, typeImmunity by another route: ' + other.join(' ') + '   (these already work)');
+  console.log('DERIVED — abilities that refuse a MOVE CLASS through the same skipped handler (CONTROL FIX 10): '
+    + [...ONTRYHIT_CLASS].sort().map(a => a + '(' + tags.abilities[a].params.immuneToMoveClass.blocksFlag + ')').join(' '));
   const inPool = species.filter(s => {
     const sp = dex.species.get(s);
     return sp.exists && ONTRYHIT_IMMUNE.has(String(sp.abilities['0'] || '').toLowerCase().replace(/[^a-z0-9]/g, ''));
@@ -263,7 +284,9 @@ console.log('  ' + [...ONTRYHIT_IMMUNE].sort().map(a =>
     return dm.exists && typeof dm.basePowerCallback === 'function' && /move\.hit\b/.test(String(dm.basePowerCallback));
   });
   console.log('DERIVED — corpus moves whose base power reads move.hit (NaN without CONTROL FIX 9): '
-    + (hitReaders.join(' ') || 'none') + '\n');
+    + (hitReaders.join(' ') || 'none'));
+  console.log('DERIVED — corpus multi-hit moves, SKIPPED because MEDICHAM prices an expectation and '
+    + 'one moveHit call is one sample:\n  ' + [...MULTIHIT].sort().join(' ') + '\n');
 }
 /* ONE ROW, BOTH ENGINES. Extracted from the sampling loop so that `--case att,move,def` can run a
  * SINGLE named matchup. That is not a convenience: a control fix is only proved by the row it
@@ -272,6 +295,20 @@ console.log('  ' + [...ONTRYHIT_IMMUNE].sort().map(a =>
 function compareRow(attId, mvId, defId) {
   const dexMove = dex.moves.get(mvId);
   if (!dexMove.exists || !dexMove.basePower) return null;   // status moves are a different harness
+  /* MULTI-HIT MOVES ARE NOT COMPARABLE THROUGH THIS ENTRY POINT, and skipping them is honest where
+   * comparing them would not be.
+   *
+   * moveHit is called ONCE here, so Showdown returns exactly one hit. MEDICHAM's dmgRange returns
+   * the EXPECTATION over the hit distribution -- 3.1 hits for Rock Blast -- because it is a pure
+   * pricing function with no rng. Those are different quantities, and putting them side by side
+   * would report a correct engine as ~3x too high on every Rock Blast row.
+   *
+   * The temptation was to scale Showdown's single hit by MEDICHAM's own expected hit count. That is
+   * constructing the answer from the thing under test, which is how this file's first six control
+   * failures happened. So: skipped, counted, and printed. tests/test-mechanics.js `multiHit` is the
+   * guard on the mechanic instead, and it is the ONLY guard -- said out loud so nobody deletes it
+   * believing the differential covers it. */
+  if (MULTIHIT.has(mvId)) { skippedMulti.n++; skippedMulti.moves[mvId] = (skippedMulti.moves[mvId] || 0) + 1; return null; }
   const attSp = dex.species.get(attId), defSp = dex.species.get(defId);
   if (!attSp.exists || !defSp.exists) return null;
 
@@ -332,7 +369,19 @@ function compareRow(attId, mvId, defId) {
    *
    * IT IS STILL COUNTED AS A DISAGREEMENT. Marking it must not soften the number, or the marker
    * becomes a way to make the residual look better; it only tells the reader where to look first. */
-  const suspect = typeof dexMove.basePowerCallback === 'function' && sMid === 0 && mMid > 0;
+  /* WIDENED, because the Triple Axel shape turned out to be one instance of a general one: SHOWDOWN
+   * SAYS ZERO AND MEDICHAM SAYS SOMETHING is nearly always a layer mismatch in this harness rather
+   * than a MEDICHAM bug. Two confirmed causes, neither an engine fault:
+   *   - a basePowerCallback starved of state trySpreadMoveHit would have set (Triple Axel);
+   *   - a nullification Showdown applies at a layer moveHit only half-runs, which MEDICHAM applies
+   *     in its BATTLE LOOP instead of in dmgRange. DISGUISE is exactly this: Showdown's onDamage
+   *     returns 0 here while the maxhp/8 never lands because battle.update() is never called, and
+   *     MEDICHAM's dmgRange correctly reports the raw damage because WIRE 23 substitutes one level
+   *     up. Both engines are right and the comparison is asking dmgRange a question about battleTurn.
+   * A true immunity is NOT caught by this, because both sides read 0 and the row agrees before it
+   * gets here. STILL COUNTED AS A DISAGREEMENT -- flagging must never move the number, or the marker
+   * becomes a way to make the residual look better than it is. */
+  const suspect = sMid === 0 && mMid > 0;
   return { att: attId, mv: mvId, def: defId, A, B, dexMove, rel, suspect,
            showdown: cap(lo) + '-' + cap(hi), medicham: cap(m.min) + '-' + cap(m.max),
            uses: ((tags.moves[mvId] || {}).uses) || 0 };
@@ -410,6 +459,9 @@ if (skipped.n) {
  * untested by this run and should be read as such. */
 console.log(`  comparisons whose move has a basePowerCallback: ${touched.bpCallback}`
   + `   (${bad.filter(b => b.suspect).length} of them are SUSPECT — see below)`);
+console.log(`  rows skipped as MULTI-HIT (not comparable through moveHit): ${skippedMulti.n}`
+  + (skippedMulti.n ? '   ' + Object.entries(skippedMulti.moves).sort((a, b) => b[1] - a[1])
+      .map(([id, n]) => id + ' x' + n).join(' ') : ''));
 console.log('');
 if (bad.length) {
   console.log('  WORST DISAGREEMENTS, by how often the move is clicked:');
@@ -417,13 +469,14 @@ if (bad.length) {
   for (const b of bad.slice(0, 20)) {
     console.log('  ' + String(b.uses).padStart(7) + '  ' + b.att.padEnd(13) + b.mv.padEnd(16) +
       b.def.padEnd(15) + b.showdown.padStart(9) + '  ' + b.medicham.padStart(9) +
-      (b.suspect ? '   SUSPECT — the move computes its own base power; check the harness first' : ''));
+      (b.suspect ? '   SUSPECT — Showdown reports 0 where MEDICHAM does not; check the harness first' : ''));
   }
   if (bad.some(b => b.suspect)) {
-    console.log('\n  A SUSPECT ROW IS STILL COUNTED ABOVE. It is not excused, only flagged: Showdown says the');
-    console.log('  move did nothing while MEDICHAM says it did, and the move builds its own base power from');
-    console.log('  state trySpreadMoveHit sets and this entry point does not. That was three of the four');
-    console.log('  disagreements on 2026-08-04 and none of the three was a MEDICHAM bug.');
+    console.log('\n  A SUSPECT ROW IS STILL COUNTED ABOVE. It is not excused, only flagged. Showdown says the');
+    console.log('  move did nothing and MEDICHAM says it did, which in this harness has twice meant a LAYER');
+    console.log('  MISMATCH rather than an engine bug: a base power computed from state moveHit never sets,');
+    console.log('  or a nullification MEDICHAM applies in its battle loop while dmgRange reports raw damage');
+    console.log('  (Disguise). Check tests/test-mechanics.js for the mechanic before touching the engine.');
   }
 }
 fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
@@ -439,6 +492,7 @@ fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
   /* Dropped rows are RECORDED, not just printed -- a skip that only exists in a console line is a
    * silent default one terminal-clear later. */
   skipped_non_finite: skipped.n, skipped_moves: skipped.moves,
+  skipped_multihit: skippedMulti.n, skipped_multihit_moves: skippedMulti.moves,
   controls: 'both leads are really sent out on the Showdown side, so MEDICHAM is given the same '
           + 'switch-in (Intimidate, weather setters) through the engine\'s own applyEntryEffects/'
           + 'applyIntimidate; and the defender ability\'s onTryHit is asked directly, because '

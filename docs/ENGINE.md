@@ -56,13 +56,13 @@ ENGINE — does the simulator do what Pokémon does
     move    reordersTurn           After You lets the partner move next
     item    curesVolatile          Mental Herb frees the holder from Taunt
     move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 08:30)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 08:31)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (54 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 137/176 probed, 39 unprobed
 ```
 
-_stamped 2026-08-04 08:30_
+_stamped 2026-08-04 08:33_
 
 <!-- /GENERATED -->
 
@@ -81,17 +81,12 @@ a human cannot quietly soften.
 These were seen against Showdown but have no probe, so they are invisible to the census. Write the
 probe first, watch it fail, then fix.
 
-Nine items left this list on 2026-08-04 because they became probes: Freeze-Dry, Haze, Friend Guard,
-Poison Touch, Gigaton Hammer, Expanding Force, Marvel Scale, Disguise and Foul Play. All nine are
-red, and the census carries them now — `overridesEffectiveness`, `clearsBoosts`, `reducesAllyDamage`,
-`poisonsOnMyContact`, `cantUseTwice`, `terrainScaled`, `untagged`, `formeChange`, `swapsStat`.
+**This list is now empty except for Rivalry, which is the only entry that has never been probeable.**
+Ten items left it on 2026-08-04 by becoming probes — Freeze-Dry, Haze, Friend Guard, Poison Touch,
+Gigaton Hammer, Expanding Force, Marvel Scale, Disguise, Foul Play and Dry Skin's Fire
+vulnerability. Disguise, Foul Play and Dry Skin have since been FIXED; the other seven are red in the
+census, which now carries them.
 
-- **Dry Skin's Fire vulnerability** — x1.25 taken from Fire, and the engine does not apply it.
-  `houndoom fireblast -> heliolisk` reads 123-137 on Showdown and 99-117 here, which is 1.24. The
-  artifact records Dry Skin only as `typeImmunity{type:"Water", via:"onTryHit"}`; the Fire half is
-  not tagged at all, so this cannot be wired from `abra-tags.js` as it stands. Not probed because a
-  probe with nothing behind it to read is a probe with no derivation — needs the tag first, and the
-  tag file is ENGINE's, so this is ours.
 - **Rivalry** — x1.25 into the same gender, x0.75 into the opposite, x1.0 if either is genderless.
   Wholly absent. Blocked on data, not on will: `MC.mons` carries no gender and `buildMon` returns
   none, and `data/engine-data.js` belongs to MEASURE. Its `damageBoost` tag carries a bare
@@ -102,15 +97,18 @@ red, and the census carries them now — `overridesEffectiveness`, `clearsBoosts
 
 ## Filed, not fixed
 
-- **The differential passes a false PASS on Bulletproof.** `forretress rockblast -> kommoo` reads
-  5-6 on both sides and is scored AGREE. Showdown's `moveHit` does not run the ability's `TryHit`,
-  the same hole CONTROL FIX 5 closed for the absorb abilities, and `immuneToMoveClass` is the class
-  it is still open for: Bulletproof (84 uses), Soundproof (344) and Overcoat (240). Tightening the
-  harness converts that false pass into a true engine bug, so it lands WITH the engine fix and not
-  before — a red test with nothing beside it is what CLAUDE.md bans filing.
 - **`engine/status.js` prints the differential count without its seed.** The artifact now carries
-  `seed` and `requested`; the print does not read them, so "4/400 differential comparisons disagree"
-  still looks unconditional. `status.js` is MEASURE's file. One line.
+  `seed`, `requested`, `skipped_multihit` and `skipped_non_finite`; the print reads none of them, so
+  "1/400 differential comparisons disagree" still looks unconditional and does not say that 15 rows
+  were skipped as not-comparable. `status.js` is MEASURE's file. One line.
+- **The last differential row is a LAYER MISMATCH, not an engine bug, and it is flagged in place.**
+  `chesnaught woodhammer -> mimikyu` reads `showdown 0-0, medicham 120-130` and is marked SUSPECT.
+  Showdown's `onDamage` returns 0 while the maxhp/8 never lands, because this harness never calls
+  `battle.update()`; MEDICHAM's `dmgRange` correctly reports raw damage because WIRE 23 substitutes
+  one level up in the battle loop. Both engines are right and the comparison is asking `dmgRange` a
+  question about `battleTurn`. It is still COUNTED in the residual — flagging must never move the
+  number. Fixing it properly means teaching the harness to run the damage-layer abilities, which is
+  a bigger change than the row is worth.
 - **`battleResult` cannot tell a finished battle from an expired clock.** `medicham2-browser.js:1802`
   scores bodies-then-HP unconditionally; `battleOver` returns true for a wipeout *and* for
   `S.turn >= maxTurns`, and the caller cannot distinguish them from the return value. Every
@@ -122,20 +120,42 @@ red, and the census carries them now — `overridesEffectiveness`, `clearsBoosts
   `battleResult` to return the reason beside the score so a caller can weight or discard those rows;
   do not change what it *scores*, which several artifacts depend on.
 
-## The authorised list — LANDED vs PREPARED
+## The authorised list — ALL LANDED, 2026-08-04
 
-Will's "fix all that" of 2026-08-04 turned six filed findings into approved work. A SEARCH explore
-sweep is using the engine, so `medicham2-browser.js`, `board.js`, `engine-data.js` and
-`abra-tags.js` are frozen until the coordinator says CLEARED. Everything under `tests/` landed.
+Cleared after the SEARCH explore sweep and the leaf calibration landed. Census **42 → 100 live**,
+differential **4/400 → 1/400** at seed 20260804, refit edge still CLEAN (all 58 feature columns
+hash-identical, so no refit is owed).
 
-| # | Item | State |
+**The item ranked first was not a bug.** `redirects` (7,240 uses) was filed as "the attack VANISHES
+— the worst bug in the repo". It does not. The probe aimed **Dragon** Claw at **Whimsicott**, which
+is Grass/**Fairy** and immune to Dragon: Follow Me fired correctly, pulled the attack off Incineroar,
+and landed it on a body that takes exactly zero. Both arms read 0 and the conclusion was written from
+that. Re-staged with Milotic the same code reads `aimed 0 / redirector 101`. Follow Me and Rage
+Powder have always worked, so **no rollout, H2H, R3 or R4 result is invalidated by this** — the
+blast-radius note attached to the original filing should be retracted.
+
+Nine probes in this file have now been wrong before the engine was, and this is the first that was
+believed. A red probe is a QUESTION.
+
+| # | Item | Result |
 |---|---|---|
-| 1 | **Foul Play** — harness alignment | **LANDED.** CONTROL FIX 8 aligns all four offensive/defensive stats on BOTH bodies. Verified against the coordinator's own arithmetic: `klefki foulplay -> swampert` now reads `showdown 65-77`, exactly the predicted `43-51 × (198/130)`. The engine half is PREPARED — probe `swapsStat` is red. |
-| 2 | **Disguise** | PREPARED. Probe `formeChange` is red and its control is clean (`no ability took 92, Disguise took 92`). Must be modelled as first-hit-nullified **plus** the gen-9 maxhp/8, not as a flat 0 — Showdown only reports 0 because `battle.update()` never runs here. |
-| 3 | **`immuneToMoveClass`** — Bulletproof, Soundproof (344), Overcoat (240) | PREPARED. Probe red. The strict TryHit harness change is written up but **deliberately not landed**: it turns `forretress rockblast -> kommoo` from a false pass into a true red, and it must land in the same pass as the engine fix. |
-| 4 | **Dry Skin's Fire x1.25** | PREPARED. Probe `halvesTypeDamage` / "Dry Skin takes 1.25x from Fire" is red. **The artifact is the blocker, not the code**: `dryskin.tags` is `["typeImmunity"]` and there is no row for the Fire half at all. `halvesTypeDamage` is the right home — Thick Fat, Heatproof, Purifying Salt and Water Bubble all carry it as `{types:[…], attackerStatMult:0.5}`, so Dry Skin wants the same shape at 1.25. |
-| 5 | **Triple Axel / `basePowerCallback`** | **LANDED.** CONTROL FIX 9 sets `move.hit = 1`. Measured: unset returns 0, set returns 72. Three instrument lines landed with it — a derived print of the corpus moves whose base power reads `move.hit` (exactly one, `tripleaxel`), a count of comparisons whose move has a callback (15 of 400), and a SUSPECT marker on any phantom zero. |
-| 6 | `train_policy.js` `writeWeights` provenance | NOT DONE. Out of time, and it is a provenance bug on a file a running sweep may be writing. Reported rather than half-landed. |
+| 1 | ~~`redirects`~~ → **`redirectsType`** (Lightning Rod, 1,901) | **LANDED** (WIRE 25). The real redirection gap: the engine only looked for the Follow Me volatile, so an Electric move aimed past a Lightning Rod hit its partner. Probe now reads `aimed 0 / rod 0 / spa +1` — the rod both draws and absorbs, and the boost is the receipt. |
+| 2 | **`drain`** (8,553) | **LANDED** (WIRE 19). `dealt 51 → user 85→110`. The fraction did not exist in the artifact: the tag said `readFrom:"m.drain"`, a pointer into a dex this engine does not have. `tag_dex.js` now emits the value, so Draining Kiss gets its 3/4 instead of an assumed 1/2. |
+| 3 | **`multiHit`** (4,655) | **LANDED** (WIRE 20). `expectedHitsOf()` already existed and only `punishExposure` read it. Rock Blast 17 → 52. The differential now SKIPS multi-hit moves — comparing an expectation against one sample is not a comparison — so `tests/test-mechanics.js` is the only guard and says so in its own comment. |
+| 4 | **`choiceLock`** (5,886) | **LANDED** (WIRE 24), in medicham2 — **no `board.js` change was needed**. `chooseAction` had honoured the lock since WIRE 18; `_a = forced \|\| chooseAction(...)` let every caller-supplied action through. A switch is still legal, which is the half a naive fix breaks. |
+| 5 | **`fixedDamage`** (1,122) | **LANDED** (WIRE 21). Super Fang, Final Gambit, Endeavor and the OHKOs had no base power, so `hasPower()` rejected them and they were worth zero. Counter/Mirror Coat/Metal Burst need turn state a pure pricing function is not given, and are left at zero **loudly** rather than approximated. |
+| 6 | **Foul Play** (734) | **LANDED**. `dmgRange` read `statSwap` (Body Press, Psyshock) and nothing had ever read `swapsStat.offensiveFrom`. The target's Attack **stage** moves with it, or a Swords Dance matchup — where the move is actually played — becomes a new wrong number. Differential: both directions now rel **0.0%**. |
+| 7 | **`immuneToMoveClass`** (Soundproof 349, Overcoat 240, Bulletproof 85) | **LANDED** (WIRE 22) **with** CONTROL FIX 10 in the same pass, as required. Membership printed first: five abilities, and `magicbounce`/`reflectable` is excluded deliberately — it bounces status moves and grants no damage immunity. Powder is left to `powderBlocked()`, which already owns that question. |
+| 8 | **Disguise** | **LANDED** (WIRE 23). Exactly `maxhp/8`, not a flat zero. My probe's own threshold (`≤15% of the real hit`) would have **rejected** the correct fix — 16 against a 92 hit is 17% — so the assertion was corrected to the exact rule first. The busted flag is deliberately NOT cleared on switch-out. |
+| 9 | **Dry Skin Fire x1.25** | **LANDED** — tag first, exactly as specified. `tag_dex.js` now probes `onSourceBasePower` beside the stat route; membership printed before wiring matched **exactly one** ability corpus-wide. The four hardcoded `thickfat/heatproof/purifyingsalt/waterbubble` lines in `dmgRange` are gone, replaced by one tag-driven read. Differential: `houndoom fireblast -> heliolisk` now rel **0.0%**. |
+| — | `train_policy.js` `writeWeights` provenance | STILL NOT DONE. Carried from the previous pass. |
+
+**Regenerating `data/tags.json` was verified, not assumed.** The generator did **not** reproduce its
+own artifact on the first run — 285 entries differed. Every one of those was the `uses` count alone,
+because the store grew mid-session; after excluding `uses`, exactly **9** entries changed and all 9
+were the intended ones (8 drain moves + `dryskin`). No feature reads `.uses`, and
+`feature_fixture --check` is clean afterwards. Anyone regenerating tags should run that same diff
+rather than trusting the file.
 
 **The mechanism in item 5 was diagnosed wrongly first and the correction matters.** A starved
 `basePowerCallback` does compute NaN, but Showdown clamps before it reaches the target's HP, so the
@@ -146,12 +166,12 @@ wrong mechanism is still a bug.
 
 ## Ranked engine fixes — every one has a red probe behind it
 
-The 2026-08-04 tag walk added 88 probes and moved the census from 54 probed to 142. `missing` rose
-from 12 to 52, which is the census getting HONEST rather than the engine getting worse: `live` went
-42 → 90 and not one previously-live probe fell. Ranked by corpus uses, then by how badly wrong the
+The 2026-08-04 tag walk added 88 probes and moved the census from 54 probed to 142. `live` went
+42 → 100 and `missing` from 12 to 42, and not one previously-live probe fell. Nine of the entries
+below have since LANDED (see the authorised list above); what remains here is the queue. Ranked by corpus uses, then by how badly wrong the
 behaviour is, with Lesson 3 applied by hand.
 
-**Six of these were my probe being wrong, not the engine, and each was caught by its own control
+**Nine of these were my probe being wrong, not the engine, and each was caught by its own control
 before it reached this list** — a spread move aimed where a single-target one was needed, Close
 Combat fired at a Ghost that is immune to it, Toxic fired at a Steel that cannot be poisoned, and a
 Fly declared by a Pokemon slower than its attacker (which the real game also lets through). That is
@@ -264,7 +284,7 @@ Quick Guard, Wide Guard and Round. See `docs/LESSONS.md` §4.
 - Nothing in the hand list above that has not become a probe.
 
 **`missing` going UP is not a regression, and this is the one place the rule is easy to misread.**
-It rose 12 → 52 on 2026-08-04 while `live` rose 42 → 90, because 88 probes were written for
+It rose 12 → 42 on 2026-08-04 while `live` rose 42 → 100, because 88 probes were written for
 mechanics nobody had asked about before. The number that may never fall is `live`. A rising `missing`
 means the census stopped flattering the engine.
 

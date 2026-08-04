@@ -344,7 +344,15 @@ function hasPower(mv){
   if(mv.bp)return true;
   stampMoveIds();
   const v=mv.id&&TAGS.param('move',mv.id,'variablePower');
-  return !!(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'));
+  if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'))return true;
+  /* A FIXED-DAMAGE MOVE HAS NO BASE POWER AND STILL DOES DAMAGE. Without this line dmgRange
+   * short-circuits at its !hasPower guard and Super Fang is worth zero. Only the shapes dmgRange can
+   * actually compute count as "has power" -- Counter and Mirror Coat need turn state and would
+   * otherwise be admitted here only to return zero one branch later, which is a slower way of
+   * being wrong. */
+  const f=mv.id&&TAGS.param('move',mv.id,'fixedDamage');
+  return !!(f&&(f.damage==='level'||f.source==='halfTargetCurrentHP'||f.source==='myRemainingHP'
+                ||f.source==='targetDownToMine'||f.source==='ohko'));
 }
 function dmgRange(att,def,mv,field,spread){
   stampMoveIds();
@@ -415,8 +423,27 @@ function dmgRange(att,def,mv,field,spread){
   const _S2E={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
   const _aKey=(_ss&&_ss.attackWith&&_S2E[_ss.attackWith])||(phys?'at':'sa');
   const _dKey=(_ss&&_ss.attackInto&&_S2E[_ss.attackInto])||(phys?'df':'sd');
-  let A=att.st[_aKey],D=def.st[_dKey];
-  A=Math.floor(A*((_ib&&_ib.offensive)?1:boostMul(att.boosts[_aKey])));
+  /* FOUL PLAY USES THE TARGET'S ATTACK, and the engine used the attacker's -- 734 corpus clicks,
+   * and confirmed against Showdown in BOTH directions rather than assumed: spiritomb foulplay ->
+   * wyrdeer read 178 there against 132 here, klefki foulplay -> pangoro read 19 against 8.
+   *
+   * WHY IT WAS MISSED, because the shape matters more than the fix. Body Press and Psyshock work,
+   * and they work because they carry `statSwap`, whose attackWith/attackInto the block above reads.
+   * Foul Play carries a DIFFERENT tag -- `swapsStat` -- whose params say `offensiveFrom: "target"`,
+   * and no line in this file had ever read that field. So the mechanic was fully described in the
+   * artifact and entirely absent from the engine, which is the failure CLAUDE.md's artifact rule is
+   * about: a derived fact is not a fact until something compares it to its source.
+   *
+   * THE TARGET'S BOOSTS COME WITH IT. Foul Play uses the target's Attack stage as well as its
+   * Attack, so the body reading the boost has to move too -- taking `def.st` while still applying
+   * `att.boosts` would be a new wrong number in a Swords Dance matchup, which is exactly where the
+   * move is played. `_ib` (Darkest Lariat, Sacred Sword) still gates the DEFENSIVE stage below,
+   * unchanged. */
+  const _sw=mv.id?TAGS.param('move',mv.id,'swapsStat'):null;
+  const _offFromTarget=!!(_sw&&_sw.offensiveFrom==='target');
+  const _aBody=_offFromTarget?def:att;
+  let A=_aBody.st[_aKey],D=def.st[_dKey];
+  A=Math.floor(A*((_ib&&_ib.offensive)?1:boostMul(_aBody.boosts[_aKey])));
   D=Math.floor(D*((_ib&&_ib.defensive)?1:boostMul(def.boosts[_dKey])));
   if(phys&&att.item==='choiceband')A=Math.floor(A*1.5);
   if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
@@ -479,6 +506,66 @@ function dmgRange(att,def,mv,field,spread){
    * feeds the absorber below. Levitate/Eelevate ride the artifact's one documented name-exception. */
   const _imm=TAGS.param('ability',def.ability,'typeImmunity');
   if(_imm&&_imm.type===mvT)return{min:0,max:0,eff:0};
+  /* WIRE 22 -- immuneToMoveClass. The ability names a FLAG and refuses every move carrying it, which
+   * is the exact mirror of the boostsMoveClass join below and had no counterpart on the defensive
+   * side. Soundproof (349 sheets) ate Boomburst and Hyper Voice at full price; Bulletproof (85) ate
+   * Rock Blast; Wind Rider ate every wind move.
+   *
+   * MEMBERSHIP PRINTED BEFORE WIRING, per docs/LESSONS.md 4. Five abilities carry the tag and each
+   * names a different flag: bulletproof/bullet, soundproof/sound, overcoat/powder, windrider/wind,
+   * MAGICBOUNCE/REFLECTABLE. That last one is why this is a five-line block and not a one-liner --
+   * Magic Bounce does not grant damage immunity, it BOUNCES status moves, and `reflectable` is not a
+   * moveClass this corpus carries at all. It therefore matches nothing here, which is the right
+   * outcome reached for the right reason rather than by luck; if `reflectable` ever becomes a class,
+   * this block would start making Magic Bounce holders immune to damage and that would be wrong.
+   *
+   * POWDER IS DELIBERATELY NOT DUPLICATED. powderBlocked() already answers Overcoat, Safety Goggles
+   * and the Grass immunity for powder moves and is the single owner of that question; adding it here
+   * would be a second implementation of one fact, which is the rule CLAUDE.md cares most about. */
+  {
+    const _imc=TAGS.param('ability',def.ability,'immuneToMoveClass');
+    const _flag=_imc&&_imc.blocksFlag;
+    if(_flag&&_flag!=='reflectable'&&_flag!=='powder'&&mv.id){
+      const _carries=_flag==='sound'?TAGS.has('move',mv.id,'sound')
+                    :(()=>{const c=TAGS.param('move',mv.id,'moveClass');
+                           return !!(c&&c.classes&&c.classes.indexOf(_flag)>=0);})();
+      if(_carries)return{min:0,max:0,eff:0};
+    }
+  }
+  /* WIRE 21 -- fixedDamage. These moves have NO BASE POWER, so hasPower() rejected them and dmgRange
+   * returned a flat zero: Super Fang (578 uses), Final Gambit (251), Endeavor (93) and the OHKO moves
+   * were worth LITERALLY NOTHING to every rollout and every score.
+   *
+   * PLACED HERE ON PURPOSE -- after the type chart and after the absorb abilities, before stats,
+   * STAB and every modifier. That is the real rule and the tag states it as ignoresStatsAndSTAB:
+   * Seismic Toss still does nothing to a Ghost and Super Fang still does nothing to a Ghost, but
+   * neither cares about Attack, Defence, a screen, a boost or a Life Orb.
+   *
+   * ONLY THE SHAPES THAT ARE ACTUALLY COMPUTABLE FROM (att, def) ARE DONE, and the rest are left at
+   * zero LOUDLY rather than approximated. Counter, Mirror Coat, Metal Burst and Comeuppance need the
+   * damage taken THIS TURN, which is turn state that a pure pricing function is not given and must
+   * not invent -- 41 corpus uses between them. If dmgRange ever gains that state, they are one branch
+   * away and the tag already names the source.
+   *
+   * The OHKO moves return the target's full HP, which is the damage IF IT LANDS; their 30% accuracy
+   * lives in moveAccuracy where every other accuracy does, and folding it in here would double-count
+   * it for any caller that asks both. */
+  {
+    const _fd=mv.id?TAGS.param('move',mv.id,'fixedDamage'):null;
+    if(_fd){
+      const _hp=(def.curHP!=null?def.curHP:(def.st?def.st.hp:0));
+      const _mine=(att.curHP!=null?att.curHP:(att.st?att.st.hp:0));
+      let _flat=null;
+      if(_fd.damage==='level')_flat=50;                       // Champions is Level 50 throughout
+      else if(_fd.source==='halfTargetCurrentHP')_flat=Math.floor(_hp/2);
+      else if(_fd.source==='myRemainingHP')_flat=_mine;
+      else if(_fd.source==='targetDownToMine')_flat=Math.max(0,_hp-_mine);
+      else if(_fd.source==='ohko')_flat=_hp;
+      if(_flat!=null)return{min:_flat,max:_flat,eff};
+      /* counterDamageTaken and callback fall through to the ordinary path, which with bp 0 is zero.
+       * Stated, not hidden: this is the one branch that still under-prices its moves. */
+    }
+  }
   const stab=att.types.includes(mvT)?(att.ability==='adaptability'?2:1.5):1;
   const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
   /* WIRE 1 of N -- damageMultAll, from data/tags.json instead of a hardcoded name.
@@ -506,11 +593,34 @@ function dmgRange(att,def,mv,field,spread){
     if(mv.c==='P'&&_sf.scrP>0)mod*=DOUBLES_SCREEN;
     if(mv.c==='S'&&_sf.scrS>0)mod*=DOUBLES_SCREEN;
   }
-  if(def.ability==='thickfat'&&(mvT==='Fire'||mvT==='Ice'))mod*=0.5;
-  if(def.ability==='heatproof'&&mvT==='Fire')mod*=0.5;
-  if(def.ability==='purifyingsalt'&&mvT==='Ghost')mod*=0.5;
+  /* WIRE 18 -- halvesTypeDamage, from the artifact instead of the four-name list that used to sit
+   * here. Thick Fat, Heatproof, Purifying Salt and the DEFENSIVE half of Water Bubble were four
+   * hardcoded lines saying 0.5 -- correct, and exactly the shape the tags exist to delete.
+   *
+   * CONVERTING THEM IS NOT THE POINT. The point is that the tag now carries a SECOND route into the
+   * same question and the list could never have expressed it: Showdown answers "how much does a move
+   * of this type do to me" either by halving the attacker's stat (all four above) or by scaling BASE
+   * POWER, and DRY SKIN takes x1.25 from Fire through the second one. That is not a resistance, it
+   * does not appear in the type chart, and it had no row in the artifact at all until tonight -- so
+   * the engine could not have had it at any price. Found by the differential:
+   * houndoom fireblast -> heliolisk read 123-137 on Showdown against 99-117 here, which is 1.24.
+   *
+   * The multiplier is READ FROM THE TAG in both routes. A defender-side 1.25 and a defender-side 0.5
+   * go through one line now, so a member that multiplies cannot be silently truncated to a member
+   * that halves. Membership was printed before this was wired and matched exactly one new ability
+   * (dryskin); see engine/tag_dex.js.
+   *
+   * Water Bubble's ATTACKING x2 on Water stays a separate line below: it is a different question
+   * (what do I do to others) carried by a different tag, and folding it in here would have made the
+   * defensive read fire on the attacker's ability. */
+  {
+    const _htd=TAGS.param('ability',def.ability,'halvesTypeDamage');
+    if(_htd){
+      if(_htd.types&&_htd.types.indexOf(mvT)>=0&&_htd.attackerStatMult)mod*=_htd.attackerStatMult;
+      if(_htd.basePowerTypes&&_htd.basePowerTypes.indexOf(mvT)>=0&&_htd.basePowerMult)mod*=_htd.basePowerMult;
+    }
+  }
   if(att.ability==='waterbubble'&&mvT==='Water')mod*=2;
-  if(def.ability==='waterbubble'&&mvT==='Fire')mod*=0.5;
   /* WIRE 2 of N -- damageMultType. This is a REAL GAIN, not a refactor: the eighteen type-boost
    * items on sheets (Black Glasses 1,332, Fairy Feather 1,521, Mystic Water 873, Charcoal 694 …
    * 5,918 uses) were entirely ABSENT from this calc. Every one of them was worth x1.0 here.
@@ -535,6 +645,26 @@ function dmgRange(att,def,mv,field,spread){
   if(att.item==='muscleband'&&phys)mod*=1.1;
   if(att.item==='wiseglasses'&&!phys)mod*=1.1;
   const roll=r=>{let d=Math.floor(base*r/100);if(stab!==1)d=Math.floor(d*stab);d=Math.floor(d*eff);if(burn<1)d=Math.floor(d*burn);if(mod!==1)d=Math.floor(d*mod);if(lo>1)d=Math.floor(d*lo);return d;};
+  /* WIRE 20 -- multiHit. Rock Blast was ONE 25-BP hit and Population Bomb ONE 20-BP hit, so the
+   * engine priced them at a third and a seventh of what they do. 4,655 corpus clicks, led by Dual
+   * Wingbeat (2,675), which is exactly HALF its real damage as a single hit.
+   *
+   * expectedHitsOf() already existed and was read by punishExposure alone -- the number was sitting
+   * right there, computed from the artifact's own distribution string, and the damage calculation
+   * never asked for it. That is the shape of most of what this file has been missing.
+   *
+   * AN EXPECTATION, NOT A ROLL, and that is a deliberate divergence worth stating: the real move
+   * rolls 2-5 hits and this returns the mean (3.1 for the 2:35/3:35/4:15/5:15 family, 2 for the
+   * fixed pairs). dmgRange is a pure min/max used for pricing, it has no rng, and every consumer
+   * already treats its range as a distribution summary. The cost is that a Rock Blast which rolls
+   * two hits and a Rock Blast which rolls five are the same number here.
+   *
+   * THIS IS WHY tests/test-mechanics.js IS THE ONLY GUARD ON IT. The differential cannot see this
+   * mechanic in either direction: its harness calls moveHit ONCE, so Showdown reports a single hit
+   * there, and comparing an expectation over the hit distribution against one sample of it is not a
+   * comparison. tests/test-engine-diff.js now skips multi-hit moves and says so out loud. */
+  const _hits=expectedHitsOf(mv&&mv.id);
+  if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};
   return {min:roll(85),max:roll(100),eff};
 }
 /* Recoil and self stat drops now ride ON THE MOVE TABLE (mv.rc = [num,den] of damage dealt,
@@ -988,6 +1118,10 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
    * a benched mon would come back locked into a move it started two switches ago -- or worse,
    * come back untargetable. */
   out._charging=null; out._invuln=false;
+  /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
+   * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
+   * natural instinct on reading this line is to reset every underscore flag alongside them, and that
+   * would silently hand every Mimikyu a free hit per switch-in. */
   /* IT HAS NOW BEEN OUT. Zero to Hero fires on the RETURN, never on the first entry, so the
    * transform needs to know this body has already left once. Written here rather than in bringIn
    * because leaving is the event -- and the first version read this flag without anything ever
@@ -1100,6 +1234,29 @@ function battleTurn(S,rng,actsForA,actsForB){
         _a=playerAction(mon,mon._charging,_t,field);
         if(!_a||_a.kind!=='attack'){mon._charging=null;mon._invuln=false;_a=forced||chooseAction(mon,foes,ally,field,side,rng);}
       } else _a=forced||chooseAction(mon,foes,ally,field,side,rng);
+      /* WIRE 24 -- THE LOCK BINDS A HANDED-IN ACTION TOO, and until now it only bound a CHOSEN one.
+       *
+       * chooseAction has honoured _lock since WIRE 18 (Choice items) and WIRE 20 (Encore), so a
+       * rollout picking for itself was correct. Every action supplied by a CALLER went straight
+       * through: `_a = forced || chooseAction(...)`. So a Choice Scarf holder handed a second,
+       * different move simply used it -- turn 1 crunch, turn 2 closecombat, no complaint.
+       *
+       * WHY THAT MATTERED MORE THAN A ROLLOUT BUG. tests/test-choice-lock.js asserts this rule four
+       * ways and PASSES -- on board.js, which removes the illegal moves from the SEARCH's candidate
+       * set. So the two engines disagreed about whether a Choice item locks you, each was internally
+       * consistent, and both kept working. That is CLAUDE.md's FACTS ARE GLOBAL rule: whether a
+       * Choice item locks you is a fact about the game, not a per-model feature, and two
+       * implementations of one fact drift invisibly because neither ever fails.
+       *
+       * A SWITCH IS STILL LEGAL, and that is the half a naive fix gets wrong: being stuck on a bad
+       * move is a REASON to leave, so narrowing the move list must never narrow the switch list.
+       * A pass stays a pass. Everything else re-aims to the locked move, which is what the real
+       * client offers -- it does not let you click the others at all. */
+      if(_a&&mon._lock&&_a.kind!=='switch'&&_a.kind!=='pass'
+         &&!(_a.kind==='attack'&&_a.move&&_a.move.id===mon._lock)){
+        const _lk=targetForMove(mon,mon._lock,live(foes),field);
+        if(_lk)_a={kind:'attack',move:_lk,target:_lk.target};
+      }
       /* WHICH SLOT the click was aimed at, captured now while the board is still the pre-switch one.
          A move targets a SLOT, not a body: if the intended target switches out, the Pokemon that
          replaces it takes the hit. Without this the outgoing mon stayed targetable from the bench and
@@ -1481,6 +1638,30 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(!a.move.spread&&targets.length){
         const drawer=live(foes).find(f=>f&&f._redirect);
         if(drawer&&drawer!==targets[0]&&!powderBlocked(m,drawer._redirect))targets=[drawer];
+        /* WIRE 25 -- redirectsType. Lightning Rod (1,901) and Storm Drain draw a move of their TYPE
+         * to themselves, and the engine only ever looked for the Follow Me / Rage Powder volatile.
+         * So an Electric move aimed past a Lightning Rod sailed straight into its partner.
+         *
+         * THE DRAW IS THE WHOLE MECHANIC HERE; THE ABSORB ALREADY WORKED. `lightningrod` carries
+         * BOTH tags -- typeImmunity{type:Electric, gain:{spa:+1}} and redirectsType{type:Electric} --
+         * and the immunity half has been live since WIRE 11. That is why the probe for this asserts
+         * that the AIMED target stops taking the hit and the holder's Special Attack RISES, rather
+         * than that the holder takes damage: it takes none, and the boost is the receipt.
+         *
+         * AFTER the volatile draw and only if that did not fire, because Follow Me and Rage Powder
+         * outrank an ability redirect in the real order. Checked against the move's EFFECTIVE type
+         * so an -ate-converted or weather-converted move is drawn by the rod it has actually become,
+         * which is the same helper the immunity below uses -- one implementation of "what type is
+         * this move really", not two. */
+        if(targets.length&&!(drawer&&targets[0]===drawer)){
+          const _t=effMoveType(mv,a.move.id,field);
+          const _rod=live(foes).find(f=>{
+            if(!f||f===targets[0])return false;
+            const _rt=TAGS.param('ability',f.ability,'redirectsType');
+            return !!(_rt&&_rt.type===_t);
+          });
+          if(_rod)targets=[_rod];
+        }
       }
       if(!targets.length)targets=live(foes).slice(0,1);
       /* spreadAll hits the PARTNER too -- Earthquake beside your own Archaludon costs it the same
@@ -1616,6 +1797,31 @@ function battleTurn(S,rng,actsForA,actsForB){
          * sash is SPENT in the act while Sturdy is not, which the artifact's consumesItem states.
          * This engine rolls multi-hit as one packet, so a sash here also eats Bullet Seed -- the
          * one divergence from the real rule, stated rather than hidden. */
+        /* WIRE 23 -- DISGUISE, and it is a SUBSTITUTION not a nullification. Mimikyu's first hit is
+         * refused and the busted disguise then costs it exactly maxhp/8 (Gen 8+). Every Mimikyu row
+         * in the differential was this, across four seeds -- tauros ironhead, chesnaught woodhammer,
+         * rhyperior smackdown -- and forcing Mimikyu's ability to Levitate reproduced MEDICHAM's
+         * number exactly, so the damage math was always right and only the free hit was missing.
+         *
+         * "0 damage, full stop" WOULD BE THE WRONG FIX and the differential would have blessed it:
+         * Showdown reports 0 there only because this harness never calls battle.update(), so the
+         * self-inflicted eighth never lands. Modelling it as a flat zero makes Mimikyu strictly
+         * better than it is, in a format where it is played precisely for this one turn.
+         *
+         * GATED ON A DAMAGING HIT ONLY, and placed before the Focus Sash block so a busted disguise
+         * cannot also spend a Sash on the same hit. The flag lives on the mon and is cleared on
+         * switch-out beside _charging, because a Mimikyu that leaves and returns does NOT get a
+         * second disguise -- the forme change persists for the battle.
+         *
+         * Membership from the artifact would not have found this: `disguise.tags` is
+         * ["preventsCrit","formeChange"], and preventsCrit also holds Battle Armor, Shell Armor and
+         * Ice Face while formeChange also holds Zero to Hero, Illusion and Imposter. So this is the
+         * one wire in tonight's batch keyed on the ability NAME, and it says so rather than
+         * pretending to a derivation it does not have. */
+        if(tg.ability==='disguise'&&!tg._disguiseBusted&&dmg>0){
+          tg._disguiseBusted=true;
+          dmg=Math.floor(tg.st.hp/8);
+        }
         if(dmg>=tg.curHP&&tg.curHP===tg.st.hp){
           const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');
           if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)){
@@ -1714,6 +1920,29 @@ function battleTurn(S,rng,actsForA,actsForB){
       // recoil, from the move table's dex-generated fraction (was a 12-name hand table)
       const _rcF=recoilOf(a.move.mv);
       if(_rcF&&dealt>0){m.curHP-=Math.floor(dealt*_rcF);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
+       * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
+       * landed and the heal was simply never applied -- `dealt 51 to the foe; user 85 -> 85 hp` -- so
+       * the single largest recovery route in the format was worth nothing to any rollout, and a
+       * searcher choosing between Drain Punch and a bigger attack was choosing on damage alone.
+       *
+       * `dealt` is the SUM ACROSS TARGETS and is already capped at each target's remaining HP by the
+       * damage loop, which is the rule: you drain what you actually took off, so draining a body with
+       * 3 HP left heals for 3, not for the roll. That cap is why this reuses `dealt` rather than the
+       * damage range -- the same reason recoil does.
+       *
+       * THE FRACTION COMES FROM THE ARTIFACT, and it did not exist there this morning. The tag said
+       * `readFrom: "m.drain"` -- a pointer into Showdown's dex, which this engine does not have, since
+       * MC.moves carries `rc` for recoil and nothing for drain. So a consumer could learn THAT a move
+       * drains and never how much. engine/tag_dex.js now emits the value. Reading `unusual:false` and
+       * assuming 0.5 would have been a silent default AND would have left Draining Kiss, which is 3/4,
+       * quietly wrong in the one case the flag exists to mark. */
+      {
+        const _dr=TAGS.param('move',a.move.id,'drain');
+        if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st){
+          m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(dealt*_dr.fraction));
+        }
+      }
       // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
       const sdrop=a.move.mv.self;
       if(sdrop){const sgn=m.ability==='contrary'?-1:1;

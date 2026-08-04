@@ -610,16 +610,33 @@ probe('move', 'needsUntrackedState', 'Gyro Ball scales with the speed gap', () =
 });
 
 probe('ability', 'redirectsType', 'Lightning Rod pulls an Electric move', () => {
-  const me = bare('raichu'), ally = bare('incineroar');
-  const f1 = bare('garchomp'), f2 = bare('milotic');
-  f2.ability = 'lightningrod';
-  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-  const before1 = f1.curHP, before2 = f2.curHP;
-  const fa = new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]);
-  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-  const hitAimed = before1 - f1.curHP, hitRod = before2 - f2.curHP;
-  return { works: hitRod > 0 && hitAimed === 0,
-           detail: 'aimed target took ' + hitAimed + ', Lightning Rod holder took ' + hitRod };
+  /* THE AIMED TARGET WAS GARCHOMP, WHICH IS GROUND AND IMMUNE TO ELECTRIC. So "aimed target took 0"
+   * was true no matter what the ability did, and the probe could have passed its own headline claim
+   * on a completely absent mechanic. Corviknight is Flying/Steel and takes Electric at 2x, so the
+   * zero now means something. Same defect as the Follow Me probe next door, and found by the same
+   * question: which of these zeros did I build in myself.
+   *
+   * A CONTROL ARM as well, so "the rod did not pull" cannot be confused with "the move did nothing". */
+  const run = (ab) => {
+    const me = bare('raichu'), ally = bare('incineroar');
+    const f1 = bare('corviknight'), f2 = bare('milotic');
+    f2.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before1 = f1.curHP, before2 = f2.curHP;
+    const fa = new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { aimed: before1 - f1.curHP, rod: before2 - f2.curHP, spa: f2.boosts.sa };
+  };
+  const off = run('none'), on = run('lightningrod');
+  /* THE ROD HOLDER MUST TAKE ZERO, AND THE FIRST VERSION DEMANDED IT TAKE DAMAGE. Lightning Rod
+   * both DRAWS the move and ABSORBS it -- the artifact says so in one line, `typeImmunity` with a
+   * `gain` of +1 SpA sitting beside `redirectsType`. So "the rod holder took 101" would have been a
+   * broken engine, and asserting it would have made the correct fix fail. What proves the draw is
+   * that the AIMED target stops taking the hit while the holder's Special Attack goes up: the boost
+   * is the receipt. Eighth probe in this file to be corrected before the engine was. */
+  return { works: off.aimed > 0 && on.aimed === 0 && on.rod === 0 && on.spa > 0,
+           detail: 'no ability: aimed ' + off.aimed + ' / other ' + off.rod + ' / spa ' + off.spa
+                 + '   |   Lightning Rod: aimed ' + on.aimed + ' / rod ' + on.rod + ' / spa ' + on.spa };
 });
 
 probe('ability', 'healsAllyOnSwitchIn', 'Hospitality heals the partner on entry', () => {
@@ -869,9 +886,19 @@ probe('move', 'redirects', 'Follow Me pulls the attack onto the partner', () => 
    * "aimed" target and the "redirected" one BOTH took a number. Dragon Claw is single-target. */
   /* TWO ARMS, because the one-armed version read 0 and 0 and could not say which of three things
    * happened: the redirect worked and the hit vanished, the redirect did nothing and the hit
-   * vanished, or the move never resolved at all. The no-Follow-Me arm settles it. */
+   * vanished, or the move never resolved at all. The no-Follow-Me arm settles it.
+   *
+   * THE REDIRECTOR MUST NOT BE IMMUNE TO THE MOVE, and getting that wrong nearly cost an engine
+   * "fix" to a mechanic that works. The two-arm version used WHIMSICOTT, which is Grass/FAIRY, and
+   * aimed DRAGON Claw at it: the redirect fired correctly, pulled the attack off Incineroar, and
+   * landed it on a body that takes exactly zero from Dragon. Both arms read 0, and it was written up
+   * as "the attack VANISHES — the worst bug in the repo". It is not a bug at all. Milotic is pure
+   * Water and takes Dragon neutrally, and the same staging then reads aimed 0 / redirector 101.
+   *
+   * That is the seventh probe in this file to be wrong before the engine was, and the first to have
+   * been believed. Lesson 5, and the reason a red probe is a QUESTION and not a finding. */
   const run = (useFollowMe) => {
-    const { me, ally, f1, f2, S } = board('incineroar', 'whimsicott', 'garchomp', 'garchomp');
+    const { me, ally, f1, f2, S } = board('incineroar', 'milotic', 'garchomp', 'garchomp');
     const bMe = me.curHP, bAlly = ally.curHP;
     M.battleTurn(S, rng5,
       new Map([[me, { kind: 'pass' }],
@@ -1415,9 +1442,15 @@ probe('ability', 'formeChange', 'Disguise eats the first hit', () => {
       new Map([[me, M.playerAction(me, 'crunch', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
     return before - f1.curHP;
   };
+  /* THE ASSERTION IS THE GEN-9 RULE, NOT "ABOUT ZERO". The first version demanded the Disguise arm
+   * take at most 15% of the real hit, which was written while expecting a flat nullification -- and
+   * it would have REJECTED the correct behaviour: since Gen 8 the busted disguise costs the holder
+   * exactly maxhp/8, which on Mimikyu is 16 against a 92 hit, i.e. 17%. A probe whose threshold
+   * encodes the wrong rule fails the fix and passes the bug. Exact number, both halves. */
+  const eighth = Math.floor(M.buildMon('mimikyu', {}).st.hp / 8);
   const none = run('none'), dis = run('disguise');
-  return { works: none > 0 && dis <= Math.ceil(none * 0.15),
-           detail: 'no ability took ' + none + ', Disguise took ' + dis + ' (the busted disguise costs 1/8 max HP)' };
+  return { works: none > 0 && dis === eighth,
+           detail: 'no ability took ' + none + ', Disguise took ' + dis + ' (must be exactly maxhp/8 = ' + eighth + ')' };
 });
 
 probe('ability', 'untagged', 'Marvel Scale raises Defense while statused', () => {

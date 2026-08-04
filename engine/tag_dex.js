@@ -1283,7 +1283,18 @@ const MOVE_TAGS = [
   { tag: 'drain', param: 'heals a FRACTION OF DAMAGE DEALT, so its value scales with the hit', probe: 'drain',
     why: 'Matcha Gotcha (3,422 uses), Giga Drain, Drain Punch all 1/2; Draining Kiss 3/4. Clicking '
        + 'one into a resisted target heals almost nothing, which no feature currently expresses',
-    of: m => m.drain ? { readFrom: 'm.drain', unusual: (m.drain[0] / m.drain[1]) !== 0.5 } : null },
+  /* THE FRACTION IS NOW CARRIED, and `readFrom` alone was not enough for a consumer that is not
+   * Showdown. medicham2 has no `m.drain` to point at -- MC.moves carries `rc` for recoil and nothing
+   * for drain, and data/engine-data.js is generated elsewhere and frozen to this division. So an
+   * engine reading this tag could learn THAT a move drains and never how much, which is how Drain
+   * Punch came to deal its damage and heal nothing at all for 8,553 corpus clicks.
+   *
+   * `unusual` is kept because something may already read it, and because it states the shape of the
+   * distribution in one boolean. But a consumer must never have to infer 0.5 from `unusual:false` --
+   * that is a silent default wearing a flag, and it would still leave Draining Kiss (3/4, 814 uses)
+   * with nothing to read. */
+    of: m => m.drain ? { readFrom: 'm.drain', fraction: m.drain[0] / m.drain[1],
+                         unusual: (m.drain[0] / m.drain[1]) !== 0.5 } : null },
   /* Will: "some recoil moves have more recoil than others we need to modify". The FRACTION is the
    * parameter, and it ranges widely: Head Smash pays 1/2, Flare Blitz and Wave Crash 33/100, Wild
    * Charge 1/4. Flare Blitz (4,032) and Wave Crash (4,052) are top-tier moves in this format and the
@@ -1967,11 +1978,36 @@ const ABILITY_TAGS = [
   { tag: 'halvesTypeDamage', param: 'incoming damage of specific types uses a HALVED attacking stat', probe: 'onSourceModifyAtk',
     why: 'Thick Fat (480 fields) halves Fire and Ice. It is not a resistance and does not show in '
        + 'the type chart, so the defensive calculation misses it entirely',
+    /* TWO ROUTES INTO THE SAME QUESTION, and only one of them was read.
+     *
+     * "How much does a move of THIS TYPE do to me" is answered by Showdown in two places: by halving
+     * the attacker's stat (onSourceModifyAtk / onSourceModifySpA -- Thick Fat, Heatproof, Purifying
+     * Salt, Water Bubble) and by scaling the BASE POWER (onSourceBasePower). Only the first was
+     * probed, so DRY SKIN's Fire vulnerability -- `onSourceBasePower` with `chainModify(1.25)` --
+     * had no row anywhere in the artifact and could not be wired at any price. It showed up instead
+     * as a differential disagreement: houndoom fireblast -> heliolisk, 123-137 on Showdown against
+     * 99-117 here, which is 1.24.
+     *
+     * PRINTED BEFORE IT WAS WIRED, per docs/LESSONS.md 4, because every derivation in this project
+     * has over-matched on its first try. This one did not: across the whole corpus the
+     * onSourceBasePower probe matches EXACTLY ONE ability -- dryskin, Fire, 1.25. That is the run to
+     * repeat if this is ever widened.
+     *
+     * The multiplier is READ, not assumed. The stat route keeps its measured 0.5 (all four members
+     * genuinely chainModify(0.5)); the base-power route carries whatever the handler says, which is
+     * why the tag's name understates it -- Dry Skin MULTIPLIES. The name is kept because renaming
+     * changes tag membership, and membership is what other readers key on. */
     of: a => {
-      const src = String(a.onSourceModifyAtk || '') + String(a.onSourceModifySpA || '');
-      const t = [...src.matchAll(/move\.type\s*===?\s*"(\w+)"/g)].map(m => m[1]);
-      if (!t.length) return null;
-      return { types: [...new Set(t)], attackerStatMult: 0.5 };
+      const statSrc = String(a.onSourceModifyAtk || '') + String(a.onSourceModifySpA || '');
+      const statTypes = [...statSrc.matchAll(/move\.type\s*===?\s*"(\w+)"/g)].map(m => m[1]);
+      const bpSrc = String(a.onSourceBasePower || '');
+      const bpTypes = [...bpSrc.matchAll(/move\.type\s*===?\s*'?"?(\w+)'?"?/g)].map(m => m[1]);
+      const bpMult = (bpSrc.match(/chainModify\(\[?\s*([\d.]+)/) || [])[1];
+      if (!statTypes.length && !(bpTypes.length && bpMult)) return null;
+      const out = {};
+      if (statTypes.length) { out.types = [...new Set(statTypes)]; out.attackerStatMult = 0.5; }
+      if (bpTypes.length && bpMult) { out.basePowerTypes = [...new Set(bpTypes)]; out.basePowerMult = +bpMult; }
+      return out;
     } },
   { tag: 'reflectsStatusMoves', param: 'Status moves aimed at it are BOUNCED back at the user', probe: 'onAllyTryHitSide',
     why: 'Magic Bounce (190 fields). Will-O-Wisp, Taunt and Thunder Wave do not merely fail, they '
