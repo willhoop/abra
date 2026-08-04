@@ -23,6 +23,7 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('data', 'engine-data.js'));                   // globalThis.MC / mcEff, for MEDICHAM
 const MEDI = require('./medicham2-browser.js');
 const B = require('./board.js');
+const TAGSMOD = require('./tags.js');
 
 /* Every Pokemon a side owns, actives first, then the bench.
  *
@@ -114,6 +115,31 @@ function mulberry(seed) {
  * `field` carries the weather/terrain/room the real board is under. Rolling out a snow board with no
  * weather would silently delete Aurora Veil, Slush Rush and every weather-scaled move — the same
  * class of one-directional error as an unmodelled click. */
+/* A MEGA'S WEATHER COMES WITH THE MEGA.
+ *
+ * battleInit is called with seeded:true because the actives are ALREADY on the field in the real
+ * game -- re-firing their entry effects would double an Intimidate that has already happened. That
+ * is right for a mid-battle seed and wrong for one specific case: a stone-holder is built as its
+ * MEGA FORME, so the rollout assumes the mega happened, while the weather that mega brings never
+ * fires. Measured: seeded=false gives sun, seeded=true gives none.
+ *
+ * The result is a board that cannot exist -- Mega Charizard Y standing in clear weather, with every
+ * Fire move and every Solar Beam mispriced for the whole playout. Will asked whether the search
+ * knows his mega will set sun; it assumed the mega and forgot the sun.
+ *
+ * Applied only when the field is EMPTY, so a real weather already up is never overwritten, and only
+ * from the ACTIVES, because a benched setter has not entered yet. */
+function applyMegaWeather(S) {
+  if (!S || !S.field || S.field.weather) return;
+  for (const m of (S.actA || []).concat(S.actB || [])) {
+    if (!m || !m.ability) continue;
+    /* The same accessor medicham2-browser uses at :929, not an invented one. */
+    const p2 = TAGSMOD.param('ability', m.ability, 'weatherSetter');
+    const w = p2 && p2.weather;
+    if (w) { S.field.weather = w; S.field.weatherT = 5; return; }
+  }
+}
+
 function rolloutWinProb(board, side, opts) {
   opts = opts || {};
   const n = opts.n || 40;
@@ -161,6 +187,7 @@ function rolloutWinProb(board, side, opts) {
       if (at !== surv) { const [body] = A.splice(at, 1); A.splice(surv, 0, body); }
     }
     const S = MEDI.battleInit(A, Bt, { seeded: true });
+    applyMegaWeather(S);
     S._explore = EXPLORE;
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     S.field.weather = f.weather || '';
@@ -248,6 +275,7 @@ function rolloutAfterActions(board, side, opts) {
     const Bt = buildSide(board, foe, dex, zero());
     if (!A.length || !Bt.length) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
+    applyMegaWeather(S);
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
     S.field.weather = f.weather || '';
     S.field.terrain = f.terrain || '';
