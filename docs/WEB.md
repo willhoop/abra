@@ -18,7 +18,7 @@ rather than tools:
 | Page | What it is | State |
 |---|---|---|
 | `web/index.html` | **ABRA WORLD** — the Champions modelling town. The front door. | live |
-| `web/stadium.html` | **ABRA STADIUM** — model select screen, one cabinet per model. 13 cabinets; GURU added 2026-08-04. | added 2026-08-04 |
+| `web/stadium.html` | **ABRA STADIUM** — model select screen, one **playable minigame** per model. 13 cabinets; GURU added 2026-08-04. Each cabinet is the Pokémon's identity and the model's real finding at the same time: Wobbuffet is a punching bag that returns your hit harder, Miltank's Rollout grows every lap and drops the 777 unscorable pairs through a trapdoor, Doduo's two heads can be aimed apart to waste the turn, Machamp's bar cannot be lifted. | rebuilt 2026-08-04 |
 | `web/models.html` | the model map — inputs and outputs per model | live |
 | `web/scoreboard.html` | watch MAG think | live |
 | `web/tower.html` / `web/futuresight.html` | ALAKAZAM's Battle Tower | live |
@@ -124,13 +124,82 @@ roster, which is what the Open item below used to ask for.
   revealed and at 4 and nowhere between; watching the middle go blank turned out to explain the
   four-move cap better than either endpoint did.
 
+- **ONE VERB PER CABINET, AND THE RESULT LANDS IN THE SCENE.** (Will, 2026-08-04, three times:
+  *"the inputs dont make sense man"* / *"lack inputs that are clear"* / *"make it stupidly obvious
+  what the inputs are"*.)
+
+  What failed was a segmented dial reading `90-100% | 0-10%` floating between two rows of meters.
+  Nothing said it was pressable, nothing said what pressing would do, and **the meters rendered the
+  same figure the canvas already drew**, so one press moved two copies of one number and read as a
+  bug. The rules that replaced it:
+
+  - the primary control is **one big button whose label is a verb** — `PUNCH IT`, `ROLL IT OUT`,
+    `REVEAL A MOVE`, `LIFT`. Not a value, not a bare toggle, not an abstract noun the reader has to
+    map onto an outcome. It carries a one-line hint underneath saying what will happen;
+  - it is **chunky, high-contrast and visibly depressed when hit**, sits centred directly under the
+    display, and everything secondary is a third of its size;
+  - **the result appears in the scene, not in a caption.** You punch Wobbuffet and something bigger
+    comes back — no label is needed to explain that. The line under the pad is the **receipt**: the
+    interval, the caveat, the artifact path. That line is also what a screen reader gets, since the
+    canvas is `aria-hidden`;
+  - **state is legible before the first press.** An unplayed cabinet reads as an invitation
+    (`PRESS ROLL IT OUT`), never as an error;
+  - **NOT MEASURED is a legitimate outcome of pressing a button, and it must be pressable.**
+    MACHAMP's bar can be lifted at any time and always falls back, because the run recorded no
+    verdict; WOBBUFFET's counter-punch returns a struck-through figure. A disabled control hides the
+    finding — a control that visibly refuses *is* the finding.
+
+- **Two rendering bugs worth not repeating.** `paint()` wrote to `#dMeters` after the meters were
+  deleted from the DOM, so **every cabinet click threw** and the stats, the aria state and the
+  animation loop never ran; `test-web-parses.js` cannot see that, because the file parses. And the
+  hero canvas had a 640x460 backing store inside a 16:7 box, so every drawing was squashed ~40%
+  vertically — which is most of why the art read as bar charts. The backing store is now sized from
+  the element's own box, and the design space is pinned by **height** (200 units) so one renderer
+  serves the hero and the thumbnail at the same visual scale.
+
 - **Keep a model's figures and its citation on ONE source line.** `web/figure-audit.js` attributes a
   figure to its line, so a `CTRLDATA`-style table with the artifact path in the same row is what makes
   the trace checkable instead of asserted. It is also the cheapest way to make the guard agree with a
   human reading the file.
 
+- **When the artifact under a room is repaired, the room's THESIS may be what changed.**
+  `data/slowking-playstyle-eval.json` was the wrong file — `slowking_preview.py` took its output
+  *name* from `TAG` and its *matrix* from `MATRIX_FILE`, which defaulted to GURU, so the playstyle
+  artifact was a byte-identical copy of the archetype one. Repaired it reads 2,860 games over 8
+  playstyles, and its own `verdict` field now says *"no material exploitability gap … close to
+  transitive"*. The SLOWKING room was headed **"The meta looks like rock-paper-scissors"** and argued
+  that picking one playstyle is exploitable while a mixture is not. That is a rewrite, not a number
+  swap, and swapping the numbers alone would have left the page arguing against its own source.
+
+  The two typed literals that went stale with it (*"49, 37 and 15 games"*, *"1,320 candidate
+  triples"*) are now **read off `S.cycle`** rather than retyped, so they cannot drift again. The
+  honest version is the better story anyway: **the strongest cycle in the data rests on a five-game
+  leg, and the artifact says `supported: false` itself.** Non-transitivity is *unestablished*, which
+  is not the same as absent — the room says exactly that.
+
+  One figure is deliberately **not** printed: greedy-minus-Nash. `data/slowking-playstyle.js` carries
+  the interval and the three levels but not the difference, and subtracting two of them in the
+  browser would be this division authoring a number. The interval is shown and the omission is
+  stated on the page.
+
 ## Open
 
+- **`data/exploitability.json` is UNSAFE and WOBBUFFET's headline is unquotable.** 17 features
+  against the 58 in `data/policy-weights.json`, older than the quality filter and older than its own
+  input; `engine/provenance.js --strict` says so and `tests/run-all.js` gates on it. The Stadium
+  cabinet still works — you punch the bag, and what comes back is **NOT MEASURED** with
+  `63.2% CI [56.6, 69.3]` and the `47.5%` mirror control struck through beside it. **A re-run is
+  MEASURE's, not WEB's.** Nothing on the page says the leak was closed.
+- **`tests/test-site-data-fresh.js` is RED on two `data/` artifacts and neither is WEB's to fix** —
+  `data/pory-nn.json` declares 6,008 games against 7,228 clean now (16.9% corpus drift), and
+  `data/engine-data.js` is a day behind `build/rebuild_sets_from_sheets.js`. Routed, not filed:
+  the first is MEASURE, the second is OPS/ENGINE's bundle rebuild.
+- **`data/mechanics-census.json` moved three times during one WEB pass** — 102/144, then 107/147,
+  then 108/148 within about an hour. The Stadium's MEDICHAM card carries the current value and says
+  out loud that it moves. A page that hardcodes a live census will always be a little behind; the
+  alternative is reading `web/status-data.js` the way `models.html` does, which `stadium.html`
+  cannot do while it is also publishable as a claude.ai artifact (a sibling `<script src>` is
+  blocked there exactly like a remote one).
 - ABRA STADIUM is not yet linked from ABRA WORLD's front door.
 - No page yet renders the four division ledgers or `node engine/status.js` output for a visitor;
   the project's own state is currently legible only from a terminal.

@@ -911,19 +911,36 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
    * a live 5,265, plus a cycle of archetype names that no longer exist in the artifact. None of it
    * would have looked broken. A stale number that renders cleanly is worse than a visible gap, so
    * every fallback here is now NOT MEASURED (.claude/agents/web.md). */
+  /* REWRITTEN 2026-08-04, AND IT IS THE THESIS THAT CHANGED, NOT THE NUMBERS.
+   * This room was headed "The meta looks like rock-paper-scissors" and argued that picking one
+   * playstyle is exploitable while a mixture is not. `data/slowking-playstyle-eval.json` now says
+   * the opposite in its own `verdict` field — "no material exploitability gap ... close to
+   * transitive at this granularity" — because the artifact it used to be was the WRONG FILE:
+   * slowking_preview.py took its output NAME from TAG and its MATRIX from MATRIX_FILE, which
+   * defaulted to GURU, so the playstyle artifact was a byte-identical copy of the archetype one.
+   * Repaired, it is 2,860 games over 8 playstyles rather than 5,265 over 12 archetypes.
+   * Two typed literals went with it — "49, 37 and 15 games" and "1,320 candidate triples" — and
+   * both are now READ off S.cycle instead of retyped, so they cannot drift again. */
   const NM='<b style="color:#c0432f">NOT MEASURED</b>';
   const cyc=(S&&S.cycle)?[...S.cycle.cycle,S.cycle.cycle[0]].join(' → '):NM;
   const edge=(S&&S.cycle)?Math.round(S.cycle.min_edge*100)+'%':NM;
   const mix=S?S.mixture.map(m=>`<span class="chip">${m.archetype} ${Math.round(m.weight*100)}%</span>`).join(''):NM+' — data/slowking-playstyle.js did not load';
-  const greedy=S?Math.round(S.exploit_greedy*100)+'%':NM, games=S?S.n_games.toLocaleString():NM;
-  return `<div class="panel">${mascotHero(c,"Patience. There's likely no single best team — the meta looks like rock-paper-scissors, so I play a mix.")}</div>
-   <div class="panel"><h2>The meta looks like rock-paper-scissors</h2><p style="font-weight:600;color:#3a5372">Solving Champions team preview means a <b>mixed Nash strategy</b>, not one "best deck". Across <b>${games} real games</b> the playstyle matchups <i>hint</i> at a cycle:</p>
+  const greedy=S?S.exploit_greedy:NM, nash=S?S.exploit_nash:NM, unif=S?S.exploit_uniform:NM;
+  const games=S?S.n_games.toLocaleString():NM, styles=S?S.n_archetypes:NM;
+  const gapci=(S&&S.gap_ci)?`[${S.gap_ci[0]}, ${S.gap_ci[1]}]`:NM;
+  const legs=(S&&S.cycle)?S.cycle.legs.map(l=>l.n).join(', '):NM;
+  const thinnest=(S&&S.cycle)?Math.min(...S.cycle.legs.map(l=>l.n)):NM;
+  const triples=(S&&S.cycle)?S.cycle.candidate_triples_searched.toLocaleString():NM;
+  const minGames=(S&&S.cycle)?S.cycle.min_games_required:NM;
+  return `<div class="panel">${mascotHero(c,"Patience. I mix because being read is the thing that beats you — not because I have proved the meta is a circle. It is closer to transitive than I used to say.")}</div>
+   <div class="panel"><h2>The strongest cycle in the data rests on ${thinnest} games</h2><p style="font-weight:600;color:#3a5372">Solving Champions team preview means a <b>mixed Nash strategy</b> rather than one "best deck" — <i>if</i> the metagame really is a circle. Across <b>${games} real games</b> and <b>${styles} playstyles</b>, this is the strongest loop the search can find:</p>
    ${cycleSVG(S&&S.cycle?S.cycle.cycle:['Trick Room','Hyper Offense','Sand'])}
    <div style="text-align:center;font-size:13px;font-weight:700;color:#8a97ad;margin:0 0 6px">each beats the next, and it loops back — ${cyc}</div>
-   <p style="font-weight:600;color:#3a5372">Each leg leans ~${edge} to the winner, which <i>if it holds</i> means picking one single playstyle is exploitable while a mixture isn't — the reason to mix. <b>Honest caveat:</b> these matchups rest on 49, 37 and 15 games (<code>data/slowking-playstyle.js</code>), so the error bars are wide and cross 50% &mdash; and the artifact itself records <b>supported: false</b>, because a supported cycle needs every leg above 50% on at least 50 games and none of them clears that. It is the strongest of 1,320 candidate triples, which is what noise looks like. Treat this as a <b>suggestive pattern, not a settled fact</b> — it sharpens as more games come in.</p></div>
-   <div class="panel"><h2>My equilibrium mix</h2><p style="font-weight:600;color:#3a5372">How often to be ready for each playstyle if everyone plays optimally:</p>
+   <p style="font-weight:600;color:#3a5372">Now read what it is made of. Its three legs rest on <b>${legs}</b> games (<code>data/slowking-playstyle.js</code>) — one of them on <b>${thinnest}</b> — and the artifact rates itself <b>supported: false</b>, because a supported cycle needs every leg above 50% on at least ${minGames} games and only one of these clears that. It is also the <i>strongest of ${triples} candidate triples</i>, which is what noise looks like rather than weak evidence of structure. <b>Non-transitivity here is unestablished, which is not the same as absent</b> — nothing below rules a cycle out, and nothing here shows one.</p></div>
+   <div class="panel"><h2>And mixing buys little at this granularity</h2><p style="font-weight:600;color:#3a5372">Exploitability is how much a perfect counter-picker takes off you, in win-fraction units, lower being better. The artifact's own verdict is that there is <b>no material gap</b>: committing to one deck costs <b>${greedy}</b>, the equilibrium mix costs <b>${nash}</b>, and spreading evenly costs <b>${unif}</b>. The 95% interval on greedy-minus-Nash is <b>${gapci}</b> — it <b>contains zero</b>. (The point estimate of that difference is deliberately not printed: <code>data/slowking-playstyle.js</code> carries the interval and the three levels but not the difference, and subtracting two of them here would be this page authoring a number.) This page used to say picking one playstyle is exploitable while a mixture is not. At this granularity that is not what the measurement says, and the heading changed with it.</p>
+   <p style="font-weight:600;color:#3a5372">The mix is still the right <i>object</i> for a preview decision — the reason is that an unmixed strategy is readable, which is WOBBUFFET's question, not this one. It is just not yet the reason this data gives.</p>
    <div style="margin-top:6px">${mix}</div>
-   <div style="font-weight:700;color:#7a8aa0;margin-top:10px">Measured by how much a perfect counter-picker could beat you. Playing the mix is close to unbeatable; committing to one deck loses about ${greedy} to the right answer.</div></div>
+   <div style="font-weight:700;color:#7a8aa0;margin-top:10px">How often to be ready for each playstyle if everyone plays optimally.</div></div>
    <div class="panel"><h2>What's next</h2><p style="font-weight:600;color:#3a5372">This is the outer game. Next I add <b>Xatu's belief</b> over the opponent's hidden sets and depth-limited search, and Kadabra evolves into <b>ALAKAZAM</b> — the win-%-optimal coach.</p></div>`;
 }
 function roomGuru(){const c=CAST.find(x=>x.id==='guru');
