@@ -9,6 +9,12 @@
  *   --pass <p>      account password for a PUBLIC server. PREFER data/.showdown-pass (gitignored,
  *                   one line) or SHOWDOWN_PASS — a password on the command line lands in shell
  *                   history and in `ps`.
+ *   --meta-teams [r]  play META teams only: drop the "Mickey Mouse" teams -- real, open-sheet and
+ *                   still terrible, like the Pikachu+Raichu one that led a Garchomp into a turn-one
+ *                   faint. Judged on the six-member AVERAGE teamRate from data/meta-usage.json;
+ *                   default cut 0.03, 0.08 is a firmly competitive pool (169 of 233 teams).
+ *                   OFF by default -- a narrower pool is a different experiment, and any result
+ *                   quoted from it has to name the distribution it was measured on.
  *   --greedy        take the best-scoring move rather than a weighted roll (+9 points, measured)
  *   --switching     let it switch (-10 points, measured, which is why it is off)
  *   --why           print its per-option scores to this terminal as it plays
@@ -274,6 +280,16 @@ if (!ANY_TEAM) {
   console.log(`teams: ${teams.length} complete open-sheet teams of ${ALL_TEAMS.length} ` +
     `(${(100 * teams.length / ALL_TEAMS.length).toFixed(1)}%) — no move is guessed`);
 }
+/* SAY WHICH POOL IS IN PLAY, EVERY START, ON OR OFF.
+ *
+ * Will: "make the switch for that toggle obvious somewhere so we dont forget about it". A flag that
+ * only announces itself when enabled is a flag whose DEFAULT is invisible -- and every silent
+ * default tonight (the lead search answering blind, the confidence deferral, the replacement search
+ * that never decided) cost hours precisely because nothing said what it was doing. An off switch
+ * has to be as loud as an on switch. */
+console.log(META_TEAMS
+  ? `  TEAM POOL: META ONLY (>= ${(100 * META_RATE).toFixed(0)}% average member usage) — Mickey Mouse teams excluded`
+  : '  TEAM POOL: ALL complete open-sheet teams — includes Mickey Mouse teams (--meta-teams to exclude)');
 if (teams.length < 2) {
   console.error(ANY_TEAM ? 'no clean teams — run the ingest first'
     : 'no COMPLETE open-sheet teams found. Run with --any-team to fall back to reconstructed sets, '
@@ -969,6 +985,9 @@ function handle(room, line) {
         const safe = room.replace(/[^a-z0-9-]/gi, '_');
         const meta = {
           room, bot: NAME, rollout: ROLLOUT,
+          /* Surfaced on the live page too, so the setting is visible mid-game and not only at boot. */
+          teamPool: META_TEAMS ? `meta only (>=${(100 * META_RATE).toFixed(0)}%)` : 'all complete sheets',
+          teamsInPool: teams.length,
           rolloutN: ROLLOUT_N, rolloutExplore: ROLLOUT_EXPLORE, rolloutTurns: ROLLOUT_TURNS,
           greedy: GREEDY, ots: true,
           started: st.started, ended: Date.now(), result: line.trim(),
