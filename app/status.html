@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ABRA STATUS BOARD - what is measured, what is stale, and what nobody has measured. Every figure carries the artifact it came from; anything without one reads NOT MEASURED at full weight.">
+<title>ABRA STATUS BOARD — measured, stale, missing</title>
+
+<!-- ============================================================================================
+     THE STATUS BOARD.  web/status.html
+
+     WHY IT EXISTS
+     -------------
+     docs/WEB.md, Open: "No page yet renders the four division ledgers or node engine/status.js
+     output for a visitor; the project's own state is currently legible only from a terminal."
+     A visitor to ABRA WORLD could see what the models CLAIM and had no way to see what is stale,
+     what is unprobed, and what no artifact answers at all. Those gaps are the most valuable thing
+     this project produces, and they were the one thing the site did not render.
+
+     WHERE ITS NUMBERS COME FROM
+     ---------------------------
+     Nowhere in this file. Every figure is read out of window.ABRA_BOARD, which web/build-status.js
+     bakes from data/*.json artifacts and from the output of node engine/status.js. There is no
+     arithmetic in this page: no percentage computed from two counts, no total, no rounding. If you
+     find one, it is a bug against .claude/agents/web.md — "WEB renders numbers, it never authors
+     one" — and the fix is to move the derivation into the artifact that owns it.
+
+     WHY A BAKED <script src> AND NOT fetch()
+     ----------------------------------------
+     Pages in this repo are opened from file:// as well as served (docs/WEB.md). Under file://,
+     fetch() of a local JSON is blocked by CORS and returns nothing, with no error a visitor sees —
+     the exact "a capability was absent and everything reported success" failure CLAUDE.md opens
+     with. A <script src> loads under both schemes, and it is the pattern index.html already uses
+     nine times over. The cost is that this page is a SNAPSHOT, so it says so at the top, in the
+     header, with the build stamp and the rebuild command. A snapshot that admits it is one beats a
+     live page that silently shows nothing.
+
+     THE THREE VISUAL STATES, AND WHY THEY LOOK THE WAY THEY DO
+     ---------------------------------------------------------
+     - MEASURED       plain. A number with its artifact under it.
+     - PRE-CHANGE     hazard stripes and a full-size plate. status.js classes every R4 corpus this
+                      way: the engine source moved AFTER those games were played, so the headline
+                      result of 2026-08-04 describes a build that no longer exists. This is the
+                      single most valuable thing the page can show, so it is not a footnote — it is
+                      the loudest thing in the SEARCH section.
+     - NOT MEASURED   full weight, in psychic pink, never grey and never smaller. Shrinking a gap is
+                      how a gap stops being reported.
+     ============================================================================================ -->
+
+<style>
+:root{
+  /* The house palette (docs/WEB.md) — same town, own room. This one is an instrument panel. */
+  --ink:#20344a; --electric:#ffd23f; --fight:#ff6b57; --psy:#ff6bd6; --water:#4fb0ff; --grass:#5fd07a;
+  --bg:#0e1626; --bg2:#131f33; --card:#1a2942; --card2:#22334f;
+  --line:#0a1120; --edge:#33456a;
+  --bone:#e8eefc; --dim:#8fa2c4; --dimmer:#63769a;
+  --ok:var(--grass); --stale:var(--electric); --bad:var(--fight); --nm:var(--psy);
+  color-scheme: dark;
+}
+/* One committed visual world. It does not do light mode, and a half-applied theme is worse
+   than none — the same call stadium.html made. */
+:root[data-theme="light"], :root[data-theme="dark"]{ color-scheme: dark; }
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);min-height:100%}
+body{
+  font-family:'Segoe UI',-apple-system,Roboto,system-ui,sans-serif;
+  color:var(--bone);
+  background:
+    radial-gradient(ellipse 120% 70% at 50% -8%, #1d3050 0%, var(--bg2) 45%, var(--bg) 100%);
+  padding:20px 14px 60px;
+}
+.mono{font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace}
+.wrap{max-width:1140px;margin:0 auto}
+
+/* ---- header ---- */
+.hdr{
+  background:linear-gradient(#26395c,#1a2843);
+  border:3px solid var(--line); border-radius:16px; box-shadow:0 5px 0 rgba(0,0,0,.55);
+  padding:18px 20px 16px; margin-bottom:14px;
+}
+.hdr h1{
+  margin:0; font-size:clamp(24px,5.4vw,42px); letter-spacing:.02em; line-height:1;
+  color:var(--electric); text-shadow:0 3px 0 var(--line);
+}
+.hdr .kick{margin:9px 0 0;font-size:13.5px;font-weight:600;color:var(--bone);max-width:78ch;line-height:1.62}
+.hdr .kick b{color:var(--electric)}
+.stamp{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:13px;
+  font-size:11.5px;font-weight:700;
+}
+.stamp span{
+  background:#101c30;border:2px solid var(--line);border-radius:8px;padding:4px 9px;color:var(--dim);
+}
+.stamp span b{color:var(--bone)}
+.backlink{display:inline-block;margin-top:12px;font-size:13px;font-weight:800;color:var(--water);text-decoration:none}
+.backlink:hover{text-decoration:underline}
+
+/* ---- legend: the states are the point, so they are declared before any figure ---- */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:9px;margin-bottom:18px}
+.lg{background:var(--card);border:3px solid var(--line);border-radius:12px;padding:9px 11px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+.lg b{display:block;font-size:12.5px;letter-spacing:.09em;margin-bottom:3px}
+.lg p{margin:0;font-size:11.5px;color:var(--dim);font-weight:600;line-height:1.5}
+.lg.ok b{color:var(--ok)} .lg.stale b{color:var(--stale)} .lg.bad b{color:var(--bad)} .lg.nm b{color:var(--nm)}
+
+/* ---- divisions ---- */
+.div{margin-bottom:22px}
+.divhd{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  border-bottom:3px solid var(--line);padding:0 4px 8px;margin-bottom:12px;
+}
+.divhd h2{margin:0;font-size:22px;letter-spacing:.13em}
+.divhd .q{font-size:13px;font-weight:700;color:var(--dim)}
+.divhd .led{font-size:11px;font-weight:800;color:var(--dimmer);margin-left:auto}
+.divhd .led a{color:var(--water);text-decoration:none}
+#dENGINE h2{color:var(--electric)} #dMEASURE h2{color:var(--water)}
+#dSEARCH h2{color:var(--psy)} #dOPS h2{color:var(--grass)} #dWEB h2{color:var(--fight)}
+
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:11px;margin-bottom:11px}
+
+/* ---- the figure card. Value, then label, then SOURCE — always all three. ---- */
+.fig{
+  background:var(--card);border:3px solid var(--line);border-radius:13px;padding:11px 12px 9px;
+  box-shadow:0 5px 0 rgba(0,0,0,.45);position:relative;overflow:hidden;
+}
+.fig .v{font-size:30px;font-weight:800;line-height:1.03;letter-spacing:-.01em;word-break:break-word}
+.fig .v.small{font-size:15.5px;line-height:1.42;font-weight:700}
+.fig .lab{font-size:11.5px;font-weight:700;color:var(--bone);margin-top:5px;line-height:1.42}
+.fig .note{font-size:11px;font-weight:600;color:var(--dim);margin-top:5px;line-height:1.5}
+.fig.wide{grid-column:1/-1}
+
+/* SOURCE CHIP — the hard requirement. No figure ships without one. */
+.src{
+  margin-top:9px;padding-top:7px;border-top:2px dashed #33456a;
+  font-size:10.5px;font-weight:700;color:var(--dim);display:flex;flex-wrap:wrap;gap:5px;align-items:center;
+}
+.src code{background:#0c1526;border:1px solid #2b3d5e;border-radius:5px;padding:1px 5px;color:var(--water);font-size:10.5px}
+.src .when{color:var(--dimmer)}
+
+/* state skins */
+.fig.ok .v{color:var(--bone)}
+.fig.bad{border-color:#7a2018}
+.fig.bad .v{color:var(--bad)}
+.fig.stale{border-color:#8a6410}
+.fig.stale .v{color:var(--stale)}
+/* Staleness is a texture, not a colour swap — you can see it from across the room without reading. */
+.fig.stale::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.13;
+  background:repeating-linear-gradient(135deg,var(--stale) 0 11px,transparent 11px 22px);
+}
+.fig.nm{border-color:#8a2a72;background:linear-gradient(var(--card),#2a1c30)}
+.fig.nm .v{color:var(--nm)}
+
+/* NOT MEASURED plate — EXACTLY the size and weight of a number (.fig .v is 30px/800), never dimmed,
+   never abbreviated, never behind a "show details". It was 26px for one draft, which is the whole
+   failure in miniature: the gap got quietly made smaller than the results around it. */
+.nmplate{font-size:30px;font-weight:800;color:var(--nm);line-height:1.03;word-break:break-word}
+.nmwhy{font-size:11.5px;font-weight:600;color:#f0b7e2;margin-top:6px;line-height:1.55}
+.nmowner{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:800;background:#3d1636;
+  border:2px solid #8a2a72;border-radius:7px;padding:2px 7px;color:var(--nm)}
+
+/* ---- tables ----
+   Wide content scrolls inside its OWN box; the page body never scrolls sideways. On a 375px screen
+   the differential table is ~494px wide, and without this it was clipped — the USES column, which is
+   how the rows are ordered, fell off the edge with nothing to say it had. */
+table{width:100%;border-collapse:collapse;font-size:12px;display:block;overflow-x:auto}
+table tbody, table thead{display:table;width:100%;min-width:420px}
+th{text-align:left;font-size:10.5px;letter-spacing:.09em;color:var(--dimmer);padding:0 8px 6px;border-bottom:2px solid #2b3d5e}
+td{padding:6px 8px;border-bottom:1px solid #22314c;vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.k{color:var(--dim);font-weight:700}
+
+/* ---- the standings board: the loudest thing on the page ---- */
+.standing{
+  border:3px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:0 5px 0 rgba(0,0,0,.45);
+  background:var(--card);
+}
+.standing .top{padding:11px 13px;background:#2b2010;border-bottom:3px solid var(--line)}
+.standing .top b{font-size:14px;color:var(--stale);letter-spacing:.06em}
+.standing .top p{margin:6px 0 0;font-size:11.5px;font-weight:600;color:#e2cd9b;line-height:1.55;max-width:86ch}
+.standing table{font-size:12.5px}
+.standing td,.standing th{padding:8px 13px}
+.pill{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;border-radius:6px;padding:2px 7px;border:2px solid}
+.pill.pre{color:#1a1204;background:var(--stale);border-color:#8a6410}
+.pill.cur{color:#06210f;background:var(--ok);border-color:#1f6c39}
+
+/* ---- gate ladder ---- */
+.gate{
+  display:grid;grid-template-columns:64px 1fr;gap:0;background:var(--card);
+  border:3px solid var(--line);border-radius:13px;box-shadow:0 5px 0 rgba(0,0,0,.45);
+  margin-bottom:10px;overflow:hidden;
+}
+.gate .id{
+  display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;
+  background:#101c30;color:var(--psy);border-right:3px solid var(--line);
+}
+.gate.nm .id{color:var(--nm);background:#2a1c30}
+.gate .body{padding:10px 13px}
+.gate .q{font-size:13.5px;font-weight:800;color:var(--bone)}
+.gate .figs{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+.gate .figs div{font-size:11.5px;font-weight:700;color:var(--dim)}
+.gate .figs div b{display:block;font-size:19px;color:var(--bone);font-weight:800}
+.gate .figs div.hot b{color:var(--electric)}
+
+details{margin-top:10px}
+summary{cursor:pointer;font-size:12px;font-weight:800;color:var(--water);padding:5px 0}
+details .inner{background:#0c1526;border:2px solid #22314c;border-radius:10px;padding:11px 13px;margin-top:6px}
+pre{margin:0;font-size:11.5px;line-height:1.5;white-space:pre;overflow-x:auto;color:var(--dim)}
+ul.caveats{margin:0;padding-left:18px}
+ul.caveats li{font-size:12px;font-weight:600;color:#e2cd9b;line-height:1.6;margin-bottom:7px}
+
+.fatal{background:#3a0f0a;border:3px solid var(--bad);border-radius:14px;padding:20px;margin-bottom:16px}
+.fatal b{color:var(--bad);font-size:19px;display:block;margin-bottom:8px}
+.fatal p{margin:0;font-size:13px;font-weight:600;line-height:1.6}
+footer{margin-top:26px;font-size:11.5px;font-weight:600;color:var(--dimmer);line-height:1.7;border-top:2px solid #22314c;padding-top:14px}
+footer a{color:var(--water)}
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <div class="fatal">
+    <b>THE BOARD DID NOT RENDER</b>
+    <p>If you are reading this, <code>web/status-data.js</code> did not load or the script below did
+    not run. That file is generated — build it with <code>node web/build-status.js</code> from the
+    repository root. This message is deliberate: an empty board that looked fine would be the exact
+    failure this project keeps finding.</p>
+  </div>
+</div>
+
+<script src="status-data.js"></script>
+<script>
+(function(){
+'use strict';
+var B = window.ABRA_BOARD;
+if (!B) return;                                     /* leave the fatal panel standing */
+
+var E = function(s){ return String(s === undefined || s === null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+
+/* Times are printed exactly as the artifact or status.js gave them. This page does not convert a
+   timezone, does not compute an age, and does not say "3 hours ago" — an elapsed time computed from
+   a visitor's clock is a number this page would be authoring. It prints the stamp and stops. */
+function when(iso){
+  if (!iso) return '';
+  var s = String(iso);
+  /* Only claim UTC when the stamp actually said Z. A stamp without a zone gets printed as it was
+     written, because relabelling somebody else's timestamp is the same class of mistake as
+     rewriting their number. */
+  if (s.indexOf('T') === 10) return s.slice(0,16).replace('T',' ') + (/z$/i.test(s) ? ' UTC' : '');
+  return s;
+}
+
+/* ---- the source chip. Every figure gets one. There is no code path that renders a value without
+   it, which is the mechanical form of "every figure carries its source". ---- */
+function srcChip(f){
+  if (!f) return '';
+  var src = f.src || (f.owner ? '(nothing — ' + f.owner + ' owns it)' : '(no source)');
+  var t = f.live ? 'read live by engine/status.js when this board was built'
+                 : (f.at ? 'artifact last written ' + when(f.at) : '');
+  return '<div class="src" title="' + E(src + (t ? ' — ' + t : '')) + '">'
+       + '<span>source</span><code>' + E(src) + '</code>'
+       + (f.live ? '<span class="when">read at build time</span>'
+                 : (f.at ? '<span class="when">written ' + E(when(f.at)) + '</span>' : ''))
+       + '</div>';
+}
+
+/* ---- one figure. The four states are the whole design. ---- */
+function figCard(f, opt){
+  opt = opt || {};
+  if (!f) f = { state:'notmeasured', why:'the build produced no entry for this slot' };
+  var cls = 'fig ' + (f.state === 'notmeasured' ? 'nm' : f.state || 'ok') + (opt.wide ? ' wide' : '');
+  var h = '<div class="' + cls + '">';
+  if (f.state === 'notmeasured'){
+    h += '<div class="nmplate">NOT MEASURED</div>';
+    if (opt.label || f.label) h += '<div class="lab">' + E(opt.label || f.label) + '</div>';
+    h += '<div class="nmwhy">' + E(f.why || 'no artifact says it') + '</div>';
+    if (f.owner) h += '<div class="nmowner">' + E(f.owner) + ' owns this gap</div>';
+  } else {
+    var v = f.v + (f.unit ? f.unit : '');
+    h += '<div class="v' + (String(v).length > 22 ? ' small' : '') + '">' + E(v) + '</div>';
+    if (opt.label || f.label) h += '<div class="lab">' + E(opt.label || f.label) + '</div>';
+    if (f.note) h += '<div class="note">' + E(f.note) + '</div>';
+  }
+  h += srcChip(f);
+  return h + '</div>';
+}
+
+function divHead(id, title, question, ledger){
+  return '<div class="divhd" id="d' + id + '"><h2>' + E(title) + '</h2>'
+       + '<span class="q">' + E(question) + '</span>'
+       + '<span class="led">ledger <a href="../docs/' + E(ledger) + '">docs/' + E(ledger) + '</a></span></div>';
+}
+
+var out = [];
+
+/* ============================== HEADER ============================== */
+out.push(
+ '<div class="hdr">'
+ + '<h1>ABRA STATUS BOARD</h1>'
+ + '<p class="kick">What is <b>measured</b>, what is <b>stale</b>, and what <b>nobody has measured</b>. '
+ + 'Every figure below carries the artifact it was read out of. This page computes nothing: it is a '
+ + 'rendering of <code class="mono">node engine/status.js</code> and the <code class="mono">data/*.json</code> '
+ + 'files it reads. Where no artifact answers, it says NOT MEASURED — at the same size as a number, '
+ + 'because the gaps are the most useful thing here.</p>'
+ + '<div class="stamp">'
+   + '<span>board built <b>' + E(when(B.built_at)) + '</b></span>'
+   + '<span>by <b>' + E(B.built_by) + '</b></span>'
+   + '<span>engine/status.js <b>' + (B.status_js_ok ? 'ran' : 'FAILED') + '</b></span>'
+   + '<span>this is a <b>snapshot</b> — rebuild with <b class="mono">node web/build-status.js</b></span>'
+ + '</div>'
+ + '<a class="backlink" href="index.html">&larr; back to ABRA WORLD</a> &nbsp; '
+ + '<a class="backlink" href="stadium.html">the STADIUM &rarr;</a>'
+ + '</div>');
+
+if (!B.status_js_ok){
+  out.push('<div class="fatal"><b>engine/status.js DID NOT RUN AT BUILD TIME</b><p>'
+    + E(B.status_js_error || 'no error recorded')
+    + ' — every figure below sourced to engine/status.js is therefore missing, and shows as NOT MEASURED. '
+    + 'The artifact-sourced figures are unaffected.</p></div>');
+}
+
+/* ============================== LEGEND ============================== */
+out.push('<div class="legend">'
+ + '<div class="lg ok"><b>MEASURED</b><p>An artifact says it. The filename and the time it was written are printed under the figure.</p></div>'
+ + '<div class="lg stale"><b>PRE-CHANGE / STALE</b><p>Hazard stripes. The result is real, but it describes a build or a corpus that has since moved. It is a fact about something that no longer exists.</p></div>'
+ + '<div class="lg bad"><b>MEASURED, AND BAD</b><p>Red is not an error — it is a result the project does not like. A red figure here is working as intended.</p></div>'
+ + '<div class="lg nm"><b>NOT MEASURED</b><p>No artifact answers the question. Rendered at full weight, never greyed, with the division that owns the gap.</p></div>'
+ + '</div>');
+
+/* ============================== ENGINE ============================== */
+var en = B.engine;
+out.push('<div class="div">' + divHead('ENGINE','ENGINE','does the simulator do what Pokémon does','ENGINE.md'));
+out.push('<div class="row">'
+  + figCard(en.headline)
+  + figCard(en.missing_n, {label:'mechanics missing — each one is a probe that fails'})
+  + figCard(en.tags)
+  + figCard(en.tags_unprobed, {label:'tags never probed — nobody knows if these work'})
+  + '</div>');
+
+if (en.missing_list && en.missing_list.state === 'ok'){
+  out.push('<div class="fig wide"><div class="lab" style="font-size:13px;margin:0 0 8px">'
+    + 'The ' + en.missing_list.rows.length + ' missing mechanics, named. A mechanic is not open work until a probe fails on it (docs/ENGINE.md).</div>'
+    + '<table><tr><th>KIND</th><th>TAG</th><th>WHAT IT SHOULD DO</th></tr>'
+    + en.missing_list.rows.map(function(r){
+        return '<tr><td class="k">' + E(r.kind) + '</td><td class="mono">' + E(r.tag) + '</td><td>' + E(r.label) + '</td></tr>';
+      }).join('')
+    + '</table>' + srcChip(en.missing_list) + '</div>');
+} else {
+  out.push('<div class="row">' + figCard(en.missing_list, {label:'the missing mechanics, named'}) + '</div>');
+}
+
+out.push('<div class="row">' + figCard(en.diff_headline, {}) + '</div>');
+if (en.diff_worst && en.diff_worst.state === 'bad'){
+  out.push('<div class="fig bad wide"><div class="lab" style="font-size:13px;margin:0 0 8px">'
+    + 'Open disagreements with Showdown, ordered by corpus usage. A differential hit is NOT counted in the census above.</div>'
+    + '<table><tr><th>ATTACKER</th><th>MOVE</th><th>TARGET</th><th>SHOWDOWN</th><th>MEDICHAM</th><th>USES</th></tr>'
+    + en.diff_worst.rows.map(function(w){
+        return '<tr><td class="mono">' + E(w.att) + '</td><td class="mono">' + E(w.mv) + '</td><td class="mono">' + E(w.def)
+             + '</td><td class="mono">' + E(w.showdown) + '</td><td class="mono" style="color:var(--bad)">' + E(w.medicham)
+             + '</td><td class="mono">' + E(w.uses) + '</td></tr>';
+      }).join('')
+    + '</table>' + srcChip(en.diff_worst) + '</div>');
+} else {
+  out.push('<div class="row">' + figCard(en.diff_worst, {label:'open Showdown differentials'}) + '</div>');
+}
+out.push('</div>');
+
+/* ============================== MEASURE ============================== */
+var me = B.measure;
+out.push('<div class="div">' + divHead('MEASURE','MEASURE','can we believe a number','MEASURE.md'));
+out.push('<div class="row">' + figCard(me.headline, {wide:true, label:'leaf calibration — the division\'s one number'}) + '</div>');
+out.push('<div class="row">'
+  + figCard(me.n_games) + figCard(me.rollouts)
+  + figCard(me.build_standing, {label:'is the leaf result about the build that exists now?'})
+  + (me.provenance && me.provenance.state !== 'notmeasured'
+      ? figCard({state:me.provenance.state, v:me.provenance.stale, src:me.provenance.src, live:true,
+                 label:'artifacts possibly stale (' + me.provenance.unsafe + ' unsafe, ' + me.provenance.ok + ' ok, ' + me.provenance.missing + ' missing)',
+                 note:me.provenance.note})
+      : figCard(me.provenance, {label:'provenance'}))
+  + '</div>');
+out.push('<div class="row">'
+  + figCard(me.curve, {wide:true})
+  + '</div>');
+out.push('<div class="row">' + figCard(me.power, {wide:true}) + '</div>');
+out.push('<div class="row">' + figCard(me.refit, {label:'refit edge — did the feature function move under the fitted weights?'}) + '</div>');
+if (me.refit_moved && me.refit_moved.length){
+  out.push('<div class="fig stale wide"><div class="lab" style="font-size:13px;margin:0 0 8px">'
+    + 'Engine inputs that MOVED after the weights were fitted. The refit is still CLEAN because '
+    + 'feature_fixture --check re-derives all 58 columns and they hash identical — mtime is the screen, content is the verdict.</div>'
+    + '<table><tr><th>SOURCE</th><th>MOVED</th></tr>'
+    + me.refit_moved.map(function(r){ return '<tr><td class="mono">' + E(r.src) + '</td><td class="mono">' + E(r.at) + '</td></tr>'; }).join('')
+    + '</table><div class="src"><span>source</span><code>engine/status.js</code><span class="when">read at build time</span></div></div>');
+}
+out.push('</div>');
+
+/* ============================== SEARCH ============================== */
+var se = B.search;
+out.push('<div class="div">' + divHead('SEARCH','SEARCH','does MILTANK choose better than MAG','SEARCH.md'));
+
+out.push('<div class="lab" style="font-size:12.5px;color:var(--dim);margin:0 4px 10px;line-height:1.6">'
+  + 'A gate ladder: each rung had to pass before the next was worth running. A rung with no artifact '
+  + 'is a rung nobody wrote down, and it reads NOT MEASURED rather than showing an empty row.</div>');
+
+se.ladder.forEach(function(g){
+  if (g.state === 'notmeasured'){
+    out.push('<div class="gate nm"><div class="id">' + E(g.id) + '</div><div class="body">'
+      + '<div class="q">' + E(g.q) + '</div>'
+      + '<div class="nmplate" style="font-size:21px;margin-top:7px">NOT MEASURED</div>'
+      + '<div class="nmwhy">' + E(g.why) + '</div>'
+      + '<div class="nmowner">SEARCH owns this gap</div>'
+      + '</div></div>');
+    return;
+  }
+  out.push('<div class="gate"><div class="id">' + E(g.id) + '</div><div class="body">'
+    + '<div class="q">' + E(g.q) + '</div>'
+    + (g.verdict ? '<div class="note" style="margin-top:6px;color:var(--bone);font-weight:700;font-size:12.5px">'
+        + E(g.verdict) + '</div>' : '')
+    + (g.verdict_note ? '<div class="note" style="margin-top:4px">' + E(g.verdict_note) + '</div>' : '')
+    /* A field the artifact no longer carries renders NOT MEASURED in the row, at the row's own size.
+       It is not skipped and it is not blank: a slot that quietly vanishes is how a schema change
+       becomes invisible. */
+    + '<div class="figs">' + g.figs.map(function(f){
+        if (f.state === 'notmeasured'){
+          return '<div><b style="color:var(--nm);font-size:14px;letter-spacing:.03em">NOT MEASURED</b>'
+               + E(f.label || 'field') + ' &mdash; ' + E(f.why || 'no value in the artifact') + '</div>';
+        }
+        var hot = /decisive pairs|arm 1 share|divergence|positions/.test(f.label || '');
+        return '<div' + (hot ? ' class="hot"' : '') + '><b>' + E(f.v + (f.unit || '')) + '</b>' + E(f.label) + '</div>';
+      }).join('') + '</div>'
+    + '<div class="src"><span>source</span><code>' + E(g.src) + '</code>'
+    + (g.at ? '<span class="when">written ' + E(when(g.at)) + '</span>' : '')
+    + (g.generated ? '<span class="when">generated ' + E(when(g.generated)) + '</span>' : '') + '</div>'
+    + '</div></div>');
+});
+
+/* ---- the handoff checking itself ---- */
+if (se.handoff_drift && se.handoff_drift.rows && se.handoff_drift.rows.length){
+  out.push('<div class="fig bad wide" style="margin-top:12px">'
+    + '<div class="v small" style="color:var(--bad)">engine/status.js IS PRINTING <span class="mono">undefined</span> FOR A GATE</div>'
+    + '<div class="note" style="color:#f0b0a6">status.js reads each gate artifact by key name. When a generator changes its '
+    + 'schema, the template literal interpolates <span class="mono">undefined</span> and the line still prints, with no error '
+    + 'and no exit code — so the terminal handoff, the document a new session trusts first, carries a '
+    + 'result-shaped sentence that says nothing. The affected lines, verbatim:</div>'
+    + '<pre style="margin-top:9px;color:var(--bad)">' + se.handoff_drift.rows.map(E).join('\n') + '</pre>'
+    + '<div class="note">MEASURE owns <span class="mono">engine/status.js</span>. WEB renders this; it does not fix it.</div>'
+    + srcChip({src:'engine/status.js', live:true}) + '</div>');
+}
+
+/* ---- R4 in full. It is the number the project gets quoted on. ---- */
+var r4 = se.r4;
+if (r4 && r4.state === 'ok'){
+  var preChange = r4.standing && r4.standing.engine_standing && r4.standing.engine_standing.standing === 'PRE-CHANGE';
+  out.push('<div class="fig ' + (preChange ? 'stale' : 'ok') + ' wide" style="margin-top:12px">'
+    + '<div class="lab" style="font-size:14px;margin:0 0 8px;letter-spacing:.05em">R4 — THE HEADLINE RESULT, IN FULL</div>'
+    + '<div class="v small" style="color:var(--bone)">' + E(r4.verdict) + '</div>'
+    + '<div class="figs" style="display:flex;flex-wrap:wrap;gap:18px;margin-top:12px">'
+      + '<div style="font-size:11.5px;font-weight:700;color:var(--dim)"><b style="display:block;font-size:26px;color:var(--electric)">' + E(r4.share) + '%</b>arm 1 (MILTANK) share</div>'
+      + '<div style="font-size:11.5px;font-weight:700;color:var(--dim)"><b style="display:block;font-size:26px;color:var(--bone)">' + E(r4.decisive_pairs) + '</b>decisive pairs &mdash; the unit of the test</div>'
+      + '<div style="font-size:11.5px;font-weight:700;color:var(--dim)"><b style="display:block;font-size:26px;color:var(--bone)">' + E(r4.pairs) + '</b>seed pairs</div>'
+      + '<div style="font-size:11.5px;font-weight:700;color:var(--dim)"><b style="display:block;font-size:26px;color:var(--bone)">' + E(r4.games) + '</b>games</div>'
+      + '<div style="font-size:11.5px;font-weight:700;color:var(--dim)"><b style="display:block;font-size:26px;color:var(--dimmer)">' + E(r4.lines) + '</b>LINES in the file &mdash; not games</div>'
+      + '<div style="font-size:11.5px;font-weight:700;color:var(--dim)"><b style="display:block;font-size:26px;color:var(--bone)">[' + E(r4.ci && r4.ci[0]) + ', ' + E(r4.ci && r4.ci[1]) + ']</b>95% CI, fixed-n formula</div>'
+    + '</div>'
+    + (r4.line_note ? '<div class="note" style="margin-top:10px">' + E(r4.line_note) + '</div>' : '')
+    + (preChange
+        ? '<div class="note" style="margin-top:10px;color:var(--stale);font-weight:800;font-size:12.5px">'
+          + 'PRE-CHANGE: ' + E(r4.standing.engine_standing.as_printed) + ' &mdash; newest engine source '
+          + E(r4.standing.engine_standing.newest_engine_source) + '. ' + E(r4.standing.transfers_to_current_build)
+          + '</div>'
+        : '')
+    + '<details><summary>Every caveat this result carries (verbatim from the artifact)</summary><div class="inner">'
+      + '<ul class="caveats">' + (r4.caveats||[]).map(function(c){ return '<li>' + E(c) + '</li>'; }).join('') + '</ul>'
+      + (r4.noise_floor ? '<p style="font-size:12px;font-weight:700;color:var(--stale);margin:10px 0 4px">NOISE FLOOR</p>'
+          + '<p style="font-size:11.5px;font-weight:600;color:var(--dim);line-height:1.6;margin:0">' + E(r4.noise_floor.aa_note) + '</p>'
+          + '<p style="font-size:11.5px;font-weight:600;color:var(--dim);line-height:1.6;margin:8px 0 0">' + E(r4.noise_floor.reading) + '</p>' : '')
+      + (r4.standing ? '<p style="font-size:12px;font-weight:700;color:var(--ok);margin:12px 0 4px">VALID AS MEASURED</p>'
+          + '<p style="font-size:11.5px;font-weight:600;color:var(--dim);line-height:1.6;margin:0">' + E(r4.standing.valid_as_measured) + '</p>'
+          + '<p style="font-size:11.5px;font-weight:600;color:var(--stale);line-height:1.6;margin:8px 0 0">' + E(r4.standing.what_to_do_about_it) + '</p>' : '')
+      + (r4.arms && r4.arms.search_settings_note ? '<p style="font-size:11.5px;font-weight:600;color:var(--dim);line-height:1.6;margin:10px 0 0">' + E(r4.arms.search_settings_note) + '</p>' : '')
+    + '</div></details>'
+    + srcChip({src:r4.src, at:r4.at})
+    + '</div>');
+} else {
+  out.push(figCard(r4, {wide:true, label:'R4 — the headline result'}));
+}
+
+/* ---- THE STANDINGS BOARD. This is the point of the whole page. ---- */
+if (se.runs && se.runs.state === 'ok'){
+  out.push('<div class="standing" style="margin-top:14px">'
+    + '<div class="top"><b>WHICH RESULTS DESCRIBE A BUILD THAT NO LONGER EXISTS</b>'
+    + '<p>engine/status.js classes every self-play corpus against the newest engine source. '
+    + (se.engine_edge && se.engine_edge.state === 'ok'
+        ? 'The newest engine source is <span class="mono">' + E(se.engine_edge.newest_src) + '</span>, written <span class="mono">' + E(se.engine_edge.newest_at) + '</span>. '
+        : '')
+    + 'A corpus written BEFORE that is <b>PRE-CHANGE</b>: the measurement was fair between its two arms, '
+    + 'but whether the edge survives the engine change is untested. docs/DIVISIONS.md exists to close '
+    + 'this — SEARCH is supposed to play a frozen, named engine release, never HEAD.</p></div>'
+    + '<table><tr><th>STANDING</th><th>CORPUS</th><th>WRITTEN</th></tr>'
+    + se.runs.rows.map(function(r){
+        var pre = r.standing === 'PRE-CHANGE';
+        return '<tr><td><span class="pill ' + (pre?'pre':'cur') + '">' + E(r.standing) + '</span></td>'
+             + '<td class="mono">' + E(r.file) + '</td><td class="mono">' + E(r.at) + '</td></tr>';
+      }).join('')
+    + '</table>'
+    + '<div class="src" style="padding:0 13px 11px;border-top:0;margin-top:0"><span>source</span><code>engine/status.js</code><span class="when">read at build time</span></div>'
+    + '</div>');
+} else {
+  out.push('<div class="row">' + figCard(se.runs, {wide:true, label:'which results describe a build that no longer exists'}) + '</div>');
+}
+out.push('</div>');
+
+/* ============================== OPS ============================== */
+var op = B.ops;
+out.push('<div class="div">' + divHead('OPS','OPS','the live bot and the store','OPS.md'));
+out.push('<div class="row">'
+  + figCard(op.games) + figCard(op.usable) + figCard(op.usablePct) + figCard(op.teams)
+  + '</div>');
+out.push('<div class="row">'
+  + figCard(op.turns) + figCard(op.dmgProfiles) + figCard(op.battles) + figCard(op.updated)
+  + '</div>');
+if (op.files && op.files.state === 'ok'){
+  out.push('<div class="fig wide"><div class="lab" style="font-size:13px;margin:0 0 8px">When each store file was last written.</div>'
+    + '<table><tr><th>FILE</th><th>LAST WRITTEN</th></tr>'
+    + op.files.rows.map(function(r){ return '<tr><td class="mono">' + E(r.file) + '</td><td class="mono">' + E(r.at) + '</td></tr>'; }).join('')
+    + '</table><div class="src"><span>source</span><code>engine/status.js</code><span class="when">read at build time</span></div></div>');
+} else {
+  out.push('<div class="row">' + figCard(op.files, {label:'store files'}) + '</div>');
+}
+out.push('</div>');
+
+/* ============================== WEB ============================== */
+var we = B.web;
+out.push('<div class="div">' + divHead('WEB','WEB','does every rendered figure trace to an artifact','WEB.md'));
+out.push('<div class="row">'
+  + figCard(we.traceability, {wide:true, label:'WEB\'s one number — the fraction of rendered figures on this site that trace to an artifact'})
+  + '</div>');
+/* THE NUMBER BROKEN OUT PER PAGE, AND THEN EVERY FIGURE THAT FAILS IT BY NAME. A single site-wide
+   percentage is a score; the list is what someone can act on, and it is the reason the percentage is
+   worth publishing at all. Both come from web/figure-audit.js, which defines "figure" and "traced". */
+if (we.traceability_pages && we.traceability_pages.rows){
+  out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">Per page. A page with no figures is a page whose numbers are all interpolated from a bundled artifact, which is the state to aim at.</div>'
+    + '<table><tr><th>PAGE</th><th>TRACED</th><th>OF</th><th>SHARE</th><th>WITHDRAWN</th></tr>'
+    + we.traceability_pages.rows.map(function(r){
+        return '<tr><td class="mono">' + E(r.file) + '</td><td class="mono">' + r.traced + '</td><td class="mono">' + r.denom + '</td>'
+             + '<td class="mono" style="color:' + (r.pct===null ? 'var(--dim)' : (r.pct>=50 ? 'var(--ok)' : 'var(--bad)')) + ';font-weight:800">'
+             + (r.pct===null ? '—' : r.pct + '%') + '</td><td class="mono">' + (r.withdrawn || '') + '</td></tr>';
+      }).join('')
+    + '</table><div class="src"><span>source</span><code>web/figure-audit.js</code><span class="when">read at build time</span></div></div>');
+}
+if (we.traceability_open && we.traceability_open.rows && we.traceability_open.rows.length){
+  out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">Every figure on the site that names no artifact. Each is either wired to its source or withdrawn; there is no third state.</div>'
+    + '<table><tr><th>PAGE</th><th>LINE</th><th>FIGURE</th><th>CONTEXT</th></tr>'
+    + we.traceability_open.rows.map(function(r){
+        return '<tr><td class="mono">' + E(r.file) + '</td><td class="mono">' + r.n + '</td><td class="mono" style="color:var(--bad);font-weight:800">'
+             + E(r.tok) + '</td><td>' + E(r.ctx) + '</td></tr>';
+      }).join('')
+    + '</table><div class="src"><span>source</span><code>web/figure-audit.js</code><span class="when">read at build time</span></div></div>');
+}
+out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">Guards this division owns. A list a page carries and a source file also carries must be compared, or it drifts (docs/WEB.md).</div>'
+  + '<table><tr><th>GUARD</th><th>WHAT IT PREVENTS</th><th>PRESENT</th></tr>'
+  + we.guards.map(function(g){
+      return '<tr><td class="mono">' + E(g.name) + '</td><td>' + E(g.what) + '</td><td style="color:'
+           + (g.present ? 'var(--ok)' : 'var(--nm)') + ';font-weight:800">' + (g.present ? 'yes' : 'NO') + '</td></tr>';
+    }).join('')
+  + '</table><div class="src"><span>source</span><code>tests/ directory listing</code><span class="when">read at build time</span></div></div>');
+out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">The rooms.</div>'
+  + '<table><tr><th>PAGE</th><th>LAST WRITTEN</th></tr>'
+  + we.rooms.rows.map(function(r){ return '<tr><td class="mono">' + E(r.file) + '</td><td class="mono">' + E(when(r.at)) + '</td></tr>'; }).join('')
+  + '</table><div class="src"><span>source</span><code>web/ directory listing</code><span class="when">read at build time</span></div></div>');
+out.push('</div>');
+
+/* ============================== THE RAW HANDOFF ============================== */
+if (B.status_raw){
+  out.push('<div class="div"><div class="divhd"><h2 style="color:var(--dim);font-size:18px">THE RAW OUTPUT</h2>'
+    + '<span class="q">everything above, unformatted, exactly as the terminal prints it</span></div>'
+    + '<details open><summary>node engine/status.js &mdash; captured verbatim when this board was built</summary>'
+    + '<div class="inner"><pre>' + E(B.status_raw) + '</pre></div></details></div>');
+}
+
+out.push('<footer>'
+  + 'This page is generated by <span class="mono">web/build-status.js</span> into '
+  + '<span class="mono">web/status-data.js</span> and rendered here. It authors no number: every figure '
+  + 'is a scalar read verbatim from a <span class="mono">data/*.json</span> artifact, or a line printed by '
+  + '<span class="mono">node engine/status.js</span>. Where neither answers, it says NOT MEASURED.<br>'
+  + 'Rules: <span class="mono">CLAUDE.md</span> &middot; divisions and routing: '
+  + '<a href="../docs/DIVISIONS.md">docs/DIVISIONS.md</a> &middot; lessons: '
+  + '<a href="../docs/LESSONS.md">docs/LESSONS.md</a> &middot; this division: '
+  + '<a href="../docs/WEB.md">docs/WEB.md</a>.'
+  + '</footer>');
+
+document.getElementById('root').innerHTML = out.join('');
+})();
+</script>
+</body>
+</html>
