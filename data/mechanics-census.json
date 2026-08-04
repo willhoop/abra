@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-04T00:16:28.253Z",
+  "generated": "2026-08-04T00:49:27.195Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 40,
-  "live": 35,
-  "missing": 5,
+  "probed": 54,
+  "live": 38,
+  "missing": 16,
   "results": [
     {
       "kind": "item",
@@ -285,6 +285,104 @@
       "label": "Covet steals the item",
       "live": true,
       "detail": "attacker item \"lifeorb\", target item \"\""
+    },
+    {
+      "kind": "move",
+      "tag": "setsWeather",
+      "label": "Sandstorm sets the weather",
+      "live": true,
+      "detail": "weather after the turn: sand"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsSleep",
+      "label": "Spore puts the target to sleep",
+      "live": true,
+      "detail": "spore -> target status: slp"
+    },
+    {
+      "kind": "move",
+      "tag": "forbidsStatusMoves",
+      "label": "Taunt stops the target using a status move",
+      "live": true,
+      "detail": "volatile=true, free choice was nothing"
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresProtect",
+      "label": "Feint goes through Protect",
+      "live": false,
+      "detail": "a normal move into Protect dealt 0, Feint dealt 0"
+    },
+    {
+      "kind": "move",
+      "tag": "recharge",
+      "label": "Giga Impact costs the following turn",
+      "live": false,
+      "detail": "foe hp 83 after the hit, 0 after the recharge turn"
+    },
+    {
+      "kind": "move",
+      "tag": "needsTargetToAttack",
+      "label": "Avalanche doubles after being hit",
+      "live": false,
+      "detail": "untouched 164  ->  already hit 164"
+    },
+    {
+      "kind": "move",
+      "tag": "needsUntrackedState",
+      "label": "Gyro Ball scales with the speed gap",
+      "live": false,
+      "detail": "slow user 0  vs  fast user 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "redirectsType",
+      "label": "Lightning Rod pulls an Electric move",
+      "live": false,
+      "detail": "aimed target took 0, Lightning Rod holder took 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "healsAllyOnSwitchIn",
+      "label": "Hospitality heals the partner on entry",
+      "live": false,
+      "detail": "engine references it: false"
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksBerries",
+      "label": "Unnerve stops the foe eating a berry",
+      "live": false,
+      "detail": "engine references it: false"
+    },
+    {
+      "kind": "ability",
+      "tag": "disablesAttacker",
+      "label": "Cursed Body can disable the move that hit it",
+      "live": false,
+      "detail": "engine references it: false"
+    },
+    {
+      "kind": "item",
+      "tag": "restoresStats",
+      "label": "White Herb undoes a stat drop",
+      "live": false,
+      "detail": "dropped to -1, after the turn -1 (0 = restored)"
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Belly Drum maxes Attack",
+      "live": false,
+      "detail": "belly drum resolves to kind pass"
+    },
+    {
+      "kind": "move",
+      "tag": "proceduralStatus",
+      "label": "Tri Attack can burn, freeze or paralyse",
+      "live": false,
+      "detail": "target status with the roll forced low: none"
     }
   ]
 }

@@ -512,6 +512,169 @@ probe('move', 'takesTargetItem', 'Covet steals the item', () => {
            detail: 'attacker item ' + JSON.stringify(me.item) + ', target item ' + JSON.stringify(f1.item) };
 });
 
+
+/* ---- BATCH 3 — the next by corpus usage -------------------------------------------------------
+ *
+ * Written while an R4 self-play run was in flight, which is why nothing here touches the engine:
+ * a probe reads, it does not change, so the run keeps measuring the build it started on.
+ */
+
+probe('move', 'setsWeather', 'Sandstorm sets the weather', () => {
+  const me = bare('tyranitar'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  S.field.weather = '';
+  const fa = new Map([[me, M.playerAction(me, 'sandstorm', null, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: !!S.field.weather, detail: 'weather after the turn: ' + (S.field.weather || 'none') };
+});
+
+probe('move', 'inflictsSleep', 'Spore puts the target to sleep', () => {
+  const me = bare('venusaur'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const mv = MC.moves['spore'] ? 'spore' : 'sleeppowder';
+  const fa = new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: f1.status === 'slp', detail: mv + ' -> target status: ' + (f1.status || 'none') };
+});
+
+probe('move', 'forbidsStatusMoves', 'Taunt stops the target using a status move', () => {
+  /* Staged like the Encore probe: the target is Taunted, then left FREE, and what it picks is the
+   * measurement. Checking only that the volatile was recorded would pass on a Taunt nothing reads. */
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const f1 = bare('whimsicott'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'taunt', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const tainted = !!(f1._vol && f1._vol.taunt);
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]), null);
+  const picked = f1._lastMove || '';
+  const isStatus = picked && MC.moves[picked] && !MC.moves[picked].bp;
+  return { works: tainted && !isStatus,
+           detail: 'volatile=' + tainted + ', free choice was ' + (picked || 'nothing') };
+});
+
+probe('move', 'ignoresProtect', 'Feint goes through Protect', () => {
+  const run = (mv) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const fa = new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]);
+    const fb = new Map([[f1, M.playerAction(f1, 'protect', null, S.field)], [f2, { kind: 'pass' }]]);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, fa, fb);
+    return before - f1.curHP;
+  };
+  if (!MC.moves['feint']) return { works: false, detail: 'feint not in MC.moves' };
+  const blocked = run('bulletpunch'), through = run('feint');
+  return { works: through > 0 && blocked === 0,
+           detail: 'a normal move into Protect dealt ' + blocked + ', Feint dealt ' + through };
+});
+
+probe('move', 'recharge', 'Giga Impact costs the following turn', () => {
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const mv = MC.moves['gigaimpact'] ? 'gigaimpact' : 'hyperbeam';
+  if (!MC.moves[mv]) return { works: false, detail: 'no recharge move in MC.moves' };
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const hpAfterFirst = f1.curHP;
+  /* Turn two: the user is left FREE. If recharge is modelled it must do nothing. */
+  M.battleTurn(S, rng5, null, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: f1.curHP === hpAfterFirst,
+           detail: 'foe hp ' + hpAfterFirst + ' after the hit, ' + f1.curHP + ' after the recharge turn' };
+});
+
+probe('move', 'needsTargetToAttack', 'Avalanche doubles after being hit', () => {
+  const mv = MC.moves['avalanche'];
+  if (!mv) return { works: false, detail: 'avalanche not in MC.moves' };
+  const fresh1 = bare('corviknight'), hurt = bare('corviknight');
+  hurt.curHP = Math.floor(hurt.st.hp / 2);
+  const def = bare('garchomp');
+  const a = M.dmgRange(fresh1, def, mv, fresh(), false);
+  const b = M.dmgRange(hurt, def, mv, fresh(), false);
+  return { works: b.max > a.max, detail: 'untouched ' + a.max + '  ->  already hit ' + b.max };
+});
+
+probe('move', 'needsUntrackedState', 'Gyro Ball scales with the speed gap', () => {
+  const mv = MC.moves['gyroball'];
+  if (!mv) return { works: false, detail: 'gyroball not in MC.moves' };
+  const slow = bare('archaludon'), fast = bare('weavile');
+  const def = bare('garchomp');
+  const a = M.dmgRange(slow, def, mv, fresh(), false);
+  const b = M.dmgRange(fast, def, mv, fresh(), false);
+  return { works: a.max !== b.max, detail: 'slow user ' + a.max + '  vs  fast user ' + b.max };
+});
+
+probe('ability', 'redirectsType', 'Lightning Rod pulls an Electric move', () => {
+  const me = bare('raichu'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  f2.ability = 'lightningrod';
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const before1 = f1.curHP, before2 = f2.curHP;
+  const fa = new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const hitAimed = before1 - f1.curHP, hitRod = before2 - f2.curHP;
+  return { works: hitRod > 0 && hitAimed === 0,
+           detail: 'aimed target took ' + hitAimed + ', Lightning Rod holder took ' + hitRod };
+});
+
+probe('ability', 'healsAllyOnSwitchIn', 'Hospitality heals the partner on entry', () => {
+  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  return { works: /hospitality|healsAllyOnSwitchIn/.test(src),
+           detail: 'engine references it: ' + /hospitality|healsAllyOnSwitchIn/.test(src) };
+});
+
+probe('ability', 'blocksBerries', 'Unnerve stops the foe eating a berry', () => {
+  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  return { works: /unnerve|blocksBerries/.test(src),
+           detail: 'engine references it: ' + /unnerve|blocksBerries/.test(src) };
+});
+
+probe('ability', 'disablesAttacker', 'Cursed Body can disable the move that hit it', () => {
+  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  return { works: /cursedbody|disablesAttacker/.test(src),
+           detail: 'engine references it: ' + /cursedbody|disablesAttacker/.test(src) };
+});
+
+probe('item', 'restoresStats', 'White Herb undoes a stat drop', () => {
+  const m = bare('garchomp'); m.item = 'whiteherb';
+  const ally = bare('incineroar'), f1 = bare('incineroar'), f2 = bare('garchomp');
+  const S = M.battleInit([m, ally], [f1, f2], { seeded: true });
+  M.applyIntimidate(m);
+  const dropped = m.boosts.at;
+  M.battleTurn(S, rng5, new Map([[m, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: dropped < 0 && m.boosts.at === 0,
+           detail: 'dropped to ' + dropped + ', after the turn ' + m.boosts.at + ' (0 = restored)' };
+});
+
+probe('move', 'statChangeInCode', 'Belly Drum maxes Attack', () => {
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const mv = MC.moves['bellydrum'] ? 'bellydrum' : null;
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const act = M.playerAction(me, mv || 'bellydrum', null, S.field);
+  if (!act || act.kind === 'pass') return { works: false, detail: 'belly drum resolves to kind ' + (act && act.kind) };
+  M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: me.boosts.at >= 6, detail: 'atk stage ' + me.boosts.at + ' (needs +6)' };
+});
+
+probe('move', 'proceduralStatus', 'Tri Attack can burn, freeze or paralyse', () => {
+  const me = bare('gholdengo') , ally = bare('incineroar');
+  const f1 = bare('corviknight'), f2 = bare('garchomp');
+  const mv = MC.moves['triattack'];
+  if (!mv) return { works: false, detail: 'triattack not in MC.moves' };
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const fa = new Map([[me, M.playerAction(me, 'triattack', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, () => 0.01, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: !!f1.status, detail: 'target status with the roll forced low: ' + (f1.status || 'none') };
+});
+
 /* ---- REPORT ------------------------------------------------------------------------------------- */
 
 const works = results.filter(r => r.works);
