@@ -209,7 +209,10 @@ function sRng(seed){var s=(seed*2654435761+12345)>>>0;
 /* ---- THREE floors: the evolution line itself (Will: "we dont need ten, maybe like 3 —
  * ABRA, KADABRA, ALAKAZAM"). Guardian teams come from the MEASURED meta, not a uniform draw
  * over all 289 (which made Stunfisk a floor boss): data/abra-meta.js ranks species by team rate
- * over 5,368 competitive teams. ABRA fields real second-tier mons and clicks half-asleep;
+ * over the competitive view of data/meta-usage.json — 10,538 teams as of 2026-08-04, and the count
+ * is in abra-meta.js's own header, so read it there rather than trusting this sentence. (It said
+ * 5,368 until 2026-08-04, which was the count at the time the comment was written and had since
+ * doubled.) ABRA fields real second-tier mons and clicks half-asleep;
  * KADABRA fields the meta and plays the full scorer; ALAKAZAM leads its own mega over the top
  * of the format, priced clicks and Future Sight on. */
 var THREATS=((window.ABRA_META&&window.ABRA_META.threats)||[]).filter(function(t){return MC.mons[t.sp];});

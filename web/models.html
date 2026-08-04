@@ -62,7 +62,10 @@ svg{width:100%;height:auto;display:block}
 <text x="34" y="62" class="t">LADDER COLLECTOR</text>
 <text x="34" y="79" class="io">in: public game replays</text>
 <text x="34" y="92" class="io">out: the raw pile of games</text>
-<text x="34" y="112" class="st" fill="#9a2b2b">87% is bots — never use it raw</text>
+<!-- WAS "87% is bots". No artifact says 87. data/quality-filter.json's own `why` field says
+     55.2% of stored games involve a bot and 24.0% end in a forfeit, so the sourced statement is
+     that one. WEB renders what the artifact says; it does not round somebody's recollection. -->
+<text x="34" y="112" class="st" fill="#9a2b2b">55.2% involve a bot — never use it raw</text>
 
 <rect class="box" x="310" y="40" width="250" height="86" fill="#dff5e6"/>
 <text x="324" y="62" class="t">MEW — self-play farm</text>
@@ -85,7 +88,9 @@ svg{width:100%;height:auto;display:block}
 <!-- quality filter -->
 <rect class="box" x="20" y="170" width="250" height="64" fill="#dff5e6"/>
 <text x="34" y="192" class="t">QUALITY FILTER</text>
-<text x="34" y="209" class="io">in: raw pile · out: 3k good games</text>
+<!-- WIRED, not typed. Was "3k good games" against a store that now holds thousands more. The
+     number is filled from window.LIVE at load, so it can never go stale again. -->
+<text x="34" y="209" class="io">in: raw pile · out: <tspan id="nUsable">NOT MEASURED</tspan> good games</text>
 <text x="34" y="224" class="st" fill="#1f7a3c">every honest number starts here</text>
 <path class="fl" d="M145,126 L145,170"/>
 
@@ -94,8 +99,14 @@ svg{width:100%;height:auto;display:block}
 <rect class="box" x="20" y="304" width="256" height="80" fill="#dff5e6"/>
 <text x="34" y="326" class="t">TAG ARTIFACT</text>
 <text x="34" y="343" class="io">in: the game's own code</text>
-<text x="34" y="356" class="io">out: 171 notes on what things do</text>
-<text x="34" y="372" class="st" fill="#1f7a3c">11 wired and tested, ~105 unread</text>
+<!-- WAS "171 notes" and "11 wired and tested, ~105 unread", against an artifact holding 176 tags.
+     The first fix retyped the live figures (53 probed / 123 unprobed) — and ENGINE moved them to
+     119 / 57 within the hour, which is the same drift again with a fresher date on it. A number that
+     changes every session does not belong hand-typed in an SVG. The tag COUNT is wired from
+     window.ABRA_TAGS; probe coverage is not carried here at all, it is pointed at.
+     THE RULE: if you cannot wire it, do not type it — link the page that reads it. -->
+<text x="34" y="356" class="io">out: <tspan id="nTags">NOT MEASURED</tspan> notes on what things do</text>
+<text x="34" y="372" class="st" fill="#8a5a1a">probe coverage moves daily — see the status board</text>
 
 <rect class="box" x="306" y="304" width="256" height="80" fill="#dff5e6"/>
 <text x="320" y="326" class="t">BEHAVIOUR PRIORS</text>
@@ -105,7 +116,9 @@ svg{width:100%;height:auto;display:block}
 
 <rect class="box" x="592" y="304" width="256" height="80" fill="#dff5e6"/>
 <text x="606" y="326" class="t">META USAGE</text>
-<text x="606" y="343" class="io">in: 5,368 real teams</text>
+<!-- WIRED. Was "5,368 real teams"; data/abra-meta.js (competitive view of data/meta-usage.json)
+     carries the count, so it is read rather than retyped. -->
+<text x="606" y="343" class="io">in: <tspan id="nTeams">NOT MEASURED</tspan> real teams</text>
 <text x="606" y="356" class="io">out: what's popular and what wins</text>
 <text x="606" y="372" class="st" fill="#1f7a3c">also picks the Tower's bosses</text>
 
@@ -240,10 +253,42 @@ svg{width:100%;height:auto;display:block}
 <path class="fl" d="M970,1014 L970,1094"/>
 
 <text x="20" y="1235" class="lbl">Rules the map obeys: derived, never typed (S13) · clean data only (Garbodor) · measured, not asserted · Will's games quarantined · one engine, no copies.</text>
-<text x="20" y="1252" class="lbl">Drawn 2026-07-29, wording simplified 2026-07-30. The re-tune is now confirmed; switching and the post-KO switch both measured as coins.</text>
+<text x="20" y="1252" class="lbl">Drawn 2026-07-29, wording simplified 2026-07-30, figures re-sourced against their artifacts 2026-08-04. The re-tune is now confirmed; switching and the post-KO switch both measured as coins.</text>
 </svg>
 </div>
+<!-- Bundled artifacts, loaded as globals with <script src> rather than fetch(), because this page
+     is opened from file:// and a local fetch() is blocked there and fails silently (docs/WEB.md). -->
+<script src="../data/live.js"></script>
+<script src="../data/abra-meta.js"></script>
+<script src="../data/abra-tags.js"></script>
 <script>
+/* THE TWO NUMBERS THIS MAP CARRIES ARE NOW READ, NOT TYPED.
+ * They had drifted: the page said "3k good games" and "5,368 real teams" while the artifacts said
+ * otherwise, which is the drift CLAUDE.md calls out — a result on the site must match its artifact.
+ * If an artifact does not load, the placeholder stays at NOT MEASURED. It does NOT fall back to a
+ * remembered figure: a stale number that looks fine is worse than a visible gap. */
+(function(){
+  function put(id, v){
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (v === undefined || v === null) return;      /* leave NOT MEASURED standing */
+    el.textContent = Number(v).toLocaleString();
+  }
+  put('nUsable', window.LIVE && window.LIVE.usable);
+  put('nTeams',  window.ABRA_META && window.ABRA_META.sampledTeams);
+  /* UNIQUE tags, not rows. data/tags.json carries 184 rows over 176 distinct tag names, and
+     engine/status.js counts the distinct ones — so this counts them the same way. Counting rows
+     would put a different number on this page than the status board shows for the same fact. */
+  var T = window.ABRA_TAGS && window.ABRA_TAGS.tags;
+  if (T && T.length){
+    var names = {}, n = 0;
+    for (var i = 0; i < T.length; i++){
+      var k = T[i].tag || T[i].name || T[i].id;
+      if (k && !names[k]){ names[k] = 1; n++; }
+    }
+    put('nTags', n);
+  }
+})();
 function setMode(m){
   var open=m==='open';
   document.getElementById('xatuOpen').style.display=open?'':'none';
