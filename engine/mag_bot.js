@@ -158,6 +158,13 @@ const PREVIEW_MS = parseInt(arg('preview-ms', '15000'), 10);
  * preview timer is far more generous, so waiting is nearly free -- and the whole value of the lead
  * search is that it sees the opponent's team, so answering early throws away the feature. */
 const PREVIEW_WAIT_MS = parseInt(arg('preview-wait-ms', '25000'), 10);
+/* --miltank-foe uniform|prior  what the OPPONENT does inside a playout.
+ *
+ * uniform is a coin flip over its legal moves; prior samples what that species really clicks
+ * (Charizard: Protect 60.6%, Heat Wave 21.5% -- nothing like the 25% each uniform assumes). Will:
+ * 'reality cannot be that close to a 1/4 split for all moves'. Which judges better is empirical,
+ * so it is a flag and R4 decides. */
+const MILTANK_FOE = arg('miltank-foe', 'uniform');
 
 const { realTeams } = require('./mew.js');
 const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
@@ -719,7 +726,7 @@ function handle(room, line) {
        * merely unrun but UNRUNNABLE. A player living in a socket handler cannot be measured. */
       require('./miltank.js').install(bot, {
         n: ROLLOUT_N, explore: ROLLOUT_EXPLORE, turns: ROLLOUT_TURNS,
-        previewN: PREVIEW_N, previewMs: PREVIEW_MS, why: WHY, trace: TRACE,
+        previewN: PREVIEW_N, previewMs: PREVIEW_MS, why: WHY, trace: TRACE, foePolicy: MILTANK_FOE,
         /* The line is a READOUT of the number MILTANK just computed, which is the only reason it is
          * funny. Nothing here is about the opponent -- it is a public server and a registered
          * account, and a bot that insults people is a bot that gets the account locked. */

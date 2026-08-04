@@ -41,7 +41,7 @@ const TAGSMOD = require('./tags.js');
  * mechanics, so in a position the search cannot separate, MAG's prior was fitted on people playing
  * the REAL game and the search is reasoning about a broken one. That argument weakens with every
  * mechanic fixed, which is itself worth measuring. */
-const DEFAULTS = { defer: true, budgetMs: 20000, n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
+const DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
                    why: false, trace: false };
 
 /* Install MILTANK onto an already-constructed magnemite player.
@@ -54,6 +54,8 @@ function install(bot, o) {
   const PREVIEW_N = opts.previewN, PREVIEW_MS = opts.previewMs;
   const WHY = !!opts.why, TRACE = !!opts.trace;
   const DEFER = opts.defer !== false;
+  /* 'uniform' (a coin flip) or 'prior' (what the species really clicks). See rollout_leaf. */
+  const FOE_POLICY = opts.foePolicy || 'uniform';
   /* Optional: told the win probability after a real decision, so a caller can surface it. */
   const SAY = typeof opts.onSay === 'function' ? opts.onSay : null;
 
@@ -267,7 +269,7 @@ function install(bot, o) {
             const sp = speciesOf(sw.slot);
             if (!sp) continue;
             const r = RL.rolloutWinProb(this.board, side, {
-              n: ROLLOUT_N * 2, dex: DEX2, explore: ROLLOUT_EXPLORE, field,
+              n: ROLLOUT_N * 2, dex: DEX2, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field,
               /* COMMON RANDOM NUMBERS. Every candidate is judged on the SAME dice.
                *
                * The seed used to vary per candidate, so the difference between two replacements was
@@ -593,7 +595,7 @@ function install(bot, o) {
             const ka = clickOf(ca2), kb = clickOf(cb2);
             if (!ka || !kb) return null;
             return RL.rolloutAfterActions(board, side, {
-              n, dex: DEX, explore: ROLLOUT_EXPLORE, field, maxTurns: ROLLOUT_TURNS,
+              n, dex: DEX, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field, maxTurns: ROLLOUT_TURNS,
               seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib + salt,
               myClicks: [ka, kb], protectTurns: this._protectTurns,
               report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved;

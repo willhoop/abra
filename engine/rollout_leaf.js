@@ -140,11 +140,62 @@ function applyMegaWeather(S) {
   }
 }
 
+/* THE PLAYOUT'S OPPONENT: a coin flip, or a person.
+ *
+ * explore=1.0 makes every mon click a UNIFORMLY RANDOM legal move. That was adopted for a real
+ * reason -- a deterministic greedy playout replays one line, the samples stop being independent, and
+ * accuracy goes flat in N (R1: random judges 68.18% against greedy's 64.42%). The MCTS literature
+ * says the same: strong playout policies often make a search WORSE.
+ *
+ * But that is an argument about VARIANCE and it has been carrying an argument about REALISM it
+ * cannot support. Will put it plainly: "reality cannot be that close to a 1/4 split for all moves".
+ * He is right, and the corpus is emphatic -- Charizard clicks Protect 60.6% and Heat Wave 21.5%,
+ * nothing like the 25% each a uniform draw assumes.
+ *
+ * data/move-priors.json is P(move | this species clicked something), measured from real ladder play,
+ * and it is what engine/prior_player.js already samples for self-play. Sampling it keeps the variance
+ * that made random playouts work AND gives an opponent who behaves like a person. Which is better is
+ * an empirical question, so it is a PARAMETER and R4 decides it. */
+let _mp = null;
+function movePriorFor(name) {
+  if (_mp === null) {
+    _mp = {};
+    try {
+      const j = JSON.parse(require('fs').readFileSync(D('data', 'move-priors.json'), 'utf8'));
+      for (const [sp, v] of Object.entries(j.species || {})) {
+        const rows = (v.moves || []).filter(m => m && m.mv && m.p > 0);
+        if (rows.length) _mp[String(sp).toLowerCase().replace(/[^a-z0-9-]/g, '')] = rows;
+      }
+    } catch (e) { /* absent: callers fall back to uniform, which is the old behaviour */ }
+  }
+  return _mp[String(name || '').toLowerCase().replace(/[^a-z0-9-]/g, '')] || null;
+}
+
+/* Pick from the mon's OWN moveset, weighted by how often that species really clicks each one.
+ * Moves it is not carrying are skipped rather than renormalised away silently. */
+function pickByPrior(mon, rng) {
+  const rows = movePriorFor(mon && mon.name);
+  const have = (mon && mon.moves) || [];
+  if (!rows || !have.length) return null;
+  const cand = [];
+  let tot = 0;
+  for (const id of have) {
+    const r = rows.find(x => x.mv === id);
+    const w = r ? r.p : 0.02;            // carried but never observed: rare, not impossible
+    cand.push([id, w]); tot += w;
+  }
+  if (!tot) return null;
+  let x = rng() * tot;
+  for (const [id, w] of cand) { x -= w; if (x <= 0) return id; }
+  return cand[cand.length - 1][0];
+}
+
 function rolloutWinProb(board, side, opts) {
   opts = opts || {};
   const n = opts.n || 40;
   /* 0 reproduces the deterministic-greedy playout exactly, so the sweep includes the incumbent. */
   const EXPLORE = typeof opts.explore === 'number' ? opts.explore : 0;
+  const FOE_POLICY = opts.foePolicy || 'uniform';
   const dex = opts.dex;
   const foe = side === 'p1' ? 'p2' : 'p1';
   const stats = { fainted: 0, unbuildable: 0, threw: 0 };
@@ -217,7 +268,9 @@ function rolloutWinProb(board, side, opts) {
           if (!mvs.length) return null;
           const foes = (S.actA.indexOf(mon) >= 0 ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
           if (!foes.length) return null;
-          const mv = mvs[Math.floor(rng() * mvs.length) % mvs.length];
+          /* Weighted by what this species really clicks when FOE_POLICY is 'prior'. */
+          const mv = (FOE_POLICY === 'prior' && pickByPrior(mon, rng)) ||
+            mvs[Math.floor(rng() * mvs.length) % mvs.length];
           const tg = foes[Math.floor(rng() * foes.length) % foes.length];
           /* A throw here is NOT expected. playerAction is being handed a move off the mon's own
            * moveset and a live foe, so if it throws, the exploration is generating actions the engine
@@ -264,6 +317,11 @@ function rolloutAfterActions(board, side, opts) {
   const n = opts.n || 20;
   const dex = opts.dex;
   const foe = side === 'p1' ? 'p2' : 'p1';
+  /* Defined per function: the first version declared it only in rolloutWinProb and read it in
+   * rolloutAfterActions, which is a free variable that a syntax check cannot see and that throws
+   * only when a real turn calls it -- the same mistake as the ROLLOUT flag left behind by the
+   * miltank extraction. */
+  const FOE_POLICY = opts.foePolicy || 'uniform';
   const f = opts.field || {};
   const clicks = opts.myClicks || [];
   const zero = () => ({ fainted: 0, unbuildable: 0, threw: 0 });
@@ -352,7 +410,9 @@ function rolloutAfterActions(board, side, opts) {
           const mvs = mon.moves || [];
           const foesL = (mine ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
           if (!mvs.length || !foesL.length) return null;
-          const mv = mvs[Math.floor(rng() * mvs.length) % mvs.length];
+          /* Weighted by what this species really clicks when FOE_POLICY is 'prior'. */
+          const mv = (FOE_POLICY === 'prior' && pickByPrior(mon, rng)) ||
+            mvs[Math.floor(rng() * mvs.length) % mvs.length];
           const tg = foesL[Math.floor(rng() * foesL.length) % foesL.length];
           /* Same reasoning as the leaf's own explore block: swallowing this would quietly reduce the
            * exploration rate and make explore=1 behave like something lower, which is the variable
