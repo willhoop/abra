@@ -30,7 +30,18 @@ const B = require('./board.js');
 const TAGSMOD = require('./tags.js');
 
 /* Defaults match mag_bot's flags so a caller that passes nothing gets the shipped player. */
-const DEFAULTS = { n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
+/* `defer` -- hand a turn back to MAG when the search cannot separate its options.
+ *
+ * ON by default, and that default is an ASSUMPTION rather than a measurement: an argmax over
+ * indistinguishable options is a coin flip, and a prior fitted on humans should beat a coin flip.
+ * Plausible, untested, and it decides 29% of turns in an R4 run -- so it is a flag now, and the A/B
+ * is one run rather than an argument.
+ *
+ * There is one live reason to keep it while it is untested: MEDICHAM is missing sixteen confirmed
+ * mechanics, so in a position the search cannot separate, MAG's prior was fitted on people playing
+ * the REAL game and the search is reasoning about a broken one. That argument weakens with every
+ * mechanic fixed, which is itself worth measuring. */
+const DEFAULTS = { defer: true, n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
                    why: false, trace: false };
 
 /* Install MILTANK onto an already-constructed magnemite player.
@@ -42,6 +53,7 @@ function install(bot, o) {
   const ROLLOUT_N = opts.n, ROLLOUT_EXPLORE = opts.explore, ROLLOUT_TURNS = opts.turns;
   const PREVIEW_N = opts.previewN, PREVIEW_MS = opts.previewMs;
   const WHY = !!opts.why, TRACE = !!opts.trace;
+  const DEFER = opts.defer !== false;
 
       const RL = require('./rollout_leaf.js');
       /* The real dex, not undefined. dmgMon uses it to resolve the EFFECTIVE ability — a mega's
@@ -189,7 +201,11 @@ function install(bot, o) {
       const baseSwitch = bot.chooseSwitch.bind(bot);
       bot.chooseSwitch = function (active, switches) {
         try {
-          if (!ROLLOUT || !this.board || !(switches || []).length) return baseSwitch(active, switches);
+          /* `ROLLOUT` was mag_bot's own on/off flag and came through the extraction as a free
+           * variable -- so chooseSwitch threw on every forced replacement and fell back to MAG,
+           * silently, in the one harness where it had never been exercised. Inside this file the
+           * guard is meaningless: if install() ran, MILTANK is on. */
+          if (!this.board || !(switches || []).length) return baseSwitch(active, switches);
           if ((switches || []).length < 2) return baseSwitch(active, switches);
           const side = this.me || 'p1';
           const req = this._req;
@@ -221,7 +237,7 @@ function install(bot, o) {
           /* The same noise-floor rule the move picker uses: an argmax over estimates that overlap is
            * a coin flip wearing a search's clothes, and magnemite's ranking is the better tiebreak. */
           const se = Math.sqrt(Math.max(scored[0][0] * (1 - scored[0][0]), 0.0025) / (ROLLOUT_N * 2));
-          if (scored[0][0] - scored[1][0] < 1.5 * se) {
+          if (DEFER && scored[0][0] - scored[1][0] < 1.5 * se) {
             console.log(`  replacement: UNDECIDED — ${scored.map(s => s[2] + ' ' + (100 * s[0]).toFixed(0) + '%').join(', ')}` +
               `; within a ${(100 * se).toFixed(1)}pt error, deferring to MAG`);
             return baseSwitch(active, switches);
@@ -545,12 +561,12 @@ function install(bot, o) {
           for (const k of Object.keys(byKind)) for (const v of byKind[k]) fv.push(v);
           const spread = Math.max(...fv) - Math.min(...fv);
           const se = Math.sqrt(Math.max(bestVal * (1 - bestVal), 0.0025) / (ROLLOUT_N * 2));
-          if (fv.length > 1 && spread < 1.5 * se) {
+          if (DEFER && fv.length > 1 && spread < 1.5 * se) {
             console.log(`  MILTANK: UNDECIDED — ${fv.length} finalists span ${(100 * spread).toFixed(1)}pt` +
               ` against a ${(100 * se).toFixed(1)}pt standard error; deferring to MAG`);
             return base(active, moves);
           }
-          if (bestVal < 0.03 || bestVal > 0.97) {
+          if (DEFER && (bestVal < 0.03 || bestVal > 0.97)) {
             console.log(`  MILTANK: position already decided at ${(100 * bestVal).toFixed(0)}% —` +
               ' every line scores the same, deferring to MAG');
             return base(active, moves);

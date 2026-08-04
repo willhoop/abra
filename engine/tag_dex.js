@@ -1469,6 +1469,41 @@ const MOVE_TAGS = [
       if (!/takeItem/.test(src)) return null;
       return { steals: /setItem|addItem/.test(src) };
     } },
+  /* WHICH STAT A MOVE ATTACKS WITH, AND WHICH IT ATTACKS INTO.
+   *
+   * Body Press attacks with DEFENCE; Psyshock attacks INTO defence. The dex states both as plain
+   * fields -- overrideOffensiveStat and overrideDefensiveStat -- and MEDICHAM read neither, so Body
+   * Press was computed off Attack. Measured: a Corviknight with 125 Def and one with 250 Def both
+   * dealt 54.
+   *
+   * THIS IS A DAMAGE-PATH FIX AND IT MOVES THE DAMAGE TABLE. It therefore invalidates the fitted
+   * weights, which is a refit -- taken deliberately, because a search maximises over its model and a
+   * wrong damage number is a lie the search will actively seek out. */
+  { tag: 'statSwap', param: 'the move uses a different stat to attack with, or to attack into',
+    probe: 'statSwap',
+    why: 'Body Press off Attack is not Body Press; the search prices it wrong in both directions',
+    of: m => {
+      const o = m.overrideOffensiveStat, d = m.overrideDefensiveStat;
+      if (!o && !d) return null;
+      const out = {};
+      if (o) out.attackWith = String(o);
+      if (d) out.attackInto = String(d);
+      return out;
+    } },
+  /* MOVES THAT IGNORE STAT STAGES. Sacred Sword, Darkest Lariat and Chip Away ignore the target's
+   * DEFENSIVE boosts; the dex says so with ignoreDefensive. Measured missing: 65 damage unboosted
+   * against 23 into +4 Defence, i.e. the boost applied in full. */
+  { tag: 'ignoresBoosts', param: 'the move ignores the target or user stat stages',
+    probe: 'ignoresBoosts',
+    why: 'a setup sweeper behind +4 Defence is exactly the position these moves exist to answer, '
+       + 'and the engine let the boost stand',
+    of: m => {
+      if (!m.ignoreDefensive && !m.ignoreOffensive) return null;
+      const out = {};
+      if (m.ignoreDefensive) out.defensive = true;
+      if (m.ignoreOffensive) out.offensive = true;
+      return out;
+    } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
@@ -1677,6 +1712,22 @@ const ITEM_TAGS = [
 ];
 
 const ABILITY_TAGS = [
+  { tag: 'convertsMoveType', param: 'rewrites Normal moves to another type and boosts them',
+    probe: 'convertsMoveType',
+    why: 'Aerilate Staraptor and Galvanize are whole archetypes, and the engine played them as if '
+       + 'the ability were blank',
+    of: a => {
+      const src = String(a.onModifyType || '');
+      if (!src) return null;
+      const t = /type\s*=\s*["']([A-Za-z]+)["']/.exec(src);
+      if (!t) return null;
+      /* The multiplier lives in onBasePower as a chainModify; 1.2 is the generation-9 value for the
+       * whole family. Read it if it is written, fall back to 1.2 if the handler is opaque. */
+      const bp = String(a.onBasePower || '');
+      const mm = /chainModify\(\s*\[?\s*(\d+)\s*,\s*(\d+)/.exec(bp);
+      const mult = mm ? (parseInt(mm[1], 10) / parseInt(mm[2], 10)) : (bp ? 1.2 : 1);
+      return { to: t[1], mult: Math.round(mult * 1000) / 1000 };
+    } },
   /* AN ABILITY THAT UPGRADES THE POKEMON WHEN IT COMES BACK IN.
    *
    * Zero to Hero: Palafin leaves the field and returns as Palafin-Hero, 154 Attack to 233. The
@@ -2199,8 +2250,26 @@ const ABILITY_TAGS = [
     why: 'Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them',
     of: a => {
       if (!a.onSourceModifyDamage) return null;
-      const src = String(a.onSourceModifyDamage);
-      return { damageMult: multiplierIn(src), onlyWhen: hpGateIn(src) };
+      const src = String(a.onSourceModifyDamage).replace(/\s+/g, ' ');
+      const mult = multiplierIn(src);
+      if (!(mult > 0 && mult < 1)) return null;
+      /* THE CONDITION IS THE HALF THAT WAS MISSING, and without it the tag is dangerous rather than
+       * merely incomplete: Filter cuts only SUPER-EFFECTIVE hits and Ice Scales only SPECIAL ones,
+       * so an engine reading damageMult alone would halve everything and be more wrong than the
+       * hardcoded name list it replaced. Read from the same handler the multiplier comes from.
+       *
+       * `null` now means genuinely unconditional. It used to mean "no HP gate", which quietly
+       * described Filter and Ice Scales as unconditional -- and RIPEN, which reduces nothing at all
+       * and is about berries; requiring a real multiplier drops it. */
+      let when = hpGateIn(src) ? 'fullHP' : null;
+      if (!when) {
+        if (/typeMod\s*>\s*0/.test(src)) when = 'superEffective';
+        else if (/category\s*===\s*["']Special["']/.test(src)) when = 'special';
+        else if (/category\s*===\s*["']Physical["']/.test(src)) when = 'physical';
+        else if (/sound/i.test(src)) when = 'sound';
+        else if (/contact/.test(src)) when = 'contact';
+      }
+      return { damageMult: mult, onlyWhen: when };
     } },
   { tag: 'boostsMoveClass', param: 'x1.2-1.5 on moves carrying ONE FLAG', probe: 'boostsMoveClass',
     why: 'Tough Claws (contact, 272 uses), Sharpness (slicing, 155), Iron Fist (punch), Mega '

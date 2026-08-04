@@ -182,6 +182,8 @@ let _warnedNoDigest = false;
 const MILTANK_A = process.argv.includes('--miltank');
 const MILTANK_B = process.argv.includes('--miltank2');
 const MILTANK_N = parseInt(arg('miltank-n', '60'), 10);
+/* --miltank-no-defer  stop handing near-ties back to MAG. The A/B for an untested assumption. */
+const MILTANK_DEFER = !process.argv.includes('--miltank-no-defer');
 const MILTANK_PREVIEW_N = parseInt(arg('miltank-preview-n', '12'), 10);
 const GREEDY_A = process.argv.includes('--greedy');
 /* --opponent-model / --opponent-model2  arm the expectation-based threat estimate, PER ARM, for the
@@ -537,7 +539,7 @@ async function playOne(teamA, teamB, seed, forceSwap) {
    * is what every fallback returns to. */
   if (MILTANK_A || MILTANK_B) {
     const MT = require('./miltank.js');
-    const mo = { n: MILTANK_N, previewN: MILTANK_PREVIEW_N, previewMs: 4000 };
+    const mo = { n: MILTANK_N, previewN: MILTANK_PREVIEW_N, previewMs: 4000, defer: MILTANK_DEFER };
     if (MILTANK_A) MT.install(swapped ? p2 : p1, mo);
     if (MILTANK_B) MT.install(swapped ? p1 : p2, mo);
   }

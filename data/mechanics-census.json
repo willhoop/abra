@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-04T00:49:27.195Z",
+  "generated": "2026-08-04T01:25:07.662Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 54,
-  "live": 38,
-  "missing": 16,
+  "live": 41,
+  "missing": 13,
   "results": [
     {
       "kind": "item",
@@ -122,8 +122,8 @@
       "kind": "ability",
       "tag": "damageBoost",
       "label": "Aerilate converts and boosts",
-      "live": false,
-      "detail": "none 94  ->  aerilate 94"
+      "live": true,
+      "detail": "none 94  ->  aerilate 114"
     },
     {
       "kind": "ability",
@@ -220,15 +220,15 @@
       "kind": "move",
       "tag": "swapsStat",
       "label": "Body Press attacks with Defense",
-      "live": false,
-      "detail": "def 125 deals 54, def 250 deals 54"
+      "live": true,
+      "detail": "def 125 deals 40, def 250 deals 78"
     },
     {
       "kind": "move",
       "tag": "ignoresStatStages",
       "label": "Sacred Sword ignores a Defense boost",
-      "live": false,
-      "detail": "unboosted 65 vs +4 Def 23 (equal = ignored)"
+      "live": true,
+      "detail": "unboosted 65 vs +4 Def 65 (equal = ignored)"
     },
     {
       "kind": "move",

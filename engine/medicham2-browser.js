@@ -357,6 +357,27 @@ function dmgRange(att,def,mv,field,spread){
    * in one turn, so Solar Beam is (wrongly, pre-existing) never charged anywhere -- stated, not fixed
    * by pretending. Pure: mv is never mutated, the overrides live in locals. */
   let mvT=mv.t,mvBP=mv.bp;
+  /* THE -ATE ABILITIES. Aerilate, Pixilate, Galvanize, Refrigerate, Dragonize and Normalize rewrite
+   * a NORMAL move's type and add 20% power. Both halves are declared in the dex -- onModifyType
+   * names the type, onBasePower carries the multiplier -- and this engine read neither, so an
+   * Aerilate Staraptor dealt exactly what one without the ability dealt: 94 either way. On a Pokemon
+   * built entirely around the ability that is not a rounding error.
+   *
+   * Applied HERE, before STAB and effectiveness, because the whole point is that the move becomes a
+   * DIFFERENT TYPE -- so everything downstream must see the new one. Normalize converts in the other
+   * direction and the tag says so, hence the check on what it converts FROM. */
+  {
+    const _cm=TAGS.param('ability',att.ability,'convertsMoveType');
+    if(_cm&&_cm.into){
+      const _from=String(_cm.converts||'').toLowerCase();
+      const _isNormalMove=mvT==='Normal';
+      const _applies=_from.indexOf('normal')>=0 ? _isNormalMove : (_from.indexOf('its moves')>=0);
+      if(_applies&&mvT!==_cm.into){
+        mvT=_cm.into;
+        if(_cm.damageMult&&_cm.damageMult!==1)mvBP=Math.floor(mvBP*_cm.damageMult);
+      }
+    }
+  }
   const _ws=mv.id&&TAGS.param('move',mv.id,'weatherScaled');
   if(_ws&&_ws.byWeather&&field&&field.weather){
     const w=_ws.byWeather[field.weather];
@@ -380,9 +401,23 @@ function dmgRange(att,def,mv,field,spread){
     else if(_vp.kind==='targetHasItem'&&def.item)mvBP=mvBP*_vp.mult;
   }
   const phys=mv.c==='P';
-  let A=phys?att.st.at:att.st.sa,D=phys?def.st.df:def.st.sd;
-  A=Math.floor(A*boostMul(phys?att.boosts.at:att.boosts.sa));
-  D=Math.floor(D*boostMul(phys?def.boosts.df:def.boosts.sd));
+  /* WHICH STAT ATTACKS, AND WHICH STAT IS ATTACKED INTO -- from the statSwap tag.
+   *
+   * Body Press attacks with DEFENCE and Psyshock attacks INTO defence. The dex states both as plain
+   * fields and this engine read neither, so Body Press was computed off Attack: a Corviknight with
+   * 125 Def and one with 250 Def both dealt 54. Read from the artifact so a third one needs no edit.
+   *
+   * IGNORED STAT STAGES too (Sacred Sword, Darkest Lariat): the boost multiplier is skipped rather
+   * than the stat replaced, which is the actual rule -- the defender keeps its stat, it just does not
+   * get to keep the boost. Measured missing at 65 unboosted against 23 into +4 Defence. */
+  const _ss=mv.id?TAGS.param('move',mv.id,'statSwap'):null;
+  const _ib=mv.id?TAGS.param('move',mv.id,'ignoresBoosts'):null;
+  const _S2E={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
+  const _aKey=(_ss&&_ss.attackWith&&_S2E[_ss.attackWith])||(phys?'at':'sa');
+  const _dKey=(_ss&&_ss.attackInto&&_S2E[_ss.attackInto])||(phys?'df':'sd');
+  let A=att.st[_aKey],D=def.st[_dKey];
+  A=Math.floor(A*((_ib&&_ib.offensive)?1:boostMul(att.boosts[_aKey])));
+  D=Math.floor(D*((_ib&&_ib.defensive)?1:boostMul(def.boosts[_dKey])));
   if(phys&&att.item==='choiceband')A=Math.floor(A*1.5);
   if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
   if(!phys&&def.item==='assaultvest')D=Math.floor(D*1.5);
@@ -875,8 +910,22 @@ function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;
  * entrant's weather OVERRIDES what stands, exactly as the real setWeather does. Terrain now exists
  * on the field for the same reason (Psychic Surge blocks priority the way Armor Tail does; Grassy
  * Glide's +1 already reads field.terrain and could never see one). */
-function applyEntryEffects(m,field){
+/* `ally` is optional and is what Hospitality needs: an entry effect that touches the PARTNER, not
+ * the field. Every existing caller passes two arguments and is unaffected. */
+function applyEntryEffects(m,field,ally){
   if(!m)return;
+  /* HOSPITALITY -- Sinistcha and Gardevoir, 4,968 uses, and the third most common ability in the
+   * format. It restores a quarter of the partner's HP on entry and the engine did nothing at all,
+   * so every Sinistcha pivot in every rollout was worth less than it is.
+   *
+   * Chosen over Blaze deliberately. Blaze shows 4,585 uses and 30 of its 54 sheet entries are a
+   * Charizard holding a Charizardite -- it megas on turn one and the ability becomes Drought, so the
+   * Blaze is never live. Ability usage is counted off SHEETS, which over-counts every pre-mega
+   * ability; Will spotted that from the number alone. */
+  const _h=TAGS.param('ability',m.ability,'healsAllyOnSwitchIn');
+  if(_h&&_h.heals&&ally&&!ally.fainted&&ally.curHP>0&&ally.st){
+    ally.curHP=Math.min(ally.st.hp,ally.curHP+Math.floor(ally.st.hp/4));
+  }
   const w=TAGS.param('ability',m.ability,'weatherSetter');
   if(w&&w.weather){field.weather=w.weather;field.weatherT=5;}
   const t=TAGS.param('ability',m.ability,'terrainSetter');
@@ -922,7 +971,7 @@ function bringIn(act,i,bench,foes,sf,field,wanted){
   }
   bench.splice(bench.indexOf(nx),1);
   nx._turnsOut=0; nx._fallenStuck=sf.fainted; act[i]=nx;
-  applyEntryEffects(nx,field);
+  applyEntryEffects(nx,field,act[1-i]);
   if(nx.ability==='intimidate')for(const f of _live(foes))applyIntimidate(f);
   return nx;
 }
@@ -967,7 +1016,8 @@ function battleInit(teamA,teamB,opts){
    * is a flag that will be missed in a seventh. */
   teamA.concat(teamB).forEach(m=>{if(m)m._hadItem=!!m.item;});
   if(!(opts&&opts.seeded)){
-    for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field);
+    for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field,
+      S.actA.indexOf(m)>=0?S.actA.find(x=>x&&x!==m):S.actB.find(x=>x&&x!==m));
     const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
     intim(S.actA,S.actB);intim(S.actB,S.actA);
   }
