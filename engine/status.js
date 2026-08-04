@@ -1,3 +1,7 @@
+// RAW-STORE-OK: reports the STORE ITSELF -- line counts and mtimes, so a reader can see which
+// corpora are still collecting. Filtering for clean games here would defeat the purpose: the
+// question is how big the raw store is and when it last grew, not what survives quality.js.
+// The clean figure is reported separately, from live.js, and labelled as such.
 /* status.js — the handoff, generated.
  *
  *   node engine/status.js           print it
