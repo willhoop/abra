@@ -39,19 +39,35 @@ const ROOT = path.join(__dirname, '..');
 const { audit } = require(path.join(ROOT, 'web', 'figure-audit.js'));
 
 /* ================================================================================================
- * THE FLOOR. Measured 2026-08-04 at 84.3% overall (70 of 83), up from 27.4% (17 of 62) the same day.
- * Set a little under, so that ordinary copy-editing does not turn the guard red, and so that a real
- * regression does.
+ * THE FLOOR. Measured 2026-08-04 at 92.0% overall (92 of 100), from 84.3% (70 of 83) earlier the
+ * same day and 27.4% (17 of 62) the day it was introduced. The last two untraced pages were closed
+ * in that pass: web/models.html cites data/quality-filter.json beside its bot share and now READS
+ * the mechanics census out of web/status-data.js rather than carrying it, and web/tower.html cites
+ * data/damage-validation.json and reads its species count off data/engine-data.js instead of
+ * carrying a typed 289. Two of those became interpolations, so the denominator FELL — a figure that
+ * stops being hardcoded leaves this metric entirely, which is the intended direction.
+ * Set a little under the measurement, so that ordinary copy-editing does not turn the guard red and
+ * a real regression does.
  * RAISE THIS whenever the real number rises. Never lower it without saying why in the same commit.
  * ============================================================================================== */
-const FLOOR_PCT = 80.0;
+const FLOOR_PCT = 88.0;
+/* THE PER-PAGE FLOOR, AND WHY IT IS LOWER. web/index.html is the front door, the largest page and
+ * the worst-traced at 80.5%; every other page with figures is at 100%. A per-page floor exists so a
+ * new room cannot ship with nothing cited while the site-wide number rides on the good pages, so it
+ * is pinned just under the genuine worst page rather than at the site average. */
+const PAGE_FLOOR_PCT = 75.0;
 /* Withdrawn figures are struck out on the page and out of the denominator. If that count DROPS, a
  * retracted claim was quietly deleted or quietly un-struck, which is the failure the strike exists
  * to prevent. Measured 2026-08-04: 26 — 19 from the twin-test paragraph in web/index.html, plus 7
  * from web/stadium.html, where MEDICHAM's superseded win-rate reading and SLOWKING's superseded
  * equilibrium were struck out rather than deleted when the cabinets were reconciled to their
- * artifacts. Deleting them would have hidden that the page ever made those claims. */
-const MIN_WITHDRAWN = 26;
+ * artifacts. Deleting them would have hidden that the page ever made those claims.
+ * RAISED 26 -> 28 later the same day, and the two extra were always on the page: KADABRA's strike
+ * carried `class="wd"` inside a double-quoted JS string, which was a SyntaxError that killed the
+ * whole Stadium script (see tests/test-web-parses.js) and also truncated the strike as far as this
+ * scanner was concerned, so two withdrawn figures were being counted as ordinary text. Fixing the
+ * quoting revealed them. */
+const MIN_WITHDRAWN = 28;
 
 let P = 0, F = 0;
 const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; console.log('  FAIL ' + m); } };
@@ -89,10 +105,16 @@ ok(r.bad_strikes.length === 0,
 
 /* 4. NO PAGE MAY GET WORSE THAN THE WORST ONE THAT EXISTS. A site-wide percentage can be held up by
  *    one good page while a new room ships with nothing cited, so the per-page floor is checked too.
- *    Pages with no hardcoded figures are exempt by construction — they have nothing to trace. */
+ *    Pages with no hardcoded figures are exempt by construction — they have nothing to trace.
+ *
+ *    THIS ASSERTED `p.pct >= 0` UNTIL 2026-08-04, which is true of every percentage there has ever
+ *    been. The comment above it described a floor and the code below it could not fail, so the site
+ *    ran with a per-page guard that was a sentence. That is the same defect the whole file exists to
+ *    catch, one level up: a check nobody can fail is not a check. */
 for (const p of r.pages) {
   if (p.denom === 0) continue;
-  ok(p.pct >= 0, `${p.file}: ${p.traced}/${p.denom} traced (${p.pct}%)`);
+  ok(p.pct >= PAGE_FLOOR_PCT,
+    `${p.file}: ${p.traced}/${p.denom} traced (${p.pct}%) — per-page floor is ${PAGE_FLOOR_PCT}%`);
 }
 
 if (process.argv.includes('--list')) {

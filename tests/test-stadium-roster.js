@@ -13,8 +13,35 @@
  * Per the same rule, a gap that is a JUDGEMENT is declared here with its reason rather
  * than being averaged away. Sections of MODELS.md that are not models do not get cabinets.
  */
+/* AND TWO DIRECTIONS ARE NOT ENOUGH, WHICH IS WHAT GURU PROVED.
+ *
+ * The two checks above compare the page to the ledger and the ledger to the page. Between them they
+ * catch a model that is in ONE of the two files. They are structurally blind to a model that is in
+ * NEITHER -- and GURU was exactly that. `engine/guru.py` writes `data/guru-matchups.json`,
+ * `build/build_guru_js.js` wraps it as `data/guru.js`, `web/index.html` renders it on the front
+ * door, and GURU had no `## GURU` heading and no cabinet. Nothing on either side of the comparison
+ * knew it existed, so both directions passed while the project's archetype matchup matrix was
+ * undocumented. (PRIORITIES #41.)
+ *
+ * So there is a THIRD source of truth, and it is neither of the first two: the set of things that
+ * actually GENERATE a `data/*` artifact. A generator is a fact about the code -- it is there whether
+ * or not anybody wrote it down -- which is precisely the property the other two lack.
+ *
+ * IT IS READ FROM `engine/provenance.js --graph`, NOT RESCANNED HERE. That file already derives the
+ * whole artifact graph from the source (84 artifacts, 57 counted off the game store, each attributed
+ * to the generator that WRITES it, with three ranked write tests and named exclusions for the false
+ * attributions it has already been caught making). A second scanner in this file would be a second
+ * implementation of "who writes what", the two would disagree eventually, and the disagreement would
+ * be invisible -- CLAUDE.md, FACTS ARE GLOBAL.
+ *
+ * Its report is parsed as text because that is the only interface it offers. The smallest change
+ * that would remove the parsing is `--graph --json` (or exporting `deriveGraph`) in
+ * engine/provenance.js; ENGINE owns that file, this division does not, and text is honest in the
+ * meantime. The parse asserts a row count so it cannot silently read nothing.
+ */
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const MD = fs.readFileSync(path.join(ROOT, 'docs', 'MODELS.md'), 'utf8');
@@ -37,6 +64,100 @@ const NOT_A_CABINET = {
   'ILLUSION':                 'a detection rule inside ingest',
   'CHAMPIONS_SIM':            'the official engine we play inside (ADR-001), not ours',
   'SMOGON PRIORS':            'an external population statistic we consume',
+};
+
+/* ================================================================================================
+ * WHAT COUNTS AS A MODEL, AND WHAT IS ONLY A PIPELINE STEP
+ * ================================================================================================
+ * 57 store-derived generators against 12 cabinets is a large gap and MOST OF IT IS LEGITIMATE. A
+ * build script is not a model. But the exception list is the dangerous half of this check, not the
+ * scan: a filter broad enough to drop every `build/*` will drop the next real model that happens to
+ * live there, and a check that excuses things by shape stops checking. So every exception is a NAME
+ * and a REASON, like NOT_A_CABINET above, and the rule that decides which list a generator lands in
+ * is written here so a reader can apply it to a file this table has never heard of.
+ *
+ *   A generator is a MODEL when its artifact states something about CHAMPIONS -- the game, its
+ *   players, or the metagame -- that anything or anyone is meant to ACT on.
+ *
+ *   It is a PIPELINE STEP when its artifact states something about ABRA instead -- our own code's
+ *   cost, coverage, calibration, conformance or corpus -- or when it only RE-ENCODES a statement
+ *   that already has a home somewhere else.
+ *
+ * The question that settles it: IF THIS NUMBER IS WRONG, WHO IS MISLED?
+ *   - a player, the bot, or a visitor reading a page   -> MODEL. It needs a docs/MODELS.md entry.
+ *   - only us, while deciding what to build next      -> a measurement of our own code. Its home is
+ *                                                        the division ledger, not the model ledger.
+ *   - nobody, because the number came from elsewhere
+ *     and this only reshaped it                       -> a re-encoding. engine/artifact_audit.js and
+ *                                                        tests/test-artifact-keys.js check those
+ *                                                        against their source; that is their guard.
+ *
+ * Three corollaries, each of which caught a wrong first answer while this table was being written:
+ *
+ *   READING THE GAME STORE DOES NOT MAKE YOU A MODEL. `build/build_ability_blocks.js` walks real
+ *   battles to learn which ability nullifies which move. That is a CENSUS OF A RULE: run it on twice
+ *   the games and coverage rises, the answer does not move. An estimate moves.
+ *
+ *   NOT READING THE GAME STORE DOES NOT SAVE YOU FROM BEING ONE. `engine/slowking_preview.py` opens
+ *   no game file and is unambiguously a model -- it solves a matrix and publishes an equilibrium
+ *   that can be wrong.
+ *
+ *   NOTHING CONSUMING IT DOES NOT SAVE YOU EITHER, and this one is load-bearing. It is tempting to
+ *   exempt any artifact no other file reads, and it would shrink this table by a dozen entries. It
+ *   is also exactly the failure CLAUDE.md records: "PORYGON2 and DODUO were fitted, saved, quoted in
+ *   documents, and never once in a live decision." An unwired model is still a model. Consumption is
+ *   evidence about IMPORTANCE, never about whether something needs writing down.
+ * ============================================================================================== */
+const NOT_A_MODEL = {
+  /* --- RE-ENCODINGS. The site is buildless and cannot require(), so every artifact a page reads
+   *     exists twice. The second copy makes no claim of its own; the claim belongs to the file it
+   *     was built from, and that file is the one that owes a ledger entry. --- */
+  /* build/build_guru_js.js was here for one evening and is deliberately NOT any more: MEASURE's
+   * GURU entry names it, so arm (a) accounts for it and check 7 fires on the leftover excuse.
+   * Keeping it would have read as "the project decided this is not a model", beside a ledger
+   * entry saying the opposite. */
+  'build/build_mag_data.js':      'wraps MAGNEMITE\'s weights and priors as data/mag.js; the claim is MAG\'s',
+  'build/build_meta_js.js':       'the Tower\'s threat list, ranked out of data/meta-usage.json; the claim is the usage model\'s',
+  'build/build_mew_bundle.js':    'a handful of self-play games trimmed to what the MEW viewer draws',
+  'build/build_scoreboard.js':    'precomputed MAG traces for web/scoreboard.html; the claim is MAG\'s',
+  'build/build_tags_js.js':       'window.ABRA_TAGS, a wrapper of data/tags.json and nothing else',
+  'build/build_board_browser.js': 'the data engine/board.js needs as a browser global; a repackaging of the engine\'s own tables',
+  'build/build_browser_data.js':  'browser copies of CHOMP\'s canonical dex files (formes, move effects)',
+  'engine/build_roles_js.py':     'a browser-weight trim of ROLES\' three artifacts; ROLES has its own ledger entry',
+  'engine/build-status.js':       'reads every model\'s shipped report and emits status badges; it restates other models\' verdicts and originates none',
+
+  /* --- FACTS AND FORMAT, not estimates. Deterministic properties of the game, the dex or the
+   *     protocol. More games raise coverage; they do not move the answer. --- */
+  'build/build_ability_blocks.js':      'a census of a game RULE — which ability nullifies which move — measured rather than typed',
+  'engine/build_species_abilities.js':  'which ability a species CAN have; declares RAW-STORE-OK for exactly this reason — a fact about the game, not about who plays it',
+  'engine/tag_dex.js':                  'tags every move/item/ability with the PARAMETERS it sets, read out of the Showdown dex; tests/test-tag-wire.js is its guard',
+  'engine/game-spec.js':                'a sample of the (state, observation, action, reward) ENCODING — a property of the protocol, and declared RAW-STORE-OK as such',
+
+  /* --- SITE AND CORPUS PLUMBING. Counts of our own store, not claims about Champions. --- */
+  'engine/refresh-site-data.NOARCH.py': 'the site refresh — corpus counts and a replay bundle for the coach. If it is wrong it misreports how much data WE hold, not how Champions is played. (Sandbox variant of engine/refresh-site-data.py, which the ledger does name; the duplicate is an OPS finding, not a model.)',
+
+  /* --- MEASUREMENTS OF OUR OWN CODE. Each publishes a verdict ABOUT a model, a feature set or an
+   *     affordability question. Its home is the division ledger — docs/MEASURE.md and docs/SEARCH.md
+   *     carry these — and MODELS.md already declares "Evaluation & honesty" a cross-cutting practice
+   *     rather than a component. An evaluation of a model is not itself a model. --- */
+  'engine/collinearity_audit.js':    'fits every MAG feature alone against its weight in the full model — a diagnosis of MAG',
+  'engine/collinearity_fix.js':      'can the kill block be repaired, and does repairing it help — a diagnosis of MAG',
+  'engine/feature_audit.js':         'does every feature in board.js actually do anything — a diagnosis of the feature set',
+  'engine/weight_multiplicity.js':   'which fitted weights survive a multiplicity correction — a statement about MAG\'s fit, not about Champions',
+  'engine/opponent_recall.js':       'can MAG narrow the OPPONENT\'s turn — MAG\'s score, reported for MAG',
+  'engine/opponent_calibration.js':  'is MAG a usable SAMPLER even though it is a poor ranker — MAG\'s score',
+  'engine/recall_at_k.js':           'is MAG good enough to PRUNE — the number the search layer needs about MAG',
+  'engine/conformance.js':           'does every file obey the standards the project set itself — a statement about this repository',
+  'engine/double_protect.js':        'how often both slots Protect, our bot against humans — a realism diagnostic of our own player',
+  'engine/nmf_rank.py':              'chooses NMF\'s rank by a criterion instead of by eye; a hyper-parameter selection for NMF, which has its own ledger entry',
+  'engine/pory_nn.py':               'would a neural network beat counting Pokemon — a negative-result experiment; nothing reads data/pory-nn.json but a human',
+  'engine/lookahead_bound.py':       'GATE — is there anything for a search to find; an oracle upper bound on OUR search',
+  'engine/lookahead_clock_control.py':'GATE — is the oracle gain information or is it just the clock; the control for the bound above',
+  'engine/lookahead_cost.js':        'GATE — can we afford to look one turn ahead; a cost measurement of our own code',
+  'engine/rollout_r2.js':            'GATE R2 — what a rollout LEAF costs; a cost measurement of our own search',
+  'engine/rollout_r3.js':            'GATE R3 — does the search PICK A DIFFERENT MOVE; a behaviour diagnostic of our own search',
+  'engine/rollout_explore_sweep.js': 'should --rollout-explore default to 1.0 — a knob sweep over our own search',
+  'engine/rollout_r1_join.py':       'phase 2 of GATE R1 — scores PORYGON2 on the positions the rollout scored; an evaluation, and PORYGON2 is the model it evaluates',
 };
 
 /* MODELS.md headings look like "## NAME — long description (added ...)". Take the part
@@ -96,6 +217,128 @@ const dupes = cabinets.filter((c, i) => cabinets.indexOf(c) !== i);
 if (dupes.length) fail('duplicate cabinets: ' + [...new Set(dupes)].join(', '));
 else pass('no duplicate cabinets');
 
+/* ================================================================================================
+ * 5-7. THE THIRD DIRECTION: every generator of a data/* artifact is accounted for.
+ * ============================================================================================== */
+let graph = '';
+try {
+  graph = execFileSync(process.execPath, [path.join(ROOT, 'engine', 'provenance.js'), '--graph'],
+                       { encoding: 'utf8', cwd: ROOT, maxBuffer: 1 << 24 });
+} catch (e) {
+  fail('could not run engine/provenance.js --graph: ' + (e && e.message));
+}
+
+/* One row per artifact. The columns are space-padded rather than delimited, and a name longer than
+ * its column runs straight into the next one (`refresh-site-data.NOARCH.pyladder`), so the corpus
+ * word anchors the end of the path instead of whitespace doing it. */
+const GRAPH_ROW = /^ {2}([a-z0-9][^\s]*\.(?:json|js))\s\s+((?:engine|build)\/\S+?\.(?:js|py))\s*(?:ladder|opensheet)\s+(yes|no)\b/;
+const artifacts = [];
+for (const ln of graph.split(/\r?\n/)) {
+  const m = GRAPH_ROW.exec(ln);
+  if (m) artifacts.push({ file: m[1], by: m[2], store: m[3] === 'yes' });
+}
+
+/* A SCANNER THAT READS NOTHING REPORTS A CLEAN SITE. CLAUDE.md's one failure mode: "a capability was
+ * absent, and everything reported success." If the report format ever moves, this must go red rather
+ * than quietly excusing every generator in the project. The bound is well under the 84 rows the
+ * graph holds today, so ordinary growth or pruning does not trip it. */
+if (artifacts.length < 50) {
+  fail('parsed only ' + artifacts.length + ' rows out of engine/provenance.js --graph (expected 50+). '
+     + 'The report format moved and this check is reading nothing — fix the parse, do not delete it.');
+} else {
+  pass(artifacts.length + ' artifacts read from engine/provenance.js --graph, '
+     + artifacts.filter(a => a.store).length + ' of them counted off the game store');
+}
+
+const generators = [...new Set(artifacts.map(a => a.by))].sort();
+const writes = g => artifacts.filter(a => a.by === g).map(a => a.file);
+
+/* IS THIS GENERATOR ACCOUNTED FOR? Two derived arms, then the declared table.
+ *
+ * (a) THE LEDGER NAMES THE FILE, in either language. A model ported from Python to JS is the same
+ *     model: engine/ditto.js is described in the ledger as "DITTO (Node port)" of engine/ditto.py,
+ *     and only the .js spelling appears there. Comparing spellings instead of identities is the
+ *     mistake the mega merge made and the `norm()` above already guards against.
+ *
+ * (b) THE GENERATOR IS PLAINLY THAT MODEL'S. `engine/xatu.py` writes the belief distribution itself
+ *     and the ledger's two XATU headings name only engine/xatu_belief.py and engine/xatu_context.py,
+ *     which are its EVALUATIONS. XATU is documented and has a cabinet; the ledger simply cites a
+ *     sibling file. Requiring the exact path there would have produced an exception entry whose
+ *     reason was "XATU is documented", which is not a reason, it is the check failing.
+ *
+ * Cabinets are unioned in so this arm says literally what the rule says -- the ledger OR the site.
+ * Check 1 already forbids a cabinet that is not a heading, so today it adds nothing; if that ever
+ * relaxes, this keeps meaning what its comment says. */
+const documented = new Set([...headings, ...cabinets]);
+function accountedFor(g) {
+  const base = g.split('/').pop();
+  const alt = base.endsWith('.js') ? base.slice(0, -3) + '.py' : base.slice(0, -3) + '.js';
+  if (MD.includes(base) || MD.includes(alt)) return 'the ledger names ' + base;
+  const stem = base.replace(/\.(js|py)$/, '').toUpperCase();
+  if (documented.has(stem)) return 'it is ' + stem + "'s generator";
+  if (g in NOT_A_MODEL) return 'declared not a model: ' + NOT_A_MODEL[g];
+  return null;
+}
+
+/* 5. Nothing writes an artifact from outside both files without a declared reason. */
+const undocumented = generators.filter(g => accountedFor(g) === null);
+if (undocumented.length) {
+  fail('generators of data/* artifacts that appear in NEITHER docs/MODELS.md NOR the Stadium,\n' +
+       '        and have NO declared reason for being neither:\n' +
+       undocumented.map(g => '          - ' + g.padEnd(34) + '-> data/' + writes(g).join(', data/')).join('\n') +
+       '\n        This is the GURU hole. Each one is either a MODEL that owes docs/MODELS.md an entry\n' +
+       '        (MEASURE owns that file), or a pipeline step that owes NOT_A_MODEL here a NAME AND A\n' +
+       '        REASON. Read the rule above before choosing. Do not add a pattern, and do not delete\n' +
+       '        this check to make it pass.');
+} else {
+  pass(generators.length + ' generators, every one of them named in the ledger or declared not a model');
+}
+
+/* 6. A stale exception is how a check stops checking -- the same failure the NOT_A_CABINET staleness
+ *    test above exists for. If a script is renamed or deleted, its entry here silently excuses
+ *    nothing while still looking like diligence. */
+const staleNotAModel = Object.keys(NOT_A_MODEL).filter(g => !generators.includes(g));
+if (staleNotAModel.length) {
+  fail('NOT_A_MODEL entries that no longer generate any data/* artifact (rename or remove them): ' +
+       staleNotAModel.join(', '));
+} else {
+  pass(Object.keys(NOT_A_MODEL).length + ' declared non-models all still generate an artifact');
+}
+
+/* 7. And an exception that has been overtaken is dead weight that reads as a judgement. If the
+ *    ledger has since taken a generator on, the excuse for it not being there must go, or the next
+ *    reader believes the project decided it was not a model. */
+const redundant = Object.keys(NOT_A_MODEL).filter(g => {
+  const base = g.split('/').pop();
+  const alt = base.endsWith('.js') ? base.slice(0, -3) + '.py' : base.slice(0, -3) + '.js';
+  return MD.includes(base) || MD.includes(alt);
+});
+if (redundant.length) {
+  fail('NOT_A_MODEL entries that docs/MODELS.md now documents — delete the exception, it is no longer ' +
+       'a judgement, it is a contradiction: ' + redundant.join(', '));
+} else {
+  pass('no declared non-model is also carried by the ledger');
+}
+
+/* 8. AND THE CHECK ABOVE MUST ACTUALLY BITE.
+ *
+ * Check 5 can only fail on something undeclared, so the day the project is fully documented it goes
+ * green and stays green -- and from then on nothing distinguishes "everything is accounted for" from
+ * "the accounting broke". That is the failure shape CLAUDE.md opens with: a capability was absent and
+ * everything reported success. So a synthetic generator that is in no file and no table is pushed
+ * through the same accounting the real ones go through, and check 5 has to reject it.
+ *
+ * It covers the classification, not the scan -- the parse guard above covers the scan. Between them
+ * the two halves of "would GURU be caught today" are both asserted on every run. */
+const PROBE = 'engine/__roster_guard_selftest__.js';
+if (accountedFor(PROBE) !== null) {
+  fail('the accounting accepted ' + PROBE + ', which is in no ledger, on no cabinet and in no ' +
+       'exception table. Check 5 cannot fail, so it is no longer checking anything.');
+} else {
+  pass('a generator in neither file and no exception table is rejected — check 5 still bites');
+}
+
 console.log('\n' + (failures ? failures + ' FAILURE(S)' : 'ALL PASS') +
-            '   (' + cabinets.length + ' cabinets, ' + headings.length + ' ledger headings)');
+            '   (' + cabinets.length + ' cabinets, ' + headings.length + ' ledger headings, ' +
+            generators.length + ' artifact generators)');
 process.exit(failures ? 1 : 0);

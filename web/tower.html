@@ -154,7 +154,11 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
         placeholder="Paste a Showdown / PokePaste export here — Champions EVs (flat points) and nature are applied with the engine's own validated math."></textarea>
       <div class="ctlrow"><button class="sbtn" id="btnParse">Use this team</button><span class="note" id="pasteNote" style="margin:0"></span></div>
     </div>
-    <div class="note" id="selNote">Real Champions dataset builds — the same 289 species the engine simulates. First two lead.
+    <!-- THE SPECIES COUNT IS READ, NOT TYPED. It said 289 here and again in usePaste(); nothing on
+         disk says 289, and data/engine-data.js is regenerated whenever a forme is merged in, so a
+         typed count is a claim that goes stale without anything noticing. Both now render
+         Object.keys(MC.mons).length off the artifact the page has already loaded. -->
+    <div class="note" id="selNote">Real Champions dataset builds — the same <b id="nSpecies">—</b> species the engine simulates. First two lead.
     Or import your own paste: item, ability, moves, EVs and nature all apply.</div>
   </div>
 
@@ -181,7 +185,7 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
 
   <div class="panelbox" style="opacity:.92">
     <h2 style="font-size:12px">What's real here</h2>
-    <div class="note" style="margin:0;color:#556">Every number is the engine's own: damage from the tag-wired calc (median 0% / worst 3% vs the Smogon calculator),
+    <div class="note" style="margin:0;color:#556">Every number is the engine's own: damage from the tag-wired calc (median 0% / worst 3% against @smogon/calc over 36 compared scenarios — <code>data/damage-validation.json</code>),
     move prices from the exposure engine, the boss's forecast from real ladder priors. Unmodelled clicks pass the turn and the log says so.
     No switching yet — that policy ships when it measures stronger than not switching.</div>
   </div>
@@ -197,6 +201,8 @@ select{font:inherit;border:1px solid var(--btnline);border-radius:5px;padding:4p
 (function(){
 'use strict';
 var NAMES=Object.keys(MC.mons).sort();
+/* The one place the species count comes from. See the comment on #nSpecies above. */
+(function(){var e=document.getElementById('nSpecies');if(e)e.textContent=NAMES.length;})();
 var FRONT=function(n){return 'https://play.pokemonshowdown.com/sprites/ani/'+n+'.gif';};
 var BACK=function(n){return 'https://play.pokemonshowdown.com/sprites/ani-back/'+n+'.gif';};
 var ICON=function(n){return 'https://play.pokemonshowdown.com/sprites/gen5/'+n+'.png';};
@@ -296,7 +302,7 @@ function usePaste(text){
   var sets=parsePaste(text),good=[],bad=[];
   sets.forEach(function(s){var m=buildMonFromSet(s);if(m){s._mon=m;good.push(s);}else bad.push(s.species);});
   var note=document.getElementById('pasteNote');
-  if(!good.length){note.textContent='No usable sets — species must be in the 289 the engine knows.';return;}
+  if(!good.length){note.textContent='No usable sets — species must be in the '+NAMES.length+' the engine knows.';return;}
   state.mySets=good;state.setsOn=good.slice(0,4).map(function(_,i){return i;});
   note.textContent=good.length+' set(s) loaded'+(bad.length?' — outside the pool: '+bad.join(', '):'');
   renderPick();

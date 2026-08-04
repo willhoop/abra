@@ -337,6 +337,22 @@
       honest:"Half-run and stale, and it is the single largest untested lever in the project. Every other model here is fitted to predict a human click, which is a ceiling — MACHAMP is the only component whose objective is the thing actually wanted. Its old artifact was deleted 2026-08-02 rather than left to be loaded wrongly, so nothing on this cabinet can be re-derived: the figures above are read from <code>docs/MODELS.md</code>, which is a ledger entry and not a report a script can re-run."
     },
     {
+      /* GURU is the one cabinet whose name is not a Pokemon, and it is here because it was in
+         NEITHER this rack nor docs/MODELS.md while the front door rendered its matrix every day.
+         That is the hole tests/test-stadium-roster.js check 5 now closes. It sits immediately
+         before SLOWKING because SLOWKING solves this matrix and inherits its caveat whole. */
+      key:"guru", mon:"GURU", sprite:false, game:"Snore War", div:"MEASURE", status:"stale",
+      role:"Counts who actually beats whom, archetype against archetype",
+      job:"Labels both teams in every clean ladder game with one of 12 archetypes, tallies the head-to-heads into a 12x12 matrix and puts a Wilson confidence interval on every cell. No simulation and no fitting — a census with intervals. It is the object SLOWKING solves and the matrix the front door draws.",
+      why:"Named for the sage that has watched every battle. There is no sprite because there is no Pokemon — the artwork is the matrix, and the matrix is the whole model.",
+      stats:[
+        {k:"Corpus", v:"5,265 games", n:"12 archetypes, 144 cells, generated 2026-07-31. <code>data/guru.js</code>. 26.1% behind the 7,123 clean ladder games of 2026-08-04, per <code>docs/MODELS.md</code>, and deliberately not regenerated."},
+        {k:"Decisive matchups", v:"6 → 0", n:"6 directed / 3 distinct clear a 95% test one at a time; <b>0</b> survive Bonferroni or BH-FDR at q=0.05 over the 66 pairs. <code>data/guru.js</code>."},
+        {k:"Predicting one game", v:"0.7124", n:"Log-loss against a coin's 0.6931 and a usage prior's 0.6928 over 1,053 held-out games; winner-pick accuracy 0.4982. Worse than a coin. <code>data/guru.js</code>."}
+      ],
+      honest:"Read the second row in the order it is written. Sixty-six pairs are each given their own 95% test, so about <b>3.3</b> are expected to clear the bar with no real effect anywhere in the matrix — and <b>3</b> appear. The smallest exact two-sided p-value in the whole matrix is <b>6.1e-3</b> against a Bonferroni threshold of <b>7.6e-4</b> (<code>data/guru.js</code>). GURU establishes that the matrix is descriptive structure. It does not establish that any archetype beats any other, and anything solved on top of it inherits that. The corrected count reached zero once before by accident: <code>build/build_guru_js.js</code> read a key <code>engine/guru.py</code> does not write, recomputed the count from its own empty fallback, and shipped the right answer down a broken path — which is worse than a wrong one, because nobody checking it would have found anything (<code>docs/MODELS.md</code>)."
+    },
+    {
       key:"slowking", mon:"SLOWKING", game:"Topsy-Turvy", div:"SEARCH", status:"live",
       role:"Solves the bring as an equilibrium, not as a best guess",
       job:"The poker stack — CFR to DeepStack to Libratus to ReBeL — pointed at VGC. Solves the archetype matchup matrix to a mixed strategy and grades it by exploitability, which is the bar that actually matters when the opponent gets to respond.",
@@ -404,7 +420,7 @@
         {k:"Decisive-turn walkthrough", v:"Live", n:"Offline capable, raw-log paste fallback."},
         {k:"Prescriptive text quality", v:null, n:"Heuristic prose, not equilibrium-grade."}
       ],
-      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(0.9943·alive_diff + 1.4080·hp_diff) (<code>data/pory-eval.json</code>) — it ties that two-feature material baseline to six decimal places (+0.000021 with PORY WORSE, 95% CI [-0.000013, +0.000056]), and the intercept and turn terms are pinned at exactly zero because emitting both perspectives cancels the gradient on any column identical across the two rows. <s class="wd" title="Retracted 2026-08-04: 1.256/1.544 come from commit 44e0fb0, the last PORY run fitted on the UNFILTERED store with bot games included. The clean filter landed two days later and the coefficients moved to 0.9943/1.4080. The retraction was citing bot-contaminated numbers as its own evidence for ten days.">Quoted here until 2026-08-04 as 1.256/1.544</s> The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
+      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(0.9943·alive_diff + 1.4080·hp_diff) (<code>data/pory-eval.json</code>) — it ties that two-feature material baseline to six decimal places (+0.000021 with PORY WORSE, 95% CI [-0.000013, +0.000056]), and the intercept and turn terms are pinned at exactly zero because emitting both perspectives cancels the gradient on any column identical across the two rows. <s class='wd' title='Retracted 2026-08-04: 1.256/1.544 come from commit 44e0fb0, the last PORY run fitted on the UNFILTERED store with bot games included. The clean filter landed two days later and the coefficients moved to 0.9943/1.4080. The retraction was citing bot-contaminated numbers as its own evidence for ten days.'>Quoted here until 2026-08-04 as 1.256/1.544</s> The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
     }
   ];
 
@@ -424,6 +440,11 @@
      remote URLs is a chain of the same failure. */
   var SPRITE_HOST = "https://play.pokemonshowdown.com/sprites/ani/";
   function wireSprite(img, mon){
+    /* NOT EVERY CABINET IS A POKEMON. GURU is the project's own name for the archetype matchup
+       matrix and there is no sprite for it; asking the host for `guru.gif` would fire a request
+       that can only 404. The canvas art is the identity here, which is the same thing the
+       fallback rule already says -- so a model with `sprite:false` simply never asks. */
+    if (mon === false) { img.classList.remove("on"); img.style.display = "none"; return; }
     img.classList.remove("on");
     img.style.display = "";
     img.onload  = function(){ img.style.display = ""; img.classList.add("on"); };
@@ -452,7 +473,7 @@
     document.getElementById("dJob").innerHTML = current.job;
     document.getElementById("dWhy").innerHTML = current.why;
     document.getElementById("dHonest").innerHTML = current.honest;
-    wireSprite(document.getElementById("dSprite"), current.mon);
+    wireSprite(document.getElementById("dSprite"), current.sprite === false ? false : current.mon);
     buildControls(current);
 
     var s = document.getElementById("dStats");
@@ -539,6 +560,7 @@
     doduo:    { pairFeats:"18", win:"42.0%", ci:"[39.9, 44.3]", games:"1,934", src:"docs/MODELS.md" },
     wobbuffet:{ beat:"63.2%", ci:"[56.6, 69.3]", mirror:"47.5%", rounds:"18", per:"220", src:"data/exploitability.json" },
     machamp:  { gens:"2 of 6", shift:"+0.34 → +2.75", src:"docs/MODELS.md" },
+    guru:     { stops:["Each pair on its own","Corrected for 66 pairs"], dec:["6","0"], distinct:["3","0"], pairs:"66", expected:"3.3", pmin:"6.1e-3", bonf:"7.6e-4", games:"5,265", cells:"144", conf:"95%", alpha:"0.05", even:"50%", src:"data/guru.js" },
     slowking: { stops:["Equilibrium","One deck","Uniform"], expl:["0.0001","0.041","0.0761"], mix:"0.66 / 0.22 / 0.12", src:"data/slowking-eval.json" },
     xatu:     { known:[0,1,2,3,4], ce:["1.824",null,null,null,"1.695"], prior:["1.863",null,null,null,"2.219"], src:"docs/MODELS.md" },
     mew:      { games:"1,000", discarded:"0", checks:"13", mirror:"51.0%", ci:"[45.4, 56.6]", src:"docs/MODELS.md" },
@@ -603,6 +625,18 @@
       view:function(st){ var D=CTRLDATA.machamp;
         return { meters: meter("Generations actually run", 33, D.gens, "cool") + meter("Kill proxy, imitation → winning", 100, D.shift, "") + meter("Champion win rate", 0, null),
           read:"Press it as often as you like — the bar that matters never fills. The run reached <b>"+D.gens+"</b> generations and <em>recorded no verdict</em>, and its weight vector was deleted rather than left to be loaded against a feature set it no longer matches. So the one number this cabinet exists to produce is "+NM+". <code>"+D.src+"</code>" }; } },
+
+    /* Two stops, and both of them are recorded in data/guru.js — n_decisive and
+       n_decisive_corrected. There is deliberately no position between them: "how many matchups
+       are real" has exactly two measured answers here and a slider through the middle would be
+       inventing the rest. */
+    guru: { init:{ b:0 },
+      controls:[{ kind:"dial", label:"how each cell is judged", key:"b", opts:[0,1], text:function(i){ return CTRLDATA.guru.stops[i]; } }],
+      view:function(st){ var D=CTRLDATA.guru;
+        return { meters: meter("Decisive, directed", st.b?0:60, D.dec[st.b], st.b?"hot":"cool") + meter("Decisive, distinct pairs", st.b?0:30, D.distinct[st.b], st.b?"hot":"cool") + meter("Expected from noise alone", 33, D.expected, ""),
+          read: st.b
+            ? "Correct for the family and every one of them goes. <b>Zero</b> survive Bonferroni and zero survive Benjamini-Hochberg at q="+D.alpha+" — the smallest exact two-sided p-value in all "+D.cells+" cells is <b>"+D.pmin+"</b> against a threshold of <b>"+D.bonf+"</b>. The matrix is descriptive structure and nothing more. <code>"+D.src+"</code>"
+            : "Judged one at a time, <b>"+D.dec[0]+"</b> directed matchups — <b>"+D.distinct[0]+"</b> distinct pairs — have a "+D.conf+" interval that excludes "+D.even+". Now read the third meter: <b>"+D.expected+"</b> is what pure noise produces across "+D.pairs+" pairs, and that many appeared. Turn the dial. <code>"+D.src+"</code>" }; } },
 
     slowking: { init:{ b:0 },
       controls:[{ kind:"dial", label:"what you play", key:"b", opts:[0,1,2], text:function(i){ return CTRLDATA.slowking.stops[i]; } }],
@@ -832,6 +866,25 @@
 
     /* SLOWKING — the mix settling. Two bars oscillate and converge on 0.84 / 0.16 rather
        than one bar going to 1.0, because the pure strategy is the exploitable one. */
+    /* GURU — Snore War. The 12x12 matrix, drawn as itself. Judged one cell at a time three
+       pairs glow; correct for all 66 and the board goes flat, which is the entire finding.
+       The CELL POSITIONS are illustrative and say so; the COUNT that lights up is the
+       artifact's (data/guru.js: 6 directed = 3 distinct, 0 corrected). */
+    guru: function(c,w,h,t,st){
+      var mode=(st&&st.b)||0, n=12, cell=10, gap=2, span=n*(cell+gap)-gap;
+      var x0=(w-span)/2, y0=(h-span)/2-4;
+      var hot=[[2,7],[5,9],[8,10]];
+      for(var i=0;i<n;i++)for(var j=0;j<n;j++){
+        var x=x0+j*(cell+gap), y=y0+i*(cell+gap);
+        var isHot=(mode===0)&&hot.some(function(p){return (p[0]===i&&p[1]===j)||(p[0]===j&&p[1]===i);});
+        c.fillStyle=(i===j)?"#1b2356":(isHot?BALL:"#38427e");
+        c.fillRect(x,y,cell,cell);
+        c.lineWidth=1; c.strokeStyle="#0f1747"; c.strokeRect(x,y,cell,cell);
+      }
+      label(c,mode?"CORRECTED FOR 66 PAIRS":"EACH PAIR ON ITS OWN",w/2,y0-11,11,BOLT);
+      label(c,mode?"0 DECISIVE - NOISE EXPECTS 3.3":"3 DECISIVE - NOISE EXPECTS 3.3",w/2,h-13,10,mode?BONE:BALL);
+    },
+
     slowking: function(c,w,h,t,st){
       var mode=(st&&st.b)||0, settle=Math.min(1,t*0.5);
       /* the three shapes the dial has stops for: the solved mix, one pure deck, and flat */
@@ -959,7 +1012,7 @@
     grid.appendChild(b);
     var cv = b.querySelector("canvas");
     draw(m.key, cv.getContext("2d"), cv.width, cv.height, 0.35);
-    wireSprite(b.querySelector("img.sprite"), m.mon);
+    wireSprite(b.querySelector("img.sprite"), m.sprite === false ? false : m.mon);
   });
 
   document.getElementById("nCab").textContent = MODELS.length;

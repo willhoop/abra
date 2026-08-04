@@ -50,6 +50,12 @@ svg{width:100%;height:auto;display:block}
   .t{font-size:14px;font-weight:bold;fill:#1a2233}
   .io{font-size:10px;fill:#3a5372;font-weight:600}
   .st{font-size:9.5px;font-weight:bold}
+  /* THE CITATION IS PART OF THE STATUS LINE, not a comment beside it. web/figure-audit.js
+     attributes a figure to its SOURCE LINE, and an HTML comment is not visible text -- so a
+     citation written above the figure traces nothing and reads to the audit exactly like a figure
+     nobody sourced. Same standing decision as the Stadium's CTRLDATA table: keep the number and the
+     artifact that holds it on ONE line. */
+  .src{font-size:8px;fill:#8a97ad;font-weight:700}
   .band{font-size:11px;font-weight:bold;fill:#8a97ad;letter-spacing:2px}
   .fl{stroke:#5a6a84;stroke-width:2;fill:none;marker-end:url(#arr)}
   .flp{stroke:#7b3fd4;stroke-width:2.2;fill:none;marker-end:url(#arrP);stroke-dasharray:6 4}
@@ -65,7 +71,7 @@ svg{width:100%;height:auto;display:block}
 <!-- WAS "87% is bots". No artifact says 87. data/quality-filter.json's own `why` field says
      55.2% of stored games involve a bot and 24.0% end in a forfeit, so the sourced statement is
      that one. WEB renders what the artifact says; it does not round somebody's recollection. -->
-<text x="34" y="112" class="st" fill="#9a2b2b">55.2% involve a bot — never use it raw</text>
+<text x="34" y="112" class="st" fill="#9a2b2b">55.2% involve a bot — never use it raw <tspan x="34" dy="11" class="src">from data/quality-filter.json</tspan></text>
 
 <rect class="box" x="310" y="40" width="250" height="86" fill="#dff5e6"/>
 <text x="324" y="62" class="t">MEW — self-play farm</text>
@@ -143,7 +149,15 @@ svg{width:100%;height:auto;display:block}
 <text x="34" y="521" class="io">out: damage — checked against the standard calculator</text>
 <text x="34" y="535" class="io">out: what each move costs you and what it risks</text>
 <text x="34" y="549" class="io">out: a battle you can play one turn at a time</text>
-<text x="34" y="570" class="st" fill="#1f7a3c">200+ checks. Everything below uses this one engine</text>
+<!-- WAS "200+ checks. Everything below uses this one engine". NO ARTIFACT SAYS 200, and the closest
+     thing to a check count says something less flattering: data/mechanics-census.json (written by
+     tests/test-mechanics.js) records how many probed mechanics are LIVE and how many are declared
+     and do not fire. Rounding a test suite up to "200+" turns a coverage gap into a credential.
+     AND IT IS READ, NOT RESTAMPED. Typing the census here would have been stale within the hour:
+     it moved 102/144 -> 104/147 while this edit was being written. web/status-data.js carries the
+     scalars verbatim and tests/test-web-status.js fails when it drifts from the artifact, so the
+     page inherits that guard instead of needing its own. -->
+<text x="34" y="570" class="st" fill="#1f7a3c"><tspan id="mCensus">NOT MEASURED</tspan><tspan x="34" dy="11" class="src">from data/mechanics-census.json, via web/status-data.js</tspan></text>
 
 <g id="xatuBox">
 <rect class="box" x="600" y="464" width="256" height="88" fill="#fff2dc"/>
@@ -261,6 +275,10 @@ svg{width:100%;height:auto;display:block}
 <script src="../data/live.js"></script>
 <script src="../data/abra-meta.js"></script>
 <script src="../data/abra-tags.js"></script>
+<!-- status-data.js sits BESIDE this page in both web/ and app/, so the relative src resolves in
+     either copy and under file://. It is the generated board of scalars, each copied verbatim from
+     the artifact it names; tests/test-web-status.js goes red when any of them drifts. -->
+<script src="status-data.js"></script>
 <script>
 /* THE TWO NUMBERS THIS MAP CARRIES ARE NOW READ, NOT TYPED.
  * They had drifted: the page said "3k good games" and "5,368 real teams" while the artifacts said
@@ -275,6 +293,16 @@ svg{width:100%;height:auto;display:block}
     el.textContent = Number(v).toLocaleString();
   }
   put('nUsable', window.LIVE && window.LIVE.usable);
+  /* The mechanics census, as a sentence rather than three numbers, because the interesting part is
+     the RATIO and the gap. If any of the three scalars is missing the whole line stays NOT
+     MEASURED — a half-filled sentence would read as a smaller gap than there is. */
+  (function(){
+    var E = window.ABRA_BOARD && window.ABRA_BOARD.engine, el = document.getElementById('mCensus');
+    if (!el || !E) return;
+    var live = E.live && E.live.v, probed = E.probed && E.probed.v, miss = E.missing_n && E.missing_n.v;
+    if (typeof live !== 'number' || typeof probed !== 'number' || typeof miss !== 'number') return;
+    el.textContent = live + ' of ' + probed + ' mechanics probes live — ' + miss + ' declared and not firing';
+  })();
   put('nTeams',  window.ABRA_META && window.ABRA_META.sampledTeams);
   /* UNIQUE tags, not rows. data/tags.json carries 184 rows over 176 distinct tag names, and
      engine/status.js counts the distinct ones — so this counts them the same way. Counting rows
