@@ -702,10 +702,33 @@ probe('ability', 'redirectsType', 'Lightning Rod pulls an Electric move', () => 
                  + '   |   Lightning Rod: aimed ' + on.aimed + ' / rod ' + on.rod + ' / spa ' + on.spa };
 });
 
+/* THIS PROBE USED TO BE A SOURCE GREP — `/hospitality|healsAllyOnSwitchIn/.test(src)` — and it would
+ * have returned LIVE for a mechanic that was commented out, renamed, or wired to the wrong body. A
+ * census entry that reads the FILE rather than the BEHAVIOUR is hollow, and hollow is worse than
+ * missing because it occupies a slot in a number that may never fall. Two others of the same shape
+ * are still LIVE-by-grep and are named in docs/ENGINE.md: `priorityMod` and `weatherChipImmune`.
+ *
+ * Behavioural now, both arms, and the partner is DAMAGED first — a full-HP partner reads 0 -> 0
+ * whatever the engine does. The heal happens on ENTRY, so it is driven through a real switch rather
+ * than by calling applyEntryEffects by hand. */
 probe('ability', 'healsAllyOnSwitchIn', 'Hospitality heals the partner on entry', () => {
-  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-  return { works: /hospitality|healsAllyOnSwitchIn/.test(src),
-           detail: 'engine references it: ' + /hospitality|healsAllyOnSwitchIn/.test(src) };
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('sinistcha');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    bench.ability = ab;
+    ally.curHP = Math.floor(ally.st.hp / 3);
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const before = ally.curHP;
+    /* PASS2 is declared further down this file and is in its temporal dead zone here — written out
+     * rather than moved, because moving a shared helper to satisfy one probe is how a census file
+     * starts reordering itself around its newest entry. */
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { d: ally.curHP - before, quarter: Math.floor(ally.st.hp / 4) };
+  };
+  const off = run('none'), on = run('hospitality');
+  return { works: off.d === 0 && on.d === on.quarter,
+           detail: `partner hp change: ability none ${off.d}, Hospitality ${on.d} (a quarter is ${on.quarter})` };
 });
 
 probe('ability', 'blocksBerries', 'Unnerve stops the foe eating a berry', () => {
@@ -918,18 +941,51 @@ probe('move', 'doublesSideSpeed', 'Tailwind doubles the side Speed', () => {
 probe('move', 'sealsMoves', 'Disable stops the target repeating that move', () => {
   /* Staged like Encore and Taunt: the foe commits a move on its own, is Disabled, and is then left
    * COMPLETELY FREE. What it picks is the measurement. Checking the volatile alone would pass on a
-   * Disable nothing reads. */
-  const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
-  M.battleTurn(S, rng5, PASS2(me, ally),
-    new Map([[f1, M.playerAction(f1, 'rockslide', me, S.field)], [f2, { kind: 'pass' }]]));
-  const committed = f1._lastMove;
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'disable', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  M.battleTurn(S, rng5, PASS2(me, ally), null);
-  return { works: !!committed && f1._lastMove !== committed,
-           detail: 'committed ' + committed + ', free choice after Disable was ' + (f1._lastMove || 'nothing') };
+   * Disable nothing reads.
+   *
+   * THIS PROBE WAS A FALSE LIVE FOR AS LONG AS IT EXISTED, and it is the exact failure the header of
+   * this file warns about. It ran ONE arm: the foe committed Rock Slide, was Disabled, chose freely
+   * and picked Earthquake, and the probe called the mechanic live. Run the same sequence with the
+   * Disable click REMOVED and the foe picks Earthquake anyway -- the engine read `_vol.disable`
+   * nowhere. Identical results across a varied knob mean the knob is unwired, not that it does not
+   * matter, and a one-armed probe cannot tell the difference. Both arms are printed now. */
+  /* THE CONTROL MUST REPEAT, or "it picked something else" is the chooser's ordering rather than the
+   * seal. Earthquake is what this body picks when left alone, so committing Earthquake makes the
+   * no-Disable arm repeat it and the assertion says something. Rock Slide — the original staging —
+   * is exactly the move the control does NOT repeat, which is why it read live while dead.
+   *
+   * READ FROM S.lastActs, NOT FROM _lastMove. `_lastMove` is not written by every action kind, so a
+   * turn that produced a pass or a switch leaves yesterday's move sitting there and the probe reads a
+   * repeat that never happened. `lastActs` is the engine's own record of what was clicked. */
+  const run = (disable) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+    const committed = f1._lastMove;
+    M.battleTurn(S, rng5,
+      new Map([[me, disable ? M.playerAction(me, 'disable', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f2, { kind: 'pass' }]]));
+    const rec = (S.lastActs || []).find(x => x.side === 'B');
+    return { committed, then: rec && (rec.move || rec.kind) };
+  };
+  const free = run(false), sealed = run(true);
+  return { works: !!free.committed && free.then === free.committed && sealed.then !== sealed.committed,
+           detail: 'committed ' + free.committed + '; free choice repeated ' + free.then
+                 + ', after Disable it clicked ' + (sealed.then || 'nothing') };
 });
 
+/* THE WHOLE HEALING CLASS IS INVISIBLE TO THE DIFFERENTIAL, and this file is its only guard.
+ *
+ * `tests/test-engine-diff.js` compares ONE call to `moveHit` against one call to `dmgRange` — a
+ * single-hit DAMAGE number. Healing is HP over turns: a drain's return, a Leftovers tick, a pinch
+ * berry, Regenerator on the way out, and Heal Block stopping all four. None of it changes the damage
+ * roll the differential reads, so a residual of 1/400 says nothing whatever about this class. Same
+ * statement as `multiHit` carries, and for the same structural reason.
+ *
+ * The class, with its corpus weight: sitrusberry 11,163 · leftovers 6,483 · hospitality 5,025 ·
+ * matchagotcha 4,991 · lifedew 2,252 · roost 2,007 · gigadrain 1,259 · drainpunch 918 ·
+ * regenerator 845 · drainingkiss 816 · strengthsap 630 · recover 572 · psychicnoise 196. */
 probe('move', 'drain', 'Drain Punch heals the user', () => {
   /* THE DAMAGE DEALT IS PRINTED TOO. A drain that healed nothing and a move that never landed look
    * identical from the user's HP alone, and only one of them is an engine gap. */
@@ -1274,13 +1330,24 @@ probe('ability', 'boostsEachTurn', 'Speed Boost raises Speed every turn', () => 
 });
 
 probe('ability', 'healsOnSwitchOut', 'Regenerator heals a third on the way out', () => {
-  const me = bare('milotic'), ally = bare('corviknight'), bench = bare('incineroar');
-  const f1 = bare('garchomp'), f2 = bare('garchomp');
-  me.ability = 'regenerator'; me.curHP = Math.floor(me.st.hp / 3);
-  const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
-  const before = me.curHP;
-  M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  return { works: me.curHP > before, detail: 'on the bench: ' + before + ' -> ' + me.curHP + ' hp' };
+  /* BOTH ARMS, and the amount is asserted EXACTLY rather than as "went up". The tag that feeds this
+   * over-matched before it was wired — `a.onSwitchOut ? {heal:1/3}` gave the same 33% to Natural Cure
+   * and Zero to Hero, neither of which heals — so a probe that only asked "did HP rise" would have
+   * gone green on a body being handed a heal it does not have. The third is the mechanic.
+   *
+   * Staged at a third of max HP: a full-HP body reads 0 -> 0 whatever the engine does. */
+  const run = (ab) => {
+    const me = bare('milotic'), ally = bare('corviknight'), bench = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.ability = ab; me.curHP = Math.floor(me.st.hp / 3);
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const before = me.curHP;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { d: me.curHP - before, third: Math.floor(me.st.hp / 3) };
+  };
+  const off = run('none'), on = run('regenerator');
+  return { works: off.d === 0 && on.d === on.third,
+           detail: `on the bench, hp change: ability none ${off.d}, Regenerator ${on.d} (a third is ${on.third})` };
 });
 
 probe('ability', 'buffsHolderOnHit', 'Justified raises Attack when hit by a Dark move', () => {
@@ -1912,6 +1979,98 @@ probe('move', 'multiAccuracy', 'Triple Axel rolls accuracy on every hit', () => 
    * An engine that treats it as one 90% roll returns 90 and that equality is the null result. */
   const acc = M.moveAccuracy('tripleaxel', fresh());
   return { works: acc > 0 && acc < 90, detail: 'effective accuracy ' + acc + ' (one roll is 90, three compound to about 73)' };
+});
+
+/* ---- BATCH 7 — the leaf boundary, and the two dead wires test-tag-wire.js has been red on ------- */
+
+/* THE BOARD SPEAKS SHOWDOWN AND THE ENGINE SPEAKS ITS OWN WORDS, and until 2026-08-04 nothing
+ * translated between them at the one boundary where a real board is handed in.
+ *
+ * `board.weather` holds Showdown's `|-weather|` line, which is a MOVE name -- `sunnyday`, `raindance`,
+ * `sandstorm`, `snowscape` (all four and only those four across 41,122 weather events in the store).
+ * Every formula in medicham2 compares against `sun`/`rain`/`sand`/`snow`. `rollout_leaf.applyField`
+ * assigned the string straight through, so a mid-battle board's weather was truthy enough to suppress
+ * the mega-weather guard and meaningless to every formula: 0 of 9,040 playouts ever began in a weather
+ * the engine could read.
+ *
+ * THIS PROBE TESTS THE OUTCOME, NOT THE CLASSIFICATION. It runs a real damage number through the real
+ * boundary function and demands it EQUAL the damage under the engine's own word, having first proved
+ * that the knob does anything at all -- `sun` must beat no-weather on the same Flamethrower, or the
+ * equality below would be satisfied by a boundary that deletes weather entirely. Three arms printed.
+ *
+ * WHY IT LIVES HERE AND NOT ONLY IN A PARITY RUN: a parity run is a one-off. The census is what stops
+ * `S.field.weather = f.weather` being written back by the next person tidying the function. */
+probe('move', 'boardWeatherLanguage', "a board's Showdown weather name reaches the damage formula", () => {
+  const RL = require(D('engine', 'rollout_leaf.js'));
+  const S = { field: {} };
+  RL.applyField(S, { weather: 'sunnyday' }, 'p1', true);
+  const landed = S.field.weather;
+  const att = bare('charizard'), def = bare('garchomp');
+  const dmg = (wx) => M.dmgRange(att, def, MC.moves['flamethrower'], Object.assign(fresh(), { weather: wx }), false).max;
+  const none = dmg(''), sun = dmg('sun'), got = dmg(landed);
+  return { works: sun > none && got === sun,
+           detail: `applyField('sunnyday') -> ${JSON.stringify(landed)}; Flamethrower max: clear ${none}, 'sun' ${sun}, as landed ${got}` };
+});
+
+/* THE ABSORBED HIT HEALS THE ABSORBER, and `tests/test-tag-wire.js` has printed "(1 -> 1)" on this
+ * wire since before 2026-08-04 -- Volt Absorb took the hit and gained nothing.
+ *
+ * STAGED SO THE EFFECT CAN SHOW: the absorber is put on half HP first. A full-HP Jolteon cannot heal
+ * and would read identical to a broken engine, which is Lesson 5 in the form that has caught nine
+ * probes in this file. The control is the SAME body with the ability off, taking the same move on the
+ * same HP -- it must LOSE hp, or "gained nothing" would be indistinguishable from "was not hit". */
+probe('ability', 'typeImmunityHeals', 'Volt Absorb heals a quarter off the move it absorbs', () => {
+  const run = (ab) => {
+    const me = bare('jolteon'), ally = bare('incineroar');
+    const f1 = bare('archaludon'), f2 = bare('garchomp');
+    me.ability = ab;
+    me.curHP = Math.floor(me.st.hp / 2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'thunderbolt', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { d: me.curHP - before, quarter: Math.floor(me.st.hp / 4) };
+  };
+  const off = run('none'), on = run('voltabsorb');
+  return { works: off.d < 0 && on.d === on.quarter,
+           detail: `hp change: ability none ${off.d}, Volt Absorb ${on.d} (a quarter is ${on.quarter})` };
+});
+
+/* ENCORE PINS THE FOE TO ITS LAST MOVE, and `tests/test-tag-wire.js` has printed
+ * "(undefined) for undefined turns" on this wire since before 2026-08-04 -- the consumer existed in
+ * the `kind==='status'` branch and could never be reached, because playerAction classifies Encore as
+ * `affect`.
+ *
+ * THE FIRST VERSION OF THIS PROBE WAS WRONG, which makes eleven. It handed the foe a FORCED action on
+ * the pinned turn, and a forced action bypasses chooseAction entirely -- so it measured the caller's
+ * obedience, not the engine's. The foe is now left COMPLETELY FREE on the pinned turn and what it
+ * picks is the measurement, which is how the Disable probe below was already staged.
+ *
+ * BOTH ARMS PRINTED, AND STAGED THE OPPOSITE WAY ROUND FROM THE DISABLE PROBE BELOW, on purpose. Here
+ * the committed move is one the foe would NOT choose again (Rock Slide, where the chooser prefers
+ * Earthquake), so the control moves ON and only the pin can hold it. There the committed move is the
+ * foe's own free pick, so the control REPEATS and only the seal can move it. The pair is only
+ * meaningful if each control shows the behaviour its mechanic has to overturn.
+ *
+ * THE PIN CANNOT SHOW ON THE ENCORE TURN ITSELF: every action in a turn is chosen before any of them
+ * resolves, so the foe had already picked when the Encore landed. It is read a turn later. */
+probe('move', 'sealsMoves', 'Encore pins the foe to the move it just used', () => {
+  const run = (encore) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'rockslide', me, S.field)], [f2, { kind: 'pass' }]]));
+    const committed = f1._lastMove;
+    M.battleTurn(S, rng5,
+      new Map([[me, encore ? M.playerAction(me, 'encore', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f2, { kind: 'pass' }]]));
+    const rec = (S.lastActs || []).find(x => x.side === 'B');
+    return { committed, then: rec && (rec.move || rec.kind) };
+  };
+  const free = run(false), pinned = run(true);
+  return { works: !!free.committed && free.then !== free.committed && pinned.then === pinned.committed,
+           detail: `foe committed ${free.committed}; free choice two turns later was ${free.then}, after Encore ${pinned.then}` };
 });
 
 /* ---- REPORT ------------------------------------------------------------------------------------- */

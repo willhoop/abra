@@ -302,6 +302,17 @@ const DECLARED = {
     'This file. It reads .ability to check that .ability is right.',
   'tests/walk_tags.js':
     'ASSIGNS a fixture body its ability from the dex before running a tag through it.',
+  'tests/test-tag-wire.js':
+    'The same construction claim as tests/test-mechanics.js, and it grows for the same reason — a '
+    + 'wire probe sets the ability it is about to test. All 18 matches were WALKED on 2026-08-04 '
+    + 'rather than sampled: 13 are ASSIGNMENTS onto a body M.buildMon has just returned, and the '
+    + 'other 5 read a DATASET ability that the surrounding assertion is itself about (Pelipper '
+    + 'carries Drizzle, Torkoal carries Drought, the surge sweep, Sturdy survived). None reads a '
+    + 'LIVE Pokemon expecting the post-mega value, which is the case this ratchet exists for. It '
+    + 'was declared when the Volt Absorb wire gained a CONTROL body — the wire had been staged on a '
+    + 'Garchomp, which is Ground and immune to Electric anyway, so the mechanic could not show and '
+    + 'the engine took the blame for a whole session. Refusing the control to hold a count at 17 '
+    + 'would be trading a real check for a bookkeeping one.',
   'tests/test-paste.js':
     'Reads .ability off a body buildMonFromSet just produced — the same construction claim as '
     + 'medicham2 above, and this file is now one of the things that PINS it: it asserts a paste of '

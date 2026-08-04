@@ -67,7 +67,13 @@ const TAGS = (function(){
  * "a capability was absent and everything reported success". A zero here is the claim that the
  * fallback never ran; a non-zero one is the receipt that it did. Exported as `fails` so a test or a
  * run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */
-const MEDFAILS = { encoreAction: 0, megaRevert: 0 };
+const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
+  /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
+   * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
+   * faints), Swallow (needs Stockpile), Strength Sap (scales off the TARGET's Attack). The tag says
+   * `heal: true`, which is a boolean in a fraction's clothing. Counted so "these do nothing" is a
+   * READABLE claim rather than a silent default. */
+  healProcedural: 0, healProceduralFirst: '' };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -150,7 +156,72 @@ const SD2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:null,evasion
  * this engine speaks its own ('par', 'sand'). Naming conventions, not mechanics, so they live here. */
 const CODE_OF_STATUS={paralysis:'par',burn:'brn',poison:'psn','bad poison':'tox',sleep:'slp',freeze:'frz'};
 const SD2WEATHER={sandstorm:'sand',raindance:'rain',sunnyday:'sun',snowscape:'snow',snow:'snow',hail:'snow'};
+/* THE ONE TRANSLATION INTO THIS ENGINE'S WEATHER VOCABULARY, and it is exported because the boundary
+ * that needed it could not reach it.
+ *
+ * `board.weather` holds Showdown's `|-weather|` line, which is a MOVE name -- `sunnyday`, `raindance`,
+ * `sandstorm`, `snowscape` (all four, and only those four, across 41,122 weather events in the store).
+ * Every formula in this file compares against `sun`/`rain`/`sand`/`snow` (:493-494, :515-516, :965).
+ * `rollout_leaf.applyField` assigned the untranslated string straight into `S.field.weather`, so the
+ * weather a mid-battle board reported was TRUTHY ENOUGH TO SUPPRESS A GUARD AND MEANINGLESS TO EVERY
+ * FORMULA: 0 of 9,040 playouts ever began in a weather this engine could read while 5,320 carried a
+ * string. Charizard Flamethrower into Garchomp read 92-109 under `sun` and 61-72 under `sunnyday` --
+ * identical to no weather at all.
+ *
+ * A SECOND MAP WAS NOT WRITTEN. FACTS ARE GLOBAL: `SD2WEATHER` already existed here and was already
+ * correct, so the fix is to export the translation rather than copy it into rollout_leaf.js -- which
+ * is exactly how `choiceLock` came to have two engines disagreeing.
+ *
+ * IDEMPOTENT ON PURPOSE. `weatherSetter` in the artifact already emits this engine's own words
+ * ('sun', 'rain', 'sand', 'snow'), and those reach `S.field.weather` through applyMegaWeather and
+ * through the entry effects. A caller must be able to pass either vocabulary and get the same answer,
+ * or the translation itself becomes a place two paths can disagree.
+ *
+ * AN UNKNOWN VALUE RETURNS '' AND IS COUNTED. Returning the raw string is what caused the bug --
+ * a value that is truthy and matches nothing. A silent default looks exactly like a working feature,
+ * so the drop is recorded in `fails.weatherUnknown` and names the first one it saw. `deltastream` is
+ * the one known real value with no mapping: this engine models no primal weather and Rayquaza is not
+ * in this format, so it resolves to no weather rather than to a word no formula reads. */
+const ENG_WEATHER=new Set(['sun','rain','sand','snow']);
+function weatherId(w){
+  const k=String(w||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!k)return '';
+  if(ENG_WEATHER.has(k))return k;
+  const m=SD2WEATHER[k];
+  if(m)return m;
+  MEDFAILS.weatherUnknown++; if(!MEDFAILS.weatherUnknownFirst)MEDFAILS.weatherUnknownFirst=k;
+  return '';
+}
 const boostMul=s=>{s=clamp(s||0,-6,6);return s>=0?(2+s)/2:2/(2-s);};
+/* HEALING IS A CLASS, AND blocksHealing IS ITS COUNTER — one gate, asked in every place HP goes up.
+ *
+ * Psychic Noise (196 uses) is the only member and it carries `blocksHealing {turns:2}`. Wiring the
+ * healing family without it would make every healer in the format strictly better than it is, which
+ * is a one-directional error of exactly the kind this engine keeps being caught by.
+ *
+ * WHAT IT GATES, AND WHY THAT LIST AND NOT ANOTHER. Heal Block stops HP being restored to a body that
+ * is standing on the field: healing moves, the heal half of a drain (the DAMAGE still lands), a
+ * passive item tick, a pinch berry (which is not consumed either), and Leech Seed's return to the
+ * seeder. It does NOT gate `healsOnSwitchOut` — that fires as the body LEAVES, and leaving is what
+ * ends the volatile — and it does not gate Hospitality, which heals a partner on ENTRY. Both
+ * exclusions are stated here rather than left to whoever reads the diff. */
+const healBlocked=m=>!!(m&&m._healBlock>0);
+/* THE HEAL FRACTION FROM THE ARTIFACT, not from a second copy in the dex blob.
+ *
+ * `healsSelf`/`healsAlly` carry the same `[1,2]` / `[1,4]` the dex does — verified move by move
+ * across all 14 members before the switch was made, so this is a no-op behaviourally and a real
+ * change structurally: membership is now DERIVED (docs/TAGS.md invariant 3). Life Dew carries BOTH
+ * tags and that is what makes it spread across the side; Roost and Recover carry only `healsSelf`.
+ * Reading `fx.target === 'allies'` for that was asking a string what a tag already says.
+ *
+ * Heal Pulse (91 uses) carries `healsAlly {heal:true}` with no fraction and stays honestly unwired. */
+function healParam(id){
+  const s=TAGS.param('move',id,'healsSelf'), al=TAGS.param('move',id,'healsAlly');
+  const fr=(s&&s.heal)||(al&&al.heal)||null;
+  if(Array.isArray(fr)&&fr[1])return {fr,allies:Array.isArray(al&&al.heal)};
+  if(fr===true){MEDFAILS.healProcedural++;if(!MEDFAILS.healProceduralFirst)MEDFAILS.healProceduralFirst=id;}
+  return null;
+}
 
 // Mega abilities — sourced from Serebii's Champions data (not guessed). Champions runs BOTH the
 // classic Megas (mainline abilities) AND a set of new Champions-only Megas with their own abilities.
@@ -888,7 +959,29 @@ function targetForMove(me,id,live,field){ const mv=MC.moves[id]; if(!mv||!hasPow
 let PURE_PRIORS = false;
 function setPurePriors(v){ PURE_PRIORS = !!v; }
 
+/* DISABLE IS THE OTHER HALF OF sealsMoves, and it is the exact opposite of the Choice lock: the lock
+ * says "only this move", Disable says "any move but this one". It is applied by taking the sealed move
+ * out of `me.moves` for the duration of ONE decision and putting it back, because every reader inside
+ * the chooser -- bestMoveVs, the priors sampler, the Protect check -- enumerates `me.moves`, and
+ * filtering in one of them would be the half-wire this file keeps getting bitten by.
+ *
+ * IT WAS NOT MERELY UNIMPLEMENTED, IT WAS FALSELY PASSING. `tests/test-mechanics.js` reported the
+ * Disable probe LIVE because the freed chooser happened to pick a different move; with the Disable
+ * click removed it picked the same different move. Identical results across the knob mean the knob is
+ * unwired. The probe now prints both arms.
+ *
+ * NEVER LEAVES A MON WITH NOTHING: a single-move body keeps its move rather than being pushed into
+ * Struggle, which is the real rule and also stops a Disable on a one-move rollout body deleting it. */
 function chooseAction(me,foes,ally,field,side,rng){
+  if(me&&me._vol&&me._vol.disable>0&&me._sealed&&me.moves&&me.moves.length>1&&me.moves.includes(me._sealed)){
+    const _save=me.moves;
+    me.moves=_save.filter(id=>id!==me._sealed);
+    try{ return _chooseAction(me,foes,ally,field,side,rng); }
+    finally{ me.moves=_save; }
+  }
+  return _chooseAction(me,foes,ally,field,side,rng);
+}
+function _chooseAction(me,foes,ally,field,side,rng){
   // asleep? still pick a move — the turn loop applies Champions wake rules (33% turn 2, 100% turn 3)
   const live=foes.filter(f=>f&&!f.fainted&&f.curHP>0); if(!live.length)return{kind:'struggle'};
   /* WIRE 18 -- choiceLock. A Scarf holder (4,159 sheets) clicked a move and is LOCKED into it:
@@ -942,6 +1035,12 @@ function chooseAction(me,foes,ally,field,side,rng){
   // behaviour clone: sample the move this species actually clicks, at its real frequency
   const pr=MC.priors[me.name];
   if(pr){ let r=rng(),pick=null; for(const q of pr){r-=q[1];if(r<=0){pick={mv:q[0],kind:q[2]};break;}}
+    /* DISABLE BINDS THE PRIORS SAMPLER TOO, and this is the exit that made a filtered move list look
+     * like a working seal. The sampler picks a move by NAME out of MC.priors and never consults
+     * `me.moves`, so taking the sealed move out of the list left the single most-used path in this
+     * function untouched. Caught by the probe printing BOTH arms: control and disabled arm each
+     * clicked Dragon Claw. A banned pick falls through to the best attack over the filtered list. */
+    if(pick&&me._vol&&me._vol.disable>0&&me._sealed===pick.mv)pick=null;
     if(pick){
       if(pick.kind==='protect'&&!me.protect&&me.tookProtectTurns<2)return{kind:'protect'};
       if(pick.kind==='setup'&&!inDanger&&(me.boosts.at+me.boosts.sa+me.boosts.sp)<4)return{kind:'setup',mv:pick.mv};
@@ -1165,6 +1264,23 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
   out._wasOut=true;
   out._lock=null; out._lockT=0; out._flinch=false;
   out.boosts={at:0,df:0,sa:0,sd:0,sp:0};
+  /* WIRE 27 -- healsOnSwitchOut. Regenerator, 845 uses, and the strongest argument for pivoting that
+   * exists: leaving the field is a THIRD of max HP back. The engine did nothing at all, so every
+   * Regenerator pivot in every rollout was priced as a plain switch.
+   *
+   * THE TAG OVER-MATCHED AND WAS FIXED BEFORE IT WAS WIRED, which is the whole reason to print a
+   * derivation's membership first. `tag_dex.js` read `a.onSwitchOut ? {heal:1/3}`, so Natural Cure
+   * (cures status, heals nothing) and Zero to Hero (forme-changes Palafin) both carried a 33% heal
+   * they do not have -- 227 corpus uses of invented healing. The derivation now READS the number out
+   * of the handler (`pokemon.heal(pokemon.baseMaxhp / 3)`) and membership went 3 -> 1.
+   *
+   * NOT GATED ON blocksHealing. Heal Block is a volatile on a Pokemon that is standing there; this
+   * fires as the body leaves, and leaving is what ends the volatile. Stated rather than assumed,
+   * because the natural instinct is to gate every heal in the file at once. */
+  {const _hs=TAGS.param('ability',out.ability,'healsOnSwitchOut');
+   if(_hs&&_hs.heal&&out.st&&out.curHP>0)
+     out.curHP=Math.min(out.st.hp,out.curHP+Math.floor(out.st.hp*_hs.heal));}
+  out._healBlock=0;
   bench.push(out);
   return bringIn(act,i,bench,foes,sf,field,wanted);
 }
@@ -1297,6 +1413,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _lk=targetForMove(mon,mon._lock,live(foes),field);
         if(_lk)_a={kind:'attack',move:_lk,target:_lk.target};
       }
+      /* AND DISABLE BINDS A HANDED-IN ACTION TOO — the same WIRE 24 rule with the opposite sign. A
+       * caller that hands in the disabled move is re-asked rather than obeyed; chooseAction has the
+       * move filtered out, so it cannot come back with it. Only fires on a FORCED action, because a
+       * chosen one was already picked from the filtered list. */
+      if(_a&&_a.kind==='attack'&&_a.move&&mon._vol&&mon._vol.disable>0&&mon._sealed&&_a.move.id===mon._sealed)
+        _a=chooseAction(mon,foes,ally,field,side,rng);
       /* WHICH SLOT the click was aimed at, captured now while the board is still the pre-switch one.
          A move targets a SLOT, not a body: if the intended target switches out, the Pokemon that
          replaces it takes the hit. Without this the outgoing mon stayed targetable from the bench and
@@ -1402,8 +1524,40 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(!_who||_who.fainted) continue;
           if(_e.chance<100&&rng()*100>=_e.chance) continue;
           if(_e.status) applyStatus(_who,_e.status);
-          if(_e.volatile){(_who._vol=_who._vol||{})[_e.volatile]=(_e.volatile==='encore')?3:(_e.volatile==='taunt'?3:1);
-            if(_e.volatile==='encore')_who._encoreMove=_who._lastMove||null;}
+          /* WIRE 26 -- sealsMoves, and it is where the tag actually resolves.
+           *
+           * The consumer that read this tag lived in the `kind==='status'` branch and its guard could
+           * never pass: playerAction classifies Encore, Disable and Taunt as `affect` (they carry a
+           * VOLATILE and no major status), so control never reached it. `tests/test-tag-wire.js` has
+           * printed "Encore pins the foe to its last move (undefined) for undefined turns" since
+           * before 2026-08-04 for exactly that reason. The dead branch is gone; this is the live one.
+           *
+           * THE DURATION COMES FROM THE ARTIFACT, not from three typed literals. It read
+           * `encore?3:taunt?3:1`, so Disable — which the tag says lasts 5 — got ONE turn, and any
+           * future duration change in the artifact would have been silently ignored. Now
+           * `sealsMoves.turns`.
+           *
+           * BRANCHING ON THE VOLATILE NAME IS READING A DECLARED FACT, not typing a list. Showdown
+           * names the volatile; the tag cannot tell "pin to the last move" from "forbid the last
+           * move" because both carry the same params (`turns`, `scope`, `fromUsersOwnMoves:false`).
+           * The tag supplies the number, the flag supplies the direction — that is the split
+           * docs/TAGS.md describes, not an exception to it.
+           *
+           * ENCORE RIDES THE SAME `_lock` THE CHOICE ITEMS USE, so a caller-SUPPLIED action is bound
+           * as well as a chosen one — the WIRE 24 rule, which nothing about Encore honoured. A Choice
+           * lock (`_lockT === Infinity`) is never shortened by it. */
+          if(_e.volatile){
+            const _sm=TAGS.param('move',a.mv,'sealsMoves');
+            const _tn=(_sm&&+_sm.turns)||1;
+            (_who._vol=_who._vol||{})[_e.volatile]=_tn;
+            /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
+             * one field serving two volatiles is a field that expires the wrong one. */
+            if(_e.volatile==='disable')_who._sealed=_who._lastMove||null;
+            if(_e.volatile==='encore'){
+              _who._encoreMove=_who._lastMove||null;
+              if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn+1;}
+            }
+          }
         }
         continue;
       }
@@ -1478,7 +1632,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          that extend it carry `extendsDuration` and are not consumed here, so a Damp Rock reads as
          five. Named as a gap rather than silently rounded. */
       if(a.kind==='weather'){
-        const w=SD2WEATHER[String((moveFx(a.mv)||{}).weather||'').toLowerCase().replace(/[^a-z0-9]/g,'')];
+        const w=weatherId((moveFx(a.mv)||{}).weather);
         if(w){field.weather=w;field.weatherT=5;}
         m._lastMove=a.mv;continue;
       }
@@ -1537,13 +1691,15 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the most-clicked doubles restore look like a worse Recover. Capped at max HP, and a fainted
        * ally is not resurrected. */
       if(a.kind==='heal'){
-        const fx=moveFx(a.mv), fr=fx&&fx.heal;
-        if(fr&&fr[1]){
+        const _hp=healParam(a.mv);
+        if(_hp){
           /* Max HP is `st.hp` — a mon carries curHP plus its stat block, and there is no maxHP field.
            * Written as maxHP first, which produced NaN on every heal rather than a wrong number, so
-           * the test caught it; a silently wrong divisor would not have shown up at all. */
-          const amt=x=>{if(x&&x.st)x.curHP=Math.min(x.st.hp,x.curHP+Math.floor(x.st.hp*fr[0]/fr[1]));};
-          if(fx.target==='allies'){for(const x of (it.side==='A'?actA:actB))if(x&&!x.fainted&&x.curHP>0)amt(x);}
+           * the test caught it; a silently wrong divisor would not have shown up at all.
+           * The Heal Block gate is per BODY, not per click: Life Dew still restores the partner when
+           * only the user is blocked. */
+          const amt=x=>{if(x&&x.st&&!healBlocked(x))x.curHP=Math.min(x.st.hp,x.curHP+Math.floor(x.st.hp*_hp.fr[0]/_hp.fr[1]));};
+          if(_hp.allies){for(const x of (it.side==='A'?actA:actB))if(x&&!x.fainted&&x.curHP>0)amt(x);}
           else amt(m);
         }
         continue;
@@ -1570,17 +1726,11 @@ function battleTurn(S,rng,actsForA,actsForB){
             const acc=(fx&&fx.accuracy===true)?100:((fx&&fx.accuracy)||ACC[a.mv]||100);
             if(rng()*100<=acc) t._seededBy={by:m,per:_pt.per};
           }
-          /* WIRE 20 -- Encore, riding the Scarf's lock. sealsMoves declares the turns (3); the
-           * target is pinned to its LAST acted move for that long. Locked into Protect it fails
-           * consecutively (tookProtectTurns already rules that) -- Will's stallIntoEncore scenario,
-           * finally real in the rollouts instead of only in the feature that fears it. Needs a
-           * last move to seal: a fresh switch-in has none, and the click honestly does nothing. */
-          const _sm=TAGS.param('move',a.mv,'sealsMoves');
-          if(_sm&&_sm.turns&&t._lastMove&&!pranksterBlocked(m,t,a.mv)){
-            /* +1 because the end-of-turn tick fires on the application turn too — without it the
-             * tag's 3 turns would force only 2 clicks */
-            t._lock=t._lastMove;t._lockT=+_sm.turns+1;
-          }
+          /* WIRE 20's sealsMoves consumer USED TO BE HERE AND WAS UNREACHABLE. Encore, Disable and
+           * Taunt all carry a volatile and no major status, so playerAction classifies them as
+           * `affect` and this branch never saw one. Moved to where they actually resolve — search
+           * WIRE 26 in the `kind==='affect'` block above. Left as a note rather than deleted
+           * silently, because "the wire exists" was true of this line for a whole session. */
           m._lastMove=a.mv;
           continue;                                             // no major status to apply
         }
@@ -1822,7 +1972,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                 if(_r<_cum){applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status);break;}}
             }
             if(_pun.setsWeather&&!field.weather){
-              const _w=SD2WEATHER[_pun.setsWeather];
+              const _w=weatherId(_pun.setsWeather);
               if(_w){field.weather=_w;field.weatherT=5;}
             }
             /* hazard (Toxic Debris) and inflictsVolatile (Cursed Body, Cute Charm, Perish Body)
@@ -1935,6 +2085,17 @@ function battleTurn(S,rng,actsForA,actsForB){
           // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
           if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
             if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true; }
+          /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
+           * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
+           * the effect. It is the counter to the entire healing family, so it lands in the same pass
+           * as the family: wiring the healers first would make every one of them strictly better than
+           * it is, for as long as the gap lasted.
+           *
+           * ON A CONNECTING HIT AND ON A LIVE TARGET, per target -- a spread move blocks each body it
+           * actually reached. Turns come from the tag (+1 for the end-of-turn tick that fires on this
+           * turn too), not from a 2 typed here. */
+          {const _bh=TAGS.param('move',a.move.id,'blocksHealing');
+           if(_bh&&_bh.turns&&tg&&!tg.fainted)tg._healBlock=+_bh.turns+1;}
         }
         /* Spicy Spray's burn was an independent hardcode here, gated on PHYSICAL -- the handler
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
@@ -1979,7 +2140,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * quietly wrong in the one case the flag exists to mark. */
       {
         const _dr=TAGS.param('move',a.move.id,'drain');
-        if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st){
+        /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
+         * version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
+        if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st&&!healBlocked(m)){
           m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(dealt*_dr.fraction));
         }
       }
@@ -1999,13 +2162,20 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.status==='psn')m.curHP-=Math.floor(m.st.hp/8);                       // regular poison: a flat 1/8
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n/16, escalating
         m.curHP-=Math.floor(m.st.hp*Math.min(15,m.toxTurns)/16);}
-      if(m.item==='leftovers')m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/16));
+      /* WIRE 29 -- passiveHeal, from the item's own tag instead of a Leftovers name check. The tag
+       * carries the fraction (0.0625 = 1/16) and the name check carried the same number typed out, so
+       * this is a no-op today and the point is next month: a second passive-heal item joins by
+       * EXISTING rather than by someone remembering to add a name here. docs/TAGS.md invariant 3. */
+      {const _ph=TAGS.param('item',m.item,'passiveHeal');
+       if(_ph&&_ph.heal&&!healBlocked(m))m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_ph.heal));}
       /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
        * carries the threshold AND the restore as the handler states them ('1/2' -> '1/4'), so a
        * future pinch berry joins by existing rather than by someone remembering. Oran restores a
        * FLAT 10 HP, not a fraction -- its param is honestly null and it stays unwired (0 uses). */
+      /* Under Heal Block the berry is not eaten AT ALL — it is still there afterwards — so the gate
+       * wraps the whole block rather than only the HP line. */
       {const _ht=TAGS.param('item',m.item,'healsAtThreshold');
-       if(_ht&&_ht.restores&&_ht.triggersBelow){
+       if(_ht&&_ht.restores&&_ht.triggersBelow&&!healBlocked(m)){
          const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
          if(m.curHP<=m.st.hp*_fr(_ht.triggersBelow)){
            m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_fr(_ht.restores)));m.item='';
@@ -2021,7 +2191,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _d=Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
         m.curHP-=_d;
         const _s=m._seededBy.by;
-        if(_s&&!_s.fainted&&_s.curHP>0)_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);
+        /* The seed keeps CHIPPING under Heal Block and only the seeder's return is stopped, which is
+         * the same split as the drain: the damage is not healing. */
+        if(_s&&!_s.fainted&&_s.curHP>0&&!healBlocked(_s))_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);
       }
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
     if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;if(field.terrainT>0&&--field.terrainT<=0)field.terrain='';
@@ -2035,8 +2207,15 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(!x||x.fainted)continue;
       if(x._perish!=null){x._perish--;if(x._perish<=0){x.fainted=true;x.curHP=0;}}
       if(x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(!x.status)applyStatus(x,'slp');}}
+      /* Heal Block ticks with the other clocks. It is applied as `turns + 1` because this tick fires
+       * on the application turn too — the same convention as Encore's lock two blocks down. */
+      if(x._healBlock>0)x._healBlock--;
     }
-    [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;});
+    [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;
+      /* Disable ticks HERE and not in chooseAction, so a turn where the caller supplied the action
+       * still spends one — a duration that only counts down when the engine happens to be the one
+       * choosing is a duration that lasts forever in a rollout driven from outside. */
+      if(m&&m._vol&&m._vol.disable>0&&--m._vol.disable<=0)m._sealed=null;});
     /* THE DEATH COUNTERS update at turn end, before replacements enter: the live side count for
      * Last Respects (a mid-turn kill is seen one action late — an approximation, stated), and the
      * entrant's frozen snapshot for Supreme Overlord. Derived from the actual fainted flags every
@@ -2099,7 +2278,12 @@ function playerAction(me,moveId,target,field){
    * Recover, Life Dew, Soft-Boiled and every other restore arrive together and a new one needs no
    * code. `target` decides who gets it: 'self' is the user, 'allies' is the whole side (Life Dew).
    * Checked before the status branch because nothing here carries a major status. */
-  if(fx&&fx.heal)return {kind:'heal',mv:id};
+  /* CLASSIFIED BY THE TAG, and only when the tag carries a NUMBER. A `heal: true` member (Rest,
+   * Synthesis, Wish, Strength Sap) must NOT be captured here: Rest's real click is the sleep and
+   * Strength Sap's is the Attack drop, and classifying them as a heal this engine cannot size would
+   * turn a partly-modelled move into a fully no-op turn. They fall through to the branches that do
+   * model their other half, and healParam counts them in MEDFAILS.healProcedural. */
+  if(healParam(id))return {kind:'heal',mv:id};
   /* REDIRECTION, FROM THE `redirects` TAG. Will was right that these were already tagged and the
    * first version of this line was not: it named ragepowder and followme by their volatile, having
    * looked for the tag under ABRA_TAGS.move — the artifact spells it `moves`, so the search came back
@@ -2153,7 +2337,7 @@ function playerAction(me,moveId,target,field){
   }
   /* YAWN sleeps the target after a delay the tag states. */
   if(TAGS.has('move',id,'delayedSleep'))return {kind:'yawn',mv:id,target};
-  if(fx&&fx.weather&&SD2WEATHER[String(fx.weather).toLowerCase().replace(/[^a-z0-9]/g,'')])
+  if(fx&&fx.weather&&weatherId(fx.weather))
     return {kind:'weather',mv:id};
   if(fx&&fx.status)return {kind:'status',mv:id,target};
   if(fx&&fx.targetBoostsAlways&&fx.target==='self')return {kind:'setup',mv:id};
@@ -2245,7 +2429,7 @@ root.futureSight=futureSight;
 root.ABRA_TAG_LOOKUP=TAGS; root.canTakeStatus=canTakeStatus; root.effSpeed=effSpeed;
 root.punishExposure=punishExposure; root.clickFragility=clickFragility;
 root.battleInit=battleInit; root.battleTurn=battleTurn; root.battleOver=battleOver; root.battleResult=battleResult; root.playerAction=playerAction;
-root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet;
+root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId=weatherId;
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
@@ -2254,6 +2438,10 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
    * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
   PROTECTMOVES,
+  /* Exported for the SAME reason as PROTECTMOVES: the boundary that hands this engine a field has to
+   * be able to ask THIS engine what its weather words are, rather than keeping a second map that
+   * drifts. rollout_leaf.applyField is the caller that needed it and could not reach it. */
+  weatherId,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS};
 })(typeof window!=='undefined'?window:globalThis);

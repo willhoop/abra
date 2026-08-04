@@ -12,7 +12,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  102/144 probed mechanics live, 42 missing   (census 2026-08-04 09:18)
+  107/147 probed mechanics live, 40 missing   (census 2026-08-04 18:59)
   missing:
     move    conditionalPower       Facade doubles when statused
     ability damageReduce           Ice Scales halves special damage
@@ -31,7 +31,6 @@ ENGINE — does the simulator do what Pokémon does
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
     ability boostsEachTurn         Speed Boost raises Speed every turn
-    ability healsOnSwitchOut       Regenerator heals a third on the way out
     move    costsUserHP            Substitute costs the user a quarter
     move    partialTrap            Infestation chips at the end of each turn
     move    blocksSoundMoves       Throat Chop stops the target using a sound move
@@ -52,17 +51,16 @@ ENGINE — does the simulator do what Pokémon does
     ability typeBecomesMoveType    Protean makes the user the type it just used
     ability blocksExplosion        Damp stops Explosion happening at all
     move    hazard                 Stealth Rock chips what comes in afterwards
-    move    blocksHealing          Psychic Noise stops the target healing
     move    reordersTurn           After You lets the partner move next
     item    curesVolatile          Mental Herb frees the holder from Taunt
     move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  1/150 differential comparisons disagree with Showdown   (2026-08-04 09:18)
-    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (54 uses)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 19:07)
+    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 137/176 probed, 39 unprobed
 ```
 
-_stamped 2026-08-04 09:23_
+_stamped 2026-08-04 19:07_
 
 <!-- /GENERATED -->
 
@@ -181,20 +179,230 @@ invisible until this session.
 `null` prints as **NOT COVERED**, which the report calls "honest ignorance, not a pass". It was not
 honest — an engine that THREW and a tag with no handler produced the same word.
 
+## PRIORITIES #0 — the leaf's weather string. LANDED 2026-08-04, with a before/after.
+
+**The engine could SET weather and could not READ the weather it was handed.** `board.weather` holds
+Showdown's `|-weather|` line, which is a MOVE name — and across **41,122 weather events in the whole
+store there are exactly four values**: `SunnyDay` 17,375, `RainDance` 11,355, `Snowscape` 6,304,
+`Sandstorm` 6,088. Every formula in `medicham2-browser.js` compares against `sun`/`rain`/`sand`/`snow`.
+`rollout_leaf.applyField` assigned the string straight through, so a mid-battle board's weather was
+truthy enough to suppress the mega-weather guard and meaningless to every multiplier.
+
+**What was exported, and why there.** `SD2WEATHER` already existed in `medicham2-browser.js`, beside
+`SD2ENG` and `CODE_OF_STATUS`, under a comment saying naming conventions live there. It is now wrapped
+in **`weatherId()`** and exported from that file — **not moved**, and **no second map written**. The
+engine owns its own vocabulary; a copy in `rollout_leaf.js` is how `choiceLock` came to have two
+engines disagreeing. It is **idempotent**, so the two paths that already spoke the engine's words
+(`weatherSetter` on switch-in, a weather move played inside a playout) are untouched, and an
+**unrecognised value returns `''` and is counted in `MEDI.fails.weatherUnknown`** rather than passed
+through as a truthy string nothing reads. That counter is **0** over 10,000 playouts.
+`:1481`, `:1825` and `:2156` were routed through it too — `:1825` read `SD2WEATHER[_pun.setsWeather]`
+with no normalisation and would have silently failed on any capitalised value.
+
+**Parity, 250 corpus boards, both arms in ONE process at n=40, seeds fixed per board.**
+
+| | before | after |
+|---|---|---|
+| boards walked | 250 | 250 |
+| boards carrying a weather | 130 (52.0%) | 130 |
+| `rolloutWinProb` different | — | **77** (30.8% of all boards, **59.2% of the weather boards**) |
+| boards moved with NO weather | — | **0** ← the control |
+| mean \|Δ\| on the movers | — | **9.98 pt**, max **37.5 pt** |
+
+By weather: sun 28/41 at 12.10 pt, rain 27/42 at 9.68, snow 7/15 at 9.11, sand 15/32 at 7.00. The
+snow and sand numbers are the right order for weathers whose main modelled effect is a defence
+multiplier. **The 41% of weather boards that did not move are n=40 quantisation and saturation, not
+inertness** — the direct counter below settles that a different question was asked of the engine.
+
+**The direct counter, because a parity delta is indirect.** `battleTurn` wrapped, field read on turn 1
+of every playout, 250 boards × 40:
+
+```
+before : 0 of 10,000 playouts began in a weather MEDICHAM can read   (0.00%)
+after  : 5,760 of 10,000                                            (57.60%)   sun 2120, rain 1600, sand 1360, snow 680
+```
+
+Probed permanently by `boardWeatherLanguage` in `tests/test-mechanics.js`, which calls the real
+`applyField` and demands the resulting damage EQUAL the damage under the engine's own word, having
+first shown that `sun` beats clear on the same Flamethrower — `clear 56, 'sun' 84, as landed 84`.
+`applyField` is exported as a named test seam for it.
+
+## The two dead wires in `tests/test-tag-wire.js` — BOTH CLOSED, and only one was the engine
+
+It is **GREEN**, 104 checks, 0 dead wires. Census **102 → 105 live / 144 → 147 probed**; nothing fell.
+
+1. **`typeImmunity` was the PROBE, not the engine.** The wire staged Volt Absorb on a **Garchomp** —
+   Dragon/**Ground**, which takes zero from Electric with no ability at all. So *"an Electric hit into
+   Volt Absorb prices at zero"* was true of a Garchomp with `ability:'none'`, and the heal could not
+   fire because nothing was ever absorbed. It also left the absorber FREE with `moves:['protect']`, so
+   the engine chose Protect and blocked the hit — two independent reasons the arm could not pass
+   whatever the engine did. Same shape as the redirection false alarm (a Dragon move at a Fairy type).
+   Re-staged on **Milotic** with an explicit control arm, the unmodified engine reads
+   `hp change: ability none -34, Volt Absorb +35 (a quarter is 35)` — **exact**. New census probe
+   `typeImmunityHeals`, LIVE on the engine as it already stood.
+2. **`sealsMoves` was the engine, and the consumer was unreachable.** The wire sat inside
+   `playerAction`'s `kind==='status'` branch. Encore, Disable and Taunt carry a **volatile and no major
+   status**, so `playerAction` classifies them as `affect` and control never arrived. Moved to where
+   they actually resolve (**WIRE 26**), and **the duration now comes from the artifact** — it read
+   `encore?3:taunt?3:1`, so Disable, which the tag says lasts **5**, got one turn. Encore now rides the
+   **same `_lock` the Choice items use**, so a caller-SUPPLIED action is bound as well as a chosen one
+   (the WIRE 24 rule, which nothing about Encore honoured); a Choice lock is never shortened by it.
+
+**And the Disable probe in the census had been a FALSE LIVE for as long as it existed.** It ran ONE
+arm: the foe committed Rock Slide, was Disabled, chose freely, picked Earthquake, and the probe called
+the mechanic live. Remove the Disable click and it picks Earthquake anyway. **Identical results across
+a varied knob mean the knob is unwired.** Both arms print now, and the staging was inverted so the
+control REPEATS — Rock Slide is precisely the move the control does not repeat, which is why the probe
+read green while dead.
+
+**Filtering `me.moves` was not enough, and the probe caught that too.** The priors sampler
+(`MC.priors[me.name]`) picks a move **by name** and never consults `me.moves`, so the seal leaked
+through the single most-used exit in `chooseAction`. Both arms clicked Dragon Claw until it was
+guarded. Disable also ticks at **end of turn** rather than in `chooseAction`, or a duration only counts
+down on turns the engine happens to be choosing — which in a rollout driven from outside is never.
+
+**My own Encore probe was wrong first, which makes eleven.** It handed the foe a FORCED action on the
+pinned turn, and a forced action bypasses `chooseAction` — it measured the caller's obedience. Both
+probes now read `S.lastActs`, the engine's own record of what was clicked, because `_lastMove` is not
+written by every action kind and a pass leaves yesterday's move sitting there.
+
+## The HEALING CLASS — validated as a class, 2026-08-04. Census 105 → 107.
+
+Will: *"lets validate all the healing tags like drain and hospitality and life dew and recover and
+regenerator."* It is a class and only one member (`drain`) had been fixed. All eight members now have
+a **behavioural, two-armed** probe and all eight are LIVE.
+
+**THE DIFFERENTIAL CANNOT SEE ANY OF THIS, and `tests/test-mechanics.js` now says so in its own
+comment.** `test-engine-diff.js` compares one `moveHit` against one `dmgRange` — a single-hit DAMAGE
+number. Healing is HP over turns. A residual of 1/400 says nothing whatever about this class. Same
+statement `multiHit` carries, same structural reason.
+
+### The tag over-matched, and printing the membership first is what caught it
+
+`tag_dex.js` derived `healsOnSwitchOut` as `a.onSwitchOut ? {heal: 1/3}` — **any** ability that does
+anything on the way out. Membership printed **before** wiring:
+
+```
+OLD derivation matched 3 : naturalcure, regenerator, zerotohero
+NEW derivation matched 1 : regenerator {"heal":0.3333}
+```
+
+**Natural Cure cures status and heals nothing; Zero to Hero forme-changes Palafin.** Wiring the tag as
+it stood would have handed two abilities a 33% heal they do not have, on **227 corpus uses**. The
+derivation now READS the number out of the handler — `pokemon.heal(pokemon.baseMaxhp / 3)` — instead of
+assuming it. LESSONS §4 for the fourth time.
+
+**The regeneration was verified, not assumed**, by the procedure this file already documents: after
+excluding `uses`, **exactly 2** entries in `data/tags.json` differ and both are the intended ones
+(411 entries' `uses` moved because the store grew; no feature reads `.uses`).
+`engine/feature_fixture.js --check` exits **0** afterwards, so **no refit is owed**.
+
+### What was WIRED versus what was already HARDCODED
+
+| Tag | Uses | Before | Now |
+|---|---|---|---|
+| `healsOnSwitchOut` | 845 | **nothing at all** — a Regenerator pivot was priced as a plain switch | WIRE 27, from the corrected tag, in `switchOut` |
+| `blocksHealing` | 196 | **nothing at all** | WIRE 30, on a connecting hit, per target |
+| `passiveHeal` | 6,483 | `if (m.item === 'leftovers') ... /16` — **a name check** | WIRE 29, from `passiveHeal.heal` |
+| `healsSelf` / `healsAlly` | 2,592 | the dex blob's `fx.heal`, and `fx.target === 'allies'` for the spread — **a second copy of the fact** | the tag's own params; Life Dew spreads because it carries BOTH tags |
+| `drain` | 8,553 | already tag-driven (WIRE 19) | + the Heal Block gate |
+| `healsAtThreshold`, `healsAllyOnSwitchIn`, `perTurnHP` | — | already tag-driven | + the Heal Block gate where it applies |
+
+**Routing `healsSelf`/`healsAlly` through the tag is a behavioural NO-OP and that was checked move by
+move before the switch**: across all 14 members the tag's fraction equals the dex's exactly wherever
+both exist (`lifedew [1,4]`, `roost/recover/slackoff/softboiled [1,2]`), and where the tag says
+`heal: true` the dex carries nothing either. So nothing moved and **membership stopped being typed** —
+docs/TAGS.md invariant 3. A move added next regulation with `healsSelf` now works without an edit.
+
+**`heal: true` is a boolean in a fraction's clothing and is left visibly unwired**, counted in
+`MEDI.fails.healProcedural`: Rest (full, plus the sleep), Synthesis / Moonlight / Morning Sun
+(weather-dependent), Wish (delayed), Healing Wish (the user faints), Swallow (needs Stockpile),
+Strength Sap (scales off the TARGET's Attack), Heal Pulse (91 uses, heals its target). They are
+deliberately NOT classified as `kind:'heal'` — Rest's real click is the sleep and Strength Sap's is the
+Attack drop, and capturing them here would turn a partly-modelled move into a fully no-op turn.
+
+### `blocksHealing` is the counter and it landed in the SAME pass, on purpose
+
+Wiring the healers without it makes every healer in the format strictly better than it is — a
+one-directional error. It gates **healing moves, the heal half of a drain (the damage still lands), a
+passive item tick, a pinch berry (which is not consumed either), and Leech Seed's return to the
+seeder**. It does **not** gate `healsOnSwitchOut` — that fires as the body leaves, and leaving ends the
+volatile — nor Hospitality, which heals on ENTRY. Both exclusions are stated in the code.
+
+### THREE CENSUS ENTRIES WERE HOLLOW — LIVE by SOURCE GREP, not by behaviour
+
+The contradiction Will's brief pointed at turned out to generalise. `healsAllyOnSwitchIn` read
+`/hospitality|healsAllyOnSwitchIn/.test(src)` — it would have returned **LIVE for a mechanic that was
+commented out, renamed, or wired to the wrong body.** It is now behavioural and two-armed and reads
+`ability none 0, Hospitality 43 (a quarter is 43)`. **A hollow entry is worse than a missing one,
+because it occupies a slot in a number that may never fall.**
+
+**Two more of the same shape are still LIVE by grep and are named here rather than quietly left:**
+`priorityMod` (*"isPrankster() present and used in the sort"*) and `weatherChipImmune` (*"engine
+references a weather-chip immunity"*). Each needs its own staging and neither is in the healing class.
+Two others — `blocksBerries` and `disablesAttacker` — are the same shape but currently report MISSING,
+so they are honest negatives.
+
+### The census-versus-tag-wire contradiction, and which one lied
+
+**`tests/test-tag-wire.js` lied.** `data/mechanics-census.json` was right: Volt Absorb heals exactly a
+quarter and always did. The wire staged the absorber as a **Garchomp** — Dragon/**Ground**, already
+immune to Electric with no ability at all — and then left it FREE with `moves:['protect']`, so the
+engine chose Protect and blocked the hit. Two independent reasons the arm could not have passed
+whatever the engine did. See the dead-wires section above; the census probe `typeImmunityHeals` was
+written this session, watched fail on nothing, and reads `ability none -34, Volt Absorb +35`.
+
+**Where the fact lives, since it lives in an odd place.** `voltabsorb`, `waterabsorb`, `stormdrain`,
+`poisonheal` and `healer` carry **no heal tag**; the heal is a param of `typeImmunity` and that is the
+one place it lives. Volt Absorb and Water Absorb are the same shape and both work.
+
+### Not done, and named so nobody assumes it was
+
+- **`leechseed` and `pollenpuff`.** Leech Seed is **already tagged** — `perTurnHP {effect:'drain',
+  per:8, on:'target', to:'user', immuneType:'Grass'}` — and already wired (WIRE 8), so the brief's
+  "carries no heal tag at all" is not quite right; what it lacks is membership in the `drain` tag, and
+  adding a second tag for the same fact is what invariant 2 forbids. **Pollen Puff (99 uses) is a real
+  gap**: it heals an ally instead of damaging and carries nothing for it.
+- **`naturalcure` is now `untagged`.** It genuinely cures status on switch-out and no derivation
+  describes that. It lost a tag it should never have had; it still needs one it does not have.
+
 ## Found red, NOT mine, NOT fixed — reported rather than filed
 
-- **`tests/test-tag-wire.js` is RED with 2 dead wires, and was red before this session.** Verified by
-  stashing `medicham2-browser.js` and re-running: byte-identical output before and after. The two are
-  `typeImmunity` (*"the absorbed hit HEALS the absorber 1/4 (1 -> 1)"* — Volt Absorb takes the hit and
-  gains nothing) and `sealsMoves` (*"Encore pins the foe to its last move (undefined) for undefined
-  turns"* — the wire exists at `medicham2-browser.js:1578` and its guard never passes). Both are
-  ENGINE mechanics. Neither has a census probe, so **the census cannot see either of them**.
-- **`tests/test-no-silent-failure.js` stays RED at 40 new silent catches, none in an ENGINE file.**
-  `engine/status.js` 9, `rollout_r4.js` 5, `miltank.js` 5, `rollout_r1_artifact.js` 4,
-  `rollout_explore_sweep.js` 3, `mag_bot.js` 3, `test-web-status.js` 3, `test-timestamps.js` 3,
-  `run_stamp.js` 2, and one each in `rollout_r1.js`, `rollout_leaf.js`, `backtest_winrate.js`,
-  `test-guru-derived.js`, `test-rollout-gates.js`. That is **MEASURE 33, SEARCH 6, OPS 3**. The
-  `rollout_r4.js:312` the priorities file points at is in that MEASURE 33.
+- **`tests/test-web-status.js` is RED BECAUSE MY CENSUS MOVED, and I did not run the fix.** It says
+  `engine.live = 105 but data/mechanics-census.json -> live = 107`. The fix is one command and the
+  test names it: **`node web/build-status.js`**. It is a generator — it authors no number, it copies
+  artifacts onto the board — but it writes into `web/`, which this pass was told not to touch. So it is
+  reported here in full rather than left to be discovered: **WEB owes one command.**
+- **`tests/test-no-silent-failure.js` is RED at 47 new silent catches (was 40), none in an ENGINE
+  file.** The seven that appeared since the 40 were counted: `backtest_winrate.js`, `mag_bot.js` ×3,
+  `miltank.js` ×3 and neighbours — MEASURE, SEARCH and OPS. The one match inside `rollout_leaf.js`
+  (`movePriorFor`, line 216) is **pre-existing at HEAD** and was verified against
+  `git show HEAD:engine/rollout_leaf.js`; it moved down seven lines because of a comment.
+- **`test-site-data-fresh` and `test-stadium-roster` are RED and are MEASURE/WEB.** The first is the
+  stale-fit list (`pory`, `xatu`, `nmf`, `slowking`); the second is the GURU hole, PRIORITIES #41.
+
+## A SECOND weather boundary exists, is the same bug, and is measured at ZERO exposure — FILED
+
+`engine/position_features.js:291` builds `field.weather = B.norm(board.weather)` — the same
+untranslated move name — and hands it to `M.effSpeed`. The loss is exact and was measured, not argued:
+
+```
+swiftswim   clear 161   engine-word 'rain' 322   board-word 'raindance' 161
+chlorophyll clear 161   engine-word 'sun'  322   board-word 'sunnyday'  161
+sandrush / slushrush    identical
+```
+
+**It is not fixed here, and the reason is a number.** Over **400 corpus boards, 192 of which carry a
+weather, ZERO** had a weather-speed ability among the actives standing in its own weather (95% upper
+bound ~0.75%). The control holds: `MC.mons` carries **9** such rows — Excadrill, Swampert-Mega,
+Basculegion-F, Venusaur, Vileplume, Victreebel, Overqwil, Beartic, Houndstone — so the mechanism is
+real and the event is rare, rather than the probe being broken. It is a latent hazard, and fixing it
+changes a **feature vector**, which is the refit edge MEASURE owns. `board.js:1190` holds a THIRD copy
+of the same map (`WEATHER_KIND`, sun/rain only), and `board.js` is not ENGINE's to edit.
+
+**Terrain is the same mismatch, unmeasured.** `medicham2:138` tests `'psychicterrain'` while the
+artifact's `terrainSetter` emits `'psychic'`; `miltank.js:482` passes the short words and
+`position_features.js:296` passes the long ones. Two vocabularies, one field, nobody translating.
 
 ## Filed, not fixed
 

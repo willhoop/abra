@@ -447,30 +447,55 @@ console.log('\nwire 11 — typeImmunity');
   ok(members.every(k => db.abilities[k].params.typeImmunity.type),
     'every member names its TYPE (was {immune:true} — a boolean in param\'s clothing)');
 
+  /* THIS WIRE WAS STAGED ON A BODY THAT WAS ALREADY IMMUNE, and that is why it read dead for a whole
+   * session while the engine was right the entire time.
+   *
+   * The absorber was a **Garchomp** — Dragon/GROUND — so an Electric move prices at zero off the TYPE
+   * CHART with no ability at all. "an Electric hit into Volt Absorb prices at zero" was true of a
+   * Garchomp with `ability: 'none'`, and the heal could not fire because nothing was ever absorbed.
+   * It is the same shape as the redirection false alarm of 2026-08-04, which fired a Dragon move at a
+   * Fairy type: the mechanic worked, the staging could not show it, and the engine got the blame.
+   *
+   * MILOTIC IS THE BODY: pure Water, so Electric is x2 into it and the control below LOSES hp. Every
+   * arm now prints the ability-off number beside the ability-on one. */
   const F = { terrain: '', weather: '', twA: 0, twB: 0 };
   const att = M.buildMon('pelipper', {});
-  const va = M.buildMon('garchomp', {}); va.ability = 'voltabsorb';
-  ok(M.dmgRange(M.buildMon('pikachu', {}) || att, va, MC.moves.thunderbolt || MC.moves.discharge, F, false).max === 0,
+  const plain = M.buildMon('milotic', {}); plain.ability = 'none'; plain.item = '';
+  const va = M.buildMon('milotic', {}); va.ability = 'voltabsorb'; va.item = '';
+  const bolt = M.buildMon('pikachu', {}) || att;
+  const openly = M.dmgRange(bolt, plain, MC.moves.thunderbolt || MC.moves.discharge, F, false).max;
+  ok(openly > 0, `the CONTROL takes the Electric hit (${openly}) — without this the assertion below is vacuous`);
+  ok(M.dmgRange(bolt, va, MC.moves.thunderbolt || MC.moves.discharge, F, false).max === 0,
     'an Electric hit into Volt Absorb prices at zero, from the tag');
   ok(M.dmgRange(att, va, MC.moves.hydropump, F, false).max > 0,
     'a Water hit into the same body lands — the immunity is per-TYPE, not per-name');
 
-  /* the gain, in a real battle: a 1-HP Volt Absorb body eats a forced Discharge and HEALS 1/4 */
+  /* the gain, in a real battle: a half-HP Volt Absorb body eats a forced Thunderbolt and HEALS 1/4 */
   /* Both tests strip ITEMS (a dataset Sitrus healed on top of the absorb and got blamed on the
    * wire) and roll 0.5 (0.9 made 80-accuracy Hydro Pump MISS — the engine was right both times). */
   const A = [M.buildMon('pikachu', {})].filter(Boolean);
-  const holder = M.buildMon('garchomp', {}); holder.ability = 'voltabsorb'; holder.item = '';
+  const holder = M.buildMon('milotic', {}); holder.ability = 'voltabsorb'; holder.item = '';
   if (A.length && holder && MC.moves.thunderbolt) {
     A[0].item = '';
     const S = M.battleInit(A, [holder]);
-    holder.curHP = 1;
+    /* HALF HP, NOT 1 HP. A quarter-max heal onto a full body is capped and reads as no heal at all;
+     * 1 HP works too, but half makes the number printed below directly comparable to the quarter. */
+    holder.curHP = Math.floor(holder.st.hp / 2);
+    const before = holder.curHP;
     const saved = MC.priors[A[0].name]; MC.priors[A[0].name] = null;
     const savedH = MC.priors[holder.name]; MC.priors[holder.name] = null;
     A[0].moves = ['thunderbolt']; holder.moves = ['protect'];
-    try { M.battleTurn(S, () => 0.5, new Map([[S.actA[0], M.playerAction(S.actA[0], 'thunderbolt', holder, S.field)]])); }
+    /* THE ABSORBER IS FORCED TO PASS. It was left free with `moves: ['protect']`, so the engine duly
+     * chose Protect, the Thunderbolt was blocked and nothing was ever absorbed — a second reason this
+     * arm could not have passed whatever the engine did. */
+    try {
+      M.battleTurn(S, () => 0.5,
+        new Map([[S.actA[0], M.playerAction(S.actA[0], 'thunderbolt', holder, S.field)]]),
+        new Map([[S.actB[0], { kind: 'pass' }]]));
+    }
     finally { MC.priors[A[0].name] = saved; MC.priors[holder.name] = savedH; }
-    ok(holder.curHP === 1 + Math.floor(holder.st.hp / 4),
-      `the absorbed hit HEALS the absorber 1/4 (1 -> ${holder.curHP}) — the old table priced this gift at nothing`);
+    ok(holder.curHP === before + Math.floor(holder.st.hp / 4),
+      `the absorbed hit HEALS the absorber 1/4 (${before} -> ${holder.curHP}, a quarter is ${Math.floor(holder.st.hp / 4)}) — the old table priced this gift at nothing`);
   }
 
   /* Storm Drain banks +1 SpA instead */

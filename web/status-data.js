@@ -10,52 +10,52 @@
  * separately from live.js and labelled as such.
  */
 window.ABRA_BOARD = {
- "built_at": "2026-08-04T18:36:58.361Z",
+ "built_at": "2026-08-04T19:10:52.243Z",
  "built_by": "web/build-status.js",
  "status_js_ok": true,
  "status_js_error": null,
- "status_raw": "\nABRA STATUS — generated 2026-08-04 18:36 by engine/status.js\nEvery figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.\n\nENGINE — does the simulator do what Pokémon does\n  105/147 probed mechanics live, 42 missing   (census 2026-08-04 18:34)\n  missing:\n    move    conditionalPower       Facade doubles when statused\n    ability damageReduce           Ice Scales halves special damage\n    move    ignoresProtect         Feint goes through Protect\n    move    recharge               Giga Impact costs the following turn\n    move    needsTargetToAttack    Avalanche doubles after being hit\n    move    needsUntrackedState    Gyro Ball scales with the speed gap\n    ability blocksBerries          Unnerve stops the foe eating a berry\n    ability disablesAttacker       Cursed Body can disable the move that hit it\n    item    restoresStats          White Herb undoes a stat drop\n    move    statChangeInCode       Belly Drum maxes Attack\n    move    proceduralStatus       Tri Attack can burn, freeze or paralyse\n    move    overridesEffectiveness Freeze-Dry beats Ice Beam into a Water type\n    ability reducesAllyDamage      Friend Guard cuts what the partner takes\n    ability poisonsOnMyContact     Poison Touch poisons on a contact hit\n    ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll\n    ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit\n    ability boostsEachTurn         Speed Boost raises Speed every turn\n    ability healsOnSwitchOut       Regenerator heals a third on the way out\n    move    costsUserHP            Substitute costs the user a quarter\n    move    partialTrap            Infestation chips at the end of each turn\n    move    blocksSoundMoves       Throat Chop stops the target using a sound move\n    move    punishesContact        Spiky Shield hurts the attacker it blocked\n    move    critRatioUp            Night Slash is priced above the same move without its crit ratio\n    move    clearsBoosts           Haze wipes the boosts off both sides\n    move    cantUseTwice           Gigaton Hammer cannot be clicked twice in a row\n    move    terrainScaled          Expanding Force gains power on Psychic Terrain\n    ability untagged               Marvel Scale raises Defense while statused\n    ability ignoresDefenderAbility Mold Breaker ignores Levitate\n    ability ignoresTypeImmunity    Scrappy lets Normal hit a Ghost\n    ability noRecoil               Rock Head takes no recoil\n    move    alwaysCrit             Flower Trick always crits\n    move    forcesSwitch           Dragon Tail drags the target out\n    move    crashOnMiss            High Jump Kick hurts the user when it misses\n    move    userFaints             Explosion faints its user\n    item    curesStatus            Lum Berry cures the status it was just given\n    ability typeBecomesMoveType    Protean makes the user the type it just used\n    ability blocksExplosion        Damp stops Explosion happening at all\n    move    hazard                 Stealth Rock chips what comes in afterwards\n    move    blocksHealing          Psychic Noise stops the target healing\n    move    reordersTurn           After You lets the partner move next\n    item    curesVolatile          Mental Herb frees the holder from Taunt\n    move    multiAccuracy          Triple Axel rolls accuracy on every hit\n  1/150 differential comparisons disagree with Showdown   (2026-08-04 18:34)\n    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (54 uses)\n    a differential hit is NOT in the census count above — the census probes what someone thought to probe\n  tag coverage: 137/176 probed, 39 unprobed\n\nMEASURE — can we believe a number\n  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.\n    n=1378 games, 200 rollouts each   (2026-08-04 07:09)\n    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811\n    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835\n    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/miltank.js, data/abra-tags.js\n    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)\n  provenance: 0 unsafe, 32 possibly stale, 52 ok, 0 missing\n  refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time\n    (engine/medicham2-browser.js moved 2026-08-04 18:27, but the feature function did not)\n\nSEARCH — does MILTANK choose better than MAG\n  R1 leaf accuracy   PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-04 07:34)\n    RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows.\n    SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs.\n  R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)\n    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it\n      explore: NOT RECORDED AND NOT PASSED.\n      maxTurns: NOT RECORDED AND NOT PASSED.\n      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.\n      machine: A duration is a fact about a machine under a load.\n  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)\n    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)\n  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)\n  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 18:27):\n    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41\n    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36\n    PRE-CHANGE games.r4.jsonl  2026-08-04 02:33\n    PRE-CHANGE games.r4-baseline.jsonl  2026-08-04 01:22\n    PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45\n\nOPS — the live bot and the store\n  store: 39792 games, 7123 usable (17.9%), 7164 teams   (live.js 2026-08-04)\n  live-games/: 34 battles recorded\n  data/games.ladder.jsonl      last written 2026-08-04 16:02\n  data/games.bo3.jsonl         last written 2026-08-04 16:02  <- the Force-OTS format, collected hourly\n  data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat\n\nRules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.\n\n",
+ "status_raw": "\nABRA STATUS — generated 2026-08-04 19:10 by engine/status.js\nEvery figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.\n\nENGINE — does the simulator do what Pokémon does\n  107/147 probed mechanics live, 40 missing   (census 2026-08-04 18:59)\n  missing:\n    move    conditionalPower       Facade doubles when statused\n    ability damageReduce           Ice Scales halves special damage\n    move    ignoresProtect         Feint goes through Protect\n    move    recharge               Giga Impact costs the following turn\n    move    needsTargetToAttack    Avalanche doubles after being hit\n    move    needsUntrackedState    Gyro Ball scales with the speed gap\n    ability blocksBerries          Unnerve stops the foe eating a berry\n    ability disablesAttacker       Cursed Body can disable the move that hit it\n    item    restoresStats          White Herb undoes a stat drop\n    move    statChangeInCode       Belly Drum maxes Attack\n    move    proceduralStatus       Tri Attack can burn, freeze or paralyse\n    move    overridesEffectiveness Freeze-Dry beats Ice Beam into a Water type\n    ability reducesAllyDamage      Friend Guard cuts what the partner takes\n    ability poisonsOnMyContact     Poison Touch poisons on a contact hit\n    ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll\n    ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit\n    ability boostsEachTurn         Speed Boost raises Speed every turn\n    move    costsUserHP            Substitute costs the user a quarter\n    move    partialTrap            Infestation chips at the end of each turn\n    move    blocksSoundMoves       Throat Chop stops the target using a sound move\n    move    punishesContact        Spiky Shield hurts the attacker it blocked\n    move    critRatioUp            Night Slash is priced above the same move without its crit ratio\n    move    clearsBoosts           Haze wipes the boosts off both sides\n    move    cantUseTwice           Gigaton Hammer cannot be clicked twice in a row\n    move    terrainScaled          Expanding Force gains power on Psychic Terrain\n    ability untagged               Marvel Scale raises Defense while statused\n    ability ignoresDefenderAbility Mold Breaker ignores Levitate\n    ability ignoresTypeImmunity    Scrappy lets Normal hit a Ghost\n    ability noRecoil               Rock Head takes no recoil\n    move    alwaysCrit             Flower Trick always crits\n    move    forcesSwitch           Dragon Tail drags the target out\n    move    crashOnMiss            High Jump Kick hurts the user when it misses\n    move    userFaints             Explosion faints its user\n    item    curesStatus            Lum Berry cures the status it was just given\n    ability typeBecomesMoveType    Protean makes the user the type it just used\n    ability blocksExplosion        Damp stops Explosion happening at all\n    move    hazard                 Stealth Rock chips what comes in afterwards\n    move    reordersTurn           After You lets the partner move next\n    item    curesVolatile          Mental Herb frees the holder from Taunt\n    move    multiAccuracy          Triple Axel rolls accuracy on every hit\n  1/400 differential comparisons disagree with Showdown   (2026-08-04 19:07)\n    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)\n    a differential hit is NOT in the census count above — the census probes what someone thought to probe\n  tag coverage: 137/176 probed, 39 unprobed\n\nMEASURE — can we believe a number\n  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.\n    n=1378 games, 200 rollouts each   (2026-08-04 07:09)\n    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811\n    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835\n    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/miltank.js, data/abra-tags.js\n    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)\n  provenance: 2 unsafe, 37 possibly stale, 52 ok, 0 missing\n  refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time\n    (engine/medicham2-browser.js moved 2026-08-04 18:55, but the feature function did not)\n    (data/abra-tags.js moved 2026-08-04 18:51, but the feature function did not)\n\nSEARCH — does MILTANK choose better than MAG\n  R1 leaf accuracy   PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-04 07:34)\n    RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows.\n    SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs.\n  R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)\n    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it\n      explore: NOT RECORDED AND NOT PASSED.\n      maxTurns: NOT RECORDED AND NOT PASSED.\n      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.\n      machine: A duration is a fact about a machine under a load.\n  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)\n    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)\n  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)\n  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 18:55):\n    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41\n    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36\n    PRE-CHANGE games.r4.jsonl  2026-08-04 02:33\n    PRE-CHANGE games.r4-baseline.jsonl  2026-08-04 01:22\n    PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45\n\nOPS — the live bot and the store\n  store: 39792 games, 7123 usable (17.9%), 7164 teams   (live.js 2026-08-04)\n  live-games/: 34 battles recorded\n  data/games.ladder.jsonl      last written 2026-08-04 19:03\n  data/games.bo3.jsonl         last written 2026-08-04 19:04  <- the Force-OTS format, collected hourly\n  data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat\n\nRules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.\n\n",
  "engine": {
   "headline": {
    "state": "ok",
-   "v": "105/147",
+   "v": "107/147",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T18:34:57.909Z",
+   "at": "2026-08-04T18:59:15.311Z",
    "label": "probed mechanics live",
    "note": "must never go down (docs/ENGINE.md)"
   },
   "live": {
    "state": "ok",
-   "v": 105,
+   "v": 107,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T18:34:57.909Z",
+   "at": "2026-08-04T18:59:15.311Z",
    "label": "live"
   },
   "probed": {
    "state": "ok",
    "v": 147,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T18:34:57.909Z",
+   "at": "2026-08-04T18:59:15.311Z",
    "label": "probed"
   },
   "missing_n": {
    "state": "ok",
-   "v": 42,
+   "v": 40,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T18:34:57.909Z",
+   "at": "2026-08-04T18:59:15.311Z",
    "label": "missing"
   },
   "census_generated": {
    "state": "ok",
-   "v": "2026-08-04T18:34:57.909Z",
+   "v": "2026-08-04T18:59:15.308Z",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T18:34:57.909Z",
+   "at": "2026-08-04T18:59:15.311Z",
    "label": "census generated"
   },
   "missing_list": {
    "state": "ok",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T18:34:57.909Z",
+   "at": "2026-08-04T18:59:15.311Z",
    "rows": [
     {
      "kind": "move",
@@ -141,11 +141,6 @@ window.ABRA_BOARD = {
      "kind": "ability",
      "tag": "boostsEachTurn",
      "label": "Speed Boost raises Speed every turn"
-    },
-    {
-     "kind": "ability",
-     "tag": "healsOnSwitchOut",
-     "label": "Regenerator heals a third on the way out"
     },
     {
      "kind": "move",
@@ -249,11 +244,6 @@ window.ABRA_BOARD = {
     },
     {
      "kind": "move",
-     "tag": "blocksHealing",
-     "label": "Psychic Noise stops the target healing"
-    },
-    {
-     "kind": "move",
      "tag": "reordersTurn",
      "label": "After You lets the partner move next"
     },
@@ -271,16 +261,16 @@ window.ABRA_BOARD = {
   },
   "diff_headline": {
    "state": "bad",
-   "v": "1/150",
+   "v": "1/400",
    "src": "data/engine-diff.json",
-   "at": "2026-08-04T18:34:51.384Z",
+   "at": "2026-08-04T19:07:16.120Z",
    "label": "differential comparisons disagree with Showdown",
    "note": "a differential hit is NOT in the census count — the census probes what someone thought to probe"
   },
   "diff_worst": {
    "state": "bad",
    "src": "data/engine-diff.json",
-   "at": "2026-08-04T18:34:51.384Z",
+   "at": "2026-08-04T19:07:16.120Z",
    "rows": [
     {
      "att": "chesnaught",
@@ -289,16 +279,16 @@ window.ABRA_BOARD = {
      "showdown": "0-0",
      "medicham": "120-130",
      "rel": 125,
-     "uses": 54,
+     "uses": 56,
      "suspect": true
     }
    ]
   },
   "diff_generated": {
    "state": "ok",
-   "v": "2026-08-04T18:34:51.381Z",
+   "v": "2026-08-04T19:07:16.118Z",
    "src": "data/engine-diff.json",
-   "at": "2026-08-04T18:34:51.384Z",
+   "at": "2026-08-04T19:07:16.120Z",
    "label": "differential run"
   },
   "tags": {
@@ -318,7 +308,7 @@ window.ABRA_BOARD = {
    "live": true,
    "label": "unprobed"
   },
-  "tags_at": "2026-08-04T08:20:18.288Z"
+  "tags_at": "2026-08-04T18:51:35.006Z"
  },
  "measure": {
   "headline": {
@@ -368,10 +358,10 @@ window.ABRA_BOARD = {
    "note": "measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/miltank.js, data/abra-tags.js"
   },
   "provenance": {
-   "state": "stale",
+   "state": "bad",
    "src": "engine/status.js",
-   "unsafe": 0,
-   "stale": 32,
+   "unsafe": 2,
+   "stale": 37,
    "ok": 52,
    "missing": 0,
    "note": "engine/provenance.js is the canonical staleness authority; status.js prints its totals"
@@ -388,7 +378,11 @@ window.ABRA_BOARD = {
   "refit_moved": [
    {
     "src": "engine/medicham2-browser.js",
-    "at": "2026-08-04 18:27"
+    "at": "2026-08-04 18:55"
+   },
+   {
+    "src": "data/abra-tags.js",
+    "at": "2026-08-04 18:51"
    }
   ]
  },
@@ -674,7 +668,7 @@ window.ABRA_BOARD = {
    "state": "ok",
    "src": "engine/status.js",
    "newest_src": "engine/medicham2-browser.js",
-   "newest_at": "2026-08-04 18:27"
+   "newest_at": "2026-08-04 18:55"
   },
   "runs": {
    "state": "ok",
@@ -774,7 +768,7 @@ window.ABRA_BOARD = {
    "rows": [
     {
      "file": "data/games.ladder.jsonl",
-     "at": "2026-08-04 16:02"
+     "at": "2026-08-04 19:03"
     }
    ]
   }
@@ -810,7 +804,7 @@ window.ABRA_BOARD = {
     },
     {
      "file": "web/stadium.html",
-     "at": "2026-08-04T18:31:54.816Z"
+     "at": "2026-08-04T19:06:01.718Z"
     },
     {
      "file": "web/status.html",

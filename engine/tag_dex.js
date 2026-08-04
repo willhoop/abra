@@ -2116,7 +2116,16 @@ const ABILITY_TAGS = [
   { tag: 'healsOnSwitchOut', param: 'restores a third of max HP by leaving', probe: 'regenerator',
     why: 'Regenerator. Makes switching a HEAL, which is the strongest argument for pivoting that the '
        + 'switch features cannot see',
-    of: a => a.onSwitchOut ? { heal: 1 / 3 } : null },
+    /* THIS OVER-MATCHED, AND IT WAS CAUGHT BY PRINTING THE MEMBERSHIP BEFORE WIRING IT — the rule in
+     * docs/LESSONS.md §4, for the fourth time. `a.onSwitchOut ? {heal: 1/3}` gave a 33% heal to every
+     * ability that does ANYTHING on the way out: Natural Cure (which cures status and heals nothing)
+     * and Zero to Hero (which forme-changes Palafin). Wiring the tag as it stood would have handed
+     * two abilities a heal they do not have, on 227 corpus uses.
+     *
+     * The handler states the number and it is now READ rather than assumed:
+     * `pokemon.heal(pokemon.baseMaxhp / 3)`. Membership went 3 -> 1, and the one is Regenerator. */
+    of: a => { const m = String(a.onSwitchOut || '').match(/\.heal\(\s*\w+\.(?:base)?[Mm]axhp\s*\/\s*(\d+)/);
+      return m ? { heal: 1 / (+m[1]) } : null; } },
   { tag: 'blocksBerries', param: 'their berries cannot be eaten', probe: 'unnerve',
     why: 'Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side',
     of: a => a.onFoeTryEatItem ? { blocks: true } : null },

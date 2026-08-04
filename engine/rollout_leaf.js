@@ -307,19 +307,26 @@ function runPlayout(S, rng, explore, foePolicy, counters) {
  *
  * Tailwind is mapped from the ASKING side's point of view; battleInit's side A is always `side`.
  *
- * *** THE TWO SIDES OF THIS ASSIGNMENT DO NOT SPEAK THE SAME LANGUAGE. FILED, NOT FIXED. ***
+ * *** THE TWO SIDES OF THIS ASSIGNMENT DID NOT SPEAK THE SAME LANGUAGE. FIXED 2026-08-04. ***
  * `f.weather` comes from `board.weather`, which is Showdown's `|-weather|` line normalised, so its
- * values are MOVE names: `sunnyday`, `raindance`, `sandstorm`, `snowscape`. MEDICHAM compares
- * against `sun` / `rain` / `sand` / `snow` (medicham2-browser :464, :486-487, :934). They have never
- * matched, so the weather a mid-battle board reports has been INERT in every rollout ever run --
- * truthy enough to suppress a guard, meaningless to every formula. Measured on the shipped engine,
- * Charizard Flamethrower into Garchomp: `sun` 92-109, `sunnyday` 61-72, `rain` 29-35, `raindance`
- * 61-72. 39 of 60 sampled corpus boards carry a weather, so this is a far larger error than the mega
- * one directly above it and it is NOT this pass's change -- correcting it moves ~65% of in-game leaf
- * values. Recorded in docs/SEARCH.md; it is an ENGINE item. Do not "tidy" it into this function
- * during a run. */
+ * values are MOVE names: `sunnyday`, `raindance`, `sandstorm`, `snowscape`. MEDICHAM compares against
+ * `sun` / `rain` / `sand` / `snow`. They had never matched, so the weather a mid-battle board reported
+ * was INERT in every rollout ever run -- truthy enough to suppress a guard, meaningless to every
+ * formula. Measured on the shipped engine, Charizard Flamethrower into Garchomp: `sun` 92-109,
+ * `sunnyday` 61-72, `rain` 29-35, `raindance` 61-72.
+ *
+ * The fix is `MEDI.weatherId`, which is MEDICHAM's own `SD2WEATHER` exported rather than a second map
+ * copied into this file -- FACTS ARE GLOBAL, and a second copy is how choiceLock came to have two
+ * engines disagreeing. It is idempotent, so the OTHER two paths that already speak the engine's
+ * vocabulary (`weatherSetter` on switch-in, a weather move played inside the playout) are unchanged,
+ * and an unrecognised value resolves to no weather and is COUNTED in `MEDI.fails.weatherUnknown`
+ * rather than passed through as a truthy string nothing reads.
+ *
+ * Parity, 250 corpus boards, both arms in one process at n=40: 130 carried a weather, 77 boards moved
+ * (59.2% of the weather boards), mean |delta| 9.92 pt, max 37.5 pt, and **0 of the 120 boards with no
+ * weather moved at all** -- the control that says this is the weather and not the reordering. */
 function applyField(S, f, side, seeded) {
-  const w = f.weather || '', t = f.terrain || '';
+  const w = MEDI.weatherId(f.weather), t = f.terrain || '';
   if (seeded || w) S.field.weather = w;
   else if (!S.field.weather) S.field.weather = '';
   if (seeded || t) S.field.terrain = t;
@@ -555,4 +562,8 @@ function rolloutAfterActions(board, side, opts) {
   return ran ? wins / ran : null;
 }
 
-module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson, runPlayout };
+/* applyField is exported as a TEST SEAM, and named as one. It is the boundary where an observed board
+ * becomes a playout field, which makes it the one place the board's vocabulary is translated into the
+ * engine's -- `tests/test-mechanics.js` probes it directly rather than inferring the translation from
+ * a win probability, because a leaf value moving is consistent with several other explanations. */
+module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson, runPlayout, applyField };
