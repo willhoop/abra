@@ -104,6 +104,44 @@ function generatorFor(rel) {
   return null;
 }
 
+/* ---- BUNDLE OR PUBLISHER? ------------------------------------------------------------------------
+ *
+ * Two generators can both write a data/*.js the site loads and mean completely different things:
+ *
+ *   a BUNDLE generator is a pure function of artifacts already on disk. Running it republishes
+ *     nothing. build/build_mag_data.js turns data/policy-weights.json into data/mag.js.
+ *   a PUBLISHER refits a model and writes new measured numbers that documents quote. Running it is
+ *     the refit cascade, not a refresh.
+ *
+ * THE FIRST VERSION OF THIS TEST DETECTED PUBLISHERS BY THE FILENAME SUFFIX `-eval.json`, and that
+ * is not a property of anything. It caught engine/pory.py, which writes data/pory-eval.json. It did
+ * NOT catch engine/nmf_roles.py (writes data/nmf-roles.json — a fitted NMF decomposition quoted in
+ * docs/MODELS.md) or engine/xatu.py (writes data/xatu.json — a belief model, likewise quoted). Both
+ * were on the auto-run list, so `--fix` would have refitted two models to make a freshness check go
+ * green — the exact thing the block below was written to prevent, evaded by a naming convention.
+ *
+ * The rule that actually holds, checked against all ten generators this test names: a bundle writes
+ * ONLY browser files. A generator that also writes a data/*.json is producing an artifact, and
+ * artifacts are what documents quote. Same WRITE probe generatorFor already uses, asked of every
+ * data file the generator writes rather than of one suffix. */
+function artifactsWrittenBy(gen) {
+  let src;
+  /* AN UNREADABLE GENERATOR MUST NOT READ AS "SAFE TO RUN". An empty source finds no writes, so a
+   * read failure would silently promote a refit into the auto-run list. Refused in the safe
+   * direction: unreadable counts as a publisher. */
+  try { src = fs.readFileSync(D(gen), 'utf8'); }
+  catch (e) { return { unreadable: e.message, artifacts: ['<unreadable — could not be checked>'] }; }
+  const artifacts = new Set();
+  for (const ln of src.split('\n')) {
+    if (!WRITE.test(ln)) continue;
+    for (const m of ln.matchAll(/['"]([\w./-]*\.json)['"]/g)) artifacts.add(m[1]);
+    /* The os.path.join / path.join idiom splits the name across arguments, which is how
+     * data/guru-matchups.json hid a writer from engine/provenance.js entirely. */
+    for (const m of ln.matchAll(/join\s*\([^)]*['"]data['"]\s*,\s*['"]([\w.-]+\.json)['"]/g)) artifacts.add(m[1]);
+  }
+  return { artifacts: [...artifacts] };
+}
+
 /* ---- baseline of known orphans ------------------------------------------------------------------ */
 let base = { orphans: {} };
 let baselineMissing = false;
@@ -141,7 +179,48 @@ const statusSrc = (() => {
   catch (e) { console.error('  (cannot read build_status.js: ' + e.message + ')'); return ''; }
 })();
 const statusInputs = [...new Set([...statusSrc.matchAll(/readJSON\(\s*'(data\/[^']+)'/g)].map(m => m[1]))];
-const staleInputs = [], orphanInputs = [];
+
+/* MTIME IS THE WRONG RULE FOR A VERDICT ARTIFACT, and this check used it for three days.
+ *
+ * It compared each input's mtime against the newest games.*.jsonl and failed past one day. The store
+ * is APPEND-ONLY and the collector runs hourly, so that clock can never be beaten: every verdict in
+ * the repository is "stale" within a day of being computed, permanently, with nothing wrong. Five
+ * artifacts were red on this rule tonight and four of them are fine — engine/provenance.js reports
+ * chomp-ev, eval-report, species-sets and policy-weights-joint as clean.
+ *
+ * engine/provenance.js already rejected the mtime rule for exactly this reason and replaced it with
+ * a CORPUS DRIFT test: compare the corpus an artifact DECLARES against the clean corpus available
+ * now. That is answerable, it scales with the real growth rate (~7%/day), and it would still have
+ * caught the founding case — data/chomp-ev.json four days behind is ~28% drift, well past the 10%
+ * threshold. So this check delegates instead of keeping a second, weaker definition of stale.
+ * status.js shells out to provenance.js for the same reason; there is one staleness authority.
+ *
+ * WHAT DELEGATION LOSES, SAID OUT LOUD RATHER THAN QUIETLY DROPPED. Drift can only see an artifact
+ * that DECLARES a corpus, and chomp-ev.json, eval-report.json and policy-weights-joint.json declare
+ * none. Under mtime they were checked badly; under drift they would be exempt SILENTLY, which is the
+ * failure engine/provenance.js §5 describes — doing the right thing being the thing that made you
+ * invisible. They are listed by name, every run, without failing: an artifact is fixed by its
+ * generator recording a count, and that is the pressure to add one. The same shape as
+ * tests/test-timestamps.js listing the artifacts that still carry a naive stamp. */
+let provText = '';
+try {
+  provText = require('child_process').execFileSync(
+    process.execPath, [D('engine', 'provenance.js')], { encoding: 'utf8', maxBuffer: 1 << 24 });
+} catch (e) {
+  console.error('  (cannot run engine/provenance.js: ' + String(e.message).split('\n')[0] + ')');
+}
+/* Parsed out of provenance's own report rather than recomputed here — a second implementation of the
+ * drift arithmetic is how two files come to disagree about the same fact. */
+function provNote(rel) {
+  const base = path.basename(rel);
+  const line = provText.split('\n').findIndex(l => l.trim().startsWith(base + ' '));
+  if (line < 0) return null;
+  const lines = provText.split('\n');
+  const notes = [lines[line]];
+  for (let i = line + 1; i < lines.length && /^\s{30,}\S/.test(lines[i]); i++) notes.push(lines[i]);
+  return notes.join(' ');
+}
+const staleInputs = [], orphanInputs = [], uncheckable = [];
 for (const rel of statusInputs) {
   if (!fs.existsSync(D(rel))) continue;
   const days = (newest - fs.statSync(D(rel)).mtimeMs) / 864e5;
@@ -149,17 +228,39 @@ for (const rel of statusInputs) {
    * generator" for a file no generator writes wastes their time and teaches them to ignore the
    * check. data/damage-validation.json is read by build_status.js and written by nothing. */
   if (!generatorFor(rel)) { orphanInputs.push({ rel, days }); continue; }
-  if (days > 1) staleInputs.push({ rel, days });
+  const note = provNote(rel);
+  if (note === null) continue;
+  const drift = note.match(/CORPUS DRIFT — declares ([\d,]+) games; ([\d,]+) are clean ladder now, so ([\d.]+)%/);
+  if (/\bUNSAFE\b/.test(note)) staleInputs.push({ rel, days, why: 'UNSAFE — older than the quality filter' });
+  else if (drift) staleInputs.push({ rel, days, why: `CORPUS DRIFT ${drift[3]}% — declares ${drift[1]}, ${drift[2]} clean now` });
+  else if (/records no game count/.test(note)) uncheckable.push({ rel, days, why: 'its generator records no corpus count' });
+  else if (!/declares|n_games|games/.test(note) && !/\bok\b/.test(note)) uncheckable.push({ rel, days, why: 'provenance reports no corpus claim' });
+}
+/* An input provenance never mentions a count for is uncheckable too, whatever else it said. */
+for (const rel of statusInputs) {
+  if (uncheckable.some(u => u.rel === rel) || staleInputs.some(s => s.rel === rel)) continue;
+  if (!fs.existsSync(D(rel)) || !generatorFor(rel)) continue;
+  let j = null; try { j = JSON.parse(fs.readFileSync(D(rel), 'utf8')); } catch (e) { /* not our check */ }
+  if (!j) continue;
+  const claims = ['n_games', 'games', 'clean_games', 'usable', 'n_measured']
+    .some(k => typeof j[k] === 'number') || (j.provenance && j.provenance.funnel);
+  if (!claims) uncheckable.push({ rel, days: (newest - fs.statSync(D(rel)).mtimeMs) / 864e5,
+    why: 'declares no corpus — drift cannot see it' });
 }
 staleInputs.sort((a, b) => b.days - a.days);
 ok(statusInputs.length > 0, `found ${statusInputs.length} artifacts the site's verdicts derive from`,
   'could not scan build_status.js — the indirect check is not running');
+if (uncheckable.length) {
+  console.log('\n  UNCHECKABLE INPUTS — not a failure, and not clean either. Drift cannot see these:');
+  for (const u of uncheckable) console.log(`    ${u.rel.padEnd(32)} ${u.why}`);
+  console.log('    Fix by making the generator record the corpus it used, not by re-running it.');
+}
 if (staleInputs.length) {
   console.log('\n  STALE INPUTS — the page looks fresh, but its verdicts come from these:');
-  for (const si of staleInputs) console.log(`    ${si.rel.padEnd(32)} ${si.days.toFixed(1)}d`);
+  for (const si of staleInputs) console.log(`    ${si.rel.padEnd(32)} ${si.why}`);
 }
 ok(staleInputs.length === 0, 'every artifact the site\'s verdicts derive from is current',
-  staleInputs.length ? `${staleInputs.length} stale, oldest ${staleInputs[0].rel} at ${staleInputs[0].days.toFixed(1)}d` : '');
+  staleInputs.length ? `${staleInputs.length} behind the corpus, worst ${staleInputs[0].rel}: ${staleInputs[0].why}` : '');
 
 console.log(`\n  fresh    ${fresh.length}`);
 console.log(`  stale    ${stale.length}`);
@@ -244,28 +345,15 @@ if (process.argv.includes('--list') || process.argv.includes('--fix')) {
    * That is the refit cascade this project has rules about, triggered by a FRESHNESS CHECK. Making a
    * test green must never silently republish a measured number.
    *
-   * Detected rather than listed: a generator that also writes a `*-eval.json` is publishing measured
-   * numbers that documents quote, so it is a fit and not a bundle. Same WRITE probe the orphan scan
-   * already uses, asked of a different target. Named and skipped, with the command printed so a human
-   * can run it deliberately and then follow the refit checklist in engine/provenance.js. */
+   * Classified by artifactsWrittenBy(), above — a generator that writes any data/*.json is a
+   * publisher, not a bundle. Named and skipped, with the command printed so a human can run it
+   * deliberately and then follow the refit checklist in engine/provenance.js. */
   const PUBLISHES = [];
   const kept = [];
   for (const c of cmds) {
-    /* AN UNREADABLE GENERATOR MUST NOT READ AS "SAFE TO RUN". This scan decides whether a generator
-     * refits a model, and an empty source finds no `-eval.json`, so a read failure would silently
-     * promote a refit into the auto-run list — the exact thing this block exists to prevent. Refused
-     * loudly and treated as a publisher, which is the safe direction. */
-    let src = '';
-    try {
-      src = fs.readFileSync(D(c.gen), 'utf8');
-    } catch (e) {
-      console.error(`    cannot read ${c.gen} (${e.message}) — treating it as a refit and SKIPPING.`);
-      PUBLISHES.push({ ...c, evals: ['<unreadable — could not be checked>'] });
-      continue;
-    }
-    const evals = [...new Set([...src.matchAll(/['"]([\w./-]*-eval\.json)['"]/g)].map(m => m[1]))]
-      .filter(t => src.split('\n').some(ln => ln.includes(t) && WRITE.test(ln)));
-    if (evals.length) PUBLISHES.push({ ...c, evals }); else kept.push(c);
+    const { unreadable, artifacts } = artifactsWrittenBy(c.gen);
+    if (unreadable) console.error(`    cannot read ${c.gen} (${unreadable}) — treating it as a refit and SKIPPING.`);
+    if (artifacts.length) PUBLISHES.push({ ...c, evals: artifacts }); else kept.push(c);
   }
   if (PUBLISHES.length) {
     console.log('  SKIPPED — these REFIT a model and republish measured numbers:');
@@ -331,8 +419,35 @@ if (process.argv.includes('--list') || process.argv.includes('--fix')) {
   process.exit(failed ? 1 : 0);
 }
 
-ok(actionable.length === 0, 'every regenerable file the site loads is newer than the newest game data',
-  actionable.map(a => `${a.rel} (${a.days.toFixed(1)}d) -> node ${a.gen}`).join('; '));
+/* A STALE BUNDLE AND A STALE FIT ARE NOT THE SAME FAILURE, and failing on both under one sentence
+ * told a reader to run a command that would have refitted a model.
+ *
+ * A bundle is a pure function of artifacts already on disk. It is stale because nobody ran it, the
+ * repair is one command, `--fix` will do it, and it is right to fail on that.
+ *
+ * A fit is stale because the MODEL is behind, and re-running it republishes numbers the white paper
+ * and SUMMARY.md quote. That is a deliberate act with a docs pass attached, and mtime is not even
+ * the right question to ask about it — the right question is CORPUS DRIFT, and engine/provenance.js
+ * asks it and reports these same three: pory-eval.json at 33.4%, nmf-roles.json behind its input,
+ * xatu.json recording no game count at all. Nothing becomes invisible by being moved off this line;
+ * it moves to the tool whose job it is. Listed here every run with the command, never filed. */
+const actionableBundles = [], stalePublishers = [];
+for (const a of actionable) {
+  if (!a.gen) { actionableBundles.push(a); continue; }
+  const { artifacts } = artifactsWrittenBy(a.gen);
+  if (artifacts.length) stalePublishers.push({ ...a, artifacts }); else actionableBundles.push(a);
+}
+if (stalePublishers.length) {
+  console.log('\n  STALE FITS — the site serves these and only a REFIT makes them current:');
+  for (const p of stalePublishers) {
+    console.log(`    ${p.rel.padEnd(22)} ${p.days.toFixed(1)}d   ${(/\.py$/.test(p.gen) ? 'python ' : 'node ') + p.gen}` +
+      `   republishes ${p.artifacts.join(', ')}`);
+  }
+  console.log('    NOT a failure of this check and NOT filed: engine/provenance.js measures whether');
+  console.log('    their numbers are actually behind, and docs must move in the same pass.');
+}
+ok(actionableBundles.length === 0, 'every regenerable BUNDLE the site loads is newer than the newest game data',
+  actionableBundles.map(a => `${a.rel} (${a.days.toFixed(1)}d) -> ${a.gen}`).join('; '));
 if (stale.length > actionable.length)
   console.log(`  (${stale.length - actionable.length} of those are baselined orphans — permanently stale, no generator exists)`);
 

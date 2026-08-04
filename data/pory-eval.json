@@ -11,7 +11,28 @@
       0.6456
     ],
     "coin": 0.6931,
-    "material_heuristic": 0.655
+    "material_heuristic": 0.655,
+    "material_two_feature": 0.629778,
+    "material_two_feature_note": "A logistic on [alive_diff, hp_diff] ONLY, fitted by the same gradient descent, on the same standardisation and the same temporal split. This is the baseline the verdict should always have used. `material_heuristic` above is a crude 0.75/0.25/0.5 SIGN rule and beating it is arithmetic, not learning."
+  },
+  "paired_vs_material_two_feature": {
+    "measured": "2026-08-04, engine/pory.py replayed on the identical 4,623-game sample; weights came back bit-identical to this file",
+    "pory_log_loss": 0.629799,
+    "baseline_log_loss": 0.629778,
+    "difference": 2.1e-05,
+    "ci95_clustered_by_game": [
+      -1.3e-05,
+      5.6e-05
+    ],
+    "bootstrap_B": 2000,
+    "n_test_games": 925,
+    "direction": "positive = PORY WORSE. The interval contains zero, so PORY and a two-feature material count are indistinguishable at n=925 held-out games.",
+    "baseline_weights_standardised": [
+      0.0,
+      0.88867,
+      0.42623
+    ],
+    "baseline_reduced_form": "sigmoid(0.9923 * alive_diff + 1.4060 * hp_diff) - within 0.2% of PORY's own reduced form below, which is what 'it IS the baseline' means numerically as well as structurally."
   },
   "brier": {
     "pory": 0.2206,
@@ -101,5 +122,44 @@
     "foe_alive",
     "turn/10"
   ],
-  "verdict": "PORY beats coin AND the material heuristic on held-out log-loss, interval clear of both - a real, calibrated value net."
+  "reduced_form": {
+    "note": "DERIVED FROM `weights` AND `feat_std` IN THIS FILE, not typed. Any document quoting PORY's coefficients must quote these; docs/MODELS.md quoted 1.256 / 1.544 from the 2026-07-24 run (commit 44e0fb0, n_games 7381, fitted BEFORE the clean filter existed) and had been wrong about this artifact since 2026-07-26.",
+    "expression": "sigmoid(0.9943 * alive_diff + 1.4080 * hp_diff)",
+    "alive_diff": 0.994302,
+    "hp_diff": 1.408002,
+    "intercept": 0.0,
+    "turn_over_10": 0.0,
+    "why_it_reduces": "Every state is emitted from BOTH perspectives with the label flipped, so the gradient on any feature that is IDENTICAL across the two rows cancels exactly. That pins the bias and turn/10 to zero structurally, not empirically. my_alive and foe_alive SWAP across the two rows, so their weights come out exactly antisymmetric (+0.28071 / -0.28071, summing to 0.000000000) and fold into alive_diff. Five features, two degrees of freedom, and no amount of extra data changes that.",
+    "history": {
+      "2026-07-24": "1.2561 / 1.5436  (n_games 7381, unfiltered store - bot games included)",
+      "2026-07-26": "1.0259 / 1.4347  (n_games 1421, first clean-filtered run)",
+      "2026-07-31": "0.9946 / 1.4095  (n_games 3942)",
+      "2026-08-01": "0.9962 / 1.4111  (n_games 4257)",
+      "2026-08-02": "0.9943 / 1.4080  (n_games 4623, this file)"
+    }
+  },
+  "verdict": "PORY IS A MATERIAL COUNTER. Its five features carry two degrees of freedom, and against a logistic on those two features alone it scores 0.629799 to 0.629778 - a paired difference of +0.000021 (PORY worse), 95% CI [-0.000013, +0.000056] clustered by game, containing zero. It does beat a coin (0.6931) and it does beat a crude 0.75/0.25 sign rule (0.655), and neither of those is evidence of a learned value function.",
+  "withdrawn_verdict": {
+    "withdrawn": true,
+    "text": "PORY beats coin AND the material heuristic on held-out log-loss, interval clear of both - a real, calibrated value net.",
+    "withdrawn_on": "2026-07-25",
+    "restamped_on": "2026-08-04",
+    "withdrawn_reason": "PORY was retracted on 2026-07-25 and docs/MODELS.md records the retraction, but this artifact - the thing the claim is supposed to rest on - was never restamped and carried the pre-retraction string for ten days. The string is not false about what it compared; it is false about what it implies. `material_heuristic` is a 0.75/0.25/0.5 SIGN rule, and PORY's interval genuinely clears it. The baseline that decides whether PORY learned anything is the two-feature logistic PORY reduces to, and against that it ties - measured 2026-08-04, not asserted.",
+    "why_it_kept_regenerating": "This was NOT a leftover from an old run. engine/pory.py gates the verdict on `hi < coin and hi < material_heuristic`, and on this sample hi=0.6456 clears both, so every re-run re-asserted it. Restamping the file alone would have been undone by the next `python engine/pory.py`. The generator now computes the two-feature baseline and gates on that instead, so the artifact and the code agree about what PORY is.",
+    "how_this_was_checked": "engine/pory.py was replayed on the identical first-4,623-clean-game sample. It returned the weights, feat_std and log-loss in this file bit-for-bit, so the artifact is a faithful record of its run and the fault is in the comparison, not the arithmetic.",
+    "not_withdrawn": "Every measured quantity in this file stands: log_loss 0.6298 with CI [0.6125, 0.6456], Brier 0.2206, accuracy 0.6264, ECE 0.017 and the reliability curve all reproduce exactly. PORY is well calibrated. It is calibrated at counting bodies and HP."
+  },
+  "corpus_note": "This file declares 4,623 games against 6,943 clean ladder games available on 2026-08-04 - 33.4% CORPUS DRIFT, reported by engine/provenance.js. It was NOT regenerated during the 2026-08-04 restamp: `log_loss.pory` = 0.6298 is quoted in docs/ABRA-whitepaper.md and docs/SUMMARY.md and cross-checked by engine/sanity_check.py, so a re-fit moves a published figure and is a deliberate act with a docs pass, not a refresh. A previous accidental re-run moved it to 0.6184 and turned sanity_check.py red.",
+  "corpus_ceiling_note": "THE 33.4% IS OVERSTATED AND THE DRIFT CHECK CANNOT KNOW IT. PORY's population is not `clean ladder games` - it is `clean ladder games whose raw log is present in data/games.ladder.raw-logs.jsonl AND whose log names a winner`, which is a strict subset. Measured 2026-08-04 by running this generator over the whole current corpus: it reaches 5,456 games, not 6,943. So the true drift of this file is (5456-4623)/5456 = 15.3%, and a freshly-generated pory-eval.json would STILL be reported as 21.4% behind, permanently. Any artifact whose legitimate population is a subset of clean-ladder has this false positive; engine/provenance.js's escape hatches (`gate`, `games_requested`, `sampled`) do not cover it, because this is neither a gate nor a deliberate sample.",
+  "regeneration_delta_2026_08_04": {
+    "note": "Measured, not predicted: the fixed generator was run end-to-end into a scratch directory so the cost of regenerating could be stated without publishing it. Nothing under data/ was written by that run.",
+    "n_games": "4,623 -> 5,456",
+    "log_loss_pory": "0.6298 -> 0.6226   <- quoted in ABRA-whitepaper.md and SUMMARY.md",
+    "log_loss_pory_ci95": "[0.6125, 0.6456] -> [0.6065, 0.6399]",
+    "ece": "0.017 -> 0.0054",
+    "accuracy": "0.6264 -> 0.6337",
+    "reduced_form": "sigmoid(0.9943*alive_diff + 1.4080*hp_diff) -> sigmoid(0.9824*alive_diff + 1.4311*hp_diff)",
+    "paired_vs_two_feature": "+0.000021 [-0.000013, +0.000056] -> -0.000001 [-0.000031, +0.000030]",
+    "verdict_class": "UNCHANGED. The tie against the two-feature material baseline holds at the larger sample, so the retraction is robust to the corpus growth. Regenerating moves five published figures and does not move the conclusion."
+  }
 }

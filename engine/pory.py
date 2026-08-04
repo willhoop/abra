@@ -134,6 +134,25 @@ def main():
     # material-sign heuristic: 0.75 if more mons, 0.25 if fewer, 0.5 tie
     diff=Xte[:,3]-Xte[:,4]; heur=np.where(diff>0,0.75,np.where(diff<0,0.25,0.5))
     heur_ll=ll(heur,Yte)
+    # THE BASELINE THAT DECIDES WHETHER PORY LEARNED ANYTHING.
+    #
+    # `heur` above is a 0.75/0.25/0.5 SIGN rule. PORY clears it comfortably and that is arithmetic,
+    # not learning: PORY's five features carry TWO degrees of freedom, because every state is emitted
+    # from both perspectives with the label flipped. The gradient on any column identical across the
+    # two rows cancels exactly (bias, turn/10 -> pinned to 0); the columns that SWAP come out exactly
+    # antisymmetric (my_alive/foe_alive) and fold into alive_diff. So PORY IS a logistic on
+    # (alive_diff, hp_diff) and the only honest question is whether it beats that.
+    #
+    # Fitted the same way, on the same standardisation and the same split, so the comparison is about
+    # the feature set and nothing else. Verdict gates on the PAIRED difference clustered by game --
+    # the point estimates tie to four decimals and an unpaired comparison of two numbers that close
+    # tells you nothing about whether the gap is real.
+    bcols=[0,1,2]
+    wb=np.zeros(len(bcols))
+    for _ in range(4000):
+        pb=1/(1+np.exp(-Ztr[:,bcols]@wb)); gb=Ztr[:,bcols].T@(pb-Ytr)/len(Ytr)+lam*wb; wb-=lr*gb
+    base=np.clip(1/(1+np.exp(-Zte[:,bcols]@wb)),1e-4,1-1e-4)
+    base_ll=ll(base,Yte)
     # CLUSTERED bootstrap over GAMES (states within a game are correlated — resampling states
     # would give a falsely-tight CI; resample whole games to be honest).
     te_games=np.array(order)[te]
@@ -146,6 +165,16 @@ def main():
             idx=np.concatenate([by_game[g] for g in gs])
             vals.append(ll(p[idx],y[idx]))
         vals.sort(); return [round(vals[int(.025*B)],4),round(vals[int(.975*B)],4)]
+    def paired_ci(pa,pb,y,B=2000):
+        """PAIRED, on the same resampled games. Two independently-bootstrapped intervals that
+        overlap say nothing about a paired difference; this resamples once and differences inside
+        the resample, which is the comparison the verdict is allowed to make."""
+        vals=[]
+        for _ in range(B):
+            gs=np.random.choice(uniq,len(uniq),replace=True)
+            idx=np.concatenate([by_game[g] for g in gs])
+            vals.append(ll(pa[idx],y[idx])-ll(pb[idx],y[idx]))
+        vals.sort(); return [round(vals[int(.025*B)],6),round(vals[int(.975*B)],6)]
     # calibration (10-bin reliability + ECE)
     bins=np.linspace(0,1,11); ece=0.0; rel=[]
     for i in range(10):
@@ -158,7 +187,19 @@ def main():
       "generated":"engine/pory.py — mid-game win-prob value net from real replays",
       "n_games":ng,"n_states":len(Y),"train_states":int(tr.sum()),"test_states":int(te.sum()),
       "log_loss":{"pory":round(ll(pte,Yte),4),"pory_ci95":boot_ci(pte,Yte),
-                  "coin":round(coin_ll,4),"material_heuristic":round(heur_ll,4)},
+                  "coin":round(coin_ll,4),"material_heuristic":round(heur_ll,4),
+                  "material_two_feature":round(base_ll,6),
+                  "material_two_feature_note":"A logistic on [alive_diff, hp_diff] ONLY, fitted by the "
+                    "same gradient descent, on the same standardisation and the same temporal split. This "
+                    "is the baseline the verdict gates on. `material_heuristic` is a crude 0.75/0.25/0.5 "
+                    "SIGN rule and beating it is arithmetic, not learning."},
+      "paired_vs_material_two_feature":{
+          "pory_log_loss":round(ll(pte,Yte),6),"baseline_log_loss":round(base_ll,6),
+          "difference":round(ll(pte,Yte)-base_ll,6),
+          "ci95_clustered_by_game":paired_ci(pte,base,Yte),
+          "bootstrap_B":2000,"n_test_games":int(len(uniq)),
+          "direction":"positive = PORY WORSE",
+          "baseline_weights_standardised":[round(float(x),5) for x in wb]},
       "brier":{"pory":round(brier(pte,Yte),4),"coin":0.25},
       "accuracy":round(acc,4),"ece":round(ece,4),"reliability":rel,
       "weights":[round(float(x),5) for x in w],"feat_mean":[round(float(x),5) for x in mu],"feat_std":[round(float(x),5) for x in sd],
@@ -181,18 +222,82 @@ def main():
     # network on 1.3M states and lands at 0.6314, against 0.6375 for a two-feature baseline of
     # alive-count plus HP-difference. The whole network buys 0.006 over counting bodies and HP, and the
     # RICHER feature sets score worse than material-only (0.6419 and 0.65). PORY is a material counter.
+    #
+    # AND THE INTERVAL HAS TO BE AGAINST THE RIGHT BASELINE (2026-08-04).
+    #
+    # The gate below used to read `hi < coin and hi < material_heuristic`. On the committed 4,623-game
+    # sample that is TRUE -- hi=0.6456, coin 0.6931, sign-rule 0.6550 -- so every re-run re-asserted
+    # "a real, calibrated value net" TEN DAYS AFTER PORY WAS RETRACTED. Nothing was stale and nothing
+    # was left over: the code was answering the wrong question, correctly, every time. Restamping the
+    # artifact by hand would have been undone by the next run.
+    #
+    # The right question is the one docs/MODELS.md's retraction actually asks: does PORY beat the
+    # two-feature material logistic it REDUCES TO. Measured, paired and clustered by game, it does not.
     lo, hi = out["log_loss"]["pory_ci95"]
-    beats = hi < out["log_loss"]["coin"] and hi < out["log_loss"]["material_heuristic"]
-    if beats:
-        out["verdict"] = ("PORY beats coin AND the material heuristic on held-out log-loss, interval "
-                          "clear of both - a real, calibrated value net.")
+    pv = out["paired_vs_material_two_feature"]
+    dlo, dhi = pv["ci95_clustered_by_game"]
+    # Lower log-loss is better, so PORY clears the baseline only if the whole paired interval is < 0.
+    beats_material = dhi < 0
+    beats_coin = hi < out["log_loss"]["coin"]
+    if beats_material:
+        out["verdict"] = (
+            "PORY beats the two-feature material logistic it reduces to: paired difference %.6f, 95%% CI "
+            "[%.6f, %.6f] clustered by game, entirely below zero. That is a learned value function and "
+            "not a body count." % (pv["difference"], dlo, dhi))
     else:
         out["verdict"] = (
-            "PORY does NOT clearly beat its baselines. Point estimate %.4f vs coin %.4f and material "
-            "heuristic %.4f, but PORY's 95%% interval [%.4f, %.4f] contains them, so the difference is "
-            "not distinguishable from noise. Treat PORY as a material counter until the interval clears "
-            "the baselines." % (out["log_loss"]["pory"], out["log_loss"]["coin"],
-                                out["log_loss"]["material_heuristic"], lo, hi))
+            "PORY IS A MATERIAL COUNTER. Its five features carry two degrees of freedom, and against a "
+            "logistic on those two features alone it scores %.6f to %.6f - a paired difference of %+.6f "
+            "(positive = PORY worse), 95%% CI [%.6f, %.6f] clustered by game, containing zero. It does "
+            "beat a coin (%.4f) and it does beat a crude 0.75/0.25 sign rule (%.4f), and neither of those "
+            "is evidence of a learned value function."
+            % (pv["pory_log_loss"], pv["baseline_log_loss"], pv["difference"], dlo, dhi,
+               out["log_loss"]["coin"], out["log_loss"]["material_heuristic"]))
+    # A PRIOR CONCLUSION IS NEVER SILENTLY REWRITTEN. The retracted string travels with the artifact
+    # so the withdrawal can be checked rather than believed -- the same shape as
+    # data/rollout-r1-withdrawn-join.json.
+    out["withdrawn_verdict"] = {
+        "withdrawn": True,
+        "text": ("PORY beats coin AND the material heuristic on held-out log-loss, interval clear of "
+                 "both - a real, calibrated value net."),
+        "withdrawn_on": "2026-07-25",
+        "restamped_on": "2026-08-04",
+        "withdrawn_reason": (
+            "PORY was retracted on 2026-07-25 and docs/MODELS.md records the retraction, but this "
+            "artifact carried the pre-retraction string for ten days. The string is not false about "
+            "what it compared; it is false about what it implies. `material_heuristic` is a "
+            "0.75/0.25/0.5 SIGN rule and PORY's interval genuinely clears it. The baseline that decides "
+            "whether PORY learned anything is the two-feature logistic PORY reduces to."),
+        "why_it_kept_regenerating": (
+            "The verdict gate read `hi < coin and hi < material_heuristic`, which is TRUE on this "
+            "sample, so the generator re-asserted the withdrawn claim on every run. The gate now reads "
+            "the paired difference against the two-feature baseline."),
+        "not_withdrawn": (
+            "Every measured quantity in this file stands: log_loss, its CI, Brier, accuracy, ECE and "
+            "the reliability curve. PORY is well calibrated. It is calibrated at counting bodies and HP."),
+    }
+    # DERIVED, NEVER TYPED. docs/MODELS.md quoted 1.256 / 1.544 -- correct for the 2026-07-24 run and
+    # wrong for every run since the clean filter landed on 2026-07-26. Publishing the reduction from
+    # the weights in the same file means a document can be checked against it instead of remembered.
+    _sd = out["feat_std"]; _w = out["weights"]
+    _raw = {f: _w[i] / _sd[i - 1] for i, f in enumerate(out["features"]) if i >= 1}
+    out["reduced_form"] = {
+        "note": "DERIVED from `weights` and `feat_std` in this file. Any document quoting PORY's "
+                "coefficients must quote these.",
+        "expression": "sigmoid(%.4f * alive_diff + %.4f * hp_diff)"
+                      % (_raw["alive_diff"] + _raw["my_alive"], _raw["hp_diff"]),
+        "alive_diff": round(_raw["alive_diff"] + _raw["my_alive"], 6),
+        "hp_diff": round(_raw["hp_diff"], 6),
+        "intercept": round(float(_w[0]), 6),
+        "turn_over_10": round(_raw["turn/10"], 6),
+        "my_alive_plus_foe_alive": round(_raw["my_alive"] + _raw["foe_alive"], 9),
+        "why_it_reduces":
+            "Every state is emitted from BOTH perspectives with the label flipped, so the gradient on "
+            "any feature IDENTICAL across the two rows cancels exactly -- that pins the bias and "
+            "turn/10 to zero structurally, not empirically. my_alive and foe_alive SWAP across the two "
+            "rows, so their weights come out exactly antisymmetric and fold into alive_diff. Five "
+            "features, two degrees of freedom, and no amount of extra data changes that.",
+    }
     json.dump(out,open(os.path.join(ROOT,"data","pory-eval.json"),"w"),indent=2)
     with open(os.path.join(ROOT,"data","pory.js"),"w") as f:
         f.write("window.PORY="+json.dumps({"weights":out["weights"],"mean":out["feat_mean"],"std":out["feat_std"],"features":out["features"]},separators=(",",":"))+";\n")

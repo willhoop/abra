@@ -25,7 +25,7 @@ MEASURE — can we believe a number
     (data/abra-tags.js moved 2026-08-04 08:20, but the feature function did not)
 ```
 
-_stamped 2026-08-04 09:09_
+_stamped 2026-08-04 09:23_
 
 <!-- /GENERATED -->
 
@@ -381,6 +381,114 @@ fix.
 
 `data/guru-matchups.json` is itself 24.2% behind the corpus. Regenerating it is a separate,
 deliberate refresh — it moves every number the GURU booth renders — and is not done here.
+
+### 5c. The thirteen drifting artifacts — TRIAGED, and NONE of them is a silent refresh
+
+`node engine/provenance.js` flags thirteen artifacts 10.6–47.2% behind the clean corpus. The
+question that decides what to do with each is *does regenerating it move a published figure*, and it
+was measured rather than guessed: every scalar in each artifact was matched against the living docs
+and the site pages, at headline depth, with the universal constants (0.693, 0.25, 50%) excluded
+because they appear for reasons that have nothing to do with the artifact.
+
+**The answer is that there are zero safe silent refreshes in the set.** Nine carry a verdict string
+or an interval-based claim that regenerating could flip; the other four have headline figures typed
+into `MODELS.md`, the white paper or `SUMMARY.md`, which `engine/sanity_check.py` §5 cross-checks. By
+this project's own living-docs rule, regenerating any of them is a docs pass, not a refresh.
+
+| artifact | behind | what regenerating moves | act |
+|---|---|---|---|
+| `war.json` | **47.2%** | verdict *"WORSE THAN A COIN AT EVERY REGULARISATION STRENGTH TESTED"*; `held_out.log_loss` 0.694 in MODELS + white paper | **STOP** — a null on a corpus that has since doubled is the most interesting one here |
+| `policy-eval.json` | 43.8% | verdict *"phase-conditioning did not help; species-only prior retained"* | **STOP** |
+| `pory-eval.json` | 33.4% | `log_loss.pory` 0.6298 in white paper + SUMMARY, gated by sanity_check | **STOP** — restamped instead, see §5d |
+| `pory-nn.json` | 29.4% | the arms table; `val_logloss` 0.612, `auc` 71.6% in MODELS/white paper/SUMMARY. Also a NN train | **STOP** |
+| `xatu-belief.json` | 29.3% | `n_games` 4,910 and `top1_accuracy.belief` 31.2% in MODELS; an improvement CI clear of zero | **STOP** |
+| `guru-matchups.json` | 24.2% | every number the GURU booth renders; `log_loss_matchup_prior` 0.712 in the white paper | **STOP — and explicitly not in this pass**, WEB is in that booth |
+| `roles-eval.json` | 24.1% | headline *"0.6935 vs a coin 0.6931 and rating 0.6967"* — a knife-edge that regeneration can flip either way; six figures in MODELS | **STOP** |
+| `pokemon-roles.json`, `role-matchups.json` | 24.1% | same generator as roles-eval (`engine/roles.py`); all three move together or not at all | **STOP** |
+| `vocab-usage.json` | 24.1% | `role_coverage_of_battle_usage` 97.2% in MODELS | **STOP** (one-line docs pass) |
+| `xatu-context.json` | 24.1% | improvement CI [0.022, 0.042] rendered on the site | **STOP** |
+| `meta-usage.json` | 24.1% | **nothing typed** — the closest thing to a clean refresh, and PRIORITIES #16 names `node engine/analyze.js data/games.ladder.jsonl` as its closing command | **ASK** — `engine/mag_bot.js` and `engine/mew.js` read it, so it is the live bot's meta prior, and moving that is not MEASURE's call with an engine release boundary pending. It is **not** a refit trigger: `engine/feature_fixture.js` excludes it by name and `board.js` never reads it |
+| `counterplay.json` | 10.6% | `result.mean_coverage_gap` 0.0321, CI [0.0086, 0.0563] — an interval that currently excludes zero | **STOP** |
+
+**A false positive in the drift check itself, measured not argued.** `pory-eval.json` is reported
+33.4% behind, and it cannot be less than ~21% behind however often it is regenerated. Its population
+is not *clean ladder games*; it is *clean ladder games whose raw log is present and names a winner*,
+a strict subset. Running the generator over the whole current corpus reaches **5,456 games, not
+6,943**, so its true drift is 15.3%. Every artifact reading `games.ladder.raw-logs.jsonl` has this.
+`provenance.js`'s existing escape hatches (`gate`, `games_requested`, `sampled`) do not cover it,
+because this is neither a gate nor a deliberate sample — the artifact needs to declare the ceiling
+its population can reach, in the same style. Not fixed here: `provenance.js` was built tonight and a
+second hand on its drift arithmetic is how two files come to disagree about one fact.
+
+### 5d. PORY — the artifact restamped, and the coefficients were wrong for ten days
+
+**The verdict was not stale. The generator was answering the wrong question, correctly, every run.**
+`data/pory-eval.json` still read *"a real, calibrated value net"* ten days after PORY was retracted,
+and `engine/pory.py`'s gate was `hi < coin and hi < material_heuristic` — which is TRUE on this
+sample (hi 0.6456 against 0.6931 and 0.6550). Restamping the file alone would have been undone by
+the next run. `material_heuristic` is a crude 0.75/0.25/0.5 **sign** rule; beating it is arithmetic.
+
+**The tie is now measured, not inferred.** Against a logistic on `[alive_diff, hp_diff]` alone —
+same gradient descent, same standardisation, same temporal split — PORY scores **0.629799 to
+0.629778**: paired difference **+0.000021 (PORY worse), 95% CI [−0.000013, +0.000056]** clustered by
+game over 925 held-out games. On the current corpus (5,456 games) it is **−0.000001, CI [−0.000031,
++0.000030]**. The retraction is robust to the corpus growth.
+
+**The reduction is structural, so no amount of data changes it.** Every state is emitted from both
+perspectives with the label flipped, so the gradient on any column identical across the two rows
+cancels exactly: intercept and `turn/10` are pinned to `0.000000000`, not shrunk to it. `my_alive`
+and `foe_alive` swap and come back exactly antisymmetric (sum `0.000000000`). Five features, two
+degrees of freedom.
+
+**`engine/pory.py` reproduces its own artifact bit-for-bit** — replayed on the identical first-4,623
+clean-game sample it returned this file's weights, `feat_std` and log-loss exactly. So the fault was
+never the arithmetic. The gate now reads the paired difference, the withdrawn string travels under
+`withdrawn_verdict`, and `reduced_form` is derived from the file's own weights.
+
+**The documented coefficients had no artifact behind them — the P1 class.** `1.256 / 1.544` in
+`docs/MODELS.md` and `web/stadium.html:342` is commit `44e0fb0` (2026-07-24, `n_games` 7,381), the
+last run fitted on the **unfiltered store with bot games in it**. `7f74236` put every model behind
+the clean filter on 2026-07-26 and the coefficients moved to 1.0259 / 1.4347, then 0.9946, 0.9962,
+**0.9943 / 1.4080**. The retraction has been citing bot-contaminated coefficients as its evidence
+ever since. MODELS.md is corrected with the history; **`web/stadium.html:342` still says 1.256 —
+WEB's file, flagged not edited.**
+
+### 5e. `tests/test-site-data-fresh.js` — two rules in it were wrong
+
+**It kept a second definition of stale, and it was the one `provenance.js` had already rejected.**
+The verdict-input check compared each artifact's mtime against the newest `games.*.jsonl` and failed
+past a day. The store is append-only and the collector runs hourly, so that clock cannot be beaten:
+five artifacts were red and **four of them are clean** by the canonical rule. It delegates to
+`provenance.js` now, the same way `status.js` does. The founding case survives the change —
+`chomp-ev.json` four days behind is ~28% drift, well past the 10% threshold.
+
+What delegation loses is stated rather than dropped: drift can only see an artifact that declares a
+corpus, and `chomp-ev.json`, `eval-report.json`, `policy-weights.json`, `policy-weights-joint.json`
+and `damage-validation.json` declare none. They are **listed every run without failing**, so the
+pressure is on the generator to record a count — the shape `tests/test-timestamps.js` already uses.
+
+**`--fix` would have refitted two models to make a freshness check go green.** The guard that stops
+it detected a publisher by the filename suffix `-eval.json`, which is not a property of anything. It
+caught `engine/pory.py`. It did **not** catch `engine/nmf_roles.py` (writes `nmf-roles.json`) or
+`engine/xatu.py` (writes `xatu.json`) — both fitted models quoted in MODELS.md, both on the auto-run
+list. The rule now is that a bundle writes only browser files and a generator that also writes a
+`data/*.json` is a publisher; checked against all ten generators this test names.
+
+Seven of the ten stale bundles were regenerated. **Four were byte-identical apart from a date stamp**
+(`mew.js`, `move-effects.js`, `mega-formes.js`, `status.js`) and two entirely so (`abra-meta.js`,
+`roles.js`) — pure mtime, the check crying wolf. **Two had really rotted:** `mag.js` was serving
+standard errors from before the last weight change (0.02452 against `policy-weights.json`'s 0.02363)
+and `scoreboard.js` was rendering superseded weights (1.1887 against 1.0884). That is the class this
+check exists for and it was real.
+
+Also found: `build_mag_data.js` and `build_scoreboard.js` **crash without `SHOWDOWN_PATH`**, so
+`--fix` fails on them in any shell that has not exported it, and the test does not say so. Same
+shape as P0 #40 — two ratchets that crashed rather than failed for the same reason.
+
+**Still red, not filed:** `data/pory-nn.json` at **29.4% corpus drift**. The command is
+`python engine/pory_nn.py`; it is a neural-net train and it republishes `val_logloss` 0.612 and
+`auc` 71.6%, which MODELS.md, the white paper and SUMMARY.md all quote. That is a stop-and-ask, not
+a refresh.
 
 ### 6. The noise floor is not a standing artifact
 
