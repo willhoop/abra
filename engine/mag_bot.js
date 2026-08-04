@@ -132,6 +132,13 @@ const ROLLOUT_TURNS = parseInt(arg('rollout-turns', '60'), 10);
  * on a slow machine, and whatever was scored by then is reported honestly. */
 const PREVIEW_N = parseInt(arg('preview-n', '40'), 10);
 const PREVIEW_MS = parseInt(arg('preview-ms', '15000'), 10);
+/* How long to hold the team-preview request waiting for the opponent's sheet.
+ *
+ * Six seconds was the first guess and it is too short: Will cannot auto-accept open team sheets in
+ * his client and has to type the acceptance into chat, which takes longer than that. Showdown's own
+ * preview timer is far more generous, so waiting is nearly free -- and the whole value of the lead
+ * search is that it sees the opponent's team, so answering early throws away the feature. */
+const PREVIEW_WAIT_MS = parseInt(arg('preview-wait-ms', '25000'), 10);
 
 const { realTeams } = require('./mew.js');
 const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
@@ -812,8 +819,8 @@ function handle(room, line) {
     st.previewHeld = line;
     st.previewTimer = setTimeout(() => {
       if (st.previewHeld) { const l = st.previewHeld; st.previewHeld = null; st.stream.push(l);
-        console.log(`${room}: no sheet after 6s — answering team preview blind`); }
-    }, 6000);
+        console.log(`${room}: no sheet after ${PREVIEW_WAIT_MS / 1000}s — answering team preview blind`); }
+    }, PREVIEW_WAIT_MS);
     return;
   }
   if (st.previewHeld && st.ots) {
