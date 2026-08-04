@@ -1453,6 +1453,22 @@ const MOVE_TAGS = [
       }
       return eff.length ? { effects: eff } : null;
     } },
+  /* ITEM REMOVAL, AND WHETHER IT IS A THEFT. Derived from the move's own handler: every one of
+   * these calls takeItem, and the ones that also call setItem/addItem are the thefts. Knock Off
+   * destroys, Covet and Thief steal, Trick and Switcheroo swap. Reading the handler catches all six
+   * without naming one, and catches the next one added.
+   *
+   * The gap this closes was measured, not guessed: Knock Off left the target holding its Life Orb
+   * and Covet stole nothing, on a move clicked 3,013 times in the corpus. */
+  { tag: 'removesItem', param: 'strips the target item, and whether the user takes it',
+    probe: 'removesItem',
+    why: 'Knock Off is one of the most clicked moves in the format and the item survived it, so '
+       + 'every Life Orb, Sash and Berry in a rollout was immortal',
+    of: m => {
+      const src = String(m.onHit || '') + String(m.onAfterHit || '') + String(m.onTryHit || '');
+      if (!/takeItem/.test(src)) return null;
+      return { steals: /setItem|addItem/.test(src) };
+    } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
@@ -1661,6 +1677,56 @@ const ITEM_TAGS = [
 ];
 
 const ABILITY_TAGS = [
+  /* AN ABILITY THAT UPGRADES THE POKEMON WHEN IT COMES BACK IN.
+   *
+   * Zero to Hero: Palafin leaves the field and returns as Palafin-Hero, 154 Attack to 233. The
+   * engine could BUILD palafin-hero the whole time -- the MC row exists -- and simply never
+   * transformed anything, so Palafin was a permanently weak body and the search had no reason to
+   * pivot it. Will: "PALAFIN NEED SPECIAL AI TO TELL IT TO FLIP TURN OUT TURN 1". It needs no
+   * special AI at all; it needs the mechanic, and then a 233-Attack body is worth a turn on its own.
+   *
+   * DERIVED FROM THE SPECIES TABLE, not from the ability name: a battleOnly forme names the base it
+   * comes from, and the base carries the ability that triggers it. So the pair is discovered rather
+   * than written, and the same rule finds the next one. */
+  { tag: 'switchInForme', param: 'the holder returns to the field as a different forme',
+    probe: 'switchInForme',
+    why: 'Palafin-Hero is buildable and was never built, so every Palafin in every rollout was the '
+       + 'weak forme and switching it out looked pointless',
+    of: (a) => {
+      /* `dex` is module scope here (line 58); the generator calls of() with one argument. */
+      const src = String(a.onSwitchOut || '') + String(a.onSwitchIn || '') + String(a.onSwitchInPriority || '');
+      if (!/formeChange|Hero/i.test(src)) return null;
+      for (const sp of dex.species.all()) {
+        if (!sp.exists || !sp.battleOnly) continue;
+        const baseName = Array.isArray(sp.battleOnly) ? sp.battleOnly[0] : sp.battleOnly;
+        const base = dex.species.get(baseName);
+        if (!base || !base.exists) continue;
+        const abils = Object.values(base.abilities || {}).map(x => String(x).toLowerCase().replace(/[^a-z0-9]/g, ''));
+        if (abils.includes(a.id)) return { from: base.name, becomes: sp.name };
+      }
+      return null;
+    } },
+  /* UNBURDEN: Speed doubles once the item is gone. Declared by the ability's own onTakeItem /
+   * onAfterUseItem handlers, so it is read rather than named. */
+  /* ABILITIES THAT REFUSE A STATUS MOVE OUTRIGHT. Good as Gold and Telepathy both express it as an
+   * onTryHit handler that tests the move CATEGORY, so the handler is what identifies them -- not a
+   * list of two names that goes stale the moment a third is printed. */
+  { tag: 'refusesStatusMoves', param: 'the holder cannot be hit by a status move at all',
+    probe: 'refusesStatusMoves',
+    why: 'Good as Gold sat on Gholdengo taking Charm for -2; a Gholdengo that can be statused is a '
+       + 'different Pokemon to the one people actually build around',
+    of: a => {
+      /* THE TEST AND THE REFUSAL MUST BE THE SAME BRANCH. Matching "Status" and "return null"
+       * anywhere in the handler caught two abilities that do the opposite:
+       *   Telepathy tests category !== "Status" -- it blocks an ALLY'S DAMAGE, not status;
+       *   Wonder Guard tests category === "Status" and then bare-returns, which ALLOWS it.
+       * So: find the equality test, and require the refusal before that branch closes. */
+      const src = String(a.onTryHit || '').replace(/\s+/g, ' ');
+      const m2 = /category\s*===\s*["']Status["']/.exec(src);
+      if (!m2) return null;
+      const branch = src.slice(m2.index, src.indexOf('}', m2.index) + 1);
+      return /return (null|false)/.test(branch) ? { refuses: true } : null;
+    } },
   { tag: 'survivesFromFull', param: 'a lethal MOVE from full HP leaves 1', probe: 'sturdy',
     why: 'Sturdy. Identical to Focus Sash minus the consumption -- and was a name check, same as '
        + 'the sash: both now read the onDamage idiom itself',
@@ -1922,7 +1988,12 @@ const ABILITY_TAGS = [
   { tag: 'speedOnItemLoss', param: 'speed x2 once its item is gone', probe: 'unburden',
     why: 'Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order '
        + 'mid-battle and the item tracking now makes observable',
-    of: a => (a.onAfterUseItem || a.onTakeItem) ? { speedMult: 2 } : null },
+    /* REACTING TO THE LOSS, NOT PREVENTING IT. Any onTakeItem matched, which caught STICKY HOLD --
+     * whose handler exists precisely to REFUSE the loss and return false. Wiring the engine to this
+     * would have doubled Sticky Hold's Speed, the opposite of what the ability does. Unburden marks
+     * itself with a volatile when the item goes; that is the thing to look for. */
+    of: a => /addVolatile/.test(String(a.onAfterUseItem || '') + String(a.onTakeItem || ''))
+      ? { speedMult: 2 } : null },
   { tag: 'healsAllyOnSwitchIn', param: 'restores the partner on entry', probe: 'hospitality',
     why: 'Hospitality, 5.22% of abilities and the third most common in the format',
     of: a => (a.onStart && /heal/i.test(String(a.onStart))) ? { heals: true } : null },

@@ -299,13 +299,21 @@ probe('ability', 'contactPunish', 'Rough Skin hurts a contact attacker', () => {
   return { works: rough > none, detail: `attacker lost ${none} vs none, ${rough} vs Rough Skin` };
 });
 
-probe('ability', 'formeChange', 'Zero to Hero upgrades Palafin', () => {
-  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
-  const buildable = !!M.buildMon('palafin-hero', {});
-  return { works: /zerotohero/.test(src),
-           detail: 'palafin-hero buildable=' + buildable + ', engine references zerotohero=' + /zerotohero/.test(src) };
+probe('ability', 'formeChange', 'Zero to Hero upgrades Palafin on return', () => {
+  /* The transform fires on the RETURN, so the probe must actually send it out and bring it back --
+   * checking the first entry would measure the rule working correctly and call it broken. */
+  const me = M.buildMon('palafin', {}); me.ability = 'zerotohero';
+  const ally = bare('incineroar'), back = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally, back], [f1, f2], { seeded: true });
+  const atkBefore = me.st.at, nameBefore = me.name;
+  /* Out... */
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: back }], [ally, { kind: 'pass' }]]), null);
+  /* ...and back. */
+  M.battleTurn(S, rng5, new Map([[back, { kind: 'switch', to: me }], [ally, { kind: 'pass' }]]), null);
+  return { works: me.st.at > atkBefore,
+           detail: nameBefore + ' ' + atkBefore + ' Atk  ->  ' + me.name + ' ' + me.st.at + ' Atk' };
 });
-
 
 /* ---- BATCH 2 — the next sixteen by corpus usage ------------------------------------------------
  *
@@ -463,11 +471,16 @@ probe('ability', 'weatherChipImmune', 'Ice Body ignores weather chip', () => {
 });
 
 probe('ability', 'speedOnItemLoss', 'Unburden doubles Speed once the item is gone', () => {
-  const m = bare('weavile');
-  m.ability = 'unburden'; m.item = 'focussash';
-  const held = M.effSpeed(m, fresh(), 'A');
-  m.item = '';
-  const gone = M.effSpeed(m, fresh(), 'A');
+  /* THROUGH battleInit, because that is where the engine stamps what each body STARTED holding --
+   * the flag that distinguishes 'lost its item' from 'never had one'. The first version called
+   * effSpeed on a loose body, so the flag was undefined and the probe reported the engine broken
+   * while measuring its own shortcut. */
+  const m = bare('weavile'); m.ability = 'unburden'; m.item = 'focussash';
+  const ally = bare('incineroar'), f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([m, ally], [f1, f2], { seeded: true });
+  const held = M.effSpeed(m, S.field, 'A');
+  m.item = '';                                     // the Sash is spent
+  const gone = M.effSpeed(m, S.field, 'A');
   return { works: gone > held * 1.8, detail: 'holding ' + held + '  ->  item gone ' + gone };
 });
 

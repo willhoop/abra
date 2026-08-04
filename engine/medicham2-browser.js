@@ -759,7 +759,13 @@ function chooseAction(me,foes,ally,field,side,rng){
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
   return{kind:'struggle'};
 }
-function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;if((side==='A'?field.twA:field.twB)>0)s*=2;
+function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;
+  /* UNBURDEN. Speed doubles once the item is GONE, from the speedOnItemLoss param -- which was
+   * itself wrong until today: it matched any onTakeItem and so included STICKY HOLD, whose handler
+   * exists to refuse the loss. Reading that would have doubled the Speed of an ability that does
+   * the opposite. */
+  if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}
+if((side==='A'?field.twA:field.twB)>0)s*=2;
   if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
   if(m.status==='par')s*=0.5;return s;}
 /* ---- SECONDARY AND PRIMARY MOVE EFFECTS -------------------------------------------------------
@@ -895,6 +901,25 @@ function bringIn(act,i,bench,foes,sf,field,wanted){
      non-negotiable, and "switch to something" is not the decision; "switch to Amoonguss" is. */
   const nx=(wanted&&bench.indexOf(wanted)>=0&&!wanted.fainted&&wanted.curHP>0)?wanted:_live(bench)[0];
   if(!nx) return null;
+  /* ZERO TO HERO. Palafin leaves and comes back as Palafin-Hero -- 154 Attack to 233. The engine
+   * could BUILD palafin-hero all along; nothing ever transformed anything, so Palafin was a
+   * permanently weak body and pivoting it looked pointless. Will asked for 'special AI' to make it
+   * switch turn one; it needs no AI, it needs the mechanic, and a 233-Attack body earns the turn on
+   * its own. The target forme comes from switchInForme, derived from the species table.
+   *
+   * Only on a RETURN: _wasOut is set by switchOut, so the first entry of the battle does not
+   * transform, which is the actual rule. */
+  if(nx._wasOut){
+    const _sf=TAGS.param('ability',nx.ability,'switchInForme');
+    if(_sf&&_sf.becomes){
+      const _key=String(_sf.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/--+/g,'-');
+      if(MC.mons&&MC.mons[_key]&&nx.name!==_key){
+        const _hp=nx.curHP/nx.st.hp;
+        const _new=buildMon(_key,{});
+        if(_new){nx.name=_new.name;nx.types=_new.types;nx.st=_new.st;nx.curHP=Math.max(1,Math.round(_new.st.hp*_hp));}
+      }
+    }
+  }
   bench.splice(bench.indexOf(nx),1);
   nx._turnsOut=0; nx._fallenStuck=sf.fainted; act[i]=nx;
   applyEntryEffects(nx,field);
@@ -914,6 +939,11 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
    * a benched mon would come back locked into a move it started two switches ago -- or worse,
    * come back untargetable. */
   out._charging=null; out._invuln=false;
+  /* IT HAS NOW BEEN OUT. Zero to Hero fires on the RETURN, never on the first entry, so the
+   * transform needs to know this body has already left once. Written here rather than in bringIn
+   * because leaving is the event -- and the first version read this flag without anything ever
+   * setting it, which would have made the whole mechanic silently never fire. */
+  out._wasOut=true;
   out._lock=null; out._lockT=0; out._flinch=false;
   out.boosts={at:0,df:0,sa:0,sd:0,sp:0};
   bench.push(out);
@@ -932,6 +962,10 @@ function battleInit(teamA,teamB,opts){
     actA:[teamA[0],teamA[1]].filter(Boolean),actB:[teamB[0],teamB[1]].filter(Boolean),
     benchA:teamA.slice(2),benchB:teamB.slice(2),turn:0};
   teamA.forEach(m=>{if(m)m._sf=S.sfA;});teamB.forEach(m=>{if(m)m._sf=S.sfB;});
+  /* What each body STARTED holding, so Unburden can tell 'never had one' from 'lost it'. Stamped
+   * once here rather than at each of the six places an item is cleared -- a flag set in six places
+   * is a flag that will be missed in a seventh. */
+  teamA.concat(teamB).forEach(m=>{if(m)m._hadItem=!!m.item;});
   if(!(opts&&opts.seeded)){
     for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field);
     const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
@@ -1046,6 +1080,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         if(!_t||_t.protect) continue;
+        /* GOOD AS GOLD REFUSES A STATUS MOVE OUTRIGHT. Gholdengo was taking Charm for -2, which
+         * makes it a different Pokemon to the one people build around. The tag is derived from the
+         * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
+         * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
+         * for Status and then bare-returns to ALLOW it. */
+        if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m) continue;
         if(powderBlocked(_t,a.mv)) continue;
         if(pranksterBlocked(m,_t,a.mv)) continue;
         const _acc=moveAccuracy(a.mv,field);
@@ -1221,6 +1261,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * Wave burned a third of the time. The status and the accuracy now come from the rulebook. */
       if(a.kind==='status'){
         const t=a.target; if(!t||t.fainted||t.protect) continue;
+        if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m) continue;   // Good as Gold
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
         /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
@@ -1380,6 +1421,23 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
          * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
          * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
+        /* KNOCK OFF ACTUALLY KNOCKS THE ITEM OFF. It did not, on a move clicked 3,013 times in the
+         * corpus -- every Life Orb, Focus Sash and Berry in a rollout was immortal, so the search
+         * priced Knock Off as a weak Dark attack and nothing else.
+         *
+         * From the `removesItem` tag, derived from the move's own handler calling takeItem, with
+         * `steals` set for the ones that also call setItem. That is Knock Off, Covet, Thief, Trick,
+         * Switcheroo, Bug Bite, Pluck and Corrosive Gas from one rule and no names.
+         *
+         * Placed AFTER the hit lands, beside the resist berry it may have just spent, because an
+         * item is only lost when the move actually connects. */
+        {
+          const _ri=TAGS.param('move',a.move.id,'removesItem');
+          if(_ri&&tg.item&&!tg.fainted){
+            const _taken=tg.item; tg.item='';
+            if(_ri.steals&&!m.item)m.item=_taken;
+          }
+        }
         const _rbHit=TAGS.param('item',tg.item,'resistBerry');
         if(_rbHit&&_rbHit.onType===mv.t&&(!_rbHit.requiresSuperEffective||d.eff>1))tg.item='';
         /* WIRE 5 -- punishesAttacker, all of it. Rough Skin (3,762 sheets) and its family were

@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-03T23:44:23.068Z",
+ "generated": "2026-08-04T00:13:14.101Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -1497,8 +1497,8 @@
    "kind": "move",
    "param": "status and volatile conditions the move applies, and to whom",
    "why": "Encore, Taunt, Confuse Ray and Disable all resolve to nothing because volatiles were never carried anywhere; reading only `status` silently drops the entire class",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "statusInflict",
+   "used": true,
    "n": 118,
    "uses": 168583,
    "examples": [
@@ -1508,6 +1508,24 @@
     "Encore",
     "Fake Out",
     "Infernal Parade"
+   ]
+  },
+  {
+   "tag": "removesItem",
+   "kind": "move",
+   "param": "strips the target item, and whether the user takes it",
+   "why": "Knock Off is one of the most clicked moves in the format and the item survived it, so every Life Orb, Sash and Berry in a rollout was immortal",
+   "consumedBy": "removesItem",
+   "used": true,
+   "n": 8,
+   "uses": 3299,
+   "examples": [
+    "Corrosive Gas",
+    "Bug Bite",
+    "Knock Off",
+    "Switcheroo",
+    "Thief",
+    "Trick"
    ]
   },
   {
@@ -1896,6 +1914,32 @@
    "examples": []
   },
   {
+   "tag": "switchInForme",
+   "kind": "ability",
+   "param": "the holder returns to the field as a different forme",
+   "why": "Palafin-Hero is buildable and was never built, so every Palafin in every rollout was the weak forme and switching it out looked pointless",
+   "consumedBy": null,
+   "used": false,
+   "n": 2,
+   "uses": 157,
+   "examples": [
+    "Zero to Hero"
+   ]
+  },
+  {
+   "tag": "refusesStatusMoves",
+   "kind": "ability",
+   "param": "the holder cannot be hit by a status move at all",
+   "why": "Good as Gold sat on Gholdengo taking Charm for -2; a Gholdengo that can be statused is a different Pokemon to the one people actually build around",
+   "consumedBy": "refusesStatusMoves",
+   "used": true,
+   "n": 1,
+   "uses": 2210,
+   "examples": [
+    "Good as Gold"
+   ]
+  },
+  {
    "tag": "survivesFromFull",
    "kind": "ability",
    "param": "a lethal MOVE from full HP leaves 1",
@@ -2220,7 +2264,7 @@
    "why": "Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order mid-battle and the item tracking now makes observable",
    "consumedBy": null,
    "used": false,
-   "n": 2,
+   "n": 1,
    "uses": 2154,
    "examples": [
     "Unburden"
@@ -7381,7 +7425,8 @@
    "tags": [
     "takesTargetItem",
     "spreadAll",
-    "statusCategory"
+    "statusCategory",
+    "removesItem"
    ],
    "uses": 1,
    "params": {
@@ -7396,6 +7441,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "removesItem": {
+     "steals": false
     }
    }
   },
@@ -9729,7 +9777,8 @@
    "name": "Bug Bite",
    "tags": [
     "takesTargetItem",
-    "contact"
+    "contact",
+    "removesItem"
    ],
    "uses": 200,
    "params": {
@@ -9740,6 +9789,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesItem": {
+     "steals": false
     }
    }
   },
@@ -10478,7 +10530,8 @@
    "name": "Covet",
    "tags": [
     "takesTargetItem",
-    "contact"
+    "contact",
+    "removesItem"
    ],
    "uses": 0,
    "params": {
@@ -10489,6 +10542,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesItem": {
+     "steals": true
     }
    }
   },
@@ -13718,7 +13774,8 @@
     "conditionalPower",
     "readsTargetItem",
     "takesTargetItem",
-    "contact"
+    "contact",
+    "removesItem"
    ],
    "uses": 2749,
    "params": {
@@ -13740,6 +13797,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesItem": {
+     "steals": false
     }
    }
   },
@@ -15259,7 +15319,8 @@
    "name": "Pluck",
    "tags": [
     "takesTargetItem",
-    "contact"
+    "contact",
+    "removesItem"
    ],
    "uses": 0,
    "params": {
@@ -15270,6 +15331,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesItem": {
+     "steals": false
     }
    }
   },
@@ -18111,7 +18175,8 @@
    "name": "Switcheroo",
    "tags": [
     "takesTargetItem",
-    "statusCategory"
+    "statusCategory",
+    "removesItem"
    ],
    "uses": 7,
    "params": {
@@ -18122,6 +18187,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "removesItem": {
+     "steals": true
     }
    }
   },
@@ -18399,7 +18467,8 @@
    "name": "Thief",
    "tags": [
     "takesTargetItem",
-    "contact"
+    "contact",
+    "removesItem"
    ],
    "uses": 7,
    "params": {
@@ -18410,6 +18479,9 @@
     },
     "contact": {
      "contact": true
+    },
+    "removesItem": {
+     "steals": true
     }
    }
   },
@@ -18865,7 +18937,8 @@
    "name": "Trick",
    "tags": [
     "takesTargetItem",
-    "statusCategory"
+    "statusCategory",
+    "removesItem"
    ],
    "uses": 335,
    "params": {
@@ -18876,6 +18949,9 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "removesItem": {
+     "steals": true
     }
    }
   },
@@ -22662,11 +22738,15 @@
   "goodasgold": {
    "name": "Good as Gold",
    "tags": [
+    "refusesStatusMoves",
     "blocksStatusMoves",
     "blocksMove"
    ],
    "uses": 2210,
    "params": {
+    "refusesStatusMoves": {
+     "refuses": true
+    },
     "blocksStatusMoves": {
      "blocks": "Status"
     },
@@ -24786,18 +24866,6 @@
    "uses": 3,
    "params": {}
   },
-  "stickyhold": {
-   "name": "Sticky Hold",
-   "tags": [
-    "speedOnItemLoss"
-   ],
-   "uses": 0,
-   "params": {
-    "speedOnItemLoss": {
-     "speedMult": 2
-    }
-   }
-  },
   "stormdrain": {
    "name": "Storm Drain",
    "tags": [
@@ -25045,6 +25113,19 @@
    "params": {
     "blocksStatusMoves": {
      "blocks": "Status"
+    }
+   }
+  },
+  "terashift": {
+   "name": "Tera Shift",
+   "tags": [
+    "switchInForme"
+   ],
+   "uses": 0,
+   "params": {
+    "switchInForme": {
+     "from": "Terapagos",
+     "becomes": "Terapagos-Terastal"
     }
    }
   },
@@ -25506,11 +25587,16 @@
   "zerotohero": {
    "name": "Zero to Hero",
    "tags": [
+    "switchInForme",
     "healsOnSwitchOut",
     "formeChange"
    ],
    "uses": 157,
    "params": {
+    "switchInForme": {
+     "from": "Palafin",
+     "becomes": "Palafin-Hero"
+    },
     "healsOnSwitchOut": {
      "heal": 0.3333333333333333
     },
