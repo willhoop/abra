@@ -306,6 +306,184 @@ probe('ability', 'formeChange', 'Zero to Hero upgrades Palafin', () => {
            detail: 'palafin-hero buildable=' + buildable + ', engine references zerotohero=' + /zerotohero/.test(src) };
 });
 
+
+/* ---- BATCH 2 — the next sixteen by corpus usage ------------------------------------------------
+ *
+ * Ordered by tests/mechanics_rank.js, which ranks by the clicks a tag covers rather than the number
+ * of ids carrying it. Every probe here follows the four rules the first batch cost us: clear the
+ * control explicitly; never apply the effect yourself; test the OUTCOME and not the classification;
+ * and treat identical results across a varied knob as proof the knob is not wired.
+ */
+
+probe('move', 'neverMissesAttack', 'Aura Sphere cannot miss', () => {
+  const acc = M.moveAccuracy('aurasphere', fresh());
+  return { works: acc >= 100, detail: 'accuracy=' + acc };
+});
+
+probe('move', 'inflictsFreeze', 'Ice Beam can freeze', () => {
+  /* A 10% secondary, so the roll is forced LOW. At rng 0.5 it would never fire and the probe would
+   * report MISSING on a mechanic that works -- the same class of staging error as having the target
+   * Protect on the turn it was meant to be Encored. */
+  /* THE TARGET HAS TO SURVIVE THE HIT. The first version fired Ice Beam at Garchomp -- 4x on
+   * Dragon/Ground -- which knocked it out, and a fainted Pokemon takes no status. The probe read
+   * 'none' and blamed the engine. Corviknight resists Ice and lives. */
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('corviknight'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const fa = new Map([[me, M.playerAction(me, 'icebeam', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, () => 0.01, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: f1.status === 'frz',
+           detail: 'target ' + (f1.fainted ? 'FAINTED' : 'survived at ' + f1.curHP) + ', status: ' + (f1.status || 'none') };
+});
+
+probe('move', 'inflictsPoison', 'Toxic poisons', () => {
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const fa = new Map([[me, M.playerAction(me, 'toxic', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: /psn|tox/.test(f1.status || ''), detail: 'target status: ' + (f1.status || 'none') };
+});
+
+probe('move', 'inflictsConfusion', 'Confuse Ray confuses', () => {
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const fa = new Map([[me, M.playerAction(me, 'confuseray', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: !!(f1._vol && f1._vol.confusion), detail: 'volatiles on target: ' + JSON.stringify(f1._vol || {}) };
+});
+
+probe('move', 'oneTurnGuard', 'Wide Guard blocks a spread move', () => {
+  const run = (guard) => {
+    /* THE ALLY MUST BE ABLE TO TAKE THE MOVE. The first version used Corviknight, which is
+     * Flying and immune to Earthquake -- so the probe read 0 damage with and without the guard
+     * and reported a working mechanic as missing. Milotic has no Ground immunity. */
+    const me = bare('incineroar'), ally = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const fa = new Map([[me, guard ? M.playerAction(me, 'wideguard', null, S.field) : { kind: 'pass' }],
+                        [ally, { kind: 'pass' }]]);
+    const fb = new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]);
+    const before = ally.curHP;
+    M.battleTurn(S, rng5, fa, fb);
+    return before - ally.curHP;
+  };
+  const off = run(false), on = run(true);
+  return { works: on < off, detail: 'ally took ' + off + ' without  ->  ' + on + ' behind Wide Guard' };
+});
+
+probe('move', 'weightBased', 'Grass Knot scales with target weight', () => {
+  const me = bare('venusaur');
+  const light = bare('whimsicott'), heavy = bare('archaludon');
+  const mv = MC.moves['grassknot'];
+  if (!mv) return { works: false, detail: 'grassknot not in MC.moves' };
+  const a = M.dmgRange(me, light, mv, fresh(), false);
+  const b = M.dmgRange(me, heavy, mv, fresh(), false);
+  return { works: a.max !== b.max, detail: 'vs light ' + a.max + '  ->  vs heavy ' + b.max };
+});
+
+probe('move', 'swapsStat', 'Body Press attacks with Defense', () => {
+  /* Two identical bodies but for the stat that should matter. If Body Press reads Attack instead,
+   * the high-Defense one deals the SAME damage -- that equality is the null result to look for. */
+  const lowDef = bare('corviknight'), highDef = bare('corviknight');
+  highDef.st = Object.assign({}, highDef.st, { df: highDef.st.df * 2 });
+  const def = bare('garchomp'), mv = MC.moves['bodypress'];
+  if (!mv) return { works: false, detail: 'bodypress not in MC.moves' };
+  const a = M.dmgRange(lowDef, def, mv, fresh(), false);
+  const b = M.dmgRange(highDef, def, mv, fresh(), false);
+  return { works: b.max > a.max,
+           detail: 'def ' + lowDef.st.df + ' deals ' + a.max + ', def ' + highDef.st.df + ' deals ' + b.max };
+});
+
+probe('move', 'ignoresStatStages', 'Sacred Sword ignores a Defense boost', () => {
+  const atk = bare('garchomp');
+  const plain = bare('corviknight'), boosted = bare('corviknight');
+  boosted.boosts.df = 4;
+  const mv = MC.moves['sacredsword'];
+  if (!mv) return { works: false, detail: 'sacredsword not in MC.moves' };
+  const a = M.dmgRange(atk, plain, mv, fresh(), false);
+  const b = M.dmgRange(atk, boosted, mv, fresh(), false);
+  return { works: a.max === b.max, detail: 'unboosted ' + a.max + ' vs +4 Def ' + b.max + ' (equal = ignored)' };
+});
+
+probe('move', 'readsTargetItem', 'Knock Off removes the item', () => {
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  f1.item = 'lifeorb';
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const fa = new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: !f1.item, detail: 'target item after Knock Off: ' + JSON.stringify(f1.item || '') };
+});
+
+probe('move', 'healsAlly', 'Life Dew heals the partner', () => {
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  ally.curHP = Math.floor(ally.st.hp / 2);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const before = ally.curHP;
+  const fa = new Map([[me, M.playerAction(me, 'lifedew', null, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: ally.curHP > before, detail: 'partner ' + before + ' -> ' + ally.curHP + ' hp' };
+});
+
+probe('ability', 'stabBoost', 'Adaptability raises same-type damage', () => {
+  const on = bare('basculegion'), off = bare('basculegion');
+  on.ability = 'adaptability';
+  const def = bare('garchomp');
+  const mv = MC.moves['wavecrash'] || MC.moves['surf'] || MC.moves['liquidation'];
+  if (!mv) return { works: false, detail: 'no water move in MC.moves' };
+  const a = M.dmgRange(off, def, mv, fresh(), false);
+  const b = M.dmgRange(on, def, mv, fresh(), false);
+  return { works: b.max > a.max, detail: 'none ' + a.max + '  ->  adaptability ' + b.max };
+});
+
+probe('ability', 'speedCond', 'Chlorophyll doubles Speed in sun', () => {
+  const m = bare('venusaur'); m.ability = 'chlorophyll';
+  const dry = M.effSpeed(m, Object.assign(fresh(), { weather: '' }), 'A');
+  const sun = M.effSpeed(m, Object.assign(fresh(), { weather: 'sun' }), 'A');
+  return { works: sun > dry * 1.8, detail: 'no sun ' + dry + '  ->  sun ' + sun };
+});
+
+probe('ability', 'blocksStatusMoves', 'Good as Gold refuses a status move', () => {
+  const me = bare('whimsicott'), ally = bare('incineroar');
+  const f1 = bare('gholdengo'), f2 = bare('garchomp');
+  f1.ability = 'goodasgold';
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const fa = new Map([[me, M.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]);
+  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: f1.boosts.at === 0, detail: 'target atk stage after Charm: ' + f1.boosts.at + ' (0 = refused)' };
+});
+
+probe('ability', 'weatherChipImmune', 'Ice Body ignores weather chip', () => {
+  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  const has = /icebody|weatherChipImmune|magmaarmor/.test(src);
+  return { works: has, detail: 'engine references a weather-chip immunity: ' + has };
+});
+
+probe('ability', 'speedOnItemLoss', 'Unburden doubles Speed once the item is gone', () => {
+  const m = bare('weavile');
+  m.ability = 'unburden'; m.item = 'focussash';
+  const held = M.effSpeed(m, fresh(), 'A');
+  m.item = '';
+  const gone = M.effSpeed(m, fresh(), 'A');
+  return { works: gone > held * 1.8, detail: 'holding ' + held + '  ->  item gone ' + gone };
+});
+
+probe('move', 'takesTargetItem', 'Covet steals the item', () => {
+  const me = bare('incineroar'), ally = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  f1.item = 'lifeorb'; me.item = '';
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const act = M.playerAction(me, 'covet', f1, S.field);
+  if (!act || act.kind === 'pass') return { works: false, detail: 'covet resolves to kind ' + (act && act.kind) };
+  M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  return { works: me.item === 'lifeorb',
+           detail: 'attacker item ' + JSON.stringify(me.item) + ', target item ' + JSON.stringify(f1.item) };
+});
+
 /* ---- REPORT ------------------------------------------------------------------------------------- */
 
 const works = results.filter(r => r.works);

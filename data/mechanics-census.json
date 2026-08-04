@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-03T23:48:24.983Z",
+  "generated": "2026-08-04T00:04:58.374Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 24,
-  "live": 20,
-  "missing": 4,
+  "probed": 40,
+  "live": 30,
+  "missing": 10,
   "results": [
     {
       "kind": "item",
@@ -173,6 +173,118 @@
       "label": "Zero to Hero upgrades Palafin",
       "live": false,
       "detail": "palafin-hero buildable=true, engine references zerotohero=false"
+    },
+    {
+      "kind": "move",
+      "tag": "neverMissesAttack",
+      "label": "Aura Sphere cannot miss",
+      "live": true,
+      "detail": "accuracy=100"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsFreeze",
+      "label": "Ice Beam can freeze",
+      "live": true,
+      "detail": "target survived at 89, status: frz"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsPoison",
+      "label": "Toxic poisons",
+      "live": true,
+      "detail": "target status: tox"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsConfusion",
+      "label": "Confuse Ray confuses",
+      "live": true,
+      "detail": "volatiles on target: {\"confusion\":1}"
+    },
+    {
+      "kind": "move",
+      "tag": "oneTurnGuard",
+      "label": "Wide Guard blocks a spread move",
+      "live": true,
+      "detail": "ally took 92 without  ->  0 behind Wide Guard"
+    },
+    {
+      "kind": "move",
+      "tag": "weightBased",
+      "label": "Grass Knot scales with target weight",
+      "live": true,
+      "detail": "vs light 14  ->  vs heavy 29"
+    },
+    {
+      "kind": "move",
+      "tag": "swapsStat",
+      "label": "Body Press attacks with Defense",
+      "live": false,
+      "detail": "def 125 deals 54, def 250 deals 54"
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresStatStages",
+      "label": "Sacred Sword ignores a Defense boost",
+      "live": false,
+      "detail": "unboosted 65 vs +4 Def 23 (equal = ignored)"
+    },
+    {
+      "kind": "move",
+      "tag": "readsTargetItem",
+      "label": "Knock Off removes the item",
+      "live": false,
+      "detail": "target item after Knock Off: \"lifeorb\""
+    },
+    {
+      "kind": "move",
+      "tag": "healsAlly",
+      "label": "Life Dew heals the partner",
+      "live": true,
+      "detail": "partner 85 -> 127 hp"
+    },
+    {
+      "kind": "ability",
+      "tag": "stabBoost",
+      "label": "Adaptability raises same-type damage",
+      "live": true,
+      "detail": "none 127  ->  adaptability 170"
+    },
+    {
+      "kind": "ability",
+      "tag": "speedCond",
+      "label": "Chlorophyll doubles Speed in sun",
+      "live": true,
+      "detail": "no sun 125  ->  sun 250"
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksStatusMoves",
+      "label": "Good as Gold refuses a status move",
+      "live": false,
+      "detail": "target atk stage after Charm: -2 (0 = refused)"
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherChipImmune",
+      "label": "Ice Body ignores weather chip",
+      "live": true,
+      "detail": "engine references a weather-chip immunity: true"
+    },
+    {
+      "kind": "ability",
+      "tag": "speedOnItemLoss",
+      "label": "Unburden doubles Speed once the item is gone",
+      "live": false,
+      "detail": "holding 187  ->  item gone 187"
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "Covet steals the item",
+      "live": false,
+      "detail": "attacker item \"\", target item \"lifeorb\""
     }
   ]
 }
