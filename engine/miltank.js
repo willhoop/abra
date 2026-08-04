@@ -134,11 +134,33 @@ function install(bot, o) {
             return baseTeamPreview(team);
           }
           const MEDI = require('./medicham2-browser.js');
+          /* THROUGH dmgMon, THE ONE PATH THAT ALREADY WORKS.
+           *
+           * The first version called buildMon with the species name straight off the request and
+           * buildMonFromSet with a hand-assembled set. Both failed, on the WHOLE TEAM:
+           *
+           *     buildMon("Scizor")          -> null      capitalised
+           *     buildMon("scizor")          -> scizor
+           *     buildMon("Ninetales-Alola") -> null      and hyphens must be KEPT, not stripped
+           *     buildMonFromSet(...)        -> THREW     wrong set shape
+           *
+           *     preview: too few bodies -- unbuildable: Scizor, Sylveon, Trevenant, Infernape, ...
+           *
+           * So the lead search failed on every one of its own Pokemon and fell back, three restarts
+           * in a row, each time behind a different symptom.
+           *
+           * dmgMon is what rollout_leaf builds every rollout body with. It resolves the MC key
+           * through mcKeyFor -- the ONE way to turn a species name into a damage-engine key, which
+           * exists precisely so this is not done by hand -- and reads the sheet for item and nature.
+           * Writing a second builder was the mistake; there was already one. */
           const bodyOf = (name, sheet) => {
             try {
-              const st = sheet[name];
-              const b = st ? MEDI.buildMonFromSet(Object.assign({ species: name }, st)) : MEDI.buildMon(name, {});
-              return b || null;
+              const st = sheet[name] || null;
+              return B.dmgMon({
+                species: name, hp: 1, status: '', boosts: {},
+                item: st ? (st.item || '') : undefined,
+                nature: st ? (st.nature || '') : undefined,
+              }, MEDI, DEX) || null;
             } catch (e) { return null; }
           };
           const myBodies = myNames.map(n => () => bodyOf(n, mine));
