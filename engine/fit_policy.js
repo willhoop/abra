@@ -356,7 +356,66 @@ function candIds(cands) {
   return cands.map(c => (c.switchTo ? 'switch:' + norm(c.switchTo) : (c.move && c.move.id) || ''));
 }
 
-function decisionsFor(g, tally) {
+/* DID THE CHANNEL ACTUALLY REACH THE BOARD. CLAUDE.md: a capability that cannot prove it ran is
+ * assumed broken, and this one has now failed silently once in each direction.
+ *
+ * `setSheet` succeeding proves nothing. It writes into `board.sheet[side][baseSpecies(species)]`, and
+ * `switchIn` reads it back out under a key computed the same way from a DIFFERENT string — the store's
+ * normalised species on one side, the replay's `|switch|` name on the other. That is the
+ * `venusaurmega` / `venusaur-mega` shape exactly: 67 writes, 0 matches, every read defaulting quietly.
+ *
+ * So the counter is taken at the point of USE — off the mon that `featuresFor` is about to be handed,
+ * after the key round trip — and it counts the FOE actives too, because the columns the sheet moves
+ * most (`switchSurvives1`, `diesBeforeMoving`, `killsThreat`) are questions about what the OPPONENT
+ * has, not about the user. A zero here with a nonzero `sheetEntries` is precisely the bug class. */
+function probeLive(tally, board, side, user) {
+  if (!tally) return;
+  tally.probedDecisions = (tally.probedDecisions || 0) + 1;
+  if (user && user.ability) tally.liveUserAbility = (tally.liveUserAbility || 0) + 1;
+  if (user && user.moves && user.moves.length) tally.liveUserMoves = (tally.liveUserMoves || 0) + 1;
+  if (user && user.item) tally.liveUserItem = (tally.liveUserItem || 0) + 1;
+  if (user && user.nature) tally.liveUserNature = (tally.liveUserNature || 0) + 1;
+  const foe = side === 'p1' ? 'p2' : 'p1';
+  for (const L of ['a', 'b']) {
+    const f = board.slot(foe, L);
+    if (!f || f.fainted) continue;
+    tally.probedFoes = (tally.probedFoes || 0) + 1;
+    if (f.ability) tally.liveFoeAbility = (tally.liveFoeAbility || 0) + 1;
+    if (f.moves && f.moves.length) tally.liveFoeMoves = (tally.liveFoeMoves || 0) + 1;
+  }
+}
+
+/* WHICH SHEET CHANNELS THE FIT IS ALLOWED TO SEE — an explicit, RECORDED part of the environment.
+ *
+ * Default is all four, which is what `engine/magnemite.js:522` passes. The knob exists for one
+ * reason and it is not tuning: without it the CONTROL ARM for "what is the sheet channel worth"
+ * requires an in-memory patch of this file, and a control arm that cannot be re-run from the command
+ * line is a number nobody can check.
+ *
+ * `SHEET_CHANNELS=nature,item` reproduces the environment every weight vector before 2026-08-04 was
+ * fitted in. It is a measurement setting; the shipped fit uses the default and the artifact records
+ * which it was, so the 2026-08-04 defect — the fit and the player disagreeing about what the board
+ * knows, with nothing in either file saying so — is visible in the artifact next time instead of
+ * requiring somebody to diff two source lines. */
+const SC = require('./sheet_channels.js');
+const ALL_CHANNELS = SC.CHANNELS;
+const SHEET_CHANNELS = SC.fromEnv(process.env.SHEET_CHANNELS, 'the fit');
+const SEES = new Set(SHEET_CHANNELS);
+
+/* `channels` OVERRIDES SHEET_CHANNELS FOR THIS ONE CALL, and it exists for a measurement reason
+ * rather than a fitting one.
+ *
+ * The control arm for "what is the sheet channel worth" has to score the SAME decisions under a
+ * two-channel board and a four-channel board. Running that as two processes with SHEET_CHANNELS set
+ * differently looks equivalent and is not: `engine/tags.js` loads `data/tags.json` once per process
+ * with no way to pin it, and on 2026-08-04 that file changed twice in fifteen minutes while ENGINE
+ * worked. Two processes can therefore differ by the TAG DATABASE as well as by the channel set, and
+ * the run would not say so — which is the WOBBUFFET failure exactly: nothing in frame may move.
+ *
+ * One process, one require cache, one tag DB, both arms. Defaulted, so all seven existing callers are
+ * unaffected. */
+function decisionsFor(g, tally, channels) {
+  const chan = channels || SHEET_CHANNELS;
   const out = [];
   const board = new B.Board();
 
@@ -371,9 +430,36 @@ function decisionsFor(g, tally) {
   for (const side of ['p1', 'p2']) {
     for (const m of g.sheets[side] || []) {
       if (m && m.species) {
-        /* The sheet's nature reaches the board, so the damage estimate is computed against the
-         * spreads consistent with it rather than all of them. Public information on this ladder. */
-        board.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
+        /* ALL FOUR CHANNELS, BECAUSE THE PLAYER READS ALL FOUR.
+         *
+         * This passed `{nature, item}` while `engine/magnemite.js:522` — the thing that actually
+         * plays — passes `{nature, item, ability, moves}`, off the same `|showteam|` line. `ability`
+         * and `moves` were sitting in the very object this loop already reads `nature` and `item`
+         * from, and 100.0% of 14,400 sheet entries over 1,200 games declare both.
+         *
+         * `Board.switchIn` copies all four onto the mon and `dmgMon`, `effAbility` and `movePriority`
+         * read them, so the fit was pricing **50.47% of its decisions** against a board the player
+         * never sees — 20 of 58 feature columns, 99.75% of games. The choice set was identical game
+         * for game; only what the board KNEW differed.
+         *
+         * That is CLAUDE.md's fitting-environment rule broken a second time and in the OPPOSITE
+         * direction from 2026-07-28, which is exactly why nothing was watching: back then the fit saw
+         * MORE than the bot, so the bot underperformed its training. Here the bot sees more than the
+         * fit, which cannot make it look broken in any self-play comparison — both sides of every
+         * head-to-head share the handicap and it cancels out.
+         *
+         * Will, 2026-08-04: *"MAG NEEDS TO BE OPEN TEAM SHEETS ALWAYS. WE WILL SOLVE CLOSED TEAM
+         * SHEETS LATER."* So this is deliberately NOT hedged into a probability. The known cost is
+         * the Focus Sash lesson: an opponent who declines OTS now leaves MAG fitted on a channel it
+         * does not have, and Knock Off, Trick and a consumed berry stale the declared item mid-battle
+         * even when the sheet WAS shown. Both are real and both are deferred by decision. */
+        const info = SC.pick(m, chan);
+        board.setSheet(side, m.species, info);
+        if (tally) {
+          tally.sheetEntries = (tally.sheetEntries || 0) + 1;
+          if (info.ability) tally.sheetAbility = (tally.sheetAbility || 0) + 1;
+          if (info.moves.length) tally.sheetMoves = (tally.sheetMoves || 0) + 1;
+        }
       }
     }
   }
@@ -432,6 +518,7 @@ function decisionsFor(g, tally) {
         if (cands.length < 2) { tally.trivial++; continue; }
         const idx = CM.matchClick(cands, { kind: 'switch', to: base(e.mon) }, dex).chosen;
         if (idx < 0) { tally.unmatched++; continue; }
+        probeLive(tally, board, side, user);
         const feats = featsFor(cands, user, board, side);
         out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(user.species), feats, chosen: idx, mvs: candIds(cands) });
         tally.kept++;
@@ -463,6 +550,7 @@ function decisionsFor(g, tally) {
       if (m.ambiguous) { tally.ambiguous++; continue; }
       if (m.chosen < 0) { tally.unmatched++; continue; }
 
+      probeLive(tally, board, side, user);
       const feats = featsFor(cands, user, board, side);
       out.push({ game: g.id || '', turn: turnIx, side, slot: letter, sp: base(e.mon), feats, chosen: m.chosen, mvs: candIds(cands) });
       tally.kept++;
@@ -699,6 +787,35 @@ function main() {
               `${tally.noSheet.toLocaleString()} species not on a sheet, ${tally.unmatched.toLocaleString()} click not matched, ` +
               `${tally.ambiguous.toLocaleString()} target ambiguous (mirror), ${tally.noUser.toLocaleString()} no active user`);
   if (rows.length < 500) { console.error('too few decisions to fit'); process.exit(1); }
+
+  /* THE FITTING ENVIRONMENT, PROVED RATHER THAN ASSERTED, AND IT REFUSES TO FIT IF THE PROOF FAILS.
+   *
+   * Printing a rate is not enough on its own — `tests/test-docs-current.js` was red on every run for
+   * two days and got reported as known. So a requested channel that reaches ZERO boards is fatal
+   * here, in the generator, where the only way past it is to fix it. */
+  const pc = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
+  console.log(`  sheet      channels ${SHEET_CHANNELS.join(',')} — ` +
+    `${(tally.sheetEntries || 0).toLocaleString()} sheet entries set, ` +
+    `${pc(tally.sheetAbility || 0, tally.sheetEntries || 0)} declare an ability, ` +
+    `${pc(tally.sheetMoves || 0, tally.sheetEntries || 0)} declare moves`);
+  console.log(`  reached    of ${(tally.probedDecisions || 0).toLocaleString()} scored decisions the USER mon carried ` +
+    `nature ${pc(tally.liveUserNature || 0, tally.probedDecisions || 0)}, ` +
+    `item ${pc(tally.liveUserItem || 0, tally.probedDecisions || 0)}, ` +
+    `ability ${pc(tally.liveUserAbility || 0, tally.probedDecisions || 0)}, ` +
+    `moves ${pc(tally.liveUserMoves || 0, tally.probedDecisions || 0)}`);
+  console.log(`             of ${(tally.probedFoes || 0).toLocaleString()} live FOE actives beside them: ` +
+    `ability ${pc(tally.liveFoeAbility || 0, tally.probedFoes || 0)}, ` +
+    `moves ${pc(tally.liveFoeMoves || 0, tally.probedFoes || 0)}`);
+  for (const [ch, n] of [['ability', tally.liveUserAbility || 0], ['moves', tally.liveUserMoves || 0]]) {
+    if (SEES.has(ch) && n === 0) {
+      console.error(`\nSHEET CHANNEL '${ch}' WAS SET ON ${(tally.sheetEntries || 0).toLocaleString()} SHEET ENTRIES AND ` +
+        `REACHED 0 OF ${(tally.probedDecisions || 0).toLocaleString()} SCORED BOARDS.\n` +
+        `setSheet writes under baseSpecies(store species); switchIn reads under baseSpecies(replay species).\n` +
+        `A fit run now would silently be the pre-2026-08-04 two-channel fit wearing a four-channel label.\n` +
+        `Refusing to fit.`);
+      process.exit(1);
+    }
+  }
   assertDropped(rows);
 
   /* HELD OUT BY GAME, NOT BY DECISION. Decisions inside one game share teams, players and board, so
@@ -887,6 +1004,40 @@ function main() {
       uniform: base0, behaviourCloneOnly: baseBot, boardAware: best.te,
       gain_logL: gain, gain_top1_points: accGain,
     },
+    /* WHAT THE BOARD KNEW WHILE THIS WAS FITTED. The one thing this artifact could not say on
+     * 2026-08-04, and the reason a two-channel fit shipped against a four-channel player for a week
+     * without any check being able to see it. CLAUDE.md: fitting environment and playing environment
+     * must match — so the fitting environment has to be written down somewhere a checker can read it.
+     *
+     * `player_passes` is not a copy of a source line; it is the list magnemite.js actually hands to
+     * setSheet, and `matches_player` is the comparison. If someone adds a fifth channel to the player
+     * and not to the fit, this flips to false in the artifact on the next refit. */
+    fitEnvironment: {
+      sheet_channels: SHEET_CHANNELS.slice(),
+      player_passes: ALL_CHANNELS.slice(),
+      matches_player: SC.isFull(SHEET_CHANNELS),
+      sheet_entries_set: tally.sheetEntries || 0,
+      sheet_entries_declaring_ability: tally.sheetAbility || 0,
+      sheet_entries_declaring_moves: tally.sheetMoves || 0,
+      /* Measured AT THE POINT OF USE, downstream of the setSheet -> switchIn key round trip. */
+      reached_board: {
+        decisions_probed: tally.probedDecisions || 0,
+        user_nature: tally.liveUserNature || 0,
+        user_item: tally.liveUserItem || 0,
+        user_ability: tally.liveUserAbility || 0,
+        user_moves: tally.liveUserMoves || 0,
+        foe_actives_probed: tally.probedFoes || 0,
+        foe_ability: tally.liveFoeAbility || 0,
+        foe_moves: tally.liveFoeMoves || 0,
+      },
+      deferred_debt: 'Will, 2026-08-04: "MAG NEEDS TO BE OPEN TEAM SHEETS ALWAYS. WE WILL SOLVE ' +
+        'CLOSED TEAM SHEETS LATER." Two costs are accepted, not hedged. (1) An opponent who declines ' +
+        'OTS leaves these weights fitted on a channel the board does not have; ability and moves fall ' +
+        'back to Smogon per-species odds and the dataset representative set, and nothing here measures ' +
+        'how the weights degrade under that. (2) Knock Off, Trick and a consumed berry stale the ' +
+        'DECLARED item and ability mid-battle even when the sheet WAS shown — prefer OBSERVED over ' +
+        'DECLARED. board.sheetItem() is the observed-item hatch and switchIn does not use it.',
+    },
     covariateShift: {
       note: 'Open-sheet TEAMS differ enormously from closed-sheet teams (551.9 points of total ' +
             'absolute species difference, engine/corpus_shift.js). Open-sheet BEHAVIOUR given a ' +
@@ -931,4 +1082,7 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { decisionsFor, logLik, fit, loadCorpus, priorFor, assertDropped, DROP, DROP_IDX };
+module.exports = { decisionsFor, logLik, fit, loadCorpus, priorFor, assertDropped, DROP, DROP_IDX,
+  /* Exported so engine/joint_rows.js fits in the SAME environment within one process, rather than
+   * parsing SHEET_CHANNELS a second time. See the note at its require site. */
+  SHEET_CHANNELS, probeLive };
