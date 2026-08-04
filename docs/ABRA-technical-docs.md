@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.33.0 · Last updated 2026-08-04**
+**Version 3.34.0 · Last updated 2026-08-04**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -55,6 +55,26 @@ The test compares the page against `docs/MODELS.md`. The test fails if a model h
 **Compare the engine with Showdown (changed 3.32.0).**
 `SHOWDOWN_PATH=... node tests/test-engine-diff.js --seed 20260804`
 The sampler is seeded. Two runs with the same seed give the same result. Before 3.32.0 the sampler used `Math.random()` and the count changed between runs. Always record the seed with the count.
+
+**Check that every room parses (added 3.34.0).**
+`node tests/test-web-parses.js`
+This test runs the inline script of each page through a parser. A page can contain correct text and
+still fail to run. On 2026-08-04 a page had one wrong quotation mark. The page showed only its title.
+Two other tests gave the page full marks, because they read the page as text.
+
+**Check that the live site has every room (changed 3.34.0).**
+`node tests/test-site-sync.js`
+`app/` is the folder the web server uses. `web/` is the folder you edit. The test now compares EVERY
+page in `web/` against `app/`, and also the data files that a page loads. Before 3.34.0 it compared
+one file only, so a NEW page that was never copied stayed invisible. If the test fails, run
+`cp web/<page> app/<page>`.
+
+**Check whether an artifact is too old to trust (changed 3.34.0).**
+`node engine/provenance.js`
+The report gives a drift percentage and, beside it, `ci_gain` and `max_shift`. Use `max_shift`.
+It states how far the missing games can move the result. A percentage of a store that grows every
+hour only states the AGE of the artifact. No artifact in this project can move a proportion by one
+percentage point.
 
 **Run the official Champions engine.**
 `SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/champions_sim.js`

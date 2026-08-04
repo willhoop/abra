@@ -10,6 +10,115 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.34.0] — 2026-08-04
+
+### The Stadium scored 100% on two guards while being unable to run
+
+`web/stadium.html:423` carried `class="wd"` inside a **double-quoted JavaScript string**. The whole
+inline block was a `SyntaxError`, so the page rendered its header and **nothing else** — no rack, no
+stage, no controls. It was introduced by the commit that corrected PORY's coefficients: the
+`<s class="wd" title="…">` inserted to preserve the retracted figures went inside a quoted string.
+It was then published as an artifact and offered for review.
+
+**Both guards passed throughout.** `test-stadium-roster` read the page as text and counted twelve
+cabinets. `test-web-figures` scored it 100% traced. **Neither executes anything**, so a page that
+could not run scored perfectly on both. Will found it by opening the URL — the same way, and the only
+way, the 2026-07-28 failures were found.
+
+`tests/test-web-parses.js` (new) parses every room's inline script, asserts its own scanner is not
+silently reading zero blocks, and carries a negative test for exactly this bug.
+
+### `app/` had seven rooms and `web/` had nine
+
+`app/` is what GitHub Pages serves. `stadium.html` and `status.html` were built, tested, committed
+and pushed — and never copied. They were done in two of the three places the umbrella `CLAUDE.md`
+names, and the third is the one a visitor sees.
+
+`test-site-sync.js` was green the entire time because it compared **one file**, `index.html`. **A
+missing file is invisible to a check that compares two named files.** The room set is now derived
+from `web/`, sidecar bundles included — `status.html` without `status-data.js` renders an empty board
+with no error a visitor sees. It immediately found two more drifted rooms, `models.html` and
+`tower.html`.
+
+### Drift as a percentage was an age wearing a fraction's clothes
+
+`1 − n(t₀)/n(t)` over an append-only corpus depends only on **elapsed time**. It is the clock
+`docs/MEASURE.md` §5e had just removed from `test-site-data-fresh.js`, re-entering through the front
+door — `pory-nn.json` failed its freshness check **on the day it was regenerated**.
+
+Replaced with absolute power, printed beside every drift note: `ci_gain`, and
+`max_shift = 2·0.5·√m/n`. Across all thirteen drifting artifacts the percentages span **4×** and the
+power spans **2×**:
+
+| artifact | drift | max shift |
+|---|---|---|
+| `war.json` | 48.6% | 0.83 pts |
+| `guru-matchups.json` | 26.1% | 0.61 |
+| `pory-nn.json` | 15.7% | 0.47 |
+| `counterplay.json` | 12.8% | 0.42 |
+
+**No artifact in the repository has enough missing data to move a proportion by one percentage
+point**, against a smallest published split-half floor of 0.43. And since `max_shift = √f/√n`, the
+same 15.7% moves 0.33 at n=14,000 — the treadmill ends on its own rather than being switched off.
+The 10% trigger was deliberately **not** changed: power cannot see the distance from a headline to
+its decision boundary, and `roles-eval.json`'s 0.6935-against-0.6931 is flippable by anything.
+
+### `slowking-playstyle.js` is the wrong file, and the site renders it
+
+`slowking_preview.py` takes its output **name** from `TAG` and its **matrix** from `MATRIX_FILE`,
+which defaults to `guru-matchups.json`. So `slowking-playstyle.js` carries a payload byte-identical
+to `slowking.js`, and `slowking-playstyle-eval.json` is byte-identical to `slowking-eval.json` —
+5,265 games and 12 species-pair archetypes, where the real playstyle matrix holds **2,860 games and
+8 playstyles**.
+
+Regenerated correctly the **verdict flips**, from *"substantially less exploitable… non-transitive
+(rock-paper-scissors)"* to *"no material exploitability gap… close to transitive."* `docs/MODELS.md`
+already publishes the corrected numbers to the digit — **the docs are right and the artifact is
+wrong**, the rare direction — so the 2026-08-02 withdrawal still rests on measured evidence.
+
+### The roster guard needed a third direction, and it found four more
+
+Comparing the page to the ledger and the ledger to the page catches a model in **one** of the two
+files. It is structurally blind to a model in **neither** — which GURU was. The third source is the
+set of things that **generate a `data/*` artifact**, read from `engine/provenance.js --graph` rather
+than rescanned.
+
+It found five undocumented models, of which two matter a great deal: `engine/analyze.js` →
+**`meta-usage.json`**, the artifact `CLAUDE.md` itself calls *"the model CHOMP reads"*, and
+`engine/state_encoder.py` → **`move-priors.json`**, among the most widely consumed files in the repo.
+Neither has a ledger entry. The test is **left red** rather than made green with a false reason.
+
+The rule separating a model from a pipeline step is written into the file: a **model** states
+something about *Champions* that anything is meant to act on; a **pipeline step** states something
+about *ABRA* — our own cost, coverage, calibration, corpus — or re-encodes a claim with a home
+elsewhere. *If this number is wrong, who is misled?*
+
+### Also
+
+- **The banned-items list was incomplete by three items and three moves.** Rocky Helmet, Covert
+  Cloak and Clear Amulet are `isNonstandard: 'Past'` — banned exactly as Assault Vest is — along with
+  Silk Trap, Obstruct and Burning Bulwark. Replaced in the umbrella `CLAUDE.md` with a one-command
+  check against `Dex.forFormat()`, because a hand-maintained list of four went stale unnoticed.
+- **A test's `--fix` would have retrained two models to make itself pass.** `test-site-data-fresh.js`
+  identified refits by the filename suffix `-eval.json`; it missed `nmf_roles.py` and `xatu.py`.
+- **PORY's retraction cited bot-contaminated coefficients for ten days.** `1.256/1.544` come from the
+  last run fitted on the *unfiltered* store; the clean filter landed two days later and they are
+  `0.9943/1.4080`. The retraction survives — the intercept and turn terms are pinned at zero
+  *structurally*, because emitting both perspectives cancels the gradient on any column identical
+  across the two rows.
+- **The ablation ran by accident.** Regenerating `pory-nn.json` varies representation and architecture
+  separately: representation is worth **4.5×** what nonlinearity is worth, and a network *on top of*
+  the rich representation is **worse** than the logistic. The best arm in the table is a logistic
+  regression. Scope: this is the value net, not MAG's policy.
+- `meta-usage.json` regenerated at Will's instruction, and `abra-meta.js` with it — a refresh that
+  leaves its own downstream stale is half a refresh.
+- The Stadium's marquee said *12 cabinets* while rendering 13; now derived from `MODELS.length`.
+- `docs/TAGS.md` (new) names the flag/tag/param distinction formally, with the resolution order that
+  determines what failure looks like, and Spicy Extract as the worked example for why consumers key
+  off **params** and never tag names.
+
+---
+
 ## [3.33.0] — 2026-08-04
 
 ### Corpus drift is measured in absolute power, not in percent — and `slowking-playstyle` is not a playstyle result

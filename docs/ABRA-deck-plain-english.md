@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.33.0 · 2026-08-04 · Will Hooper**
+**Version 3.34.0 · 2026-08-04 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -134,6 +134,26 @@ Every one of these tests now writes a small companion file recording exactly wha
 rollouts, what randomness, what horizon, which version of every file it read, and whether anything was
 uncommitted at the time. Older results get one reconstructed from the commit that carried them,
 labelled as a guess rather than a record.
+
+**Added 3.34.0 — the clearest example yet of how this goes wrong.**
+
+We built a page showing every model, published it, and asked for a review. It was completely broken —
+one stray quotation mark meant none of it could run, so it showed a title and a blank screen.
+
+**Two automated checks looked at that page and both gave it full marks.** One counted twelve model
+cards and found twelve. The other checked that every number on it cited a source, and scored it
+100%. Neither of them ever *ran* the page — they read it the way you'd read a document. So a page
+that could not work passed every test we had.
+
+A person opening the link found it in about two seconds.
+
+The same day, a second version of the same problem: two new pages were written, tested, saved and
+published to the code repository — and never copied to the folder the live website actually serves.
+The check meant to catch that compared one specific file, so a *missing* file was invisible to it.
+Again: found by opening the URL.
+
+Both checks now exist in a form that would have caught them, and both were written the same way — by
+asking what the check could not see, rather than what it did see.
 
 Saying what we *can't* prove, as plainly as what we can, is the whole point.
 
