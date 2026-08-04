@@ -534,7 +534,29 @@ out.push('<div class="div">' + divHead('WEB','WEB','does every rendered figure t
 out.push('<div class="row">'
   + figCard(we.traceability, {wide:true, label:'WEB\'s one number — the fraction of rendered figures on this site that trace to an artifact'})
   + '</div>');
-out.push('<div class="fig wide"><div class="lab" style="font-size:13px;margin:0 0 8px">Guards this division owns. A list a page carries and a source file also carries must be compared, or it drifts (docs/WEB.md).</div>'
+/* THE NUMBER BROKEN OUT PER PAGE, AND THEN EVERY FIGURE THAT FAILS IT BY NAME. A single site-wide
+   percentage is a score; the list is what someone can act on, and it is the reason the percentage is
+   worth publishing at all. Both come from web/figure-audit.js, which defines "figure" and "traced". */
+if (we.traceability_pages && we.traceability_pages.rows){
+  out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">Per page. A page with no figures is a page whose numbers are all interpolated from a bundled artifact, which is the state to aim at.</div>'
+    + '<table><tr><th>PAGE</th><th>TRACED</th><th>OF</th><th>SHARE</th><th>WITHDRAWN</th></tr>'
+    + we.traceability_pages.rows.map(function(r){
+        return '<tr><td class="mono">' + E(r.file) + '</td><td class="mono">' + r.traced + '</td><td class="mono">' + r.denom + '</td>'
+             + '<td class="mono" style="color:' + (r.pct===null ? 'var(--dim)' : (r.pct>=50 ? 'var(--ok)' : 'var(--bad)')) + ';font-weight:800">'
+             + (r.pct===null ? '—' : r.pct + '%') + '</td><td class="mono">' + (r.withdrawn || '') + '</td></tr>';
+      }).join('')
+    + '</table><div class="src"><span>source</span><code>web/figure-audit.js</code><span class="when">read at build time</span></div></div>');
+}
+if (we.traceability_open && we.traceability_open.rows && we.traceability_open.rows.length){
+  out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">Every figure on the site that names no artifact. Each is either wired to its source or withdrawn; there is no third state.</div>'
+    + '<table><tr><th>PAGE</th><th>LINE</th><th>FIGURE</th><th>CONTEXT</th></tr>'
+    + we.traceability_open.rows.map(function(r){
+        return '<tr><td class="mono">' + E(r.file) + '</td><td class="mono">' + r.n + '</td><td class="mono" style="color:var(--bad);font-weight:800">'
+             + E(r.tok) + '</td><td>' + E(r.ctx) + '</td></tr>';
+      }).join('')
+    + '</table><div class="src"><span>source</span><code>web/figure-audit.js</code><span class="when">read at build time</span></div></div>');
+}
+out.push('<div class="fig wide" style="margin-top:11px"><div class="lab" style="font-size:13px;margin:0 0 8px">Guards this division owns. A list a page carries and a source file also carries must be compared, or it drifts (docs/WEB.md).</div>'
   + '<table><tr><th>GUARD</th><th>WHAT IT PREVENTS</th><th>PRESENT</th></tr>'
   + we.guards.map(function(g){
       return '<tr><td class="mono">' + E(g.name) + '</td><td>' + E(g.what) + '</td><td style="color:'

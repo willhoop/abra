@@ -60,6 +60,18 @@ main{position:relative;z-index:5;max-width:1040px;margin:10px auto 60px;padding:
 @keyframes pop{from{transform:scale(.96) translateY(10px);opacity:0}to{transform:none;opacity:1}}
 .panel{background:var(--card);border:4px solid var(--line);border-radius:26px;box-shadow:0 10px 0 var(--shadow);padding:22px;margin-bottom:18px}
 .panel h2{margin:0 0 4px;font-size:30px;display:flex;align-items:center;gap:12px}
+/* A WITHDRAWN FIGURE STAYS ON THE PAGE, STRUCK THROUGH.
+   Deleting a retracted claim hides that it was ever made; leaving it plain keeps asserting it. So a
+   figure whose evidence turned out not to exist is struck out and carries a title saying when and
+   why. tests/test-web-figures.js requires the title, and counts these as DECLARED rather than as
+   figures the site is standing behind. */
+s.wd{color:#9aa3b2;text-decoration:line-through;text-decoration-thickness:2px;font-weight:700}
+/* NOT MEASURED, at the same visual weight as a real result. docs/WEB.md: a missing measurement is
+   the most valuable thing this project produces and a design that hides it is worse than an ugly one. */
+.nm{border:3px solid #d98f2b;background:#fff;border-radius:14px;padding:14px 16px;margin-top:12px}
+.nm b.hd{display:block;font-size:26px;color:#8a5a1a;letter-spacing:.02em;line-height:1.15}
+.nm .sub2{font-weight:800;font-size:15px;color:#8a5a1a;margin-top:3px}
+.nm p{font-weight:600;color:#6a4a1a;margin:9px 0 0}
 .panel .sub{color:#5a708a;font-weight:600;margin:0 0 14px}
 .mascot{width:104px;height:104px;object-fit:contain;image-rendering:pixelated;animation:bob 2.2s ease-in-out infinite;flex:none;
   filter:drop-shadow(0 4px 3px rgba(0,0,0,.14))}
@@ -916,10 +928,10 @@ function roomXatu(){const c=CAST.find(x=>x.id==='xatu');
    <div class="panel"><h2>Why it matters</h2><p style="font-weight:600;color:#3a5372">A belief over the opponent's hidden set is the input Slowking and the future ALAKAZAM search over. You can't play the mind-game without a read.</p></div>`;
 }
 function roomPory(){const c=CAST.find(x=>x.id==='pory');
-  return `<div class="panel">${mascotHero(c,"Mid-game, I tell you your real win % — and unlike the pre-game guess, I actually beat a coin.")}</div>
+  return `<div class="panel">${mascotHero(c,"Mid-game, I tell you your win % — but all I really do is count Pokémon and health, and counting does it just as well.")}</div>
    <div class="panel"><h2>What this actually is: counting Pokémon</h2><p style="font-weight:600;color:#3a5372">This page used to call me <i>"the win — a value net that works"</i>. That was wrong, and this is the honest version. I was advertised as learning from six things about the board. When you work out my fitted numbers, four of them either cancel each other out or sit at exactly zero. What is left is <b>how many more Pokémon you have left, and how much healthier they are</b>. That is the entire model.</p>
    <p style="font-weight:600;color:#3a5372">Turn number has <b>no effect at all</b> — and not because it does not matter. Because of the way I was trained, it could never have had one. Nobody noticed for months.</p>
-   <p style="font-weight:600;color:#3a5372">So yes, I beat a coin. But <i>"whoever has more Pokémon left is winning"</i> also beats a coin, and that is not a discovery. Measured head-to-head against exactly that, I score <b>the same</b>. I add nothing over counting.</p>
+   <p style="font-weight:600;color:#3a5372">So yes, I beat a coin. But <i>"whoever has more Pokémon left is winning"</i> also beats a coin, and that is not a discovery. Measured head-to-head against exactly that, I score <b>the same</b>. I add nothing over counting. <span style="color:#8a5a1a">Retracted 2026-07-25 and recorded in <code>docs/MODELS.md</code>. My own report file, <code>data/pory-eval.json</code>, still carries the pre-retraction verdict string calling me &ldquo;a real, calibrated value net&rdquo; — the artifact has not been restamped, and the ledger, not the artifact, is what this page follows.</span></p>
    <p style="font-weight:600;color:#3a5372">The real finding is elsewhere: a <b>richer</b> read of the board — who is out, what is boosted, the weather, what the opponent has shown you — genuinely does beat plain counting. That gain came from feeding the model better information, not from making it bigger.</p>
    </div>
    <div class="panel"><h2>Try it — live win %</h2>
@@ -1109,10 +1121,15 @@ function roomMagnemite(){const c=CAST.find(x=>x.id==='magnemite');
   </div>
   <div class="panel"><h2>The scores</h2><div id="magPick"></div><div id="magA"></div></div>
   <div class="panel"><h2>How much each thing counts</h2><div id="magW"></div></div>
-  <div class="panel" style="border-color:#8fd0a0;background:#f4fbf6"><h2 style="color:#1f7a3c">Update 2026-07-29 — every click now carries its price</h2>
+  <div class="panel" style="border-color:#f0c48a;background:#fffaf3"><h2 style="color:#8a5a1a">⚠ Update 2026-07-29 — every click now carries its price, and the strength claim is withdrawn</h2>
     <p style="font-weight:600;color:#3a5372">The rollout scorer now <b>subtracts the cost of a click before choosing it</b>: recoil (from the game's own fractions, not a hand list), the toll for touching a Rough Skin body, the 30% burn risk into Flame Body — scaled by how physical the attacker is, zeroed for Fire-types, and <b>inverted for Guts</b>, which actively wants the status. First measured act of the priced scorer: it refused an Iron Head whose 6-HP edge over Air Slash cost a 22-HP Rough Skin toll. It also prices <b>commitment risk against the bench</b>: sun Solar Beam keeps 50% of its value if a benched Pelipper flips the sky, and it names the Pelipper.</p>
-    <p style="font-weight:600;color:#3a5372">Strength is measured, not assumed, and the measurement took three runs to come good. Tags-on vs tags-off could not tell the two apart at 29,256 games, and then <b>still could not</b> at 586,816 — a perfect null, 50.0% of decisive pairs, at one-point resolution. Correct mechanics knowledge produced <b>zero</b> strength through the old decision layer. What changed it was refitting the weights on the priced features rather than the blind ones: the twin-test came back <b>51.3%</b> of decisive pairs, and the decisive share <b>tripled</b> (11.9% against 3.4%) — the bots started disagreeing where before the teams decided everything.</p>
-    <p style="font-weight:600;color:#3a5372">That result was called <i>promising, not proven</i>, because the edge did not look clearly spread across teams — an edge living in a few matchups is a matchup artifact, not a better player. <b>Confirmed 2026-07-30</b> on an independent seed block: 87,150 games, 43,575 paired, <b>52.3% of decisive pairs (95% CI 50.9–53.6)</b>, and the by-team cut now reads spread — ahead on 337 teams, behind on 248. Honest limits, in the same breath: there is <b>no edge in short games</b> (49.4% under 8 turns), it appears from about turn 8 and grows with length, and the two arms play almost identically at the macro level — protect rate 18.07% against 18.14%, KO rate 17.55% against 17.49%, switches 1.93 either way. The gain is fine-grained choice, not a change of style.</p>
+    <p style="font-weight:600;color:#3a5372">Is the priced scorer <b>stronger</b>? This panel used to answer that with a run of precise statistics, and every one of them is struck out below, because nothing in this repository can reproduce a single one. What was written here, verbatim, was: a twin test that <s class="wd" title="Withdrawn 2026-08-04 — no artifact records this run.">could not tell tags-on from tags-off at <b>29,256</b> games and still could not at 586,816 — a perfect null, <b>50.0%</b> of decisive pairs</s>; then, after refitting on the priced features, <s class="wd" title="Withdrawn 2026-08-04 — no artifact records this run."><b>51.3%</b> of decisive pairs with the decisive share tripling, <b>11.9%</b> against <b>3.4%</b></s>; then an independent seed block stamped <b>&ldquo;Confirmed 2026-07-30&rdquo;</b> reporting <s class="wd" title="Withdrawn 2026-08-04 — engine/paired_h2h.js prints to a terminal and writes no artifact. Nothing in the repository records this run."><b>87,150</b> games, <b>43,575</b> paired, <b>52.3%</b> of decisive pairs (95% CI <b>50.9&ndash;53.6</b>), spread across teams — ahead on <b>337</b>, behind on <b>248</b> — with no edge in short games (<b>49.4%</b> under 8 turns), and near-identical macro play: protect <b>18.07%</b> against <b>18.14%</b>, KO <b>17.55%</b> against <b>17.49%</b>, switches <b>1.93</b> either way</s>. Seventeen figures, one stamp, two sentences.</p>
+    <div class="nm">
+      <b class="hd">NOT MEASURED</b>
+      <div class="sub2">Withdrawn 2026-08-04. The claim above has no evidence behind it, and never did.</div>
+      <p>Every figure struck out above was read off a terminal and typed into this page. <code>engine/paired_h2h.js</code> is the script that computes a paired twin test; it <b>prints its result and writes no file</b>. No artifact carries the share, the interval, the by-team split, the short-game cut or the macro rates — and no file in the repository so much as names the run. Its raw games survive only as an untracked local store, and a store is not a result.</p>
+      <p>So the claim is withdrawn, not deleted, and this page is the wrong place to fix it. <b>The priced scorer may well be stronger; we cannot currently show that it is.</b> The one figure that survives is the corpus size — <b>586,816</b> self-play games generated on the official engine (<code>data/status.js</code>) — because an artifact says it. Restoring the rest needs the test re-run and written to an artifact by MEASURE, which owns it (<code>docs/PRIORITIES.md</code> item 15).</p>
+    </div>
     </div>
   <div class="panel"><h2>What I do not do &mdash; and why not yet</h2>
     <p style="font-weight:600;color:#3a5372">None of these are impossible. They are not done because I shipped the smallest thing that could be honestly measured first, and each one below needs something specific before it can be measured at all.</p>
@@ -2146,7 +2163,7 @@ function renderKad(){
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
       <span style="display:inline-block;background:${col};color:#fff;font-weight:800;font-size:14px;padding:4px 14px;border-radius:99px">Turn ${s.n} — ${isLoss?'the swing':'good play'}</span>
-      ${s.wp!=null?`<span title="PORY reads the live board and estimates your win chance. Beats a coin flip on held-out games, and well calibrated." style="display:inline-block;background:${s.wp>=55?'#eefaf1':s.wp<=45?'#fff1f3':'#f6f7fb'};color:${s.wp>=55?'#1a9a4a':s.wp<=45?'#d23b3b':'#5a6472'};border:2px solid ${s.wp>=55?'#2fb45f':s.wp<=45?'#e05a72':'var(--line)'};font-weight:800;font-size:14px;padding:3px 12px;border-radius:99px">PORY: you're at ${s.wp}%</span>`:''}
+      ${s.wp!=null?`<span title="PORY reads the live board and estimates your win chance — but RETRACTED 2026-07-25 (docs/MODELS.md): its fitted weights reduce to counting Pokémon alive and HP, it ties that two-feature material baseline exactly, and turn number is structurally pinned to zero. This chip reports material arithmetic, not a learned value net." style="display:inline-block;background:${s.wp>=55?'#eefaf1':s.wp<=45?'#fff1f3':'#f6f7fb'};color:${s.wp>=55?'#1a9a4a':s.wp<=45?'#d23b3b':'#5a6472'};border:2px solid ${s.wp>=55?'#2fb45f':s.wp<=45?'#e05a72':'var(--line)'};font-weight:800;font-size:14px;padding:3px 12px;border-radius:99px">PORY: you're at ${s.wp}%</span>`:''}
     </div>
     <div class="stage">
       <div class="side foe">${s.foe.map(m=>bmon(m,false)).join('')}</div>

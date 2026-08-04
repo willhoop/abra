@@ -349,23 +349,51 @@ function ops() {
 
 /* ================================================================= WEB ========================= */
 function web() {
-  /* WEB's own number is "every rendered figure traces to an artifact", and NOTHING MEASURES IT.
-     docs/WEB.md says so in its Open section. It renders as NOT MEASURED on the board, about the
-     board, because the alternative is the division that polices drift exempting itself. */
+  /* WEB's own number — "every rendered figure traces to an artifact" — was a NOT MEASURED slot on
+     this board until 2026-08-04, about the board, because the division that polices drift does not
+     get to exempt itself. It is now measured by web/figure-audit.js, which is the single
+     implementation of what a figure is and what traced means; this file reads its result and the
+     test reads the same function. Two scanners would eventually disagree — FACTS ARE GLOBAL.
+     The percentage below is computed by the audit, which is that fact's generator, exactly as tag
+     coverage is computed by engine/status.js and taken verbatim here rather than re-derived. */
   const rooms = fs.readdirSync(D('web')).filter(f => f.endsWith('.html')).sort()
     .map(f => ({ file: 'web/' + f, at: mtimeIso('web/' + f) }));
   const guard = fs.existsSync(D('tests', 'test-stadium-roster.js'));
   const guard2 = fs.existsSync(D('tests', 'test-web-status.js'));
+  const guard3 = fs.existsSync(D('tests', 'test-web-figures.js'));
+
+  let fa = null, faErr = null;
+  try { fa = require('./figure-audit.js').audit(); } catch (e) { faErr = (e.message || String(e)).split('\n')[0]; }
+
   return {
     rooms: { state: 'ok', src: 'web/ directory listing', rows: rooms },
     guards: [
       { name: 'tests/test-stadium-roster.js', what: 'the Stadium cabinet rack against docs/MODELS.md', present: guard },
       { name: 'tests/test-web-status.js', what: 'this board against its artifacts', present: guard2 },
+      { name: 'tests/test-web-figures.js', what: 'the share of rendered figures that cite an artifact', present: guard3 },
     ],
-    traceability: gap(
-      'No guard measures what fraction of rendered figures on the site trace to an artifact. ' +
-      'docs/WEB.md lists it under Open. Two guards compare a LIST against its source; neither ' +
-      'compares a NUMBER against its source across every page.', 'WEB', 'figures traceable to an artifact'),
+    traceability: fa
+      ? fig(fa.pct, 'web/figure-audit.js', {
+        label: 'rendered figures that cite an artifact', unit: '%',
+        /* Below half is bad and is stated as bad. A metric introduced at a flattering value would
+           not have been worth introducing. */
+        state: fa.pct >= 50 ? 'ok' : 'bad',
+        note: fa.traced + ' of ' + fa.denom + ' hardcoded figures in visible page text sit on a line that names '
+          + 'their artifact. ' + fa.withdrawn + ' more are struck out as withdrawn and ' + fa.placeholders
+          + ' are live placeholders, both out of the denominator. Interpolated figures are excluded — they '
+          + 'are read from a bundled artifact at render time and cannot drift. Definitions: web/figure-audit.js.',
+      })
+      : gap('web/figure-audit.js did not run — ' + faErr, 'WEB', 'figures traceable to an artifact'),
+    traceability_pages: fa
+      ? {
+        state: 'ok', src: 'web/figure-audit.js',
+        rows: fa.pages.map(p => ({ file: p.file, pct: p.pct, traced: p.traced, denom: p.denom, withdrawn: p.withdrawn })),
+      }
+      : gap('web/figure-audit.js did not run', 'WEB', 'per-page traceability'),
+    traceability_open: fa
+      ? { state: fa.untraced ? 'bad' : 'ok', src: 'web/figure-audit.js',
+        rows: fa.pages.reduce((a, p) => a.concat(p.open.map(o => ({ file: p.file, n: o.n, tok: o.tok, ctx: o.ctx }))), []).slice(0, 40) }
+      : gap('web/figure-audit.js did not run', 'WEB', 'untraced figures'),
   };
 }
 
