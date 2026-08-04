@@ -172,7 +172,10 @@ JR.build(games, dex, {
      * it was never told about is not a measurement of the rollout. */
     const field = {
       weather: board.weather || '',
-      terrain: ['electric', 'grassy', 'misty', 'psychic'].find(t => board.hasField(t)) || '',
+      /* A THIRD SPELLING, MATCHING NOTHING — see `RL.terrainOnBoard`. This probed the ENGINE's
+       * words against a Board that stores the dex's `electricterrain`, so every R1 row ever scored
+       * was scored with no terrain, on the 1.24% of boards that carry one. */
+      terrain: RL.terrainOnBoard(board),
       tr: board.hasField('trickroom') ? 5 : 0,
       twA: board.hasSide('p1', 'tailwind') ? 4 : 0,
       twB: board.hasSide('p2', 'tailwind') ? 4 : 0,

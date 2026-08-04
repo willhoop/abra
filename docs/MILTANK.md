@@ -199,6 +199,36 @@ uncovered are in [SEARCH.md](SEARCH.md) items 5 and 5b.
 **Every leaf number in this document predates it.** R1, R2, R3, R4 and the calibration were all
 computed with the mega's weather missing.
 
+### 3.7 The search spoke a third dialect of terrain — fixed 2026-08-04
+
+Same shape as 3.6 and worth stating beside it, because it is the second time a field the leaf was
+*given* never reached the engine. ENGINE routed every terrain read in `medicham2-browser.js` through
+`terrainId()` — `weatherId()`'s sibling — and then measured that **0 of 863 terrain-carrying boards
+reached the leaf at all.** The cause was upstream of the engine entirely: `miltank.js` and
+`rollout_r1.js` built their field object with
+
+```
+terrain: ['electric', 'grassy', 'misty', 'psychic'].find(t => board.hasField(t)) || ''
+```
+
+Those are the **engine's** words. `board.startField` stores the dex's `move.terrain`, which is
+`electricterrain`, `grassyterrain`, `mistyterrain`, `psychicterrain`. So a third spelling was being
+probed against a Board that has never held it, it matched nothing on every board ever walked, and the
+field handed to every rollout carried `terrain: ''` whether or not a terrain was up. Terrain was
+correct in the engine and invisible to the search.
+
+Fixed by one helper, `rollout_leaf.terrainOnBoard`, which probes the board's own keys and translates
+with `MEDI.terrainId`. **No fourth map was written**, and the post-KO replacement search — which had
+`terrain: ''` hardcoded — now reads the board too.
+
+**The honest size of it, measured rather than claimed: near zero, and that was the expected answer.**
+On 3,256 corpus boards, 29 carry a terrain (0.9%; ENGINE's whole-corpus figure is 1.24%) and the old
+probe found 0 of them. Rolling out all 29 plus 176 terrain-free controls at n=40, **4 boards moved,
+all four Psychic Terrain, mean |Δ| 8.75 pt, and 0 of 176 controls moved.** Every Electric Terrain
+board was unchanged, because the engine's terrain readers are thin: the priority block, Grassy
+Glide's priority, Hadron Engine and the two `terrainScaled` moves. A rare condition times a thin
+reader is a small number, and reporting it as one is the point.
+
 ---
 
 ## 4. Open team sheets are what make the preview search possible

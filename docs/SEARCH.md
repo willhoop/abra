@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 19:42):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 21:01):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,7 +32,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 19:43_
+_stamped 2026-08-04 21:01_
 
 <!-- /GENERATED -->
 
@@ -54,6 +54,262 @@ no longer exists.
 **This is a release-boundary matter, not a footnote** — PRIORITIES P0.5. The runs on disk were
 already `PRE-CHANGE` against the engine; they are now `PRE-CHANGE` against the leaf as well, and the
 leaf is SEARCH's own file. Do not start a wide run until the boundary is cut.
+
+## P0.5 — THE FROZEN ENGINE RELEASE. DESIGNED AND PREPARED 2026-08-04. NOT CUT.
+
+`docs/DIVISIONS.md` rule 1 says SEARCH plays a frozen, named engine release and never HEAD.
+**There is no such release and there never has been**, so the rule has been a sentence rather than a
+mechanism, and every SEARCH baseline on disk is attributed by `status.js` comparing **mtimes** — the
+one thing `run_stamp.js` says in its own comments is not evidence, because a checkout moves an mtime
+without moving code.
+
+This section is the mechanism, the freeze list, the re-run order and the commands. **Cutting it is
+Will's call**, because the cut triggers the refit and seven restamps.
+
+### 1. What identifies a release: a DIGEST SET in a file, not a tag
+
+`data/engine-release.json`, written by a cut and never hand-edited:
+
+```json
+{
+  "release": "E1-2026-08-05",
+  "cut": "2026-08-05T00:00:00.000Z",
+  "supersedes": null,
+  "commit": "<sha>",
+  "dirty": false,
+  "digests": {
+    "engine/rollout_leaf.js": "02c57b55e929",
+    "engine/medicham2-browser.js": "7649d0760a88",
+    "engine/board.js": "bcf2dab9dc6f",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "ea5b89c2afcd"
+  },
+  "claims": { "census_live": 115, "differential": "1/400 @ seed 20260804", "tests": "run-all green" }
+}
+```
+
+**Why a digest set and not a git tag.** A tag names a commit, and this repo has already published a
+result whose own stamp reads *"TREE WAS DIRTY — trust source_digests, not the commit"* (R3, in the
+generated block above). An unattended auto-commit publishes on a timer here, so a commit id is not a
+stable statement about what a process loaded; the bytes are. A tag is still worth pushing as a human
+handle (`git tag engine/E1-2026-08-05`), and it is a **convenience, not the authority**.
+
+**The digests come from `engine/run_stamp.js` — `sourceDigests()` and `gitState()` — not from a new
+hasher.** That is not tidiness: `miltank.js` was hashing **4 files with sha1** while `run_stamp.js`
+hashes **5 with sha256**, so `data/abra-tags.js` — the file ENGINE rewrites most — was invisible to a
+MILTANK stamp and visible to every other gate's. Two definitions of "the engine these numbers
+describe" is the `choiceLock` failure in a new costume. `miltank.js buildStamp()` now calls
+`RS.sourceDigests()` and the divergence is closed.
+
+### 2. What exactly is frozen, and why each file
+
+The release freezes **every file whose bytes can change a rollout's value.** That is
+`run_stamp.LEAF_SOURCES`, which already exists and already has the right membership:
+
+| file | why it is in |
+|---|---|
+| `engine/medicham2-browser.js` | the simulator. Damage, priority, abilities, the playout loop |
+| `engine/rollout_leaf.js` | the playout and the field boundary. `applyField` alone has moved two published numbers this week |
+| `engine/board.js` | `dmgMon` builds every rollout body; `candidates()` is the menu |
+| `data/engine-data.js` | stats, moves, items — the table every body is built from |
+| `data/abra-tags.js` | every mechanic param the engine reads. The census lives here |
+
+**Deliberately OUT, each for a stated reason:**
+
+- **`engine/miltank.js` is NOT frozen.** It is the thing under test. Freezing the player inside the
+  release would make an H2H between two players impossible to name.
+- **`data/policy-weights.json` is NOT frozen.** MAG's fit is a different invalidation edge with a
+  different authority, and conflating them is why this needed writing down.
+- **`engine/mew.js`, `engine/sprt.js` are NOT frozen.** DIVISIONS: MEASURE's tools sit beside the
+  graph and invalidate nobody.
+
+**ENGINE's freeze list is not the feature path, and the two authorities must not be swapped.**
+
+| question | authority | what it answers |
+|---|---|---|
+| is the **fit** stale? | `node engine/feature_fixture.js --check data/policy-weights.json` | do the fitted weights still mean what `board.js` computes. Ran clean 2026-08-04: *"agrees with board.js on every fixture board"* |
+| is a **rollout** comparable? | `data/engine-release.json` digests | did the simulator move under the run |
+
+They overlap on `board.js` only, and they can disagree in both directions: the fit is currently
+**clean** while every rollout on disk is **not comparable**. Reporting one as the other is the
+silent-default failure DIVISIONS names as the cost of a boundary.
+
+### 3. How a run declares its release, and how `status.js` marks `PRE-RELEASE`
+
+**Implemented and proved, in SEARCH's own file.** `miltank.js buildStamp()` hashes its own worktree
+at module load — not at the first row, so it cannot describe a file edited underneath a running
+process — and resolves three states against `data/engine-release.json`:
+
+| stamp reads | meaning |
+|---|---|
+| `release: "E1-…", release_status: "ON_RELEASE"` | every frozen file hashes to the release |
+| `release: "E1-…", release_status: "PRE-RELEASE"`, `release_moved: [files]` | **the run is not on the release, and it names which files differ** |
+| `release: "UNRELEASED"` | no cut has ever happened — what every stamp reads today |
+
+Both non-trivial branches were exercised rather than assumed: with a synthetic release file the
+resolver returned `ON_RELEASE`, and with one digest perturbed it returned
+`PRE-RELEASE  release_moved: ["data/abra-tags.js"]`.
+
+**The change `status.js` needs — SPECIFIED, NOT APPLIED, because `status.js` is MEASURE's file.**
+Today `status.js:315-331` finds the newest engine-source **mtime** and prints `PRE-CHANGE` for any
+run file older than it. Replace the comparison, keep the line:
+
+1. read `data/engine-release.json`; if absent, print `NO RELEASE CUT — rule 1 of DIVISIONS.md is
+   unenforced` and fall back to today's mtime inference **labelled as an inference**;
+2. for each run, read its stamp (`*.meta.json` sidecar for a gate artifact, the `_stamp` row for a
+   `MILTANK_TIMING` shard, `_stamp` in the games jsonl for a mew run) and compare its `engine_digests`
+   to the release's `digests`;
+3. print one of **`ON <release>`**, **`PRE-RELEASE (<files that moved>)`**, or **`NO STAMP`**.
+
+**`NO STAMP` must be its own state and must not read as current.** An unstamped run is not evidence
+about any build, which is strictly worse than a run known to be old — that is the whole finding
+behind `run_stamp.js` existing.
+
+The resolver in `miltank.js` is written to be **lifted into `engine/engine_release.js`** when
+MEASURE lands the `status.js` half, so `status.js`, `run_stamp.js` and `miltank.js` share one
+implementation. **Do not write a second one.**
+
+### 4. What must be re-run once the cut lands, ordered by cost
+
+**Cost is stated in leaf calls and playouts, not minutes**, because this file's own R2/R6 sections
+say a duration is a fact about a machine under a load and R2 is being re-run for exactly that.
+
+| order | gate | unit of work | shares a corpus with | why it must be re-run |
+|---|---|---|---|---|
+| 1 | **R2** leaf cost | ~477 leaf calls | R1 (same walker, same stride) | already owed (PRIORITIES #14); the weather and terrain fixes make playouts longer, so every cost figure quoted downstream is a lower bound until this lands. **Run it first — every other estimate below is priced off it** |
+| 2 | **R1** + the explore sweep | 9,201 positions × 3 explore arms ≈ 27.6k leaf calls ≈ 1.1M playouts at n=40 | R2, R3, R5 | every position scored through `rolloutWinProb`. The sign is very unlikely to move; the point estimate will |
+| 3 | **R3** divergence | 121 decisions at n=600, two searches plus the self-disagreement control | R1, R5 | `rolloutAfterActions` moved by mean \|Δ\| 18.3 pt on the same boards |
+| 4 | **R7** timing distribution | 12 self-play games | R6a (identical command plus `MILTANK_CLOCK=1`) | R6's figures describe a build that no longer exists and are lower bounds |
+| 5 | the **in-game leaf calibration** | MEASURE's, corpus-sized | R1, R3, R5 | measured on a leaf that could not read weather. **MEASURE's item, not SEARCH's** |
+| 6 | **R5** action-ranking backtest | ~2,000 decisions × ~63 cells × n=200 ≈ 25M playouts, 4 shards | R1, R3 | never run; it is the measurement that decides whether the leaf is worth its cost |
+| 7 | **R4** the SPRT | ~420 decisive pairs, self-play | R6c only | every leaf call in both arms. **Last, because 1–6 can redirect it** |
+
+**What genuinely shares a corpus.** R1, R2, R3 and R5 all walk the same clean open-sheet games
+through `joint_rows.build`'s `onBoard` observer with a stride, so they sample from one population and
+should record **the same corpus id and the same stride** — and R3 is computable as a **by-product of
+the R5 pass**, because R5 already enumerates the menu at each decision point that R3 compares two
+searches over. R4, R6a, R6c and R7 are self-play through `mew.js` and share nothing with the corpus
+gates; R7 and R6a are the same 12-game command differing by one environment variable.
+
+**What does NOT need re-running:** the live-budget derivation (read out of the Showdown source, not
+measured on our engine), the request-length distribution over 30,396 ladder games (a property of the
+store), and R6b's forfeit answer, which is arithmetic on those two.
+
+### 5. THE TRAP THAT WOULD MAKE ALL OF THIS A NULL — instrumented 2026-08-04
+
+PRIORITIES 0b: **`--miltank` with `--policy random` searches nothing and looks completely normal.**
+Every `chooseMove` bails silently, and an H2H arm can therefore run a whole job having never called
+the leaf while still printing a win rate.
+
+**Reproduced, and it is worse than filed.** A 2-game run with `--policy random --miltank` finished
+clean, printed `MEW done: 2 games (0 discarded)`, and wrote **no `MILTANK_TIMING` file at all** — not
+an empty one, none — because every decision bails before the recorder is reached. The `--reduce`
+step answered that with an ENOENT stack trace, which reads like a broken tool rather than a run that
+never searched.
+
+**So the counter now exists and every re-run must read it before it reads anything else.**
+`engine/miltank.js` counts leaf entries and playouts, stamps the running total on every timing row,
+and `--reduce` publishes:
+
+```json
+"search": { "leaf_calls": 1142, "playouts": 28415,
+            "decisions_with_zero_leaf_calls": 0, "zero_leaf_pct": 0, "VERDICT": "ok" }
+```
+
+with `VERDICT` reading **`THE SEARCH NEVER RAN — this artifact is not a measurement of MILTANK`** at
+zero, and `--reduce` on a missing file returning a named verdict instead of a stack trace. Verified
+on a 3-game smoke: 36 decisions, 1,142 leaf calls, 28,415 playouts, 0 decisions with zero leaf calls.
+
+**The rule for every command below: `MILTANK_TIMING` is set on BOTH arms, and no verdict is read
+until `search.leaf_calls > 0` on both.** For the corpus gates (R1/R3/R5), which do not go through
+`miltank.js`, the equivalent guard is the generator's own `nulls`/`skipped` counters — a gate whose
+rows are mostly nulls is the same failure wearing the other hat.
+
+### 6. The commands. PREPARED, NOT RUN.
+
+`SHOWDOWN_PATH` is required by all of them. Check `FreePhysicalMemory` before choosing a process
+count — it was **3.4 GB** when this was written, which is one to two processes, not six.
+
+**Step 0 — the cut itself. Will's call, and it triggers the refit and the restamps.**
+
+```
+# preconditions, all three, in this order
+git status --porcelain                 # must be clean, and no rebase in progress
+node tests/run-all.js                  # the census must not be down
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown \
+  node engine/feature_fixture.js --check data/policy-weights.json
+
+# write data/engine-release.json from run_stamp's digests — this is the cut
+node -e "const RS=require('./engine/run_stamp.js'),cp=require('child_process'),fs=require('fs');
+  const d=RS.sourceDigests(); delete d.note;
+  const commit=cp.execSync('git rev-parse HEAD').toString().trim();
+  const dirty=cp.execSync('git status --porcelain -- '+Object.keys(d).join(' ')).toString().trim();
+  if(dirty) throw new Error('REFUSING TO CUT A DIRTY TREE:\n'+dirty);
+  fs.writeFileSync('data/engine-release.json', JSON.stringify({
+    release:'E1-'+new Date().toISOString().slice(0,10), cut:new Date().toISOString(),
+    supersedes:null, commit, dirty:false, digests:d}, null, 2)+'\n');
+  console.log('cut', require('./data/engine-release.json').release);"
+
+git tag engine/E1-$(date +%F)          # the human handle, NOT the authority
+node engine/status.js --write
+```
+
+**The dirty-tree refusal is a feature, and it fires today.** Dry-run 2026-08-04 21:01 UTC: the guard
+refused, and in the eight minutes either side of it `engine/medicham2-browser.js` went
+`7649d0760a88 → 3653b857dc29`, `engine/board.js` went `bcf2dab9dc6f → 88506029c850` and
+`data/abra-tags.js` went `ea5b89c2afcd → facd3f2f50b4`. **Three of the five frozen files moved while
+this section was being written**, which is the entire argument for the boundary, observed rather than
+asserted. The cut happens after ENGINE lands and commits — the answer is never to drop the guard.
+
+**Step 1 — R2, first, because everything else is priced off it:**
+
+```
+SHOWDOWN_PATH=... GAMES=120 EVERY=3 N_LIST=10,40,200 EXPLORE=1.0 MAXTURNS=60 \
+  node --max-old-space-size=4096 engine/rollout_r2.js
+```
+
+`EXPLORE` and `MAXTURNS` are passed **explicitly** — the committed artifact was measured at the
+defaults (explore 0, maxTurns 20) while the shipped leaf runs 1.0 and 60, and not passing them is
+the whole of PRIORITIES #14.
+
+**Step 2 — R1 and the explore sweep, one walk, one process:**
+
+```
+SHOWDOWN_PATH=... GAMES=800 EVERY=2 N_LIST=40 EXPLORE_LIST=0,0.5,1.0 \
+  DUMP=rollout-r1-E1-rows.jsonl \
+  node --max-old-space-size=4096 engine/rollout_r1.js
+
+node engine/rollout_r1_artifact.js data/rollout-r1-E1-rows.jsonl
+```
+
+**`DUMP=` resolves under `data/`, and a name already on disk is overwritten.** Use a release-stamped
+filename; the 2026-08-04 sweep nearly destroyed the only evidence for the incumbent arm this way.
+
+**Step 3 — R3:**
+
+```
+SHOWDOWN_PATH=... GAMES=600 EVERY=3 N=600 TOPK=3 EXPLORE=1.0 \
+  node --max-old-space-size=4096 engine/rollout_r3.js
+```
+
+**Step 4 — R7, the timing distribution on the named release** (one process, 12 games):
+
+```
+SHOWDOWN_PATH=... MILTANK_TIMING=$PWD/data/.miltank-timing/r7.jsonl \
+  node --max-old-space-size=1536 engine/mew.js --n 12 --conc 1 \
+    --policy score --policy2 score --miltank --miltank-n 200 --miltank-preview-n 40 \
+    --seed 90001 --out data/.miltank-timing/r7-games.jsonl
+
+node engine/miltank.js --reduce data/.miltank-timing/r7.jsonl \
+    --horizon-store data/games.ladder.jsonl --out data/miltank-timing-r7.json
+```
+
+**Read `search.leaf_calls` and `build.release_status` in that artifact before reading a single
+timing figure.** They must be non-zero and `ON_RELEASE`.
+
+**Steps 5–7 — R5, then R6c, then R4** are already specified above and below in this file, with their
+shard commands. Each carries the same two preconditions: `release_status: ON_RELEASE` in the stamp,
+and a non-zero leaf-call count. Read every SPRT at the bound, once, on the cat of its shards.
 
 **And a caution the parity does not cover.** `docs/SEARCH.md` item 5b records that the board's
 weather string has never meant anything to MEDICHAM. Until that is fixed, **a re-run of R1/R3/R4
@@ -664,6 +920,70 @@ again between the before-run and the after-run — 4 of the first 60 HEAD-leaf v
 two runs. The parity verdict survives it because both arms run in one process against one engine, and
 the after-run carries its own before-state column measured on the current engine. The absolute
 numbers above describe the tree at `9a4f82d` plus uncommitted ENGINE work, not a named release.
+
+### 5c. THE SEARCH USED A THIRD TERRAIN VOCABULARY — FIXED 2026-08-04, and the effect is near zero
+
+**This is 5b's sibling, one layer further out, and it is the reason ENGINE's terrain fix measured
+nothing.** ENGINE routed every terrain read in `medicham2-browser.js` through `terrainId()` and then
+counted that **0 of 863 terrain-carrying boards reach the leaf at all**. The defect was not in the
+engine: `engine/miltank.js:794` and `engine/rollout_r1.js:175` built the field object with
+
+```
+terrain: ['electric', 'grassy', 'misty', 'psychic'].find(t => board.hasField(t)) || ''
+```
+
+which are the **engine's** words probed against a Board that stores the dex's `electricterrain`,
+`grassyterrain`, `mistyterrain`, `psychicterrain`. **Three vocabularies, and the one doing the asking
+was the one nothing spoke.** Reproduced on an independent walk before the fix: the short-word probe
+matched **0 of 3,256** boards.
+
+**Fixed with `rollout_leaf.terrainOnBoard(board)` — one implementation, no fourth map.** It probes
+the board's own four keys and translates with `MEDI.terrainId`, exactly as `applyField` already
+translates weather with `MEDI.weatherId`. Three call sites now use it, and the third was a hole
+nobody had filed: **`miltank.js`'s post-KO replacement search had `terrain: ''` hardcoded**, so every
+replacement was judged on a bare field. `applyField` also now runs `f.terrain` through `terrainId`,
+because that boundary is handed both vocabularies and `terrainId` is idempotent.
+
+Two deliberate choices, both recorded so they are not re-litigated:
+
+- **Probe four named keys rather than walking `board.pseudoWeather`.** Trick Room lives in the same
+  namespace, so a walk would hand `trickroom` to `terrainId` and score a bogus
+  `MEDI.fails.terrainUnknown` on nearly every board. A swallowed-failure counter that fires when
+  nothing is wrong is a counter that gets ignored.
+- **`engine/rollout_r3.js:98` still passes `terrain: ''`** and is not SEARCH's file this pass. It is
+  the same hole and it wants the same one-line call.
+
+#### What it moved: NEAR ZERO, which is the expected honest answer
+
+Both arms in one process against one engine, same boards, same seeds, so only the field object
+differs. 800 games, every 2nd board, n=40.
+
+| | |
+|---|---|
+| boards walked | 3,256 |
+| **hits by the OLD short-word probe** | **0** |
+| boards carrying a terrain | 29 (0.891%; ENGINE's whole-corpus figure is 1.24%) |
+| which terrains | electric 19, psychic 10 |
+| boards rolled out | 205 — all 29 terrain boards, plus 176 terrain-free controls |
+| **boards that moved** | **4** |
+| **controls that moved** | **0 of 176** — the control that says this is the terrain and nothing else |
+| mean \|Δ\| on the movers | 8.75 pt (max 25.0) |
+
+**All four movers are Psychic Terrain; not one of the 19 Electric Terrain boards moved.** That is not
+a bug to hunt, it is the reader set: the engine consumes terrain in exactly four places — the Psychic
+Terrain priority block, Grassy Glide's priority, Hadron Engine (0 corpus uses), and `terrainScaled`
+(Expanding Force 182 uses, Rising Voltage 114). A 1.24% condition times a thin reader is a small
+number. **1.24% exposure and a 4/205 movement rate is the result; do not go looking for more.**
+
+**One thing tripped over and FILED FOR ENGINE, not fixed here.** The engine models **no generic
+terrain type boost** — Electric Terrain does not multiply a grounded Electric move, Grassy Terrain
+does not multiply Grass, Psychic Terrain does not multiply Psychic, and Grassy Terrain's end-of-turn
+heal and Misty Terrain's status block are absent. Probed directly: a Psychic-type move into Garchomp
+reads `103-123` with no terrain and `103-123` under `psychic` and under `psychicterrain` alike.
+`terrainScaled` covers only the two moves whose handler names a number. Recorded here rather than in
+`docs/ENGINE.md` because an ENGINE agent owns that file right now — the same reason 5b was recorded
+here — so it is not lost. **It also bounds 5c**: the movement above will grow when the generic boost
+lands, and only then.
 
 ### 5b. THE LEAF'S WEATHER STRING HAS NEVER MEANT ANYTHING TO THE ENGINE — FILED, NOT FIXED
 

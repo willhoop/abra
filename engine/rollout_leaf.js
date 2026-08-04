@@ -325,8 +325,39 @@ function runPlayout(S, rng, explore, foePolicy, counters) {
  * Parity, 250 corpus boards, both arms in one process at n=40: 130 carried a weather, 77 boards moved
  * (59.2% of the weather boards), mean |delta| 9.92 pt, max 37.5 pt, and **0 of the 120 boards with no
  * weather moved at all** -- the control that says this is the weather and not the reordering. */
+/* THE BOARD'S TERRAIN, IN THE ENGINE'S VOCABULARY. ONE IMPLEMENTATION, BECAUSE THERE WERE THREE.
+ *
+ * ENGINE fixed medicham2 to translate terrain at every read (`terrainId`, the sibling of
+ * `weatherId`) and then measured that **0 of 863 terrain-carrying corpus boards reach the leaf at
+ * all** — because the two callers that BUILD the field object, `miltank.js` and `rollout_r1.js`,
+ * probed `board.hasField('electric'|'grassy'|'misty'|'psychic')`. Those are the ENGINE's words.
+ * `board.startField` stores the dex's `move.terrain`, which is `electricterrain`, `grassyterrain`,
+ * `mistyterrain`, `psychicterrain`. So the probe was a third spelling, it matched nothing, and the
+ * field object handed to every rollout carried `terrain: ''` on every board that had one.
+ *
+ * NO FOURTH MAP IS WRITTEN HERE. The list below is a list of BOARD KEYS to probe — the same four
+ * `board.js:2543` and `position_features.js:296` already probe — and the short/long translation is
+ * done by `MEDI.terrainId` and nowhere else, exactly as `applyField` does for weather.
+ *
+ * Why probe four named keys instead of walking `board.pseudoWeather`: Trick Room lives in the same
+ * namespace, and handing `trickroom` to `terrainId` would count a bogus `MEDI.fails.terrainUnknown`
+ * on nearly every board. A swallowed-failure counter that fires when nothing is wrong is a counter
+ * that gets ignored. */
+const BOARD_TERRAIN_KEYS = ['electricterrain', 'grassyterrain', 'mistyterrain', 'psychicterrain'];
+function terrainOnBoard(board) {
+  if (!board || typeof board.hasField !== 'function') return '';
+  const k = BOARD_TERRAIN_KEYS.find(t => board.hasField(t));
+  return k ? MEDI.terrainId(k) : '';
+}
+
 function applyField(S, f, side, seeded) {
-  const w = MEDI.weatherId(f.weather), t = f.terrain || '';
+  /* Terrain goes through `terrainId` for the SAME reason weather goes through `weatherId` one line
+   * over: this boundary is handed both vocabularies — `terrainOnBoard` above yields the engine's,
+   * and a caller this file does not own may still pass the board's raw key. `terrainId` is
+   * idempotent, so a value already in the engine's words is unchanged, and an unrecognised one
+   * resolves to no terrain and is COUNTED rather than passed through as a truthy string that every
+   * formula ignores. */
+  const w = MEDI.weatherId(f.weather), t = MEDI.terrainId(f.terrain);
   if (seeded || w) S.field.weather = w;
   else if (!S.field.weather) S.field.weather = '';
   if (seeded || t) S.field.terrain = t;
@@ -566,4 +597,4 @@ function rolloutAfterActions(board, side, opts) {
  * becomes a playout field, which makes it the one place the board's vocabulary is translated into the
  * engine's -- `tests/test-mechanics.js` probes it directly rather than inferring the translation from
  * a win probability, because a leaf value moving is consistent with several other explanations. */
-module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson, runPlayout, applyField };
+module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson, runPlayout, applyField, terrainOnBoard };

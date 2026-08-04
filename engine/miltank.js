@@ -111,6 +111,37 @@ function parseInactive(line) {
  * build -- PRIORITIES #14 is "R2 is re-run or it is nothing" for exactly the missing half of that.
  * Hashed once per process. */
 let _STAMP = null;
+/* WHICH NAMED ENGINE RELEASE THIS PROCESS IS RUNNING, resolved by CONTENT and not by a tag.
+ *
+ * docs/DIVISIONS.md rule 1 — SEARCH plays a frozen, named engine release, never HEAD — has never had
+ * a mechanism, so every run to date is attributed by `status.js` comparing MTIMES, which a checkout
+ * moves without moving code. `data/engine-release.json` is that mechanism: a cut writes the release
+ * name beside the sha256 of every file whose bytes can change a rollout's value, and any run can
+ * then answer "which release did you play" by hashing its own worktree and comparing.
+ *
+ * THE DIGESTS COME FROM `run_stamp.sourceDigests`, NOT FROM THE FOUR-FILE sha1 SET BELOW. Those two
+ * lists disagreed — `run_stamp.LEAF_SOURCES` is 5 files hashed with sha256 and this file hashed 4
+ * with sha1, so `data/abra-tags.js` (which ENGINE rewrites constantly) was invisible to a MILTANK
+ * stamp and visible to every other gate's. FACTS ARE GLOBAL: there is one definition of "the engine
+ * these numbers describe" and it lives in run_stamp.
+ *
+ * INERT UNTIL THE CUT. With no release file this records `UNRELEASED`, which is the honest answer and
+ * is exactly what every run on disk should read. When the cut lands, this resolver moves to
+ * `engine/engine_release.js` so `status.js` and `run_stamp.js` share it — DO NOT WRITE A SECOND ONE.
+ * `source_digests` is kept unchanged beside it because `reduce()`'s mixed-build check keys on it and
+ * because a TIMING artifact is legitimately about the player as well as the engine. */
+function resolveRelease(engineDigests) {
+  let rel = null;
+  try { rel = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'engine-release.json'), 'utf8')); }
+  catch (e) { return { release: 'UNRELEASED', release_status: 'NO RELEASE HAS EVER BEEN CUT — docs/DIVISIONS.md rule 1 is unenforced' }; }
+  const want = (rel && rel.digests) || {};
+  const moved = Object.keys(want).filter(k => k !== 'note' && engineDigests[k] !== want[k]);
+  return {
+    release: rel.release || 'UNNAMED',
+    release_status: moved.length ? 'PRE-RELEASE' : 'ON_RELEASE',
+    release_moved: moved.length ? moved : undefined,
+  };
+}
 function buildStamp() {
   if (_STAMP) return _STAMP;
   const files = ['medicham2-browser.js', 'rollout_leaf.js', 'miltank.js', 'board.js'];
@@ -122,14 +153,19 @@ function buildStamp() {
       digests[f + ':mtime'] = fs.statSync(p).mtime.toISOString();
     } catch (e) { digests[f] = 'UNREADABLE'; }
   }
-  _STAMP = {
+  const RS = require('./run_stamp.js');
+  const engineDigests = RS.sourceDigests();
+  _STAMP = Object.assign({
+    engine_digests: engineDigests,
+    player_digest: digests['miltank.js'],
     source_digests: digests,
+  }, resolveRelease(engineDigests), {
     node: process.version,
     host: os.hostname(),
     cpu: (os.cpus()[0] || {}).model || 'unknown',
     cores: os.cpus().length,
     ruleset: 'VGC Timer (Timer Starting=420, Grace=90, AddPerTurn=0, MaxPerTurn=55, MaxFirstTurn=90)',
-  };
+  });
   return _STAMP;
 }
 /* HASHED AT LOAD, NOT AT THE FIRST DECISION.  ENGINE lands fixes while SEARCH runs; if the digest
@@ -334,11 +370,26 @@ function install(bot, o) {
   let _lastReq = null;
   const onRequest = function (req) { if (req !== _lastReq) { _lastReq = req; CLOCK.onRequest(); } };
   let _dec = 0;
+  /* THE COUNTER THAT PROVES THE SEARCH RAN, and it exists because a run without one produced a full
+   * null that looked like a result. PRIORITIES 0b: `--miltank` with `--policy random` bails out of
+   * every `chooseMove` SILENTLY — 81 of 81 calls, 0 leaf calls, `acts=0 i=-1 board=false` — and the
+   * only visible output is one preview-fallback line. An H2H arm can therefore run a whole job
+   * having searched NOTHING and still print a win rate. Under CLAUDE.md a capability that cannot
+   * prove it ran is assumed broken, so every leaf call is counted and the count is stamped on every
+   * timing row; `reduce` then reports total leaf calls and how many decisions made ZERO of them.
+   *
+   * `calls` is leaf ENTRIES (one `rolloutWinProb`/`rolloutAfterActions`); `playouts` is games
+   * actually played out, which is the quantity that scales with cost. */
+  const LEAF = { calls: 0, playouts: 0 };
+  bot.searchStats = () => ({ calls: LEAF.calls, playouts: LEAF.playouts, decisions: _dec });
+  const leafWinProb = (b, s, o) => { LEAF.calls++; LEAF.playouts += (o && o.n) || 0; return RL.rolloutWinProb(b, s, o); };
+  const leafAfterActions = (b, s, o) => { LEAF.calls++; LEAF.playouts += (o && o.n) || 0; return RL.rolloutAfterActions(b, s, o); };
   const say = (kind, ms, extra) => {
     _dec++;
     if (!TIMER.on) return;
     TIMER.record(Object.assign({
       dec: _dec, kind, ms, req: CLOCK.stats().requests,
+      leaf: LEAF.calls, playouts: LEAF.playouts,
       turn: (bot.board && bot.board.turn) || null,
       n: ROLLOUT_N, explore: ROLLOUT_EXPLORE, turns: ROLLOUT_TURNS, foe: FOE_POLICY,
       previewN: PREVIEW_N, previewMs: PREVIEW_MS, budgetMs: opts.budgetMs || 20000,
@@ -527,7 +578,7 @@ function install(bot, o) {
              * MILTANK shipped two playout policies and only the other one was ever swept. The
              * position preview asks about is different (a fresh game, no board); the way it is
              * played out is not, and it is a PARAMETER now rather than a second implementation. */
-            const r = RL.rolloutWinProb(null, side, {
+            const r = leafWinProb(null, side, {
               n: N, dex: DEX, explore: PREVIEW_EXPLORE, foePolicy: FOE_POLICY,
               maxTurns: ROLLOUT_TURNS, seed: previewSeed,
               /* NOBODY HAS ENTERED YET, so the entry effects must fire.
@@ -600,7 +651,11 @@ function install(bot, o) {
           };
           const DEX2 = DEX;
           const field = {
-            weather: this.board.weather || '', terrain: '',
+            /* Terrain was hardcoded '' here, so the post-KO search judged every replacement on a
+             * bare field even when one was up — the same hole as the in-game leaf, in a decision
+             * where the terrain is often exactly the point (who is safe to send into Electric
+             * Terrain). One call, same helper, no map in this file. */
+            weather: this.board.weather || '', terrain: RL.terrainOnBoard(this.board),
             tr: this.board.hasField('trickroom') ? 5 : 0,
             twA: this.board.hasSide(side, 'tailwind') ? 4 : 0,
             twB: this.board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
@@ -618,7 +673,7 @@ function install(bot, o) {
             const sp = speciesOf(sw.slot);
             if (!sp) continue;
             if (Date.now() > SW_DEADLINE) { swCut++; continue; }
-            const r = RL.rolloutWinProb(this.board, side, {
+            const r = leafWinProb(this.board, side, {
               n: ROLLOUT_N * 2, dex: DEX2, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field,
               /* COMMON RANDOM NUMBERS. Every candidate is judged on the SAME dice.
                *
@@ -791,7 +846,12 @@ function install(bot, o) {
 
           const field = {
             weather: board.weather || '',
-            terrain: ['electric', 'grassy', 'misty', 'psychic'].find(t => board.hasField(t)) || '',
+            /* A THIRD SPELLING, AND IT MATCHED NOTHING. This read `hasField('electric')` — the
+             * ENGINE's word — against a Board that stores the dex's `electricterrain`. ENGINE
+             * measured the consequence directly: 0 of 863 terrain-carrying corpus boards ever
+             * reached the leaf with a terrain. `RL.terrainOnBoard` probes the board's own keys and
+             * translates with `MEDI.terrainId`; no map lives in this file. */
+            terrain: RL.terrainOnBoard(board),
             tr: board.hasField('trickroom') ? 5 : 0,
             twA: board.hasSide(side, 'tailwind') ? 4 : 0,
             twB: board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
@@ -836,7 +896,7 @@ function install(bot, o) {
            * search is scoring an empty board". */
           if (!this._rolloutChecked) {
             this._rolloutChecked = true;
-            const probe = RL.rolloutWinProb(board, side, { n: 3, dex: DEX, explore: 1.0, field, seed: 1 });
+            const probe = leafWinProb(board, side, { n: 3, dex: DEX, explore: 1.0, field, seed: 1 });
             console.log('  MILTANK seed check: ' + (probe
               ? `${probe.built} bodies built, dropped ${JSON.stringify(probe.dropped)}, p=${probe.p}`
               : 'NULL — a side could not be built at all'));
@@ -963,7 +1023,7 @@ function install(bot, o) {
             if (ca2.switchTo && cb2.switchTo && ca2.choice === cb2.choice) return null;
             const ka = clickOf(ca2), kb = clickOf(cb2);
             if (!ka || !kb) return null;
-            return RL.rolloutAfterActions(board, side, {
+            return leafAfterActions(board, side, {
               n, dex: DEX, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field, maxTurns: ROLLOUT_TURNS,
               seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib + salt,
               myClicks: [ka, kb], protectTurns: this._protectTurns,
@@ -1202,6 +1262,14 @@ function install(bot, o) {
  * =========================================================================== */
 function reduce(file) {
   const q = (a, p) => a.length ? a[Math.min(a.length - 1, Math.max(0, Math.ceil(p * a.length) - 1))] : null;
+  /* A MISSING FILE IS THE LOUDEST VERSION OF THE 0b TRAP, not a crash. Reproduced 2026-08-04:
+   * `--policy random --miltank` finishes a clean 2-game run, prints `MEW done ... (0 discarded)`,
+   * and writes NO timing row at all, because every chooseMove bails before `say()` is reached. The
+   * reducer used to answer that with an ENOENT stack trace, which reads like a broken tool rather
+   * than a run that never searched. */
+  if (!fs.existsSync(file)) {
+    return { ERROR: 'NO TIMING FILE — MILTANK recorded nothing, so the search almost certainly never ran (see PRIORITIES 0b: --policy random bails silently)', file };
+  }
   const lines = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean);
   const stamps = [], rows = [];
   for (const ln of lines) {
@@ -1250,6 +1318,33 @@ function reduce(file) {
                        budgetMs: rows[0].budgetMs, previewN: rows[0].previewN, previewMs: rows[0].previewMs,
                        clock: rows[0].clock, earlyDefer: rows[0].early } : null,
     clock_observations: rows.reduce((a, r) => a + (r.notes || 0), 0),
+    /* DID THE SEARCH ACTUALLY SEARCH. PRIORITIES 0b: `--miltank` with `--policy random` bails out of
+     * every chooseMove silently and produces a complete, normal-looking run in which the leaf was
+     * never called once.  `leaf` is cumulative per install, so a decision that searched nothing
+     * leaves the count unchanged from the previous row.  A run whose `leaf_calls` is 0, or whose
+     * `decisions_with_zero_leaf_calls` is most of the rows, is NOT a result — it is a null produced
+     * by a player that never ran.  Read this field before reading anything else in the artifact. */
+    search: (() => {
+      let zero = 0;
+      for (const rs of Object.values(byInstall)) {
+        let prev = 0;
+        for (const r of rs.slice().sort((a, b) => (a.dec || 0) - (b.dec || 0))) {
+          const c = r.leaf || 0;
+          if (c <= prev) zero++;
+          prev = c;
+        }
+      }
+      const calls = Object.values(byInstall).reduce((a, rs) => a + Math.max(0, ...rs.map(r => r.leaf || 0)), 0);
+      const play = Object.values(byInstall).reduce((a, rs) => a + Math.max(0, ...rs.map(r => r.playouts || 0)), 0);
+      return {
+        leaf_calls: calls, playouts: play,
+        decisions_with_zero_leaf_calls: zero,
+        zero_leaf_pct: +(100 * zero / rows.length).toFixed(1),
+        VERDICT: calls === 0 ? 'THE SEARCH NEVER RAN — this artifact is not a measurement of MILTANK'
+               : (zero / rows.length > 0.5 ? 'MOST DECISIONS DID NOT SEARCH — check --policy and the board' : 'ok'),
+        note: rows.some(r => r.leaf != null) ? null : 'ROWS PREDATE THE LEAF COUNTER — cannot prove the search ran',
+      };
+    })(),
     per_decision: { all: shape(rows) },
     by_kind: Object.fromEntries(Object.keys(byKind).map(k => [k, shape(byKind[k])])),
     per_game: {
