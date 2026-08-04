@@ -2726,6 +2726,214 @@ probe('ability', 'weatherSuppression', 'Air Lock stops the sun boosting Fire', (
                  + '(must be the clear-weather number)' };
 });
 
+/* ---- BATCH 9 — WHAT THE GENERATED INTERACTION MATRIX FOUND, 2026-08-04 --------------------------
+ *
+ * `tests/interaction_matrix.js` enumerates the cross product of every carrier tag against every
+ * reactor tag and `tests/test-interaction-matrix.js` plays each case against the official engine. Six
+ * of these seven mechanics were found by it and not one of them was reachable from a single-mechanic
+ * probe -- which is the argument for the instrument, and the reason each finding gets a CENSUS row
+ * here rather than living in a report: the matrix is a residual and the census is a ratchet.
+ *
+ * TWO OF THEM WERE ONLY VISIBLE AS A PAIR. WIRE 74 (the sandstorm chipping on the turn it expires) is
+ * a single tick of 1/16 and is invisible against any sand probe; it shows up because Grassy Terrain
+ * heals exactly the 1/16 the sand takes, so the two cancel and the extra tick is the ONLY HP left on
+ * the table. Both probes below therefore assert a NET, and that is deliberate. */
+
+/* WIRE 72. Grassy Terrain carries `perTurnHP` for the terrain's own heal, and the `perTurnHP` branch
+ * in playerAction sits above the terrain branch -- so the one terrain move in the format that also
+ * heals was the one terrain move the engine could not set. Asserted over the WHOLE tag, not over
+ * Grassy Terrain alone: a per-member probe is what let three of four members pass while the fourth
+ * was dead. The control is a status move that must NOT resolve to a terrain. */
+probe('move', 'setsTerrainEveryMember', 'every setsTerrain move actually resolves to a terrain', () => {
+  const me = bare('venusaur');
+  const kindOf = (id) => { const a = M.playerAction(me, id, null, fresh()); return a ? a.kind : 'none'; };
+  const members = ['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain'];
+  const got = members.map(id => id + '=' + kindOf(id));
+  const control = kindOf('swordsdance');
+  const test = members.every(id => kindOf(id) === 'terrain') ? 'terrain' : 'not-all-terrain';
+  return { works: test === 'terrain' && control !== 'terrain', arms: { control, test },
+           detail: got.join(' ') + '   control swordsdance=' + control };
+});
+
+/* WIRE 73 + WIRE 74 together, as a NET. Grassy Terrain heals 1/16 a turn; sandstorm takes 1/16 a
+ * turn. With both up the body must be exactly level. Three arms, because two cannot attribute it:
+ * sand alone must cost a sixteenth, grassy alone must gain one, and the two together must be zero. */
+probe('move', 'terrainPassiveHeal', 'Grassy Terrain heals 1/16 a turn and cancels the sandstorm', () => {
+  const run = (wx, ter) => {
+    const me = bare('milotic'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    me.curHP = Math.floor(me.st.hp / 2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.field.weather = wx; S.field.weatherT = wx ? 5 : 0;
+    S.field.terrain = ter; S.field.terrainT = ter ? 5 : 0;
+    const before = me.curHP;
+    const pass2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, pass2(me, ally), pass2(f1, f2));
+    return me.curHP - before;
+  };
+  const sixteenth = Math.floor(bare('milotic').st.hp / 16);
+  const sandOnly = run('sand', ''), grassOnly = run('', 'grassy'), both = run('sand', 'grassy');
+  return { works: sandOnly === -sixteenth && grassOnly === sixteenth && both === 0,
+           arms: { control: sandOnly, test: both },
+           detail: `a sixteenth is ${sixteenth}; sand only ${sandOnly}, grassy only ${grassOnly}, both ${both} (must be 0)` };
+});
+
+/* WIRE 74's own arm, stated as a COUNT rather than as a net, because the net above would also pass on
+ * an engine that got the weather right and the terrain wrong. A five-turn sandstorm deals FOUR ticks
+ * in the official engine: it clears the weather at the top of its residual, so the last turn does not
+ * chip. Nothing about the COUNTER was ever wrong, which is why nothing had caught this. */
+probe('move', 'weatherChipStopsOnExpiry', 'a 5-turn sandstorm chips 4 times, not 5', () => {
+  const me = bare('milotic'), ally = bare('incineroar');
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  S.field.weather = 'sand'; S.field.weatherT = 5;
+  const sixteenth = Math.floor(me.st.hp / 16);
+  const pass2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+  let ticks = 0;
+  for (let t = 0; t < 8; t++) {
+    const before = me.curHP;
+    M.battleTurn(S, rng5, pass2(me, ally), pass2(f1, f2));
+    if (before - me.curHP === sixteenth) ticks++;
+  }
+  /* The control is the number the engine used to produce — a tick on every turn the clock was
+   * non-zero — so an engine that ticks on expiry fails this and cannot be confused with one that
+   * never ticked at all (which would read 0). */
+  return { works: ticks === 4, arms: { control: 5, test: ticks },
+           detail: `ticks over 8 idle turns of a 5-turn sandstorm: ${ticks} (the official engine deals 4)` };
+});
+
+/* WIRE 75. `convertsMoveType.converts` names either a capitalised TYPE ("Normal moves") or a
+ * lowercase FLAG ("sound moves"), and the engine read only the type half — so Liquid Voice (346 uses)
+ * left Psychic Noise Psychic. Staged on a body where the conversion CHANGES the number in a direction
+ * the type chart cannot produce by accident: Primarina is Water/Fairy, so the converted move gains
+ * STAB while losing effectiveness into a Grass/Poison target. */
+probe('ability', 'convertsMoveTypeByFlag', 'Liquid Voice makes a sound move Water', () => {
+  const att = bare('primarina'), def = bare('venusaur');
+  const run = (ab) => { att.ability = ab;
+    return M.dmgRange(att, def, MC.moves['psychicnoise'], fresh(), false).max; };
+  const control = run('none'), test = run('liquidvoice');
+  /* The -ate arm, so "reads the type half" cannot pass this on its own. */
+  const attN = bare('pikachu');
+  const ateOff = (attN.ability = 'none', M.dmgRange(attN, def, MC.moves['bodyslam'], fresh(), false).max);
+  const ateOn = (attN.ability = 'galvanize', M.dmgRange(attN, def, MC.moves['bodyslam'], fresh(), false).max);
+  return { works: control !== test && ateOff !== ateOn, arms: { control, test },
+           detail: `Psychic Noise: no ability ${control}, Liquid Voice ${test}; `
+                 + `Body Slam: no ability ${ateOff}, Galvanize ${ateOn} (the TYPE half must still work)` };
+});
+
+/* WIRE 76. docs/TAGS.md: "an immune target takes nothing — not the damage, and not the secondary."
+ * `immuneToMoveClass` had one consumer per stage-3 mechanism instead of one per STAGE, so Psychic
+ * Noise into Soundproof dealt zero and still applied two turns of Heal Block. The witness is the
+ * volatile, not the damage: the damage half has been right since WIRE 22, which is exactly why a
+ * damage-shaped probe passes on the broken engine. */
+probe('ability', 'immunityBlocksSecondary', 'a Soundproof body takes no Heal Block from Psychic Noise', () => {
+  const run = (ab) => {
+    const me = bare('primarina'), ally = bare('incineroar');
+    const tg = bare('milotic'), f2 = bare('garchomp');
+    tg.ability = ab;
+    const S = M.battleInit([me, ally], [tg, f2], { seeded: true });
+    const act = M.playerAction(me, 'psychicnoise', tg, S.field);
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[tg, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return tg._healBlock > 0;
+  };
+  const control = run('none'), test = run('soundproof');
+  return { works: control === true && test === false, arms: { control, test },
+           detail: `heal-blocked after Psychic Noise: plain ${control} (must be true), Soundproof ${test} (must be false)` };
+});
+
+/* WIRE 77. The Throat Chop silence was checked inside the ATTACK branch and in chooseAction — one
+ * class of action out of a dozen. Roar is a sound move that resolves down the `phaze` branch, so a
+ * silenced body phazed anyway. The witness is whether the drag happened. */
+probe('move', 'soundSealBlocksEveryKind', 'a silenced body cannot phaze with Roar', () => {
+  const run = (seal) => {
+    const me = bare('venusaur'), ally = bare('incineroar');
+    const tg = bare('milotic'), b1 = bare('corviknight'), b2 = bare('weavile');
+    const f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [tg, f2], { seeded: true });
+    S.benchB.push(b1, b2);
+    if (seal) me._noSound = 3;
+    const act = M.playerAction(me, 'roar', tg, S.field);
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[tg, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return S.actB[0] ? S.actB[0].name : 'none';
+  };
+  const control = run(false), test = run(true);
+  return { works: control !== test && test.toLowerCase().indexOf('milotic') === 0,
+           arms: { control, test },
+           detail: `slot after Roar: not silenced "${control}" (dragged), silenced "${test}" (must still be Milotic)` };
+});
+
+/* WIRE 79. `statChangeInCode` with `on:'target'` had a READER (inside the pivot branch, written for
+ * Parting Shot) and no CLASSIFIER, so Strength Sap — 637 corpus uses — resolved to `kind:'pass'` and
+ * was a wasted turn. Two arms on the same body, because the failure is an unwired knob rather than a
+ * wrong number and both look identical in a diff. The move's HEAL is deliberately NOT asserted: it
+ * scales off the target's Attack and no artifact this engine reads carries it. */
+probe('move', 'statChangeInCodeOnTarget', 'Strength Sap drops the target\'s Attack', () => {
+  const me = bare('venusaur'), ally = bare('incineroar');
+  const tg = bare('garchomp'), f2 = bare('milotic');
+  const S = M.battleInit([me, ally], [tg, f2], { seeded: true });
+  const act = M.playerAction(me, 'strengthsap', tg, S.field);
+  const control = tg.boosts.at;
+  M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+    new Map([[tg, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const test = tg.boosts.at;
+  return { works: act.kind !== 'pass' && test === -1, arms: { control, test },
+           detail: `strengthsap resolves to kind "${act.kind}" (was "pass"); target atk stage ${control} -> ${test}` };
+});
+
+/* WIRE 80. Mummy overwrites the attacker's ability; Wandering Spirit swaps the two. Filed as
+ * unfixable by the previous pass on two grounds that were both retired: the dex states the whole rule
+ * in one call (`setAbility("mummy", target)` / `skillSwap(source, target)`) and `tag_dex` now derives
+ * it, and the "0 corpus sheets" claim no longer holds — mummy 41, wanderingspirit 58.
+ * THREE ARMS, because two cannot tell the two modes apart: the INFECT arm must leave the holder's
+ * ability alone while rewriting the attacker's, and the SWAP arm must move BOTH. A non-contact move
+ * is the fourth arm, since the handler's own gate is contact. */
+probe('ability', 'rewritesAbilityOnContact', 'Mummy overwrites and Wandering Spirit swaps, on contact only', () => {
+  const run = (holderAb, moveId) => {
+    const me = bare('blastoise'), ally = bare('incineroar');
+    const tg = bare('milotic'), f2 = bare('garchomp');
+    me.ability = 'torrent'; tg.ability = holderAb;
+    const S = M.battleInit([me, ally], [tg, f2], { seeded: true });
+    const act = M.playerAction(me, moveId, tg, S.field);
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[tg, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return me.ability + '/' + tg.ability;
+  };
+  const control = run('none', 'wavecrash');            // no rewriter: nothing moves
+  const infect = run('mummy', 'wavecrash');            // contact: the attacker becomes Mummy
+  const swap = run('wanderingspirit', 'wavecrash');    // contact: the two trade
+  const noContact = run('mummy', 'surf');              // no contact: nothing moves
+  return { works: control === 'torrent/none' && infect === 'mummy/mummy'
+                  && swap === 'wanderingspirit/torrent' && noContact === 'torrent/mummy',
+           arms: { control, test: infect },
+           detail: `attacker/holder after the hit — no ability ${control}; Mummy ${infect}; `
+                 + `Wandering Spirit ${swap}; Mummy hit by SURF (no contact) ${noContact}` };
+});
+
+/* WIRE 81. The secondary block read `status`, `targetBoosts` and the flinch, and never `selfBoosts` —
+ * so 12 moves and 1,199 corpus uses landed their damage and left the USER's stages alone. Three arms:
+ * a 100% self-boost must fire, a same-shaped move with NO self-boost must not (or "boosts everything"
+ * passes), and a TARGET-side secondary must still work (or a fix that redirected the wrong way
+ * passes). Found by the generated matrix on 23 cases at once. */
+probe('move', 'selfBoostSecondary', 'Flame Charge raises the USER\'s Speed on a connecting hit', () => {
+  const run = (moveId) => {
+    const me = bare('arcanine'), ally = bare('incineroar');
+    const tg = bare('milotic'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [tg, f2], { seeded: true });
+    const act = M.playerAction(me, moveId, tg, S.field);
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[tg, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { user: me.boosts.sp, target: tg.boosts.sp };
+  };
+  const control = run('firefang').user;            // contact, same attacker, NO self-boost
+  const test = run('flamecharge').user;
+  const tgt = run('icywind').target;                // the target-side reader must still work
+  return { works: control === 0 && test === 1 && tgt === -1, arms: { control, test },
+           detail: `user spe stage — Fire Fang (no self-boost) ${control}, Flame Charge ${test}; `
+                 + `and Icy Wind still drops the TARGET to ${tgt}` };
+});
+
 /* ---- REPORT ------------------------------------------------------------------------------------- */
 
 const works = results.filter(r => r.works);
@@ -2759,9 +2967,14 @@ for (const r of hollow) console.log('    !! ' + r.kind + ' `' + r.tag + '` — '
  * literal somebody edits down. */
 const armed = results.filter(r => r.armed).length;
 const unarmed = results.length - armed;
-let armBase = null;
+let armBase = null, failureReadingBaseline = '';
+/* A MISSING BASELINE IS A LEGITIMATE STATE — the first run under the protocol has nothing to hold —
+ * but "there is no census yet" and "the census is corrupt" are not the same event and a bare catch
+ * makes them one. The reason is kept and PRINTED beside the count, so a ratchet that silently stopped
+ * ratcheting is readable rather than inferred. */
 try { armBase = JSON.parse(fs.readFileSync(D('data', 'mechanics-census.json'), 'utf8')).unarmed; }
-catch (e) { /* first run under the protocol: there is no baseline to hold */ }
+catch (e) { failureReadingBaseline = String(e.message).slice(0, 100); }
+if (failureReadingBaseline) console.log('  NOTE: the unarmed RATCHET has no baseline this run — ' + failureReadingBaseline);
 console.log('  probes returning arms {control, test}: ' + armed + ' of ' + results.length
   + '   (' + unarmed + ' unarmed — RATCHETED: it may fall and may never rise)');
 if (armBase != null && unarmed > armBase) {

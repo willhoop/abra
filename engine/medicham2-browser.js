@@ -93,7 +93,16 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
   damageReduceUnknown: 0, damageReduceUnknownFirst: '',
   /* A `hazard` this engine sets and cannot resolve (WIRE 41). Only Stealth Rock and Spikes deal HP;
    * Toxic Spikes and Sticky Web need grounded-ness, which this engine does not track. */
-  hazardUnresolved: 0, hazardUnresolvedFirst: '' };
+  hazardUnresolved: 0, hazardUnresolvedFirst: '',
+  /* A body healed by Grassy Terrain that the real game would NOT heal because it is not grounded
+     (WIRE 73). The TYPE half is applied -- a Flying type is skipped -- but Levitate and an Air Balloon
+     need grounded-ness, which this engine does not track, so they are healed and counted. Same
+     declared gap as hazardUnresolved, one field over. */
+  terrainHealUngrounded: 0,
+  /* A `convertsMoveType.converts` string this engine cannot parse (WIRE 75). The artifact writes either
+     a capitalised TYPE ("Normal moves"), a lowercase FLAG ("sound moves") or "its moves"; anything
+     else would silently mean "the ability does not apply", which is how Liquid Voice was inert. */
+  convertsUnparsed: 0, convertsUnparsedFirst: '' };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -106,6 +115,27 @@ const HITS_ALLY = new Set(TAGS.withTag ? TAGS.withTag('move', 'spreadAll') : [])
 const SPREAD = (TAGS.off || TAGS.missing || !TAGS.withTag)
   ? SPREAD_LEGACY
   : new Set([...TAGS.withTag('move', 'spreadFoes'), ...HITS_ALLY]);
+/* WIRE 73 -- WHICH TERRAIN TICKS HP, DERIVED. A move that both SETS a terrain and carries `perTurnHP`
+ * is describing the terrain's residual, not its own: Grassy Terrain's `{effect:'heal', per:16}` is the
+ * 1/16 every grounded body gets at end of turn for as long as the terrain is up. Keyed by the ENGINE's
+ * terrain word through terrainId, so the residual loop does one lookup and names no move. A fifth
+ * terrain added next regulation with a residual arrives without an edit here -- docs/TAGS.md
+ * invariant 3, the same argument as passiveHeal replacing the Leftovers name check.
+ *
+ * BUILT LAZILY, and that is not style: it reads `terrainId`, whose ENG_TERRAIN table is declared
+ * further down this file, so building it at load order threw on require. */
+let _TPTH=null;
+function terrainPerTurnHP(){
+  if(_TPTH) return _TPTH;
+  _TPTH={};
+  if(!TAGS.withTag) return _TPTH;
+  for(const id of TAGS.withTag('move','setsTerrain')){
+    const pt=TAGS.param('move',id,'perTurnHP'), st=TAGS.param('move',id,'setsTerrain');
+    if(!pt||!st||!st.terrain) continue;
+    const k=terrainId(st.terrain); if(k) _TPTH[k]=pt;
+  }
+  return _TPTH;
+}
 /* PRIORITY. Every move sits in a bracket from +5 (Helping Hand) down to -7 (Trick Room), and the
  * bracket is decided BEFORE speed. This was a hand-typed table of 18 positive-priority moves, and
  * everything absent from it resolved at 0 - so all 14 negative-priority moves went at normal speed.
@@ -580,7 +610,10 @@ function stampMoveIds(){
 function moveAccuracy(id,field){
   stampMoveIds();
   const _ws=TAGS.param('move',id,'weatherScaled');
-  if(_ws&&_ws.byWeather&&field&&field.weather){
+  /* WIRE 78 — Thunder is 70 again under Air Lock. `field.wSup` is the only reader available here:
+     moveAccuracy is handed no bodies at all, which is the same signature gap writesAccuracy and
+     accuracyMod are blocked on (see docs/ENGINE.md). */
+  if(_ws&&_ws.byWeather&&field&&field.weather&&!field.wSup){
     const w=_ws.byWeather[field.weather];
     if(w&&w.accuracy!=null)return w.accuracy;
   }
@@ -591,7 +624,8 @@ function moveAccuracy(id,field){
  * to all three or to none */
 function effMoveType(mv,moveId,field){
   const w=moveId&&TAGS.param('move',moveId,'weatherScaled');
-  if(w&&w.byWeather&&field&&field.weather){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}
+  /* WIRE 78 — a suppressed sky leaves Weather Ball NORMAL. */
+  if(w&&w.byWeather&&field&&field.weather&&!field.wSup){const x=w.byWeather[field.weather];if(x&&x.type)return x.type;}
   return mv?mv.t:'';
 }
 /* WIRE 21 -- variablePower: does this move have power AT ALL, and what is it right now?
@@ -614,9 +648,38 @@ function hasPower(mv){
   return !!(f&&(f.damage==='level'||f.source==='halfTargetCurrentHP'||f.source==='myRemainingHP'
                 ||f.source==='targetDownToMine'||f.source==='ohko'));
 }
+/* WIRE 78 -- WEATHER SUPPRESSION. Air Lock and Cloud Nine leave the weather ON THE FIELD and make it
+ * do nothing: the sky is still raining, and Swift Swim, Solar Power, the Fire/Water multipliers, the
+ * sandstorm chip, Thunder's accuracy, Weather Ball's type and Aurora Veil's legality all stop reading
+ * it. So this is NOT "clear the weather" -- clearing it would let a second Drizzle re-set it and would
+ * make Aurora Veil's failure look like the absence of snow rather than its suppression.
+ *
+ * THE TAG IS DERIVED, and correcting the record matters as much as the wire: the previous pass filed
+ * this as *"no artifact to wire from"*. Showdown carries it as the flat property `suppressWeather`
+ * rather than as a handler, so every handler-probing derivation in tag_dex missed it; it is now
+ * derived and matches EXACTLY two abilities.
+ *
+ * EXPOSURE, MEASURED, because it decides how much machinery this deserves: Air Lock's only carrier is
+ * Rayquaza and Rayquaza is not in this format, so Air Lock is ZERO. Cloud Nine has two carriers that
+ * are (Altaria, Drampa) and 18 declared sheets across 40,595 stored games. */
+function suppressesWeather(m){ return !!(m&&TAGS.param('ability',m.ability,'weatherSuppression')); }
+/* The weather a FORMULA should read. `field.wSup` is the battle loop's answer over all four actives;
+ * the two-body test is what a pure call to dmgRange can see on its own, and it is stated rather than
+ * silently equivalent: a pure dmgRange handed an Air Lock ALLY cannot know, and the battle loop is
+ * the only caller that can. */
+function effWeatherOf(field,att,def){
+  if(!field||!field.weather)return '';
+  if(field.wSup||suppressesWeather(att)||suppressesWeather(def))return '';
+  return field.weather;
+}
 function dmgRange(att,def,mv,field,spread){
   stampMoveIds();
   if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
+  /* Shadowed once, at the top, so every weather read BELOW this line -- weatherScaled, Weather Ball's
+     type, the snow/sand defence bumps, Solar Power, Orichalcum Pulse and the Fire/Water multipliers --
+     goes through the suppression without a gate per site. `field` is never mutated. */
+  {const _ew=effWeatherOf(field,att,def);
+   if(field&&field.weather&&_ew!==field.weather)field=Object.assign({},field,{weather:''});}
   /* WIRE 7 -- weatherScaled, damage half. Weather Ball was Normal 50 BP in every sky; in sand it is
    * a 100 BP Rock move, which is a different move. Solar Beam sheds half its power in rain, sand and
    * snow. The type and power overrides happen HERE, before STAB, effectiveness, the rain/sun x1.5,
@@ -637,9 +700,28 @@ function dmgRange(att,def,mv,field,spread){
   {
     const _cm=TAGS.param('ability',att.ability,'convertsMoveType');
     if(_cm&&_cm.into){
-      const _from=String(_cm.converts||'').toLowerCase();
-      const _isNormalMove=mvT==='Normal';
-      const _applies=_from.indexOf('normal')>=0 ? _isNormalMove : (_from.indexOf('its moves')>=0);
+      /* WIRE 75 -- `converts` NAMES EITHER A TYPE OR A FLAG, and reading only the type half left
+       * LIQUID VOICE (346 uses) completely unwired. Its param is `converts: "sound moves"` -- a FLAG,
+       * not a type -- so the old `indexOf('normal')` test was false and the `'its moves'` fallback was
+       * false, and Primarina's Psychic Noise stayed Psychic. The reference engine makes it WATER:
+       * measured on the matrix as `ratio medi 1.000 vs sd 0.375`, and 1.000 across a varied knob is
+       * the definition of unwired.
+       *
+       * THE FLAG HALF IS THE SAME JOIN `immuneToMoveClass` AND `reflectsStatusMoves` ALREADY USE:
+       * the ability names a flag, the move carries it as its own tag. So a future ability that
+       * converts, say, punch moves arrives with no edit here. The discriminator is CASE, which is the
+       * artifact's own convention -- a type is capitalised (`Normal moves`) and a flag is not
+       * (`sound moves`) -- and a `converts` that matches neither shape is COUNTED rather than
+       * silently treated as "does not apply". */
+      const _from=String(_cm.converts||'').trim();
+      let _applies=false;
+      if(/^its moves$/i.test(_from)) _applies=true;
+      else{
+        const _m=/^(\S+)\s+moves$/.exec(_from);
+        if(!_m){MEDFAILS.convertsUnparsed++;if(!MEDFAILS.convertsUnparsedFirst)MEDFAILS.convertsUnparsedFirst=_from;}
+        else if(/^[A-Z]/.test(_m[1])) _applies=(mvT===_m[1]);
+        else _applies=!!(mv.id&&TAGS.has('move',mv.id,_m[1].toLowerCase()));
+      }
       if(_applies&&mvT!==_cm.into){
         mvT=_cm.into;
         if(_cm.damageMult&&_cm.damageMult!==1)mvBP=Math.floor(mvBP*_cm.damageMult);
@@ -1373,7 +1455,10 @@ function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item===
    * the opposite. */
   if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}
 if((side==='A'?field.twA:field.twB)>0)s*=2;
-  if((m.ability==='swiftswim'&&field.weather==='rain')||(m.ability==='chlorophyll'&&field.weather==='sun')||(m.ability==='sandrush'&&field.weather==='sand')||(m.ability==='slushrush'&&field.weather==='snow'))s*=2;
+  /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
+     field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
+  {const _w=(field&&field.wSup)||suppressesWeather(m)?'':(field&&field.weather);
+   if((m.ability==='swiftswim'&&_w==='rain')||(m.ability==='chlorophyll'&&_w==='sun')||(m.ability==='sandrush'&&_w==='sand')||(m.ability==='slushrush'&&_w==='snow'))s*=2;}
   if(m.status==='par')s*=0.5;return s;}
 /* ---- SECONDARY AND PRIMARY MOVE EFFECTS -------------------------------------------------------
  * Read from the SHARED rulebook (CHOMP/data/move-effects.json, exposed here as window.MOVE_EFFECTS
@@ -1745,6 +1830,10 @@ function battleTurn(S,rng,actsForA,actsForB){
   const live=_live;
   {
     [...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;m._helpingHand=false;}});field.wgA=false;field.wgB=false;
+    /* WIRE 78 -- AIR LOCK / CLOUD NINE. Recomputed at the top of every turn from whoever is standing
+       there, because it is a property of the FIELD for as long as a carrier is on it, and a switch or
+       a faint changes it. Stored on the field so every reader asks one place. */
+    field.wSup=[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&suppressesWeather(x));
     const acts=[];
     /* actsForB exists for the Tower's LOWER floors: a floor-3 guardian clicks random legal moves,
      * so the caller hands the weak actions in rather than this engine growing a "play badly" mode. */
@@ -1846,6 +1935,18 @@ function battleTurn(S,rng,actsForA,actsForB){
          rule again, since a rollout driven from outside supplies its own actions. Cleared as it is
          spent, so the cost is exactly one turn. */
       if(m._recharge){m._recharge=false;m._lastMove=m._lastMove||null;continue;}
+      /* WIRE 77 -- THE THROAT CHOP SILENCE APPLIES TO EVERY KIND OF ACTION, not only to a damaging
+         one. WIRE 45 put the gate inside the attack branch and WIRE 26's menu filter put it in
+         chooseAction, and both are one CLASS of action: ROAR is a sound move that resolves down the
+         `phaze` branch, and a silenced body phazed anyway. Found by the generated matrix as
+         `roar -> throatchop`, where the reference engine left the target on the field and medicham2
+         had already dragged it out.
+         Placed HERE, above the kind dispatch, so a sound move of ANY kind is refused once -- the
+         alternative is a copy of this line in every branch, which is exactly the shape that let Roar
+         through. It binds a caller-SUPPLIED action too, which is the WIRE 24 rule. */
+      if(m._noSound>0&&(a.mv||(a.move&&a.move.id))&&TAGS.has('move',a.mv||a.move.id,'sound')){
+        m._lastMove=a.mv||a.move.id;continue;
+      }
       /* WIRE 42, the other members. Clangorous Soul (343 uses) and Shed Tail (60) pay HP for an
          effect this engine ALREADY models -- a setup and a pivot -- so they must not be captured by
          the `sub` kind, which would replace a modelled effect with an unmodelled one. The cost is
@@ -2232,7 +2333,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the click and not in the end-of-turn tick. A failed click still costs the turn. */
       if(a.kind==='screen'){
         const hd=TAGS.param('move',a.mv,'halvesDamage')||{};
-        if(TAGS.has('move',a.mv,'failsWithoutWeather')&&field.weather!=='snow'){m._lastMove=a.mv;continue;}
+        if(TAGS.has('move',a.mv,'failsWithoutWeather')&&(field.wSup||field.weather!=='snow')){m._lastMove=a.mv;continue;}
         /* LIGHT CLAY, entirely from the item's own tag: it names WHICH screens it extends, the new
            duration and the one it replaces, so nothing about 8-vs-5 is written here and Damp/Heat/
            Icy/Smooth Rock stay untouched because they do not list these moves. */
@@ -2324,7 +2425,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         } else {
           const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');
           const _herb=m.item==='powerherb';
-          if(!(_sk&&_sk.skipsIn&&field.weather===_sk.skipsIn)&&!_herb){
+          if(!(_sk&&_sk.skipsIn&&!field.wSup&&field.weather===_sk.skipsIn)&&!_herb){
             m._charging=a.move.id;
             m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');
             /* The charge turn is not always empty: Electro Shot and Meteor Beam raise Special
@@ -2488,6 +2589,18 @@ function battleTurn(S,rng,actsForA,actsForB){
            * another. It is the same helper the typeImmunity check below already uses. */
           if (mcEff(effMoveType(mv, a.move.id, field), tg.types) === 0) continue;
         }
+        /* WIRE 76 -- AND immuneToMoveClass IS AN IMMUNITY TOO, so it short-circuits stage 5 exactly
+         * as the type chart above does. `moveClassBlocked` had two consumers -- dmgRange (WIRE 22,
+         * the damage half) and the status/phaze paths (WIRE 66) -- and neither is this loop, so a
+         * DAMAGING move with an effect landed the effect on a body that took zero from it. Psychic
+         * Noise into Soundproof dealt 0 and still applied two turns of HEAL BLOCK; Throat Chop into
+         * Soundproof would have left the silence; a bullet move's secondary would land on
+         * Bulletproof. Found by the generated matrix on `psychicnoise -> soundproof`, reading
+         * `.vol medi=["healblock"] sd=[]`.
+         * docs/TAGS.md: "an immune target takes nothing -- not the damage, and not the secondary".
+         * That rule was already written down and had one implementation per stage-3 mechanism instead
+         * of one per stage. */
+        if(moveClassBlocked(tg,a.move.id))continue;
         /* OFF THE FIELD. A Pokemon in the charge turn of Fly, Dig, Dive, Bounce or Phantom Force
          * cannot be hit at all. Without this the charge is pure cost and those five become strictly
          * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
@@ -2648,6 +2761,37 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
         }
+        /* WIRE 80 -- MUMMY AND WANDERING SPIRIT REWRITE THE ATTACKER'S ABILITY.
+         *
+         * Filed as unfixable by the previous pass on two grounds, and BOTH have been retired rather
+         * than argued away. (1) "neither has a param for the rewrite" -- true of `contactPunish`,
+         * false of the dex: both handlers state the whole rule in one call and `tag_dex` now derives
+         * `rewritesAbilityOnContact` from them, matching exactly three abilities. (2) "0 corpus sheets
+         * between them" -- that no longer holds: the artifact's own usage counts read mummy 41 and
+         * wanderingspirit 58.
+         *
+         * IT IS WORTH MORE THAN THE 99 SHEETS SUGGESTS, because the ability is an INPUT to every later
+         * number: a Blastoise that walks into a Cofagrigus keeps being priced as a Torrent body for
+         * the rest of the rollout, and a Wandering Spirit swap hands the holder whatever the attacker
+         * had. That is the Knock Off lesson in CLAUDE.md -- an untracked identity change keeps
+         * applying a modifier that is gone -- one field over.
+         *
+         * OUTSIDE the punishesAttacker block on purpose: Mummy carries `contactPunish` and NO
+         * `punishesAttacker` params at all, so anything nested in there could never have reached it.
+         * Placed after the punish so a Rough Skin toll is unaffected, and gated on the same
+         * mvMakesContact() the punish uses, which is the handler's own gate.
+         *
+         * NOT MODELLED, STATED: Showdown skips the rewrite when the attacker's ability carries the
+         * `cantsuppress` flag (Multitype, RKS System, Comatose, Zen Mode). No artifact this engine
+         * reads carries that flag, none of those abilities exists in this format, and the alternative
+         * was typing the list here. `becomes` comes out of the tag, so no ability name is written. */
+        {
+          const _rw=TAGS.param('ability',tg.ability,'rewritesAbilityOnContact');
+          if(_rw&&_rw.trigger==='contact'&&mvMakesContact(a.move.id)&&!m.fainted&&m.ability!==tg.ability){
+            if(_rw.mode==='infect'&&_rw.becomes)m.ability=String(_rw.becomes);
+            else if(_rw.mode==='swap'){const _t=m.ability;m.ability=tg.ability;tg.ability=_t;}
+          }
+        }
         /* WIRE 12 -- survivesFromFull. Focus Sash is the most-held item in the format (8,078
          * sheets) and Sturdy its ability twin, and neither existed here: every lethal hit into a
          * full-HP sash body was a kill that is not a kill. The gates come from the handler via the
@@ -2740,6 +2884,24 @@ function battleTurn(S,rng,actsForA,actsForB){
                     if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]<0)
                       tg.boosts[_st]=clamp(tg.boosts[_st]+s.targetBoosts[k],-6,6);
                   }
+                }
+              }
+              /* WIRE 81 -- THE SECONDARY THAT BOOSTS THE *USER*, and this block read every other kind.
+                 `s.status`, `s.targetBoosts` and the flinch were all handled and `s.selfBoosts` was
+                 not, so Trailblaze, Aqua Step, Flame Charge, Rapid Spin, Torch Song, Aura Wheel and
+                 Psyshield Bash -- all 100% self-boosts, the entire reason those moves are clicked --
+                 landed their damage and left the user's stages alone. 12 moves, 1,199 corpus uses,
+                 membership printed before the wire.
+                 Found by the generated interaction matrix at full depth, on 23 cases at once, all
+                 reading `.A.active[0].boosts.spe medi=0 sd=1` against the official engine.
+                 SUPPRESSED WITH THE OTHER SECONDARIES, because that is what it is: Sheer Force turns
+                 these off in the real game too, and it sits inside the same `!suppressed` gate.
+                 CONTRARY IS APPLIED, matching the target-side reader two branches up. */
+              else if(s.selfBoosts&&m.boosts&&!m.fainted){
+                const _sg=m.ability==='contrary'?-1:1;
+                for(const k in s.selfBoosts){
+                  const _st=SD2ENG[k];
+                  if(_st&&m.boosts[_st]!=null)m.boosts[_st]=clamp(m.boosts[_st]+s.selfBoosts[k]*_sg,-6,6);
                 }
               }
               else if(s.volatile==='flinch'){
@@ -2941,6 +3103,38 @@ function battleTurn(S,rng,actsForA,actsForB){
      * turn) sat on the flag and stole the target's NEXT turn instead. Fake Out's +3 priority hid this
      * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
     [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+    /* WIRE 74 -- THE FIELD CLOCKS TICK BEFORE THE RESIDUAL, NOT AFTER IT.
+     *
+     * They used to tick below the loop, so the sandstorm chipped on the turn it RAN OUT: a five-turn
+     * Sandstorm dealt five ticks of 1/16 where the official engine deals four. The counters were never
+     * wrong -- `weatherTurns` matched Showdown at every turn of every scripted game -- which is
+     * precisely why nothing had caught it. What was wrong was the ORDER: Showdown clears the weather
+     * at the top of its residual and the body it just stopped chipping is the receipt.
+     *
+     * FOUND BY THE ONE PAIR THE MATRIX HAD LEFT. After WIRE 72 and 73 the 156 multi-turn field cases
+     * were down to a single divergence, `sandstorm + grassyterrain`, reading `.hurt medi=true
+     * sd=false`. It is visible there and nowhere else because Grassy Terrain heals exactly the 1/16
+     * the sand takes: the two cancel while both are up, so the ONLY HP left on the table at the end is
+     * the extra tick, and one turn of 6% is invisible against any single mechanic. Two mechanics that
+     * cancel is a sharper instrument than either alone, and no probe of one mechanic can build it.
+     *
+     * Moving the tick UP cannot change any counter a caller reads: every clock is still decremented
+     * exactly once per turn and is read after the whole turn. It changes only what the residual loop
+     * below sees, which is the thing that was wrong.
+     *
+     * WEATHER AND TERRAIN ARE NOT SYMMETRIC, AND THAT IS THE REFERENCE ENGINE'S OWN ASYMMETRY rather
+     * than a fudge to make a test pass. Sandstorm's damage is a FIELD residual and Showdown decrements
+     * the weather clock at that same residual slot, ends it, and skips the damage -- so the sand does
+     * NOT chip on its last turn. Grassy Terrain's heal is a PER-POKEMON residual at order 5 while the
+     * terrain's own expiry is a field residual much later, so the terrain DOES heal on its last turn.
+     * Both halves were measured against the official engine before this line was written, and getting
+     * one of them right hid the other: hoisting both clocks fixed `sandstorm + grassyterrain` and
+     * immediately broke `grassyterrain + sandstorm`, which is the same pair with the moves swapped.
+     * So the weather clock ticks ABOVE the loop and the terrain clock BELOW it. */
+    if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;
+    if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
+    /* Screens tick on the SIDE object, beside the field timers above so the two cannot drift. */
+    for(const sf of [sfA,sfB]){if(sf){if(sf.scrP>0)sf.scrP--;if(sf.scrS>0)sf.scrS--;}}
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
       /* WIRE 55 -- THE STATUS BERRIES, FIRST IN THE RESIDUAL ORDER on purpose: Lum and its family
        * cure the MOMENT the status lands, so a body that was just burned must not also take the burn
@@ -3009,7 +3203,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * bad things at once: type a membership list the artifact is supposed to derive, and leave the
        * ability HALF-right -- burn, poison, Toxic and Leech Seed above already chip a Magic Guard body
        * and would keep doing so. One policy, and the gap is counted in fails.magicGuardChip. */
-      if(field.weather==='sand'&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){
+      if(field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){
         const _wc=TAGS.param('ability',m.ability,'weatherChipImmune');
         const _im=!!(_wc&&Array.isArray(_wc.weathers)&&_wc.weathers.includes('sand'));
         if(!_im){
@@ -3017,6 +3211,30 @@ function battleTurn(S,rng,actsForA,actsForB){
           m.curHP-=Math.floor(m.st.hp/16);
         }
       }
+      /* WIRE 73 -- GRASSY TERRAIN HEALS. WIRE 72 made the terrain exist; this is the half that made
+       * the terrain WORTH setting, and the two had to land together or the engine would have gained a
+       * field it models wrongly instead of one it does not model at all.
+       *
+       * The matrix found it as the residue of WIRE 72: `sandstorm + grassyterrain` in either order was
+       * the ONLY pair left parting, reading `.hurt medi=true sd=false` on two bodies. Grassy Terrain
+       * heals 1/16 a turn and sandstorm chips 1/16 a turn, so the reference engine's net is exactly
+       * zero and medicham2 was chipping. Two mechanics that cancel is the sharpest possible test of
+       * either, and no single-mechanic probe can produce it.
+       *
+       * THE FRACTION COMES OUT OF THE TERRAIN MOVE'S OWN TAG, not from a number typed here: the tag on
+       * `grassyterrain` is `perTurnHP {effect:'heal', per:16, on:'user'}`, and WIRE 72's guard is what
+       * left it readable. The terrain is matched by `terrainId`, so either vocabulary works.
+       *
+       * GROUNDED-NESS IS NOT MODELLED and that is the same declared gap Toxic Spikes and Sticky Web
+       * carry (fails.hazardUnresolved): a real Grassy Terrain does not heal a Flying type or a
+       * Levitate body. The TYPE half is cheap and is applied; the ABILITY half is not available, so a
+       * Levitate body is healed and it is counted rather than silently right-looking. */
+      {const _th=terrainPerTurnHP()[terrainId(field.terrain)];
+       if(_th&&_th.effect==='heal'&&_th.per&&!healBlocked(m)){
+         if(m.types.indexOf('Flying')<0)
+           m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
+         if(String(m.ability||'').replace(/[^a-z0-9]/g,'')==='levitate')MEDFAILS.terrainHealUngrounded++;
+       }}
       if(m.status==='brn')m.curHP-=Math.floor(m.st.hp/16);
       if(m.status==='psn')m.curHP-=Math.floor(m.st.hp/8);                       // regular poison: a flat 1/8
       if(m.status==='tox'){m.toxTurns=(m.toxTurns||0)+1;                        // Toxic: n/16, escalating
@@ -3068,10 +3286,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_s&&!_s.fainted&&_s.curHP>0&&!healBlocked(_s))_s.curHP=Math.min(_s.st.hp,_s.curHP+_d);
       }
       if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
-    if(field.weatherT>0&&--field.weatherT<=0)field.weather=null;if(field.terrainT>0&&--field.terrainT<=0)field.terrain='';
-    if(field.twA>0)field.twA--;if(field.twB>0)field.twB--;if(field.tr>0)field.tr--;
-    /* Screens tick on the SIDE object, beside the field timers above so the two cannot drift. */
-    for(const sf of [sfA,sfB]){if(sf){if(sf.scrP>0)sf.scrP--;if(sf.scrS>0)sf.scrS--;}}
+    /* The TERRAIN clock ticks here, below the residual, and the weather clock above it — see WIRE 74
+       for the measurement that says the two are not symmetric in the official engine. */
+    if(field.terrainT>0&&--field.terrainT<=0)field.terrain='';
     /* PERISH and YAWN tick here, with the field timers, so every clock in this engine advances in one
        place. Perish faints at zero -- that is the move. Yawn sleeps at zero, and only if the target is
        still statusless, because anything that landed in between takes precedence. */
@@ -3200,7 +3417,19 @@ function playerAction(me,moveId,target,field){
      status branch reads the tag, checks the Grass immunity from the move's own onTryImmunity and sets
      _seededBy -- and playerAction simply never produced an action that could reach it, so the click
      was a no-op turn. Routing it through the status path is the whole fix. */
-  if(TAGS.has('move',id,'perTurnHP'))return {kind:'status',mv:id,target};
+  /* WIRE 72 -- GRASSY TERRAIN WAS CLAIMED BY THIS BRANCH AND NEVER SET A TERRAIN. Found by the
+     generated interaction matrix, on 24 of its 156 multi-turn field cases at once: every pair
+     involving `grassyterrain` read `.field.terrain medi="" sd="grassy"`.
+     A move that sets a FIELD is a field action. Grassy Terrain's per-turn heal is a property of the
+     TERRAIN it puts down, not of the click -- but it carries `perTurnHP` for that heal, this branch
+     is above the terrain branch, and it therefore resolved to `kind:'status'`, the Leech-Seed shape.
+     So the one terrain move in the format that also heals was the one terrain move the engine could
+     not set, and the other three worked, which is exactly why nothing noticed.
+     Guarded here rather than by REORDERING the branches: hoisting the field block above this one also
+     hoists it above `pivotStatus`, and Chilly Reception would stop pivoting -- trading a whole bug for
+     a whole bug. STATED, NOT FIXED: the terrain's own 1/16 heal is still not modelled; this makes the
+     terrain exist, and `perTurnHP` on a terrain has no per-turn consumer to land in. */
+  if(TAGS.has('move',id,'perTurnHP')&&!TAGS.has('move',id,'setsTerrain'))return {kind:'status',mv:id,target};
   /* PERISH SONG: a three-turn clock on everything on the field, INCLUDING THE USER'S OWN SIDE. It is
      a win condition rather than a chip move, and the rollout could not represent it at all. */
   if(TAGS.has('move',id,'perishClock'))return {kind:'perish',mv:id};
@@ -3265,6 +3494,24 @@ function playerAction(me,moveId,target,field){
   {
     const _sc3=TAGS.param('move',id,'statChangeInCode');
     if(_sc3&&_sc3.boosts&&_sc3.on==='user')return {kind:'statcode',mv:id};
+    /* WIRE 79 -- THE TARGET HALF OF statChangeInCode HAD NO CLASSIFIER AT ALL. WIRE 67 added the
+       READER for it and put it inside the `switch` branch, because Parting Shot was the case it was
+       written for -- so the tag worked for the one move that reaches that branch and for nothing else.
+       STRENGTH SAP (637 uses) resolved to `kind:'pass'`: a wasted turn.
+       Found by the generated matrix as `strengthsap -> suckerpunch`, reading
+       `.boosts.atk medi=0 sd=-1`, with medicham2's own two arms identical -- an unwired knob rather
+       than a wrong number.
+       MEMBERSHIP PRINTED BEFORE WIRING, as this file's rule requires. Exactly THREE moves carry a
+       target-side table: Parting Shot (claimed earlier by `pivotStatus`, so it cannot double-apply),
+       Strength Sap, and Defog, whose only stage is `evasion` -- a stat this engine has no slot for, so
+       SD2ENG returns nothing and the affect branch skips it rather than inventing one.
+       WHAT IS STILL NOT MODELLED, stated: Strength Sap's HEAL scales off the TARGET's Attack and no
+       artifact this engine reads carries it. The Attack drop is the half that decides where the move
+       is played; the heal stays absent. It leaves fails.healProcedural now that the move resolves
+       here, and that is a real loss of a receipt -- recorded in docs/ENGINE.md rather than left to be
+       rediscovered as a counter that quietly went down. */
+    if(_sc3&&_sc3.boosts&&_sc3.on==='target')
+      return {kind:'affect',mv:id,target,sc:{target:[{boosts:_sc3.boosts,chance:100}]},si:null};
   }
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
   /* WIRE 42 -- SUBSTITUTE. Last, so anything with a modelled effect has already claimed the click.

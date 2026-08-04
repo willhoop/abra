@@ -1,10 +1,10 @@
 {
- "generated": "2026-08-04T21:37:38.025Z",
+ "generated": "2026-08-04T22:30:52.465Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
  "consumedBy": "CHECKED by grepping engine/board.js and engine/medicham2-browser.js for the tag probe. A tag whose probe appears in neither is reported NOT READ regardless of intent.",
- "sheet_entries": 105108,
+ "sheet_entries": 106272,
  "tags": [
   {
    "tag": "multiHit",
@@ -14,7 +14,7 @@
    "consumedBy": null,
    "used": false,
    "n": 14,
-   "uses": 4824,
+   "uses": 4879,
    "examples": [
     "Bone Rush",
     "Bullet Seed",
@@ -32,7 +32,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 4719,
+   "uses": 4755,
    "examples": [
     "Last Respects"
    ]
@@ -60,7 +60,7 @@
    "consumedBy": "critRatio",
    "used": true,
    "n": 14,
-   "uses": 1162,
+   "uses": 1167,
    "examples": [
     "Crabhammer",
     "Night Slash",
@@ -78,7 +78,7 @@
    "consumedBy": null,
    "used": false,
    "n": 11,
-   "uses": 19734,
+   "uses": 19924,
    "examples": [
     "Growth",
     "Blizzard",
@@ -109,10 +109,10 @@
    "kind": "move",
    "param": "they cannot use sound moves for 2 turns",
    "why": "Throat Chop. The sound flag already exists on the moves it blocks, so this is a join rather than new information",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "throatchop",
+   "used": true,
    "n": 1,
-   "uses": 2845,
+   "uses": 2862,
    "examples": [
     "Throat Chop"
    ]
@@ -125,7 +125,7 @@
    "consumedBy": null,
    "used": false,
    "n": 4,
-   "uses": 5229,
+   "uses": 5267,
    "examples": [
     "Rage Fist",
     "Electro Ball",
@@ -141,7 +141,7 @@
    "consumedBy": "basePowerCallback",
    "used": true,
    "n": 30,
-   "uses": 18301,
+   "uses": 18502,
    "examples": [
     "Infernal Parade",
     "Rage Fist",
@@ -159,7 +159,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 2125,
+   "uses": 2151,
    "examples": [
     "Darkest Lariat",
     "Sacred Sword"
@@ -173,7 +173,7 @@
    "consumedBy": null,
    "used": false,
    "n": 3,
-   "uses": 2193,
+   "uses": 2208,
    "examples": [
     "Brick Break",
     "Psychic Fangs",
@@ -188,7 +188,7 @@
    "consumedBy": "onBasePower",
    "used": true,
    "n": 11,
-   "uses": 7412,
+   "uses": 7483,
    "examples": [
     "Grav Apple",
     "Barb Barrage",
@@ -206,7 +206,7 @@
    "consumedBy": "overrideOffensiveStat",
    "used": true,
    "n": 3,
-   "uses": 2396,
+   "uses": 2417,
    "examples": [
     "Body Press",
     "Foul Play",
@@ -221,7 +221,7 @@
    "consumedBy": "costsUserHP",
    "used": true,
    "n": 3,
-   "uses": 951,
+   "uses": 965,
    "examples": [
     "Clangorous Soul",
     "Shed Tail",
@@ -236,7 +236,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 926,
+   "uses": 935,
    "examples": [
     "Population Bomb",
     "Triple Axel"
@@ -250,7 +250,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 3189,
+   "uses": 3229,
    "examples": [
     "Knock Off",
     "Poltergeist"
@@ -264,7 +264,7 @@
    "consumedBy": null,
    "used": false,
    "n": 15,
-   "uses": 1144,
+   "uses": 1152,
    "examples": [
     "Counter",
     "Endeavor",
@@ -282,7 +282,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 197,
+   "uses": 199,
    "examples": [
     "Gigaton Hammer"
    ]
@@ -295,7 +295,7 @@
    "consumedBy": null,
    "used": false,
    "n": 3,
-   "uses": 466,
+   "uses": 469,
    "examples": [
     "After You",
     "Instruct",
@@ -323,7 +323,7 @@
    "consumedBy": "sealsMoves",
    "used": true,
    "n": 7,
-   "uses": 9861,
+   "uses": 9944,
    "examples": [
     "Encore",
     "Disable",
@@ -341,7 +341,7 @@
    "consumedBy": null,
    "used": false,
    "n": 9,
-   "uses": 3467,
+   "uses": 3510,
    "examples": [
     "Corrosive Gas",
     "Stuff Cheeks",
@@ -359,7 +359,7 @@
    "consumedBy": null,
    "used": false,
    "n": 4,
-   "uses": 4125,
+   "uses": 4172,
    "examples": [
     "Grass Knot",
     "Heat Crash",
@@ -401,7 +401,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 189,
+   "uses": 192,
    "examples": [
     "Alluring Voice",
     "Burning Jealousy"
@@ -432,7 +432,7 @@
    "consumedBy": "crashOnMiss",
    "used": true,
    "n": 3,
-   "uses": 209,
+   "uses": 220,
    "examples": [
     "High Jump Kick",
     "Supercell Slam"
@@ -446,7 +446,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 110,
+   "uses": 114,
    "examples": [
     "Pollen Puff",
     "Shell Side Arm"
@@ -460,7 +460,7 @@
    "consumedBy": "perTurnHP",
    "used": true,
    "n": 6,
-   "uses": 508,
+   "uses": 517,
    "examples": [
     "Salt Cure",
     "Aqua Ring",
@@ -477,7 +477,7 @@
    "consumedBy": null,
    "used": false,
    "n": 7,
-   "uses": 819,
+   "uses": 827,
    "examples": [
     "Snap Trap",
     "Fire Spin",
@@ -494,7 +494,7 @@
    "consumedBy": "allAdjacentFoes",
    "used": true,
    "n": 22,
-   "uses": 41924,
+   "uses": 42405,
    "examples": [
     "Make It Rain",
     "Air Cutter",
@@ -512,7 +512,7 @@
    "consumedBy": "=== 'allAdjacent'",
    "used": true,
    "n": 16,
-   "uses": 7978,
+   "uses": 8051,
    "examples": [
     "Corrosive Gas",
     "Boomburst",
@@ -530,7 +530,7 @@
    "consumedBy": "effectivePriority",
    "used": true,
    "n": 39,
-   "uses": 127190,
+   "uses": 128639,
    "examples": [
     "Baneful Bunker",
     "Beak Blast",
@@ -548,7 +548,7 @@
    "consumedBy": "contact",
    "used": true,
    "n": 166,
-   "uses": 122612,
+   "uses": 124000,
    "examples": [
     "Crabhammer",
     "Dire Claw",
@@ -566,7 +566,7 @@
    "consumedBy": "powder",
    "used": true,
    "n": 7,
-   "uses": 7422,
+   "uses": 7522,
    "examples": [
     "Cotton Spore",
     "Magic Powder",
@@ -584,7 +584,7 @@
    "consumedBy": "flags",
    "used": true,
    "n": 131,
-   "uses": 100325,
+   "uses": 101405,
    "examples": [
     "Beak Blast",
     "Corrosive Gas",
@@ -602,7 +602,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 1290,
+   "uses": 1297,
    "examples": [
     "Freeze-Dry",
     "Flying Press"
@@ -616,7 +616,7 @@
    "consumedBy": "flags.sound",
    "used": true,
    "n": 24,
-   "uses": 14797,
+   "uses": 14916,
    "examples": [
     "Clangorous Soul",
     "Dragon Cheer",
@@ -634,7 +634,7 @@
    "consumedBy": "accuracy === true",
    "used": true,
    "n": 8,
-   "uses": 6843,
+   "uses": 6924,
    "examples": [
     "Aerial Ace",
     "Aura Sphere",
@@ -652,7 +652,7 @@
    "consumedBy": "accuracy === true",
    "used": true,
    "n": 124,
-   "uses": 138121,
+   "uses": 139688,
    "examples": [
     "Baneful Bunker",
     "Clangorous Soul",
@@ -670,7 +670,7 @@
    "consumedBy": "ignoresProtect",
    "used": true,
    "n": 14,
-   "uses": 1654,
+   "uses": 1675,
    "examples": [
     "After You",
     "Curse",
@@ -688,7 +688,7 @@
    "consumedBy": "punishesContact",
    "used": true,
    "n": 3,
-   "uses": 1867,
+   "uses": 1892,
    "examples": [
     "Baneful Bunker",
     "King's Shield",
@@ -703,7 +703,7 @@
    "consumedBy": "stallingMove",
    "used": true,
    "n": 6,
-   "uses": 74280,
+   "uses": 75124,
    "examples": [
     "Baneful Bunker",
     "King's Shield",
@@ -721,7 +721,7 @@
    "consumedBy": "redirect",
    "used": true,
    "n": 2,
-   "uses": 7468,
+   "uses": 7565,
    "examples": [
     "Follow Me",
     "Rage Powder"
@@ -735,7 +735,7 @@
    "consumedBy": "selfSwitch",
    "used": true,
    "n": 3,
-   "uses": 5145,
+   "uses": 5190,
    "examples": [
     "Flip Turn",
     "U-turn",
@@ -750,7 +750,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 7206,
+   "uses": 7268,
    "examples": [
     "Chilly Reception",
     "Parting Shot"
@@ -764,7 +764,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 167,
+   "uses": 170,
    "examples": [
     "Baton Pass",
     "Shed Tail"
@@ -778,7 +778,7 @@
    "consumedBy": "substitute",
    "used": true,
    "n": 2,
-   "uses": 608,
+   "uses": 622,
    "examples": [
     "Shed Tail",
     "Substitute"
@@ -792,7 +792,7 @@
    "consumedBy": "forceSwitch",
    "used": true,
    "n": 4,
-   "uses": 518,
+   "uses": 522,
    "examples": [
     "Dragon Tail",
     "Roar",
@@ -807,7 +807,7 @@
    "consumedBy": "setWeather",
    "used": true,
    "n": 5,
-   "uses": 1550,
+   "uses": 1555,
    "examples": [
     "Sandstorm",
     "Snowscape",
@@ -824,7 +824,7 @@
    "consumedBy": "terrain",
    "used": true,
    "n": 4,
-   "uses": 141,
+   "uses": 142,
    "examples": [
     "Electric Terrain",
     "Grassy Terrain",
@@ -840,7 +840,7 @@
    "consumedBy": "trickRoomField",
    "used": true,
    "n": 1,
-   "uses": 7040,
+   "uses": 7113,
    "examples": [
     "Trick Room"
    ]
@@ -887,10 +887,10 @@
    "kind": "move",
    "param": "P(hit) is scaled for everyone",
    "why": "Gravity (x5/3 and grounds Flying), Sand Attack, Hone Claws. Feeds the same P(hit) the kill distribution already needs",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "accuracyMod",
+   "used": true,
    "n": 5,
-   "uses": 605,
+   "uses": 611,
    "examples": [
     "Coil",
     "Double Team",
@@ -907,7 +907,7 @@
    "consumedBy": "wideguard",
    "used": true,
    "n": 2,
-   "uses": 3859,
+   "uses": 3915,
    "examples": [
     "Quick Guard",
     "Wide Guard"
@@ -921,7 +921,7 @@
    "consumedBy": "clearsBoosts",
    "used": true,
    "n": 2,
-   "uses": 561,
+   "uses": 565,
    "examples": [
     "Clear Smog",
     "Haze"
@@ -935,7 +935,7 @@
    "consumedBy": "speedSide",
    "used": true,
    "n": 1,
-   "uses": 11312,
+   "uses": 11454,
    "examples": [
     "Tailwind"
    ]
@@ -948,7 +948,7 @@
    "consumedBy": "screens",
    "used": true,
    "n": 3,
-   "uses": 7257,
+   "uses": 7322,
    "examples": [
     "Aurora Veil",
     "Light Screen",
@@ -963,7 +963,7 @@
    "consumedBy": null,
    "used": false,
    "n": 9,
-   "uses": 6844,
+   "uses": 6911,
    "examples": [
     "Assurance",
     "Avalanche",
@@ -981,7 +981,7 @@
    "consumedBy": "thawsTarget",
    "used": true,
    "n": 5,
-   "uses": 13153,
+   "uses": 13291,
    "examples": [
     "Burn Up",
     "Flare Blitz",
@@ -998,7 +998,7 @@
    "consumedBy": "frz",
    "used": true,
    "n": 4,
-   "uses": 6430,
+   "uses": 6500,
    "examples": [
     "Blizzard",
     "Ice Beam",
@@ -1014,7 +1014,7 @@
    "consumedBy": "confusion",
    "used": true,
    "n": 9,
-   "uses": 3365,
+   "uses": 3410,
    "examples": [
     "Confuse Ray",
     "Dynamic Punch",
@@ -1032,7 +1032,7 @@
    "consumedBy": "failsWithoutWeather",
    "used": true,
    "n": 2,
-   "uses": 1246,
+   "uses": 1263,
    "examples": [
     "Aurora Veil",
     "Magnet Rise"
@@ -1059,7 +1059,7 @@
    "consumedBy": "hazard",
    "used": true,
    "n": 4,
-   "uses": 199,
+   "uses": 201,
    "examples": [
     "Spikes",
     "Stealth Rock",
@@ -1075,7 +1075,7 @@
    "consumedBy": "movesBoostMe",
    "used": true,
    "n": 23,
-   "uses": 10549,
+   "uses": 10680,
    "examples": [
     "Clangorous Soul",
     "Growth",
@@ -1093,7 +1093,7 @@
    "consumedBy": "secondaries",
    "used": true,
    "n": 52,
-   "uses": 35483,
+   "uses": 35892,
    "examples": [
     "Apple Acid",
     "Grav Apple",
@@ -1111,7 +1111,7 @@
    "consumedBy": "statChangeInCode",
    "used": true,
    "n": 12,
-   "uses": 8027,
+   "uses": 8096,
    "examples": [
     "Stuff Cheeks",
     "Acupressure",
@@ -1129,7 +1129,7 @@
    "consumedBy": null,
    "used": false,
    "n": 13,
-   "uses": 16884,
+   "uses": 17115,
    "examples": [
     "Make It Rain",
     "Armor Cannon",
@@ -1147,7 +1147,7 @@
    "consumedBy": null,
    "used": false,
    "n": 6,
-   "uses": 923,
+   "uses": 928,
    "examples": [
     "Howl",
     "Aromatic Mist",
@@ -1164,7 +1164,7 @@
    "consumedBy": "movesLowerFoe",
    "used": true,
    "n": 22,
-   "uses": 10211,
+   "uses": 10303,
    "examples": [
     "Toxic Thread",
     "Baby-Doll Eyes",
@@ -1182,7 +1182,7 @@
    "consumedBy": "selfdestruct",
    "used": true,
    "n": 6,
-   "uses": 353,
+   "uses": 359,
    "examples": [
     "Explosion",
     "Final Gambit",
@@ -1200,7 +1200,7 @@
    "consumedBy": "isStatus",
    "used": true,
    "n": 175,
-   "uses": 160921,
+   "uses": 162705,
    "examples": [
     "Baneful Bunker",
     "Clangorous Soul",
@@ -1218,7 +1218,7 @@
    "consumedBy": "locking",
    "used": true,
    "n": 3,
-   "uses": 5295,
+   "uses": 5338,
    "examples": [
     "Encore",
     "Disable",
@@ -1233,7 +1233,7 @@
    "consumedBy": "taunt",
    "used": true,
    "n": 1,
-   "uses": 1402,
+   "uses": 1421,
    "examples": [
     "Taunt"
    ]
@@ -1246,7 +1246,7 @@
    "consumedBy": "brn",
    "used": true,
    "n": 15,
-   "uses": 22881,
+   "uses": 23132,
    "examples": [
     "Beak Blast",
     "Infernal Parade",
@@ -1264,7 +1264,7 @@
    "consumedBy": "par",
    "used": true,
    "n": 13,
-   "uses": 6585,
+   "uses": 6646,
    "examples": [
     "Body Slam",
     "Discharge",
@@ -1282,7 +1282,7 @@
    "consumedBy": "slp",
    "used": true,
    "n": 4,
-   "uses": 1803,
+   "uses": 1824,
    "examples": [
     "Hypnosis",
     "Sleep Powder",
@@ -1297,7 +1297,7 @@
    "consumedBy": "psn",
    "used": true,
    "n": 11,
-   "uses": 6124,
+   "uses": 6206,
    "examples": [
     "Baneful Bunker",
     "Toxic Thread",
@@ -1315,7 +1315,7 @@
    "consumedBy": "tox",
    "used": true,
    "n": 2,
-   "uses": 828,
+   "uses": 838,
    "examples": [
     "Poison Fang",
     "Toxic"
@@ -1329,7 +1329,7 @@
    "consumedBy": "yawn",
    "used": true,
    "n": 1,
-   "uses": 795,
+   "uses": 797,
    "examples": [
     "Yawn"
    ]
@@ -1342,7 +1342,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 985,
+   "uses": 992,
    "examples": [
     "Perish Song"
    ]
@@ -1355,7 +1355,7 @@
    "consumedBy": "proceduralStatus",
    "used": true,
    "n": 2,
-   "uses": 2304,
+   "uses": 2335,
    "examples": [
     "Dire Claw",
     "Tri Attack"
@@ -1369,7 +1369,7 @@
    "consumedBy": "drain",
    "used": true,
    "n": 8,
-   "uses": 8807,
+   "uses": 8914,
    "examples": [
     "Bitter Blade",
     "Draining Kiss",
@@ -1387,7 +1387,7 @@
    "consumedBy": "recoil",
    "used": true,
    "n": 11,
-   "uses": 18810,
+   "uses": 18993,
    "examples": [
     "Light of Ruin",
     "Brave Bird",
@@ -1405,7 +1405,7 @@
    "consumedBy": "healsSelf",
    "used": true,
    "n": 13,
-   "uses": 5828,
+   "uses": 5892,
    "examples": [
     "Healing Wish",
     "Life Dew",
@@ -1423,7 +1423,7 @@
    "consumedBy": "healsPartner",
    "used": true,
    "n": 2,
-   "uses": 2383,
+   "uses": 2410,
    "examples": [
     "Heal Pulse",
     "Life Dew"
@@ -1437,7 +1437,7 @@
    "consumedBy": "chargeTurn",
    "used": true,
    "n": 10,
-   "uses": 6864,
+   "uses": 6924,
    "examples": [
     "Dig",
     "Electro Shot",
@@ -1455,7 +1455,7 @@
    "consumedBy": "chargeSkip",
    "used": true,
    "n": 3,
-   "uses": 6450,
+   "uses": 6503,
    "examples": [
     "Electro Shot",
     "Solar Beam",
@@ -1470,7 +1470,7 @@
    "consumedBy": "semiInvuln",
    "used": true,
    "n": 5,
-   "uses": 403,
+   "uses": 410,
    "examples": [
     "Dig",
     "Phantom Force"
@@ -1484,7 +1484,7 @@
    "consumedBy": "statChange",
    "used": true,
    "n": 107,
-   "uses": 64869,
+   "uses": 65664,
    "examples": [
     "Apple Acid",
     "Clangorous Soul",
@@ -1502,7 +1502,7 @@
    "consumedBy": "statusInflict",
    "used": true,
    "n": 118,
-   "uses": 176709,
+   "uses": 178706,
    "examples": [
     "Baneful Bunker",
     "Dragon Cheer",
@@ -1520,7 +1520,7 @@
    "consumedBy": "removesItem",
    "used": true,
    "n": 8,
-   "uses": 3466,
+   "uses": 3509,
    "examples": [
     "Corrosive Gas",
     "Bug Bite",
@@ -1538,7 +1538,7 @@
    "consumedBy": "statSwap",
    "used": true,
    "n": 2,
-   "uses": 1636,
+   "uses": 1656,
    "examples": [
     "Body Press",
     "Psyshock"
@@ -1552,7 +1552,7 @@
    "consumedBy": "ignoresBoosts",
    "used": true,
    "n": 2,
-   "uses": 2125,
+   "uses": 2151,
    "examples": [
     "Darkest Lariat",
     "Sacred Sword"
@@ -1566,7 +1566,7 @@
    "consumedBy": "failsIfTargetNotAttacking",
    "used": true,
    "n": 2,
-   "uses": 6743,
+   "uses": 6810,
    "examples": [
     "Sucker Punch",
     "Upper Hand"
@@ -1580,7 +1580,7 @@
    "consumedBy": "rechargeTurn",
    "used": true,
    "n": 6,
-   "uses": 1686,
+   "uses": 1712,
    "examples": [
     "Blast Burn",
     "Frenzy Plant",
@@ -1598,7 +1598,7 @@
    "consumedBy": "flinch",
    "used": true,
    "n": 19,
-   "uses": 34826,
+   "uses": 35229,
    "examples": [
     "Fake Out",
     "Iron Head",
@@ -1643,7 +1643,7 @@
    "consumedBy": "megaStone",
    "used": true,
    "n": 75,
-   "uses": 29481,
+   "uses": 29790,
    "examples": [
     "Abomasite",
     "Absolite",
@@ -1661,7 +1661,7 @@
    "consumedBy": "survivesFromFull",
    "used": true,
    "n": 1,
-   "uses": 12836,
+   "uses": 12987,
    "examples": [
     "Focus Sash"
    ]
@@ -1674,7 +1674,7 @@
    "consumedBy": "locking",
    "used": true,
    "n": 1,
-   "uses": 6065,
+   "uses": 6141,
    "examples": [
     "Choice Scarf"
    ]
@@ -1687,7 +1687,7 @@
    "consumedBy": "choicescarf",
    "used": true,
    "n": 1,
-   "uses": 6065,
+   "uses": 6141,
    "examples": [
     "Choice Scarf"
    ]
@@ -1700,7 +1700,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 10571,
+   "uses": 10671,
    "examples": [
     "Life Orb"
    ]
@@ -1713,7 +1713,7 @@
    "consumedBy": "onBasePower",
    "used": true,
    "n": 18,
-   "uses": 9558,
+   "uses": 9654,
    "examples": [
     "Spell Tag",
     "Black Belt",
@@ -1731,7 +1731,7 @@
    "consumedBy": "onUpdate",
    "used": true,
    "n": 1,
-   "uses": 684,
+   "uses": 690,
    "examples": [
     "Mental Herb"
    ]
@@ -1744,7 +1744,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 617,
+   "uses": 636,
    "examples": [
     "Expert Belt"
    ]
@@ -1757,7 +1757,7 @@
    "consumedBy": null,
    "used": false,
    "n": 18,
-   "uses": 10133,
+   "uses": 10233,
    "examples": [
     "Babiri Berry",
     "Charti Berry",
@@ -1790,7 +1790,7 @@
    "consumedBy": "healsAtThreshold",
    "used": true,
    "n": 2,
-   "uses": 11486,
+   "uses": 11620,
    "examples": [
     "Sitrus Berry"
    ]
@@ -1803,7 +1803,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 6643,
+   "uses": 6728,
    "examples": [
     "Leftovers"
    ]
@@ -1849,7 +1849,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 2073,
+   "uses": 2106,
    "examples": [
     "White Herb"
    ]
@@ -1862,7 +1862,7 @@
    "consumedBy": "extendsDuration",
    "used": true,
    "n": 5,
-   "uses": 3045,
+   "uses": 3074,
    "examples": [
     "Damp Rock",
     "Heat Rock",
@@ -1901,7 +1901,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 107,
+   "uses": 108,
    "examples": [
     "Scope Lens"
    ]
@@ -1914,7 +1914,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 81,
+   "uses": 83,
    "examples": [
     "King's Rock"
    ]
@@ -1940,7 +1940,7 @@
    "consumedBy": null,
    "used": false,
    "n": 3,
-   "uses": 901,
+   "uses": 920,
    "examples": [
     "Bright Powder",
     "Wide Lens",
@@ -1966,7 +1966,7 @@
    "consumedBy": "onModifyType",
    "used": true,
    "n": 14,
-   "uses": 5186,
+   "uses": 5250,
    "examples": [
     "Liquid Voice",
     "Liquid Voice",
@@ -1997,7 +1997,7 @@
    "consumedBy": "refusesStatusMoves",
    "used": true,
    "n": 1,
-   "uses": 2319,
+   "uses": 2352,
    "examples": [
     "Good as Gold"
    ]
@@ -2037,7 +2037,7 @@
    "consumedBy": null,
    "used": false,
    "n": 3,
-   "uses": 224,
+   "uses": 226,
    "examples": [
     "Mold Breaker"
    ]
@@ -2063,7 +2063,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 1342,
+   "uses": 1354,
    "examples": [
     "Cursed Body"
    ]
@@ -2076,7 +2076,7 @@
    "consumedBy": "adaptability",
    "used": true,
    "n": 1,
-   "uses": 4433,
+   "uses": 4468,
    "examples": [
     "Adaptability"
    ]
@@ -2089,7 +2089,7 @@
    "consumedBy": "onAfterEachBoost",
    "used": true,
    "n": 2,
-   "uses": 7873,
+   "uses": 7965,
    "examples": [
     "Competitive",
     "Defiant"
@@ -2103,7 +2103,7 @@
    "consumedBy": "onTryBoost",
    "used": true,
    "n": 15,
-   "uses": 7128,
+   "uses": 7197,
    "examples": [
     "Big Pecks",
     "Clear Body",
@@ -2121,7 +2121,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 482,
+   "uses": 483,
    "examples": [
     "Scrappy"
    ]
@@ -2134,7 +2134,7 @@
    "consumedBy": null,
    "used": false,
    "n": 5,
-   "uses": 506,
+   "uses": 515,
    "examples": [
     "Healer",
     "Harvest",
@@ -2148,10 +2148,10 @@
    "kind": "ability",
    "param": "sets or multiplies the accuracy of moves -- the same term neverMisses sets",
    "why": "No Guard (1,133 fields) drives it to certainty in BOTH directions, so its own Hydro Pump never misses and neither does anything aimed at it. Compound Eyes, Wide Lens and Bright Powder scale the same number. One term, twelve writers, no branch needed",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "writesAccuracy",
+   "used": true,
    "n": 8,
-   "uses": 1042,
+   "uses": 1073,
    "examples": [
     "Compound Eyes",
     "Hustle",
@@ -2180,7 +2180,7 @@
    "consumedBy": null,
    "used": false,
    "n": 5,
-   "uses": 390,
+   "uses": 391,
    "examples": [
     "Dry Skin",
     "Heatproof",
@@ -2258,7 +2258,7 @@
    "consumedBy": "immuneToMoveClass",
    "used": true,
    "n": 5,
-   "uses": 859,
+   "uses": 860,
    "examples": [
     "Bulletproof",
     "Magic Bounce",
@@ -2298,7 +2298,7 @@
    "consumedBy": null,
    "used": false,
    "n": 3,
-   "uses": 2506,
+   "uses": 2539,
    "examples": [
     "Good as Gold",
     "Telepathy"
@@ -2312,7 +2312,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 2212,
+   "uses": 2245,
    "examples": [
     "Unburden"
    ]
@@ -2325,7 +2325,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 5145,
+   "uses": 5206,
    "examples": [
     "Hospitality"
    ]
@@ -2338,7 +2338,7 @@
    "consumedBy": "friendguard",
    "used": true,
    "n": 1,
-   "uses": 894,
+   "uses": 895,
    "examples": [
     "Friend Guard"
    ]
@@ -2351,7 +2351,7 @@
    "consumedBy": "regenerator",
    "used": true,
    "n": 1,
-   "uses": 891,
+   "uses": 900,
    "examples": [
     "Regenerator"
    ]
@@ -2364,7 +2364,7 @@
    "consumedBy": "unnerve",
    "used": true,
    "n": 3,
-   "uses": 1949,
+   "uses": 1962,
    "examples": [
     "Unnerve"
    ]
@@ -2377,7 +2377,7 @@
    "consumedBy": null,
    "used": false,
    "n": 1,
-   "uses": 284,
+   "uses": 294,
    "examples": [
     "Unaware"
    ]
@@ -2390,7 +2390,7 @@
    "consumedBy": null,
    "used": false,
    "n": 4,
-   "uses": 151,
+   "uses": 153,
    "examples": [
     "Disguise",
     "Shell Armor"
@@ -2404,12 +2404,39 @@
    "consumedBy": "weatherSetter",
    "used": true,
    "n": 8,
-   "uses": 7251,
+   "uses": 7332,
    "examples": [
     "Drizzle",
     "Drought",
     "Sand Stream",
     "Snow Warning"
+   ]
+  },
+  {
+   "tag": "rewritesAbilityOnContact",
+   "kind": "ability",
+   "param": "mode: 'infect' (and WHICH ability) or 'swap'",
+   "why": "Mummy and Wandering Spirit. The attacker walks away as a different Pokemon, and every damage and speed number after that is computed from an ability it no longer has",
+   "consumedBy": null,
+   "used": false,
+   "n": 3,
+   "uses": 99,
+   "examples": [
+    "Mummy",
+    "Wandering Spirit"
+   ]
+  },
+  {
+   "tag": "weatherSuppression",
+   "kind": "ability",
+   "param": "the weather is on the field and does nothing",
+   "why": "Air Lock and Cloud Nine. Not a handler — a flat property on the ability, which is why every handler-probing derivation in this file missed it",
+   "consumedBy": "suppressWeather",
+   "used": true,
+   "n": 2,
+   "uses": 157,
+   "examples": [
+    "Cloud Nine"
    ]
   },
   {
@@ -2433,7 +2460,7 @@
    "consumedBy": "onModifySpe",
    "used": true,
    "n": 7,
-   "uses": 3526,
+   "uses": 3564,
    "examples": [
     "Chlorophyll",
     "Quick Feet",
@@ -2451,7 +2478,7 @@
    "consumedBy": "IMM",
    "used": true,
    "n": 12,
-   "uses": 5347,
+   "uses": 5402,
    "examples": [
     "Dry Skin",
     "Earth Eater",
@@ -2469,7 +2496,7 @@
    "consumedBy": "lightningrod",
    "used": true,
    "n": 2,
-   "uses": 1967,
+   "uses": 1990,
    "examples": [
     "Lightning Rod",
     "Storm Drain"
@@ -2483,7 +2510,7 @@
    "consumedBy": "buffsHolderOnHit",
    "used": true,
    "n": 12,
-   "uses": 2423,
+   "uses": 2448,
    "examples": [
     "Anger Point",
     "Electromorphosis",
@@ -2500,7 +2527,7 @@
    "consumedBy": "punishesAttacker",
    "used": true,
    "n": 16,
-   "uses": 8953,
+   "uses": 9057,
    "examples": [
     "Aftermath",
     "Cursed Body",
@@ -2518,7 +2545,7 @@
    "consumedBy": null,
    "used": false,
    "n": 14,
-   "uses": 6752,
+   "uses": 6829,
    "examples": [
     "Aftermath",
     "Cute Charm",
@@ -2536,7 +2563,7 @@
    "consumedBy": "multiscale",
    "used": true,
    "n": 8,
-   "uses": 756,
+   "uses": 757,
    "examples": [
     "Multiscale",
     "Solid Rock"
@@ -2550,7 +2577,7 @@
    "consumedBy": "boostsMoveClass",
    "used": true,
    "n": 6,
-   "uses": 858,
+   "uses": 881,
    "examples": [
     "Iron Fist",
     "Mega Launcher",
@@ -2580,7 +2607,7 @@
    "consumedBy": "technician",
    "used": true,
    "n": 44,
-   "uses": 11924,
+   "uses": 12085,
    "examples": [
     "Analytic",
     "Blaze",
@@ -2598,7 +2625,7 @@
    "consumedBy": "onFoeTryMove",
    "used": true,
    "n": 5,
-   "uses": 5400,
+   "uses": 5476,
    "examples": [
     "Armor Tail",
     "Good as Gold",
@@ -2613,7 +2640,7 @@
    "consumedBy": "onChangeBoost",
    "used": true,
    "n": 3,
-   "uses": 190,
+   "uses": 193,
    "examples": [
     "Contrary"
    ]
@@ -2626,7 +2653,7 @@
    "consumedBy": "onModifyPriority",
    "used": true,
    "n": 3,
-   "uses": 7880,
+   "uses": 7958,
    "examples": [
     "Gale Wings",
     "Prankster"
@@ -2640,7 +2667,7 @@
    "consumedBy": null,
    "used": false,
    "n": 2,
-   "uses": 985,
+   "uses": 1003,
    "examples": [
     "Poison Touch"
    ]
@@ -2653,7 +2680,7 @@
    "consumedBy": "boostsEachTurn",
    "used": true,
    "n": 3,
-   "uses": 1180,
+   "uses": 1195,
    "examples": [
     "Moody",
     "Opportunist",
@@ -2681,7 +2708,7 @@
    "consumedBy": "noRecoil",
    "used": true,
    "n": 1,
-   "uses": 784,
+   "uses": 801,
    "examples": [
     "Rock Head"
    ]
@@ -2705,7 +2732,7 @@
    "consumedBy": "intimidate",
    "used": true,
    "n": 3,
-   "uses": 10316,
+   "uses": 10415,
    "examples": [
     "Intimidate",
     "Supersweet Syrup"
@@ -2719,7 +2746,7 @@
    "consumedBy": "megaFormeOf",
    "used": true,
    "n": 7,
-   "uses": 547,
+   "uses": 551,
    "examples": [
     "Disguise",
     "Illusion",
@@ -2735,7 +2762,7 @@
    "consumedBy": null,
    "used": false,
    "n": 12,
-   "uses": 426,
+   "uses": 430,
    "examples": [
     "Immunity",
     "Insomnia",
@@ -2753,7 +2780,7 @@
    "consumedBy": null,
    "used": false,
    "n": 6,
-   "uses": 975,
+   "uses": 1006,
    "examples": [
     "Compound Eyes",
     "Hustle",
@@ -2770,7 +2797,7 @@
    "consumedBy": "onImmunity",
    "used": true,
    "n": 6,
-   "uses": 1976,
+   "uses": 2017,
    "examples": [
     "Ice Body",
     "Overcoat",
@@ -2788,32 +2815,32 @@
     {
      "id": "roughskin",
      "name": "Rough Skin",
-     "uses": 5796
+     "uses": 5865
     },
     {
      "id": "poisontouch",
      "name": "Poison Touch",
-     "uses": 985
+     "uses": 1003
     },
     {
      "id": "toughclaws",
      "name": "Tough Claws",
-     "uses": 457
+     "uses": 480
     },
     {
      "id": "static",
      "name": "Static",
-     "uses": 441
+     "uses": 444
     },
     {
      "id": "flamebody",
      "name": "Flame Body",
-     "uses": 235
+     "uses": 238
     },
     {
      "id": "cutecharm",
      "name": "Cute Charm",
-     "uses": 68
+     "uses": 70
     },
     {
      "id": "poisonpoint",
@@ -2821,14 +2848,14 @@
      "uses": 61
     },
     {
-     "id": "wanderingspirit",
-     "name": "Wandering Spirit",
+     "id": "pickpocket",
+     "name": "Pickpocket",
      "uses": 58
     },
     {
-     "id": "pickpocket",
-     "name": "Pickpocket",
-     "uses": 57
+     "id": "wanderingspirit",
+     "name": "Wandering Spirit",
+     "uses": 58
     },
     {
      "id": "mummy",
@@ -2896,177 +2923,177 @@
     {
      "id": "fakeout",
      "name": "Fake Out",
-     "uses": 12620
+     "uses": 12760
     },
     {
      "id": "closecombat",
      "name": "Close Combat",
-     "uses": 9093
+     "uses": 9237
     },
     {
      "id": "ironhead",
      "name": "Iron Head",
-     "uses": 7007
+     "uses": 7095
     },
     {
      "id": "suckerpunch",
      "name": "Sucker Punch",
-     "uses": 6673
+     "uses": 6740
     },
     {
      "id": "flareblitz",
      "name": "Flare Blitz",
-     "uses": 6555
+     "uses": 6613
     },
     {
      "id": "wavecrash",
      "name": "Wave Crash",
-     "uses": 6091
+     "uses": 6134
     },
     {
      "id": "dragonclaw",
      "name": "Dragon Claw",
-     "uses": 5935
+     "uses": 6011
     },
     {
      "id": "kowtowcleave",
      "name": "Kowtow Cleave",
-     "uses": 5380
+     "uses": 5441
     },
     {
      "id": "aquajet",
      "name": "Aqua Jet",
-     "uses": 4731
+     "uses": 4773
     },
     {
      "id": "bravebird",
      "name": "Brave Bird",
-     "uses": 3674
+     "uses": 3721
     },
     {
      "id": "lowkick",
      "name": "Low Kick",
-     "uses": 3509
+     "uses": 3553
     },
     {
      "id": "stompingtantrum",
      "name": "Stomping Tantrum",
-     "uses": 3122
+     "uses": 3166
     },
     {
      "id": "knockoff",
      "name": "Knock Off",
-     "uses": 2900
+     "uses": 2940
     },
     {
      "id": "throatchop",
      "name": "Throat Chop",
-     "uses": 2845
+     "uses": 2862
     },
     {
      "id": "dualwingbeat",
      "name": "Dual Wingbeat",
-     "uses": 2784
+     "uses": 2826
     },
     {
      "id": "flipturn",
      "name": "Flip Turn",
-     "uses": 2658
+     "uses": 2681
     },
     {
      "id": "direclaw",
      "name": "Dire Claw",
-     "uses": 2300
+     "uses": 2331
     },
     {
      "id": "icepunch",
      "name": "Ice Punch",
-     "uses": 2200
+     "uses": 2221
     },
     {
      "id": "highhorsepower",
      "name": "High Horsepower",
-     "uses": 2193
+     "uses": 2216
     },
     {
      "id": "darkestlariat",
      "name": "Darkest Lariat",
-     "uses": 1896
+     "uses": 1920
     },
     {
      "id": "quickattack",
      "name": "Quick Attack",
-     "uses": 1889
+     "uses": 1913
     },
     {
      "id": "psychicfangs",
      "name": "Psychic Fangs",
-     "uses": 1753
+     "uses": 1763
     },
     {
      "id": "spiritbreak",
      "name": "Spirit Break",
-     "uses": 1471
+     "uses": 1492
     },
     {
      "id": "playrough",
      "name": "Play Rough",
-     "uses": 1303
+     "uses": 1309
     },
     {
      "id": "poisonjab",
      "name": "Poison Jab",
-     "uses": 1274
+     "uses": 1297
     },
     {
      "id": "uturn",
      "name": "U-turn",
-     "uses": 1099
+     "uses": 1113
     },
     {
      "id": "drainpunch",
      "name": "Drain Punch",
-     "uses": 940
+     "uses": 947
     },
     {
      "id": "extremespeed",
      "name": "Extreme Speed",
-     "uses": 918
+     "uses": 935
     },
     {
      "id": "bodypress",
      "name": "Body Press",
-     "uses": 884
+     "uses": 895
     },
     {
      "id": "drainingkiss",
      "name": "Draining Kiss",
-     "uses": 847
+     "uses": 865
     },
     {
      "id": "bulletpunch",
      "name": "Bullet Punch",
-     "uses": 836
+     "uses": 845
     },
     {
      "id": "liquidation",
      "name": "Liquidation",
-     "uses": 796
+     "uses": 798
     },
     {
      "id": "infestation",
      "name": "Infestation",
-     "uses": 761
+     "uses": 769
     },
     {
      "id": "foulplay",
      "name": "Foul Play",
-     "uses": 760
+     "uses": 761
     },
     {
      "id": "icefang",
      "name": "Ice Fang",
-     "uses": 666
+     "uses": 673
     },
     {
      "id": "superfang",
@@ -3076,51 +3103,51 @@
     {
      "id": "shadowsneak",
      "name": "Shadow Sneak",
-     "uses": 579
+     "uses": 585
     },
     {
      "id": "tripleaxel",
      "name": "Triple Axel",
-     "uses": 539
+     "uses": 543
     },
     {
      "id": "headsmash",
      "name": "Head Smash",
-     "uses": 477
+     "uses": 488
     },
     {
      "id": "ragefist",
      "name": "Rage Fist",
-     "uses": 462
+     "uses": 464
     },
     {
      "id": "accelerock",
      "name": "Accelerock",
-     "uses": 430
+     "uses": 453
     },
     {
      "id": "brickbreak",
      "name": "Brick Break",
-     "uses": 428
+     "uses": 433
     },
     {
      "id": "phantomforce",
      "name": "Phantom Force",
-     "uses": 399
+     "uses": 406
     },
     {
      "id": "superpower",
      "name": "Superpower",
-     "uses": 394
-    },
-    {
-     "id": "meteormash",
-     "name": "Meteor Mash",
-     "uses": 387
+     "uses": 404
     },
     {
      "id": "populationbomb",
      "name": "Population Bomb",
+     "uses": 392
+    },
+    {
+     "id": "meteormash",
+     "name": "Meteor Mash",
      "uses": 387
     },
     {
@@ -3131,12 +3158,12 @@
     {
      "id": "bitterblade",
      "name": "Bitter Blade",
-     "uses": 378
+     "uses": 380
     },
     {
      "id": "crunch",
      "name": "Crunch",
-     "uses": 352
+     "uses": 356
     },
     {
      "id": "waterfall",
@@ -3146,22 +3173,27 @@
     {
      "id": "thunderpunch",
      "name": "Thunder Punch",
-     "uses": 284
+     "uses": 285
     },
     {
      "id": "doubleedge",
      "name": "Double-Edge",
-     "uses": 275
+     "uses": 277
     },
     {
      "id": "sacredsword",
      "name": "Sacred Sword",
-     "uses": 229
+     "uses": 231
     },
     {
      "id": "heavyslam",
      "name": "Heavy Slam",
-     "uses": 227
+     "uses": 230
+    },
+    {
+     "id": "volttackle",
+     "name": "Volt Tackle",
+     "uses": 211
     },
     {
      "id": "bugbite",
@@ -3169,14 +3201,9 @@
      "uses": 208
     },
     {
-     "id": "volttackle",
-     "name": "Volt Tackle",
-     "uses": 208
-    },
-    {
      "id": "powerwhip",
      "name": "Power Whip",
-     "uses": 197
+     "uses": 208
     },
     {
      "id": "hammerarm",
@@ -3184,14 +3211,14 @@
      "uses": 192
     },
     {
-     "id": "lastresort",
-     "name": "Last Resort",
-     "uses": 174
-    },
-    {
      "id": "tropkick",
      "name": "Trop Kick",
-     "uses": 173
+     "uses": 175
+    },
+    {
+     "id": "lastresort",
+     "name": "Last Resort",
+     "uses": 175
     },
     {
      "id": "leafblade",
@@ -3209,29 +3236,29 @@
      "uses": 142
     },
     {
+     "id": "highjumpkick",
+     "name": "High Jump Kick",
+     "uses": 139
+    },
+    {
      "id": "nuzzle",
      "name": "Nuzzle",
-     "uses": 138
+     "uses": 139
     },
     {
      "id": "leechlife",
      "name": "Leech Life",
-     "uses": 133
+     "uses": 136
     },
     {
      "id": "blazekick",
      "name": "Blaze Kick",
-     "uses": 128
-    },
-    {
-     "id": "highjumpkick",
-     "name": "High Jump Kick",
-     "uses": 128
+     "uses": 130
     },
     {
      "id": "bodyslam",
      "name": "Body Slam",
-     "uses": 119
+     "uses": 120
     },
     {
      "id": "shadowclaw",
@@ -3254,14 +3281,14 @@
      "uses": 96
     },
     {
+     "id": "endeavor",
+     "name": "Endeavor",
+     "uses": 96
+    },
+    {
      "id": "wildcharge",
      "name": "Wild Charge",
      "uses": 95
-    },
-    {
-     "id": "endeavor",
-     "name": "Endeavor",
-     "uses": 94
     },
     {
      "id": "breakingswipe",
@@ -3326,17 +3353,17 @@
     {
      "id": "hardpress",
      "name": "Hard Press",
-     "uses": 52
+     "uses": 53
+    },
+    {
+     "id": "facade",
+     "name": "Facade",
+     "uses": 49
     },
     {
      "id": "headlongrush",
      "name": "Headlong Rush",
      "uses": 49
-    },
-    {
-     "id": "facade",
-     "name": "Facade",
-     "uses": 48
     },
     {
      "id": "ceaselessedge",
@@ -3366,7 +3393,7 @@
     {
      "id": "mortalspin",
      "name": "Mortal Spin",
-     "uses": 35
+     "uses": 36
     },
     {
      "id": "assurance",
@@ -3381,7 +3408,12 @@
     {
      "id": "gigaimpact",
      "name": "Giga Impact",
-     "uses": 29
+     "uses": 32
+    },
+    {
+     "id": "dragonrush",
+     "name": "Dragon Rush",
+     "uses": 30
     },
     {
      "id": "lunge",
@@ -3394,24 +3426,19 @@
      "uses": 28
     },
     {
-     "id": "dragonrush",
-     "name": "Dragon Rush",
-     "uses": 28
-    },
-    {
      "id": "firefang",
      "name": "Fire Fang",
      "uses": 27
     },
     {
-     "id": "bite",
-     "name": "Bite",
-     "uses": 25
-    },
-    {
      "id": "megahorn",
      "name": "Megahorn",
-     "uses": 25
+     "uses": 27
+    },
+    {
+     "id": "bite",
+     "name": "Bite",
+     "uses": 26
     },
     {
      "id": "irontail",
@@ -3628,17 +3655,17 @@
     {
      "id": "spikyshield",
      "name": "Spiky Shield",
-     "uses": 940
+     "uses": 954
     },
     {
      "id": "banefulbunker",
      "name": "Baneful Bunker",
-     "uses": 744
+     "uses": 752
     },
     {
      "id": "kingsshield",
      "name": "King's Shield",
-     "uses": 183
+     "uses": 186
     },
     {
      "id": "shellsidearm",
@@ -3651,8 +3678,8 @@
      "uses": 10
     }
    ],
-   "moveUses": 122612,
-   "reactorUses": 10145
+   "moveUses": 124000,
+   "reactorUses": 10289
   },
   "sound": {
    "note": "sound-based",
@@ -3665,7 +3692,7 @@
     {
      "id": "liquidvoice",
      "name": "Liquid Voice",
-     "uses": 346
+     "uses": 352
     },
     {
      "id": "punkrock",
@@ -3678,22 +3705,22 @@
     {
      "id": "partingshot",
      "name": "Parting Shot",
-     "uses": 7184
+     "uses": 7246
     },
     {
      "id": "hypervoice",
      "name": "Hyper Voice",
-     "uses": 3866
+     "uses": 3901
     },
     {
      "id": "perishsong",
      "name": "Perish Song",
-     "uses": 985
+     "uses": 992
     },
     {
      "id": "snarl",
      "name": "Snarl",
-     "uses": 815
+     "uses": 822
     },
     {
      "id": "clangingscales",
@@ -3703,7 +3730,7 @@
     {
      "id": "roar",
      "name": "Roar",
-     "uses": 405
+     "uses": 409
     },
     {
      "id": "clangoroussoul",
@@ -3718,7 +3745,7 @@
     {
      "id": "alluringvoice",
      "name": "Alluring Voice",
-     "uses": 138
+     "uses": 139
     },
     {
      "id": "bugbuzz",
@@ -3738,7 +3765,7 @@
     {
      "id": "torchsong",
      "name": "Torch Song",
-     "uses": 37
+     "uses": 39
     },
     {
      "id": "dragoncheer",
@@ -3761,14 +3788,14 @@
      "uses": 4
     },
     {
-     "id": "uproar",
-     "name": "Uproar",
+     "id": "metalsound",
+     "name": "Metal Sound",
      "uses": 3
     },
     {
-     "id": "metalsound",
-     "name": "Metal Sound",
-     "uses": 2
+     "id": "uproar",
+     "name": "Uproar",
+     "uses": 3
     },
     {
      "id": "eeriespell",
@@ -3780,11 +3807,11 @@
     {
      "id": "throatchop",
      "name": "Throat Chop",
-     "uses": 2845
+     "uses": 2862
     }
    ],
-   "moveUses": 14797,
-   "reactorUses": 3546
+   "moveUses": 14916,
+   "reactorUses": 3569
   },
   "punch": {
    "note": "a punching move",
@@ -3800,22 +3827,22 @@
     {
      "id": "icepunch",
      "name": "Ice Punch",
-     "uses": 2200
+     "uses": 2221
     },
     {
      "id": "drainpunch",
      "name": "Drain Punch",
-     "uses": 940
+     "uses": 947
     },
     {
      "id": "bulletpunch",
      "name": "Bullet Punch",
-     "uses": 836
+     "uses": 845
     },
     {
      "id": "ragefist",
      "name": "Rage Fist",
-     "uses": 462
+     "uses": 464
     },
     {
      "id": "meteormash",
@@ -3825,7 +3852,7 @@
     {
      "id": "thunderpunch",
      "name": "Thunder Punch",
-     "uses": 284
+     "uses": 285
     },
     {
      "id": "hammerarm",
@@ -3874,7 +3901,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 5712,
+   "moveUses": 5752,
    "reactorUses": 101
   },
   "bullet": {
@@ -3883,7 +3910,7 @@
     {
      "id": "bulletproof",
      "name": "Bulletproof",
-     "uses": 85
+     "uses": 86
     }
    ],
    "items": [],
@@ -3891,42 +3918,42 @@
     {
      "id": "weatherball",
      "name": "Weather Ball",
-     "uses": 7249
+     "uses": 7315
     },
     {
      "id": "shadowball",
      "name": "Shadow Ball",
-     "uses": 5368
+     "uses": 5443
     },
     {
      "id": "sludgebomb",
      "name": "Sludge Bomb",
-     "uses": 3552
+     "uses": 3591
     },
     {
      "id": "focusblast",
      "name": "Focus Blast",
-     "uses": 1845
+     "uses": 1868
     },
     {
      "id": "zapcannon",
      "name": "Zap Cannon",
-     "uses": 1746
+     "uses": 1767
     },
     {
      "id": "aurasphere",
      "name": "Aura Sphere",
-     "uses": 1200
+     "uses": 1220
     },
     {
      "id": "energyball",
      "name": "Energy Ball",
-     "uses": 693
+     "uses": 696
     },
     {
      "id": "pollenpuff",
      "name": "Pollen Puff",
-     "uses": 99
+     "uses": 103
     },
     {
      "id": "acidspray",
@@ -3951,7 +3978,7 @@
     {
      "id": "seedbomb",
      "name": "Seed Bomb",
-     "uses": 35
+     "uses": 36
     },
     {
      "id": "electroball",
@@ -3975,8 +4002,8 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 22034,
-   "reactorUses": 85
+   "moveUses": 22286,
+   "reactorUses": 86
   },
   "powder": {
    "note": "a powder",
@@ -3992,12 +4019,12 @@
     {
      "id": "ragepowder",
      "name": "Rage Powder",
-     "uses": 6065
+     "uses": 6148
     },
     {
      "id": "sleeppowder",
      "name": "Sleep Powder",
-     "uses": 1299
+     "uses": 1316
     },
     {
      "id": "cottonspore",
@@ -4021,7 +4048,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 7422,
+   "moveUses": 7522,
    "reactorUses": 244
   },
   "wind": {
@@ -4043,27 +4070,27 @@
     {
      "id": "tailwind",
      "name": "Tailwind",
-     "uses": 11312
+     "uses": 11454
     },
     {
      "id": "heatwave",
      "name": "Heat Wave",
-     "uses": 7000
+     "uses": 7085
     },
     {
      "id": "hurricane",
      "name": "Hurricane",
-     "uses": 3208
+     "uses": 3251
     },
     {
      "id": "blizzard",
      "name": "Blizzard",
-     "uses": 2491
+     "uses": 2518
     },
     {
      "id": "icywind",
      "name": "Icy Wind",
-     "uses": 1597
+     "uses": 1614
     },
     {
      "id": "whirlwind",
@@ -4087,7 +4114,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 25649,
+   "moveUses": 25963,
    "reactorUses": 0
   },
   "slicing": {
@@ -4104,42 +4131,42 @@
     {
      "id": "dragonclaw",
      "name": "Dragon Claw",
-     "uses": 5935
+     "uses": 6011
     },
     {
      "id": "kowtowcleave",
      "name": "Kowtow Cleave",
-     "uses": 5380
+     "uses": 5441
     },
     {
      "id": "direclaw",
      "name": "Dire Claw",
-     "uses": 2300
+     "uses": 2331
     },
     {
      "id": "populationbomb",
      "name": "Population Bomb",
-     "uses": 387
+     "uses": 392
     },
     {
      "id": "bitterblade",
      "name": "Bitter Blade",
-     "uses": 378
+     "uses": 380
     },
     {
      "id": "psychocut",
      "name": "Psycho Cut",
-     "uses": 276
-    },
-    {
-     "id": "sacredsword",
-     "name": "Sacred Sword",
-     "uses": 229
+     "uses": 279
     },
     {
      "id": "airslash",
      "name": "Air Slash",
-     "uses": 228
+     "uses": 234
+    },
+    {
+     "id": "sacredsword",
+     "name": "Sacred Sword",
+     "uses": 231
     },
     {
      "id": "leafblade",
@@ -4203,7 +4230,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 15775,
+   "moveUses": 15961,
    "reactorUses": 270
   },
   "bite": {
@@ -4220,17 +4247,17 @@
     {
      "id": "psychicfangs",
      "name": "Psychic Fangs",
-     "uses": 1753
+     "uses": 1763
     },
     {
      "id": "icefang",
      "name": "Ice Fang",
-     "uses": 666
+     "uses": 673
     },
     {
      "id": "crunch",
      "name": "Crunch",
-     "uses": 352
+     "uses": 356
     },
     {
      "id": "firefang",
@@ -4240,7 +4267,7 @@
     {
      "id": "bite",
      "name": "Bite",
-     "uses": 25
+     "uses": 26
     },
     {
      "id": "thunderfang",
@@ -4254,7 +4281,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 2838,
+   "moveUses": 2860,
    "reactorUses": 6
   },
   "heal": {
@@ -4271,52 +4298,52 @@
     {
      "id": "matchagotcha",
      "name": "Matcha Gotcha",
-     "uses": 5109
+     "uses": 5170
     },
     {
      "id": "lifedew",
      "name": "Life Dew",
-     "uses": 2290
+     "uses": 2311
     },
     {
      "id": "roost",
      "name": "Roost",
-     "uses": 2056
+     "uses": 2087
     },
     {
      "id": "gigadrain",
      "name": "Giga Drain",
-     "uses": 1286
+     "uses": 1302
     },
     {
      "id": "drainpunch",
      "name": "Drain Punch",
-     "uses": 940
+     "uses": 947
     },
     {
      "id": "drainingkiss",
      "name": "Draining Kiss",
-     "uses": 847
+     "uses": 865
     },
     {
      "id": "strengthsap",
      "name": "Strength Sap",
-     "uses": 634
+     "uses": 637
     },
     {
      "id": "recover",
      "name": "Recover",
-     "uses": 591
+     "uses": 600
     },
     {
      "id": "bitterblade",
      "name": "Bitter Blade",
-     "uses": 378
+     "uses": 380
     },
     {
      "id": "leechlife",
      "name": "Leech Life",
-     "uses": 133
+     "uses": 136
     },
     {
      "id": "paraboliccharge",
@@ -4326,7 +4353,7 @@
     {
      "id": "healpulse",
      "name": "Heal Pulse",
-     "uses": 93
+     "uses": 99
     },
     {
      "id": "slackoff",
@@ -4370,7 +4397,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 14728,
+   "moveUses": 14905,
    "reactorUses": 0
   },
   "priorityMove": {
@@ -4379,12 +4406,12 @@
     {
      "id": "armortail",
      "name": "Armor Tail",
-     "uses": 2729
+     "uses": 2759
     },
     {
      "id": "queenlymajesty",
      "name": "Queenly Majesty",
-     "uses": 352
+     "uses": 365
     },
     {
      "id": "dazzling",
@@ -4397,112 +4424,112 @@
     {
      "id": "protect",
      "name": "Protect",
-     "uses": 70442
+     "uses": 71244
     },
     {
      "id": "fakeout",
      "name": "Fake Out",
-     "uses": 12620
+     "uses": 12760
     },
     {
      "id": "suckerpunch",
      "name": "Sucker Punch",
-     "uses": 6673
+     "uses": 6740
     },
     {
      "id": "ragepowder",
      "name": "Rage Powder",
-     "uses": 6065
+     "uses": 6148
     },
     {
      "id": "aquajet",
      "name": "Aqua Jet",
-     "uses": 4731
+     "uses": 4773
     },
     {
      "id": "helpinghand",
      "name": "Helping Hand",
-     "uses": 3455
+     "uses": 3485
     },
     {
      "id": "wideguard",
      "name": "Wide Guard",
-     "uses": 3168
+     "uses": 3209
     },
     {
      "id": "detect",
      "name": "Detect",
-     "uses": 1968
+     "uses": 1985
     },
     {
      "id": "quickattack",
      "name": "Quick Attack",
-     "uses": 1889
+     "uses": 1913
     },
     {
      "id": "followme",
      "name": "Follow Me",
-     "uses": 1403
+     "uses": 1417
     },
     {
      "id": "spikyshield",
      "name": "Spiky Shield",
-     "uses": 940
+     "uses": 954
     },
     {
      "id": "extremespeed",
      "name": "Extreme Speed",
-     "uses": 918
+     "uses": 935
     },
     {
      "id": "bulletpunch",
      "name": "Bullet Punch",
-     "uses": 836
+     "uses": 845
     },
     {
      "id": "banefulbunker",
      "name": "Baneful Bunker",
-     "uses": 744
+     "uses": 752
     },
     {
      "id": "quickguard",
      "name": "Quick Guard",
-     "uses": 691
+     "uses": 706
     },
     {
      "id": "iceshard",
      "name": "Ice Shard",
-     "uses": 630
+     "uses": 635
     },
     {
      "id": "shadowsneak",
      "name": "Shadow Sneak",
-     "uses": 579
+     "uses": 585
     },
     {
      "id": "accelerock",
      "name": "Accelerock",
-     "uses": 430
+     "uses": 453
     },
     {
      "id": "feint",
      "name": "Feint",
-     "uses": 375
+     "uses": 381
     },
     {
      "id": "vacuumwave",
      "name": "Vacuum Wave",
-     "uses": 298
+     "uses": 299
     },
     {
      "id": "kingsshield",
      "name": "King's Shield",
-     "uses": 183
+     "uses": 186
     },
     {
      "id": "allyswitch",
      "name": "Ally Switch",
-     "uses": 162
+     "uses": 165
     },
     {
      "id": "jetpunch",
@@ -4517,7 +4544,7 @@
     {
      "id": "babydolleyes",
      "name": "Baby-Doll Eyes",
-     "uses": 62
+     "uses": 64
     },
     {
      "id": "machpunch",
@@ -4541,8 +4568,8 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 119565,
-   "reactorUses": 3081
+   "moveUses": 120937,
+   "reactorUses": 3124
   },
   "statusMove": {
    "note": "a status-category move",
@@ -4550,27 +4577,27 @@
     {
      "id": "prankster",
      "name": "Prankster",
-     "uses": 7122
+     "uses": 7193
     },
     {
      "id": "goodasgold",
      "name": "Good as Gold",
-     "uses": 2319
+     "uses": 2352
     },
     {
      "id": "stancechange",
      "name": "Stance Change",
-     "uses": 210
+     "uses": 213
     },
     {
      "id": "magician",
      "name": "Magician",
-     "uses": 170
+     "uses": 173
     },
     {
      "id": "disguise",
      "name": "Disguise",
-     "uses": 115
+     "uses": 117
     },
     {
      "id": "anticipation",
@@ -4614,122 +4641,122 @@
     {
      "id": "protect",
      "name": "Protect",
-     "uses": 70442
+     "uses": 71244
     },
     {
      "id": "tailwind",
      "name": "Tailwind",
-     "uses": 11312
+     "uses": 11454
     },
     {
      "id": "partingshot",
      "name": "Parting Shot",
-     "uses": 7184
+     "uses": 7246
     },
     {
      "id": "trickroom",
      "name": "Trick Room",
-     "uses": 7040
+     "uses": 7113
     },
     {
      "id": "ragepowder",
      "name": "Rage Powder",
-     "uses": 6065
+     "uses": 6148
     },
     {
      "id": "encore",
      "name": "Encore",
-     "uses": 4595
+     "uses": 4635
     },
     {
      "id": "helpinghand",
      "name": "Helping Hand",
-     "uses": 3455
+     "uses": 3485
     },
     {
      "id": "lightscreen",
      "name": "Light Screen",
-     "uses": 3348
+     "uses": 3375
     },
     {
      "id": "wideguard",
      "name": "Wide Guard",
-     "uses": 3168
+     "uses": 3209
     },
     {
      "id": "nastyplot",
      "name": "Nasty Plot",
-     "uses": 3043
+     "uses": 3095
     },
     {
      "id": "reflect",
      "name": "Reflect",
-     "uses": 2664
+     "uses": 2685
     },
     {
      "id": "lifedew",
      "name": "Life Dew",
-     "uses": 2290
+     "uses": 2311
     },
     {
      "id": "swordsdance",
      "name": "Swords Dance",
-     "uses": 2177
+     "uses": 2204
     },
     {
      "id": "roost",
      "name": "Roost",
-     "uses": 2056
+     "uses": 2087
     },
     {
      "id": "detect",
      "name": "Detect",
-     "uses": 1968
+     "uses": 1985
     },
     {
      "id": "calmmind",
      "name": "Calm Mind",
-     "uses": 1935
+     "uses": 1961
     },
     {
      "id": "willowisp",
      "name": "Will-O-Wisp",
-     "uses": 1698
-    },
-    {
-     "id": "followme",
-     "name": "Follow Me",
-     "uses": 1403
+     "uses": 1713
     },
     {
      "id": "taunt",
      "name": "Taunt",
-     "uses": 1402
+     "uses": 1421
+    },
+    {
+     "id": "followme",
+     "name": "Follow Me",
+     "uses": 1417
     },
     {
      "id": "sleeppowder",
      "name": "Sleep Powder",
-     "uses": 1299
+     "uses": 1316
     },
     {
      "id": "charm",
      "name": "Charm",
-     "uses": 1252
+     "uses": 1269
     },
     {
      "id": "auroraveil",
      "name": "Aurora Veil",
-     "uses": 1245
+     "uses": 1262
     },
     {
      "id": "perishsong",
      "name": "Perish Song",
-     "uses": 985
+     "uses": 992
     },
     {
      "id": "spikyshield",
      "name": "Spiky Shield",
-     "uses": 940
+     "uses": 954
     },
     {
      "id": "raindance",
@@ -4739,112 +4766,112 @@
     {
      "id": "bulkup",
      "name": "Bulk Up",
-     "uses": 850
+     "uses": 856
     },
     {
      "id": "toxic",
      "name": "Toxic",
-     "uses": 823
+     "uses": 833
     },
     {
      "id": "yawn",
      "name": "Yawn",
-     "uses": 795
+     "uses": 797
     },
     {
      "id": "coaching",
      "name": "Coaching",
-     "uses": 780
+     "uses": 784
     },
     {
      "id": "banefulbunker",
      "name": "Baneful Bunker",
-     "uses": 744
-    },
-    {
-     "id": "disable",
-     "name": "Disable",
-     "uses": 695
+     "uses": 752
     },
     {
      "id": "quickguard",
      "name": "Quick Guard",
-     "uses": 691
+     "uses": 706
+    },
+    {
+     "id": "disable",
+     "name": "Disable",
+     "uses": 698
     },
     {
      "id": "strengthsap",
      "name": "Strength Sap",
-     "uses": 634
-    },
-    {
-     "id": "dragondance",
-     "name": "Dragon Dance",
-     "uses": 594
+     "uses": 637
     },
     {
      "id": "recover",
      "name": "Recover",
-     "uses": 591
+     "uses": 600
+    },
+    {
+     "id": "dragondance",
+     "name": "Dragon Dance",
+     "uses": 599
     },
     {
      "id": "sunnyday",
      "name": "Sunny Day",
-     "uses": 588
-    },
-    {
-     "id": "haze",
-     "name": "Haze",
-     "uses": 552
+     "uses": 593
     },
     {
      "id": "substitute",
      "name": "Substitute",
-     "uses": 548
+     "uses": 561
+    },
+    {
+     "id": "haze",
+     "name": "Haze",
+     "uses": 556
     },
     {
      "id": "coil",
      "name": "Coil",
-     "uses": 510
-    },
-    {
-     "id": "hypnosis",
-     "name": "Hypnosis",
-     "uses": 501
+     "uses": 512
     },
     {
      "id": "faketears",
      "name": "Fake Tears",
-     "uses": 500
+     "uses": 506
+    },
+    {
+     "id": "hypnosis",
+     "name": "Hypnosis",
+     "uses": 505
     },
     {
      "id": "shellsmash",
      "name": "Shell Smash",
-     "uses": 419
+     "uses": 427
     },
     {
      "id": "roar",
      "name": "Roar",
-     "uses": 405
+     "uses": 409
     },
     {
      "id": "thunderwave",
      "name": "Thunder Wave",
-     "uses": 375
+     "uses": 377
     },
     {
      "id": "leechseed",
      "name": "Leech Seed",
+     "uses": 350
+    },
+    {
+     "id": "trick",
+     "name": "Trick",
      "uses": 344
     },
     {
      "id": "clangoroussoul",
      "name": "Clangorous Soul",
      "uses": 343
-    },
-    {
-     "id": "trick",
-     "name": "Trick",
-     "uses": 341
     },
     {
      "id": "imprison",
@@ -4854,7 +4881,7 @@
     {
      "id": "irondefense",
      "name": "Iron Defense",
-     "uses": 236
+     "uses": 241
     },
     {
      "id": "scaryface",
@@ -4864,17 +4891,17 @@
     {
      "id": "tickle",
      "name": "Tickle",
-     "uses": 207
+     "uses": 208
     },
     {
      "id": "kingsshield",
      "name": "King's Shield",
-     "uses": 183
+     "uses": 186
     },
     {
      "id": "allyswitch",
      "name": "Ally Switch",
-     "uses": 162
+     "uses": 165
     },
     {
      "id": "instruct",
@@ -4884,12 +4911,12 @@
     {
      "id": "quash",
      "name": "Quash",
-     "uses": 154
+     "uses": 156
     },
     {
      "id": "afteryou",
      "name": "After You",
-     "uses": 150
+     "uses": 151
     },
     {
      "id": "stealthrock",
@@ -4909,27 +4936,32 @@
     {
      "id": "curse",
      "name": "Curse",
-     "uses": 110
+     "uses": 112
     },
     {
      "id": "batonpass",
      "name": "Baton Pass",
-     "uses": 107
-    },
-    {
-     "id": "skillswap",
-     "name": "Skill Swap",
-     "uses": 97
+     "uses": 109
     },
     {
      "id": "healpulse",
      "name": "Heal Pulse",
-     "uses": 93
+     "uses": 99
+    },
+    {
+     "id": "skillswap",
+     "name": "Skill Swap",
+     "uses": 98
     },
     {
      "id": "bellydrum",
      "name": "Belly Drum",
-     "uses": 84
+     "uses": 87
+    },
+    {
+     "id": "gravity",
+     "name": "Gravity",
+     "uses": 79
     },
     {
      "id": "quiverdance",
@@ -4937,19 +4969,14 @@
      "uses": 76
     },
     {
-     "id": "gravity",
-     "name": "Gravity",
-     "uses": 75
+     "id": "destinybond",
+     "name": "Destiny Bond",
+     "uses": 74
     },
     {
      "id": "transform",
      "name": "Transform",
      "uses": 74
-    },
-    {
-     "id": "destinybond",
-     "name": "Destiny Bond",
-     "uses": 73
     },
     {
      "id": "noretreat",
@@ -4969,12 +4996,12 @@
     {
      "id": "babydolleyes",
      "name": "Baby-Doll Eyes",
-     "uses": 62
+     "uses": 64
     },
     {
      "id": "shedtail",
      "name": "Shed Tail",
-     "uses": 60
+     "uses": 61
     },
     {
      "id": "psychup",
@@ -5034,17 +5061,17 @@
     {
      "id": "decorate",
      "name": "Decorate",
-     "uses": 33
+     "uses": 34
     },
     {
      "id": "toxicspikes",
      "name": "Toxic Spikes",
-     "uses": 29
+     "uses": 31
     },
     {
      "id": "glare",
      "name": "Glare",
-     "uses": 28
+     "uses": 30
     },
     {
      "id": "stickyweb",
@@ -5074,7 +5101,7 @@
     {
      "id": "tidyup",
      "name": "Tidy Up",
-     "uses": 21
+     "uses": 22
     },
     {
      "id": "cosmicpower",
@@ -5192,6 +5219,11 @@
      "uses": 9
     },
     {
+     "id": "mistyterrain",
+     "name": "Misty Terrain",
+     "uses": 9
+    },
+    {
      "id": "simplebeam",
      "name": "Simple Beam",
      "uses": 9
@@ -5214,11 +5246,6 @@
     {
      "id": "meanlook",
      "name": "Mean Look",
-     "uses": 8
-    },
-    {
-     "id": "mistyterrain",
-     "name": "Misty Terrain",
      "uses": 8
     },
     {
@@ -5272,6 +5299,11 @@
      "uses": 5
     },
     {
+     "id": "gastroacid",
+     "name": "Gastro Acid",
+     "uses": 5
+    },
+    {
      "id": "powerswap",
      "name": "Power Swap",
      "uses": 5
@@ -5297,8 +5329,8 @@
      "uses": 3
     },
     {
-     "id": "gastroacid",
-     "name": "Gastro Acid",
+     "id": "metalsound",
+     "name": "Metal Sound",
      "uses": 3
     },
     {
@@ -5334,11 +5366,6 @@
     {
      "id": "guardswap",
      "name": "Guard Swap",
-     "uses": 2
-    },
-    {
-     "id": "metalsound",
-     "name": "Metal Sound",
      "uses": 2
     },
     {
@@ -5396,12 +5423,12 @@
     {
      "id": "suckerpunch",
      "name": "Sucker Punch",
-     "uses": 6673
+     "uses": 6740
     },
     {
      "id": "taunt",
      "name": "Taunt",
-     "uses": 1402
+     "uses": 1421
     },
     {
      "id": "upperhand",
@@ -5409,8 +5436,8 @@
      "uses": 70
     }
    ],
-   "moveUses": 160921,
-   "reactorUses": 18161
+   "moveUses": 162705,
+   "reactorUses": 18359
   },
   "physicalMove": {
    "note": "a physical move",
@@ -5418,7 +5445,7 @@
     {
      "id": "toxicdebris",
      "name": "Toxic Debris",
-     "uses": 954
+     "uses": 969
     },
     {
      "id": "weakarmor",
@@ -5428,7 +5455,7 @@
     {
      "id": "hustle",
      "name": "Hustle",
-     "uses": 12
+     "uses": 14
     },
     {
      "id": "iceface",
@@ -5452,192 +5479,192 @@
     {
      "id": "fakeout",
      "name": "Fake Out",
-     "uses": 12620
+     "uses": 12760
     },
     {
      "id": "rockslide",
      "name": "Rock Slide",
-     "uses": 11635
+     "uses": 11772
     },
     {
      "id": "closecombat",
      "name": "Close Combat",
-     "uses": 9093
+     "uses": 9237
     },
     {
      "id": "ironhead",
      "name": "Iron Head",
-     "uses": 7007
+     "uses": 7095
     },
     {
      "id": "earthquake",
      "name": "Earthquake",
-     "uses": 6991
+     "uses": 7060
     },
     {
      "id": "suckerpunch",
      "name": "Sucker Punch",
-     "uses": 6673
+     "uses": 6740
     },
     {
      "id": "flareblitz",
      "name": "Flare Blitz",
-     "uses": 6555
+     "uses": 6613
     },
     {
      "id": "wavecrash",
      "name": "Wave Crash",
-     "uses": 6091
+     "uses": 6134
     },
     {
      "id": "dragonclaw",
      "name": "Dragon Claw",
-     "uses": 5935
+     "uses": 6011
     },
     {
      "id": "kowtowcleave",
      "name": "Kowtow Cleave",
-     "uses": 5380
+     "uses": 5441
     },
     {
      "id": "aquajet",
      "name": "Aqua Jet",
-     "uses": 4731
+     "uses": 4773
     },
     {
      "id": "lastrespects",
      "name": "Last Respects",
-     "uses": 4719
+     "uses": 4755
     },
     {
      "id": "bravebird",
      "name": "Brave Bird",
-     "uses": 3674
+     "uses": 3721
     },
     {
      "id": "lowkick",
      "name": "Low Kick",
-     "uses": 3509
+     "uses": 3553
     },
     {
      "id": "stompingtantrum",
      "name": "Stomping Tantrum",
-     "uses": 3122
+     "uses": 3166
     },
     {
      "id": "knockoff",
      "name": "Knock Off",
-     "uses": 2900
+     "uses": 2940
     },
     {
      "id": "throatchop",
      "name": "Throat Chop",
-     "uses": 2845
+     "uses": 2862
     },
     {
      "id": "dualwingbeat",
      "name": "Dual Wingbeat",
-     "uses": 2784
+     "uses": 2826
     },
     {
      "id": "flipturn",
      "name": "Flip Turn",
-     "uses": 2658
+     "uses": 2681
     },
     {
      "id": "direclaw",
      "name": "Dire Claw",
-     "uses": 2300
+     "uses": 2331
     },
     {
      "id": "icepunch",
      "name": "Ice Punch",
-     "uses": 2200
+     "uses": 2221
     },
     {
      "id": "highhorsepower",
      "name": "High Horsepower",
-     "uses": 2193
+     "uses": 2216
     },
     {
      "id": "darkestlariat",
      "name": "Darkest Lariat",
-     "uses": 1896
+     "uses": 1920
     },
     {
      "id": "quickattack",
      "name": "Quick Attack",
-     "uses": 1889
+     "uses": 1913
     },
     {
      "id": "psychicfangs",
      "name": "Psychic Fangs",
-     "uses": 1753
+     "uses": 1763
     },
     {
      "id": "spiritbreak",
      "name": "Spirit Break",
-     "uses": 1471
+     "uses": 1492
     },
     {
      "id": "playrough",
      "name": "Play Rough",
-     "uses": 1303
+     "uses": 1309
     },
     {
      "id": "poisonjab",
      "name": "Poison Jab",
-     "uses": 1274
+     "uses": 1297
     },
     {
      "id": "uturn",
      "name": "U-turn",
-     "uses": 1099
+     "uses": 1113
     },
     {
      "id": "drainpunch",
      "name": "Drain Punch",
-     "uses": 940
+     "uses": 947
     },
     {
      "id": "extremespeed",
      "name": "Extreme Speed",
-     "uses": 918
+     "uses": 935
     },
     {
      "id": "bodypress",
      "name": "Body Press",
-     "uses": 884
+     "uses": 895
     },
     {
      "id": "bulletpunch",
      "name": "Bullet Punch",
-     "uses": 836
+     "uses": 845
     },
     {
      "id": "liquidation",
      "name": "Liquidation",
-     "uses": 796
+     "uses": 798
     },
     {
      "id": "foulplay",
      "name": "Foul Play",
-     "uses": 760
+     "uses": 761
     },
     {
      "id": "rocktomb",
      "name": "Rock Tomb",
-     "uses": 714
+     "uses": 731
     },
     {
      "id": "icefang",
      "name": "Ice Fang",
-     "uses": 666
+     "uses": 673
     },
     {
      "id": "iceshard",
      "name": "Ice Shard",
-     "uses": 630
+     "uses": 635
     },
     {
      "id": "superfang",
@@ -5647,42 +5674,47 @@
     {
      "id": "shadowsneak",
      "name": "Shadow Sneak",
-     "uses": 579
+     "uses": 585
     },
     {
      "id": "tripleaxel",
      "name": "Triple Axel",
-     "uses": 539
+     "uses": 543
     },
     {
      "id": "headsmash",
      "name": "Head Smash",
-     "uses": 477
+     "uses": 488
     },
     {
      "id": "ragefist",
      "name": "Rage Fist",
-     "uses": 462
+     "uses": 464
     },
     {
      "id": "accelerock",
      "name": "Accelerock",
-     "uses": 430
+     "uses": 453
     },
     {
      "id": "brickbreak",
      "name": "Brick Break",
-     "uses": 428
+     "uses": 433
     },
     {
      "id": "phantomforce",
      "name": "Phantom Force",
-     "uses": 399
+     "uses": 406
     },
     {
      "id": "superpower",
      "name": "Superpower",
-     "uses": 394
+     "uses": 404
+    },
+    {
+     "id": "populationbomb",
+     "name": "Population Bomb",
+     "uses": 392
     },
     {
      "id": "meteormash",
@@ -5690,34 +5722,29 @@
      "uses": 387
     },
     {
-     "id": "populationbomb",
-     "name": "Population Bomb",
-     "uses": 387
+     "id": "feint",
+     "name": "Feint",
+     "uses": 381
     },
     {
      "id": "bitterblade",
      "name": "Bitter Blade",
-     "uses": 378
-    },
-    {
-     "id": "feint",
-     "name": "Feint",
-     "uses": 375
-    },
-    {
-     "id": "crunch",
-     "name": "Crunch",
-     "uses": 352
+     "uses": 380
     },
     {
      "id": "gunkshot",
      "name": "Gunk Shot",
-     "uses": 349
+     "uses": 358
+    },
+    {
+     "id": "crunch",
+     "name": "Crunch",
+     "uses": 356
     },
     {
      "id": "iciclecrash",
      "name": "Icicle Crash",
-     "uses": 338
+     "uses": 340
     },
     {
      "id": "waterfall",
@@ -5727,7 +5754,7 @@
     {
      "id": "beatup",
      "name": "Beat Up",
-     "uses": 290
+     "uses": 292
     },
     {
      "id": "poltergeist",
@@ -5737,27 +5764,27 @@
     {
      "id": "thunderpunch",
      "name": "Thunder Punch",
-     "uses": 284
+     "uses": 285
     },
     {
      "id": "psychocut",
      "name": "Psycho Cut",
-     "uses": 276
+     "uses": 279
     },
     {
      "id": "doubleedge",
      "name": "Double-Edge",
-     "uses": 275
+     "uses": 277
     },
     {
      "id": "sacredsword",
      "name": "Sacred Sword",
-     "uses": 229
+     "uses": 231
     },
     {
      "id": "heavyslam",
      "name": "Heavy Slam",
-     "uses": 227
+     "uses": 230
     },
     {
      "id": "flowertrick",
@@ -5765,24 +5792,24 @@
      "uses": 219
     },
     {
+     "id": "volttackle",
+     "name": "Volt Tackle",
+     "uses": 211
+    },
+    {
      "id": "bugbite",
      "name": "Bug Bite",
      "uses": 208
     },
     {
-     "id": "volttackle",
-     "name": "Volt Tackle",
+     "id": "powerwhip",
+     "name": "Power Whip",
      "uses": 208
     },
     {
      "id": "gigatonhammer",
      "name": "Gigaton Hammer",
-     "uses": 197
-    },
-    {
-     "id": "powerwhip",
-     "name": "Power Whip",
-     "uses": 197
+     "uses": 199
     },
     {
      "id": "hammerarm",
@@ -5790,14 +5817,14 @@
      "uses": 192
     },
     {
-     "id": "lastresort",
-     "name": "Last Resort",
-     "uses": 174
-    },
-    {
      "id": "tropkick",
      "name": "Trop Kick",
-     "uses": 173
+     "uses": 175
+    },
+    {
+     "id": "lastresort",
+     "name": "Last Resort",
+     "uses": 175
     },
     {
      "id": "leafblade",
@@ -5825,29 +5852,29 @@
      "uses": 142
     },
     {
+     "id": "highjumpkick",
+     "name": "High Jump Kick",
+     "uses": 139
+    },
+    {
      "id": "nuzzle",
      "name": "Nuzzle",
-     "uses": 138
+     "uses": 139
     },
     {
      "id": "leechlife",
      "name": "Leech Life",
-     "uses": 133
+     "uses": 136
     },
     {
      "id": "blazekick",
      "name": "Blaze Kick",
-     "uses": 128
-    },
-    {
-     "id": "highjumpkick",
-     "name": "High Jump Kick",
-     "uses": 128
+     "uses": 130
     },
     {
      "id": "bodyslam",
      "name": "Body Slam",
-     "uses": 119
+     "uses": 120
     },
     {
      "id": "shadowclaw",
@@ -5875,14 +5902,14 @@
      "uses": 96
     },
     {
+     "id": "endeavor",
+     "name": "Endeavor",
+     "uses": 96
+    },
+    {
      "id": "wildcharge",
      "name": "Wild Charge",
      "uses": 95
-    },
-    {
-     "id": "endeavor",
-     "name": "Endeavor",
-     "uses": 94
     },
     {
      "id": "triplearrows",
@@ -5962,17 +5989,17 @@
     {
      "id": "hardpress",
      "name": "Hard Press",
-     "uses": 52
+     "uses": 53
+    },
+    {
+     "id": "facade",
+     "name": "Facade",
+     "uses": 49
     },
     {
      "id": "headlongrush",
      "name": "Headlong Rush",
      "uses": 49
-    },
-    {
-     "id": "facade",
-     "name": "Facade",
-     "uses": 48
     },
     {
      "id": "ceaselessedge",
@@ -6002,7 +6029,7 @@
     {
      "id": "saltcure",
      "name": "Salt Cure",
-     "uses": 41
+     "uses": 42
     },
     {
      "id": "aquacutter",
@@ -6017,12 +6044,12 @@
     {
      "id": "mortalspin",
      "name": "Mortal Spin",
-     "uses": 35
+     "uses": 36
     },
     {
      "id": "seedbomb",
      "name": "Seed Bomb",
-     "uses": 35
+     "uses": 36
     },
     {
      "id": "assurance",
@@ -6052,6 +6079,16 @@
     {
      "id": "gigaimpact",
      "name": "Giga Impact",
+     "uses": 32
+    },
+    {
+     "id": "dragonrush",
+     "name": "Dragon Rush",
+     "uses": 30
+    },
+    {
+     "id": "fling",
+     "name": "Fling",
      "uses": 29
     },
     {
@@ -6065,33 +6102,23 @@
      "uses": 28
     },
     {
-     "id": "dragonrush",
-     "name": "Dragon Rush",
-     "uses": 28
-    },
-    {
-     "id": "fling",
-     "name": "Fling",
-     "uses": 28
-    },
-    {
      "id": "firefang",
      "name": "Fire Fang",
      "uses": 27
     },
     {
-     "id": "aurawheel",
-     "name": "Aura Wheel",
-     "uses": 25
+     "id": "megahorn",
+     "name": "Megahorn",
+     "uses": 27
     },
     {
      "id": "bite",
      "name": "Bite",
-     "uses": 25
+     "uses": 26
     },
     {
-     "id": "megahorn",
-     "name": "Megahorn",
+     "id": "aurawheel",
+     "name": "Aura Wheel",
      "uses": 25
     },
     {
@@ -6155,14 +6182,14 @@
      "uses": 15
     },
     {
+     "id": "gravapple",
+     "name": "Grav Apple",
+     "uses": 14
+    },
+    {
      "id": "avalanche",
      "name": "Avalanche",
      "uses": 13
-    },
-    {
-     "id": "gravapple",
-     "name": "Grav Apple",
-     "uses": 12
     },
     {
      "id": "dynamicpunch",
@@ -6376,8 +6403,8 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 148717,
-   "reactorUses": 1077
+   "moveUses": 150372,
+   "reactorUses": 1094
   },
   "specialMove": {
    "note": "a special move",
@@ -6404,222 +6431,222 @@
     {
      "id": "weatherball",
      "name": "Weather Ball",
-     "uses": 7249
+     "uses": 7315
     },
     {
      "id": "heatwave",
      "name": "Heat Wave",
-     "uses": 7000
+     "uses": 7085
     },
     {
      "id": "moonblast",
      "name": "Moonblast",
-     "uses": 6955
+     "uses": 7039
     },
     {
      "id": "shadowball",
      "name": "Shadow Ball",
-     "uses": 5368
+     "uses": 5443
     },
     {
      "id": "matchagotcha",
      "name": "Matcha Gotcha",
-     "uses": 5109
+     "uses": 5170
     },
     {
      "id": "earthpower",
      "name": "Earth Power",
-     "uses": 4220
+     "uses": 4264
     },
     {
      "id": "solarbeam",
      "name": "Solar Beam",
-     "uses": 4122
+     "uses": 4150
     },
     {
      "id": "hypervoice",
      "name": "Hyper Voice",
-     "uses": 3866
+     "uses": 3901
     },
     {
      "id": "sludgebomb",
      "name": "Sludge Bomb",
-     "uses": 3552
+     "uses": 3591
     },
     {
      "id": "dazzlinggleam",
      "name": "Dazzling Gleam",
-     "uses": 3457
+     "uses": 3492
     },
     {
      "id": "psychic",
      "name": "Psychic",
-     "uses": 3265
+     "uses": 3314
     },
     {
      "id": "hurricane",
      "name": "Hurricane",
-     "uses": 3208
+     "uses": 3251
     },
     {
      "id": "thunderbolt",
      "name": "Thunderbolt",
-     "uses": 2882
+     "uses": 2909
     },
     {
      "id": "dragonpulse",
      "name": "Dragon Pulse",
-     "uses": 2867
+     "uses": 2885
     },
     {
      "id": "flashcannon",
      "name": "Flash Cannon",
-     "uses": 2519
+     "uses": 2544
     },
     {
      "id": "blizzard",
      "name": "Blizzard",
-     "uses": 2491
+     "uses": 2518
     },
     {
      "id": "electroshot",
      "name": "Electro Shot",
-     "uses": 2313
+     "uses": 2338
     },
     {
      "id": "makeitrain",
      "name": "Make It Rain",
-     "uses": 2301
+     "uses": 2334
     },
     {
      "id": "focusblast",
      "name": "Focus Blast",
-     "uses": 1845
+     "uses": 1868
     },
     {
      "id": "zapcannon",
      "name": "Zap Cannon",
-     "uses": 1746
+     "uses": 1767
     },
     {
      "id": "dracometeor",
      "name": "Draco Meteor",
-     "uses": 1724
+     "uses": 1739
     },
     {
      "id": "hyperbeam",
      "name": "Hyper Beam",
-     "uses": 1627
+     "uses": 1650
     },
     {
      "id": "icywind",
      "name": "Icy Wind",
-     "uses": 1597
+     "uses": 1614
     },
     {
      "id": "darkpulse",
      "name": "Dark Pulse",
-     "uses": 1585
+     "uses": 1605
     },
     {
      "id": "powergem",
      "name": "Power Gem",
-     "uses": 1425
+     "uses": 1450
     },
     {
      "id": "voltswitch",
      "name": "Volt Switch",
-     "uses": 1388
+     "uses": 1396
     },
     {
      "id": "lightofruin",
      "name": "Light of Ruin",
-     "uses": 1342
+     "uses": 1359
     },
     {
      "id": "scald",
      "name": "Scald",
-     "uses": 1296
-    },
-    {
-     "id": "freezedry",
-     "name": "Freeze-Dry",
-     "uses": 1286
+     "uses": 1313
     },
     {
      "id": "gigadrain",
      "name": "Giga Drain",
-     "uses": 1286
+     "uses": 1302
+    },
+    {
+     "id": "freezedry",
+     "name": "Freeze-Dry",
+     "uses": 1293
     },
     {
      "id": "overheat",
      "name": "Overheat",
-     "uses": 1209
+     "uses": 1221
     },
     {
      "id": "aurasphere",
      "name": "Aura Sphere",
-     "uses": 1200
+     "uses": 1220
     },
     {
      "id": "hydropump",
      "name": "Hydro Pump",
-     "uses": 1099
+     "uses": 1106
     },
     {
      "id": "icebeam",
      "name": "Ice Beam",
-     "uses": 1073
-    },
-    {
-     "id": "eruption",
-     "name": "Eruption",
-     "uses": 851
+     "uses": 1088
     },
     {
      "id": "drainingkiss",
      "name": "Draining Kiss",
-     "uses": 847
+     "uses": 865
+    },
+    {
+     "id": "eruption",
+     "name": "Eruption",
+     "uses": 858
     },
     {
      "id": "snarl",
      "name": "Snarl",
-     "uses": 815
+     "uses": 822
     },
     {
      "id": "infestation",
      "name": "Infestation",
-     "uses": 761
+     "uses": 769
     },
     {
      "id": "flamethrower",
      "name": "Flamethrower",
-     "uses": 756
+     "uses": 764
     },
     {
      "id": "psyshock",
      "name": "Psyshock",
-     "uses": 752
+     "uses": 761
     },
     {
      "id": "muddywater",
      "name": "Muddy Water",
-     "uses": 738
+     "uses": 746
     },
     {
      "id": "energyball",
      "name": "Energy Ball",
-     "uses": 693
+     "uses": 696
     },
     {
      "id": "twinbeam",
      "name": "Twin Beam",
-     "uses": 689
+     "uses": 693
     },
     {
      "id": "leafstorm",
      "name": "Leaf Storm",
-     "uses": 629
+     "uses": 638
     },
     {
      "id": "clangingscales",
@@ -6629,22 +6656,22 @@
     {
      "id": "waterspout",
      "name": "Water Spout",
-     "uses": 598
+     "uses": 613
     },
     {
      "id": "electroweb",
      "name": "Electroweb",
-     "uses": 555
+     "uses": 566
     },
     {
      "id": "ancientpower",
      "name": "Ancient Power",
-     "uses": 547
+     "uses": 548
     },
     {
      "id": "discharge",
      "name": "Discharge",
-     "uses": 521
+     "uses": 523
     },
     {
      "id": "grassknot",
@@ -6654,22 +6681,22 @@
     {
      "id": "vacuumwave",
      "name": "Vacuum Wave",
-     "uses": 298
+     "uses": 299
     },
     {
      "id": "finalgambit",
      "name": "Final Gambit",
-     "uses": 262
+     "uses": 268
     },
     {
      "id": "thunder",
      "name": "Thunder",
-     "uses": 251
+     "uses": 252
     },
     {
      "id": "airslash",
      "name": "Air Slash",
-     "uses": 228
+     "uses": 234
     },
     {
      "id": "psychicnoise",
@@ -6684,12 +6711,12 @@
     {
      "id": "scorchingsands",
      "name": "Scorching Sands",
-     "uses": 153
+     "uses": 155
     },
     {
      "id": "alluringvoice",
      "name": "Alluring Voice",
-     "uses": 138
+     "uses": 139
     },
     {
      "id": "surf",
@@ -6699,12 +6726,12 @@
     {
      "id": "sludgewave",
      "name": "Sludge Wave",
-     "uses": 118
+     "uses": 120
     },
     {
      "id": "bittermalice",
      "name": "Bitter Malice",
-     "uses": 115
+     "uses": 117
     },
     {
      "id": "risingvoltage",
@@ -6714,7 +6741,12 @@
     {
      "id": "mysticalfire",
      "name": "Mystical Fire",
-     "uses": 109
+     "uses": 110
+    },
+    {
+     "id": "hex",
+     "name": "Hex",
+     "uses": 104
     },
     {
      "id": "paraboliccharge",
@@ -6722,19 +6754,14 @@
      "uses": 103
     },
     {
-     "id": "hex",
-     "name": "Hex",
-     "uses": 101
-    },
-    {
      "id": "pollenpuff",
      "name": "Pollen Puff",
-     "uses": 99
+     "uses": 103
     },
     {
      "id": "luminacrash",
      "name": "Lumina Crash",
-     "uses": 88
+     "uses": 90
     },
     {
      "id": "strugglebug",
@@ -6742,14 +6769,14 @@
      "uses": 81
     },
     {
+     "id": "waterpulse",
+     "name": "Water Pulse",
+     "uses": 70
+    },
+    {
      "id": "acidspray",
      "name": "Acid Spray",
      "uses": 69
-    },
-    {
-     "id": "waterpulse",
-     "name": "Water Pulse",
-     "uses": 68
     },
     {
      "id": "fierydance",
@@ -6762,6 +6789,16 @@
      "uses": 55
     },
     {
+     "id": "burningjealousy",
+     "name": "Burning Jealousy",
+     "uses": 53
+    },
+    {
+     "id": "fireblast",
+     "name": "Fire Blast",
+     "uses": 53
+    },
+    {
      "id": "round",
      "name": "Round",
      "uses": 53
@@ -6772,19 +6809,9 @@
      "uses": 53
     },
     {
-     "id": "burningjealousy",
-     "name": "Burning Jealousy",
-     "uses": 51
-    },
-    {
-     "id": "fireblast",
-     "name": "Fire Blast",
-     "uses": 50
-    },
-    {
      "id": "chillingwater",
      "name": "Chilling Water",
-     "uses": 49
+     "uses": 50
     },
     {
      "id": "extrasensory",
@@ -6802,18 +6829,18 @@
      "uses": 40
     },
     {
-     "id": "armorcannon",
-     "name": "Armor Cannon",
-     "uses": 37
-    },
-    {
      "id": "steelbeam",
      "name": "Steel Beam",
-     "uses": 37
+     "uses": 39
     },
     {
      "id": "torchsong",
      "name": "Torch Song",
+     "uses": 39
+    },
+    {
+     "id": "armorcannon",
+     "name": "Armor Cannon",
      "uses": 37
     },
     {
@@ -6993,7 +7020,7 @@
     }
    ],
    "reactorMoves": [],
-   "moveUses": 110124,
+   "moveUses": 111339,
    "reactorUses": 25
   },
   "emptyItemSlot": {
@@ -7020,32 +7047,32 @@
     {
      "id": "blaze",
      "name": "Blaze",
-     "uses": 4811
+     "uses": 4867
     },
     {
      "id": "pixilate",
      "name": "Pixilate",
-     "uses": 2245
+     "uses": 2270
     },
     {
      "id": "lightningrod",
      "name": "Lightning Rod",
-     "uses": 1964
+     "uses": 1987
     },
     {
      "id": "torrent",
      "name": "Torrent",
-     "uses": 1551
+     "uses": 1571
     },
     {
      "id": "flashfire",
      "name": "Flash Fire",
-     "uses": 589
+     "uses": 592
     },
     {
      "id": "overgrow",
      "name": "Overgrow",
-     "uses": 549
+     "uses": 554
     },
     {
      "id": "waterbubble",
@@ -7065,12 +7092,12 @@
     {
      "id": "voltabsorb",
      "name": "Volt Absorb",
-     "uses": 73
+     "uses": 74
     },
     {
      "id": "purifyingsalt",
      "name": "Purifying Salt",
-     "uses": 50
+     "uses": 51
     },
     {
      "id": "justified",
@@ -7078,14 +7105,14 @@
      "uses": 46
     },
     {
+     "id": "eartheater",
+     "name": "Earth Eater",
+     "uses": 45
+    },
+    {
      "id": "swarm",
      "name": "Swarm",
      "uses": 44
-    },
-    {
-     "id": "eartheater",
-     "name": "Earth Eater",
-     "uses": 41
     },
     {
      "id": "sapsipper",
@@ -7105,7 +7132,7 @@
     {
      "id": "sandforce",
      "name": "Sand Force",
-     "uses": 18
+     "uses": 20
     },
     {
      "id": "heatproof",
@@ -7118,14 +7145,14 @@
      "uses": 4
     },
     {
-     "id": "stormdrain",
-     "name": "Storm Drain",
+     "id": "refrigerate",
+     "name": "Refrigerate",
      "uses": 3
     },
     {
-     "id": "refrigerate",
-     "name": "Refrigerate",
-     "uses": 2
+     "id": "stormdrain",
+     "name": "Storm Drain",
+     "uses": 3
     },
     {
      "id": "steelyspirit",
@@ -7192,57 +7219,57 @@
     {
      "id": "fairyfeather",
      "name": "Fairy Feather",
-     "uses": 2378
+     "uses": 2407
     },
     {
      "id": "chopleberry",
      "name": "Chople Berry",
-     "uses": 2299
+     "uses": 2316
     },
     {
      "id": "blackglasses",
      "name": "Black Glasses",
-     "uses": 2263
+     "uses": 2291
     },
     {
      "id": "colburberry",
      "name": "Colbur Berry",
-     "uses": 2205
+     "uses": 2229
     },
     {
      "id": "kasibberry",
      "name": "Kasib Berry",
-     "uses": 1529
+     "uses": 1549
     },
     {
      "id": "mysticwater",
      "name": "Mystic Water",
-     "uses": 1434
+     "uses": 1450
     },
     {
      "id": "occaberry",
      "name": "Occa Berry",
-     "uses": 1274
+     "uses": 1300
     },
     {
      "id": "charcoal",
      "name": "Charcoal",
-     "uses": 1013
+     "uses": 1020
     },
     {
      "id": "passhoberry",
      "name": "Passho Berry",
-     "uses": 781
+     "uses": 783
     },
     {
      "id": "nevermeltice",
      "name": "Never-Melt Ice",
-     "uses": 721
+     "uses": 724
     },
     {
      "id": "roseliberry",
      "name": "Roseli Berry",
-     "uses": 682
+     "uses": 686
     },
     {
      "id": "cobaberry",
@@ -7252,17 +7279,17 @@
     {
      "id": "sharpbeak",
      "name": "Sharp Beak",
-     "uses": 467
+     "uses": 473
     },
     {
      "id": "shucaberry",
      "name": "Shuca Berry",
-     "uses": 370
+     "uses": 371
     },
     {
      "id": "metalcoat",
      "name": "Metal Coat",
-     "uses": 285
+     "uses": 288
     },
     {
      "id": "silkscarf",
@@ -7280,19 +7307,19 @@
      "uses": 145
     },
     {
+     "id": "magnet",
+     "name": "Magnet",
+     "uses": 130
+    },
+    {
      "id": "spelltag",
      "name": "Spell Tag",
      "uses": 129
     },
     {
-     "id": "magnet",
-     "name": "Magnet",
-     "uses": 128
-    },
-    {
      "id": "ironball",
      "name": "Iron Ball",
-     "uses": 108
+     "uses": 110
     },
     {
      "id": "softsand",
@@ -7322,7 +7349,7 @@
     {
      "id": "wacanberry",
      "name": "Wacan Berry",
-     "uses": 57
+     "uses": 60
     },
     {
      "id": "chartiberry",
@@ -7330,14 +7357,14 @@
      "uses": 44
     },
     {
-     "id": "rindoberry",
-     "name": "Rindo Berry",
+     "id": "kebiaberry",
+     "name": "Kebia Berry",
      "uses": 43
     },
     {
-     "id": "kebiaberry",
-     "name": "Kebia Berry",
-     "uses": 40
+     "id": "rindoberry",
+     "name": "Rindo Berry",
+     "uses": 43
     },
     {
      "id": "twistedspoon",
@@ -7347,12 +7374,12 @@
     {
      "id": "hardstone",
      "name": "Hard Stone",
-     "uses": 29
+     "uses": 30
     },
     {
      "id": "poisonbarb",
      "name": "Poison Barb",
-     "uses": 11
+     "uses": 12
     },
     {
      "id": "payapaberry",
@@ -7388,13 +7415,13 @@
      "uses": 11
     },
     {
-     "id": "grassyterrain",
-     "name": "Grassy Terrain",
-     "uses": 8
-    },
-    {
      "id": "mistyterrain",
      "name": "Misty Terrain",
+     "uses": 9
+    },
+    {
+     "id": "grassyterrain",
+     "name": "Grassy Terrain",
      "uses": 8
     },
     {
@@ -7404,7 +7431,7 @@
     }
    ],
    "moveUses": 0,
-   "reactorUses": 32362
+   "reactorUses": 32702
   }
  },
  "moves": {
@@ -7447,7 +7474,7 @@
     "inflictsPoison",
     "statusInflict"
    ],
-   "uses": 744,
+   "uses": 752,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -7685,7 +7712,7 @@
     "moveClass",
     "proceduralStatus"
    ],
-   "uses": 2300,
+   "uses": 2331,
    "params": {
     "contact": {
      "contact": true
@@ -7743,7 +7770,7 @@
     "contact",
     "moveClass"
    ],
-   "uses": 5935,
+   "uses": 6011,
    "params": {
     "contact": {
      "contact": true
@@ -7791,7 +7818,7 @@
     "locksTarget",
     "statusInflict"
    ],
-   "uses": 4595,
+   "uses": 4635,
    "params": {
     "sealsMoves": {
      "turns": 3,
@@ -7828,7 +7855,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 12620,
+   "uses": 12760,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -7905,7 +7932,7 @@
    "tags": [
     "overridesEffectiveness"
    ],
-   "uses": 1286,
+   "uses": 1293,
    "params": {
     "overridesEffectiveness": {
      "overrides": true,
@@ -7922,7 +7949,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 12,
+   "uses": 14,
    "params": {
     "conditionalPower": {
      "conditional": true
@@ -8066,7 +8093,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 7007,
+   "uses": 7095,
    "params": {
     "contact": {
      "contact": true
@@ -8095,7 +8122,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 183,
+   "uses": 186,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -8133,7 +8160,7 @@
    "tags": [
     "recoil"
    ],
-   "uses": 1342,
+   "uses": 1359,
    "params": {
     "recoil": {
      "readFrom": "m.recoil"
@@ -8147,7 +8174,7 @@
     "lowersUser",
     "statChange"
    ],
-   "uses": 2301,
+   "uses": 2334,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -8176,7 +8203,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 6955,
+   "uses": 7039,
    "params": {
     "secondaryStatEffect": {
      "p": 0.1,
@@ -8306,7 +8333,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 70442,
+   "uses": 71244,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -8373,7 +8400,7 @@
     "contact",
     "moveClass"
    ],
-   "uses": 462,
+   "uses": 464,
    "params": {
     "needsUntrackedState": {
      "needs": "times hit -- NOT TRACKED"
@@ -8398,7 +8425,7 @@
     "perTurnHP",
     "statusInflict"
    ],
-   "uses": 41,
+   "uses": 42,
    "params": {
     "perTurnHP": {
      "effect": "damage",
@@ -8533,7 +8560,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 940,
+   "uses": 954,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -8723,7 +8750,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 173,
+   "uses": 175,
    "params": {
     "contact": {
      "contact": true
@@ -8754,7 +8781,7 @@
     "priority",
     "contact"
    ],
-   "uses": 430,
+   "uses": 453,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -8905,7 +8932,7 @@
     "ignoresProtect",
     "statusCategory"
    ],
-   "uses": 150,
+   "uses": 151,
    "params": {
     "reordersTurn": {
      "sends": "next"
@@ -8987,7 +9014,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 228,
+   "uses": 234,
    "params": {
     "moveClass": {
      "classes": [
@@ -9014,7 +9041,7 @@
     "punishesBoostedTarget",
     "sound"
    ],
-   "uses": 138,
+   "uses": 139,
    "params": {
     "punishesBoostedTarget": {
      "onlyIfTargetBoostedThisTurn": true
@@ -9031,7 +9058,7 @@
     "neverMisses",
     "statusCategory"
    ],
-   "uses": 162,
+   "uses": 165,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -9086,7 +9113,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 547,
+   "uses": 548,
    "params": {
     "secondaryStatEffect": {
      "p": 0.1,
@@ -9140,7 +9167,7 @@
     "priority",
     "contact"
    ],
-   "uses": 4731,
+   "uses": 4773,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -9347,7 +9374,7 @@
     "moveClass",
     "neverMissesAttack"
    ],
-   "uses": 1200,
+   "uses": 1220,
    "params": {
     "moveClass": {
      "classes": [
@@ -9396,7 +9423,7 @@
     "failsWithoutWeather",
     "statusCategory"
    ],
-   "uses": 1245,
+   "uses": 1262,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -9479,7 +9506,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 62,
+   "uses": 64,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -9544,7 +9571,7 @@
     "passesState",
     "statusCategory"
    ],
-   "uses": 107,
+   "uses": 109,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -9563,7 +9590,7 @@
    "tags": [
     "variablePower"
    ],
-   "uses": 290,
+   "uses": 292,
    "params": {
     "variablePower": {
      "computed": true,
@@ -9578,7 +9605,7 @@
     "statChangeInCode",
     "statusCategory"
    ],
-   "uses": 84,
+   "uses": 87,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -9632,7 +9659,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 25,
+   "uses": 26,
    "params": {
     "contact": {
      "contact": true
@@ -9663,7 +9690,7 @@
     "moveClass",
     "drain"
    ],
-   "uses": 378,
+   "uses": 380,
    "params": {
     "contact": {
      "contact": true
@@ -9686,7 +9713,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 115,
+   "uses": 117,
    "params": {
     "secondaryStatEffect": {
      "p": 1,
@@ -9728,7 +9755,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 128,
+   "uses": 130,
    "params": {
     "critRatioUp": {
      "critRatio": 2
@@ -9760,7 +9787,7 @@
     "inflictsFreeze",
     "statusInflict"
    ],
-   "uses": 2491,
+   "uses": 2518,
    "params": {
     "weatherScaled": {
      "byWeather": {
@@ -9827,7 +9854,7 @@
     "contact",
     "statSwap"
    ],
-   "uses": 884,
+   "uses": 895,
    "params": {
     "swapsStat": {
      "offensiveStat": "def",
@@ -9849,7 +9876,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 119,
+   "uses": 120,
    "params": {
     "contact": {
      "contact": true
@@ -9927,7 +9954,7 @@
     "contact",
     "recoil"
    ],
-   "uses": 3674,
+   "uses": 3721,
    "params": {
     "contact": {
      "contact": true
@@ -9980,7 +10007,7 @@
     "clearsScreens",
     "contact"
    ],
-   "uses": 428,
+   "uses": 433,
    "params": {
     "clearsScreens": {
      "clears": "screens"
@@ -10069,7 +10096,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 850,
+   "uses": 856,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -10136,7 +10163,7 @@
     "contact",
     "moveClass"
    ],
-   "uses": 836,
+   "uses": 845,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -10182,7 +10209,7 @@
     "punishesBoostedTarget",
     "spreadFoes"
    ],
-   "uses": 51,
+   "uses": 53,
    "params": {
     "punishesBoostedTarget": {
      "onlyIfTargetBoostedThisTurn": true
@@ -10201,7 +10228,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 1935,
+   "uses": 1961,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -10326,7 +10353,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 1252,
+   "uses": 1269,
    "params": {
     "moveClass": {
      "classes": [
@@ -10359,7 +10386,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 49,
+   "uses": 50,
    "params": {
     "secondaryStatEffect": {
      "p": 1,
@@ -10477,7 +10504,7 @@
     "lowersUser",
     "statChange"
    ],
-   "uses": 9093,
+   "uses": 9237,
    "params": {
     "contact": {
      "contact": true
@@ -10508,7 +10535,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 780,
+   "uses": 784,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -10545,7 +10572,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 510,
+   "uses": 512,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -10866,7 +10893,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 352,
+   "uses": 356,
    "params": {
     "contact": {
      "contact": true
@@ -10905,7 +10932,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 110,
+   "uses": 112,
    "params": {
     "perTurnHP": {
      "effect": "damage",
@@ -10944,7 +10971,7 @@
     "contact",
     "ignoresBoosts"
    ],
-   "uses": 1896,
+   "uses": 1920,
    "params": {
     "ignoresStatStages": {
      "ignores": "target defensive stages"
@@ -10964,7 +10991,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 1585,
+   "uses": 1605,
    "params": {
     "moveClass": {
      "classes": [
@@ -10990,7 +11017,7 @@
    "tags": [
     "spreadFoes"
    ],
-   "uses": 3457,
+   "uses": 3492,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -11007,7 +11034,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 33,
+   "uses": 34,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -11081,7 +11108,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 73,
+   "uses": 74,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -11110,7 +11137,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 1968,
+   "uses": 1985,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -11166,7 +11193,7 @@
     "locksTarget",
     "statusInflict"
    ],
-   "uses": 695,
+   "uses": 698,
    "params": {
     "sealsMoves": {
      "turns": 5,
@@ -11202,7 +11229,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 521,
+   "uses": 523,
    "params": {
     "spreadAll": {
      "target": "allAdjacent",
@@ -11249,7 +11276,7 @@
     "contact",
     "recoil"
    ],
-   "uses": 275,
+   "uses": 277,
    "params": {
     "contact": {
      "contact": true
@@ -11322,7 +11349,7 @@
     "lowersUser",
     "statChange"
    ],
-   "uses": 1724,
+   "uses": 1739,
    "params": {
     "lowersUser": {
      "readFrom": "m.self.boosts",
@@ -11349,7 +11376,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 594,
+   "uses": 599,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -11396,7 +11423,7 @@
    "tags": [
     "moveClass"
    ],
-   "uses": 2867,
+   "uses": 2885,
    "params": {
     "moveClass": {
      "classes": [
@@ -11412,7 +11439,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 28,
+   "uses": 30,
    "params": {
     "contact": {
      "contact": true
@@ -11458,7 +11485,7 @@
     "contact",
     "drain"
    ],
-   "uses": 847,
+   "uses": 865,
    "params": {
     "contact": {
      "contact": true
@@ -11477,7 +11504,7 @@
     "moveClass",
     "drain"
    ],
-   "uses": 940,
+   "uses": 947,
    "params": {
     "contact": {
      "contact": true
@@ -11528,7 +11555,7 @@
     "multiHit",
     "contact"
    ],
-   "uses": 2784,
+   "uses": 2826,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
@@ -11579,7 +11606,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 4220,
+   "uses": 4264,
    "params": {
     "secondaryStatEffect": {
      "p": 0.1,
@@ -11606,7 +11633,7 @@
    "tags": [
     "spreadAll"
    ],
-   "uses": 6991,
+   "uses": 7060,
    "params": {
     "spreadAll": {
      "target": "allAdjacent",
@@ -11712,7 +11739,7 @@
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
-   "uses": 2313,
+   "uses": 2338,
    "params": {
     "weatherScaled": {
      "byWeather": {
@@ -11739,7 +11766,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 555,
+   "uses": 566,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -11771,7 +11798,7 @@
     "fixedDamage",
     "contact"
    ],
-   "uses": 94,
+   "uses": 96,
    "params": {
     "fixedDamage": {
      "source": "targetDownToMine",
@@ -11826,7 +11853,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 693,
+   "uses": 696,
    "params": {
     "moveClass": {
      "classes": [
@@ -11877,7 +11904,7 @@
     "variablePower",
     "spreadFoes"
    ],
-   "uses": 851,
+   "uses": 858,
    "params": {
     "variablePower": {
      "kind": "userHPFrac"
@@ -11951,7 +11978,7 @@
     "priority",
     "contact"
    ],
-   "uses": 918,
+   "uses": 935,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -11968,7 +11995,7 @@
     "conditionalPower",
     "contact"
    ],
-   "uses": 48,
+   "uses": 49,
    "params": {
     "conditionalPower": {
      "conditional": true
@@ -12007,7 +12034,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 500,
+   "uses": 506,
    "params": {
     "moveClass": {
      "classes": [
@@ -12075,7 +12102,7 @@
     "priority",
     "ignoresProtect"
    ],
-   "uses": 375,
+   "uses": 381,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -12144,7 +12171,7 @@
     "fixedDamage",
     "userFaints"
    ],
-   "uses": 262,
+   "uses": 268,
    "params": {
     "fixedDamage": {
      "source": "myRemainingHP",
@@ -12162,7 +12189,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 50,
+   "uses": 53,
    "params": {
     "inflictsBurn": {
      "p": 0.1,
@@ -12350,7 +12377,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 756,
+   "uses": 764,
    "params": {
     "inflictsBurn": {
      "p": 0.1,
@@ -12376,7 +12403,7 @@
     "recoil",
     "statusInflict"
    ],
-   "uses": 6555,
+   "uses": 6613,
    "params": {
     "contact": {
      "contact": true
@@ -12408,7 +12435,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 2519,
+   "uses": 2544,
    "params": {
     "secondaryStatEffect": {
      "p": 0.1,
@@ -12484,7 +12511,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 28,
+   "uses": 29,
    "params": {}
   },
   "flipturn": {
@@ -12493,7 +12520,7 @@
     "contact",
     "pivotDamaging"
    ],
-   "uses": 2658,
+   "uses": 2681,
    "params": {
     "contact": {
      "contact": true
@@ -12563,7 +12590,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 1845,
+   "uses": 1868,
    "params": {
     "moveClass": {
      "classes": [
@@ -12653,7 +12680,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 1403,
+   "uses": 1417,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -12709,7 +12736,7 @@
     "swapsStat",
     "contact"
    ],
-   "uses": 760,
+   "uses": 761,
    "params": {
     "swapsStat": {
      "offensiveStat": null,
@@ -12764,7 +12791,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 3,
+   "uses": 5,
    "params": {
     "moveClass": {
      "classes": [
@@ -12790,7 +12817,7 @@
    "tags": [
     "drain"
    ],
-   "uses": 1286,
+   "uses": 1302,
    "params": {
     "drain": {
      "readFrom": "m.drain",
@@ -12805,7 +12832,7 @@
     "contact",
     "recharge"
    ],
-   "uses": 29,
+   "uses": 32,
    "params": {
     "contact": {
      "contact": true
@@ -12820,7 +12847,7 @@
    "tags": [
     "cantUseTwice"
    ],
-   "uses": 197,
+   "uses": 199,
    "params": {
     "cantUseTwice": {
      "lockoutTurns": 1,
@@ -12836,7 +12863,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 28,
+   "uses": 30,
    "params": {
     "moveClass": {
      "classes": [
@@ -12959,7 +12986,7 @@
     "accuracyMod",
     "statusCategory"
    ],
-   "uses": 75,
+   "uses": 79,
    "params": {
     "sealsMoves": {
      "turns": 5,
@@ -13049,7 +13076,7 @@
     "inflictsPoison",
     "statusInflict"
    ],
-   "uses": 349,
+   "uses": 358,
    "params": {
     "inflictsPoison": {
      "p": 0.3,
@@ -13134,7 +13161,7 @@
     "variablePower",
     "contact"
    ],
-   "uses": 52,
+   "uses": 53,
    "params": {
     "variablePower": {
      "computed": true,
@@ -13152,7 +13179,7 @@
     "clearsBoosts",
     "statusCategory"
    ],
-   "uses": 552,
+   "uses": 556,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -13208,7 +13235,7 @@
     "contact",
     "recoil"
    ],
-   "uses": 477,
+   "uses": 488,
    "params": {
     "contact": {
      "contact": true
@@ -13272,7 +13299,7 @@
     "statusCategory",
     "healsAlly"
    ],
-   "uses": 93,
+   "uses": 99,
    "params": {
     "moveClass": {
      "classes": [
@@ -13343,7 +13370,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 7000,
+   "uses": 7085,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -13376,7 +13403,7 @@
     "weightBased",
     "contact"
    ],
-   "uses": 227,
+   "uses": 230,
    "params": {
     "variablePower": {
      "kind": "weightRatio",
@@ -13420,7 +13447,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 3455,
+   "uses": 3485,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -13449,7 +13476,7 @@
    "tags": [
     "variablePower"
    ],
-   "uses": 101,
+   "uses": 104,
    "params": {
     "variablePower": {
      "kind": "targetStatused",
@@ -13462,7 +13489,7 @@
    "tags": [
     "contact"
    ],
-   "uses": 2193,
+   "uses": 2216,
    "params": {
     "contact": {
      "contact": true
@@ -13475,7 +13502,7 @@
     "crashOnMiss",
     "contact"
    ],
-   "uses": 128,
+   "uses": 139,
    "params": {
     "crashOnMiss": {
      "fraction": 0.5
@@ -13533,7 +13560,7 @@
     "inflictsConfusion",
     "statusInflict"
    ],
-   "uses": 3208,
+   "uses": 3251,
    "params": {
     "weatherScaled": {
      "byWeather": {
@@ -13581,7 +13608,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 1099,
+   "uses": 1106,
    "params": {}
   },
   "hyperbeam": {
@@ -13589,7 +13616,7 @@
    "tags": [
     "recharge"
    ],
-   "uses": 1627,
+   "uses": 1650,
    "params": {
     "recharge": {
      "recharge": true
@@ -13602,7 +13629,7 @@
     "spreadFoes",
     "sound"
    ],
-   "uses": 3866,
+   "uses": 3901,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -13621,7 +13648,7 @@
     "inflictsSleep",
     "statusInflict"
    ],
-   "uses": 501,
+   "uses": 505,
    "params": {
     "moveClass": {
      "classes": [
@@ -13652,7 +13679,7 @@
     "inflictsFreeze",
     "statusInflict"
    ],
-   "uses": 1073,
+   "uses": 1088,
    "params": {
     "inflictsFreeze": {
      "p": 0.1,
@@ -13678,7 +13705,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 666,
+   "uses": 673,
    "params": {
     "contact": {
      "contact": true
@@ -13754,7 +13781,7 @@
     "inflictsFreeze",
     "statusInflict"
    ],
-   "uses": 2200,
+   "uses": 2221,
    "params": {
     "contact": {
      "contact": true
@@ -13784,7 +13811,7 @@
    "tags": [
     "priority"
    ],
-   "uses": 630,
+   "uses": 635,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -13810,7 +13837,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 338,
+   "uses": 340,
    "params": {
     "statusInflict": {
      "effects": [
@@ -13852,7 +13879,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 1597,
+   "uses": 1614,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -13946,7 +13973,7 @@
     "contact",
     "statusInflict"
    ],
-   "uses": 761,
+   "uses": 769,
    "params": {
     "partialTrap": {
      "turns": "4-5",
@@ -14036,7 +14063,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 236,
+   "uses": 241,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -14127,7 +14154,7 @@
     "contact",
     "removesItem"
    ],
-   "uses": 2900,
+   "uses": 2940,
    "params": {
     "variablePower": {
      "kind": "targetHasItem",
@@ -14160,7 +14187,7 @@
     "moveClass",
     "neverMissesAttack"
    ],
-   "uses": 5380,
+   "uses": 5441,
    "params": {
     "contact": {
      "contact": true
@@ -14196,7 +14223,7 @@
    "tags": [
     "contact"
    ],
-   "uses": 174,
+   "uses": 175,
    "params": {
     "contact": {
      "contact": true
@@ -14210,7 +14237,7 @@
     "needsUntrackedState",
     "variablePower"
    ],
-   "uses": 4719,
+   "uses": 4755,
    "params": {
     "powerFromFallen": {
      "base": 50,
@@ -14282,7 +14309,7 @@
     "lowersUser",
     "statChange"
    ],
-   "uses": 629,
+   "uses": 638,
    "params": {
     "lowersUser": {
      "readFrom": "m.self.boosts",
@@ -14307,7 +14334,7 @@
     "contact",
     "drain"
    ],
-   "uses": 133,
+   "uses": 136,
    "params": {
     "contact": {
      "contact": true
@@ -14327,7 +14354,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 344,
+   "uses": 350,
    "params": {
     "perTurnHP": {
      "effect": "drain",
@@ -14365,7 +14392,7 @@
     "healsSelf",
     "healsAlly"
    ],
-   "uses": 2290,
+   "uses": 2311,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -14395,7 +14422,7 @@
     "halvesDamage",
     "statusCategory"
    ],
-   "uses": 3348,
+   "uses": 3375,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -14417,7 +14444,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 796,
+   "uses": 798,
    "params": {
     "contact": {
      "contact": true
@@ -14466,7 +14493,7 @@
     "weightBased",
     "contact"
    ],
-   "uses": 3509,
+   "uses": 3553,
    "params": {
     "variablePower": {
      "kind": "targetWeightKg",
@@ -14544,7 +14571,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 88,
+   "uses": 90,
    "params": {
     "secondaryStatEffect": {
      "p": 1,
@@ -14726,7 +14753,7 @@
     "drain",
     "statusInflict"
    ],
-   "uses": 5109,
+   "uses": 5170,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -14787,7 +14814,7 @@
    "tags": [
     "contact"
    ],
-   "uses": 25,
+   "uses": 27,
    "params": {
     "contact": {
      "contact": true
@@ -14867,7 +14894,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 2,
+   "uses": 3,
    "params": {
     "moveClass": {
      "classes": [
@@ -15055,7 +15082,7 @@
     "setsTerrain",
     "statusCategory"
    ],
-   "uses": 8,
+   "uses": 9,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -15153,7 +15180,7 @@
     "inflictsPoison",
     "statusInflict"
    ],
-   "uses": 35,
+   "uses": 36,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -15184,7 +15211,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 738,
+   "uses": 746,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -15272,7 +15299,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 109,
+   "uses": 110,
    "params": {
     "secondaryStatEffect": {
      "p": 1,
@@ -15302,7 +15329,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 3043,
+   "uses": 3095,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -15436,7 +15463,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 138,
+   "uses": 139,
    "params": {
     "contact": {
      "contact": true
@@ -15474,7 +15501,7 @@
     "lowersUser",
     "statChange"
    ],
-   "uses": 1209,
+   "uses": 1221,
    "params": {
     "lowersUser": {
      "readFrom": "m.self.boosts",
@@ -15539,7 +15566,7 @@
     "lowersTarget",
     "statusCategory"
    ],
-   "uses": 7184,
+   "uses": 7246,
    "params": {
     "moveClass": {
      "classes": [
@@ -15598,7 +15625,7 @@
     "statusCategory",
     "perishClock"
    ],
-   "uses": 985,
+   "uses": 992,
    "params": {
     "sound": {
      "sound": true
@@ -15654,7 +15681,7 @@
     "chargeTurn",
     "semiInvulnerable"
    ],
-   "uses": 399,
+   "uses": 406,
    "params": {
     "contact": {
      "contact": true
@@ -15695,7 +15722,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 1303,
+   "uses": 1309,
    "params": {
     "contact": {
      "contact": true
@@ -15782,7 +15809,7 @@
     "inflictsPoison",
     "statusInflict"
    ],
-   "uses": 1274,
+   "uses": 1297,
    "params": {
     "contact": {
      "contact": true
@@ -15845,7 +15872,7 @@
     "dualPurpose",
     "moveClass"
    ],
-   "uses": 99,
+   "uses": 103,
    "params": {
     "dualPurpose": {
      "atFoe": "90 BP attack",
@@ -15879,7 +15906,7 @@
     "contact",
     "moveClass"
    ],
-   "uses": 387,
+   "uses": 392,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
@@ -15950,7 +15977,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 1425,
+   "uses": 1450,
    "params": {}
   },
   "powersplit": {
@@ -16045,7 +16072,7 @@
    "tags": [
     "contact"
    ],
-   "uses": 197,
+   "uses": 208,
    "params": {
     "contact": {
      "contact": true
@@ -16058,7 +16085,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 3265,
+   "uses": 3314,
    "params": {
     "secondaryStatEffect": {
      "p": 0.1,
@@ -16087,7 +16114,7 @@
     "contact",
     "moveClass"
    ],
-   "uses": 1753,
+   "uses": 1763,
    "params": {
     "clearsScreens": {
      "clears": "screens"
@@ -16155,7 +16182,7 @@
     "critRatioUp",
     "moveClass"
    ],
-   "uses": 276,
+   "uses": 279,
    "params": {
     "critRatioUp": {
      "critRatio": 2
@@ -16198,7 +16225,7 @@
     "swapsStat",
     "statSwap"
    ],
-   "uses": 752,
+   "uses": 761,
    "params": {
     "swapsStat": {
      "offensiveStat": null,
@@ -16216,7 +16243,7 @@
     "reordersTurn",
     "statusCategory"
    ],
-   "uses": 154,
+   "uses": 156,
    "params": {
     "reordersTurn": {
      "sends": "last"
@@ -16232,7 +16259,7 @@
     "priority",
     "contact"
    ],
-   "uses": 1889,
+   "uses": 1913,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -16251,7 +16278,7 @@
     "oneTurnGuard",
     "statusCategory"
    ],
-   "uses": 691,
+   "uses": 706,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -16315,7 +16342,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 6065,
+   "uses": 6148,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -16467,7 +16494,7 @@
     "statusCategory",
     "healsSelf"
    ],
-   "uses": 591,
+   "uses": 600,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -16508,7 +16535,7 @@
     "halvesDamage",
     "statusCategory"
    ],
-   "uses": 2664,
+   "uses": 2685,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -16613,7 +16640,7 @@
     "forcesSwitch",
     "statusCategory"
    ],
-   "uses": 405,
+   "uses": 409,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -16707,7 +16734,7 @@
     "statusInflict",
     "flinches"
    ],
-   "uses": 11635,
+   "uses": 11772,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -16733,7 +16760,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 714,
+   "uses": 731,
    "params": {
     "secondaryStatEffect": {
      "p": 1,
@@ -16801,7 +16828,7 @@
     "statusCategory",
     "healsSelf"
    ],
-   "uses": 2056,
+   "uses": 2087,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -16843,7 +16870,7 @@
     "moveClass",
     "ignoresBoosts"
    ],
-   "uses": 229,
+   "uses": 231,
    "params": {
     "ignoresStatStages": {
      "ignores": "target defensive stages"
@@ -16912,7 +16939,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 1296,
+   "uses": 1313,
    "params": {
     "thawsTarget": {
      "thaws": true
@@ -17004,7 +17031,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 153,
+   "uses": 155,
    "params": {
     "thawsTarget": {
      "thaws": true
@@ -17068,7 +17095,7 @@
    "tags": [
     "moveClass"
    ],
-   "uses": 35,
+   "uses": 36,
    "params": {
     "moveClass": {
      "classes": [
@@ -17118,7 +17145,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 5368,
+   "uses": 5443,
    "params": {
     "moveClass": {
      "classes": [
@@ -17173,7 +17200,7 @@
     "priority",
     "contact"
    ],
-   "uses": 579,
+   "uses": 585,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -17194,7 +17221,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 60,
+   "uses": 61,
    "params": {
     "costsUserHP": {
      "costsFraction": 0.5,
@@ -17279,7 +17306,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 419,
+   "uses": 427,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -17409,7 +17436,7 @@
     "neverMisses",
     "statusCategory"
    ],
-   "uses": 97,
+   "uses": 98,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -17515,7 +17542,7 @@
     "inflictsSleep",
     "statusInflict"
    ],
-   "uses": 1299,
+   "uses": 1316,
    "params": {
     "powder": {
      "powder": true
@@ -17567,7 +17594,7 @@
     "inflictsPoison",
     "statusInflict"
    ],
-   "uses": 3552,
+   "uses": 3591,
    "params": {
     "moveClass": {
      "classes": [
@@ -17596,7 +17623,7 @@
     "inflictsPoison",
     "statusInflict"
    ],
-   "uses": 118,
+   "uses": 120,
    "params": {
     "spreadAll": {
      "target": "allAdjacent",
@@ -17659,7 +17686,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 815,
+   "uses": 822,
    "params": {
     "spreadFoes": {
      "target": "allAdjacentFoes",
@@ -17769,7 +17796,7 @@
     "chargeTurn",
     "chargeSkippedByWeather"
    ],
-   "uses": 4122,
+   "uses": 4150,
    "params": {
     "weatherScaled": {
      "byWeather": {
@@ -17964,7 +17991,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 1471,
+   "uses": 1492,
    "params": {
     "contact": {
      "contact": true
@@ -18089,7 +18116,7 @@
    "tags": [
     "recoil"
    ],
-   "uses": 37,
+   "uses": 39,
    "params": {
     "recoil": {
      "fraction": 0.5,
@@ -18201,7 +18228,7 @@
     "variablePower",
     "contact"
    ],
-   "uses": 3122,
+   "uses": 3166,
    "params": {
     "variablePower": {
      "computed": true,
@@ -18264,7 +18291,7 @@
     "statusCategory",
     "healsSelf"
    ],
-   "uses": 634,
+   "uses": 637,
    "params": {
     "moveClass": {
      "classes": [
@@ -18431,7 +18458,7 @@
     "statusCategory",
     "statusInflict"
    ],
-   "uses": 548,
+   "uses": 561,
    "params": {
     "costsUserHP": {
      "costsFraction": 0.25,
@@ -18466,7 +18493,7 @@
     "needsTargetToAttack",
     "failsIfTargetNotAttacking"
    ],
-   "uses": 6673,
+   "uses": 6740,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -18490,7 +18517,7 @@
     "setsWeather",
     "statusCategory"
    ],
-   "uses": 588,
+   "uses": 593,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -18545,7 +18572,7 @@
     "lowersUser",
     "statChange"
    ],
-   "uses": 394,
+   "uses": 404,
    "params": {
     "contact": {
      "contact": true
@@ -18757,7 +18784,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 2177,
+   "uses": 2204,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -18851,7 +18878,7 @@
     "doublesSideSpeed",
     "statusCategory"
    ],
-   "uses": 11312,
+   "uses": 11454,
    "params": {
     "moveClass": {
      "classes": [
@@ -18879,7 +18906,7 @@
     "forbidsStatusMoves",
     "statusInflict"
    ],
-   "uses": 1402,
+   "uses": 1421,
    "params": {
     "sealsMoves": {
      "turns": 3,
@@ -19077,7 +19104,7 @@
     "sealsMoves",
     "contact"
    ],
-   "uses": 2845,
+   "uses": 2862,
    "params": {
     "blocksSoundMoves": {
      "blocks": "sound",
@@ -19100,7 +19127,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 251,
+   "uses": 252,
    "params": {
     "weatherScaled": {
      "byWeather": {
@@ -19133,7 +19160,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 2882,
+   "uses": 2909,
    "params": {
     "inflictsParalysis": {
      "p": 0.1,
@@ -19200,7 +19227,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 284,
+   "uses": 285,
    "params": {
     "contact": {
      "contact": true
@@ -19233,7 +19260,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 375,
+   "uses": 377,
    "params": {
     "moveClass": {
      "classes": [
@@ -19266,7 +19293,7 @@
     "statusCategory",
     "statChange"
    ],
-   "uses": 207,
+   "uses": 208,
    "params": {
     "moveClass": {
      "classes": [
@@ -19301,7 +19328,7 @@
     "statChangeInCode",
     "statusCategory"
    ],
-   "uses": 21,
+   "uses": 22,
    "params": {
     "neverMisses": {
      "pHit": 1,
@@ -19354,7 +19381,7 @@
     "secondaryStatEffect",
     "statChange"
    ],
-   "uses": 37,
+   "uses": 39,
    "params": {
     "sound": {
      "sound": true
@@ -19425,7 +19452,7 @@
     "inflictsToxic",
     "statusInflict"
    ],
-   "uses": 823,
+   "uses": 833,
    "params": {
     "moveClass": {
      "classes": [
@@ -19458,7 +19485,7 @@
     "hazard",
     "statusCategory"
    ],
-   "uses": 29,
+   "uses": 31,
    "params": {
     "moveClass": {
      "classes": [
@@ -19555,7 +19582,7 @@
     "statusCategory",
     "removesItem"
    ],
-   "uses": 341,
+   "uses": 344,
    "params": {
     "takesTargetItem": {
      "consumesAndGainsEffect": false,
@@ -19578,7 +19605,7 @@
     "reversesSpeed",
     "statusCategory"
    ],
-   "uses": 7040,
+   "uses": 7113,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -19650,7 +19677,7 @@
     "multiAccuracy",
     "contact"
    ],
-   "uses": 539,
+   "uses": 543,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
@@ -19676,7 +19703,7 @@
    "tags": [
     "multiHit"
    ],
-   "uses": 689,
+   "uses": 693,
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
@@ -19743,7 +19770,7 @@
     "contact",
     "pivotDamaging"
    ],
-   "uses": 1099,
+   "uses": 1113,
    "params": {
     "contact": {
      "contact": true
@@ -19758,7 +19785,7 @@
    "tags": [
     "priority"
    ],
-   "uses": 298,
+   "uses": 299,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -19783,7 +19810,7 @@
    "tags": [
     "pivotDamaging"
    ],
-   "uses": 1388,
+   "uses": 1396,
    "params": {
     "pivotDamaging": {
      "selfSwitch": true
@@ -19798,7 +19825,7 @@
     "recoil",
     "statusInflict"
    ],
-   "uses": 208,
+   "uses": 211,
    "params": {
     "contact": {
      "contact": true
@@ -19854,7 +19881,7 @@
     "inflictsConfusion",
     "statusInflict"
    ],
-   "uses": 68,
+   "uses": 70,
    "params": {
     "moveClass": {
      "classes": [
@@ -19909,7 +19936,7 @@
     "variablePower",
     "spreadFoes"
    ],
-   "uses": 598,
+   "uses": 613,
    "params": {
     "variablePower": {
      "kind": "userHPFrac"
@@ -19926,7 +19953,7 @@
     "contact",
     "recoil"
    ],
-   "uses": 6091,
+   "uses": 6134,
    "params": {
     "contact": {
      "contact": true
@@ -19942,7 +19969,7 @@
     "weatherScaled",
     "moveClass"
    ],
-   "uses": 7249,
+   "uses": 7315,
    "params": {
     "weatherScaled": {
      "byWeather": {
@@ -20039,7 +20066,7 @@
     "oneTurnGuard",
     "statusCategory"
    ],
-   "uses": 3168,
+   "uses": 3209,
    "params": {
     "priority": {
      "readFrom": "m.priority",
@@ -20081,7 +20108,7 @@
     "inflictsBurn",
     "statusInflict"
    ],
-   "uses": 1698,
+   "uses": 1713,
    "params": {
     "moveClass": {
      "classes": [
@@ -20236,7 +20263,7 @@
     "delayedSleep",
     "statusInflict"
    ],
-   "uses": 795,
+   "uses": 797,
    "params": {
     "moveClass": {
      "classes": [
@@ -20271,7 +20298,7 @@
     "inflictsParalysis",
     "statusInflict"
    ],
-   "uses": 1746,
+   "uses": 1767,
    "params": {
     "moveClass": {
      "classes": [
@@ -20354,7 +20381,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 1305,
+   "uses": 1318,
    "params": {
     "megaStone": {
      "into": {
@@ -20480,7 +20507,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 623,
+   "uses": 638,
    "params": {
     "megaStone": {
      "into": {
@@ -20494,7 +20521,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 454,
+   "uses": 455,
    "params": {
     "megaStone": {
      "into": {
@@ -20536,7 +20563,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 101,
+   "uses": 102,
    "params": {
     "megaStone": {
      "into": {
@@ -20550,7 +20577,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 3790,
+   "uses": 3822,
    "params": {
     "megaStone": {
      "into": {
@@ -20564,7 +20591,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 41,
+   "uses": 42,
    "params": {
     "megaStone": {
      "into": {
@@ -20606,7 +20633,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 60,
+   "uses": 62,
    "params": {
     "megaStone": {
      "into": {
@@ -20620,7 +20647,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 1531,
+   "uses": 1564,
    "params": {
     "megaStone": {
      "into": {
@@ -20676,7 +20703,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 332,
+   "uses": 335,
    "params": {
     "megaStone": {
      "into": {
@@ -20732,7 +20759,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 24,
+   "uses": 25,
    "params": {
     "megaStone": {
      "into": {
@@ -20746,7 +20773,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 2629,
+   "uses": 2664,
    "params": {
     "megaStone": {
      "into": {
@@ -20760,7 +20787,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 827,
+   "uses": 843,
    "params": {
     "megaStone": {
      "into": {
@@ -20788,7 +20815,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 289,
+   "uses": 295,
    "params": {
     "megaStone": {
      "into": {
@@ -20816,7 +20843,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 758,
+   "uses": 767,
    "params": {
     "megaStone": {
      "into": {
@@ -20844,7 +20871,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 355,
+   "uses": 356,
    "params": {
     "megaStone": {
      "into": {
@@ -20928,7 +20955,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 23,
+   "uses": 24,
    "params": {
     "megaStone": {
      "into": {
@@ -20942,7 +20969,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 215,
+   "uses": 217,
    "params": {
     "megaStone": {
      "into": {
@@ -20956,7 +20983,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 119,
+   "uses": 121,
    "params": {
     "megaStone": {
      "into": {
@@ -20970,7 +20997,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 111,
+   "uses": 112,
    "params": {
     "megaStone": {
      "into": {
@@ -21012,7 +21039,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 899,
+   "uses": 900,
    "params": {
     "megaStone": {
      "into": {
@@ -21040,7 +21067,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 186,
+   "uses": 187,
    "params": {
     "megaStone": {
      "into": {
@@ -21069,7 +21096,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 1460,
+   "uses": 1469,
    "params": {
     "megaStone": {
      "into": {
@@ -21083,7 +21110,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 39,
+   "uses": 41,
    "params": {
     "megaStone": {
      "into": {
@@ -21111,7 +21138,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 235,
+   "uses": 236,
    "params": {
     "megaStone": {
      "into": {
@@ -21125,7 +21152,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 292,
+   "uses": 295,
    "params": {
     "megaStone": {
      "into": {
@@ -21139,7 +21166,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 1746,
+   "uses": 1767,
    "params": {
     "megaStone": {
      "into": {
@@ -21167,7 +21194,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 263,
+   "uses": 265,
    "params": {
     "megaStone": {
      "into": {
@@ -21195,7 +21222,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 49,
+   "uses": 51,
    "params": {
     "megaStone": {
      "into": {
@@ -21209,7 +21236,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 518,
+   "uses": 527,
    "params": {
     "megaStone": {
      "into": {
@@ -21292,7 +21319,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 3250,
+   "uses": 3295,
    "params": {
     "megaStone": {
      "into": {
@@ -21320,7 +21347,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 43,
+   "uses": 45,
    "params": {
     "megaStone": {
      "into": {
@@ -21334,7 +21361,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 1774,
+   "uses": 1784,
    "params": {
     "megaStone": {
      "into": {
@@ -21348,7 +21375,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 1237,
+   "uses": 1257,
    "params": {
     "megaStone": {
      "into": {
@@ -21362,7 +21389,7 @@
    "tags": [
     "megaStone"
    ],
-   "uses": 598,
+   "uses": 604,
    "params": {
     "megaStone": {
      "into": {
@@ -21390,7 +21417,7 @@
    "tags": [
     "restoresStats"
    ],
-   "uses": 2073,
+   "uses": 2106,
    "params": {
     "restoresStats": {
      "restores": true
@@ -21453,7 +21480,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 2263,
+   "uses": 2291,
    "params": {
     "damageMultType": {
      "onType": "Dark",
@@ -21466,7 +21493,7 @@
    "tags": [
     "accuracyMod"
    ],
-   "uses": 194,
+   "uses": 195,
    "params": {
     "accuracyMod": {
      "accuracy": true
@@ -21478,7 +21505,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 1013,
+   "uses": 1020,
    "params": {
     "damageMultType": {
      "onType": "Fire",
@@ -21552,7 +21579,7 @@
     "choiceLock",
     "speedMult"
    ],
-   "uses": 6065,
+   "uses": 6141,
    "params": {
     "choiceLock": {
      "choice": true
@@ -21567,7 +21594,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 2299,
+   "uses": 2316,
    "params": {
     "resistBerry": {
      "onType": "Fighting",
@@ -21597,7 +21624,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 2205,
+   "uses": 2229,
    "params": {
     "resistBerry": {
      "onType": "Dark",
@@ -21612,7 +21639,7 @@
    "tags": [
     "extendsDuration"
    ],
-   "uses": 269,
+   "uses": 272,
    "params": {
     "extendsDuration": {
      "extends": [
@@ -21641,7 +21668,7 @@
    "tags": [
     "boostsSuperEffective"
    ],
-   "uses": 617,
+   "uses": 636,
    "params": {
     "boostsSuperEffective": {
      "mult": 1.2,
@@ -21654,7 +21681,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 2378,
+   "uses": 2407,
    "params": {
     "damageMultType": {
      "onType": "Fairy",
@@ -21675,7 +21702,7 @@
    "tags": [
     "survivesFromFull"
    ],
-   "uses": 12836,
+   "uses": 12987,
    "params": {
     "survivesFromFull": {
      "leavesHP": 1,
@@ -21705,7 +21732,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 29,
+   "uses": 30,
    "params": {
     "damageMultType": {
      "onType": "Rock",
@@ -21718,7 +21745,7 @@
    "tags": [
     "extendsDuration"
    ],
-   "uses": 78,
+   "uses": 81,
    "params": {
     "extendsDuration": {
      "extends": [
@@ -21734,7 +21761,7 @@
    "tags": [
     "extendsDuration"
    ],
-   "uses": 14,
+   "uses": 15,
    "params": {
     "extendsDuration": {
      "extends": [
@@ -21751,7 +21778,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 108,
+   "uses": 110,
    "params": {}
   },
   "kasibberry": {
@@ -21759,7 +21786,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 1529,
+   "uses": 1549,
    "params": {
     "resistBerry": {
      "onType": "Ghost",
@@ -21774,7 +21801,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 40,
+   "uses": 43,
    "params": {
     "resistBerry": {
      "onType": "Poison",
@@ -21789,7 +21816,7 @@
    "tags": [
     "addsFlinch"
    ],
-   "uses": 81,
+   "uses": 83,
    "params": {
     "addsFlinch": {
      "pFlinch": 0.1
@@ -21801,7 +21828,7 @@
    "tags": [
     "passiveHeal"
    ],
-   "uses": 6643,
+   "uses": 6728,
    "params": {
     "passiveHeal": {
      "heal": 0.0625
@@ -21821,7 +21848,7 @@
    "tags": [
     "damageMultAll"
    ],
-   "uses": 10571,
+   "uses": 10671,
    "params": {
     "damageMultAll": {
      "mult": 1.3,
@@ -21842,7 +21869,7 @@
    "tags": [
     "extendsDuration"
    ],
-   "uses": 2672,
+   "uses": 2694,
    "params": {
     "extendsDuration": {
      "extends": [
@@ -21873,7 +21900,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 128,
+   "uses": 130,
    "params": {
     "damageMultType": {
      "onType": "Electric",
@@ -21886,7 +21913,7 @@
    "tags": [
     "curesVolatile"
    ],
-   "uses": 684,
+   "uses": 690,
    "params": {
     "curesVolatile": {
      "oneShot": true,
@@ -21906,7 +21933,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 285,
+   "uses": 288,
    "params": {
     "damageMultType": {
      "onType": "Steel",
@@ -21948,7 +21975,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 1434,
+   "uses": 1450,
    "params": {
     "damageMultType": {
      "onType": "Water",
@@ -21961,7 +21988,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 721,
+   "uses": 724,
    "params": {
     "damageMultType": {
      "onType": "Ice",
@@ -21974,7 +22001,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 1274,
+   "uses": 1300,
    "params": {
     "resistBerry": {
      "onType": "Fire",
@@ -22003,7 +22030,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 781,
+   "uses": 783,
    "params": {
     "resistBerry": {
      "onType": "Water",
@@ -22049,7 +22076,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 11,
+   "uses": 12,
    "params": {
     "damageMultType": {
      "onType": "Poison",
@@ -22104,7 +22131,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 682,
+   "uses": 686,
    "params": {
     "resistBerry": {
      "onType": "Fairy",
@@ -22119,7 +22146,7 @@
    "tags": [
     "critRatioUp"
    ],
-   "uses": 107,
+   "uses": 108,
    "params": {
     "critRatioUp": {
      "critRatio": 2
@@ -22131,7 +22158,7 @@
    "tags": [
     "damageMultType"
    ],
-   "uses": 467,
+   "uses": 473,
    "params": {
     "damageMultType": {
      "onType": "Flying",
@@ -22144,7 +22171,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 33,
+   "uses": 35,
    "params": {}
   },
   "shucaberry": {
@@ -22152,7 +22179,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 370,
+   "uses": 371,
    "params": {
     "resistBerry": {
      "onType": "Ground",
@@ -22193,7 +22220,7 @@
    "tags": [
     "healsAtThreshold"
    ],
-   "uses": 11486,
+   "uses": 11620,
    "params": {
     "healsAtThreshold": {
      "triggersBelow": "1/2",
@@ -22264,7 +22291,7 @@
    "tags": [
     "resistBerry"
    ],
-   "uses": 57,
+   "uses": 60,
    "params": {
     "resistBerry": {
      "onType": "Electric",
@@ -22279,7 +22306,7 @@
    "tags": [
     "accuracyMod"
    ],
-   "uses": 671,
+   "uses": 689,
    "params": {
     "accuracyMod": {
      "accuracy": true
@@ -22337,7 +22364,7 @@
     "preventsCrit",
     "formeChange"
    ],
-   "uses": 115,
+   "uses": 117,
    "params": {
     "preventsCrit": {
      "pCrit": 0
@@ -22457,7 +22484,7 @@
    "tags": [
     "healsOnSwitchOut"
    ],
-   "uses": 891,
+   "uses": 900,
    "params": {
     "healsOnSwitchOut": {
      "heal": 0.3333333333333333
@@ -22504,7 +22531,7 @@
    "tags": [
     "stabBoost"
    ],
-   "uses": 4433,
+   "uses": 4468,
    "params": {
     "stabBoost": {
      "stab": 2
@@ -22559,6 +22586,18 @@
      "trigger": "contact",
      "inflicts": null,
      "fraction": "4"
+    }
+   }
+  },
+  "airlock": {
+   "name": "Air Lock",
+   "tags": [
+    "weatherSuppression"
+   ],
+   "uses": 0,
+   "params": {
+    "weatherSuppression": {
+     "suppresses": true
     }
    }
   },
@@ -22622,7 +22661,7 @@
    "tags": [
     "blocksMove"
    ],
-   "uses": 2729,
+   "uses": 2759,
    "params": {
     "blocksMove": {
      "what": "priority",
@@ -22635,7 +22674,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 38,
+   "uses": 43,
    "params": {}
   },
   "asoneglastrier": {
@@ -22707,7 +22746,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 4811,
+   "uses": 4867,
    "params": {
     "damageBoost": {
      "mult": 1.5,
@@ -22723,7 +22762,7 @@
    "tags": [
     "immuneToMoveClass"
    ],
-   "uses": 85,
+   "uses": 86,
    "params": {
     "immuneToMoveClass": {
      "blocksFlag": "bullet"
@@ -22743,7 +22782,7 @@
    "tags": [
     "speedCond"
    ],
-   "uses": 1968,
+   "uses": 1985,
    "params": {
     "speedCond": {
      "inWeather": [
@@ -22759,7 +22798,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 1690,
+   "uses": 1699,
    "params": {
     "preventsStatDrop": {
      "blocks": "all stats",
@@ -22771,10 +22810,14 @@
   "cloudnine": {
    "name": "Cloud Nine",
    "tags": [
-    "untagged"
+    "weatherSuppression"
    ],
-   "uses": 155,
-   "params": {}
+   "uses": 157,
+   "params": {
+    "weatherSuppression": {
+     "suppresses": true
+    }
+   }
   },
   "comatose": {
    "name": "Comatose",
@@ -22793,7 +22836,7 @@
    "tags": [
     "boostsWhenLowered"
    ],
-   "uses": 1621,
+   "uses": 1642,
    "params": {
     "boostsWhenLowered": {
      "retaliates": true
@@ -22806,7 +22849,7 @@
     "writesAccuracy",
     "accuracyMod"
    ],
-   "uses": 378,
+   "uses": 387,
    "params": {
     "writesAccuracy": {
      "setsTo": null,
@@ -22823,7 +22866,7 @@
    "tags": [
     "invertsBoosts"
    ],
-   "uses": 190,
+   "uses": 193,
    "params": {
     "invertsBoosts": {
      "inverts": true
@@ -22835,7 +22878,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 20,
+   "uses": 22,
    "params": {}
   },
   "cudchew": {
@@ -22860,7 +22903,7 @@
     "disablesAttacker",
     "punishesAttacker"
    ],
-   "uses": 1342,
+   "uses": 1354,
    "params": {
     "disablesAttacker": {
      "disables": true,
@@ -22890,7 +22933,7 @@
     "punishesAttacker",
     "contactPunish"
    ],
-   "uses": 68,
+   "uses": 70,
    "params": {
     "punishesAttacker": {
      "compounds": false,
@@ -22975,7 +23018,7 @@
    "tags": [
     "boostsWhenLowered"
    ],
-   "uses": 6252,
+   "uses": 6323,
    "params": {
     "boostsWhenLowered": {
      "retaliates": true
@@ -23039,7 +23082,7 @@
    "tags": [
     "weatherSetter"
    ],
-   "uses": 3075,
+   "uses": 3109,
    "params": {
     "weatherSetter": {
      "weather": "rain"
@@ -23051,7 +23094,7 @@
    "tags": [
     "weatherSetter"
    ],
-   "uses": 899,
+   "uses": 909,
    "params": {
     "weatherSetter": {
      "weather": "sun"
@@ -23095,7 +23138,7 @@
    "tags": [
     "typeImmunity"
    ],
-   "uses": 41,
+   "uses": 45,
    "params": {
     "typeImmunity": {
      "immune": true,
@@ -23220,7 +23263,7 @@
     "punishesAttacker",
     "contactPunish"
    ],
-   "uses": 235,
+   "uses": 238,
    "params": {
     "punishesAttacker": {
      "compounds": false,
@@ -23273,7 +23316,7 @@
    "tags": [
     "typeImmunity"
    ],
-   "uses": 589,
+   "uses": 592,
    "params": {
     "typeImmunity": {
      "immune": true,
@@ -23290,7 +23333,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 2640,
+   "uses": 2675,
    "params": {
     "preventsStatDrop": {
      "blocks": "all stats",
@@ -23328,7 +23371,7 @@
    "tags": [
     "reducesAllyDamage"
    ],
-   "uses": 894,
+   "uses": 895,
    "params": {
     "reducesAllyDamage": {
      "mult": 0.75
@@ -23370,7 +23413,7 @@
    "tags": [
     "priorityMod"
    ],
-   "uses": 758,
+   "uses": 765,
    "params": {
     "priorityMod": {
      "movesOfClass": "flying",
@@ -23417,7 +23460,7 @@
     "blocksStatusMoves",
     "blocksMove"
    ],
-   "uses": 2319,
+   "uses": 2352,
    "params": {
     "refusesStatusMoves": {
      "refuses": true
@@ -23612,7 +23655,7 @@
    "tags": [
     "healsAllyOnSwitchIn"
    ],
-   "uses": 5145,
+   "uses": 5206,
    "params": {
     "healsAllyOnSwitchIn": {
      "heals": true
@@ -23624,7 +23667,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 108,
+   "uses": 114,
    "params": {
     "damageBoost": {
      "mult": 2,
@@ -23650,7 +23693,7 @@
     "damageBoost",
     "accuracyMod"
    ],
-   "uses": 12,
+   "uses": 14,
    "params": {
     "writesAccuracy": {
      "setsTo": null,
@@ -23682,7 +23725,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 555,
+   "uses": 557,
    "params": {
     "preventsStatDrop": {
      "blocks": "atk",
@@ -23750,7 +23793,7 @@
    "tags": [
     "formeChange"
    ],
-   "uses": 200,
+   "uses": 202,
    "params": {
     "formeChange": {
      "changes": true
@@ -23813,7 +23856,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 741,
+   "uses": 748,
    "params": {
     "preventsStatDrop": {
      "blocks": "atk",
@@ -23827,7 +23870,7 @@
    "tags": [
     "statusImmune"
    ],
-   "uses": 53,
+   "uses": 55,
    "params": {
     "statusImmune": {
      "immune": true
@@ -23839,7 +23882,7 @@
    "tags": [
     "onSwitchInDrop"
    ],
-   "uses": 10299,
+   "uses": 10398,
    "params": {
     "onSwitchInDrop": {
      "drop": true
@@ -23916,7 +23959,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 38,
+   "uses": 40,
    "params": {
     "preventsStatDrop": {
      "blocks": "accuracy",
@@ -23930,7 +23973,7 @@
    "tags": [
     "statusImmune"
    ],
-   "uses": 79,
+   "uses": 80,
    "params": {
     "statusImmune": {
      "immune": true
@@ -23942,7 +23985,7 @@
    "tags": [
     "typeImmunity"
    ],
-   "uses": 2494,
+   "uses": 2518,
    "params": {
     "typeImmunity": {
      "immune": true,
@@ -23977,7 +24020,7 @@
     "typeImmunity",
     "redirectsType"
    ],
-   "uses": 1964,
+   "uses": 1987,
    "params": {
     "typeImmunity": {
      "immune": true,
@@ -24009,10 +24052,16 @@
   "lingeringaroma": {
    "name": "Lingering Aroma",
    "tags": [
+    "rewritesAbilityOnContact",
     "contactPunish"
    ],
    "uses": 0,
    "params": {
+    "rewritesAbilityOnContact": {
+     "mode": "infect",
+     "becomes": "lingeringaroma",
+     "trigger": "contact"
+    },
     "contactPunish": {
      "trigger": "contact",
      "inflicts": null,
@@ -24026,7 +24075,7 @@
     "convertsMoveType",
     "convertsMoveType"
    ],
-   "uses": 346,
+   "uses": 352,
    "params": {
     "convertsMoveType": {
      "converts": "sound moves",
@@ -24067,7 +24116,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 79,
+   "uses": 80,
    "params": {}
   },
   "magician": {
@@ -24075,7 +24124,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 170,
+   "uses": 173,
    "params": {}
   },
   "magmaarmor": {
@@ -24190,7 +24239,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 390,
+   "uses": 401,
    "params": {
     "preventsStatDrop": {
      "blocks": "all stats",
@@ -24216,7 +24265,7 @@
    "tags": [
     "ignoresDefenderAbility"
    ],
-   "uses": 224,
+   "uses": 226,
    "params": {
     "ignoresDefenderAbility": {
      "ignoresDefAbility": true
@@ -24229,7 +24278,7 @@
     "randomBoostEachTurn",
     "boostsEachTurn"
    ],
-   "uses": 450,
+   "uses": 459,
    "params": {
     "randomBoostEachTurn": {
      "randomStat": true,
@@ -24273,7 +24322,7 @@
    "tags": [
     "damageReduce"
    ],
-   "uses": 480,
+   "uses": 481,
    "params": {
     "damageReduce": {
      "damageMult": 0.5,
@@ -24284,10 +24333,16 @@
   "mummy": {
    "name": "Mummy",
    "tags": [
+    "rewritesAbilityOnContact",
     "contactPunish"
    ],
    "uses": 41,
    "params": {
+    "rewritesAbilityOnContact": {
+     "mode": "infect",
+     "becomes": "mummy",
+     "trigger": "contact"
+    },
     "contactPunish": {
      "trigger": "contact",
      "inflicts": null,
@@ -24337,7 +24392,7 @@
    "tags": [
     "preventsStatDrop"
    ],
-   "uses": 472,
+   "uses": 474,
    "params": {
     "preventsStatDrop": {
      "blocks": "atk",
@@ -24406,7 +24461,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 549,
+   "uses": 554,
    "params": {
     "damageBoost": {
      "mult": 1.5,
@@ -24498,7 +24553,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 57,
+   "uses": 58,
    "params": {}
   },
   "pickup": {
@@ -24522,7 +24577,7 @@
     "convertsMoveType",
     "damageBoost"
    ],
-   "uses": 2245,
+   "uses": 2270,
    "params": {
     "convertsMoveType": {
      "converts": "Normal moves",
@@ -24605,7 +24660,7 @@
    "tags": [
     "poisonsOnMyContact"
    ],
-   "uses": 985,
+   "uses": 1003,
    "params": {
     "poisonsOnMyContact": {
      "p": 0.3,
@@ -24630,7 +24685,7 @@
    "tags": [
     "priorityMod"
    ],
-   "uses": 7122,
+   "uses": 7193,
    "params": {
     "priorityMod": {
      "movesOfClass": "status",
@@ -24727,7 +24782,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 17,
+   "uses": 20,
    "params": {
     "damageBoost": {
      "mult": 2,
@@ -24744,7 +24799,7 @@
     "halvesTypeDamage",
     "statusImmune"
    ],
-   "uses": 50,
+   "uses": 51,
    "params": {
     "halvesTypeDamage": {
      "types": [
@@ -24762,7 +24817,7 @@
    "tags": [
     "blocksMove"
    ],
-   "uses": 352,
+   "uses": 365,
    "params": {
     "blocksMove": {
      "what": "priority",
@@ -24796,7 +24851,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 417,
+   "uses": 423,
    "params": {}
   },
   "rattled": {
@@ -24838,7 +24893,7 @@
     "convertsMoveType",
     "damageBoost"
    ],
-   "uses": 2,
+   "uses": 3,
    "params": {
     "convertsMoveType": {
      "converts": "Normal moves",
@@ -24876,7 +24931,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 21,
+   "uses": 22,
    "params": {
     "damageBoost": {
      "mult": 1.25,
@@ -24892,7 +24947,7 @@
    "tags": [
     "noRecoil"
    ],
-   "uses": 784,
+   "uses": 801,
    "params": {
     "noRecoil": {
      "recoil": 0
@@ -24921,7 +24976,7 @@
     "punishesAttacker",
     "contactPunish"
    ],
-   "uses": 5796,
+   "uses": 5865,
    "params": {
     "punishesAttacker": {
      "compounds": false,
@@ -24949,7 +25004,7 @@
     "damageBoost",
     "weatherChipImmune"
    ],
-   "uses": 18,
+   "uses": 20,
    "params": {
     "damageBoost": {
      "mult": 1.3,
@@ -24974,7 +25029,7 @@
     "speedCond",
     "weatherChipImmune"
    ],
-   "uses": 1114,
+   "uses": 1133,
    "params": {
     "speedCond": {
      "inWeather": [
@@ -25017,7 +25072,7 @@
    "tags": [
     "weatherSetter"
    ],
-   "uses": 1716,
+   "uses": 1745,
    "params": {
     "weatherSetter": {
      "weather": "sand"
@@ -25031,7 +25086,7 @@
     "accuracyMod",
     "weatherChipImmune"
    ],
-   "uses": 261,
+   "uses": 267,
    "params": {
     "writesAccuracy": {
      "setsTo": null,
@@ -25086,7 +25141,7 @@
     "preventsStatDrop",
     "ignoresTypeImmunity"
    ],
-   "uses": 482,
+   "uses": 483,
    "params": {
     "preventsStatDrop": {
      "blocks": "atk",
@@ -25287,7 +25342,7 @@
    "tags": [
     "speedCond"
    ],
-   "uses": 16,
+   "uses": 17,
    "params": {
     "speedCond": {
      "inWeather": [
@@ -25317,7 +25372,7 @@
     "accuracyMod",
     "weatherChipImmune"
    ],
-   "uses": 321,
+   "uses": 335,
    "params": {
     "writesAccuracy": {
      "setsTo": null,
@@ -25340,7 +25395,7 @@
    "tags": [
     "weatherSetter"
    ],
-   "uses": 1561,
+   "uses": 1569,
    "params": {
     "weatherSetter": {
      "weather": "snow"
@@ -25352,7 +25407,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 674,
+   "uses": 681,
    "params": {
     "damageBoost": {
      "mult": 1.5,
@@ -25396,7 +25451,7 @@
    "tags": [
     "boostsEachTurn"
    ],
-   "uses": 727,
+   "uses": 733,
    "params": {
     "boostsEachTurn": {
      "perTurn": true,
@@ -25435,7 +25490,7 @@
    "tags": [
     "buffsHolderOnHit"
    ],
-   "uses": 2262,
+   "uses": 2287,
    "params": {
     "buffsHolderOnHit": {
      "compounds": true,
@@ -25451,7 +25506,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 210,
+   "uses": 213,
    "params": {}
   },
   "static": {
@@ -25460,7 +25515,7 @@
     "punishesAttacker",
     "contactPunish"
    ],
-   "uses": 441,
+   "uses": 444,
    "params": {
     "punishesAttacker": {
      "compounds": false,
@@ -25545,7 +25600,7 @@
    "tags": [
     "untagged"
    ],
-   "uses": 4,
+   "uses": 5,
    "params": {}
   },
   "stormdrain": {
@@ -25695,7 +25750,7 @@
    "tags": [
     "speedCond"
    ],
-   "uses": 413,
+   "uses": 414,
    "params": {
     "speedCond": {
      "inWeather": [
@@ -25775,7 +25830,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 556,
+   "uses": 566,
    "params": {
     "damageBoost": {
      "mult": 1.5,
@@ -25872,7 +25927,7 @@
    "tags": [
     "damageBoost"
    ],
-   "uses": 1551,
+   "uses": 1571,
    "params": {
     "damageBoost": {
      "mult": 1.5,
@@ -25889,7 +25944,7 @@
     "boostsMoveClass",
     "damageBoost"
    ],
-   "uses": 457,
+   "uses": 480,
    "params": {
     "boostsMoveClass": {
      "boostsFlag": "contact",
@@ -25938,7 +25993,7 @@
    "tags": [
     "punishesAttacker"
    ],
-   "uses": 954,
+   "uses": 969,
    "params": {
     "punishesAttacker": {
      "compounds": false,
@@ -26010,7 +26065,7 @@
    "tags": [
     "ignoresStatStages"
    ],
-   "uses": 284,
+   "uses": 294,
    "params": {
     "ignoresStatStages": {
      "ignores": "all opposing stages"
@@ -26022,7 +26077,7 @@
    "tags": [
     "speedOnItemLoss"
    ],
-   "uses": 2212,
+   "uses": 2245,
    "params": {
     "speedOnItemLoss": {
      "speedMult": 2
@@ -26034,7 +26089,7 @@
    "tags": [
     "blocksBerries"
    ],
-   "uses": 1949,
+   "uses": 1962,
    "params": {
     "blocksBerries": {
      "blocks": true
@@ -26058,7 +26113,7 @@
    "tags": [
     "typeImmunity"
    ],
-   "uses": 73,
+   "uses": 74,
    "params": {
     "typeImmunity": {
      "immune": true,
@@ -26073,10 +26128,15 @@
   "wanderingspirit": {
    "name": "Wandering Spirit",
    "tags": [
+    "rewritesAbilityOnContact",
     "contactPunish"
    ],
    "uses": 58,
    "params": {
+    "rewritesAbilityOnContact": {
+     "mode": "swap",
+     "trigger": "contact"
+    },
     "contactPunish": {
      "trigger": "contact",
      "inflicts": null,

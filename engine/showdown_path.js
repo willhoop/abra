@@ -34,8 +34,14 @@ const path = require('path');
 
 /* `sim/` rather than the directory itself: an empty folder, or a half-finished clone, would satisfy
  * an existsSync on the root and then fail deep inside a require with a confusing message. */
+/* THE REASON A CANDIDATE WAS REJECTED IS KEPT, not discarded. A bare `return false` here makes "this
+ * path is not a Showdown checkout" and "reading this path threw" the same event, and the second one
+ * is the interesting one: an unreadable path is a permissions or a mount problem and reads exactly
+ * like an absent checkout. Exported so a caller that ends up with no path can say WHY. */
+const rejected = [];
 function looksLikeShowdown(p) {
-  try { return !!p && fs.existsSync(path.join(p, 'sim')); } catch (e) { return false; }
+  try { return !!p && fs.existsSync(path.join(p, 'sim')); }
+  catch (e) { rejected.push(p + ': ' + String(e.message).slice(0, 80)); return false; }
 }
 
 const CANDIDATES = [
@@ -59,4 +65,6 @@ if (RESOLVED && !process.env.SHOWDOWN_PATH) process.env.SHOWDOWN_PATH = RESOLVED
  * is what produced the skip, and answering it again anywhere would reopen the hole. */
 function hasSim() { return looksLikeShowdown(RESOLVED); }
 
-module.exports = { resolve, hasSim, looksLikeShowdown, CANDIDATES, RESOLVED };
+module.exports = { resolve, hasSim, looksLikeShowdown, CANDIDATES, RESOLVED,
+  /* The candidates that THREW rather than simply not existing. Empty is a claim, not a pass. */
+  rejected };

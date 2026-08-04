@@ -331,6 +331,20 @@ const DECLARED = {
     + 'before either engine is built, which is the case this test names as correct. It found a real '
     + 'ability bug on its first run (Mummy and Wandering Spirit rewrite the ATTACKER ability on '
     + 'contact and medicham2 models neither), so the reads are load-bearing rather than incidental.',
+  'tests/interaction_matrix.js':
+    'THE GENERATOR, and every read is on a DEX SPECIES rather than on a live body: '
+    + '`Object.values(sp.abilities)` asks which abilities a species can legally have, which is what '
+    + 'decides whether a generated pair can occur at all. There is no battle and no Pokemon object in '
+    + 'this file — it emits case descriptions and runs nothing — so there is no effective ability for '
+    + 'effAbility() to compute. Routing a species\' ability LIST through a per-body resolver is a '
+    + 'category error, not a missing call.',
+  'tests/test-interaction-matrix.js':
+    'THE RUNNER, and the same two halves tests/test-game-diff.js already declares one line up. The '
+    + 'reads are ASSIGNMENTS — writing the reactor ability, or the inert control ability, onto a set '
+    + 'before either engine is built — plus the projection\'s own `.ability`, which is one of the '
+    + 'things under comparison. Routing that through effAbility() would compare the board.js answer '
+    + 'to itself instead of the two engines to each other, and it is exactly how this file caught '
+    + 'Mummy and Wandering Spirit: the attacker\'s ability field is their ONLY witness.',
   'tests/test-paste.js':
     'Reads .ability off a body buildMonFromSet just produced — the same construction claim as '
     + 'medicham2 above, and this file is now one of the things that PINS it: it asserts a paste of '

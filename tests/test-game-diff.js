@@ -182,8 +182,17 @@ function projShowdown(battle) {
   const side = s => ({
     active: s.active.map(mon),
     benched: s.pokemon.filter(p => !p.isActive && !p.fainted).map(p => norm(p.species.id)).sort(),
-    reflect: dur(s.sideConditions.reflect) || dur(s.sideConditions.auroraveil),
-    lightscreen: dur(s.sideConditions.lightscreen) || dur(s.sideConditions.auroraveil),
+    /* MAX, NOT `||`. Showdown keeps Reflect, Light Screen and Aurora Veil as THREE independent side
+     * conditions with three timers; medicham2 keeps two counters, `scrP` and `scrS`, one per damage
+     * category. When a screen and an Aurora Veil are both up the two representations cannot be made
+     * to agree field-for-field, and `||` picked the FIRST one that existed rather than the one that is
+     * actually halving — so `lightscreen -> auroraveil` reported `medi=4 sd=2`, which is the harness
+     * comparing Light Screen's remaining turns against Aurora Veil's. MAX is the quantity medicham2
+     * models: how long a special-halving screen is up for. That medicham2 cannot represent two
+     * overlapping screens with different expiries is a real modelling limit and is recorded in
+     * docs/ENGINE.md rather than papered over here. */
+    reflect: Math.max(dur(s.sideConditions.reflect), dur(s.sideConditions.auroraveil)),
+    lightscreen: Math.max(dur(s.sideConditions.lightscreen), dur(s.sideConditions.auroraveil)),
     hazards: Object.fromEntries(['stealthrock', 'spikes', 'toxicspikes', 'stickyweb']
       .filter(h => s.sideConditions[h])
       .map(h => [h, s.sideConditions[h].layers || 1])),
@@ -274,6 +283,13 @@ function runScript(name, setsA, setsB, script, opts) {
   assertScriptIsDeterministic([...setsA, ...setsB], name);
 
   const A = mediTeam(setsA), B = mediTeam(setsB);
+  /* HP BOOST — opt-in, and it exists for one reason: a DAMAGE RATIO cannot be read off a body that
+   * died. Showdown clamps the recorded HP loss at the target's max, so a control arm that overkills
+   * reports exactly max and the reactor's halving reads as 1.0 -- the engine scored correct on a
+   * number nobody measured. Inflating the HP pool changes no multiplier and no rule; it only stops the
+   * measurement hitting the floor. alignStats() below copies these values onto the Showdown bodies, so
+   * both engines get the same pool. */
+  if (opts.hpBoost) for (const m of [...A, ...B]) { m.st.hp = Math.round(m.st.hp * opts.hpBoost); m.curHP = m.st.hp; }
   const S = M.battleInit(A, B, {});
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
   battle.setPlayer('p1', { name: 'A', team: sdTeam(setsA) });
@@ -311,6 +327,21 @@ function runScript(name, setsA, setsB, script, opts) {
    * engines agree (trap 2) — it only stops medicham2 itself being non-reproducible between the real
    * run and the injected-divergence run. */
   const rng = () => 0.5;
+  /* PIN SHOWDOWN'S DICE TOO — opt-in, because the interaction matrix runs the SAME case TWICE (with
+   * the reactor and with an inert control) and subtracts one from the other. A seeded PRNG is
+   * reproducible run-to-run and NOT arm-to-arm: swapping an ability changes how many rolls the turn
+   * consumes, so the two arms drift apart on the PRNG stream and a crit lands in one of them. That
+   * would put a x1.5 in a ratio and read as an engine bug.
+   *
+   * `battle.random` is NOT enough and that is the trap: Battle.randomChance delegates to `this.prng`
+   * directly, so an override on the Battle object leaves every chance event still rolling. Both are
+   * pinned on the prng itself. `num >= den` is the deterministic reading of a chance: a 100%-accurate
+   * move HITS (accuracy is checked as randomChance(accuracy, 100)), a 1-in-24 crit does NOT happen,
+   * and a 30% secondary does not either. Returning a flat false instead would make every move MISS. */
+  if (opts.pinDice && battle.prng) {
+    battle.prng.random = (m, n) => (n === undefined ? (m === undefined ? 0.5 : Math.floor(m / 2)) : m + Math.floor((n - m) / 2));
+    battle.prng.randomChance = (num, den) => num >= den;
+  }
 
   for (let t = 0; t < script.length; t++) {
     const step = script[t];
@@ -388,7 +419,16 @@ function runScript(name, setsA, setsB, script, opts) {
       }
     }
 
-    const d = compare(projMedi(S), projShowdown(battle));
+    const pm = projMedi(S), ps = projShowdown(battle);
+    /* THE MATRIX NEEDS BOTH ARMS' STATE EVEN WHEN THEY PART, because its question is not "did they
+     * agree" but "did the mechanic fire AT ALL" -- and that is answered by comparing an arm against
+     * its own control, not against the other engine. So the projections are collected before the
+     * early return rather than after it. Raw HP goes with them: the state projection deliberately
+     * carries only `hurt` (trap 2), and the DAMAGE layer needs a number. */
+    if (opts.collect) opts.collect.push({ turn: t + 1, medi: pm, sd: ps,
+      mediHp: [...S.actA, ...S.actB].map(m => (m ? m.curHP / m.st.hp : null)),
+      sdHp: [...battle.p1.active, ...battle.p2.active].map(p => (p ? p.hp / p.maxhp : null)) });
+    const d = compare(pm, ps);
     if (d.length) return { turn: t + 1, diffs: d };
     if (battle.ended || M.battleOver(S)) break;
   }
@@ -628,6 +668,17 @@ function runPairs(pairs) {
   }
   return rows;
 }
+
+/* ---- EXPORTED SO THE MATRIX RUNNER DOES NOT WRITE A SECOND PROJECTION --------------------------
+ *
+ * tests/test-interaction-matrix.js plays generated cases and needs exactly this comparator, this
+ * dice-independent projection and this NOT_COMPARED list. A copy of any of them would be two harnesses
+ * disagreeing about what "the same state" means, which is the CLAUDE.md rule one layer up from the
+ * engine. The report below is guarded on `require.main` so requiring this file runs nothing. */
+module.exports = { runScript, projMedi, projShowdown, compare, set, mediTeam, sdTeam, dex,
+  needsTarget, NOT_COMPARED, VOL_MAP, fillerFor, FILLERS, norm };
+
+if (require.main !== module) return;
 
 /* ---- REPORT ------------------------------------------------------------------------------------ */
 const argv = process.argv.slice(2);

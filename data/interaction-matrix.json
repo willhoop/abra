@@ -1,0 +1,2122 @@
+{
+  "generated": "2026-08-04T22:47:11.429Z",
+  "by": "tests/test-interaction-matrix.js",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "depth": "full",
+  "theoretical": {
+    "flag": 7870,
+    "type": 480,
+    "field": 156,
+    "total": 8506
+  },
+  "emitted": 1640,
+  "ran": 1640,
+  "by_axis": {
+    "flag": 1171,
+    "type": 313,
+    "field": 156
+  },
+  "by_layer": {
+    "secondary": 848,
+    "damage": 323,
+    "immunity": 83,
+    "legality": 379,
+    "targeting": 7
+  },
+  "by_evaluator": {
+    "state": 1161,
+    "damage": 323,
+    "field": 156
+  },
+  "dropped_by_the_generator": {
+    "carrier-is-a-die: chance secondary": 198,
+    "carrier-is-a-die: accuracy 90": 274,
+    "carrier-is-a-die: accuracy 95": 128,
+    "carrier-is-a-die: accuracy 80": 28,
+    "carrier-is-a-die: accuracy 85": 62,
+    "carrier-does-not-aim-at-a-foe: target=allAdjacentFoes": 45,
+    "carrier-does-not-aim-at-a-foe: target=randomNormal": 27,
+    "carrier-is-a-die: accuracy 75": 52,
+    "carrier-is-a-die: accuracy 50": 14,
+    "carrier-does-not-aim-at-a-foe: target=scripted": 14,
+    "carrier-does-not-aim-at-a-foe: target=allAdjacent": 42,
+    "carrier-is-a-die: accuracy 30": 26,
+    "no-user: no species in MC.mons learns the carrier move": 27,
+    "reactor-is-a-die: its own effect fires on a percentage": 6,
+    "no-user: no body both has the attacker-side reactor and learns the carrier": 108,
+    "carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier": 15,
+    "layer-unclassified: no tag on the reactor maps to a resolution stage": 13,
+    "holder-immune-by-chart: every candidate body already takes zero from this move type": 47,
+    "reactor-not-in-format: no species in this format has the ability at all": 28,
+    "no-control-carrier: the user has no flagless move of the same category": 153,
+    "no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach": 30,
+    "reactor-not-in-format: no species in this format learns the reactor move": 1,
+    "carrier-does-not-aim-at-a-foe: target=all": 108,
+    "carrier-does-not-aim-at-a-foe: target=self": 400,
+    "carrier-does-not-aim-at-a-foe: target=allies": 17,
+    "carrier-does-not-aim-at-a-foe: target=adjacentAlly": 33,
+    "carrier-is-a-die: accuracy 70": 1,
+    "carrier-does-not-aim-at-a-foe: target=allySide": 60,
+    "carrier-is-a-die: accuracy 60": 7,
+    "carrier-does-not-aim-at-a-foe: target=foeSide": 28,
+    "carrier-does-not-aim-at-a-foe: target=adjacentAllyOrSelf": 7,
+    "reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier": 1,
+    "no-user: no body both has the attacker-side reactor and learns a move of its type": 40,
+    "no-type-param: the reactor is in the moveType index but no param names a type": 21,
+    "field-setter-self-switches: the case would be about the replacement, not the field": 1,
+    "field-not-in-projection: persists, but neither engine projection carries it": 4
+  },
+  "live": 1008,
+  "agree": 940,
+  "part": 68,
+  "inert": 503,
+  "saturated": 110,
+  "ko_timing": 27,
+  "threw": 2,
+  "not_compared": [
+    "hp amount",
+    "accuracy misses",
+    "chance secondaries",
+    "crit",
+    "a reactor whose effect is a ROLL",
+    "a pair where one engine KOs and the other does not",
+    "the `protect` volatile",
+    "Showdown-only volatiles",
+    "PP",
+    "stat VALUES"
+  ],
+  "parting": [
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "drainingkiss",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 865,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "bitterblade",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 380,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "leechlife",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 136,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hornleech",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 11,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "reversal",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 4,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "wanderingspirit",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].ability",
+          "\"honeygather\"",
+          "\"wanderingspirit\""
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].ability",
+          "\"wanderingspirit\"",
+          "\"honeygather\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "wanderingspirit",
+      "kind": "ability",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].ability",
+          "\"honeygather\"",
+          "\"wanderingspirit\""
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].ability",
+          "\"wanderingspirit\"",
+          "\"honeygather\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "mummy",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].ability",
+          "\"honeygather\"",
+          "\"mummy\""
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "mummy",
+      "kind": "ability",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].ability",
+          "\"honeygather\"",
+          "\"mummy\""
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "steelroller",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 6,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "true",
+          "false"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "reversal",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 4,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"psn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"psn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "reversal",
+      "reactor": "banefulbunker",
+      "kind": "move",
+      "side": "def",
+      "uses": 4,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"psn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "kingsshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].boosts.atk"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].boosts.atk",
+          "0",
+          "-1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "kingsshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].boosts.atk"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].boosts.atk",
+          "0",
+          "-1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "steelroller",
+      "reactor": "kingsshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 6,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].boosts.atk"
+      ],
+      "sd_witness": [
+        ".A.active[0].boosts.atk"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].boosts.atk",
+          "-1",
+          "0"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "fakeout",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 12760,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "wavecrash",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 6134,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "kowtowcleave",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 5441,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "aquajet",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 4773,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "drainpunch",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 947,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].status"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "bodypress",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 895,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "infestation",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 769,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.spd",
+        ".B.active[0].vol"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.spd"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].vol",
+          "[\"partiallytrapped\"]",
+          "[]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "jetpunch",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 142,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "icespinner",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 81,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "rapidspin",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 11,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].boosts.spe",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".A.active[0].boosts.spe",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "drillpeck",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 8,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.active[0].status"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "steelroller",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 6,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "true",
+          "false"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "powertrip",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 4,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"brn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "priorityMove",
+      "layer": "legality",
+      "carrier": "babydolleyes",
+      "reactor": "armortail",
+      "kind": "ability",
+      "side": "def",
+      "uses": 64,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.atk"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.atk",
+          "-1",
+          "0"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "priorityMove",
+      "layer": "legality",
+      "carrier": "babydolleyes",
+      "reactor": "queenlymajesty",
+      "kind": "ability",
+      "side": "def",
+      "uses": 64,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.atk"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.atk",
+          "-1",
+          "0"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "skillswap",
+      "reactor": "prankster",
+      "kind": "ability",
+      "side": "atk",
+      "uses": 98,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].ability",
+          "\"prankster\"",
+          "\"honeygather\""
+        ],
+        [
+          ".B.active[0].ability",
+          "\"honeygather\"",
+          "\"prankster\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "decorate",
+      "reactor": "goodasgold",
+      "kind": "ability",
+      "side": "def",
+      "uses": 34,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[1].boosts.atk",
+          "2",
+          "0"
+        ],
+        [
+          ".A.active[1].boosts.spa",
+          "2",
+          "0"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "trick",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "side": "atk",
+      "uses": 344,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].item"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].item",
+          "\"quickclaw\"",
+          "\"\""
+        ],
+        [
+          ".B.active[0].item",
+          "\"\"",
+          "\"quickclaw\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "switcheroo",
+      "reactor": "quickclaw",
+      "kind": "item",
+      "side": "atk",
+      "uses": 9,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].item"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].item",
+          "\"quickclaw\"",
+          "\"\""
+        ],
+        [
+          ".B.active[0].item",
+          "\"\"",
+          "\"quickclaw\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "memento",
+      "reactor": "suckerpunch",
+      "kind": "move",
+      "side": "def",
+      "uses": 37,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "sd_witness": [
+        ".A.active[0].species",
+        ".A.active[0].types",
+        ".A.benched",
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].species",
+          "\"ninetales\"",
+          "\"incineroar\""
+        ],
+        [
+          ".A.active[0].types",
+          "[\"Fire\"]",
+          "[\"Dark\",\"Fire\"]"
+        ],
+        [
+          ".A.benched",
+          "[\"garchomp\",\"incineroar\"]",
+          "[\"garchomp\"]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "decorate",
+      "reactor": "suckerpunch",
+      "kind": "move",
+      "side": "def",
+      "uses": 34,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[1].boosts.atk",
+        ".A.active[1].boosts.spa"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[1].boosts.atk",
+          "2",
+          "0"
+        ],
+        [
+          ".A.active[1].boosts.spa",
+          "2",
+          "0"
+        ],
+        [
+          ".B.active[0].boosts.atk",
+          "0",
+          "2"
+        ],
+        [
+          ".B.active[0].boosts.spa",
+          "0",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "whirlwind",
+      "reactor": "suckerpunch",
+      "kind": "move",
+      "side": "def",
+      "uses": 17,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].species",
+        ".B.active[0].types",
+        ".B.benched"
+      ],
+      "sd_witness": [
+        ".B.active[0].species",
+        ".B.active[0].types",
+        ".B.benched"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].species",
+          "\"corviknight\"",
+          "\"weavile\""
+        ],
+        [
+          ".B.active[0].types",
+          "[\"Flying\",\"Steel\"]",
+          "[\"Dark\",\"Ice\"]"
+        ],
+        [
+          ".B.benched",
+          "[\"arbok\",\"weavile\"]",
+          "[\"arbok\",\"corviknight\"]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "trickortreat",
+      "reactor": "suckerpunch",
+      "kind": "move",
+      "side": "def",
+      "uses": 8,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].types"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].types",
+          "[\"Poison\"]",
+          "[\"Ghost\",\"Poison\"]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "memento",
+      "reactor": "upperhand",
+      "kind": "move",
+      "side": "def",
+      "uses": 37,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "sd_witness": [
+        ".A.active[0].species",
+        ".A.active[0].types",
+        ".A.benched",
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].species",
+          "\"ninetales\"",
+          "\"incineroar\""
+        ],
+        [
+          ".A.active[0].types",
+          "[\"Fire\"]",
+          "[\"Dark\",\"Fire\"]"
+        ],
+        [
+          ".A.benched",
+          "[\"garchomp\",\"incineroar\"]",
+          "[\"garchomp\"]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "decorate",
+      "reactor": "upperhand",
+      "kind": "move",
+      "side": "def",
+      "uses": 34,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[1].boosts.atk",
+        ".A.active[1].boosts.spa"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.atk",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[1].boosts.atk",
+          "2",
+          "0"
+        ],
+        [
+          ".A.active[1].boosts.spa",
+          "2",
+          "0"
+        ],
+        [
+          ".B.active[0].boosts.atk",
+          "0",
+          "2"
+        ],
+        [
+          ".B.active[0].boosts.spa",
+          "0",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "whirlwind",
+      "reactor": "upperhand",
+      "kind": "move",
+      "side": "def",
+      "uses": 17,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].species",
+        ".B.active[0].types",
+        ".B.benched"
+      ],
+      "sd_witness": [
+        ".B.active[0].species",
+        ".B.active[0].types",
+        ".B.benched"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].species",
+          "\"corviknight\"",
+          "\"weavile\""
+        ],
+        [
+          ".B.active[0].types",
+          "[\"Flying\",\"Steel\"]",
+          "[\"Dark\",\"Ice\"]"
+        ],
+        [
+          ".B.benched",
+          "[\"pikachu\",\"weavile\"]",
+          "[\"corviknight\",\"pikachu\"]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "trickortreat",
+      "reactor": "upperhand",
+      "kind": "move",
+      "side": "def",
+      "uses": 8,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].types"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].types",
+          "[\"Electric\"]",
+          "[\"Electric\",\"Ghost\"]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "flipturn",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 2681,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"psn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "uturn",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 1113,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].status",
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".A.active[0].status",
+          "\"\"",
+          "\"psn\""
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "beatup",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 292,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "null",
+          "2"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "dragondarts",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 100,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "1",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "bulletseed",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "1",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "null",
+          "1"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "null",
+          "1"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "iciclespear",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 6,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "1",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "reversal",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 4,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.hazards.toxicspikes",
+          "null",
+          "1"
+        ],
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "beatup",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 292,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].boosts.def",
+          "2",
+          "-2"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "0",
+          "6"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "dragondarts",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 100,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.def",
+          "1",
+          "0"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "2",
+          "4"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "bulletseed",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.def",
+          "1",
+          "-1"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "2",
+          "6"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "hardpress",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 53,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].boosts.def",
+          "2",
+          "1"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "0",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "gyroball",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 36,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].boosts.def",
+          "2",
+          "1"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "0",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "iciclespear",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 6,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.def",
+          "1",
+          "-1"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "2",
+          "6"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "reversal",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 4,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].boosts.def",
+          "2",
+          "1"
+        ],
+        [
+          ".B.active[0].boosts.spe",
+          "0",
+          "2"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "type",
+      "key": "moveType:Electric",
+      "layer": "immunity",
+      "carrier": "electroball",
+      "reactor": "lightningrod",
+      "kind": "ability",
+      "side": "def",
+      "uses": 12,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].hurt",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.spa",
+          "0",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "type",
+      "key": "moveType:Electric",
+      "layer": "targeting",
+      "carrier": "electroball",
+      "reactor": "lightningrod",
+      "kind": "ability",
+      "side": "def",
+      "uses": 12,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].hurt",
+        ".B.active[0].boosts.spa"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.spa",
+          "0",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "type",
+      "key": "moveType:Electric",
+      "layer": "immunity",
+      "carrier": "electroball",
+      "reactor": "motordrive",
+      "kind": "ability",
+      "side": "def",
+      "uses": 12,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].hurt",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].boosts.spe",
+          "0",
+          "1"
+        ]
+      ],
+      "detail": null
+    }
+  ],
+  "threw_rows": [
+    {
+      "key": "statusMove",
+      "carrier": "curse",
+      "reactor": "goodasgold",
+      "why": "772/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+    },
+    {
+      "key": "statusMove",
+      "carrier": "curse",
+      "reactor": "quickclaw",
+      "why": "875/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+    }
+  ]
+}

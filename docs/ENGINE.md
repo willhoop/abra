@@ -1,7 +1,18 @@
 # ENGINE — does the simulator do what Pokémon does
 
-**Owns:** `engine/medicham2-browser.js`, `data/abra-tags.js`, `tests/test-mechanics.js`,
-`tests/walk_tags.js`, `tests/test-engine-diff.js`, `tests/mechanics_rank.js`
+**Owns:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/abra-tags.js`,
+`tests/test-mechanics.js`, `tests/walk_tags.js`, `tests/test-engine-diff.js`,
+`tests/test-game-diff.js`, `tests/interaction_matrix.js`, `tests/test-interaction-matrix.js`,
+`tests/mechanics_rank.js`
+
+**Four instruments, and none substitutes for another:**
+
+| file | asks | structurally cannot see |
+|---|---|---|
+| `test-mechanics.js` | is ONE mechanic live | tag x tag |
+| `test-engine-diff.js` | is ONE HIT's damage right | every turn counter |
+| `test-game-diff.js` | do the two engines hold the same STATE after every turn | damage magnitude |
+| `test-interaction-matrix.js` | does every carrier x reactor pair resolve the way the official engine says | anything the generator refuses to emit — printed on every run |
 
 **Its one number:** mechanics live. **It must never go down.**
 
@@ -12,7 +23,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  157/165 probed mechanics live, 8 missing   (census 2026-08-04 21:41)
+  167/174 probed mechanics live, 7 missing   (census 2026-08-04 22:43)
   missing:
     move    conditionalPower       Facade doubles when statused
     move    needsTargetToAttack    Avalanche doubles after being hit
@@ -21,14 +32,13 @@ ENGINE — does the simulator do what Pokémon does
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
     ability untagged               Marvel Scale raises Defense while statused
     move    reordersTurn           After You lets the partner move next
-    ability weatherSuppression     Air Lock stops the sun boosting Fire
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 21:36)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 22:43)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  tag coverage: 144/176 probed, 32 unprobed
+  tag coverage: 146/178 probed, 32 unprobed
 ```
 
-_stamped 2026-08-04 21:48_
+_stamped 2026-08-04 22:45_
 
 <!-- /GENERATED -->
 
@@ -41,6 +51,122 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
+
+## THE SEVEN MISSING MECHANICS, EACH WITH ITS REASON. 2026-08-04.
+
+**A declared gap with a reason is a finished item; an undeclared one is not.** The census carries all
+seven; this is why each is still there. There were 8; Air Lock came off it as WIRE 78.
+
+| # | mechanic | by DECISION or by OMISSION | why |
+|---|---|---|---|
+| 1 | `conditionalPower` — Facade doubles when statused | **OMISSION, blocked on the derivation** | The tag's param is `{conditional: true}` — a boolean — and its 11 members are wildly different rules: Knock Off, Solar Beam, Venoshock, Lash Out, Expanding Force, Facade. Nothing can be wired from it. The fix is teaching `tag_dex` to read Showdown's `basePowerCallback`, which is a pass of its own and is the same fix as #3 |
+| 2 | `needsTargetToAttack` — Avalanche doubles after being hit | **DECISION**, unchanged | The probe asks for a rule that does not exist. Avalanche doubles when the user was damaged BY THAT TARGET THIS TURN; `dmgRange` is handed no turn state and must not invent any. 13 corpus uses. The tag's other nine members include Sucker Punch (6,673), already fully modelled through `failsIfTargetNotAttacking`, so the tag is not inert — only this member is |
+| 3 | `needsUntrackedState` — Gyro Ball scales with the speed gap | **OMISSION, blocked on the derivation.** The param literally says `{needs: "speed ratio -- computable, not wired"}` | Same `basePowerCallback` fix as #1. It is now visible from the OTHER instrument too: 35 of the interaction matrix's 68 remaining divergences are this family (Hard Press, Gyro Ball, Reversal, Steel Roller, Beat Up), because `MC.moves[id].bp === 0` makes `hasPower()` reject them and they deal literally nothing |
+| 4 | `writesAccuracy` — No Guard | **OMISSION, blocked on a SIGNATURE**, costed rather than gestured at | `moveAccuracy(id, field)` takes neither body. 11 call sites across 4 files; two of them (`board.js`, `position_features.js`) are **not ENGINE's** and a signature change there is a feature-vector change, which is the refit edge MEASURE owns. The compatible shape is `moveAccuracy(id, field, att, def)` with both optional. **It is a deliberate pass, not a one-liner** |
+| 5 | `accuracyMod` — Sand Veil | **OMISSION, same signature**, same pass as #4 | — |
+| 6 | `untagged` — Marvel Scale raises Defense while statused | **OMISSION, blocked on the derivation** | 36 uses. It has NO tag at all: the mechanic is an `onModifyDef` conditioned on `pokemon.status`, and no derivation in `tag_dex` describes a conditional stat multiplier. Wiring it by name is what this file spends its time deleting. **The Air Lock and Mummy corrections both say the same thing about this row: "no artifact" is a claim about the DERIVATION and should be re-tested, not inherited** |
+| 7 | `reordersTurn` — After You lets the partner move next | **OMISSION, and it is the nearest one to landing** | The param IS usable — `{sends: 'next'}` / `{sends: 'last'}` — and After You (151) + Quash (156) are pure reordering. **What blocks it is Instruct** (162), which carries the identical `{sends:'next'}` and does something completely different: it makes the TARGET use its last move again. Giving Instruct After You's behaviour would be a new wrong number, and nothing in the artifact tells the two apart. The derivation needs to distinguish them first |
+
+## THE GENERATED INTERACTION MATRIX — `tests/interaction_matrix.js` + `tests/test-interaction-matrix.js`
+
+Will: *"Basically all the tags on moves and stuff should trigger all the flags on abilities and types
+and etc and have it flow from there"*, *"we def need interactions thats the whole point and multi turn
+things like tailwind and trick room"*, *"the interactions should be pretty formulaic now that we have
+all the tags and such."* He is right that it is formulaic. The generator is the formula; the runner
+plays every case in medicham2 and in the official pinned engine and **authors no expected outcome**.
+
+**THE SIZE, AND THE COVERAGE, HONESTLY.**
+
+| | |
+|---|---|
+| theoretical cross product, no filter at all | **8,506** — flag 7,870, type 480, field 156 |
+| emitted at `--full` | **1,640** — flag 1,171, type 313, field 156 |
+| by layer | secondary 848, legality 379, damage 323, immunity 83, targeting 7 |
+| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,008** |
+| INERT (the reference engine behaves identically with and without the reactor) | 503 |
+| SATURATED (the control arm KO'd, so a damage ratio is clamped) | 110 |
+| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 27 |
+| THREW | 2 |
+| **medicham2 agrees with the official engine on** | **940 of 1,008 — 93.3%** (was 79.4% on the flag axis and 19.2% on the field axis when the instrument was first pointed at them) |
+
+**EVERY DROP IS NAMED AND COUNTED AND PRINTED ON EVERY RUN.** A silent cap reads as "covered
+everything", which is this project's signature failure. The largest buckets are `carrier-does-not-aim-
+at-a-foe` (400 — self- and side-targeting moves), `carrier-is-a-die` (662 across five accuracies plus
+chance secondaries — trap 2, a miss is luck and both engines must not be compared on it),
+`no-control-carrier`, `reactor-not-in-format` (Iron Barbs, Tangling Hair, Lingering Aroma and Perish
+Body have **zero** species in Champions), `holder-immune-by-chart`, and `layer-unclassified`.
+
+**FOUR THINGS A GENERATED CASE MUST KNOW, and the previous sampled version (82 pairs) got each wrong.**
+
+1. **WHICH SIDE THE REACTOR STANDS ON.** `linkage.contact.abilities` holds Rough Skin AND Tough Claws.
+   The sampled matrix staged every reactor on the DEFENDER, so Tough Claws, Long Reach, Unseen Fist,
+   Iron Fist, Sharpness, Strong Jaw, Punk Rock and Poison Touch were all cases in which the mechanic
+   could not fire — **and every one of them read as agreement.** The side is derived from the reactor's
+   own tags and a reactor whose tags do not decide it is dropped as `side-unknown`.
+2. **WHICH RESOLUTION LAYER IT TESTS**, from docs/TAGS.md's own table. The layer decides the
+   EVALUATOR, and that is not bookkeeping: the state comparator is blind to the DAMAGE layer by
+   construction, so a `halvesTypeDamage` case handed to it comes back INERT forever and looks covered.
+3. **WHETHER THE PAIR CAN ACTUALLY MEET**, answered by the REFERENCE engine rather than by us. Every
+   case is played **four** times — with the reactor and without it, in each engine. If Showdown's two
+   arms are identical the case is INERT and is never counted as agreement. *Identical results across a
+   varied knob mean the knob is unwired* — applied to the HARNESS as well as to the engine.
+4. **WHAT WAS DROPPED.** See above.
+
+**THE MULTI-TURN HALF IS GENERATED TOO, and the answer to "can the matrix drive it" is YES for the
+FIELD.** A pair cannot reach a sequence, but the persistent field effects cross-product **with each
+other**: `setsWeather`, `setsTerrain`, `reversesSpeed` (Trick Room), `doublesSideSpeed` (Tailwind) and
+`halvesDamage` (the screens) are all derived from tags that mean *"this outlives the turn it was
+clicked on"*. Each of the 156 ordered pairs becomes an **eight-turn script** — A lands on turn 1, B on
+turn 3, everything idles to expiry — and every counter is compared at every turn. That is literally
+*"Trick Room was up and then a Tailwind landed"*, generated rather than typed. **156 of 156 now agree**;
+it was 30 of 156 when it was first run.
+
+**FOUR THINGS THE HARNESS GOT WRONG BEFORE THE ENGINE DID, and each is written into the code:**
+- **Protect has EIGHT PP.** A nine-turn field script ran every idle body out and made it STRUGGLE on
+  turn 9 — three bodies suddenly damaged in 126 of 156 cases, an 80% "divergence" rate that was
+  entirely the harness. Eight turns still covers every expiry in the set.
+- **Sturdy on the bulkiest Fighting-weak body.** `closecombat -> chopleberry` read a damage ratio of 56.7%
+  against a true 50% because the control arm's overkill was stopped at 1 HP by **Bastiodon's slot-0
+  ability**, so the "full damage" the ratio divided by was not the full damage. Every body that is not
+  the one under test now gets an inert control ability and no item — `bare()` applied to a generator.
+- **A body that faints is REPLACED at full HP**, so a lethal hit reads as a loss of ZERO. Strong Jaw's
+  x1.5 came back as a ratio of 0.000, which looks exactly like a boost wired backwards.
+- **`stripIdentity` deleted its own evidence.** Blanking `ability` on all four slots for the inertness
+  test removed the ONLY witness Mummy and Wandering Spirit have. Only the body under test is stripped.
+
+**WHAT IT FOUND — ten wires, and not one was reachable from a single-mechanic probe.**
+
+| # | found as | the bug | wire |
+|---|---|---|---|
+| 1 | 24 of 156 field cases at once | **Grassy Terrain never set a terrain.** It carries `perTurnHP` for the terrain's own heal and that branch sits above the terrain branch in `playerAction`, so the one terrain move that also heals was the one the engine could not set — and the other three worked, which is why nothing noticed | **72** |
+| 2 | the residue of #1 | **Grassy Terrain's 1/16 heal**, derived from the terrain move's own tag | **73** |
+| 3 | `sandstorm + grassyterrain`, the last pair standing | **the sandstorm chipped on the turn it expired** — five ticks where the official engine deals four. Visible ONLY as a pair, because the grassy heal is exactly the 1/16 the sand takes, so the two cancel and the extra tick is the only HP left on the table. **The counter was never wrong**, which is why nothing had caught it | **74** |
+| 4 | `psychicnoise -> liquidvoice`, ratio medi **1.000** vs sd 0.375 | **`convertsMoveType.converts` names either a TYPE or a FLAG** and only the type half was read, so **Liquid Voice** (346 uses) was completely inert | **75** |
+| 5 | `psychicnoise -> soundproof` | **`immuneToMoveClass` had one consumer per stage-3 mechanism instead of one per STAGE.** A Soundproof body took zero damage and still got two turns of Heal Block. docs/TAGS.md already says *"an immune target takes nothing — not the damage, and not the secondary"* | **76** |
+| 6 | `roar -> throatchop` | **the Throat Chop silence was checked in the ATTACK branch and in `chooseAction`** — one class of action out of a dozen. Roar is a sound move that resolves down the `phaze` branch, so a silenced body phazed anyway | **77** |
+| 7 | census row, not the matrix | **Air Lock / Cloud Nine.** See below — the "no artifact to wire from" verdict was wrong | **78** |
+| 8 | `strengthsap -> suckerpunch`, medi's own arms identical | **`statChangeInCode` with `on:'target'` had a READER and no CLASSIFIER.** WIRE 67 put the reader inside the pivot branch because Parting Shot was the case it was written for, so **Strength Sap (637 uses)** resolved to `kind:'pass'` — a wasted turn | **79** |
+| 9 | 12 cases at once | **Mummy and Wandering Spirit.** Both grounds for filing them retired — see below | **80** |
+| 10 | 23 cases at once, at `--full` | **the secondary that boosts the USER.** The block read `status`, `targetBoosts` and the flinch and never `selfBoosts`, so Trailblaze, Aqua Step, Flame Charge, Rapid Spin, Torch Song, Aura Wheel and Psyshield Bash landed their damage and left the user's stages alone. **12 moves, 1,199 corpus uses** | **81** |
+
+**DEPTH IS A KNOB AND THE DEFAULT IS NOT THE WHOLE MATRIX.** `--depth=N` takes the N most-clicked
+carriers per (key, reactor); `--full` takes all of them and the drop ledger counts what a depth cap
+excluded under `depth-cap`. Every number above is `--full`. **Depth matters**: three of the ten wires
+above are invisible below depth 6, and WIRE 81 needed `--full`.
+
+## What is left, and why each one is left
+
+- **The variable-power family — Hard Press, Gyro Ball, Reversal, Steel Roller, Beat Up (35 of the 68
+  remaining cases).** These have a `basePowerCallback` and `MC.moves[id].bp === 0`, so `hasPower()`
+  rejects them and they deal literally nothing. They are the same thing the census reports as
+  `needsUntrackedState` and `conditionalPower` MISSING, seen from the other instrument. The tag says
+  `{needs: "speed ratio -- computable, not wired"}` and `{conditional: true}` — prose, not a rule — so
+  wiring them means teaching `tag_dex` to read a `basePowerCallback`, which is a pass of its own.
+- **Beak Blast (10 corpus uses).** It burns anyone who makes contact BEFORE the move fires — a
+  charge-turn punish with no shape in this engine and nothing in the artifact that describes it.
+- **The drain-heal / contact-punish ORDER (8 cases).** medicham2 pays the Rough Skin toll and then
+  applies the drain heal, so a full-HP attacker is healed back over the toll; Showdown drains during
+  the move and tolls after. A real ordering defect, small, and named here rather than left.
 
 ## Hand list — found by differential testing, not yet probed
 
@@ -142,7 +268,7 @@ every probe in the batch declares its arms.
 | Aurora Veil | `failsWithoutWeather` | LIVE, unchanged |
 | weather speed abilities | `speedCond` + `speedCondWrongWeather` **new** | **LIVE with the WRONG-SKY arm**: Swift Swim in rain 135 to 270, **in sun 135** |
 | Solar Power | `solarPower` **new** | **LIVE**: in sun Flamethrower 84 to 126, Earthquake 37 to 37, no sun 56 to 56 |
-| **Air Lock / Cloud Nine** | `weatherSuppression` **new** | **MISSING, DECLARED.** `cloudnine` carries `untagged` and `airlock` has no artifact entry at all, so there is nothing to wire from. It is a CENSUS ROW rather than a sentence, because the census is the only claim about this engine that cannot be softened |
+| **Air Lock / Cloud Nine** | `weatherSuppression` | **LANDED — WIRE 78, and the "nothing to wire from" verdict was wrong.** See below |
 
 **TWO PROBES IN THE BATCH WERE WRONG BEFORE THE ENGINE WAS, WHICH MAKES TWENTY-THREE.** The first
 Weather Ball probe fired it at a **Garchomp**, which is Dragon/**Ground** — so the sand form (Rock) is
@@ -162,6 +288,39 @@ consolidation is a no-op today and a guarantee next month. `engine/board.js:1190
 **NOT ENGINE's**: it is a refit trigger (14 of 58 feature columns move) and MEASURE has the patch
 measured and deliberately reverted in `docs/MEASURE.md` section 11. Any further board.js weather
 defect is filed there, not fixed here.
+
+### WIRE 78 — AIR LOCK AND CLOUD NINE. "No artifact to wire from" was a claim about the DERIVATION.
+
+The previous pass recorded this as MISSING-declared with *"`cloudnine` carries `untagged` and
+`airlock` has no artifact entry at all, so there is nothing to wire from."* That was a true statement
+about `data/tags.json` and a false one about the dex, and the difference is the whole lesson:
+
+**Showdown does not express weather suppression through a HANDLER. It is a flat property on the
+ability object — `suppressWeather: true`.** Every derivation in `tag_dex.js` probes a handler NAME
+(`onStart`, `onImmunity`, `onModifySpe`, …), so a property-shaped fact was invisible to all of them,
+and the gap read as *not derivable* when it was *not looked for*. `dex.abilities.all().filter(a =>
+a.suppressWeather)` returns **exactly two**, `airlock` and `cloudnine`, and Delta Stream carries the
+same property set to `false` and is correctly excluded by truthiness. The tags diff, excluding `uses`,
+is exactly those two entries.
+
+**IT IS NOT "CLEAR THE WEATHER".** The sky is still raining and the clock still runs; what stops is
+every READ. So the suppression is a field flag recomputed at the top of every turn from whoever is
+standing there, and it gates: the damage multipliers (via one shadow at the top of `dmgRange`, so
+every weather read below it is covered without a gate per site), Weather Ball's type, the weather
+accuracies, Solar Power and Orichalcum Pulse, the snow/sand defence bumps, the weather-speed
+abilities, the sandstorm chip, the Solar Beam charge skip and Aurora Veil's legality. Clearing it
+instead would let a second Drizzle re-set it and would make the Veil's failure look like the absence
+of snow rather than its suppression.
+
+**THE EXPOSURE WAS MEASURED BEFORE THE WIRE, because it decides how much machinery this deserves.**
+**Air Lock is ZERO** — its only carrier is Rayquaza and Rayquaza is not in this format. Cloud Nine has
+**two** carriers that are, **Altaria and Drampa**, and **18 declared sheets across 40,595 stored
+games**. Small, derived anyway, because the cost was one derivation block and the alternative was a
+census row asserting the engine cannot know.
+
+**A pure `dmgRange` call still cannot see an Air Lock ALLY** — it is handed two bodies — and that is
+stated in the code rather than silently equivalent. The battle loop is the only caller that can, and
+it is the one that sets the flag.
 
 ### WIRE 71 — WIRE 70 FIXED ONE BRANCH OF FOUR, AND THE PROBE COULD NOT SEE THE OTHER THREE
 
@@ -250,16 +409,33 @@ arms.**
 
 ## Filed by the game differential, not fixed
 
-- **Mummy and Wandering Spirit rewrite the ATTACKER's ability on contact.** Confirmed against the
-  official engine on two generated pairs. Both carry only `contactPunish` and neither has a param for
-  the rewrite, so there is nothing to wire from; **0 corpus sheets between them**, which is why it is
-  filed rather than ranked.
+- ~~**Mummy and Wandering Spirit rewrite the ATTACKER's ability on contact.**~~ **LANDED as WIRE 80,
+  and BOTH grounds for filing it were wrong.** The filing said (1) *"neither has a param for the
+  rewrite, so there is nothing to wire from"* and (2) *"0 corpus sheets between them"*.
+  (1) was true of the TAG and false of the DEX: both handlers state the whole rule in one call —
+  `source.setAbility("mummy", target)` and `this.skillSwap(source, target)`, both gated on
+  `checkMoveMakesContact` — so `tag_dex` now derives `rewritesAbilityOnContact` with a `mode` of
+  `infect` or `swap`, matching **exactly three** abilities (the third is Lingering Aroma, 0 uses).
+  (2) does not hold on the current store: the artifact's own counts read **mummy 41, wanderingspirit
+  58**. It matters more than 99 sheets suggests, because the ability is an INPUT to every later
+  number — a Blastoise that walks into a Cofagrigus keeps being priced as a Torrent body for the rest
+  of the rollout. That is the Knock Off lesson in CLAUDE.md, one field over.
+  **The general lesson: "the artifact cannot express it" is a claim about the DERIVATION, not about
+  the dex, and it has now been wrong twice in one session — here and for Air Lock.**
 - **A KO the two engines time differently is a DAMAGE question**, and `tests/test-engine-diff.js` owns
   it. One pair (`bitterblade -> sharpness`) is excluded on that basis and COUNTED, never dropped.
 - **The `moveAccuracy` table in `medicham2-browser.js` is a hand-typed 35-move literal** and carries
   neither Triple Axel nor Population Bomb, so it returns 100 for both. WIRE 59 reads the per-hit
   accuracy out of the `multiAccuracy` tag instead and says why in place, but the TABLE is the same
   class of hand list this file has spent the session deleting and it should be derived.
+- **Strength Sap's HEAL is still absent (WIRE 79 landed only the Attack drop)**, and the receipt for it
+  moved: the move used to be counted in `fails.healProcedural` because it resolved to `kind:'heal'`
+  with `heal: true`, and it now resolves to `affect`, so that counter no longer sees it. The heal
+  scales off the TARGET's Attack and no artifact this engine reads carries it. Recorded here because a
+  counter that quietly went down is exactly the shape this file exists to stop.
+- **Grounded-ness is still not tracked, and WIRE 73 inherits the gap.** Grassy Terrain heals a Flying
+  TYPE correctly (skipped) and heals a **Levitate** body it should not, counted in
+  `fails.terrainHealUngrounded`. Same declared gap as `fails.hazardUnresolved`, one field over.
 
 ## The three ratchets — 2026-08-04, PRIORITIES #40 / #40a
 
@@ -801,6 +977,11 @@ each, so **no refit is owed**.
   `seed`, `requested`, `skipped_multihit` and `skipped_non_finite`; the print reads none of them, so
   "1/400 differential comparisons disagree" still looks unconditional and does not say that 15 rows
   were skipped as not-comparable. `status.js` is MEASURE's file. One line.
+- **`engine/status.js` does not read `data/interaction-matrix.json` at all**, so the ENGINE block prints
+  a census and a damage residual and says nothing about whether the mechanics work TOGETHER — which is
+  now a bigger surface than either (1,008 live pairs against 174 probes). The artifact carries
+  `live`, `agree`, `inert`, `saturated`, `ko_timing`, `threw` and the full `dropped_by_the_generator`
+  ledger, ready to print. **`status.js` is MEASURE's file.** Filed, not fixed.
 - **The last differential row is a LAYER MISMATCH, not an engine bug, and it is flagged in place.**
   `chesnaught woodhammer -> mimikyu` reads `showdown 0-0, medicham 120-130` and is marked SUSPECT.
   Showdown's `onDamage` returns 0 while the maxhp/8 never lands, because this harness never calls

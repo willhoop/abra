@@ -1,11 +1,11 @@
 {
-  "generated": "2026-08-04T21:41:55.894Z",
+  "generated": "2026-08-04T22:46:32.118Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 165,
-  "live": 157,
-  "missing": 8,
-  "armed": 17,
+  "probed": 174,
+  "live": 167,
+  "missing": 7,
+  "armed": 26,
   "unarmed": 148,
   "threw": 0,
   "hollow": 0,
@@ -1490,8 +1490,89 @@
       "kind": "ability",
       "tag": "weatherSuppression",
       "label": "Air Lock stops the sun boosting Fire",
-      "live": false,
-      "detail": "Flamethrower in sun: plain defender 84, Air Lock defender 84 (must be the clear-weather number)",
+      "live": true,
+      "detail": "Flamethrower in sun: plain defender 84, Air Lock defender 56 (must be the clear-weather number)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrainEveryMember",
+      "label": "every setsTerrain move actually resolves to a terrain",
+      "live": true,
+      "detail": "psychicterrain=terrain electricterrain=terrain grassyterrain=terrain mistyterrain=terrain   control swordsdance=setup",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "terrainPassiveHeal",
+      "label": "Grassy Terrain heals 1/16 a turn and cancels the sandstorm",
+      "live": true,
+      "detail": "a sixteenth is 10; sand only -10, grassy only 10, both 0 (must be 0)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "weatherChipStopsOnExpiry",
+      "label": "a 5-turn sandstorm chips 4 times, not 5",
+      "live": true,
+      "detail": "ticks over 8 idle turns of a 5-turn sandstorm: 4 (the official engine deals 4)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "convertsMoveTypeByFlag",
+      "label": "Liquid Voice makes a sound move Water",
+      "live": true,
+      "detail": "Psychic Noise: no ability 122, Liquid Voice 45; Body Slam: no ability 29, Galvanize 25 (the TYPE half must still work)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "immunityBlocksSecondary",
+      "label": "a Soundproof body takes no Heal Block from Psychic Noise",
+      "live": true,
+      "detail": "heal-blocked after Psychic Noise: plain true (must be true), Soundproof false (must be false)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "soundSealBlocksEveryKind",
+      "label": "a silenced body cannot phaze with Roar",
+      "live": true,
+      "detail": "slot after Roar: not silenced \"corviknight\" (dragged), silenced \"milotic\" (must still be Milotic)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCodeOnTarget",
+      "label": "Strength Sap drops the target's Attack",
+      "live": true,
+      "detail": "strengthsap resolves to kind \"affect\" (was \"pass\"); target atk stage 0 -> -1",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "rewritesAbilityOnContact",
+      "label": "Mummy overwrites and Wandering Spirit swaps, on contact only",
+      "live": true,
+      "detail": "attacker/holder after the hit — no ability torrent/none; Mummy mummy/mummy; Wandering Spirit wanderingspirit/torrent; Mummy hit by SURF (no contact) torrent/mummy",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "selfBoostSecondary",
+      "label": "Flame Charge raises the USER's Speed on a connecting hit",
+      "live": true,
+      "detail": "user spe stage — Fire Fang (no self-boost) 0, Flame Charge 1; and Icy Wind still drops the TARGET to -1",
       "hollow": false,
       "armed": true
     }

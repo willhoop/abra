@@ -2317,6 +2317,54 @@ const ABILITY_TAGS = [
       if (!m) return null;
       return { weather: W2ENGINE[m[1]] || m[1] };
     } },
+  /* AIR LOCK AND CLOUD NINE, and the reason this entry exists is that the previous pass recorded them
+   * as *"MISSING — there is no artifact to wire from"*. That was wrong, and the correction matters more
+   * than the mechanic: Showdown does not express weather suppression through a HANDLER at all, it
+   * expresses it as a FLAT PROPERTY on the ability object, `suppressWeather: true`. Every derivation
+   * above probes a handler name, so a property-shaped fact was invisible to all of them and the gap
+   * read as "not derivable" when it was "not looked for".
+   *
+   * IT IS EXACT RATHER THAN HEURISTIC. `dex.abilities.all().filter(a => a.suppressWeather)` returns
+   * exactly two abilities in this format, airlock and cloudnine, and nothing else — printed by the
+   * membership check the same as every other derivation here. Delta Stream carries the property set to
+   * FALSE and is correctly excluded by the truthiness test.
+   *
+   * WHAT IT IS WORTH, measured before it was written: Air Lock's only carrier is Rayquaza, which is
+   * NOT in this format, so it has ZERO. Cloud Nine has two carriers that are (Altaria, Drampa) and 18
+   * declared sheets across 40,595 stored games. Small — and derived anyway, because the cost is this
+   * block and the alternative was a census row that says the engine cannot know. */
+  /* MUMMY AND WANDERING SPIRIT REWRITE THE ATTACKER'S ABILITY ON CONTACT, and the previous pass filed
+   * them as unwirable because `contactPunish` carries `{trigger:'contact', inflicts:null,
+   * fraction:null}` -- a tag that says something happens and not what. That was true of the TAG and
+   * not of the DEX: both handlers state the whole rule in one call, and the two calls are different
+   * enough to name the two modes apart.
+   *
+   *   mummy / lingeringaroma :  source.setAbility("mummy", target)   -> mode 'infect', and the id it
+   *                             writes is in the call, so the consumer never types an ability name.
+   *   wanderingspirit        :  this.skillSwap(source, target)       -> mode 'swap'.
+   *
+   * BOTH ARE GATED ON checkMoveMakesContact IN THE HANDLER, which is why the trigger is asserted here
+   * rather than assumed: an ability that rewrote on ANY hit would be a different mechanic and must not
+   * inherit this tag.
+   *
+   * THE OTHER REASON IT WAS FILED WAS "0 corpus sheets between them", AND THAT NO LONGER HOLDS.
+   * `tag_dex`'s own usage count reads mummy 41 and wanderingspirit 58 on the current store. */
+  { tag: 'rewritesAbilityOnContact', param: "mode: 'infect' (and WHICH ability) or 'swap'", probe: 'onDamagingHit',
+    why: 'Mummy and Wandering Spirit. The attacker walks away as a different Pokemon, and every damage '
+       + 'and speed number after that is computed from an ability it no longer has',
+    of: a => {
+      if (!a.onDamagingHit) return null;
+      const src = String(a.onDamagingHit);
+      if (!/checkMoveMakesContact/.test(src)) return null;
+      const inf = src.match(/setAbility\(\s*["'](\w+)["']/);
+      if (inf) return { mode: 'infect', becomes: inf[1], trigger: 'contact' };
+      if (/skillSwap\s*\(/.test(src)) return { mode: 'swap', trigger: 'contact' };
+      return null;
+    } },
+  { tag: 'weatherSuppression', param: 'the weather is on the field and does nothing', probe: 'suppressWeather',
+    why: 'Air Lock and Cloud Nine. Not a handler — a flat property on the ability, which is why every '
+       + 'handler-probing derivation in this file missed it',
+    of: a => (a.suppressWeather ? { suppresses: true } : null) },
   { tag: 'terrainSetter', param: 'terrain := WHICH on switch-in', probe: 'terrainSetter',
     why: 'same shape as weather',
     of: a => {
