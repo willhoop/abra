@@ -169,6 +169,20 @@ const EXPLAIN = process.argv.includes('--explain');
 /* --greedy  take the top-scoring option instead of the weighted roll. Changes the OBJECTIVE from
  *           'look like a human' to 'win', on weights fitted for the former. Untested until now. */
 let _warnedNoDigest = false;
+/* --miltank / --miltank2  put the SEARCH player on this arm.
+ *
+ * MILTANK decides by playing the position out; MAG scores it once with fitted weights. Until
+ * engine/miltank.js existed the search lived inside mag_bot.js as overrides on a websocket player,
+ * so this harness -- the only one that can run a controlled A/B -- could not reach it, and R4 was
+ * not merely unrun but UNRUNNABLE. Routed by `swapped` exactly as the weights and greedy flags are,
+ * because these are per-ARM and optA/optB are per-SIDE.
+ *
+ * SLOW BY CONSTRUCTION: a MILTANK turn is hundreds of playouts, so size the run to the question.
+ * --miltank-n trades accuracy for throughput and is the knob that makes an SPRT finish tonight. */
+const MILTANK_A = process.argv.includes('--miltank');
+const MILTANK_B = process.argv.includes('--miltank2');
+const MILTANK_N = parseInt(arg('miltank-n', '60'), 10);
+const MILTANK_PREVIEW_N = parseInt(arg('miltank-preview-n', '12'), 10);
 const GREEDY_A = process.argv.includes('--greedy');
 /* --opponent-model / --opponent-model2  arm the expectation-based threat estimate, PER ARM, for the
  * same reason --greedy and --switching are per arm: the decisive experiment is one build against
@@ -518,6 +532,15 @@ async function playOne(teamA, teamB, seed, forceSwap) {
   const [PA, PB] = swapped ? [PlayerB, Player] : [Player, PlayerB];
   const p1 = new PA(streams.p1, optA);
   const p2 = new PB(streams.p2, optB);
+  /* Installed on the PLAYER, after construction, because MILTANK wraps chooseMove/chooseSwitch/
+   * chooseTeamPreview rather than being an option magnemite understands. MAG stays underneath and
+   * is what every fallback returns to. */
+  if (MILTANK_A || MILTANK_B) {
+    const MT = require('./miltank.js');
+    const mo = { n: MILTANK_N, previewN: MILTANK_PREVIEW_N, previewMs: 4000 };
+    if (MILTANK_A) MT.install(swapped ? p2 : p1, mo);
+    if (MILTANK_B) MT.install(swapped ? p1 : p2, mo);
+  }
   p1.start(); p2.start();
 
   void streams.omniscient.write(
