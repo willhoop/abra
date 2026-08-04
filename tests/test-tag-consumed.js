@@ -115,6 +115,27 @@ for (let i = 0; i < SPECIES.length; i++) {
   try { MEDI.clickFragility(att, [def], field); calls++; } catch (e) { threw++; }
   try { MEDI.punishExposure(att, [def], field); calls++; } catch (e) { threw++; }
 }
+/* ---- THE BATTLE LOOP, which the first sweep never entered -----------------------------------
+ * That omission produced 77 UNREACHED verdicts and, before the static check existed, 132 false
+ * DEADs. Flinch, redirection, Trick Room, screens, residual healing, Encore, hazards and the punish
+ * abilities are all consumed inside battleTurn and nowhere else. chooseAction picks real moves off
+ * the built mons, so the tags exercised are the ones real bodies actually carry — and a seeded rng
+ * keeps the run reproducible, per the same rule as every other battery in this repo. */
+let btTurns = 0;
+{
+  let seed = 987654321;
+  const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (let g = 0; g < SPECIES.length; g++) {
+    const A = [MEDI.buildMon(SPECIES[g % SPECIES.length], {}), MEDI.buildMon(SPECIES[(g + 3) % SPECIES.length], {})];
+    const B = [MEDI.buildMon(SPECIES[(g + 5) % SPECIES.length], {}), MEDI.buildMon(SPECIES[(g + 11) % SPECIES.length], {})];
+    if (A.some(x => !x) || B.some(x => !x)) continue;
+    try {
+      const S = MEDI.battleInit(A, B);
+      for (let t = 0; t < 16 && !MEDI.battleOver(S); t++) { MEDI.battleTurn(S, rng); btTurns++; calls++; }
+    } catch (e) { threw++; }
+  }
+}
+ok(btTurns > 500, `the battle loop actually ran (${btTurns.toLocaleString()} turns) — the path the first sweep missed`);
 ok(calls > 1000, `the sweep made ${calls.toLocaleString()} engine calls across ${SPECIES.length} species`);
 /* A sweep that threw on everything would report every tag DEAD and look like a catastrophic finding.
  * The throw count is printed rather than swallowed, exactly as the swallowed-failure rule requires. */
