@@ -102,7 +102,20 @@ const WEIGHTS = arg('weights', '');
  * --rollout-n    playouts per candidate (default 200; R3 found the search stops flip-flopping
  *                around 600, and R2 puts a playout at well under a millisecond)
  */
-const ROLLOUT = process.argv.includes('--rollout');
+/* MILTANK -- the SEARCH player, and a different player to MAG rather than a setting on it.
+ *
+ * MAG is a fitted linear policy over board features, trained to predict what a human CLICKS. It
+ * imitates. MILTANK decides by playing the position out and taking the line that wins most, so it
+ * can prefer a move no human in the corpus ever chose. Will named it: Whitney's Miltank is the
+ * classic Rollout user, and calling it 'the rollout' described the mechanism while hiding that a
+ * second player existed at all.
+ *
+ * They are not rivals. MILTANK searches; when the search cannot separate its options -- inside the
+ * noise floor, or in a position already decided -- it defers to MAG, because a fitted human prior
+ * beats a coin flip over near-ties. Imitation is the floor and the search is the ceiling.
+ *
+ * --rollout is kept as an alias so anything already running keeps working. */
+const ROLLOUT = process.argv.includes('--miltank') || process.argv.includes('--rollout');
 const ROLLOUT_N = parseInt(arg('rollout-n', '200'), 10);
 /* --rollout-explore  how random the playout is. 1.0 is the best POSITION judge (R1: 68.18% against
  *   64.42% for greedy), but judging a position and choosing an ACTION are different jobs: random
@@ -114,6 +127,11 @@ const ROLLOUT_EXPLORE = parseFloat(arg('rollout-explore', '1.0'));
  *   back and forth and nothing dies before the horizon. A rollout on its own never noticed
  *   because it was not choosing. Default raised here so the games actually resolve. */
 const ROLLOUT_TURNS = parseInt(arg('rollout-turns', '60'), 10);
+/* --preview-n / --preview-ms  how hard MILTANK thinks about which four to bring. 90 brings is the
+ * full enumeration for six Pokemon; the deadline is what keeps it inside Showdown's preview timer
+ * on a slow machine, and whatever was scored by then is reported honestly. */
+const PREVIEW_N = parseInt(arg('preview-n', '40'), 10);
+const PREVIEW_MS = parseInt(arg('preview-ms', '15000'), 10);
 
 const { realTeams } = require('./mew.js');
 const makeScoringPlayer = require('./magnemite.js').makeScoringPlayer;
@@ -702,6 +720,109 @@ function handle(room, line) {
         this._megaReq = this._req;
         return choice;
       };
+      const baseTeamPreview = bot.chooseTeamPreview.bind(bot);
+      /* WHICH FOUR TO BRING AND WHICH TWO TO LEAD -- decided by playing it out, not by imitation.
+       *
+       * magnemite never overrode chooseTeamPreview, so the live bot inherited RandomPlayerAI's
+       * `return 'default'`: bring Pokemon 1-4 in packed order and lead the first two. Every game
+       * ever played against this bot had its lead decided by where a Pokemon happened to sit in a
+       * team string. The code's own comment calls preview "the single largest branch in the game".
+       *
+       * WINNING, NOT IMITATING, and the distinction decides the design. Will asked it directly:
+       * "ARE WE TRYING TO IMITATE HUMANS OR WIN, OR IS THAT THE SAME". engine/prior_player.js has a
+       * fitted bring sampler that reproduces what people lead, and it is the wrong tool here -- a
+       * prior can only say "Whimsicott leads 53% of the time", which is a fact about the population
+       * and not about this game. WITH OPEN TEAM SHEETS WE KNOW THEIR ENTIRE TEAM, which is
+       * information no human-usage prior can encode. So the matchup is computed instead of guessed.
+       *
+       * Imitation still earns its place where the search cannot separate options -- that fallback is
+       * already in the move picker -- but it is a floor, not a target.
+       *
+       * THEIR CHOICE IS MARGINALISED, NOT ASSUMED. We do not know which four they bring, so each
+       * playout samples one of theirs at random. Fixing a guess for their side would optimise
+       * against one opponent out of fifteen and call it a plan.
+       */
+      bot.chooseTeamPreview = function (team) {
+        const t0 = Date.now();
+        try {
+          const side = this.me || 'p1';
+          const foe = side === 'p1' ? 'p2' : 'p1';
+          const sheets = (this.board && this.board.sheet) || {};
+          const mine = sheets[side] || {}, theirs = sheets[foe] || {};
+          const myNames = (team || []).map(m =>
+            String((m && (m.details || m.speciesForme || m.species)) || '').split(',')[0].trim());
+          const theirNames = Object.keys(theirs);
+          /* NO SHEET, NO SEARCH. Without their team this is guessing dressed as computation, and the
+           * inherited default is at least honest about being arbitrary. Reported, not silent. */
+          if (myNames.length < 4 || theirNames.length < 2) {
+            console.log('  preview: no open sheet for the opponent — falling back to default order');
+            return baseTeamPreview(team);
+          }
+          const MEDI = require('./medicham2-browser.js');
+          const bodyOf = (name, sheet) => {
+            try {
+              const st = sheet[name];
+              const b = st ? MEDI.buildMonFromSet(Object.assign({ species: name }, st)) : MEDI.buildMon(name, {});
+              return b || null;
+            } catch (e) { return null; }
+          };
+          const myBodies = myNames.map(n => () => bodyOf(n, mine));
+          const theirBodies = theirNames.map(n => () => bodyOf(n, theirs));
+          if (myBodies.some(f => !f()) || theirBodies.every(f => !f())) {
+            console.log('  preview: could not build every body — falling back to default order');
+            return baseTeamPreview(team);
+          }
+
+          /* Every (lead pair, back pair) our six allows: 15 leads x 6 backs = 90 brings. */
+          const combos = [];
+          const idx = myNames.map((_, i) => i);
+          for (let a = 0; a < idx.length; a++) for (let b = a + 1; b < idx.length; b++) {
+            const rest = idx.filter(i => i !== a && i !== b);
+            for (let c = 0; c < rest.length; c++) for (let d = c + 1; d < rest.length; d++) {
+              combos.push([a, b, rest[c], rest[d]]);
+            }
+          }
+          const N = PREVIEW_N;
+          const DEADLINE = t0 + PREVIEW_MS;
+          let best = null, bestVal = -1, done = 0;
+          for (const combo of combos) {
+            if (Date.now() > DEADLINE) break;
+            let w = 0, ran = 0;
+            for (let i = 0; i < N; i++) {
+              const rng = (s => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; })(
+                (combo[0] * 31 + combo[1] * 7 + combo[2] * 3 + combo[3]) * 7919 + i * 104729 + 13);
+              const A = combo.map(i2 => myBodies[i2]()).filter(Boolean);
+              /* Their bring, sampled fresh EVERY playout -- see the marginalisation note above. */
+              const pool = theirBodies.slice();
+              const B2 = [];
+              while (B2.length < 4 && pool.length) {
+                const j = Math.floor(rng() * pool.length) % pool.length;
+                const b = pool.splice(j, 1)[0]();
+                if (b) B2.push(b);
+              }
+              if (A.length < 2 || B2.length < 2) continue;
+              const S = MEDI.battleInit(A, B2, { seeded: true });
+              S.maxTurns = 60;
+              while (!MEDI.battleOver(S)) MEDI.battleTurn(S, rng);
+              w += MEDI.battleResult(S); ran++;
+            }
+            if (!ran) continue;
+            done++;
+            const v = w / ran;
+            if (v > bestVal) { bestVal = v; best = combo; }
+          }
+          if (!best) return baseTeamPreview(team);
+          const order = best.concat(idx.filter(i => best.indexOf(i) < 0));
+          console.log(`  preview: lead ${myNames[best[0]]} + ${myNames[best[1]]}, back ` +
+            `${myNames[best[2]]} + ${myNames[best[3]]}  win ${(100 * bestVal).toFixed(0)}%  ` +
+            `(${done}/${combos.length} brings scored, ${Date.now() - t0}ms)`);
+          return 'team ' + order.map(i => i + 1).join('');
+        } catch (e) {
+          console.error('  preview search threw, falling back to default: ' + e.message);
+          return baseTeamPreview(team);
+        }
+      };
+
       const baseSwitch = bot.chooseSwitch.bind(bot);
       bot.chooseSwitch = function (active, switches) {
         try {
@@ -900,7 +1021,7 @@ function handle(room, line) {
           if (!this._rolloutChecked) {
             this._rolloutChecked = true;
             const probe = RL.rolloutWinProb(board, side, { n: 3, dex: DEX, explore: 1.0, field, seed: 1 });
-            console.log('  rollout seed check: ' + (probe
+            console.log('  MILTANK seed check: ' + (probe
               ? `${probe.built} bodies built, dropped ${JSON.stringify(probe.dropped)}, p=${probe.p}`
               : 'NULL — a side could not be built at all'));
             console.log('  my bench: [' + board.bench(side).join(', ') + ']  foe bench: [' +
@@ -1062,18 +1183,18 @@ function handle(room, line) {
           const spread = Math.max(...fv) - Math.min(...fv);
           const se = Math.sqrt(Math.max(bestVal * (1 - bestVal), 0.0025) / (ROLLOUT_N * 2));
           if (fv.length > 1 && spread < 1.5 * se) {
-            console.log(`  rollout: UNDECIDED — ${fv.length} finalists span ${(100 * spread).toFixed(1)}pt` +
+            console.log(`  MILTANK: UNDECIDED — ${fv.length} finalists span ${(100 * spread).toFixed(1)}pt` +
               ` against a ${(100 * se).toFixed(1)}pt standard error; deferring to MAG`);
             return base(active, moves);
           }
           if (bestVal < 0.03 || bestVal > 0.97) {
-            console.log(`  rollout: position already decided at ${(100 * bestVal).toFixed(0)}% —` +
+            console.log(`  MILTANK: position already decided at ${(100 * bestVal).toFixed(0)}% —` +
               ' every line scores the same, deferring to MAG');
             return base(active, moves);
           }
           const ms = Date.now() - t0;
           const chosen = [built[0].cands[bestPair[0]], built[1].cands[bestPair[1]]];
-          console.log(`  rollout: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
+          console.log(`  MILTANK: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
             `  win ${(100 * bestVal).toFixed(0)}%  (${oa.length * ob.length} opts, ${ms}ms, sw resolved ${_res}/unres ${_unres})`);
           const summary = Object.keys(byKind).sort().map(k =>
             k + ' ' + (100 * byKind[k].reduce((a, b) => a + b, 0) / byKind[k].length).toFixed(0) +
