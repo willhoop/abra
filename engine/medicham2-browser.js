@@ -1004,7 +1004,38 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
    real game. Re-applying Intimidate would drop the foe's Attack a SECOND time on every leaf, in the
    same direction, on every board with an Incineroar -- a silent, systematic bias exactly where the
    format is most crowded. */
+/* ONE MEGA PER SIDE. A team may CARRY two stones; it may not have two megas on the field.
+ *
+ * buildMonFromSet turns a stone-holder straight into its mega body, so a team with two stones was
+ * simulated with BOTH megaed -- an illegal board, on 105 of the 231 complete open-sheet teams. 45%
+ * of every rollout MILTANK has ever run was reasoning about a side stronger than the rules allow,
+ * and nothing caught it because nothing checks that a position is LEGAL.
+ *
+ * The first stone in team order keeps its mega, matching the live bot, which takes the first mega it
+ * is offered. The rest revert to their base forme, which the MC table carries under the name with
+ * the -mega suffix stripped -- so this is a lookup, not a hand-written pairing.
+ *
+ * NOT A DAMAGE-TABLE CHANGE: dmgRange is untouched and board.js prices damage from the LIVE board,
+ * where the real game has already said who megaed. This only fixes teams built for SIMULATION. */
+function oneMegaPerSide(team){
+  if(!team) return team;
+  let seen=false;
+  for(let i=0;i<team.length;i++){
+    const m=team[i];
+    if(!m||!m.name||!/-mega/.test(m.name)) continue;
+    if(!seen){ seen=true; continue; }
+    const base=String(m.name).replace(/-mega(-[xy])?$/,'');
+    if(!MC.mons||!MC.mons[base]) continue;          // no base row: leave it rather than break it
+    let b=null; try{ b=buildMon(base,{}); }catch(e){ b=null; }
+    if(!b) continue;
+    const frac=(m.st&&m.st.hp)?m.curHP/m.st.hp:1;
+    m.name=b.name; m.types=b.types; m.st=b.st; m.ability=b.ability;
+    m.curHP=Math.max(1,Math.round(b.st.hp*frac));
+  }
+  return team;
+}
 function battleInit(teamA,teamB,opts){
+  oneMegaPerSide(teamA); oneMegaPerSide(teamB);
   const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
     /* one shared death counter per side, handed to every mon by reference */
     sfA:{fainted:0},sfB:{fainted:0},
