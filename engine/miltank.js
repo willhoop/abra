@@ -489,6 +489,7 @@ function install(bot, o) {
                 : (c.move ? c.move.id : "NULLMOVE(" + JSON.stringify(c.choice) + ")")).join(", "));
           }
           let bestVal = -1, bestPair = null, _res = 0, _unres = 0;
+          const _foe = {};
           const byKind = {};
           const t0 = Date.now();
           /* SUCCESSIVE HALVING, because an argmax over 60-odd noisy estimates picks the luckiest one
@@ -595,7 +596,9 @@ function install(bot, o) {
               n, dex: DEX, explore: ROLLOUT_EXPLORE, field, maxTurns: ROLLOUT_TURNS,
               seed: (Date.now() & 0xffff) * 7919 + ia * 31 + ib + salt,
               myClicks: [ka, kb], protectTurns: this._protectTurns,
-              report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved; },
+              report: (r) => { if (r.unresolved) _unres += r.unresolved; else _res += r.resolved;
+                /* What the OPPONENT did across the playouts, so the assumption is inspectable. */
+                if (r.foeFirst) for (const k in r.foeFirst) _foe[k] = (_foe[k] || 0) + r.foeFirst[k]; },
             });
           };
           /* Round one: every pair, cheaply. These values decide who advances and nothing else — they
@@ -716,6 +719,18 @@ function install(bot, o) {
             k + ' ' + (100 * byKind[k].reduce((a, b) => a + b, 0) / byKind[k].length).toFixed(0) +
             '%(' + byKind[k].length + ')').join('  ');
           console.log('    by class: ' + summary);
+          /* WHAT IT ASSUMED YOU WOULD DO. Will asked whether the search considered that he would
+           * mega, Tailwind and Solar Beam. It does not PREDICT any of that -- at explore=1.0 the
+           * opponent clicks a uniformly random legal move -- so his line is one draw among many.
+           * Printing the distribution makes that inspectable instead of something I assert. */
+          {
+            const tot = Object.values(_foe).reduce((x, y) => x + y, 0);
+            if (tot) {
+              const top = Object.entries(_foe).sort((x, y) => y[1] - x[1]).slice(0, 5)
+                .map(([k, v]) => k + ' ' + Math.round(100 * v / tot) + '%').join(', ');
+              console.log('    it assumed you might: ' + top);
+            }
+          }
           if (SAY) { try { SAY(bestVal, chosen); } catch (e) { /* never let a chat line break a turn */ } }
           this._rolloutReq = req;
           this._rolloutPick = [];

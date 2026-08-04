@@ -232,6 +232,7 @@ function rolloutWinProb(board, side, opts) {
  * @returns         win probability after that pair, or null when the position cannot be built
  */
 function rolloutAfterActions(board, side, opts) {
+  const foeFirstMoves = {};   // what the opponent chose on the stepped turn, across playouts
   opts = opts || {};
   const n = opts.n || 20;
   const dex = opts.dex;
@@ -354,7 +355,17 @@ function rolloutAfterActions(board, side, opts) {
     rolloutAfterActions._warnedEx = true;
     console.error(`  rolloutAfterActions: ${exploreThrew2} explore action(s) threw, first: ${firstExploreError2}`);
   }
-  if (opts.report) opts.report({ resolved, unresolved });
+  /* WHAT THE OPPONENT ACTUALLY DID across the playouts.
+   *
+   * Will asked whether the search considered that he would mega, then Tailwind, then Solar Beam --
+   * a fair question that nothing in the output could answer. It cannot be answered by reading the
+   * code either, because the honest answer is a DISTRIBUTION: at explore=1.0 the opponent clicks a
+   * uniformly random legal move every turn, so his real line is one draw among many rather than
+   * something anticipated.
+   *
+   * A player that cannot show what it assumed about you is a player you cannot argue with. This
+   * counts the foe's first-turn clicks so the assumption is inspectable instead of asserted. */
+  if (opts.report) opts.report({ resolved, unresolved, foeFirst: foeFirstMoves });
   return ran ? wins / ran : null;
 }
 
