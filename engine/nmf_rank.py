@@ -49,6 +49,9 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+# ONE HOME FOR A TIMESTAMP. This file used to write datetime.now().isoformat(), which is
+# naive -- no offset, so its meaning depends on who reads it. See engine/isotime.py.
+from isotime import utc_now
 OUT = os.path.join(ROOT, "data", "nmf-rank-selection.json")
 
 RANKS = list(range(2, 13))
@@ -214,7 +217,7 @@ def main():
             print("     matchup claims rest on a rank this criterion does not support.")
 
     json.dump(dict(
-        generated=__import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        generated=utc_now(),
         by="engine/nmf_rank.py",
         what=("Bootstrap factor stability for NMF rank selection. For each rank, NMF is fitted on two "
               "independent bootstrap resamples and the two factor sets are matched greedily by cosine "

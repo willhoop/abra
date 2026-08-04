@@ -1,10 +1,12 @@
 {
-  "generated": "2026-08-04T06:35:28.627Z",
+  "generated": "2026-08-04T08:43:07.176Z",
   "by": "engine/rollout_r4.js",
   "gate": "R4 — does the search beat the policy it searches over",
   "corpus": "data/games.r4-decided.jsonl",
   "verdict": "ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]",
   "verdict_code": "H1",
+  "n_measured": 535,
+  "n_unit": "decisive pairs (a seed pair whose two games did not split 1-1)",
   "games": 2624,
   "pairs": 1312,
   "decisive_pairs": 535,
@@ -73,14 +75,13 @@
       "classed_by": "engine/status.js",
       "standing": "PRE-CHANGE",
       "as_printed": "PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41",
-      "newest_engine_source": "engine/medicham2-browser.js 2026-08-04 04:47",
+      "newest_engine_source": "engine/medicham2-browser.js 2026-08-04 08:29",
       "corpus_written": "2026-08-04 04:41 UTC"
     },
     "player_standing": {
       "checked_by": "engine/player_digest.js",
-      "result": "SAME PLAYER AS NOW",
-      "as_printed": "ok   this corpus was produced by the bot that runs now (e79996a89ed7)",
-      "covers": "the feature builder, the joint features, the damage table digest and both weight vectors. It does NOT cover simulator mechanics that leave all of those unchanged."
+      "result": "NOT DERIVED",
+      "why": "player_digest.js could not run here (it loads the Showdown simulator and needs SHOWDOWN_PATH). Re-run this generator with SHOWDOWN_PATH set to fill this in."
     },
     "what_to_do_about_it": "Re-run the SPRT on the next frozen engine release (docs/DIVISIONS.md, the frozen-engine-release rule) before quoting this as a current figure."
   },

@@ -57,6 +57,9 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+# ONE HOME FOR A TIMESTAMP. This file used to write datetime.now().isoformat(), which is
+# naive -- no offset, so its meaning depends on who reads it. See engine/isotime.py.
+from isotime import utc_now
 HUMAN_RAW = os.path.join(ROOT, "data", "games.ladder.raw-logs.jsonl")
 # THE TRAINING CORPUS IS AN ARGUMENT NOW, and the reason is a measured one.
 #
@@ -557,7 +560,7 @@ def main():
                         else "It does NOT beat the material baseline on Brier — the extra features are not paying."))
 
     json.dump({
-        "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "generated": utc_now(),
         "by": "engine/porygon2.py",
         "what": "Nearest-neighbour value function. TRAINED on MEW self-play, EVALUATED on held-out "
                 "clean human games, per docs/POKER-TO-POKEMON.md section 7: self-play is the training "

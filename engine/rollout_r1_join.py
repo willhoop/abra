@@ -47,6 +47,9 @@ def contextlib_all(handles):
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+# ONE HOME FOR A TIMESTAMP. This file used to write datetime.now().isoformat(), which is
+# naive -- no offset, so its meaning depends on who reads it. See engine/isotime.py.
+from isotime import utc_now
 import porygon2 as P
 
 SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon2c.raw-logs.jsonl")
@@ -265,7 +268,7 @@ def main():
             "a coin. The cause is definitional, so no better join key fixes it.",
         "do_not_quote": None if validated else
             "No number in this file is a result. They are recorded so the withdrawal can be checked.",
-        "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "generated": utc_now(),
         "by": "engine/rollout_r1_join.py",
         "joined": len(meta), "dropped_misaligned": misaligned, "k": K,
         "accuracy": {"material": 100 * acc(p_mat), "porygon2": 100 * acc(p_pory), "rollout": 100 * acc(p_roll)},

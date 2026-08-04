@@ -98,7 +98,52 @@ function deriveGraph() {
       }
       return false;
     };
-    const writers = gens.filter(g => named(g.src, file) && writesNear(g.src));
+    /* THE STRONGEST FORM: ONE LINE both names the file and writes it.
+     *   json.dump(dex_out, open(D("data","pokemon-roles.json"),"w"), indent=1)
+     * `writesNear`'s 200-character window is loose enough that a script which merely READS a file a
+     * few lines above its own unrelated write is credited with generating it. That is how
+     * data/pokemon-roles.json, data/roles-eval.json, data/role-matchups.json and data/roles.js were
+     * all attributed to engine/build_roles_js.py — which reads them to make a browser bundle —
+     * instead of engine/roles.py, which computes them from the game store. The consequence was not
+     * cosmetic: build_roles_js.py touches no games, so all four artifacts were classed as not
+     * store-derived and skipped every corpus check. Attributing an artifact to the wrong generator
+     * means checking the wrong generator. */
+    /* A STRICTER WRITE TEST THAN `WRITE`, because at line scope `open(` alone is ambiguous —
+     * `json.load(open(D("data","pokemon-roles.json"), encoding="utf-8"))` is a READ and matches it.
+     * Using the loose form here left engine/roles.py (which writes the file) and
+     * engine/build_roles_js.py (which reads it) tied at the top rank, and the tie was broken by
+     * directory order. An `open` is only a write when a mode string says so. */
+    const LINE_WRITE = /writeFileSync|createWriteStream|json\.dump|to_json|open\s*\(.*['"][wa]b?\+?['"]/;
+    /* A COMMENT IS NOT CODE. This test found its first victim immediately: the comment above quotes
+     * engine/roles.py's write line verbatim, which credited THIS FILE with generating
+     * data/pokemon-roles.json — a provenance checker naming itself as the source of an artifact,
+     * which is the same class of false attribution the block above exists to fix. A write statement
+     * never lives on a line that opens with a comment marker. */
+    const isComment = ln => /^\s*(\/\/|\/\*|\*|#)/.test(ln);
+    const writesOnItsOwnLine = (src) =>
+      src.split('\n').some(ln => !isComment(ln) && ln.includes(file) && LINE_WRITE.test(ln));
+    /* ONE LEVEL OF VARIABLE INDIRECTION, which is the dominant Python idiom in engine/:
+     *   OUT = os.path.join(ROOT, "data", "guru-matchups.json")
+     *   ...
+     *   json.dump(res, open(OUT, "w"), indent=2)
+     * The filename literal never appears next to a write, so data/guru-matchups.json had NO detected
+     * writer and was absent from this audit entirely — the source file at the centre of the
+     * guru.js / guru-matchups.json divergence was the one file the provenance checker could not see.
+     * Resolved by finding the identifier the name was assigned to and asking whether THAT is
+     * written. */
+    const writesVia = (src) => {
+      for (const m of src.matchAll(new RegExp(`^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*=[^\\n]*${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gm'))) {
+        const ident = m[1];
+        const use = new RegExp(`(writeFileSync|json\\.dump|to_json|open)\\s*\\([^)\\n]*\\b${ident}\\b`);
+        if (use.test(src)) return true;
+      }
+      return false;
+    };
+    /* Rank the candidates by how directly they write it and take the best, rather than whichever
+     * the directory scan happened to reach first. */
+    const cands = gens.filter(g => named(g.src, file));
+    const rank = g => (writesOnItsOwnLine(g.src) ? 3 : 0) || (writesVia(g.src) ? 2 : 0) || (writesNear(g.src) ? 1 : 0);
+    const writers = cands.map(g => ({ g, r: rank(g) })).filter(x => x.r > 0).sort((x, y) => y.r - x.r).map(x => x.g);
     if (!writers.length) continue;                    // nothing generates it; not an artifact
     const by = writers[0].id;
     /* Its inputs: every other data file its generator actually READS.
@@ -165,15 +210,61 @@ function deriveGraph() {
      * policy-weights.json, recurring one require deeper. Deriving the graph fixed the hand-written
      * version; it did not make the derivation transitive. */
     const localReqs = [...writers[0].src.matchAll(/require\(\s*'\.\/([A-Za-z0-9_.-]+?)(?:\.js)?'/g)].map(m => m[1]);
-    const withDeps = writers[0].src + localReqs.map(r => {
+    /* NOT INTO engine/quality.js, and this is a NAMED exception with a reason rather than a list.
+     * quality.js is the store DISPATCHER: it names every store in the project by construction, in
+     * its own comments and in the error message that tells a caller how to choose one. Following
+     * into it therefore classifies every generator that uses the canonical reader — which is all of
+     * the good ones — as open-sheet. data/winrate-backtest.json's 6,886 LADDER games were being
+     * judged against the 8,173-game open-sheet ceiling for exactly that reason. A module whose
+     * mention of a store carries no information about its caller must not be read as if it did. */
+    const withDeps = writers[0].src + localReqs.filter(r => !/^quality(\.js)?$/.test(r)).map(r => {
       try { return fs.readFileSync(D('engine', r + '.js'), 'utf8'); } catch (e) { return ''; }
     }).join('\n');
     const corpus = /games\.(ots|bo3)\.jsonl/.test(withDeps) ? 'opensheet' : 'ladder';
-    out.push({ file, by, from, corpus });
+    /* IS THIS COUNTED OFF THE GAME STORE AT ALL?
+     *
+     * Needed for the corpus-drift check below, and it could not be answered by `from` alone. `from`
+     * only contains games.*.jsonl when the generator NAMES the store next to a read verb — and the
+     * generators that do the right thing do not name it. They call loadGames() / load_games(), which
+     * resolve the path inside engine/quality.js and engine/store.py.
+     *
+     * So the canonical reader was the one thing that hid an artifact from the store dependency, and
+     * every artifact built the recommended way looked storeless. data/meta-usage.json sat at `ok`
+     * while declaring 5,269 clean games against 6,943 available — a quarter of the corpus missing —
+     * because nothing connected it to the store it was counted from. Detected by the LOADER CALL,
+     * which is what a generator actually does, following the same one-require hop the corpus
+     * detection above already follows. */
+    const storeDerived = /\bloadGames\b|\bload_games\b/.test(withDeps)
+      /* IMPORTING THE READER COUNTS, not only calling its headline function. engine/derive_sets.js
+       * does `const Q = require('./quality.js')` and then uses Q.reasons()/Q.readStore(), so the
+       * string `loadGames` never appears in it. A generator that pulls in the store reader is
+       * counting off the store whichever of its functions it happens to call. */
+      || /require\(\s*['"]\.\/(quality|store)(\.js)?['"]/.test(writers[0].src)
+      || /\b(from|import)\s+(store|quality)\b/.test(writers[0].src)
+      || from.some(f => /^games\..*\.jsonl$/.test(f));
+    out.push({ file, by, from, corpus, storeDerived });
   }
   return out;
 }
 const ARTIFACTS = deriveGraph();
+
+/* --graph prints the DERIVED graph itself: who writes what, from what, and whether the checker
+ * believes the count is a store count. Added because the graph is the part of this file that can be
+ * silently wrong — an artifact whose store dependency goes undetected is reported `ok` forever, and
+ * the only way to find that out was to add a console.log and delete it again. A checker whose
+ * internal state cannot be inspected is one you end up reasoning about instead of reading. */
+if (process.argv.includes('--graph')) {
+  const pad = (s, n) => String(s).padEnd(n);
+  console.log('DERIVED ARTIFACT GRAPH — nothing here is typed; it is read out of the generators\n');
+  console.log('  ' + pad('artifact', 32) + pad('generated by', 34) + pad('corpus', 11) + 'store?  inputs');
+  console.log('  ' + '-'.repeat(112));
+  for (const a of ARTIFACTS.slice().sort((x, y) => x.file.localeCompare(y.file))) {
+    console.log('  ' + pad(a.file, 32) + pad(a.by, 34) + pad(a.corpus, 11) +
+                pad(a.storeDerived ? 'yes' : 'no', 8) + (a.from.join(', ') || '(none detected)'));
+  }
+  console.log(`\n  ${ARTIFACTS.length} artifacts, ${ARTIFACTS.filter(a => a.storeDerived).length} counted off the game store`);
+  process.exit(0);
+}
 
 const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; } catch (e) { return null; } };
 const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
@@ -194,15 +285,37 @@ try {
   openCleanCount = n;
 } catch (e) {}
 
-/* Pull a declared game count out of whatever shape the artifact used. */
-function declaredGames(j) {
-  if (!j || typeof j !== 'object') return null;
+/* Pull a declared game count out of whatever shape the artifact used.
+ *
+ * AN EXPLICIT CORPUS CLAIM WINS OVER A BARE COUNT, and that ordering is the fix for the artifact at
+ * the centre of PRIORITIES #16. data/meta-usage.json records its 5,269 under
+ * `provenance.funnel.clean` and `provenance.usable` — the two most explicit statements of "this is
+ * the population" anywhere in the repository — and had NO key this function looked at, so the file
+ * that started the whole "two definitions of clean" question was the one artifact the checker could
+ * not see a count for at all. A generator that describes its corpus most carefully should not
+ * thereby become invisible. */
+function declaredGamesFrom(j) {
+  if (!j || typeof j !== 'object') return { n: null, key: null };
+  const p = j.provenance && typeof j.provenance === 'object' ? j.provenance : {};
+  if (p.funnel && typeof p.funnel.clean === 'number') return { n: p.funnel.clean, key: 'provenance.funnel.clean' };
+  if (typeof p.usable === 'number') return { n: p.usable, key: 'provenance.usable' };
+  if (j.funnel && typeof j.funnel.clean === 'number') return { n: j.funnel.clean, key: 'funnel.clean' };
+  if (j.corpus && typeof j.corpus.clean_games === 'number') return { n: j.corpus.clean_games, key: 'corpus.clean_games' };
   for (const k of ['n_games', 'games', 'gamesUsed', 'nGames']) {
-    if (typeof j[k] === 'number') return j[k];
+    if (typeof j[k] === 'number') return { n: j[k], key: k };
   }
-  if (j.corpus && typeof j.corpus.games === 'number') return j.corpus.games;
-  return null;
+  if (j.corpus && typeof j.corpus.games === 'number') return { n: j.corpus.games, key: 'corpus.games' };
+  return { n: null, key: null };
 }
+const declaredGames = j => declaredGamesFrom(j).n;
+/* WHICH KEYS ARE A STATEMENT ABOUT A POPULATION. `games` is deliberately NOT one of them.
+ * engine/rollout_r2.js published `games` as the GAMES environment CAP for a run of 200 — a knob
+ * being read as a measurement, which docs/MEASURE.md records and that generator has since fixed.
+ * Until every writer of a bare `games` says whether it means a corpus or a sample, a drift figure
+ * computed on it is a guess. The fix belongs in the generator (publish `n_games`, or `n_measured`
+ * with `n_unit`), not in a special case here. */
+const CORPUS_KEYS = new Set(['provenance.funnel.clean', 'provenance.usable', 'funnel.clean',
+  'corpus.clean_games', 'n_games', 'gamesUsed', 'nGames']);
 
 /* Does ONE generator write both of these files? Derived by scanning the generator directories for a
  * line that both names the file and writes it. Returns the script path, or null.
@@ -291,7 +404,7 @@ for (const a of ARTIFACTS) {
    * enforces on source files. The declaration must be in the artifact itself so a consumer sees it,
    * not buried in a generator nobody opens. */
   const declared = j && (j.raw_store_ok || j.RAW_STORE_OK);
-  const n = declaredGames(j);
+  const { n, key: nKey } = declaredGamesFrom(j);
   const ceiling = a.corpus === 'opensheet' ? openCleanCount : cleanCount;
   const ceilingName = a.corpus === 'opensheet' ? 'clean open-sheet' : 'clean ladder';
   if (n != null && ceiling != null && n > ceiling * 1.2) {
@@ -300,6 +413,46 @@ for (const a of ARTIFACTS) {
     } else {
       notes.push(`declares ${n.toLocaleString()} games but only ${ceiling.toLocaleString()} are ${ceilingName} — cannot have been filtered`);
       bad = true;
+    }
+  }
+  /* CORPUS DRIFT — the other side of check 3, and the one that was missing.
+   *
+   * Check 3 catches an artifact declaring MORE games than exist clean, which is the tell for an
+   * unfiltered corpus. Nothing caught the opposite: an artifact declaring far FEWER, which is the
+   * tell for a corpus that has moved on since it was built.
+   *
+   * WHAT IT WAS BUILT TO SETTLE (PRIORITIES #16). data/live.js and data/winrate-backtest.json said
+   * 6,943 clean games; data/meta-usage.json, data/roles-eval.json and data/guru-matchups.json said
+   * ~5,269, and the front door rendered the larger figure beside results computed on the smaller.
+   * There is exactly ONE definition of a clean game (data/quality-filter.json, read by
+   * engine/quality.js and engine/quality.py, whose selections tests/test-quality.js pins to be
+   * identical). The 1,674-game gap is entirely RECOMPUTATION DATE: the 5,269 family was written on
+   * 2026-07-31 when the store held 29,117 collected, and the store held 38,587 by 2026-08-04. So
+   * this is not a naming problem and the two counts must NOT be given different names. It is
+   * staleness, and mtime could not see it, because the append-only store's mtime moves every hour
+   * and would mark every store-derived artifact stale within the hour of being rebuilt — a gate that
+   * cries wolf, which this file's own comments repeatedly refuse to become.
+   *
+   * MEASURED, not typed: the clean corpus grew 5,269 -> 6,943 over 3.4 days, about 7% a day. A 10%
+   * threshold is therefore "roughly a day and a half behind", which is late enough that a rebuild
+   * that has just happened stays quiet and early enough that a figure being quoted in a document is
+   * still worth re-deriving. It is a judgement, and it is written down rather than remembered. */
+  /* A DELIBERATE SAMPLE IS NOT A STALE CORPUS, and the first version of this check could not tell
+   * them apart: it reported data/rollout-r3.json as 99.3% behind for running on the 60 games its
+   * gate asks for. A gate artifact reports a RUN; the census artifacts this check is for report a
+   * POPULATION. Both escape hatches are declarations in the artifact itself — `gate`, which every
+   * R1-R4 file carries, and `games_requested`, which engine/rollout_r2.js added when it stopped
+   * publishing an environment cap as a measurement. Same convention as `not_store_derived` and
+   * `raw_store_ok`: visible to a consumer, not buried in this checker. */
+  const isSample = j && (typeof j.gate === 'string' || typeof j.games_requested === 'number' || j.sampled);
+  const DRIFT_WARN_PCT = 10;
+  if (a.storeDerived && !isSample && CORPUS_KEYS.has(nKey) && n != null && ceiling != null && n < ceiling) {
+    const missingPct = 100 * (ceiling - n) / ceiling;
+    if (missingPct >= DRIFT_WARN_PCT) {
+      notes.push(`CORPUS DRIFT — declares ${n.toLocaleString()} games; ${ceiling.toLocaleString()} are `
+        + `${ceilingName} now, so ${missingPct.toFixed(1)}% of the corpus it describes is not in it. `
+        + `Re-run ${a.by}.`);
+      warn = true;
     }
   }
   /* A generator whose filter is OPT-IN must say it was switched on. pory_nn.py takes --clean and

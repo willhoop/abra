@@ -19,13 +19,13 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 0 unsafe, 23 possibly stale, 54 ok, 0 missing
+  provenance: 0 unsafe, 32 possibly stale, 52 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
     (engine/medicham2-browser.js moved 2026-08-04 08:29, but the feature function did not)
     (data/abra-tags.js moved 2026-08-04 08:20, but the feature function did not)
 ```
 
-_stamped 2026-08-04 08:30_
+_stamped 2026-08-04 08:47_
 
 <!-- /GENERATED -->
 
@@ -262,14 +262,9 @@ line — a stamp that hashed today's sources would describe the file rather than
   `:265`, and the generated `web/status-data.js`. Three of the four are under `web/`, which MEASURE
   does not own. A rename that misses a reader prints NOT DERIVED and reads as "nobody ran this",
   which is worse than the inconsistency. Needs WEB in the same pass.
-- **`n` / `n_unit` on R1 and R4.** R2 and R3 carry both now. `engine/rollout_r1_artifact.js` and
-  `engine/rollout_r4.js` each need one line, and their artifacts pick it up on the next write — both
-  regenerations are arithmetic over committed evidence, no rollouts. Not done here because both files
-  were published hours ago and rewriting them mid-session invites a collision.
-- **`engine/rollout_r1_join.py` writes a naked `isoformat()`.** `data/rollout-r1-withdrawn-join.json`
-  says `2026-08-03T04:14:10`, which JavaScript reads as `08:14:10Z` — a four-hour shift. Latent only
-  because `status.js` refuses withdrawn artifacts. The withdrawn file itself must not be edited; the
-  generator should emit `Z`.
+- ~~**`n` / `n_unit` on R1 and R4.**~~ **DONE 2026-08-04** — see §7 below.
+- ~~**`engine/rollout_r1_join.py` writes a naked `isoformat()`.**~~ **DONE 2026-08-04, and it was
+  five files, not one** — see §8 below.
 - **`docs/ROLLOUT-design.md` §5's 200x, and §R3's PASS.** Both are SEARCH's document and a SEARCH
   explore sweep is live. §5 should read 155x-at-most, and the R3 PASS should name which run it is
   quoting, because the floors in its table belong to runs that are not the committed artifact.
@@ -279,12 +274,113 @@ line — a stamp that hashed today's sources would describe the file rather than
   holds that file for the explore sweep. The shapes are identical today; two copies is how they stop
   being identical.
 
-### 5. The 24 possibly-stale artifacts
+### 5. The possibly-stale artifacts, and the one class the checker could not see
 
-`node engine/provenance.js` lists them. Most are ordering artefacts inside a single run and are
-already annotated as such. The ones to actually chase are those older than `policy-weights.json`
-and those recording no game count at all — a file that does not say what it was built from cannot
-be checked by anyone, ever.
+`node engine/provenance.js` lists them; `node engine/provenance.js --graph` now prints the derived
+artifact graph itself, which is the part of that tool that could be silently wrong. Most entries are
+ordering artefacts inside a single run and are already annotated as such. The ones to actually chase
+are those older than `policy-weights.json`, those recording no game count at all, and — new — those
+carrying a **CORPUS DRIFT** note.
+
+**THE CANONICAL READER WAS HIDING ARTIFACTS FROM THE CHECKER.** `provenance.js` derived an artifact's
+inputs by looking for a filename beside a read verb. A generator that loads the store the *recommended*
+way — `loadGames()` / `load_games()`, which resolve the path inside `engine/quality.js` and
+`engine/store.py` — never names `games.ladder.jsonl`, so it recorded **no dependency on the store at
+all** and was reported `ok` forever. Doing the right thing was the thing that made you invisible.
+Store derivation is now detected by the LOADER CALL (or an import of the reader), which is what a
+generator actually does.
+
+Three more attribution faults surfaced with it, each of which had the same effect of exempting real
+artifacts from every corpus check:
+
+- **A read `open()` looked like a write.** `pokemon-roles.json`, `role-matchups.json` and
+  `roles-eval.json` were credited to `engine/build_roles_js.py`, which READS them to build a browser
+  bundle, instead of `engine/roles.py`, which computes them from the store. `build_roles_js.py`
+  touches no games, so all three were classed not-store-derived. A write test at line scope now
+  requires a mode string.
+- **The Python `OUT = os.path.join(...)` idiom hid a writer entirely.** `data/guru-matchups.json` —
+  the source file at the centre of the `guru.js` divergence — had **no detected generator and was
+  absent from the audit**. One level of variable indirection is now resolved.
+- **Following into `engine/quality.js` classified everything as open-sheet.** quality.js names every
+  store by construction, in its comments and in the error message that tells a caller how to pick
+  one. `data/winrate-backtest.json`'s 6,886 **ladder** games were being judged against the 8,173-game
+  open-sheet ceiling. It is a named exception now, with that reason.
+
+The graph went from 76 artifacts (49 store-derived) to **84 artifacts (57 store-derived)**. One of
+the eight newly visible files, `data/counters.json`, was **older than the quality filter** — the
+UNSAFE condition this tool exists to catch, invisible for nine days. Regenerated (15 s);
+`provenance.js --strict` is green.
+
+### 5a. CORPUS DRIFT — and the answer to "two definitions of clean games"
+
+**There are not two definitions. There is one, and the other number is four days old.**
+
+`data/live.js` and `data/winrate-backtest.json` said 6,943; `data/meta-usage.json`,
+`data/roles-eval.json` and `data/guru-matchups.json` said ~5,269. Measured rather than argued:
+
+| figure | written | what it is |
+|---|---|---|
+| **6,943** | 2026-08-04 03:09 | `load_games(clean=True)` over the store as it stood then |
+| 6,890 | 2026-08-04 **02:52** | the same predicate, 17 minutes earlier — `backtest_winrate.js` began its run then and the collector appended **exactly 53** clean games while it ran |
+| 6,886 | — | 6,890 minus 4 games whose `winner` matches neither player's name. A genuinely narrower question, and it is already NAMED: `scorable` / `dropped_no_label` |
+| 5,269 | 2026-07-31 16:42 | the same predicate over a store holding 29,117 collected instead of 38,587 |
+| 5,265 | 2026-07-31 16:43 | 5,269 minus the same 4 unlabelable games |
+
+Collected grew ×1.325 and clean grew ×1.318 over those four days. A changed predicate does not scale
+with the corpus; a snapshot does. And `tests/test-quality.js` run tonight has the JS and Python
+readers selecting the **identical** 6,943 ids, sha `60aab8e1978e7554` on both sides. So renaming
+anything would have been wrong: **the defect was a date, not a word.**
+
+Why nothing caught it: mtime cannot. The store is append-only and its mtime moves every hour, so an
+mtime rule would mark every store-derived artifact stale within an hour of being rebuilt — a gate
+that cries wolf. `provenance.js` now compares the **declared count** against the clean corpus and
+warns past 10%, which the measured growth rate (~7%/day) makes "roughly a day and a half behind".
+Thirteen artifacts are flagged, including all three named above at 24.1–24.2%.
+
+Two supporting fixes, both of which were the reason the headline artifact escaped:
+
+- `declaredGames` now reads an explicit corpus claim first — `provenance.funnel.clean`,
+  `provenance.usable`, `corpus.clean_games`. `data/meta-usage.json` states its population more
+  carefully than any other file in the repository and had **no key the checker looked at**, so the
+  file that started this question was the one it could not see a count for.
+- The drift check ignores a bare `games` key, and that is deliberate: `rollout_r2.js` published
+  `games` as the GAMES environment **cap**. Until every writer says whether `games` is a corpus or a
+  sample, a drift figure computed on it is a guess, and the fix belongs in the generator.
+
+**Do not touch `data/quality-filter.json` to record the new funnel.** Its mtime is `FILTER_MT`;
+bumping it marks every older artifact UNSAFE and turns `--strict` red across the repository.
+
+### 5b. `data/guru.js` said 0 where `data/guru-matchups.json` said 6 — and both were misleading
+
+`build/build_guru_js.js` read `g.decisive`. `engine/guru.py` writes the list as `decisive_matchups`.
+A missing key gave `[]`, the generator then recomputed `n_decisive` from **its own empty fallback**,
+and shipped a provenance note asserting "ZERO statistically-decisive matchups on this population" as
+though it were a finding. The 144-cell matrix was byte-identical throughout, which is why nobody
+noticed. `venusaurmega` / `venusaur-mega`, in a new pair of files.
+
+**The true value is 6 directed = 3 distinct matchups**, and the generator carries the source's count
+now instead of recomputing it. Three things stop it recurring, all derived: every source key must be
+projected or named in `DELIBERATELY_UNUSED` with a reason; the source must agree with itself
+(`decisive_matchups.length === min(n_decisive, 20)`); and `build_guru_js.js --check` rebuilds the
+bundle in memory and diffs it, run by `tests/test-guru-derived.js` on every suite run.
+
+**And the measurement underneath it: 3 of 66 pairs is what chance produces.** Each cell is its own
+95% test. Over 66 unordered pairs the expected number clearing that bar with no real effect is
+**3.3**, and **3** clear it. The smallest exact two-sided binomial p-value in the matrix is
+**6.1e-3** against a Benjamini-Hochberg threshold of **7.6e-4**, so **zero survive FDR at q=0.05**
+and zero survive Bonferroni. The bundle publishes both
+counts (`n_decisive`, `n_decisive_corrected`) plus the arithmetic. The old file's "ZERO decisive"
+string was accidentally right and arrived there by a bug — which is worse than being wrong, because
+it cannot be checked.
+
+`web/index.html:1845` gates a panel headed *"These are the matchups we can actually trust"* on
+`GURU.decisive.length`, so it will now render three matchups that do not survive multiplicity. It
+should read `decisive_corrected`. WEB's file; flagged, not edited. Note the same issue already
+affects `isSig()` in the matrix and the "statistically significant loop" claim, independently of this
+fix.
+
+`data/guru-matchups.json` is itself 24.2% behind the corpus. Regenerating it is a separate,
+deliberate refresh — it moves every number the GURU booth renders — and is not done here.
 
 ### 6. The noise floor is not a standing artifact
 
@@ -296,6 +392,55 @@ cuts of the H2H, and every block of `winrate-backtest.json` carries a `noise_flo
 accuracy. That is the right shape — the floor belongs to the measurement, not to a global constant —
 but there is still no A/A run for the H2H, and a floor computed inside the arm being judged cannot
 see between-run variance.
+
+### 7. All four rungs carry `n_measured` / `n_unit` — CLOSED 2026-08-04
+
+`engine/rollout_r1_artifact.js` and `engine/rollout_r4.js` now write the pair R2 and R3 already
+carried, and both artifacts were regenerated from committed evidence (no rollouts):
+`data/rollout-r1.json` **9,201 scored positions**, `data/rollout-r4.json` **535 decisive pairs**.
+Choosing which of R4's four numbers goes in the common slot is the whole point of having one — the
+SPRT is computed on decisive pairs and nothing else, and the handoff quoting "5,248 games" (the line
+count of a store that writes two lines per game) is what the slot is for.
+
+Still **not** called `n`: `data/rollout-r3.json` has published `n` as the rollout BUDGET since
+2026-08-03, and one key meaning a sample size in one rung and a budget in the next is worse than no
+common key.
+
+`tests/test-rollout-gates.js` derives the rung list from the filenames `engine/rollout_r*.js` write,
+asserts every generator emits both keys, and then permits exactly one artifact state beyond
+"carries them": *its generator does, awaiting a re-run*. `data/rollout-cost.json` is in that state
+and cannot leave it here — it is a set of TIMINGS, and R2 is re-run or it is nothing. What the test
+forbids is the state that actually goes wrong: missing in the artifact **and** in the generator,
+which is nobody having done it.
+
+### 8. Naive timestamps — CLOSED 2026-08-04, and it was FIVE writers, not one
+
+`engine/rollout_r1_join.py` was the reported case. The real answer to "is one occurrence a typo or a
+pattern" is that `datetime.now().isoformat(timespec="seconds")` appeared in **five** generators —
+`rollout_r1_join.py`, `lookahead_bound.py`, `lookahead_clock_control.py`, `nmf_rank.py`,
+`porygon2.py` — which makes it the house style rather than a slip. Eight committed artifacts carry
+one, and all eight come from exactly those five.
+
+**Correct the diagnosis, not just the bug.** JavaScript does not misparse it. ECMA-262 gives the two
+ISO forms opposite defaults — date-TIME with no offset is read as LOCAL, date-ONLY is read as UTC:
+
+```
+new Date('2026-08-03T04:14:10')  ->  2026-08-03T08:14:10.000Z   (local, this box is UTC-4)
+new Date('2026-08-03')           ->  2026-08-03T00:00:00.000Z   (UTC)
+```
+
+So the four-hour figure is the RENDERED string, not the parse, and on this machine the value
+round-trips. The defect is that the stamp means something different to every reader, that the two
+forms this project already uses side by side follow opposite rules, and that it is wrong by the
+reader's UTC offset the moment it is compared against a `Z` stamp — which is what every JavaScript
+writer here emits and what `status.js` and `provenance.js` exist to do.
+
+`engine/isotime.py` is the single home (`utc_now()`, `utc_today()`); all five call it.
+`data/rollout-r1-withdrawn-join.json` is deliberately NOT regenerated — it is a withdrawn result kept
+so the withdrawal can be checked. `tests/test-timestamps.js` gates the WRITERS, asserts the two ISO
+forms really do disagree on the running machine rather than quoting a comment about it, and lists the
+artifacts still carrying a naive stamp without failing on them, because an artifact is fixed by
+re-running its generator and that pressure is how "KNOWN FAILURE" gets typed.
 
 ## Reading a run
 

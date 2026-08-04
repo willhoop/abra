@@ -414,6 +414,21 @@ const artifact = {
   corpus: CORPUS,
   verdict: verdictLine,
   verdict_code: verdictCode,
+  /* A COMMON COUNT AND ITS UNIT, the same pair engine/rollout_r2.js and engine/rollout_r3.js carry.
+   * R1 published `positions`, R2 `boards`, R3 `decisions` and R4 `decisive_pairs` — four names for
+   * one slot, so comparing two rungs meant opening two generators first. `n_measured` is the number;
+   * `n_unit` says what one of them IS. The old names all stay below, and this file already publishes
+   * all four counts precisely because the handoff quoted one and called it another.
+   *
+   * NOT called `n`: data/rollout-r3.json has published `n` as the ROLLOUT BUDGET since 2026-08-03,
+   * and a key meaning a sample size in one rung and a budget in the next is worse than no common key.
+   *
+   * IT IS THE DECISIVE PAIR, and choosing which of this run's four numbers goes in the common slot
+   * is the whole point of having one. 5,248 lines are 2,624 games are 1,312 seed pairs are 535
+   * decisive pairs; the SPRT is computed on the last of those and on nothing else, so that is the
+   * sample size of this result. A 1-1 split means the team decided the game, not the policy. */
+  n_measured: decisive,
+  n_unit: 'decisive pairs (a seed pair whose two games did not split 1-1)',
   games,
   pairs,
   decisive_pairs: decisive,

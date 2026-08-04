@@ -249,6 +249,20 @@ const artifact = {
   verdict,
   verdict_code: code,
   verdict_note: sentence,
+  /* A COMMON COUNT AND ITS UNIT, the same pair engine/rollout_r2.js and engine/rollout_r3.js carry.
+   * R1 published `positions`, R2 `boards`, R3 `decisions` and R4 `decisive_pairs` — four names for
+   * one slot, so comparing two rungs meant opening two generators first. `n_measured` is the number;
+   * `n_unit` says what one of them IS, which is the part that genuinely differs between rungs. The
+   * old name stays beside it so no reader breaks.
+   *
+   * NOT called `n`: data/rollout-r3.json has published `n` as the ROLLOUT BUDGET since 2026-08-03,
+   * and a key meaning a sample size in one rung and a budget in the next is worse than no common key.
+   *
+   * The unit here is a POSITION, and it is not a game: this dump holds 3.68 scored positions per
+   * game from 2,500 games, so `n_measured` and any game count in this file are different quantities
+   * and neither substitutes for the other. */
+  n_measured: n,
+  n_unit: 'scored positions (one row per position; several per game)',
   positions: n,
 
   corpus_shape: {

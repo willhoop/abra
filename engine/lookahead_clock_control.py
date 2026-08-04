@@ -49,6 +49,9 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+# ONE HOME FOR A TIMESTAMP. This file used to write datetime.now().isoformat(), which is
+# naive -- no offset, so its meaning depends on who reads it. See engine/isotime.py.
+from isotime import utc_now
 import porygon2 as P
 
 SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon2c.raw-logs.jsonl")
@@ -191,7 +194,7 @@ def main():
         print("  The clock does not explain it. The gain survives the control, and the bound stands.")
 
     json.dump({
-        "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "generated": utc_now(),
         "by": "engine/lookahead_clock_control.py",
         "what": "Controls engine/lookahead_bound.py for the fact that its two columns are different "
                 "time slices of the same games rather than two evaluations of one position.",

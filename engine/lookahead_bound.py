@@ -60,6 +60,9 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+# ONE HOME FOR A TIMESTAMP. This file used to write datetime.now().isoformat(), which is
+# naive -- no offset, so its meaning depends on who reads it. See engine/isotime.py.
+from isotime import utc_now
 import porygon2 as P            # one reader for the protocol, the features and the k-NN
 
 SELF_RAW = os.environ.get("LOOKAHEAD_SELF") or os.path.join(ROOT, "data", "games.selfplay.porygon2c.raw-logs.jsonl")
@@ -221,7 +224,7 @@ def main():
         print("     open question is only how much of this bound a real search recovers.")
 
     json.dump({
-        "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "generated": utc_now(),
         "by": "engine/lookahead_bound.py",
         "what": "Upper bound on one-step lookahead: score the turn that ACTUALLY happened instead of "
                 "the current one. No search can beat knowing the answer, so this bounds what a "
