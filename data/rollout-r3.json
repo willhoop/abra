@@ -1,13 +1,38 @@
 {
-  "generated": "2026-08-03T20:25:04.296Z",
+  "generated": "2026-08-04T07:55:34.158Z",
   "by": "engine/rollout_r3.js",
+  "gate": "R3 — does a rollout search pick a different move than MAG",
+  "verdict": "R3 PASSES — divergence 80.2% against a self-disagreement floor of 31.4% on 121 decisions. These are different players, so an SPRT (R4) can tell them apart. A precondition for winning more, not evidence of it.",
+  "verdict_code": "PASS",
+  "n_measured": 121,
+  "n_unit": "decisions compared",
   "games": 60,
-  "decisions": 70,
-  "agreed": 19,
-  "skipped": 20,
-  "divergence_pct": 72.85714285714286,
+  "decisions": 121,
+  "agreed": 24,
+  "skipped": 29,
+  "divergence_pct": 80.16528925619835,
+  "noise_floor": {
+    "self_disagreement_pct": 31.40495867768595,
+    "self_disagree": 38,
+    "of_decisions": 121,
+    "what": "The SAME search, same candidates, same opponent policy, same everything it can see — only the seed differs. The truth there is 0.00 by construction, so whatever it reports is what the instrument invents.",
+    "reading": "Divergence exceeds the floor by 48.8 points."
+  },
+  "switches": {
+    "on_menu": 17,
+    "taken_by_search": 5,
+    "of_decisions": 121
+  },
+  "disagreement_gap_median_pts": 8.333333333333337,
+  "disagreement_gap_note": "When they disagree, the search's pair is worth this much more BY ITS OWN LEAF. Not evidence it is better — only that the two rank the same menu differently. R4 answers \"better\".",
   "n": 600,
   "topK": 3,
   "explore": 1,
-  "caveat": "Both players rank the SAME candidate set, so this is a disagreement about value and not about the menu. The opponent is not modelled: it plays chooseAction during the stepped turn, identically for every candidate. Switch candidates are excluded and counted."
+  "every": 3,
+  "caveats": [
+    "Both players rank the SAME candidate set, so this is a disagreement about value and not about the menu.",
+    "The opponent is not modelled: it plays chooseAction during the stepped turn, identically for every candidate. This is a best response to a fixed opponent, not an equilibrium.",
+    "SWITCH CANDIDATES ARE ON THE MENU and are counted in `switches` above. They were excluded before commit b4ec80b, and the caveat that said so outlived the code by a day.",
+    "DIVERGENCE IS NOT SUCCESS. This measures whether the two are different players. Whether the different one is better is R4, and only an SPRT answers that."
+  ]
 }
