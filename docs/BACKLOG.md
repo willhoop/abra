@@ -1,5 +1,9 @@
 # ABRA — backlog
 
+> **The ordered work queue lives in [PRIORITIES.md](PRIORITIES.md)** (opened 2026-08-04). This file
+> is domain analysis — what a set is, which slots are genuinely open, and how to size an experiment
+> over them. Read this to design a test; read PRIORITIES.md to find out what to test next.
+
 ## TERMS
 
 **Set** — everything about one Pokémon other than which Pokémon it is: its four **moves**, its
