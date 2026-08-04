@@ -61,6 +61,14 @@ const TAGS = (function(){
   };
 })();
 
+/* EVERY SWALLOWED FAILURE IN THIS FILE COUNTS ITSELF. Two catch blocks here fall back to a
+ * plausible-looking default (skip the Encore click; leave a second mega un-reverted) and used to say
+ * nothing at all, which is the exact shape CLAUDE.md records as this project's characteristic bug --
+ * "a capability was absent and everything reported success". A zero here is the claim that the
+ * fallback never ran; a non-zero one is the receipt that it did. Exported as `fails` so a test or a
+ * run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */
+const MEDFAILS = { encoreAction: 0, megaRevert: 0 };
+
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
  * shipped. With tags on, membership comes from the artifact's two spread tags -- and the split
@@ -162,6 +170,18 @@ const MEGA_ABIL={
   victreebel:'innardsout',golurk:'unseenfist',floette:'fairyaura',skarmory:'stalwart',crabominable:'ironfist',
   // Champions NEW abilities (effects added incrementally; labels correct now)
   excadrill:'piercingdrill',eelektross:'eelevate',pyroar:'firemane',meganium:'megasol',feraligatr:'dragonize',scovillain:'spicyspray',hawlucha:'noguard'};
+/* AN ABILITY IS ONE SHAPE OR IT IS NOT COMPARABLE. Every ability test in this file is a lowercase
+ * alphanumeric literal -- att.ability==='technician', m.ability==='intimidate' -- and 85 of the 318
+ * MC.mons rows (all of them megas, written by the mega merge) store `ab` in DISPLAY case: "Technician",
+ * "Huge Power", "Tough Claws". buildMon copied that through untouched, so a body built from its MEGA
+ * ROW carried exactly the right ability and not one line of it fired: Mega Scizor's Bullet Punch read
+ * 52 where Technician makes it 78.
+ *
+ * It hid because the OTHER construction path was always correct -- base row + stone goes through
+ * megaAbility(), which returns from the lowercase MEGA_ABIL map above. Only the mega-keyed path was
+ * wrong, and board.js overwrites the ability with effAbility() before its own damage call, which is
+ * why the live bot never showed it either. Probed by tests/test-mechanics.js `megaRowAbilityCase`. */
+const normAb=a=>String(a||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 function megaAbility(name,item,baseAb){ if(!item)return baseAb;
   if(name==='charizard'){ if(/itey$/.test(item))return 'drought'; if(/itex$/.test(item))return 'toughclaws'; }
   if(name==='raichu'){ if(/y$/.test(item))return 'noguard'; if(/x$/.test(item))return 'electricsurge'; }   // Raichunite Y / X
@@ -202,7 +222,7 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
                    sa:meg.sa+(m.st.sa-base.sa), sd:meg.sd+(m.st.sd-base.sd), sp:meg.sp+(m.st.sp-base.sp) }; }
     else { st=meg; }
   }
-  return {name,types,st,item,wt:m.wt||null,ability:megaAbility(name,item,m.ab||''),baseAbility:m.ab||'',moves:m.mv.slice(),
+  return {name,types,st,item,wt:m.wt||null,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
@@ -264,9 +284,10 @@ function buildMonFromSet(set){
   /* THE STONE DECIDES THE FORME, and in THIS table megas are their own species entries with real
    * base stats — so "Gengar @ Gengarite" must resolve to gengar-mega's bs, or the import builds a
    * mega with base stats (caught by the champ-model contract test: SpA 182 where truth is 222). */
+  let becameMega=false;
   if(/ite(x|y)?$/.test(item)&&!/-mega/.test(key)){
     const suffix=/itex$/.test(item)?'-mega-x':(/itey$/.test(item)?'-mega-y':'-mega');
-    if(MC.mons[key+suffix])key=key+suffix;
+    if(MC.mons[key+suffix]){key=key+suffix;becameMega=true;}
   }
   const m=MC.mons[key];
   if(!m||!m.bs)return null;
@@ -286,8 +307,16 @@ function buildMonFromSet(set){
    * droppedMoves so a UI can disclose them instead of silently thinning the set. */
   const ids=set.moves.map(norm2);
   const usable=ids.filter(id=>MC.moves[id]||PROTECTMOVES.has(id)||id==='wideguard'||id==='tailwind'||moveFx(id));
+  /* THE STONE DECIDES THE ABILITY TOO, not just the forme -- and this line used to let the SHEET win.
+   * A team sheet lists the PRE-mega ability ("Scizor ... Ability: Swarm"), so `declaredAb ||` handed
+   * a mega body its base forme's ability every single time a paste declared one, which is the exact
+   * gap tests/test-effective-identity.js was written about, living in the engine rather than in
+   * board.js. `becameMega` is true only on the branch that just swapped the key to a mega row, so a
+   * NON-mega set keeps the old precedence and a declared Rough Skin still beats the dataset's Sand
+   * Veil. If the mega row has no ability of its own the sheet is still better than nothing. */
+  const rowAb=normAb(megaAbility(key,item,m.ab||''));
   return {name:key,types,st,item,wt:m.wt||null,
-    ability:declaredAb||megaAbility(key,item,m.ab||''),baseAbility:m.ab||'',
+    ability:(becameMega&&rowAb)?rowAb:(declaredAb||rowAb),baseAbility:normAb(m.ab||''),
     moves:usable,droppedMoves:ids.filter(id=>usable.indexOf(id)<0),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,
     tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,_sf:null,_fallenStuck:0};
@@ -882,7 +911,9 @@ function chooseAction(me,foes,ally,field,side,rng){
       const _mv=me._encoreMove;
       if(_mv&&MC.moves[_mv]){
         const _t=live[Math.floor(rng()*live.length)%live.length];
-        try{const _a=playerAction(me,_mv,_t,field); if(_a&&_a.kind!=='pass')return _a;}catch(e){/* fall through */}
+        /* Falling through means the Encore is silently NOT honoured this turn — a real behaviour
+         * change dressed as a no-op, so it counts itself rather than vanishing. */
+        try{const _a=playerAction(me,_mv,_t,field); if(_a&&_a.kind!=='pass')return _a;}catch(e){ MEDFAILS.encoreAction++; }
       }
     }
     if(me._vol.taunt>0)me._vol.taunt--;
@@ -1091,8 +1122,13 @@ function bringIn(act,i,bench,foes,sf,field,wanted){
   if(nx._wasOut){
     const _sf=TAGS.param('ability',nx.ability,'switchInForme');
     if(_sf&&_sf.becomes){
-      const _key=String(_sf.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/--+/g,'-');
-      if(MC.mons&&MC.mons[_key]&&nx.name!==_key){
+      /* THROUGH THE FILE'S OWN RESOLVER, not a second hand-rolled one. This used to normalise
+       * `becomes` itself and then index MC.mons directly -- the fourth private doorway into that
+       * table, which is exactly what tests/test-mc-key.js bans (it caught this as 5 -> 7).
+       * pasteKey() does the same normalisation AND the flat rescan, so a forme whose table key
+       * punctuates differently still resolves instead of silently never transforming. */
+      const _key=pasteKey(_sf.becomes);
+      if(_key&&nx.name!==_key){
         const _hp=nx.curHP/nx.st.hp;
         const _new=buildMon(_key,{});
         if(_new){nx.name=_new.name;nx.types=_new.types;nx.st=_new.st;nx.curHP=Math.max(1,Math.round(_new.st.hp*_hp));}
@@ -1172,9 +1208,13 @@ function oneMegaPerSide(team){
     const m=team[i];
     if(!m||!m.name||!/-mega/.test(m.name)) continue;
     if(!seen){ seen=true; continue; }
-    const base=String(m.name).replace(/-mega(-[xy])?$/,'');
-    if(!MC.mons||!MC.mons[base]) continue;          // no base row: leave it rather than break it
-    let b=null; try{ b=buildMon(base,{}); }catch(e){ b=null; }
+    /* pasteKey() ALREADY strips the -mega suffix and resolves the base row, so asking it is both the
+     * one doorway into MC.mons and strictly less code than doing it here. The previous version wrote
+     * out the same suffix strip and then indexed the table by hand -- banned by tests/test-mc-key.js,
+     * and it was the second of the two lookups that pushed medicham2 from 5 to 7. */
+    let b=null;
+    try{ const base=pasteKey(m.name); b=base?buildMon(base,{}):null; }
+    catch(e){ b=null; MEDFAILS.megaRevert++; }       // no base row: leave it rather than break it
     if(!b) continue;
     const frac=(m.st&&m.st.hp)?m.curHP/m.st.hp:1;
     m.name=b.name; m.types=b.types; m.st=b.st; m.ability=b.ability;
@@ -2213,5 +2253,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
   moveFx,movePriority,priorityRefusedAbove,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
    * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
-  PROTECTMOVES};
+  PROTECTMOVES,
+  /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
+  fails:MEDFAILS};
 })(typeof window!=='undefined'?window:globalThis);

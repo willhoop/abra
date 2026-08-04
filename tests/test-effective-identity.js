@@ -51,6 +51,19 @@
  *   node tests/test-effective-identity.js --update    (only after FIXING some)
  */
 'use strict';
+/* A CHECK THAT CRASHES IS A CHECK THAT GETS SKIPPED.
+ *
+ * This file sweeps the real Showdown dex for a mega case, so it needs SHOWDOWN_PATH. Without it the
+ * loader threw a twenty-line stack trace out of engine/champions_sim.js before a single assertion
+ * printed. This ratchet then sat red for two days with nobody running it (docs/PRIORITIES.md #40),
+ * and the stack trace is a large part of why.
+ *
+ * Exit 2, not 1: a runner can tell NOT RUN from FAILED, and neither one can be mistaken for a pass. */
+if (!process.env.SHOWDOWN_PATH) {
+  console.error('NOT RUN — set SHOWDOWN_PATH to a built pokemon-showdown checkout, then re-run:');
+  console.error('  SHOWDOWN_PATH=/path/to/pokemon-showdown node tests/test-effective-identity.js');
+  process.exit(2);
+}
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -156,6 +169,90 @@ if (C) {
     (differ.length ? ` — ${differ.length} differ:\n         ` + differ.slice(0, 8).join('\n         ') : ''));
 }
 
+/* ---- 2b. THE ONE FILE THAT CANNOT ROUTE THROUGH board.js, PINNED ------------------------------
+ *
+ * engine/medicham2-browser.js is the largest raw reader in the repo and cannot call effAbility():
+ * it is a browser file with no require, and board.js is downstream of it besides. Its declaration
+ * below rests on a CONSTRUCTION claim — that this engine materialises the EFFECTIVE ability into
+ * `.ability` at build time and keeps the pre-mega one in `.baseAbility` — and a declaration resting
+ * on an unchecked claim is a bump with better prose. So the claim is asserted here, against the
+ * hand-written MEGA_ABIL entries section 2 just proved are correct.
+ *
+ * It was NOT true when this was written. 85 MC.mons rows store `ab` in display case ("Technician"),
+ * buildMon copied it through, and every ability comparison in that engine is a lowercase literal —
+ * so a body built from its MEGA ROW carried the right ability and none of it fired. Fixed 2026-08-04
+ * and probed behaviourally by tests/test-mechanics.js `megaRowAbilityCase` / `megaSheetAbility`;
+ * this asserts the structural half. */
+{
+  require(D('data', 'engine-data.js'));
+  const MED = require(D('engine', 'medicham2-browser.js'));
+  const src = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
+  const m = src.match(/const MEGA_ABIL=\{([\s\S]*?)\};/);
+  const hand = {};
+  if (m) for (const kv of m[1].split(/[,\n]/)) {
+    const t = kv.match(/([a-z0-9]+)\s*:\s*'([a-z0-9]+)'/);
+    if (t) hand[t[1]] = t[2];
+  }
+  /* THE Z STONES ARE EXCLUDED, AND THIS PROBE WAS WRONG BEFORE THE ENGINE WAS BECAUSE OF THEM.
+   *
+   * Champions ships a SECOND mega per stone — garchompiteZ -> garchompmegaZ, Rough Skin instead of
+   * Sand Force; lucarioniteZ -> Inner Focus; absoliteZ -> Justified. The first version of this loop
+   * kept whichever stone it saw LAST, which was the Z one, and it duly reported three engine bugs
+   * that were its own sloppiness. Tenth time on this list (docs/ENGINE.md).
+   *
+   * They are excluded rather than fixed because the engine cannot represent them at all: MC.mons has
+   * ZERO `-mega-z` rows and the ladder store has zero `itez` occurrences, so a Z stone falls through
+   * megaAbility() to the base ability, which is the correct answer for a forme change that never
+   * happens. If Z megas ever appear in the data this exclusion becomes a bug and should be deleted. */
+  const stoneFor = {};
+  for (const it of dex.items.all()) {
+    if (!it.megaStone) continue;
+    const st = B.norm(it.name);
+    if (/z$/.test(st)) continue;
+    for (const b of Object.keys(hand)) if (B.megaFormeOf(b, st, dex)) stoneFor[b] = st;
+  }
+  const wrong = [], unnormalised = [];
+  /* A SPECIES THAT WOULD NOT BUILD IS NOT A SPECIES THAT PASSED. `built` is asserted to be > 20
+   * precisely so this loop cannot quietly shrink to nothing and report success, and these throws are
+   * collected rather than discarded so a shrunken denominator has a reason attached. */
+  const unbuildable = [];
+  let built = 0;
+  for (const [base, ab] of Object.entries(hand)) {
+    const stone = stoneFor[base];
+    if (!stone) continue;
+    let body = null;
+    try { body = MED.buildMon(base, { [base]: stone }); }
+    catch (e) { unbuildable.push(base + ': ' + String((e && e.message) || e).slice(0, 40)); body = null; }
+    if (!body) continue;                       // no MC row for this species; nothing to claim
+    built++;
+    if (body.ability !== String(body.ability).toLowerCase().replace(/[^a-z0-9]/g, '')) unnormalised.push(base);
+    else if (body.ability !== ab) wrong.push(`${base}: .ability=${body.ability} want ${ab}`);
+  }
+  ok(built > 20 && wrong.length === 0 && unnormalised.length === 0,
+    `medicham2 materialises the EFFECTIVE ability into .ability for all ${built} buildable megas`
+    + (wrong.length ? ` — ${wrong.length} wrong: ${wrong.slice(0, 4).join('; ')}` : '')
+    + (unnormalised.length ? ` — ${unnormalised.length} not normalised: ${unnormalised.slice(0, 4).join(', ')}` : '')
+    + (unbuildable.length ? ` — ${unbuildable.length} THREW while building: ${unbuildable.slice(0, 3).join('; ')}` : ''));
+
+  /* AND THE MEGA-KEYED DOOR, which is the one that was broken: buildMon called with the mega's own
+   * row rather than base + stone. Both doors must agree or half the callers are wrong. */
+  const both = Object.keys(hand).map(b => [b, stoneFor[b]]).filter(([, s]) => s)
+    .map(([b, s]) => {
+      let viaStone = null, viaRow = null;
+      try { viaStone = MED.buildMon(b, { [b]: s }); }
+      catch (e) { unbuildable.push('viaStone ' + b + ': ' + String((e && e.message) || e).slice(0, 40)); viaStone = null; }
+      try { viaRow = MED.buildMon(b + '-mega', {}) || MED.buildMon(b + '-mega-y', {}); }
+      catch (e) { unbuildable.push('viaRow ' + b + ': ' + String((e && e.message) || e).slice(0, 40)); viaRow = null; }
+      return { b, viaStone, viaRow };
+    }).filter(x => x.viaStone && x.viaRow);
+  const disagree = both.filter(x => x.viaStone.ability !== x.viaRow.ability)
+    .map(x => `${x.b}: stone=${x.viaStone.ability} row=${x.viaRow.ability}`);
+  ok(both.length > 10 && disagree.length === 0,
+    `base+stone and the mega row agree on the ability for all ${both.length} checkable megas`
+    + (disagree.length ? ` — ${disagree.length} differ: ${disagree.slice(0, 4).join('; ')}` : '')
+    + (unbuildable.length ? ` — ${unbuildable.length} build attempt(s) THREW` : ''));
+}
+
 /* ---- 3. THE RATCHET — no NEW raw read of a transforming field -------------------------------- */
 
 const SKIP_DIR = /node_modules|[\\/]graveyard[\\/]|[\\/]archive[\\/]/;
@@ -163,6 +260,57 @@ const SKIP_DIR = /node_modules|[\\/]graveyard[\\/]|[\\/]archive[\\/]/;
  * how the next one gets through — the same reasoning docs/ARTIFACT-ACCESS-RULES.md 5 gives for the
  * mc_key sweep. */
 const RAW = /\.(ability|baseStats|weighthg|weightkg)\b/g;
+
+/* DECLARED EXCEPTIONS — a count with a REASON, which a baseline bump is not.
+ *
+ * WHY THIS EXISTS (2026-08-04). The ratchet went 234 -> 302 and every contributor was legitimate,
+ * so the only two moves the file offered were "leave it red forever" or "--update", and --update
+ * would have silently laundered engine/rollout_leaf.js's real violation along with them. That is a
+ * check with no honest exit, and a check with no honest exit is the one that gets switched off.
+ *
+ * So a file whose raw reads are correct BY CONSTRUCTION says so here, with the reason, in the shape
+ * this project already uses for a judged gap (CLAUDE.md, `RAW-STORE-OK`). Three rules keep it from
+ * becoming a mute button:
+ *
+ *   1. A declaration needs a REASON, and the reason must be about CONSTRUCTION — "this object never
+ *      holds a sheet" — not about "these particular lines looked fine when I read them".
+ *   2. A declaration that can be PINNED is pinned. medicham2's is asserted in section 2b above, so
+ *      the day its `.ability` stops being the effective one, the pin goes red before the count does.
+ *   3. Every declared file is PRINTED on every run with its current count, so nothing hides in here.
+ *
+ * NOT declared, deliberately: engine/rollout_leaf.js, which was a real violation (docs/PRIORITIES.md
+ * #40b — it read the PRE-mega ability to decide whether a mon is a weather setter, and a mega's
+ * weather ability is precisely what differs from its base). It was fixed rather than declared. */
+const DECLARED = {
+  'engine/medicham2-browser.js':
+    'BUILDS its own bodies and materialises the EFFECTIVE ability into .ability at build time, '
+    + 'keeping the pre-mega one in .baseAbility. It is a browser file with no require and board.js '
+    + 'is downstream of it, so effAbility() is not reachable. Every match was walked on 2026-08-04 — '
+    + '67 in code (the rest are this comment and the ones beside the fix, since the regex reads '
+    + 'prose too): 66 of the 67 are live battle bodies this engine constructed, and the one '
+    + 'exception (norm2(set.ability) in buildMonFromSet) reads a parsed SHEET, which is the case '
+    + 'this test names as correct. PINNED by section 2b.',
+  'tests/test-mechanics.js':
+    'A census of behavioural probes. 45 of its 48 matches are ASSIGNMENTS — a probe setting the '
+    + 'ability it is about to test on a body it just built. The 3 reads are the two mega-ability '
+    + 'probes reading back the field under test.',
+  'tests/test-engine-diff.js':
+    'CONTROL FIX 5 assigns the dex slot-0 ability onto BOTH engines so the input is held equal; '
+    + 'every later read is of the value this file itself just wrote, and it is the effective one '
+    + '(dex.species.get() is asked for the mega forme when the row is a mega).',
+  'tests/test-effective-identity.js':
+    'This file. It reads .ability to check that .ability is right.',
+  'tests/walk_tags.js':
+    'ASSIGNS a fixture body its ability from the dex before running a tag through it.',
+  'tests/test-paste.js':
+    'Reads .ability off a body buildMonFromSet just produced — the same construction claim as '
+    + 'medicham2 above, and this file is now one of the things that PINS it: it asserts a paste of '
+    + 'Gengar @ Gengarite carries Shadow Tag rather than the sheet\'s Cursed Body. That assertion '
+    + 'was inverted on 2026-08-04; it used to assert the bug.',
+  'engine/mag_bot.js':
+    'Tests a SHEET entry for completeness (st.moves && st.item && st.ability). A sheet entry\'s '
+    + '.ability IS the pre-mega one, which is this test\'s own stated legitimate case.',
+};
 
 function walk(dir, out) {
   for (const f of fs.readdirSync(dir)) {
@@ -218,20 +366,34 @@ if (!base) {
 const allowed = base.allowed || {};
 const grew = [];
 for (const [f, n] of Object.entries(now)) {
+  if (DECLARED[f]) continue;                     // declared below, with its reason, and printed
   const was = allowed[f] || 0;
   if (n > was) grew.push(`${f}: ${was} -> ${n}`);
 }
-const shrank = Object.entries(allowed).filter(([f, n]) => (now[f] || 0) < n).length;
+const shrank = Object.entries(allowed).filter(([f, n]) => (now[f] || 0) < n && !DECLARED[f]).length;
 
 ok(grew.length === 0,
   `no NEW raw read of a transforming field (${total} total, baseline ${base.count})` +
   (grew.length ? `\n         ` + grew.join('\n         ') : ''));
 if (grew.length) {
   console.log('         A sheet entry\'s .ability IS the pre-mega one and reading it is correct.');
-  console.log('         A LIVE Pokemon\'s is not. Route it through board.js effAbility(mon, dex),');
-  console.log('         or re-baseline with --update if the new read is genuinely on a sheet.');
+  console.log('         A LIVE Pokemon\'s is not. Route it through board.js effAbility(mon, dex).');
+  console.log('         If it is correct BY CONSTRUCTION, declare it in DECLARED with the reason —');
+  console.log('         do not re-baseline, which would launder every other new read beside it.');
 }
 if (shrank) console.log(`\n  ${shrank} file(s) now read fewer raw fields. Re-run with --update to lock the gain in.`);
+
+/* PRINTED EVERY RUN. A declaration nobody sees is an exemption, and this file exists because an
+ * exemption nobody saw cost four sessions. A declared file whose count is UNEXPECTEDLY large is
+ * still visible here even though it cannot fail the run. */
+const declaredNow = Object.keys(DECLARED).filter(f => now[f]);
+console.log(`\n  DECLARED EXCEPTIONS — ${declaredNow.length} file(s), `
+  + `${declaredNow.reduce((a, f) => a + now[f], 0)} of the ${total} raw reads:`);
+for (const f of declaredNow) console.log(`    ${f}  (${now[f]})\n        ${DECLARED[f]}`);
+const stale = Object.keys(DECLARED).filter(f => !now[f]);
+/* A declaration for a file that no longer reads anything is dead prose. Say so; do not fail on it. */
+if (stale.length) console.log(`\n  note: ${stale.length} declaration(s) no longer needed — `
+  + `${stale.join(', ')} has no raw reads left. Delete the entry.`);
 
 console.log(`\nEFFECTIVE IDENTITY TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

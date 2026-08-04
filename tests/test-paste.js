@@ -28,7 +28,7 @@ const mons = sets.map(s => M.buildMonFromSet(s)).filter(Boolean);
 ok(mons.length === sets.length || mons.length >= 4,
   `${mons.length}/${sets.length} sets build into battle-ready mons (misses mean a species outside the 289)`);
 
-/* the declared pieces override the dataset's assumed build */
+/* the declared pieces override the dataset's assumed build — EXCEPT the ability of a mega */
 {
   const geng = mons.find(m => /gengar/.test(m.name));
   ok(!!geng, 'Gengar is in the team');
@@ -36,7 +36,24 @@ ok(mons.length === sets.length || mons.length >= 4,
     ok(geng.item === 'gengarite', `its item is the declared Gengarite (${geng.item})`);
     ok(geng.moves.includes('shadowball') && geng.moves.includes('protect'),
       `its moves are the declared ones (${geng.moves.join(', ')})`);
-    ok(geng.ability === 'cursedbody', `its ability is the declared Cursed Body (${geng.ability})`);
+    /* THIS ASSERTION WAS INVERTED ON 2026-08-04, AND IT USED TO ASSERT THE BUG.
+     *
+     * It read `geng.ability === 'cursedbody'` — the ability myteam.txt declares. But the paste also
+     * declares a GENGARITE, and the body this builds is `gengar-mega`, whose ability is SHADOW TAG.
+     * A team sheet lists the PRE-mega ability; the thing on the field does not have it. That exact
+     * pair is the worked example in the header of tests/test-effective-identity.js, and it is the
+     * CLAUDE.md rule "mega evolution overwrites the ability".
+     *
+     * board.js had already fixed its half (board.js:964, effAbility) and medicham2 had not, so the
+     * two engines disagreed about a FACT — the failure mode CLAUDE.md says has cost this project the
+     * most. Confirmed three ways before this line was touched: Showdown's dex gives Gengar-Mega
+     * exactly one ability, Shadow Tag; board.js effAbility returns 'shadowtag' for this same sheet;
+     * and buildMonFromSet now agrees.
+     *
+     * The DECLARED-pieces rule is untouched for everything else, and for a non-mega ability too —
+     * only the branch that swapped the species to a mega row overrides the sheet. */
+    ok(geng.ability === 'shadowtag',
+      `its ability is the MEGA's Shadow Tag, not the sheet's pre-mega Cursed Body (${geng.ability})`);
   }
 }
 

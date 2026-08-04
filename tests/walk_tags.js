@@ -48,6 +48,21 @@ const tags = JSON.parse(fs.readFileSync(D('data', 'abra-tags.js'), 'utf8')
  * Smeargle as filler; both are isNonstandard 'Past' in Champions and carry no MC row, so MEDICHAM
  * could not build them and EVERY tag came back "could not build the scenario" -- 25 skips and zero
  * information. Milotic is in-format, buildable in both, and bulky enough to survive a Tackle. */
+/* A SCENARIO THIS HARNESS COULD NOT RUN IS COUNTED, WITH ITS REASON.
+ *
+ * Three catch blocks here returned a plausible `null`, and a null means "NOT COVERED" a few lines
+ * later -- which the report prints as "honest ignorance, not a pass". It was not honest: an engine
+ * that THREW and an engine that has no handler produced the same word. tests/test-no-silent-failure.js
+ * flagged all three. Zero is printed too, so "nothing threw" is a claim you can read. */
+const walkErrs = { n: 0, where: {} };
+/* NAMED `log...` DELIBERATELY, for the reason spelled out in tests/test-engine-diff.js: the silent-
+ * catch check reads the catch BODY and cannot see through a helper call. */
+const logDroppedScenario = (where, e) => {
+  walkErrs.n++;
+  const k = where + ': ' + String((e && e.message) || e).slice(0, 60);
+  walkErrs.where[k] = (walkErrs.where[k] || 0) + 1;
+};
+
 const ATT = 'Incineroar', DEF = 'Milotic';
 const FILL = ['Ditto', 'Sableye'];
 /* THE NEUTRAL PROBE MOVE FOR ABILITY AND ITEM TESTS. Tackle was the obvious choice and is not in
@@ -90,10 +105,18 @@ function showdownTurn(moveName, attAbility, defAbility, defItem) {
    * move may be aimed ('move 1 1') or spread ('move 1'); the Protecting ally is always untargeted.
    * A uniform string failed for whichever slot it did not suit, the turn never ran, and every tag
    * came back "could not build the scenario" -- twice, with two different uniform strings. */
+  /* ONE FORM FAILING IS THE DESIGN, so only BOTH failing is worth counting. Noting each attempt
+   * would fire on every single scenario -- a counter that is always non-zero is noise, and noise is
+   * how a check trains people to ignore it (tests/test-no-silent-failure.js says so in its own
+   * header about `catch { continue }` over ragged JSONL). The reasons are collected either way, so
+   * when both DO fail the message says what each one said. */
   const go = (side) => {
+    const why = [];
     for (const first of ['move 1 1', 'move 1']) {
-      try { b.choose(side, first + ', move 1'); return true; } catch (e) { /* try the other form */ }
+      try { b.choose(side, first + ', move 1'); return true; }
+      catch (e) { why.push(first + ' -> ' + String((e && e.message) || e).slice(0, 40)); }
     }
+    logDroppedScenario('showdown refused BOTH choice forms for ' + side, new Error(why.join(' | ')));
     return false;
   };
   if (!go('p1') || !go('p2')) return null;
@@ -117,12 +140,12 @@ function medichamTurn(moveId, attAbility, defAbility, defItem) {
   d.ability = norm(defAbility || dex.species.get(DEF).abilities['0']);
   const S = MEDI.battleInit([a, ally], [d, dally], { seeded: true });
   const before = { hp: d.curHP, max: d.st.hp, boosts: Object.assign({}, d.boosts) };
-  let act; try { act = MEDI.playerAction(a, moveId, d, S.field); } catch (e) { return null; }
+  let act; try { act = MEDI.playerAction(a, moveId, d, S.field); } catch (e) { logDroppedScenario('medicham playerAction ' + moveId, e); return null; }
   if (!act) return null;
   try {
     MEDI.battleTurn(S, () => 0.0, new Map([[a, act], [ally, { kind: 'pass' }]]),
       new Map([[d, { kind: 'pass' }], [dally, { kind: 'pass' }]]));
-  } catch (e) { return null; }
+  } catch (e) { logDroppedScenario('medicham battleTurn ' + moveId, e); return null; }
   return {
     dmgFrac: (before.hp - d.curHP) / before.max,
     status: d.status || '', item: d.item || '',
@@ -202,12 +225,19 @@ for (const r of rows) {
 console.log(`\n  AGREE ${n('AGREE')}   DIVERGE ${n('DIVERGE')}   NOT COVERED ${n('NOT COVERED')}   SKIP ${n('SKIP')}`);
 console.log('  DIVERGE means MEDICHAM and Showdown did different things to the same board.');
 console.log('  NOT COVERED is honest ignorance, not a pass.');
+console.log(`  scenarios dropped because something THREW: ${walkErrs.n}`);
+for (const [k, c] of Object.entries(walkErrs.where).sort((x, y) => y[1] - x[1]).slice(0, 8)) {
+  console.log('    x' + String(c).padEnd(5) + k);
+}
 
 fs.writeFileSync(D('data', 'tag-walk.json'), JSON.stringify({
   generated: new Date().toISOString(), by: 'tests/walk_tags.js',
   design: 'The tag list says WHAT to exercise; Showdown says what should happen. No hand-written '
         + 'expectations, because seven control failures were written by hand in one session.',
   checked: rows.length, agree: n('AGREE'), diverge: n('DIVERGE'),
+  /* A scenario that THREW used to land in NOT COVERED beside a genuinely unhandled tag, and the
+   * report calls that 'honest ignorance'. Separated so it can be read as what it is. */
+  dropped_by_exception: walkErrs.n, dropped_where: walkErrs.where,
   notCovered: n('NOT COVERED'), skipped: n('SKIP'), rows,
 }, null, 2) + '\n');
 console.log('\n  wrote data/tag-walk.json');

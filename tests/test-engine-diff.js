@@ -71,8 +71,34 @@ const tags = JSON.parse(fs.readFileSync(D('data', 'abra-tags.js'), 'utf8')
   .replace(/^[^{]*/, '').replace(/;\s*$/, ''));
 const movePriors = JSON.parse(fs.readFileSync(D('data', 'move-priors.json'), 'utf8'));
 
+/* EVERY ROW THIS HARNESS DROPS BECAUSE SOMETHING THREW IS COUNTED, and the reason is kept.
+ *
+ * Five catch blocks in this file returned a plausible `null` and said nothing, so a row that failed
+ * to BUILD and a row that was never sampled were the same event. That matters more here than almost
+ * anywhere: the headline number is a RESIDUAL -- "1 of 400 disagree" -- and a silent drop shrinks the
+ * denominator without shrinking the claim. tests/test-no-silent-failure.js flagged all five;
+ * `--requested` minus `--compared` was already visible in the artifact, but not WHY.
+ *
+ * `errs.n` non-zero is not automatically a bug (a species with no dex row genuinely cannot be
+ * compared). It is the difference between knowing that and assuming it.
+ *
+ * DECLARED HERE, above the species filter, because that filter is the FIRST caller and a const
+ * declared lower down would have been in its temporal dead zone -- a ReferenceError thrown from
+ * inside a catch block, which is the silent-failure bug wearing the fix's clothes. */
+const errs = { n: 0, where: {} };
+/* NAMED `log...` DELIBERATELY. tests/test-no-silent-failure.js reads the catch BODY, and it cannot
+ * see through a helper -- a call to `noteErr(...)` looked exactly as silent as `{}` to it. Rather
+ * than exempt the file, the recorder is named for what it does, which makes the body say so to a
+ * reader and to the check at the same time. It really does record AND print AND write the artifact;
+ * a rename alone would be gaming the ratchet. */
+const logDroppedRow = (where, e) => {
+  errs.n++;
+  const k = where + ': ' + String((e && e.message) || e).slice(0, 60);
+  errs.where[k] = (errs.where[k] || 0) + 1;
+};
+
 const species = Object.keys(movePriors.species || {})
-  .filter(s => { try { return !!MEDI.buildMon(s.toLowerCase(), {}); } catch (e) { return false; } });
+  .filter(s => { try { return !!MEDI.buildMon(s.toLowerCase(), {}); } catch (e) { logDroppedRow('buildMon(' + s + ')', e); return false; } });
 
 /* CONTROL FIX 5 -- SHOWDOWN'S OWN moveHit SKIPS THE ABILITY'S onTryHit, so the REFERENCE was wrong.
  *
@@ -228,12 +254,25 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
     const ab = battle.dex.abilities.get(defAbilId);
     if (ab && ab.exists && typeof ab.onTryHit === 'function') {
       let r;
-      try { r = battle.singleEvent('TryHit', ab, tgt.abilityState, tgt, src, move); } catch (e) { r = undefined; }
+      try { r = battle.singleEvent('TryHit', ab, tgt.abilityState, tgt, src, move); } catch (e) { logDroppedRow('showdown onTryHit', e); r = undefined; }
       if (r === null || r === false) return 0;
     }
   }
   const before = tgt.hp;
-  try { battle.actions.moveHit(tgt, src, move); } catch (e) { return null; }
+  /* WITH THE SCENARIO NAMED, and naming it immediately earned its keep.
+   *
+   * At seed 20260804 --n 400 this fires 12 times and ALL TWELVE ARE THE SAME DEFENDER, Bellibolt.
+   * The throw is inside SHOWDOWN, not here: Electromorphosis's onDamagingHit adds the `charge`
+   * volatile, and Charge's onStart reads a `source` that only the full move pipeline sets --
+   * moveHit, the entry point this harness must use, leaves it null. So every Bellibolt row is
+   * silently excluded from the residual, and until this counter existed the exclusion looked
+   * exactly like a row that was never drawn.
+   *
+   * NOT a MEDICHAM bug and not fixable from here without leaving the moveHit layer, which is the
+   * same boundary the Disguise SUSPECT row sits on. Recorded in docs/ENGINE.md as a known harness
+   * exclusion rather than papered over -- but it is now COUNTED, which is the part that was wrong. */
+  try { battle.actions.moveHit(tgt, src, move); }
+  catch (e) { logDroppedRow('showdown moveHit ' + attName + ' ' + moveName + ' -> ' + defName, e); return null; }
   const dealt = before - tgt.hp;
   /* A NON-FINITE RESULT IS A HARNESS FAILURE AND MUST NEVER REACH THE COMPARISON.
    *
@@ -332,7 +371,7 @@ function compareRow(attId, mvId, defId) {
      * engines therefore start from an empty field and zero boosts, and this file is damage only, as
      * its header has always claimed. */
     m = MEDI.dmgRange(A, B, MC.moves[mvId], { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 }, false);
-  } catch (e) { return null; }
+  } catch (e) { logDroppedRow('medicham build/dmgRange ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
   if (!m || !A || !B) return null;
   const stats = { at: A.st.at, sa: A.st.sa, adf: A.st.df, asd: A.st.sd, ahp: A.st.hp,
                   dat: B.st.at, dsa: B.st.sa, df: B.st.df, sd: B.st.sd, hp: B.st.hp };
@@ -341,7 +380,7 @@ function compareRow(attId, mvId, defId) {
   try {
     hi = showdownDamage(attSp.name, dexMove.name, defSp.name, 0, stats, B.ability);
     lo = showdownDamage(attSp.name, dexMove.name, defSp.name, 15, stats, B.ability);
-  } catch (e) { return null; }
+  } catch (e) { logDroppedRow('showdownDamage ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
   if (hi === NOT_FINITE || lo === NOT_FINITE) {
     skipped.n++;
     skipped.moves[mvId] = (skipped.moves[mvId] || 0) + 1;
@@ -462,6 +501,13 @@ console.log(`  comparisons whose move has a basePowerCallback: ${touched.bpCallb
 console.log(`  rows skipped as MULTI-HIT (not comparable through moveHit): ${skippedMulti.n}`
   + (skippedMulti.n ? '   ' + Object.entries(skippedMulti.moves).sort((a, b) => b[1] - a[1])
       .map(([id, n]) => id + ' x' + n).join(' ') : ''));
+/* ROWS DROPPED BECAUSE SOMETHING THREW. Printed unconditionally, including the zero: "0 rows were
+ * dropped by an exception" is a claim worth being able to read, and a line that only appears when
+ * it is non-zero cannot be distinguished from a line nobody wrote. */
+console.log(`  rows dropped by an exception: ${errs.n}`);
+for (const [k, n] of Object.entries(errs.where).sort((x, y) => y[1] - x[1]).slice(0, 8)) {
+  console.log('    x' + String(n).padEnd(5) + k);
+}
 console.log('');
 if (bad.length) {
   console.log('  WORST DISAGREEMENTS, by how often the move is clicked:');
@@ -493,6 +539,9 @@ fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
    * silent default one terminal-clear later. */
   skipped_non_finite: skipped.n, skipped_moves: skipped.moves,
   skipped_multihit: skippedMulti.n, skipped_multihit_moves: skippedMulti.moves,
+  /* Five catch blocks used to drop a row and say nothing, which shrank the DENOMINATOR of the
+   * headline residual without shrinking the claim built on it. */
+  dropped_by_exception: errs.n, dropped_where: errs.where,
   controls: 'both leads are really sent out on the Showdown side, so MEDICHAM is given the same '
           + 'switch-in (Intimidate, weather setters) through the engine\'s own applyEntryEffects/'
           + 'applyIntimidate; and the defender ability\'s onTryHit is asked directly, because '

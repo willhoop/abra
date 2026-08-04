@@ -43,10 +43,17 @@ const fresh = () => Object.assign({}, FIELD);
 const rng5 = () => 0.5;
 
 const results = [];
+/* A PROBE THAT THREW IS NOT THE SAME AS A MECHANIC THAT IS ABSENT, and until 2026-08-04 the census
+ * could not tell you which had happened. Both land in `missing`, which is right — a probe that
+ * cannot run has not shown the mechanic working — but a THROW usually means the PROBE is broken
+ * (nine of the entries on the ENGINE list were), and a broken probe silently deflating `live` is
+ * exactly the number this division is not allowed to soften. So they are counted separately and the
+ * count is printed and written to the census. */
+let threw = 0;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '';
   try { const r = fn(); works = !!r.works; detail = r.detail; }
-  catch (e) { works = false; detail = 'THREW: ' + e.message.slice(0, 60); }
+  catch (e) { works = false; threw++; detail = 'THREW: ' + e.message.slice(0, 60); }
   results.push({ kind, tag, label, works, detail });
 };
 
@@ -78,6 +85,62 @@ probe('item', 'passiveHeal', 'Leftovers heals at end of turn', () => {
 probe('item', 'megaStone', 'a mega stone builds the mega body', () => {
   const z = M.buildMon('charizard-mega-y', {});
   return { works: !!z && /mega/.test(z.name), detail: 'built ' + (z && z.name) };
+});
+
+/* THE MEGA ROW'S OWN ABILITY MUST BE COMPARABLE, NOT MERELY PRESENT.
+ *
+ * 85 of the 318 MC.mons rows key a mega and store `ab` in DISPLAY case -- "Technician", "Huge Power",
+ * "Tough Claws". buildMon passed that string straight through, while every ability test in this
+ * engine compares against a lowercase-alphanumeric literal (att.ability==='technician'). So a body
+ * built FROM ITS MEGA ROW carried the right ability and not one line of it fired.
+ *
+ * WHY NOBODY SAW IT: a body built from the BASE row plus a stone goes through megaAbility(), which
+ * returns from a hand-written lowercase map, so that path was always correct. Only the mega-keyed
+ * path -- position_features.js, sets.js, winProb2 called with a mega name -- was wrong.
+ *
+ * Three arms are printed, because two would not distinguish "Technician does nothing here" from
+ * "this string is not the one the code looks for". */
+probe('ability', 'megaRowAbilityCase', 'a mega built from its own row still gets its ability', () => {
+  const def = bare('garchomp');
+  const hit = (ab) => {
+    const a = M.buildMon('scizor-mega', {}); a.item = '';
+    if (ab !== undefined) a.ability = ab;
+    return { ab: a.ability, max: M.dmgRange(a, def, MC.moves['bulletpunch'], fresh(), false).max };
+  };
+  const asBuilt = hit(undefined), off = hit('none'), on = hit('technician');
+  /* The 85-row figure is NOT recomputed here on purpose: sweeping Object.keys(MC.mons) is a
+   * hand-rolled index into that table and tests/test-mc-key.js bans it, correctly. */
+  return { works: on.max > off.max && asBuilt.max === on.max,
+           detail: `Bullet Punch max: ability none ${off.max}, 'technician' ${on.max}, `
+                 + `as built (ability=${JSON.stringify(asBuilt.ab)}) ${asBuilt.max}` };
+});
+
+/* A SHEET LISTS THE PRE-MEGA ABILITY, so a paste of "Scizor @ Scizorite / Ability: Swarm" describes a
+ * body that will be on the field with TECHNICIAN. buildMonFromSet wrote `declaredAb || megaAbility(...)`
+ * and let the sheet win, so every imported mega ran its base forme's ability -- the mega ability gap
+ * that tests/test-effective-identity.js exists to stop, living in the engine instead of in board.js.
+ *
+ * The control is the same paste with the ability line REMOVED. If the two arms disagree the sheet is
+ * still steering; if they agree at the un-boosted number the ability is not firing at all, so the
+ * absolute damage is asserted too, not just the equality. */
+probe('ability', 'megaSheetAbility', "a sheet's pre-mega ability does not override the mega's", () => {
+  const def = bare('garchomp');
+  const run = (declared) => {
+    const paste = 'Scizor @ Scizorite\n' + (declared ? 'Ability: ' + declared + '\n' : '')
+                + 'Adamant Nature\n- Bullet Punch';
+    const a = M.buildMonFromSet(M.parsePaste(paste)[0]);
+    if (!a) return { name: null, ab: null, max: -1 };
+    return { name: a.name, ab: a.ability, max: M.dmgRange(a, def, MC.moves['bulletpunch'], fresh(), false).max };
+  };
+  const sheet = run('Swarm'), silent = run(null);
+  /* The un-boosted reading, taken from the same body with the ability explicitly blanked, so the
+   * "is it firing" half of the assertion is measured rather than remembered. */
+  const off = (() => { const a = M.buildMonFromSet(M.parsePaste('Scizor @ Scizorite\nAdamant Nature\n- Bullet Punch')[0]);
+    a.ability = 'none'; return M.dmgRange(a, def, MC.moves['bulletpunch'], fresh(), false).max; })();
+  return { works: sheet.ab === 'technician' && sheet.max === silent.max && sheet.max > off,
+           detail: `sheet says Swarm -> ${sheet.name} ability=${JSON.stringify(sheet.ab)} ${sheet.max}; `
+                 + `sheet silent -> ability=${JSON.stringify(silent.ab)} ${silent.max}; `
+                 + `same body with no ability ${off}` };
 });
 
 /* ---- MOVES -------------------------------------------------------------------------------------- */
@@ -1860,6 +1923,9 @@ for (const r of results) {
   console.log('  ' + (r.works ? 'LIVE   ' : 'MISSING') + '  ' + r.tag.padEnd(20) + r.label.padEnd(38) + r.detail);
 }
 console.log(`\n  ${works.length} live, ${missing.length} missing, ${results.length} probed.`);
+/* Printed even at zero: "no probe threw" is a claim worth being able to read, and a line that only
+ * appears when it is non-zero cannot be told apart from a line nobody wrote. */
+console.log(`  ${threw} probe(s) THREW rather than reporting — a throw usually means the PROBE is broken.`);
 if (missing.length) {
   console.log('\n  MISSING:');
   for (const r of missing) console.log('    - ' + r.label + '   (' + r.kind + ' tag `' + r.tag + '`)');
@@ -1871,6 +1937,9 @@ fs.writeFileSync(D('data', 'mechanics-census.json'), JSON.stringify({
         + 'compared a Choice Scarf against a Basculegion that buildMon had already given a Choice '
         + 'Scarf and reported the engine broken.',
   probed: results.length, live: works.length, missing: missing.length,
+  /* Counted apart from `missing`: a probe that threw has not shown the mechanic ABSENT, only that it
+   * could not ask. Both are non-live; only one is evidence about the engine. */
+  threw,
   results: results.map(r => ({ kind: r.kind, tag: r.tag, label: r.label, live: r.works, detail: r.detail })),
 }, null, 2) + '\n');
 console.log('\n  wrote data/mechanics-census.json');

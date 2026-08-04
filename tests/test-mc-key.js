@@ -30,6 +30,20 @@
  * not exist yet. New violations fail; the baseline only shrinks.
  */
 'use strict';
+/* A CHECK THAT CRASHES IS A CHECK THAT GETS SKIPPED.
+ *
+ * Section 1b below asks the real Showdown dex, so this file needs SHOWDOWN_PATH. Without it the
+ * loader threw a twenty-line stack trace out of engine/champions_sim.js -- and it threw it AFTER
+ * four "ok" lines had already printed, so the output read like a pass that got interrupted. This
+ * ratchet then sat red for two days with nobody running it (docs/PRIORITIES.md #40), and the
+ * stack trace is a large part of why.
+ *
+ * Exit 2, not 1: a runner can tell NOT RUN from FAILED, and neither one can be mistaken for a pass. */
+if (!process.env.SHOWDOWN_PATH) {
+  console.error('NOT RUN — set SHOWDOWN_PATH to a built pokemon-showdown checkout, then re-run:');
+  console.error('  SHOWDOWN_PATH=/path/to/pokemon-showdown node tests/test-mc-key.js');
+  process.exit(2);
+}
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');

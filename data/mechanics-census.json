@@ -1,10 +1,11 @@
 {
-  "generated": "2026-08-04T07:27:56.661Z",
+  "generated": "2026-08-04T09:16:09.821Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 142,
-  "live": 90,
-  "missing": 52,
+  "probed": 144,
+  "live": 102,
+  "missing": 42,
+  "threw": 0,
   "results": [
     {
       "kind": "item",
@@ -26,6 +27,20 @@
       "label": "a mega stone builds the mega body",
       "live": true,
       "detail": "built charizard-mega-y"
+    },
+    {
+      "kind": "ability",
+      "tag": "megaRowAbilityCase",
+      "label": "a mega built from its own row still gets its ability",
+      "live": true,
+      "detail": "Bullet Punch max: ability none 52, 'technician' 78, as built (ability=\"technician\") 78"
+    },
+    {
+      "kind": "ability",
+      "tag": "megaSheetAbility",
+      "label": "a sheet's pre-mega ability does not override the mega's",
+      "live": true,
+      "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 67; sheet silent -> ability=\"technician\" 67; same body with no ability 45"
     },
     {
       "kind": "move",
@@ -339,8 +354,8 @@
       "kind": "ability",
       "tag": "redirectsType",
       "label": "Lightning Rod pulls an Electric move",
-      "live": false,
-      "detail": "aimed target took 0, Lightning Rod holder took 0"
+      "live": true,
+      "detail": "no ability: aimed 171 / other 0 / spa 0   |   Lightning Rod: aimed 0 / rod 0 / spa 1"
     },
     {
       "kind": "ability",
@@ -479,15 +494,15 @@
       "kind": "move",
       "tag": "drain",
       "label": "Drain Punch heals the user",
-      "live": false,
-      "detail": "move dealt 51 to the foe; user 85 -> 85 hp"
+      "live": true,
+      "detail": "move dealt 51 to the foe; user 85 -> 110 hp"
     },
     {
       "kind": "move",
       "tag": "redirects",
       "label": "Follow Me pulls the attack onto the partner",
-      "live": false,
-      "detail": "no Follow Me: aimed 92 / partner 0   |   Follow Me: aimed 0 / partner 0"
+      "live": true,
+      "detail": "no Follow Me: aimed 92 / partner 0   |   Follow Me: aimed 0 / partner 101"
     },
     {
       "kind": "move",
@@ -556,8 +571,8 @@
       "kind": "item",
       "tag": "choiceLock",
       "label": "Choice Scarf locks the holder into its first move",
-      "live": false,
-      "detail": "turn 1 used crunch, turn 2 asked for closecombat and used closecombat"
+      "live": true,
+      "detail": "turn 1 used crunch, turn 2 asked for closecombat and used crunch"
     },
     {
       "kind": "move",
@@ -591,8 +606,8 @@
       "kind": "move",
       "tag": "multiHit",
       "label": "Rock Blast lands more than one hit",
-      "live": false,
-      "detail": "one hit 17  ->  Rock Blast as the engine prices it 17 (real average is about 3.2 hits)"
+      "live": true,
+      "detail": "one hit 17  ->  Rock Blast as the engine prices it 52 (real average is about 3.2 hits)"
     },
     {
       "kind": "move",
@@ -626,8 +641,8 @@
       "kind": "ability",
       "tag": "immuneToMoveClass",
       "label": "Bulletproof refuses Rock Blast",
-      "live": false,
-      "detail": "no ability 13  ->  Bulletproof 13"
+      "live": true,
+      "detail": "no ability 40  ->  Bulletproof 0"
     },
     {
       "kind": "ability",
@@ -675,8 +690,8 @@
       "kind": "move",
       "tag": "fixedDamage",
       "label": "Seismic Toss deals the level, whoever it hits",
-      "live": false,
-      "detail": "mv.bp=0; vs frail 0, vs bulky 0 (both must be 50)"
+      "live": true,
+      "detail": "mv.bp=0; vs frail 50, vs bulky 50 (both must be 50)"
     },
     {
       "kind": "move",
@@ -780,15 +795,15 @@
       "kind": "move",
       "tag": "swapsStat",
       "label": "Foul Play attacks with the TARGET Attack",
-      "live": false,
-      "detail": "target atk 63 -> 61, target atk 189 -> 61"
+      "live": true,
+      "detail": "target atk 63 -> 34, target atk 189 -> 100"
     },
     {
       "kind": "ability",
       "tag": "formeChange",
       "label": "Disguise eats the first hit",
-      "live": false,
-      "detail": "no ability took 92, Disguise took 92 (the busted disguise costs 1/8 max HP)"
+      "live": true,
+      "detail": "no ability took 92, Disguise took 16 (must be exactly maxhp/8 = 16)"
     },
     {
       "kind": "ability",
@@ -878,8 +893,8 @@
       "kind": "ability",
       "tag": "halvesTypeDamage",
       "label": "Dry Skin takes 1.25x from Fire",
-      "live": false,
-      "detail": "no ability 49  ->  Dry Skin 49 (must be about 1.25x)"
+      "live": true,
+      "detail": "no ability 49  ->  Dry Skin 61 (must be about 1.25x)"
     },
     {
       "kind": "ability",

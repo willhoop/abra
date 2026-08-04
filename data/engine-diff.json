@@ -1,34 +1,14 @@
 {
-  "generated": "2026-08-04T07:25:30.944Z",
+  "generated": "2026-08-04T09:16:04.152Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
-  "requested": 400,
-  "compared": 400,
-  "agreed": 396,
-  "disagreed": 4,
+  "requested": 150,
+  "compared": 150,
+  "agreed": 149,
+  "disagreed": 1,
   "worst": [
-    {
-      "att": "spiritomb",
-      "mv": "foulplay",
-      "def": "wyrdeer",
-      "showdown": "178-178",
-      "medicham": "132-156",
-      "rel": 0.19101123595505617,
-      "uses": 734,
-      "suspect": false
-    },
-    {
-      "att": "klefki",
-      "mv": "foulplay",
-      "def": "pangoro",
-      "showdown": "19-23",
-      "medicham": "8-10",
-      "rel": 0.5714285714285714,
-      "uses": 734,
-      "suspect": false
-    },
     {
       "att": "chesnaught",
       "mv": "woodhammer",
@@ -37,27 +17,30 @@
       "medicham": "120-130",
       "rel": 125,
       "uses": 54,
-      "suspect": false
-    },
-    {
-      "att": "houndoom",
-      "mv": "fireblast",
-      "def": "heliolisk",
-      "showdown": "123-137",
-      "medicham": "99-117",
-      "rel": 0.16923076923076924,
-      "uses": 50,
-      "suspect": false
+      "suspect": true
     }
   ],
   "skipped_non_finite": 0,
   "skipped_moves": {},
+  "skipped_multihit": 7,
+  "skipped_multihit_moves": {
+    "bulletseed": 1,
+    "populationbomb": 1,
+    "rockblast": 1,
+    "dualwingbeat": 1,
+    "tripleaxel": 3
+  },
+  "dropped_by_exception": 4,
+  "dropped_where": {
+    "showdown moveHit Salazzle Heat Wave -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Conkeldurr Mach Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2
+  },
   "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
   "touched": {
-    "intimidate": 21,
-    "weather": 5,
-    "absorbMon": 21,
+    "intimidate": 7,
+    "weather": 2,
+    "absorbMon": 7,
     "absorbFired": 3,
-    "bpCallback": 15
+    "bpCallback": 7
   }
 }
