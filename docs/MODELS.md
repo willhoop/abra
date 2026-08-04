@@ -542,6 +542,38 @@ base so the cosmetic fallback correctly refuses to substitute. `board.dmgMon.unk
 **Covariate shift, corrected automatically:** open-sheet TEAMS differ from closed-sheet teams by 551.9 points of total absolute species difference (`engine/corpus_shift.js`), while measured behaviour given a board differs by at most 1.49. Every refit re-estimates on a sample reweighted to the closed-sheet species mix and reports the shift **in standard errors**. Five weights move materially — `priorLogP` 10.8 SE, `bp` 6.2 SE (sign flips) — so the **reweighted vector ships**, since MEW draws its teams from the ladder store. Board-reading weights (`eff`, `immune`, `deadStatus`) do not move.
 **Code:** `engine/board.js`, `engine/fit_policy.js`, `engine/magnemite.js`, `engine/corpus_shift.js` → `data/policy-weights.json` (both weight vectors, standard errors, and which shipped). Six assertions in `engine/selftest.js` under "board reading".
 
+## MILTANK — the search player (named 2026-08-03; added to this ledger 2026-08-04)
+**Job:** decide by playing the position forward, instead of by scoring it once. MILTANK owns the
+bring, the lead, the mega timing and the post-KO replacement.
+**Why it is a separate model and not a MAG setting:** MAG scores an ACTION against the board in front
+of it. That is a one-ply question, and the four decisions above are not one-ply questions — a lead is
+a bet about turn three. Search is the only thing that can price it.
+**Named for Rollout**, which is the move that gets stronger the longer it is allowed to continue. The
+name is a description of the method, not a pun applied afterwards.
+**Result (R4, 2026-08-04):** beats MAG greedy on **55.5%** of **535 decisive pairs**, 95% CI
+[51.3, 59.7], over **2,624 games / 1,312 seed pairs**. SPRT accepted H1 (p=0.55) at alpha=0.05 after
+522 decisive pairs. Artifact `data/rollout-r4.json`; read it with
+`node engine/sprt.js data/games.r4-decided.jsonl`.
+**Three things that number is not, all recorded in the artifact:**
+- **The n was wrong everywhere it was quoted until 2026-08-04.** `games.r4-decided.jsonl` holds
+  **5,248 lines** and **2,624 games** — every id appears twice, a record plus a log-only companion.
+  The generator now asserts the id-twice and seed-twice invariants and refuses to write without them.
+- **The point estimate is biased high.** The run stopped at an SPRT boundary. The verdict carries the
+  error rate; the 55.5% does not, and the CI is a fixed-n formula kept as context, not as inference.
+- **No A/A noise floor exists for this comparison.** Three split-half cuts (spreads 0.2, 3.9 and 1.3
+  points against an effect of 5.5) stand in for one and are labelled a substitute, not a floor.
+**Standing:** `PRE-CHANGE`. The engine source moved after the games were played, so transfer to the
+current build is an **assumption, not a result**. `player_digest.js` reports SAME PLAYER AS NOW —
+what moved was simulator mechanics, not the model — which is why the assumption is reasonable and
+still an assumption.
+**Earlier rungs:** R1 leaf accuracy (joined 230, k=200), R2 leaf cost (477 boards over 200 games),
+R3 divergence from MAG **72.9%** over 70 decisions. **R1's published PASS — 9,201 positions, 68.18%
+against material's 65.26%, +2.91 [1.79, 4.04] — has no artifact of its own**; `data/rollout-r1.json`
+records the *withdrawn* 230-row join instead, and `engine/status.js` reads that file. The evidence
+survives only as `data/rollout-r1-rows.jsonl`, now committed for that reason.
+**Code:** `engine/miltank.js`, `engine/rollout_r4.js`, `engine/sprt.js`, `engine/paired_h2h.js`.
+Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
+
 ## CHAMPIONS_SIM — the official engine (ADR-001)
 **Job:** be the rules authority, replacing a hand-written engine that was wrong in eight silent ways.
 **Status:** wired and **verified**. `engine/validate_damage_sim.js` runs the 31-scenario golden master through the official engine against `@smogon/calc`: **31/31 within 2%**. That clears ADR-001 migration step 3.

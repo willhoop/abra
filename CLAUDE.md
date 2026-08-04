@@ -37,6 +37,7 @@ One question decides the route: **which artifact does fixing this invalidate?**
 | whether a number is true — staleness, calibration, an SPRT result, the refit | `@measure` |
 | what MILTANK clicks — leads, brings, opponent model, mega, post-KO | `@search` |
 | the live bot, Showdown, replays, ingest, the store | `@ops` (read-only) |
+| the site — ABRA WORLD, a room, a visualisation, a model interface | `@web` (renders, never authors a number) |
 
 Spans two? Run the **upstream** one first; the graph is one-way. Routes nowhere? Say so and ask —
 do not invent a home for it.

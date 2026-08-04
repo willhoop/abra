@@ -27,6 +27,7 @@ SEARCH result, one big document would beat four small ones and this file should 
 | **MEASURE** | `mew.js`, `sprt.js`, `provenance.js`, `status.js`, `backtest_winrate.js`, the noise floor, the stamps | leaf calibration | [MEASURE.md](MEASURE.md) |
 | **SEARCH** | `miltank.js` — bring/lead, opponent model, mega choice, post-KO replacement | SPRT verdict vs the named champion | [SEARCH.md](SEARCH.md) |
 | **OPS** | `mag_bot.js`, Showdown, OTS/replays, ingest, the team pool | store usable %, battles recorded | [OPS.md](OPS.md) |
+| **WEB** | `web/` — ABRA WORLD and every room in it | every rendered figure traces to an artifact | [WEB.md](WEB.md) |
 
 **MAG is not a division — it is the seam.** It consumes ENGINE and feeds SEARCH, and its refit is
 the expensive event on the one expensive edge. The refit therefore belongs to MEASURE, whose whole
@@ -78,8 +79,15 @@ can, and that is the generator's job.
 
 ## One agent per division
 
-`.claude/agents/{engine,measure,search,ops}.md`. Each loads CLAUDE.md plus its own ledger and
+`.claude/agents/{engine,measure,search,ops,web}.md`. Each loads CLAUDE.md plus its own ledger and
 nothing else, so it cannot reason wrongly about a part of the project it was never shown.
+
+**WEB was added 2026-08-04, and the reason is worth recording** because it tests whether the cut
+above is real. `web/` had no owner: ENGINE, MEASURE, SEARCH and OPS are all cuts on the model's
+invalidation graph, and a website is not on that graph. So site work kept falling back to whoever
+was holding it. WEB is the **leaf** — everything flows into it and nothing flows out — which is
+exactly why it can be given hands on its own files and none anywhere else, and why its one
+restriction is not about tools but about authority: it renders numbers and never authors one.
 
 The point is not that an agent is an expert — it is a fresh context holding the right slice. What
 the split actually buys is that the **may-not column becomes a tool restriction instead of a
@@ -91,6 +99,7 @@ sentence somebody might ignore**:
 | `measure` | full | must ask before starting a refit — it is expensive and Will may be at the keyboard |
 | `search` | full | prepares H2H runs and hands over the command; does not launch wide runs itself |
 | `ops` | **read-only** | no Bash, no Write, no Edit — a mistake here forfeits a real game |
+| `web` | full, inside `web/` only | **may not author a number** — every figure traces to an artifact or renders as NOT MEASURED |
 
 **This is not parallelism.** Six processes is the cap and RAM is the real ceiling. ENGINE's work is
 single-process and genuinely runs alongside a long SEARCH job; two search agents do not. The win is
