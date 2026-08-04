@@ -1504,6 +1504,32 @@ const MOVE_TAGS = [
       if (m.ignoreOffensive) out.offensive = true;
       return out;
     } },
+  /* MOVES THAT FAIL UNLESS THE TARGET IS ATTACKING THIS TURN.
+   *
+   * Sucker Punch, Thunderclap, Upper Hand. MEDICHAM applied no such condition, so Sucker Punch dealt
+   * its full 47 into a target setting Tailwind and into a target doing nothing at all -- the search
+   * saw a 70 BP priority move with NO DRAWBACK and reached for it constantly. Will watched it lose a
+   * game clicking Sucker Punch into a Fake Out, which is +3 against its +1: they flinch you first and
+   * it never resolves.
+   *
+   * DERIVED from the move declaring an onTry that inspects what the target WILL DO. Avalanche and
+   * Assurance carry the same `needsTargetToAttack` tag but express themselves through a base-power
+   * callback -- they DOUBLE rather than FAIL -- so keying on onTry separates the two behaviours that
+   * one tag had been conflating. */
+  { tag: 'failsIfTargetNotAttacking', param: 'the move fails outright unless the target attacks',
+    probe: 'failsIfTargetNotAttacking',
+    why: 'Sucker Punch with no drawback is a 70 BP priority move the search cannot resist, and it '
+       + 'is 6,391 corpus clicks',
+    of: m => {
+      const src = String(m.onTry || '');
+      if (!src) return null;
+      /* willMove(TARGET) specifically. The first version matched willMove|queue|getActiveMove and
+       * caught QUICK GUARD and WIDE GUARD -- which call willAct() with no argument and do not care
+       * what the target does -- and ROUND, which iterates the queue looking for other Rounds. Three
+       * false positives on a five-move list. The real ones ask what THIS TARGET will do. */
+      if (!/willMove\(\s*target\s*\)/.test(src)) return null;
+      return { fails: true };
+    } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },

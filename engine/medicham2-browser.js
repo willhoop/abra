@@ -1437,6 +1437,23 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
       if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
+      /* SUCKER PUNCH FAILS UNLESS THE TARGET IS ATTACKING THIS TURN.
+       *
+       * MEDICHAM applied no condition, so it dealt full damage into a target setting Tailwind and
+       * into a target doing nothing -- the search saw a 70 BP priority move with NO DRAWBACK and
+       * reached for it constantly. Will watched it lose a game clicking Sucker Punch into a Fake
+       * Out, which is +3 against its +1: they flinch first and it never resolves.
+       *
+       * `acts` already holds every action committed this turn, so what the target is doing is known
+       * without any new state. From the failsIfTargetNotAttacking tag, derived from the move calling
+       * queue.willMove(target) -- which separates it from Quick Guard and Wide Guard, whose willAct()
+       * does not care about the target at all. */
+      if(TAGS.has('move',a.move.id,'failsIfTargetNotAttacking')){
+        const _tgt=a.target;
+        const _their=_tgt?acts.find(x=>x.mon===_tgt):null;
+        const _attacking=!!(_their&&_their.a&&_their.a.kind==='attack');
+        if(!_attacking) continue;
+      }
       /* BLOCKED PRIORITY FAILS OUTRIGHT. The sort above puts a priority move at the front of the
        * turn and, until now, let it connect regardless of Armor Tail, Queenly Majesty, Dazzling or
        * Psychic Terrain -- so every rollout and every self-play game had Sucker Punch beating a
