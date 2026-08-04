@@ -128,8 +128,15 @@ protected process that cannot be killed, and it should not be disabled to buy me
 because it looks exactly like reclaimable overhead and is not — the next person to go looking for
 1.4 GB will land on it too.
 
-The largest thing actually under our control is `claude` itself. Extra editor windows are not free —
-closing unused ones buys more than any tuning flag.
+**The `claude` figure is ONE window, and this was got wrong once already.** 2.88 GB across 20
+processes looks like several sessions and is not: it is the Electron shell and renderer (~1.1 GB
+between two processes), the agent workers (~200-350 MB each), and roughly fourteen MCP servers at
+14-116 MB apiece. Closing windows is not the lever, because there is one window.
+
+**The only lever actually under our control is agent concurrency.** Budget an agent at ~300 MB
+itself, plus up to ~1.3 GB if it spawns a `node` engine run. Four light agents cost about what one
+heavy one does, so the cap is not a count — it is how many are holding a rollout at the same time.
+Check `FreePhysicalMemory` before adding one rather than assuming a number.
 
 `mew_farm` runs 12 procs at `--conc 1` (44–46 games/sec). `--conc` must stay at 1: the simulator is
 synchronous and CPU-bound, so in-process concurrency never overlaps real work and only multiplies GC
