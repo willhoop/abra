@@ -143,14 +143,30 @@ function install(bot, o) {
           };
           const myBodies = myNames.map(n => () => bodyOf(n, mine));
           const theirBodies = theirNames.map(n => () => bodyOf(n, theirs));
-          if (myBodies.some(f => !f()) || theirBodies.every(f => !f())) {
-            console.log('  preview: could not build every body — falling back to default order');
+          /* DROP WHAT CANNOT BE BUILT; DO NOT ABANDON THE SEARCH.
+           *
+           * Requiring all twelve bodies meant ONE unbuildable Pokemon threw away the whole lead
+           * decision -- and dmgMon legitimately returns null for an in-battle forme with no usage
+           * row, so that is a normal condition rather than an error. Seen live: the sheet arrived,
+           * the search had everything it needed, and it fell back anyway.
+           *
+           * A bring needs four of mine and something of theirs to be worth computing. Below that,
+           * fall back and say which species could not be built, because a silent fallback is what
+           * hid this for two restarts. */
+          const badMine = myNames.filter((n, i) => !myBodies[i]());
+          const okTheirs = theirNames.filter((n, i) => theirBodies[i]());
+          if (myNames.length - badMine.length < 4 || okTheirs.length < 2) {
+            console.log('  preview: too few bodies to score a bring — falling back to default order' +
+              (badMine.length ? '  (unbuildable: ' + badMine.join(', ') + ')' : '') +
+              '  theirs=' + okTheirs.length);
             return baseTeamPreview(team);
           }
+          if (badMine.length) console.log('  preview: skipping unbuildable ' + badMine.join(', '));
 
           /* Every (lead pair, back pair) our six allows: 15 leads x 6 backs = 90 brings. */
           const combos = [];
-          const idx = myNames.map((_, i) => i);
+          /* Only indices that actually build, or a bring can name a Pokemon the playout cannot field. */
+          const idx = myNames.map((_, i) => i).filter(i => myBodies[i]());
           for (let a = 0; a < idx.length; a++) for (let b = a + 1; b < idx.length; b++) {
             const rest = idx.filter(i => i !== a && i !== b);
             for (let c = 0; c < rest.length; c++) for (let d = c + 1; d < rest.length; d++) {
