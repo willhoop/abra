@@ -37,8 +37,29 @@ const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 const WRITE = process.argv.includes('--write');
 
-const j = p => { try { return JSON.parse(fs.readFileSync(D('data', p), 'utf8')); } catch (e) { return null; } };
-const mtime = p => { try { return fs.statSync(D(p)).mtime; } catch (e) { return null; } };
+/* ---- WHY SOMETHING IS NOT DERIVED -------------------------------------------------------------
+ * `NOT DERIVED` is this tool's honest answer for "no artifact says this", and it was ALSO its answer
+ * for "the artifact is there and I could not read it". Those are opposite facts: the first is work
+ * nobody has done, the second is work that has ROTTED, and a reader who cannot tell them apart will
+ * read every one as the first. Every reader below now records WHY, and the reasons print in a
+ * DIAGNOSTICS block at the end of the run.
+ *
+ * ENOENT is not recorded. A missing artifact is the ordinary state this tool exists to report, and a
+ * diagnostics line that fires on every unbuilt gate is a line people learn to skip — which is how
+ * "known failure" became a status here once already. Anything else — a parse error, a permission
+ * error, a tool that would not run — is a defect and says so. */
+const NOTES = [];
+/* NAMED `logUnreadable`, not `note`. tests/test-no-silent-failure.js reads a catch BODY and asks
+ * whether it says anything; a helper called `note` looks like nothing from there, and a recorder
+ * that a ratchet cannot see is the second half of the problem it was written for. The name is also
+ * simply more accurate about what it does. */
+const logUnreadable = (where, e) => {
+  const why = (e && (e.code === 'ENOENT' ? null : (e.message || String(e)))) || null;
+  if (why) NOTES.push(`${where}: ${String(why).split('\n')[0].slice(0, 160)}`);
+  return null;
+};
+const j = p => { try { return JSON.parse(fs.readFileSync(D('data', p), 'utf8')); } catch (e) { return logUnreadable(`data/${p}`, e); } };
+const mtime = p => { try { return fs.statSync(D(p)).mtime; } catch (e) { return logUnreadable(`mtime ${p}`, e); } };
 const day = d => d ? d.toISOString().slice(0, 16).replace('T', ' ') : '—';
 const out = [];
 const say = s => out.push(s);
@@ -73,7 +94,8 @@ function engineInputs() {
     const src = fs.readFileSync(D('engine', 'provenance.js'), 'utf8');
     const m = src.match(/ENGINE_INPUTS\s*=\s*\[([^\]]*)\]/);
     if (m) return m[1].split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-  } catch (e) { /* fall through */ }
+    NOTES.push('engine/provenance.js: ENGINE_INPUTS did not match — the refit edge has no input list');
+  } catch (e) { logUnreadable('engine/provenance.js (ENGINE_INPUTS)', e); }
   return null;
 }
 
@@ -100,7 +122,20 @@ function refitOwed() {
       { encoding: 'utf8', maxBuffer: 1 << 24, env: { ...process.env, SHOWDOWN_PATH: process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown' } });
     return { verdict: 'CLEAN', weights: w, newer, how: 'feature_fixture --check passes: all 58 columns hash-identical to fit time' };
   } catch (e) {
-    const msg = (e.stdout || e.message || '').toString().split('\n').filter(Boolean).slice(-3).join(' | ');
+    const all = ((e.stdout || '') + '\n' + (e.stderr || '') + '\n' + (e.message || '')).toString();
+    const msg = all.split('\n').filter(Boolean).slice(-3).join(' | ');
+    /* TWO DIFFERENT FACTS ARRIVED HERE AS ONE. `feature_fixture --check` exits non-zero when a
+     * column's hash MOVED, and it also exits non-zero when it could not run at all — a bad
+     * SHOWDOWN_PATH, a missing dex, a throw inside the fixture. Both printed REFIT OWED, which is
+     * the safe direction and the wrong sentence: one says the weights are stale, the other says
+     * this tool has no opinion. P0 #40 records two ratchets that CRASHED rather than failed for
+     * exactly this reason and stayed invisible for it. */
+    const ran = /FEATURE SEMANTICS CHECK FAILED/.test(all);
+    if (!ran) {
+      NOTES.push('engine/feature_fixture.js --check could not RUN, so the refit edge is unknown, not clean: ' + msg);
+      return { verdict: 'NOT DERIVED', weights: w, newer,
+               reason: 'feature_fixture --check did not run: ' + msg };
+    }
     return { verdict: 'REFIT OWED', weights: w, newer, how: 'feature_fixture --check FAILED: ' + msg };
   }
 }
@@ -171,24 +206,40 @@ function measure() {
      * Separate sentences, because they call for different actions. */
     if (b.measured_against) {
       const crypto = require('crypto');
-      const moved = [], corpus = [];
+      const moved = [], corpus = [], unstamped = [], gone = [];
       for (const [rel, st] of Object.entries(b.measured_against)) {
-        if (!st || !st.sha256_12) continue;
+        /* A SOURCE WITH NO HASH WAS SKIPPED IN SILENCE, AND THE SENTENCE UNDERNEATH SAID "EVERY".
+         * backtest_winrate.js:71 catches a failed stat/read and stamps `{mtime: null, error}` with
+         * no `sha256_12`. This loop then `continue`d past it and, finding nothing in `moved`,
+         * printed "CURRENT — every engine source the leaf reads still hashes to what it was
+         * measured against". With every stamp failed that sentence is printed over ZERO
+         * comparisons. Two silent catches composing into a clean bill on this division's own
+         * provenance line — count them and say so. */
+        if (!st || !st.sha256_12) { unstamped.push(rel); continue; }
         let now = null;
-        try { now = crypto.createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); } catch (e) { now = 'MISSING'; }
+        try { now = crypto.createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); }
+        catch (e) { now = 'MISSING'; logUnreadable(`re-hashing ${rel} for the leaf-calibration stamp`, e); }
         if (now === st.sha256_12) continue;
+        /* GONE IS NOT MOVED. A source that no longer exists was being reported as "measured against
+         * a different build of", which reads as an ordinary engine edit. */
+        if (now === 'MISSING') { gone.push(rel); continue; }
         (/\.jsonl$/.test(rel) ? corpus : moved).push(rel);
       }
+      const compared = Object.keys(b.measured_against).length - unstamped.length;
       if (moved.length) say(`    PRE-CHANGE — measured against a different build of: ${moved.join(', ')}`);
-      else say('    CURRENT — every engine source the leaf reads still hashes to what it was measured against');
+      else if (compared) say(`    CURRENT — all ${compared} engine sources the leaf reads still hash to what they were measured against`);
+      else say('    NOT DERIVED — no source in measured_against carries a hash, so nothing was compared');
+      if (gone.length) say(`    A SOURCE THE LEAF WAS MEASURED AGAINST NO LONGER EXISTS: ${gone.join(', ')}`);
+      if (unstamped.length) say(`    ${unstamped.length} source(s) were never hashed at measure time and could not be checked: ${unstamped.join(', ')}`);
       if (corpus.length) say(`    (the corpus has grown since: ${corpus.join(', ')} — more power available, not staleness)`);
     }
   } else say('  leaf calibration: NOT DERIVED (data/winrate-backtest.json absent)');
 
   /* provenance is the canonical staleness authority; do not reimplement its rules here. Lesson 8. */
-  let prov = null;
+  let prov = null, provRan = false;
   try {
     const txt = execFileSync(process.execPath, [D('engine', 'provenance.js')], { encoding: 'utf8', maxBuffer: 1 << 24 });
+    provRan = true;
     const m = txt.match(/(\d+) UNSAFE, (\d+) possibly stale, (\d+) ok, (\d+) missing/);
     if (m) prov = { unsafe: +m[1], stale: +m[2], ok: +m[3], missing: +m[4] };
     const optin = /OPT-IN FILTERS/.test(txt);
@@ -197,8 +248,14 @@ function measure() {
       if (optin) say('    a generator makes the quality filter OPT-IN — see the tail of provenance.js');
     }
   } catch (e) {
+    NOTES.push('engine/provenance.js did not run: ' + String(e.message || e).split('\n')[0]);
     say('  provenance: NOT DERIVED (engine/provenance.js did not run: ' + e.message.split('\n')[0] + ')');
   }
+  /* THE OTHER HALF OF THE SAME QUESTION, AND IT WAS MISSING. provenance.js exiting 0 with output
+   * this regex does not match leaves `prov` null, no line is printed at all, and the section simply
+   * has one fewer row — which reads as "there is no provenance line" rather than "the provenance
+   * line could not be parsed". */
+  if (provRan && !prov) { NOTES.push('engine/provenance.js ran but its summary line did not parse'); say('  provenance: NOT DERIVED (summary line did not parse)'); }
 
   const r = refitOwed();
   if (r.verdict === 'NOT DERIVED') say(`  refit edge: NOT DERIVED (${r.reason})`);
@@ -277,7 +334,11 @@ function search() {
      *
      * The path is DERIVED by the same function the writer uses, not spelled a second time. */
     let meta = null;
-    try { meta = j(require('./run_stamp.js').metaPathFor(file)); } catch (e) { meta = null; }
+    /* `j()` already records a parse failure. What this catch adds is the OTHER failure: run_stamp.js
+     * itself not loading, or metaPathFor throwing. That produced the same "NO SIDECAR" line as a
+     * gate that genuinely has no stamp — accusing the gate of a defect belonging to the stamper. */
+    try { meta = j(require('./run_stamp.js').metaPathFor(file)); }
+    catch (e) { meta = null; NOTES.push(`engine/run_stamp.js could not give a sidecar path for data/${file}: ${String(e.message || e).split('\n')[0]}`); }
     /* An artifact that carries its OWN stamps block has already answered this question in the two
      * lines above — data/rollout-r1.json does, at length. Repeating "NO SIDECAR" underneath it would
      * be a third statement of one fact, and a line that fires forever after the fix is a line people
@@ -292,7 +353,11 @@ function search() {
       }
     } else if (meta && meta.measured) {
       const m = meta.measured;
-      say(`    stamped: ${m.key}${meta.git && meta.git.dirty ? '  (TREE WAS DIRTY — trust source_digests, not the commit)' : ''}`);
+      /* THREE STATES, NOT TWO. `dirty: null` means run_stamp could not ask git — see its gitState.
+       * Rendering that as the clean case is the same collapse this line exists to expose. */
+      const gd = meta.git && meta.git.dirty;
+      say(`    stamped: ${m.key}${gd === true ? '  (TREE WAS DIRTY — trust source_digests, not the commit)'
+        : gd === null ? '  (DIRTINESS UNKNOWN — git did not answer when this was stamped)' : ''}`);
     }
   }
 
@@ -339,7 +404,7 @@ function ops() {
   try {
     const src = fs.readFileSync(D('data', 'live.js'), 'utf8');
     live = JSON.parse(src.replace(/^\s*window\.LIVE\s*=\s*/, '').replace(/;\s*$/, ''));
-  } catch (e) { /* fall through to NOT DERIVED */ }
+  } catch (e) { logUnreadable('data/live.js', e); }
   if (live) {
     say(`  store: ${live.games} games, ${live.usable} usable (${live.usablePct}%), ${live.teams} teams   (live.js ${live.updated})`);
   } else say('  store: NOT DERIVED (data/live.js unreadable)');
@@ -347,7 +412,7 @@ function ops() {
   try {
     const n = fs.readdirSync(D('data', 'live-games')).filter(f => f.endsWith('.json')).length;
     say(`  live-games/: ${n} battles recorded`);
-  } catch (e) { say('  live-games/: NOT DERIVED'); }
+  } catch (e) { logUnreadable('data/live-games/', e); say('  live-games/: NOT DERIVED'); }
 
   /* THIS LIST PRINTED A FROZEN ARCHIVE BESIDE THE LIVE STORE AND OMITTED THE ONE ACTUALLY
    * COLLECTING OPEN TEAM SHEETS, which read as "OTS collection stopped in July" to every session
@@ -368,8 +433,10 @@ function ops() {
     ['data/games.bo3.jsonl', '  <- the Force-OTS format, collected hourly'],
     ['data/games.ots.jsonl', '  <- FROZEN external import, complete; date is an import, not a heartbeat'],
   ];
-  for (const [f, note] of stores) {
-    say(`  ${f.padEnd(28)} last written ${day(mtime(f))}${note}`);
+  /* `tag`, not `note` — `note` is the diagnostics recorder at the top of this file and a loop
+   * variable of that name shadows it for the whole body. */
+  for (const [f, tag] of stores) {
+    say(`  ${f.padEnd(28)} last written ${day(mtime(f))}${tag}`);
   }
 }
 
@@ -388,6 +455,16 @@ console.log('ABRA STATUS — generated ' + day(new Date()) + ' by engine/status.
 console.log('Every figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.');
 console.log('');
 console.log(out.join('\n'));
+/* DELIBERATELY OUTSIDE THE SECTION BLOCKS, so `--write` never stamps it into a ledger. A diagnostic
+ * is a fact about THIS RUN of this tool — an artifact that would not parse, a subprocess that would
+ * not start — not a fact about the project, and pasting it into a document would make a transient
+ * read as a finding. It prints on the screen where the person who can fix it is looking. */
+if (NOTES.length) {
+  console.log(`DIAGNOSTICS — ${NOTES.length} thing(s) this run could not read. Each was previously an`);
+  console.log('unexplained NOT DERIVED, which is indistinguishable from work nobody has done yet.');
+  for (const n of NOTES) console.log('  ' + n);
+  console.log('');
+}
 console.log('Rules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.');
 console.log('');
 

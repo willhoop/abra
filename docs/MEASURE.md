@@ -21,11 +21,12 @@ MEASURE — can we believe a number
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
   provenance: 1 unsafe, 38 possibly stale, 52 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 19:42, but the feature function did not)
-    (data/abra-tags.js moved 2026-08-04 19:32, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-04 21:20, but the feature function did not)
+    (engine/board.js moved 2026-08-04 21:12, but the feature function did not)
+    (data/abra-tags.js moved 2026-08-04 21:13, but the feature function did not)
 ```
 
-_stamped 2026-08-04 19:43_
+_stamped 2026-08-04 21:21_
 
 <!-- /GENERATED -->
 
@@ -862,6 +863,202 @@ ENGINE, not patched here:** closing them means reaching for the Showdown dex, wh
 `train_value.py` produce different numbers depending on whether `SHOWDOWN_PATH` is set. That is
 *fitting environment and playing environment must match* in a new place, and it is not worth 1.5% of
 events.
+
+### 11. THE THIRD COPY OF THE WEATHER MAP IS IN `board.js`, IT IS WRONG, AND THE FIXTURE CANNOT SEE IT
+
+**This is a refit trigger. It is measured, it is NOT landed, and the gate for landing it is the
+P0/P1 band, which is not met.**
+
+`engine/board.js:1190` carries `WEATHER_KIND`, a third private copy of the Showdown-weather → engine-
+weather translation that `medicham2-browser.js` owns as `SD2WEATHER` / `weatherId`. It is read at two
+sites — `dmgFractions` (`:1247`, every damage-derived MAG feature) and the `punishExposure` call in
+`featuresFor` (`:2937`, `clickCost`). What it holds:
+
+```js
+{ sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain' }
+```
+
+**It maps the two weathers this format cannot produce and misses the two it does.** `desolateland`
+and `primordialsea` are primal weather: **0 occurrences in 339,483 corpus turn-boards**. `sandstorm`
+and `snowscape` are not in the table at all, so `WEATHER_KIND[board.weather]` is `undefined`, `|| ''`
+makes it clear skies, and **every damage feature under sand or snow has been computed in no weather**.
+The engine reads `field.weather === 'sand'` for the Rock special-defence 1.5×, `=== 'snow'` for the
+Ice defence 1.5×, and Weather Ball's type comes off the same field.
+
+**Exposure, re-measured rather than inherited** — a census of `board.weather` at every turn-board
+across `games.ladder` + `games.bo3` + `games.ots` (52,441 games):
+
+| weather at a turn-board | share | `WEATHER_KIND` gives |
+|---|---|---|
+| clear | 64.15% | `''` correct |
+| `sunnyday` | 14.90% | `'sun'` correct |
+| `raindance` | 10.23% | `'rain'` correct |
+| `snowscape` | **5.43%** | **`''` — WRONG** |
+| `sandstorm` | **5.29%** | **`''` — WRONG** |
+
+**10.72% of turn-boards, and 18.5% of games contain at least one.**
+
+**THE FIXTURE PASSES ANYWAY, AND THAT IS THE FINDING.** The patch was applied, measured and reverted.
+`engine/feature_fixture.js --check` returns `feature semantics OK` on both `policy-weights.json` and
+`policy-weights-joint.json` **before and after** — because the fixture's only two weather scenarios
+are `RainDance` and `SunnyDay`, the two `WEATHER_KIND` already gets right. All 58 columns are
+hash-identical while the feature function has moved.
+
+What actually moves, measured on the fit's own rows — `fit_policy.decisionsFor` over the first 1,200
+open-sheet corpus games, **32,054 decisions / 234,873 candidate vectors**:
+
+| | |
+|---|---|
+| candidate vectors that move | **1,768 (0.75%)** |
+| decisions that move | **892 of 32,054 (2.78%)** |
+| columns that move | **14 of 58** |
+
+`dmgFrac` (1,182), `koTarget` (238, max |Δ| 0.93), `killIsRoll`, `killsThreat`, `diesBeforeMoving`,
+`benchRisk`, `koFirst`, `protectThreatened`, `switchKOFast`, `switchKOSlow`, `screenValue`,
+`switchDiesFirst`, `switchSurvives1`, `switchSurvives2` — several flipping a full 0→1.
+
+**So `feature_fixture --check` is necessary and not sufficient, and `status.js`'s `refit edge: CLEAN`
+inherits that limit.** The hash covers the boards the fixture builds; the feature FUNCTION lives over
+every board the corpus contains. This division's own rule — *a restamp is only valid if the feature
+FUNCTION is unchanged* — is the binding one, and a green fixture is evidence for it, not proof of it.
+**The fixture needs a sand board and a snow board.** Adding them is itself a fixture change that
+re-stamps every hash, so it belongs in the same pass as the refit, not before it.
+
+The patch is small and is recorded here rather than left on disk: replace both reads with a
+`weatherKind(board, D)` helper that calls the damage engine's exported `weatherId`. Do not write a
+fourth map. Note that `weatherId` does not know `desolateland`/`primordialsea`; on the measured
+corpus that costs nothing, and adding them is ENGINE's call on `SD2WEATHER`, not a second table here.
+
+### 11a. `position_features.js` — the same defect at the second boundary. LANDED, no refit owed.
+
+`engine/position_features.js:292` built its field object as `B.norm(board.weather || '')` — the
+board's *move name* — and handed it to `M.dmgRange` and `M.effSpeed`, which compare against the
+engine's words. Truthy and meaningless, exactly as at the leaf boundary. Now `M.weatherId(...)`.
+
+**No refit is owed and that was checked, not assumed: nothing in the repository fits, reads or
+renders these columns.** The only callers of `positionFeatures` are four tests, and no artifact
+contains any of its feature names.
+
+Exposure re-measured on the boards this module is actually asked about — the `joint_rows.build`
+walk, 400 open-sheet games, **3,202 mid-game boards / 6,404 scored positions**. **49.94% carry a
+weather**, higher than the 35.85% turn-board figure because weather accumulates as a game runs.
+
+- **1,962 of 6,404 positions moved (30.64%)**: sun 73.6%, rain 66.7%, sand 49.5%, snow 29.5%.
+- 7 of 16 columns: `raceEdge` (29.67%, max |Δ| 0.42), `killFirstEdge`, `iKillNext`, `theyKillNext`,
+  `benchAnswersDiff`, `speedEdge`, `pinnedDiff`.
+- **0 of 3,206 clear-weather positions moved** — the control that says this is the weather.
+
+`:296`'s terrain now goes through `M.terrainId` as well. That one is a **confirmed no-op**: 16 of the
+3,202 boards carry a terrain, 11 of them under clear weather, and all 22 positions scored on those
+are bit-identical. Every downstream reader already calls `terrainId` itself. It is translated here so
+the field object leaves in one vocabulary rather than two, which is the condition that let the
+weather half go unnoticed. The four probed keys are a list of BOARD KEYS, not a translation table —
+the same justification `rollout_leaf.terrainOnBoard` records.
+
+ENGINE's *"0 of 400 boards"* for this file was terrain-only and is reproduced (0.50% here). It was
+being read as though it covered the weather too, and the weather number is 49.94%.
+
+### 11b. `git checkout -- <file>` INVALIDATES EVERY CONTENT STAMP ON THIS MACHINE
+
+Found by doing it. `core.autocrlf=true`, the committed blobs are LF, and the worktree files are LF —
+so a checkout REWRITES them as CRLF. The bytes change, nothing in git notices (`git diff` is empty),
+and `sha256(worktree)` moves. `winrate-backtest.json`'s `measured_against` and `run_stamp.js`'s
+`source_digests` both hash worktree bytes, so `engine/board.js` immediately began printing
+**`PRE-CHANGE — measured against a different build of: … engine/board.js`** after a revert that
+changed no code. Converted back to LF; the digest returns to `bcf2dab9dc6f`, which is the stamp
+exactly, and board.js drops out of the PRE-CHANGE list.
+
+This is the mirror of the warning already in *Reading a stamp* — *never compare `source_digests` to
+`git.blobs`, they differ by line-ending translation*. The new half is that an ordinary git operation
+can move one of them. **After any `git checkout --` or `git stash pop` on this box, check
+`node engine/status.js` before believing a PRE-CHANGE line.**
+
+### 12. `tests/test-no-silent-failure.js` — the 32 MEASURE entries, and what two of them were hiding
+
+Worked through without `--update`, which would have laundered the SEARCH, OPS and WEB entries in the
+same command. **NEW since the baseline: 52 → 20.** Every MEASURE-owned entry is cleared; the 20 that
+remain are 13 SEARCH (`miltank.js`, `rollout_leaf.js`, `rollout_r1.js`), 3 OPS (`mag_bot.js`) and 4 in
+`tests/test-{site-data-fresh,stadium-roster,web-parses}.js`.
+
+**Two were hiding something real.**
+
+**`engine/run_stamp.js:92` recorded "the tree was clean" whenever git refused to answer.**
+
+```js
+const porcelain = git(['status', '--porcelain', '--'].concat(watched)) || '';
+```
+
+`git()` returns `null` when the command throws — an index lock, an interrupted rebase (CLAUDE.md
+documents this repository reaching one 43 commits into a 45-commit replay), git not on `PATH`. An
+EMPTY porcelain is git's way of saying CLEAN. `|| ''` collapsed the two, so a stamp written while git
+was unavailable published **`dirty: false` beside a commit id that described nothing on disk** — and
+this module's own header says *"a clean commit id over a dirty tree is a lie of exactly the kind this
+module exists to stop"*, while `docs/MEASURE.md`'s *Reading a stamp* tells every reader to trust the
+commit when `dirty` is false. `rev-parse HEAD` was already guarded; `status --porcelain` was not.
+Now a third state: `dirty: null` with `git_errors`, and `status.js` renders it as
+**DIRTINESS UNKNOWN** rather than as the clean case.
+
+**`engine/backtest_winrate.js:71` + `engine/status.js:176` composed into a false clean bill.**
+`stampOf` returns `{mtime: null, error}` with no `sha256_12` when a source cannot be read. `status.js`
+then did `if (!st || !st.sha256_12) continue;` and, finding nothing in `moved`, printed
+**"CURRENT — every engine source the leaf reads still hashes to what it was measured against"**. With
+every stamp failed, that sentence was printed over **zero comparisons**. Two silent catches, neither
+wrong on its own, producing a clean provenance line on this division's headline number. The count is
+now stated (`all N engine sources`), unstamped sources are named, `NOT DERIVED` is printed when N is
+zero, and a source that has been DELETED is reported as gone rather than as "a different build of".
+
+**The rest were latent rather than active, and the honest answer is that they were hiding nothing
+today — which is a measurement, not an absence of one.**
+
+- **`engine/rollout_r4.js:279`** — the split-half scan that produces the NOISE FLOOR discarded a torn
+  line in silence, while `countLine`, reading the same file for the header counts, keeps `torn` and
+  publishes it. A row lost here shrinks an arm and moves the spread, and the spread is the entire
+  output. Counted; the split now refuses to report if anything was lost. **Measured on
+  `games.r4-decided.jsonl`: 0 torn, 0 bad-seed, across all three cuts.** Before the counter existed,
+  0 and 500 looked identical from there. A second hole found while adding it: a non-numeric seed put
+  every such record on side B, because `NaN % 2 !== 0` — now rejected rather than piled up.
+  Incidental: the `seed hash parity` cut splits **1,382 / 1,242**, an 11% imbalance, and it is the cut
+  that produced the largest of the three spreads (3.9 pts) quoted as this run's noise-floor range.
+- **`tests/test-timestamps.js:49/54`** — a directory that would not list and a file that would not
+  read were both skipped with `continue`, so *"no Python generator writes a naive datetime"* was also
+  the answer when **zero generators had been looked at**. That is CLAUDE.md's *a capability that
+  cannot prove it ran* inside a guard written for a different failure. Now asserts a floor on files
+  scanned (39 in `engine/`, 1 in `build/`; `tools/` has no `.py` and `scripts/` does not exist) and
+  fails on anything skipped unread.
+- **`tests/test-timestamps.js:92`** — an artifact that would not parse was silently excluded from the
+  published *"N artifacts still carry a naive stamp"* list, so the files most likely to be broken were
+  the ones the survey could not see. Now counted and named: **0 of 108 `data/*.json` fail to parse**,
+  so the list of 8 is complete — a statement that could not previously be made at all.
+- **`tests/test-web-status.js:181`** — `catch { return false }` on the freshness filter means "not
+  newer than the board", the same answer a perfectly fresh artifact gets. A source that had been
+  **deleted or renamed** read as up to date, in the test whose job is that every rendered figure
+  traces to an artifact. Missing is now its own failure. None are missing today.
+- **`tests/test-rollout-gates.js:81`** and **`engine/rollout_r1_artifact.js:228`** — both collapsed
+  "no such file" into "will not parse". The first then granted a CORRUPT gate artifact the one
+  tolerated state (*"awaiting a re-run"*); the second made a broken sidecar indistinguishable from a
+  run nobody ever stamped, which is the exact distinction §4 and §7 exist to preserve.
+- `engine/status.js` (9), `engine/rollout_explore_sweep.js` (3), `engine/rollout_r1_artifact.js`
+  (3 more), `engine/run_stamp.js:60`, `tests/test-web-status.js:58/112`,
+  `tests/test-guru-derived.js:56` — each conflated *absent* with *unreadable*. `status.js` now carries
+  a `DIAGNOSTICS` block, printed on screen and deliberately **outside** the section bodies so
+  `--write` never stamps a transient into a ledger.
+
+**Two defects in the ratchet itself, filed not fixed:**
+
+- **`--update` is all-or-nothing, so the tool's own guidance cannot be followed.** It says *"if a
+  silent fallback is genuinely right here, say why in the code and re-baseline with `--update` so the
+  exception is deliberate and visible"* — but `--update` re-baselines every silent catch in the repo,
+  including other divisions'. There is no way to bless ONE. It needs a per-entry allow with a reason
+  string, in the shape `build_guru_js.js`'s `DELIBERATELY_UNUSED` already uses.
+- **`isSilent` cannot see a recorder it does not recognise by name.** `error: e.message` inside a
+  returned object is a colon, not an `=`, so an artifact that carries its own reason still reads as
+  silent; and a named helper that pushes onto a list looks like nothing from inside the catch body.
+  Four surviving entries are this. Widening the regex would launder real ones, so the code was moved
+  to the documented convention instead — `status.js`'s recorder is named `logUnreadable`, and two
+  locals are named `errWhy` / `errBundle`.
+
+`--all` was added to the ratchet: the 25-line cap is right for a gate, but *"... and 27 more"* is how
+the tail of a list stops being anybody's job.
 
 ## Reading a run
 

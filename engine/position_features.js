@@ -289,12 +289,54 @@ function positionFeatures(board, side, dex) {
   /* twA/twB are what effSpeed reads for Tailwind, and the A/B tags below map MY side to A and
    * theirs to B so the doubling lands on the right one. */
   const field = {
-    weather: B.norm(board.weather || ''),
+    /* THE SECOND BOUNDARY THAT SPOKE THE WRONG VOCABULARY. `board.weather` is Showdown's
+     * `|-weather|` line normalised, so its values are MOVE names — `sunnyday`, `raindance`,
+     * `sandstorm`, `snowscape`. Every formula this `field` is then handed to compares against the
+     * engine's own words: dmgRange's Fire/Water multipliers and the snow-Ice / sand-Rock defence
+     * boosts read `field.weather === 'sun'|'rain'|'snow'|'sand'` directly, and effSpeed's
+     * Swift Swim / Chlorophyll / Sand Rush / Slush Rush doubling does the same. `B.norm` only
+     * lower-cased it, so the string was TRUTHY AND MEANINGLESS — the identical defect
+     * `rollout_leaf.applyField` carried at the leaf boundary.
+     *
+     * EXPOSURE, RE-MEASURED HERE RATHER THAN INHERITED. Over 339,483 corpus turn-boards
+     * (ladder + bo3 + ots) 35.85% carry a weather; over the 3,202 MID-GAME boards this module is
+     * actually asked about (the joint_rows walk, 400 open-sheet games) it is 49.94%, because weather
+     * accumulates as a game goes on. Scoring both sides of every board, 1,962 of 6,404 positions
+     * move — sun 73.6%, rain 66.7%, sand 49.5%, snow 29.5% — across 7 of the 16 columns, the largest
+     * being raceEdge (29.7% of all positions, max |delta| 0.42). **0 of 3,206 clear-weather positions
+     * moved**, which is the control that says this is the weather and not the walk.
+     *
+     * NO REFIT IS OWED. Nothing fits or renders these columns: the only callers of
+     * `positionFeatures` in the repository are four tests. `board.js` — which every MAG weight does
+     * come from — has a THIRD copy of this map and is a separate, gated question; see docs/MEASURE.md.
+     *
+     * NO SECOND MAP. `MEDI.weatherId` is medicham2's own `SD2WEATHER` exported — the same call
+     * `rollout_leaf.js` makes — and it is idempotent, so a caller already speaking the engine's
+     * vocabulary is unaffected and an unrecognised value resolves to no weather and is COUNTED in
+     * `M.fails.weatherUnknown` instead of passing through as a truthy string nothing reads. */
+    weather: M.weatherId(board.weather || ''),
     /* Terrain was hardcoded to '' here, which quietly disabled the Psychic Terrain half of the
      * priority block — it read a field it never filled in. Derived from the board's own field keys,
-     * which is where terrain has always been tracked. */
-    terrain: ['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain']
-      .find(t => board.hasField(t)) || '',
+     * which is where terrain has always been tracked.
+     *
+     * The list is a list of BOARD KEYS to probe, not a translation table — `board.startField` stores
+     * the dex's `move.terrain` (`electricterrain`, …) while the engine speaks `electric`. The
+     * short/long translation is done by `MEDI.terrainId` and nowhere else, exactly as the weather
+     * above and exactly as `rollout_leaf.terrainOnBoard` does. Walking the whole field namespace
+     * instead would hand `trickroom` to `terrainId` and count a bogus `fails.terrainUnknown` on
+     * nearly every board.
+     *
+     * This one is a NO-OP on today's values and is made anyway: every reader downstream
+     * (`movePriority`, `priorityRefusedAbove`, the Hadron Engine and terrain-boost branches of
+     * `dmgRange`) already calls `terrainId` itself, so the long key resolves correctly there. It is
+     * translated HERE so the field object leaving this function is in one vocabulary rather than
+     * two, which is the condition that let the weather half go unnoticed. VERIFIED rather than
+     * asserted: of the 3,202 mid-game corpus boards walked above, 16 carry a terrain (0.50%) and 11
+     * of those also have no weather; every one of the 22 positions scored on them is bit-identical
+     * before and after. The 2 terrain positions that DID move are under rain and moved for the
+     * weather. */
+    terrain: M.terrainId(['psychicterrain', 'electricterrain', 'grassyterrain', 'mistyterrain']
+      .find(t => board.hasField(t)) || ''),
     twA: board.hasSide(side, 'tailwind') ? 1 : 0,
     twB: board.hasSide(foe, 'tailwind') ? 1 : 0,
   };

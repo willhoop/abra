@@ -55,7 +55,13 @@ const B = sandbox.window.ABRA_BOARD;
 if (!B) { console.log('  FAIL  web/status-data.js did not set window.ABRA_BOARD'); process.exit(1); }
 pass('web/status-data.js loads and sets window.ABRA_BOARD');
 
-const j = rel => { try { return JSON.parse(fs.readFileSync(D(rel), 'utf8')); } catch (e) { return null; } };
+/* Every caller turns a null into a `fail()`, so the failure IS visible — what was discarded is WHY,
+ * and "the artifact is missing" and "the artifact is corrupt" send a reader to different places. */
+const readWhy = [];
+const j = rel => {
+  try { return JSON.parse(fs.readFileSync(D(rel), 'utf8')); }
+  catch (e) { readWhy.push(rel + ': ' + String(e.message).split('\n')[0]); return null; }
+};
 
 /* ================================================================================================
  * 1. EVERY FIGURE CARRIES A SOURCE.
@@ -109,7 +115,7 @@ const CHECKS = [
 function artifact(rel) {
   if (rel === 'data/live.js') {
     try { return JSON.parse(fs.readFileSync(D(rel), 'utf8').replace(/^\s*window\.LIVE\s*=\s*/, '').replace(/;\s*$/, '')); }
-    catch (e) { return null; }
+    catch (e) { readWhy.push(rel + ': ' + String(e.message).split('\n')[0]); return null; }
   }
   return j(rel);
 }
@@ -177,9 +183,21 @@ const sources = new Set();
       && o.src.indexOf('/') > 0 && /\.(json|js)$/.test(o.src)) sources.add(o.src);
   for (const k of Object.keys(o)) walk(o[k]);
 })(B);
+/* A SOURCE THAT NO LONGER EXISTS WAS READING AS UP TO DATE. `catch { return false }` means "not
+ * newer than the board", which is the same answer this filter gives a perfectly fresh artifact. So
+ * the board could name `data/foo.json` that had been renamed or deleted and this check — the one
+ * whose job is that every rendered figure traces to an artifact — would say nothing at all. Missing
+ * is now its own failure, because it is a WORSE state than stale, not a better one. */
+const missing = [];
 const newer = [...sources].filter(s => {
-  try { return fs.statSync(D(s)).mtime > built; } catch (e) { return false; }
+  try { return fs.statSync(D(s)).mtime > built; }
+  catch (e) { missing.push(`${s} — ${e.code === 'ENOENT' ? 'does not exist' : e.message}`); return false; }
 }).sort();
+if (missing.length) {
+  fail('the board names artifacts that cannot be stat-ed, so nothing can be said about their age:\n'
+    + missing.map(s => '          - ' + s).join('\n')
+    + '\n        A figure whose source is gone is not fresh; it is unsourced.');
+}
 if (newer.length) {
   fail('these artifacts have been written SINCE the board was built (' + B.built_at + '):\n' +
     newer.map(s => '          - ' + s).join('\n') +
@@ -233,5 +251,11 @@ if (nm > 0) {
   else pass('zero NOT MEASURED slots — every slot on the board is sourced. The gap path is still present in build-status.js and status.html, so this is a closed gap and not a broken renderer.');
 }
 
+if (readWhy.length) {
+  console.log(`\n  ${readWhy.length} artifact(s) could not be read. The failures above say WHICH figure`);
+  console.log('  is unchecked; these say why, which is the difference between "nobody built it" and');
+  console.log('  "it is there and it has rotted":');
+  for (const s of readWhy) console.log('    ' + s);
+}
 console.log('\n' + (failures ? failures + ' FAILURE(S)' : 'ALL PASS'));
 process.exit(failures ? 1 : 0);

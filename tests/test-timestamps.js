@@ -43,21 +43,39 @@ console.log('TIMESTAMPS — a stamp whose meaning depends on the reader is not a
 const NAIVE_PY = /datetime\s*\.\s*(now\s*\(\s*\)|utcnow\s*\(\s*\))/;
 const isComment = ln => /^\s*#/.test(ln);
 
+/* THIS CHECK COULD PASS BY SCANNING NOTHING, and both ways of getting there were silent. A
+ * directory that would not list was skipped with `continue`, and a file that would not read was too,
+ * so "no Python generator writes a naive datetime" was also the answer when zero generators had been
+ * looked at. That is CLAUDE.md's named failure — a capability that cannot prove it ran — inside the
+ * guard written to stop a different one. The scan now counts what it saw and asserts a floor.
+ * Measured 2026-08-04: engine/ holds 39 .py files and build/ holds 1; `tools/` exists with none and
+ * `scripts/` does not exist, so two of the four directories legitimately contribute nothing. */
 const offenders = [];
+const scan = { dirsRead: 0, dirsSkipped: [], filesRead: 0, filesSkipped: [] };
 for (const dir of ['engine', 'build', 'tools', 'scripts']) {
   let entries = [];
-  try { entries = fs.readdirSync(D(dir)); } catch (e) { continue; }
+  try { entries = fs.readdirSync(D(dir)); scan.dirsRead++; }
+  catch (e) { if (e.code !== 'ENOENT') scan.dirsSkipped.push(`${dir}/ — ${e.message}`); continue; }
   for (const f of entries) {
     if (!f.endsWith('.py')) continue;
     const rel = dir + '/' + f;
     if (rel === 'engine/isotime.py') continue;          // the module that defines the right way
-    let src = ''; try { src = fs.readFileSync(D(dir, f), 'utf8'); } catch (e) { continue; }
+    let src = '';
+    try { src = fs.readFileSync(D(dir, f), 'utf8'); scan.filesRead++; }
+    catch (e) { scan.filesSkipped.push(`${rel} — ${e.message}`); continue; }
     src.split('\n').forEach((ln, i) => {
       if (isComment(ln)) return;
       if (NAIVE_PY.test(ln)) offenders.push(`${rel}:${i + 1}  ${ln.trim().slice(0, 90)}`);
     });
   }
 }
+ok(scan.filesRead >= 20,
+  `the scan actually ran: ${scan.filesRead} Python generators read across ${scan.dirsRead} directories`
+  + (scan.filesRead >= 20 ? '' : ' — a pass over nothing is not a pass'));
+ok(scan.filesSkipped.length === 0 && scan.dirsSkipped.length === 0,
+  `nothing was skipped unread${scan.filesSkipped.length || scan.dirsSkipped.length
+    ? ':\n' + [...scan.dirsSkipped, ...scan.filesSkipped].map(o => '         ' + o).join('\n')
+      + '\n         A file this check could not open is a file it cannot clear.' : ''}`);
 ok(offenders.length === 0,
   `no Python generator writes a naive datetime${offenders.length ? ':\n' + offenders.map(o => '         ' + o).join('\n') : ''}` +
   (offenders.length ? '\n         fix: from isotime import utc_now' : ''));
@@ -87,17 +105,30 @@ if (iso) {
 /* ---- 4. INFORMATION, NOT A FAILURE: artifacts still carrying a naive stamp -------------------- */
 const NAIVE_VAL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 const stale = [];
+/* AN ARTIFACT THAT WILL NOT PARSE WAS SILENTLY EXCLUDED FROM A PUBLISHED LIST. The block below
+ * prints "N artifact(s) still carry a naive stamp", and an unreadable file could never appear in it,
+ * so the one class of artifact most likely to be broken was the one class this survey could not
+ * see. Counted and named. Measured 2026-08-04: 0 of 107 data/*.json fail to parse, so the list is
+ * complete today — which is a statement that could not previously be made at all. */
+const unreadable = [];
+let surveyed = 0;
 for (const f of fs.readdirSync(D('data'))) {
   if (!f.endsWith('.json')) continue;
-  let j; try { j = JSON.parse(fs.readFileSync(D('data', f), 'utf8')); } catch (e) { continue; }
+  let j;
+  try { j = JSON.parse(fs.readFileSync(D('data', f), 'utf8')); surveyed++; }
+  catch (e) { unreadable.push(`data/${f} — ${e.message.split('\n')[0]}`); continue; }
   if (!j || typeof j !== 'object' || Array.isArray(j)) continue;
   for (const k of ['generated', 'measured_at', 'updated', 'created', 'timestamp']) {
     if (typeof j[k] === 'string' && NAIVE_VAL.test(j[k])) stale.push(`data/${f}  ${k}=${j[k]}`);
   }
 }
-console.log(`\n  ${stale.length} artifact(s) still carry a naive stamp; each is fixed by re-running its generator:`);
+console.log(`\n  ${stale.length} of ${surveyed} readable artifact(s) still carry a naive stamp; each is fixed by re-running its generator:`);
 for (const s of stale) console.log('    ' + s);
 if (!stale.length) console.log('    (none)');
+if (unreadable.length) {
+  console.log(`\n  ${unreadable.length} artifact(s) could NOT be surveyed, so the count above is a floor, not a total:`);
+  for (const s of unreadable) console.log('    ' + s);
+}
 
 console.log(`\n${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

@@ -84,6 +84,15 @@ function grab(out, re, what, opt) {
 }
 const num = s => (s == null ? null : parseFloat(String(s).replace(/,/g, '')));
 
+/* ---- HOUSEKEEPING FAILURES ---------------------------------------------------------------------
+ * Closing a descriptor that is already closed, and unlinking a temp file that was never written, are
+ * the two cases where silence is genuinely CORRECT — nothing measured depends on either. They are
+ * recorded anyway, and the reason is narrow: `fs.closeSync` on a WRITE descriptor is where a
+ * buffered write is flushed, so it is the one place a "harmless" cleanup error can mean lost bytes.
+ * The list prints at the end only when it is non-empty, so the ordinary run is unchanged. */
+const janitor = [];
+const sweep = (what, fn) => { try { fn(); } catch (e) { janitor.push(`${what}: ${e.message}`); } };
+
 /* ---- the stamps ------------------------------------------------------------------------------
  * A separate streaming pass, and deliberately NOT a second pairing implementation: it reads only the
  * per-record configuration, never who won. Streamed in chunks because a game store is bigger than a
@@ -154,7 +163,7 @@ function stamps(rel) {
     }
     const t = tail.trim();
     if (t) countLine(t);
-  } finally { try { fs.closeSync(fd); } catch (e) { /* already closed */ } }
+  } finally { sweep(`closing the read handle on ${rel}`, () => fs.closeSync(fd)); }
   if (!rows) throw new Error(`rollout_r4: no self-play records in ${rel}`);
   const one = (set, what) => {
     if (set.size !== 1) {
@@ -275,10 +284,25 @@ function splitHalfRates(rel, label, sideOf) {
     const buf = Buffer.allocUnsafe(CHUNK);
     const inFd = fs.openSync(src, 'r');
     let tail = '';
+    /* THE SAME FILE IS READ TWICE AND ONLY THE OTHER READER COUNTED WHAT IT DROPPED. `countLine`
+     * above keeps `torn` and `logOnly`, and the artifact publishes both. This reader — the one that
+     * produces the NOISE FLOOR the division uses to decide whether a 5.5-point effect is real —
+     * threw a torn line away in silence. A row lost here shrinks an arm and moves the spread, and
+     * the spread is the whole output. Counted, and the split refuses to report if anything was lost:
+     * a floor computed from a corpus one arm did not fully see is not a floor.
+     *
+     * Measured on the corpus this gate ships against (data/games.r4-decided.jsonl, 5,248 lines):
+     * torn_lines is 0, so nothing is being lost TODAY. That is the finding, not the absence of one —
+     * before this counter existed, 0 and 500 looked identical from here. */
+    const dropped = { torn: 0, notSelfplay: 0, badSeed: 0 };
     const take = (t) => {
-      let g; try { g = JSON.parse(t); } catch (e) { return; }
-      if (!g || !g.selfplay) return;
-      emit(sideOf(Number(g.selfplay.seed)) === 0 ? 'A' : 'B', t);
+      let g; try { g = JSON.parse(t); } catch (e) { dropped.torn++; return; }
+      if (!g || !g.selfplay) { dropped.notSelfplay++; return; }
+      const seed = Number(g.selfplay.seed);
+      /* A NaN seed silently landed every such record on side B, because `NaN % 2 === NaN !== 0`.
+       * That is not a split, it is a one-sided pile, and it would have been invisible. */
+      if (!Number.isFinite(seed)) { dropped.badSeed++; return; }
+      emit(sideOf(seed) === 0 ? 'A' : 'B', t);
     };
     try {
       for (;;) {
@@ -289,7 +313,7 @@ function splitHalfRates(rel, label, sideOf) {
         for (const line of lines) { const t = line.trim(); if (t) take(t); }
       }
       if (tail.trim()) take(tail.trim());
-    } finally { try { fs.closeSync(inFd); } catch (e) { /* already closed */ } }
+    } finally { sweep(`closing the read handle on ${rel}`, () => fs.closeSync(inFd)); }
     for (const side of ['A', 'B']) {
       if (pendingOut[side]) fs.writeSync(outFd[side], pendingOut[side]);
       fs.closeSync(outFd[side]);
@@ -298,6 +322,13 @@ function splitHalfRates(rel, label, sideOf) {
       throw new Error(`rollout_r4: the "${label}" split put every record on one side, so there is `
         + 'no split-half spread to measure. Do not publish a noise floor computed from nothing.');
     }
+    if (dropped.torn || dropped.badSeed) {
+      throw new Error(`rollout_r4: the "${label}" split could not read ${dropped.torn} torn line(s) and `
+        + `${dropped.badSeed} record(s) with a non-numeric seed. A split-half noise floor computed on a `
+        + 'corpus one arm did not fully see is not a noise floor. Repair the corpus and re-run.');
+    }
+    console.error(`  split "${label}": A ${kept.A} / B ${kept.B} records, dropped `
+      + `${dropped.torn} torn, ${dropped.badSeed} bad-seed, ${dropped.notSelfplay} log-only companions`);
     const read = (f) => {
       const out = run('sprt.js', [f], [0, 3]);
       return {
@@ -308,8 +339,8 @@ function splitHalfRates(rel, label, sideOf) {
     const a = read(outA), b = read(outB);
     return { cut: label, a, b, spread_pts: Math.round(Math.abs(a.pct - b.pct) * 10) / 10 };
   } finally {
-    for (const f of [outA, outB]) { try { fs.unlinkSync(f); } catch (e) { /* never written */ } }
-    try { fs.rmdirSync(dir); } catch (e) { /* not empty; leave it to the OS */ }
+    for (const f of [outA, outB]) sweep(`removing the temp shard ${f}`, () => fs.unlinkSync(f));
+    sweep(`removing the temp dir ${dir}`, () => fs.rmdirSync(dir));
   }
 }
 
@@ -560,4 +591,9 @@ if (PRINT_ONLY) {
   for (const h of halves) console.log(`  split-half [${h.cut}] ${h.a.pct}% n=${h.a.decisive} vs ${h.b.pct}% n=${h.b.decisive}  spread ${h.spread_pts} pts`);
   console.log(`  effect ${artifact.noise_floor.effect_pts_over_50} pts over 50, coin SE ${artifact.noise_floor.coin_se_pts_at_this_n} pts at n=${decisive}`);
   console.log('  noise floor: NOT ESTABLISHED — no A/A run exists for this comparison.');
+}
+if (janitor.length) {
+  console.error(`\n  ${janitor.length} housekeeping operation(s) failed. Harmless unless one of them is a`);
+  console.error('  write handle, where close() is where the last buffer is flushed:');
+  for (const x of janitor) console.error('    ' + x);
 }

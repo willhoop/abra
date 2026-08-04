@@ -256,8 +256,13 @@ console.log(`  NEW since the baseline   ${fresh.length}`);
 
 if (fresh.length) {
   console.log('\n  NEW SILENT CATCH BLOCKS — each of these discards the reason something failed:');
-  for (const s of fresh.slice(0, 25)) console.log(`    ${s.file}:${s.line}`);
-  if (fresh.length > 25) console.log(`    ... and ${fresh.length - 25} more`);
+  /* `--all` prints every one WITH ITS BODY. The 25-line cap is right for a gate — a wall of text is
+   * a wall nobody reads — but a truncated list cannot be worked through, and "... and 27 more" is
+   * how the tail of a list stops being anybody's job. */
+  const ALL = process.argv.includes('--all');
+  const show = ALL ? fresh : fresh.slice(0, 25);
+  for (const s of show) console.log(`    ${s.file}:${s.line}${ALL ? (s.manufactures ? '   [MANUFACTURES]  ' : '                 ') + s.body : ''}`);
+  if (!ALL && fresh.length > 25) console.log(`    ... and ${fresh.length - 25} more  (--all to list them)`);
   console.log('\n  Make it speak: rethrow, console.error it, count it, or record it somewhere a later');
   console.log('  assertion can see. If a silent fallback is genuinely right here, say why in the code');
   console.log('  and re-baseline with --update so the exception is deliberate and visible.');

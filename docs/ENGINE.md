@@ -12,54 +12,23 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  115/154 probed mechanics live, 39 missing   (census 2026-08-04 19:56)
+  147/155 probed mechanics live, 8 missing   (census 2026-08-04 21:20)
   missing:
     move    conditionalPower       Facade doubles when statused
-    ability damageReduce           Ice Scales halves special damage
-    move    ignoresProtect         Feint goes through Protect
-    move    recharge               Giga Impact costs the following turn
     move    needsTargetToAttack    Avalanche doubles after being hit
     move    needsUntrackedState    Gyro Ball scales with the speed gap
-    ability blocksBerries          Unnerve stops the foe eating a berry
-    ability disablesAttacker       Cursed Body can disable the move that hit it
-    item    restoresStats          White Herb undoes a stat drop
     move    statChangeInCode       Belly Drum maxes Attack
-    move    proceduralStatus       Tri Attack can burn, freeze or paralyse
-    move    overridesEffectiveness Freeze-Dry beats Ice Beam into a Water type
-    ability reducesAllyDamage      Friend Guard cuts what the partner takes
-    ability poisonsOnMyContact     Poison Touch poisons on a contact hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-    ability boostsEachTurn         Speed Boost raises Speed every turn
-    move    costsUserHP            Substitute costs the user a quarter
-    move    partialTrap            Infestation chips at the end of each turn
-    move    blocksSoundMoves       Throat Chop stops the target using a sound move
-    move    punishesContact        Spiky Shield hurts the attacker it blocked
-    move    critRatioUp            Night Slash is priced above the same move without its crit ratio
-    move    clearsBoosts           Haze wipes the boosts off both sides
-    move    cantUseTwice           Gigaton Hammer cannot be clicked twice in a row
     ability untagged               Marvel Scale raises Defense while statused
-    ability ignoresDefenderAbility Mold Breaker ignores Levitate
-    ability ignoresTypeImmunity    Scrappy lets Normal hit a Ghost
-    ability noRecoil               Rock Head takes no recoil
-    move    alwaysCrit             Flower Trick always crits
-    move    forcesSwitch           Dragon Tail drags the target out
-    move    crashOnMiss            High Jump Kick hurts the user when it misses
-    move    userFaints             Explosion faints its user
-    item    curesStatus            Lum Berry cures the status it was just given
-    ability typeBecomesMoveType    Protean makes the user the type it just used
-    ability blocksExplosion        Damp stops Explosion happening at all
-    move    hazard                 Stealth Rock chips what comes in afterwards
     move    reordersTurn           After You lets the partner move next
-    item    curesVolatile          Mental Herb frees the holder from Taunt
-    move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 19:56)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 21:11)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  tag coverage: 143/176 probed, 33 unprobed
+  tag coverage: 144/176 probed, 32 unprobed
 ```
 
-_stamped 2026-08-04 20:04_
+_stamped 2026-08-04 21:21_
 
 <!-- /GENERATED -->
 

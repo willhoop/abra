@@ -134,8 +134,16 @@ function curve(rows, f) {
  * quietly returning "no evidence of a mismatch", because those two are opposite answers. */
 function greedySignature(rows) {
   let doc;
+  /* `checked: false` with a `why` DOES reach the artifact and is the right shape. The console line is
+   * the half that was missing: this function is the only thing that identifies WHICH playout the
+   * dumped column came from, and losing it silently is how the greedy and explore arms became
+   * byte-indistinguishable in the first place. */
   try { doc = fs.readFileSync(D(DESIGN), 'utf8'); }
-  catch (e) { return { checked: false, why: `could not read ${DESIGN}: ${e.message}` }; }
+  catch (e) {
+    console.error(`rollout_r1_artifact: cannot read ${DESIGN} — ${e.message}. The arm-identification `
+      + 'check will record NOT CHECKED rather than a match.');
+    return { checked: false, why: `could not read ${DESIGN}: ${e.message}` };
+  }
   const block = doc.match(/rollout says\s+n\s+actually wins\n([\s\S]{0,400}?)```/);
   if (!block) return { checked: false, why: `no greedy calibration table found in ${DESIGN} §4.2.1` };
   const published = [];
@@ -159,7 +167,11 @@ function greedySignature(rows) {
 function docsSay() {
   let doc;
   try { doc = fs.readFileSync(D(DESIGN), 'utf8'); }
-  catch (e) { return { source: DESIGN, text: null, why: e.message }; }
+  catch (e) {
+    console.error(`rollout_r1_artifact: cannot read ${DESIGN} — ${e.message}. The artifact will not `
+      + 'carry the prose it is supposed to be comparable against.');
+    return { source: DESIGN, text: null, why: e.message };
+  }
   const lines = doc.split('\n');
   const at = lines.findIndex(l => /^\*\*R1 —/.test(l));
   if (at < 0) return { source: DESIGN, text: null, why: 'no "**R1 —" verdict line in §5' };
@@ -202,7 +214,7 @@ function engineStanding(rel) {
 
 const sha12 = rel => {
   try { return crypto.createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); }
-  catch (e) { return 'MISSING'; }
+  catch (e) { console.error(`rollout_r1_artifact: cannot digest ${rel} — ${e.message}`); return 'MISSING'; }
 };
 
 /* ---- main ------------------------------------------------------------------------------------- */
@@ -225,7 +237,19 @@ const sig = greedySignature(rows);
  * than none — it would look like a stamp and describe another dump. */
 const sidecar = (() => {
   const rel = ROWS.replace(/\.jsonl$/, '.meta.json');
-  let m; try { m = JSON.parse(fs.readFileSync(D(rel), 'utf8')); } catch (e) { return null; }
+  /* THREE OUTCOMES WERE COLLAPSED INTO TWO. A sidecar that MISMATCHES gets `usable: false` and a
+   * reason, correctly — but a sidecar that EXISTS AND WILL NOT PARSE returned a bare null, which
+   * status.js then prints as "NO SIDECAR — nothing records which configuration produced this".
+   * "nobody ever stamped this run" and "somebody stamped it and the stamp is broken" are opposite
+   * pieces of news, and the second one is the one that needs a person. */
+  let m;
+  try { m = JSON.parse(fs.readFileSync(D(rel), 'utf8')); }
+  catch (e) {
+    if (e.code === 'ENOENT') return null;                       // genuinely unstamped; status.js says so
+    console.error(`rollout_r1_artifact: ${rel} exists and will not parse — ${e.message}`);
+    return { file: rel, usable: false, why: `it exists and will not parse: ${e.message}. A stamp that `
+      + 'cannot be read is not the same as no stamp, and it is not read.' };
+  }
   if (!m || m.rows !== n || (m.describes && path.basename(m.describes) !== path.basename(ROWS))) {
     return { file: rel, usable: false,
       why: `it describes ${m && m.describes} with ${m && m.rows} rows, not ${ROWS} with ${n}. A `

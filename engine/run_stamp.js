@@ -55,14 +55,24 @@ const LEAF_SOURCES = [
   'data/abra-tags.js',
 ];
 
+/* 'MISSING' is a real answer and it reaches the artifact, but WHY it is missing did not: a file that
+ * is absent and a file this process may not read are different defects and both read as 'MISSING'.
+ * The reason goes to stderr at the moment it happens, where the person running the gate is looking. */
 function sha12(rel) {
   try { return crypto.createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); }
-  catch (e) { return 'MISSING'; }
+  catch (e) { console.error(`run_stamp: cannot digest ${rel} — ${e.message}`); return 'MISSING'; }
 }
 
+/* `null` MEANS "GIT DID NOT ANSWER", AND ONE CALLER WAS TREATING IT AS "GIT SAID NOTHING". Those are
+ * opposite facts for `git status --porcelain`, where an empty answer means CLEAN. See gitState. */
+const gitFailures = [];
 function git(args) {
   try { return cp.execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28 }).trim(); }
-  catch (e) { return null; }
+  catch (e) {
+    gitFailures.push(`git ${args.slice(0, 2).join(' ')}: ${String(e.message || e).split('\n')[0]}`);
+    console.error(`run_stamp: git ${args.slice(0, 2).join(' ')} failed — ${e.message}`);
+    return null;
+  }
 }
 
 /* THE SIDECAR'S PATH IS DERIVED FROM THE ARTIFACT'S, never passed separately. Two arguments that must
@@ -89,7 +99,20 @@ function gitState(sources) {
   const commit = git(['rev-parse', 'HEAD']);
   if (!commit) return { commit: null, why_null: 'git was not available when this stamp was written' };
   const watched = (sources || LEAF_SOURCES);
-  const porcelain = git(['status', '--porcelain', '--'].concat(watched)) || '';
+  /* `|| ''` TURNED "GIT WOULD NOT RUN" INTO "THE TREE IS CLEAN", which is the exact lie the comment
+   * above says this function exists to stop. `git()` returns null when the command throws — an index
+   * lock, an interrupted rebase (CLAUDE.md documents this repository reaching one), git not on PATH.
+   * An empty porcelain, meanwhile, is git's way of saying CLEAN. Collapsing the two meant a stamp
+   * written mid-rebase would publish `dirty: false` over a commit id that described nothing on disk,
+   * and every later reader is told by this module's own docs to trust the commit when dirty is
+   * false. `rev-parse HEAD` was already guarded; `status --porcelain` was not. */
+  const porcelain = git(['status', '--porcelain', '--'].concat(watched));
+  if (porcelain === null) {
+    return { commit, dirty_sources: null, dirty: null,
+             note: 'DIRTINESS UNKNOWN — `git status --porcelain` did not run, so this stamp cannot say '
+                 + 'whether the tree matched the commit. Trust source_digests, not the commit id.',
+             git_errors: gitFailures.slice() };
+  }
   const dirty = porcelain.split('\n').map(s => s.trim()).filter(Boolean).map(s => s.replace(/^\S+\s+/, ''));
   return {
     commit,

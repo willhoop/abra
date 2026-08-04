@@ -78,7 +78,21 @@ for (const r of rungs) {
 /* ---- 2. every artifact carries both, or its generator already does ---------------------------- */
 const awaiting = [];
 for (const r of rungs) {
-  let j; try { j = JSON.parse(fs.readFileSync(D('data', r.artifact), 'utf8')); } catch (e) { j = null; }
+  /* A CORRUPT ARTIFACT WAS BEING GRANTED THE TOLERATED STATE. Both "no such file" and "this file is
+   * not JSON" gave `j = null`, and the else-branch below then passes the rung on the strength of its
+   * GENERATOR carrying the keys — "awaiting a re-run, which is the only tolerated state". A gate
+   * artifact that exists and will not parse is not awaiting a re-run; it is broken now, and this is
+   * the test that was supposed to notice. */
+  let j = null;
+  try { j = JSON.parse(fs.readFileSync(D('data', r.artifact), 'utf8')); }
+  catch (e) {
+    const errWhy = e.code === 'ENOENT' ? null : e.message;
+    if (errWhy) {
+      ok(false, `data/${r.artifact} EXISTS AND WILL NOT PARSE — ${errWhy}. This is not "awaiting a `
+        + 're-run"; the committed artifact is broken.');
+      continue;
+    }
+  }
   const has = j && typeof j.n_measured === 'number' && typeof j.n_unit === 'string';
   if (has) {
     ok(true, `data/${r.artifact}: n_measured=${j.n_measured} — ${j.n_unit}`);

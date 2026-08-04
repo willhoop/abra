@@ -68,7 +68,18 @@ function stampOf(rel) {
     const st = fs.statSync(p);
     return { mtime: new Date(st.mtimeMs).toISOString(), bytes: st.size,
              sha256_12: crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 12) };
-  } catch (e) { return { mtime: null, error: String(e.message) }; }
+  } catch (e) {
+    /* A STAMP THAT FAILED IS NOT A STAMP, AND IT USED TO LEAVE NO TRACE ANYWHERE A HUMAN LOOKS.
+     * The `error` key does reach the artifact — but `status.js` then skipped every entry without a
+     * `sha256_12` and printed "CURRENT — every engine source the leaf reads still hashes to what it
+     * was measured against". With every stamp failed that sentence was printed over ZERO
+     * comparisons. status.js now counts the unstamped ones; this end says so at the time it
+     * happens, because a 15-minute run that quietly lost its provenance should not have to wait for
+     * somebody to read the artifact. */
+    console.error(`backtest_winrate: COULD NOT STAMP ${rel} — ${e.message}. `
+      + 'The artifact will record no hash for it and status.js cannot check it.');
+    return { mtime: null, error: String(e.message) };
+  }
 }
 const MEASURED_AGAINST = {};
 for (const f of ['engine/medicham2-browser.js', 'engine/rollout_leaf.js', 'engine/board.js',
