@@ -91,6 +91,47 @@ That gap is now on the roadmap rather than assumed away. It does not outrank sea
 result and R4 both say search first — but it is a real open question and it had been closed by
 accident.
 
+### THE ABLATION HAS NOW BEEN RUN — and representation beats architecture 4.5 to 1
+
+**Added 2026-08-04, and it was an accident.** Regenerating `data/pory-nn.json` on the current corpus
+(6,008 games, 102,296 states) turned out to run exactly the experiment this entry called for, because
+`engine/pory_nn.py` already varies **representation and architecture separately**:
+
+| arm | log-loss | AUC |
+|---|---|---|
+| B2 — two material features (the bar) | 0.6221 | 0.7010 |
+| L6 — **logistic**, material | 0.6221 | 0.7010 |
+| N6 — **network**, material | 0.6186 | 0.7040 |
+| **LR — logistic, RICH features** | **0.6063** | **0.7185** |
+| NR — network, rich | 0.6169 | 0.7084 |
+
+Read it as the two-way ablation it is:
+
+```
+nonlinearity alone   (N6 vs L6, material only)  0.6186 vs 0.6221   -0.0035
+representation alone (LR vs L6, linear only)    0.6063 vs 0.6221   -0.0158   <- 4.5x larger
+both                 (NR)                       0.6169             WORSE THAN LR ALONE
+```
+
+**Two findings, and the second is the one nobody predicted.**
+
+1. **Representation is worth about 4.5× what nonlinearity is worth here.** Better features on a
+   *linear* model beat a *network* on poor features, decisively.
+2. **Adding a network on top of the rich representation makes it WORSE** — NR 0.6169 against LR's
+   0.6063. The best arm in the whole table is a **logistic regression**. Nonlinearity is not merely
+   unnecessary once the features are good; on this data it costs.
+
+**Scope, stated so this is not over-read.** This is the **value net** — scoring a POSITION — not MAG's
+policy, which scores an ACTION. Those are different questions and `CLAUDE.md` says so in the
+FEATURES ARE PER-MODEL rule. It is one corpus and one architecture family. It does **not** settle
+whether a transformer over structured tokens would help MAG.
+
+What it does do is **remove the asymmetry** in the entry above. That section said "untested in both
+directions" and treated the nonlinear hypothesis as live-but-unexamined. On the one question where
+ABRA can afford the ablation, the answer came back: **the architecture was not the constraint, and
+the un-ablated external result should not be read as evidence that it is.** Anyone proposing a
+network here now has to explain why this table does not apply to them.
+
 ### Filed from this
 
 | Item | Division | Status |
