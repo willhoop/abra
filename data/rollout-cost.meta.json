@@ -1,0 +1,39 @@
+{
+  "generated": "2026-08-04T07:42:20.884Z",
+  "by": "engine/run_stamp.js --reconstruct",
+  "describes": "data/rollout-cost.json",
+  "reconstructed": true,
+  "reconstructed_why": "The run that wrote this artifact recorded no configuration of any kind. This stamp is INFERRED from the commit that carried the artifact, not observed. Read `confidence` before using it.",
+  "artifact_generated": "2026-08-03T08:22:49.161Z",
+  "artifact_generated_has_timezone": true,
+  "rows": 477,
+  "n_unit": "timed leaf calls, on sampled boards",
+  "p_column": null,
+  "measured": null,
+  "source_digests": null,
+  "source_digests_why_null": "A sha256 of the worktree TODAY would describe this file, not that run — data/rollout-r1.json records null for the same reason. The git blob ids below are the honest substitute: they name exact bytes and any reader with the repository can resolve them. They are NOT comparable to a live stamp's source_digests, which hash worktree bytes; on Windows those differ from the blob by line-ending translation (data/engine-data.js does).",
+  "git": {
+    "commit": "05248f23d306c8da22ccc6c95a9ffea595eadaa7",
+    "commit_date": "2026-08-03T04:23:14-04:00",
+    "artifact_written_seconds_before_commit": 25,
+    "blobs": {
+      "engine/rollout_leaf.js": "7d039068930e45b74eb2d62cf93f2c0ebdecfb2b",
+      "engine/medicham2-browser.js": "8ede2a1517c4fcaaf262d9ae8522602ccb1dd1eb",
+      "engine/board.js": "926eeb076096c6a841a592e63489b8ce7bb42981",
+      "data/engine-data.js": "68f6a1d5373baf6e9add0ff90e7a5a8beee5ee8f",
+      "data/abra-tags.js": "f3e06a14a6116861de8efd0c3b6814da478d9188",
+      "engine/rollout_r2.js": "9dd76ada24239de6c7bcaafacffb05422178304f",
+      "engine/joint_rows.js": "3df647fed6155a1bf34181ee742deae6ee1492d7",
+      "engine/fit_policy.js": "fdf1f9f4cdf81cb7d43e0913b81d418c2f65ea84"
+    },
+    "inferred": true
+  },
+  "confidence": "HIGH — written 25s before the commit that carried it, so the commit tree is very probably the build",
+  "what_this_cannot_recover": "Every setting the run took from an environment variable or a library default. git records the code; nothing records the invocation. They are named per gate in `unrecorded_settings` below.",
+  "unrecorded_settings": {
+    "explore": "NOT RECORDED AND NOT PASSED. engine/rollout_r2.js calls RL.rolloutWinProb without an `explore` key, and engine/rollout_leaf.js:197 defaults it to 0. So these timings are the DETERMINISTIC-GREEDY playout. The shipped in-game leaf runs at explore=1.0.",
+    "maxTurns": "NOT RECORDED AND NOT PASSED. Defaults to 20 (engine/medicham2-browser.js:1079). The shipped in-game leaf runs maxTurns=60, so it plays three times the horizon these timings measured.",
+    "games": "The artifact's `games` field is the GAMES environment CAP, not a count of games traversed. engine/status.js prints it as \"over N games\", which reads as a measurement.",
+    "machine": "A duration is a fact about a machine under a load. Nothing records the CPU, the node version or what else was running, and nothing can recompute it — unlike every other gate here, this one is re-run or it is nothing."
+  }
+}

@@ -18,7 +18,7 @@ OPS — the live bot and the store
   data/games.ots.jsonl         last written 2026-07-25 03:46
 ```
 
-_stamped 2026-08-04 07:13_
+_stamped 2026-08-04 07:42_
 
 <!-- /GENERATED -->
 

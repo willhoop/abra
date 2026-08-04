@@ -19,13 +19,13 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     CURRENT — every engine source the leaf reads still hashes to what it was measured against
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 0 unsafe, 23 possibly stale, 53 ok, 0 missing
+  provenance: 0 unsafe, 23 possibly stale, 54 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
     (engine/medicham2-browser.js moved 2026-08-04 04:47, but the feature function did not)
     (data/abra-tags.js moved 2026-08-04 04:21, but the feature function did not)
 ```
 
-_stamped 2026-08-04 07:16_
+_stamped 2026-08-04 07:42_
 
 <!-- /GENERATED -->
 
@@ -144,14 +144,149 @@ Open consequence, filed to SEARCH: `--rollout-explore` defaults to `1.0` and
 reason. Re-running `EXPLORE_LIST=1 DUMP=rollout-r1-rows.jsonl node engine/rollout_r1.js` and then
 `node engine/rollout_r1_artifact.js` settles it, and R2 says the leaf is cheap.
 
-### 4. The 24 possibly-stale artifacts
+> **SEARCH RAN IT, 2026-08-04. The published figure reproduces.** `data/rollout-r1-explore-sweep.json`
+> and `data/rollout-r1-explore1.json`: on the identical 9,201 positions, explore=1.0 judges at
+> **67.971%** against the published 68.18%, and its lift over the same material baseline is
+> **+2.706 [1.596, 3.817]** against the published +2.91. Paired against the greedy arm it is
+> **+2.25, 95% CI [1.31, 3.19]**, monotone in explore (0 → 0.5 → 1.0 = 65.72 → 67.58 → 67.97) and it
+> holds at the live 60-turn horizon. **The retraction was right about the provenance and wrong as a
+> guide to the arm** — R1 is UNDECIDED on the incumbent and a PASS on the arm that ships.
+>
+> Three things this division should act on:
+>
+> 1. **The command in this section would have destroyed the evidence.** `DUMP` resolves under
+>    `data/`, so `DUMP=rollout-r1-rows.jsonl` overwrites the committed greedy dump — the only record
+>    of the incumbent arm, committed for exactly that reason. SEARCH used a new filename. Worse, the
+>    sidecar path in `rollout_r1.js:338` is the hardcoded literal `data/rollout-r1-rows.meta.json`
+>    whatever `DUMP` is set to, so it lands beside the *wrong* dump. `rollout_r1_artifact.js` rejects
+>    it on the name-and-row-count check, which is the check working — but the fix is to derive the
+>    sidecar path from `DUMP`.
+> 2. **`status.js:229` still prints the greedy arm as "R1 leaf accuracy".** SEARCH did not overwrite
+>    `data/rollout-r1.json`, deliberately: it is this division's artifact, written hours earlier, and
+>    it is the only record of the incumbent. But the line now reads UNDECIDED for a configuration the
+>    bot does not run. One line — point it at `rollout-r1-explore-sweep.json`, or print both arms.
+> 3. **`engine/mew.js` exposes no `--miltank-explore`.** So the question this settles — which
+>    playout JUDGES better — cannot be escalated to the one that matters, which playout WINS more.
+>    R4 was itself run at explore=1.0 and cannot arbitrate its own setting. Two parsed flags on
+>    `mew.js` and the A/B becomes runnable.
+>
+> One hypothesis this division filed to SEARCH is **measured and rejected**: `battleResult` scoring
+> bodies-then-HP on unfinished playouts is real but is not the mechanism. Over 1.1M playouts,
+> 99.5–99.8% end by an actual wipeout at every explore setting and at horizons 20 and 60; cap-hits
+> are 0.2–0.5%. Exploration makes playouts *longer* (4.4 → 6.1 mean turns), not truncated. Filed to
+> ENGINE as a latent hazard. The flat reliability curve in `data/winrate-backtest.json` needs another
+> explanation — and note that on human corpus positions the explore=1.0 leaf is **not** flat: its ECE
+> is 0.104 with a monotone curve running 0.166 → 0.842, against 0.196 for greedy.
+
+### 4. R2 and R3 stamp their configuration now — and R3's published number has no control
+
+`engine/run_stamp.js` is one implementation of the sidecar `rollout_r1.js` hand-rolled inline, so the
+next gate cannot grow a second format. It writes `<artifact>.meta.json` — the same convention that
+makes `data/rollout-r1-rows.meta.json` describe `data/rollout-r1-rows.jsonl` — carrying N, explore,
+every knob including the ones left at a default, sha256 content digests of every source the gate
+reaches, the commit, and **whether the tree was dirty**. A clean commit id over a dirty tree is a lie
+of exactly the kind this exists to stop.
+
+**Both published numbers reproduce as arithmetic, and neither reproduction is worth much.** That is
+the finding, and it is a different finding from R1's.
+
+| gate | published | recomputed from committed evidence | reproduces |
+|---|---|---|---|
+| R2 | 477 boards over 200 games; 5.83 ms median at n=10 | the affordability table (K=3 → 0.47 s median, 1.75 s worst; K=4 → 1.49 s / 5.53 s) reproduces to the digit from `leafCostMs` | **derived layer yes, base layer NOT CHECKABLE** |
+| R3 | 72.9% over 70 decisions (19 agreed, 20 skipped) | 100 × (70 − 19) / 70 = **72.857142857142854**, bit-identical to the stored float | **yes, and it is a tautology** |
+
+R3's divergence is a pure function of two fields in the same file. There are no per-decision rows, so
+"it reproduces" means the artifact is internally consistent — nothing more. R2 dumps no per-leaf
+timing at all, and a duration cannot be recomputed by anyone in principle: it is a fact about a
+machine under a load, and nothing records the CPU, the node version or what else was running. **R2 is
+the one rung that is re-run or it is nothing.**
+
+**THE R3 RESULT IS NOT INTERPRETABLE AS PUBLISHED, and this outranks the sidecar work.**
+`rollout_r3.js` computes the only control that makes a divergence rate mean anything — the same
+search on a different seed disagreeing with **itself**, where the truth is 0.00 by construction — and
+it `console.log`s it and does not write it. Its own verdict branches on that number: `rate <= floor`
+prints NOT A RESULT. So `data/rollout-r3.json` cannot say which branch its own run took.
+
+`docs/ROLLOUT-design.md` §5 does publish floors — 71.7 / 50.0 / 45.5 / 43.8% — but **for four earlier
+runs, none of them this one**. At N=20 that floor measured *higher* than the divergence. The
+committed artifact is a fifth run at N=600 on 70 decisions, and its floor was printed to a terminal
+and lost. `engine/status.js` and `docs/MILTANK.md` both quote its 72.9%, and `MILTANK.md` spends it
+on a decision: "so it does diverge, and the equilibrium version is worth building."
+
+Read plainly: **the divergence is probably real** — the doc's floor fell from 71.7% to 43.8% as N rose
+from 20 to 200, and this run used N=600, so its floor should be lower still. But *probably* is an
+inference from a different run, and the Wilson interval on 51/70 is **[61.5%, 81.9%]**, which is wide
+enough that a 44%-class floor is the only thing separating a result from an artefact of the argmax.
+The next run writes the floor; until one does, the 72.9% is a headline with its control missing.
+
+**A second defect, found on the way: `data/rollout-r3.json`'s own caveat is false about the run it
+describes.** It reads "Switch candidates are excluded and counted". Commit `b4ec80b` deleted the
+`if (ca.switchTo || cb.switchTo) continue;` line — switches went **on** the menu, which is what that
+commit was *for* — and left the string alone. It has shipped that way since 2026-08-03, and the
+`withSwitch` / `choseSwitch` counters that commit added were printed and never written, so its own
+headline ("4 of 12 when one is on the menu") lives in a commit message.
+
+**R2 timed a leaf the bot does not run.** `rollout_r2.js` called `RL.rolloutWinProb` without `explore`
+or `maxTurns`, inheriting `engine/rollout_leaf.js:197`'s `explore = 0` and
+`engine/medicham2-browser.js:1079`'s `maxTurns = 20`. MILTANK's in-game leaf is **explore=1.0 at
+maxTurns=60** — a randomised playout at three times the horizon. That is R1's hole in cost form: two
+library defaults, written down nowhere, deciding the number. Both are now explicit, overridable and
+stamped, with defaults that preserve the old behaviour exactly so nothing re-dates the committed
+artifact by accident.
+
+Also corrected in the generators, all of them visible in `status.js`:
+
+- `games` was the `GAMES` environment **cap**, not a count. `status.js` printed "477 boards over 200
+  games", so an environment variable was being read as a measurement. It is now the distinct games
+  actually traversed, with the cap beside it as `games_requested`.
+- `leafCostMs` quantiles per N were computed over possibly-different board sets — a leaf returning
+  null at one N and not another silently misaligns the columns — and only the n=10 count was recorded.
+  `samples_per_n` now records all of them.
+- R3's disagreement-gap median was computed twice, once to print and once to store. One variable now.
+- `docs/ROLLOUT-design.md` §5's "roughly 200x the simulated turns per millisecond" is **155x** by the
+  arithmetic of the two artifacts it cites (10 × 20 turns / 5.83 ms against 1 / 4.52 ms), and 155x is
+  itself a ceiling because it assumes no playout ends early. `rollout_r2.js` now prints the division
+  instead of a remembered figure. **The doc still says 200x** — see filed, below.
+
+Two retrospective sidecars were written by `node engine/run_stamp.js --reconstruct`, which infers the
+build from the commit that carried the artifact and marks every field `reconstructed: true`. Both
+score HIGH: `data/rollout-cost.json` was written 25 s before `05248f2`, `data/rollout-r3.json` 159 s
+before `b4ec80b`. That is evidence about a commit, not a record of a run, and it says so on every
+line — a stamp that hashed today's sources would describe the file rather than the run, which is
+`data/rollout-r1.json`'s own stated reason for recording null.
+
+**Filed, not fixed:**
+
+- **`data/rollout-cost.json` should be `data/rollout-r2.json`.** It is the only rung whose file does
+  not carry its gate's name. Four readers: `engine/status.js:230`, `web/build-status.js:200` and
+  `:265`, and the generated `web/status-data.js`. Three of the four are under `web/`, which MEASURE
+  does not own. A rename that misses a reader prints NOT DERIVED and reads as "nobody ran this",
+  which is worse than the inconsistency. Needs WEB in the same pass.
+- **`n` / `n_unit` on R1 and R4.** R2 and R3 carry both now. `engine/rollout_r1_artifact.js` and
+  `engine/rollout_r4.js` each need one line, and their artifacts pick it up on the next write — both
+  regenerations are arithmetic over committed evidence, no rollouts. Not done here because both files
+  were published hours ago and rewriting them mid-session invites a collision.
+- **`engine/rollout_r1_join.py` writes a naked `isoformat()`.** `data/rollout-r1-withdrawn-join.json`
+  says `2026-08-03T04:14:10`, which JavaScript reads as `08:14:10Z` — a four-hour shift. Latent only
+  because `status.js` refuses withdrawn artifacts. The withdrawn file itself must not be edited; the
+  generator should emit `Z`.
+- **`docs/ROLLOUT-design.md` §5's 200x, and §R3's PASS.** Both are SEARCH's document and a SEARCH
+  explore sweep is live. §5 should read 155x-at-most, and the R3 PASS should name which run it is
+  quoting, because the floors in its table belong to runs that are not the committed artifact.
+- **`docs/MILTANK.md:70` spends R3's 72.9% on a build decision** without its control. Same owner,
+  same reason.
+- **`engine/rollout_r1.js` should call `engine/run_stamp.js`** instead of its inline copy. SEARCH
+  holds that file for the explore sweep. The shapes are identical today; two copies is how they stop
+  being identical.
+
+### 5. The 24 possibly-stale artifacts
 
 `node engine/provenance.js` lists them. Most are ordering artefacts inside a single run and are
 already annotated as such. The ones to actually chase are those older than `policy-weights.json`
 and those recording no game count at all — a file that does not say what it was built from cannot
 be checked by anyone, ever.
 
-### 5. The noise floor is not a standing artifact
+### 6. The noise floor is not a standing artifact
 
 Split one arm in half and measure the spread. An effect smaller than that is not an effect. This
 gets re-derived by hand every time somebody needs it, which means it usually is not derived at all.
@@ -175,6 +310,30 @@ and does not inherit that property.
 
 The unit is the **decisive pair**, not the game. In a paired run a 1-1 split means the team decided
 it, not the policy.
+
+## Reading a stamp
+
+```bash
+node engine/run_stamp.js --show        data/rollout-r3.json
+node engine/run_stamp.js --reconstruct data/rollout-cost.json
+```
+
+Every gate artifact has a `<name>.meta.json` beside it saying which configuration produced it.
+`status.js` prints the headline under the gate line, so the absence of a stamp is on the same screen
+as the number — R1's +2.91 was quoted for a day against a dump that could not say which of two runs
+four accuracy points apart it was, and nothing was hidden then either. The fact simply lived in a file
+nobody opened.
+
+Three things to check before quoting any of it:
+
+- `reconstructed: true` means **inferred from a commit, not observed**. Read `confidence`, which
+  publishes the gap in seconds between the artifact's own timestamp and the commit that carried it.
+- `git.dirty: true` means the commit id does not describe what ran. Trust `source_digests`.
+- `source_digests` hashes **worktree bytes**; `git.blobs` names git objects. On Windows those differ
+  by line-ending translation — `data/engine-data.js` does — so never compare one to the other.
+
+`writeStamp()` is the only mode worth trusting, because only the run knows its own settings.
+`reconstruct()` exists for the artifacts that predate it and labels itself on every line.
 
 ## Running the backtest
 
@@ -200,6 +359,10 @@ had gained "one mega per side" in between.
   leaf is worse than a coin.
 - `provenance.js --strict` exits zero.
 - Every gate R1–R4 has an artifact. **Done 2026-08-04** — and R1's turned out to disagree with the
-  prose it replaced. An artifact per gate is the floor, not the goal: R2 and R3 have one each and
-  neither records the build it measured, so neither can be checked against anything.
+  prose it replaced. An artifact per gate is the floor, not the goal.
+- Every gate artifact says which configuration produced it. **Done 2026-08-04 for R2 and R3** via
+  `engine/run_stamp.js`; R1's dump has its own inline copy of the same shape and should call the
+  module. An artifact that records its build still is not enough on its own: R3 records its build and
+  **not its control**, and a divergence rate without the self-disagreement floor beside it is a
+  headline, not a result.
 - `REFIT OWED` is either clear or has a dated reason next to it.

@@ -105,6 +105,32 @@ Two things we tested and reported straight, even though they're negatives:
   when it says it's 94% to win, it wins 54%; when it says 6%, it also wins 54%. Worse, the version
   we had been measuring wasn't the one the bot actually uses.
 
+**Added 3.33.0 — we went looking for the same mistake everywhere else, and found it twice more.**
+
+The 3.32.0 note above says a result we'd published as a pass turned out to be unreproducible. Here's
+*why*, because the reason is more useful than the result: the file we kept recorded the answers and
+not the settings. It's like keeping a stopwatch time and not writing down which race it was. Two runs
+with very different settings produced files that were identical, and we could not tell which one we
+had.
+
+So we checked the other three tests in the same series.
+
+- **"The new search picks a different move 73% of the time" is a headline with its control missing.**
+  A search that's just guessing disagrees with *everything* — including with itself. So the test
+  measures that too: run the same search twice with different dice and see how often it contradicts
+  itself. That number is the yardstick, and the test printed it to the screen and never saved it. On
+  an early version the yardstick was *higher* than the headline. We believe the 73% is real, because
+  the yardstick shrinks as you give the search more thinking time and this run had plenty — but
+  believing and having measured are different things, and it's the second one we publish.
+- **"A leaf costs 5.83 milliseconds" was timing something the bot doesn't do.** The measurement
+  quietly used the settings the code falls back to when you don't say, and the bot uses different
+  ones — a randomised playout at triple the length. Not wrong arithmetic; the wrong thing measured.
+
+Every one of these tests now writes a small companion file recording exactly what it did: how many
+rollouts, what randomness, what horizon, which version of every file it read, and whether anything was
+uncommitted at the time. Older results get one reconstructed from the commit that carried them,
+labelled as a guess rather than a record.
+
 Saying what we *can't* prove, as plainly as what we can, is the whole point.
 
 **We also caught ourselves twice this week**, which matters more than any single fix. A result we'd

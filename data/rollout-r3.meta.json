@@ -1,0 +1,40 @@
+{
+  "generated": "2026-08-04T07:42:21.472Z",
+  "by": "engine/run_stamp.js --reconstruct",
+  "describes": "data/rollout-r3.json",
+  "reconstructed": true,
+  "reconstructed_why": "The run that wrote this artifact recorded no configuration of any kind. This stamp is INFERRED from the commit that carried the artifact, not observed. Read `confidence` before using it.",
+  "artifact_generated": "2026-08-03T20:25:04.296Z",
+  "artifact_generated_has_timezone": true,
+  "rows": 70,
+  "n_unit": "decisions compared",
+  "p_column": null,
+  "measured": null,
+  "source_digests": null,
+  "source_digests_why_null": "A sha256 of the worktree TODAY would describe this file, not that run — data/rollout-r1.json records null for the same reason. The git blob ids below are the honest substitute: they name exact bytes and any reader with the repository can resolve them. They are NOT comparable to a live stamp's source_digests, which hash worktree bytes; on Windows those differ from the blob by line-ending translation (data/engine-data.js does).",
+  "git": {
+    "commit": "b4ec80b1c52dec3df0dc2723e6b1fce61ca7ff56",
+    "commit_date": "2026-08-03T16:27:43-04:00",
+    "artifact_written_seconds_before_commit": 159,
+    "blobs": {
+      "engine/rollout_leaf.js": "094dc794823588ce16ae9c6697805d1a4c2eb39a",
+      "engine/medicham2-browser.js": "c3fcd7c3f066a193497576fd1b0d5df4c81b3e5f",
+      "engine/board.js": "926eeb076096c6a841a592e63489b8ce7bb42981",
+      "data/engine-data.js": "68f6a1d5373baf6e9add0ff90e7a5a8beee5ee8f",
+      "data/abra-tags.js": "f3e06a14a6116861de8efd0c3b6814da478d9188",
+      "engine/rollout_r3.js": "e5bd132b1620bf63e5b83284ceeed33da156048b",
+      "engine/joint_rows.js": "3df647fed6155a1bf34181ee742deae6ee1492d7",
+      "engine/fit_policy.js": "fdf1f9f4cdf81cb7d43e0913b81d418c2f65ea84",
+      "engine/click_match.js": "fb2ef3ebf1cdd91e71db7e07e1f8ca29f6d41c10",
+      "data/policy-weights.json": "da3c48d020d2a75e8efc078c6e0da23f7d20b54d"
+    },
+    "inferred": true
+  },
+  "confidence": "HIGH — written 159s before the commit that carried it, so the commit tree is very probably the build",
+  "what_this_cannot_recover": "Every setting the run took from an environment variable or a library default. git records the code; nothing records the invocation. They are named per gate in `unrecorded_settings` below.",
+  "unrecorded_settings": {
+    "noise_floor": "THE CONTROL IS MISSING. engine/rollout_r3.js computes `selfDisagree` — the same search on a different seed disagreeing with ITSELF, where the truth is 0.00 by construction — prints it, and does not write it. The script's own verdict branches on it: `rate <= floor` prints NOT A RESULT. So this artifact cannot say which branch its own run took.",
+    "switches": "THE ARTIFACT'S CAVEAT IS FALSE ABOUT THE RUN IT DESCRIBES. It reads \"Switch candidates are excluded and counted\", but commit b4ec80b deleted the `if (ca.switchTo || cb.switchTo) continue;` line and did not update the string. Switches were ON the menu for this run. `withSwitch` and `choseSwitch` were counted, printed, and not written.",
+    "EVERY": "The decision-sampling stride is an environment variable and is not recorded."
+  }
+}

@@ -247,6 +247,32 @@ function search() {
       if (w.inference) say(`    ${w.inference.split('.')[0]}.`);
       if (w.consequence) say(`    ${w.consequence}`);
     }
+    /* THE STAMP, OR THE ABSENCE OF ONE, ON THE SAME SCREEN AS THE NUMBER.
+     *
+     * R1's published +2.91 was quoted for a day against a dump that could not say which of two runs
+     * four accuracy points apart it was. Nothing was hidden then either — the fact simply lived in a
+     * file nobody opened. A sidecar that says "this run's control was never written down" is worth
+     * nothing if the gate line above it prints clean, so it prints here.
+     *
+     * The path is DERIVED by the same function the writer uses, not spelled a second time. */
+    let meta = null;
+    try { meta = j(require('./run_stamp.js').metaPathFor(file)); } catch (e) { meta = null; }
+    /* An artifact that carries its OWN stamps block has already answered this question in the two
+     * lines above — data/rollout-r1.json does, at length. Repeating "NO SIDECAR" underneath it would
+     * be a third statement of one fact, and a line that fires forever after the fix is a line people
+     * learn to skip. That is how "known failure" became a status in this repository once already. */
+    const inArtifact = d.stamps || (d.standing && d.standing.stamps);
+    if (!meta && !inArtifact) {
+      say('    NO SIDECAR — nothing records which configuration produced this. See engine/run_stamp.js.');
+    } else if (meta && meta.reconstructed) {
+      say(`    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit ${String(meta.git && meta.git.commit).slice(0, 12)}; ${String(meta.confidence).split(',')[0]}`);
+      for (const [k, v] of Object.entries(meta.unrecorded_settings || {})) {
+        say(`      ${k}: ${String(v).split('.')[0]}.`);
+      }
+    } else if (meta && meta.measured) {
+      const m = meta.measured;
+      say(`    stamped: ${m.key}${meta.git && meta.git.dirty ? '  (TREE WAS DIRTY — trust source_digests, not the commit)' : ''}`);
+    }
   }
 
   /* R4 IS THE ONE THAT DECIDED AND IT IS THE ONE WITH NO ARTIFACT. Its verdict exists only in

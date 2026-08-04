@@ -16,7 +16,16 @@ SEARCH — does MILTANK choose better than MAG
     THE DUMPED COLUMN IS THE DETERMINISTIC-GREEDY PLAYOUT (explore=0).
     The published +2.91 gate result cannot be recomputed from anything committed. What survives is the incumbent arm of that comparison, and on it R1 is UNDECIDED.
   R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)
+    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it
+      explore: NOT RECORDED AND NOT PASSED.
+      maxTurns: NOT RECORDED AND NOT PASSED.
+      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.
+      machine: A duration is a fact about a machine under a load.
   R3 divergence      72.9% over 70 decisions (19 agreed, 20 skipped)   (2026-08-03 20:25)
+    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit b4ec80b1c52d; HIGH — written 159s before the commit that carried it
+      noise_floor: THE CONTROL IS MISSING.
+      switches: THE ARTIFACT'S CAVEAT IS FALSE ABOUT THE RUN IT DESCRIBES.
+      EVERY: The decision-sampling stride is an environment variable and is not recorded.
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 06:35)
   runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 04:47):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
@@ -26,7 +35,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 07:13_
+_stamped 2026-08-04 07:42_
 
 <!-- /GENERATED -->
 
@@ -44,7 +53,57 @@ And note the `PRE-CHANGE` markers in the generated block: those runs predate the
 source. Under the frozen-release rule in [DIVISIONS.md](DIVISIONS.md) that is a re-run, not a
 judgement call.
 
+## The `--rollout-explore` default was re-earned, 2026-08-04
+
+MEASURE retracted R1 that morning: the published `68.18%` had no artifact, and the only committed row
+dump held the **explore=0** arm, on which R1 is UNDECIDED. `--rollout-explore` defaults to `1.0` and
+two comments cite that retracted figure as the reason.
+
+**It was re-run at explore=1 and it reproduces.** Artifacts:
+`data/rollout-r1-explore-sweep.json` (the arm-vs-arm verdict, written by
+`engine/rollout_explore_sweep.js`) and `data/rollout-r1-explore1.json` (the gate, written by the
+existing `engine/rollout_r1_artifact.js` from `data/rollout-r1-explore1-rows.jsonl`).
+
+| | explore=0 | explore=0.5 | explore=1.0 | material |
+|---|---|---|---|---|
+| accuracy, horizon 20 (9,201 positions) | 65.72% | 67.58% | **67.97%** | 65.27% |
+| accuracy, horizon 60 (4,487 positions) | 64.21% | 66.50% | **67.46%** | 63.78% |
+| ECE | 0.196 | — | **0.104** | 0.050 |
+| share saturated in the 0–10 / 90–100 bin | 50.7% | — | **29.4%** | — |
+
+Paired, on the identical sample: **+2.25 points, 95% CI [1.31, 3.19]**, monotone in explore at both
+horizons. The published `68.18%` lands at `67.97%` and the published `+2.91` over material lands at
+`+2.71 [1.60, 3.82]` — the retraction was right about the *provenance* and the claim survives it.
+
+Three things the re-run settled that were not the question:
+
+- **The committed greedy dump was NOT clobbered.** `DUMP=` resolves under `data/`, so the command
+  MEASURE left would have overwritten the only evidence for the incumbent arm. New filename used.
+- **The "64.42% for greedy" half does not reproduce** — greedy measures 65.7% on both the committed
+  dump and a fresh run on the current engine. Same sign, gap 2.25 not 3.76. The two comments
+  overstate it and should be restated against the artifact.
+- **Unfinished playouts are not the mechanism.** `battleResult` does score bodies-then-HP whether or
+  not the battle ended, but 99.5–99.8% of playouts end by an actual wipeout at every explore setting
+  and at both horizons. Cap-hits are 0.2–0.5%. Exploration makes playouts *longer* (4.4 → 6.1 mean
+  turns), not truncated.
+
+**This is a verdict on a JUDGE, not on a player.** It does not say explore=1.0 wins more games, and
+`engine/mew.js` exposes no `--miltank-explore`, so the A/B that would say is not currently runnable.
+R4 was itself run at 1.0 and cannot arbitrate its own setting.
+
 ## Open
+
+### 0. The in-game leaf and the preview leaf are different players
+
+MEASURE's calibration (2026-08-04) ranks the **preview** leaf at 53.22% (p<1e-4) and the **in-game**
+leaf at 50.99% (p=0.47). Those are not two settings of one thing. `engine/miltank.js:216-222` is a
+**second, hand-rolled playout loop** — `battleInit`/`battleTurn` directly, deterministic greedy on
+both sides — that never calls `rolloutWinProb`. So MILTANK ships two leaves with different playout
+policies and only one of them was ever swept.
+
+The two are also measured on different position distributions (fresh full teams against mid-game
+boards), so the contrast is confounded and is **not** evidence against explore=1.0 on its own. What
+it is evidence for is that the preview loop should call the same leaf as everything else.
 
 ### 1. Opponent model — the A/B in flight
 

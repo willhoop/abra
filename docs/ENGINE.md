@@ -75,7 +75,7 @@ ENGINE — does the simulator do what Pokémon does
   tag coverage: 137/176 probed, 39 unprobed
 ```
 
-_stamped 2026-08-04 07:29_
+_stamped 2026-08-04 07:42_
 
 <!-- /GENERATED -->
 
@@ -124,6 +124,16 @@ red, and the census carries them now — `overridesEffectiveness`, `clearsBoosts
 - **`engine/status.js` prints the differential count without its seed.** The artifact now carries
   `seed` and `requested`; the print does not read them, so "4/400 differential comparisons disagree"
   still looks unconditional. `status.js` is MEASURE's file. One line.
+- **`battleResult` cannot tell a finished battle from an expired clock.** `medicham2-browser.js:1802`
+  scores bodies-then-HP unconditionally; `battleOver` returns true for a wipeout *and* for
+  `S.turn >= maxTurns`, and the caller cannot distinguish them from the return value. Every
+  cap-expired playout is therefore a material count returned as a win probability, silently.
+  Filed by SEARCH 2026-08-04 while testing whether that was the cause of the flat leaf calibration.
+  **It is not** — measured by wrapping `battleResult` over 1.1M playouts, 99.5–99.8% end by an actual
+  wipeout at every explore setting and at horizons 20 and 60, and cap-hits run 0.2–0.5%. So this is a
+  latent hazard, not a live defect, and it is filed rather than ranked. The cheap fix is for
+  `battleResult` to return the reason beside the score so a caller can weight or discard those rows;
+  do not change what it *scores*, which several artifacts depend on.
 
 ## The authorised list — LANDED vs PREPARED
 

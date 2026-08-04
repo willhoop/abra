@@ -162,10 +162,14 @@ console.log(`  a switch was on the menu on ${withSwitch} of ${decisions} decisio
   ` the search took one on ${choseSwitch}`);
 console.log('  MAG takes one essentially never — board.js scores every switch with one flat feature,');
 console.log('  which is why its switching measured 10 points WORSE than never switching.\n');
-if (gaps.length) {
-  const s = gaps.slice().sort((a, b) => a - b);
-  const med = s[Math.floor(s.length / 2)];
-  console.log(`  when they disagree, the search's pair is worth ${(100 * med).toFixed(1)} points more`);
+/* COMPUTED ONCE, PRINTED AND WRITTEN FROM THE SAME VARIABLE. A median recomputed at the write site
+ * is a second definition of one quantity, and two definitions disagree eventually — silently, because
+ * both keep working. Same rule as FEATURES-ARE-PER-MODEL-FACTS-ARE-GLOBAL, in miniature. */
+const gapMedPts = gaps.length
+  ? 100 * gaps.slice().sort((a, b) => a - b)[Math.floor(gaps.length / 2)]
+  : null;
+if (gapMedPts !== null) {
+  console.log(`  when they disagree, the search's pair is worth ${gapMedPts.toFixed(1)} points more`);
   console.log('  BY ITS OWN LEAF, which is not evidence it is better — only that the two players');
   console.log('  are ranking the same menu differently. R4 is the only thing that answers "better".\n');
 }
@@ -173,24 +177,110 @@ const floor = 100 * selfDisagree / decisions;
 console.log(`  NOISE FLOOR — the same search, a different seed, disagreeing with ITSELF: ${floor.toFixed(1)}%`);
 console.log('  The truth there is 0.00 by construction, so that is what the instrument invents.');
 console.log('');
+/* THE VERDICT IS COMPUTED ONCE AND WRITTEN, NOT PRINTED TWICE.
+ *
+ * These three branches existed only as console.log calls. data/rollout-r3.json recorded the
+ * divergence and NOT the floor the first branch tests against, so the committed artifact could not
+ * say which branch its own run had taken — and the 70-decision run whose 72.9% engine/status.js and
+ * docs/MILTANK.md both quote has no recorded control at all. A verdict that lives in a terminal
+ * scrollback is the exact failure docs/MEASURE.md exists to end. */
+let verdict_code, verdict;
 if (rate <= floor) {
+  verdict_code = 'NOT A RESULT';
+  verdict = `NOT A RESULT — divergence ${rate.toFixed(1)}% against a self-disagreement floor of `
+    + `${floor.toFixed(1)}% on ${decisions} decisions. The search disagrees with MAG no more than it `
+    + 'disagrees with itself, so this is an argmax over near-ties and not a different player.';
   console.log('  -> NOT A RESULT. The search disagrees with MAG no more than it disagrees with');
   console.log('     itself, so this is an argmax over near-ties and not a different player.');
   console.log('     Raise N until the floor drops, then re-read the divergence.');
 } else if (rate < 5) {
+  verdict_code = 'FAIL';
+  verdict = `R3 FAILS — divergence ${rate.toFixed(1)}% on ${decisions} decisions. The search is MAG `
+    + 'with extra steps and cannot win more games than a player it agrees with.';
   console.log('  -> R3 FAILS. The search is MAG with extra steps: it cannot win more games than a');
   console.log('     player it agrees with, whatever R1 says about the leaf.');
 } else {
+  verdict_code = 'PASS';
+  verdict = `R3 PASSES — divergence ${rate.toFixed(1)}% against a self-disagreement floor of `
+    + `${floor.toFixed(1)}% on ${decisions} decisions. These are different players, so an SPRT (R4) `
+    + 'can tell them apart. A precondition for winning more, not evidence of it.';
   console.log('  -> R3 PASSES. These are different players, so an SPRT (R4) can tell them apart.');
   console.log('     Divergence is a precondition for winning more, not evidence of it.');
 }
 
 fs.writeFileSync(D('data', 'rollout-r3.json'), JSON.stringify({
   generated: new Date().toISOString(), by: 'engine/rollout_r3.js',
+  gate: 'R3 — does a rollout search pick a different move than MAG',
+  verdict, verdict_code,
+  /* The common count and its unit; see the same block in engine/rollout_r2.js. NOT called `n` —
+   * this artifact has published `n` as the ROLLOUT BUDGET since 2026-08-03, and a key that means a
+   * sample size in one rung and a budget in the next is worse than no common key at all. */
+  n_measured: decisions, n_unit: 'decisions compared',
   games: GAMES, decisions, agreed, skipped, divergence_pct: rate,
-  n: N, topK: TOPK, explore: EXPLORE,
-  caveat: 'Both players rank the SAME candidate set, so this is a disagreement about value and not '
-        + 'about the menu. The opponent is not modelled: it plays chooseAction during the stepped '
-        + 'turn, identically for every candidate. Switch candidates are excluded and counted.',
+  /* THE CONTROL, WRITTEN DOWN. Without it the number above is uninterpretable: an argmax over K^2
+   * noisy estimates disagrees with anything, and at N=20 this floor measured HIGHER than the
+   * divergence it was meant to validate. docs/ROLLOUT-design.md 5 records floors of 71.7 / 50.0 /
+   * 45.5 / 43.8 for four earlier runs — none of them this one. */
+  noise_floor: {
+    self_disagreement_pct: floor,
+    self_disagree: selfDisagree,
+    of_decisions: decisions,
+    what: 'The SAME search, same candidates, same opponent policy, same everything it can see — only '
+      + 'the seed differs. The truth there is 0.00 by construction, so whatever it reports is what '
+      + 'the instrument invents.',
+    reading: rate <= floor
+      ? 'The floor is at or above the divergence. There is no effect here.'
+      : `Divergence exceeds the floor by ${(rate - floor).toFixed(1)} points.`,
+  },
+  /* Switch behaviour, counted and printed since commit b4ec80b and never written until now — the
+   * commit that made the search able to switch put its headline number ("4 of 12") in a commit
+   * message rather than in the artifact. */
+  switches: { on_menu: withSwitch, taken_by_search: choseSwitch, of_decisions: decisions },
+  disagreement_gap_median_pts: gapMedPts,
+  disagreement_gap_note: gapMedPts === null ? 'no disagreements to measure'
+    : 'When they disagree, the search\'s pair is worth this much more BY ITS OWN LEAF. Not evidence '
+      + 'it is better — only that the two rank the same menu differently. R4 answers "better".',
+  n: N, topK: TOPK, explore: EXPLORE, every: EVERY,
+  /* `caveats` as an ARRAY, matching data/rollout-r1.json and data/rollout-r4.json. */
+  caveats: [
+    'Both players rank the SAME candidate set, so this is a disagreement about value and not about '
+    + 'the menu.',
+    'The opponent is not modelled: it plays chooseAction during the stepped turn, identically for '
+    + 'every candidate. This is a best response to a fixed opponent, not an equilibrium.',
+    /* THE PREVIOUS TEXT HERE WAS FALSE ABOUT THE RUN IT DESCRIBED. It read "Switch candidates are
+     * excluded and counted". Commit b4ec80b deleted the `if (ca.switchTo || cb.switchTo) continue;`
+     * line — switches went ON the menu — and left the string alone, so data/rollout-r3.json has
+     * shipped a caveat contradicting its own generator since 2026-08-03. */
+    'SWITCH CANDIDATES ARE ON THE MENU and are counted in `switches` above. They were excluded before '
+    + 'commit b4ec80b, and the caveat that said so outlived the code by a day.',
+    'DIVERGENCE IS NOT SUCCESS. This measures whether the two are different players. Whether the '
+    + 'different one is better is R4, and only an SPRT answers that.',
+  ],
 }, null, 2) + '\n');
 console.log('\n  wrote data/rollout-r3.json');
+
+/* THE STAMP. Shared with engine/rollout_r2.js through engine/run_stamp.js. R3 reaches further than
+ * the leaf: the whole comparison is against MAG's ranking, so data/policy-weights.json is part of
+ * this run's configuration and a refit silently changes what "MAG's pick" means. */
+{
+  const RS = require('./run_stamp.js');
+  const { path: metaPath } = RS.writeStamp({
+    by: 'engine/rollout_r3.js',
+    describes: 'data/rollout-r3.json',
+    rows: decisions,
+    n_unit: 'decisions compared',
+    measured: {
+      key: `n=${N}@explore=${EXPLORE}`,
+      n_rollouts: N,
+      explore: EXPLORE,
+      topK: TOPK,
+      note: 'The divergence rate is an argmax over K^2 cells each estimated by n rollouts at this '
+        + 'explore. Change either and the rate moves; docs/ROLLOUT-design.md 5 records it moving from '
+        + '67.4% to 81.8% across N=20 to N=200 on the same instrument.',
+    },
+    sweep: { N, TOPK, EXPLORE, EVERY, GAMES, corpus_games: games.length },
+    sources: ['engine/rollout_r3.js', 'engine/joint_rows.js', 'engine/fit_policy.js',
+              'engine/click_match.js', 'data/policy-weights.json'],
+  });
+  console.log(`  wrote ${metaPath} — n=${N}, explore=${EXPLORE}, topK=${TOPK}`);
+}

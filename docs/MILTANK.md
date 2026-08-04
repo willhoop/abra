@@ -86,16 +86,33 @@ greedy; 53% of positions landed in the 0–10% or 90–100% bin and those bins w
 points, and accuracy was **flat in N**. R1 then found a fully random playout judges a position at
 **68.18%** against **64.42%** for the greedy one.
 
-**That comparison was withdrawn on 2026-08-04 and the defence below no longer stands on it.** The
-68.18% was never written to an artifact — `engine/rollout_r1.js` printed it — and the one committed
-row dump turns out to hold the *greedy* column, not the random one, so the figure cannot be
-recomputed from anything in the repository. What `data/rollout-r1.json` now records is the greedy
-playout at **65.72% against material's 65.26%, +0.46 [-0.72, +1.63] — UNDECIDED**. See
-`docs/ROLLOUT-design.md` §5.
+**That comparison was withdrawn on 2026-08-04 as UNCHECKABLE.** The 68.18% was never written to an
+artifact — `engine/rollout_r1.js` printed it — and the one committed row dump turns out to hold the
+*greedy* column, so the figure could not be recomputed from anything in the repository.
+`data/rollout-r1.json` records what survived, the greedy arm, at **65.72% against material's 65.26%,
++0.46 [-0.72, +1.63] — UNDECIDED**.
 
-`--rollout-explore` still defaults to `1.0`, and that default is now resting on the literature and on
-the saturation table above rather than on a measured head-to-head. The greedy playout was tried; that
-it was *beaten* is currently unevidenced. Re-running R1 at `EXPLORE_LIST=1` settles it and is cheap.
+**It was re-run the same day and it reproduces.** `data/rollout-r1-explore-sweep.json`, from a
+three-arm sweep over the identical 9,201 positions:
+
+| explore | accuracy | Brier | log-loss | ECE | saturated |
+|---|---|---|---|---|---|
+| 0 (greedy) | 65.72% | 0.259 | 1.822 | 0.196 | 50.7% |
+| 0.5 | 67.58% | 0.222 | 1.028 | — | — |
+| **1.0** | **67.97%** | **0.213** | **0.863** | **0.104** | **29.4%** |
+| material | 65.27% | 0.213 | 0.612 | 0.050 | — |
+
+Paired: **+2.25 points, 95% CI [1.31, 3.19]** for 1.0 over greedy, monotone in explore, and it holds
+at the live 60-turn horizon (67.46% against 64.21% on a second sample). The published 68.18% lands at
+67.97% and the published +2.91 over material at +2.71 [1.60, 3.82].
+
+So the retraction was right about the provenance and the claim survives it. **`--rollout-explore` =
+1.0 stands, and it now stands on an artifact.** Two corrections that came with it: the "64.42% for
+greedy" quoted in `rollout_leaf.js:147` and `mag_bot.js:145` does *not* reproduce — greedy is 65.7%
+on both the committed dump and a fresh run — so those comments overstate the gap and should cite the
+sweep artifact instead. And the saturation story is confirmed rather than merely argued: the greedy
+playout puts **half** its positions in the two extreme bins and explore=1.0 puts under a third,
+halving the calibration error. A deterministic playout replays one line, exactly as §3.2 claims.
 
 **Caveat, measured 2026-08-03:** that result is about *judging a position*. Judging and *choosing an
 action* are different jobs, and a random opponent never punishes a wasted turn. A direct test on 40
@@ -187,7 +204,7 @@ four. Weighting it by `bring_priors` or by which four best answers MILTANK's own
 |---|---|---|
 | `--miltank` | off | use the search player |
 | `--rollout-n` | 200 | playouts per candidate at the final stage |
-| `--rollout-explore` | 1.0 | playout randomness — see §3.2 before lowering it |
+| `--rollout-explore` | 1.0 | playout randomness. Re-earned 2026-08-04, `data/rollout-r1-explore-sweep.json`: +2.25 [1.31, 3.19] over greedy as a JUDGE. Not measured as a PLAYER — `mew.js` has no `--miltank-explore` |
 | `--rollout-turns` | 60 | horizon before a playout is scored |
 | `--preview-n` | 40 | playouts per candidate bring |
 | `--preview-ms` | 15000 | preview deadline; whatever was scored by then is reported |

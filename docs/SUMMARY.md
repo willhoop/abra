@@ -48,6 +48,25 @@ Drizzle or Drought changed nothing at all. And every mega forme carried no abili
 item, so **26% of the format scored as threatening nothing**. None of these were modelling
 disagreements. They were plumbing.
 
+**A third lesson, 2026-08-04, and it is about the rulers rather than the models.** A result that does
+not record its own configuration cannot be checked by anyone, including the person who produced it.
+The R1 gate published *"+2.91 [1.79, 4.04]"*; recomputed from the only committed evidence it is
+**+0.456 [−0.717, +1.630] — UNDECIDED**. Nothing was falsified: the row dump recorded the answers and
+not the settings, so a run at exploration 0 and a run at exploration 1 left byte-compatible files that
+differ by nearly four accuracy points.
+
+Auditing the sibling gates against the same standard found two more.
+
+| gate | published | what the evidence supports |
+|---|---|---|
+| R1 leaf accuracy | +2.91 [1.79, 4.04], PASSED | **+0.456 [−0.717, +1.630], UNDECIDED** |
+| R2 leaf cost | 5.83 ms median | reproduces only as arithmetic on itself, and it timed `explore=0` at a 20-turn horizon while the shipped leaf runs `explore=1.0` at 60 |
+| R3 divergence | 72.9% over 70 decisions | recomputes exactly — from two fields in the same file. **Its control was printed and never stored**, and the gate's own verdict branches on that control |
+
+Every gate now writes a sidecar (`engine/run_stamp.js`) recording budget, exploration rate, horizon,
+content digests of every source it reads, the commit, and whether the tree was dirty. Older artifacts
+carry one reconstructed from the commit that contained them, labelled inferred rather than observed.
+
 ## The components at a glance
 
 | Model | What it is | Status | Headline result |
