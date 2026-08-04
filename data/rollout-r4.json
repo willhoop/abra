@@ -1,0 +1,146 @@
+{
+  "generated": "2026-08-04T06:35:28.627Z",
+  "by": "engine/rollout_r4.js",
+  "gate": "R4 — does the search beat the policy it searches over",
+  "corpus": "data/games.r4-decided.jsonl",
+  "verdict": "ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]",
+  "verdict_code": "H1",
+  "games": 2624,
+  "pairs": 1312,
+  "decisive_pairs": 535,
+  "corpus_shape": {
+    "lines": 5248,
+    "games": 2624,
+    "log_only_records": 2624,
+    "seed_pairs": 1312,
+    "decisive_pairs": 535,
+    "torn_lines": 0,
+    "distinct_ids": 2624,
+    "records_per_id": {
+      "2": 2624
+    },
+    "distinct_seeds": 1312,
+    "games_per_seed": {
+      "2": 1312
+    },
+    "note": "The store writes TWO lines per game under one id: the game record, which carries .selfplay, and a log-only companion {id, log, uploadtime}. A line count is therefore twice the game count, and the game count is twice the pair count. The UNIT OF THE TEST is the decisive pair — the last number here, not the first."
+  },
+  "arm1_share_pct": 55.5,
+  "ci95_pct": [
+    51.3,
+    59.7
+  ],
+  "counts": {
+    "arm1_2_0": 297,
+    "split_1_1": 777,
+    "arm2_0_2": 238,
+    "unpaired_halves": 0,
+    "mismatched_pairs": 0
+  },
+  "sprt": {
+    "p0": 0.5,
+    "p1": 0.55,
+    "alpha": 0.05,
+    "beta": 0.05,
+    "bound_accept_h1": 2.94,
+    "bound_accept_h0": -2.94,
+    "llr_at_stop": 3,
+    "decided_after_decisive_pairs": 522,
+    "margin_over_bound": 0.06
+  },
+  "arms": {
+    "arm1": "MILTANK — lookahead search over MAG",
+    "arm2": "MAG — best-scoring option every time (greedy)",
+    "note": "arm 1 is the challenger (sprt.js:169). Derived from miltankArm and the greedy flags in the records — NOT from the reader output, which cannot name a MILTANK arm: sprt.js prints both arms as \"score\" and paired_h2h.js labels arm 1 by its greedy flag alone.",
+    "search_settings_in_corpus": [],
+    "search_settings_note": "mew.js stamps miltankArm but not --miltank-n, --miltank-foe, --miltank-no-defer or --miltank-preview-n, so the rollout budget this run used is NOT recoverable from the corpus. Any figure for it is prose, and is deliberately not copied in here."
+  },
+  "stamps": {
+    "engine_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+    "player_digest": "e79996a89ed7",
+    "weights_digest": "a6a08f8f6b42",
+    "joint_weights_digest": "fd8265e1a3ee",
+    "features_digest": "1e9ed28a3e5b",
+    "damage_table_digest": "405c836793d1",
+    "format": "gen9championsvgc2026regmb@@@!Open Team Sheets,Force Open Team Sheets",
+    "distinct_configs": 1,
+    "note": "one config, one commit, one player across every record, or this file would not exist — the generator throws instead of averaging two different runs together."
+  },
+  "standing": {
+    "valid_as_measured": "YES. Both arms ran the same engine commit, the same feature builder, the same damage table and the same fitted weights (see stamps above; the generator refuses to write if any of those varies across the corpus). Whatever was wrong with the rollout model was wrong for BOTH arms, so the contrast between them is fair and this is a real measurement of that build.",
+    "transfers_to_current_build": "ASSUMPTION, NOT A RESULT. Nothing here was measured on HEAD.",
+    "engine_standing": {
+      "classed_by": "engine/status.js",
+      "standing": "PRE-CHANGE",
+      "as_printed": "PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41",
+      "newest_engine_source": "engine/medicham2-browser.js 2026-08-04 04:47",
+      "corpus_written": "2026-08-04 04:41 UTC"
+    },
+    "player_standing": {
+      "checked_by": "engine/player_digest.js",
+      "result": "SAME PLAYER AS NOW",
+      "as_printed": "ok   this corpus was produced by the bot that runs now (e79996a89ed7)",
+      "covers": "the feature builder, the joint features, the damage table digest and both weight vectors. It does NOT cover simulator mechanics that leave all of those unchanged."
+    },
+    "what_to_do_about_it": "Re-run the SPRT on the next frozen engine release (docs/DIVISIONS.md, the frozen-engine-release rule) before quoting this as a current figure."
+  },
+  "noise_floor": {
+    "aa_run": null,
+    "aa_note": "NOT ESTABLISHED. There is no A/A run for this comparison anywhere in data/ — nothing plays this arm against itself — so the floor below is the weaker substitute: the spread between two halves of THIS run, which measures sampling noise but cannot see a bias both halves share.",
+    "split_half_of_this_run": {
+      "cuts": [
+        {
+          "cut": "seed parity",
+          "a": {
+            "decisive": 266,
+            "pct": 55.6
+          },
+          "b": {
+            "decisive": 269,
+            "pct": 55.4
+          },
+          "spread_pts": 0.2
+        },
+        {
+          "cut": "seed pair parity",
+          "a": {
+            "decisive": 258,
+            "pct": 53.5
+          },
+          "b": {
+            "decisive": 277,
+            "pct": 57.4
+          },
+          "spread_pts": 3.9
+        },
+        {
+          "cut": "seed hash parity",
+          "a": {
+            "decisive": 286,
+            "pct": 54.9
+          },
+          "b": {
+            "decisive": 249,
+            "pct": 56.2
+          },
+          "spread_pts": 1.3
+        }
+      ],
+      "spread_pts_range": [
+        0.2,
+        3.9
+      ],
+      "note": "Three independent cuts, each by a function of the seed so both records of a pair stay together and each half draws evenly from every shard. Read through engine/sprt.js, not re-paired here. READ THE RANGE, NOT ONE CUT: the spread of a single cut is itself a draw with sd about 4.3 points at this sample size."
+    },
+    "coin_se_pts_at_this_n": 2.16,
+    "coin_se_pts_of_a_split_half": 4.32,
+    "effect_pts_over_50": 5.5,
+    "reading": "The effect is 5.5 points over a coin. Chance alone moves this number by 2.16 points (1 sd) at 535 decisive pairs, so the effect is about 2.5 sd. At HALF this sample the same effect would sit inside the split-half noise and would not be visible: that is why the run needed the size it got, and why nothing smaller should be believed."
+  },
+  "caveats": [
+    "THE POINT ESTIMATE IS BIASED HIGH. The run was stopped at the SPRT boundary, and a stopping rule that fires on a favourable excursion selects for one. The verdict carries its stated error rate; the 55.5%-style share does not, and the CI is a fixed-n formula applied to a sequentially stopped run. Quote the verdict, treat the share as an upper-ish estimate.",
+    "IT DOES NOT SAY THE BOT IS GOOD. It says one arm beat the other arm on this team pool, under self-play, with the search settings the corpus does not record.",
+    "TRANSFER TO THE CURRENT BUILD IS AN ASSUMPTION, NOT A RESULT. Both arms shared the same engine and the same model, so the contrast is fair and the run stands as a measurement. Engine source moved after the games were played; whether the edge survives that is untested. See standing.engine_standing, which is status.js's own classification of this corpus.",
+    "READ THE SPRT VERDICT, NOT A P-VALUE. This run stopped at a boundary, so an interval or a p-value computed as though n had been fixed in advance does not hold here (sprt.js:41). The CI above is recorded because paired_h2h.js prints it, and is exactly that fixed-n formula: it is context, not the inference."
+  ]
+}
