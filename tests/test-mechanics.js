@@ -300,19 +300,34 @@ probe('ability', 'contactPunish', 'Rough Skin hurts a contact attacker', () => {
 });
 
 probe('ability', 'formeChange', 'Zero to Hero upgrades Palafin on return', () => {
-  /* The transform fires on the RETURN, so the probe must actually send it out and bring it back --
-   * checking the first entry would measure the rule working correctly and call it broken. */
+  /* THE RULE HAS TWO HALVES AND THE NEGATIVE ONE IS THE ONE THAT PROVES IT. Will: "PALAFIN GOTTA
+   * BE SENT OUT FIRST AND THEN SWITCH AND COME BACK TO ACTIVATE". So a Palafin arriving from the
+   * bench for the FIRST time must stay ordinary -- a transform that fires on any entry would pass
+   * a test that only checks it fires, while being wrong in every game.
+   *
+   * Both halves are asserted here: first entry does nothing, the return upgrades. */
+  const firstEntry = (() => {
+    const bench = M.buildMon('palafin', {}); bench.ability = 'zerotohero';
+    const lead = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([lead, ally, bench], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), null);
+    return { name: bench.name, atk: bench.st.at };
+  })();
+
   const me = M.buildMon('palafin', {}); me.ability = 'zerotohero';
   const ally = bare('incineroar'), back = bare('corviknight');
   const f1 = bare('garchomp'), f2 = bare('garchomp');
   const S = M.battleInit([me, ally, back], [f1, f2], { seeded: true });
-  const atkBefore = me.st.at, nameBefore = me.name;
-  /* Out... */
+  const atkBefore = me.st.at;
   M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: back }], [ally, { kind: 'pass' }]]), null);
-  /* ...and back. */
   M.battleTurn(S, rng5, new Map([[back, { kind: 'switch', to: me }], [ally, { kind: 'pass' }]]), null);
-  return { works: me.st.at > atkBefore,
-           detail: nameBefore + ' ' + atkBefore + ' Atk  ->  ' + me.name + ' ' + me.st.at + ' Atk' };
+
+  const firstStayedBase = firstEntry.name === 'palafin' && firstEntry.atk === atkBefore;
+  const returnUpgraded = me.st.at > atkBefore;
+  return { works: firstStayedBase && returnUpgraded,
+           detail: 'first entry from bench: ' + firstEntry.name + ' ' + firstEntry.atk + ' Atk (must stay base)'
+                 + '  |  out and back: ' + me.name + ' ' + me.st.at + ' Atk' };
 });
 
 /* ---- BATCH 2 — the next sixteen by corpus usage ------------------------------------------------

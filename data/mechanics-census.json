@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-04T00:15:04.529Z",
+  "generated": "2026-08-04T00:16:28.253Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 40,
@@ -172,7 +172,7 @@
       "tag": "formeChange",
       "label": "Zero to Hero upgrades Palafin on return",
       "live": true,
-      "detail": "palafin 154 Atk  ->  palafin-hero 233 Atk"
+      "detail": "first entry from bench: palafin 154 Atk (must stay base)  |  out and back: palafin-hero 233 Atk"
     },
     {
       "kind": "move",
