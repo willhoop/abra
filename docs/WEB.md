@@ -30,11 +30,21 @@ rather than tools:
 | Test | What it prevents |
 |---|---|
 | `tests/test-stadium-roster.js` | The Stadium's cabinet rack drifting from `docs/MODELS.md`. A model added to the ledger with no cabinet is **invisible** — there is no gap on screen where it should have been. Judgement gaps (sections of the ledger that are not models) are declared by name **with a reason**, never filtered out by a pattern that would also swallow a real model added later. |
+| `tests/test-web-figures.js` | **This division's own number going unmeasured, and then going down.** It calls `web/figure-audit.js` — the one implementation of *what is a figure* and *what counts as traced* — and asserts a FLOOR on the fraction of hardcoded figures whose source line cites an artifact. It also asserts the **withdrawn count never drops**, which is what stops a retracted claim being quietly deleted or quietly un-struck, and that every `<s class="wd">` carries a `title` saying when and why. A relation, not a pinned value: raising the floor is the intended edit, lowering it has to be justified out loud. |
+| `tests/test-web-status.js` | `web/status-data.js` drifting from the artifacts it names, and `web/status.html` acquiring a `fetch()` or an external asset that breaks it under `file://`. |
+| `tests/test-site-sync.js` | `web/index.html` and `app/index.html` diverging. Two of them are shipped and only one gets edited; the last two WEB passes both broke this. Run `cp web/index.html app/index.html` before finishing, every time. |
 
-The pattern generalises, and should be applied whenever a page starts carrying a list that a source
-file also carries: compare the page against its source, fail on drift, and declare every exception.
-This is CLAUDE.md's *a derived artifact is not a fact until something compares it to its source*,
-applied to HTML.
+**`tests/run-all.js` AUTO-DISCOVERS `tests/`** — `readdirSync` over `/^test-.*\.(js|py)$/`, so a new
+guard is covered the moment the file lands and there is no list to forget to edit. A previous WEB
+pass recorded that `test-web-figures.js` was unregistered; it never was. 67 checks are discovered
+(59 in `tests/`, 8 engine gates). Only the engine-side gates are hand-listed, because other tooling
+imports them and they cannot be globbed out of `tests/`.
+
+The roster pattern generalises, and should be applied whenever a page starts carrying a list that a
+source file also carries: compare the page against its source, fail on drift, and declare every
+exception. This is CLAUDE.md's *a derived artifact is not a fact until something compares it to its
+source*, applied to HTML. `test-web-figures.js` is the same rule applied to numbers rather than to a
+roster, which is what the Open item below used to ask for.
 
 ## Standing decisions
 
@@ -71,14 +81,44 @@ applied to HTML.
   expansion as an origin note — it is where the name came from and that is worth recording — but it
   does not belong on a page somebody is reading.
 
-- **Carry the caveat onto the page.** MEDICHAM's win rate is below chance and the Stadium says so on
-  the cabinet. A CI is not simplified away for a cleaner card.
+- **Carry the caveat onto the page.** The Stadium prints MEDICHAM's Brier loss against a coin, and
+  MILTANK's cabinet says its 55.5% is biased high by the stopping rule. A CI is not simplified away
+  for a cleaner card.
+
+  **And when the caveat itself goes stale, quote the artifact and strike the old claim.** This entry
+  used to read *"MEDICHAM's win rate is below chance and the Stadium says so"*. That was the
+  2026-07-23 reading. `data/winrate-backtest.json`, measured 2026-08-04, puts the live in-game leaf at
+  **51.0%** of 1,314 decisive calls, 95% CI **[48.3, 53.7]** — worse than a coin on Brier, but an
+  interval that *contains* chance, so "below chance, systematically inverted" is a stronger claim than
+  the evidence now supports. A memorable caveat is exactly the kind of sentence that survives the
+  measurement it came from.
+
+- **An interactive control may not interpolate.** A dial with stops at two measured points and a
+  smooth path between them is authoring a number at every position on that path. So every control on
+  a page has stops, each stop is a value some artifact recorded, and any position nothing measured
+  prints **NOT MEASURED** in the same red as everywhere else. XATU's slider is measured at 0 moves
+  revealed and at 4 and nowhere between; watching the middle go blank turned out to explain the
+  four-move cap better than either endpoint did.
+
+- **Keep a model's figures and its citation on ONE source line.** `web/figure-audit.js` attributes a
+  figure to its line, so a `CTRLDATA`-style table with the artifact path in the same row is what makes
+  the trace checkable instead of asserted. It is also the cheapest way to make the guard agree with a
+  human reading the file.
 
 ## Open
 
 - ABRA STADIUM is not yet linked from ABRA WORLD's front door.
 - No page yet renders the four division ledgers or `node engine/status.js` output for a visitor;
   the project's own state is currently legible only from a terminal.
-- `docs/SUMMARY.md` and the white paper carry results that no page cross-checks. A guard comparing
-  a rendered figure against its artifact — the `test-stadium-roster.js` pattern applied to numbers
-  rather than to a roster — does not exist yet and is the obvious next one to build.
+- `web/models.html` (0 of 2) and `web/tower.html` (0 of 3) are the last untraced pages, and
+  `web/index.html` sits at 80.5%. Overall is **84.3%** (70 of 83), up from 27.4% on 2026-08-04.
+- **Not a WEB item, but found by WEB and it belongs to MEASURE.** Reconciling the Stadium to its
+  artifacts turned up four cabinets quoting figures no file on disk contains any more, and the
+  ledger is the thing that drifted, not only the page:
+  `docs/MODELS.md` still records MAG's fit as **6,091 games / 146,910 decisions** where
+  `data/policy-weights.json` says **8,414 / 220,613**; it records the census as **42/54** where
+  `data/mechanics-census.json` says **102/144**; and SLOWKING's **0.84 / 0.16** mixture, uniform
+  exploitability **0.109** and greedy-minus-Nash **0.026** appear in neither
+  `data/slowking-eval.json` nor `data/slowking-playstyle-eval.json`, which record
+  **0.66 / 0.22 / 0.12**, **0.0761** and **0.0409**. The pages now quote the artifacts; the ledger
+  does not, so the two disagree in MEASURE's direction.

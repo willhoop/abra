@@ -688,6 +688,16 @@ function datasetLine(){
 function nArchetypes(){
   try{ return (window.GURU&&(GURU.archetypes||GURU.names||[]).length)||null; }catch(e){ return null; }
 }
+/* GURU's multiplicity arithmetic, read out of data/guru.js. NEVER recomputed here.
+ * `n_decisive` in that file counts each matchup TWICE (guru.py appends both directions) and applies
+ * NO correction for the 66 pairs it tests, so it is not the number a reader wants; the corrected
+ * count is. Both are published by the artifact and both are read from it. A key that is absent
+ * renders NOT MEASURED at full weight rather than silently becoming 0 — which is exactly the bug
+ * MEASURE found in build/build_guru_js.js on 2026-08-04: an absent key fell back to an empty array
+ * and the emptiness was then published as a finding. */
+const NOTMEAS='<b style="color:#c0432f">NOT MEASURED</b>';
+function guruM(k){ try{ const v=window.GURU&&GURU.multiplicity&&GURU.multiplicity[k]; return (v===undefined||v===null)?NOTMEAS:v; }catch(e){ return NOTMEAS; } }
+function guruPT(k){ try{ const v=window.GURU&&GURU.predictive_test&&GURU.predictive_test[k]; return (v===undefined||v===null)?NOTMEAS:v; }catch(e){ return NOTMEAS; } }
 function mascotHero(c,bubble){return `<div class="hero">${c.icon?`<div class="mascot mascotsvg">${c.icon}</div>`:`<img class="mascot" src="${ani(c.sprite)}">`}
   <!-- No tagline. The title names the room and the bubble says what it does; a one-line acronym
        gloss between them just repeated one or the other. -->
@@ -842,7 +852,7 @@ function roomMedicham(){const c=CAST[2];
    </div>
    <div class="panel" style="border-color:#f0a8a8;background:#fff6f6"><h2 style="color:#9a2b2b">⚠ Do not trust these numbers yet</h2><p style="font-weight:600;color:#7a3b3b">This room plays battles out using a <b>battle engine we wrote by hand</b>, and we have since measured it against the real Pokémon Showdown engine. It disagrees badly — on the matchups we tested it was off by about <b>30 points on average</b>, and it picked the <b>wrong winner in three out of eight</b>. On top of that, the movesets it uses are <b>invented, not observed</b>: every Pokémon has Protect in its last slot, and over half carry filler moves nobody runs. Whimsicott does not even have Tailwind, the move it is famous for.</p><p style="font-weight:600;color:#7a3b3b">We decided to replace this engine with the real simulator. That work has not shipped. Until it does, treat anything below as a <b>toy</b>, not a read — and in particular ignore the line telling you to trust it over Jolteon.</p></div>
    <div class="panel" style="border-color:#8fd0a0;background:#f4fbf6"><h2 style="color:#1f7a3c">Update 2026-07-29 — the engine learned the items, the weather and the punishments</h2>
-     <p style="font-weight:600;color:#3a5372">A big slice of the warning above got fixed. The damage engine now reads a <b>machine-derived tag artifact</b> instead of hand lists: the 18 type-boost items and 18 resist berries that used to count for <b>nothing</b>, Rough Skin / Flame Body / Static punishing you for touching them, Weather Ball genuinely becoming a 100-power Rock move in sand, Thunder at 100 accuracy in rain, Leech Seed actually draining. Checked against the Smogon damage calculator: <b>median error 0%, worst 3%</b> (was: up to 100% wrong on item-dependent numbers). And this page used to run with <b>all of that switched off</b> — the artifact never shipped to the browser; it does now.</p>
+     <p style="font-weight:600;color:#3a5372">A big slice of the warning above got fixed. The damage engine now reads a <b>machine-derived tag artifact</b> instead of hand lists: the 18 type-boost items and 18 resist berries that used to count for <b>nothing</b>, Rough Skin / Flame Body / Static punishing you for touching them, Weather Ball genuinely becoming a 100-power Rock move in sand, Thunder at 100 accuracy in rain, Leech Seed actually draining. Checked against the Smogon damage calculator over 36 compared scenarios: <b>median error 0%, worst 3%</b>, within 5% on all of them (<code>data/damage-validation.json</code>) — it was up to 100% wrong on item-dependent numbers. And this page used to run with <b>all of that switched off</b> — the artifact never shipped to the browser; it does now.</p>
      <p style="font-weight:600;color:#3a5372">Still true from the warning: the <b>movesets are auto-filled</b>, not observed, and the win-percent calibration against the real simulator has not been re-measured since these fixes. Damage per click: verified. Whole-match percentages: still treat with care.</p>
      </div>
    <div class="panel"><h2>The honesty check</h2><p style="font-weight:600;color:#3a5372">This is my most important job. When Ditto builds a team by optimising a fast model, it can <b>game</b> that model — stacking what the model over-rates. So I <b>re-check every team by actually playing it out</b>. Once the sheet said a team was 90%; I played it and it was 12% — and I was right. That disagreement is the whole point: I catch the hype <i>and</i> the hidden gems, so nobody fools the optimiser.</p></div>`;
@@ -864,10 +874,10 @@ function roomDitto(){const c=CAST[3];
      <input class="pksearch" placeholder="search a threat\u2026" oninput="renderThreats(null,this.value)">
      <div id="threattable"></div>
    </div>
-   <div class="panel"><h2>Why there's no single "best team"</h2><p class="sub">A win-rate matrix among meta archetypes, each played out by MEDICHAM. Green = the row team beats the column team. The cycles underneath are the <b>hypothesis</b> that the metagame is rock-paper-scissors &mdash; not the proof, and the panel below says so in its own words: <code>data/guru.js</code> records <b>0 statistically-decisive matchups</b> and <code>data/slowking-playstyle.js</code> records <b>supported: false</b> for its cycle. If it holds, no team beats everything, so there is no #1 — which is why DITTO hands you a spread, and why any single-number rating can only get you so far.</p>
+   <div class="panel"><h2>Why there's no single "best team"</h2><p class="sub">A win-rate matrix among meta archetypes, each played out by MEDICHAM. Green = the row team beats the column team. The cycles underneath are the <b>hypothesis</b> that the metagame is rock-paper-scissors &mdash; not the proof, and the panel below says so in its own words: <code>data/guru.js</code> records <b>3</b> matchups clearing a 95% test taken one at a time, <b>0</b> surviving a correction for the <b>66</b> pairs examined (about <b>3.3</b> are expected to clear it by chance), and <code>data/slowking-playstyle.js</code> records <b>supported: false</b> for its cycle. If it holds, no team beats everything, so there is no #1 — which is why DITTO hands you a spread, and why any single-number rating can only get you so far.</p>
      <div id="nontrans" style="overflow:auto;text-align:center"></div>
    </div>
-   <div class="panel" style="border-color:#f0a8a8;background:#fff6f6"><h2 style="color:#9a2b2b">⚠ Built on numbers we do not stand behind</h2><p style="font-weight:600;color:#7a3b3b">Everything in this room is computed from two things we have already flagged as unreliable: the <b>hand-written battle engine</b> (measured badly wrong against the real simulator, see Medicham) and the <b>archetype matchup grid</b> below — in which, by our own testing, <b>not one cell is statistically solid</b>. That is why every cell in the grid is greyed and starred.</p><p style="font-weight:600;color:#7a3b3b">So the "rock-paper-scissors metagame" claim below is a <b>hunch worth investigating</b>, not something we have shown. Team scores here should not be used to pick a team.</p></div>
+   <div class="panel" style="border-color:#f0a8a8;background:#fff6f6"><h2 style="color:#9a2b2b">⚠ Built on numbers we do not stand behind</h2><p style="font-weight:600;color:#7a3b3b">Everything in this room is computed from two things we have already flagged as unreliable: the <b>hand-written battle engine</b> (measured badly wrong against the real simulator, see Medicham) and the <b>archetype matchup grid</b> below — in which, by our own testing, <b>not one cell survives a correction for the number of cells we test</b> (<code>data/guru.js</code>). That is why no cell in the grid is coloured: the ones that clear a test on their own are flagged amber precisely because they are the tempting ones.</p><p style="font-weight:600;color:#7a3b3b">So the "rock-paper-scissors metagame" claim below is a <b>hunch worth investigating</b>, not something we have shown. Team scores here should not be used to pick a team.</p></div>
    `;
 }
 function roomKadabra(){const c=CAST[4];
@@ -918,7 +928,7 @@ function roomSlowking(){const c=CAST.find(x=>x.id==='slowking');
 }
 function roomGuru(){const c=CAST.find(x=>x.id==='guru');
   return `<div class="panel">${mascotHero(c,"I read every real game and tell you which archetype actually beats which — with honest error bars.")}</div>
-   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from real Champions games. Of <b>${fmtN(nCollected())}</b> collected, <b>${fmtN(nUsable())}</b> survive the quality filter (${nUsablePct()}%); the rest are bot games, forfeits, or too short to reveal a bring. <b>GURU is now computed on the filtered set, and the result changed:</b> across ${nArchetypes()||'the'} archetypes there are <b>0 statistically-decisive matchups</b> (n&ge;30 with a Wilson interval excluding 50%). On clean games the archetype matrix does not separate from chance, and its predictive test scores 0.7124 against a coin&rsquo;s 0.693 &mdash; worse than a coin. The matrix is descriptive structure, not evidence that one archetype beats another. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
+   <div class="panel"><h2>The meta, measured from real games</h2><p style="font-weight:600;color:#3a5372">I don't guess matchups from theory — I count them from real Champions games. Of <b>${fmtN(nCollected())}</b> collected, <b>${fmtN(nUsable())}</b> survive the quality filter (${nUsablePct()}%); the rest are bot games, forfeits, or too short to reveal a bring. <b>GURU is now computed on the filtered set, and the result changed:</b> across ${nArchetypes()||'the'} archetypes, <b>${guruM('n_decisive_uncorrected_distinct')}</b> matchups clear a 95% test taken one at a time (n&ge;30 with a Wilson interval excluding 50%) &mdash; and <b>${guruM('survive_bh_fdr_05')}</b> survive a correction for the <b>${guruM('pairs_examined')}</b> pairs examined, against <b>${guruM('expected_false_positives')}</b> expected to clear that bar by chance alone (<code>data/guru.js</code>, key <code>multiplicity</code>). On clean games the archetype matrix does not separate from chance, and its predictive test scores ${guruPT('log_loss_matchup_prior')} against a coin&rsquo;s ${guruPT('log_loss_coin')} &mdash; worse than a coin. The matrix is descriptive structure, not evidence that one archetype beats another. Every archetype-vs-archetype win rate ships with a <b>Wilson confidence interval</b>, so you see how sure we are, not just a number. My matrix is what Slowking solves and what keeps the team optimiser honest.</p>
    <span class="chip">${nArchetypes()||'?'} archetypes</span><span class="chip">${datasetLine()}</span></div>
    <div class="panel"><h2>What I can and can't do</h2><p style="font-weight:600;color:#3a5372">I give <b>honest matchup rates</b>. I do <b>not</b> predict who wins a single game from team sheets — in this format that is a coin flip, and I say so plainly rather than selling a false edge.</p></div>`;
 }
@@ -1827,9 +1837,26 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
   // REAL data (GURU) drives the grid + cycle; nothing hardcoded/simulated. Thin cells are gated.
   const A=(window.GURU&&GURU.archetypes)||N.names;
   const M=(window.GURU&&GURU.matrix)||null;
-  const MINN=20;                                   // need at least this many games to call a cell
   const gc=(a,b)=> (M&&M[a]&&M[a][b])||null;
-  const isSig=c=> !!c && c.n>=MINN && (c.lo>0.5 || c.hi<0.5);   // enough games AND CI clears 50%
+  /* WHICH CELLS COUNT — READ FROM THE ARTIFACT, NOT RE-DERIVED HERE.
+   * This used to be `isSig = c.n>=20 && (c.lo>0.5||c.hi<0.5)`, and it was wrong twice over.
+   *   1. It was a PER-CELL test wearing the word "significant". Every cell of a 12x12 matrix is a
+   *      separate 95% test over 66 unordered pairs, so ~3.3 clear it by chance and 3 do. Zero
+   *      survive Benjamini-Hochberg at q=0.05 and zero survive Bonferroni (data/guru.js,
+   *      key `multiplicity`). Calling the uncorrected set significant is the claim this page must
+   *      never make.
+   *   2. It used n>=20 while engine/guru.py, which produces the artifact, uses n>=30 — a SECOND
+   *      implementation of one fact, disagreeing with the first, exactly as CLAUDE.md's
+   *      FACTS ARE GLOBAL says it eventually would. It coloured 4 distinct matchups where the
+   *      artifact records 3.
+   * So both sets are now MEMBERSHIP LOOKUPS into what data/guru.js published. Nothing is recomputed;
+   * if guru.py changes its threshold or its correction, this page follows without an edit. */
+  const key=(a,b)=>[a,b].sort().join('||');
+  const setOf=list=>{ const s=new Set(); for(const d of (list||[])) s.add(key(d.a,d.b)); return s; };
+  const SURVIVES=setOf(window.GURU&&GURU.decisive_corrected);  // survives correction for all 66 pairs
+  const PERCELL =setOf(window.GURU&&GURU.decisive);            // clears a 95% test on its own only
+  const isSig=(a,b)=> SURVIVES.has(key(a,b));                  // the only thing allowed to be called significant
+  const isPerCell=(a,b)=> PERCELL.has(key(a,b));
   const PAL=['#f2a65a','#6ec6a8','#7a9cf2','#e07a9c','#b58cf2','#f2cf5a','#5ac6d6','#f27a6b','#8ad17a','#d68cc6','#7ac6a0','#c6a05a','#9aa6e0'];
   const colOf={}; A.forEach((s,i)=>colOf[s]=PAL[i%PAL.length]);
   const pill=(s)=>`<div style="background:${colOf[s]||'#8a8f99'};color:#fff;font-weight:800;font-size:16px;padding:10px 16px;border-radius:14px;box-shadow:0 3px 0 rgba(0,0,0,.15);white-space:nowrap">${s}</div>`;
@@ -1840,40 +1867,69 @@ function renderNonTrans(){ const el=document.getElementById('nontrans'); if(!el|
     if(i===j||j===k||i===k)continue;
     const e1=gc(A[i],A[j]),e2=gc(A[j],A[k]),e3=gc(A[k],A[i]);
     if(e1&&e2&&e3&&e1.p>0.5&&e2.p>0.5&&e3.p>0.5)
-      tri.push({c:[A[i],A[j],A[k]],min:Math.min(e1.p,e2.p,e3.p),sig:isSig(e1)&&isSig(e2)&&isSig(e3)}); }
+      tri.push({c:[A[i],A[j],A[k]],min:Math.min(e1.p,e2.p,e3.p),
+                sig:isSig(A[i],A[j])&&isSig(A[j],A[k])&&isSig(A[k],A[i])}); }
   tri.sort((x,y)=>y.min-x.min); const topc=tri[0];
+  /* THE CYCLE IS THE BEST OF MANY, AND THAT IS PART OF THE CLAIM. `topc` is the max-min over every
+   * candidate triple in the matrix, so even three legs that each survived correction would have been
+   * SELECTED for being extreme. The label therefore always carries how many triples it won, and the
+   * word "significant" is gated on the corrected set — never on the per-cell one. */
   let cycles = topc ? `<div style="background:#fff;border:3px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">${pill(topc.c[0])}${beats}${pill(topc.c[1])}${beats}${pill(topc.c[2])}${beats}${pill(topc.c[0])}</div>
-      <div style="text-align:center;font-weight:700;font-size:13px;margin-top:8px;color:${topc.sig?'#1a7a42':'#c08a2a'}">${topc.sig?'↺ a real, statistically significant loop':'⚠ thin data — a hint from real games, not yet statistically significant'}</div>
-    </div>` : `<div style="text-align:center;color:#8a8f99;font-weight:700;font-size:14px;padding:10px">No rock-paper-scissors loop among the significant matchups yet — needs more games.</div>`;
+      <div style="text-align:center;font-weight:700;font-size:13px;margin-top:8px;color:${topc.sig?'#1a7a42':'#c08a2a'}">${topc.sig
+        ? '↺ every leg survives the correction for all '+guruM('pairs_examined')+' pairs — and it is still the strongest of '+tri.length+' candidate cycles, so it was selected for being extreme'
+        : '⚠ not a finding — the strongest of '+tri.length+' candidate cycles, and not one of its legs survives the correction for '+guruM('pairs_examined')+' pairs'}</div>
+    </div>` : `<div style="text-align:center;color:#8a8f99;font-weight:700;font-size:14px;padding:10px">No rock-paper-scissors loop in the matrix at all — not even an uncorrected one.</div>`;
   // supporting matrix, but readable (bigger cells/text) and collapsed by default
   const cell=(a,b)=>{ if(a===b)return `<td style="background:#f0f0f4;text-align:center;color:#bbb;font-weight:700">·</td>`;
     const c=gc(a,b);
     if(!c)return `<td title="no games yet" style="background:#f6f7fb;text-align:center;color:#c7cede;font-weight:700">–</td>`;
-    const p=Math.round(c.p*100), sig=isSig(c);
-    const tip=`${a} beats ${b} ${p}% of the time, across ${c.n} games${sig?'':' — too few games to trust yet'}`;
-    if(!sig)return `<td title="${tip}" style="background:#f4f5f8;text-align:center;font-weight:700;font-size:13px;padding:8px 10px;color:#b7c0cf;cursor:help">${p}<span style="font-size:9px">*</span></td>`;
+    const p=Math.round(c.p*100), sig=isSig(a,b), per=isPerCell(a,b);
+    const tip=`${a} beats ${b} ${p}% of the time, across ${c.n} games`
+      +(sig?'' : per ? ' — clears a 95% test on its own (data/guru.js, decisive), but does NOT survive the correction for every pair tested'
+                     : ' — does not clear a 95% test even on its own (data/guru.js, decisive)');
+    if(!sig)return `<td title="${tip}" style="background:${per?'#fff8e6':'#f4f5f8'};text-align:center;font-weight:700;font-size:13px;padding:8px 10px;color:${per?'#a8842a':'#b7c0cf'};cursor:help">${p}<span style="font-size:9px">${per?'†':'*'}</span></td>`;
     const col=c.p>=0.5?`rgba(47,180,95,${(0.2+0.7*(c.p-0.5)*2).toFixed(2)})`:`rgba(224,90,114,${(0.2+0.7*(0.5-c.p)*2).toFixed(2)})`;
     return `<td title="${tip}" style="background:${col};text-align:center;font-weight:800;font-size:14px;padding:8px 10px;color:#122;cursor:help">${p}</td>`; };
   let table=`<table style="border-collapse:collapse;margin:8px auto 0"><thead><tr><th></th>`+A.map(s=>`<th style="padding:6px 8px;font-size:12px;font-weight:800;color:${colOf[s]||'#556'};white-space:nowrap">${s}</th>`).join('')+`</tr></thead><tbody>`;
   for(const a of A){ table+=`<tr><td style="font-weight:800;font-size:12px;padding:6px 10px;text-align:right;white-space:nowrap;color:${colOf[a]||'#556'}">${a}</td>`+A.map(b=>cell(a,b)).join('')+`</tr>`; }
   table+=`</tbody></table>`;
-  el.innerHTML=`
-    ${(window.GURU&&GURU.decisive&&GURU.decisive.length)?`
-    <div style="background:#eefaf1;border:3px solid #2fb45f;border-radius:16px;padding:14px 18px;margin-bottom:18px">
-      <div style="font-weight:800;font-size:18px;color:#1a7a42">GURU — real matchups, from actual games</div>
-      <div style="font-weight:600;color:#5a6b60;font-size:14px;margin:4px 0 12px">Win rates measured from ${(GURU.n_games||0).toLocaleString()} real games (not the simulator), These are the matchups we can actually trust.</div>
-      ${(()=>{const seen=new Set(),rows=[];for(const d of GURU.decisive){const k=[d.a,d.b].sort().join('||');if(seen.has(k))continue;seen.add(k);rows.push(d.p>=0.5?d:{a:d.b,b:d.a,p:1-d.p,ci:[1-d.ci[1],1-d.ci[0]]});}return rows.slice(0,8);})().map(d=>`<div title="range ${Math.round(d.ci[0]*100)}-${Math.round(d.ci[1]*100)}% across the games we have" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+  /* one row of the trust list, given a directed matchup record */
+  const dedupe=list=>{const seen=new Set(),rows=[];for(const d of (list||[])){const k=key(d.a,d.b);if(seen.has(k))continue;seen.add(k);rows.push(d.p>=0.5?d:{a:d.b,b:d.a,p:1-d.p,ci:[1-d.ci[1],1-d.ci[0]]});}return rows;};
+  const bar=(d,col,track)=>`<div title="range ${Math.round(d.ci[0]*100)}-${Math.round(d.ci[1]*100)}% across the games we have" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         <div style="flex:1;font-weight:700;font-size:14px;text-align:right">${d.a}</div>
-        <div style="width:110px;height:22px;background:#e6efe9;border-radius:11px;overflow:hidden"><div style="height:100%;width:${Math.round(d.p*100)}%;background:linear-gradient(90deg,#7fe0a0,#2fb45f)"></div></div>
-        <div style="flex:1.3;font-weight:700;font-size:13.5px;color:#1a7a42">${Math.round(d.p*100)}% <span style="color:#8a9a90;font-weight:500">beats <b>${d.b}</b></span></div></div>`).join('')}
-    </div>`:''}
+        <div style="width:110px;height:22px;background:${track};border-radius:11px;overflow:hidden"><div style="height:100%;width:${Math.round(d.p*100)}%;background:${col}"></div></div>
+        <div style="flex:1.3;font-weight:700;font-size:13.5px;color:#556">${Math.round(d.p*100)}% <span style="color:#8a9a90;font-weight:500">beats <b>${d.b}</b></span></div></div>`;
+  /* THE TRUST PANEL. It is gated on `decisive_corrected` — the matchups that survive a correction for
+   * the whole family of tests — and NOT on `decisive`, which is the uncorrected per-cell list and
+   * counts each matchup twice. Gating a heading that reads "the matchups we can actually trust" on
+   * the uncorrected list is how a page publishes three chance findings as a result.
+   * WHEN THE CORRECTED LIST IS EMPTY THE PANEL STILL RENDERS. "Nothing survives" is the finding, and
+   * an empty panel that simply disappears would leave the room reading as though the question had
+   * never been asked. */
+  const surv=dedupe(window.GURU&&GURU.decisive_corrected), raw=dedupe(window.GURU&&GURU.decisive);
+  const trust = surv.length ? `
+    <div style="background:#eefaf1;border:3px solid #2fb45f;border-radius:16px;padding:14px 18px;margin-bottom:18px">
+      <div style="font-weight:800;font-size:18px;color:#1a7a42">GURU — matchups that survive the correction</div>
+      <div style="font-weight:600;color:#5a6b60;font-size:14px;margin:4px 0 12px">Win rates measured from ${((window.GURU&&GURU.n_games)||0).toLocaleString()} real games (not the simulator). These ${surv.length} clear a 95% test <i>and</i> survive correcting for all ${guruM('pairs_examined')} pairs examined (<code>data/guru.js</code>).</div>
+      ${surv.slice(0,8).map(d=>bar(d,'linear-gradient(90deg,#7fe0a0,#2fb45f)','#e6efe9')).join('')}
+    </div>` : `
+    <div style="background:#fff6f6;border:3px solid #f0a8a8;border-radius:16px;padding:14px 18px;margin-bottom:18px">
+      <div style="font-weight:800;font-size:18px;color:#9a2b2b">GURU — no matchup we can stand behind</div>
+      <div style="font-weight:600;color:#7a3b3b;font-size:14px;margin:4px 0 10px">Across ${((window.GURU&&GURU.n_games)||0).toLocaleString()} real games, <b>not one archetype matchup survives correcting for the ${guruM('pairs_examined')} pairs we test</b>. Every cell of the grid is its own 95% test (<code>data/guru.js</code>), so about ${guruM('expected_false_positives')} are expected to clear that bar with no real effect at all — and ${guruM('observed_uncorrected')} do. The smallest exact p-value is ${guruM('smallest_pvalue')} against a Benjamini-Hochberg threshold of ${guruM('bonferroni_threshold')}; ${guruM('survive_bh_fdr_05')} survive that and ${guruM('survive_bonferroni')} survive Bonferroni.</div>
+      <div style="font-weight:700;color:#9a2b2b;font-size:14px;margin-bottom:10px">This panel used to show a list under the heading "the matchups we can actually trust". There is no such list. That is the result, not a gap in the page.</div>
+      ${raw.length?`<details><summary style="cursor:pointer;font-weight:700;color:#8a6d2a;font-size:13.5px">Show the ${raw.length} in <code>data/guru.js</code> that clear a 95% test one at a time &mdash; none of them is evidence</summary>
+        <div style="margin-top:10px">${raw.slice(0,8).map(d=>bar(d,'linear-gradient(90deg,#f0d79a,#d8a83a)','#f2ece0')).join('')}</div></details>`:''}
+      <div style="font-size:12.5px;color:#8a6d2a;font-weight:600;margin-top:8px">Arithmetic read from <code>data/guru.js</code>, key <code>multiplicity</code>; the matrix itself from <code>data/guru-matchups.json</code>.</div>
+    </div>`;
+  el.innerHTML=`
+    ${trust}
     <div style="text-align:center;font-weight:800;font-size:20px;color:#c0563f;margin-bottom:14px">Is the meta rock-paper-scissors? <span style="font-size:13px;color:#99a;font-weight:600">(from real games)</span></div>
     ${cycles}
     <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:800;font-size:15px;color:#556;padding:6px 0">See the full win-rate grid (green = row beats column)</summary>
       <div style="overflow-x:auto">${table}</div></details>
     <div style="margin-top:14px;padding:12px 14px;background:#fff8e6;border:2px solid #e8cf7a;border-radius:12px;font-size:14px;color:#8a6d2a;font-weight:600;line-height:1.5">
-      <b>Live from real games — not simulated.</b> Every cell is counted from real ladder results — hover any cell to see how many games it rests on. Greyed cells marked <b>*</b> do not have enough games yet to be trusted, so treat them as unknown. Only the coloured cells are claims we stand behind. New archetypes appear here automatically as GURU identifies them.</div>`;
+      <b>Live from real games — not simulated.</b> Every cell is counted from real ladder results — hover any cell to see how many games it rests on. Grey cells marked <b>*</b> do not clear a 95% test even taken on their own (<code>data/guru.js</code>). Amber cells marked <b>†</b> do clear one on their own and then <b>fail</b> the correction for every pair tested — they are the ones you would mistake for findings. A cell is coloured green or red only if it survives that correction, and <b>on this matrix none does</b>, so the grid is currently a description of what happened and not a claim about what beats what. New archetypes appear here automatically as GURU identifies them.</div>`;
 }
 /* compact, overflow-proof number formatting: 4,999 -> "4,999", 1.2M, 250K */
 function fmtNum(n){ if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:1)+'M'; if(n>=1e5) return Math.round(n/1e3)+'K'; return n.toLocaleString(); }

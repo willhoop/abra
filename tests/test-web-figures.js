@@ -25,9 +25,13 @@
  * Raising the floor after wiring figures up is the intended edit; lowering it is the thing this
  * exists to make someone justify out loud.
  *
- * THE FLOOR IS BELOW HALF, AND THAT IS THE FINDING. Publishing a flattering first measurement would
- * have made the metric worthless. Most of what fails sits in `web/stadium.html`, whose cabinets
- * carry real results in prose with no artifact named beside them.
+ * THE FIRST MEASUREMENT WAS BELOW HALF, AND THAT WAS THE FINDING. Publishing a flattering first
+ * number would have made the metric worthless. It opened at 27.4% (17 of 62) with `web/stadium.html`
+ * at a flat 0 of 24 — twelve cabinets carrying real results in prose with no artifact named beside
+ * them. That was fixed on 2026-08-04 by citing each cabinet's artifact and, where the cabinet had
+ * drifted from it, by quoting the artifact instead: MEDICHAM's "~44%, below chance" and SLOWKING's
+ * 0.84/0.16 mixture appear in no file on disk any more and are struck out rather than deleted.
+ * The floor moved 25.0 -> 80.0 in the same pass. RAISING it is the intended edit.
  */
 'use strict';
 const path = require('path');
@@ -35,15 +39,19 @@ const ROOT = path.join(__dirname, '..');
 const { audit } = require(path.join(ROOT, 'web', 'figure-audit.js'));
 
 /* ================================================================================================
- * THE FLOOR. Measured 2026-08-04 at 27.4% overall (17 of 62). Set a little under, so that ordinary
- * copy-editing does not turn the guard red, and so that a real regression does.
+ * THE FLOOR. Measured 2026-08-04 at 84.3% overall (70 of 83), up from 27.4% (17 of 62) the same day.
+ * Set a little under, so that ordinary copy-editing does not turn the guard red, and so that a real
+ * regression does.
  * RAISE THIS whenever the real number rises. Never lower it without saying why in the same commit.
  * ============================================================================================== */
-const FLOOR_PCT = 25.0;
+const FLOOR_PCT = 80.0;
 /* Withdrawn figures are struck out on the page and out of the denominator. If that count DROPS, a
  * retracted claim was quietly deleted or quietly un-struck, which is the failure the strike exists
- * to prevent. Measured 2026-08-04: 19 (the twin-test paragraph in web/index.html). */
-const MIN_WITHDRAWN = 19;
+ * to prevent. Measured 2026-08-04: 26 — 19 from the twin-test paragraph in web/index.html, plus 7
+ * from web/stadium.html, where MEDICHAM's superseded win-rate reading and SLOWKING's superseded
+ * equilibrium were struck out rather than deleted when the cabinets were reconciled to their
+ * artifacts. Deleting them would have hidden that the page ever made those claims. */
+const MIN_WITHDRAWN = 26;
 
 let P = 0, F = 0;
 const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; console.log('  FAIL ' + m); } };

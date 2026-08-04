@@ -129,7 +129,78 @@
   .foot{ margin-top:30px; text-align:center; font-size:11.5px; color:#93a2dd; line-height:1.7; }
   .foot code{ font-family:ui-monospace,Consolas,monospace; color:var(--bolt); }
 
-  @media (prefers-reduced-motion:reduce){ .cab{ transition:none; } }
+  /* ================= SPRITES, AND THE FALLBACK THAT MUST NEVER BE AN EMPTY BOX ==============
+     The animated GIFs come from play.pokemonshowdown.com, the same host web/index.html uses.
+     This page is ALSO published as a claude.ai artifact, and that sits behind a CSP that blocks
+     every external host — so the sprite is drawn ON TOP of the procedural canvas art, never
+     instead of it. The canvas is painted first and always; the <img> is transparent until it
+     actually loads (`.on`), and an error just leaves it hidden. Blocked host, 404, offline
+     file:// — all three end at the same place: the cabinet art, which carries the meaning. */
+  .stagewrap{ position:relative; }
+  .sprite{
+    position:absolute; right:8px; bottom:8px; width:88px; height:88px; object-fit:contain;
+    image-rendering:pixelated; opacity:0; transition:opacity .25s;
+    filter:drop-shadow(0 3px 0 rgba(0,0,0,.5));
+    pointer-events:none;
+  }
+  .sprite.on{ opacity:1; animation:bob 2.4s ease-in-out infinite; }
+  .cab .sprite{ right:4px; bottom:4px; width:46px; height:46px; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
+
+  /* ================= THE CONTROL RAIL: buttons, dials, meters ============================ */
+  .rail{ display:flex; flex-wrap:wrap; gap:9px; align-items:stretch; margin:2px 0 10px; }
+  .btn3d{
+    font:inherit; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    cursor:pointer; color:var(--ink); background:linear-gradient(#ffe271,var(--bolt) 60%,#d9a406);
+    border:3px solid var(--ink); border-radius:9px; padding:9px 13px;
+    box-shadow:0 5px 0 rgba(0,0,0,.55), var(--bevel);
+    transition:transform .06s steps(2), box-shadow .06s steps(2);
+  }
+  .btn3d:hover{ filter:brightness(1.07); }
+  .btn3d:active,.btn3d[aria-pressed="true"]{ transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.55), var(--bevel); }
+  .btn3d:focus-visible{ outline:3px solid #fff; outline-offset:2px; }
+  .btn3d.cool{ background:linear-gradient(#9ad4ff,#4a7ae0 60%,#2b3f9e); color:#08102e; }
+  .btn3d.hot{ background:linear-gradient(#ff8f7f,var(--ball) 60%,#8d1c13); color:#fff2ef; }
+
+  .dial{ display:flex; gap:0; border:3px solid var(--ink); border-radius:9px; overflow:hidden;
+    box-shadow:0 5px 0 rgba(0,0,0,.55), var(--bevel); background:#0f1747; }
+  .dial button{
+    font:inherit; font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    cursor:pointer; border:0; border-right:2px solid var(--ink); background:#26306e; color:#c3cdf5;
+    padding:9px 11px;
+  }
+  .dial button:last-child{ border-right:0; }
+  .dial button[aria-pressed="true"]{ background:linear-gradient(#ffe271,var(--bolt)); color:var(--ink); }
+  .dial button:focus-visible{ outline:3px solid #fff; outline-offset:-3px; }
+
+  .knobwrap{ display:flex; align-items:center; gap:9px; background:#0f1747; border:3px solid var(--ink);
+    border-radius:9px; padding:6px 11px; box-shadow:0 5px 0 rgba(0,0,0,.55), var(--bevel); }
+  .knobwrap label{ font-size:9.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#8fa0e0; }
+  .knobwrap input[type=range]{ width:118px; accent-color:var(--bolt); }
+
+  .meters{ display:grid; gap:7px; margin:0 0 12px; }
+  .meterrow{ display:grid; grid-template-columns:minmax(84px,auto) 1fr minmax(64px,auto); gap:9px; align-items:center; }
+  .meterrow .ml{ font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#8fa0e0; }
+  .meterrow .mv{ font-family:ui-monospace,Consolas,monospace; font-size:13px; font-weight:700; color:var(--bolt); text-align:right; }
+  .meterrow .mv.nm{ color:var(--bad); font-size:10.5px; letter-spacing:.04em; }
+  .bar{ height:16px; background:#0b1038; border:2px solid var(--ink); border-radius:8px; overflow:hidden; box-shadow:var(--bevel); }
+  .bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,#ffe271,var(--bolt)); transition:width .45s cubic-bezier(.2,.9,.3,1); }
+  .bar i.cool{ background:linear-gradient(90deg,#9ad4ff,var(--sky)); }
+  .bar i.hot{ background:linear-gradient(90deg,#ff9c8f,var(--ball)); }
+  .bar.line{ position:relative; }
+  .bar.line::after{ content:""; position:absolute; top:-2px; bottom:-2px; left:50%; width:3px; background:var(--ball); }
+
+  .read{ background:#0f1747; border:2px solid var(--ink); border-left:7px solid var(--sky); border-radius:8px;
+    padding:9px 12px; margin:0 0 12px; font-size:12px; line-height:1.55; color:#d7e0ff; box-shadow:var(--bevel); }
+  .read b{ color:var(--bolt); }
+  .read code{ font-family:ui-monospace,Consolas,monospace; color:#9ad4ff; font-size:11px; }
+  .read .nm{ color:var(--bad); font-weight:800; }
+
+  @media (prefers-reduced-motion:reduce){
+    .cab{ transition:none; }
+    .sprite.on{ animation:none; }
+    .bar i{ transition:none; }
+  }
 </style>
 
 <div class="stadium">
@@ -155,10 +226,15 @@
       <span class="game" id="dGame"></span>
     </div>
     <div class="dgrid">
-      <div class="stage"><canvas id="stage" width="640" height="460" aria-hidden="true"></canvas></div>
+      <div class="stage stagewrap"><canvas id="stage" width="640" height="460" aria-hidden="true"></canvas><img class="sprite" id="dSprite" alt="" aria-hidden="true"></div>
       <div class="dbody">
         <p class="acr" id="dAcr"></p>
         <div class="dsec"><h4>What it does</h4><p id="dJob"></p></div>
+        <div class="dsec"><h4>Have a go</h4>
+          <div class="rail" id="dRail"></div>
+          <div class="meters" id="dMeters"></div>
+          <div class="read" id="dRead"></div>
+        </div>
         <div class="dsec"><h4>Why this Pokémon</h4><p id="dWhy"></p></div>
         <div class="stats" id="dStats"></div>
         <div class="honest"><span class="k">The honest part</span><p id="dHonest"></p></div>
@@ -186,114 +262,106 @@
   var MODELS = [
     {
       key:"medicham", mon:"MEDICHAM", game:"Clear-Cut Challenge", div:"ENGINE", status:"open",
-      acr:"Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves",
       role:"Plays the matchup out and reports what happened",
-      job:"The simulator. A real Gen-9 doubles Monte-Carlo rollout — damage formula with boosts, spread ×0.75, crits, rolls, STAB, weather, Trick Room, Tailwind, priority, Protect, items and a validated ability layer. Everything else on this screen is downstream of it being right.",
+      job:"The simulator. A real Gen-9 doubles Monte-Carlo rollout — damage formula with boosts, spread ×0.75, crits, rolls, STAB, weather, Trick Room, Tailwind, priority, Protect, items and a validated ability layer, all of it implemented in <code>engine/medicham2-browser.js</code>. Everything else on this screen is downstream of it being right.",
       why:"Medicham's whole identity is <em>Pure Power</em> — an ability that does nothing but double the Attack stat. It is the Pokémon that exists to make the damage number correct, which is exactly this model's one job.",
       stats:[
-        {k:"Mechanics live", v:"42 / 54", n:"12 missing. Census 2026-08-04."},
-        {k:"Damage vs Smogon calc", v:"100%", n:"Within 5% on every validated scenario, median error 0%."},
-        {k:"Showdown differentials", v:"6 / 120", n:"And 5 of the 6 turned out to be harness bugs, not engine bugs."},
-        {k:"Tag coverage", v:"53 / 176", n:"123 tags never probed."}
+        {k:"Mechanics live", v:"102 / 144", n:"42 missing. <code>data/mechanics-census.json</code>."},
+        {k:"Damage vs Smogon calc", v:"100%", n:"Within 5% on all 36 scenarios, worst 3%. <code>data/damage-validation.json</code>."},
+        {k:"Showdown differentials", v:"1 / 150", n:"Seed 20260804. <code>data/engine-diff.json</code>."},
+        {k:"Tag coverage", v:"137 / 176", n:"39 tags never probed. <code>node engine/status.js</code>."}
       ],
-      honest:"Its win% does not beat a coin — log-loss 1.2 against 0.69, and it picks the winner on ~44% of decisive calls, which is <em>below</em> chance. Below chance is not noise: it means the number is systematically inverted, because the policy backs fast offensive teams and those teams lose more. The damage math is validated. The win probability is a matchup heuristic wearing a probability's clothes."
+      honest:"Its win% does not beat a coin. On the held-out fifth the live in-game leaf is <em>worse</em> than a coin on Brier — paired +0.0502, 95% CI [0.0371, 0.0628], where lower is better — and it names the winner on 51.0% of 1,314 decisive calls, 95% CI [48.3, 53.7], an interval that contains chance, with ECE 0.1811 (<code>data/winrate-backtest.json</code>). This cabinet previously read <s class='wd' title='Withdrawn 2026-08-04 — the 2026-07-23 reading, superseded by data/winrate-backtest.json measured 2026-08-04, which puts accuracy at 51.0% with a CI containing 50%.'>log-loss 1.2 against 0.69 and ~44% of decisive calls, which is below chance and therefore systematically inverted</s>; the current artifact does not support the inversion, so it is struck out here rather than quietly deleted. The damage math is validated. The win probability is a matchup heuristic wearing a probability's clothes."
     },
     {
       key:"mag", mon:"MAGNEMITE", game:"Pichu's Power Plant", div:"THE SEAM", status:"live",
-      acr:"Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates",
       role:"Picks the move by reading the other side of the field",
-      job:"The live policy — the thing that actually clicks. 53 features off a reconstructed board, fitted to real human choices by conditional logit over 6,091 clean open-sheet games and 146,910 decisions.",
+      job:"The live policy — the thing that actually clicks. 58 features off a reconstructed board, fitted to real human choices by conditional logit over 8,414 clean open-sheet games and 220,613 decisions, as recorded by <code>data/policy-weights.json</code>.",
       why:"A magnet does not choose by habit, it is <em>pulled</em> by what is across from it. That is the entire argument for MAG over the behaviour clone it replaced: the clone asked what this species usually clicks, and MAG asks what this board deserves.",
       stats:[
-        {k:"Features", v:"53", n:"Up from 12 at v3.21.0."},
-        {k:"Decisions fitted", v:"146,910", n:"117,824 train / 29,086 held out."},
-        {k:"Greedy over sampling", v:"79.7%", n:"Of decisive pairs. Measured 2026-07-30."},
-        {k:"Self-play improvement", v:"55.9%", n:"REINFORCE with a trust region."}
+        {k:"Features", v:"58", n:"Up from 12 at v3.21.0. <code>data/policy-weights.json</code>."},
+        {k:"Decisions fitted", v:"220,613", n:"176,580 train / 44,033 held out. <code>data/policy-weights.json</code>."},
+        {k:"Greedy over sampling", v:"79.7%", n:"Of decisive pairs, 2026-07-30. <code>docs/MODELS.md</code>."},
+        {k:"Self-play improvement", v:"55.9%", n:"Reconciled — see the honest part. <code>docs/MODELS.md</code>."}
       ],
-      honest:"Two changes to how the policy is <em>used</em> beat every change to what it knows, and over the same period four separate feature additions produced four measured nulls. An overdispersion check (~1.00) says those nulls are real rather than a true effect hidden by team variation. The objective is the binding constraint, not the knowledge."
+      honest:"Two changes to how the policy is <em>used</em> beat every change to what it knows, and over the same period four separate feature additions produced four measured nulls. An overdispersion check (~1.00, against 1.169 for a known real effect) says those nulls are real rather than a true effect hidden by team variation (<code>docs/MODELS.md</code>). The 55.9% self-play figure above does not generalise and the ledger says so: it was measured on the 53-feature vector with switching OFF, and repeating it on 56 features with switching ON gives 48.1% [46.5, 49.8] over 9,728 paired games — an interval entirely below 50, i.e. training made the policy worse. Both stand as measurements of different configurations. The objective is the binding constraint, not the knowledge."
     },
     {
       key:"miltank", mon:"MILTANK", game:"Rampage Rollout", div:"SEARCH", status:"live",
-      acr:"The search player — bring, lead, mega and post-KO replacement",
       role:"Decides by playing it out instead of by scoring once",
       job:"Search on top of MAG. Where MAG scores an action once, MILTANK rolls the position forward many times and takes the choice that survives. It owns the bring, the lead, the mega timing and the post-KO replacement.",
       why:"Miltank's signature move is <em>Rollout</em> — a move that gets stronger the longer it keeps going. This model decides by rolling positions out. The name is not a pun that was retrofitted; it is a description.",
       stats:[
-        {k:"Beats MAG greedy", v:"55.5%", n:"Of 535 decisive pairs. 95% CI [51.3, 59.7]."},
-        {k:"Corpus", v:"2,624 games", n:"1,312 seed pairs. The 5,248 figure was a line count."},
-        {k:"Splits discarded", v:"777", n:"1-1 pairs the SPRT cannot score."},
-        {k:"Divergence from MAG", v:"72.9%", n:"Over 70 decisions (R3)."}
+        {k:"Beats MAG greedy", v:"55.5%", n:"Of 535 decisive pairs, CI [51.3, 59.7]. <code>data/rollout-r4.json</code>."},
+        {k:"Corpus", v:"2,624 games", n:"1,312 seed pairs. <code>data/rollout-r4.json</code>."},
+        {k:"Splits discarded", v:"777", n:"1-1 pairs the SPRT cannot score. <code>data/rollout-r4.json</code>."},
+        {k:"Divergence from MAG", v:"80.2%", n:"Over 121 decisions. <code>data/rollout-r3.json</code>."}
       ],
-      honest:"The run stopped at an SPRT boundary, so 55.5% is <em>biased high</em> by the stopping rule — the verdict carries the error rate, the point estimate does not. There is no A/A noise floor for this comparison; three split-half cuts (0.2, 3.9, 1.3 points against an effect of 5.5) stand in for one and are labelled a substitute. And the engine moved after the games were played, so transfer to the current build is an assumption."
+      honest:"The run stopped at an SPRT boundary, so 55.5% is <em>biased high</em> by the stopping rule — the verdict carries the error rate, the point estimate does not. There is no A/A noise floor for this comparison; three split-half cuts (0.2, 3.9, 1.3 points against an effect of 5.5) stand in for one and are labelled a substitute, and all four figures are carried by <code>data/rollout-r4.json</code> itself. And the engine moved after the games were played, so transfer to the current build is an assumption the artifact states rather than tests."
     },
     {
       key:"doduo", mon:"DODUO", game:"Twinneedle Trial", div:"SEARCH", status:"stale",
-      acr:"Doubles Optimiser: Decisions United, One turn",
       role:"Scores the pair of choices, not two choices separately",
       job:"18 coordination features over the joint action — focus-fire kills, redirect-then-attack, boosts-partner-damage, double KO, screen-while-threatened. A policy that picks each slot independently can be set positions that <em>require</em> coordination and will fail them every single time.",
       why:"Two heads on one body. Two slots, one decision. Doduo is the only Pokémon whose anatomy is the architecture diagram.",
       stats:[
-        {k:"Coordination features", v:"18", n:"On top of the 53 single-action ones."},
-        {k:"Measured", v:"42.0%", n:"Built, wired, controlled and measured."},
+        {k:"Coordination features", v:"18", n:"On top of the single-action ones. <code>docs/MODELS.md</code>."},
+        {k:"Measured", v:"42.0%", n:"[39.9, 44.3] over 1,934 games. <code>docs/MODELS.md</code>."},
         {k:"Win rate when trained", v:null, n:"No artifact. Trainable for winning since 2026-07-31; not yet measured."}
       ],
-      honest:"This was retired once and the retirement was wrong. It rested on the double-target rate — 24.6% against humans' 23.2% — and that statistic touches 2 of the 18 features. Judging a team-coordination model by a targeting number is judging a ninth of it."
+      honest:"This was retired once and the retirement was wrong. It rested on the double-target rate — 24.6% against humans' 23.2%, recorded in <code>docs/MODELS.md</code> — and that statistic touches 2 of the 18 features. Judging a team-coordination model by a targeting number is judging a ninth of it."
     },
     {
       key:"wobbuffet", mon:"WOBBUFFET", game:"Barrier Ball", div:"MEASURE", status:"stale",
-      acr:"The counter that exists only to beat MAG",
       role:"Measures how readable we are, not how strong",
       job:"Hill-climbs over MAG's own feature weights, maximising win rate <em>against</em> MAG. If a challenger drawn from the same features can beat us badly, we are readable.",
       why:"Counter and Mirror Coat. Wobbuffet has no offence of its own — whatever you throw, it returns the thing that beats it. That is the measurement.",
       stats:[
-        {k:"Beat MAG", v:"63.2%", n:"95% CI [56.6, 69.3]. Mirror control 47.5%."},
-        {k:"Found in", v:"40 min", n:"On the 17-feature vector."},
-        {k:"Generations stale", v:"3", n:"17 features then, 53 now."}
+        {k:"Beat MAG", v:"63.2%", n:"CI [56.6, 69.3], mirror control 47.5%. <code>data/exploitability.json</code>."},
+        {k:"Rounds run", v:"18", n:"220 games per evaluation. <code>data/exploitability.json</code>."},
+        {k:"Generations stale", v:"3", n:"17 features then, 58 now. <code>data/policy-weights.json</code>."}
       ],
-      honest:"Exploitability grades <em>can a prepared opponent read us</em> — an adversary who studies you over many games. A tournament opponent has never seen you play. It is a real number and it is not the same as do we win, which has never been measured against a human at all."
+      honest:"Exploitability grades <em>can a prepared opponent read us</em> — an adversary who studies you over many games. A tournament opponent has never seen you play. It is a real number and it is not the same as do we win, which has never been measured against a human at all. It is also a LOWER bound by construction and the artifact says so: the search moves MAG's own 17 weights, so a wider policy class would find at least this much (<code>data/exploitability.json</code>)."
     },
     {
       key:"machamp", mon:"MACHAMP", game:"Streaming Stampede", div:"MEASURE", status:"stale",
-      acr:"Match-Arbitrated CHAMpion Promotion",
       role:"Makes MAG stronger by winning, not by resembling people",
-      job:"Champion/challenger hill-climb over MAG's weights. Candidates play the current champion over hundreds of seed-matched games and are promoted only when a Wilson interval clears 50% — so the bar rises every generation.",
+      job:"Champion/challenger hill-climb over MAG's weights, as described in <code>docs/MODELS.md</code>. Candidates play the current champion over hundreds of seed-matched games and are promoted only when a Wilson interval clears 50% — so the bar rises every generation.",
       why:"Four arms, and a name that is just the word champion. Machamp is a tournament bracket with a face.",
       stats:[
-        {k:"Generations run", v:"2 of 6", n:"Recorded no verdict."},
-        {k:"Vector then / now", v:"17 / 56", n:"The artifact could not be loaded against today's features."},
-        {k:"Kill proxy shift", v:"+0.34 → +2.75", n:"Re-optimising the same features for winning instead of imitation."}
+        {k:"Generations run", v:"2 of 6", n:"Recorded no verdict. <code>docs/MODELS.md</code>."},
+        {k:"Vector then / now", v:"17 / 58", n:"Then <code>docs/MODELS.md</code>, now <code>data/policy-weights.json</code>."},
+        {k:"Kill proxy shift", v:"+0.34 → +2.75", n:"Winning instead of imitation. <code>docs/MODELS.md</code>."},
+        {k:"Win rate vs champion", v:null, n:"No artifact. The run recorded no verdict and its weights were deleted 2026-08-02."}
       ],
-      honest:"Half-run and stale, and it is the single largest untested lever in the project. Every other model here is fitted to predict a human click, which is a ceiling — MACHAMP is the only component whose objective is the thing actually wanted. Its old artifact was deleted 2026-08-02 rather than left to be loaded wrongly."
+      honest:"Half-run and stale, and it is the single largest untested lever in the project. Every other model here is fitted to predict a human click, which is a ceiling — MACHAMP is the only component whose objective is the thing actually wanted. Its old artifact was deleted 2026-08-02 rather than left to be loaded wrongly, so nothing on this cabinet can be re-derived: the figures above are read from <code>docs/MODELS.md</code>, which is a ledger entry and not a report a script can re-run."
     },
     {
       key:"slowking", mon:"SLOWKING", game:"Topsy-Turvy", div:"SEARCH", status:"live",
-      acr:"Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver",
       role:"Solves the bring as an equilibrium, not as a best guess",
       job:"The poker stack — CFR to DeepStack to Libratus to ReBeL — pointed at VGC. Solves the archetype matchup matrix to a mixed strategy and grades it by exploitability, which is the bar that actually matters when the opponent gets to respond.",
       why:"Slowpoke with a crown becomes brilliant and slow. This is the model that refuses to answer quickly because the fast answer is the exploitable one.",
       stats:[
-        {k:"Equilibrium", v:"0.84 / 0.16", n:"Kingambit-Basculegion / Garchomp-Incineroar."},
-        {k:"Exploitability", v:"≈ 0", n:"Against uniform's 0.109."},
-        {k:"Greedy minus Nash", v:"0.026", n:"CI [-0.0001, 0.1498] — includes zero."}
+        {k:"Equilibrium", v:"0.66 / 0.22 / 0.12", n:"Gengar-Incineroar / Charizard-Garchomp / Pelipper-Archaludon. <code>data/slowking-eval.json</code>."},
+        {k:"Exploitability", v:"0.0001", n:"Against uniform's 0.0761. <code>data/slowking-eval.json</code>."},
+        {k:"Greedy minus Nash", v:"0.0409", n:"CI [-0.0001, 0.1735] — includes zero. <code>data/slowking-eval.json</code>."}
       ],
-      honest:"Greedy ≈ Nash here, because this metagame is currently near-transitive at the archetype level. That is an honest finding, not a win for mixing. The claim that the metagame is cyclic was <em>withdrawn</em> 2026-08-02: the strongest candidate cycle rates itself unsupported, with legs resting on as few as 5 games. Non-transitivity is unestablished, which is not the same as absent."
+      honest:"The mixture above is solved over GURU's matchup matrix, and GURU's own cabinet is the caveat: not one cell of that matrix survives a correction for the 66 pairs tested. A Nash solution over a matrix of noise says nothing either way. The claim that the metagame is cyclic was <em>withdrawn</em> 2026-08-02 and the artifact still rates its own strongest cycle <code>supported: false</code> — legs of 49, 37 and 15 games against a 50-game bar, and it is the best of 1,320 candidate triples, which is what noise looks like (<code>data/slowking-eval.json</code>). Non-transitivity is unestablished, which is not the same as absent. Earlier versions of this cabinet quoted <s class='wd' title='Withdrawn 2026-08-04 — a 0.84/0.16 mixture over Kingambit-Basculegion and Garchomp-Incineroar, uniform exploitability 0.109 and a greedy-minus-Nash of 0.026 CI [-0.0001, 0.1498]. No current artifact contains any of them; data/slowking-eval.json supersedes all four.'>0.84 / 0.16, uniform 0.109, and a gap of 0.026</s>, and no artifact on disk contains those numbers any more."
     },
     {
       key:"xatu", mon:"XATU", game:"Gutsy Golbat", div:"ENGINE", status:"live",
-      acr:"The belief state — what the opponent could still be",
       role:"Narrows the opponent's set as they prove things",
       job:"Replaces a fixed usage table with a per-slot information state. The hardest constraint is one a usage table cannot express: a Pokémon has exactly four moves, so once four are revealed every other move is impossible, however popular.",
       why:"Xatu stands still all day with one eye on the past and one on the future. It is the Pokémon that does nothing but watch and infer.",
       stats:[
-        {k:"Cross-entropy", v:"1.824", n:"Against the usage prior's 1.863. Uniform floor 6.06."},
-        {k:"Improvement", v:"+0.028", n:"95% CI [0.024, 0.031], clustered by game. Clears zero."},
-        {k:"When all 4 known", v:"1.695", n:"Against the prior's 2.219 — the four-move cap doing the work."}
+        {k:"Cross-entropy", v:"1.824", n:"Usage prior 1.863, uniform floor 6.06. <code>docs/MODELS.md</code>."},
+        {k:"Improvement", v:"+0.028", n:"CI [0.024, 0.031], clustered by game. <code>docs/MODELS.md</code>."},
+        {k:"When all 4 known", v:"1.695", n:"Against the prior's 2.219 — the four-move cap doing the work, per <code>docs/MODELS.md</code>."}
       ],
       honest:"This is the move slot only. Items and abilities are unknown-until-proven the same way and are tracked but not scored. EVs are different in kind — a damage roll bounds a stat to an interval and moving first proves only an inequality, so a spread never collapses to a value the way an item does. That needs a separate estimator that does not exist."
     },
     {
       key:"mew", mon:"MEW", game:"Egg Emergency", div:"MEASURE", status:"live",
-      acr:"The self-play data engine",
       role:"Removes the sample-size limit on every question about the game",
       job:"Plays the official pinned Showdown Champions engine against itself on real six-Pokémon teams sampled from the clean store. Logs go through the same extract() as a downloaded replay, so self-play records are identical in shape and every downstream reader works unchanged.",
       why:"Mew is the ancestor every other Pokémon is descended from. This is the model that generates the games the others learn from.",
@@ -302,24 +370,22 @@
         {k:"Mirror symmetry", v:"51.0%", n:"95% CI [45.4, 56.6] on 300 battles — no side bias."},
         {k:"Human evidence produced", v:null, n:"Zero, by construction."}
       ],
-      honest:"Human replays arrive at ~330 clean games a day, and 1,124 of them can only detect an edge of ~4.2 accuracy points — a 2-point effect needs ~4,900. Self-play fixes that and produces <em>zero</em> evidence about people. Two bad batches shipped before the gate existed and nothing detected either: one filled every unrevealed slot with Tackle, one used a flat spread that understated Garchomp's Attack by 13%."
+      honest:"Human replays arrive at ~330 clean games a day, and 1,124 of them can only detect an edge of ~4.2 accuracy points — a 2-point effect needs ~4,900, all four figures from <code>docs/MODELS.md</code>. Self-play fixes that and produces <em>zero</em> evidence about people. Two bad batches shipped before the gate existed and nothing detected either: one filled every unrevealed slot with Tackle, one used a flat spread that understated Garchomp's Attack by 13%."
     },
     {
       key:"jolteon", mon:"JOLTEON", game:"Furret's Frolic", div:"MEASURE", status:"live",
-      acr:"Joint Odds, Ladder-Trained Expected-Outcome Network",
       role:"Instant pre-game win probability from two sheets",
       job:"A Bradley-Terry style logistic — learned per-species strengths plus speed and firepower edges plus a team-versus-team coverage term, through a sigmoid. Rarity-aware shrinkage, recency-weighted.",
       why:"Jolteon is the fastest thing in its evolution line and it does one thing instantly. This is the cheap prior you call when you cannot afford a rollout.",
       stats:[
-        {k:"Accuracy", v:"~55%", n:"At the format's skill ceiling."},
-        {k:"Log-loss", v:"0.699", n:"A coin is 0.693. Player Elo is 0.687."},
-        {k:"Calibration temp", v:"≈ 6", n:"Badly overconfident before scaling."}
+        {k:"Accuracy", v:"~55%", n:"At the format's skill ceiling. <code>docs/MODELS.md</code>."},
+        {k:"Log-loss", v:"0.699", n:"Coin 0.693, player Elo 0.687. <code>docs/MODELS.md</code>."},
+        {k:"Calibration temp", v:"≈ 6", n:"Overconfident before scaling. <code>docs/MODELS.md</code>."}
       ],
-      honest:"Its retirement was withdrawn, and the reason matters: the old verdict was reached on a model trained through the raw ladder store, which is ~87% bots, forfeits and stubs. Retrained on self-play it became genuinely predictive. The model was never the problem — the population was."
+      honest:"Its retirement was withdrawn, and the reason matters: the old verdict was reached on a model trained through the raw ladder store, which <code>docs/MODELS.md</code> records as ~87% bots, forfeits and stubs. Retrained on self-play it became genuinely predictive. The model was never the problem — the population was."
     },
     {
       key:"ditto", mon:"DITTO", game:"Tumbling Togepi", div:"SEARCH", status:"parked",
-      acr:"Double-oracle Iterative Team-Tuning Optimiser",
       role:"Turns your seed team into its best version against the live meta",
       job:"Solves the Nash equilibrium over the archetype matchup matrix, best-responds to it, and hill-climbs on the grounded MEDICHAM value — using the cheap prior only to shortlist candidates. Enforces the item clause.",
       why:"Ditto's whole move is Transform: hand it a thing and it becomes a better-fitting version of that thing. That is literally the API.",
@@ -331,7 +397,6 @@
     },
     {
       key:"kadabra", mon:"KADABRA", game:"Delibird's Delivery", div:"OPS", status:"live",
-      acr:"Key Analysis of Decisions, Advice & Better Replay Annotation",
       role:"Takes you to the turns that actually mattered",
       job:"Parses a replay log for decisive turns — KOs, losses — then walks them move by move with sprites, HP and a prescriptive panel. Works offline from a locally bundled set of recent games.",
       why:"Kadabra holds a spoon and reads what already happened. It is the only model on this screen that looks backwards.",
@@ -339,7 +404,7 @@
         {k:"Decisive-turn walkthrough", v:"Live", n:"Offline capable, raw-log paste fallback."},
         {k:"Prescriptive text quality", v:null, n:"Heuristic prose, not equilibrium-grade."}
       ],
-      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(1.256·alive_diff + 1.544·hp_diff), it ties that two-feature material baseline exactly, and the turn term is structurally pinned to zero. The chip still renders — it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
+      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(1.256·alive_diff + 1.544·hp_diff) — the reduction is recorded in <code>docs/MODELS.md</code> and the weights themselves ship in <code>data/pory.js</code> — it ties that two-feature material baseline exactly, and the turn term is structurally pinned to zero. The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
     }
   ];
 
@@ -349,6 +414,24 @@
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var grid = document.getElementById("grid");
+
+  /* ---------- sprites ----------------------------------------------------------------------
+     Same host as web/index.html so the two pages look like one site. The sprite is a BONUS
+     layer: it is appended over art that is already drawn, it starts at opacity 0, and it only
+     becomes visible in the `load` handler. Blocked by a CSP, 404, or offline — the handler
+     never fires, the element stays invisible, and the cabinet art is what the reader sees.
+     There is deliberately no second remote fallback here: on a CSP-blocked page a chain of
+     remote URLs is a chain of the same failure. */
+  var SPRITE_HOST = "https://play.pokemonshowdown.com/sprites/ani/";
+  function wireSprite(img, mon){
+    img.classList.remove("on");
+    img.style.display = "";
+    img.onload  = function(){ img.style.display = ""; img.classList.add("on"); };
+    /* display:none rather than opacity:0 — an element that is merely transparent is still a box
+       over the artwork, and "invisible if the transition finishes" is not a guarantee. */
+    img.onerror = function(){ img.classList.remove("on"); img.style.display = "none"; img.removeAttribute("src"); };
+    img.src = SPRITE_HOST + String(mon).toLowerCase() + ".gif";
+  }
 
   /* ---------- the stage ---------- */
   var stage = document.getElementById("stage");
@@ -361,10 +444,16 @@
     d.hidden = false;
     document.getElementById("dName").textContent = current.mon;
     document.getElementById("dGame").textContent = "Cabinet · " + current.game;
-    document.getElementById("dAcr").textContent = current.acr;
+    /* PLAIN WORDS, NOT A BACKRONYM. The `acr:` field is retired from display (Will, 2026-08-04:
+       "I thought we shortened model names so they dont have dumb long acronyms" / "But we can
+       still call them the mons names on the site"). The expansions still live in docs/MODELS.md,
+       which is where the names came from and the right place to record them. */
+    document.getElementById("dAcr").textContent = current.role;
     document.getElementById("dJob").innerHTML = current.job;
     document.getElementById("dWhy").innerHTML = current.why;
     document.getElementById("dHonest").innerHTML = current.honest;
+    wireSprite(document.getElementById("dSprite"), current.mon);
+    buildControls(current);
 
     var s = document.getElementById("dStats");
     s.innerHTML = "";
@@ -404,7 +493,13 @@
     ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.fillRect(x,y,w,3);
     ctx.fillStyle = "rgba(0,0,0,.3)"; ctx.fillRect(x,y+h-3,w,3);
   }
+  var THUMB = false;   /* set by draw() while painting a cabinet thumbnail */
   function label(ctx,s,x,y,size,col){
+    /* A thumbnail carries the "GAME NN" chip in its top-left corner, and a centred caption at the
+       top of a 336-wide canvas scaled down to a ~215px cabinet runs straight under it. The cabinet
+       already has a title and a role line, so the top caption is redundant there and is dropped
+       rather than fought with. The big stage keeps it. */
+    if (THUMB && y < 30) return;
     ctx.font = "800 " + size + "px Arial Black, Arial, sans-serif";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.lineWidth = Math.max(3, size/5); ctx.strokeStyle = INK; ctx.lineJoin = "round";
@@ -414,17 +509,198 @@
   function draw(key, ctx, W, H, t){
     ctx.clearRect(0,0,W,H);
     var S = W/336; // thumbnails are 336 wide; stage is 640. one coordinate space.
+    THUMB = (S === 1);
     ctx.save(); ctx.scale(S,S);
     var w = 336, h = H/S;
-    (RENDER[key] || function(){})(ctx, w, h, t);
+    (RENDER[key] || function(){})(ctx, w, h, t, ST[key] || {});
     ctx.restore();
+    THUMB = false;
+  }
+
+  /* ==========================================================================================
+   * THE CONTROLS — every figure a dial can print lives on ONE line, beside its artifact.
+   * ==========================================================================================
+   * The rule for this whole page is that a rendered figure traces to an artifact, and an
+   * interactive panel is the easiest place in a site to break it: a control that INTERPOLATES
+   * between two measured points is authoring a number at every position in between. So no
+   * control here interpolates. A dial has stops, each stop is a value some artifact recorded,
+   * and any position that nothing measured prints NOT MEASURED in the same red as everywhere
+   * else. That constraint turned out to be the interesting part rather than the cost: XATU's
+   * slider is only measured at 0 moves known and at 4, and watching the middle go blank is a
+   * better explanation of the four-move cap than the two endpoints were.
+   *
+   * ONE LINE PER MODEL, ARTIFACT INCLUDED. web/figure-audit.js attributes a figure to its
+   * source LINE, so keeping a model's numbers and its citation on the same line is what makes
+   * the trace checkable rather than asserted. */
+  var CTRLDATA = {
+    medicham: { stops:["90–100%","0–10%"], obs:["54%","54%"], n:["n=56","n=52"], src:"data/winrate-backtest.json" },
+    mag:      { stops:["Greedy","Sampling"], share:["79.7%",null], feats:"58", src:"docs/MODELS.md and data/policy-weights.json" },
+    miltank:  { arm1:297, split:777, arm2:238, pairs:"1,312", dec:"535", win:"55.5%", ci:"[51.3, 59.7]", src:"data/rollout-r4.json" },
+    doduo:    { pairFeats:"18", win:"42.0%", ci:"[39.9, 44.3]", games:"1,934", src:"docs/MODELS.md" },
+    wobbuffet:{ beat:"63.2%", ci:"[56.6, 69.3]", mirror:"47.5%", rounds:"18", per:"220", src:"data/exploitability.json" },
+    machamp:  { gens:"2 of 6", shift:"+0.34 → +2.75", src:"docs/MODELS.md" },
+    slowking: { stops:["Equilibrium","One deck","Uniform"], expl:["0.0001","0.041","0.0761"], mix:"0.66 / 0.22 / 0.12", src:"data/slowking-eval.json" },
+    xatu:     { known:[0,1,2,3,4], ce:["1.824",null,null,null,"1.695"], prior:["1.863",null,null,null,"2.219"], src:"docs/MODELS.md" },
+    mew:      { games:"1,000", discarded:"0", checks:"13", mirror:"51.0%", ci:"[45.4, 56.6]", src:"docs/MODELS.md" },
+    jolteon:  { ll:"0.699", coin:"0.693", elo:"0.687", acc:"~55%", src:"docs/MODELS.md" },
+    ditto:    { src:"docs/MODELS.md" },
+    kadabra:  { turns:11, mark:7, src:"docs/MODELS.md" }
+  };
+
+  var NM = '<span class="nm">NOT MEASURED</span>';
+  var ST = {};            /* live control state, per model */
+
+  /* a meter row: label, a bar filled to `pct` (presentation), and the artifact's own value */
+  function meter(l, pct, v, cls, line){
+    return '<div class="meterrow"><span class="ml">' + l + '</span>' +
+      '<span class="bar' + (line ? ' line' : '') + '"><i class="' + (cls||'') + '" style="width:' + Math.max(0,Math.min(100,pct)) + '%"></i></span>' +
+      '<span class="mv' + (v === null ? ' nm' : '') + '">' + (v === null ? 'NOT MEASURED' : v) + '</span></div>';
+  }
+
+  var CONTROLS = {
+    medicham: { init:{ b:0 },
+      controls:[{ kind:"dial", label:"the model says", key:"b", opts:[0,1], text:function(i){ return CTRLDATA.medicham.stops[i]; } }],
+      view:function(st){ var D=CTRLDATA.medicham;
+        return { meters: meter("It predicts", st.b===0?95:5, D.stops[st.b], "cool") + meter("It actually wins", 54, D.obs[st.b], "hot", true),
+          read:"Turn the dial to either end of its confidence and the win rate barely moves — <b>"+D.obs[0]+"</b> when it claims "+D.stops[0]+" ("+D.n[0]+"), <b>"+D.obs[1]+"</b> when it claims "+D.stops[1]+" ("+D.n[1]+"). A flat reliability curve is what a number that is not a probability looks like. <code>"+D.src+"</code>" }; } },
+
+    mag: { init:{ b:0 },
+      controls:[{ kind:"dial", label:"decision rule", key:"b", opts:[0,1], text:function(i){ return CTRLDATA.mag.stops[i]; } }],
+      view:function(st){ var D=CTRLDATA.mag;
+        return { meters: meter("Share of decisive pairs", st.b===0?79.7:0, D.share[st.b], st.b===0?"":"cool") + meter("Features fitted", 100, D.feats, "cool"),
+          read: st.b===0
+            ? "Taking the best-scoring option wins <b>"+D.share[0]+"</b> of decisive pairs against sampling from the same distribution. Changing how the policy is <em>used</em> beat every change to what it knows. <code>"+D.src+"</code>"
+            : "Sampling has no standalone rate here and the dial says so. The measurement is a <em>paired</em> comparison — one number about two arms — and splitting it into two would be inventing the second. "+NM+" for sampling alone. <code>"+D.src+"</code>" }; } },
+
+    miltank: { init:{ dealt:0 },
+      controls:[{ kind:"btn", label:"Deal the pairs", key:"dealt", to:1, hot:false },
+                { kind:"btn", label:"Reset", key:"dealt", to:0, cool:true }],
+      view:function(st){ var D=CTRLDATA.miltank, on=st.dealt?1:0, tot=D.arm1+D.split+D.arm2;
+        return { meters: meter("MILTANK 2-0", on*100*D.arm1/tot, on?String(D.arm1):"—", "") +
+                         meter("Split 1-1", on*100*D.split/tot, on?String(D.split):"—", "cool") +
+                         meter("MAG 2-0", on*100*D.arm2/tot, on?String(D.arm2):"—", "hot"),
+          read: on ? "All <b>"+D.pairs+"</b> seed pairs, as recorded: the search takes <b>"+D.arm1+"</b>, the policy takes <b>"+D.arm2+"</b>, and <b>"+D.split+"</b> split 1-1 and cannot be scored at all. That leaves <b>"+D.dec+"</b> decisive pairs and <b>"+D.win+"</b>, CI "+D.ci+" — and the run stopped at an SPRT boundary, so that point estimate is <em>biased high</em> by the stopping rule. <code>"+D.src+"</code>"
+                   : "Press <b>Deal the pairs</b> to drop every seed pair into its bin. More than half of them land in the middle. <code>"+D.src+"</code>" }; } },
+
+    doduo: { init:{ b:1 },
+      controls:[{ kind:"dial", label:"score the slots", key:"b", opts:[0,1], text:function(i){ return i ? "Together" : "Apart"; } }],
+      view:function(st){ var D=CTRLDATA.doduo;
+        return { meters: meter("Coordination features", 100, D.pairFeats, "cool") + meter("Win rate, coordination on", 42, D.win, "hot") + meter("Win rate when trained to win", 0, null),
+          read: st.b ? "Both heads commit to one target. That is the whole model: a policy scoring each slot on its own can be handed positions that <em>require</em> the pair and will fail every one. Measured at <b>"+D.win+"</b> "+D.ci+" over <b>"+D.games+"</b> games — below chance, and fitted to imitate a human rather than to win. <code>"+D.src+"</code>"
+                     : "Scored apart, the two heads pick separately and can spend the turn twice on nothing. The wasted turn is not modelled here — it is the argument for the other position of the dial, and it is "+NM+". <code>"+D.src+"</code>" }; } },
+
+    wobbuffet: { init:{ run:0 },
+      controls:[{ kind:"btn", label:"Run the counter", key:"run", to:1, hot:true },
+                { kind:"btn", label:"Reset", key:"run", to:0, cool:true }],
+      view:function(st){ var D=CTRLDATA.wobbuffet;
+        return { meters: meter("Counter beats MAG", st.run?63.2:0, st.run?D.beat:"—", "hot", true) + meter("Mirror control", st.run?47.5:0, st.run?D.mirror:"—", "cool", true),
+          read: st.run ? "A challenger built only out of MAG's own weights beats it <b>"+D.beat+"</b> of the time, CI "+D.ci+", against a mirror control of <b>"+D.mirror+"</b> over <b>"+D.rounds+"</b> rounds at <b>"+D.per+"</b> games each. It is a <em>lower</em> bound by construction: a wider policy class would find at least this much. <code>"+D.src+"</code>"
+                       : "Press <b>Run the counter</b>. It is allowed to move only MAG's own weights — nothing it finds is a trick MAG could not have played on itself. <code>"+D.src+"</code>" }; } },
+
+    machamp: { init:{ gen:0 },
+      controls:[{ kind:"btn", label:"Propose a challenger", key:"gen", bump:true },
+                { kind:"btn", label:"Reset", key:"gen", to:0, cool:true }],
+      view:function(st){ var D=CTRLDATA.machamp;
+        return { meters: meter("Generations actually run", 33, D.gens, "cool") + meter("Kill proxy, imitation → winning", 100, D.shift, "") + meter("Champion win rate", 0, null),
+          read:"Press it as often as you like — the bar that matters never fills. The run reached <b>"+D.gens+"</b> generations and <em>recorded no verdict</em>, and its weight vector was deleted rather than left to be loaded against a feature set it no longer matches. So the one number this cabinet exists to produce is "+NM+". <code>"+D.src+"</code>" }; } },
+
+    slowking: { init:{ b:0 },
+      controls:[{ kind:"dial", label:"what you play", key:"b", opts:[0,1,2], text:function(i){ return CTRLDATA.slowking.stops[i]; } }],
+      view:function(st){ var D=CTRLDATA.slowking, pct=[1,54,100][st.b];
+        return { meters: meter("Exploitability", pct, D.expl[st.b], st.b===0?"cool":(st.b===2?"hot":"")) + meter("Equilibrium mix", 100, D.mix, "cool"),
+          read:"Turn it off the equilibrium and a best-responding opponent takes more: <b>"+D.expl[0]+"</b> at the mix, <b>"+D.expl[1]+"</b> committing to one deck, <b>"+D.expl[2]+"</b> spreading evenly. Every stop is a recorded value, and the honest part below is the size of it: this is solved over GURU's matrix, and no cell of that matrix survives correction. <code>"+D.src+"</code>" }; } },
+
+    xatu: { init:{ k:0 },
+      controls:[{ kind:"range", label:"moves revealed", key:"k", min:0, max:4 }],
+      view:function(st){ var D=CTRLDATA.xatu, i=st.k;
+        return { meters: meter("Belief cross-entropy", D.ce[i]?(i===4?62:86):0, D.ce[i]||null, "cool") + meter("Usage prior", D.prior[i]?(i===4?88:88):0, D.prior[i]||null, "hot") + meter("Moves still possible", 100*(4-i)/4, String(4-i)+" of 4", ""),
+          read: D.ce[i]
+            ? "At <b>"+i+"</b> revealed, belief scores <b>"+D.ce[i]+"</b> against the usage prior's <b>"+D.prior[i]+"</b> — and at four the gap is widest, because a Pokémon has exactly four moves and every other move in the game has just become impossible however popular it is. <code>"+D.src+"</code>"
+            : "Nothing measured this position. The artifact scores the belief at 0 revealed and at 4; the middle of the slider is "+NM+", and leaving it blank is more useful than drawing a line through it. <code>"+D.src+"</code>" }; } },
+
+    mew: { init:{ run:0 },
+      controls:[{ kind:"btn", label:"Hatch a batch", key:"run", to:1 },
+                { kind:"btn", label:"Reset", key:"run", to:0, cool:true }],
+      view:function(st){ var D=CTRLDATA.mew;
+        return { meters: meter("Games produced", st.run?100:0, st.run?D.games:"0", "cool") + meter("Discarded", 0, st.run?D.discarded:"—", "hot") + meter("Evidence about people", 0, null),
+          read: st.run ? "<b>"+D.games+"</b> games, <b>"+D.discarded+"</b> discarded, past <b>"+D.checks+"</b> validation gates, with mirror symmetry at <b>"+D.mirror+"</b> CI "+D.ci+" so neither side of the field is favoured. And <em>zero</em> evidence about human players, by construction — that meter is "+NM+" and always will be. <code>"+D.src+"</code>"
+                      : "Press <b>Hatch a batch</b>. Watch the third meter, not the first. <code>"+D.src+"</code>" }; } },
+
+    jolteon: { init:{ run:0 },
+      controls:[{ kind:"btn", label:"Ask Jolteon", key:"run", to:1 },
+                { kind:"btn", label:"Reset", key:"run", to:0, cool:true }],
+      view:function(st){ var D=CTRLDATA.jolteon;
+        return { meters: meter("Jolteon log-loss", st.run?86:0, st.run?D.ll:"—", "hot") + meter("A coin", st.run?85:0, st.run?D.coin:"—", "") + meter("Player Elo", st.run?84:0, st.run?D.elo:"—", "cool"),
+          read: st.run ? "It answers instantly and it lands on the coin: <b>"+D.ll+"</b> against a coin's <b>"+D.coin+"</b> and player Elo's <b>"+D.elo+"</b>, accuracy <b>"+D.acc+"</b>. Lower is better, so the fast answer is the worst of the three. Two team sheets barely determine a Champions game. <code>"+D.src+"</code>"
+                      : "Press it. The point of this cabinet is how little the answer is worth, not how quickly it arrives. <code>"+D.src+"</code>" }; } },
+
+    ditto: { init:{ run:0 },
+      controls:[{ kind:"btn", label:"Transform", key:"run", bump:true }],
+      view:function(st){ var D=CTRLDATA.ditto;
+        return { meters: meter("Team strength gained", 0, null) + meter("Objective", 0, null),
+          read:"It will keep transforming for as long as you press it, and neither meter can ever fill. DITTO optimises against MEDICHAM's win probability, and that value is the one this stadium opens by calling a heuristic — so a better score here means a team the biased judge likes. Parked on purpose. <code>"+D.src+"</code>" }; } },
+
+    kadabra: { init:{ k:0 },
+      controls:[{ kind:"range", label:"turn", key:"k", min:0, max:10 }],
+      view:function(st){ var D=CTRLDATA.kadabra, hit=(st.k+1)===D.mark;
+        return { meters: meter("Turn", 100*st.k/(D.turns-1), String(st.k+1)+" of "+D.turns, "cool") + meter("Win% chip", 0, null),
+          read: (hit ? "<b>This</b> is the turn the game turned on, and finding it is the only thing this model claims. " : "Scrub along the strip — turn "+D.mark+" is the marked one. ") +
+                "The win% chip that used to sit beside the advice is "+NM+" as a learned value: it reduces exactly to a two-feature material sum, so it reports arithmetic and says so. <code>"+D.src+"</code>" }; } }
+  };
+
+  function buildControls(m){
+    var spec = CONTROLS[m.key], rail = document.getElementById("dRail");
+    rail.innerHTML = "";
+    if (!spec) { document.getElementById("dMeters").innerHTML = ""; document.getElementById("dRead").innerHTML = ""; return; }
+    if (!ST[m.key]) { ST[m.key] = {}; for (var k in spec.init) ST[m.key][k] = spec.init[k]; }
+    var st = ST[m.key];
+
+    spec.controls.forEach(function(c){
+      if (c.kind === "dial") {
+        var wrapD = document.createElement("div"); wrapD.className = "dial";
+        wrapD.setAttribute("role","group"); wrapD.setAttribute("aria-label", c.label);
+        c.opts.forEach(function(v, i){
+          var b = document.createElement("button"); b.type = "button";
+          b.textContent = c.text(i);
+          b.setAttribute("aria-pressed", st[c.key] === v ? "true" : "false");
+          b.addEventListener("click", function(){ st[c.key] = v; buildControls(m); });
+          wrapD.appendChild(b);
+        });
+        rail.appendChild(wrapD);
+      } else if (c.kind === "btn") {
+        var b2 = document.createElement("button"); b2.type = "button";
+        b2.className = "btn3d" + (c.cool ? " cool" : "") + (c.hot ? " hot" : "");
+        b2.textContent = c.label;
+        b2.addEventListener("click", function(){
+          if (c.bump) st[c.key] = (st[c.key] || 0) + 1; else st[c.key] = c.to;
+          t0 = null; buildControls(m);
+        });
+        rail.appendChild(b2);
+      } else if (c.kind === "range") {
+        var kw = document.createElement("div"); kw.className = "knobwrap";
+        var lab = document.createElement("label"); lab.textContent = c.label;
+        var id = "rng_" + m.key; lab.setAttribute("for", id);
+        var r = document.createElement("input");
+        r.type = "range"; r.id = id; r.min = c.min; r.max = c.max; r.step = 1; r.value = st[c.key];
+        r.addEventListener("input", function(){ st[c.key] = +r.value; paint(m); });
+        kw.appendChild(lab); kw.appendChild(r); rail.appendChild(kw);
+      }
+    });
+    paint(m);
+  }
+
+  function paint(m){
+    var spec = CONTROLS[m.key], st = ST[m.key] || {};
+    var v = spec.view(st);
+    document.getElementById("dMeters").innerHTML = v.meters;
+    document.getElementById("dRead").innerHTML = v.read;
   }
 
   var RENDER = {
     /* MEDICHAM — Clear-Cut Challenge. Focus rings collapse onto a target and a damage
        band lands inside a pinned bracket. The bracket is the point: a roll, not a number. */
-    medicham: function(c,w,h,t){
-      var cx=w/2, cy=h/2-6, ph=(t%2)/2;
+    medicham: function(c,w,h,t,st){
+      var cx=w/2, cy=h/2-6, ph=(t%2)/2, hi=!st||st.b===0;
       for(var i=3;i>=0;i--){
         var r=18+i*13 - ph*13;
         c.beginPath(); c.arc(cx,cy,Math.max(4,r),0,Math.PI*2);
@@ -434,17 +710,21 @@
       c.lineWidth=2.5; c.strokeStyle=INK; c.stroke();
       var bx=42,bw=w-84,by=h-30;
       bev(c,bx,by,bw,12,"#0f1747");
-      var lo=0.38, hi=0.46;
-      c.fillStyle=BOLT; c.fillRect(bx+bw*lo,by,bw*(hi-lo),12);
+      /* the bracket slides to whichever end of its confidence the dial is on; the OBSERVED
+         line under it does not move, because in the artifact it does not move either */
+      var a=hi?0.86:0.02, b2=hi?0.99:0.14;
+      c.fillStyle=BOLT; c.fillRect(bx+bw*a,by,bw*(b2-a),12);
       c.fillStyle=BONE;
-      c.fillRect(bx+bw*lo-1.5,by-4,3,20); c.fillRect(bx+bw*hi-1.5,by-4,3,20);
-      label(c,"38 - 45",cx,by-16,13,BONE);
+      c.fillRect(bx+bw*a-1.5,by-4,3,20); c.fillRect(bx+bw*b2-1.5,by-4,3,20);
+      c.fillStyle=BALL; c.fillRect(bx+bw*0.54-2,by-8,4,28);
+      label(c,hi?"IT SAYS 90-100%":"IT SAYS 0-10%",cx,by-20,11,BOLT);
+      label(c,"IT WINS 54%",bx+bw*0.54,by+26,10,BALL);
     },
 
     /* MAGNEMITE — Pichu's Power Plant. Candidate moves stream in from the far side and
        one is pulled to the magnet. The chosen one is not the biggest, it is the fitted one. */
-    mag: function(c,w,h,t){
-      var cx=w/2, cy=h/2;
+    mag: function(c,w,h,t,st){
+      var cx=w/2, cy=h/2, greedy=!st||st.b===0;
       c.beginPath(); c.arc(cx,cy,17,0,Math.PI*2); c.fillStyle="#c7ccdd"; c.fill();
       c.lineWidth=3; c.strokeStyle=INK; c.stroke();
       bev(c,cx-30,cy-7,12,14,BALL); bev(c,cx+18,cy-7,12,14,"#4a7ae0");
@@ -452,17 +732,18 @@
         var ph=((t*0.55)+i/7)%1, a=(i/7)*Math.PI*2;
         var d=95*(1-ph)+22;
         var x=cx+Math.cos(a)*d, y=cy+Math.sin(a)*d*0.62;
-        var chosen=(i===3);
+        var chosen = greedy ? (i===3) : (Math.floor(t*1.4)%7===i);
         c.beginPath(); c.arc(x,y,chosen?6:3.4,0,Math.PI*2);
         c.fillStyle=chosen?BOLT:"rgba(143,208,255,"+(0.3+0.6*ph)+")"; c.fill();
         if(chosen){ c.lineWidth=2; c.strokeStyle=INK; c.stroke(); }
       }
-      label(c,"53 FEATURES",cx,h-16,11,SKY);
+      label(c,greedy?"GREEDY - ALWAYS THE BEST ONE":"SAMPLING - WHICHEVER COMES UP",cx,h-16,10,SKY);
     },
 
     /* MILTANK — Rampage Rollout. Donphan's track ran at strict 90 degrees, so this one does
        too. Four rollouts leave together; the leader is the choice that survived the playouts. */
-    miltank: function(c,w,h,t){
+    miltank: function(c,w,h,t,st){
+      var dealt=st&&st.dealt; if(!dealt) t=0;
       var pad=30, x0=pad, y0=18, x1=w-pad, y1=h-30;
       c.strokeStyle="rgba(255,255,255,.28)"; c.lineWidth=12;
       c.strokeRect(x0,y0,x1-x0,y1-y0);
@@ -480,17 +761,20 @@
         c.fillStyle=i===0?BOLT:"rgba(244,239,221,.55)"; c.fill();
         c.lineWidth=2.5; c.strokeStyle=INK; c.stroke();
       });
-      label(c,"55.5%",w/2,h/2-6,26,BOLT);
-      label(c,"OF 535 DECISIVE PAIRS",w/2,h/2+14,10,BONE);
+      label(c,dealt?"55.5%":"READY",w/2,h/2-6,26,dealt?BOLT:BONE);
+      label(c,dealt?"OF 535 DECISIVE PAIRS":"PRESS DEAL THE PAIRS",w/2,h/2+14,10,BONE);
     },
 
     /* DODUO — two heads, one body. Both necks swing to the SAME target, which is the
        entire argument: scored apart they would pick differently and waste a turn. */
-    doduo: function(c,w,h,t){
+    doduo: function(c,w,h,t,st){
+      var together=!st||st.b===1;
       var bx=w/2, by=h-34, sw=Math.sin(t*2.1)*0.30;
       var tx=w/2+Math.sin(t*0.8)*66, ty=42;
-      c.beginPath(); c.arc(tx,ty,13,0,Math.PI*2); c.fillStyle=BALL; c.fill();
-      c.lineWidth=3; c.strokeStyle=INK; c.stroke();
+      var tgt=[[tx,ty],[together?tx:(w/2-Math.sin(t*0.8)*66-24), together?ty:60]];
+      tgt.forEach(function(g,gi){ if(!together||gi===0){
+        c.beginPath(); c.arc(g[0],g[1],13,0,Math.PI*2); c.fillStyle=gi?"#8a5cc0":BALL; c.fill();
+        c.lineWidth=3; c.strokeStyle=INK; c.stroke(); } });
       [-1,1].forEach(function(s,i){
         var hx=bx+s*26+sw*s*10, hy=by-52;
         c.beginPath(); c.moveTo(bx+s*9,by); c.quadraticCurveTo(bx+s*24,by-30,hx,hy);
@@ -498,16 +782,17 @@
         c.lineWidth=5; c.strokeStyle=i?"#ffd94a":"#8fd0ff"; c.stroke();
         c.beginPath(); c.arc(hx,hy,9,0,Math.PI*2);
         c.fillStyle=i?"#ffd94a":"#8fd0ff"; c.fill(); c.lineWidth=2.5; c.strokeStyle=INK; c.stroke();
-        c.beginPath(); c.moveTo(hx,hy); c.lineTo(tx,ty);
+        c.beginPath(); c.moveTo(hx,hy); c.lineTo(tgt[i][0],tgt[i][1]);
         c.setLineDash([5,5]); c.lineWidth=2; c.strokeStyle="rgba(255,203,5,.75)"; c.stroke();
         c.setLineDash([]);
       });
       bev(c,bx-17,by-6,34,22,"#c9d2f5");
-      label(c,"ONE DECISION",w/2,h-10,10,BONE);
+      label(c,together?"ONE DECISION":"TWO DECISIONS, ONE WASTED TURN",w/2,h-10,10,together?BONE:BALL);
     },
 
     /* WOBBUFFET — Barrier Ball. Whatever comes in leaves harder and in the other direction. */
-    wobbuffet: function(c,w,h,t){
+    wobbuffet: function(c,w,h,t,st){
+      if(!st||!st.run) t=0;
       var cy=h/2, ph=(t*0.85)%2;
       bev(c,w/2-9,cy-40,18,80,"#4a7ae0");
       var inx, outx, big;
@@ -521,17 +806,18 @@
         c.beginPath(); c.arc(outx,cy,11,0,Math.PI*2); c.fillStyle=BALL; c.fill();
         c.lineWidth=3; c.strokeStyle=INK; c.stroke();
       }
-      label(c,"63.2%",w/2,26,22,BALL);
-      label(c,"RETURNED",w/2,h-16,11,BONE);
+      label(c,(st&&st.run)?"63.2%":"IDLE",w/2,26,22,(st&&st.run)?BALL:BONE);
+      label(c,(st&&st.run)?"RETURNED - LOWER BOUND":"PRESS RUN THE COUNTER",w/2,h-16,10,BONE);
     },
 
     /* MACHAMP — the promotion gate. Only a challenger whose interval clears 50% is promoted,
        so the losing bars stop at the line rather than sneaking past it. */
-    machamp: function(c,w,h,t){
+    machamp: function(c,w,h,t,st){
+      var gen=(st&&st.gen)||0;
       var base=h-26, gate=base-58;
       c.strokeStyle=BALL; c.lineWidth=3; c.setLineDash([7,5]);
       c.beginPath(); c.moveTo(24,gate); c.lineTo(w-24,gate); c.stroke(); c.setLineDash([]);
-      var tops=[0.42,0.61,0.35,0.88,0.30,0.52];
+      var tops=[0.42,0.61,0.35,0.88,0.30,0.52].map(function(v,i){ return (i<gen*2)?v:0; });
       tops.forEach(function(v,i){
         var x=34+i*((w-80)/6), bw=26;
         var grow=Math.min(1,Math.max(0,(t*0.7)-(i*0.16)));
@@ -541,29 +827,31 @@
       });
       label(c,"WILSON > 50%",w-24,gate-13,10,BALL);
       c.textAlign="center";
-      label(c,"2 OF 6 GENERATIONS",w/2,20,12,BONE);
+      label(c,gen?"NO VERDICT RECORDED":"2 OF 6 GENERATIONS",w/2,20,12,gen?BALL:BONE);
     },
 
     /* SLOWKING — the mix settling. Two bars oscillate and converge on 0.84 / 0.16 rather
        than one bar going to 1.0, because the pure strategy is the exploitable one. */
-    slowking: function(c,w,h,t){
-      var settle=Math.min(1,t*0.4);
-      var a=0.5+(0.84-0.5)*settle+Math.sin(t*3.2)*0.09*(1-settle);
-      var b=1-a, base=h-34, mh=h-92;
-      [[w/2-58,a,BOLT,"0.84"],[w/2+18,b,"#8fd0ff","0.16"]].forEach(function(d){
-        var hh=Math.max(5,mh*d[1]);
-        bev(c,d[0],base-hh,40,hh,d[2]);
-        label(c,settle>0.92?d[3]:"",d[0]+20,base-hh-13,12,BONE);
+    slowking: function(c,w,h,t,st){
+      var mode=(st&&st.b)||0, settle=Math.min(1,t*0.5);
+      /* the three shapes the dial has stops for: the solved mix, one pure deck, and flat */
+      var mix=[[0.66,0.22,0.12],[1,0,0],[0.34,0.33,0.33]][mode];
+      var wob=Math.sin(t*3.2)*0.06*(1-settle);
+      var base=h-40, mh=h-100, cols=[BOLT,"#8fd0ff","#c58fe0"], lbl=["0.66","0.22","0.12"];
+      mix.forEach(function(v,i){
+        var hh=Math.max(4,mh*Math.max(0,v+wob*(i?-1:1)));
+        var x=w/2-64+i*46;
+        bev(c,x,base-hh,34,hh,cols[i]);
+        if(settle>0.9&&mode===0) label(c,lbl[i],x+17,base-hh-13,11,BONE);
       });
-      label(c,"EXPLOITABILITY ≈ 0",w/2,h-14,11,BONE);
-      label(c,"MIXED, NOT BEST",w/2,20,12,BOLT);
+      label(c,["EXPLOITABILITY 0.0001","EXPLOITABILITY 0.041","EXPLOITABILITY 0.0761"][mode],w/2,h-14,10,mode?BALL:BONE);
+      label(c,["THE SOLVED MIX","ONE DECK","SPREAD EVENLY"][mode],w/2,20,12,BOLT);
     },
 
     /* XATU — the possibility set closing. Twelve candidate moves; as turns pass they wink out
        until four remain, and at four the set is CLOSED and everything else is impossible. */
-    xatu: function(c,w,h,t){
-      var cyc=(t*0.5)%1, keep=12-Math.floor(cyc*8);
-      if(keep<4) keep=4;
+    xatu: function(c,w,h,t,st){
+      var known=(st&&st.k)||0, keep=12-known*2;
       for(var i=0;i<12;i++){
         var col=i%6, row=Math.floor(i/6);
         var x=w/2-96+col*34, y=h/2-24+row*38;
@@ -574,11 +862,12 @@
         if(!alive){ c.beginPath(); c.moveTo(x-6,y-6); c.lineTo(x+6,y+6);
           c.moveTo(x+6,y-6); c.lineTo(x-6,y+6); c.lineWidth=2.5; c.strokeStyle=BALL; c.stroke(); }
       }
-      label(c,keep<=4?"SET CLOSED — 4 MOVES":"NARROWING…",w/2,h-18,12,keep<=4?BOLT:BONE);
+      label(c,known>=4?"SET CLOSED - 4 MOVES":(known?known+" REVEALED - NARROWING":"NOTHING REVEALED YET"),w/2,h-18,11,known>=4?BOLT:BONE);
     },
 
     /* MEW — Egg Emergency. Games hatch and stream into the store. Nothing here is a person. */
-    mew: function(c,w,h,t){
+    mew: function(c,w,h,t,st){
+      if(!st||!st.run) t=0;
       var cx=44, cy=h/2;
       c.beginPath(); c.arc(cx,cy,15,0,Math.PI*2); c.fillStyle="#ffb7d5"; c.fill();
       c.lineWidth=3; c.strokeStyle=INK; c.stroke();
@@ -589,12 +878,14 @@
         c.fillStyle="rgba(244,239,221,"+(1-ph*0.65)+")"; c.fill();
       }
       bev(c,w-42,cy-38,22,76,"#2f8f4e");
-      label(c,"1,000 GAMES · 0 DISCARDED",w/2,h-16,11,BONE);
+      label(c,(st&&st.run)?"1,000 GAMES - 0 DISCARDED":"PRESS HATCH A BATCH",w/2,h-16,11,BONE);
+      label(c,(st&&st.run)?"AND ZERO EVIDENCE ABOUT PEOPLE":"",w/2,h-32,10,BALL);
     },
 
     /* JOLTEON — the needle. It answers instantly and it sits on the coin line, which is
        the finding: sheets alone barely determine a Champions game. */
-    jolteon: function(c,w,h,t){
+    jolteon: function(c,w,h,t,st){
+      if(!st||!st.run) t=0;
       var cx=w/2, cy=h-34, r=72;
       c.beginPath(); c.arc(cx,cy,r,Math.PI,0); c.lineWidth=13; c.strokeStyle="#0f1747"; c.stroke();
       c.beginPath(); c.arc(cx,cy,r,Math.PI,0); c.lineWidth=3; c.strokeStyle=INK; c.stroke();
@@ -605,14 +896,14 @@
       c.lineWidth=6; c.strokeStyle=BOLT; c.lineCap="round"; c.stroke();
       c.beginPath(); c.arc(cx,cy,8,0,Math.PI*2); c.fillStyle=BONE; c.fill();
       c.lineWidth=2.5; c.strokeStyle=INK; c.stroke();
-      label(c,"LOG-LOSS 0.699",cx,26,13,BONE);
-      label(c,"COIN 0.693",cx,44,11,BALL);
+      label(c,(st&&st.run)?"LOG-LOSS 0.699":"PRESS ASK JOLTEON",cx,26,13,BONE);
+      label(c,(st&&st.run)?"COIN 0.693 - WORSE THAN THE COIN":"",cx,44,10,BALL);
     },
 
     /* DITTO — Transform. The blob keeps becoming a better-fitting team, and the label says
        what the honest panel says: the thing it is fitting to is currently backwards. */
-    ditto: function(c,w,h,t){
-      var cx=w/2, cy=h/2-4, n=9;
+    ditto: function(c,w,h,t,st){
+      var cx=w/2, cy=h/2-4, n=9; t=t*(1+((st&&st.run)||0)*0.6);
       c.beginPath();
       for(var i=0;i<=n;i++){
         var a=(i/n)*Math.PI*2;
@@ -628,11 +919,12 @@
 
     /* KADABRA — the replay strip. One turn is marked and the marker is where the game
        was actually decided, which is the only thing this model claims to find. */
-    kadabra: function(c,w,h,t){
+    kadabra: function(c,w,h,t,st){
       var y=h/2, x0=26, x1=w-26, n=11, mark=6;
+      var scrub=(st&&typeof st.k==="number")?st.k:null;
       c.beginPath(); c.moveTo(x0,y); c.lineTo(x1,y);
       c.lineWidth=5; c.strokeStyle="#0f1747"; c.stroke();
-      var head=Math.floor(((t*0.9)%1)*n);
+      var head=(scrub===null)?Math.floor(((t*0.9)%1)*n):scrub;
       for(var i=0;i<n;i++){
         var x=x0+(i/(n-1))*(x1-x0);
         var isM=(i===mark), on=(i<=head);
@@ -657,8 +949,8 @@
     b.className = "cab"; b.type = "button"; b.setAttribute("role","listitem");
     b.setAttribute("aria-pressed","false");
     b.innerHTML =
-      '<div class="screen"><span class="gameno">GAME ' + String(i+1).padStart(2,"0") + '</span>' +
-      '<canvas width="336" height="192"></canvas></div>' +
+      '<div class="screen stagewrap"><span class="gameno">GAME ' + String(i+1).padStart(2,"0") + '</span>' +
+      '<canvas width="336" height="192"></canvas><img class="sprite" alt="" aria-hidden="true"></div>' +
       '<div class="body"><h3 class="disp">' + m.mon + '</h3>' +
       '<div class="role">' + m.role + '</div>' +
       '<div class="chips"><span class="chip div">' + DIVLABEL[m.div] + '</span>' +
@@ -667,6 +959,7 @@
     grid.appendChild(b);
     var cv = b.querySelector("canvas");
     draw(m.key, cv.getContext("2d"), cv.width, cv.height, 0.35);
+    wireSprite(b.querySelector("img.sprite"), m.mon);
   });
 
   document.getElementById("nCab").textContent = MODELS.length;
