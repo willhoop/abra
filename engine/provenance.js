@@ -111,6 +111,45 @@ function deriveGraph() {
       if (dep === file) continue;
       if (readsNear(writers[0].src, dep)) from.push(dep);
     }
+    /* THE CODE THAT COMPUTED THE NUMBERS IS AN INPUT TOO, and until now nothing tracked it.
+     *
+     * This file derived dependencies from DATA files only, so an artifact full of damage numbers had
+     * no recorded dependency on the DAMAGE ENGINE that produced them. On 2026-08-03 the engine gained
+     * Body Press reading Defence, the -ate abilities, Ice Scales and ignored stat stages -- every
+     * published damage-derived figure went stale in one commit, and this checker reported "ok" for
+     * all of them.
+     *
+     * That is precisely the class this file exists to catch, stated in its own header: "a JSON file
+     * on disk looks exactly as authoritative whether it was generated this morning or before the
+     * filter that made it wrong". A code change is no different from a filter change.
+     *
+     * Derived the same way as the rest: a generator that REQUIRES the damage engine or the feature
+     * builder depends on them. Nothing is hand-listed, so a new consumer is picked up for free.
+     * `player_digest.js` already hashes the damage table for the BOT -- this is the same idea applied
+     * to artifacts, by mtime, which is all the rest of this file uses. */
+    const ENGINE_INPUTS = ['medicham2-browser.js', 'board.js', 'engine-data.js', 'abra-tags.js'];
+    for (const eng of ENGINE_INPUTS) {
+      const base = eng.replace(/\.js$/, '');
+      /* A plain substring test, not a built regex. The first version assembled the pattern from a
+       * string and the escaping did not survive, so `require\(` reached RegExp as an unescaped group
+       * and the whole file threw on load -- a checker that cannot run reports nothing, which is
+       * worse than the gap it was closing. Two forms cover every caller: a require of the module, or
+       * the destructured `= require(...)` some generators use. */
+      /* ONE LEVEL OF require, exactly as the corpus derivation below already does -- and for the
+       * same reason it had to. NO generator requires the damage engine directly: they require
+       * board.js, and board.js reaches medicham2-browser through damageEngine(). Checking only the
+       * generator's own source found nothing and reported every damage-derived artifact "ok" on the
+       * night the damage engine changed. A dependency you reach through one hop is still a
+       * dependency. */
+      const reach = writers[0].src + (writers[0].src.indexOf('board.js') >= 0
+        ? fs.readFileSync(D('engine', 'board.js'), 'utf8') : '');
+      if (reach.indexOf(base) < 0) continue;
+      if (reach.indexOf('require') < 0) continue;
+      for (const dir of ['engine', 'data']) {
+        const full = D(dir, eng);
+        if (fs.existsSync(full)) { from.push(dir + '/' + eng); break; }
+      }
+    }
     /* WHICH CORPUS ITS COUNT SHOULD BE JUDGED AGAINST, derived from what the generator reads.
      * data/policy-weights.json is fitted on the OPEN-SHEET games, so comparing its count to the
      * ladder's clean total called it unsafe for declaring 2,723 — a false alarm. That annotation was
