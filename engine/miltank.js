@@ -687,7 +687,12 @@ function install(bot, o) {
            * standard error of each other", which is true whether the leaf is calibrated or not. */
           const ms = Date.now() - t0;
           const chosen = [built[0].cands[bestPair[0]], built[1].cands[bestPair[1]]];
-          console.log(`  MILTANK: ${chosen.map(c => c.switchTo ? 'switch ' + c.switchTo : c.move.id).join(' + ')}` +
+          /* WHO clicked it, not just what. The log named the moves and not the Pokemon, so a line
+           * like "ragepowder + playrough" cannot be traced back to a body -- and asked which mon used
+           * Rage Powder, I guessed Amoonguss from the move alone and was wrong. A log that invites a
+           * guess is a log that will get one. */
+          const _who = ['a', 'b'].map((L) => { const m = board.slot(side, L); return m ? m.species : '?'; });
+          console.log(`  MILTANK: ${chosen.map((c, i) => _who[i] + ' ' + (c.switchTo ? 'switch ' + c.switchTo : c.move.id)).join(' + ')}` +
             `  win ${(100 * bestVal).toFixed(0)}%  (${oa.length * ob.length} opts, ${ms}ms, ` +
             `finals ${finalsDone}/${finalists.length}, sw resolved ${_res}/unres ${_unres})`);
           const summary = Object.keys(byKind).sort().map(k =>
