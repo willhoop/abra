@@ -67,6 +67,21 @@ const TAGS = (function(){
  * "a capability was absent and everything reported success". A zero here is the claim that the
  * fallback never ran; a non-zero one is the receipt that it did. Exported as `fails` so a test or a
  * run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */
+/* CAPABILITIES THAT FIRED, not failures. Separate object because the two are read for opposite
+ * reasons: a non-zero MEDFAILS is bad news, a ZERO here is.
+ *
+ * CLAUDE.md: *"A capability that cannot prove it ran is assumed broken. Every capability emits a
+ * counter, the run prints it, and a zero is called out."* Flinch had no counter, and on 2026-08-04
+ * Will asked the obvious question -- "are we sure those tags like flinch actually work" -- which took
+ * four failed probes to not answer. `_flinch` is set and CONSUMED inside a single turn (set at the
+ * secondary, read at line ~2073, cleared at end of turn), so no caller can observe it afterwards and
+ * every post-turn check reads false whether or not the mechanic fired. The instrument had to be
+ * inside the engine; there was no probe that could have worked from outside.
+ *
+ * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
+ * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
+ * a fifth external probe. */
+const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
@@ -102,7 +117,18 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
   /* A `convertsMoveType.converts` string this engine cannot parse (WIRE 75). The artifact writes either
      a capitalised TYPE ("Normal moves"), a lowercase FLAG ("sound moves") or "its moves"; anything
      else would silently mean "the ability does not apply", which is how Liquid Voice was inert. */
-  convertsUnparsed: 0, convertsUnparsedFirst: '' };
+  convertsUnparsed: 0, convertsUnparsedFirst: '',
+  /* WIRE 83. A `variablePower` or `conditionalPower` rule the artifact NOW states and this engine
+     still cannot evaluate: Lash Out needs "was I stat-dropped this turn", Rage Fist needs a per-mon
+     times-hit counter, Last Respects' own counter is handled by powerFromFallen. Counted with the
+     first offender named, because the alternative -- falling through to the base power -- is exactly
+     the silent default that made these 35 of the interaction matrix's divergences. */
+  variablePowerUnknown: 0, variablePowerUnknownFirst: '',
+  /* WIRE 83. A speed ratio asked of a body whose SIDE is unknown, so Tailwind cannot be applied to
+     it. Only a bare dmgRange call outside a battle can produce this; the battle loop stamps
+     `_sf.side` on every body. Loud, because a Tailwind silently missing from one side of a ratio is
+     a Gyro Ball that is wrong by a factor of two. */
+  speedSideUnknown: 0 };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -444,7 +470,13 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
                    sa:meg.sa+(m.st.sa-base.sa), sd:meg.sd+(m.st.sd-base.sd), sp:meg.sp+(m.st.sp-base.sp) }; }
     else { st=meg; }
   }
-  return {name,types,st,item,wt:m.wt||null,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
+  /* WIRE 83 -- BEAT UP READS BASE ATTACK, not the built stat, so the row's own number is carried on
+     the body. Stamped here because this is the one place that already holds the MC.mons row: a
+     second hand-rolled index into the mon table inside dmgRange would be a fifth doorway into it,
+     which is exactly what tests/test-mc-key.js ratchets against. A mega's base stats win, because
+     Beat Up asks the species standing on the field. */
+  const _bsAtk=((mf&&mf.bs&&mf.bs.atk)||(m.bs&&m.bs.atk)||0);
+  return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
@@ -638,7 +670,14 @@ function hasPower(mv){
   if(mv.bp)return true;
   stampMoveIds();
   const v=mv.id&&TAGS.param('move',mv.id,'variablePower');
-  if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'))return true;
+  /* WIRE 83 -- the ABSOLUTE kinds all grant power through this gate. Five more joined: a move whose
+     dex base power is 0 because the power IS the calculation was rejected here and dealt LITERALLY
+     NOTHING, which is where 35 of the interaction matrix's 68 divergences came from. The
+     CONDITIONAL kinds (targetStatused, userNoItem, positiveBoosts...) multiply a real base and must
+     NOT be listed here, or a move whose condition is false would be admitted at bp 0. */
+  if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'||v.kind==='speedRatioLinear'
+        ||v.kind==='speedRatioTable'||v.kind==='targetHPFrac'||v.kind==='userHPBrackets'
+        ||v.kind==='alliesBaseAtk'))return true;
   /* A FIXED-DAMAGE MOVE HAS NO BASE POWER AND STILL DOES DAMAGE. Without this line dmgRange
    * short-circuits at its !hasPower guard and Super Fang is worth zero. Only the shapes dmgRange can
    * actually compute count as "has power" -- Counter and Mirror Coat need turn state and would
@@ -749,6 +788,83 @@ function dmgRange(att,def,mv,field,spread){
     else if(_vp.kind==='targetStatused'&&def.status)mvBP=mvBP*_vp.mult;
     else if(_vp.kind==='userNoItem'&&!att.item)mvBP=mvBP*_vp.mult;
     else if(_vp.kind==='targetHasItem'&&def.item)mvBP=mvBP*_vp.mult;
+    /* ---- WIRE 83 -----------------------------------------------------------------------------
+     * GYRO BALL: floor(25 x THEIR speed / MY speed) + 1, capped at 150. Every multiplier that makes
+     * a speed real belongs in it -- a Choice Scarf on the target is most of the move -- so it goes
+     * through effSpeed rather than the raw stat, which is the one function this engine has for
+     * "how fast is this" (see FACTS ARE GLOBAL). */
+    else if(_vp.kind==='speedRatioLinear'){
+      const _as=effSpeed(att,field),_ds=effSpeed(def,field);
+      if(_as>0&&_ds>0){
+        let _p=Math.floor(_vp.mult*(_vp.invert?_ds/_as:_as/_ds))+(+_vp.plus||0);
+        if(_vp.cap&&_p>_vp.cap)_p=_vp.cap;
+        mvBP=Math.max(1,_p);
+      } else mvBP=1;
+    }
+    /* ELECTRO BALL: a table indexed by floor(MY speed / THEIR speed), clamped to the table's end. */
+    else if(_vp.kind==='speedRatioTable'){
+      const _as=effSpeed(att,field),_ds=effSpeed(def,field);
+      const _r=_ds>0?Math.floor(_as/_ds):0;
+      mvBP=_vp.table[Math.min(Math.max(_r,0),+_vp.clampAt||_vp.table.length-1)];
+    }
+    /* HARD PRESS: the base power IS the target's remaining HP as a percentage of its maximum. */
+    else if(_vp.kind==='targetHPFrac'&&def.st&&def.curHP!=null)
+      mvBP=Math.max(+_vp.min||1,Math.floor((+_vp.ofMax||100)*def.curHP/def.st.hp));
+    /* REVERSAL / FLAIL: brackets on the USER's remaining HP in 48ths -- 200 BP at death's door. */
+    else if(_vp.kind==='userHPBrackets'&&att.st&&att.curHP!=null){
+      const _r=Math.max(Math.floor(att.curHP*(+_vp.scale||48)/att.st.hp),1);
+      mvBP=+_vp.floorBP||1;
+      for(const _b of _vp.brackets)if(_r<_b[0]){mvBP=_b[1];break;}
+    }
+    /* STORED POWER / POWER TRIP: base + per x the number of POSITIVE stat stages, which is what
+     * makes them the punish for a setup sweeper rather than a 20 BP move. */
+    else if(_vp.kind==='positiveBoosts'&&att.boosts){
+      let _n=0;for(const _k in att.boosts)if(att.boosts[_k]>0)_n+=att.boosts[_k];
+      mvBP=mvBP+(+_vp.per||0)*_n;
+    }
+    /* BEAT UP: one hit per eligible party member, each at 5 + floor(that member's base Atk / 10).
+     * ROLLED AS ONE PACKET, summed, which is the same declared divergence this engine already
+     * carries for every multi-hit move against a Focus Sash and is stated here rather than hidden.
+     * Eligibility is Showdown's: not fainted and carrying no major status. */
+    else if(_vp.kind==='alliesBaseAtk'){
+      const _party=(att._sf&&att._sf.team&&att._sf.team.length)?att._sf.team:[att];
+      let _sum=0,_hits=0;
+      for(const _al of _party){
+        if(!_al||_al.fainted||_al.curHP<=0||(_al.status&&_al.status!=='none'))continue;
+        if(!_al._bsAtk)continue;
+        _sum+=(+_vp.base||5)+Math.floor(_al._bsAtk/(+_vp.div||10));_hits++;
+      }
+      mvBP=_hits?_sum:((+_vp.base||5)+Math.floor((att._bsAtk||0)/(+_vp.div||10)));
+    }
+    else if(_vp.kind&&!/^(targetWeightKg|weightRatio|userHPFrac|targetStatused|userNoItem|targetHasItem)$/.test(_vp.kind)){
+      MEDFAILS.variablePowerUnknown++;
+      if(!MEDFAILS.variablePowerUnknownFirst)MEDFAILS.variablePowerUnknownFirst=mv.id+':'+_vp.kind;
+    }
+  }
+  /* WIRE 83 -- conditionalPower, and the tag used to say `{conditional: true}`: a boolean across
+   * eleven members with wildly different rules, which is why the census carried it MISSING. It now
+   * names the CONDITION and the MULTIPLIER, read out of each handler's own chainModify.
+   * `userStatsLoweredThisTurn` (Lash Out) has no state here and is COUNTED rather than defaulted;
+   * `chance` (Fickle Beam) is applied as its EXPECTED multiplier, because dmgRange is a range and
+   * has no rng -- stated, because a 30% double silently ignored is the same class of silent default.
+   * The members whose condition lives in weatherScaled / terrainScaled / variablePower carry only
+   * `conditional:true` and are correctly skipped here rather than double-counted. */
+  {
+    const _cp=mv.id&&TAGS.param('move',mv.id,'conditionalPower');
+    if(_cp&&_cp.when&&_cp.mult){
+      const _st=x=>x&&x.status&&x.status!=='none'?x.status:'';
+      if(_cp.when==='userStatused'){
+        const _s=_st(att);
+        if(_s&&!(_cp.exceptStatus||[]).includes(_s))mvBP=Math.floor(mvBP*_cp.mult);
+      } else if(_cp.when==='targetStatusIn'){
+        if((_cp.statuses||[]).includes(_st(def)))mvBP=Math.floor(mvBP*_cp.mult);
+      } else if(_cp.when==='chance'){
+        mvBP=Math.floor(mvBP*(1+(_cp.p||0)*((_cp.mult||1)-1)));
+      } else {
+        MEDFAILS.variablePowerUnknown++;
+        if(!MEDFAILS.variablePowerUnknownFirst)MEDFAILS.variablePowerUnknownFirst=mv.id+':'+_cp.when;
+      }
+    }
   }
   const phys=mv.c==='P';
   /* WHICH STAT ATTACKS, AND WHICH STAT IS ATTACKED INTO -- from the statSwap tag.
@@ -984,7 +1100,20 @@ function dmgRange(att,def,mv,field,spread){
     }
   }
   const stab=att.types.includes(mvT)?(att.ability==='adaptability'?2:1.5):1;
-  const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
+  /* WIRE 83 -- A MOVE POWERED BY MY OWN STATUS IS NOT ALSO PENALISED BY IT. Showdown's
+   * battle-actions applies the burn halving `if (this.gen < 6 || move.id !== "facade")`, so from
+   * Gen 6 Facade takes the x2 and NOT the x0.5. This engine applied both and they cancel exactly --
+   * which is why the census probe read `clean 51 -> burnt 50` and looked like a dead knob when the
+   * doubling was in fact working.
+   *
+   * KEYED ON THE TAG SHAPE, NOT ON THE NAME, and the shape is the rule: a move whose
+   * `conditionalPower.when` is `userStatused` draws its power FROM the status. Showdown hardcodes a
+   * single move id because it has no property for this; the closest DERIVABLE statement is the one
+   * above, and its membership was printed before it was wired -- exactly one move, `facade`. Stated
+   * this way so a future move with the same shape is covered without an edit, and so the claim is
+   * checkable rather than a list. */
+  const _burnExempt=(()=>{const c=mv.id&&TAGS.param('move',mv.id,'conditionalPower');return !!(c&&c.when==='userStatused');})();
+  const burn=(phys&&att.status==='brn'&&att.ability!=='guts'&&!_burnExempt)?0.5:1;
   /* WIRE 1 of N -- damageMultAll, from data/tags.json instead of a hardcoded name.
    * Was `att.item==='lifeorb'?1.3:1`, which is why the tag showed as "read": the string appeared.
    * The tag carries the same 1.3 AND the 1/10 max HP it charges per attack, which this calc still
@@ -1448,7 +1577,17 @@ function _chooseAction(me,foes,ally,field,side,rng){
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
   return{kind:'struggle'};
 }
-function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;
+function effSpeed(m,field,side){
+  /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
+     Ball and Electro Ball are base-power-from-a-speed-RATIO, computed inside dmgRange, which is
+     handed two bodies and a field and no side; the alternative was a second speed function, and two
+     implementations of "how fast is this" is precisely the FACTS-ARE-GLOBAL failure CLAUDE.md names.
+     A body with no side stamp (a bare unit-test call) is COUNTED, not silently given no Tailwind. */
+  if(side===undefined){
+    side=(m&&m._sf&&m._sf.side)||null;
+    if(!side){MEDFAILS.speedSideUnknown++;side='';}
+  }
+  let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;
   /* UNBURDEN. Speed doubles once the item is GONE, from the speedOnItemLoss param -- which was
    * itself wrong until today: it matched any onTakeItem and so included STICKY HOLD, whose handler
    * exists to refuse the loss. Reading that would have doubled the Speed of an ability that does
@@ -1797,9 +1936,15 @@ function battleInit(teamA,teamB,opts){
   oneMegaPerSide(teamA); oneMegaPerSide(teamB);
   const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
     /* one shared death counter per side, handed to every mon by reference */
-    sfA:{fainted:0},sfB:{fainted:0},
+    /* `side` is stamped here so a body can answer "which Tailwind is mine" without being handed a
+       side argument -- WIRE 83's speed ratio is computed inside dmgRange, which is given two bodies
+       and a field and nothing else. */
+    sfA:{fainted:0,side:'A'},sfB:{fainted:0,side:'B'},
     actA:[teamA[0],teamA[1]].filter(Boolean),actB:[teamB[0],teamB[1]].filter(Boolean),
     benchA:teamA.slice(2),benchB:teamB.slice(2),turn:0};
+  /* the PARTY, by reference, on the same per-side object the death counter already rides. Beat Up
+     hits once per eligible party member and dmgRange is handed one body -- WIRE 83. */
+  S.sfA.team=teamA.filter(Boolean); S.sfB.team=teamB.filter(Boolean);
   teamA.forEach(m=>{if(m)m._sf=S.sfA;});teamB.forEach(m=>{if(m)m._sf=S.sfB;});
   /* What each body STARTED holding, so Unburden can tell 'never had one' from 'lost it'. Stamped
    * once here rather than at each of the six places an item is cleared -- a flag set in six places
@@ -1922,6 +2067,23 @@ function battleTurn(S,rng,actsForA,actsForB){
      * yet acted this turn. `acts` is already sorted into resolution order, so position in it IS the
      * move order. Without this, a slow Rock Slide would "flinch" a foe that had already attacked. */
     const actedAt=new Map(); acts.forEach((it,i)=>actedAt.set(it.mon,i));
+    /* WIRE 82 -- THE PRE-TURN MOVE CLASS. Will: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR
+     * SOMETHING." He is naming a real class: Focus Punch and Beak Blast (and Shell Trap, which this
+     * format bans) commit at the START of the turn and then react to what happened while they waited.
+     * Both were UNCONDITIONAL ATTACKS here -- Focus Punch landed after being hit, and Beak Blast's
+     * whole reason for existing, the burn, did not happen at all.
+     *
+     * THE SHIELD GOES UP BEFORE ANY MOVE RESOLVES, which is the entire mechanic and is why this sits
+     * above the resolution loop rather than in the attack branch: by the time Beak Blast's own -3
+     * priority action comes round, everything that could touch it has already gone.
+     *
+     * From `preTurnShield`, derived from Showdown's `priorityChargeCallback` plus the volatile's own
+     * onHit. No move is named here; `mode`, `trigger` and `status` all come out of the tag. */
+    for(const it of acts){
+      const _pid=it.a&&it.a.kind==='attack'&&it.a.move&&it.a.move.id;
+      const _pt=_pid&&TAGS.param('move',_pid,'preTurnShield');
+      it.mon._preTurn=_pt?{id:_pid,p:_pt,hit:false,hitSide:null}:null;
+    }
     for(const [actIdx,it] of acts.entries()){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
       if(m.status==='par'&&rng()<0.125)continue;   // Champions: 12.5% full-para (was 25%)
@@ -1953,6 +2115,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          charged here instead, before the kind is dispatched, and the move FAILS below the threshold
          the tag names. `sub` is excluded because it charges its own cost and would otherwise pay
          twice. */
+      /* WIRE 85 -- BLOCKED PRIORITY APPLIES TO EVERY KIND OF ACTION, and it was checked only inside
+       * the attack branch. Armor Tail, Queenly Majesty, Dazzling and Psychic Terrain refuse ANY
+       * priority move aimed at their side, and most of the priority moves in this format are STATUS
+       * moves -- Baby-Doll Eyes (+1), Thunder Wave in terrain, Whirlwind's negative bracket. So a
+       * Farigiraf took a Baby-Doll Eyes it is built to refuse.
+       *
+       * THIS IS WIRE 77 EXACTLY ONE FIELD OVER, and that is the reason it is written here rather
+       * than copied into the affect branch: a rule that belongs to every action kind goes ABOVE the
+       * kind dispatch, or the next branch added below inherits the hole. Found by the generated
+       * matrix as `babydolleyes -> armortail` and `-> queenlymajesty`, on both of which medicham2's
+       * own two arms were IDENTICAL -- the definition of an unwired knob. */
+      {
+        const _pmv=(a.move&&a.move.id)||a.mv;
+        const _pf=it.side==='A'?actB:actA;
+        /* ONLY A MOVE AIMED AT THE OTHER SIDE. Protect is +4 and Quick Guard is +3, and neither is
+         * refused by Queenly Majesty in the real game because neither targets the holder -- gating
+         * on the action carrying a FOE as its target is what keeps this from blocking the user's own
+         * setup. The attack branch keeps its own copy for the spread case, where target is null. */
+        if(_pmv&&a.target&&_pf.indexOf(a.target)>=0){
+          const _pk=(a.kind==='attack'?0:(isPrankster(m)?1:0));
+          if(movePriority(_pmv,field)+_pk>priorityRefusedAbove(_pf,field)){m._lastMove=_pmv;continue;}
+        }
+      }
       if(a.kind!=='sub'&&(a.mv||(a.move&&a.move.id))){
         const _cu=TAGS.param('move',a.mv||a.move.id,'costsUserHP');
         if(_cu&&_cu.costsFraction&&m.st){
@@ -2084,6 +2269,18 @@ function battleTurn(S,rng,actsForA,actsForB){
               }
             }
           }
+        }
+        /* WIRE 86 -- MEMENTO FAINTS ITS USER, AND THE CHECK LIVED IN THE ATTACK BRANCH.
+         * WIRE 46 wired `userFaints` where damaging moves resolve, gated on `dealt > 0`. Memento is
+         * a STATUS move: it resolves here, in `affect`, so its whole cost -- the user dies -- never
+         * happened. A -2/-2 drop on the foe for free is not the move that is in the game, and the
+         * search would take it every time.
+         * Reaching this line means the effect LANDED (every refusal above `continue`s out), which is
+         * exactly what `faints: 'ifHit'` asks. `faints: 'always'` cannot reach here -- Explosion is
+         * a damaging move -- so both branches read one artifact and neither names a move. */
+        {
+          const _ufa=TAGS.param('move',a.mv,'userFaints');
+          if(_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;}
         }
         continue;
       }
@@ -2480,6 +2677,21 @@ function battleTurn(S,rng,actsForA,actsForB){
        * without any new state. From the failsIfTargetNotAttacking tag, derived from the move calling
        * queue.willMove(target) -- which separates it from Quick Guard and Wide Guard, whose willAct()
        * does not care about the target at all. */
+      /* WIRE 82, the consuming half. The shield went up at the top of the turn; this is where the
+       * move finds out what happened while it waited. `failsIfHit` is Focus Punch, `failsUnlessHit`
+       * is Shell Trap -- opposite signs of the same reading, both out of the tag's `mode`, so
+       * neither move is named. Beak Blast has no failure condition and falls through to attack. */
+      if(m._preTurn&&m._preTurn.id===a.move.id){
+        const _md=m._preTurn.p.mode,_wasHit=m._preTurn.hit;
+        /* THE SHIELD COMES DOWN WHEN THE MOVE ITSELF RESOLVES (Showdown removes the volatile in Beak
+         * Blast's onAfterMove), and leaving it up for the rest of the turn was a real second bug the
+         * matrix caught: AVALANCHE is -4 priority against Beak Blast's -3, so it lands AFTER the
+         * blast has already fired and must NOT be burned. Cleared before the failure check acts on
+         * the reading, so the reading is still the one taken while the shield was up. */
+        m._preTurn=null;
+        if(_md==='failsIfHit'&&_wasHit)continue;
+        if(_md==='failsUnlessHit'&&!_wasHit)continue;
+      }
       if(TAGS.has('move',a.move.id,'failsIfTargetNotAttacking')){
         const _tgt=a.target;
         const _their=_tgt?acts.find(x=>x.mon===_tgt):null;
@@ -2715,6 +2927,58 @@ function battleTurn(S,rng,actsForA,actsForB){
          * the HOLDER DIES to contact) chipped attackers 25% on every touch. requiresForme members
          * are skipped whole: this engine carries no forme state, and a base-forme Cramorant that
          * never Surfed punishing anyone would be a new wrong number, not a wired mechanic. */
+        /* WIRE 84 -- A MULTI-HIT MOVE SETS OFF A REACTOR ONCE PER HIT, AND THIS ENGINE SET IT OFF
+         * ONCE. Showdown runs every `onDamagingHit` per hit, so Bullet Seed into Weak Armor is
+         * def -3 / spe +6 and this engine gave -1 / +2; into Toxic Debris it lays TWO layers (the
+         * tag's own cap) and this engine laid one. Eight of the interaction matrix's divergences
+         * were exactly this, across four carriers and two reactors, and none was reachable from a
+         * single-mechanic probe: `test-engine-diff.js` calls moveHit ONCE and therefore cannot see
+         * a multi-hit at all, which is stated at WIRE 20.
+         *
+         * THE DAMAGE IS STILL ONE PACKET -- that is WIRE 20's declared divergence and it is not
+         * changed here. What is corrected is the COUNT of reaction events, which is a different
+         * quantity and was silently 1.
+         *
+         * ROUNDED, because a stat stage is an integer and expectedHitsOf returns the mean of the
+         * 2-5 distribution (3.1 -> 3, which is what a seeded Showdown rolls). Beat Up is not a
+         * `multiHit` move at all -- it hits once per eligible party member -- so its count comes
+         * from the same `perAlly` param the base power does, and no move is named. */
+        const _react=(()=>{
+          const _n=expectedHitsOf(a.move.id);
+          if(_n>1)return Math.max(1,Math.round(_n));
+          const _vpH=TAGS.param('move',a.move.id,'variablePower');
+          if(_vpH&&_vpH.perAlly){
+            const _pt=(m._sf&&m._sf.team)||[m];
+            let _c=0;for(const _al of _pt)if(_al&&!_al.fainted&&_al.curHP>0&&!(_al.status&&_al.status!=='none'))_c++;
+            return Math.max(1,_c);
+          }
+          return 1;
+        })();
+        for(let _hit=0;_hit<_react;_hit++){
+        /* WIRE 82, the reacting half -- a hit LANDING ON a body that is holding a pre-turn shield.
+         *
+         * Placed beside punishesAttacker because it is the same dispatch question ("who reacts to
+         * being hit?") and NOT inside it, because a preTurnShield holder carries no punishesAttacker
+         * params at all -- anything nested there could never have reached it, which is the mistake
+         * WIRE 80 records one block down.
+         *
+         * The trigger comes from the tag: `contact` for Beak Blast's shield, `damaging` for Focus
+         * Punch's concentration, `physical` for Shell Trap's. `foesOnly` is honoured, so an ally's
+         * spread move does not spring Shell Trap -- read out of the handler's own !isAlly gate.
+         *
+         * `hit` is recorded whether or not the holder survives, and the burn is applied whether or
+         * not it survives, because both happen DURING the hit. */
+        if(tg._preTurn&&tg._preTurn.id&&!(tg._preTurn.p.foesOnly&&tg._sf===m._sf)){
+          const _ps=tg._preTurn.p;
+          const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id)
+                   :_ps.trigger==='physical'?mv.c==='P'
+                   :/* damaging */ mv.c==='P'||mv.c==='S';
+          if(_tr){
+            tg._preTurn.hit=true;
+            if(_ps.mode==='punishAttacker'&&_ps.status&&!m.fainted)
+              applyStatus(m,CODE_OF_STATUS[_ps.status]||_ps.status);
+          }
+        }
         const _pun=TAGS.param('ability',tg.ability,'punishesAttacker');
         if(_pun&&!_pun.requiresForme){
           const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id)
@@ -2792,6 +3056,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             else if(_rw.mode==='swap'){const _t=m.ability;m.ability=tg.ability;tg.ability=_t;}
           }
         }
+        }   /* end WIRE 84 per-hit reaction loop */
         /* WIRE 12 -- survivesFromFull. Focus Sash is the most-held item in the format (8,078
          * sheets) and Sturdy its ability twin, and neither existed here: every lethal hit into a
          * full-HP sash body was a kill that is not a kill. The gates come from the handler via the
@@ -2854,8 +3119,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_buff&&_buff.boosts&&tg.boosts){
             /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
              * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
-             * a naming convention, not a mechanic, so it lives here rather than in the artifact. */
-            for(const k in _buff.boosts){
+             * a naming convention, not a mechanic, so it lives here rather than in the artifact.
+             * WIRE 84: once PER HIT, the same count the punish block uses -- Weak Armor off a
+             * Bullet Seed is -3/+6, not -1/+2. `compounds` is what the tag calls this and it is
+             * true for every member that reaches here. */
+            for(let _bh=0;_bh<_react;_bh++)for(const k in _buff.boosts){
               const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
               tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
             }
@@ -2908,7 +3176,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
                  * Inner Focus blocks it outright. Position in `acts` is the move order. */
                 const ti=actedAt.has(tg)?actedAt.get(tg):-1;
-                if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true;
+                /* Counted on all three branches so a zero is DIAGNOSTIC rather than merely absent:
+                 * "never fired" and "always blocked by Inner Focus" and "the target had already
+                 * moved" are three different states and only the first is a defect. */
+                if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+                else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+                else { tg._flinch=true; MEDSEEN.flinch++; }
               }
             }
           }
@@ -2926,7 +3199,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            }}
           // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
           if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
-            if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true; }
+            if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+            else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+            else { tg._flinch=true; MEDSEEN.flinch++; } }
           /* WIRE 50 -- POISON TOUCH / TOXIC CHAIN, 985 sheets and nothing at all. Lesson 3 bites
            * hardest here and the tag says why: `needsContact` is true, so a SPECIAL attacker carrying
            * Poison Touch contributes to the sheet count and can never trigger. The chance is the
@@ -3306,6 +3581,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(x._noSound>0)x._noSound--;
       if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
     }
+    /* WIRE 82 -- the shield lasts exactly the turn it was raised (Showdown's volatile has
+     * duration 1). Cleared for BOTH sides here rather than in the attack branch, because a holder
+     * that was flinched, paralysed or KO'd never reached its own action. */
+    [...actA,...actB].forEach(m=>{if(m)m._preTurn=null;});
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;
       /* Disable ticks HERE and not in chooseAction, so a turn where the caller supplied the action
        * still spends one — a duration that only counts down when the engine happens to be the one
@@ -3612,5 +3891,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * four setters writing a literal 5. It calls this rather than growing its own rock read. */
   weatherTurns,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
-  fails:MEDFAILS};
+  fails:MEDFAILS,
+  /* Capabilities that FIRED. A zero here is the finding — see MEDSEEN's own comment. */
+  seen:MEDSEEN};
 })(typeof window!=='undefined'?window:globalThis);
