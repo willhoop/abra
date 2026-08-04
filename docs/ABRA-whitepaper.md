@@ -31,9 +31,24 @@ On 600+ held-out real Champions games, a Bradley-Terry player-Elo model reaches 
 ceiling lower still:** the previously published "higher-rated player wins 55.0%" was computed with a
 name-only bot filter that missed six high-volume accounts. Removing them gives **52.4%, 95% CI
 [49.9, 54.9]** — an interval containing a coin flip. A cloned-policy rollout engine
-(MEDICHAM) does *worse* than a coin as a raw win-predictor (log-loss ≈ 1.2; it picks the actual winner
-on ~44% of decisive calls, i.e. it is systematically *inverted*, over-backing fast offensive teams that
-lose more). After held-out Platt recalibration it only edges the coin (0.6897 vs 0.6931).
+(MEDICHAM) does *worse* than a coin as a raw win-predictor.
+
+**Re-measured 2026-08-04 on 6,886 clean games**, against the leaves MILTANK actually calls rather than
+the `winProb2` entry point the earlier readings scored. Paired against a coin on identical turn-0
+positions, the in-game leaf (`explore=1.0`, 200 rollouts, held-out n=1,378) loses by **Brier +0.0502,
+95% CI [0.0371, 0.0628]**, and the team-preview leaf (n=6,886) by **+0.0740 [0.0668, 0.0813]**; both
+also lose to player-Elo. The reliability curve is nearly flat — the in-game leaf's 90-100% bucket wins
+53.6% and its 0-10% bucket wins 53.8% — and it names the winner on **50.99% of 1,314 decisive calls,
+95% CI [48.3, 53.7]**, which is a coin. The preview leaf discriminates barely: 53.22% of 6,700
+(CI [52.0, 54.4]), about 1.9 points above its own split-half noise floor.
+
+*This supersedes, and partly corrects, the earlier reading.* The 2026-07-23 figure ("log-loss ≈ 1.2;
+picks the winner on ~44% of decisive calls, i.e. systematically **inverted**") is retained here because
+a prior conclusion is never silently rewritten, but the inversion **does not replicate**: at twenty
+times the sample the same family of leaves sits slightly *above* chance, not below it. The 44% was a
+small-sample excursion. What replicates, and replicates decisively, is the **overconfidence**: the
+preview leaf puts 25.6% of its predictions into the two extreme buckets and is wrong there by about 40
+points. Full curve, counts and intervals in `data/winrate-backtest.json`.
 
 The conclusion is not "our models are weak." It is a property of the game: a two-player, zero-sum,
 **imperfect-information, simultaneous-move** game with a non-transitive metagame has an irreducible

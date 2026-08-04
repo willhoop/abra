@@ -25,7 +25,7 @@ MEASURE — can we believe a number
     (data/abra-tags.js moved 2026-08-04 04:21, but the feature function did not)
 ```
 
-_stamped 2026-08-04 07:13_
+_stamped 2026-08-04 07:16_
 
 <!-- /GENERATED -->
 
@@ -89,7 +89,7 @@ Still open, in order:
   playout does not finish, so a confident number can be a material count wearing a probability's
   clothes. That is a SEARCH change, not a MEASURE one — file it, do not fix it here.
 - `data/winrate-backtest-rows.jsonl` holds the per-game predictions, so the curve can be re-cut
-  without re-running 13 minutes of rollouts.
+  without re-running the ~15 minutes of rollouts.
 
 ### 2. R4 has an artifact — CLOSED 2026-08-04
 
@@ -182,9 +182,11 @@ it, not the policy.
 SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/backtest_winrate.js
 ```
 
-About 13 minutes, one process, on 6,886 clean games. `MAXG=200` thins it for a smoke run and the
-artifact records the n it actually scored, so a thinned run cannot be mistaken for a published one.
-It writes `data/winrate-backtest.json` and the per-game rows beside it.
+About 13-18 minutes, one process, on 6,886 clean games (809s and 1,046s on two runs). `MAXG=200`
+thins it for a smoke run, and the artifact records the n it actually scored, so a thinned run cannot
+be mistaken for a published one. It writes `data/winrate-backtest.json` and the per-game rows beside
+it. Every seeded configuration reproduces bit-identically across runs; the unseeded legacy
+`winProb2` arm moved 0.26 accuracy points between two full runs, which is its run-to-run floor.
 
 **It stamps the sha256 of every source the leaf reads.** `status.js` re-hashes those and prints
 `CURRENT` or `PRE-CHANGE`, which is a comparison rather than an mtime inference — a checkout moves an
