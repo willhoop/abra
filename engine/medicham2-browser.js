@@ -1500,6 +1500,21 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       let dealt=0;
       for(const tg of targets){if(!tg||tg.fainted)continue;
+        /* AN IMMUNE TARGET TAKES NOTHING AT ALL -- not the damage, and not the SECONDARY either.
+         *
+         * dmgRange already returned eff 0 for a Normal move into a Ghost, so the damage was right.
+         * Everything AFTER the damage ran anyway, so Fake Out into Gholdengo dealt 0 and STILL
+         * FLINCHED IT -- a free flinch with no downside, on the most-clicked move in the format
+         * (12,130 uses). The search reached for it exactly as you would expect.
+         *
+         * Checked per TARGET rather than once for the move, because a spread move can be immune on
+         * one side of the field and land on the other. */
+        {
+          /* effMoveType, not mv.t: the -ate abilities rewrite a Normal move to Flying or Fairy, and
+           * a converted move DOES hit a Ghost. Using the raw type would trade one wrong immunity for
+           * another. It is the same helper the typeImmunity check below already uses. */
+          if (mcEff(effMoveType(mv, a.move.id, field), tg.types) === 0) continue;
+        }
         /* OFF THE FIELD. A Pokemon in the charge turn of Fly, Dig, Dive, Bounce or Phantom Force
          * cannot be hit at all. Without this the charge is pure cost and those five become strictly
          * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
