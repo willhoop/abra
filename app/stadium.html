@@ -208,7 +208,7 @@
 
   <div class="marquee">
     <h1 class="disp">ABRA STADIUM</h1>
-    <p>Model select &nbsp;·&nbsp; 12 cabinets &nbsp;·&nbsp; Champions Reg M-B</p>
+    <p>Model select &nbsp;·&nbsp; <span id="nCabTop">…</span> cabinets &nbsp;·&nbsp; Champions Reg M-B</p>
   </div>
 
   <p class="sub">
@@ -1016,6 +1016,7 @@
   });
 
   document.getElementById("nCab").textContent = MODELS.length;
+  document.getElementById("nCabTop").textContent = MODELS.length;
 
   select("miltank");
 })();
