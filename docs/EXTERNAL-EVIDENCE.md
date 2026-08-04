@@ -99,10 +99,101 @@ accident.
 | "Linear nulls ≠ nonlinear nulls" — the untested claim above | MEASURE | filed 2026-08-04 |
 | Does the external search-vs-network gap change MILTANK's priority | SEARCH | in progress 2026-08-04 |
 
-### One name collision, recorded so nobody trips on it
+### One name collision, recorded so nobody trips on it (PokeTransformer entry)
 
 The post names **Foul Play** as a high-performing search bot. ABRA separately found that **Foul
 Play the move** is unimplemented — `data/abra-tags.js` carries
 `foulplay: {swapsStat: {offensiveFrom: "target"}}` and `engine/medicham2-browser.js` never reads
 `swapsStat`, so it attacks with the wrong Pokémon's Attack. Unrelated things. Do not merge them in a
 future summary.
+
+---
+
+## The PokéAgent Challenge — NeurIPS 2025 (added 2026-08-04)
+
+**Source:** arXiv 2603.15563; competition site `pokeagent.github.io`; RL baselines
+`UT-Austin-RPL/metamon`. Will pointed at the launch livestream
+(`youtube.com/live/CaXM2hr_n2A`, "Research Talks & Hackathon Launch", 1:25:45).
+
+**Provenance caveat, stated because it matters.** The spoken talk transcript could **not** be
+retrieved — YouTube does not serve captions to our fetcher. Everything below is read from the
+**paper and competition pages**, not from the talk. If a claim here is ever contradicted by
+something said in that stream, the stream wins and this entry is wrong.
+
+### What it is
+
+A NeurIPS competition with two tracks. The one that concerns us is the **Battling Track**:
+two-player Pokémon Showdown battles, partial observability, stochastic transitions. It ran
+Jul–Dec 2025, 100+ teams, 150+ submissions.
+
+Scale, for calibration against ours:
+
+| | PokéAgent | ABRA |
+|---|---|---|
+| Human battle trajectories | 4M+ | 6,890 usable of 38,186 stored |
+| Self-play trajectories | 18M synthetic | 1,000 gated (MEW) |
+| Teams | 200K+ extracted | 6,965 |
+
+**Baselines.** `PokéChamp` — *depth-limited minimax search with LLM-based position evaluation*.
+`Metamon` — 30 RL agents from compact RNNs up to 200M-parameter Transformers, trained on human
+demonstrations **and** self-play.
+
+### The finding that matters most to us
+
+> **"RL and search methods outperform LLM approaches."** In battling, **"the top participants all
+> used RL or MCTS rather than LLM reasoning."** The cross-track pattern was *"LLMs as priors, RL as
+> refinement."*
+
+This is now the **third independent line** pointing the same way, from three unrelated sources:
+
+1. R4, measured here: MILTANK (search) over MAG greedy, **55.5% of 535 decisive pairs**.
+2. PokeTransformer, above: search-free ceiling ~1900 ELO against 2300+ for engine-assisted search.
+3. This competition: every top battling submission used search or RL, not a single-pass reasoner.
+
+Three environments, three methods, one direction. That is about as strong as a prior gets without
+being a measurement, and it says **search is where the return is**.
+
+### The sharper point — PokéChamp's shape is MILTANK's shape, and our version is broken
+
+PokéChamp is *depth-limited search plus a learned position evaluator*. That is structurally what
+MILTANK is: a search whose quality is bounded by the leaf it calls.
+
+Tonight's calibration measured our leaf, properly, at n=6,886:
+
+- reliability curve is a **flat line at ~0.52** — predicted spans 0.06→0.94, observed never leaves
+  0.46→0.57, ECE 0.181;
+- the **in-game leaf, which makes every move, discriminates at 50.99%, p=0.47** — indistinguishable
+  from a coin.
+
+So the external evidence says *the leaf is the component that decides how good a search agent is*,
+and ours is the component we have just measured as uninformative. **This raises the leaf above more
+search work in priority.** A better search over a coin-flip evaluator is a better-organised coin
+flip. `docs/SEARCH.md` reads "a search is worth exactly what its model is worth"; this is that
+sentence with an outside number attached.
+
+### The concretely useful thing nobody should miss
+
+The Battling Track's supported formats include **Gen9 VGC Regulation I** — a **doubles VGC** format,
+with baselines and datasets published for it.
+
+Every other external result in this file is singles. This one is not. It is the closest public
+benchmark to what ABRA actually plays, and it comes with a live leaderboard, a 4M-trajectory human
+dataset and 30 pre-trained agents. **Champions Reg M-B is not Reg I** — different regulation,
+different legality, our own 66-point SP stat system, one mega per battle, four banned items — so
+nothing transfers as a number. But the *shape* is right, and it is the only place an ABRA component
+could be scored against something other than itself.
+
+That matters because of a limit this project already knows it has: every result here is bots
+grading bots that **share our blind spots**. WOBBUFFET grades readability, R4 grades MILTANK against
+MAG, and both compare two things built from the same 53 features on the same engine. An external
+doubles benchmark is the first opportunity to be wrong in a way our own harness structurally cannot
+detect — which is the failure mode CLAUDE.md opens with.
+
+### Filed from this
+
+| Item | Division | Status |
+|---|---|---|
+| Leaf quality outranks more search work — the flat curve is the binding constraint | MEASURE + SEARCH | filed 2026-08-04 |
+| Evaluate `metamon` / Gen9 VGC Reg I as an EXTERNAL scoreboard, since every current result is bots grading bots that share our blind spots | MEASURE | filed 2026-08-04 |
+| Their pipeline is human demonstrations **plus** self-play at 18M trajectories; MEW has 1,000 gated games | MEASURE | filed 2026-08-04 |
+| Retrieve the actual talk transcript — this entry rests on the paper, not the stream | — | open |
