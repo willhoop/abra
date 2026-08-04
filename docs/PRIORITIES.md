@@ -51,6 +51,10 @@ Every rollout, leaf value and H2H ever run inherited all of this.
 | 13d | **`benchRisk` is identically ZERO in every real MAG game** | `engine/magnemite.js` never calls `setParty` and never reads `bench()` — yet the feature carries a fitted weight of **−0.160 at z = −10.8**. A weight fitted at ten standard errors on a feature that is always zero in play. Only `miltank.js:394-402` populates it, and with a *guess* | MEASURE |
 | 13e | **The fit's items never go stale** | the store has no item event and `noteItem` is called only by `magnemite.js:574`, so offline a declared item stands forever. 11.77% of fit games contain an item-changing move (1,588 Knock Offs) and **5.85% of actions** occur after one landed. `PREFER OBSERVED OVER DECLARED` holds live and does not hold in the fit | MEASURE |
 
+| 37 | **`applyMegaWeather` has NEVER fired on the seeded path** | both leaves call it and then assign `S.field.weather = f.weather \|\| ''` **unconditionally one line later**. Mega Charizard Y has stood in **clear weather in every mid-battle rollout ever run** — ~26% of format usage. Deliberately left unfixed by SEARCH so it would not confound the leaf unification while ENGINE was mid-flight. **It is now unblocked and it is a P0** | ENGINE |
+| 38 | **The 53.22% preview calibration figure describes a DELETED implementation** | MILTANK's preview no longer uses the hand-rolled greedy loop it was measured on. The figure must not be quoted for the shipped preview, and the MEASURE-vs-SEARCH contrast built on it (53.22% vs 50.99%) is void until re-measured **after the release boundary** | MEASURE |
+| 39 | **The live budget may be 21 decisions, not 45 seconds** | per *decision* MILTANK sits comfortably inside 45 s, but a 7-minute chess clock is **420 s for the whole game**, so `budgetMs: 20000` is **21 decisions before the clock is gone**. This rests on whether the 45 s is drawn from the 420 s total — **an unverified rules assumption**, flagged rather than acted on. Verify against the actual VGC ruleset before anyone tunes `budgetMs` | SEARCH |
+
 **Blocked on a signature change:** `writesAccuracy`/`accuracyMod` — `moveAccuracy(id, field)` takes
 neither attacker nor defender. **Possibly not bugs:** `critRatioUp`/`alwaysCrit` — `dmgRange` models
 no crit anywhere, so there is nothing to modify.
@@ -65,11 +69,18 @@ its condition becomes an unconditional one. MEASURE **may** start the refit for 
 MEASURE **may not** start it until every box below is ticked, and MEASURE ticks them itself — nobody
 should have to adjudicate this at 5am.
 
+**Will reinforced the condition after three more findings landed, 2026-08-04:** *"Make sure we
+address all findings before we start the refit tho."* So gate 1 is **every P0 and P1 item**, not the
+1-12 that existed when this was first written. An item is cleared when it is **fixed**, or **closed
+with a verdict** (like #23), or **waived by Will by name** — never by being old.
+
 **Go / no-go, in order. Any NO means stop.**
 
-1. P0 items **1-12 landed**: `node engine/status.js` shows the census at or above **90 live** (it
-   must never go down) and the seeded differential at the canonical seed **20260804** is at or below
-   tonight's **4/400**.
+1. **Every P0 and P1 item is fixed, closed with a verdict, or waived by Will by name.** Including the
+   ones filed after this gate was written: **#37 `applyMegaWeather`**, **#23b replay publication**,
+   **#23c the reconnect burst**, and **#38 the deleted-implementation figure**. Plus:
+   `node engine/status.js` shows the census at or above **90 live** (it must never go down) and the
+   seeded differential at the canonical seed **20260804** at or below tonight's **4/400**.
 2. `node tests/run-all.js` is **fully green**. Not "green except". A red test is fixed or waived by
    Will by name — that rule is not suspended by this permission.
 3. `node engine/artifact_audit.js` and `node engine/provenance.js --strict` both exit 0.
