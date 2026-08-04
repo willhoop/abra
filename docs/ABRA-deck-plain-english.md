@@ -92,11 +92,15 @@ Two things we tested and reported straight, even though they're negatives:
 
 **Added 3.32.0 — three more, and the first one is the worst thing we've found.**
 
-- **Rage Powder was deleting attacks.** In real Pokémon, Follow Me and Rage Powder pull the
-  opponent's attack onto you. In our simulator the attack didn't move — it *disappeared*. So for
-  every practice game we have ever run, those moves acted as a free shield for the whole team.
-  That's 7,240 uses in the real data. Nothing failed, nothing warned us; the games just quietly ran
-  on a rule that isn't the game's rule.
+- **We thought Rage Powder was deleting attacks. It wasn't — and catching that is the story.** The
+  test we wrote to check it aimed a *Dragon*-type attack at a Pokémon that is immune to Dragon. The
+  redirection worked perfectly and moved the attack onto something that takes zero damage, so the
+  test saw zero either way and we believed the wrong thing for several hours. Re-run against a
+  Pokémon that can actually be hurt, the untouched code works fine. Nothing was broken and nothing
+  we had measured was invalidated. **A test can be wrong in exactly the shape of the bug it is
+  looking for** — that is now the ninth time here, and the first time it fooled us.
+- **A real one next door, though.** Lightning Rod and Storm Drain — abilities that pull attacks in —
+  genuinely weren't working, 1,901 uses. Fixed.
 - **The number we quote for "how often we disagree with the real game" wasn't repeatable.** It
   picked its test matchups at random and never wrote down which ones. Two runs on identical code
   gave 6 and then 3. It now uses a fixed list, and the honest figure is 4 disagreements in 400.

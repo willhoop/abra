@@ -260,9 +260,14 @@ the ability's `onTryHit` so Water Absorb never fired — meaning the harness rep
 **Tag walk: 88 probes written, 40 red. Census 42 → 90 live. Coverage 53/176 → 137/176.** No
 previously-live probe fell.
 
-The worst thing found is **redirection, 7,240 uses: the attack does not go to the wrong target, it
-VANISHES.** Probe output: `no Follow Me: aimed 92 / partner 0 | Follow Me: aimed 0 / partner 0`.
-Every Follow Me and Rage Powder in every rollout ever run has been a free team-wide Protect.
+~~The worst thing found is redirection, 7,240 uses: the attack VANISHES.~~ **WITHDRAWN THE SAME DAY —
+the probe was wrong, not the engine.** It aimed **Dragon** Claw at **Whimsicott**, which is
+Grass/**Fairy** and immune to Dragon: Follow Me fired correctly and landed the attack on a body that
+takes exactly zero, so both arms read 0. Re-staged with Milotic the same unmodified code reads
+`aimed 0 / redirector 101`. **Redirection works and always has; nothing was invalidated.** The real
+gap was `redirectsType` — Lightning Rod and Storm Drain, **1,901 uses** — where the engine only ever
+looked for the Follow Me volatile. Fixed. Left in place rather than deleted because a prior
+conclusion is never silently rewritten.
 (Note this does **not** contradict 3.31.1 below, which measured the *fit's* unmatched clicks over
 real games and is unaffected by a rollout defect — but any rollout-based claim touching redirection
 is now suspect.)
