@@ -1,0 +1,135 @@
+{
+  "file": "data/.miltank-timing/r6.jsonl",
+  "generated": "2026-08-04T19:35:47.551Z",
+  "build": {
+    "source_digests": {
+      "medicham2-browser.js": "b1b3ea94d5c3",
+      "medicham2-browser.js:mtime": "2026-08-04T18:55:23.343Z",
+      "rollout_leaf.js": "974c94d92398",
+      "rollout_leaf.js:mtime": "2026-08-04T18:44:49.613Z",
+      "miltank.js": "2cdf6f5b0924",
+      "miltank.js:mtime": "2026-08-04T19:16:44.804Z",
+      "board.js": "abeb747f3219",
+      "board.js:mtime": "2026-08-03T07:28:15.197Z"
+    },
+    "node": "v24.15.0",
+    "host": "Hooper",
+    "cpu": "AMD Ryzen 7 7735HS with Radeon Graphics        ",
+    "cores": 16,
+    "ruleset": "VGC Timer (Timer Starting=420, Grace=90, AddPerTurn=0, MaxPerTurn=55, MaxFirstTurn=90)"
+  },
+  "n_measured": 120,
+  "n_unit": "decision (one MILTANK search call)",
+  "flags": {
+    "n": 200,
+    "explore": 1,
+    "turns": 60,
+    "foe": "uniform",
+    "budgetMs": 20000,
+    "previewN": 40,
+    "previewMs": 4000,
+    "clock": false,
+    "earlyDefer": false
+  },
+  "clock_observations": 0,
+  "per_decision": {
+    "all": {
+      "n": 120,
+      "mean_ms": 4063,
+      "p50_ms": 2169,
+      "p90_ms": 9977,
+      "p99_ms": 23812,
+      "max_ms": 23866,
+      "over_turn_wall_55s": 0,
+      "over_45s": 0,
+      "deferred": 33
+    }
+  },
+  "by_kind": {
+    "preview": {
+      "n": 11,
+      "mean_ms": 2573,
+      "p50_ms": 2076,
+      "p90_ms": 4041,
+      "p99_ms": 4195,
+      "max_ms": 4195,
+      "over_turn_wall_55s": 0,
+      "over_45s": 0,
+      "deferred": 0
+    },
+    "move": {
+      "n": 98,
+      "mean_ms": 4602,
+      "p50_ms": 2234,
+      "p90_ms": 13891,
+      "p99_ms": 23866,
+      "max_ms": 23866,
+      "over_turn_wall_55s": 0,
+      "over_45s": 0,
+      "deferred": 31
+    },
+    "switch": {
+      "n": 11,
+      "mean_ms": 744,
+      "p50_ms": 445,
+      "p90_ms": 607,
+      "p99_ms": 4528,
+      "max_ms": 4528,
+      "over_turn_wall_55s": 0,
+      "over_45s": 0,
+      "deferred": 2
+    }
+  },
+  "per_game": {
+    "games": 11,
+    "requests": {
+      "p50": 10,
+      "p90": 13,
+      "p99": 14,
+      "max": 14
+    },
+    "total_ms": {
+      "p50": 25186,
+      "p90": 128497,
+      "p99": 137068,
+      "max": 137068
+    },
+    "bank_ms": 420000,
+    "games_over_bank": 0,
+    "games_over_bank_pct": 0
+  },
+  "budget": {
+    "configured_ms": 20000,
+    "decisions_over_configured": 9,
+    "max_overrun_ms": 3866,
+    "note": "budgetMs is checked between finalists, so it is a checkpoint and not a deadline",
+    "deferred_decisions": 33,
+    "deferred_spend_pct": 30.5
+  },
+  "game_length": {
+    "store": "data/games.ladder.jsonl",
+    "n_measured": 30396,
+    "n_unit": "non-forfeit game",
+    "turns": {
+      "p50": 7,
+      "p90": 10,
+      "p99": 16,
+      "max": 71
+    },
+    "requests": {
+      "p50": 9,
+      "p75": 11,
+      "p90": 13,
+      "p95": 15,
+      "p99": 19,
+      "max": 74
+    },
+    "pct_over": {
+      "13": 9.37,
+      "21": 0.58,
+      "24": 0.3,
+      "30": 0.12,
+      "34": 0.08
+    }
+  }
+}

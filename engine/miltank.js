@@ -25,9 +25,248 @@
  * prior beats a coin flip over near-ties. Imitation is the floor; search is the ceiling.
  */
 'use strict';
+const fs = require('fs');
+const os = require('os');
+const crypto = require('crypto');
+const path = require('path');
 const CS = require('./champions_sim.js');
 const B = require('./board.js');
 const TAGSMOD = require('./tags.js');
+
+/* ===========================================================================
+ * THE CLOCK.  Read out of the Showdown source we actually play against, not assumed.
+ *
+ * `config/formats.ts` gives [Gen 9 Champions] VGC 2026 Reg M-B the ruleset `VGC Timer`, and
+ * `data/rulesets.ts:778` is verbatim:
+ *
+ *     Timer Starting = 420   Timer Grace = 90   Timer Add Per Turn = 0
+ *     Timer Max Per Turn = 55   Timer Max First Turn = 90
+ *     Timeout Auto Choose    DC Timer Bank
+ *
+ * `server/room-battle.ts` says what those do, and TWO of the things this project believed about
+ * them are wrong.  Both were found by reading the source rather than by watching a game, because
+ * the timer HAS NEVER BEEN ON IN A GAME ANYONE HAS WATCHED (Will, 2026-08-04: "when i play the bot
+ * i have turned the timer off").
+ *
+ *   1. THE BANK IS 420 s, NOT 510.  `:209` does start with `starting + grace` = 510 -- but
+ *      `updateTurn` at `:305-306` runs `secondsLeft = Math.min(secondsLeft + addPerTurn, starting)`
+ *      on every NEW TURN, and `starting` is 420.  So the 90 s of grace is CLAMPED AWAY on the second
+ *      timed request.  It is use-it-or-lose-it on the FIRST timed request and is not bankable.
+ *      Consequence: the shipped `budgetMs: 20000` buys 21 decisions, not the 24 SEARCH.md claimed.
+ *
+ *   2. THE BANK DOES NOT TICK WHILE THE TIMER IS OFF.  `secondsLeft` is decremented only in
+ *      `nextTick` (`:353`), which is scheduled only by `nextRequest`, which returns at `:320` when
+ *      `!this.timerRequesters.size`.  `start()` (`:239-240`) then calls `nextRequest` itself.  So an
+ *      opponent typing `/timer on` at turn 9 does NOT find a bank we have already spent -- it finds
+ *      a full one.  The fear that the mid-game switch-on arrives with unknown consumption is
+ *      unfounded, and that makes this design EASIER, not harder.
+ *
+ *   3. `isFirstRequest` (`:167`, `:326`) is still true whenever the timer first comes on, so the
+ *      90 s first-turn allowance is granted on WHATEVER TURN THE TIMER STARTS -- not only at preview.
+ *
+ *   4. A post-KO replacement is its own REQUEST with its own 55 s window off the same bank
+ *      (`updateTurn` returns at `:286` for a mid-turn request without clamping).  So the unit that
+ *      spends the bank is a REQUEST, not a turn, and a game with KOs has more requests than turns.
+ *
+ *   5. Charging is quantised: `TICK_TIME = 5` (`:41`) and every tick subtracts 5 whole seconds.
+ *      Thinking for 12 s costs 15 s.  Round our own spend UP to a tick before believing it.
+ *
+ * And the two failure modes are NOT symmetric, which is the whole shape of the reserve below:
+ *   turn expires with bank alive -> `>{slot} default`, a server-chosen move   (`:451-453`)
+ *   bank hits zero               -> `forfeitPlayer(..., ' lost due to inactivity.')`, WE LOSE (`:455`)
+ * =========================================================================== */
+const CLK = {
+  BANK_MS: 420000,        // Timer Starting -- and the hard ceiling updateTurn re-imposes every turn
+  GRACE_MS: 90000,        // Timer Grace -- spendable ONLY on the first timed request, then clamped
+  TURN_CAP_MS: 55000,     // Timer Max Per Turn
+  FIRST_CAP_MS: 90000,    // Timer Max First Turn
+  TICK_MS: 5000,          // TICK_TIME -- the bank is charged in whole 5 s units
+};
+
+/* WHAT WE CAN ACTUALLY SEE OF THE CLOCK, and it is more than I expected.
+ *
+ * `room-battle.ts:332` sends the PLAYER, privately, on every request while the timer is on:
+ *
+ *     |inactive|Time left: 55 sec this turn | 420 sec total | 90 sec grace
+ *
+ * so `turnSecondsLeft` and `secondsLeft` are both OBSERVABLE EXACTLY, not inferred.  Two traps in
+ * parsing it: the "total" field is `secondsLeft - grace` (`:330-332`), so the real bank is
+ * total + grace and reading "total" alone under-reads by 90 s early; and the grace field is absent
+ * once it is gone.  `|inactive|Battle timer is ON:` (`:237`) and `|inactiveoff|` (`:257`) bracket it.
+ *
+ * THE CAPABILITY IS NOT WIRED LIVE.  `engine/mag_bot.js` handles no `|inactive|` line at all
+ * (grepped: zero hits) and mag_bot is OPS's file, not SEARCH's.  So `noteClock` below exists, is
+ * counted, and in a live game is CALLED ZERO TIMES until OPS wires it.  Under CLAUDE.md that means
+ * it is assumed broken, so the adaptive rule must be correct WITHOUT it -- see `bankMs()`, which
+ * falls back to charging ourselves from a full bank as though the timer had been on since move one.
+ * That is the worst case and it errs toward under-spending, which costs search quality rather than
+ * the game. */
+function parseInactive(line) {
+  const m = /Time left:\s*(\d+)\s*sec this turn\s*\|\s*(\d+)\s*sec total(?:\s*\|\s*(\d+)\s*sec grace)?/i.exec(String(line || ''));
+  if (!m) return null;
+  return { turnSec: +m[1], totalSec: +m[2], graceSec: m[3] ? +m[3] : 0 };
+}
+
+/* The build these timings describe.  A duration is a fact about a machine under a load AND about a
+ * build -- PRIORITIES #14 is "R2 is re-run or it is nothing" for exactly the missing half of that.
+ * Hashed once per process. */
+let _STAMP = null;
+function buildStamp() {
+  if (_STAMP) return _STAMP;
+  const files = ['medicham2-browser.js', 'rollout_leaf.js', 'miltank.js', 'board.js'];
+  const digests = {};
+  for (const f of files) {
+    try {
+      const p = path.join(__dirname, f);
+      digests[f] = crypto.createHash('sha1').update(fs.readFileSync(p)).digest('hex').slice(0, 12);
+      digests[f + ':mtime'] = fs.statSync(p).mtime.toISOString();
+    } catch (e) { digests[f] = 'UNREADABLE'; }
+  }
+  _STAMP = {
+    source_digests: digests,
+    node: process.version,
+    host: os.hostname(),
+    cpu: (os.cpus()[0] || {}).model || 'unknown',
+    cores: os.cpus().length,
+    ruleset: 'VGC Timer (Timer Starting=420, Grace=90, AddPerTurn=0, MaxPerTurn=55, MaxFirstTurn=90)',
+  };
+  return _STAMP;
+}
+/* HASHED AT LOAD, NOT AT THE FIRST DECISION.  ENGINE lands fixes while SEARCH runs; if the digest
+ * were taken when the first row is written, it could describe a file that was edited AFTER this
+ * process loaded it, and the run would carry a stamp for a build it is not running. */
+buildStamp();
+
+/* PER-DECISION WALL CLOCK, WRITTEN TO AN ARTIFACT.  "The mean is not what times you out" -- the
+ * whole point is the tail, so rows are kept and reduced afterwards rather than averaged in flight.
+ * Enabled by `timing:` or MILTANK_TIMING=<path>; a zero decision count is a broken capability and
+ * `--reduce` says so out loud. */
+function makeTimer(dest) {
+  const file = dest || process.env.MILTANK_TIMING || null;
+  const state = { file, rows: 0, wroteStamp: false, install: crypto.randomBytes(4).toString('hex') };
+  return {
+    on: !!file,
+    count: () => state.rows,
+    install: state.install,
+    record(row) {
+      if (!file) return;
+      try {
+        let out = '';
+        if (!state.wroteStamp) {
+          state.wroteStamp = true;
+          out += JSON.stringify({ _stamp: buildStamp(), install: state.install, t: new Date().toISOString() }) + '\n';
+        }
+        out += JSON.stringify(Object.assign({ install: state.install, t: Date.now() }, row)) + '\n';
+        fs.appendFileSync(file, out);
+        state.rows++;
+      } catch (e) { /* a timing artifact must never break a turn */ }
+    },
+  };
+}
+
+/* THE ADAPTIVE SPEND.  DEFAULT OFF -- `clock: false` -- so nothing changes in a live game without a
+ * deliberate decision, and so the flag is a pure throttle: it can only ever LOWER the budget below
+ * the configured `budgetMs`, never raise it.  A rule that could also spend more would need its own
+ * accuracy evidence; this one needs only to not be worse.
+ *
+ * The rule, in one line: spend `(bank - reserve) / expected remaining requests`, clamped under the
+ * per-turn wall with a safety margin, floored so a starved tail still searches something.
+ *
+ * WHY THE RESERVE IS NOT SYMMETRIC.  Overrunning the TURN costs one server-chosen move; emptying the
+ * BANK forfeits the game.  So the reserve sits on the bank and the turn gets only a tick-quantisation
+ * margin.  `clockRequestsP90` is a HIGH QUANTILE of requests per game, not the mean, for the same
+ * reason the distribution is being measured at all. */
+/* ENV FALLBACKS, AND WHY THEY EXIST RATHER THAN A FLAG.  The A/B that judges this rule has to run
+ * through `engine/mew.js`, and the switch that turns the lever on has to reach `install()` from the
+ * command line.  `mew.js` is MEASURE's file and `mag_bot.js` is OPS's, so SEARCH cannot add
+ * `--miltank-clock` to either -- the same one-liner PRIORITIES #33 already owes `--miltank-explore`.
+ * An environment variable is reachable from both without editing another division's file, and it is
+ * recorded in every timing row, so a result can still be attributed to the lever.  Replace these
+ * with real flags when #33 is done; do not add a second way to set the same thing and leave both. */
+function envOn(name, fallback) {
+  const v = process.env[name];
+  if (v == null || v === '') return fallback;
+  return v !== '0' && v.toLowerCase() !== 'false';
+}
+
+function makeClock(opts, timer) {
+  const ON = envOn('MILTANK_CLOCK', !!opts.clock);
+  const STATIC = opts.budgetMs || 20000;
+  const RESERVE = opts.clockReserveMs != null ? opts.clockReserveMs : 45000;
+  const MIN_MS = opts.clockMinMs != null ? opts.clockMinMs : 1500;
+  const SAFETY = opts.clockSafetyMs != null ? opts.clockSafetyMs : 10000;
+  /* THE PLANNING HORIZON, IN REQUESTS, AND IT IS MEASURED RATHER THAN GUESSED.
+   * `node engine/miltank.js --horizon data/games.ladder.jsonl` over 30,396 non-forfeit ladder games:
+   * requests (turns plus own-faint turns, since a replacement is its own request) run p50 9, p90 13,
+   * p95 15, p99 19, max 74, and only 0.58% of games exceed 21.  A bank timeout forfeits, so the
+   * horizon is the p99 and not the p90 -- planning against the median is planning to lose the tail. */
+  const EXPECT = opts.clockHorizonRequests != null ? opts.clockHorizonRequests : 19;
+  /* PAST THE HORIZON, `EXPECT - requests` COLLAPSES TO 1 AND THE RULE SPENDS THE WHOLE BUDGET AGAIN.
+   * Caught by driving the clock through 40 requests rather than by reading it: at request 35 with an
+   * observed 200 s bank the divisor is 1, `usable/1` clears 20,000, and the throttle silently turns
+   * itself off exactly when the game has proved it is a long one.  A game that has already outlived
+   * the p90 has a conditional remaining length nowhere near 1, so always plan for at least this many
+   * more requests.  A stated conservative choice, not a measurement. */
+  const TAIL_MIN = opts.clockTailMin != null ? opts.clockTailMin : 8;
+  const st = {
+    on: ON, requests: 0, charged: 0, timerSeen: false, timerOn: false,
+    obsBank: null, obsAt: 0, obsTurnCap: null, notes: 0, timedRequests: 0,
+  };
+  return {
+    enabled: ON,
+    stats: () => Object.assign({}, st),
+    /* Called once per REQUEST, not once per slot: both halves of a doubles turn are one charge. */
+    onRequest() { st.requests++; if (st.timerOn) st.timedRequests++; },
+    charge(ms) { st.charged += Math.ceil(ms / CLK.TICK_MS) * CLK.TICK_MS; },
+    /* The observation hook.  OPS must call this from the `|inactive|` handler mag_bot does not yet
+     * have; `notes` is the counter that proves whether it ever ran. */
+    noteClock(o) {
+      st.notes++;
+      if (!o) return;
+      if (o.on === false) { st.timerOn = false; return; }
+      st.timerSeen = true; st.timerOn = true;
+      const p = typeof o === 'string' ? parseInactive(o) : o;
+      if (!p) return;
+      /* bank = total + grace.  `:330-332` prints them apart and the sum is the real secondsLeft. */
+      st.obsBank = (p.totalSec + (p.graceSec || 0)) * 1000;
+      st.obsAt = Date.now();
+      if (p.turnSec != null) st.obsTurnCap = p.turnSec * 1000;
+      st.charged = 0;                      // an observation supersedes every estimate before it
+    },
+    /* WORST CASE WHEN NOBODY IS WATCHING.  With no observation we assume the timer has been on since
+     * the first request and charge ourselves from a full 420 s.  If the timer is in fact off we have
+     * throttled for nothing -- a weaker search, not a lost game.  If it comes on at turn 9 the
+     * estimate has over-charged us for turns that were free, so we under-spend.  Both errors land on
+     * the safe side, which is the only property this function is allowed to have. */
+    bankMs() {
+      let bank;
+      if (st.obsBank != null) bank = st.obsBank - (Date.now() - st.obsAt);
+      else bank = CLK.BANK_MS - st.charged;
+      /* updateTurn re-clamps to `starting` on every new turn, so the grace is never bankable past
+       * the first timed request.  Never believe more than 420 s once one has gone by. */
+      if (st.requests > 1) bank = Math.min(bank, CLK.BANK_MS);
+      return Math.max(0, bank);
+    },
+    /* The per-request wall.  90 s on the first timed request (`maxFirstTurn`), 55 s after. */
+    turnCapMs() {
+      if (st.obsTurnCap != null) return st.obsTurnCap;
+      return st.requests <= 1 ? CLK.FIRST_CAP_MS : CLK.TURN_CAP_MS;
+    },
+    /* `configured` is what the flag would have spent; this can only return that or less. */
+    budgetFor(kind, configured) {
+      const want = configured != null ? configured : STATIC;
+      if (!ON) return want;
+      const bank = this.bankMs();
+      const R = Math.max(TAIL_MIN, EXPECT - st.requests);
+      const usable = Math.max(0, bank - RESERVE);
+      let ms = usable / R;
+      ms = Math.min(ms, want, Math.max(0, this.turnCapMs() - SAFETY));
+      ms = Math.max(ms, MIN_MS);
+      ms = Math.min(ms, Math.max(0, bank - CLK.TICK_MS * 2));
+      return Math.round(ms);
+    },
+  };
+}
 
 /* Defaults match mag_bot's flags so a caller that passes nothing gets the shipped player. */
 /* `defer` -- hand a turn back to MAG when the search cannot separate its options.
@@ -52,8 +291,16 @@ const TAGSMOD = require('./tags.js');
  * `explore` is a decision to have ONE player until something says otherwise, not a measurement.
  * No CLI flag reaches it yet -- mag_bot.js and mew.js are not this division's files; see
  * PRIORITIES #33, which owes `--miltank-explore` the same one-liner. */
+/* `clock` -- adaptive spend against the bank.  OFF, deliberately: the shipped player must not change
+ * because an instrumentation pass landed.  See makeClock above for the rule and for what the
+ * Showdown source actually says.  `clockEarlyDefer` is a SEPARATE flag and is also off, because it
+ * changes WHAT IS CLICKED and not only how long it takes -- it needs its own SPRT arm, not a timing
+ * argument.  `timing` writes the per-decision wall-clock artifact and is off unless asked. */
 const DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
-                   previewExplore: null, why: false, trace: false };
+                   previewExplore: null, why: false, trace: false,
+                   timing: null, clock: false, clockEarlyDefer: false,
+                   clockReserveMs: 45000, clockMinMs: 1500, clockSafetyMs: 10000,
+                   clockHorizonRequests: 19, clockTailMin: 8 };
 
 /* Install MILTANK onto an already-constructed magnemite player.
  *
@@ -70,6 +317,34 @@ function install(bot, o) {
   const FOE_POLICY = opts.foePolicy || 'uniform';
   /* Optional: told the win probability after a real decision, so a caller can surface it. */
   const SAY = typeof opts.onSay === 'function' ? opts.onSay : null;
+
+  /* THE CLOCK.  TIMER records; CLOCK decides.  Both are inert unless switched on. */
+  const TIMER = makeTimer(opts.timing);
+  const CLOCK = makeClock(opts, TIMER);
+  const EARLY_DEFER = envOn('MILTANK_EARLY_DEFER', !!opts.clockEarlyDefer);
+  bot._miltankClock = CLOCK;
+  bot._miltankTimer = TIMER;
+  /* THE OBSERVATION HOOK, exposed on the bot so a socket handler can feed it the `|inactive|` line
+   * verbatim.  Nothing calls it today -- mag_bot.js parses no `|inactive|` and is OPS's file -- and
+   * `CLOCK.stats().notes` is the counter that will prove it when something does. */
+  bot.noteClock = (o) => CLOCK.noteClock(o);
+  bot.clockStats = () => CLOCK.stats();
+  /* One REQUEST is one charge against the bank, and a doubles turn is two chooseMove calls on one
+   * request.  Counting calls instead of requests would double the spend estimate. */
+  let _lastReq = null;
+  const onRequest = function (req) { if (req !== _lastReq) { _lastReq = req; CLOCK.onRequest(); } };
+  let _dec = 0;
+  const say = (kind, ms, extra) => {
+    _dec++;
+    if (!TIMER.on) return;
+    TIMER.record(Object.assign({
+      dec: _dec, kind, ms, req: CLOCK.stats().requests,
+      turn: (bot.board && bot.board.turn) || null,
+      n: ROLLOUT_N, explore: ROLLOUT_EXPLORE, turns: ROLLOUT_TURNS, foe: FOE_POLICY,
+      previewN: PREVIEW_N, previewMs: PREVIEW_MS, budgetMs: opts.budgetMs || 20000,
+      clock: CLOCK.enabled, early: EARLY_DEFER, bankMs: CLOCK.bankMs(), notes: CLOCK.stats().notes,
+    }, extra || {}));
+  };
 
       const RL = require('./rollout_leaf.js');
       /* The real dex, not undefined. dmgMon uses it to resolve the EFFECTIVE ability — a mega's
@@ -135,6 +410,7 @@ function install(bot, o) {
        */
       bot.chooseTeamPreview = function (team) {
         const t0 = Date.now();
+        onRequest(this._req || 'preview');
         try {
           const side = this.me || 'p1';
           const foe = side === 'p1' ? 'p2' : 'p1';
@@ -226,7 +502,13 @@ function install(bot, o) {
             }
           }
           const N = PREVIEW_N;
-          const DEADLINE = t0 + PREVIEW_MS;
+          /* PREVIEW TIME IS THE CHEAPEST TIME IN THE GAME and the arithmetic says so: the first
+           * timed request gets `maxFirstTurn` = 90 s, and `updateTurn` clamps the bank back to 420 s
+           * on the NEXT turn regardless -- so anything spent here inside 90 s comes out of grace that
+           * would otherwise be thrown away.  The throttle therefore only ever binds preview when the
+           * bank is already in trouble, which at request 0 it is not. */
+          const PMS = CLOCK.budgetFor('preview', PREVIEW_MS);
+          const DEADLINE = t0 + PMS;
           /* COMMON RANDOM NUMBERS ACROSS BRINGS. One seed for the whole preview, so playout i of
            * every candidate bring faces the SAME sampled opponent four and the same dice.
            *
@@ -285,15 +567,23 @@ function install(bot, o) {
             `${myNames[best[2]]} + ${myNames[best[3]]}  win ${(100 * bestVal).toFixed(0)}%  ` +
             `(${done}/${combos.length} brings scored, ${Date.now() - t0}ms, ` +
             `n=${PREVIEW_N} explore=${PREVIEW_EXPLORE} foe=${FOE_POLICY} turns=${ROLLOUT_TURNS} fresh-game)`);
+          const _ms = Date.now() - t0;
+          CLOCK.charge(_ms);
+          say('preview', _ms, { opts: combos.length, done, budget: PMS, deferred: false });
           return 'team ' + order.map(i => i + 1).join('');
         } catch (e) {
           console.error('  preview search threw, falling back to default: ' + e.message);
+          const _ms = Date.now() - t0;
+          CLOCK.charge(_ms);
+          say('preview', _ms, { threw: true, deferred: true });
           return baseTeamPreview(team);
         }
       };
 
       const baseSwitch = bot.chooseSwitch.bind(bot);
       bot.chooseSwitch = function (active, switches) {
+        const tSw = Date.now();
+        onRequest(this._req);
         try {
           /* `ROLLOUT` was mag_bot's own on/off flag and came through the extraction as a free
            * variable -- so chooseSwitch threw on every forced replacement and fell back to MAG,
@@ -317,9 +607,17 @@ function install(bot, o) {
           };
           const replSeed = (Date.now() & 0xffff) * 6151 + 17;
           const scored = [];
+          /* THE REPLACEMENT SEARCH HAD NO DEADLINE AT ALL -- five candidates at n = 2*ROLLOUT_N, and
+           * it is a SEPARATE REQUEST with its own 55 s wall (`room-battle.ts:286`, a mid-turn request
+           * does not clamp and does draw from the bank).  So a game with KOs spends more requests
+           * than it has turns, and this was the one decision nothing bounded.  Only enforced when the
+           * clock flag is on, so the OFF path is byte-for-byte the player that was measured. */
+          const SW_DEADLINE = CLOCK.enabled ? tSw + CLOCK.budgetFor('switch', opts.budgetMs || 20000) : Infinity;
+          let swCut = 0;
           for (const sw of switches) {
             const sp = speciesOf(sw.slot);
             if (!sp) continue;
+            if (Date.now() > SW_DEADLINE) { swCut++; continue; }
             const r = RL.rolloutWinProb(this.board, side, {
               n: ROLLOUT_N * 2, dex: DEX2, explore: ROLLOUT_EXPLORE, foePolicy: FOE_POLICY, field,
               /* COMMON RANDOM NUMBERS. Every candidate is judged on the SAME dice.
@@ -343,7 +641,11 @@ function install(bot, o) {
             });
             if (r && typeof r.p === 'number') scored.push([r.p, sw.slot, sp]);
           }
-          if (scored.length < 2) return baseSwitch(active, switches);
+          if (scored.length < 2) {
+            const _ms = Date.now() - tSw; CLOCK.charge(_ms);
+            say('switch', _ms, { opts: switches.length, done: scored.length, cut: swCut, deferred: true });
+            return baseSwitch(active, switches);
+          }
           scored.sort((a, b) => b[0] - a[0]);
           /* The same noise-floor rule the move picker uses: an argmax over estimates that overlap is
            * a coin flip wearing a search's clothes, and magnemite's ranking is the better tiebreak. */
@@ -351,7 +653,13 @@ function install(bot, o) {
           if (DEFER && scored[0][0] - scored[1][0] < 1.5 * se) {
             console.log(`  replacement: UNDECIDED — ${scored.map(s => s[2] + ' ' + (100 * s[0]).toFixed(0) + '%').join(', ')}` +
               `; within a ${(100 * se).toFixed(1)}pt error, deferring to MAG`);
+            const _ms = Date.now() - tSw; CLOCK.charge(_ms);
+            say('switch', _ms, { opts: switches.length, done: scored.length, cut: swCut, deferred: true });
             return baseSwitch(active, switches);
+          }
+          {
+            const _ms = Date.now() - tSw; CLOCK.charge(_ms);
+            say('switch', _ms, { opts: switches.length, done: scored.length, cut: swCut, deferred: false });
           }
           console.log(`  replacement: ${scored[0][2]} ${(100 * scored[0][0]).toFixed(0)}%` +
             `  (over ${scored.slice(1).map(s => s[2] + ' ' + (100 * s[0]).toFixed(0) + '%').join(', ')})`);
@@ -366,13 +674,17 @@ function install(bot, o) {
           return baseSwitch(active, switches);
         } catch (e) {
           console.error('  replacement search threw, falling back to MAG: ' + e.message);
+          const _ms = Date.now() - tSw; CLOCK.charge(_ms);
+          say('switch', _ms, { threw: true, deferred: true });
           return baseSwitch(active, switches);
         }
       };
 
       bot.chooseMove = function (active, moves) {
+        const tCall = Date.now();
         try {
           const req = this._req;
+          onRequest(req);
           const acts = (req && req.active) || [];
           const i = acts.indexOf(active);
           /* The partner's half, decided on the other slot's call. */
@@ -637,7 +949,12 @@ function install(bot, o) {
            * enough to Showdown's turn timer that a harder position could time out, and a loss on the
            * clock says nothing about the player. The finalist round stops when the budget is spent
            * and reports how many it managed, because a silent truncation reads as full coverage. */
-          const BUDGET_MS = opts.budgetMs || 20000;
+          /* ADAPTIVE, AND ONLY DOWNWARD.  With `clock:false` this is exactly `opts.budgetMs` and the
+           * player is unchanged; with it on, the budget is `(bank - reserve) / remaining requests`
+           * clamped under the 55 s wall.  A flat 20 s survives 21 decisions off a 420 s bank; VGC
+           * doubles games run past that often enough that the shipped constant can forfeit a won
+           * game, and a loss on the clock says nothing about the player. */
+          const BUDGET_MS = CLOCK.budgetFor('move', opts.budgetMs || 20000);
           const tStart = Date.now();
           const SCREEN_N = Math.max(12, Math.round(ROLLOUT_N / 3));
           const FINAL_K = 8;
@@ -684,9 +1001,50 @@ function install(bot, o) {
             screened.push([v, ia, ib]);
           }
           if (screenCut && WHY) console.log(`    screen ran out of time on ${screenCut} pair(s)`);
-          if (!screened.length) return base(active, moves);
+          if (!screened.length) {
+            const _ms = Date.now() - tCall; CLOCK.charge(_ms);
+            say('move', _ms, { opts: oa.length * ob.length, budget: BUDGET_MS, deferred: true, why: 'no-screen' });
+            return base(active, moves);
+          }
           screened.sort((a, b) => b[0] - a[0]);
           const finalists = screened.slice(0, FINAL_K);
+          /* EARLY DEFER -- STOP PAYING FOR A DECISION WE ARE ABOUT TO GIVE AWAY.
+           *
+           * MILTANK handed 29% of turns back to MAG in an R4 run and paid the FULL search first every
+           * time: the screen, then eight finalists at 2*ROLLOUT_N, then a spread test that said the
+           * finalists are indistinguishable.  The finalist round is ~60% of the budget by
+           * construction, so a quarter of the clock is spent producing an answer that is discarded.
+           *
+           * The screen already has an opinion about the spread; it is just noisier.  The estimator,
+           * with its bias stated rather than hidden: K estimates of ONE true value span roughly
+           * 2.8 sigma, so subtract that expected pure-dice range from the observed screen spread and
+           * ask whether what is left clears the FINAL round's tie band.  It is an estimate of the
+           * true spread and it is biased low by construction -- which is the direction that makes it
+           * defer MORE often, so it must be judged on play and not on clock.
+           *
+           * OFF BY DEFAULT AND IT IS NOT A TIMING LEVER.  It changes what gets clicked on every turn
+           * where the screen and the finals would have disagreed, so it needs its own SPRT arm.  A
+           * "this is only an optimisation" argument would be false here and is not made. */
+          let earlyDefer = false;
+          if (EARLY_DEFER && DEFER && finalists.length > 1) {
+            const top = finalists[0][0];
+            const seScreen = Math.sqrt(Math.max(top * (1 - top), 0.0025) / Math.max(1, screenN));
+            const seFinal = Math.sqrt(Math.max(top * (1 - top), 0.0025) / (ROLLOUT_N * 2));
+            const ceil0 = top > 0.95 || top < 0.05;
+            const bandFinal = ceil0 ? Math.max(1.5 * seFinal, 0.05) : 1.5 * seFinal;
+            const obs = finalists[0][0] - finalists[finalists.length - 1][0];
+            const trueHat = Math.max(0, obs - 2.8 * seScreen);
+            if (trueHat < bandFinal) {
+              earlyDefer = true;
+              console.log(`  MILTANK: EARLY-UNDECIDED — screen spans ${(100 * obs).toFixed(1)}pt over ` +
+                `${finalists.length} finalists at n=${screenN}; true spread ~${(100 * trueHat).toFixed(1)}pt ` +
+                `against a ${(100 * bandFinal).toFixed(1)}pt final band; deferring to MAG without the finals`);
+              const _ms = Date.now() - tCall; CLOCK.charge(_ms);
+              say('move', _ms, { opts: oa.length * ob.length, budget: BUDGET_MS, deferred: true,
+                                 why: 'early', screenN, screenSpread: obs, trueHat, bandFinal });
+              return base(active, moves);
+            }
+          }
           /* Round two: the survivors only, at the full budget and with a DIFFERENT seed salt, so a
            * pair that advanced on lucky dice has to roll them again. */
           let finalsDone = 0;
@@ -700,7 +1058,11 @@ function install(bot, o) {
             (byKind[kind] = byKind[kind] || []).push(v);
             if (v > bestVal) { bestVal = v; bestPair = [ia, ib]; }
           }
-          if (!bestPair) return base(active, moves);
+          if (!bestPair) {
+            const _ms = Date.now() - tCall; CLOCK.charge(_ms);
+            say('move', _ms, { opts: oa.length * ob.length, budget: BUDGET_MS, deferred: true, why: 'no-finals' });
+            return base(active, moves);
+          }
           /* WHEN THE SEARCH CANNOT TELL THE OPTIONS APART, IT MUST SAY SO RATHER THAN GUESS.
            *
            * Live log, a lost position: `protect + protect win 1%` with `by class: mv+mv 0%(35)` --
@@ -738,6 +1100,9 @@ function install(bot, o) {
           if (DEFER && fv.length > 1 && spread < tieBand) {
             console.log(`  MILTANK: UNDECIDED — ${fv.length} finalists span ${(100 * spread).toFixed(1)}pt` +
               ` against a ${(100 * tieBand).toFixed(1)}pt band${ceiling ? ' (near the ceiling)' : ''}; deferring to MAG`);
+            const _ms = Date.now() - tCall; CLOCK.charge(_ms);
+            say('move', _ms, { opts: oa.length * ob.length, budget: BUDGET_MS, deferred: true, why: 'late',
+                               screenN, finalsDone, finalsK: finalists.length, screenCut });
             return base(active, moves);
           }
           /* NO LONGER DEFERS ON CONFIDENCE, and the reason is a game it threw.
@@ -785,6 +1150,11 @@ function install(bot, o) {
               console.log('    it assumed you might: ' + top);
             }
           }
+          {
+            const _ms = Date.now() - tCall; CLOCK.charge(_ms);
+            say('move', _ms, { opts: oa.length * ob.length, budget: BUDGET_MS, deferred: false, why: 'chose',
+                               screenN, finalsDone, finalsK: finalists.length, screenCut, searchMs: ms });
+          }
           if (SAY) { try { SAY(bestVal, chosen); } catch (e) { /* never let a chat line break a turn */ } }
           this._rolloutReq = req;
           this._rolloutPick = [];
@@ -810,10 +1180,148 @@ function install(bot, o) {
            * every game while the bot quietly plays as MAG. */
           const at = (String(e.stack || '').split('\n')[1] || '').trim();
           console.error('  rollout failed, falling back to MAG: ' + e.message + (at ? ' | ' + at : ''));
+          const _ms = Date.now() - tCall; CLOCK.charge(_ms);
+          say('move', _ms, { threw: true, deferred: true, why: 'threw' });
           return base(active, moves);
         }
       };
   return bot;
 }
 
-module.exports = { install, DEFAULTS };
+/* ===========================================================================
+ * THE REDUCER.  `node engine/miltank.js --reduce <rows.jsonl> [--out <summary.json>]`
+ *
+ * Lives in this file on purpose: the thing that reads the artifact and the thing that writes it
+ * should not be able to drift apart about what a row means.  It reports the SHAPE -- median, p90,
+ * p99, max, the count over the 55 s per-turn wall, and the cumulative per-game spend against the
+ * 420 s bank -- because "the mean is not what times you out" is the entire premise.
+ *
+ * It refuses to summarise rows written under more than one build.  A timing distribution that mixes
+ * two engines is not a fact about either of them, and PRIORITIES #14 exists because that was already
+ * allowed to happen once.
+ * =========================================================================== */
+function reduce(file) {
+  const q = (a, p) => a.length ? a[Math.min(a.length - 1, Math.max(0, Math.ceil(p * a.length) - 1))] : null;
+  const lines = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean);
+  const stamps = [], rows = [];
+  for (const ln of lines) {
+    let r; try { r = JSON.parse(ln); } catch (e) { continue; }
+    if (r._stamp) stamps.push(r); else rows.push(r);
+  }
+  /* A capability that cannot prove it ran is assumed broken. */
+  if (!rows.length) return { ERROR: 'ZERO DECISIONS RECORDED — the recorder did not run', file };
+  const digestOf = (s) => JSON.stringify(s._stamp.source_digests);
+  const uniq = [...new Set(stamps.map(digestOf))];
+  const byKind = {};
+  for (const r of rows) (byKind[r.kind] = byKind[r.kind] || []).push(r);
+  const shape = (rs) => {
+    const ms = rs.map(r => r.ms).sort((a, b) => a - b);
+    return {
+      n: ms.length,
+      mean_ms: Math.round(ms.reduce((a, b) => a + b, 0) / ms.length),
+      p50_ms: q(ms, 0.5), p90_ms: q(ms, 0.9), p99_ms: q(ms, 0.99), max_ms: ms[ms.length - 1],
+      over_turn_wall_55s: ms.filter(x => x > CLK.TURN_CAP_MS).length,
+      over_45s: ms.filter(x => x > 45000).length,
+      deferred: rs.filter(r => r.deferred).length,
+    };
+  };
+  /* PER GAME, because the bank is per game.  `install()` runs once per player per battle in both
+   * mag_bot and mew, so ONE INSTALL ID IS ONE PLAYER IN ONE GAME -- which is exactly the unit the
+   * bank is charged against.  Grouping on it also survives rows from several processes being cat'd
+   * together, which is how a sharded run arrives. */
+  const byInstall = {};
+  for (const r of rows) (byInstall[r.install] = byInstall[r.install] || []).push(r);
+  const games = Object.keys(byInstall).map(k => {
+    const rs = byInstall[k];
+    return {
+      install: k, decisions: rs.length,
+      requests: Math.max(...rs.map(r => r.req || 0)),
+      ms: rs.reduce((a, r) => a + r.ms, 0),
+      deferred: rs.filter(r => r.deferred).length,
+    };
+  });
+  const gm = games.map(g => g.ms).sort((a, b) => a - b);
+  const gr = games.map(g => g.requests).sort((a, b) => a - b);
+  return {
+    file, generated: new Date().toISOString(),
+    build: uniq.length === 1 ? stamps[0]._stamp : { MIXED: uniq.length, WARNING: 'rows span more than one build — not a fact about either' },
+    n_measured: rows.length, n_unit: 'decision (one MILTANK search call)',
+    flags: rows[0] ? { n: rows[0].n, explore: rows[0].explore, turns: rows[0].turns, foe: rows[0].foe,
+                       budgetMs: rows[0].budgetMs, previewN: rows[0].previewN, previewMs: rows[0].previewMs,
+                       clock: rows[0].clock, earlyDefer: rows[0].early } : null,
+    clock_observations: rows.reduce((a, r) => a + (r.notes || 0), 0),
+    per_decision: { all: shape(rows) },
+    by_kind: Object.fromEntries(Object.keys(byKind).map(k => [k, shape(byKind[k])])),
+    per_game: {
+      games: games.length,
+      requests: { p50: q(gr, 0.5), p90: q(gr, 0.9), p99: q(gr, 0.99), max: gr[gr.length - 1] },
+      total_ms: { p50: q(gm, 0.5), p90: q(gm, 0.9), p99: q(gm, 0.99), max: gm[gm.length - 1] },
+      bank_ms: CLK.BANK_MS,
+      games_over_bank: games.filter(g => g.ms > CLK.BANK_MS).length,
+      games_over_bank_pct: +(100 * games.filter(g => g.ms > CLK.BANK_MS).length / games.length).toFixed(1),
+    },
+    /* THE TWO NUMBERS THAT DECIDE THE DESIGN, not decoration.
+     *  - `budgetMs` IS A CHECKPOINT, NOT A DEADLINE: it is tested between finalists, so the last
+     *    finalist runs to completion past it.  The real per-decision cap is budgetMs + one finalist.
+     *  - `deferred_spend_pct` IS THE CEILING ON `clockEarlyDefer`: the share of the clock spent on
+     *    decisions that were then handed to MAG anyway. */
+    budget: (() => {
+      const b = rows[0] ? rows[0].budgetMs : 20000;
+      const over = rows.filter(r => r.kind === 'move' && r.ms > b);
+      const tot = rows.reduce((a, r) => a + r.ms, 0);
+      const def = rows.filter(r => r.deferred).reduce((a, r) => a + r.ms, 0);
+      return {
+        configured_ms: b,
+        decisions_over_configured: over.length,
+        max_overrun_ms: over.length ? Math.max(...over.map(r => r.ms - b)) : 0,
+        note: 'budgetMs is checked between finalists, so it is a checkpoint and not a deadline',
+        deferred_decisions: rows.filter(r => r.deferred).length,
+        deferred_spend_pct: +(100 * def / tot).toFixed(1),
+      };
+    })(),
+  };
+}
+
+/* HOW LONG A REAL GAME IS, IN REQUESTS -- the input the adaptive rule's horizon is set from.
+ * A REQUEST, not a turn: a post-KO replacement is its own request off the same bank
+ * (`room-battle.ts:286`), so it is counted as `turns + turns in which one of MY bodies fainted`.
+ * Forfeits are excluded -- a game that ended because somebody quit says nothing about length. */
+function horizon(store) {
+  const lines = fs.readFileSync(store, 'utf8').split('\n');
+  const reqs = [], turns = [];
+  for (const l of lines) {
+    if (!l) continue;
+    let g; try { g = JSON.parse(l); } catch (e) { continue; }
+    if (!Array.isArray(g.turns) || !g.turns.length || g.forfeit) continue;
+    let ft = 0;
+    for (const t of g.turns) if ((t.ev || []).some(e => e.t === 'f' && /^p1/.test(String(e.s || '')))) ft++;
+    turns.push(g.turns.length); reqs.push(g.turns.length + ft);
+  }
+  const q = (a, p) => { a = a.slice().sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.ceil(p * a.length) - 1)]; };
+  const over = (k) => +(100 * reqs.filter(x => x > k).length / reqs.length).toFixed(2);
+  return {
+    store, n_measured: reqs.length, n_unit: 'non-forfeit game',
+    turns: { p50: q(turns, .5), p90: q(turns, .9), p99: q(turns, .99), max: q(turns, 1) },
+    requests: { p50: q(reqs, .5), p75: q(reqs, .75), p90: q(reqs, .9), p95: q(reqs, .95), p99: q(reqs, .99), max: q(reqs, 1) },
+    pct_over: { 13: over(13), 21: over(21), 24: over(24), 30: over(30), 34: over(34) },
+  };
+}
+
+if (require.main === module) {
+  const a = process.argv.slice(2);
+  if (a[0] === '--horizon') { console.log(JSON.stringify(horizon(a[1]), null, 2)); }
+  else if (a[0] === '--reduce') {
+    const out = reduce(a[1]);
+    const hi = a.indexOf('--horizon-store');
+    if (hi > 0 && a[hi + 1]) out.game_length = horizon(a[hi + 1]);
+    const oi = a.indexOf('--out');
+    const txt = JSON.stringify(out, null, 2);
+    if (oi > 0 && a[oi + 1]) { fs.writeFileSync(a[oi + 1], txt); console.log('wrote ' + a[oi + 1]); }
+    console.log(txt);
+  } else {
+    console.log('usage: node engine/miltank.js --reduce <rows.jsonl> [--out <summary.json>] [--horizon-store <store.jsonl>]\n' +
+                '       node engine/miltank.js --horizon <store.jsonl>');
+  }
+}
+
+module.exports = { install, DEFAULTS, reduce, horizon, parseInactive, CLK };

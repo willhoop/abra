@@ -261,26 +261,50 @@ four-mon ones. Full teams enumerated 90 correctly, which is why it survived. Fix
 | `--preview-n` | 40 | playouts per candidate bring |
 | `--preview-ms` | 15000 | preview deadline; whatever was scored by then is reported |
 | `--miltank-foe` | `uniform` | the playout opponent: a coin flip, or `prior` — what the species really clicks. **Now reaches the preview**; before the unification the preview ignored it |
+| `MILTANK_TIMING=<path>` | off | write the per-decision wall-clock artifact. Reduce with `node engine/miltank.js --reduce <path>` |
+| `MILTANK_CLOCK=1` | **off** | adaptive spend against the bank. Env rather than flag because `mew.js` and `mag_bot.js` are other divisions' files |
+| `MILTANK_EARLY_DEFER=1` | **off** | skip the finalist round when the screen says the position is heading for the tie band. **Changes what is clicked** — its own SPRT arm, not a timing claim |
 
 One option has **no flag yet**: `previewExplore` (`DEFAULTS.previewExplore`, null = follow `explore`)
 is the knob that runs the preview greedy again. Wiring it needs a one-line `arg()` in `mag_bot.js`
 and `mew.js`, neither of which is SEARCH's file — the same one-liner PRIORITIES #33 already owes
 `--miltank-explore`.
 
-### The budget
+### The budget — and the timer has never been on in a game anyone has watched
 
-`budgetMs` is 20,000 and `previewMs` is 15,000. **Read out of the Showdown source on 2026-08-04**,
-our format's `VGC Timer` gives each side a **510-second bank** (`Timer Starting = 420` plus
-`Timer Grace = 90`) with **`Timer Add Per Turn = 0` — no refill** — a **55-second** cap on one
-decision and **90 seconds** for team preview, and the per-turn cap is `Math.min(bank, 55)`, so the
-two are **one clock**. This corrects what this file said before, which was "45 seconds off a 7-minute
-clock" and was an unverified assumption in two of its three numbers.
+`budgetMs` is 20,000 and `previewMs` is 15,000. Our format's `VGC Timer` (`data/rulesets.ts:778`) is
+`Timer Starting = 420`, `Timer Grace = 90`, `Timer Add Per Turn = 0`, `Timer Max Per Turn = 55`,
+`Timer Max First Turn = 90`, `Timeout Auto Choose`, `DC Timer Bank` — one drawn bank, no refill, and
+the per-turn cap is `Math.min(bank, 55)` so the two are **one clock**.
 
-Per decision MILTANK is well inside it (~8.9 s for a 63-cell menu at n=200 against 55 s). **Per game
-it is tight**: 510 s minus a 15 s preview is **24 decisions at 20 s each**, after which
-`forfeitPlayer(..., ' lost due to inactivity.')` ends the game. Running out of *turn* time only
-concedes one server-chosen move (`Timeout Auto Choose`); running out of *bank* loses. The arithmetic,
-the source lines and what the fix should look like are in [SEARCH.md](SEARCH.md).
+**The bank is 420 s, not 510, and this file said 510.** `room-battle.ts:209` does start at
+`starting + grace = 510`, but `updateTurn` (`:305-306`) re-imposes
+`secondsLeft = Math.min(secondsLeft + 0, starting)` on **every new turn** and `starting` is 420. The
+grace is **use-it-or-lose-it on the first timed request** and is not bankable. So `budgetMs: 20000`
+buys **21 decisions**, not the 24 this file claimed, with preview free because it comes out of grace
+that is about to be clamped away regardless.
+
+**And the bank does not tick while the timer is off.** `secondsLeft` falls only in `nextTick`
+(`:353`), scheduled only by `nextRequest`, which returns at `:320` when nobody has requested the
+timer. `Config.forcetimer` is off on the main server, so the timer is **per player and can be
+switched on mid-game** — Will, 2026-08-04: *"when i play the bot i have turned the timer off"*, which
+is why a constant has always looked fine. An opponent typing `/timer on` at turn 9 nevertheless finds
+a **full** bank, not one MILTANK has already spent. The mid-game switch-on is benign.
+
+**MILTANK can see the clock exactly and does not read it.** `:332` privately sends the player
+`|inactive|Time left: X sec this turn | Y sec total | Z sec grace` on every request while the timer is
+on (the real bank is `Y + Z`; `:330` subtracts the grace out of the total). `mag_bot.js` parses
+**zero** `|inactive|` lines. `bot.noteClock()` and the counter `bot.clockStats().notes` now exist here
+for OPS to wire; **that counter is 0 today**, and the adaptive rule is therefore designed to be
+correct without it.
+
+**Adaptive spend is implemented, behind `clock`, DEFAULT OFF** — `(bank − reserve) / expected
+remaining requests`, clamped under the 55 s wall, only ever *lowering* the configured budget. The
+reserve is asymmetric because the failures are: an expired *turn* concedes one server-chosen move
+(`:451-453`), an empty *bank* is `forfeitPlayer(..., ' lost due to inactivity.')` (`:455`). The unit
+is a **request**, not a turn — a post-KO replacement is its own request off the same bank (`:286`),
+and that search had no deadline at all until 2026-08-04. Full derivation, the measured wall-clock
+distribution, the flags and the R6 validation spec are in [SEARCH.md](SEARCH.md).
 
 ---
 

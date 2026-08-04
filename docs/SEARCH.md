@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 09:06):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 19:42):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,7 +32,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 09:23_
+_stamped 2026-08-04 19:43_
 
 <!-- /GENERATED -->
 
@@ -140,51 +140,358 @@ and `server/room-battle.ts` says what those do:
 | turn expires, bank alive → `>{slot} default` | `:451-453` | a **server-chosen move**, not a loss |
 | bank hits 0 → `forfeitPlayer(..., ' lost due to inactivity.')` | `:455` | **you lose the game** |
 
-**So the DRAWN reading is confirmed and the arithmetic stands, with different numbers.** Against it,
-what MILTANK ships:
+### Three further facts read on 2026-08-04, two of which correct the table above
+
+The section above was right that the clock is one drawn bank and wrong about its size. Corrected
+against the source rather than argued:
+
+**1. THE BANK IS 420 s, NOT 510. The grace is use-it-or-lose-it and is not bankable.** `:209` does
+initialise `secondsLeft = starting + grace = 510`. But `updateTurn` at `:305-306` runs
+
+```
+player.secondsLeft = Math.min(player.secondsLeft + addPerTurn, this.settings.starting);
+```
+
+on **every new turn**, `addPerTurn` is 0 and `starting` is **420**. So `Math.min(510, 420)` fires on
+the second timed request and the 90 s of grace is *clamped away*. It is spendable only on the first
+timed request. `updateTurn` returns early the very first time (`:270-274`, `this.turn === null`), which
+is exactly why the clamp lands on the second request and not the first.
+
+**Consequence: `budgetMs: 20000` buys 21 decisions, not 24.** The figure this file replaced —
+"21 decisions" — was right by accident, off a wrong premise; the corrected derivation is 420,000 /
+20,000 = 21, with preview free because it comes out of the grace that is about to be clamped anyway.
+
+**2. THE BANK DOES NOT TICK WHILE THE TIMER IS OFF, so the mid-game switch-on is benign.**
+`secondsLeft` is decremented only inside `nextTick` (`:353`), which is scheduled only by
+`nextRequest` (`:341`), which returns at `:320` when `!this.timerRequesters.size`. `start()` then
+calls `nextRequest` itself (`:239-240`). So an opponent typing `/timer on` at turn 9 **does not find
+a bank MILTANK has already spent** — it finds a full one, and the 90 s `maxFirstTurn` allowance is
+granted on whatever turn the timer starts, because `isFirstRequest` (`:167`, `:326`) is still true.
+The premise that the constraint arrives with unknown consumption already charged is **false**, and
+that makes the design easier rather than harder.
+
+**3. THE UNIT THAT SPENDS THE BANK IS A REQUEST, NOT A TURN.** A post-KO replacement is its own
+request with its own 55 s window off the same bank — `updateTurn` returns at `:286` for a mid-turn
+request without clamping and without adding. So a game with KOs has more requests than turns, and
+"expected remaining decisions" must be estimated in **requests**. Charging is also quantised:
+`TICK_TIME = 5` (`:41`) and each tick subtracts five whole seconds, so 12 s of thinking costs 15 s.
+
+### What MILTANK can and cannot observe about the clock
+
+**It can observe the bank exactly, and that was the surprise.** `room-battle.ts:332` sends the
+player, privately, on **every request while the timer is on**:
+
+```
+|inactive|Time left: 55 sec this turn | 420 sec total | 90 sec grace
+```
+
+so `turnSecondsLeft` and `secondsLeft` are both **observed, not inferred**. Two parsing traps: the
+`total` field is `secondsLeft - grace` (`:330-332`), so the true bank is `total + grace` and reading
+`total` alone under-reads by 90 s; and the grace field is simply absent once it is gone.
+`|inactive|Battle timer is ON:` (`:237`) and `|inactiveoff|Battle timer is now OFF.` (`:257`) bracket
+the on/off state, and both are room-level so both players see them.
+
+**But nothing reads any of it.** `engine/mag_bot.js` handles **zero** `|inactive|` lines — grepped,
+not assumed. So the capability exists in the protocol and is absent from the bot, which is CLAUDE.md's
+signature failure shape verbatim. `engine/miltank.js` now exposes `bot.noteClock(line|{turnSec,
+totalSec, graceSec})` and counts its calls in `bot.clockStats().notes`; **that counter is 0 in every
+run to date and will stay 0 until OPS wires the handler in `mag_bot.js`, which is not SEARCH's file.**
+
+**Therefore the adaptive rule is designed against the worst case and does not depend on the
+observation.** With no observation it assumes the timer has been on since the first request and
+charges itself its own tick-rounded wall clock from a full 420 s. If the timer is actually off it has
+throttled for nothing — a weaker search, not a lost game. If the timer comes on at turn 9 the
+estimate has over-charged for turns that were free, so it under-spends. Both errors land on the safe
+side, which is the only property that function is allowed to have.
+
+### The shipped numbers against the walls
 
 | | shipped | the wall |
 |---|---|---|
 | in-game decision | `budgetMs` **20,000** | **55,000 ms**, capped by whatever is left in the bank |
-| team preview | `previewMs` **15,000** | **90,000 ms** — measured now, no longer "do not assume" |
-| the whole game | ~24 decisions at 20 s, after preview | **510,000 ms, no refill** |
-| one leaf at n=200 | 141.85 ms | ~388 leaf calls fit in 55 s |
-| one leaf at n=40 | 37.48 ms | ~1,467 leaf calls fit in 55 s |
+| team preview | `previewMs` **15,000** | **90,000 ms**, and it comes out of the grace, so it is **free** |
+| the whole game | **21 decisions** at 20 s | **420,000 ms, no refill** |
+| post-KO replacement | **no budget at all** until 2026-08-04 | its own 55 s request off the same bank |
 
-**Per decision MILTANK is nowhere near the wall**, and now by a wider margin than the old figure
-implied — a ~63-cell menu at n=200 costs ~8.9 s against 55 s. The binding constraint on one turn is
-`budgetMs`, which we chose.
+**Per decision MILTANK is nowhere near the wall.** The binding constraint on one turn is `budgetMs`,
+which we chose. **Per game it is genuinely tight**, and it is invisible in every H2H we run because
+`mew.js` has no clock and both arms are equally free — the same *testing environment ≠ playing
+environment* error CLAUDE.md names, one layer out (PRIORITIES #39a).
 
-**Per GAME it is genuinely tight.** 510 s, no refill, 15 s spent at preview, leaves 495 s — **24
-decisions at `budgetMs: 20000`**. That is more than the 21 this file used to claim, and the
-conclusion is unchanged: VGC doubles games run past 24 turns often enough that the shipped budget can
-forfeit a won game on inactivity, and **a timeout says nothing about the player**. It is also
-invisible in every H2H we run, because `mew.js` has no clock at all and both arms are equally free.
+## R6 — the per-decision wall-clock distribution, MEASURED 2026-08-04
 
-**What the fix should be, given the shape is a bank and not a per-turn allowance.**
+Artifact: **`data/miltank-timing-r6.json`**, rows in `data/.miltank-timing/r6.jsonl`. 12 self-play
+games, `--policy score --policy2 score --miltank --miltank-n 200 --miltank-preview-n 40 --seed 90001`,
+**120 decisions across 11 recorded games**, the 7,264-team clean pool (announced by the run, **not**
+`--meta-teams`), one process, Ryzen 7 7735HS / node v24.15.0.
 
-- **Not a constant.** Spend against `secondsLeft / expected remaining decisions`, which is the thing
-  a bank calls for. A flat 16.5 s survives 30 decisions; a flat 20 s does not.
-- **Hold a reserve.** `Timeout Auto Choose` means running out of *turn* time costs one bad move,
-  while running out of *bank* costs the game — those are not the same failure and the budget should
-  be far more afraid of the second.
-- **Deferral is free time we are not taking.** MILTANK handed 29% of turns back to MAG in an R4 run
-  and **paid the full search first every time**. A screen that stops once the finalists are provably
-  inside the tie band would return roughly a quarter of the clock at zero cost in play.
-- **Preview is cheap and under-spent, not expensive.** 15 s against a 90 s cap. If preview is worth
-  anything it is worth more than 3% of the bank; that is an accuracy question, not a clock one.
+**THE BUILD THIS DESCRIBES, and it is already PRE-CHANGE.** `medicham2-browser.js` `b1b3ea94d5c3`,
+`rollout_leaf.js` `974c94d92398`, `board.js` `abeb747f3219`, `miltank.js` `2cdf6f5b0924`. The run
+window was 19:17:21–19:25:29 UTC; ENGINE wrote `data/abra-tags.js` at 19:32:34 and
+`medicham2-browser.js` at 19:33:47, so **the tree moved seven minutes after the last row**. All 11
+per-game stamps carry one digest, so the run is internally consistent — the digest is taken at module
+*load*, not at the first row, precisely so it cannot describe a file edited underneath a running
+process. **A duration is a fact about a machine under a load and about a build.** This one is not
+R2's mistake (PRIORITIES #14) because it says which; it is nonetheless a distribution for a build
+that no longer exists, and the weather-boundary fix makes playouts longer, so **treat every figure
+below as a LOWER BOUND on the post-fix engine.**
 
-**One measurement still missing, and it is the one that decides the number.** Nothing has recorded
-MILTANK's per-decision wall-clock **distribution** over a real game — only single decisions. The
-smoke below shows 114–664 ms at `--miltank-n 20`, and R2's 8.9 s is at n=200 and is itself under
-re-run (PRIORITIES #14). **The mean is not what times you out; the tail is.** Record the distribution
-before choosing a constant.
+| | median | p90 | p99 | max | over the 55 s turn wall |
+|---|---|---|---|---|---|
+| **all decisions** (n=120) | 2,169 ms | 9,977 ms | 23,812 ms | 23,866 ms | **0** |
+| in-game move (n=98) | 2,234 ms | 13,891 ms | 23,866 ms | 23,866 ms | **0** |
+| team preview (n=11) | 2,076 ms | 4,041 ms | 4,195 ms | 4,195 ms | 0 — **but censored, see below** |
+| post-KO replacement (n=11) | 445 ms | 607 ms | 4,528 ms | 4,528 ms | 0 |
 
-**One caveat that is not ours to control:** the timer only runs when a player starts it
-(`room-battle.ts:606` — `Config.forcetimer` is off on the main server, and `:727` is `/timer on`).
-So the bank binds when the opponent turns the clock on, which we cannot predict and must assume.
+**A single decision cannot breach the 55 s wall at shipped settings.** The worst of 120 was 23.9 s
+against a 55 s cap, on menus running 2–49 joint options. The brief's worse case — one decision
+exceeding the per-turn wall — **does not occur**, and that is the good half of this result.
+
+**`budgetMs` IS A CHECKPOINT, NOT A DEADLINE, and that is a real finding.** 9 of 98 move decisions
+finished *over* the configured 20,000 ms, by up to **3,866 ms**. The budget is tested between
+finalists (`miltank.js`, the `finalists` loop), so whichever finalist is in flight runs to completion
+past it. The effective per-decision cap is `budgetMs + one finalist evaluation` ≈ 24 s at n=200. It
+is comfortably inside 55 s today; it is not a bound anyone should quote as one.
+
+**Per game, against the 420 s bank:**
+
+| | p50 | p90 | max | over the bank |
+|---|---|---|---|---|
+| requests per game | 10 | 13 | 14 | — |
+| total spend per game | 25.2 s | 128.5 s | **137.1 s** | **0 of 11** |
+
+**The worst game observed spent 33% of the bank.** To forfeit, a game would have to cost roughly
+three times the worst one measured.
+
+### How long a real game actually is — 30,396 non-forfeit ladder games
+
+`node engine/miltank.js --horizon data/games.ladder.jsonl`, folded into the artifact. Counted in
+**requests** (turns plus turns in which one of our bodies fainted, because a replacement is its own
+request off the same bank):
+
+| | p50 | p75 | p90 | p95 | p99 | max |
+|---|---|---|---|---|---|---|
+| requests per game | 9 | 11 | 13 | 15 | **19** | 74 |
+
+**0.58% of games exceed 21 requests**, 0.30% exceed 24, 0.08% exceed 34. And the self-play run's
+own request counts (p50 10, p90 13) reproduce the store's (p50 9, p90 13) almost exactly, so the
+harness is a fair — mildly conservative — proxy for game length.
+
+### The verdict, stated plainly because it is not the one this was expected to produce
+
+**The shipped flat `budgetMs: 20000` is not currently a forfeit risk, and the measurement says so
+rather than the argument.** Two independent legs:
+
+- *Observed*: 0 of 11 games came within 3× of the bank; worst was 137 s of 420 s.
+- *Worst case*: even charging the full 20 s to every request, only **0.58%** of real games have
+  enough requests to empty the bank, and MILTANK actually spends a median of 2.2 s.
+
+So the adaptive rule is **a guard against a 0.6% tail and against an engine that is about to get
+slower**, not a fix for a live bleeding problem. That is a weaker case than PRIORITIES #39a assumed
+and it should be said out loud before anyone spends 420 games on R6a. **What has NOT been retired is
+the environment mismatch itself** — nobody has ever watched MILTANK play with a clock running, and
+the two facts that make the flat constant survivable (games are short, the search is usually fast)
+are properties of *this* build on *this* pool.
+
+### Preview is censored here and is the one number this run cannot give you
+
+`mew.js` hardcodes `previewMs: 4000` and SEARCH may not edit it. **One of 11 previews truncated at
+16 of 90 brings in 4,195 ms**; the other ten completed 90/90 in 2.1–3.2 s. Extrapolating the censored
+one at its own ~262 ms per bring gives **~23.6 s for a full preview** — which would truncate against
+the shipped `previewMs: 15000` too, and is still far inside the **90 s** first-turn wall. So preview
+cost varies ~9× with the team, and **preview is `previewMs`-bound, not wall-bound**.
+
+Given that preview time comes out of grace that `updateTurn` is about to clamp away regardless,
+**`previewMs: 15000` is spending 17% of a free 90 s allowance.** Raising it is an accuracy decision,
+not a clock one, and it belongs with the preview-calibration item (#38) rather than here.
+
+## Adaptive spend — implemented 2026-08-04, behind a flag, DEFAULT OFF
+
+`engine/miltank.js` now carries the rule this file asked for. **`clock: false` is the default and the
+OFF path is byte-for-byte the player R4 measured**, so nothing changes in a live game without a
+deliberate decision.
+
+The rule, in one line: **spend `(bank − reserve) / expected remaining requests`, clamped under the
+per-turn wall with a safety margin, floored so a starved tail still searches something.** Four
+properties it was given on purpose:
+
+- **It can only ever lower the budget, never raise it.** `budgetFor()` takes `min(adaptive,
+  configured)`. A rule that could also spend *more* would need accuracy evidence of its own; this one
+  needs only to not be worse.
+- **The reserve is asymmetric, because the failures are.** Overrunning the *turn* costs one
+  server-chosen move (`Timeout Auto Choose`, `:451-453`); emptying the *bank* forfeits the game
+  (`:455`). So the reserve sits on the bank (`clockReserveMs`, 45,000 — nine ticks) and the turn gets
+  only a tick-quantisation margin (`clockSafetyMs`, 10,000 under the 55 s wall).
+- **The horizon is a high quantile of requests per game, not the mean** (`clockHorizonRequests`,
+  default **19** = the measured p99 above) — the same reason the distribution is being measured at
+  all. It is also floored by `clockTailMin` (8), because past the horizon `EXPECT − requests`
+  collapses to 1 and the throttle silently switches *itself off* exactly when the game has proved it
+  is a long one. Caught by driving the clock through 40 requests, not by reading it.
+- **It bounds the post-KO replacement search, which had no deadline whatsoever.** Five candidates at
+  `2 × ROLLOUT_N` on a request that draws its own 55 s from the bank was the one decision nothing
+  capped. Only enforced when the flag is on.
+
+| knob | default | meaning |
+|---|---|---|
+| `clock` / `MILTANK_CLOCK=1` | **off** | adaptive spend against the bank |
+| `clockReserveMs` | 45,000 | bank held back; a bank timeout is a forfeit |
+| `clockMinMs` | 1,500 | floor, so a starved tail still searches |
+| `clockSafetyMs` | 10,000 | margin under the 55 s per-turn wall |
+| `clockHorizonRequests` | **19** | planning horizon in requests — the p99 measured over 30,396 ladder games |
+| `clockTailMin` | 8 | never plan for fewer than this many more requests, so the throttle survives past the horizon |
+| `clockEarlyDefer` / `MILTANK_EARLY_DEFER=1` | **off** | stop before the finalist round on positions heading for the tie band |
+| `timing` / `MILTANK_TIMING=<path>` | off | write the per-decision wall-clock artifact |
+
+**`clockEarlyDefer` is not a timing lever and must not be argued as one.** MILTANK hands turns back
+to MAG *after* paying for the finalist round. **Measured in R6: 31.6% of move decisions deferred, and
+they consumed 30.5% of the total spend** — deferred and chosen decisions cost almost identically
+(4,639 ms against 4,585 ms mean), so the saving really is proportional and **30.5% is the ceiling on
+this lever**, not the "roughly a quarter" this file previously guessed. The screen already has an opinion
+about the spread; it is only noisier. The estimator subtracts the expected pure-dice range of K
+estimates of one true value (≈2.8σ at the screen's `n`) from the observed screen spread and asks
+whether what is left clears the **final** round's tie band. **It changes what gets clicked on every
+turn where the screen and the finals would have disagreed, so it gets its own SPRT arm.** Its bias is
+stated rather than hidden: it is biased *low*, which makes it defer more often than it should.
+
+**Why an environment variable rather than a flag.** The A/B has to run through `engine/mew.js`, which
+is MEASURE's file, and the live path is `engine/mag_bot.js`, which is OPS's. SEARCH cannot add
+`--miltank-clock` to either — the same one-liner PRIORITIES #33 already owes `--miltank-explore`.
+The env var is recorded in every timing row, so a result is still attributable to the lever. Replace
+it with a real flag when #33 lands; do not leave two ways to set one thing.
+
+## R6 — the validation. SPEC. NOT RUN.
+
+**It is three questions and only one of them is an H2H.** Collapsing them is the mistake this spec
+exists to prevent.
+
+### R6a — the DIVERGENCE screen first, and it is probably where this stops
+
+**Do not open with the 420-game H2H. It is a null by construction and the probe says so before any
+games are played.** Driving the clock through 40 requests at the horizon and reserve that ship:
+
+| what MILTANK wants per request | requests where adaptive ≠ flat | first divergence |
+|---|---|---|
+| **4.6 s** — the R6 measured mean | **0 of 40** | never |
+| 20 s — every request at the full budget | 29 of 40 | request 12 |
+
+At the spend actually measured, **the throttle never engages at all**: `(420 − 45)/19 ≈ 19.7 s` is
+already above what MILTANK asks for, and `budgetFor` only ever takes the smaller of the two. That is
+the design working — it is a guard, and a guard that fires when nothing is wrong is a bug — but it
+means an H2H between the two arms would compare **two identical players on ~99.4% of games** and
+return a null that says nothing about the rule.
+
+**So R6a is a divergence count, not an SPRT.** Run ~40 instrumented games with `MILTANK_TIMING` set
+on both arms and count the decisions whose `budget` differs from `budgetMs`. Publish that count.
+
+- **If divergence is ~0** — the expected outcome — the rule is inert in normal play, the flag stays
+  off, and **there is nothing to SPRT.** That is the honest end of this item and it costs 40 games,
+  not 420.
+- **Only if divergence is material** does the H2H below become worth its cost.
+
+### R6a′ — the H2H, conditional on R6a showing divergence (~420 decisive pairs)
+
+Paired and seed-matched exactly as R4. **Arm 1 is the challenger**: `MILTANK_CLOCK=1`. Arm 2 is the
+shipped flat `budgetMs: 20000`. Everything else identical — `--miltank-n 200`, explore 1.0,
+`foe uniform`, turns 60, same seeds, same team pool, pool announcement recorded. `mew.js` having no
+clock is *correct* here: it isolates the search-quality cost of throttling from the forfeit benefit,
+which is R6b's job.
+
+Read once, at the bound. `node engine/sprt.js <cat of shards>`.
+
+**One behaviour the H2H must be told to expect, or it will be read as a bug.** When the bank falls
+under `clockSafetyMs + 2 ticks` the budget goes to zero, the screen cuts every pair, and MILTANK
+falls back to MAG for the rest of the game. That is deliberate — with 10 s of bank left, an instant
+imitation move is strictly better than a forfeit — and it will show up as a burst of fallbacks at the
+end of long games in the challenger arm only.
+
+### R6b — how often does the flat constant actually forfeit? (NOT an H2H) — ANSWERED
+
+**An H2H in `mew.js` structurally cannot see this**, because mew has no clock, so both arms are free
+and the forfeit never happens in either. It is answered from the timing artifact instead, and it has
+been: `games_over_bank_pct` is **0.0** (0 of 11; worst game 137 s of 420 s), and only **0.58%** of
+30,396 real games have enough requests to empty the bank even at the full 20 s every time. **This is
+the number that decides the item and it says the lever is a guard, not a fix.**
+
+It must be re-read after the engine release, because the weather-boundary fix lengthens playouts and
+every figure here is a lower bound on the post-fix build. `node engine/miltank.js --reduce <rows>
+--horizon-store data/games.ladder.jsonl --out data/miltank-timing-r7.json`.
+
+### R6c — `clockEarlyDefer` (a separate H2H, never confounded with R6a′)
+
+Arm 1 `MILTANK_CLOCK=1 MILTANK_EARLY_DEFER=1`, arm 2 `MILTANK_CLOCK=1`. Same size, same pairing.
+Running it inside R6a′ would make a play result unattributable between two levers, which is the
+failure "levers are per arm" exists to stop.
+
+**This is the one of the three worth running even though the clock does not bind**, and the reason is
+not the clock at all: it buys **30.5% of the search budget back** on positions the search then throws
+away, and that time can be spent on `--rollout-n` instead. Its risk is bounded and stated — it can
+only change decisions that the finalist round would have deferred anyway or that the screen misranks.
+Size it at ~420 decisive pairs; the null it has to beat is "no worse".
+
+### The rule for all three
+
+**Run them after the P0.5 release boundary.** Started before, they are born `PRE-CHANGE` and describe
+a build that stopped existing — already true of every R4 shard on disk. And every run must stamp
+`n_measured` / `n_unit`, the engine source digests, node version and machine: a duration is a fact
+about a machine under a load, which is precisely why PRIORITIES #14 says R2 is re-run or nothing. Do
+not let R6 become a second R2.
+
+### The commands. PREPARED, NOT RUN.
+
+Four processes, not six — RAM is the ceiling and `FreePhysicalMemory` was 2.33 GB when R6 ran, which
+is **one** process. Check it before choosing a number. `SHOWDOWN_PATH` is required.
+
+**R7 — re-measure the distribution on the named release** (one process, ~10 min, 12 games):
+
+```
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown \
+MILTANK_TIMING=$PWD/data/.miltank-timing/r7.jsonl \
+  node --max-old-space-size=1536 engine/mew.js --n 12 --conc 1 \
+    --policy score --policy2 score --miltank --miltank-n 200 --miltank-preview-n 40 \
+    --seed 90001 --out data/.miltank-timing/r7-games.jsonl
+
+node engine/miltank.js --reduce data/.miltank-timing/r7.jsonl \
+    --horizon-store data/games.ladder.jsonl --out data/miltank-timing-r7.json
+```
+
+**R6a — the divergence screen** (same command, `MILTANK_CLOCK=1` added, shard 0..3 by `--seed`):
+
+```
+SHOWDOWN_PATH=... MILTANK_CLOCK=1 MILTANK_TIMING=$PWD/data/.miltank-timing/r6a-s<N>.jsonl \
+  node --max-old-space-size=1536 engine/mew.js --n 10 --conc 1 \
+    --policy score --policy2 score --miltank --miltank-n 200 --miltank-preview-n 40 \
+    --seed 9100<N> --out data/.miltank-timing/r6a-s<N>-games.jsonl
+```
+
+Cat the shards, then `--reduce` once, and count rows where `budget < budgetMs`. **Read it at the
+bound, once.**
+
+**R6c — the `clockEarlyDefer` H2H**, only after R7 has re-stamped the leaf. Arm 1 is the challenger
+and carries `MILTANK_EARLY_DEFER=1`; both arms carry `MILTANK_CLOCK=1`. ~420 decisive pairs, sharded
+four ways, then `node engine/sprt.js <cat of shards>` **once**.
 
 ## Open
+
+### 6. `mag_bot.js` PARSES NO `|inactive|` LINE — FILED FOR OPS, NOT FIXED HERE
+
+The server hands the player its exact bank on every request while the timer is on
+(`room-battle.ts:332`) and **the bot throws it away**: grep `engine/mag_bot.js` for `inactive` and it
+returns zero. `engine/miltank.js` now exposes `bot.noteClock(line)` and counts calls in
+`bot.clockStats().notes`; **that counter is 0 and stays 0 until something calls it.** Under CLAUDE.md
+the capability is therefore assumed broken.
+
+It is one handler in the socket loop, and `mag_bot.js` is **OPS's file and the live path** — SEARCH
+must not touch it while Will may be playing. Two things whoever wires it must get right, both read
+out of the source rather than guessed:
+
+- the bank is `total + grace`, not `total`. `:330-332` prints them apart and the grace field is
+  absent once it is gone. Reading `total` alone under-reads the bank by 90 s at the start;
+- `|inactive|Battle timer is ON:` (`:237`) and `|inactiveoff|` (`:257`) are **room-level**, so both
+  players see them, but the `Time left:` line at `:332` is sent to **that player only** — do not try
+  to read the opponent's clock off it.
+
+Until then the adaptive rule runs on the worst-case self-charged estimate, which is deliberate and is
+strictly on the safe side, but it is an estimate.
 
 ### 0. ~~The in-game leaf and the preview leaf are different players~~ — CLOSED 2026-08-04
 

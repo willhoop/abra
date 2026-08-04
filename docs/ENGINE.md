@@ -12,7 +12,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  107/147 probed mechanics live, 40 missing   (census 2026-08-04 18:59)
+  108/148 probed mechanics live, 40 missing   (census 2026-08-04 19:40)
   missing:
     move    conditionalPower       Facade doubles when statused
     ability damageReduce           Ice Scales halves special damage
@@ -54,13 +54,13 @@ ENGINE — does the simulator do what Pokémon does
     move    reordersTurn           After You lets the partner move next
     item    curesVolatile          Mental Herb frees the holder from Taunt
     move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 19:07)
+  1/150 differential comparisons disagree with Showdown   (2026-08-04 19:11)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 137/176 probed, 39 unprobed
 ```
 
-_stamped 2026-08-04 19:07_
+_stamped 2026-08-04 19:43_
 
 <!-- /GENERATED -->
 
