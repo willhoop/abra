@@ -229,8 +229,47 @@ const isComplete = (t) => t.six.length >= 4 && t.six.every((sp) => {
   const st = (t.sets || {})[sp];
   return st && st.moves && st.moves.length >= 4 && st.item && st.ability;
 });
+/* --meta-teams [rate]  drop the Mickey Mouse teams.
+ *
+ * Will's term, and it names a gap in what "231 complete open-sheet teams -- no move is guessed" was
+ * claiming. Those teams are REAL: a person built each one and laddered with it. Real is not good.
+ * The filter is COMPLETENESS -- four moves, item and ability all known from |showteam| -- and never
+ * QUALITY, so a ladder experiment passes it exactly as easily as a serious team. Six of the 233 have
+ * an average member usage under 2%, including simisage/simisear/simipour on one side, and MAGABRA led
+ * Pikachu AND Raichu into a game where its Garchomp fainted on turn one.
+ *
+ * DERIVED FROM USAGE, not a blocklist: data/meta-usage.json carries teamRate per species from 10,538
+ * sampled teams, so a team is judged by how often its members are actually brought. Threshold is a
+ * parameter because "meta" is a judgement and the right cut belongs to whoever is running it.
+ *
+ * OFF BY DEFAULT. A narrower pool is a different experiment -- VGC-Bench found the agent best on one
+ * team distribution is MORE exploitable and generalises worse -- so this must be asked for, and any
+ * result quoted from it has to name the distribution it was measured on. */
+const META_TEAMS = process.argv.includes('--meta-teams');
+const META_RATE = parseFloat(arg('meta-teams', '0.03'));
 const ANY_TEAM = process.argv.includes('--any-team');
-const teams = ANY_TEAM ? ALL_TEAMS : ALL_TEAMS.filter(isComplete);
+let teams = ANY_TEAM ? ALL_TEAMS : ALL_TEAMS.filter(isComplete);
+if (META_TEAMS) {
+  /* Average teamRate across the six, so one niche pick does not condemn an otherwise standard team
+   * and six niche picks cannot hide behind one star. */
+  let rate = null;
+  try {
+    const mu = JSON.parse(fs.readFileSync(D('data', 'meta-usage.json'), 'utf8'));
+    rate = {};
+    for (const r of (mu.threats || [])) rate[String(r.sp).toLowerCase()] = r.teamRate || 0;
+  } catch (e) { console.error('  no meta-usage.json — cannot filter by usage, keeping every team'); }
+  if (rate) {
+    const before = teams.length;
+    const avgOf = (t) => t.six.reduce((a, sp) => a + (rate[String(sp).toLowerCase()] || 0), 0) / Math.max(1, t.six.length);
+    const kept = teams.filter(t => avgOf(t) >= META_RATE);
+    if (kept.length >= 8) {
+      teams = kept;
+      console.log(`meta filter: ${teams.length} of ${before} teams average >= ${(100 * META_RATE).toFixed(0)}% member usage`);
+    } else {
+      console.log(`meta filter: only ${kept.length} teams clear ${(100 * META_RATE).toFixed(0)}% — too few to play, keeping all ${before}`);
+    }
+  }
+}
 if (!ANY_TEAM) {
   console.log(`teams: ${teams.length} complete open-sheet teams of ${ALL_TEAMS.length} ` +
     `(${(100 * teams.length / ALL_TEAMS.length).toFixed(1)}%) — no move is guessed`);
