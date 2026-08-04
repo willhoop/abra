@@ -3,6 +3,47 @@
 Project-specific context. Universal rules are inherited from the Pokémon umbrella and the global
 instructions; only what is specific to ABRA is here.
 
+## START HERE — the handoff is generated, not written
+
+```bash
+node engine/status.js
+```
+
+That output is the current state of the project. Every figure in it is read out of an artifact;
+`NOT DERIVED` means no artifact says it. **Do not take a number out of a `docs/HANDOFF-*.md` file** —
+there are fourteen of them, each was typed by hand at the end of a session, and each was stale within
+a day. The 2026-08-04 handoff says "172 tags, 118 unprobed" against a `tags.json` holding 176 unique
+tags with 123 unprobed. Nobody mistyped anything; prose cannot track a corpus. They are history now.
+
+Work is divided four ways — ENGINE, MEASURE, SEARCH, OPS — cut on the invalidation graph so that a
+change in one does not silently invalidate the others. Read [docs/DIVISIONS.md](docs/DIVISIONS.md)
+for the map, the routing rule for a new bug, and the frozen-engine-release rule. Each division's
+ledger is `docs/{ENGINE,MEASURE,SEARCH,OPS}.md`; `status.js --write` stamps the numbers into them
+and leaves the judgement alone.
+
+The lessons that cost hours are in [docs/LESSONS.md](docs/LESSONS.md), written once.
+
+## WILL TALKS TO YOU. YOU TALK TO THE DIVISIONS.
+
+**He does not address subagents and should never be asked to pick one.** He says what he wants in
+plain terms; you route it. That is the standing arrangement, not a mode he opts into — the `/abra`
+skill states the routing rule but you follow it whether or not he invokes it.
+
+One question decides the route: **which artifact does fixing this invalidate?**
+
+| It touches… | Hand it to |
+|---|---|
+| a move, an ability, an item, the damage table, the simulator being wrong | `@engine` |
+| whether a number is true — staleness, calibration, an SPRT result, the refit | `@measure` |
+| what MILTANK clicks — leads, brings, opponent model, mega, post-KO | `@search` |
+| the live bot, Showdown, replays, ingest, the store | `@ops` (read-only) |
+
+Spans two? Run the **upstream** one first; the graph is one-way. Routes nowhere? Say so and ask —
+do not invent a home for it.
+
+Report back **one answer**, not a transcript. Lead with the verdict. If the news is bad, give it
+plainly — softening a result is the failure this whole structure exists to prevent.
+
 ## Cowork handoff
 
 Cowork drafts docs and analysis; Claude Code applies, tests and pushes.
@@ -211,7 +252,11 @@ with its matching PDF where applicable, plus a CHANGELOG entry and a version bum
 - `docs/ABRA-deck-plain-english.md` (+ `.pdf`) — plain-English; links the white paper on the last slide.
 - `docs/ABRA-technical-docs.md` (+ `.pdf`) — ASD-STE100 Simplified Technical English, by Diátaxis.
 - `docs/SUMMARY.md` (+ `.pdf`) — whole-project + per-component summary table.
-- `docs/MODELS.md` — the per-model living ledger. · `docs/HANDOFF-v2.md` — current state/build order.
+- `docs/MODELS.md` — the per-model living ledger.
+- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SEARCH,OPS}.md` — and then
+  `node engine/status.js --write` to restamp the generated blocks. **Never hand-edit inside a
+  `<!-- GENERATED -->` block, and never write a handoff document.** State is printed, not typed;
+  `docs/HANDOFF-*.md` are historical narrative and are not maintained.
 - `CHANGELOG.md` — Keep-a-Changelog; the top version matches the artifacts.
 A result reported on the site or in the deck must match the number in the white paper and the model's
 JSON report. Rebuild PDFs from the `.md` (pandoc → HTML → weasyprint; see `docs/` build notes).
