@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.35.0 · Last updated 2026-08-04.**
+**Version 3.39.0 · Last updated 2026-08-04.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -209,7 +209,24 @@ not read as progress by itself. (Kept as insurance, not as evidence — see the 
 ## WOBBUFFET — the counter that finds MAG's leak (named 2026-07-28)
 **Job:** how readable is MAG? Build the bot whose only purpose is to beat it, and see how badly it wins.
 **Method:** hill-climb over MAG's OWN feature weights, maximising win rate against MAG. Named for Counter/Mirror Coat — whatever you do, it returns the thing that beats it.
-**Honest status:** **stale, and its result is the most important number in the repo.** On the 17-feature vector a counter found in forty minutes beat MAG **63.2%** [56.6, 69.3], with a mirror control at 47.5%. That challenger was not a counter in the rock-paper-scissors sense — it was simply a better player, drawn from the same features and optimised for wins instead of resemblance. Two feature-generations old.
+**Honest status: THERE IS NO EXPLOITABILITY NUMBER. 2026-08-04.** The former status read *"stale,
+and its result is the most important number in the repo"* on the strength of a counter that beat MAG
+~~**63.2%** [56.6, 69.3], mirror control 47.5%~~. **That is retracted**: 17 features against the 58
+we ship, an engine 25 wire-fixes old, computed **before the quality filter existed** — which is why
+`provenance.js` carried it as its only `UNSAFE` artifact.
+**The re-run that was meant to replace it is VOID.** It ran at full size (220 games × 24 rounds +
+1,600 held-out games) and `data/policy-weights.json` — the defender — **was refitted at 22:15:24
+UTC while it was running**, `engine/board.js` was written mid-search, and
+`engine/medicham2-browser.js` changed content twice more after it, sampled 90 seconds apart. Its
+figures are not quotable and are recorded struck through in `docs/SEARCH.md` §R8.
+**Two things survive, and both are about the tool rather than about MAG.** The hill-climb accepted
+**1 of 24** steps (against 10 of 18 in the 17-feature run) and its step scale decayed to 0.0168, so
+from round ~10 it was perturbing a near-copy of MAG — **the attack dies in 58 dimensions and would
+have returned an uninformative null on a still tree too.** And `provenance.js` now marks
+`exploitability.json` **`ok`**, falsely: the artifact is 153 s newer than the weights file but was
+computed from a version of it 34 minutes older, and an mtime check cannot see that.
+**So MAG's readability is UNMEASURED, not merely stale.** `docs/SEARCH.md` §R8 has the timeline, the
+corpus, the five defects in `engine/exploit.js`, and the prepared re-run with its preconditions.
 **Read it with MACHAMP:** MACHAMP raises the bar, WOBBUFFET measures how easily the bar is cleared. Together they are the win-objective loop; separately neither means much.
 **Caveat on the metric itself (2026-07-28):** exploitability grades "can a prepared opponent read us", which assumes an adversary that studies you over many games. A tournament opponent has never seen you play. It is a real number and it is not the same as "do we win", which has never been measured against a human at all.
 **BACK ON THE ACTIVE LIST, 2026-07-30** (Will: *"ADD WOBBUFFET BACK TO THE LIST"*). Now **three**
@@ -217,8 +234,12 @@ feature-generations stale (17 → 53), and it is roadmap item 3 because it is th
 that is not bots grading bots on average — it grades *readability*. A policy can improve on average
 and stay exactly as exploitable; those are different numbers and only one of them has been moving.
 `engine/exploit.js --target <weights.json>` can now be pointed at DODUO, which is the only way to
-test the exploitability argument the 42.0% result explicitly does **not** settle.
-**Code:** `engine/exploit.js` → `data/exploitability.json`.
+test the exploitability argument the 42.0% result explicitly does **not** settle. *(That pointing has
+still not happened — the 2026-08-04 re-run measured the shipped vector only, and pointing a
+one-step search at DODUO would produce a second uninformative null.)*
+**Code:** `engine/exploit.js` → `data/exploitability.json`; the held-out confirmation is
+`data/exploitability-holdout.json` and its generator does **not** live in `engine/`, so
+`provenance.js` does not enumerate it. Folding it into `exploit.js --confirm` is the fix.
 
 ## JOLTEON — Joint Odds, Ladder-Trained Expected-Outcome Network
 **Job:** instant pre-game win probability from two team sheets.
@@ -240,6 +261,22 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 **The old verdict, kept because a prior conclusion is never silently rewritten.** Every preview-level model in this project sat at the same coin-flip ceiling — JOLTEON, preview roles, CHOMP-EV, and as of 3.2.0 WAR. The 2026-07-25 finding that the 55% skill ceiling was itself bot-contaminated (52.4% clean, CI includes 50) makes the ceiling lower than JOLTEON was built against, not higher. A low-rank non-transitive term would not change that. It survives only as a candidate shortlister for DITTO; it should make no win-probability claim anywhere.
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
+
+**MECHANICS STATE, 2026-08-04, read from the artifact rather than typed:** `data/mechanics-census.json`
+reads **167 live of 174 probed, 7 missing, 0 hollow**. The seven are each declared with a reason in
+[ENGINE.md](ENGINE.md) — two blocked on a `basePowerCallback` derivation, two on the
+`moveAccuracy(id, field)` signature (a change that crosses into the refit edge MEASURE owns), one on
+a conditional-stat-multiplier derivation that does not exist, one by DECISION (Avalanche asks for turn
+state `dmgRange` is not given), and one blocked on telling After You apart from Instruct in the
+artifact.
+
+**THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
+mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,506**
+carrier x reactor pairs, **1,640** emitted after a named and counted co-occurrence filter, **1,008**
+of those LIVE by the reference engine's own two-arm test, and medicham2 matches the official pinned
+Showdown engine on **93.3%** of them. The multi-turn field axis — every ordered pair of persistent
+field effects, run eight turns to expiry — is **156/156**. Ten engine bugs were found by it in one
+pass (WIRE 72–81); none was reachable from a single-mechanic probe.
 **Job:** grounded win rate by actually playing the matchup out.
 **Method:** real Gen-9 **doubles** Monte-Carlo rollout (`engine/medicham2-browser.js`, embedded as `MEDI2` in the site). Damage formula with boosts, spread ×0.75, crit, rolls, STAB, type, weather, Trick Room, Tailwind, priority, Protect, items (scarf/band/specs/AV/Life Orb/leftovers/sitrus/**Expert Belt/Muscle Band/Wise Glasses**), and a **validated ability/item layer** (Ruin quartet, Solar Power, Guts, Orichalcum Pulse, Hadron Engine, Adaptability, Technician, Tinted Lens, Filter/Solid Rock, Multiscale, Thick Fat, Heatproof, Purifying Salt, type-immunity abilities). **Mega abilities tracked** (base vs Mega stone: Staraptor→Contrary, Swampert→Swift Swim, + canonical Megas). Status, Fake Out flinch, **recoil**, **self-stat-drop moves with Contrary flip**, **weather-speed abilities** (Swift Swim etc.). Policy = **behaviour cloning** (samples the move real players click) + take an obvious KO + need-based Protect, now **accuracy-weighted** (a 70% nuke isn't a guaranteed KO) and recoil-aware (reduces the fast-frail over-crediting).
 **Win% backtest — RE-MEASURED 2026-08-04 against the current engine, on 6,886 clean games.** The
@@ -1031,3 +1068,24 @@ from this file, which is correct — this is evidence, not a rule.
 **Confirmed two mechanics independently:** the SP budget is 66 (97% of real spreads spend all of it) and SP is capped at **32 per stat** (92% of spreads touch it).
 **Limit:** aggregate. Describes the population, never a game, and cannot be joined to a replay.
 **Code:** `engine/fetch_smogon_stats.js` (archived monthly by CI), `engine/smogon_priors.js` → `data/smogon-priors.json`.
+
+---
+
+## Measurement environment, 3.39.0 — read before quoting any model number
+
+**Every model below is fitted or measured under conditions that must be stated with the number.**
+
+- **A measurement reads a frozen release, not the live tree.** `engine/engine_release.js`; current
+  release `5fc1f711a0e3` over 12 files including the weights. A number produced without a release
+  stamp cannot be reproduced, because the tree it was scored against is not recoverable.
+- **`data/exploitability.json` is `void: true` and `provenance.js` reads it UNSAFE.** MAG has **no
+  exploitability figure**. The 63.2% [56.6, 69.3] this ledger once called the most important number in
+  the repository is retracted: 17 features against 58, an engine 25 wire-fixes old, computed before the
+  quality filter existed.
+- **MAG's weights moved, and it changed nothing measurable.** The board weather defect was real (14 of
+  58 columns, 10.72% of turn-boards) and worth fixing on its own terms; refitting on top of it returned
+  an interval containing zero on both metrics.
+- **MAG is fitted without the ability and moves its live player reads.** 50.47% of the decisions it
+  trains on are priced against a board `magnemite.js` does not present. Unfixed by decision — it
+  requires a full refit and a prior answer about opponents who decline open team sheets.
+

@@ -77,17 +77,25 @@ const SOURCES = [
   'data/move-priors.json',
 ];
 
+/* THROWS RATHER THAN RETURNING null. A null digest inside a manifest is the worst possible value:
+ * `verify()` would compare null against null and PASS, so a release frozen over an unreadable file
+ * would certify itself. A release is the one thing in this repo that must not be approximately right. */
 function sha12(abs) {
   try { return crypto.createHash('sha256').update(fs.readFileSync(abs)).digest('hex').slice(0, 12); }
-  catch (e) { return null; }
+  catch (e) { throw new Error('cannot digest ' + abs + ' — ' + e.message); }
 }
+/* Only `drift()` and `verify()` may tolerate an unreadable file, because "it is gone" is a real and
+ * reportable answer there. They say so; they do not silently score it as unchanged. */
+function sha12OrNull(abs) { try { return sha12(abs); } catch (e) { return null; } }
 
 /* The pinned Showdown commit belongs in the release too. A measurement scored against a different
  * reference engine is a different measurement, and `champions_sim.js` already reads the real commit
  * from git rather than trusting its own constant. */
 function showdownCommit() {
   try { return require('./champions_sim.js').actualCommit ? require('./champions_sim.js').actualCommit() : null; }
-  catch (e) { return null; }
+  /* UNKNOWN is printed as UNKNOWN by the caller and never as a match — champions_sim's own header
+   * makes that point about this exact field. The reason still goes somewhere a person can see it. */
+  catch (e) { console.error('  (could not read the Showdown commit: ' + e.message + ')'); return null; }
 }
 
 function cut(why) {
@@ -139,7 +147,12 @@ function cut(why) {
 
 function list() {
   try { return fs.readdirSync(RELEASES).filter(d => fs.existsSync(path.join(RELEASES, d, 'release.json'))); }
-  catch (e) { return []; }
+  /* An empty list and an unreadable releases directory are different, and only the first means
+   * "none cut yet". Collapsing them would report a wiped release store as a fresh install. */
+  catch (e) {
+    if (e.code !== 'ENOENT') console.error('  (could not read ' + RELEASES + ': ' + e.message + ')');
+    return [];
+  }
 }
 
 /* HAS THE SNAPSHOT ITSELF ROTTED? An immutable directory is immutable by convention, and convention
@@ -149,7 +162,7 @@ function verify(id) {
   const m = JSON.parse(fs.readFileSync(path.join(dir, 'release.json'), 'utf8'));
   const bad = [];
   for (const [rel, want] of Object.entries(m.files)) {
-    const got = sha12(path.join(dir, rel));
+    const got = sha12OrNull(path.join(dir, rel));
     if (got !== want) bad.push(`${rel}: manifest says ${want}, snapshot is ${got}`);
   }
   return { ok: bad.length === 0, id, bad, manifest: m };
@@ -161,7 +174,7 @@ function drift(id) {
   const m = JSON.parse(fs.readFileSync(path.join(RELEASES, id, 'release.json'), 'utf8'));
   const moved = [];
   for (const [rel, want] of Object.entries(m.files)) {
-    const got = sha12(D(rel));
+    const got = sha12OrNull(D(rel));
     if (got !== want) moved.push(rel);
   }
   return moved;
@@ -169,7 +182,14 @@ function drift(id) {
 
 function open(id) {
   if (!id) {
-    try { id = JSON.parse(fs.readFileSync(POINTER, 'utf8')).current; } catch (e) { id = null; }
+    /* A CORRUPT POINTER MUST NOT LOOK LIKE "NO RELEASE YET". The message below tells the caller to
+     * cut one, which over a damaged pointer would create a SECOND release and silently change what a
+     * measurement is scored against. */
+    try { id = JSON.parse(fs.readFileSync(POINTER, 'utf8')).current; }
+    catch (e) {
+      if (fs.existsSync(POINTER)) throw new Error('data/engine-release.json exists but cannot be read: ' + e.message);
+      id = null;
+    }
   }
   if (!id) throw new Error('no engine release has been cut. Run: node engine/engine_release.js cut "<why>"');
   const v = verify(id);

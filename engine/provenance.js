@@ -315,10 +315,14 @@ const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; } catch (e)
 /* CONTENT, NOT TIMESTAMP. Resolved against the repo root as well as data/, because a stamped input
  * is as often an ENGINE file (`medicham2-browser.js` — the simulator a run was scored under) as a
  * data one, and the simulator moving mid-run is the case that voided the WOBBUFFET re-run. */
+const digestFailures = [];
 const digestOf = src => {
   for (const p of [D(src), D('data', src)]) {
     try { if (fs.existsSync(p) && fs.statSync(p).isFile()) return crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 12); }
-    catch (e) { /* next */ }
+    /* UNREADABLE IS NOT ABSENT. A permissions or mount failure here reads exactly like "no such
+     * stamped input", and the caller reports both as "cannot be read to verify". Counted so the
+     * difference is visible rather than inferred. */
+    catch (e) { digestFailures.push(src + ': ' + String(e.message).slice(0, 80)); }
   }
   return null;
 };
@@ -677,32 +681,83 @@ console.log(`  ${unsafe.length} UNSAFE, ${stale.length} possibly stale, ${rows.f
  * last line of this file and was true and was read past. A count moves; a sentence does not. */
 const mtimeOnly = rows.filter(r => r.digestState === 'mtime-only');
 const verified = rows.filter(r => r.digestState === 'verified');
+if (digestFailures.length) {
+  console.log(`  ${digestFailures.length} stamped input(s) could not be READ to verify — unreadable is not absent:`);
+  for (const f of digestFailures) console.log('    ' + f);
+}
 console.log(`  ${verified.length} verified by CONTENT digest, ${mtimeOnly.length} by mtime alone` +
             (mtimeOnly.length ? ' — an mtime test cannot see an artifact written AFTER an input it read BEFORE' : ''));
 
 const STAMP = D('data', 'provenance-stamp.json');
-let prev = null;
-try { prev = JSON.parse(fs.readFileSync(STAMP, 'utf8')); } catch (e) { /* first run */ }
-if (prev && typeof prev.mtime_only === 'number' && mtimeOnly.length > prev.mtime_only) {
-  console.log('');
-  console.log(`  RATCHET BROKEN: ${mtimeOnly.length} artifacts rest on mtime alone, up from ${prev.mtime_only}.`);
-  console.log('  A new generator shipped without stamping the CONTENT of its inputs. Use');
-  console.log("  run_stamp.sourceDigests() and write the result as `source_digests` in the artifact.");
-  console.log('  This number may fall and may never rise — that is what makes it close rather than linger.');
-  process.exitCode = 1;
-} else {
-  /* Only ever writes a number equal to or lower than the one before it. */
-  const floor = prev && typeof prev.mtime_only === 'number' ? Math.min(prev.mtime_only, mtimeOnly.length) : mtimeOnly.length;
+/* Writes the NAMED baseline. One function because two branches call it — the ordinary path and the
+ * one-time migration off the count-only stamp — and two copies of a ratchet writer is how a ratchet
+ * quietly stops ratcheting. */
+function writeStampFile(list, verifiedCount) {
   try {
     fs.writeFileSync(STAMP, JSON.stringify({
-      note: 'RATCHET. mtime_only may fall and may never rise. See engine/provenance.js — mtime cannot '
-          + 'detect an artifact written after an input it read before, which is how a 7,100-game '
-          + 'WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders.',
-      mtime_only: floor,
-      verified: verified.length,
+      note: 'RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact '
+          + 'written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was '
+          + 'cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded '
+          + 'rather than a count: the first time this fired it could only say "one more than last '
+          + 'time", nobody could tell which file, and status.js printed NOT DERIVED for a session.',
+      fix: 'Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.',
+      mtime_only: list.length,
+      mtime_only_files: list,
+      verified: verifiedCount,
       generated: new Date().toISOString(),
     }, null, 2) + '\n');
   } catch (e) { console.log('  (could not write the ratchet stamp: ' + e.message + ')'); }
+}
+/* A CORRUPT STAMP MUST NOT READ AS "FIRST RUN". That is the ratchet laundering itself: an unparseable
+ * or truncated `provenance-stamp.json` would adopt whatever the tree currently looks like as the new
+ * baseline, and every artifact that had lost its stamp since would be blessed in silence. ABSENT and
+ * UNREADABLE are different events and only the first one is benign. */
+let prev = null;
+if (fs.existsSync(STAMP)) {
+  try { prev = JSON.parse(fs.readFileSync(STAMP, 'utf8')); }
+  catch (e) {
+    console.log('');
+    console.log('  RATCHET STAMP UNREADABLE: ' + STAMP);
+    console.log('  ' + e.message);
+    console.log('  Refusing to adopt the current tree as a new baseline — that would launder every');
+    console.log('  artifact that has lost its stamp since. Restore the file from git and re-run.');
+    process.exitCode = 1;
+    prev = { mtime_only_files: [], mtime_only: 0, __unreadable: true };
+  }
+}
+/* A COUNT IS NOT ACTIONABLE. THE FIRST BREAK PROVED IT INSIDE AN HOUR.
+ *
+ * The ratchet fired at 91 against 90 and the only thing it could say was "one more than last time".
+ * MEASURE hit it, could not identify which artifact was the +1 because the stamp recorded a NUMBER,
+ * and `status.js` printed `provenance: NOT DERIVED` for the rest of the session. A gate that fires
+ * without naming its cause is a gate that gets switched off — which is `artifact_audit.js`'s lesson,
+ * reproduced by a check written to honour it.
+ *
+ * So the stamp records the LIST. The diff is then exact, and the message names the files. */
+const prevList = prev && Array.isArray(prev.mtime_only_files) ? prev.mtime_only_files : null;
+const nowList = mtimeOnly.map(r => r.file).sort();
+const added = prevList ? nowList.filter(f => !prevList.includes(f)) : [];
+const removed = prevList ? prevList.filter(f => !nowList.includes(f)) : [];
+if (removed.length) console.log(`  now stamped (${removed.length}): ${removed.join(', ')}`);
+
+/* THE RATCHET IS ON THE LIST, NOT THE COUNT. An artifact that gains a stamp while an unstamped one
+ * is added nets to zero and would have slipped through a count comparison silently. */
+if (prevList && added.length) {
+  console.log('');
+  console.log(`  RATCHET BROKEN: ${added.length} artifact(s) newly rest on mtime alone —`);
+  for (const f of added) console.log('    ' + f);
+  console.log('  Their generator ships without recording what CONTENT it read. Fix in the generator:');
+  console.log("  stamp run_stamp.sourceDigests() (or engine_release.open().stamp()) as `source_digests`.");
+  console.log('  This list may shrink and may never grow — that is what makes it close rather than linger.');
+  process.exitCode = 1;
+} else if (!prevList && prev && typeof prev.mtime_only === 'number' && mtimeOnly.length > prev.mtime_only) {
+  /* One-time migration: the first stamp recorded only a count, so there is no list to diff against.
+   * Adopt the current list rather than failing on a comparison that cannot name anything. */
+  console.log(`  (adopting a named baseline — the previous stamp recorded only a count, ${prev.mtime_only})`);
+  if (!(prev && prev.__unreadable)) writeStampFile(nowList, verified.length);
+} else {
+  /* Only ever writes a number equal to or lower than the one before it. */
+  writeStampFile(nowList, verified.length);
 }
 if (unsafe.length) {
   console.log('\n  DO NOT QUOTE THE UNSAFE ONES. Regenerate them before any result that depends on them');

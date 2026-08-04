@@ -443,9 +443,15 @@ pairs** are scored, and why an SPRT is used rather than a fixed-n win rate.
 > *"It needs to have an element of unpredictability… otherwise you end up with the Nuzlocke Bot
 > issue of it being exploitable."*
 
-**Also measured, and this is the uncomfortable part.** WOBBUFFET — a counter hill-climbed over MAG's
-own feature weights — beat MAG **63.2%, 95% CI [56.6, 69.3]**, with a mirror control at 47.5%,
-found in forty minutes. Their prediction is correct and ABRA has the number for it.
+**~~Also measured, and this is the uncomfortable part.~~ RETRACTED 2026-08-04 — ABRA does NOT have a
+number for this.** WOBBUFFET — a counter hill-climbed over MAG's own feature weights — beat MAG
+~~**63.2%, 95% CI [56.6, 69.3]**, with a mirror control at 47.5%, found in forty minutes~~ on a
+**17-feature** vector, against an engine 25 wire-fixes old, **before the quality filter existed**.
+`provenance.js` carried it as its only `UNSAFE` artifact for that reason. The 2026-08-04 re-run on
+the shipped 58 features is **void** — the defender was refitted mid-run and the simulator moved twice
+more — and its search accepted only 1 of 24 steps, so it would have been uninformative anyway. See
+`docs/SEARCH.md` §R8. **Their prediction may well be correct; we currently have no measurement either
+way, and saying we do would be worse than the gap.**
 
 **And here is the live tension nobody has resolved.** ABRA separately measured that taking the
 **best** move instead of sampling from the fitted distribution is worth **+12 points raw and 79.7%
@@ -455,10 +461,12 @@ states the principle: *"a policy can improve on average and stay exactly as expl
 different numbers and only one of them has been moving."*
 
 So we shipped a change that improves average strength and plausibly worsens readability, and the
-readability number is **three feature generations stale** (17 features then, 53 now). We do not know
-the current exploitability of the build we are running. **This raises WOBBUFFET from a backlog item
-to the open question this comment has correctly identified.** `engine/exploit.js --target
-<weights.json>` is the instrument and it exists.
+readability number is ~~three feature generations stale (17 features then, 53 now)~~ **gone**. We do
+not know the current exploitability of the build we are running. **This raises WOBBUFFET from a
+backlog item to the open question this comment has correctly identified.** `engine/exploit.js
+--target <weights.json>` is the instrument, it exists, and as of 2026-08-04 it **stamps nothing about
+what it read** — which is how a mid-run refit of its own defender went unnoticed. Fix that before
+trusting its next answer.
 
 ---
 

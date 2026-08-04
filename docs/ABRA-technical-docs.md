@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.35.0 · Last updated 2026-08-04**
+**Version 3.39.0 · Last updated 2026-08-04**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -369,3 +369,64 @@ is asserted.
 
 **Companion documents.** [White paper](ABRA-whitepaper.md) · [Deck](ABRA-deck-plain-english.md) ·
 [Project summary](SUMMARY.md) · [Model ledger](MODELS.md) · [Changelog](../CHANGELOG.md)
+
+
+## How to measure against a frozen engine
+
+### Description
+
+An engine release is a copy of every file whose content can change a measured number. A measurement
+reads the copy. Other work on the repository does not change the copy.
+
+Twelve files are in a release: `medicham2-browser.js`, `board.js`, `rollout_leaf.js`,
+`position_features.js`, `tags.js`, `champions_sim.js`, `engine-data.js`, `abra-tags.js`, `tags.json`,
+`policy-weights.json`, `policy-weights-joint.json` and `move-priors.json`.
+
+The release identifier is a digest of the file digests. If the files do not change, the identifier does
+not change. A second cut of the same files makes no second copy.
+
+### Procedure — cut a release
+
+1. Make sure the files you want to freeze are correct.
+2. Run this command. Give a reason.
+
+```bash
+node engine/engine_release.js cut "why this release exists"
+```
+
+3. Read the twelve digests in the output. Confirm the Showdown commit is not `UNKNOWN`.
+
+### Procedure — measure against a release
+
+1. Open the release at the start of the measurement.
+2. Load every engine file from the release, not from `engine/`.
+3. Put the stamp in the artifact you write.
+
+```js
+const REL  = require('./engine_release.js').open();
+const MEDI = REL.require('engine/medicham2-browser.js');
+const artifact = Object.assign({}, REL.stamp(), result);
+```
+
+`REL.stamp()` writes `engine_release`, `showdown_commit` and `source_digests` into the artifact.
+`engine/provenance.js` reads `source_digests` and compares the content. An artifact without this stamp
+can only be checked by timestamp, and a timestamp cannot show that a file changed after it was read.
+
+### Procedure — check a release
+
+```bash
+node engine/engine_release.js list          # each release, and how many files have moved since
+node engine/engine_release.js verify <id>   # has the copy itself changed?
+```
+
+`list` shows the drift. Drift is normal. Drift tells you if an old number still describes the engine
+that ships today.
+
+### Warning
+
+Do not read `engine/` files during a measurement. Another division can write them at any time. This
+does not cause an error. It causes a number that is wrong and looks correct.
+
+On 2026-08-04 three divisions ran at the same time with separate files. The weights of the model under
+test changed between the two halves of one measurement. The measurement completed. No check failed.
+7,100 games were lost.

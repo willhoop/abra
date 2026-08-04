@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 3.35.0 · 2026-08-04 · Will Hooper**
+**Version 3.39.0 · 2026-08-04 · Will Hooper**
 
 A one-page map of the whole project and every component. For depth: the
 [white paper](ABRA-whitepaper.md) (math + sources), the [deck](ABRA-deck-plain-english.md)
@@ -71,7 +71,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 
 | Model | What it is | Status | Headline result |
 |---|---|---|---|
-| **MEDICHAM** | Hand-written doubles damage engine | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables |
+| **MEDICHAM** | Hand-written doubles doubles-battle simulator | ⚠️ **Being replaced** | Within 5% of the Smogon calculator on 31 scenarios, but disagrees with the OFFICIAL Champions engine by 31.1 points of win probability. ADR-001: becomes a lookup over precomputed tables. **Mechanics census 167 live of 174 probed, 7 missing** (`data/mechanics-census.json`); **generated interaction matrix 93.3% of 1,008 live carrier x reactor pairs, multi-turn field axis 156/156** (`data/interaction-matrix.json`); damage differential **1/400** at seed 20260804 |
 | **GURU** | Meta matchup matrix from real outcomes | ⚠️ **No decisive cells that survive multiplicity** | `data/guru-matchups.json`, 2026-07-31, **5,265 clean games / 12 archetypes / 144 cells**. **6 directed = 3 distinct** matchups clear a 95% test one at a time, and **ZERO survive FDR at q=0.05 or Bonferroni** — 66 pairs, 3.3 expected by chance, 3 observed, smallest exact p 6.1e-3 against a BH threshold of 7.6e-4. Predictive test **0.7124** vs a coin 0.6931 over 1,053 held-out games — **worse than a coin**. Descriptive structure only. (This row read *1,124 clean games, 11 archetypes, 0.735* until 2026-08-04, from a superseded run; the verdict is unchanged.) |
 | **XATU** | Opponent set + next-move belief | ✅ Built | Top-1 36% / top-3 72% on held-out human moves (beats its baselines) |
 | **PORY** | Mid-game win-probability value net | ⚠️ **Contribution unclear** | Log-loss **0.6298** 95% CI [0.6125, 0.6456] vs coin 0.6931 and vs the material heuristic 0.655 (regenerated 2026-07-31; the previously published 0.567 predated the current quality filter) — but its features ARE the material state, and it **loses to a two-feature baseline** (alive_diff+hp_diff 0.5822 vs PORY 0.5840, same estimator). Report the gain over MATERIAL, not over a coin. See engine/pory_baseline.py |
@@ -82,6 +82,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
 | **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **53 features**, fitted to **146,910 real human clicks** from 6,091 clean open-sheet games. Held out by game: top-1 **33.6%** against the behaviour clone's 27.1%. It now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
+| **WOBBUFFET** | Exploitability of MAG — hill-climb a counter over MAG's own weights | ❌ **NOT MEASURED** | **There is no exploitability number for this project (2026-08-04).** The published ~~63.2% [56.6, 69.3], mirror 47.5%~~ is **retracted**: 17 features against the 58 we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 58-feature re-run is **void** — `data/policy-weights.json` was refitted at 22:15:24 UTC *while it was running* and `engine/medicham2-browser.js` changed content twice more afterwards. Separately its hill-climb accepted **1 of 24** steps and would have been uninformative anyway. `engine/exploit.js` stamps nothing about what it read, which is why none of this was visible to it. See `docs/SEARCH.md` §R8 |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=20** across 1,051 cells (vs old single-label n=11–18) — the 7,971 once published was retracted in 2.7.0; preview roles tie a coin (honest null) |
@@ -171,3 +172,15 @@ This also bounds the earlier upload-bias result. Comparing our open-team-sheet B
 whole Bo3 ladder gave a mean absolute difference of only 1.84 points — but that corpus contains
 almost no bots (29 named-bot sides in 4,167 games). So **human** upload bias is small; **bot** upload
 bias is large, and the closed-sheet Bo1 store carries the latter.
+
+## Measurement validity (3.39.0)
+
+| item | state |
+|---|---|
+| engine release | `5fc1f711a0e3`, 12 files frozen, Showdown `20ad99ff`. A measurement reads the snapshot, not the live tree, so the divisions can run concurrently. |
+| provenance method | **content digests**, no longer mtime. 0 artifacts verified by content, **92 by mtime alone** — printed every run, ratcheted downward by a named list. |
+| exploitability | **no figure.** 63.2% retracted on its own merits; the 2026-08-04 re-run is `void: true`. |
+| mirror control | **49.7% [46.2, 53.2]**, n=782 — survives the void run and retires the seat-asymmetry worry. |
+| MAG refit | ran; **moved nothing measurable.** Weather fix +0.048 top-1 [0.009, 0.093]; the refit itself −0.074 [−0.155, +0.004] against a 0.192-point noise floor. |
+| open, needs a decision | the fit sees `{nature, item}`; the player sees `{nature, item, ability, moves}`. **50.47% of trained decisions**, 99.75% of games. |
+

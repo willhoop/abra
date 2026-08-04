@@ -164,9 +164,20 @@ different boundaries, two different reasons; do not collapse them.
 **After the refit, in the same pass:** the seven restamps, `node engine/status.js --write`, and every
 number that quoted the old weights. A refit that lands without them is how a version drifts.
 
-### WOBBUFFET RE-RUN — AUTHORISED, SEQUENCED AFTER THE ENGINE
+### WOBBUFFET RE-RUN — RAN 2026-08-04, **VOID**, STILL OPEN
 
 **Will, 2026-08-04:** *"rerun wobba"* … *"yes do the search once engine is all wrapped up."*
+
+> **It ran at full size and the tree moved under it.** `data/policy-weights.json` — the defender —
+> was **refitted at 22:15:24 UTC, mid-run**; `engine/board.js` was written around round 5; and
+> `engine/medicham2-browser.js` changed content between 22:29:04 and 22:30:34 and again at 22:31,
+> sampled with `run_stamp.sourceDigests()`. **The engine was not wrapped.** The old 63.2% is
+> retracted anyway, so the position is now *no exploitability number at all*. Two findings survive
+> because they are about the tool: the hill-climb accepted **1 of 24** steps and dies in 58
+> dimensions, and `provenance.js` **falsely cleared** the new artifact on an mtime test it passes by
+> 153 s while having read its input 34 minutes before that input was rewritten. Full timeline,
+> defects and the prepared re-run: `docs/SEARCH.md` §R8. **The sequencing rule below was right and
+> was not actually satisfied — verify the digests are still, do not take "wrapped" on report.**
 
 `data/exploitability.json` is **63.2% [56.6, 69.3] measured on 17 features against the 58 we ship** —
 three feature generations stale, on a policy we have since made **more deterministic** by shipping
@@ -208,7 +219,9 @@ Until then, **start no wide run** — it will measure a build that stops existin
 | 16a | **RESOLVED — 8,414 vs 6,943 is not a bug** | Different populations, both current. **6,943** = clean games in `games.ladder.jsonl` only, **no sheet requirement**. **8,414** = clean **open-sheet** games across **three** stores — `fit_policy.js:272` iterates bo3 + ots + ladder and `:250` rejects anything without both sheets. The 2026-07-31 split was bo3 3,807 (54.7%) + ots 2,891 (41.5%) + ladder **268 (3.8%)**, because the ladder format's Open Team Sheets are optional and only ~1% of it carries one. **Never print them side by side without their population** | closed |
 | 16 | **Two live definitions of "clean games"** | `live.js`/`winrate-backtest.json` say 6,943; `meta-usage.json`/`roles-eval.json`/`guru-matchups.json` say ~5,269. The front door renders the larger beside results computed on the smaller. **OPS diagnosed the cause: pure staleness, not two definitions** — both are `quality.js`/`quality.py` reading `quality-filter.json`, pinned identical by `tests/test-quality.js`. The funnel was computed at 29,117 collected; the store is now 38,587. `node engine/analyze.js data/games.ladder.jsonl` closes it | MEASURE |
 | 17 | **`guru.js` says `n_decisive: 0`, `guru-matchups.json` says `6`** | and `guru.js` is *generated from* it. The site is self-consistent only by luck of which file it reads | MEASURE |
-| 18 | **Exploitability is 3 feature generations stale** | WOBBUFFET's 63.2% [56.6, 69.3] was on 17 features; we ship 53 **and** greedy-over-sampling, which makes the policy *more* deterministic. Average strength rose; readability is unmeasured | MEASURE |
+| 18 | **Exploitability is NOT MEASURED — worse than stale** | ~~WOBBUFFET's 63.2% [56.6, 69.3] was on 17 features~~ retracted 2026-08-04; the 58-feature re-run is **void** (defender refitted mid-run, simulator moved twice more) and its search accepted 1 of 24 steps. `exploit.js` needs a run stamp and a dimension-aware step rule before the next attempt. `docs/SEARCH.md` §R8 | MEASURE |
+| 18a | **`exploit.js` stamps nothing at all** | no engine digests, no digest of the target vector it read, no node version, no pool size, no `n_measured`/`n_unit`. This is why a mid-run refit of its own defender was invisible. Every other gate here carries a stamp | MEASURE |
+| 18b | **`provenance.js` cleared an artifact computed from a superseded input** | mtime test only: `exploitability.json` (22:17:57) is newer than `policy-weights.json` (22:15:24) and passes, but the process read the weights at 21:41. A generator must stamp the **content digest** of each input at read time and provenance must compare digests. `run_stamp.sourceDigests()` already does this for leaf sources | MEASURE |
 | 19 | **`rollout_r1_join.py` writes naked `isoformat()`** | `2026-08-03T04:14:10` parses in JS as `08:14:10Z` — a four-hour shift. Latent only because status.js refuses withdrawn artifacts | MEASURE |
 | 20 | **`n_measured`/`n_unit` missing on R1 and R4** | one line each | MEASURE |
 | 21 | **PORY tooltip contradicts the PORY room** | `index.html:2149` "beats a coin, well calibrated" vs `:915` "I add nothing over counting" | WEB |

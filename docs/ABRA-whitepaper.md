@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.35.0 · Last updated 2026-08-04**
+**Version 3.39.0 · Last updated 2026-08-04**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -369,3 +369,83 @@ next refinement.
 Preview-composition signal is small; role-level winner-prediction ties a coin and WAR barely clears it.
 Role tags are a censored lower bound on capability (closed sheets reveal only used moves). NMF factors are
 soft and attacker-dominated at the move level. None of these is hidden; each is reported with its baseline.
+
+
+## Measuring an engine that is being edited (3.36.0 – 3.39.0)
+
+### A refit that bought nothing, reported as such
+
+The feature function was wrong about the weather on 10.72% of turn-boards: `engine/board.js` carried a
+private weather map that recognised Desolate Land and Primordial Sea — neither of which this format can
+produce — and did not recognise **sandstorm or snowscape**. Routing both reads through the engine's own
+exported `weatherId` moves **14 of 58 feature columns**, 1,768 of 234,873 vectors (0.75%), 892 of 32,054
+decisions (2.78%), and touches 238 of 1,200 games (19.83%) — consistent with the 18.5% sand/snow census.
+
+Paired per decision on the same 46,162 held-out decisions across 1,772 games, bootstrapped over 10,000
+game resamples:
+
+| paired difference | logL / decision | top-1 points |
+|---|---|---|
+| fix alone, weights frozen | **+0.000348** [0.000075, 0.000623] | **+0.048** [0.009, 0.093] |
+| the refit, given fixed features | −0.000076 [−0.000172, +0.000021] | −0.074 [−0.155, +0.004] |
+| everything vs what shipped | +0.000273 [−0.000010, +0.000556] | −0.026 [−0.117, +0.064] |
+
+Split-half noise floor for the refitted arm, 20 cuts: **median 0.192 top-1 points**. The fix is
+detectable *only* because the comparison is paired, and it is a quarter of that floor. **Refitting bought
+nothing** — the interval contains zero on both metrics, 1 of 58 weights moved beyond 2 SE, and the L2 of
+the whole weight change is 0.216. The fix was worth making because the feature function was wrong about
+the game, not because a metric improved; it did not need one and it did not get one.
+
+### The fitting environment is not the playing environment, and the gap is 20× the defect above
+
+`engine/fit_policy.js:376` hands the board `{nature, item}`. `engine/magnemite.js:522` — the live
+player — hands it `{nature, item, ability, moves}`. Over 14,400 sheet entries in 1,200 games, **100.0%
+declare an ability and 100.0% declare four moves**, and the fit discards both.
+
+| | weather defect | sheet-channel gap |
+|---|---|---|
+| vectors that move | 1,768 (0.75%) | **37,460 (15.95%)** |
+| decisions that move | 892 (2.78%) | **16,177 (50.47%)** |
+| feature columns | 14 of 58 | **20 of 58** |
+| games touched | 238 (19.83%) | **1,197 of 1,200 (99.75%)** |
+
+The choice set is identical game for game, so this is purely what the board *knows*. **Half of every
+decision the fit trains on is priced against a board the player does not see.** This is CLAUDE.md's
+fitting-vs-playing rule broken a second time and in the **opposite direction** from 2026-07-28 — the bot
+now sees *more* than the fit — which is precisely why nothing was watching for it. Not landed: it is one
+line plus a full refit, and it first needs a decision about the games where the opponent declines open
+team sheets, since a model fitted on four channels degrades differently from one fitted on two.
+
+### Interactions, generated rather than sampled
+
+8,506 theoretical carrier × reactor pairs; 1,640 staged; **1,008 that can genuinely co-occur**, where
+co-occurrence is decided by the reference engine's own two arms differing rather than by our judgement —
+so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **940 of 1,008
+(93.3%)**. Every pair the generator refuses is counted under a named reason and printed on each run. The
+156 ordered persistent-field pairs each become an 8-turn script, which is the only construction that can
+observe *Trick Room was already up when Tailwind landed*; that axis went from 30/156 to **156/156**.
+
+### Validity: a measurement reads a frozen release
+
+Three division agents ran concurrently with their files separated, and a 7,100-game exploitability run
+was still destroyed: the defender's own weight vector was refitted between the two legs, and the
+simulator showed four distinct content digests inside eight minutes. Nothing failed and nothing crashed.
+
+The correction is not scheduling — serialising the divisions forfeits the parallelism they exist for.
+A measurement now opens an **immutable snapshot** (`engine/engine_release.js`) of the twelve files whose
+content can change a reported number, the weights included, and reads those bytes rather than the live
+tree. It is a copy and not a checksum: verifying digests afterwards establishes only that the run was
+wasted. `engine/provenance.js` correspondingly stopped deciding staleness by **mtime** — the method this
+project's own rules discredit by name — and now compares content digests, honours a self-declared
+`void: true`, and prints how many artifacts still rest on timestamps alone (**0 verified, 92 by mtime**),
+ratcheted downward. On its first run the content check caught a rollout artifact computed against a
+version of its own generator that had since changed.
+
+**Consequently ABRA publishes no exploitability figure.** The prior 63.2% [56.6, 69.3] is retracted on
+its own merits — 17 features against the 58 shipped, an engine 25 wire-fixes old, computed before the
+quality filter existed — and the re-run is void. One figure from the void run survives, because both of
+its legs fall inside a single stable window: the mirror control at **49.7% [46.2, 53.2]**, n=782, which
+retires the concern that an earlier 47.5% indicated a seat or pairing asymmetry rather than noise at
+n=217. A separate finding stands independently of the invalid tree: the attack **dies in 58 dimensions**,
+accepting 1 of 24 hill-climb steps against 10 of 18 at 17 features, so the step rule needs correcting
+before the re-run is worth its cost.

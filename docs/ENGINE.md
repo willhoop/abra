@@ -23,7 +23,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  167/174 probed mechanics live, 7 missing   (census 2026-08-04 22:43)
+  167/174 probed mechanics live, 7 missing   (census 2026-08-04 22:46)
   missing:
     move    conditionalPower       Facade doubles when statused
     move    needsTargetToAttack    Avalanche doubles after being hit
@@ -32,13 +32,13 @@ ENGINE — does the simulator do what Pokémon does
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
     ability untagged               Marvel Scale raises Defense while statused
     move    reordersTurn           After You lets the partner move next
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 22:43)
+  1/150 differential comparisons disagree with Showdown   (2026-08-04 22:46)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 146/178 probed, 32 unprobed
 ```
 
-_stamped 2026-08-04 22:45_
+_stamped 2026-08-04 23:05_
 
 <!-- /GENERATED -->
 

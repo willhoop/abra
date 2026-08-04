@@ -10,17 +10,17 @@
  * separately from live.js and labelled as such.
  */
 window.ABRA_BOARD = {
- "built_at": "2026-08-04T22:43:18.652Z",
+ "built_at": "2026-08-04T23:05:18.188Z",
  "built_by": "web/build-status.js",
  "status_js_ok": true,
  "status_js_error": null,
- "status_raw": "\nABRA STATUS — generated 2026-08-04 22:43 by engine/status.js\nEvery figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.\n\nENGINE — does the simulator do what Pokémon does\n  167/174 probed mechanics live, 7 missing   (census 2026-08-04 22:38)\n  missing:\n    move    conditionalPower       Facade doubles when statused\n    move    needsTargetToAttack    Avalanche doubles after being hit\n    move    needsUntrackedState    Gyro Ball scales with the speed gap\n    ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll\n    ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit\n    ability untagged               Marvel Scale raises Defense while statused\n    move    reordersTurn           After You lets the partner move next\n  1/400 differential comparisons disagree with Showdown   (2026-08-04 22:38)\n    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)\n    a differential hit is NOT in the census count above — the census probes what someone thought to probe\n  tag coverage: 146/178 probed, 32 unprobed\n\nMEASURE — can we believe a number\n  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.\n    n=1378 games, 200 rollouts each   (2026-08-04 07:09)\n    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811\n    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835\n    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js\n    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)\n  provenance: NOT DERIVED (engine/provenance.js did not run: Command failed: C:\\Program Files\\nodejs\\node.exe C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\engine\\provenance.js)\n  refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time\n    (engine/medicham2-browser.js moved 2026-08-04 22:37, but the feature function did not)\n\nSEARCH — does MILTANK choose better than MAG\n  R1 leaf accuracy   PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-04 07:34)\n    RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows.\n    SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs.\n  R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)\n    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it\n      explore: NOT RECORDED AND NOT PASSED.\n      maxTurns: NOT RECORDED AND NOT PASSED.\n      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.\n      machine: A duration is a fact about a machine under a load.\n  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)\n    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)\n  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)\n  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 22:37):\n    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41\n    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36\n    PRE-CHANGE games.r4.jsonl  2026-08-04 02:33\n    PRE-CHANGE games.r4-baseline.jsonl  2026-08-04 01:22\n    PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45\n\nOPS — the live bot and the store\n  store: 39792 games, 7123 usable (17.9%), 7164 teams   (live.js 2026-08-04)\n  live-games/: 34 battles recorded\n  data/games.ladder.jsonl      last written 2026-08-04 22:03\n  data/games.bo3.jsonl         last written 2026-08-04 22:03  <- the Force-OTS format, collected hourly\n  data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat\n\nDIAGNOSTICS — 1 thing(s) this run could not read. Each was previously an\nunexplained NOT DERIVED, which is indistinguishable from work nobody has done yet.\n  engine/provenance.js did not run: Command failed: C:\\Program Files\\nodejs\\node.exe C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\engine\\provenance.js\n\nRules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.\n\n",
+ "status_raw": "\nABRA STATUS — generated 2026-08-04 23:05 by engine/status.js\nEvery figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.\n\nENGINE — does the simulator do what Pokémon does\n  167/174 probed mechanics live, 7 missing   (census 2026-08-04 22:46)\n  missing:\n    move    conditionalPower       Facade doubles when statused\n    move    needsTargetToAttack    Avalanche doubles after being hit\n    move    needsUntrackedState    Gyro Ball scales with the speed gap\n    ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll\n    ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit\n    ability untagged               Marvel Scale raises Defense while statused\n    move    reordersTurn           After You lets the partner move next\n  1/150 differential comparisons disagree with Showdown   (2026-08-04 22:46)\n    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)\n    a differential hit is NOT in the census count above — the census probes what someone thought to probe\n  tag coverage: 146/178 probed, 32 unprobed\n\nMEASURE — can we believe a number\n  leaf calibration: live in-game leaf is WORSE than a coin on Brier (paired +0.0502, 95% CI 0.0371 to 0.0628; negative is better). When it says 90-100% it wins 54% (n=56). Names the winner on 51.0% of 1314 decisive calls, 95% CI 48.3-53.7%. ECE 0.1811. See reliability_curve.\n    n=1378 games, 200 rollouts each   (2026-08-04 07:09)\n    when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811\n    powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835\n    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js\n    (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)\n  provenance: 2 unsafe, 39 possibly stale, 52 ok, 0 missing\n  refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time\n    (engine/medicham2-browser.js moved 2026-08-04 22:37, but the feature function did not)\n    (data/abra-tags.js moved 2026-08-04 22:43, but the feature function did not)\n\nSEARCH — does MILTANK choose better than MAG\n  R1 leaf accuracy   PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-04 07:34)\n    RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows.\n    SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs.\n  R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)\n    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it\n      explore: NOT RECORDED AND NOT PASSED.\n      maxTurns: NOT RECORDED AND NOT PASSED.\n      games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.\n      machine: A duration is a fact about a machine under a load.\n  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)\n    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)\n  R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)\n  runs vs engine (newest engine source: data/abra-tags.js 2026-08-04 22:43):\n    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41\n    PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36\n    PRE-CHANGE games.r4.jsonl  2026-08-04 02:33\n    PRE-CHANGE games.r4-baseline.jsonl  2026-08-04 01:22\n    PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45\n\nOPS — the live bot and the store\n  store: 39792 games, 7123 usable (17.9%), 7164 teams   (live.js 2026-08-04)\n  live-games/: 34 battles recorded\n  data/games.ladder.jsonl      last written 2026-08-04 22:03\n  data/games.bo3.jsonl         last written 2026-08-04 22:03  <- the Force-OTS format, collected hourly\n  data/games.ots.jsonl         last written 2026-07-25 03:46  <- FROZEN external import, complete; date is an import, not a heartbeat\n\nRules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.\n\n",
  "engine": {
   "headline": {
    "state": "ok",
    "v": "167/174",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T22:38:08.341Z",
+   "at": "2026-08-04T22:46:32.122Z",
    "label": "probed mechanics live",
    "note": "must never go down (docs/ENGINE.md)"
   },
@@ -28,34 +28,34 @@ window.ABRA_BOARD = {
    "state": "ok",
    "v": 167,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T22:38:08.341Z",
+   "at": "2026-08-04T22:46:32.122Z",
    "label": "live"
   },
   "probed": {
    "state": "ok",
    "v": 174,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T22:38:08.341Z",
+   "at": "2026-08-04T22:46:32.122Z",
    "label": "probed"
   },
   "missing_n": {
    "state": "ok",
    "v": 7,
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T22:38:08.341Z",
+   "at": "2026-08-04T22:46:32.122Z",
    "label": "missing"
   },
   "census_generated": {
    "state": "ok",
-   "v": "2026-08-04T22:38:08.330Z",
+   "v": "2026-08-04T22:46:32.118Z",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T22:38:08.341Z",
+   "at": "2026-08-04T22:46:32.122Z",
    "label": "census generated"
   },
   "missing_list": {
    "state": "ok",
    "src": "data/mechanics-census.json",
-   "at": "2026-08-04T22:38:08.341Z",
+   "at": "2026-08-04T22:46:32.122Z",
    "rows": [
     {
      "kind": "move",
@@ -96,16 +96,16 @@ window.ABRA_BOARD = {
   },
   "diff_headline": {
    "state": "bad",
-   "v": "1/400",
+   "v": "1/150",
    "src": "data/engine-diff.json",
-   "at": "2026-08-04T22:38:32.490Z",
+   "at": "2026-08-04T22:46:16.832Z",
    "label": "differential comparisons disagree with Showdown",
    "note": "a differential hit is NOT in the census count — the census probes what someone thought to probe"
   },
   "diff_worst": {
    "state": "bad",
    "src": "data/engine-diff.json",
-   "at": "2026-08-04T22:38:32.490Z",
+   "at": "2026-08-04T22:46:16.832Z",
    "rows": [
     {
      "att": "chesnaught",
@@ -121,9 +121,9 @@ window.ABRA_BOARD = {
   },
   "diff_generated": {
    "state": "ok",
-   "v": "2026-08-04T22:38:32.489Z",
+   "v": "2026-08-04T22:46:16.835Z",
    "src": "data/engine-diff.json",
-   "at": "2026-08-04T22:38:32.490Z",
+   "at": "2026-08-04T22:46:16.832Z",
    "label": "differential run"
   },
   "tags": {
@@ -193,10 +193,13 @@ window.ABRA_BOARD = {
    "note": "measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js"
   },
   "provenance": {
-   "state": "notmeasured",
-   "why": "engine/provenance.js did not run under status.js",
-   "owner": "MEASURE",
-   "label": "provenance"
+   "state": "bad",
+   "src": "engine/status.js",
+   "unsafe": 2,
+   "stale": 39,
+   "ok": 52,
+   "missing": 0,
+   "note": "engine/provenance.js is the canonical staleness authority; status.js prints its totals"
   },
   "refit": {
    "state": "ok",
@@ -211,6 +214,10 @@ window.ABRA_BOARD = {
    {
     "src": "engine/medicham2-browser.js",
     "at": "2026-08-04 22:37"
+   },
+   {
+    "src": "data/abra-tags.js",
+    "at": "2026-08-04 22:43"
    }
   ]
  },
@@ -495,8 +502,8 @@ window.ABRA_BOARD = {
   "engine_edge": {
    "state": "ok",
    "src": "engine/status.js",
-   "newest_src": "engine/medicham2-browser.js",
-   "newest_at": "2026-08-04 22:37"
+   "newest_src": "data/abra-tags.js",
+   "newest_at": "2026-08-04 22:43"
   },
   "runs": {
    "state": "ok",

@@ -17,16 +17,15 @@ MEASURE — can we believe a number
     n=1378 games, 200 rollouts each   (2026-08-04 07:09)
     when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
-    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/miltank.js, data/abra-tags.js
+    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 1 unsafe, 37 possibly stale, 53 ok, 0 missing
+  provenance: 2 unsafe, 39 possibly stale, 52 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 21:41, but the feature function did not)
-    (engine/board.js moved 2026-08-04 21:12, but the feature function did not)
-    (data/abra-tags.js moved 2026-08-04 21:37, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-04 22:37, but the feature function did not)
+    (data/abra-tags.js moved 2026-08-04 22:43, but the feature function did not)
 ```
 
-_stamped 2026-08-04 21:48_
+_stamped 2026-08-04 23:05_
 
 <!-- /GENERATED -->
 
@@ -866,6 +865,53 @@ events.
 
 ### 11. THE THIRD COPY OF THE WEATHER MAP IS IN `board.js`, IT IS WRONG, AND THE FIXTURE CANNOT SEE IT
 
+> **LANDED 2026-08-04, with the two fixture boards it needed, and refitted. The diagnosis below is
+> kept because it is the reason the fixture grew; the result is here.**
+>
+> `engine/board.js` no longer keeps a weather map. Both reads — `dmgFractions` and the
+> `punishExposure` call in `featuresFor` — go through a `weatherKind(board, D)` helper that calls the
+> damage engine's exported `weatherId`, the same consolidation ENGINE made in `tag_dex.js`. A damage
+> engine that cannot answer is counted in `dmgFailures.weatherUntranslated` rather than defaulted to
+> clear skies; measured over 234,873 candidate vectors it is **0**, on both the node and the browser
+> export path (`tests/test-board-browser.js`: 58 of 58 features agree to 6 dp).
+>
+> **THE PRE-LANDING MEASUREMENT REPRODUCES ON THE CURRENT ENGINE TO THE ROW.** Re-run before relying
+> on it, because the engine had moved underneath it: `fit_policy.decisionsFor` over the first 1,200
+> open-sheet corpus games, **32,054 decisions / 234,873 candidate vectors**, one process holding both
+> builds of `board.js`:
+>
+> | | measured 2026-08-04 (pre) | re-measured after the ENGINE band |
+> |---|---|---|
+> | candidate vectors that move | 1,768 (0.75%) | **1,768 (0.75%)** |
+> | decisions that move | 892 of 32,054 (2.78%) | **892 (2.78%)** |
+> | columns that move | 14 of 58 | **14 of 58** |
+> | games containing a moved vector | not measured | **238 of 1,200 (19.83%)** |
+>
+> The 19.83% is the new number and it is the one that matches the census: 18.5% of games carry sand
+> or snow at some turn.
+>
+> **THE FIXTURE NOW SEES IT — 0 columns before, 10 after.** `sand-is-up` and `snow-is-up` join
+> `SCENARIOS`. Tyranitar takes special hits under sand (the Rock special-defence 1.5x) and
+> Ninetales-Alola and Weavile take physical hits under snow (the Ice defence 1.5x); Hippowdon and
+> Ninetales-Alola both carry Weather Ball, whose TYPE resolves off the same field, so a translation
+> that mapped one weather and not the other cannot pass both. A Rock body and an Ice body sit on each
+> bench, because the switch family prices a body that is not on the field and would otherwise be
+> untouched — that one choice took the detection from 6 columns to 10.
+>
+> Scored against the pre-fix map: `koTarget`, `dmgFrac`, `killIsRoll`, `killsThreat`, `koFirst`,
+> `switchSurvives1`, `switchKOFast`, `switchDiesFirst`, `benchRisk`, and the joint `partnerCoversMe`.
+>
+> **State the limit rather than the win: the fixture catches 10 of the 14 columns the corpus moves.**
+> `protectThreatened`, `diesBeforeMoving`, `screenValue` and `switchKOSlow` move on corpus boards and
+> not on these ten. A fixture is evidence for the restamp rule, never proof of it, and this is the
+> measured size of the gap rather than a caveat in prose. Coverage did not regress: 40 slots, 324
+> candidates, 1,309 pairs, and **0 features that never fire**.
+>
+> Two properties of the landing worth keeping. `weatherId` still does not know `desolateland` /
+> `primordialsea`; on 339,483 corpus turn-boards that costs nothing and adding them is ENGINE's call
+> on `SD2WEATHER`, not a fourth table here. And adding scenarios re-stamps every hash, so it went in
+> the same pass as the refit — a fixture change and a restamp cannot be separated.
+
 **This is a refit trigger. It is measured, it is NOT landed, and the gate for landing it is the
 P0/P1 band, which is not met.**
 
@@ -1059,6 +1105,107 @@ today — which is a measurement, not an absence of one.**
 
 `--all` was added to the ratchet: the 25-line cap is right for a gate, but *"... and 27 more"* is how
 the tail of a list stops being anybody's job.
+
+### 13. THE REFIT RAN — and it moved nothing measurable. That is the result, not a preamble to one.
+
+`node --max-old-space-size=4096 engine/fit_policy.js` then `engine/fit_joint.js`, on the weather
+landing in §11. **8,759 clean open-sheet games, 229,339 usable decisions** (up from 8,414 / 220,613),
+183,679 train / 45,660 held out, lambda selected on held-out likelihood at 0. Both weight files
+carry a fresh `featureHashes` over the 10-scenario fixture, and `feature_fixture --check` exits 0 on
+both.
+
+**The before/after in the artifacts is not the comparison to read**, because the two fits have
+different corpora and different held-out sets — 44,033 decisions against 45,660. Quoting
+`heldOut.boardAware` 32.269% against 32.271% would be comparing two samples, which is the confound
+this division keeps finding in other people's work. The comparison that means something scores the
+SAME held-out decisions three ways, with the split reproduced exactly (`hash(game) % 5 === 0`):
+
+| arm | what it is | logL/decision | top-1 |
+|---|---|---|---|
+| **A** | old weights + old features | −1.732548 | 32.204% |
+| **B** | old weights + NEW features | −1.732200 | 32.252% |
+| **C** | NEW weights + NEW features — what ships | −1.732276 | 32.178% |
+
+**1,772 held-out games, 46,162 decisions**, paired per decision, bootstrapped over 10,000 resamples
+of GAMES (decisions inside one game share a team and a board):
+
+| paired difference | logL/decision | top-1 points |
+|---|---|---|
+| **B − A** the weather fix alone, weights frozen | **+0.000348** [0.000075, 0.000623] | **+0.048** [0.009, 0.093] |
+| **C − B** the refit, given the fixed features | −0.000076 [−0.000172, +0.000021] | −0.074 [−0.155, +0.004] |
+| **C − A** everything, against what shipped | +0.000273 [−0.000010, +0.000556] | −0.026 [−0.117, +0.064] |
+
+Read plainly, three statements:
+
+1. **The correctness fix is detectable and it is a quarter of the noise floor.** B − A clears zero on
+   both metrics, and twenty split-half cuts of arm C alone spread by a **median 0.192 top-1 points**
+   (range 0.005–0.770) against an effect of 0.048. The pairing is the whole reason it resolves at
+   all; two runs on different samples could not tell these builds apart. Same shape as §10's value
+   net, one order of magnitude smaller.
+2. **Refitting the weights on the corrected features bought nothing.** C − B contains zero on both
+   metrics and its point estimate is NEGATIVE. Only **1 of 58 weights moved more than 2 SE**
+   (`dmgFrac` +0.0592, 2.45 SE — the column the fix touches most), 6 moved more than 1 SE, and the
+   L2 norm of the whole weight change is **0.216**. The joint file moved less: largest term
+   `terrainSetupHelpsPartner` +0.102, L2 **0.128**.
+3. **The combined change is indistinguishable from zero on held-out human-click prediction.** C − A
+   contains zero on both. The fix was worth making because it is a fact about the game that the
+   feature function was getting wrong on 10.72% of turn-boards — that is the whole justification and
+   it does not need a metric to support it.
+
+**What this does NOT say.** Top-1 agreement with a human click is not a win rate. Nothing here
+measures whether MILTANK plays better; that is an H2H and it belongs to SEARCH. And the leaf is a
+separate model from MAG — §1's finding that the leaf is worse than a coin is untouched by any of
+this.
+
+#### 13a. THE FIT IS NOT RUN IN THE ENVIRONMENT THE BOT PLAYS IN, and it is 20x the weather defect
+
+This is the headline of the refit, not a caveat on it. CLAUDE.md's rule is *fitting environment and
+playing environment must match*, recorded because MAG's weights were once fitted with the sheet
+visible while the bot played without it. **The mismatch is back, pointing the other way, and nothing
+was watching for that direction.**
+
+```
+engine/fit_policy.js:376   board.setSheet(side, m.species, { nature, item })
+engine/magnemite.js:522    this.board.setSheet(m[1], sp, { nature, item, ability, moves })
+```
+
+`Board.switchIn` copies all four onto the active mon, and `dmgMon`, `effAbility` and `movePriority`
+read them. So the LIVE player sees a sharper board than the fit ever did: the fit prices every
+opponent on the dataset's representative moveset and on Smogon's per-species ability odds, while an
+open-sheet game hands the player the declared four moves and the declared ability.
+
+**The sheets carry it. 14,400 sheet entries over 1,200 corpus games: 100.0% declare an ability,
+100.0% declare four moves.** This is not information the fit lacks — it is information the fit is
+handed and drops.
+
+Measured the same way §11 was, one process holding both builds of `fit_policy`, identical games and
+identical decisions:
+
+| | weather defect (§11) | the sheet-channel gap |
+|---|---|---|
+| candidate vectors that move | 1,768 (0.75%) | **37,460 (15.95%)** |
+| decisions that move | 892 (2.78%) | **16,177 of 32,054 (50.47%)** |
+| columns that move | 14 of 58 | **20 of 58** |
+| games containing a moved vector | 238 (19.83%) | **1,197 of 1,200 (99.75%)** |
+
+`switchDiesFirst` (10,013), `diesBeforeMoving` (9,466), `switchSurvives1` (6,632), `dmgFrac`
+(4,188), `killsThreat`, `switchKOSlow`, `switchSurvives2`, `switchKOFast`, `protectThreatened`,
+`priority` (1,958 — the declared ability reaching `movePriority`), `screenValue`, `movesFirst`,
+`koTarget`, `benchRisk`, `killIsRoll`, `koFirst`, `clickCost`, `passTurnAccrues`, `switchFaster`,
+`deadNoLastMove`. The choice set is unchanged — the row counts match game for game — so this is
+purely what the board KNOWS, not what it offers.
+
+**It is NOT landed and no second refit was started.** Landing it is a one-line change to
+`fit_policy.js:376` plus a full refit of both files, and it would invalidate the refit reported
+above on the day it was published. It also needs a question answered first that this measurement
+does not answer: the fit's decisions come from games where the sheet was public, but MAG must also
+play the ~half of ladder games where the opponent declines OTS, and a model fitted on four channels
+degrades differently from one fitted on two when a channel goes missing. That is the Focus Sash
+lesson — *replacing a hedge with a certainty is only an improvement if you also track what
+invalidates the certainty* — and it is a decision, not a refresh.
+
+Filed with its size stated, which is the part that was missing: **half of every decision the fit
+trains on is priced against a board the player does not see.**
 
 ## Reading a run
 

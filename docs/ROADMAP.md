@@ -65,6 +65,16 @@ features, beats MAG **63.2%** — and beats MAG's predecessor **68.2%** where MA
 *Defensible because:* the 68.2% is an independent evaluation the search never optimised against, on
 an opponent it was not tuned for. It is transitively better, not a counter.
 
+> **RETRACTED 2026-08-04 — all three figures describe a 17-feature vector we no longer ship.** They
+> were computed on an engine 25 wire-fixes old and **before the quality filter existed**;
+> `provenance.js` carried `data/exploitability.json` as its only `UNSAFE` artifact on exactly that
+> ground. The re-run on the shipped 58 features is **void** — `data/policy-weights.json` was refitted
+> at 22:15:24 UTC while the search was running and `engine/medicham2-browser.js` moved twice more
+> afterwards — and its hill-climb accepted **1 of 24** steps, so it was uninformative regardless. See
+> `docs/SEARCH.md` §R8. **The claim of this section may still be true; the evidence for it no longer
+> exists.** The general point that imitation and winning are different objectives stands on its own
+> separate evidence (see MAGNEMITE in `docs/MODELS.md`), not on these three numbers.
+
 *And it is interpretable:* the winning weights barely care about type effectiveness and care
 enormously about not wasting a turn and finishing what is already hurt.
 
@@ -512,9 +522,13 @@ of 48 features carry opposite signs between that fit and the shipped one. Mixing
 31.2% on decisive pairs and would have been reported as "coordination does not help."
 
 **2. Re-run WOBBUFFET against the current vector.** *(Will, 2026-07-30: put this back on the list.)*
-Its result is still the most important number in the repo and it is three feature-generations stale:
-a counter found in forty minutes beat MAG **63.2%** [56.6, 69.3] on the 17-feature vector, mirror
-control 47.5%. That challenger was not rock-paper-scissors — it was a better player drawn from the
+**ATTEMPTED 2026-08-04 AND VOID — still open, and now there is no number at all rather than a stale
+one.** ~~Its result is still the most important number in the repo and it is three
+feature-generations stale: a counter found in forty minutes beat MAG **63.2%** [56.6, 69.3] on the
+17-feature vector, mirror control 47.5%.~~ The re-run's defender was refitted mid-run and the
+simulator moved twice more; separately its hill-climb accepted 1 of 24 steps, so `exploit.js` needs a
+stamp and a dimension-aware step rule before the next attempt. `docs/SEARCH.md` §R8 has the prepared
+command and its three preconditions. That challenger was not rock-paper-scissors — it was a better player drawn from the
 same features and optimised for wins rather than resemblance, which is item 1's lesson in another
 form. `engine/exploit.js --target <weights.json>` can now be pointed at DODUO, so the EXPLOITABILITY
 argument for coordination — the one the 42.0% result explicitly does not settle — can finally be

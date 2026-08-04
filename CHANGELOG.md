@@ -10,6 +10,216 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.39.0] — 2026-08-04
+
+### A measurement now reads a frozen release, so the divisions can keep working
+
+Three division agents ran concurrently with their files separated, and a 7,100-game exploitability run
+was destroyed anyway: `data/policy-weights.json` — MAG itself, the thing being defended — was refitted
+at 22:15:24, between a search that froze its opponent at 21:41 and a replay that reloaded it at 22:17.
+**The two legs of one measurement defended with different weight vectors.** `medicham2-browser.js`
+showed four distinct content digests inside eight minutes. Nothing crashed and nothing failed.
+
+The first response was a paragraph in `CLAUDE.md` saying a measuring agent must run alone. **That was
+wrong twice** — it is prose, which this repository has learned three separate times is a preference
+rather than a rule, and it serialises four divisions that were cut apart precisely so they could run at
+once. (Will: *"we can run multiple agents at once that's the whole point."*) `docs/DIVISIONS.md`
+encodes an invalidation **order**; treating that order as a scheduling constraint forfeits the
+parallelism it exists to make safe.
+
+`engine/engine_release.js` is the real fix. A measurement opens an immutable snapshot of the twelve
+files whose content can change a reported number — the simulator, board, leaf, features, tags,
+`champions_sim`, the engine data, **and the weights**, because "can anything beat MAG" is a claim about
+one specific vector and the weights are what actually moved. The release id is the digest of the
+digests, so an identical tree yields an identical id and re-cutting is a no-op.
+
+**A copy, not a checksum.** Verifying digests afterwards establishes only that the run was wasted.
+`tests/test-engine-release.js` proves the claim by doing it: cut a release, genuinely modify the live
+file, assert the release still serves the original bytes and that `REL.read()` does not see the edit
+either. A digest-comparison test would pass against a symlinked implementation — the plausible wrong
+build, which reproduces the exact bug. The mutation restores in a `finally`, and a counter asserts the
+mutation arm ran. First release `5fc1f711a0e3`, against Showdown `20ad99ff`.
+
+### `provenance.js` was clearing artifacts by mtime — the method `CLAUDE.md` discredits by name
+
+*"Treat 'newer than its source' as no evidence at all."* The file that exists to enforce that a derived
+artifact is compared to its **source** was comparing `mtime(artifact) < mtime(input)`. It false-cleared
+with a receipt: the void artifact is 153 seconds **newer** than an input it never read. An integrity
+gate answering `ok` for a file that is not ok is worse than no gate, because the point of the row is
+that somebody stops checking by hand.
+
+It compares **content** now, and on its first run caught a real one nobody had noticed —
+`rollout-r1-explore-sweep.json`, computed against a version of `engine/rollout_r1.js` that has since
+changed. An artifact may also declare `void: true`, which outranks every inference; nothing else could
+have known the WOBBUFFET re-run was invalid, since it passed every inferential check in the file.
+
+**The ratchet's first break proved a count is not actionable.** It fired at 91 against 90, could say
+only "one more than last time", nobody could identify the artifact, and `status.js` printed
+`provenance: NOT DERIVED` for the rest of the session. It records the **list** now and names the file.
+That also closes a hole a count could not have: an artifact gaining a stamp while an unstamped one
+appears nets to zero.
+
+**And a corrupt stamp must not read as "first run"** — that is the ratchet laundering itself, adopting
+the current tree as a new baseline and blessing every artifact that had lost its stamp. Absent and
+unreadable are now different events. The same distinction was added to `digestOf`, and to
+`engine_release`'s `sha12`, which **throws** rather than returning `null`: a null digest inside a
+manifest is the worst possible value, because `verify()` would compare null against null and certify a
+release frozen over an unreadable file.
+
+Standing: **0 artifacts verified by content, 92 by mtime alone**, printed on every run and ratcheted
+downward.
+
+### Also
+
+- `data/exploitability.json` and `-holdout.json` marked `void: true` with the full reason. The site no
+  longer publishes the retracted 63.2% — it states that there is no number, and why.
+- The mirror control improves from a struck-through 47.5% (n=217) to a real **49.7% [46.2, 53.2]** at
+  n=782, the one figure the void run produced that survives, and it retires the worry that the earlier
+  number indicated a seat asymmetry rather than noise.
+- Running `tests/test-interaction-matrix.js` without `--full` silently replaced the published
+  1,008-case artifact with a 323-case one. Both record their own depth honestly, which is what makes it
+  dangerous. A shallower run now refuses to overwrite a deeper one.
+- `build/build_scoreboard.js` still hand-rolled its own `SHOWDOWN_PATH` gate — `build/` was never swept
+  when the other twenty were routed through `engine/showdown_path.js`.
+- The white paper, deck and technical docs carry 3.36–3.39 content: the refit null with its intervals,
+  the sheet-channel gap, the generated interaction matrix, and a Diátaxis procedure for cutting and
+  measuring against a release.
+
+---
+
+## [3.38.0] — 2026-08-04
+
+### The interaction matrix is GENERATED now, and it found ten engine bugs no single-mechanic probe could reach
+
+Will: *"Basically all the tags on moves and stuff should trigger all the flags on abilities and types
+and etc and have it flow from there"* and *"the interactions should be pretty formulaic now that we
+have all the tags and such."*
+
+#### Added
+- `tests/interaction_matrix.js` — the generator. It enumerates the cross product of every CARRIER tag
+  against every REACTOR tag, on three axes: FLAG (a move that carries `contact`/`sound`/`punch`/… ×
+  everything that reacts to it), TYPE (a move OF a type × every type-immunity, halving, resist berry
+  and redirection — an axis the previous sampled version generated **zero** cases for, because
+  `linkage.moveType.carrierMoves` is empty by construction), and FIELD (every ordered pair of
+  persistent field effects, which is the MULTI-TURN half). It authors no expected outcome.
+- `tests/test-interaction-matrix.js` — the runner. Every case is played **four** times: with the
+  reactor and without it, in medicham2 and in the official pinned Showdown engine. A case whose two
+  REFERENCE arms are identical is INERT and is never counted as agreement. Artifact:
+  `data/interaction-matrix.json`.
+- Three tag derivations: `weatherSuppression` (Air Lock / Cloud Nine),
+  `rewritesAbilityOnContact` (Mummy / Wandering Spirit), and the flag half of `convertsMoveType`.
+
+#### Fixed — WIRE 72 to 81, all in `engine/medicham2-browser.js`
+- **72** Grassy Terrain never set a terrain: it carries `perTurnHP` and that branch sits above the
+  terrain branch in `playerAction`. 24 of 156 multi-turn field cases at once.
+- **73** Grassy Terrain's 1/16 per-turn heal, derived from the terrain move's own tag.
+- **74** The sandstorm chipped on the turn it EXPIRED — five ticks against the official engine's four.
+  Visible only as a pair, because the grassy heal cancels the sand exactly. **The counter was never
+  wrong**, which is why nothing had caught it. Weather and terrain are not symmetric in the reference
+  engine and both halves were measured before the line was written.
+- **75** `convertsMoveType.converts` names either a TYPE or a FLAG and only the type half was read, so
+  **Liquid Voice** (346 uses) was completely inert.
+- **76** `immuneToMoveClass` had one consumer per stage-3 mechanism instead of one per STAGE: a
+  Soundproof body took zero damage from Psychic Noise and still got two turns of Heal Block.
+- **77** The Throat Chop silence was checked in the attack branch only, so a silenced body could still
+  phaze with Roar.
+- **78** Air Lock and Cloud Nine. The previous verdict — *"no artifact to wire from"* — was a claim
+  about the DERIVATION, not about the dex: Showdown carries it as the flat property
+  `suppressWeather`, which every handler-probing derivation missed. Exposure measured first: Air Lock
+  has **zero** carriers in this format; Cloud Nine has two and 18 declared sheets in 40,595 games.
+- **79** `statChangeInCode` with `on:'target'` had a reader (inside the pivot branch) and no
+  classifier, so **Strength Sap** (637 uses) resolved to a wasted turn.
+- **80** Mummy and Wandering Spirit rewrite the attacker's ability. Both grounds for filing this were
+  retired: the dex states the whole rule in one call, and the "0 corpus sheets" claim no longer holds
+  (mummy 41, wanderingspirit 58).
+- **81** The secondary that boosts the **USER**. The block read `status`, `targetBoosts` and the
+  flinch and never `selfBoosts` — 12 moves, 1,199 corpus uses, entirely unread.
+
+#### Changed
+- `tests/test-game-diff.js` exports its projection, comparator and `runScript` so the matrix does not
+  write a second definition of "the same state"; it gained `pinDice` and `hpBoost` options and its
+  screen projection now takes a MAX over Reflect / Light Screen / Aurora Veil.
+- `tests/test-effective-identity.js` declares the two new files, with the construction reason.
+
+#### Notes
+- Census **157 → 167 live**, 8 → **7 missing**, 0 hollow, 0 threw. Interaction matrix **93.3%** of
+  1,008 live cases (the multi-turn field axis is **156/156**). Damage differential unchanged at
+  **1/400**, seed 20260804. `feature_fixture --check` still exits 0, so **no refit is owed**.
+- Four harness bugs are recorded in `docs/ENGINE.md` alongside the engine ones, because each produced
+  a confident wrong answer first: Protect's 8 PP, Sturdy on the control arm, a fainted body reading as
+  zero damage, and an inertness test that deleted its own evidence.
+
+## [3.37.0] — 2026-08-04
+
+### WOBBUFFET was re-run, the tree moved under it, and the result is VOID — so ABRA now has no exploitability number at all
+
+The re-run was authorised (*"rerun wobba"* … *"yes do the search once engine is all wrapped up"*) and
+executed at full size: `engine/exploit.js --games 220 --rounds 24 --seed 90210`, 5,500 games, plus a
+1,600-game held-out replay. **It produced no usable statement about MAG, because both things it was
+measuring changed while it was measuring them.**
+
+| what moved | when | why it is fatal |
+|---|---|---|
+| `data/policy-weights.json` — **MAG itself, the defender** — was refitted | `generated: 22:15:24.522Z` | the search froze the defender at **21:41**; the held-out replay reloaded the file at **22:17**. The two legs defended with different vectors |
+| `engine/board.js` written | mtime 21:50:36 | mid-search, ~round 5. Every candidate is scored through `dmgMon` |
+| `engine/medicham2-browser.js` — the simulator | **four distinct content digests across three sampling windows** 22:29–22:37: `0e4b2394edfc` → `e9a4215e13d4` → `d1a4e497c0e9` → moved again | every score goes through it. **It was still moving forty minutes after the run finished.** `data/policy-weights.json`, by contrast, has held sha `5a1930e8926af262` since the refit — the defender is settled, the simulator is not |
+
+`data/engine-release.json` still does not exist, so DIVISIONS rule 1 remained a sentence rather than
+a mechanism, and `engine/exploit.js` **stamps nothing** — no engine digest, no digest of the target
+vector it read — so it could not detect any of this and did not.
+
+**The old figure is retracted regardless of the re-run.** `docs/MODELS.md` called
+~~**63.2%** [56.6, 69.3], mirror 47.5%~~ *"the most important number in the repo"*. It describes a
+**17-feature** vector against the 58 we ship, on an engine 25 wire-fixes old, computed **before the
+quality filter existed** — which is precisely why `provenance.js` carried it as its only `UNSAFE`
+artifact. So the position after this session is *no number*, not *a worse number*. That is a real
+loss and it is stated rather than papered over.
+
+### Two findings survive, because they are about the tool rather than about MAG
+
+**1. The attack dies in 58 dimensions.** `exploit.js` perturbs every coordinate by
+`gauss() * scale * (|v| + 0.25)` and multiplies `scale` by 0.85 on **every** failure. At 17 features
+it accepted **10 of 18** steps and ended at scale 0.164. At 58 features it accepted **1 of 24** and
+ended at **0.0168** — the step *norm* is √(58/17) ≈ 1.85× larger for the same per-coordinate scale,
+so round 1 threw the vector off a cliff (27.7%, the worst evaluation in either run) and the geometric
+decay then ran unopposed. From ~round 10 the "challenger" was a near-copy of MAG. **A search that
+takes one step is not a lower bound on anything**, so even on a still tree this would have returned
+an uninformative null.
+
+**2. `provenance.js` cleared the new artifact and should not have.** It now prints **0 UNSAFE** with
+`exploitability.json` marked `ok`. The check is `mtime(artifact) < mtime(input)`; the artifact
+(22:17:57) is newer than the weights file (22:15:24) by **153 seconds** while having been computed
+from a version of it **34 minutes** older. An mtime test structurally cannot see this. The fix is not
+in `provenance.js` — a generator must stamp the **content digest** of every input at the moment it
+reads it, exactly as `run_stamp.sourceDigests()` already does for the leaf sources. **Consequence:
+`provenance.js --strict` will pass and `data/exploitability.json` is still not quotable.**
+
+### One thing that is clean and worth keeping
+
+The held-out mirror control, at n=782 inside a single stable window: **49.7% [46.2, 53.2]**. That
+retires a live worry — the 47.0% and 47.5% round-0 mirrors in the two searches are **noise at n=217**,
+not a seat or pairing asymmetry biasing every other row. `mew.js`'s side alternation works.
+
+### Changed
+- `docs/SEARCH.md` — new §R8 with the timeline, the corpus (7,264 → 7,341 distinct clean teams,
+  quality filter on, `--meta-teams` NOT used), five defects in `engine/exploit.js`, and the prepared
+  re-run with three preconditions that must be verified by content and not by report.
+- `docs/MODELS.md`, `docs/ROADMAP.md`, `docs/EXTERNAL-EVIDENCE.md`, `docs/PRIORITIES.md` — every
+  citation of 63.2%/68.2%/60.2% struck through with its reason. PRIORITIES #18 re-stated as *not
+  measured*, plus new #18a (`exploit.js` stamps nothing) and #18b (the provenance mtime hole).
+- `data/exploitability.json` regenerated; `data/exploitability-holdout.json` added. **Neither is
+  quotable.** The holdout's generator is not in `engine/`, so `provenance.js` does not enumerate it —
+  it belongs inside `exploit.js` as a `--confirm` phase.
+
+### Notes
+- **Not applied, deliberately:** no fix to `engine/exploit.js`, `engine/provenance.js` or any engine
+  file. Patching a tool mid-result is how a run silently invalidates itself, and the run still prints.
+- `web/stadium.html` and `app/stadium.html` render the 63.2% struck through against
+  `data/exploitability.json` and describe it as UNSAFE. That description is now wrong in a new way —
+  the file is current and provenance calls it `ok`, and it is *still* not quotable. **WEB's item.**
+- `docs/MEASURE.md` and `docs/WEB.md` also cite 63.2% and are their divisions' ledgers; flagged, not
+  edited.
+
 ## [3.36.0] — 2026-08-04
 
 ### `test-wiring.js` — the guard this project's whole discipline rests on — had been skipping

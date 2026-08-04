@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 21:41):
+  runs vs engine (newest engine source: data/abra-tags.js 2026-08-04 22:43):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,9 +32,206 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 21:48_
+_stamped 2026-08-04 23:05_
 
 <!-- /GENERATED -->
+
+## R8 — WOBBUFFET re-run, 2026-08-04. **VOID. THE TREE MOVED UNDER IT. DO NOT QUOTE THE NUMBERS.**
+
+The re-run was authorised (*"rerun wobba"* … *"yes do the search once engine is all wrapped up"*),
+was executed at full size, and **produced no usable statement about MAG's exploitability**, because
+the two things it was measuring both changed while it was measuring them. The old 63.2% is retracted
+anyway — see below — so the net position is that **MAG's exploitability is now UNMEASURED**, which is
+a worse place than this session started but a truer one.
+
+### What moved, with times, because this is the entire result
+
+| what | when | why it is fatal |
+|---|---|---|
+| **`data/policy-weights.json` — MAG itself — was REFITTED** | `generated: 2026-08-04T22:15:24.522Z` | the search loaded the defender at **21:41** and froze it in a temp file; the held-out replay loaded it again at **22:17**, after the refit. **The two legs defended with different vectors.** New corpus stamp: 8,759 games / 229,339 decisions |
+| **`engine/board.js` written** | 22:50 → mtime **21:50:36** | mid-search, around round 5. Every candidate is scored through `dmgMon`, so rounds before and after it are not comparable |
+| **`engine/medicham2-browser.js` — the simulator every score goes through** | mtime 22:26:57, then **four distinct content digests across three sampling windows**: `0e4b2394edfc` (22:29:04) → `e9a4215e13d4` (22:30:34) → `d1a4e497c0e9` (22:35:53) → moved again by 22:37:53 | sampled with `run_stamp.sourceDigests()`, content and not mtime. **It was still moving forty minutes after the run ended and while this section was being written** |
+| the ENGINE census | 157/165 when this task was briefed → **164/171** in `status.js` at 22:31 | ENGINE is mid-band, not wrapped |
+
+**One thing IS stable and it matters for the re-run:** `data/policy-weights.json` has held sha256
+`5a1930e8926af262` / `generated 22:15:24.522Z` since the refit, unchanged across 22:29–22:37. The
+defender is settled; the simulator is not.
+
+**`data/engine-release.json` does not exist.** No release has ever been cut, so DIVISIONS rule 1 was
+unenforceable here in the same way it has always been unenforceable, and `exploit.js` stamps nothing
+at all — no engine digest, no target digest, no node version. It cannot detect any of the above and
+did not.
+
+**The brief said the engine was wrapped and committed at `96d82cb`. That is not true of the working
+tree.** Reported as observed rather than argued: two content digests ninety seconds apart, printed
+above. This is not a criticism of the ENGINE band's work — it is the reason the release boundary in
+P0.5 exists, and it has now cost a 7,100-game run.
+
+### The one thing that IS clean, and it is worth keeping
+
+**The mirror control at n=782: 49.7% [46.2, 53.2].** Both legs of the held-out replay ran inside one
+stable window (22:17–22:24: `board.js` stable since 21:50, weights stable since 22:15, `medicham2`
+not touched until 22:26), so this is a valid measurement of one build. It lands dead on 50, which
+retires a live worry: the 47.0% and 47.5% round-0 mirrors in the two searches are **noise at n=217**,
+not a seat or pairing asymmetry biasing every other row. `mew.js`'s side alternation is doing its
+job.
+
+### The old 63.2% is retracted regardless, and not because of anything measured today
+
+| | 2026-07-26 | this run (VOID) |
+|---|---|---|
+| features | 17 | 58 |
+| games/eval, rounds, seed | 220, 18, 90210 | 220, 24, 90210 |
+| mirror control | 47.5%, n=217 | 47.0%, n=217 |
+| best challenger vs MAG | **63.2%** [56.6, 69.3] | ~~55.8% [49.1, 62.3]~~ |
+| held-out replay at unseen seeds | never done | ~~45.8% [42.3, 49.3], n=782~~ |
+
+The 63.2% describes a **17-feature** vector on an engine 25 wire-fixes old, computed **before the
+quality filter existed** — which is exactly why `provenance.js` called it its only `UNSAFE` artifact.
+It cannot be quoted whether or not a replacement exists, and `docs/MODELS.md` calling it *"the most
+important number in the repo"* is no longer supportable. **There is now no exploitability number for
+this project.** That is the honest state.
+
+### Two findings that survive the invalidation, because they are about the TOOL
+
+These are properties of `exploit.js`'s search dynamics and of `provenance.js`'s check. Neither
+depends on which vector was being attacked, so neither is voided by the tree moving.
+
+#### Finding 1 — THE ATTACK DIED, and a dead search cannot distinguish "safe" from "unsearched"
+
+This is the caveat that matters and it is not the tool's disclaimer, it is a defect in the search:
+
+| | 2026-07-26 | 2026-08-04 |
+|---|---|---|
+| dimensions searched | 17 | **58** |
+| steps ACCEPTED | **10 of 18** | **1 of 24** |
+| step scale at the last round (`0.6 × 0.85^failures`) | 0.164 | **0.0168** |
+
+`exploit.js` perturbs every coordinate by `gauss() * scale * (|v| + 0.25)` and multiplies `scale` by
+0.85 on **every** failure. In 17 dimensions enough steps landed to keep the scale alive. In 58 the
+step *norm* is √(58/17) ≈ 1.85× larger for the same per-coordinate scale, so round 1 threw the
+vector off a cliff — **27.7%**, the worst evaluation in either run — and then the geometric decay
+ran essentially unopposed. From about round 10 onward the challenger was a near-copy of MAG and the
+"search" was re-measuring the mirror control twenty more times. The 45–50% cluster in rounds 8–24 is
+that, not evidence.
+
+**So even on a still tree this run could not have proved MAG is hard to exploit.** A search that
+takes one step is not a lower bound on anything. The tool's own closing text says the right thing —
+*"read it as 'this cheap attack failed', nothing more"* — and this time that sentence is doing real
+work rather than being boilerplate. **Fix the step rule before spending another 7,100 games**, or the
+re-run on a frozen release will return the same uninformative null for the same reason.
+
+#### Finding 2 — `provenance.js` CLEARED THIS ARTIFACT AND IT SHOULD NOT HAVE. FILED FOR MEASURE.
+
+Provenance now prints **0 UNSAFE** and lists `exploitability.json` as **`ok`**. That is a false
+clear, and the mechanism is exact and reproducible:
+
+```
+exploit.js read data/policy-weights.json at   21:41   (module load)
+data/policy-weights.json was REFITTED at      22:15:24.522
+exploitability.json was written at            22:17:57.624
+```
+
+The check is `mtime(artifact) < mtime(input)`. The artifact is newer than its input by **153
+seconds** and passes — while having been computed from a version of that input which is **34 minutes
+older**. `provenance.js` is mtime-based and structurally cannot see this; CLAUDE.md already says
+*"neither can catch an artifact that records a corpus it did not use"*, and this is the sharpest
+instance of it the project has produced, because the false clear is what *removed the last UNSAFE
+row*. **The fix is not in provenance.js** — it is that a generator must stamp the **content digest**
+of every input it read, at the moment it read it, and provenance must compare digests rather than
+timestamps. `engine/run_stamp.js sourceDigests()` already does exactly this for the leaf sources.
+
+**Consequence for anyone reading the gate: `provenance.js --strict` will now pass, and
+`data/exploitability.json` is still not quotable.** Do not treat the green as the answer.
+
+### What exploit.js needs before it is re-run. SPECIFIED, NOT APPLIED.
+
+`engine/exploit.js` is not in `docs/DIVISIONS.md`'s ownership table and it produces a claim about
+whether a number is true, so the fix is proposed here and not made mid-result. Five defects, all
+observed in this run:
+
+0. **IT STAMPS NOTHING.** No engine digests, no digest of the target vector it read, no node version,
+   no machine, no pool size, no `n_measured`/`n_unit`. Every other gate in this project carries a
+   stamp and PRIORITIES #20 exists because two of them were missing two fields. This one has none,
+   which is why a mid-run refit of its own defender was invisible. **This is defect zero: fix it
+   first, because it is what would have aborted this run at round 23 instead of after it.**
+
+1. **The step scale is hardcoded** (`let scale = 0.6`) and there is no floor. Expose it, scale the
+   per-coordinate size by `1/√d` so the step *norm* is dimension-invariant, and floor the decay.
+2. **Rounds are compared unpaired** — each evaluation uses a different seed (`SEED0 + r*7919`), so a
+   step is accepted on a difference whose standard error is ~4.7 points at n=220. Common random
+   numbers across candidates, exactly as `miltank.js` already does for post-KO replacement, would
+   make a 220-game comparison mean something.
+3. **There is no held-out confirmation phase.** The winner should be replayed at fresh seeds and
+   that number, not the selected max, should be the artifact's headline. The scratch generator used
+   here is not in `engine/`, so `provenance.js` does not enumerate `data/exploitability-holdout.json`
+   at all — the confirmation belongs inside `exploit.js` as a `--confirm` phase.
+4. **The team pool is not frozen across evaluations.** Each round is a fresh `mew.js` process that
+   rebuilds the pool from the live store, and OPS ingest landed mid-run: `data/games.ladder.jsonl`
+   was written at 22:03:28 UTC, between rounds ~13 and ~15, and the announced pool moved **7,264 →
+   7,341 distinct clean teams** by the time the held-out replay ran. Both legs of the held-out replay
+   used one snapshot (7,341, announced identically), so *that* comparison is internally clean; the
+   24-round search is not exactly reproducible from its seed. `MEW_TEAMS` and `engine/mew_farm.js`
+   exist to pin this and were not used.
+
+### The corpus and the flags, recorded rather than implied
+
+- **Pool: 7,264 distinct clean teams** at the start of the search, **7,341** at the held-out replay,
+  drawn by `mew.js` through `engine/quality.js loadGames()`. **The quality filter was on** — it is
+  not opt-in, `MEW_TEAMS` was unset, and `--meta-teams` was NOT used, so this is the full clean pool
+  including the Mickey Mouse teams §3 warns about. Clean ladder games available: 7,228 → 7,316.
+- Showdown checkout at the pinned commit `20ad99ffc9a5`, announced by every `mew.js` process.
+- Defender = `data/policy-weights.json`, `shipped: reweighted_to_closed`. Verified before the run
+  that the top-level `weights` array is **byte-identical** to `weights_reweighted_to_closed` and is
+  the array `magnemite.loadWeights` actually reads, so the defender is the real shipped MAG. That
+  check is not idle: `exploit.js` reads `weights` while `magnemite.js` also reads `weights`, but the
+  file carries three vectors and only one of them ships.
+- `--policy score --policy2 score`, both arms MAG's machinery, sides alternated inside `mew.js` by
+  `swapped`. **MILTANK was not involved: this is a measurement of MAG, not of the search.**
+- **`exploit.js`'s challenger is arm 2 (`--weights2`), the OPPOSITE of the SPRT convention** where
+  arm 1 is the challenger. Its seat attribution was re-derived against `mew.js:502-537` before the
+  run and is correct. `tests/test-sprt-arm-sign.js` passes 12/12 and pins the *other* convention —
+  it says nothing about this file.
+- Cost: 25 evaluations × 220 games = 5,500 games, ~36 min, one node process at `--conc 6` (the
+  concurrency is hardcoded in `exploit.js`). Held-out: 1,600 games, ~7 min. **~7,100 games and ~45
+  minutes total. The run is cheap; that is the good news about having to repeat it.** The reason to
+  re-run is the moving tree and the five defects, not the price.
+
+### THE RE-RUN. PREPARED, NOT LAUNCHED — and it must not start until the tree is still.
+
+Three preconditions, in order, and **each one failed during the 2026-08-04 attempt**:
+
+1. **ENGINE has actually stopped**, verified by content and not by anyone saying so:
+   ```
+   node -e "const RS=require('./engine/run_stamp.js');const a=JSON.stringify(RS.sourceDigests());
+     setTimeout(()=>{delete require.cache[require.resolve('./engine/run_stamp.js')];
+     const b=JSON.stringify(require('./engine/run_stamp.js').sourceDigests());
+     console.log(a===b?'STILL':'MOVING — do not start');},120000)"
+   ```
+2. **`data/engine-release.json` exists** (P0.5 step 0 in this file), and **`data/policy-weights.json`
+   is post-refit and frozen** — record its `generated` field and its sha256 before and after.
+3. **The team pool is pinned**: build it once with `engine/mew_farm.js` and export `MEW_TEAMS`, so
+   all 26 evaluations draw the same population and the seed reproduces.
+
+Then, one process:
+
+```
+node --max-old-space-size=2048 engine/exploit.js --games 220 --rounds 24 --seed 90210
+```
+
+and the held-out confirmation of whatever it finds, at seeds the search never touched — which
+belongs inside `exploit.js` as `--confirm` and today lives only as scratch. **Read it once, at the
+end.** Then re-verify the digests and the weights hash; if either moved, the run is void again and
+saying so is cheaper than publishing it.
+
+### What is still open, and it is the whole question
+
+**Nobody has measured whether MAG is exploitable on the build we ship, and after today nobody has a
+number at all.** The 63.2% is retracted and nothing replaces it: the replacement run is void, and
+even had it been clean, a one-step search is not a measurement. `PRIORITIES.md` #18 is **not closed
+and not merely stale — it is now empty**, with a diagnosis attached. And the caveat `MODELS.md`
+already carries still applies: this grades *readability by a prepared opponent*, which is not the
+same question as *do we win*, and that one has never been measured against a human at all.
 
 ## What the 2026-08-04 mega-weather fix invalidates
 

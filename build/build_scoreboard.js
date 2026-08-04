@@ -36,7 +36,21 @@ const SEED = parseInt(arg('seed', '4242000'), 10);
 const OUT = D('data', 'scoreboard.js');
 const TMP = D('data', '.scoreboard-games.jsonl');
 
-if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.exit(2); }
+/* THE GATE AND THE LOADER HAVE TO BE THE SAME FUNCTION, which is engine/showdown_path.js's whole
+ * argument. It swept the twenty hand-rolled `if (!process.env.SHOWDOWN_PATH)` gates in engine/ and
+ * tests/ and did NOT reach build/, so this file went on printing `set SHOWDOWN_PATH` and exiting 2
+ * with a checkout sitting one directory up. Found 2026-08-04 while rebuilding the bundle a refit had
+ * invalidated: it exits 2, the shell reports 0 for the pipeline it was in, and nothing regenerates.
+ * That is docs/MEASURE.md §5e's "crashes rather than fails" one step worse — it neither crashed nor
+ * failed. */
+const SP = require(D('engine', 'showdown_path.js')); /* resolves SHOWDOWN_PATH from the sibling checkout */
+if (!process.env.SHOWDOWN_PATH) {
+  /* WHY, not just THAT. `rejected` keeps the reason each candidate failed, because "no checkout" and
+   * "a checkout this process cannot read" are different problems that look identical from here. */
+  console.error('build_scoreboard: no pokemon-showdown checkout found. Tried: '
+    + SP.CANDIDATES.join(', ') + '. ' + JSON.stringify(SP.rejected || {}));
+  process.exit(2);
+}
 
 require(D('data', 'engine-data.js'));
 const B = require(D('engine', 'board.js'));

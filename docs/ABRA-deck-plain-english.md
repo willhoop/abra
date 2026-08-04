@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.35.0 · 2026-08-04 · Will Hooper**
+**Version 3.39.0 · 2026-08-04 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -199,7 +199,60 @@ measured. Documents that lag the work don't just go quiet; they actively mislead
 
 ---
 
-## Slide 8 — Read more
+---
+
+## Slide 8 — You cannot measure something while you are changing it
+
+Four teams work on ABRA at once. That is deliberate — it is why the work was split four ways.
+
+One night all four were running. Their files were kept separate so nobody could overwrite anybody. A
+7,100-game experiment — "can anything beat our bot?" — was destroyed anyway.
+
+The reason is simple once you see it. Halfway through the experiment, another team **improved the bot
+being tested**. So the first half of the experiment played against the old bot and the second half
+played against the new one. The final number described neither.
+
+Nothing broke. No error appeared. The result looked completely normal, and the automatic checker
+approved it — because that checker was asking *"is this file newer than the thing it came from?"* and
+the answer was yes. A file can be newer than something it never actually read.
+
+**The fix is not to make the teams take turns.** That would throw away the whole reason for having
+four of them.
+
+Instead, an experiment now works from a **photograph of the bot** rather than the bot itself. Before
+measuring, we freeze a copy of everything that could change the answer, and the experiment reads the
+frozen copy. Other teams can rewrite the real thing all night; the experiment never notices.
+
+The honest consequence: **we currently have no answer to "how beatable is our bot?"** The old answer
+was measured on a version of the bot that no longer exists, and the new attempt is void. Saying so is
+better than quoting a number we cannot stand behind — that number had been called the most important
+one in the project.
+
+One thing did survive, and it is genuinely useful: when the bot plays a mirror match against itself it
+wins 49.7% of the time, which is a coin flip. That confirms our testing setup does not quietly favour
+one side — a worry an earlier, smaller sample had raised.
+
+## Slide 9 — Practising in different conditions from the match
+
+We found something bigger than the bug we went looking for.
+
+In Champions, players often reveal their whole team before the battle. Our bot **uses** that
+information when it plays. But when we *taught* the bot, we were throwing half of it away — the bot
+learned without knowing the opponent's abilities or moves, then plays with both.
+
+It affects **half of every decision** it was trained on, and virtually every game. It is like training
+a driver in fog and then handing them the keys on a clear day: not obviously worse, but they never
+learned to use what they can now see.
+
+We have not fixed it yet, and that is deliberate. Fixing it means retraining everything, and there is a
+real question first: sometimes opponents *decline* to reveal their team. A bot trained to depend on
+information that is sometimes missing can fail badly when it disappears. We have made that mistake
+before, in exactly this shape, and it is worth one deliberate decision rather than a quick fix.
+
+
+---
+
+## Slide 10 — Read more
 
 Full technical detail, math, and sources: **[ABRA white paper](ABRA-whitepaper.md)**.
 Also: **[project summary](SUMMARY.md)** · **[technical docs](ABRA-technical-docs.md)** ·

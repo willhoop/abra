@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-04T21:42:21.980Z",
+ "generated": "2026-08-04T22:47:59.430Z",
  "by": "engine/conformance.js",
- "files": 273,
+ "files": 276,
  "findings": [
   {
    "std": "convention",
@@ -368,6 +368,12 @@
    "file": "data/eval-report.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/exploitability-holdout.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
   },
   {
    "std": "S13",

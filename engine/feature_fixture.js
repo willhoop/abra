@@ -350,6 +350,81 @@ const SCENARIOS = [
       hp: { p1: { a: 0.6, b: 0.6 }, p2: { a: 0.3, b: 0.85 } },
     },
   },
+
+  /* SAND AND SNOW, added 2026-08-04, AND THE REASON IS THAT THIS FIXTURE CERTIFIED A BROKEN FUNCTION.
+   *
+   * `engine/board.js` carried a private weather map that held `sunnyday`, `raindance` and the two
+   * PRIMAL weathers this format cannot produce, and did not hold `sandstorm` or `snowscape` at all.
+   * Every damage-derived MAG feature under sand or snow was therefore computed in clear skies —
+   * 10.72% of turn-boards across 52,441 games, 18.5% of games containing at least one.
+   *
+   * `--check` PASSED THROUGHOUT, before and after the fix, on all 58 columns. Not a bug in the
+   * check: the only two weather boards above are RainDance and SunnyDay, which are exactly the two
+   * the broken map already got right. Measured on the fit's own rows — 1,200 open-sheet games,
+   * 32,054 decisions, 234,873 candidate vectors — the fix moves 14 of 58 columns, 2.78% of
+   * decisions and 19.83% of games, and every fixture hash stayed identical while it did.
+   *
+   * R7 for the sixth time, and note what generalises: the earlier five were about a SPECIES the
+   * boards did not stand on. This one is about a FIELD STATE, which no amount of species coverage
+   * reaches. A weather the format can produce and the fixture cannot see is a whole branch of the
+   * damage formula outside the guard — `field.weather === 'sand'` is the Rock special-defence 1.5x,
+   * `=== 'snow'` is the Ice defence 1.5x, and Weather Ball's TYPE comes off the same field.
+   *
+   * TWO SCENARIOS RATHER THAN ONE, and rather than editing a board above. The two weathers gate
+   * different multipliers on different defensive types and cannot be exercised on one board. Adding
+   * boards cannot take coverage away from the boards already there, which is the lesson recorded on
+   * `passed-turn-that-pays`: on 2026-08-02 two separate attempts to add coverage by MODIFYING an
+   * existing board went wrong, one inert and one a regression. */
+  {
+    /* Tyranitar is ROCK and is taking SPECIAL hits from Hydreigon, which is the 1.5x special-defence
+     * multiplier sand gives Rock types and nothing else on any board here reaches. Hippowdon is the
+     * second Sand Stream body in the format and carries WEATHER BALL, whose type resolves to ROCK
+     * under sand — the type flip rides on `mv.id` through dmgFractions, so it is a distinct path from
+     * the multiplier. Excadrill opposite is Sand Rush, so the board is one a real ladder game
+     * produces rather than a contrivance. */
+    label: 'sand-is-up',
+    p1: [
+      { species: 'Tyranitar', item: 'Leftovers', ability: 'Sand Stream', nature: 'Adamant',
+        moves: ['Rock Slide', 'Crunch', 'Ice Beam', 'Protect'] },
+      { species: 'Hippowdon', item: 'Sitrus Berry', ability: 'Sand Stream', nature: 'Impish',
+        moves: ['Earthquake', 'Weather Ball', 'Yawn', 'Protect'] },
+    ],
+    p2: [
+      { species: 'Hydreigon', item: 'Life Orb', ability: 'Levitate', nature: 'Modest',
+        moves: ['Dark Pulse', 'Dragon Pulse', 'Flamethrower', 'Protect'] },
+      { species: 'Excadrill', item: 'Focus Sash', ability: 'Sand Rush', nature: 'Adamant',
+        moves: ['Earthquake', 'Iron Head', 'Rock Slide', 'Protect'] },
+    ],
+    /* A ROCK BODY ON EACH BENCH, deliberately. The switch family — switchSurvives1/2, switchKOFast,
+     * switchKOSlow, switchDiesFirst, benchRisk — prices a body that is NOT on the field, so a weather
+     * multiplier reaches them only through a benched species the multiplier applies to. */
+    bench: { p1: ['Garchomp', 'Lycanroc'], p2: ['Incineroar', 'Lycanroc'] },
+    state: { turn: 5, weather: 'Sandstorm', hp: { p1: { a: 0.55 }, p2: { a: 0.4, b: 0.35 } } },
+  },
+
+  {
+    /* The mirror at the other multiplier. Ninetales-Alola and Weavile are ICE and are taking PHYSICAL
+     * hits from Garchomp and Incineroar, which is snow's 1.5x defence for Ice types. Ninetales-Alola
+     * also carries Weather Ball, which resolves to ICE here — the same type-flip path as the sand
+     * board, at the other value, so a translation that mapped one weather and not the other could not
+     * pass both. Blizzard is on the board because its accuracy is a function of snow. */
+    label: 'snow-is-up',
+    p1: [
+      { species: 'Ninetales-Alola', item: 'Light Clay', ability: 'Snow Warning', nature: 'Timid',
+        moves: ['Blizzard', 'Aurora Veil', 'Weather Ball', 'Protect'] },
+      { species: 'Weavile', item: 'Focus Sash', ability: 'Pressure', nature: 'Jolly',
+        moves: ['Ice Shard', 'Knock Off', 'Triple Axel', 'Protect'] },
+    ],
+    p2: [
+      { species: 'Garchomp', item: 'Life Orb', ability: 'Rough Skin', nature: 'Jolly',
+        moves: ['Earthquake', 'Dragon Claw', 'Swords Dance', 'Protect'] },
+      { species: 'Incineroar', item: 'Sitrus Berry', ability: 'Intimidate', nature: 'Adamant',
+        moves: ['Flare Blitz', 'Fake Out', 'Darkest Lariat', 'Parting Shot'] },
+    ],
+    /* An ICE body on each bench, for the same reason as the sand board's Rock pair. */
+    bench: { p1: ['Clefable', 'Abomasnow'], p2: ['Froslass', 'Venusaur'] },
+    state: { turn: 5, weather: 'Snowscape', hp: { p1: { a: 0.5, b: 0.45 }, p2: { a: 0.6 } } },
+  },
 ];
 
 function need(x, what, name) {

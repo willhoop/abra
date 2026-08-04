@@ -828,7 +828,7 @@ class Board {
  * immunity scored as a neutral hit). featuresFor exports the counter so callers can assert on it.
  * ------------------------------------------------------------------------------------------- */
 let _dmg = null;                 // null = not tried, false = unavailable
-const dmgFailures = { unavailable: 0, unknownSpecies: 0 };
+const dmgFailures = { unavailable: 0, unknownSpecies: 0, weatherUntranslated: 0 };
 
 /* ---- THE HANDLER PROBES, AND WHY THEY NEEDED A COUNTER RATHER THAN A FIX --------------------
  *
@@ -1185,9 +1185,38 @@ function unmodelledAbilityMult(m, attacker, target, targetAlly) {
 
 /* Estimated damage of `m` (typed as it will actually land) from `att` onto `def`.
  * `{min, max, mean}` as a FRACTION of the defender's max hp. */
-/* Showdown's weather ids -> the two the damage formula multiplies on. Written as a mapping FROM the
- * tracked value rather than as a test for a named move, so a new weather setter needs no edit. */
-const WEATHER_KIND = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain' };
+/* THE WEATHER TRANSLATION IS THE DAMAGE ENGINE'S. THIS FILE KEPT ITS OWN AND IT WAS WRONG.
+ *
+ * What stood here until 2026-08-04 was a private third copy of the Showdown-weather -> engine-weather
+ * map:
+ *
+ *     { sunnyday:'sun', desolateland:'sun', raindance:'rain', primordialsea:'rain' }
+ *
+ * It mapped the two weathers this format cannot produce -- `desolateland` and `primordialsea` are
+ * primal weather, 0 occurrences in 339,483 corpus turn-boards -- and it did not contain `sandstorm`
+ * or `snowscape` at all. A miss gives `undefined`, `|| ''` turns that into clear skies, so EVERY
+ * damage-derived MAG feature computed under sand or snow was computed in no weather. Measured across
+ * games.ladder + games.bo3 + games.ots (52,441 games): snowscape 5.43% and sandstorm 5.29% of
+ * turn-boards, 10.72% together, and 18.5% of games contain at least one. The engine reads
+ * `field.weather === 'sand'` for the Rock special-defence 1.5x, `=== 'snow'` for the Ice defence
+ * 1.5x, and Weather Ball's type comes off the same field.
+ *
+ * FACTS ARE GLOBAL. `medicham2-browser.js` owns `SD2WEATHER`/`weatherId`, exports it for exactly this
+ * reason (see its header -- rollout_leaf.js had the identical defect at the identical boundary), and
+ * `position_features.js` was routed through it on 2026-08-04. A FOURTH map is not written here.
+ *
+ * `weatherId` does not know `desolateland`/`primordialsea`. On the measured corpus that costs
+ * nothing; teaching it those two is ENGINE's call on `SD2WEATHER`, not a second table here.
+ *
+ * AN ENGINE WITHOUT THE TRANSLATION IS COUNTED, NOT DEFAULTED. Returning '' silently is what the old
+ * map did, and a silent clear sky is indistinguishable from a working feature. */
+function weatherKind(board, D) {
+  const w = board && board.weather;
+  if (!w) return '';
+  if (D && typeof D.weatherId === 'function') return D.weatherId(w) || '';
+  dmgFailures.weatherUntranslated++;
+  return '';
+}
 
 function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) {
   if (!att || !def) return null;
@@ -1244,7 +1273,7 @@ function dmgFractions(D, att, def, m, mType, spread, board, defStats, origMove) 
    * by 1.5 and rain multiplies Water by 1.5, so every damage number under weather was wrong -- on a
    * Torkoal/Drought or Pelipper/Drizzle team, which is most of what this format's damage comes from.
    * Same class of bug as scoring Weather Ball as Normal, in the code written to fix that one. */
-  const field = { weather: (board && WEATHER_KIND[board.weather]) || '', terrain: '' };
+  const field = { weather: weatherKind(board, D), terrain: '' };
   const r = D.dmgRange(att, def, mv, field, !!spread);
   if (!r || !def.st || !def.st.hp) return null;
   return { min: r.min / def.st.hp, max: r.max / def.st.hp, mean: (r.min + r.max) / 2 / def.st.hp };
@@ -2934,7 +2963,7 @@ function featuresFor(cand, user, board, side, dex, priorP) {
           const a2 = dmgMon(user, D2, dex), d2 = dmgMon(t, D2, dex);
           if (a2 && d2) {
             const mvId = norm(m.id || m.name);
-            const fld = { weather: (board && WEATHER_KIND[board.weather]) || '', terrain: '' };
+            const fld = { weather: weatherKind(board, D2), terrain: '' };
             const xp = D2.punishExposure(a2, d2, mvId, { field: fld });
             if (xp) set('clickCost', xp.total);
             const foeSide2 = side === 'p1' ? 'p2' : 'p1';
