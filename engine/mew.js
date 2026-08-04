@@ -925,6 +925,13 @@ async function main() {
          * from first principles. */
         rec.selfplay.winnerArm = p1won === !sw ? 1 : 2;
         rec.selfplay.winnerWeights = rec.selfplay.winnerArm === 1 ? (WEIGHTS1 || null) : (WEIGHTS2 || WEIGHTS1 || null);
+        /* WHICH ARM WAS THE SEARCHER, stamped on every record. winnerPolicy goes blind when both
+         * arms share a policy name -- which an R4 run does by construction, since MILTANK sits on
+         * top of the same 'score' policy -- so without this the file cannot be rescored later. */
+        if (MILTANK_A || MILTANK_B) {
+          rec.selfplay.miltankArm = MILTANK_A ? 1 : 2;
+          rec.selfplay.winnerIsMiltank = rec.selfplay.winnerArm === rec.selfplay.miltankArm;
+        }
         /* Identical means IDENTICAL — same policy, same weights AND same flags. The first version
          * checked only the policy name and the weights file, so a --joint run (which differs by a
          * flag and nothing else) stamped every record armsIdentical:true, i.e. it claimed the A/B was
@@ -937,7 +944,12 @@ async function main() {
             && FORCED_A === FORCED_B
             /* Same reasoning for the other two flag-only levers, now that they are per arm. */
             && SWITCHING === SWITCHING_B && GREEDY_A === GREEDY_B
-            && OPPMODEL_A === OPPMODEL_B) rec.selfplay.armsIdentical = true;
+            && OPPMODEL_A === OPPMODEL_B
+            /* MILTANK is a flag-only difference too -- and it is a whole different PLAYER, not a
+             * lever on one. Leaving it out stamped an R4 run armsIdentical, and sprt.js then
+             * refused to report it: 'both arms carry the same policy name and no record carries
+             * winnerArm'. The guard was right and the wiring was incomplete. */
+            && MILTANK_A === MILTANK_B) rec.selfplay.armsIdentical = true;
       }
       out.write(JSON.stringify(rec) + '\n');
       /* Written under the SAME id as the record, so a board state can always be traced back to the
