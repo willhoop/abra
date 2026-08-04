@@ -1,0 +1,34 @@
+{
+  "generated": "2026-08-04T07:33:27.790Z",
+  "by": "engine/rollout_r1.js",
+  "describes": "data/rollout-r1-explore1-rows.jsonl",
+  "rows": 9201,
+  "p_column": {
+    "key": "40@1",
+    "n_rollouts": 40,
+    "explore": 1,
+    "note": "The dump carries ONE rollout column and this names it. It is the same key the VERDICT in this run uses, so the artifact and the printed verdict describe the same thing."
+  },
+  "sweep": {
+    "N_LIST": [
+      40
+    ],
+    "EXPLORE_LIST": [
+      0,
+      0.5,
+      1
+    ],
+    "EVERY": 2,
+    "GAMES": 2500,
+    "corpus_games": 8520
+  },
+  "source_digests": {
+    "engine/rollout_r1.js": "2e42e264f784",
+    "engine/rollout_leaf.js": "a0749e081402",
+    "engine/medicham2-browser.js": "0710a325219e",
+    "engine/board.js": "bcf2dab9dc6f",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "2f491183a4ff",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  }
+}

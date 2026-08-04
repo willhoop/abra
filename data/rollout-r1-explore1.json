@@ -1,0 +1,258 @@
+{
+  "generated": "2026-08-04T07:34:26.731Z",
+  "by": "engine/rollout_r1_artifact.js",
+  "gate": "R1 — is playing a position out a better judge than the k-NN",
+  "corpus": "data/rollout-r1-explore1-rows.jsonl",
+  "verdict": "PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817",
+  "verdict_code": "PASS_ON_BASELINE",
+  "verdict_note": "R1 PASSES ON THE BASELINE — significantly better than counting bodies, and PORYGON2's +3.42 sits INSIDE this interval, so the two are not separated by this sample.",
+  "positions": 9201,
+  "corpus_shape": {
+    "lines": 9201,
+    "positions": 9201,
+    "distinct_games": 2500,
+    "positions_per_game": 3.68,
+    "turn_min": 0,
+    "turn_max": 48,
+    "turn_mean": 3.744,
+    "label_base_rate_p1_wins": 0.5246,
+    "sha256_12": "34a85999b7e5",
+    "note": "One row per scored position, not one per game. The sample is EARLY-GAME HEAVY — see turn_mean — and every judge sits closer to the base rate on an early board than on a late one, so these accuracies are not comparable to a figure measured on a different turn mix."
+  },
+  "judges": {
+    "rollout": {
+      "what": "the `p` column of the dump",
+      "accuracy_pct": 67.971,
+      "brier": 0.2128,
+      "logloss": 0.8632,
+      "reliability_curve": [
+        {
+          "bin": "0-10%",
+          "n": 1290,
+          "observed": 0.166
+        },
+        {
+          "bin": "10-20%",
+          "n": 754,
+          "observed": 0.301
+        },
+        {
+          "bin": "20-30%",
+          "n": 775,
+          "observed": 0.378
+        },
+        {
+          "bin": "30-40%",
+          "n": 798,
+          "observed": 0.437
+        },
+        {
+          "bin": "40-50%",
+          "n": 830,
+          "observed": 0.514
+        },
+        {
+          "bin": "50-60%",
+          "n": 773,
+          "observed": 0.519
+        },
+        {
+          "bin": "60-70%",
+          "n": 807,
+          "observed": 0.592
+        },
+        {
+          "bin": "70-80%",
+          "n": 783,
+          "observed": 0.642
+        },
+        {
+          "bin": "80-90%",
+          "n": 799,
+          "observed": 0.745
+        },
+        {
+          "bin": "90-100%",
+          "n": 1592,
+          "observed": 0.842
+        }
+      ]
+    },
+    "material_porygon2_form": {
+      "what": "the `mpy` column: clip(0.5 + 0.15*alive_diff, 0.02, 0.98), the graded bodies-only baseline copied in form from engine/porygon2.py:530, recomputed on THESE positions",
+      "accuracy_pct": 65.265,
+      "brier": 0.2127,
+      "logloss": 0.6124,
+      "ties_at_exactly_0_5": 4222,
+      "ties_note": "45.886% of positions have alive_diff 0, where this baseline returns exactly 0.5 and the >= 0.5 rule grades it as \"p1 wins\". On those rows it is not a judge at all, it is the base rate — which is most of why it scores as high as it does."
+    },
+    "coin": {
+      "what": "constant 0.5; graded by the same >= 0.5 rule, so it also predicts p1 every time",
+      "accuracy_pct": 52.462,
+      "note": "This equals the base rate by construction and is a floor, not a competitor."
+    }
+  },
+  "mcnemar": {
+    "rollout_only_right": 1483,
+    "material_only_right": 1234,
+    "discordant": 2717,
+    "diff_points": 2.706,
+    "ci95_half_width_pts": 1.11,
+    "ci95_pts": [
+      1.596,
+      3.817
+    ],
+    "method": "Normal approximation to the sign test on the discordant positions; half-width 1.96*sqrt(b+c)/n in points. Same formula and same pairing as engine/rollout_r1.js:262-272. The two judges scored identical positions with identical labels, so the pairing is real and comparing the two accuracies as independent samples would overstate the noise.",
+    "fixed_n": "This gate was NOT sequentially stopped, so unlike data/rollout-r4.json the interval here is a legitimate fixed-n interval rather than context beside a boundary verdict."
+  },
+  "which_rollout_is_this": {
+    "recorded_in_the_dump": {
+      "file": "data/rollout-r1-explore1-rows.meta.json",
+      "usable": true,
+      "p_column": {
+        "key": "40@1",
+        "n_rollouts": 40,
+        "explore": 1,
+        "note": "The dump carries ONE rollout column and this names it. It is the same key the VERDICT in this run uses, so the artifact and the printed verdict describe the same thing."
+      },
+      "sweep": {
+        "N_LIST": [
+          40
+        ],
+        "EXPLORE_LIST": [
+          0,
+          0.5,
+          1
+        ],
+        "EVERY": 2,
+        "GAMES": 2500,
+        "corpus_games": 8520
+      },
+      "source_digests": {
+        "engine/rollout_r1.js": "2e42e264f784",
+        "engine/rollout_leaf.js": "a0749e081402",
+        "engine/medicham2-browser.js": "0710a325219e",
+        "engine/board.js": "bcf2dab9dc6f",
+        "data/engine-data.js": "96a94b7fadf7",
+        "data/abra-tags.js": "2f491183a4ff",
+        "note": "Content, not mtime. A checkout moves an mtime without moving code."
+      }
+    },
+    "granularity": "every p is an exact multiple of 1/80, consistent with n=40 rollouts scored 1/0/0.5 (battleResult returns a half for a draw) or with n=80 and no draws. The dump cannot separate those two and neither can this file.",
+    "calibration_signature": {
+      "checked": true,
+      "source": "docs/ROLLOUT-design.md §4.2.1",
+      "bins": [
+        {
+          "bin": "0-10%",
+          "published_n": 2245,
+          "rows_n": 1290,
+          "published_observed": 0.26,
+          "rows_observed": 0.166,
+          "matches": false
+        },
+        {
+          "bin": "90-100%",
+          "published_n": 2612,
+          "rows_n": 1592,
+          "published_observed": 0.759,
+          "rows_observed": 0.842,
+          "matches": false
+        }
+      ],
+      "all_match": false
+    },
+    "inference": "RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows. The calibration comparison below is kept as a cross-check, not as the answer.",
+    "consequence": "The published +2.91 gate result cannot be recomputed from anything committed. What survives is the incumbent arm of that comparison, and on it R1 is UNDECIDED."
+  },
+  "docs_say": {
+    "source": "docs/ROLLOUT-design.md:251",
+    "text": "**R1 — NOT ESTABLISHED. The published PASS has no reproducible evidence.** Artifact: `data/rollout-r1.json`, written by `engine/rollout_r1_artifact.js`."
+  },
+  "standing": {
+    "valid_as_measured": "YES as arithmetic. Both columns are scored on identical positions with identical labels by construction (engine/rollout_r1.js writes them on the same row), so the contrast between them is fair whatever the engine was doing.",
+    "what_it_measures": "The dumped rollout column against the graded material baseline. It is NOT a head-to-head against PORYGON2 — that route was built and withdrawn; see data/rollout-r1-withdrawn-join.json.",
+    "engine_standing": {
+      "classed_by": "engine/status.js",
+      "standing": "current",
+      "newest_engine_source": "engine/medicham2-browser.js 2026-08-04 04:47",
+      "rows_written": "2026-08-04 07:33 UTC",
+      "how": "mtime only. The dump records no engine commit and no digests, so there is nothing here to compare by CONTENT the way data/rollout-r4.json can."
+    },
+    "stamps": {
+      "engine_commit": null,
+      "player_digest": null,
+      "weights_digest": null,
+      "damage_table_digest": null,
+      "why_null": "THE DUMP CARRIES NO STAMPS. data/rollout-r4.json can name the commit, the player and both weight digests because mew.js writes them into every game record. rollout_r1.js writes {gid, turn, p, mpy, y, aliveDiff, hpDiff} and nothing else, so there is no build recorded to check this run against. r2 and r3 have the same hole. Recording it as null is the honest answer; a digest of the sources as they are TODAY would describe this file, not the run, and would be worse than nothing.",
+      "source_digests": {
+        "engine/rollout_r1.js": "2e42e264f784",
+        "engine/rollout_leaf.js": "a0749e081402",
+        "engine/medicham2-browser.js": "0710a325219e",
+        "engine/board.js": "bcf2dab9dc6f",
+        "data/engine-data.js": "96a94b7fadf7",
+        "data/abra-tags.js": "2f491183a4ff",
+        "note": "Content, not mtime. A checkout moves an mtime without moving code."
+      },
+      "fixed_going_forward": "engine/rollout_r1.js now writes a sidecar beside the dump — see data/rollout-r1-rows.meta.json — carrying N, explore, the sweep and content digests of every source the leaf reaches. This run has one; see source_digests above."
+    },
+    "what_to_do_about_it": "Re-run engine/rollout_r1.js at the exploration rate the gate claims, with DUMP set, and regenerate this file. Until then the published R1 PASS has no evidence behind it that anyone can check, and --rollout-explore=1.0 is a shipped default resting on it."
+  },
+  "noise_floor": {
+    "aa_run": null,
+    "aa_note": "NOT ESTABLISHED. No A/A run exists for this comparison. The substitute below splits THESE rows by a hash of the GAME id, so every position from one game stays on one side and the halves are not correlated through a shared game.",
+    "split_half_of_this_run": {
+      "cuts": [
+        {
+          "cut": "game-id hash parity",
+          "a": {
+            "n": 4570,
+            "diff_pts": 3.479
+          },
+          "b": {
+            "n": 4631,
+            "diff_pts": 1.943
+          },
+          "spread_pts": 1.536
+        },
+        {
+          "cut": "game-id hash /2 parity",
+          "a": {
+            "n": 4611,
+            "diff_pts": 3.47
+          },
+          "b": {
+            "n": 4590,
+            "diff_pts": 1.939
+          },
+          "spread_pts": 1.531
+        },
+        {
+          "cut": "game-id hash /4 parity",
+          "a": {
+            "n": 4532,
+            "diff_pts": 3.001
+          },
+          "b": {
+            "n": 4669,
+            "diff_pts": 2.42
+          },
+          "spread_pts": 0.581
+        }
+      ],
+      "spread_pts_range": [
+        0.581,
+        1.536
+      ],
+      "note": "Three independent cuts, each a function of the GAME id so every position from one game stays on one side. READ THE RANGE, NOT ONE CUT — a single split-half spread is itself a draw."
+    },
+    "reading": "The effect is 2.706 points and the split-half spread of this run ranges 0.581 to 1.536 points. An effect smaller than the spread between two halves of one run is not an effect."
+  },
+  "provenance_note": "engine/provenance.js derives an artifact's inputs from the data files its generator reads, and its scan covers *.json, *.js and games.*.jsonl — data/rollout-r1-rows.jsonl matches none of those, so provenance cannot see this file's input and will not call it stale when the rows move. corpus_shape.sha256_12 above is what a reader should check instead.",
+  "caveats": [
+    "THIS IS A RECOMPUTATION FROM A ROW DUMP, NOT A RE-RUN. Every number here is arithmetic over data/rollout-r1-explore1-rows.jsonl; nothing was rolled out to produce it. Compare it against docs_say above — that is what the design doc claims for this gate — and read which_rollout_is_this before assuming the two describe the same run. They did not on 2026-08-04.",
+    "THE MATERIAL BASELINE IS FLATTERED BY ITS TIES. It returns exactly 0.5 on 45.886% of positions and the >= 0.5 rule scores every one of those as a p1 call. Read judges.material_porygon2_form.ties_note before comparing this baseline to a figure measured anywhere else.",
+    "IT IS NOT A TEST AGAINST PORYGON2. R1 as specified asks whether the rollout beats the k-NN. Material is a stand-in for the k-NN and the cross-language head-to-head was withdrawn, so the gate as WRITTEN has never been answered by any artifact in this repository.",
+    "THE SAMPLE IS EARLY-GAME HEAVY (mean turn 3.744). Accuracy on a turn-2 board is close to the base rate for every judge, so this number is not comparable to one measured on a different turn mix — including PORYGON2's published 63.70%."
+  ]
+}

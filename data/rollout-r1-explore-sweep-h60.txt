@@ -1,0 +1,45 @@
+ROLLOUT R1 — is playing it out a better judge than the k-NN?
+
+  corpus  8,520 clean open-sheet games, first 1200 sampled
+  leaf    MEDICHAM seeded mid-game, 40 rollouts per position, every 2th turn
+
+  self-check: 2 healthy + bench vs 1 at 5% HP  ->  p1 71.7%  (8 bodies, dropped {"fainted":0,"unbuildable":0,"threw":0})  sane
+
+  positions scored 4,487  (402 unbuildable, 0 unlabelled)  in 368.2s  -> 82 ms per position
+
+    judge                              accuracy     Brier    log-loss
+  ------------------------------------------------------------------
+   coin                               51.04%    0.2500    0.6931
+   material: bodies then HP (hard)    65.90%    0.3337    6.7462
+   material: porygon2 form (graded)   63.78%    0.2164    0.6207
+   ROLLOUT n=40 explore=0             64.21%    0.2681    1.8843
+   ROLLOUT n=40 explore=0.5           66.50%    0.2291    1.0545
+   ROLLOUT n=40 explore=1             67.46%    0.2177    0.8854
+
+  VERDICT
+  ------------------------------------------------------------------
+  rollout minus material (porygon2 form): +3.68 points  (95% CI 2.05 to 5.31)
+  discordant positions: rollout-only-right 779, material-only-right 614, of 4487
+  PORYGON2 is 63.70% on human games (data/porygon2c.json) and beats material by 3.42 there.
+  -> R1 PASSES ON THE BASELINE. The rollout is significantly better than counting
+     bodies, and PORYGON2's published +3.42 sits INSIDE this interval — so the two
+     are not separated by this sample, and the rollout is at least its equal here.
+     Not the same claim as beating it. Said separately because they are separate.
+
+  NOT A LIKE-FOR-LIKE TEST OF THE REAL QUESTION, said plainly: the incumbent is
+  PORYGON2, and PORYGON2 is a Python k-NN that has not been scored on THESE positions.
+  Material is the honest local stand-in, and Brier/log-loss below flatter the rollout
+  against it because a sign function emits hard 0/1 and is punished for it.
+
+  Both columns are scored on identical positions with identical labels, per
+  docs/DATA-LAW.md case 2. The only thing that differs is which judge was asked.
+
+  PLAYOUT TERMINATION  (probe, not part of the gate)
+  horizon: 60 turns (injected)
+  --------------------------------------------------------------------------
+   explore   playouts    ended by wipeout    hit the cap    scored 0.5   mean turns
+   0          179540               99.8%           0.2%         0.8%          4.6
+   0.5        179480               99.8%           0.2%         1.4%          5.2
+   1          179480               99.8%           0.2%         1.8%          6.4
+  A playout that HIT THE CAP is scored by bodies-then-HP. On those rows the leaf is
+  not a win probability at all — it is the material baseline it is being compared to.
