@@ -17,15 +17,15 @@ MEASURE — can we believe a number
     n=1378 games, 200 rollouts each   (2026-08-04 07:09)
     when it says 90-100% it wins 54% (n=56); when it says 0-10% it wins 54% (n=52)  — ECE 0.1811
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
-    CURRENT — every engine source the leaf reads still hashes to what it was measured against
+    PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
   provenance: 0 unsafe, 23 possibly stale, 54 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 04:47, but the feature function did not)
-    (data/abra-tags.js moved 2026-08-04 04:21, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-04 08:29, but the feature function did not)
+    (data/abra-tags.js moved 2026-08-04 08:20, but the feature function did not)
 ```
 
-_stamped 2026-08-04 07:58_
+_stamped 2026-08-04 08:30_
 
 <!-- /GENERATED -->
 

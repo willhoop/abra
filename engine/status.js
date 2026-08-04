@@ -345,8 +345,27 @@ function ops() {
     say(`  live-games/: ${n} battles recorded`);
   } catch (e) { say('  live-games/: NOT DERIVED'); }
 
-  for (const f of ['data/games.ladder.jsonl', 'data/games.ots.jsonl']) {
-    say(`  ${f.padEnd(28)} last written ${day(mtime(f))}`);
+  /* THIS LIST PRINTED A FROZEN ARCHIVE BESIDE THE LIVE STORE AND OMITTED THE ONE ACTUALLY
+   * COLLECTING OPEN TEAM SHEETS, which read as "OTS collection stopped in July" to every session
+   * that saw it — including several that then went looking for a broken ingest.
+   *
+   * The hourly Action (.github/workflows/ingest.yml) pulls exactly two formats:
+   * gen9championsvgc2026regmb -> games.ladder.jsonl, and gen9championsvgc2026regmbbo3 ->
+   * games.bo3.jsonl. The bo3 ruleset carries Force Open Team Sheets, so THAT is the continuously
+   * collected OTS corpus, and it is the most recently written store on disk.
+   *
+   * games.ots.jsonl is a COMPLETED external import (cameronangliss/vgc-battle-logs, collected
+   * 2026-06-17..20) written once by hand via engine/ingest_ots.js, whose logs_*.json inputs are not
+   * in the repo. It cannot grow and it is not broken — ten consumers read it, and all 4,167 lines
+   * carry declared:true, so the |showteam| merge fix is present in it. Its date is an IMPORT date,
+   * not a heartbeat, and the label has to say so or the next reader draws the same wrong conclusion. */
+  const stores = [
+    ['data/games.ladder.jsonl', ''],
+    ['data/games.bo3.jsonl', '  <- the Force-OTS format, collected hourly'],
+    ['data/games.ots.jsonl', '  <- FROZEN external import, complete; date is an import, not a heartbeat'],
+  ];
+  for (const [f, note] of stores) {
+    say(`  ${f.padEnd(28)} last written ${day(mtime(f))}${note}`);
   }
 }
 

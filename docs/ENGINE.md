@@ -12,7 +12,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  90/142 probed mechanics live, 52 missing   (census 2026-08-04 07:27)
+  100/142 probed mechanics live, 42 missing   (census 2026-08-04 08:29)
   missing:
     move    conditionalPower       Facade doubles when statused
     ability damageReduce           Ice Scales halves special damage
@@ -20,25 +20,18 @@ ENGINE — does the simulator do what Pokémon does
     move    recharge               Giga Impact costs the following turn
     move    needsTargetToAttack    Avalanche doubles after being hit
     move    needsUntrackedState    Gyro Ball scales with the speed gap
-    ability redirectsType          Lightning Rod pulls an Electric move
     ability blocksBerries          Unnerve stops the foe eating a berry
     ability disablesAttacker       Cursed Body can disable the move that hit it
     item    restoresStats          White Herb undoes a stat drop
     move    statChangeInCode       Belly Drum maxes Attack
     move    proceduralStatus       Tri Attack can burn, freeze or paralyse
-    move    drain                  Drain Punch heals the user
-    move    redirects              Follow Me pulls the attack onto the partner
-    item    choiceLock             Choice Scarf locks the holder into its first move
-    move    multiHit               Rock Blast lands more than one hit
     move    overridesEffectiveness Freeze-Dry beats Ice Beam into a Water type
     ability reducesAllyDamage      Friend Guard cuts what the partner takes
     ability poisonsOnMyContact     Poison Touch poisons on a contact hit
-    ability immuneToMoveClass      Bulletproof refuses Rock Blast
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
     ability boostsEachTurn         Speed Boost raises Speed every turn
     ability healsOnSwitchOut       Regenerator heals a third on the way out
-    move    fixedDamage            Seismic Toss deals the level, whoever it hits
     move    costsUserHP            Substitute costs the user a quarter
     move    partialTrap            Infestation chips at the end of each turn
     move    blocksSoundMoves       Throat Chop stops the target using a sound move
@@ -47,10 +40,7 @@ ENGINE — does the simulator do what Pokémon does
     move    clearsBoosts           Haze wipes the boosts off both sides
     move    cantUseTwice           Gigaton Hammer cannot be clicked twice in a row
     move    terrainScaled          Expanding Force gains power on Psychic Terrain
-    move    swapsStat              Foul Play attacks with the TARGET Attack
-    ability formeChange            Disguise eats the first hit
     ability untagged               Marvel Scale raises Defense while statused
-    ability halvesTypeDamage       Dry Skin takes 1.25x from Fire
     ability ignoresDefenderAbility Mold Breaker ignores Levitate
     ability ignoresTypeImmunity    Scrappy lets Normal hit a Ghost
     ability noRecoil               Rock Head takes no recoil
@@ -66,16 +56,13 @@ ENGINE — does the simulator do what Pokémon does
     move    reordersTurn           After You lets the partner move next
     item    curesVolatile          Mental Herb frees the holder from Taunt
     move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  4/400 differential comparisons disagree with Showdown   (2026-08-04 07:25)
-    spiritomb foulplay -> wyrdeer: showdown 178-178, medicham 132-156  (734 uses)
-    klefki foulplay -> pangoro: showdown 19-23, medicham 8-10  (734 uses)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 08:30)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (54 uses)
-    houndoom fireblast -> heliolisk: showdown 123-137, medicham 99-117  (50 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 137/176 probed, 39 unprobed
 ```
 
-_stamped 2026-08-04 07:58_
+_stamped 2026-08-04 08:30_
 
 <!-- /GENERATED -->
 
