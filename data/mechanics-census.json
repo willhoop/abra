@@ -1,10 +1,12 @@
 {
-  "generated": "2026-08-04T20:05:26.296Z",
+  "generated": "2026-08-04T21:41:55.894Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 154,
-  "live": 115,
-  "missing": 39,
+  "probed": 165,
+  "live": 157,
+  "missing": 8,
+  "armed": 17,
+  "unarmed": 148,
   "threw": 0,
   "hollow": 0,
   "results": [
@@ -14,7 +16,8 @@
       "label": "Choice Scarf raises Speed",
       "live": true,
       "detail": "no item 135  ->  scarf 202.5",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -22,7 +25,8 @@
       "label": "Leftovers heals at end of turn",
       "live": true,
       "detail": "no item 0 hp  ->  leftovers 10 hp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -30,7 +34,8 @@
       "label": "a mega stone builds the mega body",
       "live": true,
       "detail": "built charizard-mega-y",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -38,7 +43,8 @@
       "label": "a mega built from its own row still gets its ability",
       "live": true,
       "detail": "Bullet Punch max: ability none 52, 'technician' 78, as built (ability=\"technician\") 78",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -46,7 +52,8 @@
       "label": "a sheet's pre-mega ability does not override the mega's",
       "live": true,
       "detail": "sheet says Swarm -> scizor-mega ability=\"technician\" 67; sheet silent -> ability=\"technician\" 67; same body with no ability 45",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -54,7 +61,8 @@
       "label": "Aerial Ace cannot miss",
       "live": true,
       "detail": "accuracy=100",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -62,7 +70,8 @@
       "label": "repeated Protect starts failing",
       "live": true,
       "detail": "damage taken per consecutive Protect: 0, 167, 167",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -70,7 +79,8 @@
       "label": "Fake Out stops the foe attacking",
       "live": true,
       "detail": "foe dealt 167 without  ->  0 after Fake Out",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -78,15 +88,17 @@
       "label": "Brave Bird hurts its user",
       "live": true,
       "detail": "user lost 40 hp to recoil",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "lowersUser",
-      "label": "Close Combat drops the user Def/SpD",
+      "label": "Close Combat drops the user Def/SpD and Brave Bird does not",
       "live": true,
-      "detail": "def -1 spd -1",
-      "hollow": false
+      "detail": "def/spd after Brave Bird 0/0, after Close Combat -1/-1",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -94,7 +106,8 @@
       "label": "Swords Dance raises Attack",
       "live": true,
       "detail": "atk stage 2",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -102,7 +115,8 @@
       "label": "Charm drops the target Attack",
       "live": true,
       "detail": "target atk stage after the turn: -2",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -110,7 +124,8 @@
       "label": "Will-O-Wisp burns",
       "live": true,
       "detail": "target status after the turn: brn (wanted brn)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -118,7 +133,8 @@
       "label": "Thunder Wave paralyses",
       "live": true,
       "detail": "target status after the turn: par (wanted par)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -126,7 +142,8 @@
       "label": "Encore locks the target in",
       "live": true,
       "detail": "committed rockslide, volatile set=true, free choice next turn was rockslide",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -134,7 +151,8 @@
       "label": "Facade doubles when statused",
       "live": false,
       "detail": "clean 51  ->  burnt 25",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -142,7 +160,8 @@
       "label": "Intimidate drops Attack",
       "live": true,
       "detail": "atk 0 -> -1",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -150,7 +169,8 @@
       "label": "Prankster puts a status move in front of a faster foe",
       "live": true,
       "detail": "Icicle Crash into the Reflect user: ability none 118, Prankster 78 (the doubles screen is x0.667, so 118 -> 78 is the screen landing first)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -158,7 +178,8 @@
       "label": "Aerilate converts and boosts",
       "live": true,
       "detail": "none 94  ->  aerilate 114",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -166,15 +187,17 @@
       "label": "Filter cuts super-effective damage",
       "live": true,
       "detail": "none 364  ->  filter 273",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "damageReduce",
       "label": "Ice Scales halves special damage",
-      "live": false,
-      "detail": "none 31  ->  icescales 31",
-      "hollow": false
+      "live": true,
+      "detail": "none 31  ->  icescales 15",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -182,7 +205,8 @@
       "label": "Insomnia refuses sleep",
       "live": true,
       "detail": "status=none",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -190,7 +214,8 @@
       "label": "Clear Body refuses Intimidate",
       "live": true,
       "detail": "atk stage after Intimidate: ability none -1, Clear Body 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -198,7 +223,8 @@
       "label": "Defiant raises Attack when dropped",
       "live": true,
       "detail": "atk stage 2",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -206,7 +232,8 @@
       "label": "Rough Skin hurts a contact attacker",
       "live": true,
       "detail": "attacker lost 0 vs none, 20 vs Rough Skin",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -214,7 +241,8 @@
       "label": "Zero to Hero upgrades Palafin on return",
       "live": true,
       "detail": "first entry from bench: palafin 154 Atk (must stay base)  |  out and back: palafin-hero 233 Atk",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -222,7 +250,8 @@
       "label": "Aura Sphere cannot miss",
       "live": true,
       "detail": "accuracy=100",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -230,7 +259,8 @@
       "label": "Ice Beam can freeze",
       "live": true,
       "detail": "target survived at 89, status: frz",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -238,7 +268,8 @@
       "label": "Toxic poisons",
       "live": true,
       "detail": "target status: tox",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -246,7 +277,8 @@
       "label": "Confuse Ray confuses",
       "live": true,
       "detail": "volatiles on target: {\"confusion\":1}",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -254,7 +286,8 @@
       "label": "Wide Guard blocks a spread move",
       "live": true,
       "detail": "ally took 92 without  ->  0 behind Wide Guard",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -262,7 +295,8 @@
       "label": "Grass Knot scales with target weight",
       "live": true,
       "detail": "vs light 14  ->  vs heavy 29",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -270,7 +304,8 @@
       "label": "Body Press attacks with Defense",
       "live": true,
       "detail": "def 125 deals 40, def 250 deals 78",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -278,7 +313,8 @@
       "label": "Sacred Sword ignores a Defense boost",
       "live": true,
       "detail": "unboosted 65 vs +4 Def 65 (equal = ignored)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -286,7 +322,8 @@
       "label": "Knock Off removes the item",
       "live": true,
       "detail": "target item after Knock Off: \"\"",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -294,7 +331,8 @@
       "label": "Life Dew heals the partner",
       "live": true,
       "detail": "partner 85 -> 127 hp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -302,7 +340,8 @@
       "label": "Adaptability raises same-type damage",
       "live": true,
       "detail": "none 127  ->  adaptability 170",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -310,7 +349,8 @@
       "label": "Chlorophyll doubles Speed in sun",
       "live": true,
       "detail": "no sun 125  ->  sun 250",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -318,7 +358,8 @@
       "label": "Good as Gold refuses a status move",
       "live": true,
       "detail": "target atk stage after Charm: ability none -2, Good as Gold 0 (0 = refused)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -326,7 +367,8 @@
       "label": "sandstorm chips, and Sand Veil / a Steel type ignore it",
       "live": true,
       "detail": "sand, Milotic: ability none -10 (a sixteenth is 10), Sand Veil -0; sand, Archaludon (Steel) -0; snow, Milotic -0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -334,7 +376,8 @@
       "label": "Unburden doubles Speed once the item is gone",
       "live": true,
       "detail": "holding 187  ->  item gone 374",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -342,7 +385,8 @@
       "label": "Covet steals the item",
       "live": true,
       "detail": "attacker item \"lifeorb\", target item \"\"",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -350,7 +394,8 @@
       "label": "Sandstorm sets the weather",
       "live": true,
       "detail": "weather after the turn: sand",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -358,7 +403,8 @@
       "label": "Spore puts the target to sleep",
       "live": true,
       "detail": "spore -> target status: slp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -366,23 +412,26 @@
       "label": "Taunt stops the target using a status move",
       "live": true,
       "detail": "volatile=true, free choice was nothing",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "ignoresProtect",
       "label": "Feint goes through Protect",
-      "live": false,
-      "detail": "a normal move into Protect dealt 0, Feint dealt 0",
-      "hollow": false
+      "live": true,
+      "detail": "a normal move into Protect dealt 0, Feint dealt 21",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "recharge",
       "label": "Giga Impact costs the following turn",
-      "live": false,
-      "detail": "foe hp 83 after the hit, 0 after the recharge turn",
-      "hollow": false
+      "live": true,
+      "detail": "after Flare Blitz (no recharge) the free turn did nothing: false;  after gigaimpact the free turn did nothing: true   (foe hp 83 then 83)",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -390,7 +439,8 @@
       "label": "Avalanche doubles after being hit",
       "live": false,
       "detail": "untouched 164  ->  already hit 164",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -398,7 +448,8 @@
       "label": "Gyro Ball scales with the speed gap",
       "live": false,
       "detail": "slow user 0  vs  fast user 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -406,7 +457,8 @@
       "label": "Lightning Rod pulls an Electric move",
       "live": true,
       "detail": "no ability: aimed 171 / other 0 / spa 0   |   Lightning Rod: aimed 0 / rod 0 / spa 1",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -414,47 +466,53 @@
       "label": "Hospitality heals the partner on entry",
       "live": true,
       "detail": "partner hp change: ability none 0, Hospitality 43 (a quarter is 43)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "blocksBerries",
       "label": "Unnerve stops the foe eating a berry",
-      "live": false,
-      "detail": "foe hp change: ability none +42 (berry now \"\"), Unnerve +42 (berry now \"\")",
-      "hollow": false
+      "live": true,
+      "detail": "foe hp change: ability none +42 (berry now \"\"), Unnerve +0 (berry now \"sitrusberry\")",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "disablesAttacker",
       "label": "Cursed Body can disable the move that hit it",
-      "live": false,
-      "detail": "foe hit with earthquake; next free pick: ability none earthquake, Cursed Body earthquake (sealed=null)",
-      "hollow": false
+      "live": true,
+      "detail": "foe hit with earthquake; next free pick: ability none earthquake, Cursed Body dragonclaw (sealed=\"earthquake\")",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
       "tag": "restoresStats",
       "label": "White Herb undoes a stat drop",
-      "live": false,
-      "detail": "dropped to -1, after the turn -1 (0 = restored)",
-      "hollow": false
+      "live": true,
+      "detail": "dropped to -1, after the turn 0 (0 = restored)",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "statChangeInCode",
       "label": "Belly Drum maxes Attack",
-      "live": false,
-      "detail": "belly drum resolves to kind pass",
-      "hollow": false
+      "live": true,
+      "detail": "no click: atk 0 hp cost 0;  Belly Drum: atk 6 (needs +6) hp cost 85 (half is 85)",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "proceduralStatus",
       "label": "Tri Attack can burn, freeze or paralyse",
-      "live": false,
-      "detail": "target status with the roll forced low: none",
-      "hollow": false
+      "live": true,
+      "detail": "target status with the roll forced low: brn",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -462,7 +520,8 @@
       "label": "Bullet Punch moves before a faster foe",
       "live": true,
       "detail": "slow user took 125 with a 0-priority move, 0 with Bullet Punch",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -470,7 +529,8 @@
       "label": "a contact move triggers Rough Skin and a special one does not",
       "live": true,
       "detail": "contact move cost the user 21, special non-contact cost 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -478,7 +538,8 @@
       "label": "Rock Slide hits both foes",
       "live": true,
       "detail": "aimed foe took 33, the OTHER foe took 79",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -486,7 +547,8 @@
       "label": "Earthquake hits your own partner too",
       "live": true,
       "detail": "own partner (Milotic, no Ground immunity) took 92",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -494,7 +556,8 @@
       "label": "Blizzard cannot miss in snow",
       "live": true,
       "detail": "no weather 70  ->  snow 100",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -502,7 +565,8 @@
       "label": "Flare Blitz thaws a frozen target",
       "live": true,
       "detail": "target survived, status now none",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -510,7 +574,8 @@
       "label": "Focus Sash leaves 1 HP from full",
       "live": true,
       "detail": "no item: FAINTED  ->  Sash: 1 hp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -518,7 +583,8 @@
       "label": "Sitrus Berry heals when it drops below half",
       "live": true,
       "detail": "no item ended on 28 hp  ->  Sitrus ended on 71",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -526,7 +592,8 @@
       "label": "Chople Berry halves a super-effective Fighting hit",
       "live": true,
       "detail": "no item took 175  ->  Chople took 131",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -534,7 +601,8 @@
       "label": "Life Orb raises damage",
       "live": true,
       "detail": "no item 86  ->  Life Orb 111",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -542,7 +610,8 @@
       "label": "Black Glasses raises Dark damage only",
       "live": true,
       "detail": "Dark 87->104, Fighting 86->86 (must not move)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -550,7 +619,8 @@
       "label": "Tailwind doubles the side Speed",
       "live": true,
       "detail": "partner speed 80  ->  160",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -558,7 +628,8 @@
       "label": "Disable stops the target repeating that move",
       "live": true,
       "detail": "committed earthquake; free choice repeated earthquake, after Disable it clicked dragonclaw",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -566,7 +637,8 @@
       "label": "Drain Punch heals the user",
       "live": true,
       "detail": "move dealt 51 to the foe; user 85 -> 110 hp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -574,7 +646,8 @@
       "label": "Follow Me pulls the attack onto the partner",
       "live": true,
       "detail": "no Follow Me: aimed 92 / partner 0   |   Follow Me: aimed 0 / partner 101",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -582,7 +655,8 @@
       "label": "Sleep Powder fails into a Grass type",
       "live": true,
       "detail": "into Garchomp: slp, into Venusaur (Grass): none",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -590,7 +664,8 @@
       "label": "Reflect halves physical damage",
       "live": true,
       "detail": "took 167 with no screen  ->  111 behind Reflect",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -598,7 +673,8 @@
       "label": "Drizzle sets rain on entry",
       "live": true,
       "detail": "ability none -> none, Drizzle -> rain",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -606,7 +682,8 @@
       "label": "Parting Shot switches the user out",
       "live": true,
       "detail": "active side A after the turn: milotic, corviknight",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -614,7 +691,8 @@
       "label": "U-turn damages and then switches the user out",
       "live": true,
       "detail": "foe took 47, active side A: milotic, corviknight",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -622,7 +700,8 @@
       "label": "Trick Room lets the slow user move first",
       "live": true,
       "detail": "field.tr=3; slow user took 125 normally, 0 under Trick Room",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -630,7 +709,8 @@
       "label": "Fly deals nothing on the turn it is clicked and lands on the next",
       "live": true,
       "detail": "Brave Bird turn 1 dealt 123; Fly dealt 0 on the charge turn and 92 on the next",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -638,7 +718,8 @@
       "label": "Solar Beam fires the same turn in sun and not otherwise",
       "live": true,
       "detail": "turn-1 damage: no sun 0 (must be 0), sun 133 (must be > 0)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -646,7 +727,8 @@
       "label": "Sucker Punch fails against a target that is not attacking",
       "live": true,
       "detail": "foe attacking: 70, foe idle: 0 (must be 0)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -654,7 +736,8 @@
       "label": "Choice Scarf locks the holder into its first move",
       "live": true,
       "detail": "turn 1 used crunch, turn 2 asked for closecombat and used crunch",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -662,7 +745,8 @@
       "label": "Recover restores the user",
       "live": true,
       "detail": "user 56 -> 141 hp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -670,7 +754,8 @@
       "label": "Armor Tail refuses a priority move",
       "live": true,
       "detail": "no ability took 25, Armor Tail took 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -678,7 +763,8 @@
       "label": "Levitate takes nothing from Earthquake",
       "live": true,
       "detail": "no ability 123  ->  Levitate 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -686,7 +772,8 @@
       "label": "Aerilate makes Body Slam hit a Ghost",
       "live": true,
       "detail": "no ability 0 (Normal vs Ghost)  ->  Aerilate 162",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -694,7 +781,8 @@
       "label": "Rock Blast lands more than one hit",
       "live": true,
       "detail": "one hit 17  ->  Rock Blast as the engine prices it 52 (real average is about 3.2 hits)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -702,31 +790,35 @@
       "label": "Last Respects grows with fallen allies",
       "live": true,
       "detail": "0 fallen 37  ->  3 fallen 143",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "overridesEffectiveness",
       "label": "Freeze-Dry beats Ice Beam into a Water type",
-      "live": false,
-      "detail": "Ice Beam 15  ->  Freeze-Dry 12 (must be higher)",
-      "hollow": false
+      "live": true,
+      "detail": "Ice Beam 15  ->  Freeze-Dry 50 (must be higher)",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "reducesAllyDamage",
       "label": "Friend Guard cuts what the partner takes",
-      "live": false,
-      "detail": "took 80 with a plain partner  ->  80 with Friend Guard",
-      "hollow": false
+      "live": true,
+      "detail": "took 80 with a plain partner  ->  59 with Friend Guard",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "poisonsOnMyContact",
       "label": "Poison Touch poisons on a contact hit",
-      "live": false,
-      "detail": "no ability -> none, Poison Touch -> none",
-      "hollow": false
+      "live": true,
+      "detail": "no ability -> none, Poison Touch -> psn",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -734,7 +826,8 @@
       "label": "Bulletproof refuses Rock Blast",
       "live": true,
       "detail": "no ability 40  ->  Bulletproof 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -742,7 +835,8 @@
       "label": "Iron Fist raises a punch and nothing else",
       "live": true,
       "detail": "punch 55->66, non-punch 86->86 (must not move)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -750,7 +844,8 @@
       "label": "No Guard makes an 80%-accurate move land on a losing roll",
       "live": false,
       "detail": "roll 0.9 vs 80% accuracy: no ability dealt 0, No Guard dealt 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -758,15 +853,17 @@
       "label": "Sand Veil makes the attacker miss a roll it would have hit",
       "live": false,
       "detail": "roll 0.7 in sand: no ability took 115, Sand Veil took 115",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "boostsEachTurn",
       "label": "Speed Boost raises Speed every turn",
-      "live": false,
-      "detail": "speed stage after one turn: 0",
-      "hollow": false
+      "live": true,
+      "detail": "speed stage after one turn: 1",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -774,7 +871,8 @@
       "label": "Regenerator heals a third on the way out",
       "live": true,
       "detail": "on the bench, hp change: ability none 0, Regenerator 56 (a third is 56)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -782,7 +880,8 @@
       "label": "Justified raises Attack when hit by a Dark move",
       "live": true,
       "detail": "no ability atk stage 0, Justified 1",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -790,7 +889,8 @@
       "label": "Seismic Toss deals the level, whoever it hits",
       "live": true,
       "detail": "mv.bp=0; vs frail 50, vs bulky 50 (both must be 50)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -798,15 +898,17 @@
       "label": "Perish Song faints the target three turns later",
       "live": true,
       "detail": "target after four turns: FAINTED",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "costsUserHP",
       "label": "Substitute costs the user a quarter",
-      "live": false,
-      "detail": "resolved to kind affect; user 170 -> 170 hp (a quarter is 42)",
-      "hollow": false
+      "live": true,
+      "detail": "resolved to kind affect; user 170 -> 128 hp (a quarter is 42)",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -814,23 +916,26 @@
       "label": "Yawn puts the target to sleep on the following turn",
       "live": true,
       "detail": "same turn: none (must not be slp), next turn: slp",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "partialTrap",
       "label": "Infestation chips at the end of each turn",
-      "live": false,
-      "detail": "the move dealt 8; after the hit 175, after an idle turn 175",
-      "hollow": false
+      "live": true,
+      "detail": "the move dealt 30; after the hit 153, after an idle turn 131",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "boostsTarget",
       "label": "Decorate raises the partner",
       "live": true,
-      "detail": "partner atk stage 2 spa 2",
-      "hollow": false
+      "detail": "partner atk/spa without the click 0/0, after Decorate 2/2",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -838,15 +943,17 @@
       "label": "Brick Break removes the opposing Reflect",
       "live": true,
       "detail": "screen up 53  ->  after Brick Break 80",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "blocksSoundMoves",
       "label": "Throat Chop stops the target using a sound move",
-      "live": false,
-      "detail": "sound move dealt 27 normally, 27 after Throat Chop",
-      "hollow": false
+      "live": true,
+      "detail": "sound move dealt 27 normally, 0 after Throat Chop",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -854,7 +961,8 @@
       "label": "Darkest Lariat ignores a Defense boost",
       "live": true,
       "detail": "unboosted 85 vs +4 Def 85 (equal = ignored)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -862,39 +970,53 @@
       "label": "Aurora Veil fails when it is not snowing",
       "live": true,
       "detail": "took 167 after Aurora Veil in clear weather (must be unreduced), 111 in snow",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "punishesContact",
       "label": "Spiky Shield hurts the attacker it blocked",
-      "live": false,
-      "detail": "the shield blocked; blocked attacker lost 0 hp",
-      "hollow": false
+      "live": true,
+      "detail": "the shield blocked; blocked attacker lost 22 hp",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "critRatioUp",
-      "label": "Night Slash is priced above the same move without its crit ratio",
-      "live": false,
-      "detail": "no crit ratio 78  ->  Night Slash 78",
-      "hollow": false
+      "label": "Night Slash crits on a roll Crunch does not",
+      "live": true,
+      "detail": "roll 0.1 (above 1/24, below 1/8): Night Slash plain 100 / Shell Armor 67   |   Crunch plain 77 / Shell Armor 77 (must be equal)",
+      "hollow": false,
+      "armed": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsCrit",
+      "label": "Shell Armor takes the guaranteed crit off Flower Trick",
+      "live": true,
+      "detail": "Flower Trick max: plain 123, Shell Armor 82, no crit tag at all 82 (Shell Armor must equal the untagged number)",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "clearsBoosts",
       "label": "Haze wipes the boosts off both sides",
-      "live": false,
-      "detail": "resolved to kind pass; after Haze: foe atk 4, own atk 2 (both must be 0)",
-      "hollow": false
+      "live": true,
+      "detail": "resolved to kind haze; staged +4/+2 survives an idle turn as 4/2, after Haze 0/0",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
       "tag": "cantUseTwice",
       "label": "Gigaton Hammer cannot be clicked twice in a row",
-      "live": false,
-      "detail": "second consecutive Gigaton Hammer dealt 58 (must be 0)",
-      "hollow": false
+      "live": true,
+      "detail": "second consecutive Play Rough dealt 43 (a move with no lockout must still land), second consecutive Gigaton Hammer dealt 0 (must be 0)",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -902,7 +1024,8 @@
       "label": "Expanding Force gains power on Psychic Terrain",
       "live": true,
       "detail": "Expanding Force max: no terrain 105, 'psychic' 157, 'psychicterrain' 157, 'electric' 105 (must equal no terrain)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -910,7 +1033,8 @@
       "label": "Foul Play attacks with the TARGET Attack",
       "live": true,
       "detail": "target atk 63 -> 34, target atk 189 -> 100",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -918,7 +1042,8 @@
       "label": "Disguise eats the first hit",
       "live": true,
       "detail": "no ability took 92, Disguise took 16 (must be exactly maxhp/8 = 16)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -926,7 +1051,8 @@
       "label": "Marvel Scale raises Defense while statused",
       "live": false,
       "detail": "burned, no ability 135  ->  burned with Marvel Scale 135",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -934,7 +1060,8 @@
       "label": "Moonblast drops the target Special Attack",
       "live": true,
       "detail": "target spa stage with the roll forced low: -1",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -942,7 +1069,8 @@
       "label": "Scald burns as a secondary of a damaging move",
       "live": true,
       "detail": "target survived, status brn",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -950,15 +1078,17 @@
       "label": "Acrobatics doubles with no item held",
       "live": true,
       "detail": "holding an item 79  ->  empty-handed 121",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "statusCategory",
       "label": "Thunder Wave paralyses without dealing damage",
       "live": true,
-      "detail": "damage 0 (must be 0), status par",
-      "hollow": false
+      "detail": "no click: damage 0 status none;  Thunder Wave: damage 0 (must be 0) status par",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -966,7 +1096,8 @@
       "label": "Psyshock is scored against the target Defense",
       "live": true,
       "detail": "def 99 takes 111, def 297 takes 39",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -974,7 +1105,8 @@
       "label": "a knocked-off Life Orb stops boosting the target damage",
       "live": true,
       "detail": "holding a Life Orb it dealt 319, after Knock Off 246 (item field now \"\")",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -982,7 +1114,8 @@
       "label": "Light Clay keeps Reflect up past turn five",
       "live": true,
       "detail": "turn 7 damage: no item 167  ->  Light Clay 111",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -990,7 +1123,8 @@
       "label": "Good as Gold refuses Thunder Wave",
       "live": true,
       "detail": "no ability -> par, Good as Gold -> none",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -998,7 +1132,8 @@
       "label": "Toxic damage grows each turn",
       "live": true,
       "detail": "status tox, chip per turn: 22, 34, 45, 57",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1006,7 +1141,8 @@
       "label": "a Pokemon in the air cannot be hit",
       "live": true,
       "detail": "flier speed 159 vs attacker 130; on the ground took 62, on the Fly charge turn took 0",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -1014,7 +1150,8 @@
       "label": "Thick Fat halves Fire and Ice and nothing else",
       "live": true,
       "detail": "Fire 15->7, Fighting 100->100 (must not move)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -1022,63 +1159,71 @@
       "label": "Dry Skin takes 1.25x from Fire",
       "live": true,
       "detail": "no ability 49  ->  Dry Skin 61 (must be about 1.25x)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "ignoresDefenderAbility",
       "label": "Mold Breaker ignores Levitate",
-      "live": false,
-      "detail": "no ability 0  ->  Mold Breaker 0",
-      "hollow": false
+      "live": true,
+      "detail": "no ability 0  ->  Mold Breaker 60",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "ignoresTypeImmunity",
       "label": "Scrappy lets Normal hit a Ghost",
-      "live": false,
-      "detail": "no ability 0  ->  Scrappy 0",
-      "hollow": false
+      "live": true,
+      "detail": "no ability 0  ->  Scrappy 88",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "noRecoil",
       "label": "Rock Head takes no recoil",
-      "live": false,
-      "detail": "no ability lost 40 to recoil, Rock Head lost 40",
-      "hollow": false
+      "live": true,
+      "detail": "no ability lost 40 to recoil, Rock Head lost 0",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "alwaysCrit",
       "label": "Flower Trick always crits",
-      "live": false,
-      "detail": "without the tag 82  ->  Flower Trick 82",
-      "hollow": false
+      "live": true,
+      "detail": "without the tag 82  ->  Flower Trick 123",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "forcesSwitch",
       "label": "Dragon Tail drags the target out",
-      "live": false,
-      "detail": "the move dealt 69; foe actives after Dragon Tail: incineroar, milotic",
-      "hollow": false
+      "live": true,
+      "detail": "the move dealt 69; foe actives after Dragon Tail: whimsicott, milotic",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "crashOnMiss",
       "label": "High Jump Kick hurts the user when it misses",
-      "live": false,
-      "detail": "foe took 0 (must be 0, it missed), user lost 0",
-      "hollow": false
+      "live": true,
+      "detail": "foe took 0 (must be 0, it missed), user lost 85",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "userFaints",
       "label": "Explosion faints its user",
-      "live": false,
-      "detail": "user after Explosion: 170 hp",
-      "hollow": false
+      "live": true,
+      "detail": "user after Explosion: FAINTED",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
@@ -1086,23 +1231,26 @@
       "label": "Expert Belt raises only super-effective damage",
       "live": true,
       "detail": "super-effective 104->124, not super-effective 26->26 (must not move)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
       "tag": "curesStatus",
       "label": "Lum Berry cures the status it was just given",
-      "live": false,
-      "detail": "no item -> brn, Lum Berry -> brn",
-      "hollow": false
+      "live": true,
+      "detail": "no item -> brn, Lum Berry -> none",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "typeBecomesMoveType",
       "label": "Protean makes the user the type it just used",
-      "live": false,
-      "detail": "types Grass/Dark  ->  Grass/Dark after using a Ground move",
-      "hollow": false
+      "live": true,
+      "detail": "types Grass/Dark  ->  Ground after using a Ground move",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -1110,23 +1258,26 @@
       "label": "Contrary turns a self-drop into a boost",
       "live": true,
       "detail": "own def stage after Close Combat with Contrary: 1 (must be positive)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
       "tag": "blocksExplosion",
       "label": "Damp stops Explosion happening at all",
-      "live": false,
-      "detail": "no ability: foe took 123 / user lived   |   Damp: foe took 123 / user lived",
-      "hollow": false
+      "live": true,
+      "detail": "no ability: foe took 123 / user fainted   |   Damp: foe took 0 / user lived",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "hazard",
       "label": "Stealth Rock chips what comes in afterwards",
-      "live": false,
-      "detail": "the switch happened; the switch-in (Staraptor, 4x weak to Rock) came in on 160 and is on 160",
-      "hollow": false
+      "live": true,
+      "detail": "the switch happened; the switch-in (Staraptor, 4x weak to Rock) came in on 160 and is on 120",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1134,7 +1285,8 @@
       "label": "Psychic Noise stops the target healing",
       "live": true,
       "detail": "healed 85 normally, 0 after Psychic Noise",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1142,23 +1294,26 @@
       "label": "After You lets the partner move next",
       "live": false,
       "detail": "slow partner took 125 normally, 125 after After You",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "item",
       "tag": "curesVolatile",
       "label": "Mental Herb frees the holder from Taunt",
-      "live": false,
-      "detail": "no item taunted=true, Mental Herb taunted=true",
-      "hollow": false
+      "live": true,
+      "detail": "no item taunted=true, Mental Herb taunted=false",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "multiAccuracy",
-      "label": "Triple Axel rolls accuracy on every hit",
-      "live": false,
-      "detail": "effective accuracy 100 (one roll is 90, three compound to about 73)",
-      "hollow": false
+      "label": "Triple Axel is priced below three full hits",
+      "live": true,
+      "detail": "Triple Axel 96 x2.71 = 260 (three full hits would be x3, the discount is x2.71);  Rock Blast 10 x3.10 = 31 (no per-hit roll, must stay x3.1)",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1166,15 +1321,17 @@
       "label": "a board's Showdown weather name reaches the damage formula",
       "live": true,
       "detail": "applyField('sunnyday') -> \"sun\"; Flamethrower max: clear 56, 'sun' 84, as landed 84",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
       "tag": "boardTerrainLanguage",
       "label": "a board's Showdown terrain name reaches the engine",
       "live": true,
-      "detail": "applyField('electricterrain') -> \"electricterrain\"; Surf under Hadron Engine: clear 99, 'electric' 130, as landed 130; priorityRefusedAbove: clear Infinity, 'psychic' 0, 'psychicterrain' 0",
-      "hollow": false
+      "detail": "applyField('electricterrain') -> \"electric\"; Surf under Hadron Engine: clear 99, 'electric' 130, as landed 130; priorityRefusedAbove: clear Infinity, 'psychic' 0, 'psychicterrain' 0",
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1182,7 +1339,8 @@
       "label": "clicking Psychic Terrain blocks the foe's priority move",
       "live": true,
       "detail": "Ice Shard into the user: no click 24 (terrain \"\"), after Psychic Terrain 0 (terrain \"psychic\")",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1190,7 +1348,8 @@
       "label": "Iron Fist boosts a punch and leaves a non-punch alone",
       "live": true,
       "detail": "Mach Punch (punch): none 30 -> Iron Fist 36; Flare Blitz (not punch): none 64 -> Iron Fist 64 (must not move)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1198,7 +1357,8 @@
       "label": "Charm drops the target Attack by exactly two stages",
       "live": true,
       "detail": "foe atk stage: no click 0, after Charm -2 (the param says -2)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1206,7 +1366,8 @@
       "label": "Soundproof refuses a sound move and takes a normal one",
       "live": true,
       "detail": "Hyper Voice (sound): none 30, Soundproof 0; Moonblast (not sound): none 64, Soundproof 64 (must still land)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -1214,7 +1375,8 @@
       "label": "Rough Skin tolls a contact hit and not a special one",
       "live": true,
       "detail": "Waterfall (contact): none 0 -> Rough Skin 21; Surf (special): none 0 -> Rough Skin 0 (must stay 0)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -1222,7 +1384,8 @@
       "label": "Magic Bounce sends Charm back at its user",
       "live": true,
       "detail": "atk stages (target/user): ability none -2/0, Magic Bounce 0/-2",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "ability",
@@ -1230,7 +1393,8 @@
       "label": "Volt Absorb heals a quarter off the move it absorbs",
       "live": true,
       "detail": "hp change: ability none -34, Volt Absorb 35 (a quarter is 35)",
-      "hollow": false
+      "hollow": false,
+      "armed": false
     },
     {
       "kind": "move",
@@ -1238,7 +1402,98 @@
       "label": "Encore pins the foe to the move it just used",
       "live": true,
       "detail": "foe committed rockslide; free choice two turns later was earthquake, after Encore rockslide",
-      "hollow": false
+      "hollow": false,
+      "armed": false
+    },
+    {
+      "kind": "move",
+      "tag": "weatherDuration",
+      "label": "Sunny Day lasts five turns and then stops boosting Fire",
+      "live": true,
+      "detail": "turn 1 weather sun (4 left) Flamethrower 74; after 3 idle turns sun (1) 74; after 4 idle turns CLEAR (0) 49",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "item",
+      "tag": "extendsDuration",
+      "label": "Heat Rock keeps the sun up past turn five",
+      "live": true,
+      "detail": "turn 6 weather: no item CLEAR, Heat Rock sun",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "weatherDamageMult",
+      "label": "sun raises Fire and halves Water, rain does the reverse",
+      "live": true,
+      "detail": "Flamethrower clear/sun/rain 56/84/27;  Surf clear/sun/rain 75/37/112",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "weatherDefenceMult",
+      "label": "sand raises a Rock SpD and snow raises an Ice Def",
+      "live": true,
+      "detail": "Shadow Ball into Rock clear/sand 31/21 (into Water 40/40, must not move);  Earthquake into Ice clear/snow 157/106 (into Fire 246/246, must not move)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "weatherAccuracy",
+      "label": "Thunder never misses in rain and is worse in sun",
+      "live": true,
+      "detail": "Thunder accuracy: clear 70, rain 100, sun 50",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "weatherBall",
+      "label": "Weather Ball becomes a different move in each sky",
+      "live": true,
+      "detail": "Weather Ball max into Gengar (Ghost, immune to NORMAL): clear 0 (must be 0), rain 144 (Water), sun 144 (Fire), sand 96 (Rock), snow 96 (Ice)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "speedCondWrongWeather",
+      "label": "Swift Swim doubles Speed in rain and does nothing in sun",
+      "live": true,
+      "detail": "speed in rain: ability none 135, Swift Swim 270; Swift Swim in SUN 135 (must equal the no-ability number)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "solarPower",
+      "label": "Solar Power raises a special move in sun and not a physical one",
+      "live": true,
+      "detail": "in sun, Flamethrower 84 -> 126; Earthquake 37 -> 37 (must not move); no sun, Flamethrower 56 -> 56 (must not move)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "megaWeatherSetter",
+      "label": "a mega sets the weather its MEGA ability names",
+      "live": true,
+      "detail": "base Charizard (Blaze) sets CLEAR; Charizard-Mega-Y (Drought) sets sun",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSuppression",
+      "label": "Air Lock stops the sun boosting Fire",
+      "live": false,
+      "detail": "Flamethrower in sun: plain defender 84, Air Lock defender 84 (must be the clear-weather number)",
+      "hollow": false,
+      "armed": true
     }
   ]
 }

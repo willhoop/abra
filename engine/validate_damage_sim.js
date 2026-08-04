@@ -22,6 +22,7 @@
  *   SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/validate_damage_sim.js
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const path = require('path');
 const { SCENARIOS, MV, CALCMOVE } = require('./validate_damage.js');
 

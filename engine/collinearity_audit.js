@@ -86,6 +86,7 @@ const B = require('./board.js');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 if (!process.env.SHOWDOWN_PATH) {
   console.error('set SHOWDOWN_PATH to a built master checkout of pokemon-showdown');
   process.exit(2);

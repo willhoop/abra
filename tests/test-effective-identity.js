@@ -51,6 +51,7 @@
  *   node tests/test-effective-identity.js --update    (only after FIXING some)
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 /* A CHECK THAT CRASHES IS A CHECK THAT GETS SKIPPED.
  *
  * This file sweeps the real Showdown dex for a mega case, so it needs SHOWDOWN_PATH. Without it the
@@ -290,6 +291,14 @@ const DECLARED = {
     + 'prose too): 66 of the 67 are live battle bodies this engine constructed, and the one '
     + 'exception (norm2(set.ability) in buildMonFromSet) reads a parsed SHEET, which is the case '
     + 'this test names as correct. PINNED by section 2b.',
+  'tests/test-weather-duration.js':
+    'Four weather setters — Torkoal, Pelipper, Tyranitar, Ninetales-Alola — built with a ROCK or '
+    + 'Leftovers and never a mega stone, so the effective ability IS the base one and there is no '
+    + 'pre/post-mega distinction for effAbility to resolve. Of the 5 matches, `m.ability = s.ability` '
+    + 'is an ASSIGNMENT onto a body this file just built (the same case as test-mechanics.js), the '
+    + '`ability:` entries are literals in the case table, and the read is of the value written one '
+    + 'line above. Tyranitar is the one with a mega forme and it is the reason this is declared '
+    + 'rather than waved through: it is safe only because the item is asserted to be the rock.',
   'tests/test-mechanics.js':
     'A census of behavioural probes. 45 of its 48 matches are ASSIGNMENTS — a probe setting the '
     + 'ability it is about to test on a body it just built. The 3 reads are the two mega-ability '
@@ -313,6 +322,15 @@ const DECLARED = {
     + 'Garchomp, which is Ground and immune to Electric anyway, so the mechanic could not show and '
     + 'the engine took the blame for a whole session. Refusing the control to hold a count at 17 '
     + 'would be trading a real check for a bookkeeping one.',
+  'tests/test-game-diff.js':
+    'The full-game differential. Its four matches are the two halves of the same claim: the '
+    + 'PROJECTION reads `.ability` off a live body in each engine BECAUSE the ability is one of the '
+    + 'things being compared -- that is the whole point of the file, and routing it through '
+    + 'effAbility() would compare the board.js answer to itself rather than the two engine answers '
+    + 'to each other. The other two are ASSIGNMENTS, writing a chosen reactor ability onto a set '
+    + 'before either engine is built, which is the case this test names as correct. It found a real '
+    + 'ability bug on its first run (Mummy and Wandering Spirit rewrite the ATTACKER ability on '
+    + 'contact and medicham2 models neither), so the reads are load-bearing rather than incidental.',
   'tests/test-paste.js':
     'Reads .ability off a body buildMonFromSet just produced — the same construction claim as '
     + 'medicham2 above, and this file is now one of the things that PINS it: it asserts a paste of '

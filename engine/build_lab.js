@@ -34,6 +34,7 @@
  *   node engine/build_lab.js --species garchomp --builds 12 --games 600 --team "garchomp,incineroar,whimsicott,sinistcha,charizard,basculegion"
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');

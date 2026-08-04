@@ -229,7 +229,23 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
   battle.field.clearTerrain();
   battle.random = (n) => (n === 16 ? roll : 0);
   const move = battle.dex.getActiveMove(moveName);
-  move.willCrit = false;
+  /* CONTROL FIX 11 -- PIN THE CRIT OFF FOR MOVES WHOSE CRIT IS RANDOM, AND ONLY THOSE. 2026-08-04.
+   *
+   * This read a flat `move.willCrit = false`, which is right for the reason it was written -- a random
+   * crit is noise and both engines must be held to the same roll -- and WRONG for the three moves whose
+   * crit is not random at all. Flower Trick, Storm Throw and Frost Breath carry `willCrit: true` in the
+   * dex: they crit EVERY time, for x1.5, and forcing the reference to a non-crit number made Showdown
+   * report a damage the real move never deals.
+   *
+   * It surfaced the moment MEDICHAM learned the mechanic (WIRE 35): the residual went 1/400 to 5/400
+   * and FOUR of the five new rows were Flower Trick and Frost Breath, with MEDICHAM exactly 1.5x above
+   * the reference. That is the harness's control being wrong, not the engine -- the same shape as the
+   * Volt-Absorb-on-a-Garchomp wire and the Dragon-Claw-at-a-Fairy redirect probe.
+   *
+   * `getActiveMove` already copies the dex value, so this line now only ever CLEARS a crit that would
+   * otherwise be rolled. Written explicitly rather than deleted, because a reader has to be able to see
+   * that the pin is deliberate and conditional. */
+  move.willCrit = !!battle.dex.moves.get(moveName).willCrit;
   /* CONTROL FIX 9 -- move.hit IS SET BY THE HIT LOOP, AND THIS HARNESS DOES NOT RUN THE HIT LOOP.
    *
    * Triple Axel's power is `basePowerCallback: (p, t, move) => 20 * move.hit`. `move.hit` is assigned

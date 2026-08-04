@@ -21,6 +21,7 @@
  * precondition, and it is honest about being only that.
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 let P = 0, F = 0;

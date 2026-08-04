@@ -62,13 +62,38 @@ let threw = 0;
  * asserted at ZERO at the bottom of this file. Every one of the three would have been caught the day
  * it was written. What it does NOT catch is a two-armed probe whose arms happen to agree — see the
  * IDENTICAL-ARMS section at the bottom, which is measured rather than asserted, and why. */
+/* THE ARMS PROTOCOL — the second detector, made real. 2026-08-04.
+ *
+ * The structural detector above catches a probe that READS THE SOURCE. It cannot catch the other
+ * shape, which is the one that made the Disable probe a false LIVE for as long as it existed: a probe
+ * with ONE arm, whose result an engine with the mechanic DELETED would also produce. The heuristic at
+ * the bottom of this file counts LIVE probes whose `detail` carries two equal numbers, and it is a
+ * heuristic precisely because `detail` is prose -- it cannot tell an ARM from an ANNOTATION.
+ *
+ * So a probe may now RETURN its arms: `{ works, detail, arms: { control, test } }`. When it does,
+ * this harness asserts `control !== test` structurally, with no parsing and no judgement, and a probe
+ * whose arms agree is marked HOLLOW and fails the file exactly like a source grep does.
+ *
+ * WHY THE PROTOCOL IS OPT-IN, AND WHY THAT IS NOT A HOLE. A probe that keeps returning only `detail`
+ * would opt itself out silently, which is the same defect in a new place -- so the count of UNARMED
+ * probes is computed, printed, written to the census as `unarmed`, and RATCHETED: it may go down and
+ * it may never go up. A new probe therefore cannot be written without arms without failing the file,
+ * and the 100-odd existing ones convert at whatever rate a pass can afford. That is the cheapest
+ * version that actually closes the hole rather than costing a day up front.
+ *
+ * ARMS ARE COMPARED BY VALUE, so a probe can hand back objects, arrays or numbers. A MISSING probe is
+ * exempt: two equal arms on a probe reporting MISSING is the mechanic being absent, which is the probe
+ * working. */
+const armsAgree = (a) => a && 'control' in a && 'test' in a
+  && JSON.stringify(a.control) === JSON.stringify(a.test);
 const probe = (kind, tag, label, fn) => {
-  let works = false, detail = '';
+  let works = false, detail = '', arms = null;
   const src = String(fn);
-  const hollow = /readFileSync/.test(src);
-  try { const r = fn(); works = !!r.works; detail = r.detail; }
+  let hollow = /readFileSync/.test(src);
+  try { const r = fn(); works = !!r.works; detail = r.detail; arms = r.arms || null; }
   catch (e) { works = false; threw++; detail = 'THREW: ' + e.message.slice(0, 60); }
-  results.push({ kind, tag, label, works, detail, hollow });
+  if (works && armsAgree(arms)) hollow = true;
+  results.push({ kind, tag, label, works, detail, hollow, armed: !!arms });
 };
 
 /* ---- ITEMS -------------------------------------------------------------------------------------- */
@@ -211,13 +236,25 @@ probe('move', 'recoil', 'Brave Bird hurts its user', () => {
   return { works: me.curHP < before, detail: `user lost ${before - me.curHP} hp to recoil` };
 });
 
-probe('move', 'lowersUser', 'Close Combat drops the user Def/SpD', () => {
-  const me = bare('staraptor'), ally = bare('incineroar');
-  const f1 = bare('garchomp'), f2 = bare('garchomp');
-  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-  const fa = new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]);
-  M.battleTurn(S, rng5, fa, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-  return { works: me.boosts.df < 0 || me.boosts.sd < 0, detail: `def ${me.boosts.df} spd ${me.boosts.sd}` };
+/* ARMED, 2026-08-04. `def -1 spd -1` is also what an engine that dropped the user on EVERY attack
+ * would print, so the control is a different physical contact move that must leave the stages alone. */
+probe('move', 'lowersUser', 'Close Combat drops the user Def/SpD and Brave Bird does not', () => {
+  /* `board` and `PASS2` are declared further down this file and are in their temporal dead zone here,
+     so the bodies are written out rather than the helpers moved — the same call the Hospitality probe
+     already makes, and for the same reason. */
+  const run = (mv) => {
+    const me = bare('staraptor'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return [me.boosts.df, me.boosts.sd];
+  };
+  const control = run('bravebird'), test = run('closecombat');
+  return { works: test[0] < 0 && test[1] < 0 && control[0] === 0 && control[1] === 0,
+           arms: { control, test },
+           detail: `def/spd after Brave Bird ${control.join('/')}, after Close Combat ${test.join('/')}` };
 });
 
 probe('move', 'boostsUser', 'Swords Dance raises Attack', () => {
@@ -726,10 +763,31 @@ probe('move', 'recharge', 'Giga Impact costs the following turn', () => {
   M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
     new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
   const hpAfterFirst = f1.curHP;
-  /* Turn two: the user is left FREE. If recharge is modelled it must do nothing. */
-  M.battleTurn(S, rng5, null, new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-  return { works: f1.curHP === hpAfterFirst,
-           detail: 'foe hp ' + hpAfterFirst + ' after the hit, ' + f1.curHP + ' after the recharge turn' };
+  /* Turn two: the RECHARGING USER is left free and everyone else is pinned to a pass. The first
+   * version passed `null` for the whole side, which left the ALLY free too -- so Corviknight clicked
+   * Brave Bird into the same target and the probe measured the partner's attack, not the recharge.
+   * A control arm that can move the number for a reason the probe is not about is not a control. */
+  M.battleTurn(S, rng5, new Map([[ally, { kind: 'pass' }]]),
+    new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const spent = f1.curHP === hpAfterFirst;
+  /* ARMED, 2026-08-04, with the SAME staging and a move that does NOT recharge. `83 -> 83` on its own
+   * is also what a free turn prints when the chooser happens to pick a status move. */
+  const ctl = (() => {
+    const a1 = bare('incineroar'), a2 = bare('corviknight');
+    const b1 = bare('garchomp'), b2 = bare('garchomp');
+    const S2 = M.battleInit([a1, a2], [b1, b2], { seeded: true });
+    M.battleTurn(S2, rng5,
+      new Map([[a1, M.playerAction(a1, 'flareblitz', b1, S2.field)], [a2, { kind: 'pass' }]]),
+      new Map([[b1, { kind: 'pass' }], [b2, { kind: 'pass' }]]));
+    const h = b1.curHP;
+    M.battleTurn(S2, rng5, new Map([[a2, { kind: 'pass' }]]),
+      new Map([[b1, { kind: 'pass' }], [b2, { kind: 'pass' }]]));
+    return b1.curHP === h;
+  })();
+  return { works: spent && !ctl, arms: { control: ctl, test: spent },
+           detail: 'after Flare Blitz (no recharge) the free turn did nothing: ' + ctl
+                 + ';  after ' + mv + ' the free turn did nothing: ' + spent
+                 + '   (foe hp ' + hpAfterFirst + ' then ' + f1.curHP + ')' };
 });
 
 probe('move', 'needsTargetToAttack', 'Avalanche doubles after being hit', () => {
@@ -884,9 +942,28 @@ probe('move', 'statChangeInCode', 'Belly Drum maxes Attack', () => {
   const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
   const act = M.playerAction(me, mv || 'bellydrum', null, S.field);
   if (!act || act.kind === 'pass') return { works: false, detail: 'belly drum resolves to kind ' + (act && act.kind) };
+  const hpBefore = me.curHP;
   M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
     new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
-  return { works: me.boosts.at >= 6, detail: 'atk stage ' + me.boosts.at + ' (needs +6)' };
+  const test = [me.boosts.at, hpBefore - me.curHP];
+  /* ARMED, 2026-08-04. `atk stage 6` alone cannot tell a working Belly Drum from a body that was
+   * already at +6, and the HALF-HP COST is the other half of the move -- an engine that granted the
+   * boost for free would be a new wrong number rather than a wired mechanic. Both are asserted, and
+   * the control is the same body on the same turn with no click. */
+  const control = (() => {
+    const m2 = bare('incineroar'), a2 = bare('corviknight');
+    const g1 = bare('garchomp'), g2 = bare('garchomp');
+    const S2 = M.battleInit([m2, a2], [g1, g2], { seeded: true });
+    const h = m2.curHP;
+    M.battleTurn(S2, rng5, new Map([[m2, { kind: 'pass' }], [a2, { kind: 'pass' }]]),
+      new Map([[g1, { kind: 'pass' }], [g2, { kind: 'pass' }]]));
+    return [m2.boosts.at, h - m2.curHP];
+  })();
+  return { works: test[0] >= 6 && test[1] === Math.floor(me.st.hp / 2) && control[0] === 0,
+           arms: { control, test },
+           detail: 'no click: atk ' + control[0] + ' hp cost ' + control[1]
+                 + ';  Belly Drum: atk ' + test[0] + ' (needs +6) hp cost ' + test[1]
+                 + ' (half is ' + Math.floor(me.st.hp / 2) + ')' };
 });
 
 probe('move', 'proceduralStatus', 'Tri Attack can burn, freeze or paralyse', () => {
@@ -1396,9 +1473,14 @@ probe('ability', 'reducesAllyDamage', 'Friend Guard cuts what the partner takes'
   return { works: fg < none, detail: 'took ' + none + ' with a plain partner  ->  ' + fg + ' with Friend Guard' };
 });
 
+/* THE TARGET WAS A CORVIKNIGHT AND CORVIKNIGHT IS STEEL, 2026-08-04. Steel types cannot be poisoned
+ * at all, so this arm read `none` with a fully working Poison Touch and would have reported the
+ * engine broken forever -- the twenty-first probe in this project to be wrong before the engine was,
+ * and the same shape as the Toxic-into-a-Steel case already recorded on this list. Milotic is pure
+ * Water: poisonable, and bulky enough to survive a Close Combat so the status has a body to land on. */
 probe('ability', 'poisonsOnMyContact', 'Poison Touch poisons on a contact hit', () => {
   const run = (ab) => {
-    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'corviknight', 'garchomp');
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'milotic', 'garchomp');
     me.ability = ab;
     M.battleTurn(S, () => 0.01, new Map([[me, M.playerAction(me, 'closecombat', f1, S.field)], [ally, { kind: 'pass' }]]),
       PASS2(f1, f2));
@@ -1551,11 +1633,20 @@ probe('move', 'partialTrap', 'Infestation chips at the end of each turn', () => 
                  + ', after an idle turn ' + f1.curHP };
 });
 
+/* ARMED, 2026-08-04. `2 / 2` is what Decorate grants and also what a probe reads off a body nobody
+ * touched if the engine ever seeded stages, so the control is the same turn without the click. */
 probe('move', 'boostsTarget', 'Decorate raises the partner', () => {
-  const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'decorate', ally, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  return { works: ally.boosts.at > 0, detail: 'partner atk stage ' + ally.boosts.at + ' spa ' + ally.boosts.sa };
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, click ? M.playerAction(me, 'decorate', ally, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [ally.boosts.at, ally.boosts.sa];
+  };
+  const control = run(false), test = run(true);
+  return { works: test[0] > 0 && test[1] > 0 && control[0] === 0 && control[1] === 0,
+           arms: { control, test },
+           detail: 'partner atk/spa without the click ' + control.join('/') + ', after Decorate ' + test.join('/') };
 });
 
 probe('move', 'clearsScreens', 'Brick Break removes the opposing Reflect', () => {
@@ -1636,38 +1727,95 @@ probe('move', 'punishesContact', 'Spiky Shield hurts the attacker it blocked', (
                  + '; blocked attacker lost ' + (before - f1.curHP) + ' hp' };
 });
 
-probe('move', 'critRatioUp', 'Night Slash is priced above the same move without its crit ratio', () => {
-  /* Same control trick as the Rock Blast probe: a COPY with the id changed carries no tag, so the
-   * only difference between the two calls is critRatioUp itself. */
-  const att = bare('weavile'), def = bare('garchomp');
-  const real = MC.moves['nightslash'];
-  if (!real) return { works: false, detail: 'nightslash not in MC.moves' };
-  const flat = Object.assign({}, real, { id: '__nightslash_nocrit' });
-  const a = M.dmgRange(att, def, flat, fresh(), false);
-  const b = M.dmgRange(att, def, real, fresh(), false);
-  return { works: b.max > a.max, detail: 'no crit ratio ' + a.max + '  ->  Night Slash ' + b.max };
+/* THIS PROBE ASKED dmgRange THE WRONG QUESTION AND WAS REWRITTEN, 2026-08-04.
+ *
+ * It used to read `dmgRange(Night Slash) > dmgRange(the same move with its id changed)` -- i.e. it
+ * demanded the PRICER carry a crit EXPECTATION. That is not a mechanic the range may have: dmgRange
+ * returns a min/max, `max` is the maximum roll, and tests/test-engine-diff.js compares exactly that
+ * against Showdown's non-crit damage. Folding 1.0625 into it would put every ratio move permanently
+ * out of step with the differential and would stop `max` meaning anything.
+ *
+ * The RATE belongs in the battle loop's roll, where a flat `rng()<1/24` already lived, so the probe
+ * is now behavioural and pinned at a roll that SEPARATES the two rates: 0.1 is below 1/8 (0.125) and
+ * above 1/24 (0.0417). A move at the base rate cannot crit on it; a move one stage up must.
+ *
+ * FOUR ARMS, because two cannot attribute it. Shell Armor is the discriminator on the ratio move, and
+ * Crunch -- Dark, physical, same attacker, same target, NO crit ratio -- is the control that must not
+ * move at all. An engine that simply raised the base rate for everything passes a two-armed version
+ * and fails here. */
+probe('move', 'critRatioUp', 'Night Slash crits on a roll Crunch does not', () => {
+  const rng10 = () => 0.1;
+  const run = (mvId, defAb) => {
+    const me = bare('weavile'), ally = bare('incineroar');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    f1.ability = defAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = f1.curHP;
+    M.battleTurn(S, rng10,
+      new Map([[me, M.playerAction(me, mvId, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const nsPlain = run('nightslash', 'none'), nsArmor = run('nightslash', 'shellarmor');
+  const cPlain = run('crunch', 'none'), cArmor = run('crunch', 'shellarmor');
+  return { works: nsPlain > nsArmor && nsArmor > 0 && cPlain === cArmor && cPlain > 0,
+           detail: 'roll 0.1 (above 1/24, below 1/8): Night Slash plain ' + nsPlain + ' / Shell Armor '
+                 + nsArmor + '   |   Crunch plain ' + cPlain + ' / Shell Armor ' + cArmor + ' (must be equal)' };
 });
 
+/* `preventsCrit` — 151 uses, never probed. Staged on an ALWAYS-crit move so the reading is exact and
+ * deterministic rather than a rate: Flower Trick is +50% on every hit, Shell Armor takes it back to
+ * the plain number, and a third arm (a move with no crit tag at all) shows the plain number is really
+ * the un-crit one rather than a coincidence. Through dmgRange because that is where the CERTAIN half
+ * of a crit lives (see WIRE 35). */
+probe('ability', 'preventsCrit', 'Shell Armor takes the guaranteed crit off Flower Trick', () => {
+  const att = bare('meowscarada');
+  const plain = bare('garchomp'), armor = bare('garchomp');
+  armor.ability = 'shellarmor';
+  const real = MC.moves['flowertrick'];
+  if (!real) return { works: false, detail: 'flowertrick not in MC.moves' };
+  const flat = Object.assign({}, real, { id: '__flowertrick_nocrit' });
+  const a = M.dmgRange(att, plain, real, fresh(), false).max;
+  const b = M.dmgRange(att, armor, real, fresh(), false).max;
+  const c = M.dmgRange(att, plain, flat, fresh(), false).max;
+  return { works: a > b && b === c,
+           detail: 'Flower Trick max: plain ' + a + ', Shell Armor ' + b + ', no crit tag at all ' + c
+                 + ' (Shell Armor must equal the untagged number)' };
+});
+
+/* ARMED, 2026-08-04. `0 / 0` on its own is also what a probe reads off two bodies whose stages were
+ * never set, so the control is the SAME staged stages with no Haze -- they must survive the turn. */
 probe('move', 'clearsBoosts', 'Haze wipes the boosts off both sides', () => {
-  const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
-  f1.boosts.at = 4; me.boosts.at = 2;
-  const act = M.playerAction(me, 'haze', null, S.field);
-  M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  return { works: f1.boosts.at === 0 && me.boosts.at === 0,
-           detail: 'resolved to kind ' + (act && act.kind) + '; after Haze: foe atk ' + f1.boosts.at
-                 + ', own atk ' + me.boosts.at + ' (both must be 0)' };
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    f1.boosts.at = 4; me.boosts.at = 2;
+    const act = click ? M.playerAction(me, 'haze', null, S.field) : { kind: 'pass' };
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { kind: act.kind, foe: f1.boosts.at, own: me.boosts.at };
+  };
+  const control = run(false), test = run(true);
+  return { works: test.foe === 0 && test.own === 0 && control.foe === 4 && control.own === 2,
+           arms: { control: [control.foe, control.own], test: [test.foe, test.own] },
+           detail: 'resolved to kind ' + test.kind + '; staged +4/+2 survives an idle turn as '
+                 + control.foe + '/' + control.own + ', after Haze ' + test.foe + '/' + test.own };
 });
 
+/* ARMED, 2026-08-04. `dealt 0` on the second click is also what an engine that never resolved the
+ * move at all prints, so the control is the same body clicking a move with NO lockout twice. */
 probe('move', 'cantUseTwice', 'Gigaton Hammer cannot be clicked twice in a row', () => {
-  const { me, ally, f1, f2, S } = board('tinkaton', 'corviknight', 'garchomp', 'garchomp');
   if (!MC.moves['gigatonhammer']) return { works: false, detail: 'gigatonhammer not in MC.moves' };
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'gigatonhammer', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  const first = f1.curHP;
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'gigatonhammer', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  return { works: (first - f1.curHP) === 0,
-           detail: 'second consecutive Gigaton Hammer dealt ' + (first - f1.curHP) + ' (must be 0)' };
+  const run = (mv) => {
+    const { me, ally, f1, f2, S } = board('tinkaton', 'corviknight', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const first = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return first - f1.curHP;
+  };
+  const control = run('playrough'), test = run('gigatonhammer');
+  return { works: test === 0 && control > 0, arms: { control: control > 0, test: test > 0 },
+           detail: 'second consecutive Play Rough dealt ' + control + ' (a move with no lockout must '
+                 + 'still land), second consecutive Gigaton Hammer dealt ' + test + ' (must be 0)' };
 });
 
 probe('move', 'terrainScaled', 'Expanding Force gains power on Psychic Terrain', () => {
@@ -1764,13 +1912,22 @@ probe('move', 'variablePower', 'Acrobatics doubles with no item held', () => {
 
 /* ---- BATCH 5 — the rest of the walk, down to about 800 corpus uses ------------------------------ */
 
+/* ARMED, 2026-08-04. `damage 0` on its own is also what a move dropped to `kind: pass` prints, so
+ * the control is the same turn with no click at all -- the STATUS is what must differ. */
 probe('move', 'statusCategory', 'Thunder Wave paralyses without dealing damage', () => {
-  const { me, ally, f1, f2, S } = board('raichu', 'incineroar', 'garchomp', 'garchomp');
-  const before = f1.curHP;
-  M.battleTurn(S, rng5,
-    new Map([[me, M.playerAction(me, 'thunderwave', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-  return { works: (before - f1.curHP) === 0 && f1.status === 'par',
-           detail: 'damage ' + (before - f1.curHP) + ' (must be 0), status ' + (f1.status || 'none') };
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('raichu', 'incineroar', 'garchomp', 'garchomp');
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, click ? M.playerAction(me, 'thunderwave', f1, S.field) : { kind: 'pass' }],
+               [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [before - f1.curHP, f1.status || 'none'];
+  };
+  const control = run(false), test = run(true);
+  return { works: test[0] === 0 && test[1] === 'par' && control[1] === 'none',
+           arms: { control, test },
+           detail: 'no click: damage ' + control[0] + ' status ' + control[1]
+                 + ';  Thunder Wave: damage ' + test[0] + ' (must be 0) status ' + test[1] };
 });
 
 probe('move', 'statSwap', 'Psyshock is scored against the target Defense', () => {
@@ -2112,12 +2269,33 @@ probe('item', 'curesVolatile', 'Mental Herb frees the holder from Taunt', () => 
   return { works: none === true && herb === false, detail: 'no item taunted=' + none + ', Mental Herb taunted=' + herb };
 });
 
-probe('move', 'multiAccuracy', 'Triple Axel rolls accuracy on every hit', () => {
-  /* THE TAG IS ABOUT THE ROLL, NOT THE POWER, so this asks the engine's own accuracy helper whether
-   * Triple Axel's effective hit chance is below its printed 90 -- three 90% rolls compound to 0.73.
-   * An engine that treats it as one 90% roll returns 90 and that equality is the null result. */
-  const acc = M.moveAccuracy('tripleaxel', fresh());
-  return { works: acc > 0 && acc < 90, detail: 'effective accuracy ' + acc + ' (one roll is 90, three compound to about 73)' };
+/* THIS PROBE ASKED FOR THE WRONG MODEL AND WAS REWRITTEN, 2026-08-04, beside the critRatioUp one.
+ *
+ * It read `moveAccuracy('tripleaxel') < 90` on the reasoning that three 90% rolls compound to 73%.
+ * That is wrong in both directions at once: the move still CONNECTS 90% of the time, because only the
+ * FIRST roll decides whether anything happens, and when it connects the damage is proportional to how
+ * many of the three hits landed. A 73%-accurate three-hit move under-counts the connections and
+ * over-counts the damage on every one of them.
+ *
+ * The mechanic is a discount on the HIT COUNT: 1 + p + p^2 = 2.71 hits rather than 3. So the probe
+ * asks the outcome through dmgRange, with a control that separates the two things that could produce
+ * a smaller number -- a COPY with the id changed carries no tags at all and is therefore ONE hit, and
+ * Rock Blast (multi-hit, 90 accuracy, NO multiAccuracy tag) must show no discount whatever. */
+probe('move', 'multiAccuracy', 'Triple Axel is priced below three full hits', () => {
+  const att = bare('weavile'), def = bare('garchomp');
+  const ta = MC.moves['tripleaxel'], rb = MC.moves['rockblast'];
+  if (!ta || !rb) return { works: false, detail: 'tripleaxel/rockblast not in MC.moves' };
+  const one = (mv) => M.dmgRange(att, def, Object.assign({}, mv, { id: '__' + mv.id + '_flat' }), fresh(), false).max;
+  const all = (mv) => M.dmgRange(att, def, mv, fresh(), false).max;
+  const taOne = one(ta), taAll = all(ta);
+  const rbOne = one(rb), rbAll = all(rb);
+  /* Rock Blast's expectation is 3.1 hits and carries no per-hit accuracy, so its ratio must stay at
+   * 3.1; Triple Axel's must fall from 3 to about 2.71. */
+  const taR = taAll / taOne, rbR = rbAll / rbOne;
+  return { works: taR > 2 && taR < 2.95 && rbR > 3.0,
+           detail: 'Triple Axel ' + taOne + ' x' + taR.toFixed(2) + ' = ' + taAll
+                 + ' (three full hits would be x3, the discount is x2.71);  Rock Blast ' + rbOne
+                 + ' x' + rbR.toFixed(2) + ' = ' + rbAll + ' (no per-hit roll, must stay x3.1)' };
 });
 
 /* ---- BATCH 7 — the leaf boundary, and the two dead wires test-tag-wire.js has been red on ------- */
@@ -2367,6 +2545,187 @@ probe('move', 'sealsMoves', 'Encore pins the foe to the move it just used', () =
            detail: `foe committed ${free.committed}; free choice two turns later was ${free.then}, after Encore ${pinned.then}` };
 });
 
+/* ---- BATCH 8 — THE WHOLE WEATHER SURFACE, AUDITED AT ONCE ---------------------------------------
+ *
+ * Will, 2026-08-04: *"Weather is something that is the deciding factor in like every game so we need
+ * to get it bulletproof."*
+ *
+ * WHY A BATCH AND NOT ANOTHER PROBE. Weather was found broken FOUR separate times in one day, each by
+ * a different route: the leaf boundary handed the engine `Sandstorm` while it compared against `sand`;
+ * `applyMegaWeather` never fired; the engine had no sandstorm residual at all and the probe passed by
+ * matching `magmaarmor` in the FREEZE table; and board.js maps the two weathers this format cannot
+ * produce. Four independent discoveries means they were being found one at a time by luck. So every
+ * path is probed here at once and each is treated as guilty until measured — setting, DURATION,
+ * expiry, the offensive multipliers in both directions, the defensive ones, the residual and its
+ * absence in snow, accuracy, the weather-dependent moves and the weather-dependent abilities.
+ *
+ * ALL ARMED. Every probe in this batch returns `arms: {control, test}`, so none of them can be a
+ * one-armed pass — see the comment on probe(). */
+
+/* THE DURATION AND THE EXPIRY, which is the class the single-hit differential structurally cannot
+ * see. Five turns, of which the setter's own is one, so a Flamethrower is still boosted on turn 5 and
+ * is NOT on turn 6. Read through real damage rather than off the field string, because a field value
+ * nothing reads is worth nothing — the exact failure the leaf boundary had. */
+probe('move', 'weatherDuration', 'Sunny Day lasts five turns and then stops boosting Fire', () => {
+  const run = (idle) => {
+    const { me, ally, f1, f2, S } = board('torkoal', 'incineroar', 'garchomp', 'garchomp');
+    me.ability = 'none';
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'sunnyday', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    for (let t = 0; t < idle; t++) M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return { w: S.field.weather || '', t: S.field.weatherT | 0,
+             dmg: M.dmgRange(me, f1, MC.moves['flamethrower'], S.field, false).max };
+  };
+  const t1 = run(0), t4 = run(3), t5 = run(4);
+  return { works: t1.w === 'sun' && t4.w === 'sun' && t5.w !== 'sun' && t4.dmg > t5.dmg,
+           arms: { control: [t4.w, t4.dmg], test: [t5.w, t5.dmg] },
+           detail: `turn 1 weather ${t1.w} (${t1.t} left) Flamethrower ${t1.dmg}; `
+                 + `after 3 idle turns ${t4.w} (${t4.t}) ${t4.dmg}; after 4 idle turns `
+                 + `${t5.w || 'CLEAR'} (${t5.t}) ${t5.dmg}` };
+});
+
+/* HEAT ROCK, and the artifact has carried the number all along: `extendsDuration {extends:["sunnyday"],
+ * toTurns:8}`. The SCREEN branch reads that tag (Light Clay); the WEATHER branch wrote a literal 5, so
+ * the four rocks were inert on the mechanic they exist for. Same tag, same shape, one consumer short. */
+probe('item', 'extendsDuration', 'Heat Rock keeps the sun up past turn five', () => {
+  const run = (item) => {
+    const { me, ally, f1, f2, S } = board('torkoal', 'incineroar', 'garchomp', 'garchomp');
+    me.ability = 'none'; me.item = item;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'sunnyday', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    for (let t = 0; t < 5; t++) M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return S.field.weather || 'CLEAR';
+  };
+  const control = run(''), test = run('heatrock');
+  return { works: control === 'CLEAR' && test === 'sun', arms: { control, test },
+           detail: `turn 6 weather: no item ${control}, Heat Rock ${test}` };
+});
+
+/* THE OFFENSIVE MULTIPLIERS, BOTH DIRECTIONS AND BOTH WEATHERS. A wire that boosted the matching type
+ * and forgot the halve is the likelier bug and reads as working on a two-armed probe. */
+probe('move', 'weatherDamageMult', 'sun raises Fire and halves Water, rain does the reverse', () => {
+  const att = bare('charizard'), def = bare('garchomp');
+  const at = (w, mv) => M.dmgRange(att, def, MC.moves[mv], Object.assign(fresh(), { weather: w }), false).max;
+  const fire = [at('', 'flamethrower'), at('sun', 'flamethrower'), at('rain', 'flamethrower')];
+  const water = [at('', 'surf'), at('sun', 'surf'), at('rain', 'surf')];
+  return { works: fire[1] > fire[0] && fire[2] < fire[0] && water[1] < water[0] && water[2] > water[0],
+           arms: { control: fire, test: water },
+           detail: `Flamethrower clear/sun/rain ${fire.join('/')};  Surf clear/sun/rain ${water.join('/')}` };
+});
+
+/* THE DEFENSIVE ONES, which are passive properties of the weather rather than abilities and which no
+ * ability chain could ever have caught. Re-measured rather than assumed to have survived this
+ * session's changes. The control is a body of the WRONG type in the same weather. */
+probe('move', 'weatherDefenceMult', 'sand raises a Rock SpD and snow raises an Ice Def', () => {
+  const spec = bare('alakazam'), phys = bare('garchomp');
+  const rock = bare('tyranitar'), notRock = bare('milotic');
+  const ice = bare('weavile'), notIce = bare('incineroar');
+  const at = (att, def, mv, w) => M.dmgRange(att, def, MC.moves[mv], Object.assign(fresh(), { weather: w }), false).max;
+  const sandRock = [at(spec, rock, 'shadowball', ''), at(spec, rock, 'shadowball', 'sand')];
+  const sandOther = [at(spec, notRock, 'shadowball', ''), at(spec, notRock, 'shadowball', 'sand')];
+  const snowIce = [at(phys, ice, 'earthquake', ''), at(phys, ice, 'earthquake', 'snow')];
+  const snowOther = [at(phys, notIce, 'earthquake', ''), at(phys, notIce, 'earthquake', 'snow')];
+  return { works: sandRock[1] < sandRock[0] && sandOther[1] === sandOther[0]
+                  && snowIce[1] < snowIce[0] && snowOther[1] === snowOther[0],
+           arms: { control: [sandOther, snowOther], test: [sandRock, snowIce] },
+           detail: `Shadow Ball into Rock clear/sand ${sandRock.join('/')} (into Water ${sandOther.join('/')}, `
+                 + `must not move);  Earthquake into Ice clear/snow ${snowIce.join('/')} `
+                 + `(into Fire ${snowOther.join('/')}, must not move)` };
+});
+
+/* ACCURACY, BOTH DIRECTIONS. Thunder is 70 in clear skies, cannot miss in rain and drops to 50 in sun.
+ * A wire that only knew about rain would pass a two-armed probe and be wrong on every sun board. */
+probe('move', 'weatherAccuracy', 'Thunder never misses in rain and is worse in sun', () => {
+  const at = w => M.moveAccuracy('thunder', Object.assign(fresh(), { weather: w }));
+  const clear = at(''), rain = at('rain'), sun = at('sun');
+  return { works: rain === 100 && clear < 100 && sun < clear,
+           arms: { control: clear, test: [rain, sun] },
+           detail: `Thunder accuracy: clear ${clear}, rain ${rain}, sun ${sun}` };
+});
+
+/* WEATHER BALL CHANGES ITS TYPE AS WELL AS ITS POWER, and the type is the half that decides whether it
+ * hits at all — so it is asked through a HARD ZERO, which no partial implementation can fake.
+ *
+ * THE FIRST VERSION FIRED IT AT A GARCHOMP AND REPORTED THE ENGINE BROKEN, which makes twenty-two.
+ * Garchomp is Dragon/GROUND, so the sand form (Rock) is RESISTED — 100 BP at x0.5 is the same number
+ * as 50 BP at x1, and `sand 43 vs clear 44` looked exactly like a dead knob. The engine was right and
+ * the type chart was doing its job. Gengar is Ghost/Poison: NORMAL does literally nothing to it and
+ * Water, Fire, Rock and Ice all land, so the clear-sky arm is 0 and every weather arm must not be. */
+probe('move', 'weatherBall', 'Weather Ball becomes a different move in each sky', () => {
+  const att = bare('alakazam'), def = bare('gengar');
+  const at = w => M.dmgRange(att, def, MC.moves['weatherball'], Object.assign(fresh(), { weather: w }), false).max;
+  const clear = at(''), rain = at('rain'), sun = at('sun'), sand = at('sand'), snow = at('snow');
+  return { works: clear === 0 && rain > 0 && sun > 0 && sand > 0 && snow > 0,
+           arms: { control: clear, test: [rain, sun, sand, snow] },
+           detail: `Weather Ball max into Gengar (Ghost, immune to NORMAL): clear ${clear} (must be 0), `
+                 + `rain ${rain} (Water), sun ${sun} (Fire), sand ${sand} (Rock), snow ${snow} (Ice)` };
+});
+
+/* SWIFT SWIM ONLY IN ITS OWN WEATHER. `speedCond` is already probed through Chlorophyll, and a wire
+ * that doubled Speed in ANY weather would pass that probe — so the third arm is the WRONG sky. */
+probe('ability', 'speedCondWrongWeather', 'Swift Swim doubles Speed in rain and does nothing in sun', () => {
+  const m = bare('basculegion'); m.item = '';
+  const at = (ab, w) => { m.ability = ab; return M.effSpeed(m, Object.assign(fresh(), { weather: w }), 'A'); };
+  const off = at('none', 'rain'), on = at('swiftswim', 'rain'), wrong = at('swiftswim', 'sun');
+  return { works: on > off * 1.9 && wrong === off, arms: { control: [off, wrong], test: on },
+           detail: `speed in rain: ability none ${off}, Swift Swim ${on}; Swift Swim in SUN ${wrong} `
+                 + '(must equal the no-ability number)' };
+});
+
+/* SOLAR POWER raises Special Attack in sun and must leave a PHYSICAL move alone — the natural
+ * mis-statement of the rule is "it boosts damage in sun", and that version is wrong on half the
+ * movepool of every body that carries it. */
+probe('ability', 'solarPower', 'Solar Power raises a special move in sun and not a physical one', () => {
+  const off = bare('charizard'), on = bare('charizard');
+  on.ability = 'solarpower';
+  const def = bare('garchomp');
+  const at = (m, mv, w) => M.dmgRange(m, def, MC.moves[mv], Object.assign(fresh(), { weather: w }), false).max;
+  const spec = [at(off, 'flamethrower', 'sun'), at(on, 'flamethrower', 'sun')];
+  const phys = [at(off, 'earthquake', 'sun'), at(on, 'earthquake', 'sun')];
+  const noSun = [at(off, 'flamethrower', ''), at(on, 'flamethrower', '')];
+  return { works: spec[1] > spec[0] && phys[1] === phys[0] && noSun[1] === noSun[0],
+           arms: { control: [phys, noSun], test: spec },
+           detail: `in sun, Flamethrower ${spec.join(' -> ')}; Earthquake ${phys.join(' -> ')} (must not move); `
+                 + `no sun, Flamethrower ${noSun.join(' -> ')} (must not move)` };
+});
+
+/* THE MEGA'S WEATHER, and this is the path PRIORITIES #37 and #40b are both about. A mega body must
+ * set the weather its MEGA ability names, not its base forme's — Charizard's Blaze sets nothing and
+ * Charizard-Mega-Y's Drought sets sun. Driven through a real battleInit rather than by calling
+ * applyEntryEffects by hand, because the entry path is where both of those bugs lived. */
+probe('ability', 'megaWeatherSetter', 'a mega sets the weather its MEGA ability names', () => {
+  /* THE CONTROL HAD A CHARIZARDITE IN IT, which makes twenty-three and is the ORIGINAL Choice Scarf
+     mistake verbatim: buildMon hands a Pokemon its USAGE item, and Charizard's is Charizardite Y, so
+     the "base forme" arm was already a mega and already set sun. The item is blanked and the ability
+     forced to the base forme's, so the two arms differ by exactly the mega. */
+  const run = (sp, ab) => {
+    const me = M.buildMon(sp, {}); if (!me) return 'NO ROW';
+    me.item = ''; if (ab) me.ability = ab;
+    const ally = bare('incineroar'), f1 = bare('garchomp'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], {});
+    return S.field.weather || 'CLEAR';
+  };
+  const control = run('charizard', 'blaze'), test = run('charizard-mega-y', null);
+  return { works: control === 'CLEAR' && test === 'sun', arms: { control, test },
+           detail: `base Charizard (Blaze) sets ${control}; Charizard-Mega-Y (Drought) sets ${test}` };
+});
+
+/* AIR LOCK AND CLOUD NINE — PROBED AND DECLARED ABSENT, WITH THE NUMBER. They suppress every weather
+ * effect while they are on the field, and NOTHING in this engine reads either: `cloudnine` carries
+ * `untagged` in data/tags.json and `airlock` carries no entry at all, so there is no artifact to wire
+ * from and no consumer to wire it into. This probe exists so the gap is a CENSUS ROW rather than a
+ * sentence in a document — the census is the only place a claim about the engine cannot be softened.
+ * It reads MISSING on purpose and will keep reading MISSING until somebody derives the tag. */
+probe('ability', 'weatherSuppression', 'Air Lock stops the sun boosting Fire', () => {
+  const att = bare('charizard'), def = bare('garchomp');
+  const run = (ab) => { def.ability = ab;
+    return M.dmgRange(att, def, MC.moves['flamethrower'], Object.assign(fresh(), { weather: 'sun' }), false).max; };
+  const control = run('none'), test = run('airlock');
+  return { works: control > test, arms: { control, test },
+           detail: `Flamethrower in sun: plain defender ${control}, Air Lock defender ${test} `
+                 + '(must be the clear-weather number)' };
+});
+
 /* ---- REPORT ------------------------------------------------------------------------------------- */
 
 const works = results.filter(r => r.works);
@@ -2387,8 +2746,29 @@ if (missing.length) {
 /* ---- THE HOLLOW CHECK, run over the WHOLE census in one pass ------------------------------------ */
 
 const hollow = results.filter(r => r.hollow);
-console.log(`\n  hollow probes (read the engine SOURCE instead of running it): ${hollow.length}`);
+console.log(`\n  hollow probes (read the engine SOURCE, or return two arms that AGREE): ${hollow.length}`);
 for (const r of hollow) console.log('    !! ' + r.kind + ' `' + r.tag + '` — ' + r.label);
+
+/* ---- THE ARMS RATCHET --------------------------------------------------------------------------
+ *
+ * `unarmed` is the number of probes that do NOT return `arms: {control, test}` and therefore cannot
+ * be checked structurally. It may fall and it may never rise, which is the whole thing that stops an
+ * opt-in protocol from being an opt-out: a probe written without arms fails the file rather than
+ * quietly exempting itself, which is the hole the previous pass costed and declined to close.
+ * The baseline is read out of the census ARTIFACT rather than typed here, so it is a fact and not a
+ * literal somebody edits down. */
+const armed = results.filter(r => r.armed).length;
+const unarmed = results.length - armed;
+let armBase = null;
+try { armBase = JSON.parse(fs.readFileSync(D('data', 'mechanics-census.json'), 'utf8')).unarmed; }
+catch (e) { /* first run under the protocol: there is no baseline to hold */ }
+console.log('  probes returning arms {control, test}: ' + armed + ' of ' + results.length
+  + '   (' + unarmed + ' unarmed — RATCHETED: it may fall and may never rise)');
+if (armBase != null && unarmed > armBase) {
+  console.log('\n  FAILED: unarmed probes ' + armBase + ' -> ' + unarmed + '. A new probe must return '
+    + 'its arms, or the opt-in protocol is an opt-out. See the comment on probe().');
+  process.exitCode = 1;
+}
 
 /* THE SECOND DETECTOR IS MEASURED, NOT ASSERTED, AND THE MEASUREMENT IS THE REASON.
  *
@@ -2424,13 +2804,16 @@ fs.writeFileSync(D('data', 'mechanics-census.json'), JSON.stringify({
         + 'compared a Choice Scarf against a Basculegion that buildMon had already given a Choice '
         + 'Scarf and reported the engine broken.',
   probed: results.length, live: works.length, missing: missing.length,
+  /* THE ARMS PROTOCOL. An `armed` probe returns {control, test} and is checked structurally for
+   * agreement; `unarmed` is the ratcheted number that may never rise. */
+  armed, unarmed,
   /* Counted apart from `missing`: a probe that threw has not shown the mechanic ABSENT, only that it
    * could not ask. Both are non-live; only one is evidence about the engine. */
   threw,
   /* Written to the artifact so a ratchet can hold it at zero without re-running the reasoning. */
   hollow: hollow.length,
   results: results.map(r => ({ kind: r.kind, tag: r.tag, label: r.label, live: r.works, detail: r.detail,
-                               hollow: !!r.hollow })),
+                               hollow: !!r.hollow, armed: !!r.armed })),
 }, null, 2) + '\n');
 console.log('\n  wrote data/mechanics-census.json');
 /* Exits 0 for a MISSING mechanic — that is the honest current state of several of these, and a census

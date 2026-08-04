@@ -45,6 +45,7 @@
  * however confident the comment above it sounds.
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');
@@ -97,6 +98,21 @@ function usage() {
  * and return the actual numbers. */
 const WEATHER = { raindance: 'rain', primordialsea: 'heavy rain', sunnyday: 'sun',
   desolateland: 'harsh sun', sandstorm: 'sand', hail: 'hail', snowscape: 'snow', snow: 'snow' };
+/* ONE MAP FOR THE ENGINE'S VOCABULARY, and this file had THREE. 2026-08-04, found by the weather
+ * audit's grep for survivors.
+ *
+ * `WEATHER` above is a DISPLAY map -- it keeps `heavy rain`, `harsh sun` and `hail` as distinct
+ * English names because it is describing a handler to a reader. The map that matters is this one: the
+ * words `medicham2-browser.js` actually compares against, which are four and only four. The two
+ * copies that used to sit inside `weatherScaled` and `weatherSetter` were identical to each other and
+ * NOT to the display map -- `hail` was 'hail' in one and 'snow' in the others -- which is exactly the
+ * split that made the leaf boundary meaningless. Both now read this.
+ *
+ * PRIMORDIAL SEA AND DESOLATE LAND MAP ONTO PLAIN RAIN AND SUN, and that is a DECISION with a number
+ * behind it: 0 occurrences in 339,483 boards. See docs/ENGINE.md — they are unimplemented until a
+ * primal Kyogre or Groudon enters the format. */
+const W2ENGINE = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain',
+                   sandstorm: 'sand', hail: 'snow', snowscape: 'snow', snow: 'snow' };
 
 function weatherIn(src) {
   const found = [];
@@ -212,8 +228,14 @@ function statusOdds(m, st) {
 const MOVE_TAGS = [
   { tag: 'multiHit', param: 'hits = n (or a distribution)', probe: 'multihit',
     why: 'total damage is n x base, and it BREAKS Focus Sash and Sturdy -- the first hit takes the holder to 1, the rest kill',
+    /* HOW MANY, and until 2026-08-04 the param said only "fixed". A consumer therefore could not tell
+     * Dual Wingbeat (2) from Triple Axel (3) from POPULATION BOMB (10), and medicham2's
+     * expectedHitsOf defaulted every one of them to 2 -- so the format's largest multi-hit move was
+     * priced at a fifth of its damage. The dex declares the number; read it. */
     of: m => m.multihit ? { readFrom: 'm.multihit',
-      distribution: Array.isArray(m.multihit) ? '2:35 3:35 4:15 5:15' : 'fixed' } : null },
+      distribution: Array.isArray(m.multihit) ? '2:35 3:35 4:15 5:15' : 'fixed',
+      hits: Array.isArray(m.multihit) ? null : +m.multihit,
+      range: Array.isArray(m.multihit) ? m.multihit.slice() : null } : null },
   /* Will, 2026-07-29: "most gambit use defiant but the supreme overlord needs a count of the dead
    * like last respects ... and i think that only works on first switchin, then the status is tuck".
    * Both right, and both read from the handlers: Last Respects is 50 + 50 x side.totalFainted read
@@ -249,8 +271,7 @@ const MOVE_TAGS = [
     why: 'Weather Ball (4,699), Thunder, Hurricane, Blizzard, Solar Beam (2,477), Growth, and the '
        + 'weather heals. The engine cannot price "it depends on the weather"; it can price x2 in sand',
     of: m => {
-      const W2K = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain',
-                    sandstorm: 'sand', hail: 'snow', snowscape: 'snow' };
+      const W2K = W2ENGINE;
       const by = {};
       const put = (ws, k, v) => { for (const w of ws) { const key = W2K[w]; if (key) (by[key] = by[key] || {})[k] = v; } };
       const fxInBody = (body, ws) => {
@@ -346,7 +367,12 @@ const MOVE_TAGS = [
   { tag: 'blocksSoundMoves', param: 'they cannot use sound moves for 2 turns', probe: 'throatchop',
     why: 'Throat Chop. The sound flag already exists on the moves it blocks, so this is a join rather '
        + 'than new information',
-    of: m => (m.volatileStatus === 'throatchop' || /throatchop/.test(norm(m.id))) ? { blocks: 'sound' } : null },
+    /* THE DURATION IS READ, NOT TYPED. The param used to say `{blocks:'sound'}` and the prose above
+     * said "for 2 turns", so a consumer had to type the 2 itself -- the same shape that gave Disable
+     * one turn instead of five when sealsMoves carried no number. Showdown declares it on the
+     * condition. */
+    of: m => (m.volatileStatus === 'throatchop' || /throatchop/.test(norm(m.id)))
+             ? { blocks: 'sound', turns: (m.condition && m.condition.duration) || null } : null },
   /* Will's run of questions -- "does last respects have a death counter it can refer to", "does
    * stomping tantrum have a check last move fail counter", "do all the variable power moves have
    * respective lookup tables for each pokemon" -- all have the same answer: NO.
@@ -480,7 +506,10 @@ const MOVE_TAGS = [
   { tag: 'multiAccuracy', param: 'each hit rolls accuracy SEPARATELY, so expected hits < hit count', probe: 'multiaccuracy',
     why: 'Triple Axel lands all 3 only 73% of the time at 90% each; Population Bomb all 10 just 35%. '
        + 'Applying accuracy once to the whole move overstates both',
-    of: m => m.multiaccuracy ? { perHit: true } : null },
+    /* THE PER-HIT ACCURACY IS CARRIED, because the consumer cannot get it anywhere else: medicham2's
+     * accuracy table is a hand-typed 35-move literal and neither Triple Axel nor Population Bomb is
+     * in it, so `moveAccuracy` returns 100 for both and the discount would compute to nothing. */
+    of: m => m.multiaccuracy ? { perHit: true, accuracy: (m.accuracy === true ? 100 : m.accuracy) } : null },
   /* Will found the whole CLASS: "welcome to the wide world of attacking a user with an item".
    * Two moves read the TARGET's item and nothing in the engine passed it to them. board.js now
    * tracks observed items, so this is finally computable.
@@ -825,7 +854,22 @@ const MOVE_TAGS = [
   { tag: 'overridesEffectiveness', param: 'the type chart is WRONG for this move', probe: 'onEffectiveness',
     why: 'Freeze-Dry, 748 uses: x2 into Water where the chart says x0.5. A 4x error, and mcEff is a '
        + 'static lookup that cannot see the handler',
-    of: m => m.onEffectiveness ? { overrides: true } : null },
+    /* THE OVERRIDE IS READ OUT OF THE HANDLER. `{overrides:true}` said the chart is wrong and never
+     * said HOW, so a consumer could only know to distrust mcEff -- which is worth nothing. Showdown's
+     * onEffectiveness returns the TYPE MODIFIER for one of the defender's types, replacing the chart's
+     * contribution: Freeze-Dry returns 1 for Water, i.e. one step super-effective instead of the
+     * chart's one step resisted, which is the whole 4x. `perType` maps the type name to the returned
+     * modifier; a member whose handler this cannot parse gets a null and stays visibly unwired.
+     * Flying Press is the second member and it ADDS a type rather than overriding one -- its handler
+     * calls `runEffectiveness` with a second type -- so it parses to nothing, which is correct. */
+    of: m => {
+      if (!m.onEffectiveness) return null;
+      const h = String(m.onEffectiveness).replace(/\s+/g, ' ');
+      const perType = {};
+      for (const mm of h.matchAll(/type\s*===\s*["']([A-Za-z]+)["']\s*\)\s*return\s+(-?\d+)/g))
+        perType[mm[1]] = +mm[2];
+      return Object.keys(perType).length ? { overrides: true, perType } : { overrides: true, perType: null };
+    } },
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
     of: m => (m.flags && m.flags.sound) ? { sound: true } : null },
@@ -874,7 +918,30 @@ const MOVE_TAGS = [
   { tag: 'punishesContact', param: 'the attacker pays for touching the shield', probe: 'punishesContact',
     why: 'Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with '
        + 'a condition, and it makes clicking a contact move into a likely Protect worse than it looks',
-    of: m => (m.stallingMove && m.condition && m.condition.onHit) ? { onContact: true } : null },
+    /* WHAT IT COSTS IS READ OUT OF THE HANDLER, not assumed. `{onContact:true}` named the trigger and
+     * gave a consumer nothing to apply, so three moves that do three completely different things --
+     * Spiky Shield chips 1/8, Baneful Bunker POISONS, King's Shield drops Attack -- were one
+     * indistinguishable boolean. A consumer that guessed would have been wrong on two of the three.
+     * The block itself lives on `condition.onTryHit`; `condition.onHit` is only the Z-move path, and
+     * gating membership on it was already correct because every member carries both. */
+    of: m => {
+      if (!(m.stallingMove && m.condition && m.condition.onHit)) return null;
+      const h = String(m.condition.onTryHit || '') + String(m.condition.onHit || '');
+      const p = { onContact: true };
+      const dmg = h.match(/damage\(\s*source\.baseMaxhp\s*\/\s*(\d+)/);
+      if (dmg) p.fraction = +dmg[1];
+      const st = h.match(/trySetStatus\(\s*["']([a-z]+)["']/);
+      if (st) p.inflicts = st[1];
+      const bo = h.match(/boost\(\s*\{([^}]*)\}/);
+      if (bo) {
+        const b = {};
+        for (const kv of bo[1].split(',')) {
+          const mm = kv.match(/([a-z]+)\s*:\s*(-?\d+)/); if (mm) b[mm[1]] = +mm[2];
+        }
+        if (Object.keys(b).length) p.boosts = b;
+      }
+      return p;
+    } },
   { tag: 'stalling', param: 'is a Protect-family move', probe: 'stallingMove',
     why: 'protectThreatened and deadStall both hang off it',
     of: m => m.stallingMove ? { stalling: true } : null },
@@ -1149,9 +1216,36 @@ const MOVE_TAGS = [
   { tag: 'statChangeInCode', param: 'stat changes exist but are computed, not declared in a field', probe: 'statChangeInCode',
     why: 'Curse (differs for Ghost types), Scale Shot. Nothing can read the actual numbers off the '
        + 'dex, so they need a hand-written case or a live probe -- flagged rather than missed',
-    of: m => (!m.boosts && !(m.self && m.self.boosts)
-              && /boost/i.test(String(m.onHit || '') + String(m.onModifyMove || '')))
-             ? { procedural: true } : null },
+    /* THE LITERAL BOOST OBJECT IS READ, and only a literal one. `{procedural:true}` was carried by
+     * twelve moves and named nothing a consumer could apply -- including PARTING SHOT at 7,184 corpus
+     * uses, the single most-clicked move in the format whose effect this engine does not model, and
+     * Belly Drum, which is a census probe.
+     *
+     * WHY A LITERAL ONLY, and this is the over-match guard rather than laziness: Topsy-Turvy INVERTS
+     * every stage, Psych Up COPIES the target's, Guard Swap and Power Swap EXCHANGE them, Acupressure
+     * picks one at RANDOM and Strength Sap scales off the target's Attack. Every one of those is a
+     * `boost` call with no literal object, none of them is expressible as a stage table, and a
+     * consumer handed a made-up one would be wrong on all five. They keep the tag, get no numbers,
+     * and stay visibly unwired.
+     * WHO it lands on comes from the move's own `target` field: Belly Drum is `self`, Parting Shot is
+     * `normal`. `costFraction` is Belly Drum's directDamage. */
+    of: m => {
+      if (m.boosts || (m.self && m.self.boosts)) return null;
+      const h = String(m.onHit || '') + String(m.onModifyMove || '');
+      if (!/boost/i.test(h)) return null;
+      const p = { procedural: true };
+      const bo = h.replace(/\s+/g, ' ').match(/this\.boost\(\s*\{([^}]*)\}/);
+      if (bo) {
+        const b = {};
+        for (const kv of bo[1].split(',')) {
+          const mm = kv.match(/([a-z]+)\s*:\s*(-?\d+)/); if (mm) b[mm[1]] = +mm[2];
+        }
+        if (Object.keys(b).length) { p.boosts = b; p.on = (m.target === 'self' ? 'user' : 'target'); }
+      }
+      const dd = h.replace(/\s+/g, ' ').match(/directDamage\(\s*\w+\.maxhp\s*\/\s*(\d+)/);
+      if (dd) p.costFraction = 1 / +dd[1];
+      return p;
+    } },
   { tag: 'lowersUser', param: 'WHICH of my own stats drop, as the price of the move', probe: 'movesLowerMe',
     why: 'Close Combat (5,487 uses) pays -1 Def and -1 SpD; Draco Meteor, Overheat and Make It Rain '
        + 'pay -2 SpA. movesBoostMe only fires on a POSITIVE change, so all of them read as having no '
@@ -1655,8 +1749,17 @@ const ITEM_TAGS = [
   { tag: 'curesVolatile', param: 'clears Taunt/Encore/Disable/Attract the moment one lands, then is gone', probe: 'onUpdate',
     why: 'Mental Herb. It silently undoes the whole point of a Taunt or an Encore, so any value the '
        + 'bot assigns to landing one is wrong against a holder',
-    of: i => (i.onUpdate && /taunt|encore|disable|attract|healblock|torment/i.test(String(i.onUpdate)))
-             ? { oneShot: true } : null },
+    /* WHICH VOLATILES. `{oneShot:true}` named the shape and not the SET, and the set is the whole
+     * mechanic: Mental Herb frees a Taunt, an Encore, a Disable, an Attract, a Torment and a Heal
+     * Block, and it does NOT touch confusion, a Leech Seed or a partial trap. A consumer reading the
+     * boolean would have made it a universal volatile eraser. The handler declares the list. */
+    of: i => {
+      if (!(i.onUpdate && /taunt|encore|disable|attract|healblock|torment/i.test(String(i.onUpdate))))
+        return null;
+      const l = String(i.onUpdate).match(/conditions\s*=\s*\[([^\]]*)\]/);
+      const cures = l ? l[1].split(',').map(x => x.replace(/[^a-z]/gi, '')).filter(Boolean) : null;
+      return { oneShot: true, cures };
+    } },
   { tag: 'boostsSuperEffective', param: 'x1.2 damage, but only on a super-effective hit', probe: 'onModifyDamage',
     why: 'Expert Belt. Conditional on the type matchup rather than flat, so it changes WHICH target '
        + 'is the right one to hit, not just how hard',
@@ -1685,9 +1788,22 @@ const ITEM_TAGS = [
   { tag: 'curesStatus', param: 'a status is removed the moment it lands', probe: 'lumberry',
     why: 'Lum (107 uses), Chesto, Rawst. Every status move aimed at the holder is a wasted turn, and '
        + 'inflictsStatus has no idea',
-    of: it => (it.isBerry && !it.onSourceModifyDamage
-               && /cureStatus|setStatus|status/i.test(String(it.onUpdate || it.onAfterSetStatus || '')))
-              ? { cures: true } : null },
+    /* WHICH STATUS. `{cures:true}` is carried by six berries and only ONE of them cures everything:
+     * Lum. Cheri cures paralysis and nothing else, Rawst burn, Chesto sleep, Pecha poison AND toxic,
+     * Aspear freeze. A consumer reading the boolean would have made a Cheri Berry cure a Will-O-Wisp.
+     * The handler names the statuses it tests for; a member whose handler tests `pokemon.status`
+     * bare (Lum) cures ANY, and that is emitted as the explicit string 'any' rather than as an
+     * absent field, so "cures everything" and "the derivation found nothing" cannot be confused. */
+    of: it => {
+      if (!(it.isBerry && !it.onSourceModifyDamage
+            && /cureStatus|setStatus|status/i.test(String(it.onUpdate || it.onAfterSetStatus || ''))))
+        return null;
+      const h = String(it.onUpdate || '') + String(it.onAfterSetStatus || '');
+      const named = [...h.matchAll(/status\s*===\s*["']([a-z]+)["']/g)].map(x => x[1]);
+      /* `pokemon.status ||` with no equality test is Lum: any status at all. */
+      const anyStatus = /pokemon\.status\s*\|\|/.test(h) || /onAfterSetStatus\(status/.test(h);
+      return { cures: true, statuses: named.length ? [...new Set(named)] : (anyStatus ? 'any' : null) };
+    } },
   /* Will: "all berries proc at half i thought, sitrus just heals 1/4 hp right."
    * Half right, and my tag was worse than the question. `healsAtHalf` named the TRIGGER and never
    * the AMOUNT, so it could not price the berry at all -- and the trigger is not universal: Sitrus
@@ -1876,7 +1992,14 @@ const ABILITY_TAGS = [
   { tag: 'disablesAttacker', param: 'the move I just used is removed from MY options', probe: 'cursedbody',
     why: 'Cursed Body (833 uses). Not damage and not a stat change -- it shrinks my own option set, '
        + 'the same shape as locksTarget from the receiving end',
-    of: a => (a.onDamagingHit && /disable/i.test(String(a.onDamagingHit))) ? { disables: true } : null },
+    /* THE CHANCE IS READ. `{disables:true}` said it happens and never how often; Cursed Body is
+     * `randomChance(3, 10)`, so a consumer that applied it on every hit would make Gengar and Froslass
+     * into permanent Disable machines. */
+    of: a => {
+      if (!(a.onDamagingHit && /disable/i.test(String(a.onDamagingHit)))) return null;
+      const c = String(a.onDamagingHit).match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      return { disables: true, chance: c ? (+c[1] / +c[2]) : null };
+    } },
   /* FOUND BY THE COVERAGE CHECK Will asked for -- listing everything above 0.05% usage regardless of
    * whether it carries a tag exposed twelve common abilities the probes had missed entirely, because
    * each uses a handler nothing was looking at. Adaptability at 4.34% is a straight damage
@@ -2192,9 +2315,7 @@ const ABILITY_TAGS = [
     of: a => {
       const m = a.onStart && String(a.onStart).match(/setWeather\(\s*["'](\w+)["']/);
       if (!m) return null;
-      const W2K = { sunnyday: 'sun', desolateland: 'sun', raindance: 'rain', primordialsea: 'rain',
-                    sandstorm: 'sand', hail: 'snow', snowscape: 'snow', snow: 'snow' };
-      return { weather: W2K[m[1]] || m[1] };
+      return { weather: W2ENGINE[m[1]] || m[1] };
     } },
   { tag: 'terrainSetter', param: 'terrain := WHICH on switch-in', probe: 'terrainSetter',
     why: 'same shape as weather',
@@ -2495,7 +2616,28 @@ const ABILITY_TAGS = [
   { tag: 'boostsEachTurn', param: 'a stat rises every turn it stays in, with no action spent', probe: 'boostsEachTurn',
     why: 'Speed Boost. Compounds silently -- it outruns things it could not outrun two turns ago, '
        + 'and nothing recomputes the speed order for a boost nobody clicked',
-    of: a => (a.onResidual && /boost/i.test(String(a.onResidual))) ? { perTurn: true } : null },
+    /* WHICH STAT, OR NOTHING. `{perTurn:true}` is true of Speed Boost, Moody and Opportunist and they
+     * are three different mechanics: Speed Boost is a flat `boost({spe:1})`, Moody picks a RANDOM stat
+     * up two and another down one, and Opportunist COPIES whatever the foe just gained. A consumer
+     * reading only `perTurn` would have handed all three a Speed boost -- 453 corpus uses of an
+     * ability that does not raise Speed. Only a literal boost object is emitted; the other two carry
+     * the tag with no boosts and stay visibly unwired. */
+    of: a => {
+      if (!(a.onResidual && /boost/i.test(String(a.onResidual)))) return null;
+      const p = { perTurn: true };
+      const h = String(a.onResidual);
+      /* A LITERAL object only. Moody builds `boost` from `this.sample(stats)` and Opportunist passes
+       * `this.effectState.boosts`; neither matches, which is the point. */
+      const bo = h.match(/this\.boost\(\s*\{([^}]*)\}/);
+      if (bo) {
+        const b = {};
+        for (const kv of bo[1].split(',')) {
+          const mm = kv.match(/([a-z]+)\s*:\s*(-?\d+)/); if (mm) b[mm[1]] = +mm[2];
+        }
+        if (Object.keys(b).length) p.boosts = b;
+      }
+      return p;
+    } },
   { tag: 'blocksExplosion', param: 'self-destructing moves simply fail while it is on the field', probe: 'onAnyTryMove',
     why: 'Damp. It reaches across the whole field, not just its own side, so it invalidates an '
        + 'opposing Explosion the bot would otherwise score as a big hit',
@@ -2666,8 +2808,23 @@ function handlerText(o) {
   return out;
 }
 
+/* PRIORITIES #44 -- CARRIERS AND REACTORS ARE DIFFERENT RELATIONS AND HAD ONE KEY. 2026-08-04.
+ *
+ * `reactorsTo('contact').moves` returned 152 moves that CARRY contact -- Fake Out, Close Combat,
+ * Flare Blitz. Those are attackers. The moves that actually REACT to contact -- Baneful Bunker,
+ * Spiky Shield, King's Shield -- were not in the index at all and were reachable only through their
+ * own `punishesContact` tag. A consumer handed the wrong list looks exactly like a consumer that is
+ * working, which is this project's signature failure, and it is now on the critical path because
+ * tests/test-game-diff.js GENERATES its interaction cases from this index.
+ *
+ * The split is `carrierMoves` (the move has the property) versus `reactorMoves` (the move's own
+ * handler tests for it), and the reactor side is derived by the SAME handler probe already used for
+ * abilities and items rather than by a second rule -- so a move and an ability that react to contact
+ * are found the same way. `moves` is deliberately GONE rather than left as an alias: an alias would
+ * keep every existing misreading working silently, and there are no consumers of it (checked:
+ * engine/tags.js and the medicham2 stub are the only readers, and neither uses the field). */
 const linkage = {};
-for (const K of KEYS) linkage[K.key] = { note: K.note, abilities: [], items: [], moves: [] };
+for (const K of KEYS) linkage[K.key] = { note: K.note, abilities: [], items: [], carrierMoves: [], reactorMoves: [] };
 for (const [kind, tbl, dexAll] of [['abilities', abils.entries, dex.abilities.all()],
                                    ['items', items.entries, dex.items.all()]]) {
   for (const o of dexAll) {
@@ -2694,22 +2851,29 @@ for (const m of dex.moves.all()) {
     else if (K.key === 'statusMove')   hit = m.category === 'Status';
     else if (K.key === 'physicalMove') hit = m.category === 'Physical';
     else if (K.key === 'specialMove')  hit = m.category === 'Special';
-    if (hit) linkage[K.key].moves.push({ id, name: m.name, uses: u });
+    if (hit) linkage[K.key].carrierMoves.push({ id, name: m.name, uses: u });
+    /* THE REACTOR SIDE OF THE MOVE TABLE, by the same handler probe the abilities and items use.
+     * Spiky Shield's condition tests checkMoveMakesContact; Quick Guard's tests move.priority. A move
+     * can be both -- Beak Blast CARRIES nothing and REACTS to contact during its charge turn. */
+    if (K.test.test(handlerText(m) + String((m.condition && handlerText(m.condition)) || '')))
+      linkage[K.key].reactorMoves.push({ id, name: m.name, uses: u });
   }
 }
 for (const k in linkage) {
-  for (const side of ['abilities','items','moves']) linkage[k][side].sort((a,b) => b.uses - a.uses);
-  linkage[k].moveUses    = linkage[k].moves.reduce((s,x) => s + x.uses, 0);
-  linkage[k].reactorUses = [...linkage[k].abilities, ...linkage[k].items].reduce((s,x) => s + x.uses, 0);
+  for (const side of ['abilities','items','carrierMoves','reactorMoves'])
+    linkage[k][side].sort((a,b) => b.uses - a.uses);
+  linkage[k].moveUses    = linkage[k].carrierMoves.reduce((s,x) => s + x.uses, 0);
+  linkage[k].reactorUses = [...linkage[k].abilities, ...linkage[k].items, ...linkage[k].reactorMoves]
+    .reduce((s,x) => s + x.uses, 0);
 }
 
 console.log('');
 console.log('LINKAGE -- move properties, and what subscribes to them:');
 console.log('  key             moves carrying it      things that react');
 for (const [k, v] of Object.entries(linkage).sort((a,b) => b[1].reactorUses - a[1].reactorUses)) {
-  const r = v.abilities.length + v.items.length;
+  const r = v.abilities.length + v.items.length + v.reactorMoves.length;
   if (!r) continue;
-  console.log('  ' + k.padEnd(15) + String(v.moves.length).padStart(4) + ' moves / ' +
+  console.log('  ' + k.padEnd(15) + String(v.carrierMoves.length).padStart(4) + ' moves / ' +
     String(v.moveUses).padStart(6) + ' uses   ' + String(r).padStart(3) + ' reactors / ' +
     String(v.reactorUses).padStart(6) + ' sheets');
 }

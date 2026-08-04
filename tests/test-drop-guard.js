@@ -23,6 +23,7 @@
  *      there is one place features are built and the drop lives inside it.
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');

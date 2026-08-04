@@ -21,6 +21,7 @@
  * pure prior samplers. See tests/test-policy-parity.js.
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const path = require('path');
 const fs = require('fs');
 

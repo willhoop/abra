@@ -80,7 +80,20 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
   magicGuardChip: 0,
   /* A terrain string neither vocabulary recognises (see terrainId). Returning the raw value is what
    * made the weather bug: truthy, and matching nothing. */
-  terrainUnknown: 0, terrainUnknownFirst: '' };
+  terrainUnknown: 0, terrainUnknownFirst: '',
+  /* A `critRatioUp` carrier this engine deliberately does NOT read (WIRE 35). The tag's only param is
+   * `critRatio: 2`, which cannot express Merciless's condition -- it is a GUARANTEED crit into a
+   * poisoned target, not a permanent stage bump -- and Super Luck, which genuinely is a permanent
+   * bump, is indistinguishable from it in the artifact. Wiring both would hand Merciless an
+   * unconditional 1/8 it never has. 15 corpus uses between them; counted rather than name-checked. */
+  critRatioAbility: 0,
+  /* A `damageReduce` carrier whose `onlyWhen` this engine cannot evaluate (WIRE 36). Ripen carries
+   * `damageMult: 0.5, onlyWhen: null` and is not a damage cut at all -- it DOUBLES berry effects --
+   * so the derivation over-matched and the consumer refuses anything it cannot name a condition for. */
+  damageReduceUnknown: 0, damageReduceUnknownFirst: '',
+  /* A `hazard` this engine sets and cannot resolve (WIRE 41). Only Stealth Rock and Spikes deal HP;
+   * Toxic Spikes and Sticky Web need grounded-ness, which this engine does not track. */
+  hazardUnresolved: 0, hazardUnresolvedFirst: '' };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -202,6 +215,30 @@ function weatherId(w){
   if(m)return m;
   MEDFAILS.weatherUnknown++; if(!MEDFAILS.weatherUnknownFirst)MEDFAILS.weatherUnknownFirst=k;
   return '';
+}
+/* HOW LONG THE SKY LASTS IS ONE FACT, AND IT LIVED IN ONE OF FOUR BRANCHES.
+ *
+ * Weather can be set four ways -- an ability on switch-in (Drought, Drizzle, Sand Stream, Snow
+ * Warning), a MOVE (Sunny Day, Rain Dance, Sandstorm, Snowscape), MEGA evolution (Charizard-Y's
+ * Drought arriving with the stone), and a punish ability (the Sand Spit class). WIRE 70 taught the
+ * MOVE branch to read `extendsDuration` off the rock. The other three kept writing a literal 5, so
+ * a Torkoal holding a Heat Rock set five turns of sun and a Torkoal clicking Sunny Day set eight --
+ * the same held item, the same sky, two different answers depending on how it arrived.
+ *
+ * That is FACTS ARE GLOBAL broken in the ordinary way: not a missing mechanic, a correct mechanic
+ * with three callers short. 14 of 496 declared setters in the store carry the matching rock (Damp
+ * Rock on Pelipper is the common one at 6.2%), and three extra turns of rain is most of a game.
+ *
+ * The two vocabularies meet here. `extendsDuration.extends` holds MOVE ids (`sunnyday`), because the
+ * rock's rulebook text names the move; `weatherSetter.weather` holds ENGINE words (`sun`). Both go
+ * through `weatherId` before they are compared, so neither spelling is authoritative and adding a
+ * fifth setter route cannot reintroduce the split. */
+function weatherTurns(weather, item, TAGSMOD){
+  const w=weatherId(weather);
+  if(!w)return 0;
+  const ext=(TAGSMOD||TAGS).param('item',item,'extendsDuration');
+  if(ext&&ext.toTurns&&(ext.extends||[]).some(nm=>weatherId(nm)===w))return +ext.toTurns;
+  return 5;
 }
 /* TERRAIN HAS THE SAME TWO-VOCABULARY SPLIT AS THE WEATHER, AND UNLIKE THE WEATHER THE SPLIT RAN
  * THROUGH THE MIDDLE OF THIS FILE.
@@ -487,6 +524,45 @@ function mvMakesContact(id){
   return (_contactCache[k]=TAGS.has('move',k,'contact'));
 }
 
+/* WIRE 35 -- THE CRIT RATE, IN ONE PLACE, because this engine had exactly two crit facts and both
+ * were wrong. The battle loop rolled a flat `rng()<1/24` for EVERY move and every defender, and
+ * `dmgRange` carried no crit at all -- so Flower Trick, Storm Throw and Frost Breath, which crit
+ * ALWAYS, were priced and resolved as ordinary moves, and Shell Armor did nothing whatever.
+ *
+ * MEASURED BEFORE IT WAS WIRED, the way the terrain vocabulary was: over 48,274 stored games, 7.53%
+ * carry a crit-tag move on an observed set -- 1.68% an `alwaysCrit` move, 5.98% a `critRatioUp` one.
+ * `preventsCrit` outside Disguise (Shell Armor, Battle Armor, Ice Face) is 41 games, 0.08%.
+ * The two halves are NOT the same size of error: alwaysCrit is a DETERMINISTIC x1.5 the pricer was
+ * missing on every one of 278 clicks, while critRatioUp moves 1/24 to 1/8, an expectation difference
+ * of about 4% on 1,162 clicks.
+ *
+ * WHICH IS WHY THE TWO HALVES LAND IN DIFFERENT PLACES. `alwaysCrit` is a certainty and belongs in
+ * `dmgRange`, where it becomes part of the range the searcher prices -- and it is what Showdown's own
+ * `willCrit` does, so the differential agrees with it. `critRatioUp` is a RATE and must NOT go in
+ * dmgRange: folding an expectation into a min/max would stop `max` being the maximum roll and would
+ * put every ratio move permanently out of step with the differential's no-crit comparison. It rides
+ * the battle loop's roll instead, which is where the 1/24 already lived.
+ *
+ * STAGES, NOT MULTIPLIERS: Gen-6+ crit chance is 1/24, 1/8, 1/2, 1 by stage, and `critRatio: 2` in
+ * the artifact means one stage up. Move and ITEM (Scope Lens) stack; the two ABILITY carriers are
+ * refused and counted -- see MEDFAILS.critRatioAbility. */
+const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
+function critChance(moveId,att,defAbility){
+  /* THE DEFENDER ARRIVES AS AN ABILITY STRING, NOT A BODY, so a Mold Breaker attacker can hand in the
+   * SUPPRESSED ability (WIRE 37) without this function having to know what suppression is. */
+  if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;
+  const _ac=TAGS.param('move',moveId,'alwaysCrit');
+  if(_ac&&+_ac.pCrit===1)return 1;
+  let stage=0;
+  const _mv=TAGS.param('move',moveId,'critRatioUp');
+  if(_mv&&+_mv.critRatio>1)stage+=(+_mv.critRatio-1);
+  if(att){
+    const _it=TAGS.param('item',att.item,'critRatioUp');
+    if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
+    if(TAGS.param('ability',att.ability,'critRatioUp'))MEDFAILS.critRatioAbility++;
+  }
+  return CRIT_BY_STAGE[Math.min(stage,CRIT_BY_STAGE.length-1)];
+}
 /* The compact move table stores no id on the move object, and dmgRange's signature is shared with
  * every caller, so the id is stamped ONTO the table once -- derived from the table's own key, which
  * is the id. Lazy because in the browser this module can load before window.MC does. */
@@ -652,6 +728,16 @@ function dmgRange(att,def,mv,field,spread){
      against a baseline of 234. Hoisting is the fix rather than a re-baseline -- the value cannot
      change inside a pure damage calc, so one local is strictly better than four lookups. */
   const attAb=att.ability;
+  /* WIRE 37 -- MOLD BREAKER, and it is ONE local rather than seven guards. Mold Breaker, Teravolt and
+   * Turboblaze suppress the DEFENDER's ability for the duration of the move, and this calc consulted
+   * `def.ability` in six independent places (Tablets/Vessel of Ruin, typeImmunity, immuneToMoveClass,
+   * damageReduce, halvesTypeDamage, preventsCrit). Guarding each site is six chances to miss one and
+   * six places for the next reader to disagree; shadowing the value at the top means every one of
+   * them sees the same suppressed ability, which is exactly what the real mechanic does.
+   * The DEFENDER's own body is untouched -- types, stats and boosts all still apply -- because Mold
+   * Breaker ignores the ABILITY and nothing else. Levitate is the sharpest case and the probe uses it:
+   * a hard zero becomes a number, which no partial implementation can fake. */
+  const defAb=TAGS.param('ability',attAb,'ignoresDefenderAbility')?'none':def.ability;
   if((attAb==='hugepower'||attAb==='purepower')&&phys)A*=2;
   // --- stat-multiplying abilities (validated gaps vs @smogon/calc) ---
   if(attAb==='guts'&&phys&&att.status&&att.status!=='none')A=Math.floor(A*1.5);
@@ -661,14 +747,24 @@ function dmgRange(att,def,mv,field,spread){
   // Ruin abilities lower everyone-else's stat (field-wide; handled pairwise)
   if(phys&&att.ability==='swordofruin')D=Math.floor(D*0.75);
   if(!phys&&att.ability==='beadsofruin')D=Math.floor(D*0.75);
-  if(phys&&def.ability==='tabletsofruin')A=Math.floor(A*0.75);
-  if(!phys&&def.ability==='vesselofruin')A=Math.floor(A*0.75);
+  if(phys&&defAb==='tabletsofruin')A=Math.floor(A*0.75);
+  if(!phys&&defAb==='vesselofruin')A=Math.floor(A*0.75);
   let base=Math.floor(Math.floor(22*mvBP*A/D)/50)+2;
   if(spread)base=Math.floor(base*0.75);
   const _bf=TAGS.param('ability',att.ability,'boostsFromFallen');
   if(_bf&&att._fallenStuck)base=Math.floor(base*(1+_bf.perFallen*Math.min(att._fallenStuck,_bf.max)));
   if(field.weather==='rain'){if(mvT==='Water')base=Math.floor(base*1.5);if(mvT==='Fire')base=Math.floor(base*0.5);}
   if(field.weather==='sun'){if(mvT==='Fire')base=Math.floor(base*1.5);if(mvT==='Water')base=Math.floor(base*0.5);}
+  /* WIRE 35 -- THE CERTAIN HALF OF THE CRIT. Placed exactly where Showdown's getDamage puts it:
+   * after the spread and weather multipliers, before the random roll. `att` is passed as NULL on
+   * purpose -- the attacker's Scope Lens and Super Luck raise a RATE, and a rate has no place in a
+   * min/max range (see the comment on critChance). Only pCrit === 1 lands here, so this fires for
+   * Flower Trick, Storm Throw and Frost Breath and for nothing else, and a Shell Armor / Battle
+   * Armor / Disguise defender turns it back off.
+   * TWO HALVES OF A REAL CRIT ARE NOT MODELLED AND ARE STATED: a crit ignores the defender's
+   * positive defence stages and it ignores screens. Both would need dmgRange to recompute D, and the
+   * screens caveat is already carried by the DOUBLES_SCREEN comment below for the same reason. */
+  if(mv.id&&critChance(mv.id,null,defAb)===1)base=Math.floor(base*1.5);
   /* WIRE 34 -- terrainScaled. Expanding Force (182 uses) and Rising Voltage (114) were priced at their
      BASE power in every rollout: the tag said `{scalesWith:'terrain'}` and named neither the terrain
      nor the number, so nothing could read it. tag_dex now pulls both out of the handler --
@@ -699,13 +795,51 @@ function dmgRange(att,def,mv,field,spread){
              :(()=>{const c=TAGS.param('move',mv.id,'moveClass');return !!(c&&c.classes&&c.classes.indexOf(_f)>=0);})();
     if(_has)base=Math.floor(base*_bc.mult);
   }
-  const eff=mcEff(mvT,def.types); if(eff===0)return{min:0,max:0,eff:0};
+  /* WIRE 38 -- SCRAPPY / MIND'S EYE. The tag names both halves of the rule: `movesOfType` is the
+   * slash-joined pair of types the ability applies to (Fighting/Normal) and `nowHits` is the type
+   * that stops being immune (Ghost). NOT a blanket "ignore immunities" -- a Scrappy Incineroar's
+   * Flare Blitz is still nothing to nothing, and its Earthquake is still nothing to a Flying type.
+   * The recomputation DROPS the named type from the defender's list rather than forcing eff to 1,
+   * which is the difference that matters on a dual type: Normal into Gengar (Ghost/Poison) must come
+   * out x1, not x1 forced over a 0. */
+  let eff=mcEff(mvT,def.types);
+  /* WIRE 60 -- FREEZE-DRY (1,286 uses), P0 #7, and independently confirmed against Showdown:
+   * `mrrime freezedry -> araquanid` reads 96-114 there and 24-28 here. Ice is RESISTED by Water in
+   * every chart there is; Freeze-Dry is super effective on it, so the error is the full 4x and it is
+   * the move's entire identity.
+   * THE OVERRIDE IS THE ARTIFACT'S NOW. The param used to be a bare `{overrides:true}` -- it said the
+   * chart was wrong and not how -- and the derivation now reads the handler's own
+   * `if (type === "Water") return 1`, which is Showdown's per-type MODIFIER: +1 is one step super
+   * effective, replacing the chart's -1. So the recomputation drops the named type out of mcEff and
+   * multiplies 2^mod back in, which is exactly right on a dual type -- Swampert is Water/Ground and
+   * takes 4x, not 2x.
+   * FLYING PRESS carries the tag with `perType: null` because it ADDS a type rather than overriding
+   * one, and stays visibly unwired rather than being given a number it does not have. */
+  {
+    const _oe=mv.id?TAGS.param('move',mv.id,'overridesEffectiveness'):null;
+    if(_oe&&_oe.perType){
+      let _hit=false,_e2=1;
+      for(const t of def.types){
+        if(Object.prototype.hasOwnProperty.call(_oe.perType,t)){_hit=true;_e2*=Math.pow(2,+_oe.perType[t]);}
+        else{const r=MC.C[mvT];_e2*=(r&&r[t]!=null)?r[t]:1;}
+      }
+      if(_hit)eff=_e2;
+    }
+  }
+  {
+    const _iti=TAGS.param('ability',attAb,'ignoresTypeImmunity');
+    if(_iti&&_iti.nowHits&&_iti.movesOfType
+       &&String(_iti.movesOfType).split('/').indexOf(mvT)>=0
+       &&def.types.indexOf(_iti.nowHits)>=0)
+      eff=mcEff(mvT,def.types.filter(t=>t!==_iti.nowHits));
+  }
+  if(eff===0)return{min:0,max:0,eff:0};
   // type-immunity abilities (defender absorbs the type)
   /* WIRE 11 -- typeImmunity, from the artifact instead of a 12-name table. The tag carries the
    * TYPE (checked against the weather-effective type computed above, so sand Weather Ball sails
    * past Volt Absorb) and the GAIN, which the old table never knew existed -- the battle loop
    * feeds the absorber below. Levitate/Eelevate ride the artifact's one documented name-exception. */
-  const _imm=TAGS.param('ability',def.ability,'typeImmunity');
+  const _imm=TAGS.param('ability',defAb,'typeImmunity');
   if(_imm&&_imm.type===mvT)return{min:0,max:0,eff:0};
   /* WIRE 22 -- immuneToMoveClass. The ability names a FLAG and refuses every move carrying it, which
    * is the exact mirror of the boostsMoveClass join below and had no counterpart on the defensive
@@ -724,7 +858,7 @@ function dmgRange(att,def,mv,field,spread){
    * and the Grass immunity for powder moves and is the single owner of that question; adding it here
    * would be a second implementation of one fact, which is the rule CLAUDE.md cares most about. */
   {
-    const _imc=TAGS.param('ability',def.ability,'immuneToMoveClass');
+    const _imc=TAGS.param('ability',defAb,'immuneToMoveClass');
     const _flag=_imc&&_imc.blocksFlag;
     if(_flag&&_flag!=='reflectable'&&_flag!=='powder'&&mv.id){
       const _carries=_flag==='sound'?TAGS.has('move',mv.id,'sound')
@@ -777,10 +911,40 @@ function dmgRange(att,def,mv,field,spread){
   const lo=(_all&&_all.mult)||1;
   // final-modifier chain (validated vs @smogon/calc)
   let mod=1;
-  if((def.ability==='filter'||def.ability==='solidrock'||def.ability==='prismarmor')&&eff>1)mod*=0.75;
+  /* WIRE 36 -- damageReduce, from the artifact instead of two hardcoded name lists. The two lines
+   * that used to sit here (`filter|solidrock|prismarmor` at 0.75 on super-effective,
+   * `multiscale|shadowshield` at 0.5 from full) were CORRECT and covered five of the tag's eight
+   * members. The three they could not reach were the point: ICE SCALES halves every SPECIAL hit and
+   * Punk Rock halves every SOUND one, and neither had any representation at all.
+   *
+   * MEMBERSHIP PRINTED BEFORE WIRING, per docs/LESSONS.md 4, and it over-matched exactly once:
+   *   filter 0.75/superEffective, solidrock 0.75/superEffective, prismarmor 0.75/superEffective,
+   *   multiscale 0.5/fullHP, shadowshield 0.5/fullHP, icescales 0.5/special, punkrock 0.5/sound,
+   *   RIPEN 0.5/null.
+   * Ripen does not reduce damage at all -- it DOUBLES berry effects, and the derivation caught it
+   * because the handler multiplies by two somewhere. A consumer that treated a null condition as
+   * "always" would have handed every Ripen body a permanent 50% damage reduction. So an unnameable
+   * condition REFUSES and is counted (MEDFAILS.damageReduceUnknown) rather than defaulting on.
+   *
+   * ICE SCALES IS ZERO CORPUS USES (Lesson 3 in reverse: the count is a sheet count and this sheet
+   * count is 0). It is wired because it is correct, not because it moves a number. */
+  {
+    const _dr=TAGS.param('ability',defAb,'damageReduce');
+    if(_dr&&_dr.damageMult){
+      const _w=_dr.onlyWhen;
+      const _ok=_w==='superEffective'?eff>1
+              :_w==='fullHP'?(def.curHP==null||def.st==null||def.curHP>=def.st.hp)
+              :_w==='special'?mv.c==='S'
+              :_w==='physical'?mv.c==='P'
+              :_w==='sound'?!!(mv.id&&TAGS.has('move',mv.id,'sound'))
+              :null;
+      if(_ok===null){MEDFAILS.damageReduceUnknown++;
+        if(!MEDFAILS.damageReduceUnknownFirst)MEDFAILS.damageReduceUnknownFirst=String(defAb)+'/'+String(_w);}
+      else if(_ok)mod*=_dr.damageMult;
+    }
+  }
   if(att.ability==='neuroforce'&&eff>1)mod*=1.25;
   if(att.ability==='tintedlens'&&eff<1)mod*=2;
-  if((def.ability==='multiscale'||def.ability==='shadowshield')&&(def.curHP==null||def.st==null||def.curHP>=def.st.hp))mod*=0.5;
   /* SCREENS. In DOUBLES the reduction is x2732/4096, not the x0.5 the tag carries — the tag states
    * the singles value and this is a doubles engine, so using 0.5 would overvalue every screen click
    * by a third. Stated here rather than corrected in the artifact, because the artifact is right
@@ -815,7 +979,7 @@ function dmgRange(att,def,mv,field,spread){
    * (what do I do to others) carried by a different tag, and folding it in here would have made the
    * defensive read fire on the attacker's ability. */
   {
-    const _htd=TAGS.param('ability',def.ability,'halvesTypeDamage');
+    const _htd=TAGS.param('ability',defAb,'halvesTypeDamage');
     if(_htd){
       if(_htd.types&&_htd.types.indexOf(mvT)>=0&&_htd.attackerStatMult)mod*=_htd.attackerStatMult;
       if(_htd.basePowerTypes&&_htd.basePowerTypes.indexOf(mvT)>=0&&_htd.basePowerMult)mod*=_htd.basePowerMult;
@@ -928,10 +1092,40 @@ function speedFlipShare(att,foes,field,side,H){
   }
   return n?flips/n:0;
 }
+/* WIRE 59 -- multiAccuracy, and it is applied to the HIT COUNT rather than to the accuracy, which is
+ * the opposite of what the census probe used to ask for.
+ *
+ * Triple Axel (539 uses) and Population Bomb (387) roll accuracy on EVERY hit and stop at the first
+ * miss. The tempting reading is "three 90% rolls compound to 73%, so the move is 73% accurate" -- and
+ * that is wrong twice over: the move still CONNECTS 90% of the time (only the first roll decides
+ * that), and the damage is proportional to how many hits landed. Modelling it as a 73%-accurate
+ * three-hit move both under-counts the connections and over-counts the damage when it does connect.
+ *
+ * The correct expectation, given the first hit landed, is 1 + p + p^2 + ... + p^(n-1). For Triple Axel
+ * at p = 0.9, n = 3 that is 2.71 rather than 3; for Population Bomb at n = 10 it is 6.51 rather than
+ * 10 -- a 35% over-price this engine has been carrying since WIRE 20 gave multi-hit moves their real
+ * count. Rock Blast and Dual Wingbeat do NOT carry the tag (one accuracy roll for the whole move) and
+ * are untouched, which is the control the probe asserts. */
 function expectedHitsOf(moveId){
   const p=TAGS.param('move',moveId,'multiHit');
   if(!p)return 1;
-  return (p.distribution&&p.distribution.indexOf('2:35')===0)?3.1:2;
+  /* THE FIXED COUNT IS READ, and it used to be a typed 2 for every one of them. The tag said only
+   * `distribution: 'fixed'`, so Dual Wingbeat (2), Triple Axel (3) and POPULATION BOMB (10) were the
+   * same number here -- Population Bomb at a fifth of its damage on 387 corpus clicks. The
+   * derivation now emits `hits`; the 2 remains only as the fallback for a member the artifact cannot
+   * size, which today is none. */
+  let n=(p.distribution&&p.distribution.indexOf('2:35')===0)?3.1:(+p.hits||2);
+  const _ma=TAGS.param('move',moveId,'multiAccuracy');
+  if(_ma&&_ma.perHit&&n>1){
+    /* THE ACCURACY COMES FROM THE TAG, not from moveAccuracy, and that is not a style choice: the ACC
+     * table in this file is a hand-typed 35-move literal and carries NEITHER Triple Axel nor
+     * Population Bomb, so moveAccuracy returns 100 for both and the discount would be exactly zero --
+     * a silent default wearing the shape of a working feature. The table's own gap is FILED in
+     * docs/ENGINE.md; it is the same class of hand list this file has been deleting all session. */
+    const _p=(+_ma.accuracy||100)/100;
+    if(_p<1){let e=0,k=1;for(let i=0;i<Math.round(n);i++){e+=k;k*=_p;}n=e;}
+  }
+  return n;
 }
 function punishExposure(att,tgt,moveId,opts){
   opts=opts||{};
@@ -1073,12 +1267,29 @@ function setPurePriors(v){ PURE_PRIORS = !!v; }
  *
  * NEVER LEAVES A MON WITH NOTHING: a single-move body keeps its move rather than being pushed into
  * Struggle, which is the real rule and also stops a Disable on a one-move rollout body deleting it. */
+/* WIRES 45 AND 44 RIDE THE SAME FILTER, and that is the point of putting it here rather than beside
+ * the Disable line: "which of my moves are illegal this turn" is ONE question, and Throat Chop's
+ * silence and Gigaton Hammer's lockout are two more answers to it. Three separate filters would be
+ * three chances for the priors sampler -- which picks by NAME and never consults me.moves -- to leak
+ * one of them, which is exactly the bug WIRE 26 found on Disable.
+ *
+ * NEVER LEAVES A MON WITH NOTHING: if every move is illegal the filter is abandoned whole, the same
+ * rule the Disable version already carried. */
 function chooseAction(me,foes,ally,field,side,rng){
-  if(me&&me._vol&&me._vol.disable>0&&me._sealed&&me.moves&&me.moves.length>1&&me.moves.includes(me._sealed)){
+  const _illegal=id=>{
+    if(me._vol&&me._vol.disable>0&&me._sealed===id)return true;
+    if(me._noSound>0&&TAGS.has('move',id,'sound'))return true;
+    if(me._noRepeat===id)return true;
+    return false;
+  };
+  if(me&&me.moves&&me.moves.length>1&&me.moves.some(_illegal)){
     const _save=me.moves;
-    me.moves=_save.filter(id=>id!==me._sealed);
-    try{ return _chooseAction(me,foes,ally,field,side,rng); }
-    finally{ me.moves=_save; }
+    const _keep=_save.filter(id=>!_illegal(id));
+    if(_keep.length){
+      me.moves=_keep;
+      try{ return _chooseAction(me,foes,ally,field,side,rng); }
+      finally{ me.moves=_save; }
+    }
   }
   return _chooseAction(me,foes,ally,field,side,rng);
 }
@@ -1206,6 +1417,28 @@ const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','comatose','thermalexc
 const SCREEN_TURNS=5, DOUBLES_SCREEN=2732/4096;
 const POWDER=new Set(['spore','sleeppowder','stunspore','poisonpowder','cottonspore','ragepowder',
                       'magicpowder','powder']);
+/* WIRE 66 -- SOUNDPROOF REFUSES A SOUND MOVE, INCLUDING ONE THAT DEALS NO DAMAGE, and until now the
+ * only consumer of `immuneToMoveClass` was inside dmgRange. So a Soundproof body took PARTING SHOT
+ * (7,184 uses, a sound move) at full effect and was pivoted off, and Bulletproof would take any
+ * status bullet move the format ever gains.
+ *
+ * FOUND BY tests/test-game-diff.js's GENERATED PAIR MATRIX, which is what that instrument is for: the
+ * census probes `immuneToMoveClass` through a damaging Rock Blast and passes, because the damage half
+ * has been correct since WIRE 22. The cross product asked the same ability a question nobody had
+ * thought to ask it.
+ *
+ * SAME EXCLUSIONS AS WIRE 22, for the same reasons: `powder` belongs to powderBlocked(), which is the
+ * single owner of that question, and `reflectable` is Magic Bounce, which BOUNCES rather than refuses
+ * and is handled by bounceOff(). */
+function moveClassBlocked(t,moveId){
+  if(!t||!moveId)return false;
+  const _imc=TAGS.param('ability',t.ability,'immuneToMoveClass');
+  const _flag=_imc&&_imc.blocksFlag;
+  if(!_flag||_flag==='reflectable'||_flag==='powder')return false;
+  if(_flag==='sound')return TAGS.has('move',moveId,'sound');
+  const _c=TAGS.param('move',moveId,'moveClass');
+  return !!(_c&&_c.classes&&_c.classes.indexOf(_flag)>=0);
+}
 function powderBlocked(t,moveId){
   if(!POWDER.has(String(moveId||'').replace(/[^a-z0-9]/g,''))) return false;
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
@@ -1288,7 +1521,7 @@ function applyEntryEffects(m,field,ally){
     ally.curHP=Math.min(ally.st.hp,ally.curHP+Math.floor(ally.st.hp/4));
   }
   const w=TAGS.param('ability',m.ability,'weatherSetter');
-  if(w&&w.weather){const _w=weatherId(w.weather);if(_w){field.weather=_w;field.weatherT=5;}}
+  if(w&&w.weather){const _w=weatherId(w.weather);if(_w){field.weather=_w;field.weatherT=weatherTurns(_w,m.item);}}
   /* NORMALISED ON THE WAY IN AS WELL AS ON THE WAY OUT. `terrainSetter` happens to carry the engine's
    * own word today, so this is a no-op — and that is exactly the reason to route it: if the artifact
    * ever spells it the Board's way, the ability keeps working instead of silently setting a string no
@@ -1341,6 +1574,31 @@ function bringIn(act,i,bench,foes,sf,field,wanted){
   }
   bench.splice(bench.indexOf(nx),1);
   nx._turnsOut=0; nx._fallenStuck=sf.fainted; act[i]=nx;
+  /* WIRE 41 -- THE HAZARD BITES ON ENTRY, and it is here rather than in the switch branches because
+     bringIn is the ONE path a Pokemon arrives through: a faint replacement, a voluntary switch, a
+     U-turn pivot and a Roar drag all come here, and putting it in any one of them would silently
+     exempt the other three.
+     STEALTH ROCK IS TYPE-SCALED and that is its whole identity -- a quarter of max HP off a
+     4x-weak body against a sixteenth off a resist -- so it is asked of mcEff rather than being a flat
+     fraction. Spikes is a flat 1/8, 1/6, 1/4 by layer.
+     THE FRACTIONS ARE STATED HERE WITH THE REASON, the same call WIRE 31 made for the sandstorm's
+     1/16: no artifact this engine reads carries them. The `hazard` param names WHICH hazard and stops.
+     TOXIC SPIKES AND STICKY WEB NEED GROUNDED-NESS, which this engine does not track at all, so they
+     are set, counted in MEDFAILS.hazardUnresolved and deliberately do nothing -- a Toxic Spikes that
+     poisoned a Flying type would be a new wrong number rather than a wired mechanic. Levitate and an
+     Air Balloon dodging SPIKES are the same gap and are the reason the Flying check below is a type
+     check and not an ability one. */
+  if(sf&&sf.hz){
+    if(sf.hz.stealthrock)nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
+    if(sf.hz.spikes&&nx.types.indexOf('Flying')<0)
+      nx.curHP-=Math.floor(nx.st.hp/[8,8,6,4][Math.min(sf.hz.spikes,3)]);
+    if(sf.hz.toxicspikes||sf.hz.stickyweb){
+      MEDFAILS.hazardUnresolved++;
+      if(!MEDFAILS.hazardUnresolvedFirst)
+        MEDFAILS.hazardUnresolvedFirst=sf.hz.toxicspikes?'toxicspikes':'stickyweb';
+    }
+    if(nx.curHP<=0){nx.curHP=0;nx.fainted=true;if(nx._sf)nx._sf.fainted++;}
+  }
   applyEntryEffects(nx,field,act[1-i]);
   if(nx.ability==='intimidate')for(const f of _live(foes))applyIntimidate(f);
   return nx;
@@ -1358,6 +1616,13 @@ function switchOut(act,i,bench,foes,sf,field,wanted){
    * a benched mon would come back locked into a move it started two switches ago -- or worse,
    * come back untargetable. */
   out._charging=null; out._invuln=false;
+  /* THE STATE ADDED BY WIRES 42-54 LEAVES WITH THE BODY, and each of these is a volatile in the real
+     game: the substitute is gone, Throat Chop's silence ends, the Gigaton Hammer lockout ends, the
+     recharge is not owed by a body that left, the partial trap releases, and Protean converts again
+     on the next entry (`oncePerSwitchIn` is per switch-in, which is what makes the flag resettable
+     here and NOT resettable for _disguiseBusted two lines down). */
+  out._sub=0; out._noSound=0; out._noRepeat=null; out._noRepeatT=0; out._recharge=false;
+  out._trap=null; out._proteanUsed=false;
   /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
    * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
    * natural instinct on reading this line is to reset every underscore flag alongside them, and that
@@ -1536,7 +1801,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     S.lastActs=acts.map(it=>({side:it.side,name:it.mon.name,kind:it.a.kind,
       move:(it.a.move&&it.a.move.id)||it.a.mv||null,
       target:(it.a.target&&it.a.target.name)||null}));
-    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;it.mon._lastMove='protect';}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
+    for(const it of acts){if(it.a.kind==='protect'){it.mon.protect=(it.mon.tookProtectTurns===0||rng()<Math.pow(1/3,it.mon.tookProtectTurns));it.mon.tookProtectTurns++;it.mon._lastMove=it.a.mv||'protect';it.mon._protectMove=it.a.mv||null;}else if(it.a.kind==='wideguard'){if(it.side==='A')field.wgA=true;else field.wgB=true;it.mon.tookProtectTurns=0;}else it.mon.tookProtectTurns=0;}
     /* Bracket first, then speed. Protect-likes are +4 and Wide Guard is +3 in the real game; a status
      * move sits in its own move's bracket (Thunder Wave 0, Trick Room -7), not a blanket 0. */
     const prio=it=>{
@@ -1574,6 +1839,27 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.status==='frz'){m.frzTurns=(m.frzTurns||0)+1;if(m.frzTurns>=3||rng()<0.25)m.status='';else continue;}   // Champions: 25%/attempt, guaranteed thaw turn 3
       if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;if(m.slpTurns>=3||(m.slpTurns===2&&rng()<1/3))m.status='';else continue;}   // Champions: 33% wake turn 2, 100% turn 3
       const a=it.a;
+      /* WIRE 43 -- THE RECHARGE TURN. Hyper Beam is 1,627 corpus clicks and Giga Impact 29, and both
+         were free: the engine played the move and then let the user act again next turn, so the
+         single largest drawback in the format did not exist. The flag is set when the move lands and
+         SPENDS the following turn whatever the caller or the chooser asked for -- which is the WIRE 24
+         rule again, since a rollout driven from outside supplies its own actions. Cleared as it is
+         spent, so the cost is exactly one turn. */
+      if(m._recharge){m._recharge=false;m._lastMove=m._lastMove||null;continue;}
+      /* WIRE 42, the other members. Clangorous Soul (343 uses) and Shed Tail (60) pay HP for an
+         effect this engine ALREADY models -- a setup and a pivot -- so they must not be captured by
+         the `sub` kind, which would replace a modelled effect with an unmodelled one. The cost is
+         charged here instead, before the kind is dispatched, and the move FAILS below the threshold
+         the tag names. `sub` is excluded because it charges its own cost and would otherwise pay
+         twice. */
+      if(a.kind!=='sub'&&(a.mv||(a.move&&a.move.id))){
+        const _cu=TAGS.param('move',a.mv||a.move.id,'costsUserHP');
+        if(_cu&&_cu.costsFraction&&m.st){
+          if(m.curHP<=Math.floor(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction))){m._lastMove=a.mv||a.move.id;continue;}
+          m.curHP-=Math.floor(m.st.hp*+_cu.costsFraction);
+          if(m.curHP<=0){m.curHP=0;m.fainted=true;continue;}
+        }
+      }
       /* WIRE 19 -- REAL setup boosts. This applied a generic +1 to Attack, SpA AND Speed for every
        * setup click, so Swords Dance was one-third right, Iron Defense entirely wrong, and Dragon
        * Dance half right. The rulebook states each move's actual boosts (targetBoostsAlways); the
@@ -1606,6 +1892,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
          * for Status and then bare-returns to ALLOW it. */
         if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m) continue;
+        if(moveClassBlocked(_t,a.mv)) continue;                 // WIRE 66 -- Soundproof, Bulletproof
         if(powderBlocked(_t,a.mv)) continue;
         if(pranksterBlocked(m,_t,a.mv)) continue;
         const _acc=moveAccuracy(a.mv,field);
@@ -1653,19 +1940,122 @@ function battleTurn(S,rng,actsForA,actsForB){
            * as well as a chosen one — the WIRE 24 rule, which nothing about Encore honoured. A Choice
            * lock (`_lockT === Infinity`) is never shortened by it. */
           if(_e.volatile){
+            /* WIRE 69 -- ENCORE FAILS AGAINST A TARGET WITH NO LAST MOVE, and this guard has to come
+               BEFORE the volatile is written. The first version sat two lines lower, after the
+               assignment, so it skipped the bookkeeping and left the volatile on -- the pair matrix
+               kept reading `vol medi=["encore"] sd=[]` and the fix looked landed. */
+            if(_e.volatile==='encore'&&!_who._lastMove) continue;
             const _sm=TAGS.param('move',a.mv,'sealsMoves');
             const _tn=(_sm&&+_sm.turns)||1;
             (_who._vol=_who._vol||{})[_e.volatile]=_tn;
             /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
              * one field serving two volatiles is a field that expires the wrong one. */
             if(_e.volatile==='disable')_who._sealed=_who._lastMove||null;
+            /* Encore's own guard is WIRE 69, four lines above: there is nothing to repeat against a
+               target that has never moved, and Showdown's condition bails on `!target.lastMove`.
+               THE FIRST VERSION OF THAT RULE WAS TOO STRICT AND THE CENSUS CAUGHT IT: it demanded the
+               target had moved THIS TURN, which dropped `live` 148 -> 146, because Showdown's
+               `lastMove` persists across turns -- an Encore on turn 3 repeating a turn-1 move is
+               legal. The rule is "has ever moved", not "has moved this turn". */
             if(_e.volatile==='encore'){
               _who._encoreMove=_who._lastMove||null;
               if(_who._lastMove&&_who._lockT!==Infinity){_who._lock=_who._lastMove;_who._lockT=_tn+1;}
             }
+            /* WIRE 62 -- MENTAL HERB, 684 sheets, and it undoes the whole point of the click that
+             * just landed -- so any value a search assigns to landing a Taunt or an Encore is wrong
+             * against a holder. Applied HERE, the instant the volatile is set, because the real item
+             * is an onUpdate: it never spends a turn taunted.
+             * THE SET IS THE ARTIFACT'S. The param was `{oneShot:true}`, which named the shape and
+             * not WHICH volatiles -- and the set is the mechanic: the herb frees Taunt, Encore,
+             * Disable, Attract, Torment and Heal Block and does NOT touch confusion, a Leech Seed or
+             * a partial trap. A consumer reading the boolean would have built a universal eraser.
+             * It clears the ENGINE-SIDE state each volatile owns as well as the volatile itself,
+             * because `_sealed` and the Encore `_lock` are separate fields (WIRE 26) and leaving
+             * either behind would free the name and keep the effect. */
+            {
+              const _mh=TAGS.param('item',_who.item,'curesVolatile');
+              if(_mh&&Array.isArray(_mh.cures)&&_mh.cures.indexOf(_e.volatile)>=0){
+                delete _who._vol[_e.volatile];
+                if(_e.volatile==='disable')_who._sealed=null;
+                if(_e.volatile==='encore'){_who._encoreMove=null;if(_who._lockT!==Infinity){_who._lock=null;_who._lockT=0;}}
+                if(_e.volatile==='healblock')_who._healBlock=0;
+                _who.item='';
+              }
+            }
           }
         }
         continue;
+      }
+      /* WIRE 39 -- HAZE. BOTH SIDES, including the user's own, which is the whole shape of the move:
+         it is the answer to a sweeper you cannot outstat, and it costs you your own setup too. A
+         version that only wiped the foe would be a strictly better move than the one in the game. */
+      if(a.kind==='haze'){
+        for(const x of [...actA,...actB])if(x&&!x.fainted&&x.boosts)x.boosts={at:0,df:0,sa:0,sd:0,sp:0};
+        m._lastMove=a.mv;continue;
+      }
+      /* WIRE 40 -- ROAR / WHIRLWIND, the phazing half. The drag goes through switchOut, the ONE
+         switch path, so the replacement gets its entry effects, its Intimidate and now its hazard
+         chip exactly as a voluntary switch does -- two paths is how the voluntary switch nearly
+         skipped Intimidate. A drag into an empty bench simply fails and still costs the turn.
+         WHO COMES IN is bringIn's live(bench)[0], not a random body: this engine has one replacement
+         policy and phazing does not get a second one. Stated, because the real move is random and
+         that randomness is part of why it is played. */
+      if(a.kind==='phaze'){
+        const _t=a.target;
+        const _foes=it.side==='A'?actB:actA, _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
+        const _own=it.side==='A'?actA:actB;
+        const _i=_t?_foes.indexOf(_t):-1;
+        /* WIRE 66 REACHES HERE TOO, and the pair matrix caught it not doing so: ROAR IS A SOUND MOVE
+           (405 corpus uses), so a Soundproof body cannot be phazed -- Showdown left Bastiodon on the
+           field where medicham2 had already dragged it out. Protect does not stop Roar (it carries
+           ignoresProtect) and that half was already right. */
+        if(_i>=0&&!_t.fainted&&!(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+           &&!moveClassBlocked(_t,a.mv)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves'))
+          switchOut(_foes,_i,_fb,_own,_fsf,field,null);
+        m._lastMove=a.mv;continue;
+      }
+      /* WIRE 41 -- LAYING A HAZARD. It lands on the OPPOSING side's `_sf`, which every member of that
+         team shares by reference, so a body still on the bench is already standing behind it. Layers
+         accumulate because Spikes stacks to three; Stealth Rock does not and re-laying it is a wasted
+         turn either way. */
+      if(a.kind==='hazard'){
+        const _h=TAGS.param('move',a.mv,'hazard');
+        const _fsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
+        if(_h&&_h.hazard&&_fsf){(_fsf.hz=_fsf.hz||{})[_h.hazard]=(_fsf.hz[_h.hazard]||0)+1;}
+        m._lastMove=a.mv;continue;
+      }
+      /* WIRE 42 -- SUBSTITUTE, both halves. It FAILS outright below the threshold the tag names
+         (`failsBelow`), which is the rule and matters: a Substitute clicked at 24% HP does not kill
+         its user. A substitute already up is not replaced and the click is wasted.
+         WHAT IS MODELLED: the doll takes damage until it breaks, and while it stands the body behind
+         it takes no damage, no secondary and no status. WHAT IS NOT, and is stated rather than
+         discovered: sound moves and Infiltrator go through a real substitute, and this engine does
+         not track either at the hit site. */
+      if(a.kind==='sub'){
+        const _cu=TAGS.param('move',a.mv,'costsUserHP')||{};
+        const _need=Math.floor(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction||0.25));
+        if(!m._sub&&m.curHP>_need){
+          m.curHP-=Math.floor(m.st.hp*(+_cu.costsFraction||0.25));
+          m._sub=Math.floor(m.st.hp*(+_cu.costsFraction||0.25));
+          if(m.curHP<=0){m.curHP=0;m.fainted=true;m._sub=0;}
+        }
+        m._lastMove=a.mv;continue;
+      }
+      /* WIRE 67 -- BELLY DRUM maxes Attack and pays HALF its max HP for it, and it FAILS if it cannot
+         pay -- which is the rule that stops it being a free +6 on a body at 40%. Both numbers are the
+         artifact's: `boosts {atk:12}` (six stages, in Showdown's twelve-half-stages spelling) and
+         `costFraction 0.5`, read out of the handler's own boost call and directDamage. */
+      if(a.kind==='statcode'){
+        const _sc4=TAGS.param('move',a.mv,'statChangeInCode')||{};
+        const _cost=_sc4.costFraction?Math.floor(m.st.hp*+_sc4.costFraction):0;
+        if(_cost&&m.curHP<=_cost){m._lastMove=a.mv;continue;}          // it cannot pay: the move fails
+        if(_cost)m.curHP-=_cost;
+        const _sg=m.ability==='contrary'?-1:1;
+        for(const k in (_sc4.boosts||{})){
+          const _s=SD2ENG[k]; if(!_s||m.boosts[_s]==null) continue;
+          m.boosts[_s]=clamp(m.boosts[_s]+_sc4.boosts[k]*_sg,-6,6);
+        }
+        m._lastMove=a.mv;continue;
       }
       if(a.kind==='tail'){if(it.side==='A')field.twA=4;else field.twB=4;continue;}
       /* TRICK ROOM. Every other piece of it was already here — field.tr inverts the speed sort in the
@@ -1737,9 +2127,27 @@ function battleTurn(S,rng,actsForA,actsForB){
          a Politoed answers a snow team (see the Aurora Veil note below). Five turns; the rock items
          that extend it carry `extendsDuration` and are not consumed here, so a Damp Rock reads as
          five. Named as a gap rather than silently rounded. */
+      /* WIRE 64 -- A WEATHER MOVE CLICKED INTO ITS OWN WEATHER FAILS. Found by
+         tests/test-game-diff.js on its first clean run, which is the whole reason that instrument
+         exists: it is a TURN COUNTER and no single-hit comparison can see one. Torkoal's Drought puts
+         sun up on turn 1 (duration 5, ticking to 4); clicking Sunny Day on turn 2 then read
+         `medi=4 sd=3`, because this line refreshed the clock and the real engine fails the move
+         outright. Confirmed directly against the official engine before it was touched.
+         REPLACING A DIFFERENT WEATHER STILL WORKS, and that half is the counter-play the comment
+         below is about -- a Politoed answering a snow team. Only the SAME weather fails. */
       if(a.kind==='weather'){
         const w=weatherId((moveFx(a.mv)||{}).weather);
-        if(w){field.weather=w;field.weatherT=5;}
+        if(w&&field.weather!==w){
+          field.weather=w;
+          /* WIRE 70 -- THE ROCKS, and the artifact has carried the number since the item tags existed:
+             `extendsDuration {extends:["sunnyday"], toTurns:8, insteadOf:5}` on Heat, Damp, Smooth and
+             Icy Rock. The SCREEN branch above has read that tag since Light Clay was wired; this branch
+             wrote a literal 5, so all four rocks were inert on the one mechanic they exist for -- three
+             extra turns of sun, which on a Charizard-Y team is most of the game.
+             Same tag, same shape, one consumer short, found by the weather audit. The comment beside
+             the weather line used to say the rocks "are not consumed here" and named it a gap. */
+          field.weatherT=weatherTurns(w,m.item);
+        }
         m._lastMove=a.mv;continue;
       }
       /* WIRE 32 -- CLICKING A TERRAIN MOVE. The four weather moves had a branch here since WIRE 13 and
@@ -1752,7 +2160,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='terrain'){
         const _tp=TAGS.param('move',a.mv,'setsTerrain');
         const _t=terrainId(_tp&&_tp.terrain);
-        if(_t){field.terrain=_t;field.terrainT=5;}
+        /* WIRE 64, the terrain half. Same rule and landed in the same pass rather than waiting for the
+           game differential to find it a second time: Showdown fails a terrain move whose terrain is
+           already up, so refreshing the clock here would be the same wrong number one field over. */
+        if(_t&&terrainId(field.terrain)!==_t){field.terrain=_t;field.terrainT=5;}
         m._lastMove=a.mv;continue;
       }
       /* The redirector marks ITSELF; the retarget happens at the attacker's targeting step below, so
@@ -1765,6 +2176,37 @@ function battleTurn(S,rng,actsForA,actsForB){
          was built before the sort and the arrays can have been rewritten by an earlier switch this
          same turn. A switch with an empty bench does nothing and still costs the turn. */
       if(a.kind==='switch'){
+        /* WIRE 65, the other half. Parting Shot (7,184 uses) is a STATUS move: blocked by Protect, it
+           fails and the user STAYS. medicham2 switched anyway, so the single largest unmodelled move
+           in the corpus was an unblockable pivot. Found by the same pair run -- Showdown kept Pangoro
+           on the field where medicham2 had already brought Incineroar in.
+           Only a move-driven switch is gated: `a.mv` is absent on a voluntary switch, which nothing
+           blocks. */
+        if(a.mv&&a.target&&!a.target.fainted
+           &&((a.target.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+              ||moveClassBlocked(a.target,a.mv)                                   // WIRE 66
+              ||TAGS.has('ability',a.target.ability,'refusesStatusMoves'))){m._lastMove=a.mv;continue;}
+        /* WIRE 67 -- PARTING SHOT ACTUALLY DROPS THE TARGET. This engine has modelled the switch and
+           not the -1 Attack / -1 Special Attack since pivotStatus was wired, and said so in a comment
+           that ended "NO artifact this engine reads carries the numbers". It does now: tag_dex reads
+           the literal `this.boost({atk:-1, spa:-1})` out of the handler, so `statChangeInCode` carries
+           a table for the five members that have one and stays empty for the five that INVERT, COPY,
+           SWAP or randomise their stages. 7,184 corpus uses -- the largest single unmodelled effect
+           left, and the half that decides where the move is played.
+           Confirmed against the official engine by tests/test-game-diff.js, which read
+           `medi atk 0 / sd atk -1` on three separate generated pairs before this landed. */
+        if(a.mv&&a.target&&!a.target.fainted){
+          const _sc2=TAGS.param('move',a.mv,'statChangeInCode');
+          if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&a.target.boosts){
+            const _sg=a.target.ability==='contrary'?-1:1;
+            for(const k in _sc2.boosts){
+              const _s=SD2ENG[k]; if(!_s||a.target.boosts[_s]==null) continue;
+              const _d=_sc2.boosts[k]*_sg;
+              if(_d<0&&TAGS.has('ability',a.target.ability,'preventsStatDrop')) continue;
+              a.target.boosts[_s]=clamp(a.target.boosts[_s]+_d,-6,6);
+            }
+          }
+        }
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
         const idx=own.indexOf(m);
@@ -1829,6 +2271,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='status'){
         const t=bounceOff(m,a.target,a.mv); if(!t||t.fainted||t.protect) continue;
         if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m) continue;   // Good as Gold
+        if(moveClassBlocked(t,a.mv)) continue;                                    // WIRE 66
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
         /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
@@ -1903,6 +2346,28 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* the lock engages on the first attack a choiceLock holder commits (WIRE 18) */
       if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}m._lastMove=a.move.id;
       if(a.move.id==='fakeout'&&m._turnsOut>0)continue;   // Fake Out only works the turn you enter
+      /* WIRE 44 -- GIGATON HAMMER (197 uses) cannot be clicked twice in a row. `_noRepeat` is armed
+         when the move lands and disarmed by the end-of-turn tick, so the block covers exactly the
+         following turn -- and it binds a CALLER-SUPPLIED action as well as a chosen one, the WIRE 24
+         rule, because a rollout driven from outside never asks chooseAction. */
+      if(m._noRepeat===a.move.id)continue;
+      /* WIRE 45 -- THROAT CHOP (2,845 uses), from the target's side. The most-clicked mechanic left
+         unwired: the move landed its damage and the two turns of silence it exists for did nothing.
+         The DURATION comes from the artifact now (`blocksSoundMoves.turns`), not from a 2 typed here
+         -- the same correction sealsMoves needed when Disable was given one turn instead of five.
+         Blocked here AND filtered out of chooseAction, for the WIRE 24 reason above. */
+      if(m._noSound>0&&TAGS.has('move',a.move.id,'sound'))continue;
+      /* WIRE 46 -- DAMP. It stops a self-destructing move HAPPENING -- no damage and, critically, no
+         faint -- and it reaches across the whole field rather than one side, which is what the tag's
+         own `blocksSelfDestruct` records. Gated on `faints: 'always'`, which is exactly Explosion,
+         Self-Destruct and Misty Explosion; Final Gambit and Memento carry `ifHit` and are NOT
+         blocked by Damp in the real game either, so the split falls out of the artifact. */
+      {
+        const _uf0=TAGS.param('move',a.move.id,'userFaints');
+        if(_uf0&&_uf0.faints==='always'
+           &&[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksExplosion')))
+          continue;
+      }
       /* SUCKER PUNCH FAILS UNLESS THE TARGET IS ATTACKING THIS TURN.
        *
        * MEDICHAM applied no condition, so it dealt full damage into a target setting Tailwind and
@@ -1928,7 +2393,19 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _foes=it.side==='A'?actB:actA;
         if(movePriority(a.move.id,field)>priorityRefusedAbove(_foes,field)) continue;
       }
-      const _mvAcc=moveAccuracy(a.move.id,field);if(_mvAcc<100&&rng()*100>_mvAcc)continue;
+      /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
+         correctly and cost the user nothing, so a 90%-accurate 130 BP move had no downside at all --
+         the same "priority move with no drawback" shape that made the search reach for Sucker Punch.
+         The fraction is the tag's (`crashOnMiss.fraction`, half of max HP), not a number typed here. */
+      const _mvAcc=moveAccuracy(a.move.id,field);
+      if(_mvAcc<100&&rng()*100>_mvAcc){
+        const _cm=TAGS.param('move',a.move.id,'crashOnMiss');
+        if(_cm&&_cm.fraction&&m.st){
+          m.curHP-=Math.floor(m.st.hp*+_cm.fraction);
+          if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+        }
+        continue;
+      }
       const foes=it.side==='A'?actB:actA;
       /* Resolve the aim to whoever is in that slot NOW. `foes` is the live slot array, so an object
          that is no longer in it has left the field and cannot be hit. */
@@ -1988,7 +2465,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         const fsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
         if(fsf){fsf.scrP=0;fsf.scrS=0;}
       }
-      let dealt=0;
+      /* WIRE 48 -- IGNORES PROTECT, computed once for the move rather than per target. Feint (375
+         uses) and Phantom Force (399) went through Protect in the real game and were stopped here,
+         and Roar, After You, Decorate and ten other status moves were stopped by it too. Read once
+         because it is a property of the MOVE, and used at BOTH the block and the Piercing Drill
+         quarter below -- a move that ignores Protect deals FULL damage, not a quarter of it. */
+      const _thruProtect=TAGS.has('move',a.move.id,'ignoresProtect');
+      let dealt=0,connected=false;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         /* AN IMMUNE TARGET TAKES NOTHING AT ALL -- not the damage, and not the SECONDARY either.
          *
@@ -2009,7 +2492,25 @@ function battleTurn(S,rng,actsForA,actsForB){
          * cannot be hit at all. Without this the charge is pure cost and those five become strictly
          * worse than reality -- the same one-directional error as the unmodelled charge, reversed. */
         if(tg._invuln)continue;
-        if(tg.protect&&!(m.ability==='piercingdrill'&&mv.c==='P'))continue;   // Protect blocks — unless Piercing Drill (contact)
+        if(tg.protect&&!_thruProtect&&!(m.ability==='piercingdrill'&&mv.c==='P')){
+          /* WIRE 61 -- THE SHIELD BITES BACK, 1,867 corpus clicks. Spiky Shield, Baneful Bunker and
+           * King's Shield blocked correctly and punished nothing, so all three were simply Protect --
+           * and the reason to click one over Protect is the entire punish.
+           * WHAT it costs is the artifact's now, and it had to be: the param was `{onContact:true}`
+           * for all three, and the three do COMPLETELY different things -- 1/8 of the toucher's HP,
+           * poison, and -1 Attack. A consumer that guessed would have been wrong on two of the three.
+           * WHICH shield went up is read off the mon, because `protect` is a boolean and every
+           * Protect-family move sets it. Contact is asked of the same helper Rough Skin uses. */
+          const _pc=TAGS.param('move',tg._protectMove,'punishesContact');
+          if(_pc&&_pc.onContact&&mvMakesContact(a.move.id)){
+            if(_pc.fraction){m.curHP-=Math.floor(m.st.hp/(+_pc.fraction));if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+            if(_pc.inflicts&&!m.fainted)applyStatus(m,CODE_OF_STATUS[_pc.inflicts]||_pc.inflicts);
+            if(_pc.boosts&&m.boosts&&!m.fainted)for(const k in _pc.boosts){
+              const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null)m.boosts[_s]=clamp(m.boosts[_s]+_pc.boosts[k],-6,6);
+            }
+          }
+          continue;   // Protect blocks — unless Piercing Drill (contact) or the move ignores it (WIRE 48)
+        }
         /* WIRE 11 -- the absorb GAIN. dmgRange already prices the hit at zero; HERE the absorber
          * collects what its handler grants -- Volt Absorb heals 1/4, Storm Drain banks +1 SpA,
          * Well-Baked Body +2 Def -- all from the artifact's gain param. The old 12-name table knew
@@ -2028,13 +2529,46 @@ function battleTurn(S,rng,actsForA,actsForB){
           continue;
         }
         let d=dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1);
+        /* WIRE 49 -- FRIEND GUARD, 894 sheets and entirely absent. It cuts what the PARTNER takes by
+           a quarter, so it can only be asked at the hit site: dmgRange is handed an attacker and a
+           defender and has no idea either of them has an ally. The multiplier is the tag's.
+           THE PARTNER IS FOUND ON THE TARGET'S OWN SIDE, not on the attacker's foes -- a spread move
+           that clips the attacker's own ally (Earthquake) puts `tg` on the attacking side, and
+           looking it up from `it.side` would then read the wrong pair. */
+        {
+          const _tside=actA.indexOf(tg)>=0?actA:actB;
+          const _pal=_tside.find(x=>x&&x!==tg&&!x.fainted&&x.curHP>0);
+          const _fg=_pal&&TAGS.param('ability',_pal.ability,'reducesAllyDamage');
+          if(_fg&&_fg.mult&&d&&(d.min||d.max))
+            d={min:Math.floor(d.min*_fg.mult),max:Math.floor(d.max*_fg.mult),eff:d.eff};
+        }
         /* x1.5 on a boosted attack. Applied to the ROLLED range rather than to base power, which is
            where the real game applies it, and only to damaging moves -- a Helping Hand on a status
            click does nothing and must stay nothing. */
         if(m._helpingHand&&d&&(d.min||d.max))d={min:Math.floor(d.min*1.5),max:Math.floor(d.max*1.5),eff:d.eff};
-        let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));if(rng()<1/24)dmg=Math.floor(dmg*1.5);
-        if(tg.protect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
+        let dmg=d.min+Math.floor(rng()*(d.max-d.min+1));
+        /* WIRE 35 -- THE CRIT ROLL READS A RATE. It was a flat `rng()<1/24` for every move and every
+         * defender: Night Slash and Psycho Cut got no more crits than Tackle, a Scope Lens did
+         * nothing, and Shell Armor took them like anything else. The rng is consumed
+         * UNCONDITIONALLY so a Shell Armor arm and a plain arm draw the same stream -- a guarded call
+         * would shift every later roll in the turn and make the two arms incomparable for reasons
+         * that have nothing to do with crits.
+         * A rate of exactly 1 is skipped because dmgRange has ALREADY applied that 1.5 to the range;
+         * multiplying again here would price Flower Trick at 2.25x. */
+        {const _cc=critChance(a.move.id,m,TAGS.param('ability',m.ability,'ignoresDefenderAbility')?'none':tg.ability),_cr=rng();
+         if(_cc>0&&_cc<1&&_cr<_cc)dmg=Math.floor(dmg*1.5);}
+        if(tg.protect&&!_thruProtect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
         dealt+=Math.min(dmg,tg.curHP);
+        /* WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
+           WHAT THAT SKIPS IS STATED RATHER THAN DISCOVERED: no item is knocked off, no resist berry
+           is spent, no contact punish is paid and no secondary lands. Three of those four are the
+           real rule; the CONTACT PUNISH is not -- Rough Skin does toll an attacker that broke a
+           substitute -- and it is left out because the punish block sits below this line and moving
+           it would reorder five other mechanics for one. Sound moves and Infiltrator also go through
+           a real substitute and are not tracked at the hit site. Both are divergences in the same
+           direction (a substitute here is slightly better than the game's) and both are small. */
+        connected=true;
+        if(tg._sub>0){tg._sub=Math.max(0,tg._sub-dmg);continue;}
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
          * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
          * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
@@ -2090,13 +2624,28 @@ function battleTurn(S,rng,actsForA,actsForB){
               for(const _inf of _pun.inflicts){_cum+=_inf.chance;
                 if(_r<_cum){applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status);break;}}
             }
+            /* `tg` is the HOLDER of the punish ability and `m` is the attacker who set it off, so
+             * the rock that extends this sky is the holder's. The first cut of this line read
+             * `m.item` and would have given Sand Spit eight turns whenever the mon that HIT it
+             * happened to carry a Smooth Rock. */
             if(_pun.setsWeather&&!field.weather){
               const _w=weatherId(_pun.setsWeather);
-              if(_w){field.weather=_w;field.weatherT=5;}
+              if(_w){field.weather=_w;field.weatherT=weatherTurns(_w,tg.item);}
             }
-            /* hazard (Toxic Debris) and inflictsVolatile (Cursed Body, Cute Charm, Perish Body)
-             * are carried by the artifact but have nowhere to land: this rollout keeps no side
-             * conditions and no volatiles. Left visibly unconsumed rather than faked. */
+            /* WIRE 68 -- TOXIC DEBRIS, and the comment that used to sit here said this tag had
+             * "nowhere to land". It does now: WIRE 41 gave each side an `hz` bag on its `_sf`, so a
+             * hazard laid by an ability goes exactly where a hazard laid by a move goes. Glimmora
+             * scatters Toxic Spikes on the ATTACKER's side when hit physically, capped at the tag's
+             * own maxLayers. Found by tests/test-game-diff.js's generated pair matrix reading
+             * `.A.hazards.toxicspikes medi=null sd=1` on two separate pairs.
+             * inflictsVolatile is still unconsumed HERE and is not a gap: Cursed Body now lands
+             * through its own `disablesAttacker` tag at WIRE 52, and Cute Charm's attract and Perish
+             * Body's clock have no state in this engine. */
+            if(_pun.hazard&&m._sf){
+              const _hz=(m._sf.hz=m._sf.hz||{});
+              const _cap=+_pun.maxLayers||1;
+              _hz[_pun.hazard]=Math.min(_cap,(_hz[_pun.hazard]||0)+1);
+            }
           }
         }
         /* WIRE 12 -- survivesFromFull. Focus Sash is the most-held item in the format (8,078
@@ -2201,9 +2750,28 @@ function battleTurn(S,rng,actsForA,actsForB){
               }
             }
           }
+          /* WIRE 63 -- THE PROCEDURAL SECONDARIES. Dire Claw (2,300 uses) and Tri Attack roll ONE
+           * status out of a set, chosen inside the handler, so the dex's `secondaries` entry carries a
+           * chance and NO status at all -- the loop above read it, found nothing to apply, and moved
+           * on. The tag carries the overall chance and the set; the pick is uniform over the set,
+           * which is what `each` (0.1 of 0.3, 0.067 of 0.2) says. applyStatus enforces the immunities,
+           * so a Tri Attack cannot freeze an Ice type. Suppressed by Shield Dust / Sheer Force with
+           * the other secondaries, because that is what these are. */
+          {const _ps=TAGS.param('move',a.move.id,'proceduralStatus');
+           if(_ps&&_ps.p&&Array.isArray(_ps.oneOf)&&_ps.oneOf.length&&!suppressed&&rng()<+_ps.p){
+             const _i=Math.min(_ps.oneOf.length-1,Math.floor(rng()*_ps.oneOf.length));
+             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i]);
+           }}
           // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
           if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
             if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true; }
+          /* WIRE 50 -- POISON TOUCH / TOXIC CHAIN, 985 sheets and nothing at all. Lesson 3 bites
+           * hardest here and the tag says why: `needsContact` is true, so a SPECIAL attacker carrying
+           * Poison Touch contributes to the sheet count and can never trigger. The chance is the
+           * tag's 0.3, and applyStatus enforces the Steel/Poison immunities so a Poison Touch
+           * Corviknight punch poisons nothing. */
+          {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
+           if(_pt&&(!_pt.needsContact||mvMakesContact(a.move.id))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn');}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -2215,6 +2783,37 @@ function battleTurn(S,rng,actsForA,actsForB){
            * turn too), not from a 2 typed here. */
           {const _bh=TAGS.param('move',a.move.id,'blocksHealing');
            if(_bh&&_bh.turns&&tg&&!tg.fainted)tg._healBlock=+_bh.turns+1;}
+          /* WIRE 45 -- THROAT CHOP LEAVES THE SILENCE BEHIND. 2,845 corpus clicks and the largest
+           * single unwired mechanic left: the move landed 80 base power and the two turns it exists
+           * for did nothing at all. The duration comes from `blocksSoundMoves.turns`, which the
+           * derivation now reads off the condition, and carries the same +1 as Heal Block and Encore
+           * because the end-of-turn tick fires on the application turn too. */
+          {const _bs=TAGS.param('move',a.move.id,'blocksSoundMoves');
+           if(_bs&&_bs.turns&&!tg.fainted)tg._noSound=+_bs.turns+1;}
+          /* WIRE 51 -- THE PARTIAL TRAP. Infestation (761 uses) landed its 8 damage and then chipped
+           * NOTHING -- the whole move is the four-to-five turns after it. The fraction is the tag's
+           * `chipPerTurn`; the duration is the tag's `turns` string ("4-5"), and the LOW end is taken
+           * rather than the mean, because over-running a trap invents turns of chip that the real
+           * move may not get. The switch-blocking half is NOT modelled and is stated: this engine has
+           * no trapping concept, and a trap that stopped a switch would be a much stronger claim. */
+          {const _pt2=TAGS.param('move',a.move.id,'partialTrap');
+           if(_pt2&&_pt2.chipPerTurn&&!tg.fainted&&!tg._trap){
+             const _tn=String(_pt2.turns||'4').match(/\d+/);
+             tg._trap={frac:+_pt2.chipPerTurn,turns:(_tn?+_tn[0]:4)};
+           }}
+          /* WIRE 52 -- CURSED BODY, 1,342 sheets. It seals the move that just hit it, which is
+           * Disable arriving from the defending side, and the engine already has everywhere it needs
+           * to land: `_sealed` plus `_vol.disable` are what WIRE 26 built for Disable itself, and
+           * chooseAction and the WIRE 24 forced-action guard both already honour them. The CHANCE is
+           * the artifact's now (0.3, read out of the handler's `randomChance(3, 10)`); the boolean it
+           * used to carry would have made every Gengar a permanent Disable machine.
+           * The duration is Disable's own from the sealsMoves tag, so one number serves both routes. */
+          {const _cb=TAGS.param('ability',tg.ability,'disablesAttacker');
+           if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&rng()<+_cb.chance){
+             const _dt=TAGS.param('move','disable','sealsMoves');
+             (m._vol=m._vol||{}).disable=((_dt&&+_dt.turns)||4)+1;
+             m._sealed=a.move.id;
+           }}
         }
         /* Spicy Spray's burn was an independent hardcode here, gated on PHYSICAL -- the handler
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
@@ -2238,7 +2837,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(idx>=0)switchOut(own,idx,bench,foes,sf,field,a.pivotTo);
       }
       // recoil, from the move table's dex-generated fraction (was a 12-name hand table)
-      const _rcF=recoilOf(a.move.mv);
+      /* WIRE 53 -- ROCK HEAD, 784 sheets. The recoil line above has been correct since the move table
+         carried `rc`, and the ability that DELETES it had no representation at all -- so a Rock Head
+         Brave Bird cost its user a third of its HP in every rollout. The multiplier is the tag's own
+         `recoil: 0` rather than a boolean, so an ability that merely halved recoil would arrive with
+         no edit here. */
+      const _nr=TAGS.param('ability',m.ability,'noRecoil');
+      const _rcF=recoilOf(a.move.mv)*((_nr&&_nr.recoil!=null)?+_nr.recoil:1);
       if(_rcF&&dealt>0){m.curHP-=Math.floor(dealt*_rcF);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
       /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
        * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
@@ -2265,11 +2870,71 @@ function battleTurn(S,rng,actsForA,actsForB){
           m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(dealt*_dr.fraction));
         }
       }
+      /* WIRE 65 -- A MOVE THAT REACHED NOTHING PAYS NOTHING. Found by tests/test-game-diff.js's
+         GENERATED pair matrix on its first run, six pairs at once: Close Combat into a Protect read
+         `medi def -1 / spd -1` against Showdown's `0 / 0`. The self-drop applied unconditionally, so
+         a blocked Close Combat, a Draco Meteor into a Fairy and an Overheat into a Flash Fire all
+         cost the user its stats for nothing -- and the searcher saw that cost on every one of them.
+         `connected` is set only where a body actually took the hit, which is after Protect, after the
+         type immunity, after the absorb ability and after the invulnerability check. */
       // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
-      const sdrop=a.move.mv.self;
+      const sdrop=connected?a.move.mv.self:null;
       if(sdrop){const sgn=m.ability==='contrary'?-1:1;
         for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null)m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);}}
       if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
+         power, so they arrived here as ordinary attacks and the drag -- which is the entire reason a
+         phazing move is played -- simply did not happen. AFTER the damage, like the pivot above, and
+         through the same one switch path. A target that fainted to the hit is not dragged. */
+      {
+        const _fs=TAGS.param('move',a.move.id,'forcesSwitch');
+        if(_fs&&_fs.forceSwitch){
+          const _own=it.side==='A'?actA:actB, _foes=it.side==='A'?actB:actA;
+          const _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
+          for(const tg of targets){
+            if(!tg||tg.fainted||tg.curHP<=0)continue;
+            const _i=_foes.indexOf(tg); if(_i<0)continue;
+            switchOut(_foes,_i,_fb,_own,_fsf,field,null);
+          }
+        }
+      }
+      /* WIRE 46 -- EXPLOSION FAINTS ITS USER, and it did not: the user walked away on full HP, so a
+         move whose entire cost is your own Pokemon was priced as a free spread nuke. `faints:'always'`
+         is Explosion, Self-Destruct and Misty Explosion; `faints:'ifHit'` is Final Gambit, Memento and
+         Healing Wish, which only pay if the move connected. The split is the artifact's.
+         Placed AFTER recoil, drain and Life Orb so the whole turn resolves off a living body first --
+         a Final Gambit that drains would otherwise heal a corpse. */
+      {
+        const _uf=TAGS.param('move',a.move.id,'userFaints');
+        if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true;}
+      }
+      /* WIRE 43 -- ARM THE RECHARGE. Set only when the move actually resolved (a blocked or missed
+         Hyper Beam still recharges in the real game, but this line sits after every `continue` that
+         means "the move did not happen at all", which is the conservative half). */
+      if(!m.fainted&&TAGS.has('move',a.move.id,'recharge'))m._recharge=true;
+      /* WIRE 44 -- ARM THE LOCKOUT. `lockoutTurns + 1` for the end-of-turn tick that fires on this
+         turn too, the same convention Encore, Heal Block and Yawn already use. */
+      {
+        const _c2=TAGS.param('move',a.move.id,'cantUseTwice');
+        if(_c2&&!m.fainted){m._noRepeat=a.move.id;m._noRepeatT=(+_c2.lockoutTurns||1)+1;}
+      }
+      /* WIRE 54 -- PROTEAN / LIBERO, 253 sheets. The user BECOMES the type of the move it used, which
+         changes its STAB, its resistances and what is super effective on it for the rest of the turn
+         -- none of which existed. `oncePerSwitchIn` is the Gen-9 rule and is the tag's own field, so
+         a body that has already converted does not convert again until it leaves; `_proteanUsed` is
+         cleared by switchOut beside the other one-shot flags.
+         AFTER the move resolves, which is the wrong order by a hair and the right one for this
+         engine: the real game converts BEFORE the damage, so the move gets the new STAB. Doing it
+         first would mean recomputing `d`, which was priced from the pre-conversion body several
+         branches ago. Stated rather than hidden -- the conversion's DEFENSIVE half, which is most of
+         what it costs and buys, is exact. */
+      {
+        const _tb=TAGS.param('ability',m.ability,'typeBecomesMoveType');
+        if(_tb&&!m.fainted&&!(_tb.oncePerSwitchIn&&m._proteanUsed)){
+          const _nt=effMoveType(a.move.mv,a.move.id,field);
+          if(_nt&&!(m.types.length===1&&m.types[0]===_nt)){m.types=[_nt];m._proteanUsed=true;}
+        }
+      }
     }
     /* Flinch expires at the END of the turn it was applied. It used to be cleared only when the
      * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this
@@ -2277,6 +2942,44 @@ function battleTurn(S,rng,actsForA,actsForB){
      * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
     [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
     for(const m of [...actA,...actB]){if(!m||m.fainted||m.curHP<=0)continue;
+      /* WIRE 55 -- THE STATUS BERRIES, FIRST IN THE RESIDUAL ORDER on purpose: Lum and its family
+       * cure the MOMENT the status lands, so a body that was just burned must not also take the burn
+       * chip this turn. WHICH status is the artifact's now -- the param used to be a bare
+       * `{cures:true}` shared by six berries, five of which cure exactly ONE status, so a consumer
+       * reading the boolean would have made a Cheri Berry cure a Will-O-Wisp. Lum alone carries the
+       * explicit string 'any'. */
+      {const _cs=TAGS.param('item',m.item,'curesStatus');
+       if(_cs&&m.status&&_cs.statuses
+          &&(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0))){
+         m.status='';m.toxTurns=0;m.item='';
+       }}
+      /* WIRE 56 -- WHITE HERB, 2,073 sheets and the most-held item in the format after the Sash. It
+       * undoes every NEGATIVE stage and is then gone, which is precisely the answer to Intimidate and
+       * to Close Combat's own drop -- and it did nothing at all. Positive stages are untouched, so a
+       * Close Combat user keeps whatever it set up. */
+      {const _rs=TAGS.param('item',m.item,'restoresStats');
+       if(_rs&&_rs.restores&&m.boosts){
+         let _any=false;
+         for(const k in m.boosts)if(m.boosts[k]<0){m.boosts[k]=0;_any=true;}
+         if(_any)m.item='';
+       }}
+      /* WIRE 57 -- SPEED BOOST, 727 sheets. It raises Speed EVERY turn with no action spent, and it
+       * compounds -- which is exactly the shape a rollout is blind to, because nothing recomputes a
+       * speed order for a boost nobody clicked. WHICH stat comes from the artifact now: the param was
+       * a bare `{perTurn:true}` shared with Moody (450 sheets, a RANDOM stat) and Opportunist (3, it
+       * COPIES the foe), and a consumer reading the boolean would have given all three a Speed boost.
+       * The derivation emits `boosts` only for a literal handler object, so the other two carry the
+       * tag, get nothing, and are visibly unwired rather than silently wrong.
+       * SHOWDOWN'S `activeTurns` GATE IS NOT EXPRESSIBLE HERE AND IS LEFT OUT, with the reason. The
+       * real ability does not fire on the turn a body switches in. `_turnsOut` is incremented AFTER
+       * this residual block, so on turn 1 a lead and a body that just pivoted in both read 0 and the
+       * gate cannot tell them apart -- it would suppress the boost on every turn 1 instead. The cost
+       * of leaving it out is one turn early on a pivot turn; the cost of the wrong gate was the
+       * mechanic never firing on turn 1 at all, which is what the probe caught. */
+      {const _be=TAGS.param('ability',m.ability,'boostsEachTurn');
+       if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){
+         const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null)m.boosts[_s]=clamp(m.boosts[_s]+_be.boosts[k],-6,6);
+       }}
       /* WIRE 31 -- THE SANDSTORM RESIDUAL, WHICH THIS ENGINE DID NOT HAVE AT ALL.
        *
        * FOUND BY CONVERTING A HOLLOW CENSUS PROBE. `weatherChipImmune` read LIVE because the string
@@ -2330,8 +3033,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * FLAT 10 HP, not a fraction -- its param is honestly null and it stays unwired (0 uses). */
       /* Under Heal Block the berry is not eaten AT ALL — it is still there afterwards — so the gate
        * wraps the whole block rather than only the HP line. */
+      /* WIRE 58 -- UNNERVE, 1,949 sheets. It stops the OTHER SIDE eating a berry at all -- the berry
+       * is not consumed and is still there afterwards, which is why the gate wraps the whole block
+       * rather than only the HP line, exactly as Heal Block's does. The side is found by identity
+       * because this residual loop walks both sides in one pass. */
+      const _foesOf=(actA.indexOf(m)>=0?actB:actA);
+      const _unnerved=_foesOf.some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksBerries'));
       {const _ht=TAGS.param('item',m.item,'healsAtThreshold');
-       if(_ht&&_ht.restores&&_ht.triggersBelow&&!healBlocked(m)){
+       if(_ht&&_ht.restores&&_ht.triggersBelow&&!healBlocked(m)&&!_unnerved){
          const _fr=s=>{const p=String(s).match(/(\d+)\s*\/\s*(\d+)/);return p?+p[1]/+p[2]:0;};
          if(m.curHP<=m.st.hp*_fr(_ht.triggersBelow)){
            m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_fr(_ht.restores)));m.item='';
@@ -2341,6 +3050,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * (seeding a tank returns more than seeding a pixie -- that is the tag's per, not a constant)
        * and the same number is handed to the seeder, capped at full. If the seeder is down the chip
        * continues and the heal is simply lost -- close to the real slot rule without slot state. */
+      /* WIRE 51 -- THE TRAP CHIPS. Beside Leech Seed because it is the same kind of clock, and after
+       * the status chips for the same residual-order reason. */
+      if(m._trap&&m.curHP>0){
+        m.curHP-=Math.floor(m.st.hp*m._trap.frac);
+        if(--m._trap.turns<=0)m._trap=null;
+        if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+      }
       if(m._seededBy&&m.curHP>0){
         /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
          * victim still had, and handing the seeder more than that would mint HP from nothing. */
@@ -2366,6 +3082,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* Heal Block ticks with the other clocks. It is applied as `turns + 1` because this tick fires
        * on the application turn too — the same convention as Encore's lock two blocks down. */
       if(x._healBlock>0)x._healBlock--;
+      /* WIRE 45 / WIRE 44 -- the Throat Chop silence and the Gigaton Hammer lockout tick here with
+         every other clock in this engine, for the reason the Disable comment gives: a duration that
+         only counts down on turns the engine happens to be CHOOSING lasts forever in a rollout driven
+         from outside. */
+      if(x._noSound>0)x._noSound--;
+      if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
     }
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;
       /* Disable ticks HERE and not in chooseAction, so a turn where the caller supplied the action
@@ -2420,7 +3142,7 @@ function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
  * the log rather than pretending the engine played a move it cannot represent. */
 function playerAction(me,moveId,target,field){
   const id=String(moveId||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(PROTECTMOVES.has(id))return {kind:'protect'};
+  if(PROTECTMOVES.has(id))return {kind:'protect',mv:id};   // mv, so WIRE 61 knows which shield blocked
   if(id==='wideguard')return {kind:'wideguard'};
   if(id==='tailwind')return {kind:'tail'};
   if(id==='trickroom')return {kind:'trickroom'};
@@ -2460,7 +3182,7 @@ function playerAction(me,moveId,target,field){
      artifact this engine reads carries the numbers (the lowersTarget param says "via onHit", and
      MOVE_EFFECTS has no boosts for it). So the switch is modelled and the drop is not. That is a
      known half, and it is the half that decides where the move is played. */
-  if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id};
+  if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id,target};
   /* WEATHER, from the rulebook's own `weather` field. SD2WEATHER already maps Showdown's names onto
      this engine's ('RainDance' -> 'rain'), and it is reused rather than restated so a weather setter
      and the ability that sets the same weather cannot disagree. Rain and sun are the two largest
@@ -2491,6 +3213,24 @@ function playerAction(me,moveId,target,field){
     const _fd=TAGS.param('move',id,'fixedDamage');
     if(_fd&&_fd.source==='halfTargetCurrentHP')return {kind:'fixeddmg',mv:id,target};
   }
+  /* WIRE 39 -- HAZE (552 uses) and Clear Smog. `clearsBoosts` resolved to `kind: pass`, so the one
+     move in the format that answers a Belly Drum or a Dragon Dance was a wasted turn in every
+     rollout. Clear Smog carries base power and is caught by the attack branch above, so only the
+     pure-status members arrive here. */
+  if(TAGS.has('move',id,'clearsBoosts'))return {kind:'haze',mv:id};
+  /* WIRE 40 -- ROAR and WHIRLWIND, the damage-less half of forcesSwitch. Dragon Tail and Circle
+     Throw carry base power and drag from the attack path; these two carry none and fell through to
+     `pass`. 422 corpus uses between them. */
+  if(TAGS.has('move',id,'forcesSwitch'))return {kind:'phaze',mv:id,target};
+  /* WIRE 41 -- the hazard moves. They set a SIDE condition and this engine already has the only
+     per-side object it needs (`_sf`, which every member of a team shares by reference), so a
+     switch-in walks onto rocks that were laid before it arrived. */
+  if(TAGS.param('move',id,'hazard'))return {kind:'hazard',mv:id};
+  /* WIRE 42 -- SUBSTITUTE (548 uses) and the rest of costsUserHP. Checked LAST among the
+     self-targeting kinds on purpose: Clangorous Soul and Shed Tail also pay HP and also do something
+     else this engine already models (a setup and a pivot), and capturing them here would trade a
+     half-modelled move for a fully wrong one. Their cost is applied at execution instead, where it
+     applies to whatever kind they resolved to. */
   /* YAWN sleeps the target after a delay the tag states. */
   if(TAGS.has('move',id,'delayedSleep'))return {kind:'yawn',mv:id,target};
   if(fx&&fx.weather&&weatherId(fx.weather))
@@ -2517,7 +3257,22 @@ function playerAction(me,moveId,target,field){
     if((_sc&&_sc.target)||(_si&&_si.effects&&_si.effects.length))
       return {kind:'affect',mv:id,target,sc:_sc||null,si:_si||null};
   }
+  /* WIRE 67, the SELF half. Belly Drum, Tidy Up and Stuff Cheeks raise their OWN stages from inside a
+     handler, so no `boosts` field exists for the setup branch above to read and all three resolved to
+     a wasted turn. Only members whose handler carries a LITERAL table arrive here; the five that
+     invert, copy, swap or randomise their stages carry the tag with no numbers and still resolve to a
+     pass, which is honest -- see the derivation's own comment for why a guessed table is worse. */
+  {
+    const _sc3=TAGS.param('move',id,'statChangeInCode');
+    if(_sc3&&_sc3.boosts&&_sc3.on==='user')return {kind:'statcode',mv:id};
+  }
   if(TAGS.has('move',id,'sealsMoves'))return {kind:'status',mv:id,target};   // Encore rides the status path
+  /* WIRE 42 -- SUBSTITUTE. Last, so anything with a modelled effect has already claimed the click.
+     Today that leaves exactly Substitute: a quarter of max HP for a body that then eats damage.
+     Modelled as BOTH halves in the same pass on purpose -- charging the cost without granting the
+     substitute would make the most-clicked defensive setup move in the format strictly worse than
+     doing nothing, which is a one-directional error and the exact shape WIRE 30 was landed to avoid. */
+  if(TAGS.param('move',id,'costsUserHP'))return {kind:'sub',mv:id};
   return {kind:'pass'};
 }
 function winProb2(nA,nB,N,ov){
@@ -2606,6 +3361,9 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * be able to ask THIS engine what its weather words are, rather than keeping a second map that
    * drifts. rollout_leaf.applyField is the caller that needed it and could not reach it. */
   weatherId,terrainId,
+  /* Same argument one step further on: the MEGA route lives in rollout_leaf and was the third of
+   * four setters writing a literal 5. It calls this rather than growing its own rock read. */
+  weatherTurns,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
   fails:MEDFAILS};
 })(typeof window!=='undefined'?window:globalThis);

@@ -182,8 +182,13 @@ function applyMegaWeather(S, dex) {
     /* The second call runs only for a mega, which is rare enough that one resolver used twice is
      * cheaper than the bug of caching a half-resolved identity. */
     const p2 = TAGSMOD.param('ability', B.effAbility(id, dex), 'weatherSetter');
-    const w = p2 && p2.weather;
-    if (w) { S.field.weather = w; S.field.weatherT = 5; return; }
+    /* `weatherId` for the same reason every other setter uses it: the param happens to carry the
+     * engine word today, and a tag that ever spelled it `sunnyday` would write a word no damage
+     * formula reads, silently. `weatherTurns` is the rock — this branch wrote a literal 5 while the
+     * MOVE branch read Heat Rock, so Charizard-Y mega-ing in gave five turns of sun and clicking
+     * Sunny Day gave eight. */
+    const w = MEDI.weatherId((p2 && p2.weather) || '');
+    if (w) { S.field.weather = w; S.field.weatherT = MEDI.weatherTurns(w, m.item, TAGSMOD); return; }
   }
 }
 

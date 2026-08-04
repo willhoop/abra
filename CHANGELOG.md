@@ -10,6 +10,86 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.36.0] — 2026-08-04
+
+### `test-wiring.js` — the guard this project's whole discipline rests on — had been skipping
+
+`CLAUDE.md` names `tests/test-wiring.js` as the direct answer to the 2026-07-28 failures: it plays
+real games and fails if a capability counter is zero, because *"a capability that cannot prove it ran
+is assumed broken."* It needs a pokemon-showdown checkout, and when it cannot find one it skips
+politely:
+
+    test-wiring: set SHOWDOWN_PATH
+
+`run-all` then reports a clean exit around the skip. **Six tests were doing this, and a checkout at
+the pinned commit `20ad99f` was one directory up the entire time** — the fallback path was `/tmp/ps`
+and this project runs on Windows. Run with the path supplied, all six pass and `test-wiring` prints
+*every capability proved it ran*; nothing was broken. **That is the point.** The project's own central
+lesson, pointed at its own toolchain: a skip is not a pass, and a guard that opts itself out is not a
+guard.
+
+The fix is not a better default in `champions_sim`, because **twenty files each wrote
+`if (!process.env.SHOWDOWN_PATH)`** — one fact with twenty implementations. Fixing the loader would
+have left all twenty *gates* still asking the env var and still skipping. `engine/showdown_path.js`
+(new) resolves the sibling checkout, and **sets `process.env.SHOWDOWN_PATH` as a deliberate side
+effect** so a spawned child inherits it without knowing the module exists. An explicit env var always
+wins. **Eight previously-skipping tests now run: 113 assertions that had never executed.**
+
+One of them, `test-effective-identity`, came back red on the new probe below — correctly — and is
+declared with its reason rather than re-baselined.
+
+### WIRE 71 — the rock fix landed on one weather branch of four
+
+Weather is set four ways and each had its own branch: an ability on switch-in (Drought 899 uses,
+Drizzle 3,075, Sand Stream 1,716, Snow Warning 1,561), a **move** (Sunny Day 588, Rain Dance 919,
+Sandstorm 10, Snowscape 11), **mega evolution**, and a **punish** ability (the Sand Spit class).
+WIRE 70, landed hours earlier by the weather audit, taught the *move* branch to read `extendsDuration`
+off the rock. **The other three kept writing a literal 5.**
+
+So a Torkoal holding a Heat Rock set **five** turns of sun by switching in and **eight** by clicking
+Sunny Day. Same held item, same sky, two answers decided by how it arrived.
+
+**The probe that found WIRE 70 was staged on one of the four routes and passed on that route.** Not a
+weak probe — a correct probe pointed at one body, which is the same shape as the mega bug that ran at
+56% of sides against 85% and passed a non-zero check. A tag with four consumers needs a probe per
+consumer, or an assertion over the consumers as a set.
+
+`tests/test-weather-duration.js` is the second: it asserts the **invariant** — for a given sky and a
+given item, every route agrees — so a fifth route added tomorrow that hardcodes 5 fails without anyone
+remembering to extend a list of four. The rule now lives once, in the exported
+`weatherTurns(weather, item)`.
+
+**The two vocabularies meet inside it**, which is why it could not be a one-line read at each site:
+`extendsDuration.extends` holds MOVE ids (`sunnyday`), while `weatherSetter.weather` holds ENGINE
+words (`sun`). WIRE 70's inline version compared the raw entry against `a.mv` — correct on the move
+branch by luck of spelling, silently never matching on the other three.
+
+**Small population, decisive effect.** 14 of 496 declared setters in the store carry the matching rock
+— Damp Rock on a Drizzle body at 6.2%, Heat Rock at 2.2%, Smooth and Icy Rock at 0.0%. Three extra
+turns of rain is most of a game, and no aggregate would ever have shown it.
+
+**Two errors caught in review and recorded, because both are shapes that survive.** The first cut of
+the punish branch read `m.item`, but `tg` holds the punish ability and `m` is the attacker — Sand Spit
+would have run eight turns whenever the mon that *hit* it carried a Smooth Rock. And the probe's first
+cut passed `{item: 'Heat Rock'}` to `buildMon`, whose override bag is keyed by **species**; the mon
+silently kept its dataset default of Charcoal. Only the `ran` counter caught it — without that, a probe
+measuring the wrong item reports a pass.
+
+**Run against the pre-fix engine it fails 4 of 60**, then passes 60 of 60. The unit half alone would
+not have caught the original bug — `weatherTurns` returns 8 whether or not the switch-in branch calls
+it — so the probe builds a real Torkoal, runs the real `applyEntryEffects`, and reads the real field.
+
+### Also
+
+- **The mega weather branch did not route through `weatherId`.** It happened to carry the engine word
+  today; a tag that ever spelled it `sunnyday` would have written a word no damage formula reads.
+- `data/xatu.json` and `xatu.js` regenerated — 7,228 usable of 40,193 collected (18.0%), 364 species.
+  Provenance's UNSAFE count is unchanged at 1 (`exploitability.json`, which the WOBBUFFET re-run
+  regenerates) and possibly-stale falls 38 → 37.
+- `web/status-data.js` rebuilt; `test-web-status` back to green.
+
+---
+
 ## [3.35.0] — 2026-08-04
 
 ### Eight generators were writing `data/*` artifacts that no ledger had ever heard of

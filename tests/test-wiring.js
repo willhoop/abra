@@ -36,6 +36,7 @@
  * The class of bug being killed here is absence, which is the one that has actually cost time.
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const path = require('path');
 const { execFileSync } = require('child_process');
 const fs = require('fs');

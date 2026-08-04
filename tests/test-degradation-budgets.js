@@ -43,6 +43,7 @@
  * cover the recorded failures of this project; nothing covers all bugs.
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');

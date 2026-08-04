@@ -53,6 +53,7 @@
  *   --keep-shards   leave the per-worker files instead of merging
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const os = require('os');
 const path = require('path');

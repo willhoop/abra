@@ -54,6 +54,7 @@
  *   --seed <n>       base seed, for reproducibility
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const { extract } = require('./durable-ingest.js');

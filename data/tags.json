@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-04T19:55:18.904Z",
+ "generated": "2026-08-04T21:37:38.025Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -42,8 +42,8 @@
    "kind": "move",
    "param": "P(crit) = 1",
    "why": "x1.5 and ignores the defender's positive defensive boosts",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "willCrit",
+   "used": true,
    "n": 3,
    "uses": 278,
    "examples": [
@@ -57,8 +57,8 @@
    "kind": "move",
    "param": "P(crit) raised",
    "why": "a higher crit stage, which the damage distribution should weight rather than ignore",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "critRatio",
+   "used": true,
    "n": 14,
    "uses": 1162,
    "examples": [
@@ -93,8 +93,8 @@
    "kind": "move",
    "param": "power or target changes with the terrain",
    "why": "Expanding Force becomes a SPREAD move in Psychic Terrain, Rising Voltage doubles in Electric. Grassy Glide gains priority, which board.js already special-cases",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "terrainScaled",
+   "used": true,
    "n": 4,
    "uses": 308,
    "examples": [
@@ -218,8 +218,8 @@
    "kind": "move",
    "param": "pay a share of max HP, and FAIL outright below that threshold",
    "why": "Substitute (247 uses) 1/4, Clangorous Soul (190) 1/3, Shed Tail (41) 1/2. The cost is unpriced and the failure condition is unchecked -- and you can have the HP when you choose and not when you act",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "costsUserHP",
+   "used": true,
    "n": 3,
    "uses": 951,
    "examples": [
@@ -429,8 +429,8 @@
    "kind": "move",
    "param": "MISSING costs the user HP -- the downside is not merely zero",
    "why": "High Jump Kick and Jump Kick take half the user max HP on a miss. Expected damage alone cannot distinguish a whiff that costs nothing from one that costs half your health",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "crashOnMiss",
+   "used": true,
    "n": 3,
    "uses": 209,
    "examples": [
@@ -667,8 +667,8 @@
    "kind": "move",
    "param": "Protect does NOT stop it",
    "why": "Feint, Phantom Force, Shadow Force. The bot values Protect as a guaranteed block, so a move that goes through it is mispriced on BOTH sides of the turn",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "ignoresProtect",
+   "used": true,
    "n": 14,
    "uses": 1654,
    "examples": [
@@ -685,8 +685,8 @@
    "kind": "move",
    "param": "the attacker pays for touching the shield",
    "why": "Spiky Shield chips 1/8, Baneful Bunker poisons, Kings Shield drops Attack. Rough Skin with a condition, and it makes clicking a contact move into a likely Protect worse than it looks",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "punishesContact",
+   "used": true,
    "n": 3,
    "uses": 1867,
    "examples": [
@@ -789,8 +789,8 @@
    "kind": "move",
    "param": "the TARGET is removed from the field",
    "why": "Whirlwind, Dragon Tail, Roar. Undoes setup and changes who is in front of you",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "forceSwitch",
+   "used": true,
    "n": 4,
    "uses": 518,
    "examples": [
@@ -918,8 +918,8 @@
    "kind": "move",
    "param": "every stat stage on the field := 0, both sides",
    "why": "Haze, 359 uses. The only answer to setup in the format, and it hits YOUR boosts too -- so whether to click it depends on who is ahead on stages, which nothing computes",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "clearsBoosts",
+   "used": true,
    "n": 2,
    "uses": 561,
    "examples": [
@@ -1011,8 +1011,8 @@
    "kind": "move",
    "param": "P(confusion): they hit themselves some of the time",
    "why": "4,620 appearances. Not a status -- a volatile that adds a failure chance to every move they click while it lasts",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "confusion",
+   "used": true,
    "n": 9,
    "uses": 3365,
    "examples": [
@@ -1352,8 +1352,8 @@
    "kind": "move",
    "param": "one status from a set, chosen at random in the handler",
    "why": "Dire Claw (1,509 uses) rolls poison / paralysis / sleep at 10% each; Tri Attack rolls burn / paralysis / freeze. The secondary declares a chance and no status, so every status probe misses them",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "proceduralStatus",
+   "used": true,
    "n": 2,
    "uses": 2304,
    "examples": [
@@ -1728,8 +1728,8 @@
    "kind": "item",
    "param": "clears Taunt/Encore/Disable/Attract the moment one lands, then is gone",
    "why": "Mental Herb. It silently undoes the whole point of a Taunt or an Encore, so any value the bot assigns to landing one is wrong against a holder",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onUpdate",
+   "used": true,
    "n": 1,
    "uses": 684,
    "examples": [
@@ -2361,8 +2361,8 @@
    "kind": "ability",
    "param": "their berries cannot be eaten",
    "why": "Unnerve, 2.03%. Turns off Sitrus (10.8% of items) and every resist berry on the other side",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "unnerve",
+   "used": true,
    "n": 3,
    "uses": 1949,
    "examples": [
@@ -2650,8 +2650,8 @@
    "kind": "ability",
    "param": "a stat rises every turn it stays in, with no action spent",
    "why": "Speed Boost. Compounds silently -- it outruns things it could not outrun two turns ago, and nothing recomputes the speed order for a boost nobody clicked",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "boostsEachTurn",
+   "used": true,
    "n": 3,
    "uses": 1180,
    "examples": [
@@ -2678,8 +2678,8 @@
    "kind": "ability",
    "param": "recoil damage is zero",
    "why": "Rock Head. Turns the recoil tag from a cost into nothing, so a Head Smash carrier is priced wrongly in both directions if only one of the two tags is read",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "noRecoil",
+   "used": true,
    "n": 1,
    "uses": 784,
    "examples": [
@@ -2892,7 +2892,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "fakeout",
      "name": "Fake Out",
@@ -3624,8 +3624,35 @@
      "uses": 2
     }
    ],
+   "reactorMoves": [
+    {
+     "id": "spikyshield",
+     "name": "Spiky Shield",
+     "uses": 940
+    },
+    {
+     "id": "banefulbunker",
+     "name": "Baneful Bunker",
+     "uses": 744
+    },
+    {
+     "id": "kingsshield",
+     "name": "King's Shield",
+     "uses": 183
+    },
+    {
+     "id": "shellsidearm",
+     "name": "Shell Side Arm",
+     "uses": 11
+    },
+    {
+     "id": "beakblast",
+     "name": "Beak Blast",
+     "uses": 10
+    }
+   ],
    "moveUses": 122612,
-   "reactorUses": 8257
+   "reactorUses": 10145
   },
   "sound": {
    "note": "sound-based",
@@ -3647,7 +3674,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "partingshot",
      "name": "Parting Shot",
@@ -3749,8 +3776,15 @@
      "uses": 1
     }
    ],
+   "reactorMoves": [
+    {
+     "id": "throatchop",
+     "name": "Throat Chop",
+     "uses": 2845
+    }
+   ],
    "moveUses": 14797,
-   "reactorUses": 701
+   "reactorUses": 3546
   },
   "punch": {
    "note": "a punching move",
@@ -3762,7 +3796,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "icepunch",
      "name": "Ice Punch",
@@ -3839,6 +3873,7 @@
      "uses": 2
     }
    ],
+   "reactorMoves": [],
    "moveUses": 5712,
    "reactorUses": 101
   },
@@ -3852,7 +3887,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "weatherball",
      "name": "Weather Ball",
@@ -3939,6 +3974,7 @@
      "uses": 1
     }
    ],
+   "reactorMoves": [],
    "moveUses": 22034,
    "reactorUses": 85
   },
@@ -3952,7 +3988,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "ragepowder",
      "name": "Rage Powder",
@@ -3984,6 +4020,7 @@
      "uses": 3
     }
    ],
+   "reactorMoves": [],
    "moveUses": 7422,
    "reactorUses": 244
   },
@@ -4002,7 +4039,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "tailwind",
      "name": "Tailwind",
@@ -4049,6 +4086,7 @@
      "uses": 2
     }
    ],
+   "reactorMoves": [],
    "moveUses": 25649,
    "reactorUses": 0
   },
@@ -4062,7 +4100,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "dragonclaw",
      "name": "Dragon Claw",
@@ -4164,6 +4202,7 @@
      "uses": 2
     }
    ],
+   "reactorMoves": [],
    "moveUses": 15775,
    "reactorUses": 270
   },
@@ -4177,7 +4216,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "psychicfangs",
      "name": "Psychic Fangs",
@@ -4214,6 +4253,7 @@
      "uses": 5
     }
    ],
+   "reactorMoves": [],
    "moveUses": 2838,
    "reactorUses": 6
   },
@@ -4227,7 +4267,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "matchagotcha",
      "name": "Matcha Gotcha",
@@ -4329,6 +4369,7 @@
      "uses": 7
     }
    ],
+   "reactorMoves": [],
    "moveUses": 14728,
    "reactorUses": 0
   },
@@ -4352,7 +4393,7 @@
     }
    ],
    "items": [],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "protect",
      "name": "Protect",
@@ -4499,6 +4540,7 @@
      "uses": 3
     }
    ],
+   "reactorMoves": [],
    "moveUses": 119565,
    "reactorUses": 3081
   },
@@ -4568,7 +4610,7 @@
      "uses": 78
     }
    ],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "protect",
      "name": "Protect",
@@ -5350,8 +5392,25 @@
      "uses": 1
     }
    ],
+   "reactorMoves": [
+    {
+     "id": "suckerpunch",
+     "name": "Sucker Punch",
+     "uses": 6673
+    },
+    {
+     "id": "taunt",
+     "name": "Taunt",
+     "uses": 1402
+    },
+    {
+     "id": "upperhand",
+     "name": "Upper Hand",
+     "uses": 70
+    }
+   ],
    "moveUses": 160921,
-   "reactorUses": 10016
+   "reactorUses": 18161
   },
   "physicalMove": {
    "note": "a physical move",
@@ -5389,7 +5448,7 @@
      "uses": 84
     }
    ],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "fakeout",
      "name": "Fake Out",
@@ -6316,6 +6375,7 @@
      "uses": 2
     }
    ],
+   "reactorMoves": [],
    "moveUses": 148717,
    "reactorUses": 1077
   },
@@ -6340,7 +6400,7 @@
      "uses": 25
     }
    ],
-   "moves": [
+   "carrierMoves": [
     {
      "id": "weatherball",
      "name": "Weather Ball",
@@ -6932,6 +6992,7 @@
      "uses": 1
     }
    ],
+   "reactorMoves": [],
    "moveUses": 110124,
    "reactorUses": 25
   },
@@ -6939,7 +7000,8 @@
    "note": "the holder has NO item",
    "abilities": [],
    "items": [],
-   "moves": [],
+   "carrierMoves": [],
+   "reactorMoves": [],
    "moveUses": 0,
    "reactorUses": 0
   },
@@ -6947,7 +7009,8 @@
    "note": "the target just set up",
    "abilities": [],
    "items": [],
-   "moves": [],
+   "carrierMoves": [],
+   "reactorMoves": [],
    "moveUses": 0,
    "reactorUses": 0
   },
@@ -7312,9 +7375,36 @@
      "uses": 0
     }
    ],
-   "moves": [],
+   "carrierMoves": [],
+   "reactorMoves": [
+    {
+     "id": "psychicterrain",
+     "name": "Psychic Terrain",
+     "uses": 114
+    },
+    {
+     "id": "electricterrain",
+     "name": "Electric Terrain",
+     "uses": 11
+    },
+    {
+     "id": "grassyterrain",
+     "name": "Grassy Terrain",
+     "uses": 8
+    },
+    {
+     "id": "mistyterrain",
+     "name": "Misty Terrain",
+     "uses": 8
+    },
+    {
+     "id": "charge",
+     "name": "Charge",
+     "uses": 1
+    }
+   ],
    "moveUses": 0,
-   "reactorUses": 32220
+   "reactorUses": 32362
   }
  },
  "moves": {
@@ -7368,7 +7458,8 @@
      "note": "default for status"
     },
     "punishesContact": {
-     "onContact": true
+     "onContact": true,
+     "inflicts": "psn"
     },
     "stalling": {
      "stalling": true
@@ -7432,7 +7523,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     }
    }
   },
@@ -7812,7 +7908,10 @@
    "uses": 1286,
    "params": {
     "overridesEffectiveness": {
-     "overrides": true
+     "overrides": true,
+     "perType": {
+      "Water": 1
+     }
     }
    }
   },
@@ -8007,7 +8106,10 @@
      "note": "default for status"
     },
     "punishesContact": {
-     "onContact": true
+     "onContact": true,
+     "boosts": {
+      "atk": -1
+     }
     },
     "stalling": {
      "stalling": true
@@ -8442,7 +8544,8 @@
      "note": "default for status"
     },
     "punishesContact": {
-     "onContact": true
+     "onContact": true,
+     "fraction": 8
     },
     "stalling": {
      "stalling": true
@@ -8505,7 +8608,11 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "boosts": {
+      "def": 2
+     },
+     "on": "user"
     },
     "statusCategory": {
      "status": true
@@ -9478,7 +9585,12 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "boosts": {
+      "atk": 12
+     },
+     "on": "user",
+     "costFraction": 0.5
     },
     "statusCategory": {
      "status": true
@@ -10050,7 +10162,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     },
     "moveClass": {
      "classes": [
@@ -10942,7 +11059,11 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "boosts": {
+      "evasion": -1
+     },
+     "on": "target"
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -11148,7 +11269,9 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "fixed"
+     "distribution": "fixed",
+     "hits": 2,
+     "range": null
     },
     "contact": {
      "contact": true
@@ -11262,7 +11385,9 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "fixed"
+     "distribution": "fixed",
+     "hits": 2,
+     "range": null
     }
    }
   },
@@ -11407,7 +11532,9 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "fixed"
+     "distribution": "fixed",
+     "hits": 2,
+     "range": null
     },
     "contact": {
      "contact": true
@@ -12424,7 +12551,8 @@
      "contact": true
     },
     "overridesEffectiveness": {
-     "overrides": true
+     "overrides": true,
+     "perType": null
     }
    }
   },
@@ -13707,7 +13835,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     }
    }
   },
@@ -15420,7 +15553,12 @@
      "selfSwitch": true
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "boosts": {
+      "atk": -1,
+      "spa": -1
+     },
+     "on": "target"
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -15541,7 +15679,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     }
    }
   },
@@ -15740,10 +15883,13 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "fixed"
+     "distribution": "fixed",
+     "hits": 10,
+     "range": null
     },
     "multiAccuracy": {
-     "perHit": true
+     "perHit": true,
+     "accuracy": 90
     },
     "contact": {
      "contact": true
@@ -16506,7 +16652,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     },
     "moveClass": {
      "classes": [
@@ -16792,7 +16943,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     },
     "boostsUser": {
      "readFrom": "m.self.boosts",
@@ -18116,7 +18272,11 @@
      ]
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "boosts": {
+      "atk": -1
+     },
+     "on": "target"
     },
     "lowersTarget": {
      "boosts": "via onHit",
@@ -18671,7 +18831,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     },
     "contact": {
      "contact": true
@@ -18915,7 +19080,8 @@
    "uses": 2845,
    "params": {
     "blocksSoundMoves": {
-     "blocks": "sound"
+     "blocks": "sound",
+     "turns": 2
     },
     "sealsMoves": {
      "turns": 2,
@@ -19142,7 +19308,12 @@
      "note": "default for status"
     },
     "statChangeInCode": {
-     "procedural": true
+     "procedural": true,
+     "boosts": {
+      "atk": 1,
+      "spe": 1
+     },
+     "on": "user"
     },
     "statusCategory": {
      "status": true
@@ -19483,14 +19654,17 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "fixed"
+     "distribution": "fixed",
+     "hits": 3,
+     "range": null
     },
     "variablePower": {
      "computed": true,
      "note": "idiom not yet derivable"
     },
     "multiAccuracy": {
-     "perHit": true
+     "perHit": true,
+     "accuracy": 90
     },
     "contact": {
      "contact": true
@@ -19506,7 +19680,9 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "fixed"
+     "distribution": "fixed",
+     "hits": 2,
+     "range": null
     }
    }
   },
@@ -19710,7 +19886,12 @@
    "params": {
     "multiHit": {
      "readFrom": "m.multihit",
-     "distribution": "2:35 3:35 4:15 5:15"
+     "distribution": "2:35 3:35 4:15 5:15",
+     "hits": null,
+     "range": [
+      2,
+      5
+     ]
     },
     "variablePower": {
      "computed": true,
@@ -21224,7 +21405,10 @@
    "uses": 0,
    "params": {
     "curesStatus": {
-     "cures": true
+     "cures": true,
+     "statuses": [
+      "frz"
+     ]
     }
    }
   },
@@ -21325,7 +21509,10 @@
    "uses": 0,
    "params": {
     "curesStatus": {
-     "cures": true
+     "cures": true,
+     "statuses": [
+      "par"
+     ]
     }
    }
   },
@@ -21337,7 +21524,10 @@
    "uses": 30,
    "params": {
     "curesStatus": {
-     "cures": true
+     "cures": true,
+     "statuses": [
+      "slp"
+     ]
     }
    }
   },
@@ -21673,7 +21863,8 @@
    "uses": 179,
    "params": {
     "curesStatus": {
-     "cures": true
+     "cures": true,
+     "statuses": "any"
     }
    }
   },
@@ -21698,7 +21889,15 @@
    "uses": 684,
    "params": {
     "curesVolatile": {
-     "oneShot": true
+     "oneShot": true,
+     "cures": [
+      "attract",
+      "taunt",
+      "encore",
+      "torment",
+      "disable",
+      "healblock"
+     ]
     }
    }
   },
@@ -21837,7 +22036,11 @@
    "uses": 0,
    "params": {
     "curesStatus": {
-     "cures": true
+     "cures": true,
+     "statuses": [
+      "psn",
+      "tox"
+     ]
     }
    }
   },
@@ -21874,7 +22077,10 @@
    "uses": 3,
    "params": {
     "curesStatus": {
-     "cures": true
+     "cures": true,
+     "statuses": [
+      "brn"
+     ]
     }
    }
   },
@@ -22657,7 +22863,8 @@
    "uses": 1342,
    "params": {
     "disablesAttacker": {
-     "disables": true
+     "disables": true,
+     "chance": 0.3
     },
     "punishesAttacker": {
      "compounds": false,
@@ -25192,7 +25399,10 @@
    "uses": 727,
    "params": {
     "boostsEachTurn": {
-     "perTurn": true
+     "perTurn": true,
+     "boosts": {
+      "spe": 1
+     }
     }
    }
   },

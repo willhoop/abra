@@ -45,6 +45,7 @@
  * under-confident and should be scaled before any search consumes it.
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const F = require('./fit_policy.js');

@@ -23,6 +23,7 @@
  * from a pass, which is the failure mode this whole file is about.
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');

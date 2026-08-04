@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-04T09:16:04.152Z",
+  "generated": "2026-08-04T21:36:50.995Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
   "seed": 20260804,
-  "requested": 150,
-  "compared": 150,
-  "agreed": 149,
+  "requested": 400,
+  "compared": 400,
+  "agreed": 399,
   "disagreed": 1,
   "worst": [
     {
@@ -16,31 +16,38 @@
       "showdown": "0-0",
       "medicham": "120-130",
       "rel": 125,
-      "uses": 54,
+      "uses": 56,
       "suspect": true
     }
   ],
   "skipped_non_finite": 0,
   "skipped_moves": {},
-  "skipped_multihit": 7,
+  "skipped_multihit": 15,
   "skipped_multihit_moves": {
-    "bulletseed": 1,
+    "bulletseed": 2,
     "populationbomb": 1,
-    "rockblast": 1,
-    "dualwingbeat": 1,
-    "tripleaxel": 3
+    "rockblast": 2,
+    "dualwingbeat": 4,
+    "tripleaxel": 3,
+    "dragondarts": 1,
+    "pinmissile": 1,
+    "watershuriken": 1
   },
-  "dropped_by_exception": 4,
+  "dropped_by_exception": 12,
   "dropped_where": {
     "showdown moveHit Salazzle Heat Wave -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
-    "showdown moveHit Conkeldurr Mach Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2
+    "showdown moveHit Conkeldurr Mach Punch -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Torkoal Solar Beam -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Mawile Iron Head -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Hatterene Mystical Fire -> Bellibolt: Cannot read properties of null (reading 'name')": 2,
+    "showdown moveHit Spiritomb Struggle -> Bellibolt: Cannot read properties of null (reading 'name')": 2
   },
   "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
   "touched": {
-    "intimidate": 7,
-    "weather": 2,
-    "absorbMon": 7,
+    "intimidate": 19,
+    "weather": 5,
+    "absorbMon": 21,
     "absorbFired": 3,
-    "bpCallback": 7
+    "bpCallback": 11
   }
 }

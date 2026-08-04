@@ -52,9 +52,19 @@ if (fs.existsSync(SRC) && fs.existsSync(DEST)) {
    * but a test whose failure message names `n_decisive` is the one that gets read correctly at
    * 3am, and this pair is the reason the file exists. */
   const src = JSON.parse(fs.readFileSync(SRC, 'utf8'));
-  let bundle = null;
-  try { bundle = JSON.parse(fs.readFileSync(DEST, 'utf8').match(/window\.GURU=([\s\S]*);\s*$/)[1]); } catch (e) {}
-  ok(!!bundle, 'data/guru.js parses as a window.GURU bundle');
+  let bundle = null, errBundle = null;
+  /* THREE FAILURES ARRIVED AS ONE ASSERTION. The file may be absent; the `window.GURU=` wrapper may
+   * have changed, in which case `.match(...)` is null and `[1]` throws a TypeError that says nothing
+   * about the wrapper; or the payload may not be JSON. The assertion below fired identically for
+   * all three, and this file exists because a GENERATOR silently changed shape — the wrapper case is
+   * the live one, not a hypothetical. */
+  try {
+    const src = fs.readFileSync(DEST, 'utf8');
+    const m = src.match(/window\.GURU=([\s\S]*);\s*$/);
+    if (!m) throw new Error('no `window.GURU=<json>;` wrapper — build/build_guru_js.js changed shape');
+    bundle = JSON.parse(m[1]);
+  } catch (e) { errBundle = String(e.message).split('\n')[0]; }
+  ok(!!bundle, 'data/guru.js parses as a window.GURU bundle' + (errBundle ? ` — ${errBundle}` : ''));
   if (bundle) {
     ok(bundle.n_decisive === src.n_decisive,
       `n_decisive agrees: bundle ${bundle.n_decisive} === source ${src.n_decisive}`);

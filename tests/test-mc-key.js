@@ -30,6 +30,7 @@
  * not exist yet. New violations fail; the baseline only shrinks.
  */
 'use strict';
+require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 /* A CHECK THAT CRASHES IS A CHECK THAT GETS SKIPPED.
  *
  * Section 1b below asks the real Showdown dex, so this file needs SHOWDOWN_PATH. Without it the

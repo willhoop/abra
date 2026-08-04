@@ -12,23 +12,23 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  147/155 probed mechanics live, 8 missing   (census 2026-08-04 21:20)
+  157/165 probed mechanics live, 8 missing   (census 2026-08-04 21:41)
   missing:
     move    conditionalPower       Facade doubles when statused
     move    needsTargetToAttack    Avalanche doubles after being hit
     move    needsUntrackedState    Gyro Ball scales with the speed gap
-    move    statChangeInCode       Belly Drum maxes Attack
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
     ability untagged               Marvel Scale raises Defense while statused
     move    reordersTurn           After You lets the partner move next
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 21:11)
+    ability weatherSuppression     Air Lock stops the sun boosting Fire
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 21:36)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 144/176 probed, 32 unprobed
 ```
 
-_stamped 2026-08-04 21:21_
+_stamped 2026-08-04 21:48_
 
 <!-- /GENERATED -->
 
@@ -44,14 +44,8 @@ a human cannot quietly soften.
 
 ## Hand list — found by differential testing, not yet probed
 
-These were seen against Showdown but have no probe, so they are invisible to the census. Write the
-probe first, watch it fail, then fix.
-
-**This list is now empty except for Rivalry, which is the only entry that has never been probeable.**
-Ten items left it on 2026-08-04 by becoming probes — Freeze-Dry, Haze, Friend Guard, Poison Touch,
-Gigaton Hammer, Expanding Force, Marvel Scale, Disguise, Foul Play and Dry Skin's Fire
-vulnerability. Disguise, Foul Play and Dry Skin have since been FIXED; the other seven are red in the
-census, which now carries them.
+**EMPTY except for Rivalry, and Rivalry has never been probeable.** Everything else that was on this
+list has become a probe and the census now carries it. That is the list doing its job.
 
 - **Rivalry** — x1.25 into the same gender, x0.75 into the opposite, x1.0 if either is genderless.
   Wholly absent. Blocked on data, not on will: `MC.mons` carries no gender and `buildMon` returns
@@ -60,6 +54,212 @@ census, which now carries them.
   cannot be wired from the artifact as it stands. The differential can no longer see it either:
   CONTROL FIX 6 sets `gender:'N'` on both sides, because `gender:''` made Showdown roll one off the
   battle seed and MEDICHAM has none — a seed-dependent x0.75 nothing could match.
+
+## THE THIRD INSTRUMENT — `tests/test-game-diff.js`, built 2026-08-04
+
+Will: *"yeah we def need interactions thats the whole point and multi turn things like tailwind and
+trick room."* Neither existing instrument can reach that, and the reason is structural rather than an
+omission:
+
+| instrument | what it asks | what it structurally cannot see |
+|---|---|---|
+| `test-mechanics.js` | is ONE mechanic live | tag x tag. 176 tags individually verified says nothing about any pair |
+| `test-engine-diff.js` | is this ONE HIT's damage right | every turn counter — Tailwind expiring, Trick Room toggling, a screen running out, an Encore ending |
+| **`test-game-diff.js`** | **do the two engines hold the same STATE after every turn** | damage magnitude (that is the file above), and everything in its own `NOT_COMPARED` |
+
+It plays a fixed action script in `medicham2-browser.js` and in the official pinned Showdown engine,
+compares a dice-independent projection of the whole state after every turn, and reports the **first**
+turn they part. Artifact: `data/game-diff.json`.
+
+**TWO MODES, AND THE SPLIT IS THE POINT.** `--pairs` GENERATES its cases from the tag artifact — the
+cross product of a linkage key's carrier moves against its reactor abilities — and never authors an
+expected outcome, because the official engine supplies it. That is the half that makes it safe: every
+one of the roughly twenty-three wrong probes this project has produced was a human writing down what
+should happen. A cross product can never reach a SEQUENCE, though, so the scripted multi-turn games
+are the other half. Neither substitutes for the other, and it is written in those words because the
+next person will otherwise try to make one do both.
+
+**IT DEPENDED ON PRIORITIES #44 AND THAT IS WHY #44 LANDED FIRST.** `reactorsTo('contact').moves`
+returned 152 moves that CARRY contact — Fake Out, Close Combat, Flare Blitz. Those are attackers. The
+moves that actually REACT — Spiky Shield, Baneful Bunker, King's Shield — were not in the index at
+all. `tag_dex.js` now emits `carrierMoves` and `reactorMoves` separately, the reactor side derived by
+the SAME handler probe the abilities and items use, and `moves` is GONE rather than aliased: an alias
+keeps every existing misreading working silently.
+
+**WHAT IT DOES NOT COMPARE is printed on every run** and is the honest half: HP amounts (the two
+engines roll their own dice), accuracy misses, chance secondaries, crit, a reactor whose effect is a
+roll, a KO the two engines time differently (a DAMAGE question, which belongs to `test-engine-diff`),
+the `protect` volatile (both have it and clear it at different points in the turn), Showdown-only
+volatiles, and PP. Stat VALUES are **aligned** rather than excluded, and that is a control that has to
+hold: unaligned, the two engines disagree about SPEED ORDER and about who survives a hit, and both
+read as rule divergences.
+
+**THE INJECTED-DIVERGENCE PROOF RUNS FIRST AND THE FILE REFUSES TO REPORT WITHOUT IT.** One extra turn
+of Tailwind is planted on turn 2 of a clean game; the comparator must catch it, at turn 2, on
+`.field.tailwindA`. A silent zero is a broken comparator, not a clean engine.
+
+### What it found, in order
+
+| # | found by | divergence | verdict |
+|---|---|---|---|
+| 1 | scripted game 3 | `weatherTurns medi=4 sd=3` on turn 2 | **REAL.** A weather move clicked into its OWN weather REFRESHED the clock; Showdown fails it. **WIRE 64**, weather and terrain together |
+| 2 | pair matrix | `closecombat -> anything`: `boosts.def medi=-1 sd=0`, six pairs at once | **REAL.** A move blocked by Protect still paid its self-drop. **WIRE 65** |
+| 3 | pair matrix | `partingshot -> soundproof`: medi switched, Showdown did not | **REAL, two bugs.** A blocked Parting Shot still pivoted (WIRE 65), and `immuneToMoveClass` lived only in `dmgRange`, so a Soundproof body took a sound STATUS move (**WIRE 66**) |
+| 4 | pair matrix | `partingshot -> stancechange`: `boosts.atk medi=0 sd=-1`, three pairs | **REAL.** Parting Shot's −1 Atk / −1 SpA was the documented unmodelled half, 7,184 corpus uses. **WIRE 67**, from a `statChangeInCode` derivation that now reads the literal boost object out of the handler |
+| 5 | pair matrix | `fakeout -> toxicdebris`: `hazards.toxicspikes medi=null sd=1` | **REAL.** `punishesAttacker.hazard` had "nowhere to land" until WIRE 41 gave each side an `hz` bag. **WIRE 68** |
+| 6 | pair matrix | `roar -> soundproof`: medi phazed a Soundproof body | **REAL.** Roar IS a sound move and WIRE 66 had not reached the phaze branch |
+| 7 | pair matrix | `encore -> stancechange`: `vol medi=["encore"] sd=[]` | **REAL.** Encore against a target that has never moved has nothing to repeat. **WIRE 69** |
+| 8 | pair matrix | `wavecrash -> mummy` / `-> wanderingspirit` | **REAL AND NOT FIXED.** Contact REWRITES the attacker's ability. Both carry only `contactPunish` and neither has a param for it; **0 corpus sheets between them.** Filed |
+
+**FOUR OF THE TEN "DIVERGENCES" IT REPORTED FIRST WERE THE HARNESS**, and each was fixed rather than
+excused: a bench index that meant different bodies in the two engines (trap 1 broken by the harness
+itself), an ally target emitted as a positive slot so `battle.choose` silently REJECTED the turn and
+froze the reference engine, a `benched` list that counted fainted bodies on one side only, and a
+reactor staged with Protect as its only move so the interaction under test could not happen at all.
+The last is Lesson 5 in a generator: **ask what the target would do if the mechanic did not exist.**
+
+## WEATHER — THE WHOLE SURFACE, AUDITED AT ONCE. 2026-08-04.
+
+Will: *"Weather is something that is the deciding factor in like every game so we need to get it
+bulletproof."* It had been found broken four separate times in one day by four different routes, which
+means it was being found by luck. Batch 8 of `tests/test-mechanics.js` probes every path at once, and
+every probe in the batch declares its arms.
+
+| path | probe | result |
+|---|---|---|
+| setting, by move | `setsWeather` | LIVE, unchanged |
+| setting, by ability on entry | `weatherSetter` | LIVE, unchanged |
+| setting, **by a MEGA's ability** | `megaWeatherSetter` **new** | **LIVE**: base Charizard (Blaze) sets CLEAR, Charizard-Mega-Y (Drought) sets sun |
+| **duration and expiry** | `weatherDuration` **new** | **LIVE**: sun on turn 1, still sun after 3 idle turns (Flamethrower 74), CLEAR after 4 (49) |
+| **the rocks** | `extendsDuration` **new arm** | **WAS MISSING — WIRE 70.** The tag has carried `toTurns: 8` all along and only the SCREEN branch read it; the weather branch wrote a literal 5, so Heat, Damp, Smooth and Icy Rock were inert on the one mechanic they exist for |
+| **the rocks, on the other three routes** | `test-weather-duration.js` **new** | **WIRE 70 WAS ONE BRANCH OF FOUR — WIRE 71.** See below |
+| offensive multipliers, **both directions** | `weatherDamageMult` **new** | **LIVE**: Flamethrower clear/sun/rain 56/84/27, Surf 75/37/112 |
+| defensive multipliers | `weatherDefenceMult` **new** | **LIVE**: Shadow Ball into a Rock 31 to 21 in sand (into a Water 40 to 40), Earthquake into an Ice 157 to 106 in snow (into a Fire 246 to 246) |
+| residual | `weatherChipImmune` | LIVE — sand 1/16, Rock/Ground/Steel and the tag's own immunities exempt, **snow chips nothing** |
+| accuracy, **both directions** | `weatherAccuracy` **new** | **LIVE**: Thunder clear 70, rain 100, sun 50 |
+| Weather Ball | `weatherBall` **new** | **LIVE**: into a Gengar, clear 0 (Normal is nothing to a Ghost), rain 144, sun 144, sand 96, snow 96 |
+| Solar Beam | `chargeSkippedByWeather` | LIVE, unchanged |
+| Aurora Veil | `failsWithoutWeather` | LIVE, unchanged |
+| weather speed abilities | `speedCond` + `speedCondWrongWeather` **new** | **LIVE with the WRONG-SKY arm**: Swift Swim in rain 135 to 270, **in sun 135** |
+| Solar Power | `solarPower` **new** | **LIVE**: in sun Flamethrower 84 to 126, Earthquake 37 to 37, no sun 56 to 56 |
+| **Air Lock / Cloud Nine** | `weatherSuppression` **new** | **MISSING, DECLARED.** `cloudnine` carries `untagged` and `airlock` has no artifact entry at all, so there is nothing to wire from. It is a CENSUS ROW rather than a sentence, because the census is the only claim about this engine that cannot be softened |
+
+**TWO PROBES IN THE BATCH WERE WRONG BEFORE THE ENGINE WAS, WHICH MAKES TWENTY-THREE.** The first
+Weather Ball probe fired it at a **Garchomp**, which is Dragon/**Ground** — so the sand form (Rock) is
+RESISTED, 100 BP at x0.5 is the same number as 50 BP at x1, and `sand 43 vs clear 44` read exactly
+like a dead knob. The engine was right and the type chart was doing its job. The first
+`megaWeatherSetter` control was a plain **Charizard**, and `buildMon` hands a Pokemon its USAGE item —
+which is a Charizardite Y, so the "base forme" arm was already a mega and already set sun. That is the
+original Choice Scarf mistake, verbatim, seven months later.
+
+**THE VOCABULARY, GREPPED FOR SURVIVORS.** Three copies of the Showdown-name to engine-word map
+remained. `engine/medicham2-browser.js:182` is the canonical one behind the exported `weatherId()`.
+Two more sat inside `engine/tag_dex.js`'s `weatherScaled` and `weatherSetter` derivations, were
+identical to each other and **not** to the display map twenty lines above them (`hail` was `hail` in
+one and `snow` in the others). Both now read one `W2ENGINE`, and regenerating produced no change
+beyond the session's intended 35 entries — which confirms the two were already agreeing and the
+consolidation is a no-op today and a guarantee next month. `engine/board.js:1190` is the fourth and is
+**NOT ENGINE's**: it is a refit trigger (14 of 58 feature columns move) and MEASURE has the patch
+measured and deliberately reverted in `docs/MEASURE.md` section 11. Any further board.js weather
+defect is filed there, not fixed here.
+
+### WIRE 71 — WIRE 70 FIXED ONE BRANCH OF FOUR, AND THE PROBE COULD NOT SEE THE OTHER THREE
+
+Weather is set **four** ways in this format, and each had its own branch:
+
+| # | route | site | read the rock? |
+|---|---|---|---|
+| 1 | an ability on switch-in — Drought 899 uses, Drizzle 3,075, Sand Stream 1,716, Snow Warning 1,561 | `medicham2-browser.js:1524` | **no — literal 5** |
+| 2 | a MOVE — Sunny Day 588, Rain Dance 919, Sandstorm 10, Snowscape 11 | `:2149` | yes, since WIRE 70 |
+| 3 | **MEGA evolution** — Charizard-Y arriving with the stone | `rollout_leaf.js:186` | **no — literal 5** |
+| 4 | a punish ability — the Sand Spit class | `:2629` | **no — literal 5** |
+
+So a Torkoal holding a Heat Rock set **five** turns of sun by switching in and **eight** by clicking
+Sunny Day. Same held item, same sky, two answers, decided by how it arrived.
+
+**The probe that found WIRE 70 was staged on route 2 and passed on route 2.** It was not a weak probe
+— it was a correct probe pointed at one of four bodies that can show the effect, which is the same
+shape as the mega bug that ran at 56% of sides against 85% and passed a non-zero check. A tag with
+four consumers needs a probe per consumer, or an assertion over the consumers as a set.
+
+This one is the second: `tests/test-weather-duration.js` asserts the **invariant** — for a given sky
+and a given item, every route agrees — rather than four separate numbers. A fifth route added
+tomorrow that hardcodes 5 fails without anyone remembering to extend a list of four. The duration rule
+now lives once, in the exported `weatherTurns(weather, item)`, beside `weatherId`.
+
+**The two vocabularies meet inside it**, and that is why it could not be a one-line read at each site:
+`extendsDuration.extends` holds MOVE ids (`sunnyday`), because the rock's rulebook text names the
+move, while `weatherSetter.weather` holds ENGINE words (`sun`). WIRE 70's inline version compared the
+raw `extends` entry against `a.mv` — correct on the move branch by luck of spelling and silently
+never matching on the other three. Both sides now go through `weatherId`, so neither spelling is
+authoritative.
+
+**It is a small mechanic that decides whole games.** 14 of 496 declared setters in the store carry the
+matching rock — Damp Rock on a Drizzle body is the common one at 6.2%, Heat Rock 2.2%, and neither
+Smooth nor Icy Rock appears at all. Three extra turns of rain is most of a game, and the population is
+small enough that no aggregate would ever have shown it.
+
+**A one-character bug caught in review, recorded because it is the shape that survives.** The first
+cut of the punish branch read `m.item` — but `tg` is the **holder** of the punish ability and `m` is
+the attacker who set it off, so Sand Spit would have run for eight turns whenever the mon that hit it
+happened to carry a Smooth Rock. Right function, right tag, wrong subject.
+
+**The probe was run against the pre-fix engine and failed 4 of 60**, then passed 60 of 60. A test
+written after a fix that is never shown failing is an assertion about the code as it stands.
+
+**And the unit half would not have caught the original bug.** `weatherTurns` returns 8 correctly
+whether or not the switch-in branch calls it. `test-weather-duration.js` therefore builds a real
+Torkoal, runs the real `applyEntryEffects`, and reads the real field — with a counter asserting the
+probe ran 8 times, which is what caught the build failing silently: `buildMon`'s override bag is keyed
+by **species** (`{torkoal: 'Heat Rock'}`), so the natural-looking `{item: 'Heat Rock'}` was ignored and
+the mon kept its dataset default of Charcoal. Without the counter that is a probe measuring the wrong
+item and reporting a pass.
+
+**PRIMORDIAL SEA AND DESOLATE LAND ARE UNIMPLEMENTED BY DECISION, NOT BY OVERSIGHT.** Will,
+2026-08-04: *"The primordial and desolate stuff aint in this regulation so just make a note to deal
+with that if kyogre gets added."* **0 occurrences in 339,483 boards.** `tag_dex`'s `W2ENGINE` maps
+both onto plain rain and sun, which is wrong for the real mechanic — they cannot be replaced and they
+nullify the opposing type entirely — and correct for a format that cannot produce them. **The trigger
+condition is a primal Kyogre or Groudon entering the format.** Recorded here so a regulation change
+surfaces it rather than someone rediscovering it as a bug.
+
+## THE ARMS PROTOCOL — the hollow detector, finished. 2026-08-04.
+
+The previous pass built the structural detector (a probe that READS THE SOURCE) and **costed** the
+other half rather than doing it: a probe with ONE arm, whose reading an engine with the mechanic
+DELETED would also produce. That is what made the Disable probe a false LIVE for as long as it
+existed, and the heuristic beneath it — count LIVE probes whose `detail` carries two equal numbers —
+is a heuristic precisely because `detail` is prose and cannot tell an ARM from an annotation.
+
+It is done. A probe may now return `arms: {control, test}`; the harness asserts `control !== test`
+structurally, with no parsing and no judgement, and a probe whose arms agree is marked **HOLLOW** and
+fails the file exactly as a source grep does.
+
+**THE OPT-IN IS NOT A HOLE, BECAUSE THE OPT-OUT IS RATCHETED.** `unarmed` is written to
+`data/mechanics-census.json` and **may fall and may never rise**. A new probe written without arms
+fails the file. The existing ones convert at whatever rate a pass can afford — which is the cheapest
+version that closes the hole rather than costing a day up front, and it is exactly what the previous
+pass's costing asked the next one to decide with the number in front of it.
+
+**Seven were converted in this pass and every one was a genuine one-armed probe**, exactly as the
+heuristic said: `lowersUser` (`def -1 spd -1` is also what an engine that dropped the user on EVERY
+attack prints — the control is now Brave Bird, which must leave the stages alone), `recharge`,
+`statChangeInCode`, `boostsTarget`, `clearsBoosts`, `cantUseTwice`, `statusCategory`. Ten more were
+written armed. **The flat-arms heuristic fell 7 to 2, and both survivors are annotations rather than
+arms.**
+
+## Filed by the game differential, not fixed
+
+- **Mummy and Wandering Spirit rewrite the ATTACKER's ability on contact.** Confirmed against the
+  official engine on two generated pairs. Both carry only `contactPunish` and neither has a param for
+  the rewrite, so there is nothing to wire from; **0 corpus sheets between them**, which is why it is
+  filed rather than ranked.
+- **A KO the two engines time differently is a DAMAGE question**, and `tests/test-engine-diff.js` owns
+  it. One pair (`bitterblade -> sharpness`) is excluded on that basis and COUNTED, never dropped.
+- **The `moveAccuracy` table in `medicham2-browser.js` is a hand-typed 35-move literal** and carries
+  neither Triple Axel nor Population Bomb, so it returns 100 for both. WIRE 59 reads the per-hit
+  accuracy out of the `multiAccuracy` tag instead and says why in place, but the TABLE is the same
+  class of hand list this file has spent the session deleting and it should be derived.
 
 ## The three ratchets — 2026-08-04, PRIORITIES #40 / #40a
 
@@ -746,17 +946,87 @@ of them are whole categories of turn the engine cannot represent at all:
 21. **`alwaysCrit` — 274 (Flower Trick 216).** Same design question as `critRatioUp` below, not a
     separate decision.
 
-**Two that are NOT one-line fixes, called out so nobody starts them by accident:**
+## THE CRIT VERDICT — it WAS a bug, it is fixed, and here is the exposure. 2026-08-04.
 
-- **`writesAccuracy` (987) and `accuracyMod` (927) are blocked on a signature.** `moveAccuracy(id,
-  field)` takes neither the attacker nor the defender, so No Guard, Compound Eyes, Sand Veil and Snow
-  Cloak have nowhere to be read from. Both probes clear their control — the No Guard one pins the
-  roll at 0.9 against 80% accuracy, so the control correctly MISSES — and both still read identical
-  across the knob, which by Lesson 5 means unwired rather than unimportant. Changing that signature
-  touches every caller.
-- **`critRatioUp` (1,139) may not be a bug.** `dmgRange` models no crit anywhere, so "Night Slash is
-  priced above the same move without its crit ratio" is asking for an expectation the function has
-  never carried. Decide whether damage is a crit-free min/max before treating this as work.
+The previous pass wrote *"`critRatioUp` may not be a bug — `dmgRange` models no crit anywhere"*. That
+was half right in a way that hid the real defect: **the BATTLE LOOP has always rolled a crit**, a flat
+`rng() < 1/24` for every move and every defender. So the engine had two crit facts and both were
+wrong, in opposite directions.
+
+**Measured before anything was touched, the way the terrain vocabulary was.** Over **48,274 stored
+games**, **7.53%** carry a crit-tag move on an observed set — **1.68%** an `alwaysCrit` move and
+**5.98%** a `critRatioUp` one. `preventsCrit` outside Disguise (Shell Armor, Battle Armor, Ice Face)
+is **41 games, 0.08%**. By clicks: `alwaysCrit` **278** (Flower Trick 219, Frost Breath 40, Storm
+Throw 19), `critRatioUp` **1,162** (Psycho Cut 276, Leaf Blade 169, Stone Edge 169, …).
+
+**The two halves are not the same size of error and do not belong in the same place.**
+
+- `alwaysCrit` is a **certainty**: a flat x1.5 the pricer was missing on every one of 278 clicks, so
+  Flower Trick was priced 33% below what it does. It belongs in `dmgRange`, and it is what Showdown's
+  own `willCrit` does — so the differential AGREES with it once its control is right.
+- `critRatioUp` is a **RATE**, 1/24 to 1/8, an expectation difference of about 4%. It must NOT go in
+  `dmgRange`: folding an expectation into a min/max stops `max` being the maximum roll and puts every
+  ratio move permanently out of step with the differential's non-crit comparison. It rides the battle
+  loop's roll, which is where the 1/24 already lived.
+- **Shell Armor did nothing whatever**, and now turns both off.
+
+Landed as **WIRE 35**, with one `critChance()` that every caller reads. The two ABILITY carriers of
+`critRatioUp` are **deliberately refused and counted** (`MEDFAILS.critRatioAbility`, 15 corpus uses):
+the tag's only param is `critRatio: 2`, which cannot express Merciless's condition — a GUARANTEED crit
+into a poisoned target, not a permanent stage bump — and Super Luck, which genuinely is a permanent
+bump, is indistinguishable from it in the artifact. Wiring both would hand Merciless an unconditional
+1/8 it never has. Scope Lens (an ITEM, unconditional) IS wired.
+
+**THE PROBE HAD TO BE REWRITTEN, and that is the actual answer to "is it a bug".** It read
+`dmgRange(Night Slash) > dmgRange(the same move with its id changed)` — it was asking the PRICER for
+an expectation, which is the thing that must not happen. It is now behavioural and pinned at a roll
+that SEPARATES the rates: **0.1 is below 1/8 (0.125) and above 1/24 (0.0417)**, so a base-rate move
+cannot crit on it and a one-stage move must. Four arms, because two cannot attribute it — Shell Armor
+is the discriminator on the ratio move, and **Crunch** (Dark, physical, same attacker, same target, no
+crit ratio) is the control that must not move at all. An engine that simply raised the base rate for
+everything passes a two-armed version and fails this one. Reads
+`Night Slash plain 100 / Shell Armor 67  |  Crunch plain 77 / Shell Armor 77`.
+
+**THE DIFFERENTIAL WENT 1/400 TO 5/400 THE MOMENT THE ENGINE LEARNED THE MECHANIC, AND THE HARNESS
+WAS WRONG.** Four of the five new rows were Flower Trick and Frost Breath with MEDICHAM exactly 1.5x
+above the reference, because `test-engine-diff.js` pinned `move.willCrit = false` — right for a random
+crit, which is noise both engines must be held to, and wrong for the three moves whose crit is not
+random at all. **CONTROL FIX 11** pins it to the move's own dex value, so it now only ever CLEARS a
+crit that would otherwise be rolled. Back to **1/400** at seed 20260804, same single SUSPECT row.
+
+**`preventsCrit` (151 uses) had never been probed at all** and now is, through the sharpest available
+form: Flower Trick's max into a plain Garchomp against the same into a Shell Armor one, with a third
+arm carrying no crit tag to show the plain number really is the un-crit one. `plain 123, Shell Armor
+82, no crit tag 82`.
+
+**One that is still NOT a one-line fix, called out so nobody starts it by accident:**
+
+- **`writesAccuracy` (987) and `accuracyMod` (927) are blocked on a signature, and the cost is now
+  stated rather than gestured at.** `moveAccuracy(id, field)` takes neither the attacker nor the
+  defender, so No Guard, Compound Eyes, Sand Veil and Snow Cloak have nowhere to be read from. Both
+  probes clear their control — the No Guard one pins the roll at 0.9 against 80% accuracy, so the
+  control correctly MISSES — and both still read identical across the knob, which by Lesson 5 means
+  unwired rather than unimportant.
+  **What the change costs: 11 call sites across 4 files.** Inside `medicham2-browser.js`,
+  `moveAccuracy` is read by `playerAction` (which has both bodies), the battle loop's to-hit roll
+  (both), the `affect` branch's status roll (both), the status branch (both), `bestMoveVs` (both) and
+  `expectedHitsOf` (**neither** — it is called from `dmgRange`, which is pure and is handed no field).
+  `engine/exposure.js`, `engine/board.js` and `engine/position_features.js` each call it too, and the
+  last two are **not ENGINE's** — a signature change there is a feature-vector change and therefore
+  the refit edge MEASURE owns. The compatible shape is `moveAccuracy(id, field, att, def)` with both
+  optional, which leaves every existing caller correct and lets the six that have the bodies pass
+  them; `expectedHitsOf` would keep the two-argument form and the ability would simply not apply
+  there, which is honest because a pure pricing function has no attacker. **It is a deliberate pass,
+  not a one-liner, and it should not be started inside another division's run.**
+
+- **`needsTargetToAttack` / Avalanche — VERDICT: the probe asks for a rule that does not exist, and it
+  is left MISSING on purpose.** Avalanche doubles when the USER was damaged BY THAT TARGET THIS TURN.
+  The probe compares a fresh body against one whose `curHP` was halved — i.e. it asks `dmgRange` to
+  double on "the user is below full HP", which is not the mechanic and would be a new wrong number on
+  every hurt Avalanche user. `dmgRange` is handed no turn state and must not invent any; the tag's
+  own param is the prose string `"target attacking"`. **13 corpus uses.** The nine other members of
+  the tag include Sucker Punch (6,673), which is already fully modelled through
+  `failsIfTargetNotAttacking` — so the tag is not inert, only this member is.
 
 ## Ordering the queue
 

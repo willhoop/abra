@@ -48,10 +48,20 @@ const EXPLORE = 'data/rollout-r1-explore1-rows.jsonl';
 function load(rel) {
   const rows = fs.readFileSync(D(rel), 'utf8').split('\n').map(s => s.trim()).filter(Boolean)
     .map(s => JSON.parse(s));
-  let meta = null;
-  try { meta = JSON.parse(fs.readFileSync(D(rel.replace(/\.jsonl$/, '.meta.json')), 'utf8')); }
-  catch (e) { meta = null; }
-  return { rel, rows, meta };
+  /* THE SIDECAR'S ABSENCE AND ITS CORRUPTION ARE OPPOSITE FACTS AND BOTH READ AS `null`.
+   * "no stamp was ever written" is the state §4 of docs/MEASURE.md exists to remove; "a stamp was
+   * written and this cannot read it" is a stamp that has ROTTED, and the two want different work.
+   * R1's whole lesson is that two runs four accuracy points apart were byte-indistinguishable
+   * because the dump carried no stamp — losing the stamp quietly is the same defect one layer up. */
+  const metaRel = rel.replace(/\.jsonl$/, '.meta.json');
+  let meta = null, meta_why = null;
+  try { meta = JSON.parse(fs.readFileSync(D(metaRel), 'utf8')); }
+  catch (e) {
+    meta_why = e.code === 'ENOENT' ? `no sidecar at ${metaRel} — this dump records no configuration`
+                                   : `${metaRel} exists and could not be read: ${e.message}`;
+    if (e.code !== 'ENOENT') console.error('rollout_explore_sweep: ' + meta_why);
+  }
+  return { rel, rows, meta, meta_why };
 }
 const g = load(GREEDY), e = load(EXPLORE);
 if (g.rows.length !== e.rows.length) {
@@ -115,9 +125,12 @@ function mcnemar(rowsA, rowsB, fa, fb) {
 
 const r3 = x => Math.round(x * 1000) / 1000;
 const r4 = x => Math.round(x * 10000) / 10000;
+/* 'MISSING' reaches the artifact, but WHY was discarded: absent and unreadable are different
+ * defects. The digest is what identifies WHICH dump an arm was computed from, so losing it quietly
+ * is losing the arm's identity — the exact hole the R1 retraction was about. */
 const sha12 = rel => {
   try { return crypto.createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); }
-  catch (err) { return 'MISSING'; }
+  catch (err) { console.error(`rollout_explore_sweep: cannot digest ${rel} — ${err.message}`); return 'MISSING'; }
 };
 
 const n = g.rows.length;
@@ -141,8 +154,15 @@ const lo = r3(diff - paired.half_pts), hi = r3(diff + paired.half_pts);
 /* ---- the logs, embedded and not retyped -------------------------------------------------------- */
 function grab(file) {
   let txt;
+  /* `why` does reach the artifact. The console line is the half that was missing: the sweep logs are
+   * passed on the command line, so an unreadable one is almost always a typo the operator can fix in
+   * the next ten seconds — and it was only discoverable by opening the JSON afterwards. */
   try { txt = fs.readFileSync(file, 'utf8'); }
-  catch (err) { return { file, readable: false, why: err.message }; }
+  catch (err) {
+    console.error(`rollout_explore_sweep: sweep log ${file} not read — ${err.message}. `
+      + 'The quoted tables from it will be absent from the artifact.');
+    return { file, readable: false, why: err.message };
+  }
   const cut = (from, to) => {
     const i = txt.indexOf(from);
     if (i < 0) return null;
@@ -212,11 +232,14 @@ const artifact = {
 
   arms: {
     'explore_1.0': Object.assign({ what: 'every mon clicks a uniformly random legal move',
-      dump: EXPLORE, sha256_12: sha12(EXPLORE), stamped_by_the_run: e.meta && e.meta.p_column }, A1),
+      dump: EXPLORE, sha256_12: sha12(EXPLORE), stamped_by_the_run: e.meta && e.meta.p_column,
+      /* Carried so "no sidecar" and "the sidecar would not read" stay distinguishable in the file. */
+      sidecar_why: e.meta_why || undefined }, A1),
     'explore_0': Object.assign({ what: 'the deterministic-greedy playout — MEDICHAM chooseAction, '
       + 'both sides. This is the INCUMBENT the default was chosen over.',
       dump: GREEDY, sha256_12: sha12(GREEDY),
       stamped_by_the_run: (g.meta && g.meta.p_column) || null,
+      sidecar_why: g.meta_why || undefined,
       why_unstamped: g.meta ? undefined : 'This dump predates the sidecar. data/rollout-r1.json '
         + 'identifies it as the greedy arm from its calibration shape, which reproduces the greedy '
         + 'saturation table in docs/ROLLOUT-design.md §4.2.1 count for count.' }, A0),

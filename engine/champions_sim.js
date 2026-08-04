@@ -23,6 +23,7 @@
  *   SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/champions_sim.js
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 /* fs WAS USED AND NEVER IMPORTED. The read of data/regulations.json below therefore threw on every
  * call, and the hardcoded format literal in the catch is the only path that has ever run. It happens
  * to be correct today; it becomes wrong the moment Reg M-B rotates, which is precisely what this
@@ -54,8 +55,23 @@ const FORMAT = (() => {
 const PINNED_COMMIT = '20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4';
 const PINNED_DATE = '2026-07-22';
 
+/* THE DEFAULT USED TO BE `/tmp/ps`, WHICH CANNOT EXIST ON THE MACHINE THIS PROJECT RUNS ON.
+ *
+ * Six tests need the simulator and every one of them SKIPS politely when it is absent — including
+ * `tests/test-wiring.js`, the guard CLAUDE.md names as the answer to the 2026-07-28 failures, whose
+ * whole job is to prove a capability RAN. It had been printing "needs the Showdown simulator;
+ * SHOWDOWN_PATH is not set" and `run-all` had been reporting a clean exit around it. A checkout at
+ * the pinned commit was sitting one directory up the entire time.
+ *
+ * That is this project's own lesson turned on its own toolchain: a skip is not a pass, and a guard
+ * that opts itself out is not a guard. So the sibling checkout — where `git clone` beside this repo
+ * puts it, and where it actually is — is now found without anyone exporting anything. The env var
+ * still wins, for a checkout kept elsewhere.
+ *
+ * Existence is checked here rather than trusted, because returning a path that is not there converts
+ * a clean "not set" skip into a confusing load error. */
 function showdownPath() {
-  return process.env.SHOWDOWN_PATH || '/tmp/ps';
+  return require('./showdown_path.js').resolve() || '/tmp/ps';
 }
 
 let _sim = null;

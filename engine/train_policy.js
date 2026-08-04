@@ -55,6 +55,7 @@
  * against the clone it started from, greedy on both sides, which is what actually gets played.
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');

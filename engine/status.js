@@ -29,6 +29,7 @@
  * quietly softened by a human writing prose at 2am.
  */
 'use strict';
+require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
