@@ -261,13 +261,30 @@ function install(bot, o) {
             twA: this.board.hasSide(side, 'tailwind') ? 4 : 0,
             twB: this.board.hasSide(side === 'p1' ? 'p2' : 'p1', 'tailwind') ? 4 : 0,
           };
+          const replSeed = (Date.now() & 0xffff) * 6151 + 17;
           const scored = [];
           for (const sw of switches) {
             const sp = speciesOf(sw.slot);
             if (!sp) continue;
             const r = RL.rolloutWinProb(this.board, side, {
               n: ROLLOUT_N * 2, dex: DEX2, explore: ROLLOUT_EXPLORE, field,
-              maxTurns: ROLLOUT_TURNS, seed: (Date.now() & 0xffff) * 6151 + sw.slot,
+              /* COMMON RANDOM NUMBERS. Every candidate is judged on the SAME dice.
+               *
+               * The seed used to vary per candidate, so the difference between two replacements was
+               * buried in independent noise -- and the replacement search then deferred to MAG on
+               * EVERY decision of a live game:
+               *
+               *     Simipour 3%, Heliolisk 2%       within a 1.0pt error
+               *     Aerodactyl 100%, Charizard 100% within a 0.3pt error
+               *     Sneasler 87%, Staraptor 85%     within a 2.1pt error
+               *
+               * Five of five, so the post-KO search I built was never once used and MAG's one-step
+               * heuristic made every replacement -- the exact thing that caused Froslass in-then-out.
+               *
+               * Sharing the seed cancels the variance the candidates have in common (the same
+               * opponent draws, the same crit rolls) and leaves the difference that is actually
+               * about WHICH POKEMON CAME IN. Standard variance reduction, and free. */
+              maxTurns: ROLLOUT_TURNS, seed: replSeed,
               bringIn: sp, protectTurns: this._protectTurns,
             });
             if (r && typeof r.p === 'number') scored.push([r.p, sw.slot, sp]);
