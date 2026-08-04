@@ -164,6 +164,32 @@ different boundaries, two different reasons; do not collapse them.
 **After the refit, in the same pass:** the seven restamps, `node engine/status.js --write`, and every
 number that quoted the old weights. A refit that lands without them is how a version drifts.
 
+### WOBBUFFET RE-RUN — AUTHORISED, SEQUENCED AFTER THE ENGINE
+
+**Will, 2026-08-04:** *"rerun wobba"* … *"yes do the search once engine is all wrapped up."*
+
+`data/exploitability.json` is **63.2% [56.6, 69.3] measured on 17 features against the 58 we ship** —
+three feature generations stale, on a policy we have since made **more deterministic** by shipping
+greedy-over-sampling. `provenance.js --strict` exits 1 on it and `tests/run-all.js` gates on that, so
+it is a red test, not a nicety. The Stadium already renders it as NOT MEASURED with the old figure
+struck through, so the page is honest either way; this is about the artifact.
+
+**Why it is worth re-running rather than retiring.** It is the only measurement in this project that
+is not bots grading bots on average — it grades **readability**. `docs/MODELS.md` records the rule:
+*a policy can improve on average and stay exactly as exploitable; those are different numbers and
+only one of them has been moving.* We have just spent a day improving on average.
+
+**The sequencing is the point, and Will set it.** Run it **after** the engine is wrapped and the
+release is cut — not before. An exploitability search plays games through the engine, so a run
+started while ENGINE is still landing mechanics is born `PRE-CHANGE` and buys a second re-run. That
+is the mistake this file exists to prevent, and it would be embarrassing to make it on the item that
+gates the suite.
+
+**Before starting it:** record the engine digests, and abort and report if they move mid-run — the
+leaf calibration did exactly this and it is why that result survived a moving tree. Command is
+`engine/exploit.js --target <weights.json>`; it can also be pointed at DODUO, which is the only way
+to test the exploitability argument the 42.0% result explicitly does **not** settle.
+
 ### P0.5 — the release boundary. Do this the moment P0 lands.
 
 **Cut a named, frozen engine release.** Every SEARCH baseline and every MEASURE number currently
