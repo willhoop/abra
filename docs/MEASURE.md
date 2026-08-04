@@ -21,11 +21,11 @@ MEASURE — can we believe a number
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
   provenance: 0 unsafe, 32 possibly stale, 52 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 08:29, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-04 09:06, but the feature function did not)
     (data/abra-tags.js moved 2026-08-04 08:20, but the feature function did not)
 ```
 
-_stamped 2026-08-04 08:47_
+_stamped 2026-08-04 09:09_
 
 <!-- /GENERATED -->
 

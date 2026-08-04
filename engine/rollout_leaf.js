@@ -132,20 +132,56 @@ function mulberry(seed) {
  * Applied only when the field is EMPTY, so a real weather already up is never overwritten, and only
  * from the ACTIVES, because a benched setter has not entered yet.
  *
- * *** THIS WRITE IS CURRENTLY DISCARDED ON THE SEEDED PATH AND HAS BEEN SINCE IT WAS ADDED. ***
- * Both leaves call this and then assign the caller's field over the top -- `S.field.weather =
- * f.weather || ''` -- which is an UNCONDITIONAL overwrite, so a mid-battle rollout of a Mega
- * Charizard Y still stands in clear weather. applyField() below preserves that behaviour exactly and
- * on purpose: correcting it moves every in-game leaf value on ~26% of this format's usage, which is
- * a measured change and not a drive-by one. FILED as SEARCH open item 5, not fixed here. On the
- * FRESH (unseeded) preview path the entry effects fire for real, so this function is a no-op there
- * rather than a fix. */
-function applyMegaWeather(S) {
+ * THE WRITE USED TO BE DISCARDED, AND HAD BEEN SINCE IT WAS ADDED (PRIORITIES #37). Both leaves
+ * called this and then assigned the caller's field over the top -- `S.field.weather = f.weather ||
+ * ''` -- an UNCONDITIONAL overwrite one line later, so a mid-battle rollout of a Mega Charizard Y
+ * stood in clear weather in every rollout this project ever ran. Fixed 2026-08-04 by applying the
+ * caller's field FIRST and this second, so the guard above does the arbitration it was written to do.
+ *
+ * *** IT IS MEGA-ONLY, AND THAT GATE IS LOAD-BEARING RATHER THAN COSMETIC. ***
+ * The version that was discarded had no mega check at all: it took the weather of the first ACTIVE
+ * with a weather-setting ability, mega or not. Stopping the discard without adding the gate would
+ * have INVENTED weather -- a Torkoal standing on a board the tracker says has no weather is a legal,
+ * observed state (Drought lasts 5 turns and the game moved on), and re-setting its sun would
+ * overrule the one thing that actually knows. The board is authoritative for a body that is what the
+ * board says it is. A mega is the one case where it is not: dmgMon builds a stone-holder with the
+ * MEGA's ability (measured -- a Charizard + Charizardite Y body carries `drought`, not `blaze`), so
+ * the rollout has already assumed a mega evolution the real game has not seen, and the weather that
+ * assumption implies is missing rather than absent. That is the whole and only justification, so the
+ * fix is scoped to exactly it.
+ *
+ * ROUTED THROUGH board.js effAbility() (PRIORITIES #40b). The old code read the body's raw ability
+ * field, which tests/test-effective-identity flags because that field is precisely what mega
+ * evolution changes. TWO CORRECTIONS TO #40b AS FILED, both measured rather than reasoned:
+ *
+ *   - the raw read was NOT returning a wrong answer on this path. dmgMon already calls effAbility
+ *     itself, so a Charizard + Charizardite Y body arrives here carrying `drought`, not `blaze`.
+ *     #40b is a latent hazard here, not a live defect, and it goes live the moment a caller omits
+ *     `dex`. The visible bug was #37 alone.
+ *   - the field the gate actually needed was not the ability at all. It is `mega`, and effective()
+ *     is the one resolver that states it. Nothing else in the old code distinguished a Torkoal from
+ *     a Charizard-Mega-Y.
+ *
+ * THE BODY'S OWN ABILITY IS NOT PASSED IN, DELIBERATELY. effective() only falls back to it when the
+ * forme is NOT a mega -- and a non-mega is skipped one line later -- so passing it would be a raw
+ * read whose value is discarded on every path that reaches the lookup. Identity in, resolved answer
+ * out; the file now holds zero raw reads of a transforming field, against a baseline of zero.
+ *
+ * Degrades to today's behaviour with no dex: effective() cannot resolve a forme without one, returns
+ * mega:false, and nothing is applied.
+ *
+ * On the FRESH (unseeded) preview path battleInit runs the entry effects for real, so this stays a
+ * no-op there rather than a fix -- the guard sees the weather Drought already set. */
+function applyMegaWeather(S, dex) {
   if (!S || !S.field || S.field.weather) return;
   for (const m of (S.actA || []).concat(S.actB || [])) {
-    if (!m || !m.ability) continue;
-    /* The same accessor medicham2-browser uses at :929, not an invented one. */
-    const p2 = TAGSMOD.param('ability', m.ability, 'weatherSetter');
+    if (!m) continue;
+    /* The BODY is the subject: `name` is its MC key, and the stone is what makes it a mega. */
+    const id = { species: m.name, item: m.item };
+    if (!B.effective(id, dex).mega) continue;
+    /* The second call runs only for a mega, which is rare enough that one resolver used twice is
+     * cheaper than the bug of caching a half-resolved identity. */
+    const p2 = TAGSMOD.param('ability', B.effAbility(id, dex), 'weatherSetter');
     const w = p2 && p2.weather;
     if (w) { S.field.weather = w; S.field.weatherT = 5; return; }
   }
@@ -269,7 +305,19 @@ function runPlayout(S, rng, explore, foePolicy, counters) {
  * value must NOT erase them. Assigning unconditionally, which is what both leaves used to do, is
  * exactly what would make a fresh-game seed pointless for the weather half of the question.
  *
- * Tailwind is mapped from the ASKING side's point of view; battleInit's side A is always `side`. */
+ * Tailwind is mapped from the ASKING side's point of view; battleInit's side A is always `side`.
+ *
+ * *** THE TWO SIDES OF THIS ASSIGNMENT DO NOT SPEAK THE SAME LANGUAGE. FILED, NOT FIXED. ***
+ * `f.weather` comes from `board.weather`, which is Showdown's `|-weather|` line normalised, so its
+ * values are MOVE names: `sunnyday`, `raindance`, `sandstorm`, `snowscape`. MEDICHAM compares
+ * against `sun` / `rain` / `sand` / `snow` (medicham2-browser :464, :486-487, :934). They have never
+ * matched, so the weather a mid-battle board reports has been INERT in every rollout ever run --
+ * truthy enough to suppress a guard, meaningless to every formula. Measured on the shipped engine,
+ * Charizard Flamethrower into Garchomp: `sun` 92-109, `sunnyday` 61-72, `rain` 29-35, `raindance`
+ * 61-72. 39 of 60 sampled corpus boards carry a weather, so this is a far larger error than the mega
+ * one directly above it and it is NOT this pass's change -- correcting it moves ~65% of in-game leaf
+ * values. Recorded in docs/SEARCH.md; it is an ENGINE item. Do not "tidy" it into this function
+ * during a run. */
 function applyField(S, f, side, seeded) {
   const w = f.weather || '', t = f.terrain || '';
   if (seeded || w) S.field.weather = w;
@@ -357,10 +405,13 @@ function rolloutWinProb(board, side, opts) {
       if (at !== surv) { const [body] = A.splice(at, 1); A.splice(surv, 0, body); }
     }
     const S = MEDI.battleInit(A, Bt, { seeded: SEEDED });
-    applyMegaWeather(S);
     S._explore = EXPLORE;
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
+    /* ORDER IS THE FIX. The caller's field is applied FIRST and the mega's own weather SECOND, so
+     * applyMegaWeather's `if (S.field.weather) return` guard arbitrates between them instead of
+     * being overwritten by the next line. A real weather the board reports still wins. */
     applyField(S, f, side, SEEDED);
+    applyMegaWeather(S, dex);
     wins += runPlayout(S, rng, EXPLORE, FOE_POLICY, exCount);
     ran++;
   }
@@ -410,10 +461,11 @@ function rolloutAfterActions(board, side, opts) {
     const Bt = buildSide(board, foe, dex, zero());
     if (!A.length || !Bt.length) break;
     const S = MEDI.battleInit(A, Bt, { seeded: true });
-    applyMegaWeather(S);
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
-    /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board. */
+    /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board.
+     * Field first, mega weather second -- see the note at the call site in rolloutWinProb. */
     applyField(S, f, side, true);
+    applyMegaWeather(S, dex);
     const rng = mulberry((opts.seed || 1) * 1000003 + i);
 
     /* THE FORCED TURN. The click's target is a board.js mon; MEDICHAM needs one of ITS bodies, and the

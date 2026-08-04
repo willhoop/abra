@@ -175,6 +175,30 @@ LLM, behaviour-cloning and multi-agent-RL baselines. Two findings bear directly 
    assumed to hold up outside it, and any strength claim has to name the team distribution it was
    measured on.
 
+### 3.6 The seeded leaf assumed the mega and forgot the weather — fixed 2026-08-04
+
+`dmgMon` builds a stone-holder with the **mega's** ability: a Charizard carrying Charizardite Y
+arrives in the playout with `drought`, not `blaze`. `battleInit({seeded:true})` then suppresses entry
+effects, correctly — the actives are already standing there and re-firing Intimidate would drop the
+same Attack twice — so the sun that ability implies never fired. `applyMegaWeather` existed to close
+exactly that gap and **its write was discarded by the very next line** for as long as it existed, so
+Mega Charizard Y stood in clear weather in every mid-battle rollout this project ever ran.
+
+Fixed by applying the caller's field first and the mega's weather second, so the function's own guard
+arbitrates. **It is now mega-gated, and that gate is the load-bearing half**: the discarded version
+had no mega check, and un-discarding it without one would have invented a Torkoal's sun on a board
+the tracker says is clear. The board is authoritative for a body that is what the board says it is;
+a mega is the one case where the rollout's body is something else.
+
+Measured, in one process so the engine cannot differ between arms: **15 of 250 corpus boards moved,
+every one of them a mega weather setter standing in no weather, and nothing else moved at all.**
+Charizard-Mega-Y's sun is worth **+11.0 pt to the side that owns it and −12.5 pt to the side facing
+it**. Full parity table, the direct playout counter, and the much larger weather defect this
+uncovered are in [SEARCH.md](SEARCH.md) items 5 and 5b.
+
+**Every leaf number in this document predates it.** R1, R2, R3, R4 and the calibration were all
+computed with the mega's weather missing.
+
 ---
 
 ## 4. Open team sheets are what make the preview search possible
@@ -245,11 +269,18 @@ and `mew.js`, neither of which is SEARCH's file — the same one-liner PRIORITIE
 
 ### The budget
 
-`budgetMs` is 20,000 and `previewMs` is 15,000. Real VGC allows **45 seconds on one decision off a
-7-minute doubles chess clock**, which appeared nowhere in this repository until 2026-08-04 and which
-bounds every design decision here. Per decision MILTANK is well inside it (~8.9 s for a 63-cell menu
-at n=200); **per game it may not be** — 20 s a turn exhausts 420 s in 21 decisions. The arithmetic
-and its unverified assumption are in [SEARCH.md](SEARCH.md).
+`budgetMs` is 20,000 and `previewMs` is 15,000. **Read out of the Showdown source on 2026-08-04**,
+our format's `VGC Timer` gives each side a **510-second bank** (`Timer Starting = 420` plus
+`Timer Grace = 90`) with **`Timer Add Per Turn = 0` — no refill** — a **55-second** cap on one
+decision and **90 seconds** for team preview, and the per-turn cap is `Math.min(bank, 55)`, so the
+two are **one clock**. This corrects what this file said before, which was "45 seconds off a 7-minute
+clock" and was an unverified assumption in two of its three numbers.
+
+Per decision MILTANK is well inside it (~8.9 s for a 63-cell menu at n=200 against 55 s). **Per game
+it is tight**: 510 s minus a 15 s preview is **24 decisions at 20 s each**, after which
+`forfeitPlayer(..., ' lost due to inactivity.')` ends the game. Running out of *turn* time only
+concedes one server-chosen move (`Timeout Auto Choose`); running out of *bank* loses. The arithmetic,
+the source lines and what the fix should look like are in [SEARCH.md](SEARCH.md).
 
 ---
 

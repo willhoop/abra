@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 08:29):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 09:06):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,9 +32,33 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 08:47_
+_stamped 2026-08-04 09:09_
 
 <!-- /GENERATED -->
+
+## What the 2026-08-04 mega-weather fix invalidates
+
+Stated plainly rather than left to be inferred, because a leaf change that moves values and is not
+declared is how a stale number survives. **Everything below was computed on a leaf in which a mega
+never brought its weather.** None of it is wrong about its own arm; all of it describes a build that
+no longer exists.
+
+| | why it is affected | what it needs |
+|---|---|---|
+| **R1** leaf accuracy, and the explore sweep | every position scored through `rolloutWinProb`; 6.4% of corpus boards carry a mega setter in clear weather and move by ~9.7 pt | re-run at the release boundary. The *sign* is very unlikely to move; the point estimate will |
+| **R2** leaf cost | already under re-run (PRIORITIES #14). Cost measured unchanged here (17.53 → 16.93 ms at n=40), so this fix is not the reason | nothing extra |
+| **R3** divergence | `rolloutAfterActions` moved on the same boards, by more (mean \|Δ\| 18.3 pt at n=24) | re-run |
+| **R4** the SPRT | every leaf call in both arms | re-run. Note both arms shared the defect, so it partly cancels — which is precisely the failure mode CLAUDE.md names, and is not a reason to keep the number |
+| the **leaf calibration** (53.22% / 50.99%) | already void for the preview under PRIORITIES #38; the in-game half is now void too | MEASURE, after the boundary |
+
+**This is a release-boundary matter, not a footnote** — PRIORITIES P0.5. The runs on disk were
+already `PRE-CHANGE` against the engine; they are now `PRE-CHANGE` against the leaf as well, and the
+leaf is SEARCH's own file. Do not start a wide run until the boundary is cut.
+
+**And a caution the parity does not cover.** `docs/SEARCH.md` item 5b records that the board's
+weather string has never meant anything to MEDICHAM. Until that is fixed, **a re-run of R1/R3/R4
+would still be measuring a leaf that is blind to 60.8% of boards' weather.** Sequencing the two
+matters: fixing 5b after re-running the gates buys a second round of invalidation.
 
 ## Read R4 correctly
 
@@ -88,36 +112,77 @@ Three things the re-run settled that were not the question:
 `engine/mew.js` exposes no `--miltank-explore`, so the A/B that would say is not currently runnable.
 R4 was itself run at 1.0 and cannot arbitrate its own setting.
 
-## The live budget is 45 SECONDS A DECISION, and nothing in this repo knew that
+## The live budget — SETTLED 2026-08-04 from the Showdown source, and it was not 45 seconds
 
-Real VGC runs a **7-minute chess clock** in doubles with a cap of **45 seconds on any one decision**.
-That is the hard outer wall on every design decision in this division and it appeared **nowhere in
-the repository** before 2026-08-04. It is recorded here so it stops being tribal knowledge.
+This section previously said "a 7-minute chess clock with a 45-second cap on any one decision",
+flagged as an **unverified rules assumption** (PRIORITIES #39). It has now been read out of the
+implementation we actually play against, and **two of its three numbers were wrong**. Correcting the
+diagnosis, not just the number:
 
-Against it, what MILTANK ships:
+`config/formats.ts` gives `[Gen 9 Champions] VGC 2026 Reg M-B` the ruleset
+`['Flat Rules', 'VGC Timer', 'Open Team Sheets']`. `data/rulesets.ts` `vgctimer` is, verbatim:
+
+```
+Timer Starting = 420      Timer Grace = 90          Timer Add Per Turn = 0
+Timer Max Per Turn = 55   Timer Max First Turn = 90
+Timeout Auto Choose       DC Timer Bank
+```
+
+and `server/room-battle.ts` says what those do:
+
+| fact | line | consequence |
+|---|---|---|
+| `secondsLeft = starting + grace` | `:210` | the bank is **510 s**, not 420 |
+| `turnSecondsLeft = Math.min(secondsLeft, maxTurnTime)` | `:327` | **the per-turn cap is DRAWN from the bank.** One clock, not two |
+| `addPerTurn` = 0, and `updateTurn` adds it | `:306` | **no refill.** A true bank, exactly as feared |
+| `maxPerTurn` = 55 | ruleset | the per-decision wall is **55 s**, not 45 |
+| `maxFirstTurn` = 90 | `:326` | **team preview gets 90 s**, from the same bank |
+| turn expires, bank alive → `>{slot} default` | `:451-453` | a **server-chosen move**, not a loss |
+| bank hits 0 → `forfeitPlayer(..., ' lost due to inactivity.')` | `:455` | **you lose the game** |
+
+**So the DRAWN reading is confirmed and the arithmetic stands, with different numbers.** Against it,
+what MILTANK ships:
 
 | | shipped | the wall |
 |---|---|---|
-| in-game decision | `budgetMs` **20,000** | 45,000 ms |
-| team preview | `previewMs` **15,000** | preview clock, separate — **NOT MEASURED**, do not assume 45 s |
-| one leaf at n=200 | 141.85 ms | ~317 leaf calls fit in 45 s |
-| one leaf at n=40 | 37.48 ms | ~1,200 leaf calls fit in 45 s |
+| in-game decision | `budgetMs` **20,000** | **55,000 ms**, capped by whatever is left in the bank |
+| team preview | `previewMs` **15,000** | **90,000 ms** — measured now, no longer "do not assume" |
+| the whole game | ~24 decisions at 20 s, after preview | **510,000 ms, no refill** |
+| one leaf at n=200 | 141.85 ms | ~388 leaf calls fit in 55 s |
+| one leaf at n=40 | 37.48 ms | ~1,467 leaf calls fit in 55 s |
 
-Two things follow, and the second is the one that matters.
+**Per decision MILTANK is nowhere near the wall**, and now by a wider margin than the old figure
+implied — a ~63-cell menu at n=200 costs ~8.9 s against 55 s. The binding constraint on one turn is
+`budgetMs`, which we chose.
 
-**Per decision, MILTANK is nowhere near the wall.** A ~63-cell menu at n=200 costs about 8.9 s. The
-binding constraint on a single turn is `budgetMs`, which we chose, not the clock.
+**Per GAME it is genuinely tight.** 510 s, no refill, 15 s spent at preview, leaves 495 s — **24
+decisions at `budgetMs: 20000`**. That is more than the 21 this file used to claim, and the
+conclusion is unchanged: VGC doubles games run past 24 turns often enough that the shipped budget can
+forfeit a won game on inactivity, and **a timeout says nothing about the player**. It is also
+invisible in every H2H we run, because `mew.js` has no clock at all and both arms are equally free.
 
-**Per GAME it may be well over it.** 7 minutes is 420 seconds for the WHOLE game. At `budgetMs`
-20,000 that is **21 decisions before the clock is gone**, and VGC games routinely run longer. If the
-45 s is drawn from the 420 s total rather than refunded — which is how a chess clock normally works,
-but which **I did not verify against the official rules and it must be verified before this is acted
-on** — then the shipped budget loses games on time and the search never gets blamed for it, because
-a timeout says nothing about the player. The number to fix is `budgetMs`, and the arithmetic says
-something nearer 420/expected-turns, not 20,000.
+**What the fix should be, given the shape is a bank and not a per-turn allowance.**
 
-Nothing here is measured. It is the constraint written down plus arithmetic on it, and it is flagged
-as such. PRIORITIES #36.
+- **Not a constant.** Spend against `secondsLeft / expected remaining decisions`, which is the thing
+  a bank calls for. A flat 16.5 s survives 30 decisions; a flat 20 s does not.
+- **Hold a reserve.** `Timeout Auto Choose` means running out of *turn* time costs one bad move,
+  while running out of *bank* costs the game — those are not the same failure and the budget should
+  be far more afraid of the second.
+- **Deferral is free time we are not taking.** MILTANK handed 29% of turns back to MAG in an R4 run
+  and **paid the full search first every time**. A screen that stops once the finalists are provably
+  inside the tie band would return roughly a quarter of the clock at zero cost in play.
+- **Preview is cheap and under-spent, not expensive.** 15 s against a 90 s cap. If preview is worth
+  anything it is worth more than 3% of the bank; that is an accuracy question, not a clock one.
+
+**One measurement still missing, and it is the one that decides the number.** Nothing has recorded
+MILTANK's per-decision wall-clock **distribution** over a real game — only single decisions. The
+smoke below shows 114–664 ms at `--miltank-n 20`, and R2's 8.9 s is at n=200 and is itself under
+re-run (PRIORITIES #14). **The mean is not what times you out; the tail is.** Record the distribution
+before choosing a constant.
+
+**One caveat that is not ours to control:** the timer only runs when a player starts it
+(`room-battle.ts:606` — `Config.forcetimer` is off on the main server, and `:727` is `/timer on`).
+So the bank binds when the opponent turns the clock on, which we cannot predict and must assume.
 
 ## Open
 
@@ -218,26 +283,110 @@ Every decision this division makes is an argmax over the leaf. If the leaf is un
 better search is a better-aimed error. This is MEASURE's item, not SEARCH's — but SEARCH should
 know that a null result here may not be about the search at all.
 
-### 5. `applyMegaWeather` has never done anything on the seeded path — FILED, not fixed
+### 5. `applyMegaWeather` — FIXED 2026-08-04, with #40b, and measured
 
-`engine/rollout_leaf.js` calls `applyMegaWeather(S)` to give a mega its own weather (a stone-holder
-is built as its MEGA FORME, so the rollout assumes the mega happened while the sun it brings never
-fires). Both leaves then assign the caller's field over the top — `S.field.weather = f.weather || ''`
-— **unconditionally**. `battleInit({seeded:true})` leaves `S.field.weather` null, so the guard
-`if (S.field.weather) return` never fires, the function always runs, and its write is always
-overwritten a line later. Mega Charizard Y has stood in clear weather in every mid-battle rollout
-this project has ever run, with every Fire move and every Solar Beam mispriced for the whole playout,
-and the comment above the function describes behaviour the code does not have.
+`engine/rollout_leaf.js` called `applyMegaWeather(S)` and then assigned the caller's field over the
+top — `S.field.weather = f.weather || ''` — **unconditionally, one line later**.
+`battleInit({seeded:true})` leaves `S.field.weather` null, so the guard `if (S.field.weather) return`
+never fired, the function always ran, and its write was always discarded. Mega Charizard Y stood in
+clear weather in every mid-battle rollout this project ever ran.
 
-**Deliberately not fixed in the unification pass.** Correcting it moves every in-game leaf value on
-~26% of this format's usage; that is a measured change, and landing it in the same pass as a change
-to the preview leaf would confound exactly the contrast the unification exists to clean up. It also
-must not land while ENGINE is mid-flight. The fix is to apply the caller's field *before*
-`applyMegaWeather` instead of after, guarded so a real weather already on the board still wins. Do it
-after the release boundary, with an R1 re-run beside it.
+**Fixed by ORDER**: the caller's field is applied first and `applyMegaWeather` second, so the guard
+arbitrates instead of being overwritten. A real weather the board reports still wins.
 
-The unseeded preview path does not need it: the entry effects fire for real there, so
-`applyMegaWeather` is a genuine no-op rather than a discarded write.
+**Two corrections to #40b as filed, both measured rather than reasoned.**
+
+- **The raw ability read was not returning a wrong answer on this path.** `dmgMon` already calls
+  `effAbility` itself, so a Charizard + Charizardite Y body arrives at the function carrying
+  `drought`, not `blaze`. Probed directly (`species=charizard item=Charizardite Y` → body ability
+  `drought`; same for Tyranitar→`sandstream`, Abomasnow→`snowwarning`). #40b is a **latent** hazard
+  here — live the moment a caller omits `dex` — not the live defect the filing describes. #37 alone
+  was the visible bug. Routed through `effective()` anyway, and `rollout_leaf.js` now holds **0** raw
+  reads of a transforming field against a baseline of 0, down from **2** at `bd8f388`.
+- **The field the fix actually needed was `mega`, not the ability.** The discarded version had **no
+  mega check at all** — it took the weather of the first ACTIVE with a weather-setting ability, mega
+  or not. Landing #37 without adding that gate would have **invented weather**: a Torkoal standing on
+  a board the tracker says is clear is a legal observed state, and re-setting its sun overrules the
+  one thing that knows. The board is authoritative for a body that is what the board says it is; a
+  mega is the sole exception, because `dmgMon` has already upgraded it to a forme the real game has
+  not seen. **So #37 and #40b were coupled, but not for the reason filed.**
+
+**Parity, same boards, same seeds, both entry points, HEAD leaf against the working tree, in one
+process so the engine cannot differ between arms.**
+
+| | before | after |
+|---|---|---|
+| boards walked | 60 | 250 |
+| `rolloutWinProb` different | **0** | 14 |
+| `rolloutAfterActions` different | **0** | 14 |
+| boards moved on at least one | **0** | **15** |
+| boards moved that are NOT a mega-setter-on-a-clear-board | 0 | **0** |
+
+15 of the 16 boards that hold a mega weather setter with no board weather moved; the 16th sits at
+0.975/1.000 and is saturated at n=40. **Nothing else moved at all** — the reorder's only other side
+effect, `weatherT` no longer being left at 5 on boards that already have weather, is inert, and the
+parity proves it rather than assuming it.
+
+Effect size, and it is not small: mean |Δ| **9.67 pt** on `rolloutWinProb` (max 17.5) and **18.33 pt**
+on `rolloutAfterActions` (max 62.5, n=24 and correspondingly noisier). The direction is the
+correctness evidence — **Charizard-Mega-Y's sun is worth +11.0 pt to the side that owns it and
+−12.5 pt to the side that faces it.** Tyranitar-Mega's sand moves ±5 pt, which is the right order for
+a weather whose main modelled effect is a Rock special-defence multiplier.
+
+**Direct counter, because a parity delta is indirect.** `battleTurn` wrapped, field read on turn 1 of
+every playout, 250 boards × 40:
+
+```
+HEAD leaf    : 0 of 9,040 playouts began in a weather MEDICHAM can read   (0.00%)
+working tree : 640 of 9,040                                              (7.08%)   sun 480, sand 160
+```
+
+Rate in the corpus sample: 32 of 250 boards (12.8%) hold a mega weather setter among the actives —
+Charizard-Mega-Y 17, Tyranitar-Mega 15 — and 16 of 250 (6.4%) are the ones with no board weather that
+#37 can move. **That is the honest exposure figure, and it is not the "~26% of format usage" the
+filing quoted**: 26% is megas in general, most of which set no weather.
+
+Leaf cost: 17.53 → 16.93 ms per call at n=40 over 120 boards, i.e. no regression (one machine, one
+load — an order of magnitude, not a figure).
+
+The unseeded preview path is untouched, and that was checked rather than argued: 12 preview-shaped
+calls (`seeded:false`, `buildTeams`, a mega setter on both sides) are identical across the two leaves.
+
+**The engine moved under this work.** `engine/medicham2-browser.js` was committed and then modified
+again between the before-run and the after-run — 4 of the first 60 HEAD-leaf values differ across the
+two runs. The parity verdict survives it because both arms run in one process against one engine, and
+the after-run carries its own before-state column measured on the current engine. The absolute
+numbers above describe the tree at `9a4f82d` plus uncommitted ENGINE work, not a named release.
+
+### 5b. THE LEAF'S WEATHER STRING HAS NEVER MEANT ANYTHING TO THE ENGINE — FILED, NOT FIXED
+
+Tripped over while measuring #37, and it is **much larger than #37**. `applyField` assigns
+`f.weather` straight into `S.field.weather`. `f.weather` comes from `board.weather`, which is
+Showdown's `|-weather|` line normalised, so its values are **move names** — `sunnyday`, `raindance`,
+`sandstorm`, `snowscape`. `engine/medicham2-browser.js` compares against `sun` / `rain` / `sand` /
+`snow` (`:464`, `:486-487`, `:934`). **They have never matched.**
+
+Measured on the shipped engine, Charizard Flamethrower into Garchomp:
+
+```
+weather=""           61-72        weather="sun"   92-109     weather="sunnyday"    61-72
+                                  weather="rain"  29-35      weather="raindance"   61-72
+```
+
+So the weather a mid-battle board reports is **truthy enough to suppress a guard and meaningless to
+every formula**. The turn-1 counter above says it exactly: **0 of 9,040 playouts on the HEAD leaf
+began in a weather MEDICHAM could read**, while 5,320 of them had a weather string. 152 of 250
+sampled boards (60.8%) carry one.
+
+**Not fixed here, deliberately.** Correcting it moves roughly 65% of in-game leaf values — an order
+of magnitude more than #37 — and landing it in the same pass would have made the #37 parity
+unreadable, which is the exact confound #37 was deferred to avoid in the first place. It is an ENGINE
+item; SEARCH could not write `docs/ENGINE.md` this pass and it is recorded here so it is not lost.
+The translation point is `rollout_leaf.js applyField`, which now carries the finding in a comment.
+
+**It also bounds what #37 bought.** With the board's weather inert-but-truthy, the mega's weather is
+applied only where the board reports *no* weather at all. Under a real weather the mega still stands
+in nothing — because the board's weather is nothing too. Fixing 5b will move #37's exposure up.
 
 ## R5 — the action-ranking backtest. SPEC. NOT RUN.
 

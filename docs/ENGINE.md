@@ -12,7 +12,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  100/142 probed mechanics live, 42 missing   (census 2026-08-04 08:29)
+  102/144 probed mechanics live, 42 missing   (census 2026-08-04 09:04)
   missing:
     move    conditionalPower       Facade doubles when statused
     ability damageReduce           Ice Scales halves special damage
@@ -56,13 +56,13 @@ ENGINE — does the simulator do what Pokémon does
     move    reordersTurn           After You lets the partner move next
     item    curesVolatile          Mental Herb frees the holder from Taunt
     move    multiAccuracy          Triple Axel rolls accuracy on every hit
-  1/400 differential comparisons disagree with Showdown   (2026-08-04 08:31)
+  1/400 differential comparisons disagree with Showdown   (2026-08-04 09:04)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (54 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   tag coverage: 137/176 probed, 39 unprobed
 ```
 
-_stamped 2026-08-04 08:47_
+_stamped 2026-08-04 09:09_
 
 <!-- /GENERATED -->
 
@@ -94,6 +94,107 @@ census, which now carries them.
   cannot be wired from the artifact as it stands. The differential can no longer see it either:
   CONTROL FIX 6 sets `gender:'N'` on both sides, because `gender:''` made Showdown roll one off the
   battle seed and MEDICHAM has none — a seed-dependent x0.75 nothing could match.
+
+## The three ratchets — 2026-08-04, PRIORITIES #40 / #40a
+
+All three were red **before** this session and two of them **crashed** rather than failed unless
+`SHOWDOWN_PATH` was set, which is most of why nobody ran them. Both now exit **2** with one line:
+*NOT RUN — set SHOWDOWN_PATH*. A check that crashes is a check that gets skipped.
+
+| Ratchet | Was | Now |
+|---|---|---|
+| `test-mc-key` | RED, `medicham2-browser.js: 5 -> 7` | **GREEN**, back to 5. The two lookups were **removed**, not baselined |
+| `test-effective-identity` | RED, 234 → 302 raw reads | **GREEN**, with 7 files **declared** and medicham2's declaration **pinned by an assertion** |
+| `test-no-silent-failure` | RED, 53 new silent catches | still RED at **40**, and **none of them are in a file ENGINE owns** |
+
+**`--update` was refused on all three, and that is the point.** Raising a ratchet is the opposite of
+what a ratchet is for. `test-no-silent-failure --update` would have laundered 40 catches belonging to
+MEASURE, SEARCH and OPS along with the 11 that were mine.
+
+**The two mc-key lookups both went through `pasteKey()`**, this file's own resolver — the one the
+test's header already names as working. `bringIn` normalised `switchInForme.becomes` by hand and then
+indexed `MC.mons`; `oneMegaPerSide` wrote out the `-mega` suffix strip that `pasteKey` already does.
+Neither was a behaviour change and both are strictly more capable (pasteKey has the flat rescan).
+
+**`test-effective-identity` needed a third option, because it had only two and both were wrong.**
+Leave it red forever, or `--update` and launder `rollout_leaf.js`'s real violation with the rest. So a
+file whose raw reads are correct BY CONSTRUCTION now DECLARES that, with the reason, in the shape this
+project already uses for `RAW-STORE-OK`. Three rules keep it from being a mute button: the reason must
+be about construction, a declaration that can be pinned is pinned, and every declared file prints its
+count on every run. **The ratchet was re-verified to still bite** by dropping a throwaway file with two
+raw reads into `engine/` — it failed on it.
+
+**All 67 of medicham2's raw reads were walked, not asserted.** 66 are live battle bodies this engine
+constructed; the one exception (`norm2(set.ability)` in `buildMonFromSet`) reads a parsed SHEET, which
+is the case the test itself names as correct.
+
+**What the walk found is the part that mattered.** The construction claim was FALSE — see below.
+
+## What verifying the claim turned up: two mega-ability bugs
+
+Both are probed in `tests/test-mechanics.js`. Census **100 → 102 live**, nothing fell.
+
+1. **`megaRowAbilityCase`.** 85 of the 318 `MC.mons` rows key a mega and store `ab` in DISPLAY case —
+   `"Technician"`, `"Huge Power"`, `"Tough Claws"`. `buildMon` copied that through, and every ability
+   test in this engine is a lowercase literal (`att.ability==='technician'`). A body built from its
+   MEGA ROW carried exactly the right ability and **not one line of it fired**: Mega Scizor's Bullet
+   Punch read **52 where Technician makes it 78**. It hid because the OTHER door — base row + stone —
+   goes through `megaAbility()`, which returns from a lowercase hand-written map, and because
+   `board.js` overwrites the ability with `effAbility()` before its own damage call. Only the
+   mega-keyed door was wrong: `position_features.js`, `sets.js`, `winProb2` called with a mega name.
+2. **`megaSheetAbility`.** `buildMonFromSet` read `declaredAb || megaAbility(...)`, so a paste of
+   *Scizor @ Scizorite / Ability: Swarm* built a `scizor-mega` body running **Swarm**. A team sheet
+   lists the PRE-mega ability; this is the mega ability gap living in the engine rather than in
+   `board.js`, which had already fixed its own half at `board.js:964`. **Two engines disagreeing about
+   a FACT**, which CLAUDE.md names as this project's most expensive failure. Only the branch that
+   swaps the key to a mega row overrides the sheet — a non-mega set still lets a declared Rough Skin
+   beat the dataset's Sand Veil.
+
+**`tests/test-paste.js` was asserting the bug and its assertion was inverted.** It read
+`geng.ability === 'cursedbody'` for a Gengar holding a Gengarite. Mega Gengar has **Shadow Tag** —
+the worked example in `test-effective-identity`'s own header. Confirmed three ways before the line was
+touched: Showdown's dex gives Gengar-Mega exactly one ability, `board.js effAbility` returns
+`shadowtag` for the same sheet, and medicham2 now agrees.
+
+**A probe was wrong before the engine was, for the tenth time.** The structural pin first reported
+three megas with the wrong ability — Garchomp, Lucario, Absol. Champions ships a **second mega per
+stone**: `garchompiteZ -> garchompmegaZ`, Rough Skin instead of Sand Force. The loop kept whichever
+stone it saw LAST, which was the Z one. They are now excluded **with the reason**: `MC.mons` has zero
+`-mega-z` rows and the store has zero `itez` occurrences, so the engine cannot represent them at all.
+
+## The differential harness was silently dropping 12 rows, all of them the same Pokemon
+
+Five catch blocks in `tests/test-engine-diff.js` returned a plausible `null` and said nothing, so a row
+that failed to BUILD and a row that was never sampled were the same event. That matters here more than
+almost anywhere: the headline is a RESIDUAL, and a silent drop shrinks the denominator without
+shrinking the claim. Now counted, named and written to `data/engine-diff.json` as
+`dropped_by_exception`.
+
+Naming them earned its keep on the first run. At seed 20260804 `--n 400` it fires **12 times and all
+twelve are Bellibolt**. The throw is inside Showdown: Electromorphosis's `onDamagingHit` adds the
+`charge` volatile, and Charge's `onStart` reads a `source` that only the full move pipeline sets —
+`moveHit`, the entry point this harness must use, leaves it null. **Not a MEDICHAM bug**, and on the
+same layer boundary as the Disguise SUSPECT row, so it is recorded rather than papered over. It was
+invisible until this session.
+
+`tests/walk_tags.js` had the same shape and worse: its three silent catches returned `null`, and a
+`null` prints as **NOT COVERED**, which the report calls "honest ignorance, not a pass". It was not
+honest — an engine that THREW and a tag with no handler produced the same word.
+
+## Found red, NOT mine, NOT fixed — reported rather than filed
+
+- **`tests/test-tag-wire.js` is RED with 2 dead wires, and was red before this session.** Verified by
+  stashing `medicham2-browser.js` and re-running: byte-identical output before and after. The two are
+  `typeImmunity` (*"the absorbed hit HEALS the absorber 1/4 (1 -> 1)"* — Volt Absorb takes the hit and
+  gains nothing) and `sealsMoves` (*"Encore pins the foe to its last move (undefined) for undefined
+  turns"* — the wire exists at `medicham2-browser.js:1578` and its guard never passes). Both are
+  ENGINE mechanics. Neither has a census probe, so **the census cannot see either of them**.
+- **`tests/test-no-silent-failure.js` stays RED at 40 new silent catches, none in an ENGINE file.**
+  `engine/status.js` 9, `rollout_r4.js` 5, `miltank.js` 5, `rollout_r1_artifact.js` 4,
+  `rollout_explore_sweep.js` 3, `mag_bot.js` 3, `test-web-status.js` 3, `test-timestamps.js` 3,
+  `run_stamp.js` 2, and one each in `rollout_r1.js`, `rollout_leaf.js`, `backtest_winrate.js`,
+  `test-guru-derived.js`, `test-rollout-gates.js`. That is **MEASURE 33, SEARCH 6, OPS 3**. The
+  `rollout_r4.js:312` the priorities file points at is in that MEASURE 33.
 
 ## Filed, not fixed
 
