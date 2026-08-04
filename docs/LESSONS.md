@@ -52,6 +52,29 @@ Three rules that came out of it:
 - **Identical results across a varied knob mean the knob is unwired.** Not that the knob does not
   matter.
 
+**Two more, added 2026-08-04 after five further cases in one session.** The count is now roughly
+twenty and it is no longer bad luck; it is a property of how probes get written.
+
+- **STAGE IT AGAINST A BODY THAT CAN SHOW THE EFFECT.** Three of the five failed on this alone. The
+  redirection "bug" that led this session's headline for six hours was a probe firing **Dragon**
+  Claw at a **Fairy** type: the redirect worked perfectly, moved the attack onto something immune,
+  and both arms read 0. The `typeImmunity` wire that sat red for two days staged Volt Absorb on a
+  **Garchomp** — Dragon/Ground, already immune to Electric with no ability at all — and *also* left
+  the absorber holding Protect, so it blocked the hit. Two independent reasons that arm could never
+  pass whatever the engine did. And a heal probe on a full-HP body reads `0 → 0` forever.
+  **Ask what the target would do if the mechanic did not exist. If the answer is "the same thing",
+  the probe is worthless.**
+
+- **A FAKE INPUT MUST CARRY THE FIELD THE ENGINE ACTUALLY READS.** A hand-built move object with
+  `cat: 'Physical'` is not a physical move: `medicham2-browser.js:511` is `const phys = mv.c === 'P'`.
+  With `mv.c` absent, `phys` is false for *everything* — which made the sand boost fire where it must
+  not and stopped the snow boost firing where it must, and produced a confident report that **both
+  were broken in opposite directions**. Both were correct. A `mon.moves` entry is a **string**, not
+  an object, so the lookup that was supposed to fetch a real move silently returned nothing and fell
+  through to the fake one.
+  **Prefer a real object from the real path. If you must synthesise one, read the consumer first and
+  match the field names it tests, not the ones that read well.**
+
 ## 6. Will's domain knowledge beat the data repeatedly
 
 Blaze/mega. Gardevoir-is-Trace. Contrary-Staraptor. "Meganium needs the mega." "Reality is not a
