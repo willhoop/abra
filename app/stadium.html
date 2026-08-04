@@ -98,19 +98,25 @@
     background:linear-gradient(#e0392a,#a8241a); border-bottom:4px solid var(--ink); }
   .dhead h2{ margin:0; font-size:clamp(20px,4vw,32px); color:#fff; text-shadow:0 3px 0 rgba(0,0,0,.5); }
   .dhead .game{ font-size:10px; font-weight:800; letter-spacing:.12em; color:#ffd7a8; text-transform:uppercase; }
-  .dgrid{ display:grid; grid-template-columns:minmax(0,320px) minmax(0,1fr); gap:0; }
+  /* THE STAGE WAS A RIBBON, NOT A PANEL. A fixed 320px column stretched to match the text
+   * column's height -- measured at 320x793 on a 1600px viewport -- so the canvas art floated in a
+   * 1:2.5 sliver of green while the prose sat capped at 439px inside a 752px column, leaving 313px
+   * of dead space. align-items:start stops the stretch; the stage gets a real aspect ratio and a
+   * share of the width instead of a hardcoded sliver. */
+  .dgrid{ display:grid; grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr); gap:0;
+    align-items:start; }
   @media (max-width:760px){ .dgrid{ grid-template-columns:1fr; } }
   .stage{ background:
       repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 4px),
       linear-gradient(160deg,#3aa05a,#1b6034);
-    border-right:4px solid var(--ink); min-height:230px; }
+    border-right:4px solid var(--ink); aspect-ratio:5/4; min-height:300px; }
   @media (max-width:760px){ .stage{ border-right:none; border-bottom:4px solid var(--ink); } }
-  .stage canvas{ width:100%; height:100%; display:block; min-height:230px; }
+  .stage canvas{ width:100%; height:100%; display:block; }
   .dbody{ padding:18px; }
   .acr{ font-size:11px; letter-spacing:.05em; color:var(--bolt); font-weight:700; margin:0 0 12px; }
   .dsec{ margin:0 0 14px; }
   .dsec h4{ margin:0 0 5px; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:#8fa0e0; }
-  .dsec p{ margin:0; font-size:13.5px; line-height:1.62; color:#e6ebff; max-width:62ch; }
+  .dsec p{ margin:0; font-size:14px; line-height:1.62; color:#e6ebff; max-width:64ch; }
   .dsec p em{ color:var(--bolt); font-style:normal; font-weight:700; }
 
   .stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; margin:14px 0 0; }
