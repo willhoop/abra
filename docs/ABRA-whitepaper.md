@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.31.0 · Last updated 2026-07-31**
+**Version 3.33.0 · Last updated 2026-08-04**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -253,6 +253,31 @@ cores beat which" and for quantifying how cyclic the meta really is.
    Every `build_lab` win rate on record was measured against the older board-blind pilot and none has
    been re-run, so all of them remain provisional.
 5. **Champions rule specifics** (sleep/paralysis edge cases) are flagged, not yet fully modelled.
+6. **A result that does not record its own configuration is not reproducible, and three of the four
+   rollout gates were in that state.** This is a methodological limitation, added 3.33.0, and it cost
+   a published result. The R1 gate reported *"68.18% against material's 65.26%, +2.91 [1.79, 4.04]"*;
+   recomputed from the only committed evidence it is **+0.456, 95% CI [−0.717, +1.630] — UNDECIDED**.
+   No number was falsified. The row dump recorded `{gid, turn, p, mpy, y, aliveDiff, hpDiff}` and no
+   sample size, no exploration rate and no build digest, so a dump taken at `explore=0` and a dump
+   taken at `explore=1` were byte-compatible while differing by nearly four accuracy points. Only the
+   surviving calibration shape distinguished them, in hindsight.
+
+   Auditing the other rungs against the same standard produced two further findings. **The R3
+   divergence gate publishes 72.9% over 70 decisions and records no control.** Its own script computes
+   the quantity that makes a divergence rate mean anything — the same search on a different seed
+   disagreeing with *itself*, whose true value is 0 by construction — writes it to standard output,
+   and does not store it; the script's verdict branches on that comparison, so the artifact cannot
+   state which branch its own run took. At a rollout budget of N=20 that floor measured *higher* than
+   the divergence it was meant to validate. **The R2 cost gate timed a leaf the system does not run**,
+   inheriting library defaults of `explore=0` and a 20-turn horizon while the deployed leaf uses
+   `explore=1.0` at 60 turns.
+
+   The general statement is that a search is worth exactly what its leaf is worth, and a leaf
+   measurement is worth exactly what its configuration record is worth. Every gate artifact now
+   carries a sidecar (`engine/run_stamp.js`) recording the budget, the exploration rate, the horizon,
+   content digests of every source the gate reads, the commit, and whether the working tree was dirty
+   at the time. Artifacts predating the standard carry a stamp reconstructed from the commit that
+   contained them, labelled as inferred rather than observed on every field.
 
 ## 7. The road to ALAKAZAM
 

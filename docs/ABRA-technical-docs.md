@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.31.0 · Last updated 2026-07-31**
+**Version 3.33.0 · Last updated 2026-08-04**
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,
@@ -25,6 +25,36 @@ You now have the site and one validated model.
 **Repair the raw archive before any reparse.**
 `MODE=backfill node engine/durable-ingest.js data/games.ladder.jsonl`
 The hourly Action appends to the store while the raw archive is gitignored, so CI-collected games have no local raw log. `MODE=reparse` REFUSES to run while any stored game is missing one, because reparse rebuilds the store from the archive and would delete them.
+
+**Read which configuration produced a result (added 3.33.0).**
+`node engine/run_stamp.js --show data/rollout-r3.json`
+Every gate artifact has a `<name>.meta.json` file beside it. The file records the rollout budget, the
+exploration rate, the horizon, content digests of every source the gate reads, the commit, and whether
+the working tree was dirty. `node engine/status.js` prints the headline of that file under the gate.
+Read three fields before you quote a result. `reconstructed: true` means the stamp was inferred from a
+commit and not observed; read `confidence` beside it. `git.dirty: true` means the commit does not
+describe what ran; use `source_digests` instead. `source_digests` holds hashes of working-copy bytes
+and `git.blobs` holds git object names. Do not compare the two. On Windows they differ because git
+changes the line endings.
+
+**Write a stamp from a new measurement (added 3.33.0).**
+Call `require('./run_stamp.js').writeStamp({...})` at the point the run writes its numbers.
+Do not write a second sidecar format. One artifact recorded a probability column and did not record
+the exploration rate that produced it. A file written at rate 0 and a file written at rate 1 were then
+identical byte for byte, and they differed by almost four accuracy points. The published result could
+not be recovered.
+
+**Show the project state on a web page (added 3.32.0).**
+`node web/build-status.js` then open `web/status.html`.
+The build step writes `web/status-data.js`. The page reads a script-tag global. Do not change it to `fetch()`. A `fetch()` of a local file fails under `file://` and shows no error to the reader.
+
+**Show the model select screen (added 3.32.0).**
+Open `web/stadium.html`. Run `node tests/test-stadium-roster.js` after you add or remove a model.
+The test compares the page against `docs/MODELS.md`. The test fails if a model has no cabinet.
+
+**Compare the engine with Showdown (changed 3.32.0).**
+`SHOWDOWN_PATH=... node tests/test-engine-diff.js --seed 20260804`
+The sampler is seeded. Two runs with the same seed give the same result. Before 3.32.0 the sampler used `Math.random()` and the count changed between runs. Always record the seed with the count.
 
 **Run the official Champions engine.**
 `SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/champions_sim.js`

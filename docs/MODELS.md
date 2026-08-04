@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.31.0 · Last updated 2026-07-31.**
+**Version 3.33.0 · Last updated 2026-08-04.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -599,6 +599,21 @@ The dump stamps no `N`, no `explore` and no build digest, which is why the two r
 indistinguishable; `rollout_r1.js` now writes `data/rollout-r1-rows.meta.json` beside every dump.
 Artifact `data/rollout-r1.json` (`engine/rollout_r1_artifact.js`); the withdrawn join is preserved at
 `data/rollout-r1-withdrawn-join.json` with `withdrawn: true`.
+
+R2 and R3 had the same hole and were stamped 2026-08-04 through `engine/run_stamp.js`, one shared
+implementation rather than a third copy. Both published numbers reproduce as arithmetic and neither
+reproduction carries weight: **R3's 72.9% is 100 × (70 − 19) / 70 recomputed from two fields in its own
+file**, with no per-decision rows behind it, and **R2's timings cannot be recomputed by anyone** —
+a duration is a fact about a machine under a load and no per-leaf sample was dumped.
+
+Two findings outrank the plumbing. **R3's noise floor was computed, printed and never written**, and
+the script's own verdict branches on it (`rate <= floor` → NOT A RESULT), so the committed artifact
+cannot say which branch its run took; the floors published in `docs/ROLLOUT-design.md` §5 belong to
+four earlier runs, and at N=20 the floor measured *higher* than the divergence. **R2 timed
+`explore=0` at `maxTurns=20`** by inheriting two library defaults, while MILTANK's in-game leaf is
+`explore=1.0` at `maxTurns=60` — the affordability table rests on the cost of a leaf the bot does not
+run. Separately, `data/rollout-r3.json`'s caveat claimed switches were excluded; commit `b4ec80b` put
+them on the menu and left the string alone.
 **Code:** `engine/miltank.js`, `engine/rollout_r4.js`, `engine/sprt.js`, `engine/paired_h2h.js`.
 Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
 

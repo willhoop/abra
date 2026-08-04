@@ -10,7 +10,103 @@ silently rewritten; what changed and why is stated.
 
 ---
 
-## [Unreleased] — 2026-08-04
+## [3.33.0] — 2026-08-04
+
+### R2 and R3 stamp their configuration — and R3's published number turns out to have no control
+
+R1 lost its result to a missing stamp: the published *"68.18% against material's 65.26%, +2.91
+[1.79, 4.04]"* recomputes from the only committed evidence to **+0.456, 95% CI [-0.717, +1.630] —
+UNDECIDED**, because a dump taken at `explore=0` and a dump taken at `explore=1` are byte-compatible
+and differ by nearly four accuracy points. R2 and R3 had the identical hole. This closes it, and
+finds two things on the way that matter more than the plumbing.
+
+#### Do the published numbers reproduce?
+
+| gate | published | recomputed from committed evidence | verdict |
+| --- | --- | --- | --- |
+| R2 | 477 boards over 200 games; 5.83 ms median at n=10 | affordability table reproduces to the digit (K=3 → 0.47 s / 1.75 s; K=4 → 1.49 s / 5.53 s) | derived layer **yes**; base layer **NOT CHECKABLE** |
+| R3 | 72.9% over 70 decisions (19 agreed, 20 skipped) | 100 × (70 − 19) / 70 = **72.857142857142854**, bit-identical | **yes — and it is a tautology** |
+
+Neither reproduction is worth much. R3's divergence is a pure function of two fields in the same
+file; there are no per-decision rows, so "it reproduces" means only that the artifact is internally
+consistent. R2 dumps no per-leaf timing, and a duration is not recomputable by anyone in principle —
+it is a fact about a machine under a load, and nothing records the CPU, the node version or what else
+was running. **R2 is re-run or it is nothing.** This is a different failure from R1's: R1's number was
+wrong, these two are unfalsifiable.
+
+#### R3's result is not interpretable as published
+
+`engine/rollout_r3.js` computes the only control that makes a divergence rate mean anything — the same
+search on a different seed disagreeing with **itself**, where the truth is 0.00 by construction — and
+it prints it and does not write it. Its own verdict branches on that number (`rate <= floor` prints
+NOT A RESULT), so `data/rollout-r3.json` cannot say which branch its own run took.
+`docs/ROLLOUT-design.md` §5 publishes floors of 71.7 / 50.0 / 45.5 / 43.8% — for four earlier runs,
+none of them the committed one. At N=20 that floor measured *higher* than the divergence.
+
+The divergence is probably real: the floor fell as N rose, and this run used N=600. But *probably* is
+an inference from a different run, and the Wilson interval on 51/70 is **[61.5%, 81.9%]**.
+`engine/status.js` and `docs/MILTANK.md` both quote the 72.9%, and MILTANK.md spends it on a build
+decision. The floor is now written into the artifact along with a `verdict` and `verdict_code`.
+
+#### R2 timed a leaf the bot does not run
+
+`rollout_r2.js` called `RL.rolloutWinProb` without `explore` or `maxTurns`, inheriting
+`engine/rollout_leaf.js:197`'s `explore = 0` and `engine/medicham2-browser.js:1079`'s `maxTurns = 20`.
+MILTANK's in-game leaf is **explore=1.0 at maxTurns=60**. R1's hole in cost form: two library
+defaults, written down nowhere, deciding the number that the whole affordability table rests on.
+
+#### And `data/rollout-r3.json`'s own caveat is false about the run it describes
+
+It reads *"Switch candidates are excluded and counted"*. Commit `b4ec80b` deleted the
+`if (ca.switchTo || cb.switchTo) continue;` line — switches went **on** the menu, which is what that
+commit was for — and left the string alone. The `withSwitch` / `choseSwitch` counters it added were
+printed and never written, so its headline ("4 of 12 when one is on the menu") lives in a commit
+message.
+
+### Added
+- `engine/run_stamp.js` — one implementation of the sidecar `rollout_r1.js` hand-rolled inline, so the
+  next gate cannot grow a second format. `writeStamp()` records N, explore, every knob including the
+  ones left at a default, sha256 content digests of every source the gate reaches, the commit, and
+  **whether the tree was dirty** — a clean commit id over a dirty tree is a lie of exactly the kind
+  this exists to stop. `reconstruct()` infers a stamp for an artifact that predates all of this, from
+  the commit that carried it, and marks itself `reconstructed: true` on every line.
+- `data/rollout-cost.meta.json`, `data/rollout-r3.meta.json` — retrospective stamps. Both score HIGH:
+  written 25 s and 159 s respectively before the commits that carried them.
+
+### Changed
+- `engine/rollout_r2.js` — `explore` and `maxTurns` are explicit, overridable and stamped, with
+  defaults that preserve the previous behaviour exactly. `games` is now the distinct games actually
+  traversed rather than the `GAMES` environment cap, which `status.js` had been printing as
+  "over 200 games". Adds `n` / `n_unit`, `samples_per_n` (the quantile columns were not guaranteed to
+  be measured over the same board set), `boards_traversed`, `leaf_config` and a `caveats` array.
+- `engine/rollout_r3.js` — writes the noise floor, a `verdict` and `verdict_code`, the switch
+  counters, and the disagreement-gap median from the same variable it prints rather than recomputing
+  it at the write site. Caveat corrected and moved to a `caveats` array.
+- `engine/status.js` — prints each gate's stamp, or its absence, under the gate line. It derives the
+  sidecar path from `run_stamp.metaPathFor` rather than spelling it a second time, and stays quiet for
+  an artifact that already carries its own `stamps` block, because a line that fires forever after the
+  fix is a line people learn to skip.
+- `caveats` is now an array on all four rungs. It was `caveats` on R1 and R4, scalar `note` on R2 and
+  scalar `caveat` on R3 — three shapes for one idea. No reader breaks: `status.js` and
+  `web/build-status.js` read only the count fields, `generated` and `verdict*`.
+
+### Notes
+- **Not renamed:** `data/rollout-cost.json` should be `data/rollout-r2.json` — it is the only rung
+  whose file does not carry its gate's name. Four readers, three of them under `web/`, which MEASURE
+  does not own. A rename that misses one prints NOT DERIVED and reads as "nobody ran this". Needs WEB
+  in the same pass.
+- **Not corrected:** `docs/ROLLOUT-design.md` §5's "roughly 200x the simulated turns per millisecond"
+  is **155x** by the arithmetic of the two artifacts it cites, and 155x is itself a ceiling because it
+  assumes no playout ends early. SEARCH's document, and a SEARCH sweep is live. `rollout_r2.js` now
+  prints the division rather than a remembered figure.
+- **Not fixed:** `n` / `n_unit` on R1 and R4 (one line in each generator); `rollout_r1_join.py`'s naked
+  Python `isoformat()`, which JavaScript reads four hours early; `engine/rollout_r1.js` calling
+  `run_stamp.js` instead of its inline copy — SEARCH holds that file.
+- Neither R2 nor R3 was re-run. Every figure above is arithmetic over committed evidence.
+
+---
+
+## [3.32.0] — 2026-08-04
 
 ### Leaf calibration, re-measured: the leaf the search actually uses is WORSE than a coin
 
@@ -143,7 +239,111 @@ build digest, so two runs four accuracy points apart were byte-indistinguishable
 
 ---
 
-## [Unreleased] — 2026-08-02
+### The differential count was never reproducible, and Rage Powder deletes the attack
+
+`engine/status.js` printed *"6/120 differential comparisons disagree"* as an artifact-backed figure.
+The sampler used bare `Math.random()`; two runs on identical source gave **6, then 3**. It is now
+seeded (`--seed`, default `20260804`) and consecutive runs are byte-identical. Found while seeding:
+`argv[argv.indexOf('--seed')+1]` reads `argv[0]` when the flag is absent, so the harness printed
+`seed NaN` while quietly running seed 1 — the silent default this project bans. `argInt()` now exits
+non-zero on a bad flag.
+
+**Five of the six open differentials were HARNESS bugs, not engine bugs.** The hypothesis that they
+shared a spread-move `0.75x` cause is **refuted**: the ratios cluster at **1.50**, not 1.33, and the
+`0.75` cancels on both sides because `moveHit` enters at `spreadMoveHit` and never sets `spreadHit`.
+The real causes were Intimidate and Sand Stream leaking through Showdown's switch-in, unpinned
+`gender` handing Rivalry a seed-dependent 0.75 that no engine could match, and `moveHit` skipping
+the ability's `onTryHit` so Water Absorb never fired — meaning the harness reported MEDICHAM's
+**correct** 0-0 into Vaporeon as the engine's bug. Each fix was judged by driving its target case to
+`rel 0.0%`, not by inspection. Seeded residual **4/400 (1.0%)**.
+
+**Tag walk: 88 probes written, 40 red. Census 42 → 90 live. Coverage 53/176 → 137/176.** No
+previously-live probe fell.
+
+The worst thing found is **redirection, 7,240 uses: the attack does not go to the wrong target, it
+VANISHES.** Probe output: `no Follow Me: aimed 92 / partner 0 | Follow Me: aimed 0 / partner 0`.
+Every Follow Me and Rage Powder in every rollout ever run has been a free team-wide Protect.
+(Note this does **not** contradict 3.31.1 below, which measured the *fit's* unmatched clicks over
+real games and is unaffected by a rollout defect — but any rollout-based claim touching redirection
+is now suspect.)
+
+Behind it: `drain` 8,553 uses (*"dealt 51 to the foe; user 85 → 85 hp"*), `choiceLock` 5,886 — **not
+unimplemented**, `board.js` passes its own test, so two engines disagree about a fact — `multiHit`
+4,655 priced as a single hit, and `fixedDamage` 1,122 where `mv.bp=0` makes Seismic Toss worth
+literally zero.
+
+**Six probes were wrong before the engine was**, each caught by its own control: a spread move where
+single-target was needed, Close Combat at a Ghost, Toxic at a Steel, Fly from a slower body, Protean
+tested with a type it already had, and a redirect probe with no control arm. That is the probe-first
+rule paying for itself.
+
+### WEB — a fifth division, and ten numbers on the site that were not true
+
+`web/` had no owner. ENGINE, MEASURE, SEARCH and OPS are cuts on the **model's** invalidation graph
+and a website is not on that graph, so site work fell to whoever was holding it. WEB is the **leaf**
+— everything flows in, nothing flows out — which is why it gets hands on its own files and none
+anywhere else, and why its restriction is about authority rather than tools: **it renders numbers and
+never authors one.**
+
+Added `web/stadium.html` (ABRA STADIUM — a Pokémon Stadium 2 model-select screen, one cabinet per
+model, each carrying its real figures **and its honest caveat**) and `web/status.html` (the STATUS
+BOARD, built by `web/build-status.js` into a script-tag global rather than `fetch()`, because under
+`file://` a fetch of a local JSON is CORS-blocked and returns nothing **with no error a visitor
+sees**).
+
+Ten rendered figures did not match their artifacts and were corrected: GURU `0.735 → 0.7124`, XATU
+`36%/72% → 29.8%/65.6%`, open-sheet entries `60,852 → 85,992`, SLOWKING `"11–18 games each" → 49, 37,
+15` with the artifact's own `supported: false` now on the page, resist berries `16 → 18`, the RPS
+cycles downgraded from *"the proof"* to *"the hypothesis"*, and *"for the real read, play it out with
+MEDICHAM"* replaced by the measured verdict. Four stale hardcoded fallbacks now render **NOT
+MEASURED** instead of a plausible wrong number.
+
+`tests/test-stadium-roster.js` compares the cabinet rack against `docs/MODELS.md` and failed on its
+first run: **MILTANK — the search player that owns the R4 result — had no entry in the per-model
+ledger at all.** Added.
+
+### External evidence, recorded as priors and never as findings
+
+`docs/EXTERNAL-EVIDENCE.md` (new). Three independent sources now say search beats a search-free
+policy in Pokémon: R4's 55.5%, PokeTransformer's ~1900-vs-2300 ELO, and the PokéAgent Challenge
+reporting that *"the top participants all used RL or MCTS rather than LLM reasoning."*
+
+Two corrections came out of it, both against ourselves:
+
+- **"More features did not help a linear model" is NOT evidence that "a nonlinear model would not
+  help."** ABRA's four feature nulls were measured on a linear conditional logit, which cannot
+  exploit interaction structure however good its features are. Only the first claim has been tested;
+  the second was being treated as settled.
+- A claim written in this file at 03:00 — that Gen9 VGC Reg I ships with a 4M-trajectory dataset and
+  30 pre-trained agents — **was wrong and is corrected in place**. Metamon excludes VGC entirely; the
+  only VGC-inclusive dataset is `pokechamp`. Two true sentences were joined into a false one.
+
+Filed from it: an audit of whether `board.js` leaks later-revealed information into the fit (the
+Metamon "spectator point of view" problem, against 146,910 fitted decisions); a re-measurement of
+exploitability, since greedy-over-sampling shipped for +12 points and makes the policy **more**
+deterministic while WOBBUFFET's 63.2% is three feature generations stale; and **downside-aware
+selection** — MILTANK argmaxes the **mean** rollout value, so it cannot tell a flat 60% line from a
+90% line that loses on the spot, despite computing the whole distribution and discarding everything
+past the first moment.
+
+Also written down for the first time: real VGC allows **45 seconds per decision** on a 7-minute
+clock. That is MILTANK's live budget and R2's leaf cost has never been checked against it.
+
+### Housekeeping
+
+- Three dead git worktrees removed (`ABRA-old21`, `ABRA-prefeat`, `ABRA-tagsoff`), 273 MB. All were
+  clean and fully contained in `main`. They were **worktrees, not clones** — `rm -rf` would have left
+  stale registrations in `.git/worktrees`.
+- `engine/status.js`, `docs/DIVISIONS.md`, `docs/LESSONS.md` and the four division agent files were
+  **untracked**. `CLAUDE.md`'s first instruction pointed at files a fresh clone would not have.
+- 46 commits were unpushed. `data/rollout-r1-rows.jsonl` — R1's only evidence — and the
+  `data/train-doduo*/` weights behind four published CHANGELOG 3.31.0 figures were untracked; both
+  committed, with the regenerable self-play blocks gitignored in negation form so the rule reads the
+  way it behaves.
+
+---
+
+## [3.31.1] — 2026-08-02
 
 ### The 23% drop was never redirection, and measuring first is the only reason we know
 

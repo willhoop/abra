@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.31.0 · 2026-07-31 · Will Hooper**
+**Version 3.33.0 · 2026-08-04 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -90,7 +90,28 @@ Two things we tested and reported straight, even though they're negatives:
   Offense beats Sand beats Trick Room — but each of those rests on only ~13–18 games, so the error bars
   are wide. We label it suggestive, and it'll firm up as more games arrive.
 
+**Added 3.32.0 — three more, and the first one is the worst thing we've found.**
+
+- **Rage Powder was deleting attacks.** In real Pokémon, Follow Me and Rage Powder pull the
+  opponent's attack onto you. In our simulator the attack didn't move — it *disappeared*. So for
+  every practice game we have ever run, those moves acted as a free shield for the whole team.
+  That's 7,240 uses in the real data. Nothing failed, nothing warned us; the games just quietly ran
+  on a rule that isn't the game's rule.
+- **The number we quote for "how often we disagree with the real game" wasn't repeatable.** It
+  picked its test matchups at random and never wrote down which ones. Two runs on identical code
+  gave 6 and then 3. It now uses a fixed list, and the honest figure is 4 disagreements in 400.
+- **The part of the bot that judges "am I winning?" is no better than a coin flip.** We had measured
+  this before on 350 games — too few to support the claim either way. On 6,886 games it's decisive:
+  when it says it's 94% to win, it wins 54%; when it says 6%, it also wins 54%. Worse, the version
+  we had been measuring wasn't the one the bot actually uses.
+
 Saying what we *can't* prove, as plainly as what we can, is the whole point.
+
+**We also caught ourselves twice this week**, which matters more than any single fix. A result we'd
+published as a pass — "playing the position out beats just counting what's left" — turned out to be
+unreproducible from anything we'd kept, and on the evidence that survives it's a tie, not a win. And
+a claim written in our own notes at 3am about an outside dataset was wrong within four hours; it's
+corrected in place with the reason, not quietly deleted.
 
 ---
 
