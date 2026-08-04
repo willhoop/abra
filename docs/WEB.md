@@ -42,10 +42,35 @@ applied to HTML.
   deliberately does not do light mode. The house palette (`--ink:#20344a`, `--electric:#ffd23f`,
   `--fight:#ff6b57`, `--psy:#ff6bd6`, `--water:#4fb0ff`, `--grass:#5fd07a`, hard `0 5px 0` shadows)
   is the default, not a cage — but a new room should still feel like the same town.
-- **No external assets, ever.** No CDN, no webfont URL, no remote image. A blocked font fails
-  silently and the page ships in a fallback nobody chose.
+- **No remote CODE or TYPE — but sprites are allowed, with a fallback.** This rule was written too
+  broadly on 2026-08-04 and contradicted the codebase within a day: `web/index.html` has always
+  loaded animated sprites from `play.pokemonshowdown.com/sprites/ani/*.gif`.
+
+  The distinction that actually matters is **how the failure looks**. A blocked stylesheet, webfont
+  or script fails **silently** and ships a design nobody chose — those stay banned, inline them. A
+  blocked **image** is visibly missing, so it is a degradation rather than a lie.
+
+  **But a page that may be published as a claude.ai artifact has a strict CSP that blocks every
+  external host.** So any sprite must have a self-contained fallback that carries the same meaning —
+  procedural canvas art, a CSS shape, or a data URI. Never let the fallback be an empty box: if the
+  sprite is the only thing identifying a model, the page is broken in the artifact and nobody
+  testing on the site will see it.
 - **Some pages are opened from `file://`.** `models.html` and the replay coach are expected to work
   offline from bundled `data/*.js`. Check before introducing `fetch()`.
+- **The site uses the POKÉMON NAME and a plain-English job. The backronym is not displayed.**
+  (Will, 2026-08-04: *"I thought we shortened model names so they dont have dumb long acronyms"* /
+  *"But we can still call them the mons names on the site"*.)
+
+  `SLOWKING` is the name. *"Search over Learned Opponent-belief World, Knowledge-Intensive Nash
+  Game-solver"* is a backronym reverse-engineered from it, and putting it on screen makes a real
+  model look like it is trying too hard. The Stadium was already inconsistent about this — MILTANK's
+  line read *"The search player — bring, lead, mega and post-KO replacement"* while SLOWKING's read
+  the full expansion.
+
+  So: **name + one line of what it does, in words a person uses.** `docs/MODELS.md` may keep the
+  expansion as an origin note — it is where the name came from and that is worth recording — but it
+  does not belong on a page somebody is reading.
+
 - **Carry the caveat onto the page.** MEDICHAM's win rate is below chance and the Stadium says so on
   the cabinet. A CI is not simplified away for a cleaner card.
 

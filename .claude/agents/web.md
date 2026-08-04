@@ -52,8 +52,19 @@ compute it yourself, even when it would take one line.
   that is a finding you report, not a file you edit.
 - **Never run a fit, a self-play batch or an H2H.** You may run `node engine/status.js` (read-only)
   and the tests you own.
-- **No external assets. Ever.** No CDN, no webfont URL, no remote image. A blocked font fails
-  silently and the page ships in a fallback nobody chose. Inline everything.
+- **No remote CODE or TYPE — but sprites are allowed, with a fallback.** This rule was written too
+  broadly on 2026-08-04 and contradicted the codebase within a day: `web/index.html` has always
+  loaded animated sprites from `play.pokemonshowdown.com/sprites/ani/*.gif`.
+
+  The distinction that actually matters is **how the failure looks**. A blocked stylesheet, webfont
+  or script fails **silently** and ships a design nobody chose — those stay banned, inline them. A
+  blocked **image** is visibly missing, so it is a degradation rather than a lie.
+
+  **But a page that may be published as a claude.ai artifact has a strict CSP that blocks every
+  external host.** So any sprite must have a self-contained fallback that carries the same meaning —
+  procedural canvas art, a CSS shape, or a data URI. Never let the fallback be an empty box: if the
+  sprite is the only thing identifying a model, the page is broken in the artifact and nobody
+  testing on the site will see it.
 - **Do not commit and do not push.** One publisher, and it is not you.
 
 # Things about this project that will bite you
