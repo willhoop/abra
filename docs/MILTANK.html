@@ -1,0 +1,103 @@
+<!doctype html><meta charset="utf-8"><title>MILTANK</title><style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font: 10.5pt/1.55 "Segoe UI", -apple-system, sans-serif; color: #1a1a1a; }
+h1 { font-size: 22pt; margin: 0 0 4pt; letter-spacing: -0.4pt; }
+h1 + p em { color: #666; }
+h2 { font-size: 14pt; margin: 20pt 0 6pt; padding-bottom: 3pt; border-bottom: 1.5px solid #d94f2b; }
+h3 { font-size: 11.5pt; margin: 14pt 0 4pt; color: #b03d1f; }
+p { margin: 0 0 7pt; }
+code { font: 9.2pt "Cascadia Mono", Consolas, monospace; background: #f4f2ef; padding: 1px 4px; border-radius: 3px; }
+a { color: #b03d1f; text-decoration: none; border-bottom: 0.5px solid #e0b8ac; }
+table { border-collapse: collapse; width: 100%; margin: 8pt 0 12pt; font-size: 9.5pt; page-break-inside: avoid; }
+th { background: #f4f2ef; text-align: left; padding: 5pt 7pt; border-bottom: 1.5px solid #d0c8c0; font-weight: 600; }
+td { padding: 5pt 7pt; border-bottom: 0.5px solid #e8e4e0; vertical-align: top; }
+blockquote { margin: 9pt 0; padding: 7pt 12pt; background: #faf7f4; border-left: 3px solid #d94f2b; font-style: italic; }
+ul { margin: 0 0 8pt; padding-left: 18pt; }
+li { margin-bottom: 3pt; }
+hr { border: 0; border-top: 0.5px solid #ddd; margin: 16pt 0; }
+h2, h3 { page-break-after: avoid; }
+</style><h1>MILTANK — the search player</h1>
+<p><em>Named for the classic Rollout user. <code>engine/rollout_leaf.js</code> is the mechanism; MILTANK is the player that uses it.</em></p>
+<hr>
+<h2>1. What it is, and why it is not MAG</h2>
+<p>ABRA has two players and until 2026-08-03 only one of them had a name.</p>
+<p><strong>MAG</strong> (<code>engine/magnemite.js</code>) is a fitted linear policy over <code>board.js</code> features, trained to predict <strong>what a human clicks</strong>. It is an imitator. Given a position it scores every legal option against a weight vector fitted on 60,000 corpus decisions and takes the best — one step, no lookahead, no notion of what happens next.</p>
+<p><strong>MILTANK</strong> decides by <strong>playing the position out</strong>. It forces a candidate pair of clicks, lets the game run to a conclusion, and takes the line that wins most. It has no fitted weights of its own and no opinion about what a person would do. It can therefore prefer a move that appears nowhere in the corpus, and it routinely does.</p>
+<p>They are not rivals and MILTANK is not a replacement. The shipped arrangement is:</p>
+<blockquote>MILTANK searches. When the search <strong>cannot separate its options</strong> — the finalists fall inside one standard error, or the position is already decided — it hands the decision back to MAG.</blockquote>
+<p>That fallback is the point rather than a hedge. An argmax over estimates that overlap is a coin flip wearing a search's clothes, and a fitted human prior is a better tiebreak than dice. <strong>Imitation is the floor; search is the ceiling.</strong></p>
+<hr>
+<h2>2. Where MILTANK decides</h2>
+<table><thead><tr><th>Decision</th><th>Before</th><th>Now</th></tr></thead><tbody>
+<tr><td>Which 4 to bring, which 2 to lead</td><td><code>return 'default'</code> — packed order</td><td>90 brings enumerated and played out</td></tr>
+<tr><td>Both clicks each turn</td><td>MAG's argmax</td><td>successive halving over every legal pair</td></tr>
+<tr><td>Post-KO replacement</td><td>one-step heuristic</td><td>each candidate played out</td></tr>
+</tbody></table>
+<p>The preview one matters most. Showdown's <code>RandomPlayerAI.chooseTeamPreview</code> returns the literal string <code>default</code>, <code>magnemite</code> never overrode it, so <strong>every game ever played against this bot had its lead decided by where a Pokémon happened to sit in a team string</strong> — on what <code>prior_player.js</code> itself calls <em>"the single largest branch in the game"</em>.</p>
+<hr>
+<h2>3. The academic position, and where MILTANK sits in it</h2>
+<h3>3.1 This is a simultaneous-move game, and MILTANK does not solve it</h3>
+<p>Pokémon is not turn-based. Both players commit without seeing the other, which puts it in the <strong>simultaneous-move</strong> class where a deterministic best response is exploitable by construction — the matrix game at each node can have no pure equilibrium.</p>
+<p>The literature offers several MCTS variants for this setting: <strong>Decoupled UCT (DUCT)</strong>, sequential UCT, Exp3, and regret matching (<a href="https://www.mlanctot.info/files/papers/cig14-smmctsggp.pdf">Lanctot et al., CIG 2014</a>; <a href="https://dke.maastrichtuniversity.nl/m.winands/documents/wcg13-smmcts.pdf">Tak, Lanctot &amp; Winands</a>). DUCT lets each player pick from their own statistics without modelling the other. It is known <strong>not to converge to an optimal strategy even in a single-state game</strong> — and it still performs best empirically across their test set.</p>
+<p><strong>MILTANK is weaker than all of these and the docs should say so.</strong> It computes a <em>best response to a fixed opponent policy</em>: the opponent plays <code>chooseAction</code> during the stepped turn, identically for every candidate. That makes the comparison across candidates like-for-like, which is what the measurement needs, but it is not an equilibrium and it is exploitable by anyone who models it.</p>
+<p>It is the right first cut for one stated reason: if a best response does not diverge from MAG, a mixture over the same cells will not either. <code>data/rollout-r3.json</code> records 72.9% divergence on 70 decisions, so it does diverge, and the equilibrium version is worth building.</p>
+<h3>3.2 The playout is fully random, and that is deliberate</h3>
+<p>The single most counter-intuitive result in this literature is that <strong>a stronger playout policy can make the search worse</strong>. Policies that maximise MCTS performance as playouts are <em>weak</em> at playing the game (<a href="https://ojs.aaai.org/index.php/AIIDE/article/view/7423">Are Strong Policies Also Good Playout Policies?, AIIDE</a>; <a href="https://cs.brown.edu/people/gdk/pubs/analysis_mcts.pdf">An Analysis of Monte Carlo Tree Search</a>). What matters is how a policy <em>ranks</em> actions relative to each other, and <strong>low-variance policies are dangerous</strong> — a deterministic greedy playout replays the same line from one position, so N samples carry barely more information than one.</p>
+<p>ABRA measured exactly this pathology before reading the literature. <code>chooseAction</code> is deterministic greedy; 53% of positions landed in the 0–10% or 90–100% bin and those bins were wrong by 22–29 points, and accuracy was <strong>flat in N</strong>. R1 then found a fully random playout judges a position at <strong>68.18%</strong> against <strong>64.42%</strong> for the greedy one.</p>
+<p>So <code>--rollout-explore</code> defaults to <code>1.0</code>. This is not "we could not be bothered to write a good playout" — it is the fix the literature prescribes, and the greedy playout is the version that was tried and beaten.</p>
+<p><strong>Caveat, measured 2026-08-03:</strong> that result is about <em>judging a position</em>. Judging and <em>choosing an action</em> are different jobs, and a random opponent never punishes a wasted turn. A direct test on 40 corpus positions found Protect scoring −4.3pt at explore 1.0 and −5.2pt at 0.0 — i.e. the randomness is <strong>not</strong> obviously overpricing tempo. That is one measurement on one mechanic and it should not be read as settling the question.</p>
+<h3>3.3 The picker is a fixed-budget best-arm identification problem</h3>
+<p>A turn offers up to ~90 legal pairs. Estimating each and taking the max is <strong>not</strong> the same as finding the best one: the max over K noisy estimates is biased upward by roughly the spread of the noise, so the winner is disproportionately the arm that got lucky. At n=120 a win rate near 0.7 carries a standard error around 4 points, and the max over 63 such arms is inflated by ~2 SE of pure dice — larger than most real differences between two reasonable clicks.</p>
+<p>The symptom was visible in play: <strong>the bot clicked Recover at full HP</strong>, a move MEDICHAM correctly heals 0 with. It was not choosing Recover; it was choosing whichever arm rolled well.</p>
+<p>This is textbook <strong>fixed-budget best-arm identification</strong>, and the standard remedy is <strong>successive halving</strong>: spend the budget where it discriminates, not uniformly (<a href="https://arxiv.org/html/2106.04763">sequential halving / fixed-budget BAI</a>). MILTANK screens every pair at <code>N/3</code>, keeps the top 8, and re-tests those at <code>2N</code> <strong>with fresh seeds</strong> — so an arm that advanced on lucky dice has to roll them twice. It is also cheaper than the flat version it replaced: <code>63×40 + 8×240</code> beats <code>63×120</code>.</p>
+<h3>3.4 On-line policy improvement</h3>
+<p>The whole shape — take a base policy, improve it at decision time by rolling out — is Tesauro and Galperin's on-line policy improvement (<a href="https://arxiv.org/pdf/2501.05407">arXiv:2501.05407</a>). MAG is the base policy; MILTANK is the improvement operator. That framing predicts the fallback behaviour: where the rollout has no signal, the improved policy should return the base policy, which is what the noise-floor check does.</p>
+<h3>3.5 What the field says about the domain</h3>
+<p><a href="https://arxiv.org/abs/2506.10326">VGC-Bench</a> puts the team-configuration space at <strong>~10^139</strong>, larger than Chess, Go, Poker, StarCraft or Dota, and ships 700,000 human battle logs with heuristic, LLM, behaviour-cloning and multi-agent-RL baselines. Two findings bear directly on ABRA:</p>
+<ul>
+<li>In <strong>single-team mirror matches</strong> their methods beat a professional VGC competitor. Strength in a</li>
+<p>   narrow team distribution is achievable; that is roughly MILTANK's situation, playing a fixed pool    of 230 open-sheet teams. 2. The agent that is best on <strong>one</strong> team is <strong>more exploitable and generalises worse</strong> across teams.    This is a warning aimed squarely at ABRA: a bot tuned against the 230-team pool should not be    assumed to hold up outside it, and any strength claim has to name the team distribution it was    measured on.</p>
+</ul>
+<hr>
+<h2>4. Open team sheets are what make the preview search possible</h2>
+<p>MILTANK's bring/lead search is only meaningful because <code>|showteam|</code> hands over <strong>the opponent's entire team with full sets</strong>. A fitted bring prior can say <em>"Whimsicott leads 53% of the time"</em> — a fact about the population, not about this game. The sheet is information no usage prior can encode.</p>
+<p>The opponent's own bring is <strong>marginalised, not assumed</strong>: each playout samples one of their 15 possible fours. Fixing a guess would optimise against one opponent out of fifteen and call it a plan.</p>
+<p><strong>Known weakness:</strong> that sample is <em>uniform</em>. A real opponent is not equally likely to bring every four. Weighting it by <code>bring_priors</code> or by which four best answers MILTANK's own team is unbuilt.</p>
+<hr>
+<h2>5. What MILTANK is not</h2>
+<ul>
+<li><strong>Not an equilibrium.</strong> Best response to a fixed policy (§3.1). Exploitable by design.</li>
+<li><strong>Not a tree search.</strong> One step of forced actions, then a playout. No selection, no backprop, no</li>
+<p>  tree. Calling it MCTS would overclaim.</p>
+<li><strong>Not measured to be stronger than MAG.</strong> R1 (leaf accuracy), R2 (cost), R3 (divergence) all pass.</li>
+<p>  <strong>R4 — the SPRT against shipped greedy — has never been run.</strong> Every claim in this document is   about mechanism, not about winning more games. As of 2026-08-03 the bot's record against its   author is 0–8.</p>
+</ul>
+<hr>
+<h2>6. Files</h2>
+<table><thead><tr><th>File</th><th>Role</th></tr></thead><tbody>
+<tr><td><code>engine/rollout_leaf.js</code></td><td><code>rolloutWinProb</code>, <code>rolloutAfterActions</code> — the leaf</td></tr>
+<tr><td><code>engine/mag_bot.js</code></td><td>MILTANK's three decision points; <code>--miltank</code> (<code>--rollout</code> aliases it)</td></tr>
+<tr><td><code>engine/medicham2-browser.js</code></td><td>the doubles engine the playouts run in</td></tr>
+<tr><td><code>engine/rollout_r1/r2/r3.js</code></td><td>the gates</td></tr>
+<tr><td><code>docs/ROLLOUT-design.md</code></td><td>the original design note</td></tr>
+</tbody></table>
+<h3>Flags</h3>
+<table><thead><tr><th>Flag</th><th>Default</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>--miltank</code></td><td>off</td><td>use the search player</td></tr>
+<tr><td><code>--rollout-n</code></td><td>200</td><td>playouts per candidate at the final stage</td></tr>
+<tr><td><code>--rollout-explore</code></td><td>1.0</td><td>playout randomness — see §3.2 before lowering it</td></tr>
+<tr><td><code>--rollout-turns</code></td><td>60</td><td>horizon before a playout is scored</td></tr>
+<tr><td><code>--preview-n</code></td><td>40</td><td>playouts per candidate bring</td></tr>
+<tr><td><code>--preview-ms</code></td><td>15000</td><td>preview deadline; whatever was scored by then is reported</td></tr>
+</tbody></table>
+<hr>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://www.mlanctot.info/files/papers/cig14-smmctsggp.pdf">Monte Carlo Tree Search Variants for Simultaneous Move Games — Lanctot et al., CIG 2014</a></li>
+<li><a href="https://dke.maastrichtuniversity.nl/m.winands/documents/wcg13-smmcts.pdf">MCTS in Simultaneous Move Games — Tak, Lanctot &amp; Winands</a></li>
+<li><a href="https://ojs.aaai.org/index.php/AIIDE/article/view/7423">Are Strong Policies Also Good Playout Policies? — AIIDE</a></li>
+<li><a href="https://cs.brown.edu/people/gdk/pubs/analysis_mcts.pdf">An Analysis of Monte Carlo Tree Search</a></li>
+<li><a href="https://arxiv.org/html/2106.04763">Fixed-Budget Best-Arm Identification in Structured Bandits</a></li>
+<li><a href="https://arxiv.org/pdf/2501.05407">On-line Policy Improvement using Monte-Carlo Search — Tesauro &amp; Galperin</a></li>
+<li><a href="https://arxiv.org/abs/2506.10326">VGC-Bench: Towards Mastering Diverse Team Strategies in Competitive Pokémon</a></li>
+</ul>
