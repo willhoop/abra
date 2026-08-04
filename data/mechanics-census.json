@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-04T06:30:14.088Z",
+  "generated": "2026-08-04T07:27:56.661Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 54,
-  "live": 42,
-  "missing": 12,
+  "probed": 142,
+  "live": 90,
+  "missing": 52,
   "results": [
     {
       "kind": "item",
@@ -383,6 +383,622 @@
       "label": "Tri Attack can burn, freeze or paralyse",
       "live": false,
       "detail": "target status with the roll forced low: none"
+    },
+    {
+      "kind": "move",
+      "tag": "priority",
+      "label": "Bullet Punch moves before a faster foe",
+      "live": true,
+      "detail": "slow user took 125 with a 0-priority move, 0 with Bullet Punch"
+    },
+    {
+      "kind": "move",
+      "tag": "contact",
+      "label": "a contact move triggers Rough Skin and a special one does not",
+      "live": true,
+      "detail": "contact move cost the user 21, special non-contact cost 0"
+    },
+    {
+      "kind": "move",
+      "tag": "spreadFoes",
+      "label": "Rock Slide hits both foes",
+      "live": true,
+      "detail": "aimed foe took 33, the OTHER foe took 79"
+    },
+    {
+      "kind": "move",
+      "tag": "spreadAll",
+      "label": "Earthquake hits your own partner too",
+      "live": true,
+      "detail": "own partner (Milotic, no Ground immunity) took 92"
+    },
+    {
+      "kind": "move",
+      "tag": "weatherScaled",
+      "label": "Blizzard cannot miss in snow",
+      "live": true,
+      "detail": "no weather 70  ->  snow 100"
+    },
+    {
+      "kind": "move",
+      "tag": "thawsTarget",
+      "label": "Flare Blitz thaws a frozen target",
+      "live": true,
+      "detail": "target survived, status now none"
+    },
+    {
+      "kind": "item",
+      "tag": "survivesFromFull",
+      "label": "Focus Sash leaves 1 HP from full",
+      "live": true,
+      "detail": "no item: FAINTED  ->  Sash: 1 hp"
+    },
+    {
+      "kind": "item",
+      "tag": "healsAtThreshold",
+      "label": "Sitrus Berry heals when it drops below half",
+      "live": true,
+      "detail": "no item ended on 28 hp  ->  Sitrus ended on 71"
+    },
+    {
+      "kind": "item",
+      "tag": "resistBerry",
+      "label": "Chople Berry halves a super-effective Fighting hit",
+      "live": true,
+      "detail": "no item took 175  ->  Chople took 131"
+    },
+    {
+      "kind": "item",
+      "tag": "damageMultAll",
+      "label": "Life Orb raises damage",
+      "live": true,
+      "detail": "no item 86  ->  Life Orb 111"
+    },
+    {
+      "kind": "item",
+      "tag": "damageMultType",
+      "label": "Black Glasses raises Dark damage only",
+      "live": true,
+      "detail": "Dark 87->104, Fighting 86->86 (must not move)"
+    },
+    {
+      "kind": "move",
+      "tag": "doublesSideSpeed",
+      "label": "Tailwind doubles the side Speed",
+      "live": true,
+      "detail": "partner speed 80  ->  160"
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "Disable stops the target repeating that move",
+      "live": true,
+      "detail": "committed rockslide, free choice after Disable was earthquake"
+    },
+    {
+      "kind": "move",
+      "tag": "drain",
+      "label": "Drain Punch heals the user",
+      "live": false,
+      "detail": "move dealt 51 to the foe; user 85 -> 85 hp"
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "Follow Me pulls the attack onto the partner",
+      "live": false,
+      "detail": "no Follow Me: aimed 92 / partner 0   |   Follow Me: aimed 0 / partner 0"
+    },
+    {
+      "kind": "move",
+      "tag": "powder",
+      "label": "Sleep Powder fails into a Grass type",
+      "live": true,
+      "detail": "into Garchomp: slp, into Venusaur (Grass): none"
+    },
+    {
+      "kind": "move",
+      "tag": "halvesDamage",
+      "label": "Reflect halves physical damage",
+      "live": true,
+      "detail": "took 167 with no screen  ->  111 behind Reflect"
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "Drizzle sets rain on entry",
+      "live": true,
+      "detail": "ability none -> none, Drizzle -> rain"
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "Parting Shot switches the user out",
+      "live": true,
+      "detail": "active side A after the turn: milotic, corviknight"
+    },
+    {
+      "kind": "move",
+      "tag": "pivotDamaging",
+      "label": "U-turn damages and then switches the user out",
+      "live": true,
+      "detail": "foe took 47, active side A: milotic, corviknight"
+    },
+    {
+      "kind": "move",
+      "tag": "reversesSpeed",
+      "label": "Trick Room lets the slow user move first",
+      "live": true,
+      "detail": "field.tr=3; slow user took 125 normally, 0 under Trick Room"
+    },
+    {
+      "kind": "move",
+      "tag": "chargeTurn",
+      "label": "Fly deals nothing on the turn it is clicked",
+      "live": true,
+      "detail": "foe took 0 on the charge turn (must be 0)"
+    },
+    {
+      "kind": "move",
+      "tag": "chargeSkippedByWeather",
+      "label": "Solar Beam fires the same turn in sun and not otherwise",
+      "live": true,
+      "detail": "turn-1 damage: no sun 0 (must be 0), sun 133 (must be > 0)"
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfTargetNotAttacking",
+      "label": "Sucker Punch fails against a target that is not attacking",
+      "live": true,
+      "detail": "foe attacking: 70, foe idle: 0 (must be 0)"
+    },
+    {
+      "kind": "item",
+      "tag": "choiceLock",
+      "label": "Choice Scarf locks the holder into its first move",
+      "live": false,
+      "detail": "turn 1 used crunch, turn 2 asked for closecombat and used closecombat"
+    },
+    {
+      "kind": "move",
+      "tag": "healsSelf",
+      "label": "Recover restores the user",
+      "live": true,
+      "detail": "user 56 -> 141 hp"
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksMove",
+      "label": "Armor Tail refuses a priority move",
+      "live": true,
+      "detail": "no ability took 25, Armor Tail took 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "typeImmunity",
+      "label": "Levitate takes nothing from Earthquake",
+      "live": true,
+      "detail": "no ability 123  ->  Levitate 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "convertsMoveType",
+      "label": "Aerilate makes Body Slam hit a Ghost",
+      "live": true,
+      "detail": "no ability 0 (Normal vs Ghost)  ->  Aerilate 162"
+    },
+    {
+      "kind": "move",
+      "tag": "multiHit",
+      "label": "Rock Blast lands more than one hit",
+      "live": false,
+      "detail": "one hit 17  ->  Rock Blast as the engine prices it 17 (real average is about 3.2 hits)"
+    },
+    {
+      "kind": "move",
+      "tag": "powerFromFallen",
+      "label": "Last Respects grows with fallen allies",
+      "live": true,
+      "detail": "0 fallen 37  ->  3 fallen 143"
+    },
+    {
+      "kind": "move",
+      "tag": "overridesEffectiveness",
+      "label": "Freeze-Dry beats Ice Beam into a Water type",
+      "live": false,
+      "detail": "Ice Beam 15  ->  Freeze-Dry 12 (must be higher)"
+    },
+    {
+      "kind": "ability",
+      "tag": "reducesAllyDamage",
+      "label": "Friend Guard cuts what the partner takes",
+      "live": false,
+      "detail": "took 80 with a plain partner  ->  80 with Friend Guard"
+    },
+    {
+      "kind": "ability",
+      "tag": "poisonsOnMyContact",
+      "label": "Poison Touch poisons on a contact hit",
+      "live": false,
+      "detail": "no ability -> none, Poison Touch -> none"
+    },
+    {
+      "kind": "ability",
+      "tag": "immuneToMoveClass",
+      "label": "Bulletproof refuses Rock Blast",
+      "live": false,
+      "detail": "no ability 13  ->  Bulletproof 13"
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsMoveClass",
+      "label": "Iron Fist raises a punch and nothing else",
+      "live": true,
+      "detail": "punch 55->66, non-punch 86->86 (must not move)"
+    },
+    {
+      "kind": "ability",
+      "tag": "writesAccuracy",
+      "label": "No Guard makes an 80%-accurate move land on a losing roll",
+      "live": false,
+      "detail": "roll 0.9 vs 80% accuracy: no ability dealt 0, No Guard dealt 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "accuracyMod",
+      "label": "Sand Veil makes the attacker miss a roll it would have hit",
+      "live": false,
+      "detail": "roll 0.7 in sand: no ability took 115, Sand Veil took 115"
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsEachTurn",
+      "label": "Speed Boost raises Speed every turn",
+      "live": false,
+      "detail": "speed stage after one turn: 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "healsOnSwitchOut",
+      "label": "Regenerator heals a third on the way out",
+      "live": false,
+      "detail": "on the bench: 56 -> 56 hp"
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "Justified raises Attack when hit by a Dark move",
+      "live": true,
+      "detail": "no ability atk stage 0, Justified 1"
+    },
+    {
+      "kind": "move",
+      "tag": "fixedDamage",
+      "label": "Seismic Toss deals the level, whoever it hits",
+      "live": false,
+      "detail": "mv.bp=0; vs frail 0, vs bulky 0 (both must be 50)"
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "Perish Song faints the target three turns later",
+      "live": true,
+      "detail": "target after four turns: FAINTED"
+    },
+    {
+      "kind": "move",
+      "tag": "costsUserHP",
+      "label": "Substitute costs the user a quarter",
+      "live": false,
+      "detail": "resolved to kind affect; user 170 -> 170 hp (a quarter is 42)"
+    },
+    {
+      "kind": "move",
+      "tag": "delayedSleep",
+      "label": "Yawn puts the target to sleep on the following turn",
+      "live": true,
+      "detail": "same turn: none (must not be slp), next turn: slp"
+    },
+    {
+      "kind": "move",
+      "tag": "partialTrap",
+      "label": "Infestation chips at the end of each turn",
+      "live": false,
+      "detail": "the move dealt 8; after the hit 175, after an idle turn 175"
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "Decorate raises the partner",
+      "live": true,
+      "detail": "partner atk stage 2 spa 2"
+    },
+    {
+      "kind": "move",
+      "tag": "clearsScreens",
+      "label": "Brick Break removes the opposing Reflect",
+      "live": true,
+      "detail": "screen up 53  ->  after Brick Break 80"
+    },
+    {
+      "kind": "move",
+      "tag": "blocksSoundMoves",
+      "label": "Throat Chop stops the target using a sound move",
+      "live": false,
+      "detail": "sound move dealt 27 normally, 27 after Throat Chop"
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresBoosts",
+      "label": "Darkest Lariat ignores a Defense boost",
+      "live": true,
+      "detail": "unboosted 85 vs +4 Def 85 (equal = ignored)"
+    },
+    {
+      "kind": "move",
+      "tag": "failsWithoutWeather",
+      "label": "Aurora Veil fails when it is not snowing",
+      "live": true,
+      "detail": "took 167 after Aurora Veil in clear weather (must be unreduced), 111 in snow"
+    },
+    {
+      "kind": "move",
+      "tag": "punishesContact",
+      "label": "Spiky Shield hurts the attacker it blocked",
+      "live": false,
+      "detail": "the shield blocked; blocked attacker lost 0 hp"
+    },
+    {
+      "kind": "move",
+      "tag": "critRatioUp",
+      "label": "Night Slash is priced above the same move without its crit ratio",
+      "live": false,
+      "detail": "no crit ratio 78  ->  Night Slash 78"
+    },
+    {
+      "kind": "move",
+      "tag": "clearsBoosts",
+      "label": "Haze wipes the boosts off both sides",
+      "live": false,
+      "detail": "resolved to kind pass; after Haze: foe atk 4, own atk 2 (both must be 0)"
+    },
+    {
+      "kind": "move",
+      "tag": "cantUseTwice",
+      "label": "Gigaton Hammer cannot be clicked twice in a row",
+      "live": false,
+      "detail": "second consecutive Gigaton Hammer dealt 58 (must be 0)"
+    },
+    {
+      "kind": "move",
+      "tag": "terrainScaled",
+      "label": "Expanding Force gains power on Psychic Terrain",
+      "live": false,
+      "detail": "no terrain 105  ->  Psychic Terrain 105"
+    },
+    {
+      "kind": "move",
+      "tag": "swapsStat",
+      "label": "Foul Play attacks with the TARGET Attack",
+      "live": false,
+      "detail": "target atk 63 -> 61, target atk 189 -> 61"
+    },
+    {
+      "kind": "ability",
+      "tag": "formeChange",
+      "label": "Disguise eats the first hit",
+      "live": false,
+      "detail": "no ability took 92, Disguise took 92 (the busted disguise costs 1/8 max HP)"
+    },
+    {
+      "kind": "ability",
+      "tag": "untagged",
+      "label": "Marvel Scale raises Defense while statused",
+      "live": false,
+      "detail": "burned, no ability 135  ->  burned with Marvel Scale 135"
+    },
+    {
+      "kind": "move",
+      "tag": "secondaryStatEffect",
+      "label": "Moonblast drops the target Special Attack",
+      "live": true,
+      "detail": "target spa stage with the roll forced low: -1"
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Scald burns as a secondary of a damaging move",
+      "live": true,
+      "detail": "target survived, status brn"
+    },
+    {
+      "kind": "move",
+      "tag": "variablePower",
+      "label": "Acrobatics doubles with no item held",
+      "live": true,
+      "detail": "holding an item 79  ->  empty-handed 121"
+    },
+    {
+      "kind": "move",
+      "tag": "statusCategory",
+      "label": "Thunder Wave paralyses without dealing damage",
+      "live": true,
+      "detail": "damage 0 (must be 0), status par"
+    },
+    {
+      "kind": "move",
+      "tag": "statSwap",
+      "label": "Psyshock is scored against the target Defense",
+      "live": true,
+      "detail": "def 99 takes 111, def 297 takes 39"
+    },
+    {
+      "kind": "move",
+      "tag": "removesItem",
+      "label": "a knocked-off Life Orb stops boosting the target damage",
+      "live": true,
+      "detail": "holding a Life Orb it dealt 319, after Knock Off 246 (item field now \"\")"
+    },
+    {
+      "kind": "item",
+      "tag": "extendsDuration",
+      "label": "Light Clay keeps Reflect up past turn five",
+      "live": true,
+      "detail": "turn 7 damage: no item 167  ->  Light Clay 111"
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesStatusMoves",
+      "label": "Good as Gold refuses Thunder Wave",
+      "live": true,
+      "detail": "no ability -> par, Good as Gold -> none"
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsToxic",
+      "label": "Toxic damage grows each turn",
+      "live": true,
+      "detail": "status tox, chip per turn: 22, 34, 45, 57"
+    },
+    {
+      "kind": "move",
+      "tag": "semiInvulnerable",
+      "label": "a Pokemon in the air cannot be hit",
+      "live": true,
+      "detail": "flier speed 159 vs attacker 130; on the ground took 62, on the Fly charge turn took 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "halvesTypeDamage",
+      "label": "Thick Fat halves Fire and Ice and nothing else",
+      "live": true,
+      "detail": "Fire 15->7, Fighting 100->100 (must not move)"
+    },
+    {
+      "kind": "ability",
+      "tag": "halvesTypeDamage",
+      "label": "Dry Skin takes 1.25x from Fire",
+      "live": false,
+      "detail": "no ability 49  ->  Dry Skin 49 (must be about 1.25x)"
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresDefenderAbility",
+      "label": "Mold Breaker ignores Levitate",
+      "live": false,
+      "detail": "no ability 0  ->  Mold Breaker 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresTypeImmunity",
+      "label": "Scrappy lets Normal hit a Ghost",
+      "live": false,
+      "detail": "no ability 0  ->  Scrappy 0"
+    },
+    {
+      "kind": "ability",
+      "tag": "noRecoil",
+      "label": "Rock Head takes no recoil",
+      "live": false,
+      "detail": "no ability lost 40 to recoil, Rock Head lost 40"
+    },
+    {
+      "kind": "move",
+      "tag": "alwaysCrit",
+      "label": "Flower Trick always crits",
+      "live": false,
+      "detail": "without the tag 82  ->  Flower Trick 82"
+    },
+    {
+      "kind": "move",
+      "tag": "forcesSwitch",
+      "label": "Dragon Tail drags the target out",
+      "live": false,
+      "detail": "the move dealt 69; foe actives after Dragon Tail: incineroar, milotic"
+    },
+    {
+      "kind": "move",
+      "tag": "crashOnMiss",
+      "label": "High Jump Kick hurts the user when it misses",
+      "live": false,
+      "detail": "foe took 0 (must be 0, it missed), user lost 0"
+    },
+    {
+      "kind": "move",
+      "tag": "userFaints",
+      "label": "Explosion faints its user",
+      "live": false,
+      "detail": "user after Explosion: 170 hp"
+    },
+    {
+      "kind": "item",
+      "tag": "boostsSuperEffective",
+      "label": "Expert Belt raises only super-effective damage",
+      "live": true,
+      "detail": "super-effective 104->124, not super-effective 26->26 (must not move)"
+    },
+    {
+      "kind": "item",
+      "tag": "curesStatus",
+      "label": "Lum Berry cures the status it was just given",
+      "live": false,
+      "detail": "no item -> brn, Lum Berry -> brn"
+    },
+    {
+      "kind": "ability",
+      "tag": "typeBecomesMoveType",
+      "label": "Protean makes the user the type it just used",
+      "live": false,
+      "detail": "types Grass/Dark  ->  Grass/Dark after using a Ground move"
+    },
+    {
+      "kind": "ability",
+      "tag": "invertsBoosts",
+      "label": "Contrary turns a self-drop into a boost",
+      "live": true,
+      "detail": "own def stage after Close Combat with Contrary: 1 (must be positive)"
+    },
+    {
+      "kind": "ability",
+      "tag": "blocksExplosion",
+      "label": "Damp stops Explosion happening at all",
+      "live": false,
+      "detail": "no ability: foe took 123 / user lived   |   Damp: foe took 123 / user lived"
+    },
+    {
+      "kind": "move",
+      "tag": "hazard",
+      "label": "Stealth Rock chips what comes in afterwards",
+      "live": false,
+      "detail": "the switch happened; the switch-in (Staraptor, 4x weak to Rock) came in on 160 and is on 160"
+    },
+    {
+      "kind": "move",
+      "tag": "blocksHealing",
+      "label": "Psychic Noise stops the target healing",
+      "live": false,
+      "detail": "healed 85 normally, 85 after Psychic Noise"
+    },
+    {
+      "kind": "move",
+      "tag": "reordersTurn",
+      "label": "After You lets the partner move next",
+      "live": false,
+      "detail": "slow partner took 125 normally, 125 after After You"
+    },
+    {
+      "kind": "item",
+      "tag": "curesVolatile",
+      "label": "Mental Herb frees the holder from Taunt",
+      "live": false,
+      "detail": "no item taunted=true, Mental Herb taunted=true"
+    },
+    {
+      "kind": "move",
+      "tag": "multiAccuracy",
+      "label": "Triple Axel rolls accuracy on every hit",
+      "live": false,
+      "detail": "effective accuracy 100 (one roll is 90, three compound to about 73)"
     }
   ]
 }

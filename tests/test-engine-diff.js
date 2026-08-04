@@ -34,7 +34,35 @@ const MEDI = require(D('engine', 'medicham2-browser.js'));
 
 const { Battle, Teams, Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
-const N = parseInt((process.argv[process.argv.indexOf('--n') + 1] || '150'), 10);
+/* ARGUMENTS, PARSED LOUDLY. `argv[argv.indexOf('--n') + 1]` reads argv[0] -- the node binary path --
+ * when the flag is absent, because indexOf returns -1. parseInt of that is NaN, and the first version
+ * of the seed below printed `seed NaN` while quietly running seed 1. Exactly the silent default the
+ * project's first rule is about: it looked like a configured run and was not one. */
+const argInt = (flag, dflt) => {
+  const i = process.argv.indexOf(flag);
+  if (i < 0) return dflt;
+  const v = parseInt(process.argv[i + 1], 10);
+  if (!Number.isFinite(v)) { console.error(`  ${flag} needs a number, got ${process.argv[i + 1]}`); process.exit(2); }
+  return v;
+};
+const N = argInt('--n', 150);
+
+/* THE SAMPLER IS SEEDED, because the HEADLINE OF THIS FILE IS A COUNT and a count nobody can
+ * reproduce is not a measurement.
+ *
+ * It drew its matchups from bare Math.random(). engine/status.js prints "3/120 differential
+ * comparisons disagree with Showdown" beside artifact-backed figures, as though re-running would
+ * produce it again -- and it would not: a second run draws a different 120 rows and reports a
+ * different number, with different names under it. That is the same defect as an unpinned damage
+ * roll, one level up. Two runs of the unseeded sampler on the same source gave 6 and then 3.
+ *
+ * So the draw is an LCG (Numerical Recipes constants) with a CONSTANT default seed, and
+ * `--seed N` moves it. A residual quoted anywhere must name its seed and its --n; a residual that
+ * changes when only the seed changes is sampling noise, not an engine change. */
+const SEED = argInt('--seed', 20260804);
+let _rngState = (SEED >>> 0) || 1;
+const rnd = () => { _rngState = (Math.imul(1664525, _rngState) + 1013904223) >>> 0; return _rngState / 4294967296; };
+const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
 
 /* THE SCENARIOS COME FROM REAL USAGE, not from a hand-written list -- otherwise this inherits the
  * same blind spot as the probes it replaces. Attackers are the species people bring, moves are what
@@ -72,8 +100,27 @@ const FILLER = ['Ditto', 'Ditto', 'Ditto'];
 const mkSet = (name, moveName) => ({
   name, species: name, item: '', ability: dex.species.get(name).abilities['0'] || '',
   moves: [moveName], nature: 'Serious', evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
-  ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 }, level: 50, gender: '',
+  ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 }, level: 50,
+  /* CONTROL FIX 6 -- GENDERLESS ON BOTH SIDES.
+   *
+   * gender:'' does not mean "no gender" to Showdown; it means "roll one off the species ratio and
+   * the battle seed". MEDICHAM has no gender at all -- MC.mons carries none and buildMon returns
+   * none -- so every gender-reading mechanic was being compared against a coin.
+   *
+   * It showed up as luxray superpower -> alcremie, showdown 37-44 against medicham 50-59. 37/50 is
+   * 0.74: RIVALRY, x0.75 into the opposite gender, and Alcremie is female-only. Nothing MEDICHAM
+   * could ever match, and it would have flipped to 1.25 and a different verdict on a different seed.
+   * A seed-dependent "bug" is the worst kind, because re-running looks like the fix worked.
+   *
+   * 'N' makes Rivalry 1.0 and Cute Charm/Attract/Captivate inert on both sides, which is exactly the
+   * state MEDICHAM is in. The COST is recorded rather than hidden: Rivalry is now untestable here,
+   * and it stays on the ENGINE hand list as blocked on data (engine-data.js belongs to MEASURE). */
+  gender: 'N',
 });
+
+/* A distinct value, so a skip can never be confused with a legitimate null or a legitimate 0. */
+const NOT_FINITE = Symbol('showdown damage was not a finite number');
+const skipped = { n: 0, moves: {} };
 
 /* Showdown's damage for ONE hit, with the roll pinned. The traps here are recorded in
  * engine/validate_damage_sim.js and cost that file two debugging rounds: randomChance() bypasses a
@@ -95,14 +142,66 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
    * the Showdown sets carried 0 EVs and a neutral nature while buildMon gives MEDICHAM a real
    * competitive spread. Same class of error as comparing a Choice Scarf against a Choice Scarf.
    * engine/validate_damage_sim.js already had this exact fix and says why. */
+  /* CONTROL FIX 8 -- ALL FOUR OFFENSIVE/DEFENSIVE STATS ON BOTH BODIES, not just the two the
+   * ordinary damage formula reads.
+   *
+   * This aligned the ATTACKER's atk/spa and the DEFENDER's def/spd, which is every stat an ordinary
+   * move touches -- and exactly the wrong set for the moves worth checking. FOUL PLAY reads the
+   * TARGET's Attack and BODY PRESS reads the USER's Defence; both of those were left at Showdown's
+   * 0-EV neutral value while MEDICHAM used a real competitive spread. So the two moves whose whole
+   * identity is a swapped stat were the two the harness could not judge: any disagreement on them
+   * was the EV spread, and any agreement was luck. Foul Play is on the ENGINE hand list as a real
+   * bug (dmgRange reads the `statSwap` tag, which Foul Play does not carry) and the harness could
+   * not confirm it. */
   if (stats) {
-    src.storedStats.atk = stats.at; src.storedStats.spa = stats.sa;
-    tgt.storedStats.def = stats.df; tgt.storedStats.spd = stats.sd;
-    tgt.maxhp = stats.hp; tgt.hp = stats.hp;
+    src.storedStats.atk = stats.at;  src.storedStats.spa = stats.sa;
+    src.storedStats.def = stats.adf; src.storedStats.spd = stats.asd;
+    tgt.storedStats.atk = stats.dat; tgt.storedStats.spa = stats.dsa;
+    tgt.storedStats.def = stats.df;  tgt.storedStats.spd = stats.sd;
+    src.maxhp = stats.ahp; src.hp = stats.ahp;
+    tgt.maxhp = stats.hp;  tgt.hp = stats.hp;
   }
+  /* CONTROL FIX 7 -- CLEAR THE SWITCH-IN, DO NOT TRY TO MIRROR IT.
+   *
+   * showdownDamage answers team preview, so both leads are really sent out and every entry ability
+   * fires before moveHit. CONTROL FIX 4 handled that by replaying the effects on the MEDICHAM side
+   * through applyEntryEffects/applyIntimidate. That works for the three things MEDICHAM models --
+   * Intimidate, weather setters, terrain setters -- and silently does not for everything else
+   * Showdown fires on entry: Download, Intrepid Sword, Dauntless Shield, Protosynthesis, Quark
+   * Drive, Trace, Air Lock. Each of those is an uncontrolled input that would read as a MEDICHAM
+   * damage bug, and Lesson 5 is that an input which is not held equal is where every one of this
+   * file's control failures came from.
+   *
+   * Clearing is complete where mirroring is a list, so it is the one that cannot rot. The stat
+   * alignment above must come FIRST: clearBoosts only resets the multipliers, and getStat reads
+   * storedStats underneath them.
+   *
+   * WHAT IT COSTS, stated rather than hidden: Intimidate's sign and Sand Stream's special-defence
+   * boost are no longer on this file's surface. They belong to tests/test-mechanics.js, which is a
+   * behaviour census; this file's declared scope is damage only. */
+  for (const p of [...battle.p1.active, ...battle.p2.active]) if (p) p.clearBoosts();
+  battle.field.clearWeather();
+  battle.field.clearTerrain();
   battle.random = (n) => (n === 16 ? roll : 0);
   const move = battle.dex.getActiveMove(moveName);
   move.willCrit = false;
+  /* CONTROL FIX 9 -- move.hit IS SET BY THE HIT LOOP, AND THIS HARNESS DOES NOT RUN THE HIT LOOP.
+   *
+   * Triple Axel's power is `basePowerCallback: (p, t, move) => 20 * move.hit`. `move.hit` is assigned
+   * in battle.actions.hitLoop, one level above the moveHit entry point used here, so it arrived
+   * undefined: 20 * undefined = NaN, damage NaN, and Showdown reported ZERO. Every Triple Axel row
+   * therefore read `showdown 0-0, medicham 5-6` and was filed as a MEDICHAM bug -- two of the three
+   * disagreements engine/status.js was printing on 2026-08-04, and neither was real.
+   *
+   * 1 is the value the loop starts at, so this asks for the FIRST hit -- which is exactly what
+   * MEDICHAM's dmgRange returns, since MC.moves.tripleaxel.bp is 20, the first hit's power. Set
+   * unconditionally, not off a list of move ids, for the same reason CONTROL FIX 7 clears instead of
+   * mirroring. The moves it covers are printed below so the coverage is visible rather than assumed.
+   *
+   * NOT the same question as whether MEDICHAM prices a multi-hit move over ALL its hits. It does not
+   * -- Rock Blast is one 25-BP hit in dmgRange -- and this harness cannot see that, because
+   * single-call moveHit hits once too. That is on the ENGINE list as its own item. */
+  move.hit = 1;
   /* Ask the defender's ability its OWN TryHit question, which moveHit below will not. Only for the
    * abilities the artifact says answer it -- everything else pays nothing. A null or false from the
    * handler is the ability saying "this move does not happen to me", which is zero damage. */
@@ -116,13 +215,27 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId) {
   }
   const before = tgt.hp;
   try { battle.actions.moveHit(tgt, src, move); } catch (e) { return null; }
-  return before - tgt.hp;
+  const dealt = before - tgt.hp;
+  /* A NON-FINITE RESULT IS A HARNESS FAILURE AND MUST NEVER REACH THE COMPARISON.
+   *
+   * SAID ACCURATELY, because the first version of this comment had the mechanism wrong and the wrong
+   * mechanism is still a bug. A starved basePowerCallback does produce NaN internally, but Showdown
+   * does NOT let a NaN reach the target's HP -- it clamps, and the row comes back as a clean,
+   * plausible, entirely fake ZERO. Measured: with `move.hit` unset, Triple Axel returns 0; with it
+   * set, 72. So THIS guard is not what protects that case. CONTROL FIX 9 is.
+   *
+   * The guard is kept anyway and its record is stated rather than implied: 18 corpus moves have a
+   * basePowerCallback with a real base power, and on this corpus this branch has NEVER FIRED. It
+   * costs nothing and it means a future callback that does leak a NaN is dropped loudly instead of
+   * being filed as a MEDICHAM disagreement. The phantom-zero case -- the one that actually happens --
+   * is caught downstream by the SUSPECT marker, not here. */
+  return Number.isFinite(dealt) ? dealt : NOT_FINITE;
 }
 
 let compared = 0, agreed = 0;
 const bad = [];
 const seen = new Set();
-const touched = { intimidate: 0, weather: 0, absorbMon: 0, absorbFired: 0 };
+const touched = { intimidate: 0, weather: 0, absorbMon: 0, absorbFired: 0, bpCallback: 0 };
 let guard = 0;
 
 /* PRINT WHAT THE DERIVATION MATCHED, BEFORE IT IS USED. Every derived set in this project
@@ -143,20 +256,24 @@ console.log('  ' + [...ONTRYHIT_IMMUNE].sort().map(a =>
   });
   console.log('  ' + ONTRYHIT_IMMUNE.size + ' abilities, carried by ' + inPool.length + ' of ' + species.length +
     ' drawable defenders: ' + inPool.join(' ') + '\n');
+  /* WHAT CONTROL FIX 9 COVERS, printed for the same reason. Derived by reading the callback source,
+   * because a hand list of "the multi-hit ones" is exactly the kind of thing that goes stale. */
+  const hitReaders = Object.keys(tags.moves || {}).filter(id => {
+    const dm = dex.moves.get(id);
+    return dm.exists && typeof dm.basePowerCallback === 'function' && /move\.hit\b/.test(String(dm.basePowerCallback));
+  });
+  console.log('DERIVED — corpus moves whose base power reads move.hit (NaN without CONTROL FIX 9): '
+    + (hitReaders.join(' ') || 'none') + '\n');
 }
-while (compared < N && guard++ < N * 40) {
-  const attId = species[Math.floor(Math.random() * species.length)];
-  const defId = species[Math.floor(Math.random() * species.length)];
-  const rows = (movePriors.species[attId] || {}).moves || [];
-  if (!rows.length) continue;
-  const mv = rows[Math.floor(Math.random() * rows.length)];
-  if (!mv || !mv.mv) continue;
-  const key = attId + '|' + mv.mv + '|' + defId;
-  if (seen.has(key)) continue;
-  const dexMove = dex.moves.get(mv.mv);
-  if (!dexMove.exists || !dexMove.basePower) continue;      // status moves are a different harness
-  const attName = dex.species.get(attId).name, defName = dex.species.get(defId).name;
-  if (!attName || !defName) continue;
+/* ONE ROW, BOTH ENGINES. Extracted from the sampling loop so that `--case att,move,def` can run a
+ * SINGLE named matchup. That is not a convenience: a control fix is only proved by the row it
+ * targets going to rel 0.0%, and judging it by the total count instead lets a fix that changed
+ * nothing hide behind a sample that happened to move. Every fix in this file was checked that way. */
+function compareRow(attId, mvId, defId) {
+  const dexMove = dex.moves.get(mvId);
+  if (!dexMove.exists || !dexMove.basePower) return null;   // status moves are a different harness
+  const attSp = dex.species.get(attId), defSp = dex.species.get(defId);
+  if (!attSp.exists || !defSp.exists) return null;
 
   /* MEDICHAM FIRST, because its stats are what Showdown must be aligned to. */
   let m, A, B;
@@ -169,59 +286,32 @@ while (compared < N && guard++ < N * 40) {
      * direction (Showdown 158 vs MEDICHAM 80). Every one of those was the two engines being right
      * about different Pokemon. Fourth control failure in this file; they all have the same shape,
      * which is an input that was not held equal. */
-    A.ability = String(dex.species.get(attId).abilities['0'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    B.ability = String(dex.species.get(defId).abilities['0'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    /* CONTROL FIX 4 -- THE SWITCH-IN ALREADY HAPPENED ON THE SHOWDOWN SIDE.
-     *
-     * showdownDamage builds a real Battle and answers team preview, so BOTH leads are genuinely sent
-     * out and their entry abilities fire before moveHit is ever called. dmgRange is a pure function
-     * and was handed boosts:{at:0} and weather:'' -- so the two engines were being asked different
-     * questions, and three of the six 2026-08-04 disagreements were only that:
-     *   Gyarados and Tauros are slot-0 INTIMIDATE, so Showdown's attacker sat at atk -1 and MEDICHAM's
-     *   did not: 57-67 against 38-45, and 27-32 against 17-21. Give MEDICHAM the -1 and it returns
-     *   38-45 and 17-21, exactly.
-     *   Tyranitar is slot-0 SAND STREAM, so battle.field.weather was 'sandstorm' and a Rock type had
-     *   its 1.5x special defence: 134-162 against 90-108. Put MEDICHAM in sand and it returns 90-108.
-     * Fifth control failure in this file and the same shape as the four above it -- an input that was
-     * not held equal. Every one of them made MEDICHAM look broken where it is right.
-     *
-     * MIRRORED THROUGH THE ENGINE'S OWN applyEntryEffects/applyIntimidate, not by hand-setting a boost.
-     * That is the difference between routing around the problem and testing it: Intimidate's nine
-     * exceptions and the weatherSetter tag are now on the differential's surface, so if the engine gets
-     * Defiant's sign or Snow Warning's duration wrong, this test says so instead of hiding it.
-     *
-     * SPEED ORDER, because the entry effects resolve fastest-first and each weather setter OVERRIDES
-     * the last -- so the SLOWER setter's sky is the one left standing, in both engines. Applying in
-     * team order would silently disagree whenever both sides set weather. */
-    const field = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 };
-    for (const mon of [A, B].sort((x, y) => y.st.sp - x.st.sp)) MEDI.applyEntryEffects(mon, field);
-    if (A.ability === 'intimidate') MEDI.applyIntimidate(B);
-    if (B.ability === 'intimidate') MEDI.applyIntimidate(A);
-    m = MEDI.dmgRange(A, B, MC.moves[mv.mv], field, false);
-  } catch (e) { continue; }
-  if (!m || !A || !B) continue;
-  const stats = { at: A.st.at, sa: A.st.sa, df: B.st.df, sd: B.st.sd, hp: B.st.hp };
+    A.ability = String(attSp.abilities['0'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    B.ability = String(defSp.abilities['0'] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    /* NO ENTRY EFFECTS ON EITHER SIDE. The counterpart of CONTROL FIX 7 in showdownDamage: what
+     * used to happen here was CONTROL FIX 4's replay of Intimidate and the weather setters onto the
+     * MEDICHAM bodies, to match a Showdown side that had really switched in. That is now cleared on
+     * the Showdown side instead, because clearing is complete and a replay is a list of three. Both
+     * engines therefore start from an empty field and zero boosts, and this file is damage only, as
+     * its header has always claimed. */
+    m = MEDI.dmgRange(A, B, MC.moves[mvId], { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 }, false);
+  } catch (e) { return null; }
+  if (!m || !A || !B) return null;
+  const stats = { at: A.st.at, sa: A.st.sa, adf: A.st.df, asd: A.st.sd, ahp: A.st.hp,
+                  dat: B.st.at, dsa: B.st.sa, df: B.st.df, sd: B.st.sd, hp: B.st.hp };
 
   let hi, lo;
   try {
-    hi = showdownDamage(attName, dexMove.name, defName, 0, stats, B.ability);
-    lo = showdownDamage(attName, dexMove.name, defName, 15, stats, B.ability);
-  } catch (e) { continue; }
-  if (hi == null || lo == null) continue;
-  seen.add(key);
-
-  compared++;
-  /* HOW MANY COMPARISONS THE TWO CONTROL FIXES ABOVE TOUCH AT ALL. Counted rather than assumed:
-   * before the fixes these rows either disagreed for a reason that was not a MEDICHAM bug, or AGREED
-   * BY LUCK -- and a false agreement is the more expensive of the two, because nothing prints. */
-  if (B.ability === 'intimidate') touched.intimidate++;
-  if (tags.abilities[B.ability] && tags.abilities[B.ability].params
-      && tags.abilities[B.ability].params.weatherSetter) touched.weather++;
-  if (ONTRYHIT_IMMUNE.has(B.ability)) {
-    touched.absorbMon++;
-    const _p = tags.abilities[B.ability].params.typeImmunity;
-    if (_p && _p.type === dexMove.type) touched.absorbFired++;
+    hi = showdownDamage(attSp.name, dexMove.name, defSp.name, 0, stats, B.ability);
+    lo = showdownDamage(attSp.name, dexMove.name, defSp.name, 15, stats, B.ability);
+  } catch (e) { return null; }
+  if (hi === NOT_FINITE || lo === NOT_FINITE) {
+    skipped.n++;
+    skipped.moves[mvId] = (skipped.moves[mvId] || 0) + 1;
+    return null;
   }
+  if (hi == null || lo == null) return null;
+
   /* SHOWDOWN'S DAMAGE IS CAPPED AT THE TARGET'S HP and MEDICHAM'S IS NOT.
    *
    * `before - tgt.hp` cannot exceed maxhp, so a lethal hit reports exactly the target's HP on BOTH
@@ -232,28 +322,108 @@ while (compared < N && guard++ < N * 40) {
   const cap = (x) => Math.min(x, B.st.hp);
   const sMid = (cap(hi) + cap(lo)) / 2, mMid = (cap(m.max) + cap(m.min)) / 2;
   /* Both zero is agreement: an immunity both engines honour. */
-  if (sMid === 0 && mMid === 0) { agreed++; continue; }
-  const rel = Math.abs(sMid - mMid) / Math.max(1, sMid);
-  if (rel <= 0.12) { agreed++; continue; }
-  bad.push({ att: attId, mv: mv.mv, def: defId, showdown: cap(lo) + '-' + cap(hi), medicham: cap(m.min) + '-' + cap(m.max),
-             rel, uses: ((tags.moves[mv.mv] || {}).uses) || 0 });
+  const rel = (sMid === 0 && mMid === 0) ? 0 : Math.abs(sMid - mMid) / Math.max(1, sMid);
+  /* SUSPECT — a PHANTOM ZERO, which is the shape the Triple Axel bug actually had.
+   *
+   * Showdown says the move did nothing, MEDICHAM says it did something, and the move computes its
+   * own base power from state that trySpreadMoveHit sets and this entry point does not. That is far
+   * more likely to be a starved callback than a real MEDICHAM bug -- it was, three times, and the
+   * three rows were printed as engine bugs by engine/status.js for a day.
+   *
+   * IT IS STILL COUNTED AS A DISAGREEMENT. Marking it must not soften the number, or the marker
+   * becomes a way to make the residual look better; it only tells the reader where to look first. */
+  const suspect = typeof dexMove.basePowerCallback === 'function' && sMid === 0 && mMid > 0;
+  return { att: attId, mv: mvId, def: defId, A, B, dexMove, rel, suspect,
+           showdown: cap(lo) + '-' + cap(hi), medicham: cap(m.min) + '-' + cap(m.max),
+           uses: ((tags.moves[mvId] || {}).uses) || 0 };
+}
+
+/* SINGLE-CASE MODE. `--case tauros,ironhead,mimikyu`, semicolons for several. */
+const caseArg = process.argv[process.argv.indexOf('--case') + 1];
+if (process.argv.includes('--case') && caseArg) {
+  for (const one of caseArg.split(';')) {
+    const [a, mv, d] = one.split(',').map(s => s.trim());
+    const r = compareRow(a, mv, d);
+    if (!r) { console.log(`  ${one}  -> NOT COMPARABLE (unknown id, no base power, or buildMon refused)`); continue; }
+    console.log(`  ${a.padEnd(14)}${mv.padEnd(16)}-> ${d.padEnd(14)}` +
+      ` showdown ${r.showdown.padStart(9)}   medicham ${r.medicham.padStart(9)}` +
+      `   rel ${(100 * r.rel).toFixed(1)}%   ${r.rel <= 0.12 ? 'AGREE' : 'DISAGREE'}` +
+      `   [${r.A.ability || 'none'} vs ${r.B.ability || 'none'}]`);
+  }
+  process.exit(0);
+}
+
+while (compared < N && guard++ < N * 40) {
+  const attId = pick(species);
+  const defId = pick(species);
+  const rows = (movePriors.species[attId] || {}).moves || [];
+  if (!rows.length) continue;
+  const mv = pick(rows);
+  if (!mv || !mv.mv) continue;
+  const key = attId + '|' + mv.mv + '|' + defId;
+  if (seen.has(key)) continue;
+  const r = compareRow(attId, mv.mv, defId);
+  if (!r) continue;
+  seen.add(key);
+
+  compared++;
+  /* HOW MANY COMPARISONS THE CONTROL FIXES ABOVE TOUCH AT ALL. Counted rather than assumed:
+   * before the fixes these rows either disagreed for a reason that was not a MEDICHAM bug, or AGREED
+   * BY LUCK -- and a false agreement is the more expensive of the two, because nothing prints. */
+  if (r.B.ability === 'intimidate') touched.intimidate++;
+  if (tags.abilities[r.B.ability] && tags.abilities[r.B.ability].params
+      && tags.abilities[r.B.ability].params.weatherSetter) touched.weather++;
+  if (ONTRYHIT_IMMUNE.has(r.B.ability)) {
+    touched.absorbMon++;
+    const _p = tags.abilities[r.B.ability].params.typeImmunity;
+    if (_p && _p.type === r.dexMove.type) touched.absorbFired++;
+  }
+  if (typeof r.dexMove.basePowerCallback === 'function') touched.bpCallback++;
+  if (r.rel <= 0.12) { agreed++; continue; }
+  bad.push({ att: r.att, mv: r.mv, def: r.def, showdown: r.showdown, medicham: r.medicham,
+             rel: r.rel, uses: r.uses, suspect: r.suspect });
 }
 
 bad.sort((a, b) => b.uses - a.uses);
-console.log(`DIFFERENTIAL TEST — MEDICHAM against Showdown, ${compared} random real matchups\n`);
+console.log(`DIFFERENTIAL TEST — MEDICHAM against Showdown, ${compared} real matchups, seed ${SEED}\n`);
 console.log(`  agreed      ${agreed}`);
 console.log(`  disagreed   ${bad.length}   (${(100 * bad.length / Math.max(1, compared)).toFixed(1)}%)\n`);
 console.log('  comparisons the two control fixes touch (these were wrong or right-by-luck before):');
 console.log(`    defender has Intimidate            ${touched.intimidate}`);
 console.log(`    defender sets weather on entry      ${touched.weather}`);
 console.log(`    defender has an onTryHit absorb     ${touched.absorbMon}   (${touched.absorbFired} where the move's type actually matched)`);
+/* LOUD, PER docs/LESSONS.md 1. A silently dropped row is indistinguishable from a row that agreed,
+ * and this is the drop most likely to be hiding something: it fires when Showdown's own damage came
+ * back non-finite, which means a basePowerCallback read state this entry point never set. */
+if (skipped.n) {
+  console.log(`\n  SKIPPED — Showdown returned a NON-FINITE damage, so the row was dropped rather than`);
+  console.log(`  filed as a MEDICHAM bug. ${skipped.n} comparison(s). A basePowerCallback read state this`);
+  console.log(`  harness does not set; each of these needs its own control fix before it can be judged:`);
+  for (const [id, n] of Object.entries(skipped.moves).sort((a, b) => b[1] - a[1])) {
+    console.log('    ' + id.padEnd(20) + n + '   (' + (((tags.moves[id] || {}).uses) || 0) + ' uses)');
+  }
+} else {
+  console.log('\n  skipped for non-finite Showdown damage: 0   (this branch has never fired on this corpus)');
+}
+/* THE EXPOSURE, COUNTED RATHER THAN ASSUMED. How many rows in this sample ran a move that computes
+ * its own base power -- the class CONTROL FIX 9 exists for. A zero here would mean the fix is
+ * untested by this run and should be read as such. */
+console.log(`  comparisons whose move has a basePowerCallback: ${touched.bpCallback}`
+  + `   (${bad.filter(b => b.suspect).length} of them are SUSPECT — see below)`);
 console.log('');
 if (bad.length) {
   console.log('  WORST DISAGREEMENTS, by how often the move is clicked:');
   console.log('     uses  attacker      move            defender        showdown   medicham');
   for (const b of bad.slice(0, 20)) {
     console.log('  ' + String(b.uses).padStart(7) + '  ' + b.att.padEnd(13) + b.mv.padEnd(16) +
-      b.def.padEnd(15) + b.showdown.padStart(9) + '  ' + b.medicham.padStart(9));
+      b.def.padEnd(15) + b.showdown.padStart(9) + '  ' + b.medicham.padStart(9) +
+      (b.suspect ? '   SUSPECT — the move computes its own base power; check the harness first' : ''));
+  }
+  if (bad.some(b => b.suspect)) {
+    console.log('\n  A SUSPECT ROW IS STILL COUNTED ABOVE. It is not excused, only flagged: Showdown says the');
+    console.log('  move did nothing while MEDICHAM says it did, and the move builds its own base power from');
+    console.log('  state trySpreadMoveHit sets and this entry point does not. That was three of the four');
+    console.log('  disagreements on 2026-08-04 and none of the three was a MEDICHAM bug.');
   }
 }
 fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
@@ -262,7 +432,13 @@ fs.writeFileSync(D('data', 'engine-diff.json'), JSON.stringify({
         + 'disagreement is a MEDICHAM bug, including one nobody thought to look for.',
   scope: 'damage only, no items or abilities. Turn order, status duration and switching need a '
        + 'different harness and are not attempted here rather than attempted badly.',
+  /* THE SEED IS PART OF THE RESULT. Without it "3/120 disagree" is not reproducible and should not
+   * be quoted as an artifact-backed number, which it was. Re-run with --seed to resample. */
+  seed: SEED, requested: N,
   compared, agreed, disagreed: bad.length, worst: bad.slice(0, 40),
+  /* Dropped rows are RECORDED, not just printed -- a skip that only exists in a console line is a
+   * silent default one terminal-clear later. */
+  skipped_non_finite: skipped.n, skipped_moves: skipped.moves,
   controls: 'both leads are really sent out on the Showdown side, so MEDICHAM is given the same '
           + 'switch-in (Intimidate, weather setters) through the engine\'s own applyEntryEffects/'
           + 'applyIntimidate; and the defender ability\'s onTryHit is asked directly, because '

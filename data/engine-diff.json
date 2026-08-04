@@ -1,45 +1,63 @@
 {
-  "generated": "2026-08-04T06:30:35.803Z",
+  "generated": "2026-08-04T07:25:30.944Z",
   "by": "tests/test-engine-diff.js",
   "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
   "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
-  "compared": 120,
-  "agreed": 117,
-  "disagreed": 3,
+  "seed": 20260804,
+  "requested": 400,
+  "compared": 400,
+  "agreed": 396,
+  "disagreed": 4,
   "worst": [
     {
-      "att": "pyroar",
-      "mv": "solarbeam",
-      "def": "kingambit",
-      "showdown": "29-34",
-      "medicham": "39-46",
-      "rel": 0.3492063492063492,
-      "uses": 3984
+      "att": "spiritomb",
+      "mv": "foulplay",
+      "def": "wyrdeer",
+      "showdown": "178-178",
+      "medicham": "132-156",
+      "rel": 0.19101123595505617,
+      "uses": 734,
+      "suspect": false
     },
     {
-      "att": "meowscarada",
-      "mv": "tripleaxel",
-      "def": "orthworm",
-      "showdown": "0-0",
-      "medicham": "5-6",
-      "rel": 5.5,
-      "uses": 522
+      "att": "klefki",
+      "mv": "foulplay",
+      "def": "pangoro",
+      "showdown": "19-23",
+      "medicham": "8-10",
+      "rel": 0.5714285714285714,
+      "uses": 734,
+      "suspect": false
     },
     {
-      "att": "quaquaval",
-      "mv": "tripleaxel",
-      "def": "kingambit",
+      "att": "chesnaught",
+      "mv": "woodhammer",
+      "def": "mimikyu",
       "showdown": "0-0",
-      "medicham": "5-6",
-      "rel": 5.5,
-      "uses": 522
+      "medicham": "120-130",
+      "rel": 125,
+      "uses": 54,
+      "suspect": false
+    },
+    {
+      "att": "houndoom",
+      "mv": "fireblast",
+      "def": "heliolisk",
+      "showdown": "123-137",
+      "medicham": "99-117",
+      "rel": 0.16923076923076924,
+      "uses": 50,
+      "suspect": false
     }
   ],
+  "skipped_non_finite": 0,
+  "skipped_moves": {},
   "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
   "touched": {
-    "intimidate": 6,
-    "weather": 1,
-    "absorbMon": 7,
-    "absorbFired": 3
+    "intimidate": 21,
+    "weather": 5,
+    "absorbMon": 21,
+    "absorbFired": 3,
+    "bpCallback": 15
   }
 }
