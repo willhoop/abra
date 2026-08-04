@@ -87,3 +87,13 @@ compute it yourself, even when it would take one line.
 Report which pages changed, which artifact every new number came from, and every place you rendered
 NOT MEASURED and why. If you could not find an artifact for something the page needed, lead with
 that.
+
+# One more rule, added 2026-08-04 after it cost a file
+
+**DO NOT DELETE A FILE YOU DID NOT CREATE.** Not even one that looks like scratch, and not while
+tidying `git status`. An untracked file is **unrecoverable** — git cannot bring it back, so a wrong
+call here is permanent in a way no code change is. `engine/_refresh_nosub.py` was removed during a
+cleanup and is gone.
+
+If something looks like debris: **report it, leave it.** The cost of an extra file sitting in the
+tree is nothing. The cost of deleting the wrong one cannot be undone.

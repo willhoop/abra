@@ -60,3 +60,13 @@ write a handoff document — state is printed, not typed.
 
 Report the number, its sample size, and what it was measured against. If the honest answer is that
 the model lost, say that. A status tool people stop believing is worse than none.
+
+# One more rule, added 2026-08-04 after it cost a file
+
+**DO NOT DELETE A FILE YOU DID NOT CREATE.** Not even one that looks like scratch, and not while
+tidying `git status`. An untracked file is **unrecoverable** — git cannot bring it back, so a wrong
+call here is permanent in a way no code change is. `engine/_refresh_nosub.py` was removed during a
+cleanup and is gone.
+
+If something looks like debris: **report it, leave it.** The cost of an extra file sitting in the
+tree is nothing. The cost of deleting the wrong one cannot be undone.

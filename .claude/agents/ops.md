@@ -42,3 +42,13 @@ runs it, or hands it to a division that has hands.
 
 `data/games.ots.jsonl` has not been written since July. Either OTS ingest moved to the ladder store
 or it stopped. Find out which by reading the ingest code — do not guess from the filename.
+
+# One more rule, added 2026-08-04 after it cost a file
+
+**DO NOT DELETE A FILE YOU DID NOT CREATE.** Not even one that looks like scratch, and not while
+tidying `git status`. An untracked file is **unrecoverable** — git cannot bring it back, so a wrong
+call here is permanent in a way no code change is. `engine/_refresh_nosub.py` was removed during a
+cleanup and is gone.
+
+If something looks like debris: **report it, leave it.** The cost of an extra file sitting in the
+tree is nothing. The cost of deleting the wrong one cannot be undone.
