@@ -43,6 +43,21 @@ string `default`, `magnemite` never overrode it, so **every game ever played aga
 its lead decided by where a Pokémon happened to sit in a team string** — on what `prior_player.js`
 itself calls *"the single largest branch in the game"*.
 
+**All three now call the same leaf.** Until 2026-08-04 the preview did not: it held its own playout
+loop, calling `battleInit`/`battleTurn` directly with deterministic greedy on both sides, and never
+reached `rolloutWinProb` at all. MILTANK therefore shipped **two players**, and only the in-game one
+was ever swept — so the measured 53.22%-preview against 50.99%-in-game contrast was partly a contrast
+between two *implementations* rather than between two settings of one. `rollout_leaf.runPlayout` is
+the single implementation now and the differences are parameters. Greedy is still reachable; it is
+`previewExplore: 0`. See [SEARCH.md](SEARCH.md) open item 0 for exactly what moved.
+
+**The preview also seeded a game that had not started.** It passed `battleInit({seeded: true})`,
+which exists to stop a *mid-battle* leaf re-firing entry effects that already happened. At preview
+nobody has entered yet, so it deleted the whole switch-in class from the one decision they matter
+most for: no Intimidate, no Drought, no Drizzle, no Sand Stream, no Snow Warning, no terrain setter
+on turn one. Deciding a lead is largely deciding who eats an Intimidate and the search could not see
+one. `seeded` is a parameter of `rolloutWinProb` now, default unchanged, and preview passes `false`.
+
 ---
 
 ## 3. The academic position, and where MILTANK sits in it
@@ -174,6 +189,18 @@ possible fours. Fixing a guess would optimise against one opponent out of fiftee
 **Known weakness:** that sample is *uniform*. A real opponent is not equally likely to bring every
 four. Weighting it by `bring_priors` or by which four best answers MILTANK's own team is unbuilt.
 
+**The sample is now shared across brings.** Each candidate bring used to be scored against its own
+independently seeded opponent draws, so the difference between two brings sat underneath that noise;
+one seed now serves the whole preview, so playout *i* of every bring faces the same four and the same
+dice. Common random numbers, the identical fix the post-KO replacement search needed for the identical
+reason — there, five of five candidates fell inside their own error bar and the search deferred to MAG
+on every replacement of a live game.
+
+**And the enumerator was wrong whenever a body would not build.** It mixed positions in the buildable
+list with team indices; on a six-mon team with two unbuildable bodies it produced 19 brings where 6
+exist, 18 of which named a Pokémon it had just declared unbuildable, and scored three-mon brings as
+four-mon ones. Full teams enumerated 90 correctly, which is why it survived. Fixed 2026-08-04.
+
 ---
 
 ## 5. What MILTANK is not
@@ -192,10 +219,11 @@ four. Weighting it by `bring_priors` or by which four best answers MILTANK's own
 
 | File | Role |
 |---|---|
-| `engine/rollout_leaf.js` | `rolloutWinProb`, `rolloutAfterActions` — the leaf |
-| `engine/mag_bot.js` | MILTANK's three decision points; `--miltank` (`--rollout` aliases it) |
+| `engine/miltank.js` | the player — the three decision points, installed onto a magnemite instance |
+| `engine/rollout_leaf.js` | `rolloutWinProb`, `rolloutAfterActions` — the leaf; `runPlayout` is **the** playout |
+| `engine/mag_bot.js` | the live wiring and the CLI flags; `--miltank` (`--rollout` aliases it) |
 | `engine/medicham2-browser.js` | the doubles engine the playouts run in |
-| `engine/rollout_r1/r2/r3.js` | the gates |
+| `engine/rollout_r1/r2/r3.js` | the gates. R5, the action-ranking backtest, is specified in SEARCH.md and unbuilt |
 | `docs/ROLLOUT-design.md` | the original design note |
 
 ### Flags
@@ -204,10 +232,24 @@ four. Weighting it by `bring_priors` or by which four best answers MILTANK's own
 |---|---|---|
 | `--miltank` | off | use the search player |
 | `--rollout-n` | 200 | playouts per candidate at the final stage |
-| `--rollout-explore` | 1.0 | playout randomness. Re-earned 2026-08-04, `data/rollout-r1-explore-sweep.json`: +2.25 [1.31, 3.19] over greedy as a JUDGE. Not measured as a PLAYER — `mew.js` has no `--miltank-explore` |
+| `--rollout-explore` | 1.0 | playout randomness, **now for the preview too**. Re-earned 2026-08-04, `data/rollout-r1-explore-sweep.json`: +2.25 [1.31, 3.19] over greedy as a JUDGE. Not measured as a PLAYER — `mew.js` has no `--miltank-explore` (PRIORITIES #33) |
 | `--rollout-turns` | 60 | horizon before a playout is scored |
 | `--preview-n` | 40 | playouts per candidate bring |
 | `--preview-ms` | 15000 | preview deadline; whatever was scored by then is reported |
+| `--miltank-foe` | `uniform` | the playout opponent: a coin flip, or `prior` — what the species really clicks. **Now reaches the preview**; before the unification the preview ignored it |
+
+One option has **no flag yet**: `previewExplore` (`DEFAULTS.previewExplore`, null = follow `explore`)
+is the knob that runs the preview greedy again. Wiring it needs a one-line `arg()` in `mag_bot.js`
+and `mew.js`, neither of which is SEARCH's file — the same one-liner PRIORITIES #33 already owes
+`--miltank-explore`.
+
+### The budget
+
+`budgetMs` is 20,000 and `previewMs` is 15,000. Real VGC allows **45 seconds on one decision off a
+7-minute doubles chess clock**, which appeared nowhere in this repository until 2026-08-04 and which
+bounds every design decision here. Per decision MILTANK is well inside it (~8.9 s for a 63-cell menu
+at n=200); **per game it may not be** — 20 s a turn exhausts 420 s in 21 decisions. The arithmetic
+and its unverified assumption are in [SEARCH.md](SEARCH.md).
 
 ---
 

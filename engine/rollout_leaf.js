@@ -107,28 +107,39 @@ function mulberry(seed) {
 
 /* THE LEAF.
  *
- * @param board  a live engine/board.js Board
+ * @param board  a live engine/board.js Board, or null when `opts.buildTeams` supplies the sides
  * @param side   'p1' | 'p2' — whose win probability is wanted
- * @param opts   { n, dex, seed, field }
- * @returns      { p, wins, n, lo, hi, built, dropped } or null when a side cannot be built at all
+ * @param opts   { n, dex, seed, field, explore, foePolicy, maxTurns, protectTurns, bringIn,
+ *                 seeded = true, buildTeams }
+ * @returns      { p, wins, n, lo, hi, built, dropped } or null when nothing could be played.
+ *               `n` is the number of playouts that ACTUALLY RAN, which is the denominator of `p`.
  *
  * `field` carries the weather/terrain/room the real board is under. Rolling out a snow board with no
  * weather would silently delete Aurora Veil, Slush Rush and every weather-scaled move — the same
  * class of one-directional error as an unmodelled click. */
 /* A MEGA'S WEATHER COMES WITH THE MEGA.
  *
- * battleInit is called with seeded:true because the actives are ALREADY on the field in the real
- * game -- re-firing their entry effects would double an Intimidate that has already happened. That
- * is right for a mid-battle seed and wrong for one specific case: a stone-holder is built as its
- * MEGA FORME, so the rollout assumes the mega happened, while the weather that mega brings never
- * fires. Measured: seeded=false gives sun, seeded=true gives none.
+ * battleInit defaults to seeded:true because the actives are ALREADY on the field in the real game --
+ * re-firing their entry effects would double an Intimidate that has already happened. That is right
+ * for a mid-battle seed and wrong for one specific case: a stone-holder is built as its MEGA FORME,
+ * so the rollout assumes the mega happened, while the weather that mega brings never fires. Measured:
+ * seeded=false gives sun, seeded=true gives none.
  *
  * The result is a board that cannot exist -- Mega Charizard Y standing in clear weather, with every
  * Fire move and every Solar Beam mispriced for the whole playout. Will asked whether the search
  * knows his mega will set sun; it assumed the mega and forgot the sun.
  *
  * Applied only when the field is EMPTY, so a real weather already up is never overwritten, and only
- * from the ACTIVES, because a benched setter has not entered yet. */
+ * from the ACTIVES, because a benched setter has not entered yet.
+ *
+ * *** THIS WRITE IS CURRENTLY DISCARDED ON THE SEEDED PATH AND HAS BEEN SINCE IT WAS ADDED. ***
+ * Both leaves call this and then assign the caller's field over the top -- `S.field.weather =
+ * f.weather || ''` -- which is an UNCONDITIONAL overwrite, so a mid-battle rollout of a Mega
+ * Charizard Y still stands in clear weather. applyField() below preserves that behaviour exactly and
+ * on purpose: correcting it moves every in-game leaf value on ~26% of this format's usage, which is
+ * a measured change and not a drive-by one. FILED as SEARCH open item 5, not fixed here. On the
+ * FRESH (unseeded) preview path the entry effects fire for real, so this function is a no-op there
+ * rather than a fix. */
 function applyMegaWeather(S) {
   if (!S || !S.field || S.field.weather) return;
   for (const m of (S.actA || []).concat(S.actB || [])) {
@@ -190,31 +201,139 @@ function pickByPrior(mon, rng) {
   return cand[cand.length - 1][0];
 }
 
+/* THE PLAYOUT. ONE implementation, and there must only ever be one.
+ *
+ * FACTS ARE GLOBAL. "How a rollout is played" is a fact about the leaf, not a private detail of
+ * whoever happens to be asking. It was written out THREE times: twice in this file, and a third time
+ * inside miltank.js's team-preview loop, which called battleInit/battleTurn directly and never
+ * reached this file at all. That third copy ran DETERMINISTIC GREEDY on both sides while the shipped
+ * leaf runs explore=1.0 -- so MILTANK shipped two different players, and only one of them was ever
+ * swept. The measured 53.22%-preview against 50.99%-in-game contrast was therefore partly a contrast
+ * between two IMPLEMENTATIONS rather than between two settings of one. docs/SEARCH.md open item 0.
+ *
+ * `explore` and `foePolicy` are the parameters, so greedy is still reachable -- it is explore=0, the
+ * arm the sweep already includes. What is no longer reachable is a SECOND policy nobody swept.
+ *
+ * @param counters  optional { threw, first } — an explore action the engine cannot represent is
+ *                  counted rather than swallowed, because swallowing it quietly lowers the effective
+ *                  exploration rate and makes explore=1 behave like something smaller, which is the
+ *                  variable under test.
+ */
+function runPlayout(S, rng, explore, foePolicy, counters) {
+  while (!MEDI.battleOver(S)) {
+    let fa = null, fb = null;
+    if (explore > 0) {
+      /* EXPLORE: with probability e, a mon clicks a RANDOM legal move instead of chooseAction's pick.
+       *
+       * This is not a way of playing better. It is the fix the MCTS literature prescribes for exactly
+       * the pathology this leaf shows: chooseAction is deterministic greedy, so every playout from one
+       * position replays the same line and the N samples are near-identical. That is why accuracy was
+       * FLAT in N and why the estimate saturated -- 50.7% of positions landed in the 0-10% or 90-100%
+       * bin at explore=0 against 29.4% at explore=1.0. "Heavy rollouts help only when they avoid
+       * becoming low-variance" (An Analysis of Monte Carlo Tree Search); ours became low-variance.
+       *
+       * Injected HERE and not in chooseAction, deliberately: chooseAction is the Tower's policy and
+       * the live bot's, and randomising it would change shipped behaviour to fix a rollout. */
+      const pick = (mon, mineSide) => {
+        if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= explore) return null;
+        const mvs = mon.moves || [];
+        const foesL = (mineSide ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
+        if (!mvs.length || !foesL.length) return null;
+        /* Weighted by what this species really clicks when foePolicy is 'prior'. */
+        const mv = (foePolicy === 'prior' && pickByPrior(mon, rng)) ||
+          mvs[Math.floor(rng() * mvs.length) % mvs.length];
+        const tg = foesL[Math.floor(rng() * foesL.length) % foesL.length];
+        try {
+          return MEDI.playerAction(mon, mv, tg, S.field);
+        } catch (e) {
+          if (counters) {
+            counters.threw++;
+            if (!counters.first) counters.first = `${mon.name} ${mv}: ${e.message}`;
+          }
+          return null;
+        }
+      };
+      for (const m of S.actA) { const a = pick(m, true); if (a) (fa = fa || new Map()).set(m, a); }
+      for (const m of S.actB) { const a = pick(m, false); if (a) (fb = fb || new Map()).set(m, a); }
+    }
+    MEDI.battleTurn(S, rng, fa, fb);
+  }
+  return MEDI.battleResult(S);          /* 1 / 0 / 0.5, side A is the asking side by construction */
+}
+
+/* THE CALLER'S FIELD, applied over whatever battleInit left behind.
+ *
+ * On a SEEDED (mid-battle) seed the board is authoritative: no weather on the board means no weather
+ * in the playout, so an empty value must OVERWRITE. On a FRESH seed battleInit has just run the entry
+ * effects, and those are the only thing that knows a Drought lead just walked in -- so an ABSENT
+ * value must NOT erase them. Assigning unconditionally, which is what both leaves used to do, is
+ * exactly what would make a fresh-game seed pointless for the weather half of the question.
+ *
+ * Tailwind is mapped from the ASKING side's point of view; battleInit's side A is always `side`. */
+function applyField(S, f, side, seeded) {
+  const w = f.weather || '', t = f.terrain || '';
+  if (seeded || w) S.field.weather = w;
+  else if (!S.field.weather) S.field.weather = '';
+  if (seeded || t) S.field.terrain = t;
+  else if (!S.field.terrain) S.field.terrain = '';
+  S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
+  S.field.twB = side === 'p1' ? (f.twB || 0) : (f.twA || 0);
+  S.field.tr = f.tr || 0;
+}
+
 function rolloutWinProb(board, side, opts) {
   opts = opts || {};
   const n = opts.n || 40;
   /* 0 reproduces the deterministic-greedy playout exactly, so the sweep includes the incumbent. */
   const EXPLORE = typeof opts.explore === 'number' ? opts.explore : 0;
   const FOE_POLICY = opts.foePolicy || 'uniform';
+  /* A MID-BATTLE SEED AND A FRESH GAME ARE DIFFERENT QUESTIONS, so it is a parameter.
+   *
+   * `seeded:true` is right for every mid-game leaf: the actives are already standing there and
+   * re-firing their entry effects would drop the foe's Attack a SECOND time on every board with an
+   * Incineroar. It is WRONG for team preview, where nobody has entered yet and the entry effects are
+   * most of what a lead decision is about. Default unchanged. */
+  const SEEDED = opts.seeded !== false;
   const dex = opts.dex;
   const foe = side === 'p1' ? 'p2' : 'p1';
   const stats = { fainted: 0, unbuildable: 0, threw: 0 };
-  let exploreThrew = 0, firstExploreError = null;
+  const exCount = { threw: 0, first: null };
 
-  const mine = buildSide(board, side, dex, stats, opts.protectTurns);
-  const theirs = buildSide(board, foe, dex, stats);
-  /* A side with nothing standing is not a 0% — the caller asked about a position that does not exist,
-   * and returning a confident number for it would be worse than saying so. */
-  if (!mine.length || !theirs.length) return null;
+  /* WHERE THE TWO SIDES COME FROM IS A PARAMETER; HOW THEY ARE PLAYED OUT IS NOT.
+   *
+   * `buildTeams(i, rng) -> {A, B} | null` supplies FRESH bodies for playout i, and is how team
+   * preview asks this leaf about a position that has no board yet: a candidate bring of mine against
+   * one of the fifteen fours they might bring, sampled per playout. Returning null skips that sample
+   * rather than scoring it as a loss. When it is absent the sides are seeded off the board exactly as
+   * before, so every existing caller is untouched. */
+  const TEAMS = typeof opts.buildTeams === 'function' ? opts.buildTeams : null;
+  let built = 0;
+  if (!TEAMS) {
+    const mine = buildSide(board, side, dex, stats, opts.protectTurns);
+    const theirs = buildSide(board, foe, dex, stats);
+    /* A side with nothing standing is not a 0% — the caller asked about a position that does not
+     * exist, and returning a confident number for it would be worse than saying so. */
+    if (!mine.length || !theirs.length) return null;
+    built = mine.length + theirs.length;
+  }
 
   const f = opts.field || {};
-  let wins = 0;
+  let wins = 0, ran = 0;
   for (let i = 0; i < n; i++) {
+    const rng = mulberry((opts.seed || 1) * 1000003 + i);
     /* Fresh bodies EVERY rollout. MEDICHAM mutates the mons it is handed — HP, status, boosts, the
      * bench arrays — so reusing them would make rollout 2 start from wherever rollout 1 ended. The
      * same aliasing that broke the Showdown fork this morning, one layer up. */
-    const A = buildSide(board, side, dex, { fainted: 0, unbuildable: 0, threw: 0 }, opts.protectTurns);
-    const Bt = buildSide(board, foe, dex, { fainted: 0, unbuildable: 0, threw: 0 });
+    let A, Bt;
+    if (TEAMS) {
+      const t = TEAMS(i, rng);
+      if (!t || !t.A || !t.B) continue;
+      A = t.A; Bt = t.B;
+      if (!built) built = A.length + Bt.length;
+    } else {
+      A = buildSide(board, side, dex, { fainted: 0, unbuildable: 0, threw: 0 }, opts.protectTurns);
+      Bt = buildSide(board, foe, dex, { fainted: 0, unbuildable: 0, threw: 0 });
+    }
     if (!A.length || !Bt.length) break;
     /* `bringIn`: EVALUATE A POST-KO REPLACEMENT BY PLAYING IT OUT.
      *
@@ -237,65 +356,22 @@ function rolloutWinProb(board, side, opts) {
       const surv = ['a', 'b'].filter(L => { const m = board.slot(side, L); return m && !m.fainted; }).length;
       if (at !== surv) { const [body] = A.splice(at, 1); A.splice(surv, 0, body); }
     }
-    const S = MEDI.battleInit(A, Bt, { seeded: true });
+    const S = MEDI.battleInit(A, Bt, { seeded: SEEDED });
     applyMegaWeather(S);
     S._explore = EXPLORE;
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
-    S.field.weather = f.weather || '';
-    S.field.terrain = f.terrain || '';
-    S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
-    S.field.twB = side === 'p1' ? (f.twB || 0) : (f.twA || 0);
-    S.field.tr = f.tr || 0;
-    const rng = mulberry((opts.seed || 1) * 1000003 + i);
-    /* EXPLORE: with probability e, a mon clicks a RANDOM legal move instead of chooseAction's pick.
-     *
-     * This is not a way of playing better. It is the fix the MCTS literature prescribes for exactly
-     * the pathology this leaf shows: chooseAction is deterministic greedy, so every playout from one
-     * position replays the same line and the N samples are near-identical. That is why accuracy is
-     * FLAT in N and why the estimate saturates -- 53% of positions land in the 0-10% or 90-100% bin,
-     * and those bins are wrong by 22-29 points. "Heavy rollouts help only when they avoid becoming
-     * low-variance" (An Analysis of Monte Carlo Tree Search); ours became low-variance.
-     *
-     * Injected HERE and not in chooseAction, deliberately: chooseAction is the Tower's policy and the
-     * live bot's, and randomising it would change shipped behaviour to fix a rollout.
-     */
-    while (!MEDI.battleOver(S)) {
-      let fa = null, fb = null;
-      if (EXPLORE > 0) {
-        const pick = (mon) => {
-          if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= EXPLORE) return null;
-          const mvs = mon.moves || [];
-          if (!mvs.length) return null;
-          const foes = (S.actA.indexOf(mon) >= 0 ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
-          if (!foes.length) return null;
-          /* Weighted by what this species really clicks when FOE_POLICY is 'prior'. */
-          const mv = (FOE_POLICY === 'prior' && pickByPrior(mon, rng)) ||
-            mvs[Math.floor(rng() * mvs.length) % mvs.length];
-          const tg = foes[Math.floor(rng() * foes.length) % foes.length];
-          /* A throw here is NOT expected. playerAction is being handed a move off the mon's own
-           * moveset and a live foe, so if it throws, the exploration is generating actions the engine
-           * cannot represent -- and swallowing that would quietly reduce the exploration rate toward
-           * zero and make explore=1 behave like explore=0.5, which is exactly the variable under
-           * test. Counted so it is visible in the return value. */
-          try {
-            return MEDI.playerAction(mon, mv, tg, S.field);
-          } catch (e) {
-            exploreThrew++;
-            if (!firstExploreError) firstExploreError = `${mon.name} ${mv}: ${e.message}`;
-            return null;
-          }
-        };
-        for (const m of S.actA) { const a = pick(m); if (a) { (fa = fa || new Map()).set(m, a); } }
-        for (const m of S.actB) { const a = pick(m); if (a) { (fb = fb || new Map()).set(m, a); } }
-      }
-      MEDI.battleTurn(S, rng, fa, fb);
-    }
-    wins += MEDI.battleResult(S);          /* 1 / 0 / 0.5, side A is `side` by construction */
+    applyField(S, f, side, SEEDED);
+    wins += runPlayout(S, rng, EXPLORE, FOE_POLICY, exCount);
+    ran++;
   }
-  const iv = wilson(wins, n);
-  return { p: wins / n, wins, n, lo: iv.lo, hi: iv.hi,
-           built: mine.length + theirs.length, dropped: stats,
-           exploreThrew, firstExploreError };
+  /* DENOMINATOR IS WHAT ACTUALLY RAN, not what was asked for. Identical for every board-seeded
+   * caller -- buildSide is deterministic, so a pre-check that passed cannot fail inside the loop --
+   * and it is the difference between a skipped sample and a lost game for a buildTeams caller. */
+  if (!ran) return null;
+  const iv = wilson(wins, ran);
+  return { p: wins / ran, wins, n: ran, lo: iv.lo, hi: iv.hi,
+           built, dropped: stats,
+           exploreThrew: exCount.threw, firstExploreError: exCount.first };
 }
 
 /* ONE STEP OF SEARCH: force MY two clicks, let the opponent play its own policy, run exactly one turn,
@@ -325,7 +401,8 @@ function rolloutAfterActions(board, side, opts) {
   const f = opts.field || {};
   const clicks = opts.myClicks || [];
   const zero = () => ({ fainted: 0, unbuildable: 0, threw: 0 });
-  let forcedThrew = 0, firstForcedError = null, exploreThrew2 = 0, firstExploreError2 = null;
+  let forcedThrew = 0, firstForcedError = null;
+  const exCount = { threw: 0, first: null };
   let resolved = 0, unresolved = 0;
   let wins = 0, ran = 0;
   for (let i = 0; i < n; i++) {
@@ -335,11 +412,8 @@ function rolloutAfterActions(board, side, opts) {
     const S = MEDI.battleInit(A, Bt, { seeded: true });
     applyMegaWeather(S);
     if (opts.maxTurns) S.maxTurns = opts.maxTurns;
-    S.field.weather = f.weather || '';
-    S.field.terrain = f.terrain || '';
-    S.field.twA = side === 'p1' ? (f.twA || 0) : (f.twB || 0);
-    S.field.twB = side === 'p1' ? (f.twB || 0) : (f.twA || 0);
-    S.field.tr = f.tr || 0;
+    /* Always SEEDED here: rolloutAfterActions only ever steps a real mid-battle board. */
+    applyField(S, f, side, true);
     const rng = mulberry((opts.seed || 1) * 1000003 + i);
 
     /* THE FORCED TURN. The click's target is a board.js mon; MEDICHAM needs one of ITS bodies, and the
@@ -400,37 +474,9 @@ function rolloutAfterActions(board, side, opts) {
     }
     MEDI.battleTurn(S, rng, forced, null);
 
-    /* ...and the rest is an ordinary rollout. */
-    while (!MEDI.battleOver(S)) {
-      let fa = null, fb = null;
-      const EX = typeof opts.explore === 'number' ? opts.explore : 0;
-      if (EX > 0) {
-        const pick = (mon, mine) => {
-          if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= EX) return null;
-          const mvs = mon.moves || [];
-          const foesL = (mine ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);
-          if (!mvs.length || !foesL.length) return null;
-          /* Weighted by what this species really clicks when FOE_POLICY is 'prior'. */
-          const mv = (FOE_POLICY === 'prior' && pickByPrior(mon, rng)) ||
-            mvs[Math.floor(rng() * mvs.length) % mvs.length];
-          const tg = foesL[Math.floor(rng() * foesL.length) % foesL.length];
-          /* Same reasoning as the leaf's own explore block: swallowing this would quietly reduce the
-           * exploration rate and make explore=1 behave like something lower, which is the variable
-           * under test. */
-          try {
-            return MEDI.playerAction(mon, mv, tg, S.field);
-          } catch (e) {
-            exploreThrew2++;
-            if (!firstExploreError2) firstExploreError2 = `${mon.name} ${mv}: ${e.message}`;
-            return null;
-          }
-        };
-        for (const m of S.actA) { const a = pick(m, true); if (a) (fa = fa || new Map()).set(m, a); }
-        for (const m of S.actB) { const a = pick(m, false); if (a) (fb = fb || new Map()).set(m, a); }
-      }
-      MEDI.battleTurn(S, rng, fa, fb);
-    }
-    wins += MEDI.battleResult(S);
+    /* ...and the rest is an ordinary rollout -- THE SAME ONE, not a copy of it. */
+    const EX = typeof opts.explore === 'number' ? opts.explore : 0;
+    wins += runPlayout(S, rng, EX, FOE_POLICY, exCount);
     ran++;
   }
   /* Reported rather than returned quietly: the caller wants a number, and a number produced while
@@ -439,9 +485,9 @@ function rolloutAfterActions(board, side, opts) {
     rolloutAfterActions._warned = true;
     console.error(`  rolloutAfterActions: ${forcedThrew} forced click(s) could not be built, first: ${firstForcedError}`);
   }
-  if (exploreThrew2 && !rolloutAfterActions._warnedEx) {
+  if (exCount.threw && !rolloutAfterActions._warnedEx) {
     rolloutAfterActions._warnedEx = true;
-    console.error(`  rolloutAfterActions: ${exploreThrew2} explore action(s) threw, first: ${firstExploreError2}`);
+    console.error(`  rolloutAfterActions: ${exCount.threw} explore action(s) threw, first: ${exCount.first}`);
   }
   /* WHAT THE OPPONENT ACTUALLY DID across the playouts.
    *
@@ -457,4 +503,4 @@ function rolloutAfterActions(board, side, opts) {
   return ran ? wins / ran : null;
 }
 
-module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson };
+module.exports = { rolloutWinProb, rolloutAfterActions, sideTeam, buildSide, wilson, runPlayout };

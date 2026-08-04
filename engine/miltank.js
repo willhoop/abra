@@ -41,8 +41,19 @@ const TAGSMOD = require('./tags.js');
  * mechanics, so in a position the search cannot separate, MAG's prior was fitted on people playing
  * the REAL game and the search is reasoning about a broken one. That argument weakens with every
  * mechanic fixed, which is itself worth measuring. */
+/* `previewExplore` -- null means FOLLOW `explore`, which is the point of it existing.
+ *
+ * The preview used to run its own hand-rolled playout at deterministic greedy while every other
+ * decision ran explore=1.0, so MILTANK shipped two leaves and only one of them was ever swept. They
+ * are one implementation now (rollout_leaf.runPlayout) and greedy is still reachable -- set this to
+ * 0. It is a separate knob because preview may legitimately want a different setting: explore is
+ * monotone as a JUDGE over the swept range, but preview scores a whole game from turn zero rather
+ * than a mid-battle board, and nothing has measured that it wants the same value. Defaulting it to
+ * `explore` is a decision to have ONE player until something says otherwise, not a measurement.
+ * No CLI flag reaches it yet -- mag_bot.js and mew.js are not this division's files; see
+ * PRIORITIES #33, which owes `--miltank-explore` the same one-liner. */
 const DEFAULTS = { defer: true, budgetMs: 20000, foePolicy: 'uniform', n: 200, explore: 1.0, turns: 60, previewN: 40, previewMs: 15000,
-                   why: false, trace: false };
+                   previewExplore: null, why: false, trace: false };
 
 /* Install MILTANK onto an already-constructed magnemite player.
  *
@@ -52,6 +63,7 @@ function install(bot, o) {
   const opts = Object.assign({}, DEFAULTS, o || {});
   const ROLLOUT_N = opts.n, ROLLOUT_EXPLORE = opts.explore, ROLLOUT_TURNS = opts.turns;
   const PREVIEW_N = opts.previewN, PREVIEW_MS = opts.previewMs;
+  const PREVIEW_EXPLORE = typeof opts.previewExplore === 'number' ? opts.previewExplore : ROLLOUT_EXPLORE;
   const WHY = !!opts.why, TRACE = !!opts.trace;
   const DEFER = opts.defer !== false;
   /* 'uniform' (a coin flip) or 'prior' (what the species really clicks). See rollout_leaf. */
@@ -193,46 +205,86 @@ function install(bot, o) {
           const combos = [];
           /* Only indices that actually build, or a bring can name a Pokemon the playout cannot field. */
           const idx = myNames.map((_, i) => i).filter(i => myBodies[i]());
+          /* `a` AND `b` ARE POSITIONS IN `idx`; `rest` HOLDS THE INDICES THEMSELVES. Mixing the two
+           * is what the previous version did -- it pushed the POSITIONS a and b beside the INDEX
+           * values rest[c], rest[d] -- and the two coincide only when every Pokemon builds, which is
+           * why it survived. The moment one does not, the enumeration is wrong in three ways at once,
+           * measured on a six-mon team with two unbuildable bodies:
+           *
+           *     19 brings enumerated where exactly 6 exist
+           *     18 of the 19 named a Pokemon the search had just declared UNBUILDABLE
+           *     15 "distinct" brings out of a true set of 6
+           *
+           * and the log then reported a lead the playout never fielded -- `combo.map(...).filter(
+           * Boolean)` silently dropped the missing body, so a 3-mon bring was scored and printed as
+           * a 4-mon one. Caught by the preview smoke for the leaf unification, not by anything that
+           * was watching. */
           for (let a = 0; a < idx.length; a++) for (let b = a + 1; b < idx.length; b++) {
-            const rest = idx.filter(i => i !== a && i !== b);
+            const rest = idx.filter((_, p) => p !== a && p !== b);
             for (let c = 0; c < rest.length; c++) for (let d = c + 1; d < rest.length; d++) {
-              combos.push([a, b, rest[c], rest[d]]);
+              combos.push([idx[a], idx[b], rest[c], rest[d]]);
             }
           }
           const N = PREVIEW_N;
           const DEADLINE = t0 + PREVIEW_MS;
+          /* COMMON RANDOM NUMBERS ACROSS BRINGS. One seed for the whole preview, so playout i of
+           * every candidate bring faces the SAME sampled opponent four and the same dice.
+           *
+           * The seed used to be mixed from the combo itself, so each of the 90 brings was judged
+           * against its own independent draws and the difference between two brings sat underneath
+           * that noise. That is the identical mistake the post-KO replacement search made and fixed
+           * (see `replSeed` below): sharing the seed cancels the variance the candidates have in
+           * common and leaves the part that is actually about WHICH FOUR I BROUGHT. Standard
+           * variance reduction, and free. */
+          const previewSeed = (Date.now() & 0xffff) * 7919 + 13;
           let best = null, bestVal = -1, done = 0;
           for (const combo of combos) {
             if (Date.now() > DEADLINE) break;
-            let w = 0, ran = 0;
-            for (let i = 0; i < N; i++) {
-              const rng = (s => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; })(
-                (combo[0] * 31 + combo[1] * 7 + combo[2] * 3 + combo[3]) * 7919 + i * 104729 + 13);
-              const A = combo.map(i2 => myBodies[i2]()).filter(Boolean);
-              /* Their bring, sampled fresh EVERY playout -- see the marginalisation note above. */
-              const pool = theirBodies.slice();
-              const B2 = [];
-              while (B2.length < 4 && pool.length) {
-                const j = Math.floor(rng() * pool.length) % pool.length;
-                const b = pool.splice(j, 1)[0]();
-                if (b) B2.push(b);
-              }
-              if (A.length < 2 || B2.length < 2) continue;
-              const S = MEDI.battleInit(A, B2, { seeded: true });
-              S.maxTurns = 60;
-              while (!MEDI.battleOver(S)) MEDI.battleTurn(S, rng);
-              w += MEDI.battleResult(S); ran++;
-            }
-            if (!ran) continue;
+            /* THE SAME LEAF AS EVERYTHING ELSE. This loop used to call battleInit/battleTurn itself
+             * with no explore and no forced actions -- deterministic greedy on BOTH sides -- so
+             * MILTANK shipped two playout policies and only the other one was ever swept. The
+             * position preview asks about is different (a fresh game, no board); the way it is
+             * played out is not, and it is a PARAMETER now rather than a second implementation. */
+            const r = RL.rolloutWinProb(null, side, {
+              n: N, dex: DEX, explore: PREVIEW_EXPLORE, foePolicy: FOE_POLICY,
+              maxTurns: ROLLOUT_TURNS, seed: previewSeed,
+              /* NOBODY HAS ENTERED YET, so the entry effects must fire.
+               *
+               * `seeded:true` is right for a mid-battle leaf -- the actives are already standing
+               * there and re-running Intimidate would drop the same Attack twice. At PREVIEW it is
+               * simply wrong: it suppressed turn-one Intimidate, Drought, Drizzle, Snow Warning,
+               * the terrain setters and every other switch-in ability, which are precisely the
+               * effects a lead decision is about. Deciding a lead is largely deciding who eats an
+               * Intimidate, and the search could not see one. */
+              seeded: false,
+              /* THEIR BRING IS MARGINALISED, NOT ASSUMED -- sampled fresh every playout, off the
+               * leaf's own per-playout rng so the sampling and the dice come from one stream. */
+              buildTeams: (i, rng) => {
+                const A = combo.map(i2 => myBodies[i2]()).filter(Boolean);
+                const pool = theirBodies.slice();
+                const B2 = [];
+                while (B2.length < 4 && pool.length) {
+                  const j = Math.floor(rng() * pool.length) % pool.length;
+                  const b = pool.splice(j, 1)[0]();
+                  if (b) B2.push(b);
+                }
+                if (A.length < 2 || B2.length < 2) return null;
+                return { A, B: B2 };
+              },
+            });
+            if (!r) continue;
             done++;
-            const v = w / ran;
-            if (v > bestVal) { bestVal = v; best = combo; }
+            if (r.p > bestVal) { bestVal = r.p; best = combo; }
           }
           if (!best) return baseTeamPreview(team);
           const order = best.concat(idx.filter(i => best.indexOf(i) < 0));
+          /* THE SETTINGS ARE IN THE LINE. A preview that prints a win% and not the leaf it used is
+           * a number nobody can attribute to a lever afterwards -- which is how two different
+           * playout policies shipped for as long as they did. */
           console.log(`  preview: lead ${myNames[best[0]]} + ${myNames[best[1]]}, back ` +
             `${myNames[best[2]]} + ${myNames[best[3]]}  win ${(100 * bestVal).toFixed(0)}%  ` +
-            `(${done}/${combos.length} brings scored, ${Date.now() - t0}ms)`);
+            `(${done}/${combos.length} brings scored, ${Date.now() - t0}ms, ` +
+            `n=${PREVIEW_N} explore=${PREVIEW_EXPLORE} foe=${FOE_POLICY} turns=${ROLLOUT_TURNS} fresh-game)`);
           return 'team ' + order.map(i => i + 1).join('');
         } catch (e) {
           console.error('  preview search threw, falling back to default: ' + e.message);
