@@ -163,7 +163,7 @@
       "all_match": false
     },
     "inference": "RECORDED, not inferred: n=40, explore=1, key \"40@1\", stamped by the run that wrote the rows. The calibration comparison below is kept as a cross-check, not as the answer.",
-    "consequence": "The published +2.91 gate result cannot be recomputed from anything committed. What survives is the incumbent arm of that comparison, and on it R1 is UNDECIDED."
+    "consequence": "SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs."
   },
   "docs_say": {
     "source": "docs/ROLLOUT-design.md:251",

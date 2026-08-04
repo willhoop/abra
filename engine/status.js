@@ -225,8 +225,25 @@ function search() {
    * The join now lives at data/rollout-r1-withdrawn-join.json, the gate name belongs to
    * engine/rollout_r1_artifact.js, and the guard below means a `withdrawn: true` artifact can never
    * again be printed as a result — whatever it is called. */
+  /* AND THEN IT REPORTED THE WRONG ARM, WHICH IS THE SAME BUG WEARING THE NEXT MASK.
+   *
+   * data/rollout-r1.json holds the DETERMINISTIC-GREEDY playout (explore=0), because that is the
+   * arm the committed dump happens to contain. MILTANK does not run it: engine/miltank.js:44 sets
+   * `explore: 1.0` and that is what reaches the leaf. So this gate printed UNDECIDED — an honest
+   * verdict about a configuration nothing ships — as though it were R1's status.
+   *
+   * The explore=1.0 arm was dumped on 2026-08-04 over the SAME 9,201 positions, verified row for
+   * row, and on it R1 PASSES: 67.97% against material's 65.26%, +2.706 [1.596, 3.817] — reproducing
+   * the 68.18% that was published in prose and then retracted as uncheckable. The retraction was
+   * right about provenance and wrong about the arm.
+   *
+   * So the shipped arm is the headline and the incumbent is kept underneath it, because deleting it
+   * would repeat the original mistake in the other direction. Prefer the shipped arm when it exists;
+   * fall back rather than print NOT DERIVED, since the greedy arm is still a real measurement. */
+  const r1Ship = j('rollout-r1-explore1.json');
   const gates = [
-    ['R1 leaf accuracy', 'rollout-r1.json', d => d.verdict || JSON.stringify(d).slice(0, 80)],
+    ['R1 leaf accuracy', r1Ship ? 'rollout-r1-explore1.json' : 'rollout-r1.json',
+      d => (d.verdict || JSON.stringify(d).slice(0, 80)) + (r1Ship ? '   [explore=1.0 — THE ARM MILTANK RUNS]' : '')],
     ['R2 leaf cost', 'rollout-cost.json', d => `${d.boards} boards over ${d.games} games`],
     ['R3 divergence', 'rollout-r3.json', d => `${d.divergence_pct.toFixed(1)}% over ${d.decisions} decisions (${d.agreed} agreed, ${d.skipped} skipped)`],
   ];

@@ -12,20 +12,17 @@ mid-run silently invalidates the run, and the run still prints a result.
 
 ```
 SEARCH — does MILTANK choose better than MAG
-  R1 leaf accuracy   UNDECIDED — rollout 65.721% against material's 65.265% on 9,201 positions: +0.456 points, 95% CI -0.717 to 1.63   (2026-08-04 07:09)
-    THE DUMPED COLUMN IS THE DETERMINISTIC-GREEDY PLAYOUT (explore=0).
-    The published +2.91 gate result cannot be recomputed from anything committed. What survives is the incumbent arm of that comparison, and on it R1 is UNDECIDED.
+  R1 leaf accuracy   PASS_ON_BASELINE — rollout 67.971% against material's 65.265% on 9,201 positions: +2.706 points, 95% CI 1.596 to 3.817   [explore=1.0 — THE ARM MILTANK RUNS]   (2026-08-04 07:34)
+    RECORDED, not inferred: n=40, explore=1, key "40@1", stamped by the run that wrote the rows.
+    SUPERSEDED 2026-08-04 by this artifact. That sentence was written when only the explore=0 dump existed, and it is TRUE OF THAT DUMP ONLY. This file IS the explore=1.0 arm, dumped over the same 9,201 positions and verified row for row, and on it the published figure reproduces: 67.971% against material 65.265%, +2.706 [1.596, 3.817] against the published +2.91 [1.79, 4.04]. The retraction was correct about PROVENANCE -- nothing committed could reproduce it at the time -- and wrong about the ARM. R1 is UNDECIDED on the incumbent greedy playout and PASSES on the arm engine/miltank.js:44 actually runs.
   R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)
     STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit 05248f23d306; HIGH — written 25s before the commit that carried it
       explore: NOT RECORDED AND NOT PASSED.
       maxTurns: NOT RECORDED AND NOT PASSED.
       games: The artifact's `games` field is the GAMES environment CAP, not a count of games traversed.
       machine: A duration is a fact about a machine under a load.
-  R3 divergence      72.9% over 70 decisions (19 agreed, 20 skipped)   (2026-08-03 20:25)
-    STAMP RECONSTRUCTED, NOT OBSERVED — inferred from commit b4ec80b1c52d; HIGH — written 159s before the commit that carried it
-      noise_floor: THE CONTROL IS MISSING.
-      switches: THE ARTIFACT'S CAVEAT IS FALSE ABOUT THE RUN IT DESCRIBES.
-      EVERY: The decision-sampling stride is an environment variable and is not recorded.
+  R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
+    stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 06:35)
   runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 04:47):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
@@ -35,7 +32,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 07:46_
+_stamped 2026-08-04 07:58_
 
 <!-- /GENERATED -->
 
