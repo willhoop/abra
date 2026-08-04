@@ -86,9 +86,16 @@ greedy; 53% of positions landed in the 0–10% or 90–100% bin and those bins w
 points, and accuracy was **flat in N**. R1 then found a fully random playout judges a position at
 **68.18%** against **64.42%** for the greedy one.
 
-So `--rollout-explore` defaults to `1.0`. This is not "we could not be bothered to write a good
-playout" — it is the fix the literature prescribes, and the greedy playout is the version that was
-tried and beaten.
+**That comparison was withdrawn on 2026-08-04 and the defence below no longer stands on it.** The
+68.18% was never written to an artifact — `engine/rollout_r1.js` printed it — and the one committed
+row dump turns out to hold the *greedy* column, not the random one, so the figure cannot be
+recomputed from anything in the repository. What `data/rollout-r1.json` now records is the greedy
+playout at **65.72% against material's 65.26%, +0.46 [-0.72, +1.63] — UNDECIDED**. See
+`docs/ROLLOUT-design.md` §5.
+
+`--rollout-explore` still defaults to `1.0`, and that default is now resting on the literature and on
+the saturation table above rather than on a measured head-to-head. The greedy playout was tried; that
+it was *beaten* is currently unevidenced. Re-running R1 at `EXPLORE_LIST=1` settles it and is cheap.
 
 **Caveat, measured 2026-08-03:** that result is about *judging a position*. Judging and *choosing an
 action* are different jobs, and a random opponent never punishes a wasted turn. A direct test on 40

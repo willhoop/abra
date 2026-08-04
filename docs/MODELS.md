@@ -232,7 +232,25 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 **Job:** grounded win rate by actually playing the matchup out.
 **Method:** real Gen-9 **doubles** Monte-Carlo rollout (`engine/medicham2-browser.js`, embedded as `MEDI2` in the site). Damage formula with boosts, spread ×0.75, crit, rolls, STAB, type, weather, Trick Room, Tailwind, priority, Protect, items (scarf/band/specs/AV/Life Orb/leftovers/sitrus/**Expert Belt/Muscle Band/Wise Glasses**), and a **validated ability/item layer** (Ruin quartet, Solar Power, Guts, Orichalcum Pulse, Hadron Engine, Adaptability, Technician, Tinted Lens, Filter/Solid Rock, Multiscale, Thick Fat, Heatproof, Purifying Salt, type-immunity abilities). **Mega abilities tracked** (base vs Mega stone: Staraptor→Contrary, Swampert→Swift Swim, + canonical Megas). Status, Fake Out flinch, **recoil**, **self-stat-drop moves with Contrary flip**, **weather-speed abilities** (Swift Swim etc.). Policy = **behaviour cloning** (samples the move real players click) + take an obvious KO + need-based Protect, now **accuracy-weighted** (a 70% nuke isn't a guaranteed KO) and recoil-aware (reduces the fast-frail over-crediting).
-**Win% backtest — the hard finding + the twist (2026-07-23):** on 600+ held-out real games, MEDICHAM's raw P(win) **does not beat a coin** (log-loss 1.2 vs 0.69) and picks the actual winner only **~44% of decisive calls — below chance**. Below-chance is not "no signal": it means the win% is **systematically inverted** (the policy backs the fast/offensive team; that team loses more — the Staraptor bias, quantified). Held-out Platt recalibration comes out with a **negative slope** and just edges the coin (0.6897 vs 0.6931) — real but *tiny*, because even **player-Elo ≈ coin (0.687)** here: Champions is near-unpredictable at the game level from sheets alone. **Consequences:** (1) the win% is a matchup heuristic, not a game predictor; (2) **DITTO was optimising a backwards signal** — building teams the biased engine loves (confirmed) — so its objective must be de-biased/flipped before "best team" means anything; (3) the durable value is the **validated damage** (exact against the Smogon damage calculator → CHOMP/ORB), which is genuinely not a coin. Harness: `engine/backtest_winrate.js`, report `data/winrate-backtest.json`.
+**Win% backtest — RE-MEASURED 2026-08-04 against the current engine, on 6,886 clean games.** The
+2026-07-23 and 2026-08-02 readings below are kept because a prior conclusion is never silently
+rewritten, but neither should be quoted: both scored `winProb2`, which **no live decision calls**.
+MILTANK's team-preview leaf is a greedy playout at `maxTurns=60 / seeded:true`; its in-game leaf is
+`rollout_leaf.rolloutWinProb` at `explore=1.0 / foePolicy=uniform / maxTurns=60`. Scored on identical
+turn-0 positions from real brought teams, both **lose to a coin**, paired: in-game leaf Brier
++0.0502 (95% CI 0.0371 to 0.0628) over 1,378 held-out games at 200 rollouts; preview leaf +0.0740
+(0.0668 to 0.0813) over the full 6,886. Both also lose to player-Elo on the 4,906 rated games. The
+reliability curve is nearly **flat**: the in-game leaf's 90-100% bucket wins 53.6% and its 0-10%
+bucket wins 53.8%, and it names the winner on 50.99% of 1,314 decisive calls (CI 48.3-53.7, p=0.47) —
+no discrimination at all. The preview leaf does discriminate, barely: 53.22% of 6,700 (CI 52.0-54.4,
+p<1e-4), about 1.9 points above its own split-half noise floor, while putting 25.6% of its
+predictions into the two extreme buckets where it is wrong by ~40 points. **So the win% is a weak
+ranker and not a probability, and the search is maximising the region where it is most wrong**
+(LESSONS 2). Harness: `engine/backtest_winrate.js`; report `data/winrate-backtest.json` (which stamps
+the sha256 of every engine source it was measured against) plus per-game rows in
+`data/winrate-backtest-rows.jsonl`.
+
+**The 2026-07-23 reading, superseded, kept:** on 600+ held-out real games, MEDICHAM's raw P(win) **does not beat a coin** (log-loss 1.2 vs 0.69) and picks the actual winner only **~44% of decisive calls — below chance**. Below-chance is not "no signal": it means the win% is **systematically inverted** (the policy backs the fast/offensive team; that team loses more — the Staraptor bias, quantified). Held-out Platt recalibration comes out with a **negative slope** and just edges the coin (0.6897 vs 0.6931) — real but *tiny*, because even **player-Elo ≈ coin (0.687)** here: Champions is near-unpredictable at the game level from sheets alone. **Consequences:** (1) the win% is a matchup heuristic, not a game predictor; (2) **DITTO was optimising a backwards signal** — building teams the biased engine loves (confirmed) — so its objective must be de-biased/flipped before "best team" means anything; (3) the durable value is the **validated damage** (exact against the Smogon damage calculator → CHOMP/ORB), which is genuinely not a coin. Harness: `engine/backtest_winrate.js`, report `data/winrate-backtest.json`.
 **Policy validation (2026-07-23):** the behaviour-clone (the policy's backbone) predicts held-out human moves at **top-1 35.9% (CI 35.2–36.5), top-3 71.6%**, cross-entropy 2.27 nats — beating the species-agnostic baseline (4.54) and uniform-over-moveset (2.91), so the priors carry real signal, but human move choice has genuine entropy (the clone is a *modest* predictor). A phase-conditioning improvement was tried and did **not** beat the proper score, so it wasn't shipped. This is a conservative lower bound on the full policy (the KO-take/Protect overrides only raise agreement on those turns). Harness: `engine/eval_policy.py`, report `data/policy-eval.json`. **So MEDICHAM's win rate is `P(win | realistic cloned play)`, now with the clone's fidelity measured — not `P(win)` ground-truthed.**
 **Honest status:** big improvement over the old 1v1 chain (which gave 0%/100%). Mirror 0.50, healthy spread, 400 rollouts in ~30ms, results carry a 95% CI on the site. **The damage math is now VALIDATED** against the Smogon damage calculator (MIT ground truth): with stats aligned, MEDICHAM matches the calc to the integer on 18/22 meta scenarios; after adding the Ruin quartet + Solar Power + Guts, it's **within 5% on 100% of scenarios, median error 0%** (worst 3% = 16-roll rounding). See `engine/validate_damage.js` and `data/damage-validation.json`. The remaining caveat is the *policy* (behaviour-cloned; over-credits speed control), not the damage numbers.
 **THERE IS ONLY ONE MEDICHAM NOW (2026-07-30).** Will: *"LETS JUST CALL THE FUNCTIONAL MEDICHAM
@@ -566,11 +584,21 @@ name is a description of the method, not a pun applied afterwards.
 current build is an **assumption, not a result**. `player_digest.js` reports SAME PLAYER AS NOW —
 what moved was simulator mechanics, not the model — which is why the assumption is reasonable and
 still an assumption.
-**Earlier rungs:** R1 leaf accuracy (joined 230, k=200), R2 leaf cost (477 boards over 200 games),
-R3 divergence from MAG **72.9%** over 70 decisions. **R1's published PASS — 9,201 positions, 68.18%
-against material's 65.26%, +2.91 [1.79, 4.04] — has no artifact of its own**; `data/rollout-r1.json`
-records the *withdrawn* 230-row join instead, and `engine/status.js` reads that file. The evidence
-survives only as `data/rollout-r1-rows.jsonl`, now committed for that reason.
+**Earlier rungs:** R2 leaf cost (477 boards over 200 games), R3 divergence from MAG **72.9%** over 70
+decisions, and **R1 — NOT ESTABLISHED**, corrected 2026-08-04.
+
+R1's published PASS (9,201 positions, 68.18% against material's 65.26%, +2.91 [1.79, 4.04]) was prose
+only: `engine/rollout_r1.js` printed it and wrote no artifact, while `data/rollout-r1.json` held the
+*withdrawn* 230-row cross-language join and `engine/status.js` read that. Recomputed from the one
+committed input, `data/rollout-r1-rows.jsonl`, the gate is **UNDECIDED — rollout 65.72% against
+material's 65.26%, +0.46 points, 95% CI [-0.72, +1.63]** over the same 9,201 positions. The material
+column matches the published 65.26% exactly, so it is the same sample; the rollout column reproduces
+the *greedy* calibration table in `docs/ROLLOUT-design.md` §4.2.1 bin-for-bin, so the surviving dump
+is the `explore=0` incumbent and **the published 68.18% cannot be recomputed from anything committed**.
+The dump stamps no `N`, no `explore` and no build digest, which is why the two runs were
+indistinguishable; `rollout_r1.js` now writes `data/rollout-r1-rows.meta.json` beside every dump.
+Artifact `data/rollout-r1.json` (`engine/rollout_r1_artifact.js`); the withdrawn join is preserved at
+`data/rollout-r1-withdrawn-join.json` with `withdrawn: true`.
 **Code:** `engine/miltank.js`, `engine/rollout_r4.js`, `engine/sprt.js`, `engine/paired_h2h.js`.
 Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
 

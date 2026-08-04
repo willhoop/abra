@@ -10,6 +10,139 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [Unreleased] — 2026-08-04
+
+### Leaf calibration, re-measured: the leaf the search actually uses is WORSE than a coin
+
+`data/winrate-backtest.json` said *"MEDICHAM does NOT beat coin; does NOT beat Elo"* off 350 games at
+40 rollouts, dated 2026-08-02. Four things were wrong with it, and none of them was the leaf.
+
+1. **It scored a leaf no live decision calls.** It measured `winProb2` — `battle()` at MEDICHAM's
+   default 20-turn horizon with entry effects re-fired. MILTANK calls neither. Its team-preview leaf
+   is a greedy playout at `maxTurns=60 / seeded:true`; its in-game leaf is
+   `rollout_leaf.rolloutWinProb` at `explore=1.0 / foePolicy=uniform / maxTurns=60`.
+2. **It was stale and nothing said so.** `engine/medicham2-browser.js` moved 2026-08-04 04:47 across
+   22 commits, one of which records that 45% of rollouts had been on an illegal board.
+3. **n=350 could not carry "does not beat a coin".** The 95% interval on 52.63% over 342 decisive
+   calls is ±5.3 points. Absence of evidence was reported as evidence of absence.
+4. **MEDICHAM and Elo were compared on different samples** — 350 games against 238.
+
+`engine/backtest_winrate.js` now builds a real turn-0 `board.js` Board from the brought teams and the
+real leads, hands it to `rollout_leaf` (no second body builder — LESSONS 8), scores three leaves on
+identical positions, and publishes a **reliability curve with counts and Wilson intervals per bucket**
+instead of a verdict string. Every comparison is paired with a bootstrap CI. n is set by a power
+calculation printed before the run: detecting the prior 52.63% effect at 80% power / α 0.05 needs
+n=2,835, so the full clean corpus (6,886) is used and the held-out fifth (1,378) is reported beside it.
+
+| leaf | n | Brier vs coin, paired | discrimination | says 90-100% → wins |
+| --- | --- | --- | --- | --- |
+| in-game, 200 rollouts (held-out) | 1,378 | **+0.0502 [0.0371, 0.0628]** | 50.99% [48.3, 53.7], p=0.47 | 53.6% (n=56) |
+| in-game, 40 rollouts (full clean) | 6,886 | **+0.0466 [0.0407, 0.0523]** | 51.80% [50.6, 53.0], p=0.004 | 53.5% (n=344) |
+| team-preview, 40 rollouts (full clean) | 6,886 | **+0.0740 [0.0668, 0.0813]** | 53.22% [52.0, 54.4], p<1e-4 | 55.3% (n=933) |
+
+Positive is worse. All three lose to a coin and to player-Elo, decisively and on paired intervals
+that exclude zero. The curve is close to **horizontal**: the in-game leaf's 0-10% bucket also wins
+53.8%. The preview leaf puts 25.6% of its predictions in the two extreme buckets and is wrong there
+by about 40 points. **Confidence carries no information; the search is maximising a number that is
+flat.** LESSONS 2.
+
+**Not an engine regression.** The legacy `winProb2` path reproduces the old artifact closely
+(held-out log-loss 1.0243 against 1.0748 published, discrimination 51.94% against 52.63%), so the 22
+engine commits did not move the headline. Two independent full runs of that arm differ by 0.26
+accuracy points on n=6,886, which is the run-to-run noise floor for this instrument; every seeded
+config reproduces bit-identically.
+
+Also fixed, all in the same file: the "temporal" split was cutting on **store append order**, and the
+store has 4,775 date inversions — it is sorted by date now. A side-symmetry witness scores 400 boards
+from both sides and reports mean(p1+p2−1) = −0.0099, so no side advantage is contaminating the result.
+
+**The artifact now stamps the sha256 and mtime of every source the leaf reads**, and `engine/status.js`
+re-hashes them and prints `CURRENT` or `PRE-CHANGE` — a comparison, not an mtime inference. The store
+is reported separately from the engine sources: an append-only corpus growing means more power is
+available, not that the number went stale, and a flag that is always on is a flag nobody reads.
+
+Per-game predictions are kept in `data/winrate-backtest-rows.jsonl` so the curve can be re-cut without
+re-running 17 minutes of rollouts. `MAXG` thins the corpus for a smoke run and the artifact records the
+n it actually scored.
+
+**Filed, not fixed** (MEASURE does not touch a search knob — DIVISIONS rule 2): the horizon is the
+first suspect. `battleResult` falls back to bodies-then-HP whenever a playout does not finish, so a
+confident leaf reading can be a material count wearing a probability's clothes.
+
+### R1's published PASS is withdrawn. It had no artifact, and the evidence that survives says UNDECIDED
+
+`docs/ROLLOUT-design.md` published *"R1 — PASSED ON THE BASELINE. 9,201 positions, fully random
+playout: rollout 68.18% against material's 65.26%, +2.91, 95% CI 1.79 to 4.04."* `engine/rollout_r1.js`
+printed that with `console.log` and wrote **no artifact for it**. Meanwhile `data/rollout-r1.json` —
+the file `engine/status.js` read and labelled "R1 leaf accuracy" — held the 230-row cross-language
+join that the same design doc records as **withdrawn**. So the gate reported a withdrawn result while
+the real one had no file at all. The identical defect `status.js` already called out for R4, one gate
+above it, undetected for longer.
+
+Recomputed from the one committed input, `data/rollout-r1-rows.jsonl` (9,201 rows), with the formulas
+in `rollout_r1.js`:225-272 and no re-run:
+
+| judge | accuracy | Brier | log-loss |
+| --- | --- | --- | --- |
+| coin (= the base rate) | 52.46% | | |
+| material, porygon2 form (graded) | **65.26%** | 0.2127 | 0.6124 |
+| ROLLOUT, the dumped column | **65.72%** | 0.2573 | 1.7674 |
+
+**+0.46 points, 95% CI −0.72 to +1.63. McNemar on 3,034 discordant positions (1,538 / 1,496).
+UNDECIDED by `rollout_r1.js`'s own thresholds** — the interval spans zero.
+
+The material column reproduces the published 65.26% exactly, so it is the same 9,201 positions. The
+rollout column is a different rollout: its reliability bins reproduce §4.2.1's **greedy** saturation
+table count-for-count (2,245 at 26.0%, 2,612 at 75.9%), so the surviving dump is the `explore=0`
+incumbent, not the fully random playout the verdict was computed from. `mpy` is deterministic given a
+position, so a matching material accuracy proves the same **sample**, never the same **run**. The
+generator asserts that comparison against the design doc rather than restating it.
+
+**The published 68.18% cannot be recomputed from anything committed.** It is retracted as
+*uncheckable*, not as *wrong*, and the sentence is kept verbatim in `ROLLOUT-design.md` §5.
+
+The cause is a missing stamp, not a bad number. The dump recorded neither `N` nor `explore` nor any
+build digest, so two runs four accuracy points apart were byte-indistinguishable.
+
+### Added
+- `engine/rollout_r1_artifact.js` — recomputes R1 from the row dump and writes `data/rollout-r1.json`.
+  Arithmetic only: no engine, no Showdown, no weights, because the engine is a fact about how the rows
+  were produced and not about how they are counted. It records the reliability curve, a three-cut
+  split-half floor (spread 0.43–2.01 points against an effect of 0.46 — the effect is inside its own
+  noise floor) and `stamps: null` with the reason, rather than hashing today's sources and implying
+  they describe the run.
+- `data/rollout-r1-rows.meta.json` — a sidecar `rollout_r1.js` now writes beside every dump, carrying
+  `N`, `explore`, the sweep and content digests of every source the leaf reaches. A sidecar and not a
+  header line, because `rollout_r1_join.py` parses every line of the dump as a position.
+
+### Changed
+- `data/rollout-r1.json` is now the recomputed gate result. The withdrawn join moved to
+  `data/rollout-r1-withdrawn-join.json` with `withdrawn: true` and its reason as a field. A withdrawn
+  result must stay readable — a prior conclusion is never silently rewritten — but it must never be
+  what a gate reads.
+- `engine/rollout_r1_join.py` writes the withdrawn name, sets `withdrawn` from its own alignment
+  check, and can no longer claim the gate's filename.
+- `engine/status.js` prints R1's verdict the way it prints R4's, and **refuses to print any artifact
+  carrying `withdrawn: true`** whatever it is called. It also prints which rollout the dumped column
+  is, because that changes how the verdict reads.
+
+### Fixed
+- `rollout_r1.js` dumped `ps[N_LIST[last]]`, but the sweep keys become `${n}@${explore}` as soon as
+  `EXPLORE_LIST` holds more than one value — so under an explore sweep the lookup returned `undefined`,
+  `JSON.stringify` dropped the field, and every dumped row lost its rollout column silently. It now
+  uses the same key the verdict does.
+
+### Notes
+- `--rollout-explore` still defaults to `1.0`, and `engine/rollout_leaf.js:147`, `engine/mag_bot.js:145`
+  and `docs/MILTANK.md` all cite 68.18% as the reason. That default now rests on the MCTS literature and
+  on the saturation table, not on a measured head-to-head. Filed to SEARCH; not changed here.
+- R2 and R3 have the same missing-stamp hole. Neither `data/rollout-cost.json` nor `data/rollout-r3.json`
+  records the build it measured, so neither can be checked against one.
+- `engine/provenance.js` cannot see `data/rollout-r1-rows.jsonl` as an input — its scan covers `*.json`,
+  `*.js` and `games.*.jsonl` — so the artifact carries the dump's sha256 instead.
+
+---
+
 ## [Unreleased] — 2026-08-02
 
 ### The 23% drop was never redirection, and measuring first is the only reason we know

@@ -12,13 +12,13 @@ game rather than a re-run.
 
 ```
 OPS — the live bot and the store
-  store: 38186 games, 6890 usable (18%), 6965 teams   (live.js 2026-08-04)
+  store: 38587 games, 6943 usable (18%), 7006 teams   (live.js 2026-08-04)
   live-games/: 34 battles recorded
-  data/games.ladder.jsonl      last written 2026-08-04 04:02
+  data/games.ladder.jsonl      last written 2026-08-04 07:03
   data/games.ots.jsonl         last written 2026-07-25 03:46
 ```
 
-_stamped 2026-08-04 06:37_
+_stamped 2026-08-04 07:13_
 
 <!-- /GENERATED -->
 

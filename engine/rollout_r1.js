@@ -209,7 +209,17 @@ JR.build(games, dex, {
         for (const L of ['a', 'b']) { const mm = board.slot(sd, L); if (mm && !mm.fainted) h += (typeof mm.hp === 'number' ? mm.hp : 1); }
         return h + board.bench(sd).length;
       };
-      dumpRows.push({ gid: g.id, turn: board.turn, p: ps[N_LIST[N_LIST.length - 1]],
+      /* THE SAME KEY THE VERDICT USES, not a plain N.
+       *
+       * This read `ps[N_LIST[last]]`, and the sweep keys become `${nn}@${ee}` the moment
+       * EXPLORE_LIST holds more than one value — so under an explore sweep the lookup returned
+       * undefined, JSON.stringify dropped the field, and every dumped row lost its rollout column
+       * without a word. The verdict below computes NBEST with the branch; the dump did not, which is
+       * two definitions of "the column this run is about". */
+      const dumpKey = EXPLORE_LIST.length > 1
+        ? `${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[EXPLORE_LIST.length - 1]}`
+        : N_LIST[N_LIST.length - 1];
+      dumpRows.push({ gid: g.id, turn: board.turn, p: ps[dumpKey],
                       mpy: materialPy(board, 'p1'), y,
                       aliveDiff: aliveOf('p1') - aliveOf('p2'),
                       hpDiff: +(hpOf('p1') - hpOf('p2')).toFixed(6) });
@@ -306,7 +316,53 @@ console.log('  against it because a sign function emits hard 0/1 and is punished
 if (DUMP) {
   fs.writeFileSync(DUMP, dumpRows.map(r => JSON.stringify(r)).join(String.fromCharCode(10)) + String.fromCharCode(10));
   console.log(`  wrote ${dumpRows.length.toLocaleString()} rows to ${path.relative(D('.'), DUMP)}`);
-  console.log('  next: python engine/rollout_r1_join.py — PORYGON2 on these same positions.');
+  /* A SIDECAR THAT SAYS WHICH ROLLOUT THE `p` COLUMN IS.
+   *
+   * The rows carried {gid, turn, p, mpy, y, aliveDiff, hpDiff} and NOTHING about the run. A dump at
+   * explore=0 and a dump at explore=1 are byte-compatible, and they differ by nearly four accuracy
+   * points — the whole of R1's published result. data/rollout-r1-rows.jsonl, the only surviving
+   * evidence for that result, cannot be told apart from the incumbent arm by any field in it, and
+   * only its calibration shape settles the question. That is a hole where a stamp should be.
+   *
+   * A SIDECAR AND NOT A HEADER LINE, deliberately: engine/rollout_r1_join.py parses every line of the
+   * dump as a row, and a header would make it read the stamp as a position.
+   *
+   * The digests are of the SOURCES THAT PRODUCED THE ROWS. data/rollout-r4.json can name an engine
+   * commit because mew.js stamps one into every game record; nothing stamps this path, so the closest
+   * honest equivalent is a content hash of the files the leaf reaches, taken at the moment the rows
+   * were written. */
+  const sha12 = rel => {
+    try { return require('crypto').createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); }
+    catch (e) { return 'MISSING'; }
+  };
+  const META = 'data/rollout-r1-rows.meta.json';
+  fs.writeFileSync(D(META), JSON.stringify({
+    generated: new Date().toISOString(),
+    by: 'engine/rollout_r1.js',
+    describes: path.relative(D('.'), DUMP).replace(/\\/g, '/'),
+    rows: dumpRows.length,
+    p_column: {
+      key: String(EXPLORE_LIST.length > 1
+        ? `${N_LIST[N_LIST.length - 1]}@${EXPLORE_LIST[EXPLORE_LIST.length - 1]}`
+        : N_LIST[N_LIST.length - 1]),
+      n_rollouts: N_LIST[N_LIST.length - 1],
+      explore: EXPLORE_LIST[EXPLORE_LIST.length - 1],
+      note: 'The dump carries ONE rollout column and this names it. It is the same key the VERDICT '
+        + 'in this run uses, so the artifact and the printed verdict describe the same thing.',
+    },
+    sweep: { N_LIST, EXPLORE_LIST, EVERY, GAMES, corpus_games: games.length },
+    source_digests: {
+      'engine/rollout_r1.js': sha12('engine/rollout_r1.js'),
+      'engine/rollout_leaf.js': sha12('engine/rollout_leaf.js'),
+      'engine/medicham2-browser.js': sha12('engine/medicham2-browser.js'),
+      'engine/board.js': sha12('engine/board.js'),
+      'data/engine-data.js': sha12('data/engine-data.js'),
+      'data/abra-tags.js': sha12('data/abra-tags.js'),
+      note: 'Content, not mtime. A checkout moves an mtime without moving code.',
+    },
+  }, null, 2) + '\n');
+  console.log(`  wrote ${META} — n=${N_LIST[N_LIST.length - 1]}, explore=${EXPLORE_LIST[EXPLORE_LIST.length - 1]}`);
+  console.log('  next: node engine/rollout_r1_artifact.js — write data/rollout-r1.json from these rows.');
 }
 console.log('\n  Both columns are scored on identical positions with identical labels, per');
 console.log('  docs/DATA-LAW.md case 2. The only thing that differs is which judge was asked.');

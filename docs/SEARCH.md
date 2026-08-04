@@ -12,7 +12,9 @@ mid-run silently invalidates the run, and the run still prints a result.
 
 ```
 SEARCH — does MILTANK choose better than MAG
-  R1 leaf accuracy   joined 230, dropped 7007 misaligned, k=200   (2026-08-03 08:14)
+  R1 leaf accuracy   UNDECIDED — rollout 65.721% against material's 65.265% on 9,201 positions: +0.456 points, 95% CI -0.717 to 1.63   (2026-08-04 07:09)
+    THE DUMPED COLUMN IS THE DETERMINISTIC-GREEDY PLAYOUT (explore=0).
+    The published +2.91 gate result cannot be recomputed from anything committed. What survives is the incumbent arm of that comparison, and on it R1 is UNDECIDED.
   R2 leaf cost       477 boards over 200 games   (2026-08-03 08:22)
   R3 divergence      72.9% over 70 decisions (19 agreed, 20 skipped)   (2026-08-03 20:25)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 06:35)
@@ -24,7 +26,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 06:37_
+_stamped 2026-08-04 07:13_
 
 <!-- /GENERATED -->
 

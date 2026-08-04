@@ -12,7 +12,7 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  42/54 probed mechanics live, 12 missing   (census 2026-08-04 06:30)
+  86/123 probed mechanics live, 37 missing   (census 2026-08-04 07:12)
   missing:
     move    conditionalPower       Facade doubles when statused
     ability damageReduce           Ice Scales halves special damage
@@ -26,15 +26,41 @@ ENGINE — does the simulator do what Pokémon does
     item    restoresStats          White Herb undoes a stat drop
     move    statChangeInCode       Belly Drum maxes Attack
     move    proceduralStatus       Tri Attack can burn, freeze or paralyse
-  3/120 differential comparisons disagree with Showdown   (2026-08-04 06:30)
-    pyroar solarbeam -> kingambit: showdown 29-34, medicham 39-46  (3984 uses)
-    meowscarada tripleaxel -> orthworm: showdown 0-0, medicham 5-6  (522 uses)
-    quaquaval tripleaxel -> kingambit: showdown 0-0, medicham 5-6  (522 uses)
+    move    drain                  Drain Punch heals the user
+    move    redirects              Follow Me pulls the attack onto the partner
+    item    choiceLock             Choice Scarf locks the holder into its first move
+    move    multiHit               Rock Blast lands more than one hit
+    move    overridesEffectiveness Freeze-Dry beats Ice Beam into a Water type
+    ability reducesAllyDamage      Friend Guard cuts what the partner takes
+    ability poisonsOnMyContact     Poison Touch poisons on a contact hit
+    ability immuneToMoveClass      Bulletproof refuses Rock Blast
+    ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
+    ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
+    ability boostsEachTurn         Speed Boost raises Speed every turn
+    ability healsOnSwitchOut       Regenerator heals a third on the way out
+    move    fixedDamage            Seismic Toss deals the level, whoever it hits
+    move    costsUserHP            Substitute costs the user a quarter
+    move    partialTrap            Infestation chips at the end of each turn
+    move    blocksSoundMoves       Throat Chop stops the target using a sound move
+    move    punishesContact        Spiky Shield hurts the attacker it blocked
+    move    critRatioUp            Night Slash is priced above the same move without its crit ratio
+    move    clearsBoosts           Haze wipes the boosts off both sides
+    move    cantUseTwice           Gigaton Hammer cannot be clicked twice in a row
+    move    terrainScaled          Expanding Force gains power on Psychic Terrain
+    move    swapsStat              Foul Play attacks with the TARGET Attack
+    ability formeChange            Disguise eats the first hit
+    ability untagged               Marvel Scale raises Defense while statused
+    move    semiInvulnerable       a Pokemon in the air cannot be hit
+  4/400 differential comparisons disagree with Showdown   (2026-08-04 07:00)
+    spiritomb foulplay -> wyrdeer: showdown 178-178, medicham 132-156  (734 uses)
+    klefki foulplay -> pangoro: showdown 19-23, medicham 8-10  (734 uses)
+    chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (54 uses)
+    houndoom fireblast -> heliolisk: showdown 123-137, medicham 99-117  (50 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  tag coverage: 53/176 probed, 123 unprobed
+  tag coverage: 119/176 probed, 57 unprobed
 ```
 
-_stamped 2026-08-04 06:37_
+_stamped 2026-08-04 07:13_
 
 <!-- /GENERATED -->
 

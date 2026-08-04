@@ -141,6 +141,44 @@ function measure() {
   if (b) {
     say(`  leaf calibration: ${b.verdict}`);
     say(`    n=${b.n_games_scored} games, ${b.rollouts_per_game} rollouts each   (${day(mtime('data/winrate-backtest.json'))})`);
+    /* THE CURVE, NOT JUST THE VERDICT. Four words collapse "overconfident but ranks correctly" and
+     * "no signal at all" into the same line, and those need opposite responses. Printing the extreme
+     * buckets shows which one it is: the region a maximiser spends its whole time in is the top
+     * bucket, so that is the number that decides whether the search is being fed a lie. */
+    const head = b.results && (b.results.live_ingame?.held_out_fifth || b.results.live_ingame_n40?.held_out_fifth);
+    if (head) {
+      const c = head.reliability_curve || [];
+      const top = c[9], bot = c[0];
+      if (top && top.n) say(`    when it says 90-100% it wins ${(100 * top.observed).toFixed(0)}% (n=${top.n}); ` +
+        `when it says 0-10% it wins ${bot && bot.n ? (100 * bot.observed).toFixed(0) + '%' : 'n/a'} (n=${bot ? bot.n : 0})` +
+        `  — ECE ${head.calibration.ece}`);
+      if (b.power) say(`    powered for MDE ${(100 * b.power.mde_heldout).toFixed(1)}% held-out / ` +
+        `${(100 * b.power.mde_full_clean).toFixed(1)}% full corpus; the prior effect needed n=${b.power.n_required_for_prior_effect}`);
+    }
+    /* DID THE ENGINE MOVE UNDER IT? The artifact stamps a content hash of every source the leaf reads,
+     * so this is a comparison rather than an mtime inference — a checkout moves an mtime without
+     * moving code, and the 2026-08-02 artifact was quoted for two days against an engine that had
+     * gained "one mega per side" in between. */
+    /* THE STORE IS NOT A BUILD. It is append-only and OPS grows it continuously, so hashing it
+     * alongside the engine sources made the line read PRE-CHANGE within minutes of a clean run —
+     * and a staleness flag that is always on is a staleness flag nobody reads. A grown corpus means
+     * "more games are available now", which is a reason to re-run for POWER; a moved engine source
+     * means the number describes a build that no longer exists, which is a reason to distrust it.
+     * Separate sentences, because they call for different actions. */
+    if (b.measured_against) {
+      const crypto = require('crypto');
+      const moved = [], corpus = [];
+      for (const [rel, st] of Object.entries(b.measured_against)) {
+        if (!st || !st.sha256_12) continue;
+        let now = null;
+        try { now = crypto.createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); } catch (e) { now = 'MISSING'; }
+        if (now === st.sha256_12) continue;
+        (/\.jsonl$/.test(rel) ? corpus : moved).push(rel);
+      }
+      if (moved.length) say(`    PRE-CHANGE — measured against a different build of: ${moved.join(', ')}`);
+      else say('    CURRENT — every engine source the leaf reads still hashes to what it was measured against');
+      if (corpus.length) say(`    (the corpus has grown since: ${corpus.join(', ')} — more power available, not staleness)`);
+    }
   } else say('  leaf calibration: NOT DERIVED (data/winrate-backtest.json absent)');
 
   /* provenance is the canonical staleness authority; do not reimplement its rules here. Lesson 8. */
@@ -174,15 +212,41 @@ function measure() {
 function search() {
   say('SEARCH — does MILTANK choose better than MAG');
 
+  /* R1 PRINTS ITS VERDICT, THE SAME WAY R4 DOES, AND FOR THE SAME REASON IT HAD TO CHANGE.
+   *
+   * This line used to read data/rollout-r1.json as `joined N, dropped M misaligned, k=K` — the shape
+   * of engine/rollout_r1_join.py's cross-language join. That join was WITHDRAWN on 2026-08-03; the
+   * script prints "THE JOIN IS UNVALIDATED — DO NOT READ THE TABLE ABOVE AS A HEAD-TO-HEAD" and
+   * docs/ROLLOUT-design.md §5 says so too. Nothing was hidden. The GATE READ IT ANYWAY, because it
+   * owned the filename, so this tool reported a withdrawn result as R1's status while R1's real
+   * result — published in prose at 68.18% — had no file at all. The identical defect this file
+   * already calls out for R4, one gate above it.
+   *
+   * The join now lives at data/rollout-r1-withdrawn-join.json, the gate name belongs to
+   * engine/rollout_r1_artifact.js, and the guard below means a `withdrawn: true` artifact can never
+   * again be printed as a result — whatever it is called. */
   const gates = [
-    ['R1 leaf accuracy', 'rollout-r1.json', d => `joined ${d.joined}, dropped ${d.dropped_misaligned} misaligned, k=${d.k}`],
+    ['R1 leaf accuracy', 'rollout-r1.json', d => d.verdict || JSON.stringify(d).slice(0, 80)],
     ['R2 leaf cost', 'rollout-cost.json', d => `${d.boards} boards over ${d.games} games`],
     ['R3 divergence', 'rollout-r3.json', d => `${d.divergence_pct.toFixed(1)}% over ${d.decisions} decisions (${d.agreed} agreed, ${d.skipped} skipped)`],
   ];
   for (const [name, file, fmt] of gates) {
     const d = j(file);
-    if (d) say(`  ${name.padEnd(18)} ${fmt(d)}   (${day(new Date(d.generated))})`);
-    else say(`  ${name.padEnd(18)} NOT DERIVED (data/${file} absent)`);
+    if (!d) { say(`  ${name.padEnd(18)} NOT DERIVED (data/${file} absent)`); continue; }
+    if (d.withdrawn) {
+      say(`  ${name.padEnd(18)} WITHDRAWN ARTIFACT — data/${file} says withdrawn:true. Not a result.`);
+      if (d.withdrawn_reason) say(`    ${String(d.withdrawn_reason).split('.')[0]}.`);
+      continue;
+    }
+    say(`  ${name.padEnd(18)} ${fmt(d)}   (${day(new Date(d.generated))})`);
+    /* R1's verdict is arithmetic over a row dump that stamps no build, and the dump does not record
+     * WHICH rollout its column is. Both change how the line above should be read, so both are
+     * printed under it rather than left inside the file where only a reader of JSON finds them. */
+    const w = d.which_rollout_is_this;
+    if (w) {
+      if (w.inference) say(`    ${w.inference.split('.')[0]}.`);
+      if (w.consequence) say(`    ${w.consequence}`);
+    }
   }
 
   /* R4 IS THE ONE THAT DECIDED AND IT IS THE ONE WITH NO ARTIFACT. Its verdict exists only in

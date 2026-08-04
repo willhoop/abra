@@ -248,13 +248,53 @@ instrument was broken, so it is measured here on many boards rather than one.
 
 ## 5. Gates
 
-**R1 — PASSED ON THE BASELINE.** 9,201 positions, fully random playout: rollout **68.18%** against
-material's 65.26%, **+2.91 points, 95% CI 1.79 to 4.04**. PORYGON2's published +3.42 over the same
-baseline sits INSIDE that interval, so the rollout is at least its equal and the two are not separated
-by this sample. That is a weaker claim than "beats it" and is stated separately.
+**R1 — NOT ESTABLISHED. The published PASS has no reproducible evidence.** Artifact:
+`data/rollout-r1.json`, written by `engine/rollout_r1_artifact.js`.
+
+**What was published here until 2026-08-04, and is now withdrawn:** *"R1 — PASSED ON THE BASELINE.
+9,201 positions, fully random playout: rollout 68.18% against material's 65.26%, +2.91 points, 95% CI
+1.79 to 4.04."* That sentence is kept verbatim because a prior conclusion is never silently rewritten.
+It is not retracted as *wrong* — it is retracted as **uncheckable**.
+
+`engine/rollout_r1.js` computed it with `console.log` and wrote no artifact. The only file it wrote is
+the row dump `data/rollout-r1-rows.jsonl`, and recomputing the gate from that dump — same formulas,
+`engine/rollout_r1.js`:225-272 — gives a different answer:
+
+```
+  judge                              accuracy     Brier    log-loss
+  coin (= the base rate)               52.46%
+  material: porygon2 form (graded)     65.26%    0.2127     0.6124
+  ROLLOUT (the dumped column)          65.72%    0.2573     1.7674
+
+  rollout minus material  +0.46 points   95% CI -0.72 to +1.63
+  discordant: rollout-only-right 1,538, material-only-right 1,496, of 9,201
+  -> UNDECIDED. The interval spans zero.
+```
+
+The material column reproduces the published 65.26% **exactly**, so it is the same 9,201 positions.
+The rollout column is not the same rollout. Its reliability bins reproduce §4.2.1's **greedy**
+saturation table count-for-count — 2,245 at 26.0% and 2,612 at 75.9% — so the surviving dump is the
+`explore=0` incumbent, not the fully random playout the verdict was computed from. `mpy` is
+deterministic given a position, so a matching material accuracy proves the same **sample**, never the
+same **run**. The artifact asserts that comparison against this document rather than asserting it in
+prose.
+
+The dump records neither `N` nor `explore` nor any build digest, which is why the two runs cannot be
+told apart by any field in the file. `engine/rollout_r1.js` now writes
+`data/rollout-r1-rows.meta.json` beside every dump carrying both, plus content digests of every source
+the leaf reaches. The committed rows predate it.
+
+**What R1 currently supports:** the greedy playout is not separated from counting bodies on this
+sample (+0.46, CI spans zero, and the split-half spread of the run itself ranges 0.43 to 2.01 points —
+larger than the effect). **What it does not support:** the 68.18% figure, or anything resting on it,
+including `--rollout-explore` defaulting to `1.0`. Re-run `engine/rollout_r1.js` with
+`EXPLORE_LIST=1` and `DUMP` set, then `node engine/rollout_r1_artifact.js`.
 
 The cross-language head-to-head against PORYGON2 itself was built and **withdrawn** — see
-`engine/rollout_r1_join.py`, which fails its own alignment check and says so.
+`engine/rollout_r1_join.py`, which fails its own alignment check and says so. Its numbers are
+preserved at `data/rollout-r1-withdrawn-join.json` with `withdrawn: true`. It held the name
+`data/rollout-r1.json` until 2026-08-04, and `engine/status.js` duly printed a withdrawn result as
+this gate's status; `status.js` now refuses to print any artifact carrying `withdrawn: true`.
 
 **R1, as originally specified — the rollout is a better JUDGE than PORYGON2.** No search, no matrix, no equilibrium. Take clean
 human games with known winners, seed MEDICHAM at each turn, roll out, and ask whether the win rate

@@ -1,0 +1,35 @@
+{
+ "withdrawn": true,
+ "withdrawn_on": "2026-08-03",
+ "withdrawn_reason": "The join is UNVALIDATED and engine/rollout_r1_join.py says so itself. Phase 1 walks the INGESTED corpus and counts all four brought Pokemon off an open sheet; porygon2.py parses a public log and can only count what has appeared. Rows join on game id and turn index, and the continuous HP witness rejects the result: on the rows alive_diff admitted, the two sides' summed HP correlates at 0.118 and only ~7% agree within half a percent of one HP bar. 230 of 9,201 rows survive both witnesses, and those survivors are the early quiet turns where every judge sits near a coin. The cause is definitional, not a bad join key, so it is not fixable by choosing a better key.",
+ "renamed_from": "data/rollout-r1.json",
+ "renamed_on": "2026-08-04",
+ "renamed_why": "This file kept the name of the R1 gate, and engine/status.js read it and printed a WITHDRAWN result as R1's status for a day. A withdrawn result must stay readable — CLAUDE.md forbids silently rewriting a prior conclusion — but it must never be the file a gate reads. The R1 gate name now belongs to the recomputed result in data/rollout-r1.json; this keeps its numbers verbatim under a name that says what it is.",
+ "do_not_quote": "No number below is a result. They are recorded so the withdrawal can be checked rather than believed.",
+
+ "generated": "2026-08-03T04:14:10",
+ "by": "engine/rollout_r1_join.py",
+ "joined": 230,
+ "dropped_misaligned": 7007,
+ "k": 200,
+ "accuracy": {
+  "material": 53.47826086956522,
+  "porygon3": 52.17391304347826,
+  "rollout": 51.73913043478261
+ },
+ "brier": {
+  "material": 0.24781521739130435,
+  "porygon3": 0.26090968325192193,
+  "rollout": 0.36142323369565216
+ },
+ "mcnemar": {
+  "rollout_only_right": 59,
+  "porygon3_only_right": 60,
+  "diff_points": -0.43478260869564966,
+  "ci_half_width": 9.296119888993912
+ },
+ "caveat": "Positions are the ones phase 1 sampled, joined by game id and turn index and checked with an independently computed alive_diff. Rows whose witness disagreed were dropped, not forced.",
+
+ "note_on_the_keys": "The `porygon3` keys are verbatim from the 2026-08-03 run. The current engine/rollout_r1_join.py writes `porygon2`; the committed file predates that rename. Preserved rather than corrected, because correcting a withdrawn artifact's field names would make it look regenerated when it was not.",
+ "note_on_the_row_count": "230 joined + 7,007 dropped = 7,237, not 9,201. The remaining rows found no candidate on the porygon2 side at all and were never offered to the witness. That the join reached only 79% of the dump is itself part of the withdrawal."
+}

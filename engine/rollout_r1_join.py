@@ -243,7 +243,28 @@ def main():
         print("   -> UNDECIDED. The interval spans zero: this sample cannot separate them.")
         print("      Not a pass and not a failure. More positions, or accept they are close.")
 
+    # THIS FILE DOES NOT GET THE GATE'S NAME.
+    #
+    # It wrote data/rollout-r1.json until 2026-08-04, and engine/status.js read that file and
+    # printed "R1 leaf accuracy: joined 230, dropped 7007 misaligned" as the gate's status -- a
+    # WITHDRAWN result standing in for a gate, on the strength of a filename. The withdrawal was
+    # never hidden; it is printed six lines above and stated in docs/ROLLOUT-design.md. It was the
+    # NAME that made a gate read it.
+    #
+    # So the name says what this is, and `withdrawn` is a field rather than a paragraph, because a
+    # reader that only knows how to read JSON must be able to see it. CLAUDE.md forbids silently
+    # rewriting a prior conclusion, so the numbers below are still written and still readable --
+    # they are simply not what anything quotes.
+    validated = bool(hp_given_alive) and float(np.mean(np.array(hp_given_alive) <= HP_TOL)) >= 0.5
     json.dump({
+        "withdrawn": not validated,
+        "withdrawn_reason": None if validated else
+            "The continuous HP witness rejects this join. Phase 1 counts all four brought Pokemon "
+            "off an open sheet; porygon2.py can only count what has appeared in the public log. The "
+            "rows that survive both witnesses are the early quiet turns where every judge sits near "
+            "a coin. The cause is definitional, so no better join key fixes it.",
+        "do_not_quote": None if validated else
+            "No number in this file is a result. They are recorded so the withdrawal can be checked.",
         "generated": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
         "by": "engine/rollout_r1_join.py",
         "joined": len(meta), "dropped_misaligned": misaligned, "k": K,
@@ -254,8 +275,12 @@ def main():
         "caveat": "Positions are the ones phase 1 sampled, joined by game id and turn index and "
                   "checked with an independently computed alive_diff. Rows whose witness disagreed "
                   "were dropped, not forced.",
-    }, open(os.path.join(ROOT, "data", "rollout-r1.json"), "w", encoding="utf-8"), indent=1)
-    print("\nwrote data/rollout-r1.json")
+        "the_gate_artifact_is_elsewhere": "data/rollout-r1.json, written by "
+                  "engine/rollout_r1_artifact.js from data/rollout-r1-rows.jsonl.",
+    }, open(os.path.join(ROOT, "data", "rollout-r1-withdrawn-join.json"), "w", encoding="utf-8"), indent=1)
+    print("\nwrote data/rollout-r1-withdrawn-join.json")
+    if not validated:
+        print("  withdrawn: true — this file is evidence of a failed join, not a gate result.")
 
 
 if __name__ == "__main__":
