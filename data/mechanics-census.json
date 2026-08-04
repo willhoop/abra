@@ -1,10 +1,10 @@
 {
-  "generated": "2026-08-04T01:25:07.662Z",
+  "generated": "2026-08-04T06:30:14.088Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
   "probed": 54,
-  "live": 41,
-  "missing": 13,
+  "live": 42,
+  "missing": 12,
   "results": [
     {
       "kind": "item",
@@ -346,8 +346,8 @@
       "kind": "ability",
       "tag": "healsAllyOnSwitchIn",
       "label": "Hospitality heals the partner on entry",
-      "live": false,
-      "detail": "engine references it: false"
+      "live": true,
+      "detail": "engine references it: true"
     },
     {
       "kind": "ability",
