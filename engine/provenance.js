@@ -445,14 +445,88 @@ for (const a of ARTIFACTS) {
    * publishing an environment cap as a measurement. Same convention as `not_store_derived` and
    * `raw_store_ok`: visible to a consumer, not buried in this checker. */
   const isSample = j && (typeof j.gate === 'string' || typeof j.games_requested === 'number' || j.sampled);
+  /* A STRICT SUBSET IS NOT A STALE CORPUS EITHER, and this was the drift check's own measured false
+   * positive. data/pory-eval.json reports 33-35% behind and CANNOT get below about 21% however often
+   * it is regenerated: its population is not "clean ladder games", it is "clean ladder games whose
+   * raw log is present and names a winner" — 5,456 reachable, not 7,123. Every artifact reading
+   * games.ladder.raw-logs.jsonl has this. `gate`, `games_requested` and `sampled` do not cover it,
+   * because this is neither a gate nor a deliberate sample: the generator wanted every game it could
+   * have and got every game it could have.
+   *
+   * The hatch is the same convention as the other three — a declaration IN THE ARTIFACT, so a
+   * consumer sees it, and derived by the generator that knows its own predicate rather than
+   * special-cased here. A generator that narrows the population publishes the ceiling it can reach;
+   * until it does, its drift is measured against the wrong denominator and reads high. */
+  const reach = (() => {
+    const p = j && j.provenance && typeof j.provenance === 'object' ? j.provenance : {};
+    for (const v of [j && j.population_ceiling, p.population_ceiling,
+                     j && j.corpus && j.corpus.population_ceiling]) {
+      if (typeof v === 'number' && v > 0) return { n: v, declared: true };
+    }
+    return { n: ceiling, declared: false };
+  })();
   const DRIFT_WARN_PCT = 10;
-  if (a.storeDerived && !isSample && CORPUS_KEYS.has(nKey) && n != null && ceiling != null && n < ceiling) {
-    const missingPct = 100 * (ceiling - n) / ceiling;
+  if (a.storeDerived && !isSample && CORPUS_KEYS.has(nKey) && n != null && reach.n != null && n < reach.n) {
+    const missingPct = 100 * (reach.n - n) / reach.n;
     if (missingPct >= DRIFT_WARN_PCT) {
-      notes.push(`CORPUS DRIFT — declares ${n.toLocaleString()} games; ${ceiling.toLocaleString()} are `
+      notes.push(`CORPUS DRIFT — declares ${n.toLocaleString()} games; ${reach.n.toLocaleString()} are `
         + `${ceilingName} now, so ${missingPct.toFixed(1)}% of the corpus it describes is not in it. `
-        + `Re-run ${a.by}.`);
+        + `Re-run ${a.by}.`
+        + (reach.declared ? ` (measured against this artifact's own declared population ceiling.)` : ''));
       warn = true;
+      /* IS THAT PERCENTAGE A REASON TO DISBELIEVE THE NUMBER? THE PERCENTAGE CANNOT SAY.
+       *
+       * A percentage of an unbounded, append-only corpus is not a statement about a measurement. The
+       * collector runs hourly and clean games grew 5,269 -> 7,123 in four days, so a 10% threshold is
+       * an AGE threshold wearing a fraction's clothes: every artifact is "stale" about a day and a
+       * half after it is built, by construction, however often it is rebuilt. data/pory-nn.json was
+       * regenerated on 2026-08-04 and reported 15.7% drift on the same day. An artifact computed on
+       * 6,008 games is not WRONG because 1,115 more arrived, and a check that goes red on its own
+       * schedule is the check that gets filed as "known" — which CLAUDE.md names as how the
+       * docs-currency guard rotted. Invisibility was never the failure; normalisation was.
+       *
+       * So the percentage is printed as the trigger and the ABSOLUTE POWER is printed beside it, in
+       * the units of the thing being measured, because that is the question a reader actually has:
+       * can the games this artifact does not have change what it says?
+       *
+       *   ci_gain    how much narrower the 95% interval would be, in percentage POINTS. Precision
+       *              goes as 1/sqrt(n), so 1.96 * 0.5 * (1/sqrt(n) - 1/sqrt(reach)) for a proportion.
+       *   max_shift  how far the pooled point estimate could move if every missing game came in.
+       *              The pooled mean shifts by (m/reach) * (x_new - x_old) and se(x_new) = sd/sqrt(m),
+       *              so a 2sd bound is 2 * 0.5 * sqrt(m) / reach. Worst case, not expected case.
+       *
+       * BOTH SHRINK AS THE CORPUS GROWS AT A FIXED PERCENTAGE, which is the property the percentage
+       * does not have: max_shift = sqrt(f)/sqrt(n), so the same 15.7% drift that can move an accuracy
+       * 0.47 points at n=7,123 can move it 0.33 at n=14,000 and 0.24 at n=28,000. That is the
+       * treadmill ending on its own instead of being switched off.
+       *
+       * WHAT TO COMPARE IT AGAINST is this project's own measured noise floor, never a fresh
+       * judgement: split-half spreads published in docs/MEASURE.md run 0.2 to 4.3 points (R4's three
+       * cuts 0.2 / 1.3 / 3.9; R1's 0.43 to 2.01). A movement bound BELOW 0.43 points is smaller than
+       * the smallest floor this project has ever measured, and an effect smaller than the noise floor
+       * is not an effect (LESSONS 9).
+       *
+       * WHAT THIS DELIBERATELY DOES NOT DO: change the trigger. The threshold stays at 10% because
+       * lowering the bar is not this file's call to make alone and because max_shift alone still
+       * cannot see the one thing that decided every entry in docs/MEASURE.md §5c's hand triage — the
+       * DISTANCE from an artifact's headline estimate to its decision boundary. data/roles-eval.json
+       * publishes 0.6935 against a coin's 0.6931; a 0.0004 margin is flippable by any new data at
+       * all, while data/war.json's null is not flippable by a 0.4-point movement. That margin is not
+       * computable from n, and the artifact is the only thing that knows it — so the next rung is a
+       * declared `decision_margin`, in the same style as `population_ceiling` above, and until a
+       * generator publishes one the honest report is the magnitude plus the floor to read it against.
+       */
+      const m = reach.n - n;
+      const ciGain = 1.96 * 0.5 * (1 / Math.sqrt(n) - 1 / Math.sqrt(reach.n)) * 100;
+      const maxShift = 2 * 0.5 * Math.sqrt(m) / reach.n * 100;
+      const FLOOR_PTS = 0.43;   // the SMALLEST split-half spread docs/MEASURE.md has published
+      notes.push(`POWER — the ${m.toLocaleString()} missing games buy ${ciGain.toFixed(2)} points of `
+        + `95% CI width and can move a proportion by at most ${maxShift.toFixed(2)} points (2sd). `
+        + (maxShift < FLOOR_PTS
+            ? `That is BELOW the smallest split-half noise floor this project has measured (${FLOOR_PTS} pts), `
+              + `so the percentage above is age, not error.`
+            : `The smallest measured split-half floor is ${FLOOR_PTS} pts, so this could matter to a `
+              + `verdict sitting within ${maxShift.toFixed(2)} points of its boundary.`));
     }
   }
   /* A generator whose filter is OPT-IN must say it was switched on. pory_nn.py takes --clean and

@@ -12,6 +12,89 @@ silently rewritten; what changed and why is stated.
 
 ## [3.33.0] — 2026-08-04
 
+### Corpus drift is measured in absolute power, not in percent — and `slowking-playstyle` is not a playstyle result
+
+**The drift threshold was a treadmill by construction.** `data/pory-nn.json` was regenerated on the
+current corpus and `tests/test-site-data-fresh.js` reported *CORPUS DRIFT 15.7%* the same day. The
+store is append-only and collects hourly (clean games 5,269 → 7,123 in four days), so a percentage of
+it is an AGE, not a fraction: a 10% threshold marks every artifact stale about a day and a half after
+it is built, however often it is rebuilt. `engine/provenance.js` now prints an absolute-power line
+beside every drift note — how many percentage points of 95% CI width the missing games buy, and a 2sd
+bound on how far they could move the point estimate. Measured across all thirteen drifting artifacts
+the percentages span 4× and the power spans 2×: `war.json` is missing **48.6%** of its corpus and can
+move a proportion by **0.83 points**; `counterplay.json` at 12.8% can move it **0.42**, which is below
+the smallest split-half noise floor this project has published (0.43). **No artifact in the repository
+has enough missing data to move a proportion by one point.** The bound is `√f/√n`, so it shrinks as
+the corpus grows — the treadmill ends on its own rather than being switched off.
+
+**The 10% trigger is deliberately unchanged**, because `max_shift` still cannot see the distance from
+an artifact's headline to its decision boundary — the thing that actually decided every row of
+`docs/MEASURE.md` §5c's hand triage. The next rung is a declared `decision_margin`.
+
+- **Added** `population_ceiling` as a declaration `provenance.js` honours, in the same convention as
+  `not_store_derived`, `raw_store_ok`, `gate` and `games_requested`. It fixes the drift check's own
+  measured false positive: `data/pory-eval.json`'s population is a strict subset (clean ladder games
+  whose raw log exists AND names a winner — 5,456, not 7,123) and can never read below ~21% against
+  the wrong denominator. The reader side exists; `engine/pory.py` must write the key on its next
+  deliberate run.
+- **Unchanged on purpose:** the quality-filter check (`data/counters.json`, UNSAFE for nine days) is a
+  PREDICATE test, not a volume test, and no amount of power makes a differently-filtered artifact
+  valid. Confusing the two is how a volume rule takes credit for a correctness rule's catch.
+
+**`data/slowking-playstyle.js` has been a GURU result under the playstyle name since 2026-08-03.**
+`engine/slowking_preview.py` takes its output NAME from `TAG` and its MATRIX from `MATRIX_FILE`, which
+defaults to `data/guru-matchups.json`. Run with `TAG=playstyle` and `MATRIX_FILE` unset it writes GURU
+under the playstyle filename, and that is what is on disk: `slowking-playstyle.js` has a payload
+**byte-identical** to `slowking.js`, and `slowking-playstyle-eval.json` is a **byte-identical file** to
+`slowking-eval.json` — 5,265 games over 12 species-pair archetypes, where the real playstyle matrix
+holds 2,860 games over 8 playstyles. Re-running it correctly reproduces the figures `docs/MODELS.md`
+already publishes (336 candidate triples, greedy−Nash 0.026 CI [−0.0001, 0.1498], mixture Rain 0.81 /
+Setup 0.17 / FakeOutBalance 0.03) to the digit, so **the docs are right and the artifact is wrong**.
+Not repaired here: it moves every figure the site's cycle panel renders, so it is a joint pass with
+WEB. `engine/build-status.js:18`, `engine/sanity_check.py:32` and `tests/test-docs-current.js` all
+read the clobbered file today.
+
+- **Verified, not landed:** `data/engine-data.js` was reported 0.9 days stale;
+  `build/rebuild_sets_from_sheets.js --write` reproduces it **byte-identically** (318 species, 195
+  rebuilt, materially changed 0). The original mtime was restored, because bumping it turned
+  `counterplay.json`, `scoreboard.js` and `winrate-backtest.json` into "older than its input" for a
+  regeneration that changed nothing.
+- **Fixed** `tests/test-site-data-fresh.js` printing `node engine/slowking_preview.py` as a repair
+  command in its STALE table; the interpreter is now derived from the extension there too.
+
+### `docs/MODELS.md` had drifted in three places, and a fourth report did not reproduce
+
+- MAG's method line read *53 features / 6,091 games / 146,910 decisions (117,824 / 29,086)*. The
+  artifact `data/policy-weights.json` carries **58** features and a `corpus` of
+  **8,414 / 220,613 / 176,580 / 44,033**. A second heading two screens down said *56 features*, so the
+  file disagreed with itself as well as with the artifact.
+- MAG's corpus line read *198,157 usable decisions from 7,507 games*; the same artifact records
+  **220,613 kept of 228,084 seen from 8,414 games**.
+- SLOWKING's headline mixture (*Kingambit-Basculegion 0.84*), exploitability (*uniform 0.109*), named
+  cycle (*Charizard-Venusaur → Whimsicott-Garchomp → Garchomp-Incineroar*) and gap CI (*upper bound
+  0.27*) exist in **no file on disk**. Replaced with what `data/slowking-eval.json` says.
+- **Did not reproduce:** the mechanics census. `data/mechanics-census.json` reads **102 live of 144
+  probed, 42 missing**, `docs/ENGINE.md:15` already prints that, and `docs/MODELS.md` carries no
+  census figure at all. Nothing was changed for the reported *42/54*.
+- **Did not reproduce:** *"the site rendered GURU's 0.735"*. `0.735` appears nowhere in `web/` or
+  `app/` except as Golurk's percentiles in the JOLTEON roster. The stale figure was in
+  **`docs/SUMMARY.md`**, attached to a superseded 1,124-game / 11-archetype run; that row is corrected
+  to the artifact's 5,265 games / 12 archetypes / **0.7124**, with the multiplicity arithmetic beside
+  it. The verdict — worse than a coin — is the same under both runs.
+
+### Added — GURU has an entry in `docs/MODELS.md`
+
+The matchup matrix had no ledger entry, the same gap MILTANK had. It carries the honest state: a
+12×12 = 144-cell matrix over **5,265 clean games** generated 2026-07-31 and now **26.1% behind**;
+**6 directed / 3 distinct** decisive matchups of which **ZERO survive FDR at q=0.05 or Bonferroni**
+(66 pairs, 3.3 expected by chance, 3 observed, smallest exact p **6.1e-3** against a BH threshold of
+**7.6e-4**); a predictive test of **0.7124** against a coin's 0.6931 — **worse than a coin**; and the
+`n_decisive` bug, in which `build_guru_js.js` read a
+key that did not exist, recomputed the count from its own empty fallback and shipped *"ZERO
+statistically-decisive matchups"* as a finding. It was **accidentally right by way of a bug**, which is
+worse than wrong, because a conclusion produced by a broken path cannot be checked and licenses the
+path. Not regenerated, deliberately — it moves every number the GURU booth renders.
+
 ### R2 and R3 stamp their configuration — and R3's published number turns out to have no control
 
 R1 lost its result to a missing stamp: the published *"68.18% against material's 65.26%, +2.91

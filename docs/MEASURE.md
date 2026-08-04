@@ -21,11 +21,10 @@ MEASURE — can we believe a number
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
   provenance: 0 unsafe, 32 possibly stale, 52 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 09:06, but the feature function did not)
-    (data/abra-tags.js moved 2026-08-04 08:20, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-04 18:23, but the feature function did not)
 ```
 
-_stamped 2026-08-04 09:23_
+_stamped 2026-08-04 18:24_
 
 <!-- /GENERATED -->
 
@@ -490,6 +489,99 @@ shape as P0 #40 — two ratchets that crashed rather than failed for the same re
 `auc` 71.6%, which MODELS.md, the white paper and SUMMARY.md all quote. That is a stop-and-ask, not
 a refresh.
 
+### 5f. IS THE DRIFT THRESHOLD A TREADMILL? Yes, and the unit is wrong — DECIDED 2026-08-04
+
+`data/pory-nn.json` was regenerated on the current corpus and `tests/test-site-data-fresh.js`
+immediately reported **CORPUS DRIFT 15.7% — declares 6,008, 7,123 clean now**. The store grew during
+the retrain. That is not a bug in either tool; it is what a percentage of an unbounded append-only
+corpus does.
+
+**The verdict: a percentage is the wrong unit, and it is not a fraction at all — it is an age.** The
+collector runs hourly and clean games grew 5,269 → 7,123 in four days. For an artifact of age `Δt`,
+drift is `1 − n(t₀)/n(t)`, which depends only on elapsed time. A 10% threshold is therefore "about a
+day and a half old", stated in a unit that hides the fact that it is a clock — which is exactly what
+§5e removed from `test-site-data-fresh.js` and put back through the front door. A freshly-regenerated
+artifact failing its own freshness check on the day it was made is the shape of a check that gets
+filed as *known*, and CLAUDE.md names normalisation, not invisibility, as how the docs-currency guard
+rotted.
+
+**The unit that answers the real question is absolute power, and `provenance.js` now prints it.**
+Every drift note carries a POWER line beside it:
+
+- `ci_gain` — how many percentage points narrower the 95% interval would be. Precision goes as
+  `1/√n`, so `1.96 × 0.5 × (1/√n_dec − 1/√n_now)`.
+- `max_shift` — how far the pooled point estimate could move if every missing game arrived. The
+  pooled mean shifts by `(m/n_now)(x̄_new − x̄_old)` and `se(x̄_new) = sd/√m`, so a 2sd bound is
+  `2 × 0.5 × √m / n_now`. Worst case, not expected case.
+
+**Measured across all thirteen drifting artifacts, the percentages span 4× and the power spans 2×:**
+
+| artifact | drift | missing | CI gain | max shift (2sd) |
+|---|---|---|---|---|
+| `war.json` | **48.6%** | 3,460 | 0.46 pts | **0.83 pts** |
+| `policy-eval.json` | 45.2% | 3,220 | 0.41 | 0.80 |
+| `pory-eval.json` | 35.1% | 2,500 | 0.28 | 0.70 |
+| `xatu-belief.json` | 31.1% | 2,213 | 0.24 | 0.66 |
+| `guru-matchups.json` | 26.1% | 1,858 | 0.19 | 0.61 |
+| `roles-eval.json` and family | 26.0% | 1,854 | 0.19 | 0.60 |
+| `pory-nn.json` | 15.7% | 1,115 | 0.10 | **0.47** |
+| `counterplay.json` | 12.8% | 915 | 0.08 | **0.42** |
+
+**No artifact in this repository has enough missing data to move a proportion by one percentage
+point.** `war.json` is missing *half its corpus* and can move 0.83 points. The smallest split-half
+noise floor this division has published is **0.43 points** (R1's cuts run 0.43–2.01; R4's three run
+0.2 / 1.3 / 3.9), so `counterplay.json` is already **below the noise floor** and the rest sit inside a
+factor of two of it. "24% behind" and "the games it lacks cannot move it past its own noise floor"
+are different statements and only the second one is actionable.
+
+**And it self-extinguishes, which is the property the percentage lacks.** `max_shift = √f/√n`, so the
+same 15.7% drift that moves 0.47 points at n=7,123 moves 0.33 at n=14,000 and 0.24 at n=28,000. The
+treadmill stops on its own as the corpus grows instead of being switched off by hand.
+
+**What was NOT changed, deliberately: the 10% trigger.** Two reasons, and the second is the honest
+limit of this work.
+
+1. Lowering the bar changes thirteen artifacts' status and that is not a call to make inside a
+   measurement pass.
+2. **`max_shift` still cannot see the thing that decided every row of §5c's hand triage** — the
+   DISTANCE from an artifact's headline estimate to its decision boundary. `roles-eval.json`
+   publishes 0.6935 against a coin's 0.6931; that 0.0004 margin is flippable by any new data at all,
+   while `war.json`'s null is not flippable by 0.83 points. That margin is not computable from `n`,
+   and the artifact is the only thing that knows it. `max_shift` is also stated for a **proportion**
+   at sd = 0.5; a log-loss lives on another scale and the number is not directly comparable there.
+   The next rung is a declared `decision_margin`, in the same convention as below.
+
+**A grace period measured in regenerations is rejected.** It is a clock with extra steps, it cannot
+tell `chomp-ev.json` from `pory-nn.json`, and a fixed window is a licence for a genuinely flippable
+artifact to sit quiet inside it.
+
+**The `pory-eval.json` false positive is fixed on the reader side and still needs its generator.**
+`provenance.js` now honours a declared `population_ceiling` (`j.population_ceiling`,
+`provenance.population_ceiling` or `corpus.population_ceiling`) and measures drift against it — the
+same declaration convention as `not_store_derived`, `raw_store_ok`, `gate` and `games_requested`.
+`pory-eval.json` is a strict subset (clean ladder games whose raw log exists AND names a winner:
+5,456, not 7,123), so it can never get below ~21% against the wrong denominator. **This is a separate
+defect from the unit question and the answer above does not fix it by itself**: the hatch exists, and
+`engine/pory.py` must write the key on its next deliberate run. Every artifact reading
+`games.ladder.raw-logs.jsonl` has the same shape.
+
+**WHAT THE NEW RULE WOULD AND WOULD NOT HAVE CAUGHT, plainly.**
+
+- **`data/counters.json`, older than the quality filter, UNSAFE for nine days — CAUGHT, and it was
+  never a drift case.** That is the `FILTER_MT` check: the PREDICATE changed, so the artifact answers
+  a different question, and no amount of power makes it valid. It is untouched, it is still `bad`
+  rather than `warn`, and it still fails `--strict`. Confusing the two checks is how a volume rule
+  gets credit for a correctness rule's catch.
+- **`data/chomp-ev.json` four days behind, publishing "does not beat a coin" about a model with a
+  directional edge — CAUGHT, and better than before.** That verdict sits *at* its boundary, so its
+  decision margin is ≈ 0 and any `max_shift` exceeds it. The percentage caught it at 28% > 10%; the
+  power rule catches it for the right reason.
+- **An artifact recording a corpus it did not use — NOT CAUGHT, by either rule, and this file already
+  says so on every run.** Only re-running the generator can.
+- **`data/slowking-playstyle.js`, a GURU run written under the playstyle name — NOT CAUGHT by
+  anything, and this is why the crude mtime rule in `test-site-data-fresh.js` was left alone.**
+  See §9.
+
 ### 6. The noise floor is not a standing artifact
 
 Split one arm in half and measure the spread. An effect smaller than that is not an effect. This
@@ -549,6 +641,65 @@ so the withdrawal can be checked. `tests/test-timestamps.js` gates the WRITERS, 
 forms really do disagree on the running machine rather than quoting a comment about it, and lists the
 artifacts still carrying a naive stamp without failing on them, because an artifact is fixed by
 re-running its generator and that pressure is how "KNOWN FAILURE" gets typed.
+
+### 9. The two "stale bundles" — one was a no-op and the other was never the file it claims to be
+
+Both were regenerated with the verify-before-trusting step first. That step is the entire finding.
+
+**`data/engine-data.js` — BYTE-IDENTICAL. Nothing was landed.**
+`SHOWDOWN_PATH=… node build/rebuild_sets_from_sheets.js` reports 318 species, 195 rebuilt from real
+sheets, 123 left alone under 10 sheets, **materially changed 0, illegal abilities fixed 0**. Run with
+`--write` and diffed against a preserved copy: **identical to the byte**. The generator reproduces its
+own artifact and the 0.9-day staleness was mtime and nothing else.
+
+**The original mtime was then RESTORED, and that is the point of the entry.** Writing the identical
+file moved `engine-data.js` forward and immediately turned `counterplay.json`, `scoreboard.js` and
+`winrate-backtest.json` — this division's own leaf-calibration artifact — into *"older than its input
+engine-data.js"*. Three false staleness flags manufactured by a regeneration that changed nothing. A
+restamp with negative information content is still a restamp; `status.js`'s refit edge is hash-based
+(`feature_fixture --check`) and was never at risk, but `provenance.js`'s input-ordering rule is
+mtime-based and was.
+
+**`data/slowking-playstyle.js` — STOP. It is not stale; it is the wrong file, and has been since
+2026-08-03 15:15.**
+
+`engine/slowking_preview.py` takes its OUTPUT NAME from `TAG` and its MATRIX from `MATRIX_FILE`,
+which **defaults to `data/guru-matchups.json`**. Run with `TAG=playstyle` and `MATRIX_FILE` unset it
+writes a GURU result under the playstyle name. Measured:
+
+- `data/slowking-playstyle.js` has a payload **byte-identical** to `data/slowking.js`;
+- `data/slowking-playstyle-eval.json` is a **byte-identical file** to `data/slowking-eval.json`;
+- both read 5,265 games / 12 species-pair archetypes / 1,320 candidate triples — GURU's shape.
+  `data/playstyle-matchups.json` holds **2,860 games over 8 playstyles**.
+
+Regenerating it correctly moves published figures, so it was **restored and not landed**: n_games
+5,265 → **2,860**, archetypes 12 → **8**, mixture Gengar-Incineroar 0.66 / Charizard-Garchomp 0.22 /
+Pelipper-Archaludon 0.12 → **Rain 0.81 / Setup 0.17 / FakeOutBalance 0.03**, greedy−Nash 0.0409
+[−0.0001, 0.1735] → **0.026 [−0.0001, 0.1498]**, uniform 0.0761 → **0.0338**, cycle
+Charizard-Garchomp→Kingambit-Garchomp→Incineroar-Whimsicott → **TailwindOffense→Sand→TrickRoom**,
+triples searched 1,320 → **336**, and the verdict string flips from *"substantially less exploitable…
+the meta is non-transitive here (rock-paper-scissors)"* to *"no material exploitability gap between
+Nash and greedy — this meta is close to transitive at this granularity."*
+
+**The corrected numbers are the ones `docs/MODELS.md` already publishes** in the MACHAMP entry — 336
+triples, a leg on 5 games, 0.026, [−0.0001, 0.1498] — to the digit. So the docs are right and the
+artifact is wrong, which is the rare direction, and the 2026-08-02 withdrawal of the SLOWKING cycle
+still rests on measured evidence. `engine/build-status.js:18` and `engine/sanity_check.py:32` both
+read the clobbered file, and `app/index.html:907-923` renders its mixture and cycle legs. The repair
+is one command with **both** variables set; it is a WEB pass, not a refresh. The generator should
+refuse to write a `TAG`-named artifact from the default matrix.
+
+**Two things this costs the checkers, and both are recorded rather than fixed here.**
+
+- `provenance.js` reports `slowking-playstyle.js` as **`ok`**, correctly by its own rules — it is
+  co-generated with `slowking.js`, so the ordering carries no information. Provenance sees ordering
+  and declared counts; it cannot see that a file's CONTENT came from the wrong input. This is why the
+  crude mtime bundle rule in `tests/test-site-data-fresh.js` was **left alone** despite §5f:
+  delegating it to drift today would have marked this file clean.
+- `tests/test-site-data-fresh.js` printed the repair as `node engine/slowking_preview.py` — the wrong
+  interpreter, in the STALE table only; the `--list` path already derived it from the extension. Fixed.
+  The command it names is still incomplete, which the test's own comments already admit, and running
+  it with `TAG` set and `MATRIX_FILE` unset is a plausible route to the clobber that is on disk.
 
 ## Reading a run
 

@@ -181,6 +181,16 @@ contribute is the reason independent scoring fails, since a monotonic factorisat
 **Why it matters more than anything else on the list:** every other model here is fitted to PREDICT A HUMAN CLICK. That is a ceiling, and it is measured: re-optimising the same features for winning moved the kill proxy from +0.34 to +2.75, an eightfold change on exactly the signal the imitation fit throws away. MACHAMP is the only component whose objective is the thing actually wanted.
 **Honest status:** **half-run and stale.** The 2026-07-26 run completed **2 of 6 generations on a 17-FEATURE vector and recorded no verdict**. The vector is now 48. Re-running it is the single largest untested lever in the project.
 **Guards worth keeping:** every promoted champion is played against EVERY previous generation, not just the one it displaced, so that "gen 5 beats gen 4" is never mistaken for progress on its own. The guard stays — it is cheap, and it is the only thing that would *detect* a cycle. Its old justification did not: it read "this metagame is cyclic", and that is **withdrawn 2026-08-02**. `data/slowking-playstyle-eval.json` rates its own strongest cycle `supported: false` (the best of 336 candidate triples, with legs resting on as few as 5 games), and greedy-minus-Nash is 0.026 with a CI of [-0.0001, 0.1498]. Non-transitivity here is *unestablished*, which is not the same as *absent* — the guard is insurance against it, not evidence for it. `tests/test-docs-current.js` re-reads that artifact on every run and will license the claim again by itself if the metagame ever supplies it.
+
+> **Those four figures are correct and the file they name currently disagrees with them. 2026-08-04.**
+> `data/slowking-playstyle-eval.json` on disk is a byte-identical copy of `data/slowking-eval.json` —
+> a GURU species-pair run written under the playstyle filename on 2026-08-03 15:15, because
+> `engine/slowking_preview.py` takes its output name from `TAG` and its matrix from `MATRIX_FILE`,
+> which defaults to GURU. It reads 1,320 triples and gap 0.0409 [−0.0001, 0.1735], not 336 and 0.026
+> [−0.0001, 0.1498]. Re-running with both variables set reproduces this ledger's numbers exactly, so
+> **the withdrawal above still stands on measured evidence** — it is the artifact that needs
+> repairing, not the claim. See the SLOWKING entry for the full finding. Any check reading that file
+> today is reading a GURU result.
 **Limit, stated:** it searches the weight vector, not a policy space. It cannot learn anything the feature set cannot see, and after 2026-07-28 we know the feature set is the binding constraint for a static model.
 **KEPT, 2026-07-30** (Will, reversing an earlier call to graveyard it). The **artifact is gone,
 deleted 2026-08-02** — it was a **48-feature** vector against today's **56**, trained under the broken
@@ -323,10 +333,137 @@ because the weather and terrain cores *are* megas. See ROLES.
 **Code:** `runKadabra`, `kadCoach`, `kadBuild`, `renderKad`, `poryWin` in `web/index.html`; bundle from `engine/refresh-site-data.py`.
 **Open:** deeper per-turn analysis (win-prob delta per decision) once the engine + value net are wired.
 
+## GURU — the archetype matchup matrix (added to this ledger 2026-08-04)
+**Job:** answer "does archetype A actually beat archetype B" from real outcomes, so that nothing
+downstream has to assume a matchup. It is the input SLOWKING solves and the object the site's GURU
+booth renders.
+**Method:** `engine/guru.py` labels each clean ladder game's two teams with one of 12 archetypes,
+tallies head-to-head outcomes into a 12×12 = **144-cell matrix**, and puts a **Wilson 95% interval**
+on every cell. `build/build_guru_js.js` projects that into `data/guru.js` for the browser. No
+simulation is involved and no model is fitted — it is a census with intervals.
+**Corpus:** **5,265 clean games**, generated **2026-07-31 16:43**, and **26.1% behind** the 7,123
+clean ladder games available on 2026-08-04. **Deliberately not regenerated.** It moves every number
+the GURU booth renders, so it is a joint pass with WEB, not a refresh. (It read 24.2% behind earlier
+the same evening; the figure moved while nothing about the artifact did, which is the treadmill
+`engine/provenance.js` now annotates with an absolute-power line — the 1,858 missing games can move a
+proportion by at most **0.61 points**, against a smallest measured split-half floor of 0.43.)
+
+**THE HEADLINE IS A NULL, AND IT HAS TO BE SAID IN THAT ORDER.** The matrix finds **6 directed = 3
+distinct** matchups whose 95% interval excludes 50%, taken one at a time:
+
+| matchup | p(row beats column) | 95% CI | n |
+|---|---|---|---|
+| Charizard-Garchomp vs Trick Room | 0.660 | [0.526, 0.773] | 53 |
+| Kingambit-Sneasler vs Sableye-Aerodactyl | 0.648 | [0.546, 0.739] | 91 |
+| Gengar-Incineroar vs Sableye-Aerodactyl | 0.621 | [0.501, 0.729] | 66 |
+
+**ZERO of them survives a correction for the family.** There are C(12,2) = **66** unordered pairs, each
+its own 95% test, so **3.3 are expected to clear the bar with no real effect anywhere in the matrix**
+— and **3 appear**. The smallest exact two-sided binomial p-value in the whole matrix is **6.1e-3**
+against a Benjamini-Hochberg threshold of **7.6e-4**: **0 survive FDR at q=0.05, 0 survive
+Bonferroni**. `data/guru.js` publishes `n_decisive` (6), `n_decisive_corrected` (0) and the
+arithmetic under `multiplicity`, so the correction travels with the number instead of beside it.
+**What GURU establishes is that the matrix is descriptive structure. It does not establish that any
+archetype beats any other.**
+
+**Predictive test: `log_loss_matchup_prior` 0.7124** over 1,053 held-out games, against a coin's
+**0.6931** and a usage prior's **0.6928**; winner-pick accuracy **0.4982**. GURU is **worse than a
+coin** at predicting a single game. The artifact's own note says per-game prediction is expected near
+the coin because the format's ceiling is there — that is fair, and it does not turn 0.7124 into a
+pass.
+
+> **The competing 0.735 was traced rather than assumed, and it was not the site.** `0.735` appears
+> nowhere in `web/` or `app/` — the only hits are Golurk's damage and speed percentiles in the
+> JOLTEON roster. It lives in **`docs/SUMMARY.md`**, attached to a run over **1,124 clean games and
+> 11 archetypes**, and in `docs/THESIS-DEFENCE-REVIEW-2026-07-31.md` quoting it. SUMMARY.md is
+> corrected to 0.7124 in this pass; the review document is dated history and is left alone. Both
+> readings agree on the conclusion — GURU is worse than a coin at picking a single game — so the
+> defect was a stale figure, not a changed verdict.
+
+**The `n_decisive` bug, which is the reason this entry exists.** `build/build_guru_js.js` read
+`g.decisive`. `engine/guru.py` writes the list as `decisive_matchups`. The missing key gave `[]`, the
+generator then recomputed `n_decisive` **from its own empty fallback**, and shipped a provenance note
+asserting *"ZERO statistically-decisive matchups on this population"* as though it were a finding. The
+144-cell matrix was byte-identical throughout, so nothing looked wrong. `venusaurmega` /
+`venusaur-mega`, in a new pair of files.
+
+**It was accidentally right, and that is worse than being wrong.** The true corrected count really is
+zero — but it arrived there by a key typo, not by the multiplicity arithmetic above, and a conclusion
+produced by a bug **cannot be checked**. Anyone who verified it would have found the right answer and
+concluded the pipeline worked. A wrong number gets caught; a right number from a broken path does not,
+and it licenses the broken path. Three derived guards stop it recurring: every source key must be
+projected or named in `DELIBERATELY_UNUSED` with a reason; the source must agree with itself
+(`decisive_matchups.length === min(n_decisive, 20)`); and `build_guru_js.js --check` rebuilds the
+bundle in memory and diffs it, run by `tests/test-guru-derived.js` on every suite run.
+
+**Filed, not fixed (WEB's files):** `web/index.html:1845` gates a panel headed *"These are the
+matchups we can actually trust"* on `GURU.decisive.length`, which is the **uncorrected** 6, so it will
+render three matchups that do not survive multiplicity. It should read `decisive_corrected`. The same
+applies to `isSig()` in the matrix render and to the "statistically significant loop" claim,
+independently of that fix.
+**Code:** `engine/guru.py` → `data/guru-matchups.json`; `build/build_guru_js.js` → `data/guru.js`;
+`tests/test-guru-derived.js`. Consumed by `engine/slowking_preview.py` (its default `MATRIX_FILE`).
+
+> **A note on this ledger, recorded because it is the same class of defect.** `docs/MODELS.md` was
+> found drifted on 2026-08-04 in three separate places and all three are corrected in this pass:
+> MAG's fit read *6,091 games / 146,910 decisions / 53 features* against `data/policy-weights.json`'s
+> **8,414 / 220,613 / 58**; MAG's corpus line read *198,157 decisions from 7,507 games* against the
+> same file's **220,613 kept of 228,084 seen from 8,414**; and SLOWKING's headline mixture,
+> exploitability, cycle and CI existed **in no file on disk at all**. A fourth reported drift did not
+> reproduce: the mechanics census reads **102 live of 144 probed, 42 missing** in
+> `data/mechanics-census.json`, `docs/ENGINE.md:15` already prints exactly that, and `docs/MODELS.md`
+> carries no census figure to correct — so *42/54* was not found here and nothing was changed for it.
+> Checking the claim was cheaper than acting on it.
+
 ## SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver
 **Job:** the endgame — tell you the equilibrium-best move (and win %) on a live position.
 **Method:** the poker-AI stack (CFR → DeepStack → Libratus → ReBeL) adapted to VGC. `engine/slowking/`: `nash.py` (equilibrium, verified on RPS/2×2), `belief.py` (public-belief-state + Bayesian filter), `ismcts.py` (simultaneous-move regret matching, recovers exact Nash), `game.py` (engine interface), `solver.py` (team-preview Nash + continual re-solve → bring **mix** + win%), `value.py` (learned leaf evaluator).
-**Preview-Nash built + evaluated (2026-07-23):** `engine/slowking_preview.py` solves GURU's archetype matchup matrix (game count generated into `data/live.js`; the old hardcoded size is retracted, S13) to an equilibrium mixed strategy and grades it by **exploitability** (the spec's bar). Result → `data/slowking-eval.json` (+ `data/slowking.js`): the equilibrium is **Kingambit-Basculegion 0.84 / Garchomp-Incineroar 0.16**; exploitability **Nash ≈ 0 vs uniform 0.109** (mixing over the *right* decks is far less exploitable than spreading evenly). Greedy "pick the single best deck" ≈ Nash **here** because this meta is currently near-transitive at the coarse archetype level (a dominant deck) — an honest finding, not a win for mixing. **But a real non-transitive cycle exists** (Charizard-Venusaur → Whimsicott-Garchomp → Garchomp-Incineroar → back, ~0.10 edge each leg), so greedy is *not* universally safe; finer, playstyle-level archetypes (stall / Trick Room / perish-trap / setup) would expose more cycles. CI propagates matchup-count uncertainty (Beta resampling); the greedy-vs-Nash gap CI upper bound is 0.27, i.e. under plausible resamples the meta *is* non-transitive. Test: `tests/test-slowking.py` (RPS hand-check + shipped-artifact invariants), gated in CI.
+**Preview-Nash built + evaluated:** `engine/slowking_preview.py` solves GURU's archetype matchup
+matrix to an equilibrium mixed strategy and grades it by **exploitability** (the spec's bar). Result
+→ `data/slowking-eval.json` (+ `data/slowking.js`).
+
+> **EVERY NUMBER THAT USED TO BE IN THIS PARAGRAPH EXISTS IN NO FILE ON DISK. Corrected 2026-08-04,
+> quoting the artifact.** It read: equilibrium *Kingambit-Basculegion 0.84 / Garchomp-Incineroar
+> 0.16*, exploitability *Nash ≈ 0 vs uniform 0.109*, a named non-transitive cycle *Charizard-Venusaur
+> → Whimsicott-Garchomp → Garchomp-Incineroar* at *~0.10 edge each leg*, and a *greedy-vs-Nash gap CI
+> upper bound of 0.27*. None of the four is in `data/slowking-eval.json`, in `data/slowking.js`, or
+> anywhere else in `data/`. They are a 2026-07-23 run whose artifact was overwritten, and the prose
+> outlived it — which is the same failure as the fourteen `HANDOFF-*.md` files, inside the living
+> ledger that was supposed to replace them.
+
+**What the artifact actually says** (`data/slowking-eval.json`, written 2026-08-03 15:15 over
+`data/guru-matchups.json`'s 12 archetypes and 5,265 games):
+
+| quantity | value |
+|---|---|
+| equilibrium mixture | Gengar-Incineroar **0.6602** / Charizard-Garchomp **0.2182** / Pelipper-Archaludon **0.1210** |
+| exploitability | Nash **0.0001**, greedy single deck **0.0410**, uniform **0.0761** |
+| greedy − Nash | **0.0409**, 95% CI **[−0.0001, 0.1735]** — the lower bound does not clear zero |
+| strongest cycle | Charizard-Garchomp → Kingambit-Garchomp → Incineroar-Whimsicott, min edge 0.095 |
+| is that cycle supported? | **`supported: false`** — legs rest on 49, 37 and 15 games, none clears 50%, and it is the strongest of **1,320** candidate triples |
+
+So the honest reading is the opposite of the one the old paragraph gave: mixing is **not** shown to
+beat greedy here (the gap CI includes zero), and the cycle is what the best of 1,320 searched triples
+looks like when there is no structure — LESSONS §10, in the model that lesson is named after. CI
+propagates matchup-count uncertainty by Beta resampling. Test: `tests/test-slowking.py` (RPS
+hand-check + shipped-artifact invariants), gated in CI.
+
+> **AND `data/slowking-playstyle.js` IS NOT A PLAYSTYLE RESULT. Found 2026-08-04; not repaired
+> here.** `engine/slowking_preview.py` takes the matrix from `MATRIX_FILE`, which **defaults to
+> `data/guru-matchups.json`**, and takes only the OUTPUT FILENAME from `TAG`. Run with `TAG=playstyle`
+> and `MATRIX_FILE` unset, it writes a GURU run under the playstyle name. That is what is on disk:
+> `data/slowking-playstyle.js` has a payload **byte-identical** to `data/slowking.js`, and
+> `data/slowking-playstyle-eval.json` is a **byte-identical file** to `data/slowking-eval.json` —
+> 5,265 games, 12 species-pair archetypes, 1,320 triples. The real playstyle matrix
+> (`data/playstyle-matchups.json`) holds **2,860 games over 8 playstyles**, and re-running against it
+> reproduces the figures **this ledger already publishes** in the MACHAMP entry above — 336 candidate
+> triples, a leg resting on 5 games, greedy−Nash **0.026** CI **[−0.0001, 0.1498]**, mixture Rain 0.81
+> / Setup 0.17 / FakeOutBalance 0.03, and the verdict *"no material exploitability gap… this meta is
+> close to transitive at this granularity"*. **The docs are right and the artifact is wrong**, which
+> is the rare direction. The repair is one command with both variables set; it moves every figure the
+> site's cycle panel renders (`app/index.html:907-923` reads `window.SLOWKING_PLAYSTYLE`), so it is a
+> WEB pass, not a refresh. The generator should refuse to write a `TAG`-named file from the default
+> matrix.
 **Honest status:** preview-Nash is now a **real, tested model on real data** (exploitability + baseline + CI), not just a chassis. The in-battle search (IS-MCTS/PIMC → ReBeL) is still a rung below target and not yet wired to the engine — that's ALAKAZAM.
 **Code:** `engine/slowking_preview.py`, `engine/slowking/*`; white paper `docs/POKER-TO-POKEMON.md`.
 **Open:** wire `ChampionsGame` to the real engine; PIMC → outcome-sampling MCCFR / PBS re-solving; train the value net via self-play.
@@ -492,7 +629,16 @@ not be quoted as evidence that species choice predicts outcomes.
 ## MAGNEMITE (MAG) — Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates (added 2026-07-26)
 **Job:** decide a move by looking at the other side of the field, instead of by how popular the move is.
 **Why:** the behaviour clone answers only *what does this species usually click?* Two gaps followed and no prior-tuning could close them — super-effective moves at 9.7% against a real 21.4%, moves that outright failed at 9.7% against 2.5%. It also made every `build_lab` number a measurement of what beats **bad** play.
-**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **53 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **6,091 clean open-sheet games and 146,910 decisions** (117,824 train / 29,086 held out); `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
+**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **8,414 clean open-sheet games and 220,613 decisions** (176,580 train / 44,033 held out); `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
+
+> **Every figure in that line was corrected 2026-08-04 and none of them was a typo.** It read
+> 53 features / 6,091 games / 146,910 decisions / 117,824 train / 29,086 held out. The artifact —
+> `data/policy-weights.json`, generated `2026-08-04T02:17:31Z` — carries `features` of length **58**
+> and `corpus` of **8,414 / 220,613 / 176,580 / 44,033**. The ledger was describing the fit before
+> last, and a second heading two screens down still said "56 FEATURES AS OF 3.29.0" while the method
+> line above it said 53, so the file disagreed with itself as well as with the artifact. This is the
+> drift `docs/MODELS.md`'s own header warns about, recurring in the entry for the model at the centre
+> of the refit. Quote `data/policy-weights.json`; it is one `corpus` object and it cannot drift.
 
 **Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
 taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and
@@ -522,7 +668,8 @@ stub — no ability or weather is named in `board.js`.
 **Most of the win was aiming.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in doubles aiming is most of what "super effective" means.
 **It samples, it does not take the best move** — a greedy bot sails past 23.4% super-effective and is *less* human. Same argument as DEFENSE §2.
 **Two findings worth keeping.** The behaviour clone alone is a *worse* probabilistic model of human choice than choosing uniformly at random, and the fit weights it at only +0.25 — it is far too confident about the popular move. And the largest learned effects are not damage terms at all, they are the "this move is already dead" terms at −2.3. Reading the board is mostly about **not clicking moves that cannot work**.
-**56 FEATURES AS OF 3.29.0, and the three added are large.** `data/tags.json` derives 96 move tags
+**58 FEATURES as of `data/policy-weights.json` 2026-08-04 (this heading read 56 and was stale; the
+three below are the large ones added at 3.29.0).** `data/tags.json` derives 96 move tags
 with their parameters and `engine/tags.js` exists to load them; board.js read NONE of them, and 72 of
 the 96 reached no consumer at all. The symptom Will spotted: MAG scored **Tailwind and Protect
 identically at −1.54**, because the only things firing on a Tailwind click were `accuracy`,
@@ -559,7 +706,7 @@ a real damage calculation (`board.js` calls the damage engine throughout — `ko
 `diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
 model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
 search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and **2.94%** of clicks could not be matched to a candidate and were dropped (`data/policy-weights.json` records it). This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is **1.60%** of the unmatched, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate is now a quarter of what it was. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target on 1.55% of clicks, unrecoverable because the protocol records only a move's resolved target and never its chosen one. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
-**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. **198,157 usable decisions** from 7,507 games (2026-08-02; 176,981 before `engine/click_match.js`).
+**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. **220,613 usable decisions kept of 228,084 seen**, from **8,414 games** (`data/policy-weights.json`, 2026-08-04; the line read 198,157 from 7,507 games at 2026-08-02, and 176,981 before `engine/click_match.js`). The 7,471 dropped are 6,669 unmatched, 776 trivial and 26 ambiguous, all recorded under `matching`.
 **Damage table:** 318 species. Eight had no row and therefore computed **zero damage, zero threat and
 zero risk** until 2026-08-02 — five format megas (Victreebel, Feraligatr, Skarmory, Barbaracle,
 Falinks) whose data existed but was gated behind a stale `in_our_store` flag, plus Aegislash-Blade,

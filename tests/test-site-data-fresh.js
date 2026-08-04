@@ -294,7 +294,11 @@ if (stale.length) {
   console.log('\n  STALE — older than the newest game data:');
   for (const s of stale) {
     console.log(`    ${s.rel.padEnd(32)} ${s.days === Infinity ? 'MISSING' : s.days.toFixed(1) + 'd'}` +
-      `   served by ${s.pages.join(', ')}` + (s.gen ? `   regenerate: node ${s.gen}` : '   NO GENERATOR'));
+      /* `node engine/slowking_preview.py` is not a command. The --list path already derives the
+       * interpreter from the extension and this line hardcoded `node`, so the repair printed for
+       * every Python generator was one that cannot run. */
+      `   served by ${s.pages.join(', ')}` +
+      (s.gen ? `   regenerate: ${(/\.py$/.test(s.gen) ? 'python' : 'node')} ${s.gen}` : '   NO GENERATOR'));
   }
 }
 /* A BASELINED ORPHAN IS ALREADY KNOWN TO BE PERMANENTLY STALE, and failing on its staleness too
