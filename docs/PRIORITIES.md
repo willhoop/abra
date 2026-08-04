@@ -6,6 +6,47 @@ Where an item has no number, it says so.
 For *what a set is* and *which slots are genuinely open*, see [BACKLOG.md](BACKLOG.md) — that file is
 domain analysis. This file is the queue.
 
+## How this queue is worked (standing mode)
+
+**Will, 2026-08-04:** *"Keep allocating jobs to agents as jobs finish up and report their findings.
+Then take their findings and create future jobs for future agents to do. Eventually we will run out
+of bugs and jobs."*
+
+The loop, and it is a loop rather than a plan because every pass changes the queue:
+
+1. An agent reports. **Land its work first** — commit and push before dispatching anything new, or a
+   crash loses it. Two agents this session had uncommitted work sitting on disk when they finished.
+2. **Extract every finding, including the ones that were not the job.** The most valuable items in
+   this file were incidental: the bring enumerator inventing brings, `applyMegaWeather` never firing,
+   three ratchets red before the session began. Nobody was asked to find any of them.
+3. **Add them here with their evidence and their owner**, in the priority band the harm justifies —
+   not the band that is convenient.
+4. **Dispatch into the free slot**, checking `FreePhysicalMemory` first. Never hand a division a file
+   another live agent owns; say explicitly in the brief which files are taken.
+5. Repeat.
+
+### When are we actually done
+
+Not when the queue is empty — an empty queue means nobody has looked lately. Three real conditions:
+
+- **The census stops moving.** It went 42/54 → 100/142 in one night. When a fresh block of probes
+  turns up almost nothing red, that is evidence.
+- **The differential holds at its floor across seeds.** It is at 1/400 at seed 20260804. One seed is
+  one sample; a residual that stays flat across several is a residual.
+- **Every published number has an artifact and a stamp**, so the P1 band cannot refill from prose.
+
+### The honest caveat, because this is where a project like this fools itself
+
+**A falling find-rate is not evidence of correctness.** Tonight, 88 probes produced 40 red — a 45%
+hit rate on mechanics nobody had checked. If the next 88 produce 5, that is signal. If the next 88
+are never written, the number simply stops moving and looks identical from the outside.
+
+Every check in this repo says something about **the part of the engine it was pointed at.** The 2026-07-28
+failures were all invisible to every automated check that existed, and the differential residual sat
+at "6/120" for a day while being **unreproducible** — two runs on identical source gave 6 and then 3.
+So the terminal state is not "no bugs found". It is **"the instruments are good enough that finding
+nothing means something"**, and we are not there yet.
+
 ## How this is ordered
 
 Not by size, and not by how annoying it is. By **what a wrong answer costs**, which here runs one way:
