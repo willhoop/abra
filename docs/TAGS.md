@@ -116,6 +116,35 @@ Three consequences that are not obvious:
 
 ---
 
+## Worked example — why the PARAM is the fact and the NAME is only a label
+
+**Spicy Extract** (Hydrapple's signature) gives the *target* **+2 Attack and −2 Defense**. It is one
+of the few moves that hands your opponent a buff on purpose.
+
+Its tag list reads:
+
+```
+tags:   ["neverMisses", "lowersTarget", "statusCategory", "statChange"]
+params: lowersTarget { readFrom:"m.boosts", lowersSpeed:false, lowersAttack:false }
+        statChange   { target: [{ boosts: {atk: 2, def: -2}, chance: 100 }] }
+```
+
+**`lowersTarget` is a misleading name for this move.** A consumer keying off the tag *name* would
+read "this is a debuff" and miss that it grants +2 Attack — which is the whole reason anybody clicks
+it. The name is wrong and it does not matter, because the **param** carries `{atk: +2, def: −2}` and
+`engine/medicham2-browser.js:2168` reads the param:
+
+```js
+const _sc = TAGS.param('move', id, 'statChange');
+```
+
+So the move is modelled correctly, including the half that helps the opponent. `:2134` already
+contrasts the two in a comment.
+
+**The rule:** a tag NAME is a searchable label and may be imprecise. A tag PARAM is a fact and must
+not be. **Consumers key off params.** A consumer that branches on a tag name has turned a label into
+a fact, and the first move whose name does not describe it will be silently wrong.
+
 ## Invariants, each with the bug it exists to prevent
 
 **1. Every tag has a consumer, or is declared unconsumed with a reason.**
