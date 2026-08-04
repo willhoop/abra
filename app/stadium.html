@@ -400,7 +400,7 @@
       job:"Hill-climbs over MAG's own feature weights, maximising win rate <em>against</em> MAG. If a challenger drawn from the same features can beat us badly, we are readable.",
       why:"Counter and Mirror Coat. Wobbuffet has no offence of its own — whatever you throw, it returns the thing that beats it. That is the measurement.",
       stats:[
-        {k:"Beat MAG, current build", v:null, n:"<code>data/exploitability.json</code> was measured on a <b>17</b>-feature vector and <code>engine/provenance.js --strict</code> calls it UNSAFE — older than the quality filter and older than its own input. It read <s class='wd' title='Unquotable 2026-08-04 — data/exploitability.json is a 17-feature run, older than the quality filter and older than data/policy-weights.json, which ships 58 features. engine/provenance.js --strict marks it UNSAFE, so the figure describes a policy we no longer play.'>63.2%, CI [56.6, 69.3], against a mirror control of 47.5%</s>."},
+        {k:"Beat MAG, current build", v:null, n:"<b>There is no number.</b> The old one read <s class='wd' title='Retracted 2026-08-04 — a 17-feature run against the 58 we ship, on an engine 25 wire-fixes old, computed before the quality filter existed.'>63.2%, CI [56.6, 69.3]</s> and is retracted: 17 features against the <b>58</b> we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 2026-08-04 re-run (5,500 games + a 1,600-game replay) is <b>VOID</b> — MAG itself was refitted mid-search, so the two legs defended with different weight vectors. <code>data/exploitability.json</code> now declares <code>void: true</code> and <code>provenance.js</code> reads it UNSAFE. Blocked on a frozen engine release, and on a step rule that survives 58 dimensions: the hill-climb accepted <b>1 of 24</b> steps against 10 of 18 at 17 features, so even on a still tree it would have returned an uninformative null."},
         {k:"Vector then / now", v:"17 / 58", n:"Then <code>data/exploitability.json</code>, now <code>data/policy-weights.json</code>."},
         {k:"Rounds run", v:"18", n:"220 games per evaluation, seed 90210. <code>data/exploitability.json</code>."}
       ],
@@ -466,7 +466,7 @@
       why:"Mew is the ancestor every other Pokémon is descended from. This is the model that generates the games the others learn from.",
       stats:[
         {k:"Games, discarded", v:"1,000 / 0", n:"13 validation checks, all gated."},
-        {k:"Mirror symmetry", v:"51.0%", n:"95% CI [45.4, 56.6] on 300 battles — no side bias."},
+        {k:"Mirror symmetry", v:"49.7%", n:"95% CI [46.2, 53.2] on 782 battles. This is the one figure the void 2026-08-04 re-run produced that SURVIVES, because both of its legs fall inside a single stable window — and it retires a live worry: the 47.0% and 47.5% round-0 mirrors were noise at n=217, not a seat or pairing asymmetry biasing every other row."},
         {k:"Human evidence produced", v:null, n:"Zero, by construction."}
       ],
       honest:"Human replays arrive at ~330 clean games a day, and 1,124 of them can only detect an edge of ~4.2 accuracy points — a 2-point effect needs ~4,900, all four figures from <code>docs/MODELS.md</code>. Self-play fixes that and produces <em>zero</em> evidence about people. Two bad batches shipped before the gate existed and nothing detected either: one filled every unrevealed slot with Tackle, one used a flat spread that understated Garchomp's Attack by 13%."
@@ -716,7 +716,7 @@
     /* wobbuffet.back is what the counter-punch RETURNS, and on the current build it returns nothing:
        engine/provenance.js --strict marks data/exploitability.json UNSAFE. `was` is the figure it
        used to return, struck through on the page and never re-quoted as live. */
-    wobbuffet:{ stops:["Wobbuffet","the mirror"], back:[null,null], was:["63.2%","47.5%"], ci:["[56.6, 69.3]","n=217"], rounds:"18", per:"220", weights:"17", now:"58", src:"data/exploitability.json, marked UNSAFE against data/policy-weights.json" },
+    wobbuffet:{ stops:["Wobbuffet","the mirror"], back:[null,null], was:["63.2%","49.7%"], ci:["[56.6, 69.3]","[46.2, 53.2]"], rounds:"24", per:"220", weights:"17", now:"58", src:"data/exploitability.json, DECLARED VOID by its own generator" },
     machamp:  { gens:"2 of 6", shift:"+0.34 → +2.75", from:"+0.34", to:"+2.75", vecThen:"17", vecNow:"58", src:"docs/MODELS.md and data/policy-weights.json" },
     guru:     { pairs:"66", expected:"3.3", dec:"6", distinct:"3", corrected:"0", pmin:"6.1e-3", bonf:"7.6e-4", games:"5,265", cells:"144", conf:"95%", alpha:"0.05", even:"50%",
                 hot:[["Kingambit-Sneasler","Sableye-Aerodactyl","64.8%","[54.6, 73.9]","91"],["Gengar-Incineroar","Sableye-Aerodactyl","62.1%","[50.1, 72.9]","66"],["Charizard-Garchomp","Trick Room","66.0%","[52.6, 77.3]","53"]], src:"data/guru.js" },

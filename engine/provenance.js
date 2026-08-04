@@ -34,6 +34,7 @@
  */
 'use strict';
 const fs = require('fs');
+const crypto = require('crypto'); /* content digests — see digestOf(), and why mtime was not enough */
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
@@ -311,6 +312,16 @@ if (process.argv.includes('--graph')) {
 }
 
 const mtime = f => { try { return fs.statSync(D('data', f)).mtimeMs; } catch (e) { return null; } };
+/* CONTENT, NOT TIMESTAMP. Resolved against the repo root as well as data/, because a stamped input
+ * is as often an ENGINE file (`medicham2-browser.js` — the simulator a run was scored under) as a
+ * data one, and the simulator moving mid-run is the case that voided the WOBBUFFET re-run. */
+const digestOf = src => {
+  for (const p of [D(src), D('data', src)]) {
+    try { if (fs.existsSync(p) && fs.statSync(p).isFile()) return crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 12); }
+    catch (e) { /* next */ }
+  }
+  return null;
+};
 const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
 
 let cleanCount = null, openCleanCount = null;
@@ -584,7 +595,63 @@ for (const a of ARTIFACTS) {
     notes.push('records no game count — nobody can check what it was built from');
     warn = true;
   }
-  rows.push({ ...a, status: bad ? 'UNSAFE' : (warn ? 'stale?' : 'ok'), games: n, notes });
+  /* ── THE CHECKER WAS DECIDING BY MTIME, WHICH IS THE METHOD CLAUDE.MD DISCREDITS BY NAME ───────
+   *
+   * CLAUDE.md: *"treat 'newer than its source' as no evidence at all — engine-data.js was newer than
+   * the merge script and had still lost its output."* This file exists to enforce the rule that a
+   * derived artifact is not a fact until something compares it to its SOURCE, and the comparison it
+   * was making was `mtime(artifact) < mtime(input)`.
+   *
+   * SEARCH proved it false-clears, with the receipt. `data/exploitability.json` was written at
+   * 22:17:57 from a `policy-weights.json` it had read at 21:41 — but the weights were REFITTED at
+   * 22:15:24, so the artifact is 153 seconds NEWER than an input it never saw. mtime says `ok`. The
+   * run measured one vector for one leg and a different vector for the other, and this file cleared
+   * it. **An integrity gate that answers `ok` for a file that is not ok is worse than no gate**,
+   * because the whole point of the row is that somebody stops checking by hand.
+   *
+   * A timestamp cannot express "computed from this content". A digest can, and `run_stamp.js` has
+   * had `sourceDigests()` for exactly this since it was written.
+   *
+   * WHY UNSTAMPED ARTIFACTS ARE NOT FAILED. Flipping ~53 files to UNSAFE for lacking a stamp would
+   * cry wolf, which this file's own comments refuse to become three separate times — and a gate
+   * nobody acts on is not a gate, which is the lesson that produced `artifact_audit.js`. So an
+   * unstamped artifact keeps its mtime verdict and is COUNTED. The count is the honest statement of
+   * how much of this table rests on a method we know does not work.
+   *
+   * RATCHETED, like `unarmed` in the mechanics census: `mtime_only` is written to
+   * `data/provenance-stamp.json` and MAY FALL AND MAY NEVER RISE. A new generator that ships without
+   * stamping its inputs fails the file. That is what turns a known limitation into a closing one
+   * rather than a permanent footnote. */
+  /* AN ARTIFACT MAY CONDEMN ITSELF, AND THE GATE MUST BELIEVE IT.
+   *
+   * Every other rule here is inferred — a timestamp, a digest, a game count. None of them can see
+   * "the person who generated this watched the tree move underneath it." `data/exploitability.json`
+   * was regenerated on 2026-08-04 and is void for that reason, and it read `ok` on every inferential
+   * check in this file: current mtime, current filter, a game count present and plausible. The only
+   * thing that knew was the run itself.
+   *
+   * So a generator may write `void: true` with a `void_reason`, and that outranks every inference
+   * below. It is deliberately one-way — there is no `valid: true` that clears anything — because a
+   * field that can silence a gate is a field that eventually silences it wrongly. */
+  if (j && j.void) {
+    notes.push('DECLARED VOID BY ITS OWN GENERATOR — ' + String(j.void_reason || 'no reason recorded').split('. ')[0] + '.');
+    bad = true;
+  }
+  let digestState = 'mtime-only';
+  const stamped = j && (j.source_digests || j.sourceDigests);
+  if (stamped && typeof stamped === 'object') {
+    digestState = 'verified';
+    for (const [src, want] of Object.entries(stamped)) {
+      if (!want) continue;
+      const got = digestOf(src);
+      if (!got) { notes.push(`stamped input ${src} cannot be read to verify`); digestState = 'unverifiable'; warn = true; continue; }
+      if (String(got).slice(0, 12) !== String(want).slice(0, 12)) {
+        notes.push(`COMPUTED FROM DIFFERENT CONTENT — ${src} was ${String(want).slice(0, 12)} at read time, is ${got} now`);
+        bad = true; digestState = 'mismatch';
+      }
+    }
+  }
+  rows.push({ ...a, status: bad ? 'UNSAFE' : (warn ? 'stale?' : 'ok'), games: n, notes, digestState });
 }
 
 console.log('PROVENANCE — what every published artifact was actually built on\n');
@@ -602,6 +669,41 @@ const stale = rows.filter(r => r.status === 'stale?');
 console.log('');
 console.log(`  ${unsafe.length} UNSAFE, ${stale.length} possibly stale, ${rows.filter(r => r.status === 'ok').length} ok, ` +
             `${rows.filter(r => r.status === 'missing').length} missing`);
+
+/* ---- HOW MUCH OF THE TABLE ABOVE RESTS ON A METHOD WE KNOW DOES NOT WORK -----------------------
+ *
+ * Printed unconditionally, and printed as a NUMBER rather than a caveat, because the failure this
+ * closes was a caveat: "it cannot catch one that records a corpus it did not use" was already the
+ * last line of this file and was true and was read past. A count moves; a sentence does not. */
+const mtimeOnly = rows.filter(r => r.digestState === 'mtime-only');
+const verified = rows.filter(r => r.digestState === 'verified');
+console.log(`  ${verified.length} verified by CONTENT digest, ${mtimeOnly.length} by mtime alone` +
+            (mtimeOnly.length ? ' — an mtime test cannot see an artifact written AFTER an input it read BEFORE' : ''));
+
+const STAMP = D('data', 'provenance-stamp.json');
+let prev = null;
+try { prev = JSON.parse(fs.readFileSync(STAMP, 'utf8')); } catch (e) { /* first run */ }
+if (prev && typeof prev.mtime_only === 'number' && mtimeOnly.length > prev.mtime_only) {
+  console.log('');
+  console.log(`  RATCHET BROKEN: ${mtimeOnly.length} artifacts rest on mtime alone, up from ${prev.mtime_only}.`);
+  console.log('  A new generator shipped without stamping the CONTENT of its inputs. Use');
+  console.log("  run_stamp.sourceDigests() and write the result as `source_digests` in the artifact.");
+  console.log('  This number may fall and may never rise — that is what makes it close rather than linger.');
+  process.exitCode = 1;
+} else {
+  /* Only ever writes a number equal to or lower than the one before it. */
+  const floor = prev && typeof prev.mtime_only === 'number' ? Math.min(prev.mtime_only, mtimeOnly.length) : mtimeOnly.length;
+  try {
+    fs.writeFileSync(STAMP, JSON.stringify({
+      note: 'RATCHET. mtime_only may fall and may never rise. See engine/provenance.js — mtime cannot '
+          + 'detect an artifact written after an input it read before, which is how a 7,100-game '
+          + 'WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders.',
+      mtime_only: floor,
+      verified: verified.length,
+      generated: new Date().toISOString(),
+    }, null, 2) + '\n');
+  } catch (e) { console.log('  (could not write the ratchet stamp: ' + e.message + ')'); }
+}
 if (unsafe.length) {
   console.log('\n  DO NOT QUOTE THE UNSAFE ONES. Regenerate them before any result that depends on them');
   console.log('  is reported, and before wiring them into anything downstream.');

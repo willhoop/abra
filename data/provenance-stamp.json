@@ -1,0 +1,6 @@
+{
+  "note": "RATCHET. mtime_only may fall and may never rise. See engine/provenance.js — mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders.",
+  "mtime_only": 90,
+  "verified": 0,
+  "generated": "2026-08-04T22:41:12.823Z"
+}

@@ -77,6 +77,42 @@ That is how this repo reached a detached HEAD 43 commits into a 45-commit rebase
 **Never run both agents against this repo at the same time.** They cannot see each other's edits and
 the later write silently wins.
 
+### A MEASURING AGENT MAY NOT RUN BESIDE A WRITING AGENT. THIS COST 7,100 GAMES.
+
+The rule above was written about Cowork and it does not cover **division subagents**, which are
+agents too. On 2026-08-04 three were dispatched at once — ENGINE on the mechanics, MEASURE on the
+refit, SEARCH re-running WOBBUFFET — with their FILES separated so they could not clobber each other.
+File separation was the wrong invariant, and the run was destroyed anyway:
+
+| what moved under the measurement | when |
+|---|---|
+| `data/policy-weights.json` — **MAG itself, the thing being defended** — refitted by MEASURE | 22:15:24, between the two legs |
+| `engine/medicham2-browser.js` — the simulator — **four distinct content digests** | 22:29–22:37 |
+| `engine/board.js`, through which every candidate is scored | 21:50, mid-search |
+
+The search froze the defender at 21:41 and the held-out replay reloaded it at 22:17. **The two legs
+defended with different weight vectors**, and the 5,500-game search plus the 1,600-game replay are
+void. Nothing crashed and nothing reported a failure, which is this project's signature failure mode
+arriving through a door the rules had not covered.
+
+**The invariant is not "different files". It is that a measurement is a PHOTOGRAPH — nothing in
+frame may move, including files the measuring agent never opens.** ENGINE and MEASURE writing
+disjoint paths concurrently is survivable. Either of them running beside SEARCH is not, because
+SEARCH's number is a claim about the engine and the weights at one instant.
+
+So: **writing agents may run concurrently with each other. A measuring agent runs alone**, and the
+tree must be committed and still before it starts. "Committed at `<sha>`" describes HEAD and says
+nothing about the working tree — check the tree.
+
+**The router owns this, not the agent.** SEARCH could not have known; it was told the engine was
+wrapped, and the census moved 157/165 → 164/171 while it worked. A subagent cannot see what it was
+dispatched alongside.
+
+**And the thing that would have caught it did not exist.** `exploit.js` stamps no engine digest and
+no digest of the target vector it reads, so it could not detect that either had changed. That is the
+same hole as `data/engine-release.json` never being cut — see `docs/DIVISIONS.md`'s frozen-engine
+rule, whose cost is no longer hypothetical.
+
 **The auto-commit is the real collision risk, not Cowork.** It is an unattended publisher that pushes
 on a timer (confirmed in CHANGELOG 2.8.1 — an earlier diagnosis blaming a `push-all.bat` timer was
 wrong and was retracted). An auto-commit landing while a rebase is half-finished is what wedges the
