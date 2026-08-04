@@ -400,7 +400,7 @@ this project's own living-docs rule, regenerating any of them is a docs pass, no
 | `war.json` | **47.2%** | verdict *"WORSE THAN A COIN AT EVERY REGULARISATION STRENGTH TESTED"*; `held_out.log_loss` 0.694 in MODELS + white paper | **STOP** — a null on a corpus that has since doubled is the most interesting one here |
 | `policy-eval.json` | 43.8% | verdict *"phase-conditioning did not help; species-only prior retained"* | **STOP** |
 | `pory-eval.json` | 33.4% | `log_loss.pory` 0.6298 in white paper + SUMMARY, gated by sanity_check | **STOP** — restamped instead, see §5d |
-| `pory-nn.json` | 29.4% | the arms table; `val_logloss` 0.612, `auc` 71.6% in MODELS/white paper/SUMMARY. Also a NN train | **STOP** |
+| `pory-nn.json` | 29.4% | **Blast radius OVERSTATED in this row and corrected 2026-08-04.** `val_logloss` and `auc` are **not keys in the file** — it holds an `arms` array with per-arm `logloss`/`acc`/`auc`. And the `71.6%` in MODELS.md and the white paper is the **policy clone's top-3 accuracy**, a different measurement that happens to match. **No living doc cites PORY-NN**, so regenerating moves zero published figures. Regenerated | done |
 | `xatu-belief.json` | 29.3% | `n_games` 4,910 and `top1_accuracy.belief` 31.2% in MODELS; an improvement CI clear of zero | **STOP** |
 | `guru-matchups.json` | 24.2% | every number the GURU booth renders; `log_loss_matchup_prior` 0.712 in the white paper | **STOP — and explicitly not in this pass**, WEB is in that booth |
 | `roles-eval.json` | 24.1% | headline *"0.6935 vs a coin 0.6931 and rating 0.6967"* — a knife-edge that regeneration can flip either way; six figures in MODELS | **STOP** |
