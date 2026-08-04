@@ -1,0 +1,1322 @@
+{
+  "generated": "MEASURE, 2026-08-04 — is MILTANK calling the wrong leaf? data/value-net.json vs the live rollout leaf.",
+  "written_by": "an ad-hoc MEASURE analysis; NO generator script is committed for this file. It is a one-shot comparison, not a standing gate. Re-derive it, do not quote it after the value net or the leaf moves. See measured_against.",
+  "measured_at": "2026-08-04T07:47:13.637728Z",
+  "headline": "THE VALUE NET IS A MATERIAL COUNTER, AND IT DOES NOT BEAT THE LEAF MILTANK CALLS. Its five features are alive_diff, hp_diff, p1_alive, p2_alive and turn - nothing else. At TEAM PREVIEW it is a CONSTANT (0.5141 on all 6,886 clean games, every one 4v4) and makes zero decisive calls, so swapping it in there would replace a weak ranker with no ranker. MID-GAME, scored against the explore=1.0 leaf MILTANK actually calls, it LOSES on ranking (-1.815 pts, 95% CI -2.860 to -0.770) and TIES on Brier (0.2142 vs 0.2128, paired +0.0014, CI -0.0033 to +0.0061). The premise that ABRA has a learned evaluator beating a coin while the search calls one that does not is a POSITION-DISTRIBUTION artefact: value-net.json's 0.6638 is measured on mid-game states where material is informative by construction, and the leaf's 0.8393 is measured at turn 0 where material carries nothing at all. On the same sample they do not say that.",
+  "measured_against": {
+    "data/value-net.json": {
+      "mtime": "2026-07-31T20:44:32.647496Z",
+      "bytes": 539,
+      "sha256_12": "b915ea0c9d59"
+    },
+    "engine/train_value.py": {
+      "mtime": "2026-07-31T01:37:09.540788Z",
+      "bytes": 7892,
+      "sha256_12": "e93de3f28d5f"
+    },
+    "data/winrate-backtest.json": {
+      "mtime": "2026-08-04T07:09:31.398135Z",
+      "bytes": 38261,
+      "sha256_12": "99126bdf6866"
+    },
+    "data/winrate-backtest-rows.jsonl": {
+      "mtime": "2026-08-04T07:09:31.412846Z",
+      "bytes": 1294315,
+      "sha256_12": "fa2b3b8f181e"
+    },
+    "data/rollout-r1.json": {
+      "mtime": "2026-08-04T07:10:59.985202Z",
+      "bytes": 11094,
+      "sha256_12": "8d74f7c29ad7"
+    },
+    "data/rollout-r1-rows.jsonl": {
+      "mtime": "2026-08-03T08:09:15.925810Z",
+      "bytes": 1034821,
+      "sha256_12": "f4ac29914058"
+    },
+    "engine/rollout_leaf.js": {
+      "mtime": "2026-08-04T04:36:37.960666Z",
+      "bytes": 25842,
+      "sha256_12": "a0749e081402"
+    },
+    "engine/miltank.js": {
+      "mtime": "2026-08-04T04:37:57.723661Z",
+      "bytes": 49859,
+      "sha256_12": "16dfeed39b53"
+    },
+    "engine/backtest_winrate.js": {
+      "mtime": "2026-08-04T06:51:35.576368Z",
+      "bytes": 30271,
+      "sha256_12": "a860505d2b3c"
+    },
+    "data/games.ladder.jsonl": {
+      "mtime": "2026-08-04T07:03:09.852533Z",
+      "bytes": 167898957,
+      "sha256_12": "dcbeea7ed1ec"
+    },
+    "data/games.bo3.jsonl": {
+      "mtime": "2026-08-04T07:03:30.814454Z",
+      "bytes": 63309383,
+      "sha256_12": "03edb71267b7"
+    }
+  },
+  "what_the_value_net_actually_is": {
+    "source": "engine/train_value.py:56  feats = [a1-a2, h1-h2, a1, a2, (ti+1)/10, 1.0]",
+    "features": [
+      "alive_diff",
+      "hp_diff (summed HP fraction, in units of whole mons)",
+      "p1_alive",
+      "p2_alive",
+      "turn/10",
+      "bias"
+    ],
+    "not_features": "no types, no speed, no moves, no abilities, no items, no field, no board geometry.",
+    "collapsed_logit": {
+      "d_logit_d_p1_alive": 0.3546,
+      "d_logit_d_p2_alive": -0.401,
+      "d_logit_d_hp_diff_in_mons": 0.1809,
+      "d_logit_d_turn": -0.0209,
+      "bias_at_feature_mean": 0.2629,
+      "note": "6 weights over 5 collinear material features. This is docs/MODELS.md's RETRACTED PORYGON2 finding in a different file: a two-feature material baseline wearing a learned model's name. Its own artifact's test_logloss 0.6638 / test_brier 0.2354 are measured on MID-GAME states, where material is informative by construction; they are not comparable to a turn-0 figure and must never be printed beside one."
+    },
+    "argmax_equivalence": "For a search that ARGMAXES, the value net is exactly the ordering 0.3546*a1 - 0.4010*a2 + 0.1809*hp_diff - 0.0209*turn. Any monotone rescaling of that ordering — including the raw material count engine/rollout_r1.js:materialP already computes on a real Board — picks the identical action. The learned weights buy the SCALE, and the scale is the part MILTANK throws away."
+  },
+  "defect_found_in_the_value_nets_feature_source": {
+    "what": "train_value.py's event walk drops every FORME-CHANGED body. `idn()` normalises 'Charizard-Mega-Y' to 'charizardmegay', the bring list holds 'charizard', so the membership test fails and the event is discarded in silence.",
+    "measured_on": "engine/quality.py load_games(clean=True), first 4,000 games",
+    "faint_events_dropped_pct": 21.7,
+    "damaging_events_dropped_pct": 22.7,
+    "damage_percentage_points_dropped_pct": 20.8,
+    "games_with_at_least_one_dropped_damage_event_pct": 95.6,
+    "what_the_dropped_targets_are": "21,196 of 21,629 are mega formes; the rest are Mimikyu-Busted, Palafin-Hero, Aegislash-Blade, Morpeko-Hangry, Castform-Snowy.",
+    "consequence_witness": {
+      "clean_games_walked": 6939,
+      "walk_ends_with_the_loser_on_zero_bodies_pct": 9.8,
+      "walk_ends_with_BOTH_sides_holding_bodies_pct": 89.3,
+      "loser_bodies_remaining_histogram": {
+        "0": 681,
+        "1": 4898,
+        "2": 1106,
+        "3": 222,
+        "4": 32
+      },
+      "note": "The loser finishes on exactly one body in 70.6% of clean games. 25.6% of those games are forfeits, where surviving bodies are legitimate. The remainder is the walk failing to close the game out. The value net's alive counts are biased HIGH and its hp_diff is missing a fifth of all damage — on 26.0% of this format's usage."
+    },
+    "this_is_the_mega_merge_bug_again": "CLAUDE.md records data/mega-dex-official.json keying 'venusaurmega' against a builder keying 'venusaur-mega', so zero of 67 writes matched and nothing compared the two files. Same shape, different file. A fix belongs to whoever owns train_value.py; MEASURE files it and does not patch it."
+  },
+  "harness_validation": {
+    "why": "Two published artifacts were re-derived with THIS harness before any new claim was made. A harness that cannot reproduce a number nobody disputes cannot be trusted on one that is.",
+    "winrate_backtest_reproduced": {
+      "live_ingame_n40_full_clean": {
+        "published_brier": 0.2966,
+        "here": 0.2966,
+        "published_logloss": 0.8393,
+        "here_logloss": 0.8393
+      },
+      "live_ingame_n200_held_out": {
+        "published_dBrier_vs_coin": [
+          0.0502,
+          0.0371,
+          0.0628
+        ],
+        "here": [
+          0.0502,
+          0.0378,
+          0.0631
+        ],
+        "published_discrimination": [
+          50.99,
+          48.3,
+          53.7
+        ],
+        "here_discrimination": [
+          50.99,
+          48.3,
+          53.7
+        ],
+        "note": "CI ends differ in the 4th decimal only: independent bootstrap draw."
+      }
+    },
+    "rollout_r1_reproduced": {
+      "published": "rollout - material_mpy = +0.456 pts, 95% CI [-0.717, +1.630] on 9,201 positions",
+      "here": "material_mpy - rollout = -0.456 pts, 95% CI [-1.630, +0.717]",
+      "verdict": "identical to the digit, sign flipped. Same sample, same pairing, same formula."
+    }
+  },
+  "table_a_turn_0": {
+    "question": "the TEAM-PREVIEW decision. Which judge names the winner from the brought four a side?",
+    "sample": "the 6,886 rows of data/winrate-backtest-rows.jsonl — clean human ladder games, engine/quality.py, real brings and real leads, no sheets set.",
+    "bring_size_distribution": "4v4 on 6,886 of 6,886 games",
+    "reference_for_the_paired_column": "coin (constant 0.5)",
+    "decisive_rule": "|p - 0.5| > 0.02, the rule engine/backtest_winrate.js uses",
+    "full_clean_corpus": {
+      "coin": {
+        "n": 6886,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      },
+      "material_mpy": {
+        "n": 6886,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      },
+      "value_net": {
+        "n": 6886,
+        "brier": 0.2498,
+        "log_loss": 0.6928,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0002,
+          "ci95": [
+            -0.0005,
+            0.0002
+          ]
+        }
+      },
+      "preview": {
+        "n": 6886,
+        "brier": 0.324,
+        "log_loss": 0.9759,
+        "decisive_calls": 6700,
+        "discrimination_pct": 53.22,
+        "discrimination_ci95": [
+          52.03,
+          54.42
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.074,
+          "ci95": [
+            0.0664,
+            0.0813
+          ]
+        }
+      },
+      "ingame_n40": {
+        "n": 6886,
+        "brier": 0.2966,
+        "log_loss": 0.8393,
+        "decisive_calls": 6570,
+        "discrimination_pct": 51.8,
+        "discrimination_ci95": [
+          50.59,
+          53
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0466,
+          "ci95": [
+            0.0407,
+            0.0526
+          ]
+        }
+      },
+      "ingame_n200": {
+        "n": 1378,
+        "brier": 0.3002,
+        "log_loss": 0.8428,
+        "decisive_calls": 1314,
+        "discrimination_pct": 50.99,
+        "discrimination_ci95": [
+          48.29,
+          53.69
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0502,
+          "ci95": [
+            0.0378,
+            0.0631
+          ]
+        }
+      },
+      "legacy": {
+        "n": 6886,
+        "brier": 0.3242,
+        "log_loss": 0.9818,
+        "decisive_calls": 6709,
+        "discrimination_pct": 52.99,
+        "discrimination_ci95": [
+          51.79,
+          54.18
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0742,
+          "ci95": [
+            0.0667,
+            0.0815
+          ]
+        }
+      }
+    },
+    "held_out_fifth": {
+      "coin": {
+        "n": 1378,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      },
+      "material_mpy": {
+        "n": 1378,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      },
+      "value_net": {
+        "n": 1378,
+        "brier": 0.2496,
+        "log_loss": 0.6924,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0004,
+          "ci95": [
+            -0.0011,
+            0.0004
+          ]
+        }
+      },
+      "preview": {
+        "n": 1378,
+        "brier": 0.3377,
+        "log_loss": 1.0236,
+        "decisive_calls": 1343,
+        "discrimination_pct": 51.97,
+        "discrimination_ci95": [
+          49.3,
+          54.64
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0877,
+          "ci95": [
+            0.0711,
+            0.1046
+          ]
+        }
+      },
+      "ingame_n40": {
+        "n": 1378,
+        "brier": 0.3057,
+        "log_loss": 0.8661,
+        "decisive_calls": 1314,
+        "discrimination_pct": 50.23,
+        "discrimination_ci95": [
+          47.53,
+          52.93
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0557,
+          "ci95": [
+            0.0428,
+            0.069
+          ]
+        }
+      },
+      "ingame_n200": {
+        "n": 1378,
+        "brier": 0.3002,
+        "log_loss": 0.8428,
+        "decisive_calls": 1314,
+        "discrimination_pct": 50.99,
+        "discrimination_ci95": [
+          48.29,
+          53.69
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0502,
+          "ci95": [
+            0.0378,
+            0.0631
+          ]
+        }
+      },
+      "legacy": {
+        "n": 1378,
+        "brier": 0.3354,
+        "log_loss": 1.0243,
+        "decisive_calls": 1340,
+        "discrimination_pct": 51.94,
+        "discrimination_ci95": [
+          49.26,
+          54.61
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0854,
+          "ci95": [
+            0.0685,
+            0.1026
+          ]
+        }
+      }
+    },
+    "reading": "THE VALUE NET RETURNS 0.5141 FOR EVERY GAME. alive_diff = 0, hp_diff = 0, p1_alive = p2_alive = 4 and turn = 0 at every team preview in the format, so its five features carry no game-specific information at all. Brier 0.2498 and log-loss 0.6928 beat a coin only because the base rate is 52.5% p1 and 0.5141 leans that way. ZERO decisive calls out of 6,886. It cannot rank a bring, a lead, or anything else."
+  },
+  "table_b_mid_game": {
+    "question": "the IN-GAME decision. Which judge names the winner from a real mid-game board?",
+    "sample": "the 9,201 positions of data/rollout-r1-rows.jsonl — 2,500 clean open-sheet games, every 2nd turn, EARLY-GAME HEAVY at mean turn 3.744.",
+    "reference_for_the_paired_column": "the rollout column of the dump",
+    "important_caveat_about_the_rollout_column": "data/rollout-r1.json establishes that the dumped rollout column is the DETERMINISTIC-GREEDY playout (explore=0), not the explore=1.0 leaf MILTANK actually calls. This table therefore compares the value net against the rollout's INCUMBENT arm. No committed dump of the explore=1 mid-game leaf exists.",
+    "how_the_value_net_was_evaluated_here": "alive_diff and hp_diff come straight out of the dump, computed by the same board walk that produced the rollout column. p1_alive and p2_alive SEPARATELY are not in the dump, so every consistent (a1,a2) pair with both sides alive was enumerated and averaged; the spread across that band is median 0.0225 and at most 0.0348 in probability, because the collapsed weight on a1+a2 is only -0.0232 per body. This is a sensitivity band, not an imputation.",
+    "all_positions": {
+      "coin": {
+        "n": 9201,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.462,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0073,
+          "ci95": [
+            -0.0142,
+            -0.0004
+          ]
+        }
+      },
+      "material_mpy": {
+        "n": 9201,
+        "brier": 0.2127,
+        "log_loss": 0.6124,
+        "accuracy_ge_half": 65.265,
+        "decisive_calls": 4979,
+        "discrimination_pct": 76,
+        "discrimination_ci95": [
+          74.79,
+          77.17
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0446,
+          "ci95": [
+            -0.051,
+            -0.0383
+          ]
+        }
+      },
+      "material_sign": {
+        "n": 9201,
+        "brier": 0.3231,
+        "log_loss": 1.2662,
+        "accuracy_ge_half": 66.808,
+        "decisive_calls": 8849,
+        "discrimination_pct": 67.4,
+        "discrimination_ci95": [
+          66.41,
+          68.37
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0658,
+          "ci95": [
+            0.0565,
+            0.0747
+          ]
+        }
+      },
+      "value_net": {
+        "n": 9201,
+        "brier": 0.2142,
+        "log_loss": 0.6177,
+        "accuracy_ge_half": 66.156,
+        "decisive_calls": 7499,
+        "discrimination_pct": 69.44,
+        "discrimination_ci95": [
+          68.38,
+          70.47
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0432,
+          "ci95": [
+            -0.0495,
+            -0.037
+          ]
+        }
+      },
+      "ceiling": {
+        "n": 9201,
+        "brier": 0.2048,
+        "log_loss": 0.5933,
+        "accuracy_ge_half": 66.917,
+        "decisive_calls": 8259,
+        "discrimination_pct": 68.64,
+        "discrimination_ci95": [
+          67.63,
+          69.63
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0526,
+          "ci95": [
+            -0.0588,
+            -0.0465
+          ]
+        }
+      },
+      "rollout": {
+        "n": 9201,
+        "brier": 0.2573,
+        "log_loss": 0.8344,
+        "accuracy_ge_half": 65.721,
+        "decisive_calls": 9039,
+        "discrimination_pct": 65.89,
+        "discrimination_ci95": [
+          64.91,
+          66.86
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "turn_le_2": {
+      "coin": {
+        "n": 3777,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.714,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0491,
+          "ci95": [
+            -0.0596,
+            -0.0384
+          ]
+        }
+      },
+      "material_mpy": {
+        "n": 3777,
+        "brier": 0.2374,
+        "log_loss": 0.6668,
+        "accuracy_ge_half": 58.009,
+        "decisive_calls": 1570,
+        "discrimination_pct": 66.37,
+        "discrimination_ci95": [
+          64,
+          68.66
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0617,
+          "ci95": [
+            -0.0717,
+            -0.0515
+          ]
+        }
+      },
+      "material_sign": {
+        "n": 3777,
+        "brier": 0.3915,
+        "log_loss": 1.5237,
+        "accuracy_ge_half": 59.253,
+        "decisive_calls": 3522,
+        "discrimination_pct": 59.82,
+        "discrimination_ci95": [
+          58.2,
+          61.43
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0924,
+          "ci95": [
+            0.0769,
+            0.1083
+          ]
+        }
+      },
+      "value_net": {
+        "n": 3777,
+        "brier": 0.2349,
+        "log_loss": 0.662,
+        "accuracy_ge_half": 59.147,
+        "decisive_calls": 3057,
+        "discrimination_pct": 60.84,
+        "discrimination_ci95": [
+          59.1,
+          62.56
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0641,
+          "ci95": [
+            -0.0741,
+            -0.0539
+          ]
+        }
+      },
+      "ceiling": {
+        "n": 3777,
+        "brier": 0.2359,
+        "log_loss": 0.6651,
+        "accuracy_ge_half": 59.439,
+        "decisive_calls": 3157,
+        "discrimination_pct": 60.82,
+        "discrimination_ci95": [
+          59.1,
+          62.51
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0632,
+          "ci95": [
+            -0.0732,
+            -0.0528
+          ]
+        }
+      },
+      "rollout": {
+        "n": 3777,
+        "brier": 0.2991,
+        "log_loss": 0.9422,
+        "accuracy_ge_half": 58.512,
+        "decisive_calls": 3685,
+        "discrimination_pct": 58.72,
+        "discrimination_ci95": [
+          57.13,
+          60.3
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "turn_gt_2": {
+      "coin": {
+        "n": 5424,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.286,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0217,
+          "ci95": [
+            0.0123,
+            0.031
+          ]
+        }
+      },
+      "material_mpy": {
+        "n": 5424,
+        "brier": 0.1956,
+        "log_loss": 0.5746,
+        "accuracy_ge_half": 70.317,
+        "decisive_calls": 3409,
+        "discrimination_pct": 80.43,
+        "discrimination_ci95": [
+          79.07,
+          81.73
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0327,
+          "ci95": [
+            -0.0411,
+            -0.0244
+          ]
+        }
+      },
+      "material_sign": {
+        "n": 5424,
+        "brier": 0.2755,
+        "log_loss": 1.087,
+        "accuracy_ge_half": 72.069,
+        "decisive_calls": 5327,
+        "discrimination_pct": 72.4,
+        "discrimination_ci95": [
+          71.19,
+          73.59
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.0472,
+          "ci95": [
+            0.0364,
+            0.0585
+          ]
+        }
+      },
+      "value_net": {
+        "n": 5424,
+        "brier": 0.1997,
+        "log_loss": 0.5869,
+        "accuracy_ge_half": 71.036,
+        "decisive_calls": 4442,
+        "discrimination_pct": 75.35,
+        "discrimination_ci95": [
+          74.06,
+          76.59
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0286,
+          "ci95": [
+            -0.0368,
+            -0.0202
+          ]
+        }
+      },
+      "ceiling": {
+        "n": 5424,
+        "brier": 0.1831,
+        "log_loss": 0.5433,
+        "accuracy_ge_half": 72.124,
+        "decisive_calls": 5102,
+        "discrimination_pct": 73.48,
+        "discrimination_ci95": [
+          72.25,
+          74.67
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0452,
+          "ci95": [
+            -0.0534,
+            -0.0372
+          ]
+        }
+      },
+      "rollout": {
+        "n": 5424,
+        "brier": 0.2283,
+        "log_loss": 0.7594,
+        "accuracy_ge_half": 70.741,
+        "decisive_calls": 5354,
+        "discrimination_pct": 70.83,
+        "discrimination_ci95": [
+          69.59,
+          72.03
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "alive_diff_zero": {
+      "coin": {
+        "n": 4222,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.605,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0634,
+          "ci95": [
+            -0.074,
+            -0.0529
+          ]
+        }
+      },
+      "material_mpy": {
+        "n": 4222,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.605,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null,
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0634,
+          "ci95": [
+            -0.074,
+            -0.0529
+          ]
+        }
+      },
+      "material_sign": {
+        "n": 4222,
+        "brier": 0.4211,
+        "log_loss": 1.6341,
+        "accuracy_ge_half": 55.969,
+        "decisive_calls": 3870,
+        "discrimination_pct": 56.33,
+        "discrimination_ci95": [
+          54.76,
+          57.89
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0.1078,
+          "ci95": [
+            0.0916,
+            0.1235
+          ]
+        }
+      },
+      "value_net": {
+        "n": 4222,
+        "brier": 0.248,
+        "log_loss": 0.6891,
+        "accuracy_ge_half": 54.548,
+        "decisive_calls": 2520,
+        "discrimination_pct": 56.47,
+        "discrimination_ci95": [
+          54.52,
+          58.39
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0654,
+          "ci95": [
+            -0.076,
+            -0.0551
+          ]
+        }
+      },
+      "ceiling": {
+        "n": 4222,
+        "brier": 0.2429,
+        "log_loss": 0.6789,
+        "accuracy_ge_half": 56.206,
+        "decisive_calls": 3295,
+        "discrimination_pct": 57.45,
+        "discrimination_ci95": [
+          55.75,
+          59.13
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": -0.0704,
+          "ci95": [
+            -0.081,
+            -0.0602
+          ]
+        }
+      },
+      "rollout": {
+        "n": 4222,
+        "brier": 0.3134,
+        "log_loss": 1.0002,
+        "accuracy_ge_half": 57.342,
+        "decisive_calls": 4113,
+        "discrimination_pct": 57.38,
+        "discrimination_ci95": [
+          55.86,
+          58.88
+        ],
+        "paired_dBrier_vs_reference": {
+          "mean": 0,
+          "ci95": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "judge_definitions": {
+      "coin": "constant 0.5",
+      "material_mpy": "clip(0.5 + 0.15*alive_diff, .02, .98) — engine/rollout_r1.js materialPy, the PORYGON2-form graded baseline. Ties at exactly 0.5 on 45.9% of positions.",
+      "material_sign": "bodies then HP, hard 0/1 — engine/rollout_r1.js materialP.",
+      "value_net": "data/value-net.json applied through train_value.py's own feature layout.",
+      "ceiling": "logistic on (alive_diff, hp_diff, turn) refitted ON THESE ROWS, IN SAMPLE. It is not a competitor; it is the best any model of the value net's feature class can do on this sample, and it bounds what fixing the mega bug could possibly buy.",
+      "rollout": "the dump's p column."
+    },
+    "mcnemar_paired": {
+      "value_net_minus_rollout": {
+        "a_only": 1427,
+        "b_only": 1387,
+        "diff_pts": 0.4347353548527334,
+        "ci": [
+          -0.6952767278058775,
+          1.5647474375113442
+        ]
+      },
+      "material_mpy_minus_rollout": {
+        "a_only": 1496,
+        "b_only": 1538,
+        "diff_pts": -0.45647212259537007,
+        "ci": [
+          -1.6298255030402786,
+          0.7168812578495385
+        ]
+      },
+      "material_sign_minus_rollout": {
+        "a_only": 1395,
+        "b_only": 1295,
+        "diff_pts": 1.0868383871318334,
+        "ci": [
+          -0.01799599437384125,
+          2.191672768637508
+        ]
+      },
+      "ceiling_minus_rollout": {
+        "a_only": 1425,
+        "b_only": 1315,
+        "diff_pts": 1.1955222258450169,
+        "ci": [
+          0.08046714211617423,
+          2.3105773095738593
+        ]
+      },
+      "value_net_minus_material_mpy": {
+        "a_only": 636,
+        "b_only": 554,
+        "diff_pts": 0.8912074774481035,
+        "ci": [
+          0.1563645453995378,
+          1.6260504094966692
+        ]
+      }
+    },
+    "noise_floor": {
+      "method": "16 INDEPENDENT split-half cuts, each on md5(seed|game_id) so every position from one game stays on one side. The first attempt used the FNV hash rollout_r1.js uses; its LOW BIT is pure parity of the character sum, so re-seeding it produced the same two partitions sixteen times and every 'independent' cut returned an identical spread. Recorded because a noise floor that is secretly one draw is worse than none.",
+      "per_contrast": {
+        "value_net_minus_rollout_explore1": {
+          "effect_pts": -1.815,
+          "spread_min": 0.015,
+          "spread_median": 1.089,
+          "spread_p90": 2.037,
+          "spread_max": 2.69,
+          "cuts": 16,
+          "effect_inside_p90_of_floor": true
+        },
+        "material_mpy_minus_rollout_explore1": {
+          "effect_pts": -2.706,
+          "spread_min": 0.101,
+          "spread_median": 1.16,
+          "spread_p90": 1.936,
+          "spread_max": 3.003,
+          "cuts": 16,
+          "effect_inside_p90_of_floor": false
+        },
+        "material_sign_minus_rollout_explore1": {
+          "effect_pts": -1.163,
+          "spread_min": 0.058,
+          "spread_median": 1.045,
+          "spread_p90": 2.27,
+          "spread_max": 2.727,
+          "cuts": 16,
+          "effect_inside_p90_of_floor": true
+        },
+        "value_net_minus_rollout_explore0": {
+          "effect_pts": 0.435,
+          "spread_min": 0.136,
+          "spread_median": 0.84,
+          "spread_p90": 2.605,
+          "spread_max": 4.443,
+          "cuts": 16,
+          "effect_inside_p90_of_floor": true
+        },
+        "rollout_explore0_minus_rollout_explore1": {
+          "effect_pts": -2.25,
+          "spread_min": 0.007,
+          "spread_median": 0.687,
+          "spread_p90": 1.663,
+          "spread_max": 2.543,
+          "cuts": 16,
+          "effect_inside_p90_of_floor": false
+        },
+        "value_net_minus_material_mpy": {
+          "effect_pts": 0.891,
+          "spread_min": 0.011,
+          "spread_median": 0.681,
+          "spread_p90": 1.517,
+          "spread_max": 2.828,
+          "cuts": 16,
+          "effect_inside_p90_of_floor": true
+        }
+      },
+      "how_to_read_it": "The split-half spread is a CONSERVATIVE bar, not a significance test. For a difference estimator with sd s on n rows, each half has sd s*sqrt(2) and the spread of two halves has sd 2s, so the MEDIAN spread sits near 1.6s and the p90 near 3.3s - while a 95% CI half-width is 1.96s. Requiring an effect to clear the p90 of the spread is roughly a 3.8-sigma bar. Both are reported; neither alone is the answer.",
+      "verdicts": {
+        "value_net_vs_rollout_explore1": "effect -1.815 pts. Median split-half spread 1.09, p90 2.04. The effect clears a typical split-half draw and the paired 95% CI excludes zero, but it does not clear the tail of the floor. Read it as: the live leaf ranks better than the value net, by a small amount, on one run, with no A/A.",
+        "material_mpy_vs_rollout_explore1": "effect -2.706 pts, clears the p90 of its floor (1.94). This is the sibling artifact's PASS and it survives the floor check.",
+        "value_net_vs_material_mpy": "effect +0.891 pts, p90 floor 1.52 - INSIDE the floor. A learned material model is not measurably better than clip(0.5 + 0.15*alive_diff)."
+      }
+    },
+    "reading": [
+      "AGAINST THE LEAF MILTANK ACTUALLY CALLS, THE VALUE NET IS BEHIND ON RANKING AND LEVEL ON CALIBRATION. 67.97% vs 66.16% by the >=0.5 rule; -1.815 pts paired, CI [-2.860, -0.770]. Brier 0.2128 vs 0.2142, paired +0.0014 with CI [-0.0033, +0.0061] - a tie. There is no dimension on which the value net is the better mid-game judge.",
+      "THE 'BADLY CALIBRATED ROLLOUT' IS THE explore=0 ARM. rollout_explore0 has Brier 0.2573 and log-loss 0.8344 against material's 0.2127/0.6124, and that gap is real and large. Randomising the playout closes almost all of it: rollout_explore1 reads 0.2128/0.6407. The committed R1 dump is the arm with the calibration problem, and it is not the shipped one.",
+      "WHERE THE ROLLOUT EARNS ITS COST IS THE SLICE WHERE MATERIAL IS BLIND. On the 4,222 positions with alive_diff = 0 - 45.9% of the sample, and nearly every position in the first three turns - the live leaf discriminates at 59.64% while the value net manages 54.55% and material_mpy is a flat tie at the 52.61% base rate. That is the slice where a search has a hard choice to make. The value net's aggregate score is earned on positions where somebody is already up bodies and every judge agrees.",
+      "THE LEAF'S CALIBRATION FAILURE IS CONCENTRATED WHERE THE POSITION CARRIES NO INFORMATION. Same leaf, same explore, same 40 rollouts: Brier 0.2128 on mid-game boards, 0.2496 on turn<=2 boards, 0.2966 at turn 0. It is not uniformly overconfident - it is overconfident about undifferentiated positions, which is exactly the team-preview regime MEASURE's headline number lives in.",
+      "THE CEILING SAYS FIXING THE MEGA BUG WOULD NOT RESCUE THE VALUE NET. Refitting its own feature class on these rows IN SAMPLE - a strict upper bound - reaches 66.92% by the >=0.5 rule, still a point behind the live leaf's 67.97%."
+    ],
+    "do_not_quote_the_discrimination_column_across_judges": "DISCRIMINATION IS CONDITIONAL ON THE JUDGE HAVING AN OPINION, and the judges abstain at wildly different rates. material_mpy reads 76.00% on 4,979 decisive calls because it is a flat tie on the other 4,222 and those never enter the numerator; the rollout reads 65.89% on 9,039 because it almost never abstains. The column that is comparable ACROSS judges is accuracy_ge_half, which grades every position by the same >=0.5 rule engine/rollout_r1.js uses, and the paired mcnemar block, which is computed on identical positions. Compare those.",
+    "primary_comparison_is_now_explore_1": "The committed dump (rollout_explore0) is NOT the leaf MILTANK calls; data/rollout-r1.json establishes that. Both columns are kept because the contrast between them is itself a measurement - randomising the playout is worth +2.250 pts of ranking and -0.0446 of Brier on identical positions - but every conclusion about MILTANK is drawn against rollout_explore1.",
+    "all_positions_with_explore1": {
+      "coin": {
+        "n": 9201,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.462,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null
+      },
+      "material_mpy": {
+        "n": 9201,
+        "brier": 0.2127,
+        "log_loss": 0.6124,
+        "accuracy_ge_half": 65.265,
+        "decisive_calls": 4979,
+        "discrimination_pct": 76,
+        "discrimination_ci95": [
+          74.79,
+          77.17
+        ]
+      },
+      "material_sign": {
+        "n": 9201,
+        "brier": 0.3231,
+        "log_loss": 1.2662,
+        "accuracy_ge_half": 66.808,
+        "decisive_calls": 8849,
+        "discrimination_pct": 67.4,
+        "discrimination_ci95": [
+          66.41,
+          68.37
+        ]
+      },
+      "value_net": {
+        "n": 9201,
+        "brier": 0.2142,
+        "log_loss": 0.6177,
+        "accuracy_ge_half": 66.156,
+        "decisive_calls": 7499,
+        "discrimination_pct": 69.44,
+        "discrimination_ci95": [
+          68.38,
+          70.47
+        ]
+      },
+      "rollout_explore0": {
+        "n": 9201,
+        "brier": 0.2573,
+        "log_loss": 0.8344,
+        "accuracy_ge_half": 65.721,
+        "decisive_calls": 9039,
+        "discrimination_pct": 65.89,
+        "discrimination_ci95": [
+          64.91,
+          66.86
+        ]
+      },
+      "rollout_explore1": {
+        "n": 9201,
+        "brier": 0.2128,
+        "log_loss": 0.6407,
+        "accuracy_ge_half": 67.971,
+        "decisive_calls": 8935,
+        "discrimination_pct": 68.57,
+        "discrimination_ci95": [
+          67.6,
+          69.53
+        ]
+      }
+    },
+    "alive_diff_zero_with_explore1": {
+      "coin": {
+        "n": 4222,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.605,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null
+      },
+      "material_mpy": {
+        "n": 4222,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.605,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null
+      },
+      "material_sign": {
+        "n": 4222,
+        "brier": 0.4211,
+        "log_loss": 1.6341,
+        "accuracy_ge_half": 55.969,
+        "decisive_calls": 3870,
+        "discrimination_pct": 56.33,
+        "discrimination_ci95": [
+          54.76,
+          57.89
+        ]
+      },
+      "value_net": {
+        "n": 4222,
+        "brier": 0.248,
+        "log_loss": 0.6891,
+        "accuracy_ge_half": 54.548,
+        "decisive_calls": 2520,
+        "discrimination_pct": 56.47,
+        "discrimination_ci95": [
+          54.52,
+          58.39
+        ]
+      },
+      "rollout_explore0": {
+        "n": 4222,
+        "brier": 0.3134,
+        "log_loss": 1.0002,
+        "accuracy_ge_half": 57.342,
+        "decisive_calls": 4113,
+        "discrimination_pct": 57.38,
+        "discrimination_ci95": [
+          55.86,
+          58.88
+        ]
+      },
+      "rollout_explore1": {
+        "n": 4222,
+        "brier": 0.2589,
+        "log_loss": 0.7589,
+        "accuracy_ge_half": 59.64,
+        "decisive_calls": 4046,
+        "discrimination_pct": 60.26,
+        "discrimination_ci95": [
+          58.74,
+          61.75
+        ]
+      }
+    },
+    "turn_le_2_with_explore1": {
+      "coin": {
+        "n": 3777,
+        "brier": 0.25,
+        "log_loss": 0.6931,
+        "accuracy_ge_half": 52.714,
+        "decisive_calls": 0,
+        "discrimination_pct": null,
+        "discrimination_ci95": null
+      },
+      "material_mpy": {
+        "n": 3777,
+        "brier": 0.2374,
+        "log_loss": 0.6668,
+        "accuracy_ge_half": 58.009,
+        "decisive_calls": 1570,
+        "discrimination_pct": 66.37,
+        "discrimination_ci95": [
+          64,
+          68.66
+        ]
+      },
+      "material_sign": {
+        "n": 3777,
+        "brier": 0.3915,
+        "log_loss": 1.5237,
+        "accuracy_ge_half": 59.253,
+        "decisive_calls": 3522,
+        "discrimination_pct": 59.82,
+        "discrimination_ci95": [
+          58.2,
+          61.43
+        ]
+      },
+      "value_net": {
+        "n": 3777,
+        "brier": 0.2349,
+        "log_loss": 0.662,
+        "accuracy_ge_half": 59.147,
+        "decisive_calls": 3057,
+        "discrimination_pct": 60.84,
+        "discrimination_ci95": [
+          59.1,
+          62.56
+        ]
+      },
+      "rollout_explore0": {
+        "n": 3777,
+        "brier": 0.2991,
+        "log_loss": 0.9422,
+        "accuracy_ge_half": 58.512,
+        "decisive_calls": 3685,
+        "discrimination_pct": 58.72,
+        "discrimination_ci95": [
+          57.13,
+          60.3
+        ]
+      },
+      "rollout_explore1": {
+        "n": 3777,
+        "brier": 0.2496,
+        "log_loss": 0.7255,
+        "accuracy_ge_half": 60.312,
+        "decisive_calls": 3638,
+        "discrimination_pct": 60.8,
+        "discrimination_ci95": [
+          59.21,
+          62.38
+        ]
+      }
+    },
+    "mcnemar_vs_the_live_explore1_leaf": {
+      "value_net": {
+        "a_only": 1120,
+        "b_only": 1287,
+        "diff_pts": -1.8150201065101619,
+        "ci": [
+          -2.8601230858033135,
+          -0.7699171272170104
+        ]
+      },
+      "material_mpy": {
+        "a_only": 1234,
+        "b_only": 1483,
+        "diff_pts": -2.7062275839582655,
+        "ci": [
+          -3.8165928294162557,
+          -1.5958623385002755
+        ]
+      },
+      "material_sign": {
+        "a_only": 1082,
+        "b_only": 1189,
+        "diff_pts": -1.162917074231062,
+        "ci": [
+          -2.178065645585913,
+          -0.14776850287621102
+        ]
+      },
+      "rollout_explore0": {
+        "a_only": 863,
+        "b_only": 1070,
+        "diff_pts": -2.2497554613628954,
+        "ci": [
+          -3.1863183992279533,
+          -1.3131925234978374
+        ]
+      }
+    },
+    "paired_dbrier_vs_the_live_explore1_leaf": {
+      "coin": {
+        "mean": 0.0372,
+        "ci95": [
+          0.0318,
+          0.0428
+        ]
+      },
+      "material_mpy": {
+        "mean": 0,
+        "ci95": [
+          -0.0047,
+          0.0047
+        ]
+      },
+      "value_net": {
+        "mean": 0.0014,
+        "ci95": [
+          -0.0033,
+          0.0061
+        ]
+      },
+      "rollout_explore0": {
+        "mean": 0.0446,
+        "ci95": [
+          0.0392,
+          0.0497
+        ]
+      }
+    }
+  },
+  "cost": {
+    "measured_on": "60 real turn-0 boards from the clean corpus, engine/board.js + engine/rollout_leaf.js rolloutWinProb at MILTANK's live DEFAULTS (explore 1.0, foePolicy uniform, maxTurns 60), node on this machine",
+    "rollout_leaf_n200_ms_per_call": 141.85,
+    "rollout_leaf_n40_ms_per_call": 37.48,
+    "value_net_ns_per_call": 60.9,
+    "ratio": 2329484,
+    "in_a_45_second_decision": {
+      "rollout_leaf_calls_at_n200": 317,
+      "value_net_calls": 738984815,
+      "note": "MILTANK's shipped budgetMs is 20,000, not 45,000, so live it gets about half of that."
+    },
+    "reading": "The value net is free and the rollout is not. But a 2.3-million-fold cost advantage buys nothing if the cheap thing cannot rank the option you are choosing between, and at turn 0 it demonstrably cannot. Cost is the argument for SPENDING the rollout budget better — screening with material and re-testing survivors with rollouts — not for replacing the rollout with a constant."
+  },
+  "would_miltank_decide_better_calling_the_value_net": {
+    "team_preview": "NO, and this one is settled. The value net is a constant at turn 0 across all 6,886 clean games. Swapping it in makes chooseTeamPreview an argmax over ties, which engine/miltank.js has already been burned by twice ('an argmax over a menu padded with identical do-nothings', 'thirty-five options scored zero'). The preview leaf is badly calibrated but it DOES rank, at 53.22% on 6,700 decisive calls, p < 1e-4. A constant does not.",
+    "in_game": "NO on the evidence available, and the evidence is now one-sided rather than undecided. Against the explore=1.0 leaf on 9,201 identical mid-game positions the value net is behind on ranking and level on Brier. It has no measured advantage left to trade against the cost. The three structural reasons below still bound what ANY of this establishes about a search leaf, and they would have applied equally had the sign gone the other way:",
+    "in_game_reasons": [
+      "BOTH TABLES SCORE A PREDICTOR, NOT A SEARCH LEAF. Every number above asks 'from this fixed position, who wins the game'. A search leaf is asked 'of these 63 candidate joint actions, which is best'. Two leaves with identical Brier can order actions completely differently, and nothing measured here touches action ordering.",
+      "MILTANK ARGMAXES, SO CALIBRATION IS THE ONE ADVANTAGE IT CANNOT SPEND. engine/miltank.js picks by successive halving on the leaf value and takes the max. Any strictly monotone transformation of a leaf produces the identical click. The value net's measured win over the rollout is entirely a monotone-invariant one — Brier and log-loss — and its ranking difference is inside the noise floor.",
+      "THE VALUE NET IS BLIND AT DEPTH 0. Its features only move once an action has RESOLVED, so evaluating it on the current board returns the same number for every candidate. Using it at all requires simulating one ply first, which makes the swap a SEARCH change (a 1-ply material greedy) and not a leaf substitution. That greedy is a different animal from the thing measured here and has to be measured as itself."
+    ],
+    "what_this_does_establish": [
+      "The rollout leaf, at the exploration rate it ships with, is NOT beaten by a material model mid-game - it beats one by 2.7 points and the other by 1.8. The 'expensive way to count bodies' hypothesis is not supported at explore=1.0. It WAS the right description of explore=0.",
+      "The value net has no advantage over the live leaf on any measured axis, so there is nothing here to trade against 142 ms.",
+      "The leaf's calibration is a function of the POSITION, not a constant property: 0.2128 mid-game, 0.2966 at turn 0. MEASURE's headline 'worse than a coin' is a true statement about the TEAM-PREVIEW regime and is not true of the in-game regime it is often read as covering."
+    ]
+  },
+  "follow_up_experiments": {
+    "why_not_a_leaf_swap_h2h_first": "A head-to-head between MILTANK-rollout and MILTANK-valuenet would be measuring a broken feature walk (see defect_found_in_the_value_nets_feature_source) against a leaf, and would confound 'material is enough' with 'this particular material is mis-counted'. Do not run it in that order.",
+    "1_cheapest_and_highest_information": {
+      "name": "MATERIAL SCREEN, ROLLOUT DECIDE",
+      "what": "Inside miltank.js's existing successive-halving loop, replace the FIRST pass (63 candidates x 40 rollouts) with engine/rollout_r1.js's materialP evaluated on the post-action board — free — and spend the entire saved budget on the survivors. The tables above say a material screen and a 40-rollout screen rank about equally, and the screen is the noisiest part of the decision.",
+      "why_it_is_safe": "It changes only what gets screened OUT, never what gets picked among the survivors, so the rollout still decides.",
+      "cost": "63*40 rollouts saved per decision = about 2.4 s of the 20 s budget, redeployable.",
+      "how_to_measure": "engine/mew.js paired seeds, engine/sprt.js, H0 50% vs H1 55%, the unit is the DECISIVE PAIR. Never read the interim.",
+      "owner": "SEARCH. MEASURE specifies and scores it; it does not land it.",
+      "status_after_the_explore1_dump": "STILL WORTH RUNNING, now for a different reason. A material screen is no longer justified by 'material ranks as well as a 40-rollout screen' - at explore=1.0 it does not. It is justified by cost alone, and the thing to measure first is AGREEMENT between the material ordering and the 40-rollout ordering on the screening pass, not a head-to-head."
+    },
+    "2_the_one_that_answers_the_question_as_asked": {
+      "name": "ACTION-RANKING BACKTEST, not a position backtest",
+      "what": "At each decision point in N clean human games, enumerate the legal joint actions the engine can express, score each with (a) rolloutWinProb at n=200 explore=1.0 and (b) materialP on the post-action board at depth 1. Record the RANK CORRELATION between the two orderings and, separately, how often each argmax coincides with the action the eventual WINNER actually played.",
+      "why_this_and_not_a_head_to_head_first": "If the two orderings agree on 90% of decision points, no head-to-head can separate them and the 142 ms is provably wasted. If they disagree, the disagreement set is the sample the head-to-head should be run on. This is the cheap null, in the same spirit as R1.",
+      "sizing": "The prior effect here is the 65.72 vs 65.26 of data/rollout-r1.json; at that effect size a two-sided binomial at 80% power needs roughly n = 190,000 decisions, so do NOT size this as a superiority test. Size it as an AGREEMENT measurement — the quantity worth reporting is the agreement rate and its interval, not a winner.",
+      "cost": "one decision at 63 candidates x 200 rollouts is about 9 s. 2,000 decisions is about 5 hours on one process. Use a 40-rollout screen to cut it to one hour, and say so.",
+      "status_after_the_explore1_dump": "UNCHANGED AND NOW THE ONLY ONE THAT MATTERS. Every number in this file scores a PREDICTOR of a game outcome from a fixed position. Nothing here measures whether a leaf ORDERS ACTIONS well, which is the only property a search leaf is required to have."
+    },
+    "3_the_prerequisite_if_anyone_wants_the_value_net_itself": {
+      "name": "REFIT THE VALUE NET AFTER FIXING THE FORME NORMALISATION",
+      "what": "train_value.py's idn() must resolve a forme back to the body that is in the bring list. engine/mc_key.js is the ONE species resolver in this repo and already does this; the walk must call it rather than grow a second one.",
+      "expected_payoff": "SMALL, and the ceiling row bounds it: an in-sample refit of this exact feature class reaches 66.92% against the live leaf's 67.97%. Fix the forme normalisation because a silently-dropped fifth of all damage is a defect, not because it will change a verdict.",
+      "invalidates": "data/value-net.json and anything that reads it — engine/flywheel.py, engine/sanity_check.py, engine/slowking/value.py. Derive the set from engine/provenance.js; do not type it."
+    }
+  },
+  "what_this_file_is_not": [
+    "It is NOT a re-run. Table A is arithmetic over data/winrate-backtest-rows.jsonl and table B is arithmetic over data/rollout-r1-rows.jsonl. Nothing was rolled out to produce either, which is why it cost minutes instead of hours — and which is also why table B inherits every caveat in data/rollout-r1.json, including that its rollout column carries no N, no explore and no build digest.",
+    "It is NOT a comparison on one sample. It is a comparison on TWO samples, one per DECISION. Turn 0 and mid-game are different position distributions and a single blended table would have hidden the only thing that matters, which is that the value net is constant at one of them.",
+    "It does NOT license quoting value-net.json's 0.6638 log-loss beside the leaf's 0.8393. Those are different position distributions. On the SAME mid-game sample the value net reads 0.6177 and the rollout reads 0.8344; on the SAME turn-0 sample the value net reads 0.6928 and the rollout reads 0.8393. Use the paired numbers or neither.",
+    "It is NOT a claim about a 200-rollout leaf mid-game. Table B's rollout columns are n=40. MILTANK's live in-game budget is n=200, and no committed dump carries n=200 mid-game."
+  ],
+  "reconciliation_with_r1": {
+    "r1_as_committed": "data/rollout-r1.json - UNDECIDED. rollout(explore=0) 65.721% vs material 65.265%, +0.456 pts, 95% CI [-0.717, +1.630] on 9,201 positions.",
+    "r1_re_run_at_explore_1_today": "data/rollout-r1-explore1.json, written 2026-08-04 07:34 by another agent - PASS_ON_BASELINE. rollout(explore=1.0) 67.971% vs material 65.265%, +2.706 pts, 95% CI [1.596, 3.817] on the SAME 9,201 positions.",
+    "this_files_recomputation": "material_mpy - rollout_explore1 = -2.706 pts, 95% CI [-3.817, -1.596]. Identical to the digit, sign flipped. Three published artifacts now reproduce under this harness.",
+    "so_do_we_disagree_with_r1": "NO, and the apparent disagreement in the premise was between two DIFFERENT rollouts. The +0.456 UNDECIDED belongs to the deterministic-greedy incumbent that the committed dump happens to hold. Against the explore=1.0 leaf that --rollout-explore ships, the rollout clears the material baseline. The value net sits between the two: it beats material_mpy by +0.891 pts (inside the floor) and loses to the live leaf by -1.815 pts.",
+    "caveat_on_the_explore1_dump": "data/rollout-r1-explore1-rows.jsonl was produced at 2026-08-04 07:33 during this session by a sibling agent and is UNCOMMITTED. Its sidecar records n_rollouts=40, explore=1, and content digests for all six sources the leaf reads; all six were verified byte-identical to HEAD when this file was written. It is the only dump of the live-explore leaf that exists. If it moves, this table moves."
+  },
+  "provenance_note": "engine/provenance.js does NOT track this file. It derives the artifact graph from the data files a committed GENERATOR reads, and this comparison has no committed generator - it is a one-shot analysis, written once, not a standing gate. Nothing will ever tell you this file went stale. Check measured_against by CONTENT before quoting it, and prefer re-deriving it. A standing gate would need a script in engine/; that is a deliberate non-decision here, because the question is settled and a gate that re-answers a settled question is a maintenance cost with no reader."
+}
