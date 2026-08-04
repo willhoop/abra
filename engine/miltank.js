@@ -581,12 +581,33 @@ function install(bot, o) {
           };
           /* Round one: every pair, cheaply. These values decide who advances and nothing else — they
            * are never reported as the chosen action's worth, precisely because they are the biased ones. */
+          /* THE SCREEN GETS A SHARE OF THE BUDGET, NOT ALL OF IT.
+           *
+           * The budget was checked only in the finalist round, so a wide turn spent the whole
+           * allowance screening and then evaluated ONE finalist:
+           *
+           *     MILTANK: tickle + closecombat  win 53%  (72 opts, 20873ms, finals 1/8)
+           *       slot 1 cands: fakeout, fakeout, closecombat, ...
+           *
+           * Fake Out was on the menu and was never compared to anything. Will asked why it did not
+           * Fake Out turn one; the answer is that the search never got that far, and the truncation
+           * counter said so. Screening is the CHEAP half whose only job is to shortlist -- spending
+           * everything there and nothing on the decision inverts the whole point of halving.
+           *
+           * 40% to the screen, the rest to the finalists, and the screen shrinks its own sample when
+           * the menu is wide rather than simply running out of time. */
+          const SCREEN_BUDGET = Math.floor(BUDGET_MS * 0.4);
+          const nPairs = Math.max(1, oa.length * ob.length);
+          const screenN = Math.max(8, Math.min(SCREEN_N, Math.round(SCREEN_N * 60 / nPairs)));
           const screened = [];
+          let screenCut = 0;
           for (const ia of oa) for (const ib of ob) {
-            const v = evalPair(ia, ib, SCREEN_N, 0);
+            if (Date.now() - tStart > SCREEN_BUDGET) { screenCut++; continue; }
+            const v = evalPair(ia, ib, screenN, 0);
             if (v === null) continue;
             screened.push([v, ia, ib]);
           }
+          if (screenCut && WHY) console.log(`    screen ran out of time on ${screenCut} pair(s)`);
           if (!screened.length) return base(active, moves);
           screened.sort((a, b) => b[0] - a[0]);
           const finalists = screened.slice(0, FINAL_K);
