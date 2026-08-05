@@ -10,7 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
-## [3.40.0] — 2026-08-05
+## [3.41.0] — 2026-08-05
+
+### Layer 0 executes, the joint layer refits, and the sheet's value becomes a measurement
+
+Three division dispatches ran in parallel against the 3.40.0 landing, with measurements reading
+frozen releases while writers worked the live tree — the discipline the release mechanism exists
+for, exercised without incident (one measurement self-voided when the engine moved mid-run and was
+re-run clean).
+
+### Added
+- WIREs 90–112 (ENGINE, Layer 0): entry hazards on drag (Toxic Spikes/Sticky Web), foe-aimed
+  Decorate, Trick/Switcheroo item swap, Trick-or-Treat type writes, honest random drag, traps dying
+  with their trapper, and the full 26-orphan triage — 7 hardcoded-by-name mechanics rewired to read
+  the artifact by shape (Gale Wings had NO consumer at all), 8 genuinely missing mechanics wired
+  (Shadow Tag, Sheer Force's ×1.3, Unaware's ability half, Tinted Lens, Stakeout, Aftermath-class,
+  Stamina-class, weather-private abilities), 3 redundant tags retired with survivors named. Census
+  **181→202 live of 205 probed, 3 missing**; matrix **899/899 (100.0%)** after the retired tags
+  shrank the generated set from 1,012; DEAD ratchet **61→38**.
+- `tests/probe_red_demo.js` — every new probe demonstrated red against a known-bad engine, 26/26
+  flips; carries Layer 2's `__setDB` + derived-set rebuild hook, already exercised.
+- Joint four-channel refit (`data/policy-weights-joint.json`): 95,886 usable turns, channel-reach
+  counters 99.7%, held-out pair top-1 9.8%→12.2% with joint terms, feature semantics verified.
+- `data/sheet-channel-value.json` — the held-out A/B/C measurement vs the frozen two-channel
+  incumbent: **+0.005087 logL/decision end-to-end [0.003854, 0.006331]**, real and clearing zero;
+  **no demonstrable top-1 gain** vs a 0.331-point split-half noise floor. Stated exactly that way.
+- Pory-family corpus refresh (pory, pory-nn, nmf): 5,883 clean games, retraction tie holds
+  (+0.000001), `population_ceiling` declarations close the §5f false-denominator class,
+  site-freshness 7/7 green. Stadium page restamped from the artifacts (WEB), history preserved.
+
+### Fixed
+- Intimidate retaliation arithmetic: Defiant netted +2 (truth: +1), Competitive skipped the Attack
+  drop entirely. Fixed in the shared `applyStatDrop`, verified against the official handlers.
+- Sheer Force was strictly worse than no ability (suppression worked, the ×1.3 was absent).
+- After You/Quash landed — the "cannot tell it from Instruct" blocker was false (`instructsTarget`
+  is a declared shape); Marvel Scale landed via the staged `condStatMult` derivation.
+- The tags regeneration was gated by `feature_fixture --check` against BOTH fitted vectors: zero of
+  the 58 feature columns moved, so the night's fits stand.
+- WIRE 113: the shape-read of `invertsBoosts` made a latent over-match live — Intimidate into
+  Simple read +1 where the official engine gives −2 (verified by real battles at the pinned
+  commit). Derivation corrected (Contrary-only), new `amplifiesBoosts` tag (Simple), Ripen
+  excluded by its berry gate; `test-rollout-effects.js` re-pinned to the official table, 39/0.
+
+### Added (late in the pass)
+- `docs/CLICK-CENSORING-FIX.md` (+ `.pdf`) — Will's outplayed-turns finding, upgraded to a staged
+  fix: redirected clicks are MNAR censoring (dropped exactly when the opponent's play worked),
+  Encore-application turns are silent label noise (kept, wrong, counted nowhere). Fix: a
+  protocol-derived censoring census, coerced-action detection, partial-label marginal likelihood
+  via EM for redirected targets, then a paired refit with a class-conditional behavior comparison.
+  MEASURE implements next session.
+
+### Notes
+- Still red, awaiting Will by name: `fit_joint.turnsDropped` 5.4929% vs 5.49% ceiling — the counter
+  measures click-matching, is structurally insensitive to the refit, and crept over on corpus
+  growth against a 1bp-granularity ceiling. Options presented: re-cut with rationale, or waive.
+- `data/exploitability.json` remains void. The SEARCH re-run of the explore sweep and the
+  reparameterization memo were in flight at this entry's writing; their results land at the next
+  version.
 
 ### The coverage job lands, is re-examined, and the plan is amended where it was wrong
 

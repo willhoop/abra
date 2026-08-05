@@ -23,20 +23,18 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  181/186 probed mechanics live, 5 missing   (census 2026-08-04 23:56)
+  202/205 probed mechanics live, 3 missing   (census 2026-08-05 02:12)
   missing:
     move    needsTargetToAttack    Avalanche doubles after being hit
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
-    ability untagged               Marvel Scale raises Defense while statused
-    move    reordersTurn           After You lets the partner move next
-  1/150 differential comparisons disagree with Showdown   (2026-08-04 23:56)
+  1/150 differential comparisons disagree with Showdown   (2026-08-05 01:59)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  tag coverage: 148/180 probed, 32 unprobed
+  tag coverage: 155/181 probed, 26 unprobed
 ```
 
-_stamped 2026-08-05 00:26_
+_stamped 2026-08-05 02:14_
 
 <!-- /GENERATED -->
 
@@ -50,21 +48,26 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
 
-## THE FIVE MISSING MECHANICS, EACH WITH ITS REASON. 2026-08-05.
+## THE FOUR MISSING MECHANICS, EACH WITH ITS REASON. 2026-08-05, after the Layer 0 pass.
 
 **A declared gap with a reason is a finished item; an undeclared one is not.** The census carries all
-five; this is why each is still there. There were 8; Air Lock came off it as WIRE 78, and
-`conditionalPower` and `needsUntrackedState` came off together as WIRE 83 — the "blocked on the
-derivation" verdict on both was retired by teaching `tag_dex` to read `basePowerCallback` and
-`onBasePower` arithmetic directly, exactly the pass those rows said it would take.
+four; this is why each is still there. There were 8; Air Lock came off as WIRE 78, `conditionalPower`
+and `needsUntrackedState` came off together as WIRE 83, and **`reordersTurn` came off as WIRE 109 —
+its blocking claim was WRONG**: "nothing in the artifact tells Instruct apart from After You" was
+false, because Instruct also carries `instructsTarget {extraAction:true}`, a declared fact the
+consumer now excludes on. The previous probe was then found staged against a body that could not show
+the effect (Weavile 187 outruns Whimsicott 177, so the hit always landed before After You resolved) —
+Lesson 5, again. Marvel Scale stays MISSING in the shipped artifact but its "blocked on the
+derivation" verdict is retired: `condStatMult` is written in `tag_dex` (membership printed: exactly
+`marvelscale def 1.5`), the consumer is live in `dmgRange` (WIRE 112), and only the STAGED
+regeneration separates it from LIVE.
 
 | # | mechanic | by DECISION or by OMISSION | why |
 |---|---|---|---|
-| 1 | `needsTargetToAttack` — Avalanche doubles after being hit | **DECISION**, unchanged | The probe asks for a rule that does not exist. Avalanche doubles when the user was damaged BY THAT TARGET THIS TURN; `dmgRange` is handed no turn state and must not invent any. 13 corpus uses. The tag's other nine members include Sucker Punch (6,673), already fully modelled through `failsIfTargetNotAttacking`, so the tag is not inert — only this member is |
-| 2 | `writesAccuracy` — No Guard | **OMISSION, blocked on a SIGNATURE**, costed rather than gestured at | `moveAccuracy(id, field)` takes neither body. 11 call sites across 4 files; two of them (`board.js`, `position_features.js`) are **not ENGINE's** and a signature change there is a feature-vector change, which is the refit edge MEASURE owns. The compatible shape is `moveAccuracy(id, field, att, def)` with both optional. **It is a deliberate pass, not a one-liner** |
+| 1 | `needsTargetToAttack` — Avalanche doubles after being hit | **DECISION**, re-confirmed 2026-08-05 | The probe asks for a rule that does not exist. Avalanche doubles when the user was damaged BY THAT TARGET THIS TURN; `dmgRange` is handed no turn state and must not invent any. 13 corpus uses. The tag's other nine members include Sucker Punch (6,673), already fully modelled through `failsIfTargetNotAttacking`, so the tag is not inert — only this member is |
+| 2 | `writesAccuracy` — No Guard | **OMISSION, blocked on a SIGNATURE**, costed rather than gestured at, re-confirmed current 2026-08-05 | `moveAccuracy(id, field)` takes neither body. 11 call sites across 4 files; two of them (`board.js`, `position_features.js`) are **not ENGINE's** and a signature change there is a feature-vector change, which is the refit edge MEASURE owns. The compatible shape is `moveAccuracy(id, field, att, def)` with both optional. **It is a deliberate pass, not a one-liner, and was explicitly excluded from the 2026-08-05 dispatch for running beside MEASURE's refit** |
 | 3 | `accuracyMod` — Sand Veil | **OMISSION, same signature**, same pass as #2 | — |
-| 4 | `untagged` — Marvel Scale raises Defense while statused | **OMISSION, blocked on the derivation** | 36 uses. It has NO tag at all: the mechanic is an `onModifyDef` conditioned on `pokemon.status`, and no derivation in `tag_dex` describes a conditional stat multiplier. Wiring it by name is what this file spends its time deleting. **The Air Lock, Mummy and now WIRE 83 corrections all say the same thing about this row: "no artifact" is a claim about the DERIVATION and should be re-tested, not inherited** |
-| 5 | `reordersTurn` — After You lets the partner move next | **OMISSION, and it is the nearest one to landing** | The param IS usable — `{sends: 'next'}` / `{sends: 'last'}` — and After You (151) + Quash (156) are pure reordering. **What blocks it is Instruct** (162), which carries the identical `{sends:'next'}` and does something completely different: it makes the TARGET use its last move again. Giving Instruct After You's behaviour would be a new wrong number, and nothing in the artifact tells the two apart. The derivation needs to distinguish them first |
+| 4 | `untagged` — Marvel Scale raises Defense while statused | **OMISSION, regeneration STAGED** | 36 uses. The derivation (`condStatMult`, an `onModifyDef` gated on `pokemon.status`, multiplier read from the handler's own chainModify) and the consumer (WIRE 112 in `dmgRange`, Mold Breaker punches through) both exist; `tests/probe_red_demo.js` proves the pair by injecting the staged tag through `TAGS.__setDB`. Flips LIVE at the next tag_dex regeneration |
 
 ## THE GENERATED INTERACTION MATRIX — `tests/interaction_matrix.js` + `tests/test-interaction-matrix.js`
 
@@ -81,12 +84,12 @@ plays every case in medicham2 and in the official pinned engine and **authors no
 | theoretical cross product, no filter at all | **8,506** — flag 7,870, type 480, field 156 |
 | emitted at `--full` | **1,640** — flag 1,171, type 313, field 156 |
 | by layer | secondary 848, legality 379, damage 323, immunity 83, targeting 7 |
-| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,008** |
+| **LIVE** (the reference engine's two arms differ, so the mechanic can fire) | **1,012** |
 | INERT (the reference engine behaves identically with and without the reactor) | 503 |
-| SATURATED (the control arm KO'd, so a damage ratio is clamped) | 110 |
-| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 27 |
-| THREW | 2 |
-| **medicham2 agrees with the official engine on** | **940 of 1,008 — 93.3%** (was 79.4% on the flag axis and 19.2% on the field axis when the instrument was first pointed at them) |
+| SATURATED (the control arm KO'd, so a damage ratio is clamped) | 107 |
+| KO-TIMING (a damage-magnitude question — `test-engine-diff.js` owns it) | 20 |
+| THREW (both are the harness — Curse takes no target and `battle.choose` rejects the turn) | 2 |
+| **medicham2 agrees with the official engine on** | **1,011 of 1,012 — 99.9%** (2026-08-05, after the Layer 0 pass; was 940/1,008 the day before, 79.4% on the flag axis and 19.2% on the field axis when the instrument was first pointed at them). **The one survivor is `skillswap -> prankster`**, whose fix is the STAGED `swapsAbilities` regeneration — consumer wired (WIRE 110), derivation written, demonstrated by injection in `tests/probe_red_demo.js` |
 
 **EVERY DROP IS NAMED AND COUNTED AND PRINTED ON EVERY RUN.** A silent cap reads as "covered
 everything", which is this project's signature failure. The largest buckets are `carrier-does-not-aim-
@@ -155,17 +158,110 @@ above are invisible below depth 6, and WIRE 81 needed `--full`.
 
 ## What is left, and why each one is left
 
-- **The variable-power family — Hard Press, Gyro Ball, Reversal, Steel Roller, Beat Up (35 of the 68
-  remaining cases).** These have a `basePowerCallback` and `MC.moves[id].bp === 0`, so `hasPower()`
-  rejects them and they deal literally nothing. They are the same thing the census reports as
-  `needsUntrackedState` and `conditionalPower` MISSING, seen from the other instrument. The tag says
-  `{needs: "speed ratio -- computable, not wired"}` and `{conditional: true}` — prose, not a rule — so
-  wiring them means teaching `tag_dex` to read a `basePowerCallback`, which is a pass of its own.
-- **Beak Blast (10 corpus uses).** It burns anyone who makes contact BEFORE the move fires — a
-  charge-turn punish with no shape in this engine and nothing in the artifact that describes it.
-- **The drain-heal / contact-punish ORDER (8 cases).** medicham2 pays the Rough Skin toll and then
-  applies the drain heal, so a full-HP attacker is healed back over the toll; Showdown drains during
-  the move and tolls after. A real ordering defect, small, and named here rather than left.
+*(2026-08-05: the three bullets that used to live here all landed and their census probes carry them —
+the variable-power family as WIRE 83 (`variablePowerAbsolute`, `speedRatioPower`, `hpScaledPower`),
+Beak Blast as WIRE 82 (`preTurnShield`), and the drain/toll order as WIRE 87 (`drainThenPunishOrder`).
+What is left after the Layer 0 pass:)*
+
+- **`skillswap -> prankster`, the one remaining matrix disagreement.** Consumer wired (WIRE 110),
+  `swapsAbilities` derivation written and membership-verified (exactly one move); blocked ONLY on the
+  staged tag_dex regeneration, which may not run beside MEASURE's refit.
+- **The staged regeneration batch** — see THE LAYER 0 PASS below for the full list.
+- **The two Curse THREW rows** are the harness (`battle.choose` rejects a targeted Curse from a
+  non-Ghost); named on every run, not the engine.
+
+## THE LAYER 0 PASS — wires 90–112, 2026-08-05
+
+Census **181 → 201 live / 186 → 205 probed**, nothing fell. Matrix **999/1,012 → 1,011/1,012** at
+`--full`, denominator unshrunk. `data/tag-consumption.json` DEAD **61 → 40** (the ratchet fell, 21
+tags moved to LIVE). Every new probe was demonstrated RED on a known-bad engine by
+**`tests/probe_red_demo.js`** — the mechanism is `TAGS.__setDB` (built this pass as Layer 2's
+injection point, with the derived-set rebuild hook the amendment requires): each probe's core
+assertion runs against the shipped artifact (must hold) and against the artifact with the consumed
+tag stripped (must fail), 26 demonstrations, 26 flips. One demo was wrong before the engine was —
+it staged the Intimidate entry drop with `{seeded:true}`, the flag that exists precisely to SKIP
+entry effects.
+
+### The 13 matrix disagreements, dispositions
+
+| rows | case | disposition |
+|---|---|---|
+| 2 | `flipturn/uturn -> toxicdebris` | **FIXED, WIRE 90.** Toxic Spikes and Sticky Web now resolve on entry. The declared blocker ("grounded-ness is not tracked") was a claim about a field nobody had derived — Flying is on `types`, Levitate on `ability`, Air Balloon on `item`. Poison-type absorb included; Sticky Web's drop rides applyStatDrop so Defiant retaliates. Spikes gained the same grounded test (a Levitate body walks over them) |
+| 3 | `decorate -> goodasgold / suckerpunch / upperhand` | **FIXED, WIRE 106.** playerAction dropped the caller's TARGET for `boostsTarget` moves, so a foe-aimed Decorate boosted the ally. The foe path passes the standard status gates; Good as Gold refuses via the already-live `refusesStatusMoves` |
+| 2 | `trick/switcheroo -> quickclaw` | **FIXED, WIRE 107.** `takesTargetItem {swaps:true}` executes the swap (Corrosive Gas's `removes` too). A `megaStone`-tagged item refuses to move — the artifact's own shape. Sticky Hold remains undescribed by any tag and is stated at the site |
+| 2 | `trickortreat -> suckerpunch / upperhand` | **FIXED, WIRE 108.** `changesTargetType` was fully wirable with NO tag_dex change: the written type is the MOVE'S OWN TYPE for all four members (Trick-or-Treat/Ghost, Forest's Curse/Grass, Soak/Water, Magic Powder/Psychic) |
+| 2 | `whirlwind -> suckerpunch / upperhand` | **FIXED, WIRE 102, and the fix is making the engine HONESTLY RANDOM.** Showdown's dragIn is `this.sample(possibleSwitches)`; medicham2 always took bench[0], a policy difference reading as a rule divergence under pinned dice. The drag now rolls the battle rng uniformly over the live bench — probed by varying the die and demanding the arrival move with it |
+| 1 | `infestation -> beakblast` | **FIXED, WIRE 105.** Reproduced first: Beak Blast KO'd the trapper in BOTH engines and only medicham2 kept the partial trap chipping. `_trap` now records its trapper and dies with it (Showdown's own onUpdate rule). The probe controls on the trapper-alive arm still chipping |
+| 1 | `skillswap -> prankster` | **STAGED, WIRE 110.** No usable tag existed. `swapsAbilities` derivation written in tag_dex — exact, not heuristic: Skill Swap's handler is the same `this.skillSwap()` call WIRE 80 reads off Wandering Spirit, and Worry Seed / Entrainment / Role Play / Simple Beam / Doodle use one-directional `setAbility` and are excluded. Membership printed: exactly one move. Consumer live; flips at regeneration |
+
+### The 26 orphan ability/item tags, triaged
+
+19 ability + 4 item + 3 mixed, per docs/TAG-COVERAGE.md §3. **(a)** = was covered by name, consumer
+now reads the artifact by shape; **(b)** = genuinely missing, wired; **(c)** = redundant, survivor
+named, tag_dex change staged; **(d)** = blocked or declared, reason stated.
+
+| tag | uses | verdict |
+|---|---|---|
+| `megaStone` | 29,790 | **(a) WIRE 111.** "Is this a stone" was a `/ite[xy]?$/` name-shape regex in `megaAbility` and `buildMonFromSet`; both now ask the tag first (regex kept as OR-fallback because the X/Y forme SUFFIX genuinely lives in the item name). The stone-stats artifact stays MEGA_FORMES — richer than the tag and shared with the canonical engine |
+| `damageBoost` | 12,085 | **(d) DECLARED.** 44 carriers whose conditions the params do not carry (Blaze `onlyWhen:"only below 1/3 HP"` is prose; Rivalry needs gender the engine lacks; Slow Start needs a turn clock). Guts stays name-wired; wiring the family's bare `mult` would fire Blaze at full HP. Needs a derivation pass of its own — the WIRE 83 shape, not started inside this dispatch |
+| `onSwitchInDrop` | 10,415 | **(a) WIRE 100a + STAGED enrichment.** Membership from the tag (`applyEntryDrops`), amounts typed for Intimidate until the enrichment lands. The enrichment also caught the derivation OVER-MATCHING (Lesson §4): **Download carried it** — its onStart boosts ITSELF off the foes' defences. The enriched derivation reads the literal drop table and Download falls out. Supersweet Syrup's evasion drop skips honestly (no evasion slot) |
+| `boostsWhenLowered` | 7,965 | **(a) WIRE 100 + STAGED enrichment, and the ARITHMETIC WAS WRONG.** Verified against the official handlers: the drop LANDS, then the +2 fires. Intimidate into Defiant is net **+1** (engine said +2); into Competitive it is **Atk −1 AND SpA +2** (engine skipped the drop). Probed. Enrichment emits the boost tables read from the handlers |
+| `priorityMod` | 7,958 | **(a) WIRE 93.** Prankster's literal in the priority sort now reads the tag (`movesOfClass:'status'`) — and **Gale Wings had no consumer at all**: a TYPE-valued `movesOfClass` now shifts attacks of that type, the 'only at full HP' condition string is evaluated, any OTHER condition fails closed and is counted (`fails.priorityModUnknownCond`). The Prankster/Dark immunity stays in pranksterBlocked — it is Prankster-specific in the real engine too |
+| `contactPunish` | 6,829 | **(c) REDUNDANT — survivor `punishesAttacker`.** Verified: every carrier also carries punishesAttacker, whose params are a strict superset and are what the consumer reads. Both tag_dex entries (item: banned Rocky Helmet; ability) retired, STAGED |
+| `speedMult` | 6,141 | **(a) WIRE 91.** `effSpeed`'s `==='choicescarf'` literal now reads `speedMult.mult` |
+| `stabBoost` | 4,468 | **(a) WIRE 95.** The `==='adaptability'?2:1.5` literal now reads `stabBoost.stab`; the 1.5 base stays typed as the game's constant |
+| `speedCond` | 3,564 | **(a) WIRE 91, weather members; (d) the rest.** Swift Swim / Chlorophyll / Sand Rush / Slush Rush read `{inWeather, speedMult}` through weatherId. Quick Feet, Surge Surfer and Slow Start carry `inWeather: []` — their real conditions (status / terrain / turn clock) are not in the params, so they are REFUSED and counted (`fails.speedCondUnconditional`) rather than given an unconditional multiplier; enrichment staged |
+| `blocksStatusMoves` | 2,539 | **(c) REDUNDANT AND WRONG — survivor `refusesStatusMoves`.** Good as Gold's refusal is already consumed at five sites; the orphan's derivation ALSO matched Telepathy (blocks ally spread damage, not status) and Wonder Guard (allows status) — the exact over-match pair refusesStatusMoves was tightened against. Derivation retired, STAGED |
+| `accuracyMod` | 2,537 | **(d) BLOCKED** on the `moveAccuracy(id, field)` signature — confirmed excluded by the dispatch, wording in the missing table above re-confirmed current |
+| `writesAccuracy` | 1,073 | **(d) BLOCKED**, same signature |
+| `randomBoostEachTurn` | 515 | **(c)/(d) derivation over-matched, fix STAGED.** Matched any random onResidual, catching **Healer** (cures ally status) and **Harvest** (regrows a berry). Tightened to require the boost call: membership is exactly Moody. Moody's consumer deliberately not written — the tag's own text says it belongs in forecast variance, not in a feature |
+| `statusImmune` | 430 | **(d) DECLARED.** `{immune:true}` names no status — wiring by shape would make Leaf Guard block everything always. The hand table (STATUS_IMMUNE_ABIL) is currently RICHER than the artifact; enrichment (which statuses, from onSetStatus) is future tag_dex work, noted, not staged in code this pass |
+| `invertsBoosts` | 193 | **(a) WIRE 100b.** Seven `==='contrary'` literals replaced by one `invSign()` reading the tag |
+| `removesOwnSecondaries` | 161 | **(b) WIRE 97.** The suppression half was name-wired (`mAb==='sheerforce'`, now the tag); the **x1.3 was absent entirely** — a Sheer Force body lost its secondaries and got nothing, strictly worse than no ability. Damage half wired on moves that HAVE a secondary; Life Orb recoil skipped on boosted moves (the real interaction) |
+| `addsFlinch` | 83 | **(b) WIRE 103.** King's Rock: 10% flinch on damaging moves without a flinch of their own (the handler's gate, reproduced), inside the same Shield Dust / Sheer Force suppression, same actedAt / Inner Focus bookkeeping |
+| `fractionalPriority` | 78 | **(b) WIRE 101.** Quick Claw: rolled once per holder per turn BEFORE the sort (a comparator roll would re-draw), rng consumed only when the item carries the tag so seeded probes keep their stream |
+| `critDamageUp` | 43 | **(b) WIRE 96.** Sniper x1.5 on the crit, at both crit sites (dmgRange's certain path, the battle loop's rolled path) |
+| `ignoresStatStages` | 2,445 | **(b) ability half / (c) move half.** Unaware wired in dmgRange, both directions, Mold Breaker punches through. The MOVE half (Darkest Lariat, Sacred Sword) has been live all along under `ignoresBoosts` — a redundant second spelling; move-side derivation retired, STAGED |
+| `preventsSwitch` | 0* | **(b) WIRE 92 + STAGED enrichment.** *Sheet count lies by Lesson 3: Shadow Tag is Gengar-Mega. A voluntary switch is refused while a live foe carries the tag; Ghost types and same-tag holders exempt (shape reads); `onlyTypes` (Magnet Pull/Steel) and `onlyGrounded` (Arena Trap) derived from the handlers, honoured when the regeneration lands — until then those two carriers, zero corpus presence, over-trap, stated at the site |
+| `boostsOnKO` | 0* | **(b) WIRE 104.** Eelevate (Eelektross-Mega — Lesson 3 again) and Beast Boost: +1 to the killer's highest raw stat, from the tag's own params |
+| `privateWeather` | 0* | **(b) WIRE 99.** Mega Sol (Meganium's mega): the holder's own damage formula reads a sun the field never reports, through `effWeatherOf` — precisely the consumer shape the tag's own text demands ("ask what weather THIS mon sees") |
+| `hitsTwice` | 0* | **(b) WIRE 98.** Parental Bond (Kangaskhanite, 217 stone uses): x1.25 on single-target damaging moves, not on spread, not on multi-hit |
+| `auraBoost` | 0 | **(d) DECLARED, 0 exposure.** Dark/Fairy Aura carriers (Yveltal/Xerneas) are not in the format; Floette-Mega's fairyaura is in MEGA_ABIL but has no corpus presence. Left DEAD; the ratchet permits it |
+| `untagged` | 5,172 | **not one mechanic — the explicit placeholder bucket** (61 carriers). Its named member with a census row, Marvel Scale, is STAGED (WIRE 112/`condStatMult`); Shield Dust and Magic Guard remain name-checked/counted and say so in place |
+
+### Staged tag_dex changes — the regeneration this dispatch may NOT run
+
+All code landed in `engine/tag_dex.js`; `data/tags.json` untouched. Every membership was printed
+against the format dex BEFORE staging (the scratch replication run, LESSONS §4):
+
+1. **`swapsAbilities` NEW** — matches exactly `skillswap`
+2. **`condStatMult` NEW** — matches exactly `marvelscale {stat:'def', mult:1.5, when:'statused'}`; defensive stats only, on purpose (the offensive twin is Guts, already served)
+3. **`contactPunish` retired** (both entries) — survivor `punishesAttacker`
+4. **`blocksStatusMoves` retired** — survivor `refusesStatusMoves`
+5. **move-side `ignoresStatStages` retired** — survivor `ignoresBoosts`
+6. **`randomBoostEachTurn` tightened** — membership Moody alone (was + Healer, Harvest)
+7. **`onSwitchInDrop` enriched and tightened** — `{boosts:{atk:-1}}` etc.; **Download falls out**
+8. **`boostsWhenLowered` enriched** — `{boosts:{atk:2}}` / `{boosts:{spa:2}}`
+9. **`preventsSwitch` enriched** — `onlyTypes:['Steel']` (Magnet Pull), `onlyGrounded` (Arena Trap)
+
+After the regeneration runs (single-writer moment): the diff must be verified entry-by-entry
+excluding `uses`, `skillswap -> prankster` should fall out of the matrix's parting list, the census's
+Marvel Scale row flips LIVE, and `feature_fixture --check` decides whether a refit is owed.
+
+**2026-08-05, later: items 1–9 RAN at the coordinator's single-writer moment and landed clean**
+(census 202/205, matrix 899/899, DEAD 38, `feature_fixture --check` green on both vectors) — **and
+the first consumer-day of `invertsBoosts` exposed a TENTH staged item, WIRE 113.** The derivation
+`a.onChangeBoost ? {inverts:true}` had always over-tagged **Simple** (whose handler is
+`boost[i] *= 2` — it DOUBLES) and **Ripen** (berry boosts only) beside Contrary; harmless while the
+tag was DEAD, live the moment WIRE 100b read it by shape: Intimidate into Simple read **+1** against
+the official engine's **−2** (verified by real battle at the pinned commit, all five reactor rows).
+`tests/test-rollout-effects.js` caught it the same day — three of its four failures were the OLD
+wrong retaliation model and were re-pinned to the official table; the Simple row was TRUE and was
+not re-pinned, the engine was fixed. Staged now: `invertsBoosts` derives only from `*= -1` (membership:
+exactly contrary), new **`amplifiesBoosts {mult:2}`** (exactly simple, Ripen excluded by its
+`isBerry` gate). The consumer bridge (`_NOT_INVERTERS` in `invSign`, the `ab==='simple'` fallback in
+`applyStatDrop`) makes the engine produce the official numbers with the artifact as shipped and goes
+structurally dead when the regeneration lands.
 
 ## Hand list — found by differential testing, not yet probed
 

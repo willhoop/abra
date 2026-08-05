@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-05T00:39:08.899Z",
+  "generated": "2026-08-05T02:12:52.246Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 186,
-  "live": 181,
-  "missing": 5,
-  "armed": 39,
-  "unarmed": 147,
+  "probed": 205,
+  "live": 202,
+  "missing": 3,
+  "armed": 59,
+  "unarmed": 146,
   "threw": 0,
   "hollow": 0,
   "results": [
@@ -222,7 +222,7 @@
       "tag": "boostsWhenLowered",
       "label": "Defiant raises Attack when dropped",
       "live": true,
-      "detail": "atk stage 2",
+      "detail": "atk stage 1",
       "hollow": false,
       "armed": false
     },
@@ -1049,8 +1049,8 @@
       "kind": "ability",
       "tag": "untagged",
       "label": "Marvel Scale raises Defense while statused",
-      "live": false,
-      "detail": "burned, no ability 135  ->  burned with Marvel Scale 135",
+      "live": true,
+      "detail": "burned, no ability 135  ->  burned with Marvel Scale 91",
       "hollow": false,
       "armed": false
     },
@@ -1292,10 +1292,19 @@
       "kind": "move",
       "tag": "reordersTurn",
       "label": "After You lets the partner move next",
-      "live": false,
-      "detail": "slow partner took 125 normally, 125 after After You",
+      "live": true,
+      "detail": "slow partner took 133 with no help, 0 after After You (the 1-HP foe died first), and 133 after INSTRUCT -- which shares {sends:next} and must not reorder",
       "hollow": false,
-      "armed": false
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "quashSendsLast",
+      "label": "Quash makes the target act last",
+      "live": true,
+      "detail": "partner took 133 without Quash, 0 with the attacker quashed to the back (it was KOd before its demoted action came up)",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "item",
@@ -1545,7 +1554,7 @@
       "tag": "soundSealBlocksEveryKind",
       "label": "a silenced body cannot phaze with Roar",
       "live": true,
-      "detail": "slot after Roar: not silenced \"corviknight\" (dragged), silenced \"milotic\" (must still be Milotic)",
+      "detail": "slot after Roar: not silenced \"weavile\" (dragged), silenced \"milotic\" (must still be Milotic)",
       "hollow": false,
       "armed": true
     },
@@ -1680,7 +1689,169 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 18.8% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "toxicSpikesEntry",
+      "label": "a grounded switch-in is poisoned by Toxic Spikes; a Flying one is not; a Poison one absorbs them",
+      "live": true,
+      "detail": "entrant status -- 1 layer/Milotic psn, 2 layers tox, Flying none, grounded Poison none with 0 layers left (absorbed)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "stickyWebEntry",
+      "label": "Sticky Web drops a grounded switch-in's Speed, through the same reactions as Intimidate",
+      "live": true,
+      "detail": "spe stage on entry -- grounded -1, Flying 0, Defiant -1 spe with +2 atk (the web fires the retaliation)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "intimidateRetaliationNet",
+      "label": "Intimidate into Defiant is net +1 Atk; into Competitive it is Atk -1 AND SpA +2",
+      "live": true,
+      "detail": "after Intimidate -- ability none atk -1; Defiant atk 1 (drop lands, then +2); Competitive atk -1 / spa 2",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "trickSwapsItems",
+      "label": "Trick swaps the two items; Corrosive Gas only deletes; a mega stone does not move",
+      "live": true,
+      "detail": "Trick: user quickclaw -> (none), target (none) -> quickclaw; Corrosive Gas leaves the target (none); Trick at a Gengarite holder moves nothing (quickclaw / gengarite)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "Trick-or-Treat adds Ghost; Soak rewrites to pure Water",
+      "live": true,
+      "detail": "Trick-or-Treat: Water -> Water/Ghost; Soak: Dragon/Ground -> Water",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTargetHonoursTarget",
+      "label": "Decorate aimed at a foe boosts the FOE, and Good as Gold refuses it",
+      "live": true,
+      "detail": "atk stages (ally/foe) -- aimed at ally 2/0, aimed at foe 0/2, at a Good as Gold foe 0 (refused)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "trapEndsWithTrapper",
+      "label": "the partial trap ends when the trapper leaves the field",
+      "live": true,
+      "detail": "next-turn chip on the trapped body -- trapper alive 21, trapper KOd 0 (trap cleared: true)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "phazeDragIsADie",
+      "label": "Whirlwind drags in a RANDOM bench body, driven by the battle rng",
+      "live": true,
+      "detail": "dragged in at rng 0.01: incineroar; at 0.99: archaludon -- the official engine's dragIn is this.sample(possibleSwitches), so WHICH body arrives is luck, and a fixed bench[0] read as a rule divergence under the matrix's pinned dice",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "item",
+      "tag": "fractionalPriority",
+      "label": "Quick Claw lets a slow holder move first within its bracket",
+      "live": true,
+      "detail": "damage the slow holder took before acting -- claw wins the roll 0 (it KOd first: true), claw loses the roll 38, no item 38",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "item",
+      "tag": "addsFlinch",
+      "label": "King's Rock flinches on its 10%, and Sheer Force deletes it",
+      "live": true,
+      "detail": "did the target get its Swords Dance off -- rock+low roll false (flinched), no rock true, rock+high roll true, rock+Sheer Force true (the boost deletes the rock's flinch)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "removesOwnSecondaries",
+      "label": "Sheer Force boosts a secondary-carrying move x1.3 and strips its secondary",
+      "live": true,
+      "detail": "Rock Slide (has a secondary): none 63 -> Sheer Force 81; a no-secondary move must NOT move: 59 -> 59",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "critDamageUp",
+      "label": "Sniper multiplies a crit's damage half again",
+      "live": true,
+      "detail": "Flower Trick (always crits): none 210 -> Sniper 314 (x1.5 on the crit); a non-crit move must not move: 178 -> 178",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
+      "label": "Parental Bond adds a quarter-strength second hit, and not on a spread move",
+      "live": true,
+      "detail": "single-target: none 147 -> Parental Bond 183 (x1.25); spread Earthquake must not move: 61 -> 61",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresStatStages",
+      "label": "Unaware ignores the attacker's +6 when defending and the defender's +6 when attacking",
+      "live": true,
+      "detail": "+6 attacker into: plain wall 535, Unaware wall 135 (equals unboosted 135); into a +6 Def wall: plain attacker 36, Unaware attacker 135",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityModFlying",
+      "label": "Gale Wings puts a full-HP Flying move in front, and not a chipped one",
+      "live": true,
+      "detail": "damage taken before acting -- no ability 61, Gale Wings at full HP 0 (its Flying move went first), Gale Wings at 60% 61 (the condition is the artifact's)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsSwitch",
+      "label": "Shadow Tag holds a voluntary switch; a Ghost type walks out anyway",
+      "live": true,
+      "detail": "slot after the switch click -- foe ability none: incineroar (switched), Shadow Tag: milotic (held), Ghost-type under Shadow Tag: incineroar (exempt)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsOnKO",
+      "label": "a KO raises the killer's highest stat by one",
+      "live": true,
+      "detail": "total stages after the KO -- ability none 0, Eelevate 1 (+1 to its highest stat)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "privateWeather",
+      "label": "Mega Sol's own Fire move fires under a sun only it can see",
+      "live": true,
+      "detail": "Flamethrower on a clear field: ability none 130, Mega Sol 194 (the private sun's x1.5); the FIELD still reports no weather -- only this body's reads see it",
       "hollow": false,
       "armed": true
     }

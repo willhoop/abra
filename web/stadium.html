@@ -503,7 +503,7 @@
         {k:"Decisive-turn walkthrough", v:"Live", n:"Offline capable, raw-log paste fallback."},
         {k:"Prescriptive text quality", v:null, n:"Heuristic prose, not equilibrium-grade."}
       ],
-      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(0.9943·alive_diff + 1.4080·hp_diff) (<code>data/pory-eval.json</code>) — it ties that two-feature material baseline to six decimal places (+0.000021 with PORY WORSE, 95% CI [-0.000013, +0.000056]), and the intercept and turn terms are pinned at exactly zero because emitting both perspectives cancels the gradient on any column identical across the two rows. <s class='wd' title='Retracted 2026-08-04: 1.256/1.544 come from commit 44e0fb0, the last PORY run fitted on the UNFILTERED store with bot games included. The clean filter landed two days later and the coefficients moved to 0.9943/1.4080. The retraction was citing bot-contaminated numbers as its own evidence for ten days.'>Quoted here until 2026-08-04 as 1.256/1.544</s> The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
+      honest:"The win% chip beside the advice was retracted 2026-07-25. Its weights reduce to sigmoid(0.9809·alive_diff + 1.4093·hp_diff) (<code>data/pory-eval.json</code>) — it ties that two-feature material baseline to six decimal places (+0.000001 with PORY WORSE, 95% CI [-0.000026, +0.000029]), and the intercept and turn terms are pinned at exactly zero because emitting both perspectives cancels the gradient on any column identical across the two rows. <s class='wd' title='Retracted 2026-08-04: 1.256/1.544 come from commit 44e0fb0, the last PORY run fitted on the UNFILTERED store with bot games included. The clean filter landed two days later and the coefficients moved to 0.9943/1.4080; a later refit on the corpus grown to 5,883 games moved them again, to 0.9809/1.4093 (the reduced_form block of data/pory-eval.json). The retraction was citing bot-contaminated numbers as its own evidence for ten days.'>Quoted here until 2026-08-04 as 1.256/1.544</s> The chip still renders because it reports material arithmetic, not a learned value, and saying so is the only reason it is allowed to stay."
     }
   ];
 
@@ -725,7 +725,7 @@
     mew:      { games:"1,000", discarded:"0", checks:"13", mirror:"51.0%", ci:"[45.4, 56.6]", battles:"300", teams:"1,257", perDay:"~330", mde:"~4.2", need:"~4,900", src:"docs/MODELS.md" },
     jolteon:  { ll:"0.699", coin:"0.693", elo:"0.687", acc:"~55%", temp:"6", src:"docs/MODELS.md" },
     ditto:    { leaf:"51.0%", leafn:"1,314", leafci:"[48.3, 53.7]", ece:"0.1811", src:"data/winrate-backtest.json and docs/MODELS.md" },
-    kadabra:  { alive:"0.9943", hp:"1.4080", tie:"+0.000021", tieci:"[-0.000013, +0.000056]", held:"925", corpus:"4,623", coin:"0.6931", pory:"0.629799", base:"0.629778", src:"data/pory-eval.json" }
+    kadabra:  { alive:"0.9809", hp:"1.4093", tie:"+0.000001", tieci:"[-0.000026, +0.000029]", held:"1,177", corpus:"5,883", coin:"0.6931", pory:"0.623623", base:"0.623623", src:"data/pory-eval.json" }
   };
 
   var NM = '<span class="nm">NOT MEASURED</span>';

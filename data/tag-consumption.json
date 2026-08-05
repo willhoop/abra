@@ -1,10 +1,10 @@
 {
   "note": "RATCHET. `dead` may shrink and may never grow. A tag here is one NO line of engine code looks for — decisive, and independent of how the sweep was staged. `staged` is a property of the sweep and is recorded for information only, never ratcheted.",
   "method": "engine/tags.js counts ASKED (any lookup) and FOUND (the entity carried it). ASKED=0 is the decisive reading. FOUND>0 is necessary and NOT sufficient — proving the read changes behaviour is the mutation tier in docs/TAG-COVERAGE.md.",
-  "total_tags": 176,
-  "live": 68,
-  "staged": 17,
-  "unreached": 30,
+  "total_tags": 177,
+  "live": 82,
+  "staged": 21,
+  "unreached": 36,
   "unreached_this_run": [
     "priority",
     "stalling",
@@ -24,6 +24,7 @@
     "preventsStatDrop",
     "reversesSpeed",
     "healsSelf",
+    "takesTargetItem",
     "healsAlly",
     "failsWithoutWeather",
     "perishClock",
@@ -33,43 +34,37 @@
     "curesVolatile",
     "clearsBoosts",
     "formeChange",
+    "reordersTurn",
     "hazard",
     "switchInForme",
-    "ohko"
+    "instructsTarget",
+    "changesTargetType",
+    "ohko",
+    "swapsAbilities",
+    "preventsSwitch"
   ],
   "dead": [
     "statusCategory",
     "neverMisses",
     "flinches",
-    "megaStone",
     "inflictsBurn",
     "lowersUser",
     "damageBoost",
     "boostsUser",
-    "onSwitchInDrop",
     "lowersTarget",
-    "boostsWhenLowered",
-    "priorityMod",
     "neverMissesAttack",
     "needsTargetToAttack",
-    "contactPunish",
     "inflictsParalysis",
     "inflictsFreeze",
     "inflictsPoison",
-    "speedMult",
+    "untagged",
     "locksTarget",
     "needsUntrackedState",
-    "untagged",
-    "stabBoost",
     "weightBased",
     "oneTurnGuard",
-    "speedCond",
-    "takesTargetItem",
     "inflictsConfusion",
     "readsTargetItem",
-    "blocksStatusMoves",
     "accuracyMod",
-    "ignoresStatStages",
     "inflictsSleep",
     "setsWeather",
     "forbidsStatusMoves",
@@ -77,239 +72,162 @@
     "inflictsToxic",
     "substitute",
     "randomBoostEachTurn",
-    "reordersTurn",
     "statusImmune",
-    "invertsBoosts",
     "punishesBoostedTarget",
     "passesState",
-    "instructsTarget",
-    "removesOwnSecondaries",
     "readsOwnItem",
-    "changesTargetType",
     "dualPurpose",
-    "addsFlinch",
-    "fractionalPriority",
-    "critDamageUp",
     "swapsDefences",
     "sideBuff",
     "suppressesItems",
     "setsRoom",
-    "boostsOnKO",
-    "privateWeather",
-    "preventsSwitch",
-    "auraBoost",
-    "hitsTwice"
+    "auraBoost"
   ],
   "dead_by_uses": [
     {
       "tag": "statusCategory",
-      "uses": 162705,
+      "uses": 164294,
       "carriers": 175
     },
     {
       "tag": "neverMisses",
-      "uses": 139688,
+      "uses": 141059,
       "carriers": 124
     },
     {
       "tag": "flinches",
-      "uses": 35229,
+      "uses": 35565,
       "carriers": 19
     },
     {
-      "tag": "megaStone",
-      "uses": 29790,
-      "carriers": 75
-    },
-    {
       "tag": "inflictsBurn",
-      "uses": 23132,
+      "uses": 23338,
       "carriers": 15
     },
     {
       "tag": "lowersUser",
-      "uses": 17115,
+      "uses": 17322,
       "carriers": 13
     },
     {
       "tag": "damageBoost",
-      "uses": 12085,
+      "uses": 12223,
       "carriers": 44
     },
     {
       "tag": "boostsUser",
-      "uses": 10680,
+      "uses": 10766,
       "carriers": 23
     },
     {
-      "tag": "onSwitchInDrop",
-      "uses": 10415,
-      "carriers": 3
-    },
-    {
       "tag": "lowersTarget",
-      "uses": 10303,
+      "uses": 10379,
       "carriers": 22
     },
     {
-      "tag": "boostsWhenLowered",
-      "uses": 7965,
-      "carriers": 2
-    },
-    {
-      "tag": "priorityMod",
-      "uses": 7958,
-      "carriers": 3
-    },
-    {
       "tag": "neverMissesAttack",
-      "uses": 6924,
+      "uses": 6979,
       "carriers": 8
     },
     {
       "tag": "needsTargetToAttack",
-      "uses": 6911,
+      "uses": 6976,
       "carriers": 9
     },
     {
-      "tag": "contactPunish",
-      "uses": 6829,
-      "carriers": 14
-    },
-    {
       "tag": "inflictsParalysis",
-      "uses": 6646,
+      "uses": 6711,
       "carriers": 13
     },
     {
       "tag": "inflictsFreeze",
-      "uses": 6500,
+      "uses": 6569,
       "carriers": 4
     },
     {
       "tag": "inflictsPoison",
-      "uses": 6206,
+      "uses": 6266,
       "carriers": 11
     },
     {
-      "tag": "speedMult",
-      "uses": 6141,
-      "carriers": 1
+      "tag": "untagged",
+      "uses": 5449,
+      "carriers": 65
     },
     {
       "tag": "locksTarget",
-      "uses": 5338,
+      "uses": 5402,
       "carriers": 3
     },
     {
       "tag": "needsUntrackedState",
-      "uses": 5267,
+      "uses": 5288,
       "carriers": 4
     },
     {
-      "tag": "untagged",
-      "uses": 5172,
-      "carriers": 61
-    },
-    {
-      "tag": "stabBoost",
-      "uses": 4468,
-      "carriers": 1
-    },
-    {
       "tag": "weightBased",
-      "uses": 4172,
+      "uses": 4237,
       "carriers": 4
     },
     {
       "tag": "oneTurnGuard",
-      "uses": 3915,
+      "uses": 3949,
       "carriers": 2
     },
     {
-      "tag": "speedCond",
-      "uses": 3564,
-      "carriers": 7
-    },
-    {
-      "tag": "takesTargetItem",
-      "uses": 3510,
-      "carriers": 9
-    },
-    {
       "tag": "inflictsConfusion",
-      "uses": 3410,
+      "uses": 3448,
       "carriers": 9
     },
     {
       "tag": "readsTargetItem",
-      "uses": 3229,
+      "uses": 3271,
       "carriers": 2
     },
     {
-      "tag": "blocksStatusMoves",
-      "uses": 2539,
-      "carriers": 3
-    },
-    {
       "tag": "accuracyMod",
-      "uses": 2537,
+      "uses": 2559,
       "carriers": 14
     },
     {
-      "tag": "ignoresStatStages",
-      "uses": 2445,
-      "carriers": 3
-    },
-    {
       "tag": "inflictsSleep",
-      "uses": 1824,
+      "uses": 1848,
       "carriers": 4
     },
     {
       "tag": "setsWeather",
-      "uses": 1555,
+      "uses": 1568,
       "carriers": 5
     },
     {
       "tag": "forbidsStatusMoves",
-      "uses": 1421,
+      "uses": 1438,
       "carriers": 1
     },
     {
       "tag": "writesAccuracy",
-      "uses": 1073,
+      "uses": 1088,
       "carriers": 8
     },
     {
       "tag": "inflictsToxic",
-      "uses": 838,
+      "uses": 843,
       "carriers": 2
     },
     {
       "tag": "substitute",
-      "uses": 622,
+      "uses": 628,
       "carriers": 2
     },
     {
       "tag": "randomBoostEachTurn",
-      "uses": 515,
-      "carriers": 5
-    },
-    {
-      "tag": "reordersTurn",
-      "uses": 469,
-      "carriers": 3
+      "uses": 463,
+      "carriers": 1
     },
     {
       "tag": "statusImmune",
-      "uses": 430,
+      "uses": 439,
       "carriers": 12
-    },
-    {
-      "tag": "invertsBoosts",
-      "uses": 193,
-      "carriers": 3
     },
     {
       "tag": "punishesBoostedTarget",
@@ -318,48 +236,18 @@
     },
     {
       "tag": "passesState",
-      "uses": 170,
+      "uses": 174,
       "carriers": 2
     },
     {
-      "tag": "instructsTarget",
-      "uses": 162,
-      "carriers": 1
-    },
-    {
-      "tag": "removesOwnSecondaries",
-      "uses": 161,
-      "carriers": 1
-    },
-    {
       "tag": "readsOwnItem",
-      "uses": 151,
+      "uses": 156,
       "carriers": 1
-    },
-    {
-      "tag": "changesTargetType",
-      "uses": 136,
-      "carriers": 5
     },
     {
       "tag": "dualPurpose",
       "uses": 114,
       "carriers": 2
-    },
-    {
-      "tag": "addsFlinch",
-      "uses": 83,
-      "carriers": 1
-    },
-    {
-      "tag": "fractionalPriority",
-      "uses": 78,
-      "carriers": 1
-    },
-    {
-      "tag": "critDamageUp",
-      "uses": 43,
-      "carriers": 1
     },
     {
       "tag": "swapsDefences",
@@ -382,35 +270,14 @@
       "carriers": 1
     },
     {
-      "tag": "boostsOnKO",
-      "uses": 0,
-      "carriers": 2
-    },
-    {
-      "tag": "privateWeather",
-      "uses": 0,
-      "carriers": 1
-    },
-    {
-      "tag": "preventsSwitch",
-      "uses": 0,
-      "carriers": 3
-    },
-    {
       "tag": "auraBoost",
       "uses": 0,
       "carriers": 2
-    },
-    {
-      "tag": "hitsTwice",
-      "uses": 0,
-      "carriers": 1
     }
   ],
   "staged_this_run": [
     "extendsDuration",
     "refusesStatusMoves",
-    "proceduralStatus",
     "speedOnItemLoss",
     "blocksBerries",
     "punishesContact",
@@ -419,12 +286,17 @@
     "reducesAllyDamage",
     "blocksExplosion",
     "forcesSwitch",
+    "crashOnMiss",
     "curesStatus",
     "reflectsStatusMoves",
     "weatherSuppression",
+    "addsFlinch",
     "boostsFromFallen",
+    "critDamageUp",
+    "condStatMult",
     "preTurnShield",
-    "failsWithoutTerrain"
+    "failsWithoutTerrain",
+    "amplifiesBoosts"
   ],
-  "generated": "2026-08-05T00:39:55.874Z"
+  "generated": "2026-08-05T02:12:53.247Z"
 }

@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.40.0 · 2026-08-05 · Will Hooper**
+**Version 3.41.0 · 2026-08-05 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -260,6 +260,17 @@ Also in this pass: the simulator learned eight more rule families and now covers
 mechanics we probe for, with the remaining 5 named and explained; and we compared our two separate
 "rulebook" files fact by fact — they disagreed exactly twice, and one of those (how often Iron Head
 flinches in this format) was a real bug the bot had been playing with. It reads the right number now.
+
+**Update (version 3.41.0, same night).** The second half of the retraining is done too — the layer
+that picks pairs of actions now learns from the full team sheet, and we measured what all that
+sheet information is actually worth by replaying 45,000 real decisions with and without it. Honest
+answer: the bot judges positions measurably better with the sheet, but we cannot yet show it
+clicking different moves often enough to prove a win-rate gain — the effect is smaller than our
+measurement noise. We say it exactly that way rather than rounding up. Meanwhile the simulator's
+coverage grew again (202 of 205 probed mechanics, 3 remaining, each with a written reason), the
+mirror-match test hit 100% agreement with the official engine, and two real bugs — one in how
+Intimidate interacts with certain abilities, one where Sheer Force was hurting its own holder —
+were found and fixed with proof.
 
 
 ---

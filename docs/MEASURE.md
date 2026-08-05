@@ -19,12 +19,13 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 2 unsafe, 42 possibly stale, 50 ok, 0 missing
+  provenance: 2 unsafe, 41 possibly stale, 53 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 23:41, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-05 02:07, but the feature function did not)
+    (data/engine-data.js moved 2026-08-05 00:36, but the feature function did not)
 ```
 
-_stamped 2026-08-05 00:26_
+_stamped 2026-08-05 02:14_
 
 <!-- /GENERATED -->
 
@@ -501,6 +502,17 @@ clean-game sample it returned this file's weights, `feat_std` and log-loss exact
 never the arithmetic. The gate now reads the paired difference, the withdrawn string travels under
 `withdrawn_verdict`, and `reduced_form` is derived from the file's own weights.
 
+> **REGENERATED 2026-08-05 on the current corpus, deliberately (the dispatch Will approved).**
+> `data/pory-eval.json` now describes **5,883 games / 97,732 board-states** (was 4,623 / a 925-game
+> test split) and **declares `population_ceiling: 5883`** — the §5f hatch, written by the generator
+> on its first deliberate run since the hatch existed. Everything below survives the growth:
+> paired difference vs the two-feature logistic **+0.000001, 95% CI [−0.000026, +0.000029]**
+> clustered over 1,177 held-out games; the verdict string is unchanged. The numbers a document
+> would quote moved: log-loss **0.6298 → 0.6236** [0.607, 0.6387], sign-rule heuristic
+> **0.655 → 0.6428**, two-feature baseline **0.629778 → 0.623623**, reduced form
+> **0.9943 / 1.4080 → 0.9809 / 1.4093**, accuracy 0.6264 → 0.630, ECE 0.017 → 0.0138. Doc locations
+> quoting the old figures are listed in §13b; propagation is the router's pass, not this file's.
+
 **The documented coefficients had no artifact behind them — the P1 class.** `1.256 / 1.544` in
 `docs/MODELS.md` and `web/stadium.html:342` is commit `44e0fb0` (2026-07-24, `n_games` 7,381), the
 last run fitted on the **unfiltered store with bot games in it**. `7f74236` put every model behind
@@ -619,7 +631,9 @@ same declaration convention as `not_store_derived`, `raw_store_ok`, `gate` and `
 `pory-eval.json` is a strict subset (clean ladder games whose raw log exists AND names a winner:
 5,456, not 7,123), so it can never get below ~21% against the wrong denominator. **This is a separate
 defect from the unit question and the answer above does not fix it by itself**: the hatch exists, and
-`engine/pory.py` must write the key on its next deliberate run. Every artifact reading
+`engine/pory.py` must write the key on its next deliberate run. **DONE 2026-08-05** — the deliberate
+run happened (§5d addendum) and the generator now writes `population_ceiling` with a note naming its
+predicate. Every artifact reading
 `games.ladder.raw-logs.jsonl` has the same shape.
 
 **WHAT THE NEW RULE WOULD AND WOULD NOT HAVE CAUGHT, plainly.**
@@ -1205,6 +1219,67 @@ invalidates the certainty* — and it is a decision, not a refresh.
 
 Filed with its size stated, which is the part that was missing: **half of every decision the fit
 trains on is priced against a board the player does not see.**
+
+### 13b. THE JOINT LAYER IS REFITTED ON FOUR CHANNELS, AND THE CHANNELS ARE WORTH A LIKELIHOOD GAIN, NOT AN ACCURACY GAIN — 2026-08-05
+
+The other half of §13a's debt, run under Will's go. Three results, each with its instrument named.
+
+**The joint refit** (`engine/fit_joint.js`, four-channel `joint_rows.js`): 8,856 clean open-sheet
+games, 101,459 joint turns → 95,886 usable, 77,975 train / 17,911 held out by game, lambda 0 on
+held-out. The artifact now carries a `fitEnvironment` block and it says `matches_player: true` by
+measurement: the declared ability and moves reached the board on **202,343 of 202,918 scored slots
+(99.7%)** and **395,130 of 396,288 live foe actives (99.7%)**. Held out, predicting the pair:
+separate decisions logL −3.3294 / top-1 10.3%, refit with joint terms zeroed −3.3199 / 9.8%, with
+the joint terms **−3.2308 / 12.2%**. The chosen pair fell outside the top-6 menu on 11.1% of kept
+turns. `feature_fixture --check` passes on the new artifact. No before/after against the presheet
+joint vector is quoted because none was measured — the presheet run published no held-out table to
+its artifact, and comparing two logs would be comparing two samples.
+
+**What the two extra channels are worth at the marginal layer** (`engine/sheet_channel_value.js`,
+arm A = release `d3d04b669e18`'s two-channel incumbent, 44,982 paired held-out decisions over 1,789
+games, 10,000 game-bootstrap resamples). The first run **VOIDED itself** — ENGINE saved
+`engine/medicham2-browser.js` mid-run and the instrument recorded `void: true` — and the second run
+is clean, with every deterministic figure identical between the two:
+
+| paired difference | logL/decision | top-1 points |
+|---|---|---|
+| B − A the information alone, weights frozen | **+0.002853** [0.001611, 0.004072] | +0.009 [−0.140, +0.157] |
+| C − B the refit, given the information | **+0.002234** [0.001638, 0.002831] | **+0.165** [0.029, 0.299] |
+| C − A everything vs what shipped | **+0.005087** [0.003854, 0.006331] | +0.173 [−0.011, +0.360] |
+
+Split-half noise floor of the shipping arm, 20 cuts: **median 0.331 top-1 points** (range
+0.012–1.385; the earlier refit's floor was 0.192 on a smaller paired set). Read plainly: **the sheet
+channels buy a real likelihood gain — every logL interval clears zero — and no demonstrable top-1
+gain.** The one top-1 interval that clears zero (C − B, +0.165) is half its own noise floor and
+resolves only because the comparison is paired; the total effect against what shipped contains zero.
+Same shape as §13: correctness and information first, metric second, and the honest metric statement
+is "better calibrated per decision, not measurably more often right on the argmax."
+
+**The degradation budget did not move, and cannot move by this lever.** `fit_joint.turnsDropped` is
+**5.4929% (5,573 of 101,459) against a 5.49% ceiling — still red**. The dropped turns are unmatched
+clicks (5,555) and ambiguous mirrors (18); the chosen pair is kept regardless of its rank, so the
+four-channel w1 changes which ALTERNATIVES are on the menu, never which turns are kept. The rate
+crept from 5.4811% when the ceiling was ratcheted (86,242 turns) because the newly ingested games
+unmatch at 5.56%. The ceiling is untouched; the call on it is Will's.
+
+**PORY family regenerated, and `tests/test-site-data-fresh.js` is GREEN (7/7)** — §5d addendum has
+the pory-eval numbers; `data/nmf-roles.json` moved 13,258 → 14,808 team-docs, 258 → 263 moves,
+recon-err 0.8346 → 0.8356, rank 10 unchanged, and both site bundles (`data/pory.js`, `data/nmf.js`)
+were rewritten by their own generators in the same runs. `data/pory-nn.json` retrained at 6,289
+games / 106,782 states (was 6,008 / 102,296): every arm ordering holds — N6 0.6201, NR 0.6132 and
+LR 0.6064 all still beat the two-feature bar at 0.6229, nonlinearity is still worth ~0.003 and
+representation ~0.016 — and no living doc quotes these figures (§5c). The first retrain immediately
+re-red the drift check at 15.1%, the §5f false-denominator class to the letter: its population is
+the raw-logs subset. Both `engine/pory.py` and `engine/pory_nn.py` now declare `population_ceiling`
+(the artifact's own generator wrote it; the retrain reproduced every arm to the digit under its
+seeds), which is what turned the check green rather than a threshold being moved.
+
+Doc and site locations quoting superseded PORY figures, for the propagation pass (grep-verified,
+historical HANDOFF files excluded as history): `docs/ABRA-whitepaper.md:113` (0.6298 [0.6125,
+0.6456]), `docs/SUMMARY.md:77` (same + 0.655), `docs/MODELS.md:358/360/364` (0.9943/1.4080,
+0.629799/0.629778, +0.000021 [−0.000013, +0.000056], 925, 4,623), and WEB's
+`web/stadium.html:506,:728` + `app/stadium.html:506,:728` (the `kadabra` data object and its prose),
+which render every one of those numbers and are flagged, not edited.
 
 ## Reading a run
 

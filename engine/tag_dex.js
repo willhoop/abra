@@ -484,11 +484,11 @@ const MOVE_TAGS = [
    * TARGET's defensive stages; Unaware (172 uses) ignores them in both directions permanently. And
    * it is the parameter a CRIT already uses, since a critical hit ignores the defender's positive
    * boosts -- so all three feed one switch rather than three special cases. */
-  { tag: 'ignoresStatStages', param: 'the boost multiplier does not apply', probe: 'ignoreDefensive',
-    why: 'Darkest Lariat (1,232 uses), Sacred Sword. Setup means nothing into them, so a boosted '
-       + 'target is no safer than an unboosted one -- and it is the same switch a crit flips',
-    of: m => (m.ignoreDefensive || m.ignoreOffensive)
-             ? { ignores: m.ignoreDefensive ? 'target defensive stages' : 'user negative stages' } : null },
+  /* MOVE-SIDE `ignoresStatStages` RETIRED 2026-08-05 (STAGED). Every carrier (Darkest Lariat,
+   * Sacred Sword) also carries `ignoresBoosts`, whose {offensive, defensive} params are what
+   * dmgRange actually reads -- two spellings of one fact, and the second one sat DEAD in
+   * data/tag-consumption.json while the first did the work. The ABILITY-side entry (Unaware)
+   * remains: it is a different derivation and is now consumed (WIRE 94). */
   /* Will: "psychic fangs and brick break clear screens, veils". The counterplay to halvesDamage,
    * and Psychic Fangs at 1,352 uses is common enough that a screen is not the guarantee it looks. */
   { tag: 'clearsScreens', param: 'destroys Reflect, Light Screen and Aurora Veil on their side', probe: 'removeSideCondition',
@@ -670,6 +670,17 @@ const MOVE_TAGS = [
     why: 'Instruct (92 uses) gives an ally a second attack in one turn. Scored as a status move '
        + 'doing nothing, when it is often the largest damage action available',
     of: m => /instruct/.test(norm(m.id)) ? { extraAction: true } : null },
+  /* NEW 2026-08-05 (STAGED) -- SKILL SWAP. The interaction matrix's `skillswap -> prankster` row:
+   * the official engine exchanged the two abilities and medicham2 did nothing, because the move's
+   * only tags were neverMisses and statusCategory. The derivation is EXACT, not heuristic:
+   * Showdown's handler is one call, `this.skillSwap(source, target)` -- the same call WIRE 80's
+   * rewritesAbilityOnContact derivation reads off Wandering Spirit. Worry Seed, Entrainment, Role
+   * Play, Simple Beam and Doodle all use setAbility (one-directional writes, different mechanics)
+   * and none calls skillSwap, so the membership is exactly one move. Consumer: WIRE 110. */
+  { tag: 'swapsAbilities', param: 'the user and target EXCHANGE abilities', probe: 'skillSwap',
+    why: "Skill Swap (98 uses). Every damage, speed and immunity number downstream is computed from "
+       + "an ability the body no longer has -- the Knock Off lesson, one field over",
+    of: m => /this\.skillSwap\s*\(/.test(String(m.onHit || '')) ? { swaps: true } : null },
   /* THE MOVE-SEALING FAMILY, one mechanic with different parameters. Will: "imprison still needs a
    * tag." Imprison is the odd one and worth stating: it has NO duration, lasting as long as the
    * user stays in; it hits BOTH foes; and its blocked set is defined by the USER's own moveset
@@ -1987,9 +1998,9 @@ const ITEM_TAGS = [
       const ext = EXTENDERS[norm(it.id || it.name)];
       return ext ? { extends: ext.what, toTurns: ext.turns, insteadOf: 5 } : null;
     } },
-  { tag: 'contactPunish', param: 'hurts anything that makes contact', probe: 'rockyhelmet',
-    why: 'a cost of clicking a contact move that is not currently priced',
-    of: it => norm(it.name) === 'rockyhelmet' ? { chip: 1 / 6 } : null },
+  /* `contactPunish` (item) RETIRED 2026-08-05 (STAGED). Its only member was Rocky Helmet, which is
+   * BANNED in this format, and the fact it carried is `punishesAttacker`'s -- the ability-side twin
+   * was retired in the same pass for redundancy with that richer, CONSUMED tag. One fact, one tag. */
   /* Will: "or power herb (illegal but future proofing". Right -- it skips the charge turn of ANY
    * charge move, where the weather skip only covers Electro Shot and the Solar moves. Nonstandard in
    * this format today, and derived from the handler so it starts working the day it is legal rather
@@ -2143,7 +2154,20 @@ const ABILITY_TAGS = [
   { tag: 'boostsWhenLowered', param: '+2 to a stat when any stat is lowered', probe: 'onAfterEachBoost',
     why: 'Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them '
        + 'an attack boost, so the lead interaction inverts',
-    of: a => a.onAfterEachBoost ? { retaliates: true } : null },
+    /* ENRICHED 2026-08-05 (STAGED): {retaliates:true} was the boolean-instead-of-parameter defect --
+     * WHICH stat and HOW MUCH live in the handler's own this.boost({atk: 2}) and the consumer
+     * (applyStatDrop, WIRE 100) types them beside a comment naming this enrichment. Read, not
+     * assumed, exactly as statChangeInCode reads a move handler's table. */
+    of: a => {
+      if (!a.onAfterEachBoost) return null;
+      const bm = String(a.onAfterEachBoost).match(/\.boost\(\s*\{([^}]*)\}/);
+      const boosts = {};
+      if (bm) for (const kv of bm[1].split(',')) {
+        const p = kv.split(':').map(s => s.trim().replace(/["']/g, ''));
+        if (p.length === 2 && !isNaN(+p[1])) boosts[p[0]] = +p[1];
+      }
+      return Object.keys(boosts).length ? { retaliates: true, boosts } : { retaliates: true };
+    } },
   { tag: 'preventsStatDrop', param: 'WHICH stat drops do not apply, and to whom', probe: 'onTryBoost',
     why: 'Clear Body blocks every stat, Hyper Cutter only Attack, Keen Eye only accuracy. That '
        + 'distinction decides Intimidate, which is 10% of the format: an Attack-blocker stops it '
@@ -2206,7 +2230,13 @@ const ABILITY_TAGS = [
   { tag: 'randomBoostEachTurn', param: 'a RANDOM stat +2 and another -1 every turn -- unpredictable by construction', probe: 'randomBoostEachTurn',
     why: 'Moody, 249 sheets. Nothing can be conditioned on it; it belongs in the variance of a '
        + 'forecast, not in a feature. Recorded rather than pretended-away',
-    of: a => (a.onResidual && /randomChance|sample\(|this\.random/.test(String(a.onResidual)))
+    /* TIGHTENED 2026-08-05 (STAGED): the old test -- any onResidual containing a random call --
+     * also matched HEALER (30% chance to cure the ALLY'S STATUS) and HARVEST (50% chance to regrow
+     * a berry), neither of which boosts anything. LESSONS §4, again: the membership was printed
+     * before the consumer existed, which is the only reason no engine ever gave Harvest a Moody
+     * turn. A random residual BOOST needs the boost call itself. */
+    of: a => (a.onResidual && /randomChance|sample\(|this\.random/.test(String(a.onResidual))
+              && /\.boost\(/.test(String(a.onResidual)))
              ? { randomStat: true, up: 2, down: 1 } : null },
   /* THE MEGA-ONLY ABILITIES. Will: "u still didnt send the mega abilities in their highlighted and
    * what all their tags are."
@@ -2396,10 +2426,12 @@ const ABILITY_TAGS = [
       return { actsAsWeather: w.length ? w : ['sun'], visibleOnField: false,
                affects: 'only this Pokemon' };
     } },
-  { tag: 'blocksStatusMoves', param: 'every Status-category move fails against it', probe: 'goodasgold',
-    why: 'Good as Gold, 2.20%. Immune to Will-O-Wisp, Taunt, Encore, Thunder Wave -- the whole 38.5% '
-       + 'of move slots that are status',
-    of: a => (a.onTryHit && /category === .Status|Status/.test(String(a.onTryHit))) ? { blocks: 'Status' } : null },
+  /* `blocksStatusMoves` RETIRED 2026-08-05 (STAGED), for BOTH of the reasons a tag can be wrong at
+   * once. REDUNDANT: Good as Gold's refusal is `refusesStatusMoves`, which is consumed at five
+   * engine sites. OVER-MATCHED: its loose regex also caught Telepathy (blocks an ALLY'S DAMAGE, not
+   * status) and Wonder Guard (tests Status and bare-returns to ALLOW it) -- the exact pair the
+   * refusesStatusMoves derivation was already tightened against (LESSONS §4). Survivor:
+   * refusesStatusMoves. */
   { tag: 'speedOnItemLoss', param: 'speed x2 once its item is gone', probe: 'unburden',
     why: 'Unburden, 2.23%. A consumed Sash or berry doubles their speed, which flips the order '
        + 'mid-battle and the item tracking now makes observable',
@@ -2656,15 +2688,12 @@ const ABILITY_TAGS = [
    * reading the function text catches both. It also separates the TRIGGER, which Will spotted was
    * being conflated: Rough Skin and Static fire on CONTACT, Toxic Debris on any PHYSICAL hit, and
    * Stamina and Cursed Body on ANY hit at all. */
-  { tag: 'contactPunish', param: 'the ATTACKER pays for touching it', probe: 'roughskin',
-    why: 'Rough Skin (3,739), Static, Flame Body, Poison Point, Cute Charm, Effect Spore, Mummy, '
-       + 'Gooey. Derived by reading the handler for checkMoveMakesContact',
-    of: a => {
-      const src = String(a.onDamagingHit || '');
-      if (!/checkMoveMakesContact|flags\.contact/.test(src)) return null;
-      /* Will: "static spreads status" -- it does, and the tag said only 'contact'. */
-      return { trigger: 'contact', inflicts: statusIn(src), fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/)||[])[1] || null };
-    } },
+  /* `contactPunish` (ability) RETIRED 2026-08-05 (STAGED). docs/TAG-COVERAGE.md named the pair:
+   * "contactPunish (dead, 6,829 uses) beside punishesAttacker (live). One of those is redundant and
+   * nothing has noticed." Verified before retiring: every carrier (Aftermath, Cute Charm, Effect
+   * Spore, Rough Skin, ...) also carries `punishesAttacker`, whose params are a strict SUPERSET
+   * (trigger, inflicts, fraction, plus onFaintOnly, hazard, boosts, requiresForme -- the fields the
+   * consumer actually reads). The survivor is punishesAttacker. */
   { tag: 'damageReduce', param: 'x<1 damage taken', probe: 'multiscale',
     why: 'Filter, Solid Rock, Multiscale, Thick Fat, Heatproof, Fluffy. Overcalling kills without them',
     of: a => {
@@ -2754,9 +2783,26 @@ const ABILITY_TAGS = [
       if (/category\s*===\s*"Status"/.test(src)) return { what: 'status moves at the holder' };
       return { what: 'unknown -- unrecognised handler idiom', via: a.onFoeTryMove ? 'onFoeTryMove' : 'onTryHit' };
     } },
+  /* TIGHTENED 2026-08-05 (STAGED), found by tests/test-rollout-effects.js the day the tag gained a
+   * consumer. `a.onChangeBoost ? {inverts:true}` matched THREE abilities and only one inverts:
+   * Contrary's handler is `boost[i] *= -1`, SIMPLE's is `boost[i] *= 2` (it DOUBLES), and RIPEN's
+   * doubles only boosts from a BERRY (`effect.isBerry`). The over-match sat harmless in the artifact
+   * for as long as the tag was DEAD; the moment WIRE 100b read it by shape, a Simple target took
+   * Intimidate as +1 where the official engine says -2 (verified by real battle at the pinned
+   * commit). LESSONS §4: the extras are always plausible. The sign is now read out of the handler;
+   * Simple gets its own tag with the multiplier; Ripen's berry-gated version carries neither. */
   { tag: 'invertsBoosts', param: 'stat changes flip sign', probe: 'onChangeBoost',
-    why: 'Contrary and Simple, already probed for expectedBoostSign',
-    of: a => a.onChangeBoost ? { inverts: true } : null },
+    why: 'Contrary alone. Simple DOUBLES and is amplifiesBoosts; Ripen doubles only berry boosts and is neither',
+    of: a => (a.onChangeBoost && /\*=\s*-1/.test(String(a.onChangeBoost))) ? { inverts: true } : null },
+  { tag: 'amplifiesBoosts', param: 'stat changes are multiplied (Simple x2)', probe: 'onChangeBoost',
+    why: 'Simple, split out of invertsBoosts -- an inverted drop and a doubled drop point in opposite '
+       + 'directions on the same click',
+    of: a => {
+      const src = String(a.onChangeBoost || '');
+      if (!src || /isBerry/.test(src)) return null;          /* Ripen: berry boosts only, out of scope */
+      const m = src.match(/\*=\s*(\d+)/);
+      return m && +m[1] > 1 ? { mult: +m[1] } : null;
+    } },
   /* Will, 2026-07-29: "why would you give me the prankster +1 presented like that... even that
    * category is unneeded right? just have a prankster ability tag influence all category status."
    *
@@ -2834,13 +2880,42 @@ const ABILITY_TAGS = [
   { tag: 'preventsSwitch', param: 'the target cannot switch out -- its escape option is deleted', probe: 'onFoeTrapPokemon',
     why: 'Shadow Tag reaches 446 fields and is on ZERO sheets. Nothing prunes switching from the '
        + 'opponent action set, so every reply distribution still contains a move that cannot be made',
-    of: a => a.onFoeTrapPokemon
-      ? { source: 'ability', turns: null, chips: false, scope: /adjacent/i.test(String(a.onFoeTrapPokemon)) ? 'adjacent foes' : 'all foes' }
-      : null },
+    /* ENRICHED 2026-08-05 (STAGED): the per-carrier CONDITIONS were prose in `scope` and the
+     * consumer (WIRE 92) needs them as facts -- Magnet Pull holds only Steel types
+     * (hasType("Steel") in the handler) and Arena Trap only grounded bodies (isGrounded()).
+     * Without them the consumer traps everything non-Ghost, stated at its site; with them it
+     * fails closed per carrier. */
+    of: a => {
+      if (!a.onFoeTrapPokemon) return null;
+      const src = String(a.onFoeTrapPokemon) + String(a.onFoeMaybeTrapPokemon || '');
+      const typeM = src.match(/hasType\(\s*["'](\w+)["']/);
+      return { source: 'ability', turns: null, chips: false,
+               scope: /adjacent/i.test(src) ? 'adjacent foes' : 'all foes',
+               onlyTypes: typeM ? [typeM[1]] : null,
+               onlyGrounded: /isGrounded\(\)/.test(src) || null };
+    } },
   { tag: 'onSwitchInDrop', param: 'stat stages on the foe at switch-in', probe: 'intimidate',
     why: 'Intimidate. Beaten by Clear Amulet and by White Herb, neither of which is checked',
-    of: a => (a.onStart && /boost/i.test(String(a.onStart)) && /foe|adjacentFoes|activePokemon/.test(String(a.onStart)))
-             ? { drop: true } : null },
+    /* ENRICHED AND TIGHTENED 2026-08-05 (STAGED). Two defects at once: {drop:true} named neither
+     * stat nor size (the boolean defect), and the membership included DOWNLOAD -- whose onStart
+     * READS the foes' defences and boosts ITSELF, the exact plausible-extra LESSONS §4 warns about.
+     * The table is read out of the handler's own this.boost({atk: -1}, ...); a handler whose boost
+     * call carries no NEGATIVE literal table (Download's is computed, and aimed at self) drops out
+     * of the tag. The consumer (applyEntryDrops, WIRE 100a) prefers these params and falls back to
+     * the typed Intimidate row only until this regeneration lands. */
+    of: a => {
+      const src = String(a.onStart || '');
+      if (!src || !/boost/i.test(src) || !/foe|adjacentFoes|activePokemon/.test(src)) return null;
+      const bm = src.match(/\.boost\(\s*\{([^}]*)\}/);
+      const boosts = {};
+      if (bm) for (const kv of bm[1].split(',')) {
+        const p = kv.split(':').map(s => s.trim().replace(/["']/g, ''));
+        if (p.length === 2 && !isNaN(+p[1])) boosts[p[0]] = +p[1];
+      }
+      const drops = Object.fromEntries(Object.entries(boosts).filter(([, v]) => v < 0));
+      if (!Object.keys(drops).length) return null;    /* Download: computed self-boost, no literal drop */
+      return { drop: true, boosts: drops };
+    } },
   { tag: 'formeChange', param: 'the species changes mid-battle', probe: 'megaFormeOf',
     why: 'Zero to Hero (needs a switch), Illusion, Imposter, Disguise',
     of: a => /zerotohero|illusion|imposter|disguise|schooling|shieldsdown|powerconstruct/.test(norm(a.name)) ? { changes: true } : null },
@@ -2848,6 +2923,26 @@ const ABILITY_TAGS = [
     why: 'Limber, Immunity, Insomnia, Vital Spirit, Water Veil, Magma Armor. onSetStatus only -- '
        + 'onImmunity also means weather-chip immunity and was over-capturing',
     of: a => a.onSetStatus ? { immune: true } : null },
+  /* NEW 2026-08-05 (STAGED) -- the CONDITIONAL DEFENSIVE STAT MULTIPLIER, which is the census's
+   * Marvel Scale row: an onModifyDef/onModifySpD gated on `pokemon.status`. The census called this
+   * "blocked on the derivation -- no derivation describes a conditional stat multiplier", and the
+   * Air Lock / Mummy / WIRE 83 corrections all said that claim should be re-tested: the handler is
+   * two lines and states both the condition and the chainModify. DEFENSIVE stats only, on purpose --
+   * the offensive twin of this shape is GUTS, which is already consumed by name in dmgRange and
+   * carries `damageBoost`; deriving it here too would double-apply the 1.5. Consumer: WIRE 112. */
+  { tag: 'condStatMult', param: 'a DEFENSIVE stat x N while a body condition holds', probe: 'onModifyDef',
+    why: 'Marvel Scale (36 uses): Defense x1.5 while statused. The census carried it as MISSING with '
+       + '"no artifact describes it" -- this is the artifact describing it',
+    of: a => {
+      for (const [h, stat] of [['onModifyDef', 'def'], ['onModifySpD', 'spd']]) {
+        const src = String(a[h] || '');
+        if (!src) continue;
+        if (!/if\s*\(\s*\w+\.status\s*\)/.test(src)) continue;
+        const mult = multiplierIn(src);
+        if (mult > 1) return { stat, mult, when: 'statused' };
+      }
+      return null;
+    } },
   /* Will: "and things like sand veil and bright powder". accuracyMod existed for moves and items and
    * NOT for abilities, which is where the conditional ones live. A third mechanism feeding the same
    * P(hit): stages use one table, items are flat multipliers, and these are flat multipliers GATED

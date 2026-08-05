@@ -151,12 +151,31 @@ function withTag(kind, tag) {
   return Object.keys(T).filter(id => (T[id].tags || []).includes(tag));
 }
 
+/* THE MUTATION INJECTION POINT (docs/TAG-COVERAGE.md Tier 2, and the probe seam for a STAGED tag --
+ * one whose tag_dex derivation is written but whose regeneration has not run). `__setDB(obj)`
+ * replaces the memoised artifact IN MEMORY; `__setDB(null)` restores the on-disk one on next load.
+ * Deliberately NOT a require-cache clear, which would also drop the ASKED/COUNT counters and blind
+ * test-tag-consumed.
+ *
+ * `__setDB` ALONE IS NOT ENOUGH for a set-building consumer -- medicham2 builds SPREAD, HITS_ALLY
+ * and the terrain/priority tables at module load, so an injected DB silently no-ops for those tags
+ * and scores them read-and-ignored (the false-DEAD direction, the dangerous one). Consumers that
+ * build derived sets register a rebuild hook here; `__setDB` fires every hook after swapping. */
+const REBUILD = [];
+function __onSetDB(fn) { if (typeof fn === 'function') REBUILD.push(fn); }
+function __setDB(obj) {
+  DB = obj || null;
+  if (!obj) load();
+  for (const fn of REBUILD) fn();
+  return DB;
+}
+
 /* PUBLISHED BOTH WAYS, like engine/mc_key.js and engine/board.js. In node this is the module; in a
  * browser it REPLACES globalThis.ABRA_TAGS — the raw data table published by data/abra-tags.js —
  * with this same API over that data. board.js tests ABRA_TAGS for `.has`, so the object it finds has
  * to be the accessor, not the artifact. Sharing the artifact was never enough; the ACCESSOR has to
  * be shared too (docs/ARTIFACT-ACCESS-RULES.md R1). */
-const _API = { tagsFor, param, has, reactorsTo, hits, asked, resetHits, norm, withTag };
+const _API = { tagsFor, param, has, reactorsTo, hits, asked, resetHits, norm, withTag, __setDB, __onSetDB };
 if (typeof module !== 'undefined' && module.exports) module.exports = _API;
 if (!HAS_REQUIRE && typeof globalThis !== 'undefined') {
   if (globalThis.ABRA_TAGS && !globalThis.ABRA_TAGS.has) DB = globalThis.ABRA_TAGS;   // keep the data

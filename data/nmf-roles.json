@@ -1,375 +1,375 @@
 {
- "generated": "2026-08-03",
+ "generated": "2026-08-04",
  "method": "Non-negative Matrix Factorization. Two cuts: (1) team x MOVE usage -> offensive cores; (2) team x ROLE -> emergent archetypes (the clean view). Loadings are learned, not declared (Lee & Seung 1999; Label Distribution Learning, Geng 2016).",
  "archetypes": [
   {
    "id": "A1",
-   "prevalence": 0.199,
-   "top_roles": [
-    {
-     "role": "spec_attacker",
-     "label": "Special attacker",
-     "weight": 0.402
-    },
-    {
-     "role": "speed_tailwind",
-     "label": "Tailwind (speed up)",
-     "weight": 0.095
-    },
-    {
-     "role": "status_burn",
-     "label": "Burn spreader",
-     "weight": 0.092
-    },
-    {
-     "role": "healing",
-     "label": "Healing / sustain",
-     "weight": 0.086
-    },
-    {
-     "role": "setup",
-     "label": "Setup / sweeper",
-     "weight": 0.084
-    },
-    {
-     "role": "weather_rain",
-     "label": "Rain setter",
-     "weight": 0.049
-    }
-   ],
-   "top_species": [
-    {
-     "species": "skeledirge",
-     "lift": 0.1796,
-     "games": 80
-    },
-    {
-     "species": "jolteon",
-     "lift": 0.1447,
-     "games": 122
-    },
-    {
-     "species": "quaquaval",
-     "lift": 0.1399,
-     "games": 45
-    },
-    {
-     "species": "bellibolt",
-     "lift": 0.124,
-     "games": 95
-    },
-    {
-     "species": "sceptile",
-     "lift": 0.1219,
-     "games": 229
-    },
-    {
-     "species": "rotomheat",
-     "lift": 0.114,
-     "games": 236
-    }
-   ]
-  },
-  {
-   "id": "A2",
-   "prevalence": 0.196,
-   "top_roles": [
-    {
-     "role": "phys_attacker",
-     "label": "Physical attacker",
-     "weight": 0.404
-    },
-    {
-     "role": "priority",
-     "label": "Priority attacker",
-     "weight": 0.194
-    },
-    {
-     "role": "setup",
-     "label": "Setup / sweeper",
-     "weight": 0.082
-    },
-    {
-     "role": "speed_tailwind",
-     "label": "Tailwind (speed up)",
-     "weight": 0.061
-    },
-    {
-     "role": "spread_self",
-     "label": "Field-wide (hits own partner)",
-     "weight": 0.052
-    },
-    {
-     "role": "status_poison",
-     "label": "Poison spreader",
-     "weight": 0.031
-    }
-   ],
-   "top_species": [
-    {
-     "species": "lycanrocdusk",
-     "lift": 0.1892,
-     "games": 264
-    },
-    {
-     "species": "machamp",
-     "lift": 0.1413,
-     "games": 35
-    },
-    {
-     "species": "kingambit",
-     "lift": 0.1359,
-     "games": 2945
-    },
-    {
-     "species": "mudsdale",
-     "lift": 0.115,
-     "games": 157
-    },
-    {
-     "species": "arcaninehisui",
-     "lift": 0.112,
-     "games": 343
-    },
-    {
-     "species": "forretress",
-     "lift": 0.1118,
-     "games": 27
-    }
-   ]
-  },
-  {
-   "id": "A3",
-   "prevalence": 0.173,
-   "top_roles": [
-    {
-     "role": "spread",
-     "label": "Spread attacker (both foes)",
-     "weight": 0.638
-    },
-    {
-     "role": "weather_sand",
-     "label": "Sand setter",
-     "weight": 0.052
-    },
-    {
-     "role": "weather_snow",
-     "label": "Snow setter",
-     "weight": 0.042
-    },
-    {
-     "role": "speed_trickroom",
-     "label": "Trick Room setter",
-     "weight": 0.04
-    },
-    {
-     "role": "speed_lower",
-     "label": "Speed control (lower foe)",
-     "weight": 0.037
-    },
-    {
-     "role": "weather_sun",
-     "label": "Sun setter",
-     "weight": 0.029
-    }
-   ],
-   "top_species": [
-    {
-     "species": "beartic",
-     "lift": 0.1751,
-     "games": 33
-    },
-    {
-     "species": "vanilluxe",
-     "lift": 0.1387,
-     "games": 271
-    },
-    {
-     "species": "glaceon",
-     "lift": 0.1358,
-     "games": 41
-    },
-    {
-     "species": "typhlosionhisui",
-     "lift": 0.1305,
-     "games": 159
-    },
-    {
-     "species": "rotomfrost",
-     "lift": 0.1199,
-     "games": 69
-    },
-    {
-     "species": "excadrill",
-     "lift": 0.1183,
-     "games": 925
-    }
-   ]
-  },
-  {
-   "id": "A4",
-   "prevalence": 0.17,
-   "top_roles": [
-    {
-     "role": "debuff",
-     "label": "Debuff (Intimidate / drops)",
-     "weight": 0.673
-    },
-    {
-     "role": "pivot",
-     "label": "Pivot",
-     "weight": 0.093
-    },
-    {
-     "role": "speed_tailwind",
-     "label": "Tailwind (speed up)",
-     "weight": 0.067
-    },
-    {
-     "role": "setup",
-     "label": "Setup / sweeper",
-     "weight": 0.028
-    },
-    {
-     "role": "spread_self",
-     "label": "Field-wide (hits own partner)",
-     "weight": 0.025
-    },
-    {
-     "role": "encore",
-     "label": "Move-lock (Encore / Disable)",
-     "weight": 0.015
-    }
-   ],
-   "top_species": [
-    {
-     "species": "wyrdeer",
-     "lift": 0.1595,
-     "games": 99
-    },
-    {
-     "species": "staraptor",
-     "lift": 0.158,
-     "games": 1891
-    },
-    {
-     "species": "arcanine",
-     "lift": 0.1343,
-     "games": 81
-    },
-    {
-     "species": "gyarados",
-     "lift": 0.1328,
-     "games": 248
-    },
-    {
-     "species": "incineroar",
-     "lift": 0.1215,
-     "games": 3142
-    },
-    {
-     "species": "taurospaldeablaze",
-     "lift": 0.1209,
-     "games": 68
-    }
-   ]
-  },
-  {
-   "id": "A5",
-   "prevalence": 0.151,
+   "prevalence": 0.225,
    "top_roles": [
     {
      "role": "wall",
      "label": "Bulky wall / support",
-     "weight": 0.397
+     "weight": 0.256
+    },
+    {
+     "role": "spec_attacker",
+     "label": "Special attacker",
+     "weight": 0.166
     },
     {
      "role": "weather_rain",
      "label": "Rain setter",
-     "weight": 0.12
+     "weight": 0.108
     },
     {
      "role": "redirection",
      "label": "Redirection",
-     "weight": 0.102
+     "weight": 0.062
     },
     {
      "role": "screens",
      "label": "Screen setter",
-     "weight": 0.094
+     "weight": 0.058
     },
     {
-     "role": "allysupport",
-     "label": "Positioning / ally support",
-     "weight": 0.057
-    },
-    {
-     "role": "teamprotect",
-     "label": "Wide / Quick Guard",
-     "weight": 0.044
+     "role": "healing",
+     "label": "Healing / sustain",
+     "weight": 0.046
     }
    ],
    "top_species": [
     {
      "species": "vivillonmarine",
-     "lift": 0.2749,
-     "games": 36
+     "lift": 0.4319,
+     "games": 37
     },
     {
      "species": "archaludon",
-     "lift": 0.238,
-     "games": 1479
-    },
-    {
-     "species": "swampert",
-     "lift": 0.1912,
-     "games": 979
+     "lift": 0.3653,
+     "games": 1610
     },
     {
      "species": "pelipper",
-     "lift": 0.1864,
-     "games": 1587
+     "lift": 0.3001,
+     "games": 1780
+    },
+    {
+     "species": "swampert",
+     "lift": 0.2952,
+     "games": 1094
     },
     {
      "species": "grimmsnarl",
-     "lift": 0.1827,
-     "games": 1209
+     "lift": 0.214,
+     "games": 1309
     },
     {
      "species": "politoed",
-     "lift": 0.1508,
-     "games": 507
+     "lift": 0.2136,
+     "games": 543
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "prevalence": 0.216,
+   "top_roles": [
+    {
+     "role": "phys_attacker",
+     "label": "Physical attacker",
+     "weight": 0.46
+    },
+    {
+     "role": "priority",
+     "label": "Priority attacker",
+     "weight": 0.208
+    },
+    {
+     "role": "speed_tailwind",
+     "label": "Tailwind (speed up)",
+     "weight": 0.07
+    },
+    {
+     "role": "spread_self",
+     "label": "Field-wide (hits own partner)",
+     "weight": 0.057
+    },
+    {
+     "role": "status_poison",
+     "label": "Poison spreader",
+     "weight": 0.038
+    },
+    {
+     "role": "itemdisrupt",
+     "label": "Item disruption",
+     "weight": 0.033
+    }
+   ],
+   "top_species": [
+    {
+     "species": "lycanrocdusk",
+     "lift": 0.175,
+     "games": 292
+    },
+    {
+     "species": "machamp",
+     "lift": 0.1264,
+     "games": 43
+    },
+    {
+     "species": "forretress",
+     "lift": 0.1216,
+     "games": 27
+    },
+    {
+     "species": "kingambit",
+     "lift": 0.1196,
+     "games": 3317
+    },
+    {
+     "species": "basculegion",
+     "lift": 0.1098,
+     "games": 2675
+    },
+    {
+     "species": "orthworm",
+     "lift": 0.1096,
+     "games": 115
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "prevalence": 0.176,
+   "top_roles": [
+    {
+     "role": "spread",
+     "label": "Spread attacker (both foes)",
+     "weight": 0.556
+    },
+    {
+     "role": "spec_attacker",
+     "label": "Special attacker",
+     "weight": 0.09
+    },
+    {
+     "role": "weather_sand",
+     "label": "Sand setter",
+     "weight": 0.045
+    },
+    {
+     "role": "speed_tailwind",
+     "label": "Tailwind (speed up)",
+     "weight": 0.042
+    },
+    {
+     "role": "speed_trickroom",
+     "label": "Trick Room setter",
+     "weight": 0.039
+    },
+    {
+     "role": "weather_snow",
+     "label": "Snow setter",
+     "weight": 0.038
+    }
+   ],
+   "top_species": [
+    {
+     "species": "beartic",
+     "lift": 0.1806,
+     "games": 34
+    },
+    {
+     "species": "rotomfrost",
+     "lift": 0.1734,
+     "games": 80
+    },
+    {
+     "species": "luxray",
+     "lift": 0.1442,
+     "games": 45
+    },
+    {
+     "species": "typhlosionhisui",
+     "lift": 0.1429,
+     "games": 171
+    },
+    {
+     "species": "glaceon",
+     "lift": 0.1385,
+     "games": 47
+    },
+    {
+     "species": "abomasnow",
+     "lift": 0.1381,
+     "games": 120
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "prevalence": 0.165,
+   "top_roles": [
+    {
+     "role": "debuff",
+     "label": "Debuff (Intimidate / drops)",
+     "weight": 0.68
+    },
+    {
+     "role": "pivot",
+     "label": "Pivot",
+     "weight": 0.088
+    },
+    {
+     "role": "speed_tailwind",
+     "label": "Tailwind (speed up)",
+     "weight": 0.086
+    },
+    {
+     "role": "spread_self",
+     "label": "Field-wide (hits own partner)",
+     "weight": 0.026
+    },
+    {
+     "role": "encore",
+     "label": "Move-lock (Encore / Disable)",
+     "weight": 0.02
+    },
+    {
+     "role": "weather_sand",
+     "label": "Sand setter",
+     "weight": 0.012
+    }
+   ],
+   "top_species": [
+    {
+     "species": "staraptor",
+     "lift": 0.1507,
+     "games": 2190
+    },
+    {
+     "species": "wyrdeer",
+     "lift": 0.139,
+     "games": 114
+    },
+    {
+     "species": "gyarados",
+     "lift": 0.1191,
+     "games": 274
+    },
+    {
+     "species": "incineroar",
+     "lift": 0.1184,
+     "games": 3436
+    },
+    {
+     "species": "taurospaldeablaze",
+     "lift": 0.1111,
+     "games": 70
+    },
+    {
+     "species": "arcanine",
+     "lift": 0.1103,
+     "games": 95
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "prevalence": 0.112,
+   "top_roles": [
+    {
+     "role": "setup",
+     "label": "Setup / sweeper",
+     "weight": 0.625
+    },
+    {
+     "role": "healing",
+     "label": "Healing / sustain",
+     "weight": 0.071
+    },
+    {
+     "role": "status_burn",
+     "label": "Burn spreader",
+     "weight": 0.058
+    },
+    {
+     "role": "priority",
+     "label": "Priority attacker",
+     "weight": 0.058
+    },
+    {
+     "role": "weather_sand",
+     "label": "Sand setter",
+     "weight": 0.031
+    },
+    {
+     "role": "encore",
+     "label": "Move-lock (Encore / Disable)",
+     "weight": 0.023
+    }
+   ],
+   "top_species": [
+    {
+     "species": "espathra",
+     "lift": 0.1947,
+     "games": 187
+    },
+    {
+     "species": "quaquaval",
+     "lift": 0.1877,
+     "games": 58
+    },
+    {
+     "species": "audino",
+     "lift": 0.1721,
+     "games": 119
+    },
+    {
+     "species": "absol",
+     "lift": 0.1366,
+     "games": 30
+    },
+    {
+     "species": "skeledirge",
+     "lift": 0.1172,
+     "games": 89
+    },
+    {
+     "species": "azumarill",
+     "lift": 0.1167,
+     "games": 109
     }
    ]
   },
   {
    "id": "A6",
-   "prevalence": 0.111,
+   "prevalence": 0.106,
    "top_roles": [
     {
      "role": "fakeout",
      "label": "Fake Out (tempo)",
-     "weight": 0.618
+     "weight": 0.63
     },
     {
      "role": "status_poison",
      "label": "Poison spreader",
-     "weight": 0.071
+     "weight": 0.074
     },
     {
      "role": "pivot",
      "label": "Pivot",
-     "weight": 0.056
+     "weight": 0.058
     },
     {
      "role": "speed_trickroom",
      "label": "Trick Room setter",
-     "weight": 0.045
+     "weight": 0.044
     },
     {
      "role": "encore",
      "label": "Move-lock (Encore / Disable)",
-     "weight": 0.032
+     "weight": 0.03
     },
     {
      "role": "weather_sun",
@@ -380,55 +380,55 @@
    "top_species": [
     {
      "species": "kangaskhan",
-     "lift": 0.1469,
-     "games": 462
+     "lift": 0.1452,
+     "games": 524
     },
     {
      "species": "tinkaton",
-     "lift": 0.1359,
-     "games": 300
+     "lift": 0.1291,
+     "games": 319
     },
     {
      "species": "liepard",
-     "lift": 0.1313,
-     "games": 130
+     "lift": 0.1225,
+     "games": 146
     },
     {
      "species": "mrrime",
-     "lift": 0.1228,
-     "games": 111
+     "lift": 0.1138,
+     "games": 118
+    },
+    {
+     "species": "salazzle",
+     "lift": 0.1068,
+     "games": 65
     },
     {
      "species": "rotomfan",
-     "lift": 0.1154,
-     "games": 40
-    },
-    {
-     "species": "infernape",
-     "lift": 0.1137,
-     "games": 86
+     "lift": 0.1046,
+     "games": 44
     }
    ]
   }
  ],
- "archetype_recon_error": 0.678,
+ "archetype_recon_error": 0.682,
  "archetype_rank": 6,
  "rank": 10,
- "n_documents": 13258,
- "n_moves": 258,
+ "n_documents": 14808,
+ "n_moves": 263,
  "min_move_uses": 40,
- "reconstruction_error_ratio": 0.8346,
+ "reconstruction_error_ratio": 0.8356,
  "factors": [
   {
    "id": "R1",
    "prevalence": 0.141,
-   "suggested_label": "Trick Room setter",
-   "suggested_role": "speed_trickroom",
-   "overlap": 1,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 2,
    "top_moves": [
     {
      "move": "Fake Out",
-     "loading": 0.482
+     "loading": 0.494
     },
     {
      "move": "Parting Shot",
@@ -436,121 +436,121 @@
     },
     {
      "move": "Flare Blitz",
-     "loading": 0.11
-    },
-    {
-     "move": "Trick Room",
-     "loading": 0.039
+     "loading": 0.112
     },
     {
      "move": "Perish Song",
-     "loading": 0.038
+     "loading": 0.04
     },
     {
      "move": "Rage Powder",
-     "loading": 0.036
-    },
-    {
-     "move": "Psychic",
-     "loading": 0.032
+     "loading": 0.033
     },
     {
      "move": "Zap Cannon",
-     "loading": 0.031
+     "loading": 0.033
+    },
+    {
+     "move": "Dazzling Gleam",
+     "loading": 0.032
     },
     {
      "move": "Throat Chop",
      "loading": 0.03
     },
     {
-     "move": "Dazzling Gleam",
+     "move": "Trick Room",
      "loading": 0.029
     },
     {
-     "move": "Water Spout",
+     "move": "Darkest Lariat",
      "loading": 0.029
     },
     {
-     "move": "Dark Pulse",
-     "loading": 0.029
-    }
-   ]
-  },
-  {
-   "id": "R2",
-   "prevalence": 0.12,
-   "suggested_label": "Special attacker",
-   "suggested_role": "spec_attacker",
-   "overlap": 5,
-   "top_moves": [
-    {
-     "move": "Weather Ball",
-     "loading": 0.206
-    },
-    {
-     "move": "Electro Shot",
-     "loading": 0.186
-    },
-    {
-     "move": "Hurricane",
-     "loading": 0.119
-    },
-    {
-     "move": "Dragon Pulse",
-     "loading": 0.099
-    },
-    {
-     "move": "Wave Crash",
-     "loading": 0.096
-    },
-    {
-     "move": "Tailwind",
-     "loading": 0.063
-    },
-    {
-     "move": "Last Respects",
-     "loading": 0.054
-    },
-    {
-     "move": "Flash Cannon",
-     "loading": 0.053
-    },
-    {
-     "move": "Light Screen",
-     "loading": 0.036
-    },
-    {
-     "move": "Parting Shot",
-     "loading": 0.034
-    },
-    {
-     "move": "Sludge Bomb",
+     "move": "Dire Claw",
      "loading": 0.028
     },
     {
-     "move": "Wide Guard",
+     "move": "Water Spout",
      "loading": 0.027
     }
    ]
   },
   {
+   "id": "R2",
+   "prevalence": 0.116,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 3,
+   "top_moves": [
+    {
+     "move": "Moonblast",
+     "loading": 0.503
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.194
+    },
+    {
+     "move": "Encore",
+     "loading": 0.085
+    },
+    {
+     "move": "Dazzling Gleam",
+     "loading": 0.05
+    },
+    {
+     "move": "Last Respects",
+     "loading": 0.047
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.02
+    },
+    {
+     "move": "Charm",
+     "loading": 0.019
+    },
+    {
+     "move": "Wave Crash",
+     "loading": 0.018
+    },
+    {
+     "move": "Flare Blitz",
+     "loading": 0.017
+    },
+    {
+     "move": "Blizzard",
+     "loading": 0.016
+    },
+    {
+     "move": "Brave Bird",
+     "loading": 0.015
+    },
+    {
+     "move": "Power Gem",
+     "loading": 0.015
+    }
+   ]
+  },
+  {
    "id": "R3",
-   "prevalence": 0.109,
+   "prevalence": 0.116,
    "suggested_label": "Physical attacker",
    "suggested_role": "phys_attacker",
    "overlap": 6,
    "top_moves": [
     {
      "move": "Rock Slide",
-     "loading": 0.698
+     "loading": 0.697
     },
     {
      "move": "Tailwind",
-     "loading": 0.053
+     "loading": 0.054
     },
     {
      "move": "Knock Off",
-     "loading": 0.052
+     "loading": 0.049
     },
     {
      "move": "High Horsepower",
@@ -565,12 +565,12 @@
      "loading": 0.024
     },
     {
-     "move": "Scald",
-     "loading": 0.022
+     "move": "Dual Wingbeat",
+     "loading": 0.023
     },
     {
-     "move": "Dual Wingbeat",
-     "loading": 0.021
+     "move": "Scald",
+     "loading": 0.022
     },
     {
      "move": "Icy Wind",
@@ -585,52 +585,280 @@
      "loading": 0.015
     },
     {
-     "move": "Will-O-Wisp",
-     "loading": 0.014
+     "move": "Dragon Claw",
+     "loading": 0.013
     }
    ]
   },
   {
    "id": "R4",
-   "prevalence": 0.099,
-   "suggested_label": "Physical attacker",
-   "suggested_role": "phys_attacker",
-   "overlap": 4,
+   "prevalence": 0.108,
+   "suggested_label": "Special attacker",
+   "suggested_role": "spec_attacker",
+   "overlap": 5,
    "top_moves": [
     {
-     "move": "Sucker Punch",
-     "loading": 0.387
+     "move": "Weather Ball",
+     "loading": 0.214
     },
     {
-     "move": "Kowtow Cleave",
-     "loading": 0.196
+     "move": "Electro Shot",
+     "loading": 0.176
     },
     {
-     "move": "Iron Head",
-     "loading": 0.119
+     "move": "Hurricane",
+     "loading": 0.122
+    },
+    {
+     "move": "Wave Crash",
+     "loading": 0.1
+    },
+    {
+     "move": "Dragon Pulse",
+     "loading": 0.093
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.07
+    },
+    {
+     "move": "Last Respects",
+     "loading": 0.054
+    },
+    {
+     "move": "Flash Cannon",
+     "loading": 0.052
+    },
+    {
+     "move": "Light Screen",
+     "loading": 0.034
+    },
+    {
+     "move": "Parting Shot",
+     "loading": 0.033
+    },
+    {
+     "move": "Sludge Bomb",
+     "loading": 0.027
+    },
+    {
+     "move": "Wide Guard",
+     "loading": 0.026
+    }
+   ]
+  },
+  {
+   "id": "R5",
+   "prevalence": 0.104,
+   "suggested_label": "Special attacker",
+   "suggested_role": "spec_attacker",
+   "overlap": 6,
+   "top_moves": [
+    {
+     "move": "Shadow Ball",
+     "loading": 0.34
+    },
+    {
+     "move": "Thunderbolt",
+     "loading": 0.085
+    },
+    {
+     "move": "Matcha Gotcha",
+     "loading": 0.081
+    },
+    {
+     "move": "Scald",
+     "loading": 0.077
+    },
+    {
+     "move": "Trick Room",
+     "loading": 0.068
+    },
+    {
+     "move": "Knock Off",
+     "loading": 0.066
+    },
+    {
+     "move": "Make It Rain",
+     "loading": 0.06
     },
     {
      "move": "Psychic",
      "loading": 0.056
     },
     {
-     "move": "Blizzard",
+     "move": "Rage Powder",
+     "loading": 0.054
+    },
+    {
+     "move": "Icy Wind",
+     "loading": 0.039
+    },
+    {
+     "move": "Nasty Plot",
+     "loading": 0.037
+    },
+    {
+     "move": "High Horsepower",
+     "loading": 0.037
+    }
+   ]
+  },
+  {
+   "id": "R6",
+   "prevalence": 0.091,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 4,
+   "top_moves": [
+    {
+     "move": "Close Combat",
+     "loading": 0.675
+    },
+    {
+     "move": "Brave Bird",
+     "loading": 0.068
+    },
+    {
+     "move": "Tailwind",
      "loading": 0.05
     },
     {
-     "move": "Trick Room",
-     "loading": 0.043
+     "move": "Dire Claw",
+     "loading": 0.05
     },
     {
-     "move": "Helping Hand",
+     "move": "Roost",
+     "loading": 0.033
+    },
+    {
+     "move": "Charm",
      "loading": 0.032
     },
     {
-     "move": "Play Rough",
+     "move": "Scald",
+     "loading": 0.017
+    },
+    {
+     "move": "Knock Off",
+     "loading": 0.016
+    },
+    {
+     "move": "Blizzard",
+     "loading": 0.015
+    },
+    {
+     "move": "Last Respects",
+     "loading": 0.015
+    },
+    {
+     "move": "Dual Wingbeat",
+     "loading": 0.015
+    },
+    {
+     "move": "Rage Powder",
+     "loading": 0.014
+    }
+   ]
+  },
+  {
+   "id": "R7",
+   "prevalence": 0.085,
+   "suggested_label": "Special attacker",
+   "suggested_role": "spec_attacker",
+   "overlap": 6,
+   "top_moves": [
+    {
+     "move": "Heat Wave",
+     "loading": 0.679
+    },
+    {
+     "move": "Psychic",
+     "loading": 0.044
+    },
+    {
+     "move": "Solar Beam",
+     "loading": 0.041
+    },
+    {
+     "move": "Earth Power",
+     "loading": 0.04
+    },
+    {
+     "move": "Helping Hand",
+     "loading": 0.034
+    },
+    {
+     "move": "Sleep Powder",
+     "loading": 0.032
+    },
+    {
+     "move": "Sludge Bomb",
      "loading": 0.031
     },
     {
+     "move": "Weather Ball",
+     "loading": 0.025
+    },
+    {
+     "move": "Trick Room",
+     "loading": 0.025
+    },
+    {
+     "move": "Eruption",
+     "loading": 0.023
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.013
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.013
+    }
+   ]
+  },
+  {
+   "id": "R8",
+   "prevalence": 0.082,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 4,
+   "top_moves": [
+    {
+     "move": "Sucker Punch",
+     "loading": 0.417
+    },
+    {
+     "move": "Kowtow Cleave",
+     "loading": 0.208
+    },
+    {
+     "move": "Iron Head",
+     "loading": 0.128
+    },
+    {
+     "move": "Blizzard",
+     "loading": 0.056
+    },
+    {
+     "move": "Play Rough",
+     "loading": 0.027
+    },
+    {
+     "move": "Psychic",
+     "loading": 0.027
+    },
+    {
+     "move": "Trick Room",
+     "loading": 0.026
+    },
+    {
      "move": "Swords Dance",
+     "loading": 0.025
+    },
+    {
+     "move": "Helping Hand",
      "loading": 0.024
     },
     {
@@ -639,337 +867,52 @@
     },
     {
      "move": "Aqua Jet",
-     "loading": 0.019
-    },
-    {
-     "move": "Earth Power",
-     "loading": 0.019
-    }
-   ]
-  },
-  {
-   "id": "R5",
-   "prevalence": 0.098,
-   "suggested_label": "Physical attacker",
-   "suggested_role": "phys_attacker",
-   "overlap": 3,
-   "top_moves": [
-    {
-     "move": "Moonblast",
-     "loading": 0.495
-    },
-    {
-     "move": "Tailwind",
-     "loading": 0.196
-    },
-    {
-     "move": "Encore",
-     "loading": 0.084
-    },
-    {
-     "move": "Dazzling Gleam",
-     "loading": 0.056
-    },
-    {
-     "move": "Last Respects",
-     "loading": 0.048
-    },
-    {
-     "move": "Dragon Claw",
-     "loading": 0.021
-    },
-    {
-     "move": "Wave Crash",
-     "loading": 0.018
-    },
-    {
-     "move": "Charm",
-     "loading": 0.018
-    },
-    {
-     "move": "Flare Blitz",
-     "loading": 0.017
-    },
-    {
-     "move": "Aqua Jet",
-     "loading": 0.016
-    },
-    {
-     "move": "Power Gem",
-     "loading": 0.015
-    },
-    {
-     "move": "Brave Bird",
-     "loading": 0.015
-    }
-   ]
-  },
-  {
-   "id": "R6",
-   "prevalence": 0.093,
-   "suggested_label": "Special attacker",
-   "suggested_role": "spec_attacker",
-   "overlap": 6,
-   "top_moves": [
-    {
-     "move": "Heat Wave",
-     "loading": 0.688
-    },
-    {
-     "move": "Solar Beam",
-     "loading": 0.042
-    },
-    {
-     "move": "Earth Power",
-     "loading": 0.04
-    },
-    {
-     "move": "Psychic",
-     "loading": 0.036
-    },
-    {
-     "move": "Sludge Bomb",
-     "loading": 0.034
-    },
-    {
-     "move": "Sleep Powder",
-     "loading": 0.032
-    },
-    {
-     "move": "Helping Hand",
-     "loading": 0.03
-    },
-    {
-     "move": "Weather Ball",
-     "loading": 0.029
-    },
-    {
-     "move": "Trick Room",
-     "loading": 0.022
-    },
-    {
-     "move": "Eruption",
      "loading": 0.02
     },
     {
-     "move": "Tailwind",
-     "loading": 0.014
-    },
-    {
-     "move": "Dragon Claw",
-     "loading": 0.013
-    }
-   ]
-  },
-  {
-   "id": "R7",
-   "prevalence": 0.089,
-   "suggested_label": "Physical attacker",
-   "suggested_role": "phys_attacker",
-   "overlap": 3,
-   "top_moves": [
-    {
-     "move": "Close Combat",
-     "loading": 0.667
-    },
-    {
-     "move": "Brave Bird",
-     "loading": 0.065
-    },
-    {
-     "move": "Dire Claw",
-     "loading": 0.05
-    },
-    {
-     "move": "Tailwind",
-     "loading": 0.046
-    },
-    {
-     "move": "Roost",
-     "loading": 0.035
-    },
-    {
-     "move": "Charm",
-     "loading": 0.032
-    },
-    {
-     "move": "Scald",
-     "loading": 0.022
-    },
-    {
-     "move": "Blizzard",
-     "loading": 0.018
-    },
-    {
-     "move": "Dual Wingbeat",
-     "loading": 0.017
-    },
-    {
-     "move": "Knock Off",
-     "loading": 0.017
-    },
-    {
-     "move": "Last Respects",
-     "loading": 0.016
-    },
-    {
      "move": "Earth Power",
-     "loading": 0.014
-    }
-   ]
-  },
-  {
-   "id": "R8",
-   "prevalence": 0.087,
-   "suggested_label": "Special attacker",
-   "suggested_role": "spec_attacker",
-   "overlap": 5,
-   "top_moves": [
-    {
-     "move": "Shadow Ball",
-     "loading": 0.432
-    },
-    {
-     "move": "Scald",
-     "loading": 0.084
-    },
-    {
-     "move": "Matcha Gotcha",
-     "loading": 0.074
-    },
-    {
-     "move": "Make It Rain",
-     "loading": 0.074
-    },
-    {
-     "move": "Knock Off",
-     "loading": 0.059
-    },
-    {
-     "move": "Rage Powder",
-     "loading": 0.055
-    },
-    {
-     "move": "Blizzard",
-     "loading": 0.047
-    },
-    {
-     "move": "Icy Wind",
-     "loading": 0.046
-    },
-    {
-     "move": "Nasty Plot",
-     "loading": 0.044
-    },
-    {
-     "move": "Trick Room",
-     "loading": 0.032
-    },
-    {
-     "move": "Thunderbolt",
-     "loading": 0.027
-    },
-    {
-     "move": "High Horsepower",
-     "loading": 0.026
+     "loading": 0.019
     }
    ]
   },
   {
    "id": "R9",
-   "prevalence": 0.082,
-   "suggested_label": "Physical attacker",
-   "suggested_role": "phys_attacker",
-   "overlap": 5,
-   "top_moves": [
-    {
-     "move": "Earthquake",
-     "loading": 0.686
-    },
-    {
-     "move": "Tailwind",
-     "loading": 0.064
-    },
-    {
-     "move": "Dragon Claw",
-     "loading": 0.059
-    },
-    {
-     "move": "Thunderbolt",
-     "loading": 0.051
-    },
-    {
-     "move": "Brave Bird",
-     "loading": 0.029
-    },
-    {
-     "move": "Discharge",
-     "loading": 0.023
-    },
-    {
-     "move": "Iron Head",
-     "loading": 0.018
-    },
-    {
-     "move": "Dual Wingbeat",
-     "loading": 0.018
-    },
-    {
-     "move": "Wave Crash",
-     "loading": 0.015
-    },
-    {
-     "move": "Dazzling Gleam",
-     "loading": 0.013
-    },
-    {
-     "move": "Wide Guard",
-     "loading": 0.013
-    },
-    {
-     "move": "Psychic",
-     "loading": 0.011
-    }
-   ]
-  },
-  {
-   "id": "R10",
-   "prevalence": 0.081,
+   "prevalence": 0.078,
    "suggested_label": "Special attacker",
    "suggested_role": "spec_attacker",
    "overlap": 4,
    "top_moves": [
     {
      "move": "Hyper Voice",
-     "loading": 0.629
+     "loading": 0.644
     },
     {
      "move": "Trick Room",
-     "loading": 0.095
+     "loading": 0.094
     },
     {
      "move": "Helping Hand",
-     "loading": 0.055
-    },
-    {
-     "move": "Psychic",
-     "loading": 0.041
-    },
-    {
-     "move": "Thunderbolt",
-     "loading": 0.038
+     "loading": 0.056
     },
     {
      "move": "Quick Attack",
-     "loading": 0.036
+     "loading": 0.037
+    },
+    {
+     "move": "Psychic",
+     "loading": 0.033
     },
     {
      "move": "Hyper Beam",
+     "loading": 0.029
+    },
+    {
+     "move": "Thunderbolt",
      "loading": 0.025
     },
     {
      "move": "Flare Blitz",
-     "loading": 0.021
+     "loading": 0.024
     },
     {
      "move": "Calm Mind",
@@ -977,15 +920,72 @@
     },
     {
      "move": "Dark Pulse",
-     "loading": 0.015
-    },
-    {
-     "move": "Eruption",
      "loading": 0.014
     },
     {
      "move": "Earth Power",
      "loading": 0.014
+    },
+    {
+     "move": "Rage Powder",
+     "loading": 0.013
+    }
+   ]
+  },
+  {
+   "id": "R10",
+   "prevalence": 0.077,
+   "suggested_label": "Physical attacker",
+   "suggested_role": "phys_attacker",
+   "overlap": 5,
+   "top_moves": [
+    {
+     "move": "Earthquake",
+     "loading": 0.693
+    },
+    {
+     "move": "Tailwind",
+     "loading": 0.063
+    },
+    {
+     "move": "Dragon Claw",
+     "loading": 0.058
+    },
+    {
+     "move": "Thunderbolt",
+     "loading": 0.05
+    },
+    {
+     "move": "Brave Bird",
+     "loading": 0.027
+    },
+    {
+     "move": "Discharge",
+     "loading": 0.023
+    },
+    {
+     "move": "Iron Head",
+     "loading": 0.017
+    },
+    {
+     "move": "Dual Wingbeat",
+     "loading": 0.017
+    },
+    {
+     "move": "Helping Hand",
+     "loading": 0.014
+    },
+    {
+     "move": "Wide Guard",
+     "loading": 0.013
+    },
+    {
+     "move": "Hurricane",
+     "loading": 0.013
+    },
+    {
+     "move": "Wave Crash",
+     "loading": 0.013
     }
    ]
   }

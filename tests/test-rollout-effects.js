@@ -151,9 +151,25 @@ ok(leaked === 0, `no Pokemon left a battle still flinching (${leaked} leaked of 
 
 console.log('== 8. Intimidate is not a blanket -1 ==');
 /* Intimidate was applied unconditionally to every foe. It is on Incineroar, the most-used Pokemon in
- * the format, so the error was paid in nearly every game. Defiant is the worst case: the target gains
- * +2 Attack, so treating it as -1 gets the SIGN wrong - a three-stage error on the stat the engine
- * then uses to decide whether a KO lands. Expected values are the game's own rules. */
+ * the format, so the error was paid in nearly every game.
+ *
+ * RE-PINNED 2026-08-05 (WIRE 100). Three of these assertions pinned a model of the retaliation that
+ * was itself wrong: in the real game the drop LANDS and THEN Defiant/Competitive fire, so the nets
+ * are +1 and -1/+2, not the +2 and 0/+2 this file used to demand. Verified against the OFFICIAL
+ * engine at the pinned commit by real battles (an Intimidate Incineroar switch-in against each
+ * target, boosts read off the battle object), not from memory:
+ *
+ *     target ability   official boosts after Intimidate
+ *     Honey Gather     atk -1
+ *     Defiant          atk +1            (-1 lands, +2 fires)
+ *     Competitive      atk -1, spa +2    (the Attack drop is NOT refused)
+ *     Contrary         atk +1
+ *     Simple           atk -2
+ *
+ * The Simple row is also why this block caught a REAL regression the same day: the artifact
+ * over-tags Simple (and Ripen) as invertsBoosts carriers, and the WIRE 100b shape-read turned that
+ * over-match into Intimidate-into-Simple = +1. This file went red on it, which is this file doing
+ * its job -- that assertion was TRUE and was not re-pinned; the engine was fixed (WIRE 113). */
 const foe = (ability) => ({ ability, fainted: false, curHP: 100,
                             boosts: { at: 0, df: 0, sa: 0, sd: 0, sp: 0 } });
 const intim = (ability) => { const f = foe(ability); const r = E.applyIntimidate(f); return { r, f }; };
@@ -167,16 +183,17 @@ for (const ab of ['clearbody', 'whitesmoke', 'fullmetalbody', 'hypercutter', 'in
   ok(f.boosts.at === 0, `${ab} takes no Attack drop from Intimidate`);
 }
 const d = intim('defiant');
-ok(d.f.boosts.at === 2,  'Defiant REVERSES it: +2 Attack, not -1');
+ok(d.f.boosts.at === 1,  'Defiant: the drop lands and the +2 fires -- net +1 Attack (official: atk +1)');
 const c = intim('competitive');
-ok(c.f.boosts.sa === 2 && c.f.boosts.at === 0, 'Competitive gives +2 Special Attack, Attack untouched');
+ok(c.f.boosts.sa === 2 && c.f.boosts.at === -1,
+   'Competitive: +2 Special Attack AND the Attack drop still lands (official: atk -1, spa +2)');
 const ct = intim('contrary');
 ok(ct.f.boosts.at === 1, 'Contrary flips the drop into +1 Attack');
 const si = intim('simple');
 ok(si.f.boosts.at === -2, 'Simple doubles the drop to -2 Attack');
 // the sign error, stated as the thing it actually costs
-ok(d.f.boosts.at - plain.f.boosts.at === 3,
-   'a Defiant target is three stages better off than the old code assumed');
+ok(d.f.boosts.at - plain.f.boosts.at === 2,
+   'a Defiant target is two stages better off than a plain one (-1 vs +1)');
 
 console.log(`\nROLLOUT EFFECT TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

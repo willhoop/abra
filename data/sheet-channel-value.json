@@ -1,0 +1,369 @@
+{
+ "engine_release": "6e43710396db",
+ "engine_release_cut": "2026-08-05T00:58:14.399Z",
+ "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+ "source_digests": {
+  "engine/medicham2-browser.js": "ae012bdf2b3a",
+  "engine/board.js": "54e3d2ca9f85",
+  "engine/rollout_leaf.js": "7a2311756ab8",
+  "engine/position_features.js": "7927ccb7f5af",
+  "engine/tags.js": "0eabc075550a",
+  "engine/champions_sim.js": "084a836be5ef",
+  "engine/mc_key.js": "37c42eb69363",
+  "engine/lookup.js": "d2a03e8adcc5",
+  "engine/set_priors.js": "f8a81445ee3a",
+  "engine/smogon_priors.js": "5c039f9ebdbc",
+  "engine/quality.js": "e397e99ef257",
+  "engine/showdown_path.js": "0efe29f4245d",
+  "data/move-effects.js": "b651bc4c4836",
+  "data/ability-blocks.json": "86741fd35452",
+  "data/smogon-priors.json": "3168f98a24dd",
+  "data/regulations.json": "6c1995e9a9fb",
+  "data/quality-filter.json": "e675d10477c8",
+  "data/engine-data.js": "96a94b7fadf7",
+  "data/abra-tags.js": "3bc02c068657",
+  "data/tags.json": "55347ea228ad",
+  "data/policy-weights.json": "01bc43936324",
+  "data/policy-weights-joint.json": "749953d4b29f",
+  "data/move-priors.json": "a64314db056b"
+ },
+ "generated": "2026-08-05T01:32:30.035Z",
+ "source": "engine/sheet_channel_value.js",
+ "question": "Does a MAG that can see the declared ability and declared moves predict a human click better than one that can only see the declared nature and item?",
+ "fitter_digests": {
+  "engine/fit_policy.js": "1de23f069fa0",
+  "engine/joint_rows.js": "8b8fcfbaf7ef",
+  "engine/sheet_channels.js": "0b395fa8bfd5",
+  "engine/click_match.js": "e266c98ffb47",
+  "engine/quality.js": "e397e99ef257"
+ },
+ "showdown_path_set": true,
+ "format": "gen9championsvgc2026regmb",
+ "corpus": {
+  "clean_open_sheet_games": 8942,
+  "held_out_games": 1789,
+  "held_out_decisions": 44982,
+  "split": "hash(game.id) % 5 === 0, identical to engine/fit_policy.js",
+  "unpaired_dropped": 1621
+ },
+ "channels": {
+  "narrow": [
+   "nature",
+   "item"
+  ],
+  "wide": [
+   "nature",
+   "item",
+   "ability",
+   "moves"
+  ],
+  "player_passes": [
+   "nature",
+   "item",
+   "ability",
+   "moves"
+  ]
+ },
+ "weights": {
+  "A_and_B": {
+   "path": "data\\releases\\d3d04b669e18\\data\\policy-weights.json",
+   "generated": "2026-08-04T22:15:24.522Z",
+   "sha256_12": "5a1930e8926a"
+  },
+  "C": {
+   "path": "data\\policy-weights.json",
+   "generated": "2026-08-04T23:37:26.954Z",
+   "sha256_12": "01bc43936324"
+  },
+  "D": null,
+  "l2_new_minus_old": 1.2085817090835422
+ },
+ "arms": {
+  "A": {
+   "what": "2-ch features + incumbent weights (was shipping)",
+   "logL_per_decision": -1.7087094740187243,
+   "top1_pct": 33.16882308478947
+  },
+  "B": {
+   "what": "4-ch features + incumbent weights",
+   "logL_per_decision": -1.7058565431793573,
+   "top1_pct": 33.177715530656705
+  },
+  "C": {
+   "what": "4-ch features + refitted weights (ships now)",
+   "logL_per_decision": -1.7036224515076661,
+   "top1_pct": 33.34222577920057
+  }
+ },
+ "contrasts": {
+  "B-A": {
+   "logL": {
+    "point": 0.002852930839366996,
+    "ci95": [
+     0.0016106776382207588,
+     0.004072441670465166
+    ],
+    "excludes_zero": true
+   },
+   "top1_points": {
+    "point": 0.008892445867232368,
+    "ci95": [
+     -0.14010274201080364,
+     0.15705532329064198
+    ],
+    "excludes_zero": false
+   }
+  },
+  "C-A": {
+   "logL": {
+    "point": 0.005087022511058192,
+    "ci95": [
+     0.003853584932524523,
+     0.006331486055340285
+    ],
+    "excludes_zero": true
+   },
+   "top1_points": {
+    "point": 0.17340269441109513,
+    "ci95": [
+     -0.011050700614418929,
+     0.3598328230114163
+    ],
+    "excludes_zero": false
+   }
+  },
+  "C-B": {
+   "logL": {
+    "point": 0.0022340916716911963,
+    "ci95": [
+     0.001637964545899706,
+     0.0028306702223750424
+    ],
+    "excludes_zero": true
+   },
+   "top1_points": {
+    "point": 0.16451024854386276,
+    "ci95": [
+     0.02910947401419861,
+     0.2987915541587398
+    ],
+    "excludes_zero": true
+   }
+  }
+ },
+ "noise_floor": {
+  "cuts": [
+   {
+    "top1_spread": 0.8951402536556046,
+    "logL_spread": 0.015509525425728476
+   },
+   {
+    "top1_spread": 0.14811172769722702,
+    "logL_spread": 0.002275049984084232
+   },
+   {
+    "top1_spread": 0.014723136910276935,
+    "logL_spread": 0.006179177339048714
+   },
+   {
+    "top1_spread": 0.18976523616514385,
+    "logL_spread": 0.009413549620274964
+   },
+   {
+    "top1_spread": 0.10689796884606295,
+    "logL_spread": 0.006667533398596381
+   },
+   {
+    "top1_spread": 0.9012050192094208,
+    "logL_spread": 0.011644200448664987
+   },
+   {
+    "top1_spread": 0.011739287080089866,
+    "logL_spread": 0.002100914748415006
+   },
+   {
+    "top1_spread": 1.1858600426890007,
+    "logL_spread": 0.013735568466252346
+   },
+   {
+    "top1_spread": 0.6134955171104863,
+    "logL_spread": 0.014146164504711178
+   },
+   {
+    "top1_spread": 0.5187920302080897,
+    "logL_spread": 0.0011587436567339626
+   },
+   {
+    "top1_spread": 1.3845779512823881,
+    "logL_spread": 0.018552020890935994
+   },
+   {
+    "top1_spread": 0.31413023669471585,
+    "logL_spread": 0.006843421191728316
+   },
+   {
+    "top1_spread": 0.6253873046773677,
+    "logL_spread": 0.0065394668865157435
+   },
+   {
+    "top1_spread": 0.3468959788662431,
+    "logL_spread": 0.007242132967664849
+   },
+   {
+    "top1_spread": 0.015086561454864977,
+    "logL_spread": 0.00800193203157784
+   },
+   {
+    "top1_spread": 0.7176073255537858,
+    "logL_spread": 0.017154275359331894
+   },
+   {
+    "top1_spread": 1.1737428637015057,
+    "logL_spread": 0.012861900295369155
+   },
+   {
+    "top1_spread": 0.12135955129805609,
+    "logL_spread": 0.0025986536759652346
+   },
+   {
+    "top1_spread": 0.19896069909518843,
+    "logL_spread": 0.0013341269083790852
+   },
+   {
+    "top1_spread": 0.05332164939919437,
+    "logL_spread": 0.0028430242486434665
+   }
+  ],
+  "arm": "C",
+  "top1_median": 0.3305131077804795,
+  "top1_range": [
+   0.011739287080089866,
+   1.3845779512823881
+  ],
+  "logL_median": 0.007042777079696583
+ },
+ "mechanical_gap": {
+  "candidate_vectors": 326059,
+  "candidate_vectors_moved": 52081,
+  "decisions": 44982,
+  "decisions_moved": 22781,
+  "games": 1789,
+  "games_with_a_moved_vector": 1781,
+  "columns_moved": 20,
+  "of_columns": 58,
+  "by_column": [
+   {
+    "feature": "switchDiesFirst",
+    "vectors": 14772,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "diesBeforeMoving",
+    "vectors": 12934,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "switchSurvives1",
+    "vectors": 9592,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "switchKOSlow",
+    "vectors": 5496,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "killsThreat",
+    "vectors": 5151,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "dmgFrac",
+    "vectors": 5031,
+    "max_abs_delta": 1.0000000000000002
+   },
+   {
+    "feature": "switchSurvives2",
+    "vectors": 4927,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "switchKOFast",
+    "vectors": 4554,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "protectThreatened",
+    "vectors": 3893,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "priority",
+    "vectors": 1893,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "screenValue",
+    "vectors": 1760,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "koTarget",
+    "vectors": 1290,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "benchRisk",
+    "vectors": 1207,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "clickCost",
+    "vectors": 1099,
+    "max_abs_delta": 1.3125
+   },
+   {
+    "feature": "movesFirst",
+    "vectors": 1002,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "killIsRoll",
+    "vectors": 629,
+    "max_abs_delta": 1.0000000000000009
+   },
+   {
+    "feature": "koFirst",
+    "vectors": 582,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "passTurnAccrues",
+    "vectors": 465,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "switchFaster",
+    "vectors": 65,
+    "max_abs_delta": 1
+   },
+   {
+    "feature": "deadNoLastMove",
+    "vectors": 16,
+    "max_abs_delta": 0.9971899999999999
+   }
+  ]
+ },
+ "bootstrap": {
+  "resamples": 10000,
+  "unit": "game",
+  "note": "one resample drives every arm, so the contrasts share their resampling noise"
+ },
+ "n_measured": 44982,
+ "n_unit": "held-out decisions, paired across arms",
+ "caveats": [
+  "Top-1 agreement with a human click is NOT a win rate. Whether MILTANK plays better is an H2H and belongs to SEARCH.",
+  "Every game scored here is an OPEN-SHEET game. This cannot say how four-channel weights degrade against an opponent who declines OTS — that is the debt accepted on 2026-08-04.",
+  "The declared item and ability are what the sheet SAID. Knock Off, Trick and a consumed berry stale them mid-battle and nothing here tracks that; prefer OBSERVED over DECLARED."
+ ]
+}

@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-05T00:40:29.615Z",
+ "generated": "2026-08-05T02:02:58.998Z",
  "by": "engine/conformance.js",
- "files": 283,
+ "files": 284,
  "findings": [
   {
    "std": "convention",
@@ -126,7 +126,7 @@
   {
    "std": "S12",
    "file": "engine/medicham2-browser.js",
-   "what": "names 18 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
+   "what": "names 17 Pokemon thing(s) in code: move:earthquake, move:blizzard, move:protect, move:detect, move:tailwind, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block"
   },
   {
@@ -467,12 +467,6 @@
   },
   {
    "std": "S13",
-   "file": "data/pory-nn.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
    "file": "data/pory.js",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -515,6 +509,12 @@
   },
   {
    "std": "S13",
+   "file": "data/rollout-r1-explore1-rows-6e43710396db.meta.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/rollout-r1-explore1-rows.meta.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
@@ -536,6 +536,12 @@
    "file": "data/scoreboard.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/sheet-channel-value.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",

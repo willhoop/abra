@@ -2252,24 +2252,58 @@ probe('move', 'blocksHealing', 'Psychic Noise stops the target healing', () => {
   return { works: free > 0 && blocked <= 0, detail: 'healed ' + free + ' normally, ' + blocked + ' after Psychic Noise' };
 });
 
+/* WIRE 109 -- LANDED, and the previous version of this probe was WRONG BEFORE THE ENGINE WAS
+ * (Lesson 5, staged against a body that cannot show the effect): it made WEAVILE the attacker, and
+ * Weavile at 187 Speed outruns Whimsicott at 177 -- so the hit landed before After You could ever
+ * resolve, in the real game as well as here, and the probe read MISSING against a wire that worked.
+ * Garchomp (161) sits between the two, which is the window the mechanic needs.
+ *
+ * THE INSTRUCT ARM IS THE ONE THAT MATTERS: Instruct carries the identical `reordersTurn
+ * {sends:'next'}` and means something completely different (the target REPEATS its move). The
+ * census's blocking claim was "nothing in the artifact tells the two apart" -- wrong: Instruct also
+ * carries `instructsTarget`, a declared fact, and the consumer excludes on it. So Instruct must NOT
+ * protect the ally here, or the engine just gave Instruct After You's behaviour. */
 probe('move', 'reordersTurn', 'After You lets the partner move next', () => {
-  /* The partner is slower than both foes, so without After You it acts last. The fast foe is left on
-   * 1 HP: if the partner really moves next it kills before the foe ever acts. */
-  const run = (afterYou) => {
+  const run = (click) => {
     const me = bare('whimsicott'), ally = bare('archaludon');
-    const f1 = bare('weavile'), f2 = bare('garchomp');
+    const f1 = bare('garchomp'), f2 = bare('corviknight');
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     f1.curHP = 1;
     const before = ally.curHP;
     M.battleTurn(S, rng5,
-      new Map([[me, afterYou ? M.playerAction(me, 'afteryou', ally, S.field) : { kind: 'pass' }],
+      new Map([[me, click ? M.playerAction(me, click, ally, S.field) : { kind: 'pass' }],
                [ally, M.playerAction(ally, 'ironhead', f1, S.field)]]),
       new Map([[f1, M.playerAction(f1, 'closecombat', ally, S.field)], [f2, { kind: 'pass' }]]));
     return before - ally.curHP;
   };
-  const normal = run(false), moved = run(true);
-  return { works: normal > 0 && moved === 0,
-           detail: 'slow partner took ' + normal + ' normally, ' + moved + ' after After You' };
+  const normal = run(null), moved = run('afteryou'), instructed = run('instruct');
+  return { works: normal > 0 && moved === 0 && instructed > 0,
+           arms: { control: normal, test: moved },
+           detail: 'slow partner took ' + normal + ' with no help, ' + moved + ' after After You '
+                 + '(the 1-HP foe died first), and ' + instructed + ' after INSTRUCT -- which shares '
+                 + '{sends:next} and must not reorder' };
+});
+
+/* WIRE 109, the other member: QUASH sends the target to the BACK of the turn. Same staging inverted:
+ * the foe is FASTER than the partner, so only a demotion can put the partner's kill in front. */
+probe('move', 'quashSendsLast', 'Quash makes the target act last', () => {
+  const run = (quash) => {
+    const me = bare('whimsicott'), ally = bare('archaludon');
+    const f1 = bare('garchomp'), f2 = bare('corviknight');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    f1.curHP = 1;
+    const before = ally.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, quash ? M.playerAction(me, 'quash', f1, S.field) : { kind: 'pass' }],
+               [ally, M.playerAction(ally, 'ironhead', f1, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'closecombat', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return before - ally.curHP;
+  };
+  const normal = run(false), quashed = run(true);
+  return { works: normal > 0 && quashed === 0,
+           arms: { control: normal, test: quashed },
+           detail: 'partner took ' + normal + ' without Quash, ' + quashed + ' with the attacker '
+                 + 'quashed to the back (it was KOd before its demoted action came up)' };
 });
 
 probe('item', 'curesVolatile', 'Mental Herb frees the holder from Taunt', () => {
@@ -3190,7 +3224,374 @@ probe('move', 'formatSecondaryChance', "Iron Head flinches at this FORMAT's 20%,
                  + `control Rock Slide ${control.toFixed(1)}% (30% x 90% accuracy = 27)` };
 });
 
-/* ---- REPORT ------------------------------------------------------------------------------------- */
+/* ---- BATCH 13 — LAYER 0 OF THE COVERAGE JOB (WIRES 90-111), 2026-08-05 --------------------------
+ * The 13 residual interaction-matrix disagreements and the orphan ability/item tags. Every probe here
+ * was demonstrated RED before its green was believed, by stripping the tag it consumes out of the
+ * in-memory artifact through TAGS.__setDB and watching the probe fail -- the mutation-tier
+ * demonstration, run by tests/probe_red_demo.js so it is reproducible rather than asserted. */
+
+/* WIRE 90 -- toxic spikes resolve on entry. The old MEDFAILS.hazardUnresolved declared this gap on
+ * the claim that grounded-ness "is not tracked"; it is derivable from the body (types, Levitate, an
+ * Air Balloon) and the interaction matrix caught the gap live: `uturn -> toxicdebris` read
+ * `.A.active[0].status medi="" sd="psn"`. */
+probe('move', 'toxicSpikesEntry', 'a grounded switch-in is poisoned by Toxic Spikes; a Flying one is not; a Poison one absorbs them', () => {
+  const run = (layers, entrant) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const nx = bare(entrant);
+    const S = M.battleInit([me, ally, nx], [f1, f2], { seeded: true });
+    /* lay the layers with the real click, then pivot the lead out so the entrant walks onto them */
+    for (let i = 0; i < layers; i++)
+      M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'toxicspikes', null, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: nx }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { status: nx.status || 'none', layersLeft: (me._sf && me._sf.hz && me._sf.hz.toxicspikes) | 0 };
+  };
+  const one = run(1, 'milotic'), two = run(2, 'milotic'), fly = run(1, 'corviknight'), abs = run(1, 'gengar');
+  return { works: one.status === 'psn' && two.status === 'tox' && fly.status === 'none'
+                  && abs.status === 'none' && abs.layersLeft === 0,
+           arms: { control: fly.status, test: one.status },
+           detail: `entrant status -- 1 layer/Milotic ${one.status}, 2 layers ${two.status}, `
+                 + `Flying ${fly.status}, grounded Poison ${abs.status} with ${abs.layersLeft} layers left (absorbed)` };
+});
+
+probe('move', 'stickyWebEntry', 'Sticky Web drops a grounded switch-in\'s Speed, through the same reactions as Intimidate', () => {
+  const run = (entrant, ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');   /* the click is the mechanic; set legality is not what this probe asks */
+    const nx = bare(entrant); if (ab) nx.ability = ab;
+    const S = M.battleInit([me, ally, nx], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'stickyweb', null, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: nx }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { sp: nx.boosts.sp, at: nx.boosts.at };
+  };
+  const plain = run('milotic'), fly = run('corviknight'), def = run('kingambit', 'defiant');
+  return { works: plain.sp === -1 && fly.sp === 0 && def.sp === -1 && def.at === 2,
+           arms: { control: fly.sp, test: plain.sp },
+           detail: `spe stage on entry -- grounded ${plain.sp}, Flying ${fly.sp}, `
+                 + `Defiant ${def.sp} spe with +${def.at} atk (the web fires the retaliation)` };
+});
+
+/* WIRE 100 -- THE RETALIATION ARITHMETIC, verified against the official engine's own handlers before
+ * this probe was trusted: the drop LANDS and then the +2 fires. The engine used to give Defiant a
+ * clean +2 (net) and Competitive +2 SpA with NO Attack drop -- both wrong in the flattering
+ * direction. */
+probe('ability', 'intimidateRetaliationNet', 'Intimidate into Defiant is net +1 Atk; into Competitive it is Atk -1 AND SpA +2', () => {
+  const run = (ab) => { const m = bare('milotic'); m.ability = ab; M.applyIntimidate(m); return { at: m.boosts.at, sa: m.boosts.sa }; };
+  const d = run('defiant'), c = run('competitive'), plain = run('none');
+  return { works: d.at === 1 && c.at === -1 && c.sa === 2 && plain.at === -1,
+           arms: { control: plain, test: d },
+           detail: `after Intimidate -- ability none atk ${plain.at}; Defiant atk ${d.at} (drop lands, then +2); `
+                 + `Competitive atk ${c.at} / spa ${c.sa}` };
+});
+
+/* WIRE 107 -- the matrix rows `trick/switcheroo -> quickclaw`: Showdown swapped the items and this
+ * engine did not. */
+probe('move', 'trickSwapsItems', 'Trick swaps the two items; Corrosive Gas only deletes; a mega stone does not move', () => {
+  const stage = (myItem, foeItem, click) => {
+    const me = bare('sableye'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    me.item = myItem; f1.item = foeItem;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { mine: me.item || '(none)', theirs: f1.item || '(none)' };
+  };
+  const swap = stage('quickclaw', '', 'trick');
+  const gas = stage('', 'leftovers', 'corrosivegas');
+  const stone = stage('quickclaw', 'gengarite', 'trick');
+  return { works: swap.mine === '(none)' && swap.theirs === 'quickclaw'
+                  && gas.theirs === '(none)' && stone.theirs === 'gengarite' && stone.mine === 'quickclaw',
+           arms: { control: 'quickclaw/(none)', test: swap.mine + '/' + swap.theirs },
+           detail: `Trick: user quickclaw -> ${swap.mine}, target (none) -> ${swap.theirs}; `
+                 + `Corrosive Gas leaves the target ${gas.theirs}; Trick at a Gengarite holder moves nothing `
+                 + `(${stone.mine} / ${stone.theirs})` };
+});
+
+/* WIRE 108 -- `trickortreat -> suckerpunch/upperhand`: `.B.active[0].types medi=["Poison"]
+ * sd=["Ghost","Poison"]`. The written type is the MOVE'S OWN, true of all four members. */
+probe('move', 'changesTargetType', 'Trick-or-Treat adds Ghost; Soak rewrites to pure Water', () => {
+  const run = (click, targetSp) => {
+    const me = bare('gengar'), ally = bare('corviknight');
+    const f1 = bare(targetSp), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = f1.types.slice();
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { before, after: f1.types.slice() };
+  };
+  const tot = run('trickortreat', 'milotic'), soak = run('soak', 'garchomp');
+  return { works: tot.after.includes('Ghost') && tot.after.includes('Water')
+                  && soak.after.length === 1 && soak.after[0] === 'Water',
+           arms: { control: tot.before, test: tot.after },
+           detail: `Trick-or-Treat: ${tot.before.join('/')} -> ${tot.after.join('/')}; `
+                 + `Soak: ${soak.before.join('/')} -> ${soak.after.join('/')}` };
+});
+
+/* WIRE 106 -- `decorate -> goodasgold/suckerpunch/upperhand`: the caller's target was dropped at
+ * classification, so a foe-aimed Decorate boosted the ALLY. Showdown boosts the FOE, and Good as
+ * Gold refuses it. */
+probe('move', 'boostsTargetHonoursTarget', 'Decorate aimed at a foe boosts the FOE, and Good as Gold refuses it', () => {
+  const run = (aimAtFoe, foeAb) => {
+    const me = bare('alcremie') || bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('weavile');
+    if (foeAb) f1.ability = foeAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'decorate', aimAtFoe ? f1 : ally, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { allyAtk: ally.boosts.at, foeAtk: f1.boosts.at };
+  };
+  const atAlly = run(false), atFoe = run(true), refused = run(true, 'goodasgold');
+  return { works: atAlly.allyAtk === 2 && atAlly.foeAtk === 0
+                  && atFoe.foeAtk === 2 && atFoe.allyAtk === 0 && refused.foeAtk === 0,
+           arms: { control: atAlly.foeAtk, test: atFoe.foeAtk },
+           detail: `atk stages (ally/foe) -- aimed at ally ${atAlly.allyAtk}/${atAlly.foeAtk}, `
+                 + `aimed at foe ${atFoe.allyAtk}/${atFoe.foeAtk}, at a Good as Gold foe ${refused.foeAtk} (refused)` };
+});
+
+/* WIRE 105 -- `infestation -> beakblast`: Beak Blast KO'd the trapper in both engines and only this
+ * one kept chipping. The trap dies with its trapper. */
+probe('move', 'trapEndsWithTrapper', 'the partial trap ends when the trapper leaves the field', () => {
+  const run = (koTheTrapper) => {
+    const me = bare('ariados') || bare('garchomp'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('weavile');
+    const S = M.battleInit([me, ally, bare('incineroar')], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'infestation', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const trappedAfterTurn1 = !!f1._trap;
+    if (koTheTrapper) { me.curHP = 0; me.fainted = true; }
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { trappedAfterTurn1, chip: before - f1.curHP, still: !!f1._trap };
+  };
+  const alive = run(false), dead = run(true);
+  return { works: alive.trappedAfterTurn1 && alive.chip > 0 && dead.chip === 0 && !dead.still,
+           arms: { control: alive.chip, test: dead.chip },
+           detail: `next-turn chip on the trapped body -- trapper alive ${alive.chip}, trapper KOd ${dead.chip} `
+                 + `(trap cleared: ${!dead.still})` };
+});
+
+/* WIRE 102 -- `whirlwind -> suckerpunch/upperhand`: the two engines dragged DIFFERENT bodies because
+ * this one always took bench[0] while Showdown SAMPLES. The drag target is a die; the probe varies
+ * the die and demands the outcome move with it. */
+probe('move', 'phazeDragIsADie', 'Whirlwind drags in a RANDOM bench body, driven by the battle rng', () => {
+  const run = (roll) => {
+    const me = bare('corviknight'), ally = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('weavile');
+    const b1 = bare('incineroar'), b2 = bare('archaludon');
+    const S = M.battleInit([me, ally], [f1, f2, b1, b2], { seeded: true });
+    const rng = () => roll;
+    M.battleTurn(S, rng, new Map([[me, M.playerAction(me, 'whirlwind', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return S.actB[0] && S.actB[0].name;
+  };
+  const low = run(0.01), high = run(0.99);
+  return { works: !!low && !!high && low !== high,
+           arms: { control: low, test: high },
+           detail: `dragged in at rng 0.01: ${low}; at 0.99: ${high} -- the official engine's dragIn is `
+                 + `this.sample(possibleSwitches), so WHICH body arrives is luck, and a fixed bench[0] read `
+                 + `as a rule divergence under the matrix's pinned dice` };
+});
+
+/* WIRE 101 -- Quick Claw. The claw holder is far slower and still moves first on the claw's 20%. */
+probe('item', 'fractionalPriority', 'Quick Claw lets a slow holder move first within its bracket', () => {
+  const run = (item, roll) => {
+    const me = bare('torkoal'); me.item = item;                  /* base 20 Speed */
+    const ally = bare('corviknight');
+    const f1 = bare('weavile'), f2 = bare('garchomp');
+    f1.curHP = 60;                                               /* one Lava Plume ends it */
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* first rng call this turn is the claw roll (only rolled for a holder); afterwards mid-roll */
+    let first = true;
+    const rng = () => { if (first && item) { first = false; return roll; } return 0.5; };
+    const before = me.curHP;
+    M.battleTurn(S, rng, new Map([[me, M.playerAction(me, 'lavaplume', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'brickbreak', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { hurt: before - me.curHP, foeDead: f1.fainted };
+  };
+  const claw = run('quickclaw', 0.05), miss = run('quickclaw', 0.9), none = run('', 0.05);
+  return { works: claw.foeDead && claw.hurt === 0 && miss.hurt > 0 && none.hurt > 0,
+           arms: { control: none.hurt, test: claw.hurt },
+           detail: `damage the slow holder took before acting -- claw wins the roll ${claw.hurt} (it KOd first: ${claw.foeDead}), `
+                 + `claw loses the roll ${miss.hurt}, no item ${none.hurt}` };
+});
+
+/* WIRE 103 -- King's Rock. */
+probe('item', 'addsFlinch', "King's Rock flinches on its 10%, and Sheer Force deletes it", () => {
+  /* the receipt is whether Recover happened: a flinched Milotic stays hurt. The flinch roll is
+   * rng()<0.1; a constant under it fires the rock, a constant over it never does, and every other
+   * consumer of the stream tolerates either constant. */
+  const hit = (item, roll, ab) => {
+    const me = bare('weavile'); me.item = item; if (ab) me.ability = ab;
+    const ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const rng = () => roll;
+    /* the receipt is the target's SETUP: a flinched body never clicks its Swords Dance. The first
+     * cut used Recover-back-to-full, and a crit (Night Slash at a constant 0.05 crits in BOTH arms)
+     * out-damaged the heal, so the control read as flinched too -- the receipt was wrong, not the
+     * rock. */
+    M.battleTurn(S, rng, new Map([[me, M.playerAction(me, 'nightslash', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]));
+    return f1.boosts.at === 2;                                   /* true = it set up = no flinch */
+  };
+  const flinched = hit('kingsrock', 0.05), noRock = hit('', 0.05), badRoll = hit('kingsrock', 0.5),
+        sheer = hit('kingsrock', 0.05, 'sheerforce');
+  return { works: flinched === false && noRock === true && badRoll === true && sheer === true,
+           arms: { control: noRock, test: flinched },
+           detail: `did the target get its Swords Dance off -- rock+low roll ${flinched} (flinched), no rock ${noRock}, `
+                 + `rock+high roll ${badRoll}, rock+Sheer Force ${sheer} (the boost deletes the rock's flinch)` };
+});
+
+/* WIRE 97 -- Sheer Force, both halves plus the Life Orb interaction. */
+probe('ability', 'removesOwnSecondaries', 'Sheer Force boosts a secondary-carrying move x1.3 and strips its secondary', () => {
+  const off = bare('incineroar'), on = bare('incineroar'); on.ability = 'sheerforce';
+  const def = bare('milotic');
+  const mv = MC.moves['rockslide'], plain = MC.moves['facade'] || MC.moves['doubleedge'];
+  const a = M.dmgRange(off, def, mv, fresh(), false), b = M.dmgRange(on, def, mv, fresh(), false);
+  const pa = M.dmgRange(off, def, plain, fresh(), false), pb = M.dmgRange(on, def, plain, fresh(), false);
+  return { works: b.max > a.max * 1.2 && pb.max === pa.max,
+           arms: { control: a.max, test: b.max },
+           detail: `Rock Slide (has a secondary): none ${a.max} -> Sheer Force ${b.max}; `
+                 + `a no-secondary move must NOT move: ${pa.max} -> ${pb.max}` };
+});
+
+/* WIRE 96 -- Sniper. */
+probe('ability', 'critDamageUp', "Sniper multiplies a crit's damage half again", () => {
+  const off = bare('sneasler') || bare('weavile'), on = bare('sneasler') || bare('weavile');
+  on.ability = 'sniper';
+  const def = bare('milotic');
+  const mv = MC.moves['flowertrick'];                             /* always crits: the certain path */
+  const a = M.dmgRange(off, def, mv, fresh(), false), b = M.dmgRange(on, def, mv, fresh(), false);
+  const ctrl = MC.moves['closecombat'];
+  const ca = M.dmgRange(off, def, ctrl, fresh(), false), cb = M.dmgRange(on, def, ctrl, fresh(), false);
+  return { works: b.max > a.max * 1.4 && cb.max === ca.max,
+           arms: { control: a.max, test: b.max },
+           detail: `Flower Trick (always crits): none ${a.max} -> Sniper ${b.max} (x1.5 on the crit); `
+                 + `a non-crit move must not move: ${ca.max} -> ${cb.max}` };
+});
+
+/* WIRE 98 -- Parental Bond. */
+probe('ability', 'hitsTwice', 'Parental Bond adds a quarter-strength second hit, and not on a spread move', () => {
+  const off = bare('kangaskhan') || bare('incineroar'), on = bare('kangaskhan') || bare('incineroar');
+  on.ability = 'parentalbond'; off.ability = 'none';
+  const def = bare('milotic');
+  const mv = MC.moves['doubleedge'] || MC.moves['bodyslam'];
+  const a = M.dmgRange(off, def, mv, fresh(), false), b = M.dmgRange(on, def, mv, fresh(), false);
+  const sp = MC.moves['earthquake'];
+  const sa = M.dmgRange(off, def, sp, fresh(), true), sb = M.dmgRange(on, def, sp, fresh(), true);
+  return { works: b.max > a.max * 1.15 && sb.max === sa.max,
+           arms: { control: a.max, test: b.max },
+           detail: `single-target: none ${a.max} -> Parental Bond ${b.max} (x1.25); `
+                 + `spread Earthquake must not move: ${sa.max} -> ${sb.max}` };
+});
+
+/* WIRE 94 -- Unaware, the ability half of ignoresStatStages. The MOVE half (Sacred Sword) has been
+ * live under `ignoresBoosts` all along, which makes the move-side tag a redundant second spelling --
+ * staged for tag_dex cleanup. */
+probe('ability', 'ignoresStatStages', "Unaware ignores the attacker's +6 when defending and the defender's +6 when attacking", () => {
+  const atk = bare('garchomp'), wallOff = bare('milotic'), wallOn = bare('milotic');
+  wallOn.ability = 'unaware';
+  const mv = MC.moves['earthquake'];
+  atk.boosts.at = 6;
+  const plain = M.dmgRange(atk, wallOff, mv, fresh(), false).max;
+  const seen = M.dmgRange(atk, wallOn, mv, fresh(), false).max;
+  atk.boosts.at = 0;
+  const base = M.dmgRange(atk, wallOn, mv, fresh(), false).max;
+  /* other direction: an Unaware attacker into a +6 Def target */
+  const ua = bare('garchomp'); ua.ability = 'unaware';
+  const wall = bare('milotic'); wall.boosts.df = 6;
+  const boosted = M.dmgRange(bare('garchomp'), wall, mv, fresh(), false).max;
+  const ignored = M.dmgRange(ua, wall, mv, fresh(), false).max;
+  return { works: plain > seen && seen === base && ignored > boosted,
+           arms: { control: plain, test: seen },
+           detail: `+6 attacker into: plain wall ${plain}, Unaware wall ${seen} (equals unboosted ${base}); `
+                 + `into a +6 Def wall: plain attacker ${boosted}, Unaware attacker ${ignored}` };
+});
+
+/* WIRE 93 -- Gale Wings, the second priorityMod carrier (Prankster's arm is the probe above this
+ * batch). The receipt is who moves first: a slow full-HP Talonflame's Brave Bird beats a faster
+ * attacker only with the ability, and NOT once it is chipped. */
+probe('ability', 'priorityModFlying', 'Gale Wings puts a full-HP Flying move in front, and not a chipped one', () => {
+  /* The first cut of this probe was wrong twice before the engine was (Lesson 5): Talonflame (188)
+   * already outsped the Weavile (187) it was staged against, so every arm went first anyway -- and
+   * the receipt counted Brave Bird's own RECOIL as "damage taken before acting". Dragapult (205) is
+   * genuinely faster, and Drill Peck has no recoil. */
+  const run = (ab, hp) => {
+    const me = bare('talonflame'); me.ability = ab;
+    if (hp) me.curHP = Math.floor(me.st.hp * hp);
+    const ally = bare('milotic');
+    const f1 = bare('dragapult'), f2 = bare('garchomp');
+    f1.curHP = 40;                                               /* Drill Peck ends it if it goes first */
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = me.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'drillpeck', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'shadowball', me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - me.curHP;                                    /* >0 means the faster foe hit first */
+  };
+  const none = run('none'), wings = run('galewings'), chipped = run('galewings', 0.6);
+  return { works: none > 0 && wings === 0 && chipped > 0,
+           arms: { control: none, test: wings },
+           detail: `damage taken before acting -- no ability ${none}, Gale Wings at full HP ${wings} `
+                 + `(its Flying move went first), Gale Wings at 60% ${chipped} (the condition is the artifact's)` };
+});
+
+/* WIRE 92 -- Shadow Tag through `preventsSwitch`. */
+probe('ability', 'preventsSwitch', 'Shadow Tag holds a voluntary switch; a Ghost type walks out anyway', () => {
+  const run = (foeAb, mySp) => {
+    const me = bare(mySp), ally = bare('corviknight');
+    const sub = bare('incineroar');
+    const f1 = bare('gengar'), f2 = bare('garchomp');
+    f1.ability = foeAb;
+    const S = M.battleInit([me, ally, sub], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: sub }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return S.actA[0] && S.actA[0].name;                          /* who stands there afterwards */
+  };
+  const free = run('none', 'milotic'), held = run('shadowtag', 'milotic'), ghost = run('shadowtag', 'mimikyu');
+  return { works: free === 'incineroar' && held === 'milotic' && ghost === 'incineroar',
+           arms: { control: free, test: held },
+           detail: `slot after the switch click -- foe ability none: ${free} (switched), Shadow Tag: ${held} `
+                 + `(held), Ghost-type under Shadow Tag: ${ghost} (exempt)` };
+});
+
+/* WIRE 104 -- boostsOnKO (Eelevate; the sheet count reads 0 because sheets list the pre-mega
+ * ability, Lesson 3). */
+probe('ability', 'boostsOnKO', 'a KO raises the killer\'s highest stat by one', () => {
+  const run = (ab) => {
+    const me = bare('garchomp'); me.ability = ab;
+    const ally = bare('corviknight');
+    const f1 = bare('weavile'), f2 = bare('milotic');
+    f1.curHP = 5;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return Object.values(me.boosts).reduce((s, v) => s + v, 0);
+  };
+  const off = run('none'), on = run('eelevate');
+  return { works: off === 0 && on === 1,
+           arms: { control: off, test: on },
+           detail: `total stages after the KO -- ability none ${off}, Eelevate ${on} (+1 to its highest stat)` };
+});
+
+/* WIRE 99 -- Mega Sol's private sun (Meganium's Champions mega; sheets read 0 by Lesson 3). */
+probe('ability', 'privateWeather', "Mega Sol's own Fire move fires under a sun only it can see", () => {
+  const off = bare('meganium') || bare('incineroar'), on = bare('meganium') || bare('incineroar');
+  on.ability = 'megasol';
+  const def = bare('corviknight');
+  const fire = MC.moves['flamethrower'] || MC.moves['fireblast'];
+  const a = fire ? M.dmgRange(off, def, fire, fresh(), false) : null;
+  const b = fire ? M.dmgRange(on, def, fire, fresh(), false) : null;
+  if (!a) return { works: false, detail: 'no fire move in MC.moves to stage with' };
+  return { works: b.max > a.max * 1.3, arms: { control: a.max, test: b.max },
+           detail: `Flamethrower on a clear field: ability none ${a.max}, Mega Sol ${b.max} (the private sun's x1.5); `
+                 + `the FIELD still reports no weather -- only this body's reads see it` };
+});
 
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);

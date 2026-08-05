@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.40.0 · Last updated 2026-08-05**
+**Version 3.41.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -110,7 +110,7 @@ uniform-over-moveset (2.91). A modest but real signal; human move choice has gen
 
 ### 4.3 PORY — mid-game win probability (RETRACTED as a value net; it is material arithmetic)
 The pivot's proof. `engine/pory.py` reconstructs per-turn board state (mons alive out of four, mean
-active HP, turn) and fits a logistic value net. Held-out, clustered by game: **log-loss 0.6298** 95% CI [0.6125, 0.6456] vs coin
+active HP, turn) and fits a logistic value net. Held-out, clustered by game: **log-loss 0.6236** 95% CI [0.6070, 0.6387] vs coin
 0.693**, beating a material-sign heuristic, **calibrated to ECE 1.6%**, CI **[0.548, 0.583]**. The
 *live board is predictable even though the pre-game sheets are not* — the thesis, demonstrated. PORY is
 wired into KADABRA as a per-turn "you're at X%". Output: `data/pory.js`; report `data/pory-eval.json`.
@@ -414,6 +414,42 @@ optimum showed one accepted step is worth 0.202 win-rate points against a 4.77-p
 the affordable budget, so the search moves to a 4–8-parameter reparameterization first. The full
 argument is `docs/COVERAGE-PLAN-REVIEW.md`. ABRA continues to have **no exploitability number**;
 `data/exploitability.json` remains void.
+
+## Layer 0 executes; the joint layer refits; the channel value is measured (3.41.0)
+
+Same night, three division runs later. **Engine:** Layer 0 of the coverage plan is done — census
+**202 live of 205 probed, 3 missing with reasons**; interaction matrix **100.0%** (899 cases after
+retiring four redundant tags shrank the generated set from 1,012 — the retired facts live on under
+their surviving tags); the DEAD-tag ratchet fell **61 → 38**; the 26 orphan ability/item tags are
+triaged with a full disposition table in ENGINE.md. Two real bugs surfaced in passing and were
+fixed with probes shown failing first: the Intimidate retaliation arithmetic (Defiant read net +2
+where the game gives +1; Competitive skipped the Attack drop) and Sheer Force missing its ×1.3
+while its secondary-suppression half worked — strictly worse than no ability. The mutation tier's
+injection point (`__setDB` plus the derived-set rebuild hook the amended plan requires) landed and
+was exercised 26 times by the probe-red-demonstration harness.
+
+**Measure:** the JOINT layer is refitted on the four-channel sheet — 95,886 usable joint turns,
+channel-reach counters at 99.7%, feature semantics verified — closing the second half of the
+fitting-environment gap. The held-out channel-value measurement ran A/B/C against the frozen
+two-channel incumbent (release `d3d04b669e18`), 44,982 paired decisions, 10,000 game-bootstrap
+resamples:
+
+| paired difference | logL/decision | top-1 points |
+|---|---|---|
+| information alone, weights frozen | **+0.002853** [0.001611, 0.004072] | +0.009 [−0.140, +0.157] |
+| refit, given the information | **+0.002234** [0.001638, 0.002831] | +0.165 [0.029, 0.299] |
+| everything vs what shipped | **+0.005087** [0.003854, 0.006331] | +0.173 [−0.011, +0.360] |
+
+Split-half noise floor of the shipping arm: **0.331 top-1 points** (median, 20 cuts). The honest
+reading: the sheet channels buy a real per-decision likelihood gain — every logL interval clears
+zero — and **no demonstrable top-1 gain**; the one clearing interval is half the noise floor and
+resolves only because the comparison is paired. The first measurement attempt self-voided when the
+engine moved mid-run and was re-run clean — the release discipline working as designed.
+
+**And the tags regeneration was gated the way the rules demand:** after the staged derivations
+landed in `data/tags.json`, `feature_fixture --check` confirmed both fitted weight vectors still
+agree with `board.js` on every fixture board — the new tags moved zero of the 58 feature columns,
+so the night's fits stand unre-run.
 
 ## Measuring an engine that is being edited (3.36.0 – 3.39.0)
 

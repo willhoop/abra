@@ -4,12 +4,14 @@
  "sources": [
   "data\\games.ladder.raw-logs.jsonl"
  ],
- "n_states": 102296,
- "n_games": 6008,
+ "n_states": 106782,
+ "n_games": 6289,
+ "population_ceiling": 6289,
+ "population_ceiling_note": "clean ladder games whose raw log is present and yields board states, at generation time. See docs/MEASURE.md \u00a75f and engine/provenance.js.",
  "split": {
-  "train": 59604,
-  "val": 21452,
-  "test": 21240
+  "train": 62258,
+  "val": 22510,
+  "test": 22014
  },
  "arms": [
   {
@@ -21,54 +23,54 @@
   },
   {
    "arm": "B1  alive_diff",
-   "logloss": 0.6382,
-   "acc": 0.604,
-   "auc": 0.6659,
-   "calib": 0.0022
+   "logloss": 0.638,
+   "acc": 0.6043,
+   "auc": 0.6663,
+   "calib": 0.002
   },
   {
    "arm": "B2  alive_diff+hp_diff",
-   "logloss": 0.6221,
-   "acc": 0.636,
-   "auc": 0.701,
-   "calib": 0.0084
+   "logloss": 0.6229,
+   "acc": 0.6356,
+   "auc": 0.7,
+   "calib": 0.0088
   },
   {
    "arm": "B3  sign(alive_diff)",
-   "logloss": 0.6451,
-   "acc": 0.604,
-   "auc": 0.6596,
-   "calib": 0.0035
+   "logloss": 0.645,
+   "acc": 0.6043,
+   "auc": 0.6599,
+   "calib": 0.0043
   },
   {
    "arm": "L6  logistic, material",
-   "logloss": 0.6221,
-   "acc": 0.636,
-   "auc": 0.701,
-   "calib": 0.0085
+   "logloss": 0.6229,
+   "acc": 0.6356,
+   "auc": 0.7,
+   "calib": 0.0088
   },
   {
    "arm": "LR  logistic, rich",
-   "logloss": 0.6063,
-   "acc": 0.6462,
-   "auc": 0.7185,
-   "calib": 0.0113
+   "logloss": 0.6064,
+   "acc": 0.6454,
+   "auc": 0.7181,
+   "calib": 0.0123
   },
   {
    "arm": "N6  network, material",
-   "logloss": 0.6186,
-   "acc": 0.637,
-   "auc": 0.704,
-   "calib": 0.0124,
+   "logloss": 0.6201,
+   "acc": 0.6354,
+   "auc": 0.7021,
+   "calib": 0.0165,
    "hidden": 32,
-   "val_logloss": 0.6083
+   "val_logloss": 0.6078
   },
   {
    "arm": "NR  network, rich",
-   "logloss": 0.6169,
-   "acc": 0.6389,
-   "auc": 0.7084,
-   "calib": 0.025,
+   "logloss": 0.6132,
+   "acc": 0.6413,
+   "auc": 0.711,
+   "calib": 0.02,
    "hidden": 16,
    "val_logloss": 0.6003
   }

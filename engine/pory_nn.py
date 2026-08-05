@@ -523,6 +523,13 @@ def main():
         "n_features": len(FEATURE_NAMES),
         "sources": [os.path.relpath(p, ROOT) for p in paths if os.path.exists(p)],
         "n_states": n_states, "n_games": int(n_games),
+        # docs/MEASURE.md §5f: the population is NOT "clean ladder games" — it is clean games whose
+        # RAW LOG is present and yields scoreable board states, a strict subset. Without this key
+        # engine/provenance.js measures drift against the full clean corpus and this artifact reads
+        # ~15% behind on the day it is generated. The generator reached every game it could reach.
+        "population_ceiling": int(n_games),
+        "population_ceiling_note": "clean ladder games whose raw log is present and yields board "
+            "states, at generation time. See docs/MEASURE.md §5f and engine/provenance.js.",
         "split": {"train": int(tr.sum()), "val": int(va.sum()), "test": int(te.sum())},
         "arms": rows,
     }, open(OUT, "w"), indent=1)   # data/pory-nn.json

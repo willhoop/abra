@@ -186,6 +186,14 @@ def main():
     out={
       "generated":"engine/pory.py — mid-game win-prob value net from real replays",
       "n_games":ng,"n_states":len(Y),"train_states":int(tr.sum()),"test_states":int(te.sum()),
+      # docs/MEASURE.md §5f: this artifact's population is NOT "clean ladder games" — it is clean
+      # ladder games whose raw log is PRESENT and NAMES A WINNER, a strict subset. Without this
+      # declaration engine/provenance.js measures drift against the full clean corpus and this file
+      # can never read below ~21% behind however often it is regenerated. The generator wanted every
+      # game it could reach and got every game it could reach, so the ceiling IS the sample size.
+      "population_ceiling": ng,
+      "population_ceiling_note": "clean ladder games whose raw log is present and names a winner, "
+        "at generation time. See docs/MEASURE.md §5f and engine/provenance.js.",
       "log_loss":{"pory":round(ll(pte,Yte),4),"pory_ci95":boot_ci(pte,Yte),
                   "coin":round(coin_ll,4),"material_heuristic":round(heur_ll,4),
                   "material_two_feature":round(base_ll,6),

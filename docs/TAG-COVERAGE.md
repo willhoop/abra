@@ -164,6 +164,13 @@ Two tags also appear to describe one mechanic — `contactPunish` (dead, 6,829 u
 
 ## 4. The work, in order
 
+*(2026-08-05: step 1 is DONE — the full 26-way triage with per-tag verdicts is in docs/ENGINE.md
+under "THE LAYER 0 PASS", wires 90–112. DEAD fell 61 → 40. The `contactPunish`/`punishesAttacker`
+redundancy resolved in punishesAttacker's favour; `blocksStatusMoves` was redundant AND over-matched
+(Telepathy, Wonder Guard); the `onSwitchInDrop` enrichment caught Download as a §4-style over-match.
+`TAGS.__setDB` + a rebuild-hook registry landed in engine/tags.js as step 3's injection point, and
+`tests/probe_red_demo.js` is the first user of the mutation operation.)*
+
 1. **Triage the 26 ability/item tags** into: covered-by-name (rewrite to read the artifact),
    genuinely-missing (wire it), or redundant-with-another-tag (delete one and say which).
 2. **Decide the two-rulebook question.** Either `move-effects.json` is the source of truth for move

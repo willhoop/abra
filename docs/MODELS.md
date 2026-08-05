@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.40.0 · Last updated 2026-08-05.**
+**Version 3.41.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -262,13 +262,14 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
-**MECHANICS STATE, 2026-08-05, read from the artifact rather than typed:** `data/mechanics-census.json`
-reads **181 live of 186 probed, 5 missing, 0 hollow** (wires 82–89 landed at 3.40.0; the
-`basePowerCallback` and conditional-power rows came off the missing list by derivation, WIRE 83).
-The five are each declared with a reason in [ENGINE.md](ENGINE.md) — two on the
-`moveAccuracy(id, field)` signature (a change that crosses into the refit edge MEASURE owns), one
-untagged ability derivation (Marvel Scale), one by DECISION (Avalanche asks for turn state
-`dmgRange` is not given), and one blocked on telling After You apart from Instruct in the artifact.
+**MECHANICS STATE, 2026-08-05 (3.41.0), read from the artifact rather than typed:**
+`data/mechanics-census.json` reads **202 live of 205 probed, 3 missing, 0 hollow** (wires 82–89 at
+3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
+off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
+Instruct carries `instructsTarget {extraAction:true}`, a shape read). The three remaining are each
+declared with a reason in [ENGINE.md](ENGINE.md) — two on the `moveAccuracy(id, field)` signature
+(a change that crosses into the refit edge MEASURE owns), one by DECISION (Avalanche asks for turn
+state `dmgRange` is not given).
 
 **THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
 mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,506**
@@ -355,13 +356,13 @@ because the weather and terrain cores *are* megas. See ROLES.
 ## KADABRA — Key Analysis of Decisions, Advice & Better Replay Annotation
 **Job:** coach a real replay — take you to the turns that mattered.
 **Method (as of 2026-07-23):** parses the replay log to find decisive turns (KOs, losses), then runs a **clean move-by-move walkthrough** — big prev/next arrows, sprites + HP each key turn, and a bold **"what you should've done"** panel with the prescriptive fix. No Showdown iframe (dropped as clutter). **Works offline (`file://`)**: coaches from a locally-bundled set of recent games (`data/kad-replays.js`), with a recent-games picker and a raw-log paste fallback.
-**PORY win% wired in (2026-07-23) — RETRACTED 2026-07-25. Coefficients corrected and the tie MEASURED, 2026-08-04.** PORY is not a validated value net: its fitted weights reduce to `sigmoid(0.9943*alive_diff + 1.4080*hp_diff)`, it ties that two-feature material baseline, and `turn` is structurally pinned to zero. The chip still renders, but it reports material arithmetic, not a learned value.
+**PORY win% wired in (2026-07-23) — RETRACTED 2026-07-25. Coefficients corrected and the tie MEASURED, 2026-08-04.** PORY is not a validated value net: its fitted weights reduce to `sigmoid(0.9809*alive_diff + 1.4093*hp_diff)` (restamped 2026-08-05, 5,883-game corpus; was 0.9943/1.4080 at 4,623), it ties that two-feature material baseline, and `turn` is structurally pinned to zero. The chip still renders, but it reports material arithmetic, not a learned value.
 
 > **The coefficients quoted here were 1.256 / 1.544 for ten days and belonged to a different run.** Recomputed from the `weights` and `feat_std` actually stored in `data/pory-eval.json`, the reduction is **0.9943 / 1.4080**. 1.256 / 1.544 is commit `44e0fb0` (2026-07-24, `n_games` 7,381) — the run the retraction was written against, and the last one fitted on the **unfiltered store, bot games included**. `7f74236` (2026-07-26) put every model behind the clean filter and the coefficients moved to 1.0259 / 1.4347, then 0.9946, 0.9962, 0.9943 as the corpus grew. The doc was never restamped, so the retraction has been citing bot-contaminated coefficients as its evidence. `data/pory-eval.json` now carries a `reduced_form` block derived from its own weights, plus the per-run history, so this cannot drift again.
 >
 > **The retraction's substance is unaffected, and it is structural rather than numeric.** Every state is emitted from both perspectives with the label flipped, so the gradient on any column identical across the two rows cancels exactly: the intercept and `turn/10` are pinned to `0.000000000` at *every* generation, not shrunk to it. `my_alive` and `foe_alive` swap across the two rows and come back exactly antisymmetric (+0.28071 / −0.28071, summing to 0.000000000), so they fold into `alive_diff`. Five features, two degrees of freedom, and more data cannot change that.
 >
-> **"Ties exactly" is now a measurement rather than an inference.** `engine/pory.py` was replayed on the identical 4,623-game sample and returned this file's weights, `feat_std` and log-loss bit-for-bit. Against a logistic on `[alive_diff, hp_diff]` alone — same gradient descent, same standardisation, same temporal split — PORY scores **0.629799 to 0.629778**, a paired difference of **+0.000021 (PORY worse), 95% CI [−0.000013, +0.000056]** clustered by game over 925 held-out games. The interval contains zero. Re-fitting on the current corpus (5,456 games) gives **−0.000001, CI [−0.000031, +0.000030]** — the tie holds at the larger sample.
+> **"Ties exactly" is now a measurement rather than an inference.** `engine/pory.py` was replayed on the identical 4,623-game sample and returned this file's weights, `feat_std` and log-loss bit-for-bit. Against a logistic on `[alive_diff, hp_diff]` alone — same gradient descent, same standardisation, same temporal split — PORY scores **0.629799 to 0.629778**, a paired difference of **+0.000021 (PORY worse), 95% CI [−0.000013, +0.000056]** clustered by game over 925 held-out games. The interval contains zero. Re-fitting on the current corpus (5,456 games) gives **−0.000001, CI [−0.000031, +0.000030]** — the tie holds at the larger sample. Restamped again 2026-08-05 at 5,883 games (the §5f corpus-drift refit): baseline 0.623623, paired tie **+0.000001, CI [−0.000026, +0.000029]** over 1,177 held-out games. Three corpora, one conclusion; the retraction stands.
 >
 > **`data/pory-eval.json` said the opposite until 2026-08-04, and not because it was stale.** `engine/pory.py` gated its verdict on `hi < coin and hi < material_heuristic`, where `material_heuristic` is a crude 0.75/0.25/0.5 *sign* rule. PORY's interval genuinely clears that, so every re-run re-asserted "a real, calibrated value net" ten days after the retraction. Restamping the artifact alone would have been undone by the next run; the gate now reads the paired difference against the two-feature baseline, and the withdrawn string travels with the file under `withdrawn_verdict`.
 >
@@ -719,6 +720,15 @@ environment match is measured, not asserted. The two-channel incumbent is preser
 paired held-out comparison against the 0.192-point noise floor (`engine/sheet_channel_value.js`,
 not yet run). **The JOINT (pair) layer is NOT yet refitted** — until it is, the pair layer prices
 against the two-channel board, and no improvement claim exists for either layer.
+
+**BOTH HALVES CLOSED, 3.41.0 (same night).** The joint layer is refitted on the four-channel sheet
+(`data/policy-weights-joint.json`: 95,886 usable joint turns of 101,459; fitEnvironment counters
+99.7%; held-out pair top-1 9.8% → 12.2% with the joint terms). And the channel VALUE is now a
+measurement (`data/sheet-channel-value.json`, 44,982 paired held-out decisions vs the frozen
+two-channel incumbent): the sheet buys **+0.005087 logL/decision end-to-end [0.003854, 0.006331]**
+— real, clears zero — and **no demonstrable top-1 gain** against a 0.331-point split-half noise
+floor. Say it exactly that way: MAG prices decisions better with the sheet; a click-rate
+improvement is not yet shown.
 
 **Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
 taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and

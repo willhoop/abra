@@ -311,6 +311,15 @@ const DECLARED = {
     'This file. It reads .ability to check that .ability is right.',
   'tests/walk_tags.js':
     'ASSIGNS a fixture body its ability from the dex before running a tag through it.',
+  'tests/probe_red_demo.js':
+    'The red-demonstration harness for the 2026-08-05 Layer 0 probes: each wire is run against the '
+    + 'shipped artifact and against the artifact with its tag stripped through TAGS.__setDB. All 21 '
+    + 'matches were WALKED on 2026-08-05: 19 are ASSIGNMENTS — bare() blanking a fresh buildMon '
+    + 'body, or a demo setting the ability it is about to strip the tag from — and the 2 reads (one '
+    + 'line, the Skill Swap demo) read back the two fields the swap under test just exchanged, '
+    + 'which is the field-under-test case test-mechanics.js already declares. No line reads a LIVE '
+    + 'Pokemon expecting the post-mega value; every body is built bare, given one ability by the '
+    + 'demo, and never holds a stone.',
   'tests/test-tag-wire.js':
     'The same construction claim as tests/test-mechanics.js, and it grows for the same reason — a '
     + 'wire probe sets the ability it is about to test. All 18 matches were WALKED on 2026-08-04 '
