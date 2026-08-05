@@ -10,7 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
-## [3.39.0] — 2026-08-04
+## [3.40.0] — 2026-08-05
+
+### The coverage job lands, is re-examined, and the plan is amended where it was wrong
+
+The 2026-08-04 session was stopped mid-write with three divisions in flight. This release is the
+triage of that tree (verdict: everything KEEP, zero reverts — all three work products were finished,
+not half-done), the gate closure that followed, and the re-examination of
+`docs/ENGINE-COVERAGE-PLAN.md` that Will ordered, written up in `docs/COVERAGE-PLAN-REVIEW.md`
+(+ PDF).
+
+### Added
+- `docs/COVERAGE-PLAN-REVIEW.md` (+ `.pdf`) — the re-examination: what stands, the two internal
+  contradictions, the three mutation-tier traps, and the amended order of work.
+- WIREs 87–89 in `engine/medicham2-browser.js` (drain-before-contact-toll order; Steel Roller
+  terrain gate; secondary chance read from the FORMAT rulebook with a `rulebookChanceDrift`
+  counter), completing the 82–89 batch. Census 167→**181 live of 186 probed**; every probe was
+  demonstrated failing against a deliberately broken in-memory engine before its green was trusted.
+- `tests/test-rulebook-collision.js` + `data/rulebook-collision.json` — the two-rulebook collision
+  ratchet: 151 comparable facts, 149 agree, **2 clashes** (ratchet ≤2, may fall, may never rise).
+  Iron Head was the live one — tags carried the format's 20% flinch, move-effects the generic 30%,
+  and the engine read the wrong copy until WIRE 89.
+- `engine/exploit_step_probe.js` + `data/exploit-step-probe.json` — the 58-dim step rule proven on
+  a planted optimum, release-stamped. Finding: one accepted step ≈ 0.202 win-rate points against a
+  4.77-point resolution; the 58-dim re-run is not launchable at any affordable budget.
+- `engine/sheet_channels.js` + `engine/sheet_channel_value.js` — the four-channel sheet plumbing
+  (the former was required by committed code; HEAD could not load without it) and the pending
+  held-out A/B/C channel-value measurement.
+- MAG four-channel refit artifact (`data/policy-weights.json`): 231,722 decisions, `fitEnvironment`
+  stamped with point-of-use channel-reach counters (99.67%), `feature_fixture --check` passes.
+  Pre-refit weights preserved at `data/policy-weights-presheet.json` and
+  `data/policy-weights-joint-presheet.json`; arm-A baseline frozen at `data/releases/d3d04b669e18/`.
+
+### Changed
+- `docs/ENGINE-COVERAGE-PLAN.md` amended (see the review doc for the argument): **mutation now
+  ships before the registry** — the original stub defense routed stubs into UNREACHED, the one
+  bucket the ratchet deliberately never guards; mutation operators are now per-tag AND per-param
+  with a derived-set rebuild hook (tag removal cannot see a read-and-ignored param, and medicham2
+  builds its tag-derived sets at module load, so `__setDB` alone silently no-ops); the registry's
+  exhaustiveness now runs over the unified fact model of BOTH rulebook outputs; the 35 duplicated
+  move tags get a generated `carried-by-other-output` declaration; the endgame 58-dim exploitability
+  re-run is cancelled in favor of a 4–8-dim reparameterization of MAG first.
+- `data/interaction-matrix.json`: 68 disagreements → **13** (55 resolved by the wires; 1,012 live
+  cases, 999 agree, reproduced on a fresh `--full` run).
+- Shell Trap recorded as `isNonstandard: 'Past'` — banned in this format; its missing tag is the
+  format door working, not a coverage gap.
+- `engine/provenance.js` now verifies a mismatched stamped digest against the declared release's
+  frozen bytes and classifies a match as a PRE-CHANGE photograph — release-pinned artifacts are no
+  longer false-flagged UNSAFE for reading the snapshot they were told to read.
+
+### Fixed
+- All 34 NEW silent catch blocks made to speak (none blanket-baselined): 20 SEARCH-owned
+  (`miltank.js`, `exploit.js`, `rollout_*`, `mag_bot.js` — logging only, control flow untouched),
+  8 MEASURE-owned, 5 ENGINE-owned, plus a scanner false-positive fixed in the detector
+  (`fail(...)` call syntax now recognized as speaking). Baseline re-locked at 231 blocks.
+- `engine/miltank.js` `horizon()` carries its RAW-STORE-OK declaration (the clock plans against the
+  whole opponent population, not the clean subset) — `engine/selftest.js` 25/0.
+- `tests/test-effective-identity.js` 18/0 — the 5 new raw reads in the refit files walked and
+  declared (routing `probeLive`'s counters through `effAbility()` would blind them to the exact
+  silent-default failure they exist to catch).
+- `tests/test-mc-key.js` 15/0 — the tag-consumption sweep now enumerates species through
+  `mcKey.all()` instead of a private index (hand-rolled lookups 17→16).
+- `docs/ENGINE.md` missing-mechanics hand table corrected: seven → five, `conditionalPower` and
+  `needsUntrackedState` retired by WIRE 83.
+
+### Notes
+- Still red, named, not filed: `tests/test-degradation-budgets.js` (`fit_joint.turnsDropped` 5.4929%
+  vs 5.49% ceiling — pre-existing at HEAD; the joint refit was never run and resolves it one way or
+  the other; the ceiling was not touched) and `tests/test-site-data-fresh.js` (bundle mtimes vs an
+  hourly-appending store, plus `pory-nn.json` corpus drift at 17.9% — a stop-and-ask for Will, since
+  regenerating republishes quoted numbers).
+- `data/exploitability.json` remains `void: true`. ABRA has no exploitability number.
 
 ### A measurement now reads a frozen release, so the divisions can keep working
 

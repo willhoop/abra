@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-04T22:46:32.118Z",
+  "generated": "2026-08-05T00:39:08.899Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 174,
-  "live": 167,
-  "missing": 7,
-  "armed": 26,
-  "unarmed": 148,
+  "probed": 186,
+  "live": 181,
+  "missing": 5,
+  "armed": 39,
+  "unarmed": 147,
   "threw": 0,
   "hollow": 0,
   "results": [
@@ -148,11 +148,11 @@
     {
       "kind": "move",
       "tag": "conditionalPower",
-      "label": "Facade doubles when statused",
-      "live": false,
-      "detail": "clean 51  ->  burnt 25",
+      "label": "Facade doubles when statused, and ignores its own burn penalty",
+      "live": true,
+      "detail": "Facade clean 51, paralysed 101, burned 101 (must NOT be halved); control Body Slam clean 62 -> burned 31 (must be halved)",
       "hollow": false,
-      "armed": false
+      "armed": true
     },
     {
       "kind": "ability",
@@ -446,8 +446,8 @@
       "kind": "move",
       "tag": "needsUntrackedState",
       "label": "Gyro Ball scales with the speed gap",
-      "live": false,
-      "detail": "slow user 0  vs  fast user 0",
+      "live": true,
+      "detail": "slow user 22  vs  fast user 17",
       "hollow": false,
       "armed": false
     },
@@ -1573,6 +1573,114 @@
       "label": "Flame Charge raises the USER's Speed on a connecting hit",
       "live": true,
       "detail": "user spe stage — Fire Fang (no self-boost) 0, Flame Charge 1; and Icy Wind still drops the TARGET to -1",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "preTurnShield",
+      "label": "Beak Blast burns a contact attacker, and only a contact one",
+      "live": true,
+      "detail": "attacker status — no shield none, Beak Blast + contact brn, Beak Blast + a non-contact special none",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "preTurnShieldFails",
+      "label": "Focus Punch fails if the user was hit first, and not if merely charmed",
+      "live": true,
+      "detail": "Focus Punch damage — foe idle 183, foe attacks first 0, foe sets up (no damage taken) 183",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "variablePowerAbsolute",
+      "label": "a move whose base power IS the calculation deals damage at all",
+      "live": true,
+      "detail": "gyroball 92 electroball 30 hardpress 112 reversal 48 beatup 8   control splash 0",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "speedRatioPower",
+      "label": "Gyro Ball is stronger the slower you are, Electro Ball the faster",
+      "live": true,
+      "detail": "Gyro Ball into a 60-Speed target 7, into a 240-Speed target 25; Electro Ball into 60 36, into 240 14 (the other direction)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "hpScaledPower",
+      "label": "Hard Press weakens as the target heals, Reversal strengthens as the user is hurt",
+      "live": true,
+      "detail": "Hard Press into a full-HP target 38, into a 20% one 8; Reversal from full 11, from 1% 101",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "boostScaledPower",
+      "label": "Stored Power grows with the user's positive stages only",
+      "live": true,
+      "detail": "no stages 18, +3 SpA 153, -2 Def 18 (a drop must add nothing)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "reactorPerHit",
+      "label": "Weak Armor triggers once per hit of a multi-hit move",
+      "live": true,
+      "detail": "def/spe after Dragon Claw -1/2, after Bullet Seed (3 hits) -3/6, after Dragon Darts (2 hits) -2/4",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityBlockEveryKind",
+      "label": "Queenly Majesty refuses a priority STATUS move too",
+      "live": true,
+      "detail": "target atk after Baby-Doll Eyes — no ability -1, Queenly Majesty 0; and the user's own Protect still blocks a Surf (0 damage taken)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "userFaintsStatusMove",
+      "label": "Memento faints its user, and Charm does not",
+      "live": true,
+      "detail": "user fainted / target atk — Charm false / -2, Memento true / -2",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "drainThenPunishOrder",
+      "label": "a full-HP drain move into Rough Skin still pays the toll",
+      "live": true,
+      "detail": "HP the full-HP user lost — no ability 0, Rough Skin 21 (must be the eighth, not 0)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "failsWithoutTerrain",
+      "label": "Steel Roller fails on a clear field and clears the terrain when it lands",
+      "live": true,
+      "detail": "clear field: 0 damage (must be 0); after Grassy Terrain: 47 damage and the terrain is now \"clear\" (must be clear)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "formatSecondaryChance",
+      "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
+      "live": true,
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true
     }

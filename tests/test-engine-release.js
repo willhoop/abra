@@ -99,7 +99,10 @@ try {
   ok(drifted.includes(VICTIM), `drift() reports ${VICTIM} as moved (${drifted.length} file(s) drifted)`);
 } finally {
   fs.writeFileSync(live, original);
-  try { fs.unlinkSync(backup); } catch (e) { /* leave it; it is a backup */ }
+  /* A backup that will not delete is left in place, never fought over — but said out loud, because
+   * an orphaned backup file in the tree is exactly the kind of debris the no-delete rule protects. */
+  try { fs.unlinkSync(backup); }
+  catch (e) { console.error('  (backup left behind at ' + backup + ': ' + e.message + ')'); }
 }
 
 ok(sha(fs.readFileSync(live)) === r.manifest.files[VICTIM], 'the live file was restored exactly');

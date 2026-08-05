@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-04T22:30:52.465Z",
+ "generated": "2026-08-04T23:37:18.377Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -183,7 +183,7 @@
   {
    "tag": "conditionalPower",
    "kind": "move",
-   "param": "fixed power x a multiplier when a condition holds",
+   "param": "WHICH condition doubles it, and by how much -- not a boolean",
    "why": "Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine uses the base number every time",
    "consumedBy": "onBasePower",
    "used": true,
@@ -1039,6 +1039,19 @@
    ]
   },
   {
+   "tag": "failsWithoutTerrain",
+   "kind": "move",
+   "param": "the move FAILS unless a terrain is up, and may then remove it",
+   "why": "Steel Roller on a clear field is a wasted turn and the engine played it as a 130 BP Steel move. Three of the interaction matrix's divergences were this one move attacking when the reference engine had already failed it",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 6,
+   "examples": [
+    "Steel Roller"
+   ]
+  },
+  {
    "tag": "sideBuff",
    "kind": "move",
    "param": "another multi-turn modifier on my side",
@@ -1633,6 +1646,20 @@
     "Guillotine",
     "Horn Drill",
     "Sheer Cold"
+   ]
+  },
+  {
+   "tag": "preTurnShield",
+   "kind": "move",
+   "param": "acts at the START of the turn, then reacts to what hit it: mode + trigger",
+   "why": "Focus Punch fails if you touch it, Beak Blast burns you for touching it. Both were unconditional attacks in this engine, and Beak Blast is 14 of the interaction matrix's remaining divergences on its own",
+   "consumedBy": "preTurnShield",
+   "used": true,
+   "n": 2,
+   "uses": 18,
+   "examples": [
+    "Beak Blast",
+    "Focus Punch"
    ]
   },
   {
@@ -2417,8 +2444,8 @@
    "kind": "ability",
    "param": "mode: 'infect' (and WHICH ability) or 'swap'",
    "why": "Mummy and Wandering Spirit. The attacker walks away as a different Pokemon, and every damage and speed number after that is computed from an ability it no longer has",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "onDamagingHit",
+   "used": true,
    "n": 3,
    "uses": 99,
    "examples": [
@@ -7514,7 +7541,8 @@
    "tags": [
     "priority",
     "moveClass",
-    "inflictsBurn"
+    "inflictsBurn",
+    "preTurnShield"
    ],
    "uses": 10,
    "params": {
@@ -7530,6 +7558,12 @@
     "inflictsBurn": {
      "p": 1,
      "via": "contact with the shield"
+    },
+    "preTurnShield": {
+     "setsUpAtTurnStart": true,
+     "trigger": "contact",
+     "mode": "punishAttacker",
+     "status": "brn"
     }
    }
   },
@@ -7952,7 +7986,8 @@
    "uses": 14,
    "params": {
     "conditionalPower": {
-     "conditional": true
+     "conditional": true,
+     "note": "condition not derivable here -- carried by another tag"
     },
     "secondaryStatEffect": {
      "p": 1,
@@ -9547,7 +9582,12 @@
    "uses": 32,
    "params": {
     "conditionalPower": {
-     "conditional": true
+     "when": "targetStatusIn",
+     "statuses": [
+      "psn",
+      "tox"
+     ],
+     "mult": 2
     },
     "inflictsPoison": {
      "p": 0.5,
@@ -9593,8 +9633,10 @@
    "uses": 292,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "alliesBaseAtk",
+     "base": 5,
+     "div": 10,
+     "perAlly": true
     }
    }
   },
@@ -11722,8 +11764,15 @@
      "needs": "speed ratio -- computable, not wired"
     },
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "speedRatioTable",
+     "table": [
+      40,
+      60,
+      80,
+      120,
+      150
+     ],
+     "clampAt": 4
     },
     "moveClass": {
      "classes": [
@@ -11929,7 +11978,8 @@
      "mult": 1.5
     },
     "conditionalPower": {
-     "conditional": true
+     "conditional": true,
+     "note": "condition not derivable here -- carried by another tag"
     }
    }
   },
@@ -11998,7 +12048,11 @@
    "uses": 49,
    "params": {
     "conditionalPower": {
-     "conditional": true
+     "when": "userStatused",
+     "exceptStatus": [
+      "slp"
+     ],
+     "mult": 2
     },
     "contact": {
      "contact": true
@@ -12133,7 +12187,9 @@
    "uses": 32,
    "params": {
     "conditionalPower": {
-     "conditional": true
+     "when": "chance",
+     "p": 0.3,
+     "mult": 2
     }
    }
   },
@@ -12331,8 +12387,31 @@
    "uses": 0,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "userHPBrackets",
+     "scale": 48,
+     "brackets": [
+      [
+       2,
+       200
+      ],
+      [
+       5,
+       150
+      ],
+      [
+       10,
+       100
+      ],
+      [
+       17,
+       80
+      ],
+      [
+       33,
+       40
+      ]
+     ],
+     "floorBP": 20
     },
     "contact": {
      "contact": true
@@ -12650,7 +12729,8 @@
     "priority",
     "contact",
     "moveClass",
-    "needsTargetToAttack"
+    "needsTargetToAttack",
+    "preTurnShield"
    ],
    "uses": 8,
    "params": {
@@ -12668,6 +12748,11 @@
     },
     "needsTargetToAttack": {
      "needs": "target attacking"
+    },
+    "preTurnShield": {
+     "setsUpAtTurnStart": true,
+     "trigger": "damaging",
+     "mode": "failsIfHit"
     }
    }
   },
@@ -13107,8 +13192,11 @@
      "needs": "speed ratio -- computable, not wired"
     },
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "speedRatioLinear",
+     "invert": true,
+     "mult": 25,
+     "plus": 1,
+     "cap": 150
     },
     "contact": {
      "contact": true
@@ -13164,8 +13252,9 @@
    "uses": 53,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "targetHPFrac",
+     "ofMax": 100,
+     "min": 1
     },
     "contact": {
      "contact": true
@@ -14161,7 +14250,8 @@
      "mult": 1.5
     },
     "conditionalPower": {
-     "conditional": true
+     "conditional": true,
+     "note": "condition not derivable here -- carried by another tag"
     },
     "readsTargetItem": {
      "failsIfNone": false,
@@ -14211,7 +14301,8 @@
    "uses": 57,
    "params": {
     "conditionalPower": {
-     "conditional": true
+     "when": "userStatsLoweredThisTurn",
+     "mult": 2
     },
     "contact": {
      "contact": true
@@ -15064,7 +15155,8 @@
      "mult": 1.5
     },
     "conditionalPower": {
-     "conditional": true
+     "conditional": true,
+     "note": "condition not derivable here -- carried by another tag"
     },
     "spreadAll": {
      "target": "allAdjacent",
@@ -16059,8 +16151,8 @@
    "uses": 4,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "positiveBoosts",
+     "per": 20
     },
     "contact": {
      "contact": true
@@ -16602,8 +16694,31 @@
    "uses": 4,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "userHPBrackets",
+     "scale": 48,
+     "brackets": [
+      [
+       2,
+       200
+      ],
+      [
+       5,
+       150
+      ],
+      [
+       10,
+       100
+      ],
+      [
+       17,
+       80
+      ],
+      [
+       33,
+       40
+      ]
+     ],
+     "floorBP": 20
     },
     "contact": {
      "contact": true
@@ -17815,7 +17930,8 @@
      }
     },
     "conditionalPower": {
-     "conditional": true
+     "conditional": true,
+     "note": "condition not derivable here -- carried by another tag"
     },
     "chargeTurn": {
      "charge": true
@@ -17854,7 +17970,8 @@
      }
     },
     "conditionalPower": {
-     "conditional": true
+     "conditional": true,
+     "note": "condition not derivable here -- carried by another tag"
     },
     "contact": {
      "contact": true
@@ -18127,12 +18244,17 @@
   "steelroller": {
    "name": "Steel Roller",
    "tags": [
-    "contact"
+    "contact",
+    "failsWithoutTerrain"
    ],
    "uses": 6,
    "params": {
     "contact": {
      "contact": true
+    },
+    "failsWithoutTerrain": {
+     "needsTerrain": true,
+     "clears": true
     }
    }
   },
@@ -18277,8 +18399,8 @@
    "uses": 32,
    "params": {
     "variablePower": {
-     "computed": true,
-     "note": "idiom not yet derivable"
+     "kind": "positiveBoosts",
+     "per": 20
     }
    }
   },
@@ -19801,7 +19923,12 @@
    "uses": 6,
    "params": {
     "conditionalPower": {
-     "conditional": true
+     "when": "targetStatusIn",
+     "statuses": [
+      "psn",
+      "tox"
+     ],
+     "mult": 2
     }
    }
   },

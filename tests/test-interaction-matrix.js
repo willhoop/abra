@@ -426,7 +426,11 @@ const artifact = {
  * publishing them is still a completely useful run. */
 const OUT = D('data', 'interaction-matrix.json');
 let prevLive = null;
-try { prevLive = JSON.parse(fs.readFileSync(OUT, 'utf8')).live; } catch (e) { /* first run */ }
+/* ENOENT is a genuine first run. Anything else means the PUBLISHED artifact is unreadable, and
+ * saying nothing would let this run silently replace a deeper artifact it could not even open —
+ * the exact depth-downgrade this guard exists to refuse. */
+try { prevLive = JSON.parse(fs.readFileSync(OUT, 'utf8')).live; }
+catch (e) { if (e.code !== 'ENOENT') console.error(`  note: data/interaction-matrix.json exists but is unreadable (${e.message}) — treating as a first run, so the depth guard cannot fire`); }
 if (typeof prevLive === 'number' && artifact.live < prevLive && !process.argv.includes('--publish-shallow')) {
   console.log(`\n  NOT WRITTEN — this run staged ${artifact.live} live cases and the published artifact has ${prevLive}.`);
   console.log('  A shallower run must not replace a deeper one; the numbers above are still valid for this depth.');

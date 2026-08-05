@@ -336,7 +336,11 @@ if (DUMP) {
    * were written. */
   const sha12 = rel => {
     try { return require('crypto').createHash('sha256').update(fs.readFileSync(D(rel))).digest('hex').slice(0, 12); }
-    catch (e) { return 'MISSING'; }
+    catch (e) {
+      /* 'MISSING' in the sidecar is the record; the reason it is missing must not evaporate */
+      console.error('  meta digest: ' + rel + ' unreadable: ' + ((e && e.message) || e));
+      return 'MISSING';
+    }
   };
   const META = 'data/rollout-r1-rows.meta.json';
   fs.writeFileSync(D(META), JSON.stringify({

@@ -19,13 +19,12 @@ MEASURE — can we believe a number
     powered for MDE 53.8% held-out / 51.7% full corpus; the prior effect needed n=2835
     PRE-CHANGE — measured against a different build of: engine/medicham2-browser.js, engine/rollout_leaf.js, engine/board.js, engine/miltank.js, data/abra-tags.js
     (the corpus has grown since: data/games.ladder.jsonl — more power available, not staleness)
-  provenance: 2 unsafe, 39 possibly stale, 52 ok, 0 missing
+  provenance: 2 unsafe, 42 possibly stale, 50 ok, 0 missing
   refit edge: CLEAN — feature_fixture --check passes: all 58 columns hash-identical to fit time
-    (engine/medicham2-browser.js moved 2026-08-04 22:37, but the feature function did not)
-    (data/abra-tags.js moved 2026-08-04 22:43, but the feature function did not)
+    (engine/medicham2-browser.js moved 2026-08-04 23:41, but the feature function did not)
 ```
 
-_stamped 2026-08-04 23:05_
+_stamped 2026-08-05 00:26_
 
 <!-- /GENERATED -->
 

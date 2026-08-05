@@ -1,0 +1,157 @@
+{
+  "note": "RATCHET. `clashes` may fall and may never rise. Two rulebooks state the same move facts; this counts where they DISAGREE today. Which one wins is an architecture decision and is not settled here.",
+  "generated": "2026-08-05 00:39",
+  "compared": 151,
+  "agree": 149,
+  "clashes": 2,
+  "extractor_threw": {
+    "tag": 0,
+    "fx": 0,
+    "first": null
+  },
+  "not_compared": {
+    "tagOnly": 27,
+    "fxOnly": 166,
+    "neither": 13966
+  },
+  "per_fact": [
+    {
+      "fact": "P(brn)",
+      "tag": "inflictsBurn",
+      "compared": 14,
+      "agree": 14,
+      "tagOnly": 1,
+      "fxOnly": 11
+    },
+    {
+      "fact": "P(par)",
+      "tag": "inflictsParalysis",
+      "compared": 13,
+      "agree": 13,
+      "tagOnly": 0,
+      "fxOnly": 13
+    },
+    {
+      "fact": "P(psn)",
+      "tag": "inflictsPoison",
+      "compared": 10,
+      "agree": 10,
+      "tagOnly": 1,
+      "fxOnly": 7
+    },
+    {
+      "fact": "P(slp)",
+      "tag": "inflictsSleep",
+      "compared": 4,
+      "agree": 4,
+      "tagOnly": 0,
+      "fxOnly": 5
+    },
+    {
+      "fact": "P(frz)",
+      "tag": "inflictsFreeze",
+      "compared": 4,
+      "agree": 4,
+      "tagOnly": 0,
+      "fxOnly": 4
+    },
+    {
+      "fact": "P(tox)",
+      "tag": "inflictsToxic",
+      "compared": 2,
+      "agree": 2,
+      "tagOnly": 0,
+      "fxOnly": 1
+    },
+    {
+      "fact": "P(flinch)",
+      "tag": "flinches",
+      "compared": 19,
+      "agree": 18,
+      "tagOnly": 0,
+      "fxOnly": 14
+    },
+    {
+      "fact": "hits (fixed multi-hit)",
+      "tag": "multiHit",
+      "compared": 6,
+      "agree": 6,
+      "tagOnly": 0,
+      "fxOnly": 10
+    },
+    {
+      "fact": "drain fraction",
+      "tag": "drain",
+      "compared": 8,
+      "agree": 8,
+      "tagOnly": 0,
+      "fxOnly": 5
+    },
+    {
+      "fact": "recoil fraction",
+      "tag": "recoil",
+      "compared": 0,
+      "agree": 0,
+      "tagOnly": 2,
+      "fxOnly": 12
+    },
+    {
+      "fact": "priority bracket",
+      "tag": "priority",
+      "compared": 39,
+      "agree": 39,
+      "tagOnly": 0,
+      "fxOnly": 17
+    },
+    {
+      "fact": "the weather it sets",
+      "tag": "setsWeather",
+      "compared": 5,
+      "agree": 5,
+      "tagOnly": 0,
+      "fxOnly": 1
+    },
+    {
+      "fact": "the terrain it sets",
+      "tag": "setsTerrain",
+      "compared": 4,
+      "agree": 4,
+      "tagOnly": 0,
+      "fxOnly": 0
+    },
+    {
+      "fact": "the stats it drops on the user",
+      "tag": "lowersUser",
+      "compared": 0,
+      "agree": 0,
+      "tagOnly": 0,
+      "fxOnly": 17
+    },
+    {
+      "fact": "the stats it changes on the target",
+      "tag": "statChange",
+      "compared": 23,
+      "agree": 22,
+      "tagOnly": 23,
+      "fxOnly": 49
+    }
+  ],
+  "clash_detail": [
+    {
+      "fact": "P(flinch)",
+      "tag": "flinches",
+      "id": "ironhead",
+      "uses": 7095,
+      "tagValue": 20,
+      "fxValue": 30
+    },
+    {
+      "fact": "the stats it changes on the target",
+      "tag": "statChange",
+      "id": "toxicthread",
+      "uses": 6,
+      "tagValue": "[[\"spe\",-2]]",
+      "fxValue": "[[\"spe\",-1]]"
+    }
+  ]
+}

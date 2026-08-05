@@ -24,7 +24,7 @@ SEARCH — does MILTANK choose better than MAG
   R3 divergence      80.2% over 121 decisions (24 agreed, 29 skipped)   (2026-08-04 07:55)
     stamped: n=600@explore=1  (TREE WAS DIRTY — trust source_digests, not the commit)
   R4 does it win     ACCEPT H1 — arm 1 (MILTANK) beats arm 2 (MAG): 55.5% of 535 decisive pairs, 95% CI [51.3, 59.7], 2,624 games  [engine moved since; transfer assumed, not measured]   (2026-08-04 08:43)
-  runs vs engine (newest engine source: data/abra-tags.js 2026-08-04 22:43):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-08-04 23:41):
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 04:41
     PRE-CHANGE games.r4-fixed-part1.jsonl  2026-08-04 02:36
     PRE-CHANGE games.r4.jsonl  2026-08-04 02:33
@@ -32,7 +32,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-smoke.jsonl  2026-08-04 00:45
 ```
 
-_stamped 2026-08-04 23:05_
+_stamped 2026-08-05 00:26_
 
 <!-- /GENERATED -->
 
@@ -197,7 +197,14 @@ observed in this run:
   minutes total. The run is cheap; that is the good news about having to repeat it.** The reason to
   re-run is the moving tree and the five defects, not the price.
 
-### THE RE-RUN. PREPARED, NOT LAUNCHED — and it must not start until the tree is still.
+### THE RE-RUN. PREPARED, NOT LAUNCHED — and R9 says DO NOT RUN IT IN THIS SHAPE.
+
+> **Superseded in part by R9 below.** The five defects listed above are now fixed in `engine/exploit.js`
+> and defect 0 is closed. The preconditions and the command below are still the right ones. **But the
+> probe says a 24 x 220 search over 58 weights closes 0.0% ± 0.1 of the distance to a known planted
+> optimum, so running it would buy another uninformative null for another 7,100 games.** Run it only
+> as a deliberately-labelled *negative control* on the new tooling, or reduce the challenger family to
+> 4–8 numbers first. Read R9 before spending anything.
 
 Three preconditions, in order, and **each one failed during the 2026-08-04 attempt**:
 
@@ -208,21 +215,45 @@ Three preconditions, in order, and **each one failed during the 2026-08-04 attem
      const b=JSON.stringify(require('./engine/run_stamp.js').sourceDigests());
      console.log(a===b?'STILL':'MOVING — do not start');},120000)"
    ```
-2. **`data/engine-release.json` exists** (P0.5 step 0 in this file), and **`data/policy-weights.json`
-   is post-refit and frozen** — record its `generated` field and its sha256 before and after.
+2. **A release is cut on the CORRECTED engine** — the 68 interaction disagreements and the 7 missing
+   mechanics closed — and `exploit.js` is pointed at it. `data/policy-weights.json` is inside the
+   release, so the defender freezes with it and precondition 2's old "record its sha before and
+   after" is now enforced by the tool rather than by a person remembering.
+   ```
+   node engine/engine_release.js cut "post-interaction-matrix engine, for the WOBBUFFET re-run"
+   node engine/engine_release.js list        # must read: 0 of 12 files have moved since
+   ```
+   **Cutting is Will's call**, and SEARCH does not cut: the pointer is shared and MEASURE is currently
+   measuring against `d3d04b669e18`.
 3. **The team pool is pinned**: build it once with `engine/mew_farm.js` and export `MEW_TEAMS`, so
-   all 26 evaluations draw the same population and the seed reproduces.
+   all 26 evaluations draw the same population and the seed reproduces. `exploit.js` now records the
+   announcement of every evaluation and **writes itself `void: true` if the pool moves**, so this
+   precondition is checked rather than assumed — but it still cannot pin it.
 
-Then, one process:
+Then, one process. **Read R9 first — this is a negative control until the challenger family shrinks.**
 
 ```
-node --max-old-space-size=2048 engine/exploit.js --games 220 --rounds 24 --seed 90210
+export SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown
+export MEW_TEAMS=$PWD/data/mew-teams-wobbuffet.json          # built once by engine/mew_farm.js
+node --max-old-space-size=2048 engine/exploit.js \
+     --games 220 --rounds 24 --seed 90210 --confirm 800 --conc 6 \
+     --release <the id printed by the cut> --tag wobbuffet-e2
 ```
 
-and the held-out confirmation of whatever it finds, at seeds the search never touched — which
-belongs inside `exploit.js` as `--confirm` and today lives only as scratch. **Read it once, at the
-end.** Then re-verify the digests and the weights hash; if either moved, the run is void again and
-saying so is cheaper than publishing it.
+- **Cost: 25 x 220 = 5,500 games for the search, 2 x 800 = 1,600 for the confirmation. 7,100 games,
+  ~45 minutes, ONE node process at `--conc 6`.** RAM is the ceiling — check `FreePhysicalMemory`
+  first; at 3.4 GB free this is one process, not two.
+- **Output: `data/exploitability-wobbuffet-e2.json`.** `--tag` is deliberate so the run cannot
+  overwrite the void `data/exploitability.json`, which stays void.
+- **Read it once, at the end**, and read three fields BEFORE the headline:
+  `search.accepted` (a `search_died: true` makes the rest meaningless), `void` (must be absent), and
+  `pool_announcements` (must hold exactly one line).
+- The headline is `headline.kind: "held-out confirmation"`. **`searchBest` is not the result** — see
+  the selection floor in R9, where 25 x 220 returns 56.6% from pure noise.
+
+Then re-verify: `node engine/engine_release.js list` must still read `0 of 12 files have moved`, and
+`node engine/provenance.js` must show `exploitability-wobbuffet-e2.json` verified by CONTENT rather
+than by mtime. If either fails, the run is void and saying so is cheaper than publishing it.
 
 ### What is still open, and it is the whole question
 
@@ -232,6 +263,235 @@ even had it been clean, a one-step search is not a measurement. `PRIORITIES.md` 
 and not merely stale — it is now empty**, with a diagnosis attached. And the caveat `MODELS.md`
 already carries still applies: this grades *readability by a prepared opponent*, which is not the
 same question as *do we win*, and that one has never been measured against a human at all.
+
+## R9 — the step rule, FIXED AND PROVED ON A PLANTED OPTIMUM. And the fix is not enough.
+
+Artifact: **`data/exploit-step-probe.json`**, written by `engine/exploit_step_probe.js`, stamped with
+`source_digests` from engine release `d3d04b669e18`. R8 said *"fix the step rule before spending
+another 7,100 games"*. The step rule is fixed. **The probe then says the step rule was never the
+binding constraint, and the re-run as specified in R8 should NOT be run.**
+
+### The verdict in one line
+
+**At 58 features and 24 x 220 games the search closes 0.0% ± 0.1 of the distance to a KNOWN planted
+optimum. It is not a search. No step rule changes that, because the thing that is broken is the ratio
+between what one step is worth and what 220 games can see.**
+
+### The number that ends the argument
+
+On the planted objective with a noiseless oracle, **one accepted step at d=58 moves the true win rate
+by 0.21 points.** Against that:
+
+| what the evaluation can resolve | at 220 games |
+|---|---|
+| independent seeds per round — **what the void run actually did** | **4.77 pt** — 23x larger than the step |
+| perfect common random numbers (the best CRN can ever buy) | **0.45 pt** — 2x larger than the step |
+
+A hill climb cannot accept a step it cannot measure. Everything else below follows from this row.
+
+### What the fix is, and what it bought — acceptance rate before and after
+
+`engine/exploit.js` now exports `createClimber()`, and `exploit_step_probe.js` drives **that
+function**, not a re-typed copy. Four changes:
+
+1. **The proposal is divided by √d**, so `E[||step||²] = scale² · mean(|v_k| + 0.25)²` is independent
+   of the number of features. `scale` now means the same thing at 17 and at 58.
+2. **Acceptance-targeted multiplicative adaptation** replaces decay-on-failure. `accepted → scale ×
+   exp(g(1−p*))`, `rejected → scale × exp(−g·p*)`, so `E[Δ log scale] = g(p̂ − p*)` and the scale has
+   a **fixed point at the target acceptance rate**. The old rule multiplied by 0.85 on failure and by
+   1 on success: its only equilibrium was zero, which is where it went.
+3. **A stall restart**, which acceptance-targeting alone does NOT give you and which the probe found
+   rather than the diagnosis predicting. Adaptation assumes acceptance falls monotonically as the step
+   grows. Against a *measured* objective that is false at the small end — once a step's true gain
+   drops below the measurement's resolution it becomes invisible and acceptance collapses **as the
+   step shrinks**. Acceptance is non-monotone, near zero at both ends, and a shrink-on-failure rule
+   parks on the wrong one. Measured before the restart was added: 1% acceptance and 0.1% of the
+   distance closed, **worse than the rule it replaced**.
+4. **The acceptance target is 0.05, not the textbook 0.2–0.4**, and that is measured. The classical
+   band is derived for an exact oracle. Swept at d=58, 200 x 1200, perfect CRN:
+
+   | target acceptance | 0.02 | 0.05 | 0.10 | 0.25 | 0.40 |
+   |---|---|---|---|---|---|
+   | distance closed | 19.4% | **19.9%** | 15.9% | 6.7% | 3.6% |
+
+   The textbook band is the worst end of the sweep. Steps must be big enough to be **seen**, not
+   merely big enough to be good.
+
+**Acceptance rate, d=58, 24 rounds, 40 independent runs per arm:**
+
+| noise model | rule | accepted | distance closed |
+|---|---|---|---|
+| noiseless oracle | legacy | 8.7/24 (36%) | 6.3% ± 0.5 |
+| noiseless oracle | fixed | 7.4/24 (31%) | 6.1% ± 0.4  (z = −0.4, **no difference**) |
+| independent seeds — **as the void run ran** | legacy | 2.4/24 (10%) | **−1.5% ± 0.5** |
+| independent seeds | fixed | 2.5/24 (10%) | **0.0% ± 0.1**  (z = 3.1, fixed better) |
+| perfect CRN | legacy | 0.8/24 (4%) | 1.4% ± 0.3 |
+| perfect CRN | fixed | 0.5/24 (2%) | 0.2% ± 0.1  (z = −3.7, **legacy better**) |
+
+Read honestly, three things, and the third is the uncomfortable one:
+
+- **The 1-of-24 acceptance in the real run is reproduced** — the toy gets 2.4/24 at the same
+  dimension, same games, same noise model, without being tuned to.
+- **The fix's only measured win is that it stops the search moving BACKWARDS.** Under the noise the
+  run actually had, the legacy rule closed **−1.5%**: it accepted upward noise flukes and ratcheted
+  away from the optimum. That is what "1 of 24" was doing.
+- **Under CRN the legacy rule is BETTER at this budget**, and the reason is instructive rather than
+  embarrassing: its un-normalised step is √58 = 7.6x larger in norm, which is the right direction when
+  the measurement is coarse. That is what moved the acceptance target to 0.05. At 5,280 games both
+  numbers are ~0 against a 25-point edge (0.05 vs 0.35 win-rate points), so this is a comparison of
+  two zeroes and neither rule is worth running at that budget.
+
+### The two walls, and neither is the step rule
+
+**Wall 1 — evaluations.** A (1+1) climb makes progress at ~1/d per evaluation. 24 evaluations in 58
+dimensions is 0.4 of one such unit, and the probe confirms it: **with a NOISELESS oracle the ceiling
+at 24 rounds is 6.1% of the distance.** At d=17 the same 24 rounds close 19.9%. The 2026-07-26 run
+was not luckier, it was in a smaller space.
+
+**Wall 2 — resolution.** The table at the top. Below it, no number of rounds helps: the
+`independent`-noise column of the budget sweep is flat at 0.0% from 5,280 games to **960,000**.
+
+| rounds x games | total | independent | perfect CRN |
+|---|---|---|---|
+| 24 x 220 | 5,280 | 0.0% ± 0.1 | 0.2% ± 0.1 |
+| 100 x 220 | 22,000 | −0.0% ± 0.1 | 1.0% ± 0.5 |
+| 200 x 220 | 44,000 | −0.0% ± 0.1 | 1.2% ± 0.7 |
+| 200 x 1200 | 240,000 | −0.0% ± 0.3 | 19.9% ± 2.1 |
+| 400 x 1200 | 480,000 | −0.0% ± 0.3 | 29.2% ± 2.8 |
+| 800 x 1200 | 960,000 | −0.0% ± 0.3 | **36.8% ± 3.4** |
+
+**Cheapest split that closes a material (>25%) fraction of the distance: 960,000 games, and only if
+common random numbers couple perfectly.** That is not a run this project should schedule, and it is
+the honest reason to stop rather than a reason to argue for a bigger machine.
+
+### The lever that IS affordable: search fewer numbers
+
+The other end of the same trade. At the affordable 24 x 220 = 5,280 games, with CRN, with the optimum
+planted **inside** the searched space:
+
+| dimensions searched | 4 | 8 | 17 | 30 | 58 |
+|---|---|---|---|---|---|
+| distance closed | 49.7% ± 2.2 | 30.7% ± 3.0 | 5.9% ± 1.3 | 1.2% ± 0.2 | 0.2% ± 0.1 |
+
+**A 5,280-game search buys a real answer about a family of roughly 4 to 8 numbers and nothing at all
+about a family of 58.** So the re-run's design question is no longer "how do we step" — it is **what
+low-dimensional reparameterisation of MAG's policy is worth attacking**: feature groups, a handful of
+scalars, a temperature. That is a SEARCH design item and it is now the blocker on R8, ahead of the
+engine.
+
+**Explicitly NOT tested, so it is not smuggled in:** perturbing only k of the 58 raw coordinates. On
+a *dense* optimum a random k-subspace caps at `1 − √(1 − k/d)` of the distance no matter the budget,
+and nobody has measured whether the real exploit direction is sparse. The table above plants the
+optimum inside the searched space, which is the right question for a reparameterisation and the wrong
+one for a sparse mask.
+
+### The selection floor — what the OLD headline reported when nothing was found
+
+Pure arithmetic on the binomial, and nobody has ever printed it beside the headline. Under the null
+that every candidate is exactly as good as MAG, the **maximum over R+1 evaluations** is still:
+
+| evaluations x games | mean reported "best" | 95th pct | 99th pct |
+|---|---|---|---|
+| 19 x 220 (the 2026-07-26 run) | 56.2% | 59.5% | 60.9% |
+| 25 x 220 (the void run) | **56.6%** | 59.5% | 61.4% |
+| 25 x 800 | 53.5% | 55.1% | 56.0% |
+| 201 x 1200 | 54.0% | 54.9% | 55.6% |
+
+**The void run's search-best of 55.8% is BELOW the floor its own procedure produces from pure noise.**
+It was never a finding. The retracted 63.2% sits above the 99th percentile of its floor, so *that* one
+is not explained by selection alone — which changes nothing about its retraction, since the objection
+to it was provenance and a 17-feature vector on a 25-wire-fix-old engine, not selection.
+
+This is why the artifact's headline is now the held-out `--confirm` leg and why `searchBest` carries
+the literal label `SELECTION-BIASED, not the headline`.
+
+### What `exploit.js` now does. IMPLEMENTED, and defect zero is closed.
+
+- **Opens `engine_release.open()` and REFUSES TO RUN without one.** Prints
+  `REFUSING TO RUN: no engine release has been cut`.
+- **Reads the DEFENDER out of the snapshot** — `REL.path('data/policy-weights.json')` — so the file
+  that moved on 2026-08-04 cannot move again. Verified: the refusal path fires today, naming
+  `engine/medicham2-browser.js, engine/tags.js, data/tags.json`.
+- **Re-checks `drift()` after every single evaluation** and aborts mid-run with `void: true` and the
+  file list. This is the guard that would have stopped the void run at round 23 instead of after it.
+- **Stamps `REL.stamp()`** — 12 content digests, the release id, the Showdown commit — plus the
+  target vector's own sha12, node version, machine, `--conc`, `n_measured`/`n_unit`, and every
+  `MEW: N distinct clean teams` announcement it saw. **If the pool moved between evaluations the
+  artifact writes itself `void: true`.**
+- **Common random numbers** across all search rounds (`--no-crn` restores the old per-round seeds).
+- **A `--confirm` phase** at seeds the search never touched, plus a fresh mirror control, and THAT is
+  the headline. It used to live as a scratch file outside `engine/`, which is why `provenance.js`
+  never enumerated `data/exploitability-holdout.json`.
+- **Says out loud when the search died**: `THE SEARCH DID NOT MOVE… it is evidence this search did
+  not look`, and `search_died: true` in the artifact.
+- `--legacy-step` reproduces the 2026-08-04 rule exactly, so the comparison above stays runnable.
+
+`data/exploitability.json` and `data/exploitability-holdout.json` are **left void and were not
+regenerated.**
+
+### FILED FOR MEASURE — the frozen release is not a loadable engine, and its freeze list has holes
+
+Tripped over while wiring `exploit.js`; **not fixed here, because changing `SOURCES` changes every
+release id and two divisions are measuring against `d3d04b669e18` right now.**
+
+`REL.require()` — the usage `CLAUDE.md` documents — throws for **4 of the 12 frozen sources**:
+
+```
+OK    engine/medicham2-browser.js        FAIL  engine/board.js          -> Cannot find module './mc_key.js'
+OK    engine/tags.js                     FAIL  engine/rollout_leaf.js   -> Cannot find module './mc_key.js'
+                                         FAIL  engine/position_features.js -> Cannot find module './mc_key.js'
+                                         FAIL  engine/champions_sim.js  -> Cannot find module './showdown_path.js'
+```
+
+The example in CLAUDE.md happens to be the one file that works. **Six files are reachable from the
+freeze list and are not in it**, and they are not inert:
+
+| unfrozen | required by | why it can change a number |
+|---|---|---|
+| `engine/mc_key.js` (16 KB) | `board.js`, `position_features.js`, `rollout_leaf.js` | decides which dex row a species resolves to |
+| `engine/lookup.js` (5 KB) | `board.js`, `mc_key.js` | the lookup path underneath it |
+| `engine/set_priors.js` (40 KB) | `champions_sim.js` | what an unknown set is filled with — every self-play game |
+| `engine/smogon_priors.js` (17 KB) | `set_priors.js` | same |
+| `engine/quality.js` (15 KB) | `set_priors.js` | decides the team pool |
+| `engine/showdown_path.js` (4 KB) | `champions_sim.js` | which Showdown checkout is loaded |
+
+So the release is a valid **digest set** and not yet a loadable **engine**, and its claim to freeze
+"every file whose content can change a number" is currently false for six files. `exploit.js` works
+around it by reading `FEATURES` from the live `board.js` *after* proving zero drift, which is
+equivalent and verified — and which is exactly the kind of workaround that stops being safe the day
+someone passes `--allow-drift`. It says so in a comment at the line.
+
+### FILED FOR MEASURE — `provenance.js` marks every RELEASE-BASED measurement `UNSAFE`
+
+Found by being the first artifact to stamp `source_digests` from a release. `provenance.js:650`
+resolves a stamped input against the **live tree** (`digestOf(src)`). A measurement that reads a
+frozen release is, by design, computed from bytes the live tree has moved past — so the check that
+was built to catch a moving tree now fires on the artifacts that handled a moving tree correctly:
+
+```
+exploit-step-probe.json  UNSAFE  COMPUTED FROM DIFFERENT CONTENT —
+                                 data/policy-weights.json was 5a1930e8926a at read time, is 01bc43936324 now
+```
+
+That digest moved because MEASURE's refit landed, which is exactly the event the release exists to
+survive. The artifact is **correct**; it names release `d3d04b669e18` and read that release's bytes.
+
+**Suggested shape of the fix, which is MEASURE's to make:** when an artifact carries
+`engine_release`, verify its `source_digests` against **that release's manifest** and report
+`ON RELEASE <id>` — with a separate, non-UNSAFE line saying how far the live tree has since drifted.
+`UNSAFE` should remain for an artifact whose stamped digest matches neither the live tree nor any
+release, which is the case that means "computed from bytes nobody can name".
+
+**Until that lands, the count printed as `0 verified by CONTENT digest, 92 by mtime alone` cannot
+reach 1 for any release-based artifact while ENGINE or MEASURE is working** — the row leaves the
+mtime-only list and lands in `mismatch` instead of `verified`. The ratchet in
+`data/provenance-stamp.json` still falls (that list is what is ratcheted), so this does not block the
+ratchet; it does mean the headline verified-count understates the fix.
+
+**A second, larger limitation, stated because it is structural rather than a bug:** `exploit.js`
+spawns `mew.js`, which loads the LIVE engine. No release can prevent that without the child being
+runnable from the snapshot. Detection (drift-check every evaluation, abort, self-declared void) is
+what is implemented; prevention is not, and pretending otherwise would be the more dangerous choice.
 
 ## What the 2026-08-04 mega-weather fix invalidates
 

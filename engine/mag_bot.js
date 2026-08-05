@@ -606,7 +606,10 @@ function handle(room, line) {
           .filter(f => /-\d{6,}$/.test(f));
       } catch (e) { return; }
       let done = [];
-      try { done = fs.readFileSync(D('data', 'live-games', 'replays.txt'), 'utf8').split('\n'); } catch (e) { /* none yet */ }
+      try { done = fs.readFileSync(D('data', 'live-games', 'replays.txt'), 'utf8').split('\n'); }
+      catch (e) { /* none yet — an absent file is the expected first-run state; anything else is said */
+        if (e && e.code !== 'ENOENT') console.error('  replays.txt unreadable (' + ((e && e.message) || e) + ') — treating every live-game log as unsaved');
+      }
       for (const id of ids) {
         if (done.some(u => u.indexOf(id.replace(/^battle-/, '')) >= 0)) continue;
         RECOVERING.add(id);
@@ -677,7 +680,7 @@ function handle(room, line) {
     return;
   }
   if (cmd === 'updatechallenges') {
-    let data; try { data = JSON.parse(p[2]); } catch (e) { return; }
+    let data; try { data = JSON.parse(p[2]); } catch (e) { console.error('updatechallenges: unparseable payload: ' + ((e && e.message) || e)); return; }
     for (const [who, fmt] of Object.entries(data.challengesFrom || {})) {
       const team = pickTeam();
       if (!team) { console.error('could not draw a VALID team — not accepting'); continue; }
@@ -703,7 +706,10 @@ function handle(room, line) {
       console.log(`REPLAY  ${url}`);
       try {
         let seen = '';
-        try { seen = fs.readFileSync(D('data', 'live-games', 'replays.txt'), 'utf8'); } catch (e) { /* first one */ }
+        try { seen = fs.readFileSync(D('data', 'live-games', 'replays.txt'), 'utf8'); }
+        catch (e) { /* first one — absent is expected; anything else is said */
+          if (e && e.code !== 'ENOENT') console.error('  replays.txt unreadable (' + ((e && e.message) || e) + ') — the url may be recorded twice');
+        }
         if (seen.indexOf(url) < 0) fs.appendFileSync(D('data', 'live-games', 'replays.txt'), url + '\n');
       } catch (e) { console.error('  could not append replays.txt: ' + e.message); }
     }

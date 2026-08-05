@@ -85,8 +85,13 @@ function sha12(abs) {
   catch (e) { throw new Error('cannot digest ' + abs + ' — ' + e.message); }
 }
 /* Only `drift()` and `verify()` may tolerate an unreadable file, because "it is gone" is a real and
- * reportable answer there. They say so; they do not silently score it as unchanged. */
-function sha12OrNull(abs) { try { return sha12(abs); } catch (e) { return null; } }
+ * reportable answer there: both compare the null against a manifest digest, so it always reads as a
+ * MISMATCH, never as unchanged. The miss is still said out loud here, because a caller reporting
+ * "moved" for a file that is actually GONE is answering with less than it knows. */
+function sha12OrNull(abs) {
+  try { return sha12(abs); }
+  catch (e) { console.error('  (cannot digest ' + abs + ': ' + e.message + ' — scored as a mismatch)'); return null; }
+}
 
 /* The pinned Showdown commit belongs in the release too. A measurement scored against a different
  * reference engine is a different measurement, and `champions_sim.js` already reads the real commit
@@ -232,7 +237,11 @@ if (require.main === module) {
   } else if (cmd === 'list') {
     const ids = list();
     if (!ids.length) { console.log('no releases cut yet'); process.exit(0); }
-    let cur = null; try { cur = JSON.parse(fs.readFileSync(POINTER, 'utf8')).current; } catch (e) {}
+    /* A missing or corrupt pointer only costs the `*` marker on this listing, but a corrupt one is
+     * still worth a line: `open()` will refuse it, and this is where a person would look first. */
+    let cur = null;
+    try { cur = JSON.parse(fs.readFileSync(POINTER, 'utf8')).current; }
+    catch (e) { console.error('  (no readable release pointer at ' + POINTER + ': ' + e.message + ')'); }
     for (const id of ids) {
       const m = JSON.parse(fs.readFileSync(path.join(RELEASES, id, 'release.json'), 'utf8'));
       const moved = drift(id);

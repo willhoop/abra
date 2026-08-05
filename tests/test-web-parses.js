@@ -79,13 +79,15 @@ let blocks = 0;
 for (const f of rooms) {
   const src = fs.readFileSync(path.join(ROOT, 'web', f), 'utf8');
   const scripts = inlineScripts(src);
-  let bad = null;
+  /* The catch STASHES the failure for the assertion two lines down — that is the reporting path
+   * itself, and the variable is named so the silent-catch ratchet can see it is one. */
+  let failMsg = null;
   for (const s of scripts) {
     blocks++;
     try { new vm.Script(s.body, { filename: 'web/' + f }); }
-    catch (e) { bad = 'web/' + f + ' near line ' + s.line + ': ' + String(e.message).split('\n')[0]; break; }
+    catch (e) { failMsg = 'web/' + f + ' near line ' + s.line + ': ' + String(e.message).split('\n')[0]; break; }
   }
-  ok(bad === null, bad || `web/${f}: ${scripts.length} inline block(s) parse`);
+  ok(failMsg === null, failMsg || `web/${f}: ${scripts.length} inline block(s) parse`);
 }
 
 /* AND THE SCANNER MUST HAVE FOUND SOMETHING. Every interactive room on this site carries an inline
@@ -95,9 +97,9 @@ ok(blocks >= 5, `${blocks} inline blocks were parsed — a zero here is a broken
 
 /* AND IT MUST STILL BITE. The bug that motivated this file is exactly "a double quote inside a
  * double-quoted string", so that is what the self-check feeds it. */
-let bit = false;
-try { new vm.Script('var a = {honest:"x <s class="wd">y</s>"};'); } catch (e) { bit = true; }
-ok(bit, 'the parser rejects an unescaped double quote inside a double-quoted string — the exact 2026-08-04 stadium.html bug');
+let errored = false;
+try { new vm.Script('var a = {honest:"x <s class="wd">y</s>"};'); } catch (e) { errored = true; }
+ok(errored, 'the parser rejects an unescaped double quote inside a double-quoted string — the exact 2026-08-04 stadium.html bug');
 
 console.log(`\nWEB PARSE TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

@@ -130,7 +130,10 @@ function artifactsWrittenBy(gen) {
    * read failure would silently promote a refit into the auto-run list. Refused in the safe
    * direction: unreadable counts as a publisher. */
   try { src = fs.readFileSync(D(gen), 'utf8'); }
-  catch (e) { return { unreadable: e.message, artifacts: ['<unreadable — could not be checked>'] }; }
+  catch (e) {
+    console.error(`  (could not read ${gen}: ${e.message} — counted as a publisher, NOT auto-run)`);
+    return { unreadable: e.message, artifacts: ['<unreadable — could not be checked>'] };
+  }
   const artifacts = new Set();
   for (const ln of src.split('\n')) {
     if (!WRITE.test(ln)) continue;
@@ -240,7 +243,16 @@ for (const rel of statusInputs) {
 for (const rel of statusInputs) {
   if (uncheckable.some(u => u.rel === rel) || staleInputs.some(s => s.rel === rel)) continue;
   if (!fs.existsSync(D(rel)) || !generatorFor(rel)) continue;
-  let j = null; try { j = JSON.parse(fs.readFileSync(D(rel), 'utf8')); } catch (e) { /* not our check */ }
+  /* An artifact that does not parse cannot declare a corpus either. Parse validity is another
+   * test's job, but skipping it SILENTLY here would make it invisible to the drift check rather
+   * than uncheckable — the one state this list exists to name. */
+  let j = null;
+  try { j = JSON.parse(fs.readFileSync(D(rel), 'utf8')); }
+  catch (e) {
+    uncheckable.push({ rel, days: (newest - fs.statSync(D(rel)).mtimeMs) / 864e5,
+      why: 'does not parse — ' + String(e.message).slice(0, 60) });
+    continue;
+  }
   if (!j) continue;
   const claims = ['n_games', 'games', 'clean_games', 'usable', 'n_measured']
     .some(k => typeof j[k] === 'number') || (j.provenance && j.provenance.funnel);

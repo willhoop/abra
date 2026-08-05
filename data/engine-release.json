@@ -1,6 +1,6 @@
 {
-  "current": "5fc1f711a0e3",
-  "cut": "2026-08-04T22:54:59.393Z",
-  "why": "first frozen release — cut after the interaction matrix and the weather wires, so SEARCH can measure while ENGINE and MEASURE keep working",
+  "current": "d3d04b669e18",
+  "cut": "2026-08-04T23:18:53.242Z",
+  "why": "pre-refit baseline for the open-sheet channel measurement — freezes the two-channel-fitted MAG and joint vectors as arm A",
   "note": "Pointer to the newest release under data/releases/. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

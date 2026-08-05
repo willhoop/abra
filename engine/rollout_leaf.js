@@ -218,7 +218,12 @@ function movePriorFor(name) {
         const rows = (v.moves || []).filter(m => m && m.mv && m.p > 0);
         if (rows.length) _mp[String(sp).toLowerCase().replace(/[^a-z0-9-]/g, '')] = rows;
       }
-    } catch (e) { /* absent: callers fall back to uniform, which is the old behaviour */ }
+    } catch (e) {
+      /* absent: callers fall back to uniform, which is the old behaviour — but silently reverting
+       * an entire capability (a renamed file would do it) is the CLAUDE.md failure shape, so the
+       * downgrade is announced once per process */
+      console.error('rollout_leaf: move-priors.json unavailable (' + ((e && e.message) || e) + ') — playout move choice falls back to UNIFORM');
+    }
   }
   return _mp[String(name || '').toLowerCase().replace(/[^a-z0-9-]/g, '')] || null;
 }

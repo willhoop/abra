@@ -1,7 +1,7 @@
 {
- "generated": "2026-08-04T22:47:59.430Z",
+ "generated": "2026-08-05T00:40:29.615Z",
  "by": "engine/conformance.js",
- "files": 276,
+ "files": 283,
  "findings": [
   {
    "std": "convention",
@@ -365,6 +365,12 @@
   },
   {
    "std": "S13",
+   "file": "data/engine-release.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/eval-report.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -431,6 +437,12 @@
   },
   {
    "std": "S13",
+   "file": "data/policy-weights-joint-presheet.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
    "file": "data/policy-weights-julyonly.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
@@ -444,6 +456,12 @@
   {
    "std": "S13",
    "file": "data/policy-weights-nomt.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie"
+  },
+  {
+   "std": "S13",
+   "file": "data/policy-weights-presheet.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
   },
@@ -485,6 +503,12 @@
   },
   {
    "std": "S13",
+   "file": "data/provenance-stamp.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/rollout-cost.meta.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie"
@@ -522,6 +546,12 @@
   {
    "std": "S13",
    "file": "data/slowking.js",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/tag-consumption.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

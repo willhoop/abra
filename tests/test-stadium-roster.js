@@ -56,6 +56,9 @@ const NOT_A_CABINET = {
   'CHOMP / ORB':              'companion tools, and they live in a separate repository',
   'Evaluation & honesty':     'a cross-cutting practice, not a component',
   'Status of the "one thing that unblocks everything"': 'a status note',
+  /* The version is part of the heading, so this entry goes stale on a MODELS.md version bump and
+   * check 3 will demand it be re-stated. That is the check working, not a defect here. */
+  'Measurement environment, 3.39.0': 'a read-before-quoting preamble about the conditions numbers were measured under, not a component',
   'ROLES':                    'a labelling of teams, consumed by models rather than deciding',
   'WAR':                      'a statistic computed over the store',
   'NMF':                      'a decomposition that produces archetypes, consumed downstream',
@@ -169,6 +172,7 @@ const NOT_A_MODEL = {
   'engine/rollout_r2.js':            'GATE R2 — what a rollout LEAF costs; a cost measurement of our own search',
   'engine/rollout_r3.js':            'GATE R3 — does the search PICK A DIFFERENT MOVE; a behaviour diagnostic of our own search',
   'engine/rollout_explore_sweep.js': 'should --rollout-explore default to 1.0 — a knob sweep over our own search',
+  'engine/exploit_step_probe.js':    'GATE R9 (docs/SEARCH.md) — can the exploitability hill-climb in exploit.js move at 58 dimensions; drives exploit.js\'s own createClimber() against a SYNTHETIC planted optimum, plays no games and says nothing about MAG — a diagnosis of our own search tooling, not a model',
   'engine/rollout_r1_join.py':       'phase 2 of GATE R1 — scores PORYGON2 on the positions the rollout scored; an evaluation, and PORYGON2 is the model it evaluates',
   'engine/bring_bias.js':            'does require_full_bring\'s length-conditioning move any bring rate — a diagnosis of OUR OWN corpus rule, and its answer is no (84 species tested, 12 clear a raw z, 0 survive BH against 4.2 expected). Its sibling engine/bring_priors.js is the model; this measures the filter, and nothing but itself reads data/bring-bias.json',
 };

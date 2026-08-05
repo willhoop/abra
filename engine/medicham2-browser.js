@@ -128,7 +128,12 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
      it. Only a bare dmgRange call outside a battle can produce this; the battle loop stamps
      `_sf.side` on every body. Loud, because a Tailwind silently missing from one side of a ratio is
      a Gyro Ball that is wrong by a factor of two. */
-  speedSideUnknown: 0 };
+  speedSideUnknown: 0,
+  /* WIRE 89. A secondary whose CHANCE differs between the two rulebooks -- the format-derived
+     `data/tags.json` and the generic `CHOMP/data/move-effects.json`. The format wins. Counted with
+     the first offender named, because there are exactly two today (Iron Head, Toxic Thread) and a
+     third arriving unannounced is the whole failure mode two rulebooks have. */
+  rulebookChanceDrift: 0, rulebookChanceDriftFirst: '' };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -2681,6 +2686,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        * move finds out what happened while it waited. `failsIfHit` is Focus Punch, `failsUnlessHit`
        * is Shell Trap -- opposite signs of the same reading, both out of the tag's `mode`, so
        * neither move is named. Beak Blast has no failure condition and falls through to attack. */
+      /* WIRE 88 -- STEEL ROLLER FAILS WITH NO TERRAIN UP, AND CLEARS THE TERRAIN WHEN IT LANDS.
+       * Neither half existed: the engine played it as an unconditional 130 BP Steel move, so three
+       * interaction-matrix rows had medicham2 attacking on a turn the reference engine had already
+       * failed the move. `failsWithoutTerrain` is a new tag rather than a param on `terrainScaled`,
+       * because that tag describes a power multiplier and can carry neither the failure nor the
+       * removal. The clear is applied after the damage, below. */
+      {
+        const _ft=TAGS.param('move',a.move.id,'failsWithoutTerrain');
+        if(_ft&&_ft.needsTerrain&&!field.terrain){m._lastMove=a.move.id;continue;}
+      }
       if(m._preTurn&&m._preTurn.id===a.move.id){
         const _md=m._preTurn.p.mode,_wasHit=m._preTurn.hit;
         /* THE SHIELD COMES DOWN WHEN THE MOVE ITSELF RESOLVES (Showdown removes the volatile in Beak
@@ -2785,6 +2800,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          quarter below -- a move that ignores Protect deals FULL damage, not a quarter of it. */
       const _thruProtect=TAGS.has('move',a.move.id,'ignoresProtect');
       let dealt=0,connected=false;
+      /* WIRE 87 -- THE DRAIN HEAL HAPPENS DURING THE MOVE AND THE CONTACT TOLL AFTER IT, and this
+       * engine had the order the other way round. It only shows on a FULL-HP attacker, which is why
+       * it needed the generated matrix to find: medicham2 paid Rough Skin's 1/8, then healed and
+       * clamped back to full, so `hurt` read FALSE where Showdown reads TRUE. Four carriers at once
+       * -- Draining Kiss (865), Bitter Blade (380), Leech Life (136), Horn Leech (11).
+       * The heal is still applied below, where the accumulated `dealt` is known; what is captured
+       * here is the HP the CLAMP must be measured against. */
+      const _hpPreReact=m.curHP;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         /* AN IMMUNE TARGET TAKES NOTHING AT ALL -- not the damage, and not the SECONDARY either.
          *
@@ -3136,9 +3159,41 @@ function battleTurn(S,rng,actsForA,actsForB){
           const mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
           const fx=moveFx(a.move.id);
           const suppressed = tgAb==='shielddust' || mAb==='sheerforce';
+          /* WIRE 89 -- THE SECONDARY CHANCE IS A FACT ABOUT THIS FORMAT, AND THE RULEBOOK THIS BLOCK
+           * READS IS NOT A FORMAT. `CHOMP/data/move-effects.json` is generated from
+           * `play.pokemonshowdown.com/data/moves.json` -- the GENERIC gen-9 move data -- and its own
+           * header calls itself *"Authoritative — this is the server data the format runs on."* It is
+           * not: `Dex.forFormat('gen9championsvgc2026regmb')` applies Champions' own modifications on
+           * top, and `data/tags.json` is derived through that door. CLAUDE.md already says this in
+           * the one place it was learned -- *"the ban is a MECHANISM, not a list, so read it from the
+           * FORMAT rather than from memory"* -- and this is the same rule one field over.
+           *
+           * MEASURED BEFORE IT WAS WIRED, by tests/test-rulebook-collision.js, which compares the two
+           * rulebooks fact by fact: 149 of 151 comparable facts AGREE and exactly TWO disagree, both
+           * of them a Champions change the generic file cannot know about --
+           *     IRON HEAD    flinch 20% in this format, 30% generic   7,095 corpus uses
+           *     TOXIC THREAD Speed -2 in this format, -1 generic          6 uses
+           * So this is not a wholesale switch of rulebooks (that is an architecture decision and it
+           * is not ENGINE's): it is the CHANCE, one field, taken from the artifact that read the
+           * format, and every disagreement is COUNTED so a third one cannot arrive silently. */
           if(fx&&fx.secondary&&!suppressed){
+            const _si=TAGS.param('move',a.move.id,'statusInflict');
+            const _fmtChance=(s)=>{
+              if(!_si||!Array.isArray(_si.effects))return null;
+              const _k=s.status?['status',s.status]:s.volatile?['volatile',s.volatile]:null;
+              if(!_k)return null;
+              const _e=_si.effects.find(e=>e&&e[_k[0]]===_k[1]&&(e.to==null||e.to==='target'));
+              return _e&&_e.chance!=null?+_e.chance:null;
+            };
             for(const s of fx.secondary){
-              if(rng()*100>=(s.chance==null?100:s.chance)) continue;
+              const _generic=(s.chance==null?100:s.chance);
+              const _fmt=_fmtChance(s);
+              if(_fmt!=null&&_fmt!==_generic){
+                MEDFAILS.rulebookChanceDrift++;
+                if(!MEDFAILS.rulebookChanceDriftFirst)
+                  MEDFAILS.rulebookChanceDriftFirst=a.move.id+':'+(s.status||s.volatile)+' format '+_fmt+' vs generic '+_generic;
+              }
+              if(rng()*100>=(_fmt!=null?_fmt:_generic)) continue;
               if(s.status){ applyStatus(tg,s.status); }
               /* WIRE 16 -- secondary STAT DROPS, the third kind of secondary and the one that was
                * silently missing: Icy Wind and Electroweb (100% spe-1, the format's speed control),
@@ -3299,12 +3354,23 @@ function battleTurn(S,rng,actsForA,actsForB){
        * drains and never how much. engine/tag_dex.js now emits the value. Reading `unusual:false` and
        * assuming 0.5 would have been a silent default AND would have left Draining Kiss, which is 3/4,
        * quietly wrong in the one case the flag exists to mark. */
+      /* WIRE 88, the other half: a landed Steel Roller REMOVES the terrain. `clears` is the tag's,
+         read from the handler's own clearTerrain(). */
+      {
+        const _ft2=TAGS.param('move',a.move.id,'failsWithoutTerrain');
+        if(_ft2&&_ft2.clears&&connected){field.terrain='';field.terrainT=0;}
+      }
       {
         const _dr=TAGS.param('move',a.move.id,'drain');
         /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
          * version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
         if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st&&!healBlocked(m)){
-          m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(dealt*_dr.fraction));
+          /* WIRE 87 -- CLAMPED AGAINST THE HP THE USER HAD BEFORE ANY REACTION, not against the HP
+           * it has now. Showdown drains inside the move and pays the contact toll afterwards, so a
+           * full-HP Draining Kiss into Rough Skin gains NOTHING from the drain and still pays the
+           * eighth. Adding the heal to the post-toll HP healed the toll straight back. */
+          const _gain=Math.min(m.st.hp,_hpPreReact+Math.floor(dealt*_dr.fraction))-_hpPreReact;
+          if(_gain>0)m.curHP=Math.min(m.st.hp,m.curHP+_gain);
         }
       }
       /* WIRE 65 -- A MOVE THAT REACHED NOTHING PAYS NOTHING. Found by tests/test-game-diff.js's

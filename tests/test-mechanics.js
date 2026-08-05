@@ -321,14 +321,29 @@ probe('move', 'locksTarget', 'Encore locks the target in', () => {
            detail: `committed ${committed}, volatile set=${locked}, free choice next turn was ${f1._lastMove}` };
 });
 
-probe('move', 'conditionalPower', 'Facade doubles when statused', () => {
-  const clean = bare('incineroar'), burnt = bare('incineroar');
-  burnt.status = 'brn';
-  const def = bare('garchomp'), mv = MC.moves['facade'];
-  if (!mv) return { works: false, detail: 'facade not in MC.moves' };
-  const a = M.dmgRange(clean, def, mv, fresh(), false);
-  const b = M.dmgRange(burnt, def, mv, fresh(), false);
-  return { works: b.max > a.max, detail: `clean ${a.max}  ->  burnt ${b.max}` };
+/* THE PROBE WAS CONFOUNDED AND THE ENGINE WAS HALF RIGHT, WHICH MAKES ABOUT TWENTY-FOUR.
+ *
+ * It compared a clean Incineroar against a BURNED one, and a burn halves physical damage — so the
+ * x2 and the x0.5 cancelled to `clean 51 -> burnt 50` and read exactly like a dead knob. Two
+ * separate corrections came out of that:
+ *   1. PARALYSIS is the clean arm. Facade excludes only sleep, so par doubles it and touches
+ *      nothing else in the damage formula.
+ *   2. FACADE IS EXEMPT FROM THE BURN HALVING from Gen 6 (Showdown: `gen < 6 || move.id !==
+ *      "facade"`), and this engine applied it. That is a REAL defect the confounded probe was
+ *      hiding, and it is the third arm below. */
+probe('move', 'conditionalPower', 'Facade doubles when statused, and ignores its own burn penalty', () => {
+  const def = bare('garchomp'), mv = MC.moves['facade'], ctl = MC.moves['bodyslam'];
+  if (!mv || !ctl) return { works: false, detail: 'facade or bodyslam not in MC.moves' };
+  const hit = (status, move) => { const a = bare('incineroar'); a.status = status; return M.dmgRange(a, def, move, fresh(), false).max; };
+  const control = hit('', mv), test = hit('par', mv);
+  /* the control's control: a normal physical move must still LOSE damage to the same paralysis-free
+     burn, or "Facade ignores burn" would pass on an engine that had simply dropped the burn rule. */
+  const slamClean = hit('', ctl), slamBurnt = hit('brn', ctl);
+  const facadeBurnt = hit('brn', mv);
+  return { works: test > control * 1.8 && slamBurnt < slamClean && facadeBurnt > control * 1.8,
+           arms: { control, test },
+           detail: `Facade clean ${control}, paralysed ${test}, burned ${facadeBurnt} (must NOT be halved); `
+                 + `control Body Slam clean ${slamClean} -> burned ${slamBurnt} (must be halved)` };
 });
 
 /* ---- ABILITIES ---------------------------------------------------------------------------------- */
@@ -2932,6 +2947,247 @@ probe('move', 'selfBoostSecondary', 'Flame Charge raises the USER\'s Speed on a 
   return { works: control === 0 && test === 1 && tgt === -1, arms: { control, test },
            detail: `user spe stage — Fire Fang (no self-boost) ${control}, Flame Charge ${test}; `
                  + `and Icy Wind still drops the TARGET to ${tgt}` };
+});
+
+/* ---- BATCH 10 — THE PRE-TURN MOVE CLASS (WIRE 82) -----------------------------------------------
+ *
+ * Will, 2026-08-04: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR SOMETHING." He is naming a class
+ * that nothing in the artifact named. Focus Punch, Beak Blast and Shell Trap commit at the START of
+ * the turn and then react to what happened while they waited; `chargeTurn` is a different mechanic
+ * and could not carry them.
+ *
+ * SHELL TRAP IS NOT PROBED AND THAT IS THE FORMAT'S DECISION, NOT A GAP. The derivation reaches it —
+ * it matched in the full dex with `{trigger:'physical', foesOnly:true, mode:'failsUnlessHit',
+ * thenMovesNext:true}` — and `tag_dex` then drops it because Champions marks it
+ * `isNonstandard:'Past'`. That is the answer to "why is Shell Trap untagged", and it generalises:
+ * NO TAGS can mean NOT IN THE FORMAT, which is CLAUDE.md's own "ask the format, not a list" rule
+ * seen from the other side. `thenMovesNext` therefore has no carrier here and no consumer, stated
+ * rather than silently defaulted.
+ *
+ * BOTH PROBES ARE ARMED AND BOTH WERE WATCHED FAILING on the pre-wire engine:
+ *   beakblast  control (bulletseed) none   test (beakblast) none
+ *   focuspunch control (foe passes) 183    test (foe attacks) 183 */
+
+/* THE PARAM, NOT ONLY THE TAG. `preTurnShield.trigger` is `contact` for Beak Blast, and a consumer
+ * that burned every attacker would read LIVE while modelling the wrong mechanic. So the third arm is
+ * a SPECIAL, non-contact hit from the same attacker, which must NOT be burned. */
+probe('move', 'preTurnShield', 'Beak Blast burns a contact attacker, and only a contact one', () => {
+  const run = (userMove, foeMove) => {
+    const { me, ally, f1, f2, S } = board('toucannon', 'incineroar', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, userMove, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+    return f1.status || 'none';
+  };
+  const control = run('bulletseed', 'aquatail');      // no shield up at all
+  const test    = run('beakblast',  'aquatail');      // contact -> burned
+  const noTouch = run('beakblast',  'dragonpulse');   // special, no contact -> NOT burned
+  return { works: control === 'none' && test === 'brn' && noTouch === 'none',
+           arms: { control, test },
+           detail: `attacker status — no shield ${control}, Beak Blast + contact ${test}, `
+                 + `Beak Blast + a non-contact special ${noTouch}` };
+});
+
+/* FOCUS PUNCH, the opposite sign of the same reading. Measured through the DAMAGE it deals rather
+ * than a flag, because a flag nothing spends is worth nothing. Third arm: a STATUS move aimed at the
+ * user must not break the focus, which is the tag's `trigger: 'damaging'` doing its job. */
+probe('move', 'preTurnShieldFails', 'Focus Punch fails if the user was hit first, and not if merely charmed', () => {
+  const run = (foeMove) => {
+    const { me, ally, f1, f2, S } = board('conkeldurr', 'incineroar', 'garchomp', 'garchomp');
+    const hp0 = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'focuspunch', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, foeMove ? M.playerAction(f1, foeMove, me, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    return hp0 - f1.curHP;
+  };
+  const control = run(null), test = run('dragonclaw'), statused = run('swordsdance');
+  return { works: control > 0 && test === 0 && statused > 0, arms: { control, test },
+           detail: `Focus Punch damage — foe idle ${control}, foe attacks first ${test}, `
+                 + `foe sets up (no damage taken) ${statused}` };
+});
+
+/* ---- BATCH 11 — THE VARIABLE-POWER FAMILY (WIRE 83) AND PER-HIT REACTORS (WIRE 84) --------------
+ *
+ * 35 of the interaction matrix's 68 divergences were moves whose dex base power is 0 because the
+ * power IS the calculation. `hasPower()` rejected them, so Gyro Ball, Hard Press, Reversal, Electro
+ * Ball and Beat Up dealt LITERALLY NOTHING in every rollout ever run. The census reported the same
+ * hole from the other side as `needsUntrackedState` and `conditionalPower` MISSING, whose params
+ * were prose (`"speed ratio -- computable, not wired"`) and a boolean (`{conditional:true}`). */
+
+probe('move', 'variablePowerAbsolute', 'a move whose base power IS the calculation deals damage at all', () => {
+  /* THE HEADLINE ARM: every member of the absolute family used to read 0. Asserted over the WHOLE
+   * family rather than one member, which is WIRE 71's lesson — a per-member probe is what let three
+   * of four weather routes pass while the fourth was dead. */
+  const { me, ally, f1, f2, S } = board('torkoal', 'incineroar', 'weavile', 'garchomp');
+  const fam = ['gyroball', 'electroball', 'hardpress', 'reversal', 'beatup'];
+  const dmgs = fam.map(id => M.dmgRange(me, f1, MC.moves[id], S.field, false).max);
+  /* the control is the SHAPE, not another move: a move id the engine has no power rule for at all
+     must still read 0, or "everything deals damage" would pass this. */
+  const control = M.dmgRange(me, f1, MC.moves['splash'] || { id: 'splash', t: 'Normal', c: 'S', bp: 0 }, S.field, false).max;
+  const test = dmgs.every(d => d > 0) ? 'all>0' : 'some zero';
+  return { works: test === 'all>0' && control === 0, arms: { control, test },
+           detail: fam.map((id, i) => id + ' ' + dmgs[i]).join(' ') + '   control splash ' + control };
+});
+
+probe('move', 'speedRatioPower', 'Gyro Ball is stronger the slower you are, Electro Ball the faster', () => {
+  const slow = bare('torkoal'), fast = bare('weavile');
+  const S = M.battleInit([slow, bare('incineroar')], [fast, bare('garchomp')], { seeded: true });
+  /* SAME ATTACKER BOTH ARMS. Swapping the attacker changes the offensive stat and the STAB, which
+     would move the number for reasons that have nothing to do with the ratio — so the varied knob
+     is the TARGET's Speed on one fixed attacker, set explicitly on both sides. */
+  const at = (targetSpe) => { const d = bare('milotic'); d.st.sp = targetSpe; return d; };
+  const control = M.dmgRange(slow, at(60), MC.moves['gyroball'], S.field, false).max;
+  const test    = M.dmgRange(slow, at(240), MC.moves['gyroball'], S.field, false).max;
+  const eb = { slowT: M.dmgRange(fast, at(60), MC.moves['electroball'], S.field, false).max,
+               fastT: M.dmgRange(fast, at(240), MC.moves['electroball'], S.field, false).max };
+  return { works: test > control && eb.slowT > eb.fastT, arms: { control, test },
+           detail: `Gyro Ball into a 60-Speed target ${control}, into a 240-Speed target ${test}; `
+                 + `Electro Ball into 60 ${eb.slowT}, into 240 ${eb.fastT} (the other direction)` };
+});
+
+probe('move', 'hpScaledPower', 'Hard Press weakens as the target heals, Reversal strengthens as the user is hurt', () => {
+  const { me, ally, f1, f2, S } = board('archaludon', 'incineroar', 'milotic', 'garchomp');
+  const hp = (mon, frac) => { mon.curHP = Math.max(1, Math.floor(mon.st.hp * frac)); };
+  hp(f1, 1); const control = M.dmgRange(me, f1, MC.moves['hardpress'], S.field, false).max;
+  hp(f1, 0.2); const test = M.dmgRange(me, f1, MC.moves['hardpress'], S.field, false).max;
+  hp(me, 1); const rvFull = M.dmgRange(me, f1, MC.moves['reversal'], S.field, false).max;
+  hp(me, 0.01); const rvLow = M.dmgRange(me, f1, MC.moves['reversal'], S.field, false).max;
+  return { works: control > test && rvLow > rvFull, arms: { control, test },
+           detail: `Hard Press into a full-HP target ${control}, into a 20% one ${test}; `
+                 + `Reversal from full ${rvFull}, from 1% ${rvLow}` };
+});
+
+probe('move', 'boostScaledPower', 'Stored Power grows with the user\'s positive stages only', () => {
+  const { me, ally, f1, f2, S } = board('gardevoir', 'incineroar', 'milotic', 'garchomp');
+  const at = (b) => { me.boosts.sa = 0; me.boosts.at = 0; me.boosts.df = 0; Object.assign(me.boosts, b);
+                      return M.dmgRange(me, f1, MC.moves['storedpower'], S.field, false).max; };
+  const control = at({}), test = at({ sa: 3 });
+  const negative = at({ df: -2 });     // a NEGATIVE stage must not add power
+  return { works: test > control && negative === control, arms: { control, test },
+           detail: `no stages ${control}, +3 SpA ${test}, -2 Def ${negative} (a drop must add nothing)` };
+});
+
+/* WIRE 84. The count of REACTION EVENTS was silently 1 for every multi-hit move. The damage is
+ * still one packet (WIRE 20's declared divergence, unchanged); this is a different quantity. */
+probe('ability', 'reactorPerHit', 'Weak Armor triggers once per hit of a multi-hit move', () => {
+  const run = (mv) => {
+    const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', 'milotic', 'garchomp');
+    f1.ability = 'weakarmor';
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [f1.boosts.df, f1.boosts.sp];
+  };
+  const control = run('dragonclaw');          // one hit
+  const test = run('bulletseed');             // 2-5, seeded to 3
+  const twice = run('dragondarts');           // fixed 2
+  return { works: control[0] === -1 && control[1] === 2 && test[0] === -3 && test[1] === 6
+                  && twice[0] === -2 && twice[1] === 4,
+           arms: { control, test },
+           detail: `def/spe after Dragon Claw ${control.join('/')}, after Bullet Seed (3 hits) `
+                 + `${test.join('/')}, after Dragon Darts (2 hits) ${twice.join('/')}` };
+});
+
+/* ---- BATCH 12 — WHAT THE SECOND FULL MATRIX RUN FOUND (WIRES 85-89) ----------------------------- */
+
+/* WIRE 85. The priority refusal was checked inside the ATTACK branch only, so Armor Tail and Queenly
+ * Majesty refused a Sucker Punch and took a Baby-Doll Eyes. WIRE 77's lesson exactly one field over:
+ * a rule that belongs to every action kind goes ABOVE the kind dispatch. */
+probe('ability', 'priorityBlockEveryKind', 'Queenly Majesty refuses a priority STATUS move too', () => {
+  const run = (ab, mv) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'garchomp', 'milotic', 'garchomp');
+    f1.ability = ab;
+    const hp0 = me.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, mv === 'protect' ? { kind: 'protect', mv: 'protect' } : M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, mv === 'protect' ? M.playerAction(f1, 'surf', me, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return mv === 'protect' ? hp0 - me.curHP : f1.boosts.at;
+  };
+  const control = run('none', 'babydolleyes'), test = run('queenlymajesty', 'babydolleyes');
+  /* THE CONTROL THAT MATTERS: Protect is +4 and targets the USER, so Queenly Majesty must NOT
+     refuse it. A blanket "block everything above 0 priority" passes the headline and breaks this. */
+  const prot = run('queenlymajesty', 'protect');
+  return { works: control === -1 && test === 0 && prot === 0, arms: { control, test },
+           detail: `target atk after Baby-Doll Eyes — no ability ${control}, Queenly Majesty ${test}; `
+                 + `and the user's own Protect still blocks a Surf (${prot} damage taken)` };
+});
+
+/* WIRE 86. `userFaints` was wired where DAMAGING moves resolve, so Memento — a status move — dropped
+ * the foe -2/-2 and the user walked away. */
+probe('move', 'userFaintsStatusMove', 'Memento faints its user, and Charm does not', () => {
+  const run = (mv) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'garchomp', 'milotic', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [me.fainted, f1.boosts.at];
+  };
+  const control = run('charm'), test = run('memento');
+  return { works: control[0] === false && test[0] === true && test[1] < 0,
+           arms: { control: control.join('/'), test: test.join('/') },
+           detail: `user fainted / target atk — Charm ${control.join(' / ')}, Memento ${test.join(' / ')}` };
+});
+
+/* WIRE 87. Order, not magnitude: Showdown drains INSIDE the move and pays the contact toll after, so
+ * a full-HP drain move into Rough Skin gains nothing and still pays. medicham2 tolled first and then
+ * healed the toll straight back. Only visible from FULL HP, which is why a matrix found it. */
+probe('move', 'drainThenPunishOrder', 'a full-HP drain move into Rough Skin still pays the toll', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('sylveon', 'garchomp', 'milotic', 'garchomp');
+    f1.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'drainingkiss', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return me.st.hp - me.curHP;
+  };
+  const control = run('none'), test = run('roughskin');
+  return { works: control === 0 && test > 0, arms: { control, test },
+           detail: `HP the full-HP user lost — no ability ${control}, Rough Skin ${test} (must be the eighth, not 0)` };
+});
+
+/* WIRE 88. Steel Roller fails with no terrain and REMOVES the terrain when it lands. Neither half
+ * existed; the engine played it as an unconditional 130 BP Steel move. */
+probe('move', 'failsWithoutTerrain', 'Steel Roller fails on a clear field and clears the terrain when it lands', () => {
+  const run = (setTerrain) => {
+    const { me, ally, f1, f2, S } = board('sandaconda', 'garchomp', 'milotic', 'garchomp');
+    if (setTerrain) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'grassyterrain', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const hp0 = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'steelroller', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { dmg: hp0 - f1.curHP, terrain: S.field.terrain || 'clear' };
+  };
+  const a = run(false), b = run(true);
+  return { works: a.dmg === 0 && b.dmg > 0 && b.terrain === 'clear',
+           arms: { control: a.dmg, test: b.dmg },
+           detail: `clear field: ${a.dmg} damage (must be 0); after Grassy Terrain: ${b.dmg} damage `
+                 + `and the terrain is now "${b.terrain}" (must be clear)` };
+});
+
+/* WIRE 89. TWO RULEBOOKS state the secondary chance and the engine read the one that is not a
+ * FORMAT. `CHOMP/data/move-effects.json` comes from the generic gen-9 move data; `data/tags.json` is
+ * derived through Dex.forFormat(Champions). tests/test-rulebook-collision.js measured the whole
+ * surface: 149 of 151 comparable facts agree and exactly two do not, Iron Head's flinch (20 here,
+ * 30 generic, 7,095 uses) and Toxic Thread's Speed drop. */
+probe('move', 'formatSecondaryChance', "Iron Head flinches at this FORMAT's 20%, not the generic 30%", () => {
+  const rate = (mv, n) => {
+    const b0 = M.seen.flinch;
+    for (let i = 0; i < n; i++) {
+      const me = bare('archaludon'), ally = bare('incineroar'), f1 = bare('corviknight'), f2 = bare('garchomp');
+      f1.st.sp = 1;                       // the target must still be waiting, or a flinch cannot land
+      const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+      M.battleTurn(S, Math.random,
+        new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    }
+    return 100 * (M.seen.flinch - b0) / n;
+  };
+  const N = 6000;
+  /* THE CONTROL IS A MOVE THE TWO RULEBOOKS AGREE ON. Rock Slide is 30% in both, at 90% accuracy, so
+     it must land near 27 — an engine that had simply stopped reading any chance would fail it. */
+  const control = rate('rockslide', N), test = rate('ironhead', N);
+  return { works: Math.abs(test - 20) < 2.5 && Math.abs(control - 27) < 2.5,
+           arms: { control: control.toFixed(1), test: test.toFixed(1) },
+           detail: `over ${N} turns each — Iron Head ${test.toFixed(1)}% (format 20, generic 30), `
+                 + `control Rock Slide ${control.toFixed(1)}% (30% x 90% accuracy = 27)` };
 });
 
 /* ---- REPORT ------------------------------------------------------------------------------------- */

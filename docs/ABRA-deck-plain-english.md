@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.39.0 · 2026-08-04 · Will Hooper**
+**Version 3.40.0 · 2026-08-05 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -248,6 +248,18 @@ We have not fixed it yet, and that is deliberate. Fixing it means retraining eve
 real question first: sometimes opponents *decline* to reveal their team. A bot trained to depend on
 information that is sometimes missing can fail badly when it disappears. We have made that mistake
 before, in exactly this shape, and it is worth one deliberate decision rather than a quick fix.
+
+**Update (version 3.40.0).** The decision was made: the bot plays with the full team sheet, always,
+and the rarer no-sheet games are set aside for now. The first half of the retraining is done — the
+move-picking layer now learns from the same information it plays with, and we *counted* that the
+information actually arrived during training (99.7% of decisions) instead of assuming it. The second
+half (the layer that picks pairs of actions) is queued next. No claim yet that the retrained bot is
+better — that comparison is set up against a frozen copy of the old one and runs next.
+
+Also in this pass: the simulator learned eight more rule families and now covers 181 of the 186
+mechanics we probe for, with the remaining 5 named and explained; and we compared our two separate
+"rulebook" files fact by fact — they disagreed exactly twice, and one of those (how often Iron Head
+flinches in this format) was a real bug the bot had been playing with. It reads the right number now.
 
 
 ---

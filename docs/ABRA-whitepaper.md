@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.39.0 · Last updated 2026-08-04**
+**Version 3.40.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -370,6 +370,50 @@ Preview-composition signal is small; role-level winner-prediction ties a coin an
 Role tags are a censored lower bound on capability (closed sheets reveal only used moves). NMF factors are
 soft and attacker-dominated at the move level. None of these is hidden; each is reported with its baseline.
 
+
+## The coverage job lands, and the plan that drives it is amended (3.40.0)
+
+Three results, each read from its artifact.
+
+**The engine.** Wires 82–89 landed: the pre-turn shield class (Focus Punch / Beak Blast), the
+variable-power family, per-hit reactors, priority blocking across every move kind, Memento,
+drain-before-contact-toll order, the Steel Roller terrain gate, and secondary chances read from the
+FORMAT's rulebook with a drift counter. `data/mechanics-census.json` moved 167 → **181 live of 186
+probed, 5 missing with reasons**; the interaction matrix moved 68 disagreements → **13** (1,012 live
+carrier × reactor cases, 999 agree, 98.7%); the Showdown damage differential stands at 1/150, and
+the one row is a documented harness-layer artifact (Disguise), not an engine defect. Every new probe
+was demonstrated red against a deliberately broken in-memory engine before its green was believed.
+Shell Trap, flagged as entirely untagged, is `isNonstandard: 'Past'` — banned in this format; the
+missing tag is the format door working.
+
+**The two-rulebook question, measured before it was architected.** `data/tags.json` and
+`CHOMP/data/move-effects.json` state overlapping move facts. Compared field by field
+(`data/rulebook-collision.json`, a ratchet that may fall and never rise): 151 comparable facts, 149
+agree, **2 clashes** — and the live one was Iron Head's flinch, where the tags copy carried the
+Champions format's 20%, the generic copy carried 30%, and the engine read the wrong one. Wire 89
+closes it at the consumer. The unified-generator layer of the coverage plan is therefore insurance
+rather than urgency; the real exposure is the 193 facts (27 tag-only, 166 fx-only) the comparison
+cannot yet reach.
+
+**The fitting gap below is now half closed.** The sheet-channel section that follows reported that
+the fit discarded the ability and moves the live player sees; the decision it asked for was made
+(open team sheets always, closed sheets deferred), and the single-move layer (MAG) is refitted on
+all four channels: 231,722 decisions, with a point-of-use counter showing the declared channels
+reached the board on 99.67% of scored decisions — an environment match stated by measurement, not
+by diff-reading. The pre-refit weights are preserved and the two-channel incumbent is frozen as a
+release (`d3d04b669e18`) for the pending paired held-out comparison against the 0.192-point noise
+floor. The joint (pair) layer is **not yet refitted**; until it is, the pair layer still prices
+against the two-channel board, and no improvement claim is made for either layer.
+
+Separately, the coverage plan itself was re-examined at Will's request and amended where the
+re-examination found it wrong — mutation testing now precedes the handler registry (the original
+stub defense routed stubs into the one bucket the consumption ratchet deliberately never guards),
+mutation operators gained per-param perturbation and a derived-set rebuild hook, and the planned
+58-dimension exploitability re-run is cancelled by measurement: a step-rule probe against a planted
+optimum showed one accepted step is worth 0.202 win-rate points against a 4.77-point resolution at
+the affordable budget, so the search moves to a 4–8-parameter reparameterization first. The full
+argument is `docs/COVERAGE-PLAN-REVIEW.md`. ABRA continues to have **no exploitability number**;
+`data/exploitability.json` remains void.
 
 ## Measuring an engine that is being edited (3.36.0 – 3.39.0)
 

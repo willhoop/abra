@@ -133,7 +133,15 @@ let _STAMP = null;
 function resolveRelease(engineDigests) {
   let rel = null;
   try { rel = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'engine-release.json'), 'utf8')); }
-  catch (e) { return { release: 'UNRELEASED', release_status: 'NO RELEASE HAS EVER BEEN CUT — docs/DIVISIONS.md rule 1 is unenforced' }; }
+  catch (e) {
+    /* An absent file IS the documented state ("no cut has ever happened"); a file that exists but
+     * cannot be parsed is a finding, and collapsing the two is how a corrupt release would read as
+     * merely uncut. The reason rides in the stamp, where reduce()'s reader can see it. */
+    const errWhy = (e && e.code === 'ENOENT') ? null : String((e && e.message) || e);
+    return Object.assign(
+      { release: 'UNRELEASED', release_status: 'NO RELEASE HAS EVER BEEN CUT — docs/DIVISIONS.md rule 1 is unenforced' },
+      errWhy ? { release_read_error: errWhy } : {});
+  }
   const want = (rel && rel.digests) || {};
   const moved = Object.keys(want).filter(k => k !== 'note' && engineDigests[k] !== want[k]);
   return {
@@ -151,7 +159,12 @@ function buildStamp() {
       const p = path.join(__dirname, f);
       digests[f] = crypto.createHash('sha1').update(fs.readFileSync(p)).digest('hex').slice(0, 12);
       digests[f + ':mtime'] = fs.statSync(p).mtime.toISOString();
-    } catch (e) { digests[f] = 'UNREADABLE'; }
+    } catch (e) {
+      /* the stamp carries the reason, not just the fact: 'UNREADABLE' alone cannot distinguish a
+       * deleted file from a permissions failure when the artifact is read a week later */
+      const errMsg = String((e && e.message) || e);
+      digests[f] = 'UNREADABLE: ' + errMsg;
+    }
   }
   const RS = require('./run_stamp.js');
   const engineDigests = RS.sourceDigests();
@@ -195,7 +208,13 @@ function makeTimer(dest) {
         out += JSON.stringify(Object.assign({ install: state.install, t: Date.now() }, row)) + '\n';
         fs.appendFileSync(file, out);
         state.rows++;
-      } catch (e) { /* a timing artifact must never break a turn */ }
+      } catch (e) {
+        /* a timing artifact must never break a turn — so the game continues, but the failure is
+         * counted and said once, because a recorder that dies silently is PRIORITIES 0b in a new
+         * costume: the run finishes clean and the shard simply has fewer rows than decisions */
+        state.errWrites = (state.errWrites || 0) + 1;
+        if (state.errWrites === 1) console.error('MILTANK timing: write failed (' + ((e && e.message) || e) + ') — continuing; further write failures counted, not printed');
+      }
     },
   };
 }
@@ -504,7 +523,13 @@ function install(bot, o) {
                 item: st ? (st.item || '') : undefined,
                 nature: st ? (st.nature || '') : undefined,
               }, MEDI, DEX) || null;
-            } catch (e) { return null; }
+            } catch (e) {
+              /* dmgMon returning null is a normal condition (handled below, by name); dmgMon
+               * THROWING is not, and folding the two together is how a broken builder would read
+               * as a merely-absent usage row */
+              console.error('  preview: body build THREW for ' + name + ': ' + ((e && e.message) || e));
+              return null;
+            }
           };
           const myBodies = myNames.map(n => () => bodyOf(n, mine));
           const theirBodies = theirNames.map(n => () => bodyOf(n, theirs));
@@ -949,7 +974,16 @@ function install(bot, o) {
            * this only stops it CHOOSING them blind. If every candidate for a slot is unexpressible
            * the whole decision falls back to MAG, which does have an opinion about them. */
           const MEDI = require('./medicham2-browser.js');
-          const _body = (m) => { try { return m ? B.dmgMon(m, MEDI, DEX) : null; } catch (e) { return null; } };
+          const _body = (m) => {
+            try { return m ? B.dmgMon(m, MEDI, DEX) : null; }
+            catch (e) {
+              /* null feeds "cannot tell -- keep it rather than guess" below, which is safe; but a
+               * builder that ALWAYS throws would silently turn the whole expressibility filter off,
+               * so the throw is said out loud */
+              console.error('  expressibility: dmgMon THREW for ' + ((m && m.species) || '?') + ': ' + ((e && e.message) || e));
+              return null;
+            }
+          };
           const _foeBody = (() => {
             for (const L of ['a', 'b']) { const f = board.slot(foeSide, L); if (f && !f.fainted) { const b = _body(f); if (b) return b; } }
             return null;
@@ -987,12 +1021,23 @@ function install(bot, o) {
                   if (e.volatile) return true;                 // volatiles are not status immunities
                   if (!e.status) return true;
                   const who = e.to === 'user' ? ub : tb;
-                  try { return MEDI.canTakeStatus(who, e.status); } catch (err) { return true; }
+                  try { return MEDI.canTakeStatus(who, e.status); }
+                catch (err) {
+                  /* keep-rather-than-ban is the safe direction, but a canTakeStatus that always
+                   * throws would silently retire the banned-click filter Will asked for — say it */
+                  console.error('  expressibility: canTakeStatus THREW (' + ((err && err.message) || err) + ') — keeping the candidate');
+                  return true;
+                }
                 });
                 if (!anyLands) return false;
               }
               return true;
-            } catch (e) { return true; }
+            } catch (e) {
+              /* same shape as canTakeStatus above: keeping the candidate is safe, a filter that
+               * always throws is a capability silently off */
+              console.error('  expressibility check THREW (' + ((e && e.message) || e) + ') — keeping the candidate');
+              return true;
+            }
           };
           for (const k of [0, 1]) {
             const keep = built[k].cands.filter((c) => expressible(c, k));
@@ -1215,7 +1260,7 @@ function install(bot, o) {
             say('move', _ms, { opts: oa.length * ob.length, budget: BUDGET_MS, deferred: false, why: 'chose',
                                screenN, finalsDone, finalsK: finalists.length, screenCut, searchMs: ms });
           }
-          if (SAY) { try { SAY(bestVal, chosen); } catch (e) { /* never let a chat line break a turn */ } }
+          if (SAY) { try { SAY(bestVal, chosen); } catch (e) { console.error('MILTANK: chat line failed: ' + ((e && e.message) || e)); /* never let a chat line break a turn */ } }
           this._rolloutReq = req;
           this._rolloutPick = [];
           /* THROUGH _withMega, WHICH THE ROLLOUT PATH WAS BYPASSING ENTIRELY.
@@ -1272,8 +1317,9 @@ function reduce(file) {
   }
   const lines = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean);
   const stamps = [], rows = [];
+  let torn = 0;   // a torn shard line is data loss, and a reduce that cannot say so undercounts silently
   for (const ln of lines) {
-    let r; try { r = JSON.parse(ln); } catch (e) { continue; }
+    let r; try { r = JSON.parse(ln); } catch (e) { torn++; continue; }
     if (r._stamp) stamps.push(r); else rows.push(r);
   }
   /* A capability that cannot prove it ran is assumed broken. */
@@ -1314,6 +1360,7 @@ function reduce(file) {
     file, generated: new Date().toISOString(),
     build: uniq.length === 1 ? stamps[0]._stamp : { MIXED: uniq.length, WARNING: 'rows span more than one build — not a fact about either' },
     n_measured: rows.length, n_unit: 'decision (one MILTANK search call)',
+    torn_lines: torn,
     flags: rows[0] ? { n: rows[0].n, explore: rows[0].explore, turns: rows[0].turns, foe: rows[0].foe,
                        budgetMs: rows[0].budgetMs, previewN: rows[0].previewN, previewMs: rows[0].previewMs,
                        clock: rows[0].clock, earlyDefer: rows[0].early } : null,
@@ -1382,11 +1429,14 @@ function reduce(file) {
  * (`room-battle.ts:286`), so it is counted as `turns + turns in which one of MY bodies fainted`.
  * Forfeits are excluded -- a game that ended because somebody quit says nothing about length. */
 function horizon(store) {
+  // RAW-STORE-OK: measures game LENGTH in requests; a game's length is a fact about the battle
+  // whoever played it, and the clock plans against the whole opponent population, not the clean subset.
   const lines = fs.readFileSync(store, 'utf8').split('\n');
   const reqs = [], turns = [];
+  let torn = 0;   // counted, not skipped silently: a store shredding itself should show in the artifact
   for (const l of lines) {
     if (!l) continue;
-    let g; try { g = JSON.parse(l); } catch (e) { continue; }
+    let g; try { g = JSON.parse(l); } catch (e) { torn++; continue; }
     if (!Array.isArray(g.turns) || !g.turns.length || g.forfeit) continue;
     let ft = 0;
     for (const t of g.turns) if ((t.ev || []).some(e => e.t === 'f' && /^p1/.test(String(e.s || '')))) ft++;
@@ -1395,7 +1445,7 @@ function horizon(store) {
   const q = (a, p) => { a = a.slice().sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.ceil(p * a.length) - 1)]; };
   const over = (k) => +(100 * reqs.filter(x => x > k).length / reqs.length).toFixed(2);
   return {
-    store, n_measured: reqs.length, n_unit: 'non-forfeit game',
+    store, n_measured: reqs.length, n_unit: 'non-forfeit game', torn_lines: torn,
     turns: { p50: q(turns, .5), p90: q(turns, .9), p99: q(turns, .99), max: q(turns, 1) },
     requests: { p50: q(reqs, .5), p75: q(reqs, .75), p90: q(reqs, .9), p95: q(reqs, .95), p99: q(reqs, .99), max: q(reqs, 1) },
     pct_over: { 13: over(13), 21: over(21), 24: over(24), 30: over(30), 34: over(34) },

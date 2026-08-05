@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.39.0 · Last updated 2026-08-04.**
+**Version 3.40.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -262,13 +262,13 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
-**MECHANICS STATE, 2026-08-04, read from the artifact rather than typed:** `data/mechanics-census.json`
-reads **167 live of 174 probed, 7 missing, 0 hollow**. The seven are each declared with a reason in
-[ENGINE.md](ENGINE.md) — two blocked on a `basePowerCallback` derivation, two on the
-`moveAccuracy(id, field)` signature (a change that crosses into the refit edge MEASURE owns), one on
-a conditional-stat-multiplier derivation that does not exist, one by DECISION (Avalanche asks for turn
-state `dmgRange` is not given), and one blocked on telling After You apart from Instruct in the
-artifact.
+**MECHANICS STATE, 2026-08-05, read from the artifact rather than typed:** `data/mechanics-census.json`
+reads **181 live of 186 probed, 5 missing, 0 hollow** (wires 82–89 landed at 3.40.0; the
+`basePowerCallback` and conditional-power rows came off the missing list by derivation, WIRE 83).
+The five are each declared with a reason in [ENGINE.md](ENGINE.md) — two on the
+`moveAccuracy(id, field)` signature (a change that crosses into the refit edge MEASURE owns), one
+untagged ability derivation (Marvel Scale), one by DECISION (Avalanche asks for turn state
+`dmgRange` is not given), and one blocked on telling After You apart from Instruct in the artifact.
 
 **THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
 mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,506**
@@ -708,6 +708,17 @@ not be quoted as evidence that species choice predicts outcomes.
 > line above it said 53, so the file disagreed with itself as well as with the artifact. This is the
 > drift `docs/MODELS.md`'s own header warns about, recurring in the entry for the model at the centre
 > of the refit. Quote `data/policy-weights.json`; it is one `corpus` object and it cannot drift.
+
+**REFITTED ON THE FOUR-CHANNEL SHEET, 3.40.0 (2026-08-04T23:37Z artifact).** Will's decision: open
+team sheets always; closed sheets deferred. `data/policy-weights.json` now reads corpus
+**8,856 games / 231,722 decisions (185,560 train / 46,162 held out)**, `fitEnvironment.sheet_channels
+= [nature, item, ability, moves]`, `matches_player: true`, and a **point-of-use reach counter** —
+the declared ability/moves arrived on the board for 99.67% of scored decisions — so the
+environment match is measured, not asserted. The two-channel incumbent is preserved
+(`data/policy-weights-presheet.json`) and frozen in release `d3d04b669e18` as arm A of the pending
+paired held-out comparison against the 0.192-point noise floor (`engine/sheet_channel_value.js`,
+not yet run). **The JOINT (pair) layer is NOT yet refitted** — until it is, the pair layer prices
+against the two-channel board, and no improvement claim exists for either layer.
 
 **Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
 taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and

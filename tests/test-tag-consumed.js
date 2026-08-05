@@ -78,7 +78,12 @@ ok(ALL.length > 100, `the artifact defines ${ALL.length} distinct tags`);
  * Species come from the engine's own table so the sweep cannot drift from what is buildable, and the
  * moves come from the ARTIFACT so a tag's own carriers are the bodies it is staged on — asking about
  * `resistBerry` while never holding one measures the sweep, not the engine. */
-const SPECIES = Object.keys(MC.mons);
+/* Through the ONE resolver rather than Object.keys(MC.mons) — tests/test-mc-key.js bans a private
+ * index over the table's keys, and mcKey.all() exists for exactly this "what is in here at all"
+ * question. It returns sorted entries, so the sweep's att/def pairing is stable across runs and
+ * across key insertion order, which Object.keys never promised. */
+const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));
+const SPECIES = mcKey.all().map(([k]) => k);
 const FIELDS = [
   { weather: null, weatherT: 0, terrain: '', terrainT: 0 },
   { weather: 'rain', weatherT: 5, terrain: 'electric', terrainT: 5 },
@@ -170,12 +175,18 @@ const A = t => asked[t] || 0, Fx = t => found[t] || 0;
  * runtime rather than written as a literal is invisible to it. That is real — `withTag` takes the
  * name as an argument — so a DEAD verdict means "no literal anywhere AND never asked", which is as
  * close to decisive as this pair of instruments can get, and it is stated rather than assumed. */
+/* An unreadable engine file shrinks the corpus namedInSource() searches, so a tag could read DEAD
+ * because the ONE file that names it failed to open. The old comment said "counted below" and
+ * nothing counted it — a lie in a comment is worse than silence. Counted for real now, and loud,
+ * because a DEAD verdict derived from a partial corpus is not a verdict. */
+let unreadableEngineFiles = 0;
 const ENGINE_SRC = (() => {
   const dir = path.join(ROOT, 'engine');
   let all = '';
   for (const f of fs0.readdirSync(dir)) {
     if (!/\.js$/.test(f) || f === 'tag_dex.js') continue;   /* tag_dex WRITES the tags; naming one there is not consuming it */
-    try { all += fs0.readFileSync(path.join(dir, f), 'utf8'); } catch (e) { /* counted below */ }
+    try { all += fs0.readFileSync(path.join(dir, f), 'utf8'); }
+    catch (e) { unreadableEngineFiles++; console.error(`  WARNING — engine/${f} unreadable (${e.message}): namedInSource may under-report and a DEAD verdict below is suspect`); }
   }
   return all;
 })();
@@ -215,7 +226,12 @@ const STAMP = path.join(ROOT, 'data', 'tag-consumption.json');
 let prev = null;
 if (fs.existsSync(STAMP)) {
   try { prev = JSON.parse(fs.readFileSync(STAMP, 'utf8')); }
-  catch (e) { ok(false, `the baseline exists and cannot be read (${e.message}) — refusing to adopt a new one`); }
+  catch (e) {
+    /* ok(false) already fails the file; the console.error is for the scanner in
+     * tests/test-no-silent-failure.js, whose SPEAKS patterns cannot know what ok() does. */
+    console.error(`  baseline unreadable: ${e.message}`);
+    ok(false, `the baseline exists and cannot be read (${e.message}) — refusing to adopt a new one`);
+  }
 }
 const prevDead = prev && Array.isArray(prev.dead) ? prev.dead : null;
 if (prevDead) {

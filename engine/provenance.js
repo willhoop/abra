@@ -650,8 +650,26 @@ for (const a of ARTIFACTS) {
       const got = digestOf(src);
       if (!got) { notes.push(`stamped input ${src} cannot be read to verify`); digestState = 'unverifiable'; warn = true; continue; }
       if (String(got).slice(0, 12) !== String(want).slice(0, 12)) {
-        notes.push(`COMPUTED FROM DIFFERENT CONTENT — ${src} was ${String(want).slice(0, 12)} at read time, is ${got} now`);
-        bad = true; digestState = 'mismatch';
+        /* A MEASUREMENT PINNED TO A FROZEN RELEASE IS A PHOTOGRAPH, NOT A MISMATCH.
+         *
+         * CLAUDE.md mandates that a measurement read a frozen release precisely SO the live tree may
+         * move underneath it. The first artifact to do that correctly (data/exploit-step-probe.json,
+         * stamped to d3d04b669e18, generated 12 s after the refit moved live policy-weights.json) was
+         * marked UNSAFE by this very check — the rule punished the exemplary workflow. So: when the
+         * artifact declares an `engine_release` and the stamped digest MATCHES that release's frozen
+         * copy, the divergence of the LIVE file is drift to report, never corruption. The frozen copy
+         * is verified by CONTENT right here — a claimed release id whose snapshot does not carry these
+         * bytes still falls through to UNSAFE, so the release name alone buys nothing. */
+        const relId = j && j.engine_release;
+        const frozen = relId ? digestOf(`data/releases/${relId}/${src}`) : null;
+        if (frozen && String(frozen).slice(0, 12) === String(want).slice(0, 12)) {
+          notes.push(`pinned to engine release ${relId} — ${src} matches the frozen copy; ` +
+                     `live is ${got} now (a PRE-CHANGE measurement of that release, not corruption)`);
+          warn = true; if (digestState === 'verified') digestState = 'verified-against-release';
+        } else {
+          notes.push(`COMPUTED FROM DIFFERENT CONTENT — ${src} was ${String(want).slice(0, 12)} at read time, is ${got} now`);
+          bad = true; digestState = 'mismatch';
+        }
       }
     }
   }

@@ -1,6 +1,14 @@
 # ABRA — Technical Documentation
 
-**Version 3.39.0 · Last updated 2026-08-04**
+**Version 3.40.0 · Last updated 2026-08-05**
+
+**Change record for 3.40.0.** The simulator covers 181 of 186 probed mechanics. Five are missing.
+Each has a written reason. The two rulebook files were compared. 151 facts were comparable. Two
+facts did not agree. The engine now reads the format's own secondary-effect chance. The MAG fit
+now uses all four team-sheet channels. A counter proves the channels reached the board (99.67% of
+231,722 decisions). The pair-layer fit does not use them yet. The coverage plan changed: mutation
+tests come before the handler registry. See `COVERAGE-PLAN-REVIEW.md` for the reasons. ABRA has no
+exploitability number.
 
 *Written in ASD-STE100 Simplified Technical English. Sentences are short. The voice is active. One
 word has one meaning. The document follows the Diátaxis structure: Tutorial, How-to, Reference,

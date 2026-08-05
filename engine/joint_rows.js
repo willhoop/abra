@@ -22,6 +22,11 @@ const path = require('path');
 const B = require('./board.js');
 const FP = require('./fit_policy.js');
 const CM = require('./click_match.js');
+const SC = require('./sheet_channels.js');
+/* Taken from fit_policy rather than re-read from the environment. Both files are loaded into the
+ * SAME process by engine/fit_joint.js, and two independent parses of one environment variable is a
+ * way for the ranker and the pair fit to disagree about what the board knows within a single run. */
+const SHEET_CHANNELS = FP.SHEET_CHANNELS;
 
 const norm = B.norm, base = B.baseSpecies;
 const D = (...p) => path.join(__dirname, '..', ...p);
@@ -92,7 +97,22 @@ function build(games, dex, opts) {
     for (const side of ['p1', 'p2']) {
       for (const m of (g.sheets && g.sheets[side]) || []) {
         if (m && m.species) {
-          board.setSheet(side, m.species, { nature: m.nature || '', item: m.item || '' });
+          /* ALL FOUR CHANNELS, THE SAME LIST engine/fit_policy.js AND engine/magnemite.js USE.
+           *
+           * This passed `{nature, item}` until 2026-08-04, so the JOINT layer was fitted against a
+           * board that did not know the opponent's declared ability or declared moves while the live
+           * player's board did. Measured on the ranker's own rows, the same defect cost 50.47% of
+           * single-slot decisions and 20 of 58 columns; the joint layer inherits it twice over,
+           * because its top-K candidate list is RANKED by w1 over exactly those features — a
+           * mis-priced feature vector does not merely score the pair wrongly, it changes which pairs
+           * are on the menu at all.
+           *
+           * The list is engine/sheet_channels.js and not a literal here: three typed copies of it is
+           * how the fit and the player came to disagree without any check being able to see it. */
+          board.setSheet(side, m.species, SC.pick(m, SHEET_CHANNELS));
+          tally.sheetEntries = (tally.sheetEntries || 0) + 1;
+          if (m.ability) tally.sheetAbility = (tally.sheetAbility || 0) + 1;
+          if (Array.isArray(m.moves) && m.moves.length) tally.sheetMoves = (tally.sheetMoves || 0) + 1;
         }
       }
       board.setParty(side, ((g.brought || {})[side] || []));
@@ -134,6 +154,9 @@ function build(games, dex, opts) {
           if (!sh) return null;
           const cands = B.candidates(sh.moves, user, board, side, dex);
           if (!cands.length) return null;
+          /* PROVE THE CHANNEL LANDED, at the point of use and not at setSheet — same counter and same
+           * reasoning as engine/fit_policy.js's probeLive. `fit_joint.js` refuses to fit on a zero. */
+          FP.probeLive(tally, board, side, user);
           const feats = cands.map(c => B.featuresFor(c, user, board, side, dex,
             c.switchTo ? B.PRIOR_FLOOR : FP.priorFor(user.species, c.move.id)));
           const want = acted[L];

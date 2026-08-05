@@ -54,6 +54,7 @@ const FP = require('./fit_policy.js');
  * same question of the same rows rather than growing a second copy. See that file's header and
  * docs/ARTIFACT-ACCESS-RULES.md R1. */
 const JR = require('./joint_rows.js');
+const SC = require('./sheet_channels.js');
 
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
@@ -83,6 +84,27 @@ console.log(`  dropped: ${tally.oneSlot.toLocaleString()} had only one slot acti
   + `${tally.ambiguous.toLocaleString()} target ambiguous (mirror)`);
 console.log(`  the chosen pair fell outside the top ${TOPK} on at least one slot: ` +
             `${tally.chosenOutsideK.toLocaleString()} (${(100 * tally.chosenOutsideK / Math.max(1, tally.kept)).toFixed(1)}%)`);
+
+/* THE FITTING ENVIRONMENT, PROVED. Identical guard to engine/fit_policy.js and for the identical
+ * reason: until 2026-08-04 engine/joint_rows.js passed `{nature, item}` to setSheet while
+ * engine/magnemite.js passed all four, so the pair layer was fitted against a board the player never
+ * sees. The joint layer inherits that twice — its top-K MENU is ranked by w1 over the same feature
+ * vectors, so a mis-priced feature changes which pairs are candidates at all, not merely their score.
+ * A requested channel reaching zero boards is fatal here rather than reported. */
+const jpc = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
+console.log(`  sheet      channels ${FP.SHEET_CHANNELS.join(',')} — ` +
+  `${(tally.sheetEntries || 0).toLocaleString()} entries set; of ${(tally.probedDecisions || 0).toLocaleString()} scored slots the ` +
+  `user mon carried ability ${jpc(tally.liveUserAbility || 0, tally.probedDecisions || 0)}, ` +
+  `moves ${jpc(tally.liveUserMoves || 0, tally.probedDecisions || 0)}; of ` +
+  `${(tally.probedFoes || 0).toLocaleString()} live foe actives, ability ` +
+  `${jpc(tally.liveFoeAbility || 0, tally.probedFoes || 0)}, moves ${jpc(tally.liveFoeMoves || 0, tally.probedFoes || 0)}`);
+for (const [ch, n] of [['ability', tally.liveUserAbility || 0], ['moves', tally.liveUserMoves || 0]]) {
+  if (FP.SHEET_CHANNELS.includes(ch) && n === 0) {
+    console.error(`\nSHEET CHANNEL '${ch}' REACHED 0 OF ${(tally.probedDecisions || 0).toLocaleString()} SCORED BOARDS ` +
+      `despite being set on ${(tally.sheetEntries || 0).toLocaleString()} sheet entries. Refusing to fit.`);
+    process.exit(1);
+  }
+}
 
 /* HELD OUT BY GAME, never by decision. Two turns of the same game share teams, players and a
  * metagame, so splitting inside a game leaks the answer across the split. */
@@ -184,6 +206,23 @@ const payload = JSON.stringify({
   weights: best.w, lambda: best.lam, topK: TOPK,
   corpus: { games: games.length, pairs: rows.length, heldOut: H.length },
   matching: { turnsSeen: tally.turns, kept: tally.kept, unmatched: tally.unmatched, ambiguous: tally.ambiguous },
+  /* WHAT THE BOARD KNEW WHILE THIS WAS FITTED — see engine/fit_policy.js's block of the same name.
+   * Written into the artifact so that a fit/play mismatch is readable from the file rather than only
+   * from a diff of two source lines, which is how the 2026-08-04 gap survived a week. */
+  fitEnvironment: {
+    sheet_channels: FP.SHEET_CHANNELS.slice(),
+    player_passes: SC.CHANNELS.slice(),
+    matches_player: SC.isFull(FP.SHEET_CHANNELS),
+    sheet_entries_set: tally.sheetEntries || 0,
+    reached_board: {
+      slots_probed: tally.probedDecisions || 0,
+      user_ability: tally.liveUserAbility || 0,
+      user_moves: tally.liveUserMoves || 0,
+      foe_actives_probed: tally.probedFoes || 0,
+      foe_ability: tally.liveFoeAbility || 0,
+      foe_moves: tally.liveFoeMoves || 0,
+    },
+  },
   featureHashes,
   caveat: 'Predicts which PAIR a human clicked. Not evidence that the pair wins more games.',
 }, null, 1) + '\n';

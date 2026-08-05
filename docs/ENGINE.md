@@ -23,22 +23,20 @@
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  167/174 probed mechanics live, 7 missing   (census 2026-08-04 22:46)
+  181/186 probed mechanics live, 5 missing   (census 2026-08-04 23:56)
   missing:
-    move    conditionalPower       Facade doubles when statused
     move    needsTargetToAttack    Avalanche doubles after being hit
-    move    needsUntrackedState    Gyro Ball scales with the speed gap
     ability writesAccuracy         No Guard makes an 80%-accurate move land on a losing roll
     ability accuracyMod            Sand Veil makes the attacker miss a roll it would have hit
     ability untagged               Marvel Scale raises Defense while statused
     move    reordersTurn           After You lets the partner move next
-  1/150 differential comparisons disagree with Showdown   (2026-08-04 22:46)
+  1/150 differential comparisons disagree with Showdown   (2026-08-04 23:56)
     chesnaught woodhammer -> mimikyu: showdown 0-0, medicham 120-130  (56 uses)
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  tag coverage: 146/178 probed, 32 unprobed
+  tag coverage: 148/180 probed, 32 unprobed
 ```
 
-_stamped 2026-08-04 23:05_
+_stamped 2026-08-05 00:26_
 
 <!-- /GENERATED -->
 
@@ -52,20 +50,21 @@ checks. The job of that list is to empty itself — each item becomes a probe in
 That is the whole reason the census count may never fall: it is the only number in the project that
 a human cannot quietly soften.
 
-## THE SEVEN MISSING MECHANICS, EACH WITH ITS REASON. 2026-08-04.
+## THE FIVE MISSING MECHANICS, EACH WITH ITS REASON. 2026-08-05.
 
 **A declared gap with a reason is a finished item; an undeclared one is not.** The census carries all
-seven; this is why each is still there. There were 8; Air Lock came off it as WIRE 78.
+five; this is why each is still there. There were 8; Air Lock came off it as WIRE 78, and
+`conditionalPower` and `needsUntrackedState` came off together as WIRE 83 — the "blocked on the
+derivation" verdict on both was retired by teaching `tag_dex` to read `basePowerCallback` and
+`onBasePower` arithmetic directly, exactly the pass those rows said it would take.
 
 | # | mechanic | by DECISION or by OMISSION | why |
 |---|---|---|---|
-| 1 | `conditionalPower` — Facade doubles when statused | **OMISSION, blocked on the derivation** | The tag's param is `{conditional: true}` — a boolean — and its 11 members are wildly different rules: Knock Off, Solar Beam, Venoshock, Lash Out, Expanding Force, Facade. Nothing can be wired from it. The fix is teaching `tag_dex` to read Showdown's `basePowerCallback`, which is a pass of its own and is the same fix as #3 |
-| 2 | `needsTargetToAttack` — Avalanche doubles after being hit | **DECISION**, unchanged | The probe asks for a rule that does not exist. Avalanche doubles when the user was damaged BY THAT TARGET THIS TURN; `dmgRange` is handed no turn state and must not invent any. 13 corpus uses. The tag's other nine members include Sucker Punch (6,673), already fully modelled through `failsIfTargetNotAttacking`, so the tag is not inert — only this member is |
-| 3 | `needsUntrackedState` — Gyro Ball scales with the speed gap | **OMISSION, blocked on the derivation.** The param literally says `{needs: "speed ratio -- computable, not wired"}` | Same `basePowerCallback` fix as #1. It is now visible from the OTHER instrument too: 35 of the interaction matrix's 68 remaining divergences are this family (Hard Press, Gyro Ball, Reversal, Steel Roller, Beat Up), because `MC.moves[id].bp === 0` makes `hasPower()` reject them and they deal literally nothing |
-| 4 | `writesAccuracy` — No Guard | **OMISSION, blocked on a SIGNATURE**, costed rather than gestured at | `moveAccuracy(id, field)` takes neither body. 11 call sites across 4 files; two of them (`board.js`, `position_features.js`) are **not ENGINE's** and a signature change there is a feature-vector change, which is the refit edge MEASURE owns. The compatible shape is `moveAccuracy(id, field, att, def)` with both optional. **It is a deliberate pass, not a one-liner** |
-| 5 | `accuracyMod` — Sand Veil | **OMISSION, same signature**, same pass as #4 | — |
-| 6 | `untagged` — Marvel Scale raises Defense while statused | **OMISSION, blocked on the derivation** | 36 uses. It has NO tag at all: the mechanic is an `onModifyDef` conditioned on `pokemon.status`, and no derivation in `tag_dex` describes a conditional stat multiplier. Wiring it by name is what this file spends its time deleting. **The Air Lock and Mummy corrections both say the same thing about this row: "no artifact" is a claim about the DERIVATION and should be re-tested, not inherited** |
-| 7 | `reordersTurn` — After You lets the partner move next | **OMISSION, and it is the nearest one to landing** | The param IS usable — `{sends: 'next'}` / `{sends: 'last'}` — and After You (151) + Quash (156) are pure reordering. **What blocks it is Instruct** (162), which carries the identical `{sends:'next'}` and does something completely different: it makes the TARGET use its last move again. Giving Instruct After You's behaviour would be a new wrong number, and nothing in the artifact tells the two apart. The derivation needs to distinguish them first |
+| 1 | `needsTargetToAttack` — Avalanche doubles after being hit | **DECISION**, unchanged | The probe asks for a rule that does not exist. Avalanche doubles when the user was damaged BY THAT TARGET THIS TURN; `dmgRange` is handed no turn state and must not invent any. 13 corpus uses. The tag's other nine members include Sucker Punch (6,673), already fully modelled through `failsIfTargetNotAttacking`, so the tag is not inert — only this member is |
+| 2 | `writesAccuracy` — No Guard | **OMISSION, blocked on a SIGNATURE**, costed rather than gestured at | `moveAccuracy(id, field)` takes neither body. 11 call sites across 4 files; two of them (`board.js`, `position_features.js`) are **not ENGINE's** and a signature change there is a feature-vector change, which is the refit edge MEASURE owns. The compatible shape is `moveAccuracy(id, field, att, def)` with both optional. **It is a deliberate pass, not a one-liner** |
+| 3 | `accuracyMod` — Sand Veil | **OMISSION, same signature**, same pass as #2 | — |
+| 4 | `untagged` — Marvel Scale raises Defense while statused | **OMISSION, blocked on the derivation** | 36 uses. It has NO tag at all: the mechanic is an `onModifyDef` conditioned on `pokemon.status`, and no derivation in `tag_dex` describes a conditional stat multiplier. Wiring it by name is what this file spends its time deleting. **The Air Lock, Mummy and now WIRE 83 corrections all say the same thing about this row: "no artifact" is a claim about the DERIVATION and should be re-tested, not inherited** |
+| 5 | `reordersTurn` — After You lets the partner move next | **OMISSION, and it is the nearest one to landing** | The param IS usable — `{sends: 'next'}` / `{sends: 'last'}` — and After You (151) + Quash (156) are pure reordering. **What blocks it is Instruct** (162), which carries the identical `{sends:'next'}` and does something completely different: it makes the TARGET use its last move again. Giving Instruct After You's behaviour would be a new wrong number, and nothing in the artifact tells the two apart. The derivation needs to distinguish them first |
 
 ## THE GENERATED INTERACTION MATRIX — `tests/interaction_matrix.js` + `tests/test-interaction-matrix.js`
 

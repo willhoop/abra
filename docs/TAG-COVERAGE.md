@@ -77,7 +77,15 @@ compare a digest of the whole turn-by-turn state:
 
 Implementation note, so it is not rediscovered: `engine/tags.js` memoises the artifact into `DB` on
 first `load()`. Mutation needs an injection point — add `__setDB(obj)` rather than clearing the require
-cache, which would also drop the counters.
+cache, which would also drop the counters. **And `__setDB` alone is not enough (found 2026-08-05):
+`medicham2-browser.js` builds its tag-derived sets — `SPREAD`, `HITS_ALLY`, the terrain table, the
+priority-block map — at module load, so an injected DB silently no-ops for every set-building tag and
+scores it read-and-ignored, the false-DEAD direction. `__setDB` ships with a derived-set rebuild hook,
+and the harness gate includes one set-building tag to prove the hook fires. Operators are per-tag AND
+per-param — tag removal cannot see a read-and-ignored param, which is the WIRE 71 shape and the
+`hitsAlly` case this section opens with. Run a small seed battery per mutant: one seed can miss a
+probabilistic effect, and PRNG-stream shift can move the digest for unrelated reasons; both error
+directions get named in the artifact.**
 
 An `ABRA_TAGS_OFF=1` switch already exists and blanks **every** lookup. That is the all-or-nothing
 control for "did wiring the artifact help at all". Tier 2 is the per-tag version of it.

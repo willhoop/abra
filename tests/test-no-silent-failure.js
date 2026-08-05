@@ -128,6 +128,12 @@ const SPEAKS = [
   /\.push\s*\(/,                     // recorded into a list of failures
   /\b(err|error|fail|failure|failed|warn)\w*\s*=/i,   // stashed for a later assertion
   /\blog\w*\s*\(/i,
+  /* CALLING a failure recorder is reporting. tests/test-stadium-roster.js's `catch { fail(msg) }`
+   * counts AND prints through its own `fail()` helper and was flagged as silent, which is a false
+   * positive — a wrongly-red ratchet is how a ratchet gets ignored. Call syntax only: a bare
+   * mention of a name like `failCount` in a condition does not qualify. This can only SHRINK the
+   * silent set, which is the one direction a detector change here is allowed to move it. */
+  /\bfail\w*\s*\(/i,
 ];
 const isSilent = (body) => !SPEAKS.some(re => re.test(body));
 

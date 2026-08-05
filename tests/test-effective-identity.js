@@ -353,6 +353,24 @@ const DECLARED = {
   'engine/mag_bot.js':
     'Tests a SHEET entry for completeness (st.moves && st.item && st.ability). A sheet entry\'s '
     + '.ability IS the pre-mega one, which is this test\'s own stated legitimate case.',
+  'engine/fit_policy.js':
+    'Three matches, walked 2026-08-05. Two are WIRING COUNTERS in probeLive(): `user.ability` and '
+    + '`f.ability` are TRUTHINESS tests at the point of use, counting whether the sheet channel '
+    + 'ARRIVED on the live body — the value is never read into a rule. Routing them through '
+    + 'effAbility() would be wrong BY CONSTRUCTION: it computes an ability from species+item even '
+    + 'when nothing arrived, so the counter would read green on exactly the silent-default failure '
+    + 'it exists to catch (the setSheet/switchIn key round trip, the venusaurmega shape). The third '
+    + '(`info.ability`) reads the object SC.pick() built from a stored SHEET entry, which is the '
+    + 'pre-mega one — this test\'s own stated legitimate case.',
+  'engine/joint_rows.js':
+    'One match: `m.ability` where m is a STORED SHEET mon out of the game record, tallied for '
+    + 'presence beside setSheet — the same wiring-counter-plus-sheet-entry shape as '
+    + 'engine/fit_policy.js one entry up, and the same legitimate case as engine/mag_bot.js.',
+  'engine/sheet_channels.js':
+    'One match: pick() reads `e.ability` off a STORED SHEET entry to build the setSheet payload, '
+    + 'honouring the channel set. There is no live body anywhere in this file — it exists so the '
+    + 'fit and the player read the SAME channel list — and a sheet entry\'s .ability IS the '
+    + 'pre-mega one, this test\'s own stated legitimate case.',
 };
 
 function walk(dir, out) {

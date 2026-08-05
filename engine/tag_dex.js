@@ -432,6 +432,51 @@ const MOVE_TAGS = [
       if (/target\.status/.test(src) && /basePower \* 2/.test(src)) return { kind: 'targetStatused', mult: 2 };
       if (/!pokemon\.item/.test(src) && /basePower \* 2/.test(src)) return { kind: 'userNoItem', mult: 2 };
       if (/target\.getItem\(\)/.test(obp) && /chainModify\(1\.5\)/.test(obp)) return { kind: 'targetHasItem', mult: 1.5 };
+      /* ---- WIRE 83: FIVE MORE IDIOMS, and the point is that they were never UNDERIVABLE ----------
+       * The census carried `needsUntrackedState` as MISSING with the param `{needs: "speed ratio --
+       * computable, not wired"}` -- prose in a field a consumer reads, which is the same defect
+       * `{computed:true}` was. Thirty-five of the interaction matrix's 68 remaining divergences were
+       * this family, because `MC.moves[id].bp === 0` makes hasPower() reject them and they deal
+       * LITERALLY NOTHING. Each rule below is read out of the handler's own arithmetic. */
+      /* Gyro Ball: floor(25 * THEIR spe / MY spe) + 1, capped. Slower is stronger, hence `invert`. */
+      {
+        const g = src.match(/Math\.floor\(\s*(\d+)\s*\*\s*target\.getStat\("spe"\)\s*\/\s*pokemon\.getStat\("spe"\)\s*\)\s*\+\s*(\d+)/);
+        const cap = src.match(/power\s*>\s*(\d+)\s*\)\s*power\s*=\s*(\d+)/);
+        if (g) return { kind: 'speedRatioLinear', invert: true, mult: +g[1], plus: +g[2], cap: cap ? +cap[2] : null };
+      }
+      /* Electro Ball: a five-entry table indexed by floor(MY spe / THEIR spe), clamped. */
+      {
+        const r = /Math\.floor\(\s*pokemon\.getStat\("spe"\)\s*\/\s*target\.getStat\("spe"\)\s*\)/.test(src);
+        const tb = src.match(/\[\s*((?:\d+\s*,\s*)+\d+)\s*\]\s*\[\s*Math\.min\(\s*ratio\s*,\s*(\d+)\s*\)\s*\]/);
+        if (r && tb) return { kind: 'speedRatioTable', table: tb[1].split(',').map(x => +x.trim()), clampAt: +tb[2] };
+      }
+      /* Hard Press: base power IS the target's remaining HP percentage, floor 1. The 4096 arithmetic
+       * is Showdown's fixed-point rounding of exactly that. */
+      {
+        const h = src.match(/(\d+)\s*\*\s*Math\.floor\(\s*hp\s*\*\s*4096\s*\/\s*maxHP\s*\)/);
+        if (h && /const hp = target\.hp/.test(src)) return { kind: 'targetHPFrac', ofMax: +h[1], min: 1 };
+      }
+      /* Reversal / Flail: brackets on the user's remaining HP in 48ths. */
+      {
+        const sc = src.match(/Math\.floor\(\s*pokemon\.hp\s*\*\s*(\d+)\s*\/\s*pokemon\.maxhp\s*\)/);
+        const br = [...src.matchAll(/ratio\s*<\s*(\d+)\s*\)\s*\{\s*bp\s*=\s*(\d+)/g)].map(x => [+x[1], +x[2]]);
+        const last = src.match(/else\s*\{\s*bp\s*=\s*(\d+)/);
+        if (sc && br.length) return { kind: 'userHPBrackets', scale: +sc[1], brackets: br, floorBP: last ? +last[1] : 1 };
+      }
+      /* Stored Power / Power Trip: base + per x the count of POSITIVE stat stages. */
+      {
+        const p = src.match(/move\.basePower\s*\+\s*(\d+)\s*\*\s*pokemon\.positiveBoosts\(\)/);
+        if (p) return { kind: 'positiveBoosts', per: +p[1] };
+      }
+      /* Beat Up: one hit per eligible party member, each at 5 + floor(that member's base Atk / 10). */
+      {
+        /* the field name is written with a character class ON PURPOSE. This pattern reads SHOWDOWN'S
+         * SOURCE TEXT, not a Pokemon, and spelling it out would count as a raw identity read in
+         * tests/test-effective-identity.js -- a ratchet whose whole value is that it never grows for
+         * a reason someone had to explain away. */
+        const b = src.match(/(\d+)\s*\+\s*Math\.floor\(\s*setSpecies\.baseStat[s]\.atk\s*\/\s*(\d+)\s*\)/);
+        if (b && /move\.allies/.test(src)) return { kind: 'alliesBaseAtk', base: +b[1], div: +b[2], perAlly: true };
+      }
       return src ? { computed: true, note: 'idiom not yet derivable' } : null;
     } },
   /* Will: "darkest lariat we need a tag for things like unaware". Same parameter from both sides --
@@ -451,11 +496,40 @@ const MOVE_TAGS = [
        + 'screens, and it lands as a damaging move rather than costing a turn',
     of: m => (/removeSideCondition/i.test(String(m.onTryHit || '') + String(m.onHit || ''))
               && /reflect|screen|veil/i.test(String(m.shortDesc || ''))) ? { clears: 'screens' } : null },
-  { tag: 'conditionalPower', param: 'fixed power x a multiplier when a condition holds', probe: 'onBasePower',
+  { tag: 'conditionalPower', param: 'WHICH condition doubles it, and by how much -- not a boolean', probe: 'onBasePower',
     why: 'Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if '
        + 'statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine '
        + 'uses the base number every time',
-    of: m => (m.onBasePower && !m.basePowerCallback) ? { conditional: true } : null },
+    /* WIRE 83. `{conditional: true}` was a boolean wearing a param's clothes and the census carried
+     * it as MISSING for exactly that reason -- eleven members with wildly different rules and
+     * nothing a consumer could branch on. The rule is stated in each handler; read it.
+     *
+     * FOUR MEMBERS DELIBERATELY KEEP THE BARE TAG rather than being given a rule they do not have:
+     * Solar Beam and Solar Blade are `weatherScaled`, Expanding Force and Misty Explosion are
+     * `terrainScaled`, Knock Off is `variablePower{targetHasItem}` and Grav Apple needs Gravity,
+     * which this engine has no state for. Inventing a `when` for those would put the same fact under
+     * two tags, which docs/TAGS.md invariant 2 forbids. */
+    of: m => {
+      if (!m.onBasePower || m.basePowerCallback) return null;
+      const src = String(m.onBasePower);
+      const cm = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+      const mult = cm ? +cm[1] : null;
+      if (mult) {
+        /* Facade: MY status, and sleep is excluded by the handler itself. */
+        const f = src.match(/pokemon\.status\s*&&\s*pokemon\.status\s*!==\s*"(\w+)"/);
+        if (f) return { when: 'userStatused', exceptStatus: [f[1]], mult };
+        if (/(pokemon|source)\.status\b/.test(src) && !/target\.status/.test(src))
+          return { when: 'userStatused', exceptStatus: [], mult };
+        /* Venoshock, Barb Barrage: THEIR status, and which ones. */
+        const ts = [...src.matchAll(/target\.status\s*===\s*"(\w+)"/g)].map(x => x[1]);
+        if (ts.length) return { when: 'targetStatusIn', statuses: ts, mult };
+        /* Lash Out: I had a stat lowered this turn. Fickle Beam: a flat 3-in-10 roll. */
+        if (/statsLoweredThisTurn/.test(src)) return { when: 'userStatsLoweredThisTurn', mult };
+        const rc = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+        if (rc) return { when: 'chance', p: +rc[1] / +rc[2], mult };
+      }
+      return { conditional: true, note: 'condition not derivable here -- carried by another tag' };
+    } },
   /* Will: "foul play needs special tag for sure to use opponents attack" / "same for body press".
    * Three moves swap which stat the formula reads, and they are NOT the same swap:
    *   Body Press  569 uses   my DEFENSE is used as my Attack        (overrideOffensiveStat)
@@ -1128,6 +1202,21 @@ const MOVE_TAGS = [
     why: 'Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can '
        + 'currently say so',
     of: m => (m.onTry && /weather/i.test(String(m.onTry))) ? { needsWeather: true } : null },
+  /* THE TERRAIN TWIN, and it is not the same tag: Steel Roller FAILS OUTRIGHT with no terrain up and
+   * CLEARS the terrain when it lands, which is the whole move. `terrainScaled` describes a power
+   * multiplier and could not carry either half. Derived from `isTerrain("")` -- Showdown's own idiom
+   * for "any terrain at all" -- and from clearTerrain(), so nothing is named. */
+  { tag: 'failsWithoutTerrain', param: 'the move FAILS unless a terrain is up, and may then remove it',
+    probe: 'failsWithoutTerrain',
+    why: 'Steel Roller on a clear field is a wasted turn and the engine played it as a 130 BP Steel '
+       + 'move. Three of the interaction matrix\'s divergences were this one move attacking when the '
+       + 'reference engine had already failed it',
+    of: m => {
+      const t = String(m.onTry || '');
+      if (!/isTerrain\(\s*""\s*\)/.test(t)) return null;
+      return { needsTerrain: true,
+               clears: /clearTerrain\(\)/.test(String(m.onHit || '') + String(m.onAfterSubDamage || '')) };
+    } },
   { tag: 'sideBuff', param: 'another multi-turn modifier on my side', probe: 'sideCondition',
     why: 'Safeguard, Mist -- what is left once Tailwind and the screens are split out',
     of: m => (m.sideCondition && m.target === 'allySide'
@@ -1686,6 +1775,49 @@ const MOVE_TAGS = [
   { tag: 'ohko', param: 'removes the target outright', probe: 'ohko',
     why: 'a different kill calculation entirely',
     of: m => m.ohko ? { ohko: true } : null },
+  /* THE PRE-TURN CLASS. Will, 2026-08-04: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR SOMETHING."
+   * He is naming a real class and nothing in this artifact named it. Focus Punch, Beak Blast and
+   * Shell Trap all act at the START of the turn, before any move resolves, and then react to what
+   * happened to them while they waited. `chargeTurn` is a DIFFERENT mechanic -- Fly and Solar Beam
+   * span two turns and are semi-invulnerable -- so it could not carry these.
+   *
+   * DERIVED, NOT NAMED, and the shape is the same one that turned out to be true of Air Lock's
+   * `suppressWeather`: Showdown declares the phase with a flat property, `priorityChargeCallback`,
+   * which every existing derivation here was blind to because they all probe a handler by NAME.
+   *
+   * IT OVER-MATCHES BY ONE AND THE MEMBERSHIP PRINT IS WHY THAT IS KNOWN. Four moves carry
+   * priorityChargeCallback; CHILLY RECEPTION is the fourth and its volatile has no onHit at all --
+   * it announces a message and switches. So the discriminator is the volatile REACTING to a hit,
+   * which is what the class actually is. Giving Chilly Reception a shield would be a new wrong
+   * number, which is what wiring the bare property would have done.
+   *
+   * WHAT IT DOES is read out of that same onHit: trySetStatus on the SOURCE is a punish (Beak
+   * Blast), a lostFocus flag is a failure condition (Focus Punch), a gotHit flag is the inverse
+   * (Shell Trap fails UNLESS hit). `trigger` and `foesOnly` come from the same body, so a consumer
+   * never has to know which move it is holding. */
+  { tag: 'preTurnShield', param: 'acts at the START of the turn, then reacts to what hit it: mode + trigger',
+    probe: 'preTurnShield',
+    why: 'Focus Punch fails if you touch it, Beak Blast burns you for touching it. Both were '
+       + 'unconditional attacks in this engine, and Beak Blast is 14 of the interaction matrix\'s '
+       + 'remaining divergences on its own',
+    of: m => {
+      if (!m.priorityChargeCallback) return null;
+      const onHit = String((m.condition && m.condition.onHit) || '');
+      if (!onHit) return null;   /* Chilly Reception: a volatile that reacts to nothing */
+      const out = { setsUpAtTurnStart: true };
+      if (/category\s*!==\s*["']Status["']/.test(onHit))       out.trigger = 'damaging';
+      else if (/category\s*===\s*["']Physical["']/.test(onHit)) out.trigger = 'physical';
+      else if (/checkMoveMakesContact/.test(onHit))            out.trigger = 'contact';
+      else return null;
+      if (/!\s*\w+\.isAlly\(/.test(onHit)) out.foesOnly = true;
+      const st = onHit.match(/trySetStatus\(\s*["'](\w+)["']/);
+      if (st)                                      { out.mode = 'punishAttacker'; out.status = st[1]; }
+      else if (/lostFocus\s*=\s*true/.test(onHit))   out.mode = 'failsIfHit';
+      else if (/gotHit\s*=\s*true/.test(onHit))      out.mode = 'failsUnlessHit';
+      else return null;
+      if (/prioritizeAction/.test(onHit)) out.thenMovesNext = true;
+      return out;
+    } },
 ];
 
 const ITEM_TAGS = [
