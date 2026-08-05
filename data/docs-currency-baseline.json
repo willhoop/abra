@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-05T16:46:35.584Z",
+  "generated": "2026-08-05T17:52:57.310Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "3.43.0",
+  "changelog_top_at_baseline": "3.45.0",
   "version_pins": {
     "docs/ARCHITECTURE-NOTES.md": {
       "version": "1.0",
@@ -177,7 +177,6 @@
       "docs/ABRA-whitepaper.md|73%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|756|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|8,713|data/quality-filter.json",
-      "docs/ABRA-whitepaper.md|89|data/tags.json,data/rulebook-collision.json",
       "docs/ENGINE-COVERAGE-PLAN.md|954|data/tags.json",
       "docs/MODELS.md|0.0155|data/counterplay.json",
       "docs/MODELS.md|0.0386|data/counterplay.json",
@@ -254,26 +253,24 @@
       "docs/SUMMARY.md|1,336|data/censoring-value.json",
       "docs/SUMMARY.md|1.3475%|data/censoring-value.json",
       "docs/SUMMARY.md|1.71|data/quality-filter.json",
-      "docs/SUMMARY.md|116|data/mechanics-census.json,data/interaction-matrix.json,data/rulebook-collision.json",
       "docs/SUMMARY.md|146,910|data/policy-weights.json",
       "docs/SUMMARY.md|19,589|data/quality-filter.json",
       "docs/SUMMARY.md|241,927|data/censoring-value.json",
       "docs/SUMMARY.md|3,260|data/censoring-value.json",
-      "docs/SUMMARY.md|31.1|data/mechanics-census.json,data/interaction-matrix.json,data/rulebook-collision.json",
       "docs/SUMMARY.md|6,091|data/policy-weights.json",
       "docs/SUMMARY.md|7.4|data/quality-filter.json",
       "docs/SUMMARY.md|8,713|data/quality-filter.json"
     ],
     "untraceable_by_doc": {
       "docs/ABRA-technical-docs.md": 2,
-      "docs/ABRA-whitepaper.md": 31,
+      "docs/ABRA-whitepaper.md": 16,
       "docs/ADR-002-showdown-is-the-authority.md": 1,
-      "docs/ARCHITECTURE.md": 4,
-      "docs/CLICK-CENSORING-FIX.md": 3,
-      "docs/MODELS.md": 27,
-      "docs/ROLE-FAMILY.md": 5,
+      "docs/ARCHITECTURE.md": 1,
+      "docs/CLICK-CENSORING-FIX.md": 1,
+      "docs/MODELS.md": 16,
+      "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7,
-      "docs/SUMMARY.md": 7,
+      "docs/SUMMARY.md": 1,
       "docs/TAG-COVERAGE.md": 11,
       "docs/predictability-study.md": 1
     }

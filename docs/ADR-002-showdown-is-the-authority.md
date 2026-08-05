@@ -1,6 +1,6 @@
 # ADR-002 — Showdown is the authority, MEDICHAM is the runtime
 
-**Version 3.43.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
+**Version 3.45.0 · 2026-08-05 · Status: ACCEPTED · Supersedes the migration half of
 [ADR-001](ADR-001-use-the-champions-mod.md), which stands as a record and is not deleted.**
 
 ---
@@ -48,11 +48,11 @@ converged. Read at the moment of the decision, from artifacts, not prose:
 | instrument | agreement with the official engine |
 |---|---|
 | `data/engine-diff.json` (damage, seed 20260804) | **149 / 150** — the one residual is a documented harness-layer boundary, both engines right |
-| `data/interaction-matrix.json` (carrier × reactor) | **1,027 / 1,031 — 99.6%**; the four are UNWIRED knobs (Shield Dust ×3, Steadfast ×1), not wrong arithmetic |
-| `data/mechanics-census.json` | **208 / 211 live**, 3 missing with written reasons |
+| `data/interaction-matrix.json` (carrier × reactor) | **1,436 / 1,453 — 98.8%** of 2,300 staged from a theoretical 8,795. The 17 are filed individually; the four oldest are UNWIRED knobs (Shield Dust ×3, Steadfast ×1) rather than wrong arithmetic |
+| `data/mechanics-census.json` | **210 / 213 live**, 3 missing with written reasons |
 
 *(Those are a snapshot, and the census in particular moves — it read 202/211 four hours before this
-was written and 208/211 when it was checked. That is the point rather than a caveat: the number
+was written and 210/213 when it was checked. That is the point rather than a caveat: the number
 climbs because the instruments exist. Read it from the artifact, never from this table.)*
 
 What made the difference is not stubbornness. **The differential harness and the interaction matrix
@@ -72,9 +72,9 @@ the authority. Every disagreement remains MEDICHAM's fault by construction.
 
 ## What we accept, and it is not small
 
-**Conformance is proven only where we have looked.** The matrix stages **1,675 of a theoretical
-8,676** carrier × reactor pairs. The honest claim is *"the engine agrees with the official engine on
-the 1,675 pairs that ran"*, never *"the engine is correct"*. That coverage fraction **is** the answer
+**Conformance is proven only where we have looked.** The matrix stages **2,300 of a theoretical
+8,795** carrier × reactor pairs — **26.2%**. The honest claim is *"the engine agrees with the official
+engine on the 2,300 pairs that ran"*, never *"the engine is correct"*. That coverage fraction **is** the answer
 to how much of the law we actually follow, and raising it is the entire point of the coverage
 programme (mutation → unified generator → registry → differential).
 

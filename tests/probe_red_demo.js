@@ -65,6 +65,44 @@ function demo(name, goodDB, badDB, assertFn) {
   console.log(`  ${ok ? 'OK   ' : 'FAIL '} ${name}   green-arm=${green} (must be true)  stripped-arm=${red} (must be false)`);
 }
 
+/* ---- THE SECOND KIND OF KNOWN-BAD ENGINE: A REVERTED SOURCE, NOT A STRIPPED TAG ------------------
+ *
+ * `demo` above mutates the ARTIFACT, which is the right known-bad input for a wire whose defect was
+ * "nothing consumed this tag". It cannot express a defect that lives in the CODE and has no tag to
+ * strip -- WIRE 117's terrain branch sat outside a loop, and the artifact was innocent.
+ *
+ * So this loads the engine source through a fresh module, textually reverts the WIRE's sites to
+ * EXACTLY what they said before the pass, and runs the same assertion against the reverted build.
+ * Every reversal ASSERTS IT APPLIED: a patch that silently failed to match would make a broken
+ * engine look fixed, which is this project's signature failure arriving through the test meant to
+ * catch it. Nothing is written to disk; the reverted build exists only in this process. */
+const Module = require('module');
+const fs = require('fs');
+const MEDI_PATH = D('engine', 'medicham2-browser.js');
+function revertedEngine(edits) {
+  /* NORMALISED FIRST. The engine file is CRLF on this machine and the patterns below are written in
+   * a JS source file with LF newlines, so an un-normalised match fails on every multi-line edit --
+   * and it failed LOUDLY, which is the guard doing its job rather than a reason to weaken it. */
+  let src = fs.readFileSync(MEDI_PATH, 'utf8').replace(/\r\n/g, '\n');
+  for (const [find, replace] of edits) {
+    if (!src.includes(find)) throw new Error('reversal did not apply — the source no longer contains:\n' + find);
+    src = src.split(find).join(replace);
+  }
+  const m = new Module(MEDI_PATH, null);
+  m.filename = MEDI_PATH;
+  m.paths = Module._nodeModulePaths(path.dirname(MEDI_PATH));
+  m._compile(src, MEDI_PATH);
+  return m.exports;
+}
+function demoSource(name, edits, assertFn) {
+  ran++;
+  const bad = revertedEngine(edits);
+  const green = !!assertFn(M), red = !!assertFn(bad);
+  const ok = green && !red;
+  if (!ok) failures++;
+  console.log(`  ${ok ? 'OK   ' : 'FAIL '} ${name}   shipped-arm=${green} (must be true)  reverted-arm=${red} (must be false)`);
+}
+
 /* ---- the wires, each against its own mutation ---------------------------------------------------- */
 
 demo('WIRE 91  speedMult -- Choice Scarf x1.5', shipped, without('item', 'choicescarf', 'speedMult'), () => {
@@ -315,6 +353,68 @@ demo('WIRE 112 condStatMult -- Marvel Scale raises Defense while statused',
     const mv = MC.moves['earthquake'];
     const plain = bare('milotic'); plain.status = 'brn';
     return M.dmgRange(atk, def, mv, FIELD(), false).max < M.dmgRange(atk, plain, mv, FIELD(), false).max;
+  });
+
+/* ---- WIRE 117, against a source-reverted engine ------------------------------------------------- */
+
+/* The reverted terrain branch is the shipped line, verbatim: outside the defender loop, inspecting
+ * no body at all. Both probe arms are asserted in one assertion, because either alone passes on some
+ * wrong engine -- grounded-blocked passes on the shipped-broken build, airborne-lands passes on a
+ * build with no Psychic Terrain whatsoever. */
+const WIRE117_PRIORITY_REVERT = [[
+  `  if(field&&terrainId(field.terrain)==='psychic'){
+    const aim=aimedAt?[aimedAt]:(defenders||[]);
+    let blocked=false,airborne=false;
+    for(const d of aim){
+      if(!d||d.fainted) continue;
+      if(isGrounded(d)) blocked=true; else airborne=true;
+    }
+    if(blocked) out=Math.min(out,0);`,
+  `  if(field&&terrainId(field.terrain)==='psychic'){
+    let blocked=true,airborne=false;
+    if(blocked) out=Math.min(out,0);`]];
+
+demoSource('WIRE 117 Psychic Terrain refuses priority only against a GROUNDED target',
+  WIRE117_PRIORITY_REVERT, (E) => {
+    const took = (sp, terrain, ab) => {
+      const me = bare('incineroar'), ally = bare('incineroar');
+      const f1 = bare(sp), f2 = bare('garchomp');
+      if (ab) f1.ability = ab;
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      S.field.terrain = terrain;
+      const before = f1.curHP;
+      E.battleTurn(S, rng5, new Map([[me, E.playerAction(me, 'fakeout', f1, S.field)], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return before - f1.curHP;
+    };
+    const gP = took('garchomp', 'psychic');
+    const fC = took('talonflame', ''), fP = took('talonflame', 'psychic');
+    const lC = took('garchomp', '', 'levitate'), lP = took('garchomp', 'psychic', 'levitate');
+    return gP === 0 && fP === fC && fC > 0 && lP === lC && lC > 0;
+  });
+
+/* The Grassy Terrain heal is the same predicate one field over, and its own MEDFAILS counter said so
+ * for a whole pass. The reverted line is the shipped one: the TYPE half applied, the ability half
+ * counted and healed anyway. */
+demoSource('WIRE 117 Grassy Terrain does not heal a Levitate body',
+  [[`         if(isGrounded(m)) m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
+         else MEDSEEN.terrainHealSkippedAirborne++;`,
+    `         if(m.types.indexOf('Flying')<0) m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));`]],
+  (E) => {
+    const healed = (ab) => {
+      const me = bare('garchomp'), ally = bare('incineroar');
+      const f1 = bare('milotic'), f2 = bare('weavile');
+      me.ability = ab; me.curHP = Math.floor(me.st.hp / 2);
+      const S = E.battleInit([me, ally], [f1, f2], { seeded: true });
+      S.field.terrain = 'grassy';
+      const before = me.curHP;
+      E.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+        new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+      return me.curHP - before;
+    };
+    /* The control must HEAL, or "Levitate is not healed" would be satisfied by a terrain that heals
+     * nobody -- which is precisely what WIRE 72 found the last time this branch was touched. */
+    return healed('none') > 0 && healed('levitate') === 0;
   });
 
 console.log(`\n  ${ran} demonstrations, ${failures} failed`);

@@ -1,12 +1,12 @@
 {
-  "generated": "2026-08-05T17:06:20.640Z",
+  "generated": "2026-08-05T17:54:04.085Z",
   "by": "tests/test-mechanics.js",
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 211,
-  "live": 208,
+  "probed": 213,
+  "live": 210,
   "missing": 3,
-  "armed": 65,
-  "unarmed": 146,
+  "armed": 68,
+  "unarmed": 145,
   "threw": 0,
   "hollow": 0,
   "results": [
@@ -1349,7 +1349,25 @@
       "live": true,
       "detail": "Ice Shard into the user: no click 24 (terrain \"\"), after Psychic Terrain 0 (terrain \"psychic\")",
       "hollow": false,
-      "armed": false
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "setsTerrain",
+      "label": "Psychic Terrain refuses priority only against a GROUNDED target",
+      "live": true,
+      "detail": "Fake Out damage, clear -> Psychic Terrain: Garchomp 28->0 (must be 0), Talonflame 34->34 (must not move), Levitate 28->28 (must not move), Earth Eater 28->0 (grounded, must be 0), Flying+Iron Ball 34->0 (grounded, must be 0); seen.terrainSparedAirborne +4 (must be > 0)",
+      "hollow": false,
+      "armed": true
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "Grassy Terrain heals a grounded body and not an airborne one",
+      "live": true,
+      "detail": "HP gained under Grassy Terrain: grounded Garchomp +11 (must be > 0), Levitate +0 (must be 0), Flying Talonflame +0 (must be 0); seen.terrainHealSkippedAirborne +2 (must be 2)",
+      "hollow": false,
+      "armed": true
     },
     {
       "kind": "move",
@@ -1689,7 +1707,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true
     },

@@ -96,7 +96,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 90 -- an entry hazard that RESOLVED on a switch-in (toxic spikes' poison, sticky web's
    * drop). The old MEDFAILS.hazardUnresolved counter is gone because the gap it declared is wired;
    * this is its receipt, so the counter did not merely vanish (docs/ENGINE.md rule). */
-  hazardResolvedOnEntry: 0 };
+  hazardResolvedOnEntry: 0,
+  /* WIRE 117 -- a Psychic Terrain priority bar that was NOT applied because the body being aimed at
+   * is airborne. Before this wire the terrain refused priority against everything on the field, so
+   * this branch could not fire at all. */
+  terrainSparedAirborne: 0,
+  /* WIRE 117 -- the Grassy Terrain heal SKIPPED because the body is not grounded. This is the
+   * receipt for MEDFAILS.terrainHealUngrounded, which is gone: that counter existed to declare that
+   * the Levitate and Air Balloon halves of this test were known-wrong and applied anyway. The gap is
+   * wired, so the failure counter is replaced by a capability counter rather than deleted
+   * (docs/ENGINE.md rule -- a counter must not merely vanish). */
+  terrainHealSkippedAirborne: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
@@ -131,11 +141,15 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
      closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
      in whatever direction the unknown condition points. */
   priorityModUnknownCond: 0, priorityModUnknownCondFirst: '',
-  /* A body healed by Grassy Terrain that the real game would NOT heal because it is not grounded
-     (WIRE 73). The TYPE half is applied -- a Flying type is skipped -- but Levitate and an Air Balloon
-     are healed and counted. WIRE 90 wired the hazard twin of this gap by deriving grounded-ness from
-     the body (types + ability + item); this heal site still does not, so the counter stands. */
-  terrainHealUngrounded: 0,
+  /* WIRE 117 -- `terrainHealUngrounded` LIVED HERE and is gone, wired rather than declared. It
+     counted a Levitate body that Grassy Terrain healed anyway, and its own comment said WIRE 90 had
+     already made the derivation available. Its replacement is MEDSEEN.terrainHealSkippedAirborne,
+     which counts the same event now that the engine gets it right. */
+  /* WIRE 117 -- grounded-ness asked of a body that carries no `types` list, so only the ability
+     clause could be evaluated. board.js maps its priority defenders to `{ability, fainted}` and is
+     not ENGINE's file to change; a Flying type read through that path is still over-refused, and
+     this is that gap being loud instead of silent. */
+  groundedBodyIncomplete: 0, groundedBodyIncompleteFirst: '',
   /* A `convertsMoveType.converts` string this engine cannot parse (WIRE 75). The artifact writes either
      a capitalised TYPE ("Normal moves"), a lowercase FLAG ("sound moves") or "its moves"; anything
      else would silently mean "the ability does not apply", which is how Liquid Voice was inert. */
@@ -235,7 +249,97 @@ function priorityBlockAbilities(){
   }catch(e){}
   return _prioBar;
 }
-function priorityRefusedAbove(defenders, field){
+/* WIRE 117 -- IS THIS BODY ON THE GROUND. ONE FUNCTION, because the fact was written by hand in
+ * THREE places and none of them was the one that mattered.
+ *
+ * Will: *"Psych terrain is sorta like queenly majesty"* -- correct, and they resolve through the same
+ * function, which is why the defect below was invisible. `priorityRefusedAbove` walked the defenders
+ * for the ability bar and then applied the Psychic Terrain bar OUTSIDE that loop, never inspecting a
+ * body at all. Real Psychic Terrain refuses priority only against a GROUNDED target, so MEDICHAM was
+ * refusing Fake Out (12,872 uses), Extreme Speed, Sucker Punch, Aqua Jet and Upper Hand into every
+ * Flying type, every Levitate body and every Air Balloon on the field. The comment that sat there
+ * said grounded-ness "is not tracked in this engine"; that stopped being true at WIRE 90 and the
+ * comment survived the change, which is how a declared gap outlives the gap.
+ *
+ * THE THREE HAND-WRITTEN COPIES it replaces, all of them CLAUDE.md's "FACTS ARE GLOBAL" broken:
+ *   the hazard block (Spikes / Toxic Spikes / Sticky Web), the `preventsSwitch.onlyGrounded` test in
+ *   the switch branch, and the Grassy Terrain heal -- whose copy applied the TYPE half only and
+ *   COUNTED its own known-wrong ability half in `MEDFAILS.terrainHealUngrounded`. Someone knew that
+ *   one was wrong and the counter is the receipt.
+ *
+ * THE RULE IS SHOWDOWN'S OWN `Pokemon#isGrounded` (sim/pokemon.ts:2153), clause for clause, and every
+ * clause below was CHECKED AGAINST THE FORMAT rather than remembered:
+ *
+ *   Iron Ball        grounds, and beats the Flying clause     isNonstandard null -- LEGAL, 113 uses. WIRED
+ *   Flying type      airborne                                 WIRED
+ *   Levitate         airborne                                 2,540 uses. WIRED
+ *   Eelevate         airborne                                 Eelektross-Mega. 0 sheets (Lesson 3). WIRED
+ *   Air Balloon      airborne                                 isNonstandard 'Past' -- BANNED here, and
+ *                                                             absent from data/tags.json's items
+ *                                                             entirely. Kept as the RULE, unreachable
+ *                                                             in this format, stated rather than dropped
+ *   Telekinesis      would ground                             isNonstandard 'Past' -- BANNED. NOT wired,
+ *                                                             and this HONOURS the declaration at the
+ *                                                             hazard block rather than contradicting it
+ *   Magnet Rise      would float                              legal, 1 corpus use, a VOLATILE this engine
+ *                                                             does not carry. NOT wired, declared
+ *   Gravity          grounds EVERYTHING                       legal, 79 corpus uses, a pseudo-weather
+ *                                                             this engine has no field slot for. NOT
+ *                                                             wired, declared -- the largest live gap here
+ *   Smack Down       grounds                                  legal, 10 uses, a volatile. NOT wired
+ *   Ingrain          grounds                                  legal, 0 uses. NOT wired
+ *   Roost            grounds the user for the turn            legal, 2,109 uses -- but the grounding is
+ *                                                             a one-turn TYPE deletion and this engine
+ *                                                             holds no per-turn type override. NOT wired,
+ *                                                             declared, and it is the second-largest gap
+ *
+ * THE ABILITY SET IS A NAME AND THAT IS THE STANDING DECLARATION HONOURED, NOT AN EXCEPTION TO IT.
+ * The tempting shape is `typeImmunity {type:'Ground'}`, and its membership was PRINTED before being
+ * trusted (LESSONS §4): `eelevate`, `levitate` AND **`eartheater`** (45 uses, Orthworm). Earth Eater
+ * is Ground-IMMUNE and firmly on the floor, and the official engine says so out loud -- Fake Out into
+ * an Orthworm under Psychic Terrain came back `|-activate|p2a: Orthworm|move: Psychic Terrain`, i.e.
+ * BLOCKED, in the same run in which Talonflame and Hydreigon took it. Consuming that tag by shape
+ * would have made Orthworm airborne. Showdown itself hard-names the pair in `isGrounded`, so this
+ * mirrors the reference engine's own implementation rather than inventing a naming.
+ *
+ * THE RECEIPTS, all played at the pinned commit under gen9championsvgc2026regmb, Incineroar's Fake
+ * Out into a Psychic Terrain put up by the opposing Indeedee's Psychic Surge:
+ *
+ *     Garchomp    Rough Skin              -activate Psychic Terrain    BLOCKED, 0 damage
+ *     Orthworm    Earth Eater             -activate Psychic Terrain    BLOCKED, 0 damage
+ *     Talonflame  Flame Body              -hint "doesn't affect airborne Pokemon"   LANDS 237->216
+ *     Hydreigon   Levitate                -hint "doesn't affect airborne Pokemon"   LANDS 251->233
+ *     Talonflame  Flame Body + Iron Ball  -activate Psychic Terrain    BLOCKED
+ *     Hydreigon   Levitate  + Iron Ball   -activate Psychic Terrain    BLOCKED
+ *
+ * A BODY THAT CARRIES NO TYPE LIST IS COUNTED, LOUDLY. board.js maps its defenders to
+ * `{ability, fainted}` and hands them here (:2565), so the Levitate clause reaches them and the
+ * Flying and item clauses cannot. That is a real remaining over-refusal in the FEATURE vector, it is
+ * not ENGINE's file to fix (a board.js signature change is a refit, which MEASURE owns), and a silent
+ * default there would look exactly like a working feature. */
+const AIRBORNE_ABIL=new Set(['levitate','eelevate']);
+function isGrounded(mon){
+  if(!mon) return true;
+  const g=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const it=g(mon.item);
+  if(it==='ironball') return true;                       // beats every airborne clause, as it does upstream
+  if(!mon.types){                                        // a partial body -- see the loud-counter note above
+    MEDFAILS.groundedBodyIncomplete++;
+    if(!MEDFAILS.groundedBodyIncompleteFirst) MEDFAILS.groundedBodyIncompleteFirst=g(mon.ability)||'(no ability)';
+  }
+  if((mon.types||[]).indexOf('Flying')>=0) return false;
+  if(AIRBORNE_ABIL.has(g(mon.ability))) return false;
+  return it!=='airballoon';
+}
+/* `aimedAt` IS OPTIONAL AND THE TWO ARMS ARE NOT THE SAME QUESTION. The ability bar is a SIDE fact --
+ * Queenly Majesty and Armor Tail protect their partner as well as themselves, so it is right to fold
+ * it over every live defender. Psychic Terrain is a TARGET fact: it asks whether the body being aimed
+ * at is standing on the terrain. Passing both foes and folding the terrain over them would let a
+ * grounded partner block a Fake Out aimed at the Talonflame beside it. Callers that know the target
+ * pass it; callers that do not (board.js's feature read, which has no target object) fall back to
+ * "any live defender is grounded", which is the old unconditional behaviour minus the bodies that are
+ * provably airborne. */
+function priorityRefusedAbove(defenders, field, aimedAt){
   const bar=priorityBlockAbilities();
   let out=Infinity;
   for(const d of (defenders||[])){
@@ -243,12 +347,23 @@ function priorityRefusedAbove(defenders, field){
     const ab=String(d.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'');
     if(ab&&bar.has(ab)) out=Math.min(out,bar.get(ab));
   }
-  /* Psychic Terrain refuses priority against grounded targets. Grounded-ness is not tracked in this
-   * engine, so this applies it unconditionally and says so: the common case is a grounded target and
-   * ignoring the terrain entirely is wrong far more often than this is. */
   /* THROUGH terrainId. This line tested `psychicterrain` — the BOARD's spelling — while the artifact's
    * `psychicsurge` sets `psychic`, so the ability that puts the terrain up could never trigger it. */
-  if(field&&terrainId(field.terrain)==='psychic') out=Math.min(out,0);
+  if(field&&terrainId(field.terrain)==='psychic'){
+    const aim=aimedAt?[aimedAt]:(defenders||[]);
+    let blocked=false,airborne=false;
+    for(const d of aim){
+      if(!d||d.fainted) continue;
+      if(isGrounded(d)) blocked=true; else airborne=true;
+    }
+    if(blocked) out=Math.min(out,0);
+    /* ONCE PER CALL, AND ONLY WHEN THE BAR GENUINELY WAS NOT APPLIED. Counting per airborne body, or
+     * on every call under the terrain, would make the number mean "Psychic Terrain was up" rather
+     * than "this branch changed an outcome", and a counter nobody can read is a counter nobody acts
+     * on. A zero here after games under a Psychic Terrain with a Flying body on the field IS the
+     * finding -- that is the whole reason this wire needed a counter and not only a probe. */
+    else if(airborne) MEDSEEN.terrainSparedAirborne++;
+  }
   return out;
 }
 
@@ -1042,10 +1157,19 @@ function dmgRange(att,def,mv,field,spread){
      Sits with the weather multipliers because it is the same kind of field modifier.
      THE TERRAIN COMES IN THE BOARD'S SPELLING (Showdown's own `isTerrain` string) and the field may be
      in either -- terrainId is asked on both sides so the comparison is between two normalised words.
-     TWO HALVES ARE NOT MODELLED AND ARE STATED: grounded-ness, which this engine does not track (the
-     same caveat priorityRefusedAbove already carries), and Expanding Force becoming a SPREAD move in
-     Psychic Terrain, which is a targeting change rather than a power one. Terrain Pulse carries the
-     tag with no number on purpose -- it changes TYPE as well as power -- and is left unwired. */
+     TWO HALVES ARE NOT MODELLED AND ARE STATED, and the FIRST reason changed at WIRE 117 -- the old
+     wording said grounded-ness "is not tracked", pointing at priorityRefusedAbove, and that reason is
+     now dead: `isGrounded` exists. THE LIVE BLOCKER IS THE TAG, and it is a real one, because the two
+     members disagree about WHOSE feet matter:
+         Expanding Force  `this.field.isTerrain('psychicterrain') && source.isGrounded()`   the USER
+         Rising Voltage   `this.field.isTerrain('electricterrain') && target.isGrounded()`  the TARGET
+     `terrainScaled` carries `{terrain, mult}` and no subject, so wiring a grounded test here would be
+     a coin flip that is wrong for one of the two. FILED for a tag_dex enrichment (`grounded:
+     'user'|'target'`, derivable from the handler text exactly as WIRE 83 derived its conditions);
+     until then the multiplier applies to both, which is the pre-WIRE-117 behaviour and is stated
+     rather than silently kept. The second half is Expanding Force becoming a SPREAD move in Psychic
+     Terrain, which is a targeting change rather than a power one. Terrain Pulse carries the tag with
+     no number on purpose -- it changes TYPE as well as power -- and is left unwired. */
   {
     const _ts=TAGS.param('move',mv&&mv.id,'terrainScaled');
     if(_ts&&_ts.terrain&&_ts.mult&&terrainId(field.terrain)===terrainId(_ts.terrain))
@@ -2026,7 +2150,11 @@ function bringIn(act,i,bench,foes,sf,field,wanted){
      read the same grounded test instead of the bare Flying check -- a Levitate body walks over them,
      which is the real rule and was the declared half of the old gap. */
   if(sf&&sf.hz){
-    const _grounded=nx.types.indexOf('Flying')<0&&nx.ability!=='levitate'&&nx.item!=='airballoon';
+    /* WIRE 117 -- through the shared `isGrounded`. This line WAS the predicate, hand-written, and two
+       more hand-written copies of it lived elsewhere in this file disagreeing about Iron Ball and
+       about Eelevate. One function now answers it for the hazards, the switch branch, the Grassy
+       Terrain heal and Psychic Terrain's priority bar. */
+    const _grounded=isGrounded(nx);
     if(sf.hz.stealthrock)nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
     if(sf.hz.spikes&&_grounded)
       nx.curHP-=Math.floor(nx.st.hp/[8,8,6,4][Math.min(sf.hz.spikes,3)]);
@@ -2381,7 +2509,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * setup. The attack branch keeps its own copy for the spread case, where target is null. */
         if(_pmv&&a.target&&_pf.indexOf(a.target)>=0){
           const _pk=(a.kind==='attack'?0:(isPrankster(m)?1:0));
-          if(movePriority(_pmv,field)+_pk>priorityRefusedAbove(_pf,field)){m._lastMove=_pmv;continue;}
+          /* WIRE 117 -- the TARGET is handed over, because Psychic Terrain is a per-body question and
+             the ability bar is a per-side one. Without it a grounded partner would refuse a priority
+             move aimed at the airborne body standing next to it. */
+          if(movePriority(_pmv,field)+_pk>priorityRefusedAbove(_pf,field,a.target)){m._lastMove=_pmv;continue;}
         }
       }
       if(a.kind!=='sub'&&(a.mv||(a.move&&a.move.id))){
@@ -2874,7 +3005,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _ps=TAGS.param('ability',x.ability,'preventsSwitch');
             if(!_ps)return false;
             if(_ps.onlyTypes&&!_ps.onlyTypes.some(ty=>(m.types||[]).includes(ty)))return false;
-            if(_ps.onlyGrounded&&((m.types||[]).includes('Flying')||m.ability==='levitate'||m.item==='airballoon'))return false;
+            if(_ps.onlyGrounded&&!isGrounded(m))return false;   // WIRE 117 -- the shared predicate
             return true;
           });
           if(_held){MEDSEEN.trapBlockedSwitch++;continue;}
@@ -3104,9 +3235,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * turn and, until now, let it connect regardless of Armor Tail, Queenly Majesty, Dazzling or
        * Psychic Terrain -- so every rollout and every self-play game had Sucker Punch beating a
        * Farigiraf. Checked against the side actually being aimed at. */
+      /* WIRE 117 -- and against the BODY actually being aimed at, when there is one. `a.target` is
+       * only handed over if it is still standing in that foe slot; a spread move, or an aim at
+       * something that has already left, falls back to the whole-side read. */
       {
         const _foes=it.side==='A'?actB:actA;
-        if(movePriority(a.move.id,field)>priorityRefusedAbove(_foes,field)) continue;
+        const _aim=(a.target&&_foes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
+        if(movePriority(a.move.id,field)>priorityRefusedAbove(_foes,field,_aim)) continue;
       }
       /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
          correctly and cost the user nothing, so a 90%-accurate 130 BP move had no downside at all --
@@ -4029,15 +4164,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `grassyterrain` is `perTurnHP {effect:'heal', per:16, on:'user'}`, and WIRE 72's guard is what
        * left it readable. The terrain is matched by `terrainId`, so either vocabulary works.
        *
-       * GROUNDED-NESS: the TYPE half is applied and the ABILITY half is still counted rather than
-       * fixed (fails.terrainHealUngrounded). WIRE 90 wired the hazard twin of this gap by deriving
-       * grounded-ness from the body, so "not available" no longer holds as a reason -- what holds is
-       * that no probe has failed on this line yet, and the counter keeps it declared until one does. */
+       * GROUNDED-NESS: WIRE 117 CLOSED THIS. The old code applied the TYPE half only and counted its
+       * own known-wrong ability half in `fails.terrainHealUngrounded` -- a probe never failed on it,
+       * so the counter kept it declared, which is exactly how a gap survives a fix that was already
+       * available. It now asks the shared `isGrounded`, the same predicate the hazards, the switch
+       * branch and Psychic Terrain's priority bar ask, and the failure counter is replaced by
+       * MEDSEEN.terrainHealSkippedAirborne so the event is still countable. */
       {const _th=terrainPerTurnHP()[terrainId(field.terrain)];
        if(_th&&_th.effect==='heal'&&_th.per&&!healBlocked(m)){
-         if(m.types.indexOf('Flying')<0)
-           m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
-         if(String(m.ability||'').replace(/[^a-z0-9]/g,'')==='levitate')MEDFAILS.terrainHealUngrounded++;
+         if(isGrounded(m)) m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
+         else MEDSEEN.terrainHealSkippedAirborne++;
        }}
       if(m.status==='brn')m.curHP-=Math.floor(m.st.hp/16);
       if(m.status==='psn')m.curHP-=Math.floor(m.st.hp/8);                       // regular poison: a flat 1/8
@@ -4451,7 +4587,7 @@ root.parsePaste=parsePaste; root.buildMonFromSet=buildMonFromSet; root.weatherId
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,
   punishExposure,clickFragility,statusCostOf,physicalShare,speedFlipShare,EXPOSURE_HORIZON,bestMoveVs,battleInit,battleTurn,battleOver,battleResult,playerAction,parsePaste,buildMonFromSet,
-  moveFx,movePriority,priorityRefusedAbove,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
+  moveFx,movePriority,priorityRefusedAbove,isGrounded,moveAccuracy,canTakeStatus,effSpeed,applyEntryEffects,applyStatus,applyIntimidate,powderBlocked,pranksterBlocked,setPurePriors,
   /* Exported so a caller can ask THIS engine what counts as a protect rather than keeping a second
    * list that drifts from it: the live bot tracks consecutive uses to seed tookProtectTurns. */
   PROTECTMOVES,

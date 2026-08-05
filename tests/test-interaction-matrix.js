@@ -180,7 +180,12 @@ function runState(c) {
     const st = stageState(c, arm);
     out.blocked = st.blocked;
     const collect = [];
-    try { runScript(c.id + '/' + arm, st.A, st.B, st.script, { collect, pinDice: true }); }
+    /* `allowRolls` LIFTS TRAP 2 FOR THIS ONE SCRIPT, and only because the dice are pinned to the same
+     * median in both engines — see carrierRollVerdict in the generator and the pinning block in
+     * tests/test-game-diff.js. It is passed per CASE, off the carrier the generator marked, never as a
+     * blanket setting: a blanket one would also excuse a control carrier that rolls, and the control
+     * is the thing the whole two-arm design subtracts with. */
+    try { runScript(c.id + '/' + arm, st.A, st.B, st.script, { collect, pinDice: true, allowRolls: !!c.carrier.rolls }); }
     catch (e) { out.failure = e.message.slice(0, 130); return out; }
     if (!collect.length) { out.failure = 'no turn was played'; return out; }
     arms[arm] = collect[collect.length - 1];
@@ -234,7 +239,7 @@ function runDamage(c) {
      * moveHit is what makes this need no CONTROL FIX of its own. --- */
     const st = stageState(c, arm);
     const collect = [];
-    try { runScript(c.id + '/dmg/' + arm, st.A, st.B, st.script, { collect, pinDice: true, hpBoost: 8 }); }
+    try { runScript(c.id + '/dmg/' + arm, st.A, st.B, st.script, { collect, pinDice: true, hpBoost: 8, allowRolls: !!c.carrier.rolls }); }
     catch (e) { out.failure = e.message.slice(0, 130); return out; }
     if (!collect.length) { out.failure = 'no turn was played'; return out; }
     const last = collect[collect.length - 1];
@@ -309,7 +314,13 @@ function runField(c) {
   return out;
 }
 
-/* ================================================================================================ */
+/* ================================================================================================
+ * THE RUN. Wrapped in `main()` and exported below, so the staging can be exercised by a measurement
+ * without publishing an artifact. Requiring this file used to RUN the whole matrix and WRITE
+ * data/interaction-matrix.json as a side effect of the require — which makes it impossible to
+ * measure the harness with the harness.
+ * ============================================================================================= */
+function main() {
 const gen = IM.generate({ depth });
 const th = IM.theoreticalSize();
 let cases = gen.cases;
@@ -508,3 +519,7 @@ if (!live.length) {
   console.log('\n  FAILED: not one case was LIVE. The harness judged nothing.');
   process.exitCode = 1;
 }
+}
+
+module.exports = { stageState, runState, runDamage, runField, attackingFillerFor, idle, benchFor };
+if (require.main === module) main();

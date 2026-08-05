@@ -10,6 +10,171 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [3.45.0] — 2026-08-05
+
+### The interaction matrix threw away 902 of 8,676 pairs because they "have a probability", and the reason string was hiding two different faults
+
+Will: *"We cant just toss inaccurate moves can we?"*, then *"Flare blitz is 100 accurate man same with
+iron head."* Both right. `carrier-is-a-die` was **one reason covering two faults with nothing in
+common** — a move that CAN MISS (647 pairs) and a move that ALWAYS CONNECTS but carries a chance side
+effect of its own (255 pairs) — and reading it back got Flare Blitz, a 100%-accurate move, described
+as inaccurate. Between them they are the most-clicked physical moves in Reg M-B, so the contact
+reactors were being tested only with the contact moves nobody clicks.
+
+**The dice were counted before they were forced.** Every draw both engines took was tallied, in both
+arms, for all 717 of the 902 that reach the carrier loop. The premise did not survive it: under
+`pinDice` the reference engine's `prng.random` is a **pure function of its arguments**, so a differing
+draw COUNT between arms cannot shift a later draw. **There was no stream to diverge.**
+
+**What there was instead was a misalignment, and the drop was hiding it.** `random` was pinned to the
+middle of its range and `randomChance` to `num >= den`, which is a different die —
+`PRNG.randomChance(n, d)` *is* `random(d) < n` (sim/prng.ts:115). Accuracy is checked through
+`randomChance(accuracy, 100)`, so **every sub-100-accuracy move MISSED in the reference engine and
+CONNECTED in medicham2**. Two pinned functions and nothing comparing them; the filter that dropped all
+647 such pairs is why nobody noticed.
+
+Measured against frozen release `032b4a2979dd` before any of it was written: bucket B staged with the
+roll left completely alone gave **124 live, 123 agree (99.2%)** — the drop was precautionary and
+wrong; bucket A under the old pin had **377 of 501 INERT** and **24 of its 95 live pairs disagreeing
+for no reason but the miss**.
+
+### Fixed
+
+- **`tests/test-game-diff.js` — the two pinned dice were not the same die.** `randomChance` is now
+  `Math.floor(den / 2) < num`, which is the PRNG's own definition evaluated at the median `random` was
+  already pinned to. Both pins are named constants and **a module-load assertion checks them against
+  each other**; that assertion goes red on the old value at `(90,100)` and `(95,100)`. Controlled: all
+  **1,675 cases the matrix already staged were run under both pins, case by case, and NOT ONE verdict
+  moved** (1,027/1,031 either way).
+
+### Changed
+
+- **`tests/interaction_matrix.js` — the reason string is split by FAULT.** `carrier-is-a-die` no
+  longer exists. What survives is `carrier-misses-the-pinned-median-die: accuracy N <= 50` (44 pairs;
+  at exactly 50 the two engines split on a strict-versus-non-strict reading of the same median) and
+  `carrier-reaches-this-key-only-through-a-roll` (108 pairs; derived from the linkage KEY —
+  `moveSecondary` membership *is* "the move has a secondary" and `volatile:flinch` is reached by Iron
+  Head only through its 30%, so a secondary that cannot fire leaves the pair with nothing to express).
+  Membership was **printed before it was wired**, and all 47 measured members of the second rule came
+  back INERT, 47 of 47.
+- **Will's collision rule was asked for and is NOT shipped, because the measurement says the set is
+  empty.** No staged carrier has a secondary above 50% — the maximum across all 216 is exactly 50 — so
+  at the pinned median none of them fires and a collision cannot occur. A guard that can never fire is
+  a silent default with extra steps.
+- **`tests/test-game-diff.js` — trap 2 is now about LUCK rather than about a percentage being
+  written on a move.** `opts.allowRolls` lifts it for one script, is passed per CASE off the carrier
+  the generator marked, and is **REFUSED without `opts.pinDice`**, because unpinned the roll really is
+  luck.
+- **`tests/test-interaction-matrix.js`** now exposes its staging (`main()` + `module.exports`) so the
+  harness can be measured with the harness instead of publishing an artifact as a side effect of a
+  `require`.
+
+### Notes
+
+- **Published at 3.45.0, and the figures moved between the dry run and the publish.** The entry above
+  was measured against frozen release `032b4a2979dd` while a second ENGINE agent held
+  `engine/medicham2-browser.js`, so nothing was written then: a full pass against a moving engine is
+  void. The published pass ran afterwards, against a still tree, and on top of **two changes the dry
+  run could not see** — the Psychic Terrain wire (3.44.0) and the `data/tags.json` regeneration that
+  gave `priorityMove` its three reactor MOVES, which the dry run's tags did not have.
+
+  | | 3.43.0 | dry run | **published 3.45.0** |
+  |---|---|---|---|
+  | theoretical | 8,676 | 8,676 | **8,795** |
+  | staged | 1,675 | 2,272 | **2,300** |
+  | LIVE | 1,031 | 1,428 | **1,453** |
+  | agreement | 1,027 (99.6%) | 1,412 (98.9%) | **1,436 (98.8%)** |
+  | disagreements | 4 | 16 | **17** |
+  | coverage of theoretical | 19.3% | — | **26.2%** |
+
+  The dry-run row is kept rather than overwritten: it is what was true of the matrix change ALONE,
+  and the difference between the two rows is the other two changes, not a correction.
+- **Twelve newly reachable disagreements, filed not fixed** (this pass owns the matrix, not the
+  simulator): `stoneaxe`'s 100% Stealth Rock secondary is absent (6 rows, 62 uses); `scaleshot`'s
+  self-boosts are in the move's own `self` rather than in `secondaries[].self`, which is all WIRE 81
+  wired (2 rows, 151 uses); `gigaimpact` and `rockwrecker` keep `mustrecharge` after a move that was
+  blocked or made immune; `supercellslam` pays no crash damage into King's Shield;
+  `bugbuzz -> throatchop` — the one row whose verdict was not stable across quantiles, so it is filed
+  as *possibly the harness*.
+- Reconciliation still balances and `node tests/interaction_matrix.js --selftest-reconcile` still
+  passes; every pair that stopped being dropped became a STAGED pair, none vanished.
+
+---
+
+## [3.44.0] — 2026-08-05
+
+### Psychic Terrain refused priority against Pokémon that were not on the ground
+
+Will: *"Psych terrain is sorta like queenly majesty"*. He is right, and that is precisely what hid
+the defect — both resolve through one function, `priorityRefusedAbove`, and **the terrain branch sat
+outside the defender loop and never inspected a body at all.** Real Psychic Terrain refuses priority
+only against a **grounded** target.
+
+So MEDICHAM refused **Fake Out — 12,872 corpus uses, one of the most-clicked moves in the format** —
+along with Extreme Speed, Sucker Punch, Aqua Jet, Ice Shard and Upper Hand, into every Flying type,
+every Levitate body and every Air Balloon on the field.
+
+Mechanics census **208 live of 211 probed → 210 live of 213 probed**; missing still 3, hollow 0,
+threw 0, unarmed **146 → 145**.
+
+### Fixed
+
+- **`priorityRefusedAbove` now asks each body whether it is grounded.** The bar is per-SIDE for the
+  abilities (Queenly Majesty and Armor Tail protect their partner) and per-TARGET for the terrain, so
+  the function gained an optional third argument naming the body being aimed at. Without it a
+  grounded partner would refuse a Fake Out aimed at the Talonflame beside it.
+- **`isGrounded(mon)` is one function and every site calls it.** The predicate had been written by
+  hand **three** times — the hazard block, `preventsSwitch.onlyGrounded`, and the Grassy Terrain heal
+  — and the three disagreed about Iron Ball and about Eelevate. CLAUDE.md's *FACTS ARE GLOBAL*,
+  broken and repaired.
+- **Grassy Terrain no longer heals a Levitate body.** That copy applied the type half only and
+  **counted its own known-wrong half** in `MEDFAILS.terrainHealUngrounded` — somebody knew it was
+  wrong and the counter was the receipt. The failure counter is retired and replaced by the
+  capability counter `seen.terrainHealSkippedAirborne`, so the event stays countable.
+
+### Added
+
+- **A census probe with five arms**, `move setsTerrain — "Psychic Terrain refuses priority only
+  against a GROUNDED target"`. Each arm kills a different wrong engine: grounded-blocked alone passes
+  on the shipped-broken build; Flying-lands alone passes on a build with no terrain at all;
+  **Earth Eater** is the over-match control; **Iron Ball** is the clause that outranks Flying.
+- **A second kind of known-bad engine in `tests/probe_red_demo.js`.** The existing mechanism strips a
+  TAG, which cannot express a defect that lives in the CODE. `demoSource()` loads the engine into a
+  fresh module, textually reverts the wire's sites to what they said before, and **asserts every
+  reversal applied**. Both WIRE 117 rows flip; 28 demonstrations, 0 failed.
+- **`seen.terrainSparedAirborne`** — a Psychic Terrain priority bar that was not applied because the
+  target is airborne. The branch could not fire at all before this change.
+- **`fails.groundedBodyIncomplete`** — grounded-ness asked of a body carrying no type list.
+
+### Changed
+
+- **`engine/tag_dex.js`'s `priorityMove` linkage test**, from `move.priority > 0` to the two idioms
+  Showdown actually uses, derived from the handler's shape and **not by naming a terrain**. It adds
+  three reactor MOVES (`psychicterrain`, `quickguard`, `upperhand`) and changes the ability side not
+  at all. **STAGED — `data/tags.json` is untouched.**
+
+### Notes
+
+- **Every expected value came out of the official engine**, played at the pinned commit under
+  `gen9championsvgc2026regmb`: Garchomp and Orthworm show `|-activate| move: Psychic Terrain` and take
+  0; Talonflame and Hydreigon show `|-hint| "Psychic Terrain doesn't affect airborne Pokémon"` and
+  take 237→216 and 251→233; Iron Ball drags both of them back down and the move is blocked again.
+- **The reference harness was wrong before the engine was, twice** — Lesson 5 verbatim. Its first
+  version gave both defending bodies Protect as their only move, so every arm read "blocked" and the
+  engine would have been declared correct.
+- **Every clause was checked against the format rather than remembered.** Air Balloon and Telekinesis
+  are `isNonstandard: 'Past'` — banned — and Air Balloon is absent from `data/tags.json` entirely.
+  Iron Ball is legal (113 uses) and is wired. Gravity (79 uses) and Roost (2,109 uses) also ground a
+  body, are legal, and are **declared unwired**: this engine holds no pseudo-weather slot and no
+  per-turn type override.
+- **The airborne ability set is a NAME, deliberately.** `typeImmunity {type:'Ground'}` looks like the
+  shape to read; its membership is levitate, eelevate **and eartheater**, and the official engine
+  blocks Fake Out into an Earth Eater Orthworm — it is Ground-immune and firmly on the floor.
+  Showdown hard-names the pair inside its own `isGrounded`.
+- **FILED, NOT FIXED:** `board.js` and `position_features.js` map their priority defenders to
+  `{ability, fainted}`, so a Flying-type foe is still over-refused in the FEATURE vector. Changing
+  that is a refit edge, which MEASURE owns. The gap is loud rather than silent.
+
 ## [3.43.0] — 2026-08-05
 
 ### The interaction matrix now checks its own arithmetic, and it was wrong three ways

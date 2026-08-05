@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 3.43.0 · Last updated 2026-08-05.**
+**Version 3.45.0 · Last updated 2026-08-05.**
 
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
@@ -263,7 +263,7 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
 
 **MECHANICS STATE, 2026-08-05 (3.41.0), read from the artifact rather than typed:**
-`data/mechanics-census.json` reads **208 live of 211 probed, 3 missing, 0 hollow** (wires 82–89 at
+`data/mechanics-census.json` reads **210 live of 213 probed, 3 missing, 0 hollow** (wires 82–89 at
 3.40.0, then the Layer 0 pass — wires 90–112 — at 3.41.0; Marvel Scale and After You/Quash came
 off the missing list, the second because the "cannot tell it from Instruct" blocker was false:
 Instruct carries `instructsTarget {extraAction:true}`, a shape read). The three remaining are each
@@ -272,12 +272,23 @@ declared with a reason in [ENGINE.md](ENGINE.md) — two on the `moveAccuracy(id
 state `dmgRange` is not given).
 
 **THE INTERACTION MATRIX IS NOW A SEPARATE, GENERATED CLAIM** and it is the one that says whether the
-mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,676**
-carrier x reactor pairs, **1,675** emitted after a named and counted co-occurrence filter, **1,031**
-of those LIVE by the reference engine's own two-arm test, and medicham2 matches the official pinned
-Showdown engine on **99.6%** of them (1,027/1,031). Since 3.43.0 the generator **asserts its own
-arithmetic** — `theoretical = staged + dropped`, per axis, throwing rather than printing — which is
-what moved the denominator off 8,506 and the emitted count off 1,514. The multi-turn field axis — every ordered pair of persistent
+mechanics work TOGETHER. `data/interaction-matrix.json`: a theoretical cross product of **8,795**
+carrier x reactor pairs, **2,300** emitted after a named and counted co-occurrence filter (**26.2%**),
+**1,453** of those LIVE by the reference engine's own two-arm test, and medicham2 matches the official
+pinned Showdown engine on **98.8%** of them (1,436/1,453). Since 3.43.0 the generator **asserts its own
+arithmetic** — `theoretical = staged + dropped`, per axis and per `(key, reactor)` on the flag axis,
+throwing rather than printing. That assertion is what moved both the denominator and the emitted
+count off their 3.42.0 values; the superseded figures are in `CHANGELOG.md` 3.43.0 rather than here,
+because a prior number quoted beside a live artifact reads as a claim about that artifact.
+
+**THE AGREEMENT FIGURE HAS FALLEN TWICE AND THE SIMULATOR DID NOT CHANGE EITHER TIME.** 100.0% →
+99.6% → 98.8%. Both falls are the denominator becoming honest. 3.43.0 found that 5,090 pairs were
+being dropped without ever reaching the ledger; 3.45.0 found that the 902 pairs dropped for "having a
+probability" were hiding a defect in the HARNESS — `random` and `randomChance` were pinned to
+different dice, and since `PRNG.randomChance(n,d)` *is* `random(d) < n`, every sub-100-accuracy move
+had been MISSING in the reference engine while medicham2 hit it. Read the coverage fraction beside
+the agreement, always: a percentage over a denominator nobody checked is a statement about where
+nobody looked. The multi-turn field axis — every ordered pair of persistent
 field effects, run eight turns to expiry — is **156/156**. Ten engine bugs were found by it in one
 pass (WIRE 72–81); none was reachable from a single-mechanic probe.
 **Job:** grounded win rate by actually playing the matchup out.

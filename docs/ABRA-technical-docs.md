@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 3.43.0 · Last updated 2026-08-05**
+**Version 3.45.0 · Last updated 2026-08-05**
 
 **Change record for 3.42.0.** The fit checks whether a recorded action was a click. 1,336 of
 241,927 actions were not clicks. Encore replaced 1,116 of them. A phazing move dragged in 220 of
@@ -11,6 +11,30 @@ model now puts less probability on an action no human chose: -0.002614, 95% CI [
 -0.001610]. The redirection change did not improve anything that can be measured. The overall
 top-1 accuracy did not change. Two budget counters were replaced. The old counter measured two
 different things at once.
+
+**Change record for 3.45.0.** The matrix did not test a move that can miss. It also did not test a
+move with a chance side effect. Many of these are the moves that players use most. The rule was
+wrong. Both engines use the same fixed die, so a miss happens in both engines and cancels. The
+removed counts are in `CHANGELOG.md`.
+
+The two dice were not the same die. The harness set one die to the middle value. It set the other die
+to a different rule. Showdown checks accuracy with the second die. So every move below 100 accuracy
+missed in the official engine and hit in the simulator. This made false disagreements. It also made
+many cases look empty. Nobody saw this, because all of these moves were removed from the test first.
+
+The harness now checks that the two dice agree. The check runs when the file loads. From
+`data/interaction-matrix.json`: the matrix stages 2,300 pairs of 8,795, and 1,453 of them can occur.
+The matrix agrees with the official engine on 1,436 of these. Twelve new faults in the simulator are
+recorded. They are not repaired in this release.
+
+**Change record for 3.44.0.** Psychic Terrain stops a fast move only if the target stands on the
+ground. The simulator stopped the move against every target. A target that flies is not on the
+ground. A Flying type, a Pokémon with Levitate and a Pokémon with an Air Balloon all fly. A Pokémon
+that holds an Iron Ball is on the ground, even if it flies. The simulator now has one function for
+this question. Four parts of the simulator ask that function. Before this release three parts each
+had their own copy of the rule, and the copies did not agree. Grassy Terrain also used a copy. That
+copy healed a Pokémon with Levitate. Grassy Terrain must not heal a Pokémon that flies. All expected
+results come from the official engine. The count of tested mechanics is 210 of 213.
 
 **Change record for 3.43.0.** The interaction matrix now checks its own arithmetic. The rule is
 `theoretical = staged + dropped`, for each axis. The generator stops if the rule is broken. The rule

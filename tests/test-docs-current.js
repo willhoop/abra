@@ -430,6 +430,14 @@ function figureRules(base, next) {
     const was = baseCensus[d];
     console.log(`         ${String(n).padStart(4)}  ${d}${was !== undefined && n < was ? `   (was ${was})` : ''}`);
   }
+  /* NAME THE FIGURES IN THE DOCUMENTS THAT GREW. Printing only "33, was 31" left the two to be found
+   * by hand, and this file's own history says what happens to a check that costs more to act on than
+   * to ignore: it gets reported as a known failure. Only the offending documents are expanded. */
+  for (const line of worse) {
+    const d = line.split(':')[0];
+    for (const w of (census.where && census.where[d] ? census.where[d] : []).slice(0, 12))
+      console.log(`           ${d}  ${String(w.value).padStart(9)}   ${w.text}`);
+  }
   console.log('         Report only. A figure here is generated, cites an artifact, or is deleted —');
   console.log('         this check says which ones are none of the three. It removes nothing.');
 

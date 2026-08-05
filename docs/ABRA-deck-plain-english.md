@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 3.43.0 · 2026-08-05 · Will Hooper**
+**Version 3.45.0 · 2026-08-05 · Will Hooper**
 
 A slide-by-slide, jargon-light tour. The white paper (linked on the last slide) has the math and sources.
 
@@ -311,6 +311,37 @@ that move out of nine. That is about 1.6% of actions. It is a real problem, it i
 problem, and fixing it means retraining everything again — so it is written down with a number
 attached rather than quietly bundled in here.
 
+
+---
+
+## Slide 9b — The rule was there. It was just pointed at everybody. (3.44.0)
+
+Psychic Terrain is a floor that stops fast moves — Fake Out, Sucker Punch, Extreme Speed, the moves
+that go first. Our simulator knew that. What it did not know is that **the floor only protects
+Pokémon standing on it.** A Talonflame is in the air. A Pokémon with Levitate is in the air. Fake Out
+hits them straight through the terrain, and we were blocking it.
+
+Fake Out is the single most-clicked move in this format — nearly thirteen thousand uses in our
+corpus. So this is not a corner case; it is a rule the practice opponent got wrong in a large slice
+of the games it plays.
+
+**Two things about it are worth more than the fix.**
+
+The first: the question *"is this Pokémon on the ground?"* was already answered in three separate
+places in the same file, by hand, and **the three answers did not agree with each other**. One of
+them was even keeping a counter of how often it knew it was giving the wrong answer. That counter had
+been running since the previous release, next to a note saying the information needed to fix it was
+not available — and the information had arrived a release earlier. There is now one function, and the
+four places that need the answer all ask it.
+
+The second: our own test suite could not have caught this. The existing check for Psychic Terrain
+aims the blocked move at a **Garchomp**, which is standing on the ground, so it passes whether the
+rule is right or wrong. Every instrument we own asks *"does this mechanic happen?"*. None of them
+asked *"does it happen only where it should?"* — and that is the fourth bug of exactly this shape in
+two days. The new check has five arms, and one of them exists purely to catch a mistake we nearly
+made: Orthworm's Earth Eater makes it immune to Ground attacks, which looks in our data exactly like
+Levitate, and Orthworm is very much on the floor. We asked the official game engine and it told us
+so.
 
 ---
 

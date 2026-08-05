@@ -2438,7 +2438,108 @@ probe('move', 'setsTerrain', 'clicking Psychic Terrain blocks the foe\'s priorit
   const off = run(false), on = run(true);
   return { works: off.took > 0 && on.took === 0,
            detail: `Ice Shard into the user: no click ${off.took} (terrain ${JSON.stringify(off.terrain)}), `
-                 + `after Psychic Terrain ${on.took} (terrain ${JSON.stringify(on.terrain)})` };
+                 + `after Psychic Terrain ${on.took} (terrain ${JSON.stringify(on.terrain)})`,
+           arms: { control: off.took, test: on.took } };
+});
+
+/* WIRE 117 -- THE OTHER HALF OF THE SAME MECHANIC, AND THE PROBE ABOVE COULD NOT SEE IT.
+ *
+ * Will: *"Psych terrain is sorta like queenly majesty"*. He is right, and that is exactly why this
+ * was broken: both resolve through `priorityRefusedAbove`, and the terrain branch sat OUTSIDE the
+ * defender loop and never inspected a body. Real Psychic Terrain refuses priority only against a
+ * GROUNDED target, so MEDICHAM was refusing Fake Out -- 12,872 corpus uses, one of the most-clicked
+ * moves in the format -- into every Flying type and every Levitate body on the field.
+ *
+ * The probe above stages the block against a Garchomp and passes either way. A mechanic with a SCOPE
+ * needs a probe per side of the scope, or the passing half covers the failing half; that is the
+ * lesson the weather rocks and Purifying Salt both taught this file already.
+ *
+ * EVERY EXPECTED VALUE BELOW CAME OUT OF THE OFFICIAL ENGINE, played at the pinned commit under
+ * gen9championsvgc2026regmb -- Incineroar's Fake Out into a Psychic Terrain set by the opposing
+ * Indeedee's Psychic Surge, both arms printed before a line of engine changed:
+ *
+ *     Garchomp    (grounded)              |-activate|move: Psychic Terrain   BLOCKED, 0 damage
+ *     Talonflame  (Fire/Flying)           |-hint| "doesn't affect airborne"  LANDS, 237 -> 216
+ *     Hydreigon   (Levitate)              |-hint| "doesn't affect airborne"  LANDS, 251 -> 233
+ *     Orthworm    (Earth Eater)           |-activate|move: Psychic Terrain   BLOCKED, 0 damage
+ *     Talonflame  (Flying + Iron Ball)    |-activate|move: Psychic Terrain   BLOCKED
+ *
+ * FIVE ARMS, AND EACH ONE IS THERE TO KILL A DIFFERENT WRONG ENGINE. Grounded-blocked alone passes
+ * on the shipped-broken engine. Flying-lands alone would pass on an engine that had deleted the
+ * terrain entirely. EARTH EATER is the over-match control and is the reason this is not derived from
+ * `typeImmunity {type:'Ground'}`: that tag's membership is levitate, eelevate AND eartheater, and
+ * Orthworm is Ground-immune while standing squarely on the floor. IRON BALL is the clause that
+ * outranks Flying, and it is legal in this format (isNonstandard null, 113 corpus uses) while Air
+ * Balloon is not (isNonstandard 'Past'). */
+probe('move', 'setsTerrain', 'Psychic Terrain refuses priority only against a GROUNDED target', () => {
+  /* The terrain is written straight onto the field because Fake Out is a TURN-1 move: clicking
+   * Psychic Terrain first, as the probe above does, spends the turn Fake Out needs. */
+  const took = (sp, terrain, ab, item) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'incineroar', sp, 'garchomp');
+    if (ab) f1.ability = ab;
+    if (item) f1.item = item;
+    S.field.terrain = terrain;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'fakeout', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const seen0 = M.seen.terrainSparedAirborne;
+  const gC = took('garchomp', ''), gP = took('garchomp', 'psychic');
+  const fC = took('talonflame', ''), fP = took('talonflame', 'psychic');
+  const lC = took('garchomp', '', 'levitate'), lP = took('garchomp', 'psychic', 'levitate');
+  const eC = took('garchomp', '', 'eartheater'), eP = took('garchomp', 'psychic', 'eartheater');
+  const bC = took('talonflame', '', null, 'ironball'), bP = took('talonflame', 'psychic', null, 'ironball');
+  /* THE COUNTER IS PART OF THE ASSERTION, not a diagnostic beside it. `terrainSparedAirborne` counts
+   * the branch that did not exist before this wire, and CLAUDE.md's rule is that a capability which
+   * cannot prove it ran is assumed broken. A zero here with the damage arms passing would mean the
+   * damage came through some other route. */
+  const spared = M.seen.terrainSparedAirborne - seen0;
+  const works = gC > 0 && gP === 0        // grounded: refused
+             && fC > 0 && fP === fC       // Flying: lands, undiminished
+             && lC > 0 && lP === lC       // Levitate: lands
+             && eC > 0 && eP === 0        // Earth Eater is GROUNDED: refused
+             && bC > 0 && bP === 0        // Iron Ball drags a Flying type down: refused
+             && spared > 0;               // and the branch says so
+  return { works,
+           detail: `Fake Out damage, clear -> Psychic Terrain: Garchomp ${gC}->${gP} (must be 0), `
+                 + `Talonflame ${fC}->${fP} (must not move), Levitate ${lC}->${lP} (must not move), `
+                 + `Earth Eater ${eC}->${eP} (grounded, must be 0), `
+                 + `Flying+Iron Ball ${bC}->${bP} (grounded, must be 0); `
+                 + `seen.terrainSparedAirborne +${spared} (must be > 0)`,
+           arms: { control: [gP, eP, bP], test: [fP, lP, fC] } };
+});
+
+/* WIRE 117, THE SAME PREDICATE ONE FIELD OVER. Grassy Terrain heals only a GROUNDED body, and this
+ * engine's copy of the rule applied the TYPE half and healed a Levitate body anyway -- while COUNTING
+ * that it was doing so, in `MEDFAILS.terrainHealUngrounded`. A declared gap with a counter on it is
+ * still a gap; the counter kept it alive for a whole pass after the derivation it said was
+ * unavailable had landed. It is a separate probe from the priority one on purpose: two mechanics that
+ * share a predicate drift apart the moment one passing number is asked to cover both.
+ *
+ * THE CONTROL MUST HEAL. "Levitate is not healed" is satisfied by a terrain that heals nobody, which
+ * is exactly what WIRE 72 found the last time this branch was touched. */
+probe('move', 'perTurnHP', 'Grassy Terrain heals a grounded body and not an airborne one', () => {
+  const seen0 = M.seen.terrainHealSkippedAirborne;
+  const healed = (sp, ab) => {
+    const { me, ally, f1, f2, S } = board(sp, 'incineroar', 'milotic', 'weavile');
+    if (ab) me.ability = ab;
+    me.curHP = Math.floor(me.st.hp / 2);
+    S.field.terrain = 'grassy'; S.field.terrainT = 5;
+    const before = me.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return me.curHP - before;
+  };
+  const ground = healed('garchomp', null);
+  const lev = healed('garchomp', 'levitate');
+  const fly = healed('talonflame', null);
+  const skipped = M.seen.terrainHealSkippedAirborne - seen0;
+  return { works: ground > 0 && lev === 0 && fly === 0 && skipped === 2,
+           detail: `HP gained under Grassy Terrain: grounded Garchomp +${ground} (must be > 0), `
+                 + `Levitate +${lev} (must be 0), Flying Talonflame +${fly} (must be 0); `
+                 + `seen.terrainHealSkippedAirborne +${skipped} (must be 2)`,
+           arms: { control: ground, test: lev } };
 });
 
 /* ---- THE TOP OF THE UNPROBED LIST, worked in descending corpus usage --------------------------- */

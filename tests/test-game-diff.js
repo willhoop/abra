@@ -262,9 +262,37 @@ function mediTeam(sets) {
 const NEEDS_TARGET = new Set(['normal', 'any', 'adjacentFoe', 'adjacentAlly', 'adjacentAllyOrSelf']);
 const needsTarget = id => NEEDS_TARGET.has(dex.moves.get(id).target);
 
+/* ---- THE PINNED DIE, DEFINED ONCE AND CHECKED AGAINST ITSELF ------------------------------------
+ *
+ * Both of Showdown's entry points are replaced when `pinDice` is set, and they must be THE SAME DIE.
+ * `PRNG.randomChance(n, d)` is defined as `this.random(d) < n` (sim/prng.ts:115), so the check below
+ * is not a taste test — it is the upstream definition, evaluated at the median both pins claim to be
+ * reading. It runs once, at module load, and it would have gone red on the day `randomChance` was
+ * pinned to `num >= den`: that reading made every sub-100-accuracy move MISS in the reference engine
+ * while medicham2 (rng() = 0.5) hit, and the interaction matrix hid it by dropping all 647 such pairs
+ * as "carrier-is-a-die". Two pinned functions, no comparison between them — the shape this repo keeps
+ * paying for. */
+const PIN_RANDOM = (m, n) => (n === undefined ? (m === undefined ? 0.5 : Math.floor(m / 2)) : m + Math.floor((n - m) / 2));
+const PIN_CHANCE = (num, den) => Math.floor(den / 2) < num;
+for (const [n, d] of [[100, 100], [95, 100], [90, 100], [50, 100], [30, 100], [1, 24], [1, 8], [1, 4], [1, 2]])
+  if (PIN_CHANCE(n, d) !== (PIN_RANDOM(d) < n))
+    throw new Error('THE TWO PINNED DICE DISAGREE at randomChance(' + n + ', ' + d + '): the pin says '
+      + PIN_CHANCE(n, d) + ' and PRNG\'s own definition random(' + d + ') < ' + n + ' says ' + (PIN_RANDOM(d) < n)
+      + '. Every chance event in the reference engine would then resolve differently from every range '
+      + 'roll, and only one of the two would match medicham2.');
+
 /* TRAP 2, ENFORCED RATHER THAN REMEMBERED. A script containing a move that can miss or that carries a
- * chance secondary would make this file report luck. It refuses to run one. */
-function assertScriptIsDeterministic(sets, name) {
+ * chance secondary would make this file report luck. It refuses to run one.
+ *
+ * `opts.allowRolls` LIFTS IT, AND ONLY TOGETHER WITH `opts.pinDice`. Under the pinning below, BOTH
+ * engines read the same fixed median die — Showdown's `prng.random`/`randomChance` are replaced by
+ * pure functions of their arguments, and medicham2's `rng` is a constant 0.5 — so a move with an
+ * accuracy or a chance secondary is not LUCK, it is a fixed outcome that is the same in both engines
+ * and in both arms. Trap 2 is about luck; it is not about a move having a percentage written on it,
+ * and conflating the two is what kept 902 of the interaction matrix's 8,676 pairs out of the run.
+ *
+ * Without `pinDice` the roll really is luck, so the combination is REFUSED rather than tolerated. */
+function assertScriptIsDeterministic(sets, name, opts) {
   const bad = [];
   for (const s of sets) for (const mv of s.moves) {
     const m = dex.moves.get(mv);
@@ -273,14 +301,18 @@ function assertScriptIsDeterministic(sets, name) {
       bad.push(m.name + ' (secondary ' + sec.chance + '%)');
     if (m.multiaccuracy) bad.push(m.name + ' (per-hit accuracy)');
   }
-  if (bad.length) throw new Error(name + ': script is not deterministic — ' + [...new Set(bad)].join(', '));
+  if (!bad.length) return;
+  if (opts && opts.allowRolls && !opts.pinDice)
+    throw new Error(name + ': allowRolls without pinDice — unpinned, ' + bad[0] + ' really is luck');
+  if (opts && opts.allowRolls) return;
+  throw new Error(name + ': script is not deterministic — ' + [...new Set(bad)].join(', '));
 }
 
 /* Play ONE scripted game in both engines, comparing after each turn. Returns the first divergence or
  * null. `script[i] = { a: [act, act], b: [act, act] }`, `act = {m:'moveid', t:0|1} | {sw: benchIndex}`. */
 function runScript(name, setsA, setsB, script, opts) {
   opts = opts || {};
-  assertScriptIsDeterministic([...setsA, ...setsB], name);
+  assertScriptIsDeterministic([...setsA, ...setsB], name, opts);
 
   const A = mediTeam(setsA), B = mediTeam(setsB);
   /* HP BOOST — opt-in, and it exists for one reason: a DAMAGE RATIO cannot be read off a body that
@@ -335,12 +367,31 @@ function runScript(name, setsA, setsB, script, opts) {
    *
    * `battle.random` is NOT enough and that is the trap: Battle.randomChance delegates to `this.prng`
    * directly, so an override on the Battle object leaves every chance event still rolling. Both are
-   * pinned on the prng itself. `num >= den` is the deterministic reading of a chance: a 100%-accurate
-   * move HITS (accuracy is checked as randomChance(accuracy, 100)), a 1-in-24 crit does NOT happen,
-   * and a 30% secondary does not either. Returning a flat false instead would make every move MISS. */
+   * pinned on the prng itself, TO THE SAME DIE.
+   *
+   * THE SAME DIE, AND THEY WERE NOT. 2026-08-05. `random` was pinned to the MIDDLE of its range and
+   * `randomChance` to `num >= den`, which is a different die entirely — it is "did this event have
+   * probability 1", not "did the median roll succeed". `PRNG.randomChance(n, d)` IS `this.random(d) < n`
+   * (sim/prng.ts:115), so the two pins must agree by construction, and they did not:
+   *
+   *     accuracy is checked as randomChance(accuracy, 100)  (sim/battle-actions.ts:738)
+   *     old:  90 >= 100          -> FALSE, a 90%-accurate move MISSED, always
+   *     medicham2 at rng()=0.5:  50 > 90 is false            -> it HIT, always
+   *
+   * So every sub-100 accuracy move missed in the reference engine and connected in ours. Nothing read
+   * as a bug, because the interaction matrix DROPPED all 647 such pairs as "carrier-is-a-die" — the
+   * misalignment and the filter that hid it were introduced for the same reason and validated each
+   * other. Measured after the fix: of 501 of those pairs staged, 377 had been INERT (the reference
+   * missed in both arms) and 24 of the 95 that were live DISAGREED for no reason but the miss.
+   *
+   * The median reading keeps every property the old one was chosen for — a 100%-accurate move HITS
+   * (50 < 100), a 1-in-24 crit does NOT happen (12 < 1 is false), a 30% secondary does not either —
+   * and it is now the SAME reading `random` already uses. Controlled: all 1,675 cases the matrix
+   * stages at --full were run under both conventions and NOT ONE verdict moved (1,027/1,031 either
+   * way), which is what a change to a pin that only touches sub-100 events must look like. */
   if (opts.pinDice && battle.prng) {
-    battle.prng.random = (m, n) => (n === undefined ? (m === undefined ? 0.5 : Math.floor(m / 2)) : m + Math.floor((n - m) / 2));
-    battle.prng.randomChance = (num, den) => num >= den;
+    battle.prng.random = PIN_RANDOM;
+    battle.prng.randomChance = PIN_CHANCE;
   }
 
   for (let t = 0; t < script.length; t++) {

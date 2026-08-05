@@ -2,7 +2,7 @@
 
 ### A technical description of ABRA, a decision-support model family for competitive Pokémon
 
-**Version 3.43.0 · Last updated 2026-08-05**
+**Version 3.45.0 · Last updated 2026-08-05**
 **Will Hooper · ABRA**
 
 > This is a living document, updated in the same pass as any change to the code, together with the
@@ -492,6 +492,57 @@ the missing third is one archive, so recovering them would reweight the sample b
 **2,280 of 139,769 logged actions (1.6313%)** were priced against a menu that had already shrunk —
 a wrong denominator rather than a wrong label, and a separate refit.
 
+## A mechanic that fires everywhere is not a mechanic that works (3.44.0)
+
+Psychic Terrain refuses priority moves. The simulator knew that, and had known it since the tag
+artifact was first read. What it did not know is that the refusal only applies to a **grounded**
+target — so `priorityRefusedAbove` applied the terrain bar *outside* its own defender loop, without
+inspecting a single body:
+
+```js
+for (const d of (defenders || [])) { /* the ability bar */ }
+if (field && terrainId(field.terrain) === 'psychic') out = Math.min(out, 0);
+```
+
+The cost is concentrated on the most-clicked move in the format. **Fake Out (12,872 corpus uses)**,
+along with Extreme Speed, Sucker Punch, Aqua Jet, Ice Shard and Upper Hand, failed against every
+Flying type, every Levitate body and every Air Balloon whenever a Psychic Terrain was up.
+
+The expected behaviour was taken from the official engine rather than from anyone's memory. Playing
+Incineroar's Fake Out into a Psychic Terrain raised by the opposing Indeedee's Psychic Surge, at the
+pinned commit under `gen9championsvgc2026regmb`:
+
+| target | official engine | damage |
+|---|---|---|
+| Garchomp, grounded | `-activate move: Psychic Terrain` | 0 |
+| Orthworm, Earth Eater | `-activate move: Psychic Terrain` | 0 |
+| Talonflame, Fire/Flying | `-hint` *"doesn't affect airborne Pokémon"* | 237 → 216 |
+| Hydreigon, Levitate | `-hint` *"doesn't affect airborne Pokémon"* | 251 → 233 |
+| Talonflame + Iron Ball | `-activate move: Psychic Terrain` | 0 |
+
+Two findings sit underneath the fix and matter more than it does.
+
+**The predicate existed three times, and none of the three was the one that mattered.** Grounded-ness
+was written by hand in the entry-hazard block, in the switch-trapping branch, and in the Grassy
+Terrain heal — three copies that disagreed with each other about Iron Ball and about Eelevate. This
+is the failure mode CLAUDE.md names *facts are global*: the Grassy Terrain copy applied only the
+type half of the rule and **counted its own known-wrong half** in a failure counter. Somebody knew it
+was wrong, declared it, and the declaration outlived the reason for it — the derivation it said was
+unavailable had landed a release earlier. One `isGrounded(mon)` now answers the question for all
+four sites.
+
+**The census could not see the defect, because a scope is not a knob.** The existing probe for this
+mechanic stages the block against a Garchomp, which is Dragon/Ground. It passes on the broken engine
+and on the fixed one. Every instrument in this division asks whether a mechanic *fires*; none asks
+whether it fires *only where it should*, and this is the fourth defect of that shape in two days. The
+replacement probe carries five arms, and the reason for each is that a smaller probe would have
+passed on some specific wrong engine — including an **Earth Eater** arm, which is the reason the
+airborne ability set is a name rather than a shape read. The tempting artifact shape,
+`typeImmunity {type: 'Ground'}`, has three members: Levitate, Eelevate **and Earth Eater**. Orthworm
+is immune to Ground and firmly on the floor, and the official engine says so.
+
+Mechanics census **210 live of 213 probed**, 3 missing with written reasons, 0 hollow.
+
 ## The matrix’s own arithmetic is closed, and the coverage figure moves (3.43.0)
 
 The interaction matrix is this project's largest conformance instrument, and until this release
@@ -610,10 +661,10 @@ team sheets, since a model fitted on four channels degrades differently from one
 
 ### Interactions, generated rather than sampled
 
-8,676 theoretical carrier × reactor pairs; 1,675 staged; **1,031 that can genuinely co-occur**, where
+8,795 theoretical carrier × reactor pairs; 2,300 staged; **1,453 that can genuinely co-occur**, where
 co-occurrence is decided by the reference engine's own two arms differing rather than by our judgement —
-so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **1,027 of 1,031
-(99.6%)**. Every pair the generator refuses is counted under a named reason and printed on each run. The
+so "correctly blocked" stays distinguishable from "silently absent". The engine agrees on **1,436 of 1,453
+(98.8%)**. Every pair the generator refuses is counted under a named reason and printed on each run. The
 156 ordered persistent-field pairs each become an 8-turn script, which is the only construction that can
 observe *Trick Room was already up when Tailwind landed*; that axis went from 30/156 to **156/156**.
 

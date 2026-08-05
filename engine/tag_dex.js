@@ -3067,7 +3067,37 @@ const KEYS = [
   { key: 'slicing',      test: /flags\.slicing|flags\["slicing"\]/,      note: 'a cutting move' },
   { key: 'bite',         test: /flags\.bite|flags\["bite"\]/,            note: 'a biting move' },
   { key: 'heal',         test: /flags\.heal|flags\["heal"\]/,            note: 'a healing move' },
-  { key: 'priorityMove', test: /move\.priority\s*>\s*0/,                 note: 'the move has positive priority' },
+  /* WIRE 117, STAGED -- `priorityMove` HAD THREE REACTORS AND SHOULD HAVE HAD SIX, and the two it was
+   * missing on the MOVE side are why the interaction matrix has never once staged a
+   * Psychic-Terrain-against-priority case. `reactorMoves` for this key is EMPTY in the shipped
+   * artifact.
+   *
+   * The old test was `move.priority > 0`, which is the idiom Armor Tail, Dazzling and Queenly
+   * Majesty happen to use. Showdown writes the SAME predicate the other way round far more often --
+   * `if (move.priority <= 0.1) return;`, the early-bail guard whose complement is exactly "this is a
+   * priority move" -- and it also reaches the field through `effect.priority` and `baseMove.priority`
+   * rather than `move.priority`, because a terrain's condition is handed an `effect`.
+   *
+   * DERIVED FROM THE HANDLER'S SHAPE, NOT FROM NAMING A TERRAIN. Psychic Terrain is picked up because
+   * its condition tests a move's priority, so a terrain added next regulation with the same shape
+   * arrives without an edit here -- docs/TAGS.md invariant 3.
+   *
+   * MEMBERSHIP PRINTED BEFORE STAGING, against the format dex (LESSONS §4). The two idioms are
+   * enumerated rather than a loose `[<>]=?` because a loose one would also match `priority < 0`,
+   * which is a NEGATIVE-priority reactor and a different key:
+   *
+   *     was   ability armortail, dazzling, queenlymajesty
+   *     is    ability armortail, dazzling, queenlymajesty   (unchanged -- no ability moves)
+   *           move    psychicterrain   the terrain's onTryHit, `effect.priority <= 0.1`
+   *           move    quickguard       blocks priority for the side, and was simply absent
+   *           move    upperhand        fails unless the TARGET is about to use a priority move --
+   *                                    a carrier AND a reactor, which this table already allows for
+   *
+   * STAGED, NOT REGENERATED: `data/tags.json` is untouched by this pass. It is a frozen release
+   * source and an input to the feature vector, so regenerating it is the coordinator's single-writer
+   * moment, not ENGINE's to take while a measurement is running. */
+  { key: 'priorityMove', test: /(?:move|effect|baseMove)\.priority\s*(?:>\s*0(?:\.1)?|<=\s*0\.1)/,
+    note: 'the move has positive priority' },
   { key: 'statusMove',   test: /category\s*===?\s*"Status"/,             note: 'a status-category move' },
   { key: 'physicalMove', test: /category\s*===?\s*"Physical"/,           note: 'a physical move' },
   { key: 'specialMove',  test: /category\s*===?\s*"Special"/,            note: 'a special move' },

@@ -97,7 +97,14 @@ function changelogTop() {
  * obvious response is to "fix" the document until it agrees with nothing. Any of −, – or - now
  * carries into the value. */
 const MINUS = '[-\\u2212\\u2013\\u2010\\u2011]';
-const FIGURE_RE = new RegExp(`(?<![\\w./])(${MINUS}?)(\\d{1,3}(?:,\\d{3})+|\\d+(?:\\.\\d+)?)\\s*(%?)`, 'g');
+/* THE COMMA IS IN THE LOOKBEHIND, AND IT HAS TO BE. Without it, `1,436/1,453` yields `1,436` and then
+ * a PHANTOM `453`: the `/` rejects the second number at its own first digit, the scan resumes one
+ * character later, and `453` — preceded only by a comma — matches. The document then gets accused of
+ * citing a figure it never wrote. A bare group of digits directly after a comma is always a fragment
+ * of a thousands-separated number, which the first alternative already handles whole, so excluding it
+ * cannot lose a real figure. Same family as the typographic-minus fix: the regex was right about what
+ * a figure looks like and wrong about where one can START. */
+const FIGURE_RE = new RegExp(`(?<![\\w./,])(${MINUS}?)(\\d{1,3}(?:,\\d{3})+|\\d+(?:\\.\\d+)?)\\s*(%?)`, 'g');
 
 function figuresIn(line) {
   /* Strip the things that contain digits but assert nothing: inline code, links, paths, dates. */
@@ -351,28 +358,76 @@ function allArtifactNumbers() {
   return allNumsCache;
 }
 
+/* THE CHANGELOG IS A TRACE, AND WITHOUT THIS THE CENSUS WAS A TREADMILL.
+ *
+ * A living document's CHANGE RECORD legitimately holds SUPERSEDED figures — that is what a change
+ * record is, and CLAUDE.md requires it ("a prior conclusion is never silently rewritten; what changed
+ * and why is stated"). But an artifact only ever holds its CURRENT numbers. So the moment an artifact
+ * is republished, every figure it used to hold becomes "in no artifact" and the per-document count
+ * grows — on every release, for every document that honours the rule, no matter how carefully the
+ * pass was done. `docs/ABRA-technical-docs.md` gained one for the 8,676 in its own 3.43.0 record
+ * three minutes after 3.45.0 republished the matrix.
+ *
+ * A gate that fires no matter what anyone does is a gate that gets reported as a known failure --
+ * engine/provenance.js was fixed for exactly this shape earlier in the same session.
+ *
+ * So: a figure recorded in CHANGELOG.md is TRACEABLE. It is not a weaker trace than an artifact, it
+ * is a different one -- the artifact says what is true now, the changelog says what was true and
+ * when. It cannot launder an invented number either, because writing a figure into the changelog is
+ * itself a recorded claim under a version and a date. */
+let changelogNumsCache = null;
+function changelogHas(f) {
+  if (!changelogNumsCache) {
+    changelogNumsCache = new Set();
+    try {
+      for (const g of figuresIn(fs.readFileSync(D('CHANGELOG.md'), 'utf8')))
+        changelogNumsCache.add(Number(g.value).toFixed(6));
+    } catch (e) {
+      /* IT MUST SAY SO. Failing to read the changelog does not corrupt anything — the exemption just
+       * stops applying, which is fail-closed and correct. But EVERY document's count then jumps at
+       * once, and that reads as a documentation regression rather than as a missing file. The one
+       * thing this must never do is look like the docs got worse. */
+      console.error('  docs_scan: CANNOT READ CHANGELOG.md (' + e.message + ') — the "recorded '
+        + 'history is traceable" exemption is OFF for this run, so every untraceable count below is '
+        + 'inflated by its document\'s superseded figures. This is a missing file, not a regression.');
+    }
+  }
+  return changelogNumsCache.has(Number(f.value).toFixed(6));
+}
+
 /** Figures in a document that appear in NO artifact under data/ and cite none. Report only: a
  *  figure can be legitimately derived (a ratio, a difference), so this is a pressure gauge, not a
  *  verdict. It is ratcheted so it can only fall. */
+/* THE CENSUS NAMES ITS FIGURES, and it did not before. It reported "docs/X.md: 33 untraceable, was
+ * 31" and stopped, so the only way to find the two was to bisect the document by hand — and a gate
+ * that fires without naming its cause is a gate somebody switches off. engine/provenance.js learned
+ * exactly this about its own ratchet and records it in place; this is the same lesson, second file.
+ *
+ * `where` carries {file, line, value, text} per offending figure. The count is unchanged. */
 function untraceableCensus(docs) {
   const all = allArtifactNumbers();
-  const per = {};
+  const per = {}, where = {};
   let total = 0;
   for (const rel of docs) {
     let n = 0;
     for (const b of paragraphs(readDoc(rel))) {
       const cited = citationsIn(b.lines).length > 0;
+      if (cited) continue;                         // handled by citationMismatches, harder rule
       for (const f of figuresIn(b.lines.join('\n'))) {
         if (isUniversal(f)) continue;
         if (f.value < 10 && Number.isInteger(f.value)) continue;
-        if (cited) continue;                       // handled by citationMismatches, harder rule
         if (artifactHas(all, f)) continue;
+        if (changelogHas(f)) continue;             // recorded history — see changelogHas()
         n++;
+        (where[rel] = where[rel] || []).push({
+          line: b.start || 0, value: f.raw !== undefined ? f.raw : f.value,
+          text: b.lines[0].trim().slice(0, 90),
+        });
       }
     }
     if (n) { per[rel] = n; total += n; }
   }
-  return { total, per };
+  return { total, per, where };
 }
 
 /* ---- the archive is not a laundry -------------------------------------------------------------

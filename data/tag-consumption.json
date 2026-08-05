@@ -15,12 +15,12 @@
     "thawsTarget",
     "doublesSideSpeed",
     "sealsMoves",
-    "statChangeInCode",
     "spreadAll",
+    "statChangeInCode",
     "redirects",
     "powder",
-    "halvesDamage",
     "pivotStatus",
+    "halvesDamage",
     "preventsStatDrop",
     "reversesSpeed",
     "healsSelf",
@@ -32,8 +32,8 @@
     "healsOnSwitchOut",
     "delayedSleep",
     "curesVolatile",
-    "clearsBoosts",
     "formeChange",
+    "clearsBoosts",
     "reordersTurn",
     "hazard",
     "switchInForme",
@@ -86,167 +86,167 @@
   "dead_by_uses": [
     {
       "tag": "statusCategory",
-      "uses": 164294,
+      "uses": 169468,
       "carriers": 175
     },
     {
       "tag": "neverMisses",
-      "uses": 141059,
+      "uses": 145504,
       "carriers": 124
     },
     {
       "tag": "flinches",
-      "uses": 35565,
+      "uses": 36742,
       "carriers": 19
     },
     {
       "tag": "inflictsBurn",
-      "uses": 23338,
+      "uses": 24070,
       "carriers": 15
     },
     {
       "tag": "lowersUser",
-      "uses": 17322,
+      "uses": 17938,
       "carriers": 13
     },
     {
       "tag": "damageBoost",
-      "uses": 12223,
+      "uses": 12672,
       "carriers": 44
     },
     {
       "tag": "boostsUser",
-      "uses": 10766,
+      "uses": 11115,
       "carriers": 23
     },
     {
       "tag": "lowersTarget",
-      "uses": 10379,
+      "uses": 10662,
       "carriers": 22
     },
     {
       "tag": "neverMissesAttack",
-      "uses": 6979,
+      "uses": 7233,
       "carriers": 8
     },
     {
       "tag": "needsTargetToAttack",
-      "uses": 6976,
+      "uses": 7207,
       "carriers": 9
     },
     {
       "tag": "inflictsParalysis",
-      "uses": 6711,
+      "uses": 6907,
       "carriers": 13
     },
     {
       "tag": "inflictsFreeze",
-      "uses": 6569,
+      "uses": 6836,
       "carriers": 4
     },
     {
       "tag": "inflictsPoison",
-      "uses": 6266,
+      "uses": 6543,
       "carriers": 11
     },
     {
       "tag": "untagged",
-      "uses": 5449,
+      "uses": 5688,
       "carriers": 65
     },
     {
       "tag": "locksTarget",
-      "uses": 5402,
+      "uses": 5583,
       "carriers": 3
     },
     {
       "tag": "needsUntrackedState",
-      "uses": 5288,
+      "uses": 5408,
       "carriers": 4
     },
     {
       "tag": "weightBased",
-      "uses": 4237,
+      "uses": 4399,
       "carriers": 4
     },
     {
       "tag": "oneTurnGuard",
-      "uses": 3949,
+      "uses": 4076,
       "carriers": 2
     },
     {
       "tag": "inflictsConfusion",
-      "uses": 3448,
+      "uses": 3533,
       "carriers": 9
     },
     {
       "tag": "readsTargetItem",
-      "uses": 3271,
+      "uses": 3405,
       "carriers": 2
     },
     {
       "tag": "accuracyMod",
-      "uses": 2559,
+      "uses": 2682,
       "carriers": 14
     },
     {
       "tag": "inflictsSleep",
-      "uses": 1848,
+      "uses": 1921,
       "carriers": 4
     },
     {
       "tag": "setsWeather",
-      "uses": 1568,
+      "uses": 1607,
       "carriers": 5
     },
     {
       "tag": "forbidsStatusMoves",
-      "uses": 1438,
+      "uses": 1503,
       "carriers": 1
     },
     {
       "tag": "writesAccuracy",
-      "uses": 1088,
+      "uses": 1163,
       "carriers": 8
     },
     {
       "tag": "inflictsToxic",
-      "uses": 843,
+      "uses": 889,
       "carriers": 2
     },
     {
       "tag": "substitute",
-      "uses": 628,
+      "uses": 640,
       "carriers": 2
     },
     {
       "tag": "randomBoostEachTurn",
-      "uses": 463,
+      "uses": 474,
       "carriers": 1
     },
     {
       "tag": "statusImmune",
-      "uses": 439,
+      "uses": 456,
       "carriers": 12
     },
     {
       "tag": "punishesBoostedTarget",
-      "uses": 192,
+      "uses": 200,
       "carriers": 2
     },
     {
       "tag": "passesState",
-      "uses": 174,
+      "uses": 181,
       "carriers": 2
     },
     {
       "tag": "readsOwnItem",
-      "uses": 156,
+      "uses": 158,
       "carriers": 1
     },
     {
       "tag": "dualPurpose",
-      "uses": 114,
+      "uses": 118,
       "carriers": 2
     },
     {
@@ -256,7 +256,7 @@
     },
     {
       "tag": "sideBuff",
-      "uses": 7,
+      "uses": 8,
       "carriers": 1
     },
     {
@@ -279,8 +279,8 @@
     "extendsDuration",
     "refusesStatusMoves",
     "speedOnItemLoss",
-    "blocksBerries",
     "punishesContact",
+    "blocksBerries",
     "disablesAttacker",
     "costsUserHP",
     "reducesAllyDamage",
@@ -298,5 +298,5 @@
     "failsWithoutTerrain",
     "amplifiesBoosts"
   ],
-  "generated": "2026-08-05T17:07:13.998Z"
+  "generated": "2026-08-05T17:54:55.402Z"
 }

@@ -1,80 +1,80 @@
 {
-  "generated": "2026-08-05T16:46:24.329Z",
+  "generated": "2026-08-05T17:45:15.940Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "depth": "full",
   "theoretical": {
-    "flag": 8040,
+    "flag": 8159,
     "type": 480,
     "field": 156,
-    "total": 8676
+    "total": 8795
   },
-  "emitted": 1675,
-  "ran": 1675,
+  "emitted": 2300,
+  "ran": 2300,
   "by_axis": {
-    "flag": 1206,
+    "flag": 1831,
     "type": 313,
     "field": 156
   },
   "by_layer": {
-    "secondary": 883,
-    "damage": 323,
-    "immunity": 83,
-    "legality": 379,
+    "secondary": 1412,
+    "damage": 351,
+    "immunity": 95,
+    "legality": 435,
     "targeting": 7
   },
   "by_evaluator": {
-    "state": 1196,
-    "damage": 323,
+    "state": 1793,
+    "damage": 351,
     "field": 156
   },
   "dropped_by_the_generator": {
-    "carrier-is-a-die: chance secondary": 255,
-    "carrier-is-a-die: accuracy 90": 300,
-    "carrier-is-a-die: accuracy 95": 148,
-    "carrier-is-a-die: accuracy 80": 29,
-    "carrier-is-a-die: accuracy 85": 69,
-    "carrier-does-not-aim-at-a-foe: target=allAdjacentFoes": 49,
+    "carrier-does-not-aim-at-a-foe: target=allAdjacentFoes": 65,
     "carrier-does-not-aim-at-a-foe: target=randomNormal": 27,
-    "carrier-is-a-die: accuracy 75": 57,
-    "carrier-is-a-die: accuracy 50": 18,
+    "no-user: no species in MC.mons learns the carrier move": 47,
+    "carrier-misses-the-pinned-median-die: accuracy 50 <= 50": 18,
     "carrier-does-not-aim-at-a-foe: target=scripted": 14,
     "carrier-does-not-aim-at-a-foe: target=allAdjacent": 45,
-    "carrier-is-a-die: accuracy 30": 26,
-    "no-user: no species in MC.mons learns the carrier move": 29,
+    "carrier-misses-the-pinned-median-die: accuracy 30 <= 50": 26,
     "reactor-is-a-die: its own effect fires on a percentage, so ONE seeded battle compares luck": 6,
-    "no-user: no body both has the attacker-side reactor and learns the carrier": 108,
-    "carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier": 15,
-    "reactor-untagged: data/tags.json carries NO tag for this reactor — a tag_dex gap, not a generator one": 10,
-    "holder-immune-by-chart: every candidate body already takes zero from this move type": 48,
+    "no-user: no body both has the attacker-side reactor and learns the carrier": 159,
+    "carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier": 20,
+    "reactor-untagged: data/tags.json carries NO tag for this reactor — a tag_dex gap, not a generator one": 11,
+    "holder-immune-by-chart: every candidate body already takes zero from this move type": 71,
     "reactor-not-in-format: no species in this format has the ability at all": 28,
-    "no-control-carrier: the user has no flagless move of the same category": 153,
-    "no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach": 30,
+    "no-control-carrier: the user has no flagless move of the same category": 192,
+    "no-holder: no species in MC.mons learns the reactor move on a body this carrier can reach": 45,
     "reactor-not-in-format: no species in this format learns the reactor move": 1,
     "carrier-does-not-aim-at-a-foe: target=all": 108,
-    "carrier-does-not-aim-at-a-foe: target=self": 400,
+    "carrier-does-not-aim-at-a-foe: target=self": 409,
     "carrier-does-not-aim-at-a-foe: target=allies": 17,
-    "carrier-does-not-aim-at-a-foe: target=adjacentAlly": 33,
-    "carrier-is-a-die: accuracy 70": 6,
-    "carrier-does-not-aim-at-a-foe: target=allySide": 60,
-    "carrier-is-a-die: accuracy 60": 7,
+    "carrier-does-not-aim-at-a-foe: target=adjacentAlly": 34,
+    "carrier-does-not-aim-at-a-foe: target=allySide": 62,
+    "layer-unclassified: the reactor is tagged, but no tag maps to a resolution stage": 1,
     "carrier-does-not-aim-at-a-foe: target=foeSide": 28,
     "carrier-does-not-aim-at-a-foe: target=adjacentAllyOrSelf": 7,
     "reactor-also-moves-accuracy: a damage RATIO would be measuring a miss, not a multiplier": 1,
+    "carrier-reaches-this-key-only-through-a-roll: a 30% secondary, and the pinned median die does not fire it": 41,
+    "carrier-reaches-this-key-only-through-a-roll: a 20% secondary, and the pinned median die does not fire it": 24,
+    "carrier-reaches-this-key-only-through-a-roll: a 10% secondary, and the pinned median die does not fire it": 33,
+    "carrier-reaches-this-key-only-through-a-roll: a 10/10% secondary, and the pinned median die does not fire it": 3,
+    "carrier-reaches-this-key-only-through-a-roll: a 50/30% secondary, and the pinned median die does not fire it": 1,
+    "carrier-reaches-this-key-only-through-a-roll: a 50% secondary, and the pinned median die does not fire it": 5,
+    "carrier-reaches-this-key-only-through-a-roll: a 40% secondary, and the pinned median die does not fire it": 1,
     "no-user: no body both has the attacker-side reactor and learns a move of its type": 40,
     "no-type-param: the reactor is in the moveType index but no param names a type": 21,
     "layer-unclassified: no tag on the reactor maps to a resolution stage": 3,
     "field-setter-self-switches: the case would be about the replacement, not the field": 1,
     "field-not-in-projection: persists, but neither engine projection carries it": 4
   },
-  "live": 1031,
-  "agree": 1027,
-  "part": 4,
-  "agreement_pct": 99.6,
-  "staged_pct_of_theoretical": 19.3,
-  "inert": 519,
-  "saturated": 107,
-  "ko_timing": 16,
+  "live": 1453,
+  "agree": 1436,
+  "part": 17,
+  "agreement_pct": 98.8,
+  "staged_pct_of_theoretical": 26.2,
+  "inert": 706,
+  "saturated": 116,
+  "ko_timing": 23,
   "threw": 2,
   "not_compared": [
     "hp amount",
@@ -91,13 +91,385 @@
   "parting": [
     {
       "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "stoneaxe",
+      "reactor": "roughskin",
+      "kind": "ability",
+      "side": "def",
+      "uses": 63,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.hazards.stealthrock",
+          "null",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "stoneaxe",
+      "reactor": "wanderingspirit",
+      "kind": "ability",
+      "side": "def",
+      "uses": 63,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].ability"
+      ],
+      "sd_witness": [
+        ".A.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.hazards.stealthrock",
+          "null",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "stoneaxe",
+      "reactor": "mummy",
+      "kind": "ability",
+      "side": "def",
+      "uses": 63,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].ability"
+      ],
+      "sd_witness": [
+        ".A.active[0].ability"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.hazards.stealthrock",
+          "null",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "gigaimpact",
+      "reactor": "spikyshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 38,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".A.active[0].vol"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].vol",
+          "[\"mustrecharge\"]",
+          "[]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "supercellslam",
+      "reactor": "kingsshield",
+      "kind": "move",
+      "side": "def",
+      "uses": 85,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].boosts.atk"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "contact",
+      "layer": "secondary",
+      "carrier": "stoneaxe",
+      "reactor": "beakblast",
+      "kind": "move",
+      "side": "def",
+      "uses": 63,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].status",
+        ".B.active[0].species",
+        ".B.active[0].hurt",
+        ".B.active[0].types",
+        ".B.benched"
+      ],
+      "sd_witness": [
+        ".A.active[0].status",
+        ".B.active[0].species",
+        ".B.active[0].types",
+        ".B.benched",
+        ".B.hazards.stealthrock"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.hazards.stealthrock",
+          "null",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "sound",
+      "layer": "legality",
+      "carrier": "bugbuzz",
+      "reactor": "throatchop",
+      "kind": "move",
+      "side": "def",
+      "uses": 57,
+      "evaluator": "state",
+      "medi_witness": [],
+      "sd_witness": [
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.active[0].hurt",
+          "true",
+          "false"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "bullet",
+      "layer": "immunity",
+      "carrier": "rockwrecker",
+      "reactor": "bulletproof",
+      "kind": "ability",
+      "side": "def",
+      "uses": 2,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].vol",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].vol",
+          "[\"mustrecharge\"]",
+          "[]"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "priorityMove",
+      "layer": "legality",
+      "carrier": "upperhand",
+      "reactor": "upperhand",
+      "kind": "move",
+      "side": "def",
+      "uses": 76,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "sd_witness": [
+        ".A.active[0].hurt",
+        ".B.active[0].hurt"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].hurt",
+          "false",
+          "true"
+        ],
+        [
+          ".B.active[0].hurt",
+          "true",
+          "false"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "scaleshot",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 153,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].boosts.def",
+          "0",
+          "-1"
+        ],
+        [
+          ".A.active[0].boosts.spe",
+          "0",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "stoneaxe",
+      "reactor": "toxicdebris",
+      "kind": "ability",
+      "side": "def",
+      "uses": 63,
+      "evaluator": "state",
+      "medi_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "sd_witness": [
+        ".A.hazards.toxicspikes"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.hazards.stealthrock",
+          "null",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "scaleshot",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 153,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".A.active[0].boosts.def",
+          "0",
+          "-1"
+        ],
+        [
+          ".A.active[0].boosts.spe",
+          "0",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
+      "key": "physicalMove",
+      "layer": "secondary",
+      "carrier": "stoneaxe",
+      "reactor": "weakarmor",
+      "kind": "ability",
+      "side": "def",
+      "uses": 63,
+      "evaluator": "state",
+      "medi_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "sd_witness": [
+        ".B.active[0].boosts.def",
+        ".B.active[0].boosts.spe"
+      ],
+      "turn": null,
+      "diffs": [
+        [
+          ".B.hazards.stealthrock",
+          "null",
+          "1"
+        ]
+      ],
+      "detail": null
+    },
+    {
+      "axis": "flag",
       "key": "volatile:flinch",
       "layer": "secondary",
       "carrier": "upperhand",
       "reactor": "steadfast",
       "kind": "ability",
       "side": "def",
-      "uses": 73,
+      "uses": 76,
       "evaluator": "state",
       "medi_witness": [],
       "sd_witness": [
@@ -121,7 +493,7 @@
       "reactor": "shielddust",
       "kind": "ability",
       "side": "def",
-      "uses": 12872,
+      "uses": 13292,
       "evaluator": "state",
       "medi_witness": [],
       "sd_witness": [
@@ -151,7 +523,7 @@
       "reactor": "shielddust",
       "kind": "ability",
       "side": "def",
-      "uses": 2888,
+      "uses": 2946,
       "evaluator": "state",
       "medi_witness": [],
       "sd_witness": [
@@ -175,7 +547,7 @@
       "reactor": "shielddust",
       "kind": "ability",
       "side": "def",
-      "uses": 216,
+      "uses": 223,
       "evaluator": "state",
       "medi_witness": [],
       "sd_witness": [
@@ -197,13 +569,13 @@
       "key": "statusMove",
       "carrier": "curse",
       "reactor": "goodasgold",
-      "why": "771/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+      "why": "1230/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     },
     {
       "key": "statusMove",
       "carrier": "curse",
       "reactor": "quickclaw",
-      "why": "874/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
+      "why": "1352/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
     }
   ]
 }

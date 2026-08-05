@@ -430,6 +430,95 @@ function moveIsDeterministic(mv) {
   if (mv.multiaccuracy) return 'per-hit accuracy';
   return null;
 }
+
+/* ================================================================================================
+ * A CARRIER THAT CARRIES A PROBABILITY — TWO DIFFERENT FAULTS, NOT ONE
+ * ================================================================================================
+ *
+ * Will: *"We cant just toss inaccurate moves can we?"* and *"Flare blitz is 100 accurate man same
+ * with iron head."* He is right twice, and the second one is the sharper point: `carrier-is-a-die`
+ * was ONE reason string covering two faults that have nothing to do with each other, and reading it
+ * back made Flare Blitz — a 100%-accurate move — get described as inaccurate.
+ *
+ *   A. THE MOVE CAN MISS.            Play Rough, Rock Slide, Megahorn, Power Whip, High Horsepower.
+ *   B. THE MOVE ALWAYS CONNECTS and carries a chance SIDE EFFECT of its own. Flare Blitz's 10% burn,
+ *      Iron Head's 30% flinch, Ice Punch, Dire Claw. When the case is Rough Skin against Flare Blitz
+ *      the burn roll is NOISE — it is not the subject and it never was.
+ *
+ * Between them they are the most-clicked physical moves in the format, and dropping both meant the
+ * contact reactors (Rough Skin, Flame Body, Static, Spiky Shield) were tested only with the contact
+ * moves nobody clicks.
+ *
+ * THE DICE WERE COUNTED BEFORE THEY WERE FORCED, and the count is why this is a filter and not a
+ * forcing. Every one of these pairs was staged anyway and every draw both engines took was tallied,
+ * in both arms. The harness pins BOTH engines to the median of every range (see the pinning block in
+ * tests/test-game-diff.js), so a "roll" here is a pure function of its arguments and NOT a stream: a
+ * differing draw COUNT between the two arms cannot shift a later draw, because position does not
+ * enter. There was no stream hazard to protect against. What there was instead was a MISALIGNMENT —
+ * `randomChance` was pinned to a different die from `random`, so a 90%-accurate move missed in the
+ * reference engine and connected in medicham2. That is fixed at the pin, in both arms, rather than
+ * by forcing a move to hit — forcing changes the MECHANIC, and aligning changes only the connection.
+ *
+ * MEASURED, against the frozen release, before any of this was written:
+ *
+ *   bucket B, staged with the roll left completely alone : 124 live, 123 agree  (99.2%)
+ *   bucket A, under the OLD pin  : 377 of 501 INERT — the reference simply missed — and 24 of the 95
+ *                                  live ones disagreed for no reason but that miss
+ *   bucket A, under the FIXED pin: 279 live, 268 agree (96.1%), 11 real disagreements
+ *   the 1,675 cases already staged, run under both pins: NOT ONE verdict moved
+ *
+ * So Will's expectation — "most of the 902 come back clean" — holds, and the drop was precautionary.
+ * What survives as a genuine reason to refuse a pair is only the two cases below, both of which are
+ * about the PINNED DIE rather than about luck, and both of which are named separately in the ledger.
+ * ============================================================================================= */
+/* The harness pins every range to its median, so an event of probability p resolves as `50 < p`. */
+const PINNED_ROLL = 50;
+const chanceOf = s => (s.chance == null ? 100 : s.chance);
+/* WHY IS THIS CARRIER IN THIS LINKAGE KEY? If it is a member because of a FLAG (contact, sound,
+ * punch, bite, physicalMove) then the flag is unconditional and the move's own chance secondary is
+ * noise. If it is a member because of the SECONDARY ITSELF — `moveSecondary` is literally "the move
+ * has one", and `volatile:flinch` is reached by Iron Head only through its 30% — then a secondary
+ * that does not fire at the pinned median leaves the pair with nothing to express, and Shield Dust
+ * has nothing to block. Derived from the key, never from a list of move names. */
+function keyIsTheSecondary(key, mv) {
+  /* An EMPTY list must return null, not `[]`. `[]` is truthy and `[].some()` is false, so an empty
+   * one would drop the pair under a reason naming a secondary that does not exist — a drop that reads
+   * as a considered decision and is a coding error. */
+  if (key === 'moveSecondary') { const ch = (mv.secondaries || []).map(chanceOf); return ch.length ? ch : null; }
+  if (key.startsWith('volatile:')) {
+    const vol = key.slice('volatile:'.length);
+    if (mv.volatileStatus === vol) return null;             /* inflicted outright, not rolled for */
+    const ch = (mv.secondaries || []).filter(s => s.volatileStatus === vol).map(chanceOf);
+    return ch.length ? ch : null;
+  }
+  return null;
+}
+/* Returns `{ drop }` with a NAMED reason, or `{ rolls }` describing the probability the case will
+ * carry into the runner (which is what lifts trap 2 for that one script, and only with the dice
+ * pinned). Never a bare boolean: the two drops below are different faults and the ledger must say so. */
+function carrierRollVerdict(key, mv) {
+  if (!mv.exists) return { drop: 'carrier-does-not-exist' };
+  const acc = mv.accuracy === true ? 100 : mv.accuracy;
+  const secs = (mv.secondaries || []).map(chanceOf).filter(c => c < 100);
+  /* (1) THE MOVE DOES NOT CONNECT AT THE PINNED MEDIAN. At accuracy 50 the two engines split on a
+   * strict-versus-non-strict comparison of the same median — medicham2 misses on `50 > acc`, so it
+   * HITS at exactly 50, while the PRNG's own `random(den) < num` MISSES. Below 50 they agree and both
+   * miss, which is honest and useless: the carrier never lands, so the pair cannot exercise anything.
+   * Either way the pair is refused HERE, named, rather than being staged and reported as INERT — an
+   * inert row caused by the harness reads exactly like a mechanic that cannot fire. */
+  if (acc <= PINNED_ROLL) return { drop: 'carrier-misses-the-pinned-median-die: accuracy ' + acc + ' <= ' + PINNED_ROLL };
+  /* (2) THE PAIR IS IN THIS KEY BECAUSE OF THE SECONDARY, AND THE SECONDARY DOES NOT FIRE. Measured:
+   * every one of the 47 such pairs staged came back INERT, 47 of 47, which is what "cannot express
+   * itself" looks like from the outside. Named so the flinch class's real coverage gap — Inner Focus
+   * has no 100% flinch carrier to test it with — stays visible instead of dissolving into INERT. */
+  const need = keyIsTheSecondary(key, mv);
+  if (need && !need.some(c => c > PINNED_ROLL))
+    return { drop: 'carrier-reaches-this-key-only-through-a-roll: a ' + need.join('/') + '% secondary, and the pinned median die does not fire it' };
+  if (acc < 100 || secs.length || mv.multiaccuracy)
+    return { rolls: [acc < 100 ? 'accuracy ' + acc : null, mv.multiaccuracy ? 'per-hit accuracy' : null,
+                     secs.length ? 'secondary ' + secs.join('/') + '%' : null].filter(Boolean).join(', ') };
+  return {};
+}
 const NEEDS_FOE = new Set(['normal', 'any', 'adjacentFoe']);
 /* A reactor whose OWN effect is a die. Static paralyses 30% of the time; comparing it is comparing
  * luck. Read out of the param, never off a list of names. */
@@ -532,8 +621,11 @@ function axisFlag(depth, log) {
          * that eliminates a whole TAIL. One log line stood for every remaining carrier. */
         if (made >= depth) { log.add('depth-cap: carriers beyond --depth for this (key,reactor)', label, N - ci, W); break; }
         const mv = dex.moves.get(c.id);
-        const nd = moveIsDeterministic(mv);
-        if (nd) { log.add('carrier-is-a-die: ' + nd, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
+        /* TWO FAULTS, TWO REASONS — see carrierRollVerdict. `carrier-is-a-die` used to stand for both
+         * and dropped 902 pairs; the measurement says 717 of those reach a verdict and all but 12 of
+         * the live ones agree. */
+        const roll = carrierRollVerdict(key, mv);
+        if (roll.drop) { log.add(roll.drop, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         if (!NEEDS_FOE.has(mv.target)) { log.add('carrier-does-not-aim-at-a-foe: target=' + mv.target, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         const users = usersOf(c.id);
         if (!users.length) { log.add('no-user: no species in MC.mons learns the carrier move', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
@@ -549,7 +641,7 @@ function axisFlag(depth, log) {
           const ctl = controlCarrier(key, mv, user, log, label, [r.id, c.id]);
           if (!ctl) continue;
           cases.push(mkCase({ axis: 'flag', key, layer: cls.layer, evaluator: evaluatorFor(cls.layer),
-            carrier: { kind: 'move', id: c.id, name: mv.name, uses: c.uses || 0, user: user.name },
+            carrier: { kind: 'move', id: c.id, name: mv.name, uses: c.uses || 0, user: user.name, rolls: roll.rolls || null },
             control: { kind: 'carrier', id: norm(ctl.name), name: ctl.name },
             reactor: { kind: 'move', id: r.id, name: dex.moves.get(r.id).name, holder: holder.name, side: 'def' } }));
           made++; continue;
@@ -569,7 +661,7 @@ function axisFlag(depth, log) {
           if (!holder) continue;
         }
         cases.push(mkCase({ axis: 'flag', key, layer: cls.layer, evaluator: evaluatorFor(cls.layer),
-          carrier: { kind: 'move', id: c.id, name: mv.name, uses: c.uses || 0, user: user.name },
+          carrier: { kind: 'move', id: c.id, name: mv.name, uses: c.uses || 0, user: user.name, rolls: roll.rolls || null },
           control: { kind: r.kind === 'item' ? 'item' : 'ability', id: r.kind === 'item' ? '' : norm(CONTROL_ABILITY), name: r.kind === 'item' ? '(no item)' : CONTROL_ABILITY },
           reactor: { kind: r.kind, id: r.id, name: r.name, holder: holder.name, side } }));
         made++;

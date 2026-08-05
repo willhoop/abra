@@ -314,11 +314,27 @@ function measure() {
   };
   {
     const r = readProv();
-    const m = r.txt && r.txt.match(/(\d+) UNSAFE, (\d+) possibly stale, (\d+) ok, (\d+) missing/);
-    if (m) prov = { unsafe: +m[1], stale: +m[2], ok: +m[3], missing: +m[4] };
+    /* THE VOID TERM IS OPTIONAL BECAUSE ADDING IT SILENTLY BLANKED THIS WHOLE LINE. provenance.js
+     * gained a `N VOID (declared)` term when VOID was split from UNSAFE, this regex did not, and the
+     * only symptom was `provenance: NOT DERIVED` plus one NOT MEASURED slot on the web board — a
+     * parser that fails to a benign-looking absence rather than to an error. It is a REPORTER of
+     * another tool's counts, so the shape it matches is now the loosest one that still cannot
+     * mis-attribute a number: each term is found by its own label, not by position. */
+    /* ANCHORED TO THE COUNTS LINE, and that is not fussiness. A first attempt matched each label
+     * anywhere in the output and read `448 missing` and `55 ok` — provenance.js prints those words in
+     * its prose too, so a free-floating label search quietly reports a number from a sentence. The
+     * line is found first; only then are its terms read. */
+    const line = r.txt && (r.txt.split('\n').find(l => /\d+ UNSAFE,/.test(l) && /possibly stale/.test(l)) || null);
+    const num = (label) => { const mm = line && line.match(new RegExp('(\\d+) ' + label)); return mm ? +mm[1] : null; };
+    if (line) {
+      prov = { unsafe: num('UNSAFE'), voided: num('VOID \\(declared\\)'), stale: num('possibly stale'),
+               ok: num('ok'), missing: num('missing') };
+      if (prov.unsafe == null || prov.stale == null) prov = null;   // shape moved further than expected
+    }
     if (prov) {
       provRan = true;
-      say(`  provenance: ${prov.unsafe} unsafe, ${prov.stale} possibly stale, ${prov.ok} ok, ${prov.missing} missing`);
+      say(`  provenance: ${prov.unsafe} unsafe, ${prov.voided ? prov.voided + ' void (declared), ' : ''}`
+        + `${prov.stale} possibly stale, ${prov.ok} ok, ${prov.missing} missing`);
       if (/OPT-IN FILTERS/.test(r.txt)) say('    a generator makes the quality filter OPT-IN — see the tail of provenance.js');
       if (r.tripped) {
         /* Name the artifacts. A ratchet that fires without naming its cause is a ratchet someone
