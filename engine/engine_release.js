@@ -430,6 +430,81 @@ function drift(id, opts) {
   return moved;
 }
 
+/* ---- PRUNING, AND WHY IT IS SAFE ---------------------------------------------------------------
+ *
+ * Nine releases hold 23 MB of copied bytes, and the five largest FILES in this repository are the
+ * same 26,348-line tag artifact five times over — one per release. It grows with every cut and
+ * nobody decided that it should.
+ *
+ * The copy itself is not negotiable: `verify()` and `open()` exist because a measurement must read
+ * bytes that cannot move, and a digest alone cannot serve a rollout. What IS negotiable is how long
+ * we keep the bytes of a release that NOTHING POINTS AT.
+ *
+ * THE RULE IS DERIVED, NOT A NUMBER SOMEBODY PICKED. A release keeps its bytes while any artifact
+ * under data/ names its id. That is exactly the set whose numbers a reader might want to re-verify.
+ * Measured 2026-08-05: 5 of 9 releases are cited, 4 are cited by nothing at all — including
+ * 55c7a0f19c86, which was ABANDONED fifteen minutes after it was cut because ENGINE moved
+ * medicham2 underneath it. Keeping a snapshot nothing measured against is not caution, it is habit.
+ *
+ * WHAT PRUNING NEVER TOUCHES: `release.json` and `cuts.jsonl`. The manifest holds every digest and
+ * the cut history, so a pruned release can still PROVE what it contained and when it was frozen.
+ * The evidence stays; only the convenience copy goes.
+ *
+ * AND IT MUST NOT LOOK LIKE CORRUPTION. `verify()` reports a missing file as MODIFIED, which for a
+ * deliberately pruned release is a lie in the alarming direction — it says tampering where the truth
+ * is a recorded decision. A pruned release is marked, and `open()` refuses it with its own message
+ * naming what happened and how to get the bytes back. Silence here would be worse than either. */
+function citedReleaseIds(opts) {
+  const S = store(opts);
+  const root = path.join(S.releases, '..');            // data/
+  const ids = new Set();
+  let files = [];
+  try { files = fs.readdirSync(root).filter(f => f.endsWith('.json')); } catch (e) { return ids; }
+  const known = (() => { try { return fs.readdirSync(S.releases); } catch (e) { return []; } })();
+  for (const f of files) {
+    let text;
+    try { text = fs.readFileSync(path.join(root, f), 'utf8'); }
+    catch (readErr) { console.error('  prune: cannot read data/' + f + ' — treating every release as CITED for safety'); return new Set(known); }
+    for (const id of known) if (text.includes(id)) ids.add(id);
+  }
+  return ids;
+}
+
+function prune(apply, opts) {
+  const S = store(opts);
+  const cited = citedReleaseIds(opts);
+  let current = null;
+  try { current = JSON.parse(fs.readFileSync(S.pointer, 'utf8')).current; } catch (e) { current = null; }
+  const out = [];
+  for (const id of fs.readdirSync(S.releases)) {
+    const dir = path.join(S.releases, id);
+    const manPath = path.join(dir, 'release.json');
+    if (!fs.existsSync(manPath)) continue;
+    const man = JSON.parse(fs.readFileSync(manPath, 'utf8'));
+    if (man.bodies_pruned) { out.push({ id, action: 'already pruned' }); continue; }
+    /* The CURRENT release is never pruned whatever the citation count says: it is what the next
+     * measurement will open, and citations lag the pointer by definition. */
+    const why = cited.has(id) ? 'cited by an artifact' : (id === current ? 'is the current release' : null);
+    if (why) { out.push({ id, action: 'keep', why }); continue; }
+    if (!apply) { out.push({ id, action: 'WOULD PRUNE' }); continue; }
+    for (const rel of Object.keys(man.files || {})) {
+      const p = path.join(dir, rel);
+      try { if (fs.existsSync(p)) fs.unlinkSync(p); } catch (rmErr) { console.error('  prune: could not remove ' + p + ' — ' + rmErr.message); }
+    }
+    man.bodies_pruned = {
+      at: new Date().toISOString(),
+      why: 'no artifact under data/ cited this release id',
+      manifest_retained: true,
+      note: 'The digests above are unchanged and still prove what this release contained. Only the '
+          + 'copied file bodies were removed. To measure against it again, re-cut from a tree whose '
+          + 'files hash to these digests; `verify` will confirm the match.',
+    };
+    fs.writeFileSync(manPath, JSON.stringify(man, null, 2) + '\n');
+    out.push({ id, action: 'pruned' });
+  }
+  return out;
+}
+
 function open(id, opts) {
   const S = store(opts);
   const POINTER = S.pointer;
@@ -444,6 +519,22 @@ function open(id, opts) {
     }
   }
   if (!id) throw new Error('no engine release has been cut. Run: node engine/engine_release.js cut "<why>"');
+  /* PRUNED IS NOT MODIFIED, and saying "MODIFIED" here would accuse a recorded decision of being
+   * tampering. Checked BEFORE verify(), because verify sees only missing files and cannot tell the
+   * difference. The manifest is still here, so the refusal can say exactly what was frozen. */
+  {
+    const manPath = path.join(S.releases, id, 'release.json');
+    if (fs.existsSync(manPath)) {
+      const man = JSON.parse(fs.readFileSync(manPath, 'utf8'));
+      if (man.bodies_pruned) {
+        throw new Error('release ' + id + ' was PRUNED on ' + man.bodies_pruned.at + ' — its file bodies '
+          + 'were removed because no artifact cited it. This is a recorded decision, NOT corruption.\n'
+          + '  Its manifest survives: ' + Object.keys(man.files || {}).length + ' digests, first cut ' + man.cut + '.\n'
+          + '  To measure against it again, restore a tree whose files hash to those digests and re-cut;\n'
+          + '  `node engine/engine_release.js verify ' + id + '` will confirm the match.');
+      }
+    }
+  }
   const v = verify(id, opts);
   if (!v.ok) throw new Error('release ' + id + ' has been MODIFIED since it was cut:\n  ' + v.bad.join('\n  '));
   const dir = path.join(S.releases, id);
@@ -529,6 +620,17 @@ if (require.main === module) {
     const v = verify(arg || (JSON.parse(fs.readFileSync(POINTER, 'utf8')).current));
     console.log(v.ok ? `release ${v.id} is intact` : `release ${v.id} is MODIFIED:\n  ${v.bad.join('\n  ')}`);
     process.exit(v.ok ? 0 : 1);
+  } else if (cmd === 'prune') {
+    const apply = process.argv.includes('--apply');
+    const rows = prune(apply, undefined);
+    console.log('\n  RELEASE BODIES — kept while an artifact cites the id, otherwise prunable.');
+    console.log('  The manifest and cut history are NEVER removed, so a pruned release can still prove\n'
+              + '  what it contained. ' + (apply ? 'APPLIED.' : 'Dry run — pass --apply to act.') + '\n');
+    for (const r of rows) {
+      console.log('    ' + r.id + '  ' + r.action.toUpperCase() + (r.why ? '  (' + r.why + ')' : ''));
+    }
+    const n = rows.filter(r => r.action === 'WOULD PRUNE' || r.action === 'pruned').length;
+    console.log('\n  ' + n + ' release(s) ' + (apply ? 'pruned' : 'would be pruned') + '.\n');
   } else if (cmd === 'rerender') {
     const res = rerender(arg || (JSON.parse(fs.readFileSync(POINTER, 'utf8')).current));
     console.log(`re-rendered ${res.id} from its cut log (${res.cuts} cut(s))`);

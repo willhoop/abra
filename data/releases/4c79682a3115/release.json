@@ -23,5 +23,11 @@
     "data/policy-weights-joint.json": "749953d4b29f",
     "data/move-priors.json": "a64314db056b"
   },
-  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id."
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id.",
+  "bodies_pruned": {
+    "at": "2026-08-05T15:43:25.062Z",
+    "why": "no artifact under data/ cited this release id",
+    "manifest_retained": true,
+    "note": "The digests above are unchanged and still prove what this release contained. Only the copied file bodies were removed. To measure against it again, re-cut from a tree whose files hash to these digests; `verify` will confirm the match."
+  }
 }

@@ -67,6 +67,36 @@ const TAGS = (function(){
  * "a capability was absent and everything reported success". A zero here is the claim that the
  * fallback never ran; a non-zero one is the receipt that it did. Exported as `fails` so a test or a
  * run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */
+/* CAPABILITIES THAT FIRED, not failures. Separate object because the two are read for opposite
+ * reasons: a non-zero MEDFAILS is bad news, a ZERO here is.
+ *
+ * CLAUDE.md: *"A capability that cannot prove it ran is assumed broken. Every capability emits a
+ * counter, the run prints it, and a zero is called out."* Flinch had no counter, and on 2026-08-04
+ * Will asked the obvious question -- "are we sure those tags like flinch actually work" -- which took
+ * four failed probes to not answer. `_flinch` is set and CONSUMED inside a single turn (set at the
+ * secondary, read at line ~2073, cleared at end of turn), so no caller can observe it afterwards and
+ * every post-turn check reads false whether or not the mechanic fired. The instrument had to be
+ * inside the engine; there was no probe that could have worked from outside.
+ *
+ * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
+ * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
+ * a fifth external probe. */
+const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+  /* WIRE 92 -- a voluntary switch refused because a live foe carries `preventsSwitch` (Shadow Tag on
+   * Gengar-Mega). A zero here after real games with a Mega Gengar on the field is the finding. */
+  trapBlockedSwitch: 0,
+  /* WIRE 116 -- a voluntary switch refused by a partial-trapping MOVE (Fire Spin, Infestation,
+   * Wrap, Whirlpool, Sand Tomb, Thunder Cage, Magma Storm). Counted apart from the ability above
+   * because the two have different exemptions and a merged counter could not tell them apart. */
+  trapBlockedSwitchByMove: 0,
+  /* WIRE 115 -- a move SECONDARY dropped by the target's Shield Dust. This is the only scope at
+   * which Shield Dust acts, so a zero here after games with a Vivillon on the field is the finding;
+   * before this pass the ability was refusing direct status moves and Static as well. */
+  dustBlockedSecondary: 0,
+  /* WIRE 90 -- an entry hazard that RESOLVED on a switch-in (toxic spikes' poison, sticky web's
+   * drop). The old MEDFAILS.hazardUnresolved counter is gone because the gap it declared is wired;
+   * this is its receipt, so the counter did not merely vanish (docs/ENGINE.md rule). */
+  hazardResolvedOnEntry: 0 };
 const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnknownFirst: '',
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
@@ -91,18 +121,41 @@ const MEDFAILS = { encoreAction: 0, megaRevert: 0, weatherUnknown: 0, weatherUnk
    * `damageMult: 0.5, onlyWhen: null` and is not a damage cut at all -- it DOUBLES berry effects --
    * so the derivation over-matched and the consumer refuses anything it cannot name a condition for. */
   damageReduceUnknown: 0, damageReduceUnknownFirst: '',
-  /* A `hazard` this engine sets and cannot resolve (WIRE 41). Only Stealth Rock and Spikes deal HP;
-   * Toxic Spikes and Sticky Web need grounded-ness, which this engine does not track. */
-  hazardUnresolved: 0, hazardUnresolvedFirst: '',
+  /* WIRE 91 -- a `speedCond` carrier whose condition is NOT in its params (`inWeather: []`): Quick
+     Feet (a status condition), Surge Surfer (a terrain), Slow Start (a turn clock). Applying the bare
+     multiplier would be Quick Feet x1.5 forever, so they are refused and counted. The enrichment
+     (deriving the condition kind out of the handler) is STAGED in tag_dex. */
+  speedCondUnconditional: 0, speedCondUnconditionalFirst: '',
+  /* WIRE 93 -- a `priorityMod` whose `condition` prose this engine cannot evaluate. The only value in
+     the artifact today is Gale Wings' 'only at full HP', which IS evaluated; anything else fails
+     closed (no shift) and is counted, because a silently applied conditional shift is a wrong number
+     in whatever direction the unknown condition points. */
+  priorityModUnknownCond: 0, priorityModUnknownCondFirst: '',
   /* A body healed by Grassy Terrain that the real game would NOT heal because it is not grounded
      (WIRE 73). The TYPE half is applied -- a Flying type is skipped -- but Levitate and an Air Balloon
-     need grounded-ness, which this engine does not track, so they are healed and counted. Same
-     declared gap as hazardUnresolved, one field over. */
+     are healed and counted. WIRE 90 wired the hazard twin of this gap by deriving grounded-ness from
+     the body (types + ability + item); this heal site still does not, so the counter stands. */
   terrainHealUngrounded: 0,
   /* A `convertsMoveType.converts` string this engine cannot parse (WIRE 75). The artifact writes either
      a capitalised TYPE ("Normal moves"), a lowercase FLAG ("sound moves") or "its moves"; anything
      else would silently mean "the ability does not apply", which is how Liquid Voice was inert. */
-  convertsUnparsed: 0, convertsUnparsedFirst: '' };
+  convertsUnparsed: 0, convertsUnparsedFirst: '',
+  /* WIRE 83. A `variablePower` or `conditionalPower` rule the artifact NOW states and this engine
+     still cannot evaluate: Lash Out needs "was I stat-dropped this turn", Rage Fist needs a per-mon
+     times-hit counter, Last Respects' own counter is handled by powerFromFallen. Counted with the
+     first offender named, because the alternative -- falling through to the base power -- is exactly
+     the silent default that made these 35 of the interaction matrix's divergences. */
+  variablePowerUnknown: 0, variablePowerUnknownFirst: '',
+  /* WIRE 83. A speed ratio asked of a body whose SIDE is unknown, so Tailwind cannot be applied to
+     it. Only a bare dmgRange call outside a battle can produce this; the battle loop stamps
+     `_sf.side` on every body. Loud, because a Tailwind silently missing from one side of a ratio is
+     a Gyro Ball that is wrong by a factor of two. */
+  speedSideUnknown: 0,
+  /* WIRE 89. A secondary whose CHANCE differs between the two rulebooks -- the format-derived
+     `data/tags.json` and the generic `CHOMP/data/move-effects.json`. The format wins. Counted with
+     the first offender named, because there are exactly two today (Iron Head, Toxic Thread) and a
+     third arriving unannounced is the whole failure mode two rulebooks have. */
+  rulebookChanceDrift: 0, rulebookChanceDriftFirst: '' };
 
 /* WIRE 15 -- the spread table is DERIVED. The 34-name set below is kept ONLY as the tags-off
  * control arm's world (pre-wire behaviour, exactly), and as the browser fallback when no artifact
@@ -407,7 +460,7 @@ const normAb=a=>String(a||'').toLowerCase().replace(/[^a-z0-9]/g,'');
 function megaAbility(name,item,baseAb){ if(!item)return baseAb;
   if(name==='charizard'){ if(/itey$/.test(item))return 'drought'; if(/itex$/.test(item))return 'toughclaws'; }
   if(name==='raichu'){ if(/y$/.test(item))return 'noguard'; if(/x$/.test(item))return 'electricsurge'; }   // Raichunite Y / X
-  if(MEGA_ABIL[name] && /ite[xy]?$/.test(item)) return MEGA_ABIL[name];
+  if(MEGA_ABIL[name] && (TAGS.has('item',item,'megaStone')||/ite[xy]?$/.test(item))) return MEGA_ABIL[name];   // WIRE 111
   return baseAb; }
 /* Mega formes, from the SAME generated source the canonical engine uses (CHOMP/data/mega-formes.json,
  * exposed to the browser as window.MEGA_FORMES). This engine previously kept its own hand-written
@@ -444,7 +497,13 @@ function buildMon(name,ov){ const m=MC.mons[name]; if(!m)return null;
                    sa:meg.sa+(m.st.sa-base.sa), sd:meg.sd+(m.st.sd-base.sd), sp:meg.sp+(m.st.sp-base.sp) }; }
     else { st=meg; }
   }
-  return {name,types,st,item,wt:m.wt||null,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
+  /* WIRE 83 -- BEAT UP READS BASE ATTACK, not the built stat, so the row's own number is carried on
+     the body. Stamped here because this is the one place that already holds the MC.mons row: a
+     second hand-rolled index into the mon table inside dmgRange would be a fifth doorway into it,
+     which is exactly what tests/test-mc-key.js ratchets against. A mega's base stats win, because
+     Beat Up asks the species standing on the field. */
+  const _bsAtk=((mf&&mf.bs&&mf.bs.atk)||(m.bs&&m.bs.atk)||0);
+  return {name,types,st,item,wt:m.wt||null,_bsAtk,ability:normAb(megaAbility(name,item,m.ab||'')),baseAbility:normAb(m.ab||''),moves:m.mv.slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
      * respects"). _sf is a per-SIDE live counter shared by reference — Last Respects reads it at
@@ -507,7 +566,11 @@ function buildMonFromSet(set){
    * base stats — so "Gengar @ Gengarite" must resolve to gengar-mega's bs, or the import builds a
    * mega with base stats (caught by the champ-model contract test: SpA 182 where truth is 222). */
   let becameMega=false;
-  if(/ite(x|y)?$/.test(item)&&!/-mega/.test(key)){
+  /* WIRE 111 -- "is this item a mega stone" is the artifact's (`megaStone`, 75 carriers), not a
+   * name-shape regex. The regex stays as the OR-fallback so a stone the artifact has not derived yet
+   * still megas, and because the X/Y SUFFIX genuinely lives in the item name -- the tag's `into`
+   * table does not distinguish the two Charizardites' formes by shape. */
+  if((TAGS.has('item',item,'megaStone')||/ite(x|y)?$/.test(item))&&!/-mega/.test(key)){
     const suffix=/itex$/.test(item)?'-mega-x':(/itey$/.test(item)?'-mega-y':'-mega');
     if(MC.mons[key+suffix]){key=key+suffix;becameMega=true;}
   }
@@ -638,7 +701,14 @@ function hasPower(mv){
   if(mv.bp)return true;
   stampMoveIds();
   const v=mv.id&&TAGS.param('move',mv.id,'variablePower');
-  if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'))return true;
+  /* WIRE 83 -- the ABSOLUTE kinds all grant power through this gate. Five more joined: a move whose
+     dex base power is 0 because the power IS the calculation was rejected here and dealt LITERALLY
+     NOTHING, which is where 35 of the interaction matrix's 68 divergences came from. The
+     CONDITIONAL kinds (targetStatused, userNoItem, positiveBoosts...) multiply a real base and must
+     NOT be listed here, or a move whose condition is false would be admitted at bp 0. */
+  if(v&&(v.kind==='targetWeightKg'||v.kind==='weightRatio'||v.kind==='speedRatioLinear'
+        ||v.kind==='speedRatioTable'||v.kind==='targetHPFrac'||v.kind==='userHPBrackets'
+        ||v.kind==='alliesBaseAtk'))return true;
   /* A FIXED-DAMAGE MOVE HAS NO BASE POWER AND STILL DOES DAMAGE. Without this line dmgRange
    * short-circuits at its !hasPower guard and Super Fang is worth zero. Only the shapes dmgRange can
    * actually compute count as "has power" -- Counter and Mirror Coat need turn state and would
@@ -668,6 +738,18 @@ function suppressesWeather(m){ return !!(m&&TAGS.param('ability',m.ability,'weat
  * silently equivalent: a pure dmgRange handed an Air Lock ALLY cannot know, and the battle loop is
  * the only caller that can. */
 function effWeatherOf(field,att,def){
+  /* WIRE 99 -- PRIVATE WEATHER (Mega Sol, Meganium's Champions mega). The holder's own moves resolve
+   * AS IF its weather were up while the field reports none -- so it is read here, where the shadow at
+   * the top of dmgRange asks "what weather does THIS attacker see", and never written to the field.
+   * The tag's own note: every other weather read asks the FIELD and gets 'none'. The speed abilities
+   * and the defender's own weather reads are deliberately untouched -- `affects: only this Pokemon`.
+   * Sheet usage reads 0 because sheets list the PRE-mega ability (Lesson 3); the exposure is every
+   * Meganium holding its stone. */
+  {const _pw=TAGS.param('ability',att&&att.ability,'privateWeather');
+   if(_pw&&Array.isArray(_pw.actsAsWeather)&&_pw.actsAsWeather.length){
+     const _w=weatherId(_pw.actsAsWeather[0]);
+     if(_w)return _w;
+   }}
   if(!field||!field.weather)return '';
   if(field.wSup||suppressesWeather(att)||suppressesWeather(def))return '';
   return field.weather;
@@ -679,7 +761,9 @@ function dmgRange(att,def,mv,field,spread){
      type, the snow/sand defence bumps, Solar Power, Orichalcum Pulse and the Fire/Water multipliers --
      goes through the suppression without a gate per site. `field` is never mutated. */
   {const _ew=effWeatherOf(field,att,def);
-   if(field&&field.weather&&_ew!==field.weather)field=Object.assign({},field,{weather:''});}
+   /* Either direction: a suppressed sky is blanked, and a PRIVATE weather (WIRE 99) is written into
+    * the shadow -- field itself is never mutated in both cases. */
+   if((field&&field.weather||'')!==_ew)field=Object.assign({},field||{},{weather:_ew});}
   /* WIRE 7 -- weatherScaled, damage half. Weather Ball was Normal 50 BP in every sky; in sand it is
    * a 100 BP Rock move, which is a different move. Solar Beam sheds half its power in rain, sand and
    * snow. The type and power overrides happen HERE, before STAB, effectiveness, the rain/sun x1.5,
@@ -749,6 +833,83 @@ function dmgRange(att,def,mv,field,spread){
     else if(_vp.kind==='targetStatused'&&def.status)mvBP=mvBP*_vp.mult;
     else if(_vp.kind==='userNoItem'&&!att.item)mvBP=mvBP*_vp.mult;
     else if(_vp.kind==='targetHasItem'&&def.item)mvBP=mvBP*_vp.mult;
+    /* ---- WIRE 83 -----------------------------------------------------------------------------
+     * GYRO BALL: floor(25 x THEIR speed / MY speed) + 1, capped at 150. Every multiplier that makes
+     * a speed real belongs in it -- a Choice Scarf on the target is most of the move -- so it goes
+     * through effSpeed rather than the raw stat, which is the one function this engine has for
+     * "how fast is this" (see FACTS ARE GLOBAL). */
+    else if(_vp.kind==='speedRatioLinear'){
+      const _as=effSpeed(att,field),_ds=effSpeed(def,field);
+      if(_as>0&&_ds>0){
+        let _p=Math.floor(_vp.mult*(_vp.invert?_ds/_as:_as/_ds))+(+_vp.plus||0);
+        if(_vp.cap&&_p>_vp.cap)_p=_vp.cap;
+        mvBP=Math.max(1,_p);
+      } else mvBP=1;
+    }
+    /* ELECTRO BALL: a table indexed by floor(MY speed / THEIR speed), clamped to the table's end. */
+    else if(_vp.kind==='speedRatioTable'){
+      const _as=effSpeed(att,field),_ds=effSpeed(def,field);
+      const _r=_ds>0?Math.floor(_as/_ds):0;
+      mvBP=_vp.table[Math.min(Math.max(_r,0),+_vp.clampAt||_vp.table.length-1)];
+    }
+    /* HARD PRESS: the base power IS the target's remaining HP as a percentage of its maximum. */
+    else if(_vp.kind==='targetHPFrac'&&def.st&&def.curHP!=null)
+      mvBP=Math.max(+_vp.min||1,Math.floor((+_vp.ofMax||100)*def.curHP/def.st.hp));
+    /* REVERSAL / FLAIL: brackets on the USER's remaining HP in 48ths -- 200 BP at death's door. */
+    else if(_vp.kind==='userHPBrackets'&&att.st&&att.curHP!=null){
+      const _r=Math.max(Math.floor(att.curHP*(+_vp.scale||48)/att.st.hp),1);
+      mvBP=+_vp.floorBP||1;
+      for(const _b of _vp.brackets)if(_r<_b[0]){mvBP=_b[1];break;}
+    }
+    /* STORED POWER / POWER TRIP: base + per x the number of POSITIVE stat stages, which is what
+     * makes them the punish for a setup sweeper rather than a 20 BP move. */
+    else if(_vp.kind==='positiveBoosts'&&att.boosts){
+      let _n=0;for(const _k in att.boosts)if(att.boosts[_k]>0)_n+=att.boosts[_k];
+      mvBP=mvBP+(+_vp.per||0)*_n;
+    }
+    /* BEAT UP: one hit per eligible party member, each at 5 + floor(that member's base Atk / 10).
+     * ROLLED AS ONE PACKET, summed, which is the same declared divergence this engine already
+     * carries for every multi-hit move against a Focus Sash and is stated here rather than hidden.
+     * Eligibility is Showdown's: not fainted and carrying no major status. */
+    else if(_vp.kind==='alliesBaseAtk'){
+      const _party=(att._sf&&att._sf.team&&att._sf.team.length)?att._sf.team:[att];
+      let _sum=0,_hits=0;
+      for(const _al of _party){
+        if(!_al||_al.fainted||_al.curHP<=0||(_al.status&&_al.status!=='none'))continue;
+        if(!_al._bsAtk)continue;
+        _sum+=(+_vp.base||5)+Math.floor(_al._bsAtk/(+_vp.div||10));_hits++;
+      }
+      mvBP=_hits?_sum:((+_vp.base||5)+Math.floor((att._bsAtk||0)/(+_vp.div||10)));
+    }
+    else if(_vp.kind&&!/^(targetWeightKg|weightRatio|userHPFrac|targetStatused|userNoItem|targetHasItem)$/.test(_vp.kind)){
+      MEDFAILS.variablePowerUnknown++;
+      if(!MEDFAILS.variablePowerUnknownFirst)MEDFAILS.variablePowerUnknownFirst=mv.id+':'+_vp.kind;
+    }
+  }
+  /* WIRE 83 -- conditionalPower, and the tag used to say `{conditional: true}`: a boolean across
+   * eleven members with wildly different rules, which is why the census carried it MISSING. It now
+   * names the CONDITION and the MULTIPLIER, read out of each handler's own chainModify.
+   * `userStatsLoweredThisTurn` (Lash Out) has no state here and is COUNTED rather than defaulted;
+   * `chance` (Fickle Beam) is applied as its EXPECTED multiplier, because dmgRange is a range and
+   * has no rng -- stated, because a 30% double silently ignored is the same class of silent default.
+   * The members whose condition lives in weatherScaled / terrainScaled / variablePower carry only
+   * `conditional:true` and are correctly skipped here rather than double-counted. */
+  {
+    const _cp=mv.id&&TAGS.param('move',mv.id,'conditionalPower');
+    if(_cp&&_cp.when&&_cp.mult){
+      const _st=x=>x&&x.status&&x.status!=='none'?x.status:'';
+      if(_cp.when==='userStatused'){
+        const _s=_st(att);
+        if(_s&&!(_cp.exceptStatus||[]).includes(_s))mvBP=Math.floor(mvBP*_cp.mult);
+      } else if(_cp.when==='targetStatusIn'){
+        if((_cp.statuses||[]).includes(_st(def)))mvBP=Math.floor(mvBP*_cp.mult);
+      } else if(_cp.when==='chance'){
+        mvBP=Math.floor(mvBP*(1+(_cp.p||0)*((_cp.mult||1)-1)));
+      } else {
+        MEDFAILS.variablePowerUnknown++;
+        if(!MEDFAILS.variablePowerUnknownFirst)MEDFAILS.variablePowerUnknownFirst=mv.id+':'+_cp.when;
+      }
+    }
   }
   const phys=mv.c==='P';
   /* WHICH STAT ATTACKS, AND WHICH STAT IS ATTACKED INTO -- from the statSwap tag.
@@ -785,8 +946,19 @@ function dmgRange(att,def,mv,field,spread){
   const _offFromTarget=!!(_sw&&_sw.offensiveFrom==='target');
   const _aBody=_offFromTarget?def:att;
   let A=_aBody.st[_aKey],D=def.st[_dKey];
-  A=Math.floor(A*((_ib&&_ib.offensive)?1:boostMul(_aBody.boosts[_aKey])));
-  D=Math.floor(D*((_ib&&_ib.defensive)?1:boostMul(def.boosts[_dKey])));
+  /* WIRE 94 -- UNAWARE (294 uses), the ABILITY half of `ignoresStatStages`. The MOVE half (Sacred
+   * Sword, Darkest Lariat) has been live all along under the `ignoresBoosts` tag read two lines
+   * down, which makes the move-side `ignoresStatStages` a REDUNDANT second spelling of one fact --
+   * flagged for the staged tag_dex cleanup. Unaware carried only the orphan tag, so a +6 attacker
+   * into an Unaware wall was priced at +6. Both directions, which is the real rule: defending, it
+   * ignores the attacker's offensive stages; attacking, it ignores the defender's defensive stages.
+   * A Mold Breaker attacker ignores the defender's Unaware, through the same suppression the other
+   * defender-ability reads use. */
+  const _uaDef=!TAGS.param('ability',att.ability,'ignoresDefenderAbility')
+    &&TAGS.param('ability',def.ability,'ignoresStatStages');
+  const _uaAtt=TAGS.param('ability',att.ability,'ignoresStatStages');
+  A=Math.floor(A*(((_ib&&_ib.offensive)||_uaDef)?1:boostMul(_aBody.boosts[_aKey])));
+  D=Math.floor(D*(((_ib&&_ib.defensive)||_uaAtt)?1:boostMul(def.boosts[_dKey])));
   if(phys&&att.item==='choiceband')A=Math.floor(A*1.5);
   if(!phys&&att.item==='choicespecs')A=Math.floor(A*1.5);
   if(!phys&&def.item==='assaultvest')D=Math.floor(D*1.5);
@@ -826,6 +998,16 @@ function dmgRange(att,def,mv,field,spread){
   if(att.ability==='solarpower'&&!phys&&field.weather==='sun')A=Math.floor(A*1.5);
   if(att.ability==='orichalcumpulse'&&phys&&field.weather==='sun')A=Math.floor(A*5461/4096);
   if(att.ability==='hadronengine'&&!phys&&terrainId(field.terrain)==='electric')A=Math.floor(A*5461/4096);
+  /* WIRE 112 (STAGED consumer) -- MARVEL SCALE, through `condStatMult`: a stat multiplied while a
+   * body condition holds ({stat:'def', mult:1.5, when:'statused'}). The derivation is written in
+   * tag_dex and its regeneration is staged, so this matches nothing in the shipped artifact today;
+   * the probe injects the staged tag through TAGS.__setDB. `when` values this engine cannot
+   * evaluate fail CLOSED (no multiplier) -- a guessed condition is the boolean-in-a-fraction's-
+   * clothing defect. Reads defAb, so Mold Breaker punches through it, which is the real rule. */
+  {const _cs=TAGS.param('ability',defAb,'condStatMult');
+   if(_cs&&_cs.mult&&_cs.when==='statused'&&def.status&&def.status!=='none'){
+     if(_cs.stat===(phys?'def':'spd'))D=Math.floor(D*+_cs.mult);
+   }}
   // Ruin abilities lower everyone-else's stat (field-wide; handled pairwise)
   if(phys&&att.ability==='swordofruin')D=Math.floor(D*0.75);
   if(!phys&&att.ability==='beadsofruin')D=Math.floor(D*0.75);
@@ -846,7 +1028,12 @@ function dmgRange(att,def,mv,field,spread){
    * TWO HALVES OF A REAL CRIT ARE NOT MODELLED AND ARE STATED: a crit ignores the defender's
    * positive defence stages and it ignores screens. Both would need dmgRange to recompute D, and the
    * screens caveat is already carried by the DOUBLES_SCREEN comment below for the same reason. */
-  if(mv.id&&critChance(mv.id,null,defAb)===1)base=Math.floor(base*1.5);
+  if(mv.id&&critChance(mv.id,null,defAb)===1){
+    /* WIRE 96 -- SNIPER (critDamageUp): a crit deals x1.5 ON TOP of the crit's own x1.5. Read here
+     * for the certain crits; the battle loop's rolled crit reads the same param at its own site. */
+    const _cdU=TAGS.param('ability',attAb,'critDamageUp');
+    base=Math.floor(base*1.5*((_cdU&&+_cdU.critMult)||1));
+  }
   /* WIRE 34 -- terrainScaled. Expanding Force (182 uses) and Rising Voltage (114) were priced at their
      BASE power in every rollout: the tag said `{scalesWith:'terrain'}` and named neither the terrain
      nor the number, so nothing could read it. tag_dex now pulls both out of the handler --
@@ -876,6 +1063,27 @@ function dmgRange(att,def,mv,field,spread){
              :_f==='sound'?TAGS.has('move',mv.id,'sound')
              :(()=>{const c=TAGS.param('move',mv.id,'moveClass');return !!(c&&c.classes&&c.classes.indexOf(_f)>=0);})();
     if(_has)base=Math.floor(base*_bc.mult);
+  }
+  /* WIRE 97 -- SHEER FORCE, the DAMAGE half. The suppression half has been live for months (the
+   * secondary block's `suppressed` gate, now reading this same tag); the x1.3 that PAYS for it was
+   * absent, so a Sheer Force Camerupt-Mega priced its Rock Slide at base while also losing the
+   * flinch -- strictly worse than no ability. Applies only to moves that HAVE a secondary to remove,
+   * which is the artifact's own condition read off the shared rulebook. */
+  {
+    const _ros=TAGS.param('ability',attAb,'removesOwnSecondaries');
+    if(_ros&&_ros.powerMult&&mv.id){
+      const _fx2=moveFx(mv.id);
+      if(_fx2&&_fx2.secondary&&_fx2.secondary.length)base=Math.floor(base*+_ros.powerMult);
+    }
+  }
+  /* WIRE 98 -- PARENTAL BOND (Kangaskhanite, 217 corpus uses). The second hit is a quarter, so a
+   * single-target damaging move is x1.25 total. NOT applied to spread moves (the real rule in
+   * doubles) and NOT to moves that already multi-hit. The flinch/secondary doubling is not modelled
+   * and is stated here rather than discovered. */
+  {
+    const _h2=TAGS.param('ability',attAb,'hitsTwice');
+    if(_h2&&_h2.hits>1&&!spread&&mv.id&&expectedHitsOf(mv.id)<=1)
+      base=Math.floor(base*(1+(+_h2.secondHitMult||0.25)));
   }
   /* WIRE 38 -- SCRAPPY / MIND'S EYE. The tag names both halves of the rule: `movesOfType` is the
    * slash-joined pair of types the ability applies to (Fighting/Normal) and `nowHits` is the type
@@ -983,8 +1191,24 @@ function dmgRange(att,def,mv,field,spread){
        * Stated, not hidden: this is the one branch that still under-prices its moves. */
     }
   }
-  const stab=att.types.includes(mvT)?(att.ability==='adaptability'?2:1.5):1;
-  const burn=(phys&&att.status==='brn'&&att.ability!=='guts')?0.5:1;
+  /* WIRE 95 -- the STAB factor reads `stabBoost` (Adaptability's x2) off the artifact instead of a
+   * name. The 1.5 base is the game's own constant and stays typed. */
+  const _sbT=TAGS.param('ability',att.ability,'stabBoost');
+  const stab=att.types.includes(mvT)?((_sbT&&+_sbT.stab)||1.5):1;
+  /* WIRE 83 -- A MOVE POWERED BY MY OWN STATUS IS NOT ALSO PENALISED BY IT. Showdown's
+   * battle-actions applies the burn halving `if (this.gen < 6 || move.id !== "facade")`, so from
+   * Gen 6 Facade takes the x2 and NOT the x0.5. This engine applied both and they cancel exactly --
+   * which is why the census probe read `clean 51 -> burnt 50` and looked like a dead knob when the
+   * doubling was in fact working.
+   *
+   * KEYED ON THE TAG SHAPE, NOT ON THE NAME, and the shape is the rule: a move whose
+   * `conditionalPower.when` is `userStatused` draws its power FROM the status. Showdown hardcodes a
+   * single move id because it has no property for this; the closest DERIVABLE statement is the one
+   * above, and its membership was printed before it was wired -- exactly one move, `facade`. Stated
+   * this way so a future move with the same shape is covered without an edit, and so the claim is
+   * checkable rather than a list. */
+  const _burnExempt=(()=>{const c=mv.id&&TAGS.param('move',mv.id,'conditionalPower');return !!(c&&c.when==='userStatused');})();
+  const burn=(phys&&att.status==='brn'&&att.ability!=='guts'&&!_burnExempt)?0.5:1;
   /* WIRE 1 of N -- damageMultAll, from data/tags.json instead of a hardcoded name.
    * Was `att.item==='lifeorb'?1.3:1`, which is why the tag showed as "read": the string appeared.
    * The tag carries the same 1.3 AND the 1/10 max HP it charges per attack, which this calc still
@@ -1448,7 +1672,21 @@ function _chooseAction(me,foes,ally,field,side,rng){
   if(bestAtk)return{kind:'attack',move:bestAtk,target:tgt};
   return{kind:'struggle'};
 }
-function effSpeed(m,field,side){let s=m.st.sp*boostMul(m.boosts.sp);if(m.item==='choicescarf')s*=1.5;
+function effSpeed(m,field,side){
+  /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
+     Ball and Electro Ball are base-power-from-a-speed-RATIO, computed inside dmgRange, which is
+     handed two bodies and a field and no side; the alternative was a second speed function, and two
+     implementations of "how fast is this" is precisely the FACTS-ARE-GLOBAL failure CLAUDE.md names.
+     A body with no side stamp (a bare unit-test call) is COUNTED, not silently given no Tailwind. */
+  if(side===undefined){
+    side=(m&&m._sf&&m._sf.side)||null;
+    if(!side){MEDFAILS.speedSideUnknown++;side='';}
+  }
+  /* WIRE 91 -- the item speed multiplier is the artifact's (`speedMult`, Choice Scarf x1.5), not a
+   * name. The only carrier in the format is the Scarf, so behaviour is identical today; what changes
+   * is that a future speed item arrives without an edit here. */
+  let s=m.st.sp*boostMul(m.boosts.sp);
+  {const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)s*=+_sm.mult;}
   /* UNBURDEN. Speed doubles once the item is GONE, from the speedOnItemLoss param -- which was
    * itself wrong until today: it matched any onTakeItem and so included STICKY HOLD, whose handler
    * exists to refuse the loss. Reading that would have doubled the Speed of an ability that does
@@ -1458,7 +1696,21 @@ if((side==='A'?field.twA:field.twB)>0)s*=2;
   /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
      field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
   {const _w=(field&&field.wSup)||suppressesWeather(m)?'':(field&&field.weather);
-   if((m.ability==='swiftswim'&&_w==='rain')||(m.ability==='chlorophyll'&&_w==='sun')||(m.ability==='sandrush'&&_w==='sand')||(m.ability==='slushrush'&&_w==='snow'))s*=2;}
+   /* WIRE 91 -- the weather-speed abilities read `speedCond` (which weather, what multiplier) off
+    * the artifact instead of four name literals. A carrier whose condition is NOT in its params
+    * (`inWeather: []` -- Quick Feet's status, Surge Surfer's terrain, Slow Start's clock) is REFUSED
+    * and counted: applying the bare multiplier would be Quick Feet x1.5 forever, the
+    * boolean-in-a-fraction's-clothing defect. Enrichment staged in tag_dex. Both spellings go
+    * through weatherId so 'hail' and 'heavy rain' land on the engine's words. */
+   const _scp=TAGS.param('ability',m.ability,'speedCond');
+   if(_scp&&_scp.speedMult){
+     if(Array.isArray(_scp.inWeather)&&_scp.inWeather.length){
+       if(_w&&_scp.inWeather.some(x=>weatherId(x)===_w||x===_w))s*=+_scp.speedMult;
+     }else{
+       MEDFAILS.speedCondUnconditional++;
+       if(!MEDFAILS.speedCondUnconditionalFirst)MEDFAILS.speedCondUnconditionalFirst=m.ability;
+     }
+   }}
   if(m.status==='par')s*=0.5;return s;}
 /* ---- SECONDARY AND PRIMARY MOVE EFFECTS -------------------------------------------------------
  * Read from the SHARED rulebook (CHOMP/data/move-effects.json, exposed here as window.MOVE_EFFECTS
@@ -1489,12 +1741,35 @@ function moveFx(id){ if(!id) return null;
 /* Type and ability immunities. A Pokemon that cannot take a status must not take it - otherwise the
  * simulation paralyses Electric types and burns Fire types, which changes who wins. */
 const STATUS_IMMUNE_TYPE={ brn:['Fire'], par:['Electric'], frz:['Ice'], psn:['Poison','Steel'], tox:['Poison','Steel'] };
-const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','comatose','thermalexchange'],
-                           par:['limber','comatose'],
-                           frz:['magmaarmor','comatose'],
-                           psn:['immunity','comatose','poisonheal'],
-                           tox:['immunity','comatose','poisonheal'],
-                           slp:['insomnia','vitalspirit','comatose','sweetveil'] };
+const STATUS_IMMUNE_ABIL={ brn:['waterveil','waterbubble','thermalexchange'],
+                           par:['limber'],
+                           frz:['magmaarmor'],
+                           psn:['immunity','poisonheal'],
+                           tox:['immunity','poisonheal'],
+                           slp:['insomnia','vitalspirit','sweetveil'] };
+/* WIRE 114 -- ABILITIES THAT REFUSE *EVERY* MAJOR STATUS, held in ONE list rather than repeated
+ * across the six above, because the failure this fixes is exactly what per-status lists produce:
+ * PURIFYING SALT (Garganacl, 51 sheets, legal and played in Reg M-B) was in NONE of them, so a
+ * Garganacl took Will-O-Wisp, Thunder Wave, Spore and Toxic like any other Rock type. Verified
+ * against the official engine at the pinned commit before the wire -- Will-O-Wisp into Purifying
+ * Salt leaves it clean and into Sturdy burns it; Spore likewise. Its handler is one unconditional
+ * `return false` in onSetStatus, so a seventh status added tomorrow is covered without an edit,
+ * which a sixth list entry would not be.
+ *
+ * WHY A NAME AND NOT THE TAG. The artifact's `statusImmune` param is a bare `{immune:true}` on all
+ * twelve carriers -- it does not say WHICH status -- so consuming it by shape would make LEAF GUARD
+ * (sun only) and PASTEL VEIL (poison only) block everything always. docs/ENGINE.md already declares
+ * that: the hand table is RICHER than the artifact and an enrichment reading onSetStatus is future
+ * tag_dex work. This entry is that declaration honoured, not an exception to it.
+ *
+ * COMATOSE IS DECLARED DEAD AND KEPT. It belongs here on the same handler shape (an unconditional
+ * `return false`), and it CANNOT FIRE in this format: its only carrier is Komala, which
+ * `Dex.forFormat('gen9championsvgc2026regmb')` marks `isNonstandard: 'Past'`. It sat in five of the
+ * six lists above with nothing saying so, and a table carrying an unreachable entry invites trust in
+ * the rest of it. Kept rather than deleted because the rule is right and a regulation change is the
+ * trigger -- the same treatment Primordial Sea gets in the weather block. */
+const STATUS_IMMUNE_ABIL_ANY=['purifyingsalt',
+                              'comatose'/* UNREACHABLE in Reg M-B: Komala is isNonstandard 'Past' */];
 /* POWDER MOVES. Grass types are immune to all of them, as are Overcoat and Safety Goggles. This is
  * why Spore misses Rillaboom and Amoonguss entirely - a fact any bring recommendation depends on. */
 /* Screens last 5 turns (8 with Light Clay, which this engine does not model). The DOUBLES
@@ -1541,6 +1816,28 @@ function powderBlocked(t,moveId){
 function isPrankster(mon){
   return (mon&&(mon.ability||'')).replace(/[^a-z0-9]/g,'')==='prankster';
 }
+/* WIRE 100b -- the Contrary sign, read ONCE off the artifact (`invertsBoosts`) instead of seven
+ * `==='contrary'` literals. Same fact, one reader; a second inverting ability arrives without an
+ * edit anywhere.
+ *
+ * WIRE 113 -- THE DERIVATION OVER-MATCHED AND THIS READER MADE IT LIVE (found by
+ * tests/test-rollout-effects.js the day the tag gained a consumer). The shipped artifact tags
+ * Contrary, SIMPLE and RIPEN with invertsBoosts, because all three carry onChangeBoost -- but
+ * Simple's handler is `boost[i] *= 2` (it DOUBLES; official engine, real battle: Intimidate into
+ * Simple is -2, this reader was producing +1) and Ripen's doubles only BERRY boosts. The tightened
+ * derivation (invertsBoosts = Contrary alone; new `amplifiesBoosts {mult:2}` = Simple) is STAGED;
+ * until the regeneration lands, the two known non-inverters are excluded HERE by name, stated as
+ * the bridge it is -- the same pattern as the Defiant amounts in applyStatDrop. Post-regeneration
+ * both name checks go structurally dead.
+ * The DOUBLING at these move-driven sites (a Simple body's Swords Dance is +4) is not modelled --
+ * it was not modelled before WIRE 100b either -- and only applyStatDrop applies the x2, exactly as
+ * the pre-rewire code did. Declared, not discovered. */
+const _NOT_INVERTERS=new Set(['simple','ripen']);   // WIRE 113 bridge; dead after the staged regen
+const invSign=x=>{
+  const _ab=String((x&&x.ability)||'').replace(/[^a-z0-9]/g,'');
+  if(_NOT_INVERTERS.has(_ab))return 1;
+  return TAGS.param('ability',_ab,'invertsBoosts')?-1:1;
+};
 function pranksterBlocked(attacker,target,moveId){
   if(!isPrankster(attacker)) return false;
   const fx=moveFx(moveId);
@@ -1551,9 +1848,21 @@ function canTakeStatus(t,st){
   if(!t||t.fainted||t.curHP<=0) return false;
   if(t.status) return false;                                  // one major status at a time
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
-  if(ab==='shielddust') return false;                          // blocks secondary effects entirely
+  /* WIRE 115 -- SHIELD DUST USED TO BE REFUSED HERE AND THAT WAS THE WRONG SCOPE, in the direction
+   * that makes the ability far too strong. `canTakeStatus` is the gate for EVERY status this engine
+   * applies, and its two callers are the DIRECT status-move path (Will-O-Wisp, Thunder Wave, Spore,
+   * Toxic) and the punish-ability exposure loop (Static, Flame Body). Shield Dust blocks NEITHER --
+   * it filters a MOVE'S SECONDARIES and nothing else. Confirmed in the official engine at the pinned
+   * commit, both arms printed: Will-O-Wisp into Shield Dust BURNS (as into Compound Eyes), and a
+   * Shield Dust body that attacks a Static body is PARALYSED (as with any other ability).
+   * The suppression now lives at the one site where it is correct -- the secondary loop in the
+   * attack branch, `dustBlocked` -- plus the two effects Showdown's own source special-cases onto it
+   * (King's Rock, and Poison Touch, which carries the comment "Despite not being a secondary, Shield
+   * Dust / Covert Cloak block Poison Touch's effect"). Covert Cloak is banned in this format, so
+   * Shield Dust is the live carrier of every one of those. */
   const byType=STATUS_IMMUNE_TYPE[st]||[];
   if((t.types||[]).some(ty=>byType.includes(ty))) return false;
+  if(STATUS_IMMUNE_ABIL_ANY.includes(ab)) return false;        // WIRE 114 -- refuses every status
   if((STATUS_IMMUNE_ABIL[st]||[]).includes(ab)) return false;
   return true;
 }
@@ -1569,16 +1878,53 @@ function canTakeStatus(t,st){
  * actually rewarded - the exact read a bring/lead recommendation depends on. */
 const INTIM_IMMUNE=['clearbody','whitesmoke','fullmetalbody','hypercutter','innerfocus','oblivious',
                     'owntempo','scrappy','guarddog','mirrorarmor'];
-function applyIntimidate(f){
+/* WIRE 100 -- ONE OPPONENT-INFLICTED STAT-DROP PATH, shared by Intimidate and Sticky Web, because
+ * the REACTIONS are one fact: blocked by the Clear Body class, inverted by Contrary (from the
+ * artifact's `invertsBoosts`), doubled by Simple, and RETALIATED by Defiant/Competitive.
+ *
+ * THE RETALIATION ARITHMETIC WAS WRONG AND IS FIXED HERE, verified against the official engine
+ * before the probe was trusted: in Showdown the drop LANDS and then the +2 fires, so Intimidate
+ * into Defiant is net +1 Attack (this code read +2), and into Competitive it is Attack -1 AND
+ * SpA +2 (this code left Attack untouched). Membership for the retaliation is the artifact's
+ * (`boostsWhenLowered`); the params carry no stat or amount yet ({retaliates:true}), so the
+ * two known handlers' numbers are typed beside a STAGED tag_dex enrichment. */
+function applyStatDrop(f,stat,n){
   if(!f||f.fainted) return 'none';
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
   if(INTIM_IMMUNE.includes(ab)) return 'blocked';
-  if(ab==='defiant'){     f.boosts.at=clamp(f.boosts.at+2,-6,6); return 'defiant'; }
-  if(ab==='competitive'){ f.boosts.sa=clamp(f.boosts.sa+2,-6,6); return 'competitive'; }
-  if(ab==='contrary'){    f.boosts.at=clamp(f.boosts.at+1,-6,6); return 'contrary'; }
-  if(ab==='simple'){      f.boosts.at=clamp(f.boosts.at-2,-6,6); return 'simple'; }
-  f.boosts.at=clamp(f.boosts.at-1,-6,6);
-  return 'dropped';
+  /* THROUGH invSign, the ONE reader of the inverting fact -- which is where the WIRE 113 bridge
+   * lives. Asking the tag directly here is exactly how Simple got +1 from Intimidate against the
+   * official engine's -2: the shipped artifact over-tags it as an inverter. */
+  if(invSign(f)===-1){
+    f.boosts[stat]=clamp(f.boosts[stat]+n,-6,6); return 'contrary';
+  }
+  /* Simple DOUBLES the drop (official engine: Intimidate into Simple is -2). By shape from the
+   * staged `amplifiesBoosts {mult:2}`; the name is the pre-regeneration bridge, WIRE 113. */
+  const _amp=TAGS.param('ability',ab,'amplifiesBoosts');
+  f.boosts[stat]=clamp(f.boosts[stat]-n*((_amp&&+_amp.mult)||(ab==='simple'?2:1)),-6,6);
+  const _bw=TAGS.param('ability',ab,'boostsWhenLowered');
+  if(_bw){
+    const _bo=_bw.boosts||(ab==='defiant'?{atk:2}:ab==='competitive'?{spa:2}:null);
+    if(_bo)for(const k in _bo){const _s=SD2ENG[k];if(_s&&f.boosts[_s]!=null)f.boosts[_s]=clamp(f.boosts[_s]+_bo[k],-6,6);}
+    return ab;
+  }
+  return ab==='simple'?'simple':'dropped';
+}
+function applyIntimidate(f){ return applyStatDrop(f,'at',1); }
+/* WIRE 100a -- every entry drop reads `onSwitchInDrop` membership from the artifact. The params
+ * carry no stat table yet ({drop:true} -- and Download is an over-match in the current artifact,
+ * which is exactly why the amounts are NOT taken from it), so Intimidate's -1 Atk is typed beside
+ * the STAGED enrichment; a member without a table does nothing rather than guessing. Supersweet
+ * Syrup's drop is evasion, a stat this engine has no slot for, and skips honestly through SD2ENG. */
+function applyEntryDrops(m,foes){
+  const _osd=TAGS.param('ability',m.ability,'onSwitchInDrop');
+  if(!_osd)return;
+  const _bo=_osd.boosts||(m.ability==='intimidate'?{atk:-1}:null);
+  if(!_bo)return;
+  for(const f of foes){
+    if(!f||f.fainted)continue;
+    for(const k in _bo){const _s=SD2ENG[k];if(_s&&_bo[k]<0)applyStatDrop(f,_s,-_bo[k]);}
+  }
 }
 function applyStatus(t,st){if(!canTakeStatus(t,st))return false;t.status=st;
   if(st==='slp')t.slpTurns=0;if(st==='frz')t.frzTurns=0;if(st==='tox')t.toxTurns=0;return true;}
@@ -1668,24 +2014,33 @@ function bringIn(act,i,bench,foes,sf,field,wanted){
      fraction. Spikes is a flat 1/8, 1/6, 1/4 by layer.
      THE FRACTIONS ARE STATED HERE WITH THE REASON, the same call WIRE 31 made for the sandstorm's
      1/16: no artifact this engine reads carries them. The `hazard` param names WHICH hazard and stops.
-     TOXIC SPIKES AND STICKY WEB NEED GROUNDED-NESS, which this engine does not track at all, so they
-     are set, counted in MEDFAILS.hazardUnresolved and deliberately do nothing -- a Toxic Spikes that
-     poisoned a Flying type would be a new wrong number rather than a wired mechanic. Levitate and an
-     Air Balloon dodging SPIKES are the same gap and are the reason the Flying check below is a type
-     check and not an ability one. */
+     WIRE 90 -- TOXIC SPIKES AND STICKY WEB RESOLVE ON ENTRY NOW. The old comment said grounded-ness
+     "is not tracked at all", and that was a claim about a FIELD nobody had derived rather than about
+     the body: Flying is on `types`, Levitate is on `ability`, an Air Balloon is on `item`, and those
+     three ARE the grounded question for this format (Magnet Rise and Telekinesis are volatiles this
+     engine does not hold, stated). Found live by the interaction matrix: `uturn -> toxicdebris` laid
+     the layer and the pivot's replacement walked in unpoisoned, `.A.active[0].status medi="" sd="psn"`.
+     One layer poisons, two badly poison; a GROUNDED POISON TYPE ABSORBS the layers on entry, which is
+     the counter-play the mechanic exists for. Sticky Web's -1 Spe goes through applyStatDrop so
+     Defiant, Contrary and the Clear Body class react exactly as they do to Intimidate. Spikes now
+     read the same grounded test instead of the bare Flying check -- a Levitate body walks over them,
+     which is the real rule and was the declared half of the old gap. */
   if(sf&&sf.hz){
+    const _grounded=nx.types.indexOf('Flying')<0&&nx.ability!=='levitate'&&nx.item!=='airballoon';
     if(sf.hz.stealthrock)nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
-    if(sf.hz.spikes&&nx.types.indexOf('Flying')<0)
+    if(sf.hz.spikes&&_grounded)
       nx.curHP-=Math.floor(nx.st.hp/[8,8,6,4][Math.min(sf.hz.spikes,3)]);
-    if(sf.hz.toxicspikes||sf.hz.stickyweb){
-      MEDFAILS.hazardUnresolved++;
-      if(!MEDFAILS.hazardUnresolvedFirst)
-        MEDFAILS.hazardUnresolvedFirst=sf.hz.toxicspikes?'toxicspikes':'stickyweb';
+    if(sf.hz.toxicspikes&&_grounded&&nx.curHP>0){
+      if(nx.types.indexOf('Poison')>=0)sf.hz.toxicspikes=0;
+      else if(applyStatus(nx,sf.hz.toxicspikes>=2?'tox':'psn'))MEDSEEN.hazardResolvedOnEntry++;
+    }
+    if(sf.hz.stickyweb&&_grounded&&nx.curHP>0){
+      applyStatDrop(nx,'sp',1);MEDSEEN.hazardResolvedOnEntry++;
     }
     if(nx.curHP<=0){nx.curHP=0;nx.fainted=true;if(nx._sf)nx._sf.fainted++;}
   }
   applyEntryEffects(nx,field,act[1-i]);
-  if(nx.ability==='intimidate')for(const f of _live(foes))applyIntimidate(f);
+  applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
   return nx;
 }
 /* SWITCH A LIVING MON OUT. The outgoing body goes back to the bench, so it can return later and its
@@ -1797,9 +2152,15 @@ function battleInit(teamA,teamB,opts){
   oneMegaPerSide(teamA); oneMegaPerSide(teamB);
   const S={field:{weather:null,weatherT:0,terrain:'',terrainT:0,twA:0,twB:0,tr:0,wgA:false,wgB:false},
     /* one shared death counter per side, handed to every mon by reference */
-    sfA:{fainted:0},sfB:{fainted:0},
+    /* `side` is stamped here so a body can answer "which Tailwind is mine" without being handed a
+       side argument -- WIRE 83's speed ratio is computed inside dmgRange, which is given two bodies
+       and a field and nothing else. */
+    sfA:{fainted:0,side:'A'},sfB:{fainted:0,side:'B'},
     actA:[teamA[0],teamA[1]].filter(Boolean),actB:[teamB[0],teamB[1]].filter(Boolean),
     benchA:teamA.slice(2),benchB:teamB.slice(2),turn:0};
+  /* the PARTY, by reference, on the same per-side object the death counter already rides. Beat Up
+     hits once per eligible party member and dmgRange is handed one body -- WIRE 83. */
+  S.sfA.team=teamA.filter(Boolean); S.sfB.team=teamB.filter(Boolean);
   teamA.forEach(m=>{if(m)m._sf=S.sfA;});teamB.forEach(m=>{if(m)m._sf=S.sfB;});
   /* What each body STARTED holding, so Unburden can tell 'never had one' from 'lost it'. Stamped
    * once here rather than at each of the six places an item is cleared -- a flag set in six places
@@ -1808,7 +2169,7 @@ function battleInit(teamA,teamB,opts){
   if(!(opts&&opts.seeded)){
     for(const m of S.actA.concat(S.actB))applyEntryEffects(m,S.field,
       S.actA.indexOf(m)>=0?S.actA.find(x=>x&&x!==m):S.actB.find(x=>x&&x!==m));
-    const intim=(as,fs)=>{for(const m of as)if(m.ability==='intimidate')for(const f of fs)if(f&&!f.fainted)applyIntimidate(f);};
+    const intim=(as,fs)=>{for(const m of as)applyEntryDrops(m,fs);};   // WIRE 100a
     intim(S.actA,S.actB);intim(S.actB,S.actA);
   }
   return S;
@@ -1895,13 +2256,34 @@ function battleTurn(S,rng,actsForA,actsForB){
      * move sits in its own move's bracket (Thunder Wave 0, Trick Room -7), not a blanket 0. */
     const prio=it=>{
       const k=it.a.kind;
-      if(k==='attack')    return movePriority(it.a.move.id, field);
-      /* PRANKSTER, +1 TO ANY STATUS CLICK. It was not modelled anywhere: pranksterBlocked() existed
-         for the Dark-type immunity, but nothing ever gave Prankster its priority, so a Prankster
-         screen went up AFTER the attack it was meant to blunt. Will's point exactly -- the damage is
-         supposed to be halved before the attacker moves, and that is most of what the ability is for.
-         Every kind below is a status move; only 'attack' is not, and it returns above. */
-      const pk=isPrankster(it.mon)?1:0;
+      /* WIRE 93 -- `priorityMod` read by SHAPE. Prankster was the hardcoded name here; Gale Wings
+         (765 uses) carried the same tag and had no consumer at all, so a full-HP Talonflame's Brave
+         Bird went in speed order. `movesOfClass` is the tag's own discriminator: 'status' shifts the
+         status kinds below, a TYPE name shifts attacks of that type. The one `condition` string in
+         the artifact ('only at full HP') is evaluated; any OTHER condition fails closed and is
+         counted, because silently applying a conditional shift points a wrong number in an unknown
+         direction. */
+      const _pmOf=(mon,cls,isAtk,moveId)=>{
+        const _pm=TAGS.param('ability',mon.ability,'priorityMod');
+        if(!_pm||!_pm.shift)return 0;
+        if(_pm.condition){
+          if(/full hp/i.test(String(_pm.condition))){ if(mon.curHP<mon.st.hp)return 0; }
+          else{
+            MEDFAILS.priorityModUnknownCond++;
+            if(!MEDFAILS.priorityModUnknownCondFirst)MEDFAILS.priorityModUnknownCondFirst=mon.ability+':'+_pm.condition;
+            return 0;
+          }
+        }
+        if(_pm.movesOfClass==='status')return isAtk?0:+_pm.shift;
+        if(isAtk&&moveId){const _mvR=MC.moves[moveId];
+          if(_mvR&&String(_mvR.t||'').toLowerCase()===String(_pm.movesOfClass||'').toLowerCase())return +_pm.shift;}
+        return 0;
+      };
+      if(k==='attack')    return movePriority(it.a.move.id, field)+_pmOf(it.mon,null,true,it.a.move.id);
+      /* PRANKSTER, +1 TO ANY STATUS CLICK (now via the tag above). Every kind below is a status
+         move; only 'attack' is not, and it returns above. The Dark-type immunity stays in
+         pranksterBlocked -- that half is Prankster-specific in the real engine too. */
+      const pk=_pmOf(it.mon,null,false,null);
       /* A VOLUNTARY SWITCH RESOLVES BEFORE ANY MOVE. Not a priority bracket in the real game -- it
          is a separate phase that happens first -- but this engine orders everything through one
          sort, so it sits above Protect's +4. That ordering is the whole reason switching out of a
@@ -1917,11 +2299,37 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(k==='trickroom') return movePriority('trickroom', field)+pk;
       return movePriority(it.a.mv, field)+pk;
     };
-    acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
+    /* WIRE 101 -- QUICK CLAW (`fractionalPriority`): 20% of turns the holder jumps its own priority
+       bracket, decided ONCE per turn per holder before the sort (a roll inside a comparator would be
+       re-drawn per comparison). The rng is consumed only for a body that actually carries the tag, so
+       every existing seeded probe draws the same stream. Trick Room does not flip it -- the claw wins
+       within the bracket under either ordering, which is the real rule. */
+    for(const it of acts){
+      const _fp=TAGS.param('item',it.mon.item,'fractionalPriority');
+      it._qc=(_fp&&_fp.chance&&rng()<+_fp.chance)?1:0;
+    }
+    acts.sort((x,y)=>{const dp=prio(y)-prio(x);if(dp)return dp;const dq=(y._qc||0)-(x._qc||0);if(dq)return dq;let sp=effSpeed(y.mon,field,y.side)-effSpeed(x.mon,field,x.side);if(field.tr>0)sp=-sp;return sp||(rng()<0.5?-1:1);});
     /* Move order is needed to resolve flinch correctly: a flinch only stops a target that has NOT
      * yet acted this turn. `acts` is already sorted into resolution order, so position in it IS the
      * move order. Without this, a slow Rock Slide would "flinch" a foe that had already attacked. */
     const actedAt=new Map(); acts.forEach((it,i)=>actedAt.set(it.mon,i));
+    /* WIRE 82 -- THE PRE-TURN MOVE CLASS. Will: "BEAK BLAST IS LIKE SPICY SPRAY FOCUS PUNCH OR
+     * SOMETHING." He is naming a real class: Focus Punch and Beak Blast (and Shell Trap, which this
+     * format bans) commit at the START of the turn and then react to what happened while they waited.
+     * Both were UNCONDITIONAL ATTACKS here -- Focus Punch landed after being hit, and Beak Blast's
+     * whole reason for existing, the burn, did not happen at all.
+     *
+     * THE SHIELD GOES UP BEFORE ANY MOVE RESOLVES, which is the entire mechanic and is why this sits
+     * above the resolution loop rather than in the attack branch: by the time Beak Blast's own -3
+     * priority action comes round, everything that could touch it has already gone.
+     *
+     * From `preTurnShield`, derived from Showdown's `priorityChargeCallback` plus the volatile's own
+     * onHit. No move is named here; `mode`, `trigger` and `status` all come out of the tag. */
+    for(const it of acts){
+      const _pid=it.a&&it.a.kind==='attack'&&it.a.move&&it.a.move.id;
+      const _pt=_pid&&TAGS.param('move',_pid,'preTurnShield');
+      it.mon._preTurn=_pt?{id:_pid,p:_pt,hit:false,hitSide:null}:null;
+    }
     for(const [actIdx,it] of acts.entries()){const m=it.mon;if(m.fainted||m.curHP<=0)continue;
       if(m._flinch){m._flinch=false;continue;}
       if(m.status==='par'&&rng()<0.125)continue;   // Champions: 12.5% full-para (was 25%)
@@ -1953,6 +2361,29 @@ function battleTurn(S,rng,actsForA,actsForB){
          charged here instead, before the kind is dispatched, and the move FAILS below the threshold
          the tag names. `sub` is excluded because it charges its own cost and would otherwise pay
          twice. */
+      /* WIRE 85 -- BLOCKED PRIORITY APPLIES TO EVERY KIND OF ACTION, and it was checked only inside
+       * the attack branch. Armor Tail, Queenly Majesty, Dazzling and Psychic Terrain refuse ANY
+       * priority move aimed at their side, and most of the priority moves in this format are STATUS
+       * moves -- Baby-Doll Eyes (+1), Thunder Wave in terrain, Whirlwind's negative bracket. So a
+       * Farigiraf took a Baby-Doll Eyes it is built to refuse.
+       *
+       * THIS IS WIRE 77 EXACTLY ONE FIELD OVER, and that is the reason it is written here rather
+       * than copied into the affect branch: a rule that belongs to every action kind goes ABOVE the
+       * kind dispatch, or the next branch added below inherits the hole. Found by the generated
+       * matrix as `babydolleyes -> armortail` and `-> queenlymajesty`, on both of which medicham2's
+       * own two arms were IDENTICAL -- the definition of an unwired knob. */
+      {
+        const _pmv=(a.move&&a.move.id)||a.mv;
+        const _pf=it.side==='A'?actB:actA;
+        /* ONLY A MOVE AIMED AT THE OTHER SIDE. Protect is +4 and Quick Guard is +3, and neither is
+         * refused by Queenly Majesty in the real game because neither targets the holder -- gating
+         * on the action carrying a FOE as its target is what keeps this from blocking the user's own
+         * setup. The attack branch keeps its own copy for the spread case, where target is null. */
+        if(_pmv&&a.target&&_pf.indexOf(a.target)>=0){
+          const _pk=(a.kind==='attack'?0:(isPrankster(m)?1:0));
+          if(movePriority(_pmv,field)+_pk>priorityRefusedAbove(_pf,field)){m._lastMove=_pmv;continue;}
+        }
+      }
       if(a.kind!=='sub'&&(a.mv||(a.move&&a.move.id))){
         const _cu=TAGS.param('move',a.mv||a.move.id,'costsUserHP');
         if(_cu&&_cu.costsFraction&&m.st){
@@ -1971,7 +2402,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _bo=_fx&&_fx.targetBoostsAlways;
         m._lastMove=a.mv||m._lastMove;
         if(_bo){
-          const _sg=m.ability==='contrary'?-1:1;
+          const _sg=invSign(m);          // WIRE 100b
           for(const k in _bo){const _s2=SD2ENG[k];if(_s2&&m.boosts[_s2]!=null)m.boosts[_s2]=clamp(m.boosts[_s2]+_bo[k]*_sg,-6,6);}
         } else {
           m.boosts.at=clamp(m.boosts.at+1,-6,6);m.boosts.sa=clamp(m.boosts.sa+1,-6,6);m.boosts.sp=clamp(m.boosts.sp+1,-6,6);
@@ -2002,7 +2433,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * Intimidate -- asked here the same way so one ability does not behave differently by route. */
         for(const _e of ((a.sc&&a.sc.target)||[])){
           if(_e.chance<100&&rng()*100>=_e.chance) continue;
-          const _sg=_t.ability==='contrary'?-1:1;
+          const _sg=invSign(_t);         // WIRE 100b
           for(const _k in _e.boosts){
             const _s2=SD2ENG[_k]; if(!_s2||_t.boosts[_s2]==null) continue;
             const _d=_e.boosts[_k]*_sg;
@@ -2085,6 +2516,18 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
         }
+        /* WIRE 86 -- MEMENTO FAINTS ITS USER, AND THE CHECK LIVED IN THE ATTACK BRANCH.
+         * WIRE 46 wired `userFaints` where damaging moves resolve, gated on `dealt > 0`. Memento is
+         * a STATUS move: it resolves here, in `affect`, so its whole cost -- the user dies -- never
+         * happened. A -2/-2 drop on the foe for free is not the move that is in the game, and the
+         * search would take it every time.
+         * Reaching this line means the effect LANDED (every refusal above `continue`s out), which is
+         * exactly what `faints: 'ifHit'` asks. `faints: 'always'` cannot reach here -- Explosion is
+         * a damaging move -- so both branches read one artifact and neither names a move. */
+        {
+          const _ufa=TAGS.param('move',a.mv,'userFaints');
+          if(_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true;}
+        }
         continue;
       }
       /* WIRE 39 -- HAZE. BOTH SIDES, including the user's own, which is the whole shape of the move:
@@ -2098,9 +2541,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          switch path, so the replacement gets its entry effects, its Intimidate and now its hazard
          chip exactly as a voluntary switch does -- two paths is how the voluntary switch nearly
          skipped Intimidate. A drag into an empty bench simply fails and still costs the turn.
-         WHO COMES IN is bringIn's live(bench)[0], not a random body: this engine has one replacement
-         policy and phazing does not get a second one. Stated, because the real move is random and
-         that randomness is part of why it is played. */
+         WIRE 102 -- WHO COMES IN IS A DIE, rolled here, because that is the real rule: Showdown's
+         dragIn is `this.sample(possibleSwitches)`. The previous version took live(bench)[0] with a
+         comment conceding the point, and under the interaction matrix's pinned dice the two engines
+         then dragged DIFFERENT bodies (`whirlwind -> suckerpunch`: `.B.active[0].species
+         medi=corviknight sd=weavile`) -- a policy difference reading as a rule divergence. A uniform
+         pick over the live bench is the rule; which body a given seed produces is luck, exactly like
+         a damage roll. */
       if(a.kind==='phaze'){
         const _t=a.target;
         const _foes=it.side==='A'?actB:actA, _fb=it.side==='A'?benchB:benchA, _fsf=it.side==='A'?sfB:sfA;
@@ -2111,8 +2558,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            field where medicham2 had already dragged it out. Protect does not stop Roar (it carries
            ignoresProtect) and that half was already right. */
         if(_i>=0&&!_t.fainted&&!(_t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
-           &&!moveClassBlocked(_t,a.mv)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves'))
-          switchOut(_foes,_i,_fb,_own,_fsf,field,null);
+           &&!moveClassBlocked(_t,a.mv)&&!TAGS.has('ability',_t.ability,'refusesStatusMoves')){
+          const _lb=_live(_fb);
+          switchOut(_foes,_i,_fb,_own,_fsf,field,_lb.length?_lb[Math.floor(rng()*_lb.length)]:null);
+        }
         m._lastMove=a.mv;continue;
       }
       /* WIRE 41 -- LAYING A HAZARD. It lands on the OPPOSING side's `_sf`, which every member of that
@@ -2151,7 +2600,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _cost=_sc4.costFraction?Math.floor(m.st.hp*+_sc4.costFraction):0;
         if(_cost&&m.curHP<=_cost){m._lastMove=a.mv;continue;}          // it cannot pay: the move fails
         if(_cost)m.curHP-=_cost;
-        const _sg=m.ability==='contrary'?-1:1;
+        const _sg=invSign(m);          // WIRE 100b
         for(const k in (_sc4.boosts||{})){
           const _s=SD2ENG[k]; if(!_s||m.boosts[_s]==null) continue;
           m.boosts[_s]=clamp(m.boosts[_s]+_sc4.boosts[k]*_sg,-6,6);
@@ -2172,14 +2621,102 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='trickroom'){field.tr=field.tr>0?0:5;continue;}
       if(a.kind==='boostally'){
         const bt=TAGS.param('move',a.mv,'boostsTarget')||{};
-        /* The ALLY is the target for every one of these except the self-targeting ones, and a lone
-           active has no ally, in which case the click honestly does nothing. */
-        const ally=(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);
+        /* The ALLY is the default when the caller named nobody, and a lone active has no ally, in
+           which case the click honestly does nothing.
+           WIRE 106 -- AN EXPLICIT FOE TARGET IS HONOURED. Decorate aimed across the field gives the
+           FOE +2/+2 (the official engine applies it; three matrix rows read medi boosting the ally
+           instead), and a foe-aimed status boost passes the same gates every other status move at a
+           foe passes: Protect unless the move ignores it, Good as Gold's refusal, the move-class
+           immunities, and the Prankster/Dark rule. */
+        const _tgt=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        const _isFoe=_tgt&&m._sf&&_tgt._sf!==m._sf;
+        const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));
+        const _blocked=_isFoe&&((_tgt.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+          ||TAGS.has('ability',_tgt.ability,'refusesStatusMoves')
+          ||moveClassBlocked(_tgt,a.mv)||powderBlocked(_tgt,a.mv)||pranksterBlocked(m,_tgt,a.mv));
         const BK={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp'};
-        if(ally&&bt.boosts)for(const k in bt.boosts){
-          const kk=BK[k]; if(kk)ally.boosts[kk]=clamp((ally.boosts[kk]||0)+bt.boosts[k],-6,6);
+        if(who&&bt.boosts&&!_blocked)for(const k in bt.boosts){
+          const kk=BK[k]; if(kk)who.boosts[kk]=clamp((who.boosts[kk]||0)+bt.boosts[k],-6,6);
         }
         m._lastMove=a.mv;continue;
+      }
+      /* WIRE 107 -- TRICK / SWITCHEROO swap the two items; CORROSIVE GAS deletes the target's. The
+         same status-move gates as the boost branch above. What is NOT modelled and is stated: Sticky
+         Hold (no tag describes it -- its handler REFUSES the loss, the exact over-match the
+         speedOnItemLoss derivation was tightened against) and the can't-trick-a-mega-stone-onto-
+         its-own-species rule; the coarse half of the latter IS read: an item carrying `megaStone`
+         does not move, which is the artifact's own shape. */
+      if(a.kind==='trickitem'){
+        m._lastMove=a.mv;
+        const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(t&&t!==m
+           &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+           &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
+           &&!moveClassBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)
+           &&!TAGS.has('item',m.item,'megaStone')&&!TAGS.has('item',t.item,'megaStone')){
+          if(_ti.swaps){const _mi=m.item;m.item=t.item;t.item=_mi;}
+          else if(_ti.removes){t.item='';}
+        }
+        continue;
+      }
+      /* WIRE 108 -- the type writers. The written type is the MOVE'S OWN (true of all four members);
+         `adds` appends it, `replaces` overwrites the whole list. Same status gates; Magic Powder is
+         a powder move and powderBlocked already owns that refusal. */
+      if(a.kind==='typechange'){
+        m._lastMove=a.mv;
+        const _ct=TAGS.param('move',a.mv,'changesTargetType')||{};
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        const _ty=(MC.moves[a.mv]||{}).t;
+        if(t&&_ty
+           &&!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+           &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
+           &&!moveClassBlocked(t,a.mv)&&!powderBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv)){
+          if(_ct.adds){ if(t.types.indexOf(_ty)<0)t.types=[...t.types,_ty]; }
+          else if(_ct.replaces){ t.types=[_ty]; }
+        }
+        continue;
+      }
+      /* WIRE 109 -- AFTER YOU / QUASH rewrite the rest of THIS turn's queue. The target's still-
+         pending action is spliced to immediately-next ({sends:'next'}) or to the back
+         ({sends:'last'}); a target that already acted makes the move fail, which is the real rule.
+         actedAt is recomputed so the flinch bookkeeping keeps meaning "position in resolution
+         order". Mutating `acts` mid-iteration is safe here: the array iterator walks by index and
+         every splice touches only positions after actIdx. */
+      if(a.kind==='reorder'){
+        m._lastMove=a.mv;
+        const _ro=TAGS.param('move',a.mv,'reordersTurn')||{};
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(t){
+          const _isFoe=m._sf&&t._sf!==m._sf;
+          const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')&&!pranksterBlocked(m,t,a.mv));
+          if(_ok){
+            const _j=acts.findIndex((x,ix)=>ix>actIdx&&x.mon===t);
+            if(_j>=0){
+              const _entry=acts.splice(_j,1)[0];
+              if(_ro.sends==='next')acts.splice(actIdx+1,0,_entry);else acts.push(_entry);
+              acts.forEach((x,ix)=>actedAt.set(x.mon,ix));
+            }
+          }
+        }
+        continue;
+      }
+      /* WIRE 110 (STAGED consumer) -- SKILL SWAP exchanges the two abilities. Reaches here only once
+         the staged tag_dex regeneration emits `swapsAbilities`; probed today through TAGS.__setDB.
+         The un-swappable ability class (Showdown's failskillswap flag) is not modelled and is
+         stated. */
+      if(a.kind==='abilityswap'){
+        m._lastMove=a.mv;
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(t&&t!==m){
+          const _isFoe=m._sf&&t._sf!==m._sf;
+          const _ok=!_isFoe||(!(t.protect&&!TAGS.has('move',a.mv,'ignoresProtect'))
+            &&!TAGS.has('ability',t.ability,'refusesStatusMoves')
+            &&!moveClassBlocked(t,a.mv)&&!pranksterBlocked(m,t,a.mv));
+          if(_ok){const _ab=m.ability;m.ability=t.ability;t.ability=_ab;}
+        }
+        continue;
       }
       if(a.kind==='fixeddmg'){
         const t=a.target;
@@ -2207,7 +2744,13 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       if(a.kind==='yawn'){
         const t=a.target;
-        if(t&&!t.fainted&&!t.protect&&!t.status&&t._yawn==null&&!pranksterBlocked(m,t,a.mv))
+        /* WIRE 114 -- THE DROWSE ASKS THE SAME QUESTION THE SLEEP DOES. Showdown's yawn condition
+           refuses on `!target.runStatusImmunity('slp')`, so an Insomnia or Purifying Salt body never
+           takes the counter at all -- it does not carry a drowse that then quietly fails. This branch
+           tested only `!t.status`, which is one clause of canTakeStatus, so the counter landed on
+           bodies that could never fall asleep. One function answers "can this body be slept" for both
+           routes now, which is CLAUDE.md's facts-are-global rule one field over. */
+        if(t&&!t.fainted&&!t.protect&&t._yawn==null&&canTakeStatus(t,'slp')&&!pranksterBlocked(m,t,a.mv))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
              and turns a telegraphed threat into an instant one. Same correction the sealsMoves wire
@@ -2299,7 +2842,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(a.mv&&a.target&&!a.target.fainted){
           const _sc2=TAGS.param('move',a.mv,'statChangeInCode');
           if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&a.target.boosts){
-            const _sg=a.target.ability==='contrary'?-1:1;
+            const _sg=invSign(a.target);   // WIRE 100b
             for(const k in _sc2.boosts){
               const _s=SD2ENG[k]; if(!_s||a.target.boosts[_s]==null) continue;
               const _d=_sc2.boosts[k]*_sg;
@@ -2310,6 +2853,52 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
+        /* WIRE 92 -- `preventsSwitch` (Shadow Tag on Gengar-Mega) holds a VOLUNTARY switch. Only the
+           bare switch is gated: `a.mv` present means a pivot MOVE (Parting Shot, Chilly Reception),
+           which trapping does not stop in the real game either. The exemptions that ARE derivable
+           from the body are applied -- a Ghost type always leaves, and a holder of the same tag is
+           not held (the Shadow Tag mirror rule, read as tag-against-tag rather than a name).
+           `onlyTypes` (Magnet Pull wants Steel) and `onlyGrounded` (Arena Trap) come from the
+           params, which the tag_dex enrichment landed and this code reads -- the comment that used
+           to sit here said those were "not in the params yet" and that both carriers over-trap, and
+           it described a world that ended when the staged batch ran. Counted in
+           MEDSEEN.trapBlockedSwitch, because a refusal that cannot prove it fired is assumed broken.
+
+           SHED SHELL IS NOT HONOURED ON THIS BRANCH and that is a stated gap, not an oversight: the
+           item lets its holder out of ability trapping too, and this dispatch was scoped to leave the
+           ability branch alone. Zero corpus exposure today (Shadow Tag is Gengar-Mega; Magnet Pull
+           and Arena Trap have none), and the move branch below does honour it. */
+        if(!a.mv&&!(m.types||[]).includes('Ghost')&&!TAGS.param('ability',m.ability,'preventsSwitch')){
+          const _held=foes.some(x=>{
+            if(!x||x.fainted||x.curHP<=0)return false;
+            const _ps=TAGS.param('ability',x.ability,'preventsSwitch');
+            if(!_ps)return false;
+            if(_ps.onlyTypes&&!_ps.onlyTypes.some(ty=>(m.types||[]).includes(ty)))return false;
+            if(_ps.onlyGrounded&&((m.types||[]).includes('Flying')||m.ability==='levitate'||m.item==='airballoon'))return false;
+            return true;
+          });
+          if(_held){MEDSEEN.trapBlockedSwitch++;continue;}
+        }
+        /* WIRE 116 -- THE PARTIAL TRAP HOLDS THE SWITCH, and until now it did not, anywhere. `_trap`
+           was set (WIRE 51), chipped, expired and even taught to die with its trapper (WIRE 105) --
+           and it appeared in no switch decision at all, so Fire Spin, Wrap, Infestation, Whirlpool,
+           Sand Tomb, Thunder Cage and Magma Storm dealt their per-turn chip and let the victim walk
+           out. That is most of what those moves are for. The comment at the site that SETS the trap
+           said "the switch-blocking half is NOT modelled" and it is now, so that line is gone too.
+
+           THE RULE, TAKEN OFF THE OFFICIAL ENGINE RATHER THAN FROM MEMORY -- all four arms played at
+           the pinned commit and printed: a bare switch out of an Infestation is REJECTED with
+           "Can't switch: The active Pokémon is trapped"; a GHOST type leaves freely and KEEPS the
+           volatile and the chip (98/130 -> 82/130 over the following turn), which is why the exempt
+           test is here at the switch and not at the tick; a SHED SHELL holder leaves; and U-turn
+           pivots out of it, which the `!a.mv` gate above already expresses.
+
+           Shed Shell is a NAME because the item carries no tag at all -- `data/tags.json` has no
+           `shedshell` entry, so there is nothing to read by shape. Stated, in the place it is read. */
+        if(!a.mv&&m._trap&&!(m.types||[]).includes('Ghost')
+           &&String(m.item||'').replace(/[^a-z0-9]/g,'')!=='shedshell'){
+          MEDSEEN.trapBlockedSwitchByMove++;continue;
+        }
         const idx=own.indexOf(m);
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
            the old behaviour of taking whoever is first, so nothing that used this before changes. */
@@ -2480,6 +3069,31 @@ function battleTurn(S,rng,actsForA,actsForB){
        * without any new state. From the failsIfTargetNotAttacking tag, derived from the move calling
        * queue.willMove(target) -- which separates it from Quick Guard and Wide Guard, whose willAct()
        * does not care about the target at all. */
+      /* WIRE 82, the consuming half. The shield went up at the top of the turn; this is where the
+       * move finds out what happened while it waited. `failsIfHit` is Focus Punch, `failsUnlessHit`
+       * is Shell Trap -- opposite signs of the same reading, both out of the tag's `mode`, so
+       * neither move is named. Beak Blast has no failure condition and falls through to attack. */
+      /* WIRE 88 -- STEEL ROLLER FAILS WITH NO TERRAIN UP, AND CLEARS THE TERRAIN WHEN IT LANDS.
+       * Neither half existed: the engine played it as an unconditional 130 BP Steel move, so three
+       * interaction-matrix rows had medicham2 attacking on a turn the reference engine had already
+       * failed the move. `failsWithoutTerrain` is a new tag rather than a param on `terrainScaled`,
+       * because that tag describes a power multiplier and can carry neither the failure nor the
+       * removal. The clear is applied after the damage, below. */
+      {
+        const _ft=TAGS.param('move',a.move.id,'failsWithoutTerrain');
+        if(_ft&&_ft.needsTerrain&&!field.terrain){m._lastMove=a.move.id;continue;}
+      }
+      if(m._preTurn&&m._preTurn.id===a.move.id){
+        const _md=m._preTurn.p.mode,_wasHit=m._preTurn.hit;
+        /* THE SHIELD COMES DOWN WHEN THE MOVE ITSELF RESOLVES (Showdown removes the volatile in Beak
+         * Blast's onAfterMove), and leaving it up for the rest of the turn was a real second bug the
+         * matrix caught: AVALANCHE is -4 priority against Beak Blast's -3, so it lands AFTER the
+         * blast has already fired and must NOT be burned. Cleared before the failure check acts on
+         * the reading, so the reading is still the one taken while the shield was up. */
+        m._preTurn=null;
+        if(_md==='failsIfHit'&&_wasHit)continue;
+        if(_md==='failsUnlessHit'&&!_wasHit)continue;
+      }
       if(TAGS.has('move',a.move.id,'failsIfTargetNotAttacking')){
         const _tgt=a.target;
         const _their=_tgt?acts.find(x=>x.mon===_tgt):null;
@@ -2573,6 +3187,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          quarter below -- a move that ignores Protect deals FULL damage, not a quarter of it. */
       const _thruProtect=TAGS.has('move',a.move.id,'ignoresProtect');
       let dealt=0,connected=false;
+      /* WIRE 87 -- THE DRAIN HEAL HAPPENS DURING THE MOVE AND THE CONTACT TOLL AFTER IT, and this
+       * engine had the order the other way round. It only shows on a FULL-HP attacker, which is why
+       * it needed the generated matrix to find: medicham2 paid Rough Skin's 1/8, then healed and
+       * clamped back to full, so `hurt` read FALSE where Showdown reads TRUE. Four carriers at once
+       * -- Draining Kiss (865), Bitter Blade (380), Leech Life (136), Horn Leech (11).
+       * The heal is still applied below, where the accumulated `dealt` is known; what is captured
+       * here is the HP the CLAMP must be measured against. */
+      const _hpPreReact=m.curHP;
       for(const tg of targets){if(!tg||tg.fainted)continue;
         /* AN IMMUNE TARGET TAKES NOTHING AT ALL -- not the damage, and not the SECONDARY either.
          *
@@ -2669,7 +3291,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * A rate of exactly 1 is skipped because dmgRange has ALREADY applied that 1.5 to the range;
          * multiplying again here would price Flower Trick at 2.25x. */
         {const _cc=critChance(a.move.id,m,TAGS.param('ability',m.ability,'ignoresDefenderAbility')?'none':tg.ability),_cr=rng();
-         if(_cc>0&&_cc<1&&_cr<_cc)dmg=Math.floor(dmg*1.5);}
+         /* WIRE 96 -- Sniper (`critDamageUp`) multiplies the crit it just rolled, same param the
+          * certain-crit path in dmgRange reads. */
+         if(_cc>0&&_cc<1&&_cr<_cc){
+           const _cdU2=TAGS.param('ability',m.ability,'critDamageUp');
+           dmg=Math.floor(dmg*1.5*((_cdU2&&+_cdU2.critMult)||1));
+         }}
         if(tg.protect&&!_thruProtect)dmg=Math.floor(dmg*0.25);   // Piercing Drill: contact hits through Protect for 25%
         dealt+=Math.min(dmg,tg.curHP);
         /* WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
@@ -2715,6 +3342,58 @@ function battleTurn(S,rng,actsForA,actsForB){
          * the HOLDER DIES to contact) chipped attackers 25% on every touch. requiresForme members
          * are skipped whole: this engine carries no forme state, and a base-forme Cramorant that
          * never Surfed punishing anyone would be a new wrong number, not a wired mechanic. */
+        /* WIRE 84 -- A MULTI-HIT MOVE SETS OFF A REACTOR ONCE PER HIT, AND THIS ENGINE SET IT OFF
+         * ONCE. Showdown runs every `onDamagingHit` per hit, so Bullet Seed into Weak Armor is
+         * def -3 / spe +6 and this engine gave -1 / +2; into Toxic Debris it lays TWO layers (the
+         * tag's own cap) and this engine laid one. Eight of the interaction matrix's divergences
+         * were exactly this, across four carriers and two reactors, and none was reachable from a
+         * single-mechanic probe: `test-engine-diff.js` calls moveHit ONCE and therefore cannot see
+         * a multi-hit at all, which is stated at WIRE 20.
+         *
+         * THE DAMAGE IS STILL ONE PACKET -- that is WIRE 20's declared divergence and it is not
+         * changed here. What is corrected is the COUNT of reaction events, which is a different
+         * quantity and was silently 1.
+         *
+         * ROUNDED, because a stat stage is an integer and expectedHitsOf returns the mean of the
+         * 2-5 distribution (3.1 -> 3, which is what a seeded Showdown rolls). Beat Up is not a
+         * `multiHit` move at all -- it hits once per eligible party member -- so its count comes
+         * from the same `perAlly` param the base power does, and no move is named. */
+        const _react=(()=>{
+          const _n=expectedHitsOf(a.move.id);
+          if(_n>1)return Math.max(1,Math.round(_n));
+          const _vpH=TAGS.param('move',a.move.id,'variablePower');
+          if(_vpH&&_vpH.perAlly){
+            const _pt=(m._sf&&m._sf.team)||[m];
+            let _c=0;for(const _al of _pt)if(_al&&!_al.fainted&&_al.curHP>0&&!(_al.status&&_al.status!=='none'))_c++;
+            return Math.max(1,_c);
+          }
+          return 1;
+        })();
+        for(let _hit=0;_hit<_react;_hit++){
+        /* WIRE 82, the reacting half -- a hit LANDING ON a body that is holding a pre-turn shield.
+         *
+         * Placed beside punishesAttacker because it is the same dispatch question ("who reacts to
+         * being hit?") and NOT inside it, because a preTurnShield holder carries no punishesAttacker
+         * params at all -- anything nested there could never have reached it, which is the mistake
+         * WIRE 80 records one block down.
+         *
+         * The trigger comes from the tag: `contact` for Beak Blast's shield, `damaging` for Focus
+         * Punch's concentration, `physical` for Shell Trap's. `foesOnly` is honoured, so an ally's
+         * spread move does not spring Shell Trap -- read out of the handler's own !isAlly gate.
+         *
+         * `hit` is recorded whether or not the holder survives, and the burn is applied whether or
+         * not it survives, because both happen DURING the hit. */
+        if(tg._preTurn&&tg._preTurn.id&&!(tg._preTurn.p.foesOnly&&tg._sf===m._sf)){
+          const _ps=tg._preTurn.p;
+          const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id)
+                   :_ps.trigger==='physical'?mv.c==='P'
+                   :/* damaging */ mv.c==='P'||mv.c==='S';
+          if(_tr){
+            tg._preTurn.hit=true;
+            if(_ps.mode==='punishAttacker'&&_ps.status&&!m.fainted)
+              applyStatus(m,CODE_OF_STATUS[_ps.status]||_ps.status);
+          }
+        }
         const _pun=TAGS.param('ability',tg.ability,'punishesAttacker');
         if(_pun&&!_pun.requiresForme){
           const _trig=_pun.trigger==='contact'?mvMakesContact(a.move.id)
@@ -2792,6 +3471,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             else if(_rw.mode==='swap'){const _t=m.ability;m.ability=tg.ability;tg.ability=_t;}
           }
         }
+        }   /* end WIRE 84 per-hit reaction loop */
         /* WIRE 12 -- survivesFromFull. Focus Sash is the most-held item in the format (8,078
          * sheets) and Sturdy its ability twin, and neither existed here: every lethal hit into a
          * full-HP sash body was a kill that is not a kill. The gates come from the handler via the
@@ -2836,7 +3516,20 @@ function battleTurn(S,rng,actsForA,actsForB){
          * flag exists for -- Scald, Matcha Gotcha. Cleared BEFORE the damage lands so the thawed
          * target acts normally next turn. */
         if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget')))tg.status='';
-        tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;}
+        tg.curHP-=dmg;if(tg.curHP<=0){tg.curHP=0;tg.fainted=true;
+          /* WIRE 104 -- `boostsOnKO` (Eelevate on Eelektross-Mega; Beast Boost's carriers are not in
+           * the format's usage but the read is by shape). +1 to the attacker's HIGHEST raw stat on a
+           * kill it scored, from the tag's own {stat:'highest', stages:1}. Sheet usage reads 0
+           * because sheets list the pre-mega ability -- Lesson 3, same as Mega Sol. */
+          {const _bk=TAGS.param('ability',m.ability,'boostsOnKO');
+           if(_bk&&_bk.stages&&!m.fainted&&m.boosts){
+             let _key=SD2ENG[_bk.stat]||null;
+             if(_bk.stat==='highest'||!_key){
+               _key='at';for(const _k2 of ['df','sa','sd','sp'])if(m.st[_k2]>m.st[_key])_key=_k2;
+             }
+             m.boosts[_key]=clamp(m.boosts[_key]+(+_bk.stages||1),-6,6);
+           }}
+        }
         else {
           /* WIRE 4 of N -- buffsHolderOnHit and punishesAttacker, ONE dispatch through the `contact`
            * linkage key. Both were entirely absent from this engine.
@@ -2854,8 +3547,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_buff&&_buff.boosts&&tg.boosts){
             /* The tag names the stats and the sizes, read from the handler's own this.boost({...}).
              * Showdown spells them atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. That map is
-             * a naming convention, not a mechanic, so it lives here rather than in the artifact. */
-            for(const k in _buff.boosts){
+             * a naming convention, not a mechanic, so it lives here rather than in the artifact.
+             * WIRE 84: once PER HIT, the same count the punish block uses -- Weak Armor off a
+             * Bullet Seed is -3/+6, not -1/+2. `compounds` is what the tag calls this and it is
+             * true for every member that reaches here. */
+            for(let _bh=0;_bh<_react;_bh++)for(const k in _buff.boosts){
               const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
               tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
             }
@@ -2867,10 +3563,62 @@ function battleTurn(S,rng,actsForA,actsForB){
           const tgAb=(tg.ability||'').replace(/[^a-z0-9]/g,'');
           const mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
           const fx=moveFx(a.move.id);
-          const suppressed = tgAb==='shielddust' || mAb==='sheerforce';
-          if(fx&&fx.secondary&&!suppressed){
+          /* WIRE 97 -- Sheer Force's suppression half reads its own tag (`removesOwnSecondaries`);
+           * the x1.3 it pays for lives in dmgRange under the same tag. Shield Dust stays a name:
+           * it carries `untagged` and no derivation describes it yet -- declared, not hidden.
+           *
+           * WIRE 115 -- THE TWO SUPPRESSIONS ARE NOT THE SAME SUPPRESSION and merging them into one
+           * boolean was wrong in a way no single-mechanic probe could see. Sheer Force sets
+           * `move.secondaries = null` -- EVERY secondary goes, including the ones that boost the
+           * USER. Shield Dust's handler is `secondaries.filter(effect => !!effect.self)` -- it KEEPS
+           * the self ones. So a Trailblaze into a Shield Dust body still leaves the attacker at
+           * Speed +1, and this engine was zeroing it. Verified in the official engine, both arms:
+           * Shield Dust spe+1, Compound Eyes control spe+1. `suppressed` is kept for the two effects
+           * bolted on from outside the move (King's Rock, the procedural status set), where both
+           * abilities really do stop the same thing. */
+          const dustBlocked = tgAb==='shielddust';
+          const sheerForce  = !!TAGS.param('ability',mAb,'removesOwnSecondaries');
+          const suppressed  = dustBlocked || sheerForce;
+          /* WIRE 89 -- THE SECONDARY CHANCE IS A FACT ABOUT THIS FORMAT, AND THE RULEBOOK THIS BLOCK
+           * READS IS NOT A FORMAT. `CHOMP/data/move-effects.json` is generated from
+           * `play.pokemonshowdown.com/data/moves.json` -- the GENERIC gen-9 move data -- and its own
+           * header calls itself *"Authoritative — this is the server data the format runs on."* It is
+           * not: `Dex.forFormat('gen9championsvgc2026regmb')` applies Champions' own modifications on
+           * top, and `data/tags.json` is derived through that door. CLAUDE.md already says this in
+           * the one place it was learned -- *"the ban is a MECHANISM, not a list, so read it from the
+           * FORMAT rather than from memory"* -- and this is the same rule one field over.
+           *
+           * MEASURED BEFORE IT WAS WIRED, by tests/test-rulebook-collision.js, which compares the two
+           * rulebooks fact by fact: 149 of 151 comparable facts AGREE and exactly TWO disagree, both
+           * of them a Champions change the generic file cannot know about --
+           *     IRON HEAD    flinch 20% in this format, 30% generic   7,095 corpus uses
+           *     TOXIC THREAD Speed -2 in this format, -1 generic          6 uses
+           * So this is not a wholesale switch of rulebooks (that is an architecture decision and it
+           * is not ENGINE's): it is the CHANCE, one field, taken from the artifact that read the
+           * format, and every disagreement is COUNTED so a third one cannot arrive silently. */
+          if(fx&&fx.secondary&&!sheerForce){
+            const _si=TAGS.param('move',a.move.id,'statusInflict');
+            const _fmtChance=(s)=>{
+              if(!_si||!Array.isArray(_si.effects))return null;
+              const _k=s.status?['status',s.status]:s.volatile?['volatile',s.volatile]:null;
+              if(!_k)return null;
+              const _e=_si.effects.find(e=>e&&e[_k[0]]===_k[1]&&(e.to==null||e.to==='target'));
+              return _e&&_e.chance!=null?+_e.chance:null;
+            };
             for(const s of fx.secondary){
-              if(rng()*100>=(s.chance==null?100:s.chance)) continue;
+              /* WIRE 115 -- SHIELD DUST, at the one site where it is correct, and shaped like the
+                 handler rather than like a name: the filter KEEPS the entries marked `self` and drops
+                 the rest, so a status, a target drop or a flinch goes and the user's own boost stays.
+                 Counted, because a refusal that cannot prove it fired is assumed broken. */
+              if(dustBlocked&&!s.selfBoosts){MEDSEEN.dustBlockedSecondary++;continue;}
+              const _generic=(s.chance==null?100:s.chance);
+              const _fmt=_fmtChance(s);
+              if(_fmt!=null&&_fmt!==_generic){
+                MEDFAILS.rulebookChanceDrift++;
+                if(!MEDFAILS.rulebookChanceDriftFirst)
+                  MEDFAILS.rulebookChanceDriftFirst=a.move.id+':'+(s.status||s.volatile)+' format '+_fmt+' vs generic '+_generic;
+              }
+              if(rng()*100>=(_fmt!=null?_fmt:_generic)) continue;
               if(s.status){ applyStatus(tg,s.status); }
               /* WIRE 16 -- secondary STAT DROPS, the third kind of secondary and the one that was
                * silently missing: Icy Wind and Electroweb (100% spe-1, the format's speed control),
@@ -2898,7 +3646,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                  these off in the real game too, and it sits inside the same `!suppressed` gate.
                  CONTRARY IS APPLIED, matching the target-side reader two branches up. */
               else if(s.selfBoosts&&m.boosts&&!m.fainted){
-                const _sg=m.ability==='contrary'?-1:1;
+                const _sg=invSign(m);          // WIRE 100b
                 for(const k in s.selfBoosts){
                   const _st=SD2ENG[k];
                   if(_st&&m.boosts[_st]!=null)m.boosts[_st]=clamp(m.boosts[_st]+s.selfBoosts[k]*_sg,-6,6);
@@ -2908,10 +3656,31 @@ function battleTurn(S,rng,actsForA,actsForB){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
                  * Inner Focus blocks it outright. Position in `acts` is the move order. */
                 const ti=actedAt.has(tg)?actedAt.get(tg):-1;
-                if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true;
+                /* Counted on all three branches so a zero is DIAGNOSTIC rather than merely absent:
+                 * "never fired" and "always blocked by Inner Focus" and "the target had already
+                 * moved" are three different states and only the first is a defect. */
+                if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+                else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+                else { tg._flinch=true; MEDSEEN.flinch++; }
               }
             }
           }
+          /* WIRE 103 -- KING'S ROCK (`addsFlinch`): a 10% flinch bolted onto a damaging move that
+           * has no flinch of its own -- Showdown's handler adds the secondary only when none of the
+           * move's own secondaries is a flinch, and that gate is reproduced from the rulebook rather
+           * than assumed. Inside the same suppression the real game applies: Shield Dust blocks it
+           * on the target and Sheer Force deletes it on the user (the item is why a Sheer Force
+           * holder never runs the Rock). Same actedAt/Inner Focus bookkeeping as every other flinch,
+           * so a zero in MEDSEEN.flinch stays diagnostic. */
+          {const _kr=TAGS.param('item',m.item,'addsFlinch');
+           if(_kr&&_kr.pFlinch&&!suppressed&&!tg.fainted
+              &&!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'))
+              &&rng()<+_kr.pFlinch){
+             const ti=actedAt.has(tg)?actedAt.get(tg):-1;
+             if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+             else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+             else { tg._flinch=true; MEDSEEN.flinch++; }
+           }}
           /* WIRE 63 -- THE PROCEDURAL SECONDARIES. Dire Claw (2,300 uses) and Tri Attack roll ONE
            * status out of a set, chosen inside the handler, so the dex's `secondaries` entry carries a
            * chance and NO status at all -- the loop above read it, found nothing to apply, and moved
@@ -2926,14 +3695,23 @@ function battleTurn(S,rng,actsForA,actsForB){
            }}
           // Fake Out still flinches: it is a guaranteed flinch, and it always moves first (+3 priority)
           if(a.move.id==='fakeout'){ const ti=actedAt.has(tg)?actedAt.get(tg):-1;
-            if(ti>actIdx && tgAb!=='innerfocus') tg._flinch=true; }
+            if(ti<=actIdx) MEDSEEN.flinchTooLate++;
+            else if(tgAb==='innerfocus') MEDSEEN.flinchBlockedByInnerFocus++;
+            else { tg._flinch=true; MEDSEEN.flinch++; } }
           /* WIRE 50 -- POISON TOUCH / TOXIC CHAIN, 985 sheets and nothing at all. Lesson 3 bites
            * hardest here and the tag says why: `needsContact` is true, so a SPECIAL attacker carrying
            * Poison Touch contributes to the sheet count and can never trigger. The chance is the
            * tag's 0.3, and applyStatus enforces the Steel/Poison immunities so a Poison Touch
            * Corviknight punch poisons nothing. */
+          /* WIRE 115 -- AND SHIELD DUST STOPS THIS ONE, which is the half of the scope fix that
+             would have been LOST if the blanket check in canTakeStatus were simply deleted. Poison
+             Touch is not a secondary and is blocked anyway; Showdown's handler says so in its own
+             comment ("Despite not being a secondary, Shield Dust / Covert Cloak block Poison Touch's
+             effect") and a 40-seed sweep of the pinned engine reads 12/40 poisoned into Compound Eyes
+             and 0/40 into Shield Dust. Named here, beside the effect, rather than inside a gate that
+             also refuses Will-O-Wisp. */
           {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
-           if(_pt&&(!_pt.needsContact||mvMakesContact(a.move.id))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn');}
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn');}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -2956,12 +3734,18 @@ function battleTurn(S,rng,actsForA,actsForB){
            * NOTHING -- the whole move is the four-to-five turns after it. The fraction is the tag's
            * `chipPerTurn`; the duration is the tag's `turns` string ("4-5"), and the LOW end is taken
            * rather than the mean, because over-running a trap invents turns of chip that the real
-           * move may not get. The switch-blocking half is NOT modelled and is stated: this engine has
-           * no trapping concept, and a trap that stopped a switch would be a much stronger claim. */
+           * move may not get. The switch-blocking half IS modelled as of WIRE 116 -- see the gate in
+           * the switch branch above; this comment used to say it was not. */
           {const _pt2=TAGS.param('move',a.move.id,'partialTrap');
            if(_pt2&&_pt2.chipPerTurn&&!tg.fainted&&!tg._trap){
              const _tn=String(_pt2.turns||'4').match(/\d+/);
-             tg._trap={frac:+_pt2.chipPerTurn,turns:(_tn?+_tn[0]:4)};
+             /* WIRE 105 -- the trap KNOWS ITS TRAPPER. Showdown's partiallytrapped removes itself
+              * the moment its source leaves the field (onUpdate checks source.isActive), and this
+              * engine kept chipping forever: the interaction matrix's `infestation -> beakblast` row
+              * had Beak Blast KO the trapper in BOTH engines and only medicham2 still showed
+              * `vol:["partiallytrapped"]` afterwards. `by` is the body, compared by identity at the
+              * tick. */
+             tg._trap={frac:+_pt2.chipPerTurn,turns:(_tn?+_tn[0]:4),by:m};
            }}
           /* WIRE 52 -- CURSED BODY, 1,342 sheets. It seals the move that just hit it, which is
            * Disable arriving from the defending side, and the engine already has everywhere it needs
@@ -3024,12 +3808,23 @@ function battleTurn(S,rng,actsForA,actsForB){
        * drains and never how much. engine/tag_dex.js now emits the value. Reading `unusual:false` and
        * assuming 0.5 would have been a silent default AND would have left Draining Kiss, which is 3/4,
        * quietly wrong in the one case the flag exists to mark. */
+      /* WIRE 88, the other half: a landed Steel Roller REMOVES the terrain. `clears` is the tag's,
+         read from the handler's own clearTerrain(). */
+      {
+        const _ft2=TAGS.param('move',a.move.id,'failsWithoutTerrain');
+        if(_ft2&&_ft2.clears&&connected){field.terrain='';field.terrainT=0;}
+      }
       {
         const _dr=TAGS.param('move',a.move.id,'drain');
         /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
          * version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
         if(_dr&&_dr.fraction&&dealt>0&&!m.fainted&&m.st&&!healBlocked(m)){
-          m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(dealt*_dr.fraction));
+          /* WIRE 87 -- CLAMPED AGAINST THE HP THE USER HAD BEFORE ANY REACTION, not against the HP
+           * it has now. Showdown drains inside the move and pays the contact toll afterwards, so a
+           * full-HP Draining Kiss into Rough Skin gains NOTHING from the drain and still pays the
+           * eighth. Adding the heal to the post-toll HP healed the toll straight back. */
+          const _gain=Math.min(m.st.hp,_hpPreReact+Math.floor(dealt*_dr.fraction))-_hpPreReact;
+          if(_gain>0)m.curHP=Math.min(m.st.hp,m.curHP+_gain);
         }
       }
       /* WIRE 65 -- A MOVE THAT REACHED NOTHING PAYS NOTHING. Found by tests/test-game-diff.js's
@@ -3041,9 +3836,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          type immunity, after the absorb ability and after the invulnerability check. */
       // self stat changes from mv.self (dex-generated); Contrary flips drops into boosts
       const sdrop=connected?a.move.mv.self:null;
-      if(sdrop){const sgn=m.ability==='contrary'?-1:1;
+      if(sdrop){const sgn=invSign(m);   // WIRE 100b
         for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null)m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);}}
-      if(m.item==='lifeorb'&&a.move.d.max>0){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      /* WIRE 97 -- a Sheer Force-boosted move pays NO Life Orb recoil (the real interaction, and the
+         reason the pairing is played). Boosted means: the ability removes secondaries AND this move
+         had one to remove -- the same two reads the damage half makes. */
+      if(m.item==='lifeorb'&&a.move.d.max>0){
+        const _ros2=TAGS.param('ability',m.ability,'removesOwnSecondaries');
+        const _sfB=_ros2&&(()=>{const f=moveFx(a.move.id);return !!(f&&f.secondary&&f.secondary.length);})();
+        if(!_sfB){m.curHP-=Math.floor(m.st.hp*0.1);if(m.curHP<=0){m.curHP=0;m.fainted=true;}}
+      }
       /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
          power, so they arrived here as ordinary attacks and the drag -- which is the entire reason a
          phazing move is played -- simply did not happen. AFTER the damage, like the pivot above, and
@@ -3056,7 +3858,9 @@ function battleTurn(S,rng,actsForA,actsForB){
           for(const tg of targets){
             if(!tg||tg.fainted||tg.curHP<=0)continue;
             const _i=_foes.indexOf(tg); if(_i<0)continue;
-            switchOut(_foes,_i,_fb,_own,_fsf,field,null);
+            /* WIRE 102 -- the drag target is a DIE here too, same as the phaze branch. */
+            const _lb=_live(_fb);
+            switchOut(_foes,_i,_fb,_own,_fsf,field,_lb.length?_lb[Math.floor(rng()*_lb.length)]:null);
           }
         }
       }
@@ -3225,10 +4029,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `grassyterrain` is `perTurnHP {effect:'heal', per:16, on:'user'}`, and WIRE 72's guard is what
        * left it readable. The terrain is matched by `terrainId`, so either vocabulary works.
        *
-       * GROUNDED-NESS IS NOT MODELLED and that is the same declared gap Toxic Spikes and Sticky Web
-       * carry (fails.hazardUnresolved): a real Grassy Terrain does not heal a Flying type or a
-       * Levitate body. The TYPE half is cheap and is applied; the ABILITY half is not available, so a
-       * Levitate body is healed and it is counted rather than silently right-looking. */
+       * GROUNDED-NESS: the TYPE half is applied and the ABILITY half is still counted rather than
+       * fixed (fails.terrainHealUngrounded). WIRE 90 wired the hazard twin of this gap by deriving
+       * grounded-ness from the body, so "not available" no longer holds as a reason -- what holds is
+       * that no probe has failed on this line yet, and the counter keeps it declared until one does. */
       {const _th=terrainPerTurnHP()[terrainId(field.terrain)];
        if(_th&&_th.effect==='heal'&&_th.per&&!healBlocked(m)){
          if(m.types.indexOf('Flying')<0)
@@ -3271,9 +4075,16 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* WIRE 51 -- THE TRAP CHIPS. Beside Leech Seed because it is the same kind of clock, and after
        * the status chips for the same residual-order reason. */
       if(m._trap&&m.curHP>0){
-        m.curHP-=Math.floor(m.st.hp*m._trap.frac);
-        if(--m._trap.turns<=0)m._trap=null;
-        if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+        /* WIRE 105 -- the trap DIES WITH ITS TRAPPER. A source that fainted or left the field ends
+         * the trap before this tick chips, which is Showdown's own onUpdate rule. A trap whose
+         * source is unknown (set by a caller outside the battle loop) keeps the old behaviour. */
+        const _by=m._trap.by;
+        if(_by&&(_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0))){m._trap=null;}
+        else{
+          m.curHP-=Math.floor(m.st.hp*m._trap.frac);
+          if(--m._trap.turns<=0)m._trap=null;
+          if(m.curHP<=0){m.curHP=0;m.fainted=true;}
+        }
       }
       if(m._seededBy&&m.curHP>0){
         /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
@@ -3306,6 +4117,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(x._noSound>0)x._noSound--;
       if(x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
     }
+    /* WIRE 82 -- the shield lasts exactly the turn it was raised (Showdown's volatile has
+     * duration 1). Cleared for BOTH sides here rather than in the attack branch, because a holder
+     * that was flinched, paralysed or KO'd never reached its own action. */
+    [...actA,...actB].forEach(m=>{if(m)m._preTurn=null;});
     [...actA,...actB].forEach(m=>{if(m&&!m.fainted)m._turnsOut++;if(m&&m._lockT!==Infinity&&m._lockT>0&&--m._lockT<=0)m._lock=null;
       /* Disable ticks HERE and not in chooseAction, so a turn where the caller supplied the action
        * still spends one — a duration that only counts down when the engine happens to be the one
@@ -3412,7 +4227,10 @@ function playerAction(me,moveId,target,field){
      Decorate {atk:2,spa:2}, Howl, Aromatic Mist, Flatter, Swagger -- so the stages come from the
      artifact and nothing is guessed. Contrast lowersTarget, which says readFrom:"m.boosts" and is
      therefore NOT implementable from anything this engine can read. */
-  if(TAGS.has('move',id,'boostsTarget'))return {kind:'boostally',mv:id};
+  /* WIRE 106 -- the TARGET travels with the click. Decorate can legally be aimed at a FOE (+2/+2 to
+     it -- Showdown applies it), and dropping the caller's target here re-aimed every such click at
+     the ally: three interaction-matrix rows read `.A.active[1].boosts.atk medi=2 sd=0` at once. */
+  if(TAGS.has('move',id,'boostsTarget'))return {kind:'boostally',mv:id,target};
   /* LEECH SEED and the rest of the perTurnHP family. The RESOLUTION for this already existed -- the
      status branch reads the tag, checks the Grass immunity from the move's own onTryImmunity and sets
      _seededBy -- and playerAction simply never produced an action that could reach it, so the click
@@ -3441,6 +4259,39 @@ function playerAction(me,moveId,target,field){
   {
     const _fd=TAGS.param('move',id,'fixedDamage');
     if(_fd&&_fd.source==='halfTargetCurrentHP')return {kind:'fixeddmg',mv:id,target};
+  }
+  /* WIRE 107 -- TRICK AND SWITCHEROO (`takesTargetItem` with swaps, 353 clicks) and CORROSIVE GAS
+     (removes without stealing). Status moves only -- the damaging members (Knock Off, Thief, Covet,
+     Bug Bite) carry base power and are already served by `removesItem` in the attack branch, so
+     nothing double-fires. Stuff Cheeks (consumes its OWN berry) carries neither flag and falls
+     through untouched. */
+  {
+    const _ti=TAGS.param('move',id,'takesTargetItem');
+    if(_ti&&(_ti.swaps||_ti.removes))return {kind:'trickitem',mv:id,target};
+  }
+  /* WIRE 108 -- TRICK-OR-TREAT, FOREST'S CURSE, SOAK, MAGIC POWDER (`changesTargetType`). The tag
+     says whether the type is ADDED or REPLACES, and WHICH type is the move's own type -- true of all
+     four members (Ghost move adds Ghost, Water move writes Water), so no type is named here and no
+     tag_dex change was needed. */
+  {
+    const _ct=TAGS.param('move',id,'changesTargetType');
+    if(_ct&&(_ct.adds||_ct.replaces))return {kind:'typechange',mv:id,target};
+  }
+  /* WIRE 109 -- AFTER YOU and QUASH (`reordersTurn`). INSTRUCT carries the identical {sends:'next'}
+     and does something completely different -- it makes the target REPEAT its move -- and the
+     census's "nothing in the artifact tells the two apart" was wrong: Instruct also carries
+     `instructsTarget` ({extraAction:true}), a declared fact, and excluding on it is a shape read,
+     not a name. Instruct itself stays an honest pass. */
+  {
+    const _ro=TAGS.param('move',id,'reordersTurn');
+    if(_ro&&_ro.sends&&!TAGS.has('move',id,'instructsTarget'))return {kind:'reorder',mv:id,target};
+  }
+  /* WIRE 110 (STAGED) -- SKILL SWAP (`swapsAbilities`). The derivation is written in tag_dex and the
+     regeneration is staged; until data/tags.json carries the tag this branch matches nothing, which
+     is the honest pre-regeneration state (the probe injects the staged tag through TAGS.__setDB). */
+  {
+    const _sw3=TAGS.param('move',id,'swapsAbilities');
+    if(_sw3&&_sw3.swaps)return {kind:'abilityswap',mv:id,target};
   }
   /* WIRE 39 -- HAZE (552 uses) and Clear Smog. `clearsBoosts` resolved to `kind: pass`, so the one
      move in the format that answers a Belly Drum or a Dragon Dance was a wasted turn in every
@@ -3612,5 +4463,7 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * four setters writing a literal 5. It calls this rather than growing its own rock read. */
   weatherTurns,
   /* The swallowed-failure counters. Zero is a CLAIM, not a pass — read it, do not assume it. */
-  fails:MEDFAILS};
+  fails:MEDFAILS,
+  /* Capabilities that FIRED. A zero here is the finding — see MEDSEEN's own comment. */
+  seen:MEDSEEN};
 })(typeof window!=='undefined'?window:globalThis);

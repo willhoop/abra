@@ -1,0 +1,45 @@
+{
+  "id": "55c7a0f19c86",
+  "cut": "2026-08-05T05:02:53.772Z",
+  "why": "MEASURE 2026-08-05: turn-0 vs mid-game leaf contrast — reconciling winrate-backtest.json against rollout-r1-explore-sweep.json while ENGINE edits medicham2",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "cuts": [
+    {
+      "at": "2026-08-05T05:02:53.772Z",
+      "why": "MEASURE 2026-08-05: turn-0 vs mid-game leaf contrast — reconciling winrate-backtest.json against rollout-r1-explore-sweep.json while ENGINE edits medicham2",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    }
+  ],
+  "files": {
+    "engine/medicham2-browser.js": "e2bcff0db96f",
+    "engine/board.js": "54e3d2ca9f85",
+    "engine/rollout_leaf.js": "7a2311756ab8",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "fa5b8af6513a",
+    "engine/mc_key.js": "37c42eb69363",
+    "engine/lookup.js": "d2a03e8adcc5",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "b651bc4c4836",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "3168f98a24dd",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "96a94b7fadf7",
+    "data/abra-tags.js": "3bc02c068657",
+    "data/tags.json": "c0bb781f47a8",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b"
+  },
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; `cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is cuts.jsonl beside this file and is the source of truth for cuts[].",
+  "bodies_pruned": {
+    "at": "2026-08-05T15:43:25.070Z",
+    "why": "no artifact under data/ cited this release id",
+    "manifest_retained": true,
+    "note": "The digests above are unchanged and still prove what this release contained. Only the copied file bodies were removed. To measure against it again, re-cut from a tree whose files hash to these digests; `verify` will confirm the match."
+  }
+}
